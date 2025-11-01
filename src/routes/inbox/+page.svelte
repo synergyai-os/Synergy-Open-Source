@@ -2,6 +2,8 @@
 	import ReadwiseDetail from '$lib/components/inbox/ReadwiseDetail.svelte';
 	import PhotoDetail from '$lib/components/inbox/PhotoDetail.svelte';
 	import ManualDetail from '$lib/components/inbox/ManualDetail.svelte';
+	import InboxCard from '$lib/components/inbox/InboxCard.svelte';
+	import InboxHeader from '$lib/components/inbox/InboxHeader.svelte';
 	import ResizableSplitter from '$lib/components/ResizableSplitter.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
 
@@ -221,17 +223,30 @@
 		selectedItemId = null;
 	}
 
-	function getTypeIcon(type: InboxItemType): string {
-		switch (type) {
-			case 'readwise_highlight':
-				return '📚';
-			case 'photo_note':
-				return '📷';
-			case 'manual_text':
-				return '✍️';
-			default:
-				return '📝';
-		}
+	// Header actions
+	function handleDeleteAll() {
+		console.log('Delete all clicked');
+		// TODO: Implement delete all functionality
+	}
+
+	function handleDeleteAllRead() {
+		console.log('Delete all read clicked');
+		// TODO: Implement delete all read functionality
+	}
+
+	function handleDeleteAllCompleted() {
+		console.log('Delete all completed clicked');
+		// TODO: Implement delete all completed functionality
+	}
+
+	function handleFilterClick() {
+		console.log('Filter clicked');
+		// TODO: Implement filter menu
+	}
+
+	function handleSortClick() {
+		console.log('Sort clicked');
+		// TODO: Implement sort menu
 	}
 </script>
 
@@ -257,65 +272,42 @@
 			onWidthChange={handleInboxWidthChange}
 			onClose={() => (inboxWidth = 175)}
 		>
-			<div class="bg-gray-50 overflow-y-auto h-full">
-				<div class="p-4">
-					<h2 class="text-xl font-bold text-gray-900 mb-4">
-						{filterType === 'all'
-							? 'Inbox'
-							: filterType.charAt(0).toUpperCase() + filterType.slice(1).replace('_', ' ')}
-					</h2>
+			<div class="bg-surface h-full flex flex-col overflow-hidden">
+				<!-- Sticky Header -->
+				<InboxHeader
+					onDeleteAll={handleDeleteAll}
+					onDeleteAllRead={handleDeleteAllRead}
+					onDeleteAllCompleted={handleDeleteAllCompleted}
+					onFilterClick={handleFilterClick}
+					onSortClick={handleSortClick}
+				/>
 
-					<!-- Inbox Items List -->
-					<div class="space-y-2">
-						{#each filteredItems as item}
-							<button
-								type="button"
-								class="w-full text-left p-3 bg-white rounded-lg border-2 transition-all"
-								class:border-blue-600={selectedItemId === item.id}
-								class:border-gray-200={selectedItemId !== item.id}
-								class:hover:border-gray-400={selectedItemId !== item.id}
-								onclick={() => selectItem(item.id)}
-							>
-								<div class="flex items-start gap-2">
-									<!-- Icon -->
-									<div class="text-xl">{getTypeIcon(item.type)}</div>
-
-									<!-- Content -->
-									<div class="flex-1 min-w-0">
-										<h3 class="font-semibold text-gray-900 truncate text-sm">{item.title}</h3>
-										<p class="text-xs text-gray-600 mt-1 line-clamp-2">
-											{item.snippet}
-										</p>
-										<div class="flex items-center gap-1 mt-1">
-											<!-- Tags -->
-											<div class="flex flex-wrap gap-1">
-												{#each item.tags.slice(0, 2) as tag}
-													<span
-														class="bg-gray-100 text-gray-600 text-xs px-1.5 py-0.5 rounded"
-													>
-														{tag}
-													</span>
-												{/each}
-											</div>
-										</div>
-									</div>
-								</div>
-							</button>
-						{/each}
-					</div>
-
-					{#if filteredItems.length === 0}
-						<div class="text-center py-12">
-							<p class="text-gray-500">No items in inbox. Great job! 🎉</p>
+				<!-- Inbox Items List - Scrollable -->
+				<div class="flex-1 overflow-y-auto">
+					<div class="p-inbox-container">
+						<div class="flex flex-col gap-inbox-list">
+							{#each filteredItems as item}
+								<InboxCard
+									item={item}
+									selected={selectedItemId === item.id}
+									onClick={() => selectItem(item.id)}
+								/>
+							{/each}
 						</div>
-					{/if}
+
+						{#if filteredItems.length === 0}
+							<div class="text-center py-12">
+								<p class="text-tertiary">No items in inbox. Great job! 🎉</p>
+							</div>
+						{/if}
+					</div>
 				</div>
 			</div>
 		</ResizableSplitter>
 	{/if}
 
 	<!-- Right Panel - Detail View -->
-	<div class="flex-1 bg-white overflow-y-auto">
+	<div class="flex-1 bg-elevated overflow-y-auto">
 		{#if selectedItem}
 			<!-- Dynamic detail view based on type -->
 			{#if selectedItem.type === 'readwise_highlight'}
@@ -327,9 +319,9 @@
 			{/if}
 		{:else}
 			<!-- Empty state -->
-			<div class="p-8 text-center">
+			<div class="p-inbox-container text-center py-12">
 				<div class="text-6xl mb-4">📮</div>
-				<p class="text-gray-500">Select an item to view details</p>
+				<p class="text-secondary">Select an item to view details</p>
 			</div>
 		{/if}
 	</div>

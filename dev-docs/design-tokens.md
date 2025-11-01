@@ -1,6 +1,6 @@
 # Design Tokens
 
-This document defines our design system tokens extracted from the sidebar design. These values should be used consistently throughout the application.
+This document defines our design system tokens used consistently throughout the application. All tokens support automatic light/dark mode adaptation.
 
 ## Typography
 
@@ -42,6 +42,14 @@ Our spacing scale is based on a 4px base unit (0.25rem):
 | `--spacing-icon-gap` | `gap-icon` | 0.5rem (8px) | Standard icon-text gap |
 | `--spacing-icon-gap-wide` | `gap-icon-wide` | 0.625rem (10px) | Wider icon-text gap |
 | `--spacing-indent` | `pl-indent` | 1.5rem (24px) | Left padding for nested/indented items |
+| `--spacing-inbox-container` | `p-inbox-container` | 1rem (16px) | Inbox container padding |
+| `--spacing-inbox-card-x` | `px-inbox-card` | 0.75rem (12px) | Inbox card horizontal padding |
+| `--spacing-inbox-card-y` | `py-inbox-card` | 0.75rem (12px) | Inbox card vertical padding |
+| `--spacing-inbox-list-gap` | `gap-inbox-list` | 0.5rem (8px) | Gap between inbox cards |
+| `--spacing-inbox-icon-gap` | `gap-inbox-icon` | 0.5rem (8px) | Icon-to-content gap in inbox cards |
+| `--spacing-inbox-title-bottom` | `mb-inbox-title` | 1rem (16px) | Margin below inbox title |
+| `--spacing-inbox-header-x` | `px-inbox-header` | 1rem (16px) | Inbox header horizontal padding |
+| `--spacing-inbox-header-y` | `py-inbox-header` | 0.75rem (12px) | Inbox header vertical padding |
 
 ### Migration Guide
 
@@ -81,13 +89,44 @@ Our spacing scale is based on a 4px base unit (0.25rem):
 - **Standard**: `transition-all duration-150` (150ms)
 - **Colors**: Used for hover states and interactive elements
 
-## Colors (Semantic Tokens - Sidebar)
+## Colors (Semantic Tokens)
 
 **✨ USE SEMANTIC COLOR TOKENS - Colors change automatically with light/dark mode**
 
-All sidebar colors use semantic tokens that automatically adapt to the theme. Instead of `bg-gray-900 text-white`, use `bg-sidebar text-sidebar-primary`.
+We use unified brand color tokens throughout the application. Colors automatically adapt to light/dark theme. **Always use semantic tokens instead of hardcoded colors like `bg-gray-900`, `text-white`, etc.**
 
-### Semantic Color Tokens
+### Unified Brand Colors
+
+**✨ PRIMARY SYSTEM - Use these throughout the app**
+
+| Token | Utility Class | Dark Mode | Light Mode | Usage |
+|-------|--------------|-----------|------------|-------|
+| `--color-text-primary` | `text-primary` | white | gray-900 | Primary text (headings, important content) |
+| `--color-text-secondary` | `text-secondary` | gray-300 | gray-600 | Secondary text (descriptions, subtitles) |
+| `--color-text-tertiary` | `text-tertiary` | gray-500 | gray-500 | Tertiary text (labels, hints) |
+| `--color-bg-base` | `bg-base` | gray-900 | white | Base background (page background) |
+| `--color-bg-surface` | `bg-surface` | gray-800 | gray-50 | Surface background (panels, lists) |
+| `--color-bg-elevated` | `bg-elevated` | gray-750* | white | Elevated surfaces (cards, modals) |
+| `--color-border-base` | `border-base` | gray-800 | gray-200 | Base borders |
+| `--color-border-elevated` | `border-elevated` | gray-700 | gray-300 | Elevated borders (cards) |
+| `--color-accent-primary` | `border-accent-primary` | blue-600 | blue-600 | Primary accent (selected states, links) |
+| `--color-bg-hover` | `hover:bg-hover` | gray-800/50 | gray-100/50 | Hover background (subtle) |
+| `--color-bg-hover-solid` | `hover:bg-hover-solid` | gray-800 | gray-100 | Hover background (solid) |
+| `--color-bg-selected` | `bg-selected` | blue-600 | blue-600 | Selected state background |
+| `--color-tag-bg` | `bg-tag` | gray-700 | gray-100 | Tag/chip background |
+| `--color-tag-text` | `text-tag` | gray-300 | gray-600 | Tag/chip text |
+
+*Note: `gray-750` is a custom shade slightly lighter than gray-800 for elevated surfaces in dark mode.
+
+**Benefits:**
+- ✅ One unified color system for entire app
+- ✅ Automatic light/dark mode adaptation
+- ✅ Change all colors globally by updating CSS variables
+- ✅ Self-documenting (semantic names explain purpose)
+
+### Sidebar-Specific Colors
+
+For sidebar components, we use sidebar-specific tokens that work with the sidebar's unique styling:
 
 | Token | Utility Class | Dark Mode | Light Mode | Usage |
 |-------|--------------|-----------|------------|-------|
@@ -106,23 +145,25 @@ All sidebar colors use semantic tokens that automatically adapt to the theme. In
 
 **Before (hardcoded colors):**
 ```html
-<aside class="bg-gray-900 text-white border-gray-800">
-  <a class="text-gray-300 hover:bg-gray-800/50 hover:text-white">...</a>
-</aside>
+<div class="bg-gray-50 text-gray-900 border-gray-200">
+  <button class="bg-white text-gray-600 hover:bg-gray-100">...</button>
+  <span class="bg-gray-100 text-gray-600">Tag</span>
+</div>
 ```
 
 **After (semantic tokens - auto-adapts to theme):**
 ```html
-<aside class="bg-sidebar text-sidebar-primary border-sidebar">
-  <a class="text-sidebar-secondary hover:bg-sidebar-hover hover:text-sidebar-primary">...</a>
-</aside>
+<div class="bg-surface text-primary border-base">
+  <button class="bg-elevated text-secondary hover:bg-hover-solid">...</button>
+  <span class="bg-tag text-tag">Tag</span>
+</div>
 ```
 
 **Benefits:**
 - ✅ Colors automatically adapt to light/dark mode
-- ✅ Change all sidebar colors by updating CSS variables
+- ✅ Change all colors globally by updating CSS variables
 - ✅ Self-documenting (semantic names explain purpose)
-- ✅ Consistent theming across all sidebar components
+- ✅ Consistent theming across entire application
 
 ## Common Patterns
 
@@ -160,6 +201,35 @@ text-label font-medium text-gray-500 uppercase tracking-wider mb-1.5
 w-4 h-4 flex-shrink-0
 ```
 *Always use with `flex-shrink-0` to prevent icon from shrinking*
+
+### InboxCard Pattern
+**Full pattern:**
+```
+w-full text-left bg-elevated rounded-md transition-all duration-150 border-2 border-base hover:border-elevated
+```
+**With selected state:**
+```
+border-selected (when selected) | border-base (when not selected)
+```
+**Card content:**
+```
+px-inbox-card py-inbox-card
+flex items-start gap-inbox-icon
+```
+**Tag pattern (within cards):**
+```
+bg-tag text-tag text-label px-badge py-badge rounded
+```
+
+### InboxHeader Pattern (sticky header)
+```
+sticky top-0 z-10 bg-elevated border-b border-base px-inbox-header py-inbox-header
+flex items-center justify-between
+```
+**Header buttons:**
+```
+w-8 h-8 flex items-center justify-center rounded-md hover:bg-hover-solid transition-colors text-secondary hover:text-primary
+```
 
 ## Usage Guidelines
 

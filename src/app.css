@@ -66,6 +66,36 @@
 	--color-sidebar-active: oklch(27.9% 0.041 260.031); /* gray-800 dark - active state */
 }
 
+/* Light mode overrides for unified brand colors */
+html:not(.dark) {
+	--color-text-primary: oklch(20.8% 0.042 265.755); /* gray-900 */
+	--color-text-secondary: oklch(44.6% 0.043 257.281); /* gray-600 */
+	--color-bg-base: oklch(100% 0 0); /* white */
+	--color-bg-surface: oklch(98.8% 0.002 264.531); /* gray-50 */
+	--color-bg-elevated: oklch(100% 0 0); /* white */
+	--color-border-base: oklch(92.8% 0.006 264.531); /* gray-200 */
+	--color-border-elevated: oklch(86.9% 0.022 252.894); /* gray-300 */
+	--color-bg-hover: oklch(96.7% 0.003 264.542 / 0.5); /* gray-100/50 */
+	--color-bg-hover-solid: oklch(96.7% 0.003 264.542); /* gray-100 */
+	--color-tag-bg: oklch(96.7% 0.003 264.542); /* gray-100 */
+	--color-tag-text: oklch(44.6% 0.043 257.281); /* gray-600 */
+}
+
+/* Dark mode overrides for unified brand colors */
+html.dark {
+	--color-text-primary: oklch(98.5% 0.002 247.839); /* white */
+	--color-text-secondary: oklch(70.4% 0.04 256.788); /* gray-300 */
+	--color-bg-base: oklch(20% 0.002 247.839); /* gray-900 */
+	--color-bg-surface: oklch(27.9% 0.041 260.031); /* gray-800 */
+	--color-bg-elevated: oklch(31.4% 0.044 257.287); /* gray-750/slightly lighter */
+	--color-border-base: oklch(27.9% 0.041 260.031); /* gray-800 */
+	--color-border-elevated: oklch(37.2% 0.044 257.287); /* gray-700 */
+	--color-bg-hover: oklch(27.9% 0.041 260.031 / 0.5); /* gray-800/50 */
+	--color-bg-hover-solid: oklch(27.9% 0.041 260.031); /* gray-800 */
+	--color-tag-bg: oklch(37.2% 0.044 257.287); /* gray-700 */
+	--color-tag-text: oklch(70.4% 0.04 256.788); /* gray-300 */
+}
+
 /* Light mode overrides for sidebar colors */
 html:not(.dark) {
 	--color-sidebar-bg: oklch(100% 0 0); /* white */
@@ -125,6 +155,85 @@ html:not(.dark) {
 }
 @utility pl-indent {
 	padding-left: var(--spacing-indent);
+}
+
+/* Inbox Spacing Utilities */
+@utility p-inbox-container {
+	padding: var(--spacing-inbox-container);
+}
+@utility px-inbox-container {
+	padding-inline: var(--spacing-inbox-container);
+}
+@utility py-inbox-container {
+	padding-block: var(--spacing-inbox-container);
+}
+@utility px-inbox-card {
+	padding-inline: var(--spacing-inbox-card-x);
+}
+@utility py-inbox-card {
+	padding-block: var(--spacing-inbox-card-y);
+}
+@utility gap-inbox-list {
+	gap: var(--spacing-inbox-list-gap);
+}
+@utility gap-inbox-icon {
+	gap: var(--spacing-inbox-icon-gap);
+}
+@utility mb-inbox-title {
+	margin-bottom: var(--spacing-inbox-title-bottom);
+}
+@utility px-inbox-header {
+	padding-inline: var(--spacing-inbox-header-x);
+}
+@utility py-inbox-header {
+	padding-block: var(--spacing-inbox-header-y);
+}
+
+/* Unified Brand Color Utilities - Used throughout the app */
+@utility text-primary {
+	color: var(--color-text-primary);
+}
+@utility text-secondary {
+	color: var(--color-text-secondary);
+}
+@utility text-tertiary {
+	color: var(--color-text-tertiary);
+}
+@utility bg-base {
+	background-color: var(--color-bg-base);
+}
+@utility bg-surface {
+	background-color: var(--color-bg-surface);
+}
+@utility bg-elevated {
+	background-color: var(--color-bg-elevated);
+}
+@utility border-base {
+	border-color: var(--color-border-base);
+}
+@utility border-elevated {
+	border-color: var(--color-border-elevated);
+}
+@utility border-accent-primary {
+	border-color: var(--color-accent-primary);
+}
+@utility bg-hover {
+	background-color: var(--color-bg-hover);
+}
+@utility bg-hover-solid {
+	background-color: var(--color-bg-hover-solid);
+}
+@utility bg-selected {
+	background-color: var(--color-bg-selected);
+}
+@utility border-selected {
+	border-color: var(--color-accent-primary);
+}
+@utility bg-tag {
+	background-color: var(--color-tag-bg);
+}
+@utility text-tag {
+	color: var(--color-tag-text);
 }
 
 /* Semantic Color Utilities - Sidebar Colors */
