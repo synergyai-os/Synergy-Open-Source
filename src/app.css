@@ -23,6 +23,34 @@
 	--spacing-icon-gap: 0.5rem; /* 8px - gap-2 equivalent */
 	--spacing-icon-gap-wide: 0.625rem; /* 10px - gap-2.5 equivalent */
 	--spacing-indent: 1.5rem; /* 24px - pl-6 equivalent for nested/indented items */
+	
+	/* Inbox Spacing Tokens */
+	--spacing-inbox-container: 1rem; /* 16px - p-4 equivalent */
+	--spacing-inbox-card-x: 0.75rem; /* 12px - px-3 equivalent */
+	--spacing-inbox-card-y: 0.75rem; /* 12px - py-3 equivalent */
+	--spacing-inbox-list-gap: 0.5rem; /* 8px - gap-2 equivalent */
+	--spacing-inbox-icon-gap: 0.5rem; /* 8px - gap-2 equivalent */
+	--spacing-inbox-title-bottom: 1rem; /* 16px - mb-4 equivalent */
+	--spacing-inbox-header-x: 1rem; /* 16px - px-4 equivalent */
+	--spacing-inbox-header-y: 0.75rem; /* 12px - py-3 equivalent */
+
+	/* Unified Brand Color Tokens - Used throughout the app */
+	/* These change automatically based on .dark class on <html> */
+	--color-text-primary: oklch(20.8% 0.042 265.755); /* gray-900 light, white dark */
+	--color-text-secondary: oklch(44.6% 0.043 257.281); /* gray-600 light, gray-300 dark */
+	--color-text-tertiary: oklch(55.4% 0.046 257.417); /* gray-500 - same in both modes */
+	--color-bg-base: oklch(100% 0 0); /* white light, gray-900 dark */
+	--color-bg-surface: oklch(98.8% 0.002 264.531); /* gray-50 light, gray-800 dark */
+	--color-bg-elevated: oklch(100% 0 0); /* white - cards, elevated surfaces */
+	--color-border-base: oklch(92.8% 0.006 264.531); /* gray-200 light, gray-800 dark */
+	--color-border-elevated: oklch(86.9% 0.022 252.894); /* gray-300 light, gray-700 dark */
+	--color-accent-primary: oklch(55.4% 0.218 251.813); /* blue-600 - for selected states */
+	--color-accent-hover: oklch(49.2% 0.218 251.813); /* blue-700 - hover state */
+	--color-bg-hover: oklch(96.7% 0.003 264.542 / 0.5); /* gray-100/50 light, gray-800/50 dark */
+	--color-bg-hover-solid: oklch(96.7% 0.003 264.542); /* gray-100 light, gray-800 dark */
+	--color-bg-selected: oklch(55.4% 0.218 251.813); /* blue-600 - selected state */
+	--color-tag-bg: oklch(96.7% 0.003 264.542); /* gray-100 light, gray-700 dark */
+	--color-tag-text: oklch(44.6% 0.043 257.281); /* gray-600 light, gray-300 dark */
 
 	/* Semantic Color Tokens - Sidebar Colors */
 	/* These change automatically based on .dark class on <html> */

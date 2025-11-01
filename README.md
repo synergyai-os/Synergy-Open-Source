@@ -110,8 +110,12 @@ Axon/
 - ✅ Mock flashcard generation workflow
 - ✅ Flashcard study interface (list & study modes)
 - ✅ Full CODE workflow: Collect → Organise → Distill → Express
+- ✅ **Design Token System**: Semantic spacing, colors, typography with light/dark mode
+- ✅ **Theme System**: Persistent app-wide theming with workspace toggle
 
 **Next: Phase 2** - Add Convex schema and connect to real data
+
+**📖 For Full Product Vision & Development Plan:** See `dev-docs/product-vision-and-plan.md`
 
 **Try it:** Visit `/inbox` and `/flashcards` to see the full workflow in action!
 
