@@ -30,7 +30,7 @@
 	let hoverTimeoutId: ReturnType<typeof setTimeout> | null = null;
 	let hoverZoneTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
-	// Keep sidebar open when interacting with dropdown menus
+	// Track mouse position globally to close sidebar when mouse goes too far right
 	function handleDocumentMouseMove(e: MouseEvent) {
 		if (!sidebarCollapsed || isMobile || !hoverState) return;
 		
@@ -44,11 +44,54 @@
 			
 			if (isOverDropdown) {
 				// Cancel any pending hide timeout
-				if (hoverTimeoutId) {
-					clearTimeout(hoverTimeoutId);
-					hoverTimeoutId = null;
+				if (hoverDebounceTimeout) {
+					clearTimeout(hoverDebounceTimeout);
+					hoverDebounceTimeout = null;
 				}
-				isHovered = true;
+				setHoverState(true, 0);
+				return;
+			}
+		}
+		
+		// Check if mouse is over sidebar or hover zone - keep open
+		const sidebarElement = document.querySelector('aside.fixed, aside:not(.hidden)');
+		const hoverZoneElement = document.querySelector('[role="presentation"]');
+		
+		if (sidebarElement) {
+			const sidebarRect = sidebarElement.getBoundingClientRect();
+			if (e.clientX >= sidebarRect.left && e.clientX <= sidebarRect.right) {
+				// Mouse is over sidebar - keep open
+				if (hoverDebounceTimeout) {
+					clearTimeout(hoverDebounceTimeout);
+					hoverDebounceTimeout = null;
+				}
+				return;
+			}
+		}
+		
+		if (hoverZoneElement) {
+			const hoverZoneRect = hoverZoneElement.getBoundingClientRect();
+			if (e.clientX >= hoverZoneRect.left && e.clientX <= hoverZoneRect.right) {
+				// Mouse is over hover zone - keep open
+				if (hoverDebounceTimeout) {
+					clearTimeout(hoverDebounceTimeout);
+					hoverDebounceTimeout = null;
+				}
+				return;
+			}
+		}
+		
+		// Check if mouse has moved too far to the right - close sidebar
+		// Get sidebar position to calculate threshold
+		if (sidebarElement) {
+			const sidebarRect = sidebarElement.getBoundingClientRect();
+			const rightEdge = sidebarRect.right;
+			const closeThreshold = rightEdge + (sidebarWidth * 0.1);
+			
+			// Only close if mouse is far to the right (beyond threshold)
+			// This allows moving mouse back into screen without closing
+			if (e.clientX >= closeThreshold) {
+				setHoverState(false, 200);
 			}
 		}
 	}
@@ -159,18 +202,9 @@
 			setHoverState(true, 0);
 		}}
 		onmouseleave={() => {
-			// Delay hiding to allow mouse to move to sidebar
-			hoverZoneTimeoutId = setTimeout(() => {
-				// Only hide if mouse isn't over sidebar or dropdown
-				if (typeof window !== 'undefined') {
-					const dropdownElements = document.querySelectorAll('[data-radix-portal], [role="menu"]');
-					const sidebarElement = document.querySelector('aside.fixed');
-					if (!dropdownElements.length && !sidebarElement) {
-						setHoverState(false, 200);
-					}
-				}
-				hoverZoneTimeoutId = null;
-			}, 100);
+			// Don't close on hover zone leave - let global mouse tracker handle closing
+			// The global tracker will close when mouse goes too far right
+			// This allows mouse to exit on left and come back without closing
 		}}
 		role="presentation"
 	></div>
@@ -229,9 +263,10 @@
 				// Keep sidebar open when mouse enters
 				setHoverState(true, 0);
 			}}
-			onmouseleave={() => {
-				// Use debounced hover state
-				setHoverState(false, 200);
+			onmouseleave={(e) => {
+				// Don't close immediately on mouseleave - let global mouse tracker handle it
+				// This allows mouse to exit on left side without closing
+				// Reset handle visibility
 				isHoveringRightEdge = false;
 			}}
 			onmousemove={(e) => {
@@ -422,8 +457,10 @@
 				// Don't hide - mouse is going to dropdown
 				return;
 			}
-			// Use debounced hover state
-			setHoverState(false, 200);
+			
+			// Don't close immediately on mouseleave - let global mouse tracker handle it
+			// This allows mouse to exit on left side without closing, and will close
+			// when mouse moves too far to the right via the global tracker
 		}}
 	>
 		<!-- Sticky Header with Workspace Menu -->
