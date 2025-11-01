@@ -86,21 +86,36 @@
 		position: absolute;
 		top: 0;
 		right: 0;
-		width: 4px;
 		height: 100%;
+		width: 16px;
 		cursor: col-resize;
 		background: transparent;
 		border: none;
 		padding: 0;
 		transition: background-color 0.2s;
 		z-index: 10;
+		/* Position the handle to straddle the border perfectly */
+		transform: translateX(0);
 	}
 
-	.resize-handle:hover {
+	.resize-handle::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		/* Center the visual line on the border - 8px from left centers it in the 16px handle */
+		left: 16px;
+		width: 4px;
+		height: 100%;
+		transition: background-color 0.2s;
+		/* Shift left by 2px to center the 4px line on the border */
+		transform: translateX(-2px);
+	}
+
+	.resize-handle:hover::after {
 		background: #3b82f6;
 	}
 
-	.resize-handle.active {
+	.resize-handle.active::after {
 		background: #2563eb;
 	}
 </style>
