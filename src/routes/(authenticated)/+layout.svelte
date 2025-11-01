@@ -25,18 +25,22 @@
 
 	// Sidebar state
 	let sidebarCollapsed = $state(false);
-	let sidebarWidth = $state(256);
+	let sidebarWidth = $state(286); // Default width: 286px (was 256px, increased by 30px)
 
 	// Initialize sidebar width from localStorage
 	if (browser) {
-		const savedSidebarWidth = parseInt(localStorage.getItem('sidebarWidth') || '256');
-		sidebarWidth = savedSidebarWidth;
+		const savedSidebarWidth = parseInt(localStorage.getItem('sidebarWidth') || '286');
+		// Ensure width is at least the minimum (192px) to prevent sidebar from being invisible
+		sidebarWidth = Math.max(192, savedSidebarWidth);
 	}
 
 	function handleSidebarWidthChange(width: number) {
-		sidebarWidth = width;
-		if (browser) {
-			localStorage.setItem('sidebarWidth', width.toString());
+		// Don't save width 0 - preserve the original width when collapsing
+		if (width > 0) {
+			sidebarWidth = width;
+			if (browser) {
+				localStorage.setItem('sidebarWidth', width.toString());
+			}
 		}
 	}
 
