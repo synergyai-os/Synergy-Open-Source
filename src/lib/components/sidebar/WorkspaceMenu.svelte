@@ -16,16 +16,18 @@
 	<DropdownMenu.Trigger
 		as="button"
 		type="button"
-		class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors w-full text-left"
+		class="flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-gray-800 transition-colors w-full text-left group"
 	>
-		<div class="flex items-center gap-2 flex-1 min-w-0">
+		<div class="flex items-center gap-2.5 flex-1 min-w-0">
 			<!-- Logo placeholder - can be replaced with actual logo -->
-			<div class="w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center flex-shrink-0">
-				<span class="text-white text-xs font-bold">A</span>
+			<div
+				class="w-7 h-7 rounded-md bg-teal-500 flex items-center justify-center flex-shrink-0 shadow-sm"
+			>
+				<span class="text-white text-xs font-semibold">A</span>
 			</div>
-			<span class="font-medium text-white truncate">{workspaceName}</span>
+			<span class="font-medium text-sm text-white truncate">{workspaceName}</span>
 			<svg
-				class="w-4 h-4 text-gray-400 flex-shrink-0 transition-transform"
+				class="w-3.5 h-3.5 text-gray-400 flex-shrink-0 transition-transform duration-200 group-hover:text-gray-300"
 				class:rotate-180={open}
 				fill="none"
 				stroke="currentColor"
@@ -38,31 +40,37 @@
 
 	<DropdownMenu.Portal>
 		<DropdownMenu.Content
-			class="bg-white rounded-lg shadow-lg border border-gray-200 min-w-[200px] py-1 z-50"
+			class="bg-white rounded-md shadow-xl border border-gray-200/50 min-w-[220px] py-1.5 z-50"
 			side="bottom"
 			align="start"
-			sideOffset={4}
+			sideOffset={6}
 		>
 			<DropdownMenu.Item
-				class="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center justify-between"
+				class="px-3 py-2 text-sm text-gray-900 hover:bg-gray-50 cursor-pointer flex items-center justify-between focus:bg-gray-50 outline-none"
 				textValue="Settings"
-				onSelect={() => onSettings?.()}
+				onSelect={() => {
+					onSettings?.();
+					open = false;
+				}}
 			>
-				<span>Settings</span>
-				<span class="text-xs text-gray-400 ml-4">G then S</span>
+				<span class="font-normal">Settings</span>
+				<span class="text-xs text-gray-500 ml-4 font-mono">G then S</span>
 			</DropdownMenu.Item>
 
-			<DropdownMenu.Separator class="my-1 border-t border-gray-200" />
+			<DropdownMenu.Separator class="my-1.5 border-t border-gray-100" />
 
 			<DropdownMenu.Item
-				class="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+				class="px-3 py-2 text-sm text-gray-900 hover:bg-gray-50 cursor-pointer focus:bg-gray-50 outline-none"
 				textValue="Log out"
-				onSelect={() => onLogout?.()}
+				onSelect={() => {
+					onLogout?.();
+					open = false;
+				}}
 			>
-				<span class="flex items-center gap-2">
-					<span>Log out</span>
-					<span class="text-xs text-gray-400 ml-auto">⌘⇧Q</span>
-				</span>
+				<div class="flex items-center justify-between w-full">
+					<span class="font-normal">Log out</span>
+					<span class="text-xs text-gray-500 ml-4 font-mono">⌘⇧Q</span>
+				</div>
 			</DropdownMenu.Item>
 		</DropdownMenu.Content>
 	</DropdownMenu.Portal>

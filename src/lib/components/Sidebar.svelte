@@ -78,12 +78,6 @@
 				workspaceName="Axon"
 				sidebarCollapsed={sidebarCollapsed}
 				isMobile={isMobile}
-				isHovered={isHovered}
-				isPinned={isPinned}
-				onToggleCollapse={onToggleCollapse}
-				onTogglePin={() => {
-					isPinned = !isPinned;
-				}}
 				onSettings={() => {
 					console.log('Settings clicked');
 				}}
@@ -94,110 +88,195 @@
 
 			<!-- Navigation - Scrollable area -->
 			{#if !sidebarCollapsed || isPinned}
-				<nav class="flex-1 p-4 space-y-4 overflow-y-auto">
+				<nav class="flex-1 px-2 py-2 overflow-y-auto">
 					<!-- Inbox -->
-					<div>
-						<a
-							href="/inbox"
-							class="relative flex items-center justify-between p-3 rounded-lg hover:bg-gray-800 transition-colors"
-							title="Inbox"
+					<a
+						href="/inbox"
+						class="group relative flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
+						title="Inbox"
+					>
+						<!-- Icon -->
+						<svg
+							class="w-4 h-4 flex-shrink-0"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+							xmlns="http://www.w3.org/2000/svg"
 						>
-							<span class="text-2xl">📮</span>
-							<span class="font-medium">Inbox</span>
-							<span class="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+							/>
+						</svg>
+						<span class="font-normal flex-1 min-w-0">Inbox</span>
+						{#if inboxCount > 0}
+							<span
+								class="bg-gray-700 text-gray-300 text-[10px] font-medium px-1.5 py-0.5 rounded min-w-[18px] text-center flex-shrink-0"
+							>
 								{inboxCount}
 							</span>
-						</a>
-					</div>
+						{/if}
+					</a>
 
 					<!-- Flashcards -->
-					<div>
-						<a
-							href="/flashcards"
-							class="flex items-center p-3 rounded-lg hover:bg-gray-800 transition-colors"
-							title="Flashcards"
+					<a
+						href="/flashcards"
+						class="group flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
+						title="Flashcards"
+					>
+						<!-- Icon -->
+						<svg
+							class="w-4 h-4 flex-shrink-0"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+							xmlns="http://www.w3.org/2000/svg"
 						>
-							<span class="text-2xl">🎯</span>
-							<span class="font-medium">Flashcards</span>
-						</a>
-					</div>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+							/>
+						</svg>
+						<span class="font-normal">Flashcards</span>
+					</a>
 
 					<!-- Filter Divider -->
-					<div class="border-t border-gray-800 pt-4">
-						<p class="text-xs font-semibold text-gray-400 uppercase mb-2">Filters</p>
-						<div class="space-y-1">
+					<div class="border-t border-gray-800/50 my-2"></div>
+					<div class="px-2 py-1">
+						<p class="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1.5">
+							Filters
+						</p>
+						<div class="space-y-0.5">
 							<button
 								type="button"
-								class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors"
-								class:bg-blue-600={filterType === 'all'}
-								class:hover:bg-blue-700={filterType === 'all'}
+								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
+								class:bg-gray-800={filterType === 'all'}
+								class:text-white={filterType === 'all'}
 								onclick={() => onFilterChange('all')}
 							>
-								All
+								<span class="font-normal">All</span>
 							</button>
 							<button
 								type="button"
-								class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors"
-								class:bg-blue-600={filterType === 'readwise_highlight'}
-								class:hover:bg-blue-700={filterType === 'readwise_highlight'}
+								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
+								class:bg-gray-800={filterType === 'readwise_highlight'}
+								class:text-white={filterType === 'readwise_highlight'}
 								onclick={() => onFilterChange('readwise_highlight')}
 							>
-								📚 Readwise
+								<!-- Icon -->
+								<svg
+									class="w-4 h-4 flex-shrink-0"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+									/>
+								</svg>
+								<span class="font-normal">Readwise</span>
 							</button>
 							<button
 								type="button"
-								class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors"
-								class:bg-blue-600={filterType === 'photo_note'}
-								class:hover:bg-blue-700={filterType === 'photo_note'}
+								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
+								class:bg-gray-800={filterType === 'photo_note'}
+								class:text-white={filterType === 'photo_note'}
 								onclick={() => onFilterChange('photo_note')}
 							>
-								📷 Photos
+								<!-- Icon -->
+								<svg
+									class="w-4 h-4 flex-shrink-0"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+									/>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+									/>
+								</svg>
+								<span class="font-normal">Photos</span>
 							</button>
 							<button
 								type="button"
-								class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors"
-								class:bg-blue-600={filterType === 'manual_text'}
-								class:hover:bg-blue-700={filterType === 'manual_text'}
+								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
+								class:bg-gray-800={filterType === 'manual_text'}
+								class:text-white={filterType === 'manual_text'}
 								onclick={() => onFilterChange('manual_text')}
 							>
-								✍️ Manual
+								<!-- Icon -->
+								<svg
+									class="w-4 h-4 flex-shrink-0"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+									/>
+								</svg>
+								<span class="font-normal">Manual</span>
 							</button>
 						</div>
 					</div>
 
 					<!-- Categories Section -->
-					<div class="border-t border-gray-800 pt-4">
-						<p class="text-xs font-semibold text-gray-400 uppercase mb-2">Categories</p>
-						<div class="space-y-1">
+					<div class="border-t border-gray-800/50 my-2"></div>
+					<div class="px-2 py-1">
+						<p class="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1.5">
+							Categories
+						</p>
+						<div class="space-y-0.5">
 							<button
 								type="button"
-								class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors"
+								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
 							>
-								Product Delivery
+								<span class="font-normal">Product Delivery</span>
 							</button>
 							<button
 								type="button"
-								class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors ml-4"
+								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white pl-6"
 							>
-								→ Sprint Planning
+								<span class="font-normal">Sprint Planning</span>
 							</button>
 							<button
 								type="button"
-								class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors ml-4"
+								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white pl-6"
 							>
-								→ Roadmapping
+								<span class="font-normal">Roadmapping</span>
 							</button>
 							<button
 								type="button"
-								class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors"
+								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
 							>
-								Product Discovery
+								<span class="font-normal">Product Discovery</span>
 							</button>
 							<button
 								type="button"
-								class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors"
+								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
 							>
-								Leadership
+								<span class="font-normal">Leadership</span>
 							</button>
 						</div>
 					</div>
@@ -206,12 +285,26 @@
 
 			<!-- Footer Actions -->
 			{#if !sidebarCollapsed || isPinned}
-				<div class="p-4 border-t border-gray-800">
+				<div class="px-2 py-2 border-t border-gray-800/50">
 					<button
 						type="button"
-						class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+						class="w-full flex items-center justify-center gap-2 bg-gray-800/50 hover:bg-gray-800 text-white py-1.5 px-3 rounded-md transition-all duration-150 text-sm font-normal"
 					>
-						+ New Item
+						<svg
+							class="w-4 h-4"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M12 4v16m8-8H4"
+							/>
+						</svg>
+						New Item
 					</button>
 				</div>
 			{/if}
@@ -231,12 +324,6 @@
 			workspaceName="Axon"
 			sidebarCollapsed={sidebarCollapsed}
 			isMobile={isMobile}
-			isHovered={isHovered}
-			isPinned={isPinned}
-			onToggleCollapse={onToggleCollapse}
-			onTogglePin={() => {
-				isPinned = !isPinned;
-			}}
 			onSettings={() => {
 				console.log('Settings clicked');
 			}}
@@ -247,89 +334,174 @@
 
 		<!-- Navigation -->
 		{#if !sidebarCollapsed}
-			<nav class="flex-1 p-4 space-y-4 overflow-y-auto">
+			<nav class="flex-1 px-2 py-2 overflow-y-auto">
 				<!-- Inbox -->
-				<div>
-					<a
-						href="/inbox"
-						class="relative flex items-center justify-between p-3 rounded-lg hover:bg-gray-800 transition-colors"
-						class:justify-center={isMobile}
-						title={isMobile ? 'Inbox' : ''}
+				<a
+					href="/inbox"
+					class="group relative flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
+					class:justify-center={isMobile}
+					title={isMobile ? 'Inbox' : ''}
+				>
+					<svg
+						class="w-4 h-4 flex-shrink-0"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+						xmlns="http://www.w3.org/2000/svg"
 					>
-						<span class="text-2xl">📮</span>
-						{#if !isMobile}
-							<span class="font-medium">Inbox</span>
-							<span class="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
-								{inboxCount}
-							</span>
-						{:else if isMobile && sidebarCollapsed}
-							<span class="absolute top-0 right-0 bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded-full leading-none">
-								{inboxCount}
-							</span>
-						{:else}
-							<span class="font-medium">Inbox</span>
-							<span class="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+						/>
+					</svg>
+					{#if !isMobile}
+						<span class="font-normal flex-1 min-w-0">Inbox</span>
+						{#if inboxCount > 0}
+							<span
+								class="bg-gray-700 text-gray-300 text-[10px] font-medium px-1.5 py-0.5 rounded min-w-[18px] text-center flex-shrink-0"
+							>
 								{inboxCount}
 							</span>
 						{/if}
-					</a>
-				</div>
+					{:else if isMobile && sidebarCollapsed}
+						{#if inboxCount > 0}
+							<span
+								class="absolute top-0 right-0 bg-gray-700 text-gray-300 text-[10px] font-medium px-1 py-0.5 rounded leading-none"
+							>
+								{inboxCount}
+							</span>
+						{/if}
+					{:else}
+						<span class="font-normal">Inbox</span>
+						{#if inboxCount > 0}
+							<span
+								class="bg-gray-700 text-gray-300 text-[10px] font-medium px-1.5 py-0.5 rounded min-w-[18px] text-center flex-shrink-0"
+							>
+								{inboxCount}
+							</span>
+						{/if}
+					{/if}
+				</a>
 
 				<!-- Flashcards -->
-				<div>
-					<a
-						href="/flashcards"
-						class="flex items-center p-3 rounded-lg hover:bg-gray-800 transition-colors"
-						class:justify-center={isMobile}
-						title={isMobile ? 'Flashcards' : ''}
+				<a
+					href="/flashcards"
+					class="group flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
+					class:justify-center={isMobile}
+					title={isMobile ? 'Flashcards' : ''}
+				>
+					<svg
+						class="w-4 h-4 flex-shrink-0"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+						xmlns="http://www.w3.org/2000/svg"
 					>
-						<span class="text-2xl">🎯</span>
-						{#if !isMobile || !sidebarCollapsed}
-							<span class="font-medium">Flashcards</span>
-						{/if}
-					</a>
-				</div>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+						/>
+					</svg>
+					{#if !isMobile || !sidebarCollapsed}
+						<span class="font-normal">Flashcards</span>
+					{/if}
+				</a>
 
 				<!-- Filter Divider -->
 				{#if !isMobile}
-					<div class="border-t border-gray-800 pt-4">
-						<p class="text-xs font-semibold text-gray-400 uppercase mb-2">Filters</p>
-						<div class="space-y-1">
+					<div class="border-t border-gray-800/50 my-2"></div>
+					<div class="px-2 py-1">
+						<p class="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1.5">
+							Filters
+						</p>
+						<div class="space-y-0.5">
 							<button
 								type="button"
-								class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors"
-								class:bg-blue-600={filterType === 'all'}
-								class:hover:bg-blue-700={filterType === 'all'}
+								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
+								class:bg-gray-800={filterType === 'all'}
+								class:text-white={filterType === 'all'}
 								onclick={() => onFilterChange('all')}
 							>
-								All
+								<span class="font-normal">All</span>
 							</button>
 							<button
 								type="button"
-								class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors"
-								class:bg-blue-600={filterType === 'readwise_highlight'}
-								class:hover:bg-blue-700={filterType === 'readwise_highlight'}
+								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
+								class:bg-gray-800={filterType === 'readwise_highlight'}
+								class:text-white={filterType === 'readwise_highlight'}
 								onclick={() => onFilterChange('readwise_highlight')}
 							>
-								📚 Readwise
+								<svg
+									class="w-4 h-4 flex-shrink-0"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+									/>
+								</svg>
+								<span class="font-normal">Readwise</span>
 							</button>
 							<button
 								type="button"
-								class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors"
-								class:bg-blue-600={filterType === 'photo_note'}
-								class:hover:bg-blue-700={filterType === 'photo_note'}
+								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
+								class:bg-gray-800={filterType === 'photo_note'}
+								class:text-white={filterType === 'photo_note'}
 								onclick={() => onFilterChange('photo_note')}
 							>
-								📷 Photos
+								<svg
+									class="w-4 h-4 flex-shrink-0"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+									/>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+									/>
+								</svg>
+								<span class="font-normal">Photos</span>
 							</button>
 							<button
 								type="button"
-								class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors"
-								class:bg-blue-600={filterType === 'manual_text'}
-								class:hover:bg-blue-700={filterType === 'manual_text'}
+								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
+								class:bg-gray-800={filterType === 'manual_text'}
+								class:text-white={filterType === 'manual_text'}
 								onclick={() => onFilterChange('manual_text')}
 							>
-								✍️ Manual
+								<svg
+									class="w-4 h-4 flex-shrink-0"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+									/>
+								</svg>
+								<span class="font-normal">Manual</span>
 							</button>
 						</div>
 					</div>
@@ -337,38 +509,41 @@
 
 				<!-- Categories Section -->
 				{#if !isMobile}
-					<div class="border-t border-gray-800 pt-4">
-						<p class="text-xs font-semibold text-gray-400 uppercase mb-2">Categories</p>
-						<div class="space-y-1">
+					<div class="border-t border-gray-800/50 my-2"></div>
+					<div class="px-2 py-1">
+						<p class="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1.5">
+							Categories
+						</p>
+						<div class="space-y-0.5">
 							<button
 								type="button"
-								class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors"
+								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
 							>
-								Product Delivery
+								<span class="font-normal">Product Delivery</span>
 							</button>
 							<button
 								type="button"
-								class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors ml-4"
+								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white pl-6"
 							>
-								→ Sprint Planning
+								<span class="font-normal">Sprint Planning</span>
 							</button>
 							<button
 								type="button"
-								class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors ml-4"
+								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white pl-6"
 							>
-								→ Roadmapping
+								<span class="font-normal">Roadmapping</span>
 							</button>
 							<button
 								type="button"
-								class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors"
+								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
 							>
-								Product Discovery
+								<span class="font-normal">Product Discovery</span>
 							</button>
 							<button
 								type="button"
-								class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors"
+								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
 							>
-								Leadership
+								<span class="font-normal">Leadership</span>
 							</button>
 						</div>
 					</div>
@@ -378,12 +553,26 @@
 
 		<!-- Footer Actions -->
 		{#if !sidebarCollapsed && !isMobile}
-			<div class="p-4 border-t border-gray-800">
+			<div class="px-2 py-2 border-t border-gray-800/50">
 				<button
 					type="button"
-					class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+					class="w-full flex items-center justify-center gap-2 bg-gray-800/50 hover:bg-gray-800 text-white py-1.5 px-3 rounded-md transition-all duration-150 text-sm font-normal"
 				>
-					+ New Item
+					<svg
+						class="w-4 h-4"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+						xmlns="http://www.w3.org/2000/svg"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M12 4v16m8-8H4"
+						/>
+					</svg>
+					New Item
 				</button>
 			</div>
 		{/if}
