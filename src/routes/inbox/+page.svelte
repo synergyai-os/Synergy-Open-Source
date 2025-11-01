@@ -3,6 +3,7 @@
 	import PhotoDetail from '$lib/components/inbox/PhotoDetail.svelte';
 	import ManualDetail from '$lib/components/inbox/ManualDetail.svelte';
 	import ResizableSplitter from '$lib/components/ResizableSplitter.svelte';
+	import Sidebar from '$lib/components/Sidebar.svelte';
 
 	type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 
@@ -148,6 +149,7 @@
 	let selectedItemId = $state<string | null>(null);
 	let filterType = $state<InboxItemType | 'all'>('all');
 	let sidebarCollapsed = $state(false);
+	let sidebarWidth = $state(256); // Default 256px (w-64)
 	let inboxWidth = $state(400);
 	let isMobile = $state(false);
 
@@ -156,6 +158,13 @@
 		inboxWidth = width;
 		if (typeof window !== 'undefined') {
 			localStorage.setItem('inboxWidth', width.toString());
+		}
+	}
+
+	function handleSidebarWidthChange(width: number) {
+		sidebarWidth = width;
+		if (typeof window !== 'undefined') {
+			localStorage.setItem('sidebarWidth', width.toString());
 		}
 	}
 
@@ -169,9 +178,11 @@
 	// Initialize localStorage and mobile detection on client
 	$effect(() => {
 		if (typeof window !== 'undefined') {
-			// Load saved width
-			const savedWidth = parseInt(localStorage.getItem('inboxWidth') || '400');
-			inboxWidth = savedWidth;
+			// Load saved widths
+			const savedInboxWidth = parseInt(localStorage.getItem('inboxWidth') || '400');
+			const savedSidebarWidth = parseInt(localStorage.getItem('sidebarWidth') || '256');
+			inboxWidth = savedInboxWidth;
+			sidebarWidth = savedSidebarWidth;
 
 			// Set up mobile detection
 			checkMobile();
@@ -225,196 +236,26 @@
 </script>
 
 <div class="h-screen flex overflow-hidden">
-	<!-- Mobile Hamburger Button (shown when sidebar is collapsed on mobile) -->
-	{#if isMobile && sidebarCollapsed}
-		<button
-			type="button"
-			onclick={() => (sidebarCollapsed = !sidebarCollapsed)}
-			class="fixed top-4 left-4 z-50 bg-gray-900 text-white p-2 rounded-lg shadow-lg hover:bg-gray-800 transition-colors"
-			aria-label="Open navigation"
-		>
-			☰
-		</button>
-	{/if}
-
-	<!-- Left Sidebar - Navigation -->
-	<aside
-		class="bg-gray-900 text-white flex flex-col border-r border-gray-800 transition-all duration-300"
-		class:w-64={!sidebarCollapsed && !isMobile}
-		class:w-16={isMobile && !sidebarCollapsed}
-		class:w-0={sidebarCollapsed && !isMobile}
-		class:hidden={isMobile && sidebarCollapsed}
-	>
-		<!-- Header -->
-		<div class="p-4 border-b border-gray-800 flex items-center gap-2">
-			<button
-				type="button"
-				onclick={() => (sidebarCollapsed = !sidebarCollapsed)}
-				class="text-gray-400 hover:text-white transition-colors"
-				aria-label="Toggle sidebar"
-			>
-				{sidebarCollapsed ? '☰' : '✕'}
-			</button>
-			{#if !sidebarCollapsed && !isMobile}
-				<div>
-					<h1 class="text-xl font-bold">Axon</h1>
-					<p class="text-sm text-gray-400">Knowledge Base</p>
-				</div>
-			{:else if isMobile && !sidebarCollapsed}
-				<div>
-					<h1 class="text-2xl font-bold">A</h1>
-				</div>
-			{/if}
-		</div>
-
-		<!-- Navigation -->
-		{#if !sidebarCollapsed}
-			<nav class="flex-1 p-4 space-y-4 overflow-y-auto">
-			<!-- Inbox -->
-			<div>
-			<a
-				href="/inbox"
-				class="relative flex items-center justify-between p-3 rounded-lg hover:bg-gray-800 transition-colors"
-				class:justify-center={isMobile}
-				title={isMobile ? 'Inbox' : ''}
-			>
-				<span class="text-2xl">📮</span>
-				{#if !isMobile}
-					<span class="font-medium">Inbox</span>
-					<span class="bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
-						{inboxCount}
-					</span>
-				{:else}
-					<span class="absolute top-0 right-0 bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded-full leading-none">
-						{inboxCount}
-					</span>
-				{/if}
-			</a>
-		</div>
-
-		<!-- Flashcards -->
-		<div>
-			<a
-				href="/flashcards"
-				class="flex items-center p-3 rounded-lg hover:bg-gray-800 transition-colors"
-				class:justify-center={isMobile}
-				title={isMobile ? 'Flashcards' : ''}
-			>
-				<span class="text-2xl">🎯</span>
-				{#if !isMobile}
-					<span class="font-medium">Flashcards</span>
-				{/if}
-			</a>
-		</div>
-
-		<!-- Filter Divider -->
-		{#if !isMobile}
-		<div class="border-t border-gray-800 pt-4">
-			<p class="text-xs font-semibold text-gray-400 uppercase mb-2">Filters</p>
-				<div class="space-y-1">
-					<button
-						type="button"
-						class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors"
-						class:bg-blue-600={filterType === 'all'}
-						class:hover:bg-blue-700={filterType === 'all'}
-						onclick={() => setFilter('all')}
-					>
-						All
-					</button>
-					<button
-						type="button"
-						class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors"
-						class:bg-blue-600={filterType === 'readwise_highlight'}
-						class:hover:bg-blue-700={filterType === 'readwise_highlight'}
-						onclick={() => setFilter('readwise_highlight')}
-					>
-						📚 Readwise
-					</button>
-					<button
-						type="button"
-						class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors"
-						class:bg-blue-600={filterType === 'photo_note'}
-						class:hover:bg-blue-700={filterType === 'photo_note'}
-						onclick={() => setFilter('photo_note')}
-					>
-						📷 Photos
-					</button>
-					<button
-						type="button"
-						class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors"
-						class:bg-blue-600={filterType === 'manual_text'}
-						class:hover:bg-blue-700={filterType === 'manual_text'}
-						onclick={() => setFilter('manual_text')}
-					>
-						✍️ Manual
-					</button>
-			</div>
-			</div>
-		{/if}
-
-		<!-- Categories Section -->
-		{#if !isMobile}
-		<div class="border-t border-gray-800 pt-4">
-			<p class="text-xs font-semibold text-gray-400 uppercase mb-2">Categories</p>
-				<div class="space-y-1">
-					<button
-						type="button"
-						class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors"
-					>
-						Product Delivery
-					</button>
-					<button
-						type="button"
-						class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors ml-4"
-					>
-						→ Sprint Planning
-					</button>
-					<button
-						type="button"
-						class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors ml-4"
-					>
-						→ Roadmapping
-					</button>
-					<button
-						type="button"
-						class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors"
-					>
-						Product Discovery
-					</button>
-					<button
-						type="button"
-						class="w-full text-left p-2 rounded-lg hover:bg-gray-800 transition-colors"
-					>
-						Leadership
-					</button>
-			</div>
-		</div>
-		{/if}
-		</nav>
-		{/if}
-
-		<!-- Footer Actions -->
-		{#if !sidebarCollapsed}
-			{#if !isMobile}
-		<div class="p-4 border-t border-gray-800">
-			<button
-				type="button"
-				class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-			>
-				+ New Item
-			</button>
-		</div>
-			{/if}
-		{/if}
-	</aside>
+	<!-- Reusable Sidebar Component -->
+	<Sidebar
+		inboxCount={inboxCount}
+		filterType={filterType}
+		onFilterChange={setFilter}
+		isMobile={isMobile}
+		sidebarCollapsed={sidebarCollapsed}
+		onToggleCollapse={() => (sidebarCollapsed = !sidebarCollapsed)}
+		sidebarWidth={sidebarWidth}
+		onSidebarWidthChange={handleSidebarWidthChange}
+	/>
 
 	<!-- Middle Column - Inbox List -->
 	{#if !isMobile}
 		<ResizableSplitter
 			initialWidth={inboxWidth}
-			minWidth={175}
-			maxWidth={400}
+			minWidth={200}
+			maxWidth={600}
 			onWidthChange={handleInboxWidthChange}
+			onClose={() => (inboxWidth = 175)}
 		>
 			<div class="bg-gray-50 overflow-y-auto h-full">
 				<div class="p-4">

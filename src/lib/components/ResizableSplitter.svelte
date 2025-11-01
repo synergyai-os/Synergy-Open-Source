@@ -4,10 +4,11 @@
 		minWidth: number;
 		maxWidth: number;
 		onWidthChange: (width: number) => void;
+		onClose?: () => void;
 		children: import('svelte').Snippet;
 	};
 
-	let { initialWidth, minWidth, maxWidth, onWidthChange, children }: Props = $props();
+	let { initialWidth, minWidth, maxWidth, onWidthChange, onClose, children }: Props = $props();
 
 	let isDragging = $state(false);
 	let currentWidth = $state(initialWidth);
@@ -45,6 +46,12 @@
 				document.body.style.cursor = '';
 				document.body.style.userSelect = '';
 			}
+
+			// If dragged to minimum width, trigger close callback
+			if (currentWidth === minWidth && onClose) {
+				onClose();
+			}
+
 			document.removeEventListener('mousemove', onMouseMove);
 			document.removeEventListener('mouseup', onMouseUp);
 		}
