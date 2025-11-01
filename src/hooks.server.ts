@@ -22,6 +22,16 @@ const { handleAuth, isAuthenticated } = createConvexAuthHooks();
 const requireAuth: Handle = async ({ event, resolve }) => {
 	// Allow public routes
 	if (isPublicRoute(event.url.pathname)) {
+		// Special handling: if authenticated user visits /login or /register, redirect them
+		const isAuthPage = event.url.pathname === '/login' || event.url.pathname === '/register';
+		
+		if (isAuthPage && (await isAuthenticated(event))) {
+			// Authenticated user trying to access login/register page
+			// Redirect to redirectTo query param or fallback to /inbox
+			const redirectTo = event.url.searchParams.get('redirectTo') || '/inbox';
+			throw redirect(302, redirectTo);
+		}
+		
 		return resolve(event);
 	}
 
