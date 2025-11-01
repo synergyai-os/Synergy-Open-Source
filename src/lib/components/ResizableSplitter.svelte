@@ -80,43 +80,45 @@
 <style>
 	.resizable-panel {
 		position: relative;
+		height: 100%;
+		display: flex;
+		flex-direction: column;
 	}
 
 	.resize-handle {
 		position: absolute;
 		top: 0;
 		right: 0;
-		height: 100%;
+		bottom: 0;
 		width: 16px;
 		cursor: col-resize;
 		background: transparent;
 		border: none;
 		padding: 0;
-		transition: background-color 0.2s;
-		z-index: 10;
-		/* Position the handle to straddle the border perfectly */
-		transform: translateX(0);
+		z-index: 50;
+		/* Position handle to straddle the border - shift right by 8px */
+		transform: translateX(8px);
 	}
 
 	.resize-handle::after {
 		content: '';
 		position: absolute;
 		top: 0;
-		/* Center the visual line on the border - 8px from left centers it in the 16px handle */
-		left: 16px;
-		width: 4px;
-		height: 100%;
-		transition: background-color 0.2s;
-		/* Shift left by 2px to center the 4px line on the border */
-		transform: translateX(-2px);
+		bottom: 0;
+		left: 8px;
+		width: 3px;
+		/* Transparent by default - only shows on hover/drag */
+		background: transparent;
 	}
 
 	.resize-handle:hover::after {
-		background: #3b82f6;
+		/* Show blue accent color on hover */
+		background: var(--color-accent-primary, oklch(55.4% 0.218 251.813));
 	}
 
 	.resize-handle.active::after {
-		background: #2563eb;
+		/* Show blue accent color when dragging */
+		background: var(--color-accent-primary, oklch(55.4% 0.218 251.813));
 	}
 </style>
 
