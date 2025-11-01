@@ -1,24 +1,28 @@
 <script lang="ts">
 	import { DropdownMenu } from 'bits-ui';
+	import InboxFilterMenu from './InboxFilterMenu.svelte';
+
+	type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 
 	interface Props {
+		currentFilter: InboxItemType | 'all';
+		onFilterChange: (type: InboxItemType | 'all') => void;
 		onDeleteAll?: () => void;
 		onDeleteAllRead?: () => void;
 		onDeleteAllCompleted?: () => void;
-		onFilterClick?: () => void;
 		onSortClick?: () => void;
 	}
 
 	let {
+		currentFilter,
+		onFilterChange,
 		onDeleteAll,
 		onDeleteAllRead,
 		onDeleteAllCompleted,
-		onFilterClick,
 		onSortClick
 	}: Props = $props();
 
 	let menuOpen = $state(false);
-	let filterMenuOpen = $state(false);
 	let sortMenuOpen = $state(false);
 </script>
 
@@ -27,7 +31,7 @@
 >
 	<!-- Left: Title + Kebab Menu -->
 	<div class="flex items-center gap-icon">
-		<h2 class="text-xl font-bold text-primary">Inbox</h2>
+		<h2 class="text-sm font-normal text-secondary">Inbox</h2>
 
 		<!-- Kebab Menu (Delete Actions) -->
 		<DropdownMenu.Root bind:open={menuOpen}>
@@ -53,81 +57,42 @@
 
 			<DropdownMenu.Portal>
 				<DropdownMenu.Content
-					class="bg-elevated rounded-md shadow-lg border border-base min-w-[240px] py-1 z-50"
+					class="bg-elevated rounded-md shadow-lg border border-base min-w-[180px] py-1 z-50"
 					side="bottom"
 					align="start"
 					sideOffset={4}
 				>
 					<DropdownMenu.Item
-						class="px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer focus:bg-hover-solid outline-none flex items-center gap-icon"
+						class="px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer flex items-center justify-between focus:bg-hover-solid outline-none"
 						textValue="Delete all"
 						onSelect={() => {
 							onDeleteAll?.();
 							menuOpen = false;
 						}}
 					>
-						<svg
-							class="w-4 h-4 text-secondary"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-							/>
-						</svg>
-						<span>Delete all</span>
+						<span class="font-normal">Delete all</span>
 					</DropdownMenu.Item>
 
 					<DropdownMenu.Item
-						class="px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer focus:bg-hover-solid outline-none flex items-center gap-icon"
+						class="px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer flex items-center justify-between focus:bg-hover-solid outline-none"
 						textValue="Delete all read"
 						onSelect={() => {
 							onDeleteAllRead?.();
 							menuOpen = false;
 						}}
 					>
-						<svg
-							class="w-4 h-4 text-secondary"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-							/>
-						</svg>
-						<span>Delete all read</span>
+						<span class="font-normal">Delete all read</span>
 					</DropdownMenu.Item>
 
 					<DropdownMenu.Item
-						class="px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer focus:bg-hover-solid outline-none flex items-center gap-icon"
+						class="px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer flex items-center justify-between focus:bg-hover-solid outline-none"
 						textValue="Delete all for completed issues and reviews"
 						onSelect={() => {
 							onDeleteAllCompleted?.();
 							menuOpen = false;
 						}}
 					>
-						<svg
-							class="w-4 h-4 text-secondary"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-							/>
-						</svg>
-						<span>Delete all for completed issues and reviews</span>
+						<span class="font-normal">Delete all for completed issues and reviews</span>
 					</DropdownMenu.Item>
 				</DropdownMenu.Content>
 			</DropdownMenu.Portal>
@@ -136,27 +101,15 @@
 
 	<!-- Right: Filter + Sort Icons -->
 	<div class="flex items-center gap-icon">
-		<!-- Filter Icon -->
-		<button
-			type="button"
-			class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-hover-solid transition-colors text-secondary hover:text-primary"
-			onclick={() => onFilterClick?.()}
-		>
-			<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
-				/>
-			</svg>
-		</button>
+		<!-- Filter Menu -->
+		<InboxFilterMenu currentFilter={currentFilter} onFilterChange={onFilterChange} />
 
 		<!-- Sort Icon -->
 		<button
 			type="button"
 			class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-hover-solid transition-colors text-secondary hover:text-primary"
 			onclick={() => onSortClick?.()}
+			aria-label="Sort inbox items"
 		>
 			<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path

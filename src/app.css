@@ -33,6 +33,12 @@
 	--spacing-inbox-title-bottom: 1rem; /* 16px - mb-4 equivalent */
 	--spacing-inbox-header-x: 1rem; /* 16px - px-4 equivalent */
 	--spacing-inbox-header-y: 0.75rem; /* 12px - py-3 equivalent */
+	
+	/* Settings Spacing Tokens */
+	--spacing-settings-section-gap: 1.5rem; /* 24px - gap-6 equivalent - gap between section cards */
+	--spacing-settings-row-gap: 1rem; /* 16px - gap-4 equivalent - vertical gap between setting rows */
+	--spacing-settings-row-padding-x: 1rem; /* 16px - px-4 equivalent - horizontal padding for setting rows */
+	--spacing-settings-row-padding-y: 1rem; /* 16px - py-4 equivalent - vertical padding for setting rows */
 
 	/* Unified Brand Color Tokens - Used throughout the app */
 	/* These change automatically based on .dark class on <html> */
@@ -187,6 +193,20 @@ html:not(.dark) {
 }
 @utility py-inbox-header {
 	padding-block: var(--spacing-inbox-header-y);
+}
+
+/* Settings Spacing Utilities */
+@utility gap-settings-section {
+	gap: var(--spacing-settings-section-gap);
+}
+@utility gap-settings-row {
+	gap: var(--spacing-settings-row-gap);
+}
+@utility px-settings-row {
+	padding-inline: var(--spacing-settings-row-padding-x);
+}
+@utility py-settings-row {
+	padding-block: var(--spacing-settings-row-padding-y);
 }
 
 /* Unified Brand Color Utilities - Used throughout the app */

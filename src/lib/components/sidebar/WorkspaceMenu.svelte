@@ -40,13 +40,13 @@
 
 	<DropdownMenu.Portal>
 		<DropdownMenu.Content
-			class="bg-white rounded-md shadow-lg border border-gray-200/60 min-w-[180px] py-1 z-50"
+			class="bg-elevated rounded-md shadow-lg border border-base min-w-[180px] py-1 z-50"
 			side="bottom"
 			align="start"
 			sideOffset={4}
 		>
 			<DropdownMenu.Item
-				class="px-menu-item py-menu-item text-sm text-gray-900 hover:bg-gray-50 cursor-pointer flex items-center justify-between focus:bg-gray-50 outline-none"
+				class="px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer flex items-center justify-between focus:bg-hover-solid outline-none"
 				textValue="Settings"
 				onSelect={() => {
 					onSettings?.();
@@ -54,7 +54,7 @@
 				}}
 			>
 				<span class="font-normal">Settings</span>
-				<span class="text-label text-gray-400 ml-3 font-mono">G then S</span>
+				<span class="text-label text-tertiary ml-3 font-mono">G then S</span>
 			</DropdownMenu.Item>
 
 			<div
@@ -63,12 +63,12 @@
 				role="presentation"
 			>
 				<div class="flex items-center gap-icon flex-1">
-					<span class="text-sm font-normal text-gray-900">
+					<span class="text-sm font-normal text-primary">
 						{$isDark ? 'Dark mode' : 'Light mode'}
 					</span>
 					{#if $isDark}
 						<svg
-							class="w-3.5 h-3.5 text-gray-600"
+							class="w-3.5 h-3.5 text-secondary"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -83,7 +83,7 @@
 						</svg>
 					{:else}
 						<svg
-							class="w-3.5 h-3.5 text-gray-600"
+							class="w-3.5 h-3.5 text-secondary"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -111,10 +111,10 @@
 				</Switch.Root>
 			</div>
 
-			<DropdownMenu.Separator class="my-1 border-t border-gray-100" />
+			<DropdownMenu.Separator class="my-1 border-t border-base" />
 
 			<DropdownMenu.Item
-				class="px-menu-item py-menu-item text-sm text-gray-900 hover:bg-gray-50 cursor-pointer focus:bg-gray-50 outline-none"
+				class="px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer focus:bg-hover-solid outline-none"
 				textValue="Log out"
 				onSelect={() => {
 					onLogout?.();
@@ -123,7 +123,7 @@
 			>
 				<div class="flex items-center justify-between w-full">
 					<span class="font-normal">Log out</span>
-					<span class="text-label text-gray-400 ml-3 font-mono">⌘⇧Q</span>
+					<span class="text-label text-tertiary ml-3 font-mono">⌘⇧Q</span>
 				</div>
 			</DropdownMenu.Item>
 		</DropdownMenu.Content>

@@ -239,11 +239,6 @@
 		// TODO: Implement delete all completed functionality
 	}
 
-	function handleFilterClick() {
-		console.log('Filter clicked');
-		// TODO: Implement filter menu
-	}
-
 	function handleSortClick() {
 		console.log('Sort clicked');
 		// TODO: Implement sort menu
@@ -254,8 +249,6 @@
 	<!-- Reusable Sidebar Component -->
 	<Sidebar
 		inboxCount={inboxCount}
-		filterType={filterType}
-		onFilterChange={setFilter}
 		isMobile={isMobile}
 		sidebarCollapsed={sidebarCollapsed}
 		onToggleCollapse={() => (sidebarCollapsed = !sidebarCollapsed)}
@@ -275,10 +268,11 @@
 			<div class="bg-surface h-full flex flex-col overflow-hidden">
 				<!-- Sticky Header -->
 				<InboxHeader
+					currentFilter={filterType}
+					onFilterChange={setFilter}
 					onDeleteAll={handleDeleteAll}
 					onDeleteAllRead={handleDeleteAllRead}
 					onDeleteAllCompleted={handleDeleteAllCompleted}
-					onFilterClick={handleFilterClick}
 					onSortClick={handleSortClick}
 				/>
 

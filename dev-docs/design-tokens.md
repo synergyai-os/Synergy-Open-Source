@@ -167,6 +167,25 @@ For sidebar components, we use sidebar-specific tokens that work with the sideba
 
 ## Common Patterns
 
+### Page/Section Title Pattern (Linear-style subtle naming)
+**✨ USE THIS FOR ALL PAGE/SECTION TITLES IN HEADERS**
+
+```
+text-sm font-normal text-secondary
+```
+
+**Why:** Linear uses subtle, unobtrusive titles that don't dominate the UI. This creates a cleaner, more focused interface where content is the star, not the labels.
+
+**Examples:**
+- "Inbox" in InboxHeader
+- "Flashcards" in FlashcardsHeader
+- Any page or section title in a sticky header
+
+**Do NOT use:**
+- ❌ `text-xl font-bold text-primary` (too dominant)
+- ❌ `text-lg font-semibold text-primary` (still too bold)
+- ✅ `text-sm font-normal text-secondary` (subtle, Linear-style)
+
 ### Nav Item Pattern (used 24+ times)
 **Full pattern (with semantic tokens):**
 ```
@@ -226,10 +245,75 @@ bg-tag text-tag text-label px-badge py-badge rounded
 sticky top-0 z-10 bg-elevated border-b border-base px-inbox-header py-inbox-header
 flex items-center justify-between
 ```
+**Header title (subtle Linear-style naming):**
+```
+text-sm font-normal text-secondary
+```
+**Why:** Linear uses subtle, unobtrusive titles that don't dominate the UI. This pattern should be used for all section/page titles in headers.
+
 **Header buttons:**
 ```
 w-8 h-8 flex items-center justify-center rounded-md hover:bg-hover-solid transition-colors text-secondary hover:text-primary
 ```
+
+### DropdownMenu Pattern (standard for all menus)
+**✨ USE THIS PATTERN FOR ALL DROPDOWN MENUS**
+
+**Menu Content:**
+```
+bg-elevated rounded-md shadow-lg border border-base min-w-[180px] py-1 z-50
+```
+
+**Menu Items:**
+```
+px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer focus:bg-hover-solid outline-none flex items-center gap-icon
+```
+
+**Menu Separator:**
+```
+my-1 border-t border-base
+```
+
+**Secondary text (keyboard shortcuts, hints):**
+```
+text-label text-tertiary
+```
+
+**Selected item indicator:**
+- Use a checkmark icon (`w-4 h-4 text-secondary`) on the right side
+- Do NOT use conditional background colors on DropdownMenu.Item (causes linter errors)
+- Instead, show/hide checkmark based on selection state
+
+**Complete Example:**
+```svelte
+<DropdownMenu.Content
+  class="bg-elevated rounded-md shadow-lg border border-base min-w-[180px] py-1 z-50"
+  side="bottom"
+  align="start"
+  sideOffset={4}
+>
+  <DropdownMenu.Item
+    class="px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer focus:bg-hover-solid outline-none flex items-center gap-icon"
+    textValue="Option"
+    onSelect={() => handleSelect()}
+  >
+    <span class="flex-1">Option</span>
+    {#if isSelected}
+      <svg class="w-4 h-4 text-secondary flex-shrink-0" ...>
+        <!-- checkmark icon -->
+      </svg>
+    {/if}
+  </DropdownMenu.Item>
+  
+  <DropdownMenu.Separator class="my-1 border-t border-base" />
+</DropdownMenu.Content>
+```
+
+**Why This Pattern:**
+- ✅ Uses unified brand color tokens (auto light/dark mode)
+- ✅ Consistent spacing using semantic tokens
+- ✅ Same styling across all menus in the app
+- ✅ Easy to maintain (change colors globally)
 
 ## Usage Guidelines
 

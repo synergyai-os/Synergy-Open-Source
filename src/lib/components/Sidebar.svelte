@@ -4,8 +4,6 @@
 
 	type Props = {
 		inboxCount: number;
-		filterType: any;
-		onFilterChange: (type: any) => void;
 		isMobile: boolean;
 		sidebarCollapsed: boolean;
 		onToggleCollapse: () => void;
@@ -15,8 +13,6 @@
 
 	let {
 		inboxCount,
-		filterType,
-		onFilterChange,
 		isMobile,
 		sidebarCollapsed,
 		onToggleCollapse,
@@ -143,103 +139,6 @@
 						</svg>
 						<span class="font-normal">Flashcards</span>
 					</a>
-
-					<!-- Filter Divider -->
-					<div class="border-t border-sidebar my-2"></div>
-					<div class="px-section py-section">
-						<p class="text-label font-medium text-sidebar-tertiary uppercase tracking-wider mb-1.5">
-							Filters
-						</p>
-						<div class="space-y-0.5">
-							<button
-								type="button"
-								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
-								class:bg-sidebar-active={filterType === 'all'}
-								class:text-sidebar-primary={filterType === 'all'}
-								onclick={() => onFilterChange('all')}
-							>
-								<span class="font-normal">All</span>
-							</button>
-							<button
-								type="button"
-								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
-								class:bg-sidebar-active={filterType === 'readwise_highlight'}
-								class:text-sidebar-primary={filterType === 'readwise_highlight'}
-								onclick={() => onFilterChange('readwise_highlight')}
-							>
-								<!-- Icon -->
-								<svg
-									class="w-4 h-4 flex-shrink-0"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-									xmlns="http://www.w3.org/2000/svg"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-									/>
-								</svg>
-								<span class="font-normal">Readwise</span>
-							</button>
-							<button
-								type="button"
-								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
-								class:bg-sidebar-active={filterType === 'photo_note'}
-								class:text-sidebar-primary={filterType === 'photo_note'}
-								onclick={() => onFilterChange('photo_note')}
-							>
-								<!-- Icon -->
-								<svg
-									class="w-4 h-4 flex-shrink-0"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-									xmlns="http://www.w3.org/2000/svg"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-									/>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-									/>
-								</svg>
-								<span class="font-normal">Photos</span>
-							</button>
-							<button
-								type="button"
-								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
-								class:bg-sidebar-active={filterType === 'manual_text'}
-								class:text-sidebar-primary={filterType === 'manual_text'}
-								onclick={() => onFilterChange('manual_text')}
-							>
-								<!-- Icon -->
-								<svg
-									class="w-4 h-4 flex-shrink-0"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-									xmlns="http://www.w3.org/2000/svg"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-									/>
-								</svg>
-								<span class="font-normal">Manual</span>
-							</button>
-						</div>
-					</div>
 
 					<!-- Categories Section -->
 					<div class="border-t border-sidebar my-2"></div>
@@ -410,102 +309,6 @@
 						<span class="font-normal">Flashcards</span>
 					{/if}
 				</a>
-
-				<!-- Filter Divider -->
-				{#if !isMobile}
-					<div class="border-t border-sidebar my-2"></div>
-					<div class="px-section py-section">
-						<p class="text-label font-medium text-sidebar-tertiary uppercase tracking-wider mb-1.5">
-							Filters
-						</p>
-						<div class="space-y-0.5">
-							<button
-								type="button"
-								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
-								class:bg-sidebar-active={filterType === 'all'}
-								class:text-sidebar-primary={filterType === 'all'}
-								onclick={() => onFilterChange('all')}
-							>
-								<span class="font-normal">All</span>
-							</button>
-							<button
-								type="button"
-								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
-								class:bg-sidebar-active={filterType === 'readwise_highlight'}
-								class:text-sidebar-primary={filterType === 'readwise_highlight'}
-								onclick={() => onFilterChange('readwise_highlight')}
-							>
-								<svg
-									class="w-4 h-4 flex-shrink-0"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-									xmlns="http://www.w3.org/2000/svg"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-									/>
-								</svg>
-								<span class="font-normal">Readwise</span>
-							</button>
-							<button
-								type="button"
-								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
-								class:bg-sidebar-active={filterType === 'photo_note'}
-								class:text-sidebar-primary={filterType === 'photo_note'}
-								onclick={() => onFilterChange('photo_note')}
-							>
-								<svg
-									class="w-4 h-4 flex-shrink-0"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-									xmlns="http://www.w3.org/2000/svg"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-									/>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-									/>
-								</svg>
-								<span class="font-normal">Photos</span>
-							</button>
-							<button
-								type="button"
-								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
-								class:bg-sidebar-active={filterType === 'manual_text'}
-								class:text-sidebar-primary={filterType === 'manual_text'}
-								onclick={() => onFilterChange('manual_text')}
-							>
-								<svg
-									class="w-4 h-4 flex-shrink-0"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-									xmlns="http://www.w3.org/2000/svg"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-									/>
-								</svg>
-								<span class="font-normal">Manual</span>
-							</button>
-						</div>
-					</div>
-				{/if}
 
 				<!-- Categories Section -->
 				{#if !isMobile}
