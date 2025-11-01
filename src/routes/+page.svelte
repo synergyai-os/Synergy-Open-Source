@@ -22,13 +22,6 @@
 </script>
 
 <div class="container mx-auto max-w-4xl px-4 py-4 sm:py-8 min-h-screen">
-	<!-- Live Reload Test Banner -->
-	<div class="bg-yellow-400 border-4 border-red-500 rounded-lg p-4 mb-6 text-center">
-		<h2 class="text-2xl font-bold text-black">🔥 LIVE RELOAD TEST 🔥</h2>
-		<p class="text-lg text-gray-900 mt-2">If you see this, live reload is working!</p>
-		<p class="text-sm text-gray-700 mt-1">Last updated: Just now! ⚡️</p>
-	</div>
-
 	<!-- Auth Status Banner -->
 	<div class="bg-blue-100 border-2 border-blue-500 rounded-lg p-4 mb-6">
 		<h3 class="text-xl font-bold text-blue-900 mb-2">🔐 Authentication Status</h3>
@@ -64,6 +57,30 @@
 			</div>
 		{/if}
 	</div>
+
+	<!-- Quick Navigation -->
+	<section class="mb-8">
+		<div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg p-6 shadow-lg">
+			<h3 class="text-xl font-bold text-white mb-4">📚 Quick Navigation</h3>
+			<div class="flex flex-wrap gap-3">
+				<a
+					href="/inbox"
+					class="px-4 py-2 bg-white text-indigo-700 rounded-lg hover:bg-indigo-50 transition-colors font-medium"
+				>
+					📮 Inbox
+				</a>
+				<a
+					href="/flashcards"
+					class="px-4 py-2 bg-white text-indigo-700 rounded-lg hover:bg-indigo-50 transition-colors font-medium"
+				>
+					🎯 Flashcards
+				</a>
+			</div>
+			<p class="text-indigo-100 text-sm mt-4">
+				Try the full inbox workflow with mock data (Phase 1: UI/UX validation)
+			</p>
+		</div>
+	</section>
 
 	<!-- Platform-specific Welcome Message -->
 	<section class="mb-8">

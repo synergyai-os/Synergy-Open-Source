@@ -92,10 +92,28 @@ Axon/
 ├── convex/          # Convex backend functions
 ├── src/              # SvelteKit application
 │   ├── routes/       # Application routes
-│   └── lib/          # Shared utilities
+│   │   ├── inbox/    # Universal inbox UI (Phase 1 complete)
+│   │   ├── flashcards/ # Flashcard study interface (Phase 1 complete)
+│   │   └── login/    # Authentication pages
+│   └── lib/          # Shared utilities & components
+│       └── components/
+│           └── inbox/ # Source-specific detail components
 ├── static/           # Static assets
 └── e2e/              # End-to-end tests
 ```
+
+## Current Status: Phase 1 Complete ✅
+
+**Phase 1: UI/UX with Mock Data** - Complete
+- ✅ Three-column inbox layout (Linear-style)
+- ✅ Polymorphic source views (Readwise, Photo, Manual)
+- ✅ Mock flashcard generation workflow
+- ✅ Flashcard study interface (list & study modes)
+- ✅ Full CODE workflow: Collect → Organise → Distill → Express
+
+**Next: Phase 2** - Add Convex schema and connect to real data
+
+**Try it:** Visit `/inbox` and `/flashcards` to see the full workflow in action!
 
 ## Environment Variables
 
