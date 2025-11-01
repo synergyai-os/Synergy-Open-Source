@@ -38,8 +38,8 @@
 		_id: string;
 		userId: string;
 		theme?: 'light' | 'dark';
-		claudeApiKey?: string;
-		readwiseApiKey?: string;
+		claudeApiKey?: string; // Encrypted key from query
+		readwiseApiKey?: string; // Encrypted key from query
 		_creationTime: number;
 	};
 
@@ -69,189 +69,227 @@
 		updateClaudeApiKey: makeFunctionReference('settings:updateClaudeApiKey') as any,
 		updateReadwiseApiKey: makeFunctionReference('settings:updateReadwiseApiKey') as any,
 		updateTheme: makeFunctionReference('settings:updateTheme') as any,
+		deleteClaudeApiKey: makeFunctionReference('settings:deleteClaudeApiKey') as any,
+		deleteReadwiseApiKey: makeFunctionReference('settings:deleteReadwiseApiKey') as any,
+		// CRITICAL: decryptApiKey removed - we NEVER decrypt keys on the client for security
 	} : null;
 
 	// Load settings using client.query (not useQuery, to keep it simple)
 	let userSettings: UserSettings | null = $state(null);
 	
-	// Load settings when client is ready and user is authenticated
-	onMount(async () => {
-		if (!browser || !convexClient || !settingsApiFunctions) {
-			console.warn('Cannot load settings:', {
-				browser,
-				hasClient: !!convexClient,
-				hasFunctions: !!settingsApiFunctions,
-				isAuthenticated
-			});
-			return;
-		}
-		
-		// Check authentication status
-		if (!isAuthenticated) {
-			console.warn('User not authenticated - cannot load settings');
-			return;
-		}
-		
-		try {
-			console.log('Loading user settings...');
-			const settings = await convexClient.query(settingsApiFunctions.getUserSettings, {});
-			if (settings) {
-				userSettings = settings as UserSettings;
-				claudeApiKey = userSettings.claudeApiKey || '';
-				readwiseApiKey = userSettings.readwiseApiKey || '';
-				console.log('✅ Settings loaded');
-			} else {
-				console.log('No settings found (user may not have any saved yet)');
+		// Load settings when client is ready and user is authenticated
+		onMount(async () => {
+			if (!browser || !convexClient || !settingsApiFunctions || !isAuthenticated) {
+				return;
 			}
-		} catch (e) {
-			console.error('Failed to load settings:', e);
-		}
-	});
+			
+			try {
+				const settings = await convexClient.query(settingsApiFunctions.getUserSettings, {});
+				if (settings) {
+					userSettings = settings as UserSettings;
+					
+					// SECURITY: NEVER decrypt keys on the client - only track if they exist
+					// Keys are encrypted in the database and should NEVER be sent to the client
+					// Use boolean flags from query to know if keys exist
+					claudeHasKey = settings.hasClaudeKey || false;
+					readwiseHasKey = settings.hasReadwiseKey || false;
+					// Keep inputs empty - never display actual keys on client
+				}
+			} catch (e) {
+				// Silently handle errors - user will see empty inputs
+			}
+		});
 	
 	// Mutation functions - created when client and functions are ready
 	let updateClaudeApiKeyFn: ((args: { apiKey: string }) => Promise<string>) | null = $state(null);
 	let updateReadwiseApiKeyFn: ((args: { apiKey: string }) => Promise<string>) | null = $state(null);
 	let updateThemeFn: ((args: { theme: 'light' | 'dark' }) => Promise<string>) | null = $state(null);
+	let deleteClaudeApiKeyFn: (() => Promise<string | null>) | null = $state(null);
+	let deleteReadwiseApiKeyFn: (() => Promise<string | null>) | null = $state(null);
 
-	// Initialize mutations when ready
+	// Initialize mutations and actions when ready
 	$effect(() => {
 		if (!browser || !convexClient || !settingsApiFunctions) return;
 		
-		// Create mutation functions
-		updateClaudeApiKeyFn = ((args: { apiKey: string }) => {
-			console.log('Calling updateClaudeApiKey mutation...', args);
-			return convexClient!.mutation(settingsApiFunctions.updateClaudeApiKey, args);
-		}) as typeof updateClaudeApiKeyFn;
+		// Create action functions for API key updates (they're actions, not mutations, because they validate via HTTP)
+		updateClaudeApiKeyFn = ((args: { apiKey: string }) => 
+			convexClient!.action(settingsApiFunctions.updateClaudeApiKey, args)) as typeof updateClaudeApiKeyFn;
 		updateReadwiseApiKeyFn = ((args: { apiKey: string }) => 
-			convexClient!.mutation(settingsApiFunctions.updateReadwiseApiKey, args)) as typeof updateReadwiseApiKeyFn;
+			convexClient!.action(settingsApiFunctions.updateReadwiseApiKey, args)) as typeof updateReadwiseApiKeyFn;
+		// Theme update is still a mutation (no validation needed)
 		updateThemeFn = ((args: { theme: 'light' | 'dark' }) => 
 			convexClient!.mutation(settingsApiFunctions.updateTheme, args)) as typeof updateThemeFn;
-		console.log('✅ Mutations initialized');
+		// Delete functions are mutations
+		deleteClaudeApiKeyFn = (() => 
+			convexClient!.mutation(settingsApiFunctions.deleteClaudeApiKey, {})) as typeof deleteClaudeApiKeyFn;
+		deleteReadwiseApiKeyFn = (() => 
+			convexClient!.mutation(settingsApiFunctions.deleteReadwiseApiKey, {})) as typeof deleteReadwiseApiKeyFn;
 	});
 
 	// State for API keys (initialized from Convex)
+	// CRITICAL: These are for user input ONLY - we NEVER store or display actual saved keys on the client
 	let claudeApiKey = $state('');
 	let readwiseApiKey = $state('');
-	let showClaudeKey = $state(false);
-	let showReadwiseKey = $state(false);
+	// Eye icons removed - we never show API keys on the client for security
 
 	// Settings are loaded directly in onMount above, no separate effect needed
 
-	// Auto-save states
-	let claudeSaving = $state(false);
-	let claudeSaved = $state(false);
+	// Validation states - 'idle' | 'validating' | 'valid' | 'invalid'
+	let claudeValidationState = $state<'idle' | 'validating' | 'valid' | 'invalid'>('idle');
 	let claudeError = $state<string | null>(null);
-	let readwiseSaving = $state(false);
-	let readwiseSaved = $state(false);
+	let claudeShowCheckmark = $state(false); // Temporary checkmark after validation
+	let claudeHasKey = $state(false); // Track if key exists (for delete icon)
+	
+	let readwiseValidationState = $state<'idle' | 'validating' | 'valid' | 'invalid'>('idle');
 	let readwiseError = $state<string | null>(null);
+	let readwiseShowCheckmark = $state(false); // Temporary checkmark after validation
+	let readwiseHasKey = $state(false); // Track if key exists (for delete icon)
 
-	// Debounce timers
-	let claudeDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-	let readwiseDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+	// Handle blur validation for Claude API key
+	async function handleClaudeKeyBlur() {
+		// Only validate if there's a value and we're not already validating
+		if (!claudeApiKey.trim() || claudeValidationState === 'validating' || !updateClaudeApiKeyFn || !isAuthenticated) {
+			return;
+		}
 
-	// Auto-save handlers with 500ms debounce
-	async function handleClaudeKeyChange(value: string) {
-		claudeApiKey = value;
-		claudeSaved = false;
+		claudeValidationState = 'validating';
 		claudeError = null;
 
-		if (claudeDebounceTimer) {
-			clearTimeout(claudeDebounceTimer);
-		}
-
-		// Check authentication first
-		if (!isAuthenticated) {
-			claudeError = 'Please sign in to save API keys';
-			console.warn('User not authenticated');
-			return;
-		}
-
-		// Show user feedback if mutation not ready
-		if (!updateClaudeApiKeyFn) {
-			claudeError = 'Initializing... Please wait a moment.';
-			console.warn('updateClaudeApiKeyFn not ready yet');
-			// Retry after a short delay
+		try {
+			await updateClaudeApiKeyFn({ apiKey: claudeApiKey.trim() });
+			claudeValidationState = 'valid';
+			claudeHasKey = true; // Mark that key exists
+			claudeShowCheckmark = true; // Show checkmark temporarily
+			// Hide checkmark after 3 seconds
 			setTimeout(() => {
-				if (updateClaudeApiKeyFn && value) {
-					handleClaudeKeyChange(value);
-				}
-			}, 500);
-			return;
+				claudeShowCheckmark = false;
+			}, 3000);
+		} catch (error) {
+			claudeValidationState = 'invalid';
+			// Extract user-friendly error message (strip all technical details)
+			const rawMessage = error instanceof Error ? error.message : String(error);
+			// Remove all technical details: Convex prefixes, file paths, line numbers, "Called by client"
+			let cleanMessage = rawMessage
+				.replace(/^\[CONVEX[^\]]+\]\s*\[Request ID:[^\]]+\]\s*Server Error\s*Uncaught Error:\s*/i, '')
+				.replace(/\s*at handler[^]*$/i, '') // Remove "at handler (file:line)"
+				.replace(/\s*Called by client.*$/i, '') // Remove "Called by client"
+				.replace(/\([^)]+\/[^)]+\.ts:\d+:\d+\)/g, '') // Remove file paths like "(../convex/settings.ts:77:2)"
+				.trim();
+			
+			// Simplify common error messages
+			if (cleanMessage.includes('Invalid') || cleanMessage.includes('invalid')) {
+				cleanMessage = 'Invalid API key. Please check your key and try again.';
+			} else if (cleanMessage.includes('Authentication') || cleanMessage.includes('authentication')) {
+				cleanMessage = 'Authentication failed. Please verify your API key.';
+			} else if (cleanMessage.includes('format')) {
+				cleanMessage = 'Invalid API key format.';
+			}
+			
+			claudeError = cleanMessage || 'Invalid API key. Please check your key and try again.';
 		}
-
-		claudeSaving = true;
-		claudeDebounceTimer = setTimeout(async () => {
-			// Double-check mutation is available
-			if (!updateClaudeApiKeyFn) {
-				claudeSaving = false;
-				claudeError = 'Not ready to save. Please wait...';
-				console.error('updateClaudeApiKeyFn was null in debounced handler');
-				return;
-			}
-			try {
-				console.log('Attempting to save Claude API key...');
-				await updateClaudeApiKeyFn({ apiKey: value });
-				console.log('Claude API key saved successfully');
-				claudeSaving = false;
-				claudeSaved = true;
-				claudeError = null;
-				setTimeout(() => {
-					claudeSaved = false;
-				}, 2000);
-			} catch (error) {
-				claudeSaving = false;
-				const errorMessage = error instanceof Error ? error.message : 'Failed to save';
-				claudeError = errorMessage;
-				console.error('Failed to save Claude API key:', error);
-			}
-		}, 500);
 	}
 
-	async function handleReadwiseKeyChange(value: string) {
-		readwiseApiKey = value;
-		readwiseSaved = false;
+	// Handle blur validation for Readwise API key
+	async function handleReadwiseKeyBlur() {
+		// Only validate if there's a value and we're not already validating
+		if (!readwiseApiKey.trim() || readwiseValidationState === 'validating' || !updateReadwiseApiKeyFn || !isAuthenticated) {
+			return;
+		}
+
+		readwiseValidationState = 'validating';
 		readwiseError = null;
 
-		if (readwiseDebounceTimer) {
-			clearTimeout(readwiseDebounceTimer);
-		}
-
-		// Don't attempt to save if mutation not ready
-		if (!updateReadwiseApiKeyFn) {
-			return;
-		}
-
-		readwiseSaving = true;
-		readwiseDebounceTimer = setTimeout(async () => {
-			// Double-check mutation is available
-			if (!updateReadwiseApiKeyFn) {
-				readwiseSaving = false;
-				readwiseError = 'Not ready to save. Please wait...';
-				return;
+		try {
+			await updateReadwiseApiKeyFn({ apiKey: readwiseApiKey.trim() });
+			readwiseValidationState = 'valid';
+			readwiseHasKey = true; // Mark that key exists
+			readwiseShowCheckmark = true; // Show checkmark temporarily
+			// Hide checkmark after 3 seconds
+			setTimeout(() => {
+				readwiseShowCheckmark = false;
+			}, 3000);
+		} catch (error) {
+			readwiseValidationState = 'invalid';
+			// Extract user-friendly error message (strip all technical details)
+			const rawMessage = error instanceof Error ? error.message : String(error);
+			// Remove all technical details: Convex prefixes, file paths, line numbers, "Called by client"
+			let cleanMessage = rawMessage
+				.replace(/^\[CONVEX[^\]]+\]\s*\[Request ID:[^\]]+\]\s*Server Error\s*Uncaught Error:\s*/i, '')
+				.replace(/\s*at handler[^]*$/i, '') // Remove "at handler (file:line)"
+				.replace(/\s*Called by client.*$/i, '') // Remove "Called by client"
+				.replace(/\([^)]+\/[^)]+\.ts:\d+:\d+\)/g, '') // Remove file paths like "(../convex/settings.ts:77:2)"
+				.trim();
+			
+			// Simplify common error messages
+			if (cleanMessage.includes('Invalid') || cleanMessage.includes('invalid')) {
+				cleanMessage = 'Invalid API key. Please check your key and try again.';
+			} else if (cleanMessage.includes('Authentication') || cleanMessage.includes('authentication')) {
+				cleanMessage = 'Authentication failed. Please verify your API key.';
+			} else if (cleanMessage.includes('format')) {
+				cleanMessage = 'Invalid API key format.';
 			}
-			try {
-				await updateReadwiseApiKeyFn({ apiKey: value });
-				readwiseSaving = false;
-				readwiseSaved = true;
-				readwiseError = null;
-				setTimeout(() => {
-					readwiseSaved = false;
-				}, 2000);
-			} catch (error) {
-				readwiseSaving = false;
-				readwiseError = error instanceof Error ? error.message : 'Failed to save';
-				console.error('Failed to save Readwise API key:', error);
-			}
-		}, 500);
+			
+			readwiseError = cleanMessage || 'Invalid API key. Please check your key and try again.';
+		}
 	}
 
-	// Cleanup timers
-	$effect(() => {
-		return () => {
-			if (claudeDebounceTimer) clearTimeout(claudeDebounceTimer);
-			if (readwiseDebounceTimer) clearTimeout(readwiseDebounceTimer);
-		};
-	});
+	// Reset validation state when user starts typing
+	function handleClaudeKeyInput(value: string) {
+		claudeApiKey = value;
+		if (claudeValidationState !== 'idle') {
+			claudeValidationState = 'idle';
+			claudeError = null;
+		}
+		claudeShowCheckmark = false; // Hide checkmark when typing
+		// If input is cleared, key no longer exists
+		if (!value.trim()) {
+			claudeHasKey = false;
+		}
+	}
+
+	function handleReadwiseKeyInput(value: string) {
+		readwiseApiKey = value;
+		if (readwiseValidationState !== 'idle') {
+			readwiseValidationState = 'idle';
+			readwiseError = null;
+		}
+		readwiseShowCheckmark = false; // Hide checkmark when typing
+		// If input is cleared, key no longer exists
+		if (!value.trim()) {
+			readwiseHasKey = false;
+		}
+	}
+
+	// Delete API key handlers
+	async function handleDeleteClaudeKey() {
+		if (!deleteClaudeApiKeyFn) return;
+		
+		try {
+			await deleteClaudeApiKeyFn();
+			claudeApiKey = '';
+			claudeHasKey = false;
+			claudeShowCheckmark = false;
+			claudeValidationState = 'idle';
+			claudeError = null;
+		} catch (e) {
+			// Handle error silently - could show error message here if needed
+		}
+	}
+
+	async function handleDeleteReadwiseKey() {
+		if (!deleteReadwiseApiKeyFn) return;
+		
+		try {
+			await deleteReadwiseApiKeyFn();
+			readwiseApiKey = '';
+			readwiseHasKey = false;
+			readwiseShowCheckmark = false;
+			readwiseValidationState = 'idle';
+			readwiseError = null;
+		} catch (e) {
+			// Handle error silently - could show error message here if needed
+		}
+	}
 </script>
 
 <div class="h-screen bg-base overflow-y-auto">
@@ -348,22 +386,70 @@
 										Used for AI-powered flashcard generation from your content
 									</p>
 								</div>
-								<div class="flex items-center gap-icon flex-shrink-0">
-									<div class="relative">
+								<div class="flex flex-col gap-1 flex-shrink-0">
+									<div class="relative inline-block">
 										<input
 											id="claude-key"
-											type={showClaudeKey ? 'text' : 'password'}
+											type="password"
 											bind:value={claudeApiKey}
-											oninput={(e) => handleClaudeKeyChange(e.currentTarget.value)}
-											placeholder="sk-..."
-											class="w-64 px-3 py-2 text-sm bg-base border border-base rounded-md text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+											oninput={(e) => handleClaudeKeyInput(e.currentTarget.value)}
+											onblur={handleClaudeKeyBlur}
+											disabled={claudeValidationState === 'validating'}
+											placeholder={claudeHasKey ? '••••••••••••••••' : 'sk-...'}
+											class="w-64 px-3 py-2 pr-10 text-sm bg-base border {claudeValidationState === 'valid'
+												? 'border-green-500'
+												: claudeValidationState === 'invalid'
+													? 'border-red-500'
+													: 'border-base'} rounded-md text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all {claudeValidationState === 'validating'
+												? 'opacity-50 cursor-not-allowed'
+												: ''}"
 										/>
-										<button
-											type="button"
-											onclick={() => (showClaudeKey = !showClaudeKey)}
-											class="absolute right-2 top-1/2 -translate-y-1/2 text-secondary hover:text-primary"
-										>
-											{#if showClaudeKey}
+										<!-- Validation indicator icon / Delete button -->
+										{#if claudeValidationState === 'validating'}
+											<div class="absolute right-2 top-1/2 -translate-y-1/2">
+												<svg
+													class="w-4 h-4 text-tertiary animate-spin"
+													fill="none"
+													viewBox="0 0 24 24"
+												>
+													<circle
+														class="opacity-25"
+														cx="12"
+														cy="12"
+														r="10"
+														stroke="currentColor"
+														stroke-width="4"
+													/>
+													<path
+														class="opacity-75"
+														fill="currentColor"
+														d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+													/>
+												</svg>
+											</div>
+										{:else if claudeShowCheckmark}
+											<!-- Temporary checkmark (shows for 3 seconds after validation) -->
+											<div class="absolute right-2 top-1/2 -translate-y-1/2">
+												<svg
+													class="w-5 h-5 text-green-500"
+													fill="currentColor"
+													viewBox="0 0 20 20"
+												>
+													<path
+														fill-rule="evenodd"
+														d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+														clip-rule="evenodd"
+													/>
+												</svg>
+											</div>
+										{:else if claudeHasKey}
+											<!-- Delete button (trash icon) - replaces eye icon for security -->
+											<button
+												type="button"
+												onclick={handleDeleteClaudeKey}
+												class="absolute right-2 top-1/2 -translate-y-1/2 text-secondary hover:text-red-500 transition-colors z-10"
+												title="Remove API key"
+											>
 												<svg
 													class="w-4 h-4"
 													fill="none"
@@ -374,12 +460,14 @@
 														stroke-linecap="round"
 														stroke-linejoin="round"
 														stroke-width="2"
-														d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+														d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
 													/>
 												</svg>
-											{:else}
+											</button>
+										{:else if claudeValidationState === 'invalid'}
+											<div class="absolute right-2 top-1/2 -translate-y-1/2">
 												<svg
-													class="w-4 h-4"
+													class="w-4 h-4 text-red-500"
 													fill="none"
 													stroke="currentColor"
 													viewBox="0 0 24 24"
@@ -388,28 +476,26 @@
 														stroke-linecap="round"
 														stroke-linejoin="round"
 														stroke-width="2"
-														d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-													/>
-													<path
-														stroke-linecap="round"
-														stroke-linejoin="round"
-														stroke-width="2"
-														d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+														d="M6 18L18 6M6 6l12 12"
 													/>
 												</svg>
-											{/if}
-										</button>
+											</div>
+										{/if}
 									</div>
-									{#if claudeSaving}
-										<span class="text-label text-tertiary">Saving...</span>
-									{:else if claudeSaved}
-										<span class="text-label text-green-600">Saved</span>
-									{:else if claudeError}
-										<span class="text-label text-red-600" title={claudeError}>
-											{claudeError}
-										</span>
-									{:else if !updateClaudeApiKeyFn}
-										<span class="text-label text-tertiary">Initializing...</span>
+									<!-- Success/Error message or Get API key link below input -->
+									{#if claudeShowCheckmark}
+										<p class="text-xs text-green-500 mt-1 max-w-64">API key is valid and saved</p>
+									{:else if claudeValidationState === 'invalid' && claudeError}
+										<p class="text-xs text-red-500 mt-1 max-w-64">{claudeError}</p>
+									{:else if !claudeHasKey && claudeValidationState !== 'validating'}
+										<a
+											href="https://console.anthropic.com/settings/keys"
+											target="_blank"
+											rel="noopener noreferrer"
+											class="text-xs text-blue-500 hover:text-blue-600 mt-1 max-w-64 underline transition-colors"
+										>
+											Get API key
+										</a>
 									{/if}
 								</div>
 							</div>
@@ -438,22 +524,70 @@
 										Import highlights and notes from your Readwise account
 									</p>
 								</div>
-								<div class="flex items-center gap-icon flex-shrink-0">
-									<div class="relative">
+								<div class="flex flex-col gap-1 flex-shrink-0">
+									<div class="relative inline-block">
 										<input
 											id="readwise-key"
-											type={showReadwiseKey ? 'text' : 'password'}
+											type="password"
 											bind:value={readwiseApiKey}
-											oninput={(e) => handleReadwiseKeyChange(e.currentTarget.value)}
-											placeholder="token_..."
-											class="w-64 px-3 py-2 text-sm bg-base border border-base rounded-md text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+											oninput={(e) => handleReadwiseKeyInput(e.currentTarget.value)}
+											onblur={handleReadwiseKeyBlur}
+											disabled={readwiseValidationState === 'validating'}
+											placeholder={readwiseHasKey ? '••••••••••••••••' : 'token_...'}
+											class="w-64 px-3 py-2 pr-10 text-sm bg-base border {readwiseValidationState === 'valid'
+												? 'border-green-500'
+												: readwiseValidationState === 'invalid'
+													? 'border-red-500'
+													: 'border-base'} rounded-md text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all {readwiseValidationState === 'validating'
+												? 'opacity-50 cursor-not-allowed'
+												: ''}"
 										/>
-										<button
-											type="button"
-											onclick={() => (showReadwiseKey = !showReadwiseKey)}
-											class="absolute right-2 top-1/2 -translate-y-1/2 text-secondary hover:text-primary"
-										>
-											{#if showReadwiseKey}
+										<!-- Validation indicator icon / Delete button -->
+										{#if readwiseValidationState === 'validating'}
+											<div class="absolute right-2 top-1/2 -translate-y-1/2">
+												<svg
+													class="w-4 h-4 text-tertiary animate-spin"
+													fill="none"
+													viewBox="0 0 24 24"
+												>
+													<circle
+														class="opacity-25"
+														cx="12"
+														cy="12"
+														r="10"
+														stroke="currentColor"
+														stroke-width="4"
+													/>
+													<path
+														class="opacity-75"
+														fill="currentColor"
+														d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+													/>
+												</svg>
+											</div>
+										{:else if readwiseShowCheckmark}
+											<!-- Temporary checkmark (shows for 3 seconds after validation) -->
+											<div class="absolute right-2 top-1/2 -translate-y-1/2">
+												<svg
+													class="w-5 h-5 text-green-500"
+													fill="currentColor"
+													viewBox="0 0 20 20"
+												>
+													<path
+														fill-rule="evenodd"
+														d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+														clip-rule="evenodd"
+													/>
+												</svg>
+											</div>
+										{:else if readwiseHasKey}
+											<!-- Delete button (trash icon) - replaces eye icon for security -->
+											<button
+												type="button"
+												onclick={handleDeleteReadwiseKey}
+												class="absolute right-2 top-1/2 -translate-y-1/2 text-secondary hover:text-red-500 transition-colors z-10"
+												title="Remove API key"
+											>
 												<svg
 													class="w-4 h-4"
 													fill="none"
@@ -464,12 +598,14 @@
 														stroke-linecap="round"
 														stroke-linejoin="round"
 														stroke-width="2"
-														d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+														d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
 													/>
 												</svg>
-											{:else}
+											</button>
+										{:else if readwiseValidationState === 'invalid'}
+											<div class="absolute right-2 top-1/2 -translate-y-1/2">
 												<svg
-													class="w-4 h-4"
+													class="w-4 h-4 text-red-500"
 													fill="none"
 													stroke="currentColor"
 													viewBox="0 0 24 24"
@@ -478,26 +614,26 @@
 														stroke-linecap="round"
 														stroke-linejoin="round"
 														stroke-width="2"
-														d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-													/>
-													<path
-														stroke-linecap="round"
-														stroke-linejoin="round"
-														stroke-width="2"
-														d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+														d="M6 18L18 6M6 6l12 12"
 													/>
 												</svg>
-											{/if}
-										</button>
+											</div>
+										{/if}
 									</div>
-									{#if readwiseSaving}
-										<span class="text-label text-tertiary">Saving...</span>
-									{:else if readwiseSaved}
-										<span class="text-label text-green-600">Saved</span>
-									{:else if readwiseError}
-										<span class="text-label text-red-600" title={readwiseError}>
-											Error: {readwiseError}
-										</span>
+									<!-- Success/Error message or Get API key link below input -->
+									{#if readwiseShowCheckmark}
+										<p class="text-xs text-green-500 mt-1 max-w-64">API key is valid and saved</p>
+									{:else if readwiseValidationState === 'invalid' && readwiseError}
+										<p class="text-xs text-red-500 mt-1 max-w-64">{readwiseError}</p>
+									{:else if !readwiseHasKey && readwiseValidationState !== 'validating'}
+										<a
+											href="https://readwise.io/access_token"
+											target="_blank"
+											rel="noopener noreferrer"
+											class="text-xs text-blue-500 hover:text-blue-600 mt-1 max-w-64 underline transition-colors"
+										>
+											Get API key
+										</a>
 									{/if}
 								</div>
 							</div>

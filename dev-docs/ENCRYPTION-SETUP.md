@@ -42,13 +42,14 @@ You should see `API_KEY_ENCRYPTION_KEY` in the list.
 ## How It Works
 
 - **Encryption**: When you save an API key in settings, it's encrypted using AES-256-GCM before being stored in the database
-- **Decryption**: When you view settings, keys are automatically decrypted on the server before being sent to the client
+- **Client Security**: API keys are NEVER sent to the client (not even encrypted). The client only receives boolean flags (`hasClaudeKey`, `hasReadwiseKey`) indicating if keys exist.
 - **Security**: Keys are never stored or transmitted in plain text
 
 ## Important Notes
 
 - **Keep the encryption key secure**: If you lose it, encrypted keys cannot be recovered
-- **Backup the key**: Store it securely (e.g., password manager) as you'll need it to decrypt keys
+- **Backup the key**: Store it securely (e.g., password manager) as you'll need it to decrypt keys when making API calls server-side
+- **Security Note**: Keys are only decrypted server-side when needed for API calls. They are never exposed to the client.
 - **Production**: Use different keys for development and production environments
 - **Key Rotation**: If you need to rotate keys, you'll need to re-encrypt all existing keys (future enhancement)
 
