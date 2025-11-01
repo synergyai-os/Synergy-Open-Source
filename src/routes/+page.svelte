@@ -1,6 +1,13 @@
 <script lang="ts">
 	import { Accordion, Button } from 'bits-ui';
 	import { Capacitor } from '@capacitor/core';
+	import { useAuth } from '@mmailaender/convex-auth-svelte/sveltekit';
+
+	// Auth setup
+	const auth = useAuth();
+	const isAuthenticated = $derived(auth.isAuthenticated);
+	const isLoading = $derived(auth.isLoading);
+	const { signIn, signOut } = auth;
 
 	// State for accordion
 	let accordionValue = $state<string>('item-1');
@@ -20,6 +27,42 @@
 		<h2 class="text-2xl font-bold text-black">🔥 LIVE RELOAD TEST 🔥</h2>
 		<p class="text-lg text-gray-900 mt-2">If you see this, live reload is working!</p>
 		<p class="text-sm text-gray-700 mt-1">Last updated: Just now! ⚡️</p>
+	</div>
+
+	<!-- Auth Status Banner -->
+	<div class="bg-blue-100 border-2 border-blue-500 rounded-lg p-4 mb-6">
+		<h3 class="text-xl font-bold text-blue-900 mb-2">🔐 Authentication Status</h3>
+		{#if isLoading}
+			<p class="text-blue-800">Loading authentication state...</p>
+		{:else if isAuthenticated}
+			<div class="flex items-center justify-between">
+				<p class="text-blue-800 font-medium">✅ You are authenticated!</p>
+				<Button.Root
+					onclick={() => signOut()}
+					class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+				>
+					Sign Out
+				</Button.Root>
+			</div>
+		{:else}
+			<div class="flex flex-col gap-3">
+				<p class="text-blue-800">⚠️ You are not authenticated</p>
+				<div class="flex gap-2">
+					<a
+						href="/login"
+						class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-center"
+					>
+						Sign In
+					</a>
+					<a
+						href="/register"
+						class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-center"
+					>
+						Register
+					</a>
+				</div>
+			</div>
+		{/if}
 	</div>
 
 	<!-- Platform-specific Welcome Message -->
