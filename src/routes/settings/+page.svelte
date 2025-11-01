@@ -43,50 +43,90 @@
 		_creationTime: number;
 	};
 
-	// Client-only: Convex hooks only work in browser
-	type ConvexSvelte = typeof import('convex-svelte');
-	type ConvexClient = import('convex/browser').ConvexClient;
-	type ConvexApi = typeof import('$lib/convex').api;
+	// CRITICAL: Convex hooks MUST be called during component initialization (synchronously)
+	// Solution: Import convex-svelte at top level and call hooks synchronously
+	// Guard with browser check for SSR safety
+	// setupConvexAuth already sets up the authenticated client context
 	
-	let useQuery: ConvexSvelte['useQuery'] | null = $state(null);
-	let useConvexClient: (() => ConvexClient) | null = $state(null);
-	let api: ConvexApi | null = $state(null);
+	// Import at top level - the module import is safe, hooks are called conditionally
+	import { useConvexClient } from 'convex-svelte';
+	import { useAuth } from '@mmailaender/convex-auth-svelte/sveltekit';
 	
-	// Query result type (will be properly typed once Convex generates API types)
-	let userSettings: UseQueryReturn<any> | null = $state(null);
+	// Get auth status to check if user is authenticated
+	const auth = useAuth();
+	const isAuthenticated = $derived(auth.isAuthenticated);
 	
-	// Mutation function types (return table IDs as strings)
+	// Call useConvexClient at top level (must be synchronous, during component init)
+	// setupConvexAuth should have already set up the authenticated client context
+	const convexClient = browser ? useConvexClient() : null;
+	
+	// Create function references using makeFunctionReference
+	// Import at top level (safe to import, execution is guarded)
+	import { makeFunctionReference } from 'convex/server';
+	
+	const settingsApiFunctions = browser ? {
+		getUserSettings: makeFunctionReference('settings:getUserSettings') as any,
+		updateClaudeApiKey: makeFunctionReference('settings:updateClaudeApiKey') as any,
+		updateReadwiseApiKey: makeFunctionReference('settings:updateReadwiseApiKey') as any,
+		updateTheme: makeFunctionReference('settings:updateTheme') as any,
+	} : null;
+
+	// Load settings using client.query (not useQuery, to keep it simple)
+	let userSettings: UserSettings | null = $state(null);
+	
+	// Load settings when client is ready and user is authenticated
+	onMount(async () => {
+		if (!browser || !convexClient || !settingsApiFunctions) {
+			console.warn('Cannot load settings:', {
+				browser,
+				hasClient: !!convexClient,
+				hasFunctions: !!settingsApiFunctions,
+				isAuthenticated
+			});
+			return;
+		}
+		
+		// Check authentication status
+		if (!isAuthenticated) {
+			console.warn('User not authenticated - cannot load settings');
+			return;
+		}
+		
+		try {
+			console.log('Loading user settings...');
+			const settings = await convexClient.query(settingsApiFunctions.getUserSettings, {});
+			if (settings) {
+				userSettings = settings as UserSettings;
+				claudeApiKey = userSettings.claudeApiKey || '';
+				readwiseApiKey = userSettings.readwiseApiKey || '';
+				console.log('✅ Settings loaded');
+			} else {
+				console.log('No settings found (user may not have any saved yet)');
+			}
+		} catch (e) {
+			console.error('Failed to load settings:', e);
+		}
+	});
+	
+	// Mutation functions - created when client and functions are ready
 	let updateClaudeApiKeyFn: ((args: { apiKey: string }) => Promise<string>) | null = $state(null);
 	let updateReadwiseApiKeyFn: ((args: { apiKey: string }) => Promise<string>) | null = $state(null);
 	let updateThemeFn: ((args: { theme: 'light' | 'dark' }) => Promise<string>) | null = $state(null);
 
-	// Initialize Convex only in browser
-	onMount(async () => {
-		if (!browser) return;
-
-		const convexSvelte = await import('convex-svelte');
-		useQuery = convexSvelte.useQuery;
-		useConvexClient = convexSvelte.useConvexClient;
-		api = (await import('$lib/convex')).api;
-
-		// Initialize queries and mutations
-		// Note: TypeScript may not see api.settings until Convex dev server generates types
-		// Using runtime checks for safety
-		if (useQuery && api && 'settings' in api) {
-			const settingsApi = (api as any).settings;
-			userSettings = useQuery(settingsApi.getUserSettings, () => ({})) as typeof userSettings;
-		}
-		if (useConvexClient && api && 'settings' in api) {
-			const client = useConvexClient();
-			const settingsApi = (api as any).settings;
-			// Create mutation functions using client.mutation (proper pattern from docs)
-			updateClaudeApiKeyFn = ((args: { apiKey: string }) => 
-				client.mutation(settingsApi.updateClaudeApiKey, args)) as typeof updateClaudeApiKeyFn;
-			updateReadwiseApiKeyFn = ((args: { apiKey: string }) => 
-				client.mutation(settingsApi.updateReadwiseApiKey, args)) as typeof updateReadwiseApiKeyFn;
-			updateThemeFn = ((args: { theme: 'light' | 'dark' }) => 
-				client.mutation(settingsApi.updateTheme, args)) as typeof updateThemeFn;
-		}
+	// Initialize mutations when ready
+	$effect(() => {
+		if (!browser || !convexClient || !settingsApiFunctions) return;
+		
+		// Create mutation functions
+		updateClaudeApiKeyFn = ((args: { apiKey: string }) => {
+			console.log('Calling updateClaudeApiKey mutation...', args);
+			return convexClient!.mutation(settingsApiFunctions.updateClaudeApiKey, args);
+		}) as typeof updateClaudeApiKeyFn;
+		updateReadwiseApiKeyFn = ((args: { apiKey: string }) => 
+			convexClient!.mutation(settingsApiFunctions.updateReadwiseApiKey, args)) as typeof updateReadwiseApiKeyFn;
+		updateThemeFn = ((args: { theme: 'light' | 'dark' }) => 
+			convexClient!.mutation(settingsApiFunctions.updateTheme, args)) as typeof updateThemeFn;
+		console.log('✅ Mutations initialized');
 	});
 
 	// State for API keys (initialized from Convex)
@@ -95,16 +135,7 @@
 	let showClaudeKey = $state(false);
 	let showReadwiseKey = $state(false);
 
-	// Initialize from Convex data
-	$effect(() => {
-		if (browser && userSettings && !userSettings.isLoading && userSettings.data) {
-			const settings = userSettings.data as UserSettings | null;
-			if (settings) {
-				claudeApiKey = settings.claudeApiKey || '';
-				readwiseApiKey = settings.readwiseApiKey || '';
-			}
-		}
-	});
+	// Settings are loaded directly in onMount above, no separate effect needed
 
 	// Auto-save states
 	let claudeSaving = $state(false);
@@ -128,8 +159,23 @@
 			clearTimeout(claudeDebounceTimer);
 		}
 
-		// Don't attempt to save if mutation not ready
+		// Check authentication first
+		if (!isAuthenticated) {
+			claudeError = 'Please sign in to save API keys';
+			console.warn('User not authenticated');
+			return;
+		}
+
+		// Show user feedback if mutation not ready
 		if (!updateClaudeApiKeyFn) {
+			claudeError = 'Initializing... Please wait a moment.';
+			console.warn('updateClaudeApiKeyFn not ready yet');
+			// Retry after a short delay
+			setTimeout(() => {
+				if (updateClaudeApiKeyFn && value) {
+					handleClaudeKeyChange(value);
+				}
+			}, 500);
 			return;
 		}
 
@@ -139,10 +185,13 @@
 			if (!updateClaudeApiKeyFn) {
 				claudeSaving = false;
 				claudeError = 'Not ready to save. Please wait...';
+				console.error('updateClaudeApiKeyFn was null in debounced handler');
 				return;
 			}
 			try {
+				console.log('Attempting to save Claude API key...');
 				await updateClaudeApiKeyFn({ apiKey: value });
+				console.log('Claude API key saved successfully');
 				claudeSaving = false;
 				claudeSaved = true;
 				claudeError = null;
@@ -151,7 +200,8 @@
 				}, 2000);
 			} catch (error) {
 				claudeSaving = false;
-				claudeError = error instanceof Error ? error.message : 'Failed to save';
+				const errorMessage = error instanceof Error ? error.message : 'Failed to save';
+				claudeError = errorMessage;
 				console.error('Failed to save Claude API key:', error);
 			}
 		}, 500);
@@ -356,8 +406,10 @@
 										<span class="text-label text-green-600">Saved</span>
 									{:else if claudeError}
 										<span class="text-label text-red-600" title={claudeError}>
-											Error: {claudeError}
+											{claudeError}
 										</span>
+									{:else if !updateClaudeApiKeyFn}
+										<span class="text-label text-tertiary">Initializing...</span>
 									{/if}
 								</div>
 							</div>

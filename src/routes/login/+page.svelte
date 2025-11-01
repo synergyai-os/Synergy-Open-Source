@@ -2,9 +2,13 @@
 	import { useAuth } from '@mmailaender/convex-auth-svelte/sveltekit';
 	import { Button } from 'bits-ui';
 	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 
 	const auth = useAuth();
 	const { signIn } = auth;
+	
+	// Get redirectTo parameter from URL query string
+	const redirectTo = $derived($page.url.searchParams.get('redirectTo') || '/');
 
 	let email = $state('');
 	let password = $state('');
@@ -22,8 +26,8 @@
 				password,
 				flow: 'signIn'
 			});
-			// Redirect to home page after successful login
-			await goto('/');
+			// Redirect to intended destination or home page after successful login
+			await goto(redirectTo);
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to sign in. Please check your credentials.';
 			isLoading = false;
