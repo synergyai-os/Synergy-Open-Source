@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ResizableSplitter from './ResizableSplitter.svelte';
+	import SidebarHeader from './sidebar/SidebarHeader.svelte';
 
 	type Props = {
 		inboxCount: number;
@@ -68,43 +69,30 @@
 		onWidthChange={(w) => onSidebarWidthChange?.(w)}
 	>
 		<aside
-			class="bg-gray-900 text-white flex flex-col border-r border-gray-800 h-full"
+			class="bg-gray-900 text-white flex flex-col border-r border-gray-800 h-full overflow-hidden"
 			onmouseenter={() => (isHovered = true)}
 			onmouseleave={() => (isHovered = false)}
 		>
-			<!-- Header -->
-			<div class="p-4 border-b border-gray-800 flex items-center gap-2">
-				<button
-					type="button"
-					onclick={() => onToggleCollapse()}
-					class="text-gray-400 hover:text-white transition-colors"
-					aria-label="Toggle sidebar"
-				>
-					{sidebarCollapsed ? '☰' : '✕'}
-				</button>
-				{#if !sidebarCollapsed && !isMobile}
-					<div>
-						<h1 class="text-xl font-bold">Axon</h1>
-						<p class="text-sm text-gray-400">Knowledge Base</p>
-					</div>
-				{/if}
+			<!-- Sticky Header with Workspace Menu -->
+			<SidebarHeader
+				workspaceName="Axon"
+				sidebarCollapsed={sidebarCollapsed}
+				isMobile={isMobile}
+				isHovered={isHovered}
+				isPinned={isPinned}
+				onToggleCollapse={onToggleCollapse}
+				onTogglePin={() => {
+					isPinned = !isPinned;
+				}}
+				onSettings={() => {
+					console.log('Settings clicked');
+				}}
+				onLogout={() => {
+					console.log('Logout clicked');
+				}}
+			/>
 
-				<!-- Pin/Unpin button -->
-				{#if isHovered}
-					<button
-						type="button"
-						onclick={() => {
-							isPinned = !isPinned;
-						}}
-						class="ml-auto text-gray-400 hover:text-white transition-colors"
-						aria-label={isPinned ? 'Unpin sidebar' : 'Pin sidebar'}
-					>
-						📌
-					</button>
-				{/if}
-			</div>
-
-			<!-- Navigation -->
+			<!-- Navigation - Scrollable area -->
 			{#if !sidebarCollapsed || isPinned}
 				<nav class="flex-1 p-4 space-y-4 overflow-y-auto">
 					<!-- Inbox -->
@@ -231,34 +219,31 @@
 	</ResizableSplitter>
 {:else}
 	<aside
-		class="bg-gray-900 text-white flex flex-col border-r border-gray-800 transition-all duration-300"
+		class="bg-gray-900 text-white flex flex-col border-r border-gray-800 transition-all duration-300 overflow-hidden"
 		style="width: {displayWidth()}px;"
 		class:w-16={isMobile && !sidebarCollapsed}
 		class:hidden={isMobile && sidebarCollapsed}
 		onmouseenter={() => (isHovered = true)}
 		onmouseleave={() => (isHovered = false)}
 	>
-		<!-- Header -->
-		<div class="p-4 border-b border-gray-800 flex items-center gap-2">
-			<button
-				type="button"
-				onclick={() => onToggleCollapse()}
-				class="text-gray-400 hover:text-white transition-colors"
-				aria-label="Toggle sidebar"
-			>
-				{sidebarCollapsed ? '☰' : '✕'}
-			</button>
-			{#if !sidebarCollapsed && !isMobile}
-				<div>
-					<h1 class="text-xl font-bold">Axon</h1>
-					<p class="text-sm text-gray-400">Knowledge Base</p>
-				</div>
-			{:else if isMobile && !sidebarCollapsed}
-				<div>
-					<h1 class="text-2xl font-bold">A</h1>
-				</div>
-			{/if}
-		</div>
+		<!-- Sticky Header with Workspace Menu -->
+		<SidebarHeader
+			workspaceName="Axon"
+			sidebarCollapsed={sidebarCollapsed}
+			isMobile={isMobile}
+			isHovered={isHovered}
+			isPinned={isPinned}
+			onToggleCollapse={onToggleCollapse}
+			onTogglePin={() => {
+				isPinned = !isPinned;
+			}}
+			onSettings={() => {
+				console.log('Settings clicked');
+			}}
+			onLogout={() => {
+				console.log('Logout clicked');
+			}}
+		/>
 
 		<!-- Navigation -->
 		{#if !sidebarCollapsed}
