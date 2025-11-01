@@ -6,6 +6,28 @@
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 		<meta name="theme-color" content="#000000" />
+		<script>
+			// Prevent FOUC (Flash of Unstyled Content) by applying theme immediately
+			(function() {
+				try {
+					const stored = localStorage.getItem('axon-theme');
+					const theme = stored === 'light' || stored === 'dark' 
+						? stored 
+						: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+					
+					if (theme === 'dark') {
+						document.documentElement.classList.add('dark');
+						document.documentElement.classList.remove('light');
+					} else {
+						document.documentElement.classList.add('light');
+						document.documentElement.classList.remove('dark');
+					}
+				} catch (e) {
+					// Fallback to dark mode if localStorage access fails
+					document.documentElement.classList.add('dark');
+				}
+			})();
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

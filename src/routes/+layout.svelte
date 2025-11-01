@@ -7,6 +7,9 @@
 
 	// Set up authentication (automatically initializes Convex client)
 	setupConvexAuth({ getServerState: () => data.authState });
+
+	// Theme is initialized via inline script in app.html for FOUC prevention
+	// Components using createThemeStore() will initialize reactively on first use
 </script>
 
 <svelte:head>
