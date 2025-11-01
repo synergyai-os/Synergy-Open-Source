@@ -274,6 +274,9 @@
 					onDeleteAllRead={handleDeleteAllRead}
 					onDeleteAllCompleted={handleDeleteAllCompleted}
 					onSortClick={handleSortClick}
+					sidebarCollapsed={sidebarCollapsed}
+					onSidebarToggle={() => (sidebarCollapsed = !sidebarCollapsed)}
+					isMobile={isMobile}
 				/>
 
 				<!-- Inbox Items List - Scrollable -->

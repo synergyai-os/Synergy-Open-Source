@@ -1,6 +1,15 @@
 ---
 alwaysApply: true
 ---
+- **CRITICAL: Use Context7 MCP for Library Documentation** - ALWAYS use Context7 MCP tools before web search
+  - **Why**: Context7 provides up-to-date, accurate library documentation with code examples directly from official sources
+  - **When to use**: Any time you need to understand how to use a library, framework, or package (e.g., "How do I use useMutation in convex-svelte?")
+  - **Process**: 
+    1. First: Call `mcp_context7_resolve-library-id` to find the library
+    2. Then: Call `mcp_context7_get-library-docs` with the resolved library ID and your specific topic
+    3. Only if Context7 fails or doesn't have the library: Fall back to web search
+  - **Never**: Search the web for library documentation when Context7 is available
+  - **Examples**: convex-svelte, Svelte, Tailwind, Bits UI, etc. - check Context7 first!
 - use our /dev-docs folder for guides and keep them up to date
 - **CRITICAL: Design Token System** - ALWAYS use semantic tokens instead of numeric/hardcoded Tailwind classes
   - **Spacing Tokens**: NEVER use `px-2`, `py-1.5`, `gap-2` etc. - use `px-nav-item`, `py-nav-item`, `gap-icon`, `px-menu-item`, `px-badge`, `px-header`, etc.

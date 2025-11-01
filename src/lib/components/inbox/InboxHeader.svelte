@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { DropdownMenu } from 'bits-ui';
 	import InboxFilterMenu from './InboxFilterMenu.svelte';
+	import SidebarToggle from '$lib/components/SidebarToggle.svelte';
 
 	type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 
@@ -11,6 +12,9 @@
 		onDeleteAllRead?: () => void;
 		onDeleteAllCompleted?: () => void;
 		onSortClick?: () => void;
+		sidebarCollapsed?: boolean;
+		onSidebarToggle?: () => void;
+		isMobile?: boolean;
 	}
 
 	let {
@@ -19,7 +23,10 @@
 		onDeleteAll,
 		onDeleteAllRead,
 		onDeleteAllCompleted,
-		onSortClick
+		onSortClick,
+		sidebarCollapsed = false,
+		onSidebarToggle,
+		isMobile = false
 	}: Props = $props();
 
 	let menuOpen = $state(false);
@@ -29,8 +36,16 @@
 <div
 	class="sticky top-0 z-10 bg-surface border-b border-base px-inbox-header py-inbox-header flex items-center justify-between flex-shrink-0"
 >
-	<!-- Left: Title + Kebab Menu -->
+	<!-- Left: Title + Sidebar Toggle + Kebab Menu -->
 	<div class="flex items-center gap-icon">
+		{#if onSidebarToggle}
+			<SidebarToggle
+				sidebarCollapsed={sidebarCollapsed}
+				onToggle={onSidebarToggle}
+				isMobile={isMobile}
+			/>
+		{/if}
+
 		<h2 class="text-sm font-normal text-secondary">Inbox</h2>
 
 		<!-- Kebab Menu (Delete Actions) -->

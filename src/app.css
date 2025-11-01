@@ -33,7 +33,7 @@
 	--spacing-inbox-title-bottom: 1rem; /* 16px - mb-4 equivalent */
 	--spacing-inbox-header-x: 1rem; /* 16px - px-4 equivalent */
 	--spacing-inbox-header-y: 0.75rem; /* 12px - py-3 equivalent */
-	
+
 	/* Settings Spacing Tokens */
 	--spacing-settings-section-gap: 1.5rem; /* 24px - gap-6 equivalent - gap between section cards */
 	--spacing-settings-row-gap: 1rem; /* 16px - gap-4 equivalent - vertical gap between setting rows */

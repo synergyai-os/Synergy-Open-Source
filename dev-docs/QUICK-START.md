@@ -27,6 +27,11 @@ Knowledge retention app using the CODE framework (Collect → Organise → Disti
    - Authentication architecture
    - Convex setup
 
+5. **`dev-docs/production-checklist.md`** - Production Readiness
+   - Critical security items
+   - Recommended improvements
+   - Tracking checklist
+
 ## 🚀 Recommended Next Task
 
 **Task 1: Convex Schema Design** (from product-vision-and-plan.md)

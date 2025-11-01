@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import ResizableSplitter from './ResizableSplitter.svelte';
 	import SidebarHeader from './sidebar/SidebarHeader.svelte';
 
@@ -40,6 +41,7 @@
 	<div
 		class="fixed left-0 top-0 bottom-0 w-4 z-40 hover:bg-transparent"
 		onmouseenter={() => (isHovered = true)}
+		onmouseleave={() => (isHovered = false)}
 		role="presentation"
 	></div>
 {/if}
@@ -74,8 +76,9 @@
 				workspaceName="Axon"
 				sidebarCollapsed={sidebarCollapsed}
 				isMobile={isMobile}
+				isHovered={isHovered}
 				onSettings={() => {
-					console.log('Settings clicked');
+					goto('/settings');
 				}}
 				onLogout={() => {
 					console.log('Logout clicked');
@@ -83,7 +86,7 @@
 			/>
 
 			<!-- Navigation - Scrollable area -->
-			{#if !sidebarCollapsed || isPinned}
+			{#if !sidebarCollapsed || isPinned || (isHovered && !isMobile)}
 				<nav class="flex-1 px-nav-container py-nav-container overflow-y-auto">
 					<!-- Inbox -->
 					<a
@@ -183,7 +186,7 @@
 			{/if}
 
 			<!-- Footer Actions -->
-			{#if !sidebarCollapsed || isPinned}
+			{#if (!sidebarCollapsed || isPinned || (isHovered && !isMobile)) && !isMobile}
 				<div class="px-nav-container py-nav-container border-t border-sidebar">
 					<button
 						type="button"
@@ -211,7 +214,9 @@
 	</ResizableSplitter>
 {:else}
 	<aside
-		class="bg-sidebar text-sidebar-primary flex flex-col border-r border-sidebar transition-all duration-300 overflow-hidden"
+		class="bg-sidebar text-sidebar-primary flex flex-col border-r border-sidebar transition-all duration-300 overflow-hidden h-full"
+		class:fixed={sidebarCollapsed && !isMobile && isHovered}
+		class:z-50={sidebarCollapsed && !isMobile && isHovered}
 		style="width: {displayWidth()}px;"
 		class:w-16={isMobile && !sidebarCollapsed}
 		class:hidden={isMobile && sidebarCollapsed}
@@ -223,8 +228,11 @@
 			workspaceName="Axon"
 			sidebarCollapsed={sidebarCollapsed}
 			isMobile={isMobile}
+			isHovered={isHovered}
 			onSettings={() => {
-				console.log('Settings clicked');
+				if (typeof window !== 'undefined') {
+					window.location.href = '/settings';
+				}
 			}}
 			onLogout={() => {
 				console.log('Logout clicked');
@@ -232,7 +240,7 @@
 		/>
 
 		<!-- Navigation -->
-		{#if !sidebarCollapsed}
+		{#if !sidebarCollapsed || (isHovered && !isMobile)}
 			<nav class="flex-1 px-nav-container py-nav-container overflow-y-auto">
 				<!-- Inbox -->
 				<a
@@ -355,7 +363,7 @@
 		{/if}
 
 		<!-- Footer Actions -->
-		{#if !sidebarCollapsed && !isMobile}
+		{#if (!sidebarCollapsed || (isHovered && !isMobile)) && !isMobile}
 			<div class="px-nav-container py-nav-container border-t border-sidebar">
 				<button
 					type="button"
@@ -389,5 +397,12 @@
 
 	aside:hover {
 		z-index: 40;
+	}
+
+	aside.fixed {
+		top: 0;
+		left: 0;
+		bottom: 0;
+		height: 100vh;
 	}
 </style>

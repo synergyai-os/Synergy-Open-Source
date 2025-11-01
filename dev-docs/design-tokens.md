@@ -50,6 +50,10 @@ Our spacing scale is based on a 4px base unit (0.25rem):
 | `--spacing-inbox-title-bottom` | `mb-inbox-title` | 1rem (16px) | Margin below inbox title |
 | `--spacing-inbox-header-x` | `px-inbox-header` | 1rem (16px) | Inbox header horizontal padding |
 | `--spacing-inbox-header-y` | `py-inbox-header` | 0.75rem (12px) | Inbox header vertical padding |
+| `--spacing-settings-section-gap` | `gap-settings-section` | 1.5rem (24px) | Gap between settings section cards |
+| `--spacing-settings-row-gap` | `gap-settings-row` | 1rem (16px) | Vertical gap between setting rows |
+| `--spacing-settings-row-padding-x` | `px-settings-row` | 1rem (16px) | Setting row horizontal padding |
+| `--spacing-settings-row-padding-y` | `py-settings-row` | 1rem (16px) | Setting row vertical padding |
 
 ### Migration Guide
 
