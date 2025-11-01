@@ -53,7 +53,7 @@
 	<button
 		type="button"
 		onclick={() => onToggleCollapse()}
-		class="fixed top-4 left-4 z-50 bg-gray-900 text-white p-2 rounded-lg shadow-lg hover:bg-gray-800 transition-colors"
+		class="fixed top-4 left-4 z-50 bg-sidebar text-sidebar-primary p-2 rounded-lg shadow-lg hover:bg-sidebar-hover-solid transition-colors"
 		aria-label="Open navigation"
 	>
 		☰
@@ -69,7 +69,7 @@
 		onWidthChange={(w) => onSidebarWidthChange?.(w)}
 	>
 		<aside
-			class="bg-gray-900 text-white flex flex-col border-r border-gray-800 h-full overflow-hidden"
+			class="bg-sidebar text-sidebar-primary flex flex-col border-r border-sidebar h-full overflow-hidden"
 			onmouseenter={() => (isHovered = true)}
 			onmouseleave={() => (isHovered = false)}
 		>
@@ -88,11 +88,11 @@
 
 			<!-- Navigation - Scrollable area -->
 			{#if !sidebarCollapsed || isPinned}
-				<nav class="flex-1 px-2 py-2 overflow-y-auto">
+				<nav class="flex-1 px-nav-container py-nav-container overflow-y-auto">
 					<!-- Inbox -->
 					<a
 						href="/inbox"
-						class="group relative flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
+						class="group relative flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
 						title="Inbox"
 					>
 						<!-- Icon -->
@@ -113,7 +113,7 @@
 						<span class="font-normal flex-1 min-w-0">Inbox</span>
 						{#if inboxCount > 0}
 							<span
-								class="bg-gray-700 text-gray-300 text-[10px] font-medium px-1.5 py-0.5 rounded min-w-[18px] text-center flex-shrink-0"
+								class="bg-sidebar-badge text-sidebar-badge text-label font-medium px-badge py-badge rounded min-w-[18px] text-center flex-shrink-0"
 							>
 								{inboxCount}
 							</span>
@@ -123,7 +123,7 @@
 					<!-- Flashcards -->
 					<a
 						href="/flashcards"
-						class="group flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
+						class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
 						title="Flashcards"
 					>
 						<!-- Icon -->
@@ -145,26 +145,26 @@
 					</a>
 
 					<!-- Filter Divider -->
-					<div class="border-t border-gray-800/50 my-2"></div>
-					<div class="px-2 py-1">
-						<p class="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1.5">
+					<div class="border-t border-sidebar my-2"></div>
+					<div class="px-section py-section">
+						<p class="text-label font-medium text-sidebar-tertiary uppercase tracking-wider mb-1.5">
 							Filters
 						</p>
 						<div class="space-y-0.5">
 							<button
 								type="button"
-								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
-								class:bg-gray-800={filterType === 'all'}
-								class:text-white={filterType === 'all'}
+								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+								class:bg-sidebar-active={filterType === 'all'}
+								class:text-sidebar-primary={filterType === 'all'}
 								onclick={() => onFilterChange('all')}
 							>
 								<span class="font-normal">All</span>
 							</button>
 							<button
 								type="button"
-								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
-								class:bg-gray-800={filterType === 'readwise_highlight'}
-								class:text-white={filterType === 'readwise_highlight'}
+								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+								class:bg-sidebar-active={filterType === 'readwise_highlight'}
+								class:text-sidebar-primary={filterType === 'readwise_highlight'}
 								onclick={() => onFilterChange('readwise_highlight')}
 							>
 								<!-- Icon -->
@@ -186,9 +186,9 @@
 							</button>
 							<button
 								type="button"
-								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
-								class:bg-gray-800={filterType === 'photo_note'}
-								class:text-white={filterType === 'photo_note'}
+								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+								class:bg-sidebar-active={filterType === 'photo_note'}
+								class:text-sidebar-primary={filterType === 'photo_note'}
 								onclick={() => onFilterChange('photo_note')}
 							>
 								<!-- Icon -->
@@ -216,9 +216,9 @@
 							</button>
 							<button
 								type="button"
-								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
-								class:bg-gray-800={filterType === 'manual_text'}
-								class:text-white={filterType === 'manual_text'}
+								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+								class:bg-sidebar-active={filterType === 'manual_text'}
+								class:text-sidebar-primary={filterType === 'manual_text'}
 								onclick={() => onFilterChange('manual_text')}
 							>
 								<!-- Icon -->
@@ -242,39 +242,39 @@
 					</div>
 
 					<!-- Categories Section -->
-					<div class="border-t border-gray-800/50 my-2"></div>
-					<div class="px-2 py-1">
-						<p class="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1.5">
+					<div class="border-t border-sidebar my-2"></div>
+					<div class="px-section py-section">
+						<p class="text-label font-medium text-sidebar-tertiary uppercase tracking-wider mb-1.5">
 							Categories
 						</p>
 						<div class="space-y-0.5">
 							<button
 								type="button"
-								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
+								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
 							>
 								<span class="font-normal">Product Delivery</span>
 							</button>
 							<button
 								type="button"
-								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white pl-6"
+								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary pl-indent"
 							>
 								<span class="font-normal">Sprint Planning</span>
 							</button>
 							<button
 								type="button"
-								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white pl-6"
+								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary pl-indent"
 							>
 								<span class="font-normal">Roadmapping</span>
 							</button>
 							<button
 								type="button"
-								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
+								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
 							>
 								<span class="font-normal">Product Discovery</span>
 							</button>
 							<button
 								type="button"
-								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
+								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
 							>
 								<span class="font-normal">Leadership</span>
 							</button>
@@ -285,10 +285,10 @@
 
 			<!-- Footer Actions -->
 			{#if !sidebarCollapsed || isPinned}
-				<div class="px-2 py-2 border-t border-gray-800/50">
+				<div class="px-nav-container py-nav-container border-t border-sidebar">
 					<button
 						type="button"
-						class="w-full flex items-center justify-center gap-2 bg-gray-800/50 hover:bg-gray-800 text-white py-1.5 px-3 rounded-md transition-all duration-150 text-sm font-normal"
+						class="w-full flex items-center justify-center gap-icon bg-sidebar-hover hover:bg-sidebar-hover-solid text-sidebar-primary py-nav-item px-header rounded-md transition-all duration-150 text-sm font-normal"
 					>
 						<svg
 							class="w-4 h-4"
@@ -312,7 +312,7 @@
 	</ResizableSplitter>
 {:else}
 	<aside
-		class="bg-gray-900 text-white flex flex-col border-r border-gray-800 transition-all duration-300 overflow-hidden"
+		class="bg-sidebar text-sidebar-primary flex flex-col border-r border-sidebar transition-all duration-300 overflow-hidden"
 		style="width: {displayWidth()}px;"
 		class:w-16={isMobile && !sidebarCollapsed}
 		class:hidden={isMobile && sidebarCollapsed}
@@ -334,11 +334,11 @@
 
 		<!-- Navigation -->
 		{#if !sidebarCollapsed}
-			<nav class="flex-1 px-2 py-2 overflow-y-auto">
+			<nav class="flex-1 px-nav-container py-nav-container overflow-y-auto">
 				<!-- Inbox -->
 				<a
 					href="/inbox"
-					class="group relative flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
+					class="group relative flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
 					class:justify-center={isMobile}
 					title={isMobile ? 'Inbox' : ''}
 				>
@@ -360,7 +360,7 @@
 						<span class="font-normal flex-1 min-w-0">Inbox</span>
 						{#if inboxCount > 0}
 							<span
-								class="bg-gray-700 text-gray-300 text-[10px] font-medium px-1.5 py-0.5 rounded min-w-[18px] text-center flex-shrink-0"
+								class="bg-sidebar-badge text-sidebar-badge text-label font-medium px-badge py-badge rounded min-w-[18px] text-center flex-shrink-0"
 							>
 								{inboxCount}
 							</span>
@@ -368,7 +368,7 @@
 					{:else if isMobile && sidebarCollapsed}
 						{#if inboxCount > 0}
 							<span
-								class="absolute top-0 right-0 bg-gray-700 text-gray-300 text-[10px] font-medium px-1 py-0.5 rounded leading-none"
+								class="absolute top-0 right-0 bg-sidebar-badge text-sidebar-badge text-label font-medium px-1 py-0.5 rounded leading-none"
 							>
 								{inboxCount}
 							</span>
@@ -377,7 +377,7 @@
 						<span class="font-normal">Inbox</span>
 						{#if inboxCount > 0}
 							<span
-								class="bg-gray-700 text-gray-300 text-[10px] font-medium px-1.5 py-0.5 rounded min-w-[18px] text-center flex-shrink-0"
+								class="bg-sidebar-badge text-sidebar-badge text-label font-medium px-badge py-badge rounded min-w-[18px] text-center flex-shrink-0"
 							>
 								{inboxCount}
 							</span>
@@ -388,7 +388,7 @@
 				<!-- Flashcards -->
 				<a
 					href="/flashcards"
-					class="group flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
+					class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
 					class:justify-center={isMobile}
 					title={isMobile ? 'Flashcards' : ''}
 				>
@@ -413,26 +413,26 @@
 
 				<!-- Filter Divider -->
 				{#if !isMobile}
-					<div class="border-t border-gray-800/50 my-2"></div>
-					<div class="px-2 py-1">
-						<p class="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1.5">
+					<div class="border-t border-sidebar my-2"></div>
+					<div class="px-section py-section">
+						<p class="text-label font-medium text-sidebar-tertiary uppercase tracking-wider mb-1.5">
 							Filters
 						</p>
 						<div class="space-y-0.5">
 							<button
 								type="button"
-								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
-								class:bg-gray-800={filterType === 'all'}
-								class:text-white={filterType === 'all'}
+								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+								class:bg-sidebar-active={filterType === 'all'}
+								class:text-sidebar-primary={filterType === 'all'}
 								onclick={() => onFilterChange('all')}
 							>
 								<span class="font-normal">All</span>
 							</button>
 							<button
 								type="button"
-								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
-								class:bg-gray-800={filterType === 'readwise_highlight'}
-								class:text-white={filterType === 'readwise_highlight'}
+								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+								class:bg-sidebar-active={filterType === 'readwise_highlight'}
+								class:text-sidebar-primary={filterType === 'readwise_highlight'}
 								onclick={() => onFilterChange('readwise_highlight')}
 							>
 								<svg
@@ -453,9 +453,9 @@
 							</button>
 							<button
 								type="button"
-								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
-								class:bg-gray-800={filterType === 'photo_note'}
-								class:text-white={filterType === 'photo_note'}
+								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+								class:bg-sidebar-active={filterType === 'photo_note'}
+								class:text-sidebar-primary={filterType === 'photo_note'}
 								onclick={() => onFilterChange('photo_note')}
 							>
 								<svg
@@ -482,9 +482,9 @@
 							</button>
 							<button
 								type="button"
-								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
-								class:bg-gray-800={filterType === 'manual_text'}
-								class:text-white={filterType === 'manual_text'}
+								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+								class:bg-sidebar-active={filterType === 'manual_text'}
+								class:text-sidebar-primary={filterType === 'manual_text'}
 								onclick={() => onFilterChange('manual_text')}
 							>
 								<svg
@@ -509,39 +509,39 @@
 
 				<!-- Categories Section -->
 				{#if !isMobile}
-					<div class="border-t border-gray-800/50 my-2"></div>
-					<div class="px-2 py-1">
-						<p class="text-[10px] font-medium text-gray-500 uppercase tracking-wider mb-1.5">
+					<div class="border-t border-sidebar my-2"></div>
+					<div class="px-section py-section">
+						<p class="text-label font-medium text-sidebar-tertiary uppercase tracking-wider mb-1.5">
 							Categories
 						</p>
 						<div class="space-y-0.5">
 							<button
 								type="button"
-								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
+								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
 							>
 								<span class="font-normal">Product Delivery</span>
 							</button>
 							<button
 								type="button"
-								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white pl-6"
+								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary pl-indent"
 							>
 								<span class="font-normal">Sprint Planning</span>
 							</button>
 							<button
 								type="button"
-								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white pl-6"
+								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary pl-indent"
 							>
 								<span class="font-normal">Roadmapping</span>
 							</button>
 							<button
 								type="button"
-								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
+								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
 							>
 								<span class="font-normal">Product Discovery</span>
 							</button>
 							<button
 								type="button"
-								class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-800/50 transition-all duration-150 text-sm text-gray-300 hover:text-white"
+								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
 							>
 								<span class="font-normal">Leadership</span>
 							</button>
@@ -553,10 +553,10 @@
 
 		<!-- Footer Actions -->
 		{#if !sidebarCollapsed && !isMobile}
-			<div class="px-2 py-2 border-t border-gray-800/50">
+			<div class="px-nav-container py-nav-container border-t border-sidebar">
 				<button
 					type="button"
-					class="w-full flex items-center justify-center gap-2 bg-gray-800/50 hover:bg-gray-800 text-white py-1.5 px-3 rounded-md transition-all duration-150 text-sm font-normal"
+					class="w-full flex items-center justify-center gap-icon bg-sidebar-hover hover:bg-sidebar-hover-solid text-sidebar-primary py-nav-item px-header rounded-md transition-all duration-150 text-sm font-normal"
 				>
 					<svg
 						class="w-4 h-4"

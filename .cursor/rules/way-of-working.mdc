@@ -1,0 +1,15 @@
+---
+alwaysApply: true
+---
+- use our /dev-docs folder for guides and keep them up to date
+- **CRITICAL: Design Token System** - ALWAYS use semantic tokens instead of numeric/hardcoded Tailwind classes
+  - **Spacing Tokens**: NEVER use `px-2`, `py-1.5`, `gap-2` etc. - use `px-nav-item`, `py-nav-item`, `gap-icon`, `px-menu-item`, `px-badge`, `px-header`, etc.
+  - **Color Tokens**: NEVER use `bg-gray-900`, `text-white`, `text-gray-300` etc. - use `bg-sidebar`, `text-sidebar-primary`, `text-sidebar-secondary`, `border-sidebar`, `hover:bg-sidebar-hover`, etc.
+  - **Typography Tokens**: NEVER use `text-[10px]` - use `text-label` instead
+  - **Why**: All tokens automatically adapt to light/dark mode and can be changed globally by updating ONE CSS variable in `src/app.css`
+  - **Before adding**: Check `dev-docs/design-tokens.md` for available tokens
+  - **If missing**: Add new token to `src/app.css` @theme block first, then create @utility class, then document in `dev-docs/design-tokens.md`
+- follow our design tokens system - check `dev-docs/design-tokens.md` before creating new UI components
+- use design tokens (spacing, typography, colors) from our system instead of arbitrary values
+- when a pattern repeats 3+ times, document it in `dev-docs/design-tokens.md` before extracting to components
+- **Color tokens automatically support light/dark mode** - no need for `dark:` variants when using semantic color tokens

@@ -1,5 +1,136 @@
 @import 'tailwindcss';
 
+/* Design Tokens - Custom theme values */
+@theme {
+	/* Custom text sizes */
+	--text-label: 0.625rem; /* 10px - for badges, labels, small text */
+	/* Usage: class="text-label" */
+
+	/* Semantic Spacing Tokens - Based on 4px base unit (0.25rem) */
+	/* Scale: 1 = 4px, 2 = 8px, 3 = 12px, 4 = 16px, 5 = 20px, 6 = 24px */
+	--spacing-nav-container-x: 0.5rem; /* 8px - px-2 equivalent */
+	--spacing-nav-container-y: 0.5rem; /* 8px - py-2 equivalent */
+	--spacing-nav-item-x: 0.5rem; /* 8px - px-2 equivalent */
+	--spacing-nav-item-y: 0.375rem; /* 6px - py-1.5 equivalent */
+	--spacing-menu-item-x: 0.625rem; /* 10px - px-2.5 equivalent */
+	--spacing-menu-item-y: 0.375rem; /* 6px - py-1.5 equivalent */
+	--spacing-section-x: 0.5rem; /* 8px - px-2 equivalent */
+	--spacing-section-y: 0.25rem; /* 4px - py-1 equivalent */
+	--spacing-badge-x: 0.375rem; /* 6px - px-1.5 equivalent */
+	--spacing-badge-y: 0.125rem; /* 2px - py-0.5 equivalent */
+	--spacing-header-x: 0.75rem; /* 12px - px-3 equivalent */
+	--spacing-header-y: 0.625rem; /* 10px - py-2.5 equivalent */
+	--spacing-icon-gap: 0.5rem; /* 8px - gap-2 equivalent */
+	--spacing-icon-gap-wide: 0.625rem; /* 10px - gap-2.5 equivalent */
+	--spacing-indent: 1.5rem; /* 24px - pl-6 equivalent for nested/indented items */
+
+	/* Semantic Color Tokens - Sidebar Colors */
+	/* These change automatically based on .dark class on <html> */
+	--color-sidebar-bg: oklch(20% 0.002 247.839); /* gray-900 dark */
+	--color-sidebar-border: oklch(27.9% 0.041 260.031); /* gray-800 dark */
+	--color-sidebar-text-primary: oklch(98.5% 0.002 247.839); /* white/light */
+	--color-sidebar-text-secondary: oklch(70.4% 0.04 256.788); /* gray-300 dark */
+	--color-sidebar-text-tertiary: oklch(55.4% 0.046 257.417); /* gray-500 dark */
+	--color-sidebar-hover: oklch(27.9% 0.041 260.031 / 0.5); /* gray-800/50 dark */
+	--color-sidebar-hover-solid: oklch(27.9% 0.041 260.031); /* gray-800 dark */
+	--color-sidebar-badge-bg: oklch(37.2% 0.044 257.287); /* gray-700 dark */
+	--color-sidebar-badge-text: oklch(70.4% 0.04 256.788); /* gray-300 dark */
+	--color-sidebar-active: oklch(27.9% 0.041 260.031); /* gray-800 dark - active state */
+}
+
+/* Light mode overrides for sidebar colors */
+html:not(.dark) {
+	--color-sidebar-bg: oklch(100% 0 0); /* white */
+	--color-sidebar-border: oklch(92.8% 0.006 264.531); /* gray-200 light */
+	--color-sidebar-text-primary: oklch(20.8% 0.042 265.755); /* gray-900 light */
+	--color-sidebar-text-secondary: oklch(44.6% 0.043 257.281); /* gray-600 light */
+	--color-sidebar-text-tertiary: oklch(55.4% 0.046 257.417); /* gray-500 light */
+	--color-sidebar-hover: oklch(96.7% 0.003 264.542 / 0.5); /* gray-100/50 light */
+	--color-sidebar-hover-solid: oklch(96.7% 0.003 264.542); /* gray-100 light */
+	--color-sidebar-badge-bg: oklch(86.9% 0.022 252.894); /* gray-300 light */
+	--color-sidebar-badge-text: oklch(44.6% 0.043 257.281); /* gray-600 light */
+	--color-sidebar-active: oklch(96.7% 0.003 264.542); /* gray-100 light - active state */
+}
+
+/* Semantic Spacing Utilities - Custom utility classes using design tokens */
+@utility px-nav-container {
+	padding-inline: var(--spacing-nav-container-x);
+}
+@utility py-nav-container {
+	padding-block: var(--spacing-nav-container-y);
+}
+@utility px-nav-item {
+	padding-inline: var(--spacing-nav-item-x);
+}
+@utility py-nav-item {
+	padding-block: var(--spacing-nav-item-y);
+}
+@utility px-menu-item {
+	padding-inline: var(--spacing-menu-item-x);
+}
+@utility py-menu-item {
+	padding-block: var(--spacing-menu-item-y);
+}
+@utility px-section {
+	padding-inline: var(--spacing-section-x);
+}
+@utility py-section {
+	padding-block: var(--spacing-section-y);
+}
+@utility px-badge {
+	padding-inline: var(--spacing-badge-x);
+}
+@utility py-badge {
+	padding-block: var(--spacing-badge-y);
+}
+@utility px-header {
+	padding-inline: var(--spacing-header-x);
+}
+@utility py-header {
+	padding-block: var(--spacing-header-y);
+}
+@utility gap-icon {
+	gap: var(--spacing-icon-gap);
+}
+@utility gap-icon-wide {
+	gap: var(--spacing-icon-gap-wide);
+}
+@utility pl-indent {
+	padding-left: var(--spacing-indent);
+}
+
+/* Semantic Color Utilities - Sidebar Colors */
+@utility bg-sidebar {
+	background-color: var(--color-sidebar-bg);
+}
+@utility text-sidebar-primary {
+	color: var(--color-sidebar-text-primary);
+}
+@utility text-sidebar-secondary {
+	color: var(--color-sidebar-text-secondary);
+}
+@utility text-sidebar-tertiary {
+	color: var(--color-sidebar-text-tertiary);
+}
+@utility border-sidebar {
+	border-color: var(--color-sidebar-border);
+}
+@utility bg-sidebar-hover {
+	background-color: var(--color-sidebar-hover);
+}
+@utility bg-sidebar-hover-solid {
+	background-color: var(--color-sidebar-hover-solid);
+}
+@utility bg-sidebar-active {
+	background-color: var(--color-sidebar-active);
+}
+@utility bg-sidebar-badge {
+	background-color: var(--color-sidebar-badge-bg);
+}
+@utility text-sidebar-badge {
+	color: var(--color-sidebar-badge-text);
+}
+
 /* Mobile optimizations */
 html {
 	-webkit-text-size-adjust: 100%;

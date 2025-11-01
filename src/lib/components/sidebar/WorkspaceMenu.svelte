@@ -16,18 +16,18 @@
 <DropdownMenu.Root bind:open>
 	<DropdownMenu.Trigger
 		type="button"
-		class="flex items-center gap-2.5 px-2 py-1.5 rounded-md hover:bg-gray-800 transition-colors w-full text-left group"
+		class="flex items-center gap-icon-wide px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover-solid transition-colors w-full text-left group"
 	>
-		<div class="flex items-center gap-2.5 flex-1 min-w-0">
+		<div class="flex items-center gap-icon-wide flex-1 min-w-0">
 			<!-- Logo placeholder - can be replaced with actual logo -->
 			<div
 				class="w-7 h-7 rounded-md bg-teal-500 flex items-center justify-center flex-shrink-0 shadow-sm"
 			>
 				<span class="text-white text-xs font-semibold">A</span>
 			</div>
-			<span class="font-medium text-sm text-white truncate">{workspaceName}</span>
+			<span class="font-medium text-sm text-sidebar-primary truncate">{workspaceName}</span>
 			<svg
-				class="w-3.5 h-3.5 text-gray-400 flex-shrink-0 transition-transform duration-200 group-hover:text-gray-300"
+				class="w-3.5 h-3.5 text-sidebar-secondary flex-shrink-0 transition-transform duration-200 group-hover:text-sidebar-primary"
 				class:rotate-180={open}
 				fill="none"
 				stroke="currentColor"
@@ -46,7 +46,7 @@
 			sideOffset={4}
 		>
 			<DropdownMenu.Item
-				class="px-2.5 py-1.5 text-sm text-gray-900 hover:bg-gray-50 cursor-pointer flex items-center justify-between focus:bg-gray-50 outline-none"
+				class="px-menu-item py-menu-item text-sm text-gray-900 hover:bg-gray-50 cursor-pointer flex items-center justify-between focus:bg-gray-50 outline-none"
 				textValue="Settings"
 				onSelect={() => {
 					onSettings?.();
@@ -54,15 +54,15 @@
 				}}
 			>
 				<span class="font-normal">Settings</span>
-				<span class="text-[10px] text-gray-400 ml-3 font-mono">G then S</span>
+				<span class="text-label text-gray-400 ml-3 font-mono">G then S</span>
 			</DropdownMenu.Item>
 
 			<div
-				class="px-2.5 py-1.5 flex items-center justify-between gap-3"
+				class="px-menu-item py-menu-item flex items-center justify-between gap-3"
 				onclick={(e) => e.stopPropagation()}
 				role="presentation"
 			>
-				<div class="flex items-center gap-2 flex-1">
+				<div class="flex items-center gap-icon flex-1">
 					<span class="text-sm font-normal text-gray-900">
 						{$isDark ? 'Dark mode' : 'Light mode'}
 					</span>
@@ -114,7 +114,7 @@
 			<DropdownMenu.Separator class="my-1 border-t border-gray-100" />
 
 			<DropdownMenu.Item
-				class="px-2.5 py-1.5 text-sm text-gray-900 hover:bg-gray-50 cursor-pointer focus:bg-gray-50 outline-none"
+				class="px-menu-item py-menu-item text-sm text-gray-900 hover:bg-gray-50 cursor-pointer focus:bg-gray-50 outline-none"
 				textValue="Log out"
 				onSelect={() => {
 					onLogout?.();
@@ -123,7 +123,7 @@
 			>
 				<div class="flex items-center justify-between w-full">
 					<span class="font-normal">Log out</span>
-					<span class="text-[10px] text-gray-400 ml-3 font-mono">⌘⇧Q</span>
+					<span class="text-label text-gray-400 ml-3 font-mono">⌘⇧Q</span>
 				</div>
 			</DropdownMenu.Item>
 		</DropdownMenu.Content>

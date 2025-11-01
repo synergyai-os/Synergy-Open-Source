@@ -23,9 +23,9 @@
 </script>
 
 <!-- Sticky Header -->
-<div class="sticky top-0 bg-gray-900 border-b border-gray-800 z-10">
-	<div class="px-3 py-2.5">
-		<div class="flex items-center gap-2">
+<div class="sticky top-0 bg-sidebar border-b border-sidebar z-10">
+	<div class="px-header py-header">
+		<div class="flex items-center gap-icon">
 			<!-- Workspace Menu with Logo and Name -->
 			{#if !sidebarCollapsed || isMobile}
 				<div class="flex-1 min-w-0">
@@ -37,7 +37,7 @@
 					<button
 						type="button"
 						onclick={() => onSearch?.()}
-						class="p-1.5 rounded hover:bg-gray-800 transition-colors text-gray-400 hover:text-white"
+						class="p-1.5 rounded hover:bg-sidebar-hover-solid transition-colors text-sidebar-secondary hover:text-sidebar-primary"
 						aria-label="Search"
 					>
 						<svg
@@ -58,7 +58,7 @@
 					<button
 						type="button"
 						onclick={() => onEdit?.()}
-						class="p-1.5 rounded hover:bg-gray-800 transition-colors text-gray-400 hover:text-white"
+						class="p-1.5 rounded hover:bg-sidebar-hover-solid transition-colors text-sidebar-secondary hover:text-sidebar-primary"
 						aria-label="Edit"
 					>
 						<svg
