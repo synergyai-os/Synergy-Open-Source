@@ -114,79 +114,8 @@
 	}
 </script>
 
-<div class="h-screen flex">
-	<!-- Left Sidebar - Navigation -->
-	<aside class="w-64 bg-gray-900 text-white flex flex-col border-r border-gray-800">
-		<!-- Header -->
-		<div class="p-4 border-b border-gray-800">
-			<h1 class="text-xl font-bold">Axon</h1>
-			<p class="text-sm text-gray-400">Knowledge Base</p>
-		</div>
-
-		<!-- Navigation -->
-		<nav class="flex-1 p-4 space-y-4 overflow-y-auto">
-			<div>
-				<a
-					href="/inbox"
-					class="flex items-center p-3 rounded-lg hover:bg-gray-800 transition-colors"
-				>
-					<span class="font-medium">Inbox</span>
-				</a>
-			</div>
-
-			<div>
-				<a
-					href="/flashcards"
-					class="flex items-center p-3 rounded-lg bg-gray-800 transition-colors"
-				>
-					<span class="font-medium">Flashcards</span>
-				</a>
-			</div>
-
-			<!-- Category Filter -->
-			<div class="border-t border-gray-800 pt-4">
-				<p class="text-xs font-semibold text-gray-400 uppercase mb-2">Categories</p>
-				<div class="space-y-1">
-					<button
-						type="button"
-						class="w-full text-left p-2 rounded-lg transition-colors"
-						class:bg-blue-600={selectedCategory === 'all'}
-						class:hover:bg-gray-800={selectedCategory !== 'all'}
-						onclick={() => (selectedCategory = 'all')}
-					>
-						All ({mockFlashcards.length})
-					</button>
-					{#each categories as category}
-						<button
-							type="button"
-							class="w-full text-left p-2 rounded-lg transition-colors"
-							class:bg-blue-600={selectedCategory === category}
-							class:hover:bg-gray-800={selectedCategory !== category}
-							onclick={() => (selectedCategory = category)}
-						>
-							{category} ({mockFlashcards.filter((f) => f.category === category).length})
-						</button>
-					{/each}
-				</div>
-			</div>
-		</nav>
-
-		<!-- Footer Actions -->
-		<div class="p-4 border-t border-gray-800">
-			{#if viewMode === 'list'}
-				<Button.Root
-					onclick={startStudyMode}
-					disabled={filteredFlashcards.length === 0}
-					class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
-				>
-					🎯 Study Mode
-				</Button.Root>
-			{/if}
-		</div>
-	</aside>
-
-	<!-- Main Content -->
-	<div class="flex-1 overflow-y-auto bg-gray-50">
+<!-- Main Content -->
+<div class="h-full overflow-y-auto bg-surface">
 		{#if viewMode === 'list'}
 			<div class="p-6">
 				<h2 class="text-2xl font-bold text-gray-900 mb-6">
@@ -336,7 +265,6 @@
 				{/if}
 			</div>
 		{/if}
-	</div>
 </div>
 
 <style>

@@ -1,11 +1,11 @@
 <script lang="ts">
+	import { getContext } from 'svelte';
 	import ReadwiseDetail from '$lib/components/inbox/ReadwiseDetail.svelte';
 	import PhotoDetail from '$lib/components/inbox/PhotoDetail.svelte';
 	import ManualDetail from '$lib/components/inbox/ManualDetail.svelte';
 	import InboxCard from '$lib/components/inbox/InboxCard.svelte';
 	import InboxHeader from '$lib/components/inbox/InboxHeader.svelte';
 	import ResizableSplitter from '$lib/components/ResizableSplitter.svelte';
-	import Sidebar from '$lib/components/Sidebar.svelte';
 
 	type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 
@@ -147,13 +147,21 @@
 		}
 	]);
 
+	// Get sidebar state from parent layout
+	const sidebarContext = getContext<{
+		sidebarCollapsed: boolean;
+		isMobile: boolean;
+		onSidebarToggle: () => void;
+	}>('sidebar');
+
 	// UI State
 	let selectedItemId = $state<string | null>(null);
 	let filterType = $state<InboxItemType | 'all'>('all');
-	let sidebarCollapsed = $state(false);
-	let sidebarWidth = $state(256); // Default 256px (w-64)
 	let inboxWidth = $state(400);
-	let isMobile = $state(false);
+
+	// Derive sidebar state from context
+	const sidebarCollapsed = $derived(sidebarContext?.sidebarCollapsed ?? false);
+	const isMobile = $derived(sidebarContext?.isMobile ?? false);
 
 	// Initialize from localStorage or defaults
 	function handleInboxWidthChange(width: number) {
@@ -163,37 +171,11 @@
 		}
 	}
 
-	function handleSidebarWidthChange(width: number) {
-		sidebarWidth = width;
-		if (typeof window !== 'undefined') {
-			localStorage.setItem('sidebarWidth', width.toString());
-		}
-	}
-
-	// Mobile detection
-	function checkMobile() {
-		if (typeof window !== 'undefined') {
-			isMobile = window.innerWidth < 768;
-		}
-	}
-
-	// Initialize localStorage and mobile detection on client
+	// Initialize inbox width from localStorage
 	$effect(() => {
 		if (typeof window !== 'undefined') {
-			// Load saved widths
 			const savedInboxWidth = parseInt(localStorage.getItem('inboxWidth') || '400');
-			const savedSidebarWidth = parseInt(localStorage.getItem('sidebarWidth') || '256');
 			inboxWidth = savedInboxWidth;
-			sidebarWidth = savedSidebarWidth;
-
-			// Set up mobile detection
-			checkMobile();
-			window.addEventListener('resize', checkMobile);
-
-			// Cleanup
-			return () => {
-				window.removeEventListener('resize', checkMobile);
-			};
 		}
 	});
 
@@ -206,10 +188,6 @@
 		filterType === 'all'
 			? mockInboxItems.filter((item) => !item.processed)
 			: mockInboxItems.filter((item) => item.type === filterType && !item.processed)
-	);
-
-	const inboxCount = $derived(
-		mockInboxItems.filter((item) => !item.processed).length
 	);
 
 	// Actions
@@ -245,17 +223,7 @@
 	}
 </script>
 
-<div class="h-screen flex overflow-hidden">
-	<!-- Reusable Sidebar Component -->
-	<Sidebar
-		inboxCount={inboxCount}
-		isMobile={isMobile}
-		sidebarCollapsed={sidebarCollapsed}
-		onToggleCollapse={() => (sidebarCollapsed = !sidebarCollapsed)}
-		sidebarWidth={sidebarWidth}
-		onSidebarWidthChange={handleSidebarWidthChange}
-	/>
-
+<div class="h-full flex overflow-hidden">
 	<!-- Desktop: 3-column layout -->
 	{#if !isMobile}
 		<!-- Middle Column - Inbox List -->
@@ -276,7 +244,7 @@
 					onDeleteAllCompleted={handleDeleteAllCompleted}
 					onSortClick={handleSortClick}
 					sidebarCollapsed={sidebarCollapsed}
-					onSidebarToggle={() => (sidebarCollapsed = !sidebarCollapsed)}
+					onSidebarToggle={sidebarContext?.onSidebarToggle}
 					isMobile={isMobile}
 				/>
 
@@ -349,7 +317,7 @@
 					onDeleteAllCompleted={handleDeleteAllCompleted}
 					onSortClick={handleSortClick}
 					sidebarCollapsed={sidebarCollapsed}
-					onSidebarToggle={() => (sidebarCollapsed = !sidebarCollapsed)}
+					onSidebarToggle={sidebarContext?.onSidebarToggle}
 					isMobile={isMobile}
 				/>
 
