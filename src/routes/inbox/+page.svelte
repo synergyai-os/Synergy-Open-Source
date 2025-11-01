@@ -256,8 +256,9 @@
 		onSidebarWidthChange={handleSidebarWidthChange}
 	/>
 
-	<!-- Middle Column - Inbox List -->
+	<!-- Desktop: 3-column layout -->
 	{#if !isMobile}
+		<!-- Middle Column - Inbox List -->
 		<ResizableSplitter
 			initialWidth={inboxWidth}
 			minWidth={200}
@@ -301,27 +302,80 @@
 				</div>
 			</div>
 		</ResizableSplitter>
-	{/if}
 
-	<!-- Right Panel - Detail View -->
-	<div class="flex-1 bg-elevated overflow-y-auto">
-		{#if selectedItem}
-			<!-- Dynamic detail view based on type -->
-			{#if selectedItem.type === 'readwise_highlight'}
-				<ReadwiseDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
-			{:else if selectedItem.type === 'photo_note'}
-				<PhotoDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
-			{:else if selectedItem.type === 'manual_text'}
-				<ManualDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
+		<!-- Right Panel - Detail View -->
+		<div class="flex-1 bg-elevated overflow-y-auto">
+			{#if selectedItem}
+				<!-- Dynamic detail view based on type -->
+				{#if selectedItem.type === 'readwise_highlight'}
+					<ReadwiseDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
+				{:else if selectedItem.type === 'photo_note'}
+					<PhotoDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
+				{:else if selectedItem.type === 'manual_text'}
+					<ManualDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
+				{/if}
+			{:else}
+				<!-- Empty state -->
+				<div class="p-inbox-container text-center py-12">
+					<div class="text-6xl mb-4">📮</div>
+					<p class="text-secondary">Select an item to view details</p>
+				</div>
 			{/if}
+		</div>
+	{:else}
+		<!-- Mobile: List OR Detail (not both) -->
+		{#if selectedItemId}
+			<!-- Mobile Detail View - Full Screen -->
+			<div class="flex-1 bg-elevated overflow-y-auto h-full w-full">
+				{#if selectedItem}
+					{#if selectedItem.type === 'readwise_highlight'}
+						<ReadwiseDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
+					{:else if selectedItem.type === 'photo_note'}
+						<PhotoDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
+					{:else if selectedItem.type === 'manual_text'}
+						<ManualDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
+					{/if}
+				{/if}
+			</div>
 		{:else}
-			<!-- Empty state -->
-			<div class="p-inbox-container text-center py-12">
-				<div class="text-6xl mb-4">📮</div>
-				<p class="text-secondary">Select an item to view details</p>
+			<!-- Mobile List View - Full Screen -->
+			<div class="flex-1 bg-surface h-full flex flex-col overflow-hidden">
+				<!-- Sticky Header -->
+				<InboxHeader
+					currentFilter={filterType}
+					onFilterChange={setFilter}
+					onDeleteAll={handleDeleteAll}
+					onDeleteAllRead={handleDeleteAllRead}
+					onDeleteAllCompleted={handleDeleteAllCompleted}
+					onSortClick={handleSortClick}
+					sidebarCollapsed={sidebarCollapsed}
+					onSidebarToggle={() => (sidebarCollapsed = !sidebarCollapsed)}
+					isMobile={isMobile}
+				/>
+
+				<!-- Inbox Items List - Scrollable -->
+				<div class="flex-1 overflow-y-auto">
+					<div class="p-inbox-container">
+						<div class="flex flex-col gap-inbox-list">
+							{#each filteredItems as item}
+								<InboxCard
+									item={item}
+									selected={false}
+									onClick={() => selectItem(item.id)}
+								/>
+							{/each}
+						</div>
+
+						{#if filteredItems.length === 0}
+							<div class="text-center py-12">
+								<p class="text-tertiary">No items in inbox. Great job! 🎉</p>
+							</div>
+						{/if}
+					</div>
+				</div>
 			</div>
 		{/if}
-	</div>
+	{/if}
 </div>
 
 <style>

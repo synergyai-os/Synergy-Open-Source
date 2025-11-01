@@ -48,15 +48,24 @@
 
 <div class="p-6">
 	<!-- Header -->
-	<div class="flex items-center justify-between mb-6">
-		<h2 class="text-xl font-bold text-gray-900">Readwise Highlight</h2>
+	<div class="flex items-center gap-icon mb-6">
 		<button
 			type="button"
-			class="text-gray-400 hover:text-gray-600"
+			class="flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-hover-solid transition-colors text-secondary hover:text-primary"
 			onclick={onClose}
+			aria-label="Back to inbox"
 		>
-			✕
+			<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M15 19l-7-7 7-7"
+				/>
+			</svg>
+			<span class="text-sm">Back</span>
 		</button>
+		<h2 class="text-xl font-bold text-primary flex-1">Readwise Highlight</h2>
 	</div>
 
 	<!-- Book Info -->

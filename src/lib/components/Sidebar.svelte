@@ -51,9 +51,10 @@
 
 	// Computed sidebar display width based on state
 	const displayWidth = $derived(() => {
-		if (isMobile && !sidebarCollapsed) return 64;
 		if (sidebarCollapsed && !isMobile && !isPinned && !isHovered) return 0;
 		if (isMobile && sidebarCollapsed) return 0;
+		// On mobile when open, show full width sidebar
+		if (isMobile && !sidebarCollapsed) return sidebarWidth;
 		return sidebarWidth;
 	});
 
@@ -104,16 +105,23 @@
 	></div>
 {/if}
 
-<!-- Mobile Hamburger Button (shown when sidebar is collapsed on mobile) -->
-{#if isMobile && sidebarCollapsed}
-	<button
-		type="button"
+<!-- Mobile Hamburger Button removed - using SidebarToggle in InboxHeader instead -->
+
+<!-- Mobile Backdrop Overlay (shown when sidebar is open on mobile) -->
+{#if isMobile && !sidebarCollapsed}
+	<div
+		class="fixed inset-0 bg-black/50 z-40 transition-opacity"
 		onclick={() => onToggleCollapse()}
-		class="fixed top-4 left-4 z-50 bg-sidebar text-sidebar-primary p-2 rounded-lg shadow-lg hover:bg-sidebar-hover-solid transition-colors"
-		aria-label="Open navigation"
-	>
-		☰
-	</button>
+		onkeydown={(e) => {
+			if (e.key === 'Enter' || e.key === ' ') {
+				e.preventDefault();
+				onToggleCollapse();
+			}
+		}}
+		role="button"
+		tabindex="0"
+		aria-label="Close sidebar"
+	></div>
 {/if}
 
 <!-- Left Sidebar - Navigation -->
@@ -273,10 +281,9 @@
 {:else}
 	<aside
 		class="bg-sidebar text-sidebar-primary flex flex-col border-r border-sidebar transition-all duration-300 overflow-hidden h-full"
-		class:fixed={sidebarCollapsed && !isMobile && isHovered}
-		class:z-50={sidebarCollapsed && !isMobile && isHovered}
+		class:fixed={(sidebarCollapsed && !isMobile && isHovered) || (isMobile && !sidebarCollapsed)}
+		class:z-50={(sidebarCollapsed && !isMobile && isHovered) || (isMobile && !sidebarCollapsed)}
 		style="width: {displayWidth()}px;"
-		class:w-16={isMobile && !sidebarCollapsed}
 		class:hidden={isMobile && sidebarCollapsed}
 		onmouseenter={() => {
 			// Clear any pending hide timeout
@@ -338,14 +345,14 @@
 		/>
 
 		<!-- Navigation -->
-		{#if !sidebarCollapsed || (isHovered && !isMobile)}
+		{#if !sidebarCollapsed || (isHovered && !isMobile) || (isMobile && !sidebarCollapsed)}
 			<nav class="flex-1 px-nav-container py-nav-container overflow-y-auto">
 				<!-- Inbox -->
 				<a
 					href="/inbox"
 					class="group relative flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
-					class:justify-center={isMobile}
-					title={isMobile ? 'Inbox' : ''}
+					class:justify-center={isMobile && sidebarCollapsed}
+					title={isMobile && sidebarCollapsed ? 'Inbox' : ''}
 				>
 					<svg
 						class="w-4 h-4 flex-shrink-0"
@@ -394,8 +401,8 @@
 				<a
 					href="/flashcards"
 					class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
-					class:justify-center={isMobile}
-					title={isMobile ? 'Flashcards' : ''}
+					class:justify-center={isMobile && sidebarCollapsed}
+					title={isMobile && sidebarCollapsed ? 'Flashcards' : ''}
 				>
 					<svg
 						class="w-4 h-4 flex-shrink-0"
@@ -461,7 +468,7 @@
 		{/if}
 
 		<!-- Footer Actions -->
-		{#if (!sidebarCollapsed || (isHovered && !isMobile)) && !isMobile}
+		{#if (!sidebarCollapsed || (isHovered && !isMobile) || (isMobile && !sidebarCollapsed)) && !isMobile}
 			<div class="px-nav-container py-nav-container border-t border-sidebar">
 				<button
 					type="button"

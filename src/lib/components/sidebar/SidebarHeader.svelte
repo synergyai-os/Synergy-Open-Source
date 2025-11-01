@@ -29,7 +29,7 @@
 	<div class="px-header py-header">
 		<div class="flex items-center gap-icon">
 			<!-- Workspace Menu with Logo and Name -->
-			{#if !sidebarCollapsed || isMobile || (isHovered && !isMobile)}
+			{#if !sidebarCollapsed || (isMobile && !sidebarCollapsed) || (isHovered && !isMobile)}
 				<div class="flex-1 min-w-0">
 					<WorkspaceMenu {workspaceName} {onSettings} {onLogout} />
 				</div>
