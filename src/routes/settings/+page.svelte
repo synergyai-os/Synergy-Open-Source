@@ -355,7 +355,9 @@
 									{:else if claudeSaved}
 										<span class="text-label text-green-600">Saved</span>
 									{:else if claudeError}
-										<span class="text-label text-red-600" title={claudeError}>Error</span>
+										<span class="text-label text-red-600" title={claudeError}>
+											Error: {claudeError}
+										</span>
 									{/if}
 								</div>
 							</div>
@@ -441,7 +443,9 @@
 									{:else if readwiseSaved}
 										<span class="text-label text-green-600">Saved</span>
 									{:else if readwiseError}
-										<span class="text-label text-red-600" title={readwiseError}>Error</span>
+										<span class="text-label text-red-600" title={readwiseError}>
+											Error: {readwiseError}
+										</span>
 									{/if}
 								</div>
 							</div>

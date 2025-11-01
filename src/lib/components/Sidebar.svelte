@@ -23,6 +23,31 @@
 
 	let isPinned = $state(false);
 	let isHovered = $state(false);
+	let hoverTimeoutId: ReturnType<typeof setTimeout> | null = null;
+	let hoverZoneTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+	// Keep sidebar open when interacting with dropdown menus
+	function handleDocumentMouseMove(e: MouseEvent) {
+		if (!sidebarCollapsed || isMobile || !isHovered) return;
+		
+		const target = e.target as HTMLElement | null;
+		if (target) {
+			// Check if mouse is over dropdown menu
+			const isOverDropdown = target.closest('[data-radix-portal]') || 
+				target.closest('[role="menu"]') || 
+				target.closest('[data-radix-dropdown-menu-content]') ||
+				target.closest('[data-bits-ui-dropdown-menu-content]');
+			
+			if (isOverDropdown) {
+				// Cancel any pending hide timeout
+				if (hoverTimeoutId) {
+					clearTimeout(hoverTimeoutId);
+					hoverTimeoutId = null;
+				}
+				isHovered = true;
+			}
+		}
+	}
 
 	// Computed sidebar display width based on state
 	const displayWidth = $derived(() => {
@@ -34,14 +59,47 @@
 
 	// Determine if sidebar should use ResizableSplitter (only when expanded and not mobile)
 	const useResizable = $derived(!isMobile && !sidebarCollapsed && displayWidth() > 0);
+
+	// Set up document mouse tracking when sidebar is hovered and collapsed
+	$effect(() => {
+		if (typeof window === 'undefined') return;
+		
+		if (sidebarCollapsed && !isMobile && isHovered) {
+			document.addEventListener('mousemove', handleDocumentMouseMove);
+			return () => {
+				document.removeEventListener('mousemove', handleDocumentMouseMove);
+			};
+		}
+	});
 </script>
 
 <!-- Left edge hover zone to reveal sidebar when collapsed on desktop -->
 {#if !isMobile && sidebarCollapsed}
 	<div
-		class="fixed left-0 top-0 bottom-0 w-4 z-40 hover:bg-transparent"
-		onmouseenter={() => (isHovered = true)}
-		onmouseleave={() => (isHovered = false)}
+		class="fixed left-0 top-0 bottom-0 z-40 hover:bg-transparent pointer-events-auto transition-all duration-300"
+		style="width: {isHovered ? Math.max(sidebarWidth, 4) + 'px' : '4px'};"
+		onmouseenter={() => {
+			// Clear any pending hide timeout
+			if (hoverZoneTimeoutId) {
+				clearTimeout(hoverZoneTimeoutId);
+				hoverZoneTimeoutId = null;
+			}
+			isHovered = true;
+		}}
+		onmouseleave={() => {
+			// Delay hiding to allow mouse to move to sidebar
+			hoverZoneTimeoutId = setTimeout(() => {
+				// Only hide if mouse isn't over sidebar or dropdown
+				if (typeof window !== 'undefined') {
+					const dropdownElements = document.querySelectorAll('[data-radix-portal], [role="menu"]');
+					const sidebarElement = document.querySelector('aside.fixed');
+					if (!dropdownElements.length && !sidebarElement) {
+						isHovered = false;
+					}
+				}
+				hoverZoneTimeoutId = null;
+			}, 200);
+		}}
 		role="presentation"
 	></div>
 {/if}
@@ -220,8 +278,48 @@
 		style="width: {displayWidth()}px;"
 		class:w-16={isMobile && !sidebarCollapsed}
 		class:hidden={isMobile && sidebarCollapsed}
-		onmouseenter={() => (isHovered = true)}
-		onmouseleave={() => (isHovered = false)}
+		onmouseenter={() => {
+			// Clear any pending hide timeout
+			if (hoverTimeoutId) {
+				clearTimeout(hoverTimeoutId);
+				hoverTimeoutId = null;
+			}
+			isHovered = true;
+		}}
+		onmouseleave={(e) => {
+			// Only hide if mouse is actually leaving the sidebar area (not just hovering over dropdown)
+			const relatedTarget = e.relatedTarget as HTMLElement | null;
+			// Check if mouse is moving to a dropdown menu or portal element
+			if (relatedTarget && (
+				relatedTarget.closest('[data-radix-portal]') ||
+				relatedTarget.closest('[role="menu"]') ||
+				relatedTarget.closest('[data-radix-dropdown-menu-content]') ||
+				relatedTarget.closest('[data-bits-ui-dropdown-menu-content]')
+			)) {
+				// Don't hide - mouse is going to dropdown
+				return;
+			}
+			// Use a delay to allow moving mouse to dropdown menus or back to hover zone
+			hoverTimeoutId = setTimeout(() => {
+				// Check if mouse is over dropdown, sidebar, or hover zone
+				const mouseX = (e as MouseEvent).clientX;
+				const mouseY = (e as MouseEvent).clientY;
+				
+				const dropdownElements = document.querySelectorAll('[data-radix-portal], [role="menu"], [data-radix-dropdown-menu-content]');
+				const isOverDropdown = Array.from(dropdownElements).some(el => {
+					const rect = el.getBoundingClientRect();
+					return mouseX >= rect.left && mouseX <= rect.right && mouseY >= rect.top && mouseY <= rect.bottom;
+				});
+				
+				// Check if mouse is still in hover zone (first 4px or expanded hover zone)
+				const isInHoverZone = mouseX <= (sidebarCollapsed ? sidebarWidth : 4);
+				
+				if (!isOverDropdown && !isInHoverZone) {
+					isHovered = false;
+				}
+				hoverTimeoutId = null;
+			}, 300);
+		}}
 	>
 		<!-- Sticky Header with Workspace Menu -->
 		<SidebarHeader
