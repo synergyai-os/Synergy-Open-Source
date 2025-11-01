@@ -1,21 +1,65 @@
 <script lang="ts">
 	import { Accordion, Button } from 'bits-ui';
+	import { Capacitor } from '@capacitor/core';
 
 	// State for accordion
 	let accordionValue = $state<string>('item-1');
 	let buttonClickCount = $state(0);
+
+	// Detect the current platform
+	let platform = $derived(Capacitor.getPlatform());
 
 	function handleButtonClick() {
 		buttonClickCount++;
 	}
 </script>
 
-<div class="container mx-auto max-w-4xl px-4 py-8">
-	<h1 class="text-4xl font-bold mb-8 text-gray-900">Bits UI Components Showcase</h1>
+<div class="container mx-auto max-w-4xl px-4 py-4 sm:py-8 min-h-screen">
+	<!-- Live Reload Test Banner -->
+	<div class="bg-yellow-400 border-4 border-red-500 rounded-lg p-4 mb-6 text-center">
+		<h2 class="text-2xl font-bold text-black">🔥 LIVE RELOAD TEST 🔥</h2>
+		<p class="text-lg text-gray-900 mt-2">If you see this, live reload is working!</p>
+		<p class="text-sm text-gray-700 mt-1">Last updated: Just now! ⚡️</p>
+	</div>
+
+	<!-- Platform-specific Welcome Message -->
+	<section class="mb-8">
+		{#if platform === 'ios'}
+			<div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-6 shadow-lg">
+				<div class="flex items-center gap-3 mb-2">
+					<span class="text-3xl">📱</span>
+					<h2 class="text-xl sm:text-2xl font-bold text-white">Welcome to Axon on iOS!</h2>
+				</div>
+				<p class="text-blue-100 text-base sm:text-lg">
+					You're viewing the native iOS experience. Enjoy the full mobile app features!
+				</p>
+			</div>
+		{:else if platform === 'web'}
+			<div class="bg-gradient-to-r from-green-500 to-teal-600 rounded-lg p-6 shadow-lg">
+				<div class="flex items-center gap-3 mb-2">
+					<span class="text-3xl">🌐</span>
+					<h2 class="text-2xl font-bold text-white">Welcome to Axon on Web!</h2>
+				</div>
+				<p class="text-green-100 text-lg">
+					You're viewing the web version. Accessible from any browser, anywhere!
+				</p>
+			</div>
+		{:else}
+			<div class="bg-gray-600 rounded-lg p-6 shadow-lg">
+				<div class="flex items-center gap-3 mb-2">
+					<span class="text-3xl">📲</span>
+					<h2 class="text-2xl font-bold text-white">Welcome to Axon!</h2>
+				</div>
+				<p class="text-gray-200 text-lg">Platform: {platform}</p>
+			</div>
+		{/if}
+	</section>
+
+	<h1 class="text-2xl sm:text-4xl font-bold mb-6 sm:mb-8 text-gray-900">Bits UI Components Showcase</h1>
 
 	<!-- Button Component -->
 	<section class="mb-12">
-		<h2 class="text-2xl font-semibold mb-4 text-gray-800">Button</h2>
+		<h2 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-800">Button</h2>
 		<div class="flex gap-4 items-center">
 			<Button.Root
 				onclick={handleButtonClick}
@@ -34,7 +78,7 @@
 
 	<!-- Accordion Component -->
 	<section class="mb-12">
-		<h2 class="text-2xl font-semibold mb-4 text-gray-800">Accordion</h2>
+		<h2 class="text-xl sm:text-2xl font-semibold mb-4 text-gray-800">Accordion</h2>
 		<Accordion.Root type="single" bind:value={accordionValue} class="space-y-2">
 			<Accordion.Item value="item-1" class="border border-gray-300 rounded-lg overflow-hidden">
 				<Accordion.Header>

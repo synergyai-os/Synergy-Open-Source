@@ -1,0 +1,1 @@
+export const env={"PUBLIC_CONVEX_URL":"https://blissful-lynx-970.convex.cloud"}
