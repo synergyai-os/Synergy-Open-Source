@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import SettingsSidebarHeader from './sidebar/SettingsSidebarHeader.svelte';
@@ -9,9 +10,13 @@
 
 	let { isMobile = false }: Props = $props();
 
+	// Get current pathname reactively (safely handle SSR)
+	const currentPath = $derived(browser ? $page.url.pathname : '');
+
 	// Helper function to check if a path is active
 	function isActive(path: string): boolean {
-		return $page.url.pathname === path;
+		if (!browser) return false;
+		return currentPath === path;
 	}
 </script>
 

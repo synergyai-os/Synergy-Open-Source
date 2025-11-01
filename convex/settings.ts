@@ -45,6 +45,33 @@ export const getUserSettings = query({
 	},
 });
 
+/**
+ * Internal query to get encrypted API keys for server-side use only
+ * This returns the encrypted keys (for use in actions/internal functions)
+ */
+export const getEncryptedKeysInternal = internalQuery({
+	handler: async (ctx) => {
+		const userId = await getAuthUserId(ctx);
+		if (!userId) {
+			return null;
+		}
+
+		const settings = await ctx.db
+			.query("userSettings")
+			.withIndex("by_user", (q) => q.eq("userId", userId))
+			.first();
+
+		if (!settings) {
+			return null;
+		}
+
+		return {
+			claudeApiKey: settings.claudeApiKey || null,
+			readwiseApiKey: settings.readwiseApiKey || null,
+		};
+	},
+});
+
 
 /**
  * Update Claude API key

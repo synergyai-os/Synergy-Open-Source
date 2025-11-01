@@ -1,13 +1,40 @@
 <script lang="ts">
-	import { useQuery, useMutation } from 'convex-svelte';
-	import { api } from '$lib/convex';
+	import { browser } from '$app/environment';
+	import { onMount } from 'svelte';
+	import { useConvexClient } from 'convex-svelte';
+	import { makeFunctionReference } from 'convex/server';
 
 	let testResponse = $state<string | null>(null);
 	let isTesting = $state(false);
 	let error = $state<string | null>(null);
 
-	// Get user settings to check if Readwise API key is configured
-	const settings = useQuery(api.settings.getUserSettings);
+	// Get Convex client
+	const convexClient = browser ? useConvexClient() : null;
+	
+	// Settings state
+	let settings = $state<{
+		isLoading: boolean;
+		data: { hasReadwiseKey: boolean } | null;
+	}>({ isLoading: true, data: null });
+
+	// Load settings
+	onMount(async () => {
+		if (!browser || !convexClient) {
+			settings = { isLoading: false, data: null };
+			return;
+		}
+
+		try {
+			const getUserSettings = makeFunctionReference('settings:getUserSettings');
+			const data = await convexClient.query(getUserSettings, {});
+			settings = {
+				isLoading: false,
+				data: data ? { hasReadwiseKey: data.hasReadwiseKey || false } : null
+			};
+		} catch (e) {
+			settings = { isLoading: false, data: null };
+		}
+	});
 
 	async function testReadwise() {
 		isTesting = true;
@@ -70,9 +97,9 @@
 				<div>
 					<p class="font-medium text-primary mb-1">API Key Status</p>
 					<p class="text-sm text-secondary">
-						{#if settings?.isLoading}
+						{#if settings.isLoading}
 							Loading...
-						{:else if settings?.data?.hasReadwiseKey}
+						{:else if settings.data?.hasReadwiseKey}
 							✅ Readwise API key is configured
 						{:else}
 							⚠️ Readwise API key not configured. Go to Settings to add your API key.

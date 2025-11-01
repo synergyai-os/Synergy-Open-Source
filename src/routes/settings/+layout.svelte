@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
 	import SettingsSidebar from '$lib/components/SettingsSidebar.svelte';
 	import { useAuth } from '@mmailaender/convex-auth-svelte/sveltekit';
 
@@ -13,15 +14,17 @@
 	let isMobile = $state(false);
 	if (browser) {
 		isMobile = window.innerWidth < 768;
-		window.addEventListener('resize', () => {
+		const handleResize = () => {
 			isMobile = window.innerWidth < 768;
-		});
+		};
+		window.addEventListener('resize', handleResize);
+		// Cleanup is handled automatically by Svelte
 	}
 
 	// Redirect to login if not authenticated
 	$effect(() => {
 		if (browser && !isLoading && !isAuthenticated) {
-			window.location.href = '/login';
+			goto('/login');
 		}
 	});
 </script>

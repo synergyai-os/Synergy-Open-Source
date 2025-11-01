@@ -1,111 +1,193 @@
 <script lang="ts">
-	import { useQuery, useMutation } from 'convex-svelte';
-	import { api } from '$lib/convex';
+	import { browser } from '$app/environment';
+	import { onMount } from 'svelte';
+	import { useConvexClient } from 'convex-svelte';
+	import { makeFunctionReference } from 'convex/server';
 
 	let testInput = $state('');
-	let testResponse = $state<string | null>(null);
-	let isTesting = $state(false);
+	let flashcard = $state<{ question: string; answer: string } | null>(null);
+	let isGenerating = $state(false);
 	let error = $state<string | null>(null);
 
-	// Get user settings to check if Claude API key is configured
-	const settings = useQuery(api.settings.getUserSettings);
+	// Get Convex client
+	const convexClient = browser ? useConvexClient() : null;
+	
+	// Settings state
+	let settings = $state<{
+		isLoading: boolean;
+		data: { hasClaudeKey: boolean } | null;
+	}>({ isLoading: true, data: null });
 
-	async function testClaude() {
-		if (!testInput.trim()) {
-			error = 'Please enter some text to test';
+	// Load settings
+	onMount(async () => {
+		if (!browser || !convexClient) {
+			settings = { isLoading: false, data: null };
 			return;
 		}
 
-		isTesting = true;
+		try {
+			const getUserSettings = makeFunctionReference('settings:getUserSettings');
+			const data = await convexClient.query(getUserSettings, {});
+			settings = {
+				isLoading: false,
+				data: data ? { hasClaudeKey: data.hasClaudeKey || false } : null
+			};
+		} catch (e) {
+			settings = { isLoading: false, data: null };
+		}
+	});
+
+	async function generateFlashcard() {
+		if (!testInput.trim()) {
+			error = 'Please enter some text to generate a flashcard from';
+			return;
+		}
+
+		if (!settings.data?.hasClaudeKey) {
+			error = 'Claude API key is not configured. Please add your API key in Settings first.';
+			return;
+		}
+
+		isGenerating = true;
 		error = null;
-		testResponse = null;
+		flashcard = null;
 
 		try {
-			// TODO: Call Convex action/mutation to test Claude API
-			// For now, just show a placeholder response
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-			testResponse = `✅ Claude API Test Response (placeholder)\n\nInput: ${testInput}\n\nThis is a placeholder response. Actual Claude API integration coming soon.`;
+			if (!convexClient) {
+				throw new Error('Convex client not available');
+			}
+
+			const generateFlashcardAction = makeFunctionReference('generateFlashcard:generateFlashcard');
+			const result = await convexClient.action(generateFlashcardAction, {
+				text: testInput,
+			});
+
+			if (result.success && result.flashcard) {
+				flashcard = result.flashcard;
+			} else {
+				throw new Error('Failed to generate flashcard');
+			}
 		} catch (e) {
-			error = e instanceof Error ? e.message : 'Failed to test Claude API';
+			error = e instanceof Error ? e.message : 'Failed to generate flashcard';
 		} finally {
-			isTesting = false;
+			isGenerating = false;
 		}
 	}
 </script>
 
-<div class="h-full overflow-y-auto p-inbox-container">
-	<div class="max-w-4xl mx-auto">
-		<h1 class="text-2xl font-bold text-primary mb-2">Claude API Test</h1>
-		<p class="text-secondary mb-6">
-			Quick test page to validate Claude API integration. This is a learning/development page.
-		</p>
+<div class="h-full overflow-y-auto bg-base">
+	<div class="max-w-4xl mx-auto p-inbox-container">
+		<!-- Page Header -->
+		<div class="mb-6">
+			<h1 class="text-2xl font-bold text-primary mb-2">Claude Flashcard Generator</h1>
+			<p class="text-sm font-normal text-secondary">
+				Test Claude API integration by generating flashcards from your text input
+			</p>
+		</div>
 
-		<!-- API Key Status -->
-		<div class="bg-base border border-border-elevated rounded-lg p-4 mb-6">
+		<!-- API Key Status Card -->
+		<div class="bg-elevated border border-border-elevated rounded-md p-4 mb-6">
 			<div class="flex items-center justify-between">
 				<div>
-					<p class="font-medium text-primary mb-1">API Key Status</p>
+					<p class="text-sm font-medium text-primary mb-1">API Key Status</p>
 					<p class="text-sm text-secondary">
-						{#if settings?.isLoading}
+						{#if settings.isLoading}
 							Loading...
-						{:else if settings?.data?.hasClaudeKey}
-							✅ Claude API key is configured
+						{:else if settings.data?.hasClaudeKey}
+							<span class="text-green-600 dark:text-green-400">✅ Claude API key is configured</span>
 						{:else}
-							⚠️ Claude API key not configured. Go to Settings to add your API key.
+							<span class="text-orange-600 dark:text-orange-400">⚠️ Claude API key not configured.</span>
+							<a href="/settings" class="text-accent-primary hover:underline ml-1">Go to Settings</a>
 						{/if}
 					</p>
 				</div>
 			</div>
 		</div>
 
-		<!-- Test Form -->
-		<div class="bg-base border border-border-elevated rounded-lg p-6 mb-6">
+		<!-- Input Form Card -->
+		<div class="bg-elevated border border-border-elevated rounded-md p-6 mb-6">
 			<label for="test-input" class="block text-sm font-medium text-primary mb-2">
-				Test Input
+				Input Text
 			</label>
+			<p class="text-xs text-tertiary mb-3">
+				Enter any text you want to convert into a flashcard question and answer
+			</p>
 			<textarea
 				id="test-input"
 				bind:value={testInput}
-				placeholder="Enter some text to test Claude API..."
-				class="w-full px-3 py-2 bg-base border border-border rounded-md text-primary placeholder-secondary focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent resize-none"
-				rows="4"
+				placeholder="Example: The Build-Measure-Learn cycle is a fundamental concept in lean startup methodology..."
+				class="w-full px-3 py-2 bg-base border border-border rounded-md text-primary placeholder-secondary focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent resize-none transition-all"
+				rows="6"
+				disabled={isGenerating}
 			></textarea>
 			<button
 				type="button"
-				onclick={testClaude}
-				disabled={isTesting || !testInput.trim()}
-				class="mt-4 px-4 py-2 bg-accent-primary text-accent-primary-foreground rounded-md hover:bg-accent-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+				onclick={generateFlashcard}
+				disabled={isGenerating || !testInput.trim() || !settings.data?.hasClaudeKey}
+				class="mt-4 px-4 py-2 bg-accent-primary text-white rounded-md hover:bg-accent-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
 			>
-				{isTesting ? 'Testing...' : 'Test Claude API'}
+				{isGenerating ? 'Generating...' : 'Generate Flashcard'}
 			</button>
 		</div>
 
 		<!-- Error Display -->
 		{#if error}
-			<div class="bg-destructive/10 border border-destructive rounded-lg p-4 mb-6">
-				<p class="text-destructive font-medium">Error</p>
-				<p class="text-sm text-destructive mt-1">{error}</p>
+			<div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4 mb-6">
+				<p class="text-sm font-medium text-red-900 dark:text-red-200 mb-1">Error</p>
+				<p class="text-sm text-red-700 dark:text-red-300">{error}</p>
 			</div>
 		{/if}
 
-		<!-- Response Display -->
-		{#if testResponse}
-			<div class="bg-base border border-border-elevated rounded-lg p-6">
-				<p class="font-medium text-primary mb-3">Response</p>
-				<pre class="text-sm text-secondary whitespace-pre-wrap font-mono bg-base border border-border rounded p-4 overflow-x-auto">{testResponse}</pre>
+		<!-- Flashcard Display -->
+		{#if flashcard}
+			<div class="bg-elevated border border-border-elevated rounded-md overflow-hidden mb-6">
+				<!-- Flashcard Header -->
+				<div class="bg-surface border-b border-border px-6 py-4">
+					<p class="text-sm font-medium text-primary">Generated Flashcard</p>
+				</div>
+
+				<!-- Flashcard Content -->
+				<div class="p-6 space-y-6">
+					<!-- Question -->
+					<div>
+						<p class="text-xs font-medium text-tertiary uppercase tracking-wider mb-2">Question</p>
+						<div class="bg-base border border-border rounded-md p-4">
+							<p class="text-base text-primary leading-relaxed">{flashcard.question}</p>
+						</div>
+					</div>
+
+					<!-- Answer -->
+					<div>
+						<p class="text-xs font-medium text-tertiary uppercase tracking-wider mb-2">Answer</p>
+						<div class="bg-base border border-border rounded-md p-4">
+							<p class="text-base text-primary leading-relaxed whitespace-pre-wrap">{flashcard.answer}</p>
+						</div>
+					</div>
+				</div>
 			</div>
 		{/if}
 
-		<!-- Instructions -->
-		<div class="mt-6 bg-base border border-border-elevated rounded-lg p-6">
-			<p class="font-medium text-primary mb-2">📚 How to Use</p>
-			<ul class="list-disc list-inside space-y-1 text-sm text-secondary">
-				<li>Enter any text in the test input field</li>
-				<li>Click "Test Claude API" to send a request</li>
-				<li>The response will show if the integration is working</li>
-				<li>This is a quick & dirty test page for development</li>
+		<!-- Instructions Card -->
+		<div class="bg-surface border border-border-elevated rounded-md p-6">
+			<p class="text-sm font-medium text-primary mb-3">📚 How to Use</p>
+			<ul class="space-y-2 text-sm text-secondary">
+				<li class="flex items-start gap-2">
+					<span class="text-tertiary mt-1">•</span>
+					<span>Enter any text (notes, article excerpts, book highlights, etc.) in the input field</span>
+				</li>
+				<li class="flex items-start gap-2">
+					<span class="text-tertiary mt-1">•</span>
+					<span>Click "Generate Flashcard" to send the text to Claude API</span>
+				</li>
+				<li class="flex items-start gap-2">
+					<span class="text-tertiary mt-1">•</span>
+					<span>Claude will create a question and answer format optimized for learning and retention</span>
+				</li>
+				<li class="flex items-start gap-2">
+					<span class="text-tertiary mt-1">•</span>
+					<span>The generated flashcard will appear below once processing is complete</span>
+				</li>
 			</ul>
 		</div>
 	</div>
 </div>
-
