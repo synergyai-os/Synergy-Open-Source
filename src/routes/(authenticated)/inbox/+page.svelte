@@ -177,8 +177,10 @@
 			return;
 		}
 
+		console.log('Loading item details for:', selectedItemId);
 		convexClient.query(inboxApi.getInboxItemWithDetails, { inboxItemId: selectedItemId })
 			.then((result) => {
+				console.log('Item details loaded:', result);
 				selectedItem = result;
 			})
 			.catch((error) => {
@@ -191,7 +193,23 @@
 
 	// Actions
 	function selectItem(itemId: string) {
+		console.log('selectItem called with:', itemId);
 		selectedItemId = itemId as any; // itemId is _id from InboxCard
+		console.log('selectedItemId set to:', selectedItemId);
+	}
+	
+	// Navigation helpers for detail view
+	function getCurrentItemIndex(): number {
+		if (!selectedItemId || filteredItems.length === 0) return -1;
+		return filteredItems.findIndex(item => item._id === selectedItemId || item.id === selectedItemId);
+	}
+	
+	function handleNextItem() {
+		navigateItems('down');
+	}
+	
+	function handlePreviousItem() {
+		navigateItems('up');
 	}
 
 	function setFilter(type: InboxItemType | 'all') {
@@ -588,6 +606,10 @@
 						inboxItemId={selectedItemId}
 						item={selectedItem}
 						onClose={() => (selectedItemId = null)}
+						currentIndex={getCurrentItemIndex()}
+						totalItems={filteredItems.length}
+						onNext={handleNextItem}
+						onPrevious={handlePreviousItem}
 					/>
 				{:else if selectedItem.type === 'photo_note'}
 					<PhotoDetail item={selectedItem} onClose={() => (selectedItemId = null)} />

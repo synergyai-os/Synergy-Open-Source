@@ -1,20 +1,53 @@
 <script lang="ts">
-	import { Button, DropdownMenu } from 'bits-ui';
+	import { Button, DropdownMenu, Tooltip } from 'bits-ui';
 	import { browser } from '$app/environment';
-	import { useConvexClient } from 'convex-svelte';
+	import { useConvexClient, useQuery } from 'convex-svelte';
 	import { makeFunctionReference } from 'convex/server';
 	import { api } from '$lib/convex';
+	import TagSelector from './TagSelector.svelte';
+	import type { Id } from '../../../../convex/_generated/dataModel';
+	import { DEFAULT_TAG_COLOR } from '$lib/utils/tagConstants';
 
 	type Props = {
 		inboxItemId?: string; // Inbox item ID (if using real data)
 		item: any; // Item from getInboxItemWithDetails query
 		onClose: () => void;
+		currentIndex?: number; // Current item index (0-based)
+		totalItems?: number; // Total number of items
+		onNext?: () => void; // Navigate to next item
+		onPrevious?: () => void; // Navigate to previous item
 	};
 
-	let { inboxItemId, item, onClose }: Props = $props();
+	let { inboxItemId, item, onClose, currentIndex = -1, totalItems = 0, onNext, onPrevious }: Props = $props();
+	
+	// Derive current position (1-based for display)
+	const currentPosition = $derived(currentIndex >= 0 ? currentIndex + 1 : 0);
+	const canNavigateNext = $derived(onNext !== undefined && currentIndex < totalItems - 1);
+	const canNavigatePrevious = $derived(onPrevious !== undefined && currentIndex > 0);
 	
 	const convexClient = browser ? useConvexClient() : null;
 	const markProcessedApi = browser ? makeFunctionReference('inbox:markProcessed') as any : null;
+	
+	// Tag APIs (only if tags module exists in API)
+	// Note: These will be null if Convex hasn't regenerated the API yet
+	let createTagApi: any = null;
+	let assignTagsApi: any = null;
+	if (browser && (api as any).tags?.createTag && (api as any).tags?.assignTagsToHighlight) {
+		try {
+			createTagApi = makeFunctionReference('tags:createTag') as any;
+			assignTagsApi = makeFunctionReference('tags:assignTagsToHighlight') as any;
+		} catch (e) {
+			// Tags API not available yet - component will work without tags feature
+			console.warn('Tags API not available:', e);
+		}
+	}
+
+	// Query all tags for user (with error handling if API not generated yet)
+	// Temporarily disabled to debug detail view rendering
+	const allTags = 'skip' as any; // useQuery(
+		// browser && (api as any).tags?.listAllTags ? (api as any).tags.listAllTags : 'skip',
+		// browser && (api as any).tags?.listAllTags ? {} : 'skip'
+	// );
 
 	let isLoading = $state(false);
 	let loadingMessage = $state('');
@@ -22,8 +55,108 @@
 	let showFlashcard = $state(false);
 	let selectedCategory = $state<string>('');
 	let headerMenuOpen = $state(false);
+	let selectedTagIds = $state<Id<'tags'>[]>([]);
+	let tagInputRef = $state<HTMLElement | null>(null);
 
 	const mockCategories = ['Product Delivery', 'Product Discovery', 'Leadership'];
+
+	// Initialize selected tags from item
+	$effect(() => {
+		if (item?.tags && Array.isArray(item.tags)) {
+			selectedTagIds = item.tags.map((tag: any) => tag._id).filter(Boolean);
+		}
+	});
+
+	// Get highlight ID from item
+	const highlightId = $derived(item?.highlight?._id);
+
+	// Available tags from query (with color)
+	const availableTags = $derived(() => {
+		if (!allTags || !Array.isArray(allTags)) return [];
+		return allTags.map((tag: any) => ({
+			_id: tag._id,
+			displayName: tag.displayName,
+			color: tag.color || DEFAULT_TAG_COLOR,
+			parentId: tag.parentId,
+			level: tag.level || 0,
+		}));
+	});
+
+	async function handleTagsChange(tagIds: Id<'tags'>[]) {
+		if (!highlightId || !convexClient || !assignTagsApi) return;
+
+		selectedTagIds = tagIds;
+
+		try {
+			await convexClient.mutation(assignTagsApi, {
+				highlightId: highlightId,
+				tagIds: tagIds,
+			});
+		} catch (error) {
+			console.error('Failed to assign tags:', error);
+			// Revert on error
+			if (item?.tags) {
+				selectedTagIds = item.tags.map((tag: any) => tag._id).filter(Boolean);
+			}
+		}
+	}
+
+	async function handleCreateTag(
+		displayName: string,
+		color: string,
+		parentId?: Id<'tags'>
+	): Promise<Id<'tags'>> {
+		if (!convexClient || !createTagApi) {
+			throw new Error('Convex client not available');
+		}
+
+		try {
+			const tagId = await convexClient.mutation(createTagApi, {
+				displayName,
+				color,
+				parentId,
+			});
+			return tagId;
+		} catch (error) {
+			console.error('Failed to create tag:', error);
+			throw error;
+		}
+	}
+
+	// Keyboard shortcut: 'T' to focus tag selector
+	function handleKeyDown(event: KeyboardEvent) {
+		// Don't trigger if typing in an input/textarea
+		const target = event.target as HTMLElement;
+		if (
+			target.tagName === 'INPUT' ||
+			target.tagName === 'TEXTAREA' ||
+			target.isContentEditable
+		) {
+			return;
+		}
+
+		// Check for 'T' key
+		if (event.key === 't' || event.key === 'T') {
+			// Find the Combobox.Input within the tag selector
+			if (tagInputRef) {
+				const input = tagInputRef.querySelector('input') as HTMLInputElement;
+				if (input) {
+					event.preventDefault();
+					input.focus();
+				}
+			}
+		}
+	}
+
+	// Add keyboard event listener
+	if (browser) {
+		$effect(() => {
+			window.addEventListener('keydown', handleKeyDown);
+			return () => {
+				window.removeEventListener('keydown', handleKeyDown);
+			};
+		});
+	}
 
 	async function handleGenerateFlashcard() {
 		isLoading = true;
@@ -107,8 +240,96 @@
 			<h2 class="text-sm font-normal text-secondary">Readwise Highlight</h2>
 		</div>
 
-		<!-- Right: Actions Menu -->
+		<!-- Right: Pagination + Actions Menu -->
 		<div class="flex items-center gap-icon">
+			<!-- Pagination Control -->
+			{#if totalItems > 0 && (onNext || onPrevious)}
+				<Tooltip.Provider delayDuration={300}>
+					<div class="flex items-center gap-2">
+						<!-- Page Counter: Current in primary, slash/total in secondary -->
+						<div class="flex items-center gap-0.5">
+							<span class="text-sm text-primary font-normal">{currentPosition}</span>
+							<span class="text-sm text-secondary font-normal">/</span>
+							<span class="text-sm text-secondary font-normal">{totalItems}</span>
+						</div>
+						
+						<!-- Chevron Down (Next) - Primary color when enabled -->
+						<Tooltip.Root>
+							<Tooltip.Trigger>
+								{#snippet child({ props })}
+									<button
+										{...props}
+										type="button"
+										class="w-6 h-6 flex items-center justify-center rounded-md hover:bg-hover-solid transition-colors text-primary disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+										onclick={() => onNext?.()}
+										disabled={!canNavigateNext}
+										aria-label="Next item (J)"
+									>
+										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M19 9l-7 7-7-7"
+											/>
+										</svg>
+									</button>
+								{/snippet}
+							</Tooltip.Trigger>
+							<Tooltip.Portal>
+								<Tooltip.Content
+									class="bg-elevated border border-base rounded-md shadow-lg px-3 py-1.5 flex items-center gap-2 z-50"
+									side="bottom"
+									sideOffset={6}
+								>
+									<span class="text-sm text-primary">Navigate down</span>
+									<span class="px-1.5 py-0.5 rounded border border-base bg-base text-sm text-primary font-medium min-w-[1.25rem] text-center">
+										J
+									</span>
+								</Tooltip.Content>
+							</Tooltip.Portal>
+						</Tooltip.Root>
+						
+						<!-- Chevron Up (Previous) - Secondary color when enabled -->
+						<Tooltip.Root>
+							<Tooltip.Trigger>
+								{#snippet child({ props })}
+									<button
+										{...props}
+										type="button"
+										class="w-6 h-6 flex items-center justify-center rounded-md hover:bg-hover-solid transition-colors text-secondary disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+										onclick={() => onPrevious?.()}
+										disabled={!canNavigatePrevious}
+										aria-label="Previous item (K)"
+									>
+										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M5 15l7-7 7 7"
+											/>
+										</svg>
+									</button>
+								{/snippet}
+							</Tooltip.Trigger>
+							<Tooltip.Portal>
+								<Tooltip.Content
+									class="bg-elevated border border-base rounded-md shadow-lg px-3 py-1.5 flex items-center gap-2 z-50"
+									side="bottom"
+									sideOffset={6}
+								>
+									<span class="text-sm text-primary">Navigate up</span>
+									<span class="px-1.5 py-0.5 rounded border border-base bg-base text-sm text-primary font-medium min-w-[1.25rem] text-center">
+										K
+									</span>
+								</Tooltip.Content>
+							</Tooltip.Portal>
+						</Tooltip.Root>
+					</div>
+				</Tooltip.Provider>
+			{/if}
+			
 			<DropdownMenu.Root bind:open={headerMenuOpen}>
 				<DropdownMenu.Trigger
 					type="button"
@@ -294,6 +515,18 @@
 					</div>
 				{/if}
 
+				<!-- Tags -->
+				<!-- Temporarily disabled for debugging - if detail view works, tags code is the issue -->
+				{#if false && highlightId && (api as any).tags?.listAllTags && allTags !== undefined}
+					<TagSelector
+						bind:selectedTagIds
+						availableTags={availableTags()}
+						onTagsChange={handleTagsChange}
+						onCreateTagWithColor={handleCreateTag}
+						bind:tagInputRef
+					/>
+				{/if}
+
 				<!-- Actions (Sidebar) -->
 				<div>
 					<p class="text-xs font-medium text-secondary uppercase tracking-wider mb-2">Actions</p>
@@ -318,20 +551,6 @@
 						{/if}
 					</div>
 				</div>
-
-				<!-- Tags -->
-				{#if item?.tags && item.tags.length > 0}
-					<div>
-						<p class="text-xs font-medium text-secondary uppercase tracking-wider mb-2">Tags</p>
-						<div class="flex flex-wrap gap-2">
-							{#each item.tags as tag}
-								<span class="bg-tag text-tag text-xs px-badge py-badge rounded">
-									{tag.displayName || tag.name}
-								</span>
-							{/each}
-						</div>
-					</div>
-				{/if}
 
 				<!-- Note -->
 				{#if item?.highlight?.note}
@@ -392,4 +611,3 @@
 		}
 	}
 </style>
-

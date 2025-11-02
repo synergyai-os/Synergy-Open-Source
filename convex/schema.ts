@@ -129,17 +129,19 @@ const schema = defineSchema({
     .index("by_user_type", ["userId", "type"])
     .index("by_user_processed", ["userId", "processed"]),
 
-  // Tags table - proper relational table for filtering
+  // Tags table - proper relational table for filtering with hierarchical support
   tags: defineTable({
     userId: v.id("users"),
     name: v.string(), // Tag name (normalized, lowercase for matching)
     displayName: v.string(), // Original tag name as provided
     externalId: v.optional(v.number()), // Readwise tag ID (if available)
-    color: v.optional(v.string()), // Future: user-assigned color
+    color: v.string(), // User-assigned color (hex code)
+    parentId: v.optional(v.id("tags")), // Parent tag for hierarchical relationships
     createdAt: v.number(),
   })
     .index("by_user", ["userId"])
-    .index("by_user_name", ["userId", "name"]), // Unique tag per user
+    .index("by_user_name", ["userId", "name"]) // Unique tag per user
+    .index("by_user_parent", ["userId", "parentId"]), // Efficient hierarchical queries
 
   // Many-to-many: Sources ↔ Tags
   // Tags are attached to sources in Readwise

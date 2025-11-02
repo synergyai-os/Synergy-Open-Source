@@ -226,12 +226,14 @@ export const findOrCreateTag = internalMutation({
       return existing._id;
     }
 
-    // Create new tag
+    // Create new tag with default color (grey)
+    // Default color: #94a3b8 (slate-400) - matches TAG_COLORS[0]
     const tagId = await ctx.db.insert("tags", {
       userId,
       name: normalizedName,
       displayName: tagName,
       externalId,
+      color: "#94a3b8", // Default grey color (required field)
       createdAt: Date.now(),
     });
 
