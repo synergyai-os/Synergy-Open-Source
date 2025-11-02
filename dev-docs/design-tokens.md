@@ -42,6 +42,8 @@ Our spacing scale is based on a 4px base unit (0.25rem):
 | `--spacing-icon-gap` | `gap-icon` | 0.5rem (8px) | Standard icon-text gap |
 | `--spacing-icon-gap-wide` | `gap-icon-wide` | 0.625rem (10px) | Wider icon-text gap |
 | `--spacing-indent` | `pl-indent` | 1.5rem (24px) | Left padding for nested/indented items |
+| `--spacing-system-header-y` | `py-system-header` | 0.75rem (12px) | **System-level header/footer vertical padding** - Use for all header/footer borders to ensure alignment |
+| `--spacing-system-content-y` | `py-system-content` | 0.75rem (12px) | **System-level content vertical padding** - Use for content areas between borders to ensure alignment |
 | `--spacing-inbox-container` | `p-inbox-container` | 1rem (16px) | Inbox container padding |
 | `--spacing-inbox-card-x` | `px-inbox-card` | 0.75rem (12px) | Inbox card horizontal padding |
 | `--spacing-inbox-card-y` | `py-inbox-card` | 0.75rem (12px) | Inbox card vertical padding |
@@ -49,7 +51,7 @@ Our spacing scale is based on a 4px base unit (0.25rem):
 | `--spacing-inbox-icon-gap` | `gap-inbox-icon` | 0.5rem (8px) | Icon-to-content gap in inbox cards |
 | `--spacing-inbox-title-bottom` | `mb-inbox-title` | 1rem (16px) | Margin below inbox title |
 | `--spacing-inbox-header-x` | `px-inbox-header` | 1rem (16px) | Inbox header horizontal padding |
-| `--spacing-inbox-header-y` | `py-inbox-header` | 0.75rem (12px) | Inbox header vertical padding |
+| `--spacing-inbox-header-y` | `py-inbox-header` | 1rem (16px) | Inbox header vertical padding (system header + 4px to match SidebarHeader total height) |
 | `--spacing-settings-section-gap` | `gap-settings-section` | 1.5rem (24px) | Gap between settings section cards |
 | `--spacing-settings-row-gap` | `gap-settings-row` | 1rem (16px) | Vertical gap between setting rows |
 | `--spacing-settings-row-padding-x` | `px-settings-row` | 1rem (16px) | Setting row horizontal padding |
@@ -244,11 +246,60 @@ flex items-start gap-inbox-icon
 bg-tag text-tag text-label px-badge py-badge rounded
 ```
 
+### Header/Footer Border Pattern (system-level alignment)
+**✨ USE THIS FOR ALL HEADER/FOOTER BORDERS TO ENSURE ALIGNMENT**
+
+**For header borders:**
+```
+border-b border-base py-system-header
+```
+
+**For footer borders:**
+```
+border-t border-base py-system-header
+```
+
+**For content areas between borders:**
+```
+py-system-content
+```
+
+**Why:** All header and footer borders should use `py-system-header` to ensure they align horizontally at the same height across the entire application. Content areas between borders should use `py-system-content` to maintain consistent spacing and alignment. These are system-level tokens that control the vertical padding for all border separators and content areas.
+
+**Token Usage Rules:**
+- `py-system-header`: Use for **all** header/footer borders (SidebarHeader, SyncReadwiseConfig header/footer, etc.)
+- `py-system-content`: Use for content areas **between** header and footer borders (e.g., inside SyncReadwiseConfig)
+- `py-inbox-header`: Use **only** for InboxHeader (needs extra padding to match SidebarHeader total height due to content height differences)
+
+**Example (header with border):**
+```html
+<div class="px-inbox-container py-system-header border-b border-base flex items-center justify-between flex-shrink-0">
+  <h3 class="text-sm font-normal text-primary">Title</h3>
+</div>
+```
+
+**Example (content between borders):**
+```html
+<div class="flex-1 overflow-y-auto px-inbox-container py-system-content">
+  <!-- Content here -->
+</div>
+```
+
+**Example (footer with border):**
+```html
+<div class="px-inbox-container py-system-header border-t border-base flex items-center justify-end gap-2 flex-shrink-0">
+  <button>Cancel</button>
+  <button>Save</button>
+</div>
+```
+
 ### InboxHeader Pattern (sticky header)
 ```
-sticky top-0 z-10 bg-elevated border-b border-base px-inbox-header py-inbox-header
+sticky top-0 z-10 bg-surface border-b border-base px-inbox-header py-inbox-header
 flex items-center justify-between
 ```
+
+**Note:** Uses `py-inbox-header` (16px) instead of `py-system-header` (12px) to match SidebarHeader total height, accounting for content height differences.
 **Header title (subtle Linear-style naming):**
 ```
 text-sm font-normal text-secondary

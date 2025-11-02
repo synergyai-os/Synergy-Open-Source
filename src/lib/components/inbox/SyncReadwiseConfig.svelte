@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { ToggleGroup, RadioGroup } from 'bits-ui';
 	type DateRange = '7d' | '30d' | '90d' | '180d' | '365d' | 'all';
 	type ImportType = 'time' | 'quantity' | 'custom';
 	type Quantity = 5 | 10 | 25 | 50 | 100 | 250 | 500 | 1000;
@@ -47,300 +48,223 @@
 
 <div class="h-full flex flex-col">
 	<!-- Header -->
-	<div class="px-inbox-container py-inbox-container border-b border-base flex items-center justify-between flex-shrink-0">
-		<h3 class="text-sm font-normal text-primary">Import Readwise Highlights</h3>
+	<div
+		class="px-inbox-container py-system-header border-b border-base flex items-center justify-between flex-shrink-0"
+	>
+		<h3 class="text-sm font-normal text-secondary">Import Readwise Highlights</h3>
 	</div>
 
-	<!-- Content -->
-	<div class="flex-1 overflow-y-auto px-inbox-container py-inbox-container">
-		<div class="flex flex-col gap-6">
-			<!-- Import Type Selection -->
-			<div class="flex flex-col gap-2">
-				<p class="text-sm font-medium text-secondary">Import by:</p>
-				
-				<div class="flex flex-col gap-2">
-					<label for="type-time" class="flex items-center gap-icon cursor-pointer group">
-						<input
-							id="type-time"
-							type="radio"
-							name="importType"
-							value="time"
-							bind:group={importType}
-							class="w-4 h-4 text-primary border-base focus:ring-primary focus:ring-2"
-						/>
-						<span class="text-sm text-primary group-hover:text-secondary">Time range</span>
-					</label>
-					
-					<label for="type-quantity" class="flex items-center gap-icon cursor-pointer group">
-						<input
-							id="type-quantity"
-							type="radio"
-							name="importType"
-							value="quantity"
-							bind:group={importType}
-							class="w-4 h-4 text-primary border-base focus:ring-primary focus:ring-2"
-						/>
-						<span class="text-sm text-primary group-hover:text-secondary">Number of items</span>
-					</label>
-					
-					<label for="type-custom" class="flex items-center gap-icon cursor-pointer group">
-						<input
-							id="type-custom"
-							type="radio"
-							name="importType"
-							value="custom"
-							bind:group={importType}
-							class="w-4 h-4 text-primary border-base focus:ring-primary focus:ring-2"
-						/>
-						<span class="text-sm text-primary group-hover:text-secondary">Custom date range</span>
-					</label>
-				</div>
+	<!-- Content - Centered top-middle -->
+	<div class="flex-1 overflow-y-auto px-inbox-container py-system-content">
+		<div class="max-w-md mx-auto flex flex-col gap-6">
+			<!-- Import Type Toggle Switcher -->
+			<div class="flex flex-col gap-icon">
+				<label class="text-sm font-normal text-secondary">Import by:</label>
+				<ToggleGroup.Root type="single" bind:value={importType} class="flex gap-0.5 bg-surface p-0.5 rounded-md">
+				<ToggleGroup.Item
+					value="time"
+					class="flex-1 px-menu-item py-menu-item text-sm text-secondary hover:text-primary rounded transition-colors font-normal data-[state=on]:bg-elevated data-[state=on]:text-primary data-[state=on]:shadow-sm"
+				>
+					Time range
+				</ToggleGroup.Item>
+				<ToggleGroup.Item
+					value="quantity"
+					class="flex-1 px-menu-item py-menu-item text-sm text-secondary hover:text-primary rounded transition-colors font-normal data-[state=on]:bg-elevated data-[state=on]:text-primary data-[state=on]:shadow-sm"
+				>
+					Number of items
+				</ToggleGroup.Item>
+				<ToggleGroup.Item
+					value="custom"
+					class="flex-1 px-menu-item py-menu-item text-sm text-secondary hover:text-primary rounded transition-colors font-normal data-[state=on]:bg-elevated data-[state=on]:text-primary data-[state=on]:shadow-sm"
+				>
+					Custom date
+				</ToggleGroup.Item>
+				</ToggleGroup.Root>
 			</div>
 
 			<!-- Time Range Selection -->
 			{#if importType === 'time'}
-				<div class="flex flex-col gap-2">
-					<p class="text-sm font-medium text-secondary">Select time range:</p>
-					
-					<div class="flex flex-col gap-2">
-						<label for="range-7d" class="flex items-center gap-icon cursor-pointer group">
-							<input
-								id="range-7d"
-								type="radio"
-								name="dateRange"
-								value="7d"
-								bind:group={selectedRange}
-								class="w-4 h-4 text-primary border-base focus:ring-primary focus:ring-2"
-							/>
-							<span class="text-sm text-primary group-hover:text-secondary">Last 7 days</span>
-						</label>
-						
-						<label for="range-30d" class="flex items-center gap-icon cursor-pointer group">
-							<input
-								id="range-30d"
-								type="radio"
-								name="dateRange"
-								value="30d"
-								bind:group={selectedRange}
-								class="w-4 h-4 text-primary border-base focus:ring-primary focus:ring-2"
-							/>
-							<span class="text-sm text-primary group-hover:text-secondary">Last 30 days</span>
-						</label>
-						
-						<label for="range-90d" class="flex items-center gap-icon cursor-pointer group">
-							<input
-								id="range-90d"
-								type="radio"
-								name="dateRange"
-								value="90d"
-								bind:group={selectedRange}
-								class="w-4 h-4 text-primary border-base focus:ring-primary focus:ring-2"
-							/>
-							<span class="text-sm text-primary group-hover:text-secondary">Last 90 days</span>
-						</label>
-						
-						<label for="range-180d" class="flex items-center gap-icon cursor-pointer group">
-							<input
-								id="range-180d"
-								type="radio"
-								name="dateRange"
-								value="180d"
-								bind:group={selectedRange}
-								class="w-4 h-4 text-primary border-base focus:ring-primary focus:ring-2"
-							/>
-							<span class="text-sm text-primary group-hover:text-secondary">Last 180 days</span>
-						</label>
-						
-						<label for="range-365d" class="flex items-center gap-icon cursor-pointer group">
-							<input
-								id="range-365d"
-								type="radio"
-								name="dateRange"
-								value="365d"
-								bind:group={selectedRange}
-								class="w-4 h-4 text-primary border-base focus:ring-primary focus:ring-2"
-							/>
-							<span class="text-sm text-primary group-hover:text-secondary">Last 365 days</span>
-						</label>
-						
-						<label for="range-all" class="flex items-center gap-icon cursor-pointer group">
-							<input
-								id="range-all"
-								type="radio"
-								name="dateRange"
-								value="all"
-								bind:group={selectedRange}
-								class="w-4 h-4 text-primary border-base focus:ring-primary focus:ring-2"
-							/>
-							<span class="text-sm text-primary group-hover:text-secondary">All time</span>
-						</label>
-					</div>
+				<div class="flex flex-col gap-icon">
+					<label class="text-sm font-normal text-tertiary">Select time range:</label>
+					<RadioGroup.Root bind:value={selectedRange} class="flex flex-col gap-0.5">
+						<RadioGroup.Item
+							value="7d"
+							class="flex items-center px-menu-item py-menu-item cursor-pointer rounded-md hover:bg-hover transition-colors data-[state=checked]:bg-accent-primary data-[state=checked]:text-white"
+						>
+							{#snippet children({ checked })}
+								<span class="text-sm {checked ? 'text-white' : 'text-primary'}">Last 7 days</span>
+							{/snippet}
+						</RadioGroup.Item>
+						<RadioGroup.Item
+							value="30d"
+							class="flex items-center px-menu-item py-menu-item cursor-pointer rounded-md hover:bg-hover transition-colors data-[state=checked]:bg-accent-primary data-[state=checked]:text-white"
+						>
+							{#snippet children({ checked })}
+								<span class="text-sm {checked ? 'text-white' : 'text-primary'}">Last 30 days</span>
+							{/snippet}
+						</RadioGroup.Item>
+						<RadioGroup.Item
+							value="90d"
+							class="flex items-center gap-icon cursor-pointer py-menu-item rounded-md hover:bg-hover transition-colors data-[state=checked]:bg-accent-primary data-[state=checked]:text-white"
+						>
+							{#snippet children({ checked })}
+								<span class="text-sm {checked ? 'text-white' : 'text-primary'}">Last 90 days</span>
+							{/snippet}
+						</RadioGroup.Item>
+						<RadioGroup.Item
+							value="180d"
+							class="flex items-center gap-icon cursor-pointer py-menu-item rounded-md hover:bg-hover transition-colors data-[state=checked]:bg-accent-primary data-[state=checked]:text-white"
+						>
+							{#snippet children({ checked })}
+								<span class="text-sm {checked ? 'text-white' : 'text-primary'}">Last 180 days</span>
+							{/snippet}
+						</RadioGroup.Item>
+						<RadioGroup.Item
+							value="365d"
+							class="flex items-center gap-icon cursor-pointer py-menu-item rounded-md hover:bg-hover transition-colors data-[state=checked]:bg-accent-primary data-[state=checked]:text-white"
+						>
+							{#snippet children({ checked })}
+								<span class="text-sm {checked ? 'text-white' : 'text-primary'}">Last 365 days</span>
+							{/snippet}
+						</RadioGroup.Item>
+						<RadioGroup.Item
+							value="all"
+							class="flex items-center gap-icon cursor-pointer py-menu-item rounded-md hover:bg-hover transition-colors data-[state=checked]:bg-accent-primary data-[state=checked]:text-white"
+						>
+							{#snippet children({ checked })}
+								<span class="text-sm {checked ? 'text-white' : 'text-primary'}">All time</span>
+							{/snippet}
+						</RadioGroup.Item>
+					</RadioGroup.Root>
 				</div>
 			{/if}
 
 			<!-- Quantity Selection -->
 			{#if importType === 'quantity'}
-				<div class="flex flex-col gap-2">
-					<p class="text-sm font-medium text-secondary">Number of highlights:</p>
-					
-					<div class="flex flex-col gap-2">
-						<label for="qty-5" class="flex items-center gap-icon cursor-pointer group">
-							<input
-								id="qty-5"
-								type="radio"
-								name="quantity"
-								value="5"
-								bind:group={selectedQuantity}
-								class="w-4 h-4 text-primary border-base focus:ring-primary focus:ring-2"
-							/>
-							<span class="text-sm text-primary group-hover:text-secondary">Last 5 highlights</span>
-						</label>
-						
-						<label for="qty-10" class="flex items-center gap-icon cursor-pointer group">
-							<input
-								id="qty-10"
-								type="radio"
-								name="quantity"
-								value="10"
-								bind:group={selectedQuantity}
-								class="w-4 h-4 text-primary border-base focus:ring-primary focus:ring-2"
-							/>
-							<span class="text-sm text-primary group-hover:text-secondary">Last 10 highlights</span>
-						</label>
-						
-						<label for="qty-25" class="flex items-center gap-icon cursor-pointer group">
-							<input
-								id="qty-25"
-								type="radio"
-								name="quantity"
-								value="25"
-								bind:group={selectedQuantity}
-								class="w-4 h-4 text-primary border-base focus:ring-primary focus:ring-2"
-							/>
-							<span class="text-sm text-primary group-hover:text-secondary">Last 25 highlights</span>
-						</label>
-						
-						<label for="qty-50" class="flex items-center gap-icon cursor-pointer group">
-							<input
-								id="qty-50"
-								type="radio"
-								name="quantity"
-								value="50"
-								bind:group={selectedQuantity}
-								class="w-4 h-4 text-primary border-base focus:ring-primary focus:ring-2"
-							/>
-							<span class="text-sm text-primary group-hover:text-secondary">Last 50 highlights</span>
-						</label>
-						
-						<label for="qty-100" class="flex items-center gap-icon cursor-pointer group">
-							<input
-								id="qty-100"
-								type="radio"
-								name="quantity"
-								value="100"
-								bind:group={selectedQuantity}
-								class="w-4 h-4 text-primary border-base focus:ring-primary focus:ring-2"
-							/>
-							<span class="text-sm text-primary group-hover:text-secondary">Last 100 highlights</span>
-						</label>
-						
-						<label for="qty-250" class="flex items-center gap-icon cursor-pointer group">
-							<input
-								id="qty-250"
-								type="radio"
-								name="quantity"
-								value="250"
-								bind:group={selectedQuantity}
-								class="w-4 h-4 text-primary border-base focus:ring-primary focus:ring-2"
-							/>
-							<span class="text-sm text-primary group-hover:text-secondary">Last 250 highlights</span>
-						</label>
-						
-						<label for="qty-500" class="flex items-center gap-icon cursor-pointer group">
-							<input
-								id="qty-500"
-								type="radio"
-								name="quantity"
-								value="500"
-								bind:group={selectedQuantity}
-								class="w-4 h-4 text-primary border-base focus:ring-primary focus:ring-2"
-							/>
-							<span class="text-sm text-primary group-hover:text-secondary">Last 500 highlights</span>
-						</label>
-						
-						<label for="qty-1000" class="flex items-center gap-icon cursor-pointer group">
-							<input
-								id="qty-1000"
-								type="radio"
-								name="quantity"
-								value="1000"
-								bind:group={selectedQuantity}
-								class="w-4 h-4 text-primary border-base focus:ring-primary focus:ring-2"
-							/>
-							<span class="text-sm text-primary group-hover:text-secondary">Last 1,000 highlights</span>
-						</label>
-					</div>
+				<div class="flex flex-col gap-icon">
+					<label class="text-sm font-normal text-tertiary">Number of highlights:</label>
+					<RadioGroup.Root bind:value={selectedQuantity} class="flex flex-col gap-0.5">
+						<RadioGroup.Item
+							value="5"
+							class="flex items-center px-menu-item py-menu-item cursor-pointer rounded-md hover:bg-hover transition-colors data-[state=checked]:bg-accent-primary data-[state=checked]:text-white"
+						>
+							{#snippet children({ checked })}
+								<span class="text-sm {checked ? 'text-white' : 'text-primary'}">Last 5 highlights</span>
+							{/snippet}
+						</RadioGroup.Item>
+						<RadioGroup.Item
+							value="10"
+							class="flex items-center gap-icon cursor-pointer py-menu-item rounded-md hover:bg-hover transition-colors data-[state=checked]:bg-accent-primary data-[state=checked]:text-white"
+						>
+							{#snippet children({ checked })}
+								<span class="text-sm {checked ? 'text-white' : 'text-primary'}">Last 10 highlights</span>
+							{/snippet}
+						</RadioGroup.Item>
+						<RadioGroup.Item
+							value="25"
+							class="flex items-center gap-icon cursor-pointer py-menu-item rounded-md hover:bg-hover transition-colors data-[state=checked]:bg-accent-primary data-[state=checked]:text-white"
+						>
+							{#snippet children({ checked })}
+								<span class="text-sm {checked ? 'text-white' : 'text-primary'}">Last 25 highlights</span>
+							{/snippet}
+						</RadioGroup.Item>
+						<RadioGroup.Item
+							value="50"
+							class="flex items-center gap-icon cursor-pointer py-menu-item rounded-md hover:bg-hover transition-colors data-[state=checked]:bg-accent-primary data-[state=checked]:text-white"
+						>
+							{#snippet children({ checked })}
+								<span class="text-sm {checked ? 'text-white' : 'text-primary'}">Last 50 highlights</span>
+							{/snippet}
+						</RadioGroup.Item>
+						<RadioGroup.Item
+							value="100"
+							class="flex items-center gap-icon cursor-pointer py-menu-item rounded-md hover:bg-hover transition-colors data-[state=checked]:bg-accent-primary data-[state=checked]:text-white"
+						>
+							{#snippet children({ checked })}
+								<span class="text-sm {checked ? 'text-white' : 'text-primary'}">Last 100 highlights</span>
+							{/snippet}
+						</RadioGroup.Item>
+						<RadioGroup.Item
+							value="250"
+							class="flex items-center gap-icon cursor-pointer py-menu-item rounded-md hover:bg-hover transition-colors data-[state=checked]:bg-accent-primary data-[state=checked]:text-white"
+						>
+							{#snippet children({ checked })}
+								<span class="text-sm {checked ? 'text-white' : 'text-primary'}">Last 250 highlights</span>
+							{/snippet}
+						</RadioGroup.Item>
+						<RadioGroup.Item
+							value="500"
+							class="flex items-center gap-icon cursor-pointer py-menu-item rounded-md hover:bg-hover transition-colors data-[state=checked]:bg-accent-primary data-[state=checked]:text-white"
+						>
+							{#snippet children({ checked })}
+								<span class="text-sm {checked ? 'text-white' : 'text-primary'}">Last 500 highlights</span>
+							{/snippet}
+						</RadioGroup.Item>
+						<RadioGroup.Item
+							value="1000"
+							class="flex items-center gap-icon cursor-pointer py-menu-item rounded-md hover:bg-hover transition-colors data-[state=checked]:bg-accent-primary data-[state=checked]:text-white"
+						>
+							{#snippet children({ checked })}
+								<span class="text-sm {checked ? 'text-white' : 'text-primary'}">Last 1,000 highlights</span>
+							{/snippet}
+						</RadioGroup.Item>
+					</RadioGroup.Root>
 				</div>
 			{/if}
 
 			<!-- Custom Date Range -->
 			{#if importType === 'custom'}
-				<div class="flex flex-col gap-3">
-					<div class="flex flex-col gap-2">
-						<label for="start-date" class="text-sm font-medium text-secondary">Start date:</label>
+				<div class="flex flex-col gap-icon">
+					<div class="flex flex-col gap-icon">
+						<label for="start-date" class="text-sm font-normal text-tertiary">Start date:</label>
 						<input
 							id="start-date"
 							type="date"
 							bind:value={customStartDate}
-							class="px-3 py-2 text-sm border border-base rounded-md bg-surface text-primary focus:outline-none focus:ring-2 focus:ring-primary"
+							class="px-menu-item py-menu-item text-sm border border-base rounded-md bg-surface text-primary focus:outline-none focus:ring-2 focus:ring-primary"
 						/>
 					</div>
-					
-					<div class="flex flex-col gap-2">
-						<label for="end-date" class="text-sm font-medium text-secondary">End date:</label>
+					<div class="flex flex-col gap-icon">
+						<label for="end-date" class="text-sm font-normal text-tertiary">End date:</label>
 						<input
 							id="end-date"
 							type="date"
 							bind:value={customEndDate}
-							class="px-3 py-2 text-sm border border-base rounded-md bg-surface text-primary focus:outline-none focus:ring-2 focus:ring-primary"
+							class="px-menu-item py-menu-item text-sm border border-base rounded-md bg-surface text-primary focus:outline-none focus:ring-2 focus:ring-primary"
 						/>
 					</div>
 				</div>
 			{/if}
 
-			<!-- Estimated Count (if available) -->
-			{#if estimatedCount}
-				<div class="flex flex-col gap-2 p-3 bg-hover rounded-md">
-					<p class="text-xs font-medium text-tertiary">This will import approximately:</p>
-					<ul class="text-sm text-secondary space-y-1">
-						<li>• {estimatedCount.highlights} highlights</li>
-						<li>• {estimatedCount.sources} sources</li>
-					</ul>
+			<!-- Action Buttons - Directly attached to options -->
+			<div class="flex items-center justify-between gap-icon pt-2 mt-2 border-t border-base">
+				<!-- Helper Text / Estimated Count -->
+				<div class="flex-1">
+					{#if estimatedCount}
+						<p class="text-label text-tertiary">
+							Approx. {estimatedCount.highlights} highlights • {estimatedCount.sources} sources
+						</p>
+					{:else}
+						<p class="text-label text-tertiary">Ready to import from Readwise</p>
+					{/if}
 				</div>
-			{:else}
-				<div class="flex flex-col gap-2 p-3 bg-hover rounded-md">
-					<p class="text-xs text-tertiary">Click Import to start syncing from Readwise</p>
+				<div class="flex items-center gap-icon">
+					<button
+						type="button"
+						onclick={onCancel}
+						class="px-menu-item py-menu-item text-sm text-secondary hover:text-primary hover:bg-hover-solid rounded-md transition-colors font-normal"
+					>
+						Cancel
+					</button>
+					<button
+						type="button"
+						onclick={handleImport}
+						class="px-menu-item py-menu-item text-sm bg-primary text-on-primary rounded-md hover:bg-primary-hover transition-colors font-normal"
+					>
+						Import
+					</button>
 				</div>
-			{/if}
+			</div>
 		</div>
 	</div>
-
-	<!-- Footer Actions -->
-	<div class="px-inbox-container py-inbox-container border-t border-base flex items-center justify-end gap-2 flex-shrink-0">
-		<button
-			type="button"
-			onclick={onCancel}
-			class="px-4 py-2 text-sm text-secondary hover:text-primary hover:bg-hover-solid rounded-md transition-colors font-normal"
-		>
-			Cancel
-		</button>
-		<button
-			type="button"
-			onclick={handleImport}
-			class="px-4 py-2 text-sm bg-primary text-on-primary rounded-md hover:bg-primary-hover transition-colors font-normal"
-		>
-			Import
-		</button>
-	</div>
 </div>
-

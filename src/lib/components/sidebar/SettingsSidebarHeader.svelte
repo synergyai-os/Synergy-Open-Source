@@ -7,8 +7,8 @@
 </script>
 
 <!-- Sticky Header with Back Button -->
-<div class="sticky top-0 bg-sidebar border-b border-sidebar z-10">
-	<div class="px-header py-header">
+<div class="sticky top-0 z-10 bg-sidebar border-b border-sidebar px-header py-system-header flex items-center justify-between flex-shrink-0">
+	<div class="flex items-center gap-icon">
 		<button
 			type="button"
 			onclick={() => onBack?.()}

@@ -42,6 +42,8 @@ Knowledge retention app using the CODE framework (Collect → Organise → Disti
 - **Never hardcode** - `px-2`, `bg-gray-900`, `text-[10px]` are FORBIDDEN
 - **User reviews first** - Never auto-process inbox items (save tokens)
 - **Scalable design** - Inbox handles 100+ content types
+- **System tokens for borders** - Use `py-system-header` for header/footer borders, `py-system-content` for content between borders
+- **InboxHeader exception** - Uses `py-inbox-header` (16px) instead of `py-system-header` (12px) to match SidebarHeader total height
 
 ## 📁 Key Files
 

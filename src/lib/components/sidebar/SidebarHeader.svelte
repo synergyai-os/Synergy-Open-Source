@@ -25,9 +25,8 @@
 </script>
 
 <!-- Sticky Header -->
-<div class="sticky top-0 bg-sidebar border-b border-sidebar z-10">
-	<div class="px-header py-header">
-		<div class="flex items-center gap-icon">
+<div class="sticky top-0 z-10 bg-sidebar border-b border-sidebar px-header py-system-header flex items-center justify-between flex-shrink-0">
+	<div class="flex items-center gap-icon">
 			<!-- Workspace Menu with Logo and Name -->
 			{#if !sidebarCollapsed || (isMobile && !sidebarCollapsed) || (isHovered && !isMobile)}
 				<div class="flex-1 min-w-0">
@@ -80,7 +79,6 @@
 					</button>
 				</div>
 			{/if}
-		</div>
 	</div>
 </div>
 
