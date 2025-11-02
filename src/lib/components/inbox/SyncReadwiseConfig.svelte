@@ -1,7 +1,7 @@
 <script lang="ts">
 	type DateRange = '7d' | '30d' | '90d' | '180d' | '365d' | 'all';
 	type ImportType = 'time' | 'quantity' | 'custom';
-	type Quantity = 50 | 100 | 250 | 500 | 1000;
+	type Quantity = 5 | 10 | 25 | 50 | 100 | 250 | 500 | 1000;
 
 	interface Props {
 		onImport: (options: {
@@ -18,7 +18,7 @@
 
 	let importType = $state<ImportType>('time');
 	let selectedRange = $state<DateRange>('30d');
-	let selectedQuantity = $state<string>('100'); // String for radio value
+	let selectedQuantity = $state<string>('10'); // String for radio value, default to 10 for quick testing
 	let customStartDate = $state<string>('');
 	let customEndDate = $state<string>('');
 
@@ -184,6 +184,42 @@
 					<p class="text-sm font-medium text-secondary">Number of highlights:</p>
 					
 					<div class="flex flex-col gap-2">
+						<label for="qty-5" class="flex items-center gap-icon cursor-pointer group">
+							<input
+								id="qty-5"
+								type="radio"
+								name="quantity"
+								value="5"
+								bind:group={selectedQuantity}
+								class="w-4 h-4 text-primary border-base focus:ring-primary focus:ring-2"
+							/>
+							<span class="text-sm text-primary group-hover:text-secondary">Last 5 highlights</span>
+						</label>
+						
+						<label for="qty-10" class="flex items-center gap-icon cursor-pointer group">
+							<input
+								id="qty-10"
+								type="radio"
+								name="quantity"
+								value="10"
+								bind:group={selectedQuantity}
+								class="w-4 h-4 text-primary border-base focus:ring-primary focus:ring-2"
+							/>
+							<span class="text-sm text-primary group-hover:text-secondary">Last 10 highlights</span>
+						</label>
+						
+						<label for="qty-25" class="flex items-center gap-icon cursor-pointer group">
+							<input
+								id="qty-25"
+								type="radio"
+								name="quantity"
+								value="25"
+								bind:group={selectedQuantity}
+								class="w-4 h-4 text-primary border-base focus:ring-primary focus:ring-2"
+							/>
+							<span class="text-sm text-primary group-hover:text-secondary">Last 25 highlights</span>
+						</label>
+						
 						<label for="qty-50" class="flex items-center gap-icon cursor-pointer group">
 							<input
 								id="qty-50"

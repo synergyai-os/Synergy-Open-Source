@@ -278,3 +278,28 @@ export const markProcessed = mutation({
   },
 });
 
+/**
+ * Query: Get sync progress for current user
+ */
+export const getSyncProgress = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      return null;
+    }
+
+    const progress = await ctx.db
+      .query("syncProgress")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .first();
+
+    return progress ? {
+      step: progress.step,
+      current: progress.current,
+      total: progress.total,
+      message: progress.message,
+    } : null;
+  },
+});
+

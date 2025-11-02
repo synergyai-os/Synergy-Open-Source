@@ -17,6 +17,7 @@
 		sidebarCollapsed?: boolean;
 		onSidebarToggle?: () => void;
 		isMobile?: boolean;
+		inboxCount?: number; // Total number of unprocessed items in inbox
 	}
 
 	let {
@@ -30,7 +31,8 @@
 		isSyncing = false,
 		sidebarCollapsed = false,
 		onSidebarToggle,
-		isMobile = false
+		isMobile = false,
+		inboxCount = 0
 	}: Props = $props();
 
 	let menuOpen = $state(false);
@@ -50,7 +52,14 @@
 			/>
 		{/if}
 
-		<h2 class="text-sm font-normal text-secondary">Inbox</h2>
+		<h2 class="text-sm font-normal text-secondary flex items-center gap-2">
+			Inbox
+			{#if inboxCount > 0}
+				<span class="px-badge py-badge text-label font-medium text-white bg-accent-primary rounded-full min-w-[20px] text-center leading-none flex items-center justify-center">
+					{inboxCount}
+				</span>
+			{/if}
+		</h2>
 
 		<!-- Kebab Menu (Delete Actions) -->
 		<DropdownMenu.Root bind:open={menuOpen}>

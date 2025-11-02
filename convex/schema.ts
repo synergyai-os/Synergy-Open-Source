@@ -160,6 +160,19 @@ const schema = defineSchema({
     .index("by_highlight", ["highlightId"])
     .index("by_tag", ["tagId"])
     .index("by_highlight_tag", ["highlightId", "tagId"]), // Unique constraint
+
+  // Sync Progress tracking - temporary table for tracking sync state
+  // One row per user, cleaned up after sync completes or fails
+  syncProgress: defineTable({
+    userId: v.id("users"),
+    step: v.string(), // Current step: "fetching_books", "fetching_highlights", "processing"
+    current: v.number(), // Current count (items processed)
+    total: v.optional(v.number()), // Total items to process (if known)
+    message: v.optional(v.string()), // User-friendly message
+    startedAt: v.number(), // When sync started
+    updatedAt: v.number(), // Last update timestamp
+  })
+    .index("by_user", ["userId"]),
 });
 
 export default schema;

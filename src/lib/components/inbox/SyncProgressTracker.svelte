@@ -9,10 +9,11 @@
 
 	let { step, current, total, message, onCancel }: Props = $props();
 
-	const progressPercentage = $derived(() => {
-		if (!total || total === 0) return 0;
-		return Math.min(100, Math.round((current / total) * 100));
-	});
+	const progressPercentage = $derived(
+		total && total > 0 
+			? Math.min(100, Math.round((current / total) * 100))
+			: 0
+	);
 </script>
 
 <div class="h-full flex flex-col">
@@ -34,21 +35,28 @@
 	<div class="flex-1 overflow-y-auto px-inbox-container py-inbox-container flex items-center justify-center">
 		<div class="w-full max-w-md flex flex-col gap-6">
 			<!-- Progress Bar -->
-			<div class="flex flex-col gap-2">
-				<div class="flex items-center justify-between text-xs">
-					<span class="text-secondary">{step}</span>
+			<div class="flex flex-col gap-3">
+				<div class="flex flex-col gap-2">
+					<div class="flex items-center justify-between text-xs">
+						<span class="text-secondary font-medium">{step}</span>
+						{#if total}
+							<span class="text-tertiary">{current} of {total}</span>
+						{:else if current > 0}
+							<span class="text-tertiary">{current} items</span>
+						{/if}
+					</div>
+					
+					<div class="w-full h-2.5 bg-base rounded-full overflow-hidden">
+						<div
+							class="h-full bg-primary transition-all duration-300 ease-out"
+							style="width: {progressPercentage}%"
+						></div>
+					</div>
 					{#if total}
-						<span class="text-tertiary">{current} of {total}</span>
-					{:else}
-						<span class="text-tertiary">{progressPercentage}%</span>
+						<p class="text-xs text-center text-tertiary">
+							Processing {current} of {total} highlights...
+						</p>
 					{/if}
-				</div>
-				
-				<div class="w-full h-2 bg-base rounded-full overflow-hidden">
-					<div
-						class="h-full bg-primary transition-all duration-300 ease-out"
-						style="width: {progressPercentage}%"
-					></div>
 				</div>
 			</div>
 

@@ -34,6 +34,9 @@ export const syncReadwiseHighlights = action({
     customEndDate: v.optional(v.string()), // ISO 8601 date string
     // Quantity-based import
     quantity: v.optional(v.union(
+      v.literal(5),
+      v.literal(10),
+      v.literal(25),
       v.literal(50),
       v.literal(100),
       v.literal(250),
@@ -116,173 +119,419 @@ export const syncReadwiseHighlightsInternal = internalAction({
   handler: async (ctx, args) => {
     const { userId, apiKey, updatedAfter: dateFilter, limit } = args;
 
-    // Get last sync timestamp for incremental sync
-    // BUT: Skip incremental sync if quantity-based (limit provided) or custom date range provided
-    let updatedAfter: string | undefined = dateFilter;
-    if (!updatedAfter && !limit && !args.updatedBefore) {
-      // Only use incremental sync if no date filters or limit are provided
-      const userSettings = await ctx.runQuery(internal.settings.getUserSettingsForSync, {
-        userId,
-      });
-      const lastSyncAt = userSettings?.lastReadwiseSyncAt;
-      updatedAfter = lastSyncAt ? new Date(lastSyncAt).toISOString() : undefined;
-    }
-
-    console.log(`[syncReadwise] Starting sync for user ${userId}`);
-    if (limit) {
-      console.log(`[syncReadwise] Quantity-based import: ${limit} highlights (no date filter)`);
-    } else {
-      console.log(`[syncReadwise] Date filter: ${updatedAfter ? new Date(updatedAfter).toISOString() : "all time"}`);
-      if (args.updatedBefore) {
-        console.log(`[syncReadwise] Date filter before: ${new Date(args.updatedBefore).toISOString()}`);
-      }
-    }
-
-    // Step 1: Fetch all books/sources (paginated)
-    // For quantity-based imports, don't filter books by date (we'll filter highlights later)
-    const booksUpdatedAfter = limit ? undefined : updatedAfter;
-    const booksUpdatedBefore = limit ? undefined : args.updatedBefore;
-    
-    console.log(`[syncReadwise] Fetching books...`);
-    const allSources = await fetchAllBooks(ctx, apiKey, booksUpdatedAfter, booksUpdatedBefore);
-    console.log(`[syncReadwise] Fetched ${allSources.length} sources`);
-
-    // Step 2: Normalize and insert/update authors and sources
-    console.log(`[syncReadwise] Normalizing authors and sources...`);
-    const sourceIdMap = new Map<number, string>(); // Readwise source ID -> Convex source ID
-
-    for (const source of allSources) {
-      // Parse and normalize authors
-      const authorNames = parseAuthorString(source.author);
-      if (authorNames.length === 0) {
-        console.warn(`[syncReadwise] Source ${source.id} has no author, skipping...`);
-        continue;
-      }
-
-      // Create or find primary author (first one)
-      const primaryAuthorId = await ctx.runMutation(
-        internal.syncReadwiseMutations.findOrCreateAuthor,
-        {
+    try {
+      // Get last sync timestamp for incremental sync
+      // BUT: Skip incremental sync if quantity-based (limit provided) or custom date range provided
+      let updatedAfter: string | undefined = dateFilter;
+      if (!updatedAfter && !limit && !args.updatedBefore) {
+        // Only use incremental sync if no date filters or limit are provided
+        const userSettings = await ctx.runQuery(internal.settings.getUserSettingsForSync, {
           userId,
-          authorName: authorNames[0],
+        });
+        const lastSyncAt = userSettings?.lastReadwiseSyncAt;
+        updatedAfter = lastSyncAt ? new Date(lastSyncAt).toISOString() : undefined;
+      }
+
+      console.log(`[syncReadwise] Starting sync for user ${userId}`);
+      if (limit) {
+        console.log(`[syncReadwise] Quantity-based import: ${limit} highlights (no date filter)`);
+      } else {
+        console.log(`[syncReadwise] Date filter: ${updatedAfter ? new Date(updatedAfter).toISOString() : "all time"}`);
+        if (args.updatedBefore) {
+          console.log(`[syncReadwise] Date filter before: ${new Date(args.updatedBefore).toISOString()}`);
         }
-      );
+      }
 
-      // Create or update source
-      const sourceId = await ctx.runMutation(internal.syncReadwiseMutations.findOrCreateSource, {
+      // Initialize progress tracking
+      await ctx.runMutation(internal.syncReadwiseMutations.updateSyncProgress, {
         userId,
-        primaryAuthorId,
-        readwiseSource: source,
+        step: "Fetching highlights...",
+        current: 0,
+        total: limit || undefined,
+        message: "Connecting to Readwise...",
       });
 
-      sourceIdMap.set(source.id, sourceId);
+      // NEW FLOW: Start with highlights first (newest first)
+      // Step 1: Fetch highlights and identify which ones need importing
+      console.log(`[syncReadwise] Fetching highlights first (newest first)...`);
+      const highlightsUpdatedAfter = limit ? undefined : updatedAfter;
+      const highlightsUpdatedBefore = limit ? undefined : args.updatedBefore;
+      
+      let processedCount = 0;
+      let newCount = 0;
+      let skippedCount = 0;
+      let errorCount = 0;
 
-      // Create or find additional authors and link them
-      for (let i = 1; i < authorNames.length; i++) {
-        const authorId = await ctx.runMutation(
-          internal.syncReadwiseMutations.findOrCreateAuthor,
-          {
+      let pageCursor: string | undefined = undefined;
+      let pageCount = 0;
+      let totalChecked = 0;
+      const neededBookIds = new Set<number>(); // Track book_ids we need to fetch
+      const highlightsToProcess: any[] = []; // Track highlights that need importing
+
+      // Fetch highlights and check which ones need importing
+      while (true) {
+        // If we've reached the limit of new items for quantity-based import, stop
+        if (limit && newCount >= limit) {
+          console.log(`[syncReadwise] Reached target of ${limit} new highlights`);
+          break;
+        }
+
+        // Fetch next page of highlights
+        pageCount++;
+        console.log(`[syncReadwise] Fetching highlights page ${pageCount}...`);
+        
+        if (limit && newCount < limit) {
+          await ctx.runMutation(internal.syncReadwiseMutations.updateSyncProgress, {
             userId,
-            authorName: authorNames[i],
+            step: "Fetching highlights...",
+            current: newCount,
+            total: limit,
+            message: `Checking highlights... Found ${newCount} new of ${limit} needed`,
+          });
+        }
+
+        const response = await ctx.runAction(internal.readwiseApi.fetchHighlights, {
+          apiKey,
+          pageCursor,
+          updatedAfter: highlightsUpdatedAfter,
+          updatedBefore: highlightsUpdatedBefore,
+        });
+
+        if (!response.results || response.results.length === 0) {
+          console.log(`[syncReadwise] No more highlights available`);
+          break;
+        }
+
+        // Check each highlight to see if it needs importing
+        for (const highlight of response.results) {
+          totalChecked++;
+          
+          // Update progress every 10 highlights or on last
+          if (totalChecked % 10 === 0 || (!response.next && highlight === response.results[response.results.length - 1])) {
+            await ctx.runMutation(internal.syncReadwiseMutations.updateSyncProgress, {
+              userId,
+              step: "Checking highlights...",
+              current: newCount,
+              total: limit || undefined,
+              message: limit 
+                ? `Checking highlight ${totalChecked}... Found ${newCount} new of ${limit} needed` 
+                : `Checking highlight ${totalChecked}...`,
+            });
           }
-        );
 
-        // Link additional author to source
-        await ctx.runMutation(internal.syncReadwiseMutations.linkAuthorToSource, {
-          sourceId,
-          authorId,
-        });
+          try {
+            // Check if highlight already exists (by externalId)
+            const highlightExists = await ctx.runQuery(
+              internal.syncReadwiseMutations.checkHighlightExists,
+              {
+                userId,
+                externalId: String(highlight.id),
+              }
+            );
+
+            // For quantity-based imports, also check if inbox item exists
+            let needsImport = !highlightExists;
+            if (limit && highlightExists) {
+              // If highlight exists, check if it has an inbox item
+              // We need to get the highlightId first to check inbox item
+              const existingHighlightId = await ctx.runQuery(
+                internal.syncReadwiseMutations.getHighlightIdByExternalId,
+                {
+                  userId,
+                  externalId: String(highlight.id),
+                }
+              );
+              
+              if (existingHighlightId) {
+                const inboxItemExists = await ctx.runQuery(
+                  internal.syncReadwiseMutations.checkInboxItemExists,
+                  {
+                    userId,
+                    highlightId: existingHighlightId,
+                  }
+                );
+                
+                needsImport = !inboxItemExists;
+              }
+            }
+
+            if (!needsImport) {
+              skippedCount++;
+              continue; // Skip already-imported highlights
+            }
+
+            // This highlight needs importing - track it and its book_id
+            highlightsToProcess.push(highlight);
+            neededBookIds.add(highlight.book_id);
+            newCount++;
+
+            // For quantity-based imports, stop if we've reached the limit
+            if (limit && newCount >= limit) {
+              console.log(`[syncReadwise] Found ${newCount} highlights to import`);
+              break; // Break out of highlight loop
+            }
+          } catch (error) {
+            console.error(
+              `[syncReadwise] Error checking highlight ${highlight.id}:`,
+              error
+            );
+            errorCount++;
+          }
+        }
+
+        // If we've reached the limit, break out of pagination loop
+        if (limit && newCount >= limit) {
+          break;
+        }
+
+        // If no more pages, stop
+        if (!response.next) {
+          console.log(`[syncReadwise] No more pages available`);
+          break;
+        }
+
+        pageCursor = response.next;
+
+        // Rate limit: 20 requests/minute for highlights endpoint
+        // Wait 3 seconds between requests to stay under limit
+        if (pageCursor) {
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+        }
       }
 
-      // Create or assign tags from source tags
-      for (const tag of source.tags || []) {
-        const tagId = await ctx.runMutation(internal.syncReadwiseMutations.findOrCreateTag, {
+      console.log(`[syncReadwise] Found ${highlightsToProcess.length} highlights to import from ${neededBookIds.size} unique sources`);
+
+      // Step 2: Fetch and process only the sources we need
+      const sourceIdMap = new Map<number, string>(); // Readwise source ID -> Convex source ID
+
+      if (neededBookIds.size > 0) {
+        await ctx.runMutation(internal.syncReadwiseMutations.updateSyncProgress, {
           userId,
-          tagName: tag.name,
-          externalId: tag.id,
+          step: "Fetching sources...",
+          current: 0,
+          total: neededBookIds.size,
+          message: `Fetching ${neededBookIds.size} sources...`,
         });
 
-        // Link tag to source
-        await ctx.runMutation(internal.syncReadwiseMutations.linkTagToSource, {
-          sourceId,
-          tagId,
+        console.log(`[syncReadwise] Fetching sources for ${neededBookIds.size} unique books...`);
+        
+        // Fetch all books and filter to only those we need
+        const booksUpdatedAfter = limit ? undefined : updatedAfter;
+        const booksUpdatedBefore = limit ? undefined : args.updatedBefore;
+        const allSources = await fetchAllBooks(ctx, apiKey, booksUpdatedAfter, booksUpdatedBefore);
+        
+        // Filter to only sources we need
+        const neededSources = allSources.filter((source) => neededBookIds.has(source.id));
+        console.log(`[syncReadwise] Found ${neededSources.length} of ${neededBookIds.size} needed sources`);
+
+        await ctx.runMutation(internal.syncReadwiseMutations.updateSyncProgress, {
+          userId,
+          step: "Processing sources...",
+          current: 0,
+          total: neededSources.length,
+          message: `Processing ${neededSources.length} sources...`,
         });
+
+        // Process only the sources we need
+        let sourceIndex = 0;
+        for (const source of neededSources) {
+          sourceIndex++;
+          if (sourceIndex % 10 === 0 || sourceIndex === neededSources.length) {
+            // Update progress every 10 sources or on last
+            await ctx.runMutation(internal.syncReadwiseMutations.updateSyncProgress, {
+              userId,
+              step: "Processing sources...",
+              current: sourceIndex,
+              total: neededSources.length,
+              message: `Processing source ${sourceIndex} of ${neededSources.length}...`,
+            });
+          }
+
+          // Check if source already exists
+          const existingSourceId = await ctx.runQuery(
+            internal.syncReadwiseMutations.getSourceIdByBookId,
+            {
+              userId,
+              bookId: String(source.id),
+            }
+          );
+
+          if (existingSourceId) {
+            sourceIdMap.set(source.id, existingSourceId);
+            continue; // Source already exists, skip processing
+          }
+
+          // Parse and normalize authors
+          const authorNames = parseAuthorString(source.author);
+          if (authorNames.length === 0) {
+            console.warn(`[syncReadwise] Source ${source.id} has no author, skipping...`);
+            continue;
+          }
+
+          // Create or find primary author (first one)
+          const primaryAuthorId = await ctx.runMutation(
+            internal.syncReadwiseMutations.findOrCreateAuthor,
+            {
+              userId,
+              authorName: authorNames[0],
+            }
+          );
+
+          // Create or update source
+          const sourceId = await ctx.runMutation(internal.syncReadwiseMutations.findOrCreateSource, {
+            userId,
+            primaryAuthorId,
+            readwiseSource: source,
+          });
+
+          sourceIdMap.set(source.id, sourceId);
+
+          // Create or find additional authors and link them
+          for (let i = 1; i < authorNames.length; i++) {
+            const authorId = await ctx.runMutation(
+              internal.syncReadwiseMutations.findOrCreateAuthor,
+              {
+                userId,
+                authorName: authorNames[i],
+              }
+            );
+
+            // Link additional author to source
+            await ctx.runMutation(internal.syncReadwiseMutations.linkAuthorToSource, {
+              sourceId,
+              authorId,
+            });
+          }
+
+          // Create or assign tags from source tags
+          for (const tag of source.tags || []) {
+            const tagId = await ctx.runMutation(internal.syncReadwiseMutations.findOrCreateTag, {
+              userId,
+              tagName: tag.name,
+              externalId: tag.id,
+            });
+
+            // Link tag to source
+            await ctx.runMutation(internal.syncReadwiseMutations.linkTagToSource, {
+              sourceId,
+              tagId,
+            });
+          }
+        }
       }
-    }
 
-    // Step 3: Fetch all highlights (paginated)
-    // For quantity-based imports, don't filter highlights by date (we'll use limit instead)
-    const highlightsUpdatedAfter = limit ? undefined : updatedAfter;
-    const highlightsUpdatedBefore = limit ? undefined : args.updatedBefore;
-    
-    console.log(`[syncReadwise] Fetching highlights...`);
-    const allHighlights = await fetchAllHighlights(
-      ctx,
-      apiKey,
-      highlightsUpdatedAfter,
-      highlightsUpdatedBefore,
-      limit
-    );
-    console.log(`[syncReadwise] Fetched ${allHighlights.length} highlights`);
+      // Step 3: Process the highlights we identified as needing import
+      console.log(`[syncReadwise] Processing ${highlightsToProcess.length} highlights...`);
+      
+      await ctx.runMutation(internal.syncReadwiseMutations.updateSyncProgress, {
+        userId,
+        step: "Importing highlights...",
+        current: 0,
+        total: highlightsToProcess.length,
+        message: `Importing ${highlightsToProcess.length} highlights...`,
+      });
 
-    // Step 4: Insert/update highlights and create inbox items
-    console.log(`[syncReadwise] Processing highlights...`);
-    let processedCount = 0;
-    let errorCount = 0;
+      let highlightIndex = 0;
+      for (const highlight of highlightsToProcess) {
+        highlightIndex++;
+        
+        // Update progress every 10 highlights or on last
+        if (highlightIndex % 10 === 0 || highlightIndex === highlightsToProcess.length) {
+          await ctx.runMutation(internal.syncReadwiseMutations.updateSyncProgress, {
+            userId,
+            step: "Importing highlights...",
+            current: highlightIndex,
+            total: highlightsToProcess.length,
+            message: `Importing highlight ${highlightIndex} of ${highlightsToProcess.length}...`,
+          });
+        }
 
-    for (const highlight of allHighlights) {
-      try {
-        // Find source ID
-        const sourceId = sourceIdMap.get(highlight.book_id);
-        if (!sourceId) {
-          console.warn(
-            `[syncReadwise] Highlight ${highlight.id} references unknown source ${highlight.book_id}, skipping...`
+        try {
+          // Get source ID (should exist from Step 2)
+          let sourceId: string | null = sourceIdMap.get(highlight.book_id) || null;
+          
+          // If source doesn't exist in map, check if it exists in database
+          if (!sourceId) {
+            sourceId = await ctx.runQuery(
+              internal.syncReadwiseMutations.getSourceIdByBookId,
+              {
+                userId,
+                bookId: String(highlight.book_id),
+              }
+            );
+          }
+
+          if (!sourceId) {
+            console.warn(
+              `[syncReadwise] Highlight ${highlight.id} references unknown source ${highlight.book_id}, skipping...`
+            );
+            errorCount++;
+            continue;
+          }
+
+          // Create or update highlight
+          const highlightId = await ctx.runMutation(
+            internal.syncReadwiseMutations.findOrCreateHighlight,
+            {
+              userId,
+              sourceId: sourceId as any, // Type assertion needed for Id conversion
+              readwiseHighlight: highlight,
+            }
+          );
+
+          // Create inbox item (we already checked it doesn't exist)
+          await ctx.runMutation(internal.syncReadwiseMutations.findOrCreateInboxItem, {
+            userId,
+            highlightId,
+          });
+
+          processedCount++;
+        } catch (error) {
+          console.error(
+            `[syncReadwise] Error processing highlight ${highlight.id}:`,
+            error
           );
           errorCount++;
-          continue;
         }
-
-        // Create or update highlight
-        const highlightId = await ctx.runMutation(
-          internal.syncReadwiseMutations.findOrCreateHighlight,
-          {
-            userId,
-            sourceId,
-            readwiseHighlight: highlight,
-          }
-        );
-
-        // Create or update inbox item
-        await ctx.runMutation(internal.syncReadwiseMutations.findOrCreateInboxItem, {
-          userId,
-          highlightId,
-        });
-
-        processedCount++;
-      } catch (error) {
-        console.error(
-          `[syncReadwise] Error processing highlight ${highlight.id}:`,
-          error
-        );
-        errorCount++;
       }
+
+      console.log(`[syncReadwise] Processed ${processedCount} highlights, ${newCount} new, ${skippedCount} skipped, ${errorCount} errors`);
+
+      // Step 5: Update last sync timestamp
+      await ctx.runMutation(internal.syncReadwiseMutations.updateLastSyncTime, {
+        userId,
+      });
+
+      console.log(
+        `[syncReadwise] Sync complete: ${processedCount} highlights processed, ${newCount} new, ${skippedCount} skipped, ${errorCount} errors`
+      );
+      
+      // Clear progress tracking on completion
+      await ctx.runMutation(internal.syncReadwiseMutations.clearSyncProgress, {
+        userId,
+      });
+
+      return {
+        success: true,
+        sourcesCount: neededBookIds.size,
+        highlightsCount: processedCount,
+        newCount,
+        skippedCount,
+        errorsCount: errorCount,
+      };
+    } catch (error) {
+      // Clear progress on error
+      try {
+        await ctx.runMutation(internal.syncReadwiseMutations.clearSyncProgress, {
+          userId,
+        });
+      } catch (clearError) {
+        console.error(`[syncReadwise] Error clearing progress:`, clearError);
+      }
+      
+      console.error(`[syncReadwise] Sync failed:`, error);
+      throw error;
     }
-
-    // Step 5: Update last sync timestamp
-    await ctx.runMutation(internal.syncReadwiseMutations.updateLastSyncTime, {
-      userId,
-    });
-
-    console.log(
-      `[syncReadwise] Sync complete: ${processedCount} highlights processed, ${errorCount} errors`
-    );
-
-    return {
-      success: true,
-      sourcesCount: allSources.length,
-      highlightsCount: processedCount,
-      errorsCount: errorCount,
-    };
   },
 });
 
@@ -380,4 +629,5 @@ async function fetchAllHighlights(
 
   return allHighlights;
 }
+
 

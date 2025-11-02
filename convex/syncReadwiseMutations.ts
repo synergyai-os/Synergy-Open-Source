@@ -6,13 +6,80 @@
  * cannot be defined in Node.js files (only actions can).
  */
 
-import { internalMutation } from "./_generated/server";
+import { internalMutation, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
 import {
   normalizeAuthorName,
   parseISODate,
   normalizeTagName,
 } from "./readwiseUtils";
+
+/**
+ * Internal mutation: Update sync progress
+ */
+export const updateSyncProgress = internalMutation({
+  args: {
+    userId: v.id("users"),
+    step: v.string(),
+    current: v.number(),
+    total: v.optional(v.number()),
+    message: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { userId, step, current, total, message } = args;
+    const now = Date.now();
+
+    // Find existing progress record
+    const existing = await ctx.db
+      .query("syncProgress")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .first();
+
+    if (existing) {
+      // Update existing
+      await ctx.db.patch(existing._id, {
+        step,
+        current,
+        total,
+        message,
+        updatedAt: now,
+      });
+      return existing._id;
+    } else {
+      // Create new
+      const progressId = await ctx.db.insert("syncProgress", {
+        userId,
+        step,
+        current,
+        total,
+        message,
+        startedAt: now,
+        updatedAt: now,
+      });
+      return progressId;
+    }
+  },
+});
+
+/**
+ * Internal mutation: Clear sync progress
+ */
+export const clearSyncProgress = internalMutation({
+  args: {
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const { userId } = args;
+    const existing = await ctx.db
+      .query("syncProgress")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .first();
+
+    if (existing) {
+      await ctx.db.delete(existing._id);
+    }
+  },
+});
 
 /**
  * Internal mutation: Find or create author
@@ -292,6 +359,117 @@ export const findOrCreateInboxItem = internalMutation({
     });
 
     return inboxItemId;
+  },
+});
+
+/**
+ * Internal query: Check if highlight exists by externalId
+ */
+export const checkHighlightExists = internalQuery({
+  args: {
+    userId: v.id("users"),
+    externalId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const { userId, externalId } = args;
+
+    const existing = await ctx.db
+      .query("highlights")
+      .withIndex("by_external_id", (q) => q.eq("externalId", externalId))
+      .first();
+
+    return !!existing;
+  },
+});
+
+/**
+ * Internal query: Get sourceId for a book_id (Readwise external ID)
+ */
+export const getSourceIdByBookId = internalQuery({
+  args: {
+    userId: v.id("users"),
+    bookId: v.string(), // Readwise book_id (externalId)
+  },
+  handler: async (ctx, args) => {
+    const { userId, bookId } = args;
+
+    const source = await ctx.db
+      .query("sources")
+      .withIndex("by_external_id", (q) => q.eq("externalId", bookId))
+      .first();
+
+    return source?._id || null;
+  },
+});
+
+/**
+ * Internal query: Get highlightId by externalId
+ */
+export const getHighlightIdByExternalId = internalQuery({
+  args: {
+    userId: v.id("users"),
+    externalId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const { userId, externalId } = args;
+
+    const highlight = await ctx.db
+      .query("highlights")
+      .withIndex("by_external_id", (q) => q.eq("externalId", externalId))
+      .first();
+
+    return highlight?._id || null;
+  },
+});
+
+/**
+ * Internal query: Check if inbox item exists for a highlight
+ */
+export const checkInboxItemExists = internalQuery({
+  args: {
+    userId: v.id("users"),
+    highlightId: v.id("highlights"),
+  },
+  handler: async (ctx, args) => {
+    const { userId, highlightId } = args;
+
+    const existing = await ctx.db
+      .query("inboxItems")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("type"), "readwise_highlight"),
+          q.eq(q.field("highlightId"), highlightId)
+        )
+      )
+      .first();
+
+    return !!existing;
+  },
+});
+
+/**
+ * Internal query: Check if inbox item was newly created
+ */
+export const wasInboxItemNew = internalQuery({
+  args: {
+    inboxItemId: v.id("inboxItems"),
+    highlightId: v.id("highlights"),
+  },
+  handler: async (ctx, args) => {
+    // This is a simple check - if the inbox item was just created, it's new
+    // We can check the createdAt vs current time, but for simplicity,
+    // we'll just assume if we're calling this right after creation, it's new
+    // Actually, let's check if it was created recently (within last minute)
+    const inboxItem = await ctx.db.get(args.inboxItemId);
+    if (!inboxItem) {
+      return false;
+    }
+    
+    const now = Date.now();
+    const createdAt = inboxItem.createdAt;
+    // If created within last 5 seconds, consider it new
+    return (now - createdAt) < 5000;
   },
 });
 

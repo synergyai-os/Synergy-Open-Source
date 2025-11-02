@@ -22,6 +22,7 @@
 		listInboxItems: makeFunctionReference('inbox:listInboxItems') as any,
 		getInboxItemWithDetails: makeFunctionReference('inbox:getInboxItemWithDetails') as any,
 		syncReadwiseHighlights: makeFunctionReference('syncReadwise:syncReadwiseHighlights') as any,
+		getSyncProgress: makeFunctionReference('inbox:getSyncProgress') as any,
 	} : null;
 
 	// Fetch inbox items from Convex
@@ -35,6 +36,7 @@
 	let syncSuccess = $state(false);
 	let showSyncConfig = $state(false);
 	let syncProgress = $state<{ step: string; current: number; total?: number; message?: string } | null>(null);
+	let progressPollInterval: ReturnType<typeof setInterval> | null = null;
 
 	// Load inbox items
 	const loadItems = async () => {
@@ -136,9 +138,38 @@
 		selectedItemId = null; // Clear selection to show config panel
 	}
 
+	// Poll for sync progress
+	const pollSyncProgress = async () => {
+		if (!browser || !convexClient || !inboxApi) return;
+		
+		try {
+			const progress = await convexClient.query(inboxApi.getSyncProgress, {});
+			if (progress) {
+				syncProgress = progress;
+			} else {
+				// Progress cleared = sync completed
+				if (syncProgress) {
+					syncSuccess = true;
+					await loadItems();
+					setTimeout(() => {
+						syncProgress = null;
+						syncSuccess = false;
+						isSyncing = false;
+						if (progressPollInterval) {
+							clearInterval(progressPollInterval);
+							progressPollInterval = null;
+						}
+					}, 2000);
+				}
+			}
+		} catch (error) {
+			console.error('Failed to poll sync progress:', error);
+		}
+	};
+
 	async function handleImport(options: {
 		dateRange?: '7d' | '30d' | '90d' | '180d' | '365d' | 'all';
-		quantity?: 50 | 100 | 250 | 500 | 1000;
+		quantity?: 5 | 10 | 25 | 50 | 100 | 250 | 500 | 1000;
 		customStartDate?: string;
 		customEndDate?: string;
 	}) {
@@ -148,43 +179,79 @@
 		isSyncing = true;
 		syncError = null;
 		syncSuccess = false;
-		syncProgress = {
-			step: 'Starting sync...',
-			current: 0,
-			message: 'Connecting to Readwise API...'
-		};
+
+		// Clear any existing poll interval
+		if (progressPollInterval) {
+			clearInterval(progressPollInterval);
+			progressPollInterval = null;
+		}
+
+		// Start polling for progress updates (every 500ms)
+		progressPollInterval = setInterval(pollSyncProgress, 500);
+		// Poll immediately
+		pollSyncProgress();
 
 		try {
-			// Update progress
-			syncProgress = {
-				step: 'Fetching highlights...',
-				current: 0,
-				message: 'Retrieving data from Readwise...'
-			};
-
-			await convexClient.action(inboxApi.syncReadwiseHighlights, options);
+			const result = await convexClient.action(inboxApi.syncReadwiseHighlights, options);
 			
-			syncProgress = {
-				step: 'Complete',
-				current: 100,
-				total: 100,
-				message: 'Sync completed successfully!'
-			};
-
-			syncSuccess = true;
-			// Reload inbox items after successful sync
-			await loadItems();
+			// Final poll to ensure we get the completion state
+			await pollSyncProgress();
 			
-			// Close progress after 2 seconds
-			setTimeout(() => {
-				syncProgress = null;
+			// Show friendly message if nothing new was imported (quantity-based)
+			if (options.quantity && result?.newCount === 0 && result?.skippedCount > 0) {
+				syncError = null;
+				syncSuccess = true;
+				syncProgress = {
+					step: 'Already imported',
+					current: result.skippedCount,
+					total: result.skippedCount,
+					message: `All ${result.skippedCount} highlights are already in your inbox. No new items imported.`,
+				};
+				
+				// Reload inbox items
+				await loadItems();
+				
+				// Clear progress after 4 seconds
+				setTimeout(() => {
+					syncProgress = null;
+					syncSuccess = false;
+					isSyncing = false;
+					if (progressPollInterval) {
+						clearInterval(progressPollInterval);
+						progressPollInterval = null;
+					}
+				}, 4000);
+			} else if (result?.newCount === 0 && result?.skippedCount === 0) {
+				// Nothing at all was found/processed
+				syncError = null;
 				syncSuccess = false;
+				syncProgress = null;
 				isSyncing = false;
-			}, 2000);
+			} else {
+				// New items imported
+				syncSuccess = true;
+				// Reload inbox items after successful sync
+				await loadItems();
+				
+				// Clear progress after 2 seconds
+				setTimeout(() => {
+					syncProgress = null;
+					syncSuccess = false;
+					isSyncing = false;
+					if (progressPollInterval) {
+						clearInterval(progressPollInterval);
+						progressPollInterval = null;
+					}
+				}, 2000);
+			}
 		} catch (error) {
 			syncError = error instanceof Error ? error.message : 'Failed to sync';
 			syncProgress = null;
 			isSyncing = false;
+			if (progressPollInterval) {
+				clearInterval(progressPollInterval);
+				progressPollInterval = null;
+			}
 		}
 	}
 
@@ -193,6 +260,10 @@
 		syncProgress = null;
 		isSyncing = false;
 		syncError = null;
+		if (progressPollInterval) {
+			clearInterval(progressPollInterval);
+			progressPollInterval = null;
+		}
 	}
 
 	// Header actions
@@ -242,6 +313,7 @@
 					sidebarCollapsed={sidebarCollapsed}
 					onSidebarToggle={sidebarContext?.onSidebarToggle}
 					isMobile={isMobile}
+					inboxCount={filteredItems.length}
 				/>
 
 				<!-- Inbox Items List - Scrollable -->
@@ -350,6 +422,7 @@
 					sidebarCollapsed={sidebarCollapsed}
 					onSidebarToggle={sidebarContext?.onSidebarToggle}
 					isMobile={isMobile}
+					inboxCount={filteredItems.length}
 				/>
 
 				<!-- Inbox Items List - Scrollable -->
