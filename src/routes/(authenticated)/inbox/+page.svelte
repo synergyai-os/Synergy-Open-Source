@@ -10,6 +10,8 @@
 	import ManualDetail from '$lib/components/inbox/ManualDetail.svelte';
 	import InboxCard from '$lib/components/inbox/InboxCard.svelte';
 	import InboxHeader from '$lib/components/inbox/InboxHeader.svelte';
+	import SyncReadwiseConfig from '$lib/components/inbox/SyncReadwiseConfig.svelte';
+	import SyncProgressTracker from '$lib/components/inbox/SyncProgressTracker.svelte';
 	import ResizableSplitter from '$lib/components/ResizableSplitter.svelte';
 
 	type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
@@ -31,6 +33,8 @@
 	let isSyncing = $state(false);
 	let syncError = $state<string | null>(null);
 	let syncSuccess = $state(false);
+	let showSyncConfig = $state(false);
+	let syncProgress = $state<{ step: string; current: number; total?: number; message?: string } | null>(null);
 
 	// Load inbox items
 	const loadItems = async () => {
@@ -126,27 +130,69 @@
 		selectedItemId = null;
 	}
 
-	async function handleSync() {
+	function handleSyncClick() {
+		// Show config panel instead of directly syncing
+		showSyncConfig = true;
+		selectedItemId = null; // Clear selection to show config panel
+	}
+
+	async function handleImport(options: {
+		dateRange?: '7d' | '30d' | '90d' | '180d' | '365d' | 'all';
+		quantity?: 50 | 100 | 250 | 500 | 1000;
+		customStartDate?: string;
+		customEndDate?: string;
+	}) {
 		if (!browser || !convexClient || !inboxApi) return;
 
+		showSyncConfig = false;
 		isSyncing = true;
 		syncError = null;
 		syncSuccess = false;
+		syncProgress = {
+			step: 'Starting sync...',
+			current: 0,
+			message: 'Connecting to Readwise API...'
+		};
 
 		try {
-			await convexClient.action(inboxApi.syncReadwiseHighlights, {});
+			// Update progress
+			syncProgress = {
+				step: 'Fetching highlights...',
+				current: 0,
+				message: 'Retrieving data from Readwise...'
+			};
+
+			await convexClient.action(inboxApi.syncReadwiseHighlights, options);
+			
+			syncProgress = {
+				step: 'Complete',
+				current: 100,
+				total: 100,
+				message: 'Sync completed successfully!'
+			};
+
 			syncSuccess = true;
 			// Reload inbox items after successful sync
 			await loadItems();
-			// Clear success message after 3 seconds
+			
+			// Close progress after 2 seconds
 			setTimeout(() => {
+				syncProgress = null;
 				syncSuccess = false;
-			}, 3000);
+				isSyncing = false;
+			}, 2000);
 		} catch (error) {
 			syncError = error instanceof Error ? error.message : 'Failed to sync';
-		} finally {
+			syncProgress = null;
 			isSyncing = false;
 		}
+	}
+
+	function handleCancelSync() {
+		showSyncConfig = false;
+		syncProgress = null;
+		isSyncing = false;
+		syncError = null;
 	}
 
 	// Header actions
@@ -191,6 +237,8 @@
 					onDeleteAllRead={handleDeleteAllRead}
 					onDeleteAllCompleted={handleDeleteAllCompleted}
 					onSortClick={handleSortClick}
+					onSync={handleSyncClick}
+					isSyncing={isSyncing}
 					sidebarCollapsed={sidebarCollapsed}
 					onSidebarToggle={sidebarContext?.onSidebarToggle}
 					isMobile={isMobile}
@@ -214,7 +262,7 @@
 								<p class="text-tertiary mb-4">No items in inbox.</p>
 								<button
 									type="button"
-									onclick={handleSync}
+									onclick={handleSyncClick}
 									disabled={isSyncing}
 									class="px-4 py-2 bg-primary text-on-primary rounded-md hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 								>
@@ -248,6 +296,21 @@
 				{:else if selectedItem.type === 'manual_text'}
 					<ManualDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
 				{/if}
+			{:else if showSyncConfig}
+				<!-- Sync Config Panel -->
+				<SyncReadwiseConfig
+					onImport={handleImport}
+					onCancel={handleCancelSync}
+				/>
+			{:else if syncProgress}
+				<!-- Progress Tracker -->
+				<SyncProgressTracker
+					step={syncProgress.step}
+					current={syncProgress.current}
+					total={syncProgress.total}
+					message={syncProgress.message}
+					onCancel={handleCancelSync}
+				/>
 			{:else}
 				<!-- Empty state -->
 				<div class="p-inbox-container text-center py-12">
@@ -282,6 +345,8 @@
 					onDeleteAllRead={handleDeleteAllRead}
 					onDeleteAllCompleted={handleDeleteAllCompleted}
 					onSortClick={handleSortClick}
+					onSync={handleSyncClick}
+					isSyncing={isSyncing}
 					sidebarCollapsed={sidebarCollapsed}
 					onSidebarToggle={sidebarContext?.onSidebarToggle}
 					isMobile={isMobile}
@@ -305,7 +370,7 @@
 								<p class="text-tertiary mb-4">No items in inbox.</p>
 								<button
 									type="button"
-									onclick={handleSync}
+									onclick={handleSyncClick}
 									disabled={isSyncing}
 									class="px-4 py-2 bg-primary text-on-primary rounded-md hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 								>

@@ -65,6 +65,7 @@ export const fetchHighlights = internalAction({
     apiKey: v.string(),
     pageCursor: v.optional(v.string()), // URL to next page, or undefined for first page
     updatedAfter: v.optional(v.string()), // ISO 8601 date string
+    updatedBefore: v.optional(v.string()), // ISO 8601 date string (for date ranges)
     pageSize: v.optional(v.number()), // Default 20, max 1000
   },
   handler: async (ctx, args): Promise<ReadwisePaginatedResponse<ReadwiseHighlight>> => {
@@ -80,6 +81,10 @@ export const fetchHighlights = internalAction({
       
       if (args.updatedAfter) {
         params.append("updated__gt", args.updatedAfter);
+      }
+      
+      if (args.updatedBefore) {
+        params.append("updated__lt", args.updatedBefore);
       }
       
       const pageSize = args.pageSize || 1000; // Default to 1000 (max allowed)
@@ -135,6 +140,7 @@ export const fetchBooks = internalAction({
     apiKey: v.string(),
     pageCursor: v.optional(v.string()), // URL to next page, or undefined for first page
     updatedAfter: v.optional(v.string()), // ISO 8601 date string
+    updatedBefore: v.optional(v.string()), // ISO 8601 date string (for date ranges)
   },
   handler: async (ctx, args): Promise<ReadwisePaginatedResponse<ReadwiseSource>> => {
     let url: string;
@@ -149,6 +155,10 @@ export const fetchBooks = internalAction({
       
       if (args.updatedAfter) {
         params.append("updated__gt", args.updatedAfter);
+      }
+      
+      if (args.updatedBefore) {
+        params.append("updated__lt", args.updatedBefore);
       }
       
       url = params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
