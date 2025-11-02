@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import Sidebar from '$lib/components/Sidebar.svelte';
+	import GlobalActivityTracker from '$lib/components/GlobalActivityTracker.svelte';
 	import { useAuth } from '@mmailaender/convex-auth-svelte/sveltekit';
 	import { setContext } from 'svelte';
 
@@ -85,6 +86,9 @@
 		<div class="flex-1 overflow-hidden">
 			{@render children()}
 		</div>
+		
+		<!-- Global Activity Tracker -->
+		<GlobalActivityTracker />
 	</div>
 {:else}
 	<!-- Not authenticated - shouldn't reach here due to redirect, but show login prompt -->

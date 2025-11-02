@@ -32,6 +32,11 @@ Knowledge retention app using the CODE framework (Collect → Organise → Disti
    - Recommended improvements
    - Tracking checklist
 
+6. **`dev-docs/activity-tracker.md`** - Global Activity Tracker System
+   - Universal progress tracking system
+   - Persistent across navigation
+   - Usage examples and best practices
+
 ## 🚀 Recommended Next Task
 
 **Task 1: Convex Schema Design** (from product-vision-and-plan.md)
@@ -52,6 +57,7 @@ Knowledge retention app using the CODE framework (Collect → Organise → Disti
 - **Components**: `src/lib/components/` (reusable components)
 - **Routes**: `src/routes/inbox/`, `src/routes/flashcards/`
 - **Schema**: `convex/schema.ts` (needs expansion)
+- **Activity Tracker**: `src/lib/stores/activityTracker.svelte.ts`, `src/lib/components/GlobalActivityTracker.svelte`
 
 ## 💡 Starting a New Session?
 
