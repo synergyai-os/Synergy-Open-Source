@@ -6,6 +6,7 @@
 	import { fade } from 'svelte/transition';
 	import ResizableSplitter from './ResizableSplitter.svelte';
 	import SidebarHeader from './sidebar/SidebarHeader.svelte';
+	import CleanReadwiseButton from './sidebar/CleanReadwiseButton.svelte';
 
 	type Props = {
 		inboxCount: number;
@@ -477,6 +478,7 @@
 								</svg>
 								<span class="font-normal">Readwise Test</span>
 							</a>
+							<CleanReadwiseButton />
 						</div>
 					</div>
 				</div>
@@ -730,6 +732,7 @@
 							</svg>
 							<span class="font-normal">Readwise Test</span>
 						</a>
+						<CleanReadwiseButton />
 					</div>
 				</div>
 			</div>
