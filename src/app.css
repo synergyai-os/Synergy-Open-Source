@@ -27,6 +27,7 @@
 	/* System-Level Spacing Tokens - Base tokens used across entire app */
 	--spacing-system-header-y: 0.75rem; /* 12px - py-3 equivalent - vertical padding for header/footer borders */
 	--spacing-system-content-y: var(--spacing-system-header-y); /* 12px - references system header - vertical padding for content areas between borders */
+	--spacing-system-header-height: 4rem; /* 64px - FIXED total height for all headers - ensures border alignment regardless of content height */
 	
 	/* Inbox Spacing Tokens */
 	--spacing-inbox-container: 1rem; /* 16px - p-4 equivalent */
@@ -202,6 +203,9 @@ html:not(.dark) {
 /* System-Level Spacing Utilities */
 @utility py-system-header {
 	padding-block: var(--spacing-system-header-y);
+}
+@utility h-system-header {
+	height: var(--spacing-system-header-height);
 }
 @utility py-system-content {
 	padding-block: var(--spacing-system-content-y);

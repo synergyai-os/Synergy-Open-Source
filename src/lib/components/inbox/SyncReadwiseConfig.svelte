@@ -49,7 +49,7 @@
 <div class="h-full flex flex-col">
 	<!-- Header -->
 	<div
-		class="px-inbox-container py-system-header border-b border-base flex items-center justify-between flex-shrink-0"
+		class="px-inbox-container py-system-header h-system-header border-b border-base flex items-center justify-between flex-shrink-0"
 	>
 		<h3 class="text-sm font-normal text-secondary">Import Readwise Highlights</h3>
 	</div>

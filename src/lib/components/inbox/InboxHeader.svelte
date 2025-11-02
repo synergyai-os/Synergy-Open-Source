@@ -40,7 +40,7 @@
 </script>
 
 <div
-	class="sticky top-0 z-10 bg-surface border-b border-base px-inbox-header py-inbox-header flex items-center justify-between flex-shrink-0"
+	class="sticky top-0 z-10 bg-surface border-b border-base px-inbox-header py-system-header h-system-header flex items-center justify-between flex-shrink-0"
 >
 	<!-- Left: Title + Sidebar Toggle + Kebab Menu -->
 	<div class="flex items-center gap-icon">

@@ -25,7 +25,7 @@
 </script>
 
 <!-- Sticky Header -->
-<div class="sticky top-0 z-10 bg-sidebar border-b border-sidebar px-header py-system-header flex items-center justify-between flex-shrink-0">
+<div class="sticky top-0 z-10 bg-sidebar border-b border-sidebar px-header py-system-header h-system-header flex items-center justify-between flex-shrink-0">
 	<div class="flex items-center gap-icon">
 			<!-- Workspace Menu with Logo and Name -->
 			{#if !sidebarCollapsed || (isMobile && !sidebarCollapsed) || (isHovered && !isMobile)}
