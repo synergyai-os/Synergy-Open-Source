@@ -42,13 +42,21 @@
 
 <button
 	type="button"
-	class="w-full text-left bg-elevated rounded-md transition-all duration-150 border"
+	data-inbox-item-id={item._id}
+	class="w-full text-left bg-elevated rounded-md transition-all duration-150 border outline-none"
 	class:border-2={selected}
 	class:border-selected={selected}
 	class:border-base={!selected}
 	class:hover:bg-hover-solid={!selected}
 	class:hover:border-elevated={!selected}
-	onclick={onClick}
+	class:focus-visible:ring-2={!selected}
+	class:focus-visible:ring-accent-primary={!selected}
+	class:focus-visible:ring-offset-2={!selected}
+	onclick={(e) => {
+		// Clear hover state by blurring
+		(e.currentTarget as HTMLElement)?.blur();
+		onClick();
+	}}
 >
 	<div class="px-inbox-card py-inbox-card">
 		<div class="flex items-start gap-inbox-icon">

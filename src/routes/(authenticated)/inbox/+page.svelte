@@ -57,8 +57,74 @@
 		}
 	};
 
+	// Navigate through inbox items (for keyboard navigation)
+	function navigateItems(direction: 'up' | 'down') {
+		if (filteredItems.length === 0) return;
+		
+		const currentIndex = selectedItemId 
+			? filteredItems.findIndex(item => item._id === selectedItemId || item.id === selectedItemId)
+			: -1;
+		
+		let newIndex: number;
+		
+		if (currentIndex === -1) {
+			// No item selected, select first or last
+			newIndex = direction === 'down' ? 0 : filteredItems.length - 1;
+		} else {
+			// Move up or down
+			if (direction === 'down') {
+				newIndex = currentIndex < filteredItems.length - 1 ? currentIndex + 1 : 0; // Wrap to start
+			} else {
+				newIndex = currentIndex > 0 ? currentIndex - 1 : filteredItems.length - 1; // Wrap to end
+			}
+		}
+		
+		const newItem = filteredItems[newIndex];
+		if (newItem) {
+			// Clear any active hover states by blurring all items first
+			document.querySelectorAll('[data-inbox-item-id]').forEach((el) => {
+				if (el instanceof HTMLElement) {
+					el.blur();
+				}
+			});
+			
+			selectItem(newItem._id || newItem.id);
+			// Scroll item into view
+			setTimeout(() => {
+				const itemElement = document.querySelector(`[data-inbox-item-id="${newItem._id || newItem.id}"]`);
+				itemElement?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+			}, 0);
+		}
+	}
+
 	onMount(() => {
 		loadItems();
+		
+		// Keyboard navigation (J/K for down/up)
+		function handleKeyDown(event: KeyboardEvent) {
+			// Ignore if user is typing in input/textarea
+			const activeElement = document.activeElement;
+			const isInputFocused = activeElement?.tagName === 'INPUT' || 
+			                      activeElement?.tagName === 'TEXTAREA' ||
+			                      (activeElement instanceof HTMLElement && activeElement.isContentEditable);
+			
+			if (isInputFocused) return;
+			
+			// Handle J (down/next) and K (up/previous)
+			if (event.key === 'j' || event.key === 'J') {
+				event.preventDefault();
+				navigateItems('down');
+			} else if (event.key === 'k' || event.key === 'K') {
+				event.preventDefault();
+				navigateItems('up');
+			}
+		}
+		
+		window.addEventListener('keydown', handleKeyDown);
+		
+		return () => {
+			window.removeEventListener('keydown', handleKeyDown);
+		};
 	});
 
 	// Reload when filter changes  

@@ -8,6 +8,41 @@ This document defines our design system tokens used consistently throughout the 
 - **Label/Badge Text**: `text-label` (0.625rem / 10px) - *custom token*
 - **Section Label**: `text-label` with `uppercase tracking-wider`
 
+### Readability Tokens (Optimized for ADHD/Focus-Challenged Users)
+
+**✨ USE THESE TOKENS FOR READABLE CONTENT (QUOTES, HIGHLIGHTS, ARTICLES)**
+
+| Token | Utility Class | Value | Usage |
+|-------|--------------|-------|-------|
+| `--line-height-readable` | `leading-readable` | 1.75 | Optimal line-height for comfortable reading (prevents visual crowding) |
+| `--letter-spacing-readable` | `tracking-readable` | 0 (normal) | Normal letter spacing (not too tight) |
+| `--max-width-readable` | `max-w-readable` | 42rem (672px) | Optimal reading width (65-75 characters per line) |
+| `--spacing-readable-quote-y` | `py-readable-quote` | 2rem (32px) | Vertical padding for quote/highlight containers |
+
+**Why:** These tokens are optimized based on typography best practices and ADHD-friendly reading guidelines:
+- **Line height 1.75**: Provides generous breathing room between lines, reducing visual crowding
+- **Normal tracking**: Avoids tight letter spacing that can strain focus
+- **Max width 42rem**: Optimal line length prevents eye jumping and improves reading flow
+- **Generous padding**: Creates visual space that helps maintain focus
+
+**Example Usage:**
+```html
+<!-- Readable quote/highlight container -->
+<div class="max-w-readable mx-auto px-inbox-container py-inbox-container">
+  <div class="py-readable-quote bg-surface border-l-4 border-accent-primary rounded-lg">
+    <p class="text-2xl sm:text-3xl text-primary leading-readable tracking-readable">
+      Long-form readable content here...
+    </p>
+  </div>
+</div>
+```
+
+**Benefits:**
+- ✅ Optimized for ADHD and focus-challenged users
+- ✅ Based on typography best practices (65-75 chars per line)
+- ✅ Change readability settings globally by updating tokens
+- ✅ Self-documenting (semantic names explain purpose)
+
 ## Spacing (Design Tokens)
 
 **✨ USE SEMANTIC TOKENS INSTEAD OF NUMERIC VALUES**
@@ -57,6 +92,7 @@ Our spacing scale is based on a 4px base unit (0.25rem):
 | `--spacing-settings-row-gap` | `gap-settings-row` | 1rem (16px) | Vertical gap between setting rows |
 | `--spacing-settings-row-padding-x` | `px-settings-row` | 1rem (16px) | Setting row horizontal padding |
 | `--spacing-settings-row-padding-y` | `py-settings-row` | 1rem (16px) | Setting row vertical padding |
+| `--spacing-readable-quote-y` | `py-readable-quote` | 2rem (32px) | Vertical padding for quote/highlight containers (readability optimized) |
 
 ### Migration Guide
 

@@ -172,13 +172,24 @@
 	<div class="flex flex-1 overflow-hidden">
 		<!-- Main Content Area - Hero Highlight Text -->
 		<div class="flex-1 overflow-y-auto">
-			<div class="max-w-3xl mx-auto px-inbox-container py-inbox-container">
+			<!-- Optimal reading width: 65-75 characters per line for ADHD-friendly reading -->
+			<div class="max-w-readable mx-auto px-inbox-container py-inbox-container">
 				<!-- Hero Highlight Text - Always Visible, Top Priority -->
 				{#if item?.highlight}
-					<div class="mb-12">
-						<p class="text-2xl text-primary leading-relaxed font-normal">
-							{item.highlight.text}
-						</p>
+					<div class="mb-16 mt-8">
+						<!-- Quote-style container with subtle background and left accent -->
+						<div class="relative pl-inbox-container pr-inbox-container py-readable-quote bg-surface border-l-4 border-accent-primary rounded-lg">
+							<!-- Quote mark (decorative, subtle) -->
+							<div class="absolute top-6 left-6 text-accent-primary opacity-10">
+								<svg class="w-20 h-20" fill="currentColor" viewBox="0 0 24 24">
+									<path d="M14.017 21v-7.391c0-5.522-4.477-10-10-10v-2.609c0-5.522 4.477-10 10-10h7.017v21h-7.017zm-10 0v-7.391c0-5.522-4.477-10-10-10v-2.609c0-5.522 4.477-10 10-10h7.017v21h-7.017z"/>
+								</svg>
+							</div>
+							<!-- Highlight Text - Hero size, reading optimized for ADHD/focus-challenged -->
+							<p class="text-2xl sm:text-3xl text-primary leading-readable font-normal tracking-readable relative z-10 max-w-none">
+								{item.highlight.text}
+							</p>
+						</div>
 					</div>
 				{/if}
 

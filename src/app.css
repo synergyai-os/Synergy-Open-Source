@@ -6,6 +6,17 @@
 	--text-label: 0.625rem; /* 10px - for badges, labels, small text */
 	/* Usage: class="text-label" */
 
+	/* Typography - Readability Tokens */
+	/* Optimized for ADHD/focus-challenged users and general readability */
+	--line-height-readable: 1.75; /* Optimal line-height for comfortable reading (prevents visual crowding) */
+	--letter-spacing-readable: 0; /* Normal letter spacing (tracking-normal) - not too tight */
+	--max-width-readable: 42rem; /* 672px - Optimal reading width (65-75 characters per line) */
+	/* Usage: leading-readable, tracking-readable, max-w-readable */
+
+	/* Readability Spacing Tokens */
+	--spacing-readable-quote-y: 2rem; /* 32px - py-8 equivalent - Vertical padding for quote/highlight containers */
+	/* Usage: py-readable-quote */
+
 	/* Semantic Spacing Tokens - Based on 4px base unit (0.25rem) */
 	/* Scale: 1 = 4px, 2 = 8px, 3 = 12px, 4 = 16px, 5 = 20px, 6 = 24px */
 	--spacing-nav-container-x: 0.5rem; /* 8px - px-2 equivalent */
@@ -209,6 +220,22 @@ html:not(.dark) {
 }
 @utility py-system-content {
 	padding-block: var(--spacing-system-content-y);
+}
+
+/* Readability Typography Utilities */
+@utility leading-readable {
+	line-height: var(--line-height-readable);
+}
+@utility tracking-readable {
+	letter-spacing: var(--letter-spacing-readable);
+}
+@utility max-w-readable {
+	max-width: var(--max-width-readable);
+}
+
+/* Readability Spacing Utilities */
+@utility py-readable-quote {
+	padding-block: var(--spacing-readable-quote-y);
 }
 
 /* Settings Spacing Utilities */
