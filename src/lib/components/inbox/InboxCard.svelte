@@ -1,15 +1,21 @@
 <script lang="ts">
 	type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 
+	// Inbox item from Convex (with enriched display info)
 	type InboxItem = {
-		id: string;
+		_id: string;
 		type: InboxItemType;
-		title: string;
-		snippet: string;
-		sourceData: any;
-		tags: string[];
-		createdAt: Date;
+		userId: string;
 		processed: boolean;
+		processedAt?: number;
+		createdAt: number;
+		title: string; // Enriched from query
+		snippet: string; // Enriched from query
+		tags: string[]; // Enriched from query
+		// Type-specific fields
+		highlightId?: string; // For readwise_highlight
+		imageFileId?: string; // For photo_note
+		text?: string; // For manual_text
 	};
 
 	interface Props {
@@ -51,11 +57,11 @@
 
 			<!-- Content -->
 			<div class="flex-1 min-w-0">
-				<h3 class="font-semibold text-primary truncate text-sm leading-tight">{item.title}</h3>
+				<h3 class="font-semibold text-primary truncate text-sm leading-tight">{item.title || 'Untitled'}</h3>
 				<p class="text-secondary text-xs mt-0.5 line-clamp-2 leading-relaxed">
-					{item.snippet}
+					{item.snippet || 'No preview available'}
 				</p>
-				{#if item.tags.length > 0}
+				{#if item.tags && item.tags.length > 0}
 					<div class="flex items-center gap-1 mt-1.5">
 						<!-- Tags -->
 						<div class="flex flex-wrap gap-1">

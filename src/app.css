@@ -237,6 +237,12 @@ html:not(.dark) {
 @utility border-accent-primary {
 	border-color: var(--color-accent-primary);
 }
+@utility bg-accent-primary {
+	background-color: var(--color-accent-primary);
+}
+@utility bg-accent-hover {
+	background-color: var(--color-accent-hover);
+}
 @utility bg-hover {
 	background-color: var(--color-bg-hover);
 }

@@ -344,4 +344,20 @@ export const deleteReadwiseApiKey = mutation({
 	},
 });
 
+/**
+ * Internal query to get user settings for sync (returns sync timestamp)
+ * Used by sync actions
+ */
+export const getUserSettingsForSync = internalQuery({
+	args: {
+		userId: v.id("users"),
+	},
+	handler: async (ctx, args) => {
+		return await ctx.db
+			.query("userSettings")
+			.withIndex("by_user", (q) => q.eq("userId", args.userId))
+			.first();
+	},
+});
+
 

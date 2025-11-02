@@ -1,5 +1,10 @@
 <script lang="ts">
 	import { getContext } from 'svelte';
+	import { browser } from '$app/environment';
+	import { onMount } from 'svelte';
+	import { useConvexClient } from 'convex-svelte';
+	import { makeFunctionReference } from 'convex/server';
+	import { api } from '$lib/convex';
 	import ReadwiseDetail from '$lib/components/inbox/ReadwiseDetail.svelte';
 	import PhotoDetail from '$lib/components/inbox/PhotoDetail.svelte';
 	import ManualDetail from '$lib/components/inbox/ManualDetail.svelte';
@@ -9,143 +14,53 @@
 
 	type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 
-	type InboxItem = {
-		id: string;
-		type: InboxItemType;
-		title: string;
-		snippet: string;
-		sourceData: any; // Type-specific fields
-		tags: string[];
-		createdAt: Date;
-		processed: boolean;
+	// Convex client setup
+	const convexClient = browser ? useConvexClient() : null;
+	const inboxApi = browser ? {
+		listInboxItems: makeFunctionReference('inbox:listInboxItems') as any,
+		getInboxItemWithDetails: makeFunctionReference('inbox:getInboxItemWithDetails') as any,
+		syncReadwiseHighlights: makeFunctionReference('syncReadwise:syncReadwiseHighlights') as any,
+	} : null;
+
+	// Fetch inbox items from Convex
+	let filterType = $state<InboxItemType | 'all'>('all');
+	let inboxItems = $state<any[]>([]);
+	let isLoading = $state(true);
+
+	// Sync state
+	let isSyncing = $state(false);
+	let syncError = $state<string | null>(null);
+	let syncSuccess = $state(false);
+
+	// Load inbox items
+	const loadItems = async () => {
+		if (!browser || !convexClient || !inboxApi) return;
+
+		try {
+			const result = await convexClient.query(
+				inboxApi.listInboxItems,
+				filterType === 'all' ? { processed: false } : { filterType, processed: false }
+			);
+			inboxItems = result || [];
+			isLoading = false;
+		} catch (error) {
+			console.error('Failed to load inbox items:', error);
+			isLoading = false;
+		}
 	};
 
-	// Mock data for testing the UI
-	const mockInboxItems: InboxItem[] = $state([
-		{
-			id: '1',
-			type: 'readwise_highlight',
-			title: 'Build-Measure-Learn Cycle',
-			snippet: 'Build-Measure-Learn is the fundamental cycle...',
-			tags: ['product', 'startup', 'lean'],
-			createdAt: new Date('2024-01-15'),
-			processed: false,
-			sourceData: {
-				bookTitle: 'The Lean Startup',
-				author: 'Eric Ries',
-				highlightText:
-					'Build-Measure-Learn is the fundamental cycle for building products. Start with an MVP, measure customer behavior, and learn what works.',
-				readwiseTags: ['Product Development', 'Innovation'],
-				note: 'This connects directly to our sprint process'
-			}
-		},
-		{
-			id: '2',
-			type: 'photo_note',
-			title: 'Dual-Track Agile Diagram',
-			snippet: 'Discovery track runs parallel to delivery...',
-			tags: ['workshop', 'product-discovery', 'agile'],
-			createdAt: new Date('2024-01-20'),
-			processed: false,
-			sourceData: {
-				imageUrl: '/api/placeholder/400/300',
-				transcribedText:
-					'In dual-track agile, the discovery track runs parallel to the delivery track. Discovery focuses on understanding user needs and validating solutions before building.',
-				source: 'Product Discovery Workshop'
-			}
-		},
-		{
-			id: '3',
-			type: 'manual_text',
-			title: 'Product Champion Traits',
-			snippet: 'Champions combine empathy, vision, and execution...',
-			tags: ['leadership', 'product-management'],
-			createdAt: new Date('2024-02-01'),
-			processed: false,
-			sourceData: {
-				text: 'Product champions combine deep user empathy, clear product vision, and relentless execution. They bridge the gap between what users need and what we can build.',
-				bookTitle: 'Personal Notes',
-				pageNumber: null
-			}
-		},
-		{
-			id: '4',
-			type: 'readwise_highlight',
-			title: 'Continuous Discovery',
-			snippet: 'Talk to users every week, even if it feels uncomfortable...',
-			tags: ['discovery', 'research', 'user-interviews'],
-			createdAt: new Date('2024-02-10'),
-			processed: false,
-			sourceData: {
-				bookTitle: 'Continuous Discovery Habits',
-				author: 'Teresa Torres',
-				highlightText:
-					'Talk to at least one customer every week, even when it feels uncomfortable or you think you already know the answer.',
-				readwiseTags: ['User Research', 'Product Discovery']
-			}
-		},
-		{
-			id: '5',
-			type: 'readwise_highlight',
-			title: 'The Power of Why',
-			snippet: 'Understanding the "why" behind user behavior...',
-			tags: ['psychology', 'user-research'],
-			createdAt: new Date('2024-02-15'),
-			processed: false,
-			sourceData: {
-				bookTitle: 'Hooked',
-				author: 'Nir Eyal',
-				highlightText:
-					'Understanding the "why" behind user behavior is more valuable than tracking the "what". Focus on motivation and triggers.',
-				readwiseTags: ['Behavioral Design', 'Product Psychology']
-			}
-		},
-		{
-			id: '6',
-			type: 'photo_note',
-			title: 'Sprint Retrospective Board',
-			snippet: 'Stop, Start, Continue framework from our last sprint...',
-			tags: ['retrospective', 'sprint'],
-			createdAt: new Date('2024-03-01'),
-			processed: false,
-			sourceData: {
-				imageUrl: '/api/placeholder/400/300',
-				transcribedText:
-					'Sprint retrospective: Stop doing task switching. Start doing weekly user interviews. Continue daily stand-ups.',
-				source: 'Sprint 12 Retro'
-			}
-		},
-		{
-			id: '7',
-			type: 'manual_text',
-			title: 'Technical Debt Definition',
-			snippet: 'Technical debt is not a bad thing when managed...',
-			tags: ['technical-debt', 'engineering'],
-			createdAt: new Date('2024-03-10'),
-			processed: false,
-			sourceData: {
-				text: 'Technical debt is not inherently bad - it represents intentional trade-offs for speed. The key is knowing when and how to pay it back.',
-				bookTitle: 'Engineering Team Discussion',
-				pageNumber: null
-			}
-		},
-		{
-			id: '8',
-			type: 'readwise_highlight',
-			title: 'Product-Market Fit Signals',
-			snippet: 'When customers become your sales team...',
-			tags: ['pmf', 'growth'],
-			createdAt: new Date('2024-03-20'),
-			processed: false,
-			sourceData: {
-				bookTitle: 'The Mom Test',
-				author: 'Rob Fitzpatrick',
-				highlightText:
-					'Product-market fit signals include customers becoming evangelists, organic growth through word-of-mouth, and difficulty keeping up with demand.',
-				readwiseTags: ['Product-Market Fit', 'Early Stage']
-			}
+	onMount(() => {
+		loadItems();
+	});
+
+	// Reload when filter changes  
+	$effect(() => {
+		// Access filterType to track it
+		const currentFilter = filterType;
+		if (browser) {
+			loadItems();
 		}
-	]);
+	});
 
 	// Get sidebar state from parent layout
 	const sidebarContext = getContext<{
@@ -156,7 +71,6 @@
 
 	// UI State
 	let selectedItemId = $state<string | null>(null);
-	let filterType = $state<InboxItemType | 'all'>('all');
 	let inboxWidth = $state(400);
 
 	// Derive sidebar state from context
@@ -179,26 +93,60 @@
 		}
 	});
 
-	// Computed values
-	const selectedItem = $derived(
-		mockInboxItems.find((item) => item.id === selectedItemId)
-	);
+	// Selected item details
+	let selectedItem = $state<any>(null);
 
-	const filteredItems = $derived(
-		filterType === 'all'
-			? mockInboxItems.filter((item) => !item.processed)
-			: mockInboxItems.filter((item) => item.type === filterType && !item.processed)
-	);
+	// Load selected item details
+	$effect(() => {
+		if (!browser || !convexClient || !inboxApi || !selectedItemId) {
+			selectedItem = null;
+			return;
+		}
+
+		convexClient.query(inboxApi.getInboxItemWithDetails, { inboxItemId: selectedItemId })
+			.then((result) => {
+				selectedItem = result;
+			})
+			.catch((error) => {
+				console.error('Failed to load item details:', error);
+				selectedItem = null;
+			});
+	});
+
+	const filteredItems = $derived(inboxItems || []);
 
 	// Actions
 	function selectItem(itemId: string) {
-		selectedItemId = itemId;
+		selectedItemId = itemId as any; // itemId is _id from InboxCard
 	}
 
 	function setFilter(type: InboxItemType | 'all') {
 		filterType = type;
 		// Clear selection when changing filters
 		selectedItemId = null;
+	}
+
+	async function handleSync() {
+		if (!browser || !convexClient || !inboxApi) return;
+
+		isSyncing = true;
+		syncError = null;
+		syncSuccess = false;
+
+		try {
+			await convexClient.action(inboxApi.syncReadwiseHighlights, {});
+			syncSuccess = true;
+			// Reload inbox items after successful sync
+			await loadItems();
+			// Clear success message after 3 seconds
+			setTimeout(() => {
+				syncSuccess = false;
+			}, 3000);
+		} catch (error) {
+			syncError = error instanceof Error ? error.message : 'Failed to sync';
+		} finally {
+			isSyncing = false;
+		}
 	}
 
 	// Header actions
@@ -255,15 +203,29 @@
 							{#each filteredItems as item}
 								<InboxCard
 									item={item}
-									selected={selectedItemId === item.id}
-									onClick={() => selectItem(item.id)}
+									selected={selectedItemId === item._id}
+									onClick={() => selectItem(item._id)}
 								/>
 							{/each}
 						</div>
 
 						{#if filteredItems.length === 0}
-							<div class="text-center py-12">
-								<p class="text-tertiary">No items in inbox. Great job! 🎉</p>
+							<div class="text-center py-12 px-6">
+								<p class="text-tertiary mb-4">No items in inbox.</p>
+								<button
+									type="button"
+									onclick={handleSync}
+									disabled={isSyncing}
+									class="px-4 py-2 bg-primary text-on-primary rounded-md hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+								>
+									{isSyncing ? 'Syncing...' : 'Sync Readwise Highlights'}
+								</button>
+								{#if syncError}
+									<p class="text-error text-sm mt-2">{syncError}</p>
+								{/if}
+								{#if syncSuccess}
+									<p class="text-success text-sm mt-2">Sync completed successfully!</p>
+								{/if}
 							</div>
 						{/if}
 					</div>
@@ -271,12 +233,16 @@
 			</div>
 		</ResizableSplitter>
 
-		<!-- Right Panel - Detail View -->
+				<!-- Right Panel - Detail View -->
 		<div class="flex-1 bg-elevated overflow-y-auto">
-			{#if selectedItem}
+			{#if selectedItem && selectedItemId}
 				<!-- Dynamic detail view based on type -->
 				{#if selectedItem.type === 'readwise_highlight'}
-					<ReadwiseDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
+					<ReadwiseDetail
+						inboxItemId={selectedItemId}
+						item={selectedItem}
+						onClose={() => (selectedItemId = null)}
+					/>
 				{:else if selectedItem.type === 'photo_note'}
 					<PhotoDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
 				{:else if selectedItem.type === 'manual_text'}
@@ -335,8 +301,22 @@
 						</div>
 
 						{#if filteredItems.length === 0}
-							<div class="text-center py-12">
-								<p class="text-tertiary">No items in inbox. Great job! 🎉</p>
+							<div class="text-center py-12 px-6">
+								<p class="text-tertiary mb-4">No items in inbox.</p>
+								<button
+									type="button"
+									onclick={handleSync}
+									disabled={isSyncing}
+									class="px-4 py-2 bg-primary text-on-primary rounded-md hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+								>
+									{isSyncing ? 'Syncing...' : 'Sync Readwise Highlights'}
+								</button>
+								{#if syncError}
+									<p class="text-error text-sm mt-2">{syncError}</p>
+								{/if}
+								{#if syncSuccess}
+									<p class="text-success text-sm mt-2">Sync completed successfully!</p>
+								{/if}
 							</div>
 						{/if}
 					</div>

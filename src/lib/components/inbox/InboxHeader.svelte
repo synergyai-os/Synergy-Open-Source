@@ -12,6 +12,8 @@
 		onDeleteAllRead?: () => void;
 		onDeleteAllCompleted?: () => void;
 		onSortClick?: () => void;
+		onSync?: () => void;
+		isSyncing?: boolean;
 		sidebarCollapsed?: boolean;
 		onSidebarToggle?: () => void;
 		isMobile?: boolean;
@@ -24,6 +26,8 @@
 		onDeleteAllRead,
 		onDeleteAllCompleted,
 		onSortClick,
+		onSync,
+		isSyncing = false,
 		sidebarCollapsed = false,
 		onSidebarToggle,
 		isMobile = false
@@ -38,7 +42,7 @@
 >
 	<!-- Left: Title + Sidebar Toggle + Kebab Menu -->
 	<div class="flex items-center gap-icon">
-		{#if onSidebarToggle}
+		{#if onSidebarToggle && sidebarCollapsed}
 			<SidebarToggle
 				sidebarCollapsed={sidebarCollapsed}
 				onToggle={onSidebarToggle}
@@ -77,6 +81,39 @@
 					align="start"
 					sideOffset={4}
 				>
+					{#if onSync}
+						<DropdownMenu.Item
+							class="px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer flex items-center justify-between focus:bg-hover-solid outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+							textValue="Sync Readwise Highlights"
+							disabled={isSyncing}
+							onSelect={() => {
+								if (!isSyncing) {
+									onSync();
+									menuOpen = false;
+								}
+							}}
+						>
+							<span class="font-normal">{isSyncing ? 'Syncing...' : 'Sync Readwise Highlights'}</span>
+							{#if isSyncing}
+								<svg
+									class="w-4 h-4 animate-spin"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+									/>
+								</svg>
+							{/if}
+						</DropdownMenu.Item>
+
+						<DropdownMenu.Separator class="h-px bg-base my-1" />
+					{/if}
+
 					<DropdownMenu.Item
 						class="px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer flex items-center justify-between focus:bg-hover-solid outline-none"
 						textValue="Delete all"
