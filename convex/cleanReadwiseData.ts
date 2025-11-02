@@ -120,62 +120,49 @@ export const deleteSourceBatch = internalMutation({
   },
 });
 
-// Internal mutation to delete orphaned authors/tags
-export const deleteOrphanedEntities = internalMutation({
+// Internal mutation to delete a batch of authors
+export const deleteAuthorsBatch = internalMutation({
   args: {
-    authorIds: v.array(v.string()),
-    tagIds: v.array(v.string()),
     userId: v.id("users"),
+    limit: v.number(),
   },
   handler: async (ctx, args) => {
-    let authorsDeleted = 0;
-    let tagsDeleted = 0;
+    const authors = await ctx.db
+      .query("authors")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .take(args.limit);
 
-    // Delete orphaned authors
-    for (const authorIdStr of args.authorIds.slice(0, 50)) {
-      const authorId = authorIdStr as any;
-      const author = await ctx.db.get(authorId);
-      if (author && 'userId' in author && author.userId === args.userId) {
-        const remainingSources = await ctx.db
-          .query("sources")
-          .withIndex("by_author", (q) => q.eq("authorId", authorId))
-          .first();
-        
-        const remainingLinks = await ctx.db
-          .query("sourceAuthors")
-          .withIndex("by_author", (q) => q.eq("authorId", authorId))
-          .first();
-
-        if (!remainingSources && !remainingLinks) {
-          await ctx.db.delete(authorId);
-          authorsDeleted++;
-        }
-      }
+    for (const author of authors) {
+      await ctx.db.delete(author._id);
     }
 
-    // Delete orphaned tags
-    for (const tagIdStr of args.tagIds.slice(0, 50)) {
-      const tagId = tagIdStr as any;
-      const tag = await ctx.db.get(tagId);
-      if (tag && 'userId' in tag && tag.userId === args.userId) {
-        const remainingSourceTags = await ctx.db
-          .query("sourceTags")
-          .withIndex("by_tag", (q) => q.eq("tagId", tagId))
-          .first();
+    return {
+      deleted: authors.length,
+      hasMore: authors.length === args.limit,
+    };
+  },
+});
 
-        const remainingHighlightTags = await ctx.db
-          .query("highlightTags")
-          .withIndex("by_tag", (q) => q.eq("tagId", tagId))
-          .first();
+// Internal mutation to delete a batch of tags
+export const deleteTagsBatch = internalMutation({
+  args: {
+    userId: v.id("users"),
+    limit: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const tags = await ctx.db
+      .query("tags")
+      .withIndex("by_user", (q) => q.eq("userId", args.userId))
+      .take(args.limit);
 
-        if (!remainingSourceTags && !remainingHighlightTags) {
-          await ctx.db.delete(tagId);
-          tagsDeleted++;
-        }
-      }
+    for (const tag of tags) {
+      await ctx.db.delete(tag._id);
     }
 
-    return { authorsDeleted, tagsDeleted };
+    return {
+      deleted: tags.length,
+      hasMore: tags.length === args.limit,
+    };
   },
 });
 
@@ -291,15 +278,44 @@ export const cleanReadwiseData = action({
 
     console.log(`[cleanReadwiseData] Deleted ${sourcesDeleted} sources, ${sourceAuthorsDeleted} sourceAuthors, and ${sourceTagsDeleted} sourceTags`);
 
-    // Step 4: Delete orphaned authors and tags
-    console.log(`[cleanReadwiseData] Cleaning up orphaned entities...`);
-    const orphanedResults = await ctx.runMutation(internal.cleanReadwiseData.deleteOrphanedEntities, {
-      authorIds: Array.from(allAuthorIds),
-      tagIds: Array.from(allTagIds),
-      userId,
-    }) as { authorsDeleted: number; tagsDeleted: number };
+    // Step 4: Delete ALL authors and tags for this user (clean slate for retesting)
+    console.log(`[cleanReadwiseData] Deleting all authors and tags...`);
+    let totalAuthorsDeleted = 0;
+    let totalTagsDeleted = 0;
+    const cleanupBatchSize = 50;
 
-    console.log(`[cleanReadwiseData] Deleted ${orphanedResults.authorsDeleted} orphaned authors and ${orphanedResults.tagsDeleted} orphaned tags`);
+    // Delete all authors in batches
+    while (true) {
+      const result = await ctx.runMutation(internal.cleanReadwiseData.deleteAuthorsBatch, {
+        userId,
+        limit: cleanupBatchSize,
+      }) as { deleted: number; hasMore: boolean };
+
+      totalAuthorsDeleted += result.deleted;
+
+      if (result.deleted > 0) {
+        console.log(`[cleanReadwiseData] Deleted ${result.deleted} authors in this batch (total: ${totalAuthorsDeleted})`);
+      }
+
+      if (!result.hasMore) break;
+    }
+
+    // Delete all tags in batches (separate from authors)
+    while (true) {
+      const result = await ctx.runMutation(internal.cleanReadwiseData.deleteTagsBatch, {
+        userId,
+        limit: cleanupBatchSize,
+      }) as { deleted: number; hasMore: boolean };
+
+      if (result.deleted > 0) {
+        totalTagsDeleted += result.deleted;
+        console.log(`[cleanReadwiseData] Deleted ${result.deleted} tags in this batch (total: ${totalTagsDeleted})`);
+      }
+
+      if (!result.hasMore) break;
+    }
+
+    console.log(`[cleanReadwiseData] Deleted ${totalAuthorsDeleted} authors and ${totalTagsDeleted} tags total`);
 
     // Step 5: Reset lastReadwiseSyncAt timestamp
     console.log(`[cleanReadwiseData] Resetting sync timestamp...`);
@@ -315,8 +331,8 @@ export const cleanReadwiseData = action({
       inboxItemsDeleted,
       highlightsDeleted,
       sourcesDeleted,
-      orphanedAuthorsDeleted: orphanedResults.authorsDeleted,
-      orphanedTagsDeleted: orphanedResults.tagsDeleted,
+      orphanedAuthorsDeleted: totalAuthorsDeleted,
+      orphanedTagsDeleted: totalTagsDeleted,
     };
 
     console.log(`[cleanReadwiseData] Cleanup complete:`, summary);
