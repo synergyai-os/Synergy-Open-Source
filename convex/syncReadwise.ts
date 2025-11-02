@@ -202,12 +202,29 @@ export const syncReadwiseHighlightsInternal = internalAction({
           break;
         }
 
+        // Sort highlights by updated field (newest first) to ensure consistent ordering
+        // The API doesn't guarantee order, so we explicitly sort to always get the newest highlights first
+        const sortedHighlights = [...response.results].sort((a, b) => {
+          const dateA = new Date(a.updated || a.highlighted_at || 0).getTime();
+          const dateB = new Date(b.updated || b.highlighted_at || 0).getTime();
+          return dateB - dateA; // Descending order (newest first)
+        });
+
+        // Log first and last highlight timestamps for verification
+        if (sortedHighlights.length > 0) {
+          const first = sortedHighlights[0];
+          const last = sortedHighlights[sortedHighlights.length - 1];
+          console.log(
+            `[syncReadwise] Page ${pageCount} sorted: First highlight updated=${first.updated}, Last highlight updated=${last.updated}`
+          );
+        }
+
         // Check each highlight to see if it needs importing
-        for (const highlight of response.results) {
+        for (const highlight of sortedHighlights) {
           totalChecked++;
           
           // Update progress every 10 highlights or on last
-          if (totalChecked % 10 === 0 || (!response.next && highlight === response.results[response.results.length - 1])) {
+          if (totalChecked % 10 === 0 || (!response.next && highlight === sortedHighlights[sortedHighlights.length - 1])) {
             await ctx.runMutation(internal.syncReadwiseMutations.updateSyncProgress, {
               userId,
               step: "Checking highlights...",
