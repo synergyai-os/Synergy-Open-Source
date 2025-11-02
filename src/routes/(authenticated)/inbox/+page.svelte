@@ -13,6 +13,7 @@
 	import SyncReadwiseConfig from '$lib/components/inbox/SyncReadwiseConfig.svelte';
 	import SyncProgressTracker from '$lib/components/inbox/SyncProgressTracker.svelte';
 	import ResizableSplitter from '$lib/components/ResizableSplitter.svelte';
+	import { addActivity, updateActivity, removeActivity } from '$lib/stores/activityTracker.svelte';
 
 	type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 
@@ -37,6 +38,7 @@
 	let showSyncConfig = $state(false);
 	let syncProgress = $state<{ step: string; current: number; total?: number; message?: string } | null>(null);
 	let progressPollInterval: ReturnType<typeof setInterval> | null = null;
+	let syncActivityId: string | null = null; // Track activity ID for global tracker
 
 	// Load inbox items
 	const loadItems = async () => {
@@ -146,11 +148,41 @@
 			const progress = await convexClient.query(inboxApi.getSyncProgress, {});
 			if (progress) {
 				syncProgress = progress;
+				
+				// Update global tracker if activity exists
+				if (syncActivityId) {
+					updateActivity(syncActivityId, {
+						status: 'running',
+						progress: {
+							step: progress.step,
+							current: progress.current,
+							total: progress.total,
+							message: progress.message
+						}
+					});
+				}
 			} else {
 				// Progress cleared = sync completed
 				if (syncProgress) {
 					syncSuccess = true;
 					await loadItems();
+					
+					// Update global tracker to completed
+					if (syncActivityId) {
+						updateActivity(syncActivityId, {
+							status: 'completed',
+							progress: undefined
+						});
+						
+						// Auto-dismiss after delay
+						setTimeout(() => {
+							if (syncActivityId) {
+								removeActivity(syncActivityId);
+								syncActivityId = null;
+							}
+						}, 3000);
+					}
+					
 					setTimeout(() => {
 						syncProgress = null;
 						syncSuccess = false;
@@ -164,6 +196,16 @@
 			}
 		} catch (error) {
 			console.error('Failed to poll sync progress:', error);
+			
+			// Update global tracker on error
+			if (syncActivityId) {
+				updateActivity(syncActivityId, {
+					status: 'error',
+					progress: {
+						message: error instanceof Error ? error.message : 'Failed to sync'
+					}
+				});
+			}
 		}
 	};
 
@@ -185,6 +227,41 @@
 			clearInterval(progressPollInterval);
 			progressPollInterval = null;
 		}
+		
+		// Clear any existing activity
+		if (syncActivityId) {
+			removeActivity(syncActivityId);
+			syncActivityId = null;
+		}
+
+		// Add activity to global tracker
+		syncActivityId = addActivity({
+			id: `sync-readwise-${Date.now()}`,
+			type: 'sync',
+			status: 'running',
+			metadata: {
+				source: 'readwise',
+				operation: 'import'
+			},
+			progress: {
+				step: 'Starting sync...',
+				current: 0,
+				indeterminate: true
+			},
+			quickActions: [
+				{
+					label: 'View Inbox',
+					action: () => {
+						// Will be handled by dismiss, navigation can happen on dismiss
+					}
+				}
+			],
+			onCancel: () => {
+				handleCancelSync();
+			},
+			autoDismiss: true,
+			dismissAfter: 5000
+		});
 
 		// Start polling for progress updates (every 500ms)
 		progressPollInterval = setInterval(pollSyncProgress, 500);
@@ -208,6 +285,19 @@
 					message: `All ${result.skippedCount} highlights are already in your inbox. No new items imported.`,
 				};
 				
+				// Update global tracker
+				if (syncActivityId) {
+					updateActivity(syncActivityId, {
+						status: 'completed',
+						progress: {
+							step: 'Already imported',
+							current: result.skippedCount,
+							total: result.skippedCount,
+							message: `All ${result.skippedCount} highlights are already in your inbox.`
+						}
+					});
+				}
+				
 				// Reload inbox items
 				await loadItems();
 				
@@ -220,6 +310,10 @@
 						clearInterval(progressPollInterval);
 						progressPollInterval = null;
 					}
+					if (syncActivityId) {
+						removeActivity(syncActivityId);
+						syncActivityId = null;
+					}
 				}, 4000);
 			} else if (result?.newCount === 0 && result?.skippedCount === 0) {
 				// Nothing at all was found/processed
@@ -227,9 +321,38 @@
 				syncSuccess = false;
 				syncProgress = null;
 				isSyncing = false;
+				
+				// Update global tracker
+				if (syncActivityId) {
+					updateActivity(syncActivityId, {
+						status: 'completed',
+						progress: {
+							message: 'No new items to import'
+						}
+					});
+					setTimeout(() => {
+						if (syncActivityId) {
+							removeActivity(syncActivityId);
+							syncActivityId = null;
+						}
+					}, 3000);
+				}
 			} else {
 				// New items imported
 				syncSuccess = true;
+				
+				// Update global tracker with success message
+				if (syncActivityId && result) {
+					updateActivity(syncActivityId, {
+						status: 'completed',
+						progress: {
+							message: result.newCount > 0 
+								? `Imported ${result.newCount} new highlight${result.newCount === 1 ? '' : 's'}`
+								: 'Sync completed'
+						}
+					});
+				}
+				
 				// Reload inbox items after successful sync
 				await loadItems();
 				
@@ -242,12 +365,35 @@
 						clearInterval(progressPollInterval);
 						progressPollInterval = null;
 					}
+					if (syncActivityId) {
+						removeActivity(syncActivityId);
+						syncActivityId = null;
+					}
 				}, 2000);
 			}
 		} catch (error) {
 			syncError = error instanceof Error ? error.message : 'Failed to sync';
 			syncProgress = null;
 			isSyncing = false;
+			
+			// Update global tracker with error
+			if (syncActivityId) {
+				updateActivity(syncActivityId, {
+					status: 'error',
+					progress: {
+						message: syncError
+					}
+				});
+				
+				// Keep error visible longer
+				setTimeout(() => {
+					if (syncActivityId) {
+						removeActivity(syncActivityId);
+						syncActivityId = null;
+					}
+				}, 5000);
+			}
+			
 			if (progressPollInterval) {
 				clearInterval(progressPollInterval);
 				progressPollInterval = null;
@@ -260,6 +406,20 @@
 		syncProgress = null;
 		isSyncing = false;
 		syncError = null;
+		
+		// Remove activity from global tracker
+		if (syncActivityId) {
+			updateActivity(syncActivityId, {
+				status: 'cancelled'
+			});
+			setTimeout(() => {
+				if (syncActivityId) {
+					removeActivity(syncActivityId);
+					syncActivityId = null;
+				}
+			}, 1000);
+		}
+		
 		if (progressPollInterval) {
 			clearInterval(progressPollInterval);
 			progressPollInterval = null;
@@ -299,7 +459,7 @@
 			onWidthChange={handleInboxWidthChange}
 			onClose={() => (inboxWidth = 175)}
 		>
-			<div class="bg-surface h-full flex flex-col overflow-hidden">
+			<div class="bg-surface h-full flex flex-col overflow-hidden border-r border-base">
 				<!-- Sticky Header -->
 				<InboxHeader
 					currentFilter={filterType}
