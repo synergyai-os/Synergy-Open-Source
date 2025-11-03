@@ -38,18 +38,46 @@
 	// Use $derived to always reflect prop changes, with local state for optimistic updates
 	let optimisticTags = $state<Tag[]>([]);
 	
+	// Clean up optimistic tags when they appear in the query (prop updates)
+	// This prevents duplicate optimistic tags once the query has refreshed
+	$effect(() => {
+		if (_availableTags && Array.isArray(_availableTags) && optimisticTags.length > 0) {
+			const propTagIds = new Set(_availableTags.map((tag: Tag) => tag._id).filter(Boolean));
+			// Remove optimistic tags that are now in the query results
+			const stillOptimistic = optimisticTags.filter((tag: Tag) => !propTagIds.has(tag._id));
+			if (stillOptimistic.length !== optimisticTags.length) {
+				optimisticTags = stillOptimistic;
+			}
+		}
+	});
+	
 	// Always use prop tags, but merge with optimistic tags
+	// This derived state reactively combines the prop tags with locally created optimistic tags
 	const availableTags = $derived(() => {
 		const baseTags = (_availableTags && Array.isArray(_availableTags)) ? _availableTags : [];
 		// Merge with optimistic tags (tags created but not yet in query results)
 		const tagsMap = new Map<string, Tag>();
-		baseTags.forEach((tag: Tag) => tagsMap.set(tag._id, tag));
-		optimisticTags.forEach((tag: Tag) => {
-			if (!tagsMap.has(tag._id)) {
+		
+		// First add base tags from prop (from Convex query)
+		baseTags.forEach((tag: Tag) => {
+			if (tag?._id) {
 				tagsMap.set(tag._id, tag);
 			}
 		});
-		return Array.from(tagsMap.values());
+		
+		// Then add/override with optimistic tags (newly created tags)
+		// This ensures newly created tags appear immediately
+		optimisticTags.forEach((tag: Tag) => {
+			if (tag?._id) {
+				tagsMap.set(tag._id, tag);
+			}
+		});
+		
+		const result = Array.from(tagsMap.values());
+		
+		// Note: Debug logging removed - was too verbose. Add back if needed for debugging.
+		
+		return result;
 	});
 
 	// Use external comboboxOpen if provided, otherwise use internal state
@@ -116,6 +144,8 @@
 			.map((id: Id<'tags'>) => tags.find((t: Tag) => t._id === id))
 			.filter((t: Tag | undefined): t is Tag => t !== undefined);
 	});
+
+	// Note: Debug effect removed. Add back if needed for debugging reactivity issues.
 
 	// Filter available tags based on search
 	const filteredTags = $derived(() => {
@@ -213,18 +243,22 @@
 			const potentialParent = getPotentialParent();
 			const newTagId = await onCreateTagWithColor(pendingTagName, color, potentialParent?._id);
 			
-					// Add the newly created tag optimistically so it appears immediately
-					// This will be replaced when the query refreshes, but ensures immediate UI feedback
-					const optimisticTag: Tag = {
-						_id: newTagId,
-						displayName: pendingTagName,
-						color: color,
-						parentId: potentialParent?._id,
-						level: 0,
-					};
-					optimisticTags = [...optimisticTags, optimisticTag];
+			// Add the newly created tag optimistically so it appears immediately
+			// This will be replaced when the query refreshes, but ensures immediate UI feedback
+			const optimisticTag: Tag = {
+				_id: newTagId,
+				displayName: pendingTagName,
+				color: color,
+				parentId: potentialParent?._id,
+				level: 0,
+			};
 			
-			// Add to selected tags
+			// IMPORTANT: Update optimisticTags FIRST, then selectedTagIds
+			// This ensures availableTags() includes the tag before selectedTags() tries to find it
+			optimisticTags = [...optimisticTags, optimisticTag];
+			
+			// Add to selected tags AFTER optimistic tag is added
+			// This ensures selectedTags() can immediately find the tag in availableTags()
 			selectedTagIds = [...selectedTagIds, newTagId];
 			
 			// Notify parent to save tags to highlight
@@ -238,6 +272,8 @@
 			setComboboxOpen(false);
 			
 			// Note: availableTags will update automatically via useQuery, replacing the optimistic tag
+			// When the query refreshes and includes the new tag, we can remove it from optimisticTags
+			// The cleanup effect handles this automatically
 		} catch (error) {
 			console.error('Failed to create tag:', error);
 			// Don't clear search on error so user can try again

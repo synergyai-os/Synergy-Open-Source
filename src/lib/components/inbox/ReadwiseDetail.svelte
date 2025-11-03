@@ -69,8 +69,16 @@
 
 	const mockCategories = ['Product Delivery', 'Product Discovery', 'Leadership'];
 
+	// Track if we're in the middle of a tag mutation (to prevent race conditions)
+	let isUpdatingTags = $state(false);
+
 	// Initialize selected tags from item (when item changes or tags are loaded)
 	$effect(() => {
+		// Skip sync if we're in the middle of updating tags (preserve optimistic updates)
+		if (isUpdatingTags) {
+			return;
+		}
+		
 		if (item?.tags && Array.isArray(item.tags) && item.tags.length > 0) {
 			const tagIds = item.tags.map((tag: any) => tag._id).filter(Boolean);
 			
@@ -79,11 +87,21 @@
 			const newSorted = [...tagIds].sort().join(',');
 			
 			if (currentSorted !== newSorted) {
-				selectedTagIds = tagIds;
+				// Check if selectedTagIds contains tags not in item.tags (optimistic add)
+				const selectedSet = new Set(selectedTagIds);
+				const itemSet = new Set(tagIds);
+				const hasOptimisticAdds = [...selectedSet].some(id => !itemSet.has(id));
+				
+				if (hasOptimisticAdds) {
+					// Skip sync - selectedTagIds has optimistic updates not yet in item.tags
+				} else {
+					// item.tags is the source of truth (query has refreshed)
+					selectedTagIds = tagIds;
+				}
 			}
 		} else if (!item?.tags || (Array.isArray(item.tags) && item.tags.length === 0)) {
-			// Clear tags if item has no tags
-			selectedTagIds = [];
+			// Don't automatically clear - might be a race condition during optimistic updates
+			// Let the mutation result handle clearing when appropriate
 		}
 	});
 
@@ -149,6 +167,8 @@
 	async function handleTagsChange(tagIds: Id<'tags'>[]) {
 		if (!highlightId || !convexClient || !assignTagsApi) return;
 
+		// Mark that we're updating tags (prevents $effect from overwriting optimistic updates)
+		isUpdatingTags = true;
 		selectedTagIds = tagIds;
 
 		try {
@@ -156,8 +176,14 @@
 				highlightId: highlightId,
 				tagIds: tagIds,
 			});
+			
+			// Reset flag after a short delay to allow query to refresh
+			setTimeout(() => {
+				isUpdatingTags = false;
+			}, 500);
 		} catch (error) {
 			console.error('Failed to assign tags:', error);
+			isUpdatingTags = false;
 			// Revert on error
 			if (item?.tags) {
 				selectedTagIds = item.tags.map((tag: any) => tag._id).filter(Boolean);
