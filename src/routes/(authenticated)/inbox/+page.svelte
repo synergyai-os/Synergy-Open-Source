@@ -20,13 +20,14 @@
 
 	// Convex client setup
 	const convexClient = browser ? useConvexClient() : null;
+	// Store function reference in a stable variable - this ensures the reference never changes
 	const inboxApi = browser ? {
 		listInboxItems: makeFunctionReference('inbox:listInboxItems') as any,
 		getInboxItemWithDetails: makeFunctionReference('inbox:getInboxItemWithDetails') as any,
 		syncReadwiseHighlights: makeFunctionReference('syncReadwise:syncReadwiseHighlights') as any,
 		getSyncProgress: makeFunctionReference('inbox:getSyncProgress') as any,
 	} : null;
-
+	
 	// Fetch inbox items from Convex
 	let filterType = $state<InboxItemType | 'all'>('all');
 	let inboxItems = $state<any[]>([]);
@@ -168,26 +169,45 @@
 		}
 	});
 
-	// Selected item details
+	// Load selected item details with proper cleanup to prevent race conditions
+	// Uses query tracking to ignore stale results when selectedItemId changes
 	let selectedItem = $state<any>(null);
+	let currentQueryId: string | null = null;
 
-	// Load selected item details
 	$effect(() => {
 		if (!browser || !convexClient || !inboxApi || !selectedItemId) {
 			selectedItem = null;
+			currentQueryId = null;
 			return;
 		}
 
-		console.log('Loading item details for:', selectedItemId);
-		convexClient.query(inboxApi.getInboxItemWithDetails, { inboxItemId: selectedItemId })
+		// Generate unique ID for this query
+		const queryId = selectedItemId;
+		currentQueryId = queryId;
+
+		// Load item details
+		convexClient
+			.query(inboxApi.getInboxItemWithDetails, { inboxItemId: selectedItemId })
 			.then((result) => {
-				console.log('Item details loaded:', result);
-				selectedItem = result;
+				// Only update if this is still the current query (prevent race conditions)
+				if (currentQueryId === queryId) {
+					selectedItem = result;
+				}
 			})
 			.catch((error) => {
-				console.error('Failed to load item details:', error);
-				selectedItem = null;
+				// Only handle error if this is still the current query
+				if (currentQueryId === queryId) {
+					console.error('Failed to load item details:', error);
+					selectedItem = null;
+				}
 			});
+
+		// Cleanup function: mark query as stale when effect re-runs or component unmounts
+		return () => {
+			if (currentQueryId === queryId) {
+				currentQueryId = null;
+			}
+		};
 	});
 
 	const filteredItems = $derived(inboxItems || []);
@@ -607,21 +627,24 @@
 		<div class="flex-1 bg-elevated overflow-y-auto">
 			{#if selectedItem && selectedItemId}
 				<!-- Dynamic detail view based on type -->
-				{#if selectedItem.type === 'readwise_highlight'}
-					<ReadwiseDetail
-						inboxItemId={selectedItemId}
-						item={selectedItem}
-						onClose={() => (selectedItemId = null)}
-						currentIndex={getCurrentItemIndex()}
-						totalItems={filteredItems.length}
-						onNext={handleNextItem}
-						onPrevious={handlePreviousItem}
-					/>
-				{:else if selectedItem.type === 'photo_note'}
-					<PhotoDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
-				{:else if selectedItem.type === 'manual_text'}
-					<ManualDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
-				{/if}
+				<!-- Key on selectedItem._id ensures remount only when actual data changes (prevents stale data) -->
+				{#key selectedItem._id}
+					{#if selectedItem.type === 'readwise_highlight'}
+						<ReadwiseDetail
+							inboxItemId={selectedItemId}
+							item={selectedItem}
+							onClose={() => (selectedItemId = null)}
+							currentIndex={getCurrentItemIndex()}
+							totalItems={filteredItems.length}
+							onNext={handleNextItem}
+							onPrevious={handlePreviousItem}
+						/>
+					{:else if selectedItem.type === 'photo_note'}
+						<PhotoDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
+					{:else if selectedItem.type === 'manual_text'}
+						<ManualDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
+					{/if}
+				{/key}
 			{:else if showSyncConfig}
 				<!-- Sync Config Panel -->
 				<SyncReadwiseConfig
@@ -651,13 +674,16 @@
 			<!-- Mobile Detail View - Full Screen -->
 			<div class="flex-1 bg-elevated overflow-y-auto h-full w-full">
 				{#if selectedItem}
-					{#if selectedItem.type === 'readwise_highlight'}
-						<ReadwiseDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
-					{:else if selectedItem.type === 'photo_note'}
-						<PhotoDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
-					{:else if selectedItem.type === 'manual_text'}
-						<ManualDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
-					{/if}
+					<!-- Key on selectedItem._id ensures remount only when actual data changes (prevents stale data) -->
+					{#key selectedItem._id}
+						{#if selectedItem.type === 'readwise_highlight'}
+							<ReadwiseDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
+						{:else if selectedItem.type === 'photo_note'}
+							<PhotoDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
+						{:else if selectedItem.type === 'manual_text'}
+							<ManualDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
+						{/if}
+					{/key}
 				{/if}
 			</div>
 		{:else}
