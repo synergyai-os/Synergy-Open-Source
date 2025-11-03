@@ -18,6 +18,7 @@
 		onCreateTag?: (displayName: string, color: string) => Promise<Id<'tags'>>;
 		onCreateTagWithColor?: (displayName: string, color: string, parentId?: Id<'tags'>) => Promise<Id<'tags'>>;
 		tagInputRef?: HTMLElement | null;
+		comboboxOpen?: boolean; // Expose combobox open state for keyboard shortcuts
 	};
 
 	let {
@@ -27,6 +28,7 @@
 		onCreateTag,
 		onCreateTagWithColor,
 		tagInputRef = $bindable(null),
+		comboboxOpen: _comboboxOpenExternal = $bindable(undefined),
 	}: Props = $props();
 
 	// Set defaults for non-bindable props
@@ -50,7 +52,58 @@
 		return Array.from(tagsMap.values());
 	});
 
-	let comboboxOpen = $state(false);
+	// Use external comboboxOpen if provided, otherwise use internal state
+	let comboboxOpenInternal = $state(false);
+	
+	// Derived value for reading - use external if provided, otherwise internal
+	const comboboxOpen = $derived(_comboboxOpenExternal !== undefined ? _comboboxOpenExternal : comboboxOpenInternal);
+	
+	// Function to update combobox open state (updates the correct source)
+	function setComboboxOpen(value: boolean) {
+		if (_comboboxOpenExternal !== undefined) {
+			_comboboxOpenExternal = value;
+		} else {
+			comboboxOpenInternal = value;
+		}
+	}
+	
+	/**
+	 * State synchronization pattern for Bits UI components with external control:
+	 * 
+	 * 1. External → Internal: When parent sets external state (e.g., 'T' key),
+	 *    the effect below syncs it to internal state, which Bits UI reads via bind:open
+	 * 
+	 * 2. Internal → External: When Bits UI changes state (ESC, click outside, etc.),
+	 *    bind:open updates internal, then onOpenChange syncs to external
+	 * 
+	 * This pattern ensures:
+	 * - ESC key works correctly (Bits UI handles it, we sync to external)
+	 * - Click outside works correctly (same mechanism)
+	 * - External control works (keyboard shortcuts, parent component control)
+	 * - No race conditions or infinite loops
+	 */
+	
+	// Handle open state changes from Bits UI (ESC, click outside, etc.)
+	// This callback is triggered whenever Bits UI changes the open state via bind:open
+	// We use this to sync the change to external state (for parent components)
+	function handleOpenChange(newOpen: boolean) {
+		// Note: comboboxOpenInternal is already updated by bind:open, we just need to sync external
+		if (_comboboxOpenExternal !== undefined && _comboboxOpenExternal !== newOpen) {
+			_comboboxOpenExternal = newOpen;
+		}
+	}
+	
+	// External → Internal: When external state changes (user presses 'T'), update internal
+	// This effect syncs external state changes to internal state
+	$effect(() => {
+		if (_comboboxOpenExternal !== undefined) {
+			const externalValue = _comboboxOpenExternal;
+			// Only update if it actually changed (prevent unnecessary updates)
+			if (externalValue !== comboboxOpenInternal) {
+				comboboxOpenInternal = externalValue;
+			}
+		}
+	});
 	let searchValue = $state('');
 	let showColorPicker = $state(false);
 	let pendingTagName = $state('');
@@ -181,7 +234,7 @@
 			showColorPicker = false;
 			colorPickerOpen = false;
 			pendingTagName = '';
-			comboboxOpen = false;
+			setComboboxOpen(false);
 			
 			// Note: availableTags will update automatically via useQuery, replacing the optimistic tag
 		} catch (error) {
@@ -189,30 +242,6 @@
 			// Don't clear search on error so user can try again
 		}
 	}
-
-	// Auto-focus input when combobox opens
-	$effect(() => {
-		if (comboboxOpen && !showColorPicker) {
-			// Focus the input field when combobox opens
-			// Use requestAnimationFrame + setTimeout for better timing
-			requestAnimationFrame(() => {
-				setTimeout(() => {
-					// Find the visible input inside the Combobox.Content
-					const content = document.querySelector('[data-bits-combobox-content]') as HTMLElement | null;
-					if (content) {
-						const input = content.querySelector('input[placeholder="Add tags..."]') as HTMLInputElement | null;
-						if (input) {
-							// Focus and select text
-							input.focus();
-							input.select();
-							// Ensure it's visible and has focus
-							input.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-						}
-					}
-				}, 150); // Increase delay slightly to ensure Content is fully rendered
-			});
-		}
-	});
 
 	// Auto-focus first color when color picker opens
 	let colorPickerRef = $state<HTMLElement | null>(null);
@@ -226,7 +255,7 @@
 	});
 
 	function handleInputFocus() {
-		comboboxOpen = true;
+		setComboboxOpen(true);
 	}
 
 	// Handle Enter key in input - create tag if no matches, or create directly if search exists
@@ -236,7 +265,7 @@
 			event.stopPropagation();
 			if (!showColorPicker) {
 				// If we have a search value and can create a tag, create it
-				if (canCreateTag() && searchValue.trim().length > 0) { // Call the derived function
+				if (canCreateTag() && searchValue.trim().length > 0) {
 					handleCreateTagClick();
 				}
 				// If search has matches but user presses Enter, select the first match
@@ -256,19 +285,36 @@
 	// Track focused color index for keyboard navigation
 	let focusedColorIndex = $state(0);
 	
-	// Focus input when combobox opens
+	// Auto-focus input when combobox opens (unified, improved effect)
 	$effect(() => {
-		if (comboboxOpen) {
-			setTimeout(() => {
-				// Find the visible input inside the Combobox.Content
-				const content = document.querySelector('[data-bits-combobox-content]') as HTMLElement | null;
-				if (content) {
-					const input = content.querySelector('input') as HTMLInputElement | null;
-					if (input && input.placeholder === 'Add tags...') {
-						input.focus();
-					}
-				}
-			}, 50); // Small delay to ensure Content is rendered
+		if (comboboxOpen && !showColorPicker) {
+			// Use multiple requestAnimationFrame + setTimeout for better timing with Portal rendering
+			requestAnimationFrame(() => {
+				requestAnimationFrame(() => {
+					setTimeout(() => {
+						// Try multiple selectors to find the input
+						let input: HTMLInputElement | null = null;
+						
+						// First try: data attribute selector (more specific)
+						const content = document.querySelector('[data-bits-combobox-content]') as HTMLElement | null;
+						if (content) {
+							input = content.querySelector('input[placeholder="Add tags..."]') as HTMLInputElement | null;
+						}
+						
+						// Fallback: query by placeholder if first attempt failed
+						if (!input) {
+							input = document.querySelector('input[placeholder="Add tags..."]') as HTMLInputElement | null;
+						}
+						
+						if (input) {
+							// Focus and select text, ensure visible
+							input.focus();
+							input.select();
+							input.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+						}
+					}, 100); // Reduced delay but with double RAF for better Portal timing
+				});
+			});
 		}
 	});
 </script>
@@ -302,7 +348,7 @@
 				onclick={(e) => {
 					e.preventDefault();
 					e.stopPropagation();
-					comboboxOpen = true;
+					setComboboxOpen(true);
 				}}
 				aria-label="Add tag"
 			>
@@ -318,7 +364,8 @@
 		<Combobox.Root
 			type="multiple"
 			bind:value={selectedTagIds as any}
-			bind:open={comboboxOpen}
+			bind:open={comboboxOpenInternal}
+			onOpenChange={handleOpenChange}
 			onValueChange={(values) => {
 				selectedTagIds = values as Id<'tags'>[];
 				onTagsChange(selectedTagIds);
@@ -338,7 +385,7 @@
 						onclick={(e) => {
 							e.preventDefault();
 							e.stopPropagation();
-							comboboxOpen = true;
+							setComboboxOpen(true);
 						}}
 						aria-label="Add Tags"
 					>
@@ -376,7 +423,7 @@
 							defaultValue={searchValue}
 							oninput={(e) => {
 								searchValue = e.currentTarget.value;
-								comboboxOpen = true;
+								setComboboxOpen(true);
 							}}
 							onkeydown={handleInputKeyDown}
 							onfocus={handleInputFocus}
@@ -549,7 +596,7 @@
 											showColorPicker = false;
 											colorPickerOpen = false;
 											searchValue = '';
-											comboboxOpen = false;
+											setComboboxOpen(false);
 										}
 									}}
 								>

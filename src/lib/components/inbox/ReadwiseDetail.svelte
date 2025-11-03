@@ -65,6 +65,7 @@
 	let headerMenuOpen = $state(false);
 	let selectedTagIds = $state<Id<'tags'>[]>([]);
 	let tagInputRef = $state<HTMLElement | null>(null);
+	let tagComboboxOpen = $state(false);
 
 	const mockCategories = ['Product Delivery', 'Product Discovery', 'Leadership'];
 
@@ -88,6 +89,17 @@
 
 	// Get highlight ID from item
 	const highlightId = $derived(item?.highlight?._id);
+	
+	// Reset combobox state when item changes (prevents stale state)
+	let lastHighlightId = $state<string | undefined>(undefined);
+	$effect(() => {
+		const currentHighlightId = highlightId;
+		// Only reset if highlightId actually changed (not just on initial load)
+		if (lastHighlightId !== undefined && currentHighlightId !== lastHighlightId) {
+			tagComboboxOpen = false;
+		}
+		lastHighlightId = currentHighlightId;
+	});
 
 	// Available tags from query (with color) - includes tags from item if available
 	// CRITICAL: This must always include ALL user tags from allTags query for global availability
@@ -189,14 +201,9 @@
 
 		// Check for 'T' key
 		if (event.key === 't' || event.key === 'T') {
-			// Find the Combobox.Input within the tag selector
-			if (tagInputRef) {
-				const input = tagInputRef.querySelector('input') as HTMLInputElement;
-				if (input) {
-					event.preventDefault();
-					input.focus();
-				}
-			}
+			event.preventDefault();
+			// Open the combobox - TagSelector's auto-focus effect will handle focusing the input
+			tagComboboxOpen = true;
 		}
 	}
 
@@ -576,6 +583,7 @@
 							onTagsChange={handleTagsChange}
 							onCreateTagWithColor={handleCreateTag}
 							bind:tagInputRef
+							bind:comboboxOpen={tagComboboxOpen}
 						/>
 					{:else}
 						<div>
