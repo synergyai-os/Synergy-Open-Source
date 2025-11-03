@@ -136,8 +136,9 @@
 	const groupedTags = $derived(() => {
 		const groups = new Map<Id<'tags'> | 'root', Tag[]>();
 		const rootTags: Tag[] = [];
-		const selected = selectedTags();
-		const selectedIds = new Set(selected.map((st: Tag) => st._id));
+		// Use selectedTagIds directly (source of truth) instead of selectedTags() to ensure
+		// all selected IDs are excluded, even if they haven't been resolved in availableTags() yet
+		const selectedIds = new Set(selectedTagIds);
 		
 		// Use all available tags to build the tag map (needed for parent lookup)
 		const allTagMap = new Map<Id<'tags'>, Tag>();
@@ -440,7 +441,8 @@
 						</div>
 					</div>
 					<!-- Selected Tags Section -->
-					{#if selectedTags().length > 0}
+					{@const isCreatingNewTag = canCreateTag() && searchValue.trim().length > 0}
+					{#if selectedTags().length > 0 && !isCreatingNewTag}
 						<div class="px-menu-item py-menu-item">
 							<p class="text-label font-medium text-tertiary uppercase tracking-wider mb-1">Selected</p>
 							<div class="space-y-0.5">
@@ -479,48 +481,32 @@
 					{/if}
 
 					<!-- Available Tags -->
-					{@const hasAvailableTags = groupedTags().rootTags.length > 0 || groupedTags().groups.size > 0}
-					{#if hasAvailableTags}
+					{@const hasFilteredTags = groupedTags().rootTags.length > 0 || groupedTags().groups.size > 0}
+					{@const allTags = availableTags()}
+					{@const hasUnselectedTags = allTags.some((tag: Tag) => !selectedTagIds.includes(tag._id))}
+					{@const shouldShowAvailableSection = hasUnselectedTags || searchValue.trim().length > 0}
+					{#if shouldShowAvailableSection}
 						<div class="px-menu-item py-menu-item">
-							{#if selectedTags().length === 0}
-								<p class="text-label font-medium text-tertiary uppercase tracking-wider mb-1">Available Tags</p>
-							{/if}
-							{#each groupedTags().rootTags as tag}
-								{@const isSelected = selectedTagIds.includes(tag._id)}
-								<button
-									type="button"
-									class="w-full px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer flex items-center gap-icon focus:bg-hover-solid outline-none text-left"
-									onclick={() => handleTagToggle(tag._id)}
-									aria-label={`Select tag ${tag.displayName}`}
-								>
-									{#if isSelected}
-										<svg
-											class="w-4 h-4 text-accent-primary flex-shrink-0"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M5 13l4 4L19 7"
-											/>
-										</svg>
-									{:else}
+							<p class="text-label font-medium text-tertiary uppercase tracking-wider mb-1">Available Tags</p>
+							{#if hasFilteredTags}
+								{#each groupedTags().rootTags as tag}
+									<button
+										type="button"
+										class="w-full px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer flex items-center gap-icon focus:bg-hover-solid outline-none text-left"
+										onclick={() => handleTagToggle(tag._id)}
+										aria-label={`Select tag ${tag.displayName}`}
+									>
 										<div class="w-4 h-4 flex-shrink-0"></div>
-									{/if}
-									<div
-										class="w-2 h-2 rounded-full flex-shrink-0"
-										style="background-color: {tag.color || DEFAULT_TAG_COLOR}"
-									></div>
-									<span class="flex-1">{tag.displayName}</span>
-								</button>
-							{/each}
+										<div
+											class="w-2 h-2 rounded-full flex-shrink-0"
+											style="background-color: {tag.color || DEFAULT_TAG_COLOR}"
+										></div>
+										<span class="flex-1">{tag.displayName}</span>
+									</button>
+								{/each}
 
 							<!-- Grouped tags by parent -->
 							{#each Array.from(groupedTags().groups.entries()) as [parentId, tags]}
-								{@const allTags = availableTags()}
 								{@const parentTag = allTags.find((t: Tag) => t._id === parentId)}
 								{#if parentTag}
 									<div class="mt-2">
@@ -528,30 +514,13 @@
 											{parentTag.displayName}
 										</p>
 										{#each tags as tag}
-											{@const isSelected = selectedTagIds.includes(tag._id)}
 											<button
 												type="button"
 												class="w-full px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer flex items-center gap-icon focus:bg-hover-solid outline-none text-left"
 												onclick={() => handleTagToggle(tag._id)}
 												aria-label={`Select tag ${tag.displayName}`}
 											>
-												{#if isSelected}
-													<svg
-														class="w-4 h-4 text-accent-primary flex-shrink-0"
-														fill="none"
-														stroke="currentColor"
-														viewBox="0 0 24 24"
-													>
-														<path
-															stroke-linecap="round"
-															stroke-linejoin="round"
-															stroke-width="2"
-															d="M5 13l4 4L19 7"
-														/>
-													</svg>
-												{:else}
-													<div class="w-4 h-4 flex-shrink-0"></div>
-												{/if}
+												<div class="w-4 h-4 flex-shrink-0"></div>
 												<div
 													class="w-2 h-2 rounded-full flex-shrink-0"
 													style="background-color: {tag.color || DEFAULT_TAG_COLOR}"
@@ -562,12 +531,18 @@
 									</div>
 								{/if}
 							{/each}
+							{:else if searchValue.trim().length > 0}
+								<!-- Show "No tags match" when search yields no results -->
+								<div class="px-menu-item py-menu-item text-sm text-tertiary text-center">
+									No tags match "{searchValue}"
+								</div>
+							{/if}
 						</div>
 					{/if}
 
 					<!-- Create New Tag Option -->
 					{#if canCreateTag() && onCreateTagWithColor && searchValue.trim().length > 0}
-						{#if hasAvailableTags || selectedTags().length > 0}
+						{#if shouldShowAvailableSection || selectedTags().length > 0}
 							<div class="h-px bg-base my-1"></div>
 						{/if}
 						{#if showColorPicker && colorPickerOpen}
@@ -654,14 +629,10 @@
 						{/if}
 					{/if}
 
-					<!-- Empty state (only show when no create option and no matches) -->
+					<!-- Empty state (only show when no create option, no matches, no available section, and no selected tags) -->
 					{@const tags = availableTags()}
-					{#if !canCreateTag() && !hasAvailableTags && selectedTags().length === 0}
-						{#if searchValue.trim().length > 0 && tags.length > 0}
-							<div class="px-menu-item py-menu-item text-sm text-tertiary text-center">
-								No tags match "{searchValue}"
-							</div>
-						{:else if tags.length === 0}
+					{#if !canCreateTag() && !shouldShowAvailableSection && selectedTags().length === 0}
+						{#if tags.length === 0}
 							<div class="px-menu-item py-menu-item text-sm text-tertiary text-center">
 								No tags yet. Create your first tag!
 							</div>
