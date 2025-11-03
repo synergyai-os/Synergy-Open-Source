@@ -22,7 +22,7 @@
 
 	let {
 		selectedTagIds = $bindable([]),
-		availableTags,
+		availableTags: _availableTags,
 		onTagsChange,
 		onCreateTag,
 		onCreateTagWithColor,
@@ -30,8 +30,25 @@
 	}: Props = $props();
 
 	// Set defaults for non-bindable props
-	if (!availableTags) availableTags = [];
 	if (!onTagsChange) onTagsChange = () => {};
+	
+	// Create a local reactive state for availableTags that can be updated optimistically
+	// Use $derived to always reflect prop changes, with local state for optimistic updates
+	let optimisticTags = $state<Tag[]>([]);
+	
+	// Always use prop tags, but merge with optimistic tags
+	const availableTags = $derived(() => {
+		const baseTags = (_availableTags && Array.isArray(_availableTags)) ? _availableTags : [];
+		// Merge with optimistic tags (tags created but not yet in query results)
+		const tagsMap = new Map<string, Tag>();
+		baseTags.forEach((tag: Tag) => tagsMap.set(tag._id, tag));
+		optimisticTags.forEach((tag: Tag) => {
+			if (!tagsMap.has(tag._id)) {
+				tagsMap.set(tag._id, tag);
+			}
+		});
+		return Array.from(tagsMap.values());
+	});
 
 	let comboboxOpen = $state(false);
 	let searchValue = $state('');
@@ -41,21 +58,24 @@
 
 	// Get selected tags for display
 	const selectedTags = $derived(() => {
+		const tags = availableTags(); // Call the derived function
 		return selectedTagIds
-			.map((id: Id<'tags'>) => availableTags.find((t: Tag) => t._id === id))
+			.map((id: Id<'tags'>) => tags.find((t: Tag) => t._id === id))
 			.filter((t: Tag | undefined): t is Tag => t !== undefined);
 	});
 
 	// Filter available tags based on search
 	const filteredTags = $derived(() => {
-		if (!searchValue) return availableTags;
+		const tags = availableTags(); // Call the derived function
+		if (!searchValue || searchValue.trim().length === 0) {
+			// No search: return all tags
+			return tags;
+		}
 
-		const searchLower = searchValue.toLowerCase();
-		const selected = selectedTags();
-		return availableTags.filter(
-			(tag: Tag) =>
-				tag.displayName.toLowerCase().includes(searchLower) ||
-				selected.some((st: Tag) => st._id === tag._id)
+		const searchLower = searchValue.toLowerCase().trim();
+		// Filter tags that match the search
+		return tags.filter((tag: Tag) =>
+			tag.displayName.toLowerCase().includes(searchLower)
 		);
 	});
 
@@ -63,28 +83,37 @@
 	const groupedTags = $derived(() => {
 		const groups = new Map<Id<'tags'> | 'root', Tag[]>();
 		const rootTags: Tag[] = [];
-		const tagMap = new Map<Id<'tags'>, Tag>();
-		const filtered = filteredTags();
 		const selected = selectedTags();
-
-		// Build tag map
-		for (const tag of filtered) {
-			tagMap.set(tag._id, tag);
+		const selectedIds = new Set(selected.map((st: Tag) => st._id));
+		
+		// Use all available tags to build the tag map (needed for parent lookup)
+		const allTagMap = new Map<Id<'tags'>, Tag>();
+		const tags = availableTags(); // Call the derived function
+		for (const tag of tags) {
+			allTagMap.set(tag._id, tag);
 		}
+		
+		// Filter tags that match search AND are not selected
+		const filtered = filteredTags().filter(
+			(tag: Tag) => !selectedIds.has(tag._id)
+		);
 
-		// Group by parent
+		// Group filtered tags by parent
 		for (const tag of filtered) {
-			if (!selected.some((st: Tag) => st._id === tag._id)) {
-				// Only show non-selected tags in dropdown
-				if (tag.parentId && tagMap.has(tag.parentId)) {
-					const parentId = tag.parentId;
+			if (tag.parentId && allTagMap.has(tag.parentId)) {
+				const parentId = tag.parentId;
+				// Only show parent in groups if parent itself is also in filtered results (not selected)
+				if (!selectedIds.has(parentId) && filtered.some((t: Tag) => t._id === parentId)) {
 					if (!groups.has(parentId)) {
 						groups.set(parentId, []);
 					}
 					groups.get(parentId)!.push(tag);
 				} else {
+					// Parent is selected or not in filtered, show as root
 					rootTags.push(tag);
 				}
+			} else {
+				rootTags.push(tag);
 			}
 		}
 
@@ -92,15 +121,17 @@
 	});
 
 	// Check if search value could be a new tag
-	const canCreateTag = $derived(
-		searchValue.trim().length > 0 &&
-			!availableTags.some((t: Tag) => t.displayName.toLowerCase() === searchValue.trim().toLowerCase())
-	);
+	const canCreateTag = $derived(() => {
+		const tags = availableTags(); // Call the derived function
+		return searchValue.trim().length > 0 &&
+			!tags.some((t: Tag) => t.displayName.toLowerCase() === searchValue.trim().toLowerCase());
+	});
 
 	// Get parent tag for current search (if matches a parent tag name)
 	const getPotentialParent = $derived(() => {
+		const tags = availableTags(); // Call the derived function
 		const searchLower = searchValue.trim().toLowerCase();
-		return availableTags.find((t: Tag) => t.displayName.toLowerCase() === searchLower);
+		return tags.find((t: Tag) => t.displayName.toLowerCase() === searchLower);
 	});
 
 	function handleTagToggle(tagId: Id<'tags'>) {
@@ -113,10 +144,11 @@
 	}
 
 	function handleCreateTagClick() {
-		if (canCreateTag) {
+		if (canCreateTag()) { // Call the derived function
 			pendingTagName = searchValue.trim();
 			showColorPicker = true;
 			colorPickerOpen = true;
+			focusedColorIndex = 0; // Reset focus to first color
 		}
 	}
 
@@ -126,48 +158,126 @@
 		try {
 			const potentialParent = getPotentialParent();
 			const newTagId = await onCreateTagWithColor(pendingTagName, color, potentialParent?._id);
+			
+					// Add the newly created tag optimistically so it appears immediately
+					// This will be replaced when the query refreshes, but ensures immediate UI feedback
+					const optimisticTag: Tag = {
+						_id: newTagId,
+						displayName: pendingTagName,
+						color: color,
+						parentId: potentialParent?._id,
+						level: 0,
+					};
+					optimisticTags = [...optimisticTags, optimisticTag];
+			
+			// Add to selected tags
 			selectedTagIds = [...selectedTagIds, newTagId];
+			
+			// Notify parent to save tags to highlight
 			onTagsChange(selectedTagIds);
+			
+			// Clear and close
 			searchValue = '';
 			showColorPicker = false;
 			colorPickerOpen = false;
 			pendingTagName = '';
+			comboboxOpen = false;
+			
+			// Note: availableTags will update automatically via useQuery, replacing the optimistic tag
 		} catch (error) {
 			console.error('Failed to create tag:', error);
+			// Don't clear search on error so user can try again
 		}
 	}
 
+	// Auto-focus input when combobox opens
+	$effect(() => {
+		if (comboboxOpen && !showColorPicker) {
+			// Focus the input field when combobox opens
+			// Use requestAnimationFrame + setTimeout for better timing
+			requestAnimationFrame(() => {
+				setTimeout(() => {
+					// Find the visible input inside the Combobox.Content
+					const content = document.querySelector('[data-bits-combobox-content]') as HTMLElement | null;
+					if (content) {
+						const input = content.querySelector('input[placeholder="Add tags..."]') as HTMLInputElement | null;
+						if (input) {
+							// Focus and select text
+							input.focus();
+							input.select();
+							// Ensure it's visible and has focus
+							input.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+						}
+					}
+				}, 150); // Increase delay slightly to ensure Content is fully rendered
+			});
+		}
+	});
+
+	// Auto-focus first color when color picker opens
+	let colorPickerRef = $state<HTMLElement | null>(null);
+	$effect(() => {
+		if (showColorPicker && colorPickerOpen && colorPickerRef) {
+			// Focus the container to enable keyboard navigation
+			setTimeout(() => {
+				colorPickerRef?.focus();
+			}, 0);
+		}
+	});
+
 	function handleInputFocus() {
 		comboboxOpen = true;
+	}
+
+	// Handle Enter key in input - create tag if no matches, or create directly if search exists
+	function handleInputKeyDown(event: KeyboardEvent) {
+		if (event.key === 'Enter' || event.key === 'Return') {
+			event.preventDefault();
+			event.stopPropagation();
+			if (!showColorPicker) {
+				// If we have a search value and can create a tag, create it
+				if (canCreateTag() && searchValue.trim().length > 0) { // Call the derived function
+					handleCreateTagClick();
+				}
+				// If search has matches but user presses Enter, select the first match
+				else if (groupedTags().rootTags.length > 0 || groupedTags().groups.size > 0) {
+					// Optionally: select first tag on Enter
+					// For now, just prevent default to keep current behavior
+				}
+			}
+		}
 	}
 
 	const inputValue = $derived(() => {
 		if (comboboxOpen) return searchValue;
 		return '';
 	});
+
+	// Track focused color index for keyboard navigation
+	let focusedColorIndex = $state(0);
+	
+	// Focus input when combobox opens
+	$effect(() => {
+		if (comboboxOpen) {
+			setTimeout(() => {
+				// Find the visible input inside the Combobox.Content
+				const content = document.querySelector('[data-bits-combobox-content]') as HTMLElement | null;
+				if (content) {
+					const input = content.querySelector('input') as HTMLInputElement | null;
+					if (input && input.placeholder === 'Add tags...') {
+						input.focus();
+					}
+				}
+			}, 50); // Small delay to ensure Content is rendered
+		}
+	});
 </script>
 
 <div class="space-y-2">
 	<!-- Section Header -->
-	<div class="flex items-center justify-between mb-2">
-		<p class="text-label font-medium text-secondary uppercase tracking-wider">Tags</p>
-		{#if selectedTags().length > 0}
-			<button
-				type="button"
-				class="w-6 h-6 flex items-center justify-center rounded-md hover:bg-hover-solid transition-colors text-secondary hover:text-primary"
-				onclick={() => {
-					comboboxOpen = !comboboxOpen;
-				}}
-				aria-label="Add tag"
-			>
-				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-				</svg>
-			</button>
-		{/if}
-	</div>
+	<p class="text-label font-medium text-secondary uppercase tracking-wider mb-2">Tags</p>
 
-	<!-- Tag Pills Display -->
+	<!-- Tag Pills Display (shown when tags exist) -->
 	{#if selectedTags().length > 0}
 		<div class="flex flex-wrap gap-2 mb-2">
 			{#each selectedTags() as tag}
@@ -185,12 +295,14 @@
 					<span>{tag.displayName}</span>
 				</button>
 			{/each}
-			<!-- Add button inline -->
+			<!-- Add button inline (only + icon when tags exist) -->
 			<button
 				type="button"
 				class="w-6 h-6 flex items-center justify-center rounded-full hover:bg-hover-solid transition-colors text-secondary hover:text-primary"
-				onclick={() => {
-					comboboxOpen = !comboboxOpen;
+				onclick={(e) => {
+					e.preventDefault();
+					e.stopPropagation();
+					comboboxOpen = true;
 				}}
 				aria-label="Add tag"
 			>
@@ -201,7 +313,7 @@
 		</div>
 	{/if}
 
-	<!-- Fixed Input Field (Linear style) -->
+	<!-- Combobox with trigger button -->
 	<div class="relative">
 		<Combobox.Root
 			type="multiple"
@@ -212,26 +324,43 @@
 				onTagsChange(selectedTagIds);
 			}}
 		>
-			<div class="relative" bind:this={tagInputRef}>
-				<Combobox.Input
-					defaultValue={searchValue}
-					oninput={(e) => {
-						searchValue = e.currentTarget.value;
-						comboboxOpen = true;
-					}}
-					onfocus={handleInputFocus}
-					placeholder="Change or add tags..."
-					class="w-full px-menu-item py-menu-item text-sm text-primary bg-base border border-base rounded-md focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-accent-primary pr-8"
-					aria-label="Tag selector input"
-				/>
-				<!-- Keyboard shortcut indicator -->
-				<div
-					class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none flex items-center gap-1"
-					aria-label="Keyboard shortcut: T"
-				>
-					<span class="text-label text-tertiary bg-elevated px-1 py-0.5 rounded border border-base">T</span>
+			{#if selectedTags().length > 0}
+				<!-- Anchor element when tags exist (for + button) - inside Combobox.Root -->
+				<div class="relative" bind:this={tagInputRef} aria-hidden="true">
+					<!-- Empty div for anchoring - no input needed -->
 				</div>
-			</div>
+			{:else}
+				<!-- Empty state: "Add Tags" trigger button -->
+				<div class="relative" bind:this={tagInputRef}>
+					<button
+						type="button"
+						class="w-full px-menu-item py-menu-item text-sm text-secondary hover:text-primary bg-base border border-base rounded-md hover:bg-hover-solid transition-colors flex items-center gap-icon text-left"
+						onclick={(e) => {
+							e.preventDefault();
+							e.stopPropagation();
+							comboboxOpen = true;
+						}}
+						aria-label="Add Tags"
+					>
+						<!-- Tag icon -->
+						<svg
+							class="w-4 h-4 flex-shrink-0"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+							aria-hidden="true"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+							/>
+						</svg>
+						<span>Add Tags</span>
+					</button>
+				</div>
+			{/if}
 
 			<Combobox.Portal>
 				<Combobox.Content
@@ -239,7 +368,30 @@
 					side="bottom"
 					align="start"
 					sideOffset={4}
+					customAnchor={tagInputRef}
 				>
+					<!-- Input field inside dropdown (like Linear) -->
+					<div class="relative px-menu-item py-menu-item border-b border-base mb-1">
+						<Combobox.Input
+							defaultValue={searchValue}
+							oninput={(e) => {
+								searchValue = e.currentTarget.value;
+								comboboxOpen = true;
+							}}
+							onkeydown={handleInputKeyDown}
+							onfocus={handleInputFocus}
+							placeholder="Add tags..."
+							class="w-full px-menu-item py-menu-item text-sm text-primary bg-base border border-base rounded-md focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-accent-primary pr-8"
+							aria-label="Tag selector input"
+						/>
+						<!-- Keyboard shortcut indicator -->
+						<div
+							class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none flex items-center gap-1"
+							aria-label="Keyboard shortcut: T"
+						>
+							<span class="text-label text-tertiary bg-elevated px-1 py-0.5 rounded border border-base">T</span>
+						</div>
+					</div>
 					<!-- Selected Tags Section -->
 					{#if selectedTags().length > 0}
 						<div class="px-menu-item py-menu-item">
@@ -280,8 +432,12 @@
 					{/if}
 
 					<!-- Available Tags -->
-					{#if groupedTags().rootTags.length > 0 || groupedTags().groups.size > 0}
+					{@const hasAvailableTags = groupedTags().rootTags.length > 0 || groupedTags().groups.size > 0}
+					{#if hasAvailableTags}
 						<div class="px-menu-item py-menu-item">
+							{#if selectedTags().length === 0}
+								<p class="text-label font-medium text-tertiary uppercase tracking-wider mb-1">Available Tags</p>
+							{/if}
 							{#each groupedTags().rootTags as tag}
 								{@const isSelected = selectedTagIds.includes(tag._id)}
 								<button
@@ -317,7 +473,8 @@
 
 							<!-- Grouped tags by parent -->
 							{#each Array.from(groupedTags().groups.entries()) as [parentId, tags]}
-								{@const parentTag = availableTags.find((t: Tag) => t._id === parentId)}
+								{@const allTags = availableTags()}
+								{@const parentTag = allTags.find((t: Tag) => t._id === parentId)}
 								{#if parentTag}
 									<div class="mt-2">
 										<p class="text-label font-medium text-tertiary uppercase tracking-wider mb-1 px-menu-item">
@@ -362,26 +519,60 @@
 					{/if}
 
 					<!-- Create New Tag Option -->
-					{#if canCreateTag && onCreateTagWithColor}
+					{#if canCreateTag() && onCreateTagWithColor && searchValue.trim().length > 0}
+						{#if hasAvailableTags || selectedTags().length > 0}
+							<div class="h-px bg-base my-1"></div>
+						{/if}
 						{#if showColorPicker && colorPickerOpen}
 							<div class="border-t border-base mt-1 pt-1">
 								<p class="px-menu-item py-menu-item text-label font-medium text-secondary mb-1">
 									Pick a color for label
 								</p>
-								{#each TAG_COLORS as color}
-									<button
-										type="button"
-										class="w-full px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer flex items-center gap-icon focus:bg-hover-solid outline-none text-left"
-										onclick={() => handleColorSelect(color.hex)}
-										aria-label={`Select color ${color.name}`}
-									>
-										<div
-											class="w-2 h-2 rounded-full flex-shrink-0"
-											style="background-color: {color.hex}"
-										></div>
-										<span class="flex-1">{color.name}</span>
-									</button>
-								{/each}
+								<div
+									role="listbox"
+									tabindex="0"
+									bind:this={colorPickerRef}
+									onkeydown={(e) => {
+										if (e.key === 'Enter' || e.key === 'Return') {
+											e.preventDefault();
+											if (TAG_COLORS[focusedColorIndex]) {
+												handleColorSelect(TAG_COLORS[focusedColorIndex].hex);
+											}
+										} else if (e.key === 'ArrowDown') {
+											e.preventDefault();
+											focusedColorIndex = Math.min(focusedColorIndex + 1, TAG_COLORS.length - 1);
+										} else if (e.key === 'ArrowUp') {
+											e.preventDefault();
+											focusedColorIndex = Math.max(focusedColorIndex - 1, 0);
+										} else if (e.key === 'Escape') {
+											e.preventDefault();
+											showColorPicker = false;
+											colorPickerOpen = false;
+											searchValue = '';
+											comboboxOpen = false;
+										}
+									}}
+								>
+									{#each TAG_COLORS as color, index}
+										<button
+											type="button"
+											class="w-full px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer flex items-center gap-icon focus:bg-hover-solid outline-none text-left"
+											class:bg-hover-solid={focusedColorIndex === index}
+											onclick={() => handleColorSelect(color.hex)}
+											onfocus={() => {
+												focusedColorIndex = index;
+											}}
+											aria-label={`Select color ${color.name}`}
+											tabindex={index === focusedColorIndex ? 0 : -1}
+										>
+											<div
+												class="w-2 h-2 rounded-full flex-shrink-0"
+												style="background-color: {color.hex}"
+											></div>
+											<span class="flex-1">{color.name}</span>
+										</button>
+									{/each}
+								</div>
 							</div>
 						{:else}
 							<div class="border-t border-base mt-1 pt-1">
@@ -389,6 +580,12 @@
 									type="button"
 									class="w-full px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer flex items-center gap-icon focus:bg-hover-solid outline-none text-left"
 									onclick={handleCreateTagClick}
+									onkeydown={(e) => {
+										if (e.key === 'Enter' || e.key === 'Return') {
+											e.preventDefault();
+											handleCreateTagClick();
+										}
+									}}
 									aria-label={`Create new tag: ${searchValue.trim()}`}
 								>
 									<svg
@@ -410,11 +607,18 @@
 						{/if}
 					{/if}
 
-					<!-- Empty state -->
-					{#if !canCreateTag && filteredTags().length === 0 && selectedTags().length === 0}
-						<div class="px-menu-item py-menu-item text-sm text-tertiary text-center">
-							No tags found
-						</div>
+					<!-- Empty state (only show when no create option and no matches) -->
+					{@const tags = availableTags()}
+					{#if !canCreateTag() && !hasAvailableTags && selectedTags().length === 0}
+						{#if searchValue.trim().length > 0 && tags.length > 0}
+							<div class="px-menu-item py-menu-item text-sm text-tertiary text-center">
+								No tags match "{searchValue}"
+							</div>
+						{:else if tags.length === 0}
+							<div class="px-menu-item py-menu-item text-sm text-tertiary text-center">
+								No tags yet. Create your first tag!
+							</div>
+						{/if}
 					{/if}
 				</Combobox.Content>
 			</Combobox.Portal>

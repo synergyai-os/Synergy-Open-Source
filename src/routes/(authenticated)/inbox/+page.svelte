@@ -13,6 +13,7 @@
 	import SyncReadwiseConfig from '$lib/components/inbox/SyncReadwiseConfig.svelte';
 	import SyncProgressTracker from '$lib/components/inbox/SyncProgressTracker.svelte';
 	import ResizableSplitter from '$lib/components/ResizableSplitter.svelte';
+	import Loading from '$lib/components/Loading.svelte';
 	import { addActivity, updateActivity, removeActivity } from '$lib/stores/activityTracker.svelte';
 
 	type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
@@ -563,24 +564,18 @@
 				<!-- Inbox Items List - Scrollable -->
 				<div class="flex-1 overflow-y-auto">
 					<div class="p-inbox-container">
-						<div class="flex flex-col gap-inbox-list">
-							{#each filteredItems as item}
-								<InboxCard
-									item={item}
-									selected={selectedItemId === item._id}
-									onClick={() => selectItem(item._id)}
-								/>
-							{/each}
-						</div>
-
-						{#if filteredItems.length === 0}
-							<div class="text-center py-12 px-6">
-								<p class="text-tertiary mb-4">No items in inbox.</p>
+						{#if isLoading}
+							<!-- Loading State -->
+							<Loading message="Loading inbox items..." />
+						{:else if filteredItems.length === 0}
+							<!-- Empty State -->
+							<div class="text-center py-readable-quote">
+								<p class="text-secondary mb-4">No items in inbox.</p>
 								<button
 									type="button"
 									onclick={handleSyncClick}
 									disabled={isSyncing}
-									class="px-4 py-2 bg-primary text-on-primary rounded-md hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+									class="px-4 py-2 bg-accent-primary text-white rounded-md hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 								>
 									{isSyncing ? 'Syncing...' : 'Sync Readwise Highlights'}
 								</button>
@@ -590,6 +585,17 @@
 								{#if syncSuccess}
 									<p class="text-success text-sm mt-2">Sync completed successfully!</p>
 								{/if}
+							</div>
+						{:else}
+							<!-- Items List -->
+							<div class="flex flex-col gap-inbox-list">
+								{#each filteredItems as item}
+									<InboxCard
+										item={item}
+										selected={selectedItemId === item._id}
+										onClick={() => selectItem(item._id)}
+									/>
+								{/each}
 							</div>
 						{/if}
 					</div>
@@ -676,24 +682,18 @@
 				<!-- Inbox Items List - Scrollable -->
 				<div class="flex-1 overflow-y-auto">
 					<div class="p-inbox-container">
-						<div class="flex flex-col gap-inbox-list">
-							{#each filteredItems as item}
-								<InboxCard
-									item={item}
-									selected={false}
-									onClick={() => selectItem(item.id)}
-								/>
-							{/each}
-						</div>
-
-						{#if filteredItems.length === 0}
-							<div class="text-center py-12 px-6">
-								<p class="text-tertiary mb-4">No items in inbox.</p>
+						{#if isLoading}
+							<!-- Loading State -->
+							<Loading message="Loading inbox items..." />
+						{:else if filteredItems.length === 0}
+							<!-- Empty State -->
+							<div class="text-center py-readable-quote">
+								<p class="text-secondary mb-4">No items in inbox.</p>
 								<button
 									type="button"
 									onclick={handleSyncClick}
 									disabled={isSyncing}
-									class="px-4 py-2 bg-primary text-on-primary rounded-md hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+									class="px-4 py-2 bg-accent-primary text-white rounded-md hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 								>
 									{isSyncing ? 'Syncing...' : 'Sync Readwise Highlights'}
 								</button>
@@ -703,6 +703,17 @@
 								{#if syncSuccess}
 									<p class="text-success text-sm mt-2">Sync completed successfully!</p>
 								{/if}
+							</div>
+						{:else}
+							<!-- Items List -->
+							<div class="flex flex-col gap-inbox-list">
+								{#each filteredItems as item}
+									<InboxCard
+										item={item}
+										selected={false}
+										onClick={() => selectItem(item.id)}
+									/>
+								{/each}
 							</div>
 						{/if}
 					</div>
