@@ -43,11 +43,19 @@
 	}
 
 	// Query all tags for user (with error handling if API not generated yet)
-	// Temporarily disabled to debug detail view rendering
-	const allTags = 'skip' as any; // useQuery(
-		// browser && (api as any).tags?.listAllTags ? (api as any).tags.listAllTags : 'skip',
-		// browser && (api as any).tags?.listAllTags ? {} : 'skip'
-	// );
+	// Note: useQuery returns {data, isLoading, error, isStale} - extract the data property
+	const allTagsQuery = useQuery(
+		browser && (api as any).tags?.listAllTags ? (api as any).tags.listAllTags : null,
+		browser && (api as any).tags?.listAllTags ? {} : null
+	);
+	
+	// Extract data from useQuery result (which returns {data, isLoading, error, isStale})
+	const allTags = $derived(() => {
+		if (allTagsQuery && typeof allTagsQuery === 'object' && 'data' in allTagsQuery) {
+			return allTagsQuery.data;
+		}
+		return undefined;
+	});
 
 	let isLoading = $state(false);
 	let loadingMessage = $state('');
@@ -60,26 +68,70 @@
 
 	const mockCategories = ['Product Delivery', 'Product Discovery', 'Leadership'];
 
-	// Initialize selected tags from item
+	// Initialize selected tags from item (when item changes or tags are loaded)
 	$effect(() => {
-		if (item?.tags && Array.isArray(item.tags)) {
-			selectedTagIds = item.tags.map((tag: any) => tag._id).filter(Boolean);
+		if (item?.tags && Array.isArray(item.tags) && item.tags.length > 0) {
+			const tagIds = item.tags.map((tag: any) => tag._id).filter(Boolean);
+			
+			// Only update if the tag IDs are different (avoid infinite loops)
+			const currentSorted = [...selectedTagIds].sort().join(',');
+			const newSorted = [...tagIds].sort().join(',');
+			
+			if (currentSorted !== newSorted) {
+				selectedTagIds = tagIds;
+			}
+		} else if (!item?.tags || (Array.isArray(item.tags) && item.tags.length === 0)) {
+			// Clear tags if item has no tags
+			selectedTagIds = [];
 		}
 	});
 
 	// Get highlight ID from item
 	const highlightId = $derived(item?.highlight?._id);
 
-	// Available tags from query (with color)
+	// Available tags from query (with color) - includes tags from item if available
+	// CRITICAL: This must always include ALL user tags from allTags query for global availability
 	const availableTags = $derived(() => {
-		if (!allTags || !Array.isArray(allTags)) return [];
-		return allTags.map((tag: any) => ({
-			_id: tag._id,
-			displayName: tag.displayName,
-			color: tag.color || DEFAULT_TAG_COLOR,
-			parentId: tag.parentId,
-			level: tag.level || 0,
-		}));
+		const tagsData = allTags(); // Call the derived function to get the actual tags data
+		const tagsMap = new Map<string, any>();
+		
+		// Add tags from allTags query (all user tags - should be available everywhere)
+		// This is the PRIMARY source - tags should be available globally across all cards
+		if (tagsData !== undefined && tagsData !== null) {
+			// tagsData can be undefined (loading), null (error), or an array
+			if (Array.isArray(tagsData)) {
+				// Always process tagsData if it's an array (even if empty - that's fine)
+				tagsData.forEach((tag: any) => {
+					if (tag?._id) {
+						tagsMap.set(tag._id, {
+							_id: tag._id,
+							displayName: tag.displayName,
+							color: tag.color || DEFAULT_TAG_COLOR,
+							parentId: tag.parentId,
+							level: tag.level || 0,
+						});
+					}
+				});
+			}
+		}
+		
+		// Also add tags from item.tags (in case they're not in allTags query yet - fallback only)
+		// This ensures we have tags even if allTags hasn't loaded yet
+		if (item?.tags && Array.isArray(item.tags)) {
+			item.tags.forEach((tag: any) => {
+				if (tag?._id && !tagsMap.has(tag._id)) {
+					tagsMap.set(tag._id, {
+						_id: tag._id,
+						displayName: tag.displayName || tag.name,
+						color: tag.color || DEFAULT_TAG_COLOR,
+						parentId: tag.parentId,
+						level: tag.level || 0,
+					});
+				}
+			});
+		}
+		
+		return Array.from(tagsMap.values());
 	});
 
 	async function handleTagsChange(tagIds: Id<'tags'>[]) {
@@ -408,8 +460,8 @@
 							</div>
 							<!-- Highlight Text - Hero size, reading optimized for ADHD/focus-challenged -->
 							<p class="text-2xl sm:text-3xl text-primary leading-readable font-normal tracking-readable relative z-10 max-w-none">
-								{item.highlight.text}
-							</p>
+							{item.highlight.text}
+						</p>
 						</div>
 					</div>
 				{/if}
@@ -516,15 +568,28 @@
 				{/if}
 
 				<!-- Tags -->
-				<!-- Temporarily disabled for debugging - if detail view works, tags code is the issue -->
-				{#if false && highlightId && (api as any).tags?.listAllTags && allTags !== undefined}
-					<TagSelector
-						bind:selectedTagIds
-						availableTags={availableTags()}
-						onTagsChange={handleTagsChange}
-						onCreateTagWithColor={handleCreateTag}
-						bind:tagInputRef
-					/>
+				{#if highlightId}
+					{#if (api as any).tags?.listAllTags}
+						<TagSelector
+							bind:selectedTagIds
+							availableTags={availableTags()}
+							onTagsChange={handleTagsChange}
+							onCreateTagWithColor={handleCreateTag}
+							bind:tagInputRef
+						/>
+					{:else}
+						<div>
+							<p class="text-xs font-medium text-secondary uppercase tracking-wider mb-2">Tags</p>
+							<p class="text-sm text-tertiary">
+								Tags API not available yet. Restart Convex dev server to regenerate API.
+							</p>
+						</div>
+					{/if}
+				{:else}
+					<div>
+						<p class="text-xs font-medium text-secondary uppercase tracking-wider mb-2">Tags</p>
+						<p class="text-sm text-tertiary">No highlight ID available</p>
+					</div>
 				{/if}
 
 				<!-- Actions (Sidebar) -->
