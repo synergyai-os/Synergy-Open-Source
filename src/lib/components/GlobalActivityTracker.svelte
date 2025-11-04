@@ -42,7 +42,7 @@
 			// Update all sync activities
 			for (const activity of syncActivities) {
 				if (progress) {
-					// Progress is active
+					// Progress is active - update it
 					updateActivity(activity.id, {
 						status: 'running',
 						progress: {
@@ -52,16 +52,12 @@
 							message: progress.message
 						}
 					});
-				} else {
-					// Progress cleared = sync completed
-					updateActivity(activity.id, {
-						status: 'completed',
-						progress: undefined
-					});
-					
-					// Auto-dismiss after delay if configured
-					setupAutoDismiss();
 				}
+				// Note: We do NOT mark completion here when progress is null
+				// Completion is handled by the composable (useInboxSync) based on the action result
+				// This prevents race conditions where completion is marked too early
+				// The action clears progress in the database before returning, so we can't rely on
+				// null progress to indicate completion - we must wait for the action result
 			}
 		} catch (error) {
 			console.error('Failed to poll sync progress:', error);

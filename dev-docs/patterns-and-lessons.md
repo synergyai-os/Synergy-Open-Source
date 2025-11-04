@@ -702,3 +702,108 @@ When using polling for progress updates:
 
 ---
 
+## Global Activity Tracker: Dual Polling Race Condition
+
+**Date**: 2025-01-02  
+**Issue**: Activity widget disappears after 1-2 seconds during "Fetching sources..." phase due to dual polling mechanisms marking completion.
+
+### Problem
+
+When syncing/importing:
+- Two separate polling mechanisms exist:
+  1. **Local polling**: `useInboxSync` composable polls for progress
+  2. **Global polling**: `GlobalActivityTracker` component polls for all sync activities
+- Action clears progress in database before returning (to clean up)
+- Global tracker sees `null` progress and marks activity as 'completed' prematurely
+- Auto-dismiss timer starts before `handleImport()` finishes processing
+- Widget disappears before user sees proper completion message
+
+### Root Cause
+
+Two competing polling systems with different responsibilities:
+1. **Composable polling** (`useInboxSync.pollSyncProgress()`):
+   - Correctly only updates progress, never marks completion
+   - Stops immediately after action completes
+   - Single source of truth for completion (action result)
+
+2. **Global tracker polling** (`GlobalActivityTracker.pollSyncProgress()`):
+   - Also polling every 500ms for all sync activities
+   - Saw `null` progress (when action cleared it) and incorrectly assumed completion
+   - Marked activity as 'completed' before composable finished processing
+   - Triggered auto-dismiss timer prematurely
+
+**Timeline**:
+1. Action starts, both pollers run
+2. Progress shows "Fetching sources..."
+3. Action clears progress in DB (line 527 in `syncReadwise.ts`) **before returning**
+4. Global tracker polls, sees `null` → marks 'completed' → auto-dismiss starts
+5. Meanwhile, composable's `handleImport()` still processing action result
+6. When composable finally marks completion, timer may have already started
+
+### Solution
+
+**Pattern**: Global tracker should only update progress, never mark completion
+
+```typescript
+// ❌ WRONG: Global tracker marks completion when progress is null
+async function pollSyncProgress(): Promise<void> {
+  const progress = await convexClient.query(inboxApi.getSyncProgress, {});
+  
+  for (const activity of syncActivities) {
+    if (progress) {
+      // Update progress
+      updateActivity(activity.id, { status: 'running', progress: {...} });
+    } else {
+      // Progress cleared = sync completed ❌ WRONG ASSUMPTION
+      updateActivity(activity.id, { status: 'completed' }); // Too early!
+      setupAutoDismiss(); // Timer starts prematurely
+    }
+  }
+}
+```
+
+```typescript
+// ✅ CORRECT: Global tracker only updates progress, never marks completion
+async function pollSyncProgress(): Promise<void> {
+  const progress = await convexClient.query(inboxApi.getSyncProgress, {});
+  
+  for (const activity of syncActivities) {
+    if (progress) {
+      // Progress is active - update it
+      updateActivity(activity.id, {
+        status: 'running',
+        progress: {
+          step: progress.step,
+          current: progress.current,
+          total: progress.total,
+          message: progress.message
+        }
+      });
+    }
+    // Note: We do NOT mark completion here when progress is null
+    // Completion is handled by the composable (useInboxSync) based on the action result
+    // This prevents race conditions where completion is marked too early
+    // The action clears progress in the database before returning, so we can't rely on
+    // null progress to indicate completion - we must wait for the action result
+  }
+}
+```
+
+**Why it works**:
+- Global tracker focuses on progress updates only
+- Composable remains single source of truth for completion
+- No race condition between two pollers
+- Action can safely clear progress without triggering premature completion
+
+### Key Takeaway
+
+When implementing dual polling systems (local + global):
+- **Global tracker should only update progress**, never mark completion
+- **Composable/action result is the single source of truth** for completion status
+- **Don't assume null progress = completion** - action may clear progress before returning
+- **Separate responsibilities**: Global tracker = progress updates, Composable = completion logic
+
+**Related Pattern**: See "Polling and Completion: Race Condition Prevention" for the composable-level fix.
+
+---
+
