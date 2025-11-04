@@ -101,10 +101,8 @@ export function addActivity(activity: Omit<Activity, 'createdAt' | 'updatedAt'>)
 	
 	activityState.activities.push(newActivity);
 	
-	// Start polling if not already running
-	if (!activityState.pollingInterval && activityState.activities.length > 0) {
-		startPolling();
-	}
+	// Note: Polling is managed by GlobalActivityTracker component via $effect
+	// Do not call startPolling() here - it requires a pollFunction parameter
 	
 	return newActivity.id;
 }

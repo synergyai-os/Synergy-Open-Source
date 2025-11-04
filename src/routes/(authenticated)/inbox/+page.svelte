@@ -2,7 +2,7 @@
 	import { getContext } from 'svelte';
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
-	import { useConvexClient } from 'convex-svelte';
+	import { useConvexClient, useQuery } from 'convex-svelte';
 	import { makeFunctionReference } from 'convex/server';
 	import { api } from '$lib/convex';
 	import ReadwiseDetail from '$lib/components/inbox/ReadwiseDetail.svelte';
@@ -14,7 +14,7 @@
 	import SyncProgressTracker from '$lib/components/inbox/SyncProgressTracker.svelte';
 	import ResizableSplitter from '$lib/components/ResizableSplitter.svelte';
 	import Loading from '$lib/components/Loading.svelte';
-	import { addActivity, updateActivity, removeActivity } from '$lib/stores/activityTracker.svelte';
+	import { useInboxSync } from '$lib/composables/useInboxSync.svelte';
 
 	type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 
@@ -22,49 +22,34 @@
 	const convexClient = browser ? useConvexClient() : null;
 	// Store function reference in a stable variable - this ensures the reference never changes
 	const inboxApi = browser ? {
-		listInboxItems: makeFunctionReference('inbox:listInboxItems') as any,
 		getInboxItemWithDetails: makeFunctionReference('inbox:getInboxItemWithDetails') as any,
 		syncReadwiseHighlights: makeFunctionReference('syncReadwise:syncReadwiseHighlights') as any,
 		getSyncProgress: makeFunctionReference('inbox:getSyncProgress') as any,
 	} : null;
 	
-	// Fetch inbox items from Convex
+	// Filter state
 	let filterType = $state<InboxItemType | 'all'>('all');
-	let inboxItems = $state<any[]>([]);
-	let isLoading = $state(true);
 
-	// Sync state
-	let isSyncing = $state(false);
-	let syncError = $state<string | null>(null);
-	let syncSuccess = $state(false);
-	let showSyncConfig = $state(false);
-	let syncProgress = $state<{ step: string; current: number; total?: number; message?: string } | null>(null);
-	let progressPollInterval: ReturnType<typeof setInterval> | null = null;
-	let syncActivityId: string | null = null; // Track activity ID for global tracker
+	// Use reactive query for real-time inbox items updates
+	// This automatically subscribes to changes and updates when new items are added during sync
+	const inboxQuery = browser ? useQuery(
+		api.inbox.listInboxItems,
+		() => filterType === 'all' 
+			? { processed: false } 
+			: { filterType, processed: false }
+	) : null;
 
-	// Load inbox items
-	const loadItems = async () => {
-		if (!browser || !convexClient || !inboxApi) return;
-
-		try {
-			const result = await convexClient.query(
-				inboxApi.listInboxItems,
-				filterType === 'all' ? { processed: false } : { filterType, processed: false }
-			);
-			inboxItems = result || [];
-			isLoading = false;
-		} catch (error) {
-			console.error('Failed to load inbox items:', error);
-			isLoading = false;
-		}
-	};
+	// Derived state from query
+	const inboxItems = $derived(inboxQuery?.data ?? []);
+	const isLoading = $derived(inboxQuery?.isLoading ?? false);
+	const queryError = $derived(inboxQuery?.error ?? null);
 
 	// Navigate through inbox items (for keyboard navigation)
 	function navigateItems(direction: 'up' | 'down') {
 		if (filteredItems.length === 0) return;
 		
 		const currentIndex = selectedItemId 
-			? filteredItems.findIndex(item => item._id === selectedItemId || item.id === selectedItemId)
+			? filteredItems.findIndex(item => item._id === selectedItemId)
 			: -1;
 		
 		let newIndex: number;
@@ -90,18 +75,16 @@
 				}
 			});
 			
-			selectItem(newItem._id || newItem.id);
+			selectItem(newItem._id);
 			// Scroll item into view
 			setTimeout(() => {
-				const itemElement = document.querySelector(`[data-inbox-item-id="${newItem._id || newItem.id}"]`);
+				const itemElement = document.querySelector(`[data-inbox-item-id="${newItem._id}"]`);
 				itemElement?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 			}, 0);
 		}
 	}
 
 	onMount(() => {
-		loadItems();
-		
 		// Keyboard navigation (J/K for down/up)
 		function handleKeyDown(event: KeyboardEvent) {
 			// Ignore if user is typing in input/textarea
@@ -129,14 +112,7 @@
 		};
 	});
 
-	// Reload when filter changes  
-	$effect(() => {
-		// Access filterType to track it
-		const currentFilter = filterType;
-		if (browser) {
-			loadItems();
-		}
-	});
+	// Note: No need for $effect to reload items - useQuery automatically reacts to filterType changes
 
 	// Get sidebar state from parent layout
 	const sidebarContext = getContext<{
@@ -148,6 +124,17 @@
 	// UI State
 	let selectedItemId = $state<string | null>(null);
 	let inboxWidth = $state(400);
+
+	// Initialize sync composable
+	// Note: onItemsReload is no longer needed - useQuery automatically updates when items are added
+	const sync = useInboxSync(
+		convexClient,
+		inboxApi,
+		undefined, // onItemsReload not needed - useQuery handles reactivity automatically
+		() => {
+			selectedItemId = null;
+		}
+	);
 
 	// Derive sidebar state from context
 	const sidebarCollapsed = $derived(sidebarContext?.sidebarCollapsed ?? false);
@@ -222,7 +209,7 @@
 	// Navigation helpers for detail view
 	function getCurrentItemIndex(): number {
 		if (!selectedItemId || filteredItems.length === 0) return -1;
-		return filteredItems.findIndex(item => item._id === selectedItemId || item.id === selectedItemId);
+		return filteredItems.findIndex(item => item._id === selectedItemId);
 	}
 	
 	function handleNextItem() {
@@ -237,298 +224,6 @@
 		filterType = type;
 		// Clear selection when changing filters
 		selectedItemId = null;
-	}
-
-	function handleSyncClick() {
-		// Show config panel instead of directly syncing
-		showSyncConfig = true;
-		selectedItemId = null; // Clear selection to show config panel
-	}
-
-	// Poll for sync progress
-	const pollSyncProgress = async () => {
-		if (!browser || !convexClient || !inboxApi) return;
-		
-		try {
-			const progress = await convexClient.query(inboxApi.getSyncProgress, {});
-			if (progress) {
-				syncProgress = progress;
-				
-				// Update global tracker if activity exists
-				if (syncActivityId) {
-					updateActivity(syncActivityId, {
-						status: 'running',
-						progress: {
-							step: progress.step,
-							current: progress.current,
-							total: progress.total,
-							message: progress.message
-						}
-					});
-				}
-			} else {
-				// Progress cleared = sync completed
-				if (syncProgress) {
-					syncSuccess = true;
-					await loadItems();
-					
-					// Update global tracker to completed
-					if (syncActivityId) {
-						updateActivity(syncActivityId, {
-							status: 'completed',
-							progress: undefined
-						});
-						
-						// Auto-dismiss after delay
-						setTimeout(() => {
-							if (syncActivityId) {
-								removeActivity(syncActivityId);
-								syncActivityId = null;
-							}
-						}, 3000);
-					}
-					
-					setTimeout(() => {
-						syncProgress = null;
-						syncSuccess = false;
-						isSyncing = false;
-						if (progressPollInterval) {
-							clearInterval(progressPollInterval);
-							progressPollInterval = null;
-						}
-					}, 2000);
-				}
-			}
-		} catch (error) {
-			console.error('Failed to poll sync progress:', error);
-			
-			// Update global tracker on error
-			if (syncActivityId) {
-				updateActivity(syncActivityId, {
-					status: 'error',
-					progress: {
-						message: error instanceof Error ? error.message : 'Failed to sync'
-					}
-				});
-			}
-		}
-	};
-
-	async function handleImport(options: {
-		dateRange?: '7d' | '30d' | '90d' | '180d' | '365d' | 'all';
-		quantity?: 5 | 10 | 25 | 50 | 100 | 250 | 500 | 1000;
-		customStartDate?: string;
-		customEndDate?: string;
-	}) {
-		if (!browser || !convexClient || !inboxApi) return;
-
-		showSyncConfig = false;
-		isSyncing = true;
-		syncError = null;
-		syncSuccess = false;
-
-		// Clear any existing poll interval
-		if (progressPollInterval) {
-			clearInterval(progressPollInterval);
-			progressPollInterval = null;
-		}
-		
-		// Clear any existing activity
-		if (syncActivityId) {
-			removeActivity(syncActivityId);
-			syncActivityId = null;
-		}
-
-		// Add activity to global tracker
-		syncActivityId = addActivity({
-			id: `sync-readwise-${Date.now()}`,
-			type: 'sync',
-			status: 'running',
-			metadata: {
-				source: 'readwise',
-				operation: 'import'
-			},
-			progress: {
-				step: 'Starting sync...',
-				current: 0,
-				indeterminate: true
-			},
-			quickActions: [
-				{
-					label: 'View Inbox',
-					action: () => {
-						// Will be handled by dismiss, navigation can happen on dismiss
-					}
-				}
-			],
-			onCancel: () => {
-				handleCancelSync();
-			},
-			autoDismiss: true,
-			dismissAfter: 5000
-		});
-
-		// Start polling for progress updates (every 500ms)
-		progressPollInterval = setInterval(pollSyncProgress, 500);
-		// Poll immediately
-		pollSyncProgress();
-
-		try {
-			const result = await convexClient.action(inboxApi.syncReadwiseHighlights, options);
-			
-			// Final poll to ensure we get the completion state
-			await pollSyncProgress();
-			
-			// Show friendly message if nothing new was imported (quantity-based)
-			if (options.quantity && result?.newCount === 0 && result?.skippedCount > 0) {
-				syncError = null;
-				syncSuccess = true;
-				syncProgress = {
-					step: 'Already imported',
-					current: result.skippedCount,
-					total: result.skippedCount,
-					message: `All ${result.skippedCount} highlights are already in your inbox. No new items imported.`,
-				};
-				
-				// Update global tracker
-				if (syncActivityId) {
-					updateActivity(syncActivityId, {
-						status: 'completed',
-						progress: {
-							step: 'Already imported',
-							current: result.skippedCount,
-							total: result.skippedCount,
-							message: `All ${result.skippedCount} highlights are already in your inbox.`
-						}
-					});
-				}
-				
-				// Reload inbox items
-				await loadItems();
-				
-				// Clear progress after 4 seconds
-				setTimeout(() => {
-					syncProgress = null;
-					syncSuccess = false;
-					isSyncing = false;
-					if (progressPollInterval) {
-						clearInterval(progressPollInterval);
-						progressPollInterval = null;
-					}
-					if (syncActivityId) {
-						removeActivity(syncActivityId);
-						syncActivityId = null;
-					}
-				}, 4000);
-			} else if (result?.newCount === 0 && result?.skippedCount === 0) {
-				// Nothing at all was found/processed
-				syncError = null;
-				syncSuccess = false;
-				syncProgress = null;
-				isSyncing = false;
-				
-				// Update global tracker
-				if (syncActivityId) {
-					updateActivity(syncActivityId, {
-						status: 'completed',
-						progress: {
-							message: 'No new items to import'
-						}
-					});
-					setTimeout(() => {
-						if (syncActivityId) {
-							removeActivity(syncActivityId);
-							syncActivityId = null;
-						}
-					}, 3000);
-				}
-			} else {
-				// New items imported
-				syncSuccess = true;
-				
-				// Update global tracker with success message
-				if (syncActivityId && result) {
-					updateActivity(syncActivityId, {
-						status: 'completed',
-						progress: {
-							message: result.newCount > 0 
-								? `Imported ${result.newCount} new highlight${result.newCount === 1 ? '' : 's'}`
-								: 'Sync completed'
-						}
-					});
-				}
-				
-				// Reload inbox items after successful sync
-				await loadItems();
-				
-				// Clear progress after 2 seconds
-				setTimeout(() => {
-					syncProgress = null;
-					syncSuccess = false;
-					isSyncing = false;
-					if (progressPollInterval) {
-						clearInterval(progressPollInterval);
-						progressPollInterval = null;
-					}
-					if (syncActivityId) {
-						removeActivity(syncActivityId);
-						syncActivityId = null;
-					}
-				}, 2000);
-			}
-		} catch (error) {
-			syncError = error instanceof Error ? error.message : 'Failed to sync';
-			syncProgress = null;
-			isSyncing = false;
-			
-			// Update global tracker with error
-			if (syncActivityId) {
-				updateActivity(syncActivityId, {
-					status: 'error',
-					progress: {
-						message: syncError
-					}
-				});
-				
-				// Keep error visible longer
-				setTimeout(() => {
-					if (syncActivityId) {
-						removeActivity(syncActivityId);
-						syncActivityId = null;
-					}
-				}, 5000);
-			}
-			
-			if (progressPollInterval) {
-				clearInterval(progressPollInterval);
-				progressPollInterval = null;
-			}
-		}
-	}
-
-	function handleCancelSync() {
-		showSyncConfig = false;
-		syncProgress = null;
-		isSyncing = false;
-		syncError = null;
-		
-		// Remove activity from global tracker
-		if (syncActivityId) {
-			updateActivity(syncActivityId, {
-				status: 'cancelled'
-			});
-			setTimeout(() => {
-				if (syncActivityId) {
-					removeActivity(syncActivityId);
-					syncActivityId = null;
-				}
-			}, 1000);
-		}
-		
-		if (progressPollInterval) {
-			clearInterval(progressPollInterval);
-			progressPollInterval = null;
-		}
 	}
 
 	// Header actions
@@ -573,8 +268,8 @@
 					onDeleteAllRead={handleDeleteAllRead}
 					onDeleteAllCompleted={handleDeleteAllCompleted}
 					onSortClick={handleSortClick}
-					onSync={handleSyncClick}
-					isSyncing={isSyncing}
+					onSync={sync.handleSyncClick}
+					isSyncing={sync.isSyncing}
 					sidebarCollapsed={sidebarCollapsed}
 					onSidebarToggle={sidebarContext?.onSidebarToggle}
 					isMobile={isMobile}
@@ -587,22 +282,34 @@
 						{#if isLoading}
 							<!-- Loading State -->
 							<Loading message="Loading inbox items..." />
+						{:else if queryError}
+							<!-- Error State -->
+							<div class="text-center py-readable-quote">
+								<p class="text-error mb-4">Failed to load inbox items: {queryError.toString()}</p>
+								<button
+									type="button"
+									onclick={() => window.location.reload()}
+									class="px-4 py-2 bg-accent-primary text-white rounded-md hover:bg-accent-hover transition-colors"
+								>
+									Reload Page
+								</button>
+							</div>
 						{:else if filteredItems.length === 0}
 							<!-- Empty State -->
 							<div class="text-center py-readable-quote">
 								<p class="text-secondary mb-4">No items in inbox.</p>
 								<button
 									type="button"
-									onclick={handleSyncClick}
-									disabled={isSyncing}
+									onclick={sync.handleSyncClick}
+									disabled={sync.isSyncing}
 									class="px-4 py-2 bg-accent-primary text-white rounded-md hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 								>
-									{isSyncing ? 'Syncing...' : 'Sync Readwise Highlights'}
+									{sync.isSyncing ? 'Syncing...' : 'Sync Readwise Highlights'}
 								</button>
-								{#if syncError}
-									<p class="text-error text-sm mt-2">{syncError}</p>
+								{#if sync.syncError}
+									<p class="text-error text-sm mt-2">{sync.syncError}</p>
 								{/if}
-								{#if syncSuccess}
+								{#if sync.syncSuccess}
 									<p class="text-success text-sm mt-2">Sync completed successfully!</p>
 								{/if}
 							</div>
@@ -645,20 +352,20 @@
 						<ManualDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
 					{/if}
 				{/key}
-			{:else if showSyncConfig}
+			{:else if sync.showSyncConfig}
 				<!-- Sync Config Panel -->
 				<SyncReadwiseConfig
-					onImport={handleImport}
-					onCancel={handleCancelSync}
+					onImport={sync.handleImport}
+					onCancel={sync.handleCancelSync}
 				/>
-			{:else if syncProgress}
+			{:else if sync.syncProgress}
 				<!-- Progress Tracker -->
 				<SyncProgressTracker
-					step={syncProgress.step}
-					current={syncProgress.current}
-					total={syncProgress.total}
-					message={syncProgress.message}
-					onCancel={handleCancelSync}
+					step={sync.syncProgress.step}
+					current={sync.syncProgress.current}
+					total={sync.syncProgress.total}
+					message={sync.syncProgress.message}
+					onCancel={sync.handleCancelSync}
 				/>
 			{:else}
 				<!-- Empty state -->
@@ -697,8 +404,8 @@
 					onDeleteAllRead={handleDeleteAllRead}
 					onDeleteAllCompleted={handleDeleteAllCompleted}
 					onSortClick={handleSortClick}
-					onSync={handleSyncClick}
-					isSyncing={isSyncing}
+					onSync={sync.handleSyncClick}
+					isSyncing={sync.isSyncing}
 					sidebarCollapsed={sidebarCollapsed}
 					onSidebarToggle={sidebarContext?.onSidebarToggle}
 					isMobile={isMobile}
@@ -711,22 +418,34 @@
 						{#if isLoading}
 							<!-- Loading State -->
 							<Loading message="Loading inbox items..." />
+						{:else if queryError}
+							<!-- Error State -->
+							<div class="text-center py-readable-quote">
+								<p class="text-error mb-4">Failed to load inbox items: {queryError.toString()}</p>
+								<button
+									type="button"
+									onclick={() => window.location.reload()}
+									class="px-4 py-2 bg-accent-primary text-white rounded-md hover:bg-accent-hover transition-colors"
+								>
+									Reload Page
+								</button>
+							</div>
 						{:else if filteredItems.length === 0}
 							<!-- Empty State -->
 							<div class="text-center py-readable-quote">
 								<p class="text-secondary mb-4">No items in inbox.</p>
 								<button
 									type="button"
-									onclick={handleSyncClick}
-									disabled={isSyncing}
+									onclick={sync.handleSyncClick}
+									disabled={sync.isSyncing}
 									class="px-4 py-2 bg-accent-primary text-white rounded-md hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 								>
-									{isSyncing ? 'Syncing...' : 'Sync Readwise Highlights'}
+									{sync.isSyncing ? 'Syncing...' : 'Sync Readwise Highlights'}
 								</button>
-								{#if syncError}
-									<p class="text-error text-sm mt-2">{syncError}</p>
+								{#if sync.syncError}
+									<p class="text-error text-sm mt-2">{sync.syncError}</p>
 								{/if}
-								{#if syncSuccess}
+								{#if sync.syncSuccess}
 									<p class="text-success text-sm mt-2">Sync completed successfully!</p>
 								{/if}
 							</div>
@@ -737,7 +456,7 @@
 									<InboxCard
 										item={item}
 										selected={false}
-										onClick={() => selectItem(item.id)}
+										onClick={() => selectItem(item._id)}
 									/>
 								{/each}
 							</div>
