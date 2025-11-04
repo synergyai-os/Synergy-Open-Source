@@ -497,3 +497,208 @@ When designing activity/polling systems:
 
 ---
 
+## Activity Tracker: Auto-Dismiss Duplicate Timers
+
+**Date**: 2025-01-02  
+**Issue**: Activity widget disappears too early (3-5 seconds instead of 5 seconds) due to duplicate auto-dismiss timers.
+
+### Problem
+
+When activities are marked as 'completed':
+- `setupAutoDismiss()` is called via `$effect` whenever activities change
+- Each call creates a new `setTimeout` for auto-dismiss
+- Multiple timers fire, causing activity to disappear early
+- Progress updates during sync trigger `$effect`, creating timers repeatedly
+
+### Root Cause
+
+`setupAutoDismiss()` doesn't track which activities already have dismiss timers:
+- Called in `$effect` that runs on every activity change
+- Progress updates during sync trigger `$effect`
+- New timers are created each time, even if one already exists
+- First timer fires, removing activity before intended time
+
+### Solution
+
+**Pattern**: Track which activities already have dismiss timers
+
+```typescript
+// ❌ WRONG: Creates duplicate timers
+export function setupAutoDismiss(): void {
+  for (const activity of activityState.activities) {
+    if (activity.autoDismiss && activity.status === 'completed') {
+      setTimeout(() => {
+        removeActivity(activity.id);
+      }, activity.dismissAfter);
+    }
+  }
+}
+```
+
+```typescript
+// ✅ CORRECT: Track timers to prevent duplicates
+interface ActivityState {
+  activities: Activity[];
+  pollingInterval: ReturnType<typeof setInterval> | null;
+  dismissTimers: Set<string>; // Track which activities already have timers
+}
+
+export function setupAutoDismiss(): void {
+  for (const activity of activityState.activities) {
+    if (activity.autoDismiss && activity.status === 'completed' && activity.dismissAfter) {
+      // Only set up timer if one doesn't already exist
+      if (!activityState.dismissTimers.has(activity.id)) {
+        activityState.dismissTimers.add(activity.id);
+        
+        setTimeout(() => {
+          // Remove from tracking set before removing activity
+          activityState.dismissTimers.delete(activity.id);
+          removeActivity(activity.id);
+        }, activity.dismissAfter);
+      }
+    }
+  }
+}
+```
+
+**Cleanup**: Remove from tracking set when activity is removed
+
+```typescript
+export function removeActivity(id: string): void {
+  const index = activityState.activities.findIndex(a => a.id === id);
+  if (index !== -1) {
+    activityState.activities.splice(index, 1);
+    
+    // Clean up dismiss timer tracking
+    activityState.dismissTimers.delete(id);
+    // ...
+  }
+}
+```
+
+**Why it works**:
+- Set tracks which activities have timers
+- Only creates timer if activity ID not in set
+- Prevents duplicate timers from multiple `$effect` runs
+- Cleanup ensures set doesn't grow indefinitely
+
+### Key Takeaway
+
+When implementing auto-dismiss with reactive effects:
+- **Track which items already have timers** (use Set/Map)
+- **Check before creating new timers** to prevent duplicates
+- **Clean up tracking** when items are removed
+- **Idempotent operations** - safe to call multiple times
+
+---
+
+## Polling and Completion: Race Condition Prevention
+
+**Date**: 2025-01-02  
+**Issue**: Activity widget disappears before import completes due to race condition between polling and action result.
+
+### Problem
+
+When syncing/importing:
+- Action starts, polling begins every 500ms
+- Action completes and clears progress in database
+- `pollSyncProgress()` sees `null` progress and marks activity as 'completed'
+- Auto-dismiss timer starts (5 seconds)
+- `handleImport()` then processes action result and marks completion again
+- Widget disappears before user sees success message
+
+### Root Cause
+
+Two completion paths competing:
+1. **Polling path**: `pollSyncProgress()` marks completion when progress is `null`
+2. **Action result path**: `handleImport()` marks completion based on action result
+
+The polling path fires first (because it's called immediately after action completes), starting the auto-dismiss timer before the proper completion message is set.
+
+### Solution
+
+**Pattern**: Single source of truth for completion - action result only
+
+```typescript
+// ❌ WRONG: Polling marks completion (race condition)
+async function pollSyncProgress() {
+  const progress = await convexClient.query(inboxApi.getSyncProgress, {});
+  if (progress) {
+    // Update progress
+  } else {
+    // Mark as completed when progress is null
+    if (state.syncProgress && state.isSyncing) {
+      updateActivity(syncActivityId, { status: 'completed' }); // ❌ Too early!
+    }
+  }
+}
+```
+
+```typescript
+// ✅ CORRECT: Polling only updates progress, never marks completion
+async function pollSyncProgress() {
+  const progress = await convexClient.query(inboxApi.getSyncProgress, {});
+  if (progress) {
+    // Update progress state
+    state.syncProgress = progress;
+    // Update activity tracker
+    updateActivity(syncActivityId, {
+      status: 'running',
+      progress: { ... }
+    });
+  }
+  // Note: We do NOT mark completion here when progress is null
+  // Completion is handled by handleImport() based on the action result
+  // This prevents race conditions where completion is marked too early
+}
+```
+
+**Stop polling immediately after action completes**:
+
+```typescript
+async function handleImport(options) {
+  // Start polling
+  progressPollInterval = setInterval(pollSyncProgress, 500);
+  
+  try {
+    const result = await convexClient.action(inboxApi.syncReadwiseHighlights, options);
+    
+    // Stop polling immediately after action completes (before processing result)
+    // This prevents race conditions where pollSyncProgress might mark completion too early
+    if (progressPollInterval) {
+      clearInterval(progressPollInterval);
+      progressPollInterval = null;
+    }
+    
+    // Final poll to get the last progress update (if any)
+    await pollSyncProgress();
+    
+    // NOW mark completion based on action result (single source of truth)
+    if (syncActivityId) {
+      updateActivity(syncActivityId, {
+        status: 'completed',
+        progress: {
+          message: `Imported ${result.newCount} new highlights`
+        }
+      });
+    }
+  }
+}
+```
+
+**Why it works**:
+- Polling only updates progress, never marks completion
+- Completion is marked once, by `handleImport()` based on action result
+- Polling stops before processing result, preventing race conditions
+- Single source of truth ensures consistent behavior
+
+### Key Takeaway
+
+When using polling for progress updates:
+- **Polling should only update progress**, never mark completion
+- **Completion should be based on action/mutation result** (single source of truth)
+- **Stop polling immediately after action completes** to prevent race conditions
+- **Separate concerns**: Polling = progress updates, Action result = completion status
+
+---
+

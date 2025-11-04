@@ -82,11 +82,13 @@ export interface Activity {
 interface ActivityState {
 	activities: Activity[];
 	pollingInterval: ReturnType<typeof setInterval> | null;
+	dismissTimers: Set<string>; // Track which activities already have dismiss timers
 }
 
 export const activityState = $state<ActivityState>({
 	activities: [],
-	pollingInterval: null
+	pollingInterval: null,
+	dismissTimers: new Set()
 });
 
 /**
@@ -125,6 +127,9 @@ export function removeActivity(id: string): void {
 	const index = activityState.activities.findIndex(a => a.id === id);
 	if (index !== -1) {
 		activityState.activities.splice(index, 1);
+		
+		// Clean up dismiss timer tracking
+		activityState.dismissTimers.delete(id);
 		
 		// Stop polling if no more activities
 		if (activityState.activities.length === 0 && activityState.pollingInterval) {
@@ -173,13 +178,21 @@ export function stopPolling(): void {
 
 /**
  * Auto-dismiss completed activities after delay
+ * Only sets up timers for activities that don't already have one
  */
 export function setupAutoDismiss(): void {
 	for (const activity of activityState.activities) {
 		if (activity.autoDismiss && activity.status === 'completed' && activity.dismissAfter) {
-			setTimeout(() => {
-				removeActivity(activity.id);
-			}, activity.dismissAfter);
+			// Only set up timer if one doesn't already exist for this activity
+			if (!activityState.dismissTimers.has(activity.id)) {
+				activityState.dismissTimers.add(activity.id);
+				
+				setTimeout(() => {
+					// Remove from tracking set before removing activity
+					activityState.dismissTimers.delete(activity.id);
+					removeActivity(activity.id);
+				}, activity.dismissAfter);
+			}
 		}
 	}
 }

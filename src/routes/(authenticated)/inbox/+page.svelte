@@ -2,9 +2,8 @@
 	import { getContext } from 'svelte';
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
-	import { useConvexClient, useQuery } from 'convex-svelte';
+	import { useConvexClient } from 'convex-svelte';
 	import { makeFunctionReference } from 'convex/server';
-	import { api } from '$lib/convex';
 	import ReadwiseDetail from '$lib/components/inbox/ReadwiseDetail.svelte';
 	import PhotoDetail from '$lib/components/inbox/PhotoDetail.svelte';
 	import ManualDetail from '$lib/components/inbox/ManualDetail.svelte';
@@ -15,8 +14,7 @@
 	import ResizableSplitter from '$lib/components/ResizableSplitter.svelte';
 	import Loading from '$lib/components/Loading.svelte';
 	import { useInboxSync } from '$lib/composables/useInboxSync.svelte';
-
-	type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
+	import { useInboxItems } from '$lib/composables/useInboxItems.svelte';
 
 	// Convex client setup
 	const convexClient = browser ? useConvexClient() : null;
@@ -27,46 +25,32 @@
 		getSyncProgress: makeFunctionReference('inbox:getSyncProgress') as any,
 	} : null;
 	
-	// Filter state
-	let filterType = $state<InboxItemType | 'all'>('all');
-
-	// Use reactive query for real-time inbox items updates
-	// This automatically subscribes to changes and updates when new items are added during sync
-	const inboxQuery = browser ? useQuery(
-		api.inbox.listInboxItems,
-		() => filterType === 'all' 
-			? { processed: false } 
-			: { filterType, processed: false }
-	) : null;
-
-	// Derived state from query
-	const inboxItems = $derived(inboxQuery?.data ?? []);
-	const isLoading = $derived(inboxQuery?.isLoading ?? false);
-	const queryError = $derived(inboxQuery?.error ?? null);
+	// Initialize inbox items composable
+	const items = useInboxItems();
 
 	// Navigate through inbox items (for keyboard navigation)
 	function navigateItems(direction: 'up' | 'down') {
-		if (filteredItems.length === 0) return;
+		if (items.filteredItems.length === 0) return;
 		
 		const currentIndex = selectedItemId 
-			? filteredItems.findIndex(item => item._id === selectedItemId)
+			? items.filteredItems.findIndex(item => item._id === selectedItemId)
 			: -1;
 		
 		let newIndex: number;
 		
 		if (currentIndex === -1) {
 			// No item selected, select first or last
-			newIndex = direction === 'down' ? 0 : filteredItems.length - 1;
+			newIndex = direction === 'down' ? 0 : items.filteredItems.length - 1;
 		} else {
 			// Move up or down
 			if (direction === 'down') {
-				newIndex = currentIndex < filteredItems.length - 1 ? currentIndex + 1 : 0; // Wrap to start
+				newIndex = currentIndex < items.filteredItems.length - 1 ? currentIndex + 1 : 0; // Wrap to start
 			} else {
-				newIndex = currentIndex > 0 ? currentIndex - 1 : filteredItems.length - 1; // Wrap to end
+				newIndex = currentIndex > 0 ? currentIndex - 1 : items.filteredItems.length - 1; // Wrap to end
 			}
 		}
 		
-		const newItem = filteredItems[newIndex];
+		const newItem = items.filteredItems[newIndex];
 		if (newItem) {
 			// Clear any active hover states by blurring all items first
 			document.querySelectorAll('[data-inbox-item-id]').forEach((el) => {
@@ -111,8 +95,6 @@
 			window.removeEventListener('keydown', handleKeyDown);
 		};
 	});
-
-	// Note: No need for $effect to reload items - useQuery automatically reacts to filterType changes
 
 	// Get sidebar state from parent layout
 	const sidebarContext = getContext<{
@@ -197,7 +179,7 @@
 		};
 	});
 
-	const filteredItems = $derived(inboxItems || []);
+	// filteredItems is now provided by items composable
 
 	// Actions
 	function selectItem(itemId: string) {
@@ -208,8 +190,8 @@
 	
 	// Navigation helpers for detail view
 	function getCurrentItemIndex(): number {
-		if (!selectedItemId || filteredItems.length === 0) return -1;
-		return filteredItems.findIndex(item => item._id === selectedItemId);
+		if (!selectedItemId || items.filteredItems.length === 0) return -1;
+		return items.filteredItems.findIndex(item => item._id === selectedItemId);
 	}
 	
 	function handleNextItem() {
@@ -220,11 +202,7 @@
 		navigateItems('up');
 	}
 
-	function setFilter(type: InboxItemType | 'all') {
-		filterType = type;
-		// Clear selection when changing filters
-		selectedItemId = null;
-	}
+	// setFilter is now provided by items composable
 
 	// Header actions
 	function handleDeleteAll() {
@@ -262,8 +240,8 @@
 			<div class="bg-surface h-full flex flex-col overflow-hidden border-r border-base">
 				<!-- Sticky Header -->
 				<InboxHeader
-					currentFilter={filterType}
-					onFilterChange={setFilter}
+					currentFilter={items.filterType}
+					onFilterChange={(type) => items.setFilter(type, () => { selectedItemId = null; })}
 					onDeleteAll={handleDeleteAll}
 					onDeleteAllRead={handleDeleteAllRead}
 					onDeleteAllCompleted={handleDeleteAllCompleted}
@@ -273,19 +251,19 @@
 					sidebarCollapsed={sidebarCollapsed}
 					onSidebarToggle={sidebarContext?.onSidebarToggle}
 					isMobile={isMobile}
-					inboxCount={filteredItems.length}
+					inboxCount={items.filteredItems.length}
 				/>
 
 				<!-- Inbox Items List - Scrollable -->
 				<div class="flex-1 overflow-y-auto">
 					<div class="p-inbox-container">
-						{#if isLoading}
+						{#if items.isLoading}
 							<!-- Loading State -->
 							<Loading message="Loading inbox items..." />
-						{:else if queryError}
+						{:else if items.queryError}
 							<!-- Error State -->
 							<div class="text-center py-readable-quote">
-								<p class="text-error mb-4">Failed to load inbox items: {queryError.toString()}</p>
+								<p class="text-error mb-4">Failed to load inbox items: {items.queryError.toString()}</p>
 								<button
 									type="button"
 									onclick={() => window.location.reload()}
@@ -294,7 +272,7 @@
 									Reload Page
 								</button>
 							</div>
-						{:else if filteredItems.length === 0}
+						{:else if items.filteredItems.length === 0}
 							<!-- Empty State -->
 							<div class="text-center py-readable-quote">
 								<p class="text-secondary mb-4">No items in inbox.</p>
@@ -316,7 +294,7 @@
 						{:else}
 							<!-- Items List -->
 							<div class="flex flex-col gap-inbox-list">
-								{#each filteredItems as item}
+								{#each items.filteredItems as item}
 									<InboxCard
 										item={item}
 										selected={selectedItemId === item._id}
@@ -342,7 +320,7 @@
 							item={selectedItem}
 							onClose={() => (selectedItemId = null)}
 							currentIndex={getCurrentItemIndex()}
-							totalItems={filteredItems.length}
+							totalItems={items.filteredItems.length}
 							onNext={handleNextItem}
 							onPrevious={handlePreviousItem}
 						/>
@@ -398,8 +376,8 @@
 			<div class="flex-1 bg-surface h-full flex flex-col overflow-hidden">
 				<!-- Sticky Header -->
 				<InboxHeader
-					currentFilter={filterType}
-					onFilterChange={setFilter}
+					currentFilter={items.filterType}
+					onFilterChange={(type) => items.setFilter(type, () => { selectedItemId = null; })}
 					onDeleteAll={handleDeleteAll}
 					onDeleteAllRead={handleDeleteAllRead}
 					onDeleteAllCompleted={handleDeleteAllCompleted}
@@ -409,19 +387,19 @@
 					sidebarCollapsed={sidebarCollapsed}
 					onSidebarToggle={sidebarContext?.onSidebarToggle}
 					isMobile={isMobile}
-					inboxCount={filteredItems.length}
+					inboxCount={items.filteredItems.length}
 				/>
 
 				<!-- Inbox Items List - Scrollable -->
 				<div class="flex-1 overflow-y-auto">
 					<div class="p-inbox-container">
-						{#if isLoading}
+						{#if items.isLoading}
 							<!-- Loading State -->
 							<Loading message="Loading inbox items..." />
-						{:else if queryError}
+						{:else if items.queryError}
 							<!-- Error State -->
 							<div class="text-center py-readable-quote">
-								<p class="text-error mb-4">Failed to load inbox items: {queryError.toString()}</p>
+								<p class="text-error mb-4">Failed to load inbox items: {items.queryError.toString()}</p>
 								<button
 									type="button"
 									onclick={() => window.location.reload()}
@@ -430,7 +408,7 @@
 									Reload Page
 								</button>
 							</div>
-						{:else if filteredItems.length === 0}
+						{:else if items.filteredItems.length === 0}
 							<!-- Empty State -->
 							<div class="text-center py-readable-quote">
 								<p class="text-secondary mb-4">No items in inbox.</p>
@@ -452,7 +430,7 @@
 						{:else}
 							<!-- Items List -->
 							<div class="flex flex-col gap-inbox-list">
-								{#each filteredItems as item}
+								{#each items.filteredItems as item}
 									<InboxCard
 										item={item}
 										selected={false}
