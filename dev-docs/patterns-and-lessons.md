@@ -287,6 +287,146 @@ When creating composables that return reactive state:
 
 ---
 
+## Composables: Passing Reactive Values as Function Parameters
+
+**Date**: 2025-01-02  
+**Issue**: When composables need access to reactive values from the calling component, direct property access doesn't stay reactive.
+
+### Problem
+
+When creating composables that need reactive values from the component:
+- Composable receives reactive values directly (e.g., `items.filteredItems`)
+- Values are captured at composable creation time
+- Updates to reactive values in component don't update composable
+- Composable operates on stale data
+
+### Root Cause
+
+Direct property access captures values at initialization:
+- `const items = filteredItems` - captures value at that moment
+- When `filteredItems` updates in component, `items` in composable doesn't update
+- Composable needs to re-read reactive values each time it uses them
+
+### Solution
+
+**Pattern**: Pass functions that return reactive values instead of values directly
+
+```typescript
+// ❌ WRONG: Direct value access - captures stale data
+export function useKeyboardNavigation(
+  filteredItems: any[],  // Captured at creation time
+  selectedItemId: string | null  // Captured at creation time
+) {
+  function navigateItems() {
+    const currentIndex = filteredItems.findIndex(...); // Uses stale data!
+  }
+}
+```
+
+```typescript
+// ✅ CORRECT: Function parameters that return reactive values
+export function useKeyboardNavigation(
+  filteredItems: () => any[],  // Function that returns current items
+  selectedItemId: () => string | null,  // Function that returns current selection
+  onSelectItem: (itemId: string) => void  // Callback function
+) {
+  function navigateItems(direction: 'up' | 'down') {
+    const items = filteredItems();  // Call function to get current value
+    const currentId = selectedItemId();  // Call function to get current value
+    // Now using latest reactive values
+  }
+}
+```
+
+**Usage in component**:
+
+```svelte
+<script lang="ts">
+  const items = useInboxItems();
+  const selected = useSelectedItem(convexClient, inboxApi);
+  
+  // Pass functions that return reactive values
+  const keyboard = useKeyboardNavigation(
+    () => items.filteredItems,           // Function returns current items
+    () => selected.selectedItemId,       // Function returns current selection
+    (itemId) => selected.selectItem(itemId)  // Callback to update selection
+  );
+</script>
+```
+
+**Why it works**:
+- Functions are called each time composable needs the value
+- Each call gets the latest reactive value from the component
+- No stale data - composable always has current state
+- Reactive values are read fresh on each use
+
+### Implementation Example
+
+```typescript
+// src/lib/composables/useKeyboardNavigation.svelte.ts
+export function useKeyboardNavigation(
+  filteredItems: () => any[],
+  selectedItemId: () => string | null,
+  onSelectItem: (itemId: string) => void
+) {
+  function navigateItems(direction: 'up' | 'down') {
+    // Call functions to get current reactive values
+    const items = filteredItems();
+    const currentId = selectedItemId();
+    
+    if (items.length === 0) return;
+    
+    const currentIndex = currentId 
+      ? items.findIndex(item => item._id === currentId)
+      : -1;
+    
+    // ... navigation logic using current values
+    
+    // Use callback to update selection
+    onSelectItem(newItem._id);
+  }
+  
+  function getCurrentItemIndex(): number {
+    // Call functions again to get latest values
+    const items = filteredItems();
+    const currentId = selectedItemId();
+    if (!currentId || items.length === 0) return -1;
+    return items.findIndex(item => item._id === currentId);
+  }
+  
+  return {
+    navigateItems,
+    getCurrentItemIndex,
+    // ...
+  };
+}
+```
+
+### When to Use This Pattern
+
+**Use function parameters when**:
+- Composable needs reactive values from component
+- Composable doesn't manage its own state for these values
+- Values change frequently and composable needs latest version
+- Composable needs to call back to component to update state
+
+**Don't use when**:
+- Composable manages its own reactive state (use `$state` object with getters)
+- Values are static or don't need to be reactive
+- Composable can own the state directly
+
+### Key Takeaway
+
+When composables need reactive values from the component:
+- **Pass functions that return reactive values** instead of values directly
+- **Call the functions** each time you need the value (not just once)
+- **Functions are called fresh** on each use, ensuring latest reactive values
+- **Use callbacks** for updating state back in the component
+
+**Related Pattern**: See "Composables: Returning Reactive State with Getters" for the opposite pattern (returning reactive state from composables).
+
+---
+
 ## Real-time Data Updates with Convex useQuery
 
 **Date**: 2025-01-02  

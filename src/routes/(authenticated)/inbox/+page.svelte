@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { getContext } from 'svelte';
 	import { browser } from '$app/environment';
-	import { onMount } from 'svelte';
 	import { useConvexClient } from 'convex-svelte';
 	import { makeFunctionReference } from 'convex/server';
 	import ReadwiseDetail from '$lib/components/inbox/ReadwiseDetail.svelte';
@@ -15,6 +14,8 @@
 	import Loading from '$lib/components/Loading.svelte';
 	import { useInboxSync } from '$lib/composables/useInboxSync.svelte';
 	import { useInboxItems } from '$lib/composables/useInboxItems.svelte';
+	import { useSelectedItem } from '$lib/composables/useSelectedItem.svelte';
+	import { useKeyboardNavigation } from '$lib/composables/useKeyboardNavigation.svelte';
 
 	// Convex client setup
 	const convexClient = browser ? useConvexClient() : null;
@@ -28,73 +29,16 @@
 	// Initialize inbox items composable
 	const items = useInboxItems();
 
-	// Navigate through inbox items (for keyboard navigation)
-	function navigateItems(direction: 'up' | 'down') {
-		if (items.filteredItems.length === 0) return;
-		
-		const currentIndex = selectedItemId 
-			? items.filteredItems.findIndex(item => item._id === selectedItemId)
-			: -1;
-		
-		let newIndex: number;
-		
-		if (currentIndex === -1) {
-			// No item selected, select first or last
-			newIndex = direction === 'down' ? 0 : items.filteredItems.length - 1;
-		} else {
-			// Move up or down
-			if (direction === 'down') {
-				newIndex = currentIndex < items.filteredItems.length - 1 ? currentIndex + 1 : 0; // Wrap to start
-			} else {
-				newIndex = currentIndex > 0 ? currentIndex - 1 : items.filteredItems.length - 1; // Wrap to end
-			}
-		}
-		
-		const newItem = items.filteredItems[newIndex];
-		if (newItem) {
-			// Clear any active hover states by blurring all items first
-			document.querySelectorAll('[data-inbox-item-id]').forEach((el) => {
-				if (el instanceof HTMLElement) {
-					el.blur();
-				}
-			});
-			
-			selectItem(newItem._id);
-			// Scroll item into view
-			setTimeout(() => {
-				const itemElement = document.querySelector(`[data-inbox-item-id="${newItem._id}"]`);
-				itemElement?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-			}, 0);
-		}
-	}
+	// Initialize selected item composable
+	const selected = useSelectedItem(convexClient, inboxApi);
 
-	onMount(() => {
-		// Keyboard navigation (J/K for down/up)
-		function handleKeyDown(event: KeyboardEvent) {
-			// Ignore if user is typing in input/textarea
-			const activeElement = document.activeElement;
-			const isInputFocused = activeElement?.tagName === 'INPUT' || 
-			                      activeElement?.tagName === 'TEXTAREA' ||
-			                      (activeElement instanceof HTMLElement && activeElement.isContentEditable);
-			
-			if (isInputFocused) return;
-			
-			// Handle J (down/next) and K (up/previous)
-			if (event.key === 'j' || event.key === 'J') {
-				event.preventDefault();
-				navigateItems('down');
-			} else if (event.key === 'k' || event.key === 'K') {
-				event.preventDefault();
-				navigateItems('up');
-			}
-		}
-		
-		window.addEventListener('keydown', handleKeyDown);
-		
-		return () => {
-			window.removeEventListener('keydown', handleKeyDown);
-		};
-	});
+	// Initialize keyboard navigation composable
+	// Pass functions that return reactive values so composable always has current state
+	const keyboard = useKeyboardNavigation(
+		() => items.filteredItems,
+		() => selected.selectedItemId,
+		(itemId) => selected.selectItem(itemId)
+	);
 
 	// Get sidebar state from parent layout
 	const sidebarContext = getContext<{
@@ -104,7 +48,6 @@
 	}>('sidebar');
 
 	// UI State
-	let selectedItemId = $state<string | null>(null);
 	let inboxWidth = $state(400);
 
 	// Initialize sync composable
@@ -113,9 +56,7 @@
 		convexClient,
 		inboxApi,
 		undefined, // onItemsReload not needed - useQuery handles reactivity automatically
-		() => {
-			selectedItemId = null;
-		}
+		selected.clearSelection
 	);
 
 	// Derive sidebar state from context
@@ -138,69 +79,8 @@
 		}
 	});
 
-	// Load selected item details with proper cleanup to prevent race conditions
-	// Uses query tracking to ignore stale results when selectedItemId changes
-	let selectedItem = $state<any>(null);
-	let currentQueryId: string | null = null;
-
-	$effect(() => {
-		if (!browser || !convexClient || !inboxApi || !selectedItemId) {
-			selectedItem = null;
-			currentQueryId = null;
-			return;
-		}
-
-		// Generate unique ID for this query
-		const queryId = selectedItemId;
-		currentQueryId = queryId;
-
-		// Load item details
-		convexClient
-			.query(inboxApi.getInboxItemWithDetails, { inboxItemId: selectedItemId })
-			.then((result) => {
-				// Only update if this is still the current query (prevent race conditions)
-				if (currentQueryId === queryId) {
-					selectedItem = result;
-				}
-			})
-			.catch((error) => {
-				// Only handle error if this is still the current query
-				if (currentQueryId === queryId) {
-					console.error('Failed to load item details:', error);
-					selectedItem = null;
-				}
-			});
-
-		// Cleanup function: mark query as stale when effect re-runs or component unmounts
-		return () => {
-			if (currentQueryId === queryId) {
-				currentQueryId = null;
-			}
-		};
-	});
-
-	// filteredItems is now provided by items composable
-
-	// Actions
-	function selectItem(itemId: string) {
-		console.log('selectItem called with:', itemId);
-		selectedItemId = itemId as any; // itemId is _id from InboxCard
-		console.log('selectedItemId set to:', selectedItemId);
-	}
-	
-	// Navigation helpers for detail view
-	function getCurrentItemIndex(): number {
-		if (!selectedItemId || items.filteredItems.length === 0) return -1;
-		return items.filteredItems.findIndex(item => item._id === selectedItemId);
-	}
-	
-	function handleNextItem() {
-		navigateItems('down');
-	}
-	
-	function handlePreviousItem() {
-		navigateItems('up');
-	}
+	// Selected item logic is now provided by selected composable
+	// Keyboard navigation logic is now provided by keyboard composable
 
 	// setFilter is now provided by items composable
 
@@ -241,7 +121,7 @@
 				<!-- Sticky Header -->
 				<InboxHeader
 					currentFilter={items.filterType}
-					onFilterChange={(type) => items.setFilter(type, () => { selectedItemId = null; })}
+					onFilterChange={(type) => items.setFilter(type, selected.clearSelection)}
 					onDeleteAll={handleDeleteAll}
 					onDeleteAllRead={handleDeleteAllRead}
 					onDeleteAllCompleted={handleDeleteAllCompleted}
@@ -297,8 +177,8 @@
 								{#each items.filteredItems as item}
 									<InboxCard
 										item={item}
-										selected={selectedItemId === item._id}
-										onClick={() => selectItem(item._id)}
+										selected={selected.selectedItemId === item._id}
+										onClick={() => selected.selectItem(item._id)}
 									/>
 								{/each}
 							</div>
@@ -310,24 +190,24 @@
 
 				<!-- Right Panel - Detail View -->
 		<div class="flex-1 bg-elevated overflow-y-auto">
-			{#if selectedItem && selectedItemId}
+			{#if selected.selectedItem && selected.selectedItemId}
 				<!-- Dynamic detail view based on type -->
 				<!-- Key on selectedItem._id ensures remount only when actual data changes (prevents stale data) -->
-				{#key selectedItem._id}
-					{#if selectedItem.type === 'readwise_highlight'}
+				{#key selected.selectedItem._id}
+					{#if selected.selectedItem.type === 'readwise_highlight'}
 						<ReadwiseDetail
-							inboxItemId={selectedItemId}
-							item={selectedItem}
-							onClose={() => (selectedItemId = null)}
-							currentIndex={getCurrentItemIndex()}
+							inboxItemId={selected.selectedItemId}
+							item={selected.selectedItem}
+							onClose={selected.clearSelection}
+							currentIndex={keyboard.getCurrentItemIndex()}
 							totalItems={items.filteredItems.length}
-							onNext={handleNextItem}
-							onPrevious={handlePreviousItem}
+							onNext={keyboard.handleNextItem}
+							onPrevious={keyboard.handlePreviousItem}
 						/>
-					{:else if selectedItem.type === 'photo_note'}
-						<PhotoDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
-					{:else if selectedItem.type === 'manual_text'}
-						<ManualDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
+					{:else if selected.selectedItem.type === 'photo_note'}
+						<PhotoDetail item={selected.selectedItem} onClose={selected.clearSelection} />
+					{:else if selected.selectedItem.type === 'manual_text'}
+						<ManualDetail item={selected.selectedItem} onClose={selected.clearSelection} />
 					{/if}
 				{/key}
 			{:else if sync.showSyncConfig}
@@ -355,18 +235,18 @@
 		</div>
 	{:else}
 		<!-- Mobile: List OR Detail (not both) -->
-		{#if selectedItemId}
+		{#if selected.selectedItemId}
 			<!-- Mobile Detail View - Full Screen -->
 			<div class="flex-1 bg-elevated overflow-y-auto h-full w-full">
-				{#if selectedItem}
+				{#if selected.selectedItem}
 					<!-- Key on selectedItem._id ensures remount only when actual data changes (prevents stale data) -->
-					{#key selectedItem._id}
-						{#if selectedItem.type === 'readwise_highlight'}
-							<ReadwiseDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
-						{:else if selectedItem.type === 'photo_note'}
-							<PhotoDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
-						{:else if selectedItem.type === 'manual_text'}
-							<ManualDetail item={selectedItem} onClose={() => (selectedItemId = null)} />
+					{#key selected.selectedItem._id}
+						{#if selected.selectedItem.type === 'readwise_highlight'}
+							<ReadwiseDetail item={selected.selectedItem} onClose={selected.clearSelection} />
+						{:else if selected.selectedItem.type === 'photo_note'}
+							<PhotoDetail item={selected.selectedItem} onClose={selected.clearSelection} />
+						{:else if selected.selectedItem.type === 'manual_text'}
+							<ManualDetail item={selected.selectedItem} onClose={selected.clearSelection} />
 						{/if}
 					{/key}
 				{/if}
@@ -377,7 +257,7 @@
 				<!-- Sticky Header -->
 				<InboxHeader
 					currentFilter={items.filterType}
-					onFilterChange={(type) => items.setFilter(type, () => { selectedItemId = null; })}
+					onFilterChange={(type) => items.setFilter(type, selected.clearSelection)}
 					onDeleteAll={handleDeleteAll}
 					onDeleteAllRead={handleDeleteAllRead}
 					onDeleteAllCompleted={handleDeleteAllCompleted}
@@ -434,7 +314,7 @@
 									<InboxCard
 										item={item}
 										selected={false}
-										onClick={() => selectItem(item._id)}
+										onClick={() => selected.selectItem(item._id)}
 									/>
 								{/each}
 							</div>
