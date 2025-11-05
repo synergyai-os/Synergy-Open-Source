@@ -1,11 +1,188 @@
 # Patterns & Lessons Learned
 
-This document captures reusable solutions, common issues, and architectural patterns discovered during development. Use this as a reference to avoid repeating mistakes and leverage proven solutions.
+This document captures reusable solutions, common issues, and architectural patterns discovered during development. **Use this as a reference to avoid repeating mistakes and leverage proven solutions.**
+
+> **For AI/LLM**: This file is optimized for `/save` (adding patterns) and `/root-cause` (finding patterns). See sections below for usage instructions.
+
+---
+
+## 🚨 Quick Diagnostic: Common Issues → Patterns
+
+**Use this section when running `/root-cause` to quickly find relevant patterns based on symptoms:**
+
+| Symptom | Likely Pattern | Link |
+|---------|---------------|------|
+| State not updating in UI | Returning Reactive State with Getters | [#returning-reactive-state](#composables-returning-reactive-state-with-getters) |
+| Component shows stale/old data | Sidebar/Detail View Reactivity Issues | [#sidebar-detail-view](#sidebardetail-view-reactivity-issues) |
+| TypeScript error: "Cannot assign to constant" with `$state` | Composables with Svelte 5 Runes | [#svelte-5-runes](#composables-with-svelte-5-runes) |
+| Composable receives stale values | Passing Reactive Values as Function Parameters | [#passing-reactive-values](#composables-passing-reactive-values-as-function-parameters) |
+| Data doesn't update automatically | Real-time Data Updates with Convex useQuery | [#convex-usequery](#real-time-data-updates-with-convex-usequery) |
+| Race condition / premature completion | Polling and Completion: Race Condition Prevention | [#polling-completion](#polling-and-completion-race-condition-prevention) |
+| Duplicate timers / early dismissal | Auto-Dismiss Duplicate Timers | [#auto-dismiss-timers](#activity-tracker-auto-dismiss-duplicate-timers) |
+| Type safety issues / `any` everywhere | TypeScript Types for Composables | [#typescript-types](#typescript-types-for-composables-shared-type-definitions) |
+| Can't narrow types on polymorphic data | Discriminated Union Types | [#discriminated-unions](#typescript-discriminated-union-types-for-polymorphic-data) |
+| Widget disappears too early | Global Activity Tracker: Dual Polling | [#dual-polling](#global-activity-tracker-dual-polling-race-condition) |
+
+---
+
+## 📋 How to Use This Document
+
+### For `/root-cause` Command
+
+1. **Start here**: Check [Quick Diagnostic](#-quick-diagnostic-common-issues--patterns) table above
+2. **Search by symptom**: Look for your issue in the table → follow link to pattern
+3. **Search by technology**: Check [Index by Technology](#index-by-technology) below
+4. **Search by issue type**: Check [Index by Issue Type](#index-by-issue-type) below
+5. **Read pattern**: Each pattern has Problem → Root Cause → Solution → Key Takeaway
+
+### For `/save` Command
+
+1. **Analyze work session**: Review what was fixed/changed
+2. **Check if pattern exists**: Search this document for similar issues
+3. **Add new pattern**: Use [Pattern Template](#pattern-template) below
+4. **Update existing pattern**: If pattern exists but needs refinement, update it
+5. **Location**: Add new patterns in chronological order at the end of the "Patterns" section
+6. **Update indexes**: Add pattern to relevant index sections (Technology, Issue Type, Pattern Name)
+
+---
+
+## 📝 Pattern Template
+
+**Use this template when adding new patterns via `/save`:**
+
+```markdown
+## [Pattern Name: Brief Description]
+
+**Tags**: `tag1`, `tag2`, `tag3` (comma-separated, lowercase, kebab-case)  
+**Date**: YYYY-MM-DD  
+**Issue**: Brief one-line description of the issue.
+
+### Problem
+
+Clear description of what was wrong:
+- Symptom 1
+- Symptom 2
+- Symptom 3
+
+### Root Cause
+
+Why it happened:
+1. Reason 1
+2. Reason 2
+3. Reason 3
+
+### Solution
+
+**Pattern**: One-line pattern description
+
+```typescript
+// ❌ WRONG: What not to do
+code example
+
+// ✅ CORRECT: What to do
+code example
+```
+
+**Why it works**:
+- Explanation point 1
+- Explanation point 2
+
+### Implementation Example
+
+```typescript
+// Full working example from codebase
+```
+
+### Key Takeaway
+
+When [situation]:
+- **Do** this
+- **Don't** do that
+- Important note
+
+**Related Patterns**: See [Other Pattern Name](#link) for related concepts.
+```
+
+**Required sections**: Problem, Root Cause, Solution, Key Takeaway  
+**Optional sections**: Implementation Example, Additional Patterns Used, When to Use This Pattern
+
+---
+
+## Index by Technology
+
+### Svelte 5 Runes
+- [Composables with Svelte 5 Runes](#composables-with-svelte-5-runes) - Use `.svelte.ts` extension
+- [Returning Reactive State with Getters](#composables-returning-reactive-state-with-getters) - Single `$state` object with getters
+- [Passing Reactive Values as Function Parameters](#composables-passing-reactive-values-as-function-parameters) - Pass functions that return reactive values
+- [$derived: Avoid Redundant Defaults](#derived-avoid-redundant-defaults) - Trust upstream defaults
+
+### Convex
+- [Real-time Data Updates with Convex useQuery](#real-time-data-updates-with-convex-usequery) - Use `useQuery()` instead of manual queries
+
+### TypeScript
+- [TypeScript Types for Composables](#typescript-types-for-composables-shared-type-definitions) - Shared type definitions
+- [Discriminated Union Types for Polymorphic Data](#typescript-discriminated-union-types-for-polymorphic-data) - Discriminated unions for type narrowing
+
+### Activity Tracker
+- [Polling Initialization](#activity-tracker-polling-initialization) - Components manage polling, stores manage state
+- [Auto-Dismiss Duplicate Timers](#activity-tracker-auto-dismiss-duplicate-timers) - Track timers to prevent duplicates
+- [Polling and Completion: Race Condition Prevention](#polling-and-completion-race-condition-prevention) - Single source of truth for completion
+- [Global Activity Tracker: Dual Polling Race Condition](#global-activity-tracker-dual-polling-race-condition) - Global tracker only updates progress
+
+---
+
+## Index by Issue Type
+
+### Reactivity Issues
+- [Sidebar/Detail View Reactivity Issues](#sidebardetail-view-reactivity-issues) - Use data-based keys for async data
+- [Returning Reactive State with Getters](#composables-returning-reactive-state-with-getters) - Single `$state` object with getters
+- [Passing Reactive Values as Function Parameters](#composables-passing-reactive-values-as-function-parameters) - Pass functions that return reactive values
+
+### Race Conditions
+- [Sidebar/Detail View Reactivity Issues](#sidebardetail-view-reactivity-issues) - Query tracking for race conditions
+- [Polling and Completion: Race Condition Prevention](#polling-and-completion-race-condition-prevention) - Single source of truth for completion
+- [Global Activity Tracker: Dual Polling Race Condition](#global-activity-tracker-dual-polling-race-condition) - Global tracker only updates progress
+
+### File Extensions
+- [Composables with Svelte 5 Runes](#composables-with-svelte-5-runes) - Use `.svelte.ts` extension for runes
+
+### Type Safety
+- [TypeScript Types for Composables](#typescript-types-for-composables-shared-type-definitions) - Shared type definitions
+- [Discriminated Union Types for Polymorphic Data](#typescript-discriminated-union-types-for-polymorphic-data) - Discriminated unions for type narrowing
+
+### Data Fetching
+- [Real-time Data Updates with Convex useQuery](#real-time-data-updates-with-convex-usequery) - Use `useQuery()` for reactive subscriptions
+
+### Timer/Polling Issues
+- [Auto-Dismiss Duplicate Timers](#activity-tracker-auto-dismiss-duplicate-timers) - Track timers to prevent duplicates
+- [Polling Initialization](#activity-tracker-polling-initialization) - Components manage polling
+
+---
+
+## Index by Pattern Name
+
+1. [Sidebar/Detail View Reactivity Issues](#sidebardetail-view-reactivity-issues) - Use data-based keys for async data
+2. [Composables with Svelte 5 Runes](#composables-with-svelte-5-runes) - Use `.svelte.ts` extension for runes
+3. [Composables: Returning Reactive State with Getters](#composables-returning-reactive-state-with-getters) - Single `$state` object with getters
+4. [Composables: Passing Reactive Values as Function Parameters](#composables-passing-reactive-values-as-function-parameters) - Pass functions that return reactive values
+5. [Real-time Data Updates with Convex useQuery](#real-time-data-updates-with-convex-usequery) - Use `useQuery()` instead of manual queries
+6. [Activity Tracker: Polling Initialization](#activity-tracker-polling-initialization) - Components manage polling, stores manage state
+7. [Activity Tracker: Auto-Dismiss Duplicate Timers](#activity-tracker-auto-dismiss-duplicate-timers) - Track timers to prevent duplicates
+8. [Polling and Completion: Race Condition Prevention](#polling-and-completion-race-condition-prevention) - Single source of truth for completion
+9. [Global Activity Tracker: Dual Polling Race Condition](#global-activity-tracker-dual-polling-race-condition) - Global tracker only updates progress
+10. [TypeScript Types for Composables: Shared Type Definitions](#typescript-types-for-composables-shared-type-definitions) - Shared type definitions in `$lib/types/convex.ts`
+11. [TypeScript: Discriminated Union Types for Polymorphic Data](#typescript-discriminated-union-types-for-polymorphic-data) - Discriminated unions for type narrowing
+12. [$derived: Avoid Redundant Defaults](#derived-avoid-redundant-defaults) - Trust upstream defaults
+
+---
+
+## Patterns
 
 ---
 
 ## Sidebar/Detail View Reactivity Issues
 
+**Tags**: `reactivity`, `async-data`, `race-condition`, `{#key}`, `component-remounting`  
 **Date**: 2025-01-02  
 **Issue**: Sidebar component not updating when switching items, or showing stale data from previous selection.
 
@@ -78,10 +255,13 @@ When using `{#key}` blocks with async data:
 - **Do** key on the actual data result (e.g., `selectedItem._id`)
 - This ensures component remounts with correct data, not stale data
 
+**Related Patterns**: See [Polling and Completion: Race Condition Prevention](#polling-and-completion-race-condition-prevention) for similar race condition handling.
+
 ---
 
 ## Composables with Svelte 5 Runes
 
+**Tags**: `svelte-5`, `runes`, `composables`, `file-extensions`, `.svelte.ts`, `$state`, `$derived`, `$effect`  
 **Date**: 2025-01-02  
 **Issue**: TypeScript linter errors when using `$state` runes in composable functions stored in `.ts` files.
 
@@ -163,12 +343,15 @@ When creating composables that use Svelte 5 runes:
 - No need to import runes - they're available globally in `.svelte.ts` files
 - Works for `$state`, `$derived`, `$effect`, and other runes
 
-**Reference**: See Context7 Svelte documentation on "Using Runes in .svelte.js/.svelte.ts Files"
+**Reference**: Context7 Svelte documentation confirms `.svelte.js` and `.svelte.ts` files are processed by Svelte compiler for runes support.
+
+**Related Patterns**: See [Composables: Returning Reactive State with Getters](#composables-returning-reactive-state-with-getters) for best practices when returning reactive state.
 
 ---
 
 ## Composables: Returning Reactive State with Getters
 
+**Tags**: `composables`, `reactivity`, `$state`, `getters`, `return-values`  
 **Date**: 2025-01-02  
 **Issue**: State returned from composable functions loses reactivity when accessed via property access (e.g., `sync.showSyncConfig`).
 
@@ -285,10 +468,13 @@ When creating composables that return reactive state:
 
 **Alternative Pattern**: You can also return the state object directly and access it via `sync.state.showSyncConfig`, but getters provide a cleaner API.
 
+**Related Pattern**: See [Composables: Passing Reactive Values as Function Parameters](#composables-passing-reactive-values-as-function-parameters) for the opposite pattern (receiving reactive values from components).
+
 ---
 
 ## Composables: Passing Reactive Values as Function Parameters
 
+**Tags**: `composables`, `reactivity`, `function-parameters`, `callbacks`, `stale-data`  
 **Date**: 2025-01-02  
 **Issue**: When composables need access to reactive values from the calling component, direct property access doesn't stay reactive.
 
@@ -423,12 +609,13 @@ When composables need reactive values from the component:
 - **Functions are called fresh** on each use, ensuring latest reactive values
 - **Use callbacks** for updating state back in the component
 
-**Related Pattern**: See "Composables: Returning Reactive State with Getters" for the opposite pattern (returning reactive state from composables).
+**Related Pattern**: See [Composables: Returning Reactive State with Getters](#composables-returning-reactive-state-with-getters) for the opposite pattern (returning reactive state from composables).
 
 ---
 
 ## Real-time Data Updates with Convex useQuery
 
+**Tags**: `convex`, `useQuery`, `reactivity`, `data-fetching`, `real-time`, `subscriptions`  
 **Date**: 2025-01-02  
 **Issue**: Items only appear after sync completes, not during the sync process. Poor UX requiring users to wait.
 
@@ -546,6 +733,7 @@ When fetching data from Convex:
 
 ## Activity Tracker: Polling Initialization
 
+**Tags**: `activity-tracker`, `polling`, `separation-of-concerns`, `stores`, `components`  
 **Date**: 2025-01-02  
 **Issue**: `TypeError: pollFunction is not a function` when adding activities to the tracker.
 
@@ -635,10 +823,13 @@ When designing activity/polling systems:
 - **Don't call functions that require context** from store functions
 - **Use `$effect` in components** to reactively manage polling lifecycle
 
+**Related Patterns**: See [Polling and Completion: Race Condition Prevention](#polling-and-completion-race-condition-prevention) for how to properly handle polling completion.
+
 ---
 
 ## Activity Tracker: Auto-Dismiss Duplicate Timers
 
+**Tags**: `activity-tracker`, `timers`, `auto-dismiss`, `$effect`, `idempotent`, `duplicate-prevention`  
 **Date**: 2025-01-02  
 **Issue**: Activity widget disappears too early (3-5 seconds instead of 5 seconds) due to duplicate auto-dismiss timers.
 
@@ -734,6 +925,7 @@ When implementing auto-dismiss with reactive effects:
 
 ## Polling and Completion: Race Condition Prevention
 
+**Tags**: `polling`, `race-condition`, `completion`, `single-source-of-truth`, `activity-tracker`  
 **Date**: 2025-01-02  
 **Issue**: Activity widget disappears before import completes due to race condition between polling and action result.
 
@@ -840,10 +1032,13 @@ When using polling for progress updates:
 - **Stop polling immediately after action completes** to prevent race conditions
 - **Separate concerns**: Polling = progress updates, Action result = completion status
 
+**Related Patterns**: See [Global Activity Tracker: Dual Polling Race Condition](#global-activity-tracker-dual-polling-race-condition) for handling multiple polling systems.
+
 ---
 
 ## Global Activity Tracker: Dual Polling Race Condition
 
+**Tags**: `polling`, `race-condition`, `global-tracker`, `dual-polling`, `activity-tracker`  
 **Date**: 2025-01-02  
 **Issue**: Activity widget disappears after 1-2 seconds during "Fetching sources..." phase due to dual polling mechanisms marking completion.
 
@@ -943,11 +1138,15 @@ When implementing dual polling systems (local + global):
 - **Don't assume null progress = completion** - action may clear progress before returning
 - **Separate responsibilities**: Global tracker = progress updates, Composable = completion logic
 
-**Related Pattern**: See "Polling and Completion: Race Condition Prevention" for the composable-level fix.
+**Related Pattern**: See [Polling and Completion: Race Condition Prevention](#polling-and-completion-race-condition-prevention) for the composable-level fix.
 
 ---
 
 ## TypeScript Types for Composables: Shared Type Definitions
+
+**Tags**: `typescript`, `type-safety`, `composables`, `convex`, `shared-types`, `FunctionReference`  
+**Date**: 2025-01-02  
+**Issue**: Using `any` for function parameters reduces type safety, eliminates IntelliSense, and allows errors to slip through at runtime.
 
 ### Problem
 
@@ -1039,11 +1238,16 @@ export function useInboxSync(
 ### Related Patterns
 
 - See `dev-docs/typescript-any-usage.md` for guidelines on when `any` is acceptable
-- See "Composables: Getters for Reactive State" for return value patterns
+- See [Composables: Returning Reactive State with Getters](#composables-returning-reactive-state-with-getters) for return value patterns
+- See [TypeScript: Discriminated Union Types for Polymorphic Data](#typescript-discriminated-union-types-for-polymorphic-data) for advanced typing patterns
 
 ---
 
 ## TypeScript: Discriminated Union Types for Polymorphic Data
+
+**Tags**: `typescript`, `discriminated-unions`, `type-narrowing`, `polymorphic-data`, `type-safety`  
+**Date**: 2025-01-02  
+**Issue**: Using `any` for polymorphic data structures loses type safety and prevents TypeScript from narrowing types correctly.
 
 ### Problem
 
@@ -1131,12 +1335,16 @@ function processItem(item: InboxItemWithDetails) {
 
 ### Related Patterns
 
-- See "TypeScript Types for Composables" for parameter and return types
+- See [TypeScript Types for Composables](#typescript-types-for-composables-shared-type-definitions) for parameter and return types
 - See `dev-docs/typescript-any-usage.md` for when to avoid `any`
 
 ---
 
 ## $derived: Avoid Redundant Defaults
+
+**Tags**: `svelte-5`, `$derived`, `redundancy`, `defaults`, `performance`  
+**Date**: 2025-01-02  
+**Issue**: Redundant default checks when using `$derived` that are already handled upstream.
 
 ### Problem
 
@@ -1176,4 +1384,34 @@ const filteredItems = $derived(inboxItems); // No redundant default needed
 
 ---
 
+## Notes for AI/LLM
 
+### When Adding Patterns (`/save` command)
+
+1. **Location**: Add new patterns at the end of the "Patterns" section (before "Notes for AI/LLM")
+2. **Format**: Use the [Pattern Template](#pattern-template) above
+3. **Indexes**: Update all three index sections:
+   - [Index by Technology](#index-by-technology)
+   - [Index by Issue Type](#index-by-issue-type)
+   - [Index by Pattern Name](#index-by-pattern-name)
+4. **Quick Diagnostic**: If the pattern solves a common symptom, add it to the [Quick Diagnostic](#-quick-diagnostic-common-issues--patterns) table
+5. **Tags**: Use lowercase, kebab-case tags that are searchable and descriptive
+
+### When Finding Patterns (`/root-cause` command)
+
+1. **Start with Quick Diagnostic**: Check the table at the top for symptom → pattern mapping
+2. **Search indexes**: Use technology or issue type indexes to find relevant patterns
+3. **Read full pattern**: Each pattern has Problem → Root Cause → Solution → Key Takeaway
+4. **Check related patterns**: Follow "Related Patterns" links for connected concepts
+5. **Verify with Context7**: If pattern references external docs, verify with Context7 MCP
+
+### Pattern Quality Checklist
+
+When adding/updating patterns, ensure:
+- ✅ Clear problem description with symptoms
+- ✅ Root cause analysis (why it happened)
+- ✅ ❌ WRONG and ✅ CORRECT code examples
+- ✅ Key takeaway with actionable guidance
+- ✅ Tags for searchability
+- ✅ Links to related patterns
+- ✅ Date for tracking when pattern was discovered
