@@ -4,15 +4,16 @@
  */
 
 import { browser } from '$app/environment';
+import type { ConvexClient, InboxApi, InboxItemWithDetails } from '$lib/types/convex';
 
 export function useSelectedItem(
-	convexClient: any,
-	inboxApi: any
+	convexClient: ConvexClient | null,
+	inboxApi: InboxApi | null
 ) {
 	// Selected item state
 	const state = $state({
 		selectedItemId: null as string | null,
-		selectedItem: null as any,
+		selectedItem: null as InboxItemWithDetails | null,
 	});
 
 	// Query tracking for race condition prevention

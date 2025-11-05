@@ -947,3 +947,99 @@ When implementing dual polling systems (local + global):
 
 ---
 
+## TypeScript Types for Composables: Shared Type Definitions
+
+### Problem
+
+When refactoring composables, we initially used `any` for function parameters like `convexClient` and `inboxApi`. This reduces type safety, eliminates IntelliSense, and allows errors to slip through at runtime.
+
+### Solution: Shared Type Definitions
+
+Create a shared types file (`src/lib/types/convex.ts`) with proper interfaces and types:
+
+```typescript
+// src/lib/types/convex.ts
+import type { FunctionReference } from 'convex/server';
+
+// Convex client interface - matches useConvexClient() return type
+export interface ConvexClient {
+	query<Query extends FunctionReference<'query'>>(
+		query: Query,
+		args?: unknown
+	): Promise<unknown>;
+	action<Action extends FunctionReference<'action'>>(
+		action: Action,
+		args?: unknown
+	): Promise<unknown>;
+	mutation<Mutation extends FunctionReference<'mutation'>>(
+		mutation: Mutation,
+		args?: unknown
+	): Promise<unknown>;
+}
+
+// API functions interface - use FunctionReference for type safety
+export interface InboxApi {
+	getInboxItemWithDetails: FunctionReference<'query', 'public', { inboxItemId: string }>;
+	syncReadwiseHighlights: FunctionReference<'action', 'public', {
+		dateRange?: '7d' | '30d' | '90d' | '180d' | '365d' | 'all';
+		// ... other options
+	}>;
+	getSyncProgress: FunctionReference<'query', 'public', {}>;
+}
+
+// Result types
+export interface SyncReadwiseResult {
+	success: boolean;
+	sourcesCount: number;
+	highlightsCount: number;
+	newCount: number;
+	skippedCount: number;
+	errorsCount: number;
+}
+```
+
+Then use these types in composables:
+
+```typescript
+// ✅ CORRECT: Properly typed parameters
+import type { ConvexClient, InboxApi, SyncReadwiseResult } from '$lib/types/convex';
+
+export function useInboxSync(
+	convexClient: ConvexClient | null,
+	inboxApi: InboxApi | null,
+	// ...
+) {
+	// Use type assertions when calling client methods
+	const result = await convexClient.action(
+		inboxApi.syncReadwiseHighlights, 
+		options
+	) as SyncReadwiseResult;
+	
+	const progress = await convexClient.query(
+		inboxApi.getSyncProgress, 
+		{}
+	) as SyncProgress;
+}
+```
+
+### Why This Works
+
+1. **Type Safety**: TypeScript catches errors at compile time
+2. **IntelliSense**: IDE autocomplete works for all parameters
+3. **Maintainability**: Types are defined once, used everywhere
+4. **Documentation**: Types serve as inline documentation
+
+### Key Takeaways
+
+- **Create shared types** for complex objects used across composables
+- **Use `FunctionReference`** from `convex/server` for API function types
+- **Use type assertions** (`as Type`) when calling client methods (they return `Promise<unknown>`)
+- **Accept `any` only when necessary** - document why (see `typescript-any-usage.md`)
+
+### Related Patterns
+
+- See `dev-docs/typescript-any-usage.md` for guidelines on when `any` is acceptable
+- See "Composables: Getters for Reactive State" for return value patterns
+
+---
+

@@ -4,10 +4,15 @@
  */
 
 import { browser } from '$app/environment';
-import { onMount } from 'svelte';
+
+// Type for inbox items (basic structure)
+export type InboxItem = {
+	_id: string;
+	[key: string]: unknown;
+};
 
 export function useKeyboardNavigation(
-	filteredItems: () => any[],
+	filteredItems: () => InboxItem[],
 	selectedItemId: () => string | null,
 	onSelectItem: (itemId: string) => void
 ) {
@@ -71,7 +76,7 @@ export function useKeyboardNavigation(
 
 	// Setup keyboard event listeners
 	if (browser) {
-		onMount(() => {
+		$effect(() => {
 			// Keyboard navigation (J/K for down/up)
 			function handleKeyDown(event: KeyboardEvent) {
 				// Ignore if user is typing in input/textarea

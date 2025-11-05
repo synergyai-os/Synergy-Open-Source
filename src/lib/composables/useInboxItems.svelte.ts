@@ -6,6 +6,7 @@
 import { browser } from '$app/environment';
 import { useQuery } from 'convex-svelte';
 import { api } from '$lib/convex';
+import type { InboxItem } from '$lib/composables/useKeyboardNavigation.svelte';
 
 type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 
@@ -25,7 +26,7 @@ export function useInboxItems() {
 	) : null;
 
 	// Derived state from query
-	const inboxItems = $derived(inboxQuery?.data ?? []);
+	const inboxItems = $derived((inboxQuery?.data ?? []) as InboxItem[]);
 	const isLoading = $derived(inboxQuery?.isLoading ?? false);
 	const queryError = $derived(inboxQuery?.error ?? null);
 	

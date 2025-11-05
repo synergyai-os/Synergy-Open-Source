@@ -5,10 +5,11 @@
 
 import { browser } from '$app/environment';
 import { addActivity, updateActivity, removeActivity } from '$lib/stores/activityTracker.svelte';
+import type { ConvexClient, InboxApi, SyncProgress, SyncReadwiseResult } from '$lib/types/convex';
 
 export function useInboxSync(
-	convexClient: any,
-	inboxApi: any,
+	convexClient: ConvexClient | null,
+	inboxApi: InboxApi | null,
 	onItemsReload?: () => Promise<void>,
 	onClearSelection?: () => void
 ) {
@@ -17,7 +18,7 @@ export function useInboxSync(
 		isSyncing: false,
 		syncError: null as string | null,
 		syncSuccess: false,
-		syncProgress: null as { step: string; current: number; total?: number; message?: string } | null,
+		syncProgress: null as SyncProgress,
 		showSyncConfig: false,
 	});
 	
@@ -62,7 +63,7 @@ export function useInboxSync(
 		if (!state.isSyncing && !state.syncProgress) return;
 		
 		try {
-			const progress = await convexClient.query(inboxApi.getSyncProgress, {});
+			const progress = await convexClient.query(inboxApi.getSyncProgress, {}) as SyncProgress;
 			if (progress) {
 				// Update progress state
 				state.syncProgress = progress;
@@ -158,7 +159,7 @@ export function useInboxSync(
 		pollSyncProgress();
 
 		try {
-			const result = await convexClient.action(inboxApi.syncReadwiseHighlights, options);
+			const result = await convexClient.action(inboxApi.syncReadwiseHighlights, options) as SyncReadwiseResult;
 			
 			// Stop polling immediately after action completes (before processing result)
 			// This prevents race conditions where pollSyncProgress might mark completion too early
