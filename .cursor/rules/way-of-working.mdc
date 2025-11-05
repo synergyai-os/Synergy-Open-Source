@@ -1,24 +1,142 @@
 ---
 alwaysApply: true
 ---
-- **CRITICAL: Use Context7 MCP for Library Documentation** - ALWAYS use Context7 MCP tools before web search
-  - **Why**: Context7 provides up-to-date, accurate library documentation with code examples directly from official sources
-  - **When to use**: Any time you need to understand how to use a library, framework, or package (e.g., "How do I use useMutation in convex-svelte?")
-  - **Process**: 
-    1. First: Call `mcp_context7_resolve-library-id` to find the library
-    2. Then: Call `mcp_context7_get-library-docs` with the resolved library ID and your specific topic
-    3. Only if Context7 fails or doesn't have the library: Fall back to web search
-  - **Never**: Search the web for library documentation when Context7 is available
-  - **Examples**: convex-svelte, Svelte, Tailwind, Bits UI, etc. - check Context7 first!
-- use our /dev-docs folder for guides and keep them up to date
-- **CRITICAL: Design Token System** - ALWAYS use semantic tokens instead of numeric/hardcoded Tailwind classes
-  - **Spacing Tokens**: NEVER use `px-2`, `py-1.5`, `gap-2` etc. - use `px-nav-item`, `py-nav-item`, `gap-icon`, `px-menu-item`, `px-badge`, `px-header`, etc.
-  - **Color Tokens**: NEVER use `bg-gray-900`, `text-white`, `text-gray-300` etc. - use `bg-sidebar`, `text-sidebar-primary`, `text-sidebar-secondary`, `border-sidebar`, `hover:bg-sidebar-hover`, etc.
-  - **Typography Tokens**: NEVER use `text-[10px]` - use `text-label` instead
-  - **Why**: All tokens automatically adapt to light/dark mode and can be changed globally by updating ONE CSS variable in `src/app.css`
-  - **Before adding**: Check `dev-docs/design-tokens.md` for available tokens
-  - **If missing**: Add new token to `src/app.css` @theme block first, then create @utility class, then document in `dev-docs/design-tokens.md`
-- follow our design tokens system - check `dev-docs/design-tokens.md` before creating new UI components
-- use design tokens (spacing, typography, colors) from our system instead of arbitrary values
-- when a pattern repeats 3+ times, document it in `dev-docs/design-tokens.md` before extracting to components
-- **Color tokens automatically support light/dark mode** - no need for `dark:` variants when using semantic color tokens
+
+## Project: Axon
+
+**Knowledge retention app** using CODE framework (Collect → Organise → Distill → Express).
+
+**Tech Stack:**
+- Frontend: SvelteKit 5 + TypeScript + Svelte 5 Runes
+- UI: Bits UI (headless) + Tailwind CSS 4 + Semantic Design Tokens
+- Backend: Convex (real-time database & serverless functions)
+- Mobile: Capacitor 7 (iOS)
+
+---
+
+## Essential Documentation
+
+Read in order:
+1. `dev-docs/product-vision-and-plan.md` - Product vision, current state, next steps
+2. `dev-docs/patterns-and-lessons.md` - Reusable solutions, patterns (use `/root-cause` to search, `/save` to update)
+3. `dev-docs/architecture.md` - Tech stack, auth, composables, project structure
+4. `dev-docs/design-tokens.md` - Design token reference (MANDATORY for UI)
+5. `dev-docs/composables-analysis.md` - Svelte 5 composables analysis
+
+---
+
+## Project-Specific Workflows
+
+**Note**: `/save` and `/root-cause` commands are universal - see `.cursor/commands/start.md`
+
+**For this project:**
+- `/save` updates `dev-docs/patterns-and-lessons.md`
+- `/root-cause` searches `dev-docs/patterns-and-lessons.md`
+
+---
+
+## Design Token System - MANDATORY
+
+**NEVER use hardcoded values:**
+- ❌ `px-2`, `py-1.5`, `gap-2` → ✅ `px-nav-item`, `py-nav-item`, `gap-icon`
+- ❌ `bg-gray-900`, `text-white` → ✅ `bg-sidebar`, `text-sidebar-primary`
+- ❌ `text-[10px]` → ✅ `text-label`
+
+**Why**: Tokens adapt to light/dark mode automatically. Change once in `src/app.css`, updates everywhere.
+
+**Reference**: `dev-docs/design-tokens.md` - Full token list
+**Before adding**: Check `dev-docs/design-tokens.md`, add to `src/app.css` @theme block first, then document
+
+---
+
+## Svelte 5 Composables Pattern
+
+**Structure:**
+- Extension: `.svelte.ts` (required for runes)
+- Location: `src/lib/composables/`
+- Pattern: Single `$state` object with getter returns
+- Types: Explicit TypeScript return types
+
+**Pattern: Single `$state` Object**
+```typescript
+const state = $state({ isSyncing: false, error: null });
+return {
+  get isSyncing() { return state.isSyncing; },
+  get error() { return state.error; }
+};
+```
+
+**Pattern: Function Parameters for Reactive Values**
+```typescript
+export function useX(items: () => Item[], onSelect: (id: string) => void) {
+  const current = items(); // Get current value
+}
+```
+
+**Pattern: Reactive Queries**
+```typescript
+const query = useQuery(api.module.function, () => ({ filter: false }));
+const data = $derived(query?.data ?? []);
+```
+
+**Available Composables:**
+- `useInboxItems` - Inbox queries and filtering
+- `useSelectedItem` - Selected item state
+- `useInboxSync` - Readwise sync operations
+- `useKeyboardNavigation` - J/K navigation
+- `useInboxLayout` - Layout state
+
+**See**: `dev-docs/patterns-and-lessons.md` for complete patterns
+
+---
+
+## Key Files
+
+**Documentation:**
+- `dev-docs/patterns-and-lessons.md` - Patterns (most important)
+- `dev-docs/architecture.md` - Tech architecture
+- `dev-docs/design-tokens.md` - Token reference
+- `dev-docs/product-vision-and-plan.md` - Vision and roadmap
+
+**Code:**
+- `src/lib/composables/` - Composables (`.svelte.ts`)
+- `src/lib/components/` - UI components
+- `src/app.css` - Design token definitions
+- `convex/schema.ts` - Database schema
+
+**Commands:**
+- `.cursor/commands/save.md` - Save patterns workflow
+- `.cursor/commands/root-cause.md` - Debug workflow
+
+---
+
+## Best Practices
+
+**Before Writing Code:**
+1. Check `patterns-and-lessons.md` for existing patterns
+2. Use design tokens (never hardcode)
+3. Follow composables pattern (`.svelte.ts`, single `$state`, getters)
+4. Use Context7 for library docs
+
+**When Debugging:**
+1. Use `/root-cause` command
+2. Check `patterns-and-lessons.md` for similar issues
+3. Use Context7 for verification
+4. Only fix if 95%+ confident
+
+**Common Mistakes:**
+- Hardcoded values (use tokens)
+- Missing `.svelte.ts` extension
+- Multiple `$state` variables (use single object)
+- Direct value access in composables (use function parameters)
+- Manual queries (use `useQuery()`)
+
+---
+
+## Starting a Task
+
+1. Read `dev-docs/product-vision-and-plan.md` - Understand current state
+2. Check `dev-docs/patterns-and-lessons.md` - See if patterns exist
+3. Review `dev-docs/design-tokens.md` - If building UI
+4. Check `dev-docs/architecture.md` - If working on architecture
+5. Use Context7 - For latest library documentation

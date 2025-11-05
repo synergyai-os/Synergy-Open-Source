@@ -20,18 +20,30 @@ const { handleAuth, isAuthenticated } = createConvexAuthHooks();
 // Create custom auth handler - auth-first approach (whitelist pattern)
 // All routes require auth except those explicitly whitelisted above
 const requireAuth: Handle = async ({ event, resolve }) => {
+	// Skip auth checks during build/preview (for static adapter fallback generation)
+	// Check if we're in a build context (SvelteKit sets this during prerender)
+	const isBuildContext = event.isDataRequest || event.isSubRequest || 
+		// During static build, cookies/auth won't work anyway
+		process.env.NODE_ENV === 'production' && !event.request.headers.get('cookie');
+
 	// Allow public routes
 	if (isPublicRoute(event.url.pathname)) {
 		// Special handling: if authenticated user visits /login or /register, redirect them
 		const isAuthPage = event.url.pathname === '/login' || event.url.pathname === '/register';
 		
-		if (isAuthPage && (await isAuthenticated(event))) {
+		// Skip redirect during build context
+		if (!isBuildContext && isAuthPage && (await isAuthenticated(event))) {
 			// Authenticated user trying to access login/register page
 			// Redirect to redirectTo query param or fallback to /inbox
 			const redirectTo = event.url.searchParams.get('redirectTo') || '/inbox';
 			throw redirect(302, redirectTo);
 		}
 		
+		return resolve(event);
+	}
+
+	// Skip auth check during build context (for static adapter)
+	if (isBuildContext) {
 		return resolve(event);
 	}
 

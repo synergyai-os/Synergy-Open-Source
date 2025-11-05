@@ -16,6 +16,7 @@
 	import { useInboxItems } from '$lib/composables/useInboxItems.svelte';
 	import { useSelectedItem } from '$lib/composables/useSelectedItem.svelte';
 	import { useKeyboardNavigation } from '$lib/composables/useKeyboardNavigation.svelte';
+	import { useInboxLayout } from '$lib/composables/useInboxLayout.svelte';
 
 	// Convex client setup
 	const convexClient = browser ? useConvexClient() : null;
@@ -40,15 +41,15 @@
 		(itemId) => selected.selectItem(itemId)
 	);
 
+	// Initialize layout composable
+	const layout = useInboxLayout();
+
 	// Get sidebar state from parent layout
 	const sidebarContext = getContext<{
 		sidebarCollapsed: boolean;
 		isMobile: boolean;
 		onSidebarToggle: () => void;
 	}>('sidebar');
-
-	// UI State
-	let inboxWidth = $state(400);
 
 	// Initialize sync composable
 	// Note: onItemsReload is no longer needed - useQuery automatically updates when items are added
@@ -62,22 +63,6 @@
 	// Derive sidebar state from context
 	const sidebarCollapsed = $derived(sidebarContext?.sidebarCollapsed ?? false);
 	const isMobile = $derived(sidebarContext?.isMobile ?? false);
-
-	// Initialize from localStorage or defaults
-	function handleInboxWidthChange(width: number) {
-		inboxWidth = width;
-		if (typeof window !== 'undefined') {
-			localStorage.setItem('inboxWidth', width.toString());
-		}
-	}
-
-	// Initialize inbox width from localStorage
-	$effect(() => {
-		if (typeof window !== 'undefined') {
-			const savedInboxWidth = parseInt(localStorage.getItem('inboxWidth') || '400');
-			inboxWidth = savedInboxWidth;
-		}
-	});
 
 	// Selected item logic is now provided by selected composable
 	// Keyboard navigation logic is now provided by keyboard composable
@@ -111,11 +96,11 @@
 	{#if !isMobile}
 		<!-- Middle Column - Inbox List -->
 		<ResizableSplitter
-			initialWidth={inboxWidth}
+			initialWidth={layout.inboxWidth}
 			minWidth={200}
 			maxWidth={600}
-			onWidthChange={handleInboxWidthChange}
-			onClose={() => (inboxWidth = 175)}
+			onWidthChange={layout.handleInboxWidthChange}
+			onClose={layout.handleClose}
 		>
 			<div class="bg-surface h-full flex flex-col overflow-hidden border-r border-base">
 				<!-- Sticky Header -->

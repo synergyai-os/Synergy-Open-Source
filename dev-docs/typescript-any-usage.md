@@ -109,15 +109,19 @@ const client: any = useConvexClient();
 2. **Using interfaces** for API functions
 3. **Minimizing `any`** - only where truly necessary
 
-### ⚠️ Remaining `any` Usage:
-1. **InboxItemWithDetails** - Complex union type (TODO: create proper type)
-2. **ConvexClient** - Simplified interface (library doesn't export type)
-3. **Function references** - Using `FunctionReference` where possible
+### ✅ Current `any` Usage Status:
+1. **✅ InboxItemWithDetails** - Now uses proper discriminated union type (completed)
+2. **✅ ConvexClient** - Defined interface in `src/lib/types/convex.ts` (library doesn't export type)
+3. **✅ Function references** - Using `FunctionReference` where possible
 
-### 📝 Future Improvements:
-1. Create proper union type for `InboxItemWithDetails` based on item.type
-2. Check if convex-svelte exports ConvexClient type in future versions
-3. Use `unknown` instead of `any` where validation is possible
+### ✅ Completed Improvements:
+1. ✅ Created proper discriminated union type for `InboxItemWithDetails` based on item.type
+2. ✅ Defined `ConvexClient` interface (convex-svelte doesn't export type)
+3. ✅ Using type assertions with proper types instead of `any` where needed
+
+### 📝 Future Considerations:
+1. Check if convex-svelte exports ConvexClient type in future versions
+2. Consider using `unknown` instead of `any` where validation is possible (if new cases arise)
 
 ---
 

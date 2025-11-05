@@ -26,3 +26,8 @@ vite.config.ts.timestamp-*
 # Convex
 .convex
 convex/_generated
+
+# Playwright
+playwright/.auth
+test-results
+playwright-report

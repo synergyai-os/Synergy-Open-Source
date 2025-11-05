@@ -27,12 +27,18 @@ Knowledge retention app using the CODE framework (Collect → Organise → Disti
    - Authentication architecture
    - Convex setup
 
-5. **`dev-docs/production-checklist.md`** - Production Readiness
+5. **`dev-docs/patterns-and-lessons.md`** - Patterns & Lessons Learned ⭐
+   - Reusable solutions to common issues
+   - Architectural patterns
+   - Edge case solutions
+   - Example: Sidebar reactivity with async data
+
+6. **`dev-docs/production-checklist.md`** - Production Readiness
    - Critical security items
    - Recommended improvements
    - Tracking checklist
 
-6. **`dev-docs/activity-tracker.md`** - Global Activity Tracker System
+7. **`dev-docs/activity-tracker.md`** - Global Activity Tracker System
    - Universal progress tracking system
    - Persistent across navigation
    - Usage examples and best practices

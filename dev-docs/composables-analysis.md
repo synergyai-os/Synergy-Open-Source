@@ -40,34 +40,22 @@
 - ✅ Using `.svelte.ts` extension (allows Svelte to process runes)
 - ✅ Shared types in `src/lib/types/`
 
-## ⚠️ Minor Observations (Non-Critical)
+## ✅ All Issues Resolved
 
-### 1. Redundant Default in `useInboxItems`
-```typescript
-// Current:
-const filteredItems = $derived(inboxItems || []);
+### 1. Redundant Default in `useInboxItems` ✅ FIXED
+- Removed redundant `|| []` check
+- Now trusts upstream defaults as documented in patterns
 
-// inboxItems already defaults to [] via:
-const inboxItems = $derived((inboxQuery?.data ?? []) as InboxItem[]);
-```
-**Impact**: None - harmless redundancy  
-**Action**: Optional cleanup (low priority)
+### 2. `InboxItemWithDetails` Type ✅ FIXED
+- Created proper discriminated union type in `src/lib/types/convex.ts`
+- Includes `ReadwiseHighlightWithDetails`, `PhotoNoteWithDetails`, `ManualTextWithDetails`
+- Full type safety with proper type narrowing
 
-### 2. `InboxItemWithDetails` Still `any`
-```typescript
-export type InboxItemWithDetails = any; // TODO: Create proper union type
-```
-**Impact**: Limited - only affects one type  
-**Action**: Future improvement (documented TODO)
-
-### 3. `ConvexClient` Interface Simplification
-Our interface uses `Promise<unknown>` for return types. This is pragmatic since:
-- `convex-svelte` doesn't export a ConvexClient type
-- We use type assertions where needed (`as SyncProgress`, `as SyncReadwiseResult`)
-- This is acceptable and documented
-
-**Impact**: None - works correctly with type assertions  
-**Action**: None needed
+### 3. `ConvexClient` Interface ✅ COMPLETE
+- Interface defined in `src/lib/types/convex.ts`
+- Uses `Promise<unknown>` with type assertions (pragmatic approach)
+- All composables properly typed
+- Works correctly with type assertions
 
 ## 📊 Comparison with Svelte 5 Documentation
 
@@ -97,9 +85,12 @@ Our interface uses `Promise<unknown>` for return types. This is pragmatic since:
 
 **No changes required** - Our implementation follows Svelte 5 best practices correctly.
 
-**Optional future improvements**: ✅ **COMPLETED**
+**All improvements**: ✅ **COMPLETED**
 1. ✅ Remove redundant `|| []` in `filteredItems` - Fixed
-2. ✅ Create proper union type for `InboxItemWithDetails` - Fixed with proper union type based on item.type
+2. ✅ Create proper union type for `InboxItemWithDetails` - Fixed with proper discriminated union type
+3. ✅ All composables use `$effect` instead of `onMount` - Fixed
+4. ✅ All composables have explicit return types - Fixed
+5. ✅ All composables use proper TypeScript types - Fixed
 
 ### Confidence Level: **95%**
 

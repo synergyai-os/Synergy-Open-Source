@@ -338,6 +338,89 @@ export const load: PageServerLoad = async (event) => {
    - Consider adding session timeout
    - Implement refresh token rotation if needed
 
+## Frontend Architecture: Composables Pattern
+
+### Composables Overview
+
+Axon uses **Svelte 5 composables** to extract reusable logic from components. All composables follow established patterns documented in `dev-docs/patterns-and-lessons.md`.
+
+### Composable Structure
+
+All composables:
+- Use `.svelte.ts` extension (required for Svelte 5 runes)
+- Located in `src/lib/composables/`
+- Use single `$state` object pattern for reactivity
+- Return getters for reactive state properties
+- Have explicit TypeScript return types
+
+### Available Composables
+
+1. **`useInboxItems`** - Manages inbox item queries and filtering
+   - Uses `useQuery()` from `convex-svelte` for reactive subscriptions
+   - Handles filtering by type and processed status
+   - Returns reactive `filteredItems` and loading states
+
+2. **`useSelectedItem`** - Manages selected inbox item state
+   - Handles async item detail loading
+   - Prevents race conditions with query tracking
+   - Uses `$effect` for reactive data fetching
+
+3. **`useInboxSync`** - Handles Readwise sync operations
+   - Manages sync state (progress, errors, success)
+   - Handles polling for sync progress
+   - Integrates with activity tracker
+
+4. **`useKeyboardNavigation`** - Keyboard navigation (J/K keys)
+   - Uses function parameters for reactive values
+   - Sets up keyboard event listeners with `$effect`
+   - Handles navigation and scrolling
+
+5. **`useInboxLayout`** - Manages inbox layout state
+   - Persists layout preferences to localStorage
+   - Handles responsive layout changes
+
+### Composable Patterns
+
+**Pattern 1: Single `$state` Object with Getters**
+```typescript
+const state = $state({
+  isSyncing: false,
+  syncError: null as string | null,
+});
+
+return {
+  get isSyncing() { return state.isSyncing; },
+  get syncError() { return state.syncError; },
+};
+```
+
+**Pattern 2: Function Parameters for Reactive Values**
+```typescript
+export function useKeyboardNavigation(
+  filteredItems: () => InboxItem[],
+  selectedItemId: () => string | null,
+  onSelectItem: (itemId: string) => void
+) {
+  // Call functions to get current reactive values
+  const items = filteredItems();
+  const currentId = selectedItemId();
+}
+```
+
+**Pattern 3: Reactive Queries with `useQuery()`**
+```typescript
+import { useQuery } from 'convex-svelte';
+
+const inboxQuery = useQuery(
+  api.inbox.listInboxItems,
+  () => ({ processed: false })
+);
+
+const inboxItems = $derived(inboxQuery?.data ?? []);
+```
+
+See `dev-docs/patterns-and-lessons.md` for complete pattern documentation.
+
 ## Project Structure
 
 ```
@@ -355,7 +438,16 @@ Axon/
 │   │   ├── +page.svelte          # Homepage
 │   │   ├── login/                # Login page
 │   │   └── register/             # Registration page
-│   └── lib/             # Shared utilities
+│   └── lib/
+│       ├── composables/          # Reusable logic (Svelte 5 composables)
+│       │   ├── useInboxItems.svelte.ts
+│       │   ├── useSelectedItem.svelte.ts
+│       │   ├── useInboxSync.svelte.ts
+│       │   ├── useKeyboardNavigation.svelte.ts
+│       │   └── useInboxLayout.svelte.ts
+│       ├── types/                # Shared TypeScript types
+│       │   └── convex.ts         # Convex client and API types
+│       └── components/           # Reusable UI components
 ├── ios/                 # Capacitor iOS project
 └── dev-docs/            # Documentation
 ```
