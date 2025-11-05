@@ -9,7 +9,13 @@ const STORAGE_KEY = 'inboxWidth';
 const DEFAULT_WIDTH = 400;
 const MIN_WIDTH = 175;
 
-export function useInboxLayout() {
+export interface UseInboxLayoutReturn {
+	get inboxWidth(): number;
+	handleInboxWidthChange: (width: number) => void;
+	handleClose: () => void;
+}
+
+export function useInboxLayout(): UseInboxLayoutReturn {
 	// Layout state
 	const state = $state({
 		inboxWidth: DEFAULT_WIDTH

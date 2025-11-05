@@ -5,17 +5,38 @@
 
 import { browser } from '$app/environment';
 
-// Type for inbox items (basic structure)
+// Type for inbox items - matches what InboxCard expects
+// This is a flexible type that accepts the full structure from Convex queries
 export type InboxItem = {
 	_id: string;
+	type: 'readwise_highlight' | 'photo_note' | 'manual_text';
+	userId: string;
+	processed: boolean;
+	processedAt?: number;
+	createdAt: number;
+	title: string;
+	snippet: string;
+	tags: string[];
+	// Type-specific fields (optional, as they depend on item.type)
+	highlightId?: string;
+	imageFileId?: string;
+	text?: string;
+	// Allow additional properties from Convex queries
 	[key: string]: unknown;
 };
+
+export interface UseKeyboardNavigationReturn {
+	navigateItems: (direction: 'up' | 'down') => void;
+	getCurrentItemIndex: () => number;
+	handleNextItem: () => void;
+	handlePreviousItem: () => void;
+}
 
 export function useKeyboardNavigation(
 	filteredItems: () => InboxItem[],
 	selectedItemId: () => string | null,
 	onSelectItem: (itemId: string) => void
-) {
+): UseKeyboardNavigationReturn {
 	// Navigate through inbox items (for keyboard navigation)
 	function navigateItems(direction: 'up' | 'down') {
 		const items = filteredItems();

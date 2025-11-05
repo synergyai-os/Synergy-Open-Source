@@ -7,12 +7,29 @@ import { browser } from '$app/environment';
 import { addActivity, updateActivity, removeActivity } from '$lib/stores/activityTracker.svelte';
 import type { ConvexClient, InboxApi, SyncProgress, SyncReadwiseResult } from '$lib/types/convex';
 
+export interface UseInboxSyncReturn {
+	get isSyncing(): boolean;
+	get syncError(): string | null;
+	get syncSuccess(): boolean;
+	get syncProgress(): SyncProgress;
+	get showSyncConfig(): boolean;
+	handleSyncClick: () => void;
+	pollSyncProgress: () => Promise<void>;
+	handleImport: (options: {
+		dateRange?: '7d' | '30d' | '90d' | '180d' | '365d' | 'all';
+		customStartDate?: string;
+		customEndDate?: string;
+		quantity?: 5 | 10 | 25 | 50 | 100 | 250 | 500 | 1000;
+	}) => Promise<void>;
+	handleCancelSync: () => void;
+}
+
 export function useInboxSync(
 	convexClient: ConvexClient | null,
 	inboxApi: InboxApi | null,
 	onItemsReload?: () => Promise<void>,
 	onClearSelection?: () => void
-) {
+): UseInboxSyncReturn {
 	// Sync state - use single $state object for better reactivity tracking
 	const state = $state({
 		isSyncing: false,

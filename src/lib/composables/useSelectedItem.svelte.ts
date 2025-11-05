@@ -6,10 +6,17 @@
 import { browser } from '$app/environment';
 import type { ConvexClient, InboxApi, InboxItemWithDetails } from '$lib/types/convex';
 
+export interface UseSelectedItemReturn {
+	get selectedItemId(): string | null;
+	get selectedItem(): InboxItemWithDetails | null;
+	selectItem: (itemId: string) => void;
+	clearSelection: () => void;
+}
+
 export function useSelectedItem(
 	convexClient: ConvexClient | null,
 	inboxApi: InboxApi | null
-) {
+): UseSelectedItemReturn {
 	// Selected item state
 	const state = $state({
 		selectedItemId: null as string | null,
@@ -38,7 +45,7 @@ export function useSelectedItem(
 			.then((result) => {
 				// Only update if this is still the current query (prevent race conditions)
 				if (currentQueryId === queryId) {
-					state.selectedItem = result;
+					state.selectedItem = result as InboxItemWithDetails | null;
 				}
 			})
 			.catch((error) => {

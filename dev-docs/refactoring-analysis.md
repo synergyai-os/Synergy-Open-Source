@@ -112,42 +112,34 @@ if (browser) {
 
 ---
 
-### Issue 3: Missing Return Types (Low) ⚠️
+### Issue 3: Missing Return Types (Low) ⚠️ ✅ FIXED
 
 **Location**: All composables
 
 **Problem**: No explicit return types on composable functions
 
-**Current Code**:
-```typescript
-export function useInboxItems() {
-  // ...
-  return { ... };
-}
-```
+**Solution Applied**:
+1. Created return type interfaces for all composables:
+   - `UseInboxItemsReturn` - for `useInboxItems()`
+   - `UseInboxSyncReturn` - for `useInboxSync()`
+   - `UseSelectedItemReturn` - for `useSelectedItem()`
+   - `UseKeyboardNavigationReturn` - for `useKeyboardNavigation()`
+   - `UseInboxLayoutReturn` - for `useInboxLayout()`
 
-**Issue**:
-- Harder to use from TypeScript
-- No IntelliSense for return values
-- Can't verify return shape at compile time
+2. Added explicit return types to all composable functions:
+   ```typescript
+   export function useInboxItems(): UseInboxItemsReturn {
+     // ...
+   }
+   ```
 
-**Recommended Fix**:
-```typescript
-interface UseInboxItemsReturn {
-  get filterType(): InboxItemType | 'all';
-  get inboxItems(): any[];
-  get isLoading(): boolean;
-  get queryError(): any;
-  get filteredItems(): any[];
-  setFilter: (type: InboxItemType | 'all', onClearSelection?: () => void) => void;
-}
+**Result**:
+- ✅ IntelliSense now works for return values
+- ✅ TypeScript can verify return shape at compile time
+- ✅ Better developer experience when using composables
+- ✅ Types serve as documentation
 
-export function useInboxItems(): UseInboxItemsReturn {
-  // ...
-}
-```
-
-**Priority**: Low (nice to have, improves DX)
+**Priority**: ✅ Fixed (Low priority completed)
 
 ---
 
@@ -186,7 +178,7 @@ if (browser) {
 ### ⚠️ Improvements Status:
 1. **✅ Fixed**: Replaced `onMount` with `$effect` in `useKeyboardNavigation`
 2. **✅ Fixed**: Added proper TypeScript types for parameters (ConvexClient, InboxApi, etc.)
-3. **⏳ Remaining**: Add explicit return types for better DX (low priority)
+3. **✅ Fixed**: Added explicit return types to all composables (improves DX)
 4. **⏳ Future**: Create proper union type for `InboxItemWithDetails` (currently `any`)
 
 ### 📊 Confidence Level: **95%**

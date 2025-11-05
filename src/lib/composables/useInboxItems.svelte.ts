@@ -10,7 +10,16 @@ import type { InboxItem } from '$lib/composables/useKeyboardNavigation.svelte';
 
 type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 
-export function useInboxItems() {
+export interface UseInboxItemsReturn {
+	get filterType(): InboxItemType | 'all';
+	get inboxItems(): InboxItem[];
+	get isLoading(): boolean;
+	get queryError(): unknown;
+	get filteredItems(): InboxItem[];
+	setFilter: (type: InboxItemType | 'all', onClearSelection?: () => void) => void;
+}
+
+export function useInboxItems(): UseInboxItemsReturn {
 	// Filter state
 	const state = $state({
 		filterType: 'all' as InboxItemType | 'all'
@@ -31,7 +40,7 @@ export function useInboxItems() {
 	const queryError = $derived(inboxQuery?.error ?? null);
 	
 	// Filtered items (currently just returns all items since filtering is done in query)
-	const filteredItems = $derived(inboxItems || []);
+	const filteredItems = $derived(inboxItems);
 
 	// Functions
 	function setFilter(type: InboxItemType | 'all', onClearSelection?: () => void) {

@@ -1043,3 +1043,137 @@ export function useInboxSync(
 
 ---
 
+## TypeScript: Discriminated Union Types for Polymorphic Data
+
+### Problem
+
+When working with polymorphic data structures (like inbox items with different types), using `any` loses type safety. We need proper types that allow TypeScript to narrow types based on a discriminator field (like `type`).
+
+### Solution: Discriminated Union Types
+
+Create a union type where each variant shares a common discriminator field (`type`) but has type-specific properties:
+
+```typescript
+// Base structure shared by all variants
+type BaseInboxItem = {
+	_id: string;
+	type: 'readwise_highlight' | 'photo_note' | 'manual_text';
+	userId: string;
+	processed: boolean;
+	processedAt?: number;
+	createdAt: number;
+};
+
+// Variant 1: Readwise highlight with full details
+export type ReadwiseHighlightWithDetails = BaseInboxItem & {
+	type: 'readwise_highlight'; // Discriminator - must match literal
+	highlightId: string;
+	highlight: { /* ... */ } | null;
+	source: { /* ... */ } | null;
+	author: { /* ... */ } | null;
+	authors: Array<{ /* ... */ }>;
+	tags: Array<{ /* ... */ }>;
+};
+
+// Variant 2: Photo note
+export type PhotoNoteWithDetails = BaseInboxItem & {
+	type: 'photo_note'; // Discriminator
+	imageFileId?: string;
+};
+
+// Variant 3: Manual text
+export type ManualTextWithDetails = BaseInboxItem & {
+	type: 'manual_text'; // Discriminator
+	text?: string;
+};
+
+// Union type - TypeScript can narrow based on `type` field
+export type InboxItemWithDetails = 
+	| ReadwiseHighlightWithDetails 
+	| PhotoNoteWithDetails 
+	| ManualTextWithDetails;
+```
+
+Then use it with type narrowing:
+
+```typescript
+function processItem(item: InboxItemWithDetails) {
+	// TypeScript narrows based on discriminator
+	if (item.type === 'readwise_highlight') {
+		// TypeScript knows: item is ReadwiseHighlightWithDetails
+		// Full access to highlight, source, author, etc.
+		console.log(item.highlight?.text);
+		console.log(item.source?.title);
+	} else if (item.type === 'photo_note') {
+		// TypeScript knows: item is PhotoNoteWithDetails
+		console.log(item.imageFileId);
+	} else {
+		// TypeScript knows: item is ManualTextWithDetails
+		console.log(item.text);
+	}
+}
+```
+
+### Why This Works
+
+1. **Type Safety**: TypeScript can narrow types based on the discriminator
+2. **IntelliSense**: Full autocomplete for type-specific properties
+3. **Compile-time Checks**: Prevents accessing properties that don't exist on a variant
+4. **Self-documenting**: Types clearly show what data is available for each variant
+
+### Key Takeaways
+
+- **Use discriminated unions** for polymorphic data structures
+- **Shared base type** ensures common properties are typed
+- **Literal types** in discriminator field enable type narrowing
+- **Intersection types** (`&`) extend base type with variant-specific properties
+- **Type narrowing** works automatically with `if`/`switch` on discriminator
+
+### Related Patterns
+
+- See "TypeScript Types for Composables" for parameter and return types
+- See `dev-docs/typescript-any-usage.md` for when to avoid `any`
+
+---
+
+## $derived: Avoid Redundant Defaults
+
+### Problem
+
+When using `$derived`, it's easy to add redundant defaults that are already handled upstream:
+
+```typescript
+// ❌ REDUNDANT: inboxItems already defaults to []
+const inboxItems = $derived((inboxQuery?.data ?? []) as InboxItem[]);
+const filteredItems = $derived(inboxItems || []); // || [] is redundant
+```
+
+### Solution: Trust Upstream Defaults
+
+Remove redundant defaults since `$derived` values are already guaranteed to be defined:
+
+```typescript
+// ✅ CORRECT: inboxItems already defaults to []
+const inboxItems = $derived((inboxQuery?.data ?? []) as InboxItem[]);
+const filteredItems = $derived(inboxItems); // No redundant default needed
+```
+
+### Why This Matters
+
+- **Cleaner code**: Less redundancy
+- **Better performance**: One less check
+- **Clearer intent**: Shows that `inboxItems` is always defined
+
+### When Redundancy is Acceptable
+
+- When the upstream default might change in the future
+- When you want to be defensive about edge cases
+- When the default serves as documentation
+
+### Key Takeaway
+
+**Trust your upstream defaults** - if `$derived` already handles defaults (via `??`), don't add redundant `||` checks downstream.
+
+---
+
+

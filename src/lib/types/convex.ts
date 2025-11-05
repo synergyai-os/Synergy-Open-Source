@@ -44,10 +44,92 @@ export type SyncProgress = {
 	message?: string;
 } | null;
 
-// Inbox item type (return type from getInboxItemWithDetails)
-// Using any for now since the actual type is complex and depends on item type
-// TODO: Create proper union type based on item.type
-export type InboxItemWithDetails = any;
+// Base inbox item structure (from schema)
+type BaseInboxItem = {
+	_id: string;
+	type: 'readwise_highlight' | 'photo_note' | 'manual_text';
+	userId: string;
+	processed: boolean;
+	processedAt?: number;
+	createdAt: number;
+};
+
+// Readwise highlight with details (return type from getInboxItemWithDetails for readwise_highlight)
+export type ReadwiseHighlightWithDetails = BaseInboxItem & {
+	type: 'readwise_highlight';
+	highlightId: string;
+	highlight: {
+		_id: string;
+		userId: string;
+		sourceId: string;
+		text: string;
+		location?: number;
+		locationType?: string;
+		note?: string;
+		color?: string;
+		externalId: string;
+		externalUrl: string;
+		highlightedAt?: number;
+		updatedAt: number;
+		createdAt: number;
+		lastSyncedAt?: number;
+	} | null;
+	source: {
+		_id: string;
+		userId: string;
+		authorId: string;
+		title: string;
+		category: string;
+		sourceType: string;
+		externalId: string;
+		sourceUrl?: string;
+		coverImageUrl?: string;
+		highlightsUrl?: string;
+		asin?: string;
+		documentNote?: string;
+		numHighlights: number;
+		lastHighlightAt?: number;
+		updatedAt: number;
+		createdAt: number;
+	} | null;
+	author: {
+		_id: string;
+		userId: string;
+		name: string;
+		displayName: string;
+		createdAt: number;
+	} | null;
+	authors: Array<{
+		_id: string;
+		userId: string;
+		name: string;
+		displayName: string;
+		createdAt: number;
+	}>;
+	tags: Array<{
+		_id: string;
+		userId: string;
+		name: string;
+		displayName: string;
+		color?: string;
+		createdAt: number;
+	}>;
+};
+
+// Photo note with details
+export type PhotoNoteWithDetails = BaseInboxItem & {
+	type: 'photo_note';
+	imageFileId?: string;
+};
+
+// Manual text with details
+export type ManualTextWithDetails = BaseInboxItem & {
+	type: 'manual_text';
+	text?: string;
+};
+
+// Union type for inbox item with details (return type from getInboxItemWithDetails)
+export type InboxItemWithDetails = ReadwiseHighlightWithDetails | PhotoNoteWithDetails | ManualTextWithDetails;
 
 // Sync result type (return type from syncReadwiseHighlights action)
 export interface SyncReadwiseResult {
