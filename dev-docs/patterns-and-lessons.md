@@ -129,6 +129,8 @@ When [situation]:
 - [Edit Mode Visual Indicators](#edit-mode-visual-indicators) - Clear edit state indication
 - [Centered Card Layout with Fixed Default Size](#centered-card-layout-with-fixed-default-size) - Centered layout with default size
 - [Textarea Auto-Resize to Match Static Text](#textarea-auto-resize-to-match-static-text) - Textarea matching paragraph styling
+- [Header Alignment with Sidebar Borders Pattern](#header-alignment-with-sidebar-borders-pattern) - Fixed height headers for border alignment
+- [Card Design with Proper Spacing and Visual Hierarchy](#card-design-with-proper-spacing-and-visual-hierarchy) - Generous padding and clear hierarchy
 
 ### Convex
 - [Real-time Data Updates with Convex useQuery](#real-time-data-updates-with-convex-usequery) - Use `useQuery()` instead of manual queries
@@ -164,6 +166,8 @@ When [situation]:
 - [Edit Mode Visual Indicators](#edit-mode-visual-indicators) - Edit mode not clearly indicated
 - [Textarea Auto-Resize to Match Static Text](#textarea-auto-resize-to-match-static-text) - Textarea appears as small scrollable frame
 - [Centered Card Layout with Fixed Default Size](#centered-card-layout-with-fixed-default-size) - Cards not centered or breaking with long content
+- [Header Alignment with Sidebar Borders Pattern](#header-alignment-with-sidebar-borders-pattern) - Headers not aligning with sidebar borders
+- [Card Design with Proper Spacing and Visual Hierarchy](#card-design-with-proper-spacing-and-visual-hierarchy) - Cards cramped with no breathing room
 
 ### Race Conditions
 - [Sidebar/Detail View Reactivity Issues](#sidebardetail-view-reactivity-issues) - Query tracking for race conditions
@@ -223,6 +227,8 @@ When [situation]:
 22. [Convex API Naming Convention Pattern](#convex-api-naming-convention-pattern) - File = module (noun), Function = action (verb)
 23. [Convex File System Access and Template Management Pattern](#convex-file-system-access-and-template-management-pattern) - Use TypeScript imports instead of file system reads
 24. [Convex Node.js Runtime Restrictions Pattern](#convex-nodejs-runtime-restrictions-pattern) - Files with "use node" can only contain actions
+25. [Header Alignment with Sidebar Borders Pattern](#header-alignment-with-sidebar-borders-pattern) - Fixed height headers for border alignment
+26. [Card Design with Proper Spacing and Visual Hierarchy](#card-design-with-proper-spacing-and-visual-hierarchy) - Generous padding and clear hierarchy
 
 ---
 
@@ -2412,6 +2418,188 @@ When integrating external libraries with database schemas:
 - **Don't** assume enums can be directly stored as strings
 
 **Related Patterns**: See [TypeScript: Discriminated Union Types](#typescript-discriminated-union-types-for-polymorphic-data) for type narrowing patterns.
+
+---
+
+## Header Alignment with Sidebar Borders Pattern
+
+**Tags**: `ui-ux`, `layout`, `header`, `alignment`, `system-header`, `borders`, `sidebar`  
+**Date**: 2025-01-29  
+**Issue**: Page headers don't align with sidebar header borders, creating visual misalignment and inconsistent spacing.
+
+### Problem
+
+When creating page headers:
+- Headers use inconsistent padding/heights
+- Border lines don't align between sidebar and main content
+- Visual misalignment creates unprofessional appearance
+- Different header heights across pages
+
+### Root Cause
+
+Missing fixed height constraint:
+- Headers only use `py-system-header` for padding
+- No `h-system-header` to ensure fixed total height (64px)
+- Content height varies, causing border misalignment
+- Sidebar uses fixed height, but page headers don't match
+
+### Solution
+
+**Pattern**: Use `h-system-header` with `py-system-header` and `flex` for consistent header alignment
+
+```svelte
+<!-- ❌ WRONG: No fixed height, borders don't align -->
+<div class="sticky top-0 bg-base border-b border-base px-inbox-container py-system-header">
+  <div class="flex items-center justify-between">
+    <h2>Page Title</h2>
+  </div>
+</div>
+```
+
+```svelte
+<!-- ✅ CORRECT: Fixed height ensures border alignment -->
+<div
+  class="sticky top-0 bg-base border-b border-base px-inbox-container py-system-header h-system-header flex items-center justify-between flex-shrink-0"
+>
+  <div class="flex items-center gap-icon">
+    <h2 class="text-sm font-normal text-secondary">Page Title</h2>
+  </div>
+</div>
+```
+
+**Why it works**:
+- `h-system-header` ensures fixed 64px total height (matches sidebar)
+- `py-system-header` provides consistent vertical padding (12px)
+- `flex items-center` centers content vertically within fixed height
+- `flex-shrink-0` prevents header from shrinking
+- Borders align perfectly between sidebar and main content
+
+### Implementation Example
+
+```svelte
+<!-- src/routes/(authenticated)/flashcards/+page.svelte -->
+<div
+  class="sticky top-0 z-10 bg-base border-b border-base px-inbox-container py-system-header h-system-header flex items-center justify-between flex-shrink-0"
+>
+  <div class="flex items-center gap-icon">
+    <svg class="w-5 h-5 text-accent-primary">...</svg>
+    <h2 class="text-sm font-normal text-secondary">Flashcards</h2>
+  </div>
+  <Button.Root>Study</Button.Root>
+</div>
+```
+
+### Key Takeaway
+
+When creating page headers that should align with sidebar:
+- **Do** use `h-system-header` for fixed 64px total height
+- **Do** use `py-system-header` for consistent vertical padding
+- **Do** use `flex items-center` to center content vertically
+- **Do** add `flex-shrink-0` to prevent header compression
+- **Don't** rely on content height alone (causes misalignment)
+- **Don't** use custom heights that don't match system tokens
+
+**Related Patterns**: See [Centered Card Layout with Fixed Default Size](#centered-card-layout-with-fixed-default-size) for consistent sizing patterns.
+
+---
+
+## Card Design with Proper Spacing and Visual Hierarchy
+
+**Tags**: `ui-ux`, `card-design`, `spacing`, `visual-hierarchy`, `padding`, `typography`, `breathing-room`  
+**Date**: 2025-01-29  
+**Issue**: Collection cards look cramped with no breathing room, poor visual hierarchy, and insufficient spacing between elements.
+
+### Problem
+
+When designing collection/card components:
+- Cards feel cramped with minimal padding
+- Text elements too small and tightly packed
+- No clear visual hierarchy between title and metadata
+- Insufficient spacing creates uncomfortable reading experience
+- Icons too small and not visually prominent
+
+### Root Cause
+
+Insufficient spacing and weak visual hierarchy:
+- Using `p-inbox-card` (12px) instead of `p-inbox-container` (16px)
+- Small text sizes (`text-sm`) for primary content
+- Tight margins (`mb-3` = 12px) between elements
+- Icons too small (`w-4 h-4`) and not prominent
+- No clear size/weight distinction between title and metadata
+
+### Solution
+
+**Pattern**: Use generous padding, larger text for hierarchy, and proper spacing between elements
+
+```svelte
+<!-- ❌ WRONG: Cramped, no breathing room -->
+<button class="bg-elevated border border-base rounded-lg p-inbox-card">
+  <div class="flex items-center gap-icon mb-3">
+    <svg class="w-4 h-4 text-secondary">...</svg>
+    <h3 class="text-sm font-semibold">{name}</h3>
+  </div>
+  <div class="text-sm text-secondary">{count} cards</div>
+</button>
+```
+
+```svelte
+<!-- ✅ CORRECT: Generous spacing, clear hierarchy -->
+<button class="bg-elevated border border-base rounded-lg p-inbox-container flex flex-col">
+  <div class="flex items-center gap-icon mb-4">
+    <svg class="w-5 h-5 text-accent-primary">...</svg>
+    <h3 class="text-lg font-semibold text-primary">{name}</h3>
+  </div>
+  <div class="text-sm text-secondary">{count} cards</div>
+</button>
+```
+
+**Why it works**:
+- `p-inbox-container` (16px) provides generous padding (matches flashcard component)
+- `text-lg` for title creates clear visual hierarchy
+- `mb-4` (16px) gives proper breathing room between elements
+- Larger icons (`w-5 h-5`) with accent color are more prominent
+- `flex flex-col` ensures proper vertical distribution
+- Clear size distinction between title and metadata
+
+### Implementation Example
+
+```svelte
+<!-- src/lib/components/flashcards/FlashcardCollectionCard.svelte -->
+<button
+  type="button"
+  class="group relative bg-elevated border border-base rounded-lg p-inbox-container hover:border-accent-primary transition-all duration-200 hover:shadow-lg w-full text-left flex flex-col"
+>
+  <!-- Collection Name -->
+  <div class="flex items-center gap-icon mb-4">
+    <svg class="w-5 h-5 text-accent-primary flex-shrink-0">...</svg>
+    <h3 class="text-lg font-semibold text-primary group-hover:text-accent-primary transition-colors leading-tight">
+      {collection.name}
+    </h3>
+  </div>
+
+  <!-- Counts -->
+  <div class="flex items-center gap-icon text-sm text-secondary">
+    <span>{collection.count} cards</span>
+    {#if collection.dueCount > 0}
+      <span class="text-accent-primary font-semibold">• {collection.dueCount} due</span>
+    {/if}
+  </div>
+</button>
+```
+
+### Key Takeaway
+
+When designing card components:
+- **Do** use `p-inbox-container` (16px) for generous padding
+- **Do** use larger text (`text-lg`) for primary titles
+- **Do** use `mb-4` (16px) or more for spacing between elements
+- **Do** make icons larger (`w-5 h-5`) and use accent colors
+- **Do** create clear visual hierarchy with size and weight differences
+- **Don't** use minimal padding (`p-inbox-card` = 12px) for main content
+- **Don't** use small text (`text-sm`) for primary content
+- **Don't** use tight spacing (`mb-3` = 12px) between major elements
+
+**Related Patterns**: See [Centered Card Layout with Fixed Default Size](#centered-card-layout-with-fixed-default-size) for card sizing patterns.
 
 ---
 
