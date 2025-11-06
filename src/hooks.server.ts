@@ -4,6 +4,7 @@ import {
 	createConvexAuthHooks,
 	createRouteMatcher
 } from '@mmailaender/convex-auth-svelte/sveltekit/server';
+import { config } from '$lib/config';
 
 // Define public routes that don't require authentication
 const isPublicRoute = createRouteMatcher([
@@ -15,7 +16,12 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 // Create auth hooks - convexUrl is automatically detected from environment
-const { handleAuth, isAuthenticated } = createConvexAuthHooks();
+// Configure persistent cookies using session duration from config
+const { handleAuth, isAuthenticated } = createConvexAuthHooks({
+	cookieConfig: {
+		maxAge: config.auth.sessionMaxAgeSeconds
+	}
+});
 
 // Create custom auth handler - auth-first approach (whitelist pattern)
 // All routes require auth except those explicitly whitelisted above

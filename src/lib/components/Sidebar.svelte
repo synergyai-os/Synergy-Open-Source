@@ -4,6 +4,7 @@
 	import { tweened } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
 	import { fade } from 'svelte/transition';
+	import { useAuth } from '@mmailaender/convex-auth-svelte/sveltekit';
 	import ResizableSplitter from './ResizableSplitter.svelte';
 	import SidebarHeader from './sidebar/SidebarHeader.svelte';
 	import CleanReadwiseButton from './sidebar/CleanReadwiseButton.svelte';
@@ -25,6 +26,10 @@
 		sidebarWidth = 256,
 		onSidebarWidthChange
 	}: Props = $props();
+
+	// Get auth functions for logout
+	const auth = useAuth();
+	const { signOut } = auth;
 
 	let isPinned = $state(false);
 	let isHovered = $state(false);
@@ -299,8 +304,10 @@
 				onSettings={() => {
 					goto('/settings');
 				}}
-				onLogout={() => {
-					console.log('Logout clicked');
+				onLogout={async () => {
+					await signOut();
+					// Redirect to login page after logout
+					await goto('/login');
 				}}
 			/>
 
@@ -554,8 +561,12 @@
 					window.location.href = '/settings';
 				}
 			}}
-			onLogout={() => {
-				console.log('Logout clicked');
+			onLogout={async () => {
+				await signOut();
+				// Redirect to login page after logout
+				if (typeof window !== 'undefined') {
+					window.location.href = '/login';
+				}
 			}}
 		/>
 

@@ -22,6 +22,8 @@ This document captures reusable solutions, common issues, and architectural patt
 | Type safety issues / `any` everywhere | TypeScript Types for Composables | [#typescript-types](#typescript-types-for-composables-shared-type-definitions) |
 | Can't narrow types on polymorphic data | Discriminated Union Types | [#discriminated-unions](#typescript-discriminated-union-types-for-polymorphic-data) |
 | Widget disappears too early | Global Activity Tracker: Dual Polling | [#dual-polling](#global-activity-tracker-dual-polling-race-condition) |
+| Users logged out on browser close | Persistent Session Configuration | [#persistent-session](#persistent-session-configuration) |
+| Settings scattered across codebase | Centralized Configuration Pattern | [#centralized-config](#centralized-configuration-pattern) |
 
 ---
 
@@ -120,10 +122,13 @@ When [situation]:
 - [Queue-Based Card Removal Pattern (Tinder-like)](#queue-based-card-removal-pattern-tinder-like) - Queue-based removal with animation
 - [Visual Feedback Pattern for User Actions](#visual-feedback-pattern-for-user-actions) - Immediate visual confirmation
 - [Edit Mode Toggle Pattern](#edit-mode-toggle-pattern) - Separate edit and view modes
-- [Centered Card Layout with Flexible Sizing](#centered-card-layout-with-flexible-sizing) - Centered layout with default size
+- [Edit Mode Visual Indicators](#edit-mode-visual-indicators) - Clear edit state indication
+- [Centered Card Layout with Fixed Default Size](#centered-card-layout-with-fixed-default-size) - Centered layout with default size
+- [Textarea Auto-Resize to Match Static Text](#textarea-auto-resize-to-match-static-text) - Textarea matching paragraph styling
 
 ### Convex
 - [Real-time Data Updates with Convex useQuery](#real-time-data-updates-with-convex-usequery) - Use `useQuery()` instead of manual queries
+- [Persistent Session Configuration](#persistent-session-configuration) - Configure cookie maxAge for persistent sessions
 
 ### TypeScript
 - [TypeScript Types for Composables](#typescript-types-for-composables-shared-type-definitions) - Shared type definitions
@@ -148,7 +153,9 @@ When [situation]:
 - [Queue-Based Card Removal Pattern (Tinder-like)](#queue-based-card-removal-pattern-tinder-like) - Cards not removing after rating
 - [Visual Feedback Pattern for User Actions](#visual-feedback-pattern-for-user-actions) - No confirmation for user actions
 - [Edit Mode Toggle Pattern](#edit-mode-toggle-pattern) - Accidental edits during study
-- [Centered Card Layout with Flexible Sizing](#centered-card-layout-with-flexible-sizing) - Cards not centered or breaking with long content
+- [Edit Mode Visual Indicators](#edit-mode-visual-indicators) - Edit mode not clearly indicated
+- [Textarea Auto-Resize to Match Static Text](#textarea-auto-resize-to-match-static-text) - Textarea appears as small scrollable frame
+- [Centered Card Layout with Fixed Default Size](#centered-card-layout-with-fixed-default-size) - Cards not centered or breaking with long content
 
 ### Race Conditions
 - [Sidebar/Detail View Reactivity Issues](#sidebardetail-view-reactivity-issues) - Query tracking for race conditions
@@ -161,6 +168,9 @@ When [situation]:
 ### Type Safety
 - [TypeScript Types for Composables](#typescript-types-for-composables-shared-type-definitions) - Shared type definitions
 - [Discriminated Union Types for Polymorphic Data](#typescript-discriminated-union-types-for-polymorphic-data) - Discriminated unions for type narrowing
+
+### Configuration
+- [Centralized Configuration Pattern](#centralized-configuration-pattern) - Single config file for app settings
 
 ### Data Fetching
 - [Real-time Data Updates with Convex useQuery](#real-time-data-updates-with-convex-usequery) - Use `useQuery()` for reactive subscriptions
@@ -188,7 +198,11 @@ When [situation]:
 13. [Queue-Based Card Removal Pattern (Tinder-like)](#queue-based-card-removal-pattern-tinder-like) - Queue-based removal with animation feedback
 14. [Visual Feedback Pattern for User Actions](#visual-feedback-pattern-for-user-actions) - Immediate visual confirmation for user actions
 15. [Edit Mode Toggle Pattern](#edit-mode-toggle-pattern) - Separate edit and view modes for components
-16. [Centered Card Layout with Flexible Sizing](#centered-card-layout-with-flexible-sizing) - Centered layout with default size and flexible expansion
+16. [Centered Card Layout with Fixed Default Size](#centered-card-layout-with-fixed-default-size) - Centered layout with default size and flexible expansion
+17. [Textarea Auto-Resize to Match Static Text](#textarea-auto-resize-to-match-static-text) - Textarea matching paragraph styling
+18. [Edit Mode Visual Indicators](#edit-mode-visual-indicators) - Clear edit state indication
+19. [Centralized Configuration Pattern](#centralized-configuration-pattern) - Single config file for app settings
+20. [Persistent Session Configuration](#persistent-session-configuration) - Configure cookie maxAge for persistent sessions
 
 ---
 
@@ -1711,6 +1725,302 @@ When centering cards:
 - **Do** add max-width/max-height for responsive behavior
 - **Do** use `flex items-center justify-center` for centering
 - **Don't** use only min-height (too small) or only max-height (no default size)
+
+---
+
+## Textarea Auto-Resize to Match Static Text
+
+**Tags**: `textarea`, `auto-resize`, `field-sizing`, `styling`, `ui-ux`  
+**Date**: 2025-01-27  
+**Issue**: Textarea appears as small scrollable frame, doesn't match static text appearance.
+
+### Problem
+
+- Textarea constrained by `h-full` wrapper
+- Appears as small iframe-like scrollable box
+- Doesn't match paragraph text styling
+- Long text not fully visible
+
+### Solution
+
+**Pattern**: Remove height constraints, use `field-sizing-content` for auto-resize, match paragraph structure.
+
+```svelte
+<!-- ❌ WRONG: Height constraint prevents expansion -->
+<div class="w-full h-full flex items-center justify-center">
+  <textarea class="w-full h-full ..." />
+</div>
+
+<!-- ✅ CORRECT: No height constraint, auto-resize -->
+<div class="w-full flex items-center justify-center min-w-0">
+  <textarea
+    class="... field-sizing-content"
+    style="overflow: hidden;"
+  />
+</div>
+```
+
+**Why it works**:
+- Removing `h-full` allows natural expansion
+- `field-sizing-content` auto-resizes to content
+- Same wrapper structure as paragraph ensures matching layout
+- `overflow: hidden` prevents scrollbars
+
+### Key Takeaway
+
+When making textarea match static text:
+- **Do** remove height constraints from wrapper
+- **Do** use `field-sizing-content` for auto-resize
+- **Do** match paragraph wrapper structure exactly
+- **Don't** use `h-full` on textarea wrapper
+
+---
+
+## Edit Mode Visual Indicators
+
+**Tags**: `ui-ux`, `edit-mode`, `visual-feedback`, `accessibility`  
+**Date**: 2025-01-27  
+**Issue**: Edit mode looks identical to preview mode, users don't know they're editing.
+
+### Problem
+
+- No visual distinction between edit and preview
+- Users unsure if changes will save
+- No clear indication of edit state
+
+### Solution
+
+**Pattern**: Multi-signal approach: footer text change, background tint, focus ring.
+
+```svelte
+<!-- Footer: Text + background change -->
+<div
+  class="... transition-colors {isEditing
+    ? 'bg-accent-primary/20'
+    : 'bg-base/10'}"
+>
+  {#if isEditing}
+    <span class="text-accent-primary font-medium">
+      • Editing... (Click outside to save)
+    </span>
+  {:else}
+    <span class="text-secondary">• Click to edit</span>
+  {/if}
+</div>
+
+<!-- Textarea: Focus ring -->
+<textarea
+  class="... focus:ring-2 focus:ring-accent-primary/50"
+/>
+```
+
+**Why it works**:
+- Footer text clearly indicates state
+- Background tint provides subtle visual cue
+- Focus ring shows active editing
+- Multiple signals ensure clarity
+
+### Key Takeaway
+
+When indicating edit mode:
+- **Do** change footer text to show state
+- **Do** add subtle background tint
+- **Do** use focus ring on textarea
+- **Do** use multiple signals for clarity
+
+---
+
+## Centralized Configuration Pattern
+
+**Tags**: `configuration`, `app-settings`, `maintainability`, `single-source-of-truth`  
+**Date**: 2025-01-28  
+**Issue**: App settings scattered across codebase, making it difficult to adjust values like session duration, timeouts, or feature flags.
+
+### Problem
+
+When app-wide settings are hardcoded or scattered:
+- Session duration hardcoded in multiple places
+- Difficult to adjust settings without code changes
+- No single place to see all configurable values
+- Risk of inconsistent values across codebase
+
+### Root Cause
+
+- Settings embedded directly in implementation code
+- No centralized configuration file
+- Values calculated inline instead of from config
+- No clear separation between code and configuration
+
+### Solution
+
+**Pattern**: Create a single `src/lib/config.ts` file for all app-wide settings
+
+```typescript
+// ❌ WRONG: Hardcoded values scattered across codebase
+// hooks.server.ts
+const { handleAuth } = createConvexAuthHooks({
+  cookieConfig: { maxAge: 2592000 } // What is this number?
+});
+
+// ❌ WRONG: Magic numbers with comments
+const SESSION_DURATION = 30 * 24 * 60 * 60; // 30 days in seconds
+```
+
+```typescript
+// ✅ CORRECT: Centralized config file
+// src/lib/config.ts
+const SESSION_DURATION_DAYS = 30;
+
+export const config = {
+  auth: {
+    sessionDurationDays: SESSION_DURATION_DAYS,
+    sessionMaxAgeSeconds: SESSION_DURATION_DAYS * 24 * 60 * 60
+  }
+} as const;
+
+// hooks.server.ts
+import { config } from '$lib/config';
+
+const { handleAuth } = createConvexAuthHooks({
+  cookieConfig: { maxAge: config.auth.sessionMaxAgeSeconds }
+});
+```
+
+**Why it works**:
+- Single source of truth for all settings
+- Easy to adjust values (change once, updates everywhere)
+- Self-documenting (clear what values mean)
+- Type-safe with `as const`
+- Can add more settings as needed
+
+### Implementation Example
+
+```typescript
+// src/lib/config.ts
+/**
+ * Application configuration
+ * Centralized settings for the app that can be easily adjusted
+ */
+
+const SESSION_DURATION_DAYS = 30;
+
+export const config = {
+  auth: {
+    // Session duration in days (default: 30 days)
+    sessionDurationDays: SESSION_DURATION_DAYS,
+    // Calculate maxAge in seconds for cookie configuration
+    sessionMaxAgeSeconds: SESSION_DURATION_DAYS * 24 * 60 * 60
+  }
+  // Future settings can be added here:
+  // api: { timeout: 5000 },
+  // features: { enableBeta: false }
+} as const;
+```
+
+### Key Takeaway
+
+When creating app-wide settings:
+- **Do** create a single `src/lib/config.ts` file
+- **Do** use descriptive constant names (e.g., `SESSION_DURATION_DAYS`)
+- **Do** calculate derived values from base constants
+- **Do** export a `config` object with organized sections
+- **Don't** hardcode values in implementation files
+- **Don't** scatter settings across multiple files
+- **Don't** use magic numbers without context
+
+**Related Patterns**: See [Persistent Session Configuration](#persistent-session-configuration) for using config in auth setup.
+
+---
+
+## Persistent Session Configuration
+
+**Tags**: `authentication`, `sessions`, `cookies`, `convex-auth`, `sveltekit`, `persistence`  
+**Date**: 2025-01-28  
+**Issue**: Users are logged out when they close their browser because authentication cookies are session-only.
+
+### Problem
+
+- Users must log in every time they open the browser
+- Sessions expire when browser closes (session cookies)
+- Poor user experience requiring frequent re-authentication
+- No way to configure session duration
+
+### Root Cause
+
+- `createConvexAuthHooks()` uses default cookie configuration (session cookies)
+- No `maxAge` set on cookies, so they expire on browser close
+- Session duration not configurable
+
+### Solution
+
+**Pattern**: Configure `cookieConfig` with `maxAge` in `createConvexAuthHooks()` to enable persistent sessions
+
+```typescript
+// ❌ WRONG: Default session cookies (expire on browser close)
+const { handleAuth, isAuthenticated } = createConvexAuthHooks();
+```
+
+```typescript
+// ✅ CORRECT: Persistent cookies with configurable duration
+import { config } from '$lib/config';
+
+const { handleAuth, isAuthenticated } = createConvexAuthHooks({
+  cookieConfig: {
+    maxAge: config.auth.sessionMaxAgeSeconds // 30 days in seconds
+  }
+});
+```
+
+**Why it works**:
+- `maxAge` sets cookie expiration in seconds
+- Cookies persist across browser restarts
+- Users stay logged in until expiration or explicit logout
+- Duration configurable via config file
+
+### Implementation Example
+
+```typescript
+// src/hooks.server.ts
+import { createConvexAuthHooks } from '@mmailaender/convex-auth-svelte/sveltekit/server';
+import { config } from '$lib/config';
+
+// Configure persistent cookies using session duration from config
+const { handleAuth, isAuthenticated } = createConvexAuthHooks({
+  cookieConfig: {
+    maxAge: config.auth.sessionMaxAgeSeconds
+  }
+});
+```
+
+**Logout implementation**:
+```svelte
+<!-- src/lib/components/Sidebar.svelte -->
+<script lang="ts">
+  import { useAuth } from '@mmailaender/convex-auth-svelte/sveltekit';
+  
+  const auth = useAuth();
+  const { signOut } = auth;
+</script>
+
+<SidebarHeader
+  onLogout={async () => {
+    await signOut();
+    await goto('/login');
+  }}
+/>
+```
+
+### Key Takeaway
+
+When implementing persistent sessions:
+- **Do** configure `cookieConfig.maxAge` in `createConvexAuthHooks()`
+- **Do** use a config file for session duration (see [Centralized Configuration Pattern](#centralized-configuration-pattern))
+- **Do** implement proper logout using `signOut()` from `useAuth()`
+- **Do** redirect to login page after logout
+- **Don't** rely on default session cookies for persistent sessions
+- **Don't** hardcode `maxAge` values (use config)
+
+**Related Patterns**: See [Centralized Configuration Pattern](#centralized-configuration-pattern) for config file setup.
 
 ---
 
