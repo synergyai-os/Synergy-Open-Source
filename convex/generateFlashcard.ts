@@ -4,6 +4,7 @@ import { action, internalAction } from './_generated/server';
 import { v } from 'convex/values';
 import { internal } from './_generated/api';
 import { getAuthUserId } from '@convex-dev/auth/server';
+import { loadPrompt } from './promptUtils';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const crypto = require('crypto');
 
@@ -57,6 +58,8 @@ export const decryptApiKey = internalAction({
 export const generateFlashcard = action({
 	args: {
 		text: v.string(),
+		sourceTitle: v.optional(v.string()),
+		sourceAuthor: v.optional(v.string()),
 	},
 	handler: async (ctx, args) => {
 		const userId = await getAuthUserId(ctx);
@@ -79,21 +82,14 @@ export const generateFlashcard = action({
 			encryptedKey: keys.claudeApiKey,
 		});
 
-		// Call Claude API to generate flashcards
-		const prompt = `Given the following text, generate flashcards with question and answer format that helps with learning and retention.
-
-Text: ${args.text}
-
-Generate flashcards in the following JSON format (return an array, even if only one flashcard):
-[
-  {
-    "question": "A clear, concise question about a key concept",
-    "answer": "A detailed answer that explains the concept clearly"
-  }
-]
-
-Generate 1-3 flashcards depending on the content. Focus on the most important concepts.
-Only return the JSON array, no additional text or explanation.`;
+		// Load prompt template with variables
+		const prompt = loadPrompt('flashcard-generation', {
+			text: args.text,
+			source: {
+				title: args.sourceTitle,
+				author: args.sourceAuthor,
+			},
+		});
 
 		try {
 			const response: Response = await fetch('https://api.anthropic.com/v1/messages', {

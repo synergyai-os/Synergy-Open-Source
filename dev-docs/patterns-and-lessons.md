@@ -24,6 +24,9 @@ This document captures reusable solutions, common issues, and architectural patt
 | Widget disappears too early | Global Activity Tracker: Dual Polling | [#dual-polling](#global-activity-tracker-dual-polling-race-condition) |
 | Users logged out on browser close | Persistent Session Configuration | [#persistent-session](#persistent-session-configuration) |
 | Settings scattered across codebase | Centralized Configuration Pattern | [#centralized-config](#centralized-configuration-pattern) |
+| Redundant API paths (api.x.x) | Convex API Naming Convention | [#convex-api-naming](#convex-api-naming-convention-pattern) |
+| File not found in Convex | Convex File System Access Pattern | [#convex-file-system](#convex-file-system-access-and-template-management-pattern) |
+| InvalidConfig: hyphens in filename | Convex File System Access Pattern | [#convex-file-system](#convex-file-system-access-and-template-management-pattern) |
 
 ---
 
@@ -129,6 +132,8 @@ When [situation]:
 ### Convex
 - [Real-time Data Updates with Convex useQuery](#real-time-data-updates-with-convex-usequery) - Use `useQuery()` instead of manual queries
 - [Persistent Session Configuration](#persistent-session-configuration) - Configure cookie maxAge for persistent sessions
+- [Convex API Naming Convention Pattern](#convex-api-naming-convention-pattern) - File = module (noun), Function = action (verb)
+- [Convex File System Access and Template Management Pattern](#convex-file-system-access-and-template-management-pattern) - Use TypeScript imports instead of file system reads
 
 ### TypeScript
 - [TypeScript Types for Composables](#typescript-types-for-composables-shared-type-definitions) - Shared type definitions
@@ -174,6 +179,12 @@ When [situation]:
 ### Configuration
 - [Centralized Configuration Pattern](#centralized-configuration-pattern) - Single config file for app settings
 
+### File System / Serverless
+- [Convex File System Access and Template Management Pattern](#convex-file-system-access-and-template-management-pattern) - Use TypeScript imports instead of file system reads
+
+### Naming Conventions
+- [Convex API Naming Convention Pattern](#convex-api-naming-convention-pattern) - File = module (noun), Function = action (verb)
+
 ### Data Fetching
 - [Real-time Data Updates with Convex useQuery](#real-time-data-updates-with-convex-usequery) - Use `useQuery()` for reactive subscriptions
 
@@ -206,6 +217,8 @@ When [situation]:
 19. [Enum to Database String Conversion Pattern](#enum-to-database-string-conversion-pattern) - Converting enums to/from database strings
 20. [Centralized Configuration Pattern](#centralized-configuration-pattern) - Single config file for app settings
 21. [Persistent Session Configuration](#persistent-session-configuration) - Configure cookie maxAge for persistent sessions
+22. [Convex API Naming Convention Pattern](#convex-api-naming-convention-pattern) - File = module (noun), Function = action (verb)
+23. [Convex File System Access and Template Management Pattern](#convex-file-system-access-and-template-management-pattern) - Use TypeScript imports instead of file system reads
 
 ---
 
@@ -2024,6 +2037,246 @@ When implementing persistent sessions:
 - **Don't** hardcode `maxAge` values (use config)
 
 **Related Patterns**: See [Centralized Configuration Pattern](#centralized-configuration-pattern) for config file setup.
+
+---
+
+## Convex API Naming Convention Pattern
+
+**Tags**: `convex`, `naming-conventions`, `api-structure`, `file-organization`  
+**Date**: 2025-01-28  
+**Issue**: Redundant API paths like `api.generateFlashcard.generateFlashcard` when file name matches function name.
+
+### Problem
+
+When Convex file names match exported function names:
+- Creates redundant API paths: `api.generateFlashcard.generateFlashcard`
+- Unclear naming convention
+- Inconsistent with other modules like `api.flashcards.createFlashcards`
+
+### Root Cause
+
+Convex generates API paths as `{filename}:{exportedFunctionName}`:
+- File: `convex/generateFlashcard.ts`
+- Export: `export const generateFlashcard`
+- Result: `api.generateFlashcard.generateFlashcard` (redundant)
+
+### Solution
+
+**Pattern**: File names = domain/module (nouns), Function names = actions/verbs
+
+```typescript
+// ❌ WRONG: File name matches function name (redundant)
+// convex/generateFlashcard.ts
+export const generateFlashcard = action({ ... });
+// Result: api.generateFlashcard.generateFlashcard
+
+// ✅ CORRECT: File = module, Function = action
+// Option 1: Move to domain module
+// convex/flashcards.ts
+export const generateFlashcard = action({ ... });
+// Result: api.flashcards.generateFlashcard
+
+// Option 2: Rename file to module name
+// convex/flashcardGeneration.ts
+export const generateFlashcard = action({ ... });
+// Result: api.flashcardGeneration.generateFlashcard
+```
+
+**Naming Rules**:
+1. **File names**: Domain/module names (nouns, plural or singular)
+   - ✅ `flashcards.ts`, `inbox.ts`, `settings.ts`, `tags.ts`
+   - ✅ `flashcardGeneration.ts`, `syncReadwise.ts`
+   - ❌ `generateFlashcard.ts` (matches function name)
+
+2. **Function names**: Actions/verbs (what they do)
+   - ✅ `createFlashcards`, `listInboxItems`, `getUserSettings`
+   - ✅ `generateFlashcard`, `syncReadwiseHighlights`
+   - ❌ `flashcards` (noun, not an action)
+
+3. **Result**: Clean API paths
+   - ✅ `api.flashcards.createFlashcards`
+   - ✅ `api.inbox.listInboxItems`
+   - ✅ `api.settings.getUserSettings`
+   - ✅ `api.flashcards.generateFlashcard` (if moved to flashcards.ts)
+
+### Implementation Example
+
+**Current structure**:
+```typescript
+// convex/generateFlashcard.ts
+export const generateFlashcard = action({ ... });
+// Usage: api.generateFlashcard.generateFlashcard ❌
+
+// Recommended: Move to domain module
+// convex/flashcards.ts
+export const createFlashcard = mutation({ ... });
+export const createFlashcards = mutation({ ... });
+export const generateFlashcard = action({ ... }); // Add here
+// Usage: api.flashcards.generateFlashcard ✅
+```
+
+**Alternative for single-purpose actions**:
+```typescript
+// convex/flashcardGeneration.ts (module name, not function name)
+export const generateFlashcard = action({ ... });
+// Usage: api.flashcardGeneration.generateFlashcard ✅
+```
+
+### Key Takeaway
+
+When creating Convex functions:
+- **File names** = domain/module (nouns): `flashcards.ts`, `inbox.ts`
+- **Function names** = actions/verbs: `createFlashcards`, `listInboxItems`
+- **Avoid** matching file name to function name (creates redundancy)
+- **Group related functions** in domain modules when possible
+- **Result**: Clean, intuitive API paths like `api.flashcards.createFlashcards`
+
+**Related Patterns**: See [TypeScript Types for Composables](#typescript-types-for-composables-shared-type-definitions) for API type definitions.
+
+---
+
+## Convex File System Access and Template Management Pattern
+
+**Tags**: `convex`, `serverless`, `file-system`, `templates`, `prompts`, `imports`, `file-naming`  
+**Date**: 2025-01-28  
+**Issue**: `readFileSync` fails in Convex serverless environment, and file names with hyphens cause deployment errors.
+
+### Problem
+
+When trying to load external files (like prompt templates) in Convex:
+- `readFileSync` throws "file not found" errors in serverless environment
+- Files with hyphens in names cause `InvalidConfig` errors
+- Convex bundling doesn't include subdirectories reliably
+- File system access is unreliable in deployed Convex functions
+
+### Root Cause
+
+Convex serverless environment limitations:
+1. **File system access**: `readFileSync` and `fs` module work differently in Convex's bundled serverless environment
+2. **File naming**: Convex only allows alphanumeric characters, underscores, and periods in module file names (no hyphens)
+3. **Bundling**: External files in subdirectories may not be included in the bundle
+4. **Path resolution**: `__dirname` and `import.meta.url` may not resolve correctly in serverless
+
+### Solution
+
+**Pattern**: Use TypeScript imports instead of file system reads, export templates as string constants
+
+```typescript
+// ❌ WRONG: File system access in Convex
+"use node";
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
+export function loadPrompt(promptName: string) {
+  const promptPath = join(__dirname, 'prompts', `${promptName}.xml`);
+  return readFileSync(promptPath, 'utf-8'); // Fails in serverless
+}
+```
+
+```typescript
+// ❌ WRONG: Hyphen in file name
+// convex/prompt-utils.ts
+// Error: InvalidConfig - hyphens not allowed
+
+// ✅ CORRECT: TypeScript export, camelCase file name
+// convex/prompts/flashcardGeneration.ts
+export const flashcardGenerationTemplate = `<prompt>
+  <instructions>...</instructions>
+</prompt>`;
+
+// convex/promptUtils.ts (no "use node" needed)
+import { flashcardGenerationTemplate } from './prompts/flashcardGeneration';
+
+const promptTemplates: Record<string, string> = {
+  'flashcard-generation': flashcardGenerationTemplate,
+};
+
+export function loadPrompt(promptName: string, variables?: Record<string, any>): string {
+  const template = promptTemplates[promptName];
+  if (!template) {
+    throw new Error(`Prompt template "${promptName}" not found`);
+  }
+  // Interpolate variables...
+  return interpolateVariables(template, variables || {});
+}
+```
+
+**Why it works**:
+- TypeScript imports are bundled by Convex reliably
+- No file system access needed - templates are in code
+- File names follow Convex naming rules (camelCase, no hyphens)
+- Templates are type-checked and available at compile time
+- No `"use node"` directive needed (no Node.js APIs)
+
+### File Naming Rules
+
+Convex module file names must:
+- ✅ Use alphanumeric characters, underscores, periods
+- ✅ Use camelCase: `promptUtils.ts`, `flashcardGeneration.ts`
+- ❌ No hyphens: `prompt-utils.ts` (causes `InvalidConfig`)
+
+### Implementation Example
+
+```typescript
+// convex/prompts/flashcardGeneration.ts
+/**
+ * Flashcard generation prompt template
+ * Variables: {{text}}, {{source.title}}, {{source.author}}
+ */
+export const flashcardGenerationTemplate = `<prompt>
+  <instructions>
+    Given the following text, generate flashcards...
+    <context>
+      Source: {{source.title}}
+      Author: {{source.author}}
+    </context>
+  </instructions>
+  <input>
+    <text>{{text}}</text>
+  </input>
+</prompt>`;
+
+// convex/promptUtils.ts
+import { flashcardGenerationTemplate } from './prompts/flashcardGeneration';
+
+const promptTemplates: Record<string, string> = {
+  'flashcard-generation': flashcardGenerationTemplate,
+};
+
+export function loadPrompt(promptName: string, variables?: Record<string, any>): string {
+  const template = promptTemplates[promptName];
+  if (!template) {
+    throw new Error(
+      `Prompt template "${promptName}" not found. Available: ${Object.keys(promptTemplates).join(', ')}`
+    );
+  }
+  return interpolateVariables(template, variables || {});
+}
+```
+
+### When to Use This Pattern
+
+**Use TypeScript exports when**:
+- Loading templates, prompts, or static content in Convex
+- Content needs to be bundled with code
+- File system access is unreliable
+
+**Use file system reads when**:
+- Running in Node.js environment (not Convex serverless)
+- Files are truly external and change frequently
+- Files are too large to include in bundle
+
+### Key Takeaway
+
+When loading external files in Convex:
+- **Do** use TypeScript imports and exports for templates/content
+- **Do** use camelCase file names (no hyphens)
+- **Do** export templates as string constants
+- **Don't** use `readFileSync` or `fs` module in Convex functions
+- **Don't** use hyphens in Convex module file names
+- **Don't** rely on `__dirname` or file system paths in serverless
+
+**Related Patterns**: See [Convex API Naming Convention Pattern](#convex-api-naming-convention-pattern) for file naming rules.
 
 ---
 

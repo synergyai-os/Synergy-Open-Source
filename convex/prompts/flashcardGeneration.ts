@@ -1,0 +1,41 @@
+/**
+ * Flashcard generation prompt template
+ * 
+ * This template is used to generate flashcards from text input using Claude API.
+ * Variables are interpolated using {{variable}} syntax.
+ */
+
+export const flashcardGenerationTemplate = `<prompt>
+  <instructions>
+    Given the following text, generate flashcards with question and answer format that helps with learning and retention.
+    
+    Generate 1-3 flashcards depending on the content. Focus on the most important concepts.
+    
+    {{#if source.title}}
+    <context>
+      Source: {{source.title}}
+      {{#if source.author}}
+      Author: {{source.author}}
+      {{/if}}
+    </context>
+    {{/if}}
+  </instructions>
+  
+  <input>
+    <text>{{text}}</text>
+  </input>
+  
+  <output_format>
+    Generate flashcards in the following JSON format (return an array, even if only one flashcard):
+    [
+      {
+        "question": "A clear, concise question about a key concept",
+        "answer": "A detailed answer that explains the concept clearly"
+      }
+    ]
+    
+    Generate 1-3 flashcards depending on the content. Focus on the most important concepts.
+    Only return the JSON array, no additional text or explanation.
+  </output_format>
+</prompt>`;
+
