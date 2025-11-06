@@ -116,6 +116,12 @@ When [situation]:
 - [Passing Reactive Values as Function Parameters](#composables-passing-reactive-values-as-function-parameters) - Pass functions that return reactive values
 - [$derived: Avoid Redundant Defaults](#derived-avoid-redundant-defaults) - Trust upstream defaults
 
+### UI/UX Patterns
+- [Queue-Based Card Removal Pattern (Tinder-like)](#queue-based-card-removal-pattern-tinder-like) - Queue-based removal with animation
+- [Visual Feedback Pattern for User Actions](#visual-feedback-pattern-for-user-actions) - Immediate visual confirmation
+- [Edit Mode Toggle Pattern](#edit-mode-toggle-pattern) - Separate edit and view modes
+- [Centered Card Layout with Flexible Sizing](#centered-card-layout-with-flexible-sizing) - Centered layout with default size
+
 ### Convex
 - [Real-time Data Updates with Convex useQuery](#real-time-data-updates-with-convex-usequery) - Use `useQuery()` instead of manual queries
 
@@ -137,6 +143,12 @@ When [situation]:
 - [Sidebar/Detail View Reactivity Issues](#sidebardetail-view-reactivity-issues) - Use data-based keys for async data
 - [Returning Reactive State with Getters](#composables-returning-reactive-state-with-getters) - Single `$state` object with getters
 - [Passing Reactive Values as Function Parameters](#composables-passing-reactive-values-as-function-parameters) - Pass functions that return reactive values
+
+### UI/UX Issues
+- [Queue-Based Card Removal Pattern (Tinder-like)](#queue-based-card-removal-pattern-tinder-like) - Cards not removing after rating
+- [Visual Feedback Pattern for User Actions](#visual-feedback-pattern-for-user-actions) - No confirmation for user actions
+- [Edit Mode Toggle Pattern](#edit-mode-toggle-pattern) - Accidental edits during study
+- [Centered Card Layout with Flexible Sizing](#centered-card-layout-with-flexible-sizing) - Cards not centered or breaking with long content
 
 ### Race Conditions
 - [Sidebar/Detail View Reactivity Issues](#sidebardetail-view-reactivity-issues) - Query tracking for race conditions
@@ -173,6 +185,10 @@ When [situation]:
 10. [TypeScript Types for Composables: Shared Type Definitions](#typescript-types-for-composables-shared-type-definitions) - Shared type definitions in `$lib/types/convex.ts`
 11. [TypeScript: Discriminated Union Types for Polymorphic Data](#typescript-discriminated-union-types-for-polymorphic-data) - Discriminated unions for type narrowing
 12. [$derived: Avoid Redundant Defaults](#derived-avoid-redundant-defaults) - Trust upstream defaults
+13. [Queue-Based Card Removal Pattern (Tinder-like)](#queue-based-card-removal-pattern-tinder-like) - Queue-based removal with animation feedback
+14. [Visual Feedback Pattern for User Actions](#visual-feedback-pattern-for-user-actions) - Immediate visual confirmation for user actions
+15. [Edit Mode Toggle Pattern](#edit-mode-toggle-pattern) - Separate edit and view modes for components
+16. [Centered Card Layout with Flexible Sizing](#centered-card-layout-with-flexible-sizing) - Centered layout with default size and flexible expansion
 
 ---
 
@@ -1381,6 +1397,364 @@ const filteredItems = $derived(inboxItems); // No redundant default needed
 ### Key Takeaway
 
 **Trust your upstream defaults** - if `$derived` already handles defaults (via `??`), don't add redundant `||` checks downstream.
+
+---
+
+## Queue-Based Card Removal Pattern (Tinder-like)
+
+**Tags**: `ui-ux`, `animation`, `state-management`, `queue`, `user-feedback`  
+**Date**: 2025-01-27  
+**Issue**: Cards should be removed from review queue immediately after rating, with smooth animation feedback.
+
+### Problem
+
+- Cards remain in view after rating, requiring manual navigation
+- No clear visual feedback that action was registered
+- User doesn't know if card was processed
+- Cluttered interface with multiple action buttons
+
+### Root Cause
+
+- Using index-based navigation instead of queue-based removal
+- No animation state to provide visual feedback
+- Actions don't immediately remove cards from active review set
+
+### Solution
+
+**Pattern**: Use a queue-based approach where cards are removed from the active queue immediately after rating, with animation feedback.
+
+```typescript
+// ❌ WRONG: Index-based navigation, cards stay in list
+let currentIndex = $state(0);
+let approvedIndices = $state<Set<number>>(new Set());
+
+function handleApproveCurrent() {
+  approvedIndices.add(currentIndex);
+  currentIndex++; // Card still in list, just hidden
+}
+
+// ✅ CORRECT: Queue-based removal, cards disappear
+let reviewQueue = $state<Flashcard[]>([]);
+let approvedCards = $state<Flashcard[]>([]);
+let isAnimating = $state(false);
+
+function handleApproveCurrent() {
+  if (isAnimating || reviewQueue.length === 0) return;
+  
+  const card = reviewQueue[0];
+  approvedCards.push(card);
+  isAnimating = true;
+  
+  // Animate out
+  setTimeout(() => {
+    reviewQueue = reviewQueue.slice(1); // Remove from queue
+    isAnimating = false;
+  }, 400);
+}
+```
+
+**Why it works**:
+- Cards are immediately removed from active queue
+- Animation provides clear visual feedback
+- Next card appears automatically
+- No manual navigation needed
+- Cleaner, more focused experience
+
+### Implementation Example
+
+```typescript
+// In FlashcardReviewModal.svelte
+let reviewQueue = $state<Flashcard[]>([]);
+let approvedCards = $state<Flashcard[]>([]);
+let rejectedCards = $state<Flashcard[]>([]);
+let showFeedback = $state<'approved' | 'rejected' | null>(null);
+let isAnimating = $state(false);
+
+const currentCard = $derived(reviewQueue[0]); // Always first card in queue
+
+function handleApproveCurrent() {
+  if (isAnimating || reviewQueue.length === 0) return;
+  
+  const card = reviewQueue[0];
+  approvedCards.push(card);
+  showFeedback = 'approved';
+  isAnimating = true;
+  
+  setTimeout(() => {
+    reviewQueue = reviewQueue.slice(1); // Remove from queue
+    showFeedback = null;
+    isAnimating = false;
+  }, 400);
+}
+```
+
+### Key Takeaway
+
+When implementing card review interfaces:
+- **Do** use queue-based removal (`queue.slice(1)`) for immediate card removal
+- **Do** add animation state (`isAnimating`) to prevent double-actions
+- **Do** show visual feedback (`showFeedback`) before removing card
+- **Don't** use index-based navigation that keeps cards in the list
+- **Don't** allow actions during animation (disable buttons)
+
+**Related Patterns**: See [Visual Feedback Pattern](#visual-feedback-pattern-for-user-actions) for feedback implementation.
+
+---
+
+## Visual Feedback Pattern for User Actions
+
+**Tags**: `ui-ux`, `user-feedback`, `animation`, `accessibility`  
+**Date**: 2025-01-27  
+**Issue**: Users need immediate visual confirmation that their actions were registered.
+
+### Problem
+
+- No visual feedback when approving/rejecting cards
+- Users uncertain if action registered
+- Potential for double-clicks
+- Poor user experience
+
+### Root Cause
+
+- Actions happen too quickly without feedback
+- No intermediate state between action and result
+- Missing visual indicators
+
+### Solution
+
+**Pattern**: Show immediate visual feedback (overlay, icon, color change) before processing the action.
+
+```typescript
+// ❌ WRONG: No feedback, action happens instantly
+function handleApprove() {
+  approvedCards.push(card);
+  reviewQueue = reviewQueue.slice(1);
+}
+
+// ✅ CORRECT: Show feedback, then process
+let showFeedback = $state<'approved' | 'rejected' | null>(null);
+
+function handleApprove() {
+  showFeedback = 'approved'; // Immediate visual feedback
+  setTimeout(() => {
+    approvedCards.push(card);
+    reviewQueue = reviewQueue.slice(1);
+    showFeedback = null;
+  }, 400);
+}
+```
+
+**Why it works**:
+- User sees immediate confirmation
+- Prevents uncertainty and double-clicks
+- Provides better UX with clear feedback
+- Can use color, icon, or animation
+
+### Implementation Example
+
+```svelte
+<!-- Visual Feedback Overlay -->
+{#if showFeedback}
+  <div
+    class="absolute inset-0 z-10 flex items-center justify-center rounded-lg {showFeedback === 'approved'
+      ? 'bg-green-500/20'
+      : 'bg-red-500/20'}"
+  >
+    <svg
+      class="w-20 h-20 {showFeedback === 'approved' ? 'text-green-500' : 'text-red-500'}"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      {#if showFeedback === 'approved'}
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      {:else}
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      {/if}
+    </svg>
+  </div>
+{/if}
+```
+
+### Key Takeaway
+
+When implementing user actions:
+- **Do** show immediate visual feedback (overlay, icon, color)
+- **Do** use brief delay (300-500ms) to ensure feedback is visible
+- **Do** disable actions during feedback animation
+- **Don't** process actions instantly without feedback
+- **Don't** rely solely on state changes for feedback
+
+**Related Patterns**: See [Queue-Based Card Removal Pattern](#queue-based-card-removal-pattern-tinder-like) for removal implementation.
+
+---
+
+## Edit Mode Toggle Pattern
+
+**Tags**: `ui-ux`, `state-management`, `modes`, `user-control`  
+**Date**: 2025-01-27  
+**Issue**: Components should have separate edit and view modes to prevent accidental edits during focused tasks.
+
+### Problem
+
+- Cards always editable, breaking study flow
+- Users accidentally edit while trying to flip
+- No clear distinction between viewing and editing
+- Distraction during focused study sessions
+
+### Root Cause
+
+- Single `editable` prop always set to true
+- No mode separation between study and edit
+- Missing explicit user control over edit state
+
+### Solution
+
+**Pattern**: Add explicit edit mode toggle that user controls, separate from study mode.
+
+```typescript
+// ❌ WRONG: Always editable
+<FlashcardComponent
+  editable={true}
+  ...
+/>
+
+// ✅ CORRECT: Edit mode controlled by user
+let editMode = $state(false);
+
+<FlashcardComponent
+  editable={editMode}
+  ...
+/>
+
+<Button onclick={() => (editMode = !editMode)}>
+  {editMode ? 'Done Editing' : 'Edit'}
+</Button>
+```
+
+**Why it works**:
+- User explicitly chooses when to edit
+- Prevents accidental edits during study
+- Clear visual distinction between modes
+- Better focus during study sessions
+
+### Implementation Example
+
+```svelte
+<script>
+  let editMode = $state(false);
+  let isFlipped = $state(false);
+</script>
+
+<Button.Root
+  onclick={() => (editMode = !editMode)}
+  class="px-header py-header text-sm text-primary hover:bg-hover-solid rounded-md"
+>
+  {editMode ? 'Done Editing' : 'Edit'}
+</Button.Root>
+
+<FlashcardComponent
+  flashcard={currentCard}
+  editable={editMode && isFlipped} // Only editable when in edit mode AND flipped
+  ...
+/>
+```
+
+### Key Takeaway
+
+When implementing editable components:
+- **Do** add explicit edit mode toggle controlled by user
+- **Do** separate edit mode from view/study mode
+- **Do** disable editing by default during focused tasks
+- **Don't** make components always editable
+- **Don't** allow editing during active workflows (like study sessions)
+
+**Related Patterns**: See [Queue-Based Card Removal Pattern](#queue-based-card-removal-pattern-tinder-like) for study mode implementation.
+
+---
+
+## Centered Card Layout with Flexible Sizing
+
+**Tags**: `ui-ux`, `layout`, `responsive`, `flexbox`, `sizing`  
+**Date**: 2025-01-27  
+**Issue**: Cards should be centered in modal with default size but expand if content requires it.
+
+### Problem
+
+- Cards not properly centered (vertically and horizontally)
+- Fixed size breaks with long content
+- No default card size (looks unprofessional)
+- Padding/spacing breaks when content expands
+
+### Root Cause
+
+- Missing proper centering (flexbox items-center justify-center)
+- Fixed height/width constraints
+- No min/max size constraints
+- Content overflow not handled
+
+### Solution
+
+**Pattern**: Use flexbox centering with default size constraints, allowing natural expansion while maintaining padding.
+
+```css
+/* ❌ WRONG: Fixed size, not centered */
+.card {
+  width: 400px;
+  height: 600px;
+}
+
+/* ✅ CORRECT: Centered with flexible sizing */
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card {
+  width: 400px;
+  min-height: 560px;
+  height: auto; /* Expands if needed */
+  max-width: calc(100% - 2rem); /* Responsive */
+}
+```
+
+**Why it works**:
+- Flexbox centers both horizontally and vertically
+- Default size provides professional appearance
+- `height: auto` allows expansion
+- Min/max constraints prevent breaking
+- Padding preserved during expansion
+
+### Implementation Example
+
+```svelte
+<!-- Modal Content Area -->
+<div class="flex-1 flex items-center justify-center p-inbox-container min-h-0 overflow-auto">
+  <!-- Card Container -->
+  <div
+    class="transition-all duration-400"
+    style="width: 400px; max-width: calc(100% - 2rem);"
+  >
+    <!-- Card with flexible height -->
+    <div class="relative w-full" style="min-height: 560px; height: auto;">
+      <FlashcardComponent ... />
+    </div>
+  </div>
+</div>
+```
+
+### Key Takeaway
+
+When centering cards/components:
+- **Do** use `flex items-center justify-center` for true centering
+- **Do** set default size (width + min-height) for professional appearance
+- **Do** use `height: auto` to allow content-driven expansion
+- **Do** set `max-width` for responsive behavior
+- **Don't** use fixed height that breaks with long content
+- **Don't** forget `overflow-auto` for scrollable content
+
+**Related Patterns**: See [Design Tokens](#design-tokens) for spacing consistency.
 
 ---
 

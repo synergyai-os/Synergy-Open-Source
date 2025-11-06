@@ -57,7 +57,7 @@ Axon helps users collect, organize, distill, and express knowledge from diverse 
 - **Mobile**: Capacitor 7 (iOS configured)
 - **Email**: Resend
 
-## 📋 Original Development Plan
+## 📋 Updated Development Plan
 
 ### Phase 1: UI/UX with Mock Data ✅ COMPLETE
 **Goal**: Validate workflow and user experience before backend integration
@@ -67,20 +67,27 @@ Axon helps users collect, organize, distill, and express knowledge from diverse 
 - ✅ Resizable sidebar with hover-to-reveal
 - ✅ Resizable inbox column
 - ✅ Polymorphic source detail views (Readwise, Photo, Manual)
-- ✅ Mock flashcard interface
+- ✅ Flashcard review modal with study interface
 - ✅ Full CODE workflow with mock data
 - ✅ Design token system (spacing, colors, typography)
 - ✅ Light/dark mode theming system
 
-### Phase 2: Backend Integration (NEXT)
-**Goal**: Connect UI to real data sources
+### Phase 2: Flashcard Creation & Storage (CURRENT FOCUS)
+**Goal**: AI-powered flashcard generation from inbox items and storage in database
+
+**Key Separation of Concerns:**
+- **Flashcard Creation**: Generate flashcards from inbox items via AI (this phase)
+- **Study Sessions**: Review and study flashcards using SRS algorithms (Phase 3+)
 
 **Tasks:**
-1. **Convex Schema Design**
-   - `userSettings` (includes Readwise API key, theme preference)
-   - `inboxItems` (polymorphic: readwise_highlight, photo_note, manual_text, etc.)
-   - `flashcards` (generated from processed inbox items)
-   - `categories` (nested topic organization)
+1. **Enhanced Convex Schema Design**
+   - ✅ `userSettings` (already exists)
+   - ✅ `inboxItems` (already exists, polymorphic)
+   - ⏳ `flashcards` table (needs SRS algorithm support)
+   - ⏳ `flashcardTags` (many-to-many with tags)
+   - ⏳ `flashcardReviews` (review history for SRS)
+   - ⏳ `studySessions` (future: track study sessions)
+   - ⏳ `userAlgorithmSettings` (algorithm selection per user)
 
 2. **Settings Page**
    - `/settings` route
@@ -99,24 +106,68 @@ Axon helps users collect, organize, distill, and express knowledge from diverse 
    - User review/approve workflow
    - Filtering by source type
 
-### Phase 3: AI Flashcard Generation
-**Goal**: Generate flashcards from approved inbox items
+### Phase 2A: AI Flashcard Generation (Current Priority)
+**Goal**: Generate flashcards from approved inbox items using AI
 
 **Tasks:**
 1. **Claude Integration**
    - Convex action for Claude API calls
-   - Prompt engineering for flashcard generation
+   - Prompt engineering for flashcard generation (JSON output format)
    - Batch processing option
-
-2. **Flashcard Creation**
-   - Generate from selected inbox items
-   - Store in Convex with category/topic tags
    - Error handling and retry logic
 
-3. **Category Management**
-   - CRUD for categories/topics
-   - Nested topic support
-   - Category assignment during flashcard creation
+2. **Flashcard Creation Workflow**
+   - User selects inbox item → clicks "Generate Flashcard"
+   - AI generates flashcards (1-N cards per item)
+   - User reviews in modal (Phase 1 UI complete)
+   - User approves/rejects cards
+   - Approved cards stored in database with tags
+   - Inbox item marked as "processed" (or archived)
+
+3. **Tagging System Integration**
+   - Flashcards inherit tags from source inbox item
+   - User can add/remove tags during review
+   - Tags stored in `flashcardTags` junction table
+   - Support hierarchical tags (already in schema)
+
+4. **Inbox Item Lifecycle**
+   - **Unprocessed**: New item in inbox, awaiting review
+   - **Tagged** (optional): User adds tags during organize phase
+   - **Action Required**: User decides to create flashcard OR archive
+   - **Processed**: Flashcard created OR item archived
+   - **Archived**: Item removed from active inbox (kept for history)
+
+### Phase 3: Study Session System (Future)
+**Goal**: Implement spaced repetition study sessions
+
+**Prerequisites**: Phase 2 complete (flashcards in database)
+
+**Tasks:**
+1. **Study Session Loading**
+   - Efficient querying for large datasets (10,000+ cards)
+   - Default session size: 10 cards (user-configurable in settings)
+   - Algorithm-based card selection (due cards, new cards, etc.)
+   - Index optimization for performance
+   - Pagination/cursor-based loading to minimize database costs
+
+2. **Spaced Repetition Algorithm Integration**
+   - Algorithm selection: FSRS (recommended), Anki2, or custom
+   - User-configurable algorithm per deck/category
+   - Feature flags for A/B testing algorithm effectiveness
+   - Algorithm-specific data structures in schema
+
+3. **Review Interface**
+   - Single-card study mode (Phase 1 UI foundation)
+   - Rating system: Again/Hard/Good/Easy (not Approve/Reject)
+   - Visual feedback for ratings
+   - Progress tracking
+   - Session statistics
+
+4. **Review History & Analytics**
+   - Store review logs with ratings
+   - Calculate next review date based on algorithm
+   - Track accuracy, time per card
+   - Analytics dashboard
 
 ### Phase 4: Additional Sources & Features
 **Goal**: Expand input sources and outputs
@@ -338,25 +389,274 @@ Axon helps users collect, organize, distill, and express knowledge from diverse 
 **See**: `dev-docs/design-tokens.md` for complete reference
 **See**: `src/app.css` for all token definitions
 
+## 🗄️ Data Structure Considerations
+
+### Flashcard Schema Design
+
+**Core Flashcard Table:**
+```typescript
+flashcards: defineTable({
+  userId: v.id("users"),
+  question: v.string(),
+  answer: v.string(),
+  sourceInboxItemId: v.optional(v.id("inboxItems")), // Link to source
+  sourceType: v.optional(v.string()), // "readwise_highlight", "photo_note", etc.
+  // SRS Algorithm Support
+  algorithm: v.string(), // "fsrs", "anki2", "custom" (user-selectable)
+  // FSRS-specific fields (if algorithm = "fsrs")
+  fsrsStability: v.optional(v.number()),
+  fsrsDifficulty: v.optional(v.number()),
+  fsrsDue: v.optional(v.number()), // Next review timestamp
+  fsrsState: v.optional(v.union(
+    v.literal("new"),
+    v.literal("learning"),
+    v.literal("review"),
+    v.literal("relearning")
+  )),
+  // Anki2-specific fields (if algorithm = "anki2")
+  ankiEase: v.optional(v.number()),
+  ankiInterval: v.optional(v.number()),
+  ankiDue: v.optional(v.number()),
+  // Common fields
+  reps: v.number(), // Total reviews
+  lapses: v.number(), // Times forgotten
+  lastReviewAt: v.optional(v.number()),
+  createdAt: v.number(),
+})
+  .index("by_user", ["userId"])
+  .index("by_user_algorithm", ["userId", "algorithm"])
+  .index("by_user_due", ["userId", "algorithm", "fsrsDue"]) // For FSRS
+  .index("by_user_anki_due", ["userId", "algorithm", "ankiDue"]) // For Anki2
+  .index("by_source", ["sourceInboxItemId"])
+```
+
+**Review History Table:**
+```typescript
+flashcardReviews: defineTable({
+  flashcardId: v.id("flashcards"),
+  userId: v.id("users"),
+  rating: v.union(
+    v.literal("again"), // Rating.Again
+    v.literal("hard"),  // Rating.Hard
+    v.literal("good"),  // Rating.Good
+    v.literal("easy")   // Rating.Easy
+  ),
+  algorithm: v.string(), // Which algorithm was used
+  reviewTime: v.number(), // Time spent (seconds)
+  reviewedAt: v.number(), // Timestamp
+  // Algorithm-specific review data
+  fsrsLog: v.optional(v.object({
+    stability: v.number(),
+    difficulty: v.number(),
+    scheduledDays: v.number(),
+  })),
+})
+  .index("by_flashcard", ["flashcardId"])
+  .index("by_user", ["userId"])
+  .index("by_user_reviewed", ["userId", "reviewedAt"])
+```
+
+**User Algorithm Settings:**
+```typescript
+userAlgorithmSettings: defineTable({
+  userId: v.id("users"),
+  defaultAlgorithm: v.string(), // "fsrs" | "anki2" | "custom"
+  fsrsParams: v.optional(v.object({
+    // FSRS parameters (customizable)
+    enableFuzz: v.boolean(),
+    maximumInterval: v.number(),
+    // ... other FSRS params
+  })),
+  anki2Params: v.optional(v.object({
+    // Anki2 parameters
+    initialFactor: v.number(),
+    // ... other Anki2 params
+  })),
+  // Feature flags for A/B testing
+  algorithmFeatureFlags: v.optional(v.object({
+    testFSRS: v.boolean(),
+    testAnki2: v.boolean(),
+    // ... other flags
+  })),
+})
+  .index("by_user", ["userId"])
+```
+
+**Flashcard Tags (Many-to-Many):**
+```typescript
+flashcardTags: defineTable({
+  flashcardId: v.id("flashcards"),
+  tagId: v.id("tags"),
+})
+  .index("by_flashcard", ["flashcardId"])
+  .index("by_tag", ["tagId"])
+  .index("by_flashcard_tag", ["flashcardId", "tagId"])
+```
+
+### Study Session Loading Strategy
+
+**Problem**: With 10,000+ cards, loading all cards is inefficient and expensive.
+
+**Solution**: Query only cards needed for current session
+
+**Efficient Query Pattern:**
+```typescript
+// Get next 10 cards due for review (FSRS example)
+const getDueCards = query({
+  args: {
+    userId: v.id("users"),
+    algorithm: v.string(),
+    limit: v.number(), // Default: 10, user-configurable
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    return await ctx.db
+      .query("flashcards")
+      .withIndex("by_user_due", (q) =>
+        q.eq("userId", args.userId)
+         .eq("algorithm", args.algorithm)
+         .lte("fsrsDue", now) // Only due cards
+      )
+      .order("asc") // Oldest due first
+      .take(args.limit); // Limit to session size
+  },
+});
+```
+
+**Performance Optimizations:**
+- Use indexes on `(userId, algorithm, dueDate)` for efficient queries
+- Limit query results to session size (default 10)
+- Cache algorithm parameters in user settings
+- Use cursor-based pagination for very large result sets
+- Consider materialized views for complex queries
+
+## 🤔 Open Questions & Decisions Needed
+
+### Algorithm Selection
+
+**Question**: Which SRS algorithm(s) should we support?
+
+**Options:**
+1. **FSRS (Free Spaced Repetition Scheduler)** - Recommended
+   - Modern, ML-optimized
+   - TypeScript library available (`ts-fsrs`)
+   - Better than Anki2 for most users
+   - **Decision**: ✅ Primary algorithm
+
+2. **Anki2** - Legacy support
+   - Well-known, proven
+   - Users familiar with Anki
+   - **Decision**: ⏳ Secondary option (user-selectable)
+
+3. **Custom Algorithm**
+   - Future: allow users to define custom algorithms
+   - **Decision**: ⏳ Future feature
+
+**Recommendation**: Start with FSRS, add Anki2 as option, allow user to switch per deck/category.
+
+**Feature Flags for Testing:**
+- Allow A/B testing between algorithms
+- Track effectiveness metrics
+- User can opt-in to algorithm testing
+
+### Inbox Item Lifecycle
+
+**Question**: When is an inbox item "done"?
+
+**Current Understanding:**
+1. **Unprocessed**: New item in inbox
+2. **Tagged** (optional): User adds tags during organize phase
+3. **Action Required**: User decides:
+   - **Option A**: Create flashcard(s) → Item marked as "processed"
+   - **Option B**: Archive item → Item marked as "archived"
+4. **Processed/Archived**: Removed from active inbox
+
+**Open Questions:**
+- Should tagging be required before creating flashcards?
+- Can items be processed multiple times (create flashcards, then archive later)?
+- Should we track "flashcards created from this item" count?
+- Do we need an "archive" status or just "processed"?
+
+**Recommendation**: 
+- Tagging is optional (user can skip organize phase)
+- Items can have multiple actions (create flashcards AND archive)
+- Track `flashcardsCreatedCount` on inbox items
+- Use `processed: true` for "done", add `archived: boolean` for explicit archiving
+
+### Tagging System
+
+**Question**: How should tags work across inbox items and flashcards?
+
+**Current Schema**: Tags table exists, junction tables for sources/highlights
+
+**Decisions Needed:**
+1. **Flashcard Tags**: 
+   - ✅ Flashcards inherit tags from source inbox item
+   - ✅ User can add/remove tags during review
+   - ✅ Tags stored in `flashcardTags` junction table
+
+2. **Inbox Item Tags**:
+   - ✅ Inbox items can have tags (via source/highlight tags)
+   - ✅ User can add tags during organize phase
+   - ⏳ Should we add direct `inboxItemTags` table? (Currently via source/highlight)
+
+3. **Tag Hierarchy**:
+   - ✅ Already supported in schema (`parentId` field)
+   - ⏳ UI for hierarchical tag management
+
+**Recommendation**: 
+- Use existing tag system (tags table + junction tables)
+- Add `inboxItemTags` if needed for direct tagging
+- Support tag inheritance: inbox item → flashcard
+
+### Study Session Defaults
+
+**Question**: What should be the default session size and behavior?
+
+**Decisions:**
+- ✅ Default session size: **10 cards** (user-configurable in settings)
+- ⏳ Default algorithm: **FSRS** (user can change)
+- ⏳ Session behavior: Show only due cards, or mix new + due?
+- ⏳ Should sessions be time-limited or card-limited?
+
+**Recommendation**:
+- Default: 10 cards, FSRS algorithm, due cards only
+- User can configure in settings
+- Future: "Study for 15 minutes" mode
+
 ## 🏁 Success Criteria for MVP
 
-### Minimum Viable Product (MVP)
+### Minimum Viable Product (MVP) - Phase 2 Focus
 1. ✅ Universal inbox UI (DONE)
 2. ⏳ Readwise highlights import
-3. ⏳ User review workflow
-4. ⏳ AI flashcard generation (Claude)
-5. ⏳ Category organization
-6. ⏳ Basic flashcard study interface
+3. ⏳ User review workflow (tagging optional)
+4. ⏳ AI flashcard generation (Claude) with review modal
+5. ⏳ Flashcard storage in database with tags
+6. ⏳ Inbox item lifecycle (processed/archived)
+
+### Phase 3: Study System (Future)
+7. ⏳ Study session loading (efficient queries)
+8. ⏳ FSRS algorithm integration
+9. ⏳ Rating system (Again/Hard/Good/Easy)
+10. ⏳ Review history tracking
 
 ### Beyond MVP
 - Photo input & OCR
 - Additional output types (notes, templates)
-- Spaced repetition
+- Anki2 algorithm support
+- Algorithm A/B testing
 - Vector search
 - Cross-device sync
 
 ---
 
-**Last Updated**: November 2025
-**Status**: Phase 1 Complete, Ready for Phase 2 (Backend Integration)
+**Last Updated**: January 2025
+**Status**: Phase 1 Complete, Phase 2A (Flashcard Creation) In Progress
+
+## 📚 Related Documentation
+
+- `dev-docs/flashcard-review-optimization-analysis.md` - Detailed UX improvements for study system
+- `dev-docs/architecture.md` - Tech stack and authentication details
+- `dev-docs/design-tokens.md` - Design system reference
+- `convex/schema.ts` - Current database schema
 

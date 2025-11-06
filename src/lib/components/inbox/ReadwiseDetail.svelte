@@ -57,17 +57,11 @@
 		return undefined;
 	});
 
-	let isLoading = $state(false);
-	let loadingMessage = $state('');
-	let generatedFlashcard = $state<any | null>(null);
-	let showFlashcard = $state(false);
-	let selectedCategory = $state<string>('');
 	let headerMenuOpen = $state(false);
 	let selectedTagIds = $state<Id<'tags'>[]>([]);
 	let tagInputRef = $state<HTMLElement | null>(null);
 	let tagComboboxOpen = $state(false);
 
-	const mockCategories = ['Product Delivery', 'Product Discovery', 'Leadership'];
 
 	// Track if we're in the middle of a tag mutation (to prevent race conditions)
 	let isUpdatingTags = $state(false);
@@ -243,48 +237,6 @@
 		});
 	}
 
-	async function handleGenerateFlashcard() {
-		isLoading = true;
-		showFlashcard = false;
-		loadingMessage = 'Analyzing highlight...';
-
-		// Simulate AI processing with progress messages
-		await new Promise((resolve) => setTimeout(resolve, 800));
-		loadingMessage = 'Generating flashcard question...';
-		
-		await new Promise((resolve) => setTimeout(resolve, 700));
-		loadingMessage = 'Creating answer content...';
-		
-		await new Promise((resolve) => setTimeout(resolve, 500));
-
-		// Mock flashcard data
-		const highlightText = item?.highlight?.text || item?.sourceData?.highlightText || '';
-		const sourceTitle = item?.source?.title || item?.sourceData?.bookTitle || 'Unknown';
-		const authorName = item?.author?.displayName || item?.sourceData?.author || 'Unknown';
-		
-		generatedFlashcard = {
-			front: `What is ${highlightText.split('.').slice(0, 1)[0]}?`,
-			back: highlightText,
-			explanation: `From ${sourceTitle} by ${authorName}`
-		};
-
-		showFlashcard = true;
-		isLoading = false;
-		loadingMessage = '';
-	}
-
-	async function handleSave() {
-		// TODO: Save flashcard to database
-		// For now, mark inbox item as processed
-		if (browser && convexClient && markProcessedApi && inboxItemId) {
-			try {
-				await convexClient.mutation(markProcessedApi, { inboxItemId: inboxItemId as any });
-			} catch (error) {
-				console.error('Failed to mark as processed:', error);
-			}
-		}
-		onClose();
-	}
 
 	async function handleSkip() {
 		// Mark as processed without generating flashcard
@@ -443,20 +395,6 @@
 						align="end"
 						sideOffset={4}
 					>
-						<DropdownMenu.Item
-							class="px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer flex items-center justify-between focus:bg-hover-solid outline-none"
-							textValue="Generate Flashcard"
-							onSelect={() => {
-								if (!isLoading && !showFlashcard) {
-									handleGenerateFlashcard();
-								}
-								headerMenuOpen = false;
-							}}
-						>
-							<span class="font-normal">✨ Generate Flashcard</span>
-						</DropdownMenu.Item>
-
-						<DropdownMenu.Separator class="h-px bg-base my-1" />
 
 						<DropdownMenu.Item
 							class="px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer flex items-center justify-between focus:bg-hover-solid outline-none"
@@ -499,84 +437,6 @@
 					</div>
 				{/if}
 
-				<!-- Loading State (in main content, below highlight) -->
-				{#if isLoading}
-					<div class="mb-8 p-inbox-container bg-elevated border border-base rounded-lg">
-						<div class="flex flex-col items-center gap-4 py-6">
-							<!-- Loading Spinner -->
-							<svg
-								class="w-8 h-8 animate-spin text-accent-primary"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-								/>
-							</svg>
-							<!-- Loading Message -->
-							<div class="flex flex-col items-center gap-1">
-								<p class="text-sm font-medium text-primary">{loadingMessage}</p>
-								<p class="text-xs text-tertiary">This may take a few seconds...</p>
-							</div>
-						</div>
-					</div>
-				{/if}
-
-				<!-- Generated Flashcard (appears below highlight in main content) -->
-				{#if showFlashcard && generatedFlashcard && !isLoading}
-					<div
-						class="mb-8 border-2 border-accent-primary rounded-lg p-inbox-container bg-elevated transition-all duration-300"
-						style="animation: fadeIn 0.3s ease-in"
-					>
-						<h3 class="font-semibold text-primary mb-4">Generated Flashcard</h3>
-						
-						<!-- Front -->
-						<div class="mb-4">
-							<p class="text-sm font-medium text-secondary mb-2">Front</p>
-							<textarea
-								bind:value={generatedFlashcard.front}
-								class="w-full p-inbox-container border border-base rounded-lg resize-none bg-base text-primary"
-								rows="3"
-							></textarea>
-						</div>
-
-						<!-- Back -->
-						<div class="mb-4">
-							<p class="text-sm font-medium text-secondary mb-2">Back</p>
-							<textarea
-								bind:value={generatedFlashcard.back}
-								class="w-full p-inbox-container border border-base rounded-lg resize-none bg-base text-primary"
-								rows="5"
-							></textarea>
-						</div>
-
-						<!-- Category Selector -->
-						<div class="mb-4">
-							<p class="text-sm font-medium text-secondary mb-2">Category</p>
-							<select
-								bind:value={selectedCategory}
-								class="w-full p-inbox-container border border-base rounded-lg bg-base text-primary"
-							>
-								<option value="">Select category...</option>
-								{#each mockCategories as category}
-									<option value={category}>{category}</option>
-								{/each}
-							</select>
-						</div>
-
-						<!-- Save Button -->
-						<Button.Root
-							onclick={handleSave}
-							class="w-full bg-accent-primary text-white py-3 px-4 rounded-lg hover:bg-accent-hover transition-all duration-150 font-medium"
-						>
-							✓ Save Flashcard
-						</Button.Root>
-					</div>
-				{/if}
 			</div>
 		</div>
 
@@ -630,24 +490,12 @@
 				<div>
 					<p class="text-xs font-medium text-secondary uppercase tracking-wider mb-2">Actions</p>
 					<div class="space-y-2">
-						{#if !showFlashcard && !isLoading}
-							<Button.Root
-								onclick={handleGenerateFlashcard}
-								disabled={isLoading}
-								class="w-full bg-accent-primary text-white py-2 px-3 rounded-lg hover:bg-accent-hover transition-all duration-150 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-							>
-								✨ Generate Flashcard
-							</Button.Root>
-						{/if}
-
-						{#if !isLoading}
-							<Button.Root
-								onclick={handleSkip}
-								class="w-full bg-hover-solid text-secondary py-2 px-3 rounded-lg hover:bg-hover transition-all duration-150 text-sm font-medium"
-							>
-								⏭️ Skip
-							</Button.Root>
-						{/if}
+						<Button.Root
+							onclick={handleSkip}
+							class="w-full bg-hover-solid text-secondary py-2 px-3 rounded-lg hover:bg-hover transition-all duration-150 text-sm font-medium"
+						>
+							⏭️ Skip
+						</Button.Root>
 					</div>
 				</div>
 
