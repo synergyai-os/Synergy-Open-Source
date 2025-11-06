@@ -122,7 +122,7 @@
 								}
 							}}
 							use:autofocus
-							class="text-primary text-2xl sm:text-3xl leading-readable text-center max-w-readable mx-auto px-inbox-container flashcard-edit-question break-words overflow-wrap-anywhere min-w-0 bg-transparent border-none p-0 focus:outline-none resize-none field-sizing-content"
+							class="text-primary text-2xl sm:text-3xl leading-readable text-center max-w-readable mx-auto px-inbox-container flashcard-edit-question break-words overflow-wrap-anywhere min-w-0 bg-transparent border-none p-0 focus:outline-none focus:ring-2 focus:ring-accent-primary/50 rounded-sm resize-none field-sizing-content"
 							style="font-weight: inherit; word-break: break-word; overflow-wrap: anywhere; margin: 0; display: block; width: 100%; overflow: hidden;"
 							placeholder="Question..."
 						></textarea>
@@ -147,9 +147,15 @@
 					{/if}
 				{/if}
 			</div>
-			<div class="px-inbox-container py-system-header border-t border-base flex items-center justify-center gap-icon flex-shrink-0 bg-base/10">
+			<div
+				class="px-inbox-container py-system-header border-t border-base flex items-center justify-center gap-icon flex-shrink-0 transition-colors {isEditingQuestion
+					? 'bg-accent-primary/20'
+					: 'bg-base/10'}"
+			>
 				<span class="text-sm text-secondary">↑/↓ Flip</span>
-				{#if editable && onQuestionChange && !isEditingQuestion}
+				{#if isEditingQuestion}
+					<span class="text-sm text-accent-primary font-medium">• Editing... (Click outside to save)</span>
+				{:else if editable && onQuestionChange}
 					<span class="text-sm text-secondary">• Click to edit</span>
 				{/if}
 			</div>
@@ -179,7 +185,7 @@
 								}
 							}}
 							use:autofocus
-							class="text-primary text-xl sm:text-2xl leading-readable text-center max-w-readable mx-auto px-inbox-container flashcard-edit-answer break-words overflow-wrap-anywhere min-w-0 bg-transparent border-none p-0 focus:outline-none resize-none field-sizing-content"
+							class="text-primary text-xl sm:text-2xl leading-readable text-center max-w-readable mx-auto px-inbox-container flashcard-edit-answer break-words overflow-wrap-anywhere min-w-0 bg-transparent border-none p-0 focus:outline-none focus:ring-2 focus:ring-accent-primary/50 rounded-sm resize-none field-sizing-content"
 							style="font-weight: inherit; word-break: break-word; overflow-wrap: anywhere; margin: 0; display: block; width: 100%; overflow: hidden;"
 							placeholder="Answer..."
 						></textarea>
@@ -204,9 +210,15 @@
 					{/if}
 				{/if}
 			</div>
-			<div class="px-inbox-container py-system-header border-t border-accent-primary flex items-center justify-center gap-icon flex-shrink-0 bg-accent-primary/10">
+			<div
+				class="px-inbox-container py-system-header border-t border-accent-primary flex items-center justify-center gap-icon flex-shrink-0 transition-colors {isEditingAnswer
+					? 'bg-accent-primary/30'
+					: 'bg-accent-primary/10'}"
+			>
 				<span class="text-sm text-secondary">↑/↓ Flip</span>
-				{#if editable && onAnswerChange && !isEditingAnswer}
+				{#if isEditingAnswer}
+					<span class="text-sm text-accent-primary font-medium">• Editing... (Click outside to save)</span>
+				{:else if editable && onAnswerChange}
 					<span class="text-sm text-secondary">• Click to edit</span>
 				{/if}
 			</div>
