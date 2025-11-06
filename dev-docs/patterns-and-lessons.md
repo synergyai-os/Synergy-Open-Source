@@ -1673,88 +1673,44 @@ When implementing editable components:
 
 ---
 
-## Centered Card Layout with Flexible Sizing
+## Centered Card Layout with Fixed Default Size
 
 **Tags**: `ui-ux`, `layout`, `responsive`, `flexbox`, `sizing`  
 **Date**: 2025-01-27  
-**Issue**: Cards should be centered in modal with default size but expand if content requires it.
+**Issue**: Cards not centered and too small - need fixed default size with responsive constraints.
 
 ### Problem
 
-- Cards not properly centered (vertically and horizontally)
-- Fixed size breaks with long content
-- No default card size (looks unprofessional)
-- Padding/spacing breaks when content expands
-
-### Root Cause
-
-- Missing proper centering (flexbox items-center justify-center)
-- Fixed height/width constraints
-- No min/max size constraints
-- Content overflow not handled
+- Cards not centered (vertically/horizontally)
+- Cards too small (content unreadable)
+- No professional default size
 
 ### Solution
 
-**Pattern**: Use flexbox centering with default size constraints, allowing natural expansion while maintaining padding.
-
-```css
-/* ❌ WRONG: Fixed size, not centered */
-.card {
-  width: 400px;
-  height: 600px;
-}
-
-/* ✅ CORRECT: Centered with flexible sizing */
-.container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.card {
-  width: 400px;
-  min-height: 560px;
-  height: auto; /* Expands if needed */
-  max-width: calc(100% - 2rem); /* Responsive */
-}
-```
-
-**Why it works**:
-- Flexbox centers both horizontally and vertically
-- Default size provides professional appearance
-- `height: auto` allows expansion
-- Min/max constraints prevent breaking
-- Padding preserved during expansion
-
-### Implementation Example
+**Pattern**: Fixed dimensions with max constraints for responsive behavior, centered with flexbox.
 
 ```svelte
-<!-- Modal Content Area -->
-<div class="flex-1 flex items-center justify-center p-inbox-container min-h-0 overflow-auto">
-  <!-- Card Container -->
-  <div
-    class="transition-all duration-400"
-    style="width: 400px; max-width: calc(100% - 2rem);"
-  >
-    <!-- Card with flexible height -->
-    <div class="relative w-full" style="min-height: 560px; height: auto;">
-      <FlashcardComponent ... />
-    </div>
+<!-- ✅ CORRECT: Fixed size, centered, responsive -->
+<div class="flex-1 flex items-center justify-center p-inbox-container overflow-auto">
+  <div style="width: 500px; height: 700px; max-width: calc(100% - 2rem); max-height: calc(100% - 2rem);">
+    <FlashcardComponent ... />
   </div>
 </div>
 ```
 
+**Why it works**:
+- Fixed dimensions provide professional default size
+- Max constraints make it responsive on small screens
+- Flexbox centers both axes
+- Content inside handles overflow with `overflow-auto`
+
 ### Key Takeaway
 
-When centering cards/components:
-- **Do** use `flex items-center justify-center` for true centering
-- **Do** set default size (width + min-height) for professional appearance
-- **Do** use `height: auto` to allow content-driven expansion
-- **Do** set `max-width` for responsive behavior
-- **Don't** use fixed height that breaks with long content
-- **Don't** forget `overflow-auto` for scrollable content
-
-**Related Patterns**: See [Design Tokens](#design-tokens) for spacing consistency.
+When centering cards:
+- **Do** use fixed width/height for default size (e.g., 500x700px)
+- **Do** add max-width/max-height for responsive behavior
+- **Do** use `flex items-center justify-center` for centering
+- **Don't** use only min-height (too small) or only max-height (no default size)
 
 ---
 

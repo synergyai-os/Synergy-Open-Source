@@ -209,7 +209,7 @@
 	<Dialog.Portal>
 		<Dialog.Overlay class="fixed inset-0 bg-black/50 z-50 transition-opacity" />
 		<Dialog.Content
-			class="fixed inset-0 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 bg-elevated sm:rounded-lg shadow-xl sm:border border-base sm:max-w-4xl w-full sm:max-h-[90vh] h-full sm:h-auto overflow-hidden z-50 flex flex-col"
+			class="fixed inset-0 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 bg-elevated sm:rounded-lg shadow-xl sm:border border-base sm:max-w-4xl w-full h-full sm:h-[90vh] overflow-hidden z-50 flex flex-col"
 		>
 			<!-- Header -->
 			<div class="px-inbox-container py-system-header h-system-header border-b border-base flex items-center justify-between flex-shrink-0 gap-icon">
@@ -244,7 +244,7 @@
 			</div>
 
 			<!-- Content - Flashcard Display (Centered) -->
-			<div class="flex-1 flex items-center justify-center p-inbox-container min-h-0 overflow-auto relative">
+			<div class="flex-1 flex items-center justify-center p-inbox-container overflow-auto relative">
 				{#if reviewQueue.length === 0}
 					<div class="text-center py-readable-quote">
 						<div class="text-6xl mb-4">✅</div>
@@ -256,12 +256,12 @@
 				{:else if currentCard}
 					<!-- Card Container with Animation -->
 					<div
-						class="transition-all duration-400 {isAnimating
+						class="relative transition-all duration-400 {isAnimating
 							? (showFeedback === 'approved'
 								? 'translate-x-full opacity-0 scale-95'
 								: 'translate-x-[-100%] opacity-0 scale-95')
 							: 'translate-x-0 opacity-100 scale-100'}"
-						style="width: 400px; max-width: calc(100% - 2rem);"
+						style="width: 500px; height: 700px; max-width: calc(100% - 2rem); max-height: calc(100% - 2rem);"
 					>
 						<!-- Visual Feedback Overlay -->
 						{#if showFeedback}
@@ -296,7 +296,7 @@
 						{/if}
 
 						<!-- Flashcard Component -->
-						<div class="relative w-full">
+						<div class="relative w-full h-full">
 							<FlashcardComponent
 								flashcard={currentCard}
 								isFlipped={isFlipped}
@@ -332,7 +332,6 @@
 						onclick={handleRejectCurrent}
 						disabled={isAnimating || reviewQueue.length === 0}
 						class="px-header py-header text-sm text-primary hover:bg-hover-solid rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-						title="Reject (2)"
 					>
 						Reject
 					</Button.Root>
@@ -340,7 +339,6 @@
 						onclick={handleApproveCurrent}
 						disabled={isAnimating || reviewQueue.length === 0}
 						class="px-header py-header text-sm bg-accent-primary text-white hover:bg-accent-hover rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-						title="Approve (1 or Enter)"
 					>
 						Approve
 					</Button.Root>

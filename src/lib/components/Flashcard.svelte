@@ -49,19 +49,18 @@
 		<!-- Front Side (Question) -->
 		<div
 			class="absolute inset-0 w-full h-full backface-hidden card-face-front bg-surface border-2 border-base rounded-lg shadow-lg flex flex-col"
-			style="min-height: 560px; height: auto;"
 		>
-			<div class="flex-1 flex items-center justify-center p-inbox-container min-h-0 overflow-auto">
+			<div class="flex-1 flex items-center justify-center p-inbox-container overflow-auto">
 				{#if editable && onQuestionChange}
 					<textarea
 						value={flashcard.question}
 						oninput={(e) => onQuestionChange(e.currentTarget.value)}
 						onclick={(e) => e.stopPropagation()}
-						class="w-full min-h-[200px] px-inbox-card py-inbox-card bg-elevated border border-base rounded-md text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent resize-none text-center text-lg leading-readable"
+						class="w-full h-full px-inbox-card py-inbox-card bg-elevated border border-base rounded-md text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent resize-none text-center text-xl sm:text-2xl leading-readable"
 						placeholder="Question..."
 					></textarea>
 				{:else}
-					<p class="text-primary text-xl sm:text-2xl leading-readable text-center max-w-readable mx-auto px-inbox-card py-inbox-container">
+					<p class="text-primary text-2xl sm:text-3xl leading-readable text-center max-w-readable mx-auto px-inbox-container">
 						{flashcard.question}
 					</p>
 				{/if}
@@ -74,19 +73,18 @@
 		<!-- Back Side (Answer) -->
 		<div
 			class="absolute inset-0 w-full h-full backface-hidden card-face-back bg-elevated border-2 border-accent-primary rounded-lg shadow-lg flex flex-col"
-			style="min-height: 560px; height: auto;"
 		>
-			<div class="flex-1 flex items-center justify-center p-inbox-container min-h-0 overflow-auto">
+			<div class="flex-1 flex items-center justify-center p-inbox-container overflow-auto">
 				{#if editable && onAnswerChange}
 					<textarea
 						value={flashcard.answer}
 						oninput={(e) => onAnswerChange(e.currentTarget.value)}
 						onclick={(e) => e.stopPropagation()}
-						class="w-full min-h-[200px] px-inbox-card py-inbox-card bg-surface border border-base rounded-md text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent resize-none text-center leading-readable"
+						class="w-full h-full px-inbox-card py-inbox-card bg-surface border border-base rounded-md text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent resize-none text-center text-lg sm:text-xl leading-readable"
 						placeholder="Answer..."
 					></textarea>
 				{:else}
-					<p class="text-primary text-lg sm:text-xl leading-readable text-center max-w-readable mx-auto px-inbox-card py-inbox-container">
+					<p class="text-primary text-xl sm:text-2xl leading-readable text-center max-w-readable mx-auto px-inbox-container">
 						{flashcard.answer}
 					</p>
 				{/if}
