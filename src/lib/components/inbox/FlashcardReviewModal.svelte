@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Dialog, Button } from 'bits-ui';
+	import { Dialog } from 'bits-ui';
 	import { browser } from '$app/environment';
 	import FlashcardComponent from '$lib/components/Flashcard.svelte';
 
@@ -28,7 +28,7 @@
 	let rejectedCards = $state<Flashcard[]>([]);
 	let showFeedback = $state<'approved' | 'rejected' | null>(null);
 	let isAnimating = $state(false);
-	let editMode = $state(false);
+	let editMode = $state(true); // Always enabled - click to edit
 
 	// Initialize when modal opens
 	$effect(() => {
@@ -39,7 +39,7 @@
 			rejectedCards = [];
 			showFeedback = null;
 			isAnimating = false;
-			editMode = false;
+			editMode = true;
 		}
 	});
 
@@ -63,8 +63,8 @@
 				return;
 			}
 
-			// Up/Down arrows or Space to flip
-			if (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === ' ') {
+			// Up/Down arrows to flip
+			if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
 				e.preventDefault();
 				if (!isAnimating) {
 					isFlipped = !isFlipped;
@@ -72,19 +72,19 @@
 				return;
 			}
 
-			// 1 = Approve, 2 = Reject
-			if (e.key === '1' || e.key === 'Enter') {
+			// Left = Decline, Right = Accept
+			if (e.key === 'ArrowLeft') {
 				e.preventDefault();
 				if (!isAnimating && reviewQueue.length > 0) {
-					handleApproveCurrent();
+					handleRejectCurrent();
 				}
 				return;
 			}
 
-			if (e.key === '2') {
+			if (e.key === 'ArrowRight') {
 				e.preventDefault();
 				if (!isAnimating && reviewQueue.length > 0) {
-					handleRejectCurrent();
+					handleApproveCurrent();
 				}
 				return;
 			}
@@ -223,8 +223,6 @@
 							<span class="hidden sm:inline text-secondary">•</span>
 						{/if}
 						<p class="font-medium text-primary">{progressText}</p>
-						<span class="hidden sm:inline text-secondary">•</span>
-						<p class="text-secondary">↑/↓ Flip • 1=Approve • 2=Reject</p>
 					</div>
 				</div>
 				<Dialog.Close
@@ -254,6 +252,20 @@
 						</p>
 					</div>
 				{:else if currentCard}
+					<!-- Hotkey Hint: Decline (Left) -->
+					<div class="absolute left-4 flex flex-col items-center gap-2 z-20 opacity-60">
+						<div class="flex flex-col items-center gap-1">
+							<!-- Keyboard key -->
+							<div class="flex items-center justify-center w-12 h-12 rounded-lg bg-elevated border-2 border-base shadow-sm">
+								<svg class="w-7 h-7 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+								</svg>
+							</div>
+							<!-- Small label -->
+							<span class="text-xs text-secondary font-medium">Decline</span>
+						</div>
+					</div>
+
 					<!-- Card Container with Animation -->
 					<div
 						class="relative transition-all duration-400 {isAnimating
@@ -307,50 +319,23 @@
 							/>
 						</div>
 					</div>
+
+					<!-- Hotkey Hint: Accept (Right) -->
+					<div class="absolute right-4 flex flex-col items-center gap-2 z-20 opacity-60">
+						<div class="flex flex-col items-center gap-1">
+							<!-- Keyboard key -->
+							<div class="flex items-center justify-center w-12 h-12 rounded-lg bg-elevated border-2 border-base shadow-sm">
+								<svg class="w-7 h-7 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+								</svg>
+							</div>
+							<!-- Small label -->
+							<span class="text-xs text-secondary font-medium">Accept</span>
+						</div>
+					</div>
 				{/if}
 			</div>
 
-			<!-- Footer Actions (Simplified) -->
-			<div class="px-inbox-container py-system-header h-system-header border-t border-base flex items-center justify-between gap-icon-wide flex-shrink-0">
-				<div class="flex items-center gap-icon-wide">
-					<Button.Root
-						onclick={() => (editMode = !editMode)}
-						class="px-header py-header text-sm text-primary hover:bg-hover-solid rounded-md transition-colors"
-					>
-						{editMode ? 'Done Editing' : 'Edit'}
-					</Button.Root>
-					<Button.Root
-						onclick={handleRejectAll}
-						disabled={reviewQueue.length === 0}
-						class="px-header py-header text-sm text-primary hover:bg-hover-solid rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-					>
-						Reject All
-					</Button.Root>
-				</div>
-				<div class="flex items-center gap-icon-wide">
-					<Button.Root
-						onclick={handleRejectCurrent}
-						disabled={isAnimating || reviewQueue.length === 0}
-						class="px-header py-header text-sm text-primary hover:bg-hover-solid rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-					>
-						Reject
-					</Button.Root>
-					<Button.Root
-						onclick={handleApproveCurrent}
-						disabled={isAnimating || reviewQueue.length === 0}
-						class="px-header py-header text-sm bg-accent-primary text-white hover:bg-accent-hover rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-					>
-						Approve
-					</Button.Root>
-					<Button.Root
-						onclick={handleApproveAll}
-						disabled={reviewQueue.length === 0}
-						class="px-header py-header text-sm bg-accent-primary text-white hover:bg-accent-hover rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-					>
-						Approve All
-					</Button.Root>
-				</div>
-			</div>
 		</Dialog.Content>
 	</Dialog.Portal>
 </Dialog.Root>
