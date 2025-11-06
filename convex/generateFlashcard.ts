@@ -79,18 +79,21 @@ export const generateFlashcard = action({
 			encryptedKey: keys.claudeApiKey,
 		});
 
-		// Call Claude API to generate flashcard
-		const prompt = `Given the following text, generate a flashcard with a question and answer format that helps with learning and retention.
+		// Call Claude API to generate flashcards
+		const prompt = `Given the following text, generate flashcards with question and answer format that helps with learning and retention.
 
 Text: ${args.text}
 
-Generate a flashcard in the following JSON format:
-{
-  "question": "A clear, concise question about the key concept",
-  "answer": "A detailed answer that explains the concept clearly"
-}
+Generate flashcards in the following JSON format (return an array, even if only one flashcard):
+[
+  {
+    "question": "A clear, concise question about a key concept",
+    "answer": "A detailed answer that explains the concept clearly"
+  }
+]
 
-Only return the JSON, no additional text or explanation.`;
+Generate 1-3 flashcards depending on the content. Focus on the most important concepts.
+Only return the JSON array, no additional text or explanation.`;
 
 		try {
 			const response: Response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -132,26 +135,39 @@ Only return the JSON, no additional text or explanation.`;
 			const content: string = data.content?.[0]?.text || '';
 
 			// Try to parse JSON from response
-			let flashcard;
+			let flashcards: Array<{ question: string; answer: string }>;
 			try {
 				// Extract JSON from response (might have markdown code blocks)
-				const jsonMatch = content.match(/\{[\s\S]*\}/);
+				const jsonMatch = content.match(/\[[\s\S]*\]/);
 				if (jsonMatch) {
-					flashcard = JSON.parse(jsonMatch[0]);
+					flashcards = JSON.parse(jsonMatch[0]);
+					// Ensure it's an array
+					if (!Array.isArray(flashcards)) {
+						flashcards = [flashcards];
+					}
 				} else {
-					throw new Error('No JSON found in response');
+					// Try single object format
+					const objMatch = content.match(/\{[\s\S]*\}/);
+					if (objMatch) {
+						const singleCard = JSON.parse(objMatch[0]);
+						flashcards = [singleCard];
+					} else {
+						throw new Error('No JSON found in response');
+					}
 				}
 			} catch (parseError) {
-				// If parsing fails, return the raw content
-				flashcard = {
-					question: 'Generated Question',
-					answer: content,
-				};
+				// If parsing fails, return a single flashcard with raw content
+				flashcards = [
+					{
+						question: 'Generated Question',
+						answer: content,
+					},
+				];
 			}
 
 			return {
 				success: true,
-				flashcard,
+				flashcards,
 				rawResponse: content,
 			};
 		} catch (error) {

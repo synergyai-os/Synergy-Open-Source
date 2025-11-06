@@ -1,0 +1,352 @@
+import { query, mutation } from './_generated/server';
+import { v } from 'convex/values';
+import { getAuthUserId } from '@convex-dev/auth/server';
+import { createEmptyCard, fsrs, Rating, State, type Card } from 'ts-fsrs';
+
+/**
+ * Convert FSRS State enum to lowercase string for database storage
+ */
+function stateToString(state: State): 'new' | 'learning' | 'review' | 'relearning' {
+	switch (state) {
+		case State.New:
+			return 'new';
+		case State.Learning:
+			return 'learning';
+		case State.Review:
+			return 'review';
+		case State.Relearning:
+			return 'relearning';
+		default:
+			return 'new';
+	}
+}
+
+/**
+ * Convert lowercase string to FSRS State enum
+ */
+function stringToState(state: string): State {
+	switch (state) {
+		case 'new':
+			return State.New;
+		case 'learning':
+			return State.Learning;
+		case 'review':
+			return State.Review;
+		case 'relearning':
+			return State.Relearning;
+		default:
+			return State.New;
+	}
+}
+
+/**
+ * Create a new flashcard from AI-generated content
+ */
+export const createFlashcard = mutation({
+	args: {
+		question: v.string(),
+		answer: v.string(),
+		sourceInboxItemId: v.optional(v.id('inboxItems')),
+		sourceType: v.optional(v.string()),
+		tagIds: v.optional(v.array(v.id('tags'))),
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx);
+		if (!userId) {
+			throw new Error('Not authenticated');
+		}
+
+		// Get user's algorithm settings (default to FSRS)
+		const settings = await ctx.db
+			.query('userAlgorithmSettings')
+			.withIndex('by_user', (q) => q.eq('userId', userId))
+			.first();
+
+		const algorithm = settings?.defaultAlgorithm || 'fsrs';
+
+		// Initialize FSRS card
+		const fsrsCard = createEmptyCard(new Date());
+		const f = fsrs();
+
+		// Get scheduling for "new" card (we'll use Good rating as default for new cards)
+		const scheduling = f.repeat(fsrsCard, new Date());
+		const newCardState = scheduling[Rating.Good].card;
+
+		// Create flashcard in database
+		const flashcardId = await ctx.db.insert('flashcards', {
+			userId,
+			question: args.question,
+			answer: args.answer,
+			sourceInboxItemId: args.sourceInboxItemId,
+			sourceType: args.sourceType,
+			algorithm,
+			fsrsStability: newCardState.stability,
+			fsrsDifficulty: newCardState.difficulty,
+			fsrsDue: newCardState.due.getTime(), // Convert Date to timestamp
+			fsrsState: stateToString(newCardState.state),
+			reps: newCardState.reps,
+			lapses: newCardState.lapses,
+			lastReviewAt: newCardState.last_review?.getTime(),
+			createdAt: Date.now(),
+		});
+
+		// Add tags if provided
+		if (args.tagIds && args.tagIds.length > 0) {
+			for (const tagId of args.tagIds) {
+				await ctx.db.insert('flashcardTags', {
+					flashcardId,
+					tagId,
+				});
+			}
+		}
+
+		return flashcardId;
+	},
+});
+
+/**
+ * Create multiple flashcards (batch operation)
+ */
+export const createFlashcards = mutation({
+	args: {
+		flashcards: v.array(
+			v.object({
+				question: v.string(),
+				answer: v.string(),
+			})
+		),
+		sourceInboxItemId: v.optional(v.id('inboxItems')),
+		sourceType: v.optional(v.string()),
+		tagIds: v.optional(v.array(v.id('tags'))),
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx);
+		if (!userId) {
+			throw new Error('Not authenticated');
+		}
+
+		// Get user's algorithm settings
+		const settings = await ctx.db
+			.query('userAlgorithmSettings')
+			.withIndex('by_user', (q) => q.eq('userId', userId))
+			.first();
+
+		const algorithm = settings?.defaultAlgorithm || 'fsrs';
+		const f = fsrs();
+		const now = new Date();
+
+		const flashcardIds: string[] = [];
+
+		// Create each flashcard
+		for (const flashcard of args.flashcards) {
+			const fsrsCard = createEmptyCard(now);
+			const scheduling = f.repeat(fsrsCard, now);
+			const newCardState = scheduling[Rating.Good].card;
+
+			const flashcardId = await ctx.db.insert('flashcards', {
+				userId,
+				question: flashcard.question,
+				answer: flashcard.answer,
+				sourceInboxItemId: args.sourceInboxItemId,
+				sourceType: args.sourceType,
+				algorithm,
+				fsrsStability: newCardState.stability,
+				fsrsDifficulty: newCardState.difficulty,
+				fsrsDue: newCardState.due.getTime(),
+				fsrsState: stateToString(newCardState.state),
+				reps: newCardState.reps,
+				lapses: newCardState.lapses,
+				lastReviewAt: newCardState.last_review?.getTime(),
+				createdAt: Date.now(),
+			});
+
+			flashcardIds.push(flashcardId);
+
+			// Add tags if provided
+			if (args.tagIds && args.tagIds.length > 0) {
+				for (const tagId of args.tagIds) {
+					await ctx.db.insert('flashcardTags', {
+						flashcardId,
+						tagId,
+					});
+				}
+			}
+		}
+
+		return flashcardIds;
+	},
+});
+
+/**
+ * Review a flashcard (update FSRS state based on rating)
+ */
+export const reviewFlashcard = mutation({
+	args: {
+		flashcardId: v.id('flashcards'),
+		rating: v.union(v.literal('again'), v.literal('hard'), v.literal('good'), v.literal('easy')),
+		reviewTime: v.optional(v.number()), // Time spent in seconds
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx);
+		if (!userId) {
+			throw new Error('Not authenticated');
+		}
+
+		// Get flashcard
+		const flashcard = await ctx.db.get(args.flashcardId);
+		if (!flashcard) {
+			throw new Error('Flashcard not found');
+		}
+
+		if (flashcard.userId !== userId) {
+			throw new Error('Not authorized');
+		}
+
+		if (flashcard.algorithm !== 'fsrs') {
+			throw new Error(`Algorithm ${flashcard.algorithm} not yet supported`);
+		}
+
+		// Convert FSRS rating string to enum
+		const ratingMap: Record<string, Rating> = {
+			again: Rating.Again,
+			hard: Rating.Hard,
+			good: Rating.Good,
+			easy: Rating.Easy,
+		};
+
+		const fsrsRating = ratingMap[args.rating];
+		if (!fsrsRating) {
+			throw new Error(`Invalid rating: ${args.rating}`);
+		}
+
+		// Reconstruct FSRS card from database state
+		const fsrsCard: Card = {
+			due: flashcard.fsrsDue ? new Date(flashcard.fsrsDue) : new Date(),
+			stability: flashcard.fsrsStability || 0,
+			difficulty: flashcard.fsrsDifficulty || 0,
+			elapsed_days: flashcard.lastReviewAt
+				? Math.floor((Date.now() - flashcard.lastReviewAt) / (1000 * 60 * 60 * 24))
+				: 0,
+			scheduled_days: 0,
+			learning_steps: 0,
+			reps: flashcard.reps,
+			lapses: flashcard.lapses,
+			state: stringToState(flashcard.fsrsState || 'new'),
+			last_review: flashcard.lastReviewAt ? new Date(flashcard.lastReviewAt) : undefined,
+		};
+
+		// Get FSRS scheduler
+		const f = fsrs();
+		const now = new Date();
+		const scheduling = f.repeat(fsrsCard, now);
+		const result = scheduling[fsrsRating];
+
+		// Update flashcard with new FSRS state
+		await ctx.db.patch(args.flashcardId, {
+			fsrsStability: result.card.stability,
+			fsrsDifficulty: result.card.difficulty,
+			fsrsDue: result.card.due.getTime(),
+			fsrsState: stateToString(result.card.state),
+			reps: result.card.reps,
+			lapses: result.card.lapses,
+			lastReviewAt: now.getTime(),
+		});
+
+		// Create review record
+		await ctx.db.insert('flashcardReviews', {
+			flashcardId: args.flashcardId,
+			userId,
+			rating: args.rating,
+			algorithm: flashcard.algorithm,
+			reviewTime: args.reviewTime,
+			reviewedAt: now.getTime(),
+			fsrsLog: {
+				stability: result.log.stability,
+				difficulty: result.log.difficulty,
+				scheduledDays: result.log.scheduled_days,
+				elapsedDays: result.log.elapsed_days,
+			},
+		});
+
+		return {
+			success: true,
+			nextDue: result.card.due.getTime(),
+		};
+	},
+});
+
+/**
+ * Get flashcards due for review
+ */
+export const getDueFlashcards = query({
+	args: {
+		limit: v.optional(v.number()),
+		algorithm: v.optional(v.string()),
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx);
+		if (!userId) {
+			throw new Error('Not authenticated');
+		}
+
+		const algorithm = args.algorithm || 'fsrs';
+		const limit = args.limit || 10;
+		const now = Date.now();
+
+		// Query due cards
+		const dueCards = await ctx.db
+			.query('flashcards')
+			.withIndex('by_user_due', (q) => q.eq('userId', userId).eq('algorithm', algorithm).lte('fsrsDue', now))
+			.order('asc')
+			.take(limit);
+
+		return dueCards;
+	},
+});
+
+/**
+ * Get all flashcards for a user
+ */
+export const getUserFlashcards = query({
+	args: {},
+	handler: async (ctx) => {
+		const userId = await getAuthUserId(ctx);
+		if (!userId) {
+			throw new Error('Not authenticated');
+		}
+
+		const flashcards = await ctx.db
+			.query('flashcards')
+			.withIndex('by_user', (q) => q.eq('userId', userId))
+			.collect();
+
+		return flashcards;
+	},
+});
+
+/**
+ * Get a single flashcard by ID
+ */
+export const getFlashcard = query({
+	args: {
+		flashcardId: v.id('flashcards'),
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx);
+		if (!userId) {
+			throw new Error('Not authenticated');
+		}
+
+		const flashcard = await ctx.db.get(args.flashcardId);
+		if (!flashcard) {
+			return null;
+		}
+
+		if (flashcard.userId !== userId) {
+			throw new Error('Not authorized');
+		}
+
+		return flashcard;
+	},
+});
+

@@ -133,6 +133,7 @@ When [situation]:
 ### TypeScript
 - [TypeScript Types for Composables](#typescript-types-for-composables-shared-type-definitions) - Shared type definitions
 - [Discriminated Union Types for Polymorphic Data](#typescript-discriminated-union-types-for-polymorphic-data) - Discriminated unions for type narrowing
+- [Enum to Database String Conversion Pattern](#enum-to-database-string-conversion-pattern) - Converting enums to/from database strings
 
 ### Activity Tracker
 - [Polling Initialization](#activity-tracker-polling-initialization) - Components manage polling, stores manage state
@@ -168,6 +169,7 @@ When [situation]:
 ### Type Safety
 - [TypeScript Types for Composables](#typescript-types-for-composables-shared-type-definitions) - Shared type definitions
 - [Discriminated Union Types for Polymorphic Data](#typescript-discriminated-union-types-for-polymorphic-data) - Discriminated unions for type narrowing
+- [Enum to Database String Conversion Pattern](#enum-to-database-string-conversion-pattern) - Converting enums to/from database strings
 
 ### Configuration
 - [Centralized Configuration Pattern](#centralized-configuration-pattern) - Single config file for app settings
@@ -201,8 +203,9 @@ When [situation]:
 16. [Centered Card Layout with Fixed Default Size](#centered-card-layout-with-fixed-default-size) - Centered layout with default size and flexible expansion
 17. [Textarea Auto-Resize to Match Static Text](#textarea-auto-resize-to-match-static-text) - Textarea matching paragraph styling
 18. [Edit Mode Visual Indicators](#edit-mode-visual-indicators) - Clear edit state indication
-19. [Centralized Configuration Pattern](#centralized-configuration-pattern) - Single config file for app settings
-20. [Persistent Session Configuration](#persistent-session-configuration) - Configure cookie maxAge for persistent sessions
+19. [Enum to Database String Conversion Pattern](#enum-to-database-string-conversion-pattern) - Converting enums to/from database strings
+20. [Centralized Configuration Pattern](#centralized-configuration-pattern) - Single config file for app settings
+21. [Persistent Session Configuration](#persistent-session-configuration) - Configure cookie maxAge for persistent sessions
 
 ---
 
@@ -2021,6 +2024,140 @@ When implementing persistent sessions:
 - **Don't** hardcode `maxAge` values (use config)
 
 **Related Patterns**: See [Centralized Configuration Pattern](#centralized-configuration-pattern) for config file setup.
+
+---
+
+## Enum to Database String Conversion Pattern
+
+**Tags**: `typescript`, `enums`, `database`, `type-conversion`, `external-libraries`  
+**Date**: 2025-01-27  
+**Issue**: External libraries use TypeScript enums, but database schemas store strings. Direct casting causes TypeScript errors.
+
+### Problem
+
+When integrating external libraries (like `ts-fsrs`) with database schemas:
+- Library uses TypeScript enums (e.g., `State.New`, `State.Learning`)
+- Database schema stores lowercase strings (e.g., `'new'`, `'learning'`)
+- Direct type casting (`as 'new'`) causes TypeScript errors
+- Type mismatch between enum and string literal types
+
+### Root Cause
+
+TypeScript enums and string literals are different types:
+- Enums are numeric or string-based types
+- String literals are specific string values
+- TypeScript doesn't allow direct casting between incompatible types
+- Need explicit conversion functions
+
+### Solution
+
+**Pattern**: Create explicit conversion functions between enum and string values.
+
+```typescript
+// ❌ WRONG: Direct casting causes TypeScript errors
+fsrsState: newCardState.state as 'new' | 'learning' | 'review' | 'relearning', // Error!
+
+// ✅ CORRECT: Explicit conversion functions
+function stateToString(state: State): 'new' | 'learning' | 'review' | 'relearning' {
+  switch (state) {
+    case State.New:
+      return 'new';
+    case State.Learning:
+      return 'learning';
+    case State.Review:
+      return 'review';
+    case State.Relearning:
+      return 'relearning';
+    default:
+      return 'new';
+  }
+}
+
+function stringToState(state: string): State {
+  switch (state) {
+    case 'new':
+      return State.New;
+    case 'learning':
+      return State.Learning;
+    case 'review':
+      return State.Review;
+    case 'relearning':
+      return State.Relearning;
+    default:
+      return State.New;
+  }
+}
+
+// Usage
+fsrsState: stateToString(newCardState.state), // ✅ Works correctly
+```
+
+**Why it works**:
+- Explicit conversion ensures type safety
+- Switch statements handle all enum values
+- Default cases provide fallback behavior
+- Functions are reusable across codebase
+- TypeScript can verify exhaustiveness
+
+### Implementation Example
+
+```typescript
+// convex/flashcards.ts
+import { State } from 'ts-fsrs';
+
+function stateToString(state: State): 'new' | 'learning' | 'review' | 'relearning' {
+  switch (state) {
+    case State.New:
+      return 'new';
+    case State.Learning:
+      return 'learning';
+    case State.Review:
+      return 'review';
+    case State.Relearning:
+      return 'relearning';
+    default:
+      return 'new';
+  }
+}
+
+function stringToState(state: string): State {
+  switch (state) {
+    case 'new':
+      return State.New;
+    case 'learning':
+      return State.Learning;
+    case 'review':
+      return State.Review;
+    case 'relearning':
+      return State.Relearning;
+    default:
+      return State.New;
+  }
+}
+
+// When saving to database
+await ctx.db.insert('flashcards', {
+  fsrsState: stateToString(fsrsCard.state), // Convert enum to string
+  // ...
+});
+
+// When reading from database
+const fsrsCard: Card = {
+  state: stringToState(flashcard.fsrsState || 'new'), // Convert string to enum
+  // ...
+};
+```
+
+### Key Takeaway
+
+When integrating external libraries with database schemas:
+- **Do** create explicit conversion functions for enum ↔ string
+- **Do** use switch statements for exhaustive handling
+- **Do** provide default cases for safety
+- **Don't** use direct type casting (`as`) between incompatible types
+- **Don't** assume enums can be directly stored as strings
+
+**Related Patterns**: See [TypeScript: Discriminated Union Types](#typescript-discriminated-union-types-for-polymorphic-data) for type narrowing patterns.
 
 ---
 

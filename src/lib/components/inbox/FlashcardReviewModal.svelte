@@ -14,7 +14,7 @@
 		sourceContext?: string;
 		onClose: () => void;
 		onApproveAll: () => void;
-		onApproveSelected: (indices: number[]) => void;
+		onApproveSelected: (cards: Flashcard[]) => void;
 		onRejectAll: () => void;
 	}
 
@@ -160,20 +160,9 @@
 	}
 
 	function handleComplete() {
-		// Save approved cards - find original indices
+		// Save approved cards (with any edits applied)
 		if (approvedCards.length > 0) {
-			const approvedIndices: number[] = [];
-			approvedCards.forEach((approvedCard) => {
-				const index = flashcards.findIndex(
-					(fc) => fc.question === approvedCard.question && fc.answer === approvedCard.answer
-				);
-				if (index !== -1) {
-					approvedIndices.push(index);
-				}
-			});
-			if (approvedIndices.length > 0) {
-				onApproveSelected(approvedIndices);
-			}
+			onApproveSelected(approvedCards);
 		}
 		onClose();
 	}

@@ -175,6 +175,90 @@ const schema = defineSchema({
     updatedAt: v.number(), // Last update timestamp
   })
     .index("by_user", ["userId"]),
+
+  // Flashcards table - stores all flashcards with FSRS algorithm support
+  flashcards: defineTable({
+    userId: v.id("users"),
+    question: v.string(),
+    answer: v.string(),
+    sourceInboxItemId: v.optional(v.id("inboxItems")), // Link to source inbox item
+    sourceType: v.optional(v.string()), // "readwise_highlight", "photo_note", "manual_text"
+    // FSRS algorithm fields
+    algorithm: v.string(), // "fsrs" (for now, can add others later)
+    fsrsStability: v.optional(v.number()), // Memory stability
+    fsrsDifficulty: v.optional(v.number()), // Card difficulty
+    fsrsDue: v.optional(v.number()), // Next review timestamp (milliseconds)
+    fsrsState: v.optional(
+      v.union(
+        v.literal("new"),
+        v.literal("learning"),
+        v.literal("review"),
+        v.literal("relearning")
+      )
+    ),
+    // Common fields
+    reps: v.number(), // Total number of reviews
+    lapses: v.number(), // Times forgotten
+    lastReviewAt: v.optional(v.number()), // Last review timestamp
+    createdAt: v.number(), // When flashcard was created
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_algorithm", ["userId", "algorithm"])
+    .index("by_user_due", ["userId", "algorithm", "fsrsDue"]) // For querying due cards
+    .index("by_source", ["sourceInboxItemId"]),
+
+  // Flashcard Reviews - history of all reviews for analytics and algorithm improvement
+  flashcardReviews: defineTable({
+    flashcardId: v.id("flashcards"),
+    userId: v.id("users"),
+    rating: v.union(
+      v.literal("again"), // Rating.Again
+      v.literal("hard"), // Rating.Hard
+      v.literal("good"), // Rating.Good
+      v.literal("easy") // Rating.Easy
+    ),
+    algorithm: v.string(), // Which algorithm was used ("fsrs")
+    reviewTime: v.optional(v.number()), // Time spent reviewing (seconds)
+    reviewedAt: v.number(), // Timestamp of review
+    // FSRS-specific review data
+    fsrsLog: v.optional(
+      v.object({
+        stability: v.number(), // Stability before review
+        difficulty: v.number(), // Difficulty before review
+        scheduledDays: v.number(), // Days scheduled for next review
+        elapsedDays: v.number(), // Days since last review
+      })
+    ),
+  })
+    .index("by_flashcard", ["flashcardId"])
+    .index("by_user", ["userId"])
+    .index("by_user_reviewed", ["userId", "reviewedAt"]),
+
+  // User Algorithm Settings - per-user algorithm preferences
+  userAlgorithmSettings: defineTable({
+    userId: v.id("users"),
+    defaultAlgorithm: v.string(), // "fsrs" (default)
+    // FSRS parameters (optional, uses defaults if not set)
+    fsrsParams: v.optional(
+      v.object({
+        enableFuzz: v.optional(v.boolean()), // Enable fuzzing for intervals
+        maximumInterval: v.optional(v.number()), // Maximum interval in days
+        requestRetention: v.optional(v.number()), // Target retention rate (0-1)
+      })
+    ),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"]),
+
+  // Flashcard Tags - many-to-many relationship between flashcards and tags
+  flashcardTags: defineTable({
+    flashcardId: v.id("flashcards"),
+    tagId: v.id("tags"),
+  })
+    .index("by_flashcard", ["flashcardId"])
+    .index("by_tag", ["tagId"])
+    .index("by_flashcard_tag", ["flashcardId", "tagId"]), // Unique constraint
 });
 
 export default schema;
