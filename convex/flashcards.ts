@@ -4,6 +4,8 @@ import { internal } from './_generated/api';
 import { getAuthUserId } from '@convex-dev/auth/server';
 import { createEmptyCard, fsrs, Rating, State, type Card } from 'ts-fsrs';
 import { loadPrompt } from './promptUtils';
+import { getTagDescendantsForTags } from './tags';
+import type { Id } from './_generated/dataModel';
 
 /**
  * Convert FSRS State enum to lowercase string for database storage
@@ -278,12 +280,105 @@ export const reviewFlashcard = mutation({
 });
 
 /**
+ * Update flashcard question and answer
+ */
+export const updateFlashcard = mutation({
+	args: {
+		flashcardId: v.id('flashcards'),
+		question: v.optional(v.string()),
+		answer: v.optional(v.string()),
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx);
+		if (!userId) {
+			throw new Error('Not authenticated');
+		}
+
+		const flashcard = await ctx.db.get(args.flashcardId);
+		if (!flashcard) {
+			throw new Error('Flashcard not found');
+		}
+
+		if (flashcard.userId !== userId) {
+			throw new Error('Not authorized');
+		}
+
+		const updates: {
+			question?: string;
+			answer?: string;
+		} = {};
+
+		if (args.question !== undefined) {
+			updates.question = args.question;
+		}
+
+		if (args.answer !== undefined) {
+			updates.answer = args.answer;
+		}
+
+		await ctx.db.patch(args.flashcardId, updates);
+
+		return { success: true };
+	},
+});
+
+/**
+ * Delete a flashcard
+ */
+export const deleteFlashcard = mutation({
+	args: {
+		flashcardId: v.id('flashcards'),
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx);
+		if (!userId) {
+			throw new Error('Not authenticated');
+		}
+
+		const flashcard = await ctx.db.get(args.flashcardId);
+		if (!flashcard) {
+			throw new Error('Flashcard not found');
+		}
+
+		if (flashcard.userId !== userId) {
+			throw new Error('Not authorized');
+		}
+
+		// Delete flashcard-tag relationships
+		const flashcardTags = await ctx.db
+			.query('flashcardTags')
+			.withIndex('by_flashcard', (q) => q.eq('flashcardId', args.flashcardId))
+			.collect();
+
+		for (const ft of flashcardTags) {
+			await ctx.db.delete(ft._id);
+		}
+
+		// Delete flashcard reviews
+		const reviews = await ctx.db
+			.query('flashcardReviews')
+			.withIndex('by_flashcard', (q) => q.eq('flashcardId', args.flashcardId))
+			.collect();
+
+		for (const review of reviews) {
+			await ctx.db.delete(review._id);
+		}
+
+		// Delete flashcard
+		await ctx.db.delete(args.flashcardId);
+
+		return { success: true };
+	},
+});
+
+/**
  * Get flashcards due for review
  */
 export const getDueFlashcards = query({
 	args: {
 		limit: v.optional(v.number()),
 		algorithm: v.optional(v.string()),
+		tagIds: v.optional(v.array(v.id('tags'))),
 	},
 	handler: async (ctx, args) => {
 		const userId = await getAuthUserId(ctx);
@@ -296,13 +391,41 @@ export const getDueFlashcards = query({
 		const now = Date.now();
 
 		// Query due cards
-		const dueCards = await ctx.db
+		let dueCards = await ctx.db
 			.query('flashcards')
 			.withIndex('by_user_due', (q) => q.eq('userId', userId).eq('algorithm', algorithm).lte('fsrsDue', now))
 			.order('asc')
-			.take(limit);
+			.take(limit * 2); // Get more than needed in case we filter by tags
 
-		return dueCards;
+		// Filter by tags if provided
+		if (args.tagIds && args.tagIds.length > 0) {
+			// Get all descendant tag IDs (including the selected tags themselves)
+			const allTagIds = await getTagDescendantsForTags(ctx, args.tagIds, userId);
+
+			// Get all flashcard-tag relationships for these tags
+			const flashcardTagRelations = await Promise.all(
+				allTagIds.map((tagId) =>
+					ctx.db
+						.query('flashcardTags')
+						.withIndex('by_tag', (q) => q.eq('tagId', tagId))
+						.collect()
+				)
+			);
+
+			// Create a set of flashcard IDs that have at least one of the selected tags
+			const validFlashcardIds = new Set<Id<'flashcards'>>();
+			for (const relations of flashcardTagRelations) {
+				for (const relation of relations) {
+					validFlashcardIds.add(relation.flashcardId);
+				}
+			}
+
+			// Filter due cards to only include those with matching tags
+			dueCards = dueCards.filter((card) => validFlashcardIds.has(card._id));
+		}
+
+		// Limit to requested amount
+		return dueCards.slice(0, limit);
 	},
 });
 
@@ -310,6 +433,56 @@ export const getDueFlashcards = query({
  * Get all flashcards for a user
  */
 export const getUserFlashcards = query({
+	args: {
+		tagIds: v.optional(v.array(v.id('tags'))),
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx);
+		if (!userId) {
+			throw new Error('Not authenticated');
+		}
+
+		let flashcards = await ctx.db
+			.query('flashcards')
+			.withIndex('by_user', (q) => q.eq('userId', userId))
+			.collect();
+
+		// Filter by tags if provided
+		if (args.tagIds && args.tagIds.length > 0) {
+			// Get all descendant tag IDs (including the selected tags themselves)
+			const allTagIds = await getTagDescendantsForTags(ctx, args.tagIds, userId);
+
+			// Get all flashcard-tag relationships for these tags
+			const flashcardTagRelations = await Promise.all(
+				allTagIds.map((tagId) =>
+					ctx.db
+						.query('flashcardTags')
+						.withIndex('by_tag', (q) => q.eq('tagId', tagId))
+						.collect()
+				)
+			);
+
+			// Create a set of flashcard IDs that have at least one of the selected tags
+			const validFlashcardIds = new Set<Id<'flashcards'>>();
+			for (const relations of flashcardTagRelations) {
+				for (const relation of relations) {
+					validFlashcardIds.add(relation.flashcardId);
+				}
+			}
+
+			// Filter flashcards to only include those with matching tags
+			flashcards = flashcards.filter((card) => validFlashcardIds.has(card._id));
+		}
+
+		return flashcards;
+	},
+});
+
+/**
+ * Get flashcards grouped by collections (tags)
+ * Returns collections with card counts and due counts
+ */
+export const getFlashcardsByCollection = query({
 	args: {},
 	handler: async (ctx) => {
 		const userId = await getAuthUserId(ctx);
@@ -317,12 +490,61 @@ export const getUserFlashcards = query({
 			throw new Error('Not authenticated');
 		}
 
+		// Get all user tags
+		const tags = await ctx.db
+			.query('tags')
+			.withIndex('by_user', (q) => q.eq('userId', userId))
+			.collect();
+
+		// Get all flashcards
 		const flashcards = await ctx.db
 			.query('flashcards')
 			.withIndex('by_user', (q) => q.eq('userId', userId))
 			.collect();
 
-		return flashcards;
+		// Get all flashcard-tag relationships
+		const flashcardTags = await ctx.db
+			.query('flashcardTags')
+			.collect();
+
+		// Create a map of tagId -> flashcardIds
+		const tagToFlashcards = new Map<Id<'tags'>, Set<Id<'flashcards'>>>();
+		for (const ft of flashcardTags) {
+			// Verify flashcard belongs to user
+			const flashcard = flashcards.find((f) => f._id === ft.flashcardId);
+			if (!flashcard || flashcard.userId !== userId) continue;
+
+			if (!tagToFlashcards.has(ft.tagId)) {
+				tagToFlashcards.set(ft.tagId, new Set());
+			}
+			tagToFlashcards.get(ft.tagId)!.add(ft.flashcardId);
+		}
+
+		// Build collection data
+		const now = Date.now();
+		const collections = tags.map((tag) => {
+			const flashcardIds = tagToFlashcards.get(tag._id) || new Set();
+			const collectionFlashcards = flashcards.filter((f) => flashcardIds.has(f._id));
+			const dueCount = collectionFlashcards.filter(
+				(f) => f.fsrsDue && f.fsrsDue <= now
+			).length;
+
+			return {
+				tagId: tag._id,
+				name: tag.displayName,
+				color: tag.color,
+				count: collectionFlashcards.length,
+				dueCount,
+			};
+		});
+
+		// Sort by count (descending), then by name
+		collections.sort((a, b) => {
+			if (b.count !== a.count) return b.count - a.count;
+			return a.name.localeCompare(b.name);
+		});
+
+		return collections;
 	},
 });
 
@@ -349,6 +571,41 @@ export const getFlashcard = query({
 		}
 
 		return flashcard;
+	},
+});
+
+/**
+ * Get tags for a flashcard
+ */
+export const getFlashcardTags = query({
+	args: {
+		flashcardId: v.id('flashcards'),
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx);
+		if (!userId) {
+			throw new Error('Not authenticated');
+		}
+
+		// Verify flashcard belongs to user
+		const flashcard = await ctx.db.get(args.flashcardId);
+		if (!flashcard || flashcard.userId !== userId) {
+			throw new Error('Not authorized');
+		}
+
+		// Get flashcard-tag relationships
+		const flashcardTags = await ctx.db
+			.query('flashcardTags')
+			.withIndex('by_flashcard', (q) => q.eq('flashcardId', args.flashcardId))
+			.collect();
+
+		// Get tag details
+		const tags = await Promise.all(
+			flashcardTags.map((ft) => ctx.db.get(ft.tagId))
+		);
+
+		// Filter out null tags and return
+		return tags.filter((t): t is NonNullable<typeof t> => t !== null);
 	},
 });
 

@@ -125,6 +125,21 @@
 		return '';
 	});
 
+	// Get source metadata for prompt context
+	const sourceMetadata = $derived(() => {
+		if (!selected.selectedItem) return { title: undefined, author: undefined };
+		
+		if (selected.selectedItem.type === 'readwise_highlight') {
+			const item = selected.selectedItem as any;
+			return {
+				title: item.source?.title || item.sourceData?.bookTitle || undefined,
+				author: item.author?.displayName || item.sourceData?.author || undefined,
+			};
+		}
+		
+		return { title: undefined, author: undefined };
+	});
+
 	async function handleGenerateFlashcards() {
 		if (!selected.selectedItemId || !selected.selectedItem || !convexClient) return;
 
@@ -137,9 +152,14 @@
 				throw new Error('No text content available to generate flashcards from');
 			}
 
-			// Call AI generation
-			const result = await convexClient.action(api.generateFlashcard.generateFlashcard, {
+			// Get source metadata for prompt context
+			const metadata = sourceMetadata();
+
+			// Call AI generation with source context
+			const result = await convexClient.action(api.flashcards.generateFlashcard, {
 				text: text.trim(),
+				sourceTitle: metadata.title,
+				sourceAuthor: metadata.author,
 			});
 
 			if (!result.success || !result.flashcards || result.flashcards.length === 0) {

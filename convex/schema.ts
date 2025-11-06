@@ -4,6 +4,47 @@ import { v } from "convex/values";
 
 const schema = defineSchema({
   ...authTables,
+  // Organizations table - ready for future multi-tenancy
+  organizations: defineTable({
+    name: v.string(),
+    slug: v.string(), // URL-friendly identifier
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_slug", ["slug"]),
+
+  // Teams table - ready for future multi-tenancy
+  teams: defineTable({
+    organizationId: v.id("organizations"),
+    name: v.string(),
+    slug: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_organization", ["organizationId"]),
+
+  // Organization members (many-to-many)
+  organizationMembers: defineTable({
+    organizationId: v.id("organizations"),
+    userId: v.id("users"),
+    role: v.union(v.literal("owner"), v.literal("admin"), v.literal("member")),
+    joinedAt: v.number(),
+  })
+    .index("by_organization", ["organizationId"])
+    .index("by_user", ["userId"])
+    .index("by_organization_user", ["organizationId", "userId"]),
+
+  // Team members (many-to-many)
+  teamMembers: defineTable({
+    teamId: v.id("teams"),
+    userId: v.id("users"),
+    role: v.union(v.literal("admin"), v.literal("member")),
+    joinedAt: v.number(),
+  })
+    .index("by_team", ["teamId"])
+    .index("by_user", ["userId"])
+    .index("by_team_user", ["teamId", "userId"]),
+
   // User settings - one per user
   userSettings: defineTable({
     userId: v.id("users"), // Reference to the authenticated user
@@ -46,12 +87,25 @@ const schema = defineSchema({
     lastHighlightAt: v.optional(v.number()), // Timestamp of most recent highlight
     updatedAt: v.number(), // When source was last updated (from Readwise)
     createdAt: v.number(), // When first added to Axon
+    // Multi-tenancy fields (future)
+    organizationId: v.optional(v.id("organizations")), // Future: org-owned content
+    teamId: v.optional(v.id("teams")), // Future: team-owned content
+    ownershipType: v.optional(
+      v.union(
+        v.literal("user"), // User-owned (default)
+        v.literal("organization"), // Org-owned
+        v.literal("team"), // Team-owned
+        v.literal("purchased") // Purchased content
+      )
+    ),
   })
     .index("by_user", ["userId"])
     .index("by_author", ["authorId"])
     .index("by_external_id", ["externalId"]) // Prevent duplicates
     .index("by_user_category", ["userId", "category"])
-    .index("by_user_source_type", ["userId", "sourceType"]),
+    .index("by_user_source_type", ["userId", "sourceType"])
+    .index("by_organization", ["organizationId"]) // Future index
+    .index("by_team", ["teamId"]), // Future index
 
   // Multiple authors per source (many-to-many relationship)
   // Some sources have comma-separated authors, we store them separately
@@ -79,11 +133,24 @@ const schema = defineSchema({
     updatedAt: v.number(), // When highlight was last updated (from Readwise)
     createdAt: v.number(), // When first added to Axon
     lastSyncedAt: v.optional(v.number()), // Last time synced from Readwise
+    // Multi-tenancy fields (future)
+    organizationId: v.optional(v.id("organizations")), // Future: org-owned content
+    teamId: v.optional(v.id("teams")), // Future: team-owned content
+    ownershipType: v.optional(
+      v.union(
+        v.literal("user"), // User-owned (default)
+        v.literal("organization"), // Org-owned
+        v.literal("team"), // Team-owned
+        v.literal("purchased") // Purchased content
+      )
+    ),
   })
     .index("by_user", ["userId"])
     .index("by_source", ["sourceId"])
     .index("by_external_id", ["externalId"]) // Prevent duplicates
-    .index("by_user_source", ["userId", "sourceId"]),
+    .index("by_user_source", ["userId", "sourceId"])
+    .index("by_organization", ["organizationId"]) // Future index
+    .index("by_team", ["teamId"]), // Future index
 
   // Universal Inbox Items table - polymorphic table for all inbox content
   // Uses discriminated unions to support different source types
@@ -97,6 +164,17 @@ const schema = defineSchema({
         processedAt: v.optional(v.number()), // When processed
         createdAt: v.number(), // When first added to inbox
         highlightId: v.id("highlights"), // Link to highlights table
+        // Multi-tenancy fields (future)
+        organizationId: v.optional(v.id("organizations")), // Future: org-owned content
+        teamId: v.optional(v.id("teams")), // Future: team-owned content
+        ownershipType: v.optional(
+          v.union(
+            v.literal("user"), // User-owned (default)
+            v.literal("organization"), // Org-owned
+            v.literal("team"), // Team-owned
+            v.literal("purchased") // Purchased content
+          )
+        ),
       }),
       // Photo Note (for future)
       v.object({
@@ -111,6 +189,17 @@ const schema = defineSchema({
         ocrStatus: v.optional(
           v.union(v.literal("pending"), v.literal("completed"), v.literal("failed"))
         ),
+        // Multi-tenancy fields (future)
+        organizationId: v.optional(v.id("organizations")), // Future: org-owned content
+        teamId: v.optional(v.id("teams")), // Future: team-owned content
+        ownershipType: v.optional(
+          v.union(
+            v.literal("user"), // User-owned (default)
+            v.literal("organization"), // Org-owned
+            v.literal("team"), // Team-owned
+            v.literal("purchased") // Purchased content
+          )
+        ),
       }),
       // Manual Text (for future)
       v.object({
@@ -122,12 +211,25 @@ const schema = defineSchema({
         text: v.string(),
         bookTitle: v.optional(v.string()), // Optional manual attribution
         pageNumber: v.optional(v.number()),
+        // Multi-tenancy fields (future)
+        organizationId: v.optional(v.id("organizations")), // Future: org-owned content
+        teamId: v.optional(v.id("teams")), // Future: team-owned content
+        ownershipType: v.optional(
+          v.union(
+            v.literal("user"), // User-owned (default)
+            v.literal("organization"), // Org-owned
+            v.literal("team"), // Team-owned
+            v.literal("purchased") // Purchased content
+          )
+        ),
       }),
     )
   )
     .index("by_user", ["userId"])
     .index("by_user_type", ["userId", "type"])
-    .index("by_user_processed", ["userId", "processed"]),
+    .index("by_user_processed", ["userId", "processed"])
+    .index("by_organization", ["organizationId"]) // Future index
+    .index("by_team", ["teamId"]), // Future index
 
   // Tags table - proper relational table for filtering with hierarchical support
   tags: defineTable({
@@ -183,6 +285,17 @@ const schema = defineSchema({
     answer: v.string(),
     sourceInboxItemId: v.optional(v.id("inboxItems")), // Link to source inbox item
     sourceType: v.optional(v.string()), // "readwise_highlight", "photo_note", "manual_text"
+    // Multi-tenancy fields (future)
+    organizationId: v.optional(v.id("organizations")), // Future: org-owned content
+    teamId: v.optional(v.id("teams")), // Future: team-owned content
+    ownershipType: v.optional(
+      v.union(
+        v.literal("user"), // User-owned (default)
+        v.literal("organization"), // Org-owned
+        v.literal("team"), // Team-owned
+        v.literal("purchased") // Purchased content
+      )
+    ),
     // FSRS algorithm fields
     algorithm: v.string(), // "fsrs" (for now, can add others later)
     fsrsStability: v.optional(v.number()), // Memory stability
@@ -205,7 +318,9 @@ const schema = defineSchema({
     .index("by_user", ["userId"])
     .index("by_user_algorithm", ["userId", "algorithm"])
     .index("by_user_due", ["userId", "algorithm", "fsrsDue"]) // For querying due cards
-    .index("by_source", ["sourceInboxItemId"]),
+    .index("by_source", ["sourceInboxItemId"])
+    .index("by_organization", ["organizationId"]) // Future index
+    .index("by_team", ["teamId"]), // Future index
 
   // Flashcard Reviews - history of all reviews for analytics and algorithm improvement
   flashcardReviews: defineTable({

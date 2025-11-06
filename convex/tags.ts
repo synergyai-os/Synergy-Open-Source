@@ -115,6 +115,58 @@ function buildTagTree(tags: any[]): TagWithHierarchy[] {
 }
 
 /**
+ * Helper: Get all descendant tag IDs for a given tag (recursively)
+ * Returns the tag itself plus all its children, grandchildren, etc.
+ */
+async function getTagDescendants(
+	ctx: any,
+	tagId: Id<"tags">,
+	userId: Id<"users">
+): Promise<Id<"tags">[]> {
+	const descendants: Id<"tags">[] = [tagId];
+	const queue: Id<"tags">[] = [tagId];
+
+	while (queue.length > 0) {
+		const currentTagId = queue.shift()!;
+		const children = await ctx.db
+			.query("tags")
+			.withIndex("by_user_parent", (q) => q.eq("userId", userId).eq("parentId", currentTagId))
+			.collect();
+
+		for (const child of children) {
+			descendants.push(child._id);
+			queue.push(child._id);
+		}
+	}
+
+	return descendants;
+}
+
+/**
+ * Helper: Get all descendant tag IDs for multiple tags
+ * Returns all provided tag IDs plus all their descendants
+ */
+export async function getTagDescendantsForTags(
+	ctx: any,
+	tagIds: Id<"tags">[],
+	userId: Id<"users">
+): Promise<Id<"tags">[]> {
+	if (tagIds.length === 0) {
+		return [];
+	}
+
+	const allDescendants = new Set<Id<"tags">>();
+	for (const tagId of tagIds) {
+		const descendants = await getTagDescendants(ctx, tagId, userId);
+		for (const descId of descendants) {
+			allDescendants.add(descId);
+		}
+	}
+
+	return Array.from(allDescendants);
+}
+
+/**
  * Query: List all tags for the current user with hierarchical structure
  */
 export const listAllTags = query({

@@ -23,6 +23,9 @@ Read in order:
 4. `dev-docs/design-tokens.md` - Design token reference (MANDATORY for UI)
 5. `dev-docs/composables-analysis.md` - Svelte 5 composables analysis
 
+**Future Architecture:**
+- `dev-docs/multi-tenancy-migration.md` - Multi-tenancy architecture and migration guide (when implementing orgs/teams)
+
 ---
 
 ## Project-Specific Workflows
@@ -97,6 +100,7 @@ const data = $derived(query?.data ?? []);
 - `dev-docs/architecture.md` - Tech architecture
 - `dev-docs/design-tokens.md` - Token reference
 - `dev-docs/product-vision-and-plan.md` - Vision and roadmap
+- `dev-docs/multi-tenancy-migration.md` - Multi-tenancy architecture (future)
 
 **Code:**
 - `src/lib/composables/` - Composables (`.svelte.ts`)
