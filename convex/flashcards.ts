@@ -1,7 +1,9 @@
-import { query, mutation } from './_generated/server';
+import { query, mutation, action } from './_generated/server';
 import { v } from 'convex/values';
+import { internal } from './_generated/api';
 import { getAuthUserId } from '@convex-dev/auth/server';
 import { createEmptyCard, fsrs, Rating, State, type Card } from 'ts-fsrs';
+import { loadPrompt } from './promptUtils';
 
 /**
  * Convert FSRS State enum to lowercase string for database storage
@@ -347,6 +349,128 @@ export const getFlashcard = query({
 		}
 
 		return flashcard;
+	},
+});
+
+/**
+ * Generate flashcards from text input using Claude API
+ */
+export const generateFlashcard = action({
+	args: {
+		text: v.string(),
+		sourceTitle: v.optional(v.string()),
+		sourceAuthor: v.optional(v.string()),
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx);
+		if (!userId) {
+			throw new Error('Not authenticated');
+		}
+
+		// Get encrypted API key using internal query from settings
+		const keys: { claudeApiKey: string | null; readwiseApiKey: string | null } | null = await ctx.runQuery(
+			internal.settings.getEncryptedKeysInternal,
+			{}
+		);
+		
+		if (!keys?.claudeApiKey) {
+			throw new Error('Claude API key not configured. Please add your API key in Settings.');
+		}
+
+		// Decrypt API key using cryptoActions (which has "use node")
+		const apiKey: string = await ctx.runAction(internal.cryptoActions.decryptApiKey, {
+			encryptedApiKey: keys.claudeApiKey,
+		});
+
+		// Load prompt template with variables
+		const prompt = loadPrompt('flashcard-generation', {
+			text: args.text,
+			source: {
+				title: args.sourceTitle,
+				author: args.sourceAuthor,
+			},
+		});
+
+		try {
+			const response: Response = await fetch('https://api.anthropic.com/v1/messages', {
+				method: 'POST',
+				headers: {
+					'x-api-key': apiKey,
+					'anthropic-version': '2023-06-01',
+					'content-type': 'application/json',
+				},
+				body: JSON.stringify({
+					model: 'claude-3-haiku-20240307',
+					max_tokens: 500,
+					messages: [
+						{
+							role: 'user',
+							content: prompt,
+						},
+					],
+				}),
+			});
+
+			if (!response.ok) {
+				const errorBody = await response.text();
+				let errorMessage = `Claude API error: ${response.status} ${response.statusText}`;
+				try {
+					const errorJson = JSON.parse(errorBody);
+					errorMessage = errorJson.error?.message || errorJson.message || errorMessage;
+				} catch {
+					if (errorBody) {
+						errorMessage = errorBody.length > 200 ? errorBody.substring(0, 200) + '...' : errorBody;
+					}
+				}
+				throw new Error(errorMessage);
+			}
+
+			const data: {
+				content?: Array<{ text?: string }>;
+			} = await response.json();
+			const content: string = data.content?.[0]?.text || '';
+
+			// Try to parse JSON from response
+			let flashcards: Array<{ question: string; answer: string }>;
+			try {
+				// Extract JSON from response (might have markdown code blocks)
+				const jsonMatch = content.match(/\[[\s\S]*\]/);
+				if (jsonMatch) {
+					flashcards = JSON.parse(jsonMatch[0]);
+					// Ensure it's an array
+					if (!Array.isArray(flashcards)) {
+						flashcards = [flashcards];
+					}
+				} else {
+					// Try single object format
+					const objMatch = content.match(/\{[\s\S]*\}/);
+					if (objMatch) {
+						const singleCard = JSON.parse(objMatch[0]);
+						flashcards = [singleCard];
+					} else {
+						throw new Error('No JSON found in response');
+					}
+				}
+			} catch (parseError) {
+				// If parsing fails, return a single flashcard with raw content
+				flashcards = [
+					{
+						question: 'Generated Question',
+						answer: content,
+					},
+				];
+			}
+
+			return {
+				success: true,
+				flashcards,
+				rawResponse: content,
+			};
+		} catch (error) {
+			throw new Error(
+				`Failed to generate flashcard: ${error instanceof Error ? error.message : String(error)}`
+			);
+		}
 	},
 });
 

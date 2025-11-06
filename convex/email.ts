@@ -1,9 +1,10 @@
-import { internalAction } from './_generated/server';
+import { internalAction, action } from './_generated/server';
+import { internal } from './_generated/api';
 import { Resend } from 'resend';
 
-// Test email function - sends to randy@synergyai.nl
+// Internal action: Test email function - sends to randy@synergyai.nl
 // Using internalAction instead of internalMutation because actions can make HTTP requests
-export const sendTestEmail = internalAction({
+export const sendTestEmailInternal = internalAction({
 	handler: async (ctx) => {
 		// Get API key from Convex environment variables
 		// In Convex, environment variables set via 'npx convex env set' are available as process.env
@@ -46,6 +47,16 @@ export const sendTestEmail = internalAction({
 			console.error('Error sending email:', error);
 			throw new Error(`Failed to send email: ${error instanceof Error ? error.message : String(error)}`);
 		}
+	}
+});
+
+// Public action that calls the internal action to send email
+// Actions can make HTTP requests, so we use an action for Resend API calls
+export const sendTestEmail = action({
+	handler: async (ctx) => {
+		// Call the internal action to send the email
+		const result = await ctx.runAction(internal.email.sendTestEmailInternal);
+		return { success: true, message: 'Test email sent to randy@synergyai.nl', details: result };
 	}
 });
 

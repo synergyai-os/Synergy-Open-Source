@@ -27,6 +27,7 @@ This document captures reusable solutions, common issues, and architectural patt
 | Redundant API paths (api.x.x) | Convex API Naming Convention | [#convex-api-naming](#convex-api-naming-convention-pattern) |
 | File not found in Convex | Convex File System Access Pattern | [#convex-file-system](#convex-file-system-access-and-template-management-pattern) |
 | InvalidConfig: hyphens in filename | Convex File System Access Pattern | [#convex-file-system](#convex-file-system-access-and-template-management-pattern) |
+| InvalidModules: Only actions can be defined in Node.js | Convex Node.js Runtime Restrictions | [#convex-nodejs-runtime](#convex-nodejs-runtime-restrictions-pattern) |
 
 ---
 
@@ -134,6 +135,7 @@ When [situation]:
 - [Persistent Session Configuration](#persistent-session-configuration) - Configure cookie maxAge for persistent sessions
 - [Convex API Naming Convention Pattern](#convex-api-naming-convention-pattern) - File = module (noun), Function = action (verb)
 - [Convex File System Access and Template Management Pattern](#convex-file-system-access-and-template-management-pattern) - Use TypeScript imports instead of file system reads
+- [Convex Node.js Runtime Restrictions Pattern](#convex-nodejs-runtime-restrictions-pattern) - Files with "use node" can only contain actions
 
 ### TypeScript
 - [TypeScript Types for Composables](#typescript-types-for-composables-shared-type-definitions) - Shared type definitions
@@ -181,6 +183,7 @@ When [situation]:
 
 ### File System / Serverless
 - [Convex File System Access and Template Management Pattern](#convex-file-system-access-and-template-management-pattern) - Use TypeScript imports instead of file system reads
+- [Convex Node.js Runtime Restrictions Pattern](#convex-nodejs-runtime-restrictions-pattern) - Files with "use node" can only contain actions
 
 ### Naming Conventions
 - [Convex API Naming Convention Pattern](#convex-api-naming-convention-pattern) - File = module (noun), Function = action (verb)
@@ -219,6 +222,7 @@ When [situation]:
 21. [Persistent Session Configuration](#persistent-session-configuration) - Configure cookie maxAge for persistent sessions
 22. [Convex API Naming Convention Pattern](#convex-api-naming-convention-pattern) - File = module (noun), Function = action (verb)
 23. [Convex File System Access and Template Management Pattern](#convex-file-system-access-and-template-management-pattern) - Use TypeScript imports instead of file system reads
+24. [Convex Node.js Runtime Restrictions Pattern](#convex-nodejs-runtime-restrictions-pattern) - Files with "use node" can only contain actions
 
 ---
 
@@ -269,30 +273,14 @@ Race condition between component remounting and async data loading:
 - Component initializes with correct data from the start
 - No stale data initialization
 
-### Additional Patterns Used
+### Additional Patterns
 
-1. **Query tracking for race conditions**:
-   ```javascript
-   let currentQueryId: string | null = null;
-   
-   $effect(() => {
-     const queryId = selectedItemId;
-     currentQueryId = queryId;
-     
-     convexClient.query(...)
-       .then((result) => {
-         // Only update if still current query
-         if (currentQueryId === queryId) {
-           selectedItem = result;
-         }
-       });
-   });
-   ```
-
-2. **$effect vs $derived for async operations**:
-   - Use `$effect` for side effects (API calls, subscriptions)
+**$effect vs $derived for async operations**:
+- Use `$effect` for side effects (API calls, subscriptions, event listeners)
    - Use `$derived` for computed values
    - `$effect` provides cleanup functions for proper resource management
+
+**Note**: When using `useQuery()` from `convex-svelte`, race conditions are handled automatically. Manual query tracking (as shown in older examples) is only needed when using `convexClient.query()` directly.
 
 ### Key Takeaway
 
@@ -389,7 +377,7 @@ When creating composables that use Svelte 5 runes:
 - No need to import runes - they're available globally in `.svelte.ts` files
 - Works for `$state`, `$derived`, `$effect`, and other runes
 
-**Reference**: Context7 Svelte documentation confirms `.svelte.js` and `.svelte.ts` files are processed by Svelte compiler for runes support.
+**Note**: `.svelte.js` and `.svelte.ts` files are processed by Svelte compiler for runes support. This is a Svelte 5 requirement, not optional.
 
 **Related Patterns**: See [Composables: Returning Reactive State with Getters](#composables-returning-reactive-state-with-getters) for best practices when returning reactive state.
 
@@ -512,7 +500,7 @@ When creating composables that return reactive state:
 - This ensures Svelte correctly tracks property access as reactive dependencies
 - Getters are called on each access, ensuring proper reactivity tracking
 
-**Alternative Pattern**: You can also return the state object directly and access it via `sync.state.showSyncConfig`, but getters provide a cleaner API.
+**Alternative**: You can return the state object directly (`sync.state.showSyncConfig`), but getters provide a cleaner API and better encapsulation.
 
 **Related Pattern**: See [Composables: Passing Reactive Values as Function Parameters](#composables-passing-reactive-values-as-function-parameters) for the opposite pattern (receiving reactive values from components).
 
@@ -1418,15 +1406,14 @@ const filteredItems = $derived(inboxItems); // No redundant default needed
 - **Better performance**: One less check
 - **Clearer intent**: Shows that `inboxItems` is always defined
 
-### When Redundancy is Acceptable
-
-- When the upstream default might change in the future
-- When you want to be defensive about edge cases
-- When the default serves as documentation
-
 ### Key Takeaway
 
 **Trust your upstream defaults** - if `$derived` already handles defaults (via `??`), don't add redundant `||` checks downstream.
+
+**When redundancy might be acceptable**:
+- Upstream default might change in the future
+- Defensive programming for edge cases
+- Default serves as documentation
 
 ---
 
@@ -1627,23 +1614,23 @@ When implementing user actions:
 
 ### Problem
 
-- Cards always editable, breaking study flow
-- Users accidentally edit while trying to flip
+- Components always editable, breaking focused workflows
+- Users accidentally edit while trying to interact
 - No clear distinction between viewing and editing
-- Distraction during focused study sessions
+- Distraction during focused tasks
 
 ### Root Cause
 
 - Single `editable` prop always set to true
-- No mode separation between study and edit
+- No mode separation between view and edit
 - Missing explicit user control over edit state
 
 ### Solution
 
-**Pattern**: Add explicit edit mode toggle that user controls, separate from study mode.
+**Pattern**: Add explicit edit mode toggle that user controls, separate from view mode.
 
 ```typescript
-// ❌ WRONG: Always editable
+// ❌ WRONG: Always editable (no user control)
 <FlashcardComponent
   editable={true}
   ...
@@ -1664,42 +1651,34 @@ let editMode = $state(false);
 
 **Why it works**:
 - User explicitly chooses when to edit
-- Prevents accidental edits during study
+- Prevents accidental edits during focused tasks
 - Clear visual distinction between modes
-- Better focus during study sessions
+- Better focus during workflows
 
-### Implementation Example
+### When to Use This Pattern
 
-```svelte
-<script>
-  let editMode = $state(false);
-  let isFlipped = $state(false);
-</script>
+**Use toggle when**:
+- Component has focused workflows (study, review, reading)
+- Accidental edits would disrupt user flow
+- Clear separation between view and edit is needed
 
-<Button.Root
-  onclick={() => (editMode = !editMode)}
-  class="px-header py-header text-sm text-primary hover:bg-hover-solid rounded-md"
->
-  {editMode ? 'Done Editing' : 'Edit'}
-</Button.Root>
+**Don't use toggle when**:
+- Component is primarily for editing (e.g., note-taking)
+- Edit mode is always desired (e.g., flashcard review where editing is the primary action)
+- Toggle adds unnecessary friction
 
-<FlashcardComponent
-  flashcard={currentCard}
-  editable={editMode && isFlipped} // Only editable when in edit mode AND flipped
-  ...
-/>
-```
+**Note**: Current flashcard review implementation always has edit mode enabled (`editMode = $state(true)`) because editing is the primary action during review. This pattern is for components where editing should be optional.
 
 ### Key Takeaway
 
 When implementing editable components:
-- **Do** add explicit edit mode toggle controlled by user
-- **Do** separate edit mode from view/study mode
-- **Do** disable editing by default during focused tasks
-- **Don't** make components always editable
-- **Don't** allow editing during active workflows (like study sessions)
+- **Do** add explicit edit mode toggle when editing should be optional
+- **Do** separate edit mode from view mode for focused workflows
+- **Do** consider whether editing is primary action (always on) or secondary (toggle needed)
+- **Don't** add toggle if editing is always desired
+- **Don't** make components always editable if accidental edits would disrupt workflow
 
-**Related Patterns**: See [Queue-Based Card Removal Pattern](#queue-based-card-removal-pattern-tinder-like) for study mode implementation.
+**Related Patterns**: See [Edit Mode Visual Indicators](#edit-mode-visual-indicators) for indicating edit state.
 
 ---
 
@@ -2101,25 +2080,47 @@ export const generateFlashcard = action({ ... });
 
 ### Implementation Example
 
-**Current structure**:
+**Refactoring example from codebase**:
 ```typescript
-// convex/generateFlashcard.ts
-export const generateFlashcard = action({ ... });
-// Usage: api.generateFlashcard.generateFlashcard ❌
+// ❌ BEFORE: Redundant naming
+// convex/sendTestEmail.ts
+export const sendTestEmail = internalAction({ ... });
+// Result: api.sendTestEmail.sendTestEmail ❌
 
-// Recommended: Move to domain module
-// convex/flashcards.ts
+// convex/testEmail.ts
+export const sendTestEmail = action({ ... });
+// Result: api.testEmail.sendTestEmail ❌
+
+// convex/cleanReadwiseData.ts
+export const cleanReadwiseData = action({ ... });
+// Result: api.cleanReadwiseData.cleanReadwiseData ❌
+
+// ✅ AFTER: Module-based naming
+// convex/email.ts (module name)
+export const sendTestEmailInternal = internalAction({ ... });
+export const sendTestEmail = action({ ... });
+// Result: api.email.sendTestEmail ✅
+
+// convex/readwiseCleanup.ts (module name)
+export const cleanReadwiseData = action({ ... });
+// Result: api.readwiseCleanup.cleanReadwiseData ✅
+```
+
+**Alternative: Move to domain module**:
+```typescript
+// convex/generateFlashcard.ts → Move to existing module
+// convex/flashcards.ts (domain module)
 export const createFlashcard = mutation({ ... });
 export const createFlashcards = mutation({ ... });
 export const generateFlashcard = action({ ... }); // Add here
-// Usage: api.flashcards.generateFlashcard ✅
+// Result: api.flashcards.generateFlashcard ✅
 ```
 
 **Alternative for single-purpose actions**:
 ```typescript
 // convex/flashcardGeneration.ts (module name, not function name)
 export const generateFlashcard = action({ ... });
-// Usage: api.flashcardGeneration.generateFlashcard ✅
+// Result: api.flashcardGeneration.generateFlashcard ✅
 ```
 
 ### Key Takeaway
@@ -2411,6 +2412,161 @@ When integrating external libraries with database schemas:
 - **Don't** assume enums can be directly stored as strings
 
 **Related Patterns**: See [TypeScript: Discriminated Union Types](#typescript-discriminated-union-types-for-polymorphic-data) for type narrowing patterns.
+
+---
+
+## Convex Node.js Runtime Restrictions Pattern
+
+**Tags**: `convex`, `nodejs`, `runtime`, `use-node`, `actions`, `mutations`, `queries`, `InvalidModules`  
+**Date**: 2025-01-28  
+**Issue**: Convex deployment fails with "Only actions can be defined in Node.js" when files with `"use node"` contain mutations or queries.
+
+### Problem
+
+When using `"use node"` directive in Convex files:
+- Deployment fails with: `InvalidModules: Only actions can be defined in Node.js`
+- Error occurs when file contains mutations or queries alongside actions
+- Functions cannot be deployed to Convex backend
+- Confusing error message doesn't clearly indicate the restriction
+
+**Example error**:
+```
+InvalidModules: Hit an error while pushing:
+`createFlashcard` defined in `flashcards.js` is a Mutation function. 
+Only actions can be defined in Node.js.
+```
+
+### Root Cause
+
+Convex runtime restrictions:
+1. **Files with `"use node"` can ONLY contain actions** - This is a Convex runtime limitation
+2. **Mutations and queries cannot use Node.js runtime** - They run in Convex's standard runtime
+3. **Mixed function types not allowed** - A file cannot have both Node.js actions and standard mutations/queries
+4. **Node.js APIs require "use node"** - But this restricts the entire file to actions only
+
+**Why this happens**:
+- `"use node"` tells Convex to run the file in Node.js runtime (for crypto, fs, etc.)
+- Node.js runtime only supports actions (not mutations/queries)
+- If you need Node.js APIs, you must separate actions from mutations/queries
+
+### Solution
+
+**Pattern**: Separate Node.js-dependent functions into dedicated action-only files
+
+```typescript
+// ❌ WRONG: "use node" with mutations/queries
+"use node";
+
+import { query, mutation, action } from './_generated/server';
+
+export const createFlashcard = mutation({ ... }); // ❌ Not allowed
+export const getFlashcard = query({ ... }); // ❌ Not allowed
+export const generateFlashcard = action({ ... }); // ✅ Allowed but file fails
+```
+
+```typescript
+// ✅ CORRECT: Separate Node.js actions from mutations/queries
+
+// convex/flashcards.ts (NO "use node")
+import { query, mutation, action } from './_generated/server';
+
+export const createFlashcard = mutation({ ... }); // ✅ Works
+export const getFlashcard = query({ ... }); // ✅ Works
+export const generateFlashcard = action({ ... }); // ✅ Works (calls cryptoActions)
+
+// convex/cryptoActions.ts (WITH "use node" - actions only)
+"use node";
+
+import { internalAction } from './_generated/server';
+const crypto = require('crypto');
+
+export const decryptApiKey = internalAction({ ... }); // ✅ Only actions here
+export const encryptApiKey = internalAction({ ... }); // ✅ Only actions here
+```
+
+**Why it works**:
+- Files without `"use node"` can contain mutations, queries, and actions
+- Files with `"use node"` can only contain actions (but can use Node.js APIs)
+- Actions in non-Node files can call Node.js actions via `ctx.runAction()`
+- Separation allows both runtime types to coexist
+
+### Implementation Example
+
+**Before (broken)**:
+```typescript
+// convex/flashcards.ts
+"use node"; // ❌ Causes all functions to require Node.js runtime
+
+import { query, mutation, action } from './_generated/server';
+const crypto = require('crypto');
+
+export const createFlashcard = mutation({ ... }); // ❌ Fails: mutations not allowed
+export const getFlashcard = query({ ... }); // ❌ Fails: queries not allowed
+export const decryptApiKey = internalAction({ ... }); // Uses crypto
+export const generateFlashcard = action({ ... }); // Calls decryptApiKey
+```
+
+**After (fixed)**:
+```typescript
+// convex/flashcards.ts (NO "use node")
+import { query, mutation, action } from './_generated/server';
+import { internal } from './_generated/api';
+
+export const createFlashcard = mutation({ ... }); // ✅ Works
+export const getFlashcard = query({ ... }); // ✅ Works
+export const generateFlashcard = action({
+  handler: async (ctx, args) => {
+    // Call Node.js action from separate file
+    const apiKey = await ctx.runAction(internal.cryptoActions.decryptApiKey, {
+      encryptedApiKey: keys.claudeApiKey,
+    });
+    // ... rest of logic
+  }
+});
+```
+
+```typescript
+// convex/cryptoActions.ts (WITH "use node" - actions only)
+"use node";
+
+import { internalAction } from './_generated/server';
+const crypto = require('crypto');
+
+export const decryptApiKey = internalAction({
+  handler: async (ctx, args) => {
+    // Can use Node.js crypto here
+    const decipher = crypto.createDecipheriv(...);
+    // ...
+  }
+});
+```
+
+### When to Use This Pattern
+
+**Use `"use node"` when**:
+- Function needs Node.js APIs (crypto, fs, path, etc.)
+- Function is an action (not mutation or query)
+- Can separate into dedicated action-only file
+
+**Don't use `"use node"` when**:
+- File contains mutations or queries
+- Function doesn't need Node.js APIs
+- Can use TypeScript imports instead (see [Convex File System Access Pattern](#convex-file-system-access-and-template-management-pattern))
+
+### Key Takeaway
+
+When using Node.js APIs in Convex:
+- **Files with `"use node"` can ONLY contain actions** - No mutations or queries allowed
+- **Separate Node.js functions** into dedicated action-only files
+- **Call Node.js actions** from non-Node files via `ctx.runAction(internal.module.function)`
+- **Avoid `"use node"`** if you can use TypeScript imports instead
+- **Check existing files** - Don't duplicate Node.js functions (e.g., `decryptApiKey` already exists in `cryptoActions.ts`)
+
+**Common mistake**: Adding `"use node"` to a file that needs mutations/queries. Instead, move Node.js-dependent code to a separate action-only file.
+
+**Related Patterns**: 
+- See [Convex File System Access and Template Management Pattern](#convex-file-system-access-and-template-management-pattern) for avoiding `"use node"` when possible
+- See [Convex API Naming Convention Pattern](#convex-api-naming-convention-pattern) for file organization
 
 ---
 
