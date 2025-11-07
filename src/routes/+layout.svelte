@@ -7,6 +7,7 @@
 	import posthog from 'posthog-js';
 	import { beforeNavigate, afterNavigate } from '$app/navigation';
 	import { onMount } from 'svelte';
+	import { identityFromToken } from '$lib/posthog/identity';
 
 	let { children, data } = $props();
 
@@ -23,8 +24,11 @@
 		isLoading: authResult.isLoading
 	});
 
+	let posthogReady = $state(false);
+	let lastIdentifiedId = $state<string | null>(null);
+
 	// Initialize PostHog after the component mounts in the browser
-	if (browser) {
+	if (browser && PUBLIC_POSTHOG_KEY) {
 		onMount(() => {
 			posthog.init(PUBLIC_POSTHOG_KEY, {
 				api_host: PUBLIC_POSTHOG_HOST,
@@ -35,8 +39,33 @@
 
 			beforeNavigate(() => posthog.capture('$pageleave'));
 			afterNavigate(() => posthog.capture('$pageview'));
+
+			posthogReady = true;
 		});
 	}
+
+	$effect(() => {
+		if (!browser || !PUBLIC_POSTHOG_KEY || !posthogReady) return;
+
+		const isAuthenticated = authResult.isAuthenticated;
+		const token = authResult.token;
+
+		if (!isAuthenticated || !token) {
+			if (lastIdentifiedId) {
+				posthog.reset();
+				lastIdentifiedId = null;
+			}
+			return;
+		}
+
+		const identity = identityFromToken(token);
+		if (!identity) return;
+
+		if (lastIdentifiedId === identity.distinctId) return;
+
+		lastIdentifiedId = identity.distinctId;
+		posthog.identify(identity.distinctId, identity.properties);
+	});
 
 	// Theme is initialized via inline script in app.html for FOUC prevention
 	// Components using createThemeStore() will initialize reactively on first use

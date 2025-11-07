@@ -2,6 +2,7 @@
 	import { useAuth } from '@mmailaender/convex-auth-svelte/sveltekit';
 	import { Button } from 'bits-ui';
 	import { goto } from '$app/navigation';
+	import { trackPosthogEvent } from '$lib/posthog/client';
 
 	const auth = useAuth();
 	const { signIn } = auth;
@@ -46,6 +47,15 @@
 				password,
 				name,
 				flow: 'signUp'
+			});
+
+			await trackPosthogEvent({
+				event: 'user_registered',
+				distinctId: email,
+				properties: {
+					method: 'password',
+					source: 'register_form'
+				}
 			});
 			// Redirect to home page after successful registration
 			await goto('/');

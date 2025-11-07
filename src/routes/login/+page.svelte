@@ -3,6 +3,7 @@
 	import { Button } from 'bits-ui';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { trackPosthogEvent } from '$lib/posthog/client';
 
 	const auth = useAuth();
 	const { signIn } = auth;
@@ -35,6 +36,16 @@
 				email,
 				password,
 				flow: 'signIn'
+			});
+
+			await trackPosthogEvent({
+				event: 'user_signed_in',
+				distinctId: email,
+				properties: {
+					method: 'password',
+					rememberMe,
+					status: 'success'
+				}
 			});
 			// Redirect to intended destination or home page after successful login
 			await goto(redirectTo);

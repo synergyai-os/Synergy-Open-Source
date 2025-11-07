@@ -13,7 +13,7 @@ This document captures reusable solutions, common issues, and architectural patt
 | Symptom | Likely Pattern | Link |
 |---------|---------------|------|
 | State not updating in UI | Returning Reactive State with Getters | [#returning-reactive-state](#composables-returning-reactive-state-with-getters) |
-| Component shows stale/old data | Sidebar/Detail View Reactivity Issues | [#sidebar-detail-view](#sidebardetail-view-reactivity-issues) |
+| Component shows stale/old data | Sidebar/Detail View Reactivity Issues | [#sidebardetail-view](#sidebardetail-view-reactivity-issues) |
 | TypeScript error: "Cannot assign to constant" with `$state` | Composables with Svelte 5 Runes | [#svelte-5-runes](#composables-with-svelte-5-runes) |
 | Composable receives stale values | Passing Reactive Values as Function Parameters | [#passing-reactive-values](#composables-passing-reactive-values-as-function-parameters) |
 | Data doesn't update automatically | Real-time Data Updates with Convex useQuery | [#convex-usequery](#real-time-data-updates-with-convex-usequery) |
@@ -28,6 +28,7 @@ This document captures reusable solutions, common issues, and architectural patt
 | File not found in Convex | Convex File System Access Pattern | [#convex-file-system](#convex-file-system-access-and-template-management-pattern) |
 | InvalidConfig: hyphens in filename | Convex File System Access Pattern | [#convex-file-system](#convex-file-system-access-and-template-management-pattern) |
 | InvalidModules: Only actions can be defined in Node.js | Convex Node.js Runtime Restrictions | [#convex-nodejs-runtime](#convex-nodejs-runtime-restrictions-pattern) |
+| Analytics events missing in PostHog | PostHog Server-First Tracking | [#posthog-server-first-tracking](#posthog-server-first-tracking) |
 
 ---
 
@@ -144,6 +145,9 @@ When [situation]:
 - [Discriminated Union Types for Polymorphic Data](#typescript-discriminated-union-types-for-polymorphic-data) - Discriminated unions for type narrowing
 - [Enum to Database String Conversion Pattern](#enum-to-database-string-conversion-pattern) - Converting enums to/from database strings
 
+### Analytics
+- [PostHog Server-First Tracking](#posthog-server-first-tracking) - Capture key analytics on the server to avoid blockers
+
 ### Activity Tracker
 - [Polling Initialization](#activity-tracker-polling-initialization) - Components manage polling, stores manage state
 - [Auto-Dismiss Duplicate Timers](#activity-tracker-auto-dismiss-duplicate-timers) - Track timers to prevent duplicates
@@ -184,6 +188,9 @@ When [situation]:
 
 ### Configuration
 - [Centralized Configuration Pattern](#centralized-configuration-pattern) - Single config file for app settings
+
+### Analytics
+- [PostHog Server-First Tracking](#posthog-server-first-tracking) - Deliver critical analytics despite browser blockers
 
 ### File System / Serverless
 - [Convex File System Access and Template Management Pattern](#convex-file-system-access-and-template-management-pattern) - Use TypeScript imports instead of file system reads
@@ -229,6 +236,7 @@ When [situation]:
 24. [Convex Node.js Runtime Restrictions Pattern](#convex-nodejs-runtime-restrictions-pattern) - Files with "use node" can only contain actions
 25. [Header Alignment with Sidebar Borders Pattern](#header-alignment-with-sidebar-borders-pattern) - Fixed height headers for border alignment
 26. [Card Design with Proper Spacing and Visual Hierarchy](#card-design-with-proper-spacing-and-visual-hierarchy) - Generous padding and clear hierarchy
+27. [PostHog Server-First Tracking](#posthog-server-first-tracking) - Capture key analytics on the server to avoid blockers
 
 ---
 
@@ -2753,7 +2761,7 @@ When using Node.js APIs in Convex:
 **Common mistake**: Adding `"use node"` to a file that needs mutations/queries. Instead, move Node.js-dependent code to a separate action-only file.
 
 **Related Patterns**: 
-- See [Convex File System Access and Template Management Pattern](#convex-file-system-access-and-template-management-pattern) for avoiding `"use node"` when possible
+- See [Convex File System Access and Template Management Pattern](#convex-file-system-access-and-template-management-pattern) for avoiding "use node" when possible
 - See [Convex API Naming Convention Pattern](#convex-api-naming-convention-pattern) for file organization
 
 ---
@@ -2789,3 +2797,79 @@ When adding/updating patterns, ensure:
 - ✅ Tags for searchability
 - ✅ Links to related patterns
 - ✅ Date for tracking when pattern was discovered
+
+---
+
+## PostHog Server-First Tracking
+
+**Tags**: `analytics`, `posthog`, `server-side-tracking`, `content-blockers`  
+**Date**: 2025-11-07  
+**Issue**: Browser privacy tools blocked PostHog requests, dropping key authentication events.
+
+### Problem
+
+While validating the PostHog wizard output we found that:
+- Safari and tracking blockers returned `net::ERR_BLOCKED_BY_CONTENT_BLOCKER` for `*.posthog.com`
+- Client-side `identify`/`capture` calls never reached PostHog, leaving sign-in funnels empty
+- No server fallback existed, so critical analytics were unreliable
+
+### Root Cause
+
+1. The browser SDK loads assets from a third-party origin frequently blocked by privacy tools
+2. All important events (sign-in, registration) fired only on the client, so blocked requests were silently dropped
+3. We hadn't introduced a server capture pathway to guarantee delivery
+
+### Solution
+
+**Pattern**: Emit key events on the server with `posthog-node`, using the browser SDK only for optional features.
+
+```ts
+// src/lib/server/posthog.ts
+import { PostHog } from 'posthog-node';
+
+let client: PostHog | null = null;
+
+export function getPostHogClient() {
+  if (!client) {
+    client = new PostHog(PUBLIC_POSTHOG_KEY, { host: PUBLIC_POSTHOG_HOST });
+  }
+  return client;
+}
+
+// src/routes/api/posthog/track/+server.ts
+export const POST = async ({ request }) => {
+  const { event, distinctId, properties } = await request.json();
+  await getPostHogClient().capture({ event, distinctId, properties });
+  return json({ ok: true });
+};
+
+// src/routes/login/+page.svelte
+await trackPosthogEvent({
+  event: 'user_signed_in',
+  distinctId: email,
+  properties: { method: 'password' }
+});
+```
+
+**Why it works**:
+- Server-to-server requests aren't blocked by browser protections, so high-value analytics always arrive
+- We keep a single, reusable `getPostHogClient()` helper, making server emissions easy across Convex actions, endpoints, or cron jobs
+- The browser SDK remains optional (for session replay, flags) and doesn't gate core metrics
+
+### Implementation Example
+
+- `src/lib/server/posthog.ts` – Lazy singleton around the `posthog-node` client
+- `src/routes/api/posthog/track/+server.ts` – Validated endpoint forwarding events to PostHog
+- `src/routes/login/+page.svelte` & `src/routes/register/+page.svelte` – Capture auth events through the server helper
+- `dev-docs/posthog.md` – Describes the server-first analytics approach and local caveats
+
+### Key Takeaway
+
+When analytics are business-critical:
+- **Do** send them from the server via `posthog-node`
+- **Do** guard the browser SDK behind config and treat it as optional frosting
+- **Don't** rely solely on client capture—privacy tools will drop those requests
+
+**Related Patterns**: See [Centralized Configuration Pattern](#centralized-configuration-pattern) for managing shared env vars used by both client and server analytics.
+
+---
