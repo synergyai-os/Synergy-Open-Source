@@ -2812,28 +2812,31 @@ When adding/updating patterns, ensure:
 
 ## PostHog Server-First Tracking
 
-**Tags**: `analytics`, `posthog`, `server-side-tracking`, `content-blockers`  
+**Tags**: `analytics`, `posthog`, `server-side-tracking`, `content-blockers`, `convex-runtime-restrictions`  
 **Date**: 2025-11-07  
-**Issue**: Browser privacy tools blocked PostHog requests, dropping key authentication events.
+**Issue**: Browser privacy tools blocked PostHog requests, and Convex runtime restrictions prevent using `posthog-node` in mutations.
 
 ### Problem
 
 While validating the PostHog wizard output we found that:
 - Safari and tracking blockers returned `net::ERR_BLOCKED_BY_CONTENT_BLOCKER` for `*.posthog.com`
 - Client-side `identify`/`capture` calls never reached PostHog, leaving sign-in funnels empty
+- Attempting to use `posthog-node` in Convex mutations failed with "Only actions can be defined in Node.js"
 - No server fallback existed, so critical analytics were unreliable
 
 ### Root Cause
 
 1. The browser SDK loads assets from a third-party origin frequently blocked by privacy tools
 2. All important events (sign-in, registration) fired only on the client, so blocked requests were silently dropped
-3. We hadn't introduced a server capture pathway to guarantee delivery
+3. `posthog-node` requires Node.js runtime (`"use node"`), which is only available in Convex actions, not mutations
+4. Mutations cannot use Node.js APIs due to Convex runtime restrictions
 
 ### Solution
 
-**Pattern**: Emit key events on the server with `posthog-node`, using the browser SDK only for optional features.
+**Pattern**: Emit key events through SvelteKit API routes with `posthog-node`. For Convex mutations, temporarily disable server-side tracking or use HTTP actions as a bridge.
 
 ```ts
+// ✅ CORRECT: SvelteKit API route with posthog-node
 // src/lib/server/posthog.ts
 import { PostHog } from 'posthog-node';
 
@@ -2853,34 +2856,65 @@ export const POST = async ({ request }) => {
   return json({ ok: true });
 };
 
+// ✅ CORRECT: SvelteKit page capturing through API route
 // src/routes/login/+page.svelte
 await trackPosthogEvent({
   event: 'user_signed_in',
   distinctId: email,
   properties: { method: 'password' }
 });
+
+// ❌ WRONG: posthog-node directly in Convex mutation
+// convex/organizations.ts
+"use node"; // ❌ Causes "Only actions can be defined in Node.js" error
+
+import { PostHog } from 'posthog-node';
+export const createOrganization = mutation({ ... }); // ❌ Fails
+
+// ✅ TEMPORARY SOLUTION: Comment out server-side tracking in mutations
+// convex/organizations.ts (NO "use node")
+export const createOrganization = mutation({
+  handler: async (ctx, args) => {
+    // ... create organization logic ...
+    
+    // TODO: Re-enable server-side analytics via HTTP action bridge
+    // await captureAnalyticsEvent({ ... });
+  }
+});
 ```
 
 **Why it works**:
 - Server-to-server requests aren't blocked by browser protections, so high-value analytics always arrive
-- We keep a single, reusable `getPostHogClient()` helper, making server emissions easy across Convex actions, endpoints, or cron jobs
-- The browser SDK remains optional (for session replay, flags) and doesn't gate core metrics
+- SvelteKit API routes can use `posthog-node` without Convex runtime restrictions
+- Client-side events go through `/api/posthog/track` endpoint for guaranteed delivery
+- Browser SDK remains optional (for session replay, flags) and doesn't gate core metrics
+- Convex mutations avoid Node.js APIs to comply with runtime restrictions
 
 ### Implementation Example
 
+**Current Implementation (Working)**:
 - `src/lib/server/posthog.ts` – Lazy singleton around the `posthog-node` client
 - `src/routes/api/posthog/track/+server.ts` – Validated endpoint forwarding events to PostHog
-- `src/routes/login/+page.svelte` & `src/routes/register/+page.svelte` – Capture auth events through the server helper
-- `dev-docs/posthog.md` – Describes the server-first analytics approach and local caveats
+- `src/routes/login/+page.svelte` & `src/routes/register/+page.svelte` – Capture auth events through API route
+
+**Convex Implementation (Temporarily Disabled)**:
+- `convex/posthog.ts` – Has `"use node"` but not used by mutations
+- `convex/organizations.ts`, `convex/teams.ts`, `convex/tags.ts` – Analytics calls commented out with TODO markers
+
+**Future Solution**: Implement HTTP action bridge pattern where mutations call a Convex action (with `"use node"`) that forwards analytics to PostHog.
 
 ### Key Takeaway
 
-When analytics are business-critical:
-- **Do** send them from the server via `posthog-node`
-- **Do** guard the browser SDK behind config and treat it as optional frosting
-- **Don't** rely solely on client capture—privacy tools will drop those requests
+When implementing server-side analytics:
+- **Do** use SvelteKit API routes (`/api/posthog/track`) with `posthog-node` for guaranteed delivery
+- **Do** send client-side events through the API route to avoid browser blockers
+- **Don't** use `posthog-node` in Convex mutations (runtime restriction)
+- **Don't** add `"use node"` to files containing mutations or queries
+- **Consider** implementing HTTP action bridge for Convex mutation analytics
 
-**Related Patterns**: See [Centralized Configuration Pattern](#centralized-configuration-pattern) for managing shared env vars used by both client and server analytics.
+**Related Patterns**: 
+- See [Convex Node.js Runtime Restrictions Pattern](#convex-nodejs-runtime-restrictions-pattern) for why mutations can't use Node.js APIs
+- See [Centralized Configuration Pattern](#centralized-configuration-pattern) for managing shared env vars
 
 ---
 

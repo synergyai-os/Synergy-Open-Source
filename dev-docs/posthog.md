@@ -17,15 +17,40 @@ The browser SDK is optional in development: when `PUBLIC_POSTHOG_KEY` is missing
 
 ## Server-First Capture Strategy
 
-Most Axon analytics should flow through the backend. PostHog’s own guidance for server libraries (for example their [Node integration](https://github.com/PostHog/posthog/wiki/node-integration)) highlights that calling `client.capture({ distinctId, event, properties })` from a trusted environment guarantees delivery even when browsers block scripts or third-party requests. We follow that pattern for all key product events.
+Most Axon analytics should flow through the backend. PostHog's own guidance for server libraries (for example their [Node integration](https://github.com/PostHog/posthog/wiki/node-integration)) highlights that calling `client.capture({ distinctId, event, properties })` from a trusted environment guarantees delivery even when browsers block scripts or third-party requests. We follow that pattern for all key product events.
+
+### SvelteKit Implementation (Working)
 
 - `src/lib/server/posthog.ts` lazily creates a singleton `PostHog` client from `posthog-node` using `PUBLIC_POSTHOG_KEY`/`PUBLIC_POSTHOG_HOST`.
 - `src/routes/api/posthog/track/+server.ts` exposes `POST /api/posthog/track`. It validates `{ event, distinctId, properties }` and forwards the payload to `client.capture()`.
-- When the public key is missing we return `{ skipped: true }` so local development doesn’t log errors.
+- When the public key is missing we return `{ skipped: true }` so local development doesn't log errors.
 - Auth flows (`login/+page.svelte`, `register/+page.svelte`) call this endpoint after successful sign-in so we never miss `user_signed_in` / `user_registered`, even if the browser SDK is blocked.
-- Future server-triggered analytics (Convex actions, cron jobs) should also go through this helper for consistency and delivery guarantees.
 
-> For high-volume server pipelines we can swap `/api/posthog/track` for direct usage of the `PostHog` client instance (e.g. inside Convex actions) to avoid the extra HTTP hop.
+### Convex Implementation (Temporarily Disabled)
+
+**Current State**: Server-side analytics in Convex mutations are temporarily disabled due to runtime restrictions.
+
+**The Problem**: 
+- `posthog-node` requires Node.js runtime, which in Convex requires the `"use node"` directive
+- Files with `"use node"` can **only contain actions**, not mutations or queries
+- This is a Convex runtime limitation that cannot be bypassed
+
+**Files Affected**:
+- `convex/posthog.ts` – Has `"use node"` directive but is not currently used
+- `convex/organizations.ts` – Organization lifecycle events commented out with TODO markers
+- `convex/teams.ts` – Team lifecycle events commented out with TODO markers
+- `convex/tags.ts` – Tag assignment events commented out with TODO markers
+
+**Temporary Solution**: All analytics calls in mutations are commented out with `// TODO: Re-enable server-side analytics via HTTP action bridge`
+
+**Future Solution**: Implement HTTP action bridge pattern where:
+1. Mutations call a Convex action (with `"use node"`) via `ctx.runAction()`
+2. The action uses `posthog-node` to send analytics to PostHog
+3. This adds latency but respects Convex runtime restrictions
+
+**Alternative**: Use the `/api/posthog/track` SvelteKit endpoint from Convex actions (HTTP call), though this adds an extra network hop.
+
+> **Note**: For critical multi-tenancy analytics (organization/team events), we'll need to implement one of the solutions above before shipping multi-tenant features.
 
 ## Browser SDK (minimal usage)
 
@@ -220,8 +245,9 @@ Add narrow helper functions (e.g. `captureOrganizationCreated(ctx, params)`) tha
 
 ## TODO
 
-- [ ] Implement typed analytics helpers covering event names, ownership level (user/team/org/internal), and shared property schemas.
-- [ ] Extend Convex permission helpers to expose organization/team metadata needed for analytics payloads.
+- [x] Implement typed analytics helpers covering event names, ownership level (user/team/org/internal), and shared property schemas. (`src/lib/analytics/events.ts` - created)
+- [x] Extend Convex permission helpers to expose organization/team metadata needed for analytics payloads. (`convex/organizations.ts`, `convex/teams.ts` - implemented but analytics calls disabled)
+- [ ] **Re-enable Convex analytics**: Implement HTTP action bridge pattern to allow mutations to emit analytics without violating Node.js runtime restrictions
 - [ ] Add automated tests ensuring group metadata (org/team IDs) is present when shared content events are emitted.
 - [ ] Create PostHog dashboards or notebooks that slice key CODE workflow events by organization/team once multi-tenancy ships.
 
