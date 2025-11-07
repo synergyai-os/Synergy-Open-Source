@@ -58,6 +58,8 @@
 		"bits-ui": "^2.14.1",
 		"convex": "^1.28.0",
 		"convex-svelte": "^0.0.11",
+		"posthog-js": "^1.289.0",
+		"posthog-node": "^5.11.2",
 		"resend": "^6.4.0",
 		"ts-fsrs": "^5.2.3"
 	}

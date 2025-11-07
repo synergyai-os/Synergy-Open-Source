@@ -13,7 +13,10 @@ const config = {
 			fallback: 'index.html',
 			precompress: false,
 			strict: true
-		})
+		}),
+		paths: {
+			relative: false // Required for PostHog session replay to work correctly
+		}
 	}
 };
 

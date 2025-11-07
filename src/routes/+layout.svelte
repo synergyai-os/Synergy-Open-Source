@@ -2,9 +2,10 @@
 	import '../app.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { setupConvexAuth } from '@mmailaender/convex-auth-svelte/sveltekit';
-	import { setupConvex } from 'convex-svelte';
-	import { PUBLIC_CONVEX_URL } from '$env/static/public';
+	import { PUBLIC_CONVEX_URL, PUBLIC_POSTHOG_HOST, PUBLIC_POSTHOG_KEY } from '$env/static/public';
 	import { browser } from '$app/environment';
+	import posthog from 'posthog-js';
+	import { beforeNavigate, afterNavigate } from '$app/navigation';
 	import { onMount } from 'svelte';
 
 	let { children, data } = $props();
@@ -21,6 +22,21 @@
 		isAuthenticated: authResult.isAuthenticated,
 		isLoading: authResult.isLoading
 	});
+
+	// Initialize PostHog after the component mounts in the browser
+	if (browser) {
+		onMount(() => {
+			posthog.init(PUBLIC_POSTHOG_KEY, {
+				api_host: PUBLIC_POSTHOG_HOST,
+				capture_pageview: false,
+				capture_pageleave: false,
+				capture_exceptions: true
+			});
+
+			beforeNavigate(() => posthog.capture('$pageleave'));
+			afterNavigate(() => posthog.capture('$pageview'));
+		});
+	}
 
 	// Theme is initialized via inline script in app.html for FOUC prevention
 	// Components using createThemeStore() will initialize reactively on first use

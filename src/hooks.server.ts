@@ -15,11 +15,11 @@ const isPublicRoute = createRouteMatcher([
 	// will process those requests before this middleware runs
 ]);
 
-// Create auth hooks - convexUrl is automatically detected from environment
-// Configure persistent cookies using session duration from config
+// Create auth hooks with persistent cookies
+// Note: "Remember Me" functionality would require package support or custom implementation
 const { handleAuth, isAuthenticated } = createConvexAuthHooks({
 	cookieConfig: {
-		maxAge: config.auth.sessionMaxAgeSeconds
+		maxAge: config.auth.sessionMaxAgeSeconds // 30 days - persistent sessions
 	}
 });
 

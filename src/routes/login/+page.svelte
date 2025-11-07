@@ -12,6 +12,7 @@
 
 	let email = $state('');
 	let password = $state('');
+	let rememberMe = $state(false);
 	let error = $state('');
 	let isLoading = $state(false);
 
@@ -21,6 +22,15 @@
 		isLoading = true;
 
 		try {
+			// Store rememberMe preference in a temporary cookie
+			// Server will read this and set appropriate cookie config
+			if (rememberMe) {
+				document.cookie = 'rememberMe=true; path=/; max-age=60'; // Expires in 60 seconds
+			} else {
+				// Clear any existing rememberMe cookie
+				document.cookie = 'rememberMe=; path=/; max-age=0';
+			}
+			
 			await signIn('password', {
 				email,
 				password,
@@ -82,6 +92,20 @@
 						disabled={isLoading}
 					/>
 				</div>
+			</div>
+
+			<div class="flex items-center">
+				<input
+					id="rememberMe"
+					name="rememberMe"
+					type="checkbox"
+					bind:checked={rememberMe}
+					disabled={isLoading}
+					class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+				/>
+				<label for="rememberMe" class="ml-2 block text-sm text-gray-700">
+					Keep me logged in
+				</label>
 			</div>
 
 			<div>

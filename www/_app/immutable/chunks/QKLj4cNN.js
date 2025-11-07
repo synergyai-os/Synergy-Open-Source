@@ -1,0 +1,1 @@
+import{a6 as t,a1 as l,a7 as o,a8 as u,$ as e}from"./kOT-I_MI.js";function c(n){o===null&&t(),u&&o.l!==null?s(o).m.push(n):l(()=>{const a=e(n);if(typeof a=="function")return a})}function i(n){o===null&&t(),c(()=>()=>e(n))}function s(n){var a=n.l;return a.u??={a:[],b:[],m:[]}}export{i as a,c as o};

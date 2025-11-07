@@ -1,0 +1,1 @@
+import{Z as t,_ as b,$ as h,R as k,a0 as S}from"./kOT-I_MI.js";function u(r,i){return r===i||r?.[S]===i}function d(r={},i,a,T){return t(()=>{var f,s;return b(()=>{f=s,s=[],h(()=>{r!==a(...s)&&(i(r,...s),f&&u(a(...f),r)&&i(null,...f))})}),()=>{k(()=>{s&&u(a(...s),r)&&i(null,...s)})}}),r}export{d as b};

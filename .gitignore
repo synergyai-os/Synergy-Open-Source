@@ -31,3 +31,5 @@ convex/_generated
 playwright/.auth
 test-results
 playwright-report
+
+.env.local

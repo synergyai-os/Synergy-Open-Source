@@ -35,6 +35,40 @@ Axon helps users collect, organize, distill, and express knowledge from diverse 
 - **Future Outputs**: Notes, templates, frameworks, vector search results
 - **Organized by**: Categories/topics (supporting nested topics)
 
+### Future Architecture: Multi-Tenancy & Multiple Accounts
+
+**Status**: Architecture future-proofed, implementation deferred
+
+**Multi-Tenancy Vision** (Future):
+- Organizations and teams can share content
+- Users can be part of multiple organizations and teams
+- Content ownership: user-owned, organization-owned, team-owned, or purchased
+- Training bundles can be created and sold/bought (individual or team-based)
+
+**Current Approach**: Minimal future-proofing
+- Schema includes nullable `organizationId`, `teamId`, and `ownershipType` fields
+- Permission helper patterns created (stub functions, user-scoped for now)
+- All queries remain user-scoped (no breaking changes)
+- Migration path documented for when multi-tenancy is validated
+
+**Multiple Accounts Vision** (Future):
+- Users can login with multiple email accounts (personal + work)
+- Account switcher UI (like Linear/Slack)
+- Each account can belong to different organizations
+- Switch between accounts via menu bar
+
+**Why Deferred**:
+- Current architecture already supports multiple accounts (each email = separate `userId`)
+- No schema changes needed now - add account linking table when implementing
+- Low migration cost (~1-2 days when needed)
+- Focus on Phase 3 (study system) is priority
+
+**When to Implement**:
+- Multi-tenancy: When organizations/teams are validated as needed
+- Multiple accounts: Before public launch or when users request it
+
+**See**: `dev-docs/multi-tenancy-migration.md` for detailed migration guide
+
 ## 🎨 UI/UX Vision
 
 ### Three-Column Layout (Linear-style)
@@ -72,22 +106,22 @@ Axon helps users collect, organize, distill, and express knowledge from diverse 
 - ✅ Design token system (spacing, colors, typography)
 - ✅ Light/dark mode theming system
 
-### Phase 2: Flashcard Creation & Storage (CURRENT FOCUS)
+### Phase 2: Flashcard Creation & Storage ✅ NEARLY COMPLETE
 **Goal**: AI-powered flashcard generation from inbox items and storage in database
 
 **Key Separation of Concerns:**
-- **Flashcard Creation**: Generate flashcards from inbox items via AI (this phase)
+- **Flashcard Creation**: Generate flashcards from inbox items via AI (✅ 95% Complete)
 - **Study Sessions**: Review and study flashcards using SRS algorithms (Phase 3+)
 
 **Tasks:**
-1. **Enhanced Convex Schema Design**
+1. ✅ **Enhanced Convex Schema Design** (COMPLETE)
    - ✅ `userSettings` (already exists)
    - ✅ `inboxItems` (already exists, polymorphic)
-   - ⏳ `flashcards` table (needs SRS algorithm support)
-   - ⏳ `flashcardTags` (many-to-many with tags)
-   - ⏳ `flashcardReviews` (review history for SRS)
+   - ✅ `flashcards` table (with FSRS algorithm support)
+   - ✅ `flashcardTags` (many-to-many with tags - schema ready)
+   - ✅ `flashcardReviews` (review history for SRS)
    - ⏳ `studySessions` (future: track study sessions)
-   - ⏳ `userAlgorithmSettings` (algorithm selection per user)
+   - ✅ `userAlgorithmSettings` (algorithm selection per user)
 
 2. **Settings Page**
    - `/settings` route
@@ -106,41 +140,54 @@ Axon helps users collect, organize, distill, and express knowledge from diverse 
    - User review/approve workflow
    - Filtering by source type
 
-### Phase 2A: AI Flashcard Generation (Current Priority)
+### Phase 2A: AI Flashcard Generation ✅ MOSTLY COMPLETE
 **Goal**: Generate flashcards from approved inbox items using AI
 
-**Tasks:**
-1. **Claude Integration**
-   - Convex action for Claude API calls
-   - Prompt engineering for flashcard generation (JSON output format)
-   - Batch processing option
-   - Error handling and retry logic
+**Status**: 95% Complete - Only tagging integration remaining
 
-2. **Flashcard Creation Workflow**
-   - User selects inbox item → clicks "Generate Flashcard"
-   - AI generates flashcards (1-N cards per item)
-   - User reviews in modal (Phase 1 UI complete)
-   - User approves/rejects cards
-   - Approved cards stored in database with tags
-   - Inbox item marked as "processed" (or archived)
+**Completed Tasks:**
+1. ✅ **Claude Integration**
+   - ✅ Convex action for Claude API calls (`api.flashcards.generateFlashcard`)
+   - ✅ Prompt engineering with XML templates and variable interpolation
+   - ✅ Prompt management system (TypeScript exports, no file system access)
+   - ✅ Error handling and retry logic
+   - ✅ JSON output format parsing (handles arrays and single objects)
 
-3. **Tagging System Integration**
-   - Flashcards inherit tags from source inbox item
-   - User can add/remove tags during review
-   - Tags stored in `flashcardTags` junction table
-   - Support hierarchical tags (already in schema)
+2. ✅ **Flashcard Creation Workflow**
+   - ✅ User selects inbox item → clicks "Generate Flashcard" button
+   - ✅ AI generates flashcards (1-3 cards per item)
+   - ✅ User reviews in modal (Phase 1 UI complete)
+   - ✅ User approves/rejects cards (keyboard shortcuts: ArrowLeft/Right)
+   - ✅ Approved cards stored in database with FSRS initialization
+   - ✅ Inbox item marked as "processed" after flashcard creation
+   - ✅ Queue-based card removal (Tinder-like UX)
+   - ✅ Visual feedback for user actions
 
-4. **Inbox Item Lifecycle**
-   - **Unprocessed**: New item in inbox, awaiting review
-   - **Tagged** (optional): User adds tags during organize phase
-   - **Action Required**: User decides to create flashcard OR archive
-   - **Processed**: Flashcard created OR item archived
-   - **Archived**: Item removed from active inbox (kept for history)
+3. ✅ **Database Integration**
+   - ✅ `flashcards` table with FSRS algorithm support
+   - ✅ `flashcardReviews` table for review history
+   - ✅ `userAlgorithmSettings` table for algorithm preferences
+   - ✅ FSRS state conversion functions (enum ↔ string)
+   - ✅ Flashcard creation mutations (`createFlashcard`, `createFlashcards`)
 
-### Phase 3: Study Session System (Future)
+4. ✅ **Inbox Item Lifecycle**
+   - ✅ **Unprocessed**: New item in inbox, awaiting review
+   - ✅ **Processed**: Flashcard created → item marked as processed
+   - ✅ `markProcessed` mutation implemented
+   - ✅ Processed items filtered from active inbox view
+
+**Remaining Tasks:**
+1. ⏳ **Tagging System Integration** (Last 5%)
+   - ⏳ Flashcards inherit tags from source inbox item
+   - ⏳ User can add/remove tags during flashcard review
+   - ⏳ Tags stored in `flashcardTags` junction table
+   - ⏳ Support hierarchical tags (schema ready, UI needed)
+
+### Phase 3: Study Session System (NEXT PHASE)
 **Goal**: Implement spaced repetition study sessions
 
-**Prerequisites**: Phase 2 complete (flashcards in database)
+**Prerequisites**: Phase 2A complete (flashcards in database) ✅ Ready
+**Status**: Can start after tagging integration (or start in parallel)
 
 **Tasks:**
 1. **Study Session Loading**
@@ -216,120 +263,93 @@ Axon helps users collect, organize, distill, and express knowledge from diverse 
 
 ### What Works
 - ✅ Complete sidebar navigation system
-- ✅ Three-column inbox layout with mock data
+- ✅ Three-column inbox layout with real Convex data
 - ✅ Design token system (fully functional)
 - ✅ Light/dark mode (persistent, app-wide)
 - ✅ Responsive mobile considerations
 - ✅ Component architecture (reusable, modular)
+- ✅ AI flashcard generation (Claude API integration)
+- ✅ Flashcard storage in database (FSRS algorithm support)
+- ✅ Inbox item lifecycle (mark as processed)
+- ✅ Real-time data updates (Convex useQuery subscriptions)
+- ✅ Prompt management system (TypeScript exports)
+- ✅ Convex API naming conventions (file = module, function = action)
 
-### What's Mocked
-- ⚠️ Inbox items (mock data in component state)
-- ⚠️ Flashcards (mock data array)
-- ⚠️ Readwise highlights (hardcoded sample data)
-- ⚠️ Categories (hardcoded list)
+### What's Complete
+- ✅ Convex schema for data storage (flashcards, reviews, settings)
+- ✅ Real data queries/subscriptions (useQuery for real-time updates)
+- ✅ AI flashcard generation (Claude with prompt templates)
+- ✅ Flashcard review UI (keyboard shortcuts, queue-based removal)
+- ✅ FSRS algorithm integration (state conversion, card initialization)
 
-### What's Missing
-- ❌ Convex schema for data storage
-- ❌ Readwise API integration
-- ❌ Settings page
-- ❌ Real data queries/subscriptions
-- ❌ AI flashcard generation
-- ❌ Category management
-- ❌ Photo capture/upload
+### What's Remaining
+- ⏳ Tagging system integration (inherit tags from inbox items to flashcards)
+- ⏳ Readwise API integration (Phase 2B - future)
+- ⏳ Settings page (API key management)
+- ⏳ Category management UI
+- ⏳ Photo capture/upload
+- ⏳ Study session system (Phase 3)
 
-## 🎯 Recommended Next Steps (Broken Into Focused Tasks)
+## 🎯 Recommended Next Steps
 
-### Task 1: Convex Schema Design & Setup
-**Scope**: Database foundation
-- Design schema for inboxItems, flashcards, categories, userSettings
-- Implement discriminated unions for polymorphic inbox items
-- Add indexes for queries
-- Test with sample data insertion
+### Immediate Next Step: Complete Phase 2A (Tagging Integration)
+**Status**: 95% Complete - Only tagging remaining
 
-**Deliverable**: Schema file with types, working Convex queries
+**Task**: Tagging System Integration
+- Inherit tags from inbox items when creating flashcards
+- Allow tag editing during flashcard review modal
+- Store tags in `flashcardTags` junction table
+- Support hierarchical tags (schema ready)
+
+**Deliverable**: Flashcards properly tagged and organized
+
+**Estimated Effort**: 1-2 hours
 
 ---
 
-### Task 2: Settings Page & User Preferences
-**Scope**: Settings UI + Convex storage
+### Phase 3: Study Session System (Ready to Start)
+**Prerequisites**: Phase 2A complete (or can start in parallel)
+
+**Tasks:**
+1. Study session loading (efficient queries for due cards)
+2. FSRS algorithm integration (schema ready, UI needed)
+3. Rating system (Again/Hard/Good/Easy - replace Approve/Reject)
+4. Review history tracking
+5. Study interface enhancements
+
+**Deliverable**: Full spaced repetition study system
+
+**Estimated Effort**: Medium-Large (full phase)
+
+---
+
+### Future Tasks (Phase 2B+)
+
+**Task 2: Settings Page & User Preferences**
 - Create `/settings` route
 - Build Readwise API key input form
 - Store API key securely in Convex userSettings
-- Sync theme preference to Convex (extend existing theme store)
-- Form validation and error handling
+- Sync theme preference to Convex
 
-**Deliverable**: Functional settings page with secure API key storage
-
----
-
-### Task 3: Readwise API Integration
-**Scope**: Backend integration
+**Task 3: Readwise API Integration**
 - Create Convex action for Readwise API
 - Fetch highlights endpoint
 - Transform Readwise data to inboxItem format
 - Manual sync button in UI
-- Error handling and rate limiting
 
-**Deliverable**: Ability to import Readwise highlights into inbox
-
----
-
-### Task 4: Connect Inbox to Convex
-**Scope**: Replace mock data with real queries
-- Replace mock inboxItems with Convex query
-- Real-time subscriptions for live updates
-- Filtering by source type (Convex query filters)
-- Review/approve workflow (mutation to mark as reviewed)
-
-**Deliverable**: Inbox shows real data with real-time updates
-
----
-
-### Task 5: AI Flashcard Generation (Claude)
-**Scope**: AI integration
-- Convex action for Claude API
-- Prompt engineering for flashcard generation
-- Batch processing for multiple highlights
-- Error handling and retry logic
-- Store generated flashcards in Convex
-
-**Deliverable**: Generate flashcards from selected inbox items
-
----
-
-### Task 6: Category Management
-**Scope**: Organization system
+**Task 6: Category Management**
 - CRUD operations for categories
 - Nested topic support
 - UI for creating/editing categories
 - Category assignment during flashcard creation
 - Category filtering in flashcard view
 
-**Deliverable**: Full category management system
-
----
-
-### Task 7: Photo Input & OCR
-**Scope**: Additional input source
+**Task 7: Photo Input & OCR**
 - Photo capture/upload UI
 - Image processing (Convex action)
 - OCR/vision AI integration
 - Convert extracted text to inbox item
 - Review workflow for photo notes
-
-**Deliverable**: Photo capture → inbox item workflow
-
----
-
-### Task 8: Flashcard Study Interface Enhancement
-**Scope**: Improve learning experience
-- Spaced repetition algorithm
-- Study session tracking
-- Progress indicators
-- Better card flip animations
-- Mobile-optimized study mode
-
-**Deliverable**: Enhanced flashcard study experience
 
 ## 📚 Key Files Reference
 
@@ -626,13 +646,13 @@ const getDueCards = query({
 
 ## 🏁 Success Criteria for MVP
 
-### Minimum Viable Product (MVP) - Phase 2 Focus
+### Minimum Viable Product (MVP) - Phase 2 Status
 1. ✅ Universal inbox UI (DONE)
-2. ⏳ Readwise highlights import
-3. ⏳ User review workflow (tagging optional)
-4. ⏳ AI flashcard generation (Claude) with review modal
-5. ⏳ Flashcard storage in database with tags
-6. ⏳ Inbox item lifecycle (processed/archived)
+2. ⏳ Readwise highlights import (Phase 2B - Future)
+3. ✅ User review workflow (tagging optional - UI ready, backend integration pending)
+4. ✅ AI flashcard generation (Claude) with review modal (DONE)
+5. ✅ Flashcard storage in database (DONE - tags support pending)
+6. ✅ Inbox item lifecycle (processed/archived) (DONE)
 
 ### Phase 3: Study System (Future)
 7. ⏳ Study session loading (efficient queries)
@@ -647,16 +667,19 @@ const getDueCards = query({
 - Algorithm A/B testing
 - Vector search
 - Cross-device sync
+- Multi-tenancy (organizations, teams, shared content)
+- Multiple accounts per user (account switching)
 
 ---
 
 **Last Updated**: January 2025
-**Status**: Phase 1 Complete, Phase 2A (Flashcard Creation) In Progress
+**Status**: Phase 1 Complete ✅ | Phase 2A 95% Complete (Tagging Integration Remaining) | Phase 3 Ready to Start | Multi-Tenancy Architecture Future-Proofed ✅
 
 ## 📚 Related Documentation
 
 - `dev-docs/flashcard-review-optimization-analysis.md` - Detailed UX improvements for study system
 - `dev-docs/architecture.md` - Tech stack and authentication details
 - `dev-docs/design-tokens.md` - Design system reference
+- `dev-docs/multi-tenancy-migration.md` - Multi-tenancy architecture and migration guide
 - `convex/schema.ts` - Current database schema
 

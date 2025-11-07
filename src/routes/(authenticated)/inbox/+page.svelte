@@ -36,12 +36,25 @@
 	// Initialize selected item composable
 	const selected = useSelectedItem(convexClient, inboxApi);
 
+	// Track whether auto-selection should run when items are available
+	const autoSelectState = $state({ enabled: true });
+
+	function selectItem(itemId: string) {
+		autoSelectState.enabled = true;
+		selected.selectItem(itemId);
+	}
+
+	function clearSelection(options?: { allowAutoSelect?: boolean }) {
+		autoSelectState.enabled = options?.allowAutoSelect ?? false;
+		selected.clearSelection();
+	}
+
 	// Initialize keyboard navigation composable
 	// Pass functions that return reactive values so composable always has current state
 	const keyboard = useKeyboardNavigation(
 		() => items.filteredItems,
 		() => selected.selectedItemId,
-		(itemId) => selected.selectItem(itemId)
+		(itemId) => selectItem(itemId)
 	);
 
 	// Initialize layout composable
@@ -60,8 +73,33 @@
 		convexClient,
 		inboxApi,
 		undefined, // onItemsReload not needed - useQuery handles reactivity automatically
-		selected.clearSelection
+		() => clearSelection()
 	);
+
+	// Automatically select the first inbox item when none is active
+	$effect(() => {
+		if (!browser || !autoSelectState.enabled) {
+			return;
+		}
+
+		if (sync.showSyncConfig || sync.syncProgress || sync.isSyncing) {
+			return;
+		}
+
+		const currentItems = items.filteredItems;
+		if (currentItems.length === 0) {
+			return;
+		}
+
+		const selectedId = selected.selectedItemId;
+		const hasSelectedInList = selectedId ? currentItems.some((item) => item._id === selectedId) : false;
+
+		if (hasSelectedInList) {
+			return;
+		}
+
+		selectItem(currentItems[0]._id);
+	});
 
 	// Derive sidebar state from context
 	const sidebarCollapsed = $derived(sidebarContext?.sidebarCollapsed ?? false);
@@ -257,7 +295,7 @@
 				<!-- Sticky Header -->
 				<InboxHeader
 					currentFilter={items.filterType}
-					onFilterChange={(type) => items.setFilter(type, selected.clearSelection)}
+					onFilterChange={(type) => items.setFilter(type, () => clearSelection({ allowAutoSelect: true }))}
 					onDeleteAll={handleDeleteAll}
 					onDeleteAllRead={handleDeleteAllRead}
 					onDeleteAllCompleted={handleDeleteAllCompleted}
@@ -308,16 +346,16 @@
 								{/if}
 							</div>
 						{:else}
-							<!-- Items List -->
-							<div class="flex flex-col gap-inbox-list">
-								{#each items.filteredItems as item}
-									<InboxCard
-										item={item}
-										selected={selected.selectedItemId === item._id}
-										onClick={() => selected.selectItem(item._id)}
-									/>
-								{/each}
-							</div>
+						<!-- Items List -->
+						<div class="flex flex-col gap-inbox-list">
+							{#each items.filteredItems as item}
+								<InboxCard
+									item={item}
+									selected={selected.selectedItemId === item._id}
+									onClick={() => selectItem(item._id)}
+								/>
+							{/each}
+						</div>
 						{/if}
 					</div>
 				</div>
@@ -334,16 +372,16 @@
 						<ReadwiseDetail
 							inboxItemId={selected.selectedItemId}
 							item={selected.selectedItem}
-							onClose={selected.clearSelection}
+							onClose={() => clearSelection()}
 							currentIndex={keyboard.getCurrentItemIndex()}
 							totalItems={items.filteredItems.length}
 							onNext={keyboard.handleNextItem}
 							onPrevious={keyboard.handlePreviousItem}
 						/>
 					{:else if selected.selectedItem.type === 'photo_note'}
-						<PhotoDetail item={selected.selectedItem} onClose={selected.clearSelection} />
+						<PhotoDetail item={selected.selectedItem} onClose={() => clearSelection()} />
 					{:else if selected.selectedItem.type === 'manual_text'}
-						<ManualDetail item={selected.selectedItem} onClose={selected.clearSelection} />
+						<ManualDetail item={selected.selectedItem} onClose={() => clearSelection()} />
 						{/if}
 					{/key}
 				
@@ -392,14 +430,14 @@
 					<!-- Key on selectedItem._id ensures remount only when actual data changes (prevents stale data) -->
 					{#key selected.selectedItem._id}
 						{#if selected.selectedItem.type === 'readwise_highlight'}
-							<ReadwiseDetail item={selected.selectedItem} onClose={selected.clearSelection} />
+							<ReadwiseDetail item={selected.selectedItem} onClose={() => clearSelection()} />
 						{:else if selected.selectedItem.type === 'photo_note'}
-							<PhotoDetail item={selected.selectedItem} onClose={selected.clearSelection} />
+							<PhotoDetail item={selected.selectedItem} onClose={() => clearSelection()} />
 						{:else if selected.selectedItem.type === 'manual_text'}
-							<ManualDetail item={selected.selectedItem} onClose={selected.clearSelection} />
+							<ManualDetail item={selected.selectedItem} onClose={() => clearSelection()} />
 						{/if}
 					{/key}
-					
+
 					<!-- Flashcard FAB - Centered at bottom of detail view -->
 					{#if browser}
 						<FlashcardFAB
@@ -421,7 +459,7 @@
 				<!-- Sticky Header -->
 				<InboxHeader
 					currentFilter={items.filterType}
-					onFilterChange={(type) => items.setFilter(type, selected.clearSelection)}
+					onFilterChange={(type) => items.setFilter(type, () => clearSelection({ allowAutoSelect: true }))}
 					onDeleteAll={handleDeleteAll}
 					onDeleteAllRead={handleDeleteAllRead}
 					onDeleteAllCompleted={handleDeleteAllCompleted}
@@ -472,16 +510,16 @@
 								{/if}
 							</div>
 						{:else}
-							<!-- Items List -->
-							<div class="flex flex-col gap-inbox-list">
-								{#each items.filteredItems as item}
-									<InboxCard
-										item={item}
-										selected={false}
-										onClick={() => selected.selectItem(item._id)}
-									/>
-								{/each}
-							</div>
+					<!-- Items List -->
+					<div class="flex flex-col gap-inbox-list">
+						{#each items.filteredItems as item}
+							<InboxCard
+								item={item}
+								selected={false}
+								onClick={() => selectItem(item._id)}
+							/>
+						{/each}
+					</div>
 						{/if}
 					</div>
 				</div>
