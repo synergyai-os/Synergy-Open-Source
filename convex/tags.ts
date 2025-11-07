@@ -178,6 +178,38 @@ export const listAllTags = query({
 });
 
 /**
+ * Query: Get user's tags with ownership information
+ * Returns all tags the user owns, including shared tags
+ */
+export const listUserTags = query({
+	args: {},
+	handler: async (ctx) => {
+		const userId = await getAuthUserId(ctx);
+		if (!userId) {
+			return [];
+		}
+
+		// Get all user tags (including shared ones)
+		const tags = await ctx.db
+			.query("tags")
+			.withIndex("by_user", (q) => q.eq("userId", userId))
+			.collect();
+
+		// Return tags with ownership info (no hierarchy for simple list view)
+		return tags.map(tag => ({
+			_id: tag._id,
+			displayName: tag.displayName ?? tag.name,
+			color: tag.color,
+			ownershipType: tag.ownershipType ?? undefined,
+			organizationId: tag.organizationId ?? undefined,
+			teamId: tag.teamId ?? undefined,
+			userId: tag.userId,
+			createdAt: tag.createdAt,
+		}));
+	},
+});
+
+/**
  * Query: Get tags assigned to a specific highlight
  * Returns tags with their hierarchy information
  */
@@ -198,6 +230,34 @@ export const getTagsForHighlight = query({
 			.collect();
 
 		const tagIds = highlightTags.map((ht) => ht.tagId);
+		const tags = await Promise.all(tagIds.map((tagId) => ctx.db.get(tagId)));
+
+		// Filter out null tags and return
+		return tags.filter((t): t is NonNullable<typeof t> => t !== null);
+	},
+});
+
+/**
+ * Query: Get tags assigned to a specific flashcard
+ * Returns tags with their hierarchy information
+ */
+export const getTagsForFlashcard = query({
+	args: {
+		flashcardId: v.id("flashcards"),
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx);
+		if (!userId) {
+			return [];
+		}
+
+		// Get flashcard tags
+		const flashcardTags = await ctx.db
+			.query("flashcardTags")
+			.withIndex("by_flashcard", (q) => q.eq("flashcardId", args.flashcardId))
+			.collect();
+
+		const tagIds = flashcardTags.map((ft) => ft.tagId);
 		const tags = await Promise.all(tagIds.map((tagId) => ctx.db.get(tagId)));
 
 		// Filter out null tags and return
@@ -397,6 +457,37 @@ export const createTag = mutation({
 });
 
 /**
+ * Query: Count items (highlights, flashcards) linked to a tag
+ * Used to show user what will be transferred when sharing
+ */
+export const countTagItems = query({
+	args: {
+		tagId: v.id("tags"),
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx);
+		if (!userId) {
+			return { highlights: 0, flashcards: 0, total: 0 };
+		}
+
+		// Count highlights
+		const highlightAssignments = await ctx.db
+			.query("highlightTags")
+			.withIndex("by_tag", (q) => q.eq("tagId", args.tagId))
+			.collect();
+
+		// TODO: Count flashcards when implemented
+		const flashcardCount = 0;
+
+		return {
+			highlights: highlightAssignments.length,
+			flashcards: flashcardCount,
+			total: highlightAssignments.length + flashcardCount,
+		};
+	},
+});
+
+/**
  * Mutation: Share a personal tag with an organization or team
  * Converts a user-owned tag to organization or team ownership
  */
@@ -504,21 +595,42 @@ export const shareTag = mutation({
 			teamId,
 		});
 
+		// Find all highlights linked to this tag
+		const tagAssignments = await ctx.db
+			.query("highlightTags")
+			.withIndex("by_tag", (q) => q.eq("tagId", args.tagId))
+			.collect();
+
+		// Transfer ownership of all linked highlights
+		let highlightsTransferred = 0;
+		for (const assignment of tagAssignments) {
+			const highlight = await ctx.db.get(assignment.highlightId);
+			if (highlight) {
+				await ctx.db.patch(assignment.highlightId, {
+					ownershipType: args.shareWith,
+					organizationId,
+					teamId,
+				});
+				highlightsTransferred++;
+			}
+		}
+
 		// Get organization/team details for analytics
 		const organization = organizationId ? await ctx.db.get(organizationId) : null;
 		const teamDoc = teamId ? await ctx.db.get(teamId) : null;
 
 		// TODO: Capture analytics event
 		// For now, log to console for testing
-		console.log('📊 [TAG SHARED]', {
+		console.log('📊 [TAG TRANSFERRED]', {
 			tagId: args.tagId,
 			tagName: tag.displayName,
-			sharedBy: userId,
-			shareWith: args.shareWith,
+			transferredBy: userId,
+			transferTo: args.shareWith,
 			organizationId,
 			organizationName: organization?.name,
 			teamId,
 			teamName: teamDoc?.name,
+			highlightsTransferred,
 		});
 
 		return {
@@ -527,32 +639,50 @@ export const shareTag = mutation({
 			scope: args.shareWith,
 			organizationId,
 			teamId,
+			itemsTransferred: highlightsTransferred,
 		};
 	},
 });
 
 /**
- * Mutation: Assign multiple tags to a highlight (replaces existing assignments)
+ * Helper: Assign tags to any entity (highlights, flashcards, etc.)
+ * Reduces code duplication while maintaining type safety at the mutation level
  */
-export const assignTagsToHighlight = mutation({
-	args: {
-		highlightId: v.id("highlights"),
-		tagIds: v.array(v.id("tags")),
-	},
-	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			throw new Error("Not authenticated");
+async function assignTagsToEntity(
+	ctx: MutationCtx,
+	userId: Id<"users">,
+	entityType: "highlights" | "flashcards",
+	entityId: Id<"highlights"> | Id<"flashcards">,
+	tagIds: Id<"tags">[]
+): Promise<Id<"tags">[]> {
+	// Map entity types to their junction tables and ID field names
+	const entityConfig = {
+		highlights: {
+			table: "highlights" as const,
+			junctionTable: "highlightTags" as const,
+			idField: "highlightId" as const,
+		},
+		flashcards: {
+			table: "flashcards" as const,
+			junctionTable: "flashcardTags" as const,
+			idField: "flashcardId" as const,
+		},
+	};
+
+	const config = entityConfig[entityType];
+
+	// 1. Verify entity exists and belongs to user
+	const entity = await ctx.db.get(entityId as any);
+	if (!entity) {
+		throw new Error(`${entityType.slice(0, -1)} not found`);
+	}
+	// Type guard: Both highlights and flashcards have userId field
+	if (!("userId" in entity) || entity.userId !== userId) {
+		throw new Error(`${entityType.slice(0, -1)} not found or access denied`);
 		}
 
-		// Verify highlight exists and belongs to user
-		const highlight = await ctx.db.get(args.highlightId);
-		if (!highlight || highlight.userId !== userId) {
-			throw new Error("Highlight not found or access denied");
-		}
-
-		// Verify all tags exist and belong to user
-		const tags = await Promise.all(args.tagIds.map((tagId) => ctx.db.get(tagId)));
+	// 2. Verify all tags exist and user has access
+	const tags = await Promise.all(tagIds.map((tagId) => ctx.db.get(tagId)));
 		for (const tag of tags) {
 			if (!tag) {
 				throw new Error("One or more tags not found");
@@ -569,36 +699,75 @@ export const assignTagsToHighlight = mutation({
 			}
 		}
 
-		// Get existing assignments
+	// 3. Get and remove existing assignments
 		const existingAssignments = await ctx.db
-			.query("highlightTags")
-			.withIndex("by_highlight", (q) => q.eq("highlightId", args.highlightId))
+		.query(config.junctionTable)
+		.withIndex(
+			`by_${entityType.slice(0, -1)}` as any,
+			(q: any) => q.eq(config.idField, entityId)
+		)
 			.collect();
 
-		// Remove existing assignments
 		for (const assignment of existingAssignments) {
 			await ctx.db.delete(assignment._id);
 		}
 
-		// Create new assignments
-		for (const tagId of args.tagIds) {
-			// Check if assignment already exists (shouldn't happen after delete, but safe)
-			const existing = await ctx.db
-				.query("highlightTags")
-				.withIndex("by_highlight_tag", (q) =>
-					q.eq("highlightId", args.highlightId).eq("tagId", tagId)
-				)
-				.first();
-
-			if (!existing) {
-				await ctx.db.insert("highlightTags", {
-					highlightId: args.highlightId,
+	// 4. Create new assignments
+	for (const tagId of tagIds) {
+		await ctx.db.insert(config.junctionTable, {
+			[config.idField]: entityId,
 					tagId,
-				});
+		} as any);
 			}
+
+	return tagIds;
+}
+
+/**
+ * Mutation: Assign multiple tags to a highlight (replaces existing assignments)
+ */
+export const assignTagsToHighlight = mutation({
+	args: {
+		highlightId: v.id("highlights"),
+		tagIds: v.array(v.id("tags")),
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx);
+		if (!userId) {
+			throw new Error("Not authenticated");
 		}
 
-		return args.tagIds;
+		return await assignTagsToEntity(
+			ctx,
+			userId,
+			"highlights",
+			args.highlightId,
+			args.tagIds
+		);
+	},
+});
+
+/**
+ * Mutation: Assign multiple tags to a flashcard (replaces existing assignments)
+ */
+export const assignTagsToFlashcard = mutation({
+	args: {
+		flashcardId: v.id("flashcards"),
+		tagIds: v.array(v.id("tags")),
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx);
+		if (!userId) {
+			throw new Error("Not authenticated");
+		}
+
+		return await assignTagsToEntity(
+			ctx,
+			userId,
+			"flashcards",
+			args.flashcardId,
+			args.tagIds
+		);
 	},
 });
 

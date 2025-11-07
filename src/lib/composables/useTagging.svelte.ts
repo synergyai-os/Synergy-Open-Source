@@ -1,0 +1,122 @@
+/**
+ * useTagging Composable - Generic tagging system for any entity
+ * 
+ * Provides reusable tagging functionality for highlights, flashcards, and other entities.
+ * Follows Svelte 5 composables pattern with single $state object and getters.
+ * 
+ * Usage:
+ * ```typescript
+ * const tagging = useTagging('highlight');
+ * await tagging.assignTags(highlightId, [tag1Id, tag2Id]);
+ * ```
+ * 
+ * @see dev-docs/patterns/svelte-reactivity.md#L10 - Composables pattern
+ * @see TAGGING_SYSTEM_ANALYSIS.md - Architecture and design decisions
+ */
+
+import { browser } from '$app/environment';
+import { useConvexClient } from 'convex-svelte';
+import { makeFunctionReference } from 'convex/server';
+import type { Id } from '$lib/convex';
+
+type EntityType = 'highlight' | 'flashcard' | 'note' | 'source';
+
+/**
+ * Capitalize first letter for function name generation
+ */
+function capitalize(str: string): string {
+	return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/**
+ * Generic tagging composable - works for any entity type
+ */
+export function useTagging(entityType: EntityType) {
+	// Svelte 5 pattern: Single $state object with getters
+	const state = $state({
+		isAssigning: false,
+		error: null as string | null,
+	});
+
+	// Get Convex client (only in browser)
+	const convexClient = browser ? useConvexClient() : null;
+
+	// Dynamic mutation reference based on entity type
+	// Example: 'highlight' -> 'tags:assignTagsToHighlight'
+	const assignTagsMutation = browser
+		? makeFunctionReference(`tags:assignTagsTo${capitalize(entityType)}`)
+		: null;
+
+	const createTagMutation = browser ? makeFunctionReference('tags:createTag') : null;
+
+	/**
+	 * Assign tags to an entity (replaces existing tags)
+	 */
+	async function assignTags(entityId: Id<any>, tagIds: Id<'tags'>[]): Promise<void> {
+		if (!convexClient || !assignTagsMutation) {
+			throw new Error('Convex client not available (server-side rendering?)');
+		}
+
+		state.isAssigning = true;
+		state.error = null;
+
+		try {
+			// Build args dynamically: { highlightId: ..., tagIds: ... }
+			const args = {
+				[`${entityType}Id`]: entityId,
+				tagIds,
+			};
+
+			await convexClient.mutation(assignTagsMutation, args);
+		} catch (error) {
+			state.error = error instanceof Error ? error.message : 'Failed to assign tags';
+			throw error;
+		} finally {
+			state.isAssigning = false;
+		}
+	}
+
+	/**
+	 * Create a new tag with color and optional parent
+	 */
+	async function createTag(
+		displayName: string,
+		color: string,
+		parentId?: Id<'tags'>
+	): Promise<Id<'tags'>> {
+		if (!convexClient || !createTagMutation) {
+			throw new Error('Convex client not available (server-side rendering?)');
+		}
+
+		state.error = null;
+
+		try {
+			const tagId = await convexClient.mutation(createTagMutation, {
+				displayName,
+				color,
+				parentId,
+			});
+
+			return tagId as Id<'tags'>;
+		} catch (error) {
+			state.error = error instanceof Error ? error.message : 'Failed to create tag';
+			throw error;
+		}
+	}
+
+	// Return getters (Svelte 5 pattern) and action functions
+	return {
+		// Getters for reactive state
+		get isAssigning() {
+			return state.isAssigning;
+		},
+		get error() {
+			return state.error;
+		},
+
+		// Action functions
+		assignTags,
+		createTag,
+	};
+}
+

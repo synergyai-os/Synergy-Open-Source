@@ -76,7 +76,11 @@
 				activeElement?.tagName === 'TEXTAREA' ||
 				(activeElement instanceof HTMLElement && activeElement.isContentEditable);
 
-			if (isInputFocused && e.key !== 'Escape') return;
+			// Ignore if dropdown/combobox is open (e.g., tag selector, color picker)
+			const isDropdownOpen = document.querySelector('[data-bits-combobox-content]') !== null ||
+				document.querySelector('[role="listbox"]') !== null;
+
+			if ((isInputFocused || isDropdownOpen) && e.key !== 'Escape') return;
 
 			// ESC to close
 			if (e.key === 'Escape') {

@@ -3,6 +3,8 @@
 	import { useQuery, useConvexClient } from 'convex-svelte';
 	import { api } from '$lib/convex';
 	import { Button } from 'bits-ui';
+	import TagSelector from '$lib/components/inbox/TagSelector.svelte';
+	import { useTagging } from '$lib/composables/useTagging.svelte';
 	import type { Id } from '../../../../convex/_generated/dataModel';
 
 	type Flashcard = {
@@ -29,14 +31,87 @@
 
 	const convexClient = browser ? useConvexClient() : null;
 
-	// Query tags for this flashcard
-	const tagsQuery = browser
-		? useQuery(api.flashcards.getFlashcardTags, () => ({
+	// Setup tagging system for flashcards
+	const tagging = useTagging('flashcard');
+
+	// Load all available tags
+	const allTagsQuery = browser ? useQuery(api.tags.listAllTags, {}) : null;
+	const availableTags = $derived(allTagsQuery?.data ?? []);
+
+	// Query tags for this flashcard (using the correct endpoint we created)
+	const flashcardTagsQuery = browser
+		? useQuery(api.tags.getTagsForFlashcard, () => ({
 				flashcardId: flashcard._id,
 			}))
 		: null;
 
-	const tags = $derived(tagsQuery?.data ?? []);
+	const tags = $derived(flashcardTagsQuery?.data ?? []);
+
+	// Track selected tag IDs for TagSelector
+	let selectedTagIds = $state<Id<'tags'>[]>([]);
+	
+	// Track tag combobox open state for keyboard shortcut
+	let tagComboboxOpen = $state(false);
+
+	// Update selectedTagIds when tags load
+	$effect(() => {
+		if (flashcardTagsQuery?.data) {
+			selectedTagIds = flashcardTagsQuery.data.map((t) => t._id);
+		}
+	});
+
+	// Handle tag changes
+	async function handleTagsChange(newTagIds: Id<'tags'>[]) {
+		try {
+			await tagging.assignTags(flashcard._id, newTagIds);
+		} catch (error) {
+			console.error('Failed to assign tags:', error);
+		}
+	}
+
+	// Handle new tag creation
+	async function handleCreateTag(
+		displayName: string,
+		color: string,
+		parentId?: Id<'tags'>
+	): Promise<Id<'tags'>> {
+		try {
+			return await tagging.createTag(displayName, color, parentId);
+		} catch (error) {
+			console.error('Failed to create tag:', error);
+			throw error;
+		}
+	}
+
+	// Keyboard shortcut: 'T' to focus tag selector
+	function handleKeyDown(event: KeyboardEvent) {
+		// Don't trigger if typing in an input/textarea
+		const target = event.target as HTMLElement;
+		if (
+			target.tagName === 'INPUT' ||
+			target.tagName === 'TEXTAREA' ||
+			target.isContentEditable
+		) {
+			return;
+		}
+
+		// Check for 'T' key
+		if (event.key === 't' || event.key === 'T') {
+			event.preventDefault();
+			// Open the combobox - TagSelector's auto-focus effect will handle focusing the input
+			tagComboboxOpen = true;
+		}
+	}
+
+	// Add keyboard event listener
+	if (browser) {
+		$effect(() => {
+			window.addEventListener('keydown', handleKeyDown);
+			return () => {
+				window.removeEventListener('keydown', handleKeyDown);
+			};
+		});
+	}
 
 	// Format date
 	function formatDate(timestamp: number): string {
@@ -74,25 +149,15 @@
 </script>
 
 <div class="flex flex-col gap-settings-section h-full">
-	<!-- Tags Section -->
+	<!-- Tags Section - Now Interactive! -->
 	<div class="flex flex-col gap-section pb-settings-row border-b border-base">
-		<h3 class="text-label text-secondary uppercase tracking-wider mb-2">Tags</h3>
-		{#if tagsQuery?.isLoading}
-			<p class="text-sm text-secondary">Loading tags...</p>
-		{:else if tags.length === 0}
-			<p class="text-sm text-secondary">No tags</p>
-		{:else}
-			<div class="flex flex-wrap gap-icon">
-				{#each tags as tag}
-					<span
-						class="inline-flex items-center px-badge py-badge rounded-md text-label font-medium"
-						style="background-color: {tag.color}20; color: {tag.color}; border: 1px solid {tag.color}40;"
-					>
-						{tag.displayName}
-					</span>
-				{/each}
-			</div>
-		{/if}
+		<TagSelector
+			bind:comboboxOpen={tagComboboxOpen}
+			bind:selectedTagIds
+			availableTags={availableTags}
+			onTagsChange={handleTagsChange}
+			onCreateTagWithColor={handleCreateTag}
+		/>
 	</div>
 
 	<!-- FSRS Stats Section -->
