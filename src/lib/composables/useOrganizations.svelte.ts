@@ -56,12 +56,16 @@ export type UseOrganizations = ReturnType<typeof useOrganizations>;
 
 const STORAGE_KEY = 'activeOrganizationId';
 const SENTINEL_ORGANIZATION_ID = '000000000000000000000000';
+const PERSONAL_SENTINEL = '__personal__';
 
 export function useOrganizations() {
   const convexClient = browser ? useConvexClient() : null;
 
+  const storedActiveId = browser ? localStorage.getItem(STORAGE_KEY) : null;
+  const initialActiveId = storedActiveId === PERSONAL_SENTINEL ? null : storedActiveId;
+
   const state = $state({
-    activeOrganizationId: browser ? localStorage.getItem(STORAGE_KEY) : null,
+    activeOrganizationId: initialActiveId,
     activeTeamId: null as string | null,
     modals: {
       createOrganization: false,
@@ -121,16 +125,37 @@ export function useOrganizations() {
     if (!list || list.length === 0) {
       state.activeOrganizationId = null;
       if (browser) {
-        localStorage.removeItem(STORAGE_KEY);
+        localStorage.setItem(STORAGE_KEY, PERSONAL_SENTINEL);
       }
       return;
     }
 
-    if (!state.activeOrganizationId || !list.some((org) => org.organizationId === state.activeOrganizationId)) {
+    if (state.activeOrganizationId && !list.some((org) => org.organizationId === state.activeOrganizationId)) {
+      const fallback = list[0]?.organizationId ?? null;
+      state.activeOrganizationId = fallback;
+      if (browser) {
+        if (fallback) {
+          localStorage.setItem(STORAGE_KEY, fallback);
+        } else {
+          localStorage.setItem(STORAGE_KEY, PERSONAL_SENTINEL);
+        }
+      }
+      return;
+    }
+
+    if (state.activeOrganizationId === null) {
+      if (browser) {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored === PERSONAL_SENTINEL) {
+          return;
+        }
+      }
       const first = list[0]?.organizationId ?? null;
-      state.activeOrganizationId = first;
-      if (browser && first) {
-        localStorage.setItem(STORAGE_KEY, first);
+      if (first) {
+        state.activeOrganizationId = first;
+        if (browser) {
+          localStorage.setItem(STORAGE_KEY, first);
+        }
       }
     }
   });
@@ -142,12 +167,23 @@ export function useOrganizations() {
     }
   });
 
-  function setActiveOrganization(organizationId: string) {
+  function setActiveOrganization(organizationId: string | null) {
     const previousOrganizationId = state.activeOrganizationId;
     state.activeOrganizationId = organizationId;
     state.activeTeamId = null;
-    if (browser && organizationId) {
-      localStorage.setItem(STORAGE_KEY, organizationId);
+    if (browser) {
+      if (organizationId) {
+        localStorage.setItem(STORAGE_KEY, organizationId);
+      } else {
+        localStorage.setItem(STORAGE_KEY, PERSONAL_SENTINEL);
+      }
+    }
+
+    if (!organizationId) {
+      if (previousOrganizationId && browser) {
+        localStorage.setItem(STORAGE_KEY, PERSONAL_SENTINEL);
+      }
+      return;
     }
 
     const summary = organizationsData().find((org) => org.organizationId === organizationId);

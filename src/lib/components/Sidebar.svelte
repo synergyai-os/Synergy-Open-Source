@@ -33,6 +33,8 @@
     // Get auth functions for logout
     const auth = useAuth();
     const { signOut } = auth;
+    const accountEmail = (auth as any)?.user?.email ?? 'user@example.com';
+    const accountName = (auth as any)?.user?.name ?? 'Personal workspace';
     const organizations = getContext<UseOrganizations | undefined>('organizations');
 
 	let isPinned = $state(false);
@@ -305,13 +307,26 @@
 		>
 			<!-- Sticky Header with Workspace Menu -->
 			<SidebarHeader
-				workspaceName="Axon"
+				workspaceName={accountName}
+				accountEmail={accountEmail}
 				sidebarCollapsed={sidebarCollapsed}
 				isMobile={isMobile}
 				isHovered={isHovered}
 				onSettings={() => {
 					goto('/settings');
 				}}
+			onInviteMembers={() => {
+				goto('/settings');
+			}}
+			onSwitchWorkspace={() => {
+				console.log('Switch workspace menu selected');
+			}}
+			onCreateWorkspace={() => {
+				console.log('Create workspace menu selected');
+			}}
+			onAddAccount={() => {
+				console.log('Add account menu selected');
+			}}
 				onLogout={async () => {
 					await signOut();
 					// Redirect to login page after logout
@@ -599,7 +614,8 @@
 	>
 		<!-- Sticky Header with Workspace Menu -->
 		<SidebarHeader
-			workspaceName="Axon"
+			workspaceName={accountName}
+			accountEmail={accountEmail}
 			sidebarCollapsed={sidebarCollapsed}
 			isMobile={isMobile}
 			isHovered={isHovered}

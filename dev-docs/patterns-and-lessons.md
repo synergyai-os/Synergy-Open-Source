@@ -31,6 +31,7 @@ This document captures reusable solutions, common issues, and architectural patt
 | Analytics events missing in PostHog | PostHog Server-First Tracking | [#posthog-server-first-tracking](#posthog-server-first-tracking) |
 | Duplicate or unclear PostHog event names | PostHog Event Naming Taxonomy | [#posthog-event-naming-taxonomy](#posthog-event-naming-taxonomy) |
 | Convex error: `undefined is not a valid Convex value` | Avoid Undefined Convex Payloads | [#convex-avoid-undefined-payloads](#convex-avoid-undefined-convex-payloads) |
+| Switch/interactive component not working in dropdown | Interactive Components in DropdownMenu | [#interactive-components-dropdownmenu](#interactive-components-in-dropdownmenu-items) |
 
 ---
 
@@ -134,6 +135,7 @@ When [situation]:
 - [Textarea Auto-Resize to Match Static Text](#textarea-auto-resize-to-match-static-text) - Textarea matching paragraph styling
 - [Header Alignment with Sidebar Borders Pattern](#header-alignment-with-sidebar-borders-pattern) - Fixed height headers for border alignment
 - [Card Design with Proper Spacing and Visual Hierarchy](#card-design-with-proper-spacing-and-visual-hierarchy) - Generous padding and clear hierarchy
+- [Interactive Components in DropdownMenu Items](#interactive-components-in-dropdownmenu-items) - Plain div wrappers for interactive children
 
 ### Convex
 - [Real-time Data Updates with Convex useQuery](#real-time-data-updates-with-convex-usequery) - Use `useQuery()` instead of manual queries
@@ -175,6 +177,7 @@ When [situation]:
 - [Centered Card Layout with Fixed Default Size](#centered-card-layout-with-fixed-default-size) - Cards not centered or breaking with long content
 - [Header Alignment with Sidebar Borders Pattern](#header-alignment-with-sidebar-borders-pattern) - Headers not aligning with sidebar borders
 - [Card Design with Proper Spacing and Visual Hierarchy](#card-design-with-proper-spacing-and-visual-hierarchy) - Cards cramped with no breathing room
+- [Interactive Components in DropdownMenu Items](#interactive-components-in-dropdownmenu-items) - Switch/toggle not working in dropdown menu
 
 ### Race Conditions
 - [Sidebar/Detail View Reactivity Issues](#sidebardetail-view-reactivity-issues) - Query tracking for race conditions
@@ -242,6 +245,8 @@ When [situation]:
 26. [Card Design with Proper Spacing and Visual Hierarchy](#card-design-with-proper-spacing-and-visual-hierarchy) - Generous padding and clear hierarchy
 27. [PostHog Server-First Tracking](#posthog-server-first-tracking) - Capture key analytics on the server to avoid blockers
 28. [PostHog Event Naming Taxonomy](#posthog-event-naming-taxonomy) - Standardize event/property naming for analytics
+29. [Convex: Avoid Undefined Convex Payloads](#convex-avoid-undefined-convex-payloads) - Use sentinels or strip optional fields to avoid undefined
+30. [Interactive Components in DropdownMenu Items](#interactive-components-in-dropdownmenu-items) - Use plain div wrappers for interactive children in menus
 
 ---
 
@@ -3060,5 +3065,125 @@ When interacting with Convex:
 - Add defensive helpers whenever state may be incomplete during hydration.
 
 **Related Patterns**: See [Convex Server-First Tracking](#posthog-server-first-tracking) for additional Convex client usage boundaries.
+
+---
+
+## Interactive Components in DropdownMenu Items
+
+**Tags**: `bits-ui`, `dropdown-menu`, `switch`, `interactive-components`, `event-handling`  
+**Date**: 2025-11-07  
+**Issue**: Switch component inside DropdownMenu.Item not working because the menu item intercepts all clicks.
+
+### Problem
+
+When adding a Switch toggle for theme switching inside a DropdownMenu:
+- Clicking the switch didn't toggle it; instead, it triggered the menu item's `onSelect` handler
+- The entire row (including text and icon) was clickable, making it impossible to interact with the switch
+- The switch positioning and sizing were inconsistent with other parts of the app
+
+### Root Cause
+
+1. **Event bubbling**: `DropdownMenu.Item` captures all click events via its `onSelect` handler, preventing child interactive components from receiving clicks
+2. **Component hierarchy**: bits-ui DropdownMenu.Item is designed to be a single interactive element, not a container for other interactive elements
+3. **Sizing inconsistency**: Switch was using different dimensions than the Settings page, causing visual imbalance
+
+### Solution
+
+**Pattern**: Use a plain `<div>` wrapper instead of `DropdownMenu.Item` when you need interactive child components inside a menu.
+
+```svelte
+<!-- ❌ WRONG: DropdownMenu.Item intercepts all clicks -->
+<DropdownMenu.Item
+  class="px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer"
+  onSelect={(event) => {
+    event.preventDefault();
+    theme.toggleTheme();
+  }}
+>
+  <span>{$isDark ? 'Dark mode' : 'Light mode'}</span>
+  <Switch.Root
+    checked={$isDark}
+    onCheckedChange={(checked) => theme.setTheme(checked ? 'dark' : 'light')}
+  >
+    <Switch.Thumb />
+  </Switch.Root>
+</DropdownMenu.Item>
+
+<!-- ✅ CORRECT: Plain div wrapper allows switch to be interactive -->
+<div class="px-menu-item py-menu-item">
+  <div class="flex items-center justify-between gap-icon-wide min-w-0">
+    <div class="flex items-center gap-icon">
+      <span class="font-medium text-sm text-primary">
+        {$isDark ? 'Dark mode' : 'Light mode'}
+      </span>
+      <!-- Icon for visual context -->
+      {#if $isDark}
+        <svg class="w-4 h-4 text-secondary flex-shrink-0"><!-- moon icon --></svg>
+      {:else}
+        <svg class="w-4 h-4 text-secondary flex-shrink-0"><!-- sun icon --></svg>
+      {/if}
+    </div>
+    <Switch.Root
+      checked={$isDark}
+      onCheckedChange={(checked) => theme.setTheme(checked ? 'dark' : 'light')}
+      class="relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 {$isDark ? 'bg-gray-900' : 'bg-gray-300'}"
+    >
+      <Switch.Thumb class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0 data-[state=checked]:translate-x-4" />
+    </Switch.Root>
+  </div>
+</div>
+```
+
+**Why it works**:
+- Plain `<div>` doesn't intercept click events, allowing the Switch to handle its own interactions
+- Switch dimensions match Settings page exactly: `h-4 w-8` track with `border-2` and `h-3 w-3` thumb
+- The `border-2` adds 4px total (2px each side), and `translate-x-4` (16px) perfectly centers the thumb when checked
+- Using semantic tokens (`px-menu-item`, `py-menu-item`, `gap-icon`, `gap-icon-wide`) maintains consistency
+
+### Implementation Example
+
+```svelte
+// src/lib/components/organizations/OrganizationSwitcher.svelte
+import { Switch } from 'bits-ui';
+import { theme, isDark } from '$lib/stores/theme';
+
+// Inside DropdownMenu.Content:
+<div class="px-menu-item py-menu-item">
+  <div class="flex items-center justify-between gap-icon-wide min-w-0">
+    <div class="flex items-center gap-icon">
+      <span class="font-medium text-sm text-primary">
+        {$isDark ? 'Dark mode' : 'Light mode'}
+      </span>
+      {#if $isDark}
+        <svg class="w-4 h-4 text-secondary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+        </svg>
+      {:else}
+        <svg class="w-4 h-4 text-secondary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      {/if}
+    </div>
+    <Switch.Root
+      checked={$isDark}
+      onCheckedChange={(checked) => theme.setTheme(checked ? 'dark' : 'light')}
+      class="relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 {$isDark ? 'bg-gray-900' : 'bg-gray-300'}"
+    >
+      <Switch.Thumb class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0 data-[state=checked]:translate-x-4" />
+    </Switch.Root>
+  </div>
+</div>
+```
+
+### Key Takeaway
+
+When using bits-ui DropdownMenu:
+- **Do** use plain `<div>` wrappers for menu items that contain interactive children (switches, inputs, buttons)
+- **Don't** wrap interactive components in `DropdownMenu.Item` - it will intercept their events
+- **Match sizing** across the app - reference existing implementations (like Settings page) for pixel-perfect consistency
+- Use semantic design tokens for spacing and colors
+- Add visual context (icons) to clarify the current state
+
+**Related Patterns**: See [DropdownMenu Pattern](#dropdownmenu-pattern-standard-for-all-menus) in design-tokens.md for standard menu styling.
 
 ---

@@ -13,6 +13,8 @@
     const auth = useAuth();
     const isAuthenticated = $derived(auth.isAuthenticated);
     const isLoading = $derived(auth.isLoading);
+    const accountEmail = $derived(() => auth.user?.email ?? 'user@example.com');
+    const accountName = $derived(() => auth.user?.name ?? 'Personal workspace');
 
 	// Get inbox count for sidebar - using 0 for now since inbox uses mock data
 	// TODO: Replace with actual Convex query when inbox data is connected
@@ -92,6 +94,8 @@
                 isMobile={isMobile}
                 sidebarCollapsed={sidebarCollapsed}
                 onSidebarToggle={() => (sidebarCollapsed = !sidebarCollapsed)}
+                accountName={accountName()}
+                accountEmail={accountEmail()}
             />
             <div class="flex-1 overflow-hidden">
                 {@render children()}

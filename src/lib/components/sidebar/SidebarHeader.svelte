@@ -5,7 +5,12 @@
 
 	type Props = {
 		workspaceName?: string;
+		accountEmail?: string;
 		onSettings?: () => void;
+		onInviteMembers?: () => void;
+		onSwitchWorkspace?: () => void;
+		onCreateWorkspace?: () => void;
+		onAddAccount?: () => void;
 		onLogout?: () => void;
 		onSearch?: () => void;
 		onEdit?: () => void;
@@ -16,7 +21,12 @@
 
 	let {
 		workspaceName = 'Axon',
+		accountEmail = 'user@example.com',
 		onSettings,
+		onInviteMembers,
+		onSwitchWorkspace,
+		onCreateWorkspace,
+		onAddAccount,
 		onLogout,
 		onSearch,
 		onEdit,
@@ -25,9 +35,10 @@
 		isHovered = false
 	}: Props = $props();
     const organizations = getContext<UseOrganizations | undefined>('organizations');
-
     const organizationInvites = $derived(() => organizations?.organizationInvites ?? []);
     const teamInvites = $derived(() => organizations?.teamInvites ?? []);
+    const organizationSummaries = $derived(() => organizations?.organizations ?? []);
+    const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
 </script>
 
 <!-- Sticky Header -->
@@ -35,31 +46,30 @@
 	<div class="flex items-center gap-icon">
 			<!-- Workspace Menu with Logo and Name -->
             {#if !sidebarCollapsed || (isMobile && !sidebarCollapsed) || (isHovered && !isMobile)}
-                <div class="flex-1 min-w-0">
-                    {#if organizations}
-                        <OrganizationSwitcher
-                            organizations={organizations.organizations}
-                            activeOrganizationId={organizations.activeOrganizationId}
-                            organizationInvites={organizationInvites()}
-                            teamInvites={teamInvites()}
-                            onSelectOrganization={(organizationId) => organizations.setActiveOrganization(organizationId)}
-                            onCreateOrganization={() => organizations.openModal('createOrganization')}
-                            onJoinOrganization={() => organizations.openModal('joinOrganization')}
-                            onAcceptOrganizationInvite={(inviteId) => organizations.acceptOrganizationInvite(inviteId)}
-                            onDeclineOrganizationInvite={(inviteId) => organizations.declineOrganizationInvite(inviteId)}
-                            onAcceptTeamInvite={(inviteId) => organizations.acceptTeamInvite(inviteId)}
-                            onDeclineTeamInvite={(inviteId) => organizations.declineTeamInvite(inviteId)}
-                            sidebarCollapsed={sidebarCollapsed}
-                            variant="sidebar"
-                        />
-                    {:else}
-                        <div class="flex items-center gap-icon-wide">
-                            <div class="w-7 h-7 rounded-md bg-sidebar-hover flex items-center justify-center text-xs font-semibold text-sidebar-primary shadow-sm">
-                                {workspaceName.slice(0, 2).toUpperCase()}
-                            </div>
-                            <span class="font-medium text-sm text-sidebar-primary truncate">{workspaceName}</span>
-                        </div>
-                    {/if}
+                <div class="flex items-center gap-icon-wide min-w-0 flex-1">
+                    <OrganizationSwitcher
+                        organizations={organizationSummaries()}
+                        activeOrganizationId={activeOrganizationId()}
+                        organizationInvites={organizationInvites()}
+                        teamInvites={teamInvites()}
+                        accountEmail={accountEmail}
+                        accountName={workspaceName}
+                        sidebarCollapsed={sidebarCollapsed}
+                        variant="sidebar"
+                        onSelectOrganization={(organizationId) => organizations?.setActiveOrganization(organizationId)}
+                        onCreateOrganization={() => organizations?.openModal('createOrganization')}
+                        onJoinOrganization={() => organizations?.openModal('joinOrganization')}
+                        onAcceptOrganizationInvite={(code) => organizations?.acceptOrganizationInvite(code)}
+                        onDeclineOrganizationInvite={(inviteId) => organizations?.declineOrganizationInvite(inviteId)}
+                        onAcceptTeamInvite={(code) => organizations?.acceptTeamInvite(code)}
+                        onDeclineTeamInvite={(inviteId) => organizations?.declineTeamInvite(inviteId)}
+                        onSettings={() => onSettings?.()}
+                        onInviteMembers={() => onInviteMembers?.()}
+                        onSwitchWorkspace={() => onSwitchWorkspace?.()}
+                        onCreateWorkspace={() => onCreateWorkspace?.()}
+                        onAddAccount={() => onAddAccount?.()}
+                        onLogout={() => onLogout?.()}
+                    />
                 </div>
 
 				<!-- Action Icons (Search and Edit) -->

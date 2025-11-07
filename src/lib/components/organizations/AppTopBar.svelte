@@ -6,16 +6,34 @@
     organizations,
     isMobile = false,
     sidebarCollapsed = false,
-    onSidebarToggle
+    onSidebarToggle,
+    accountName = 'Workspace',
+    accountEmail = 'user@example.com',
+    onSettings,
+    onInviteMembers,
+    onSwitchWorkspace,
+    onCreateWorkspace,
+    onAddAccount,
+    onLogout
   }: {
     organizations: UseOrganizations | undefined;
     isMobile?: boolean;
     sidebarCollapsed?: boolean;
     onSidebarToggle?: () => void;
+    accountName?: string;
+    accountEmail?: string;
+    onSettings?: () => void;
+    onInviteMembers?: () => void;
+    onSwitchWorkspace?: () => void;
+    onCreateWorkspace?: () => void;
+    onAddAccount?: () => void;
+    onLogout?: () => void;
   } = $props();
 
   const organizationInvites = $derived(() => organizations?.organizationInvites ?? []);
   const teamInvites = $derived(() => organizations?.teamInvites ?? []);
+  const organizationSummaries = $derived(() => organizations?.organizations ?? []);
+  const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
 
   if (!onSidebarToggle) {
     onSidebarToggle = () => {};
@@ -37,10 +55,12 @@
 
     <div class="flex-1 min-w-0">
       <OrganizationSwitcher
-        organizations={organizations?.organizations ?? []}
-        activeOrganizationId={organizations?.activeOrganizationId ?? null}
+        organizations={organizationSummaries()}
+        activeOrganizationId={activeOrganizationId()}
         organizationInvites={organizationInvites()}
         teamInvites={teamInvites()}
+        accountName={accountName}
+        accountEmail={accountEmail}
         onSelectOrganization={(organizationId) => organizations?.setActiveOrganization(organizationId)}
         onCreateOrganization={() => organizations?.openModal('createOrganization')}
         onJoinOrganization={() => organizations?.openModal('joinOrganization')}
@@ -48,6 +68,12 @@
         onDeclineOrganizationInvite={(inviteId) => organizations?.declineOrganizationInvite(inviteId)}
         onAcceptTeamInvite={(code) => organizations?.acceptTeamInvite(code)}
         onDeclineTeamInvite={(inviteId) => organizations?.declineTeamInvite(inviteId)}
+        onSettings={() => onSettings?.()}
+        onInviteMembers={() => onInviteMembers?.()}
+        onSwitchWorkspace={() => onSwitchWorkspace?.()}
+        onCreateWorkspace={() => onCreateWorkspace?.()}
+        onAddAccount={() => onAddAccount?.()}
+        onLogout={() => onLogout?.()}
         variant="topbar"
       />
     </div>
