@@ -29,6 +29,7 @@ This document captures reusable solutions, common issues, and architectural patt
 | InvalidConfig: hyphens in filename | Convex File System Access Pattern | [#convex-file-system](#convex-file-system-access-and-template-management-pattern) |
 | InvalidModules: Only actions can be defined in Node.js | Convex Node.js Runtime Restrictions | [#convex-nodejs-runtime](#convex-nodejs-runtime-restrictions-pattern) |
 | Analytics events missing in PostHog | PostHog Server-First Tracking | [#posthog-server-first-tracking](#posthog-server-first-tracking) |
+| Duplicate or unclear PostHog event names | PostHog Event Naming Taxonomy | [#posthog-event-naming-taxonomy](#posthog-event-naming-taxonomy) |
 
 ---
 
@@ -147,6 +148,7 @@ When [situation]:
 
 ### Analytics
 - [PostHog Server-First Tracking](#posthog-server-first-tracking) - Capture key analytics on the server to avoid blockers
+- [PostHog Event Naming Taxonomy](#posthog-event-naming-taxonomy) - Enforce consistent snake_case past-tense event names
 
 ### Activity Tracker
 - [Polling Initialization](#activity-tracker-polling-initialization) - Components manage polling, stores manage state
@@ -198,6 +200,7 @@ When [situation]:
 
 ### Naming Conventions
 - [Convex API Naming Convention Pattern](#convex-api-naming-convention-pattern) - File = module (noun), Function = action (verb)
+- [PostHog Event Naming Taxonomy](#posthog-event-naming-taxonomy) - Standardize analytics keys and properties
 
 ### Data Fetching
 - [Real-time Data Updates with Convex useQuery](#real-time-data-updates-with-convex-usequery) - Use `useQuery()` for reactive subscriptions
@@ -237,6 +240,7 @@ When [situation]:
 25. [Header Alignment with Sidebar Borders Pattern](#header-alignment-with-sidebar-borders-pattern) - Fixed height headers for border alignment
 26. [Card Design with Proper Spacing and Visual Hierarchy](#card-design-with-proper-spacing-and-visual-hierarchy) - Generous padding and clear hierarchy
 27. [PostHog Server-First Tracking](#posthog-server-first-tracking) - Capture key analytics on the server to avoid blockers
+28. [PostHog Event Naming Taxonomy](#posthog-event-naming-taxonomy) - Standardize event/property naming for analytics
 
 ---
 
@@ -2871,5 +2875,62 @@ When analytics are business-critical:
 - **Don't** rely solely on client capture—privacy tools will drop those requests
 
 **Related Patterns**: See [Centralized Configuration Pattern](#centralized-configuration-pattern) for managing shared env vars used by both client and server analytics.
+
+---
+
+## PostHog Event Naming Taxonomy
+
+**Tags**: `analytics`, `posthog`, `naming-conventions`, `taxonomy`  
+**Date**: 2025-11-07  
+**Issue**: Event and property names drifted between camelCase, Title Case, and different verbs, fragmenting PostHog insights.
+
+### Problem
+
+While documenting multi-tenant analytics we noticed:
+- Similar milestones were logged under multiple keys (`organization_created`, `Organization Created`, `orgCreate`)
+- Properties differed per team (`teamId` vs `team_id`), breaking funnels and HogQL queries
+- Display names were changed in the PostHog UI without updating code, hiding duplicates
+
+### Root Cause
+
+1. No shared taxonomy or enum for approved event names
+2. Contributors followed personal casing/tense preferences per feature
+3. UI-friendly naming was applied directly in code, causing future edits to diverge even more
+
+### Solution
+
+**Pattern**: Standardize on `snake_case` + past-tense verbs for events/properties and enforce them via a shared enum + helper.
+
+```ts
+// ❌ WRONG: Mixed casing + present tense
+posthog.capture('TeamInviteSent', { teamId: team.id });
+
+// ✅ CORRECT: snake_case + past tense + shared helper
+captureAnalyticsEvent(ctx, AnalyticsEventName.TEAM_INVITE_SENT, {
+  distinctId,
+  groups: { organization: orgId, team: team.id },
+  properties: { scope: 'team', team_id: team.id, invite_channel }
+});
+```
+
+**Why it works**:
+- A single enum (`AnalyticsEventName`) prevents typos and casing drift across callsites
+- Past tense clarifies the event already completed, matching server-triggered captures
+- Display-name tweaks happen in PostHog definitions, so code stays machine-friendly while dashboards remain readable
+
+### Implementation Example
+
+- `dev-docs/posthog.md` → codifies naming conventions (event format, property rules, boolean prefixes)
+- `src/lib/analytics/events.ts` (planned) → exports enums + payload types used by both SvelteKit and Convex
+- `convex/organizations.ts` / `convex/teams.ts` (planned) → central capture helpers ensure properties follow the taxonomy
+
+### Key Takeaway
+
+When adding analytics:
+- **Do** use enum-backed `snake_case` past-tense names with shared property keys
+- **Do** keep human-readable labels in PostHog’s event definition UI, not in code
+- **Don't** introduce new casing or verb tenses—update the taxonomy first if a new concept is needed
+
+**Related Patterns**: See [PostHog Server-First Tracking](#posthog-server-first-tracking) for ensuring reliable delivery of the consistently named events.
 
 ---
