@@ -397,6 +397,141 @@ export const createTag = mutation({
 });
 
 /**
+ * Mutation: Share a personal tag with an organization or team
+ * Converts a user-owned tag to organization or team ownership
+ */
+export const shareTag = mutation({
+	args: {
+		tagId: v.id("tags"),
+		shareWith: v.union(v.literal("organization"), v.literal("team")),
+		organizationId: v.optional(v.id("organizations")),
+		teamId: v.optional(v.id("teams")),
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx);
+		if (!userId) {
+			throw new Error("Not authenticated");
+		}
+
+		// Get the tag
+		const tag = await ctx.db.get(args.tagId);
+		if (!tag) {
+			throw new Error("Tag not found");
+		}
+
+		// Verify user owns this tag
+		if (tag.userId !== userId) {
+			throw new Error("You can only share tags you own");
+		}
+
+		// Verify tag is currently user-owned
+		if (tag.ownershipType !== "user" && tag.ownershipType !== undefined) {
+			throw new Error("Tag is already shared");
+		}
+
+		// Validate sharing parameters
+		let organizationId: Id<"organizations"> | undefined = undefined;
+		let teamId: Id<"teams"> | undefined = undefined;
+
+		if (args.shareWith === "organization") {
+			if (!args.organizationId) {
+				throw new Error("organizationId is required when sharing with organization");
+			}
+
+			// Verify user is member of the organization
+			const membership = await ctx.db
+				.query("organizationMembers")
+				.withIndex("by_organization_user", (q) =>
+					q.eq("organizationId", args.organizationId!).eq("userId", userId)
+				)
+				.first();
+			if (!membership) {
+				throw new Error("You are not a member of this organization");
+			}
+
+			organizationId = args.organizationId;
+			teamId = undefined;
+		} else if (args.shareWith === "team") {
+			if (!args.teamId) {
+				throw new Error("teamId is required when sharing with team");
+			}
+
+			// Verify user is member of the team
+			const teamMembership = await ctx.db
+				.query("teamMembers")
+				.withIndex("by_team_user", (q) => q.eq("teamId", args.teamId!).eq("userId", userId))
+				.first();
+			if (!teamMembership) {
+				throw new Error("You are not a member of this team");
+			}
+
+			// Get team to verify it exists and get organization
+			const team = await ctx.db.get(args.teamId);
+			if (!team) {
+				throw new Error("Team not found");
+			}
+
+			teamId = args.teamId;
+			organizationId = team.organizationId;
+		}
+
+		// Check for naming conflicts in target scope
+		const normalizedName = tag.name;
+		let existing: Doc<"tags"> | null = null;
+
+		if (args.shareWith === "organization" && organizationId) {
+			existing = await ctx.db
+				.query("tags")
+				.withIndex("by_organization_name", (q) =>
+					q.eq("organizationId", organizationId).eq("name", normalizedName)
+				)
+				.first();
+		} else if (args.shareWith === "team" && teamId) {
+			existing = await ctx.db
+				.query("tags")
+				.withIndex("by_team_name", (q) => q.eq("teamId", teamId).eq("name", normalizedName))
+				.first();
+		}
+
+		if (existing) {
+			throw new Error(`A tag named "${tag.displayName}" already exists in this ${args.shareWith}`);
+		}
+
+		// Update the tag
+		await ctx.db.patch(args.tagId, {
+			ownershipType: args.shareWith,
+			organizationId,
+			teamId,
+		});
+
+		// Get organization/team details for analytics
+		const organization = organizationId ? await ctx.db.get(organizationId) : null;
+		const teamDoc = teamId ? await ctx.db.get(teamId) : null;
+
+		// TODO: Capture analytics event
+		// For now, log to console for testing
+		console.log('📊 [TAG SHARED]', {
+			tagId: args.tagId,
+			tagName: tag.displayName,
+			sharedBy: userId,
+			shareWith: args.shareWith,
+			organizationId,
+			organizationName: organization?.name,
+			teamId,
+			teamName: teamDoc?.name,
+		});
+
+		return {
+			success: true,
+			tagId: args.tagId,
+			scope: args.shareWith,
+			organizationId,
+			teamId,
+		};
+	},
+});
+
+/**
  * Mutation: Assign multiple tags to a highlight (replaces existing assignments)
  */
 export const assignTagsToHighlight = mutation({
