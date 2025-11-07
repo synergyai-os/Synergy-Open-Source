@@ -12,12 +12,14 @@
   let {
     organizations = [] as OrganizationSummary[],
     activeOrganizationId = null as string | null,
+    activeOrganization = null as OrganizationSummary | null,
     organizationInvites = [] as OrganizationInvite[],
     teamInvites = [] as TeamInvite[],
     accountEmail = 'user@example.com',
     accountName = 'Personal workspace',
     variant = 'sidebar' as Variant,
     sidebarCollapsed = false,
+    isLoading = false,
     onSelectOrganization,
     onCreateOrganization,
     onJoinOrganization,
@@ -34,12 +36,14 @@
   }: {
     organizations?: OrganizationSummary[];
     activeOrganizationId?: string | null;
+    activeOrganization?: OrganizationSummary | null;
     organizationInvites?: OrganizationInvite[];
     teamInvites?: TeamInvite[];
     accountEmail?: string;
     accountName?: string;
     variant?: Variant;
     sidebarCollapsed?: boolean;
+    isLoading?: boolean;
     onSelectOrganization?: (organizationId: string | null) => void;
     onCreateOrganization?: () => void;
     onJoinOrganization?: () => void;
@@ -56,25 +60,26 @@
   } = $props();
 
   const hasOrganizations = $derived(() => organizations.length > 0);
-  const activeOrganization = $derived(() =>
-    organizations.find((org) => org.organizationId === activeOrganizationId) ?? null
-  );
   const showLabels = $derived(() => variant === 'topbar' || !sidebarCollapsed);
   const isPersonalActive = $derived(() => !activeOrganizationId);
+  
+  // Show skeleton when loading with no cached data
+  const showSkeleton = $derived(() => isLoading && !activeOrganization && activeOrganizationId);
+  
   const triggerInitials = $derived(() =>
     isPersonalActive()
       ? (accountName.slice(0, 2) || 'PW').toUpperCase()
-      : activeOrganization()?.initials ?? '—'
+      : activeOrganization?.initials ?? '—'
   );
   const triggerTitle = $derived(() =>
-    isPersonalActive() ? accountName : activeOrganization()?.name ?? 'Select workspace'
+    isPersonalActive() ? accountName : activeOrganization?.name ?? 'Select workspace'
   );
   const triggerSubtitle = $derived(() =>
     isPersonalActive()
       ? accountEmail
-      : activeOrganization()?.role === 'owner'
+      : activeOrganization?.role === 'owner'
         ? 'Owner'
-        : activeOrganization()?.role === 'admin'
+        : activeOrganization?.role === 'admin'
           ? 'Admin'
           : 'Member'
   );
@@ -133,7 +138,7 @@
     type="button"
     class={`flex items-center ${showLabels() ? 'gap-icon-wide px-nav-item py-nav-item' : 'p-2'} rounded-md hover:bg-sidebar-hover-solid transition-colors w-full text-left group`}
   >
-    <div class={`flex items-center ${showLabels() ? 'gap-icon-wide flex-1 min-w-0' : ''}`}>
+      <div class={`flex items-center ${showLabels() ? 'gap-icon-wide flex-1 min-w-0' : ''} transition-opacity duration-300 ${isLoading ? 'opacity-60' : 'opacity-100'}`}>
       <div
         class={`rounded-md flex items-center justify-center flex-shrink-0 text-xs font-semibold shadow-sm ${
           variant === 'topbar'
@@ -144,13 +149,19 @@
         {triggerInitials()}
       </div>
       {#if showLabels()}
-        <div class="flex flex-col min-w-0">
-          <span class="font-medium text-sm text-sidebar-primary truncate">
-            {triggerTitle()}
-          </span>
-          <span class="text-label text-sidebar-tertiary truncate">
-            {triggerSubtitle()}
-          </span>
+        <div class="flex flex-col min-w-0 gap-1">
+          {#if showSkeleton()}
+            <!-- Skeleton loading state -->
+            <div class="h-3.5 w-28 bg-sidebar-hover rounded animate-pulse"></div>
+            <div class="h-2.5 w-16 bg-sidebar-hover rounded animate-pulse"></div>
+          {:else}
+            <span class="font-medium text-sm text-sidebar-primary truncate">
+              {triggerTitle()}
+            </span>
+            <span class="text-label text-sidebar-tertiary truncate">
+              {triggerSubtitle()}
+            </span>
+          {/if}
         </div>
       {/if}
       <svg

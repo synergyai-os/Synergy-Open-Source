@@ -1,6 +1,8 @@
 import { browser } from '$app/environment';
 import { useConvexClient, useQuery } from 'convex-svelte';
 import { api } from '$lib/convex';
+import { AnalyticsEventName } from '$lib/analytics/events';
+import posthog from 'posthog-js';
 
 export type OrganizationRole = 'owner' | 'admin' | 'member';
 
@@ -55,6 +57,7 @@ type ModalKey = 'createOrganization' | 'joinOrganization' | 'createTeam' | 'join
 export type UseOrganizations = ReturnType<typeof useOrganizations>;
 
 const STORAGE_KEY = 'activeOrganizationId';
+const STORAGE_DETAILS_KEY = 'activeOrganizationDetails';
 const SENTINEL_ORGANIZATION_ID = '000000000000000000000000';
 const PERSONAL_SENTINEL = '__personal__';
 
@@ -64,9 +67,23 @@ export function useOrganizations() {
   const storedActiveId = browser ? localStorage.getItem(STORAGE_KEY) : null;
   const initialActiveId = storedActiveId === PERSONAL_SENTINEL ? null : storedActiveId;
 
+  // Load cached organization details for optimistic UI
+  let cachedOrgDetails: OrganizationSummary | null = null;
+  if (browser && initialActiveId) {
+    try {
+      const stored = localStorage.getItem(STORAGE_DETAILS_KEY);
+      if (stored) {
+        cachedOrgDetails = JSON.parse(stored);
+      }
+    } catch (e) {
+      console.warn('Failed to parse cached organization details', e);
+    }
+  }
+
   const state = $state({
     activeOrganizationId: initialActiveId,
     activeTeamId: null as string | null,
+    cachedOrganization: cachedOrgDetails,
     modals: {
       createOrganization: false,
       joinOrganization: false,
@@ -85,6 +102,8 @@ export function useOrganizations() {
         organizationId: (state.activeOrganizationId ?? SENTINEL_ORGANIZATION_ID) as any,
       }))
     : null;
+
+  const isLoading = $derived(organizationsQuery ? organizationsQuery.data === undefined : false);
 
   const organizationsData = $derived((): OrganizationSummary[] =>
     ((organizationsQuery?.data ?? []) as OrganizationSummary[]).map((org: OrganizationSummary) => ({
@@ -121,41 +140,70 @@ export function useOrganizations() {
   );
 
   $effect(() => {
+    // Wait until query has loaded before applying logic
+    // This prevents resetting activeOrganizationId during initial loading state
+    if (organizationsQuery && organizationsQuery.data === undefined) {
+      return;
+    }
+
     const list = organizationsData();
     if (!list || list.length === 0) {
       state.activeOrganizationId = null;
       if (browser) {
         localStorage.setItem(STORAGE_KEY, PERSONAL_SENTINEL);
+        localStorage.removeItem(STORAGE_DETAILS_KEY);
       }
       return;
     }
 
-    if (state.activeOrganizationId && !list.some((org) => org.organizationId === state.activeOrganizationId)) {
-      const fallback = list[0]?.organizationId ?? null;
-      state.activeOrganizationId = fallback;
+    // If we have an active org ID, validate it against loaded data
+    if (state.activeOrganizationId) {
+      const activeOrg = list.find(org => org.organizationId === state.activeOrganizationId);
+      
+      if (activeOrg) {
+        // Active org found in loaded data - ensure cache is populated
+        if (!state.cachedOrganization || state.cachedOrganization.organizationId !== activeOrg.organizationId) {
+          state.cachedOrganization = activeOrg;
+          if (browser) {
+            localStorage.setItem(STORAGE_DETAILS_KEY, JSON.stringify(activeOrg));
+          }
+        }
+        return; // Active org is valid and cached
+      }
+      
+      // Active org not found in list - fallback to first org
+      const fallback = list[0];
+      state.activeOrganizationId = fallback?.organizationId ?? null;
       if (browser) {
         if (fallback) {
-          localStorage.setItem(STORAGE_KEY, fallback);
+          localStorage.setItem(STORAGE_KEY, fallback.organizationId);
+          localStorage.setItem(STORAGE_DETAILS_KEY, JSON.stringify(fallback));
+          state.cachedOrganization = fallback;
         } else {
           localStorage.setItem(STORAGE_KEY, PERSONAL_SENTINEL);
+          localStorage.removeItem(STORAGE_DETAILS_KEY);
+          state.cachedOrganization = null;
         }
       }
       return;
     }
 
-    if (state.activeOrganizationId === null) {
-      if (browser) {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored === PERSONAL_SENTINEL) {
-          return;
-        }
+    // No active org - check if user wants personal workspace
+    if (browser) {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored === PERSONAL_SENTINEL) {
+        return;
       }
-      const first = list[0]?.organizationId ?? null;
-      if (first) {
-        state.activeOrganizationId = first;
-        if (browser) {
-          localStorage.setItem(STORAGE_KEY, first);
-        }
+    }
+    
+    // Default to first org
+    const first = list[0];
+    if (first) {
+      state.activeOrganizationId = first.organizationId;
+      state.cachedOrganization = first;
+      if (browser) {
+        localStorage.setItem(STORAGE_KEY, first.organizationId);
+        localStorage.setItem(STORAGE_DETAILS_KEY, JSON.stringify(first));
       }
     }
   });
@@ -171,23 +219,30 @@ export function useOrganizations() {
     const previousOrganizationId = state.activeOrganizationId;
     state.activeOrganizationId = organizationId;
     state.activeTeamId = null;
-    if (browser) {
-      if (organizationId) {
-        localStorage.setItem(STORAGE_KEY, organizationId);
-      } else {
-        localStorage.setItem(STORAGE_KEY, PERSONAL_SENTINEL);
-      }
-    }
 
     if (!organizationId) {
-      if (previousOrganizationId && browser) {
+      // Switching to personal workspace - clear cached org details
+      state.cachedOrganization = null;
+      if (browser) {
         localStorage.setItem(STORAGE_KEY, PERSONAL_SENTINEL);
+        localStorage.removeItem(STORAGE_DETAILS_KEY);
       }
       return;
     }
 
+    // Find and cache organization details for optimistic UI
     const summary = organizationsData().find((org) => org.organizationId === organizationId);
     const availableTeamCount = summary?.teamCount ?? 0;
+
+    if (summary) {
+      state.cachedOrganization = summary;
+      if (browser) {
+        localStorage.setItem(STORAGE_KEY, organizationId);
+        localStorage.setItem(STORAGE_DETAILS_KEY, JSON.stringify(summary));
+      }
+    } else if (browser) {
+      localStorage.setItem(STORAGE_KEY, organizationId);
+    }
 
     if (convexClient) {
       const mutationArgs: any = {
@@ -204,6 +259,27 @@ export function useOrganizations() {
         .catch((error) => {
           console.warn('Failed to record organization switch', error);
         });
+    }
+
+    // TEMPORARY: Client-side PostHog capture for testing
+    // TODO: Remove once server-side analytics via HTTP action bridge is implemented
+    if (browser && typeof posthog !== 'undefined') {
+      try {
+        const properties: any = {
+          scope: 'organization',
+          toOrganizationId: organizationId,
+          availableTeamCount,
+        };
+
+        if (previousOrganizationId) {
+          properties.fromOrganizationId = previousOrganizationId;
+        }
+
+        posthog.capture(AnalyticsEventName.ORGANIZATION_SWITCHED, properties);
+        console.log('📊 [TEST] PostHog event captured:', AnalyticsEventName.ORGANIZATION_SWITCHED, properties);
+      } catch (error) {
+        console.warn('Failed to capture PostHog event', error);
+      }
     }
   }
 
@@ -343,7 +419,19 @@ export function useOrganizations() {
     },
     get activeOrganization() {
       const list = organizationsData();
-      return list.find((org) => org.organizationId === state.activeOrganizationId) ?? null;
+      const realOrg = list.find((org) => org.organizationId === state.activeOrganizationId);
+      
+      // If we have real data, return it (prefer real over cached)
+      if (realOrg) {
+        return realOrg;
+      }
+      
+      // While loading, return cached organization if available
+      if (isLoading && state.cachedOrganization) {
+        return state.cachedOrganization;
+      }
+      
+      return null;
     },
     get organizationInvites() {
       return organizationInvites();
@@ -359,6 +447,9 @@ export function useOrganizations() {
     },
     get modals() {
       return state.modals;
+    },
+    get isLoading() {
+      return isLoading;
     },
     setActiveOrganization,
     setActiveTeam,

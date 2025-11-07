@@ -32,6 +32,9 @@ This document captures reusable solutions, common issues, and architectural patt
 | Duplicate or unclear PostHog event names | PostHog Event Naming Taxonomy | [#posthog-event-naming-taxonomy](#posthog-event-naming-taxonomy) |
 | Convex error: `undefined is not a valid Convex value` | Avoid Undefined Convex Payloads | [#convex-avoid-undefined-payloads](#convex-avoid-undefined-convex-payloads) |
 | Switch/interactive component not working in dropdown | Interactive Components in DropdownMenu | [#interactive-components-dropdownmenu](#interactive-components-in-dropdownmenu-items) |
+| Flash of fallback text on page load | Optimistic UI with localStorage Caching | [#optimistic-ui-localstorage](#optimistic-ui-with-localstorage-caching-pattern) |
+| `$derived` always returns truthy value | Svelte 5 $derived Double-Wrapping Bug | [#derived-double-wrapping](#svelte-5-derived-double-wrapping-bug) |
+| Error: `state_unsafe_mutation` | Svelte 5 State Mutation in Getters | [#state-mutation-getters](#svelte-5-state-mutation-in-getters) |
 
 ---
 
@@ -3219,5 +3222,475 @@ When using bits-ui DropdownMenu:
 - Add visual context (icons) to clarify the current state
 
 **Related Patterns**: See [DropdownMenu Pattern](#dropdownmenu-pattern-standard-for-all-menus) in design-tokens.md for standard menu styling.
+
+---
+
+## Optimistic UI with localStorage Caching Pattern
+
+**Tags**: `optimistic-ui`, `localstorage`, `caching`, `loading-states`, `skeleton`, `svelte-5`, `$derived`, `$effect`, `ux`  
+**Date**: 2025-01-07  
+**Issue**: Page refresh shows "Select workspace" text briefly before switching to actual organization name, creating jarring UX.
+
+### Problem
+
+When implementing multi-tenancy with persistent organization selection:
+- User selects an organization → stored in localStorage (ID only)
+- Page refresh → brief flash of fallback text ("Select workspace") 
+- Query loads → organization name appears
+- **Result**: Jarring content flash that breaks perceived performance
+
+### Root Cause
+
+Three separate issues combined to create the problem:
+
+1. **Missing Cache Backfill Logic**: `$effect` had logic for invalid/null org IDs but no logic to populate cache when valid org ID loads with real data
+2. **Double-Wrapped $derived**: Created function instead of boolean: `$derived(() => value)` returns function, not value
+3. **State Mutation in Getter**: Attempted to clear cache inside getter (`state.cachedOrganization = null`) which violates Svelte 5 rules
+
+### Solution
+
+**Pattern**: Three-stage loading with localStorage cache
+
+```typescript
+// 1. Cache structure - store full object, not just ID
+const STORAGE_KEY = 'activeOrganizationId';
+const STORAGE_DETAILS_KEY = 'activeOrganizationDetails';
+
+// 2. Load cached data on mount
+let cachedOrgDetails: OrganizationSummary | null = null;
+if (browser && initialActiveId) {
+  try {
+    const stored = localStorage.getItem(STORAGE_DETAILS_KEY);
+    if (stored) {
+      cachedOrgDetails = JSON.parse(stored);
+    }
+  } catch (e) {
+    console.warn('Failed to parse cached details', e);
+  }
+}
+
+const state = $state({
+  activeOrganizationId: initialActiveId,
+  cachedOrganization: cachedOrgDetails, // Store in state
+});
+
+// 3. Correct $derived syntax - NO arrow function wrapper
+const isLoading = $derived(organizationsQuery ? organizationsQuery.data === undefined : false);
+
+// 4. Backfill cache when query loads with valid data
+$effect(() => {
+  if (organizationsQuery && organizationsQuery.data === undefined) {
+    return; // Wait for query to load
+  }
+
+  const list = organizationsData();
+  
+  // NEW: If active org exists in loaded data, populate cache
+  if (state.activeOrganizationId) {
+    const activeOrg = list.find(org => org.organizationId === state.activeOrganizationId);
+    
+    if (activeOrg) {
+      // Ensure cache is populated (backfill for existing users)
+      if (!state.cachedOrganization || 
+          state.cachedOrganization.organizationId !== activeOrg.organizationId) {
+        state.cachedOrganization = activeOrg;
+        if (browser) {
+          localStorage.setItem(STORAGE_DETAILS_KEY, JSON.stringify(activeOrg));
+        }
+      }
+      return;
+    }
+  }
+  
+  // ... fallback/default logic
+});
+
+// 5. Getter returns cached data while loading - NO mutations
+get activeOrganization() {
+  const list = organizationsData();
+  const realOrg = list.find(org => org.organizationId === state.activeOrganizationId);
+  
+  // Prefer real data when available
+  if (realOrg) {
+    return realOrg; // Don't mutate cache here!
+  }
+  
+  // While loading, return cached data
+  if (isLoading && state.cachedOrganization) {
+    return state.cachedOrganization;
+  }
+  
+  return null;
+}
+```
+
+**Why it works**:
+- ✅ Cache backfill ensures existing users get cached data on next load
+- ✅ `$derived` without extra arrow wrapper returns actual boolean value
+- ✅ Getter is pure (no mutations) so Svelte 5 doesn't throw `state_unsafe_mutation` error
+- ✅ Three-stage loading provides smooth UX
+
+### Three-Stage Loading UI
+
+```svelte
+<script>
+  // Show skeleton when loading with no cache
+  const showSkeleton = $derived(() => 
+    isLoading && !activeOrganization && activeOrganizationId
+  );
+</script>
+
+{#if showLabels()}
+  <div class="flex flex-col min-w-0 gap-1">
+    {#if showSkeleton()}
+      <!-- Stage 1: Skeleton (0.0001s - before cache loads) -->
+      <div class="h-3.5 w-28 bg-sidebar-hover rounded animate-pulse"></div>
+      <div class="h-2.5 w-16 bg-sidebar-hover rounded animate-pulse"></div>
+    {:else}
+      <!-- Stage 2: Cached (60% opacity) or Stage 3: Real (100% opacity) -->
+      <span class="font-medium text-sm text-sidebar-primary truncate">
+        {triggerTitle()}
+      </span>
+      <span class="text-label text-sidebar-tertiary truncate">
+        {triggerSubtitle()}
+      </span>
+    {/if}
+  </div>
+{/if}
+
+<!-- Apply opacity transition to parent container -->
+<div class="transition-opacity duration-300 {isLoading ? 'opacity-60' : 'opacity-100'}">
+  <!-- content -->
+</div>
+```
+
+### Implementation Example
+
+**Composable** (`useOrganizations.svelte.ts`):
+```typescript
+export function useOrganizations() {
+  // Load cache on mount
+  let cachedOrgDetails: OrganizationSummary | null = null;
+  if (browser && initialActiveId) {
+    try {
+      const stored = localStorage.getItem(STORAGE_DETAILS_KEY);
+      if (stored) cachedOrgDetails = JSON.parse(stored);
+    } catch (e) {
+      console.warn('Failed to parse cached details', e);
+    }
+  }
+
+  const state = $state({
+    activeOrganizationId: initialActiveId,
+    cachedOrganization: cachedOrgDetails,
+  });
+
+  // Correct $derived - no arrow wrapper
+  const isLoading = $derived(
+    organizationsQuery ? organizationsQuery.data === undefined : false
+  );
+
+  // Backfill cache when data loads
+  $effect(() => {
+    if (organizationsQuery && organizationsQuery.data === undefined) return;
+
+    const list = organizationsData();
+    
+    if (state.activeOrganizationId) {
+      const activeOrg = list.find(org => org.organizationId === state.activeOrganizationId);
+      
+      if (activeOrg) {
+        // Populate cache if missing
+        if (!state.cachedOrganization || 
+            state.cachedOrganization.organizationId !== activeOrg.organizationId) {
+          state.cachedOrganization = activeOrg;
+          if (browser) {
+            localStorage.setItem(STORAGE_DETAILS_KEY, JSON.stringify(activeOrg));
+          }
+        }
+        return;
+      }
+    }
+  });
+
+  return {
+    get activeOrganization() {
+      const list = organizationsData();
+      const realOrg = list.find(org => org.organizationId === state.activeOrganizationId);
+      
+      if (realOrg) return realOrg;
+      if (isLoading && state.cachedOrganization) return state.cachedOrganization;
+      return null;
+    },
+    get isLoading() {
+      return isLoading; // Not isLoading() - it's a value not a function
+    },
+  };
+}
+```
+
+### Key Takeaway
+
+For instant-loading optimistic UI:
+1. **Cache full objects** in localStorage, not just IDs
+2. **Load cache on mount** before queries run
+3. **Backfill cache in $effect** when real data loads (handles existing users)
+4. **Pure getters** - never mutate state inside getters in Svelte 5
+5. **Correct $derived syntax** - `$derived(value)` not `$derived(() => value)` 
+6. **Three-stage loading**: Skeleton → Cached (blurry) → Real (sharp)
+
+**Common Pitfalls**:
+- ❌ Storing only ID → requires query to show name
+- ❌ `$derived(() => value)` → returns function, always truthy
+- ❌ Mutating state in getter → `state_unsafe_mutation` error
+- ❌ No cache backfill logic → existing users never get cache populated
+
+---
+
+## Svelte 5 $derived Double-Wrapping Bug
+
+**Tags**: `svelte-5`, `$derived`, `reactivity`, `bug`, `arrow-function`  
+**Date**: 2025-01-07  
+**Issue**: `$derived` with extra arrow function wrapper creates function instead of value, breaking conditional logic.
+
+### Problem
+
+When creating derived state, adding an unnecessary arrow function wrapper:
+```typescript
+const isLoading = $derived(() => query ? query.data === undefined : false);
+```
+
+Results in:
+- `isLoading` is a function, not a boolean
+- `isLoading()` returns another function (the arrow function)
+- `isLoading()` is always truthy (functions are truthy in JS)
+- Conditionals like `if (isLoading() && cache)` behave unpredictably
+
+### Root Cause
+
+**Confusion between `$derived` and `$derived.by`**:
+
+- `$derived(expression)` - Evaluates expression directly
+- `$derived.by(() => expression)` - Calls function to compute value
+- `$derived(() => expression)` - **WRONG** - Returns the function itself
+
+The extra arrow function makes `$derived` return a function object instead of evaluating the expression.
+
+### Solution
+
+**Pattern**: Remove unnecessary arrow function wrapper
+
+```typescript
+// ❌ WRONG: Double-wrapped - returns function
+const isLoading = $derived(() => 
+  organizationsQuery ? organizationsQuery.data === undefined : false
+);
+
+// Usage fails because isLoading is a function
+if (isLoading() && cache) { } // isLoading() returns function, not boolean
+
+// ✅ CORRECT: Single expression - returns boolean
+const isLoading = $derived(
+  organizationsQuery ? organizationsQuery.data === undefined : false
+);
+
+// Usage works correctly
+if (isLoading && cache) { } // isLoading is boolean
+```
+
+**When to use `$derived.by`**:
+```typescript
+// Use $derived.by when you need a function for complex computation
+const filteredItems = $derived.by(() => {
+  const items = allItems();
+  const filter = currentFilter();
+  // Complex multi-line logic
+  return items.filter(item => item.type === filter);
+});
+```
+
+**Why it works**:
+- `$derived(value)` directly evaluates and tracks reactive dependencies
+- No arrow function means no extra function layer
+- Conditional checks work as expected with actual values
+
+### Key Takeaway
+
+When using Svelte 5 `$derived`:
+- **Do** use `$derived(expression)` for simple derived values
+- **Do** use `$derived.by(() => { ... })` for complex multi-line computations
+- **Don't** use `$derived(() => expression)` - creates unwanted function wrapper
+- **Symptom**: If checking `if (derivedValue())` throws error or always passes, you likely have double-wrapping
+
+**Pattern comparison**:
+```typescript
+// Simple expression - use $derived directly
+const count = $derived(items.length);
+const isEmpty = $derived(items.length === 0);
+const isLoading = $derived(query?.data === undefined);
+
+// Complex computation - use $derived.by
+const summary = $derived.by(() => {
+  const items = getItems();
+  const total = items.reduce((sum, item) => sum + item.value, 0);
+  return { total, count: items.length, average: total / items.length };
+});
+```
+
+---
+
+## Svelte 5 State Mutation in Getters
+
+**Tags**: `svelte-5`, `$state`, `getters`, `reactivity`, `state_unsafe_mutation`, `pure-functions`  
+**Date**: 2025-01-07  
+**Issue**: Mutating state inside a getter causes `state_unsafe_mutation` error in Svelte 5.
+
+### Problem
+
+When returning state from composables using getters, attempting to mutate state inside the getter:
+```typescript
+get activeOrganization() {
+  const realOrg = list.find(org => org.id === state.activeId);
+  
+  if (realOrg) {
+    // ❌ ERROR: Mutating state inside getter
+    state.cachedOrganization = null;
+    return realOrg;
+  }
+  
+  return state.cachedOrganization;
+}
+```
+
+Results in runtime error:
+```
+Uncaught Svelte error: state_unsafe_mutation
+
+Updating state inside `$derived(...)`, `$inspect(...)` or a 
+template expression is forbidden. If the value should not be 
+reactive, declare it without `$state`
+```
+
+### Root Cause
+
+Svelte 5 enforces **pure getter semantics**:
+- Getters are tracked as reactive dependencies
+- When component reads getter, Svelte tracks which state it accesses
+- If getter mutates state, it can cause infinite loops or unpredictable reactivity
+- Svelte forbids mutations in getters to prevent this
+
+**Similar to `$derived`**: You can't mutate state inside `$derived`, `$inspect`, or template expressions.
+
+### Solution
+
+**Pattern**: Keep getters pure - only read and return values
+
+```typescript
+// ❌ WRONG: Mutating state in getter
+get activeOrganization() {
+  const realOrg = list.find(org => org.id === state.activeId);
+  
+  if (realOrg) {
+    state.cachedOrganization = null; // Mutation - forbidden!
+    return realOrg;
+  }
+  
+  return state.cachedOrganization;
+}
+
+// ✅ CORRECT: Pure getter - only reads
+get activeOrganization() {
+  const realOrg = list.find(org => org.id === state.activeId);
+  
+  // Prefer real data when available
+  if (realOrg) {
+    return realOrg;
+  }
+  
+  // Fallback to cached data
+  if (isLoading && state.cachedOrganization) {
+    return state.cachedOrganization;
+  }
+  
+  return null;
+}
+
+// Clear cache in $effect instead
+$effect(() => {
+  const list = organizationsData();
+  const realOrg = list.find(org => org.id === state.activeId);
+  
+  // Safe to mutate in $effect
+  if (realOrg && state.cachedOrganization?.id === realOrg.id) {
+    state.cachedOrganization = null; // OK here
+  }
+});
+```
+
+**Why it works**:
+- Getters are pure - only read and compute
+- State mutations happen in `$effect` or functions
+- No risk of infinite reactivity loops
+- Svelte's reactivity system works correctly
+
+### Implementation Example
+
+```typescript
+export function useData() {
+  const state = $state({
+    items: [] as Item[],
+    cachedItem: null as Item | null,
+  });
+
+  // ❌ WRONG: Mutation in getter
+  return {
+    get currentItem() {
+      const item = state.items[0];
+      if (item) {
+        state.cachedItem = null; // Error!
+        return item;
+      }
+      return state.cachedItem;
+    }
+  };
+
+  // ✅ CORRECT: Pure getter
+  return {
+    get currentItem() {
+      return state.items[0] ?? state.cachedItem ?? null;
+    },
+    
+    // Mutation in dedicated function
+    clearCache() {
+      state.cachedItem = null;
+    }
+  };
+}
+```
+
+### Key Takeaway
+
+In Svelte 5, getters must be **pure**:
+- **Do** only read and compute values in getters
+- **Do** mutate state in `$effect`, functions, or event handlers
+- **Don't** mutate state inside getters, `$derived`, or template expressions
+- **Why**: Prevents infinite loops and ensures predictable reactivity
+
+**Error to watch for**:
+```
+state_unsafe_mutation - Updating state inside $derived(...), 
+$inspect(...) or a template expression is forbidden
+```
+
+**Where mutations are allowed**:
+- ✅ Regular functions (e.g., `function updateState() { state.x = y; }`)
+- ✅ Event handlers (`onclick={() => state.x = y}`)
+- ✅ `$effect(() => { state.x = y; })`
+
+**Where mutations are forbidden**:
+- ❌ Getters (`get value() { state.x = y; return state.x; }`)
+- ❌ `$derived(state.x = y)` or `$derived.by(() => { state.x = y; })`
+- ❌ Template expressions (`{state.x = y}`)
+- ❌ `$inspect(() => { state.x = y; })`
 
 ---
