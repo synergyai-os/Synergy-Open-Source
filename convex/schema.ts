@@ -10,6 +10,7 @@ const schema = defineSchema({
     slug: v.string(), // URL-friendly identifier
     createdAt: v.number(),
     updatedAt: v.number(),
+    plan: v.string(),
   })
     .index("by_slug", ["slug"]),
 
@@ -44,6 +45,43 @@ const schema = defineSchema({
     .index("by_team", ["teamId"])
     .index("by_user", ["userId"])
     .index("by_team_user", ["teamId", "userId"]),
+
+  // Organization invites (pending membership)
+  organizationInvites: defineTable({
+    organizationId: v.id("organizations"),
+    invitedUserId: v.optional(v.id("users")),
+    email: v.optional(v.string()),
+    role: v.union(v.literal("owner"), v.literal("admin"), v.literal("member")),
+    invitedBy: v.id("users"),
+    code: v.string(),
+    createdAt: v.number(),
+    expiresAt: v.optional(v.number()),
+    acceptedAt: v.optional(v.number()),
+    revokedAt: v.optional(v.number()),
+  })
+    .index("by_code", ["code"])
+    .index("by_organization", ["organizationId"])
+    .index("by_user", ["invitedUserId"])
+    .index("by_email", ["email"]),
+
+  // Team invites (pending team membership)
+  teamInvites: defineTable({
+    teamId: v.id("teams"),
+    organizationId: v.id("organizations"),
+    invitedUserId: v.optional(v.id("users")),
+    email: v.optional(v.string()),
+    role: v.union(v.literal("admin"), v.literal("member")),
+    invitedBy: v.id("users"),
+    code: v.string(),
+    createdAt: v.number(),
+    expiresAt: v.optional(v.number()),
+    acceptedAt: v.optional(v.number()),
+    revokedAt: v.optional(v.number()),
+  })
+    .index("by_code", ["code"])
+    .index("by_team", ["teamId"])
+    .index("by_user", ["invitedUserId"])
+    .index("by_email", ["email"]),
 
   // User settings - one per user
   userSettings: defineTable({
@@ -240,10 +278,23 @@ const schema = defineSchema({
     color: v.string(), // User-assigned color (hex code)
     parentId: v.optional(v.id("tags")), // Parent tag for hierarchical relationships
     createdAt: v.number(),
+    organizationId: v.optional(v.id("organizations")),
+    teamId: v.optional(v.id("teams")),
+    ownershipType: v.optional(
+      v.union(
+        v.literal("user"),
+        v.literal("organization"),
+        v.literal("team")
+      )
+    ),
   })
     .index("by_user", ["userId"])
     .index("by_user_name", ["userId", "name"]) // Unique tag per user
-    .index("by_user_parent", ["userId", "parentId"]), // Efficient hierarchical queries
+    .index("by_user_parent", ["userId", "parentId"]) // Efficient hierarchical queries
+    .index("by_organization", ["organizationId"])
+    .index("by_organization_name", ["organizationId", "name"])
+    .index("by_team", ["teamId"])
+    .index("by_team_name", ["teamId", "name"]),
 
   // Many-to-many: Sources ↔ Tags
   // Tags are attached to sources in Readwise

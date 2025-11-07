@@ -1,5 +1,7 @@
 <script lang="ts">
-	import WorkspaceMenu from './WorkspaceMenu.svelte';
+    import { getContext } from 'svelte';
+    import OrganizationSwitcher from '../organizations/OrganizationSwitcher.svelte';
+    import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 
 	type Props = {
 		workspaceName?: string;
@@ -22,16 +24,43 @@
 		sidebarCollapsed = false,
 		isHovered = false
 	}: Props = $props();
+    const organizations = getContext<UseOrganizations | undefined>('organizations');
+
+    const organizationInvites = $derived(() => organizations?.organizationInvites ?? []);
+    const teamInvites = $derived(() => organizations?.teamInvites ?? []);
 </script>
 
 <!-- Sticky Header -->
 <div class="sticky top-0 z-10 bg-sidebar border-b border-sidebar px-header py-system-header h-system-header flex items-center justify-between flex-shrink-0">
 	<div class="flex items-center gap-icon">
 			<!-- Workspace Menu with Logo and Name -->
-			{#if !sidebarCollapsed || (isMobile && !sidebarCollapsed) || (isHovered && !isMobile)}
-				<div class="flex-1 min-w-0">
-					<WorkspaceMenu {workspaceName} {onSettings} {onLogout} />
-				</div>
+            {#if !sidebarCollapsed || (isMobile && !sidebarCollapsed) || (isHovered && !isMobile)}
+                <div class="flex-1 min-w-0">
+                    {#if organizations}
+                        <OrganizationSwitcher
+                            organizations={organizations.organizations}
+                            activeOrganizationId={organizations.activeOrganizationId}
+                            organizationInvites={organizationInvites()}
+                            teamInvites={teamInvites()}
+                            onSelectOrganization={(organizationId) => organizations.setActiveOrganization(organizationId)}
+                            onCreateOrganization={() => organizations.openModal('createOrganization')}
+                            onJoinOrganization={() => organizations.openModal('joinOrganization')}
+                            onAcceptOrganizationInvite={(inviteId) => organizations.acceptOrganizationInvite(inviteId)}
+                            onDeclineOrganizationInvite={(inviteId) => organizations.declineOrganizationInvite(inviteId)}
+                            onAcceptTeamInvite={(inviteId) => organizations.acceptTeamInvite(inviteId)}
+                            onDeclineTeamInvite={(inviteId) => organizations.declineTeamInvite(inviteId)}
+                            sidebarCollapsed={sidebarCollapsed}
+                            variant="sidebar"
+                        />
+                    {:else}
+                        <div class="flex items-center gap-icon-wide">
+                            <div class="w-7 h-7 rounded-md bg-sidebar-hover flex items-center justify-center text-xs font-semibold text-sidebar-primary shadow-sm">
+                                {workspaceName.slice(0, 2).toUpperCase()}
+                            </div>
+                            <span class="font-medium text-sm text-sidebar-primary truncate">{workspaceName}</span>
+                        </div>
+                    {/if}
+                </div>
 
 				<!-- Action Icons (Search and Edit) -->
 				<div class="flex items-center gap-0.5">

@@ -1,13 +1,16 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { dev } from '$app/environment';
-	import { tweened } from 'svelte/motion';
-	import { cubicOut } from 'svelte/easing';
-	import { fade } from 'svelte/transition';
-	import { useAuth } from '@mmailaender/convex-auth-svelte/sveltekit';
-	import ResizableSplitter from './ResizableSplitter.svelte';
-	import SidebarHeader from './sidebar/SidebarHeader.svelte';
-	import CleanReadwiseButton from './sidebar/CleanReadwiseButton.svelte';
+    import { goto } from '$app/navigation';
+    import { dev } from '$app/environment';
+    import { tweened } from 'svelte/motion';
+    import { cubicOut } from 'svelte/easing';
+    import { fade } from 'svelte/transition';
+    import { getContext } from 'svelte';
+    import { useAuth } from '@mmailaender/convex-auth-svelte/sveltekit';
+    import ResizableSplitter from './ResizableSplitter.svelte';
+    import SidebarHeader from './sidebar/SidebarHeader.svelte';
+    import CleanReadwiseButton from './sidebar/CleanReadwiseButton.svelte';
+    import TeamList from './organizations/TeamList.svelte';
+    import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 
 	type Props = {
 		inboxCount: number;
@@ -27,9 +30,10 @@
 		onSidebarWidthChange
 	}: Props = $props();
 
-	// Get auth functions for logout
-	const auth = useAuth();
-	const { signOut } = auth;
+    // Get auth functions for logout
+    const auth = useAuth();
+    const { signOut } = auth;
+    const organizations = getContext<UseOrganizations | undefined>('organizations');
 
 	let isPinned = $state(false);
 	let isHovered = $state(false);
@@ -179,6 +183,10 @@
 		!isCollapsing &&
 		(!sidebarCollapsed || (sidebarCollapsed && hoverState))
 	);
+
+	const visibleTeams = $derived(() => organizations?.teams ?? []);
+	const teamInvites = $derived(() => organizations?.teamInvites ?? []);
+	const activeTeamId = $derived(() => organizations?.activeTeamId ?? null);
 
 	// Set up document mouse tracking when sidebar is hovered and collapsed
 	$effect(() => {
@@ -416,6 +424,21 @@
 						</svg>
 						<span class="font-normal">Study</span>
 					</a>
+
+			{#if organizations}
+				<TeamList
+					teams={visibleTeams()}
+					teamInvites={teamInvites()}
+					activeTeamId={activeTeamId()}
+					sidebarCollapsed={sidebarCollapsed}
+					isMobile={isMobile}
+					onSelectTeam={(teamId) => organizations.setActiveTeam(teamId)}
+					onCreateTeam={() => organizations.openModal('createTeam')}
+					onJoinTeam={() => organizations.openModal('joinTeam')}
+					onAcceptInvite={(inviteId) => organizations.acceptTeamInvite(inviteId)}
+					onDeclineInvite={(inviteId) => organizations.declineTeamInvite(inviteId)}
+				/>
+			{/if}
 
 					<!-- Categories Section -->
 					<div class="border-t border-sidebar my-2"></div>
@@ -724,6 +747,21 @@
 						<span class="font-normal">Study</span>
 					{/if}
 				</a>
+
+		{#if organizations}
+			<TeamList
+				teams={visibleTeams()}
+				teamInvites={teamInvites()}
+				activeTeamId={activeTeamId()}
+				sidebarCollapsed={sidebarCollapsed}
+				isMobile={isMobile}
+				onSelectTeam={(teamId) => organizations.setActiveTeam(teamId)}
+				onCreateTeam={() => organizations.openModal('createTeam')}
+				onJoinTeam={() => organizations.openModal('joinTeam')}
+				onAcceptInvite={(inviteId) => organizations.acceptTeamInvite(inviteId)}
+				onDeclineInvite={(inviteId) => organizations.declineTeamInvite(inviteId)}
+			/>
+		{/if}
 
 				<!-- Categories Section -->
 				{#if !isMobile}

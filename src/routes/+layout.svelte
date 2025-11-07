@@ -1,15 +1,17 @@
 <script lang="ts">
-	import '../app.css';
-	import favicon from '$lib/assets/favicon.svg';
-	import { setupConvexAuth } from '@mmailaender/convex-auth-svelte/sveltekit';
-	import { PUBLIC_CONVEX_URL, PUBLIC_POSTHOG_HOST, PUBLIC_POSTHOG_KEY } from '$env/static/public';
-	import { browser } from '$app/environment';
-	import posthog from 'posthog-js';
-	import { beforeNavigate, afterNavigate } from '$app/navigation';
-	import { onMount } from 'svelte';
-	import { identityFromToken } from '$lib/posthog/identity';
+    import '../app.css';
+    import favicon from '$lib/assets/favicon.svg';
+    import { setupConvexAuth } from '@mmailaender/convex-auth-svelte/sveltekit';
+    import { PUBLIC_CONVEX_URL, PUBLIC_POSTHOG_HOST, PUBLIC_POSTHOG_KEY } from '$env/static/public';
+    import { browser } from '$app/environment';
+    import posthog from 'posthog-js';
+    import { beforeNavigate, afterNavigate } from '$app/navigation';
+    import { onMount, setContext } from 'svelte';
+    import { identityFromToken } from '$lib/posthog/identity';
+    import { useOrganizations } from '$lib/composables/useOrganizations.svelte';
+    import OrganizationModals from '$lib/components/organizations/OrganizationModals.svelte';
 
-	let { children, data } = $props();
+    let { children, data } = $props();
 
 	// Set up authentication (automatically initializes authenticated Convex client)
 	// setupConvexAuth creates its own client and should register it with convex-svelte context
@@ -24,8 +26,13 @@
 		isLoading: authResult.isLoading
 	});
 
+	const organizationStore = useOrganizations();
+	setContext('organizations', organizationStore);
+
 	let posthogReady = $state(false);
 	let lastIdentifiedId = $state<string | null>(null);
+
+    const activeOrganizationName = $derived(() => organizationStore.activeOrganization?.name ?? null);
 
 	// Initialize PostHog after the component mounts in the browser
 	if (browser && PUBLIC_POSTHOG_KEY) {
@@ -76,3 +83,8 @@
 </svelte:head>
 
 {@render children()}
+
+<OrganizationModals
+    organizations={organizationStore}
+    activeOrganizationName={activeOrganizationName()}
+/>

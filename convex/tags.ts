@@ -8,41 +8,29 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { normalizeTagName } from "./readwiseUtils";
-import type { Id } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
+import { canAccessContent } from "./permissions";
+import type { QueryCtx, MutationCtx } from "./_generated/server";
+import { captureAnalyticsEvent } from "./posthog";
+import { AnalyticsEventName } from "../src/lib/analytics/events";
 
-/**
- * Helper: Validate that setting parentId doesn't create circular reference
- * Prevents a tag from being its own ancestor
- */
-async function validateCircularReference(
-	ctx: any,
-	tagId: Id<"tags">,
-	proposedParentId: Id<"tags"> | undefined
-): Promise<void> {
-	if (!proposedParentId) {
-		return; // No parent = no cycle possible
-	}
+export interface TagWithHierarchy {
+	_id: Id<"tags">;
+	userId: Id<"users">;
+	name: string;
+	displayName: string;
+	color: string;
+	parentId: Id<"tags"> | undefined;
+	externalId: number | undefined;
+	createdAt: number;
+	level: number; // Depth in hierarchy (0 = root level)
+	children?: TagWithHierarchy[];
+}
 
-	if (tagId === proposedParentId) {
-		throw new Error("Tag cannot be its own parent");
-	}
-
-	// Walk up the parent chain to check if proposedParentId is a descendant of tagId
-	let currentParentId: Id<"tags"> | undefined = proposedParentId;
-	const visited = new Set<Id<"tags">>([tagId]); // Track visited tags to prevent infinite loops
-
-	while (currentParentId) {
-		if (visited.has(currentParentId)) {
-			throw new Error("Circular reference detected: tag would become its own ancestor");
-		}
-		visited.add(currentParentId);
-
-		const currentTag = await ctx.db.get(currentParentId);
-		if (!currentTag) {
-			break; // Parent doesn't exist (shouldn't happen, but safe)
-		}
-		currentParentId = currentTag.parentId;
-	}
+async function resolveDistinctId(ctx: QueryCtx | MutationCtx, userId: Id<'users'>): Promise<string> {
+	const user = await ctx.db.get(userId);
+	const email = (user as unknown as { email?: string } | undefined)?.email;
+	return typeof email === 'string' ? email : userId;
 }
 
 /**
@@ -119,7 +107,7 @@ function buildTagTree(tags: any[]): TagWithHierarchy[] {
  * Returns the tag itself plus all its children, grandchildren, etc.
  */
 async function getTagDescendants(
-	ctx: any,
+	ctx: QueryCtx | MutationCtx,
 	tagId: Id<"tags">,
 	userId: Id<"users">
 ): Promise<Id<"tags">[]> {
@@ -130,7 +118,7 @@ async function getTagDescendants(
 		const currentTagId = queue.shift()!;
 		const children = await ctx.db
 			.query("tags")
-			.withIndex("by_user_parent", (q) => q.eq("userId", userId).eq("parentId", currentTagId))
+			.withIndex("by_user_parent", (q: any) => q.eq("userId", userId).eq("parentId", currentTagId))
 			.collect();
 
 		for (const child of children) {
@@ -147,7 +135,7 @@ async function getTagDescendants(
  * Returns all provided tag IDs plus all their descendants
  */
 export async function getTagDescendantsForTags(
-	ctx: any,
+	ctx: QueryCtx | MutationCtx,
 	tagIds: Id<"tags">[],
 	userId: Id<"users">
 ): Promise<Id<"tags">[]> {
@@ -224,11 +212,55 @@ export const createTag = mutation({
 		displayName: v.string(),
 		color: v.string(), // Hex color code
 		parentId: v.optional(v.id("tags")),
+		ownership: v.optional(v.union(v.literal("user"), v.literal("organization"), v.literal("team"))),
+		organizationId: v.optional(v.id("organizations")),
+		teamId: v.optional(v.id("teams")),
 	},
 	handler: async (ctx, args) => {
 		const userId = await getAuthUserId(ctx);
 		if (!userId) {
 			throw new Error("Not authenticated");
+		}
+
+		const ownership = args.ownership ?? "user";
+		let organizationId: Id<"organizations"> | undefined = undefined;
+		let teamId: Id<"teams"> | undefined = undefined;
+
+		if (ownership === "organization") {
+			if (!args.organizationId) {
+				throw new Error("organizationId is required for organization tags");
+			}
+			const membership = await ctx.db
+				.query("organizationMembers")
+				.withIndex("by_organization_user", (q) =>
+					q.eq("organizationId", args.organizationId!).eq("userId", userId)
+				)
+				.first();
+			if (!membership) {
+				throw new Error("You do not have access to this organization");
+			}
+			organizationId = args.organizationId;
+			teamId = undefined;
+		} else if (ownership === "team") {
+			if (!args.teamId) {
+				throw new Error("teamId is required for team tags");
+			}
+			const teamMembership = await ctx.db
+				.query("teamMembers")
+				.withIndex("by_team_user", (q) => q.eq("teamId", args.teamId!).eq("userId", userId))
+				.first();
+			if (!teamMembership) {
+				throw new Error("You do not have access to this team");
+			}
+			const team = await ctx.db.get(args.teamId);
+			if (!team) {
+				throw new Error("Team not found");
+			}
+			teamId = args.teamId;
+			organizationId = team.organizationId;
+		} else {
+			organizationId = undefined;
+			teamId = undefined;
 		}
 
 		// Validate tag name
@@ -242,11 +274,25 @@ export const createTag = mutation({
 			throw new Error("Tag name cannot exceed 50 characters");
 		}
 
-		// Check if tag with same name already exists for this user
-		const existing = await ctx.db
-			.query("tags")
-			.withIndex("by_user_name", (q) => q.eq("userId", userId).eq("name", normalizedName))
-			.first();
+		let existing: Doc<"tags"> | null = null;
+		if (ownership === "user") {
+			existing = await ctx.db
+				.query("tags")
+				.withIndex("by_user_name", (q) => q.eq("userId", userId).eq("name", normalizedName))
+				.first();
+		} else if (ownership === "organization" && organizationId) {
+			existing = await ctx.db
+				.query("tags")
+				.withIndex("by_organization_name", (q) =>
+					q.eq("organizationId", organizationId).eq("name", normalizedName)
+				)
+				.first();
+		} else if (ownership === "team" && teamId) {
+			existing = await ctx.db
+				.query("tags")
+				.withIndex("by_team_name", (q) => q.eq("teamId", teamId).eq("name", normalizedName))
+				.first();
+		}
 
 		if (existing) {
 			throw new Error(`Tag "${args.displayName}" already exists`);
@@ -265,13 +311,25 @@ export const createTag = mutation({
 				}
 				visited.add(currentParentId);
 
-				const parentTag = await ctx.db.get(currentParentId);
+				const parentTag: Doc<"tags"> | null = await ctx.db.get(currentParentId);
 				if (!parentTag) {
 					throw new Error("Parent tag not found");
 				}
-				// Verify parent belongs to same user
 				if (parentTag.userId !== userId) {
-					throw new Error("Parent tag does not belong to current user");
+					const hasAccess = await canAccessContent(ctx, userId, {
+						userId: parentTag.userId,
+						organizationId: parentTag.organizationId ?? undefined,
+						teamId: parentTag.teamId ?? undefined,
+					});
+					if (!hasAccess) {
+						throw new Error("Parent tag does not belong to current user scope");
+					}
+				}
+				if (parentTag.organizationId !== organizationId) {
+					throw new Error("Parent tag must belong to the same organization");
+				}
+				if (parentTag.teamId !== teamId) {
+					throw new Error("Parent tag must belong to the same team");
 				}
 				currentParentId = parentTag.parentId;
 			}
@@ -285,8 +343,52 @@ export const createTag = mutation({
 			color: args.color,
 			parentId: args.parentId,
 			createdAt: Date.now(),
+			organizationId,
+			teamId,
+			ownershipType: ownership,
 		});
 
+		const distinctId = await resolveDistinctId(ctx, userId as Id<'users'>);
+
+		if (ownership === "organization" && organizationId) {
+			const tagCount = await ctx.db
+				.query("tags")
+				.withIndex("by_organization", (q: any) => q.eq("organizationId", organizationId))
+				.collect();
+
+			await captureAnalyticsEvent({
+				name: AnalyticsEventName.ORGANIZATION_TAG_ASSIGNED,
+				distinctId,
+				groups: { organization: organizationId },
+				properties: {
+					scope: "organization",
+					organizationId,
+					tagId,
+					tagName: args.displayName,
+					tagsAssignedCount: tagCount.length,
+				},
+			});
+		} else if (ownership === "team" && teamId) {
+			const tagCount = await ctx.db
+				.query("tags")
+				.withIndex("by_team", (q: any) => q.eq("teamId", teamId))
+				.collect();
+
+			await captureAnalyticsEvent({
+				name: AnalyticsEventName.TEAM_TAG_ASSIGNED,
+				distinctId,
+				groups: { organization: organizationId!, team: teamId },
+				properties: {
+					scope: "team",
+					organizationId: organizationId!,
+					teamId,
+					tagId,
+					tagName: args.displayName,
+					tagsAssignedCount: tagCount.length,
+				},
+			});
+		}
+ 
 		return tagId;
 	},
 });
@@ -318,7 +420,14 @@ export const assignTagsToHighlight = mutation({
 				throw new Error("One or more tags not found");
 			}
 			if (tag.userId !== userId) {
-				throw new Error("One or more tags do not belong to current user");
+				const hasAccess = await canAccessContent(ctx, userId, {
+					userId: tag.userId,
+					organizationId: tag.organizationId ?? undefined,
+					teamId: tag.teamId ?? undefined,
+				});
+				if (!hasAccess) {
+					throw new Error("One or more tags are not accessible");
+				}
 			}
 		}
 

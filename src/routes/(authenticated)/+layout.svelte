@@ -1,15 +1,18 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
-	import Sidebar from '$lib/components/Sidebar.svelte';
-	import GlobalActivityTracker from '$lib/components/GlobalActivityTracker.svelte';
-	import { useAuth } from '@mmailaender/convex-auth-svelte/sveltekit';
-	import { setContext } from 'svelte';
+    import { browser } from '$app/environment';
+    import Sidebar from '$lib/components/Sidebar.svelte';
+    import GlobalActivityTracker from '$lib/components/GlobalActivityTracker.svelte';
+    import AppTopBar from '$lib/components/organizations/AppTopBar.svelte';
+    import { useAuth } from '@mmailaender/convex-auth-svelte/sveltekit';
+    import { getContext, setContext } from 'svelte';
+    import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 
 	let { children } = $props();
 
-	const auth = useAuth();
-	const isAuthenticated = $derived(auth.isAuthenticated);
-	const isLoading = $derived(auth.isLoading);
+    const organizations = getContext<UseOrganizations | undefined>('organizations');
+    const auth = useAuth();
+    const isAuthenticated = $derived(auth.isAuthenticated);
+    const isLoading = $derived(auth.isLoading);
 
 	// Get inbox count for sidebar - using 0 for now since inbox uses mock data
 	// TODO: Replace with actual Convex query when inbox data is connected
@@ -83,9 +86,17 @@
 		/>
 
 		<!-- Main Content Area -->
-		<div class="flex-1 overflow-hidden">
-			{@render children()}
-		</div>
+        <div class="flex-1 overflow-hidden flex flex-col">
+            <AppTopBar
+                organizations={organizations}
+                isMobile={isMobile}
+                sidebarCollapsed={sidebarCollapsed}
+                onSidebarToggle={() => (sidebarCollapsed = !sidebarCollapsed)}
+            />
+            <div class="flex-1 overflow-hidden">
+                {@render children()}
+            </div>
+        </div>
 		
 		<!-- Global Activity Tracker -->
 		<GlobalActivityTracker />

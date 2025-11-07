@@ -30,6 +30,7 @@ This document captures reusable solutions, common issues, and architectural patt
 | InvalidModules: Only actions can be defined in Node.js | Convex Node.js Runtime Restrictions | [#convex-nodejs-runtime](#convex-nodejs-runtime-restrictions-pattern) |
 | Analytics events missing in PostHog | PostHog Server-First Tracking | [#posthog-server-first-tracking](#posthog-server-first-tracking) |
 | Duplicate or unclear PostHog event names | PostHog Event Naming Taxonomy | [#posthog-event-naming-taxonomy](#posthog-event-naming-taxonomy) |
+| Convex error: `undefined is not a valid Convex value` | Avoid Undefined Convex Payloads | [#convex-avoid-undefined-payloads](#convex-avoid-undefined-convex-payloads) |
 
 ---
 
@@ -2928,9 +2929,136 @@ captureAnalyticsEvent(ctx, AnalyticsEventName.TEAM_INVITE_SENT, {
 
 When adding analytics:
 - **Do** use enum-backed `snake_case` past-tense names with shared property keys
-- **Do** keep human-readable labels in PostHog’s event definition UI, not in code
+- **Do** keep human-readable labels in PostHog's event definition UI, not in code
 - **Don't** introduce new casing or verb tenses—update the taxonomy first if a new concept is needed
 
 **Related Patterns**: See [PostHog Server-First Tracking](#posthog-server-first-tracking) for ensuring reliable delivery of the consistently named events.
+
+---
+
+## Avoid Undefined Convex Payloads
+
+**Tags**: `convex`, `undefined`, `payload`, `error-handling`, `type-safety`  
+**Date**: 2025-11-07  
+**Issue**: Convex functions return undefined when they should return a specific type.
+
+### Problem
+
+When using Convex functions, we sometimes get undefined results even though the function should return a specific type. This can lead to runtime errors.
+
+### Root Cause
+
+Convex functions are designed to return a specific type, but sometimes they return undefined instead. This can happen for several reasons:
+1. The function is not implemented correctly.
+2. The function is called with incorrect arguments.
+3. The function is not properly typed.
+
+### Solution
+
+**Pattern**: Use type guards to check for undefined results.
+
+```typescript
+// ❌ WRONG: Not checking for undefined
+const result = await convexClient.action(inboxApi.syncReadwiseHighlights, options);
+
+// ✅ CORRECT: Checking for undefined
+const result = await convexClient.action(inboxApi.syncReadwiseHighlights, options) as SyncReadwiseResult | undefined;
+if (result === undefined) {
+  throw new Error("Unexpected undefined result from action");
+}
+```
+
+**Why it works**:
+- Type guards help us handle unexpected undefined results gracefully.
+- This prevents runtime errors when we expect a specific type but get undefined instead.
+
+### Implementation Example
+
+```typescript
+// src/lib/composables/useInboxSync.svelte.ts
+export function useInboxSync(
+  convexClient: any,
+  inboxApi: any,
+  onItemsReload?: () => Promise<void>
+) {
+  // ✅ Runes work correctly in .svelte.ts files
+  const isSyncing = $state(false);
+  const syncError = $state<string | null>(null);
+  
+  function handleSyncClick() {
+    // ✅ Assignment works correctly
+    isSyncing = true;
+  }
+  
+  return {
+    isSyncing,
+    syncError,
+    handleSyncClick
+  };
+}
+```
+
+### Key Takeaway
+
+When working with Convex functions:
+- **Always check for undefined results** when calling Convex functions.
+- **Use type guards** to handle unexpected undefined results gracefully.
+- **Document why you're checking for undefined** in your code comments.
+
+---
+
+## Convex: Avoid Undefined Convex Payloads
+
+**Tags**: `convex`, `hydration`, `client-side`, `undefined-values`  
+**Date**: 2025-11-07  
+**Issue**: Hydration failed with `undefined is not a valid Convex value` when the client passed optional data to `useQuery` / `mutation` calls.
+
+### Problem
+
+During organization switch handling:
+- `useQuery(api.teams.listTeams, () => undefined)` returned `undefined` while waiting for the active organization, causing Convex to reject the payload.
+- Hydration aborted with a blank screen and console error `undefined is not a valid Convex value`.
+- Similar risk existed anywhere we passed optional parameters without guarding them.
+
+### Root Cause
+
+1. Convex enforces JSON-serializable payloads; `undefined` is not allowed.
+2. The composable returned `undefined` to "skip" a query while state was loading.
+3. The new analytics wiring triggered the query immediately before state was ready.
+
+### Solution
+
+**Pattern**: Always send a serializable placeholder (or omit the field) instead of `undefined` when calling Convex.
+
+```ts
+// ❌ WRONG: returns undefined until organization loads
+useQuery(api.teams.listTeams, () => state.activeOrganizationId ? { organizationId } : undefined);
+
+// ✅ CORRECT: supply a sentinel or strip optional fields before calling Convex
+const fallbackOrganizationId = state.activeOrganizationId ?? SENTINEL_ORGANIZATION_ID;
+useQuery(api.teams.listTeams, () => ({ organizationId: fallbackOrganizationId }));
+
+// For mutations, build args without undefined entries
+const args: any = { toOrganizationId, availableTeamCount };
+if (previousOrganizationId) args.fromOrganizationId = previousOrganizationId;
+```
+
+**Why it works**:
+- Convex receives only valid JSON values, so hydration succeeds.
+- Sentinel IDs keep queries reactive without special-case branching.
+- Optional mutation fields are added conditionally, eliminating implicit `undefined`.
+
+### Implementation Example
+
+- `src/lib/composables/useOrganizations.svelte.ts` – sentinel ID + filtered mutation payload.
+
+### Key Takeaway
+
+When interacting with Convex:
+- **Do** ensure every field you send is JSON-serializable (use sentinels or strip optionals).
+- **Don't** return `undefined` from `useQuery` or pass `undefined` in mutation args.
+- Add defensive helpers whenever state may be incomplete during hydration.
+
+**Related Patterns**: See [Convex Server-First Tracking](#posthog-server-first-tracking) for additional Convex client usage boundaries.
 
 ---
