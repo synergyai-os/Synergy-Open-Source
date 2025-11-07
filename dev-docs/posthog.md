@@ -104,6 +104,15 @@ We treat analytics names as immutable contracts. Consistent naming prevents dupl
 
 ## Multi-Tenant Lifecycle Analytics
 
+> **📖 For detailed guidance**, see **[Multi-Tenancy Analytics Guide](./multi-tenancy-analytics.md)**
+> 
+> This section provides a quick reference. The full guide covers:
+> - Data ownership models (user/org/team)
+> - Tag-level vs content-level sharing
+> - Event patterns and privacy rules
+> - Analytics views and dashboards
+> - Testing scenarios and validation
+
 The workspace success criteria introduce organization and team lifecycles that must be captured consistently. All lifecycle events should originate from trusted environments (Convex mutations/actions or authenticated Svelte server loaders) and use PostHog [group analytics](https://posthog.com/docs/product-analytics/libraries/js#group-analytics) to guarantee org/team scoping.
 
 ### Success Criteria Coverage
