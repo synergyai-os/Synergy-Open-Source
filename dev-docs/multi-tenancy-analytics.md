@@ -244,7 +244,7 @@ posthog.capture('tag_study_started', {
 
 ### 4. Organization Switching Events
 
-**[VALIDATED]** User switches between workspaces (personal → org → team).
+**[✅ VALIDATED - 2025-11-07]** User switches between workspaces (personal → org → team).
 
 ```typescript
 // User switches from personal to organization
@@ -548,13 +548,21 @@ posthog.capture('workspace_context_changed', {
 
 ### Test Plan
 
-#### Phase 1: Basic Organization Switching ✅ (In Progress)
+#### Phase 1: Basic Organization Switching ✅ COMPLETED (2025-11-07)
 - [x] Temporary client-side capture added
 - [x] Event: `organization_switched`
-- [ ] **Current Test**: Switch between personal ↔ "Test Org"
-- [ ] Verify event in browser console
-- [ ] Verify event in PostHog Live Events
-- [ ] Validate properties: `fromOrganizationId`, `toOrganizationId`, `availableTeamCount`
+- [x] **Test**: Switch between personal ↔ "Test Org"
+- [x] Verify event in browser console ✅ Works!
+- [x] Verify event in PostHog Live Events ✅ Confirmed!
+- [x] Validate properties: `fromOrganizationId`, `toOrganizationId`, `availableTeamCount` ✅ All present
+
+**Key Learnings**:
+- Client-side capture works reliably for testing
+- Event appears in console immediately with proper formatting
+- PostHog receives events within expected timeframe
+- Property structure matches our schema exactly
+- `snake_case` naming convention validated
+- Group analytics pattern confirmed working
 
 #### Phase 2: Tag Sharing (Next)
 - [ ] Create personal tag
