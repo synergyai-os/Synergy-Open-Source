@@ -11,8 +11,9 @@ import { normalizeTagName } from "./readwiseUtils";
 import type { Doc, Id } from "./_generated/dataModel";
 import { canAccessContent } from "./permissions";
 import type { QueryCtx, MutationCtx } from "./_generated/server";
-import { captureAnalyticsEvent } from "./posthog";
-import { AnalyticsEventName } from "../src/lib/analytics/events";
+// TODO: Re-enable server-side analytics via HTTP action bridge
+// import { captureAnalyticsEvent } from "./posthog";
+// import { AnalyticsEventName } from "../src/lib/analytics/events";
 
 export interface TagWithHierarchy {
 	_id: Id<"tags">;
@@ -351,43 +352,45 @@ export const createTag = mutation({
 		const distinctId = await resolveDistinctId(ctx, userId as Id<'users'>);
 
 		if (ownership === "organization" && organizationId) {
-			const tagCount = await ctx.db
-				.query("tags")
-				.withIndex("by_organization", (q: any) => q.eq("organizationId", organizationId))
-				.collect();
+		const tagCount = await ctx.db
+			.query("tags")
+			.withIndex("by_organization", (q: any) => q.eq("organizationId", organizationId))
+			.collect();
 
-			await captureAnalyticsEvent({
-				name: AnalyticsEventName.ORGANIZATION_TAG_ASSIGNED,
-				distinctId,
-				groups: { organization: organizationId },
-				properties: {
-					scope: "organization",
-					organizationId,
-					tagId,
-					tagName: args.displayName,
-					tagsAssignedCount: tagCount.length,
-				},
-			});
-		} else if (ownership === "team" && teamId) {
-			const tagCount = await ctx.db
-				.query("tags")
-				.withIndex("by_team", (q: any) => q.eq("teamId", teamId))
-				.collect();
+		// TODO: Re-enable server-side analytics via HTTP action bridge
+		// await captureAnalyticsEvent({
+		// 	name: AnalyticsEventName.ORGANIZATION_TAG_ASSIGNED,
+		// 	distinctId,
+		// 	groups: { organization: organizationId },
+		// 	properties: {
+		// 		scope: "organization",
+		// 		organizationId,
+		// 		tagId,
+		// 		tagName: args.displayName,
+		// 		tagsAssignedCount: tagCount.length,
+		// 	},
+		// });
+	} else if (ownership === "team" && teamId) {
+		const tagCount = await ctx.db
+			.query("tags")
+			.withIndex("by_team", (q: any) => q.eq("teamId", teamId))
+			.collect();
 
-			await captureAnalyticsEvent({
-				name: AnalyticsEventName.TEAM_TAG_ASSIGNED,
-				distinctId,
-				groups: { organization: organizationId!, team: teamId },
-				properties: {
-					scope: "team",
-					organizationId: organizationId!,
-					teamId,
-					tagId,
-					tagName: args.displayName,
-					tagsAssignedCount: tagCount.length,
-				},
-			});
-		}
+		// TODO: Re-enable server-side analytics via HTTP action bridge
+		// await captureAnalyticsEvent({
+		// 	name: AnalyticsEventName.TEAM_TAG_ASSIGNED,
+		// 	distinctId,
+		// 	groups: { organization: organizationId!, team: teamId },
+		// 	properties: {
+		// 		scope: "team",
+		// 		organizationId: organizationId!,
+		// 		teamId,
+		// 		tagId,
+		// 		tagName: args.displayName,
+		// 		tagsAssignedCount: tagCount.length,
+		// 	},
+		// });
+	}
  
 		return tagId;
 	},

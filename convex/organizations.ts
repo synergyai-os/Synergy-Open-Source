@@ -3,8 +3,9 @@ import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
-import { captureAnalyticsEvent } from "./posthog";
-import { AnalyticsEventName } from "../src/lib/analytics/events";
+// TODO: Re-enable server-side analytics via HTTP action bridge
+// import { captureAnalyticsEvent } from "./posthog";
+// import { AnalyticsEventName } from "../src/lib/analytics/events";
 
 type OrganizationRole = "owner" | "admin" | "member";
 
@@ -225,22 +226,23 @@ export const createOrganization = mutation({
       joinedAt: now,
     });
 
-    const distinctId = await resolveDistinctId(ctx, userId);
-    const totalOwned = await countOwnedOrganizations(ctx, userId);
-
-    await captureAnalyticsEvent({
-      name: AnalyticsEventName.ORGANIZATION_CREATED,
-      distinctId,
-      groups: { organization: organizationId },
-      properties: {
-        scope: "organization",
-        organizationId,
-        organizationName: trimmedName,
-        plan: "starter",
-        createdVia: "dashboard",
-        totalOrganizationsOwned: totalOwned,
-      },
-    });
+    // TODO: Re-enable server-side analytics via HTTP action bridge
+    // const distinctId = await resolveDistinctId(ctx, userId);
+    // const totalOwned = await countOwnedOrganizations(ctx, userId);
+    //
+    // await captureAnalyticsEvent({
+    //   name: AnalyticsEventName.ORGANIZATION_CREATED,
+    //   distinctId,
+    //   groups: { organization: organizationId },
+    //   properties: {
+    //     scope: "organization",
+    //     organizationId,
+    //     organizationName: trimmedName,
+    //     plan: "starter",
+    //     createdVia: "dashboard",
+    //     totalOrganizationsOwned: totalOwned,
+    //   },
+    // });
 
     return {
       organizationId,
@@ -376,21 +378,22 @@ export const acceptOrganizationInvite = mutation({
     }
 
     const organization = await getOrganizationSummary(ctx, invite.organizationId);
-    const distinctId = await resolveDistinctId(ctx, userId);
-    const inviteChannel = invite.email ? "email" : invite.invitedUserId ? "manual" : "link";
-
-    await captureAnalyticsEvent({
-      name: AnalyticsEventName.ORGANIZATION_JOINED,
-      distinctId,
-      groups: { organization: invite.organizationId },
-      properties: {
-        scope: "organization",
-        organizationId: invite.organizationId,
-        organizationName: organization.name,
-        role: invite.role,
-        inviteChannel,
-      },
-    });
+    // TODO: Re-enable server-side analytics via HTTP action bridge
+    // const distinctId = await resolveDistinctId(ctx, userId);
+    // const inviteChannel = invite.email ? "email" : invite.invitedUserId ? "manual" : "link";
+    //
+    // await captureAnalyticsEvent({
+    //   name: AnalyticsEventName.ORGANIZATION_JOINED,
+    //   distinctId,
+    //   groups: { organization: invite.organizationId },
+    //   properties: {
+    //     scope: "organization",
+    //     organizationId: invite.organizationId,
+    //     organizationName: organization.name,
+    //     role: invite.role,
+    //     inviteChannel,
+    //   },
+    // });
 
     await ctx.db.delete(invite._id);
 
@@ -442,18 +445,19 @@ export const recordOrganizationSwitch = mutation({
       throw new Error("Not authenticated");
     }
 
-    const distinctId = await resolveDistinctId(ctx, userId);
-    await captureAnalyticsEvent({
-      name: AnalyticsEventName.ORGANIZATION_SWITCHED,
-      distinctId,
-      groups: { organization: args.toOrganizationId },
-      properties: {
-        scope: "organization",
-        fromOrganizationId: args.fromOrganizationId ?? undefined,
-        toOrganizationId: args.toOrganizationId,
-        availableTeamCount: args.availableTeamCount,
-      },
-    });
+    // TODO: Re-enable server-side analytics via HTTP action bridge
+    // const distinctId = await resolveDistinctId(ctx, userId);
+    // await captureAnalyticsEvent({
+    //   name: AnalyticsEventName.ORGANIZATION_SWITCHED,
+    //   distinctId,
+    //   groups: { organization: args.toOrganizationId },
+    //   properties: {
+    //     scope: "organization",
+    //     fromOrganizationId: args.fromOrganizationId ?? undefined,
+    //     toOrganizationId: args.toOrganizationId,
+    //     availableTeamCount: args.availableTeamCount,
+    //   },
+    // });
   },
 });
 

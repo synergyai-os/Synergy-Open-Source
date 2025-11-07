@@ -1,3 +1,5 @@
+"use node";
+
 import { PostHog } from 'posthog-node';
 import type { AnalyticsEvent, AnalyticsEventName } from '../src/lib/analytics/events';
 

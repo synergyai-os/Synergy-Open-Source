@@ -3,8 +3,9 @@ import { v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
-import { captureAnalyticsEvent } from "./posthog";
-import { AnalyticsEventName, type AnalyticsEventPayloads } from "../src/lib/analytics/events";
+// TODO: Re-enable server-side analytics via HTTP action bridge
+// import { captureAnalyticsEvent } from "./posthog";
+// import { AnalyticsEventName, type AnalyticsEventPayloads } from "../src/lib/analytics/events";
 
 type TeamRole = "admin" | "member";
 
@@ -264,21 +265,22 @@ export const createTeam = mutation({
     });
 
     const organization = await getOrganizationSummary(ctx, args.organizationId);
-    const distinctId = await resolveDistinctId(ctx, userId);
-
-    await captureAnalyticsEvent({
-      name: AnalyticsEventName.TEAM_CREATED,
-      distinctId,
-      groups: { organization: args.organizationId, team: teamId },
-      properties: {
-        scope: "team",
-        organizationId: args.organizationId,
-        organizationName: organization.name,
-        teamId,
-        teamName: trimmedName,
-        createdVia: "dashboard",
-      },
-    });
+    // TODO: Re-enable server-side analytics via HTTP action bridge
+    // const distinctId = await resolveDistinctId(ctx, userId);
+    //
+    // await captureAnalyticsEvent({
+    //   name: AnalyticsEventName.TEAM_CREATED,
+    //   distinctId,
+    //   groups: { organization: args.organizationId, team: teamId },
+    //   properties: {
+    //     scope: "team",
+    //     organizationId: args.organizationId,
+    //     organizationName: organization.name,
+    //     teamId,
+    //     teamName: trimmedName,
+    //     createdVia: "dashboard",
+    //   },
+    // });
 
     return { teamId, slug };
   },
@@ -366,7 +368,8 @@ export const createTeamInvite = mutation({
     const distinctId = await resolveDistinctId(ctx, userId);
     const inviteChannel = normalizedEmail ? "email" : args.invitedUserId ? "manual" : "link";
 
-    const properties: AnalyticsEventPayloads[typeof AnalyticsEventName.TEAM_INVITE_SENT] = {
+    // TODO: Re-enable server-side analytics via HTTP action bridge
+    const properties: any = {
       scope: "team",
       organizationId: team.organizationId,
       organizationName: organization.name,
@@ -380,12 +383,13 @@ export const createTeamInvite = mutation({
       properties.inviteTarget = normalizedEmail;
     }
 
-    await captureAnalyticsEvent({
-      name: AnalyticsEventName.TEAM_INVITE_SENT,
-      distinctId,
-      groups: { organization: team.organizationId, team: args.teamId },
-      properties,
-    });
+    // TODO: Re-enable server-side analytics via HTTP action bridge
+    // await captureAnalyticsEvent({
+    //   name: AnalyticsEventName.TEAM_INVITE_SENT,
+    //   distinctId,
+    //   groups: { organization: team.organizationId, team: args.teamId },
+    //   properties,
+    // });
 
     return { inviteId, code };
   },
@@ -438,37 +442,38 @@ export const acceptTeamInvite = mutation({
 
     const team = await getTeamSummary(ctx, invite.teamId);
     const organization = await getOrganizationSummary(ctx, invite.organizationId);
-    const distinctId = await resolveDistinctId(ctx, userId);
-    const inviteChannel = invite.email ? "email" : invite.invitedUserId ? "manual" : "link";
-
-    await captureAnalyticsEvent({
-      name: AnalyticsEventName.TEAM_JOINED,
-      distinctId,
-      groups: { organization: invite.organizationId, team: invite.teamId },
-      properties: {
-        scope: "team",
-        organizationId: invite.organizationId,
-        organizationName: organization.name,
-        teamId: invite.teamId,
-        teamName: team.name,
-        role: invite.role,
-      },
-    });
-
-    await captureAnalyticsEvent({
-      name: AnalyticsEventName.TEAM_INVITE_ACCEPTED,
-      distinctId,
-      groups: { organization: invite.organizationId, team: invite.teamId },
-      properties: {
-        scope: "team",
-        organizationId: invite.organizationId,
-        organizationName: organization.name,
-        teamId: invite.teamId,
-        teamName: team.name,
-        role: invite.role,
-        inviteChannel,
-      },
-    });
+    // TODO: Re-enable server-side analytics via HTTP action bridge
+    // const distinctId = await resolveDistinctId(ctx, userId);
+    // const inviteChannel = invite.email ? "email" : invite.invitedUserId ? "manual" : "link";
+    //
+    // await captureAnalyticsEvent({
+    //   name: AnalyticsEventName.TEAM_JOINED,
+    //   distinctId,
+    //   groups: { organization: invite.organizationId, team: invite.teamId },
+    //   properties: {
+    //     scope: "team",
+    //     organizationId: invite.organizationId,
+    //     organizationName: organization.name,
+    //     teamId: invite.teamId,
+    //     teamName: team.name,
+    //     role: invite.role,
+    //   },
+    // });
+    //
+    // await captureAnalyticsEvent({
+    //   name: AnalyticsEventName.TEAM_INVITE_ACCEPTED,
+    //   distinctId,
+    //   groups: { organization: invite.organizationId, team: invite.teamId },
+    //   properties: {
+    //     scope: "team",
+    //     organizationId: invite.organizationId,
+    //     organizationName: organization.name,
+    //     teamId: invite.teamId,
+    //     teamName: team.name,
+    //     role: invite.role,
+    //     inviteChannel,
+    //   },
+    // });
 
     await ctx.db.delete(invite._id);
 
