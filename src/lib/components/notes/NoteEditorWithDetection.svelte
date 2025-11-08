@@ -11,6 +11,7 @@
 		onContentChange?: (content: string, markdown: string) => void;
 		onTitleChange?: (title: string) => void;
 		onAIFlagged?: () => void;
+		onEscape?: () => void; // Called when ESC is pressed in title or editor
 		readonly?: boolean;
 		showToolbar?: boolean;
 		isAIGenerated?: boolean;
@@ -26,6 +27,7 @@
 		onContentChange,
 		onTitleChange,
 		onAIFlagged,
+		onEscape,
 		readonly = false,
 		showToolbar = true,
 		isAIGenerated = false,
@@ -83,6 +85,7 @@
 			{onContentChange}
 			{onTitleChange}
 			onPaste={handlePaste}
+			{onEscape}
 			{readonly}
 			{showToolbar}
 			{isAIGenerated}

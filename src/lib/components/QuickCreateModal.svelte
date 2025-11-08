@@ -53,6 +53,9 @@
 	let isCreating = $state(false);
 	let tagComboboxOpen = $state(false);
 	
+	// Modal container ref for refocusing after blur
+	let modalContainerRef = $state<HTMLDivElement | null>(null);
+	
 	// Note-specific state (for ProseMirror)
 	let noteTitle = $state('');
 	let noteContent = $state(''); // ProseMirror JSON string
@@ -334,12 +337,39 @@
 
 	// Keyboard shortcuts
 	function handleKeyDown(e: KeyboardEvent) {
-		// Escape key closes modal
+		// Escape key - hierarchical behavior
 		if (e.key === 'Escape') {
+			// Check if any input/component is currently focused
+			const activeElement = document.activeElement as HTMLElement;
+			const modalElement = e.currentTarget as HTMLElement;
+			
+			// If tag combobox is open, let it handle ESC first
 			if (tagComboboxOpen) {
-				// Let tag selector handle it
+				// TagSelector will close and blur, don't close modal
 				return;
 			}
+			
+			// If an input, textarea, or contenteditable is focused, blur it first
+			if (
+				activeElement &&
+				modalElement.contains(activeElement) &&
+				(activeElement.tagName === 'INPUT' ||
+					activeElement.tagName === 'TEXTAREA' ||
+					activeElement.isContentEditable ||
+					activeElement.getAttribute('role') === 'textbox')
+			) {
+				e.preventDefault();
+				e.stopPropagation();
+				activeElement.blur();
+				
+				// Refocus modal container so modal shortcuts (like T) continue working
+				setTimeout(() => {
+					modalContainerRef?.focus();
+				}, 0);
+				return;
+			}
+			
+			// If nothing is focused inside modal, close it
 			handleOpenChange(false);
 			return;
 		}
@@ -366,6 +396,13 @@
 		if (!selectedType) {
 			return;
 		}
+		
+		// T key: Open tag selector (only for note type, when tag combobox is not already open)
+		if ((e.key === 't' || e.key === 'T') && selectedType === 'note' && !tagComboboxOpen) {
+			e.preventDefault();
+			tagComboboxOpen = true;
+			return;
+		}
 	}
 </script>
 
@@ -383,7 +420,7 @@
 			} data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]"
 		>
 			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-			<div onkeydown={handleKeyDown} role="dialog" tabindex="-1">
+			<div bind:this={modalContainerRef} onkeydown={handleKeyDown} role="dialog" tabindex="-1">
 				{#if !selectedType}
 					<!-- Command Center -->
 					<Command.Root
@@ -497,7 +534,7 @@
 					<div class="flex w-full flex-col" data-debug="content-entry">
 						{#if selectedType === 'note'}
 							<!-- Context/Template Selectors + Draft Button (Linear-style top bar) -->
-							<div class="flex items-center justify-between px-inbox-container py-inbox-card border-b border-base">
+							<div class="flex items-center justify-between px-inbox-container py-2">
 								<div class="flex items-center gap-form-field">
 									<ContextSelector
 										context={noteContext}
@@ -581,6 +618,10 @@
 								onAIFlagged={() => {
 									noteIsAIGenerated = true;
 								}}
+								onEscape={() => {
+									// Refocus modal container so keyboard shortcuts (T) work after ESC
+									setTimeout(() => modalContainerRef?.focus(), 0);
+								}}
 								placeholder="Add description..."
 								showToolbar={false}
 								enableAIDetection={false}
@@ -624,8 +665,8 @@
 						{/if}
 
 						{#if selectedType === 'note'}
-							<!-- Row 1: Metadata Pills (Linear-style horizontal scroll) -->
-							<div class="flex items-center gap-form-field overflow-x-auto border-t border-base py-inbox-card px-inbox-container bg-surface">
+							<!-- Row 1: Metadata Pills + Tags (Linear-style) -->
+							<div class="flex items-center gap-2 overflow-x-auto py-1.5 px-inbox-container border-b border-base">
 								<AttachmentButton
 									count={attachmentCount}
 									onClick={() => {
@@ -649,13 +690,6 @@
 									project={noteProject}
 									onChange={(proj) => (noteProject = proj)}
 								/>
-							</div>
-						{/if}
-
-						<!-- Row 2: Tags + Actions (Linear-style footer) -->
-						<div class="flex items-center justify-between border-t border-base py-inbox-card {selectedType === 'note' ? 'px-inbox-container' : ''} bg-surface">
-							<!-- Left: Tags -->
-							<div class="min-w-[200px]">
 								<TagSelector
 									bind:comboboxOpen={tagComboboxOpen}
 									bind:selectedTagIds
@@ -665,31 +699,31 @@
 									showLabel={false}
 								/>
 							</div>
-							
-							<!-- Right: Actions -->
-							<div class="flex items-center gap-button-group flex-shrink-0">
-								{#if selectedType === 'note'}
-									<ToggleSwitch
-										checked={createMore}
-										onChange={(checked) => (createMore = checked)}
-										label="Create more"
-									/>
-								{/if}
-								<button
-									onclick={() => handleOpenChange(false)}
-									class="px-inbox-card py-input-y text-sm text-secondary hover:text-primary transition-colors"
-								>
-									Cancel
-								</button>
-								<button
-									onclick={handleCreate}
-									disabled={isCreating}
-									class="flex items-center gap-form-field px-inbox-card py-input-y text-sm bg-accent-primary text-white rounded-md hover:opacity-90 disabled:opacity-50 transition-all font-medium"
-								>
-									{isCreating ? 'Creating...' : selectedType === 'note' ? 'Create issue' : 'Create'}
-									<KeyboardShortcut keys={['Cmd', 'Enter']} />
-								</button>
-							</div>
+						{/if}
+
+						<!-- Row 2: Actions Only (Linear-style footer) -->
+						<div class="flex items-center justify-end gap-button-group py-2 {selectedType === 'note' ? 'px-inbox-container' : ''}">
+							{#if selectedType === 'note'}
+								<ToggleSwitch
+									checked={createMore}
+									onChange={(checked) => (createMore = checked)}
+									label="Create more"
+								/>
+							{/if}
+							<button
+								onclick={() => handleOpenChange(false)}
+								class="px-inbox-card py-input-y text-sm text-secondary hover:text-primary transition-colors"
+							>
+								Cancel
+							</button>
+							<button
+								onclick={handleCreate}
+								disabled={isCreating}
+								class="flex items-center gap-form-field px-inbox-card py-input-y text-sm bg-accent-primary text-white rounded-md hover:opacity-90 disabled:opacity-50 transition-all font-medium"
+							>
+								{isCreating ? 'Creating...' : selectedType === 'note' ? 'Create issue' : 'Create'}
+								<KeyboardShortcut keys={['Cmd', 'Enter']} />
+			</button>
 						</div>
 						</div>
 					</div>

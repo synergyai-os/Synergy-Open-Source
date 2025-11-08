@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
+	import { onMount } from 'svelte';
 	import DocSidebar from './DocSidebar.svelte';
 	import TableOfContents from './TableOfContents.svelte';
 	
@@ -7,53 +9,77 @@
 		headings?: { id: string; text: string; level: number }[];
 	};
 	
-	let { children, headings = [] }: Props = $props();
+	let { children, headings: propHeadings = [] }: Props = $props();
+	
+	// Extract headings from rendered content (client-side)
+	let extractedHeadings = $state<{ id: string; text: string; level: number }[]>([]);
+	
+	onMount(() => {
+		// Scan the DOM for headings
+		const headingElements = document.querySelectorAll('.docs-article h1, .docs-article h2, .docs-article h3, .docs-article h4');
+		
+		extractedHeadings = Array.from(headingElements).map((el) => ({
+			id: el.id || '',
+			text: el.textContent || '',
+			level: parseInt(el.tagName.substring(1)) // H1 -> 1, H2 -> 2, etc.
+		}));
+	});
+	
+	// Use prop headings if provided, otherwise use extracted headings
+	const headings = $derived(propHeadings.length > 0 ? propHeadings : extractedHeadings);
 </script>
 
 <div class="docs-layout bg-base">
 	<!-- Sidebar Navigation -->
-	<aside class="docs-sidebar bg-sidebar border-r border-sidebar">
+	<aside class="docs-sidebar bg-sidebar">
 		<DocSidebar />
 	</aside>
 	
-	<!-- Main Content Area -->
+	<!-- Floating TOC (Linear-style) - in left margin -->
+	<TableOfContents {headings} />
+	
+	<!-- Main Content Area - Centered -->
 	<main class="docs-content bg-base">
 		<article class="docs-article prose">
 			{@render children?.()}
 		</article>
 	</main>
-	
-	<!-- Table of Contents (Right Rail) -->
-	<aside class="docs-toc bg-surface border-l border-base">
-		<TableOfContents {headings} />
-	</aside>
 </div>
 
 <style>
 	.docs-layout {
-		display: grid;
-		grid-template-columns: 260px 1fr 220px;
+		display: flex;
 		min-height: 100vh;
 		width: 100%;
+		position: relative;
 	}
 	
 	.docs-sidebar {
 		position: sticky;
 		top: 0;
 		height: 100vh;
+		width: 260px;
+		flex-shrink: 0;
 		overflow-y: auto;
 		padding: var(--spacing-content-padding);
+		border-right: 1px solid var(--color-sidebar-border);
 	}
 	
 	.docs-content {
+		flex: 1;
+		display: flex;
+		justify-content: center;
 		padding: 3rem var(--spacing-content-padding);
-		max-width: 800px;
-		margin: 0 auto;
+		min-width: 0;
+	}
+	
+	.docs-article {
 		width: 100%;
+		max-width: 900px;
 	}
 	
 	/* Typography and content styling for MDX content */
-	.docs-article {
+	.docs-article :global(*) {
 		color: var(--color-text-primary);
 		line-height: var(--line-height-readable);
 		letter-spacing: var(--letter-spacing-readable);
@@ -223,30 +249,14 @@
 		margin-right: 0.5rem;
 	}
 	
-	.docs-toc {
-		position: sticky;
-		top: 0;
-		height: 100vh;
-		overflow-y: auto;
-		padding: var(--spacing-content-padding);
-	}
-	
 	/* Responsive design */
 	@media (max-width: 1280px) {
-		.docs-layout {
-			grid-template-columns: 240px 1fr;
-		}
-		
-		.docs-toc {
-			display: none;
+		.docs-sidebar {
+			width: 240px;
 		}
 	}
 	
 	@media (max-width: 768px) {
-		.docs-layout {
-			grid-template-columns: 1fr;
-		}
-		
 		.docs-sidebar {
 			display: none;
 		}

@@ -23,7 +23,7 @@ export const noteSchema = new Schema({
 /**
  * Create keyboard shortcuts
  */
-export function buildKeymap(schema: Schema) {
+export function buildKeymap(schema: Schema, onEscape?: () => void) {
   const keys: { [key: string]: any } = { ...baseKeymap };
 
   // Bold: Cmd/Ctrl + B
@@ -58,6 +58,11 @@ export function buildKeymap(schema: Schema) {
   keys["Escape"] = (state: any, dispatch: any, view: EditorView) => {
     if (view && view.dom) {
       view.dom.blur();
+      // Notify parent (modal) to refocus itself
+      if (onEscape) {
+        setTimeout(() => onEscape(), 0);
+      }
+      // Returning true tells ProseMirror the event was handled and stops propagation
       return true;
     }
     return false;
@@ -94,7 +99,8 @@ export function pasteHandlerPlugin(onPaste?: (text: string, view: EditorView) =>
  */
 export function createEditorState(
   content?: string,
-  onPaste?: (text: string, view: EditorView) => void
+  onPaste?: (text: string, view: EditorView) => void,
+  onEscape?: () => void
 ) {
   const doc = content 
     ? noteSchema.nodeFromJSON(JSON.parse(content))
@@ -103,7 +109,7 @@ export function createEditorState(
   return EditorState.create({
     doc,
     plugins: [
-      buildKeymap(noteSchema),
+      buildKeymap(noteSchema, onEscape),
       history(),
       pasteHandlerPlugin(onPaste),
     ],

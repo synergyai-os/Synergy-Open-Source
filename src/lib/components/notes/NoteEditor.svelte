@@ -16,6 +16,7 @@
 		onContentChange?: (content: string, markdown: string) => void;
 		onTitleChange?: (title: string) => void;
 		onPaste?: (text: string, view: EditorView) => void;
+		onEscape?: () => void; // Called when ESC is pressed in title or editor (after blur)
 		readonly?: boolean;
 		showToolbar?: boolean;
 		isAIGenerated?: boolean;
@@ -30,6 +31,7 @@
 		onContentChange,
 		onTitleChange,
 		onPaste,
+		onEscape,
 		readonly = false,
 		showToolbar = true,
 		isAIGenerated = false,
@@ -71,6 +73,10 @@
 			const target = e.target as HTMLInputElement;
 			target.blur();
 			e.preventDefault();
+			e.stopPropagation(); // Prevent modal from closing
+			
+			// Notify parent (modal) to refocus itself
+			onEscape?.();
 		}
 	}
 
@@ -96,7 +102,7 @@
 	onMount(() => {
 		if (!editorElement) return;
 
-		const state = createEditorState(content || undefined, onPaste);
+		const state = createEditorState(content || undefined, onPaste, onEscape);
 		editorState = state;
 		isEmpty = isEditorEmpty(state);
 
@@ -153,7 +159,7 @@
 	}
 </script>
 
-<div class="flex flex-col {compact ? '' : 'h-full'} bg-surface text-surface-primary {compact ? '' : 'overflow-hidden'}">
+<div class="flex flex-col {compact ? '' : 'h-full'} text-surface-primary {compact ? '' : 'overflow-hidden'}">
 	<!-- AI Generated Badge -->
 	{#if isAIGenerated}
 		<div class="px-content-padding py-section bg-warning-subtle border-b border-divider">
@@ -184,7 +190,7 @@
 
 	<!-- Scrollable Editor Content -->
 	<div class="{compact ? '' : 'flex-1 overflow-y-auto'}">
-		<div class="max-w-full px-inbox-container py-inbox-card">
+		<div class="max-w-full px-inbox-container py-3">
 			<!-- Title Input -->
 			<input
 				bind:this={titleElement}
@@ -194,7 +200,7 @@
 				onkeydown={handleTitleKeydown}
 				placeholder="Issue title"
 				disabled={readonly}
-				class="w-full text-base font-normal bg-transparent border-none outline-none text-primary placeholder:text-tertiary mb-2 focus:placeholder:text-secondary transition-colors"
+				class="w-full text-base font-normal bg-transparent border-none outline-none text-primary placeholder:text-tertiary mb-1 focus:placeholder:text-secondary transition-colors p-0"
 			/>
 
 			<!-- ProseMirror Editor with Placeholder Overlay -->
@@ -218,6 +224,7 @@
 	:global(.ProseMirror) {
 		outline: none;
 		min-height: 400px;
+		padding: 0;
 	}
 
 	:global(.ProseMirror p) {

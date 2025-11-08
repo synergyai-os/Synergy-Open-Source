@@ -921,7 +921,185 @@ function handleTitleKeydown(e: KeyboardEvent) {
 
 ---
 
-**Pattern Count**: 18  
+## #L930: Hierarchical ESC Key Navigation with Visual Feedback [🟢 REFERENCE]
+
+**Symptom**: ESC closes modal immediately, blocking access to modal shortcuts after typing  
+**Root Cause**: Single-level ESC behavior - no intermediate blur step before modal close  
+**Fix**:
+
+```typescript
+// ❌ WRONG: ESC closes modal immediately
+function handleKeyDown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    closeModal();
+  }
+}
+
+// ✅ CORRECT: Hierarchical ESC - blur first, then close
+function handleKeyDown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    const activeElement = document.activeElement as HTMLElement;
+    
+    // Level 1: Close dropdown/combobox
+    if (tagComboboxOpen) {
+      return; // Let component handle it
+    }
+    
+    // Level 2: Blur input/editor
+    if (activeElement && isInputElement(activeElement)) {
+      e.preventDefault();
+      e.stopPropagation();
+      activeElement.blur();
+      
+      // Refocus modal container for shortcuts
+      setTimeout(() => modalContainerRef?.focus(), 0);
+      return;
+    }
+    
+    // Level 3: Close modal (nothing focused)
+    closeModal();
+  }
+}
+
+function isInputElement(el: HTMLElement): boolean {
+  return (
+    el.tagName === 'INPUT' ||
+    el.tagName === 'TEXTAREA' ||
+    el.isContentEditable ||
+    el.getAttribute('role') === 'textbox'
+  );
+}
+```
+
+**Input-Level ESC Handler** (stop propagation to prevent modal from seeing event):
+
+```typescript
+// In input component (e.g., NoteEditor.svelte)
+function handleTitleKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    (e.target as HTMLInputElement).blur();
+    e.preventDefault();
+    e.stopPropagation(); // ✅ Critical - prevent modal handler from firing
+    
+    // Notify parent to refocus modal container
+    onEscape?.();
+  }
+}
+```
+
+**ProseMirror ESC Handler** (return true to stop propagation):
+
+```typescript
+// In prosemirror-setup.ts
+keys["Escape"] = (state, dispatch, view: EditorView) => {
+  if (view && view.dom) {
+    view.dom.blur();
+    // Notify parent to refocus
+    if (onEscape) {
+      setTimeout(() => onEscape(), 0);
+    }
+    return true; // ✅ Stops propagation in ProseMirror
+  }
+  return false;
+};
+```
+
+**Callback Chain** (pass onEscape through component hierarchy):
+
+```svelte
+<!-- QuickCreateModal.svelte -->
+<NoteEditorWithDetection
+  onEscape={() => {
+    // Refocus modal so keyboard shortcuts (T) work
+    setTimeout(() => modalContainerRef?.focus(), 0);
+  }}
+/>
+
+<!-- NoteEditorWithDetection.svelte -->
+<NoteEditor {onEscape} />
+
+<!-- NoteEditor.svelte -->
+<input onkeydown={handleTitleKeydown} />
+{@render editorWithEscape(onEscape)}
+```
+
+**Visual Feedback for Onboarding**:
+
+1. **Tooltip on first ESC press** (educate user):
+   ```svelte
+   {#if showEscHint && !hasSeenEscHint}
+     <div class="absolute top-4 right-4 bg-accent-primary text-white px-3 py-2 rounded-md shadow-lg">
+       Press <kbd>ESC</kbd> again to close
+     </div>
+   {/if}
+   ```
+
+2. **Visual focus indicator** (show what's active):
+   ```css
+   /* Input focused: show focus ring */
+   input:focus-visible {
+     outline: 2px solid var(--accent-primary);
+   }
+   
+   /* Modal focused (no input): subtle glow */
+   [role="dialog"]:focus-visible {
+     box-shadow: 0 0 0 3px var(--accent-primary-alpha);
+   }
+   ```
+
+3. **Keyboard shortcut hints** (contextual help):
+   ```svelte
+   {#if !inputFocused}
+     <div class="absolute bottom-4 left-4 flex gap-2 text-xs text-tertiary">
+       <kbd>T</kbd> Tags
+       <kbd>ESC</kbd> Close
+     </div>
+   {:else}
+     <div class="absolute bottom-4 left-4 text-xs text-tertiary">
+       <kbd>ESC</kbd> Exit input
+     </div>
+   {/if}
+   ```
+
+4. **Activation pattern** (progressive disclosure):
+   - Session 1-3: Show all hints
+   - Session 4-10: Show hints on hover
+   - Session 11+: Hide hints (power user mode)
+
+**User Flow**:
+```
+C → Modal opens, title focused
+Type → User enters text
+ESC #1 → Title blurs, modal refocuses, tooltip: "Press ESC again to close"
+T → Tag selector opens (modal has focus, shortcut works!)
+ESC #2 → Tag selector closes
+ESC #3 → Modal closes
+```
+
+**Why**: Enables keyboard-first workflow - users can navigate between inputs and modal shortcuts without touching the mouse. Visual feedback helps users discover and learn the hierarchical behavior during onboarding.
+
+**Apply when**: 
+- Modal with multiple inputs/editors
+- Modal has its own keyboard shortcuts (T, S, etc.)
+- Users need to switch between typing and navigation
+
+**Anti-patterns**:
+- ❌ ESC closes modal immediately (blocks shortcuts)
+- ❌ No visual feedback on what's focused
+- ❌ No hints for power users during onboarding
+- ❌ ESC handler doesn't stop propagation (modal sees event and closes)
+
+**Complementary Patterns**:
+- Store `hasSeenEscHint` in localStorage for progressive disclosure
+- Track shortcut usage for adaptive UI (hide hints for power users)
+- Use `setTimeout(0)` for refocus to avoid timing conflicts
+
+**Inspiration**: Gmail (ESC exits compose), Linear (hierarchical navigation), Superhuman (visual keyboard hints)  
+**Related**: #L430 (Keyboard shortcut priority), #L880 (Enter/ESC edit mode), #L580 (N vs C shortcuts)
+
+---
+
+**Pattern Count**: 19  
 **Last Updated**: 2025-11-08  
 **Design Token Reference**: `dev-docs/design-tokens.md`
 

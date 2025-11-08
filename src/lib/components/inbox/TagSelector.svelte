@@ -20,6 +20,7 @@
 		tagInputRef?: HTMLElement | null;
 		comboboxOpen?: boolean; // Expose combobox open state for keyboard shortcuts
 		showLabel?: boolean; // Show "TAGS" label (default: true)
+		inline?: boolean; // Inline minimal style (no border, no bg) for use in modal footer
 	};
 
 	let {
@@ -31,10 +32,14 @@
 		tagInputRef = $bindable(null),
 		comboboxOpen: _comboboxOpenExternal = $bindable(undefined),
 		showLabel = true,
+		inline = false,
 	}: Props = $props();
 
 	// Set defaults for non-bindable props
 	if (!onTagsChange) onTagsChange = () => {};
+	
+	// Auto-detect inline mode: if showLabel is false, we're in an inline context (modal footer)
+	const useInlineStyle = $derived(inline || !showLabel);
 	
 	// Create a local reactive state for availableTags that can be updated optimistically
 	// Use $derived to always reflect prop changes, with local state for optimistic updates
@@ -422,7 +427,9 @@
 				<div class="relative" bind:this={tagInputRef}>
 					<button
 						type="button"
-						class="w-full px-menu-item py-menu-item text-sm text-secondary hover:text-primary bg-base border border-base rounded-md hover:bg-hover-solid transition-colors flex items-center gap-icon text-left"
+						class="{useInlineStyle 
+							? 'inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-sm text-secondary hover:bg-hover-solid transition-colors' 
+							: 'w-full px-menu-item py-menu-item text-sm text-secondary hover:text-primary bg-base border border-base rounded-md hover:bg-hover-solid transition-colors flex items-center gap-icon text-left'}"
 						onclick={(e) => {
 							e.preventDefault();
 							e.stopPropagation();

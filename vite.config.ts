@@ -3,7 +3,25 @@ import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 
 export default defineConfig({
-	plugins: [tailwindcss(), sveltekit()],
+	plugins: [
+		tailwindcss(),
+		{
+			name: 'redirect-markdown',
+			configureServer(server) {
+				server.middlewares.use((req, res, next) => {
+					// Redirect .md URLs to clean URLs (for documentation system)
+					if (req.url?.endsWith('.md')) {
+						const cleanUrl = req.url.replace(/\.md$/, '');
+						res.writeHead(301, { Location: cleanUrl });
+						res.end();
+						return;
+					}
+					next();
+				});
+			}
+		},
+		sveltekit()
+	],
 	server: {
 		host: '0.0.0.0', // Allow connections from any IP on your network
 		port: 5173,

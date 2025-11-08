@@ -22,6 +22,19 @@ function isPublicPath(pathname: string): boolean {
 	       pathname.startsWith('/docs');
 }
 
+// Redirect .md URLs to dynamic routes (prevents raw markdown files from being served)
+const redirectMarkdownUrls: Handle = async ({ event, resolve }) => {
+	const { pathname } = event.url;
+	
+	// If URL ends with .md, redirect to the version without .md
+	if (pathname.match(/\.md$/)) {
+		const cleanPath = pathname.replace(/\.md$/, '');
+		throw redirect(301, cleanPath + event.url.search + event.url.hash);
+	}
+	
+	return resolve(event);
+};
+
 // Create auth hooks with persistent cookies
 // Note: "Remember Me" functionality would require package support or custom implementation
 const { handleAuth, isAuthenticated } = createConvexAuthHooks({
@@ -72,9 +85,9 @@ const requireAuth: Handle = async ({ event, resolve }) => {
 };
 
 // Apply hooks in sequence
-// handleAuth MUST come first to handle auth requests
 export const handle = sequence(
-	handleAuth,  // This handles all POST requests to /api/auth automatically
-	requireAuth  // Then enforce authentication for protected routes
+	redirectMarkdownUrls, // First, redirect any .md URLs to clean URLs
+	handleAuth,           // Then handle auth requests
+	requireAuth           // Finally enforce authentication for protected routes
 );
 
