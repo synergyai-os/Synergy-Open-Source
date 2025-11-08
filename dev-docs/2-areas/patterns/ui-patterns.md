@@ -1099,7 +1099,61 @@ ESC #3 → Modal closes
 
 ---
 
-**Pattern Count**: 19  
+## #L1100: Raw Markdown Displayed Instead of Rendered HTML [🔴 CRITICAL]
+
+**Symptom**: Documentation page shows raw markdown with broken emojis (e.g., `## δŸ~δi` instead of `## 🎯`)  
+**Root Cause**: URL includes `.md` extension, bypassing SvelteKit dynamic route handler. Vite serves raw file directly.  
+**Fix**:
+
+```typescript
+// vite.config.ts
+export default defineConfig({
+  plugins: [
+    tailwindcss(),
+    {
+      name: 'redirect-markdown',
+      configureServer(server) {
+        server.middlewares.use((req, res, next) => {
+          // Redirect .md URLs to clean URLs (for documentation system)
+          if (req.url?.endsWith('.md')) {
+            const cleanUrl = req.url.replace(/\.md$/, '');
+            res.writeHead(301, { Location: cleanUrl });
+            res.end();
+            return;
+          }
+          next();
+        });
+      }
+    },
+    sveltekit()
+  ],
+  // ... rest of config
+});
+```
+
+**Apply when**:
+- Documentation system serves markdown files dynamically
+- Raw markdown appears instead of rendered HTML
+- URLs with `.md` extension should redirect to clean URLs
+- Vite intercepts requests before SvelteKit hooks run
+
+**Why it works**:
+- Vite middleware runs before file serving
+- 301 redirect preserves hash fragments for anchor links
+- Browser automatically follows redirect to dynamic route
+- Dynamic route handler renders markdown to HTML with proper UTF-8 encoding
+
+**Correct Pattern**:
+1. Add Vite plugin with `configureServer` hook
+2. Intercept requests ending with `.md`
+3. Issue 301 redirect to URL without extension
+4. SvelteKit dynamic route handles rendering
+
+**Related**: #L10 (Routing patterns), svelte-reactivity.md#L400 (SSR issues)
+
+---
+
+**Pattern Count**: 20  
 **Last Updated**: 2025-11-08  
 **Design Token Reference**: `dev-docs/design-tokens.md`
 
