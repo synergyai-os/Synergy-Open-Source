@@ -23,10 +23,29 @@
 
 ## Workflow
 
-### 1. Analyze Session
-- What issues were fixed?
-- What patterns emerged?
-- What mistakes were avoided?
+### 1. Analyze Session - Frame as User Story
+
+**Think outcome-driven, not output-driven:**
+
+- **WHO** benefits from this change? (user, developer, contributor, AI assistant)
+- **WHAT VALUE** was delivered? (faster workflow, less errors, better UX)
+- **WHAT SLICE** was completed? (thin, end-to-end functionality that provides value)
+
+**User Story Format:**
+```
+As a [user type]
+I can now [capability]
+So that [outcome/value]
+```
+
+**Vertical Slice Thinking:**
+- What end-to-end flow works now that didn't before?
+- What pain point was removed?
+- What new capability can users access?
+
+**Pattern Learning:**
+- What patterns emerged while building this slice?
+- What mistakes were avoided (or made and fixed)?
 
 ### 2. Audit Existing Patterns
 
@@ -90,21 +109,27 @@
 
 ### 4. Commit
 
-Use **Conventional Commits** format with context and learning journey.
+Use **Conventional Commits** format with **user story** and **outcome focus**.
 
 #### Format
 
 ```
-type(scope): imperative subject line under 50 chars
+type(scope): [what users can now do]
 
-WHY: What problem this solved or what you were trying to achieve.
+USER STORY:
+As a [user type]
+I can now [capability]
+So that [outcome/value delivered]
+
+SLICE COMPLETED:
+[Describe the thin, end-to-end functionality that now works]
 
 JOURNEY (if applicable):
 - First approach: [what didn't work]
 - Why it failed: [the learning moment]  
 - Final solution: [what actually worked]
 
-PATTERN:
+PATTERN (if applicable):
 - Added/Updated: "Pattern Name" (#L[NUMBER])
 - Documented in: dev-docs/patterns/[domain].md
 - Severity: [🔴/🟡/🟢]
@@ -113,6 +138,12 @@ AI: [Optional - if Claude/Cursor suggested something worth noting]
 
 Closes #[issue-number] (if applicable)
 ```
+
+**📖 Teaching Note - User Stories:**
+User stories follow the format "As a [who], I want [what], so that [why]". The "so that" is critical - it explains the **outcome/value**, not just the feature. This keeps us focused on user value over outputs.
+
+**📖 Teaching Note - Vertical Slicing:**
+A vertical slice is a thin, end-to-end piece of functionality that delivers value. Instead of building an entire layer (all UI, then all backend), you build one complete flow (e.g., "user can create a note") from UI to database. Each slice ships value.
 
 #### Type & Scope
 
@@ -130,75 +161,126 @@ Closes #[issue-number] (if applicable)
 
 #### Examples
 
-**Pattern addition:**
+**Pattern addition (outcome-focused):**
 ```
-docs(patterns): add Svelte 5 composables pattern after learning it the hard way
+docs(patterns): developers can now avoid Svelte 5 reactivity gotchas
 
-WHY: Tried multiple approaches before finding what actually works with Svelte 5 reactivity.
+USER STORY:
+As a developer new to Svelte 5
+I can now use the correct $state pattern
+So that my components update reactively without mysterious bugs
+
+SLICE COMPLETED:
+Documented the single $state object pattern after hitting (and fixing)
+reactivity issues. Developers can now reference this pattern when
+building composables, avoiding hours of debugging.
 
 JOURNEY:
 - First approach: Multiple $state variables
-- Why it failed: Caused reactivity issues and component updates failed
-- Final solution: Single $state object with getters (cleaner + works)
+- Why it failed: Svelte 5 lost track of updates across variables
+- Final solution: Single $state object with getters (works reliably)
 
 PATTERN:
 - Added: "Single $state Object Pattern" (#L780)
 - Documented in: dev-docs/patterns/svelte-reactivity.md
-- Severity: 🔴 (Critical - common gotcha)
-- Updated INDEX.md with new symptom entry
+- Severity: 🔴 (Critical - common gotcha that blocks work)
+- Updated INDEX.md symptom table
 
-AI: Claude suggested the getter pattern after seeing our reactivity issues.
+AI: Claude suggested the getter pattern and caught edge cases.
 ```
 
-**Bug fix with pattern:**
-```
-fix(notes): clear note detail state on switch to prevent stale data
+**📖 What makes this outcome-driven:**
+- Subject line: "developers can now avoid..." (capability unlocked)
+- User story: Clear who, what, why
+- Slice: End-to-end value delivered (pattern documented → developers unblocked)
 
-WHY: Switching between notes showed old content briefly before updating.
-NoteDetail component wasn't clearing state on note ID change.
+**Bug fix (outcome-focused):**
+```
+fix(notes): users see correct note immediately when switching
+
+USER STORY:
+As a user browsing my notes
+I can now switch between notes and see the correct content immediately
+So that I don't get confused by stale data appearing briefly
+
+SLICE COMPLETED:
+Note switching now clears previous state before loading new content.
+The jarring flash of old content is gone. Users experience smooth,
+instant transitions between notes.
 
 JOURNEY:
 - First approach: Tried forcing re-render with key prop
-- Why it failed: Still had race condition with async data load
-- Final solution: Added explicit clear() call on note switch
+- Why it failed: Race condition with async data still showed stale content
+- Final solution: Explicit clear() call on note switch (predictable timing)
 
 PATTERN:
 - Updated: "Component State Management" (#L450)  
 - Added edge case: clear() on reactive param change
 - Documented in: dev-docs/patterns/svelte-reactivity.md
-- Severity: 🟡 (Important - affects UX)
+- Severity: 🟡 (Important - affects UX quality)
 
 Caught while testing the Linear-style modal redesign.
 ```
 
-**Feature with learning:**
-```
-feat(inbox): add J/K keyboard navigation
+**📖 What makes this outcome-driven:**
+- Subject line: "users see correct note immediately" (outcome, not "fixed state bug")
+- User story: Clear pain point removed (confusion from stale data)
+- Slice: End-to-end fix (switching → clear state → load new → display)
 
-WHY: Users expect Gmail-style navigation. Makes inbox way faster to process.
+**Feature (outcome-focused):**
+```
+feat(inbox): power users can now process inbox 10x faster with keyboard
+
+USER STORY:
+As a power user processing dozens of inbox items daily
+I can now navigate with J/K shortcuts (like Gmail, Linear)
+So that I can quickly scan and process items without touching the mouse
+
+SLICE COMPLETED:
+Full keyboard navigation flow: J moves down, K moves up, automatically
+handles edge cases (wraps at bottom/top), respects input focus context
+(doesn't interfere when typing). Power users can now fly through inbox.
 
 JOURNEY:
-- First approach: Event listeners on component mount
-- Why it failed: Conflicts with input focus and modal shortcuts  
-- Final solution: useKeyboardNavigation composable with context awareness
+- First approach: Simple event listeners on component mount
+- Why it failed: Fired even when typing in inputs, broke modals
+- Final solution: Context-aware composable that checks focus state
 
 PATTERN:
 - Added: "Context-Aware Keyboard Shortcuts" (#L320)
 - Documented in: dev-docs/patterns/ui-patterns.md
-- Severity: 🟢 (Reference - best practice)
+- Severity: 🟢 (Reference - best practice for keyboard UX)
 
-AI: Claude suggested edge case handling for bottom of list (wraps to top now).
+AI: Claude suggested wrapping at list boundaries (top/bottom) instead
+of stopping. Much better UX - users expect circular navigation.
 
 Closes #67
 ```
 
+**📖 What makes this outcome-driven:**
+- Subject line: "power users can now process 10x faster" (measurable outcome)
+- User story: Specific user type (power user), specific value (speed)
+- Slice: Complete flow (up/down, edges, context) not just "added feature"
+
 #### Anti-Patterns
 
-- ❌ `[UI] Fixed stuff` - Not specific, missing context
-- ❌ `Fixed bug` - Which bug? Why did it happen?
-- ❌ `Updated files` - What changed and why?
+**Technical-focused (not outcome-focused):**
+- ❌ `fix(notes): clear state on switch` → ✅ `fix(notes): users see correct note immediately`
+- ❌ `feat: added keyboard shortcuts` → ✅ `feat: power users process inbox 10x faster`
+- ❌ `docs: updated patterns` → ✅ `docs: developers avoid Svelte 5 gotchas`
+
+**Missing context:**
+- ❌ `Fixed bug` - Which bug? What value did fixing it provide?
+- ❌ `Updated files` - What capability did this enable?
 - ❌ `WIP` - Don't commit work-in-progress to main
-- ❌ Missing pattern reference when you just updated docs
+- ❌ Missing USER STORY when change impacts users
+- ❌ Missing SLICE explanation (what end-to-end flow now works?)
+
+**📖 Teaching Note:**
+Output-driven thinking: "We shipped keyboard shortcuts"
+Outcome-driven thinking: "Power users now process inbox 10x faster"
+
+The outcome is what matters. Always ask: "What can users now do? What value was delivered?"
 
 **Do NOT push yet** - proceed to step 5.
 
@@ -269,14 +351,28 @@ Keep response concise. Show push result or "Staying local" confirmation.
 ## Quick AI Workflow
 
 ```
-1. Analyze → What was fixed/learned?
+1. Analyze → Frame as user story
+   - WHO benefits? WHAT VALUE delivered? WHAT SLICE completed?
+   
 2. grep INDEX.md → Check existing patterns
+
 3. Update patterns → search_replace domain files + INDEX.md
-4. git add [files] → git commit -m "..." → git log -1 --stat
+
+4. Commit with outcome focus:
+   Subject: "[what users can now do]"
+   Body: USER STORY + SLICE + JOURNEY + PATTERN
+   
 5. Ask: "Push to GitHub? (Y/N)"
    → Y: git push (requires ['all'] permissions)
    → N: "✅ Committed locally. Not pushed."
 ```
+
+**Commit message checklist:**
+- [ ] Subject describes outcome, not output
+- [ ] USER STORY answers: who, what capability, what value
+- [ ] SLICE explains what end-to-end flow now works
+- [ ] JOURNEY shows learning (if iteration 2+)
+- [ ] PATTERN referenced (if applicable)
 
 **End message format:**
 - If pushed: "✅ Pushed to GitHub. [short status]"
