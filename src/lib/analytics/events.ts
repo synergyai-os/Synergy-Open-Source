@@ -12,6 +12,13 @@ export enum AnalyticsEventName {
   ORGANIZATION_TAG_ASSIGNED = 'organization_tag_assigned',
   TEAM_TAG_ASSIGNED = 'team_tag_assigned',
   TAG_STUDY_STARTED = 'tag_study_started',
+  TAG_SHARED = 'tag_shared',
+  // Quick Create events
+  QUICK_CREATE_OPENED = 'quick_create_opened',
+  QUICK_CREATE_TYPE_SELECTED = 'quick_create_type_selected',
+  QUICK_CREATE_TAGS_MODIFIED = 'quick_create_tags_modified',
+  QUICK_CREATE_COMPLETED = 'quick_create_completed',
+  QUICK_CREATE_ABANDONED = 'quick_create_abandoned',
 }
 
 export type OwnershipScope = 'user' | 'organization' | 'team';
@@ -95,6 +102,63 @@ export type AnalyticsEventPayloads = {
     tagId: string;
     tagName: string;
     studyMode: 'spaced_repetition' | 'quick_review';
+  };
+  [AnalyticsEventName.TAG_SHARED]: {
+    scope: 'organization' | 'team';
+    tag_id: string;
+    tag_name: string;
+    shared_from: 'user';
+    shared_at: number;
+    organization_id?: string;
+    organization_name?: string;
+    team_id?: string;
+    team_name?: string;
+    content_type: 'highlights' | 'flashcards' | 'mixed';
+    shared_via: 'tags_page' | 'inline' | 'bulk';
+  };
+  // Quick Create events
+  [AnalyticsEventName.QUICK_CREATE_OPENED]: {
+    scope: 'user';
+    trigger_method: 'keyboard_n' | 'header_button' | 'footer_button';
+    has_active_item: boolean;
+    current_view: 'inbox' | 'flashcards' | 'tags' | 'my_mind' | 'study';
+    items_in_view: number;
+  };
+  [AnalyticsEventName.QUICK_CREATE_TYPE_SELECTED]: {
+    scope: 'user';
+    content_type: 'note' | 'flashcard' | 'highlight';
+    selection_method: 'click' | 'keyboard_c' | 'keyboard_nav';
+    time_to_select_ms: number;
+  };
+  [AnalyticsEventName.QUICK_CREATE_TAGS_MODIFIED]: {
+    scope: 'user';
+    content_type: 'note' | 'flashcard' | 'highlight';
+    tags_added_count: number;
+    tags_removed_count: number;
+    total_tags: number;
+    used_tag_search: boolean;
+    created_new_tag: boolean;
+    tag_assignment_time_ms: number;
+  };
+  [AnalyticsEventName.QUICK_CREATE_COMPLETED]: {
+    scope: 'user';
+    content_type: 'note' | 'flashcard' | 'highlight';
+    trigger_method: 'keyboard_n' | 'header_button' | 'footer_button';
+    total_time_ms: number;
+    type_selection_time_ms: number;
+    tag_assignment_time_ms: number;
+    content_length_chars: number;
+    has_tags: boolean;
+    tag_count: number;
+  };
+  [AnalyticsEventName.QUICK_CREATE_ABANDONED]: {
+    scope: 'user';
+    content_type?: 'note' | 'flashcard' | 'highlight';
+    abandon_stage: 'type_selection' | 'tag_assignment' | 'content_entry';
+    time_to_abandon_ms: number;
+    abandon_method: 'escape_key' | 'click_outside' | 'back_button';
+    had_content: boolean;
+    had_tags: boolean;
   };
 };
 

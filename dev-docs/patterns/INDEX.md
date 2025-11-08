@@ -40,6 +40,9 @@
 | Card removal (Tinder-like) | Queue-based removal | [ui-patterns.md#L220](ui-patterns.md#L220) |
 | Visual feedback | Show overlay before action | [ui-patterns.md#L280](ui-patterns.md#L280) |
 | Textarea auto-resize | Remove h-full, use field-sizing | [ui-patterns.md#L330](ui-patterns.md#L330) |
+| Command palette drama | Dark overlay + blur + animation | [ui-patterns.md#L480](ui-patterns.md#L480) |
+| Command input design | Icon + transparent + shortcuts | [ui-patterns.md#L530](ui-patterns.md#L530) |
+| N vs C keyboard shortcuts | N=new, C=command center | [ui-patterns.md#L580](ui-patterns.md#L580) |
 | Type safety for Convex | Use shared type definitions | [convex-integration.md#L240](convex-integration.md#L240) |
 | Discriminated unions | Type narrowing with discriminator | [convex-integration.md#L290](convex-integration.md#L290) |
 | Enum to database strings | Explicit conversion functions | [convex-integration.md#L340](convex-integration.md#L340) |
@@ -102,6 +105,6 @@ correct code
 
 ---
 
-**Last Updated**: 2025-11-07  
-**Pattern Count**: 32  
+**Last Updated**: 2025-11-08  
+**Pattern Count**: 35  
 **Format Version**: 2.0

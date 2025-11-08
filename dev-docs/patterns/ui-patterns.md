@@ -377,7 +377,152 @@ $effect(() => {
 
 ---
 
-**Pattern Count**: 9  
-**Last Updated**: 2025-11-07  
+## #L480: Command Palette "Big Event" Design [🟢 REFERENCE]
+
+**Symptom**: Modal feels flat, doesn't grab attention for frequent-use features  
+**Root Cause**: Standard overlay/modal without dramatic visual treatment  
+**Fix**:
+
+```svelte
+<!-- ❌ WRONG: Standard overlay -->
+<Dialog.Overlay class="fixed inset-0 z-50 bg-overlay" />
+<Dialog.Content class="fixed ... shadow-modal">
+  <!-- content -->
+</Dialog.Content>
+
+<!-- ✅ CORRECT: Premium "spotlight" effect -->
+<Dialog.Overlay
+  class="fixed inset-0 z-50 bg-black/65 backdrop-blur-sm 
+    data-[state=open]:animate-in data-[state=closed]:animate-out 
+    data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+/>
+<Dialog.Content
+  class="fixed left-1/2 top-1/2 z-50 max-w-[600px] -translate-x-1/2 -translate-y-1/2 
+    shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out 
+    data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 
+    data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-top-[48%]"
+>
+  <!-- content -->
+</Dialog.Content>
+```
+
+**Key Elements**:
+1. **Dark overlay** (65% black) - Creates spotlight effect
+2. **Backdrop blur** (`backdrop-blur-sm`) - Premium feel (Raycast, macOS Spotlight)
+3. **Scale animation** (`zoom-in-95`) - Modal "pops" into view
+4. **Dramatic shadow** (`shadow-2xl`) - Adds depth
+5. **Coordinated animations** - Fade + zoom + slide for polish
+
+**Technical**:
+- Hardware accelerated (transform, opacity)
+- ~200ms total animation time
+- Smooth 60fps transitions
+- No layout shift (fixed positioning)
+
+**Apply when**: Feature will be used frequently (command palettes, quick actions)  
+**Inspiration**: Raycast, Linear, Superhuman, 1Password Quick Access  
+**Related**: #L10 (Dropdowns), #L330 (Centered layout)
+
+---
+
+## #L530: Command Palette Input Design [🟢 REFERENCE]
+
+**Symptom**: Search input feels generic, doesn't match premium command palette UX  
+**Root Cause**: Missing visual patterns from leading command palettes  
+**Fix**:
+
+```svelte
+<!-- ❌ WRONG: Generic input -->
+<input 
+  class="w-full px-4 py-2 border border-gray-300"
+  placeholder="Search for something to create..."
+/>
+
+<!-- ✅ CORRECT: Premium command palette input -->
+<div class="flex items-center border-b border-base/50 px-4 py-3">
+  <!-- Icon on left (search/logo) -->
+  <svg class="w-5 h-5 text-tertiary mr-3 flex-shrink-0">
+    <!-- search icon -->
+  </svg>
+  
+  <!-- Minimal, transparent input -->
+  <Command.Input
+    class="placeholder:text-tertiary bg-transparent focus:outline-hidden 
+      flex-1 text-base transition-colors focus:ring-0 border-0 p-0"
+    placeholder="Type a command or search..."
+  />
+</div>
+
+<!-- Items with keyboard shortcuts on right -->
+<Command.Item class="flex items-center justify-between px-3 py-2.5">
+  <div class="flex items-center gap-icon">
+    <span class="text-xl">📝</span>
+    <span>Note</span>
+  </div>
+  <span class="text-xs text-tertiary bg-base/50 px-2 py-1 rounded font-mono">N</span>
+</Command.Item>
+```
+
+**Key Patterns** (from 1Password, Raycast, Todoist, Slack):
+1. ✅ **Icon on left** (search or app logo)
+2. ✅ **Transparent background** with minimal border
+3. ✅ **Short placeholder** (not verbose)
+4. ✅ **Keyboard shortcuts on right** (visible, subtle badges)
+5. ✅ **Larger text** (text-base, not text-sm)
+6. ✅ **Immediate action list** (no search delay)
+
+**Apply when**: Building command palettes or quick action interfaces  
+**Related**: #L480 (Big event design)
+
+---
+
+## #L580: Command vs Quick Action Keyboard Workflow [🟢 REFERENCE]
+
+**Symptom**: Unclear distinction between different keyboard shortcuts  
+**Root Cause**: Multiple keys doing similar actions, no clear mental model  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Both keys do the same thing
+shortcuts.register({
+  key: 'n',
+  handler: () => openCreateModal(), // Same modal
+});
+shortcuts.register({
+  key: 'c', 
+  handler: () => openCreateModal(), // Same modal
+});
+
+// ✅ CORRECT: Clear separation of intent
+shortcuts.register({
+  key: 'n',
+  handler: () => quickCreateNote(), // Direct action (fast)
+  description: 'New note (quick)',
+});
+shortcuts.register({
+  key: 'c',
+  handler: () => openCommandCenter(), // Full palette (options)
+  description: 'Command Center',
+});
+```
+
+**Mental Model**:
+- **N** = **N**ew (direct, specific, fast) - Creates default item type immediately
+- **C** = **C**ommand (choose, search, explore) - Opens full palette with all options
+
+**Benefits**:
+- Muscle memory: N for speed, C for choice
+- Clear naming: "Command Center" not "New Item"
+- Scalable: Add more quick actions (F, H, etc.)
+- Discoverable: Command Center teaches all shortcuts
+
+**Apply when**: Designing keyboard-first workflows with multiple creation paths  
+**Inspiration**: VSCode (Cmd+P vs Cmd+Shift+P), Notion (/ vs Cmd+K)  
+**Related**: #L430 (Keyboard priority), #L530 (Command palette input)
+
+---
+
+**Pattern Count**: 12  
+**Last Updated**: 2025-11-08  
 **Design Token Reference**: `dev-docs/design-tokens.md`
 

@@ -10,6 +10,7 @@
     import SidebarHeader from './sidebar/SidebarHeader.svelte';
     import CleanReadwiseButton from './sidebar/CleanReadwiseButton.svelte';
     import TeamList from './organizations/TeamList.svelte';
+    import CreateMenu from './sidebar/CreateMenu.svelte';
     import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 
 	type Props = {
@@ -19,6 +20,9 @@
 		onToggleCollapse: () => void;
 		sidebarWidth?: number;
 		onSidebarWidthChange?: (width: number) => void;
+		createMenuOpen?: boolean;
+		onCreateMenuChange?: (open: boolean) => void;
+		onQuickCreate?: (trigger: 'header_button' | 'footer_button') => void;
 	};
 
 	let {
@@ -27,7 +31,10 @@
 		sidebarCollapsed,
 		onToggleCollapse,
 		sidebarWidth = 256,
-		onSidebarWidthChange
+		onSidebarWidthChange,
+		createMenuOpen = false,
+		onCreateMenuChange,
+		onQuickCreate
 	}: Props = $props();
 
     // Get auth functions for logout
@@ -337,6 +344,34 @@
 			<!-- Navigation - Scrollable area -->
 			{#if !sidebarCollapsed || isPinned || (hoverState && !isMobile)}
 				<nav class="flex-1 px-nav-container py-nav-container overflow-y-auto" transition:fade={{ duration: 200 }}>
+					<!-- Command Center Button (Header) -->
+					<button
+						onclick={() => {
+							if (onQuickCreate) {
+								onQuickCreate('header_button');
+							}
+						}}
+						class="w-full flex items-center gap-icon px-button-x py-button-y rounded-button bg-button-primary text-button-primary-text hover:bg-button-primary-hover transition-all duration-150 mb-nav-group"
+						title="Command Center (C)"
+					>
+						<svg
+							class="w-4 h-4 flex-shrink-0"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+							/>
+						</svg>
+						<span class="font-medium">Command Center</span>
+						<span class="ml-auto text-xs opacity-60">C</span>
+					</button>
+
 					<!-- My Mind -->
 					<a
 						href="/my-mind"
@@ -440,6 +475,30 @@
 						<span class="font-normal">Study</span>
 					</a>
 
+					<!-- Tags -->
+					<a
+						href="/tags"
+						class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+						title="Tags"
+					>
+						<!-- Icon -->
+						<svg
+							class="w-4 h-4 flex-shrink-0"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+							/>
+						</svg>
+						<span class="font-normal">Tags</span>
+					</a>
+
 			{#if organizations}
 				<TeamList
 					teams={visibleTeams()}
@@ -500,26 +559,22 @@
 			<!-- Footer Actions -->
 			{#if (!sidebarCollapsed || isPinned || (hoverState && !isMobile)) && !isMobile}
 				<div class="px-nav-container py-nav-container border-t border-sidebar" transition:fade={{ duration: 200 }}>
-					<button
-						type="button"
-						class="w-full flex items-center justify-center gap-icon bg-sidebar-hover hover:bg-sidebar-hover-solid text-sidebar-primary py-nav-item px-header rounded-md transition-all duration-150 text-sm font-normal"
-					>
-						<svg
-							class="w-4 h-4"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M12 4v16m8-8H4"
-							/>
-						</svg>
-						New Item
-					</button>
+					<CreateMenu
+						open={createMenuOpen}
+						onOpenChange={onCreateMenuChange || (() => {})}
+						onCreateNote={() => {
+							console.log('Create note clicked');
+							// TODO: Navigate to note creation or open modal
+						}}
+						onCreateFlashcard={() => {
+							console.log('Create flashcard clicked');
+							// TODO: Navigate to flashcard creation or open modal
+						}}
+						onCreateHighlight={() => {
+							console.log('Create highlight clicked');
+							// TODO: Navigate to highlight creation or open modal
+						}}
+					/>
 				</div>
 			{/if}
 
@@ -764,6 +819,32 @@
 					{/if}
 				</a>
 
+				<!-- Tags -->
+				<a
+					href="/tags"
+					class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+					class:justify-center={isMobile && sidebarCollapsed}
+					title={isMobile && sidebarCollapsed ? 'Tags' : ''}
+				>
+					<svg
+						class="w-4 h-4 flex-shrink-0"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+						xmlns="http://www.w3.org/2000/svg"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+						/>
+					</svg>
+					{#if !isMobile || !sidebarCollapsed}
+						<span class="font-normal">Tags</span>
+					{/if}
+				</a>
+
 		{#if organizations}
 			<TeamList
 				teams={visibleTeams()}
@@ -827,11 +908,16 @@
 		{#if (!sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)) && !isMobile}
 			<div class="px-nav-container py-nav-container border-t border-sidebar" transition:fade={{ duration: 200 }}>
 				<button
-					type="button"
-					class="w-full flex items-center justify-center gap-icon bg-sidebar-hover hover:bg-sidebar-hover-solid text-sidebar-primary py-nav-item px-header rounded-md transition-all duration-150 text-sm font-normal"
+					onclick={() => {
+						if (onQuickCreate) {
+							onQuickCreate('footer_button');
+						}
+					}}
+					class="w-full flex items-center gap-icon px-button-x py-button-y rounded-button bg-button-primary text-button-primary-text hover:bg-button-primary-hover transition-all duration-150"
+					title="Command Center (C)"
 				>
 					<svg
-						class="w-4 h-4"
+						class="w-4 h-4 flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -841,10 +927,11 @@
 							stroke-linecap="round"
 							stroke-linejoin="round"
 							stroke-width="2"
-							d="M12 4v16m8-8H4"
+							d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
 						/>
 					</svg>
-					New Item
+					<span class="font-medium">Command Center</span>
+					<span class="ml-auto text-xs opacity-60">C</span>
 				</button>
 			</div>
 		{/if}
