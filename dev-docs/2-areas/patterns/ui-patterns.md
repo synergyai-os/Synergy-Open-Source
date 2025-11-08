@@ -827,6 +827,86 @@ npm install prosemirror-highlight lowlight
 
 ---
 
+## #L828: Navbar/Header Using Non-Existent CSS Variables [🔴 CRITICAL]
+
+**Symptom**: Navbar stays white in dark mode, or uses wrong background color  
+**Root Cause**: Using `rgba(var(--color-bg-base-rgb), 0.95)` or other non-existent CSS variables with fallback values  
+**Fix**: 
+
+```css
+/* ❌ WRONG - Non-existent variable with hardcoded fallback */
+.docs-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--color-bg-base);
+  border-bottom: 1px solid var(--color-border-base);
+  backdrop-filter: blur(8px);
+  background: rgba(var(--color-bg-base-rgb, 255, 255, 255), 0.95); /* ❌ Overrides above, always white */
+}
+
+/* ✅ CORRECT - Use semantic surface token */
+.docs-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border-base);
+}
+```
+
+**Why This Breaks**:
+1. `--color-bg-base-rgb` doesn't exist in design system
+2. Fallback `255, 255, 255` (white) always applies
+3. Second `background:` declaration overrides the first
+4. Dark mode never activates for this component
+
+**How to Fix**:
+1. Check `src/app.css` for available CSS variables (all start with `--color-`)
+2. Use `bg-surface` for elevated headers/navbars (provides contrast)
+3. Use `bg-base` for page backgrounds
+4. Never use RGB variables unless defined in design system
+5. Remove backdrop-filter/blur unless explicitly in design system
+
+**Available Background Tokens**:
+- `--color-bg-base`: Page background
+- `--color-bg-surface`: Card/surface background (slightly elevated)
+- `--color-bg-elevated`: Modal/popover background (most elevated)
+- `--color-bg-hover`: Hover state background
+- `--color-bg-hover-solid`: Hover state (solid, no transparency)
+
+**Pattern: Header/Navbar Backgrounds**:
+```svelte
+<!-- Navbar (top-level navigation) -->
+<nav class="sticky top-0 z-10 bg-surface border-b border-base">
+  ...
+</nav>
+
+<!-- Page Header (content header) -->
+<div class="sticky top-0 z-10 bg-surface border-b border-base px-inbox-header py-system-header">
+  ...
+</div>
+
+<!-- Modal Header -->
+<div class="bg-elevated border-b border-base px-header py-header">
+  ...
+</div>
+```
+
+**Reference Implementation**: 
+- `src/lib/components/inbox/InboxHeader.svelte` (perfect example)
+- `src/lib/components/sidebar/SidebarHeader.svelte`
+
+**Why Critical**: 
+- Breaks dark mode entirely for the component
+- Users see jarring white flash in dark mode
+- Creates accessibility issues (poor contrast)
+- Hard to debug (looks fine in light mode)
+
+**Related**: #L780 (Design Token Usage), #L120 (Fixed Height Header)
+
+---
+
 ## #L830: Compact Modal Input Design - Linear Style [🟢 REFERENCE]
 
 **Symptom**: Modal has huge whitespace, title looks like header not input, disconnected feel  
