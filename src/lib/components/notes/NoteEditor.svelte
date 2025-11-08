@@ -224,7 +224,7 @@
 			<div class="relative">
 				<div
 					bind:this={editorElement}
-					class="prose prose-sm prose-neutral dark:prose-invert prose-p:my-0 prose-p:leading-relaxed max-w-none min-h-[60px] max-h-[60vh] overflow-y-auto text-secondary"
+					class="prose prose-sm prose-neutral dark:prose-invert prose-p:my-0 prose-p:leading-relaxed max-w-none min-h-[60px] text-secondary {compact ? 'max-h-[60vh] overflow-y-auto' : ''}"
 				></div>
 				{#if isEmpty && !isFocused}
 					<div class="absolute top-0 left-0 text-sm text-tertiary pointer-events-none">
@@ -316,6 +316,40 @@
 		padding-left: 1em;
 		margin-left: 0;
 		opacity: 0.7;
+	}
+
+	/* Task list styling */
+	:global(.ProseMirror ul.task-list) {
+		list-style: none;
+		padding-left: 0;
+		margin: 1em 0;
+	}
+
+	:global(.ProseMirror .task-item) {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.5em;
+		margin: 0.5em 0;
+	}
+
+	:global(.ProseMirror .task-item-checkbox) {
+		margin-top: 0.3em;
+		cursor: pointer;
+		flex-shrink: 0;
+		/* Prevent checkbox from affecting text selection */
+		pointer-events: auto;
+	}
+
+	:global(.ProseMirror .task-item-content) {
+		flex: 1;
+		min-width: 0; /* Allows text to wrap properly */
+		/* Text is editable, clicks go to ProseMirror */
+		cursor: text;
+	}
+
+	:global(.ProseMirror .task-item-content p) {
+		display: inline;
+		margin: 0;
 	}
 
 	/* Ensure empty paragraphs maintain layout */

@@ -197,7 +197,7 @@
 	</div>
 
 	<!-- Note Editor -->
-	<div class="flex-1 overflow-hidden">
+	<div class="flex-1 overflow-y-auto">
 		<NoteEditorWithDetection
 			bind:this={editorRef}
 			content={inboxItem.content}

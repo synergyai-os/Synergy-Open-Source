@@ -17,7 +17,49 @@ import { inputRules, wrappingInputRule, textblockTypeInputRule, InputRule } from
  * Extended schema with additional marks and nodes
  */
 export const noteSchema = new Schema({
-  nodes: basicSchema.spec.nodes.update("code_block", {
+  nodes: basicSchema.spec.nodes
+    .addToEnd("task_list", {
+      group: "block",
+      content: "task_item+",
+      toDOM() {
+        return ["ul", { class: "task-list" }, 0];
+      },
+      parseDOM: [{ tag: "ul.task-list" }],
+    })
+    .addToEnd("task_item", {
+      content: "paragraph block*",
+      defining: true,
+      attrs: {
+        checked: { default: false },
+      },
+      toDOM(node) {
+        return [
+          "li",
+          { class: "task-item", "data-checked": node.attrs.checked },
+          [
+            "input",
+            {
+              type: "checkbox",
+              checked: node.attrs.checked ? "checked" : undefined,
+              class: "task-item-checkbox",
+            },
+          ],
+          ["div", { class: "task-item-content" }, 0],
+        ];
+      },
+      parseDOM: [
+        {
+          tag: "li.task-item",
+          getAttrs(dom) {
+            if (typeof dom === "string") return false;
+            return {
+              checked: dom.getAttribute("data-checked") === "true",
+            };
+          },
+        },
+      ],
+    })
+    .update("code_block", {
     content: "text*",
     marks: "",
     group: "block",
@@ -61,7 +103,10 @@ export function buildKeymap(schema: Schema, onEscape?: () => void) {
   // Italic: Cmd/Ctrl + I
   keys["Mod-i"] = toggleMark(schema.marks.em);
   
-  // Code: Cmd/Ctrl + `
+  // Inline Code: Cmd/Ctrl + E (overrides browser search via handleKeyDown plugin)
+  keys["Mod-e"] = toggleMark(schema.marks.code);
+  
+  // Code: Cmd/Ctrl + ` (alternative)
   keys["Mod-`"] = toggleMark(schema.marks.code);
 
   // Heading 1: Cmd/Ctrl + Shift + 1
@@ -147,6 +192,18 @@ export function buildInputRules(schema: Schema) {
         tr.replaceWith(start - 1, end, schema.nodes.horizontal_rule.create());
         return tr;
       })
+    );
+  }
+
+  // Task list: [] or [ ] at start of line
+  if (schema.nodes.task_list && schema.nodes.task_item) {
+    rules.push(
+      wrappingInputRule(
+        /^\s*\[\s?\]\s$/,
+        schema.nodes.task_list,
+        undefined,
+        (match, node) => ({ checked: false })
+      )
     );
   }
 
@@ -244,6 +301,66 @@ export function pasteHandlerPlugin(onPaste?: (text: string, view: EditorView) =>
         }
         
         return false; // Let default paste behavior continue
+      },
+      
+      // Explicitly handle keyboard events to override browser defaults
+      handleKeyDown(view, event) {
+        // Force override CMD/CTRL+E for inline code (browser search/spotlight)
+        if ((event.metaKey || event.ctrlKey) && event.key === 'e') {
+          event.preventDefault(); // Explicit preventDefault at DOM level
+          return false; // Let keymap handle the command
+        }
+        return false;
+      },
+      
+      // Handle DOM events
+      handleDOMEvents: {
+        click: (view: EditorView, event: Event) => {
+          const target = event.target as HTMLElement;
+          
+          // Check if click was on a task item checkbox
+          if (target.tagName === 'INPUT' && 
+              target.getAttribute('type') === 'checkbox' &&
+              target.classList.contains('task-item-checkbox')) {
+            event.preventDefault(); // Prevent default checkbox behavior
+            
+            // Find the task-item element
+            const taskItem = target.closest('.task-item');
+            if (!taskItem) return false;
+            
+            // Find the task_item node in the document
+            const pos = view.posAtDOM(taskItem, 0);
+            if (pos === null) return false;
+            
+            const $pos = view.state.doc.resolve(pos);
+            let taskItemNode = null;
+            let taskItemPos = -1;
+            
+            // Search for the task_item node
+            for (let depth = $pos.depth; depth >= 0; depth--) {
+              const node = $pos.node(depth);
+              if (node.type.name === 'task_item') {
+                taskItemNode = node;
+                taskItemPos = $pos.before(depth);
+                break;
+              }
+            }
+            
+            if (taskItemNode && taskItemPos >= 0) {
+              // Toggle the checked attribute
+              const tr = view.state.tr.setNodeMarkup(
+                taskItemPos,
+                undefined,
+                { checked: !taskItemNode.attrs.checked }
+              );
+              
+              view.dispatch(tr);
+              return true; // Event handled
+            }
+          }
+          
+          return false; // Let ProseMirror handle other clicks
+        },
       },
     },
   });
