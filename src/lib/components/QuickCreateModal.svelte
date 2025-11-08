@@ -68,6 +68,7 @@
 	let noteTemplate = $state<{id: string; name: string; icon: string; type: 'team' | 'template' | 'workspace'} | undefined>(undefined);
 	let createMore = $state(false);
 	let attachmentCount = $state(0);
+	let isFullscreen = $state(false);
 
 	// Timing tracking for analytics
 	let openedAt = $state(0);
@@ -296,6 +297,7 @@
 		selectedTagIds = [];
 		tagModificationStartedAt = 0;
 		typeSelectedAt = 0;
+		isFullscreen = false;
 	}
 
 	// Handle modal close (abandonment tracking)
@@ -375,7 +377,10 @@
 		/>
 		<!-- Command Center Modal: Scale-up animation + dramatic shadow -->
 		<Dialog.Content
-			class="fixed left-1/2 top-1/2 z-50 max-h-[65vh] w-full max-w-[900px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-md bg-elevated border border-base p-0 shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]"
+			class="{isFullscreen 
+				? 'fixed inset-0 z-50 w-full h-full overflow-y-auto bg-elevated border-0 p-0 shadow-2xl' 
+				: 'fixed left-1/2 top-1/2 z-50 max-h-[65vh] w-full max-w-[900px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-md bg-elevated border border-base p-0 shadow-2xl'
+			} data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]"
 		>
 			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 			<div onkeydown={handleKeyDown} role="dialog" tabindex="-1">
@@ -522,15 +527,20 @@
 									<button
 										type="button"
 										class="p-1.5 text-tertiary hover:text-secondary transition-colors"
-										onclick={() => {
-											// TODO: Implement fullscreen logic
-											console.log('Fullscreen clicked');
-										}}
-										aria-label="Fullscreen"
+										onclick={() => isFullscreen = !isFullscreen}
+										aria-label={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
 									>
-										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-										</svg>
+										{#if isFullscreen}
+											<!-- Exit Fullscreen Icon -->
+											<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" />
+											</svg>
+										{:else}
+											<!-- Fullscreen Icon -->
+											<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+											</svg>
+										{/if}
 									</button>
 									<button
 										type="button"
@@ -573,6 +583,7 @@
 								showToolbar={false}
 								enableAIDetection={false}
 								compact={true}
+								autoFocus={true}
 							/>
 						{:else if selectedType === 'flashcard'}
 							<FormTextarea

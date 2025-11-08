@@ -17,7 +17,7 @@
 - Step 1: Analyze as user story + capture flow metrics + determine flow distribution
 - Step 2: Use `grep` to search INDEX.md and domain files in parallel
 - Step 3: Use `search_replace` or `write` for updates
-- Step 4: Stage → commit with visual format → show `git log -1 --stat`
+- Step 4: Stage → commit with optimized format → show `git log -1 --stat`
 - Step 5: Prompt user, then push if Y
 
 ---
@@ -53,6 +53,7 @@ So that [outcome/value]
 
 **Flow Metrics Capture:**
 - **Type**: feature | bugfix | tech-debt | docs | refactor
+- **Scope**: inbox | notes | flashcards | sync | auth | ui | composables | docs | commands
 - **Size**: small (<4h) | medium (4-16h) | large (>16h)
 - **Flow Days**: Total days from start to done
 - **Active Hours**: Actual coding/thinking time
@@ -126,12 +127,14 @@ So that [outcome/value]
 
 ### 4. Commit
 
-Use **Flow Distribution + Gitmoji + Conventional Commits** with emoji-first format.
+Use **optimized format** for GitHub list view display.
 
 #### Format Template
 
 ```
-[ICON CATEGORY] gitmoji type(scope): [what users can now do]
+[ICON CATEGORY] outcome-focused description (max 50 chars)
+
+TYPE: X | SCOPE: Y | SIZE: Z | DAYS: N | IMPACT: I
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📖 USER STORY
@@ -182,50 +185,32 @@ Use **Flow Distribution + Gitmoji + Conventional Commits** with emoji-first form
 🔗 CLOSES: #[issue]
 ```
 
-#### Flow Distribution Categories (Subject Line Prefix)
+**📖 KEY OPTIMIZATION:**
 
-| Category | Icon | When to Use | Example |
-|----------|------|-------------|---------|
-| 🎯 [FEATURE] | ✨ | New user capability | `🎯 [FEATURE] ✨ feat(inbox): keyboard nav` |
-| 🐛 [BUGFIX] | 🐛 | Fix broken functionality | `🐛 [BUGFIX] 🐛 fix(notes): clear stale state` |
-| 🔧 [TECH-DEBT] | ♻️ | Refactor, architecture, code quality | `🔧 [TECH-DEBT] ♻️ refactor(auth): extract composable` |
-| 📚 [DOCS] | 📝 | Documentation, patterns | `📚 [DOCS] 📝 docs(patterns): add Svelte 5 guide` |
-| 🔒 [RISK] | 🚑️ | Security, critical hotfix, data integrity | `🔒 [RISK] 🚑️ fix(auth): patch session leak` |
+**First body line is metadata** - this appears in GitHub list view preview!
 
-#### Gitmoji Guide (After Category)
+Instead of raw markdown dividers showing in preview, you see useful data:
+- `TYPE: docs | SCOPE: commands | SIZE: large | DAYS: 1 | IMPACT: high`
 
-| Gitmoji | Code | Conventional Type |
-|---------|------|-------------------|
-| ✨ | `:sparkles:` | `feat:` - New feature |
-| 🐛 | `:bug:` | `fix:` - Bug fix |
-| 📝 | `:memo:` | `docs:` - Documentation |
-| ♻️ | `:recycle:` | `refactor:` - Refactor |
-| 💄 | `:lipstick:` | `style:` - UI/design |
-| ⚡️ | `:zap:` | `perf:` - Performance |
-| 🚑️ | `:ambulance:` | `fix:` - Critical hotfix |
-| 🔒️ | `:lock:` | `fix:` - Security |
-| ✅ | `:white_check_mark:` | `test:` - Tests |
+#### Flow Distribution Categories
 
-#### Type & Scope
+| Category | Icon | When to Use | Subject Format |
+|----------|------|-------------|----------------|
+| 🎯 [FEATURE] | 🎯 | New user capability | `🎯 [FEATURE] power users process inbox 10x faster` |
+| 🐛 [BUGFIX] | 🐛 | Fix broken functionality | `🐛 [BUGFIX] users see correct note immediately` |
+| 🔧 [TECH-DEBT] | 🔧 | Refactor, architecture, code quality | `🔧 [TECH-DEBT] extract session logic to composable` |
+| 📚 [DOCS] | 📚 | Documentation, patterns | `📚 [DOCS] developers avoid Svelte 5 gotchas` |
+| 🔒 [RISK] | 🔒 | Security, critical hotfix, data integrity | `🔒 [RISK] patch session token leak` |
 
-**Types:**
-- `feat:` - New feature (use with 🎯 [FEATURE])
-- `fix:` - Bug fix (use with 🐛 [BUGFIX] or 🔒 [RISK])
-- `docs:` - Documentation (use with 📚 [DOCS])
-- `refactor:` - Code improvement (use with 🔧 [TECH-DEBT])
-- `style:` - Design tokens, UI
-- `perf:` - Performance improvement
-- `test:` - Test additions
-- `chore:` - Maintenance
-
-**Scopes:**
-- `inbox`, `notes`, `flashcards`, `sync`, `auth`, `ui`, `composables`, `docs`, `commands`
+**Character count:** `🎯 [FEATURE] ` = 13 characters → **37 chars for description**
 
 #### Complete Examples
 
 **Feature Example:**
 ```
-🎯 [FEATURE] ✨ feat(inbox): power users process inbox 10x faster
+🎯 [FEATURE] power users process inbox 10x faster
+
+TYPE: feature | SCOPE: inbox | SIZE: medium | DAYS: 2 | IMPACT: high
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📖 USER STORY
@@ -279,7 +264,9 @@ respects focus context. Power users can now fly through inbox.
 
 **Bugfix Example:**
 ```
-🐛 [BUGFIX] 🐛 fix(notes): users see correct note immediately
+🐛 [BUGFIX] users see correct note immediately
+
+TYPE: bugfix | SCOPE: notes | SIZE: small | DAYS: 1 | IMPACT: medium
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📖 USER STORY
@@ -332,7 +319,9 @@ The jarring flash of old content is gone. Smooth transitions achieved.
 
 **Documentation Example:**
 ```
-📚 [DOCS] 📝 docs(patterns): developers avoid Svelte 5 gotchas
+📚 [DOCS] developers avoid Svelte 5 gotchas
+
+TYPE: docs | SCOPE: patterns | SIZE: medium | DAYS: 1 | IMPACT: high
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📖 USER STORY
@@ -387,7 +376,9 @@ don't have to. 😅
 
 **Tech Debt Example:**
 ```
-🔧 [TECH-DEBT] ♻️ refactor(auth): extract session logic to composable
+🔧 [TECH-DEBT] extract session logic to composable
+
+TYPE: tech-debt | SCOPE: auth | SIZE: small | DAYS: 1 | IMPACT: low
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📖 USER STORY
@@ -431,7 +422,9 @@ Reduced auth code by 40%, improved testability.
 
 **Risk/Critical Example:**
 ```
-🔒 [RISK] 🚑️ fix(auth): patch session token leak in dev mode
+🔒 [RISK] patch session token leak
+
+TYPE: bugfix | SCOPE: auth | SIZE: small | DAYS: 0.5 | IMPACT: high
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📖 USER STORY
@@ -477,6 +470,10 @@ added secure flag to cookies. Security vulnerability patched.
 
 **Flow Distribution:** Categories show work balance. Track over time to see if you're building features vs fighting fires vs paying down debt.
 
+**Subject Line:** Max 50 chars total. Remove redundant gitmoji/conventional type - just `[CATEGORY] outcome`. Leaves ~37 chars for description.
+
+**Metadata Line:** First body line appears in GitHub preview. Put your key metrics there so list view shows useful data instead of dividers.
+
 **User Stories:** "As a [who], I want [what], so that [why]". The "so that" explains outcome/value.
 
 **Vertical Slicing:** Thin, end-to-end functionality. Build complete flows, not layers.
@@ -487,19 +484,17 @@ added secure flag to cookies. Security vulnerability patched.
 
 #### Anti-Patterns
 
-**Missing Flow Distribution:**
-- ❌ `✨ feat(inbox): keyboard navigation`
-- ✅ `🎯 [FEATURE] ✨ feat(inbox): keyboard navigation`
+**Subject line too long:**
+- ❌ `🎯 [FEATURE] ✨ feat(inbox): power users process inbox 10x faster...` (65 chars - truncated!)
+- ✅ `🎯 [FEATURE] power users process inbox 10x faster` (50 chars - perfect!)
+
+**Missing metadata line:**
+- ❌ First body line is `━━━━━━` (preview shows useless divider)
+- ✅ First body line is `TYPE: feature | SCOPE: inbox | SIZE: medium...` (preview shows data)
 
 **Technical-focused (not outcome-focused):**
 - ❌ `fix(notes): clear state on switch`
-- ✅ `🐛 [BUGFIX] 🐛 fix(notes): users see correct note immediately`
-
-**Missing visual elements:**
-- ❌ No flow distribution category
-- ❌ No gitmoji in subject line
-- ❌ Missing flow metrics section
-- ❌ No journey showing learning
+- ✅ `🐛 [BUGFIX] users see correct note immediately`
 
 **Do NOT push yet** - proceed to step 5.
 
@@ -541,9 +536,8 @@ Keep response concise. Show push result or "Staying local" confirmation.
 - [ ] Determined flow distribution category
 
 **Commit Message:**
-- [ ] Started with flow distribution: [ICON CATEGORY]
-- [ ] Used gitmoji + conventional commit format
-- [ ] Subject describes outcome (what users can now do)
+- [ ] Subject: [ICON CATEGORY] outcome (max 50 chars)
+- [ ] First body line: TYPE | SCOPE | SIZE | DAYS | IMPACT (metadata for preview)
 - [ ] USER STORY section with 👤🎯💡 format
 - [ ] Described SLICE (end-to-end functionality delivered)
 - [ ] Added JOURNEY if iteration 2+ (🛑⚠️✅ format)
@@ -569,9 +563,10 @@ Keep response concise. Show push result or "Staying local" confirmation.
 - ❌ Don't push without asking user first
 - ❌ Don't use multiple git add commands - batch all files
 - ❌ Don't skip flow distribution category
-- ❌ Don't skip gitmoji - makes history scannable
-- ❌ Don't skip flow metrics - we need data for analysis
+- ❌ Don't skip metadata line (first body line)
+- ❌ Don't exceed 50 chars in subject line
 - ❌ Don't use tables/bold - they don't render on GitHub
+- ❌ Don't include redundant gitmoji + conventional type in subject
 
 ---
 
@@ -581,20 +576,16 @@ Keep response concise. Show push result or "Staying local" confirmation.
 1. Analyze → Frame as user story + flow metrics + distribution
    - WHO benefits? WHAT VALUE? WHAT SLICE?
    - Category: FEATURE | BUGFIX | TECH-DEBT | DOCS | RISK
-   - Type, size, days, hours, blocked, files, impact
+   - Type, scope, size, days, hours, blocked, files, impact
    
 2. grep INDEX.md → Check existing patterns
 
 3. Update patterns → search_replace domain files + INDEX.md
 
-4. Commit with visual format:
-   - [ICON CATEGORY] gitmoji type(scope): outcome
-   - USER STORY (👤🎯💡)
-   - SLICE description
-   - JOURNEY (🛑⚠️✅) if iteration 2+
-   - PATTERN section if applicable
-   - FLOW METRICS (7 data points)
-   - AI credit + issue close
+4. Commit with optimized format:
+   Subject: [ICON CATEGORY] outcome (max 50 chars)
+   Line 1: TYPE: X | SCOPE: Y | SIZE: Z | DAYS: N | IMPACT: I
+   Body: USER STORY (👤🎯💡) + SLICE + JOURNEY (🛑⚠️✅) + PATTERN + FLOW METRICS
    
 5. Ask: "Push to GitHub? (Y/N)"
    → Y: git push (requires ['all'] permissions)
