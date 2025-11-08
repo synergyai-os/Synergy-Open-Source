@@ -3,17 +3,24 @@ import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import { createHighlighter } from 'shiki';
 
-// Create highlighter instance
-const highlighter = await createHighlighter({
-	themes: ['github-dark', 'github-light'],
-	langs: ['javascript', 'typescript', 'svelte', 'bash', 'json', 'markdown', 'css', 'html']
-});
+// Lazy highlighter creation to avoid top-level await
+let highlighterPromise;
+function getHighlighter() {
+	if (!highlighterPromise) {
+		highlighterPromise = createHighlighter({
+			themes: ['github-dark', 'github-light'],
+			langs: ['javascript', 'typescript', 'svelte', 'bash', 'json', 'markdown', 'css', 'html']
+		});
+	}
+	return highlighterPromise;
+}
 
 const config = defineConfig({
 	extensions: ['.svx', '.md'],
 	
 	highlight: {
 		highlighter: async (code, lang = 'text') => {
+			const highlighter = await getHighlighter();
 			const html = highlighter.codeToHtml(code, {
 				lang,
 				themes: {

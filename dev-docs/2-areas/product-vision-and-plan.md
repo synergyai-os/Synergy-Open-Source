@@ -69,7 +69,7 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
 - Multi-tenancy: When organizations/teams are validated as needed
 - Multiple accounts: Before public launch or when users request it
 
-**See**: `dev-docs/multi-tenancy-migration.md` for detailed migration guide
+**See**: `dev-docs/2-areas/multi-tenancy-migration.md` for detailed migration guide
 
 ## 🎨 UI/UX Vision
 
@@ -82,7 +82,7 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
 - **Approach**: Semantic design tokens (spacing, colors, typography)
 - **Token-based**: All spacing/colors use semantic tokens that adapt to light/dark mode
 - **Scalable**: Change once in CSS variables, updates everywhere
-- **Documentation**: See `dev-docs/design-tokens.md`
+- **Documentation**: See `dev-docs/2-areas/design-tokens.md`
 
 ## 🛠️ Tech Stack
 
@@ -371,10 +371,10 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
 ## 📚 Key Files Reference
 
 ### Documentation
-- `dev-docs/design-tokens.md` - Complete design token reference
-- `dev-docs/architecture.md` - Tech stack & authentication details
-- `dev-docs/theme-sync.md` - Theme sync to Convex guide
-- `dev-docs/product-vision-and-plan.md` - This file
+- `dev-docs/2-areas/design-tokens.md` - Complete design token reference
+- `dev-docs/2-areas/architecture.md` - Tech stack & authentication details
+- `dev-docs/2-areas/theme-sync.md` - Theme sync to Convex guide
+- `dev-docs/2-areas/product-vision-and-plan.md` - This file
 
 ### Rules & Guidelines
 - `.cursor/rules/way-of-working.mdc` - **CRITICAL**: Token usage rules (ALWAYS check)
@@ -423,7 +423,7 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
 **Colors**: Use `bg-sidebar`, `text-sidebar-primary`, etc. (NOT `bg-gray-900`, `text-white`)
 **Typography**: Use `text-label` (NOT `text-[10px]`)
 
-**See**: `dev-docs/design-tokens.md` for complete reference
+**See**: `dev-docs/2-areas/design-tokens.md` for complete reference
 **See**: `src/app.css` for all token definitions
 
 ## 🗄️ Data Structure Considerations
@@ -694,11 +694,11 @@ const getDueCards = query({
 
 ## 📚 Related Documentation
 
-- `dev-docs/notes-iteration-roadmap.md` - Notes feature roadmap and future enhancements
-- `dev-docs/flashcard-review-optimization-analysis.md` - Detailed UX improvements for study system
-- `dev-docs/architecture.md` - Tech stack and authentication details
-- `dev-docs/design-tokens.md` - Design system reference
-- `dev-docs/multi-tenancy-migration.md` - Multi-tenancy architecture and migration guide
+- `dev-docs/4-archive/notes-iteration-roadmap.md` - Notes feature roadmap and future enhancements
+- `dev-docs/4-archive/flashcard-review-optimization-analysis.md` - Detailed UX improvements for study system
+- `dev-docs/2-areas/architecture.md` - Tech stack and authentication details
+- `dev-docs/2-areas/design-tokens.md` - Design system reference
+- `dev-docs/2-areas/multi-tenancy-migration.md` - Multi-tenancy architecture and migration guide
 - `marketing-docs/brand/identity.md` - SynergyOS brand identity and voice
 - `convex/schema.ts` - Current database schema
 

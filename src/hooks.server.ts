@@ -11,6 +11,8 @@ const isPublicRoute = createRouteMatcher([
 	'/',              // Homepage
 	'/login',         // Login page
 	'/register',      // Registration page
+	'/dev-docs(.*)',  // Documentation (public)
+	'/docs(.*)',      // Documentation (public)
 	// Note: No need to add '/api/auth' here as handleAuth middleware
 	// will process those requests before this middleware runs
 ]);

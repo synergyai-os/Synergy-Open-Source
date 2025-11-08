@@ -483,7 +483,7 @@
 					</Command.Root>
 				{:else}
 					<!-- Content Entry View -->
-					<div class="flex h-full w-full flex-col overflow-hidden">
+					<div class="flex w-full flex-col">
 						{#if selectedType === 'note'}
 							<!-- Context/Template Selectors + Draft Button (Linear-style top bar) -->
 							<div class="flex items-center justify-between px-6 pt-3 pb-3 border-b border-base">

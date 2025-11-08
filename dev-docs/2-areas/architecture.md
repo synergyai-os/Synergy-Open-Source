@@ -421,7 +421,7 @@ const inboxQuery = useQuery(
 const inboxItems = $derived(inboxQuery?.data ?? []);
 ```
 
-See `dev-docs/patterns-and-lessons.md` for complete pattern documentation.
+See `dev-docs/2-areas/patterns/` for complete pattern documentation.
 
 ## Project Structure
 

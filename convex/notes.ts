@@ -236,6 +236,45 @@ export const deleteNote = mutation({
 });
 
 /**
+ * Export note to dev docs (set slug for /dev-docs/notes/[slug] route)
+ */
+export const exportToDevDocs = mutation({
+  args: {
+    noteId: v.id("inboxItems"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    const note = await ctx.db.get(args.noteId);
+    
+    if (!note || note.userId !== userId) {
+      throw new Error("Note not found or access denied");
+    }
+
+    if (note.type !== "note") {
+      throw new Error("Item is not a note");
+    }
+
+    // Generate slug from title or use note ID
+    const title = note.title || "untitled";
+    const slug = title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+
+    await ctx.db.patch(args.noteId, {
+      slug: slug || note._id,
+      updatedAt: Date.now(),
+    });
+
+    return { slug: slug || note._id };
+  },
+});
+
+/**
  * List all notes for current user
  */
 export const listNotes = query({

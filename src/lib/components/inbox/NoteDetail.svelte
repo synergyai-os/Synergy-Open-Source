@@ -3,6 +3,7 @@
 	import { useConvexClient } from 'convex-svelte';
 	import NoteEditorWithDetection from '../notes/NoteEditorWithDetection.svelte';
 	import { useNote } from '$lib/composables/useNote.svelte';
+	import { api } from '../../../../convex/_generated/api';
 
 	type Props = {
 		inboxItem: any; // Note inbox item
@@ -97,6 +98,24 @@
 	function handleAIFlagged() {
 		note.markAsAIGenerated();
 	}
+	
+	async function handleExportToDocs() {
+		if (!convexClient || !inboxItem._id) return;
+		
+		try {
+			const result = await convexClient.mutation(
+				api.notes.exportToDevDocs,
+				{ noteId: inboxItem._id }
+			);
+			
+			if (result?.slug) {
+				// Open the exported note in a new tab
+				window.open(`/dev-docs/notes/${result.slug}`, '_blank');
+			}
+		} catch (error) {
+			console.error('Failed to export to docs:', error);
+		}
+	}
 
 	async function handleExportToBlog() {
 		// Generate slug from title
@@ -157,6 +176,15 @@
 
 		<!-- Right: Actions -->
 		<div class="flex items-center gap-icon">
+			<!-- Export to Docs Button -->
+			<button
+				type="button"
+				onclick={handleExportToDocs}
+				class="px-4 py-2 bg-primary text-primary border border-base rounded-md hover:bg-hover-solid transition-colors text-sm font-medium"
+			>
+				Export to Docs
+			</button>
+			
 			<!-- Export to Blog Button -->
 			<button
 				type="button"
