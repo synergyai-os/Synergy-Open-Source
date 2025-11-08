@@ -75,14 +75,19 @@
 
 	// Set initial type when modal opens (for quick create shortcuts like 'N')
 	$effect(() => {
+		console.log('🟣 Modal $effect triggered:', { open, initialType, selectedType });
 		if (open) {
 			if (initialType) {
 				selectedType = initialType;
 				typeSelectedAt = Date.now();
+				console.log('✅ selectedType SET TO:', selectedType);
+			} else {
+				console.log('⚠️ No initialType - showing command palette');
 			}
 			// If no initialType, selectedType stays null (shows command palette)
 		} else {
 			// Reset when modal closes
+			console.log('🔴 Modal closed - resetting form');
 			resetForm();
 		}
 	});
@@ -484,6 +489,9 @@
 				{:else}
 					<!-- Content Entry View -->
 					<div class="flex w-full flex-col" data-debug="content-entry">
+						<div style="background: lime; padding: 10px; margin: 10px; font-weight: bold;">
+							🔍 DEBUG: selectedType = "{selectedType}" | initialType = "{initialType}"
+						</div>
 						{#if selectedType === 'note'}
 							<!-- Context/Template Selectors + Draft Button (Linear-style top bar) -->
 							<div class="flex items-center justify-between px-6 pt-3 pb-3 border-b border-base">
