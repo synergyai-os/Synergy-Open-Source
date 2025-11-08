@@ -139,7 +139,7 @@
 	}
 </script>
 
-<div class="flex flex-col {compact ? '' : 'h-full'} bg-surface text-surface-primary overflow-hidden">
+<div class="flex flex-col {compact ? '' : 'h-full'} bg-surface text-surface-primary {compact ? '' : 'overflow-hidden'}">
 	<!-- AI Generated Badge -->
 	{#if isAIGenerated}
 		<div class="px-content-padding py-section bg-warning-subtle border-b border-divider">
