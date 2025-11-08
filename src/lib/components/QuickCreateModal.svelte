@@ -318,6 +318,13 @@
 			return;
 		}
 
+		// Cmd+Enter to create (when type is selected and content is filled)
+		if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && selectedType) {
+			e.preventDefault();
+			handleCreate();
+			return;
+		}
+
 		// Don't intercept if user is typing in any input field
 		const target = e.target as HTMLElement;
 		if (
@@ -332,12 +339,6 @@
 		// Command handles its own keyboard navigation (↑↓ to navigate, Enter to select)
 		if (!selectedType) {
 			return;
-		}
-
-		// 'C' to create (when type is selected and content is filled)
-		if ((e.key === 'c' || e.key === 'C') && selectedType) {
-			e.preventDefault();
-			handleCreate();
 		}
 	}
 </script>
@@ -407,7 +408,7 @@
 													>
 												</div>
 											</div>
-											<KeyboardShortcut keys="N" />
+											<KeyboardShortcut keys="C" />
 										</Command.Item>
 										<Command.Item
 											class="rounded-button data-selected:bg-hover-solid outline-hidden flex h-auto cursor-pointer select-none items-center justify-between px-3 py-2.5 text-sm transition-colors"
@@ -464,26 +465,29 @@
 					</Command.Root>
 				{:else}
 					<!-- Content Entry View -->
-					<div class="flex h-full w-full flex-col overflow-hidden rounded-lg bg-elevated border border-base/30 shadow-lg p-content-padding">
-						<Dialog.Title class="text-heading-primary mb-heading text-xl font-medium">
-							Create {selectedType === 'note' ? 'Note' : selectedType === 'flashcard' ? 'Flashcard' : 'Highlight'}
-						</Dialog.Title>
-						<div class="flex flex-col gap-content-section mt-content-section">
+					<div class="flex h-full w-full flex-col overflow-hidden rounded-lg bg-elevated border border-base/30 shadow-lg">
+						{#if selectedType !== 'note'}
+							<div class="px-content-padding pt-content-padding">
+								<Dialog.Title class="text-heading-primary mb-heading text-xl font-medium">
+									Create {selectedType === 'flashcard' ? 'Flashcard' : 'Highlight'}
+								</Dialog.Title>
+							</div>
+						{/if}
+						
+						<div class="flex flex-col gap-content-section {selectedType === 'note' ? '' : 'px-content-padding mt-content-section'}">
 						<!-- Content fields based on type -->
 						{#if selectedType === 'note'}
-							<FormInput
-								label="Title (optional)"
-								placeholder="Enter a title..."
-								bind:value={noteTitle}
-							/>
-
-							<div class="flex flex-col gap-form-field">
-								<label for="note-editor" class="text-sm font-medium text-label-primary">Content</label>
+							<!-- Minimal Note Editor - Linear Style -->
+							<div class="flex-1 flex flex-col overflow-hidden">
 								<NoteEditorWithDetection
 									content={noteContent}
+									title={noteTitle}
 									onContentChange={(content: string, markdown: string) => {
 										noteContent = content;
 										noteContentMarkdown = markdown;
+									}}
+									onTitleChange={(title: string) => {
+										noteTitle = title;
 									}}
 									onAIFlagged={() => {
 										noteIsAIGenerated = true;
@@ -529,7 +533,7 @@
 						{/if}
 
 						<!-- Tag Selector -->
-						<div class="flex flex-col gap-form-field border-t border-base pt-content-section">
+						<div class="flex flex-col gap-form-field border-t border-base pt-content-section {selectedType === 'note' ? 'px-content-padding' : ''}">
 							<TagSelector
 								bind:comboboxOpen={tagComboboxOpen}
 								bind:selectedTagIds
@@ -540,7 +544,7 @@
 						</div>
 
 						<!-- Action Buttons -->
-						<div class="flex justify-end gap-button-group pt-content-section border-t border-base">
+						<div class="flex justify-end gap-button-group pt-content-section border-t border-base pb-content-padding {selectedType === 'note' ? 'px-content-padding' : ''}">
 							<button
 								onclick={() => handleOpenChange(false)}
 								class="rounded-button px-button-x py-button-y text-text-secondary hover:bg-button-secondary-hover"
@@ -553,7 +557,7 @@
 								class="rounded-button bg-button-primary px-button-x py-button-y text-button-primary-text hover:bg-button-primary-hover disabled:opacity-50"
 							>
 								{isCreating ? 'Creating...' : 'Create'}
-								<KeyboardShortcut keys="C" />
+								<KeyboardShortcut keys={['Cmd', 'Enter']} />
 							</button>
 						</div>
 						</div>

@@ -60,6 +60,15 @@
 		}, 500);
 	}
 
+	// Handle ESC key in title input to blur and allow global shortcuts
+	function handleTitleKeydown(e: KeyboardEvent) {
+		if (e.key === 'Escape') {
+			const target = e.target as HTMLInputElement;
+			target.blur();
+			e.preventDefault();
+		}
+	}
+
 	// Handle content changes with debouncing
 	let contentDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
 	function handleEditorChange(state: EditorState) {
@@ -157,23 +166,17 @@
 				type="text"
 				value={localTitle}
 				oninput={handleTitleInput}
+				onkeydown={handleTitleKeydown}
 				placeholder="Untitled note..."
 				disabled={readonly}
-				class="w-full text-3xl font-bold bg-transparent border-none outline-none text-surface-primary placeholder:text-surface-tertiary mb-content-spacing"
+				class="w-full text-xl font-semibold bg-transparent border-none outline-none text-surface-primary placeholder:text-surface-tertiary mb-3 focus:placeholder:text-surface-secondary transition-colors"
 			/>
 
 			<!-- ProseMirror Editor -->
 			<div
 				bind:this={editorElement}
-				class="prose prose-neutral dark:prose-invert max-w-none min-h-[400px]"
-				class:opacity-50={isEmpty}
+				class="prose prose-neutral dark:prose-invert max-w-none min-h-[120px]"
 			></div>
-
-			{#if isEmpty && !readonly}
-				<div class="text-surface-tertiary text-sm mt-section">
-					{placeholder}
-				</div>
-			{/if}
 		</div>
 	</div>
 </div>
@@ -248,9 +251,14 @@
 	:global(.ProseMirror p.is-editor-empty:first-child::before) {
 		content: attr(data-placeholder);
 		float: left;
-		color: #aaa;
+		color: rgb(156 163 175); /* text-tertiary */
 		pointer-events: none;
 		height: 0;
+		font-size: 1rem;
+	}
+	
+	:global(.dark .ProseMirror p.is-editor-empty:first-child::before) {
+		color: rgb(107 114 128);
 	}
 </style>
 

@@ -87,23 +87,24 @@
 	$effect(() => {
 		if (!shortcuts) return;
 
-		// 'N' key - Quick create note (skips type selection)
-		shortcuts.register({
-			key: 'n',
-			handler: () => {
-				quickCreateTrigger = 'keyboard_n';
-				quickCreateInitialType = 'note';
-				quickCreateModalOpen = true;
-			},
-			description: 'New note (quick)',
-			preventDefault: true,
-		});
-
-		// 'C' key - Opens Command Center (full Quick Create palette)
+		// 'C' key - Quick create note (direct)
 		shortcuts.register({
 			key: SHORTCUTS.CREATE,
 			handler: () => {
-				quickCreateTrigger = 'keyboard_n';
+				quickCreateTrigger = 'keyboard_c';
+				quickCreateInitialType = 'note';
+				quickCreateModalOpen = true;
+			},
+			description: 'Create note',
+			preventDefault: true,
+		});
+
+		// 'Cmd+K' - Opens Command Center (full Quick Create palette)
+		shortcuts.register({
+			key: SHORTCUTS.COMMAND_PALETTE,
+			meta: true,
+			handler: () => {
+				quickCreateTrigger = 'keyboard_cmd_k';
 				quickCreateInitialType = null; // No initial type, show selection
 				quickCreateModalOpen = true;
 			},
@@ -112,8 +113,8 @@
 		});
 
 		return () => {
-			shortcuts.unregister('n');
 			shortcuts.unregister(SHORTCUTS.CREATE);
+			shortcuts.unregister(SHORTCUTS.COMMAND_PALETTE, { meta: true });
 		};
 	});
 

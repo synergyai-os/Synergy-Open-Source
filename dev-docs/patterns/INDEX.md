@@ -52,6 +52,7 @@
 | Control panel system | Toolbar/popover/embedded controls | [ui-patterns.md#L620](ui-patterns.md#L620) |
 | Atomic components | Reusable KeyboardShortcut, FormInput | [ui-patterns.md#L680](ui-patterns.md#L680) |
 | ProseMirror integration | Rich text with AI detection | [ui-patterns.md#L730](ui-patterns.md#L730) |
+| Compact modal design | Linear-style tight spacing, input-sized fields | [ui-patterns.md#L830](ui-patterns.md#L830) |
 | Type safety for Convex | Use shared type definitions | [convex-integration.md#L240](convex-integration.md#L240) |
 | Discriminated unions | Type narrowing with discriminator | [convex-integration.md#L290](convex-integration.md#L290) |
 | Enum to database strings | Explicit conversion functions | [convex-integration.md#L340](convex-integration.md#L340) |
@@ -115,5 +116,5 @@ correct code
 ---
 
 **Last Updated**: 2025-11-08  
-**Pattern Count**: 44  
+**Pattern Count**: 45  
 **Format Version**: 2.0

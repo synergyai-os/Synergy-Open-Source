@@ -54,6 +54,15 @@ export function buildKeymap(schema: Schema) {
   keys["Mod-Shift-z"] = redo;
   keys["Mod-y"] = redo;
 
+  // ESC: Blur editor to allow global shortcuts
+  keys["Escape"] = (state: any, dispatch: any, view: EditorView) => {
+    if (view && view.dom) {
+      view.dom.blur();
+      return true;
+    }
+    return false;
+  };
+
   return keymap(keys);
 }
 

@@ -747,7 +747,62 @@ await convexClient.mutation(api.notes.createNote, {
 
 ---
 
-**Pattern Count**: 16  
+## #L830: Compact Modal Input Design - Linear Style [🟢 REFERENCE]
+
+**Symptom**: Modal has huge whitespace, title looks like header not input, disconnected feel  
+**Root Cause**: Oversized typography (text-3xl), excessive min-heights (400px), large gaps  
+**Fix**: 
+
+```svelte
+<!-- ❌ WRONG - Oversized title, massive void -->
+<input
+  placeholder="Untitled note..."
+  class="text-3xl font-bold mb-content-spacing"
+/>
+<div class="min-h-[400px]">
+  <Editor />
+</div>
+
+<!-- ✅ CORRECT - Compact, input-sized, tight spacing -->
+<input
+  placeholder="Untitled note..."
+  class="text-xl font-semibold mb-3 focus:placeholder:text-surface-secondary transition-colors"
+/>
+<div class="min-h-[120px]">
+  <Editor />
+</div>
+```
+
+**Typography Scale**:
+- **Title input**: `text-xl` (20px) + `font-semibold` (600)
+- **Body editor**: `text-base` (16px) + `font-regular` (400)
+- **Gap**: `mb-3` (12px) between fields
+- **Min-height**: `120px` (grows with content)
+
+**Key Principles**:
+1. **Input-sized title** - Should feel like a form field, not a header
+2. **Compact spacing** - 12px gap keeps fields connected
+3. **Minimal heights** - Start small, grow organically
+4. **Clear affordances** - Focus states, transitions
+5. **Information density** - Prioritize content over chrome
+
+**Apply when**:
+- Creating modal forms for quick capture (notes, issues, tasks)
+- Building Linear/Notion-style focused input experiences
+- User needs to stay in flow, minimal friction
+
+**Anti-patterns**:
+- ❌ Title > 24px (feels like page header)
+- ❌ Gaps > 24px (fields feel disconnected)
+- ❌ Min-height > 200px (creates empty void)
+- ❌ Missing focus states (unclear interaction)
+
+**Inspiration**: Linear issue creation, Notion page creation, Superhuman compose  
+**Related**: #L480 (Command Palette Design), #L680 (Atomic Components), #L780 (Design Tokens)
+
+---
+
+**Pattern Count**: 17  
 **Last Updated**: 2025-11-08  
 **Design Token Reference**: `dev-docs/design-tokens.md`
 
