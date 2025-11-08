@@ -680,7 +680,74 @@ await convexClient.mutation(api.notes.createNote, {
 
 ---
 
-**Pattern Count**: 15  
+## #L780: Component Using Custom CSS Instead of Design Tokens [🔴 CRITICAL]
+
+**Symptom**: Component has large `<style>` block with hardcoded values, inconsistent spacing/colors  
+**Root Cause**: Developer skipped design token system and wrote custom CSS  
+**Fix**: 
+
+```svelte
+<!-- ❌ WRONG - Custom CSS classes not in design system -->
+<div class="note-header">
+  <h2 class="note-title">{title}</h2>
+  <button class="action-button">Save</button>
+</div>
+
+<style>
+.note-header {
+  padding: 16px 24px;
+  background: #1a1a1a;
+  border-bottom: 1px solid #333;
+}
+.note-title {
+  font-size: 14px;
+  color: #999;
+}
+.action-button {
+  padding: 8px 16px;
+  background: #4F46E5;
+  border-radius: 6px;
+}
+</style>
+
+<!-- ✅ CORRECT - Design tokens via Tailwind utility classes -->
+<div class="sticky top-0 z-10 bg-surface border-b border-base px-inbox-header py-system-header h-system-header flex items-center justify-between">
+  <h2 class="text-sm font-normal text-secondary">{title}</h2>
+  <button class="px-4 py-2 bg-accent-primary text-white rounded-md hover:bg-accent-hover">
+    Save
+  </button>
+</div>
+```
+
+**Apply when**:
+- Creating new components (check existing components for patterns)
+- Component has `<style>` block with custom classes
+- Spacing/colors don't match rest of app
+
+**Design Token Checklist**:
+- ✅ Spacing: Use `px-inbox-header`, `py-system-header`, `gap-icon` (never `px-4`, `py-2`)
+- ✅ Colors: Use `bg-surface`, `text-secondary`, `border-base` (never `#1a1a1a`, `#999`)
+- ✅ Typography: Use `text-sm`, `text-label` (never `text-[14px]`)
+- ✅ Border Radius: Use `rounded-md`, `rounded-input` (never `rounded-[6px]`)
+- ✅ Heights: Use `h-system-header` (never `h-[64px]`)
+
+**How to Fix**:
+1. Find similar component (e.g., `ReadwiseDetail.svelte` for detail views)
+2. Copy structure and token usage
+3. Remove `<style>` block entirely
+4. Reference `dev-docs/design-tokens.md` for token list
+
+**Why Critical**: 
+- Breaks light/dark mode consistency
+- Makes global design changes impossible
+- Creates maintenance debt
+- New team members learn wrong patterns
+
+**Related**: #L60 (Generous Padding), #L120 (Fixed Height Header)
+
+---
+
+**Pattern Count**: 16  
 **Last Updated**: 2025-11-08  
 **Design Token Reference**: `dev-docs/design-tokens.md`
 

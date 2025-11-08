@@ -8,7 +8,7 @@
 
 	let { item, onClose }: Props = $props();
 
-	let editedText = $state(item.sourceData.transcribedText);
+	let editedText = $state(item.sourceData?.transcribedText || item.transcribedText || '');
 
 	function handleSkip() {
 		alert('Item skipped! (Mock)');
@@ -48,10 +48,12 @@
 	</div>
 
 	<!-- Source -->
-	<div class="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
-		<p class="text-sm font-semibold text-purple-900">Source</p>
-		<p class="text-sm text-purple-700">{item.sourceData.source}</p>
-	</div>
+	{#if item.sourceData?.source}
+		<div class="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-6">
+			<p class="text-sm font-semibold text-purple-900">Source</p>
+			<p class="text-sm text-purple-700">{item.sourceData.source}</p>
+		</div>
+	{/if}
 
 	<!-- Transcribed Text (Editable) -->
 	<div class="mb-6">

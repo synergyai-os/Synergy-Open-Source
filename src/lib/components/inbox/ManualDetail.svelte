@@ -38,30 +38,34 @@
 	</div>
 
 	<!-- Source Info -->
-	<div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
-		<p class="text-sm font-semibold text-gray-900">Source</p>
-		<p class="text-sm text-gray-700">{item.sourceData.bookTitle}</p>
-	</div>
+	{#if item.sourceData?.bookTitle}
+		<div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+			<p class="text-sm font-semibold text-gray-900">Source</p>
+			<p class="text-sm text-gray-700">{item.sourceData.bookTitle}</p>
+		</div>
+	{/if}
 
 	<!-- Note Text -->
 	<div class="mb-6">
 		<p class="text-sm font-medium text-gray-600 mb-2">Note</p>
 		<div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-			<p class="text-gray-700 leading-relaxed whitespace-pre-wrap">{item.sourceData.text}</p>
+			<p class="text-gray-700 leading-relaxed whitespace-pre-wrap">{item.sourceData?.text || item.text || 'No content'}</p>
 		</div>
 	</div>
 
 	<!-- Tags -->
-	<div class="mb-6">
-		<p class="text-sm font-medium text-gray-600 mb-2">Tags</p>
-		<div class="flex flex-wrap gap-2">
-			{#each item.tags as tag}
-				<span class="bg-gray-100 text-gray-600 text-sm px-2 py-1 rounded">
-					{tag}
-				</span>
-			{/each}
+	{#if item.tags && item.tags.length > 0}
+		<div class="mb-6">
+			<p class="text-sm font-medium text-gray-600 mb-2">Tags</p>
+			<div class="flex flex-wrap gap-2">
+				{#each item.tags as tag}
+					<span class="bg-gray-100 text-gray-600 text-sm px-2 py-1 rounded">
+						{tag}
+					</span>
+				{/each}
+			</div>
 		</div>
-	</div>
+	{/if}
 
 	<!-- Actions -->
 	<div class="space-y-3">

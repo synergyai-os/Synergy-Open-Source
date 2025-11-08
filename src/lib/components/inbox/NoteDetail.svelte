@@ -14,9 +14,12 @@
 	const convexClient = browser ? useConvexClient() : null;
 	const note = useNote(convexClient);
 
-	// Load note data
+	// Load note data - runs whenever inboxItem changes
 	$effect(() => {
-		if (inboxItem && inboxItem.type === 'note') {
+		if (inboxItem && inboxItem.type === 'note' && inboxItem._id) {
+			// Clear previous note state first
+			note.clear();
+			// Load new note
 			note.loadNote(inboxItem._id, inboxItem);
 		}
 	});
@@ -59,54 +62,47 @@
 	});
 </script>
 
-<div class="flex flex-col h-full bg-surface">
-	<!-- Header with actions -->
+<div class="flex flex-col h-full">
+	<!-- Header - Matches ReadwiseDetail pattern -->
 	<div
-		class="flex items-center justify-between px-content-padding py-header border-b border-divider bg-surface"
+		class="sticky top-0 z-10 bg-surface border-b border-base px-inbox-header py-system-header h-system-header flex items-center justify-between flex-shrink-0"
 	>
-		<div class="flex items-center gap-section">
-			<h3 class="text-sm font-medium text-surface-primary">
+		<!-- Left: Title + Save Status -->
+		<div class="flex items-center gap-icon">
+			<button
+				type="button"
+				class="flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-hover-solid transition-colors text-secondary hover:text-primary"
+				onclick={onClose}
+				aria-label="Back to inbox"
+			>
+				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M15 19l-7-7 7-7"
+					/>
+				</svg>
+				<span class="text-sm">Back</span>
+			</button>
+			<h2 class="text-sm font-normal text-secondary">
 				{inboxItem.title || 'Untitled Note'}
-			</h3>
-			<span class="text-label text-surface-tertiary">
+			</h2>
+			<span class="text-label text-tertiary">
 				{saveStatus()}
 			</span>
 		</div>
 
-		<div class="flex items-center gap-toolbar-item">
+		<!-- Right: Actions -->
+		<div class="flex items-center gap-icon">
 			<!-- Export to Blog Button -->
 			<button
 				type="button"
 				onclick={handleExportToBlog}
-				class="px-button py-button-small bg-primary text-white rounded-md hover:bg-primary-hover transition-colors text-sm font-medium"
+				class="px-4 py-2 bg-accent-primary text-white rounded-md hover:bg-accent-hover transition-colors text-sm font-medium"
 			>
 				Export to Blog
 			</button>
-
-			<!-- Close Button -->
-			{#if onClose}
-				<button
-					type="button"
-					onclick={onClose}
-					class="p-toolbar-button rounded hover:bg-hover transition-colors"
-					aria-label="Close"
-				>
-					<svg
-						class="w-4 h-4"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-						xmlns="http://www.w3.org/2000/svg"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M6 18L18 6M6 6l12 12"
-						/>
-					</svg>
-				</button>
-			{/if}
 		</div>
 	</div>
 
@@ -124,9 +120,9 @@
 	</div>
 
 	<!-- Footer with metadata -->
-	<div class="px-content-padding py-section border-t border-divider bg-surface-subtle">
-		<div class="flex items-center justify-between text-label text-surface-tertiary">
-			<div class="flex items-center gap-section">
+	<div class="px-inbox-container py-system-header border-t border-base">
+		<div class="flex items-center justify-between text-label text-tertiary">
+			<div class="flex items-center gap-2">
 				<span>
 					Created {new Date(inboxItem.createdAt).toLocaleDateString()}
 				</span>
@@ -138,97 +134,11 @@
 			</div>
 
 			{#if inboxItem.blogCategory === 'BLOG'}
-				<span class="px-badge py-badge bg-primary text-white rounded text-label font-medium">
+				<span class="px-badge py-badge bg-accent-primary text-white rounded text-label font-medium">
 					BLOG
 				</span>
 			{/if}
 		</div>
 	</div>
 </div>
-
-<style>
-	.px-content-padding {
-		padding-left: 1.5rem;
-		padding-right: 1.5rem;
-	}
-
-	.py-content-padding {
-		padding-top: 1.5rem;
-		padding-bottom: 1.5rem;
-	}
-
-	.py-header {
-		padding-top: 0.75rem;
-		padding-bottom: 0.75rem;
-	}
-
-	.py-section {
-		padding-top: 0.75rem;
-		padding-bottom: 0.75rem;
-	}
-
-	.gap-section {
-		gap: 1rem;
-	}
-
-	.gap-toolbar-item {
-		gap: 0.5rem;
-	}
-
-	.px-button {
-		padding-left: 1rem;
-		padding-right: 1rem;
-	}
-
-	.py-button-small {
-		padding-top: 0.5rem;
-		padding-bottom: 0.5rem;
-	}
-
-	.p-toolbar-button {
-		padding: 0.5rem;
-	}
-
-	.px-badge {
-		padding-left: 0.5rem;
-		padding-right: 0.5rem;
-	}
-
-	.py-badge {
-		padding-top: 0.25rem;
-		padding-bottom: 0.25rem;
-	}
-
-	.bg-surface {
-		background-color: var(--color-bg-surface);
-	}
-
-	.bg-surface-subtle {
-		background-color: var(--color-bg-surface-subtle);
-	}
-
-	.border-divider {
-		border-color: var(--color-border-divider);
-	}
-
-	.text-surface-primary {
-		color: var(--color-text-surface-primary);
-	}
-
-	.text-surface-tertiary {
-		color: var(--color-text-surface-tertiary);
-	}
-
-	.bg-primary {
-		background-color: var(--color-bg-primary);
-	}
-
-	.bg-primary-hover {
-		background-color: var(--color-bg-primary-hover);
-	}
-
-	.bg-hover {
-		background-color: var(--color-sidebar-hover);
-	}
-</style>
 

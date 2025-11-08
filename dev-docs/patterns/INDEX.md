@@ -17,6 +17,7 @@
 | 500 error with ProseMirror/Monaco | Guard with `{#if browser}` | [svelte-reactivity.md#L400](svelte-reactivity.md#L400) |
 | Event listeners don't fire (no errors) | Browser check inside $effect | [svelte-reactivity.md#L500](svelte-reactivity.md#L500) |
 | Build fails: ENOENT file not found | Remove phantom dependencies | [svelte-reactivity.md#L550](svelte-reactivity.md#L550) |
+| Component has custom CSS/hardcoded values | Use design tokens (bg-surface, px-inbox-header) | [ui-patterns.md#L780](ui-patterns.md#L780) |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -114,5 +115,5 @@ correct code
 ---
 
 **Last Updated**: 2025-11-08  
-**Pattern Count**: 43  
+**Pattern Count**: 44  
 **Format Version**: 2.0
