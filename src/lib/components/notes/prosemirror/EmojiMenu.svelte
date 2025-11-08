@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import type { EditorView } from 'prosemirror-view';
 	import { emojiPluginKey, insertEmoji } from './emoji-plugin';
 
@@ -78,45 +78,29 @@
 		).slice(0, 10); // Limit to 10 results
 	});
 
-	// Update state from editor
-	$effect(() => {
+	// Update menu state from plugin (polling pattern - matches MentionMenu)
+	function updateMenu() {
 		if (!editorView) return;
 
-		const checkState = () => {
-			const pluginState = emojiPluginKey.getState(editorView.state);
-			
-			console.log('🎯 EmojiMenu checkState:', { pluginState, isVisible });
-			
-			if (pluginState?.active) {
-				isVisible = true;
-				query = pluginState.query;
-				selectedIndex = 0; // Reset selection on query change
-				
-				// Calculate coords
-				const domCoords = editorView.coordsAtPos(pluginState.from);
-				coords = {
-					left: domCoords.left,
-					top: domCoords.bottom + 5
-				};
-				
-				console.log('🎯 Emoji menu activated:', { query, coords });
-			} else {
-				isVisible = false;
-				coords = null;
-			}
-		};
+		const state = emojiPluginKey.getState(editorView.state);
+		if (!state) return;
 
-		// Check on mount and state changes
-		checkState();
-		
-		// Listen for editor updates
-		const updateListener = () => checkState();
-		editorView.dom.addEventListener('keyup', updateListener);
-		
-		return () => {
-			editorView.dom.removeEventListener('keyup', updateListener);
-		};
-	});
+		if (state.active) {
+			isVisible = true;
+			query = state.query;
+			selectedIndex = 0; // Reset selection on query change
+			
+			// Calculate coords
+			const domCoords = editorView.coordsAtPos(state.from);
+			coords = {
+				left: domCoords.left,
+				top: domCoords.bottom + 5
+			};
+		} else {
+			isVisible = false;
+			coords = null;
+		}
+	}
 
 	function selectEmoji(emoji: string) {
 		if (editorView) {
@@ -150,8 +134,22 @@
 	}
 
 	onMount(() => {
+		if (!editorView) return;
+
+		// Update menu on state changes (polling pattern - matches MentionMenu)
+		const updateInterval = setInterval(updateMenu, 100);
+
+		// Handle keyboard navigation
 		window.addEventListener('keydown', handleKeyDown);
-		return () => window.removeEventListener('keydown', handleKeyDown);
+
+		return () => {
+			clearInterval(updateInterval);
+			window.removeEventListener('keydown', handleKeyDown);
+		};
+	});
+
+	onDestroy(() => {
+		window.removeEventListener('keydown', handleKeyDown);
 	});
 </script>
 
