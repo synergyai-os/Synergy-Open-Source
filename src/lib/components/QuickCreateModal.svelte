@@ -374,7 +374,7 @@
 		/>
 		<!-- Command Center Modal: Scale-up animation + dramatic shadow -->
 		<Dialog.Content
-			class="fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-full max-w-[900px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-md bg-elevated border border-base p-0 shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]"
+			class="fixed left-1/2 top-1/2 z-50 max-h-[65vh] w-full max-w-[900px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-md bg-elevated border border-base p-0 shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]"
 		>
 			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 			<div onkeydown={handleKeyDown} role="dialog" tabindex="-1">
@@ -575,7 +575,7 @@
 							/>
 							
 							<!-- Metadata Bar (Linear-style pills) -->
-							<div class="px-6 py-3 border-t border-base" style="background: yellow; min-height: 60px;" data-debug="metadata-bar">
+							<div class="px-6 py-3 border-t border-base bg-surface">
 								<MetadataBar>
 									<StatusPill
 										status={noteStatus}
@@ -632,7 +632,7 @@
 						{/if}
 
 						<!-- Tag Selector -->
-						<div class="flex flex-col gap-2 border-t border-base pt-3 pb-2 {selectedType === 'note' ? 'px-6' : ''}" style="background: lime; min-height: 60px;" data-debug="tag-selector">
+						<div class="flex flex-col gap-2 border-t border-base pt-3 pb-2 {selectedType === 'note' ? 'px-6' : ''} bg-surface">
 							<TagSelector
 								bind:comboboxOpen={tagComboboxOpen}
 								bind:selectedTagIds
@@ -643,7 +643,7 @@
 						</div>
 
 						<!-- Action Buttons -->
-						<div class="flex items-center justify-between gap-3 pt-3 border-t border-base pb-3 {selectedType === 'note' ? 'px-6' : ''}" style="background: cyan; min-height: 80px;" data-debug="action-buttons">
+						<div class="flex items-center justify-between gap-3 pt-3 border-t border-base pb-3 {selectedType === 'note' ? 'px-6' : ''} bg-surface">
 							{#if selectedType === 'note'}
 								<!-- Left: Attachment button -->
 								<AttachmentButton
