@@ -626,6 +626,11 @@
 							/>
 						{/if}
 
+						<!-- ABSOLUTE TEST MARKER -->
+						<div style="background: yellow; padding: 20px; font-size: 24px; font-weight: bold; border: 5px solid red;">
+							🔥 TEST MARKER - If you see this, sections ARE rendering!
+						</div>
+
 						<!-- Tag Selector -->
 						<div class="flex flex-col gap-2 border-t border-base pt-3 pb-2 {selectedType === 'note' ? 'px-6' : ''}" style="background: rgba(0,255,0,0.1);" data-debug="tag-selector">
 							<TagSelector
