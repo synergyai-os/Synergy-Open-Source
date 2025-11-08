@@ -13,7 +13,6 @@
 		PrioritySelector,
 		AssigneeSelector,
 		ProjectSelector,
-		MetadataBar,
 		AttachmentButton,
 		ToggleSwitch,
 		ContextSelector,
@@ -575,28 +574,6 @@
 								enableAIDetection={false}
 								compact={true}
 							/>
-							
-							<!-- Metadata Bar (Linear-style pills) -->
-							<div class="px-inbox-container py-inbox-card border-t border-base bg-surface">
-								<MetadataBar>
-									<StatusPill
-										status={noteStatus}
-										onChange={(s) => (noteStatus = s)}
-									/>
-									<PrioritySelector
-										priority={notePriority}
-										onChange={(p) => (notePriority = p)}
-									/>
-									<AssigneeSelector
-										assignee={noteAssignee}
-										onChange={(a) => (noteAssignee = a)}
-									/>
-									<ProjectSelector
-										project={noteProject}
-										onChange={(proj) => (noteProject = proj)}
-									/>
-								</MetadataBar>
-							</div>
 						{:else if selectedType === 'flashcard'}
 							<FormTextarea
 								label="Question"
@@ -633,21 +610,9 @@
 							/>
 						{/if}
 
-						<!-- Tag Selector -->
-						<div class="flex flex-col gap-form-field border-t border-base py-inbox-card {selectedType === 'note' ? 'px-inbox-container' : ''} bg-surface">
-							<TagSelector
-								bind:comboboxOpen={tagComboboxOpen}
-								bind:selectedTagIds
-								availableTags={availableTags}
-								onTagsChange={handleTagsChange}
-								onCreateTagWithColor={handleCreateTag}
-							/>
-						</div>
-
-						<!-- Action Buttons -->
-						<div class="flex items-center justify-between gap-button-group border-t border-base py-inbox-card {selectedType === 'note' ? 'px-inbox-container' : ''} bg-surface">
-							{#if selectedType === 'note'}
-								<!-- Left: Attachment button -->
+						{#if selectedType === 'note'}
+							<!-- Row 1: Metadata Pills (Linear-style horizontal scroll) -->
+							<div class="flex items-center gap-form-field overflow-x-auto border-t border-base py-inbox-card px-inbox-container bg-surface">
 								<AttachmentButton
 									count={attachmentCount}
 									onClick={() => {
@@ -655,12 +620,41 @@
 										console.log('Attach file clicked');
 									}}
 								/>
-							{:else}
-								<div></div>
-							{/if}
+								<StatusPill
+									status={noteStatus}
+									onChange={(s) => (noteStatus = s)}
+								/>
+								<PrioritySelector
+									priority={notePriority}
+									onChange={(p) => (notePriority = p)}
+								/>
+								<AssigneeSelector
+									assignee={noteAssignee}
+									onChange={(a) => (noteAssignee = a)}
+								/>
+								<ProjectSelector
+									project={noteProject}
+									onChange={(proj) => (noteProject = proj)}
+								/>
+							</div>
+						{/if}
+
+						<!-- Row 2: Tags + Actions (Linear-style footer) -->
+						<div class="flex items-center justify-between border-t border-base py-inbox-card {selectedType === 'note' ? 'px-inbox-container' : ''} bg-surface">
+							<!-- Left: Tags -->
+							<div class="min-w-[200px]">
+								<TagSelector
+									bind:comboboxOpen={tagComboboxOpen}
+									bind:selectedTagIds
+									availableTags={availableTags}
+									onTagsChange={handleTagsChange}
+									onCreateTagWithColor={handleCreateTag}
+									showLabel={false}
+								/>
+							</div>
 							
 							<!-- Right: Actions -->
-							<div class="flex items-center gap-button-group">
+							<div class="flex items-center gap-button-group flex-shrink-0">
 								{#if selectedType === 'note'}
 									<ToggleSwitch
 										checked={createMore}

@@ -187,7 +187,7 @@
 			<div class="relative">
 				<div
 					bind:this={editorElement}
-					class="prose prose-sm prose-neutral dark:prose-invert max-w-none min-h-[60px] text-secondary"
+					class="prose prose-sm prose-neutral dark:prose-invert max-w-none min-h-[60px] max-h-[200px] overflow-y-auto text-secondary"
 				></div>
 				{#if isEmpty}
 					<div class="absolute top-0 left-0 text-sm text-tertiary pointer-events-none">

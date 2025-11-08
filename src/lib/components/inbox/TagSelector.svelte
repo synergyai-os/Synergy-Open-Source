@@ -19,6 +19,7 @@
 		onCreateTagWithColor?: (displayName: string, color: string, parentId?: Id<'tags'>) => Promise<Id<'tags'>>;
 		tagInputRef?: HTMLElement | null;
 		comboboxOpen?: boolean; // Expose combobox open state for keyboard shortcuts
+		showLabel?: boolean; // Show "TAGS" label (default: true)
 	};
 
 	let {
@@ -29,6 +30,7 @@
 		onCreateTagWithColor,
 		tagInputRef = $bindable(null),
 		comboboxOpen: _comboboxOpenExternal = $bindable(undefined),
+		showLabel = true,
 	}: Props = $props();
 
 	// Set defaults for non-bindable props
@@ -358,7 +360,9 @@
 
 <div class="space-y-2">
 	<!-- Section Header -->
-	<p class="text-label font-medium text-secondary uppercase tracking-wider mb-2">Tags</p>
+	{#if showLabel}
+		<p class="text-label font-medium text-secondary uppercase tracking-wider mb-2">Tags</p>
+	{/if}
 
 	<!-- Tag Pills Display (shown when tags exist) -->
 	{#if selectedTags().length > 0}
