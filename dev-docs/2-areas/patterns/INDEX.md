@@ -18,6 +18,7 @@
 | Event listeners don't fire (no errors) | Browser check inside $effect | [svelte-reactivity.md#L500](svelte-reactivity.md#L500) |
 | Build fails: ENOENT file not found | Remove phantom dependencies | [svelte-reactivity.md#L550](svelte-reactivity.md#L550) |
 | Server crashes on startup / 500 on all routes | Remove top-level await in config | [svelte-reactivity.md#L600](svelte-reactivity.md#L600) |
+| Page freezes, effect_update_depth_exceeded error | Use untrack() or plain vars in $effect | [svelte-reactivity.md#L700](svelte-reactivity.md#L700) |
 | Component has custom CSS/hardcoded values | Use design tokens (bg-surface, px-inbox-header) | [ui-patterns.md#L780](ui-patterns.md#L780) |
 | Raw markdown displayed instead of rendered HTML | Add Vite middleware to redirect .md URLs | [ui-patterns.md#L1100](ui-patterns.md#L1100) |
 
@@ -121,5 +122,5 @@ correct code
 ---
 
 **Last Updated**: 2025-11-08  
-**Pattern Count**: 47  
+**Pattern Count**: 48  
 **Format Version**: 2.0

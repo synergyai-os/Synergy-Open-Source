@@ -617,7 +617,87 @@ $effect(() => {
 
 ---
 
-**Pattern Count**: 14  
+## #L700: $effect Reading/Writing Same State Causes Infinite Loop [🔴 CRITICAL]
+
+**Symptom**: Page freezes, browser console shows `effect_update_depth_exceeded`, infinite re-renders  
+**Root Cause**: $effect reads and writes the same `$state` variable, creating infinite reactive dependency chain  
+**Fix**:
+
+```typescript
+// ❌ WRONG - $effect reads/writes $state causing infinite loop
+let lastPath = $state<string | null>(null);
+let isProcessing = $state(false);
+
+$effect(() => {
+  const currentPath = $page.url.pathname;
+  
+  // Reading $state variables creates reactive dependencies
+  if (lastPath === currentPath) return;  // ← Reads $state
+  
+  lastPath = currentPath;  // ← Writes $state → triggers re-run → LOOP!
+  isProcessing = true;     // ← Writes $state → triggers re-run → LOOP!
+  
+  // ... do work
+});
+
+// ✅ CORRECT - Use untrack() for non-reactive state, or plain variables
+import { untrack } from 'svelte';
+
+let lastPath: string | null = null;  // Plain variable (not $state)
+let isProcessing = false;            // Plain variable (not $state)
+
+$effect(() => {
+  const currentPath = $page.url.pathname;
+  
+  // Untracked reads don't create reactive dependencies
+  const shouldSkip = untrack(() => lastPath === currentPath);
+  if (shouldSkip) return;
+  
+  // Untracked writes don't trigger re-runs
+  untrack(() => {
+    lastPath = currentPath;
+    isProcessing = true;
+  });
+  
+  // ... do work
+  
+  return () => {
+    untrack(() => {
+      isProcessing = false;
+    });
+  };
+});
+```
+
+**Apply when**:
+- $effect needs to track state variables but not trigger on their changes
+- Implementing debouncing, throttling, or tracking "previous" values
+- Managing flags like `isLoading`, `hasInitialized`, `lastValue`
+- Error: `effect_update_depth_exceeded` appears in console
+
+**Why it breaks**:
+- Svelte 5 $effect automatically tracks all `$state` reads as dependencies
+- Any write to a tracked `$state` triggers the effect to re-run
+- Reading + writing same $state = instant infinite loop
+- Browser freezes trying to resolve infinite reactive updates
+
+**Correct Pattern**:
+1. **Option A**: Use plain variables (not `$state`) for tracking state that shouldn't trigger reactivity
+2. **Option B**: Wrap reads in `untrack(() => variable)` to prevent dependency tracking
+3. **Option C**: Wrap writes in `untrack(() => { variable = value })` to prevent re-triggers
+4. Only use `$state` for values that should cause UI updates when changed
+
+**When to use each option**:
+- **Plain variables**: Best for internal tracking (lastValue, counters, flags)
+- **untrack() reads**: When you need `$state` benefits but conditional skipping
+- **untrack() writes**: When updating `$state` shouldn't re-trigger the effect
+- **$state**: Only for values that directly affect rendered output
+
+**Related**: #L220 (useQuery reactivity), #L650 (onMount vs $effect), #L400 (SSR browser checks)
+
+---
+
+**Pattern Count**: 15  
 **Last Validated**: 2025-11-08  
 **Context7 Source**: `/sveltejs/svelte`, `@sveltejs/kit`
 

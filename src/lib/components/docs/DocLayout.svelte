@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
+	import { untrack } from 'svelte';
 	import DocSidebar from './DocSidebar.svelte';
 	import TableOfContents from './TableOfContents.svelte';
 	
@@ -13,24 +14,75 @@
 	
 	// Extract headings from rendered content (client-side)
 	let extractedHeadings = $state<{ id: string; text: string; level: number }[]>([]);
+	let lastPathname: string | null = null;
+	let isExtracting = false;
 	
-	// Re-extract headings whenever the route changes or content renders
+	// Re-extract headings ONLY when pathname changes (not on hash changes)
 	$effect(() => {
 		if (!browser) return;
 		
-		// Access page.url.pathname to track route changes
-		$page.url.pathname;
+		// Prevent race conditions from double-runs (use untracked read)
+		if (untrack(() => isExtracting)) {
+			console.log('[DocLayout] Already extracting, skipping...');
+			return;
+		}
 		
-		// Use setTimeout to ensure DOM has updated with new content
-		setTimeout(() => {
+		// Only track pathname, ignore hash changes
+		const currentPath = $page.url.pathname;
+		const currentHash = $page.url.hash;
+		
+		// Skip ONLY if:
+		// 1. This is not the first load (lastPathname !== null)
+		// 2. Pathname hasn't changed (same page)
+		// 3. There IS a hash (actual hash navigation, not page refresh)
+		const shouldSkip = untrack(() => 
+			lastPathname !== null && currentPath === lastPathname && currentHash
+		);
+		
+		if (shouldSkip) {
+			console.log('[DocLayout] Skipping extract (hash-only change):', currentHash);
+			return;
+		}
+		
+		console.log('[DocLayout] Extracting headings for:', currentPath, currentHash ? `(with hash: ${currentHash})` : '(no hash)');
+		
+		// Update tracking variables without triggering re-runs (untracked mutations)
+		untrack(() => {
+			lastPathname = currentPath;
+			isExtracting = true;
+		});
+		
+		// Wait for DOM to fully update with new page content
+		const timeoutId = setTimeout(() => {
+			// Clear headings inside timeout to prevent race conditions
+			extractedHeadings = [];
+			
 			const headingElements = document.querySelectorAll('.docs-article h1, .docs-article h2, .docs-article h3, .docs-article h4');
 			
-			extractedHeadings = Array.from(headingElements).map((el) => ({
-				id: el.id || '',
-				text: el.textContent || '',
-				level: parseInt(el.tagName.substring(1)) // H1 -> 1, H2 -> 2, etc.
-			}));
-		}, 50);
+			// Only extract if we actually found headings
+			if (headingElements.length > 0) {
+				extractedHeadings = Array.from(headingElements).map((el) => ({
+					id: el.id || '',
+					text: el.textContent || '',
+					level: parseInt(el.tagName.substring(1)) // H1 -> 1, H2 -> 2, etc.
+				}));
+				
+				console.log('[DocLayout] Extracted', extractedHeadings.length, 'headings for', currentPath);
+			} else {
+				console.log('[DocLayout] No headings found for', currentPath);
+			}
+			
+			untrack(() => {
+				isExtracting = false;
+			});
+		}, 100);
+		
+		return () => {
+			clearTimeout(timeoutId);
+			untrack(() => {
+				isExtracting = false;
+			});
+		};
 	});
 	
 	// Use prop headings if provided, otherwise use extracted headings

@@ -10,6 +10,15 @@
 			]
 		},
 		{
+			title: '📂 PARA Structure',
+			items: [
+				{ title: '1-projects/', href: '/dev-docs/1-projects' },
+				{ title: '2-areas/', href: '/dev-docs/2-areas' },
+				{ title: '3-resources/', href: '/dev-docs/3-resources' },
+				{ title: '4-archive/', href: '/dev-docs/4-archive' }
+			]
+		},
+		{
 			title: '📂 2-areas (Ongoing)',
 			items: [
 				{ title: 'Product Vision', href: '/dev-docs/2-areas/product-vision-and-plan' },
@@ -48,7 +57,21 @@
 	
 	// Derive active state based on current path
 	function isActive(href: string): boolean {
-		return $page.url.pathname === href || $page.url.pathname.startsWith(href + '/');
+		const currentPath = $page.url.pathname;
+		
+		// Debug: log when checking archive or README
+		if (href.includes('README') || href.includes('archive')) {
+			console.log('[Sidebar] isActive?', {
+				href,
+				currentPath,
+				hash: $page.url.hash,
+				fullPath: $page.url.pathname + $page.url.hash,
+				match: currentPath === href
+			});
+		}
+		
+		// Exact match only - no fuzzy matching to prevent false positives
+		return currentPath === href;
 	}
 </script>
 

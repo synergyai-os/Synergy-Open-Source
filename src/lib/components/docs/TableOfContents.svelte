@@ -11,11 +11,14 @@
 	let activeId = $state('');
 	let isOpen = $state(true);
 	let isHovering = $state(false);
+	let isManuallyNavigating = $state(false);
 	
 	// Reset active ID when headings change (new page)
 	$effect(() => {
 		if (headings.length > 0) {
+			console.log('[TOC] Headings extracted:', headings.map(h => ({ id: h.id, text: h.text.substring(0, 30) })));
 			activeId = headings[0]?.id || '';
+			isManuallyNavigating = false; // Reset manual navigation flag on new page
 		}
 	});
 	
@@ -26,8 +29,12 @@
 		const observer = new IntersectionObserver(
 			(entries) => {
 				entries.forEach((entry) => {
-					if (entry.isIntersecting) {
+					// Only update if intersecting AND not manually navigating
+					if (entry.isIntersecting && !isManuallyNavigating) {
+						console.log('[TOC] IntersectionObserver update:', entry.target.id);
 						activeId = entry.target.id;
+					} else if (entry.isIntersecting && isManuallyNavigating) {
+						console.log('[TOC] IntersectionObserver ignored (manual nav):', entry.target.id);
 					}
 				});
 			},
@@ -47,6 +54,20 @@
 	
 	function toggle() {
 		isOpen = !isOpen;
+	}
+	
+	// Update active ID when TOC link is clicked
+	function handleTocClick(id: string, text: string) {
+		console.log('[TOC] Clicked:', { id, text, currentActive: activeId });
+		activeId = id;
+		isManuallyNavigating = true;
+		console.log('[TOC] New active (manual):', activeId);
+		
+		// Resume auto-tracking after scroll completes
+		setTimeout(() => {
+			isManuallyNavigating = false;
+			console.log('[TOC] Resumed auto-tracking');
+		}, 1000);
 	}
 	
 	// Show when visible: open OR (closed + hovering)
@@ -89,6 +110,7 @@
 							href="#{heading.id}"
 							class="toc-link"
 							class:active={activeId === heading.id}
+							onclick={() => handleTocClick(heading.id, heading.text)}
 						>
 							{heading.text}
 						</a>
