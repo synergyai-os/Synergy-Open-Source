@@ -489,9 +489,6 @@
 				{:else}
 					<!-- Content Entry View -->
 					<div class="flex w-full flex-col" data-debug="content-entry">
-						<div style="background: lime; padding: 10px; margin: 10px; font-weight: bold;">
-							🔍 DEBUG: selectedType = "{selectedType}" | initialType = "{initialType}"
-						</div>
 						{#if selectedType === 'note'}
 							<!-- Context/Template Selectors + Draft Button (Linear-style top bar) -->
 							<div class="flex items-center justify-between px-6 pt-3 pb-3 border-b border-base">
@@ -577,13 +574,8 @@
 								compact={true}
 							/>
 							
-							<!-- CRITICAL TEST: Is editor blocking everything? -->
-							<div style="background: magenta; padding: 30px; font-size: 32px; font-weight: bold; border: 10px solid orange; margin: 20px 0; z-index: 9999; position: relative;">
-								🚨 AFTER EDITOR - If you see this, editor is NOT blocking!
-							</div>
-							
 							<!-- Metadata Bar (Linear-style pills) -->
-							<div class="px-6 py-3 border-t border-base" style="background: rgba(255,0,0,0.1);" data-debug="metadata-bar">
+							<div class="px-6 py-3 border-t border-base" style="background: yellow; min-height: 60px;" data-debug="metadata-bar">
 								<MetadataBar>
 									<StatusPill
 										status={noteStatus}
@@ -639,13 +631,8 @@
 							/>
 						{/if}
 
-						<!-- ABSOLUTE TEST MARKER -->
-						<div style="background: yellow; padding: 20px; font-size: 24px; font-weight: bold; border: 5px solid red;">
-							🔥 TEST MARKER - If you see this, sections ARE rendering!
-						</div>
-
 						<!-- Tag Selector -->
-						<div class="flex flex-col gap-2 border-t border-base pt-3 pb-2 {selectedType === 'note' ? 'px-6' : ''}" style="background: rgba(0,255,0,0.1);" data-debug="tag-selector">
+						<div class="flex flex-col gap-2 border-t border-base pt-3 pb-2 {selectedType === 'note' ? 'px-6' : ''}" style="background: lime; min-height: 60px;" data-debug="tag-selector">
 							<TagSelector
 								bind:comboboxOpen={tagComboboxOpen}
 								bind:selectedTagIds
@@ -656,7 +643,7 @@
 						</div>
 
 						<!-- Action Buttons -->
-						<div class="flex items-center justify-between gap-3 pt-3 border-t border-base pb-3 {selectedType === 'note' ? 'px-6' : ''}" style="background: rgba(0,0,255,0.1);" data-debug="action-buttons">
+						<div class="flex items-center justify-between gap-3 pt-3 border-t border-base pb-3 {selectedType === 'note' ? 'px-6' : ''}" style="background: cyan; min-height: 80px;" data-debug="action-buttons">
 							{#if selectedType === 'note'}
 								<!-- Left: Attachment button -->
 								<AttachmentButton
