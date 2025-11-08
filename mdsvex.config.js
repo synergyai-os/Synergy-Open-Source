@@ -18,19 +18,7 @@ function getHighlighter() {
 const config = defineConfig({
 	extensions: ['.svx', '.md'],
 	
-	highlight: {
-		highlighter: async (code, lang = 'text') => {
-			const highlighter = await getHighlighter();
-			const html = highlighter.codeToHtml(code, {
-				lang,
-				themes: {
-					light: 'github-light',
-					dark: 'github-dark'
-				}
-			});
-			return `{@html \`${html}\` }`;
-		}
-	},
+	highlight: false, // Disabled temporarily to test MDX
 	
 	rehypePlugins: [
 		rehypeSlug,

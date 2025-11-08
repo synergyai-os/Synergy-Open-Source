@@ -486,7 +486,72 @@ const config = {
 
 ---
 
-**Pattern Count**: 12  
+## #L600: Top-Level Await in Config Files [🔴 CRITICAL]
+
+**Symptom**: Server crashes on startup, "Cannot use 'import.meta' outside a module", 500 errors on all routes  
+**Root Cause**: Node.js config files (mdsvex.config.js, etc.) can't use top-level await. Module loads before async resolution completes.  
+**Fix**: 
+
+```javascript
+// ❌ WRONG - Top-level await breaks config loading
+import { createHighlighter } from 'shiki';
+
+const highlighter = await createHighlighter({
+  themes: ['github-dark'],
+  langs: ['javascript']
+});
+
+export default defineConfig({
+  highlight: {
+    highlighter: (code) => highlighter.codeToHtml(code)
+  }
+});
+
+// ✅ CORRECT - Lazy initialization with caching
+let highlighterPromise;
+function getHighlighter() {
+  if (!highlighterPromise) {
+    highlighterPromise = createHighlighter({
+      themes: ['github-dark'],
+      langs: ['javascript']
+    });
+  }
+  return highlighterPromise;
+}
+
+export default defineConfig({
+  highlight: {
+    highlighter: async (code) => {
+      const highlighter = await getHighlighter();
+      return highlighter.codeToHtml(code);
+    }
+  }
+});
+```
+
+**Apply when**:
+- Config files need async initialization (highlighters, plugins, external data)
+- Build crashes with module/import errors
+- 500 errors on all routes immediately after adding config
+- Using libraries that require async setup (Shiki, database connections, etc.)
+
+**Why it breaks**:
+- Config files load during Node.js require() phase (synchronous)
+- Top-level await only works in ES modules with proper setup
+- SvelteKit/Vite config loading doesn't support top-level await
+- Server crashes before any routes can load
+
+**Correct Pattern**:
+1. Create lazy initializer function
+2. Cache promise to avoid multiple initializations
+3. Call async function inside actual usage (highlighter callback)
+4. Let the callback handle the await
+
+**Related**: #L550 (Phantom dependencies), #L400 (SSR browser checks)
+
+---
+
+**Pattern Count**: 13  
 **Last Validated**: 2025-11-08  
-**Context7 Source**: `/sveltejs/svelte`
+**Context7 Source**: `/sveltejs/svelte`, `shikijs/shiki`
 

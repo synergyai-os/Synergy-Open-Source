@@ -11,11 +11,16 @@ const isPublicRoute = createRouteMatcher([
 	'/',              // Homepage
 	'/login',         // Login page
 	'/register',      // Registration page
-	'/dev-docs(.*)',  // Documentation (public)
-	'/docs(.*)',      // Documentation (public)
 	// Note: No need to add '/api/auth' here as handleAuth middleware
 	// will process those requests before this middleware runs
 ]);
+
+// Check if path is public (including wildcards that createRouteMatcher doesn't support)
+function isPublicPath(pathname: string): boolean {
+	return isPublicRoute(pathname) || 
+	       pathname.startsWith('/dev-docs') || 
+	       pathname.startsWith('/docs');
+}
 
 // Create auth hooks with persistent cookies
 // Note: "Remember Me" functionality would require package support or custom implementation
@@ -35,7 +40,7 @@ const requireAuth: Handle = async ({ event, resolve }) => {
 		process.env.NODE_ENV === 'production' && !event.request.headers.get('cookie');
 
 	// Allow public routes
-	if (isPublicRoute(event.url.pathname)) {
+	if (isPublicPath(event.url.pathname)) {
 		// Special handling: if authenticated user visits /login or /register, redirect them
 		const isAuthPage = event.url.pathname === '/login' || event.url.pathname === '/register';
 		
