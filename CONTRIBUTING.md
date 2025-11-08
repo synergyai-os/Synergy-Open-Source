@@ -9,7 +9,7 @@ We're building the open-source Product OS for teams—and we need your help. Whe
 ## 🌟 Ways to Contribute
 
 ### 1. **Code Contributions**
-- Fix bugs (check [good first issues](https://github.com/randyhereman/axon/labels/good%20first%20issue))
+- Fix bugs (check [good first issues](https://github.com/synergyai-os/Synergy-Open-Source/labels/good%20first%20issue))
 - Build features (see [roadmap](./dev-docs/2-areas/metrics.md#-current-okrs-q4-2025))
 - Improve performance
 - Add tests
@@ -53,8 +53,8 @@ Before contributing, read our [Product Principles](./dev-docs/2-areas/product-pr
 
 ```bash
 # Clone the repo
-git clone https://github.com/randyhereman/axon.git
-cd axon
+git clone https://github.com/synergyai-os/Synergy-Open-Source.git
+cd Synergy-Open-Source
 
 # Install dependencies
 npm install
@@ -76,7 +76,7 @@ npm run dev
 ### 2. **Find Something to Work On**
 
 **Good First Issues:**
-Browse [good first issues](https://github.com/randyhereman/axon/labels/good%20first%20issue) - these are perfect for new contributors!
+Browse [good first issues](https://github.com/synergyai-os/Synergy-Open-Source/labels/good%20first%20issue) - these are perfect for new contributors!
 
 **Current Priorities:**
 Check [Metrics & OKRs](./dev-docs/2-areas/metrics.md) to see what we're focusing on this quarter.
@@ -473,7 +473,7 @@ Build something awesome? Earn revenue!
 ## ❓ Questions?
 
 - **Discord**: [Join our community](https://discord.gg/synergyos)
-- **GitHub Discussions**: [Ask here](https://github.com/randyhereman/axon/discussions)
+- **GitHub Discussions**: [Ask here](https://github.com/synergyai-os/Synergy-Open-Source/discussions)
 - **Email**: randy@synergyos.dev
 
 ---
