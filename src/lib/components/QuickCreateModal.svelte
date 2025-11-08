@@ -577,6 +577,11 @@
 								compact={true}
 							/>
 							
+							<!-- CRITICAL TEST: Is editor blocking everything? -->
+							<div style="background: magenta; padding: 30px; font-size: 32px; font-weight: bold; border: 10px solid orange; margin: 20px 0; z-index: 9999; position: relative;">
+								🚨 AFTER EDITOR - If you see this, editor is NOT blocking!
+							</div>
+							
 							<!-- Metadata Bar (Linear-style pills) -->
 							<div class="px-6 py-3 border-t border-base" style="background: rgba(255,0,0,0.1);" data-debug="metadata-bar">
 								<MetadataBar>
