@@ -15,53 +15,40 @@ A modern knowledge retention and learning platform built with SvelteKit, Convex,
 
 ## Getting Started
 
-### Prerequisites
+**→ [Quick Setup Guide](dev-docs/2-areas/start-me.md)** - Get running in 5 minutes
 
-- Node.js 18+ 
-- npm (or pnpm/yarn)
-- Convex account (free tier available)
+### TL;DR
 
-### Installation
-
-1. Clone the repository:
-```bash
-git clone <your-repo-url>
-cd SynergyOS
-```
-
-2. Install dependencies:
+**1. Install dependencies:**
 ```bash
 npm install
 ```
 
-3. Set up environment variables:
-
-Create a `.env.local` file:
-```env
-PUBLIC_CONVEX_URL=your_convex_deployment_url
-```
-
-4. Set up Convex:
+**2. Setup Convex & get your deployment URL:**
 ```bash
 npx convex dev
 ```
 
-5. Set backend environment variables (for Resend):
-```bash
-npx convex env set RESEND_API_KEY your-resend-api-key
+**3. Create `.env.local` with your Convex URL:**
+```env
+PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
 ```
 
-### Development
+**4. Run TWO terminals:**
 
-Start the development server:
+Terminal 1 - Frontend:
 ```bash
 npm run dev
 ```
 
-Start Convex development (in a separate terminal):
+Terminal 2 - Database:
 ```bash
 npx convex dev
 ```
+
+**5. Open:** http://localhost:5173
+
+**Having trouble?** See [Start Me Guide](dev-docs/2-areas/start-me.md) for detailed troubleshooting.
 
 ### Testing
 

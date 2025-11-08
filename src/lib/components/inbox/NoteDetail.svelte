@@ -34,15 +34,19 @@
 			
 			if (isInputFocused) return;
 			
-			// Handle Enter key to enter edit mode
-			if (event.key === 'Enter') {
-				event.preventDefault();
-				editMode = true;
-				// Focus the editor title after a tick
-				setTimeout(() => {
-					editorRef?.focusTitle();
-				}, 0);
-			}
+		// Handle Enter key to enter edit mode
+		if (event.key === 'Enter') {
+			// Check if emoji menu or other popup menus are active
+			const emojiMenuActive = document.querySelector('.emoji-menu') !== null;
+			if (emojiMenuActive) return; // Let the emoji menu handle Enter
+			
+			event.preventDefault();
+			editMode = true;
+			// Focus the editor title after a tick
+			setTimeout(() => {
+				editorRef?.focusTitle();
+			}, 0);
+		}
 		}
 		
 		window.addEventListener('keydown', handleKeyDown);

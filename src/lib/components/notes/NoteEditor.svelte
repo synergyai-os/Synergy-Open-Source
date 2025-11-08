@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import { onMount, onDestroy } from 'svelte';
 	import { EditorView } from 'prosemirror-view';
 	import { EditorState, Transaction } from 'prosemirror-state';
@@ -47,7 +48,7 @@
 
 	let editorElement: HTMLDivElement;
 	let titleElement: HTMLInputElement;
-	let editorView: EditorView | null = null;
+	let editorView = $state<EditorView | null>(null);
 	let editorState = $state<EditorState | null>(null);
 	let localTitle = $state(title);
 	let isEmpty = $state(true);
@@ -238,14 +239,12 @@
 		</div>
 	</div>
 
-	<!-- Mention Menu -->
-	<MentionMenu {editorView} />
-	
-	<!-- Emoji Menu -->
-	<EmojiMenu {editorView} />
-	
-	<!-- Code Block Language Selector -->
-	<CodeBlockLanguageSelector {editorView} />
+	<!-- Plugin Menus - only render client-side when editor is ready -->
+	{#if browser && editorView}
+		<MentionMenu {editorView} />
+		<EmojiMenu {editorView} />
+		<CodeBlockLanguageSelector {editorView} />
+	{/if}
 </div>
 
 <style>
@@ -254,6 +253,7 @@
 		outline: none;
 		min-height: 400px;
 		padding: 0;
+		white-space: pre-wrap;
 	}
 
 	:global(.ProseMirror p) {

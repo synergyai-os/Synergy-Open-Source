@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Dialog } from 'bits-ui';
-	import type { MockInboxItem } from '../../../../dev-docs/mock-data-brain-inputs';
+	import type { MockInboxItem } from '../../../../dev-docs/4-archive/mock-data-brain-inputs';
 
 	interface Props {
 		item: MockInboxItem | null;

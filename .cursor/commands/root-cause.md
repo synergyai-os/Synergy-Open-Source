@@ -7,11 +7,11 @@
 ## Workflow
 
 ### 1. Load Pattern Index
-- Open `dev-docs/patterns/INDEX.md` (200 lines)
+- Open `dev-docs/2-areas/patterns/INDEX.md` (200 lines)
 - Scan symptom tables (🔴 Critical, 🟡 Important, 🟢 Reference)
 
 ### 2. Jump to Solution
-- Click line number link (e.g., `svelte-reactivity.md#L10`)
+- Click line number link (e.g., `dev-docs/2-areas/patterns/svelte-reactivity.md#L10`)
 - Read compressed pattern: Symptom → Root Cause → Fix
 
 ### 3. Assess Confidence
@@ -28,8 +28,8 @@
 
 ## Search Strategy
 
-1. **Symptom match**: Scan INDEX.md tables by severity
-2. **Technology**: Svelte → svelte-reactivity.md, Convex → convex-integration.md
+1. **Symptom match**: Scan `dev-docs/2-areas/patterns/INDEX.md` tables by severity
+2. **Technology**: Svelte → `dev-docs/2-areas/patterns/svelte-reactivity.md`, Convex → `dev-docs/2-areas/patterns/convex-integration.md`
 3. **Keywords**: Grep domain files for error messages/terms
 4. **Related patterns**: Follow `Related: #L[number]` links
 
@@ -53,7 +53,7 @@
 
 ## Quick Reference
 
-- **Svelte 5 patterns**: `patterns/svelte-reactivity.md`
-- **Convex patterns**: `patterns/convex-integration.md`
-- **UI/UX patterns**: `patterns/ui-patterns.md`
-- **Analytics**: `patterns/analytics.md`
+- **Svelte 5 patterns**: `dev-docs/2-areas/patterns/svelte-reactivity.md`
+- **Convex patterns**: `dev-docs/2-areas/patterns/convex-integration.md`
+- **UI/UX patterns**: `dev-docs/2-areas/patterns/ui-patterns.md`
+- **Analytics**: `dev-docs/2-areas/patterns/analytics.md`

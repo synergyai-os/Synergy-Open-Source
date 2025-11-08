@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { DropdownMenu } from 'bits-ui';
-	import type { InputSourceType } from '../../../../dev-docs/mock-data-brain-inputs';
+	import type { InputSourceType } from '../../../../dev-docs/4-archive/mock-data-brain-inputs';
 
 	type SortOption = 'newest' | 'oldest' | 'alphabetical';
 

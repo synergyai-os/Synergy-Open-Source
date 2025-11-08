@@ -67,7 +67,7 @@ So that [outcome/value]
 
 ### 2. Audit Existing Patterns
 
-**Search `dev-docs/patterns/INDEX.md`**:
+**Search `dev-docs/2-areas/patterns/INDEX.md`**:
 1. Scan symptom tables for matches
 2. Grep domain files for keywords
 3. Check Related links in found patterns
@@ -92,10 +92,10 @@ So that [outcome/value]
 #### If Adding New Pattern:
 
 1. Choose domain file:
-   - Svelte 5 reactivity → `svelte-reactivity.md`
-   - Convex integration → `convex-integration.md`
-   - UI/UX → `ui-patterns.md`
-   - PostHog → `analytics.md`
+   - Svelte 5 reactivity → `dev-docs/2-areas/patterns/svelte-reactivity.md`
+   - Convex integration → `dev-docs/2-areas/patterns/convex-integration.md`
+   - UI/UX → `dev-docs/2-areas/patterns/ui-patterns.md`
+   - PostHog → `dev-docs/2-areas/patterns/analytics.md`
 
 2. Add pattern with **next line number** (gaps of 30-50):
    ```markdown
@@ -121,7 +121,7 @@ So that [outcome/value]
    - Svelte 5: `/sveltejs/svelte`
    - Convex: `/get-convex/convex-backend`
 
-4. **Update INDEX.md**:
+4. **Update `dev-docs/2-areas/patterns/INDEX.md`**:
    - Add symptom → line number in appropriate severity table
    - Choose severity: 🔴 Critical (breaks functionality), 🟡 Important (common issue), 🟢 Reference (best practice)
 
@@ -164,7 +164,7 @@ TYPE: X | SCOPE: Y | SIZE: Z | DAYS: N | IMPACT: I
 
 🔄 TYPE: Added | Updated | Applied
 📝 NAME: "Pattern Name" (#L[NUMBER])
-📁 FILE: dev-docs/patterns/[domain].md
+📁 FILE: dev-docs/2-areas/patterns/[domain].md
 🟢 SEVERITY: Critical | Important | Reference
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -241,7 +241,7 @@ respects focus context. Power users can now fly through inbox.
 
 🆕 TYPE: Added
 📝 NAME: "Context-Aware Keyboard Shortcuts" (#L320)
-📁 FILE: dev-docs/patterns/ui-patterns.md
+📁 FILE: dev-docs/2-areas/patterns/ui-patterns.md
 🟢 SEVERITY: Reference
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -297,7 +297,7 @@ The jarring flash of old content is gone. Smooth transitions achieved.
 
 🔄 TYPE: Updated
 📝 NAME: "Component State Management" (#L450)
-📁 FILE: dev-docs/patterns/svelte-reactivity.md
+📁 FILE: dev-docs/2-areas/patterns/svelte-reactivity.md
 🟡 SEVERITY: Important
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -353,7 +353,7 @@ don't have to. 😅
 
 🆕 TYPE: Added
 📝 NAME: "Single $state Object Pattern" (#L780)
-📁 FILE: dev-docs/patterns/svelte-reactivity.md
+📁 FILE: dev-docs/2-areas/patterns/svelte-reactivity.md
 🔴 SEVERITY: Critical
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -527,11 +527,11 @@ Keep response concise. Show push result or "Staying local" confirmation.
 ## Checklist
 
 **Before Committing:**
-- [ ] Searched INDEX.md for existing patterns (grep tool)
+- [ ] Searched `dev-docs/2-areas/patterns/INDEX.md` for existing patterns (grep tool)
 - [ ] Decided: update existing or create new
 - [ ] Updated domain file with pattern/enhancement (search_replace)
 - [ ] Validated with Context7 (if library-specific)
-- [ ] Updated INDEX.md symptom table
+- [ ] Updated `dev-docs/2-areas/patterns/INDEX.md` symptom table
 - [ ] Chose correct severity (🔴🟡🟢)
 - [ ] Determined flow distribution category
 
@@ -578,7 +578,7 @@ Keep response concise. Show push result or "Staying local" confirmation.
    - Category: FEATURE | BUGFIX | TECH-DEBT | DOCS | RISK
    - Type, scope, size, days, hours, blocked, files, impact
    
-2. grep INDEX.md → Check existing patterns
+2. grep dev-docs/2-areas/patterns/INDEX.md → Check existing patterns
 
 3. Update patterns → search_replace domain files + INDEX.md
 

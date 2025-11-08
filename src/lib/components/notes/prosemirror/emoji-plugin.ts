@@ -45,15 +45,49 @@ export function createEmojiPlugin() {
           };
         }
         
-        const { selection, doc } = tr;
-        const { from, to } = selection;
+        // Only check when document content changes (user typing)
+        if (tr.docChanged) {
+          const { selection, doc } = tr;
+          const { from, to } = selection;
+          
+          // Only work with cursor (not selection)
+          if (from !== to) {
+            return prev;
+          }
+          
+          // Get text before cursor
+          const $pos = doc.resolve(from);
+          const textBefore = $pos.parent.textBetween(
+            Math.max(0, $pos.parentOffset - 20),
+            $pos.parentOffset,
+            null,
+            "\ufffc"
+          );
+          
+          // Match : followed by optional word characters
+          const match = textBefore.match(/:(\w*)$/);
+          
+          if (match) {
+            const query = match[1];
+            const matchStart = from - match[0].length;
+            
+            return {
+              active: true,
+              query,
+              from: matchStart,
+              to: from,
+              coords: null, // Will be set by view
+            };
+          }
+        }
         
-        // Only work with cursor (not selection)
-        if (from !== to) {
+        // Deactivate if selection changed without :
+        if (!prev.active) {
           return prev;
         }
         
-        // Get text before cursor
+        const { selection, doc } = tr;
+        const { from } = selection;
         const $pos = doc.resolve(from);
         const textBefore = $pos.parent.textBetween(
           Math.max(0, $pos.parentOffset - 20),
@@ -62,29 +96,17 @@ export function createEmojiPlugin() {
           "\ufffc"
         );
         
-        // Match : followed by optional word characters
-        const match = textBefore.match(/:(\w*)$/);
-        
-        if (match) {
-          const query = match[1];
-          const matchStart = from - match[0].length;
-          
+        if (!textBefore.includes(":")) {
           return {
-            active: true,
-            query,
-            from: matchStart,
-            to: from,
-            coords: null, // Will be set by view
+            active: false,
+            query: "",
+            from: 0,
+            to: 0,
+            coords: null,
           };
         }
         
-        return {
-          active: false,
-          query: "",
-          from: 0,
-          to: 0,
-          coords: null,
-        };
+        return prev;
       },
     },
     
@@ -96,11 +118,10 @@ export function createEmojiPlugin() {
           return false;
         }
         
-        // Let the EmojiMenu component handle arrow keys and Enter
+        // Prevent ProseMirror from handling these keys
+        // EmojiMenu component will handle via DOM events
         if (["ArrowUp", "ArrowDown", "Enter", "Escape"].includes(event.key)) {
-          // Prevent default to stop ProseMirror from handling
-          // EmojiMenu component will handle via DOM events
-          return false;
+          return true; // Tell ProseMirror we handled this event
         }
         
         return false;
@@ -110,14 +131,8 @@ export function createEmojiPlugin() {
 }
 
 // Helper to insert emoji
-export function insertEmoji(view: EditorView, emoji: string) {
-  const state = emojiPluginKey.getState(view.state);
-  
-  if (!state?.active) {
-    return;
-  }
-  
-  const { from, to } = state;
+export function insertEmoji(view: EditorView, emoji: string, from: number, to: number) {
+  // Insert emoji and deactivate plugin
   const tr = view.state.tr
     .insertText(emoji, from, to)
     .setMeta("deactivateEmoji", true);

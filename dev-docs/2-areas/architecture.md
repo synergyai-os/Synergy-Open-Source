@@ -25,6 +25,404 @@ SynergyOS is a full-stack open source application built with modern web technolo
 - **Linting**: ESLint + Prettier
 - **Type Safety**: TypeScript
 
+## Why These Technologies?
+
+### SvelteKit 5 + Svelte 5 Runes
+
+**Why We Chose It:**
+- **Server-Side Rendering (SSR)**: Built-in SSR and static site generation for better performance and SEO
+- **File-Based Routing**: Intuitive `+page.svelte`, `+layout.svelte`, `+page.server.ts` structure
+- **First-Class TypeScript**: End-to-end type safety from frontend to backend
+- **Svelte 5 Runes**: Modern reactivity system (`$state`, `$derived`, `$effect`) with better composability
+- **Zero-Config**: Works out of the box with Vite, TypeScript, and modern tooling
+
+**Quick Start:**
+
+**File Structure:**
+```
+src/routes/
+  +page.svelte              # Homepage (client component)
+  +layout.svelte            # Root layout (wraps all pages)
+  +layout.server.ts         # Server-side data loading
+  +page.server.ts           # Page-specific server data
+  dashboard/
+    +page.svelte            # /dashboard route
+```
+
+**Reactive State:**
+```typescript
+<script lang="ts">
+  // Reactive state
+  let count = $state(0);
+  
+  // Derived values (computed)
+  const doubled = $derived(count * 2);
+  
+  // Side effects
+  $effect(() => {
+    console.log(`Count changed to ${count}`);
+  });
+</script>
+
+<button onclick={() => count++}>
+  Count: {count} (Doubled: {doubled})
+</button>
+```
+
+**Server-Side Data Loading:**
+```typescript
+// +page.server.ts
+import type { PageServerLoad } from './$types';
+
+export const load: PageServerLoad = async ({ params }) => {
+  return {
+    user: { name: 'Randy' }
+  };
+};
+```
+
+**See Also:**
+- [Svelte 5 Reactivity Patterns](patterns/svelte-reactivity.md) - Complete guide to `$state`, `$derived`, composables
+- [Composables Analysis](composables-analysis.md) - Reusable logic patterns
+- Official Docs: Use Context7 for latest SvelteKit and Svelte 5 documentation
+
+---
+
+### Convex
+
+**Why We Chose It:**
+- **Real-Time Subscriptions**: Live queries update UI automatically when data changes
+- **Serverless Functions**: No infrastructure management, auto-scaling, zero DevOps
+- **Built-In Authentication**: JWT-based auth with multiple providers (password, OAuth, etc.)
+- **TypeScript End-to-End**: Type-safe queries/mutations with auto-generated client types
+- **Developer Experience**: Fast local development, instant deploys, time-travel debugging
+
+**Quick Start:**
+
+**Schema Definition:**
+```typescript
+// convex/schema.ts
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
+
+export default defineSchema({
+  notes: defineTable({
+    title: v.string(),
+    content: v.string(),
+    userId: v.id("users"),
+    createdAt: v.number(),
+  }).index("by_user", ["userId"]),
+});
+```
+
+**Queries (Read Data):**
+```typescript
+// convex/notes.ts
+import { query } from "./_generated/server";
+import { v } from "convex/values";
+
+export const list = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, { userId }) => {
+    return await ctx.db
+      .query("notes")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
+  },
+});
+```
+
+**Mutations (Write Data):**
+```typescript
+// convex/notes.ts
+import { mutation } from "./_generated/server";
+
+export const create = mutation({
+  args: { title: v.string(), content: v.string() },
+  handler: async (ctx, { title, content }) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+    
+    return await ctx.db.insert("notes", {
+      title,
+      content,
+      userId,
+      createdAt: Date.now(),
+    });
+  },
+});
+```
+
+**Using in Components:**
+```typescript
+<script lang="ts">
+  import { useQuery, useMutation } from 'convex-svelte';
+  import { api } from '$convex/_generated/api';
+  
+  // Reactive query (auto-updates)
+  const notesQuery = useQuery(api.notes.list, () => ({ userId }));
+  const notes = $derived(notesQuery?.data ?? []);
+  
+  // Mutation
+  const createNote = useMutation(api.notes.create);
+  
+  async function handleCreate() {
+    await createNote({ title: 'New Note', content: '' });
+  }
+</script>
+```
+
+**See Also:**
+- [Convex Integration Patterns](patterns/convex-integration.md) - Avoid undefined, runtime restrictions, auth
+- [Authentication Architecture](#authentication-architecture) - How Convex Auth works
+- Official Docs: Use Context7 for latest Convex documentation
+
+---
+
+### Tailwind CSS 4
+
+**Why We Chose It:**
+- **Utility-First CSS**: Rapid UI development with composable utility classes
+- **Design Tokens via CSS Variables**: Semantic tokens that adapt to light/dark mode automatically
+- **No Build Step**: Tailwind CSS 4 uses native CSS features (no PostCSS required)
+- **Fast Iteration**: Change design system once, updates everywhere
+- **Type Safety**: IntelliSense autocomplete for all utility classes
+
+**Quick Start:**
+
+**Design Token System:**
+```css
+/* src/app.css */
+@theme {
+  /* Semantic color tokens */
+  --color-surface: light-dark(white, #1a1a1a);
+  --color-primary: light-dark(#1a1a1a, #f5f5f5);
+  
+  /* Spacing tokens */
+  --spacing-nav-item: 0.5rem;
+  --spacing-inbox-container: 1.5rem;
+}
+```
+
+**Using Semantic Tokens:**
+```svelte
+<!-- ❌ WRONG: Hardcoded values -->
+<div class="px-2 py-1.5 bg-gray-900 text-white">
+
+<!-- ✅ CORRECT: Semantic tokens -->
+<div class="px-nav-item py-nav-item bg-surface text-primary">
+```
+
+**Why Tokens Matter:**
+```svelte
+<!-- These automatically adapt to light/dark mode -->
+<div class="bg-surface text-primary border-accent-primary">
+  <!-- No manual dark: variants needed! -->
+</div>
+```
+
+**See Also:**
+- [Design Tokens](design-tokens.md) - Complete token reference ⭐ **MANDATORY**
+- [Design Principles](design-principles.md) - Visual philosophy, accessibility, UX
+- [Component Architecture](component-architecture.md) - Tokens → Utilities → Patterns → Components
+- [UI Patterns](patterns/ui-patterns.md) - Solved design problems
+- Official Docs: Use Context7 for latest Tailwind CSS 4 documentation
+
+---
+
+### PostHog
+
+**Why We Chose It:**
+- **Open Source**: Self-hostable, transparent, privacy-friendly alternative to Google Analytics
+- **Product Analytics**: Event tracking, funnels, retention, user paths, cohorts
+- **Feature Flags**: Toggle features without deploys, A/B testing, gradual rollouts
+- **Session Replay**: Watch user sessions to debug issues and improve UX
+- **No Data Silos**: All product data in one place
+
+**Quick Start:**
+
+**Server-Side Tracking (Recommended):**
+```typescript
+// src/lib/server/posthog.ts
+import { PostHog } from 'posthog-node';
+
+let client: PostHog | null = null;
+
+export function getPostHogClient() {
+  if (!client) {
+    client = new PostHog(PUBLIC_POSTHOG_KEY, {
+      host: PUBLIC_POSTHOG_HOST
+    });
+  }
+  return client;
+}
+
+// Track critical events server-side (bypasses browser blockers)
+export async function trackEvent(event: string, distinctId: string, properties: Record<string, any>) {
+  await getPostHogClient().capture({
+    event,
+    distinctId,
+    properties
+  });
+}
+```
+
+**Event Naming Conventions:**
+```typescript
+// Use object_action format
+await trackEvent('user_signed_in', email, { method: 'password' });
+await trackEvent('note_created', userId, { hasTitle: true });
+await trackEvent('inbox_synced', userId, { itemCount: 42 });
+```
+
+**Why Server-Side:**
+- Browser privacy tools block `*.posthog.com` requests
+- Server-to-server requests guarantee event delivery
+- Critical for tracking sign-ups, conversions, payments
+
+**See Also:**
+- [Analytics Patterns](patterns/analytics.md) - Server-side tracking, event naming, AARRR funnel
+- [PostHog Setup](posthog.md) - Configuration and usage guide
+- Official Docs: Use Context7 for latest PostHog documentation
+
+---
+
+### ProseMirror
+
+**Why We Chose It:**
+- **Collaborative Editing Foundation**: Built for real-time collaboration (CRDT-ready)
+- **Schema-Based**: Precise document model prevents invalid content states
+- **Extensible Plugins**: Modular architecture for mentions, emoji, code blocks, etc.
+- **Framework Agnostic**: Works with any UI framework (Svelte, React, Vue)
+- **Battle-Tested**: Powers Notion, Atlassian, GitLab, and other major editors
+
+**Quick Start:**
+
+**Basic Editor Setup:**
+```typescript
+// See: src/lib/components/notes/NoteEditor.svelte
+import { EditorView } from 'prosemirror-view';
+import { EditorState } from 'prosemirror-state';
+import { createEditorState } from '$lib/utils/prosemirror-setup';
+
+let editorElement: HTMLDivElement;
+let editorView: EditorView | null = null;
+
+onMount(() => {
+  const state = createEditorState(content);
+  editorView = new EditorView(editorElement, {
+    state,
+    dispatchTransaction(transaction) {
+      const newState = editorView!.state.apply(transaction);
+      editorView!.updateState(newState);
+      
+      // Export to markdown
+      const markdown = exportMarkdown(newState);
+      onContentChange?.(markdown);
+    }
+  });
+});
+```
+
+**Plugin System:**
+```typescript
+// Mentions plugin
+import { createMentionPlugin } from '$lib/utils/prosemirror-mentions';
+const mentionPlugin = createMentionPlugin([
+  { id: 'randy', label: 'Randy', icon: '👤' },
+  { id: 'project', label: 'project', icon: '📁' },
+]);
+
+// Emoji plugin
+import { createEmojiPlugin } from './prosemirror/emoji-plugin';
+const emojiPlugin = createEmojiPlugin();
+
+// Syntax highlighting for code blocks
+import { createSyntaxHighlightPlugin } from '$lib/utils/prosemirror-codeblock';
+const syntaxPlugin = createSyntaxHighlightPlugin();
+
+// Add to editor state
+const state = EditorState.create({
+  schema,
+  plugins: [mentionPlugin, emojiPlugin, syntaxPlugin]
+});
+```
+
+**Document Model:**
+```typescript
+// ProseMirror uses a precise schema
+const schema = new Schema({
+  nodes: {
+    doc: { content: "block+" },
+    paragraph: { content: "inline*", group: "block" },
+    heading: { content: "inline*", group: "block", attrs: { level: {} } },
+    codeBlock: { content: "text*", group: "block", attrs: { language: {} } },
+    text: { inline: true }
+  },
+  marks: {
+    strong: {},
+    em: {},
+    code: {}
+  }
+});
+```
+
+**Export to Markdown:**
+```typescript
+import { exportMarkdown } from '$lib/utils/prosemirror-setup';
+
+const markdown = exportMarkdown(editorView.state);
+// "# Title\n\nParagraph with **bold** and *italic*"
+```
+
+**Key Files:**
+- `src/lib/components/notes/NoteEditor.svelte` - Main editor component
+- `src/lib/utils/prosemirror-setup.ts` - Editor state creation and export
+- `src/lib/utils/prosemirror-mentions.ts` - Mention plugin
+- `src/lib/components/notes/prosemirror/emoji-plugin.ts` - Emoji plugin
+- `src/lib/utils/prosemirror-codeblock.ts` - Code block syntax highlighting
+
+**See Also:**
+- Pattern documentation coming when we next refactor editor code
+- Official Docs: Use Context7 for latest ProseMirror documentation
+
+---
+
+## Other Technologies (Document as We Use)
+
+The following tools are part of our stack and will be documented with rationale + quick start guides when we next work with them:
+
+**UI & Components:**
+- **Bits UI** - Headless component library (accessible, unstyled primitives)
+- **Layerchart** - Charts and data visualization
+
+**Mobile:**
+- **Capacitor 7** - Cross-platform mobile (iOS support configured)
+
+**Testing:**
+- **Vitest** - Unit tests (fast, Vite-native)
+- **Playwright** - E2E tests (browser automation)
+
+**Integrations:**
+- **Readwise API** - Import highlights from reading apps
+- **Resend** - Transactional email service
+- **Claude API** - AI-powered flashcard generation
+
+**Documentation:**
+- **MDsveX** - Markdown in Svelte components
+- **Shiki** - Syntax highlighting for code blocks
+- **Rehype** - Markdown processing (auto-linking headings, slugs)
+
+**Utilities:**
+- **ts-fsrs** - Spaced repetition algorithm (flashcards)
+- **marked** - Markdown parser and renderer
+- **highlight.js** / **lowlight** - Code syntax highlighting
+
+**Follow the pattern:** When you touch any of these tools, add a section above with:
+1. **Why** we chose it (rationale)
+2. **Quick Start** (setup + basic usage)
+3. **Links** to Context7 docs and any pattern files
+
 ## Authentication Architecture
 
 ### 🔐 Authentication Model: **Hybrid (Server-Side Validated)**

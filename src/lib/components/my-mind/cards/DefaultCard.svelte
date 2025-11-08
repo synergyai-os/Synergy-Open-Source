@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { MockInboxItem, InputSourceType } from '../../../../../dev-docs/mock-data-brain-inputs';
+	import type { MockInboxItem, InputSourceType } from '../../../../../dev-docs/4-archive/mock-data-brain-inputs';
 
 	interface Props {
 		item: MockInboxItem;

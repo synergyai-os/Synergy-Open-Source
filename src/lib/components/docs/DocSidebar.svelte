@@ -3,27 +3,38 @@
 	
 	const sections = [
 		{
-			title: '📖 Getting Started',
+			title: '🎯 Start Here',
 			items: [
-				{ title: 'README', href: '/dev-docs/README' },
-				{ title: 'Quick Start', href: '/dev-docs/test' }
+				{ title: 'Home', href: '/dev-docs' },
+				{ title: 'Product Vision 2.0', href: '/marketing-docs/strategy/product-vision-2.0' },
+				{ title: 'Full README', href: '/dev-docs/README' }
 			]
 		},
 		{
-			title: '📂 PARA Structure',
+			title: '📊 Product & Strategy',
 			items: [
-				{ title: '1-projects/', href: '/dev-docs/1-projects' },
-				{ title: '2-areas/', href: '/dev-docs/2-areas' },
-				{ title: '3-resources/', href: '/dev-docs/3-resources' },
-				{ title: '4-archive/', href: '/dev-docs/4-archive' }
+				{ title: 'Metrics & OKRs', href: '/dev-docs/2-areas/metrics' },
+				{ title: 'Product Strategy', href: '/marketing-docs/strategy/product-strategy' },
+				{ title: 'Target Personas', href: '/marketing-docs/audience/target-personas' },
+				{ title: 'Marketplace', href: '/marketing-docs/opportunities/marketplace-strategy' },
+				{ title: 'Original Vision', href: '/dev-docs/2-areas/product-vision-and-plan' }
 			]
 		},
 		{
-			title: '📂 2-areas (Ongoing)',
+			title: '🎨 Design & UI',
 			items: [
-				{ title: 'Product Vision', href: '/dev-docs/2-areas/product-vision-and-plan' },
-				{ title: 'Architecture', href: '/dev-docs/2-areas/architecture' },
 				{ title: 'Design Tokens', href: '/dev-docs/2-areas/design-tokens' },
+				{ title: 'Component Library', href: '/dev-docs/2-areas/component-library' },
+				{ title: 'UI Patterns', href: '/dev-docs/2-areas/patterns/ui-patterns' },
+				{ title: 'User Journeys', href: '/dev-docs/2-areas/user-journeys' }
+			]
+		},
+		{
+			title: '🏗️ Architecture & Data',
+			items: [
+				{ title: 'Architecture', href: '/dev-docs/2-areas/architecture' },
+				{ title: 'Data Models', href: '/dev-docs/2-areas/data-models' },
+				{ title: 'Multi-Tenancy', href: '/dev-docs/2-areas/multi-tenancy-migration' },
 				{ title: 'Composables', href: '/dev-docs/2-areas/composables-analysis' }
 			]
 		},
@@ -38,18 +49,20 @@
 			]
 		},
 		{
-			title: '🎯 Value Streams',
+			title: '🚀 Active Work',
 			items: [
-				{ title: 'Overview', href: '/dev-docs/2-areas/value-streams/README' },
-				{ title: 'Documentation System', href: '/dev-docs/2-areas/value-streams/documentation-system/START-HERE' },
-				{ title: 'How to Document', href: '/dev-docs/2-areas/value-streams/HOW-TO-DOCUMENT' }
+				{ title: 'Value Streams', href: '/dev-docs/2-areas/value-streams/README' },
+				{ title: 'Docs as Product', href: '/dev-docs/2-areas/value-streams/documentation-as-product' },
+				{ title: 'Documentation System', href: '/dev-docs/2-areas/value-streams/documentation-system/START-HERE' }
 			]
 		},
 		{
-			title: '📚 3-resources (Reference)',
+			title: '📚 Resources',
 			items: [
-				{ title: 'Production Checklist', href: '/dev-docs/3-resources/production-checklist' },
+				{ title: 'Validation Framework', href: '/dev-docs/2-areas/validation-framework' },
+				{ title: 'Confidentiality Rules', href: '/dev-docs/2-areas/confidentiality-guidelines' },
 				{ title: 'Testing Strategy', href: '/dev-docs/3-resources/testing-strategy' },
+				{ title: 'Production Checklist', href: '/dev-docs/3-resources/production-checklist' },
 				{ title: 'Mobile Strategy', href: '/dev-docs/3-resources/mobile-strategy' }
 			]
 		}

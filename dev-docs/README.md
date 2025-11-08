@@ -113,6 +113,12 @@ This documentation follows the [PARA system](https://fortelabs.com/blog/para/):
 
 ## 🚀 Quick Start
 
+### ⚡ Getting Started
+
+**→ [Start Me Guide](2-areas/start-me.md)** - Get SynergyOS running locally in 5 minutes
+
+---
+
 ### 👋 New to SynergyOS? (Pick your role)
 
 **Product Manager:**

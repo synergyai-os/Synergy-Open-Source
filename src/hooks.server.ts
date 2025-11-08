@@ -1,10 +1,7 @@
 import { sequence } from '@sveltejs/kit/hooks';
 import { redirect, type Handle } from '@sveltejs/kit';
-import {
-	createConvexAuthHooks,
-	createRouteMatcher
-} from '@mmailaender/convex-auth-svelte/sveltekit/server';
-import { config } from '$lib/config';
+import { createRouteMatcher } from '@mmailaender/convex-auth-svelte/sveltekit/server';
+import { handleAuth, isAuthenticatedHook } from '$lib/server/auth';
 
 // Define public routes that don't require authentication
 const isPublicRoute = createRouteMatcher([
@@ -19,7 +16,8 @@ const isPublicRoute = createRouteMatcher([
 function isPublicPath(pathname: string): boolean {
 	return isPublicRoute(pathname) || 
 	       pathname.startsWith('/dev-docs') || 
-	       pathname.startsWith('/docs');
+	       pathname.startsWith('/docs') ||
+	       pathname.startsWith('/marketing-docs');
 }
 
 // Redirect .md URLs to dynamic routes (prevents raw markdown files from being served)
@@ -35,15 +33,8 @@ const redirectMarkdownUrls: Handle = async ({ event, resolve }) => {
 	return resolve(event);
 };
 
-// Create auth hooks with persistent cookies
-// Note: "Remember Me" functionality would require package support or custom implementation
-const { handleAuth, isAuthenticated } = createConvexAuthHooks({
-	cookieConfig: {
-		maxAge: config.auth.sessionMaxAgeSeconds // 30 days - persistent sessions
-	}
-});
-
 // Create custom auth handler - auth-first approach (whitelist pattern)
+// Auth configuration is centralized in $lib/server/auth.ts
 // All routes require auth except those explicitly whitelisted above
 const requireAuth: Handle = async ({ event, resolve }) => {
 	// Skip auth checks during build/preview (for static adapter fallback generation)
@@ -58,7 +49,7 @@ const requireAuth: Handle = async ({ event, resolve }) => {
 		const isAuthPage = event.url.pathname === '/login' || event.url.pathname === '/register';
 		
 		// Skip redirect during build context
-		if (!isBuildContext && isAuthPage && (await isAuthenticated(event))) {
+		if (!isBuildContext && isAuthPage && (await isAuthenticatedHook(event))) {
 			// Authenticated user trying to access login/register page
 			// Redirect to redirectTo query param or fallback to /inbox
 			const redirectTo = event.url.searchParams.get('redirectTo') || '/inbox';
@@ -74,7 +65,7 @@ const requireAuth: Handle = async ({ event, resolve }) => {
 	}
 
 	// Check if user is authenticated
-	if (!(await isAuthenticated(event))) {
+	if (!(await isAuthenticatedHook(event))) {
 		// Redirect to login if not authenticated
 		// Preserve the intended destination in redirectTo query param
 		throw redirect(302, `/login?redirectTo=${encodeURIComponent(event.url.pathname + event.url.search)}`);

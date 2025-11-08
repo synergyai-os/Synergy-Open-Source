@@ -1368,7 +1368,83 @@ $effect(() => {
 
 ---
 
-**Pattern Count**: 22  
-**Last Updated**: 2025-11-08  
+## #L1200: ProseMirror Plugin Menu State Management [🟡 IMPORTANT]
+
+**Symptom**: Menu selection doesn't insert content - text remains, emoji/mention not inserted  
+**Root Cause**: Plugin state deactivates before insertion function reads it  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Reading state when it might be deactivated
+function insertEmoji(view: EditorView, emoji: string) {
+  const state = emojiPluginKey.getState(view.state);
+  if (!state?.active) return; // ❌ Fails! State already deactivated
+  const { from, to } = state;
+  view.dispatch(view.state.tr.insertText(emoji, from, to));
+}
+
+// ✅ CORRECT: Capture positions while state is active
+let range = $state<{ from: number; to: number } | null>(null);
+
+function updateMenu() {
+  const state = emojiPluginKey.getState(editorView.state);
+  if (state?.active) {
+    range = { from: state.from, to: state.to }; // Store positions eagerly
+  } else {
+    range = null;
+  }
+}
+
+function insertEmoji(view: EditorView, emoji: string, from: number, to: number) {
+  // Accept positions as parameters (like insertMention pattern)
+  const tr = view.state.tr
+    .insertText(emoji, from, to)
+    .setMeta("deactivateEmoji", true);
+  view.dispatch(tr);
+  view.focus();
+}
+
+function selectEmoji(emoji: string) {
+  if (editorView && range) {
+    insertEmoji(editorView, emoji, range.from, range.to); // Use stored range
+  }
+}
+```
+
+**Key Pattern**: **Capture state positions eagerly, use them lazily**
+1. ✅ Store `{ from, to }` positions when plugin state is active
+2. ✅ Pass positions as function parameters (not read from state)
+3. ✅ Match ProseMirror's `insertMention()` pattern (accepts range directly)
+4. ❌ Never read plugin state inside insert function (may be deactivated)
+
+**Why**: ProseMirror plugin state is reactive to document changes. Between capturing user input (Enter key) and executing the insertion, the state may deactivate (due to event propagation, focus changes, or plugin logic), causing reads to fail.
+
+**Plugin Integration**:
+```typescript
+// Plugin must return true to prevent ProseMirror defaults
+props: {
+  handleKeyDown(view: EditorView, event: KeyboardEvent) {
+    const state = emojiPluginKey.getState(view.state);
+    if (!state?.active) return false;
+    
+    if (["ArrowUp", "ArrowDown", "Enter", "Escape"].includes(event.key)) {
+      return true; // ✅ Prevent ProseMirror from handling these keys
+    }
+    return false;
+  }
+}
+```
+
+**Apply when**: 
+- Building ProseMirror plugins with dropdown menus (emoji picker, mentions, slash commands)
+- Any plugin where user selection happens after state changes
+- Menu state must survive event propagation chain
+
+**Related**: #L730 (ProseMirror integration), #L430 (Keyboard priority), svelte-reactivity.md#L80 (Reactive values)
+
+---
+
+**Pattern Count**: 23  
+**Last Updated**: 2025-01-08  
 **Design Token Reference**: `dev-docs/design-tokens.md`
 

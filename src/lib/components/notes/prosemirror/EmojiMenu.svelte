@@ -68,6 +68,7 @@
 	let selectedIndex = $state(0);
 	let coords = $state<{ left: number; top: number } | null>(null);
 	let menuElement: HTMLDivElement | null = $state(null);
+	let range = $state<{ from: number; to: number } | null>(null);
 
 	let filteredEmojis = $derived.by(() => {
 		if (!query) return EMOJIS.slice(0, 10); // Show first 10 if no query
@@ -83,12 +84,17 @@
 		if (!editorView) return;
 
 		const state = emojiPluginKey.getState(editorView.state);
-		if (!state) return;
+		if (!state) {
+			return;
+		}
 
 		if (state.active) {
 			isVisible = true;
 			query = state.query;
 			selectedIndex = 0; // Reset selection on query change
+			
+			// Store range for emoji insertion
+			range = { from: state.from, to: state.to };
 			
 			// Calculate coords
 			const domCoords = editorView.coordsAtPos(state.from);
@@ -99,12 +105,13 @@
 		} else {
 			isVisible = false;
 			coords = null;
+			range = null;
 		}
 	}
 
 	function selectEmoji(emoji: string) {
-		if (editorView) {
-			insertEmoji(editorView, emoji);
+		if (editorView && range) {
+			insertEmoji(editorView, emoji, range.from, range.to);
 		}
 	}
 
@@ -134,8 +141,6 @@
 	}
 
 	onMount(() => {
-		if (!editorView) return;
-
 		// Update menu on state changes (polling pattern - matches MentionMenu)
 		const updateInterval = setInterval(updateMenu, 100);
 
@@ -159,6 +164,8 @@
 		class="emoji-menu"
 		style:left="{coords.left}px"
 		style:top="{coords.top}px"
+		role="listbox"
+		aria-label="Emoji picker"
 	>
 		{#if filteredEmojis.length === 0}
 			<div class="emoji-menu-item empty">No emojis found</div>
@@ -170,8 +177,10 @@
 					class:selected={i === selectedIndex}
 					onclick={() => selectEmoji(emoji)}
 					onmouseenter={() => (selectedIndex = i)}
+					role="option"
+					aria-selected={i === selectedIndex}
 				>
-					<span class="emoji">{emoji}</span>
+					<span class="emoji" aria-hidden="true">{emoji}</span>
 					<span class="keywords">{keywords[0]}</span>
 				</button>
 			{/each}
@@ -182,37 +191,118 @@
 <style>
 	.emoji-menu {
 		position: fixed;
-		z-index: 9999;
-		background: var(--color-elevated);
-		border: 1px solid var(--color-border-base);
-		border-radius: 6px;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+		z-index: 10000;
+		
+		/* Solid backdrop - no transparency */
+		background: rgb(255, 255, 255);
+		backdrop-filter: blur(8px);
+		
+		/* Strong border for visual separation */
+		border: 1px solid rgba(0, 0, 0, 0.12);
+		border-radius: 8px;
+		
+		/* Layered shadow for depth */
+		box-shadow: 
+			0 0 0 1px rgba(0, 0, 0, 0.04),
+			0 4px 6px -1px rgba(0, 0, 0, 0.08),
+			0 10px 15px -3px rgba(0, 0, 0, 0.10),
+			0 20px 25px -5px rgba(0, 0, 0, 0.08);
+		
 		overflow-y: auto;
-		max-height: 300px;
-		min-width: 200px;
+		overflow-x: hidden;
+		max-height: 280px;
+		width: 220px;
+		padding: 4px 0;
+		animation: slideIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+	
+	/* Scrollbar styling */
+	.emoji-menu::-webkit-scrollbar {
+		width: 6px;
+	}
+	
+	.emoji-menu::-webkit-scrollbar-track {
+		background: transparent;
+	}
+	
+	.emoji-menu::-webkit-scrollbar-thumb {
+		background: rgba(0, 0, 0, 0.15);
+		border-radius: 3px;
+	}
+	
+	.emoji-menu::-webkit-scrollbar-thumb:hover {
+		background: rgba(0, 0, 0, 0.25);
+	}
+	
+	:global(.dark) .emoji-menu::-webkit-scrollbar-thumb {
+		background: rgba(255, 255, 255, 0.15);
+	}
+	
+	:global(.dark) .emoji-menu::-webkit-scrollbar-thumb:hover {
+		background: rgba(255, 255, 255, 0.25);
+	}
+	
+	/* Dark mode support */
+	:global(.dark) .emoji-menu {
+		background: rgb(30, 30, 30);
+		border-color: rgba(255, 255, 255, 0.12);
+		box-shadow: 
+			0 0 0 1px rgba(255, 255, 255, 0.08),
+			0 4px 6px -1px rgba(0, 0, 0, 0.4),
+			0 10px 15px -3px rgba(0, 0, 0, 0.5),
+			0 20px 25px -5px rgba(0, 0, 0, 0.4);
+	}
+
+	@keyframes slideIn {
+		from {
+			opacity: 0;
+			transform: translateY(-4px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
 	}
 
 	.emoji-menu-item {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
-		padding: 0.5rem 0.75rem;
+		gap: 10px;
+		padding: 6px 10px;
 		cursor: pointer;
 		border: none;
 		background: transparent;
 		width: 100%;
 		text-align: left;
-		transition: background-color 0.1s ease;
+		transition: all 0.1s cubic-bezier(0.16, 1, 0.3, 1);
+		font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+		border-left: 2px solid transparent;
 	}
 
-	.emoji-menu-item:hover,
+	.emoji-menu-item:hover {
+		background: rgba(0, 0, 0, 0.04);
+	}
+
 	.emoji-menu-item.selected {
-		background: var(--color-hover-solid);
+		background: rgba(99, 102, 241, 0.08);
+		border-left-color: rgb(99, 102, 241);
+	}
+	
+	:global(.dark) .emoji-menu-item:hover {
+		background: rgba(255, 255, 255, 0.06);
+	}
+	
+	:global(.dark) .emoji-menu-item.selected {
+		background: rgba(99, 102, 241, 0.15);
+		border-left-color: rgb(129, 140, 248);
 	}
 
 	.emoji-menu-item.empty {
 		color: var(--color-text-tertiary);
 		cursor: default;
+		font-size: 13px;
+		padding: 12px;
+		text-align: center;
 	}
 
 	.emoji-menu-item.empty:hover {
@@ -220,13 +310,39 @@
 	}
 
 	.emoji {
-		font-size: 1.25rem;
+		font-size: 18px;
+		line-height: 1;
 		flex-shrink: 0;
+		width: 18px;
+		height: 18px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 
 	.keywords {
-		font-size: 0.875rem;
-		color: var(--color-text-secondary);
+		font-size: 13px;
+		line-height: 1.5;
+		color: rgba(0, 0, 0, 0.65);
+		font-weight: 400;
+		letter-spacing: -0.005em;
+		flex: 1;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.emoji-menu-item.selected .keywords {
+		color: rgba(0, 0, 0, 0.9);
+		font-weight: 500;
+	}
+	
+	:global(.dark) .keywords {
+		color: rgba(255, 255, 255, 0.65);
+	}
+	
+	:global(.dark) .emoji-menu-item.selected .keywords {
+		color: rgba(255, 255, 255, 0.95);
 	}
 </style>
 

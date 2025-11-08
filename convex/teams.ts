@@ -98,12 +98,17 @@ async function ensureOrganizationMembership(
 
 export const listTeams = query({
   args: {
-    organizationId: v.id("organizations"),
+    organizationId: v.optional(v.id("organizations")),
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
     if (!userId) {
       throw new Error("Not authenticated");
+    }
+
+    // If no organizationId provided, return empty array (personal workspace mode)
+    if (!args.organizationId) {
+      return [];
     }
 
     const membership = await ctx.db

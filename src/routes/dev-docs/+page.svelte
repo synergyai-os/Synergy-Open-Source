@@ -1,5 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import MetricsForecast from '$lib/components/ai-tools/MetricsForecast.svelte';
+	import ToolComparisonTable from '$lib/components/ai-tools/ToolComparisonTable.svelte';
+	import { verifiedTools } from '$lib/services/metricsService';
+	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 	
 	// Quick action cards
 	const quickActions = [
@@ -90,6 +94,7 @@
 			<a href="/dev-docs/2-areas/metrics" class="navbar-link">Metrics</a>
 			<a href="/marketing-docs/strategy/product-vision-2.0" class="navbar-link">Vision</a>
 			<a href="/CONTRIBUTING" class="navbar-link">Contribute</a>
+			<ThemeToggle />
 			<a href="https://github.com/synergyai-os/Synergy-Open-Source" target="_blank" rel="noopener noreferrer" class="navbar-link navbar-link-icon">
 				<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
 					<path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
@@ -161,6 +166,58 @@
 				</svg>
 				⭐ Star on GitHub
 			</a>
+		</div>
+	</section>
+	
+	<!-- AI Tools Section -->
+	<section class="ai-tools-section">
+		<div class="ai-tools-content">
+			<h2 class="section-title">AI Reads Our Docs Better Than Humans</h2>
+			<p class="section-description">
+				Here's what happens when AI-first coding tools meet always-fresh documentation. 
+				No setup. No config. Just point them at our GitHub repo.
+			</p>
+			
+			<!-- Verified Tools -->
+			<div class="verified-tools">
+				<h3 class="verified-title">Verified Compatible</h3>
+				<div class="tool-cards-grid">
+					{#each verifiedTools as tool}
+						<a href={tool.url} target="_blank" rel="noopener noreferrer" class="ai-tool-card">
+							<div class="tool-logo">{tool.logo}</div>
+							<div class="tool-content">
+								<h4 class="tool-name">{tool.name}</h4>
+								<p class="tool-description">{tool.description}</p>
+							</div>
+							{#if tool.verified}
+								<span class="verified-badge">✓ Verified</span>
+							{/if}
+						</a>
+					{/each}
+				</div>
+			</div>
+			
+			<!-- Metrics Forecast -->
+			<div class="metrics-forecast">
+				<h3 class="forecast-title">What We Predict Will Happen</h3>
+				<p class="forecast-description">
+					When AI can read your docs, adoption accelerates. Here's our 90-day forecast 
+					after shipping this feature.
+				</p>
+				
+				<MetricsForecast />
+				
+				<div class="forecast-callout">
+					<strong>Bold Claim:</strong> We'll hit 100 GitHub stars in 90 days. 
+					<a href="/dev-docs/2-areas/metrics" class="metrics-link">Track it live →</a>
+				</div>
+			</div>
+			
+			<!-- Tool Comparison -->
+			<div class="tool-comparison">
+				<h3 class="comparison-title">What These Tools Can Do</h3>
+				<ToolComparisonTable />
+			</div>
 		</div>
 	</section>
 	
@@ -256,6 +313,60 @@
 			</a>
 		</div>
 	</section>
+	
+	<!-- Footer -->
+	<footer class="site-footer">
+		<div class="footer-content">
+			<div class="footer-section footer-about">
+				<h3 class="footer-title">SynergyOS</h3>
+				<p class="footer-description">
+					The open-source Product OS for teams who want to accelerate the smart use of AI. 
+					Built in public with transparent metrics and AI-generated documentation.
+				</p>
+				<a href="https://github.com/synergyai-os/Synergy-Open-Source" target="_blank" rel="noopener noreferrer" class="btn btn-primary github-cta">
+					<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+						<path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+					</svg>
+					⭐ Star on GitHub
+				</a>
+			</div>
+			
+			<div class="footer-section">
+				<h4 class="footer-heading">Documentation</h4>
+				<ul class="footer-links">
+					<li><a href="/dev-docs/2-areas/patterns/INDEX">Pattern Index</a></li>
+					<li><a href="/dev-docs/2-areas/metrics">Metrics & OKRs</a></li>
+					<li><a href="/dev-docs/2-areas/architecture">Architecture</a></li>
+					<li><a href="/dev-docs/2-areas/design-tokens">Design Tokens</a></li>
+				</ul>
+			</div>
+			
+			<div class="footer-section">
+				<h4 class="footer-heading">Product</h4>
+				<ul class="footer-links">
+					<li><a href="/marketing-docs/strategy/product-vision-2.0">Product Vision</a></li>
+					<li><a href="/marketing-docs/strategy/product-strategy">Product Strategy</a></li>
+					<li><a href="/CONTRIBUTING">Contributing Guide</a></li>
+					<li><a href="https://github.com/synergyai-os/Synergy-Open-Source/issues" target="_blank" rel="noopener noreferrer">Report an Issue</a></li>
+				</ul>
+			</div>
+			
+			<div class="footer-section">
+				<h4 class="footer-heading">Community</h4>
+				<ul class="footer-links">
+					<li><a href="https://github.com/synergyai-os/Synergy-Open-Source" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+					<li><a href="https://github.com/synergyai-os/Synergy-Open-Source/discussions" target="_blank" rel="noopener noreferrer">Discussions</a></li>
+					<li><a href="/dev-docs/2-areas/metrics">Public Metrics</a></li>
+				</ul>
+			</div>
+		</div>
+		
+		<div class="footer-bottom">
+			<p class="footer-copyright">
+				© 2025 SynergyOS • Built in Public • Powered by AI
+			</p>
+		</div>
+	</footer>
 </div>
 
 <style>
@@ -264,10 +375,8 @@
 		position: sticky;
 		top: 0;
 		z-index: 100;
-		background: var(--color-bg-base);
+		background: var(--color-bg-surface);
 		border-bottom: 1px solid var(--color-border-base);
-		backdrop-filter: blur(8px);
-		background: rgba(var(--color-bg-base-rgb, 255, 255, 255), 0.95);
 	}
 	
 	.navbar-content {
@@ -338,7 +447,6 @@
 	.hero {
 		padding: 4rem var(--spacing-content-padding);
 		text-align: center;
-		background: linear-gradient(135deg, var(--color-bg-base) 0%, var(--color-bg-surface) 100%);
 		border-bottom: 1px solid var(--color-border-base);
 	}
 	
@@ -348,18 +456,16 @@
 	}
 	
 	.hero-title {
-		font-size: 3rem;
-		font-weight: 700;
-		line-height: 1.2;
+		font-size: 2.5rem;
+		font-weight: 600;
+		line-height: 1.3;
 		margin-bottom: 1rem;
 		color: var(--color-text-primary);
+		letter-spacing: -0.02em;
 	}
 	
 	.gradient-text {
-		background: linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-hover) 100%);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
+		color: var(--color-accent-primary);
 	}
 	
 	.hero-description {
@@ -367,6 +473,19 @@
 		line-height: 1.6;
 		color: var(--color-text-secondary);
 		margin-bottom: 3rem;
+	}
+	
+	.ai-badge {
+		display: inline-block;
+		padding: 0.5rem 1rem;
+		background: var(--color-accent-primary);
+		color: white;
+		font-size: 0.75rem;
+		font-weight: 700;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		border-radius: 0.375rem;
+		margin-bottom: 1.5rem;
 	}
 	
 	/* Quick Actions */
@@ -382,24 +501,26 @@
 		display: flex;
 		align-items: center;
 		gap: 1rem;
-		padding: 1.5rem;
-		background: var(--color-bg-elevated);
-		border: 2px solid var(--color-border-base);
-		border-radius: 0.75rem;
+		padding: 1.25rem 1.5rem;
+		background-color: transparent !important;
+		border: 1px solid var(--color-border-base);
+		border-radius: 0.5rem;
 		text-decoration: none;
-		transition: all 0.2s ease;
-		overflow: hidden;
+		transition: all 0.15s ease;
 	}
 	
 	.action-card:hover {
-		border-color: var(--color-accent-primary);
-		transform: translateY(-2px);
-		box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+		border-color: var(--color-text-secondary);
+		background-color: var(--color-bg-hover) !important;
 	}
 	
 	.action-card-accent {
 		border-color: var(--color-accent-primary);
-		background: linear-gradient(135deg, var(--color-bg-elevated) 0%, rgba(var(--color-accent-primary-rgb, 99, 102, 241), 0.05) 100%);
+		background-color: oklch(from var(--color-accent-primary) l c h / 0.05) !important;
+	}
+	
+	.action-card-accent:hover {
+		background-color: oklch(from var(--color-accent-primary) l c h / 0.1) !important;
 	}
 	
 	.action-icon {
@@ -439,6 +560,182 @@
 		letter-spacing: 0.05em;
 	}
 	
+	/* How It Works Section */
+	.how-it-works {
+		padding: 4rem var(--spacing-content-padding);
+		border-bottom: 1px solid var(--color-border-base);
+	}
+	
+	.how-it-works-content {
+		max-width: 900px;
+		margin: 0 auto;
+		text-align: center;
+	}
+	
+	.how-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+		gap: 2rem;
+		margin: 3rem 0;
+	}
+	
+	.how-card {
+		padding: 2rem 1.5rem;
+		background-color: transparent !important;
+		border: 1px solid var(--color-border-base);
+		border-radius: 0.5rem;
+		transition: all 0.15s ease;
+	}
+	
+	.how-card:hover {
+		border-color: var(--color-text-secondary);
+		background-color: var(--color-bg-hover) !important;
+	}
+	
+	.how-icon {
+		font-size: 3rem;
+		margin-bottom: 1rem;
+	}
+	
+	.how-title {
+		font-size: 1.25rem;
+		font-weight: 600;
+		color: var(--color-text-primary);
+		margin-bottom: 0.75rem;
+	}
+	
+	.how-description {
+		font-size: 0.9375rem;
+		color: var(--color-text-secondary);
+		line-height: 1.6;
+		margin: 0;
+	}
+	
+	/* AI Tools Section */
+	.ai-tools-section {
+		padding: 4rem var(--spacing-content-padding);
+	}
+	
+	.ai-tools-content {
+		max-width: 900px;
+		margin: 0 auto;
+	}
+	
+	.verified-tools {
+		margin-top: 3rem;
+	}
+	
+	.verified-title {
+		font-size: 1.125rem;
+		font-weight: 600;
+		color: var(--color-text-primary);
+		margin-bottom: 1.5rem;
+	}
+	
+	.tool-cards-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+		gap: 1.5rem;
+		margin-bottom: 3rem;
+	}
+	
+	.ai-tool-card {
+		position: relative;
+		display: flex;
+		align-items: flex-start;
+		gap: 1rem;
+		padding: 1.25rem 1.5rem;
+		background-color: transparent !important;
+		border: 1px solid var(--color-border-base);
+		border-radius: 0.5rem;
+		text-decoration: none;
+		transition: all 0.15s ease;
+	}
+	
+	.ai-tool-card:hover {
+		border-color: var(--color-text-secondary);
+		background-color: var(--color-bg-hover) !important;
+	}
+	
+	.tool-logo {
+		font-size: 3rem;
+		flex-shrink: 0;
+	}
+	
+	.tool-content {
+		flex: 1;
+	}
+	
+	.tool-name {
+		font-size: 1.125rem;
+		font-weight: 600;
+		color: var(--color-text-primary);
+		margin-bottom: 0.5rem;
+	}
+	
+	.tool-description {
+		font-size: 0.9375rem;
+		color: var(--color-text-secondary);
+		line-height: 1.5;
+		margin: 0;
+	}
+	
+	.verified-badge {
+		position: absolute;
+		top: 0.75rem;
+		right: 0.75rem;
+		padding: 0.25rem 0.5rem;
+		background: var(--color-accent-primary);
+		color: white;
+		font-size: 0.75rem;
+		font-weight: 600;
+		border-radius: 0.25rem;
+	}
+	
+	.metrics-forecast {
+		margin-top: 4rem;
+	}
+	
+	.forecast-title,
+	.comparison-title {
+		font-size: 1.5rem;
+		font-weight: 600;
+		color: var(--color-text-primary);
+		margin-bottom: 0.75rem;
+	}
+	
+	.forecast-description {
+		font-size: 1rem;
+		color: var(--color-text-secondary);
+		margin-bottom: 2rem;
+		line-height: 1.6;
+	}
+	
+	.forecast-callout {
+		margin-top: 1.5rem;
+		padding: 1rem 1.5rem;
+		background: var(--color-bg-surface);
+		border-left: 4px solid var(--color-accent-primary);
+		border-radius: 0.5rem;
+		font-size: 0.9375rem;
+		color: var(--color-text-primary);
+	}
+	
+	.metrics-link {
+		color: var(--color-accent-primary);
+		text-decoration: none;
+		font-weight: 600;
+		margin-left: 0.5rem;
+	}
+	
+	.metrics-link:hover {
+		text-decoration: underline;
+	}
+	
+	.tool-comparison {
+		margin-top: 4rem;
+	}
+	
 	/* Stats Bar */
 	.stats-bar {
 		display: grid;
@@ -451,7 +748,7 @@
 	
 	.stat {
 		padding: 2rem 1.5rem;
-		background: var(--color-bg-surface);
+		background: var(--color-bg-base);
 		text-align: center;
 	}
 	
@@ -482,11 +779,12 @@
 	}
 	
 	.section-title {
-		font-size: 2rem;
-		font-weight: 700;
+		font-size: 1.75rem;
+		font-weight: 600;
 		color: var(--color-text-primary);
 		text-align: center;
 		margin-bottom: 0.5rem;
+		letter-spacing: -0.01em;
 	}
 	
 	.section-description {
@@ -504,15 +802,15 @@
 	
 	.role-card {
 		padding: 2rem;
-		background: var(--color-bg-elevated);
+		background-color: transparent !important;
 		border: 1px solid var(--color-border-base);
-		border-radius: 0.75rem;
-		transition: all 0.2s ease;
+		border-radius: 0.5rem;
+		transition: all 0.15s ease;
 	}
 	
 	.role-card:hover {
-		border-color: var(--color-accent-primary);
-		box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+		border-color: var(--color-text-secondary);
+		background-color: var(--color-bg-hover) !important;
 	}
 	
 	.role-icon {
@@ -573,7 +871,6 @@
 	/* Community Section */
 	.community-section {
 		padding: 4rem var(--spacing-content-padding);
-		background: var(--color-bg-surface);
 		border-top: 1px solid var(--color-border-base);
 		border-bottom: 1px solid var(--color-border-base);
 	}
@@ -603,9 +900,9 @@
 	
 	.stat-card {
 		padding: 1.5rem;
-		background: var(--color-bg-elevated);
+		background-color: transparent !important;
 		border: 1px solid var(--color-border-base);
-		border-radius: 0.75rem;
+		border-radius: 0.5rem;
 	}
 	
 	.stat-card-icon {
@@ -701,6 +998,92 @@
 		font-size: 1.0625rem;
 	}
 	
+	/* Footer */
+	.site-footer {
+		background: var(--color-bg-surface);
+		border-top: 2px solid var(--color-border-base);
+		padding: 4rem var(--spacing-content-padding) 2rem;
+	}
+	
+	.footer-content {
+		max-width: 1200px;
+		margin: 0 auto;
+		display: grid;
+		grid-template-columns: 2fr 1fr 1fr 1fr;
+		gap: 3rem;
+		margin-bottom: 3rem;
+	}
+	
+	.footer-section {
+		display: flex;
+		flex-direction: column;
+	}
+	
+	.footer-about {
+		max-width: 400px;
+	}
+	
+	.footer-title {
+		font-size: 1.25rem;
+		font-weight: 700;
+		color: var(--color-text-primary);
+		margin-bottom: 1rem;
+	}
+	
+	.footer-description {
+		font-size: 0.9375rem;
+		line-height: 1.6;
+		color: var(--color-text-secondary);
+		margin-bottom: 1.5rem;
+	}
+	
+	.footer-heading {
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--color-text-primary);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		margin-bottom: 1rem;
+	}
+	
+	.footer-links {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+	
+	.footer-links a {
+		color: var(--color-text-secondary);
+		text-decoration: none;
+		font-size: 0.9375rem;
+		transition: color 0.15s ease;
+	}
+	
+	.footer-links a:hover {
+		color: var(--color-accent-primary);
+	}
+	
+	.footer-bottom {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding-top: 2rem;
+		border-top: 1px solid var(--color-border-base);
+		text-align: center;
+	}
+	
+	.footer-copyright {
+		font-size: 0.875rem;
+		color: var(--color-text-tertiary);
+		margin: 0;
+	}
+	
+	.github-cta {
+		margin-top: 0.5rem;
+	}
+	
 	/* Responsive */
 	@media (max-width: 768px) {
 		.hero-title {
@@ -711,7 +1094,20 @@
 			font-size: 1rem;
 		}
 		
+		.ai-badge {
+			font-size: 0.625rem;
+			padding: 0.375rem 0.75rem;
+		}
+		
 		.quick-actions {
+			grid-template-columns: 1fr;
+		}
+		
+		.how-grid {
+			grid-template-columns: 1fr;
+		}
+		
+		.tool-cards-grid {
 			grid-template-columns: 1fr;
 		}
 		
@@ -733,6 +1129,11 @@
 		
 		.footer-actions {
 			flex-direction: column;
+		}
+		
+		.footer-content {
+			grid-template-columns: 1fr;
+			gap: 2rem;
 		}
 		
 		.btn {

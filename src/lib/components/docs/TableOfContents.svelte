@@ -93,7 +93,7 @@
 
 {#if headings.length > 0}
 	<aside 
-		class="toc-panel"
+		class="toc-panel scrollable-outer"
 		class:open={isOpen}
 		class:collapsed={!isOpen}
 		style="transform: scale({$panelScale}); opacity: {$panelOpacity};"
@@ -122,7 +122,7 @@
 					</button>
 				</div>
 				
-				<ul class="toc-list">
+				<ul class="toc-list scrollable-inner">
 					{#each headings as heading, i}
 						<li 
 							class="toc-item level-{heading.level}"
@@ -177,22 +177,19 @@
 	/* Open state: full width with generous padding */
 	.toc-panel.open {
 		width: 260px;
-		padding: calc(var(--spacing-content-padding) * 1.5);
 		top: 3rem;
 		background: var(--color-bg-elevated);
 		backdrop-filter: blur(8px);
 		border: 1px solid var(--color-border-base);
 		border-radius: 0.5rem;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-		max-height: calc(100vh - 6rem);
-		overflow-y: auto;
 	}
 	
 	/* Collapsed state: generous spacing for luxury feel */
 	.toc-panel.collapsed {
 		width: 48px;
 		height: auto;
-		padding: calc(var(--spacing-content-padding) * 1.5) calc(var(--spacing-content-padding) * 0.5);
+		padding: var(--spacing-control-panel-padding) calc(var(--spacing-control-panel-padding) * 0.5);
 		background: transparent;
 		border: none;
 		box-shadow: none;
@@ -202,15 +199,12 @@
 	.toc-panel.collapsed:hover {
 		width: 260px;
 		height: auto;
-		padding: calc(var(--spacing-content-padding) * 1.5);
 		top: 3rem;
 		background: var(--color-bg-elevated);
 		backdrop-filter: blur(8px);
 		border: 1px solid var(--color-border-base);
 		border-radius: 0.5rem;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-		max-height: calc(100vh - 6rem);
-		overflow-y: auto;
 		transition: all 0.25s ease-out;
 	}
 	
@@ -362,9 +356,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.125rem;
-		max-height: calc(100vh - 200px);
-		overflow-y: auto;
-		padding-right: 0.25rem;
+		/* Overflow handled by scrollable-inner utility class */
 	}
 	
 	.toc-item {

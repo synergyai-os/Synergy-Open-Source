@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { mockBrainInputs, type MockInboxItem, type InputSourceType } from '../../../../dev-docs/mock-data-brain-inputs';
+	import { mockBrainInputs, type MockInboxItem, type InputSourceType } from '../../../../dev-docs/4-archive/mock-data-brain-inputs';
 	import MyMindHeader from '$lib/components/my-mind/MyMindHeader.svelte';
 	import MyMindGrid from '$lib/components/my-mind/MyMindGrid.svelte';
 	import MyMindItemDetail from '$lib/components/my-mind/MyMindItemDetail.svelte';

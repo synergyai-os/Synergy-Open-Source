@@ -46,7 +46,7 @@
 
 ### `/root-cause` - Find Solutions Fast
 **When**: Investigating bugs/issues
-1. Load `dev-docs/patterns/INDEX.md` (200 lines)
+1. Load `dev-docs/2-areas/patterns/INDEX.md` (200 lines)
 2. Scan symptom table → jump to line number
 3. Read: Symptom → Root Cause → Fix
 4. Apply if 95%+ confident
@@ -55,7 +55,7 @@
 ### `/save` - Capture Knowledge
 **When**: End of session, before commit
 1. Analyze what changed
-2. Search `patterns/INDEX.md` for existing patterns
+2. Search `dev-docs/2-areas/patterns/INDEX.md` for existing patterns
 3. Update domain file OR add new pattern
 4. Update INDEX.md symptom table
 5. Commit (local only, don't push)
@@ -65,13 +65,13 @@
 ## ✅ General Principles
 
 **Before Writing Code:**
-- Check `patterns/INDEX.md` for existing solutions
+- Check `dev-docs/2-areas/patterns/INDEX.md` for existing solutions
 - Use Context7 for library documentation
 - Investigate, scope, plan, get confirmation
 
 **When Debugging:**
 - Use `/root-cause` command
-- Load INDEX.md → jump to line number
+- Load `dev-docs/2-areas/patterns/INDEX.md` → jump to line number
 - Validate with Context7 for library patterns
 - Only fix if 95%+ confident
 

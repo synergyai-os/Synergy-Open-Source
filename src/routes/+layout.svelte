@@ -16,14 +16,23 @@
 	// Set up authentication (automatically initializes authenticated Convex client)
 	// setupConvexAuth creates its own client and should register it with convex-svelte context
 	// We DON'T need to call setupConvex() separately - it would create an unauthenticated client
+	
+	// Debug: Check what server state we're getting
+	console.log('🔍 Server auth state:', data.authState);
+	console.log('🔍 Convex URL:', PUBLIC_CONVEX_URL);
+	
 	const authResult = setupConvexAuth({ 
 		getServerState: () => data.authState,
 		convexUrl: PUBLIC_CONVEX_URL // Explicitly pass URL to ensure it uses the right one
 	});
 	
-	console.log('✅ Convex Auth setup complete', {
-		isAuthenticated: authResult.isAuthenticated,
-		isLoading: authResult.isLoading
+	// Use $effect to log auth state changes
+	$effect(() => {
+		console.log('🔄 Auth state changed:', {
+			isAuthenticated: authResult.isAuthenticated,
+			isLoading: authResult.isLoading,
+			token: authResult.token ? '(has token)' : '(no token)'
+		});
 	});
 
 	const organizationStore = useOrganizations();
@@ -32,7 +41,7 @@
 	let posthogReady = $state(false);
 	let lastIdentifiedId = $state<string | null>(null);
 
-    const activeOrganizationName = $derived(() => organizationStore.activeOrganization?.name ?? null);
+    const activeOrganizationName = $derived(() => organizationStore?.activeOrganization?.name ?? null);
 
 	// Initialize PostHog after the component mounts in the browser
 	if (browser && PUBLIC_POSTHOG_KEY) {

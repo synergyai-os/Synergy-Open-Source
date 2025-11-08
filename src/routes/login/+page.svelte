@@ -4,6 +4,7 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { trackPosthogEvent } from '$lib/posthog/client';
+	import { PUBLIC_CONVEX_URL } from '$env/static/public';
 
 	const auth = useAuth();
 	const { signIn } = auth;
@@ -16,6 +17,33 @@
 	let rememberMe = $state(false);
 	let error = $state('');
 	let isLoading = $state(false);
+	let authLoadTimeout = $state(false);
+	
+	// Check if auth is ready - either loading finished OR signIn is available
+	// Add timeout fallback in case isLoading gets stuck
+	const isAuthReady = $derived(signIn !== undefined && (auth.isLoading === false || authLoadTimeout));
+	
+	// Set timeout to allow login even if isLoading is stuck
+	$effect(() => {
+		const timer = setTimeout(() => {
+			if (auth.isLoading && signIn) {
+				console.warn('⚠️ Auth loading timeout - enabling login anyway');
+				authLoadTimeout = true;
+			}
+		}, 2000); // 2 second timeout
+		
+		return () => clearTimeout(timer);
+	});
+
+	// Function to clear auth state if it's stuck
+	function clearAuthState() {
+		localStorage.removeItem('__convexAuthJWT');
+		localStorage.removeItem('__convexAuthRefreshToken');
+		localStorage.removeItem(`serverStateFetchTime:${PUBLIC_CONVEX_URL}`);
+		console.log('🧹 Cleared auth state from localStorage');
+		error = 'Auth state cleared. Please try logging in again.';
+		authLoadTimeout = true; // Enable the button
+	}
 
 	async function handleLogin(e: SubmitEvent) {
 		e.preventDefault();
@@ -23,6 +51,11 @@
 		isLoading = true;
 
 		try {
+			// Ensure signIn is available before calling
+			if (!signIn) {
+				throw new Error('Authentication system is not ready. Please refresh the page and try again.');
+			}
+			
 			// Store rememberMe preference in a temporary cookie
 			// Server will read this and set appropriate cookie config
 			if (rememberMe) {
@@ -32,11 +65,16 @@
 				document.cookie = 'rememberMe=; path=/; max-age=0';
 			}
 			
-			await signIn('password', {
+			const result = await signIn('password', {
 				email,
 				password,
 				flow: 'signIn'
 			});
+			
+			// Check if sign-in was successful
+			if (!result || (result && 'signingIn' in result && !result.signingIn)) {
+				throw new Error('Failed to sign in. Please check your credentials.');
+			}
 
 			await trackPosthogEvent({
 				event: 'user_signed_in',
@@ -50,6 +88,7 @@
 			// Redirect to intended destination or home page after successful login
 			await goto(redirectTo);
 		} catch (err) {
+			console.error('Failed to sign in:', err);
 			error = err instanceof Error ? err.message : 'Failed to sign in. Please check your credentials.';
 			isLoading = false;
 		}
@@ -122,13 +161,26 @@
 			<div>
 				<Button.Root
 					type="submit"
-					disabled={isLoading}
+					disabled={isLoading || !isAuthReady}
 					class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
 				>
-					{isLoading ? 'Signing in...' : 'Sign in'}
+					{isLoading ? 'Signing in...' : !isAuthReady ? 'Loading...' : 'Sign in'}
 				</Button.Root>
 			</div>
 		</form>
+		
+		{#if auth.isLoading && authLoadTimeout}
+			<div class="mt-4 text-center">
+				<p class="text-sm text-gray-600 mb-2">Authentication is taking longer than expected.</p>
+				<button
+					type="button"
+					onclick={clearAuthState}
+					class="text-sm text-blue-600 hover:text-blue-500 underline"
+				>
+					Clear auth state and try again
+				</button>
+			</div>
+		{/if}
 	</div>
 </div>
 
