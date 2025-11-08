@@ -551,7 +551,73 @@ export default defineConfig({
 
 ---
 
-**Pattern Count**: 13  
+## #L650: onMount vs $effect for Route Changes [🟡 IMPORTANT]
+
+**Symptom**: Component data doesn't update when navigating to different pages (TOC shows old headings, sidebars show stale data)  
+**Root Cause**: `onMount()` only runs once when component first mounts. Doesn't re-run on route changes.  
+**Fix**:
+
+```typescript
+// ❌ WRONG - Only extracts headings once
+import { onMount } from 'svelte';
+
+let headings = $state<Heading[]>([]);
+
+onMount(() => {
+  const elements = document.querySelectorAll('h1, h2, h3');
+  headings = Array.from(elements).map(el => ({
+    id: el.id,
+    text: el.textContent || ''
+  }));
+});
+
+// ✅ CORRECT - Re-extracts on every route change
+import { browser } from '$app/environment';
+import { page } from '$app/stores';
+
+let headings = $state<Heading[]>([]);
+
+$effect(() => {
+  if (!browser) return;
+  
+  // Access pathname to track route changes
+  $page.url.pathname;
+  
+  // Use setTimeout to ensure DOM has updated
+  setTimeout(() => {
+    const elements = document.querySelectorAll('h1, h2, h3');
+    headings = Array.from(elements).map(el => ({
+      id: el.id,
+      text: el.textContent || ''
+    }));
+  }, 50);
+});
+```
+
+**Apply when**:
+- Component needs to react to route changes (navigation, TOC, breadcrumbs)
+- Extracting data from DOM that changes per page
+- Updating component state based on current URL/path
+- Building layout components that wrap dynamic content
+
+**Why it works**:
+- `$effect()` re-runs when dependencies change
+- Accessing `$page.url.pathname` makes it a dependency
+- SvelteKit updates `$page` store on navigation
+- `setTimeout` ensures DOM has updated with new content before extraction
+
+**Correct Pattern**:
+1. Use `$effect()` instead of `onMount()` for route-reactive logic
+2. Import and access `$page.url.pathname` to create dependency
+3. Add browser check to prevent SSR errors
+4. Use short timeout (50ms) if extracting from DOM
+5. Clean up observers/listeners in return function
+
+**Related**: #L220 (useQuery reactivity), #L400 (SSR browser checks)
+
+---
+
+**Pattern Count**: 14  
 **Last Validated**: 2025-11-08  
-**Context7 Source**: `/sveltejs/svelte`, `shikijs/shiki`
+**Context7 Source**: `/sveltejs/svelte`, `@sveltejs/kit`
 

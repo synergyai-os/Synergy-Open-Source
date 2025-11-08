@@ -28,6 +28,7 @@
 | Data doesn't update automatically | Use `useQuery()` not manual | [svelte-reactivity.md#L220](svelte-reactivity.md#L220) |
 | Widget disappears too early | Polling updates only, not completion | [svelte-reactivity.md#L280](svelte-reactivity.md#L280) |
 | Duplicate timers / early dismissal | Track timers with Set | [svelte-reactivity.md#L340](svelte-reactivity.md#L340) |
+| Component doesn't update on route change | Use $effect + $page.url.pathname | [svelte-reactivity.md#L650](svelte-reactivity.md#L650) |
 | Switch in dropdown broken | Use plain div wrapper | [ui-patterns.md#L10](ui-patterns.md#L10) |
 | Conflicting keyboard shortcuts | Check priority: dropdowns > inputs > component | [ui-patterns.md#L430](ui-patterns.md#L430) |
 | J/K navigation blocked by auto-focused input | Use autoFocus prop + Enter/ESC edit mode | [ui-patterns.md#L880](ui-patterns.md#L880) |

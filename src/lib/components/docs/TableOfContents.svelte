@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { page } from '$app/stores';
 	
 	type Props = {
 		headings?: { id: string; text: string; level: number }[];
@@ -11,9 +12,16 @@
 	let isOpen = $state(true);
 	let isHovering = $state(false);
 	
+	// Reset active ID when headings change (new page)
+	$effect(() => {
+		if (headings.length > 0) {
+			activeId = headings[0]?.id || '';
+		}
+	});
+	
 	// Scroll tracking for active heading
 	$effect(() => {
-		if (!browser) return;
+		if (!browser || headings.length === 0) return;
 		
 		const observer = new IntersectionObserver(
 			(entries) => {
@@ -27,8 +35,10 @@
 		);
 		
 		// Observe all headings
-		const headingElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
-		headingElements.forEach((el) => observer.observe(el));
+		const headingElements = document.querySelectorAll('.docs-article h1, .docs-article h2, .docs-article h3, .docs-article h4');
+		headingElements.forEach((el) => {
+			if (el.id) observer.observe(el);
+		});
 		
 		return () => {
 			headingElements.forEach((el) => observer.unobserve(el));
@@ -100,8 +110,9 @@
 		border: 1px solid var(--color-border-base);
 		border-radius: 0.5rem;
 		padding: 1.125rem;
-		opacity: 0;
-		pointer-events: none;
+		/* Start visible, then hide/show with .visible class */
+		opacity: 1;
+		pointer-events: auto;
 		transition: opacity 0.2s ease, transform 0.2s ease;
 		z-index: 10;
 		box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04);
@@ -109,9 +120,9 @@
 		overflow-y: auto;
 	}
 	
-	.toc-panel.visible {
-		opacity: 1;
-		pointer-events: auto;
+	.toc-panel:not(.visible) {
+		opacity: 0;
+		pointer-events: none;
 	}
 	
 	.toc-panel.open {

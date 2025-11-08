@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
 	import DocSidebar from './DocSidebar.svelte';
 	import TableOfContents from './TableOfContents.svelte';
 	
@@ -14,15 +14,23 @@
 	// Extract headings from rendered content (client-side)
 	let extractedHeadings = $state<{ id: string; text: string; level: number }[]>([]);
 	
-	onMount(() => {
-		// Scan the DOM for headings
-		const headingElements = document.querySelectorAll('.docs-article h1, .docs-article h2, .docs-article h3, .docs-article h4');
+	// Re-extract headings whenever the route changes or content renders
+	$effect(() => {
+		if (!browser) return;
 		
-		extractedHeadings = Array.from(headingElements).map((el) => ({
-			id: el.id || '',
-			text: el.textContent || '',
-			level: parseInt(el.tagName.substring(1)) // H1 -> 1, H2 -> 2, etc.
-		}));
+		// Access page.url.pathname to track route changes
+		$page.url.pathname;
+		
+		// Use setTimeout to ensure DOM has updated with new content
+		setTimeout(() => {
+			const headingElements = document.querySelectorAll('.docs-article h1, .docs-article h2, .docs-article h3, .docs-article h4');
+			
+			extractedHeadings = Array.from(headingElements).map((el) => ({
+				id: el.id || '',
+				text: el.textContent || '',
+				level: parseInt(el.tagName.substring(1)) // H1 -> 1, H2 -> 2, etc.
+			}));
+		}, 50);
 	});
 	
 	// Use prop headings if provided, otherwise use extracted headings

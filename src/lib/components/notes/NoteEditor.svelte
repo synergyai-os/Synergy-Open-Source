@@ -190,7 +190,7 @@
 
 	<!-- Scrollable Editor Content -->
 	<div class="{compact ? '' : 'flex-1 overflow-y-auto'}">
-		<div class="max-w-full px-inbox-container py-3">
+		<div class="max-w-full px-inbox-container pt-3 pb-5">
 			<!-- Title Input -->
 			<input
 				bind:this={titleElement}
@@ -198,9 +198,9 @@
 				value={localTitle}
 				oninput={handleTitleInput}
 				onkeydown={handleTitleKeydown}
-				placeholder="Issue title"
+				placeholder="Note title"
 				disabled={readonly}
-				class="w-full text-base font-normal bg-transparent border-none outline-none text-primary placeholder:text-tertiary mb-1 focus:placeholder:text-secondary transition-colors p-0"
+				class="w-full text-lg font-semibold bg-transparent border-none outline-none text-primary placeholder:text-gray-400 mb-3 focus:placeholder:text-gray-500 transition-colors p-0"
 			/>
 
 			<!-- ProseMirror Editor with Placeholder Overlay -->
