@@ -150,7 +150,7 @@
 
 **Apply when**: Editing should be optional during focused workflows  
 **When not to use**: Editing is primary action (e.g., flashcard review during creation)  
-**Related**: #L220 (Queue-based removal)
+**Related**: #L220 (Queue-based removal), #L880 (Keyboard-driven edit mode)
 
 ---
 
