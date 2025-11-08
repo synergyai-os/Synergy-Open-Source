@@ -1,0 +1,1 @@
+we need to gain more confidence - how might we explore this easiest way. use context7 - to increase confidence and validate hypothesis.

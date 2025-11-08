@@ -1233,7 +1233,75 @@ export default defineConfig({
 
 ---
 
-**Pattern Count**: 20  
+## #L1150: ProseMirror List Support with addListNodes [🟡 IMPORTANT]
+
+**Symptom**: Typing `-` or `1.` doesn't create lists, stays as plain text  
+**Root Cause**: `prosemirror-schema-basic` doesn't include list nodes by default  
+**Fix**: 
+
+```typescript
+// ❌ WRONG - Lists don't exist in basicSchema
+export const noteSchema = new Schema({
+  nodes: basicSchema.spec.nodes
+    .addToEnd("custom_node", { ... }),
+  marks: basicSchema.spec.marks,
+});
+
+// Input rules fail silently:
+rules.push(wrappingInputRule(/^\s*([-*])\s$/, schema.nodes.bullet_list)); // undefined!
+
+// ✅ CORRECT - Add list nodes from prosemirror-schema-list
+import { addListNodes, splitListItem, liftListItem, sinkListItem } from "prosemirror-schema-list";
+
+export const noteSchema = new Schema({
+  nodes: addListNodes(
+    basicSchema.spec.nodes,
+    "paragraph block*", // list_item content spec
+    "block" // group name for lists
+  )
+    .addToEnd("custom_node", { ... }),
+  marks: basicSchema.spec.marks,
+});
+
+// Now input rules work:
+rules.push(wrappingInputRule(/^\s*([-*])\s$/, schema.nodes.bullet_list)); // ✅
+rules.push(wrappingInputRule(/^(\d+)\.\s$/, schema.nodes.ordered_list)); // ✅
+
+// And list commands work:
+keys["Enter"] = chainCommands(
+  splitListItem(schema.nodes.list_item),
+  baseKeymap["Enter"]
+);
+keys["Shift-Enter"] = liftListItem(schema.nodes.list_item); // Exit list
+keys["Tab"] = sinkListItem(schema.nodes.list_item); // Indent
+keys["Shift-Tab"] = liftListItem(schema.nodes.list_item); // Outdent
+```
+
+**Apply when**:
+- ProseMirror editor needs bullet or ordered lists
+- Input rules for `-` or `1.` don't trigger
+- List-related commands throw "undefined" errors
+- Documentation says "list elements defined in prosemirror-schema-list module"
+
+**Why it works**:
+- `addListNodes()` adds three nodes: `bullet_list`, `ordered_list`, `list_item`
+- Nodes follow standard HTML structure: `<ul><li><p>text</p></li></ul>`
+- `wrappingInputRule` converts paragraph to wrapped list structure
+- `splitListItem` enables Enter key continuation
+- `liftListItem` enables Shift+Enter or double-Enter to exit
+
+**Correct Pattern**:
+1. Import `addListNodes` from `prosemirror-schema-list`
+2. Wrap `basicSchema.spec.nodes` with `addListNodes(nodes, "paragraph block*", "block")`
+3. Chain to your custom nodes with `.addToEnd()`
+4. Use `wrappingInputRule` for input rules (no custom logic needed)
+5. Use `splitListItem`, `liftListItem`, `sinkListItem` for keyboard commands
+
+**Related**: #L730 (ProseMirror Integration), #L760 (Syntax Highlighting)
+
+---
+
+**Pattern Count**: 21  
 **Last Updated**: 2025-11-08  
 **Design Token Reference**: `dev-docs/design-tokens.md`
 

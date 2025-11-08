@@ -10,14 +10,19 @@ import { EditorState, Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { keymap } from "prosemirror-keymap";
 import { history, undo, redo } from "prosemirror-history";
-import { baseKeymap, toggleMark, setBlockType } from "prosemirror-commands";
+import { baseKeymap, toggleMark, setBlockType, chainCommands } from "prosemirror-commands";
 import { inputRules, wrappingInputRule, textblockTypeInputRule, InputRule } from "prosemirror-inputrules";
+import { splitListItem, liftListItem, sinkListItem, addListNodes } from "prosemirror-schema-list";
 
 /**
  * Extended schema with additional marks and nodes
  */
 export const noteSchema = new Schema({
-  nodes: basicSchema.spec.nodes
+  nodes: addListNodes(
+    basicSchema.spec.nodes,
+    "paragraph block*", // list_item content
+    "block" // group for lists
+  )
     .addToEnd("task_list", {
       group: "block",
       content: "task_item+",
@@ -141,6 +146,15 @@ export function buildKeymap(schema: Schema, onEscape?: () => void) {
     }
     return false;
   };
+
+  // List commands: Enter to continue (or normal Enter if not in list)
+  keys["Enter"] = chainCommands(
+    splitListItem(schema.nodes.list_item),
+    baseKeymap["Enter"] // Fallback to default Enter behavior
+  );
+  keys["Shift-Enter"] = liftListItem(schema.nodes.list_item);
+  keys["Tab"] = sinkListItem(schema.nodes.list_item);
+  keys["Shift-Tab"] = liftListItem(schema.nodes.list_item);
 
   return keymap(keys);
 }

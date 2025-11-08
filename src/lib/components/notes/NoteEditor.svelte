@@ -287,8 +287,30 @@
 		margin: 1em 0;
 	}
 
+	/* Regular bullet lists - exclude task lists */
+	:global(.ProseMirror ul:not(.task-list)) {
+		list-style-type: disc;
+	}
+
+	/* Ordered lists */
+	:global(.ProseMirror ol) {
+		list-style-type: decimal;
+	}
+
+	/* List items - default styling */
 	:global(.ProseMirror li) {
 		margin: 0.5em 0;
+	}
+
+	/* Regular list items - ensure markers are visible */
+	:global(.ProseMirror ul:not(.task-list) > li) {
+		display: list-item;
+		list-style-type: disc;
+	}
+
+	:global(.ProseMirror ol > li) {
+		display: list-item;
+		list-style-type: decimal;
 	}
 
 	:global(.ProseMirror code) {

@@ -35,6 +35,7 @@
 | J/K navigation blocked by auto-focused input | Use autoFocus prop + Enter/ESC edit mode | [ui-patterns.md#L880](ui-patterns.md#L880) |
 | ProseMirror "$ prefix reserved" | Rename `$from` → `from` | [svelte-reactivity.md#L450](svelte-reactivity.md#L450) |
 | Code blocks show plain text, no syntax colors | Use prosemirror-highlight + lowlight | [ui-patterns.md#L760](ui-patterns.md#L760) |
+| Typing `-` or `1.` doesn't create lists | Use addListNodes() from prosemirror-schema-list | [ui-patterns.md#L1150](ui-patterns.md#L1150) |
 | Users logged out on browser close | Set cookieConfig.maxAge | [convex-integration.md#L100](convex-integration.md#L100) |
 | File not found in Convex | Use TypeScript imports | [convex-integration.md#L140](convex-integration.md#L140) |
 | `InvalidConfig`: hyphens in filename | Use camelCase names | [convex-integration.md#L140](convex-integration.md#L140) |
