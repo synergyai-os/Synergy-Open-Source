@@ -84,16 +84,18 @@ Optional but helpful. Indicates what part of the codebase changed:
 
 This is where you add value. Explain:
 
-- **Why** you made this change (what problem did it solve?)
-- **Context** that helps understand the decision
-- **What you tried first** if this is version 2+ of a solution
-- **Links** to related issues, patterns, or discussions
+- **WHY**: What problem did this solve? What were you trying to achieve?
+- **JOURNEY**: What you tried first (if this is version 2+), why it failed, final solution
+- **PATTERN**: Reference to pattern docs if you added/updated them (#L[NUMBER])
+- **AI**: Credit Claude/Cursor if they contributed a good suggestion
+- **Context**: Links to related issues, patterns, or discussions
 
 Write for both humans and AI:
-- Use clear, semantic structure
-- Short paragraphs
-- Bullet points for lists
-- No corporate fluff
+- Use semantic section labels (WHY, JOURNEY, PATTERN, AI)
+- Short paragraphs and bullet points
+- Be specific and honest about failures
+- No corporate fluff or hand-waving
+- Share the learning journey, not just the result
 
 ### Footer (Optional)
 
@@ -111,23 +113,32 @@ Write for both humans and AI:
 ```
 feat(inbox): add keyboard navigation with J/K shortcuts
 
+WHY: Users expect Gmail-style navigation. Makes inbox way faster to process.
+
 Implemented J (next) and K (previous) navigation in the inbox list.
 This matches user expectations from Gmail, Linear, and other tools.
 
 Uses the useKeyboardNavigation composable pattern we established
 in dev-docs/patterns/svelte-reactivity.md.
+
+AI: Claude suggested edge case handling for bottom of list (wraps to top now).
 ```
 
 **Bug fix with context:**
 ```
 fix(sync): prevent duplicate highlights from Readwise API
 
-The Readwise API sometimes returns the same highlight with different
-IDs during pagination. Added deduplication logic based on content hash
-rather than ID.
+WHY: Users were seeing the same highlight twice in their inbox.
 
-Tried filtering by ID first, but that didn't catch the duplicates.
-Switched to content-based approach after seeing user reports.
+JOURNEY:
+- First approach: Filter by highlight ID  
+- Why it failed: Readwise returns duplicates with *different* IDs but identical content
+- Final solution: Hash the content text and dedupe by hash instead
+
+The Readwise API sometimes returns the same highlight with different
+IDs during pagination. Content-based deduplication catches this edge case.
+
+AI: Claude caught that empty highlights would collide - added minimum length check.
 
 Closes #89
 ```
@@ -136,33 +147,53 @@ Closes #89
 ```
 docs(patterns): add Svelte 5 composables pattern after learning it the hard way
 
-We tried multiple $state variables, direct reactive queries, and various
-other approaches before landing on the single $state object with getters
-pattern. This doc captures what works and why.
+WHY: Tried multiple approaches before finding what actually works with Svelte 5 reactivity.
 
-See dev-docs/patterns/svelte-reactivity.md for the full pattern.
+JOURNEY:
+- First approach: Multiple $state variables
+- Why it failed: Caused reactivity issues and component updates failed
+- Final solution: Single $state object with getters (cleaner + works)
+
+PATTERN:
+- Added: "Single $state Object Pattern" (#L780)
+- Documented in: dev-docs/patterns/svelte-reactivity.md
+- Severity: 🔴 (Critical - common gotcha)
+- Updated INDEX.md with new symptom entry
+
+AI: Claude suggested the getter pattern after seeing our reactivity issues.
 ```
 
 **Refactor with learning:**
 ```
 refactor(composables): use single $state object pattern
 
+WHY: Reactivity issues with component updates across multiple composables.
+
+JOURNEY:
+- First approach: Multiple $state variables (one per piece of state)
+- Why it failed: Svelte 5 reactivity lost track of updates across variables
+- Final solution: Single reactive source with getters
+
 Replaced multiple $state variables with single state object + getters.
-This fixes reactivity issues we were seeing with component updates.
+Svelte 5's reactivity works better with a single reactive source.
 
-We tried the multi-variable approach first thinking it would be cleaner,
-but Svelte 5's reactivity works better with a single reactive source.
-
-Pattern documented in dev-docs/patterns/svelte-reactivity.md
+PATTERN:
+- Applied: "Single $state Object Pattern" (#L780)
+- Reference: dev-docs/patterns/svelte-reactivity.md
 ```
 
-### Bad Commit Messages
+### Bad Commit Messages (Anti-Patterns)
 
-❌ `fixed bug` - Too vague, no context
-❌ `Updated files` - What files? Why?
-❌ `feat: added some new stuff to the app` - Not specific
-❌ `WIP` - Should be in a branch, not committed to main
-❌ `fixes #123` - What was the bug? How did you fix it?
+❌ `fixed bug` - Too vague, no context, which bug?
+❌ `Updated files` - What files? Why? What changed?
+❌ `feat: added some new stuff to the app` - Not specific, no context
+❌ `WIP` - Work-in-progress shouldn't be committed to main
+❌ `fixes #123` - What was the bug? How did you fix it? Why did it happen?
+❌ `[UI] Fixed stuff` - Missing type/scope format, too vague
+❌ `docs: updated docs` - Circular description, adds no value
+❌ Missing AI credit when Claude/Cursor contributed to the solution
+❌ No JOURNEY when this was clearly iteration 2+ of solving the problem
+❌ Missing pattern reference after updating dev-docs
 
 ---
 
@@ -175,6 +206,16 @@ git clone https://github.com/YOUR_USERNAME/SynergyOS.git
 cd SynergyOS
 npm install
 ```
+
+**Optional: Set up commit message template**
+
+This automatically loads our commit format when you run `git commit`:
+
+```bash
+git config commit.template .gitmessage
+```
+
+Now when you commit, your editor will open with the format pre-filled. Makes following the guidelines way easier.
 
 ### 2. Create a Branch
 

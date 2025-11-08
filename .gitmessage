@@ -1,0 +1,28 @@
+# type(scope): subject line under 50 chars
+#
+# WHY: What problem this solved or what you were trying to achieve.
+#
+# JOURNEY (optional - include if this was iteration 2+):
+# - First approach: [what didn't work]
+# - Why it failed: [the learning moment]
+# - Final solution: [what actually worked]
+#
+# PATTERN (if you updated/added patterns):
+# - Added/Updated: "Pattern Name" (#L[NUMBER])
+# - Documented in: dev-docs/patterns/[domain].md
+# - Severity: [🔴/🟡/🟢]
+#
+# AI: [Optional - if Claude/Cursor suggested something worth noting]
+#
+# Closes #[issue] (if applicable)
+#
+# --- COMMIT MESSAGE GUIDELINES ---
+# Types: feat, fix, docs, refactor, style, test, chore
+# Scopes: inbox, notes, flashcards, sync, auth, ui, composables, docs
+#
+# Brand voice: Technical but human. Dramatic but funny. Learning from failure.
+# Share the journey: What you tried first, why it failed, what worked.
+# Credit AI: We build with Claude/Cursor openly - acknowledge good suggestions.
+#
+# Examples: See .cursor/commands/save.md for full examples.
+
