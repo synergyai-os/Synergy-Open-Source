@@ -166,7 +166,7 @@
 	.toc-panel {
 		position: fixed;
 		left: 280px;
-		top: calc(6rem + 500px);
+		top: calc(6rem + 100px);
 		background: var(--color-bg-elevated);
 		border: 1px solid var(--color-border-base);
 		border-radius: 0.5rem;
@@ -178,6 +178,7 @@
 	.toc-panel.open {
 		width: 260px;
 		padding: calc(var(--spacing-content-padding) * 1.5);
+		top: 3rem;
 		background: var(--color-bg-elevated);
 		backdrop-filter: blur(8px);
 		border: 1px solid var(--color-border-base);
@@ -202,6 +203,7 @@
 		width: 260px;
 		height: auto;
 		padding: calc(var(--spacing-content-padding) * 1.5);
+		top: 3rem;
 		background: var(--color-bg-elevated);
 		backdrop-filter: blur(8px);
 		border: 1px solid var(--color-border-base);
@@ -319,20 +321,19 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding-bottom: 0.875rem;
-		margin-bottom: 0.25rem;
+		padding-bottom: 1rem;
+		margin-bottom: 0.75rem;
 		border-bottom: 1px solid var(--color-border-base);
-		opacity: 0.9;
 	}
 	
 	.toc-header {
-		font-size: 0.6875rem;
-		font-weight: 500;
+		font-size: 0.8125rem;
+		font-weight: 600;
 		text-transform: uppercase;
-		letter-spacing: 0.08em;
-		color: var(--color-text-tertiary);
+		letter-spacing: 0.06em;
+		color: var(--color-text-primary);
 		margin: 0;
-		opacity: 0.85;
+		opacity: 0.9;
 	}
 	
 	.toc-toggle {
@@ -375,17 +376,17 @@
 		font-size: 0.8125rem;
 		line-height: 1.6;
 		font-weight: 400;
-		color: var(--color-text-tertiary);
+		color: var(--color-text-secondary);
 		text-decoration: none;
 		border-left: 2px solid transparent;
 		padding: 0.375rem 0.75rem 0.375rem 0.875rem;
 		transition: all 0.15s ease;
 		border-radius: 0.25rem;
-		opacity: 0.85;
+		opacity: 0.75;
 	}
 	
 	.toc-link:hover {
-		color: var(--color-text-secondary);
+		color: var(--color-text-primary);
 		background: var(--color-bg-hover);
 		border-left-color: transparent;
 		opacity: 1;

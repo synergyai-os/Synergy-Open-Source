@@ -9,8 +9,10 @@
 	} from '$lib/utils/prosemirror-setup';
 	import { createMentionPlugin, type MentionItem } from '$lib/utils/prosemirror-mentions';
 	import { createCodeBlockPlugin, createSyntaxHighlightPlugin } from '$lib/utils/prosemirror-codeblock';
+	import { createEmojiPlugin } from './prosemirror/emoji-plugin';
 	import NoteEditorToolbar from './NoteEditorToolbar.svelte';
 	import MentionMenu from './MentionMenu.svelte';
+	import EmojiMenu from './prosemirror/EmojiMenu.svelte';
 	import CodeBlockLanguageSelector from './CodeBlockLanguageSelector.svelte';
 
 	type Props = {
@@ -61,6 +63,7 @@
 	];
 
 	const mentionPlugin = createMentionPlugin(mentionItems);
+	const emojiPlugin = createEmojiPlugin();
 	const syntaxHighlightPlugin = createSyntaxHighlightPlugin();
 	const codeBlockPlugin = createCodeBlockPlugin();
 
@@ -119,7 +122,7 @@
 	onMount(() => {
 		if (!editorElement) return;
 
-		const state = createEditorState(content || undefined, onPaste, onEscape, mentionPlugin, syntaxHighlightPlugin, codeBlockPlugin);
+		const state = createEditorState(content || undefined, onPaste, onEscape, mentionPlugin, syntaxHighlightPlugin, codeBlockPlugin, emojiPlugin);
 		editorState = state;
 		isEmpty = isEditorEmpty(state);
 
@@ -238,6 +241,9 @@
 	<!-- Mention Menu -->
 	<MentionMenu {editorView} />
 	
+	<!-- Emoji Menu -->
+	<EmojiMenu {editorView} />
+	
 	<!-- Code Block Language Selector -->
 	<CodeBlockLanguageSelector {editorView} />
 </div>
@@ -299,7 +305,7 @@
 
 	/* List items - default styling */
 	:global(.ProseMirror li) {
-		margin: 0.5em 0;
+		margin: 0.25em 0;
 	}
 
 	/* Regular list items - ensure markers are visible */
@@ -351,7 +357,7 @@
 		display: flex;
 		align-items: flex-start;
 		gap: 0.5em;
-		margin: 0.5em 0;
+		margin: 0.25em 0;
 	}
 
 	:global(.ProseMirror .task-item-checkbox) {

@@ -389,7 +389,8 @@ export function createEditorState(
   onEscape?: () => void,
   mentionPlugin?: Plugin,
   syntaxHighlightPlugin?: Plugin,
-  codeBlockPlugin?: Plugin
+  codeBlockPlugin?: Plugin,
+  emojiPlugin?: Plugin
 ) {
   const doc = content 
     ? noteSchema.nodeFromJSON(JSON.parse(content))
@@ -410,6 +411,10 @@ export function createEditorState(
   // Then add our custom plugins
   if (mentionPlugin) {
     plugins.push(mentionPlugin);
+  }
+
+  if (emojiPlugin) {
+    plugins.push(emojiPlugin);
   }
 
   if (codeBlockPlugin) {
