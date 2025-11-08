@@ -4,6 +4,23 @@
 
 ---
 
+## For AI Assistants
+
+**Tool usage strategy:**
+1. **Batch parallel operations** - Read multiple files simultaneously when independent
+2. **Use grep first** - Search patterns before reading full files
+3. **Stage all files once** - Single `git add` for all changed files
+4. **Commit with multi-line message** - Use `-m` multiple times for body paragraphs
+5. **Ask before pushing** - Always prompt "Push to GitHub? (Y/N)" after commit
+
+**Key workflow:**
+- Step 2: Use `grep` to search INDEX.md and domain files in parallel
+- Step 3: Use `search_replace` or `write` for updates
+- Step 4: Stage → commit → show `git log -1 --stat` for confirmation
+- Step 5: Prompt user, then push if Y
+
+---
+
 ## Workflow
 
 ### 1. Analyze Session
@@ -183,7 +200,18 @@ Closes #67
 - ❌ `WIP` - Don't commit work-in-progress to main
 - ❌ Missing pattern reference when you just updated docs
 
-**Do NOT push** - local commit only (user confirms before push).
+**Do NOT push yet** - proceed to step 5.
+
+### 5. Push to GitHub
+
+After successful commit, ask user:
+
+**"Push to GitHub? (Y/N)"**
+
+- **Y** → Run `git push` with network permissions
+- **N** → Done. Commit stays local.
+
+Keep response concise. Show push result or "Staying local" confirmation.
 
 ---
 
@@ -203,9 +231,9 @@ Closes #67
 ## Checklist
 
 **Before Committing:**
-- [ ] Searched INDEX.md for existing patterns
+- [ ] Searched INDEX.md for existing patterns (grep tool)
 - [ ] Decided: update existing or create new
-- [ ] Updated domain file with pattern/enhancement
+- [ ] Updated domain file with pattern/enhancement (search_replace)
 - [ ] Validated with Context7 (if library-specific)
 - [ ] Updated INDEX.md symptom table
 - [ ] Chose correct severity (🔴🟡🟢)
@@ -218,7 +246,11 @@ Closes #67
 - [ ] Credited AI collaboration if applicable
 - [ ] Subject line under 50 chars, imperative mood
 - [ ] Added issue reference if applicable (Closes #123)
-- [ ] Local commit only (NOT pushed)
+
+**After Commit:**
+- [ ] Showed commit with `git log -1 --stat`
+- [ ] Asked user: "Push to GitHub? (Y/N)"
+- [ ] Executed user's choice (push or stay local)
 
 ---
 
@@ -229,3 +261,25 @@ Closes #67
 - ❌ Don't skip Context7 validation for library patterns
 - ❌ Don't commit before capturing knowledge
 - ❌ Don't add to Critical unless it breaks functionality
+- ❌ Don't push without asking user first
+- ❌ Don't use multiple git add commands - batch all files
+
+---
+
+## Quick AI Workflow
+
+```
+1. Analyze → What was fixed/learned?
+2. grep INDEX.md → Check existing patterns
+3. Update patterns → search_replace domain files + INDEX.md
+4. git add [files] → git commit -m "..." → git log -1 --stat
+5. Ask: "Push to GitHub? (Y/N)"
+   → Y: git push (requires ['all'] permissions)
+   → N: "✅ Committed locally. Not pushed."
+```
+
+**End message format:**
+- If pushed: "✅ Pushed to GitHub. [short status]"
+- If not pushed: "✅ Committed locally. Not pushed."
+
+Keep it short. User wants concise confirmations.
