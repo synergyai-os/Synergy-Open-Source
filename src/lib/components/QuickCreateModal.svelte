@@ -8,6 +8,14 @@
 	import KeyboardShortcut from '$lib/components/ui/KeyboardShortcut.svelte';
 	import FormInput from '$lib/components/ui/FormInput.svelte';
 	import FormTextarea from '$lib/components/ui/FormTextarea.svelte';
+	import StatusPill from '$lib/components/ui/StatusPill.svelte';
+	import PrioritySelector from '$lib/components/ui/PrioritySelector.svelte';
+	import AssigneeSelector from '$lib/components/ui/AssigneeSelector.svelte';
+	import ProjectSelector from '$lib/components/ui/ProjectSelector.svelte';
+	import MetadataBar from '$lib/components/ui/MetadataBar.svelte';
+	import AttachmentButton from '$lib/components/ui/AttachmentButton.svelte';
+	import ToggleSwitch from '$lib/components/ui/ToggleSwitch.svelte';
+	import ContextSelector from '$lib/components/ui/ContextSelector.svelte';
 	// TODO: Uncomment when implementing PostHog tracking
 	// import { AnalyticsEventName } from '$lib/analytics/events';
 
@@ -49,6 +57,16 @@
 	let noteContent = $state(''); // ProseMirror JSON string
 	let noteContentMarkdown = $state(''); // Markdown version
 	let noteIsAIGenerated = $state(false);
+	
+	// Metadata state (UI only - stubbed for now)
+	let noteStatus = $state<'backlog' | 'todo' | 'in_progress' | 'done' | 'cancelled'>('backlog');
+	let notePriority = $state<'none' | 'low' | 'medium' | 'high' | 'urgent'>('none');
+	let noteAssignee = $state<{id: string; name: string; initials: string; color: string} | undefined>(undefined);
+	let noteProject = $state<{id: string; name: string; icon?: string; color: string} | undefined>(undefined);
+	let noteContext = $state<{id: string; name: string; icon: string; type: 'team' | 'template' | 'workspace'} | undefined>({ id: 'pai', name: 'PAI', icon: '🔥', type: 'team' });
+	let noteTemplate = $state<{id: string; name: string; icon: string; type: 'team' | 'template' | 'workspace'} | undefined>(undefined);
+	let createMore = $state(false);
+	let attachmentCount = $state(0);
 
 	// Timing tracking for analytics
 	let openedAt = $state(0);
@@ -351,7 +369,7 @@
 		/>
 		<!-- Command Center Modal: Scale-up animation + dramatic shadow -->
 		<Dialog.Content
-			class="fixed left-1/2 top-1/2 z-50 max-h-[85vh] w-full max-w-[600px] -translate-x-1/2 -translate-y-1/2 overflow-auto rounded-modal bg-surface-primary p-0 shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]"
+			class="fixed left-1/2 top-1/2 z-50 max-h-[49vh] w-full max-w-[900px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-md bg-elevated border border-base p-0 shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]"
 		>
 			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 			<div onkeydown={handleKeyDown} role="dialog" tabindex="-1">
@@ -465,8 +483,62 @@
 					</Command.Root>
 				{:else}
 					<!-- Content Entry View -->
-					<div class="flex h-full w-full flex-col overflow-hidden rounded-lg bg-elevated border border-base/30 shadow-lg">
-						{#if selectedType !== 'note'}
+					<div class="flex h-full w-full flex-col overflow-hidden">
+						{#if selectedType === 'note'}
+							<!-- Context/Template Selectors + Draft Button (Linear-style top bar) -->
+							<div class="flex items-center justify-between px-6 pt-3 pb-3 border-b border-base">
+								<div class="flex items-center gap-2">
+									<ContextSelector
+										context={noteContext}
+										onChange={(ctx) => (noteContext = ctx)}
+									/>
+									<svg class="w-3 h-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+									</svg>
+									<ContextSelector
+										context={noteTemplate}
+										onChange={(tpl) => (noteTemplate = tpl)}
+									/>
+								</div>
+								
+								<!-- Top Right Actions -->
+								<div class="flex items-center gap-2">
+									<button
+										type="button"
+										class="px-3 py-1.5 text-sm text-secondary hover:text-primary transition-colors"
+										onclick={() => {
+											// TODO: Implement draft save logic
+											console.log('Save as draft clicked');
+										}}
+									>
+										Save as draft
+									</button>
+									<button
+										type="button"
+										class="p-1.5 text-tertiary hover:text-secondary transition-colors"
+										onclick={() => {
+											// TODO: Implement fullscreen logic
+											console.log('Fullscreen clicked');
+										}}
+										aria-label="Fullscreen"
+									>
+										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+										</svg>
+									</button>
+									<button
+										type="button"
+										class="p-1.5 text-tertiary hover:text-secondary transition-colors"
+										onclick={() => handleOpenChange(false)}
+										aria-label="Close"
+									>
+										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+										</svg>
+									</button>
+								</div>
+							</div>
+						{:else}
 							<div class="px-content-padding pt-content-padding">
 								<Dialog.Title class="text-heading-primary mb-heading text-xl font-medium">
 									Create {selectedType === 'flashcard' ? 'Flashcard' : 'Highlight'}
@@ -492,9 +564,32 @@
 									onAIFlagged={() => {
 										noteIsAIGenerated = true;
 									}}
-									placeholder="Start writing your note..."
-									showToolbar={true}
+									placeholder="Add description..."
+									showToolbar={false}
+									enableAIDetection={false}
 								/>
+							</div>
+							
+							<!-- Metadata Bar (Linear-style pills) -->
+							<div class="px-6 py-3 border-b border-base">
+								<MetadataBar>
+									<StatusPill
+										status={noteStatus}
+										onChange={(s) => (noteStatus = s)}
+									/>
+									<PrioritySelector
+										priority={notePriority}
+										onChange={(p) => (notePriority = p)}
+									/>
+									<AssigneeSelector
+										assignee={noteAssignee}
+										onChange={(a) => (noteAssignee = a)}
+									/>
+									<ProjectSelector
+										project={noteProject}
+										onChange={(proj) => (noteProject = proj)}
+									/>
+								</MetadataBar>
 							</div>
 						{:else if selectedType === 'flashcard'}
 							<FormTextarea
@@ -533,7 +628,7 @@
 						{/if}
 
 						<!-- Tag Selector -->
-						<div class="flex flex-col gap-form-field border-t border-base pt-content-section {selectedType === 'note' ? 'px-content-padding' : ''}">
+						<div class="flex flex-col gap-2 border-t border-base pt-3 pb-2 {selectedType === 'note' ? 'px-6' : ''}">
 							<TagSelector
 								bind:comboboxOpen={tagComboboxOpen}
 								bind:selectedTagIds
@@ -544,21 +639,44 @@
 						</div>
 
 						<!-- Action Buttons -->
-						<div class="flex justify-end gap-button-group pt-content-section border-t border-base pb-content-padding {selectedType === 'note' ? 'px-content-padding' : ''}">
-							<button
-								onclick={() => handleOpenChange(false)}
-								class="rounded-button px-button-x py-button-y text-text-secondary hover:bg-button-secondary-hover"
-							>
-								Cancel
-							</button>
-							<button
-								onclick={handleCreate}
-								disabled={isCreating}
-								class="rounded-button bg-button-primary px-button-x py-button-y text-button-primary-text hover:bg-button-primary-hover disabled:opacity-50"
-							>
-								{isCreating ? 'Creating...' : 'Create'}
-								<KeyboardShortcut keys={['Cmd', 'Enter']} />
-							</button>
+						<div class="flex items-center justify-between gap-3 pt-3 border-t border-base pb-3 {selectedType === 'note' ? 'px-6' : ''}">
+							{#if selectedType === 'note'}
+								<!-- Left: Attachment button -->
+								<AttachmentButton
+									count={attachmentCount}
+									onClick={() => {
+										// TODO: Implement attachment logic
+										console.log('Attach file clicked');
+									}}
+								/>
+							{:else}
+								<div></div>
+							{/if}
+							
+							<!-- Right: Actions -->
+							<div class="flex items-center gap-3">
+								{#if selectedType === 'note'}
+									<ToggleSwitch
+										checked={createMore}
+										onChange={(checked) => (createMore = checked)}
+										label="Create more"
+									/>
+								{/if}
+								<button
+									onclick={() => handleOpenChange(false)}
+									class="px-3 py-1.5 text-sm text-secondary hover:text-primary transition-colors"
+								>
+									Cancel
+								</button>
+								<button
+									onclick={handleCreate}
+									disabled={isCreating}
+									class="flex items-center gap-2 px-3 py-1.5 text-sm bg-accent-primary text-white rounded-md hover:opacity-90 disabled:opacity-50 transition-all font-medium"
+								>
+									{isCreating ? 'Creating...' : selectedType === 'note' ? 'Create issue' : 'Create'}
+									<KeyboardShortcut keys={['Cmd', 'Enter']} />
+								</button>
+							</div>
 						</div>
 						</div>
 					</div>

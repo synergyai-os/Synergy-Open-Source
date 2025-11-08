@@ -159,7 +159,7 @@
 
 	<!-- Scrollable Editor Content -->
 	<div class="flex-1 overflow-y-auto">
-		<div class="max-w-4xl mx-auto px-content-padding py-content-padding">
+		<div class="max-w-full px-6 py-4">
 			<!-- Title Input -->
 			<input
 				bind:this={titleElement}
@@ -167,16 +167,23 @@
 				value={localTitle}
 				oninput={handleTitleInput}
 				onkeydown={handleTitleKeydown}
-				placeholder="Untitled note..."
+				placeholder="Issue title"
 				disabled={readonly}
-				class="w-full text-xl font-semibold bg-transparent border-none outline-none text-surface-primary placeholder:text-surface-tertiary mb-3 focus:placeholder:text-surface-secondary transition-colors"
+				class="w-full text-base font-normal bg-transparent border-none outline-none text-primary placeholder:text-tertiary mb-2 focus:placeholder:text-secondary transition-colors"
 			/>
 
-			<!-- ProseMirror Editor -->
-			<div
-				bind:this={editorElement}
-				class="prose prose-neutral dark:prose-invert max-w-none min-h-[120px]"
-			></div>
+			<!-- ProseMirror Editor with Placeholder Overlay -->
+			<div class="relative">
+				<div
+					bind:this={editorElement}
+					class="prose prose-sm prose-neutral dark:prose-invert max-w-none min-h-[60px] text-secondary"
+				></div>
+				{#if isEmpty}
+					<div class="absolute top-0 left-0 text-sm text-tertiary pointer-events-none">
+						{placeholder}
+					</div>
+				{/if}
+			</div>
 		</div>
 	</div>
 </div>
@@ -247,18 +254,9 @@
 		opacity: 0.7;
 	}
 
-	/* Placeholder when empty */
-	:global(.ProseMirror p.is-editor-empty:first-child::before) {
-		content: attr(data-placeholder);
-		float: left;
-		color: rgb(156 163 175); /* text-tertiary */
-		pointer-events: none;
-		height: 0;
-		font-size: 1rem;
-	}
-	
-	:global(.dark .ProseMirror p.is-editor-empty:first-child::before) {
-		color: rgb(107 114 128);
+	/* Ensure empty paragraphs maintain layout */
+	:global(.ProseMirror p) {
+		min-height: 1.25rem;
 	}
 </style>
 
