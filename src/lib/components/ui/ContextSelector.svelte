@@ -17,9 +17,10 @@
 		context?: Context;
 		onChange?: (context: Context | undefined) => void;
 		readonly?: boolean;
+		tabIndex?: number; // Control focus order
 	};
 	
-	let { context, onChange, readonly = false }: Props = $props();
+	let { context, onChange, readonly = false, tabIndex }: Props = $props();
 </script>
 
 <button
@@ -27,6 +28,7 @@
 	class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium bg-transparent border border-base hover:bg-hover transition-colors text-secondary"
 	disabled={readonly}
 	onclick={() => !readonly && onChange?.(context)}
+	tabindex={tabIndex}
 >
 	{#if context}
 		<span class="text-base leading-none">{context.icon}</span>

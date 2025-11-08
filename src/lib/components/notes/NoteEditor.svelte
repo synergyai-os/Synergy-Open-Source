@@ -43,6 +43,7 @@
 	let editorState = $state<EditorState | null>(null);
 	let localTitle = $state(title);
 	let isEmpty = $state(true);
+	let isFocused = $state(false);
 
 	// Update local title when prop changes
 	$effect(() => {
@@ -108,11 +109,24 @@
 				editorView.updateState(newState);
 				handleEditorChange(newState);
 			},
+			handleDOMEvents: {
+				focus: () => {
+					isFocused = true;
+					return false;
+				},
+				blur: () => {
+					isFocused = false;
+					return false;
+				}
+			}
 		});
 
 		// Only focus title on mount if autoFocus is true
+		// Use setTimeout to ensure it happens after any modal animations/other focus events
 		if (autoFocus) {
-			titleElement?.focus();
+			setTimeout(() => {
+				titleElement?.focus();
+			}, 100);
 		}
 
 		return () => {
@@ -170,7 +184,7 @@
 
 	<!-- Scrollable Editor Content -->
 	<div class="{compact ? '' : 'flex-1 overflow-y-auto'}">
-		<div class="max-w-full px-6 py-4">
+		<div class="max-w-full px-inbox-container py-inbox-card">
 			<!-- Title Input -->
 			<input
 				bind:this={titleElement}
@@ -187,9 +201,9 @@
 			<div class="relative">
 				<div
 					bind:this={editorElement}
-					class="prose prose-sm prose-neutral dark:prose-invert max-w-none min-h-[60px] max-h-[200px] overflow-y-auto text-secondary"
+					class="prose prose-sm prose-neutral dark:prose-invert prose-p:my-0 prose-p:leading-relaxed max-w-none min-h-[60px] max-h-[120px] overflow-y-auto text-secondary"
 				></div>
-				{#if isEmpty}
+				{#if isEmpty && !isFocused}
 					<div class="absolute top-0 left-0 text-sm text-tertiary pointer-events-none">
 						{placeholder}
 					</div>
@@ -208,6 +222,15 @@
 
 	:global(.ProseMirror p) {
 		margin: 1em 0;
+	}
+
+	/* Ensure first paragraph aligns with title */
+	:global(.ProseMirror > p:first-child) {
+		margin-top: 0;
+	}
+
+	:global(.ProseMirror > *:first-child) {
+		margin-top: 0;
 	}
 
 	:global(.ProseMirror h1) {

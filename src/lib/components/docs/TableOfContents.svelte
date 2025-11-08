@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
+	
 	type Props = {
 		headings?: { id: string; text: string; level: number }[];
 	};
@@ -7,11 +9,33 @@
 	
 	let activeId = $state('');
 	
-	// TODO: Implement scroll tracking for active heading
+	// Scroll tracking for active heading
+	$effect(() => {
+		if (!browser) return;
+		
+		const observer = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) {
+						activeId = entry.target.id;
+					}
+				});
+			},
+			{ rootMargin: '-100px 0px -66%' }
+		);
+		
+		// Observe all headings
+		const headingElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+		headingElements.forEach((el) => observer.observe(el));
+		
+		return () => {
+			headingElements.forEach((el) => observer.unobserve(el));
+		};
+	});
 </script>
 
 <nav class="toc">
-	<h4 class="text-sidebar-secondary font-medium text-label mb-3">On This Page</h4>
+	<h4 class="toc-header">On This Page</h4>
 	
 	{#if headings.length > 0}
 		<ul class="toc-list">
@@ -19,7 +43,7 @@
 				<li class="toc-item level-{heading.level}">
 					<a
 						href="#{heading.id}"
-						class="toc-link text-sidebar-primary hover:text-primary transition-colors"
+						class="toc-link"
 						class:active={activeId === heading.id}
 					>
 						{heading.text}
@@ -28,7 +52,7 @@
 			{/each}
 		</ul>
 	{:else}
-		<p class="text-sidebar-tertiary text-sm">No headings found</p>
+		<p class="toc-empty">No headings found</p>
 	{/if}
 </nav>
 
@@ -36,12 +60,23 @@
 	.toc {
 		display: flex;
 		flex-direction: column;
+		gap: 1rem;
+	}
+	
+	.toc-header {
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--color-text-tertiary);
+		padding-bottom: 0.5rem;
+		border-bottom: 1px solid var(--color-border-base);
 	}
 	
 	.toc-list {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-xs);
+		gap: 0.5rem;
 	}
 	
 	.toc-item {
@@ -50,28 +85,43 @@
 	
 	.toc-link {
 		display: block;
-		font-size: var(--font-size-sm);
-		padding: var(--spacing-xs) 0;
+		font-size: 0.8125rem;
+		line-height: 1.5;
+		color: var(--color-text-secondary);
 		text-decoration: none;
 		border-left: 2px solid transparent;
-		padding-left: var(--spacing-sm);
+		padding: 0.25rem 0 0.25rem 0.75rem;
+		transition: all 0.15s ease;
 	}
 	
-	.toc-link:hover,
+	.toc-link:hover {
+		color: var(--color-text-primary);
+		border-left-color: var(--color-border-elevated);
+	}
+	
 	.toc-link.active {
-		border-left-color: var(--color-accent);
+		color: var(--color-accent-primary);
+		border-left-color: var(--color-accent-primary);
+		font-weight: 500;
 	}
 	
-	.level-2 {
-		padding-left: var(--spacing-sm);
+	/* Indent levels */
+	.level-2 .toc-link {
+		padding-left: 0.75rem;
 	}
 	
-	.level-3 {
-		padding-left: var(--spacing-md);
+	.level-3 .toc-link {
+		padding-left: 1.5rem;
 	}
 	
-	.level-4 {
-		padding-left: var(--spacing-lg);
+	.level-4 .toc-link {
+		padding-left: 2.25rem;
+	}
+	
+	.toc-empty {
+		font-size: 0.875rem;
+		color: var(--color-text-tertiary);
+		font-style: italic;
 	}
 </style>
 
