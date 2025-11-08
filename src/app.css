@@ -110,6 +110,19 @@
 	--color-control-button-hover: var(--color-bg-hover-solid); /* Button hover */
 	--color-control-button-active: var(--color-bg-selected); /* Active button */
 	--color-control-divider: var(--color-border-base); /* Divider color */
+
+	/* Code Block Color Tokens - Syntax Highlighting */
+	--color-code-bg: var(--color-sidebar-bg); /* Code block background */
+	--color-code-text: var(--color-sidebar-text-primary); /* Default text */
+	--color-code-keyword: oklch(69% 0.17 10); /* Keywords (const, import, etc.) - warm red */
+	--color-code-string: oklch(75% 0.12 220); /* Strings - blue */
+	--color-code-number: oklch(70% 0.14 220); /* Numbers - lighter blue */
+	--color-code-comment: var(--color-text-tertiary); /* Comments - muted */
+	--color-code-function: oklch(75% 0.15 290); /* Functions - purple */
+	--color-code-variable: oklch(70% 0.14 220); /* Variables - blue */
+	--color-code-tag: oklch(70% 0.16 150); /* Tags - green */
+	--color-code-badge-bg: var(--color-sidebar-badge-bg); /* Language badge bg */
+	--color-code-badge-text: var(--color-sidebar-badge-text); /* Language badge text */
 }
 
 /* Light mode overrides for unified brand colors */
@@ -125,6 +138,18 @@ html:not(.dark) {
 	--color-bg-hover-solid: oklch(96.7% 0.003 264.542); /* gray-100 */
 	--color-tag-bg: oklch(96.7% 0.003 264.542); /* gray-100 */
 	--color-tag-text: oklch(44.6% 0.043 257.281); /* gray-600 */
+	
+	/* Light mode code syntax colors */
+	--color-code-bg: oklch(98.8% 0.002 264.531); /* gray-50 - light background */
+	--color-code-text: oklch(20.8% 0.042 265.755); /* gray-900 - dark text */
+	--color-code-keyword: oklch(40% 0.17 10); /* Darker red for keywords */
+	--color-code-string: oklch(45% 0.14 220); /* Darker blue for strings */
+	--color-code-number: oklch(45% 0.14 220); /* Darker blue for numbers */
+	--color-code-function: oklch(45% 0.15 290); /* Darker purple for functions */
+	--color-code-variable: oklch(45% 0.14 220); /* Darker blue for variables */
+	--color-code-tag: oklch(40% 0.16 150); /* Darker green for tags */
+	--color-code-badge-bg: oklch(96.7% 0.003 264.542); /* gray-100 */
+	--color-code-badge-text: oklch(44.6% 0.043 257.281); /* gray-600 */
 }
 
 /* Dark mode overrides for unified brand colors */

@@ -7,7 +7,11 @@
 		exportEditorJSON,
 		isEditorEmpty
 	} from '$lib/utils/prosemirror-setup';
+	import { createMentionPlugin, type MentionItem } from '$lib/utils/prosemirror-mentions';
+	import { createCodeBlockPlugin, createSyntaxHighlightPlugin } from '$lib/utils/prosemirror-codeblock';
 	import NoteEditorToolbar from './NoteEditorToolbar.svelte';
+	import MentionMenu from './MentionMenu.svelte';
+	import CodeBlockLanguageSelector from './CodeBlockLanguageSelector.svelte';
 
 	type Props = {
 		content?: string; // ProseMirror JSON string
@@ -46,6 +50,19 @@
 	let localTitle = $state(title);
 	let isEmpty = $state(true);
 	let isFocused = $state(false);
+
+	// Mention items (can be customized later)
+	const mentionItems: MentionItem[] = [
+		{ id: 'randy', label: 'Randy', icon: '👤', description: 'Mention Randy' },
+		{ id: 'project', label: 'project', icon: '📁', description: 'Reference a project' },
+		{ id: 'todo', label: 'todo', icon: '✅', description: 'Add a todo item' },
+		{ id: 'note', label: 'note', icon: '📝', description: 'Link to a note' },
+		{ id: 'date', label: 'date', icon: '📅', description: 'Insert date' },
+	];
+
+	const mentionPlugin = createMentionPlugin(mentionItems);
+	const syntaxHighlightPlugin = createSyntaxHighlightPlugin();
+	const codeBlockPlugin = createCodeBlockPlugin();
 
 	// Update local title when prop changes
 	$effect(() => {
@@ -102,7 +119,7 @@
 	onMount(() => {
 		if (!editorElement) return;
 
-		const state = createEditorState(content || undefined, onPaste, onEscape);
+		const state = createEditorState(content || undefined, onPaste, onEscape, mentionPlugin, syntaxHighlightPlugin, codeBlockPlugin);
 		editorState = state;
 		isEmpty = isEditorEmpty(state);
 
@@ -207,7 +224,7 @@
 			<div class="relative">
 				<div
 					bind:this={editorElement}
-					class="prose prose-sm prose-neutral dark:prose-invert prose-p:my-0 prose-p:leading-relaxed max-w-none min-h-[60px] max-h-[120px] overflow-y-auto text-secondary"
+					class="prose prose-sm prose-neutral dark:prose-invert prose-p:my-0 prose-p:leading-relaxed max-w-none min-h-[60px] max-h-[60vh] overflow-y-auto text-secondary"
 				></div>
 				{#if isEmpty && !isFocused}
 					<div class="absolute top-0 left-0 text-sm text-tertiary pointer-events-none">
@@ -217,6 +234,12 @@
 			</div>
 		</div>
 	</div>
+
+	<!-- Mention Menu -->
+	<MentionMenu {editorView} />
+	
+	<!-- Code Block Language Selector -->
+	<CodeBlockLanguageSelector {editorView} />
 </div>
 
 <style>
@@ -298,6 +321,112 @@
 	/* Ensure empty paragraphs maintain layout */
 	:global(.ProseMirror p) {
 		min-height: 1.25rem;
+	}
+
+	/* Code block styling using design tokens */
+	:global(.ProseMirror pre) {
+		position: relative;
+		background-color: var(--color-code-bg);
+		border: 1px solid var(--color-border-base);
+		border-radius: 6px;
+		padding: 32px 12px 12px 12px;
+		margin: 16px 0;
+		overflow-x: auto;
+		font-family: 'Monaco', 'Menlo', 'Consolas', 'SF Mono', monospace;
+		font-size: 13px;
+		line-height: 1.6;
+		color: var(--color-code-text);
+	}
+
+	:global(.ProseMirror pre code) {
+		background: none;
+		padding: 0;
+		border: none;
+		font-size: inherit;
+		color: inherit;
+	}
+
+	/* Syntax highlighting colors using design tokens */
+	:global(.ProseMirror .hljs-keyword),
+	:global(.ProseMirror .hljs-selector-tag),
+	:global(.ProseMirror .hljs-doctag),
+	:global(.ProseMirror .hljs-name),
+	:global(.ProseMirror .hljs-strong) {
+		color: var(--color-code-keyword);
+		font-weight: bold;
+	}
+
+	:global(.ProseMirror .hljs-string),
+	:global(.ProseMirror .hljs-attribute),
+	:global(.ProseMirror .hljs-literal),
+	:global(.ProseMirror .hljs-template-tag),
+	:global(.ProseMirror .hljs-template-variable),
+	:global(.ProseMirror .hljs-type) {
+		color: var(--color-code-string);
+	}
+
+	:global(.ProseMirror .hljs-number),
+	:global(.ProseMirror .hljs-meta) {
+		color: var(--color-code-number);
+	}
+
+	:global(.ProseMirror .hljs-comment),
+	:global(.ProseMirror .hljs-quote) {
+		color: var(--color-code-comment);
+		font-style: italic;
+	}
+
+	:global(.ProseMirror .hljs-function),
+	:global(.ProseMirror .hljs-class),
+	:global(.ProseMirror .hljs-title),
+	:global(.ProseMirror .hljs-section),
+	:global(.ProseMirror .hljs-title.class_) {
+		color: var(--color-code-function);
+	}
+
+	:global(.ProseMirror .hljs-variable),
+	:global(.ProseMirror .hljs-attr) {
+		color: var(--color-code-variable);
+	}
+
+	:global(.ProseMirror .hljs-tag) {
+		color: var(--color-code-tag);
+	}
+
+	:global(.ProseMirror .hljs-regexp),
+	:global(.ProseMirror .hljs-link) {
+		color: var(--color-code-string);
+	}
+
+	/* Language badge using design tokens */
+	:global(.code-block-language-badge) {
+		position: absolute;
+		top: 6px;
+		right: 8px;
+		padding: 2px 8px;
+		background-color: var(--color-code-badge-bg);
+		border: 1px solid var(--color-border-base);
+		border-radius: 4px;
+		font-size: 11px;
+		font-weight: 500;
+		text-transform: uppercase;
+		color: var(--color-code-badge-text);
+		cursor: pointer;
+		transition: all 0.2s;
+		user-select: none;
+		z-index: 1;
+	}
+
+	:global(.code-block-language-badge:hover) {
+		background-color: var(--color-bg-hover-solid);
+		color: var(--color-text-primary);
+	}
+
+	/* Mention query highlighting */
+	:global(.mention-query) {
+		background-color: rgba(99, 102, 241, 0.1);
+		border-radius: 3px;
+		padding: 0 2px;
 	}
 </style>
 

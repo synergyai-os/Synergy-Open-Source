@@ -676,7 +676,87 @@ await convexClient.mutation(api.notes.createNote, {
 - ProseMirror uses `$from`/`$to` properties → Svelte 5 reserves `$` prefix → rename with `{ $from: from }`
 - See pattern: [svelte-reactivity.md#L450](../patterns/svelte-reactivity.md#L450)
 
-**Related**: #L680 (Atomic Design), #L400 (SSR browser libraries), svelte-reactivity.md#L450 ($ prefix collision)
+**Related**: #L680 (Atomic Design), #L400 (SSR browser libraries), svelte-reactivity.md#L450 ($ prefix collision), #L760 (ProseMirror Syntax Highlighting)
+
+---
+
+## #L760: ProseMirror Syntax Highlighting Integration [🟡 IMPORTANT]
+
+**Symptom**: Code blocks in ProseMirror show plain text without syntax colors  
+**Root Cause**: ProseMirror `Decoration.node()` can only add CSS classes, not inject HTML with `<span>` elements  
+**Fix**:
+
+```typescript
+// ❌ WRONG - Manual highlight.js with Decoration.node()
+import hljs from 'highlight.js';
+const highlighted = hljs.highlight(code, { language }).value; // Returns HTML string
+const decoration = Decoration.node(pos, pos + node.nodeSize, {
+  class: 'hljs' // Only adds class, doesn't inject HTML - NO COLORS!
+});
+
+// ✅ CORRECT - prosemirror-highlight plugin
+import { createHighlightPlugin } from 'prosemirror-highlight';
+import { createParser } from 'prosemirror-highlight/lowlight';
+import { common, createLowlight } from 'lowlight';
+
+const lowlight = createLowlight(common);
+const parser = createParser(lowlight);
+const syntaxHighlightPlugin = createHighlightPlugin({ parser });
+
+// Add to editor state BEFORE custom plugins
+EditorState.create({
+  doc,
+  plugins: [
+    buildInputRules(schema),
+    syntaxHighlightPlugin, // ← Add syntax highlighting first
+    customCodeBlockPlugin, // ← Then custom plugins
+  ],
+});
+```
+
+**Install**:
+```bash
+npm install prosemirror-highlight lowlight
+```
+
+**Design Token Integration**:
+```css
+/* src/app.css - Define semantic code color tokens */
+--color-code-bg: var(--color-sidebar-bg);
+--color-code-text: var(--color-sidebar-text-primary);
+--color-code-keyword: oklch(69% 0.17 10);     /* Warm red */
+--color-code-string: oklch(75% 0.12 220);     /* Blue */
+--color-code-function: oklch(75% 0.15 290);   /* Purple */
+--color-code-comment: var(--color-text-tertiary); /* Muted */
+
+/* NoteEditor.svelte - Use tokens for highlighting */
+:global(.ProseMirror pre) {
+  background-color: var(--color-code-bg);
+  color: var(--color-code-text);
+}
+:global(.ProseMirror .hljs-keyword) {
+  color: var(--color-code-keyword);
+}
+```
+
+**Apply when**:
+- Code blocks need syntax highlighting
+- Automatic language detection required
+- Must match app's design system (light/dark mode)
+
+**Why Not Manual highlight.js**:
+- `Decoration.node()` only adds attributes/classes to existing DOM
+- Cannot inject HTML structure (nested `<span>` tags with classes)
+- highlight.js returns HTML string, but ProseMirror needs actual DOM manipulation
+- `prosemirror-highlight` handles DOM rendering correctly
+
+**Common Gotchas**:
+- Plugin order matters: syntax highlight plugin MUST load before custom plugins
+- Language attribute must be on code_block node schema
+- CSS classes are `.hljs-keyword`, `.hljs-string`, etc. (from lowlight/highlight.js)
+- Use design tokens, not hardcoded colors (ensures theme consistency)
+
+**Related**: #L730 (ProseMirror Integration), #L780 (Design Tokens), convex-integration.md#L150 (Schema attributes)
 
 ---
 
