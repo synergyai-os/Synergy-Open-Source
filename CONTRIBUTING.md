@@ -1,466 +1,486 @@
 # Contributing to SynergyOS
 
-Welcome! We're glad you're here. Whether you found us through a blog post about our 1.0 failure, stumbled across our code, or just care about knowledge retention systems, you're in the right place.
+> **Thank you for considering contributing to SynergyOS!** 🎉
 
-This is a side project built in public. We document our mistakes, share our patterns, and collaborate with both humans and AI. If that sounds interesting, read on.
-
----
-
-## Meet Devon
-
-**Our ideal contributor persona:**
-
-Devon is a knowledge worker who reads 50+ articles per week but forgets most of them. They've tried Notion, Obsidian, and Roam, but nothing stuck.
-
-They discovered SynergyOS through a blog post titled "How We Failed at 1.0 and Started Over" and thought, "Finally, someone being honest about product development."
-
-Devon works with AI tools (Cursor, GitHub Copilot, Claude) daily. They appreciate documentation that says "we tried this, it failed, here's why" over docs that pretend everything was perfect from day one.
-
-They value clear patterns over perfect code. They want to contribute because they see themselves in the project story.
-
-**If you're like Devon, you're exactly who we're building for and with.**
+We're building the open-source Product OS for teams—and we need your help. Whether you're a developer, designer, product manager, or writer, there's a place for you here.
 
 ---
 
-## Core Values
+## 🌟 Ways to Contribute
 
-Before contributing, read our [Core Values](CORE-VALUES.md). They explain how we make decisions, resolve conflicts, and collaborate.
+### 1. **Code Contributions**
+- Fix bugs (check [good first issues](https://github.com/randyhereman/axon/labels/good%20first%20issue))
+- Build features (see [roadmap](./dev-docs/2-areas/metrics.md#-current-okrs-q4-2025))
+- Improve performance
+- Add tests
 
-Quick summary:
-1. **Learning from Failure** - Document mistakes as much as wins
-2. **Building in Public** - Share process, not just results
-3. **Collaboration (Human + AI)** - Work with AI tools openly
-4. **Quality Without Perfection** - Ship solutions, iterate continuously
-5. **Knowledge That Sticks** - Practice the CODE framework we preach
+### 2. **Documentation**
+- Improve existing docs
+- Create tutorials
+- Add examples
+- Fix typos
 
----
+### 3. **Design**
+- UI/UX improvements
+- Design components
+- Create templates
+- Refine design tokens
 
-## Commit Message Guidelines
+### 4. **Product**
+- Suggest features
+- Report bugs
+- Share use cases
+- Test beta features
 
-We use **Conventional Commits** because they're readable by both humans and AI. Plus they make changelogs way easier.
-
-### Format
-
-```
-type(scope): subject
-
-Body (optional but encouraged)
-
-Footer (optional)
-```
-
-### Types
-
-- `feat:` - New feature (notes editor, sync system, keyboard shortcuts)
-- `fix:` - Bug fix (broken navigation, sync errors, UI glitches)
-- `docs:` - Documentation only (pattern updates, architecture docs, README)
-- `refactor:` - Code improvement without changing behavior
-- `style:` - Design token updates, UI polish, formatting
-- `test:` - Test additions or fixes
-- `chore:` - Maintenance (dependencies, config, cleanup)
-
-### Scope
-
-Optional but helpful. Indicates what part of the codebase changed:
-
-- `inbox` - Universal inbox features
-- `notes` - Note editor and management
-- `flashcards` - Flashcard system
-- `sync` - Readwise or other sync integrations
-- `auth` - Authentication
-- `ui` - UI components or design tokens
-- `composables` - Svelte composables
-- `docs` - Documentation
-
-### Subject Line
-
-- Use imperative mood ("add" not "added" or "adds")
-- Keep it under 50 characters
-- Capitalize first letter
-- No period at the end
-- Be specific but concise
-
-### Body (Recommended)
-
-This is where you add value. Explain:
-
-- **WHY**: What problem did this solve? What were you trying to achieve?
-- **JOURNEY**: What you tried first (if this is version 2+), why it failed, final solution
-- **PATTERN**: Reference to pattern docs if you added/updated them (#L[NUMBER])
-- **AI**: Credit Claude/Cursor if they contributed a good suggestion
-- **Context**: Links to related issues, patterns, or discussions
-
-Write for both humans and AI:
-- Use semantic section labels (WHY, JOURNEY, PATTERN, AI)
-- Short paragraphs and bullet points
-- Be specific and honest about failures
-- No corporate fluff or hand-waving
-- Share the learning journey, not just the result
-
-### Footer (Optional)
-
-- Reference issues: `Closes #123` or `Relates to #456`
-- Note breaking changes: `BREAKING CHANGE: API endpoint renamed`
-- Credit collaborators: `Co-authored-by: Name <email>`
+### 5. **Community**
+- Answer questions in Discord
+- Write blog posts
+- Create videos
+- Share on social media
 
 ---
 
-## Examples
+## 🚀 Getting Started
 
-### Good Commit Messages
+### 0. **Read Product Principles** ⭐
 
-**Basic feature:**
-```
-feat(inbox): add keyboard navigation with J/K shortcuts
+Before contributing, read our [Product Principles](./dev-docs/2-areas/product-principles.md) to understand:
+- How we make decisions (Privacy First, Outcomes Over Outputs, etc.)
+- What we value (Open Source, Autonomy, AI-Augmented)
+- How to align your contribution with our vision
 
-WHY: Users expect Gmail-style navigation. Makes inbox way faster to process.
-
-Implemented J (next) and K (previous) navigation in the inbox list.
-This matches user expectations from Gmail, Linear, and other tools.
-
-Uses the useKeyboardNavigation composable pattern we established
-in dev-docs/patterns/svelte-reactivity.md.
-
-AI: Claude suggested edge case handling for bottom of list (wraps to top now).
-```
-
-**Bug fix with context:**
-```
-fix(sync): prevent duplicate highlights from Readwise API
-
-WHY: Users were seeing the same highlight twice in their inbox.
-
-JOURNEY:
-- First approach: Filter by highlight ID  
-- Why it failed: Readwise returns duplicates with *different* IDs but identical content
-- Final solution: Hash the content text and dedupe by hash instead
-
-The Readwise API sometimes returns the same highlight with different
-IDs during pagination. Content-based deduplication catches this edge case.
-
-AI: Claude caught that empty highlights would collide - added minimum length check.
-
-Closes #89
-```
-
-**Documentation update:**
-```
-docs(patterns): add Svelte 5 composables pattern after learning it the hard way
-
-WHY: Tried multiple approaches before finding what actually works with Svelte 5 reactivity.
-
-JOURNEY:
-- First approach: Multiple $state variables
-- Why it failed: Caused reactivity issues and component updates failed
-- Final solution: Single $state object with getters (cleaner + works)
-
-PATTERN:
-- Added: "Single $state Object Pattern" (#L780)
-- Documented in: dev-docs/patterns/svelte-reactivity.md
-- Severity: 🔴 (Critical - common gotcha)
-- Updated INDEX.md with new symptom entry
-
-AI: Claude suggested the getter pattern after seeing our reactivity issues.
-```
-
-**Refactor with learning:**
-```
-refactor(composables): use single $state object pattern
-
-WHY: Reactivity issues with component updates across multiple composables.
-
-JOURNEY:
-- First approach: Multiple $state variables (one per piece of state)
-- Why it failed: Svelte 5 reactivity lost track of updates across variables
-- Final solution: Single reactive source with getters
-
-Replaced multiple $state variables with single state object + getters.
-Svelte 5's reactivity works better with a single reactive source.
-
-PATTERN:
-- Applied: "Single $state Object Pattern" (#L780)
-- Reference: dev-docs/patterns/svelte-reactivity.md
-```
-
-### Bad Commit Messages (Anti-Patterns)
-
-❌ `fixed bug` - Too vague, no context, which bug?
-❌ `Updated files` - What files? Why? What changed?
-❌ `feat: added some new stuff to the app` - Not specific, no context
-❌ `WIP` - Work-in-progress shouldn't be committed to main
-❌ `fixes #123` - What was the bug? How did you fix it? Why did it happen?
-❌ `[UI] Fixed stuff` - Missing type/scope format, too vague
-❌ `docs: updated docs` - Circular description, adds no value
-❌ Missing AI credit when Claude/Cursor contributed to the solution
-❌ No JOURNEY when this was clearly iteration 2+ of solving the problem
-❌ Missing pattern reference after updating dev-docs
-
----
-
-## Contribution Workflow
-
-### 1. Fork & Clone
+### 1. **Set Up Your Environment**
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/SynergyOS.git
-cd SynergyOS
-npm install
-```
+# Clone the repo
+git clone https://github.com/randyhereman/axon.git
+cd axon
 
-**Optional: Set up commit message template**
-
-This automatically loads our commit format when you run `git commit`:
-
-```bash
-git config commit.template .gitmessage
-```
-
-Now when you commit, your editor will open with the format pre-filled. Makes following the guidelines way easier.
-
-### 2. Create a Branch
-
-Use descriptive branch names:
-
-```bash
-git checkout -b feat/keyboard-shortcuts
-git checkout -b fix/duplicate-highlights
-git checkout -b docs/composables-pattern
-```
-
-### 3. Make Your Changes
-
-- Follow existing code patterns (check `dev-docs/patterns/`)
-- Use design tokens (check `dev-docs/design-tokens.md`)
-- Write tests for critical paths
-- Update docs if you added/changed patterns
-
-### 4. Test Your Changes
-
-```bash
-# Run unit tests
-npm run test:unit
-
-# Run e2e tests
-npm run test:e2e
-
-# Start dev server and test manually
-npm run dev
-```
-
-### 5. Commit with Context
-
-Write a commit message that explains the why, not just the what.
-
-```bash
-git add .
-git commit
-# Use the format described above
-```
-
-### 6. Push & Create PR
-
-```bash
-git push origin feat/keyboard-shortcuts
-```
-
-Then create a Pull Request on GitHub with:
-- **Title**: Same as commit subject (if single commit)
-- **Description**: More context about the change
-  - What problem does this solve?
-  - How did you test it?
-  - Any patterns or docs you added?
-  - Screenshots (if UI change)
-
----
-
-## Code Review Philosophy
-
-When we review PRs, we're looking for:
-
-1. **Does it work?** (Tested and functional)
-2. **Does it align with our values?** (See CORE-VALUES.md)
-3. **Can we maintain it?** (Clear code, documented patterns)
-4. **Does it help users?** (Solves a real problem)
-
-We review with **curiosity, not criticism**:
-- "Why did you choose this approach?" (genuine question)
-- "Have you considered X?" (collaborative suggestion)
-- "This is great! Could we document it in patterns?" (positive + actionable)
-
-### What We Look For
-
-**Code:**
-- Follows existing patterns (check `dev-docs/patterns/`)
-- Uses design tokens (never hardcoded colors/spacing)
-- Includes tests for critical paths
-- Clear variable/function names
-
-**Documentation:**
-- Added/updated if patterns changed
-- AI-optimized (clear headers, semantic structure)
-- Explains why, not just what
-- Includes examples
-
-**Commits:**
-- Follows conventional commits format
-- Explains context in body
-- References related issues/patterns
-
----
-
-## Documentation Standards
-
-We write docs for both humans and AI. Here's how:
-
-### Structure
-
-```markdown
-# Clear Title
-
-Brief intro explaining what this is about.
-
-## Problem (if applicable)
-
-What problem does this solve?
-
-## Solution
-
-How we solved it.
-
-## Pattern (if applicable)
-
-Reusable pattern others can follow.
-
-## Examples
-
-Real code examples.
-
-## Gotchas
-
-What to watch out for.
-```
-
-### Writing Style
-
-- **Clear headers** - AI uses these for context
-- **Short paragraphs** - Easier to scan
-- **Bullet points** - For lists and steps
-- **Code examples** - Show, don't just tell
-- **No fluff** - Every sentence should add value
-
-### Where Docs Live
-
-- `/dev-docs/patterns/` - Reusable patterns by domain
-- `/dev-docs/patterns/INDEX.md` - Quick pattern lookup
-- `/dev-docs/architecture.md` - Tech stack and structure
-- `/dev-docs/design-tokens.md` - UI token reference
-- `README.md` - Project overview and getting started
-
-### Adding New Patterns
-
-If you discover a pattern worth sharing:
-
-1. Add it to the appropriate domain file in `/dev-docs/patterns/`
-2. Update `/dev-docs/patterns/INDEX.md` with symptom and solution
-3. Include code examples
-4. Explain what you tried first (if relevant)
-
----
-
-## Development Setup
-
-See the main [README.md](README.md) for full setup instructions.
-
-Quick start:
-
-```bash
 # Install dependencies
 npm install
 
-# Start Convex backend
-npx convex dev
+# Set up environment variables
+cp .env.example .env.local
+# Add your Convex deployment URL and other secrets
 
-# Start SvelteKit frontend (in another terminal)
+# Run development server
 npm run dev
+
+# Open http://localhost:5173
 ```
 
-### Key Commands
+**See**: [Architecture Docs](./dev-docs/2-areas/architecture.md) for detailed setup
 
-- `npm run dev` - Start dev server
-- `npm run build` - Build for production
-- `npm run test:unit` - Run unit tests
-- `npm run test:e2e` - Run E2E tests
-- `npm run lint` - Check code quality
+---
 
-### Project Structure
+### 2. **Find Something to Work On**
 
+**Good First Issues:**
+Browse [good first issues](https://github.com/randyhereman/axon/labels/good%20first%20issue) - these are perfect for new contributors!
+
+**Current Priorities:**
+Check [Metrics & OKRs](./dev-docs/2-areas/metrics.md) to see what we're focusing on this quarter.
+
+**Ask the Community:**
+Join [Discord](https://discord.gg/synergyos) and ask in #contributors what needs help.
+
+---
+
+### 3. **Before You Code**
+
+1. **Comment on the issue** - Let others know you're working on it
+2. **Ask questions** - Clarify requirements in the issue or Discord
+3. **Check patterns** - Review [Pattern Index](./dev-docs/2-areas/patterns/INDEX.md) for existing solutions
+
+---
+
+## 📋 Contribution Workflow
+
+### 1. **Fork & Branch**
+
+```bash
+# Fork the repo on GitHub, then:
+git checkout -b feature/your-feature-name
+
+# Use conventional branch names:
+# - feature/add-okr-tracking
+# - fix/sidebar-navigation-bug
+# - docs/update-contributing-guide
 ```
-SynergyOS/
-├── src/
-│   ├── routes/           # SvelteKit routes
-│   ├── lib/
-│   │   ├── components/   # UI components
-│   │   └── composables/  # Svelte 5 composables (.svelte.ts)
-│   └── app.css           # Design token definitions
-├── convex/               # Backend functions & schema
-├── dev-docs/             # Development documentation
-│   └── patterns/         # Reusable patterns by domain
-└── .cursor/              # AI assistant commands
+
+---
+
+### 2. **Follow Our Patterns**
+
+**Before writing code, check:**
+- [Product Principles](./dev-docs/2-areas/product-principles.md) - Decision-making framework ⭐
+- [Design Principles](./dev-docs/2-areas/design-principles.md) - Visual philosophy, accessibility (for UI work) ⭐
+- [Design Tokens](./dev-docs/2-areas/design-tokens.md) - **NEVER hardcode values**
+- [Svelte 5 Patterns](./dev-docs/2-areas/patterns/svelte-reactivity.md) - Composables, $state, $effect
+- [Convex Patterns](./dev-docs/2-areas/patterns/convex-integration.md) - Queries, mutations, auth
+- [UI Patterns](./dev-docs/2-areas/patterns/ui-patterns.md) - Components, layouts
+
+**Example: Using Design Tokens**
+```svelte
+<!-- ❌ WRONG: Hardcoded values -->
+<div class="px-2 py-1.5 bg-gray-900 text-white">
+
+<!-- ✅ CORRECT: Design tokens -->
+<div class="px-nav-item py-nav-item bg-sidebar text-sidebar-primary">
 ```
 
 ---
 
-## Questions?
+### 3. **Write Quality Code**
 
-**Before opening an issue:**
-1. Check `dev-docs/patterns/INDEX.md` for existing patterns
-2. Search existing issues and discussions
-3. Read the relevant docs in `/dev-docs`
+**Code Style:**
+- TypeScript for all new code
+- Use `$state`, `$derived`, `$effect` (Svelte 5 runes)
+- Single `$state` object per composable
+- Design tokens for all spacing/colors
+- Comments for complex logic
 
-**For bugs:** Open an issue with:
-- What you expected to happen
-- What actually happened
-- Steps to reproduce
-- Your environment (browser, OS, etc.)
+**Testing:**
+- Add tests for new features
+- Run `npm test` before committing
+- Ensure existing tests pass
 
-**For features:** Open a discussion first:
-- What problem would this solve?
-- How do you imagine it working?
-- Any examples from other tools?
-
-**For patterns/docs:** Open a PR directly:
-- Add the pattern to the right file
-- Update INDEX.md
-- Explain what you learned
+**Linting:**
+```bash
+npm run lint        # Check for issues
+npm run format      # Auto-fix formatting
+```
 
 ---
 
-## First-Time Contributors
+### 4. **Commit Your Changes**
 
-Welcome! Here's how to start:
+**Use Conventional Commits:**
 
-1. **Read the README** - Understand what we're building
-2. **Read CORE-VALUES.md** - Understand how we work
-3. **Pick a "good first issue"** - We label them in GitHub
-4. **Ask questions** - In discussions, not in your head
-5. **Submit your PR** - Even if it's not perfect (we'll help)
+```bash
+# Format: <type>(<scope>): <description>
 
-We celebrate first-time contributions. Everyone started somewhere.
+git commit -m "feat(docs): add contributing guide"
+git commit -m "fix(sidebar): navigation active state bug"
+git commit -m "docs(readme): update installation steps"
+```
 
----
-
-## License
-
-By contributing, you agree that your contributions will be licensed under the same [MIT License](LICENSE) that covers this project.
-
----
-
-**Thank you for contributing to SynergyOS!**
-
-Remember: We're all figuring this out together. Your contributions help us learn and build something useful. That's the Synergy in SynergyOS.
+**Types:**
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation only
+- `style`: Formatting (no code change)
+- `refactor`: Code restructuring
+- `test`: Adding tests
+- `chore`: Maintenance (deps, config)
 
 ---
 
-**Last Updated:** January 2025  
-**Questions?** Open a discussion or check our [Core Values](CORE-VALUES.md)
+### 5. **Push & Create PR**
+
+```bash
+# Push to your fork
+git push origin feature/your-feature-name
+
+# Create Pull Request on GitHub
+# - Use a clear title
+# - Reference the issue (e.g., "Closes #123")
+# - Add screenshots for UI changes
+# - Explain what changed and why
+```
+
+**PR Template:**
+```markdown
+## What Changed
+Brief description of your changes.
+
+## Why
+Why this change is needed.
+
+## Screenshots (if UI changes)
+Before/after screenshots.
+
+## Checklist
+- [ ] Tests added/updated
+- [ ] Docs updated
+- [ ] Design tokens used (no hardcoded values)
+- [ ] Patterns followed
+- [ ] Linter passed
+
+Closes #<issue-number>
+```
+
+---
+
+### 6. **Code Review**
+
+- **Respond to feedback** - Address comments constructively
+- **Make requested changes** - Push updates to your branch
+- **Be patient** - Reviews may take 1-3 days
+- **Ask questions** - If feedback is unclear, ask!
+
+---
+
+## 🎨 Design Contributions
+
+### Design System
+
+**Before designing:**
+1. **Read [Design Principles](./dev-docs/2-areas/design-principles.md)** ⭐ - Visual philosophy, accessibility, UX
+2. Review [Component Architecture](./dev-docs/2-areas/component-architecture.md) - How components are built
+3. Review [Design Tokens](./dev-docs/2-areas/design-tokens.md) - Available spacing, colors, typography
+4. Check existing [UI Patterns](./dev-docs/2-areas/patterns/ui-patterns.md) - Solved design problems
+5. See [Component Library](./dev-docs/2-areas/component-library) (when available)
+
+**Design Tools:**
+- Figma (preferred)
+- Share files in Discord #design channel
+- Export assets as SVG
+
+**Design Principles Summary** (see full doc for details):
+- **Clarity Over Decoration** - Every element serves a purpose
+- **Accessible by Default** - WCAG AA minimum (AAA where possible)
+- **Consistent Over Novel** - Reuse patterns, not one-offs
+- **Performance is Design** - Fast feels better than pretty
+- **Mobile-First, Desktop-Enhanced** - Design for constraints
+
+---
+
+## 📖 Documentation Contributions
+
+### Types of Docs
+
+**Dev Docs** (`/dev-docs`):
+- Technical patterns
+- Architecture decisions
+- API references
+- Setup guides
+
+**Marketing Docs** (`/marketing-docs`):
+- Product vision
+- User guides
+- Case studies
+- Blog posts
+
+### Writing Style
+
+- **Clear & concise** - Get to the point
+- **Examples first** - Show, don't just tell
+- **Scannable** - Use headings, lists, tables
+- **Actionable** - What should the reader do?
+
+**Format:**
+- Use Markdown (`.md`) or MDX (`.mdx`)
+- Add to PARA structure (`1-projects`, `2-areas`, `3-resources`, `4-archive`)
+- Update sidebar in `DocSidebar.svelte` if adding new section
+
+---
+
+## 🐛 Bug Reports
+
+**Good Bug Reports Include:**
+1. **Clear title** - "Sidebar navigation not working on mobile"
+2. **Steps to reproduce** - Numbered list of actions
+3. **Expected behavior** - What should happen
+4. **Actual behavior** - What actually happens
+5. **Environment** - Browser, OS, version
+6. **Screenshots** - Visual evidence helps!
+
+**Template:**
+```markdown
+### Description
+Brief description of the bug.
+
+### Steps to Reproduce
+1. Go to '...'
+2. Click on '...'
+3. Scroll down to '...'
+4. See error
+
+### Expected Behavior
+What you expected to happen.
+
+### Actual Behavior
+What actually happened.
+
+### Environment
+- OS: macOS 14.1
+- Browser: Chrome 120
+- Version: main branch (commit abc123)
+
+### Screenshots
+[Attach screenshots]
+```
+
+---
+
+## 💡 Feature Requests
+
+**Good Feature Requests Include:**
+1. **Problem statement** - What problem does this solve?
+2. **Proposed solution** - How would it work?
+3. **Alternatives** - What else did you consider?
+4. **Use case** - Who needs this? Why?
+
+**Template:**
+```markdown
+### Problem
+Describe the problem this feature solves.
+
+### Proposed Solution
+How would this feature work?
+
+### Alternatives Considered
+What other solutions did you think about?
+
+### Use Case
+Who needs this? Example scenarios.
+
+### Success Metrics
+How do we know if this is successful?
+```
+
+---
+
+## 🤝 Community Guidelines
+
+### Code of Conduct
+
+**We are committed to:**
+- **Respect** - Treat everyone with respect
+- **Inclusivity** - Welcome all backgrounds
+- **Collaboration** - Work together constructively
+- **Transparency** - Open communication
+
+**We do not tolerate:**
+- Harassment or discrimination
+- Spam or self-promotion
+- Trolling or inflammatory comments
+- Sharing private information
+
+**Enforcement:**
+Violations will result in warnings, temporary bans, or permanent bans depending on severity.
+
+---
+
+### Communication Channels
+
+**Discord** (preferred):
+- #general - General discussion
+- #contributors - Contributor chat
+- #design - Design discussions
+- #help - Get help
+- #showcase - Share what you built
+
+**GitHub Issues**:
+- Bug reports
+- Feature requests
+- Documentation issues
+
+**GitHub Discussions**:
+- Questions & answers
+- Ideas & brainstorming
+- Show & tell
+
+---
+
+## 🏆 Recognition
+
+### Contributors
+
+All contributors are recognized in:
+- [README.md](./README.md) - Contributors section
+- Release notes - Feature credits
+- Blog posts - Contributor spotlights
+
+### Marketplace Builders
+
+Build something awesome? Earn revenue!
+- **80/20 split** - You keep 80%, we take 20%
+- **Featured** - Best apps showcased
+- **Support** - We help you succeed
+
+**See**: [Marketplace Strategy](./marketing-docs/opportunities/marketplace-strategy.md)
+
+---
+
+## 📊 Success Metrics
+
+**We track:**
+- Contributions (PRs merged)
+- Contributors (new + returning)
+- Community size (Discord, GitHub stars)
+- Marketplace apps (built by community)
+
+**Current Metrics**: [See Metrics Dashboard](./dev-docs/2-areas/metrics.md)
+
+---
+
+## 🎯 Priorities (Q4 2025)
+
+**Current Focus:**
+1. **Multi-tenancy** - Orgs & teams (in progress)
+2. **Saprolab validation** - First paying customer
+3. **Community launch** - Public repo, Discord, blog
+4. **Core features** - OKRs, roadmaps, AI coaching
+
+**See**: [Metrics & OKRs](./dev-docs/2-areas/metrics.md) for full roadmap
+
+---
+
+## 🚀 Fast Track for Contributors
+
+**Want to make a big impact fast?**
+
+### High-Priority Areas
+
+1. **Documentation as Product** - Help build doc templates, components
+   - [Value Stream Doc](./dev-docs/2-areas/value-streams/documentation-as-product.md)
+
+2. **Component Library** - Document existing UI components
+   - [Component Library](./dev-docs/2-areas/component-library)
+
+3. **User Journeys** - Create step-by-step guides
+   - [User Journeys](./dev-docs/2-areas/user-journeys)
+
+4. **Testing** - Add test coverage
+   - [Testing Strategy](./dev-docs/3-resources/testing-strategy.md)
+
+5. **Mobile Polish** - Improve responsive design
+   - [Mobile Strategy](./dev-docs/3-resources/mobile-strategy.md)
+
+---
+
+## 📖 Resources
+
+**For Contributors:**
+- [Architecture](./dev-docs/2-areas/architecture.md) - Tech stack overview
+- [Pattern Index](./dev-docs/2-areas/patterns/INDEX.md) - Common solutions
+- [Design Tokens](./dev-docs/2-areas/design-tokens.md) - UI system
+- [Metrics](./dev-docs/2-areas/metrics.md) - OKRs & progress
+
+**For Product People:**
+- [Product Vision 2.0](./marketing-docs/strategy/product-vision-2.0.md) - What we're building
+- [Product Strategy](./marketing-docs/strategy/product-strategy.md) - How we'll get there
+- [Target Personas](./marketing-docs/audience/target-personas.md) - Who we serve
+
+**For Builders:**
+- [Marketplace Strategy](./marketing-docs/opportunities/marketplace-strategy.md) - Builder ecosystem
+- [SDK Docs](./dev-docs/2-areas/marketplace-sdk.md) (coming soon)
+
+---
+
+## ❓ Questions?
+
+- **Discord**: [Join our community](https://discord.gg/synergyos)
+- **GitHub Discussions**: [Ask here](https://github.com/randyhereman/axon/discussions)
+- **Email**: randy@synergyos.dev
+
+---
+
+**Thank you for contributing!** 🎉
+
+Every contribution—big or small—helps us build the Product OS that teams deserve.
+
+**Let's build something amazing together.** 🚀
 

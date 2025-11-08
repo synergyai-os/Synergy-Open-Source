@@ -45,11 +45,14 @@
 **→ [Pattern Index](2-areas/patterns/INDEX)** - Symptom → Solution in < 2 min
 
 ### 🎨 I'm Designing (Designer)
-**→ [Component Library](2-areas/component-library)** *(Coming Soon)*  
-**→ [Design Tokens](2-areas/design-tokens)** - Spacing, colors, typography ✅
+**→ [Design Principles](2-areas/design-principles.md)** - Visual philosophy, accessibility, UX ⭐  
+**→ [Component Architecture](2-areas/component-architecture)** - Tokens → Utilities → Patterns → Components  
+**→ [Design Tokens](2-areas/design-tokens)** - Spacing, colors, typography ✅  
+**→ [Component Library](2-areas/component-library)** *(Coming Soon)*
 
 ### 📊 I'm Planning (Product Manager)
-**→ [Product Vision 2.0](../marketing-docs/strategy/product-vision-2.0.md)** - What we're building ⭐  
+**→ [Product Principles](2-areas/product-principles.md)** - How we make decisions ⭐  
+**→ [Product Vision 2.0](../marketing-docs/strategy/product-vision-2.0.md)** - What we're building  
 **→ [Metrics & Outcomes](2-areas/metrics)** - Public dashboard (revenue, OKRs, AARRR) 💰  
 **→ [Product Strategy](../marketing-docs/strategy/product-strategy.md)** - Outcome-driven roadmap  
 **→ [User Journeys](2-areas/user-journeys)** *(Coming Soon)*

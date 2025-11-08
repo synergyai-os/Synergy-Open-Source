@@ -18,10 +18,13 @@ alwaysApply: true
 
 Read in order:
 1. `dev-docs/product-vision-and-plan.md` - Product vision, current state, next steps
-2. **`dev-docs/patterns/INDEX.md`** - Fast pattern lookup (START HERE for debugging) ⭐
-3. `dev-docs/architecture.md` - Tech stack, auth, composables, project structure
-4. `dev-docs/design-tokens.md` - Design token reference (MANDATORY for UI)
-5. `dev-docs/composables-analysis.md` - Svelte 5 composables analysis
+2. `dev-docs/2-areas/product-principles.md` - How we make decisions (Privacy First, Outcomes Over Outputs, etc.) ⭐
+3. **`dev-docs/patterns/INDEX.md`** - Fast pattern lookup (START HERE for debugging) ⭐
+4. `dev-docs/2-areas/component-architecture.md` - Component strategy: Tokens → Utilities → Patterns → Components
+5. `dev-docs/2-areas/design-principles.md` - Visual philosophy, accessibility, UX (MANDATORY for UI) ⭐
+6. `dev-docs/architecture.md` - Tech stack, auth, composables, project structure
+7. `dev-docs/design-tokens.md` - Design token reference (spacing, colors, typography)
+8. `dev-docs/composables-analysis.md` - Svelte 5 composables analysis
 
 **Pattern Files** (load as needed):
 - `dev-docs/patterns/svelte-reactivity.md` - Svelte 5 runes, composables, $state/$derived

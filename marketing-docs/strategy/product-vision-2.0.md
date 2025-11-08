@@ -2,6 +2,8 @@
 
 > **Vision**: Build the organizational platform that product teams wish existed—one that embeds learning, AI coaching, product discovery, and delivery at the core, powered by a community of builders who want to accelerate the smart use of AI.
 
+> **See Also**: [Product Principles](../../dev-docs/2-areas/product-principles.md) - How we make decisions aligned with this vision ⭐
+
 ---
 
 ## The Problem We're Solving

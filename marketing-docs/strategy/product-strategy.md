@@ -2,9 +2,13 @@
 
 > **Strategy**: Validate with first partner (Saprolab), build multi-tenant foundation, launch community, ship core product tools, enable marketplace—all outcome-driven, no deadlines.
 
+> **See Also**: [Product Principles](../../dev-docs/2-areas/product-principles.md) - Single source of truth for decision-making ⭐
+
 ---
 
 ## Strategic Principles
+
+**Note**: These are strategic execution principles. For core product principles (Privacy First, Outcomes Over Outputs, etc.), see [Product Principles](../../dev-docs/2-areas/product-principles.md).
 
 ### 1. Outcomes Over Outputs
 We don't ship features—we achieve outcomes. Every decision is guided by:

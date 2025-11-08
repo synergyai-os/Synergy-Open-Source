@@ -2,6 +2,10 @@
 
 This document defines our design system tokens used consistently throughout the application. All tokens support automatic light/dark mode adaptation.
 
+> **See Also**: 
+> - [Design Principles](design-principles.md) - Visual philosophy and UX principles (why we design this way)
+> - [Component Architecture](component-architecture.md) - How tokens → utilities → patterns → components work together (how we implement)
+
 ## Typography
 
 - **Nav Item Text**: `text-sm` (0.875rem / 14px)
@@ -209,6 +213,96 @@ For sidebar components, we use sidebar-specific tokens that work with the sideba
 - ✅ Consistent theming across entire application
 
 ## Common Patterns
+
+### Scrollable Container Pattern (CRITICAL - prevents double scrollbars)
+**✨ ALWAYS FOLLOW THIS PATTERN TO AVOID SCROLLBAR ALIGNMENT ISSUES**
+
+**Rule 1: Never nest `overflow-y: auto` containers**
+- Only the **innermost content element** should have `overflow-y: auto`
+- Parent containers should NOT have `overflow` or `max-height`
+- Scrollbar must render on content, not on padding
+
+**Rule 2: Padding belongs on outer container, overflow on inner list**
+
+**❌ WRONG - Double overflow (scrollbar on outer panel):**
+```css
+.panel {
+  padding: 1.5rem;
+  max-height: calc(100vh - 6rem);
+  overflow-y: auto; /* ❌ Scrollbar includes padding */
+}
+
+.list {
+  overflow-y: auto; /* ❌ Double nested overflow */
+}
+```
+
+**✅ CORRECT - Single overflow (scrollbar on inner list):**
+```css
+.panel {
+  padding: var(--spacing-control-panel-padding); /* ✅ Padding on outer */
+  /* NO overflow, NO max-height */
+}
+
+.list {
+  max-height: calc(100vh - 200px);
+  overflow-y: auto; /* ✅ Scrollbar ONLY here */
+  padding-right: 0.25rem; /* Small gap from edge */
+}
+```
+
+**Why This Matters:**
+- ✅ Scrollbar appears 12-20px from right edge (inside padding)
+- ✅ More space for content (padding not included in scroll width)
+- ✅ Consistent with design system (control panel tokens)
+- ✅ Prevents "scrollbar too far right" bug
+
+**Real Example (TableOfContents.svelte):**
+```svelte
+<aside class="toc-panel">  <!-- Outer container -->
+  <nav class="toc">
+    <ul class="toc-list">  <!-- Inner scrollable list -->
+      <!-- items -->
+    </ul>
+  </nav>
+</aside>
+
+<style>
+  .toc-panel.open {
+    padding: var(--spacing-control-panel-padding); /* 12px */
+    /* NO overflow, NO max-height */
+  }
+  
+  .toc-list {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto; /* Scrollbar ONLY here */
+    padding-right: 0.25rem;
+  }
+</style>
+```
+
+**Utility Classes (Recommended):**
+
+Use the pre-built utility classes for foolproof implementation:
+
+```svelte
+<aside class="toc-panel scrollable-outer">  <!-- Padding, NO overflow -->
+  <nav class="toc">
+    <ul class="toc-list scrollable-inner">  <!-- Overflow ONLY here -->
+      <!-- items -->
+    </ul>
+  </nav>
+</aside>
+```
+
+**Available Utilities:**
+- `.scrollable-outer` - Applies `p-control-panel-padding` (12px), prevents outer overflow
+- `.scrollable-inner` - Applies `max-height`, `overflow-y: auto`, `padding-right: 0.25rem`
+
+**Token Usage (Manual CSS):**
+- Use `--spacing-control-panel-padding` (12px) for control panels/toolbars/TOC
+- Use `--spacing-content-padding` (24px) for general content areas
+- Never use arbitrary multipliers like `calc(var(...) * 1.5)`
 
 ### Page/Section Title Pattern (Linear-style subtle naming)
 **✨ USE THIS FOR ALL PAGE/SECTION TITLES IN HEADERS**

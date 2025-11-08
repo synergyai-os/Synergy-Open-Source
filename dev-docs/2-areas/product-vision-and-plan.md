@@ -1,5 +1,9 @@
 # SynergyOS: Product Vision, Strategy & Development Plan
 
+> ⚠️ **HISTORICAL DOCUMENT** - This describes the original vision (personal knowledge retention tool with CODE framework). The vision has evolved.  
+> **→ See [Product Vision 2.0](../../marketing-docs/strategy/product-vision-2.0.md) for the current vision: The Open-Source Product OS for teams.**  
+> **→ See [Product Principles](product-principles.md) for how we make decisions aligned with the vision.**
+
 **OS = Open Source**
 
 ## 🎯 Product Vision
