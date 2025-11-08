@@ -14,7 +14,7 @@
 5. **Ask before pushing** - Always prompt "Push to GitHub? (Y/N)" after commit
 
 **Key workflow:**
-- Step 1: Analyze as user story + capture flow metrics data
+- Step 1: Analyze as user story + capture flow metrics + determine flow distribution
 - Step 2: Use `grep` to search INDEX.md and domain files in parallel
 - Step 3: Use `search_replace` or `write` for updates
 - Step 4: Stage → commit with visual format → show `git log -1 --stat`
@@ -31,6 +31,13 @@
 - **WHO** benefits from this change? (user, developer, contributor, AI assistant)
 - **WHAT VALUE** was delivered? (faster workflow, less errors, better UX)
 - **WHAT SLICE** was completed? (thin, end-to-end functionality that provides value)
+
+**Flow Distribution - Categorize the work:**
+- **🎯 [FEATURE]** - New capability for users
+- **🐛 [BUGFIX]** - Fix broken functionality
+- **🔧 [TECH-DEBT]** - Code quality, refactoring, architecture
+- **📚 [DOCS]** - Documentation, patterns, guides
+- **🔒 [RISK]** - Security, critical hotfixes, data integrity
 
 **User Story Format:**
 ```
@@ -119,183 +126,380 @@ So that [outcome/value]
 
 ### 4. Commit
 
-Use **Gitmoji + Tables + Conventional Commits** format with outcome focus.
+Use **Flow Distribution + Gitmoji + Conventional Commits** with emoji-first format.
 
 #### Format Template
 
 ```
-🎯 type(scope): [what users can now do]
+[ICON CATEGORY] gitmoji type(scope): [what users can now do]
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ 📖 USER STORY                                                      ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📖 USER STORY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-| Role | Capability | Value |
-|------|------------|-------|
-| **As a** [who] | **I can now** [what] | **So that** [why] |
+👤 AS A: [who]
+🎯 I CAN NOW: [what]
+💡 SO THAT: [why]
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ ✨ SLICE COMPLETED                                                 ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ SLICE COMPLETED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 [1-2 sentences describing the end-to-end functionality delivered]
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ 🧭 JOURNEY                                                         ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧭 JOURNEY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-| Step | What Happened | Result |
-|------|---------------|--------|
-| 🔴 **Tried** | [first approach] | ❌ Failed |
-| ⚠️ **Because** | [why it didn't work] | 💡 Learned |
-| ✅ **Solution** | [what actually worked] | 🎉 Shipped |
+🛑 TRIED: [first approach]
+⚠️ BECAUSE: [why it didn't work]
+✅ SOLUTION: [what actually worked]
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ 📐 PATTERN                                                         ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📐 PATTERN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-| Property | Value |
-|----------|-------|
-| **Type** | 🆕 Added / 🔄 Updated / ✓ Applied |
-| **Name** | "Pattern Name" (#L[NUMBER]) |
-| **File** | `dev-docs/patterns/[domain].md` |
-| **Severity** | 🔴 Critical / 🟡 Important / 🟢 Reference |
+🔄 TYPE: Added | Updated | Applied
+📝 NAME: "Pattern Name" (#L[NUMBER])
+📁 FILE: dev-docs/patterns/[domain].md
+🟢 SEVERITY: Critical | Important | Reference
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ 📊 FLOW METRICS                                                    ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 FLOW METRICS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-| Metric | Value | Metric | Value |
-|--------|-------|--------|-------|
-| 🏷️ **Type** | feature / bugfix / tech-debt / docs / refactor | 📦 **Size** | small / medium / large |
-| ⏱️ **Flow Days** | [number] | ⚡ **Active Hours** | [number] |
-| 🚧 **Blocked Hours** | [number] | 📁 **Files Changed** | [number] |
-| 💥 **Impact** | high / medium / low | | |
+🏷️ TYPE: feature | bugfix | tech-debt | docs
+📦 SIZE: small | medium | large
+⏱️ DAYS: [number]
+⚡ ACTIVE: [number] hours
+🚧 BLOCKED: [number] hours
+📁 FILES: [number]
+💥 IMPACT: high | medium | low
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🤖 **AI:** [collaboration notes]
-🔗 **Closes:** #[issue]
+🤖 AI: [collaboration notes]
+🔗 CLOSES: #[issue]
 ```
 
-#### Gitmoji Guide (Subject Line)
+#### Flow Distribution Categories (Subject Line Prefix)
 
-Use at start of subject line for visual context:
+| Category | Icon | When to Use | Example |
+|----------|------|-------------|---------|
+| 🎯 [FEATURE] | ✨ | New user capability | `🎯 [FEATURE] ✨ feat(inbox): keyboard nav` |
+| 🐛 [BUGFIX] | 🐛 | Fix broken functionality | `🐛 [BUGFIX] 🐛 fix(notes): clear stale state` |
+| 🔧 [TECH-DEBT] | ♻️ | Refactor, architecture, code quality | `🔧 [TECH-DEBT] ♻️ refactor(auth): extract composable` |
+| 📚 [DOCS] | 📝 | Documentation, patterns | `📚 [DOCS] 📝 docs(patterns): add Svelte 5 guide` |
+| 🔒 [RISK] | 🚑️ | Security, critical hotfix, data integrity | `🔒 [RISK] 🚑️ fix(auth): patch session leak` |
 
-| Gitmoji | Code | When to Use |
-|---------|------|-------------|
-| ✨ | `:sparkles:` | New feature |
-| 🐛 | `:bug:` | Bug fix |
-| 📝 | `:memo:` | Documentation |
-| 🎨 | `:art:` | Improve structure/format |
-| ⚡️ | `:zap:` | Performance improvement |
-| ♻️ | `:recycle:` | Refactor code |
-| 💄 | `:lipstick:` | UI/style updates |
-| 🔒️ | `:lock:` | Security fix |
-| 🚑️ | `:ambulance:` | Critical hotfix |
-| 💡 | `:bulb:` | Add comments |
-| ✅ | `:white_check_mark:` | Add tests |
+#### Gitmoji Guide (After Category)
+
+| Gitmoji | Code | Conventional Type |
+|---------|------|-------------------|
+| ✨ | `:sparkles:` | `feat:` - New feature |
+| 🐛 | `:bug:` | `fix:` - Bug fix |
+| 📝 | `:memo:` | `docs:` - Documentation |
+| ♻️ | `:recycle:` | `refactor:` - Refactor |
+| 💄 | `:lipstick:` | `style:` - UI/design |
+| ⚡️ | `:zap:` | `perf:` - Performance |
+| 🚑️ | `:ambulance:` | `fix:` - Critical hotfix |
+| 🔒️ | `:lock:` | `fix:` - Security |
+| ✅ | `:white_check_mark:` | `test:` - Tests |
 
 #### Type & Scope
 
 **Types:**
-- `feat:` - New feature (use ✨)
-- `fix:` - Bug fix (use 🐛)
-- `docs:` - Documentation/patterns (use 📝)
-- `refactor:` - Code improvement (use ♻️)
-- `style:` - Design tokens, UI polish (use 💄)
-- `test:` - Test additions (use ✅)
-- `chore:` - Maintenance (use 🔧)
+- `feat:` - New feature (use with 🎯 [FEATURE])
+- `fix:` - Bug fix (use with 🐛 [BUGFIX] or 🔒 [RISK])
+- `docs:` - Documentation (use with 📚 [DOCS])
+- `refactor:` - Code improvement (use with 🔧 [TECH-DEBT])
+- `style:` - Design tokens, UI
+- `perf:` - Performance improvement
+- `test:` - Test additions
+- `chore:` - Maintenance
 
 **Scopes:**
 - `inbox`, `notes`, `flashcards`, `sync`, `auth`, `ui`, `composables`, `docs`, `commands`
 
-#### Complete Example
+#### Complete Examples
 
+**Feature Example:**
 ```
-✨ feat(inbox): power users process inbox 10x faster with keyboard nav
+🎯 [FEATURE] ✨ feat(inbox): power users process inbox 10x faster
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ 📖 USER STORY                                                      ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📖 USER STORY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-| Role | Capability | Value |
-|------|------------|-------|
-| **As a** power user processing dozens of inbox items | **I can now** navigate with J/K shortcuts (Gmail/Linear style) | **So that** I can fly through my inbox without touching the mouse |
+👤 AS A: power user processing dozens of inbox items daily
+🎯 I CAN NOW: navigate with J/K shortcuts (like Gmail, Linear)
+💡 SO THAT: I can fly through my inbox without touching the mouse
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ ✨ SLICE COMPLETED                                                 ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ SLICE COMPLETED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Full keyboard navigation: **J** moves down, **K** moves up, wraps at 
-boundaries, respects focus context. Power users can now fly through inbox.
+Full keyboard navigation: J moves down, K moves up, wraps at boundaries,
+respects focus context. Power users can now fly through inbox.
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ 🧭 JOURNEY                                                         ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧭 JOURNEY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-| Step | What Happened | Result |
-|------|---------------|--------|
-| 🔴 **Tried** | Simple event listeners on mount | ❌ Failed |
-| ⚠️ **Because** | Fired during typing, broke modals | 💡 Learned |
-| ✅ **Solution** | Context-aware composable with focus checks | 🎉 Shipped |
+🛑 TRIED: Simple event listeners on component mount
+⚠️ BECAUSE: Fired during typing, broke modal shortcuts
+✅ SOLUTION: Context-aware composable with focus checks
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ 📐 PATTERN                                                         ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📐 PATTERN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-| Property | Value |
-|----------|-------|
-| **Type** | 🆕 Added |
-| **Name** | "Context-Aware Keyboard Shortcuts" (#L320) |
-| **File** | `dev-docs/patterns/ui-patterns.md` |
-| **Severity** | 🟢 Reference |
+🆕 TYPE: Added
+📝 NAME: "Context-Aware Keyboard Shortcuts" (#L320)
+📁 FILE: dev-docs/patterns/ui-patterns.md
+🟢 SEVERITY: Reference
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-┃ 📊 FLOW METRICS                                                    ┃
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 FLOW METRICS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-| Metric | Value | Metric | Value |
-|--------|-------|--------|-------|
-| 🏷️ **Type** | feature | 📦 **Size** | medium |
-| ⏱️ **Flow Days** | 2 | ⚡ **Active Hours** | 8 |
-| 🚧 **Blocked Hours** | 0 | 📁 **Files Changed** | 5 |
-| 💥 **Impact** | high | | |
+🏷️ TYPE: feature
+📦 SIZE: medium
+⏱️ DAYS: 2
+⚡ ACTIVE: 8 hours
+🚧 BLOCKED: 0 hours
+📁 FILES: 5
+💥 IMPACT: high
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🤖 **AI:** Claude suggested circular navigation at list boundaries
-🔗 **Closes:** #67
+🤖 AI: Claude suggested circular navigation at list boundaries
+🔗 CLOSES: #67
+```
+
+**Bugfix Example:**
+```
+🐛 [BUGFIX] 🐛 fix(notes): users see correct note immediately
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📖 USER STORY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👤 AS A: user browsing notes
+🎯 I CAN NOW: see correct content instantly when switching
+💡 SO THAT: I'm not confused by stale data flashing briefly
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ SLICE COMPLETED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Note switching now clears previous state before loading new content.
+The jarring flash of old content is gone. Smooth transitions achieved.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧭 JOURNEY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🛑 TRIED: Force re-render with key prop
+⚠️ BECAUSE: Race condition with async data load
+✅ SOLUTION: Explicit clear() call on note switch
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📐 PATTERN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔄 TYPE: Updated
+📝 NAME: "Component State Management" (#L450)
+📁 FILE: dev-docs/patterns/svelte-reactivity.md
+🟡 SEVERITY: Important
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 FLOW METRICS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🏷️ TYPE: bugfix
+📦 SIZE: small
+⏱️ DAYS: 1
+⚡ ACTIVE: 3 hours
+🚧 BLOCKED: 0 hours
+📁 FILES: 2
+💥 IMPACT: medium
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 Caught while testing Linear-style modal redesign
+```
+
+**Documentation Example:**
+```
+📚 [DOCS] 📝 docs(patterns): developers avoid Svelte 5 gotchas
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📖 USER STORY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👤 AS A: developer new to Svelte 5
+🎯 I CAN NOW: use the correct $state pattern
+💡 SO THAT: my components update reactively without mysterious bugs
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ SLICE COMPLETED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Documented the single $state object pattern after hitting the gotcha 
+ourselves. Developers can avoid hours of debugging. We suffered so you 
+don't have to. 😅
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧭 JOURNEY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🛑 TRIED: Multiple $state variables (seemed cleaner)
+⚠️ BECAUSE: Svelte 5 lost track of updates across variables
+✅ SOLUTION: Single $state object with getters (actually cleaner!)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📐 PATTERN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🆕 TYPE: Added
+📝 NAME: "Single $state Object Pattern" (#L780)
+📁 FILE: dev-docs/patterns/svelte-reactivity.md
+🔴 SEVERITY: Critical
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 FLOW METRICS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🏷️ TYPE: docs
+📦 SIZE: medium
+⏱️ DAYS: 1
+⚡ ACTIVE: 4 hours
+🚧 BLOCKED: 0 hours
+📁 FILES: 2
+💥 IMPACT: high
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🤖 AI: Claude suggested the getter pattern and caught edge cases
+📚 Updated INDEX.md with symptom entry
+```
+
+**Tech Debt Example:**
+```
+🔧 [TECH-DEBT] ♻️ refactor(auth): extract session logic to composable
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📖 USER STORY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👤 AS A: developer maintaining auth code
+🎯 I CAN NOW: reuse session logic across components
+💡 SO THAT: auth code is DRY and easier to test
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ SLICE COMPLETED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Extracted duplicated session management into useSession composable.
+Reduced auth code by 40%, improved testability.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧭 JOURNEY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🛑 TRIED: Extract to utility functions
+⚠️ BECAUSE: Lost reactivity when session changed
+✅ SOLUTION: Svelte composable with $state
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 FLOW METRICS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🏷️ TYPE: tech-debt
+📦 SIZE: small
+⏱️ DAYS: 1
+⚡ ACTIVE: 3 hours
+🚧 BLOCKED: 0 hours
+📁 FILES: 4
+💥 IMPACT: low
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🤖 AI: Suggested composable pattern over utility functions
+```
+
+**Risk/Critical Example:**
+```
+🔒 [RISK] 🚑️ fix(auth): patch session token leak in dev mode
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📖 USER STORY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+👤 AS A: user with sensitive data
+🎯 I CAN NOW: trust that my session tokens aren't exposed
+💡 SO THAT: my account remains secure
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ SLICE COMPLETED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Session tokens were logged in dev console. Removed console.log statements,
+added secure flag to cookies. Security vulnerability patched.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧭 JOURNEY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🛑 TRIED: Just removed console.log
+⚠️ BECAUSE: Tokens still visible in network tab
+✅ SOLUTION: Secure + HttpOnly cookie flags + no logging
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 FLOW METRICS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🏷️ TYPE: bugfix
+📦 SIZE: small
+⏱️ DAYS: 0.5
+⚡ ACTIVE: 2 hours
+🚧 BLOCKED: 0 hours
+📁 FILES: 3
+💥 IMPACT: high
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚨 CRITICAL: Security issue - fast tracked
 ```
 
 **📖 Teaching Notes:**
 
-**User Stories:** "As a [who], I want [what], so that [why]". The "so that" explains outcome/value, keeping us focused on user value over outputs.
+**Flow Distribution:** Categories show work balance. Track over time to see if you're building features vs fighting fires vs paying down debt.
 
-**Vertical Slicing:** Thin, end-to-end functionality that delivers value. Build one complete flow (UI → logic → data) instead of layers.
+**User Stories:** "As a [who], I want [what], so that [why]". The "so that" explains outcome/value.
 
-**Flow Metrics:** Turn git history into product analytics. Track velocity, cycle time, efficiency, and distribution to spot patterns and improve.
+**Vertical Slicing:** Thin, end-to-end functionality. Build complete flows, not layers.
 
-**Gitmoji:** Visual commit icons make git history scannable and fun. Align with our brand: dramatic but funny, technical but human.
+**Flow Metrics:** Turn git history into product analytics. Parseable format enables analysis.
+
+**Emoji-First:** GitHub doesn't render tables/bold in commits. Emojis + CAPS labels work everywhere.
 
 #### Anti-Patterns
 
+**Missing Flow Distribution:**
+- ❌ `✨ feat(inbox): keyboard navigation`
+- ✅ `🎯 [FEATURE] ✨ feat(inbox): keyboard navigation`
+
 **Technical-focused (not outcome-focused):**
-- ❌ `fix(notes): clear state on switch` → ✅ `🐛 fix(notes): users see correct note immediately`
-- ❌ `feat: added keyboard shortcuts` → ✅ `✨ feat: power users process inbox 10x faster`
-- ❌ `docs: updated patterns` → ✅ `📝 docs: developers avoid Svelte 5 gotchas`
+- ❌ `fix(notes): clear state on switch`
+- ✅ `🐛 [BUGFIX] 🐛 fix(notes): users see correct note immediately`
 
 **Missing visual elements:**
+- ❌ No flow distribution category
 - ❌ No gitmoji in subject line
-- ❌ Plain text instead of tables
 - ❌ Missing flow metrics section
-- ❌ No journey table showing learning
-
-**Missing context:**
-- ❌ `Fixed bug` - Which bug? What value delivered?
-- ❌ `Updated files` - What capability enabled?
-- ❌ Missing USER STORY when change impacts users
-- ❌ Missing SLICE explanation
+- ❌ No journey showing learning
 
 **Do NOT push yet** - proceed to step 5.
 
@@ -334,16 +538,19 @@ Keep response concise. Show push result or "Staying local" confirmation.
 - [ ] Validated with Context7 (if library-specific)
 - [ ] Updated INDEX.md symptom table
 - [ ] Chose correct severity (🔴🟡🟢)
+- [ ] Determined flow distribution category
 
 **Commit Message:**
+- [ ] Started with flow distribution: [ICON CATEGORY]
 - [ ] Used gitmoji + conventional commit format
-- [ ] Created USER STORY table with role/capability/value
+- [ ] Subject describes outcome (what users can now do)
+- [ ] USER STORY section with 👤🎯💡 format
 - [ ] Described SLICE (end-to-end functionality delivered)
-- [ ] Added JOURNEY table if iteration 2+ (tried/because/solution)
-- [ ] Created PATTERN table if applicable (type/name/file/severity)
-- [ ] Filled FLOW METRICS table (8 data points)
+- [ ] Added JOURNEY if iteration 2+ (🛑⚠️✅ format)
+- [ ] Created PATTERN section if applicable
+- [ ] Filled FLOW METRICS section (7 data points)
 - [ ] Credited AI collaboration if applicable
-- [ ] Added issue reference if applicable (Closes #123)
+- [ ] Added issue reference if applicable (CLOSES: #123)
 
 **After Commit:**
 - [ ] Showed commit with `git log -1 --stat`
@@ -361,16 +568,19 @@ Keep response concise. Show push result or "Staying local" confirmation.
 - ❌ Don't add to Critical unless it breaks functionality
 - ❌ Don't push without asking user first
 - ❌ Don't use multiple git add commands - batch all files
+- ❌ Don't skip flow distribution category
 - ❌ Don't skip gitmoji - makes history scannable
 - ❌ Don't skip flow metrics - we need data for analysis
+- ❌ Don't use tables/bold - they don't render on GitHub
 
 ---
 
 ## Quick AI Workflow
 
 ```
-1. Analyze → Frame as user story + capture flow metrics
+1. Analyze → Frame as user story + flow metrics + distribution
    - WHO benefits? WHAT VALUE? WHAT SLICE?
+   - Category: FEATURE | BUGFIX | TECH-DEBT | DOCS | RISK
    - Type, size, days, hours, blocked, files, impact
    
 2. grep INDEX.md → Check existing patterns
@@ -378,12 +588,12 @@ Keep response concise. Show push result or "Staying local" confirmation.
 3. Update patterns → search_replace domain files + INDEX.md
 
 4. Commit with visual format:
-   - Gitmoji + subject (outcome-focused)
-   - USER STORY table
+   - [ICON CATEGORY] gitmoji type(scope): outcome
+   - USER STORY (👤🎯💡)
    - SLICE description
-   - JOURNEY table (if iteration 2+)
-   - PATTERN table (if applicable)
-   - FLOW METRICS table (always)
+   - JOURNEY (🛑⚠️✅) if iteration 2+
+   - PATTERN section if applicable
+   - FLOW METRICS (7 data points)
    - AI credit + issue close
    
 5. Ask: "Push to GitHub? (Y/N)"
