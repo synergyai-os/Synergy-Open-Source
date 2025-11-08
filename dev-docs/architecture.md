@@ -1,8 +1,10 @@
-# Axon Architecture & Tech Stack
+# SynergyOS Architecture & Tech Stack
+
+**OS = Open Source**
 
 ## Overview
 
-Axon is a full-stack application built with modern web technologies, designed for both web and mobile platforms. The architecture follows a hybrid authentication model with server-side validation and client-side state management.
+SynergyOS is a full-stack open source application built with modern web technologies, designed for both web and mobile platforms. The architecture follows a hybrid authentication model with server-side validation and client-side state management.
 
 ## Tech Stack
 
@@ -27,7 +29,7 @@ Axon is a full-stack application built with modern web technologies, designed fo
 
 ### 🔐 Authentication Model: **Hybrid (Server-Side Validated)**
 
-Axon uses a **hybrid authentication approach** that combines:
+SynergyOS uses a **hybrid authentication approach** that combines:
 - **Server-side validation** (primary security layer)
 - **Client-side state management** (UX layer)
 

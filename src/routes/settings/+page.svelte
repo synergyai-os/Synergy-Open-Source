@@ -2,9 +2,10 @@
 	import { Switch } from 'bits-ui';
 	import { theme, isDark } from '$lib/stores/theme';
 	import { browser } from '$app/environment';
-	import { onMount } from 'svelte';
+	import { onMount, getContext } from 'svelte';
 	import type { FunctionReference, FunctionReturnType } from 'convex/server';
 	import type { Id } from '../../../convex/_generated/dataModel';
+	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 
 	// Types for Convex hooks
 	type UseQueryReturn<Query extends FunctionReference<'query'>> = {
@@ -64,41 +65,76 @@
 	// Import at top level (safe to import, execution is guarded)
 	import { makeFunctionReference } from 'convex/server';
 	
+	// Get workspace context
+	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
+	const organizationSummaries = $derived(() => organizations?.organizations ?? []);
+	const currentOrganization = $derived(() => {
+		const orgId = activeOrganizationId();
+		if (!orgId) return null;
+		return organizationSummaries().find(org => org.organizationId === orgId);
+	});
+	const workspaceContext = $derived(() => {
+		if (currentOrganization()) {
+			return { type: 'organization', name: currentOrganization()!.name };
+		}
+		return { type: 'personal', name: 'Personal Workspace' };
+	});
+	
 	const settingsApiFunctions = browser ? {
+		// User settings
 		getUserSettings: makeFunctionReference('settings:getUserSettings') as any,
 		updateClaudeApiKey: makeFunctionReference('settings:updateClaudeApiKey') as any,
 		updateReadwiseApiKey: makeFunctionReference('settings:updateReadwiseApiKey') as any,
 		updateTheme: makeFunctionReference('settings:updateTheme') as any,
 		deleteClaudeApiKey: makeFunctionReference('settings:deleteClaudeApiKey') as any,
 		deleteReadwiseApiKey: makeFunctionReference('settings:deleteReadwiseApiKey') as any,
-		// CRITICAL: decryptApiKey removed - we NEVER decrypt keys on the client for security
+		// Organization settings
+		getOrganizationSettings: makeFunctionReference('organizationSettings:getOrganizationSettings') as any,
+		updateOrganizationClaudeApiKey: makeFunctionReference('organizationSettings:updateOrganizationClaudeApiKey') as any,
+		deleteOrganizationClaudeApiKey: makeFunctionReference('organizationSettings:deleteOrganizationClaudeApiKey') as any,
 	} : null;
 
 	// Load settings using client.query (not useQuery, to keep it simple)
 	let userSettings: UserSettings | null = $state(null);
 	
-		// Load settings when client is ready and user is authenticated
-		onMount(async () => {
-			if (!browser || !convexClient || !settingsApiFunctions || !isAuthenticated) {
-				return;
+	// Load settings when client is ready and user is authenticated
+	onMount(async () => {
+		if (!browser || !convexClient || !settingsApiFunctions || !isAuthenticated) {
+			return;
+		}
+		
+		try {
+			// Load personal settings
+			const settings = await convexClient.query(settingsApiFunctions.getUserSettings, {});
+			if (settings) {
+				userSettings = settings as UserSettings;
+				
+				// SECURITY: NEVER decrypt keys on the client - only track if they exist
+				// Keys are encrypted in the database and should NEVER be sent to the client
+				// Use boolean flags from query to know if keys exist
+				claudeHasKey = settings.hasClaudeKey || false;
+				readwiseHasKey = settings.hasReadwiseKey || false;
+				// Keep inputs empty - never display actual keys on client
 			}
 			
-			try {
-				const settings = await convexClient.query(settingsApiFunctions.getUserSettings, {});
-				if (settings) {
-					userSettings = settings as UserSettings;
-					
-					// SECURITY: NEVER decrypt keys on the client - only track if they exist
-					// Keys are encrypted in the database and should NEVER be sent to the client
-					// Use boolean flags from query to know if keys exist
-					claudeHasKey = settings.hasClaudeKey || false;
-					readwiseHasKey = settings.hasReadwiseKey || false;
-					// Keep inputs empty - never display actual keys on client
+			// Load organization settings if in org workspace
+			const orgId = activeOrganizationId();
+			if (orgId) {
+				const orgSettings = await convexClient.query(
+					settingsApiFunctions.getOrganizationSettings, 
+					{ organizationId: orgId }
+				);
+				if (orgSettings) {
+					isOrgAdmin = orgSettings.isAdmin || false;
+					// Track if org has Claude key (Readwise is always personal)
+					// orgClaudeHasKey will be added below if needed
 				}
-			} catch (e) {
-				// Silently handle errors - user will see empty inputs
 			}
-		});
+		} catch (e) {
+			// Silently handle errors - user will see empty inputs
+		}
+	});
 	
 	// Mutation functions - created when client and functions are ready
 	let updateClaudeApiKeyFn: ((args: { apiKey: string }) => Promise<string>) | null = $state(null);
@@ -128,9 +164,15 @@
 
 	// State for API keys (initialized from Convex)
 	// CRITICAL: These are for user input ONLY - we NEVER store or display actual saved keys on the client
+	
+	// Personal workspace keys
 	let claudeApiKey = $state('');
 	let readwiseApiKey = $state('');
-	// Eye icons removed - we never show API keys on the client for security
+	
+	// Organization workspace keys (separate state)
+	let orgClaudeApiKey = $state('');
+	let orgReadwiseApiKey = $state(''); // User's personal Readwise for org imports
+	let isOrgAdmin = $state(false); // Whether user can edit org settings
 
 	// Settings are loaded directly in onMount above, no separate effect needed
 
@@ -295,7 +337,35 @@
 <div class="h-screen bg-base overflow-y-auto">
 	<div class="max-w-4xl mx-auto p-inbox-container">
 		<!-- Page Title -->
-		<h1 class="text-2xl font-bold text-primary mb-8">Settings</h1>
+		<h1 class="text-2xl font-bold text-primary mb-4">Settings</h1>
+
+		<!-- Workspace Context Banner -->
+		<div class="mb-8 bg-accent-primary/10 border border-accent-primary/20 rounded-md p-4">
+			<div class="flex items-start gap-3">
+				<svg class="w-5 h-5 text-accent-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+				</svg>
+				<div class="flex-1 min-w-0">
+					<p class="text-sm font-medium text-accent-primary mb-1">
+						{#if workspaceContext().type === 'personal'}
+							Personal Settings
+						{:else}
+							Organization Settings: {workspaceContext().name}
+						{/if}
+					</p>
+					<p class="text-sm text-secondary">
+						{#if workspaceContext().type === 'personal'}
+							These settings apply to your personal workspace only.
+						{:else}
+							These settings apply to {workspaceContext().name} organization. Switch to personal workspace for your personal settings.
+						{/if}
+					</p>
+					<p class="text-xs text-tertiary mt-2">
+						<strong>Coming soon:</strong> Team-specific settings and advanced organization management.
+					</p>
+				</div>
+			</div>
+		</div>
 
 		<div class="flex flex-col gap-settings-section">
 			<!-- General Section -->
@@ -304,17 +374,24 @@
 					<h2 class="text-base font-bold text-primary mb-6">General</h2>
 
 					<div class="flex flex-col gap-settings-row">
-						<!-- Theme Preference -->
-						<div class="px-settings-row py-settings-row border-b border-base last:border-b-0">
-							<div class="flex items-start justify-between gap-4">
-								<div class="flex-1 min-w-0">
-									<label for="theme-toggle" class="block text-sm font-medium text-primary mb-1">
-										Interface theme
-									</label>
-									<p class="text-sm text-secondary">
+					<!-- Theme Preference -->
+					<div class="px-settings-row py-settings-row border-b border-base last:border-b-0">
+						<div class="flex items-start justify-between gap-4">
+							<div class="flex-1 min-w-0">
+								<label for="theme-toggle" class="block text-sm font-medium text-primary mb-1">
+									Interface theme
+									<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 ml-2">
+										👤 Personal Only
+									</span>
+								</label>
+								<p class="text-sm text-secondary">
+									{#if workspaceContext().type === 'organization'}
+										Theme preferences are personal. Switch to your personal workspace to change.
+									{:else}
 										Select your preferred color scheme
-									</p>
-								</div>
+									{/if}
+								</p>
+							</div>
 								<div class="flex items-center gap-icon" role="presentation">
 									<span class="text-sm text-secondary">
 										{$isDark ? 'Dark mode' : 'Light mode'}
@@ -350,18 +427,21 @@
 											/>
 										</svg>
 									{/if}
-									<Switch.Root
-										id="theme-toggle"
-										checked={$isDark}
-										onCheckedChange={(checked) => {
+								<Switch.Root
+									id="theme-toggle"
+									checked={$isDark}
+									disabled={workspaceContext().type === 'organization'}
+									onCheckedChange={(checked) => {
+										if (workspaceContext().type !== 'organization') {
 											theme.setTheme(checked ? 'dark' : 'light');
-										}}
-										class="relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 {$isDark ? 'bg-gray-900' : 'bg-gray-300'}"
-									>
-										<Switch.Thumb
-											class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0 data-[state=checked]:translate-x-4"
-										/>
-									</Switch.Root>
+										}
+									}}
+									class="relative inline-flex h-4 w-8 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 {workspaceContext().type === 'organization' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} {$isDark ? 'bg-gray-900' : 'bg-gray-300'}"
+								>
+									<Switch.Thumb
+										class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0 data-[state=checked]:translate-x-4"
+									/>
+								</Switch.Root>
 								</div>
 							</div>
 						</div>
@@ -381,9 +461,31 @@
 								<div class="flex-1 min-w-0">
 									<label for="claude-key" class="block text-sm font-medium text-primary mb-1">
 										Claude API Key
+										{#if workspaceContext().type === 'organization'}
+											<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 ml-2">
+												🏢 Organization
+											</span>
+											{#if !isOrgAdmin}
+												<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 ml-1">
+													🔒 Admin Only
+												</span>
+											{/if}
+										{:else}
+											<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 ml-2">
+												👤 Personal
+											</span>
+										{/if}
 									</label>
 									<p class="text-sm text-secondary">
-										Used for AI-powered flashcard generation from your content
+										{#if workspaceContext().type === 'organization'}
+											{#if isOrgAdmin}
+												Organization's Claude API key (admin controlled). Cost attributed to organization.
+											{:else}
+												Contact an admin to configure the organization's Claude API key.
+											{/if}
+										{:else}
+											Used for AI-powered flashcard generation from your content (personal use only)
+										{/if}
 									</p>
 								</div>
 								<div class="flex flex-col gap-1 flex-shrink-0">
@@ -394,13 +496,13 @@
 											bind:value={claudeApiKey}
 											oninput={(e) => handleClaudeKeyInput(e.currentTarget.value)}
 											onblur={handleClaudeKeyBlur}
-											disabled={claudeValidationState === 'validating'}
-											placeholder={claudeHasKey ? '••••••••••••••••' : 'sk-...'}
+											disabled={claudeValidationState === 'validating' || (workspaceContext().type === 'organization' && !isOrgAdmin)}
+											placeholder={workspaceContext().type === 'organization' && !isOrgAdmin ? 'Contact admin' : (claudeHasKey ? '••••••••••••••••' : 'sk-...')}
 											class="w-64 px-3 py-2 pr-10 text-sm bg-base border {claudeValidationState === 'valid'
 												? 'border-green-500'
 												: claudeValidationState === 'invalid'
 													? 'border-red-500'
-													: 'border-base'} rounded-md text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all {claudeValidationState === 'validating'
+													: 'border-base'} rounded-md text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all {claudeValidationState === 'validating' || (workspaceContext().type === 'organization' && !isOrgAdmin)
 												? 'opacity-50 cursor-not-allowed'
 												: ''}"
 										/>
@@ -519,10 +621,22 @@
 										class="block text-sm font-medium text-primary mb-1"
 									>
 										Readwise API Key
+										<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 ml-2">
+											👤 Personal (User-owned)
+										</span>
 									</label>
 									<p class="text-sm text-secondary">
-										Import highlights and notes from your Readwise account
+										{#if workspaceContext().type === 'organization'}
+											Your personal Readwise account. Imports will be shared with the organization.
+										{:else}
+											Import highlights and notes from your personal Readwise account
+										{/if}
 									</p>
+									{#if workspaceContext().type === 'organization'}
+										<p class="text-xs text-blue-600 dark:text-blue-400 mt-1">
+											💡 Tip: Use the same key across workspaces to sync content everywhere
+										</p>
+									{/if}
 								</div>
 								<div class="flex flex-col gap-1 flex-shrink-0">
 									<div class="relative inline-block">

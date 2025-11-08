@@ -252,6 +252,310 @@ Add narrow helper functions (e.g. `captureOrganizationCreated(ctx, params)`) tha
 - Build dashboards that slice metrics by org/team using PostHog’s group analytics (funnels, retention, breakdowns). Verify that group properties are populated before shipping multi-tenant features—missing properties will lead to fragmented data.
 - For compliance/privacy, decide which events (if any) should be sent to a separate PostHog project or redacted. Private events can be stored under a different API key while still using the same authentication flow.
 
+## Quick Create Feature - Tracking Plan
+
+### Overview
+
+The Quick Create feature allows users to rapidly create new content items (Notes, Flashcards, Highlights) with minimal friction. The long-term vision includes auto-detecting content type and tags to reduce time-to-input from multiple steps to a single action.
+
+**Success Metrics**:
+- Adoption rate: % of users who use Quick Create vs traditional flows
+- Speed improvement: Time from start to completion
+- Completion rate: % of started creations that complete
+- Auto-detection accuracy (future): % of auto-detected types/tags that users accept without editing
+
+### Event Taxonomy
+
+#### Core Creation Events
+
+**`quick_create_opened`** - User initiates Quick Create flow
+```typescript
+{
+  distinctId: string;
+  properties: {
+    trigger_method: 'keyboard_n' | 'header_button' | 'footer_button';
+    has_active_item: boolean; // Was another item selected?
+    current_view: 'inbox' | 'flashcards' | 'tags' | 'my_mind' | 'study';
+    items_in_view: number; // Context for when user creates
+  }
+}
+```
+
+**`quick_create_type_selected`** - User selects content type
+```typescript
+{
+  distinctId: string;
+  properties: {
+    content_type: 'note' | 'flashcard' | 'highlight';
+    selection_method: 'click' | 'keyboard_c' | 'keyboard_nav'; // How they chose
+    time_to_select_ms: number; // Time from open to type selection
+    was_auto_detected: boolean; // Future: was this pre-selected?
+    auto_detection_confidence?: number; // Future: 0-1 confidence score
+  }
+}
+```
+
+**`quick_create_tags_modified`** - User adds/removes tags during creation
+```typescript
+{
+  distinctId: string;
+  properties: {
+    content_type: 'note' | 'flashcard' | 'highlight';
+    tags_added_count: number;
+    tags_removed_count: number; // Future: when auto-detected tags are removed
+    total_tags: number;
+    used_tag_search: boolean;
+    created_new_tag: boolean;
+    tag_assignment_time_ms: number; // Time spent on tags
+  }
+}
+```
+
+**`quick_create_completed`** - Creation successfully saved
+```typescript
+{
+  distinctId: string;
+  properties: {
+    content_type: 'note' | 'flashcard' | 'highlight';
+    trigger_method: 'keyboard_n' | 'header_button' | 'footer_button';
+    total_time_ms: number; // Total time from open to save
+    type_selection_time_ms: number;
+    tag_assignment_time_ms: number;
+    content_length_chars: number; // For notes/highlights
+    has_tags: boolean;
+    tag_count: number;
+    // Future auto-detection metrics
+    was_type_auto_detected?: boolean;
+    type_auto_detect_accepted?: boolean; // Did user keep the suggestion?
+    were_tags_auto_detected?: boolean;
+    tags_auto_detect_accepted_count?: number;
+    tags_auto_detect_rejected_count?: number;
+    auto_detection_edit_count?: number; // How many edits after auto-detect?
+  }
+}
+```
+
+**`quick_create_abandoned`** - User closed without saving
+```typescript
+{
+  distinctId: string;
+  properties: {
+    content_type?: 'note' | 'flashcard' | 'highlight'; // May be undefined if not selected
+    abandon_stage: 'type_selection' | 'tag_assignment' | 'content_entry';
+    time_to_abandon_ms: number;
+    abandon_method: 'escape_key' | 'click_outside' | 'back_button';
+    had_content: boolean; // Did they enter any text before abandoning?
+    had_tags: boolean;
+  }
+}
+```
+
+#### Auto-Detection Events (Future)
+
+**`quick_create_auto_detection_started`** - Auto-detection triggered
+```typescript
+{
+  distinctId: string;
+  properties: {
+    detection_trigger: 'paste' | 'typing' | 'context_switch';
+    content_preview_length: number; // First 50 chars for pattern analysis
+    has_context: boolean; // Was there a selected item providing context?
+    context_type?: string; // Type of selected item if any
+  }
+}
+```
+
+**`quick_create_auto_detection_result`** - Auto-detection completed
+```typescript
+{
+  distinctId: string;
+  properties: {
+    detected_type: 'note' | 'flashcard' | 'highlight';
+    type_confidence: number; // 0-1
+    detected_tags: string[]; // Tag IDs or names
+    tag_confidences: number[]; // Parallel array of confidences
+    detection_time_ms: number; // AI processing time
+    detection_method: 'pattern_match' | 'ai_classification' | 'context_inference';
+  }
+}
+```
+
+**`quick_create_auto_detection_accepted`** - User kept auto-detected values
+```typescript
+{
+  distinctId: string;
+  properties: {
+    accepted_type: boolean;
+    accepted_tags_count: number;
+    rejected_tags_count: number;
+    type_confidence: number;
+    avg_tag_confidence: number;
+    time_to_accept_ms: number; // How quickly they accepted
+  }
+}
+```
+
+**`quick_create_auto_detection_corrected`** - User edited auto-detected values
+```typescript
+{
+  distinctId: string;
+  properties: {
+    changed_type: boolean;
+    original_type?: string;
+    final_type: string;
+    added_tags_count: number;
+    removed_tags_count: number;
+    correction_time_ms: number;
+    correction_reason?: 'wrong_type' | 'wrong_tags' | 'incomplete_tags';
+  }
+}
+```
+
+### Key Metrics & Dashboards
+
+#### 1. Adoption Funnel
+```
+quick_create_opened 
+  → quick_create_type_selected 
+  → quick_create_tags_modified (optional)
+  → quick_create_completed
+```
+
+**Metrics**:
+- Conversion rate at each stage
+- Drop-off points (where users abandon)
+- Time spent at each stage
+- Trigger method preference (keyboard vs buttons)
+
+#### 2. Speed Efficiency Dashboard
+
+**Current State Metrics**:
+- Average `total_time_ms` by content type
+- Median `type_selection_time_ms`
+- Median `tag_assignment_time_ms`
+- 90th percentile completion time (identify slow workflows)
+
+**Target KPIs** (Future with Auto-Detection):
+- Reduce total creation time by 70% (from ~30s to ~10s)
+- 80% of users accept auto-detected type without editing
+- 60% of users accept at least 2 auto-detected tags
+- Auto-detection accuracy: 85%+ (user accepts without changes)
+
+#### 3. Auto-Detection Performance (Future)
+
+**Accuracy Metrics**:
+- Type detection accuracy: `accepted_type / total_detections`
+- Tag detection precision: `accepted_tags / suggested_tags`
+- Tag detection recall: `accepted_tags / final_tags_count`
+- Edit rate: `auto_detection_corrected / (accepted + corrected)`
+
+**Confidence Correlation**:
+- Plot confidence scores vs actual acceptance rates
+- Identify confidence threshold for auto-commit (no user confirmation needed)
+- A/B test: Show suggestions above confidence X, auto-apply above Y
+
+#### 4. User Behavior Insights
+
+**Segmentation**:
+- Power users: High Quick Create usage, fast completion times
+- Tag enthusiasts: High tag count, uses tag search frequently
+- Minimalists: Few/no tags, fast type selection
+- Explorers: Frequently abandons, tries different types
+
+**Cohort Analysis**:
+- Week 1 Quick Create users: Do they stick with it?
+- Traditional flow converts: When do they discover Quick Create?
+- Feature discovery: How long until first `keyboard_n` usage?
+
+### Implementation Checklist
+
+#### Phase 1: Core Tracking (Now)
+- [ ] Add events to `src/lib/analytics/events.ts` enum
+- [ ] Create tracking helper: `trackQuickCreateEvent()`
+- [ ] Instrument "New Item" menu open (header + footer buttons)
+- [ ] Track keyboard shortcut usage (N key, C key)
+- [ ] Track type selection in modal
+- [ ] Track tag assignment in creation flow
+- [ ] Track completion with timing metrics
+- [ ] Track abandonment with stage tracking
+
+#### Phase 2: Auto-Detection Tracking (Future)
+- [ ] Track auto-detection trigger conditions
+- [ ] Capture AI inference results (type + tags)
+- [ ] Track user acceptance/rejection of suggestions
+- [ ] Measure correction behavior (what users change)
+- [ ] A/B test confidence thresholds
+
+#### Phase 3: Optimization (Future)
+- [ ] Set up automated alerts for drop in completion rate
+- [ ] Create weekly report: Quick Create adoption & speed
+- [ ] Build ML training set: Accepted detections → improve model
+- [ ] Implement progressive auto-commit based on confidence
+
+### Privacy & Compliance
+
+**Content Redaction**:
+- Never log actual note/flashcard content text
+- Use `content_length_chars` for size analysis only
+- Tag names can be logged (user-created metadata)
+
+**Sensitive Events**:
+- Quick Create is user-scoped by default
+- Add `groups: { organization, team }` when creating org/team content
+- Respect workspace privacy: Don't log org-specific patterns
+
+### Testing Scenarios
+
+**Manual Testing**:
+1. Open Quick Create via 'N' key → Verify `quick_create_opened` with `trigger_method: 'keyboard_n'`
+2. Click header button → Verify different `trigger_method`
+3. Select Note type → Verify `quick_create_type_selected` with timing
+4. Add 3 tags → Verify `quick_create_tags_modified` with correct count
+5. Complete creation → Verify `quick_create_completed` with all timing metrics
+6. Press ESC mid-flow → Verify `quick_create_abandoned` with stage
+
+**Automated Tests** (Future):
+```typescript
+// Playwright test
+test('Quick Create tracks full funnel', async ({ page }) => {
+  await page.goto('/inbox');
+  await page.keyboard.press('n'); // Trigger 'N' key
+  
+  // Assert event sent: quick_create_opened
+  expect(await getLastPostHogEvent()).toMatchObject({
+    event: 'quick_create_opened',
+    properties: { trigger_method: 'keyboard_n' }
+  });
+  
+  await page.keyboard.press('c'); // Type selection
+  // Assert: quick_create_type_selected
+  
+  // ... complete flow assertions
+});
+```
+
+### Success Criteria
+
+**Launch Metrics** (First 30 Days):
+- ✅ 25% of active users try Quick Create
+- ✅ 60% completion rate (opened → completed)
+- ✅ Average creation time < 20 seconds
+- ✅ 70% of Quick Creates use keyboard shortcuts
+
+**Auto-Detection Goals** (3 Months Post-Launch):
+- ✅ Type detection accuracy > 85%
+- ✅ Tag suggestion acceptance > 60%
+- ✅ Time-to-create reduced by 70% vs current flow
+- ✅ 90% of power users rely on auto-detection
+
+### Related Documentation
+
+- Event naming conventions: See "Naming Conventions" section above
+- Multi-tenancy analytics: `dev-docs/multi-tenancy-analytics.md`
+- Feature flag strategy: Consider `quick_create_auto_detection` flag for gradual rollout
+
+---
+
 ## TODO
 
 - [x] Implement typed analytics helpers covering event names, ownership level (user/team/org/internal), and shared property schemas. (`src/lib/analytics/events.ts` - created)
@@ -259,5 +563,7 @@ Add narrow helper functions (e.g. `captureOrganizationCreated(ctx, params)`) tha
 - [ ] **Re-enable Convex analytics**: Implement HTTP action bridge pattern to allow mutations to emit analytics without violating Node.js runtime restrictions
 - [ ] Add automated tests ensuring group metadata (org/team IDs) is present when shared content events are emitted.
 - [ ] Create PostHog dashboards or notebooks that slice key CODE workflow events by organization/team once multi-tenancy ships.
+- [ ] **Quick Create tracking**: Implement Phase 1 tracking (core events) in `src/lib/analytics/events.ts`
+- [ ] **Quick Create tracking**: Create PostHog dashboard for adoption funnel and speed metrics
 
 

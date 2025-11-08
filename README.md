@@ -1,6 +1,8 @@
-# Axon
+# SynergyOS
 
-A modern web application built with SvelteKit, Convex, and Resend.
+**Open Source Knowledge Retention System**
+
+A modern knowledge retention and learning platform built with SvelteKit, Convex, and ProseMirror. Transform content from any source into actionable knowledge through the CODE framework (Collect → Organise → Distill → Express).
 
 ## Tech Stack
 
@@ -24,7 +26,7 @@ A modern web application built with SvelteKit, Convex, and Resend.
 1. Clone the repository:
 ```bash
 git clone <your-repo-url>
-cd Axon
+cd SynergyOS
 ```
 
 2. Install dependencies:
@@ -88,17 +90,19 @@ npm run preview
 ## Project Structure
 
 ```
-Axon/
+SynergyOS/
 ├── convex/          # Convex backend functions
 ├── src/              # SvelteKit application
 │   ├── routes/       # Application routes
-│   │   ├── inbox/    # Universal inbox UI (Phase 1 complete)
-│   │   ├── flashcards/ # Flashcard study interface (Phase 1 complete)
+│   │   ├── inbox/    # Universal inbox UI
+│   │   ├── flashcards/ # Flashcard study interface
+│   │   ├── notes/    # Rich text note editor
 │   │   └── login/    # Authentication pages
 │   └── lib/          # Shared utilities & components
 │       └── components/
 │           └── inbox/ # Source-specific detail components
 ├── static/           # Static assets
+├── ai-content-blog/  # Blog content exported from notes
 └── e2e/              # End-to-end tests
 ```
 

@@ -1,7 +1,8 @@
 {
-	"name": "axon",
+	"name": "synergyos",
 	"private": true,
-	"version": "0.0.1",
+	"version": "0.1.0",
+	"description": "Open Source Knowledge Retention System - Transform content into actionable knowledge",
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
@@ -60,6 +61,14 @@
 		"convex-svelte": "^0.0.11",
 		"posthog-js": "^1.289.0",
 		"posthog-node": "^5.11.2",
+		"prosemirror-commands": "^1.7.1",
+		"prosemirror-history": "^1.4.1",
+		"prosemirror-keymap": "^1.2.3",
+		"prosemirror-markdown": "^1.13.2",
+		"prosemirror-model": "^1.25.4",
+		"prosemirror-schema-basic": "^1.2.4",
+		"prosemirror-state": "^1.4.4",
+		"prosemirror-view": "^1.41.3",
 		"resend": "^6.4.0",
 		"ts-fsrs": "^5.2.3"
 	}

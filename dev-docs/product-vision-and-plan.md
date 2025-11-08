@@ -1,4 +1,6 @@
-# Axon: Product Vision, Strategy & Development Plan
+# SynergyOS: Product Vision, Strategy & Development Plan
+
+**OS = Open Source**
 
 ## 🎯 Product Vision
 
@@ -6,7 +8,7 @@
 Learning a lot and consuming lots of content (books, Kindle, web articles, job experience) but struggling to retain information. Focus is on building organizations that can build champions league level products - need to improve processes, flow, collaboration, and everything related to product development.
 
 **Core Value Proposition:**
-Axon helps users collect, organize, distill, and express knowledge from diverse sources into actionable learning tools (primarily flashcards, but also notes, templates, frameworks, how-to guides).
+SynergyOS helps users collect, organize, distill, and express knowledge from diverse sources into actionable learning tools (flashcards, rich notes, templates, frameworks, how-to guides). Built as an open source side project, evolving through real-world usage and community collaboration.
 
 ## 🗺️ Core Workflow: CODE Framework
 
@@ -290,9 +292,24 @@ Axon helps users collect, organize, distill, and express knowledge from diverse 
 - ⏳ Photo capture/upload
 - ⏳ Study session system (Phase 3)
 
-## 🎯 Recommended Next Steps
+## 🚀 Current Focus: Notes System & Blog Workflow
 
-### Immediate Next Step: Complete Phase 2A (Tagging Integration)
+### Phase 2B: Rich Note-Taking System (In Progress)
+**Status**: Building comprehensive note system with ProseMirror
+
+**Features**:
+- Rich text editor with Notion-like feel
+- AI content detection and tagging
+- Blog content workflow (`/ai-content-blog/`)
+- Hotkey-driven create menu (C key)
+- Markdown export with frontmatter
+- Embedding support (Miro, Figma, Linear, Notion)
+
+**Definition of Done**: First blog post "Rebirth of SynergyOS" created and in inbox
+
+---
+
+### Next: Complete Phase 2A (Tagging Integration)
 **Status**: 95% Complete - Only tagging remaining
 
 **Task**: Tagging System Integration
@@ -673,13 +690,15 @@ const getDueCards = query({
 ---
 
 **Last Updated**: January 2025
-**Status**: Phase 1 Complete ✅ | Phase 2A 95% Complete (Tagging Integration Remaining) | Phase 3 Ready to Start | Multi-Tenancy Architecture Future-Proofed ✅
+**Status**: Phase 1 Complete ✅ | Phase 2B In Progress (Notes System) | Phase 2A 95% Complete (Tagging Integration Remaining) | Phase 3 Ready to Start | Multi-Tenancy Architecture Future-Proofed ✅
 
 ## 📚 Related Documentation
 
+- `dev-docs/notes-iteration-roadmap.md` - Notes feature roadmap and future enhancements
 - `dev-docs/flashcard-review-optimization-analysis.md` - Detailed UX improvements for study system
 - `dev-docs/architecture.md` - Tech stack and authentication details
 - `dev-docs/design-tokens.md` - Design system reference
 - `dev-docs/multi-tenancy-migration.md` - Multi-tenancy architecture and migration guide
+- `marketing-docs/brand/identity.md` - SynergyOS brand identity and voice
 - `convex/schema.ts` - Current database schema
 

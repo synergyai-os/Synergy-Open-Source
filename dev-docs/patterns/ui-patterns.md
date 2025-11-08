@@ -522,7 +522,165 @@ shortcuts.register({
 
 ---
 
-**Pattern Count**: 12  
+## #L620: Control Panel Component System [🟢 REFERENCE]
+
+**Use Case**: Toolbars, popovers, and control panels for documents/features
+
+**Pattern**: Composable control panel using base components + slots
+
+**Base Components**:
+- `ControlPanel.Root` - Container (toolbar/popover/embedded)
+- `ControlPanel.Group` - Groups related controls
+- `ControlPanel.Button` - Icon button with active state
+- `ControlPanel.Divider` - Visual separator between groups
+
+**Design Token Usage**:
+
+```svelte
+<!-- Toolbar -->
+<ControlPanel.Root variant="toolbar">
+  <ControlPanel.Group>
+    <ControlPanel.Button active={isBold} onclick={toggleBold}>
+      <BoldIcon />
+    </ControlPanel.Button>
+  </ControlPanel.Group>
+</ControlPanel.Root>
+
+<!-- Popover (contextual) -->
+<ControlPanel.Root variant="popover" bind:open={popoverOpen}>
+  {#snippet trigger()}
+    <button>Settings</button>
+  {/snippet}
+  
+  <ControlPanel.Group label="Options">
+    <ControlPanel.Button active={isActive} onclick={toggle}>
+      <Icon />
+    </ControlPanel.Button>
+  </ControlPanel.Group>
+</ControlPanel.Root>
+
+<!-- Embedded (inline) -->
+<ControlPanel.Root variant="embedded">
+  <ControlPanel.Button onclick={handleAction}>
+    <Icon /> Action
+  </ControlPanel.Button>
+</ControlPanel.Root>
+```
+
+**Three Variants**:
+1. **toolbar** - Fixed header with border-bottom (notes editor)
+2. **popover** - Contextual floating panel (Bits UI Popover)
+3. **embedded** - Inline controls (sidebar actions)
+
+**Product Team Ownership**:
+- Teams own **control panel content** (buttons, groups, logic)
+- Design system owns **base components** (Root, Button, etc.)
+- All panels use same design tokens (consistency)
+
+**Apply when**: Building feature controls (editor toolbar, media controls, settings panels)  
+**Inspiration**: Notion blocks, Linear toolbar, Figma properties panel  
+**Related**: #L10 (Interactive dropdowns), #L60 (Spacing), #L120 (Header alignment)
+
+---
+
+## #L680: Atomic Design Pattern - Reusable Components [🟢 REFERENCE]
+
+**Symptom**: Hardcoded UI elements (shortcuts, inputs) duplicated across components  
+**Root Cause**: No atomic component library for common UI elements  
+**Fix**: 
+
+```svelte
+// ❌ WRONG - Hardcoded keyboard shortcut
+<span class="text-xs text-tertiary bg-base/50 px-2 py-1 rounded">(C)</span>
+
+// ✅ CORRECT - Atomic component
+<KeyboardShortcut keys="C" />
+<KeyboardShortcut keys={['Cmd', 'K']} />
+
+// ❌ WRONG - Hardcoded form input
+<input class="rounded-input border border-base bg-input px-input-x py-input-y" />
+
+// ✅ CORRECT - Atomic component
+<FormInput label="Title" placeholder="Enter title..." bind:value={title} />
+<FormTextarea label="Content" rows={4} bind:value={content} />
+```
+
+**Apply when**:  
+- Creating any UI element that appears in multiple places
+- Building forms, modals, or repeating UI patterns
+- Need to update styling/behavior across entire app
+
+**Benefits**:
+- Change shortcut 'C' → 'A' in one place, updates everywhere
+- Consistent form styling via design tokens
+- Self-documenting (semantic component names)
+
+**Available Atomic Components**:
+- `<KeyboardShortcut keys="C" />` - Keyboard shortcut badges
+- `<FormInput>` - Text inputs with labels
+- `<FormTextarea>` - Textareas with labels
+
+**Related**: #L730 (ProseMirror Integration), design-tokens.md (Atomic Component Patterns)
+
+---
+
+## #L730: ProseMirror Rich Text Integration [🟢 REFERENCE]
+
+**Symptom**: Need rich text editing with Notion-like feel and AI detection  
+**Root Cause**: `<textarea>` doesn't support formatting, embeds, or change tracking  
+**Fix**: 
+
+```svelte
+// ❌ WRONG - Plain textarea for notes
+<textarea bind:value={content} />
+
+// ✅ CORRECT - ProseMirror with AI detection
+<NoteEditorWithDetection
+  content={noteContent}
+  onContentChange={(content: string, markdown: string) => {
+    noteContent = content;
+    noteContentMarkdown = markdown;
+  }}
+  onAIFlagged={() => {
+    noteIsAIGenerated = true;
+  }}
+  placeholder="Start writing..."
+  showToolbar={true}
+/>
+```
+
+**Apply when**:
+- User needs to create/edit rich text notes
+- AI-generated content detection required
+- Export to markdown needed (e.g., blog posts)
+
+**State Management**:
+```typescript
+// Store both ProseMirror JSON and markdown
+let noteContent = $state(''); // ProseMirror JSON string
+let noteContentMarkdown = $state(''); // Markdown version
+let noteIsAIGenerated = $state(false);
+```
+
+**API Integration**:
+```typescript
+await convexClient.mutation(api.notes.createNote, {
+  title: noteTitle || undefined,
+  content: noteContent, // ProseMirror JSON
+  contentMarkdown: noteContentMarkdown || undefined,
+  isAIGenerated: noteIsAIGenerated || undefined,
+});
+```
+
+**Common Gotchas**:
+- ProseMirror uses `$from`/`$to` properties → Svelte 5 reserves `$` prefix → rename with `{ $from: from }`
+- See pattern: [svelte-reactivity.md#L450](../patterns/svelte-reactivity.md#L450)
+
+**Related**: #L680 (Atomic Design), #L400 (SSR browser libraries), svelte-reactivity.md#L450 ($ prefix collision)
+
+---
+
+**Pattern Count**: 15  
 **Last Updated**: 2025-11-08  
 **Design Token Reference**: `dev-docs/design-tokens.md`
 

@@ -1,0 +1,256 @@
+<script lang="ts">
+	import { onMount, onDestroy } from 'svelte';
+	import { EditorView } from 'prosemirror-view';
+	import { EditorState, Transaction } from 'prosemirror-state';
+	import {
+		createEditorState,
+		exportEditorJSON,
+		isEditorEmpty
+	} from '$lib/utils/prosemirror-setup';
+	import NoteEditorToolbar from './NoteEditorToolbar.svelte';
+
+	type Props = {
+		content?: string; // ProseMirror JSON string
+		title?: string;
+		placeholder?: string;
+		onContentChange?: (content: string, markdown: string) => void;
+		onTitleChange?: (title: string) => void;
+		onPaste?: (text: string, view: EditorView) => void;
+		readonly?: boolean;
+		showToolbar?: boolean;
+		isAIGenerated?: boolean;
+	};
+
+	let {
+		content = '',
+		title = '',
+		placeholder = 'Start typing...',
+		onContentChange,
+		onTitleChange,
+		onPaste,
+		readonly = false,
+		showToolbar = true,
+		isAIGenerated = false
+	}: Props = $props();
+
+	let editorElement: HTMLDivElement;
+	let titleElement: HTMLInputElement;
+	let editorView: EditorView | null = null;
+	let editorState = $state<EditorState | null>(null);
+	let localTitle = $state(title);
+	let isEmpty = $state(true);
+
+	// Update local title when prop changes
+	$effect(() => {
+		localTitle = title;
+	});
+
+	// Handle title changes with debouncing
+	let titleDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
+	function handleTitleInput(e: Event) {
+		const target = e.target as HTMLInputElement;
+		localTitle = target.value;
+
+		if (titleDebounceTimeout) {
+			clearTimeout(titleDebounceTimeout);
+		}
+
+		titleDebounceTimeout = setTimeout(() => {
+			onTitleChange?.(localTitle);
+		}, 500);
+	}
+
+	// Handle content changes with debouncing
+	let contentDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
+	function handleEditorChange(state: EditorState) {
+		editorState = state;
+		isEmpty = isEditorEmpty(state);
+
+		if (contentDebounceTimeout) {
+			clearTimeout(contentDebounceTimeout);
+		}
+
+		contentDebounceTimeout = setTimeout(() => {
+			const json = exportEditorJSON(state);
+			// TODO: Generate markdown from ProseMirror doc
+			const markdown = ''; // Placeholder for now
+			onContentChange?.(json, markdown);
+		}, 500);
+	}
+
+	// Initialize editor
+	onMount(() => {
+		if (!editorElement) return;
+
+		const state = createEditorState(content || undefined, onPaste);
+		editorState = state;
+		isEmpty = isEditorEmpty(state);
+
+		editorView = new EditorView(editorElement, {
+			state,
+			editable: () => !readonly,
+			dispatchTransaction(transaction: Transaction) {
+				if (!editorView) return;
+				const newState = editorView.state.apply(transaction);
+				editorView.updateState(newState);
+				handleEditorChange(newState);
+			},
+		});
+
+		// Focus title on mount
+		titleElement?.focus();
+
+		return () => {
+			editorView?.destroy();
+			if (titleDebounceTimeout) clearTimeout(titleDebounceTimeout);
+			if (contentDebounceTimeout) clearTimeout(contentDebounceTimeout);
+		};
+	});
+
+	onDestroy(() => {
+		editorView?.destroy();
+		if (titleDebounceTimeout) clearTimeout(titleDebounceTimeout);
+		if (contentDebounceTimeout) clearTimeout(contentDebounceTimeout);
+	});
+
+	// Expose editor view for toolbar commands
+	export function getEditorView() {
+		return editorView;
+	}
+</script>
+
+<div class="flex flex-col h-full bg-surface text-surface-primary overflow-hidden">
+	<!-- AI Generated Badge -->
+	{#if isAIGenerated}
+		<div class="px-content-padding py-section bg-warning-subtle border-b border-divider">
+			<div class="flex items-center gap-icon text-sm text-warning-primary">
+				<svg
+					class="w-4 h-4"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+					xmlns="http://www.w3.org/2000/svg"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M13 10V3L4 14h7v7l9-11h-7z"
+					/>
+				</svg>
+				<span class="font-medium">AI-Generated Content</span>
+			</div>
+		</div>
+	{/if}
+
+	<!-- Toolbar -->
+	{#if showToolbar && editorView}
+		<NoteEditorToolbar {editorView} {editorState} />
+	{/if}
+
+	<!-- Scrollable Editor Content -->
+	<div class="flex-1 overflow-y-auto">
+		<div class="max-w-4xl mx-auto px-content-padding py-content-padding">
+			<!-- Title Input -->
+			<input
+				bind:this={titleElement}
+				type="text"
+				value={localTitle}
+				oninput={handleTitleInput}
+				placeholder="Untitled note..."
+				disabled={readonly}
+				class="w-full text-3xl font-bold bg-transparent border-none outline-none text-surface-primary placeholder:text-surface-tertiary mb-content-spacing"
+			/>
+
+			<!-- ProseMirror Editor -->
+			<div
+				bind:this={editorElement}
+				class="prose prose-neutral dark:prose-invert max-w-none min-h-[400px]"
+				class:opacity-50={isEmpty}
+			></div>
+
+			{#if isEmpty && !readonly}
+				<div class="text-surface-tertiary text-sm mt-section">
+					{placeholder}
+				</div>
+			{/if}
+		</div>
+	</div>
+</div>
+
+<style>
+	/* ProseMirror styling */
+	:global(.ProseMirror) {
+		outline: none;
+		min-height: 400px;
+	}
+
+	:global(.ProseMirror p) {
+		margin: 1em 0;
+	}
+
+	:global(.ProseMirror h1) {
+		font-size: 2em;
+		font-weight: 700;
+		margin: 1em 0 0.5em;
+	}
+
+	:global(.ProseMirror h2) {
+		font-size: 1.5em;
+		font-weight: 600;
+		margin: 1em 0 0.5em;
+	}
+
+	:global(.ProseMirror h3) {
+		font-size: 1.25em;
+		font-weight: 600;
+		margin: 1em 0 0.5em;
+	}
+
+	:global(.ProseMirror ul),
+	:global(.ProseMirror ol) {
+		padding-left: 1.5em;
+		margin: 1em 0;
+	}
+
+	:global(.ProseMirror li) {
+		margin: 0.5em 0;
+	}
+
+	:global(.ProseMirror code) {
+		background-color: rgba(0, 0, 0, 0.05);
+		padding: 0.2em 0.4em;
+		border-radius: 3px;
+		font-family: 'Courier New', monospace;
+		font-size: 0.9em;
+	}
+
+	:global(.dark .ProseMirror code) {
+		background-color: rgba(255, 255, 255, 0.1);
+	}
+
+	:global(.ProseMirror strong) {
+		font-weight: 700;
+	}
+
+	:global(.ProseMirror em) {
+		font-style: italic;
+	}
+
+	:global(.ProseMirror blockquote) {
+		border-left: 3px solid currentColor;
+		padding-left: 1em;
+		margin-left: 0;
+		opacity: 0.7;
+	}
+
+	/* Placeholder when empty */
+	:global(.ProseMirror p.is-editor-empty:first-child::before) {
+		content: attr(data-placeholder);
+		float: left;
+		color: #aaa;
+		pointer-events: none;
+		height: 0;
+	}
+</style>
+

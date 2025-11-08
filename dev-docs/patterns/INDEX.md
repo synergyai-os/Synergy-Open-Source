@@ -14,6 +14,8 @@
 | Composable receives stale values | Pass functions `() => value` | [svelte-reactivity.md#L80](svelte-reactivity.md#L80) |
 | Component shows stale/old data | Key on data, not ID | [svelte-reactivity.md#L140](svelte-reactivity.md#L140) |
 | `.ts` file: "Cannot assign to constant" | Rename to `.svelte.ts` | [svelte-reactivity.md#L180](svelte-reactivity.md#L180) |
+| 500 error with ProseMirror/Monaco | Guard with `{#if browser}` | [svelte-reactivity.md#L400](svelte-reactivity.md#L400) |
+| Event listeners don't fire (no errors) | Browser check inside $effect | [svelte-reactivity.md#L500](svelte-reactivity.md#L500) |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -24,6 +26,7 @@
 | Duplicate timers / early dismissal | Track timers with Set | [svelte-reactivity.md#L340](svelte-reactivity.md#L340) |
 | Switch in dropdown broken | Use plain div wrapper | [ui-patterns.md#L10](ui-patterns.md#L10) |
 | Conflicting keyboard shortcuts | Check priority: dropdowns > inputs > component | [ui-patterns.md#L430](ui-patterns.md#L430) |
+| ProseMirror "$ prefix reserved" | Rename `$from` → `from` | [svelte-reactivity.md#L450](svelte-reactivity.md#L450) |
 | Users logged out on browser close | Set cookieConfig.maxAge | [convex-integration.md#L100](convex-integration.md#L100) |
 | File not found in Convex | Use TypeScript imports | [convex-integration.md#L140](convex-integration.md#L140) |
 | `InvalidConfig`: hyphens in filename | Use camelCase names | [convex-integration.md#L140](convex-integration.md#L140) |
@@ -43,6 +46,9 @@
 | Command palette drama | Dark overlay + blur + animation | [ui-patterns.md#L480](ui-patterns.md#L480) |
 | Command input design | Icon + transparent + shortcuts | [ui-patterns.md#L530](ui-patterns.md#L530) |
 | N vs C keyboard shortcuts | N=new, C=command center | [ui-patterns.md#L580](ui-patterns.md#L580) |
+| Control panel system | Toolbar/popover/embedded controls | [ui-patterns.md#L620](ui-patterns.md#L620) |
+| Atomic components | Reusable KeyboardShortcut, FormInput | [ui-patterns.md#L680](ui-patterns.md#L680) |
+| ProseMirror integration | Rich text with AI detection | [ui-patterns.md#L730](ui-patterns.md#L730) |
 | Type safety for Convex | Use shared type definitions | [convex-integration.md#L240](convex-integration.md#L240) |
 | Discriminated unions | Type narrowing with discriminator | [convex-integration.md#L290](convex-integration.md#L290) |
 | Enum to database strings | Explicit conversion functions | [convex-integration.md#L340](convex-integration.md#L340) |
@@ -106,5 +112,5 @@ correct code
 ---
 
 **Last Updated**: 2025-11-08  
-**Pattern Count**: 35  
+**Pattern Count**: 41  
 **Format Version**: 2.0

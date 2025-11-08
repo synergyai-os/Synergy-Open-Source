@@ -7,16 +7,12 @@
 ## ⚠️ CRITICAL: Communication Style
 
 **User prefers concise, dense communication:**
-- Keep answers SHORT - even if it means less detail
+- Keep answers SHORT
 - Minimum fluff - be direct
-- Dense information - pack maximum value into minimum words
-- If user needs more - they will ask you to expand
+- Dense information - maximum value, minimum words
+- If user needs more - they will ask
 
-**⚠️ NEVER CREATE DOCUMENTATION UNLESS EXPLICITLY ASKED:**
-- DO NOT create documentation files automatically
-- DO NOT create multiple docs for the same topic
-- YOU CAN ask or suggest creating docs if helpful
-- YOU CAN update existing docs if explicitly part of workflow
+**⚠️ NEVER CREATE DOCUMENTATION UNLESS EXPLICITLY ASKED**
 
 **When in doubt**: Ask first, don't create.
 
@@ -26,12 +22,12 @@
 
 **Before building anything:**
 
-1. **Investigate** - Understand current state, existing patterns, similar solutions
-2. **Scope** - Define what's in/out of scope
-3. **Plan** - Outline approach, steps, potential issues
-4. **Confirm** - Get user approval before executing
+1. **Investigate** - Understand current state, existing patterns
+2. **Scope** - Define what's in/out
+3. **Plan** - Outline approach, steps, issues
+4. **Confirm** - Get user approval
 
-**Never start coding without user confirmation of the plan.**
+**Never start coding without user confirmation.**
 
 ---
 
@@ -39,47 +35,48 @@
 
 **Use Context7 MCP before web search:**
 1. Call `mcp_context7_resolve-library-id` to find library
-2. Call `mcp_context7_get-library-docs` with resolved ID and topic
-3. Only fall back to web search if Context7 fails
+2. Call `mcp_context7_get-library-docs` with topic
+3. Only web search if Context7 fails
 
-**Why**: Context7 provides up-to-date, accurate docs with code examples from official sources.
+**Why**: Up-to-date, accurate docs with code examples.
 
 ---
 
 ## 🔧 Critical Workflows
 
-### `/save` Command - Capture Knowledge
-**When**: End of work session, before committing
-1. Analyze what changed
-2. Update project's patterns file FIRST (e.g., `dev-docs/patterns-and-lessons.md`)
-3. Add/update patterns, update indexes
-4. Commit (local only, don't push)
-
-### `/root-cause` Command - Find Solutions
+### `/root-cause` - Find Solutions Fast
 **When**: Investigating bugs/issues
-1. Check Quick Diagnostic in project's patterns file
-2. Search by symptom → find pattern
-3. Read: Problem → Root Cause → Solution
-4. Only implement if 95%+ confident
-5. If uncertain: Research, document, report confidence
+1. Load `dev-docs/patterns/INDEX.md` (200 lines)
+2. Scan symptom table → jump to line number
+3. Read: Symptom → Root Cause → Fix
+4. Apply if 95%+ confident
+5. If uncertain: Research, report confidence
+
+### `/save` - Capture Knowledge
+**When**: End of session, before commit
+1. Analyze what changed
+2. Search `patterns/INDEX.md` for existing patterns
+3. Update domain file OR add new pattern
+4. Update INDEX.md symptom table
+5. Commit (local only, don't push)
 
 ---
 
 ## ✅ General Principles
 
 **Before Writing Code:**
-- Check existing patterns/solutions in project
+- Check `patterns/INDEX.md` for existing solutions
 - Use Context7 for library documentation
-- Investigate scope, define plan, get confirmation
+- Investigate, scope, plan, get confirmation
 
 **When Debugging:**
 - Use `/root-cause` command
-- Search existing solutions first
-- Use Context7 to verify with latest docs
-- Only fix if 95%+ confident - otherwise research and report
+- Load INDEX.md → jump to line number
+- Validate with Context7 for library patterns
+- Only fix if 95%+ confident
 
 **When Uncertain:**
-- Research and report confidence level
+- Research and report confidence %
 - Ask user before implementing
 - Don't guess - validate first
 
@@ -87,11 +84,11 @@
 
 ## 🎯 Remember
 
-1. **Communication** - Short, dense, concise. User asks for more if needed.
-2. **No auto-docs** - Never create docs unless explicitly asked.
-3. **Investigate first** - Understand before acting.
-4. **Confirm before building** - Scope, plan, get approval.
-5. **Context7 first** - Use for library docs before web search.
+1. **Communication** - Short, dense, concise
+2. **No auto-docs** - Never create docs unless asked
+3. **Investigate first** - Understand before acting
+4. **Confirm before building** - Scope, plan, get approval
+5. **Context7 first** - For library docs before web search
 
 ---
 
@@ -99,6 +96,6 @@
 
 **Read `.cursor/rules/way-of-working.mdc` for:**
 - Project overview and tech stack
-- Project-specific documentation paths
-- Project-specific patterns and conventions
-- Project file structure
+- Documentation paths
+- Patterns and conventions
+- File structure

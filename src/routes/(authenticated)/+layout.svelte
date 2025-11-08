@@ -30,6 +30,7 @@
 	let createMenuOpen = $state(false);
 	let quickCreateModalOpen = $state(false);
 	let quickCreateTrigger = $state<'keyboard_n' | 'header_button' | 'footer_button'>('keyboard_n');
+	let quickCreateInitialType = $state<'note' | 'flashcard' | 'highlight' | null>(null);
 	let isMobile = $state(false);
 	let sidebarCollapsed = $state(false);
 	let sidebarWidth = $state(286);
@@ -86,12 +87,13 @@
 	$effect(() => {
 		if (!shortcuts) return;
 
-		// 'N' key - Quick create note (direct, no modal)
+		// 'N' key - Quick create note (skips type selection)
 		shortcuts.register({
 			key: 'n',
 			handler: () => {
-				// TODO: Implement quick note creation (inline or minimal modal)
-				console.log('Quick note (N key) - to be implemented');
+				quickCreateTrigger = 'keyboard_n';
+				quickCreateInitialType = 'note';
+				quickCreateModalOpen = true;
 			},
 			description: 'New note (quick)',
 			preventDefault: true,
@@ -102,6 +104,7 @@
 			key: SHORTCUTS.CREATE,
 			handler: () => {
 				quickCreateTrigger = 'keyboard_n';
+				quickCreateInitialType = null; // No initial type, show selection
 				quickCreateModalOpen = true;
 			},
 			description: 'Command Center',
@@ -140,6 +143,7 @@
 			onCreateMenuChange={(open) => (createMenuOpen = open)}
 			onQuickCreate={(trigger) => {
 				quickCreateTrigger = trigger;
+				quickCreateInitialType = null; // Show command palette
 				quickCreateModalOpen = true;
 			}}
 		/>
@@ -167,6 +171,7 @@
 			bind:open={quickCreateModalOpen}
 			triggerMethod={quickCreateTrigger}
 			currentView={getCurrentView()}
+			initialType={quickCreateInitialType}
 		/>
 	</div>
 {:else}

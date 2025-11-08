@@ -11,12 +11,15 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 /**
  * List all inbox items for the current user
  * Optionally filter by type (readwise_highlight, photo_note, manual_text, etc.)
+ * Filters by workspace context (personal, organization, or team)
  * Returns items with basic display info (title, snippet, tags) for inbox list
  */
 export const listInboxItems = query({
   args: {
     filterType: v.optional(v.string()), // Optional type filter
     processed: v.optional(v.boolean()), // Optional processed filter
+    organizationId: v.optional(v.union(v.id("organizations"), v.null())), // Workspace context
+    teamId: v.optional(v.id("teams")), // Team context
   },
   handler: async (ctx, args) => {
     const userId = await getAuthUserId(ctx);
@@ -37,7 +40,25 @@ export const listInboxItems = query({
         );
     }
 
-    const items = await itemsQuery.collect();
+    let items = await itemsQuery.collect();
+
+    // Filter by workspace context
+    if (args.organizationId === null) {
+      // Personal workspace: show only user-owned items (no org/team)
+      items = items.filter(item => !item.organizationId && !item.teamId);
+    } else if (args.organizationId !== undefined) {
+      // Organization workspace: show org-owned items
+      if (args.teamId) {
+        // Team context: show only team items
+        items = items.filter(item => item.teamId === args.teamId);
+      } else {
+        // Org context: show org items (not team-specific)
+        items = items.filter(item => 
+          item.organizationId === args.organizationId && !item.teamId
+        );
+      }
+    }
+    // If no workspace filter provided, show all (backwards compatibility)
 
     // Filter by type if provided
     let filteredItems = args.filterType
@@ -300,6 +321,180 @@ export const getSyncProgress = query({
       total: progress.total,
       message: progress.message,
     } : null;
+  },
+});
+
+/**
+ * Quick Create: Create a manual note and add to inbox
+ */
+export const createNoteInInbox = mutation({
+  args: {
+    text: v.string(),
+    title: v.optional(v.string()),
+    tagIds: v.optional(v.array(v.id("tags"))),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    // Create inbox item (manual_text type)
+    const inboxItemId = await ctx.db.insert("inboxItems", {
+      type: "manual_text",
+      userId,
+      processed: false,
+      createdAt: Date.now(),
+      text: args.text,
+      bookTitle: args.title,
+    });
+
+    // TODO: Once notes table exists, create note entity and link it
+
+    return { inboxItemId };
+  },
+});
+
+/**
+ * Quick Create: Create a flashcard and add to inbox
+ */
+export const createFlashcardInInbox = mutation({
+  args: {
+    question: v.string(),
+    answer: v.string(),
+    tagIds: v.optional(v.array(v.id("tags"))),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    // 1. Create flashcard
+    const flashcardId = await ctx.db.insert("flashcards", {
+      userId,
+      question: args.question,
+      answer: args.answer,
+      algorithm: "fsrs",
+      reps: 0,
+      lapses: 0,
+      createdAt: Date.now(),
+    });
+
+    // 2. Create inbox item pointing to the flashcard content
+    const inboxItemId = await ctx.db.insert("inboxItems", {
+      type: "manual_text",
+      userId,
+      processed: false,
+      createdAt: Date.now(),
+      text: `Q: ${args.question}\n\nA: ${args.answer}`,
+      bookTitle: "Flashcard",
+    });
+
+    // 3. Assign tags to flashcard if provided
+    if (args.tagIds) {
+      for (const tagId of args.tagIds) {
+        await ctx.db.insert("flashcardTags", {
+          flashcardId,
+          tagId,
+        });
+      }
+    }
+
+    return { flashcardId, inboxItemId };
+  },
+});
+
+/**
+ * Quick Create: Create a manual highlight and add to inbox
+ */
+export const createHighlightInInbox = mutation({
+  args: {
+    text: v.string(),
+    sourceTitle: v.optional(v.string()),
+    note: v.optional(v.string()),
+    tagIds: v.optional(v.array(v.id("tags"))),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    // 1. Get or create "Manual" source
+    const manualSourceTitle = args.sourceTitle || "Manual Entry";
+    let source = await ctx.db
+      .query("sources")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .filter((q) => q.eq(q.field("title"), manualSourceTitle))
+      .first();
+
+    if (!source) {
+      // Create a placeholder author for manual entries
+      let manualAuthor = await ctx.db
+        .query("authors")
+        .withIndex("by_user_name", (q) =>
+          q.eq("userId", userId).eq("name", "manual")
+        )
+        .first();
+
+      if (!manualAuthor) {
+        const authorId = await ctx.db.insert("authors", {
+          userId,
+          name: "manual",
+          displayName: "Manual Entry",
+          createdAt: Date.now(),
+        });
+        manualAuthor = await ctx.db.get(authorId);
+      }
+
+      // Create manual source
+      const sourceId = await ctx.db.insert("sources", {
+        userId,
+        authorId: manualAuthor!._id,
+        title: manualSourceTitle,
+        category: "manual",
+        sourceType: "manual",
+        externalId: `manual_${Date.now()}`,
+        numHighlights: 1,
+        updatedAt: Date.now(),
+        createdAt: Date.now(),
+      });
+      source = await ctx.db.get(sourceId);
+    }
+
+    // 2. Create highlight
+    const highlightId = await ctx.db.insert("highlights", {
+      userId,
+      sourceId: source!._id,
+      text: args.text,
+      note: args.note,
+      externalId: `manual_${Date.now()}`,
+      externalUrl: "",
+      updatedAt: Date.now(),
+      createdAt: Date.now(),
+    });
+
+    // 3. Create inbox item
+    const inboxItemId = await ctx.db.insert("inboxItems", {
+      type: "readwise_highlight",
+      userId,
+      processed: false,
+      createdAt: Date.now(),
+      highlightId,
+    });
+
+    // 4. Assign tags if provided
+    if (args.tagIds) {
+      for (const tagId of args.tagIds) {
+        await ctx.db.insert("highlightTags", {
+          highlightId,
+          tagId,
+        });
+      }
+    }
+
+    return { highlightId, inboxItemId };
   },
 });
 

@@ -20,6 +20,12 @@
 	import { useSelectedItem } from '$lib/composables/useSelectedItem.svelte';
 	import { useKeyboardNavigation } from '$lib/composables/useKeyboardNavigation.svelte';
 	import { useInboxLayout } from '$lib/composables/useInboxLayout.svelte';
+	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+
+	// Get workspace context
+	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
+	const activeTeamId = $derived(() => organizations?.activeTeamId ?? null);
 
 	// Convex client setup
 	const convexClient = browser ? useConvexClient() : null;
@@ -30,8 +36,11 @@
 		getSyncProgress: makeFunctionReference('inbox:getSyncProgress') as any,
 	} : null;
 	
-	// Initialize inbox items composable
-	const items = useInboxItems();
+	// Initialize inbox items composable with workspace context
+	const items = useInboxItems({
+		activeOrganizationId: activeOrganizationId(),
+		activeTeamId: activeTeamId()
+	});
 
 	// Initialize selected item composable
 	const selected = useSelectedItem(convexClient, inboxApi);

@@ -417,10 +417,141 @@ text-label text-tertiary
 - ✅ Same styling across all menus in the app
 - ✅ Easy to maintain (change colors globally)
 
+## Control Panel Tokens
+
+**✨ USE THESE TOKENS FOR TOOLBARS, POPOVERS, AND CONTROL PANELS**
+
+Control panel tokens are designed for building Notion-style control interfaces across features. All control panels use the same design system for consistency.
+
+### Control Panel Spacing Tokens
+
+| Token | Utility Class | Value | Usage |
+|-------|--------------|-------|-------|
+| `--spacing-control-panel-padding` | `p-control-panel-padding` | 0.75rem (12px) | Panel container padding |
+| `--spacing-control-group-gap` | `gap-control-group` | 0.5rem (8px) | Gap between control groups |
+| `--spacing-control-item-gap` | `gap-control-item-gap` | 0.25rem (4px) | Gap between buttons in group |
+| `--spacing-control-button-padding` | `p-control-button-padding` | 0.5rem (8px) | Button padding (square) |
+| `--spacing-control-divider` | `mx-control-divider` | 0.5rem (8px) | Margin around dividers |
+
+### Control Panel Color Tokens
+
+| Token | Utility Class | Value | Usage |
+|-------|--------------|-------|-------|
+| `--color-control-bg` | `bg-control` | var(--color-bg-elevated) | Panel background |
+| `--color-control-border` | `border-control-border` | var(--color-border-base) | Panel border |
+| `--color-control-button-hover` | `bg-control-button-hover` | var(--color-bg-hover-solid) | Button hover state |
+| `--color-control-button-active` | `bg-control-button-active` | var(--color-bg-selected) | Active button state |
+| `--color-control-divider` | `bg-control-divider` | var(--color-border-base) | Divider color |
+
+### Control Panel Components
+
+Use the pre-built control panel components instead of building custom toolbars:
+
+```svelte
+import * as ControlPanel from '$lib/components/control-panel';
+
+<!-- Toolbar (fixed header) -->
+<ControlPanel.Root variant="toolbar">
+  <ControlPanel.Group>
+    <ControlPanel.Button active={isBold} onclick={toggleBold}>
+      <BoldIcon />
+    </ControlPanel.Button>
+  </ControlPanel.Group>
+</ControlPanel.Root>
+
+<!-- Popover (contextual) -->
+<ControlPanel.Root variant="popover" bind:open={popoverOpen}>
+  {#snippet trigger()}
+    <button>Options</button>
+  {/snippet}
+  <ControlPanel.Group label="Settings">
+    <ControlPanel.Button onclick={handleAction}>
+      <Icon />
+    </ControlPanel.Button>
+  </ControlPanel.Group>
+</ControlPanel.Root>
+
+<!-- Embedded (inline) -->
+<ControlPanel.Root variant="embedded">
+  <ControlPanel.Button onclick={handleAction}>
+    <Icon /> Action
+  </ControlPanel.Button>
+</ControlPanel.Root>
+```
+
+**Benefits:**
+- ✅ Three variants: toolbar, popover, embedded
+- ✅ Consistent design across all control panels
+- ✅ Product teams own content, design system owns components
+- ✅ All buttons use design tokens (no hardcoded values)
+- ✅ ESC key automatically closes popovers (Bits UI)
+
+**See Pattern**: [ui-patterns.md#L620](patterns/ui-patterns.md#L620)
+
+### Modal & Form Patterns
+**✨ USE THESE PATTERNS FOR ALL MODALS AND FORMS**
+
+**Modal Container:**
+```
+bg-elevated rounded-modal border border-base/30 shadow-lg p-content-padding
+```
+
+**Form Field (Label + Input):**
+```
+flex flex-col gap-form-field
+```
+
+**Form Section Gap (between field groups):**
+```
+gap-content-section
+```
+
+**Modal Action Buttons:**
+```
+flex justify-end gap-button-group pt-content-section border-t border-base
+```
+
+**Example Modal Form:**
+```svelte
+<Dialog.Content class="bg-elevated rounded-modal border border-base/30 shadow-lg p-content-padding">
+  <Dialog.Title class="text-xl font-medium text-primary mb-heading">
+    Create Note
+  </Dialog.Title>
+  
+  <div class="flex flex-col gap-content-section mt-content-section">
+    <FormInput label="Title" placeholder="Enter title..." bind:value={title} />
+    <FormTextarea label="Content" rows={6} bind:value={content} />
+    
+    <div class="flex justify-end gap-button-group pt-content-section border-t border-base">
+      <button class="rounded-button px-button-x py-button-y">Cancel</button>
+      <button class="rounded-button bg-accent-primary px-button-x py-button-y">Create</button>
+    </div>
+  </div>
+</Dialog.Content>
+```
+
+### Atomic Component Patterns
+
+**Keyboard Shortcut Badge:**
+Use `<KeyboardShortcut keys="C" />` or `<KeyboardShortcut keys={['Cmd', 'K']} />` instead of hardcoding shortcuts. When you change the shortcut from 'C' to 'A', it updates everywhere automatically.
+
+**Form Inputs:**
+Always use `<FormInput>` and `<FormTextarea>` components instead of raw `<input>` or `<textarea>`. This ensures consistent styling across the app using design tokens.
+
+```svelte
+<!-- ❌ Don't do this -->
+<input class="rounded-input border border-base bg-input px-input-x py-input-y" />
+
+<!-- ✅ Do this -->
+<FormInput label="Title" placeholder="Enter title..." bind:value={title} />
+```
+
 ## Usage Guidelines
 
 1. **When creating new components**, reference these patterns first
 2. **If you need to deviate**, document why and consider adding a new pattern
 3. **For spacing/padding**, prefer the defined tokens over arbitrary values
 4. **For typography**, always use semantic sizes (`text-sm`, `text-label`) rather than arbitrary values like `text-[10px]`
+5. **For keyboard shortcuts**, always use `<KeyboardShortcut>` component for consistency
+6. **For form inputs**, always use `<FormInput>` and `<FormTextarea>` components
 

@@ -18,10 +18,16 @@ alwaysApply: true
 
 Read in order:
 1. `dev-docs/product-vision-and-plan.md` - Product vision, current state, next steps
-2. `dev-docs/patterns-and-lessons.md` - Reusable solutions, patterns (use `/root-cause` to search, `/save` to update)
+2. **`dev-docs/patterns/INDEX.md`** - Fast pattern lookup (START HERE for debugging) ⭐
 3. `dev-docs/architecture.md` - Tech stack, auth, composables, project structure
 4. `dev-docs/design-tokens.md` - Design token reference (MANDATORY for UI)
 5. `dev-docs/composables-analysis.md` - Svelte 5 composables analysis
+
+**Pattern Files** (load as needed):
+- `dev-docs/patterns/svelte-reactivity.md` - Svelte 5 runes, composables, $state/$derived
+- `dev-docs/patterns/convex-integration.md` - Convex, auth, types, runtime restrictions
+- `dev-docs/patterns/ui-patterns.md` - UI/UX, design tokens, layout
+- `dev-docs/patterns/analytics.md` - PostHog, server-side tracking
 
 **Future Architecture:**
 - `dev-docs/multi-tenancy-migration.md` - Multi-tenancy architecture and migration guide (when implementing orgs/teams)
@@ -33,8 +39,8 @@ Read in order:
 **Note**: `/save` and `/root-cause` commands are universal - see `.cursor/commands/start.md`
 
 **For this project:**
-- `/save` updates `dev-docs/patterns-and-lessons.md`
-- `/root-cause` searches `dev-docs/patterns-and-lessons.md`
+- `/root-cause`: Load `dev-docs/patterns/INDEX.md` → scan symptom table → jump to line number
+- `/save`: Add pattern to domain file (svelte-reactivity.md, etc.) → update INDEX.md
 
 ---
 
@@ -89,18 +95,21 @@ const data = $derived(query?.data ?? []);
 - `useKeyboardNavigation` - J/K navigation
 - `useInboxLayout` - Layout state
 
-**See**: `dev-docs/patterns-and-lessons.md` for complete patterns
+**See**: `dev-docs/patterns/INDEX.md` for all patterns
 
 ---
 
 ## Key Files
 
 **Documentation:**
-- `dev-docs/patterns-and-lessons.md` - Patterns (most important)
+- `dev-docs/patterns/INDEX.md` - Pattern lookup (START HERE)
+- `dev-docs/patterns/svelte-reactivity.md` - Svelte 5 patterns
+- `dev-docs/patterns/convex-integration.md` - Convex patterns
+- `dev-docs/patterns/ui-patterns.md` - UI/UX patterns
+- `dev-docs/patterns/analytics.md` - PostHog patterns
 - `dev-docs/architecture.md` - Tech architecture
 - `dev-docs/design-tokens.md` - Token reference
 - `dev-docs/product-vision-and-plan.md` - Vision and roadmap
-- `dev-docs/multi-tenancy-migration.md` - Multi-tenancy architecture (future)
 
 **Code:**
 - `src/lib/composables/` - Composables (`.svelte.ts`)
@@ -117,14 +126,14 @@ const data = $derived(query?.data ?? []);
 ## Best Practices
 
 **Before Writing Code:**
-1. Check `patterns-and-lessons.md` for existing patterns
+1. Check `patterns/INDEX.md` for existing patterns
 2. Use design tokens (never hardcode)
 3. Follow composables pattern (`.svelte.ts`, single `$state`, getters)
 4. Use Context7 for library docs
 
 **When Debugging:**
-1. Use `/root-cause` command
-2. Check `patterns-and-lessons.md` for similar issues
+1. Use `/root-cause` → Load `patterns/INDEX.md`
+2. Scan symptom table → jump to line number in domain file
 3. Use Context7 for verification
 4. Only fix if 95%+ confident
 
@@ -140,7 +149,7 @@ const data = $derived(query?.data ?? []);
 ## Starting a Task
 
 1. Read `dev-docs/product-vision-and-plan.md` - Understand current state
-2. Check `dev-docs/patterns-and-lessons.md` - See if patterns exist
+2. Check `dev-docs/patterns/INDEX.md` - See if patterns exist
 3. Review `dev-docs/design-tokens.md` - If building UI
 4. Check `dev-docs/architecture.md` - If working on architecture
 5. Use Context7 - For latest library documentation

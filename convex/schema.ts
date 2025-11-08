@@ -87,13 +87,23 @@ const schema = defineSchema({
   userSettings: defineTable({
     userId: v.id("users"), // Reference to the authenticated user
     theme: v.optional(v.union(v.literal("light"), v.literal("dark"))), // Theme preference
-    claudeApiKey: v.optional(v.string()), // Claude API key (encrypted/secure)
-    readwiseApiKey: v.optional(v.string()), // Readwise API key (encrypted/secure)
+    claudeApiKey: v.optional(v.string()), // Personal Claude API key (encrypted/secure)
+    readwiseApiKey: v.optional(v.string()), // Readwise API key (encrypted/secure) - user-owned
     // Sync tracking
     lastReadwiseSyncAt: v.optional(v.number()), // Timestamp of last Readwise sync
     // Future: displayName, email preferences, etc.
   })
     .index("by_user", ["userId"]), // Index for quick lookup by user
+
+  // Organization settings - org-owned settings (admin-controlled)
+  organizationSettings: defineTable({
+    organizationId: v.id("organizations"),
+    claudeApiKey: v.optional(v.string()), // Organization's Claude API key (encrypted/secure)
+    // Future: billing settings, default preferences, org-wide configurations, etc.
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_organization", ["organizationId"]),
 
   // Authors table - normalized author names
   // Note: Readwise provides authors as strings, we normalize them
@@ -258,6 +268,43 @@ const schema = defineSchema({
             v.literal("organization"), // Org-owned
             v.literal("team"), // Team-owned
             v.literal("purchased") // Purchased content
+          )
+        ),
+      }),
+      // Rich Text Note - ProseMirror-based notes with AI detection
+      v.object({
+        type: v.literal("note"),
+        userId: v.id("users"),
+        processed: v.boolean(),
+        processedAt: v.optional(v.number()),
+        createdAt: v.number(),
+        updatedAt: v.optional(v.number()), // Last edit timestamp
+        title: v.optional(v.string()), // Optional note title
+        content: v.string(), // Rich text stored as ProseMirror JSON
+        contentMarkdown: v.optional(v.string()), // Markdown version for search/export
+        isAIGenerated: v.optional(v.boolean()), // Flag for AI-generated content
+        aiGeneratedAt: v.optional(v.number()), // When flagged as AI-generated
+        embeddings: v.optional(
+          v.array(
+            v.object({
+              type: v.string(), // "miro", "notion", "figma", "linear", etc.
+              url: v.string(),
+              metadata: v.optional(v.any()), // Provider-specific metadata
+            })
+          )
+        ),
+        blogCategory: v.optional(v.string()), // "BLOG" for blog posts
+        publishedTo: v.optional(v.string()), // Path to exported markdown file
+        slug: v.optional(v.string()), // URL-friendly slug for blog posts
+        // Multi-tenancy fields (future)
+        organizationId: v.optional(v.id("organizations")),
+        teamId: v.optional(v.id("teams")),
+        ownershipType: v.optional(
+          v.union(
+            v.literal("user"),
+            v.literal("organization"),
+            v.literal("team"),
+            v.literal("purchased")
           )
         ),
       }),

@@ -4,6 +4,10 @@
 	import { api, type Id } from '$lib/convex';
 	import { Dialog, Command } from 'bits-ui';
 	import TagSelector from '$lib/components/inbox/TagSelector.svelte';
+	import NoteEditorWithDetection from '$lib/components/notes/NoteEditorWithDetection.svelte';
+	import KeyboardShortcut from '$lib/components/ui/KeyboardShortcut.svelte';
+	import FormInput from '$lib/components/ui/FormInput.svelte';
+	import FormTextarea from '$lib/components/ui/FormTextarea.svelte';
 	// TODO: Uncomment when implementing PostHog tracking
 	// import { AnalyticsEventName } from '$lib/analytics/events';
 
@@ -13,12 +17,14 @@
 		open?: boolean;
 		triggerMethod?: 'keyboard_n' | 'header_button' | 'footer_button';
 		currentView?: 'inbox' | 'flashcards' | 'tags' | 'my_mind' | 'study';
+		initialType?: ContentType | null;
 	};
 
 	let {
 		open = $bindable(false),
 		triggerMethod = 'keyboard_n',
 		currentView = 'inbox',
+		initialType = null,
 	}: Props = $props();
 
 	const convexClient = browser ? useConvexClient() : null;
@@ -37,11 +43,31 @@
 	let selectedTagIds = $state<Id<'tags'>[]>([]);
 	let isCreating = $state(false);
 	let tagComboboxOpen = $state(false);
+	
+	// Note-specific state (for ProseMirror)
+	let noteTitle = $state('');
+	let noteContent = $state(''); // ProseMirror JSON string
+	let noteContentMarkdown = $state(''); // Markdown version
+	let noteIsAIGenerated = $state(false);
 
 	// Timing tracking for analytics
 	let openedAt = $state(0);
 	let typeSelectedAt = $state(0);
 	let tagModificationStartedAt = $state(0);
+
+	// Set initial type when modal opens (for quick create shortcuts like 'N')
+	$effect(() => {
+		if (open) {
+			if (initialType) {
+				selectedType = initialType;
+				typeSelectedAt = Date.now();
+			}
+			// If no initialType, selectedType stays null (shows command palette)
+		} else {
+			// Reset when modal closes
+			resetForm();
+		}
+	});
 
 	// Track when modal opens
 	$effect(() => {
@@ -161,7 +187,7 @@
 		if (!convexClient || !selectedType) return;
 
 		// Validate content based on type
-		if (selectedType === 'note' && !content.trim()) return;
+		if (selectedType === 'note' && !noteContent.trim()) return;
 		if (selectedType === 'flashcard' && (!question.trim() || !answer.trim())) return;
 		if (selectedType === 'highlight' && !content.trim()) return;
 
@@ -172,12 +198,18 @@
 			let contentLength = 0;
 
 			if (selectedType === 'note') {
-				await convexClient.mutation(api.inbox.createNoteInInbox, {
-					text: content,
-					title: sourceTitle || undefined,
-					tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined,
+				// Use the new notes API for rich text notes
+				await convexClient.mutation(api.notes.createNote, {
+					title: noteTitle || undefined,
+					content: noteContent, // ProseMirror JSON
+					contentMarkdown: noteContentMarkdown || undefined,
+					isAIGenerated: noteIsAIGenerated || undefined,
 				});
-				contentLength = content.length;
+				
+				// If there are tags, we need to link them after creation
+				// TODO: Update notes.createNote to accept tagIds parameter
+				
+				contentLength = noteContent.length;
 			} else if (selectedType === 'flashcard') {
 				await convexClient.mutation(api.inbox.createFlashcardInInbox, {
 					question: question,
@@ -233,6 +265,10 @@
 		answer = '';
 		sourceTitle = '';
 		note = '';
+		noteTitle = '';
+		noteContent = '';
+		noteContentMarkdown = '';
+		noteIsAIGenerated = false;
 		selectedTagIds = [];
 		tagModificationStartedAt = 0;
 		typeSelectedAt = 0;
@@ -371,10 +407,7 @@
 													>
 												</div>
 											</div>
-											<span
-												class="text-xs text-tertiary bg-base/50 px-2 py-1 rounded font-mono"
-												>N</span
-											>
+											<KeyboardShortcut keys="N" />
 										</Command.Item>
 										<Command.Item
 											class="rounded-button data-selected:bg-hover-solid outline-hidden flex h-auto cursor-pointer select-none items-center justify-between px-3 py-2.5 text-sm transition-colors"
@@ -398,10 +431,7 @@
 													>
 												</div>
 											</div>
-											<span
-												class="text-xs text-tertiary bg-base/50 px-2 py-1 rounded font-mono"
-												>F</span
-											>
+											<KeyboardShortcut keys="F" />
 										</Command.Item>
 										<Command.Item
 											class="rounded-button data-selected:bg-hover-solid outline-hidden flex h-auto cursor-pointer select-none items-center justify-between px-3 py-2.5 text-sm transition-colors"
@@ -425,10 +455,7 @@
 													>
 												</div>
 											</div>
-											<span
-												class="text-xs text-tertiary bg-base/50 px-2 py-1 rounded font-mono"
-												>H</span
-											>
+											<KeyboardShortcut keys="H" />
 										</Command.Item>
 									</Command.GroupItems>
 								</Command.Group>
@@ -437,103 +464,68 @@
 					</Command.Root>
 				{:else}
 					<!-- Content Entry View -->
-					<div class="p-content-padding">
+					<div class="flex h-full w-full flex-col overflow-hidden rounded-lg bg-elevated border border-base/30 shadow-lg p-content-padding">
 						<Dialog.Title class="text-heading-primary mb-heading text-xl font-medium">
 							Create {selectedType === 'note' ? 'Note' : selectedType === 'flashcard' ? 'Flashcard' : 'Highlight'}
 						</Dialog.Title>
 						<div class="flex flex-col gap-content-section mt-content-section">
 						<!-- Content fields based on type -->
 						{#if selectedType === 'note'}
-							<div class="flex flex-col gap-form-field">
-								<label for="note-title" class="text-sm font-medium text-label-primary">
-									Title (optional)
-								</label>
-								<input
-									id="note-title"
-									type="text"
-									bind:value={sourceTitle}
-									placeholder="Enter a title..."
-									class="rounded-input border border-base bg-input px-input-x py-input-y"
-								/>
-							</div>
+							<FormInput
+								label="Title (optional)"
+								placeholder="Enter a title..."
+								bind:value={noteTitle}
+							/>
 
 							<div class="flex flex-col gap-form-field">
-								<label for="note-content" class="text-sm font-medium text-label-primary">
-									Content
-								</label>
-								<textarea
-									id="note-content"
-									bind:value={content}
-									placeholder="Write your note here..."
-									rows="6"
-									class="rounded-input border border-base bg-input px-input-x py-input-y"
-								></textarea>
+								<label for="note-editor" class="text-sm font-medium text-label-primary">Content</label>
+								<NoteEditorWithDetection
+									content={noteContent}
+									onContentChange={(content: string, markdown: string) => {
+										noteContent = content;
+										noteContentMarkdown = markdown;
+									}}
+									onAIFlagged={() => {
+										noteIsAIGenerated = true;
+									}}
+									placeholder="Start writing your note..."
+									showToolbar={true}
+								/>
 							</div>
 						{:else if selectedType === 'flashcard'}
-							<div class="flex flex-col gap-form-field">
-								<label for="flashcard-question" class="text-sm font-medium text-label-primary">
-									Question
-								</label>
-								<textarea
-									id="flashcard-question"
-									bind:value={question}
-									placeholder="What do you want to remember?"
-									rows="3"
-									class="rounded-input border border-base bg-input px-input-x py-input-y"
-								></textarea>
-							</div>
+							<FormTextarea
+								label="Question"
+								placeholder="What do you want to remember?"
+								rows={3}
+								bind:value={question}
+							/>
 
-							<div class="flex flex-col gap-form-field">
-								<label for="flashcard-answer" class="text-sm font-medium text-label-primary">
-									Answer
-								</label>
-								<textarea
-									id="flashcard-answer"
-									bind:value={answer}
-									placeholder="The answer or explanation..."
-									rows="3"
-									class="rounded-input border border-base bg-input px-input-x py-input-y"
-								></textarea>
-							</div>
+							<FormTextarea
+								label="Answer"
+								placeholder="The answer or explanation..."
+								rows={3}
+								bind:value={answer}
+							/>
 						{:else if selectedType === 'highlight'}
-							<div class="flex flex-col gap-form-field">
-								<label for="highlight-source" class="text-sm font-medium text-label-primary">
-									Source (optional)
-								</label>
-								<input
-									id="highlight-source"
-									type="text"
-									bind:value={sourceTitle}
-									placeholder="Book, article, or source name..."
-									class="rounded-input border border-base bg-input px-input-x py-input-y"
-								/>
-							</div>
+							<FormInput
+								label="Source (optional)"
+								placeholder="Book, article, or source name..."
+								bind:value={sourceTitle}
+							/>
 
-							<div class="flex flex-col gap-form-field">
-								<label for="highlight-text" class="text-sm font-medium text-label-primary">
-									Highlight
-								</label>
-								<textarea
-									id="highlight-text"
-									bind:value={content}
-									placeholder="Paste or type the highlighted text..."
-									rows="4"
-									class="rounded-input border border-base bg-input px-input-x py-input-y"
-								></textarea>
-							</div>
+							<FormTextarea
+								label="Highlight"
+								placeholder="Paste or type the highlighted text..."
+								rows={4}
+								bind:value={content}
+							/>
 
-							<div class="flex flex-col gap-form-field">
-								<label for="highlight-note" class="text-sm font-medium text-label-primary">
-									Note (optional)
-								</label>
-								<textarea
-									id="highlight-note"
-									bind:value={note}
-									placeholder="Add your thoughts..."
-									rows="2"
-									class="rounded-input border border-base bg-input px-input-x py-input-y"
-								></textarea>
-							</div>
+							<FormTextarea
+								label="Note (optional)"
+								placeholder="Add your thoughts..."
+								rows={2}
+								bind:value={note}
+							/>
 						{/if}
 
 						<!-- Tag Selector -->
@@ -561,7 +553,7 @@
 								class="rounded-button bg-button-primary px-button-x py-button-y text-button-primary-text hover:bg-button-primary-hover disabled:opacity-50"
 							>
 								{isCreating ? 'Creating...' : 'Create'}
-								<span class="ml-1 text-xs text-button-primary-text/60">(C)</span>
+								<KeyboardShortcut keys="C" />
 							</button>
 						</div>
 						</div>

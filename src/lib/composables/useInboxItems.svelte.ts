@@ -1,6 +1,7 @@
 /**
  * Composable for inbox items data fetching
  * Extracted from inbox +page.svelte to improve maintainability
+ * Now supports workspace context filtering
  */
 
 import { browser } from '$app/environment';
@@ -9,6 +10,11 @@ import { api } from '$lib/convex';
 import type { InboxItem } from '$lib/composables/useKeyboardNavigation.svelte';
 
 type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
+
+export interface UseInboxItemsParams {
+	activeOrganizationId?: string | null;
+	activeTeamId?: string | null;
+}
 
 export interface UseInboxItemsReturn {
 	get filterType(): InboxItemType | 'all';
@@ -19,7 +25,7 @@ export interface UseInboxItemsReturn {
 	setFilter: (type: InboxItemType | 'all', onClearSelection?: () => void) => void;
 }
 
-export function useInboxItems(): UseInboxItemsReturn {
+export function useInboxItems(params?: UseInboxItemsParams): UseInboxItemsReturn {
 	// Filter state
 	const state = $state({
 		filterType: 'all' as InboxItemType | 'all'
@@ -29,9 +35,24 @@ export function useInboxItems(): UseInboxItemsReturn {
 	// This automatically subscribes to changes and updates when new items are added during sync
 	const inboxQuery = browser ? useQuery(
 		api.inbox.listInboxItems,
-		() => state.filterType === 'all' 
-			? { processed: false } 
-			: { filterType: state.filterType, processed: false }
+		() => {
+			const baseArgs: any = { processed: false };
+			
+			// Add workspace context
+			if (params?.activeOrganizationId !== undefined) {
+				baseArgs.organizationId = params.activeOrganizationId;
+			}
+			if (params?.activeTeamId) {
+				baseArgs.teamId = params.activeTeamId;
+			}
+			
+			// Add type filter if not 'all'
+			if (state.filterType !== 'all') {
+				baseArgs.filterType = state.filterType;
+			}
+			
+			return baseArgs;
+		}
 	) : null;
 
 	// Derived state from query
