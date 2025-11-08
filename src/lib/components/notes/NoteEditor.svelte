@@ -305,7 +305,7 @@
 
 	/* List items - default styling */
 	:global(.ProseMirror li) {
-		margin: 0.25em 0;
+		margin: 0.1em 0;
 	}
 
 	/* Regular list items - ensure markers are visible */
@@ -357,7 +357,7 @@
 		display: flex;
 		align-items: flex-start;
 		gap: 0.5em;
-		margin: 0.25em 0;
+		margin: 0.1em 0;
 	}
 
 	:global(.ProseMirror .task-item-checkbox) {

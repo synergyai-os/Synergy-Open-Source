@@ -69,7 +69,7 @@
 	let coords = $state<{ left: number; top: number } | null>(null);
 	let menuElement: HTMLDivElement | null = $state(null);
 
-	let filteredEmojis = $derived(() => {
+	let filteredEmojis = $derived.by(() => {
 		if (!query) return EMOJIS.slice(0, 10); // Show first 10 if no query
 		
 		const lowerQuery = query.toLowerCase();
@@ -85,6 +85,8 @@
 		const checkState = () => {
 			const pluginState = emojiPluginKey.getState(editorView.state);
 			
+			console.log('🎯 EmojiMenu checkState:', { pluginState, isVisible });
+			
 			if (pluginState?.active) {
 				isVisible = true;
 				query = pluginState.query;
@@ -96,6 +98,8 @@
 					left: domCoords.left,
 					top: domCoords.bottom + 5
 				};
+				
+				console.log('🎯 Emoji menu activated:', { query, coords });
 			} else {
 				isVisible = false;
 				coords = null;
@@ -123,7 +127,7 @@
 	function handleKeyDown(e: KeyboardEvent) {
 		if (!isVisible) return;
 
-		const items = filteredEmojis();
+		const items = filteredEmojis;
 
 		if (e.key === 'ArrowDown') {
 			e.preventDefault();
@@ -158,10 +162,10 @@
 		style:left="{coords.left}px"
 		style:top="{coords.top}px"
 	>
-		{#if filteredEmojis().length === 0}
+		{#if filteredEmojis.length === 0}
 			<div class="emoji-menu-item empty">No emojis found</div>
 		{:else}
-			{#each filteredEmojis() as { emoji, keywords }, i}
+			{#each filteredEmojis as { emoji, keywords }, i}
 				<button
 					type="button"
 					class="emoji-menu-item"

@@ -69,6 +69,8 @@ export function createEmojiPlugin() {
           const query = match[1];
           const matchStart = from - match[0].length;
           
+          console.log('🎯 Emoji plugin activated:', { query, textBefore });
+          
           return {
             active: true,
             query,

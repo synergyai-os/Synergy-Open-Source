@@ -10,7 +10,7 @@ import { EditorState, Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { keymap } from "prosemirror-keymap";
 import { history, undo, redo } from "prosemirror-history";
-import { baseKeymap, toggleMark, setBlockType, chainCommands } from "prosemirror-commands";
+import { baseKeymap, toggleMark, setBlockType, chainCommands, exitCode } from "prosemirror-commands";
 import { inputRules, wrappingInputRule, textblockTypeInputRule, InputRule } from "prosemirror-inputrules";
 import { splitListItem, liftListItem, sinkListItem, addListNodes } from "prosemirror-schema-list";
 
@@ -97,6 +97,49 @@ export const noteSchema = new Schema({
 });
 
 /**
+ * Custom command: Insert hard break in task item (Shift+Enter)
+ */
+function insertHardBreakInTaskItem(schema: Schema) {
+  return (state: any, dispatch: any) => {
+    const { $from } = state.selection;
+    
+    // Check if we're in a task_item
+    for (let d = $from.depth; d >= 0; d--) {
+      const node = $from.node(d);
+      if (node.type === schema.nodes.task_item) {
+        if (dispatch) {
+          const br = schema.nodes.hard_break.create();
+          dispatch(state.tr.replaceSelectionWith(br).scrollIntoView());
+        }
+        return true;
+      }
+    }
+    
+    return false;
+  };
+}
+
+/**
+ * Custom command: Exit task item on Enter (lift to paragraph)
+ */
+function exitTaskItem(schema: Schema) {
+  return (state: any, dispatch: any) => {
+    const { $from } = state.selection;
+    
+    // Check if we're in a task_item
+    for (let d = $from.depth; d >= 0; d--) {
+      const node = $from.node(d);
+      if (node.type === schema.nodes.task_item) {
+        // Lift out of task list
+        return liftListItem(schema.nodes.task_item)(state, dispatch);
+      }
+    }
+    
+    return false;
+  };
+}
+
+/**
  * Create keyboard shortcuts
  */
 export function buildKeymap(schema: Schema, onEscape?: () => void) {
@@ -149,10 +192,14 @@ export function buildKeymap(schema: Schema, onEscape?: () => void) {
 
   // List commands: Enter to continue (or normal Enter if not in list)
   keys["Enter"] = chainCommands(
-    splitListItem(schema.nodes.list_item),
+    exitTaskItem(schema), // Task item: exit to paragraph
+    splitListItem(schema.nodes.list_item), // Regular list: split item
     baseKeymap["Enter"] // Fallback to default Enter behavior
   );
-  keys["Shift-Enter"] = liftListItem(schema.nodes.list_item);
+  keys["Shift-Enter"] = chainCommands(
+    insertHardBreakInTaskItem(schema), // Task item: insert <br> (new line within checkbox)
+    liftListItem(schema.nodes.list_item) // Regular list: lift out
+  );
   keys["Tab"] = sinkListItem(schema.nodes.list_item);
   keys["Shift-Tab"] = liftListItem(schema.nodes.list_item);
 
