@@ -102,6 +102,145 @@ We treat analytics names as immutable contracts. Consistent naming prevents dupl
 - New events require a short entry in this doc plus dashboard updates or alerts that depend on them.
 - Quarterly taxonomy review: clean unused events, confirm naming consistency, and align display names in PostHog.
 
+## AARRR Pirate Metrics (Business Validation)
+
+The AARRR framework (Acquisition, Activation, Retention, Referral, Revenue) provides a structured approach to track the user journey and validate product-market fit. All AARRR events should be defined in `src/lib/analytics/events.ts` and tracked via the server-side endpoint for reliability.
+
+### Acquisition Events
+**Goal**: Understand how users discover the product
+
+- `user_registered` - New user signup completed
+  - Properties: `source` (direct/referral/social), `referrer`, `utm_campaign`, `signup_method` (email/google/github)
+- `landing_page_viewed` - User visits marketing site
+  - Properties: `page` (home/features/pricing), `utm_params`, `referrer`
+- `referral_link_clicked` - Referral source tracking
+  - Properties: `referrer_id`, `campaign`
+
+**Key Metrics**: Total signups, signups per channel, conversion rate (visitor → signup)
+
+### Activation Events
+**Goal**: Measure first valuable experience (time to "aha moment")
+
+- `user_onboarded` - Completed onboarding flow
+  - Properties: `time_to_activate_minutes`, `onboarding_version`, `skipped_steps`
+- `first_note_created` - First valuable action (notes)
+  - Properties: `content_length_chars`, `has_tags`, `created_via` (quick_create/inbox)
+- `first_flashcard_created` - First valuable action (flashcards)
+  - Properties: `source_type` (note/highlight), `ai_generated`
+- `readwise_synced` - Integration activated
+  - Properties: `highlights_count`, `sync_duration_seconds`
+
+**Key Metrics**: Activation rate (% completing activation), time to first value
+
+**Activation Definition**: User completes at least one of:
+1. Creates first note
+2. Creates first flashcard
+3. Syncs Readwise highlights
+
+### Retention Events
+**Goal**: Track repeat usage and engagement over time
+
+- `session_started` - User logs in and starts session
+  - Properties: `session_length_minutes`, `previous_session_days_ago`, `session_number`
+- `inbox_viewed` - Core feature usage
+  - Properties: `items_count`, `unprocessed_count`, `view_duration_seconds`
+- `flashcard_studied` - Core feature usage (study mode)
+  - Properties: `cards_studied`, `session_duration_minutes`, `algorithm` (fsrs/anki2)
+- `note_edited` - Content engagement
+  - Properties: `edit_duration_seconds`, `words_added`, `is_existing_note`
+- `weekly_active` - User active at least once this week
+  - Properties: `sessions_this_week`, `features_used` (array)
+
+**Key Metrics**: DAU, WAU, MAU, DAU/MAU ratio, Day 1/7/30 retention, churn rate
+
+**Target**: DAU/MAU > 0.4 (indicates daily habit)
+
+### Referral Events
+**Goal**: Measure viral growth and word-of-mouth
+
+- `invite_sent` - User invites someone
+  - Properties: `method` (email/link/team_invite), `invitee_email`, `custom_message`
+- `invite_accepted` - Referred user joins
+  - Properties: `referrer_id`, `invite_method`, `time_to_accept_days`
+- `user_referred` - Attribution tracking
+  - Properties: `referee_id`, `referral_source`, `cohort`
+- `share_action` - User shares content externally
+  - Properties: `content_type` (note/blog), `platform` (twitter/linkedin)
+
+**Key Metrics**: Referrals per user, viral coefficient (k-factor), invite acceptance rate
+
+**Target**: 1+ referral per power user by Month 3
+
+### Revenue Events
+**Goal**: Track monetization and financial sustainability
+
+- `subscription_started` - New paying customer
+  - Properties: `plan` (managed_hosting/enterprise), `price_monthly`, `billing_cycle`, `trial_days`
+- `payment_successful` - Revenue received
+  - Properties: `amount`, `currency`, `plan`, `billing_period`, `is_first_payment`
+- `subscription_cancelled` - Churn tracking
+  - Properties: `reason`, `tenure_days`, `final_plan`, `churn_feedback`
+- `plan_upgraded` - Expansion revenue
+  - Properties: `from_plan`, `to_plan`, `mrr_change`, `upgrade_reason`
+- `marketplace_purchase` - Builder app revenue
+  - Properties: `app_id`, `price`, `builder_id`, `builder_revenue` (80%), `platform_revenue` (20%)
+
+**Key Metrics**: MRR, ARPU, churn rate, LTV, expansion revenue
+
+**Revenue Streams**:
+1. Managed Hosting: $X/org/month
+2. Enterprise Support: Custom
+3. Marketplace: 20% of builder revenue
+4. Consulting: Hourly/project
+
+**Targets**:
+- Month 1: First paying customer
+- Month 3: $60 MRR (break-even)
+- Year 1: $1,000 MRR (sustainable)
+
+---
+
+### AARRR Implementation Checklist
+
+**Phase 1: Foundation (Now)**
+- [ ] Add all AARRR events to `src/lib/analytics/events.ts` enum
+- [ ] Update server endpoint `/api/posthog/track` to validate AARRR events
+- [ ] Instrument registration and onboarding flows
+- [ ] Add session tracking to layout
+
+**Phase 2: Activation & Retention (Month 1)**
+- [ ] Track first valuable actions (note/flashcard creation)
+- [ ] Track core feature usage (inbox, study, notes)
+- [ ] Set up PostHog retention analysis dashboards
+- [ ] Define activation criteria and measure rate
+
+**Phase 3: Referral & Revenue (Month 2-3)**
+- [ ] Build invite/referral system with tracking
+- [ ] Implement subscription and payment tracking
+- [ ] Add marketplace revenue tracking
+- [ ] Create AARRR funnel dashboard in PostHog
+
+**Phase 4: Optimization (Ongoing)**
+- [ ] Set up automated alerts for metric drops
+- [ ] Weekly AARRR review (identify bottlenecks)
+- [ ] A/B test improvements at each stage
+- [ ] Cohort analysis for retention improvements
+
+---
+
+### PostHog Dashboards
+
+**Recommended Dashboards**:
+1. **AARRR Funnel** - Full pirate metrics overview
+2. **Acquisition** - Signups by channel, conversion rates
+3. **Activation** - Time to first value, activation rate
+4. **Retention** - DAU/WAU/MAU, cohort retention
+5. **Revenue** - MRR, ARPU, churn, expansion
+
+**See**: [Metrics Dashboard](./metrics.md) for current targets and real numbers
+
+---
+
 ## Multi-Tenant Lifecycle Analytics
 
 > **📖 For detailed guidance**, see **[Multi-Tenancy Analytics Guide](./multi-tenancy-analytics.md)**

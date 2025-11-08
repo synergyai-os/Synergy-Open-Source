@@ -1,98 +1,149 @@
 # SynergyOS Developer Documentation
 
-> **OS = Open Source** | Knowledge retention platform using the CODE framework
+> **The Open-Source Product OS** | Built for product teams who want to accelerate the smart use of AI
 
 ---
 
 ## 🎯 What is SynergyOS?
 
-SynergyOS helps you **collect, organize, distill, and express** knowledge from diverse sources into actionable learning tools (flashcards, rich notes, templates, frameworks). Built as an open-source project with AI collaboration, designed for teams building Champions League products.
+**The Product OS** - An open-source, modular platform that integrates product discovery, delivery, and team collaboration with AI coaching trained on your company data. Think Holaspirit meets Notion meets ChatGPT, but privacy-first, community-driven, and built for product teams.
 
-### CODE Framework
+### What's Working Now
 
-**Collect → Organise → Distill → Express**
+**Knowledge Foundation** (Built & Tested ✅):
+- **Rich Notes** - ProseMirror editor with AI content detection, markdown export for blog
+- **Flashcard Creation** - AI-powered flashcard generation from highlights/notes (Claude API)
+- **Universal Inbox** - Collect and organize content from any source (Readwise integration ready)
+- **Study System** - FSRS algorithm for spaced repetition (schema ready, UI in progress)
 
-1. **Collect**: Gather information from multiple sources (Readwise, notes, photos)
-2. **Organise**: Review and categorize in a universal inbox
-3. **Distill**: Extract key insights (AI-powered flashcard generation)
-4. **Express**: Study and use the distilled content
+### What We're Building (Join Us 🚀)
+
+**The Full Product OS** - Help us build it:
+- **Product Discovery** - User research, opportunity trees, continuous discovery
+- **Product Delivery** - OKRs, roadmaps, goal tracking, sprint planning
+- **Team Collaboration** - Meetings, alignment, automated status reports
+- **Knowledge Management** - Glossaries, docs, learning embedded in workflows
+- **AI Coaching** - Context-aware AI trained on company data, not generic ChatGPT
+- **Builder Marketplace** - Custom apps, workflows, integrations (80/20 revenue share)
+
+**Want to contribute?** Check [Contributing Guidelines](../CONTRIBUTING.md) or browse [good first issues](https://github.com/randyhereman/axon/labels/good%20first%20issue)
+
+### Why It's Different
+
+- 🔓 **Privacy-First** - Self-hosted, cloud-hosted, or bring-your-own AI
+- 🌍 **Open Source** - Community-driven, no vendor lock-in
+- 🤖 **AI-Powered** - Context-aware coaching, not generic responses
+- 📊 **Outcome-Driven** - [See our public metrics & OKRs →](2-areas/metrics)
+- 🛠️ **Extensible** - Builder marketplace (80/20 revenue share, builders keep 80%)
+- 💰 **Open Business** - Knowledge is free forever. [See how we make money →](2-areas/metrics#how-we-make-money-without-charging-for-knowledge)
 
 ---
 
-## 🗂️ Documentation Structure (PARA)
+## 🎯 Pick Your Path
 
-This documentation follows the **PARA method**: Projects, Areas, Resources, Archive.
+### 🐛 I'm Debugging (Engineer)
+**→ [Pattern Index](2-areas/patterns/INDEX)** - Symptom → Solution in < 2 min
 
-### 1-projects/
-*Time-bound initiatives with specific outcomes and deadlines*
+### 🎨 I'm Designing (Designer)
+**→ [Component Library](2-areas/component-library)** *(Coming Soon)*  
+**→ [Design Tokens](2-areas/design-tokens)** - Spacing, colors, typography ✅
 
-Currently empty - active value streams live in `2-areas/value-streams/`
+### 📊 I'm Planning (Product Manager)
+**→ [Product Vision 2.0](../marketing-docs/strategy/product-vision-2.0.md)** - What we're building ⭐  
+**→ [Metrics & Outcomes](2-areas/metrics)** - Public dashboard (revenue, OKRs, AARRR) 💰  
+**→ [Product Strategy](../marketing-docs/strategy/product-strategy.md)** - Outcome-driven roadmap  
+**→ [User Journeys](2-areas/user-journeys)** *(Coming Soon)*
 
-### 2-areas/
-*Ongoing responsibilities and domains we maintain*
+### 🏗️ I'm Building (All Roles)
+**→ [Architecture](2-areas/architecture.md)** - System overview + tech stack ✅  
+**→ [Data Models](2-areas/data-models)** *(Coming Soon)*
 
-**Core Areas:**
-- **[product-vision-and-plan.md](2-areas/product-vision-and-plan.md)** - Product vision, strategy, roadmap ⭐ **START HERE**
-- **[architecture.md](2-areas/architecture.md)** - Tech stack, auth, composables
-- **[design-tokens.md](2-areas/design-tokens.md)** - Design system reference 🎨 **MANDATORY**
-- **[composables-analysis.md](2-areas/composables-analysis.md)** - Svelte 5 composables patterns
+---
 
-**Value Streams:**
-- **[value-streams/](2-areas/value-streams/)** - Outcome-driven development streams
-  - [Documentation System](2-areas/value-streams/documentation-system/) - Living docs, AI-navigable
-  - [Fresh Start Plan](2-areas/value-streams/FRESH-START-PLAN.md) - Step-by-step implementation
+## ⚡ Quick Wins
 
-**Patterns:**
-- **[patterns/INDEX.md](2-areas/patterns/INDEX.md)** - Fast pattern lookup ⚡ **DEBUG HERE**
-- [patterns/svelte-reactivity.md](2-areas/patterns/svelte-reactivity.md) - Svelte 5 runes, $state, $derived
-- [patterns/convex-integration.md](2-areas/patterns/convex-integration.md) - Convex auth, queries, mutations
-- [patterns/ui-patterns.md](2-areas/patterns/ui-patterns.md) - UI/UX, design tokens, layout
-- [patterns/analytics.md](2-areas/patterns/analytics.md) - PostHog server-side tracking
+| I need to... | Go here | Time |
+|-------------|---------|------|
+| Fix a bug | [Pattern Index 🔴](2-areas/patterns/INDEX#-critical-patterns-fix-immediately) | 2 min |
+| See metrics/OKRs | [Metrics Dashboard 💰](2-areas/metrics) | 3 min |
+| Find a component | [Component Library](2-areas/component-library) *(Coming Soon)* | 3 min |
+| Understand user flow | [User Journeys](2-areas/user-journeys) *(Coming Soon)* | 10 min |
+| Check design system | [Design Tokens](2-areas/design-tokens) | 5 min |
+| Understand vision | [Product Vision 2.0](../marketing-docs/strategy/product-vision-2.0.md) | 10 min |
 
-**Infrastructure:**
-- [activity-tracker.md](2-areas/activity-tracker.md) - Global progress tracking
-- [posthog.md](2-areas/posthog.md) - Analytics setup
-- [theme-sync.md](2-areas/theme-sync.md) - Theme synchronization
-- [multi-tenancy-migration.md](2-areas/multi-tenancy-migration.md) - Future org/team architecture
+---
 
-### 3-resources/
-*Reference material, checklists, external guides*
+## 📂 PARA Organization
 
-- [production-checklist.md](3-resources/production-checklist.md) - Pre-launch checklist
-- [testing-strategy.md](3-resources/testing-strategy.md) - Testing approach
-- [mobile-strategy.md](3-resources/mobile-strategy.md) - Capacitor iOS setup
-- [ENCRYPTION-SETUP.md](3-resources/ENCRYPTION-SETUP.md) - API key encryption
+This documentation follows the [PARA system](https://fortelabs.com/blog/para/):
 
-### 4-archive/
-*Deprecated, completed, or superseded documentation*
+- **[1-projects/](1-projects/)** - Time-bound work with deadlines
+- **[2-areas/](2-areas/)** - Ongoing responsibilities (architecture, design, patterns)
+- **[3-resources/](3-resources/)** - Reference material (checklists, testing, mobile)
+- **[4-archive/](4-archive/)** - Completed or deprecated content
 
-Historical analysis docs, legacy patterns, refactoring notes.
+### Key Areas
+
+**Product & Strategy:**
+- **[Product Vision 2.0](../marketing-docs/strategy/product-vision-2.0.md)** ⭐ **Current Vision**
+- **[Product Vision (Original)](2-areas/product-vision-and-plan.md)** - Historical (CODE framework)
+- **[Architecture](2-areas/architecture.md)** - Tech stack, auth, composables
+- **[Multi-Tenancy](2-areas/multi-tenancy-migration.md)** - Org/team architecture
+
+**Design & UI:**
+- **[Design Tokens](2-areas/design-tokens.md)** 🎨 **MANDATORY** - Never hardcode
+- **[Component Library](2-areas/component-library)** *(Coming Soon)*
+- **[UI Patterns](2-areas/patterns/ui-patterns.md)** - Solved design problems
+- **[Composables Analysis](2-areas/composables-analysis.md)** - Reusable logic
+
+**Development & Patterns:**
+- **[Pattern Index](2-areas/patterns/INDEX.md)** ⚡ **DEBUG HERE**
+- **[Svelte 5 Reactivity](2-areas/patterns/svelte-reactivity.md)** - $state, $derived, $effect
+- **[Convex Integration](2-areas/patterns/convex-integration.md)** - Queries, mutations, auth
+- **[Analytics](2-areas/patterns/analytics.md)** - PostHog tracking
+
+**Active Work:**
+- **[Value Streams](2-areas/value-streams/)** - Outcome-driven initiatives
+- **[Documentation System](2-areas/value-streams/documentation-system/)** - Living docs
 
 ---
 
 ## 🚀 Quick Start
 
-### For New Contributors
+### 👋 New to SynergyOS? (Pick your role)
 
-1. **Read [product-vision-and-plan.md](2-areas/product-vision-and-plan.md)** - Understand what we're building
-2. **Read [patterns/INDEX.md](2-areas/patterns/INDEX.md)** - Common issues and solutions
-3. **Check [design-tokens.md](2-areas/design-tokens.md)** - NEVER hardcode values
-4. **Pick a task** from value streams or product plan
-5. **Use Context7** for library documentation (faster than web search)
+**Product Manager:**
+1. Read [Product Vision 2.0](../marketing-docs/strategy/product-vision-2.0.md) (10 min) ⭐
+2. Review [Product Strategy](../marketing-docs/strategy/product-strategy.md) (15 min)
+3. Check [Target Personas](../marketing-docs/audience/target-personas.md) (10 min)
+4. Explore [User Journeys](2-areas/user-journeys) *(Coming Soon)*
 
-### For Debugging
+**Designer:**
+1. Review [Design Tokens](2-areas/design-tokens) (15 min) 🎨 **MANDATORY**
+2. Explore [Component Library](2-areas/component-library) *(Coming Soon)*
+3. Check [UI Patterns](2-areas/patterns/ui-patterns.md) (10 min)
+4. Review [Interaction Patterns](2-areas/patterns/ui-patterns.md#L1150) (5 min)
 
-1. Load **[patterns/INDEX.md](2-areas/patterns/INDEX.md)** - Symptom table
-2. Find your symptom → jump to line number
-3. Apply fix with 95%+ confidence
-4. Use Context7 to verify library patterns
+**Engineer:**
+1. Load [Pattern Index](2-areas/patterns/INDEX) (5 min) ⚡
+2. Read [Architecture](2-areas/architecture) (20 min)
+3. Review [Svelte 5 Patterns](2-areas/patterns/svelte-reactivity.md) (15 min)
+4. Check [Convex Patterns](2-areas/patterns/convex-integration.md) (15 min)
 
-### For New Chat Sessions (AI)
+### 🐛 Debugging Something?
 
-1. **Load** `dev-docs/product-vision-and-plan.md` - Current state
-2. **Reference** `dev-docs/patterns/INDEX.md` - Known solutions
-3. **Check** `dev-docs/design-tokens.md` - UI requirements
-4. **Use** Context7 MCP - Latest library docs
+1. **Load** [Pattern Index](2-areas/patterns/INDEX)
+2. **Scan** symptom table (🔴 Critical, 🟡 Important, 🟢 Reference)
+3. **Jump** to line number for immediate fix
+4. **Apply** with 95%+ confidence
+
+### 🤖 Starting a New Chat? (For AI)
+
+1. Load `marketing-docs/strategy/product-vision-2.0.md` - Current vision
+2. Load `dev-docs/2-areas/product-vision-and-plan.md` - Original vision (historical)
+3. Reference `dev-docs/patterns/INDEX.md` - Known solutions
+4. Check `dev-docs/design-tokens.md` - UI requirements
+5. Use Context7 MCP - Latest library docs
 
 ---
 
@@ -144,10 +195,12 @@ Historical analysis docs, legacy patterns, refactoring notes.
 
 ### Documentation
 - `dev-docs/README.md` - You are here
+- `dev-docs/2-areas/metrics.md` - **Public metrics & OKRs** (updated monthly)
 - `dev-docs/2-areas/product-vision-and-plan.md` - Vision & roadmap
 - `dev-docs/2-areas/patterns/INDEX.md` - Pattern lookup
 - `dev-docs/2-areas/architecture.md` - Tech architecture
 - `dev-docs/2-areas/design-tokens.md` - Token reference
+- `dev-docs/2-areas/posthog.md` - Analytics & AARRR tracking
 
 ### Code
 - `src/lib/composables/` - Svelte 5 composables (`.svelte.ts`)
@@ -217,14 +270,24 @@ When you discover/solve something:
 
 ## 🎯 Current Focus
 
-**Phase 2B**: Rich Note-Taking System (In Progress)
-- ✅ ProseMirror editor with AI detection
-- ✅ Blog workflow (export to markdown)
-- 🔄 Documentation system (MDX + PARA)
+**Foundation**: Technical foundation for Product OS
+- ✅ SvelteKit 5 + Convex architecture
+- ✅ Design token system
+- ✅ Pattern documentation
+- 🔄 Documentation system (MDX + PARA + TOC)
+- 🔄 Multi-tenancy architecture (orgs & teams)
 
-**Next**: Complete Phase 2A (Tagging Integration)
+**Next (Product OS Features)**:
+- Product discovery tools (opportunity trees, research)
+- OKR & roadmap tracking
+- Team collaboration features
+- AI coaching with company context
+- Builder marketplace (SDK + revenue share)
 
-See [product-vision-and-plan.md](2-areas/product-vision-and-plan.md) for full roadmap.
+**See**:
+- [Product Vision 2.0](../marketing-docs/strategy/product-vision-2.0.md) - What we're building
+- [Product Strategy](../marketing-docs/strategy/product-strategy.md) - Outcome-driven roadmap
+- [Marketplace Strategy](../marketing-docs/opportunities/marketplace-strategy.md) - Builder ecosystem
 
 ---
 

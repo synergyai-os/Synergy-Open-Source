@@ -14,7 +14,7 @@ For the full story, see our [Brand Identity](marketing-docs/brand/identity.md).
 
 ## Our Core Values
 
-These five values guide every decision we make. When in doubt, refer back to these.
+These six values guide every decision we make. When in doubt, refer back to these.
 
 ### 1. **Learning from Failure**
 
@@ -76,6 +76,24 @@ We practice what we preach: the CODE framework (Collect → Organise → Distill
 
 **Decision framework:** If you learned something building a feature, capture it. If you solved a problem twice, create a pattern. If the pattern helps others, share it publicly.
 
+### 6. **Open Business, Open Books**
+
+We make money without charging for knowledge. Our goals, metrics, and revenue are public—no secrets.
+
+**In practice:**
+- Core platform: FREE forever (open source, self-hosted)
+- Knowledge/docs: FREE forever (learning should be accessible)
+- Revenue streams: Managed hosting, enterprise support, marketplace (80/20 split favoring builders), consulting
+- Metrics dashboard: Updated monthly with real numbers (revenue, costs, users, community growth)
+- OKRs: Published quarterly with progress visible to everyone
+- Failed experiments: Documented openly so others can learn from our mistakes
+
+**Decision framework:** If we can't explain our business model transparently to the community, we shouldn't do it. Community trust > short-term revenue. When choosing between hiding metrics or sharing them, share them.
+
+**Inspired by:** PostHog (public MRR dashboard), Supabase (free tier + hosting model), Cal.com (open source + enterprise), Buffer (transparent salaries), GitLab (public handbook with KPIs)
+
+**See our metrics:** [dev-docs/2-areas/metrics.md](dev-docs/2-areas/metrics.md) - Updated monthly, no secrets.
+
 ---
 
 ## Decision Framework
@@ -83,7 +101,7 @@ We practice what we preach: the CODE framework (Collect → Organise → Distill
 When making decisions (code architecture, features, contributions), use this hierarchy:
 
 1. **Does it help users retain knowledge?** (Our mission)
-2. **Does it align with our core values?** (Check the five above)
+2. **Does it align with our core values?** (Check the six above)
 3. **Can we document it clearly?** (For humans and AI)
 4. **Can we maintain it long-term?** (Side project sustainability)
 5. **Does it feel right?** (Trust your instincts)
