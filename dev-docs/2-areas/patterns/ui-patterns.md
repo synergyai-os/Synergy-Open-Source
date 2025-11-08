@@ -1301,7 +1301,74 @@ keys["Shift-Tab"] = liftListItem(schema.nodes.list_item); // Outdent
 
 ---
 
-**Pattern Count**: 21  
+## #L1150: Svelte 5 Motion for Premium Animations [🟢 REFERENCE]
+
+**Symptom**: Animations feel stiff, robotic, or lack polish  
+**Root Cause**: Using only CSS transitions without physics-based motion  
+**Fix**:
+
+```typescript
+// ❌ WRONG - CSS-only, no organic feel
+<div style="transition: all 0.3s ease">
+
+// ✅ CORRECT - Svelte 5 spring physics + staggered transitions
+import { spring } from 'svelte/motion';
+import { fade, fly } from 'svelte/transition';
+
+let scale = spring(1, { stiffness: 0.3, damping: 0.8 });
+let opacity = spring(1, { stiffness: 0.2, damping: 0.9 });
+
+$effect(() => {
+  if (isHovering) {
+    scale.set(1.02);
+    opacity.set(1);
+  } else {
+    scale.set(1);
+    opacity.set(0.95);
+  }
+});
+
+// Staggered entrance
+{#each items as item, i}
+  <div in:fly={{ x: 10, duration: 400, delay: i * 40 }}>
+    {item}
+  </div>
+{/each}
+
+// Spring-based transforms
+<div style="transform: scale({$scale}); opacity: {$opacity};">
+```
+
+**Apply when**:
+- Building premium UI components (TOC, modals, drawers)
+- Micro-interactions need organic feel (hover, focus, active states)
+- Sequential reveals enhance perceived performance
+- Design requires Apple/Linear-quality polish
+
+**Why it works**:
+- `spring()` creates physics-based motion (mass, stiffness, damping)
+- Transitions feel natural, not mechanical
+- Staggered delays create elegant cascades
+- GPU-accelerated (transform, opacity) = 60fps smooth
+- Combines with CSS for best of both worlds
+
+**Premium Animation Stack**:
+1. **Spring physics**: `spring()` for organic scale/position changes
+2. **Transition directives**: `in:fly`, `out:fade` for enter/exit
+3. **Staggered timing**: `delay: i * 40ms` for sequential reveals
+4. **CSS for basics**: `transition: all 0.2s ease-out` for simple states
+5. **Elastic curves**: `cubic-bezier(0.34, 1.56, 0.64, 1)` for bounce
+
+**Configuration Guide**:
+- **Stiffness** (0.1-0.5): Lower = slower, bouncier
+- **Damping** (0.5-1.0): Lower = more oscillation
+- **Delay multiplier** (30-50ms): Faster for small lists, slower for impact
+
+**Related**: #L680 (Atomic Design), svelte-reactivity.md#L220 (useQuery reactivity)
+
+---
+
+**Pattern Count**: 22  
 **Last Updated**: 2025-11-08  
 **Design Token Reference**: `dev-docs/design-tokens.md`
 

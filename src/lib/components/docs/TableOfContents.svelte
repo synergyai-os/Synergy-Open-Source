@@ -400,18 +400,41 @@
 		opacity: 1;
 	}
 	
-	/* Indent levels - subtle hierarchy */
+	/* Indent levels - clear hierarchy */
+	
+	/* H1 - Page Title: Bold, prominent */
+	.level-1 .toc-link {
+		padding-left: 0.875rem;
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--color-text-primary);
+		opacity: 0.95;
+		padding-top: 0.5rem;
+		padding-bottom: 0.5rem;
+	}
+	
+	.level-1 .toc-link:hover {
+		color: var(--color-text-primary);
+	}
+	
+	.level-1 .toc-link.active {
+		font-weight: 600;
+	}
+	
+	/* H2 - Section Headings: Medium weight */
 	.level-2 .toc-link {
 		padding-left: 0.875rem;
 		font-size: 0.8125rem;
 	}
 	
+	/* H3 - Subsections: Lighter, indented */
 	.level-3 .toc-link {
 		padding-left: 1.5rem;
 		font-size: 0.8125rem;
 		opacity: 0.75;
 	}
 	
+	/* H4 - Details: Lightest, most indented */
 	.level-4 .toc-link {
 		padding-left: 2rem;
 		font-size: 0.8125rem;
