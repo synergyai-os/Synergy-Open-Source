@@ -556,11 +556,9 @@
 								onContentChange={(content: string, markdown: string) => {
 									noteContent = content;
 									noteContentMarkdown = markdown;
-									console.log('🟢 NoteEditor content changed:', { contentLength: content.length, markdownLength: markdown.length });
 								}}
 								onTitleChange={(title: string) => {
 									noteTitle = title;
-									console.log('🟢 NoteEditor title changed:', title);
 								}}
 								onAIFlagged={() => {
 									noteIsAIGenerated = true;
