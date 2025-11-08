@@ -476,7 +476,33 @@ await tagging.assignTags(flashcardId, [tag1, tag2]);
 
 ---
 
-**Pattern Count**: 10  
-**Last Validated**: 2025-11-07  
+## #L490: Convex Timestamps Are Numbers Not Dates [🟡 IMPORTANT]
+
+**Symptom**: `TypeError: item.createdAt.toLocaleDateString is not a function`  
+**Root Cause**: Convex returns timestamps as numbers (milliseconds since epoch), not JavaScript `Date` objects  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Calling date methods directly on Convex timestamp
+<span>Added {item.createdAt.toLocaleDateString()}</span>
+// TypeError: item.createdAt.toLocaleDateString is not a function
+
+// ✅ CORRECT: Wrap in new Date() first
+<span>Added {new Date(item.createdAt).toLocaleDateString()}</span>
+```
+
+**Why**: Convex stores dates as numbers for efficient serialization/comparison. JavaScript Date methods must be called on Date objects.  
+**Apply when**: Displaying any Convex timestamp field (createdAt, updatedAt, etc.)  
+**Related**: #L10 (Serializable values), #L240 (Type definitions)
+
+**Common Fields**:
+- `createdAt` - When the record was created
+- `updatedAt` - When the record was last modified  
+- Any custom timestamp field
+
+---
+
+**Pattern Count**: 11  
+**Last Validated**: 2025-11-08  
 **Context7 Source**: `/get-convex/convex-backend`
 

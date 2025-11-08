@@ -121,6 +121,51 @@ export const listInboxItems = query({
             snippet,
             tags: tagNames,
           };
+        } else if (item.type === "note") {
+          // Get note title and content snippet
+          const title = item.title || "Untitled Note";
+          
+          // Extract snippet from markdown or ProseMirror content
+          let snippet = "";
+          if (item.contentMarkdown) {
+            // Remove markdown formatting and get first 100 chars
+            snippet = item.contentMarkdown
+              .replace(/^---[\s\S]*?---/, '') // Remove frontmatter
+              .replace(/[#*_`\[\]]/g, '') // Remove markdown symbols
+              .trim();
+            
+            if (snippet.length > 100) {
+              snippet = snippet.substring(0, 100) + "...";
+            }
+          } else if (item.content) {
+            // Try to extract text from ProseMirror JSON
+            try {
+              const proseMirrorDoc = JSON.parse(item.content);
+              const extractText = (node: any): string => {
+                if (node.text) return node.text;
+                if (node.content) {
+                  return node.content.map(extractText).join(' ');
+                }
+                return '';
+              };
+              snippet = extractText(proseMirrorDoc).trim();
+              if (snippet.length > 100) {
+                snippet = snippet.substring(0, 100) + "...";
+              }
+            } catch {
+              snippet = "No preview available";
+            }
+          }
+          
+          // TODO: Get tags for notes (when note tagging is implemented)
+          const tags: string[] = [];
+          
+          return {
+            ...item,
+            title,
+            snippet,
+            tags,
+          };
         }
 
         // For other types, return with placeholder data

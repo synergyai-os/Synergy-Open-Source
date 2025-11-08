@@ -1,5 +1,5 @@
 <script lang="ts">
-	type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
+	type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text' | 'note';
 
 	// Inbox item from Convex (with enriched display info)
 	type InboxItem = {
@@ -34,8 +34,10 @@
 				return '📷';
 			case 'manual_text':
 				return '✍️';
-			default:
+			case 'note':
 				return '📝';
+			default:
+				return '📋';
 		}
 	}
 </script>

@@ -79,7 +79,7 @@
 	<!-- Metadata -->
 	<div class="mt-6 pt-6 border-t border-gray-200">
 		<div class="flex items-center justify-between text-xs text-gray-500">
-			<span>Added {item.createdAt.toLocaleDateString()}</span>
+			<span>Added {new Date(item.createdAt).toLocaleDateString()}</span>
 			<span>ID: {item.id}</span>
 		</div>
 	</div>

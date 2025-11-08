@@ -7,6 +7,7 @@
 	import ReadwiseDetail from '$lib/components/inbox/ReadwiseDetail.svelte';
 	import PhotoDetail from '$lib/components/inbox/PhotoDetail.svelte';
 	import ManualDetail from '$lib/components/inbox/ManualDetail.svelte';
+	import NoteDetail from '$lib/components/inbox/NoteDetail.svelte';
 	import InboxCard from '$lib/components/inbox/InboxCard.svelte';
 	import InboxHeader from '$lib/components/inbox/InboxHeader.svelte';
 	import SyncReadwiseConfig from '$lib/components/inbox/SyncReadwiseConfig.svelte';
@@ -387,6 +388,8 @@
 							onNext={keyboard.handleNextItem}
 							onPrevious={keyboard.handlePreviousItem}
 						/>
+					{:else if selected.selectedItem.type === 'note'}
+						<NoteDetail inboxItem={selected.selectedItem} onClose={() => clearSelection()} />
 					{:else if selected.selectedItem.type === 'photo_note'}
 						<PhotoDetail item={selected.selectedItem} onClose={() => clearSelection()} />
 					{:else if selected.selectedItem.type === 'manual_text'}
@@ -440,6 +443,8 @@
 					{#key selected.selectedItem._id}
 						{#if selected.selectedItem.type === 'readwise_highlight'}
 							<ReadwiseDetail item={selected.selectedItem} onClose={() => clearSelection()} />
+						{:else if selected.selectedItem.type === 'note'}
+							<NoteDetail inboxItem={selected.selectedItem} onClose={() => clearSelection()} />
 						{:else if selected.selectedItem.type === 'photo_note'}
 							<PhotoDetail item={selected.selectedItem} onClose={() => clearSelection()} />
 						{:else if selected.selectedItem.type === 'manual_text'}

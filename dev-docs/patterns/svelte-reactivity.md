@@ -420,7 +420,73 @@ $effect(() => {
 
 ---
 
-**Pattern Count**: 11  
+## #L550: Phantom Dependencies in Config Break Build [🔴 CRITICAL]
+
+**Symptom**: Build fails with "ENOENT: no such file or directory" referencing non-existent files, dev server won't start  
+**Root Cause**: SvelteKit config references files/libraries that don't exist. Vite's dependency optimizer fails during preprocessing, crashing entire build.  
+**Fix**: 
+
+```javascript
+// ❌ WRONG - Config references non-existent files
+// svelte.config.js
+import { mdsvex } from 'mdsvex';
+import mdsvexConfig from './mdsvex.config.js';
+
+const config = {
+  extensions: ['.svelte', ...mdsvexConfig.extensions],
+  preprocess: [vitePreprocess(), mdsvex(mdsvexConfig)]  // ❌ Breaks build
+};
+
+// mdsvex.config.js
+export default {
+  layout: {
+    docs: './src/lib/components/docs/DocLayout.svelte',  // ❌ File doesn't exist
+  }
+};
+
+// ✅ CORRECT - Remove unused dependencies entirely
+// svelte.config.js
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+
+const config = {
+  extensions: ['.svelte'],
+  preprocess: [vitePreprocess()]  // ✅ Only what's needed
+};
+
+// package.json - Remove from devDependencies
+{
+  "devDependencies": {
+    // "mdsvex": "^0.12.6",           // ❌ Removed
+    // "rehype-autolink-headings": "^7.1.0",  // ❌ Removed
+    // "rehype-slug": "^6.0.0"        // ❌ Removed
+  }
+}
+```
+
+**Apply when**:
+- Build fails with "ENOENT" or "Error during dependency optimization"
+- Error mentions preprocessing or file not found
+- Library is installed but files it references don't exist
+- Added library for future feature but not using it yet
+
+**Why it breaks**:
+- SvelteKit config runs during build initialization
+- Preprocessors (mdsvex, etc.) execute during Vite's dependency optimization
+- Referenced files must exist even if not actively used
+- Build crashes before dev server can start
+
+**Resolution Steps**:
+1. Identify the library causing the error from stack trace
+2. Check if you're actually using it (search for markdown files, etc.)
+3. If not in use: Remove from `svelte.config.js`, `package.json`, delete config file
+4. Run `npm install` to clean up package-lock.json
+5. Restart dev server
+
+**Related**: #L400 (SSR issues), #L180 (File extensions)
+
+---
+
+**Pattern Count**: 12  
 **Last Validated**: 2025-11-08  
 **Context7 Source**: `/sveltejs/svelte`
 

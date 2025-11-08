@@ -16,6 +16,7 @@
 | `.ts` file: "Cannot assign to constant" | Rename to `.svelte.ts` | [svelte-reactivity.md#L180](svelte-reactivity.md#L180) |
 | 500 error with ProseMirror/Monaco | Guard with `{#if browser}` | [svelte-reactivity.md#L400](svelte-reactivity.md#L400) |
 | Event listeners don't fire (no errors) | Browser check inside $effect | [svelte-reactivity.md#L500](svelte-reactivity.md#L500) |
+| Build fails: ENOENT file not found | Remove phantom dependencies | [svelte-reactivity.md#L550](svelte-reactivity.md#L550) |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -31,6 +32,7 @@
 | File not found in Convex | Use TypeScript imports | [convex-integration.md#L140](convex-integration.md#L140) |
 | `InvalidConfig`: hyphens in filename | Use camelCase names | [convex-integration.md#L140](convex-integration.md#L140) |
 | Redundant API paths (api.x.x) | File=noun, Function=verb | [convex-integration.md#L190](convex-integration.md#L190) |
+| `.toLocaleDateString is not a function` | Wrap Convex timestamps in new Date() | [convex-integration.md#L490](convex-integration.md#L490) |
 | Analytics events missing in PostHog | Use server-side tracking | [analytics.md#L10](analytics.md#L10) |
 
 ## 🟢 REFERENCE Patterns (Best Practices)
@@ -112,5 +114,5 @@ correct code
 ---
 
 **Last Updated**: 2025-11-08  
-**Pattern Count**: 41  
+**Pattern Count**: 43  
 **Format Version**: 2.0

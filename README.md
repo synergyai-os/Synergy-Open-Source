@@ -131,6 +131,19 @@ SynergyOS/
 ### Backend (set via `npx convex env set`)
 - `RESEND_API_KEY` - Your Resend API key for sending emails
 
+## Contributing
+
+We're building SynergyOS in public and learning together. Whether you're fixing a bug, adding a feature, or just sharing a pattern you discovered, contributions are welcome.
+
+**Quick Start:**
+- Read our [Contributing Guidelines](CONTRIBUTING.md) for commit message format and workflow
+- Check our [Core Values](CORE-VALUES.md) to understand how we make decisions
+- Browse `dev-docs/patterns/INDEX.md` for existing patterns before building
+
+We value clear documentation, authentic communication, and learning from mistakes. If you document what you learned while contributing, even better.
+
+**First-time contributors:** We label "good first issues" and celebrate all contributions. Ask questions in discussions - we're figuring this out together.
+
 ## License
 
 MIT

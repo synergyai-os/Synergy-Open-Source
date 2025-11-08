@@ -197,14 +197,14 @@
 			const now = Date.now();
 			let contentLength = 0;
 
-			if (selectedType === 'note') {
-				// Use the new notes API for rich text notes
-				await convexClient.mutation(api.notes.createNote, {
-					title: noteTitle || undefined,
-					content: noteContent, // ProseMirror JSON
-					contentMarkdown: noteContentMarkdown || undefined,
-					isAIGenerated: noteIsAIGenerated || undefined,
-				});
+		if (selectedType === 'note') {
+			// Use the new notes API for rich text notes
+			await convexClient.mutation(api.notes.createNote, {
+				title: noteTitle || undefined,
+				content: typeof noteContent === 'string' ? noteContent : JSON.stringify(noteContent),
+				contentMarkdown: noteContentMarkdown || undefined,
+				isAIGenerated: noteIsAIGenerated || undefined,
+			});
 				
 				// If there are tags, we need to link them after creation
 				// TODO: Update notes.createNote to accept tagIds parameter
