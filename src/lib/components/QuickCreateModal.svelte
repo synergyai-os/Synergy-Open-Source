@@ -5,17 +5,19 @@
 	import { Dialog, Command } from 'bits-ui';
 	import TagSelector from '$lib/components/inbox/TagSelector.svelte';
 	import NoteEditorWithDetection from '$lib/components/notes/NoteEditorWithDetection.svelte';
-	import KeyboardShortcut from '$lib/components/ui/KeyboardShortcut.svelte';
-	import FormInput from '$lib/components/ui/FormInput.svelte';
-	import FormTextarea from '$lib/components/ui/FormTextarea.svelte';
-	import StatusPill from '$lib/components/ui/StatusPill.svelte';
-	import PrioritySelector from '$lib/components/ui/PrioritySelector.svelte';
-	import AssigneeSelector from '$lib/components/ui/AssigneeSelector.svelte';
-	import ProjectSelector from '$lib/components/ui/ProjectSelector.svelte';
-	import MetadataBar from '$lib/components/ui/MetadataBar.svelte';
-	import AttachmentButton from '$lib/components/ui/AttachmentButton.svelte';
-	import ToggleSwitch from '$lib/components/ui/ToggleSwitch.svelte';
-	import ContextSelector from '$lib/components/ui/ContextSelector.svelte';
+	import {
+		KeyboardShortcut,
+		FormInput,
+		FormTextarea,
+		StatusPill,
+		PrioritySelector,
+		AssigneeSelector,
+		ProjectSelector,
+		MetadataBar,
+		AttachmentButton,
+		ToggleSwitch,
+		ContextSelector,
+	} from '$lib/components/ui';
 	// TODO: Uncomment when implementing PostHog tracking
 	// import { AnalyticsEventName } from '$lib/analytics/events';
 
@@ -491,8 +493,8 @@
 					<div class="flex w-full flex-col" data-debug="content-entry">
 						{#if selectedType === 'note'}
 							<!-- Context/Template Selectors + Draft Button (Linear-style top bar) -->
-							<div class="flex items-center justify-between px-6 pt-3 pb-3 border-b border-base">
-								<div class="flex items-center gap-2">
+							<div class="flex items-center justify-between px-inbox-container py-inbox-card border-b border-base">
+								<div class="flex items-center gap-form-field">
 									<ContextSelector
 										context={noteContext}
 										onChange={(ctx) => (noteContext = ctx)}
@@ -507,10 +509,10 @@
 								</div>
 								
 								<!-- Top Right Actions -->
-								<div class="flex items-center gap-2">
+								<div class="flex items-center gap-form-field">
 									<button
 										type="button"
-										class="px-3 py-1.5 text-sm text-secondary hover:text-primary transition-colors"
+										class="px-inbox-card py-input-y text-sm text-secondary hover:text-primary transition-colors"
 										onclick={() => {
 											// TODO: Implement draft save logic
 											console.log('Save as draft clicked');
@@ -575,7 +577,7 @@
 							/>
 							
 							<!-- Metadata Bar (Linear-style pills) -->
-							<div class="px-6 py-3 border-t border-base bg-surface">
+							<div class="px-inbox-container py-inbox-card border-t border-base bg-surface">
 								<MetadataBar>
 									<StatusPill
 										status={noteStatus}
@@ -632,7 +634,7 @@
 						{/if}
 
 						<!-- Tag Selector -->
-						<div class="flex flex-col gap-2 border-t border-base pt-3 pb-2 {selectedType === 'note' ? 'px-6' : ''} bg-surface">
+						<div class="flex flex-col gap-form-field border-t border-base py-inbox-card {selectedType === 'note' ? 'px-inbox-container' : ''} bg-surface">
 							<TagSelector
 								bind:comboboxOpen={tagComboboxOpen}
 								bind:selectedTagIds
@@ -643,7 +645,7 @@
 						</div>
 
 						<!-- Action Buttons -->
-						<div class="flex items-center justify-between gap-3 pt-3 border-t border-base pb-3 {selectedType === 'note' ? 'px-6' : ''} bg-surface">
+						<div class="flex items-center justify-between gap-button-group border-t border-base py-inbox-card {selectedType === 'note' ? 'px-inbox-container' : ''} bg-surface">
 							{#if selectedType === 'note'}
 								<!-- Left: Attachment button -->
 								<AttachmentButton
@@ -658,7 +660,7 @@
 							{/if}
 							
 							<!-- Right: Actions -->
-							<div class="flex items-center gap-3">
+							<div class="flex items-center gap-button-group">
 								{#if selectedType === 'note'}
 									<ToggleSwitch
 										checked={createMore}
@@ -668,14 +670,14 @@
 								{/if}
 								<button
 									onclick={() => handleOpenChange(false)}
-									class="px-3 py-1.5 text-sm text-secondary hover:text-primary transition-colors"
+									class="px-inbox-card py-input-y text-sm text-secondary hover:text-primary transition-colors"
 								>
 									Cancel
 								</button>
 								<button
 									onclick={handleCreate}
 									disabled={isCreating}
-									class="flex items-center gap-2 px-3 py-1.5 text-sm bg-accent-primary text-white rounded-md hover:opacity-90 disabled:opacity-50 transition-all font-medium"
+									class="flex items-center gap-form-field px-inbox-card py-input-y text-sm bg-accent-primary text-white rounded-md hover:opacity-90 disabled:opacity-50 transition-all font-medium"
 								>
 									{isCreating ? 'Creating...' : selectedType === 'note' ? 'Create issue' : 'Create'}
 									<KeyboardShortcut keys={['Cmd', 'Enter']} />
