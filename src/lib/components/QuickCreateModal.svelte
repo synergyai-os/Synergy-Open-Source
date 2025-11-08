@@ -483,7 +483,7 @@
 					</Command.Root>
 				{:else}
 					<!-- Content Entry View -->
-					<div class="flex w-full flex-col">
+					<div class="flex w-full flex-col" data-debug="content-entry">
 						{#if selectedType === 'note'}
 							<!-- Context/Template Selectors + Draft Button (Linear-style top bar) -->
 							<div class="flex items-center justify-between px-6 pt-3 pb-3 border-b border-base">
@@ -556,9 +556,11 @@
 								onContentChange={(content: string, markdown: string) => {
 									noteContent = content;
 									noteContentMarkdown = markdown;
+									console.log('🟢 NoteEditor content changed:', { contentLength: content.length, markdownLength: markdown.length });
 								}}
 								onTitleChange={(title: string) => {
 									noteTitle = title;
+									console.log('🟢 NoteEditor title changed:', title);
 								}}
 								onAIFlagged={() => {
 									noteIsAIGenerated = true;
@@ -570,7 +572,7 @@
 							/>
 							
 							<!-- Metadata Bar (Linear-style pills) -->
-							<div class="px-6 py-3 border-t border-base">
+							<div class="px-6 py-3 border-t border-base" style="background: rgba(255,0,0,0.1);" data-debug="metadata-bar">
 								<MetadataBar>
 									<StatusPill
 										status={noteStatus}
@@ -627,7 +629,7 @@
 						{/if}
 
 						<!-- Tag Selector -->
-						<div class="flex flex-col gap-2 border-t border-base pt-3 pb-2 {selectedType === 'note' ? 'px-6' : ''}">
+						<div class="flex flex-col gap-2 border-t border-base pt-3 pb-2 {selectedType === 'note' ? 'px-6' : ''}" style="background: rgba(0,255,0,0.1);" data-debug="tag-selector">
 							<TagSelector
 								bind:comboboxOpen={tagComboboxOpen}
 								bind:selectedTagIds
@@ -638,7 +640,7 @@
 						</div>
 
 						<!-- Action Buttons -->
-						<div class="flex items-center justify-between gap-3 pt-3 border-t border-base pb-3 {selectedType === 'note' ? 'px-6' : ''}">
+						<div class="flex items-center justify-between gap-3 pt-3 border-t border-base pb-3 {selectedType === 'note' ? 'px-6' : ''}" style="background: rgba(0,0,255,0.1);" data-debug="action-buttons">
 							{#if selectedType === 'note'}
 								<!-- Left: Attachment button -->
 								<AttachmentButton
