@@ -13,6 +13,68 @@
 
 	const convexClient = browser ? useConvexClient() : null;
 	const note = useNote(convexClient);
+	
+	let editorRef: any = $state(null);
+	let editMode = $state(false);
+
+	// Handle Enter key to activate edit mode
+	$effect(() => {
+		if (!browser) return;
+		
+		function handleKeyDown(event: KeyboardEvent) {
+			// Only handle Enter when not already in edit mode
+			if (editMode) return;
+			
+			// Check if any input is focused
+			const activeElement = document.activeElement;
+			const isInputFocused = activeElement?.tagName === 'INPUT' || 
+			                      activeElement?.tagName === 'TEXTAREA' ||
+			                      (activeElement instanceof HTMLElement && activeElement.isContentEditable);
+			
+			if (isInputFocused) return;
+			
+			// Handle Enter key to enter edit mode
+			if (event.key === 'Enter') {
+				event.preventDefault();
+				editMode = true;
+				// Focus the editor title after a tick
+				setTimeout(() => {
+					editorRef?.focusTitle();
+				}, 0);
+			}
+		}
+		
+		window.addEventListener('keydown', handleKeyDown);
+		
+		return () => {
+			window.removeEventListener('keydown', handleKeyDown);
+		};
+	});
+
+	// Track when user leaves edit mode (ESC key already handled by NoteEditor)
+	$effect(() => {
+		if (!browser || !editMode) return;
+		
+		function handleFocusOut() {
+			// Small delay to check if focus moved to another input in the editor
+			setTimeout(() => {
+				const activeElement = document.activeElement;
+				const isInputFocused = activeElement?.tagName === 'INPUT' || 
+				                      activeElement?.tagName === 'TEXTAREA' ||
+				                      (activeElement instanceof HTMLElement && activeElement.isContentEditable);
+				
+				if (!isInputFocused) {
+					editMode = false;
+				}
+			}, 100);
+		}
+		
+		document.addEventListener('focusout', handleFocusOut);
+		
+		return () => {
+			document.removeEventListener('focusout', handleFocusOut);
+		};
+	});
 
 	// Load note data - runs whenever inboxItem changes
 	$effect(() => {
@@ -109,6 +171,7 @@
 	<!-- Note Editor -->
 	<div class="flex-1 overflow-hidden">
 		<NoteEditorWithDetection
+			bind:this={editorRef}
 			content={inboxItem.content}
 			title={inboxItem.title}
 			onContentChange={handleContentChange}
@@ -116,6 +179,7 @@
 			onAIFlagged={handleAIFlagged}
 			isAIGenerated={inboxItem.isAIGenerated}
 			enableAIDetection={true}
+			autoFocus={false}
 		/>
 	</div>
 

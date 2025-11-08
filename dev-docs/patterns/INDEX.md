@@ -28,6 +28,7 @@
 | Duplicate timers / early dismissal | Track timers with Set | [svelte-reactivity.md#L340](svelte-reactivity.md#L340) |
 | Switch in dropdown broken | Use plain div wrapper | [ui-patterns.md#L10](ui-patterns.md#L10) |
 | Conflicting keyboard shortcuts | Check priority: dropdowns > inputs > component | [ui-patterns.md#L430](ui-patterns.md#L430) |
+| J/K navigation blocked by auto-focused input | Use autoFocus prop + Enter/ESC edit mode | [ui-patterns.md#L880](ui-patterns.md#L880) |
 | ProseMirror "$ prefix reserved" | Rename `$from` → `from` | [svelte-reactivity.md#L450](svelte-reactivity.md#L450) |
 | Users logged out on browser close | Set cookieConfig.maxAge | [convex-integration.md#L100](convex-integration.md#L100) |
 | File not found in Convex | Use TypeScript imports | [convex-integration.md#L140](convex-integration.md#L140) |

@@ -369,7 +369,7 @@
 		/>
 		<!-- Command Center Modal: Scale-up animation + dramatic shadow -->
 		<Dialog.Content
-			class="fixed left-1/2 top-1/2 z-50 max-h-[49vh] w-full max-w-[900px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-md bg-elevated border border-base p-0 shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]"
+			class="fixed left-1/2 top-1/2 z-50 max-h-[60vh] w-full max-w-[900px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-md bg-elevated border border-base p-0 shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]"
 		>
 			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 			<div onkeydown={handleKeyDown} role="dialog" tabindex="-1">
@@ -550,28 +550,27 @@
 						<!-- Content fields based on type -->
 						{#if selectedType === 'note'}
 							<!-- Minimal Note Editor - Linear Style -->
-							<div class="flex-1 flex flex-col overflow-hidden">
-								<NoteEditorWithDetection
-									content={noteContent}
-									title={noteTitle}
-									onContentChange={(content: string, markdown: string) => {
-										noteContent = content;
-										noteContentMarkdown = markdown;
-									}}
-									onTitleChange={(title: string) => {
-										noteTitle = title;
-									}}
-									onAIFlagged={() => {
-										noteIsAIGenerated = true;
-									}}
-									placeholder="Add description..."
-									showToolbar={false}
-									enableAIDetection={false}
-								/>
-							</div>
+							<NoteEditorWithDetection
+								content={noteContent}
+								title={noteTitle}
+								onContentChange={(content: string, markdown: string) => {
+									noteContent = content;
+									noteContentMarkdown = markdown;
+								}}
+								onTitleChange={(title: string) => {
+									noteTitle = title;
+								}}
+								onAIFlagged={() => {
+									noteIsAIGenerated = true;
+								}}
+								placeholder="Add description..."
+								showToolbar={false}
+								enableAIDetection={false}
+								compact={true}
+							/>
 							
 							<!-- Metadata Bar (Linear-style pills) -->
-							<div class="px-6 py-3 border-b border-base">
+							<div class="px-6 py-3 border-t border-base">
 								<MetadataBar>
 									<StatusPill
 										status={noteStatus}

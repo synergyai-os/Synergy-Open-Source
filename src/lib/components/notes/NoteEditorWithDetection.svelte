@@ -15,6 +15,8 @@
 		showToolbar?: boolean;
 		isAIGenerated?: boolean;
 		enableAIDetection?: boolean; // Setting to enable/disable feature
+		autoFocus?: boolean; // Control whether to auto-focus title on mount
+		compact?: boolean; // Compact mode for modals
 	};
 
 	let {
@@ -27,7 +29,9 @@
 		readonly = false,
 		showToolbar = true,
 		isAIGenerated = false,
-		enableAIDetection = true
+		enableAIDetection = true,
+		autoFocus = false,
+		compact = false
 	}: Props = $props();
 
 	let showAIDetector = $state(false);
@@ -62,6 +66,11 @@
 	function handleAIDismiss() {
 		showAIDetector = false;
 	}
+
+	// Expose method to focus title (for Enter key activation)
+	export function focusTitle() {
+		editorRef?.focusTitle();
+	}
 </script>
 
 <div class="relative w-full h-full">
@@ -77,6 +86,8 @@
 			{readonly}
 			{showToolbar}
 			{isAIGenerated}
+			{autoFocus}
+			{compact}
 		/>
 
 		<AIContentDetector

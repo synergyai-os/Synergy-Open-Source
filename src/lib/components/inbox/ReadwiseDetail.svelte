@@ -62,6 +62,39 @@
 	let tagInputRef = $state<HTMLElement | null>(null);
 	let tagComboboxOpen = $state(false);
 
+	// Handle Enter key to activate tag input
+	$effect(() => {
+		if (!browser) return;
+		
+		function handleKeyDown(event: KeyboardEvent) {
+			// Only handle Enter when tag combobox is not already open
+			if (tagComboboxOpen) return;
+			
+			// Check if any input is focused
+			const activeElement = document.activeElement;
+			const isInputFocused = activeElement?.tagName === 'INPUT' || 
+			                      activeElement?.tagName === 'TEXTAREA' ||
+			                      (activeElement instanceof HTMLElement && activeElement.isContentEditable);
+			
+			if (isInputFocused) return;
+			
+			// Handle Enter key to focus tag input
+			if (event.key === 'Enter') {
+				event.preventDefault();
+				tagComboboxOpen = true;
+				// Focus the tag input after a tick
+				setTimeout(() => {
+					tagInputRef?.focus();
+				}, 0);
+			}
+		}
+		
+		window.addEventListener('keydown', handleKeyDown);
+		
+		return () => {
+			window.removeEventListener('keydown', handleKeyDown);
+		};
+	});
 
 	// Track if we're in the middle of a tag mutation (to prevent race conditions)
 	let isUpdatingTags = $state(false);

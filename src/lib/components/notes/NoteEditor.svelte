@@ -19,6 +19,8 @@
 		readonly?: boolean;
 		showToolbar?: boolean;
 		isAIGenerated?: boolean;
+		autoFocus?: boolean; // Control whether to auto-focus title on mount
+		compact?: boolean; // Compact mode for modals (no h-full, no flex-1)
 	};
 
 	let {
@@ -30,7 +32,9 @@
 		onPaste,
 		readonly = false,
 		showToolbar = true,
-		isAIGenerated = false
+		isAIGenerated = false,
+		autoFocus = false,
+		compact = false
 	}: Props = $props();
 
 	let editorElement: HTMLDivElement;
@@ -106,8 +110,10 @@
 			},
 		});
 
-		// Focus title on mount
-		titleElement?.focus();
+		// Only focus title on mount if autoFocus is true
+		if (autoFocus) {
+			titleElement?.focus();
+		}
 
 		return () => {
 			editorView?.destroy();
@@ -126,9 +132,14 @@
 	export function getEditorView() {
 		return editorView;
 	}
+
+	// Expose method to focus title (for Enter key activation)
+	export function focusTitle() {
+		titleElement?.focus();
+	}
 </script>
 
-<div class="flex flex-col h-full bg-surface text-surface-primary overflow-hidden">
+<div class="flex flex-col {compact ? '' : 'h-full'} bg-surface text-surface-primary overflow-hidden">
 	<!-- AI Generated Badge -->
 	{#if isAIGenerated}
 		<div class="px-content-padding py-section bg-warning-subtle border-b border-divider">
@@ -158,7 +169,7 @@
 	{/if}
 
 	<!-- Scrollable Editor Content -->
-	<div class="flex-1 overflow-y-auto">
+	<div class="{compact ? '' : 'flex-1 overflow-y-auto'}">
 		<div class="max-w-full px-6 py-4">
 			<!-- Title Input -->
 			<input

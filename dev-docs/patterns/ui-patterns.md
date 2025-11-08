@@ -802,7 +802,126 @@ await convexClient.mutation(api.notes.createNote, {
 
 ---
 
-**Pattern Count**: 17  
+## #L880: Keyboard-Driven Edit Mode Activation [🟡 IMPORTANT]
+
+**Symptom**: J/K navigation shortcuts don't work when item selected, input auto-focused blocks global shortcuts  
+**Root Cause**: Input fields auto-focus on mount, preventing global keyboard event handlers from triggering  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Auto-focus on mount blocks global shortcuts
+onMount(() => {
+  titleElement?.focus(); // Blocks J/K navigation
+});
+
+// ✅ CORRECT: Default unfocused, Enter to activate edit mode
+type Props = {
+  autoFocus?: boolean; // Control focus behavior
+};
+
+let { autoFocus = false }: Props = $props();
+let editorRef: any = $state(null);
+let editMode = $state(false);
+
+// Mount without auto-focus
+onMount(() => {
+  if (autoFocus) {
+    titleElement?.focus();
+  }
+});
+
+// Handle Enter key to activate edit mode
+$effect(() => {
+  if (!browser) return;
+  
+  function handleKeyDown(event: KeyboardEvent) {
+    if (editMode) return;
+    
+    // Check if any input is focused
+    const activeElement = document.activeElement;
+    const isInputFocused = activeElement?.tagName === 'INPUT' || 
+                          activeElement?.tagName === 'TEXTAREA' ||
+                          (activeElement instanceof HTMLElement && activeElement.isContentEditable);
+    
+    if (isInputFocused) return;
+    
+    // Enter activates edit mode
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      editMode = true;
+      setTimeout(() => editorRef?.focusTitle(), 0);
+    }
+  }
+  
+  window.addEventListener('keydown', handleKeyDown);
+  return () => window.removeEventListener('keydown', handleKeyDown);
+});
+
+// Track when user leaves edit mode (ESC already handled by input blur)
+$effect(() => {
+  if (!browser || !editMode) return;
+  
+  function handleFocusOut() {
+    setTimeout(() => {
+      const activeElement = document.activeElement;
+      const isInputFocused = activeElement?.tagName === 'INPUT' || 
+                            activeElement?.tagName === 'TEXTAREA' ||
+                            (activeElement instanceof HTMLElement && activeElement.isContentEditable);
+      
+      if (!isInputFocused) {
+        editMode = false;
+      }
+    }, 100);
+  }
+  
+  document.addEventListener('focusout', handleFocusOut);
+  return () => document.removeEventListener('focusout', handleFocusOut);
+});
+```
+
+**Input Component Pattern** (expose focus method):
+```typescript
+// In NoteEditor.svelte
+export function focusTitle() {
+  titleElement?.focus();
+}
+
+// Handle ESC to exit edit mode
+function handleTitleKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    (e.target as HTMLInputElement).blur(); // ✅ Exit edit mode
+    e.preventDefault();
+  }
+}
+```
+
+**Keyboard Flow**:
+1. **Navigation Mode** (default): J/K keys work, no input focused
+2. **Press Enter**: Activate edit mode, focus input field
+3. **Press ESC**: Exit edit mode, blur input, return to navigation
+4. **Tab out**: Auto-exit edit mode when focus leaves
+
+**Apply when**: 
+- List/detail views with keyboard navigation (inbox, cards, items)
+- Global shortcuts conflict with input fields
+- Need explicit navigation vs edit modes
+
+**Anti-patterns**:
+- ❌ Auto-focusing inputs on item selection (blocks shortcuts)
+- ❌ No way to exit edit mode without mouse
+- ❌ ESC key doesn't blur inputs
+
+**Priority Order** (from INDEX.md):
+1. Dropdown/Combobox (highest priority)
+2. Input fields (when focused)
+3. Component shortcuts (J/K navigation)
+
+**Inspiration**: Gmail (J/K navigation + Enter to reply), Superhuman, Linear  
+**Related**: #L170 (Edit mode toggle), #L430 (Keyboard shortcut conflicts)
+
+---
+
+**Pattern Count**: 18  
 **Last Updated**: 2025-11-08  
 **Design Token Reference**: `dev-docs/design-tokens.md`
 
