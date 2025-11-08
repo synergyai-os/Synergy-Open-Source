@@ -14,16 +14,17 @@
 5. **Ask before pushing** - Always prompt "Push to GitHub? (Y/N)" after commit
 
 **Key workflow:**
+- Step 1: Analyze as user story + capture flow metrics data
 - Step 2: Use `grep` to search INDEX.md and domain files in parallel
 - Step 3: Use `search_replace` or `write` for updates
-- Step 4: Stage → commit → show `git log -1 --stat` for confirmation
+- Step 4: Stage → commit with visual format → show `git log -1 --stat`
 - Step 5: Prompt user, then push if Y
 
 ---
 
 ## Workflow
 
-### 1. Analyze Session - Frame as User Story
+### 1. Analyze Session - Frame as User Story + Flow Metrics
 
 **Think outcome-driven, not output-driven:**
 
@@ -42,6 +43,15 @@ So that [outcome/value]
 - What end-to-end flow works now that didn't before?
 - What pain point was removed?
 - What new capability can users access?
+
+**Flow Metrics Capture:**
+- **Type**: feature | bugfix | tech-debt | docs | refactor
+- **Size**: small (<4h) | medium (4-16h) | large (>16h)
+- **Flow Days**: Total days from start to done
+- **Active Hours**: Actual coding/thinking time
+- **Blocked Hours**: Time waiting for something
+- **Files Changed**: Count from git stat
+- **Impact**: high | medium | low (value/risk assessment)
 
 **Pattern Learning:**
 - What patterns emerged while building this slice?
@@ -109,178 +119,183 @@ So that [outcome/value]
 
 ### 4. Commit
 
-Use **Conventional Commits** format with **user story** and **outcome focus**.
+Use **Gitmoji + Tables + Conventional Commits** format with outcome focus.
 
-#### Format
+#### Format Template
 
 ```
-type(scope): [what users can now do]
+🎯 type(scope): [what users can now do]
 
-USER STORY:
-As a [user type]
-I can now [capability]
-So that [outcome/value delivered]
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ 📖 USER STORY                                                      ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-SLICE COMPLETED:
-[Describe the thin, end-to-end functionality that now works]
+| Role | Capability | Value |
+|------|------------|-------|
+| **As a** [who] | **I can now** [what] | **So that** [why] |
 
-JOURNEY (if applicable):
-- First approach: [what didn't work]
-- Why it failed: [the learning moment]  
-- Final solution: [what actually worked]
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ✨ SLICE COMPLETED                                                 ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-PATTERN (if applicable):
-- Added/Updated: "Pattern Name" (#L[NUMBER])
-- Documented in: dev-docs/patterns/[domain].md
-- Severity: [🔴/🟡/🟢]
+[1-2 sentences describing the end-to-end functionality delivered]
 
-AI: [Optional - if Claude/Cursor suggested something worth noting]
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ 🧭 JOURNEY                                                         ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-Closes #[issue-number] (if applicable)
+| Step | What Happened | Result |
+|------|---------------|--------|
+| 🔴 **Tried** | [first approach] | ❌ Failed |
+| ⚠️ **Because** | [why it didn't work] | 💡 Learned |
+| ✅ **Solution** | [what actually worked] | 🎉 Shipped |
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ 📐 PATTERN                                                         ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+| Property | Value |
+|----------|-------|
+| **Type** | 🆕 Added / 🔄 Updated / ✓ Applied |
+| **Name** | "Pattern Name" (#L[NUMBER]) |
+| **File** | `dev-docs/patterns/[domain].md` |
+| **Severity** | 🔴 Critical / 🟡 Important / 🟢 Reference |
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ 📊 FLOW METRICS                                                    ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+| Metric | Value | Metric | Value |
+|--------|-------|--------|-------|
+| 🏷️ **Type** | feature / bugfix / tech-debt / docs / refactor | 📦 **Size** | small / medium / large |
+| ⏱️ **Flow Days** | [number] | ⚡ **Active Hours** | [number] |
+| 🚧 **Blocked Hours** | [number] | 📁 **Files Changed** | [number] |
+| 💥 **Impact** | high / medium / low | | |
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🤖 **AI:** [collaboration notes]
+🔗 **Closes:** #[issue]
 ```
 
-**📖 Teaching Note - User Stories:**
-User stories follow the format "As a [who], I want [what], so that [why]". The "so that" is critical - it explains the **outcome/value**, not just the feature. This keeps us focused on user value over outputs.
+#### Gitmoji Guide (Subject Line)
 
-**📖 Teaching Note - Vertical Slicing:**
-A vertical slice is a thin, end-to-end piece of functionality that delivers value. Instead of building an entire layer (all UI, then all backend), you build one complete flow (e.g., "user can create a note") from UI to database. Each slice ships value.
+Use at start of subject line for visual context:
+
+| Gitmoji | Code | When to Use |
+|---------|------|-------------|
+| ✨ | `:sparkles:` | New feature |
+| 🐛 | `:bug:` | Bug fix |
+| 📝 | `:memo:` | Documentation |
+| 🎨 | `:art:` | Improve structure/format |
+| ⚡️ | `:zap:` | Performance improvement |
+| ♻️ | `:recycle:` | Refactor code |
+| 💄 | `:lipstick:` | UI/style updates |
+| 🔒️ | `:lock:` | Security fix |
+| 🚑️ | `:ambulance:` | Critical hotfix |
+| 💡 | `:bulb:` | Add comments |
+| ✅ | `:white_check_mark:` | Add tests |
 
 #### Type & Scope
 
 **Types:**
-- `feat:` - New feature
-- `fix:` - Bug fix  
-- `docs:` - Documentation/patterns only
-- `refactor:` - Code improvement
-- `style:` - Design tokens, UI polish
-- `test:` - Test additions
-- `chore:` - Maintenance
+- `feat:` - New feature (use ✨)
+- `fix:` - Bug fix (use 🐛)
+- `docs:` - Documentation/patterns (use 📝)
+- `refactor:` - Code improvement (use ♻️)
+- `style:` - Design tokens, UI polish (use 💄)
+- `test:` - Test additions (use ✅)
+- `chore:` - Maintenance (use 🔧)
 
 **Scopes:**
-- `inbox`, `notes`, `flashcards`, `sync`, `auth`, `ui`, `composables`, `docs`
+- `inbox`, `notes`, `flashcards`, `sync`, `auth`, `ui`, `composables`, `docs`, `commands`
 
-#### Examples
+#### Complete Example
 
-**Pattern addition (outcome-focused):**
 ```
-docs(patterns): developers can now avoid Svelte 5 reactivity gotchas
+✨ feat(inbox): power users process inbox 10x faster with keyboard nav
 
-USER STORY:
-As a developer new to Svelte 5
-I can now use the correct $state pattern
-So that my components update reactively without mysterious bugs
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ 📖 USER STORY                                                      ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-SLICE COMPLETED:
-Documented the single $state object pattern after hitting (and fixing)
-reactivity issues. Developers can now reference this pattern when
-building composables, avoiding hours of debugging.
+| Role | Capability | Value |
+|------|------------|-------|
+| **As a** power user processing dozens of inbox items | **I can now** navigate with J/K shortcuts (Gmail/Linear style) | **So that** I can fly through my inbox without touching the mouse |
 
-JOURNEY:
-- First approach: Multiple $state variables
-- Why it failed: Svelte 5 lost track of updates across variables
-- Final solution: Single $state object with getters (works reliably)
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ✨ SLICE COMPLETED                                                 ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-PATTERN:
-- Added: "Single $state Object Pattern" (#L780)
-- Documented in: dev-docs/patterns/svelte-reactivity.md
-- Severity: 🔴 (Critical - common gotcha that blocks work)
-- Updated INDEX.md symptom table
+Full keyboard navigation: **J** moves down, **K** moves up, wraps at 
+boundaries, respects focus context. Power users can now fly through inbox.
 
-AI: Claude suggested the getter pattern and caught edge cases.
-```
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ 🧭 JOURNEY                                                         ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-**📖 What makes this outcome-driven:**
-- Subject line: "developers can now avoid..." (capability unlocked)
-- User story: Clear who, what, why
-- Slice: End-to-end value delivered (pattern documented → developers unblocked)
+| Step | What Happened | Result |
+|------|---------------|--------|
+| 🔴 **Tried** | Simple event listeners on mount | ❌ Failed |
+| ⚠️ **Because** | Fired during typing, broke modals | 💡 Learned |
+| ✅ **Solution** | Context-aware composable with focus checks | 🎉 Shipped |
 
-**Bug fix (outcome-focused):**
-```
-fix(notes): users see correct note immediately when switching
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ 📐 PATTERN                                                         ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-USER STORY:
-As a user browsing my notes
-I can now switch between notes and see the correct content immediately
-So that I don't get confused by stale data appearing briefly
+| Property | Value |
+|----------|-------|
+| **Type** | 🆕 Added |
+| **Name** | "Context-Aware Keyboard Shortcuts" (#L320) |
+| **File** | `dev-docs/patterns/ui-patterns.md` |
+| **Severity** | 🟢 Reference |
 
-SLICE COMPLETED:
-Note switching now clears previous state before loading new content.
-The jarring flash of old content is gone. Users experience smooth,
-instant transitions between notes.
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ 📊 FLOW METRICS                                                    ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-JOURNEY:
-- First approach: Tried forcing re-render with key prop
-- Why it failed: Race condition with async data still showed stale content
-- Final solution: Explicit clear() call on note switch (predictable timing)
+| Metric | Value | Metric | Value |
+|--------|-------|--------|-------|
+| 🏷️ **Type** | feature | 📦 **Size** | medium |
+| ⏱️ **Flow Days** | 2 | ⚡ **Active Hours** | 8 |
+| 🚧 **Blocked Hours** | 0 | 📁 **Files Changed** | 5 |
+| 💥 **Impact** | high | | |
 
-PATTERN:
-- Updated: "Component State Management" (#L450)  
-- Added edge case: clear() on reactive param change
-- Documented in: dev-docs/patterns/svelte-reactivity.md
-- Severity: 🟡 (Important - affects UX quality)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Caught while testing the Linear-style modal redesign.
+🤖 **AI:** Claude suggested circular navigation at list boundaries
+🔗 **Closes:** #67
 ```
 
-**📖 What makes this outcome-driven:**
-- Subject line: "users see correct note immediately" (outcome, not "fixed state bug")
-- User story: Clear pain point removed (confusion from stale data)
-- Slice: End-to-end fix (switching → clear state → load new → display)
+**📖 Teaching Notes:**
 
-**Feature (outcome-focused):**
-```
-feat(inbox): power users can now process inbox 10x faster with keyboard
+**User Stories:** "As a [who], I want [what], so that [why]". The "so that" explains outcome/value, keeping us focused on user value over outputs.
 
-USER STORY:
-As a power user processing dozens of inbox items daily
-I can now navigate with J/K shortcuts (like Gmail, Linear)
-So that I can quickly scan and process items without touching the mouse
+**Vertical Slicing:** Thin, end-to-end functionality that delivers value. Build one complete flow (UI → logic → data) instead of layers.
 
-SLICE COMPLETED:
-Full keyboard navigation flow: J moves down, K moves up, automatically
-handles edge cases (wraps at bottom/top), respects input focus context
-(doesn't interfere when typing). Power users can now fly through inbox.
+**Flow Metrics:** Turn git history into product analytics. Track velocity, cycle time, efficiency, and distribution to spot patterns and improve.
 
-JOURNEY:
-- First approach: Simple event listeners on component mount
-- Why it failed: Fired even when typing in inputs, broke modals
-- Final solution: Context-aware composable that checks focus state
-
-PATTERN:
-- Added: "Context-Aware Keyboard Shortcuts" (#L320)
-- Documented in: dev-docs/patterns/ui-patterns.md
-- Severity: 🟢 (Reference - best practice for keyboard UX)
-
-AI: Claude suggested wrapping at list boundaries (top/bottom) instead
-of stopping. Much better UX - users expect circular navigation.
-
-Closes #67
-```
-
-**📖 What makes this outcome-driven:**
-- Subject line: "power users can now process 10x faster" (measurable outcome)
-- User story: Specific user type (power user), specific value (speed)
-- Slice: Complete flow (up/down, edges, context) not just "added feature"
+**Gitmoji:** Visual commit icons make git history scannable and fun. Align with our brand: dramatic but funny, technical but human.
 
 #### Anti-Patterns
 
 **Technical-focused (not outcome-focused):**
-- ❌ `fix(notes): clear state on switch` → ✅ `fix(notes): users see correct note immediately`
-- ❌ `feat: added keyboard shortcuts` → ✅ `feat: power users process inbox 10x faster`
-- ❌ `docs: updated patterns` → ✅ `docs: developers avoid Svelte 5 gotchas`
+- ❌ `fix(notes): clear state on switch` → ✅ `🐛 fix(notes): users see correct note immediately`
+- ❌ `feat: added keyboard shortcuts` → ✅ `✨ feat: power users process inbox 10x faster`
+- ❌ `docs: updated patterns` → ✅ `📝 docs: developers avoid Svelte 5 gotchas`
+
+**Missing visual elements:**
+- ❌ No gitmoji in subject line
+- ❌ Plain text instead of tables
+- ❌ Missing flow metrics section
+- ❌ No journey table showing learning
 
 **Missing context:**
-- ❌ `Fixed bug` - Which bug? What value did fixing it provide?
-- ❌ `Updated files` - What capability did this enable?
-- ❌ `WIP` - Don't commit work-in-progress to main
+- ❌ `Fixed bug` - Which bug? What value delivered?
+- ❌ `Updated files` - What capability enabled?
 - ❌ Missing USER STORY when change impacts users
-- ❌ Missing SLICE explanation (what end-to-end flow now works?)
-
-**📖 Teaching Note:**
-Output-driven thinking: "We shipped keyboard shortcuts"
-Outcome-driven thinking: "Power users now process inbox 10x faster"
-
-The outcome is what matters. Always ask: "What can users now do? What value was delivered?"
+- ❌ Missing SLICE explanation
 
 **Do NOT push yet** - proceed to step 5.
 
@@ -290,7 +305,7 @@ After successful commit, ask user:
 
 **"Push to GitHub? (Y/N)"**
 
-- **Y** → Run `git push` with network permissions
+- **Y** → Run `git push` with `['all']` permissions
 - **N** → Done. Commit stays local.
 
 Keep response concise. Show push result or "Staying local" confirmation.
@@ -321,12 +336,13 @@ Keep response concise. Show push result or "Staying local" confirmation.
 - [ ] Chose correct severity (🔴🟡🟢)
 
 **Commit Message:**
-- [ ] Used conventional commit format: `type(scope): subject`
-- [ ] Explained WHY (problem solved, goal achieved)
-- [ ] Included JOURNEY if this was iteration 2+ (what failed, why, final solution)
-- [ ] Referenced pattern with line number and severity
+- [ ] Used gitmoji + conventional commit format
+- [ ] Created USER STORY table with role/capability/value
+- [ ] Described SLICE (end-to-end functionality delivered)
+- [ ] Added JOURNEY table if iteration 2+ (tried/because/solution)
+- [ ] Created PATTERN table if applicable (type/name/file/severity)
+- [ ] Filled FLOW METRICS table (8 data points)
 - [ ] Credited AI collaboration if applicable
-- [ ] Subject line under 50 chars, imperative mood
 - [ ] Added issue reference if applicable (Closes #123)
 
 **After Commit:**
@@ -345,37 +361,38 @@ Keep response concise. Show push result or "Staying local" confirmation.
 - ❌ Don't add to Critical unless it breaks functionality
 - ❌ Don't push without asking user first
 - ❌ Don't use multiple git add commands - batch all files
+- ❌ Don't skip gitmoji - makes history scannable
+- ❌ Don't skip flow metrics - we need data for analysis
 
 ---
 
 ## Quick AI Workflow
 
 ```
-1. Analyze → Frame as user story
-   - WHO benefits? WHAT VALUE delivered? WHAT SLICE completed?
+1. Analyze → Frame as user story + capture flow metrics
+   - WHO benefits? WHAT VALUE? WHAT SLICE?
+   - Type, size, days, hours, blocked, files, impact
    
 2. grep INDEX.md → Check existing patterns
 
 3. Update patterns → search_replace domain files + INDEX.md
 
-4. Commit with outcome focus:
-   Subject: "[what users can now do]"
-   Body: USER STORY + SLICE + JOURNEY + PATTERN
+4. Commit with visual format:
+   - Gitmoji + subject (outcome-focused)
+   - USER STORY table
+   - SLICE description
+   - JOURNEY table (if iteration 2+)
+   - PATTERN table (if applicable)
+   - FLOW METRICS table (always)
+   - AI credit + issue close
    
 5. Ask: "Push to GitHub? (Y/N)"
    → Y: git push (requires ['all'] permissions)
    → N: "✅ Committed locally. Not pushed."
 ```
 
-**Commit message checklist:**
-- [ ] Subject describes outcome, not output
-- [ ] USER STORY answers: who, what capability, what value
-- [ ] SLICE explains what end-to-end flow now works
-- [ ] JOURNEY shows learning (if iteration 2+)
-- [ ] PATTERN referenced (if applicable)
-
 **End message format:**
-- If pushed: "✅ Pushed to GitHub. [short status]"
+- If pushed: "✅ Pushed to GitHub. Commit [hash]"
 - If not pushed: "✅ Committed locally. Not pushed."
 
 Keep it short. User wants concise confirmations.
