@@ -73,7 +73,7 @@
 	}
 </script>
 
-<div class="relative w-full h-full">
+<div class="relative w-full {compact ? '' : 'h-full'}">
 	{#if browser}
 		<NoteEditor
 			bind:this={editorRef}
