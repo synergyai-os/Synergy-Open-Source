@@ -1,4 +1,4 @@
-import adapter from '@sveltejs/adapter-static';
+import adapter from '@sveltejs/adapter-vercel';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { mdsvex } from 'mdsvex';
 import mdsvexConfig from './mdsvex.config.js';
@@ -10,13 +10,7 @@ const config = {
 	preprocess: [vitePreprocess(), mdsvex(mdsvexConfig)],
 	
 	kit: {
-		adapter: adapter({
-			pages: 'www',
-			assets: 'www',
-			fallback: 'index.html',
-			precompress: false,
-			strict: true
-		}),
+		adapter: adapter(),
 		paths: {
 			relative: false // Required for PostHog session replay to work correctly
 		}
