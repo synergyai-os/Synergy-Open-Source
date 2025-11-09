@@ -502,71 +502,98 @@ await tagging.assignTags(flashcardId, [tag1, tag2]);
 
 ---
 
-## #L540: Vercel Deployment with Convex Codegen [🔴 CRITICAL]
+## #L540: Separate Convex & Vercel Deployments [🔴 CRITICAL]
 
-**Symptom**: Vercel build fails with `Rollup failed to resolve import "$convex/_generated/api"` or `ENOENT: no such file or directory, mkdtemp '/vercel/path0/tmp/convexXXXXXX'`  
-**Root Cause**: Convex codegen must complete before Vite build, and needs temp directory on same filesystem  
+**Symptom**: Vercel build fails with `Could not resolve "./_generated/dataModel"` - circular dependency during `convex deploy`  
+**Root Cause**: Trying to run `convex deploy` in Vercel creates chicken-and-egg: convex bundles functions that import `_generated` types, but `_generated` doesn't exist yet!  
 **Fix**:
+
+**1. Commit `_generated` to Git** (Context7 validated - official Convex best practice)
+
+```bash
+# Remove from .gitignore
+- convex/_generated
+
+# Add to git
+git add convex/_generated/
+git commit -m "fix: commit convex/_generated per Convex docs"
+```
+
+**2. Vercel: Frontend Build Only**
 
 ```json
 // vercel.json
 {
-  "buildCommand": "mkdir -p /vercel/path0/tmp && export CONVEX_TMPDIR=/vercel/path0/tmp && npx convex deploy && npm run build"
+  "buildCommand": "npm run build"  // ✅ JUST frontend - no convex deploy
 }
 ```
 
-**Environment Variables** (Vercel Project Settings):
+**3. Convex: Deploy Separately via GitHub Integration**
+
+In [Convex Dashboard](https://dashboard.convex.dev):
+- Settings → GitHub Integration
+- Connect repo: `synergyai-os/Synergy-Open-Source`
+- Branch: `main`
+- Path: `convex/` (default)
+
+**Why This Works**:
+1. `_generated` files exist in git → Vite can import them → build succeeds ✅
+2. Convex deploys independently on push → no circular dependency ✅
+3. Separation of concerns → frontend build fast (~30s) ✅
+
+**Environment Variables** (Vercel Project Settings - Frontend Only):
 
 ```bash
-CONVEX_DEPLOY_KEY=prod_xxxx  # From Convex Dashboard > Production > Deploy Keys
-CONVEX_DEPLOYMENT=prestigious-whale-251  # Your production deployment name
 PUBLIC_CONVEX_URL=https://prestigious-whale-251.convex.cloud  # Production URL
-# Note: CONVEX_TMPDIR must be exported in buildCommand, not set here
+CONVEX_SITE_URL=https://www.synergyos.ai  # Your domain for auth redirects
+PUBLIC_POSTHOG_KEY=phc_xxx  # Analytics
+PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com
 ```
 
-**package.json**:
-
-```json
-{
-  "scripts": {
-    "build": "vite build"  // Simple - buildCommand handles Convex
-  }
-}
-```
+**Note**: `CONVEX_DEPLOY_KEY` **NOT** needed in Vercel (GitHub Integration handles deployment)
 
 **svelte.config.js**:
 
 ```javascript
-import adapter from '@sveltejs/adapter-vercel';  // Not adapter-static
+import adapter from '@sveltejs/adapter-vercel';
 
 export default {
   kit: {
     adapter: adapter(),
     alias: {
-      $convex: './convex'  // CRITICAL: Required for imports like $convex/_generated/api
+      $convex: './convex'  // ✅ Required for $convex/_generated imports
     }
   }
 };
 ```
 
-**Why this works**:
-1. `mkdir -p /vercel/path0/tmp` - Creates temp directory on same filesystem
-2. `export CONVEX_TMPDIR=/vercel/path0/tmp` - Makes variable available to child processes
-3. `npx convex deploy` - Generates types using CONVEX_TMPDIR, deploys to production
-4. `npm run build` - Vite finds generated types, builds successfully
-5. `&&` ensures sequential execution (not parallel like `--cmd`)
+**Why Old Approach Failed**:
+- ❌ `npx convex codegen` → tries to bundle functions → imports `_generated` → doesn't exist → fail
+- ❌ `npx convex deploy` → same bundling issue → circular dependency
+- ❌ Adding `_generated` THEN deploying → timing issues, cache problems
+
+**Why New Approach Works**:
+- ✅ `_generated` in git → always present → no bundling chicken-and-egg
+- ✅ Convex deploys separately → dedicated environment → reliable
+- ✅ Vercel fast → no Convex CLI overhead → 30s builds
+
+**Migration Steps**:
+1. Locally: `npx convex codegen` to generate types
+2. Remove `convex/_generated` from `.gitignore`
+3. Commit `_generated` files to git
+4. Update `vercel.json` to just `npm run build`
+5. Set up Convex GitHub Integration
+6. Push to GitHub → watch both deploy independently!
 
 **Common Mistakes**:
-- ❌ Missing `$convex` alias in svelte.config.js (Rollup can't resolve imports) ⚠️ **MOST COMMON**
-- ❌ Using `--cmd` instead of `&&` (Convex doesn't complete before Vite)
-- ❌ Setting CONVEX_TMPDIR in Vercel UI only (must export in buildCommand)
-- ❌ Wrong `CONVEX_DEPLOYMENT` (dev instead of prod deployment name)
-- ❌ Wrong `PUBLIC_CONVEX_URL` (dev URL instead of prod URL)
-- ❌ Missing `mkdir -p` (directory doesn't exist error)
-- ❌ Using `adapter-static` (doesn't handle Vercel-specific features)
+- ❌ Forgetting to commit `_generated` to git (build will fail)
+- ❌ Missing `$convex` alias in svelte.config.js (Rollup can't resolve)
+- ❌ Wrong `PUBLIC_CONVEX_URL` (using .site instead of .cloud)
+- ❌ Trailing slash in `PUBLIC_CONVEX_URL` (causes double slash in WebSocket)
 
 **Apply when**: Deploying SvelteKit + Convex to Vercel  
-**Related**: #L50 (Runtime restrictions), #L140 (File system)
+**Related**: #L50 (Runtime restrictions), #L140 (File system)  
+**Source**: [Convex Best Practices](https://docs.convex.dev/understanding/best-practices/other-recommendations)
 
 ---
 

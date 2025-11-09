@@ -484,6 +484,26 @@ const schema = defineSchema({
     updatedAt: v.number(),
   })
     .index("by_flag", ["flag"]), // Unique flag lookup
+
+  // Waitlist - early access signups
+  waitlist: defineTable({
+    email: v.string(),
+    name: v.optional(v.string()),
+    company: v.optional(v.string()),
+    role: v.optional(v.string()), // "founder", "product", "engineer", "designer"
+    reason: v.optional(v.string()), // Why interested?
+    referralSource: v.optional(v.string()), // How found us?
+    joinedAt: v.number(),
+    invitedAt: v.optional(v.number()),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("invited"),
+      v.literal("converted")
+    ),
+  })
+    .index("by_email", ["email"])
+    .index("by_status", ["status"])
+    .index("by_joined_at", ["joinedAt"]),
 });
 
 export default schema;
