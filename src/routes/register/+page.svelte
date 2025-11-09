@@ -5,6 +5,10 @@
 	import { trackPosthogEvent } from '$lib/posthog/client';
 	import { PUBLIC_CONVEX_URL } from '$env/static/public';
 
+	// VERSION IDENTIFIER - Update this with each fix
+	const REGISTER_PAGE_VERSION = '2024-11-09-09:00-auth-config-fix';
+	console.log('📦 [Register Page Version]:', REGISTER_PAGE_VERSION);
+
 	const auth = useAuth();
 	const { signIn } = auth;
 
@@ -46,6 +50,11 @@
 		e.preventDefault();
 		error = '';
 
+		console.log('🔵 [Register] Starting registration process...');
+		console.log('🔵 [Register] signIn function exists:', !!signIn);
+		console.log('🔵 [Register] auth.isLoading:', auth.isLoading);
+		console.log('🔵 [Register] PUBLIC_CONVEX_URL:', PUBLIC_CONVEX_URL);
+
 		// Validation
 		if (password !== confirmPassword) {
 			error = 'Passwords do not match';
@@ -62,8 +71,11 @@
 		try {
 			// Ensure signIn is available before calling
 			if (!signIn) {
+				console.error('❌ [Register] signIn function is null/undefined!');
 				throw new Error('Authentication system is not ready. Please refresh the page and try again.');
 			}
+			
+			console.log('🔵 [Register] signIn function is available, proceeding...');
 			
 			// Store rememberMe preference in a temporary cookie
 			// Server will read this and set appropriate cookie config
@@ -74,12 +86,17 @@
 				document.cookie = 'rememberMe=; path=/; max-age=0';
 			}
 			
+			console.log('🔵 [Register] Calling signIn with flow: signUp...');
+			console.log('🔵 [Register] Parameters:', { email, name: name, flow: 'signUp' });
+			
 			await signIn('password', {
 				email,
 				password,
 				name,
 				flow: 'signUp'
 			});
+
+			console.log('✅ [Register] signIn completed successfully!');
 
 		await trackPosthogEvent({
 			event: 'user_registered',
@@ -89,9 +106,16 @@
 				source: 'register_form'
 			}
 		});
+		
+		console.log('🔵 [Register] Redirecting to /inbox...');
 		// Redirect to inbox after successful registration
 		await goto('/inbox');
 		} catch (err) {
+			console.error('❌ [Register] Error during registration:', err);
+			console.error('❌ [Register] Error type:', err?.constructor?.name);
+			console.error('❌ [Register] Error message:', err instanceof Error ? err.message : String(err));
+			console.error('❌ [Register] Error stack:', err instanceof Error ? err.stack : 'No stack trace');
+			
 			error = err instanceof Error ? err.message : 'Failed to create account. Please try again.';
 			isLoading = false;
 		}
