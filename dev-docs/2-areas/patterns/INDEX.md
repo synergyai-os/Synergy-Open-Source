@@ -24,6 +24,7 @@
 | Scrollbar positioned at far right (outside padding) | Use scrollable-outer + scrollable-inner utilities | [component-architecture.md#L180](../component-architecture.md#L180) |
 | Raw markdown displayed instead of rendered HTML | Add Vite middleware to redirect .md URLs | [ui-patterns.md#L1100](ui-patterns.md#L1100) |
 | Vercel build: "Could not resolve _generated/dataModel" | Commit _generated to git, separate deployments | [convex-integration.md#L540](convex-integration.md#L540) |
+| Deployment fails: "Could not resolve _generated/dataModel" during bundling | Use import type for _generated imports | [convex-integration.md#L590](convex-integration.md#L590) |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 

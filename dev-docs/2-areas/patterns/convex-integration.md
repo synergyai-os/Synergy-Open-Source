@@ -595,9 +595,41 @@ export default {
 **Related**: #L50 (Runtime restrictions), #L140 (File system)  
 **Source**: [Convex Best Practices](https://docs.convex.dev/understanding/best-practices/other-recommendations)
 
+## #L590: Type-Only Imports for _generated Files [🔴 CRITICAL]
+
+**Symptom**: Deployment fails with `Could not resolve "./_generated/dataModel"` during bundling  
+**Root Cause**: esbuild tries to resolve runtime imports during bundling, but `dataModel.js` doesn't exist (only `.d.ts` type definitions)  
+**Fix**:
+
+```typescript
+// ❌ WRONG - Runtime import (esbuild tries to bundle)
+import { Doc, Id } from './_generated/dataModel';
+
+// ✅ CORRECT - Type-only import (stripped during bundling)
+import type { Doc, Id } from './_generated/dataModel';
+import type { DataModel } from "./_generated/dataModel";
+```
+
+**Why This Works**:
+- Type-only imports are erased during transpilation
+- esbuild doesn't try to resolve them as runtime dependencies
+- No circular dependency during `npx convex deploy`
+
+**Common Files to Fix**:
+- `convex/auth.ts` - DataModel imports
+- `convex/featureFlags.ts` - Doc, Id imports  
+- `convex/teams.ts` - Doc, Id imports
+- `convex/tags.ts` - Doc, Id imports
+- `convex/organizations.ts` - Doc, Id imports
+- `convex/permissions.ts` - Id imports
+- `convex/flashcards.ts` - Id imports
+
+**Apply when**: Any import from `_generated/dataModel` in Convex function files  
+**Related**: #L540 (Separate deployments), #L50 (Runtime restrictions)
+
 ---
 
-**Pattern Count**: 12  
+**Pattern Count**: 13  
 **Last Validated**: 2025-11-09  
 **Context7 Source**: `/get-convex/convex-backend`
 
