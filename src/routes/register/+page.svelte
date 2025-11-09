@@ -81,16 +81,16 @@
 				flow: 'signUp'
 			});
 
-			await trackPosthogEvent({
-				event: 'user_registered',
-				distinctId: email,
-				properties: {
-					method: 'password',
-					source: 'register_form'
-				}
-			});
-			// Redirect to home page after successful registration
-			await goto('/');
+		await trackPosthogEvent({
+			event: 'user_registered',
+			distinctId: email,
+			properties: {
+				method: 'password',
+				source: 'register_form'
+			}
+		});
+		// Redirect to inbox after successful registration
+		await goto('/inbox');
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to create account. Please try again.';
 			isLoading = false;
@@ -98,11 +98,11 @@
 	}
 </script>
 
-<div class="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+<div class="min-h-screen flex items-center justify-center bg-base px-4 py-12 sm:px-6 lg:px-8">
 	<div class="max-w-md w-full space-y-8">
 		<div>
-			<h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">Create your account</h2>
-			<p class="mt-2 text-center text-sm text-gray-600">
+			<h2 class="mt-6 text-center text-3xl font-extrabold text-primary">Create your account</h2>
+			<p class="mt-2 text-center text-sm text-secondary">
 				Already have an account?
 				<a href="/login" class="font-medium text-blue-600 hover:text-blue-500">
 					Sign in
@@ -111,14 +111,14 @@
 		</div>
 		<form class="mt-8 space-y-6" onsubmit={handleRegister}>
 			{#if error}
-				<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+				<div class="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded">
 					{error}
 				</div>
 			{/if}
 
 			<div class="space-y-4">
 				<div>
-					<label for="name" class="block text-sm font-medium text-gray-700">Full Name</label>
+					<label for="name" class="block text-sm font-medium text-primary">Full Name</label>
 					<input
 						id="name"
 						name="name"
@@ -126,13 +126,13 @@
 						autocomplete="name"
 						required
 						bind:value={name}
-						class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+						class="mt-1 block w-full px-3 py-2 border border-base rounded-md shadow-sm bg-elevated text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
 						placeholder="John Doe"
 						disabled={isLoading}
 					/>
 				</div>
 				<div>
-					<label for="email" class="block text-sm font-medium text-gray-700">Email address</label>
+					<label for="email" class="block text-sm font-medium text-primary">Email address</label>
 					<input
 						id="email"
 						name="email"
@@ -140,13 +140,13 @@
 						autocomplete="email"
 						required
 						bind:value={email}
-						class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+						class="mt-1 block w-full px-3 py-2 border border-base rounded-md shadow-sm bg-elevated text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
 						placeholder="you@example.com"
 						disabled={isLoading}
 					/>
 				</div>
 				<div>
-					<label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+					<label for="password" class="block text-sm font-medium text-primary">Password</label>
 					<input
 						id="password"
 						name="password"
@@ -154,14 +154,14 @@
 						autocomplete="new-password"
 						required
 						bind:value={password}
-						class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+						class="mt-1 block w-full px-3 py-2 border border-base rounded-md shadow-sm bg-elevated text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
 						placeholder="At least 8 characters"
 						disabled={isLoading}
 					/>
-					<p class="mt-1 text-xs text-gray-500">Must be at least 8 characters long</p>
+					<p class="mt-1 text-xs text-tertiary">Must be at least 8 characters long</p>
 				</div>
 				<div>
-					<label for="confirmPassword" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+					<label for="confirmPassword" class="block text-sm font-medium text-primary">Confirm Password</label>
 					<input
 						id="confirmPassword"
 						name="confirmPassword"
@@ -169,50 +169,50 @@
 						autocomplete="new-password"
 						required
 						bind:value={confirmPassword}
-						class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+						class="mt-1 block w-full px-3 py-2 border border-base rounded-md shadow-sm bg-elevated text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
 						placeholder="Confirm your password"
 						disabled={isLoading}
 					/>
 				</div>
 			</div>
 
-			<div class="flex items-center">
-				<input
-					id="rememberMe"
-					name="rememberMe"
-					type="checkbox"
-					bind:checked={rememberMe}
-					disabled={isLoading}
-					class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-				/>
-				<label for="rememberMe" class="ml-2 block text-sm text-gray-700">
-					Keep me logged in
-				</label>
-			</div>
+		<div class="flex items-center">
+			<input
+				id="rememberMe"
+				name="rememberMe"
+				type="checkbox"
+				bind:checked={rememberMe}
+				disabled={isLoading}
+				class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-base rounded"
+			/>
+			<label for="rememberMe" class="ml-2 block text-sm text-primary">
+				Keep me logged in
+			</label>
+		</div>
 
-			<div>
-				<Button.Root
-					type="submit"
-					disabled={isLoading || !isAuthReady}
-					class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-				>
-					{isLoading ? 'Creating account...' : !isAuthReady ? 'Loading...' : 'Create account'}
-				</Button.Root>
-			</div>
-		</form>
-		
-		{#if auth.isLoading && authLoadTimeout}
-			<div class="mt-4 text-center">
-				<p class="text-sm text-gray-600 mb-2">Authentication is taking longer than expected.</p>
-				<button
-					type="button"
-					onclick={clearAuthState}
-					class="text-sm text-blue-600 hover:text-blue-500 underline"
-				>
-					Clear auth state and try again
-				</button>
-			</div>
-		{/if}
+		<div>
+			<Button.Root
+				type="submit"
+				disabled={isLoading || !isAuthReady}
+				class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+			>
+				{isLoading ? 'Creating account...' : !isAuthReady ? 'Loading...' : 'Create account'}
+			</Button.Root>
+		</div>
+	</form>
+	
+	{#if auth.isLoading && authLoadTimeout}
+		<div class="mt-4 text-center">
+			<p class="text-sm text-secondary mb-2">Authentication is taking longer than expected.</p>
+			<button
+				type="button"
+				onclick={clearAuthState}
+				class="text-sm text-blue-600 hover:text-blue-500 underline"
+			>
+				Clear auth state and try again
+			</button>
+		</div>
+	{/if}
 	</div>
 </div>
 

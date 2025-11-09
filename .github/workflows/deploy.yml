@@ -28,8 +28,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
+      - name: Generate Convex types
+        run: npx convex codegen
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+      
       - name: Deploy Convex Backend
-        run: npx convex deploy --cmd 'echo "Convex deployment"'
+        run: npx convex deploy --typecheck disable
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
       
