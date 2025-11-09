@@ -14,10 +14,10 @@ node_modules
 Thumbs.db
 
 # Env
-.env
-.env.*
-!.env.example
-!.env.test
+# .env with 1Password references is SAFE TO COMMIT (per secrets-management.md)
+# .env.local with actual secrets must be IGNORED
+.env.local
+.env.*.local
 
 # Vite
 vite.config.js.timestamp-*
@@ -32,5 +32,3 @@ vite.config.ts.timestamp-*
 playwright/.auth
 test-results
 playwright-report
-
-.env.local
