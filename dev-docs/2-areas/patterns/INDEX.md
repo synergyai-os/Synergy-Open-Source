@@ -8,6 +8,9 @@
 
 | Symptom | Solution | Details |
 |---------|----------|---------|
+| Auth fails, `op://...` strings in browser | Use actual values in .env.local for PUBLIC_ vars | [auth-deployment.md#L10](auth-deployment.md#L10) |
+| Logout doesn't work, cookies persist | Match exact attributes when deleting cookies | [auth-deployment.md#L160](auth-deployment.md#L160) |
+| Build fails: "Could not load [deleted-file]" | Check all imports before deleting files | [auth-deployment.md#L260](auth-deployment.md#L260) |
 | State not updating in UI | Use `$state({})` + getters | [svelte-reactivity.md#L10](svelte-reactivity.md#L10) |
 | `undefined is not a valid Convex value` | Strip undefined from payloads | [convex-integration.md#L10](convex-integration.md#L10) |
 | `Only actions can be defined in Node.js` | Separate "use node" files | [convex-integration.md#L50](convex-integration.md#L50) |
@@ -30,6 +33,9 @@
 
 | Symptom | Solution | Details |
 |---------|----------|---------|
+| Production auth fails with "Invalid redirect URI" | Use separate staging/production credentials | [auth-deployment.md#L60](auth-deployment.md#L60) |
+| Auth works on myapp.com but fails on www.myapp.com | Add both www and non-www to redirect URIs | [auth-deployment.md#L110](auth-deployment.md#L110) |
+| User auto-logs back in after logout | Revoke session on auth provider | [auth-deployment.md#L210](auth-deployment.md#L210) |
 | Data doesn't update automatically | Use `useQuery()` not manual | [svelte-reactivity.md#L220](svelte-reactivity.md#L220) |
 | Widget disappears too early | Polling updates only, not completion | [svelte-reactivity.md#L280](svelte-reactivity.md#L280) |
 | Duplicate timers / early dismissal | Track timers with Set | [svelte-reactivity.md#L340](svelte-reactivity.md#L340) |
@@ -74,11 +80,13 @@
 | Event naming | snake_case + past tense | [analytics.md#L60](analytics.md#L60) |
 | Centralized config | Single config.ts file | [convex-integration.md#L390](convex-integration.md#L390) |
 | Reusable entity tagging | Helper + type-safe wrappers | [convex-integration.md#L440](convex-integration.md#L440) |
+| Lock dev server port | strictPort: true to prevent drift | [auth-deployment.md#L310](auth-deployment.md#L310) |
 
 ---
 
 ## Quick Navigation
 
+- **Authentication & Deployment** → [auth-deployment.md](auth-deployment.md)
 - **Svelte 5 Reactivity** → [svelte-reactivity.md](svelte-reactivity.md)
 - **Convex Integration** → [convex-integration.md](convex-integration.md)
 - **UI/UX Patterns** → [ui-patterns.md](ui-patterns.md)
@@ -131,5 +139,5 @@ correct code
 ---
 
 **Last Updated**: 2025-11-09  
-**Pattern Count**: 50  
+**Pattern Count**: 57  
 **Format Version**: 2.0
