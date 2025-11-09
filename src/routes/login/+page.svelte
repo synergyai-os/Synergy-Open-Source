@@ -123,7 +123,7 @@
 						autocomplete="email"
 						required
 						bind:value={email}
-						class="mt-1 block w-full px-3 py-2 border border-base rounded-md shadow-sm bg-elevated text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+						class="mt-1 block w-full px-3 py-2 border border-base rounded-md shadow-sm bg-elevated text-primary placeholder:text-secondary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
 						placeholder="you@example.com"
 						disabled={isLoading}
 					/>
@@ -137,7 +137,7 @@
 						autocomplete="current-password"
 						required
 						bind:value={password}
-						class="mt-1 block w-full px-3 py-2 border border-base rounded-md shadow-sm bg-elevated text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+						class="mt-1 block w-full px-3 py-2 border border-base rounded-md shadow-sm bg-elevated text-primary placeholder:text-secondary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
 						placeholder="Enter your password"
 						disabled={isLoading}
 					/>
