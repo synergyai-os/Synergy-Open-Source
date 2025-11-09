@@ -1,10 +1,12 @@
 import { error } from '@sveltejs/kit';
-import { createConvexHttpClient } from '$lib/server/auth';
+import { ConvexHttpClient } from 'convex/browser';
 import { api } from '$convex/_generated/api';
 import type { PageServerLoad } from './$types';
+import { env } from '$env/dynamic/public';
 
 export const load: PageServerLoad = async (event) => {
-	const client = await createConvexHttpClient(event);
+	// Create Convex client for public documentation queries
+	const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
 	
 	const { slug } = event.params;
 	
