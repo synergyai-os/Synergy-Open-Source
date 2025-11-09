@@ -592,7 +592,7 @@ export default {
 - ❌ Trailing slash in `PUBLIC_CONVEX_URL` (causes double slash in WebSocket)
 
 **Apply when**: Deploying SvelteKit + Convex to Vercel  
-**Related**: #L50 (Runtime restrictions), #L140 (File system)  
+**Related**: #L50 (Runtime restrictions), #L140 (File system)
 **Source**: [Convex Best Practices](https://docs.convex.dev/understanding/best-practices/other-recommendations)
 
 ## #L590: Type-Only Imports for _generated Files [🔴 CRITICAL]
