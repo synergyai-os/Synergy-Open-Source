@@ -10,7 +10,7 @@
 
 import { v } from 'convex/values';
 import { query, mutation } from './_generated/server';
-import { Doc, Id } from './_generated/dataModel';
+import type { Doc, Id } from './_generated/dataModel';
 
 /**
  * Check if a feature flag is enabled for a specific user
