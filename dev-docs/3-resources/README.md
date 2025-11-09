@@ -6,6 +6,14 @@
 
 ## Available Resources
 
+### Deployment & Operations
+- **[Trunk-Based Deployment Summary](trunk-based-deployment-implementation-summary.md)** ⭐ **START HERE** - Complete implementation overview
+- [Git Workflow Guide](git-workflow.md) - Branch strategy, PRs, Linear integration
+- [Deployment Procedures](deployment-procedures.md) - CI/CD, monitoring, rollback playbooks
+- [Progressive Rollout Checklist](progressive-rollout-checklist.md) - Phased feature rollout guide
+- [Error Handling & Monitoring](error-handling-monitoring.md) - Error boundaries, PostHog integration
+- [Linear + GitHub Integration](linear-github-integration.md) - Issue tracking workflow
+
 ### Production & Quality
 - [Production Checklist](production-checklist.md) - Pre-launch verification
 - [Testing Strategy](testing-strategy.md) - Testing approach

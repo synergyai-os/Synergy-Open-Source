@@ -472,6 +472,18 @@ const schema = defineSchema({
     .index("by_flashcard", ["flashcardId"])
     .index("by_tag", ["tagId"])
     .index("by_flashcard_tag", ["flashcardId", "tagId"]), // Unique constraint
+
+  // Feature Flags - progressive rollout and A/B testing
+  featureFlags: defineTable({
+    flag: v.string(), // Unique flag identifier (e.g., "notes_prosemirror_beta")
+    enabled: v.boolean(), // Global enabled/disabled state
+    rolloutPercentage: v.optional(v.number()), // Percentage of users (0-100)
+    allowedUserIds: v.optional(v.array(v.id("users"))), // Specific users who can see this
+    allowedDomains: v.optional(v.array(v.string())), // Email domains (e.g., "@yourcompany.com")
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_flag", ["flag"]), // Unique flag lookup
 });
 
 export default schema;

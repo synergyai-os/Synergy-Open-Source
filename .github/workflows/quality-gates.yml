@@ -1,0 +1,76 @@
+name: Quality Gates
+
+# Run on all pull requests
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality-checks:
+    name: Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Type check
+        run: npm run check
+        continue-on-error: false
+      
+      - name: Lint
+        run: npm run lint
+        continue-on-error: false
+      
+      - name: Build verification
+        run: npm run build
+        env:
+          # Use a placeholder Convex URL for build verification
+          VITE_CONVEX_URL: ${{ secrets.CONVEX_URL || 'https://placeholder.convex.cloud' }}
+        continue-on-error: false
+      
+      - name: Quality check summary
+        if: always()
+        run: |
+          echo "## Quality Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✅ All quality checks passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Some quality checks failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Optional: Run tests (currently commented out as tests may not be stable)
+  # Uncomment when test suite is reliable
+  # tests:
+  #   name: Run Tests
+  #   runs-on: ubuntu-latest
+  #   
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+  #     
+  #     - name: Setup Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: '20'
+  #         cache: 'npm'
+  #     
+  #     - name: Install dependencies
+  #       run: npm ci
+  #     
+  #     - name: Run unit tests
+  #       run: npm run test:unit
+  #     
+  #     - name: Run E2E tests
+  #       run: npm run test:e2e
+

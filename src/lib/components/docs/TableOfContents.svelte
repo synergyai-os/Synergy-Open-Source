@@ -165,7 +165,7 @@
 	/* Floating TOC Panel - functional, subtle */
 	.toc-panel {
 		position: fixed;
-		left: 280px;
+		left: 2rem;
 		top: calc(6rem + 100px);
 		background: var(--color-bg-elevated);
 		border: 1px solid var(--color-border-base);

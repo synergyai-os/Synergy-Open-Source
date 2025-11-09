@@ -1524,7 +1524,138 @@ props: {
 
 ---
 
-**Pattern Count**: 23  
-**Last Updated**: 2025-01-08  
+## #L1260: Sidebar Removal + Breadcrumbs [🟢 REFERENCE]
+
+**Symptom**: Documentation has 29-item left sidebar + top nav + TOC (violates Miller's Law)  
+**Root Cause**: Redundant navigation systems created independently  
+**Fix**: Remove sidebar, add breadcrumbs, keep top nav (10 items) + floating TOC
+
+```svelte
+// ❌ WRONG - Multiple redundant navigation systems
+<DocLayout>
+  <Sidebar><!-- 29 items --></Sidebar>
+  <TopNav><!-- 10 items --></TopNav>
+  <TOC />
+  <Content />
+</DocLayout>
+
+// ✅ CORRECT - Single responsibility per navigation tier
+<DocLayout>
+  <TopNav><!-- 10 items: primary categories --></TopNav>
+  <Breadcrumbs />  <!-- Location context -->
+  <TOC />          <!-- On-page navigation -->
+  <Content />
+</DocLayout>
+```
+
+**Implementation**:
+
+1. **Breadcrumb Component** (auto-generated from URL):
+```svelte
+<script lang="ts">
+  import { page } from '$app/stores';
+  
+  // Map URL segments to readable names
+  const segmentMap: Record<string, string> = {
+    'dev-docs': 'Documentation',
+    '2-areas': 'Core Areas',
+    'patterns': 'Patterns',
+    // ... more mappings
+  };
+  
+  const breadcrumbs = $derived.by(() => {
+    const segments = $page.url.pathname.split('/').filter(Boolean);
+    return segments.map((segment, index) => ({
+      href: '/' + segments.slice(0, index + 1).join('/'),
+      label: segmentMap[segment] || formatSegment(segment)
+    }));
+  });
+</script>
+
+<nav aria-label="Breadcrumb">
+  <ol>
+    <li><a href="/">🏠 Home</a></li>
+    {#each breadcrumbs as crumb, i}
+      <li>
+        <span aria-hidden="true">/</span>
+        {#if i === breadcrumbs.length - 1}
+          <span aria-current="page">{crumb.label}</span>
+        {:else}
+          <a href={crumb.href}>{crumb.label}</a>
+        {/if}
+      </li>
+    {/each}
+  </ol>
+</nav>
+```
+
+2. **Layout Without Sidebar**:
+```svelte
+<div class="docs-layout">
+  <TableOfContents {headings} /> <!-- Floats left: 2rem -->
+  
+  <main class="docs-content">
+    <div class="docs-content-inner">
+      <Breadcrumb /> <!-- Location context -->
+      <article>{@render children?.()}</article>
+    </div>
+  </main>
+</div>
+
+<style>
+  .docs-layout {
+    display: flex;
+    min-height: 100vh;
+  }
+  
+  .docs-content {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    padding: 2rem var(--spacing-content-padding);
+  }
+  
+  .docs-content-inner {
+    width: 100%;
+    max-width: 900px;
+  }
+</style>
+```
+
+3. **Navigation Hierarchy**:
+```
+Top Nav (7 items)     → Primary categories (Documentation, Design, About)
+  ↓
+Hub Pages            → Visual grids for discovery (/dev-docs/all)
+  ↓
+Breadcrumbs          → Current location context (Home > Design > Tokens)
+  ↓
+TOC (floating)       → On-page navigation (sections within doc)
+```
+
+**Why**: 
+- **Cognitive load**: 7 nav items < 29 sidebar items (Miller's Law)
+- **Clarity**: Each navigation tier has single responsibility
+- **Modern**: Follows Stripe/Vercel/Linear pattern
+- **Mobile-first**: One less thing to hide on mobile
+- **Accessible**: Breadcrumbs provide hierarchical context
+
+**Apply when**: 
+- Documentation site with >20 pages
+- Multiple navigation systems created independently
+- Users report "can't find anything" or "too overwhelming"
+- Analytics show low engagement with sidebar
+
+**Implementation Details**:
+- Breadcrumbs: `font-size: 0.875rem`, staggered entrance (40ms delay per item)
+- TOC: Shifted from `left: 280px` (sidebar width) → `left: 2rem`
+- Removed: 260px of horizontal space, 29 sidebar items, redundant scrolling
+
+**Related**: navigation-philosophy.md (UX psychology), #L10 (Component architecture)
+
+---
+
+**Pattern Count**: 24  
+**Last Updated**: 2025-11-09  
 **Design Token Reference**: `dev-docs/design-tokens.md`
 

@@ -8,7 +8,10 @@
 
 ### Product & Strategy
 - [Product Vision & Plan](product-vision-and-plan.md) - Vision, strategy, roadmap ⭐ START HERE
+- [Product Principles](product-principles.md) - How we make decisions
 - [Architecture](architecture.md) - Tech stack, auth, project structure
+- [Design Principles](design-principles.md) - Visual philosophy & UX
+- [Navigation Philosophy](navigation-philosophy.md) - UX psychology + 10-item nav strategy 🧠
 - [Design Tokens](design-tokens.md) - Design system reference
 - [Composables Analysis](composables-analysis.md) - Svelte 5 composables
 

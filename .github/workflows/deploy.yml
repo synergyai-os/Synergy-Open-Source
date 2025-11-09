@@ -1,0 +1,58 @@
+name: Deploy to Production
+
+# Trigger on push to main branch
+on:
+  push:
+    branches: [main]
+
+# Prevent concurrent deployments
+concurrency:
+  group: production-deployment
+  cancel-in-progress: false
+
+jobs:
+  deploy-backend:
+    name: Deploy Convex Backend
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Deploy Convex Backend
+        run: npx convex deploy --cmd 'echo "Convex deployment"'
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+      
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✅ Convex backend deployed successfully"
+          else
+            echo "❌ Convex backend deployment failed"
+          fi
+
+  # Note: Vercel frontend deployment happens automatically
+  # This job is just for visibility
+  notify-frontend:
+    name: Frontend Deployment (Vercel)
+    runs-on: ubuntu-latest
+    needs: deploy-backend
+    
+    steps:
+      - name: Frontend deployment info
+        run: |
+          echo "ℹ️ Frontend deployment triggered automatically by Vercel"
+          echo "📍 Check Vercel dashboard for deployment status"
+          echo "🔗 https://vercel.com/dashboard"
+

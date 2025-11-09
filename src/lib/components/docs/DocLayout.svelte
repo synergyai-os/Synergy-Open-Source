@@ -2,7 +2,7 @@
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 	import { untrack } from 'svelte';
-	import DocSidebar from './DocSidebar.svelte';
+	import Breadcrumb from './Breadcrumb.svelte';
 	import TableOfContents from './TableOfContents.svelte';
 	
 	type Props = {
@@ -90,19 +90,20 @@
 </script>
 
 <div class="docs-layout bg-base">
-	<!-- Sidebar Navigation -->
-	<aside class="docs-sidebar bg-sidebar">
-		<DocSidebar />
-	</aside>
-	
 	<!-- Floating TOC (Linear-style) - in left margin -->
 	<TableOfContents {headings} />
 	
-	<!-- Main Content Area - Centered -->
+	<!-- Main Content Area - Centered, Full Width -->
 	<main class="docs-content bg-base">
-		<article class="docs-article prose">
-			{@render children?.()}
-		</article>
+		<div class="docs-content-inner">
+			<!-- Breadcrumb Navigation -->
+			<Breadcrumb />
+			
+			<!-- Article Content -->
+			<article class="docs-article prose">
+				{@render children?.()}
+			</article>
+		</div>
 	</main>
 </div>
 
@@ -114,28 +115,22 @@
 		position: relative;
 	}
 	
-	.docs-sidebar {
-		position: sticky;
-		top: 0;
-		height: 100vh;
-		width: 260px;
-		flex-shrink: 0;
-		overflow-y: auto;
-		padding: var(--spacing-content-padding);
-		border-right: 1px solid var(--color-sidebar-border);
-	}
-	
 	.docs-content {
 		flex: 1;
 		display: flex;
 		justify-content: center;
-		padding: 3rem var(--spacing-content-padding);
+		padding: 2rem var(--spacing-content-padding);
 		min-width: 0;
+		width: 100%;
+	}
+	
+	.docs-content-inner {
+		width: 100%;
+		max-width: 900px;
 	}
 	
 	.docs-article {
 		width: 100%;
-		max-width: 900px;
 	}
 	
 	/* Typography and content styling for MDX content */
@@ -310,19 +305,9 @@
 	}
 	
 	/* Responsive design */
-	@media (max-width: 1280px) {
-		.docs-sidebar {
-			width: 240px;
-		}
-	}
-	
 	@media (max-width: 768px) {
-		.docs-sidebar {
-			display: none;
-		}
-		
 		.docs-content {
-			padding: 2rem 1.5rem;
+			padding: 1.5rem 1rem;
 		}
 	}
 </style>

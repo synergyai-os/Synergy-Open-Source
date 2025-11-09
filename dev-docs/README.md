@@ -58,7 +58,9 @@
 **→ [User Journeys](2-areas/user-journeys)** *(Coming Soon)*
 
 ### 🏗️ I'm Building (All Roles)
-**→ [Architecture](2-areas/architecture.md)** - System overview + tech stack ✅  
+**→ [Architecture](2-areas/architecture.md)** - System overview + tech stack ✅
+**→ [Trunk-Based Deployment](3-resources/trunk-based-deployment-implementation-summary.md)** - Ship to production constantly ⚡
+**→ [Navigation Philosophy](2-areas/navigation-philosophy.md)** - UX psychology + 10-item nav strategy 🧠 **NEW**
 **→ [Data Models](2-areas/data-models)** *(Coming Soon)*
 
 ---
@@ -67,10 +69,13 @@
 
 | I need to... | Go here | Time |
 |-------------|---------|------|
+| Browse all docs | [📚 All Docs Hub](/dev-docs/all) - Visual directory | 1 min |
 | Fix a bug | [Pattern Index 🔴](2-areas/patterns/INDEX#-critical-patterns-fix-immediately) | 2 min |
+| Deploy to production | [Trunk-Based Deployment ⚡](3-resources/trunk-based-deployment-implementation-summary.md) | 5 min |
+| Setup feature flags | [Feature Flags Pattern](2-areas/patterns/feature-flags.md) | 10 min |
+| Setup secrets | [Secrets Management 🔐](2-areas/secrets-management.md) | 5 min |
 | See metrics/OKRs | [Metrics Dashboard 💰](2-areas/metrics) | 3 min |
 | Find a component | [Component Library](2-areas/component-library) *(Coming Soon)* | 3 min |
-| Understand user flow | [User Journeys](2-areas/user-journeys) *(Coming Soon)* | 10 min |
 | Check design system | [Design Tokens](2-areas/design-tokens) | 5 min |
 | Understand vision | [Product Vision 2.0](../marketing-docs/strategy/product-vision-2.0.md) | 10 min |
 
@@ -115,7 +120,8 @@ This documentation follows the [PARA system](https://fortelabs.com/blog/para/):
 
 ### ⚡ Getting Started
 
-**→ [Start Me Guide](2-areas/start-me.md)** - Get SynergyOS running locally in 5 minutes
+**→ [Start Me Guide](2-areas/start-me.md)** - Get SynergyOS running locally in 5 minutes  
+**→ [Secrets Management](2-areas/secrets-management.md)** - 1Password CLI setup for secure development
 
 ---
 
@@ -135,9 +141,10 @@ This documentation follows the [PARA system](https://fortelabs.com/blog/para/):
 
 **Engineer:**
 1. Load [Pattern Index](2-areas/patterns/INDEX) (5 min) ⚡
-2. Read [Architecture](2-areas/architecture) (20 min)
-3. Review [Svelte 5 Patterns](2-areas/patterns/svelte-reactivity.md) (15 min)
-4. Check [Convex Patterns](2-areas/patterns/convex-integration.md) (15 min)
+2. Read [Trunk-Based Deployment](3-resources/trunk-based-deployment-implementation-summary.md) (10 min) **NEW**
+3. Read [Architecture](2-areas/architecture) (20 min)
+4. Review [Svelte 5 Patterns](2-areas/patterns/svelte-reactivity.md) (15 min)
+5. Check [Convex Patterns](2-areas/patterns/convex-integration.md) (15 min)
 
 ### 🐛 Debugging Something?
 
@@ -209,6 +216,7 @@ This documentation follows the [PARA system](https://fortelabs.com/blog/para/):
 - `dev-docs/2-areas/patterns/INDEX.md` - Pattern lookup
 - `dev-docs/2-areas/architecture.md` - Tech architecture
 - `dev-docs/2-areas/design-tokens.md` - Token reference
+- `dev-docs/2-areas/secrets-management.md` - 1Password CLI & secret management
 - `dev-docs/2-areas/posthog.md` - Analytics & AARRR tracking
 
 ### Code

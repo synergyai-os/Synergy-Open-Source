@@ -3,6 +3,7 @@
 	import { Button } from 'bits-ui';
 	import { goto } from '$app/navigation';
 	import { trackPosthogEvent } from '$lib/posthog/client';
+	import { PUBLIC_CONVEX_URL } from '$env/static/public';
 
 	const auth = useAuth();
 	const { signIn } = auth;
@@ -14,6 +15,32 @@
 	let rememberMe = $state(false);
 	let error = $state('');
 	let isLoading = $state(false);
+	let authLoadTimeout = $state(false);
+	
+	// Check if auth is ready
+	const isAuthReady = $derived(signIn !== undefined && (auth.isLoading === false || authLoadTimeout));
+	
+	// Set timeout to allow registration even if isLoading is stuck
+	$effect(() => {
+		const timer = setTimeout(() => {
+			if (auth.isLoading && signIn) {
+				console.warn('⚠️ Auth loading timeout - enabling registration anyway');
+				authLoadTimeout = true;
+			}
+		}, 2000);
+		
+		return () => clearTimeout(timer);
+	});
+
+	// Function to clear auth state if it's stuck
+	function clearAuthState() {
+		localStorage.removeItem('__convexAuthJWT');
+		localStorage.removeItem('__convexAuthRefreshToken');
+		localStorage.removeItem(`serverStateFetchTime:${PUBLIC_CONVEX_URL}`);
+		console.log('🧹 Cleared auth state from localStorage');
+		error = 'Auth state cleared. Please try again.';
+		authLoadTimeout = true;
+	}
 
 	async function handleRegister(e: SubmitEvent) {
 		e.preventDefault();
@@ -33,6 +60,11 @@
 		isLoading = true;
 
 		try {
+			// Ensure signIn is available before calling
+			if (!signIn) {
+				throw new Error('Authentication system is not ready. Please refresh the page and try again.');
+			}
+			
 			// Store rememberMe preference in a temporary cookie
 			// Server will read this and set appropriate cookie config
 			if (rememberMe) {
@@ -161,13 +193,26 @@
 			<div>
 				<Button.Root
 					type="submit"
-					disabled={isLoading}
+					disabled={isLoading || !isAuthReady}
 					class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
 				>
-					{isLoading ? 'Creating account...' : 'Create account'}
+					{isLoading ? 'Creating account...' : !isAuthReady ? 'Loading...' : 'Create account'}
 				</Button.Root>
 			</div>
 		</form>
+		
+		{#if auth.isLoading && authLoadTimeout}
+			<div class="mt-4 text-center">
+				<p class="text-sm text-gray-600 mb-2">Authentication is taking longer than expected.</p>
+				<button
+					type="button"
+					onclick={clearAuthState}
+					class="text-sm text-blue-600 hover:text-blue-500 underline"
+				>
+					Clear auth state and try again
+				</button>
+			</div>
+		{/if}
 	</div>
 </div>
 

@@ -66,6 +66,7 @@
 | Compact modal design | Linear-style tight spacing, input-sized fields | [ui-patterns.md#L830](ui-patterns.md#L830) |
 | Hierarchical ESC navigation | Blur input → refocus modal → close | [ui-patterns.md#L930](ui-patterns.md#L930) |
 | Premium animations | Spring physics + staggered transitions | [ui-patterns.md#L1150](ui-patterns.md#L1150) |
+| Navigation architecture | Remove sidebar, add breadcrumbs + hub pages | [ui-patterns.md#L1260](ui-patterns.md#L1260) |
 | Type safety for Convex | Use shared type definitions | [convex-integration.md#L240](convex-integration.md#L240) |
 | Discriminated unions | Type narrowing with discriminator | [convex-integration.md#L290](convex-integration.md#L290) |
 | Enum to database strings | Explicit conversion functions | [convex-integration.md#L340](convex-integration.md#L340) |
