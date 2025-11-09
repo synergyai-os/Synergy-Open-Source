@@ -23,7 +23,7 @@
 | Navbar/header stays white in dark mode | Remove non-existent CSS vars (--color-bg-base-rgb) | [ui-patterns.md#L828](ui-patterns.md#L828) |
 | Scrollbar positioned at far right (outside padding) | Use scrollable-outer + scrollable-inner utilities | [component-architecture.md#L180](../component-architecture.md#L180) |
 | Raw markdown displayed instead of rendered HTML | Add Vite middleware to redirect .md URLs | [ui-patterns.md#L1100](ui-patterns.md#L1100) |
-| Vercel build: Rollup can't find $convex/_generated/api | Create tmp dir + use && for sequential build | [convex-integration.md#L540](convex-integration.md#L540) |
+| Vercel build: "Could not resolve _generated/dataModel" | Commit _generated to git, separate deployments | [convex-integration.md#L540](convex-integration.md#L540) |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
