@@ -10,7 +10,9 @@ const config = {
 	preprocess: [vitePreprocess(), mdsvex(mdsvexConfig)],
 	
 	kit: {
-		adapter: adapter(),
+		adapter: adapter({
+			includeFiles: ['marketing-docs/**', 'dev-docs/**']
+		}),
 		alias: {
 			$convex: './convex'
 		},
