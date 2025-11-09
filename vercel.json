@@ -1,3 +1,3 @@
 {
-  "buildCommand": "npx convex deploy && npm run build"
+  "buildCommand": "mkdir -p /vercel/path0/tmp && npx convex deploy && npm run build"
 }
