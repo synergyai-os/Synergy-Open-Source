@@ -11,6 +11,9 @@ const config = {
 	
 	kit: {
 		adapter: adapter(),
+		alias: {
+			$convex: './convex'
+		},
 		paths: {
 			relative: false // Required for PostHog session replay to work correctly
 		}
