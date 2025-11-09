@@ -25,7 +25,8 @@ vite.config.ts.timestamp-*
 
 # Convex
 .convex
-convex/_generated
+# convex/_generated - REMOVED: Convex officially recommends committing generated types
+# See: https://docs.convex.dev/understanding/best-practices/other-recommendations
 
 # Playwright
 playwright/.auth
