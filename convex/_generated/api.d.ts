@@ -12,6 +12,7 @@ import type * as auth from "../auth.js";
 import type * as blogExport from "../blogExport.js";
 import type * as cryptoActions from "../cryptoActions.js";
 import type * as email from "../email.js";
+import type * as featureFlags from "../featureFlags.js";
 import type * as flashcards from "../flashcards.js";
 import type * as http from "../http.js";
 import type * as inbox from "../inbox.js";
@@ -32,6 +33,7 @@ import type * as tags from "../tags.js";
 import type * as teams from "../teams.js";
 import type * as testReadwiseApi from "../testReadwiseApi.js";
 import type * as validateApiKeys from "../validateApiKeys.js";
+import type * as waitlist from "../waitlist.js";
 
 import type {
   ApiFromModules,
@@ -52,6 +54,7 @@ declare const fullApi: ApiFromModules<{
   blogExport: typeof blogExport;
   cryptoActions: typeof cryptoActions;
   email: typeof email;
+  featureFlags: typeof featureFlags;
   flashcards: typeof flashcards;
   http: typeof http;
   inbox: typeof inbox;
@@ -72,6 +75,7 @@ declare const fullApi: ApiFromModules<{
   teams: typeof teams;
   testReadwiseApi: typeof testReadwiseApi;
   validateApiKeys: typeof validateApiKeys;
+  waitlist: typeof waitlist;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 
