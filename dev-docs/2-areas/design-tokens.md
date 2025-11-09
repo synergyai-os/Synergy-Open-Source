@@ -98,6 +98,27 @@ Our spacing scale is based on a 4px base unit (0.25rem):
 | `--spacing-settings-row-padding-y` | `py-settings-row` | 1rem (16px) | Setting row vertical padding |
 | `--spacing-readable-quote-y` | `py-readable-quote` | 2rem (32px) | Vertical padding for quote/highlight containers (readability optimized) |
 
+### Button Spacing Tokens
+
+| Token | Utility Class | Value | Usage |
+|-------|--------------|-------|-------|
+| `--spacing-button-x` | `px-button-x` | 1rem (16px) | Button horizontal padding |
+| `--spacing-button-y` | `py-button-y` | 0.625rem (10px) | Button vertical padding |
+| `--border-radius-button` | `rounded-button` | 0.375rem (6px) | Button border radius |
+
+**Example Usage:**
+```html
+<!-- Primary button with design tokens -->
+<button class="px-button-x py-button-y rounded-button bg-accent-primary text-white">
+  Click me
+</button>
+
+<!-- Using the Button component (recommended) -->
+<Button variant="primary" href="/login">Login</Button>
+```
+
+**See**: Button component (`src/lib/components/ui/Button.svelte`) for standardized button implementation.
+
 ### Migration Guide
 
 **Before (hardcoded):**
@@ -626,6 +647,23 @@ flex justify-end gap-button-group pt-content-section border-t border-base
 
 ### Atomic Component Patterns
 
+**Button Component:**
+Always use `<Button>` component instead of raw `<button>` or `<a>` tags for actions and navigation. This ensures consistent styling using design tokens.
+
+```svelte
+<!-- ❌ Don't do this -->
+<button class="px-4 py-2 bg-blue-600 text-white rounded">Click me</button>
+<a href="/login" class="px-4 py-2 border border-gray-200 rounded">Login</a>
+
+<!-- ✅ Do this -->
+<Button variant="primary" onclick={handleClick}>Click me</Button>
+<Button variant="secondary" href="/login">Login</Button>
+```
+
+**Variants:**
+- `primary` - Blue filled button for primary actions (Register, Submit, etc.)
+- `secondary` - Outlined button for secondary actions (Login, Cancel, etc.)
+
 **Keyboard Shortcut Badge:**
 Use `<KeyboardShortcut keys="C" />` or `<KeyboardShortcut keys={['Cmd', 'K']} />` instead of hardcoding shortcuts. When you change the shortcut from 'C' to 'A', it updates everywhere automatically.
 
@@ -646,6 +684,7 @@ Always use `<FormInput>` and `<FormTextarea>` components instead of raw `<input>
 2. **If you need to deviate**, document why and consider adding a new pattern
 3. **For spacing/padding**, prefer the defined tokens over arbitrary values
 4. **For typography**, always use semantic sizes (`text-sm`, `text-label`) rather than arbitrary values like `text-[10px]`
-5. **For keyboard shortcuts**, always use `<KeyboardShortcut>` component for consistency
-6. **For form inputs**, always use `<FormInput>` and `<FormTextarea>` components
+5. **For buttons**, always use `<Button>` component for consistent styling
+6. **For keyboard shortcuts**, always use `<KeyboardShortcut>` component for consistency
+7. **For form inputs**, always use `<FormInput>` and `<FormTextarea>` components
 

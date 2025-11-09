@@ -5,6 +5,7 @@
  * All components are UI-only with stubbed functionality for independent development
  */
 
+export { default as Button } from './Button.svelte';
 export { default as KeyboardShortcut } from './KeyboardShortcut.svelte';
 export { default as FormInput } from './FormInput.svelte';
 export { default as FormTextarea } from './FormTextarea.svelte';

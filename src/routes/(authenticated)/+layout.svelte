@@ -5,19 +5,20 @@
     import GlobalActivityTracker from '$lib/components/GlobalActivityTracker.svelte';
     import AppTopBar from '$lib/components/organizations/AppTopBar.svelte';
     import QuickCreateModal from '$lib/components/QuickCreateModal.svelte';
-    import { useAuth } from '@mmailaender/convex-auth-svelte/sveltekit';
     import { getContext, setContext } from 'svelte';
     import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
     import { useGlobalShortcuts, SHORTCUTS } from '$lib/composables/useGlobalShortcuts.svelte';
 
-	let { children } = $props();
+	let { children, data } = $props();
 
     const organizations = getContext<UseOrganizations | undefined>('organizations');
-    const auth = useAuth();
-    const isAuthenticated = $derived(auth.isAuthenticated);
-    const isLoading = $derived(auth.isLoading);
-    const accountEmail = $derived(() => auth.user?.email ?? 'user@example.com');
-    const accountName = $derived(() => auth.user?.name ?? 'Personal workspace');
+    const isAuthenticated = $derived(data.isAuthenticated);
+    const accountEmail = $derived(() => data.user?.email ?? 'user@example.com');
+    const accountName = $derived(() => 
+		data.user?.firstName && data.user?.lastName 
+			? `${data.user.firstName} ${data.user.lastName}` 
+			: data.user?.email ?? 'Personal workspace'
+	);
 
 	// Initialize global shortcuts (only in browser - SSR safe)
 	const shortcuts = browser ? useGlobalShortcuts() : null;
@@ -118,19 +119,15 @@
 		};
 	});
 
-	// Redirect to login if not authenticated
+	// Redirect to login if not authenticated (shouldn't reach here due to server-side redirect)
 	$effect(() => {
-		if (browser && !isLoading && !isAuthenticated) {
+		if (browser && !isAuthenticated) {
 			window.location.href = '/login';
 		}
 	});
 </script>
 
-{#if isLoading}
-	<div class="h-screen flex items-center justify-center bg-base">
-		<p class="text-secondary">Loading...</p>
-	</div>
-{:else if isAuthenticated}
+{#if isAuthenticated}
 	<div class="h-screen flex overflow-hidden">
 		<!-- Shared Sidebar Component -->
 		<Sidebar
@@ -147,6 +144,7 @@
 				quickCreateInitialType = null; // Show command palette
 				quickCreateModalOpen = true;
 			}}
+			user={data.user}
 		/>
 
 		<!-- Main Content Area -->

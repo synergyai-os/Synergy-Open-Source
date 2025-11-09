@@ -1,8 +1,11 @@
 <script lang="ts">
+	import Header from '$lib/components/Header.svelte';
 	import WaitlistForm from '$lib/components/WaitlistForm.svelte';
 	import { fly, fade, scale } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import { onMount } from 'svelte';
+
+	let { data } = $props();
 
 	// Detect motion preference
 	let prefersReducedMotion = false;
@@ -46,6 +49,8 @@
 	<title>SynergyOS - The Product OS Built by Builders</title>
 	<meta name="description" content="Open source Product OS. Built with AI, for builders who want control over their data." />
 </svelte:head>
+
+<Header isAuthenticated={data.isAuthenticated} />
 
 <div class="homepage-layout">
 	<!-- Hero Section -->
@@ -206,26 +211,81 @@
 		</div>
 	</section>
 
-	<!-- Final CTA Section -->
-	<section id="waitlist" class="final-cta-section bg-surface">
-		<div class="section-content px-inbox-container py-readable-quote max-w-3xl mx-auto text-center">
-			<div in:fly={{ y: 30, duration: prefersReducedMotion ? 0 : 400, delay: prefersReducedMotion ? 0 : 100, easing: quintOut }}>
-				<h2 class="section-title text-primary">Join the Builders</h2>
+	<!-- Final CTA Section - Combined -->
+	<section id="join" class="final-cta-section bg-surface">
+		<div class="section-content px-inbox-container py-readable-quote max-w-5xl mx-auto">
+			<!-- Main Header -->
+			<div class="text-center mb-12" in:fly={{ y: 30, duration: prefersReducedMotion ? 0 : 400, delay: prefersReducedMotion ? 0 : 100, easing: quintOut }}>
+				<h2 class="section-title text-primary mb-4">Join the Movement</h2>
 				<p class="section-lead text-secondary">
 					Don't want another SaaS subscription?<br />
 					Want control over your data?<br />
 					Want to build, not just use?
 				</p>
+			</div>
 
-				<div class="waitlist-container">
-					<WaitlistForm />
+			<!-- Two-Column Layout -->
+			<div class="join-grid">
+				<!-- Left: Join Core Team -->
+				<div class="join-section" in:fly={{ x: -30, duration: prefersReducedMotion ? 0 : 400, delay: prefersReducedMotion ? 0 : 200, easing: quintOut }}>
+					<div class="core-team-card">
+						<h3 class="join-heading text-primary">🚀 Join the Core Team</h3>
+						<p class="join-subheading text-secondary">Build with us. Get recognized. Shape the future.</p>
+
+						<!-- Contribution Ladder -->
+						<div class="contribution-ladder">
+							<div class="ladder-step">
+								<div class="ladder-badge">🎯</div>
+								<div class="ladder-content">
+									<div class="ladder-number text-primary">1 PR</div>
+									<div class="ladder-reward text-secondary">→ Contributor Badge</div>
+								</div>
+							</div>
+
+							<div class="ladder-arrow text-tertiary">→</div>
+
+							<div class="ladder-step ladder-step-highlight">
+								<div class="ladder-badge">⚡</div>
+								<div class="ladder-content">
+									<div class="ladder-number text-primary">10 PRs</div>
+									<div class="ladder-reward text-secondary">→ Early Adopter Role</div>
+								</div>
+								<div class="ladder-bonus">🔥 First 5 only: 10 PRs + 1 outcome = Core Team</div>
+							</div>
+
+							<div class="ladder-arrow text-tertiary">→</div>
+
+							<div class="ladder-step ladder-step-premium">
+								<div class="ladder-badge">👑</div>
+								<div class="ladder-content">
+									<div class="ladder-number text-primary">100 PRs</div>
+									<div class="ladder-reward text-secondary">→ Official Core Team Member</div>
+								</div>
+							</div>
+						</div>
+
+						<a href="https://github.com/synergyai-os/Synergy-Open-Source" target="_blank" rel="noopener noreferrer" class="action-button action-button-accent">
+							🏗️ Start Building & Get Recognized
+						</a>
+					</div>
 				</div>
 
-				<div class="cta-links">
-					<a href="/dev-docs" class="cta-link text-secondary">📚 Read the Docs</a>
-					<span class="cta-link-separator text-tertiary">·</span>
-					<a href="https://github.com/synergyai-os/Synergy-Open-Source" target="_blank" rel="noopener noreferrer" class="cta-link text-secondary">💻 Explore the Code</a>
+				<!-- Right: Waitlist -->
+				<div id="waitlist" class="join-section" in:fly={{ x: 30, duration: prefersReducedMotion ? 0 : 400, delay: prefersReducedMotion ? 0 : 200, easing: quintOut }}>
+					<div class="waitlist-card">
+						<h3 class="join-heading text-primary">📬 Join the Waitlist</h3>
+						<p class="join-subheading text-secondary">Don't want another SaaS subscription?<br />Want control over your data?<br />Want to build, not just use?</p>
+
+						<WaitlistForm />
+					</div>
 				</div>
+			</div>
+
+			<!-- Bottom Links -->
+			<div class="cta-links text-center mt-8" in:fly={{ y: 20, duration: prefersReducedMotion ? 0 : 300, delay: prefersReducedMotion ? 0 : 400, easing: quintOut }}>
+				<a href="/dev-docs" class="cta-link text-secondary">📚 Read the Docs</a>
+				<span class="cta-link-separator text-tertiary">·</span>
+				<a href="https://github.com/synergyai-os/Synergy-Open-Source" target="_blank" rel="noopener noreferrer" class="cta-link text-secondary">💻 Explore the Code</a>
 			</div>
 		</div>
 	</section>
@@ -605,6 +665,155 @@
 		border-bottom: 1px solid var(--color-border-base);
 	}
 
+	/* Join Grid - Two Columns */
+	.join-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 2rem;
+		margin-bottom: 2rem;
+	}
+
+	.join-section {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.core-team-card,
+	.waitlist-card {
+		flex: 1;
+		padding: 2rem;
+		background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(147, 51, 234, 0.05));
+		border: 2px solid var(--color-accent-primary);
+		border-radius: 1rem;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.waitlist-card {
+		background: linear-gradient(135deg, rgba(34, 197, 94, 0.05), rgba(59, 130, 246, 0.05));
+		border-color: var(--color-border-elevated);
+	}
+
+	.join-heading {
+		font-size: 1.5rem;
+		font-weight: 700;
+		margin-bottom: 0.75rem;
+		letter-spacing: -0.01em;
+	}
+
+	.join-subheading {
+		font-size: 0.9375rem;
+		line-height: 1.6;
+		margin-bottom: 1.5rem;
+	}
+
+	/* Contribution Ladder */
+	.contribution-ladder {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+		margin-bottom: 2rem;
+	}
+
+	.ladder-step {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 1rem;
+		background: var(--color-bg-base);
+		border: 2px solid var(--color-border-base);
+		border-radius: 0.75rem;
+		min-width: 140px;
+		flex: 1;
+		transition: all 0.2s ease;
+	}
+
+	.ladder-step:hover {
+		border-color: var(--color-accent-primary);
+		transform: translateY(-4px);
+		box-shadow: 0 8px 20px rgba(59, 130, 246, 0.2);
+	}
+
+	.ladder-step-highlight {
+		border-color: var(--color-accent-primary);
+		background: rgba(59, 130, 246, 0.05);
+	}
+
+	.ladder-step-premium {
+		border-color: #fbbf24;
+		background: rgba(251, 191, 36, 0.05);
+	}
+
+	.ladder-badge {
+		font-size: 2rem;
+		line-height: 1;
+	}
+
+	.ladder-content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.25rem;
+		text-align: center;
+	}
+
+	.ladder-number {
+		font-size: 1rem;
+		font-weight: 700;
+	}
+
+	.ladder-reward {
+		font-size: 0.8125rem;
+		text-align: center;
+	}
+
+	.ladder-bonus {
+		font-size: 0.6875rem;
+		color: var(--color-accent-primary);
+		text-align: center;
+		margin-top: 0.5rem;
+		padding: 0.375rem 0.5rem;
+		background: rgba(59, 130, 246, 0.1);
+		border-radius: 0.375rem;
+		font-weight: 600;
+		line-height: 1.3;
+	}
+
+	.ladder-arrow {
+		font-size: 1.25rem;
+		font-weight: 700;
+	}
+
+	/* Action Button */
+	.action-button {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		padding: 0.875rem 1.5rem;
+		border-radius: 0.5rem;
+		font-size: 1rem;
+		font-weight: 600;
+		text-decoration: none;
+		transition: all 0.2s ease;
+		margin-top: auto;
+	}
+
+	.action-button-accent {
+		background: linear-gradient(135deg, var(--color-accent-primary), #667eea);
+		color: white;
+		border: none;
+	}
+
+	.action-button-accent:hover {
+		opacity: 0.9;
+		transform: translateY(-2px);
+		box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+	}
+
 	.waitlist-container {
 		margin: 3rem 0 2rem 0;
 	}
@@ -615,7 +824,6 @@
 		justify-content: center;
 		align-items: center;
 		font-size: 0.875rem;
-		margin-top: 2rem;
 	}
 
 	.cta-link {
@@ -734,6 +942,39 @@
 
 		.footer-grid {
 			grid-template-columns: 1fr;
+		}
+
+		/* Mobile: Stack Join Grid */
+		.join-grid {
+			grid-template-columns: 1fr;
+			gap: 1.5rem;
+		}
+
+		.contribution-ladder {
+			flex-direction: column;
+			gap: 0.75rem;
+		}
+
+		.ladder-arrow {
+			transform: rotate(90deg);
+		}
+
+		.ladder-step {
+			width: 100%;
+			min-width: auto;
+		}
+
+		.join-heading {
+			font-size: 1.25rem;
+		}
+
+		.join-subheading {
+			font-size: 0.875rem;
+		}
+
+		.core-team-card,
+		.waitlist-card {
+			padding: 1.5rem;
 		}
 	}
 

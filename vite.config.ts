@@ -23,9 +23,9 @@ export default defineConfig({
 		sveltekit()
 	],
 	server: {
-		host: '0.0.0.0', // Allow connections from any IP on your network
+		host: '127.0.0.1', // Use 127.0.0.1 for WorkOS compatibility (not localhost)
 		port: 5173,
-		strictPort: false,
+		strictPort: true, // Fail if port is busy (so you know to kill other processes)
 		fs: {
 			// Allow Vite to serve files from the convex directory
 			allow: ['..']

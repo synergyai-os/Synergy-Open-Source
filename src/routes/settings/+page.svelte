@@ -51,11 +51,9 @@
 	
 	// Import at top level - the module import is safe, hooks are called conditionally
 	import { useConvexClient } from 'convex-svelte';
-	import { useAuth } from '@mmailaender/convex-auth-svelte/sveltekit';
 	
-	// Get auth status to check if user is authenticated
-	const auth = useAuth();
-	const isAuthenticated = $derived(auth.isAuthenticated);
+	// Auth is handled by server-side middleware (no client-side auth needed)
+	const isAuthenticated = true; // User is always authenticated in this route (protected by server)
 	
 	// Call useConvexClient at top level (must be synchronous, during component init)
 	// setupConvexAuth should have already set up the authenticated client context

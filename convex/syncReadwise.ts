@@ -10,7 +10,7 @@
 import { action, internalAction } from "./_generated/server";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
-import { getAuthUserId } from "@convex-dev/auth/server";
+import { getAuthUserId } from "./auth";
 import * as readwiseApi from "./readwiseApi";
 import { parseAuthorString } from "./readwiseUtils";
 

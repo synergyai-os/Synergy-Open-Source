@@ -6,7 +6,7 @@
 
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { getAuthUserId } from "@convex-dev/auth/server";
+import { getAuthUserId } from "./auth";
 import { normalizeTagName } from "./readwiseUtils";
 import type { Doc, Id } from "./_generated/dataModel";
 import { canAccessContent } from "./permissions";

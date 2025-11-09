@@ -5,7 +5,6 @@
     import { cubicOut } from 'svelte/easing';
     import { fade } from 'svelte/transition';
     import { getContext } from 'svelte';
-    import { useAuth } from '@mmailaender/convex-auth-svelte/sveltekit';
     import ResizableSplitter from './ResizableSplitter.svelte';
     import SidebarHeader from './sidebar/SidebarHeader.svelte';
     import CleanReadwiseButton from './sidebar/CleanReadwiseButton.svelte';
@@ -23,6 +22,7 @@
 		createMenuOpen?: boolean;
 		onCreateMenuChange?: (open: boolean) => void;
 		onQuickCreate?: (trigger: 'header_button' | 'footer_button') => void;
+		user?: { email: string; firstName?: string; lastName?: string } | null;
 	};
 
 	let {
@@ -34,14 +34,13 @@
 		onSidebarWidthChange,
 		createMenuOpen = false,
 		onCreateMenuChange,
-		onQuickCreate
+		onQuickCreate,
+		user = null
 	}: Props = $props();
 
-    // Get auth functions for logout
-    const auth = useAuth();
-    const { signOut } = auth;
-    const accountEmail = (auth as any)?.user?.email ?? 'user@example.com';
-    const accountName = (auth as any)?.user?.name ?? 'Personal workspace';
+    // Get user info from props (passed from layout)
+    const accountEmail = user?.email ?? 'user@example.com';
+    const accountName = user?.firstName ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}` : 'Personal workspace';
     const organizations = getContext<UseOrganizations | undefined>('organizations');
 
 	let isPinned = $state(false);
@@ -334,10 +333,11 @@
 			onAddAccount={() => {
 				console.log('Add account menu selected');
 			}}
-				onLogout={async () => {
-					await signOut();
-					// Redirect to login page after logout
-					await goto('/login');
+				onLogout={() => {
+					// Use window.location to trigger server endpoint (not client-side routing)
+					if (typeof window !== 'undefined') {
+						window.location.href = '/logout';
+					}
 				}}
 			/>
 
@@ -702,10 +702,9 @@
 				}
 			}}
 			onLogout={async () => {
-				await signOut();
-				// Redirect to login page after logout
+				// Redirect to logout endpoint (clears session and redirects)
 				if (typeof window !== 'undefined') {
-					window.location.href = '/login';
+					window.location.href = '/logout';
 				}
 			}}
 		/>

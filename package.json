@@ -52,14 +52,14 @@
 		"vitest-browser-svelte": "^1.1.0"
 	},
 	"dependencies": {
-		"@auth/core": "^0.37.4",
 		"@capacitor/android": "^7.4.4",
 		"@capacitor/cli": "^7.4.4",
 		"@capacitor/core": "^7.4.4",
 		"@capacitor/ios": "^7.4.4",
-		"@convex-dev/auth": "^0.0.87",
 		"@convex-dev/resend": "^0.1.13",
-		"@mmailaender/convex-auth-svelte": "^0.1.2",
+		"@convex-dev/workos": "^0.0.1",
+		"@workos-inc/authkit-js": "^0.14.0",
+		"@workos/authkit-sveltekit": "^0.0.1-alpha.0",
 		"bits-ui": "^2.14.1",
 		"convex": "^1.28.0",
 		"convex-svelte": "^0.0.11",

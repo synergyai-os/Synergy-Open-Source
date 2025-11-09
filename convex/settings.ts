@@ -1,6 +1,6 @@
 import { query, mutation, action, internalMutation, internalQuery } from "./_generated/server";
 import { v } from "convex/values";
-import { getAuthUserId } from "@convex-dev/auth/server";
+import { getAuthUserId } from "./auth";
 // Note: We use dynamic imports for crypto functions to avoid bundler issues
 // Mutations have Node.js runtime by default and can use dynamic imports
 import { internal } from "./_generated/api";

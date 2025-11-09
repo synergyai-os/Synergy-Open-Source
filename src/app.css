@@ -63,6 +63,9 @@
 	--spacing-input-x: 0.75rem; /* 12px - px-3 equivalent - horizontal padding for inputs */
 	--spacing-input-y: 0.625rem; /* 10px - py-2.5 equivalent - vertical padding for inputs */
 	--spacing-button-group: 0.5rem; /* 8px - gap-2 equivalent - gap between buttons in action group */
+	--spacing-button-x: 1rem; /* 16px - px-4 equivalent - horizontal padding for buttons */
+	--spacing-button-y: 0.625rem; /* 10px - py-2.5 equivalent - vertical padding for buttons */
+	--border-radius-button: 0.375rem; /* 6px - rounded-md equivalent - button border radius */
 	--spacing-content-padding: 1.5rem; /* 24px - p-6 equivalent - general content padding */
 	--spacing-content-section: 1rem; /* 16px - gap-4 equivalent - gap between content sections */
 

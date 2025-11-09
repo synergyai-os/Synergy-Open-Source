@@ -18,7 +18,7 @@
 
 import { action, internalMutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { getAuthUserId } from "@convex-dev/auth/server";
+import { getAuthUserId } from "./auth";
 import { v } from "convex/values";
 
 // Internal mutation to delete a batch of inbox items

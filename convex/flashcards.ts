@@ -1,7 +1,7 @@
 import { query, mutation, action } from './_generated/server';
 import { v } from 'convex/values';
 import { internal } from './_generated/api';
-import { getAuthUserId } from '@convex-dev/auth/server';
+import { getAuthUserId } from './auth';
 import { createEmptyCard, fsrs, Rating, State, type Card } from 'ts-fsrs';
 import { loadPrompt } from './promptUtils';
 import { getTagDescendantsForTags } from './tags';

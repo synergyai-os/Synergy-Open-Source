@@ -1,8 +1,8 @@
 import { httpRouter } from "convex/server";
-import { auth } from "./auth";
 
 const http = httpRouter();
 
-auth.addHttpRoutes(http);
+// WorkOS authentication is handled by SvelteKit
+// No auth HTTP routes needed in Convex
 
 export default http;

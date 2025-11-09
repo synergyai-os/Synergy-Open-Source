@@ -1,20 +1,18 @@
 import { sequence } from '@sveltejs/kit/hooks';
 import { redirect, type Handle } from '@sveltejs/kit';
-import { createRouteMatcher } from '@mmailaender/convex-auth-svelte/sveltekit/server';
-import { handleAuth, isAuthenticatedHook } from '$lib/server/auth';
+import { env } from '$env/dynamic/private';
 
 // Define public routes that don't require authentication
-const isPublicRoute = createRouteMatcher([
+const publicPaths = [
 	'/',              // Homepage
 	'/login',         // Login page
 	'/register',      // Registration page
-	// Note: No need to add '/api/auth' here as handleAuth middleware
-	// will process those requests before this middleware runs
-]);
+	'/auth',          // Auth callback routes
+];
 
-// Check if path is public (including wildcards that createRouteMatcher doesn't support)
+// Check if path is public
 function isPublicPath(pathname: string): boolean {
-	return isPublicRoute(pathname) || 
+	return publicPaths.some(p => pathname === p || pathname.startsWith(p + '/')) ||
 	       pathname.startsWith('/dev-docs') || 
 	       pathname.startsWith('/docs') ||
 	       pathname.startsWith('/marketing-docs');
@@ -33,15 +31,38 @@ const redirectMarkdownUrls: Handle = async ({ event, resolve }) => {
 	return resolve(event);
 };
 
-// Create custom auth handler - auth-first approach (whitelist pattern)
-// Auth configuration is centralized in $lib/server/auth.ts
-// All routes require auth except those explicitly whitelisted above
+// WorkOS auth middleware
+const workosAuth: Handle = async ({ event, resolve }) => {
+	// Get session token and user data from cookies
+	const accessToken = event.cookies.get('wos-session');
+	const userDataCookie = event.cookies.get('wos-user');
+	
+	// Initialize auth object
+	event.locals.auth = {
+		user: null,
+		sessionId: accessToken || undefined
+	};
+	
+	// If we have user data cookie, parse it
+	if (userDataCookie) {
+		try {
+			event.locals.auth.user = JSON.parse(userDataCookie);
+		} catch (error) {
+			console.error('Failed to parse user data cookie:', error);
+			// Clear invalid cookies
+			event.cookies.delete('wos-session', { path: '/' });
+			event.cookies.delete('wos-user', { path: '/' });
+			event.locals.auth.sessionId = undefined;
+		}
+	}
+	
+	return resolve(event);
+};
+
+// Require authentication for protected routes
 const requireAuth: Handle = async ({ event, resolve }) => {
-	// Skip auth checks during build/preview (for static adapter fallback generation)
-	// Check if we're in a build context (SvelteKit sets this during prerender)
-	const isBuildContext = event.isDataRequest || event.isSubRequest || 
-		// During static build, cookies/auth won't work anyway
-		process.env.NODE_ENV === 'production' && !event.request.headers.get('cookie');
+	// Skip auth checks during build/preview
+	const isBuildContext = event.isDataRequest || event.isSubRequest;
 
 	// Allow public routes
 	if (isPublicPath(event.url.pathname)) {
@@ -49,9 +70,8 @@ const requireAuth: Handle = async ({ event, resolve }) => {
 		const isAuthPage = event.url.pathname === '/login' || event.url.pathname === '/register';
 		
 		// Skip redirect during build context
-		if (!isBuildContext && isAuthPage && (await isAuthenticatedHook(event))) {
+		if (!isBuildContext && isAuthPage && event.locals.auth.sessionId) {
 			// Authenticated user trying to access login/register page
-			// Redirect to redirectTo query param or fallback to /inbox
 			const redirectTo = event.url.searchParams.get('redirectTo') || '/inbox';
 			throw redirect(302, redirectTo);
 		}
@@ -59,15 +79,14 @@ const requireAuth: Handle = async ({ event, resolve }) => {
 		return resolve(event);
 	}
 
-	// Skip auth check during build context (for static adapter)
+	// Skip auth check during build context
 	if (isBuildContext) {
 		return resolve(event);
 	}
 
 	// Check if user is authenticated
-	if (!(await isAuthenticatedHook(event))) {
+	if (!event.locals.auth.sessionId) {
 		// Redirect to login if not authenticated
-		// Preserve the intended destination in redirectTo query param
 		throw redirect(302, `/login?redirectTo=${encodeURIComponent(event.url.pathname + event.url.search)}`);
 	}
 
@@ -78,7 +97,7 @@ const requireAuth: Handle = async ({ event, resolve }) => {
 // Apply hooks in sequence
 export const handle = sequence(
 	redirectMarkdownUrls, // First, redirect any .md URLs to clean URLs
-	handleAuth,           // Then handle auth requests
+	workosAuth,           // Then handle WorkOS auth
 	requireAuth           // Finally enforce authentication for protected routes
 );
 
