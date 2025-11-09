@@ -541,7 +541,10 @@ import adapter from '@sveltejs/adapter-vercel';  // Not adapter-static
 
 export default {
   kit: {
-    adapter: adapter()
+    adapter: adapter(),
+    alias: {
+      $convex: './convex'  // CRITICAL: Required for imports like $convex/_generated/api
+    }
   }
 };
 ```
@@ -554,6 +557,7 @@ export default {
 5. `&&` ensures sequential execution (not parallel like `--cmd`)
 
 **Common Mistakes**:
+- ❌ Missing `$convex` alias in svelte.config.js (Rollup can't resolve imports) ⚠️ **MOST COMMON**
 - ❌ Using `--cmd` instead of `&&` (Convex doesn't complete before Vite)
 - ❌ Setting CONVEX_TMPDIR in Vercel UI only (must export in buildCommand)
 - ❌ Wrong `CONVEX_DEPLOYMENT` (dev instead of prod deployment name)
