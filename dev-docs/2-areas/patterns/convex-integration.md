@@ -511,7 +511,7 @@ await tagging.assignTags(flashcardId, [tag1, tag2]);
 ```json
 // vercel.json
 {
-  "buildCommand": "mkdir -p /vercel/path0/tmp && npx convex deploy && npm run build"
+  "buildCommand": "mkdir -p /vercel/path0/tmp && export CONVEX_TMPDIR=/vercel/path0/tmp && npx convex deploy && npm run build"
 }
 ```
 
@@ -521,7 +521,7 @@ await tagging.assignTags(flashcardId, [tag1, tag2]);
 CONVEX_DEPLOY_KEY=prod_xxxx  # From Convex Dashboard > Production > Deploy Keys
 CONVEX_DEPLOYMENT=prestigious-whale-251  # Your production deployment name
 PUBLIC_CONVEX_URL=https://prestigious-whale-251.convex.cloud  # Production URL
-CONVEX_TMPDIR=/vercel/path0/tmp  # Same filesystem as project
+# Note: CONVEX_TMPDIR must be exported in buildCommand, not set here
 ```
 
 **package.json**:
@@ -548,15 +548,17 @@ export default {
 
 **Why this works**:
 1. `mkdir -p /vercel/path0/tmp` - Creates temp directory on same filesystem
-2. `npx convex deploy` - Generates types using CONVEX_TMPDIR, deploys to production
-3. `npm run build` - Vite finds generated types, builds successfully
-4. `&&` ensures sequential execution (not parallel like `--cmd`)
+2. `export CONVEX_TMPDIR=/vercel/path0/tmp` - Makes variable available to child processes
+3. `npx convex deploy` - Generates types using CONVEX_TMPDIR, deploys to production
+4. `npm run build` - Vite finds generated types, builds successfully
+5. `&&` ensures sequential execution (not parallel like `--cmd`)
 
 **Common Mistakes**:
 - ❌ Using `--cmd` instead of `&&` (Convex doesn't complete before Vite)
+- ❌ Setting CONVEX_TMPDIR in Vercel UI only (must export in buildCommand)
 - ❌ Wrong `CONVEX_DEPLOYMENT` (dev instead of prod deployment name)
 - ❌ Wrong `PUBLIC_CONVEX_URL` (dev URL instead of prod URL)
-- ❌ Missing `CONVEX_TMPDIR` (filesystem mismatch error)
+- ❌ Missing `mkdir -p` (directory doesn't exist error)
 - ❌ Using `adapter-static` (doesn't handle Vercel-specific features)
 
 **Apply when**: Deploying SvelteKit + Convex to Vercel  
