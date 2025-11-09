@@ -502,7 +502,69 @@ await tagging.assignTags(flashcardId, [tag1, tag2]);
 
 ---
 
-**Pattern Count**: 11  
-**Last Validated**: 2025-11-08  
+## #L540: Vercel Deployment with Convex Codegen [🔴 CRITICAL]
+
+**Symptom**: Vercel build fails with `Rollup failed to resolve import "$convex/_generated/api"` or `ENOENT: no such file or directory, mkdtemp '/vercel/path0/tmp/convexXXXXXX'`  
+**Root Cause**: Convex codegen must complete before Vite build, and needs temp directory on same filesystem  
+**Fix**:
+
+```json
+// vercel.json
+{
+  "buildCommand": "mkdir -p /vercel/path0/tmp && npx convex deploy && npm run build"
+}
+```
+
+**Environment Variables** (Vercel Project Settings):
+
+```bash
+CONVEX_DEPLOY_KEY=prod_xxxx  # From Convex Dashboard > Production > Deploy Keys
+CONVEX_DEPLOYMENT=prestigious-whale-251  # Your production deployment name
+PUBLIC_CONVEX_URL=https://prestigious-whale-251.convex.cloud  # Production URL
+CONVEX_TMPDIR=/vercel/path0/tmp  # Same filesystem as project
+```
+
+**package.json**:
+
+```json
+{
+  "scripts": {
+    "build": "vite build"  // Simple - buildCommand handles Convex
+  }
+}
+```
+
+**svelte.config.js**:
+
+```javascript
+import adapter from '@sveltejs/adapter-vercel';  // Not adapter-static
+
+export default {
+  kit: {
+    adapter: adapter()
+  }
+};
+```
+
+**Why this works**:
+1. `mkdir -p /vercel/path0/tmp` - Creates temp directory on same filesystem
+2. `npx convex deploy` - Generates types using CONVEX_TMPDIR, deploys to production
+3. `npm run build` - Vite finds generated types, builds successfully
+4. `&&` ensures sequential execution (not parallel like `--cmd`)
+
+**Common Mistakes**:
+- ❌ Using `--cmd` instead of `&&` (Convex doesn't complete before Vite)
+- ❌ Wrong `CONVEX_DEPLOYMENT` (dev instead of prod deployment name)
+- ❌ Wrong `PUBLIC_CONVEX_URL` (dev URL instead of prod URL)
+- ❌ Missing `CONVEX_TMPDIR` (filesystem mismatch error)
+- ❌ Using `adapter-static` (doesn't handle Vercel-specific features)
+
+**Apply when**: Deploying SvelteKit + Convex to Vercel  
+**Related**: #L50 (Runtime restrictions), #L140 (File system)
+
+---
+
+**Pattern Count**: 12  
+**Last Validated**: 2025-11-09  
 **Context7 Source**: `/get-convex/convex-backend`
 
