@@ -17,4 +17,18 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
     // Google from "@auth/core/providers/google"
     // Resend from "@auth/core/providers/resend" (for magic links)
   ],
+  callbacks: {
+    async redirect({ redirectTo }) {
+      // For password auth, redirect to the provided URL or default to home
+      const baseUrl = process.env.SITE_URL ?? "http://localhost:5173";
+      
+      // If redirectTo is provided and starts with /, return it
+      if (redirectTo && redirectTo.startsWith("/")) {
+        return redirectTo;
+      }
+      
+      // Default redirect after sign in
+      return "/";
+    },
+  },
 });
