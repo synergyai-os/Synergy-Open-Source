@@ -14,13 +14,13 @@ const LINEAR = {
   teamId: "08d684b7-986f-4781-8bc5-e4d9aead6935",
   
   labels: {
-    // Type (Flow Distribution)
+    // Type (Flow Distribution - REQUIRED)
     feature: "ba9cfc2b-a993-4265-80dc-07fd1c831029",
     bug: "62008be5-0ff6-4aae-ba9b-c2887257acf8",
     "tech-debt": "7cec9e22-31d4-4166-ba92-61d8f8c18809",
     risk: "99472a27-79b0-475b-bd4a-d4d66e3f2b81",
     
-    // Scope
+    // Scope (Flow Distribution - REQUIRED, can be multiple)
     frontend: "70068764-575a-48a6-b4d1-3735a044230e",
     backend: "7299ef53-982d-429d-b513-ccf190b28c16",
     ui: "ace175ff-3cce-4416-bacc-529ee85e72a9",
@@ -30,15 +30,20 @@ const LINEAR = {
     devops: "df3e1654-2066-423b-905a-41dfc69f2cd5",
     security: "9a561550-aff8-4cd3-a1f5-3cd5b9008b97",
     
-    // Size (T-shirt)
-    xs: "3af5aae3-2503-40b7-b51c-4ec4f56cd2fc",  // < 2h
-    s: "4bcc3827-94f3-4eda-8581-c76e6e51dead",   // 2-4h
-    m: "8171cae2-3a72-46a0-9d68-b2eb64d90def",   // 4-8h
-    l: "9fc2063b-a156-4519-8c33-83432e7e9deb",   // 1-2 days
-    xl: "5840c3f2-c2fc-4354-bff7-6eedba83d709",  // 2+ days
-    
     // Special
     shaping: "5a657e67-a6d7-4b49-9299-91e60daf44b3"
+  },
+  
+  // Size: Use Linear's native "estimate" field (NOT labels)
+  estimates: {
+    // Use numeric values for Linear API:
+    // 0 = No estimate, 1 = XS, 2 = S, 3 = M, 4 = L, 5 = XL
+    none: 0,
+    xs: 1,    // < 2h
+    s: 2,     // 2-4h  
+    m: 3,     // 4-8h (half day)
+    l: 4,     // 1-2 days
+    xl: 5     // 2+ days (break down!)
   }
 }
 ```
@@ -195,7 +200,7 @@ dev-docs/
 **Step 4a: Create tickets** (one per vertical slice):
 
 ```typescript
-// Create ticket with proper labels
+// Create ticket with proper labels and estimate
 mcp_Linear_create_issue({
   team: "SYOS",
   title: "[Slice N] Descriptive Title",
@@ -222,8 +227,8 @@ mcp_Linear_create_issue({
 - Edge cases handled
 - Issues fixed
 
-**Flow Distribution**: [Type label - auto-filled from labels]
-**Estimate**: X hours (actual: Yh - AI updates when done)
+**Flow Distribution**: [Type + Scope labels]
+**Actual Time**: Yh (AI updates when done)
 **Branch**: feature/branch-name
 **Linear ID**: [Will be auto-filled after creation - copy to commits]
 
@@ -232,11 +237,11 @@ mcp_Linear_create_issue({
   `,
   project: "Project Name",
   state: "Todo",
+  estimate: 2,  // Use numeric estimate: 1=XS, 2=S, 3=M, 4=L, 5=XL
   labels: [
     "feature",    // Type: feature | bug | tech-debt | risk (REQUIRED for Flow Metrics)
-    "backend",    // Scope: frontend | backend | ui | auth | workspace | analytics
-    "workspace",  // Scope: Can have multiple
-    "s"           // Size: xs | s | m | l | xl (REQUIRED for Flow Metrics)
+    "backend",    // Scope: frontend | backend | ui | auth | workspace | analytics | devops | security
+    "workspace"   // Scope: Can have multiple scope labels
   ]
 })
 ```
@@ -338,24 +343,40 @@ mcp_Linear_update_issue({
 })
 ```
 
-**Labeling Rules** (see `dev-docs/2-areas/flow-metrics.md`):
+**Labeling + Estimate Rules** (see `dev-docs/2-areas/flow-metrics.md`):
+
+**Labels** (for Flow Distribution):
 - **Type** (required, one): `feature`, `bug`, `tech-debt`, `risk`
 - **Scope** (required, one or more): `frontend`, `backend`, `ui`, `auth`, `workspace`, `analytics`, `devops`, `security`
-- **Size** (required, one): `xs` (<2h), `s` (2-4h), `m` (4-8h), `l` (1-2 days), `xl` (break down!)
+
+**Estimate Field** (Linear's native field):
+- **Size** (required): `1=XS` (<2h), `2=S` (2-4h), `3=M` (4-8h), `4=L` (1-2 days), `5=XL` (break down!)
 
 **Examples**:
 ```typescript
-// Feature slice (backend + frontend)
-labels: ["feature", "backend", "frontend", "workspace", "m"]
+// Feature slice (backend + frontend, small size)
+{
+  labels: ["feature", "backend", "frontend", "workspace"],
+  estimate: 2  // S = 2-4h
+}
 
-// Bug fix (auth-specific)
-labels: ["bug", "auth", "backend", "s"]
+// Bug fix (auth-specific, extra small)
+{
+  labels: ["bug", "auth", "backend"],
+  estimate: 1  // XS = <2h
+}
 
-// Tech debt (refactoring UI components)
-labels: ["tech-debt", "ui", "frontend", "l"]
+// Tech debt (refactoring UI components, large)
+{
+  labels: ["tech-debt", "ui", "frontend"],
+  estimate: 4  // L = 1-2 days
+}
 
-// Security fix (critical risk)
-labels: ["risk", "security", "backend", "m"]
+// Security fix (critical risk, medium)
+{
+  labels: ["risk", "security", "backend"],
+  estimate: 3  // M = 4-8h
+}
 ```
 
 **Step 4b: Initialize Linear project** (for org-wide visibility):

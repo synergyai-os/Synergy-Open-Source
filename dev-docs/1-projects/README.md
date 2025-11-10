@@ -4,11 +4,14 @@
 
 ---
 
-## Currently Empty
+## 🚧 Active Projects (2)
 
-Active value streams are currently organized in `2-areas/value-streams/` until they complete.
+| Project | Status | Owner | Started | Slices | Est |
+|---------|--------|-------|---------|--------|-----|
+| [Team Access & Permissions](./team-access-permissions/) | 🚧 In Progress | Randy | Nov 10, 2025 | 0/7 | 28h |
+| [Multi-Workspace Auth](./multi-workspace-auth/) | 🚧 In Progress | Randy | Nov 10, 2025 | 0/7 | - |
 
-When a value stream completes and becomes a defined project with a clear end state, it will be documented here.
+**See Also**: [Project Initialization Summary](../PROJECT-INITIALIZATION-COMPLETE.md)
 
 ---
 

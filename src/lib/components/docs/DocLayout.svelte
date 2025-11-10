@@ -3,6 +3,7 @@
 	import { page } from '$app/stores';
 	import { untrack } from 'svelte';
 	import Breadcrumb from './Breadcrumb.svelte';
+	import ParaQuickNav from './ParaQuickNav.svelte';
 	import TableOfContents from './TableOfContents.svelte';
 	
 	type Props = {
@@ -89,6 +90,14 @@
 	const headings = $derived(propHeadings.length > 0 ? propHeadings : extractedHeadings);
 </script>
 
+<!-- Sticky Navigation Container (above layout) -->
+<div class="sticky-nav-container">
+	<ParaQuickNav />
+	<div class="breadcrumb-wrapper">
+		<Breadcrumb />
+	</div>
+</div>
+
 <div class="docs-layout bg-base">
 	<!-- Floating TOC (Linear-style) - in left margin -->
 	<TableOfContents {headings} />
@@ -96,9 +105,6 @@
 	<!-- Main Content Area - Centered, Full Width -->
 	<main class="docs-content bg-base">
 		<div class="docs-content-inner">
-			<!-- Breadcrumb Navigation -->
-			<Breadcrumb />
-			
 			<!-- Article Content -->
 			<article class="docs-article prose">
 				{@render children?.()}
@@ -108,9 +114,24 @@
 </div>
 
 <style>
+	/* Sticky Navigation Container (outside layout) */
+	.sticky-nav-container {
+		position: sticky;
+		top: 0;
+		z-index: 100;
+		background: var(--color-bg-base);
+		box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+	}
+	
+	.breadcrumb-wrapper {
+		max-width: 900px;
+		margin: 0 auto;
+		padding: 0 var(--spacing-content-padding);
+	}
+	
 	.docs-layout {
 		display: flex;
-		min-height: 100vh;
+		min-height: calc(100vh - 120px); /* Account for sticky nav */
 		width: 100%;
 		position: relative;
 	}
