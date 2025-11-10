@@ -9,7 +9,6 @@
     import { setupConvex } from 'convex-svelte';
     import { useOrganizations } from '$lib/composables/useOrganizations.svelte';
     import OrganizationModals from '$lib/components/organizations/OrganizationModals.svelte';
-    import { Toaster } from 'svelte-sonner';
 
     let { children, data } = $props();
 
@@ -59,6 +58,15 @@
 
 	// Theme is initialized via inline script in app.html for FOUC prevention
 	// Components using createThemeStore() will initialize reactively on first use
+
+	// Dynamically import Toaster only on client side (SSR issue with svelte-sonner)
+	let Toaster = $state<any>(null);
+	
+	onMount(async () => {
+		// Import svelte-sonner only on client side to avoid SSR issues
+		const module = await import('svelte-sonner');
+		Toaster = module.Toaster;
+	});
 </script>
 
 <svelte:head>
@@ -73,9 +81,13 @@
 />
 
 <!-- Toast notifications - positioned top-right, styled with design tokens -->
-<Toaster 
-    position="top-right"
-    expand={false}
-    richColors
-    closeButton
-/>
+<!-- Loaded client-side only to avoid SSR issues with svelte-sonner -->
+{#if Toaster}
+	<svelte:component 
+		this={Toaster}
+		position="top-right"
+		expand={false}
+		richColors
+		closeButton
+	/>
+{/if}
