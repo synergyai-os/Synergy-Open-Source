@@ -1655,7 +1655,121 @@ TOC (floating)       → On-page navigation (sections within doc)
 
 ---
 
-**Pattern Count**: 24  
-**Last Updated**: 2025-11-09  
+## #L1660: Toast Notification System (svelte-sonner) [🟢 REFERENCE]
+
+**Symptom**: Need consistent user feedback across the app (success, errors, loading states)  
+**Root Cause**: No centralized toast notification system  
+**Fix**:
+
+**Setup** (one-time):
+
+```svelte
+<!-- src/routes/+layout.svelte -->
+<script lang="ts">
+  import { onMount } from 'svelte';
+
+  // Load Toaster client-side only (SSR workaround)
+  let Toaster = $state<any>(null);
+  
+  onMount(async () => {
+    const module = await import('svelte-sonner');
+    Toaster = module.Toaster;
+  });
+</script>
+
+{#if Toaster}
+  <svelte:component 
+    this={Toaster}
+    position="top-right"
+    expand={false}
+    richColors
+    closeButton
+  />
+{/if}
+```
+
+**Why client-side only?** svelte-sonner imports `.svelte` files during SSR, causing `ERR_UNKNOWN_FILE_EXTENSION`. Loading in `onMount()` avoids this.
+
+**Usage** (anywhere in app):
+
+```typescript
+import { toast } from '$lib/utils/toast';
+
+// Success
+toast.success('Organization created!');
+
+// Error
+toast.error('Failed to save changes');
+
+// Warning
+toast.warning('Changes not saved');
+
+// Info
+toast.info('Syncing with server...');
+
+// Loading (with manual dismiss)
+const toastId = toast.loading('Processing...', { id: 'process-toast' });
+// Later: toast.dismiss(toastId);
+
+// Promise (auto-updates based on state)
+toast.promise(saveData(), {
+  loading: 'Saving...',
+  success: 'Saved successfully!',
+  error: 'Failed to save'
+});
+```
+
+**Custom Durations**:
+
+```typescript
+toast.success('Quick message', { duration: 2000 });   // 2s
+toast.error('Important error', { duration: 5000 });   // 5s (errors stay longer)
+toast.info('Read this', { duration: Infinity });      // Manual dismiss only
+```
+
+**Design Principles**:
+- ✅ **Accessible by default**: ARIA labels, keyboard dismissible (ESC)
+- ✅ **Consistent**: Uses `richColors` for semantic color coding (green=success, red=error)
+- ✅ **Non-blocking**: Positioned top-right, auto-dismisses
+- ✅ **Minimal cognitive load**: Max 1 toast visible at once (`expand={false}`)
+- ✅ **Close button**: Always visible for user control
+
+**When to Use**:
+
+| Feedback Type | Use Toast | Alternative |
+|---|---|---|
+| Success confirmation | ✅ Yes | - |
+| Error during async operation | ✅ Yes | Modal (if action required) |
+| Form validation error | ❌ No | Inline validation |
+| Loading >2s | ✅ Yes (with promise) | Progress bar |
+| Loading <2s | ❌ No | Optimistic UI |
+| Delete confirmation | ❌ No | Modal or inline confirm |
+
+**Duration Guidelines**:
+- **Success**: 3s (default)
+- **Error**: 4s (slightly longer to read)
+- **Warning**: 3.5s
+- **Info**: 3s
+- **Loading**: Infinite (manual dismiss or promise resolution)
+
+**Styling**:
+- Uses `richColors` prop for semantic colors
+- Inherits from design tokens (no custom CSS needed)
+- Respects user's dark/light mode preference
+
+**Why This Library**:
+- ✅ Built for Svelte 5 (native runes)
+- ✅ Accessible (WCAG 2.1 AA)
+- ✅ Lightweight (~2KB)
+- ✅ Promise support
+- ✅ Customizable
+
+**Apply when**: Need to notify users of async operation results, errors, or state changes  
+**Related**: #L280 (Visual Feedback), design-principles.md (Accessibility First)
+
+---
+
+**Pattern Count**: 25  
+**Last Updated**: 2025-11-10  
 **Design Token Reference**: `dev-docs/design-tokens.md`
 

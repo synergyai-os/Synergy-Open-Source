@@ -6,7 +6,7 @@
 import { browser } from '$app/environment';
 import { useQuery, useConvexClient } from 'convex-svelte';
 import { api } from '$lib/convex';
-import type { Id } from '../../convex/_generated/dataModel';
+import type { Id } from '$lib/convex';
 
 export type FlashcardRating = 'again' | 'hard' | 'good' | 'easy';
 

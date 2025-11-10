@@ -539,6 +539,109 @@ const schema = defineSchema({
     .index("by_email", ["email"])
     .index("by_status", ["status"])
     .index("by_joined_at", ["joinedAt"]),
+
+  // ============================================================================
+  // RBAC (Role-Based Access Control) - Permission System
+  // ============================================================================
+
+  // Roles - Define available roles in the system
+  roles: defineTable({
+    slug: v.string(), // Unique identifier (e.g., "admin", "team-lead")
+    name: v.string(), // Display name (e.g., "Admin", "Team Lead")
+    description: v.string(), // Role description
+    isSystem: v.boolean(), // System role (can't be deleted)
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_slug", ["slug"]), // Unique role lookup
+
+  // Permissions - Define available permissions in the system
+  permissions: defineTable({
+    slug: v.string(), // Unique identifier (e.g., "teams.create")
+    category: v.string(), // Category: "users", "teams", "organizations"
+    action: v.string(), // Action: "create", "update", "delete", etc.
+    description: v.string(), // Permission description
+    requiresResource: v.boolean(), // Does this permission require a resource check?
+    isSystem: v.boolean(), // System permission (can't be deleted)
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_slug", ["slug"]) // Unique permission lookup
+    .index("by_category", ["category"]), // Query by category
+
+  // Role Permissions - Link roles to permissions with optional scope
+  rolePermissions: defineTable({
+    roleId: v.id("roles"),
+    permissionId: v.id("permissions"),
+    scope: v.union(
+      v.literal("all"), // Can access all resources
+      v.literal("own"), // Can only access own resources
+      v.literal("none") // Explicitly no access (for override)
+    ),
+    createdAt: v.number(),
+  })
+    .index("by_role", ["roleId"])
+    .index("by_permission", ["permissionId"])
+    .index("by_role_permission", ["roleId", "permissionId"]), // Unique constraint
+
+  // User Roles - Assign roles to users with optional resource scoping
+  userRoles: defineTable({
+    userId: v.id("users"),
+    roleId: v.id("roles"),
+    organizationId: v.optional(v.id("organizations")), // Role scoped to org
+    teamId: v.optional(v.id("teams")), // Role scoped to specific team
+    resourceType: v.optional(v.string()), // "team", "organization", etc.
+    resourceId: v.optional(v.string()), // ID of the resource
+    assignedBy: v.id("users"), // Who assigned this role
+    assignedAt: v.number(),
+    expiresAt: v.optional(v.number()), // Optional expiration
+    revokedAt: v.optional(v.number()), // When role was revoked
+  })
+    .index("by_user", ["userId"])
+    .index("by_role", ["roleId"])
+    .index("by_user_role", ["userId", "roleId"])
+    .index("by_user_organization", ["userId", "organizationId"])
+    .index("by_user_team", ["userId", "teamId"])
+    .index("by_user_resource", ["userId", "resourceType", "resourceId"]),
+
+  // Resource Guests - Guest access to specific resources (like Notion/Google Docs)
+  resourceGuests: defineTable({
+    userId: v.id("users"), // Guest user
+    resourceType: v.string(), // "team", "project", "document", etc.
+    resourceId: v.string(), // ID of the resource
+    permissionIds: v.array(v.id("permissions")), // Specific permissions granted
+    invitedBy: v.id("users"), // Who invited this guest
+    invitedAt: v.number(),
+    expiresAt: v.optional(v.number()), // Optional expiration
+    revokedAt: v.optional(v.number()), // When access was revoked
+    lastAccessedAt: v.optional(v.number()), // Last time guest accessed resource
+  })
+    .index("by_user", ["userId"])
+    .index("by_resource", ["resourceType", "resourceId"])
+    .index("by_user_resource", ["userId", "resourceType", "resourceId"]),
+
+  // Permission Audit Log - Track all permission checks and role changes
+  permissionAuditLog: defineTable({
+    userId: v.id("users"), // User performing action
+    action: v.string(), // "check", "grant", "revoke", "assign_role", etc.
+    permissionSlug: v.optional(v.string()), // Permission being checked/changed
+    roleSlug: v.optional(v.string()), // Role being assigned/revoked
+    resourceType: v.optional(v.string()), // Type of resource
+    resourceId: v.optional(v.string()), // ID of resource
+    organizationId: v.optional(v.id("organizations")), // Context: organization
+    teamId: v.optional(v.id("teams")), // Context: team
+    result: v.union(v.literal("allowed"), v.literal("denied")), // Check result
+    reason: v.optional(v.string()), // Why denied (if applicable)
+    metadata: v.optional(v.any()), // Additional context
+    timestamp: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_timestamp", ["timestamp"])
+    .index("by_user_timestamp", ["userId", "timestamp"])
+    .index("by_organization", ["organizationId"])
+    .index("by_team", ["teamId"])
+    .index("by_action", ["action"])
+    .index("by_permission", ["permissionSlug"]),
 });
 
 export default schema;

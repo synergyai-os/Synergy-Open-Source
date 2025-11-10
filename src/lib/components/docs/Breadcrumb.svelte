@@ -3,6 +3,11 @@
 	import { fly } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 
+	// Utility: Strip PARA numbering (1-, 2-, 3-, 4-) from folder names
+	function cleanParaName(name: string): string {
+		return name.replace(/^\d+-/, '');
+	}
+
 	// Map URL segments to readable names
 	const segmentMap: Record<string, string> = {
 		'dev-docs': 'Documentation',
@@ -54,7 +59,12 @@
 
 		return segments.map((segment, index) => {
 			const href = '/' + segments.slice(0, index + 1).join('/');
-			const label = segmentMap[segment] || segment.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+			
+			// Clean PARA prefix first, then check mapping
+			const cleanSegment = cleanParaName(segment);
+			const label = segmentMap[cleanSegment] || 
+			             segmentMap[segment] ||  // Keep original check for backwards compat
+			             cleanSegment.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
 			return { label, href };
 		});
@@ -105,8 +115,9 @@
 
 <style lang="postcss">
 	.breadcrumb-nav {
-		padding: 1rem 0 1.5rem 0;
+		padding: 1rem 0;
 		border-bottom: 1px solid var(--color-border-base);
+		background: var(--color-bg-base);
 	}
 
 	.breadcrumb-list {

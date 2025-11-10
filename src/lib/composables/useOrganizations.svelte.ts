@@ -3,6 +3,7 @@ import { useConvexClient, useQuery } from 'convex-svelte';
 import { api } from '$lib/convex';
 import { AnalyticsEventName } from '$lib/analytics/events';
 import posthog from 'posthog-js';
+import { toast } from '$lib/utils/toast';
 
 export type OrganizationRole = 'owner' | 'admin' | 'member';
 
@@ -61,8 +62,9 @@ const STORAGE_DETAILS_KEY = 'activeOrganizationDetails';
 const SENTINEL_ORGANIZATION_ID = '000000000000000000000000';
 const PERSONAL_SENTINEL = '__personal__';
 
-export function useOrganizations() {
+export function useOrganizations(options?: { userId?: () => string | undefined }) {
   const convexClient = browser ? useConvexClient() : null;
+  const getUserId = options?.userId || (() => undefined);
 
   const storedActiveId = browser ? localStorage.getItem(STORAGE_KEY) : null;
   const initialActiveId = storedActiveId === PERSONAL_SENTINEL ? null : storedActiveId;
@@ -90,13 +92,19 @@ export function useOrganizations() {
       createTeam: false,
       joinTeam: false,
     },
+    loading: {
+      createOrganization: false,
+      joinOrganization: false,
+      createTeam: false,
+      joinTeam: false,
+    },
   });
 
-  const organizationsQuery = browser ? useQuery(api.organizations.listOrganizations, () => ({})) : null;
+  const organizationsQuery = browser ? useQuery(api.organizations.listOrganizations, () => ({ userId: getUserId() as any })) : null;
   const organizationInvitesQuery = browser
-    ? useQuery(api.organizations.listOrganizationInvites, () => ({}))
+    ? useQuery(api.organizations.listOrganizationInvites, () => ({ userId: getUserId() as any }))
     : null;
-  const teamInvitesQuery = browser ? useQuery(api.teams.listTeamInvites, () => ({})) : null;
+  const teamInvitesQuery = browser ? useQuery(api.teams.listTeamInvites, () => ({ userId: getUserId() as any })) : null;
   
   // Query teams - pass organizationId if we have one, undefined if in personal workspace mode
   // The Convex function now accepts optional organizationId and returns [] when undefined
@@ -303,15 +311,45 @@ export function useOrganizations() {
     const trimmed = payload.name.trim();
     if (!trimmed) return;
 
+    state.loading.createOrganization = true;
+
     try {
       const result = await convexClient.mutation(api.organizations.createOrganization, {
         name: trimmed,
+        userId: getUserId() as any, // TODO: Remove once Convex auth context is set up
       });
+      
       if (result?.organizationId) {
+        // Switch to new organization
         setActiveOrganization(result.organizationId);
+        
+        // Show success toast
+        if (browser) {
+          toast.success(`${trimmed} created successfully!`);
+          
+          // Track analytics
+          if (posthog) {
+            posthog.capture(AnalyticsEventName.ORGANIZATION_CREATED, {
+              organizationId: result.organizationId,
+              organizationName: trimmed,
+            });
+          }
+        }
+        
+        // Close modal on success
+        closeModal('createOrganization');
       }
+    } catch (error) {
+      console.error('Failed to create organization:', error);
+      
+      // Show error toast
+      if (browser) {
+        toast.error('Failed to create organization. Please try again.');
+      }
+      
+      // Keep modal open on error so user can retry
     } finally {
-      closeModal('createOrganization');
+      state.loading.createOrganization = false;
     }
   }
 
@@ -450,6 +488,9 @@ export function useOrganizations() {
     },
     get modals() {
       return state.modals;
+    },
+    get loading() {
+      return state.loading;
     },
     get isLoading() {
       return isLoading;

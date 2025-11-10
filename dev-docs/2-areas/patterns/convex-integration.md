@@ -629,7 +629,182 @@ import type { DataModel } from "./_generated/dataModel";
 
 ---
 
-**Pattern Count**: 13  
-**Last Validated**: 2025-11-09  
-**Context7 Source**: `/get-convex/convex-backend`
+## #L640: Silent Deployment Failures from Git Conflicts [🔴 CRITICAL]
+
+**Symptom**: Query returns empty results even with correct args, Convex dashboard shows `ArgumentValidationError: Object contains extra field [fieldName]` for valid fields  
+**Root Cause**: Git merge conflicts block Convex deployment silently, backend runs stale code without parameter changes  
+**Fix**:
+
+```bash
+# 1. Check for conflict markers in Convex files
+grep -r "<<<<<<< HEAD\|=======\|>>>>>>>" convex/
+
+# 2. Resolve conflicts (take appropriate version or merge manually)
+git show HEAD:convex/problematic-file.ts > convex/problematic-file.ts
+
+# 3. OR delete non-critical files (e.g., seed data, tests)
+rm convex/seed/conflicted-file.ts
+
+# 4. Force clean deployment
+npx convex deploy --yes
+
+# 5. Verify in Convex dashboard logs (not just terminal)
+# Look for deployment success + query execution logs
+```
+
+**Debugging Steps**:
+1. Check `npx convex dev` terminal for compilation errors (not just warnings)
+2. Open Convex dashboard → Logs tab
+3. Click on failing query to see actual error (not summary)
+4. Look for `ArgumentValidationError` indicating schema mismatch
+5. Compare deployed schema vs local code
+
+**Why**: Convex can't parse conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`), silently skips deployment, continues serving old functions. Frontend sends new params, backend rejects them.  
+
+**Common Scenarios**:
+- Cherry-picking commits between branches
+- Merging branches with schema changes
+- Stashing/unstashing with conflicts
+- Multiple AI agents working in different branches
+
+**Prevention**:
+- Always check `npx convex dev` output after git operations
+- Use `git diff --check` before committing
+- Verify deployment success in Convex dashboard, not just terminal
+- Delete test/seed files if they conflict (non-critical)
+
+**Apply when**: Query fails with schema validation errors despite correct code  
+**Related**: #L590 (Type imports), #L540 (Deployment issues)
+
+---
+
+## #L680: Convex Requires OIDC, Not Raw JWT [🟡 IMPORTANT]
+
+**Symptom**: Custom JWT auth fails with cyclic import or "not configured"  
+**Root Cause**: Convex doesn't support raw JWT authentication - requires OpenID Connect (OIDC) provider with discovery endpoint
+
+**What We Tried** (Didn't Work):
+```typescript
+// ❌ This approach doesn't work with Convex
+import { defineAuth } from "convex/server"; // defineAuth doesn't exist
+export default {
+  providers: [{
+    domain: "https://www.synergyos.ai",
+    applicationID: "convex",
+  }]
+};
+```
+
+**Why It Failed**:
+- Convex expects OIDC providers (Google, Auth0, WorkOS as OIDC)
+- Needs discovery endpoint: `https://domain/.well-known/openid-configuration`
+- Requires proper key rotation, token validation, etc.
+- Raw JWT signing isn't enough
+
+**Working Temporary Solution**:
+```typescript
+// Backend: Accept userId as optional parameter
+export const myMutation = mutation({
+  args: {
+    // ... other args
+    userId: v.optional(v.id("users")), // TODO: Remove once OIDC set up
+  },
+  handler: async (ctx, args) => {
+    // Fallback pattern
+    const userId = args.userId ?? await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+    // ... rest of logic
+  }
+});
+
+// Frontend: Pass userId from HTTP-only cookie
+const userId = $page.data.user?.userId;
+await convexClient.mutation(api.myModule.myMutation, {
+  userId: userId as any,
+  // ... other args
+});
+```
+
+**Why This Is Secure**:
+- ✅ WorkOS handles authentication (OAuth)
+- ✅ UserId stored in HTTP-only cookie (can't be tampered by JS)
+- ✅ RBAC permission checks happen server-side
+- ✅ Only routing/context info, not authentication proof
+
+**Future: Full OIDC Setup**:
+- Configure WorkOS as OIDC provider
+- Set up discovery endpoint
+- Use Convex's built-in OIDC validation
+- Remove `userId` parameters (automatic from JWT)
+- See SYOS-27 for implementation plan
+
+**Apply when**: Implementing auth with Convex before OIDC is configured  
+**Related**: SYOS-25 (canceled), SYOS-27 (future work), #L550 (Auth patterns)
+
+---
+
+## #L690: Git Stash Can Revert to Incomplete State [🟡 CAUTION]
+
+**Symptom**: After `git stash`, code compiles but fails at runtime with "Not authenticated" or validation errors  
+**Root Cause**: Stash reverted to a state where backend/frontend were out of sync
+
+**What Happened**:
+1. Working code: Frontend passes `userId`, backend accepts it ✅
+2. Attempted JWT auth implementation (failed - needs OIDC)
+3. Used `git stash` to revert changes
+4. Reverted to state where:
+   - Backend mutations DON'T accept `userId` parameter
+   - Frontend still tries to pass `userId`
+   - `getAuthUserId(ctx)` returns `null` (expected - see auth.ts comments)
+   - Result: "Not authenticated" errors everywhere
+
+**Fix Pattern**:
+```typescript
+// 1. Add userId parameter to backend mutations
+export const myMutation = mutation({
+  args: {
+    // ... existing args
+    userId: v.optional(v.id("users")), // Re-add this
+  },
+  handler: async (ctx, args) => {
+    // 2. Use fallback pattern
+    const userId = args.userId ?? await getAuthUserId(ctx);
+    if (!userId) throw new Error("Not authenticated");
+    // ... rest
+  }
+});
+
+// 3. Ensure frontend passes userId
+await convexClient.mutation(api.myModule.myMutation, {
+  userId: userId as any,
+  // ... other args
+});
+```
+
+**Prevention**:
+- Before `git stash`, note exactly what working state you want to return to
+- After revert, check both backend args AND frontend calls are aligned
+- Test a mutation immediately after revert to verify auth works
+- Consider `git stash show -p` to preview what will be reverted
+
+**Why It's Subtle**:
+- Code compiles ✅ (TypeScript happy)
+- No linter errors ✅
+- Only fails at runtime when user triggers mutation
+- Error message says "Not authenticated" (misleading - it's about parameter passing)
+
+**Debugging Checklist**:
+1. Check backend mutation args: `userId: v.optional(v.id("users"))` present?
+2. Check handler: Uses `args.userId ?? await getAuthUserId(ctx)` pattern?
+3. Check frontend: Passes `userId` parameter?
+4. Check `convex/auth.ts`: Comments explain auth context not yet set up?
+
+**Apply when**: After git revert operations, especially git stash  
+**Related**: #L680 (JWT/OIDC), #L640 (Silent failures)
+
+---
+
+**Pattern Count**: 16  
+**Last Validated**: 2025-11-10  
+**Context7 Source**: `/get-convex/convex-backend`, WorkOS OIDC docs
 

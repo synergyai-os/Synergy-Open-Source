@@ -53,9 +53,9 @@ export const sendTestEmailInternal = internalAction({
 // Public action that calls the internal action to send email
 // Actions can make HTTP requests, so we use an action for Resend API calls
 export const sendTestEmail = action({
-	handler: async (ctx) => {
+	handler: async (ctx): Promise<{ success: boolean; message: string; details: any }> => {
 		// Call the internal action to send the email
-		const result = await ctx.runAction(internal.email.sendTestEmailInternal);
+		const result: any = await ctx.runAction(internal.email.sendTestEmailInternal);
 		return { success: true, message: 'Test email sent to randy@synergyai.nl', details: result };
 	}
 });

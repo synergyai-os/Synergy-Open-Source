@@ -5,6 +5,7 @@
     import GlobalActivityTracker from '$lib/components/GlobalActivityTracker.svelte';
     import AppTopBar from '$lib/components/organizations/AppTopBar.svelte';
     import QuickCreateModal from '$lib/components/QuickCreateModal.svelte';
+    import OrganizationModals from '$lib/components/organizations/OrganizationModals.svelte';
     import { getContext, setContext } from 'svelte';
     import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
     import { useGlobalShortcuts, SHORTCUTS } from '$lib/composables/useGlobalShortcuts.svelte';
@@ -13,12 +14,13 @@
 
     const organizations = getContext<UseOrganizations | undefined>('organizations');
     const isAuthenticated = $derived(data.isAuthenticated);
-    const accountEmail = $derived(() => data.user?.email ?? 'user@example.com');
-    const accountName = $derived(() => 
+	const accountEmail = $derived(() => data.user?.email ?? 'user@example.com');
+	const accountName = $derived(() => 
 		data.user?.firstName && data.user?.lastName 
 			? `${data.user.firstName} ${data.user.lastName}` 
 			: data.user?.email ?? 'Personal workspace'
 	);
+	const workspaceName = $derived(() => data.activeWorkspace?.name ?? 'Private workspace');
 
 	// Initialize global shortcuts (only in browser - SSR safe)
 	const shortcuts = browser ? useGlobalShortcuts() : null;
@@ -156,6 +158,7 @@
                 onSidebarToggle={() => (sidebarCollapsed = !sidebarCollapsed)}
                 accountName={accountName()}
                 accountEmail={accountEmail()}
+                workspaceName={workspaceName()}
             />
             <div class="flex-1 overflow-hidden">
                 {@render children()}
@@ -172,6 +175,14 @@
 			currentView={getCurrentView()}
 			initialType={quickCreateInitialType}
 		/>
+
+		<!-- Organization Modals (Create/Join Org, Create/Join Team) -->
+		{#if organizations}
+			<OrganizationModals
+				{organizations}
+				activeOrganizationName={organizations.activeOrganizationName}
+			/>
+		{/if}
 	</div>
 {:else}
 	<!-- Not authenticated - shouldn't reach here due to redirect, but show login prompt -->

@@ -15,7 +15,8 @@
 	// Set up Convex client (unauthenticated - WorkOS handles auth separately)
 	setupConvex(PUBLIC_CONVEX_URL);
 
-	const organizationStore = useOrganizations();
+	// TODO: Remove userId param once Convex auth context is set up with WorkOS JWT
+	const organizationStore = useOrganizations({ userId: () => data.user?.userId });
 	setContext('organizations', organizationStore);
 
 	let posthogReady = $state(false);
@@ -57,6 +58,15 @@
 
 	// Theme is initialized via inline script in app.html for FOUC prevention
 	// Components using createThemeStore() will initialize reactively on first use
+
+	// Dynamically import Toaster only on client side (SSR issue with svelte-sonner)
+	let Toaster = $state<any>(null);
+	
+	onMount(async () => {
+		// Import svelte-sonner only on client side to avoid SSR issues
+		const module = await import('svelte-sonner');
+		Toaster = module.Toaster;
+	});
 </script>
 
 <svelte:head>
@@ -69,3 +79,14 @@
     organizations={organizationStore}
     activeOrganizationName={activeOrganizationName()}
 />
+
+<!-- Toast notifications - positioned top-right, styled with design tokens -->
+<!-- Loaded client-side only to avoid SSR issues with svelte-sonner -->
+{#if Toaster}
+	<Toaster 
+		position="top-right"
+		expand={false}
+		richColors
+		closeButton
+	/>
+{/if}

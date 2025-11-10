@@ -424,9 +424,11 @@ The following tools are part of our stack and will be documented with rationale 
 
 ## Authentication Architecture
 
-> ⚠️ **UPDATED**: We now use **WorkOS AuthKit** for authentication (migrated Nov 2025).
+> ✅ **CURRENT**: We now use **WorkOS AuthKit** for authentication (migrated Nov 2025).
 > 
-> **Current documentation**: [patterns/auth-deployment.md](patterns/auth-deployment.md)
+> **📖 Complete Architecture**: [WorkOS + Convex Auth Architecture](workos-convex-auth-architecture.md) ⭐ **READ THIS FIRST**
+> 
+> **🔧 Deployment Patterns**: [patterns/auth-deployment.md](patterns/auth-deployment.md)
 > 
 > The information below is **ARCHIVED** from the old Convex Auth implementation and kept for reference.
 
@@ -762,6 +764,49 @@ For the current authentication implementation, see:
 - **[patterns/auth-deployment.md](patterns/auth-deployment.md)** - Complete patterns and examples
 - **Migration**: Completed Nov 2025 from `@mmailaender/convex-auth-svelte` to WorkOS AuthKit
 - **Features**: OAuth 2.0, hosted UI, enterprise-grade security, free tier up to 1M MAUs
+
+---
+
+## Role-Based Access Control (RBAC)
+
+> 🚧 **Status**: Design Phase - Implementation Pending (Nov 2025)
+
+SynergyOS implements a **Permission-Based Access Control** system where:
+- Users are assigned **roles** (Admin, Manager, Team Lead, Billing Admin, Member, Guest)
+- Roles have **permissions** (e.g., `teams.create`, `org.billing.view`)
+- Features check **permissions**, not roles directly (scalable approach)
+
+### Key Features
+
+- ✅ **Multiple Roles Per User** - Users can have multiple roles simultaneously
+- ✅ **Resource-Scoped Permissions** - Team Leads only manage their own teams
+- ✅ **Guest Access** - Resource-specific sharing (like Notion/Google Docs)
+- ✅ **Audit Trail** - All permission checks and role changes are logged
+
+### Documentation
+
+- **[📖 RBAC Architecture](../rbac-architecture.md)** - Complete system design with database schema, diagrams, and implementation guide
+- **[⚡ Quick Reference](../rbac-quick-reference.md)** - Fast lookup for common patterns and permissions
+
+### Example Usage
+
+```typescript
+// In Convex functions - Check permission
+await requirePermission(ctx, userId, "teams.create", undefined, orgId);
+
+// In Svelte components - Permission gate
+const permissions = usePermissions(() => userId, () => orgId);
+
+{#if permissions.can("teams.create")}
+  <button>Create Team</button>
+{/if}
+```
+
+**See full documentation for**:
+- Complete role and permission definitions
+- Database schema and migration plan
+- Code examples and patterns
+- Testing strategy
 
 ---
 

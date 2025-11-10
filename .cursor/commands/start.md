@@ -58,7 +58,8 @@
 2. Search `dev-docs/2-areas/patterns/INDEX.md` for existing patterns
 3. Update domain file OR add new pattern
 4. Update INDEX.md symptom table
-5. Commit (local only, don't push)
+5. Mark Linear ticket as "In Review" (human marks "Done")
+6. Commit (local only, don't push)
 
 ---
 
@@ -82,20 +83,89 @@
 
 ---
 
+## 📋 **Linear Ticket Management (AI Responsibilities)**
+
+**When you create or manage tickets:**
+
+### ✅ **AI Must Check Off (Don't Wait for User)**:
+
+1. **Acceptance Criteria** - Check off as you complete each item
+2. **Files Changed** - Add ✅ emoji when file is modified  
+3. **Implementation Notes** - Add key decisions, edge cases, fixes
+4. **Estimate → Actual** - Update when done (e.g., "2-4h (actual: ~2h)")
+5. **Commits List** - Add hash + description after each commit
+
+### 📝 **User Will Check Off (Never Touch These)**:
+
+1. **Test Plan** - User manually tests and checks off
+   - Provide clear steps with working links
+   - Format: `- [ ] Action → [Link](http://127.0.0.1:5173/page) if applicable`
+   - User checks after testing
+
+### 🔄 **When to Update**:
+
+- **During work**: Check off criteria as you complete them
+- **After commits**: Add commit hashes to ticket
+- **Before "In Review"**: Ensure all AI-owned items are checked/updated
+- **Never**: Check off user's test plan items
+
+### 📋 **Ticket Template Format**:
+
+```markdown
+**Goal**: One sentence what this delivers
+
+**Acceptance Criteria** (AI checks these off when complete):
+- [ ] Specific requirement
+- [ ] Another requirement
+
+**Files Changed** (AI updates with ✅ when done):
+- path/to/file.ts - What changes
+
+**Test Plan** (User checks these off when tested):
+- [ ] Step 1 → [Link to page](http://127.0.0.1:5173/page)
+- [ ] Step 2 - What to verify
+- [ ] Check [doc](http://127.0.0.1:5173/dev-docs/path)
+
+**Implementation Notes** (AI adds as work progresses):
+- Key decisions
+- Edge cases handled
+
+**Estimate**: Xh (actual: Yh - AI updates)
+**Linear ID**: SYOS-123
+**Commits**: 
+- abc1234 - Description
+```
+
+**See**: `/start-new-project` for full examples and workflow
+
+---
+
 ## 🎯 Remember
 
 1. **Communication** - Short, dense, concise
 2. **No auto-docs** - Never create docs unless asked
-3. **Investigate first** - Understand before acting
-4. **Confirm before building** - Scope, plan, get approval
-5. **Context7 first** - For library docs before web search
+3. **Product Principles** - Read first, outcomes over outputs
+4. **Business Language** - Avoid jargon in project names
+5. **Investigate first** - Understand before acting
+6. **Confirm before building** - Scope, plan, get approval
+7. **Context7 first** - For library docs before web search
 
 ---
 
-## 📖 Project-Specific Details
+## 📖 Essential Reading (In Order)
 
-**Read `.cursor/rules/way-of-working.mdc` for:**
-- Project overview and tech stack
-- Documentation paths
-- Patterns and conventions
-- File structure
+**Before starting ANY work:**
+1. **`dev-docs/2-areas/product-principles.md`** ⭐ - How we make decisions (Outcomes Over Outputs, Privacy First, etc.)
+2. **`.cursor/rules/way-of-working.mdc`** - Project overview, tech stack, conventions
+3. **`dev-docs/2-areas/patterns/INDEX.md`** - Existing solutions, don't reinvent
+
+**Key principles:**
+- **Outcomes Over Outputs** - Define business outcome before building
+- **Business-Friendly Naming** - Use common language, not jargon
+- **Team Ownership** - Know who owns the work
+- **AI Transparency** - Mark guesses as: `{Your guess} (by AI → not validated yet)`
+
+**For Linear ticket management:**
+- Read `dev-docs/2-areas/linear-integration.md` - Cursor + Linear + GitHub workflow
+- Read `dev-docs/2-areas/flow-metrics.md` - Flow Distribution tracking
+- Use `/start-new-project` for new initiatives

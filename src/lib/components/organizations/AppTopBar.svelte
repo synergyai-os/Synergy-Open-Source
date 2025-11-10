@@ -9,6 +9,7 @@
     onSidebarToggle,
     accountName = 'Workspace',
     accountEmail = 'user@example.com',
+    workspaceName = 'Private workspace',
     onSettings,
     onInviteMembers,
     onSwitchWorkspace,
@@ -22,6 +23,7 @@
     onSidebarToggle?: () => void;
     accountName?: string;
     accountEmail?: string;
+    workspaceName?: string;
     onSettings?: () => void;
     onInviteMembers?: () => void;
     onSwitchWorkspace?: () => void;
@@ -79,6 +81,15 @@
     </div>
 
     <div class="w-9 h-9" aria-hidden="true"></div>
+  </header>
+{:else}
+  <!-- Desktop: Show workspace indicator -->
+  <header class="bg-surface border-b border-base px-inbox-container py-system-header h-system-header flex items-center justify-between gap-icon">
+    <div class="flex items-center gap-icon">
+      <span class="text-label text-secondary">
+        📁 {workspaceName}
+      </span>
+    </div>
   </header>
 {/if}
 

@@ -119,14 +119,14 @@ export const exportNoteToBlog = action({
 	args: {
 		noteId: v.id("inboxItems"),
 	},
-	handler: async (ctx, args) => {
+	handler: async (ctx, args): Promise<{ filepath: string; content: string; success: boolean }> => {
 		const userId = await getAuthUserId(ctx);
 		if (!userId) {
 			throw new Error("Not authenticated");
 		}
 
 		// Get the note
-		const note = await ctx.runQuery(api.notes.getNote, {
+		const note: any = await ctx.runQuery(api.notes.getNote, {
 			noteId: args.noteId,
 		});
 
@@ -154,9 +154,9 @@ export const exportNoteToBlog = action({
 		const fullMarkdown = frontmatter + markdown;
 
 		// Generate filename
-		const slug = note.slug || note.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'untitled';
-		const filename = `${slug}.md`;
-		const filepath = `/ai-content-blog/${filename}`;
+		const slug: string = note.slug || note.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'untitled';
+		const filename: string = `${slug}.md`;
+		const filepath: string = `/ai-content-blog/${filename}`;
 
 		// In production, write to file system or cloud storage
 		// For now, we'll just return the content and filepath

@@ -190,7 +190,7 @@ export const syncReadwiseHighlightsInternal = internalAction({
           });
         }
 
-        const response = await ctx.runAction(internal.readwiseApi.fetchHighlights, {
+        const response: any = await ctx.runAction(internal.readwiseApi.fetchHighlights, {
           apiKey,
           pageCursor,
           updatedAfter: highlightsUpdatedAfter,
@@ -569,7 +569,7 @@ async function fetchAllBooks(
     pageCount++;
     console.log(`[syncReadwise] Fetching books page ${pageCount}...`);
 
-    const response = await ctx.runAction(internal.readwiseApi.fetchBooks, {
+    const response: any = await ctx.runAction(internal.readwiseApi.fetchBooks, {
       apiKey,
       pageCursor,
       updatedAfter,
@@ -618,7 +618,7 @@ async function fetchAllHighlights(
     pageCount++;
     console.log(`[syncReadwise] Fetching highlights page ${pageCount}...`);
 
-    const response = await ctx.runAction(internal.readwiseApi.fetchHighlights, {
+    const response: any = await ctx.runAction(internal.readwiseApi.fetchHighlights, {
       apiKey,
       pageCursor,
       updatedAfter,

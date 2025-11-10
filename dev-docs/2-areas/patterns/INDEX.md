@@ -29,6 +29,7 @@
 | Raw markdown displayed instead of rendered HTML | Add Vite middleware to redirect .md URLs | [ui-patterns.md#L1100](ui-patterns.md#L1100) |
 | Vercel build: "Could not resolve _generated/dataModel" | Commit _generated to git, separate deployments | [convex-integration.md#L540](convex-integration.md#L540) |
 | Deployment fails: "Could not resolve _generated/dataModel" during bundling | Use import type for _generated imports | [convex-integration.md#L590](convex-integration.md#L590) |
+| Query returns empty, ArgumentValidationError for valid field | Git conflicts block deployment, stale code running | [convex-integration.md#L640](convex-integration.md#L640) |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -53,6 +54,8 @@
 | `InvalidConfig`: hyphens in filename | Use camelCase names | [convex-integration.md#L140](convex-integration.md#L140) |
 | Redundant API paths (api.x.x) | File=noun, Function=verb | [convex-integration.md#L190](convex-integration.md#L190) |
 | `.toLocaleDateString is not a function` | Wrap Convex timestamps in new Date() | [convex-integration.md#L490](convex-integration.md#L490) |
+| Custom JWT auth fails, cyclic import errors | Convex requires OIDC, not raw JWT. Use userId parameter temporarily | [convex-integration.md#L680](convex-integration.md#L680) |
+| After git stash: "Not authenticated" runtime errors | Backend/frontend out of sync. Re-add userId parameters | [convex-integration.md#L690](convex-integration.md#L690) |
 | Analytics events missing in PostHog | Use server-side tracking | [analytics.md#L10](analytics.md#L10) |
 
 ## 🟢 REFERENCE Patterns (Best Practices)
@@ -64,6 +67,7 @@
 | Edit mode toggle | Separate view/edit states | [ui-patterns.md#L170](ui-patterns.md#L170) |
 | Card removal (Tinder-like) | Queue-based removal | [ui-patterns.md#L220](ui-patterns.md#L220) |
 | Visual feedback | Show overlay before action | [ui-patterns.md#L280](ui-patterns.md#L280) |
+| Toast notifications | svelte-sonner for user feedback | [ui-patterns.md#L1660](ui-patterns.md#L1660) |
 | Textarea auto-resize | Remove h-full, use field-sizing | [ui-patterns.md#L330](ui-patterns.md#L330) |
 | Command palette drama | Dark overlay + blur + animation | [ui-patterns.md#L480](ui-patterns.md#L480) |
 | Command input design | Icon + transparent + shortcuts | [ui-patterns.md#L530](ui-patterns.md#L530) |
@@ -142,6 +146,6 @@ correct code
 
 ---
 
-**Last Updated**: 2025-11-09  
-**Pattern Count**: 57  
+**Last Updated**: 2025-11-10  
+**Pattern Count**: 60  
 **Format Version**: 2.0

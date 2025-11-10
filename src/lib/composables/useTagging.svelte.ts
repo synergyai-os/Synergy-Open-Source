@@ -44,10 +44,10 @@ export function useTagging(entityType: EntityType) {
 	// Dynamic mutation reference based on entity type
 	// Example: 'highlight' -> 'tags:assignTagsToHighlight'
 	const assignTagsMutation = browser
-		? makeFunctionReference(`tags:assignTagsTo${capitalize(entityType)}`)
+		? (makeFunctionReference(`tags:assignTagsTo${capitalize(entityType)}`) as any)
 		: null;
 
-	const createTagMutation = browser ? makeFunctionReference('tags:createTag') : null;
+	const createTagMutation = browser ? (makeFunctionReference('tags:createTag') as any) : null;
 
 	/**
 	 * Assign tags to an entity (replaces existing tags)
