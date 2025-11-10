@@ -1,6 +1,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "./auth";
+import { requirePermission } from "./rbac/permissions";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 // TODO: Re-enable server-side analytics via HTTP action bridge
@@ -266,16 +267,11 @@ export const createOrganizationInvite = mutation({
       throw new Error("Not authenticated");
     }
 
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_user", (q) =>
-        q.eq("organizationId", args.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (!membership || (membership.role !== "owner" && membership.role !== "admin")) {
-      throw new Error("You do not have permission to invite members");
-    }
+    // RBAC Permission Check: Only users with "users.invite" permission can invite
+    // Admins and Managers can invite users to organizations
+    await requirePermission(ctx, userId, "users.invite", {
+      organizationId: args.organizationId,
+    });
 
     if (!args.email && !args.invitedUserId) {
       throw new Error("Either email or invitedUserId must be provided");
@@ -460,6 +456,66 @@ export const recordOrganizationSwitch = mutation({
     //     availableTeamCount: args.availableTeamCount,
     //   },
     // });
+  },
+});
+
+/**
+ * Remove a member from an organization
+ * Requires "users.remove" permission
+ * Only Admins can remove users from organizations
+ */
+export const removeOrganizationMember = mutation({
+  args: {
+    organizationId: v.id("organizations"),
+    targetUserId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    // RBAC Permission Check: Only users with "users.remove" permission can remove members
+    // Only Admins can remove users from organizations
+    await requirePermission(ctx, userId, "users.remove", {
+      organizationId: args.organizationId,
+    });
+
+    if (args.targetUserId === userId) {
+      throw new Error("Cannot remove yourself from organization");
+    }
+
+    const targetMembership = await ctx.db
+      .query("organizationMembers")
+      .withIndex("by_organization_user", (q) =>
+        q.eq("organizationId", args.organizationId).eq("userId", args.targetUserId)
+      )
+      .first();
+
+    if (!targetMembership) {
+      throw new Error("User is not a member of this organization");
+    }
+
+    if (targetMembership.role === "owner") {
+      throw new Error("Cannot remove organization owner");
+    }
+
+    await ctx.db.delete(targetMembership._id);
+
+    // Also remove from all teams in this organization
+    const teamMemberships = await ctx.db
+      .query("teamMembers")
+      .withIndex("by_user", (q) => q.eq("userId", args.targetUserId))
+      .collect();
+
+    for (const teamMembership of teamMemberships) {
+      const team = await ctx.db.get(teamMembership.teamId);
+      if (team && team.organizationId === args.organizationId) {
+        await ctx.db.delete(teamMembership._id);
+      }
+    }
+
+    return { success: true };
   },
 });
 

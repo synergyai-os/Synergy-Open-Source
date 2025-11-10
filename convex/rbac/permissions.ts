@@ -1,0 +1,348 @@
+/**
+ * RBAC Permission Checking Functions
+ * 
+ * Core permission logic that handles multi-role, resource scoping, and audit logging.
+ */
+
+import { query } from "../_generated/server";
+import { v } from "convex/values";
+import { QueryCtx, MutationCtx } from "../_generated/server";
+import type { Id } from "../_generated/dataModel";
+
+// ============================================================================
+// Types
+// ============================================================================
+
+export type PermissionSlug =
+  | "users.view"
+  | "users.invite"
+  | "users.remove"
+  | "users.change-roles"
+  | "users.manage-profile"
+  | "teams.view"
+  | "teams.create"
+  | "teams.update"
+  | "teams.delete"
+  | "teams.add-members"
+  | "teams.remove-members"
+  | "teams.change-roles"
+  | "organizations.view-settings"
+  | "organizations.update-settings"
+  | "organizations.manage-billing";
+
+export interface PermissionContext {
+  organizationId?: Id<"organizations">;
+  teamId?: Id<"teams">;
+  resourceType?: string;
+  resourceId?: string;
+  resourceOwnerId?: Id<"users">; // User who "owns" the resource (for scope: "own")
+}
+
+interface UserPermission {
+  permissionSlug: string;
+  scope: "all" | "own" | "none";
+  roleSlug: string;
+  roleName: string;
+}
+
+// ============================================================================
+// Core Permission Functions
+// ============================================================================
+
+/**
+ * Check if user has a specific permission
+ * Handles multi-role users and resource scoping
+ * 
+ * @returns true if user has permission, false otherwise
+ */
+export async function hasPermission(
+  ctx: QueryCtx | MutationCtx,
+  userId: Id<"users">,
+  permissionSlug: PermissionSlug,
+  context?: PermissionContext
+): Promise<boolean> {
+  try {
+    // Get all permissions for this user
+    const permissions = await getUserPermissions(ctx, userId, context);
+    
+    // Check if user has the permission with appropriate scope
+    for (const perm of permissions) {
+      if (perm.permissionSlug === permissionSlug) {
+        // If scope is "all", user can access anything
+        if (perm.scope === "all") {
+          await logPermissionCheck(ctx, {
+            userId,
+            action: "check",
+            permissionSlug,
+            roleSlug: perm.roleSlug,
+            result: "allowed",
+            context,
+          });
+          return true;
+        }
+        
+        // If scope is "own", check if user owns the resource
+        if (perm.scope === "own" && context?.resourceOwnerId) {
+          const isOwner = context.resourceOwnerId === userId;
+          await logPermissionCheck(ctx, {
+            userId,
+            action: "check",
+            permissionSlug,
+            roleSlug: perm.roleSlug,
+            result: isOwner ? "allowed" : "denied",
+            reason: isOwner ? undefined : "Resource not owned by user",
+            context,
+          });
+          return isOwner;
+        }
+        
+        // If permission exists but scope is "none" or conditions not met
+        if (perm.scope === "none") {
+          await logPermissionCheck(ctx, {
+            userId,
+            action: "check",
+            permissionSlug,
+            roleSlug: perm.roleSlug,
+            result: "denied",
+            reason: "Explicitly denied by role configuration",
+            context,
+          });
+          return false;
+        }
+      }
+    }
+    
+    // Permission not found
+    await logPermissionCheck(ctx, {
+      userId,
+      action: "check",
+      permissionSlug,
+      result: "denied",
+      reason: "Permission not granted to user",
+      context,
+    });
+    return false;
+  } catch (error) {
+    console.error("Error checking permission:", error);
+    return false;
+  }
+}
+
+/**
+ * Require a specific permission (throws if not granted)
+ * Use this in mutations/queries to enforce permissions
+ */
+export async function requirePermission(
+  ctx: QueryCtx | MutationCtx,
+  userId: Id<"users">,
+  permissionSlug: PermissionSlug,
+  context?: PermissionContext
+): Promise<void> {
+  const hasPermissionResult = await hasPermission(ctx, userId, permissionSlug, context);
+  
+  if (!hasPermissionResult) {
+    throw new Error(`Permission denied: ${permissionSlug}`);
+  }
+}
+
+// ============================================================================
+// Helper Functions
+// ============================================================================
+
+/**
+ * Get all permissions for a user in a given context
+ * Aggregates permissions from all roles the user has
+ */
+async function getUserPermissions(
+  ctx: QueryCtx | MutationCtx,
+  userId: Id<"users">,
+  context?: PermissionContext
+): Promise<UserPermission[]> {
+  // Get all active user roles (not revoked or expired)
+  let userRolesQuery = ctx.db
+    .query("userRoles")
+    .withIndex("by_user", (q) => q.eq("userId", userId));
+  
+  const allUserRoles = await userRolesQuery.collect();
+  
+  // Filter to active roles (not revoked, not expired)
+  const now = Date.now();
+  const activeUserRoles = allUserRoles.filter((ur) => {
+    if (ur.revokedAt) return false;
+    if (ur.expiresAt && ur.expiresAt < now) return false;
+    
+    // If context specifies org/team, only include matching scoped roles + unscoped roles
+    if (context?.organizationId) {
+      if (ur.organizationId && ur.organizationId !== context.organizationId) {
+        return false;
+      }
+    }
+    
+    if (context?.teamId) {
+      if (ur.teamId && ur.teamId !== context.teamId) {
+        return false;
+      }
+    }
+    
+    return true;
+  });
+  
+  // Get all permissions for these roles
+  const permissions: UserPermission[] = [];
+  
+  for (const userRole of activeUserRoles) {
+    // Get role details
+    const role = await ctx.db.get(userRole.roleId);
+    if (!role) continue;
+    
+    // Get role permissions
+    const rolePermissions = await ctx.db
+      .query("rolePermissions")
+      .withIndex("by_role", (q) => q.eq("roleId", userRole.roleId))
+      .collect();
+    
+    for (const rolePerm of rolePermissions) {
+      const permission = await ctx.db.get(rolePerm.permissionId);
+      if (!permission) continue;
+      
+      permissions.push({
+        permissionSlug: permission.slug,
+        scope: rolePerm.scope,
+        roleSlug: role.slug,
+        roleName: role.name,
+      });
+    }
+  }
+  
+  // Merge permissions (if user has same permission from multiple roles, take highest scope)
+  const merged = new Map<string, UserPermission>();
+  
+  const scopePriority = { all: 3, own: 2, none: 1 };
+  
+  for (const perm of permissions) {
+    const existing = merged.get(perm.permissionSlug);
+    
+    if (!existing || scopePriority[perm.scope] > scopePriority[existing.scope]) {
+      merged.set(perm.permissionSlug, perm);
+    }
+  }
+  
+  return Array.from(merged.values());
+}
+
+/**
+ * Get role permissions for a specific role
+ */
+async function getRolePermissions(
+  ctx: QueryCtx | MutationCtx,
+  roleId: Id<"roles">
+): Promise<UserPermission[]> {
+  const role = await ctx.db.get(roleId);
+  if (!role) return [];
+  
+  const rolePermissions = await ctx.db
+    .query("rolePermissions")
+    .withIndex("by_role", (q) => q.eq("roleId", roleId))
+    .collect();
+  
+  const permissions: UserPermission[] = [];
+  
+  for (const rolePerm of rolePermissions) {
+    const permission = await ctx.db.get(rolePerm.permissionId);
+    if (!permission) continue;
+    
+    permissions.push({
+      permissionSlug: permission.slug,
+      scope: rolePerm.scope,
+      roleSlug: role.slug,
+      roleName: role.name,
+    });
+  }
+  
+  return permissions;
+}
+
+// ============================================================================
+// Audit Logging
+// ============================================================================
+
+interface PermissionLogEntry {
+  userId: Id<"users">;
+  action: string;
+  permissionSlug?: string;
+  roleSlug?: string;
+  result: "allowed" | "denied";
+  reason?: string;
+  context?: PermissionContext;
+}
+
+/**
+ * Log a permission check to the audit log
+ */
+async function logPermissionCheck(
+  ctx: QueryCtx | MutationCtx,
+  entry: PermissionLogEntry
+): Promise<void> {
+  try {
+    await ctx.db.insert("permissionAuditLog", {
+      userId: entry.userId,
+      action: entry.action,
+      permissionSlug: entry.permissionSlug,
+      roleSlug: entry.roleSlug,
+      resourceType: entry.context?.resourceType,
+      resourceId: entry.context?.resourceId,
+      organizationId: entry.context?.organizationId,
+      teamId: entry.context?.teamId,
+      result: entry.result,
+      reason: entry.reason,
+      metadata: entry.context ? {
+        resourceOwnerId: entry.context.resourceOwnerId,
+      } : undefined,
+      timestamp: Date.now(),
+    });
+  } catch (error) {
+    // Don't fail permission check if audit logging fails
+    console.error("Failed to log permission check:", error);
+  }
+}
+
+// ============================================================================
+// Query - Frontend Permission Checking
+// ============================================================================
+
+/**
+ * Get user permissions for frontend use
+ * Returns flattened list of permissions with their slugs
+ * 
+ * Used by usePermissions composable to reactively check permissions in UI
+ */
+export const getUserPermissionsQuery = query({
+  args: {
+    userId: v.id("users"),
+    organizationId: v.optional(v.id("organizations")),
+    teamId: v.optional(v.id("teams")),
+  },
+  handler: async (ctx, args) => {
+    const context: PermissionContext = {};
+    
+    if (args.organizationId) {
+      context.organizationId = args.organizationId;
+    }
+    
+    if (args.teamId) {
+      context.teamId = args.teamId;
+    }
+    
+    // Get all permissions for user
+    const permissions = await getUserPermissions(ctx, args.userId, context);
+    
+    // Return flattened permissions with slug and scope
+    return permissions.map(p => ({
+      permissionSlug: p.permissionSlug,
+      scope: p.scope,
+      roleSlug: p.roleSlug,
+      roleName: p.roleName,
+    }));
+  },
+});
+

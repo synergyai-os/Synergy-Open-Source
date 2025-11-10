@@ -1,6 +1,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { getAuthUserId } from "./auth";
+import { requirePermission } from "./rbac/permissions";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 // TODO: Re-enable server-side analytics via HTTP action bridge
@@ -234,16 +235,10 @@ export const createTeam = mutation({
       throw new Error("Not authenticated");
     }
 
-    const membership = await ctx.db
-      .query("organizationMembers")
-      .withIndex("by_organization_user", (q) =>
-        q.eq("organizationId", args.organizationId).eq("userId", userId)
-      )
-      .first();
-
-    if (!membership || (membership.role !== "owner" && membership.role !== "admin")) {
-      throw new Error("You do not have permission to create teams");
-    }
+    // RBAC Permission Check: Only users with "teams.create" permission can create teams
+    await requirePermission(ctx, userId, "teams.create", {
+      organizationId: args.organizationId,
+    });
 
     const trimmedName = args.name.trim();
     if (!trimmedName) {
@@ -314,9 +309,16 @@ export const createTeamInvite = mutation({
       .withIndex("by_team_user", (q) => q.eq("teamId", args.teamId).eq("userId", userId))
       .first();
 
-    if (!membership || membership.role !== "admin") {
-      throw new Error("You do not have permission to invite teammates");
-    }
+    // RBAC Permission Check: Check "teams.add-members" permission with resource scoping
+    // Team Leads can only invite to their own teams (resourceOwnerId = userId for teams they lead)
+    // Admins/Managers can invite to any team (scope: "all")
+    await requirePermission(ctx, userId, "teams.add-members", {
+      organizationId: team.organizationId,
+      teamId: args.teamId,
+      resourceType: "team",
+      resourceId: args.teamId,
+      resourceOwnerId: membership?.role === "admin" ? userId : undefined,
+    });
 
     if (!args.email && !args.invitedUserId) {
       throw new Error("Either email or invitedUserId must be provided");
@@ -516,6 +518,178 @@ export const declineTeamInvite = mutation({
     }
 
     await ctx.db.delete(args.inviteId);
+  },
+});
+
+/**
+ * Update team settings
+ * Requires "teams.update" permission
+ * Team Leads can only update their own teams
+ */
+export const updateTeam = mutation({
+  args: {
+    teamId: v.id("teams"),
+    name: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    const team = await ctx.db.get(args.teamId);
+    if (!team) {
+      throw new Error("Team not found");
+    }
+
+    const membership = await ctx.db
+      .query("teamMembers")
+      .withIndex("by_team_user", (q) => q.eq("teamId", args.teamId).eq("userId", userId))
+      .first();
+
+    // RBAC Permission Check: Check "teams.update" permission
+    // Team Leads can only update their own teams
+    // Admins/Managers can update any team
+    await requirePermission(ctx, userId, "teams.update", {
+      organizationId: team.organizationId,
+      teamId: args.teamId,
+      resourceType: "team",
+      resourceId: args.teamId,
+      resourceOwnerId: membership?.role === "admin" ? userId : undefined,
+    });
+
+    const updates: Partial<Doc<"teams">> = {
+      updatedAt: Date.now(),
+    };
+
+    if (args.name !== undefined) {
+      const trimmedName = args.name.trim();
+      if (!trimmedName) {
+        throw new Error("Team name cannot be empty");
+      }
+      updates.name = trimmedName;
+      
+      const slugBase = slugifyName(trimmedName);
+      updates.slug = await ensureUniqueTeamSlug(ctx, team.organizationId, slugBase);
+    }
+
+    await ctx.db.patch(args.teamId, updates);
+
+    return { success: true };
+  },
+});
+
+/**
+ * Delete team
+ * Requires "teams.delete" permission
+ * Only Admins/Managers can delete teams (Team Leads cannot)
+ */
+export const deleteTeam = mutation({
+  args: {
+    teamId: v.id("teams"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    const team = await ctx.db.get(args.teamId);
+    if (!team) {
+      throw new Error("Team not found");
+    }
+
+    // RBAC Permission Check: Check "teams.delete" permission
+    // Team Leads CANNOT delete teams (even their own)
+    // Only Admins/Managers can delete teams
+    await requirePermission(ctx, userId, "teams.delete", {
+      organizationId: team.organizationId,
+      teamId: args.teamId,
+      resourceType: "team",
+      resourceId: args.teamId,
+      resourceOwnerId: undefined, // Explicitly don't allow "own" scope for delete
+    });
+
+    // Delete all team members
+    const members = await ctx.db
+      .query("teamMembers")
+      .withIndex("by_team", (q) => q.eq("teamId", args.teamId))
+      .collect();
+
+    for (const member of members) {
+      await ctx.db.delete(member._id);
+    }
+
+    // Delete all team invites
+    const invites = await ctx.db
+      .query("teamInvites")
+      .withIndex("by_team", (q) => q.eq("teamId", args.teamId))
+      .collect();
+
+    for (const invite of invites) {
+      await ctx.db.delete(invite._id);
+    }
+
+    // Delete the team
+    await ctx.db.delete(args.teamId);
+
+    return { success: true };
+  },
+});
+
+/**
+ * Remove team member
+ * Requires "teams.remove-members" permission
+ * Team Leads can only remove members from their own teams
+ */
+export const removeTeamMember = mutation({
+  args: {
+    teamId: v.id("teams"),
+    targetUserId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
+
+    const team = await ctx.db.get(args.teamId);
+    if (!team) {
+      throw new Error("Team not found");
+    }
+
+    const actingUserMembership = await ctx.db
+      .query("teamMembers")
+      .withIndex("by_team_user", (q) => q.eq("teamId", args.teamId).eq("userId", userId))
+      .first();
+
+    // RBAC Permission Check: Check "teams.remove-members" permission
+    // Team Leads can only remove members from their own teams
+    // Admins/Managers can remove members from any team
+    await requirePermission(ctx, userId, "teams.remove-members", {
+      organizationId: team.organizationId,
+      teamId: args.teamId,
+      resourceType: "team",
+      resourceId: args.teamId,
+      resourceOwnerId: actingUserMembership?.role === "admin" ? userId : undefined,
+    });
+
+    const targetMembership = await ctx.db
+      .query("teamMembers")
+      .withIndex("by_team_user", (q) => q.eq("teamId", args.teamId).eq("userId", args.targetUserId))
+      .first();
+
+    if (!targetMembership) {
+      throw new Error("User is not a member of this team");
+    }
+
+    if (args.targetUserId === userId) {
+      throw new Error("Cannot remove yourself from team. Use leaveTeam instead.");
+    }
+
+    await ctx.db.delete(targetMembership._id);
+
+    return { success: true };
   },
 });
 
