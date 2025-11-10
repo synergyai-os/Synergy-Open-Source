@@ -365,20 +365,22 @@ mcp_Linear_update_project({
 
 4. **Test with user** (get feedback before next slice)
 
-5. **Mark complete** in Linear (ticket + one-line comment):
+5. **Mark for review** in Linear (ticket + one-line comment):
    ```typescript
-   // Update ticket status
+   // Update ticket status to "In Review" (human will mark "Done" after testing)
    mcp_Linear_update_issue({
      id: "issue-id",
-     state: "Done"
+     state: "In Review"
    })
    
    // Add one-line completion comment
    mcp_Linear_create_comment({
      issueId: "issue-id",
-     body: "✅ Complete - [What shipped in 1 sentence] | Commit: abc1234"
+     body: "✅ Ready for review - [What shipped in 1 sentence] | Commit: abc1234"
    })
    ```
+   
+   **⚠️ Human marks "Done"** - AI marks "In Review", human tests and confirms
 
 6. **Update TODO list**:
    ```typescript
@@ -395,7 +397,7 @@ mcp_Linear_update_project({
 ### 6. Create Pull Request (When Ready to Merge)
 
 **Before PR**:
-- All Linear tickets marked "Done"
+- All Linear tickets reviewed and marked "Done" by human
 - All tests passing
 - Documentation complete
 - User tested all slices

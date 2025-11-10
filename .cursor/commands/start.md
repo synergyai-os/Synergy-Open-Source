@@ -58,7 +58,8 @@
 2. Search `dev-docs/2-areas/patterns/INDEX.md` for existing patterns
 3. Update domain file OR add new pattern
 4. Update INDEX.md symptom table
-5. Commit (local only, don't push)
+5. Mark Linear ticket as "In Review" (human marks "Done")
+6. Commit (local only, don't push)
 
 ---
 
@@ -86,19 +87,26 @@
 
 1. **Communication** - Short, dense, concise
 2. **No auto-docs** - Never create docs unless asked
-3. **Investigate first** - Understand before acting
-4. **Confirm before building** - Scope, plan, get approval
-5. **Context7 first** - For library docs before web search
+3. **Product Principles** - Read first, outcomes over outputs
+4. **Business Language** - Avoid jargon in project names
+5. **Investigate first** - Understand before acting
+6. **Confirm before building** - Scope, plan, get approval
+7. **Context7 first** - For library docs before web search
 
 ---
 
-## 📖 Project-Specific Details
+## 📖 Essential Reading (In Order)
 
-**Read `.cursor/rules/way-of-working.mdc` for:**
-- Project overview and tech stack
-- Documentation paths
-- Patterns and conventions
-- File structure
+**Before starting ANY work:**
+1. **`dev-docs/2-areas/product-principles.md`** ⭐ - How we make decisions (Outcomes Over Outputs, Privacy First, etc.)
+2. **`.cursor/rules/way-of-working.mdc`** - Project overview, tech stack, conventions
+3. **`dev-docs/2-areas/patterns/INDEX.md`** - Existing solutions, don't reinvent
+
+**Key principles:**
+- **Outcomes Over Outputs** - Define business outcome before building
+- **Business-Friendly Naming** - Use common language, not jargon
+- **Team Ownership** - Know who owns the work
+- **AI Transparency** - Mark guesses as: `{Your guess} (by AI → not validated yet)`
 
 **For Linear ticket management:**
 - Read `dev-docs/2-areas/linear-integration.md` - Cursor + Linear + GitHub workflow
