@@ -5,6 +5,7 @@
     import GlobalActivityTracker from '$lib/components/GlobalActivityTracker.svelte';
     import AppTopBar from '$lib/components/organizations/AppTopBar.svelte';
     import QuickCreateModal from '$lib/components/QuickCreateModal.svelte';
+    import OrganizationModals from '$lib/components/organizations/OrganizationModals.svelte';
     import { getContext, setContext } from 'svelte';
     import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
     import { useGlobalShortcuts, SHORTCUTS } from '$lib/composables/useGlobalShortcuts.svelte';
@@ -174,6 +175,14 @@
 			currentView={getCurrentView()}
 			initialType={quickCreateInitialType}
 		/>
+
+		<!-- Organization Modals (Create/Join Org, Create/Join Team) -->
+		{#if organizations}
+			<OrganizationModals
+				{organizations}
+				activeOrganizationName={organizations.activeOrganizationName}
+			/>
+		{/if}
 	</div>
 {:else}
 	<!-- Not authenticated - shouldn't reach here due to redirect, but show login prompt -->
