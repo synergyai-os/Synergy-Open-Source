@@ -30,6 +30,7 @@
 | Vercel build: "Could not resolve _generated/dataModel" | Commit _generated to git, separate deployments | [convex-integration.md#L540](convex-integration.md#L540) |
 | Deployment fails: "Could not resolve _generated/dataModel" during bundling | Use import type for _generated imports | [convex-integration.md#L590](convex-integration.md#L590) |
 | Query returns empty, ArgumentValidationError for valid field | Git conflicts block deployment, stale code running | [convex-integration.md#L640](convex-integration.md#L640) |
+| Code compiles but Bugbot finds logic bugs | Automated code review catches architectural mismatches | [convex-integration.md#L700](convex-integration.md#L700) |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -56,6 +57,8 @@
 | `.toLocaleDateString is not a function` | Wrap Convex timestamps in new Date() | [convex-integration.md#L490](convex-integration.md#L490) |
 | Custom JWT auth fails, cyclic import errors | Convex requires OIDC, not raw JWT. Use userId parameter temporarily | [convex-integration.md#L680](convex-integration.md#L680) |
 | After git stash: "Not authenticated" runtime errors | Backend/frontend out of sync. Re-add userId parameters | [convex-integration.md#L690](convex-integration.md#L690) |
+| Production database empty after deployment | Deployed to dev instead of production, need CONVEX_DEPLOY_KEY_PROD | [convex-integration.md#L750](convex-integration.md#L750) |
+| Feature branches outdated after merge | Merge main into branches before deleting merged branch | [convex-integration.md#L800](convex-integration.md#L800) |
 | Analytics events missing in PostHog | Use server-side tracking | [analytics.md#L10](analytics.md#L10) |
 
 ## 🟢 REFERENCE Patterns (Best Practices)
@@ -147,5 +150,5 @@ correct code
 ---
 
 **Last Updated**: 2025-11-10  
-**Pattern Count**: 60  
+**Pattern Count**: 63  
 **Format Version**: 2.0

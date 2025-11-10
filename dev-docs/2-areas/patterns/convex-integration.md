@@ -804,7 +804,193 @@ await convexClient.mutation(api.myModule.myMutation, {
 
 ---
 
-**Pattern Count**: 16  
+## #L700: Bugbot Finds Critical Logic Bugs [🔴 CRITICAL]
+
+**Symptom**: Code compiles, tests pass, but automated code review (Bugbot) finds logic bugs that would break production  
+**Root Cause**: AI code review tools catch architectural mismatches and logic errors that static analysis misses
+
+**What Happened** (RBAC Implementation):
+1. ✅ Code compiled successfully
+2. ✅ Manual testing worked
+3. ✅ CI passed (type errors temporarily disabled)
+4. 🤖 **Bugbot found 3 critical bugs**:
+   - **Role Conflation**: Using legacy `teamMembers.role` instead of RBAC `userRoles` table
+   - **Team-Scoped Permissions Broken**: "own" scope checked `resourceOwnerId` but Team Leads identified by `teamId` in RBAC
+   - **Silent Permission Failures**: Missing `resourceOwnerId` for "own" scope silently failed instead of denying
+
+**Why Static Analysis Missed It**:
+- TypeScript only checks types, not business logic
+- Tests didn't cover edge cases (Team Lead scenarios)
+- Manual testing used Admin role (always works)
+
+**Bugbot Value**:
+- ✅ Found architectural mismatches (old vs new role system)
+- ✅ Caught undefined behavior paths (silent failures)
+- ✅ Identified logic errors before production
+
+**Fix Pattern**:
+```typescript
+// ❌ WRONG: Using legacy role field
+resourceOwnerId: membership?.role === "admin" ? userId : undefined
+
+// ✅ CORRECT: RBAC handles scoping via teamId in userRoles table
+// Don't pass resourceOwnerId - RBAC checks teamId scope automatically
+await requirePermission(ctx, userId, "teams.update", {
+  organizationId: team.organizationId,
+  teamId: args.teamId,
+  resourceType: "team",
+  resourceId: args.teamId,
+  // Note: resourceOwnerId not used - RBAC handles scoping via teamId
+});
+
+// ✅ CORRECT: Handle "own" scope with team-scoped roles
+if (perm.scope === "own") {
+  // CASE 1: Team-scoped permission (Team Lead managing their team)
+  if (context?.teamId && !context.resourceOwnerId) {
+    // getUserPermissions already filtered to roles with matching teamId
+    return true; // User has team-scoped role for this team
+  }
+  // CASE 2: Resource ownership check
+  if (context?.resourceOwnerId) {
+    return context.resourceOwnerId === userId;
+  }
+  // CASE 3: No ownership info - deny explicitly
+  return false;
+}
+```
+
+**Prevention**:
+- ✅ Enable automated code review (Bugbot, CodeQL, etc.)
+- ✅ Review Bugbot findings before merging
+- ✅ Test with different roles (not just Admin)
+- ✅ Document architectural decisions (old vs new systems)
+
+**Apply when**: Using automated code review tools or implementing new systems alongside legacy code  
+**Related**: #L640 (Silent failures), #L680 (Auth patterns)
+
+---
+
+## #L750: Convex Production vs Dev Deployment [🟡 IMPORTANT]
+
+**Symptom**: Code works locally but production database is empty, or deploying to wrong environment  
+**Root Cause**: Convex has separate dev and production deployments, need explicit deploy key
+
+**What Happened**:
+1. ✅ Merged RBAC to `main` (production)
+2. ✅ Deployed with `npx convex deploy` → deployed to **dev** (`blissful-lynx-970`)
+3. ❌ Production (`prestigious-whale-251`) still empty
+4. ❌ User looking at production dashboard sees empty database
+
+**Why It Happened**:
+- `npx convex deploy` defaults to dev deployment
+- Production requires `CONVEX_DEPLOY_KEY_PROD` environment variable
+- No visual indication which deployment you're targeting
+
+**Fix Pattern**:
+```bash
+# ❌ WRONG: Deploys to dev by default
+npx convex deploy
+
+# ✅ CORRECT: Deploy to production using deploy key
+CONVEX_DEPLOY_KEY="prod:prestigious-whale-251|eyJ2MiI6..." npx convex deploy --yes
+
+# Or use env file
+echo "CONVEX_DEPLOYMENT=prestigious-whale-251" > .env.production
+npx convex deploy --env-file .env.production --yes
+```
+
+**Deployment Workflow**:
+```bash
+# 1. Deploy functions to production
+CONVEX_DEPLOY_KEY="prod:prestigious-whale-251|..." npx convex deploy --yes
+
+# 2. Seed data in production
+CONVEX_DEPLOY_KEY="prod:prestigious-whale-251|..." npx convex run rbac/seedRBAC:seedRBAC '{}'
+
+# 3. Assign roles in production
+CONVEX_DEPLOY_KEY="prod:prestigious-whale-251|..." npx convex run rbac/setupAdmin:setupAdmin '{"userId":"..."}'
+```
+
+**Verification**:
+- Check Convex dashboard URL: `prestigious-whale-251` = production
+- Verify deployment in dashboard → Logs tab
+- Check data exists in production tables
+
+**Prevention**:
+- Always check which deployment you're targeting
+- Use `CONVEX_DEPLOY_KEY_PROD` from `.env.local`
+- Verify in Convex dashboard after deployment
+- Document production deployment steps
+
+**Apply when**: Deploying to production or working with multiple Convex environments  
+**Related**: #L640 (Deployment issues), #L510 (Auth deployment)
+
+---
+
+## #L800: Branch Cleanup Before Deletion [🟡 IMPORTANT]
+
+**Symptom**: After merging feature branch to main, other branches become outdated and will cause conflicts later  
+**Root Cause**: Feature branches don't automatically update when main changes
+
+**What Happened**:
+1. ✅ Merged `feature/team-access-permissions` → `main`
+2. ✅ Deleted feature branch
+3. ⚠️ Other branches (`feature/ai-docs-system`, `feature/multi-workspace-auth`) still behind main
+4. ⚠️ Future merges will have conflicts
+
+**Why It Matters**:
+- Other branches missing RBAC foundation
+- Will cause merge conflicts when they're merged
+- Risk of losing work or breaking code
+
+**Fix Pattern**:
+```bash
+# ✅ CORRECT: Update all feature branches before deleting merged branch
+
+# 1. Switch to feature branch
+git checkout feature/ai-docs-system
+
+# 2. Merge main into feature branch (brings it up to date)
+git merge main --no-edit -X theirs
+# -X theirs: Prefer main's version for conflicts (production code)
+
+# 3. Push updated branch
+git push origin feature/ai-docs-system
+
+# 4. Repeat for all active branches
+git checkout feature/multi-workspace-auth
+git merge main --no-edit -X theirs
+git push origin feature/multi-workspace-auth
+
+# 5. Now safe to delete merged branch
+git checkout main
+git branch -d feature/team-access-permissions
+git push origin --delete feature/team-access-permissions
+```
+
+**Merge Strategy**:
+- `-X theirs`: Prefer main's version for conflicts (production code is source of truth)
+- `--no-edit`: Use default merge message
+- Verify branch's unique commits are preserved: `git log feature/branch ^main`
+
+**When to Update Branches**:
+- ✅ After merging major feature to main
+- ✅ Before deleting merged branch
+- ✅ Before starting new work on feature branch
+- ❌ Don't update if branch is abandoned/archived
+
+**Prevention**:
+- Update branches immediately after merge
+- Document branch cleanup in PR template
+- Use branch protection rules (require up-to-date)
+- Regular branch audits (delete stale branches)
+
+**Apply when**: Cleaning up branches after merge or maintaining multiple feature branches  
+**Related**: #L640 (Git conflicts), #L690 (Git stash issues)
+
+---
+
+**Pattern Count**: 19  
 **Last Validated**: 2025-11-10  
 **Context7 Source**: `/get-convex/convex-backend`, WorkOS OIDC docs
 
