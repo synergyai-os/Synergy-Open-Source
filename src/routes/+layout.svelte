@@ -83,8 +83,7 @@
 <!-- Toast notifications - positioned top-right, styled with design tokens -->
 <!-- Loaded client-side only to avoid SSR issues with svelte-sonner -->
 {#if Toaster}
-	<svelte:component 
-		this={Toaster}
+	<Toaster 
 		position="top-right"
 		expand={false}
 		richColors
