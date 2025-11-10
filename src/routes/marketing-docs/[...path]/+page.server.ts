@@ -36,9 +36,6 @@ export const load: PageServerLoad = async ({ params }) => {
 	}
 	
 	// No file found
-	throw error(404, {
-		message: `Marketing documentation page not found: ${path}`,
-		hint: 'Check that the markdown file exists in the marketing-docs/ folder'
-	});
+	throw error(404, `Marketing documentation page not found: ${path}. Check that the markdown file exists in the marketing-docs/ folder.`);
 };
 
