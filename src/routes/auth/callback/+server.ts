@@ -47,12 +47,6 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 		// Create Convex client for server-side mutation
 		const convex = new ConvexHttpClient(publicEnv.PUBLIC_CONVEX_URL);
 		
-		console.log('🔍 Syncing user to Convex:', {
-			convexUrl: publicEnv.PUBLIC_CONVEX_URL,
-			workosId: data.user.id,
-			email: data.user.email
-		});
-		
 		// Sync user to Convex database
 		const convexUserId = await convex.mutation(api.users.syncUserFromWorkOS, {
 			workosId: data.user.id,
@@ -61,8 +55,6 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 			lastName: data.user.last_name,
 			emailVerified: data.user.email_verified ?? true,
 		});
-		
-		console.log('✅ User synced to Convex:', { convexUserId });
 		
 		// Set session cookie with access token
 		cookies.set('wos-session', data.access_token, {
@@ -92,20 +84,15 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 		const redirectTo = state || '/inbox';
 		throw redirect(302, redirectTo);
 	} catch (error) {
-		// Only log actual errors (not redirects, which are thrown as errors in SvelteKit)
-		if (!(error instanceof Response)) {
-			console.error('❌ Auth callback error:', error);
-			console.error('❌ Error details:', {
-				name: error instanceof Error ? error.name : 'Unknown',
-				message: error instanceof Error ? error.message : String(error),
-				stack: error instanceof Error ? error.stack : undefined
-			});
-		}
-		// Re-throw redirects (they're not errors)
+		// Re-throw redirects (they're not errors in SvelteKit)
 		if (error instanceof Response) {
 			throw error;
 		}
-		// For actual errors, redirect with error message
+		
+		// Log actual errors
+		console.error('Auth callback error:', error);
+		
+		// Redirect to login with error message
 		throw redirect(302, '/login?error=callback_failed');
 	}
 };
