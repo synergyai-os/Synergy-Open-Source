@@ -131,7 +131,7 @@ async function getUserPermissions(
   // Get all user's roles
   const userRoles = await ctx.db
     .query("userRoles")
-    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .withIndex("by_user", (q: any) => q.eq("userId", userId))
     .collect();
 
   if (userRoles.length === 0) {
@@ -148,7 +148,7 @@ async function getUserPermissions(
     // Get role-permission mappings
     const rolePerms = await ctx.db
       .query("rolePermissions")
-      .withIndex("by_role", (q) => q.eq("roleId", userRole.roleId))
+      .withIndex("by_role", (q: any) => q.eq("roleId", userRole.roleId))
       .collect();
 
     for (const rolePerm of rolePerms) {

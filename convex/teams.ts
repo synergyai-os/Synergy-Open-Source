@@ -112,10 +112,13 @@ export const listTeams = query({
       return [];
     }
 
+    // After the check above, organizationId is guaranteed to be defined
+    const organizationId = args.organizationId;
+
     const membership = await ctx.db
       .query("organizationMembers")
       .withIndex("by_organization_user", (q) =>
-        q.eq("organizationId", args.organizationId).eq("userId", userId)
+        q.eq("organizationId", organizationId).eq("userId", userId)
       )
       .first();
 
@@ -125,7 +128,7 @@ export const listTeams = query({
 
     const teams = await ctx.db
       .query("teams")
-      .withIndex("by_organization", (q) => q.eq("organizationId", args.organizationId))
+      .withIndex("by_organization", (q) => q.eq("organizationId", organizationId))
       .collect();
 
     const userTeamMemberships = await ctx.db

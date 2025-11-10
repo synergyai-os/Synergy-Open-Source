@@ -5,7 +5,8 @@
  * Only admins/owners can edit organization settings
  */
 
-import { query, mutation, action } from "./_generated/server";
+import { query, mutation, action, internalMutation } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { getAuthUserId } from "./auth";
 
@@ -19,7 +20,7 @@ async function isOrganizationAdmin(
 ): Promise<boolean> {
   const membership = await ctx.db
     .query("organizationMembers")
-    .withIndex("by_organization_user", (q) =>
+    .withIndex("by_organization_user", (q: any) =>
       q.eq("organizationId", organizationId).eq("userId", userId)
     )
     .first();
@@ -122,7 +123,7 @@ export const updateOrganizationClaudeApiKey = action({
     }
 
     // Key is valid, save it
-    await ctx.runMutation(ctx.internalApi.organizationSettings.saveClaudeApiKey, {
+    await ctx.runMutation(internal.organizationSettings.saveClaudeApiKey, {
       organizationId: args.organizationId,
       apiKey: args.apiKey,
     });
@@ -134,7 +135,7 @@ export const updateOrganizationClaudeApiKey = action({
 /**
  * Internal mutation: Save Claude API key to database
  */
-export const saveClaudeApiKey = mutation({
+export const saveClaudeApiKey = internalMutation({
   args: {
     organizationId: v.id("organizations"),
     apiKey: v.string(),

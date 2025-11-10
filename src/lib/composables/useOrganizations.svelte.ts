@@ -329,7 +329,7 @@ export function useOrganizations(options?: { userId?: () => string | undefined }
           
           // Track analytics
           if (posthog) {
-            posthog.capture(AnalyticsEventName.OrganizationCreated, {
+            posthog.capture(AnalyticsEventName.ORGANIZATION_CREATED, {
               organizationId: result.organizationId,
               organizationName: trimmed,
             });

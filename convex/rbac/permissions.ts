@@ -6,7 +6,7 @@
 
 import { query } from "../_generated/server";
 import { v } from "convex/values";
-import { QueryCtx, MutationCtx } from "../_generated/server";
+import type { QueryCtx, MutationCtx } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
 
 // ============================================================================
@@ -284,22 +284,26 @@ async function logPermissionCheck(
   entry: PermissionLogEntry
 ): Promise<void> {
   try {
-    await ctx.db.insert("permissionAuditLog", {
-      userId: entry.userId,
-      action: entry.action,
-      permissionSlug: entry.permissionSlug,
-      roleSlug: entry.roleSlug,
-      resourceType: entry.context?.resourceType,
-      resourceId: entry.context?.resourceId,
-      organizationId: entry.context?.organizationId,
-      teamId: entry.context?.teamId,
-      result: entry.result,
-      reason: entry.reason,
-      metadata: entry.context ? {
-        resourceOwnerId: entry.context.resourceOwnerId,
-      } : undefined,
-      timestamp: Date.now(),
-    });
+    // Type guard: only log in mutation contexts (db.insert only available in mutations)
+    if ('insert' in ctx.db) {
+      await ctx.db.insert("permissionAuditLog", {
+        userId: entry.userId,
+        action: entry.action,
+        permissionSlug: entry.permissionSlug,
+        roleSlug: entry.roleSlug,
+        resourceType: entry.context?.resourceType,
+        resourceId: entry.context?.resourceId,
+        organizationId: entry.context?.organizationId,
+        teamId: entry.context?.teamId,
+        result: entry.result,
+        reason: entry.reason,
+        metadata: entry.context ? {
+          resourceOwnerId: entry.context.resourceOwnerId,
+        } : undefined,
+        timestamp: Date.now(),
+      });
+    }
+    // In query contexts, we silently skip logging (can't write from queries)
   } catch (error) {
     // Don't fail permission check if audit logging fails
     console.error("Failed to log permission check:", error);
