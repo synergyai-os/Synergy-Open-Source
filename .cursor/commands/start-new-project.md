@@ -49,10 +49,13 @@ const LINEAR = {
 
 ## Prerequisites
 
-1. Read `/start` command first (understand codebase)
-2. Read `dev-docs/product-vision-and-plan.md` (understand current state)
-3. Read `dev-docs/patterns/INDEX.md` (check existing patterns)
-4. Read `dev-docs/2-areas/flow-metrics.md` (understand labeling system)
+**Before starting any project, read these in order:**
+
+1. **Read `/start` command** - Understand codebase patterns and architecture
+2. **Read `dev-docs/2-areas/product-principles.md`** ⭐ - How we make decisions (Outcomes Over Outputs, etc.)
+3. **Read `dev-docs/product-vision-and-plan.md`** - Understand current state and direction
+4. **Read `dev-docs/patterns/INDEX.md`** - Check for existing patterns to reuse
+5. **Read `dev-docs/2-areas/flow-metrics.md`** - Understand Linear labeling system
 
 ---
 
@@ -61,12 +64,58 @@ const LINEAR = {
 ### 1. Plan & Validate Architecture
 
 **Before coding**:
+
+#### Define Team & Ownership
+- **Who owns this project?** (e.g., Randy, Platform Team, etc.)
+- If not yet defined, write **"Not defined"** and assign later
+- Document in project README
+
+#### Define Outcome & Success Signals
+- **What business outcome does this achieve?** (not just features)
+- If not yet validated with users, write: **"{Your best guess} (by AI → real outcome is not defined or linked yet)"**
+- Define **success signals**:
+  - **Leading indicators**: Early signals (usage, activity, feedback)
+  - **Lagging indicators**: Outcome signals (revenue, retention, satisfaction)
+- Include **validation plan**: How will you test assumptions with real users?
+
+**Example outcomes**:
+- ❌ Bad: "Build RBAC system" (output, not outcome)
+- ✅ Good: "Enable secure delegation of team management without admin bottlenecks" (business outcome)
+
+#### Validate Naming (Business-Friendly)
+- **Use common language** that all roles understand (not just developers)
+- Avoid technical jargon in project names (e.g., "Team Access & Permissions" not "RBAC Phase 1")
+- **Validate with user** before finalizing names
+- Technical terms OK in developer docs, but use business language for:
+  - Linear project names
+  - Git branch names (can be shorter)
+  - User-facing descriptions
+
+**Example naming**:
+- ❌ Bad: "RBAC Phase 1" (developer jargon)
+- ✅ Good: "Team Access & Permissions" (everyone understands)
+
+#### Check for Existing Projects
+```typescript
+// List existing projects first
+mcp_Linear_list_projects({ team: "SYOS" })
+
+// Validate: Create new project or use existing?
+```
+
+#### Create Architecture Document
 - Create architecture document (if needed)
 - Discuss with user to validate approach
 - Break down into vertical slices (Shape Up style)
 - Get user confirmation on plan
 
 **Example**: `dev-docs/2-areas/workos-convex-auth-architecture.md`
+
+**⚠️ Do NOT start coding until user confirms**:
+1. ✅ Team ownership assigned
+2. ✅ Outcome defined (even if AI guess)
+3. ✅ Naming validated (business-friendly)
+4. ✅ Architecture approach approved
 
 ---
 
@@ -95,14 +144,49 @@ dev-docs/
 ```
 
 **README.md must include**:
-- Project status and Linear link
-- User stories (what we're building)
-- Architecture at-a-glance
-- Vertical slices table (with status)
-- Completion criteria (DoD)
-- What happens after (pattern extraction, archival)
 
-**See**: `dev-docs/1-projects/multi-workspace-auth/README.md` for template
+1. **Project Header**:
+   - Status, branch, Linear link, dates
+
+2. **Team & Ownership** (NEW ⭐):
+   ```markdown
+   ## 👥 Team & Ownership
+   **Team**: [Team Name or "Not defined"]
+   
+   **Key Contributors**:
+   - [Name] - [Role/Responsibility]
+   ```
+
+3. **Outcome & Success Signals** (NEW ⭐):
+   ```markdown
+   ## 🎯 Outcome & Success Signals
+   **Outcome**: {Your outcome guess} (by AI → real outcome is not defined or linked yet)
+   
+   ### How We'll Know We Succeeded
+   **Leading Indicators** (Early signals):
+   - [ ] Signal 1
+   - [ ] Signal 2
+   
+   **Lagging Indicators** (Outcome signals):
+   - [ ] Outcome 1
+   - [ ] Outcome 2
+   
+   ⚠️ These are AI guesses - Validate with real users!
+   
+   **Validation Plan**:
+   1. How to test assumption 1
+   2. How to test assumption 2
+   ```
+
+4. **Project Overview**:
+   - User stories (what we're building)
+   - Architecture at-a-glance
+
+5. **Vertical slices table** (with status)
+6. **Completion criteria** (DoD)
+7. **What happens after** (pattern extraction, archival)
+
+**See**: `dev-docs/1-projects/multi-workspace-auth/README.md` or `dev-docs/1-projects/team-access-permissions/README.md` for templates
 
 ---
 
@@ -129,19 +213,34 @@ mcp_Linear_create_issue({
 1. Step-by-step test
 2. Expected result
 
+**Flow Distribution**: [Type label - auto-filled from labels]
 **Estimate**: X hours
 **Branch**: feature/branch-name
+**Linear ID**: [Will be auto-filled after creation - copy to commits]
   `,
   project: "Project Name",
   state: "Todo",
   labels: [
-    "feature",    // Type: feature | bug | tech-debt | risk
+    "feature",    // Type: feature | bug | tech-debt | risk (REQUIRED for Flow Metrics)
     "backend",    // Scope: frontend | backend | ui | auth | workspace | analytics
     "workspace",  // Scope: Can have multiple
-    "s"           // Size: xs | s | m | l | xl
+    "s"           // Size: xs | s | m | l | xl (REQUIRED for Flow Metrics)
   ]
 })
 ```
+
+**⚠️ After Creating Ticket:**
+1. Copy the returned Linear ticket ID (e.g., `SYOS-123`)
+2. **Update ticket description** to include the ID:
+   ```typescript
+   mcp_Linear_update_issue({
+     id: "issue-id",
+     description: "... **Linear ID**: SYOS-123 ..."
+   })
+   ```
+3. Use this ID in all commit messages: `Linear: SYOS-123`
+
+**Why**: Enables automation, links commits to tickets, tracks Flow Distribution
 
 **Labeling Rules** (see `dev-docs/2-areas/flow-metrics.md`):
 - **Type** (required, one): `feature`, `bug`, `tech-debt`, `risk`
@@ -175,7 +274,23 @@ mcp_Linear_update_project({
   summary: "One-line summary for project list",
   description: `
 # Project Overview
+
+**Team**: [Team Name or "Not defined"]
+
+**Outcome**: {Your outcome guess} (by AI → real outcome is not defined or linked yet)
+
 [What we're building and why]
+
+## Success Signals (How we'll measure)
+**Leading Indicators:**
+- [ ] Signal 1 (AI guess - validate!)
+- [ ] Signal 2 (AI guess - validate!)
+
+**Lagging Indicators:**
+- [ ] Outcome 1 (AI guess - validate!)
+- [ ] Outcome 2 (AI guess - validate!)
+
+⚠️ **These are AI guesses - Talk to users to validate real outcomes!**
 
 ## Goals
 - ✅ Completed goal
@@ -234,7 +349,7 @@ mcp_Linear_update_project({
 
 2. **Build end-to-end** (backend + frontend working together)
 
-3. **Commit** (descriptive message):
+3. **Commit** (descriptive message with Linear ID):
    ```bash
    git add src/ convex/ dev-docs/1-projects/
    git commit -m "✅ [SLICE-N] Title" -m "TYPE: feature | SCOPE: area | SIZE: small | IMPACT: high
@@ -245,6 +360,8 @@ mcp_Linear_update_project({
    Addresses: vertical-slices.md#slice-N
    Linear: SYOS-N"
    ```
+   
+   **⚠️ ALWAYS include `Linear: SYOS-N`** - Enables automation and links commits to tickets
 
 4. **Test with user** (get feedback before next slice)
 

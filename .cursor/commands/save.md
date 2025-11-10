@@ -32,12 +32,18 @@
 - **WHAT VALUE** was delivered? (faster workflow, less errors, better UX)
 - **WHAT SLICE** was completed? (thin, end-to-end functionality that provides value)
 
-**Flow Distribution - Categorize the work:**
+**Flow Distribution - Categorize the work** (for Linear tracking):
 - **🎯 [FEATURE]** - New capability for users
 - **🐛 [BUGFIX]** - Fix broken functionality
 - **🔧 [TECH-DEBT]** - Code quality, refactoring, architecture
 - **📚 [DOCS]** - Documentation, patterns, guides
 - **🔒 [RISK]** - Security, critical hotfixes, data integrity
+
+**⚠️ Linear Integration:**
+- Every Linear ticket MUST include:
+  - **Flow Distribution label**: `feature`, `bug`, `tech-debt`, or `risk`
+  - **Linear ticket ID** in commit message: `Linear: SYOS-123`
+  - This enables automation and Flow Metrics tracking
 
 **User Story Format:**
 ```

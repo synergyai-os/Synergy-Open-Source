@@ -99,3 +99,8 @@
 - Documentation paths
 - Patterns and conventions
 - File structure
+
+**For Linear ticket management:**
+- Read `dev-docs/2-areas/linear-integration.md` - Cursor + Linear + GitHub workflow
+- Read `dev-docs/2-areas/flow-metrics.md` - Flow Distribution tracking
+- Use `/start-new-project` for new initiatives
