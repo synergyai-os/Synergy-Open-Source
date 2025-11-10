@@ -64,9 +64,9 @@ dev-docs/
 
 ---
 
-### 4. Create Linear Tickets (Use MCP)
+### 4. Create Linear Tickets & Initialize Project (Use MCP)
 
-**One ticket per vertical slice**:
+**Step 4a: Create tickets** (one per vertical slice):
 
 ```typescript
 // List teams and projects first
@@ -99,6 +99,54 @@ mcp_Linear_create_issue({
   labels: ["tag1", "tag2"]
 })
 ```
+
+**Step 4b: Initialize Linear project** (for org-wide visibility):
+
+```typescript
+// Get project
+mcp_Linear_get_project({ query: "Project Name" })
+
+// Update with description
+mcp_Linear_update_project({
+  id: "project-id",
+  summary: "One-line summary for project list",
+  description: `
+# Project Overview
+[What we're building and why]
+
+## Goals
+- ✅ Completed goal
+- 🚧 In progress goal
+- ⏳ Upcoming goal
+
+## Architecture
+- **Backend**: Tech stack
+- **Frontend**: Tech stack
+- **Key Patterns**: Design decisions
+
+## Documentation
+- **Project README**: dev-docs/1-projects/[name]/README.md
+- **Architecture**: dev-docs/2-areas/[name].md
+- **Decisions**: dev-docs/1-projects/[name]/decisions/
+
+## Branch
+\`feature/branch-name\`
+
+## Status
+- **Completed**: [List]
+- **In Progress**: [Current slice]
+- **Next**: [Next slice]
+
+## Key Design Decisions
+1. Decision 1 and rationale
+2. Decision 2 and rationale
+  `
+})
+```
+
+**Purpose split**:
+- **Linear Project**: High-level overview for org-wide visibility (PMs, stakeholders, teammates)
+- **Dev-Docs**: Technical details for developers and AI (architecture, patterns, decisions)
 
 **Ticket states**:
 - `"Todo"` - Not started
@@ -137,11 +185,18 @@ mcp_Linear_create_issue({
 
 4. **Test with user** (get feedback before next slice)
 
-5. **Mark complete** in Linear:
+5. **Mark complete** in Linear (ticket + one-line comment):
    ```typescript
+   // Update ticket status
    mcp_Linear_update_issue({
      id: "issue-id",
      state: "Done"
+   })
+   
+   // Add one-line completion comment
+   mcp_Linear_create_comment({
+     issueId: "issue-id",
+     body: "✅ Complete - [What shipped in 1 sentence] | Commit: abc1234"
    })
    ```
 
@@ -197,6 +252,36 @@ git push origin feature/[branch-name]
 ```
 
 **Wait for reviewer approval** before merging.
+
+**After PR merged** → Post project update in Linear (org-wide visibility):
+
+```typescript
+// Post to Linear Updates tab (announces completion to entire org)
+// TODO: Check if Linear MCP supports project updates
+// For now: Manually post update in Linear UI
+```
+
+**Update template**:
+```markdown
+## 🚀 [Project Name] Shipped
+
+**What we built:**
+- Feature 1: Brief description
+- Feature 2: Brief description
+- Feature 3: Brief description
+
+**Impact:**
+[Why this matters to users/org]
+
+**Try it:**
+[How to use the new features]
+
+**Technical details:**
+See dev-docs/1-projects/[name]/ for architecture and decisions
+
+**Merged:** [PR link]
+**Branch:** feature/[name]
+```
 
 ---
 
