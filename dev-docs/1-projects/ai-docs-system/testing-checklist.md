@@ -66,7 +66,7 @@
 ### Test 5: External Links (Should Be Unchanged)
 
 1. Find any external link (starts with `http://` or `https://`)
-   - [ ] Opens in new tab (if target="_blank")
+   - [ ] Opens in new tab (if target="\_blank")
    - [ ] Goes to correct external URL
    - [ ] Not modified by our renderer
 
@@ -129,6 +129,7 @@
 ### Test 1: Automated Validation
 
 1. Create test file with broken link:
+
    ```bash
    echo "[Broken](nonexistent-file.md)" > dev-docs/test-broken.md
    git add dev-docs/test-broken.md
@@ -142,6 +143,7 @@
    - [ ] Error message shows which file and link is broken
 
 3. Fix the broken link:
+
    ```bash
    rm dev-docs/test-broken.md
    git add dev-docs/test-broken.md
@@ -199,6 +201,7 @@
 ## Success Criteria
 
 **All must pass**:
+
 - [ ] All 20+ links in `/dev-docs/2-areas/README.md` work
 - [ ] No "1-", "2-", "3-", "4-" visible in any UI
 - [ ] Link checker catches broken links automatically
@@ -212,20 +215,22 @@
 ## Notes Section
 
 **Issues Found**:
+
 ```
 [Randy: Add any issues you encounter during testing]
 ```
 
 **Suggestions**:
+
 ```
 [Randy: Add any UX improvements noticed during testing]
 ```
 
 **Time Spent Testing**:
+
 ```
 Slice 1: ___ minutes
 Slice 2: ___ minutes
 Slice 3: ___ minutes
 Total: ___ minutes
 ```
-

@@ -8,7 +8,7 @@
 
 Once upon a time (well, not that long ago), there was an ambitious product called "Axon 1.0." It was supposed to be THE knowledge retention system. Polished. Perfect. Ready for the world.
 
-Spoiler alert: It failed. 
+Spoiler alert: It failed.
 
 Not dramatically. Not spectacularly. Just... quietly. Like most first attempts at anything ambitious. The vision was too big, the execution too rigid, the scope too overwhelming. Classic product hubris.
 
@@ -53,16 +53,19 @@ We're practicing what we preach: collecting knowledge (from failures, successes,
 ### Color Palette (Conceptual)
 
 **Primary**: Deep Blues & Purples
+
 - Represents knowledge, depth, thinking
 - Dark mode friendly (because we're developers)
 - Professional but not boring
 
-**Accent**: Warm Oranges & Yellows  
+**Accent**: Warm Oranges & Yellows
+
 - Highlights, energy, "aha!" moments
 - Used sparingly for calls-to-action
 - Represents the lightbulb moments
 
 **Neutral**: Sophisticated Grays
+
 - Clean, modern, readable
 - Supports both light and dark modes
 - Uses our semantic design token system
@@ -99,17 +102,20 @@ No deadlines. No pressure. Just continuous improvement. Built when inspiration s
 ## Target Audience
 
 **Primary**: Knowledge workers, developers, product people
+
 - Learning constantly (books, articles, experience)
 - Struggling to retain information
 - Appreciate good tools and workflows
 - Value authenticity over perfection
 
 **Secondary**: Students, researchers, lifelong learners
+
 - Similar problems, different context
 - Want structured systems for learning
 - Interested in spaced repetition and active recall
 
 **Tertiary**: AI/ML enthusiasts, tool builders
+
 - Interested in our human + AI collaboration model
 - Want to see how we use cursor commands and workflows
 - Might fork our project and build their own version
@@ -117,18 +123,22 @@ No deadlines. No pressure. Just continuous improvement. Built when inspiration s
 ## Brand Voice Examples
 
 ### Blog Post Title Style
-- ❌ "Introducing Axon: The Future of Knowledge Management"  
+
+- ❌ "Introducing Axon: The Future of Knowledge Management"
 - ✅ "The Rebirth of SynergyOS: How We Failed at 1.0 and Started Over"
 
 ### Feature Announcement Style
+
 - ❌ "New Feature: Advanced Note-Taking Capabilities"
 - ✅ "We Built a Note Editor with ProseMirror (And It Actually Detects AI-Generated Content)"
 
 ### Documentation Style
+
 - ❌ "Please refer to the comprehensive API documentation"
 - ✅ "Check out `dev-docs/patterns-and-lessons.md` - we documented every mistake so you don't have to make them"
 
 ### Social Media Style
+
 - ❌ "Excited to announce our latest product updates!"
 - ✅ "Remember when we said we'd never use version numbers again? We meant it. Here's what we built this week."
 
@@ -139,6 +149,7 @@ No deadlines. No pressure. Just continuous improvement. Built when inspiration s
 Our blog posts aren't just for humans. They're for ChatGPT, Claude, and every other AI that scrapes the web.
 
 **Strategy**:
+
 1. Write content that's genuinely useful (AI can smell BS)
 2. Link between posts to create a knowledge graph
 3. Use clear, semantic structure (AI loves headers and lists)
@@ -166,7 +177,7 @@ If it helps 10 people, great. If it helps 10,000 people, even better. If it teac
 ### Collaboration Welcome
 
 - Fork it
-- Build on it  
+- Build on it
 - Learn from it
 - Share what you learned
 - Teach us something new
@@ -177,4 +188,3 @@ That's the Synergy in SynergyOS.
 
 **Last Updated**: January 2025  
 **Status**: Living document - will evolve as we learn and grow
-

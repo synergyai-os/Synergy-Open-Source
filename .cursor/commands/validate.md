@@ -19,6 +19,7 @@ This command guides you through the 5-step validation process to systematically 
 ### Step 1: Load Validation Framework
 
 **AI Action**:
+
 ```
 Load: dev-docs/2-areas/validation-framework.md
 Load: dev-docs/2-areas/confidentiality-guidelines.md (CRITICAL: Check before sharing)
@@ -29,15 +30,18 @@ Load: dev-docs/2-areas/confidentiality-guidelines.md (CRITICAL: Check before sha
 ### Step 2: State the Hypothesis
 
 **AI Prompt to User**:
+
 > "What feature or idea do you want to validate?"
 
 **AI Task**:
+
 - Extract: Who (target users), What (problem), Why (evidence), Solution, Behavior change, Business outcome
 - Format as hypothesis statement (see validation-framework.md template)
 - **CRITICAL**: Check for client-sensitive information (see confidentiality-guidelines.md)
 - Replace specific client names with generic descriptors if needed
 
 **Example Output**:
+
 > "We believe **[target users]** have **[problem]** because **[evidence]**. If we build **[solution]**, they will **[behavior]** which will result in **[business outcome]**."
 
 ---
@@ -45,11 +49,13 @@ Load: dev-docs/2-areas/confidentiality-guidelines.md (CRITICAL: Check before sha
 ### Step 3: Identify Riskiest Assumptions
 
 **AI Task**:
+
 - List assumptions in 4 categories: Desirability, Feasibility, Viability, Usability
 - Assign confidence level to each (🔴 Low, 🟡 Medium, 🟢 High)
 - Identify the reddest/yellowest assumption to test first
 
 **Example Output**:
+
 ```
 Assumptions:
 1. 🔴 Desirability: Users actually want this (not just say they do)
@@ -65,11 +71,13 @@ RISKIEST: Desirability (test this first)
 ### Step 4: Design Experiment
 
 **AI Task**:
+
 - Suggest 2-3 experiment types from validation-framework.md (ordered by speed/cost)
 - For each: Time estimate, Cost, Confidence level gained
 - Recommend the fastest/cheapest experiment that addresses the riskiest assumption
 
 **Example Output**:
+
 ```
 Experiment Options:
 1. Customer Interviews (5 users) - 2 days, $0, 🟡 Medium confidence
@@ -84,11 +92,13 @@ RECOMMENDED: Option 1 (fastest way to test desirability)
 ### Step 5: Define Success Criteria
 
 **AI Task**:
+
 - Based on experiment type, suggest specific success metrics
 - Define threshold for success (e.g., "4/5 users say yes")
 - Set time limit (1-7 days)
 
 **Example Output**:
+
 ```
 Success Criteria:
 - Metric: # of users who say "yes, I'd pay for this"
@@ -104,32 +114,39 @@ If not met → 🔴 Low confidence → Pivot or kill
 ### Step 6: Create Experiment Plan
 
 **AI Task**:
+
 - Generate experiment plan document (markdown format)
 - Include: Hypothesis, assumptions, experiment design, success criteria, execution checklist
 - Save to: `dev-docs/1-projects/experiments/[feature-name]-validation.md`
 - **CRITICAL**: Scan for client-sensitive information before saving
 
 **Example Output**:
+
 ```markdown
 # [Feature Name] Validation Experiment
 
 ## Hypothesis
+
 [Formatted hypothesis from Step 2]
 
 ## Riskiest Assumption
+
 [From Step 3]
 
 ## Experiment Design
+
 **Type**: Customer Interviews
 **Time**: 2 days
 **Cost**: $0
 **Participants**: 5 product managers
 
 ## Success Criteria
+
 - 4/5 users say "yes, I'd pay for this"
 - Time limit: 2 days
 
 ## Execution Checklist
+
 - [ ] Recruit 5 target users
 - [ ] Prepare interview script
 - [ ] Run interviews (record + take notes)
@@ -138,9 +155,11 @@ If not met → 🔴 Low confidence → Pivot or kill
 - [ ] Make decision (build/iterate/kill)
 
 ## Results
+
 [Fill in after experiment]
 
 ## Decision
+
 [Fill in after analysis]
 ```
 
@@ -149,15 +168,18 @@ If not met → 🔴 Low confidence → Pivot or kill
 ## 🛡️ Confidentiality Checks (CRITICAL)
 
 **AI Must**:
+
 1. **Before sharing any plan**: Scan for client names, pricing details, unreleased features
 2. **Replace sensitive info**: Use generic descriptors (see confidentiality-guidelines.md)
 3. **Flag for approval**: If testimonials/case studies needed, note approval required
 
 **Examples**:
+
 - ❌ "Saprolab wants feature X" → ✅ "A design agency pilot requested feature X"
 - ❌ "ZDHC pays $80/month" → ✅ "Pilot customers pay $60-100/month"
 
 **Approval Needed**:
+
 - Using specific client names → Get written approval first
 - Sharing pricing details → Confirm with leadership
 - Discussing unreleased features → Wait for announcement
@@ -175,6 +197,7 @@ If not met → 🔴 Low confidence → Pivot or kill
 ## ✅ Success Indicators
 
 **This command is successful when**:
+
 1. Hypothesis clearly stated
 2. Riskiest assumption identified
 3. Experiment designed (fastest/cheapest)
@@ -191,6 +214,7 @@ If not met → 🔴 Low confidence → Pivot or kill
 **Input**: "Should we build documentation features for customers?"
 
 **Output**:
+
 - Hypothesis: Teams need to document knowledge (glossaries, specs)
 - Riskiest Assumption: 🟡 Teams actually document (vs. verbal)
 - Experiment: Wizard of Oz (use it ourselves first)
@@ -207,6 +231,7 @@ If not met → 🔴 Low confidence → Pivot or kill
 **Input**: "Pilot customers want OKR tracking"
 
 **Output**:
+
 - Hypothesis: Teams struggle to track OKRs separately
 - Riskiest Assumption: 🔴 They'll pay for OKR tracking (vs. free Google Sheets)
 - Experiment: Customer Interviews + Mockup Test
@@ -219,6 +244,7 @@ If not met → 🔴 Low confidence → Pivot or kill
 ## 🚫 Anti-Patterns
 
 **Don't**:
+
 - ❌ Skip validation ("we already know users want this")
 - ❌ Build without experiments ("let's just try it")
 - ❌ Ignore negative feedback (confirmation bias)
@@ -226,6 +252,7 @@ If not met → 🔴 Low confidence → Pivot or kill
 - ❌ Validation takes > 1 week (analysis paralysis)
 
 **Do**:
+
 - ✅ State hypothesis clearly
 - ✅ Test cheapest/fastest experiment first
 - ✅ Set time limits (1-7 days)
@@ -248,6 +275,7 @@ If not met → 🔴 Low confidence → Pivot or kill
 When `/Axon/validate` is called:
 
 1. **Load frameworks**:
+
    ```
    Load: dev-docs/2-areas/validation-framework.md
    Load: dev-docs/2-areas/confidentiality-guidelines.md
@@ -284,4 +312,3 @@ When `/Axon/validate` is called:
 **Status**: 🟢 Active  
 **Last Updated**: November 8, 2025  
 **Owner**: Randy (Founder)
-

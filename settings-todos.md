@@ -12,11 +12,13 @@
 ### API Keys - Workspace Scoping
 
 **Personal Workspace:**
+
 - [ ] Show Readwise API key input (user-owned)
 - [ ] Show Claude API key input (personal, optional)
 - [ ] Keep existing validation logic
 
 **Organization Workspace:**
+
 - [ ] Show Readwise API key input (user's personal key for org imports)
   - [ ] Add "Use my personal key" button (copies from personal settings)
   - [ ] Show message: "Your personal Readwise account - imports will be shared with org"
@@ -28,6 +30,7 @@
 - [ ] Wire up org Claude key validation/save/delete
 
 ### Theme Setting
+
 - [ ] Make theme work in personal workspace (current behavior)
 - [ ] **Disable** theme in org workspace (show as "Coming soon")
 - [ ] Add helpful message: "Theme preferences are personal. Switch to personal workspace to change."
@@ -35,6 +38,7 @@
 ## 📋 Future Enhancements (Not Now)
 
 ### Phase 1: Complete Workspace-Scoped Settings
+
 - [ ] Implement "Use my personal key" button for Readwise
   - Query personal settings
   - Copy Readwise key to current workspace input
@@ -48,6 +52,7 @@
   - [ ] "🔒 Admin Only" for admin-controlled settings
 
 ### Phase 2: Advanced Features
+
 - [ ] Readwise sync history per workspace
   - Show last sync time per workspace
   - Separate sync state for personal vs org
@@ -63,6 +68,7 @@
   - Team preferences
 
 ### Phase 3: Settings Management
+
 - [ ] Settings export/import
 - [ ] Audit log for org settings changes
 - [ ] Bulk settings management for admins
@@ -71,6 +77,7 @@
 ## 🎨 UI/UX Improvements
 
 ### Organization Settings Page
+
 - [ ] Add tabbed interface:
   - "API Keys" tab
   - "Preferences" tab (theme, etc.)
@@ -81,6 +88,7 @@
 - [ ] Add keyboard shortcuts
 
 ### Personal Settings Page
+
 - [ ] Keep clean, simple layout
 - [ ] Add "Quick Actions" section
 - [ ] Add settings search
@@ -105,6 +113,7 @@
 ## 🧪 Testing Checklist
 
 ### Manual Testing
+
 - [ ] Personal workspace - all settings work
 - [ ] Org workspace - admin can edit
 - [ ] Org workspace - non-admin sees read-only/disabled
@@ -114,6 +123,7 @@
 - [ ] Delete keys works in both contexts
 
 ### Automated Testing
+
 - [ ] Unit tests for permission helpers
 - [ ] Integration tests for settings queries
 - [ ] E2E tests for settings flow
@@ -130,31 +140,37 @@
 ## 🐛 Known Issues
 
 ### Critical
+
 - None yet
 
 ### Important
+
 - Settings page is 693 lines - needs refactoring into components
 - No loading states between workspace switches
 - No optimistic updates
 
 ### Nice to Have
+
 - Add settings version/migration system
 - Add settings validation UI (show which settings are incomplete)
 
 ## 💡 Future Ideas
 
 ### Smart Features
+
 - [ ] Auto-detect if Readwise key is same across workspaces
 - [ ] Suggest Claude API key for org if user has personal key
 - [ ] Settings recommendations based on usage
 - [ ] Settings presets (e.g., "Recommended for teams")
 
 ### Integration Features
+
 - [ ] Connect multiple Readwise accounts (different sources)
 - [ ] Support other import sources (Kindle, etc.)
 - [ ] Support other AI providers (GPT-4, etc.)
 
 ### Organization Features
+
 - [ ] Organization-wide settings policies
 - [ ] Force certain settings for all members
 - [ ] Settings inheritance (org → team → user)
@@ -166,6 +182,7 @@
 ### Current Architecture
 
 **Personal Settings**:
+
 ```typescript
 userSettings: {
   userId: Id<"users">,
@@ -177,6 +194,7 @@ userSettings: {
 ```
 
 **Organization Settings**:
+
 ```typescript
 organizationSettings: {
   organizationId: Id<"organizations">,
@@ -205,9 +223,11 @@ organizationSettings: {
 ### Permission Model
 
 **Personal Settings**:
+
 - User can edit all their own settings
 
 **Organization Settings**:
+
 - Members: Can view (but not edit) org settings
 - Admins: Can edit all org settings
 - Owners: Can edit all org settings + delete org
@@ -216,4 +236,3 @@ organizationSettings: {
 
 **Last Updated**: 2025-11-07
 **Status**: Minimal working version in progress
-

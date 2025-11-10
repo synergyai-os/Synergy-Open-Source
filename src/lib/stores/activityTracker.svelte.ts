@@ -1,6 +1,6 @@
 /**
  * Global Activity Tracker Store
- * 
+ *
  * Manages all background activities (sync, import, export, notifications, etc.)
  * Uses Svelte 5 $state for reactive state management
  */
@@ -10,25 +10,25 @@ export interface ActivityProgress {
 	current?: number;
 	total?: number;
 	percentage?: number;
-	
+
 	// Indeterminate progress
 	indeterminate?: boolean;
-	
+
 	// Step-based progress
 	currentStep?: number;
 	totalSteps?: number;
 	steps?: Array<{ id: number; name: string; completed: boolean; current?: boolean }>;
-	
+
 	// Queue progress
 	queuePosition?: number;
 	totalInQueue?: number;
-	
+
 	// Free-form progress info
 	step?: string;
 	message?: string;
 	details?: string;
 	subStep?: string;
-	
+
 	// Time estimates
 	estimatedTimeRemaining?: number; // seconds
 	startedAt?: number;
@@ -46,10 +46,10 @@ export interface Activity {
 	id: string;
 	type: string; // 'sync' | 'generation' | 'bulk' | 'notification' | 'export' | etc.
 	status: 'pending' | 'running' | 'completed' | 'error' | 'cancelled';
-	
+
 	// Flexible progress tracking
 	progress?: ActivityProgress;
-	
+
 	// Flexible metadata per activity type
 	metadata?: {
 		source?: string; // 'readwise', 'manual', 'ai', etc.
@@ -59,21 +59,21 @@ export interface Activity {
 		itemType?: string; // Related item type
 		[key: string]: any; // Extensible for future needs
 	};
-	
+
 	// User interactions
 	quickActions?: ActivityQuickAction[];
-	
+
 	// Lifecycle
 	onCancel?: () => void;
 	onDismiss?: () => void;
 	autoDismiss?: boolean;
 	dismissAfter?: number; // milliseconds
-	
+
 	// Visual customization
 	icon?: string;
 	color?: string;
 	priority?: number; // For ordering when multiple activities
-	
+
 	// Timestamps
 	createdAt: number;
 	updatedAt: number;
@@ -100,12 +100,12 @@ export function addActivity(activity: Omit<Activity, 'createdAt' | 'updatedAt'>)
 		createdAt: Date.now(),
 		updatedAt: Date.now()
 	};
-	
+
 	activityState.activities.push(newActivity);
-	
+
 	// Note: Polling is managed by GlobalActivityTracker component via $effect
 	// Do not call startPolling() here - it requires a pollFunction parameter
-	
+
 	return newActivity.id;
 }
 
@@ -113,7 +113,7 @@ export function addActivity(activity: Omit<Activity, 'createdAt' | 'updatedAt'>)
  * Update an existing activity
  */
 export function updateActivity(id: string, updates: Partial<Activity>): void {
-	const activity = activityState.activities.find(a => a.id === id);
+	const activity = activityState.activities.find((a) => a.id === id);
 	if (activity) {
 		Object.assign(activity, updates);
 		activity.updatedAt = Date.now();
@@ -124,13 +124,13 @@ export function updateActivity(id: string, updates: Partial<Activity>): void {
  * Remove an activity from the tracker
  */
 export function removeActivity(id: string): void {
-	const index = activityState.activities.findIndex(a => a.id === id);
+	const index = activityState.activities.findIndex((a) => a.id === id);
 	if (index !== -1) {
 		activityState.activities.splice(index, 1);
-		
+
 		// Clean up dismiss timer tracking
 		activityState.dismissTimers.delete(id);
-		
+
 		// Stop polling if no more activities
 		if (activityState.activities.length === 0 && activityState.pollingInterval) {
 			stopPolling();
@@ -142,14 +142,14 @@ export function removeActivity(id: string): void {
  * Find activity by ID
  */
 export function getActivity(id: string): Activity | undefined {
-	return activityState.activities.find(a => a.id === id);
+	return activityState.activities.find((a) => a.id === id);
 }
 
 /**
  * Find activities by type
  */
 export function getActivitiesByType(type: string): Activity[] {
-	return activityState.activities.filter(a => a.type === type);
+	return activityState.activities.filter((a) => a.type === type);
 }
 
 /**
@@ -160,7 +160,7 @@ export function startPolling(pollFunction: () => Promise<void>): void {
 	if (activityState.pollingInterval) {
 		return; // Already polling
 	}
-	
+
 	activityState.pollingInterval = setInterval(async () => {
 		await pollFunction();
 	}, 500);
@@ -186,7 +186,7 @@ export function setupAutoDismiss(): void {
 			// Only set up timer if one doesn't already exist for this activity
 			if (!activityState.dismissTimers.has(activity.id)) {
 				activityState.dismissTimers.add(activity.id);
-				
+
 				setTimeout(() => {
 					// Remove from tracking set before removing activity
 					activityState.dismissTimers.delete(activity.id);
@@ -196,4 +196,3 @@ export function setupAutoDismiss(): void {
 		}
 	}
 }
-

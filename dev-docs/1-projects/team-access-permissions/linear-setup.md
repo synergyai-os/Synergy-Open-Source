@@ -9,7 +9,7 @@
 First, let's verify your team name:
 
 ```typescript
-mcp_Linear_list_teams()
+mcp_Linear_list_teams();
 ```
 
 **Expected**: Should show "SYOS" team
@@ -20,10 +20,10 @@ mcp_Linear_list_teams()
 
 ```typescript
 mcp_Linear_create_project({
-  team: "SYOS",
-  name: "RBAC Phase 1: Permissions System",
-  summary: "Implement permission-based access control for user/team management",
-  description: `
+	team: 'SYOS',
+	name: 'RBAC Phase 1: Permissions System',
+	summary: 'Implement permission-based access control for user/team management',
+	description: `
 # RBAC Phase 1: User & Team Management Permissions
 
 ## Overview
@@ -72,8 +72,8 @@ Implement permission-based access control system where users can have multiple r
 4. **Medium Granularity**: Action-based permissions (teams.create, not teams.manage)
 5. **Complete Audit Trail**: All permission checks and role changes logged
   `,
-  state: "planned"
-})
+	state: 'planned'
+});
 ```
 
 ---
@@ -84,9 +84,9 @@ Implement permission-based access control system where users can have multiple r
 
 ```typescript
 mcp_Linear_create_issue({
-  team: "SYOS",
-  title: "[Slice 1] Database Foundation - Schema + Seed Data",
-  description: `
+	team: 'SYOS',
+	title: '[Slice 1] Database Foundation - Schema + Seed Data',
+	description: `
 **Goal**: Create database schema and seed initial roles/permissions data
 
 **Acceptance Criteria:**
@@ -119,19 +119,19 @@ mcp_Linear_create_issue({
 
 **Branch**: feature/rbac-phase-1
   `,
-  project: "RBAC Phase 1: Permissions System",
-  state: "Todo",
-  labels: ["backend", "database", "rbac"]
-})
+	project: 'RBAC Phase 1: Permissions System',
+	state: 'Todo',
+	labels: ['backend', 'database', 'rbac']
+});
 ```
 
 ### Slice 2: Core Permission Functions
 
 ```typescript
 mcp_Linear_create_issue({
-  team: "SYOS",
-  title: "[Slice 2] Core Permission Functions - Permission Checking Logic",
-  description: `
+	team: 'SYOS',
+	title: '[Slice 2] Core Permission Functions - Permission Checking Logic',
+	description: `
 **Goal**: Implement permission checking logic with scope support
 
 **Acceptance Criteria:**
@@ -165,19 +165,19 @@ mcp_Linear_create_issue({
 **Branch**: feature/rbac-phase-1
 **Depends On**: Slice 1 (needs seeded data)
   `,
-  project: "RBAC Phase 1: Permissions System",
-  state: "Todo",
-  labels: ["backend", "rbac", "testing"]
-})
+	project: 'RBAC Phase 1: Permissions System',
+	state: 'Todo',
+	labels: ['backend', 'rbac', 'testing']
+});
 ```
 
 ### Slice 3: Role Management
 
 ```typescript
 mcp_Linear_create_issue({
-  team: "SYOS",
-  title: "[Slice 3] Role Management - Assign/Revoke Roles",
-  description: `
+	team: 'SYOS',
+	title: '[Slice 3] Role Management - Assign/Revoke Roles',
+	description: `
 **Goal**: Assign and revoke roles with audit logging
 
 **Acceptance Criteria:**
@@ -215,19 +215,19 @@ mcp_Linear_create_issue({
 **Branch**: feature/rbac-phase-1
 **Depends On**: Slices 1-2
   `,
-  project: "RBAC Phase 1: Permissions System",
-  state: "Todo",
-  labels: ["backend", "rbac", "testing"]
-})
+	project: 'RBAC Phase 1: Permissions System',
+	state: 'Todo',
+	labels: ['backend', 'rbac', 'testing']
+});
 ```
 
 ### Slice 4: Team Management Protection
 
 ```typescript
 mcp_Linear_create_issue({
-  team: "SYOS",
-  title: "[Slice 4] Team Management Protection - Permission Gates",
-  description: `
+	team: 'SYOS',
+	title: '[Slice 4] Team Management Protection - Permission Gates',
+	description: `
 **Goal**: Gate team CRUD operations with permission checks
 
 **Acceptance Criteria:**
@@ -265,19 +265,19 @@ mcp_Linear_create_issue({
 **Branch**: feature/rbac-phase-1
 **Depends On**: Slices 1-3
   `,
-  project: "RBAC Phase 1: Permissions System",
-  state: "Todo",
-  labels: ["backend", "rbac", "teams", "testing"]
-})
+	project: 'RBAC Phase 1: Permissions System',
+	state: 'Todo',
+	labels: ['backend', 'rbac', 'teams', 'testing']
+});
 ```
 
 ### Slice 5: User Management Protection
 
 ```typescript
 mcp_Linear_create_issue({
-  team: "SYOS",
-  title: "[Slice 5] User Management Protection - Permission Gates",
-  description: `
+	team: 'SYOS',
+	title: '[Slice 5] User Management Protection - Permission Gates',
+	description: `
 **Goal**: Gate user operations with permission checks
 
 **Acceptance Criteria:**
@@ -316,19 +316,19 @@ mcp_Linear_create_issue({
 **Branch**: feature/rbac-phase-1
 **Depends On**: Slices 1-3
   `,
-  project: "RBAC Phase 1: Permissions System",
-  state: "Todo",
-  labels: ["backend", "rbac", "users", "testing"]
-})
+	project: 'RBAC Phase 1: Permissions System',
+	state: 'Todo',
+	labels: ['backend', 'rbac', 'users', 'testing']
+});
 ```
 
 ### Slice 6: Frontend Permission System
 
 ```typescript
 mcp_Linear_create_issue({
-  team: "SYOS",
-  title: "[Slice 6] Frontend Permission System - Composable + UI Gates",
-  description: `
+	team: 'SYOS',
+	title: '[Slice 6] Frontend Permission System - Composable + UI Gates',
+	description: `
 **Goal**: Implement frontend composable and UI permission gates
 
 **Acceptance Criteria:**
@@ -370,19 +370,19 @@ mcp_Linear_create_issue({
 **Branch**: feature/rbac-phase-1
 **Depends On**: Slices 1-5 (needs complete backend)
   `,
-  project: "RBAC Phase 1: Permissions System",
-  state: "Todo",
-  labels: ["frontend", "rbac", "svelte", "testing"]
-})
+	project: 'RBAC Phase 1: Permissions System',
+	state: 'Todo',
+	labels: ['frontend', 'rbac', 'svelte', 'testing']
+});
 ```
 
 ### Slice 7: Testing & Documentation
 
 ```typescript
 mcp_Linear_create_issue({
-  team: "SYOS",
-  title: "[Slice 7] Testing & Documentation - Complete Coverage",
-  description: `
+	team: 'SYOS',
+	title: '[Slice 7] Testing & Documentation - Complete Coverage',
+	description: `
 **Goal**: Complete test coverage and update documentation
 
 **Acceptance Criteria:**
@@ -427,10 +427,10 @@ mcp_Linear_create_issue({
 **Branch**: feature/rbac-phase-1
 **Depends On**: Slices 1-6 (needs complete system)
   `,
-  project: "RBAC Phase 1: Permissions System",
-  state: "Todo",
-  labels: ["testing", "documentation", "rbac"]
-})
+	project: 'RBAC Phase 1: Permissions System',
+	state: 'Todo',
+	labels: ['testing', 'documentation', 'rbac']
+});
 ```
 
 ---
@@ -449,13 +449,11 @@ After running all commands above, you should have:
 
 ```typescript
 // Get issue ID from Linear
-mcp_Linear_list_issues({ team: "SYOS", query: "[Slice 1]" })
+mcp_Linear_list_issues({ team: 'SYOS', query: '[Slice 1]' });
 
 // Update to In Progress
 mcp_Linear_update_issue({
-  id: "SYOS-XXX",  // Replace with actual ID
-  state: "In Progress"
-})
+	id: 'SYOS-XXX', // Replace with actual ID
+	state: 'In Progress'
+});
 ```
-
-

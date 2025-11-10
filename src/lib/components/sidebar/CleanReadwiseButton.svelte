@@ -10,7 +10,9 @@
 	let success = $state(false);
 
 	const convexClient = browser ? useConvexClient() : null;
-	const cleanApi = browser ? makeFunctionReference('cleanReadwiseData:cleanReadwiseData') as any : null;
+	const cleanApi = browser
+		? (makeFunctionReference('cleanReadwiseData:cleanReadwiseData') as any)
+		: null;
 
 	async function handleClean() {
 		if (!browser || !convexClient || !cleanApi) return;
@@ -28,7 +30,7 @@
 			const result = await convexClient.action(cleanApi, {});
 			console.log('Cleanup result:', result);
 			success = true;
-			
+
 			// Reload page after 1 second to refresh data
 			setTimeout(() => {
 				if (browser) {
@@ -52,17 +54,15 @@
 
 {#if showConfirm}
 	<div class="space-y-0.5">
-		<p class="text-label text-sidebar-tertiary px-nav-item py-1 mb-1">
-			Are you sure?
-		</p>
+		<p class="mb-1 px-nav-item py-1 text-label text-sidebar-tertiary">Are you sure?</p>
 		<button
 			type="button"
 			onclick={handleClean}
 			disabled={isCleaning}
-			class="group w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 text-sm text-white font-normal"
+			class="group flex w-full items-center gap-icon rounded-md bg-red-600 px-nav-item py-nav-item text-sm font-normal text-white transition-all duration-150 hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
 		>
 			<svg
-				class="w-4 h-4 flex-shrink-0"
+				class="h-4 w-4 flex-shrink-0"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -81,25 +81,25 @@
 			type="button"
 			onclick={handleCancel}
 			disabled={isCleaning}
-			class="group w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary font-normal"
+			class="group flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item text-sm font-normal text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 		>
 			<span>Cancel</span>
 		</button>
 		{#if error}
-			<p class="text-label text-red-500 px-nav-item">{error}</p>
+			<p class="px-nav-item text-label text-red-500">{error}</p>
 		{/if}
 		{#if success}
-			<p class="text-label text-green-500 px-nav-item">Cleaned! Reloading...</p>
+			<p class="px-nav-item text-label text-green-500">Cleaned! Reloading...</p>
 		{/if}
 	</div>
 {:else}
 	<button
 		type="button"
 		onclick={handleClean}
-		class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+		class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 	>
 		<svg
-			class="w-4 h-4 flex-shrink-0"
+			class="h-4 w-4 flex-shrink-0"
 			fill="none"
 			stroke="currentColor"
 			viewBox="0 0 24 24"
@@ -115,4 +115,3 @@
 		<span class="font-normal">Clean Readwise Sync</span>
 	</button>
 {/if}
-

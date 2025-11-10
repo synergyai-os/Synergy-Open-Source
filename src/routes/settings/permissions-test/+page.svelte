@@ -17,13 +17,13 @@
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
 	const activeOrganizationId = $derived(organizations?.activeOrganizationId ?? null);
 	const activeOrganization = $derived(
-		organizations?.organizations.find(org => org.organizationId === activeOrganizationId)
+		organizations?.organizations.find((org) => org.organizationId === activeOrganizationId)
 	);
 
 	// Initialize permissions composable with workspace context
 	const permissions = usePermissions({
 		userId: () => userId as any,
-		organizationId: () => activeOrganizationId as any,
+		organizationId: () => activeOrganizationId as any
 	});
 
 	// Convex client
@@ -45,7 +45,7 @@
 			await convexClient.mutation(api.teams.createTeam, {
 				organizationId: activeOrganizationId as any,
 				name: `Test Team ${Math.floor(Math.random() * 1000)}`,
-				userId: userId as any, // Temporary: pass explicitly until Convex auth is set up
+				userId: userId as any // Temporary: pass explicitly until Convex auth is set up
 			});
 			toast.success('✅ Team created successfully', { id: loading });
 		} catch (error: any) {
@@ -65,7 +65,7 @@
 				organizationId: activeOrganizationId as any,
 				email: `test${Math.floor(Math.random() * 1000)}@example.com`,
 				role: 'member',
-				userId: userId as any, // Temporary: pass explicitly until Convex auth is set up
+				userId: userId as any // Temporary: pass explicitly until Convex auth is set up
 			});
 			toast.success('✅ User invited successfully', { id: loading });
 		} catch (error: any) {
@@ -85,7 +85,7 @@
 				targetUserId: userId as any,
 				firstName: `Test${Math.floor(Math.random() * 100)}`,
 				lastName: 'User',
-				userId: userId as any, // Temporary: pass explicitly until Convex auth is set up
+				userId: userId as any // Temporary: pass explicitly until Convex auth is set up
 			});
 			toast.success('✅ Profile updated successfully', { id: loading });
 		} catch (error: any) {
@@ -101,34 +101,28 @@
 <div class="container-constrained py-section">
 	<!-- Page Header with Workspace Context -->
 	<header class="mb-section-tight">
-		<div class="flex items-baseline gap-icon mb-2">
-			<h1 class="text-display-lg font-semibold text-primary">
-				Permission System Test
-			</h1>
+		<div class="mb-2 flex items-baseline gap-icon">
+			<h1 class="text-display-lg font-semibold text-primary">Permission System Test</h1>
 			{#if activeOrganization}
 				<span class="text-sm text-secondary">
 					for <strong class="text-primary">{activeOrganization.name}</strong>
 				</span>
 			{:else}
-				<span class="text-sm text-danger">
-					⚠️ No organization selected
-				</span>
+				<span class="text-danger text-sm"> ⚠️ No organization selected </span>
 			{/if}
 		</div>
-		<p class="text-body text-secondary max-w-prose">
+		<p class="text-body max-w-prose text-secondary">
 			Test and verify the RBAC permission system with your current user account
 		</p>
 	</header>
 
 	<!-- Status Overview Card (Collapsible) -->
 	<div class="card p-card mb-section-normal bg-surface-secondary">
-		<div class="flex items-center justify-between mb-4">
-			<h2 class="text-display-sm font-semibold text-primary">
-				Current Status
-			</h2>
+		<div class="mb-4 flex items-center justify-between">
+			<h2 class="text-display-sm font-semibold text-primary">Current Status</h2>
 			<button
-				onclick={() => showPermissionDetails = !showPermissionDetails}
-				class="text-sm text-link hover:underline"
+				onclick={() => (showPermissionDetails = !showPermissionDetails)}
+				class="text-link text-sm hover:underline"
 			>
 				{showPermissionDetails ? 'Hide' : 'Show'} Details
 			</button>
@@ -136,14 +130,14 @@
 		<dl class="space-y-3">
 			<div>
 				<dt class="text-label text-secondary">User ID</dt>
-				<dd class="text-body text-primary font-mono">{userId ?? 'Not logged in'}</dd>
+				<dd class="text-body font-mono text-primary">{userId ?? 'Not logged in'}</dd>
 			</div>
 			<div>
 				<dt class="text-label text-secondary">Organization</dt>
 				<dd class="text-body text-primary">
-					{activeOrganization?.name ?? 'None selected'} 
+					{activeOrganization?.name ?? 'None selected'}
 					{#if activeOrganizationId}
-						<span class="text-secondary font-mono text-sm">({activeOrganizationId})</span>
+						<span class="font-mono text-sm text-secondary">({activeOrganizationId})</span>
 					{/if}
 				</dd>
 			</div>
@@ -161,11 +155,11 @@
 			</div>
 		</dl>
 		{#if showPermissionDetails && permissions.permissions.length > 0}
-			<div class="mt-4 p-3 bg-surface rounded-md border border-subtle">
-				<h3 class="text-label font-semibold text-secondary mb-2">Your Permissions:</h3>
+			<div class="border-subtle mt-4 rounded-md border bg-surface p-3">
+				<h3 class="mb-2 text-label font-semibold text-secondary">Your Permissions:</h3>
 				<ul class="space-y-1">
 					{#each permissions.permissions as permission}
-						<li class="text-sm text-primary font-mono">✓ {permission}</li>
+						<li class="font-mono text-sm text-primary">✓ {permission}</li>
 					{/each}
 				</ul>
 			</div>
@@ -174,42 +168,53 @@
 
 	<!-- Quick Test Actions -->
 	<div class="card p-card mb-section-normal">
-		<h2 class="text-display-sm font-semibold text-primary mb-4">
-			Quick Test Actions
-		</h2>
+		<h2 class="text-display-sm mb-4 font-semibold text-primary">Quick Test Actions</h2>
 		<div class="flex flex-wrap gap-3">
-			<PermissionButton requires="teams.create" {permissions} onclick={testCreateTeam} class="btn-primary">
+			<PermissionButton
+				requires="teams.create"
+				{permissions}
+				onclick={testCreateTeam}
+				class="btn-primary"
+			>
 				Create Team
 			</PermissionButton>
-			<PermissionButton requires="users.invite" {permissions} onclick={testInviteUser} class="btn-primary">
+			<PermissionButton
+				requires="users.invite"
+				{permissions}
+				onclick={testInviteUser}
+				class="btn-primary"
+			>
 				Invite User
 			</PermissionButton>
-			<PermissionButton requires="users.manage-profile" {permissions} onclick={testUpdateProfile} class="btn-primary">
+			<PermissionButton
+				requires="users.manage-profile"
+				{permissions}
+				onclick={testUpdateProfile}
+				class="btn-primary"
+			>
 				Update Profile
 			</PermissionButton>
 			<PermissionButton requires="teams.delete" {permissions} class="btn-secondary">
 				Delete Team (No action)
 			</PermissionButton>
 		</div>
-		<p class="text-sm text-secondary mt-4">
+		<p class="mt-4 text-sm text-secondary">
 			💡 <strong>Tip:</strong> Buttons are automatically disabled if you lack the required permission.
 		</p>
 	</div>
 
 	<!-- Permission Gates (Conditional Content) -->
 	<div class="card p-card mb-section-normal">
-		<h2 class="text-display-sm font-semibold text-primary mb-4">
-			PermissionGate Component Test
-		</h2>
+		<h2 class="text-display-sm mb-4 font-semibold text-primary">PermissionGate Component Test</h2>
 		<div class="space-y-4">
 			<div>
-				<h3 class="text-label font-semibold text-secondary mb-2">Can create teams?</h3>
+				<h3 class="mb-2 text-label font-semibold text-secondary">Can create teams?</h3>
 				<PermissionGate can="teams.create" {permissions}>
-					<div class="p-3 bg-success-subtle text-success rounded-md">
+					<div class="bg-success-subtle text-success rounded-md p-3">
 						✅ You have permission to create teams
 					</div>
 					{#snippet fallbackSnippet()}
-						<div class="p-3 bg-warning-subtle text-warning rounded-md">
+						<div class="bg-warning-subtle text-warning rounded-md p-3">
 							❌ You don't have permission to create teams
 						</div>
 					{/snippet}
@@ -217,13 +222,13 @@
 			</div>
 
 			<div>
-				<h3 class="text-label font-semibold text-secondary mb-2">Can delete teams?</h3>
+				<h3 class="mb-2 text-label font-semibold text-secondary">Can delete teams?</h3>
 				<PermissionGate can="teams.delete" {permissions}>
-					<div class="p-3 bg-success-subtle text-success rounded-md">
+					<div class="bg-success-subtle text-success rounded-md p-3">
 						✅ You have permission to delete teams
 					</div>
 					{#snippet fallbackSnippet()}
-						<div class="p-3 bg-warning-subtle text-warning rounded-md">
+						<div class="bg-warning-subtle text-warning rounded-md p-3">
 							❌ You don't have permission to delete teams
 						</div>
 					{/snippet}
@@ -231,13 +236,13 @@
 			</div>
 
 			<div>
-				<h3 class="text-label font-semibold text-secondary mb-2">Can invite users?</h3>
+				<h3 class="mb-2 text-label font-semibold text-secondary">Can invite users?</h3>
 				<PermissionGate can="users.invite" {permissions}>
-					<div class="p-3 bg-success-subtle text-success rounded-md">
+					<div class="bg-success-subtle text-success rounded-md p-3">
 						✅ You have permission to invite users
 					</div>
 					{#snippet fallbackSnippet()}
-						<div class="p-3 bg-warning-subtle text-warning rounded-md">
+						<div class="bg-warning-subtle text-warning rounded-md p-3">
 							❌ You don't have permission to invite users
 						</div>
 					{/snippet}
@@ -247,29 +252,34 @@
 	</div>
 
 	<!-- Setup Instructions (Collapsible) -->
-	<div class="card p-card space-y-4 bg-surface-secondary">
+	<div class="card p-card bg-surface-secondary space-y-4">
 		<div class="flex items-center justify-between">
-			<h2 class="text-display-sm font-semibold text-primary">
-				Setup Instructions
-			</h2>
-			<button
-				onclick={() => showSetup = !showSetup}
-				class="text-sm text-link hover:underline"
-			>
+			<h2 class="text-display-sm font-semibold text-primary">Setup Instructions</h2>
+			<button onclick={() => (showSetup = !showSetup)} class="text-link text-sm hover:underline">
 				{showSetup ? 'Hide' : 'Show'} Instructions
 			</button>
 		</div>
 		{#if showSetup}
 			<div class="prose prose-sm max-w-none">
 				<h3 class="text-label font-semibold text-secondary">To test permissions:</h3>
-				<ol class="list-decimal list-inside space-y-2 text-sm text-secondary">
-					<li>Ensure RBAC data is seeded: <code class="bg-surface px-1 py-0.5 rounded text-xs">npx convex run rbac/seedRBAC:seedAllRBAC</code></li>
-					<li>Assign yourself the admin role: <code class="bg-surface px-1 py-0.5 rounded text-xs">npx convex run rbac/setupAdmin:setupAdmin '{"{"}userId:"YOUR_USER_ID"{"}"}'</code></li>
+				<ol class="list-inside list-decimal space-y-2 text-sm text-secondary">
+					<li>
+						Ensure RBAC data is seeded: <code class="rounded bg-surface px-1 py-0.5 text-xs"
+							>npx convex run rbac/seedRBAC:seedAllRBAC</code
+						>
+					</li>
+					<li>
+						Assign yourself the admin role: <code class="rounded bg-surface px-1 py-0.5 text-xs"
+							>npx convex run rbac/setupAdmin:setupAdmin '{'{'}userId:"YOUR_USER_ID"{'}'}'</code
+						>
+					</li>
 					<li>Refresh this page to load your permissions</li>
 					<li>Try clicking the buttons above to test different permissions</li>
 				</ol>
-				<p class="text-sm text-secondary mt-4">
-					<strong>Note:</strong> Replace <code class="bg-surface px-1 py-0.5 rounded text-xs">YOUR_USER_ID</code> with your actual user ID shown in "Current Status" above.
+				<p class="mt-4 text-sm text-secondary">
+					<strong>Note:</strong> Replace
+					<code class="rounded bg-surface px-1 py-0.5 text-xs">YOUR_USER_ID</code> with your actual user
+					ID shown in "Current Status" above.
 				</p>
 			</div>
 		{/if}
@@ -278,10 +288,10 @@
 
 <style>
 	.btn-primary {
-		@apply px-4 py-2 bg-primary text-on-primary rounded-md hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+		@apply bg-primary text-on-primary hover:bg-primary-hover rounded-md px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50;
 	}
 
 	.btn-secondary {
-		@apply px-4 py-2 bg-secondary text-on-secondary rounded-md hover:bg-secondary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+		@apply bg-secondary text-on-secondary hover:bg-secondary-hover rounded-md px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50;
 	}
 </style>

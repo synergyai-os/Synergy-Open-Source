@@ -1,4 +1,5 @@
 <!-- eaf682a1-f902-47c9-8224-175f446e8c4b 93c65e93-f81c-49fd-a25d-562c8a590f4f -->
+
 # Commit Message Guidelines & Core Values
 
 ## Research Summary
@@ -79,9 +80,11 @@ Add brief "Contributing" section linking to detailed guidelines, optimized for A
 ## Brand Voice Application
 
 **NOT this (corporate):**
+
 > "Please ensure commit messages follow conventional commits specification for optimal changelog generation."
 
 **THIS (us):**
+
 > "We use conventional commits because they're readable by both humans and AI. Plus they make changelogs way easier. Here's the format..."
 
 ## Structure Details

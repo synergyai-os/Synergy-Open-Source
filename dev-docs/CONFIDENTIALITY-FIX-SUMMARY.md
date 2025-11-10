@@ -13,6 +13,7 @@
 **Problem**: The metrics dashboard (`dev-docs/2-areas/metrics.md`) mentioned specific client names ("Saprolab", "ZDHC") in public-facing documentation without written approval.
 
 **Why This Matters**:
+
 - Breach of client confidentiality
 - Risk of losing trust
 - Potential legal/contractual issues
@@ -25,6 +26,7 @@
 ### 1. **Updated Metrics Dashboard** (`metrics.md`)
 
 **Changes**:
+
 - ❌ "Saprolab" → ✅ "Design agency pilot"
 - ❌ "ZDHC" → ✅ "Second customer"
 - ❌ "Saprolab ($80/month)" → ✅ "Pilot customers ($60-100/month)"
@@ -39,6 +41,7 @@
 **Purpose**: Systematic checklist to prevent future breaches.
 
 **Contents**:
+
 - ❌ What NEVER to disclose (client names, pricing, contracts)
 - ✅ What CAN be disclosed (anonymized use cases, high-level goals)
 - 🛡️ Anonymization techniques (generic descriptors, categories, aggregate data)
@@ -56,6 +59,7 @@
 **Purpose**: Increase confidence in product decisions **before** building.
 
 **Contents**:
+
 - 📊 Confidence levels (🔴 Low, 🟡 Medium, 🟢 High)
 - 🧪 5-step validation process (hypothesis → assumptions → experiments → execution → decision)
 - 📋 Experiment types (interviews, landing pages, prototypes, MVPs, pre-orders)
@@ -72,6 +76,7 @@
 **Purpose**: AI-guided validation workflow with **built-in confidentiality checks**.
 
 **Workflow**:
+
 1. Load validation framework + confidentiality guidelines
 2. State hypothesis (check for client names)
 3. Identify riskiest assumptions
@@ -86,6 +91,7 @@
 ### 5. **Updated Documentation Sidebar**
 
 **Added to "📚 Resources":**
+
 - Validation Framework
 - Confidentiality Rules
 
@@ -98,6 +104,7 @@
 ### Automated Checks
 
 **Pre-Commit Hook** (to be implemented):
+
 ```bash
 # Scan for client names before committing
 grep -r "Saprolab\|ZDHC\|[Client Name]" dev-docs/ marketing-docs/
@@ -109,6 +116,7 @@ grep -r "Saprolab\|ZDHC\|[Client Name]" dev-docs/ marketing-docs/
 ### Manual Checks
 
 **Before Publishing Anything Public**:
+
 1. ✅ Load `confidentiality-guidelines.md`
 2. ✅ Scan for client names (search for company names)
 3. ✅ Replace with generic descriptors ("design agency", "certification body")
@@ -119,6 +127,7 @@ grep -r "Saprolab\|ZDHC\|[Client Name]" dev-docs/ marketing-docs/
 ### Monthly Audits
 
 **Review all public content**:
+
 - [ ] dev-docs/
 - [ ] marketing-docs/
 - [ ] Blog posts
@@ -134,12 +143,14 @@ grep -r "Saprolab\|ZDHC\|[Client Name]" dev-docs/ marketing-docs/
 ### Severity: 🟡 Important (Not Critical)
 
 **Why not critical**:
+
 - No financial data disclosed
 - No personal identifiable information (PII)
 - Client names mentioned in context of validation/pilots (not negative)
 - Fixed within 24 hours
 
 **Why important**:
+
 - Professional trust at stake
 - Sets precedent for future behavior
 - Could have escalated if not caught
@@ -151,26 +162,28 @@ grep -r "Saprolab\|ZDHC\|[Client Name]" dev-docs/ marketing-docs/
 **Status**: 🟡 Pending
 
 **Action Items**:
+
 1. [ ] Notify affected clients (optional, depends on relationship)
 2. [ ] Apologize for oversight
 3. [ ] Show corrective actions taken
 4. [ ] Confirm they're comfortable with anonymized references
 
 **Template Email**:
+
 ```
 Subject: Update: Public Documentation References
 
 Hi [Client Name],
 
-We recently updated our public documentation and wanted to let you know 
-that we had briefly mentioned [Company Name] in our metrics dashboard 
+We recently updated our public documentation and wanted to let you know
+that we had briefly mentioned [Company Name] in our metrics dashboard
 without prior approval.
 
-We've since updated the documentation to use generic descriptors 
-("design agency pilot") and implemented stricter confidentiality 
+We've since updated the documentation to use generic descriptors
+("design agency pilot") and implemented stricter confidentiality
 guidelines to prevent this in the future.
 
-We apologize for the oversight and want to ensure you're comfortable 
+We apologize for the oversight and want to ensure you're comfortable
 with how we reference our partnership publicly.
 
 If you have any concerns, please let us know.
@@ -184,16 +197,19 @@ Thanks,
 ## 🎓 Lessons Learned
 
 ### What Went Wrong
+
 1. **No confidentiality checklist** - Guidelines didn't exist
 2. **Enthusiasm > Privacy** - Excited to share progress, forgot privacy
 3. **No review process** - Published without confidentiality review
 
 ### What Went Right
+
 1. **Caught early** - Fixed within 24 hours
 2. **Systematic fix** - Created guidelines, not just band-aid
 3. **AI safeguards** - Built confidentiality checks into `/Axon/validate` command
 
 ### Going Forward
+
 1. **Default to private** - Client names require approval
 2. **Review before publish** - Mandatory confidentiality scan
 3. **Train team** - Share guidelines with all contributors
@@ -203,6 +219,7 @@ Thanks,
 ## ✅ Verification Checklist
 
 **Confirm all fixes applied**:
+
 - [x] Metrics dashboard updated (client names removed)
 - [x] Confidentiality guidelines created
 - [x] Validation framework created
@@ -229,5 +246,3 @@ Thanks,
 ---
 
 **Key Takeaway**: **Confidentiality builds trust. Trust builds business.**
-
-

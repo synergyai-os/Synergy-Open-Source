@@ -13,24 +13,24 @@ This is a test page to verify MDX is working correctly.
 
 ```typescript
 interface User {
-  id: string;
-  name: string;
-  email: string;
+	id: string;
+	name: string;
+	email: string;
 }
 
 function greetUser(user: User): string {
-  return `Hello, ${user.name}!`;
+	return `Hello, ${user.name}!`;
 }
 ```
 
 ```javascript
 const items = ['apple', 'banana', 'cherry'];
-items.map(item => item.toUpperCase());
+items.map((item) => item.toUpperCase());
 ```
 
 ### 2. Markdown Features
 
-**Bold text** and *italic text* work.
+**Bold text** and _italic text_ work.
 
 - Bullet list item 1
 - Bullet list item 2
@@ -47,7 +47,7 @@ items.map(item => item.toUpperCase());
 ### 4. Blockquotes
 
 > This is a blockquote with some wisdom.
-> 
+>
 > It can span multiple lines.
 
 ### 5. Code Blocks (Various Languages)
@@ -59,26 +59,26 @@ npm run dev
 
 ```json
 {
-  "name": "synergyos",
-  "version": "0.1.0",
-  "type": "module"
+	"name": "synergyos",
+	"version": "0.1.0",
+	"type": "module"
 }
 ```
 
 ```css
 .button {
-  background-color: var(--color-primary);
-  padding: var(--spacing-md);
+	background-color: var(--color-primary);
+	padding: var(--spacing-md);
 }
 ```
 
 ## Success Criteria
 
 If you can see:
+
 - ✅ Proper syntax highlighting in code blocks
 - ✅ Headings with auto-generated IDs (clickable links)
 - ✅ Styled markdown content
 - ✅ This page rendered as HTML
 
 Then MDX is working correctly!
-

@@ -11,6 +11,7 @@
 **Confidence Level**: 🟡 **Medium** - Good for engineers, needs improvement for PM/Design
 
 **Critical Gaps**:
+
 1. ❌ **User Journeys** - No documented user flows
 2. ❌ **Component Library** - No visual component documentation
 3. ❌ **Data Flows** - No visual architecture diagrams
@@ -23,6 +24,7 @@
 ### 1. Product Manager (PM)
 
 **What PMs Need:**
+
 - [ ] User journey maps (step-by-step user flows)
 - [ ] Data flow diagrams (how data moves through system)
 - [ ] Success metrics & KPIs (measurable outcomes)
@@ -32,17 +34,18 @@
 
 **Current Coverage:**
 
-| Need | Status | Location | Confidence |
-|------|--------|----------|------------|
-| Product vision | ✅ Excellent | `2-areas/product-vision-and-plan.md` | 95% |
-| CODE framework | ✅ Excellent | `2-areas/product-vision-and-plan.md#L13` | 95% |
-| User journeys | ❌ Missing | N/A | 0% |
-| Data flows | ❌ Missing | N/A | 0% |
-| Success metrics | ⚠️ Partial | `2-areas/product-vision-and-plan.md` (not detailed) | 40% |
-| Business logic | ⚠️ Scattered | Throughout codebase | 30% |
-| Feature specs | ⚠️ Partial | `2-areas/value-streams/` | 50% |
+| Need            | Status       | Location                                            | Confidence |
+| --------------- | ------------ | --------------------------------------------------- | ---------- |
+| Product vision  | ✅ Excellent | `2-areas/product-vision-and-plan.md`                | 95%        |
+| CODE framework  | ✅ Excellent | `2-areas/product-vision-and-plan.md#L13`            | 95%        |
+| User journeys   | ❌ Missing   | N/A                                                 | 0%         |
+| Data flows      | ❌ Missing   | N/A                                                 | 0%         |
+| Success metrics | ⚠️ Partial   | `2-areas/product-vision-and-plan.md` (not detailed) | 40%        |
+| Business logic  | ⚠️ Scattered | Throughout codebase                                 | 30%        |
+| Feature specs   | ⚠️ Partial   | `2-areas/value-streams/`                            | 50%        |
 
 **What Should Exist:**
+
 1. **`2-areas/user-journeys/`** folder with:
    - `collect-readwise-highlights.md` - How users import from Readwise
    - `inbox-to-flashcard.md` - Reviewing inbox items and creating flashcards
@@ -64,6 +67,7 @@
 ### 2. Product Designer (PD)
 
 **What Designers Need:**
+
 - [ ] Component library documentation (visual + usage)
 - [ ] Interaction patterns (micro-interactions, animations)
 - [ ] User flows (visual journey maps)
@@ -73,17 +77,18 @@
 
 **Current Coverage:**
 
-| Need | Status | Location | Confidence |
-|------|--------|----------|------------|
-| Design tokens | ✅ Excellent | `2-areas/design-tokens.md` | 95% |
-| UI patterns | ⚠️ Partial | `2-areas/patterns/ui-patterns.md` | 60% |
-| Component library | ❌ Missing | N/A | 0% |
-| Interaction patterns | ⚠️ Partial | `2-areas/patterns/ui-patterns.md#L1150` (animations only) | 30% |
-| User flows | ❌ Missing | N/A | 0% |
-| Accessibility | ❌ Missing | N/A | 0% |
-| Responsive patterns | ⚠️ Partial | Scattered in components | 40% |
+| Need                 | Status       | Location                                                  | Confidence |
+| -------------------- | ------------ | --------------------------------------------------------- | ---------- |
+| Design tokens        | ✅ Excellent | `2-areas/design-tokens.md`                                | 95%        |
+| UI patterns          | ⚠️ Partial   | `2-areas/patterns/ui-patterns.md`                         | 60%        |
+| Component library    | ❌ Missing   | N/A                                                       | 0%         |
+| Interaction patterns | ⚠️ Partial   | `2-areas/patterns/ui-patterns.md#L1150` (animations only) | 30%        |
+| User flows           | ❌ Missing   | N/A                                                       | 0%         |
+| Accessibility        | ❌ Missing   | N/A                                                       | 0%         |
+| Responsive patterns  | ⚠️ Partial   | Scattered in components                                   | 40%        |
 
 **What Should Exist:**
+
 1. **`2-areas/component-library/`** folder with:
    - `README.md` - Component library overview
    - `buttons.md` - All button variants with examples
@@ -108,6 +113,7 @@
 ### 3. Tech Lead (TL)
 
 **What Engineers Need:**
+
 - [ ] Architecture decision records (ADRs)
 - [ ] Data models & schema documentation
 - [ ] API documentation (queries, mutations, actions)
@@ -118,19 +124,20 @@
 
 **Current Coverage:**
 
-| Need | Status | Location | Confidence |
-|------|--------|----------|------------|
-| Architecture | ✅ Excellent | `2-areas/architecture.md` | 90% |
-| Tech stack | ✅ Excellent | `2-areas/architecture.md` | 95% |
-| Patterns (Svelte) | ✅ Excellent | `2-areas/patterns/svelte-reactivity.md` | 95% |
-| Patterns (Convex) | ✅ Excellent | `2-areas/patterns/convex-integration.md` | 90% |
-| ADRs | ❌ Missing | N/A | 0% |
-| Data models | ⚠️ Partial | `convex/schema.ts` (code only, no docs) | 50% |
-| API docs | ⚠️ Scattered | `2-areas/patterns/convex-integration.md` | 60% |
-| Performance | ❌ Missing | N/A | 0% |
-| Testing | ⚠️ Exists | `3-resources/testing-strategy.md` | 70% |
+| Need              | Status       | Location                                 | Confidence |
+| ----------------- | ------------ | ---------------------------------------- | ---------- |
+| Architecture      | ✅ Excellent | `2-areas/architecture.md`                | 90%        |
+| Tech stack        | ✅ Excellent | `2-areas/architecture.md`                | 95%        |
+| Patterns (Svelte) | ✅ Excellent | `2-areas/patterns/svelte-reactivity.md`  | 95%        |
+| Patterns (Convex) | ✅ Excellent | `2-areas/patterns/convex-integration.md` | 90%        |
+| ADRs              | ❌ Missing   | N/A                                      | 0%         |
+| Data models       | ⚠️ Partial   | `convex/schema.ts` (code only, no docs)  | 50%        |
+| API docs          | ⚠️ Scattered | `2-areas/patterns/convex-integration.md` | 60%        |
+| Performance       | ❌ Missing   | N/A                                      | 0%         |
+| Testing           | ⚠️ Exists    | `3-resources/testing-strategy.md`        | 70%        |
 
 **What Should Exist:**
+
 1. **`2-areas/architecture-decisions/`** folder with:
    - `001-why-convex.md` - Why Convex over Firebase/Supabase
    - `002-svelte-5-runes.md` - Why Svelte 5 and runes
@@ -211,6 +218,7 @@
 ### Phase 1: Critical for Product Trio Collaboration (1-2 weeks)
 
 #### 1.1 Create User Journeys (PM Priority)
+
 ```
 dev-docs/2-areas/user-journeys/
 ├── README.md (overview)
@@ -221,6 +229,7 @@ dev-docs/2-areas/user-journeys/
 ```
 
 **Format**: Step-by-step narrative with:
+
 - User goal
 - Preconditions
 - Steps (with screenshots)
@@ -228,6 +237,7 @@ dev-docs/2-areas/user-journeys/
 - Edge cases
 
 #### 1.2 Document Component Library (Designer Priority)
+
 ```
 dev-docs/2-areas/component-library/
 ├── README.md (overview + design principles)
@@ -239,6 +249,7 @@ dev-docs/2-areas/component-library/
 ```
 
 **Format**: For each component:
+
 - Visual examples (screenshots or Figma embeds)
 - Usage guidelines
 - Code example
@@ -246,6 +257,7 @@ dev-docs/2-areas/component-library/
 - Do's and Don'ts
 
 #### 1.3 Create Data Flow Diagrams (Engineer Priority)
+
 ```
 dev-docs/2-areas/data-flows/
 ├── README.md (overview)
@@ -255,6 +267,7 @@ dev-docs/2-areas/data-flows/
 ```
 
 **Format**: Mermaid diagrams showing:
+
 - Data sources
 - Processing steps
 - Database writes
@@ -263,6 +276,7 @@ dev-docs/2-areas/data-flows/
 ### Phase 2: Architecture Documentation (1 week)
 
 #### 2.1 Architecture Decision Records
+
 ```
 dev-docs/2-areas/architecture-decisions/
 ├── README.md (ADR template + index)
@@ -275,6 +289,7 @@ dev-docs/2-areas/architecture-decisions/
 **Format**: ADR template (Status, Context, Decision, Consequences)
 
 #### 2.2 Data Models Documentation
+
 ```
 dev-docs/2-areas/data-models/
 ├── README.md (schema overview)
@@ -287,6 +302,7 @@ dev-docs/2-areas/data-models/
 **Format**: Schema tables with field descriptions, relationships, validation rules
 
 #### 2.3 API Reference
+
 ```
 dev-docs/2-areas/api-reference/
 ├── README.md (API overview)
@@ -300,16 +316,19 @@ dev-docs/2-areas/api-reference/
 ### Phase 3: Visual & Process Documentation (Ongoing)
 
 #### 3.1 Add Diagrams to Existing Docs
+
 - Architecture diagram in `architecture.md`
 - System overview in `README.md`
 - Flow diagrams in user journeys
 
 #### 3.2 Accessibility Guidelines
+
 ```
 dev-docs/3-resources/accessibility.md
 ```
 
 #### 3.3 Performance Guidelines
+
 ```
 dev-docs/3-resources/performance.md
 ```
@@ -321,33 +340,37 @@ dev-docs/3-resources/performance.md
 ### 1. Role-Based Review Sessions
 
 **Product Manager Review** (30 min):
+
 - Can they understand user value without reading code?
 - Can they explain the CODE framework to stakeholders?
 - Can they identify bottlenecks in user journeys?
 
 **Designer Review** (30 min):
+
 - Can they find component specifications without asking?
 - Can they identify design token for a specific use case?
 - Can they propose new UI without breaking design system?
 
 **Engineer Review** (30 min):
+
 - Can they understand system architecture in < 15 min?
 - Can they find solution to common bugs via Pattern Index?
 - Can they add new feature without breaking existing patterns?
 
 ### 2. Documentation Quality Metrics
 
-| Metric | Target | Current | Status |
-|--------|--------|---------|--------|
-| Time to find pattern | < 2 min | ~1 min | ✅ Good |
-| Time to understand user flow | < 10 min | N/A | ❌ Missing |
-| Time to find component spec | < 3 min | N/A | ❌ Missing |
-| Time to understand data model | < 15 min | ~30 min | ⚠️ Needs work |
-| Pattern coverage | > 80% | ~70% | ⚠️ Good progress |
+| Metric                        | Target   | Current | Status           |
+| ----------------------------- | -------- | ------- | ---------------- |
+| Time to find pattern          | < 2 min  | ~1 min  | ✅ Good          |
+| Time to understand user flow  | < 10 min | N/A     | ❌ Missing       |
+| Time to find component spec   | < 3 min  | N/A     | ❌ Missing       |
+| Time to understand data model | < 15 min | ~30 min | ⚠️ Needs work    |
+| Pattern coverage              | > 80%    | ~70%    | ⚠️ Good progress |
 
 ### 3. Completeness Checklist
 
 **For Each User Journey:**
+
 - [ ] Narrative description
 - [ ] Step-by-step flow
 - [ ] Screenshots/mockups
@@ -357,6 +380,7 @@ dev-docs/3-resources/performance.md
 - [ ] Related API calls
 
 **For Each Component:**
+
 - [ ] Visual examples
 - [ ] Props/API
 - [ ] Usage examples
@@ -365,6 +389,7 @@ dev-docs/3-resources/performance.md
 - [ ] Related components
 
 **For Each Data Flow:**
+
 - [ ] Mermaid diagram
 - [ ] Step-by-step explanation
 - [ ] Error handling
@@ -431,17 +456,20 @@ Based on web research on product trio documentation best practices:
 **Overall Confidence**: 🟡 **65%** (weighted across all roles)
 
 **Priority Order**:
+
 1. **Phase 1.2** - Component Library (blocks designers daily)
 2. **Phase 1.1** - User Journeys (blocks PM-Designer collaboration)
 3. **Phase 1.3** - Data Flows (blocks PM-Engineer discussions)
 4. **Phase 2** - Architecture docs (important but less urgent)
 
 **Estimated Effort**:
+
 - Phase 1: ~3-4 days (parallel work possible)
 - Phase 2: ~2 days
 - Phase 3: Ongoing
 
 **Success Criteria**:
+
 - PM can explain user flows without engineer help
 - Designer can find component specs in < 3 min
 - Engineer can understand system architecture in < 15 min
@@ -450,10 +478,9 @@ Based on web research on product trio documentation best practices:
 ---
 
 **Next Steps**:
+
 1. Confirm priority order with team
 2. Start with Component Library (highest blocker)
 3. Use existing components to bootstrap documentation
 4. Add visual examples incrementally
 5. Validate with actual PM/Designer/Engineer reviews
-
-

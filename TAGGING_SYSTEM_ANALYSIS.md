@@ -19,19 +19,21 @@ The current tagging system is **well-designed and mostly reusable**, but it's **
 **File**: `src/lib/components/inbox/TagSelector.svelte`
 
 **Props Interface**:
+
 ```typescript
 type Props = {
-  selectedTagIds: Id<'tags'>[],           // ✅ Generic - works for any entity
-  availableTags: Tag[],                    // ✅ Generic - just needs tags
-  onTagsChange: (tagIds: Id<'tags'>[]) => void, // ✅ Generic callback
-  onCreateTag?: (name, color) => Promise<Id<'tags'>>, // ✅ Generic
-  onCreateTagWithColor?: (name, color, parentId?) => Promise<Id<'tags'>>, // ✅ Generic
-  tagInputRef?: HTMLElement | null,        // ✅ Generic
-  comboboxOpen?: boolean                   // ✅ Generic
-}
+	selectedTagIds: Id<'tags'>[]; // ✅ Generic - works for any entity
+	availableTags: Tag[]; // ✅ Generic - just needs tags
+	onTagsChange: (tagIds: Id<'tags'>[]) => void; // ✅ Generic callback
+	onCreateTag?: (name, color) => Promise<Id<'tags'>>; // ✅ Generic
+	onCreateTagWithColor?: (name, color, parentId?) => Promise<Id<'tags'>>; // ✅ Generic
+	tagInputRef?: HTMLElement | null; // ✅ Generic
+	comboboxOpen?: boolean; // ✅ Generic
+};
 ```
 
 **Features**:
+
 - ✅ Multi-select with pills display
 - ✅ Hierarchical tags (parent/child grouping)
 - ✅ Search and filter
@@ -50,27 +52,28 @@ type Props = {
 **File**: `src/lib/components/inbox/ReadwiseDetail.svelte`
 
 **Current Implementation**:
+
 ```typescript
 // ⚠️ HIGHLIGHT-SPECIFIC
 const createTagApi = makeFunctionReference('tags:createTag');
 const assignTagsApi = makeFunctionReference('tags:assignTagsToHighlight'); // ⚠️
 
 async function handleTagsChange(newTagIds: Id<'tags'>[]) {
-  if (!item.highlightId) return; // ⚠️ Hardcoded to highlights
-  
-  await convexClient!.mutation(assignTagsApi, {
-    highlightId: item.highlightId, // ⚠️ Specific entity
-    tagIds: newTagIds,
-  });
+	if (!item.highlightId) return; // ⚠️ Hardcoded to highlights
+
+	await convexClient!.mutation(assignTagsApi, {
+		highlightId: item.highlightId, // ⚠️ Specific entity
+		tagIds: newTagIds
+	});
 }
 
 async function handleCreateTag(displayName, color, parentId?) {
-  const tagId = await convexClient.mutation(createTagApi, {
-    displayName,
-    color,
-    parentId,
-  });
-  return tagId; // ✅ Generic tag creation
+	const tagId = await convexClient.mutation(createTagApi, {
+		displayName,
+		color,
+		parentId
+	});
+	return tagId; // ✅ Generic tag creation
 }
 ```
 
@@ -83,37 +86,40 @@ async function handleCreateTag(displayName, color, parentId?) {
 **File**: `convex/tags.ts`
 
 **Current Mutations**:
+
 ```typescript
 // ⚠️ HIGHLIGHT-SPECIFIC
 export const assignTagsToHighlight = mutation({
-  args: {
-    highlightId: v.id("highlights"), // ⚠️
-    tagIds: v.array(v.id("tags")),
-  },
-  handler: async (ctx, args) => {
-    // 1. Verify highlight exists and user has access
-    const highlight = await ctx.db.get(args.highlightId);
-    
-    // 2. Delete old assignments
-    const oldAssignments = await ctx.db
-      .query("highlightTags") // ⚠️ Specific table
-      .withIndex("by_highlight", (q) => q.eq("highlightId", args.highlightId))
-      .collect();
-    
-    // 3. Create new assignments
-    for (const tagId of args.tagIds) {
-      await ctx.db.insert("highlightTags", { // ⚠️ Specific table
-        highlightId: args.highlightId,
-        tagId,
-        userId,
-        createdAt: Date.now(),
-      });
-    }
-  },
+	args: {
+		highlightId: v.id('highlights'), // ⚠️
+		tagIds: v.array(v.id('tags'))
+	},
+	handler: async (ctx, args) => {
+		// 1. Verify highlight exists and user has access
+		const highlight = await ctx.db.get(args.highlightId);
+
+		// 2. Delete old assignments
+		const oldAssignments = await ctx.db
+			.query('highlightTags') // ⚠️ Specific table
+			.withIndex('by_highlight', (q) => q.eq('highlightId', args.highlightId))
+			.collect();
+
+		// 3. Create new assignments
+		for (const tagId of args.tagIds) {
+			await ctx.db.insert('highlightTags', {
+				// ⚠️ Specific table
+				highlightId: args.highlightId,
+				tagId,
+				userId,
+				createdAt: Date.now()
+			});
+		}
+	}
 });
 ```
 
 **Similar Pattern Needed For**:
+
 - ❌ `assignTagsToFlashcard` (doesn't exist yet)
 - ❌ `assignTagsToNote` (doesn't exist yet)
 - ❌ `assignTagsToSource` (doesn't exist yet)
@@ -127,12 +133,14 @@ export const assignTagsToHighlight = mutation({
 ### **Option A: Separate Mutations Per Entity (Recommended)** ⭐
 
 **Pros**:
+
 - ✅ Type-safe (Convex validators per entity)
 - ✅ Clear permissions per entity type
 - ✅ Easy to understand
 - ✅ Follows existing pattern
 
 **Cons**:
+
 - ⚠️ Code duplication (but manageable with helpers)
 
 **Implementation**:
@@ -142,64 +150,64 @@ export const assignTagsToHighlight = mutation({
 
 // Helper function to reduce duplication
 async function assignTags(
-  ctx: any,
-  userId: Id<"users">,
-  entityType: "highlights" | "flashcards" | "notes",
-  entityId: Id<any>,
-  tagIds: Id<"tags">[]
+	ctx: any,
+	userId: Id<'users'>,
+	entityType: 'highlights' | 'flashcards' | 'notes',
+	entityId: Id<any>,
+	tagIds: Id<'tags'>[]
 ) {
-  // 1. Verify entity exists and user has access
-  const entity = await ctx.db.get(entityId);
-  if (!entity || entity.userId !== userId) {
-    throw new Error("Entity not found or access denied");
-  }
-  
-  // 2. Determine junction table based on entity type
-  const junctionTable = `${entityType.slice(0, -1)}Tags`; // "highlightTags", "flashcardTags", etc.
-  const entityIdField = `${entityType.slice(0, -1)}Id`; // "highlightId", "flashcardId", etc.
-  
-  // 3. Delete old assignments
-  const oldAssignments = await ctx.db
-    .query(junctionTable)
-    .withIndex(`by_${entityType.slice(0, -1)}`, (q) => q.eq(entityIdField, entityId))
-    .collect();
-  
-  for (const assignment of oldAssignments) {
-    await ctx.db.delete(assignment._id);
-  }
-  
-  // 4. Create new assignments
-  for (const tagId of args.tagIds) {
-    await ctx.db.insert(junctionTable, {
-      [entityIdField]: entityId,
-      tagId,
-      userId,
-      createdAt: Date.now(),
-    });
-  }
+	// 1. Verify entity exists and user has access
+	const entity = await ctx.db.get(entityId);
+	if (!entity || entity.userId !== userId) {
+		throw new Error('Entity not found or access denied');
+	}
+
+	// 2. Determine junction table based on entity type
+	const junctionTable = `${entityType.slice(0, -1)}Tags`; // "highlightTags", "flashcardTags", etc.
+	const entityIdField = `${entityType.slice(0, -1)}Id`; // "highlightId", "flashcardId", etc.
+
+	// 3. Delete old assignments
+	const oldAssignments = await ctx.db
+		.query(junctionTable)
+		.withIndex(`by_${entityType.slice(0, -1)}`, (q) => q.eq(entityIdField, entityId))
+		.collect();
+
+	for (const assignment of oldAssignments) {
+		await ctx.db.delete(assignment._id);
+	}
+
+	// 4. Create new assignments
+	for (const tagId of args.tagIds) {
+		await ctx.db.insert(junctionTable, {
+			[entityIdField]: entityId,
+			tagId,
+			userId,
+			createdAt: Date.now()
+		});
+	}
 }
 
 // Public mutations (type-safe wrappers)
 export const assignTagsToHighlight = mutation({
-  args: {
-    highlightId: v.id("highlights"),
-    tagIds: v.array(v.id("tags")),
-  },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    await assignTags(ctx, userId, "highlights", args.highlightId, args.tagIds);
-  },
+	args: {
+		highlightId: v.id('highlights'),
+		tagIds: v.array(v.id('tags'))
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx);
+		await assignTags(ctx, userId, 'highlights', args.highlightId, args.tagIds);
+	}
 });
 
 export const assignTagsToFlashcard = mutation({
-  args: {
-    flashcardId: v.id("flashcards"),
-    tagIds: v.array(v.id("tags")),
-  },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    await assignTags(ctx, userId, "flashcards", args.flashcardId, args.tagIds);
-  },
+	args: {
+		flashcardId: v.id('flashcards'),
+		tagIds: v.array(v.id('tags'))
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx);
+		await assignTags(ctx, userId, 'flashcards', args.flashcardId, args.tagIds);
+	}
 });
 
 // etc...
@@ -210,9 +218,11 @@ export const assignTagsToFlashcard = mutation({
 ### **Option B: Generic Mutation with Entity Type (Not Recommended)**
 
 **Pros**:
+
 - ✅ Single mutation for all entities
 
 **Cons**:
+
 - ❌ Loses type safety
 - ❌ Harder to enforce permissions
 - ❌ More complex validation
@@ -236,44 +246,44 @@ import type { Id } from '$lib/convex';
 type EntityType = 'highlight' | 'flashcard' | 'note';
 
 export function useTagging(entityType: EntityType) {
-  const convexClient = browser ? useConvexClient() : null;
-  
-  // Get correct mutation based on entity type
-  const assignTagsMutation = browser ? 
-    makeFunctionReference(`tags:assignTagsTo${capitalize(entityType)}`) : null;
-  
-  const createTagMutation = browser ?
-    makeFunctionReference('tags:createTag') : null;
-  
-  async function assignTags(entityId: Id<any>, tagIds: Id<'tags'>[]) {
-    if (!convexClient || !assignTagsMutation) {
-      throw new Error('Convex client not available');
-    }
-    
-    await convexClient.mutation(assignTagsMutation, {
-      [`${entityType}Id`]: entityId,
-      tagIds,
-    });
-  }
-  
-  async function createTag(displayName: string, color: string, parentId?: Id<'tags'>) {
-    if (!convexClient || !createTagMutation) {
-      throw new Error('Convex client not available');
-    }
-    
-    const tagId = await convexClient.mutation(createTagMutation, {
-      displayName,
-      color,
-      parentId,
-    });
-    
-    return tagId;
-  }
-  
-  return {
-    assignTags,
-    createTag,
-  };
+	const convexClient = browser ? useConvexClient() : null;
+
+	// Get correct mutation based on entity type
+	const assignTagsMutation = browser
+		? makeFunctionReference(`tags:assignTagsTo${capitalize(entityType)}`)
+		: null;
+
+	const createTagMutation = browser ? makeFunctionReference('tags:createTag') : null;
+
+	async function assignTags(entityId: Id<any>, tagIds: Id<'tags'>[]) {
+		if (!convexClient || !assignTagsMutation) {
+			throw new Error('Convex client not available');
+		}
+
+		await convexClient.mutation(assignTagsMutation, {
+			[`${entityType}Id`]: entityId,
+			tagIds
+		});
+	}
+
+	async function createTag(displayName: string, color: string, parentId?: Id<'tags'>) {
+		if (!convexClient || !createTagMutation) {
+			throw new Error('Convex client not available');
+		}
+
+		const tagId = await convexClient.mutation(createTagMutation, {
+			displayName,
+			color,
+			parentId
+		});
+
+		return tagId;
+	}
+
+	return {
+		assignTags,
+		createTag
+	};
 }
 ```
 
@@ -282,44 +292,44 @@ export function useTagging(entityType: EntityType) {
 ```svelte
 <!-- FlashcardDetail.svelte -->
 <script lang="ts">
-  import TagSelector from '$lib/components/inbox/TagSelector.svelte';
-  import { useTagging } from '$lib/composables/useTagging.svelte';
-  import { useQuery } from 'convex-svelte';
-  
-  let { flashcardId } = $props();
-  
-  // ✅ Reusable tagging logic
-  const { assignTags, createTag } = useTagging('flashcard');
-  
-  // Load all tags
-  const allTagsQuery = useQuery(api.tags.listAllTags, {});
-  const availableTags = $derived(allTagsQuery?.data ?? []);
-  
-  // Load current tags for this flashcard
-  const flashcardTagsQuery = useQuery(api.tags.getFlashcardTags, { flashcardId });
-  let selectedTagIds = $state<Id<'tags'>[]>([]);
-  
-  $effect(() => {
-    if (flashcardTagsQuery?.data) {
-      selectedTagIds = flashcardTagsQuery.data.map(t => t._id);
-    }
-  });
-  
-  async function handleTagsChange(newTagIds: Id<'tags'>[]) {
-    await assignTags(flashcardId, newTagIds);
-  }
-  
-  async function handleCreateTag(name: string, color: string, parentId?: Id<'tags'>) {
-    return await createTag(name, color, parentId);
-  }
+	import TagSelector from '$lib/components/inbox/TagSelector.svelte';
+	import { useTagging } from '$lib/composables/useTagging.svelte';
+	import { useQuery } from 'convex-svelte';
+
+	let { flashcardId } = $props();
+
+	// ✅ Reusable tagging logic
+	const { assignTags, createTag } = useTagging('flashcard');
+
+	// Load all tags
+	const allTagsQuery = useQuery(api.tags.listAllTags, {});
+	const availableTags = $derived(allTagsQuery?.data ?? []);
+
+	// Load current tags for this flashcard
+	const flashcardTagsQuery = useQuery(api.tags.getFlashcardTags, { flashcardId });
+	let selectedTagIds = $state<Id<'tags'>[]>([]);
+
+	$effect(() => {
+		if (flashcardTagsQuery?.data) {
+			selectedTagIds = flashcardTagsQuery.data.map((t) => t._id);
+		}
+	});
+
+	async function handleTagsChange(newTagIds: Id<'tags'>[]) {
+		await assignTags(flashcardId, newTagIds);
+	}
+
+	async function handleCreateTag(name: string, color: string, parentId?: Id<'tags'>) {
+		return await createTag(name, color, parentId);
+	}
 </script>
 
 <!-- ✅ Same component, works everywhere! -->
 <TagSelector
-  bind:selectedTagIds
-  availableTags={availableTags}
-  onTagsChange={handleTagsChange}
-  onCreateTagWithColor={handleCreateTag}
+	bind:selectedTagIds
+	{availableTags}
+	onTagsChange={handleTagsChange}
+	onCreateTagWithColor={handleCreateTag}
 />
 ```
 
@@ -373,7 +383,7 @@ flashcardTags: defineTable({
 ## ⚠️ What Needs Adaptation
 
 1. **Tag assignment mutations** - Need one per entity type
-2. **Junction tables** - Need one per entity type  
+2. **Junction tables** - Need one per entity type
 3. **Tag query per entity** - Need `getHighlightTags`, `getFlashcardTags`, etc.
 4. **Integration layer** - Need generic composable/hook
 
@@ -402,6 +412,7 @@ flashcardTags: defineTable({
 ### **Phase 2: Extend to Other Entities**
 
 Repeat Phase 1 for:
+
 - Notes
 - Sources
 - Collections
@@ -447,4 +458,3 @@ The **UI component is already 100% reusable**. The only work required is:
 
 **Last Updated**: 2025-11-07
 **Status**: Analysis complete ✅
-

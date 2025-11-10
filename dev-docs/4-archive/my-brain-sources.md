@@ -9,9 +9,11 @@ This document lists all input source types that can be captured into Axon's "sec
 ## 📚 Reading & Literature
 
 ### ✅ Implemented
+
 - **readwise_highlight** - Highlights from Readwise (Kindle, articles, web pages, PDFs)
 
 ### 📋 Planned
+
 - **readwise_reader_document** - Full articles/documents from Readwise Reader
 - **kindle_highlight** - Direct Kindle highlights (if not using Readwise)
 - **apple_books_highlight** - Apple Books highlights
@@ -19,6 +21,7 @@ This document lists all input source types that can be captured into Axon's "sec
 - **kobo_highlight** - Kobo e-reader highlights
 
 ### 🔄 Complex (Future)
+
 - **research_paper** - Full academic papers with citations
 - **epub_book** - Full EPUB e-book files
 - **pdf_book** - Full PDF book files
@@ -28,6 +31,7 @@ This document lists all input source types that can be captured into Axon's "sec
 ## 📝 Text & Notes
 
 ### 📋 Planned
+
 - **manual_text** - Manual text notes (plain text, rich text, markdown)
 - **voice_memo** - Voice recordings with transcription
 - **meeting_note** - Meeting notes and transcripts
@@ -39,6 +43,7 @@ This document lists all input source types that can be captured into Axon's "sec
 ## 🌐 Web & Online Content
 
 ### 📋 Planned
+
 - **web_article** - Full web article captures
 - **url_bookmark** - URL/bookmark captures
 - **newsletter** - Newsletter content (email-based)
@@ -50,6 +55,7 @@ This document lists all input source types that can be captured into Axon's "sec
 ## 📧 Communication
 
 ### 📋 Planned
+
 - **email** - Email content and threads
 - **slack_message** - Slack messages
 - **discord_message** - Discord messages
@@ -61,6 +67,7 @@ This document lists all input source types that can be captured into Axon's "sec
 ## 🖼️ Visual Content
 
 ### 📋 Planned
+
 - **photo_note** - Photos with OCR text extraction
 - **screenshot** - Screenshots (desktop, mobile, partial)
 - **image_file** - Image files (JPG, PNG, GIF, WebP)
@@ -72,10 +79,12 @@ This document lists all input source types that can be captured into Axon's "sec
 ## 📄 Documents
 
 ### 📋 Planned
+
 - **pdf_document** - PDF documents (with text extraction)
 - **word_document** - Word documents (.docx, .doc)
 
 ### 🔄 Complex (Future)
+
 - **spreadsheet** - Excel/Google Sheets files
 - **presentation** - PowerPoint/Google Slides files
 
@@ -84,6 +93,7 @@ This document lists all input source types that can be captured into Axon's "sec
 ## 🎥 Multimedia
 
 ### 📋 Planned
+
 - **video_transcript** - Video transcripts (YouTube, etc.)
 - **video_note** - Notes about videos
 - **podcast_transcript** - Podcast episode transcripts
@@ -95,6 +105,7 @@ This document lists all input source types that can be captured into Axon's "sec
 ## 🗂️ Structured Data
 
 ### 📋 Planned
+
 - **annotation** - Text annotations and margin notes
 - **template** - Note templates (as input)
 - **framework** - Conceptual frameworks (as input)
@@ -104,6 +115,7 @@ This document lists all input source types that can be captured into Axon's "sec
 ## 🔗 Integrations
 
 ### 📋 Planned
+
 - **notion_page** - Notion pages
 - **google_drive_file** - Google Drive files
 - **dropbox_file** - Dropbox files
@@ -114,6 +126,7 @@ This document lists all input source types that can be captured into Axon's "sec
 ## 📱 Mobile & Native
 
 ### 📋 Planned
+
 - **ios_share** - iOS Share Sheet captures
 - **android_share** - Android Share captures
 - **browser_extension** - Browser extension captures (Chrome, Firefox, Safari)
@@ -123,6 +136,7 @@ This document lists all input source types that can be captured into Axon's "sec
 ## 🎨 Creative Content
 
 ### 🔄 Complex (Future)
+
 - **moodboard** - Visual moodboards
 - **mind_map** - Visual mind maps
 - **flowchart** - Flowcharts and process diagrams
@@ -132,6 +146,7 @@ This document lists all input source types that can be captured into Axon's "sec
 ## 📊 Professional
 
 ### 📋 Planned
+
 - **business_document** - Business plans, reports
 - **client_note** - Client communication notes
 
@@ -140,6 +155,7 @@ This document lists all input source types that can be captured into Axon's "sec
 ## 📅 Calendar & Events
 
 ### 📋 Planned
+
 - **calendar_event_note** - Notes attached to calendar events
 - **meeting_summary** - Meeting summaries
 
@@ -168,4 +184,3 @@ These source types require more complex processing and are deferred for future i
 - **Currently Implemented**: 1 (readwise_highlight)
 - **Planned**: ~35
 - **Complex/Deferred**: ~10
-

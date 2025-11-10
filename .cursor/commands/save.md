@@ -7,6 +7,7 @@
 ## For AI Assistants
 
 **Tool usage strategy:**
+
 1. **Batch parallel operations** - Read multiple files simultaneously when independent
 2. **Use grep first** - Search patterns before reading full files
 3. **Stage all files once** - Single `git add` for all changed files
@@ -14,6 +15,7 @@
 5. **Ask before pushing** - Always prompt "Push to GitHub? (Y/N)" after commit
 
 **Key workflow:**
+
 - Step 1: Analyze as user story + capture flow metrics + determine flow distribution
 - Step 2: Use `grep` to search INDEX.md and domain files in parallel
 - Step 3: Use `search_replace` or `write` for updates
@@ -33,6 +35,7 @@
 - **WHAT SLICE** was completed? (thin, end-to-end functionality that provides value)
 
 **Flow Distribution - Categorize the work** (for Linear tracking):
+
 - **🎯 [FEATURE]** - New capability for users
 - **🐛 [BUGFIX]** - Fix broken functionality
 - **🔧 [TECH-DEBT]** - Code quality, refactoring, architecture
@@ -40,12 +43,14 @@
 - **🔒 [RISK]** - Security, critical hotfixes, data integrity
 
 **⚠️ Linear Integration:**
+
 - Every Linear ticket MUST include:
   - **Flow Distribution label**: `feature`, `bug`, `tech-debt`, or `risk`
   - **Linear ticket ID** in commit message: `Linear: SYOS-123`
   - This enables automation and Flow Metrics tracking
 
 **User Story Format:**
+
 ```
 As a [user type]
 I can now [capability]
@@ -53,11 +58,13 @@ So that [outcome/value]
 ```
 
 **Vertical Slice Thinking:**
+
 - What end-to-end flow works now that didn't before?
 - What pain point was removed?
 - What new capability can users access?
 
 **Flow Metrics Capture:**
+
 - **Type**: feature | bugfix | tech-debt | docs | refactor
 - **Scope**: inbox | notes | flashcards | sync | auth | ui | composables | docs | commands
 - **Size**: small (<4h) | medium (4-16h) | large (>16h)
@@ -68,17 +75,20 @@ So that [outcome/value]
 - **Impact**: high | medium | low (value/risk assessment)
 
 **Pattern Learning:**
+
 - What patterns emerged while building this slice?
 - What mistakes were avoided (or made and fixed)?
 
 ### 2. Audit Existing Patterns
 
 **Search `dev-docs/2-areas/patterns/INDEX.md`**:
+
 1. Scan symptom tables for matches
 2. Grep domain files for keywords
 3. Check Related links in found patterns
 
 **Decision**:
+
 - **Exact match exists**: Update existing pattern (add edge case, enhance example)
 - **Similar exists**: Add new pattern + link to related
 - **Nothing found**: Create new pattern
@@ -104,12 +114,13 @@ So that [outcome/value]
    - PostHog → `dev-docs/2-areas/patterns/analytics.md`
 
 2. Add pattern with **next line number** (gaps of 30-50):
-   ```markdown
+
+   ````markdown
    ## #L[NUMBER]: Pattern Name [🔴/🟡/🟢 SEVERITY]
 
    **Symptom**: One-line description
    **Root Cause**: One-line cause
-   **Fix**: 
+   **Fix**:
 
    ```[language]
    // ❌ WRONG
@@ -118,9 +129,13 @@ So that [outcome/value]
    // ✅ CORRECT
    correct code
    ```
+   ````
 
    **Apply when**: When to use
    **Related**: #L[OTHER] (Description)
+
+   ```
+
    ```
 
 3. **Validate with Context7** (if library-specific):
@@ -196,23 +211,25 @@ TYPE: X | SCOPE: Y | SIZE: Z | DAYS: N | IMPACT: I
 **First body line is metadata** - this appears in GitHub list view preview!
 
 Instead of raw markdown dividers showing in preview, you see useful data:
+
 - `TYPE: docs | SCOPE: commands | SIZE: large | DAYS: 1 | IMPACT: high`
 
 #### Flow Distribution Categories
 
-| Category | Icon | When to Use | Subject Format |
-|----------|------|-------------|----------------|
-| 🎯 [FEATURE] | 🎯 | New user capability | `🎯 [FEATURE] power users process inbox 10x faster` |
-| 🐛 [BUGFIX] | 🐛 | Fix broken functionality | `🐛 [BUGFIX] users see correct note immediately` |
-| 🔧 [TECH-DEBT] | 🔧 | Refactor, architecture, code quality | `🔧 [TECH-DEBT] extract session logic to composable` |
-| 📚 [DOCS] | 📚 | Documentation, patterns | `📚 [DOCS] developers avoid Svelte 5 gotchas` |
-| 🔒 [RISK] | 🔒 | Security, critical hotfix, data integrity | `🔒 [RISK] patch session token leak` |
+| Category       | Icon | When to Use                               | Subject Format                                       |
+| -------------- | ---- | ----------------------------------------- | ---------------------------------------------------- |
+| 🎯 [FEATURE]   | 🎯   | New user capability                       | `🎯 [FEATURE] power users process inbox 10x faster`  |
+| 🐛 [BUGFIX]    | 🐛   | Fix broken functionality                  | `🐛 [BUGFIX] users see correct note immediately`     |
+| 🔧 [TECH-DEBT] | 🔧   | Refactor, architecture, code quality      | `🔧 [TECH-DEBT] extract session logic to composable` |
+| 📚 [DOCS]      | 📚   | Documentation, patterns                   | `📚 [DOCS] developers avoid Svelte 5 gotchas`        |
+| 🔒 [RISK]      | 🔒   | Security, critical hotfix, data integrity | `🔒 [RISK] patch session token leak`                 |
 
 **Character count:** `🎯 [FEATURE] ` = 13 characters → **37 chars for description**
 
 #### Complete Examples
 
 **Feature Example:**
+
 ```
 🎯 [FEATURE] power users process inbox 10x faster
 
@@ -269,6 +286,7 @@ respects focus context. Power users can now fly through inbox.
 ```
 
 **Bugfix Example:**
+
 ```
 🐛 [BUGFIX] users see correct note immediately
 
@@ -324,6 +342,7 @@ The jarring flash of old content is gone. Smooth transitions achieved.
 ```
 
 **Documentation Example:**
+
 ```
 📚 [DOCS] developers avoid Svelte 5 gotchas
 
@@ -341,8 +360,8 @@ TYPE: docs | SCOPE: patterns | SIZE: medium | DAYS: 1 | IMPACT: high
 ✨ SLICE COMPLETED
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Documented the single $state object pattern after hitting the gotcha 
-ourselves. Developers can avoid hours of debugging. We suffered so you 
+Documented the single $state object pattern after hitting the gotcha
+ourselves. Developers can avoid hours of debugging. We suffered so you
 don't have to. 😅
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -381,6 +400,7 @@ don't have to. 😅
 ```
 
 **Tech Debt Example:**
+
 ```
 🔧 [TECH-DEBT] extract session logic to composable
 
@@ -427,6 +447,7 @@ Reduced auth code by 40%, improved testability.
 ```
 
 **Risk/Critical Example:**
+
 ```
 🔒 [RISK] patch session token leak
 
@@ -491,14 +512,17 @@ added secure flag to cookies. Security vulnerability patched.
 #### Anti-Patterns
 
 **Subject line too long:**
+
 - ❌ `🎯 [FEATURE] ✨ feat(inbox): power users process inbox 10x faster...` (65 chars - truncated!)
 - ✅ `🎯 [FEATURE] power users process inbox 10x faster` (50 chars - perfect!)
 
 **Missing metadata line:**
+
 - ❌ First body line is `━━━━━━` (preview shows useless divider)
 - ✅ First body line is `TYPE: feature | SCOPE: inbox | SIZE: medium...` (preview shows data)
 
 **Technical-focused (not outcome-focused):**
+
 - ❌ `fix(notes): clear state on switch`
 - ✅ `🐛 [BUGFIX] users see correct note immediately`
 
@@ -521,10 +545,8 @@ Keep response concise. Show push result or "Staying local" confirmation.
 
 - **🔴 CRITICAL**: Causes errors, blocks work, breaks functionality
   - Example: State not updating, undefined Convex errors
-  
 - **🟡 IMPORTANT**: Common issues, significant UX impact
   - Example: Dropdowns broken, sessions expire, analytics missing
-  
 - **🟢 REFERENCE**: Best practices, optimizations, nice-to-have
   - Example: Card spacing, naming conventions, type patterns
 
@@ -533,6 +555,7 @@ Keep response concise. Show push result or "Staying local" confirmation.
 ## Checklist
 
 **Before Committing:**
+
 - [ ] Searched `dev-docs/2-areas/patterns/INDEX.md` for existing patterns (grep tool)
 - [ ] Decided: update existing or create new
 - [ ] Updated domain file with pattern/enhancement (search_replace)
@@ -542,6 +565,7 @@ Keep response concise. Show push result or "Staying local" confirmation.
 - [ ] Determined flow distribution category
 
 **Commit Message:**
+
 - [ ] Subject: [ICON CATEGORY] outcome (max 50 chars)
 - [ ] First body line: TYPE | SCOPE | SIZE | DAYS | IMPACT (metadata for preview)
 - [ ] USER STORY section with 👤🎯💡 format
@@ -553,6 +577,7 @@ Keep response concise. Show push result or "Staying local" confirmation.
 - [ ] Added issue reference if applicable (CLOSES: #123)
 
 **After Commit:**
+
 - [ ] Showed commit with `git log -1 --stat`
 - [ ] Asked user: "Push to GitHub? (Y/N)"
 - [ ] Executed user's choice (push or stay local)
@@ -583,7 +608,7 @@ Keep response concise. Show push result or "Staying local" confirmation.
    - WHO benefits? WHAT VALUE? WHAT SLICE?
    - Category: FEATURE | BUGFIX | TECH-DEBT | DOCS | RISK
    - Type, scope, size, days, hours, blocked, files, impact
-   
+
 2. grep dev-docs/2-areas/patterns/INDEX.md → Check existing patterns
 
 3. Update patterns → search_replace domain files + INDEX.md
@@ -592,13 +617,14 @@ Keep response concise. Show push result or "Staying local" confirmation.
    Subject: [ICON CATEGORY] outcome (max 50 chars)
    Line 1: TYPE: X | SCOPE: Y | SIZE: Z | DAYS: N | IMPACT: I
    Body: USER STORY (👤🎯💡) + SLICE + JOURNEY (🛑⚠️✅) + PATTERN + FLOW METRICS
-   
+
 5. Ask: "Push to GitHub? (Y/N)"
    → Y: git push (requires ['all'] permissions)
    → N: "✅ Committed locally. Not pushed."
 ```
 
 **End message format:**
+
 - If pushed: "✅ Pushed to GitHub. Commit [hash]"
 - If not pushed: "✅ Committed locally. Not pushed."
 

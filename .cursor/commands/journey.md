@@ -17,6 +17,7 @@ Human Design: Manifestor 3/5
 Role: Build Initial (Open) Source Code.
 
 Supporting Resources:
+
 1. And search for our backstory.md for full personal details.
 
 </PROFILE OF RANDY>

@@ -14,25 +14,25 @@
 		'marketing-docs': 'Marketing',
 		'2-areas': 'Core Areas',
 		'3-resources': 'Resources',
-		'patterns': 'Patterns',
-		'strategy': 'Strategy',
-		'audience': 'Audience',
-		'opportunities': 'Opportunities',
+		patterns: 'Patterns',
+		strategy: 'Strategy',
+		audience: 'Audience',
+		opportunities: 'Opportunities',
 		'value-streams': 'Value Streams',
 		'design-tokens': 'Design Tokens',
 		'component-library': 'Component Library',
 		'ui-patterns': 'UI Patterns',
 		'user-journeys': 'User Journeys',
-		'architecture': 'Architecture',
+		architecture: 'Architecture',
 		'data-models': 'Data Models',
 		'multi-tenancy-migration': 'Multi-Tenancy',
 		'composables-analysis': 'Composables',
-		'INDEX': 'Pattern Index',
+		INDEX: 'Pattern Index',
 		'svelte-reactivity': 'Svelte Reactivity',
 		'convex-integration': 'Convex Integration',
-		'analytics': 'Analytics',
+		analytics: 'Analytics',
 		'feature-flags': 'Feature Flags',
-		'metrics': 'Metrics & OKRs',
+		metrics: 'Metrics & OKRs',
 		'product-vision-2.0': 'Product Vision 2.0',
 		'product-vision-and-plan': 'Original Vision',
 		'product-strategy': 'Product Strategy',
@@ -59,19 +59,20 @@
 
 		return segments.map((segment, index) => {
 			const href = '/' + segments.slice(0, index + 1).join('/');
-			
+
 			// Clean PARA prefix first, then check mapping
 			const cleanSegment = cleanParaName(segment);
-			const label = segmentMap[cleanSegment] || 
-			             segmentMap[segment] ||  // Keep original check for backwards compat
-			             cleanSegment.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+			const label =
+				segmentMap[cleanSegment] ||
+				segmentMap[segment] || // Keep original check for backwards compat
+				cleanSegment.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
 
 			return { label, href };
 		});
 	});
 
 	// Check for reduced motion preference
-	let prefersReducedMotion = false;
+	let prefersReducedMotion = $state(false);
 	if (typeof window !== 'undefined') {
 		const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 		prefersReducedMotion = mediaQuery.matches;
@@ -82,9 +83,20 @@
 	<nav aria-label="Breadcrumb" class="breadcrumb-nav">
 		<ol class="breadcrumb-list">
 			<!-- Home link -->
-			<li class="breadcrumb-item" in:fly={{ x: -10, duration: prefersReducedMotion ? 0 : 250, delay: 0, easing: quintOut }}>
+			<li
+				class="breadcrumb-item"
+				in:fly={{ x: -10, duration: prefersReducedMotion ? 0 : 250, delay: 0, easing: quintOut }}
+			>
 				<a href="/" class="breadcrumb-link">
-					<svg class="breadcrumb-home-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<svg
+						class="breadcrumb-home-icon"
+						width="14"
+						height="14"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+					>
 						<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
 						<polyline points="9 22 9 12 15 12 15 22"></polyline>
 					</svg>
@@ -94,7 +106,15 @@
 
 			<!-- Dynamic breadcrumbs -->
 			{#each breadcrumbs as crumb, index}
-				<li class="breadcrumb-item" in:fly={{ x: -10, duration: prefersReducedMotion ? 0 : 250, delay: prefersReducedMotion ? 0 : (index + 1) * 40, easing: quintOut }}>
+				<li
+					class="breadcrumb-item"
+					in:fly={{
+						x: -10,
+						duration: prefersReducedMotion ? 0 : 250,
+						delay: prefersReducedMotion ? 0 : (index + 1) * 40,
+						easing: quintOut
+					}}
+				>
 					<span class="breadcrumb-separator" aria-hidden="true">/</span>
 					{#if index === breadcrumbs.length - 1}
 						<!-- Current page (not a link) -->
@@ -194,4 +214,3 @@
 		}
 	}
 </style>
-

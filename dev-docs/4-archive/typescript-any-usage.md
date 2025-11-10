@@ -3,6 +3,7 @@
 ## When to Use `any` vs Proper Types
 
 ### ❌ Avoid `any` When:
+
 1. **You can use proper types** - Always prefer specific types
 2. **Library exports types** - Use the library's types
 3. **Types are simple** - Use `string`, `number`, `boolean`, etc.
@@ -11,6 +12,7 @@
 ### ✅ Acceptable `any` Usage:
 
 #### 1. **Complex Library Integrations**
+
 When a library doesn't export proper types and creating accurate types would be extremely complex:
 
 ```typescript
@@ -23,6 +25,7 @@ const apiFunction = makeFunctionReference('module:function') as any;
 **Acceptable**: Use `any` with a comment explaining why
 
 #### 2. **Gradual Type Migration**
+
 When migrating JavaScript to TypeScript:
 
 ```typescript
@@ -34,6 +37,7 @@ const item: any = await loadItem();
 **Acceptable**: Use `any` temporarily with TODO comment
 
 #### 3. **Truly Dynamic/Heterogeneous Data**
+
 When data structure is truly unknown or varies significantly:
 
 ```typescript
@@ -45,6 +49,7 @@ const config: any = JSON.parse(externalConfig);
 **Acceptable**: Use `any` if validation is impractical
 
 #### 4. **Third-party Library Types Missing**
+
 When a library doesn't have TypeScript types:
 
 ```typescript
@@ -61,26 +66,28 @@ const result: any = someLibrary.doSomething();
 ## Best Practices
 
 ### Prefer `unknown` over `any`
+
 `unknown` is type-safe - you must check/assert before using:
 
 ```typescript
 // ✅ BETTER: Type-safe
 function process(data: unknown) {
-  if (typeof data === 'string') {
-    // TypeScript knows data is string here
-    return data.toUpperCase();
-  }
-  throw new Error('Invalid data');
+	if (typeof data === 'string') {
+		// TypeScript knows data is string here
+		return data.toUpperCase();
+	}
+	throw new Error('Invalid data');
 }
 
 // ❌ WORSE: No type safety
 function process(data: any) {
-  // TypeScript trusts you - no checks needed
-  return data.toUpperCase(); // Could crash at runtime!
+	// TypeScript trusts you - no checks needed
+	return data.toUpperCase(); // Could crash at runtime!
 }
 ```
 
 ### Use Type Assertions Sparingly
+
 Only when you're certain of the type:
 
 ```typescript
@@ -92,6 +99,7 @@ const item = someData as MyType; // Might not actually be MyType!
 ```
 
 ### Document Why `any` is Used
+
 Always add a comment explaining:
 
 ```typescript
@@ -105,21 +113,25 @@ const client: any = useConvexClient();
 ## Current Codebase Strategy
 
 ### ✅ What We're Doing Right:
+
 1. **Created shared types** (`src/lib/types/convex.ts`) for Convex types
 2. **Using interfaces** for API functions
 3. **Minimizing `any`** - only where truly necessary
 
 ### ✅ Current `any` Usage Status:
+
 1. **✅ InboxItemWithDetails** - Now uses proper discriminated union type (completed)
 2. **✅ ConvexClient** - Defined interface in `src/lib/types/convex.ts` (library doesn't export type)
 3. **✅ Function references** - Using `FunctionReference` where possible
 
 ### ✅ Completed Improvements:
+
 1. ✅ Created proper discriminated union type for `InboxItemWithDetails` based on item.type
 2. ✅ Defined `ConvexClient` interface (convex-svelte doesn't export type)
 3. ✅ Using type assertions with proper types instead of `any` where needed
 
 ### 📝 Future Considerations:
+
 1. Check if convex-svelte exports ConvexClient type in future versions
 2. Consider using `unknown` instead of `any` where validation is possible (if new cases arise)
 
@@ -127,11 +139,11 @@ const client: any = useConvexClient();
 
 ## Summary
 
-**Rule of Thumb**: 
+**Rule of Thumb**:
+
 - **Prefer proper types** whenever possible
 - **Use `unknown`** if you need to accept anything but want type safety
 - **Use `any`** only as a last resort, and always document why
 - **Remove `any`** as you improve type coverage over time
 
 **Goal**: Minimize `any`, but don't obsess. Pragmatic type safety is better than perfect types that never get written.
-

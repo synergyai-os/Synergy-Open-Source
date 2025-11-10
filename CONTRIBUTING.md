@@ -9,30 +9,35 @@ We're building the open-source Product OS for teams—and we need your help. Whe
 ## 🌟 Ways to Contribute
 
 ### 1. **Code Contributions**
+
 - Fix bugs (check [good first issues](https://github.com/synergyai-os/Synergy-Open-Source/labels/good%20first%20issue))
 - Build features (see [roadmap](./dev-docs/2-areas/metrics.md#-current-okrs-q4-2025))
 - Improve performance
 - Add tests
 
 ### 2. **Documentation**
+
 - Improve existing docs
 - Create tutorials
 - Add examples
 - Fix typos
 
 ### 3. **Design**
+
 - UI/UX improvements
 - Design components
 - Create templates
 - Refine design tokens
 
 ### 4. **Product**
+
 - Suggest features
 - Report bugs
 - Share use cases
 - Test beta features
 
 ### 5. **Community**
+
 - Answer questions in Discord
 - Write blog posts
 - Create videos
@@ -45,6 +50,7 @@ We're building the open-source Product OS for teams—and we need your help. Whe
 ### 0. **Read Product Principles** ⭐
 
 Before contributing, read our [Product Principles](./dev-docs/2-areas/product-principles.md) to understand:
+
 - How we make decisions (Privacy First, Outcomes Over Outputs, etc.)
 - What we value (Open Source, Autonomy, AI-Augmented)
 - How to align your contribution with our vision
@@ -113,6 +119,7 @@ git checkout -b feature/your-feature-name
 ### 2. **Follow Our Patterns**
 
 **Before writing code, check:**
+
 - [Product Principles](./dev-docs/2-areas/product-principles.md) - Decision-making framework ⭐
 - [Design Principles](./dev-docs/2-areas/design-principles.md) - Visual philosophy, accessibility (for UI work) ⭐
 - [Design Tokens](./dev-docs/2-areas/design-tokens.md) - **NEVER hardcode values**
@@ -121,6 +128,7 @@ git checkout -b feature/your-feature-name
 - [UI Patterns](./dev-docs/2-areas/patterns/ui-patterns.md) - Components, layouts
 
 **Example: Using Design Tokens**
+
 ```svelte
 <!-- ❌ WRONG: Hardcoded values -->
 <div class="px-2 py-1.5 bg-gray-900 text-white">
@@ -134,6 +142,7 @@ git checkout -b feature/your-feature-name
 ### 3. **Write Quality Code**
 
 **Code Style:**
+
 - TypeScript for all new code
 - Use `$state`, `$derived`, `$effect` (Svelte 5 runes)
 - Single `$state` object per composable
@@ -141,11 +150,13 @@ git checkout -b feature/your-feature-name
 - Comments for complex logic
 
 **Testing:**
+
 - Add tests for new features
 - Run `npm test` before committing
 - Ensure existing tests pass
 
 **Linting:**
+
 ```bash
 npm run lint        # Check for issues
 npm run format      # Auto-fix formatting
@@ -166,6 +177,7 @@ git commit -m "docs(readme): update installation steps"
 ```
 
 **Types:**
+
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation only
@@ -190,17 +202,22 @@ git push origin feature/your-feature-name
 ```
 
 **PR Template:**
+
 ```markdown
 ## What Changed
+
 Brief description of your changes.
 
 ## Why
+
 Why this change is needed.
 
 ## Screenshots (if UI changes)
+
 Before/after screenshots.
 
 ## Checklist
+
 - [ ] Tests added/updated
 - [ ] Docs updated
 - [ ] Design tokens used (no hardcoded values)
@@ -226,6 +243,7 @@ Closes #<issue-number>
 ### Design System
 
 **Before designing:**
+
 1. **Read [Design Principles](./dev-docs/2-areas/design-principles.md)** ⭐ - Visual philosophy, accessibility, UX
 2. Review [Component Architecture](./dev-docs/2-areas/component-architecture.md) - How components are built
 3. Review [Design Tokens](./dev-docs/2-areas/design-tokens.md) - Available spacing, colors, typography
@@ -233,11 +251,13 @@ Closes #<issue-number>
 5. See [Component Library](./dev-docs/2-areas/component-library) (when available)
 
 **Design Tools:**
+
 - Figma (preferred)
 - Share files in Discord #design channel
 - Export assets as SVG
 
 **Design Principles Summary** (see full doc for details):
+
 - **Clarity Over Decoration** - Every element serves a purpose
 - **Accessible by Default** - WCAG AA minimum (AAA where possible)
 - **Consistent Over Novel** - Reuse patterns, not one-offs
@@ -251,12 +271,14 @@ Closes #<issue-number>
 ### Types of Docs
 
 **Dev Docs** (`/dev-docs`):
+
 - Technical patterns
 - Architecture decisions
 - API references
 - Setup guides
 
 **Marketing Docs** (`/marketing-docs`):
+
 - Product vision
 - User guides
 - Case studies
@@ -270,6 +292,7 @@ Closes #<issue-number>
 - **Actionable** - What should the reader do?
 
 **Format:**
+
 - Use Markdown (`.md`) or MDX (`.mdx`)
 - Add to PARA structure (`1-projects`, `2-areas`, `3-resources`, `4-archive`)
 - Update sidebar in `DocSidebar.svelte` if adding new section
@@ -279,6 +302,7 @@ Closes #<issue-number>
 ## 🐛 Bug Reports
 
 **Good Bug Reports Include:**
+
 1. **Clear title** - "Sidebar navigation not working on mobile"
 2. **Steps to reproduce** - Numbered list of actions
 3. **Expected behavior** - What should happen
@@ -287,28 +311,35 @@ Closes #<issue-number>
 6. **Screenshots** - Visual evidence helps!
 
 **Template:**
+
 ```markdown
 ### Description
+
 Brief description of the bug.
 
 ### Steps to Reproduce
+
 1. Go to '...'
 2. Click on '...'
 3. Scroll down to '...'
 4. See error
 
 ### Expected Behavior
+
 What you expected to happen.
 
 ### Actual Behavior
+
 What actually happened.
 
 ### Environment
+
 - OS: macOS 14.1
 - Browser: Chrome 120
 - Version: main branch (commit abc123)
 
 ### Screenshots
+
 [Attach screenshots]
 ```
 
@@ -317,26 +348,33 @@ What actually happened.
 ## 💡 Feature Requests
 
 **Good Feature Requests Include:**
+
 1. **Problem statement** - What problem does this solve?
 2. **Proposed solution** - How would it work?
 3. **Alternatives** - What else did you consider?
 4. **Use case** - Who needs this? Why?
 
 **Template:**
+
 ```markdown
 ### Problem
+
 Describe the problem this feature solves.
 
 ### Proposed Solution
+
 How would this feature work?
 
 ### Alternatives Considered
+
 What other solutions did you think about?
 
 ### Use Case
+
 Who needs this? Example scenarios.
 
 ### Success Metrics
+
 How do we know if this is successful?
 ```
 
@@ -347,12 +385,14 @@ How do we know if this is successful?
 ### Code of Conduct
 
 **We are committed to:**
+
 - **Respect** - Treat everyone with respect
 - **Inclusivity** - Welcome all backgrounds
 - **Collaboration** - Work together constructively
 - **Transparency** - Open communication
 
 **We do not tolerate:**
+
 - Harassment or discrimination
 - Spam or self-promotion
 - Trolling or inflammatory comments
@@ -366,6 +406,7 @@ Violations will result in warnings, temporary bans, or permanent bans depending 
 ### Communication Channels
 
 **Discord** (preferred):
+
 - #general - General discussion
 - #contributors - Contributor chat
 - #design - Design discussions
@@ -373,11 +414,13 @@ Violations will result in warnings, temporary bans, or permanent bans depending 
 - #showcase - Share what you built
 
 **GitHub Issues**:
+
 - Bug reports
 - Feature requests
 - Documentation issues
 
 **GitHub Discussions**:
+
 - Questions & answers
 - Ideas & brainstorming
 - Show & tell
@@ -389,6 +432,7 @@ Violations will result in warnings, temporary bans, or permanent bans depending 
 ### Contributors
 
 All contributors are recognized in:
+
 - [README.md](./README.md) - Contributors section
 - Release notes - Feature credits
 - Blog posts - Contributor spotlights
@@ -396,6 +440,7 @@ All contributors are recognized in:
 ### Marketplace Builders
 
 Build something awesome? Earn revenue!
+
 - **80/20 split** - You keep 80%, we take 20%
 - **Featured** - Best apps showcased
 - **Support** - We help you succeed
@@ -407,6 +452,7 @@ Build something awesome? Earn revenue!
 ## 📊 Success Metrics
 
 **We track:**
+
 - Contributions (PRs merged)
 - Contributors (new + returning)
 - Community size (Discord, GitHub stars)
@@ -419,6 +465,7 @@ Build something awesome? Earn revenue!
 ## 🎯 Priorities (Q4 2025)
 
 **Current Focus:**
+
 1. **Multi-tenancy** - Orgs & teams (in progress)
 2. **Saprolab validation** - First paying customer
 3. **Community launch** - Public repo, Discord, blog
@@ -454,17 +501,20 @@ Build something awesome? Earn revenue!
 ## 📖 Resources
 
 **For Contributors:**
+
 - [Architecture](./dev-docs/2-areas/architecture.md) - Tech stack overview
 - [Pattern Index](./dev-docs/2-areas/patterns/INDEX.md) - Common solutions
 - [Design Tokens](./dev-docs/2-areas/design-tokens.md) - UI system
 - [Metrics](./dev-docs/2-areas/metrics.md) - OKRs & progress
 
 **For Product People:**
+
 - [Product Vision 2.0](./marketing-docs/strategy/product-vision-2.0.md) - What we're building
 - [Product Strategy](./marketing-docs/strategy/product-strategy.md) - How we'll get there
 - [Target Personas](./marketing-docs/audience/target-personas.md) - Who we serve
 
 **For Builders:**
+
 - [Marketplace Strategy](./marketing-docs/opportunities/marketplace-strategy.md) - Builder ecosystem
 - [SDK Docs](./dev-docs/2-areas/marketplace-sdk.md) (coming soon)
 
@@ -483,4 +533,3 @@ Build something awesome? Earn revenue!
 Every contribution—big or small—helps us build the Product OS that teams deserve.
 
 **Let's build something amazing together.** 🚀
-

@@ -10,7 +10,16 @@
 		children: import('svelte').Snippet;
 	};
 
-	let { initialWidth, minWidth, maxWidth, onWidthChange, onClose, showHandle = true, shouldAnimateOpen = false, children }: Props = $props();
+	let {
+		initialWidth,
+		minWidth,
+		maxWidth,
+		onWidthChange,
+		onClose,
+		showHandle = true,
+		shouldAnimateOpen = false,
+		children
+	}: Props = $props();
 
 	// Collapse threshold - how many pixels past minWidth before collapsing
 	const COLLAPSE_THRESHOLD = 40; // pixels past minWidth to trigger collapse
@@ -29,10 +38,10 @@
 	$effect(() => {
 		// CRITICAL: Always check isDragging first - never modify currentWidth during drag
 		if (isDragging) return;
-		
+
 		// Also skip if there's an active animation frame (could be from collapse animation)
 		if (animationFrameId !== null) return;
-		
+
 		// When shouldAnimateOpen becomes true, we need to animate from 0 to initialWidth
 		if (shouldAnimateOpen && !hasStartedOpening && initialWidth > 0) {
 			hasStartedOpening = true;
@@ -41,22 +50,22 @@
 			// Opening from collapsed - animate from 0 to initialWidth
 			const startTime = performance.now();
 			const duration = 200; // Fast but smooth
-			
+
 			function animate(currentTime: number) {
 				// Double-check we're not dragging during animation
 				if (isDragging) {
 					animationFrameId = null;
 					return;
 				}
-				
+
 				const elapsed = currentTime - startTime;
 				const progress = Math.min(elapsed / duration, 1);
-				
+
 				// Ease out cubic for smooth deceleration
 				const easeProgress = 1 - Math.pow(1 - progress, 3);
-				
+
 				currentWidth = 0 + (initialWidth - 0) * easeProgress;
-				
+
 				if (progress < 1) {
 					animationFrameId = requestAnimationFrame(animate);
 				} else {
@@ -65,7 +74,7 @@
 					onWidthChange(initialWidth);
 				}
 			}
-			
+
 			// Cancel any existing animation
 			if (animationFrameId !== null) {
 				cancelAnimationFrame(animationFrameId);
@@ -83,25 +92,25 @@
 				const startWidth = currentWidth;
 				const targetWidth = initialWidth;
 				const widthDiff = Math.abs(targetWidth - startWidth);
-				
+
 				// Only animate if it's a significant change (not just small user adjustments)
 				if (widthDiff > 50) {
 					const startTime = performance.now();
 					const duration = 200;
-					
+
 					function animate(currentTime: number) {
 						// Double-check we're not dragging during animation
 						if (isDragging) {
 							animationFrameId = null;
 							return;
 						}
-						
+
 						const elapsed = currentTime - startTime;
 						const progress = Math.min(elapsed / duration, 1);
-						
+
 						const easeProgress = 1 - Math.pow(1 - progress, 3);
 						currentWidth = startWidth + (targetWidth - startWidth) * easeProgress;
-						
+
 						if (progress < 1) {
 							animationFrameId = requestAnimationFrame(animate);
 						} else {
@@ -110,7 +119,7 @@
 							onWidthChange(targetWidth);
 						}
 					}
-					
+
 					if (animationFrameId !== null) {
 						cancelAnimationFrame(animationFrameId);
 					}
@@ -136,12 +145,12 @@
 		function animate(currentTime: number) {
 			const elapsed = currentTime - startTime;
 			const progress = Math.min(elapsed / duration, 1);
-			
+
 			// Ease out cubic for smooth deceleration
 			const easeProgress = 1 - Math.pow(1 - progress, 3);
-			
+
 			currentWidth = targetWidth + (finalWidth - targetWidth) * easeProgress;
-			
+
 			// Only update parent width if we're not collapsing (preserve original width when collapsing)
 			if (finalWidth > 0) {
 				onWidthChange(currentWidth);
@@ -199,10 +208,10 @@
 			if (newWidth < minWidth) {
 				// Always keep visual width at minimum - don't show any movement past this
 				currentWidth = minWidth;
-				
+
 				// Track how far past minimum they've dragged
 				const collapseDistance = minWidth - newWidth;
-				
+
 				// If past threshold, SNAP and collapse immediately
 				if (collapseDistance >= COLLAPSE_THRESHOLD && !isCollapsing) {
 					isCollapsing = true;
@@ -246,7 +255,7 @@
 			// On release, if not already collapsed, just ensure width is valid
 			const finalDeltaX = e.clientX - startX;
 			const finalNewWidth = startWidth + finalDeltaX;
-			
+
 			if (finalNewWidth < minWidth) {
 				// User dragged past minWidth but not far enough to trigger snap - ensure at minWidth
 				currentWidth = minWidth;
@@ -266,11 +275,13 @@
 	}
 
 	// Style binding for the resizable panel with transition
-	const style = $derived(`width: ${currentWidth}px; flex-shrink: 0; transition: ${isDragging || animationFrameId !== null ? 'none' : 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)'};`);
+	const style = $derived(
+		`width: ${currentWidth}px; flex-shrink: 0; transition: ${isDragging || animationFrameId !== null ? 'none' : 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)'};`
+	);
 </script>
 
 <!-- Resizable panel wrapper -->
-<div bind:this={panelElement} class="resizable-panel" style={style}>
+<div bind:this={panelElement} class="resizable-panel" {style}>
 	{@render children()}
 	<!-- Resize handle - only show when showHandle is true or when dragging -->
 	{#if showHandle || isDragging}
@@ -328,4 +339,3 @@
 		background: var(--color-accent-primary, oklch(55.4% 0.218 251.813));
 	}
 </style>
-

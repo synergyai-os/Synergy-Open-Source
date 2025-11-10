@@ -14,6 +14,7 @@ The current flashcard review modal provides a solid foundation with single-card 
 ### 1. **Confusing Action Button Hierarchy**
 
 **Problem**: The footer has too many competing actions:
+
 - "Reject All" (left side)
 - "Approve Selected" (conditional, right side)
 - "Approve Current" (right side)
@@ -22,7 +23,8 @@ The current flashcard review modal provides a solid foundation with single-card 
 
 **Impact**: Users are overwhelmed with choices. The distinction between "current card" actions and "all cards" actions is unclear.
 
-**Recommendation**: 
+**Recommendation**:
+
 - **Option A (Recommended)**: Separate "Review Mode" from "Batch Actions"
   - When in study mode (navigating cards), show only: "Approve Current", "Reject Current", "Skip" (advance without action)
   - Move "Approve All" / "Reject All" to a dropdown menu or separate "Batch Actions" section
@@ -35,6 +37,7 @@ The current flashcard review modal provides a solid foundation with single-card 
   - Hide bulk actions during active review
 
 **Implementation**:
+
 ```typescript
 // Add review mode state
 let reviewMode = $state<'study' | 'batch'>('study');
@@ -56,18 +59,20 @@ let reviewMode = $state<'study' | 'batch'>('study');
 **Impact**: Users don't know if their action registered, leading to uncertainty and potential double-clicks.
 
 **Recommendation**:
+
 - Add a brief visual indicator (toast notification or card flash)
 - Show checkmark/X icon overlay on card before advancing
 - Add subtle background color change (green tint for approved, red tint for rejected)
 - Consider a progress bar showing "X of Y cards reviewed"
 
 **Implementation**:
+
 ```svelte
 <!-- In FlashcardReviewModal.svelte -->
 {#if showApprovalFeedback}
-  <div class="absolute inset-0 bg-green-500/20 flex items-center justify-center z-10">
-    <svg class="w-16 h-16 text-green-500">✓</svg>
-  </div>
+	<div class="absolute inset-0 z-10 flex items-center justify-center bg-green-500/20">
+		<svg class="h-16 w-16 text-green-500">✓</svg>
+	</div>
 {/if}
 ```
 
@@ -80,29 +85,29 @@ let reviewMode = $state<'study' | 'batch'>('study');
 **Impact**: User sees a card they've already actioned, or gets stuck.
 
 **Recommendation**:
+
 - When last card is actioned, show completion state
 - Auto-close modal or show "Review Complete" message
 - Track "remaining cards" separately from total cards
 
 **Implementation**:
+
 ```typescript
 const remainingCards = $derived(
-  editableFlashcards.filter((_, i) => 
-    !approvedIndices.has(i) && !rejectedIndices.has(i)
-  )
+	editableFlashcards.filter((_, i) => !approvedIndices.has(i) && !rejectedIndices.has(i))
 );
 
 function handleApproveCurrent() {
-  approvedIndices.add(currentIndex);
-  approvedIndices = new Set(approvedIndices);
-  
-  if (remainingCards.length <= 1) {
-    // Last card - show completion
-    showCompletionState = true;
-  } else {
-    // Advance to next unactioned card
-    advanceToNextUnactioned();
-  }
+	approvedIndices.add(currentIndex);
+	approvedIndices = new Set(approvedIndices);
+
+	if (remainingCards.length <= 1) {
+		// Last card - show completion
+		showCompletionState = true;
+	} else {
+		// Advance to next unactioned card
+		advanceToNextUnactioned();
+	}
 }
 ```
 
@@ -116,7 +121,8 @@ function handleApproveCurrent() {
 
 **Impact**: Can't implement proper SRS without major refactoring later.
 
-**Recommendation**: 
+**Recommendation**:
+
 - Replace "Approve/Reject" with rating system: "Again", "Hard", "Good", "Easy" (Anki/FSRS pattern)
 - Store ratings in state: `cardRatings = $state<Map<number, Rating>>(new Map())`
 - Prepare data structure for future SRS integration
@@ -124,19 +130,20 @@ function handleApproveCurrent() {
 **Context7 Insight**: FSRS uses `Rating.Again | Rating.Hard | Rating.Good | Rating.Easy` pattern. This is the industry standard.
 
 **Implementation**:
+
 ```typescript
 enum Rating {
-  Again = 1,
-  Hard = 2,
-  Good = 3,
-  Easy = 4
+	Again = 1,
+	Hard = 2,
+	Good = 3,
+	Easy = 4
 }
 
 let cardRatings = $state<Map<number, Rating>>(new Map());
 
 function handleRateCard(rating: Rating) {
-  cardRatings.set(currentIndex, rating);
-  // Auto-advance logic
+	cardRatings.set(currentIndex, rating);
+	// Auto-advance logic
 }
 ```
 
@@ -149,18 +156,17 @@ function handleRateCard(rating: Rating) {
 **Impact**: Distraction during focused study sessions.
 
 **Recommendation**:
+
 - Add "Edit Mode" toggle (separate from study mode)
 - Only allow editing when explicitly in edit mode
 - Or: Only allow editing after card is flipped (shows user has seen answer)
 
 **Implementation**:
+
 ```svelte
 let editMode = $state(false);
 
-<FlashcardComponent
-  editable={editMode && isFlipped}
-  ...
-/>
+<FlashcardComponent editable={editMode && isFlipped} ... />
 ```
 
 ---
@@ -172,23 +178,23 @@ let editMode = $state(false);
 **Impact**: If user approves some cards, they still see them in navigation, cluttering the experience.
 
 **Recommendation**:
+
 - Add "Skip" button (advances without rating)
 - Add filter: "Show only unrated cards"
 - Navigation should skip over already-rated cards by default
 
 **Implementation**:
+
 ```typescript
 const unratedCards = $derived(
-  editableFlashcards
-    .map((_, i) => i)
-    .filter(i => !cardRatings.has(i))
+	editableFlashcards.map((_, i) => i).filter((i) => !cardRatings.has(i))
 );
 
 function advanceToNextUnactioned() {
-  const nextIndex = unratedCards.find(i => i > currentIndex);
-  if (nextIndex !== undefined) {
-    currentIndex = nextIndex;
-  }
+	const nextIndex = unratedCards.find((i) => i > currentIndex);
+	if (nextIndex !== undefined) {
+		currentIndex = nextIndex;
+	}
 }
 ```
 
@@ -201,6 +207,7 @@ function advanceToNextUnactioned() {
 **Impact**: Users miss keyboard navigation, reducing efficiency.
 
 **Recommendation**:
+
 - Add keyboard shortcut hints on buttons (e.g., "Approve (1)", "Reject (2)")
 - Show help modal (press "?" key)
 - Add visual indicators on first visit
@@ -214,6 +221,7 @@ function advanceToNextUnactioned() {
 **Current**: All flashcards loaded into memory at once.
 
 **Future**: For large sets (100+ cards), consider:
+
 - Virtual scrolling (only render visible cards)
 - Lazy loading of card content
 - Debounce edit operations
@@ -227,6 +235,7 @@ function advanceToNextUnactioned() {
 **Current**: Basic ARIA support.
 
 **Recommendations**:
+
 - Add `aria-live` regions for card changes
 - Add `role="dialog"` with proper labeling
 - Ensure all interactive elements are keyboard accessible
@@ -237,6 +246,7 @@ function advanceToNextUnactioned() {
 ### 10. **Analytics & Progress Tracking**
 
 **Future Features**:
+
 - Track time per card
 - Track accuracy rate
 - Show session statistics
@@ -247,22 +257,26 @@ function advanceToNextUnactioned() {
 ## 📋 Recommended Implementation Order
 
 ### Phase 2A: UX Flow Improvements (Week 1)
+
 1. ✅ Simplify action buttons (remove bulk actions from study mode)
 2. ✅ Add visual feedback for card actions
 3. ✅ Fix auto-advance logic for last card
 4. ✅ Add "Skip" functionality
 
 ### Phase 2B: SRS Foundation (Week 2)
+
 5. ✅ Replace Approve/Reject with Rating system (Again/Hard/Good/Easy)
 6. ✅ Update data structures for ratings
 7. ✅ Prepare backend schema for SRS data
 
 ### Phase 2C: Polish & Accessibility (Week 3)
+
 8. ✅ Add edit mode toggle
 9. ✅ Improve keyboard shortcut discoverability
 10. ✅ Add accessibility enhancements
 
 ### Phase 3: Full SRS Integration (Future)
+
 11. Integrate FSRS algorithm (ts-fsrs library)
 12. Add review scheduling
 13. Add review history tracking
@@ -273,11 +287,13 @@ function advanceToNextUnactioned() {
 ## 🎯 Key Patterns to Follow
 
 ### From `patterns-and-lessons.md`:
+
 1. **Single `$state` Object**: ✅ Already following
 2. **Function Parameters for Reactive Values**: ✅ Already following
 3. **Design Tokens**: ✅ Already following
 
 ### New Patterns to Establish:
+
 1. **Modal State Management**: Use composable for modal state
 2. **Rating System**: Standardize on 4-level rating (Again/Hard/Good/Easy)
 3. **Card Navigation**: Always advance to next unrated card
@@ -309,7 +325,7 @@ function advanceToNextUnactioned() {
 
 ## 🎨 Design Recommendations
 
-1. **Card Status Indicators**: 
+1. **Card Status Indicators**:
    - Subtle border color: green (approved), red (rejected), gray (pending)
    - Or: Small badge in corner
 
@@ -330,9 +346,9 @@ function advanceToNextUnactioned() {
 ## Conclusion
 
 The current implementation is a solid Phase 1 foundation. The most critical improvements are:
+
 1. Simplifying the action button hierarchy
 2. Adding visual feedback
 3. Preparing for SRS with a rating system
 
 These changes will transform the modal from a "review tool" into a proper "study system" that users will enjoy using.
-

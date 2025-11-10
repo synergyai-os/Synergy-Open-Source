@@ -47,6 +47,7 @@ npx convex dev
 ```
 
 This will:
+
 - Open your browser to login
 - Create a new Convex project
 - Generate your database schema
@@ -55,6 +56,7 @@ This will:
 **2. Copy your Convex URL**
 
 Look for output like:
+
 ```
 Deploying to: happy-swan-123
 URL: https://happy-swan-123.convex.cloud
@@ -99,6 +101,7 @@ npx convex dev
 **2. You should see the SynergyOS homepage**
 
 **3. Try these routes:**
+
 - `/login` - Auth page
 - `/inbox` - Universal inbox
 - `/flashcards` - Study interface
@@ -107,7 +110,7 @@ npx convex dev
 
 ## 🐛 Troubleshooting
 
-### ❌ "Cannot find module '$convex/_generated/api'"
+### ❌ "Cannot find module '$convex/\_generated/api'"
 
 **Fix:** Convex isn't running. Start it:
 
@@ -125,7 +128,8 @@ cd /Users/YOUR-USERNAME/Coding/SynergyOS
 
 ### ❌ Terminal says "directory does not exist"
 
-**Fix:** 
+**Fix:**
+
 1. Close all terminal tabs
 2. Press **Ctrl + `** to open fresh terminal
 3. Run commands again
@@ -133,6 +137,7 @@ cd /Users/YOUR-USERNAME/Coding/SynergyOS
 ### ❌ Localhost not loading
 
 **Fix:**
+
 1. Make sure BOTH terminals are running (`npm run dev` + `npx convex dev`)
 2. Check for errors in terminal output
 3. Try a different port: `npm run dev -- --port 5174`
@@ -182,4 +187,3 @@ PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 ---
 
 **Ready to build?** Head to [Contributing Guidelines](../../CONTRIBUTING.md) to learn our workflow!
-

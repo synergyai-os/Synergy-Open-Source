@@ -20,48 +20,43 @@
 		triggerElement
 	}: Props = $props();
 
-	function handleSelect(action: () => void | undefined) {
+	function handleSelect(action: (() => void) | undefined) {
 		return () => {
-			action?.();
+			if (action) {
+				action();
+			}
 			onOpenChange(false);
 		};
 	}
 </script>
 
-<DropdownMenuPrimitive.Root {open} onOpenChange={onOpenChange}>
+<DropdownMenuPrimitive.Root {open} {onOpenChange}>
 	<DropdownMenuPrimitive.Trigger
-		class="w-full flex items-center justify-center gap-icon bg-sidebar-hover hover:bg-sidebar-hover-solid text-sidebar-primary py-nav-item px-header rounded-md transition-all duration-150 text-sm font-normal"
+		class="flex w-full items-center justify-center gap-icon rounded-md bg-sidebar-hover px-header py-nav-item text-sm font-normal text-sidebar-primary transition-all duration-150 hover:bg-sidebar-hover-solid"
 	>
 		<svg
-			class="w-4 h-4"
+			class="h-4 w-4"
 			fill="none"
 			stroke="currentColor"
 			viewBox="0 0 24 24"
 			xmlns="http://www.w3.org/2000/svg"
 		>
-			<path
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				stroke-width="2"
-				d="M12 4v16m8-8H4"
-			/>
+			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
 		</svg>
 		New Item
 	</DropdownMenuPrimitive.Trigger>
 
 	<DropdownMenuPrimitive.Content
-		class="z-50 min-w-[12rem] rounded-md border border-sidebar bg-sidebar px-menu-container py-menu-container shadow-lg"
+		class="px-menu-container py-menu-container z-50 min-w-[12rem] rounded-md border border-sidebar bg-sidebar shadow-lg"
 		sideOffset={4}
-		transition={fade}
-		transitionConfig={{ duration: 100 }}
 	>
 		<!-- Note Option -->
 		<DropdownMenuPrimitive.Item
-			class="group relative flex items-center gap-icon px-menu-item py-menu-item rounded-md hover:bg-sidebar-hover transition-colors cursor-pointer text-sm text-sidebar-secondary hover:text-sidebar-primary outline-none"
+			class="group relative flex cursor-pointer items-center gap-icon rounded-md px-menu-item py-menu-item text-sm text-sidebar-secondary transition-colors outline-none hover:bg-sidebar-hover hover:text-sidebar-primary"
 			onSelect={handleSelect(onCreateNote)}
 		>
 			<svg
-				class="w-4 h-4 flex-shrink-0"
+				class="h-4 w-4 flex-shrink-0"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -78,15 +73,15 @@
 			<span class="text-label text-sidebar-tertiary">C</span>
 		</DropdownMenuPrimitive.Item>
 
-		<DropdownMenuPrimitive.Separator class="my-1 h-px bg-sidebar-divider" />
+		<DropdownMenuPrimitive.Separator class="bg-sidebar-divider my-1 h-px" />
 
 		<!-- Flashcard Option -->
 		<DropdownMenuPrimitive.Item
-			class="group relative flex items-center gap-icon px-menu-item py-menu-item rounded-md hover:bg-sidebar-hover transition-colors cursor-pointer text-sm text-sidebar-secondary hover:text-sidebar-primary outline-none"
+			class="group relative flex cursor-pointer items-center gap-icon rounded-md px-menu-item py-menu-item text-sm text-sidebar-secondary transition-colors outline-none hover:bg-sidebar-hover hover:text-sidebar-primary"
 			onSelect={handleSelect(onCreateFlashcard)}
 		>
 			<svg
-				class="w-4 h-4 flex-shrink-0"
+				class="h-4 w-4 flex-shrink-0"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -104,11 +99,11 @@
 
 		<!-- Highlight Option -->
 		<DropdownMenuPrimitive.Item
-			class="group relative flex items-center gap-icon px-menu-item py-menu-item rounded-md hover:bg-sidebar-hover transition-colors cursor-pointer text-sm text-sidebar-secondary hover:text-sidebar-primary outline-none"
+			class="group relative flex cursor-pointer items-center gap-icon rounded-md px-menu-item py-menu-item text-sm text-sidebar-secondary transition-colors outline-none hover:bg-sidebar-hover hover:text-sidebar-primary"
 			onSelect={handleSelect(onCreateHighlight)}
 		>
 			<svg
-				class="w-4 h-4 flex-shrink-0"
+				class="h-4 w-4 flex-shrink-0"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -125,4 +120,3 @@
 		</DropdownMenuPrimitive.Item>
 	</DropdownMenuPrimitive.Content>
 </DropdownMenuPrimitive.Root>
-

@@ -7,10 +7,12 @@
 ## 📋 Available Documentation
 
 ### User Personas
+
 - **[Target Personas](target-personas.md)** - Who our users are and what they need
 - **[Success Signals](success-signals.md)** - How we know users are succeeding
 
 ### User Journeys
+
 - **[Trunk-Based Deployment Journey](journey-trunk-based-deployment.md)** ⭐ **COMPLETE CASE STUDY**
   - Persona: Alex - Senior Full-Stack Engineer
   - Journey: Manual deploys → Continuous deployment (4 weeks)
@@ -28,56 +30,68 @@
 ## 🎯 How to Use These Documents
 
 ### For Product Teams
+
 **Purpose**: Understand user needs and pain points
 
 **Use**:
+
 - Design features that solve real problems
 - Prioritize based on user goals
 - Validate assumptions with journey stages
 
 **Example**:
+
 > "Alex's biggest pain point is merge conflicts from long-lived branches. Our trunk-based deployment directly solves this."
 
 ---
 
 ### For Marketing Teams
+
 **Purpose**: Create content that resonates and converts
 
 **Use**:
+
 - Craft messaging based on journey stages
 - Create content for each awareness level
 - Target search terms users actually use
 - Position against alternatives
 
 **Example**:
+
 > "Target SEO: 'trunk-based deployment sveltekit' - this is how Alex found us. Create content that ranks for this."
 
 ---
 
 ### For Content Creators
+
 **Purpose**: Know what content to create and when
 
 **Use**:
+
 - Map content to journey stages
 - Address questions at each stage
 - Use real user quotes
 - Create case studies from journeys
 
 **Example**:
+
 > "Alex needed to understand 'How do they deploy without staging?' - create blog post answering this specific question."
 
 ---
 
 ### For Documentation Teams
+
 **Purpose**: Optimize information architecture
 
 **Use**:
+
 - Understand how users navigate
 - Identify navigation bottlenecks
 - Design better entry points
 - Improve findability
 
 **Example**:
+
 > "Users find deployment docs via 'Quick Wins' table in < 2 min. Keep this pattern for other topics."
 
 ---
@@ -87,21 +101,25 @@
 ### What Converts Users
 
 **Technical Match** (Critical):
+
 - ✅ Exact tech stack (SvelteKit + Convex + Vercel)
 - ✅ Complete working implementation
 - ✅ Copy-paste ready code examples
 
 **Pain Relief** (Critical):
+
 - ✅ Solves real, acute pain (slow deploys, merge conflicts)
 - ✅ Quantifiable improvement (1/week → 4x/day)
 - ✅ Risk reduction (30 sec rollback vs 20 min)
 
 **Trust Signals** (Important):
+
 - ✅ Open source (can see how it works)
 - ✅ Production use (dogfooding)
 - ✅ Detailed documentation (every question answered)
 
 **Ease of Implementation** (Important):
+
 - ✅ Clear next steps
 - ✅ Time estimates (4 weeks)
 - ✅ Progressive implementation (not big bang)
@@ -109,6 +127,7 @@
 ### What Doesn't Matter (Surprisingly)
 
 **Low Impact**:
+
 - ❌ Fancy marketing site (went straight to docs)
 - ❌ Sales calls (self-serve preferred)
 - ❌ Comparison charts (code spoke for itself)
@@ -151,35 +170,39 @@
 ### Distribution Strategy
 
 **Primary Channels**:
+
 1. **SEO** - Target: "[framework] trunk-based deployment"
 2. **GitHub** - Readme + docs visibility
 3. **Dev.to** - Technical deep dives with code
 4. **YouTube** - Implementation walkthroughs
 5. **Twitter** - Share wins and metrics
 
-**Secondary Channels**:
-6. **Reddit** - r/webdev, r/devops, r/svelte (use sparingly)
-7. **HackerNews** - If genuinely novel/interesting
-8. **LinkedIn** - For CTO/management level
+**Secondary Channels**: 6. **Reddit** - r/webdev, r/devops, r/svelte (use sparingly) 7. **HackerNews** - If genuinely novel/interesting 8. **LinkedIn** - For CTO/management level
 
 ### Messaging by Stage
 
 **Awareness**:
+
 > "Your deployment process is holding you back. Here's how top teams ship 10x faster."
 
 **Consideration**:
+
 > "Trunk-based deployment sounds risky, but with feature flags it's actually safer. Here's the complete implementation."
 
 **Decision**:
+
 > "Stop reinventing the wheel. Use our battle-tested implementation for SvelteKit + Convex."
 
 **Implementation**:
+
 > "Week 1: Git workflow. Week 2: Feature flags. Week 3: CI/CD. Week 4: Your first rollout."
 
 **Adoption**:
+
 > "From 1 deploy/week to 4x/day. From 20min rollback to 30sec. This is how we did it."
 
 **Advocacy**:
+
 > "Share your journey. Help other teams ship faster. Contribute back to SynergyOS."
 
 ---
@@ -223,12 +246,14 @@
 ### Updating User Journeys
 
 **When to Update**:
+
 - New features change workflow
 - User feedback reveals new patterns
 - Metrics show unexpected behavior
 - Competitive landscape shifts
 
 **How to Update**:
+
 1. Gather user feedback (support, discussions, surveys)
 2. Analyze usage metrics (docs views, code patterns)
 3. Update journey stages with new insights
@@ -239,12 +264,14 @@
 ### Creating New Journeys
 
 **When Needed**:
+
 - New persona identified (e.g., "Designer using SynergyOS")
 - New feature area (e.g., "Multi-tenancy implementation")
 - Different use case (e.g., "Solo developer vs Team")
 
 **Template**:
 Use `journey-trunk-based-deployment.md` as template:
+
 - Stage-by-stage breakdown
 - Pain points and triggers
 - Decision criteria
@@ -257,11 +284,13 @@ Use `journey-trunk-based-deployment.md` as template:
 ## 📚 Related Documentation
 
 ### Internal
+
 - **[Product Vision 2.0](../strategy/product-vision-2.0.md)** - What we're building
 - **[Product Strategy](../strategy/product-strategy.md)** - How we're building it
 - **[Community Strategy](../go-to-market/community-strategy.md)** - How we grow
 
 ### External (Inspiration)
+
 - [Jobs to Be Done](https://jtbd.info/) - Framework for understanding user needs
 - [User Journey Mapping](https://www.nngroup.com/articles/customer-journey-mapping/) - NN/g methodology
 - [Hooked](https://www.nirandfar.com/hooked/) - Building habit-forming products
@@ -288,9 +317,9 @@ Use `journey-trunk-based-deployment.md` as template:
 ---
 
 **Use these journeys to**:
+
 - Guide product development
 - Create targeted content
 - Improve documentation
 - Measure success
 - Grow community
-

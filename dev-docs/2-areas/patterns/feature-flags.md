@@ -7,12 +7,14 @@
 ## Why Feature Flags?
 
 ### Problems They Solve
+
 - **Long-lived feature branches** - Code sits unmerged for weeks, accumulates conflicts
 - **Big bang releases** - Deploy everything at once, high risk
 - **Cannot test in production** - No way to test with real data before 100% rollout
 - **Rollback requires redeployment** - Minutes to rollback instead of seconds
 
 ### Benefits
+
 - **Continuous Deployment** - Merge to main daily, deploy constantly
 - **Progressive Rollout** - Start at 1%, expand to 100% gradually
 - **Instant Rollback** - Toggle flag off, no redeploy needed
@@ -26,16 +28,19 @@
 ### Architecture
 
 **Frontend** (`src/lib/featureFlags.ts`):
+
 - TypeScript constants for all flags
 - Helper functions for percentage rollout
 - Svelte composable for reactive flag checks
 
 **Backend** (`convex/featureFlags.ts`):
+
 - Server-side flag evaluation
 - Queries for checking flags
 - Mutations for managing flags (admin)
 
 **Database** (`convex/schema.ts`):
+
 - `featureFlags` table
 - Indexed by flag name for fast lookups
 
@@ -46,28 +51,31 @@
 **Format**: `<area>_<feature>_<status>`
 
 **Components**:
+
 - **Area**: Product area (notes, inbox, sync, auth, etc.)
 - **Feature**: What it does (editor, batch_actions, v2, etc.)
 - **Status**: Rollout phase (beta, dev, rollout)
 
 **Examples**:
+
 ```typescript
 export const FeatureFlags = {
-  // New notes editor in beta testing
-  NOTES_PROSEMIRROR_BETA: 'notes_prosemirror_beta',
-  
-  // Batch actions - developer only
-  INBOX_BATCH_ACTIONS_DEV: 'inbox_batch_actions_dev',
-  
-  // Readwise sync v2 - progressive rollout
-  SYNC_READWISE_V2_ROLLOUT: 'sync_readwise_v2_rollout',
-  
-  // New auth flow - A/B testing
-  AUTH_PASSWORDLESS_TEST: 'auth_passwordless_test',
+	// New notes editor in beta testing
+	NOTES_PROSEMIRROR_BETA: 'notes_prosemirror_beta',
+
+	// Batch actions - developer only
+	INBOX_BATCH_ACTIONS_DEV: 'inbox_batch_actions_dev',
+
+	// Readwise sync v2 - progressive rollout
+	SYNC_READWISE_V2_ROLLOUT: 'sync_readwise_v2_rollout',
+
+	// New auth flow - A/B testing
+	AUTH_PASSWORDLESS_TEST: 'auth_passwordless_test'
 } as const;
 ```
 
 **Rules**:
+
 - Use `SCREAMING_SNAKE_CASE` for TypeScript const
 - Use `snake_case` for database flag value
 - Prefix clearly identifies product area
@@ -83,25 +91,26 @@ export const FeatureFlags = {
 
 ```svelte
 <script lang="ts">
-  import { useQuery } from 'convex-svelte';
-  import { api } from '$lib/convex';
-  import { FeatureFlags } from '$lib/featureFlags';
-  
-  const user = useCurrentUser();
-  
-  const showNewEditor = useQuery(
-    api.featureFlags.checkFlag,
-    () => user._id ? {
-      flag: FeatureFlags.NOTES_PROSEMIRROR_BETA,
-      userId: user._id
-    } : 'skip'
-  );
+	import { useQuery } from 'convex-svelte';
+	import { api } from '$lib/convex';
+	import { FeatureFlags } from '$lib/featureFlags';
+
+	const user = useCurrentUser();
+
+	const showNewEditor = useQuery(api.featureFlags.checkFlag, () =>
+		user._id
+			? {
+					flag: FeatureFlags.NOTES_PROSEMIRROR_BETA,
+					userId: user._id
+				}
+			: 'skip'
+	);
 </script>
 
 {#if $showNewEditor}
-  <NewNotesEditor />
+	<NewNotesEditor />
 {:else}
-  <OldNotesEditor />
+	<OldNotesEditor />
 {/if}
 ```
 
@@ -110,30 +119,32 @@ export const FeatureFlags = {
 **Use when**: Gradual rollout to reduce risk
 
 **Server-side**:
+
 ```typescript
 // In convex/featureFlags.ts
 // Set rolloutPercentage: 10 for 10% of users
 await upsertFlag({
-  flag: 'sync_readwise_v2_rollout',
-  enabled: true,
-  rolloutPercentage: 10, // Start at 10%
+	flag: 'sync_readwise_v2_rollout',
+	enabled: true,
+	rolloutPercentage: 10 // Start at 10%
 });
 ```
 
 **Client-side**:
+
 ```svelte
 <script lang="ts">
-  // Same as Pattern 1 - server handles percentage logic
-  const useNewSync = useQuery(
-    api.featureFlags.checkFlag,
-    () => ({ flag: FeatureFlags.SYNC_READWISE_V2_ROLLOUT, userId: $user._id })
-  );
+	// Same as Pattern 1 - server handles percentage logic
+	const useNewSync = useQuery(api.featureFlags.checkFlag, () => ({
+		flag: FeatureFlags.SYNC_READWISE_V2_ROLLOUT,
+		userId: $user._id
+	}));
 </script>
 
 {#if $useNewSync}
-  <NewSyncFlow />
+	<NewSyncFlow />
 {:else}
-  <OldSyncFlow />
+	<OldSyncFlow />
 {/if}
 ```
 
@@ -146,16 +157,16 @@ await upsertFlag({
 ```typescript
 // Enable for specific user IDs
 await upsertFlag({
-  flag: 'notes_prosemirror_beta',
-  enabled: true,
-  allowedUserIds: [userId1, userId2], // Only these users
+	flag: 'notes_prosemirror_beta',
+	enabled: true,
+	allowedUserIds: [userId1, userId2] // Only these users
 });
 
 // Enable for team members
 await upsertFlag({
-  flag: 'inbox_batch_actions_dev',
-  enabled: true,
-  allowedDomains: ['@yourcompany.com'], // Anyone with this email domain
+	flag: 'inbox_batch_actions_dev',
+	enabled: true,
+	allowedDomains: ['@yourcompany.com'] // Anyone with this email domain
 });
 ```
 
@@ -166,24 +177,24 @@ await upsertFlag({
 ```typescript
 // In convex mutation/action
 export const processInboxItem = mutation({
-  args: { itemId: v.id('inboxItems') },
-  handler: async (ctx, { itemId }) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error('Not authenticated');
-    
-    // Check feature flag
-    const useNewProcessor = await checkFlagInternal(
-      ctx,
-      'inbox_new_processor_rollout',
-      identity.subject as Id<'users'>
-    );
-    
-    if (useNewProcessor) {
-      return await newProcessingLogic(ctx, itemId);
-    } else {
-      return await oldProcessingLogic(ctx, itemId);
-    }
-  }
+	args: { itemId: v.id('inboxItems') },
+	handler: async (ctx, { itemId }) => {
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity) throw new Error('Not authenticated');
+
+		// Check feature flag
+		const useNewProcessor = await checkFlagInternal(
+			ctx,
+			'inbox_new_processor_rollout',
+			identity.subject as Id<'users'>
+		);
+
+		if (useNewProcessor) {
+			return await newProcessingLogic(ctx, itemId);
+		} else {
+			return await oldProcessingLogic(ctx, itemId);
+		}
+	}
 });
 ```
 
@@ -193,21 +204,21 @@ export const processInboxItem = mutation({
 
 ```svelte
 <script lang="ts">
-  import ErrorBoundary from '$lib/components/ErrorBoundary.svelte';
-  import { FeatureFlags } from '$lib/featureFlags';
-  
-  const showNewFeature = useQuery(
-    api.featureFlags.checkFlag,
-    () => ({ flag: FeatureFlags.NEW_FEATURE_BETA, userId: $user._id })
-  );
+	import ErrorBoundary from '$lib/components/ErrorBoundary.svelte';
+	import { FeatureFlags } from '$lib/featureFlags';
+
+	const showNewFeature = useQuery(api.featureFlags.checkFlag, () => ({
+		flag: FeatureFlags.NEW_FEATURE_BETA,
+		userId: $user._id
+	}));
 </script>
 
 {#if $showNewFeature}
-  <ErrorBoundary fallback={OldFeatureFallback}>
-    <NewFeatureComponent />
-  </ErrorBoundary>
+	<ErrorBoundary fallback={OldFeatureFallback}>
+		<NewFeatureComponent />
+	</ErrorBoundary>
 {:else}
-  <OldFeatureComponent />
+	<OldFeatureComponent />
 {/if}
 ```
 
@@ -216,6 +227,7 @@ export const processInboxItem = mutation({
 ## Progressive Rollout Workflow
 
 ### Phase 0: Development
+
 **Timeline**: During development
 **Flag State**: Doesn't exist yet
 
@@ -228,6 +240,7 @@ git checkout -b feature/SYN-123-new-editor
 ```
 
 ### Phase 1: Developer Only
+
 **Timeline**: Day 1 after merge
 **Exposure**: You only
 **Goal**: Test in production with real data
@@ -235,13 +248,14 @@ git checkout -b feature/SYN-123-new-editor
 ```typescript
 // In Convex dashboard or admin panel
 await upsertFlag({
-  flag: 'notes_prosemirror_beta',
-  enabled: true,
-  allowedUserIds: ['your-user-id'], // Only you
+	flag: 'notes_prosemirror_beta',
+	enabled: true,
+	allowedUserIds: ['your-user-id'] // Only you
 });
 ```
 
 **Checklist**:
+
 - [ ] Test all user flows
 - [ ] Check browser console for errors
 - [ ] Verify PostHog events firing
@@ -249,56 +263,64 @@ await upsertFlag({
 - [ ] Use for 1 hour minimum
 
 ### Phase 2: Team Testing
+
 **Timeline**: Day 2-3
 **Exposure**: Team members
 **Goal**: Get feedback, find edge cases
 
 ```typescript
 await upsertFlag({
-  flag: 'notes_prosemirror_beta',
-  enabled: true,
-  allowedDomains: ['@yourcompany.com'], // All team members
+	flag: 'notes_prosemirror_beta',
+	enabled: true,
+	allowedDomains: ['@yourcompany.com'] // All team members
 });
 ```
 
 **Checklist**:
+
 - [ ] Team has tested for 1+ day
 - [ ] No critical bugs reported
 - [ ] Performance is acceptable
 - [ ] Error rate < 0.1%
 
 ### Phase 3: Beta Users
+
 **Timeline**: Week 1
 **Exposure**: 5-10% or opt-in users
 **Goal**: Real user feedback
 
 **Option A: Percentage Rollout**
+
 ```typescript
 await upsertFlag({
-  flag: 'notes_prosemirror_beta',
-  enabled: true,
-  rolloutPercentage: 5, // 5% of all users
+	flag: 'notes_prosemirror_beta',
+	enabled: true,
+	rolloutPercentage: 5 // 5% of all users
 });
 ```
 
 **Option B: Opt-in Users**
+
 ```typescript
 // Add "beta program" flag to user settings
 // Check both flags: beta_program && feature_flag
 ```
 
 **Checklist**:
+
 - [ ] Monitor error rate daily
 - [ ] Review session replays in PostHog
 - [ ] Gather user feedback
 - [ ] Performance metrics stable
 
 ### Phase 4: Gradual Rollout
+
 **Timeline**: Week 2
 **Exposure**: 10% → 25% → 50% → 100%
 **Goal**: Safe production rollout
 
 **Schedule**:
+
 ```
 Day 1: 10%  → Monitor for 24h
 Day 2: 25%  → Monitor for 24h
@@ -307,6 +329,7 @@ Day 4: 100% → Monitor for 48h
 ```
 
 **Implementation**:
+
 ```typescript
 // Day 1
 await updateRollout({ flag: 'notes_prosemirror_beta', percentage: 10 });
@@ -318,12 +341,14 @@ await updateRollout({ flag: 'notes_prosemirror_beta', percentage: 25 });
 ```
 
 **Emergency Rollback**:
+
 ```typescript
 // If issues detected, instant rollback
 await toggleFlag({ flag: 'notes_prosemirror_beta', enabled: false });
 ```
 
 ### Phase 5: Cleanup
+
 **Timeline**: Week 3-4 after 100%
 **Goal**: Remove flag code, make feature default
 
@@ -345,45 +370,50 @@ git checkout -b chore/SYN-124-remove-editor-flag
 ### Creating a Flag
 
 **1. Add to constants**:
+
 ```typescript
 // src/lib/featureFlags.ts
 export const FeatureFlags = {
-  NEW_FEATURE_BETA: 'new_feature_beta',
+	NEW_FEATURE_BETA: 'new_feature_beta'
 } as const;
 ```
 
 **2. Wrap feature in check**:
+
 ```svelte
 <script>
-  const enabled = useQuery(
-    api.featureFlags.checkFlag,
-    () => ({ flag: FeatureFlags.NEW_FEATURE_BETA, userId: $user._id })
-  );
+	const enabled = useQuery(api.featureFlags.checkFlag, () => ({
+		flag: FeatureFlags.NEW_FEATURE_BETA,
+		userId: $user._id
+	}));
 </script>
 
 {#if $enabled}
-  <NewFeature />
+	<NewFeature />
 {/if}
 ```
 
 **3. Create flag in database**:
+
 ```typescript
 // Via Convex dashboard function runner
 await upsertFlag({
-  flag: 'new_feature_beta',
-  enabled: false, // Start disabled
+	flag: 'new_feature_beta',
+	enabled: false // Start disabled
 });
 ```
 
 ### Updating a Flag
 
 **Via Admin Panel** (future):
+
 - Toggle on/off
 - Adjust percentage
 - Add/remove users
 - Set allowed domains
 
 **Via Convex Function Runner** (now):
+
 ```typescript
 // Enable flag
 await toggleFlag({ flag: 'new_feature_beta', enabled: true });
@@ -393,32 +423,34 @@ await updateRollout({ flag: 'new_feature_beta', percentage: 25 });
 
 // Add specific users
 await upsertFlag({
-  flag: 'new_feature_beta',
-  enabled: true,
-  allowedUserIds: [userId1, userId2],
+	flag: 'new_feature_beta',
+	enabled: true,
+	allowedUserIds: [userId1, userId2]
 });
 ```
 
 ### Monitoring Flags
 
 **PostHog Integration**:
+
 ```typescript
 // Track flag checks
 posthog.capture('feature_flag_checked', {
-  flag: 'notes_prosemirror_beta',
-  enabled: true,
-  userId: user._id,
-  rolloutPercentage: 10,
+	flag: 'notes_prosemirror_beta',
+	enabled: true,
+	userId: user._id,
+	rolloutPercentage: 10
 });
 
 // Track feature usage
 posthog.capture('feature_used', {
-  feature: 'new_notes_editor',
-  flag: 'notes_prosemirror_beta',
+	feature: 'new_notes_editor',
+	flag: 'notes_prosemirror_beta'
 });
 ```
 
 **Query in PostHog**:
+
 - Error rate by feature flag
 - Feature usage by flag status
 - Conversion rate: flagged vs non-flagged users
@@ -430,37 +462,42 @@ posthog.capture('feature_used', {
 ### ✅ DO
 
 **Always Use Flags for New Features**:
+
 ```svelte
 <!-- Good: Feature behind flag -->
 {#if $showNewFeature}
-  <NewFeature />
+	<NewFeature />
 {:else}
-  <OldFeature />
+	<OldFeature />
 {/if}
 ```
 
 **Default to Disabled**:
+
 ```typescript
 // Good: Flag starts as false
 await upsertFlag({
-  flag: 'new_feature',
-  enabled: false, // Explicit false
+	flag: 'new_feature',
+	enabled: false // Explicit false
 });
 ```
 
 **Remove Flags After Rollout**:
+
 ```typescript
 // After 2 weeks at 100%, remove flag
 // Make new code the default, delete old code
 ```
 
 **Use Consistent Hashing**:
+
 ```typescript
 // User sees same experience every time
 // Built into checkFlag() function
 ```
 
 **Monitor Everything**:
+
 ```typescript
 // Track flag evaluations
 posthog.capture('feature_flag_checked', { flag, enabled });
@@ -472,35 +509,39 @@ posthog.capture('feature_used', { feature, flag });
 ### ❌ DON'T
 
 **Don't Skip Flags for "Small" Changes**:
+
 ```svelte
 <!-- Bad: No flag, goes to 100% immediately -->
 <NewFeatureWithoutFlag />
 ```
 
 **Don't Leave Flags Forever**:
+
 ```typescript
 // Bad: Flag from 6 months ago still in code
 // Clean up after 100% rollout is stable
 ```
 
 **Don't Nest Flags Deeply**:
+
 ```svelte
 <!-- Bad: Too many nested flags -->
 {#if $flag1}
-  {#if $flag2}
-    {#if $flag3}
-      <Feature />
-    {/if}
-  {/if}
+	{#if $flag2}
+		{#if $flag3}
+			<Feature />
+		{/if}
+	{/if}
 {/if}
 
 <!-- Good: Single flag per feature -->
 {#if $newFeatureEnabled}
-  <Feature />
+	<Feature />
 {/if}
 ```
 
 **Don't Use Flags for Config**:
+
 ```typescript
 // Bad: Using flags for configuration
 const apiUrl = $flags.apiUrl;
@@ -524,6 +565,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 **Problem**: User sometimes sees new feature, sometimes old
 
 **Possible Causes**:
+
 1. **Percentage rollout** - User is on the boundary
    - Solution: Use allowedUserIds for testing
 2. **Multiple user IDs** - User has multiple accounts
@@ -536,6 +578,7 @@ const apiUrl = import.meta.env.VITE_API_URL;
 **Problem**: Flag is enabled but nobody sees feature
 
 **Debug**:
+
 ```typescript
 // 1. Check flag exists
 await getFlag({ flag: 'your_flag_name' });
@@ -598,9 +641,9 @@ rolloutPercentage: 25 → 50 → 100
 
 ```typescript
 // Instant disable
-await toggleFlag({ 
-  flag: 'problematic_feature', 
-  enabled: false 
+await toggleFlag({
+	flag: 'problematic_feature',
+	enabled: false
 });
 ```
 
@@ -612,4 +655,3 @@ await toggleFlag({
 - [Error Boundaries Pattern](./svelte-reactivity.md#error-boundaries)
 - [PostHog Integration](./analytics.md)
 - [Trunk-Based Development](https://trunkbaseddevelopment.com/)
-

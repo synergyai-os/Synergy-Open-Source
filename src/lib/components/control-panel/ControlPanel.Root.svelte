@@ -21,14 +21,14 @@
 </script>
 
 {#if variant === 'popover'}
-	<Popover.Root {open} onOpenChange={onOpenChange}>
+	<Popover.Root {open} {onOpenChange}>
 		{#if trigger}
 			<Popover.Trigger>
 				{@render trigger()}
 			</Popover.Trigger>
 		{/if}
 		<Popover.Content
-			class="bg-control border border-control-border rounded-md shadow-lg p-control-panel-padding z-50"
+			class="z-50 rounded-md border border-control-border bg-control p-control-panel-padding shadow-lg"
 			side="bottom"
 			align="start"
 			sideOffset={8}
@@ -38,7 +38,7 @@
 	</Popover.Root>
 {:else if variant === 'toolbar'}
 	<div
-		class="flex items-center gap-control-group bg-control border-b border-control-border p-control-panel-padding"
+		class="flex items-center gap-control-group border-b border-control-border bg-control p-control-panel-padding"
 	>
 		{@render children()}
 	</div>
@@ -47,4 +47,3 @@
 		{@render children()}
 	</div>
 {/if}
-

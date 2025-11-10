@@ -64,30 +64,27 @@
 
 <!-- Modal Backdrop -->
 <div
-	class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+	class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
 	onclick={handleBackdropClick}
 	role="presentation"
 >
 	<!-- Modal Content -->
 	<div
-		class="bg-elevated border border-base rounded-lg shadow-lg max-w-md w-full"
+		class="w-full max-w-md rounded-lg border border-base bg-elevated shadow-lg"
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="modal-title"
 	>
 		<!-- Modal Header -->
 		<div class="border-b border-base px-6 py-4">
-			<h2 id="modal-title" class="text-lg font-semibold text-primary flex items-center gap-2">
-				<div 
-					class="w-3 h-3 rounded-full flex-shrink-0" 
-					style="background-color: {tag.color}"
-				></div>
+			<h2 id="modal-title" class="flex items-center gap-2 text-lg font-semibold text-primary">
+				<div class="h-3 w-3 flex-shrink-0 rounded-full" style="background-color: {tag.color}"></div>
 				Transfer "{tag.displayName}"
 			</h2>
 		</div>
 
 		<!-- Modal Body -->
-		<div class="px-6 py-5 space-y-4">
+		<div class="space-y-4 px-6 py-5">
 			{#if organizations.length === 0}
 				<div class="text-sm text-secondary">
 					<p class="mb-2">You're not part of any organizations yet.</p>
@@ -96,13 +93,13 @@
 			{:else}
 				<!-- Transfer To -->
 				<div>
-					<label for="organization-select" class="block text-sm font-medium text-primary mb-2">
+					<label for="organization-select" class="mb-2 block text-sm font-medium text-primary">
 						Transfer to organization
 					</label>
 					<select
 						id="organization-select"
 						bind:value={selectedOrganization}
-						class="w-full px-3 py-2 bg-base border border-base rounded-md text-sm text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary focus:border-transparent"
+						class="w-full rounded-md border border-base bg-base px-3 py-2 text-sm text-primary focus:border-transparent focus:ring-2 focus:ring-accent-primary focus:outline-none"
 						disabled={isSharing}
 					>
 						{#each organizations as org (org.organizationId)}
@@ -113,9 +110,9 @@
 
 				<!-- Items to Transfer -->
 				{#if itemCounts.total > 0}
-					<div class="bg-base border border-base rounded-md p-3">
-						<p class="text-sm font-medium text-primary mb-2">This will transfer:</p>
-						<ul class="text-sm text-secondary space-y-1">
+					<div class="rounded-md border border-base bg-base p-3">
+						<p class="mb-2 text-sm font-medium text-primary">This will transfer:</p>
+						<ul class="space-y-1 text-sm text-secondary">
 							<li>• The collection itself</li>
 							{#if itemCounts.highlights > 0}
 								<li>• {itemCounts.highlights} highlight{itemCounts.highlights !== 1 ? 's' : ''}</li>
@@ -128,14 +125,24 @@
 				{/if}
 
 				<!-- Warning Message -->
-				<div class="bg-accent-primary/10 border border-accent-primary/20 rounded-md p-3">
+				<div class="rounded-md border border-accent-primary/20 bg-accent-primary/10 p-3">
 					<div class="flex gap-2">
-						<svg class="w-5 h-5 text-accent-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+						<svg
+							class="mt-0.5 h-5 w-5 flex-shrink-0 text-accent-primary"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+							/>
 						</svg>
 						<div class="text-sm">
-							<p class="font-medium text-accent-primary mb-1">After transferring:</p>
-							<ul class="text-tertiary space-y-1 text-label">
+							<p class="mb-1 font-medium text-accent-primary">After transferring:</p>
+							<ul class="space-y-1 text-label text-tertiary">
 								<li>• Organization will own this collection</li>
 								<li>• All members can view and contribute</li>
 								<li>• You'll still have access as a member</li>
@@ -148,12 +155,12 @@
 		</div>
 
 		<!-- Modal Footer -->
-		<div class="border-t border-base px-6 py-4 flex items-center justify-end gap-3">
+		<div class="flex items-center justify-end gap-3 border-t border-base px-6 py-4">
 			<button
 				type="button"
 				onclick={onClose}
 				disabled={isSharing}
-				class="px-4 py-2 text-sm font-medium text-secondary hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+				class="px-4 py-2 text-sm font-medium text-secondary transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				Cancel
 			</button>
@@ -162,12 +169,23 @@
 					type="button"
 					onclick={handleSubmit}
 					disabled={isSharing || !selectedOrganization}
-					class="px-4 py-2 text-sm font-medium bg-accent-primary text-white rounded-md hover:bg-accent-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+					class="flex items-center gap-2 rounded-md bg-accent-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{#if isSharing}
-						<svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-							<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-							<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+						<svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+							<circle
+								class="opacity-25"
+								cx="12"
+								cy="12"
+								r="10"
+								stroke="currentColor"
+								stroke-width="4"
+							></circle>
+							<path
+								class="opacity-75"
+								fill="currentColor"
+								d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+							></path>
 						</svg>
 						Transferring...
 					{:else}
@@ -178,4 +196,3 @@
 		</div>
 	</div>
 </div>
-

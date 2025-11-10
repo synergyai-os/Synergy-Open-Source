@@ -12,8 +12,8 @@ import type { InboxItem } from '$lib/composables/useKeyboardNavigation.svelte';
 type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 
 export interface UseInboxItemsParams {
-	activeOrganizationId?: string | null;
-	activeTeamId?: string | null;
+	activeOrganizationId?: (() => string | null | undefined) | string | null;
+	activeTeamId?: (() => string | null | undefined) | string | null;
 }
 
 export interface UseInboxItemsReturn {
@@ -31,35 +31,48 @@ export function useInboxItems(params?: UseInboxItemsParams): UseInboxItemsReturn
 		filterType: 'all' as InboxItemType | 'all'
 	});
 
+	// Get reactive values from params (support both functions and direct values)
+	const getActiveOrganizationId = () => {
+		if (!params?.activeOrganizationId) return undefined;
+		return typeof params.activeOrganizationId === 'function'
+			? params.activeOrganizationId()
+			: params.activeOrganizationId;
+	};
+	const getActiveTeamId = () => {
+		if (!params?.activeTeamId) return undefined;
+		return typeof params.activeTeamId === 'function' ? params.activeTeamId() : params.activeTeamId;
+	};
+
 	// Use reactive query for real-time inbox items updates
 	// This automatically subscribes to changes and updates when new items are added during sync
-	const inboxQuery = browser ? useQuery(
-		api.inbox.listInboxItems,
-		() => {
-			const baseArgs: any = { processed: false };
-			
-			// Add workspace context
-			if (params?.activeOrganizationId !== undefined) {
-				baseArgs.organizationId = params.activeOrganizationId;
-			}
-			if (params?.activeTeamId) {
-				baseArgs.teamId = params.activeTeamId;
-			}
-			
-			// Add type filter if not 'all'
-			if (state.filterType !== 'all') {
-				baseArgs.filterType = state.filterType;
-			}
-			
-			return baseArgs;
-		}
-	) : null;
+	const inboxQuery = browser
+		? useQuery(api.inbox.listInboxItems, () => {
+				const baseArgs: any = { processed: false };
+
+				// Add workspace context (reactive to function calls)
+				const orgId = getActiveOrganizationId();
+				if (orgId !== undefined) {
+					baseArgs.organizationId = orgId;
+				}
+				const teamId = getActiveTeamId();
+				if (teamId) {
+					baseArgs.teamId = teamId;
+				}
+
+				// Add type filter if not 'all'
+				if (state.filterType !== 'all') {
+					baseArgs.filterType = state.filterType;
+				}
+
+				return baseArgs;
+			})
+		: null;
 
 	// Derived state from query
 	const inboxItems = $derived((inboxQuery?.data ?? []) as InboxItem[]);
 	const isLoading = $derived(inboxQuery?.isLoading ?? false);
 	const queryError = $derived(inboxQuery?.error ?? null);
-	
+
 	// Filtered items (currently just returns all items since filtering is done in query)
 	const filteredItems = $derived(inboxItems);
 
@@ -75,13 +88,22 @@ export function useInboxItems(params?: UseInboxItemsParams): UseInboxItemsReturn
 	// Return state and functions using getters for reactivity
 	return {
 		// State - getters ensure reactivity is tracked
-		get filterType() { return state.filterType; },
-		get inboxItems() { return inboxItems; },
-		get isLoading() { return isLoading; },
-		get queryError() { return queryError; },
-		get filteredItems() { return filteredItems; },
+		get filterType() {
+			return state.filterType;
+		},
+		get inboxItems() {
+			return inboxItems;
+		},
+		get isLoading() {
+			return isLoading;
+		},
+		get queryError() {
+			return queryError;
+		},
+		get filteredItems() {
+			return filteredItems;
+		},
 		// Functions
-		setFilter,
+		setFilter
 	};
 }
-

@@ -7,6 +7,7 @@
 ## Core Principles (In Order of Priority)
 
 ### 1. 🔐 Privacy First
+
 **Data ownership stays with users, always.**
 
 - Self-hosted option always available
@@ -18,6 +19,7 @@
 **Why This Comes First**: Trust is foundational. Without privacy, nothing else matters.
 
 **In Practice**:
+
 - ✅ Build self-hosted deployment path
 - ✅ Make cloud-hosted version privacy-preserving
 - ✅ Let users export data anytime
@@ -26,6 +28,7 @@
 ---
 
 ### 2. 🎯 Outcomes Over Outputs
+
 **We don't ship features—we achieve outcomes.**
 
 - Focus on problems solved, not features shipped
@@ -34,11 +37,13 @@
 - Kill features that don't deliver outcomes
 
 **Decision Framework**:
+
 - **What outcome are we trying to achieve?**
 - **How will we know we've achieved it?**
 - **What's the smallest step to validate?**
 
 **In Practice**:
+
 - ✅ Define success signals before building
 - ✅ Measure leading indicators (usage, retention)
 - ✅ Run experiments (interviews, prototypes, wizard of oz)
@@ -50,6 +55,7 @@
 ---
 
 ### 3. 🌍 Open Source First
+
 **Everything we build is open source. Transparency over proprietary control.**
 
 - Community contributions are first-class citizens
@@ -60,6 +66,7 @@
 **Why**: Open source aligns incentives—users, builders, and company all benefit from improvements.
 
 **In Practice**:
+
 - ✅ All code open source (repo public)
 - ✅ Marketplace revenue share (80/20 split, builders keep 80%)
 - ✅ Accept community contributions
@@ -69,6 +76,7 @@
 ---
 
 ### 4. 🚀 Autonomy Over Control
+
 **Empower teams to own outcomes, not tasks.**
 
 - Value streams over projects
@@ -79,6 +87,7 @@
 **Why**: Autonomous teams move faster, innovate more, and deliver better outcomes.
 
 **In Practice**:
+
 - ✅ Organize work by value streams (customer outcomes)
 - ✅ Teams own end-to-end delivery
 - ✅ Document dependencies, not deadlines
@@ -90,6 +99,7 @@
 ---
 
 ### 5. 🤖 AI-Augmented, Human-Led
+
 **AI accelerates execution, humans guide direction.**
 
 - Context-aware AI (trained on company data)
@@ -100,6 +110,7 @@
 **Why**: AI makes teams faster, but humans make strategic decisions.
 
 **In Practice**:
+
 - ✅ Embed AI coaching in workflows
 - ✅ Train on company data (glossaries, docs, decisions)
 - ✅ Make AI suggestions transparent
@@ -113,6 +124,7 @@
 ### When Principles Conflict
 
 **Priority Order**:
+
 1. **Privacy** > Everything else
 2. **Outcomes** > Outputs
 3. **Open Source** > Proprietary
@@ -122,14 +134,17 @@
 ### Examples
 
 **Conflict: "Should we add cloud-only feature for faster shipping?"**
+
 - ❌ NO - Violates Privacy First (principle #1)
 - ✅ Build self-hosted path, even if slower
 
 **Conflict: "Should we ship feature without validation to hit deadline?"**
+
 - ❌ NO - Violates Outcomes Over Outputs (principle #2)
 - ✅ Validate first, even if misses deadline
 
 **Conflict: "Should we close-source a feature to protect IP?"**
+
 - ❌ NO - Violates Open Source First (principle #3)
 - ✅ Keep open, compete on execution and trust
 
@@ -138,18 +153,21 @@
 ## Strategic Principles
 
 ### Partner-Funded Validation
+
 - No VC funding, no external pressure
 - First partner (Saprolab) funds development
 - Profitability unlocks investment in growth
 - Community contributions accelerate progress
 
 ### Continuous Discovery
+
 - Talk to users every week
 - Build for observed problems, not feature requests
 - Validate assumptions with experiments
 - Ship small, learn fast, iterate
 
 ### Built in Public
+
 - Work in public (GitHub, docs, community calls)
 - Document decisions (ADRs, value streams)
 - Share metrics openly (revenue, OKRs, AARRR)
@@ -218,6 +236,7 @@
 ## Success Signals
 
 ### Leading Indicators (Early Signals)
+
 - ✅ **They're using it**: Daily active users
 - ✅ **They're saying yes**: Feature requests from users
 - ✅ **They're coming back**: DAU/MAU ratio > 50%
@@ -226,6 +245,7 @@
 - ✅ **Word of mouth**: Unsolicited recommendations
 
 ### Lagging Indicators (Outcome Signals)
+
 - ✅ **Revenue**: Paying customers cover costs
 - ✅ **Retention**: < 5% monthly churn
 - ✅ **Expansion**: Customers onboard additional teams
@@ -233,6 +253,7 @@
 - ✅ **Marketplace**: 10+ builder-created apps
 
 ### Impact Signals (Long-Term)
+
 - ✅ **Better decisions**: Teams using data to decide
 - ✅ **Faster onboarding**: New members productive in days, not weeks
 - ✅ **Higher velocity**: Teams ship outcomes faster
@@ -248,12 +269,14 @@
 ### How to Use These Principles
 
 **When building a feature:**
+
 1. Read these principles first
 2. Ask: "Which outcome does this achieve?"
 3. Ask: "Does this violate any principles?"
 4. If conflict → Follow priority order (Privacy > Outcomes > Open Source > Autonomy)
 
 **When making a product decision:**
+
 1. State the problem (not the solution)
 2. Define success signals
 3. Run cheapest/fastest experiment
@@ -261,6 +284,7 @@
 5. Document decision (ADR or value stream)
 
 **When reviewing PRs:**
+
 1. Does this achieve an outcome? (Not just ship code)
 2. Does this respect privacy? (Self-hosted path?)
 3. Is this open source? (No proprietary lock-in?)
@@ -295,4 +319,3 @@ This is how **Champions League product teams** work:
 **Last Updated**: November 8, 2025  
 **Status**: 🟢 Active  
 **Owner**: Randy (Founder)
-

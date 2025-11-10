@@ -14,12 +14,13 @@
 	type="button"
 	{disabled}
 	{title}
-	onclick={onclick}
-	class="p-control-button-padding rounded-md transition-colors
-    {active ? 'bg-control-button-active text-primary' : 'hover:bg-control-button-hover text-secondary'}
-    {disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+	{onclick}
+	class="rounded-md p-control-button-padding transition-colors
+    {active
+		? 'bg-control-button-active text-primary'
+		: 'text-secondary hover:bg-control-button-hover'}
+    {disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
   "
 >
 	{@render children()}
 </button>
-

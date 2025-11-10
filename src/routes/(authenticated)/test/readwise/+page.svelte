@@ -10,7 +10,7 @@
 
 	// Get Convex client
 	const convexClient = browser ? useConvexClient() : null;
-	
+
 	// Settings state
 	let settings = $state<{
 		isLoading: boolean;
@@ -25,7 +25,7 @@
 		}
 
 		try {
-			const getUserSettings = makeFunctionReference('settings:getUserSettings');
+			const getUserSettings = makeFunctionReference('settings:getUserSettings') as any;
 			const data = await convexClient.query(getUserSettings, {});
 			settings = {
 				isLoading: false,
@@ -85,17 +85,17 @@
 </script>
 
 <div class="h-full overflow-y-auto p-inbox-container">
-	<div class="max-w-4xl mx-auto">
-		<h1 class="text-2xl font-bold text-primary mb-2">Readwise API Test</h1>
-		<p class="text-secondary mb-6">
+	<div class="mx-auto max-w-4xl">
+		<h1 class="mb-2 text-2xl font-bold text-primary">Readwise API Test</h1>
+		<p class="mb-6 text-secondary">
 			Quick test page to validate Readwise API integration. This is a learning/development page.
 		</p>
 
 		<!-- API Key Status -->
-		<div class="bg-base border border-border-elevated rounded-lg p-4 mb-6">
+		<div class="mb-6 rounded-lg border border-border-elevated bg-base p-4">
 			<div class="flex items-center justify-between">
 				<div>
-					<p class="font-medium text-primary mb-1">API Key Status</p>
+					<p class="mb-1 font-medium text-primary">API Key Status</p>
 					<p class="text-sm text-secondary">
 						{#if settings.isLoading}
 							Loading...
@@ -110,14 +110,14 @@
 		</div>
 
 		<!-- Test Actions -->
-		<div class="bg-base border border-border-elevated rounded-lg p-6 mb-6">
-			<p class="font-medium text-primary mb-4">Test Actions</p>
+		<div class="mb-6 rounded-lg border border-border-elevated bg-base p-6">
+			<p class="mb-4 font-medium text-primary">Test Actions</p>
 			<div class="flex flex-wrap gap-3">
 				<button
 					type="button"
 					onclick={testReadwise}
 					disabled={isTesting}
-					class="px-4 py-2 bg-accent-primary text-accent-primary-foreground rounded-md hover:bg-accent-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+					class="text-accent-primary-foreground hover:bg-accent-primary-hover rounded-md bg-accent-primary px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{isTesting ? 'Testing...' : 'Test Connection'}
 				</button>
@@ -125,7 +125,7 @@
 					type="button"
 					onclick={testReadwiseHighlights}
 					disabled={isTesting}
-					class="px-4 py-2 bg-accent-primary text-accent-primary-foreground rounded-md hover:bg-accent-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+					class="text-accent-primary-foreground hover:bg-accent-primary-hover rounded-md bg-accent-primary px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{isTesting ? 'Fetching...' : 'Fetch Highlights'}
 				</button>
@@ -133,7 +133,7 @@
 					type="button"
 					onclick={testReadwiseBooks}
 					disabled={isTesting}
-					class="px-4 py-2 bg-accent-primary text-accent-primary-foreground rounded-md hover:bg-accent-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+					class="text-accent-primary-foreground hover:bg-accent-primary-hover rounded-md bg-accent-primary px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{isTesting ? 'Fetching...' : 'Fetch Books'}
 				</button>
@@ -142,24 +142,25 @@
 
 		<!-- Error Display -->
 		{#if error}
-			<div class="bg-destructive/10 border border-destructive rounded-lg p-4 mb-6">
+			<div class="bg-destructive/10 border-destructive mb-6 rounded-lg border p-4">
 				<p class="text-destructive font-medium">Error</p>
-				<p class="text-sm text-destructive mt-1">{error}</p>
+				<p class="text-destructive mt-1 text-sm">{error}</p>
 			</div>
 		{/if}
 
 		<!-- Response Display -->
 		{#if testResponse}
-			<div class="bg-base border border-border-elevated rounded-lg p-6">
-				<p class="font-medium text-primary mb-3">Response</p>
-				<pre class="text-sm text-secondary whitespace-pre-wrap font-mono bg-base border border-border rounded p-4 overflow-x-auto">{testResponse}</pre>
+			<div class="rounded-lg border border-border-elevated bg-base p-6">
+				<p class="mb-3 font-medium text-primary">Response</p>
+				<pre
+					class="border-border overflow-x-auto rounded border bg-base p-4 font-mono text-sm whitespace-pre-wrap text-secondary">{testResponse}</pre>
 			</div>
 		{/if}
 
 		<!-- Instructions -->
-		<div class="mt-6 bg-base border border-border-elevated rounded-lg p-6">
-			<p class="font-medium text-primary mb-2">📚 How to Use</p>
-			<ul class="list-disc list-inside space-y-1 text-sm text-secondary">
+		<div class="mt-6 rounded-lg border border-border-elevated bg-base p-6">
+			<p class="mb-2 font-medium text-primary">📚 How to Use</p>
+			<ul class="list-inside list-disc space-y-1 text-sm text-secondary">
 				<li>Click "Test Connection" to verify API key is valid</li>
 				<li>Click "Fetch Highlights" to test fetching your highlights</li>
 				<li>Click "Fetch Books" to test fetching your books</li>
@@ -168,4 +169,3 @@
 		</div>
 	</div>
 </div>
-

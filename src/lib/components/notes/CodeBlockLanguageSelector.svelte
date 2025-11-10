@@ -33,7 +33,7 @@
 			const coords = editorView.coordsAtPos(pos);
 			position = {
 				top: coords.bottom + 5,
-				left: coords.left,
+				left: coords.left
 			};
 		}
 
@@ -84,15 +84,15 @@
 
 {#if showSelector && position}
 	<div
-		class="code-language-selector fixed z-50 bg-elevated rounded-md shadow-lg border border-base min-w-[200px] max-h-[300px] overflow-y-auto"
+		class="code-language-selector fixed z-50 max-h-[300px] min-w-[200px] overflow-y-auto rounded-md border border-base bg-elevated shadow-lg"
 		style="top: {position.top}px; left: {position.left}px;"
 	>
-		<div class="p-2 border-b border-base">
+		<div class="border-b border-base p-2">
 			<input
 				type="text"
 				bind:value={searchQuery}
 				placeholder="Search languages..."
-				class="w-full px-2 py-1 text-sm bg-base border border-base rounded-md text-primary placeholder:text-tertiary focus:outline-none focus:ring-1 focus:ring-accent-primary"
+				class="w-full rounded-md border border-base bg-base px-2 py-1 text-sm text-primary placeholder:text-tertiary focus:ring-1 focus:ring-accent-primary focus:outline-none"
 				autofocus
 			/>
 		</div>
@@ -100,7 +100,10 @@
 			{#each filteredLanguages as lang}
 				<button
 					type="button"
-					class="w-full px-3 py-1.5 text-sm text-left hover:bg-hover-solid flex items-center gap-2 transition-colors {lang.value === currentLanguage ? 'bg-hover-solid' : ''}"
+					class="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors hover:bg-hover-solid {lang.value ===
+					currentLanguage
+						? 'bg-hover-solid'
+						: ''}"
 					onclick={() => selectLanguage(lang.value)}
 				>
 					<span class="flex-1 text-primary">{lang.label}</span>
@@ -115,4 +118,3 @@
 		</div>
 	</div>
 {/if}
-

@@ -1,17 +1,17 @@
 /**
  * Test Readwise API Integration
- * 
+ *
  * This action fetches sample data from Readwise API to understand the actual
  * data structure before designing our schema.
- * 
+ *
  * Usage: Call this from Convex dashboard or via a test route to see the raw API response
  */
 
-"use node";
+'use node';
 
-import { action } from "./_generated/server";
-import { v } from "convex/values";
-import { internal } from "./_generated/api";
+import { action } from './_generated/server';
+import { v } from 'convex/values';
+import { internal } from './_generated/api';
 
 /**
  * Test fetching highlights from Readwise API
@@ -25,7 +25,7 @@ export const testFetchHighlights = action({
 		pageSize: v.optional(v.number()),
 		// Optional: API key for direct testing (for use in dashboard)
 		// If not provided, will try to get from user settings (requires auth)
-		apiKey: v.optional(v.string()),
+		apiKey: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
 		let decryptedKey: string;
@@ -38,21 +38,20 @@ export const testFetchHighlights = action({
 			const userId = await ctx.runQuery(internal.settings.getUserId);
 			if (!userId) {
 				throw new Error(
-					"Not authenticated. For testing in dashboard, provide apiKey parameter directly."
+					'Not authenticated. For testing in dashboard, provide apiKey parameter directly.'
 				);
 			}
 
 			// Get encrypted keys
 			const encryptedKeys = await ctx.runQuery(internal.settings.getEncryptedKeysInternal);
 			if (!encryptedKeys?.readwiseApiKey) {
-				throw new Error("Readwise API key not found. Please add it in Settings first.");
+				throw new Error('Readwise API key not found. Please add it in Settings first.');
 			}
 
 			// Decrypt the API key
-			decryptedKey = await ctx.runAction(
-				internal.cryptoActions.decryptApiKey,
-				{ encryptedApiKey: encryptedKeys.readwiseApiKey }
-			);
+			decryptedKey = await ctx.runAction(internal.cryptoActions.decryptApiKey, {
+				encryptedApiKey: encryptedKeys.readwiseApiKey
+			});
 		}
 
 		try {
@@ -65,11 +64,11 @@ export const testFetchHighlights = action({
 			console.log(`[testReadwiseApi] URL: ${url}`);
 
 			const response = await fetch(url, {
-				method: "GET",
+				method: 'GET',
 				headers: {
 					Authorization: `Token ${decryptedKey}`,
-					"Content-Type": "application/json",
-				},
+					'Content-Type': 'application/json'
+				}
 			});
 
 			if (!response.ok) {
@@ -83,13 +82,13 @@ export const testFetchHighlights = action({
 
 			// Log structure for analysis
 			console.log(`[testReadwiseApi] Response status: ${response.status}`);
-			console.log(`[testReadwiseApi] Response keys: ${Object.keys(data).join(", ")}`);
+			console.log(`[testReadwiseApi] Response keys: ${Object.keys(data).join(', ')}`);
 			console.log(`[testReadwiseApi] Number of results: ${data.results?.length || 0}`);
 
 			// Log first result structure if available
 			if (data.results && data.results.length > 0) {
 				const firstResult = data.results[0];
-				console.log(`[testReadwiseApi] First result keys: ${Object.keys(firstResult).join(", ")}`);
+				console.log(`[testReadwiseApi] First result keys: ${Object.keys(firstResult).join(', ')}`);
 				console.log(`[testReadwiseApi] First result sample:`, JSON.stringify(firstResult, null, 2));
 			}
 
@@ -102,14 +101,12 @@ export const testFetchHighlights = action({
 				pagination: {
 					next: data.next || null,
 					previous: data.previous || null,
-					count: data.count || 0,
+					count: data.count || 0
 				},
 				// Return first few results for inspection (limit if requested)
-				sampleResults: args.limit 
-					? data.results?.slice(0, args.limit) || []
-					: data.results || [],
+				sampleResults: args.limit ? data.results?.slice(0, args.limit) || [] : data.results || [],
 				// Return full response for deep inspection
-				fullResponse: data,
+				fullResponse: data
 			};
 		} catch (error) {
 			console.error(`[testReadwiseApi] Error:`, error);
@@ -117,7 +114,7 @@ export const testFetchHighlights = action({
 				`Failed to fetch Readwise highlights: ${error instanceof Error ? error.message : String(error)}`
 			);
 		}
-	},
+	}
 });
 
 /**
@@ -129,7 +126,7 @@ export const testFetchBooks = action({
 		limit: v.optional(v.number()),
 		// Optional: API key for direct testing (for use in dashboard)
 		// If not provided, will try to get from user settings (requires auth)
-		apiKey: v.optional(v.string()),
+		apiKey: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
 		let decryptedKey: string;
@@ -142,19 +139,18 @@ export const testFetchBooks = action({
 			const userId = await ctx.runQuery(internal.settings.getUserId);
 			if (!userId) {
 				throw new Error(
-					"Not authenticated. For testing in dashboard, provide apiKey parameter directly."
+					'Not authenticated. For testing in dashboard, provide apiKey parameter directly.'
 				);
 			}
 
 			const encryptedKeys = await ctx.runQuery(internal.settings.getEncryptedKeysInternal);
 			if (!encryptedKeys?.readwiseApiKey) {
-				throw new Error("Readwise API key not found. Please add it in Settings first.");
+				throw new Error('Readwise API key not found. Please add it in Settings first.');
 			}
 
-			decryptedKey = await ctx.runAction(
-				internal.cryptoActions.decryptApiKey,
-				{ encryptedApiKey: encryptedKeys.readwiseApiKey }
-			);
+			decryptedKey = await ctx.runAction(internal.cryptoActions.decryptApiKey, {
+				encryptedApiKey: encryptedKeys.readwiseApiKey
+			});
 		}
 
 		try {
@@ -164,11 +160,11 @@ export const testFetchBooks = action({
 			console.log(`[testReadwiseApi] Fetching books from Readwise API...`);
 
 			const response = await fetch(url, {
-				method: "GET",
+				method: 'GET',
 				headers: {
 					Authorization: `Token ${decryptedKey}`,
-					"Content-Type": "application/json",
-				},
+					'Content-Type': 'application/json'
+				}
 			});
 
 			if (!response.ok) {
@@ -181,12 +177,12 @@ export const testFetchBooks = action({
 			const data = await response.json();
 
 			// Log structure
-			console.log(`[testReadwiseApi] Books response keys: ${Object.keys(data).join(", ")}`);
+			console.log(`[testReadwiseApi] Books response keys: ${Object.keys(data).join(', ')}`);
 			console.log(`[testReadwiseApi] Number of books: ${data.results?.length || 0}`);
 
 			if (data.results && data.results.length > 0) {
 				const firstBook = data.results[0];
-				console.log(`[testReadwiseApi] First book keys: ${Object.keys(firstBook).join(", ")}`);
+				console.log(`[testReadwiseApi] First book keys: ${Object.keys(firstBook).join(', ')}`);
 				console.log(`[testReadwiseApi] First book sample:`, JSON.stringify(firstBook, null, 2));
 			}
 
@@ -195,10 +191,8 @@ export const testFetchBooks = action({
 				status: response.status,
 				responseKeys: Object.keys(data),
 				resultsCount: data.results?.length || 0,
-				sampleResults: args.limit 
-					? data.results?.slice(0, args.limit) || []
-					: data.results || [],
-				fullResponse: data,
+				sampleResults: args.limit ? data.results?.slice(0, args.limit) || [] : data.results || [],
+				fullResponse: data
 			};
 		} catch (error) {
 			console.error(`[testReadwiseApi] Error fetching books:`, error);
@@ -206,6 +200,5 @@ export const testFetchBooks = action({
 				`Failed to fetch Readwise books: ${error instanceof Error ? error.message : String(error)}`
 			);
 		}
-	},
+	}
 });
-

@@ -50,12 +50,14 @@
 **Decision**: Use MDX via `mdsvex` for content authoring
 
 **Rationale**:
+
 - **Component embedding**: Live demos, diagrams, interactive elements
 - **Type-safe**: TypeScript support for props
 - **Svelte-native**: Works seamlessly with SvelteKit
 - **Portable**: Can export to plain Markdown if needed
 
 **Trade-offs**:
+
 - ✅ Rich content (components, charts, interactive)
 - ✅ Type-safe authoring
 - ❌ Slightly more complex than Markdown
@@ -68,6 +70,7 @@
 **Decision**: Use SvelteKit's file-based routing for docs
 
 **Rationale**:
+
 - **Version controlled**: All docs in Git
 - **Lives with code**: Can't drift from implementation
 - **No sync issues**: No separate CMS to maintain
@@ -75,6 +78,7 @@
 - **Self-hostable**: Everything in one repo
 
 **Trade-offs**:
+
 - ✅ Version control (Git)
 - ✅ No CMS complexity
 - ✅ Lives with code
@@ -87,12 +91,14 @@
 **Decision**: Use semantic design tokens from `src/app.css`
 
 **Rationale**:
+
 - **Consistency**: One source of truth
 - **Themeable**: Light/dark mode automatic
 - **Maintainable**: Change once, update everywhere
 - **Professional**: No magic numbers
 
 **Implementation**:
+
 ```svelte
 <!-- ❌ Hardcoded -->
 <aside class="bg-gray-900 text-white px-4 py-2">
@@ -102,6 +108,7 @@
 ```
 
 **Trade-offs**:
+
 - ✅ Consistency across app
 - ✅ Easy theming
 - ✅ No hardcoded values
@@ -114,19 +121,21 @@
 **Decision**: Organize docs by value streams (outcomes), not features
 
 **Rationale**:
+
 - **Outcome-focused**: Clear user value
 - **Team autonomy**: Each stream owned by independent team
 - **Dependency-aware**: Surface blockers early
 - **Scalable**: Add streams without coordination
 
 **Structure**:
+
 ```
 /value-streams/
   /documentation-system/      ← This stream
     README.md                  ← Outcome, team, success signals
     ARCHITECTURE.md            ← This file
     DEPENDENCIES.md            ← Blockers, enablers
-    
+
   /auth-multi-tenancy/         ← Another stream
     README.md
     ARCHITECTURE.md
@@ -134,6 +143,7 @@
 ```
 
 **Trade-offs**:
+
 - ✅ Clear ownership
 - ✅ Outcome-driven
 - ✅ No coordination overhead
@@ -148,15 +158,18 @@
 **Purpose**: Shared layout for all documentation pages
 
 **Structure**:
+
 ```svelte
 <DocLayout>
-  <Sidebar slot="sidebar" />
-  <slot />  <!-- MDX content -->
-  <TableOfContents slot="toc" />
+	<Sidebar slot="sidebar" />
+	<slot />
+	<!-- MDX content -->
+	<TableOfContents slot="toc" />
 </DocLayout>
 ```
 
 **Responsibilities**:
+
 - Responsive layout (mobile: stacked, desktop: 3-column)
 - Design tokens for consistency
 - Dark mode support
@@ -169,12 +182,14 @@
 **Purpose**: Navigation tree for documentation sections
 
 **Features**:
+
 - Auto-generated from folder structure
 - Active link highlighting
 - Collapsible sections
 - Search integration (Cmd+K)
 
 **Design Tokens**:
+
 ```css
 bg-sidebar              /* Background */
 text-sidebar-primary    /* Active link */
@@ -191,12 +206,14 @@ gap-icon               /* Icon spacing */
 **Purpose**: In-page navigation for long docs
 
 **Features**:
+
 - Auto-generated from headings (h2, h3)
 - Scroll-spy (highlights current section)
 - Smooth scrolling
 - Mobile: hidden, desktop: visible
 
 **Implementation**:
+
 ```typescript
 // Parse headings from MDX
 const headings = parseHeadings(content);
@@ -216,12 +233,14 @@ const headings = parseHeadings(content);
 **Purpose**: Fast navigation via Cmd+K
 
 **Features**:
+
 - Fuzzy search across all docs
 - Keyboard shortcuts (Cmd+K, /, Esc)
 - Recent searches
 - Jump to heading within doc
 
 **Tech**:
+
 - Fuse.js (fuzzy search)
 - Index built at build time
 - Client-side search (fast, offline)
@@ -265,19 +284,22 @@ const headings = parseHeadings(content);
 ### Cursor AI Integration
 
 **How It Works**:
+
 - Cursor scans workspace for markdown files
 - Developer references with `@filename` or `@folder/filename`
 - AI loads content, uses as context
 
 **Best Practices**:
+
 - Clear file names (`README.md`, `ARCHITECTURE.md`, `DEPENDENCIES.md`)
 - Consistent structure (every value stream has same files)
 - Rich metadata (frontmatter with title, description)
 
 **Example**:
+
 ```typescript
 // In Cursor chat
-"@value-streams/documentation-system what's the architecture?"
+"@value-streams/documentation-system what's the architecture?";
 
 // Cursor loads ARCHITECTURE.md, provides answer
 ```
@@ -287,12 +309,14 @@ const headings = parseHeadings(content);
 ### GitHub Integration
 
 **Features**:
+
 - PRs update docs automatically
 - Contributor tracking (100+ commits milestone)
 - Issue templates for doc improvements
 - Auto-deploy on merge to main
 
 **Workflow**:
+
 ```
 1. Contributor forks repo
 2. Edits MDX file
@@ -306,11 +330,13 @@ const headings = parseHeadings(content);
 ### PostHog Analytics (Privacy-Friendly)
 
 **What We Track**:
+
 - Page views (which docs are read)
 - Search queries (what users look for)
 - Time on page (doc quality signal)
 
 **What We DON'T Track**:
+
 - Personal information
 - IP addresses (anonymized)
 - Session recordings on docs (privacy-first)
@@ -324,6 +350,7 @@ const headings = parseHeadings(content);
 **Challenge**: Large docs = slow builds
 
 **Solution**:
+
 - Incremental builds (only changed files)
 - Parallel MDX processing
 - Cached syntax highlighting (Shiki)
@@ -337,12 +364,14 @@ const headings = parseHeadings(content);
 **Challenge**: Large docs = slow page loads
 
 **Solution**:
+
 - SSR (server-side rendering)
 - Code splitting (lazy load components)
 - Image optimization (responsive images)
 - Prefetch on hover (instant navigation)
 
-**Target**: 
+**Target**:
+
 - Time to First Byte (TTFB): < 200ms
 - Largest Contentful Paint (LCP): < 1s
 - First Input Delay (FID): < 100ms
@@ -354,6 +383,7 @@ const headings = parseHeadings(content);
 **Challenge**: Client-side search = large index
 
 **Solution**:
+
 - Compressed index (gzip)
 - Web Worker (non-blocking)
 - Debounced search (wait for typing pause)
@@ -369,6 +399,7 @@ const headings = parseHeadings(content);
 **Risk**: MDX = JavaScript execution
 
 **Mitigation**:
+
 - All content in Git (version controlled)
 - PR reviews required (no direct commits)
 - No user-generated MDX (contributors only)
@@ -380,6 +411,7 @@ const headings = parseHeadings(content);
 **Risk**: Malicious links or scripts in docs
 
 **Mitigation**:
+
 - MDX sanitization (strip dangerous tags)
 - CSP headers (Content Security Policy)
 - Trusted contributors only
@@ -392,7 +424,8 @@ const headings = parseHeadings(content);
 
 **Current**: ~20 docs  
 **Target**: 200+ docs  
-**Plan**: 
+**Plan**:
+
 - Folder structure scales infinitely
 - Sidebar uses virtual scrolling (large trees)
 - Search index compressed (< 500KB)
@@ -404,6 +437,7 @@ const headings = parseHeadings(content);
 **Current**: 1-5 contributors  
 **Target**: 100+ contributors  
 **Plan**:
+
 - Clear contribution guidelines
 - Automated PR checks (linting, formatting)
 - Maintainer team (approve PRs)
@@ -413,16 +447,19 @@ const headings = parseHeadings(content);
 ## Future Enhancements
 
 ### Phase 1 (Current)
+
 - ✅ MDX setup
 - ✅ Basic routing
 - ✅ Design token styling
 
 ### Phase 2 (Next 3 months)
+
 - 🔄 Cmd+K search
 - 🔄 AI navigation (`@` references)
 - 🔄 Auto-generated TOC
 
 ### Phase 3 (6+ months)
+
 - ⏳ Version comparison (track doc changes)
 - ⏳ AI summarization (auto-generate summaries)
 - ⏳ Contributor dashboard (track 100+ commits)
@@ -442,4 +479,3 @@ const headings = parseHeadings(content);
 
 **Last Updated**: November 8, 2025  
 **Next Review**: When we add AI summarization
-

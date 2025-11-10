@@ -9,12 +9,14 @@ If you're still using the default macOS Terminal, you're missing out. Core Shell
 ## Why Core Shell?
 
 **The problem with default Terminal:**
+
 - Opens in home directory every time (`~`)
 - No built-in SSH manager
 - Cluttered UI with unnecessary menus
 - Manual tab management
 
 **What Core Shell fixes:**
+
 - Auto-opens in your project folder
 - Visual SSH connection manager
 - Clean, focused interface
@@ -27,6 +29,7 @@ If you're still using the default macOS Terminal, you're missing out. Core Shell
 **1. Open Core Shell Settings** (Cmd+,)
 
 **2. Create new profile:**
+
 - Name: Your project name (e.g., "SynergyOS")
 - Working Directory: `/Users/YOUR-USERNAME/Coding/YOUR-PROJECT`
 
@@ -49,6 +52,7 @@ If you're still using the default macOS Terminal, you're missing out. Core Shell
 ### Step 3: Use Keyboard Shortcuts
 
 **Essential shortcuts:**
+
 - `Cmd+T` - New tab in same profile
 - `Cmd+W` - Close tab
 - `Cmd+1/2/3` - Jump to tab 1/2/3
@@ -63,23 +67,29 @@ If you're still using the default macOS Terminal, you're missing out. Core Shell
 **For full-stack projects (e.g., SvelteKit + Convex):**
 
 **Tab 1: Frontend**
+
 ```bash
 npm run dev
 ```
+
 Stays open - watching for changes
 
 **Tab 2: Backend/Database**
+
 ```bash
 npx convex dev
 ```
+
 Stays open - syncing database
 
 **Tab 3: Commands**
+
 - Git operations
 - Package installs
 - Quick scripts
 
 **Why this works:**
+
 - No mental overhead switching tabs
 - See both servers' logs at once (split view)
 - Command tab always ready for quick tasks
@@ -91,6 +101,7 @@ Stays open - syncing database
 Core Shell's killer feature - visual SSH connections.
 
 **Setup:**
+
 1. Click "+" in sidebar
 2. Add server details:
    - Host: `your-server.com`
@@ -99,6 +110,7 @@ Core Shell's killer feature - visual SSH connections.
 3. Click to connect
 
 **Why it's better:**
+
 - No memorizing SSH commands
 - Auto-reconnects if connection drops
 - Save multiple servers
@@ -111,6 +123,7 @@ Core Shell's killer feature - visual SSH connections.
 ### 1. Project Profiles
 
 Create profiles for each project:
+
 - **SynergyOS** → `/Coding/SynergyOS`
 - **Client Project** → `/Coding/client-name`
 - **Side Project** → `/Coding/side-project`
@@ -120,6 +133,7 @@ Create profiles for each project:
 ### 2. Color Schemes
 
 Match your code editor:
+
 - Dark themes for night coding
 - Light themes for daytime
 - Solarized for reduced eye strain
@@ -129,6 +143,7 @@ Settings → Color Scheme → Pick one
 ### 3. Don't Close Tabs
 
 Keep long-running processes in background tabs:
+
 - Development servers
 - Database watchers
 - Log tails
@@ -142,21 +157,25 @@ Keep long-running processes in background tabs:
 If Core Shell doesn't fit:
 
 **iTerm2** (Free)
+
 - Most customizable
 - Split panes
 - Huge community
 
 **Warp** (Free)
+
 - AI command suggestions
 - Beautiful UI
 - Modern features
 
 **Alacritty** (Free)
+
 - Fastest terminal
 - Minimal design
 - GPU-accelerated
 
 **Hyper** (Free)
+
 - Built with web tech
 - Extensible with JS/CSS
 - Plugin ecosystem
@@ -176,17 +195,20 @@ If you're tired of typing `cd ~/Coding/project-name` every time, Core Shell is w
 ## Quick Reference
 
 **Essential Settings:**
+
 - Working Directory → Your project path
 - Set as Default → Auto-use this profile
 - Color Scheme → Match your editor
 
 **Essential Shortcuts:**
+
 - `Cmd+T` → New tab
 - `Cmd+W` → Close tab
 - `Cmd+Shift+D` → Split pane
 - `Cmd+1/2/3` → Jump to tab
 
 **My Setup:**
+
 - Tab 1: `npm run dev`
 - Tab 2: `npx convex dev`
 - Tab 3: Commands/Git
@@ -195,5 +217,4 @@ If you're tired of typing `cd ~/Coding/project-name` every time, Core Shell is w
 
 ---
 
-*Written while building [SynergyOS](https://synergyos.ai) - an open-source product OS. We use Core Shell because every second counts when you're shipping fast.*
-
+_Written while building [SynergyOS](https://synergyos.ai) - an open-source product OS. We use Core Shell because every second counts when you're shipping fast._

@@ -13,6 +13,7 @@
 **Team**: Randy (Founder)
 
 **Key Contributors**:
+
 - Randy - Product decisions, validation, testing
 - AI Assistant - Technical implementation, documentation
 
@@ -25,12 +26,14 @@
 ### How We'll Know We Succeeded
 
 **Leading Indicators** (Early signals):
+
 - [ ] Team Leads actively manage their teams (add/remove members weekly)
 - [ ] Reduced admin support tickets for "How do I add someone to my team?"
 - [ ] Faster team member onboarding (Team Leads don't wait for admin)
 - [ ] Team Leads report confidence in managing their team autonomously
 
 **Lagging Indicators** (Outcome signals):
+
 - [ ] Zero security incidents from incorrect access levels (6 months)
 - [ ] 80%+ of team management done by Team Leads (not admins)
 - [ ] Managers report 9/10+ confidence in delegating team management
@@ -39,6 +42,7 @@
 **⚠️ These are AI guesses - Validate with real users before treating as fact!**
 
 **Validation Plan**:
+
 1. Interview 3-5 managers: "What stops you from delegating team management today?"
 2. Shadow Team Leads: Watch how they currently manage teams (if any system exists)
 3. Test with 1 team first: Measure actual usage vs. assumptions
@@ -54,24 +58,29 @@ Implement permission-based access control system for User Management, Team Manag
 ## 🎯 User Stories
 
 **As an Admin**, I want to:
+
 - ✅ Assign roles to users so they have appropriate access
 - ✅ Create and manage any team
 - ✅ Control organization settings
 
 **As a Manager**, I want to:
+
 - ✅ Create new teams
 - ✅ Manage all teams in my organization
 - ✅ Invite users and assign roles
 
 **As a Team Lead**, I want to:
+
 - ✅ Manage only my team's settings and members
 - ❌ NOT be able to manage other teams
 
 **As a Billing Admin**, I want to:
+
 - ✅ Have billing access (Phase 2)
 - ✅ Also be able to lead a team (multiple roles)
 
 **As a Member**, I want to:
+
 - ✅ View teams I'm part of
 - ✅ See other team members
 
@@ -80,13 +89,16 @@ Implement permission-based access control system for User Management, Team Manag
 ## 🏗️ Architecture At-a-Glance
 
 ### Key Concepts
+
 - **Permission-Based**: Features check permissions, not roles (scalable)
 - **Multi-Role**: Users can have multiple roles simultaneously
 - **Resource-Scoped**: Team Lead only manages their teams (scope: "own")
 - **Audit Trail**: All permission checks logged
 
 ### Database Changes
+
 **6 New Tables**:
+
 1. `roles` - Role definitions (Admin, Manager, Team Lead, Billing Admin, Member)
 2. `permissions` - Permission definitions (teams.create, users.invite, etc.)
 3. `rolePermissions` - Role → Permission mappings with scope
@@ -97,6 +109,7 @@ Implement permission-based access control system for User Management, Team Manag
 **No changes to existing tables!**
 
 ### Core Functions
+
 - `userHasPermission()` - Check if user has permission
 - `requirePermission()` - Enforce permission (throws if denied)
 - `assignRole()` - Assign role to user
@@ -104,6 +117,7 @@ Implement permission-based access control system for User Management, Team Manag
 - `usePermissions()` - Frontend composable for permission gates
 
 ### Permissions (20 Total)
+
 **User Management**: `users.invite`, `users.remove`, `users.roles.assign`, `users.roles.revoke`, `users.view`  
 **Team Management**: `teams.create`, `teams.delete`, `teams.view`, `teams.settings.update`, `teams.members.add`, `teams.members.remove`, `teams.members.view`  
 **Org Settings**: `org.settings.view`, `org.settings.update`, `org.delete`
@@ -112,15 +126,15 @@ Implement permission-based access control system for User Management, Team Manag
 
 ## 📦 Vertical Slices
 
-| # | Slice | Status | Linear | Est | Description |
-|---|-------|--------|--------|-----|-------------|
-| 1 | Database Foundation | ⏳ Todo | [SYOS-?] | 4h | Schema + seed data (roles, permissions, mappings) |
-| 2 | Core Permission Functions | ⏳ Todo | [SYOS-?] | 4h | Permission checking logic (userHasPermission, requirePermission) |
-| 3 | Role Management | ⏳ Todo | [SYOS-?] | 3h | Assign/revoke roles with audit logging |
-| 4 | Team Management Protection | ⏳ Todo | [SYOS-?] | 4h | Protect team CRUD operations with permissions |
-| 5 | User Management Protection | ⏳ Todo | [SYOS-?] | 3h | Protect user invite/remove with permissions |
-| 6 | Frontend Permission System | ⏳ Todo | [SYOS-?] | 5h | Composable + UI permission gates |
-| 7 | Testing & Documentation | ⏳ Todo | [SYOS-?] | 5h | Unit + integration + E2E tests, update docs |
+| #   | Slice                      | Status  | Linear   | Est | Description                                                      |
+| --- | -------------------------- | ------- | -------- | --- | ---------------------------------------------------------------- |
+| 1   | Database Foundation        | ⏳ Todo | [SYOS-?] | 4h  | Schema + seed data (roles, permissions, mappings)                |
+| 2   | Core Permission Functions  | ⏳ Todo | [SYOS-?] | 4h  | Permission checking logic (userHasPermission, requirePermission) |
+| 3   | Role Management            | ⏳ Todo | [SYOS-?] | 3h  | Assign/revoke roles with audit logging                           |
+| 4   | Team Management Protection | ⏳ Todo | [SYOS-?] | 4h  | Protect team CRUD operations with permissions                    |
+| 5   | User Management Protection | ⏳ Todo | [SYOS-?] | 3h  | Protect user invite/remove with permissions                      |
+| 6   | Frontend Permission System | ⏳ Todo | [SYOS-?] | 5h  | Composable + UI permission gates                                 |
+| 7   | Testing & Documentation    | ⏳ Todo | [SYOS-?] | 5h  | Unit + integration + E2E tests, update docs                      |
 
 **Total Estimate**: 28 hours (~3.5 days)
 
@@ -129,6 +143,7 @@ Implement permission-based access control system for User Management, Team Manag
 ## ✅ Completion Criteria (Definition of Done)
 
 ### Functional Requirements
+
 - [ ] All 6 database tables created and seeded
 - [ ] Permission checking functions work correctly
 - [ ] Multi-role permission resolution works (user with 2 roles gets both permissions)
@@ -140,6 +155,7 @@ Implement permission-based access control system for User Management, Team Manag
 - [ ] Audit log captures all permission checks
 
 ### Testing
+
 - [ ] Unit tests: Permission checking logic
 - [ ] Unit tests: Multi-role resolution
 - [ ] Unit tests: Scope checking (all, own, assigned)
@@ -150,12 +166,14 @@ Implement permission-based access control system for User Management, Team Manag
 - [ ] E2E tests: UI permission gates work
 
 ### Documentation
+
 - [ ] Architecture doc updated with implementation notes
 - [ ] Pattern added to patterns/INDEX.md
 - [ ] Code comments on complex logic
 - [ ] Decision records for any architecture changes
 
 ### Code Quality
+
 - [ ] No TypeScript errors
 - [ ] No linter warnings
 - [ ] All tests passing
@@ -207,22 +225,26 @@ Implement permission-based access control system for User Management, Team Manag
 ## 🧪 Testing Strategy
 
 ### Unit Tests (Vitest)
+
 - Permission checking logic
 - Multi-role resolution
 - Scope checking (all, own, assigned)
 - Role assignment/revocation
 
 ### Integration Tests (Vitest)
+
 - Complete permission check flow
 - Database operations
 - Audit logging
 
 ### E2E Tests (Playwright)
+
 - User journeys (Admin creates team, Team Lead manages team)
 - UI permission gates (buttons show/hide correctly)
 - Error handling (permission denied messages)
 
 ### Manual Testing
+
 See [testing-checklist.md](./testing-checklist.md)
 
 ---
@@ -230,22 +252,27 @@ See [testing-checklist.md](./testing-checklist.md)
 ## 🚀 What Happens After
 
 ### Pattern Extraction
+
 After completing all slices:
+
 1. Extract reusable patterns → `dev-docs/patterns/rbac-patterns.md`
 2. Update `dev-docs/patterns/INDEX.md`
 3. Add to Quick Diagnostic table if common issues found
 
 ### Archive Project
+
 1. Move `dev-docs/1-projects/rbac-phase-1/` → `dev-docs/4-archive/`
 2. Keep architecture docs in `dev-docs/` (permanent reference)
 3. Update main architecture.md with "Implementation Complete" status
 
 ### Phase 2: Billing Permissions (Future)
+
 - Add billing permissions
 - Protect billing functions
 - Update billing UI
 
 ### Phase 3: Guest Access (Future)
+
 - Implement resourceGuests table
 - Guest invitation system
 - Sharing UI (like Notion)
@@ -267,5 +294,3 @@ After completing all slices:
 - **Main Architecture**: [architecture.md](../../2-areas/architecture.md)
 - **Product Vision**: [product-vision-and-plan.md](../../product-vision-and-plan.md)
 - **Auth System**: [workos-convex-auth-architecture.md](../../2-areas/workos-convex-auth-architecture.md)
-
-

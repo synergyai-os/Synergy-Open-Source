@@ -41,7 +41,7 @@
 	// Query tags for this flashcard (using the correct endpoint we created)
 	const flashcardTagsQuery = browser
 		? useQuery(api.tags.getTagsForFlashcard, () => ({
-				flashcardId: flashcard._id,
+				flashcardId: flashcard._id
 			}))
 		: null;
 
@@ -49,7 +49,7 @@
 
 	// Track selected tag IDs for TagSelector
 	let selectedTagIds = $state<Id<'tags'>[]>([]);
-	
+
 	// Track tag combobox open state for keyboard shortcut
 	let tagComboboxOpen = $state(false);
 
@@ -87,11 +87,7 @@
 	function handleKeyDown(event: KeyboardEvent) {
 		// Don't trigger if typing in an input/textarea
 		const target = event.target as HTMLElement;
-		if (
-			target.tagName === 'INPUT' ||
-			target.tagName === 'TEXTAREA' ||
-			target.isContentEditable
-		) {
+		if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
 			return;
 		}
 
@@ -148,41 +144,41 @@
 	const reviewCount = $derived(flashcard.reps || 0);
 </script>
 
-<div class="flex flex-col gap-settings-section h-full">
+<div class="flex h-full flex-col gap-settings-section">
 	<!-- Tags Section - Now Interactive! -->
-	<div class="flex flex-col gap-section pb-settings-row border-b border-base">
+	<div class="gap-section pb-settings-row flex flex-col border-b border-base">
 		<TagSelector
 			bind:comboboxOpen={tagComboboxOpen}
 			bind:selectedTagIds
-			availableTags={availableTags}
+			{availableTags}
 			onTagsChange={handleTagsChange}
 			onCreateTagWithColor={handleCreateTag}
 		/>
 	</div>
 
 	<!-- FSRS Stats Section -->
-	<div class="flex flex-col gap-section pb-settings-row border-b border-base">
-		<h3 class="text-label text-secondary uppercase tracking-wider mb-2">FSRS Stats</h3>
+	<div class="gap-section pb-settings-row flex flex-col border-b border-base">
+		<h3 class="mb-2 text-label tracking-wider text-secondary uppercase">FSRS Stats</h3>
 		<div class="flex flex-col gap-settings-row">
-			<div class="flex justify-between items-center">
+			<div class="flex items-center justify-between">
 				<span class="text-sm text-secondary">Stability</span>
 				<span class="text-sm font-medium text-primary">
 					{flashcard.fsrsStability?.toFixed(2) ?? 'N/A'}
 				</span>
 			</div>
-			<div class="flex justify-between items-center">
+			<div class="flex items-center justify-between">
 				<span class="text-sm text-secondary">Difficulty</span>
 				<span class="text-sm font-medium text-primary">
 					{flashcard.fsrsDifficulty?.toFixed(2) ?? 'N/A'}
 				</span>
 			</div>
-			<div class="flex justify-between items-center">
+			<div class="flex items-center justify-between">
 				<span class="text-sm text-secondary">State</span>
 				<span class="text-sm font-medium text-primary capitalize">
 					{flashcard.fsrsState ?? 'new'}
 				</span>
 			</div>
-			<div class="flex justify-between items-center">
+			<div class="flex items-center justify-between">
 				<span class="text-sm text-secondary">Next Review</span>
 				<span class="text-sm font-medium text-primary">
 					{formatNextReview(flashcard.fsrsDue)}
@@ -192,19 +188,19 @@
 	</div>
 
 	<!-- Review History Section -->
-	<div class="flex flex-col gap-section pb-settings-row border-b border-base">
-		<h3 class="text-label text-secondary uppercase tracking-wider mb-2">Review History</h3>
+	<div class="gap-section pb-settings-row flex flex-col border-b border-base">
+		<h3 class="mb-2 text-label tracking-wider text-secondary uppercase">Review History</h3>
 		<div class="flex flex-col gap-settings-row">
-			<div class="flex justify-between items-center">
+			<div class="flex items-center justify-between">
 				<span class="text-sm text-secondary">Total Reviews</span>
 				<span class="text-sm font-medium text-primary">{reviewCount}</span>
 			</div>
-			<div class="flex justify-between items-center">
+			<div class="flex items-center justify-between">
 				<span class="text-sm text-secondary">Lapses</span>
 				<span class="text-sm font-medium text-primary">{flashcard.lapses || 0}</span>
 			</div>
 			{#if flashcard.lastReviewAt}
-				<div class="flex justify-between items-center">
+				<div class="flex items-center justify-between">
 					<span class="text-sm text-secondary">Last Reviewed</span>
 					<span class="text-sm font-medium text-primary">
 						{formatDate(flashcard.lastReviewAt)}
@@ -215,10 +211,10 @@
 	</div>
 
 	<!-- Card Info Section -->
-	<div class="flex flex-col gap-section pb-settings-row border-b border-base">
-		<h3 class="text-label text-secondary uppercase tracking-wider mb-2">Card Info</h3>
+	<div class="gap-section pb-settings-row flex flex-col border-b border-base">
+		<h3 class="mb-2 text-label tracking-wider text-secondary uppercase">Card Info</h3>
 		<div class="flex flex-col gap-settings-row">
-			<div class="flex justify-between items-center">
+			<div class="flex items-center justify-between">
 				<span class="text-sm text-secondary">Created</span>
 				<span class="text-sm font-medium text-primary">{formatDate(flashcard.createdAt)}</span>
 			</div>
@@ -226,19 +222,18 @@
 	</div>
 
 	<!-- Actions -->
-	<div class="flex flex-col gap-section mt-auto pt-settings-section">
+	<div class="gap-section pt-settings-section mt-auto flex flex-col">
 		<Button.Root
 			onclick={onEdit}
-			class="w-full px-nav-item py-nav-item text-sm font-medium rounded-md bg-elevated border border-base hover:bg-hover-solid transition-colors text-primary"
+			class="w-full rounded-md border border-base bg-elevated px-nav-item py-nav-item text-sm font-medium text-primary transition-colors hover:bg-hover-solid"
 		>
 			Edit Card
 		</Button.Root>
 		<Button.Root
 			onclick={onDelete}
-			class="w-full px-nav-item py-nav-item text-sm font-medium rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors"
+			class="w-full rounded-md bg-red-600 px-nav-item py-nav-item text-sm font-medium text-white transition-colors hover:bg-red-700"
 		>
 			Delete Card
 		</Button.Root>
 	</div>
 </div>
-

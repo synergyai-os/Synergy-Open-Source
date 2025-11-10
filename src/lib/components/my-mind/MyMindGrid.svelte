@@ -30,20 +30,16 @@
 
 <div class="p-6">
 	{#if items.length === 0}
-		<div class="text-center py-12">
-			<p class="text-secondary text-lg mb-2">No items found</p>
-			<p class="text-tertiary text-sm">Try adjusting your search or filters</p>
+		<div class="py-12 text-center">
+			<p class="mb-2 text-lg text-secondary">No items found</p>
+			<p class="text-sm text-tertiary">Try adjusting your search or filters</p>
 		</div>
 	{:else}
-		<div
-			class="grid gap-4"
-			style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));"
-		>
+		<div class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
 			{#each items as item (item._id)}
 				{@const CardComponent = getCardComponent(item)}
-				<CardComponent item={item} onClick={() => onItemClick(item)} />
+				<CardComponent {item} onClick={() => onItemClick(item)} />
 			{/each}
 		</div>
 	{/if}
 </div>
-

@@ -73,19 +73,19 @@
 <div class="flex flex-col gap-icon">
 	<!-- Selected Tags (Badges) -->
 	{#if selectedTags().length > 0}
-		<div class="flex flex-wrap gap-icon items-center">
-			<span class="text-label text-secondary uppercase tracking-wider">Filtered by:</span>
+		<div class="flex flex-wrap items-center gap-icon">
+			<span class="text-label tracking-wider text-secondary uppercase">Filtered by:</span>
 			{#each selectedTags() as tag}
 				<button
 					type="button"
 					onclick={() => toggleTag(tag._id)}
-					class="inline-flex items-center gap-icon px-badge py-badge rounded-md text-label font-medium transition-colors hover:opacity-80"
+					class="inline-flex items-center gap-icon rounded-md px-badge py-badge text-label font-medium transition-colors hover:opacity-80"
 					style="background-color: {tag.color}20; color: {tag.color}; border: 1px solid {tag.color}40;"
 					title="Click to remove filter"
 				>
 					{tag.displayName}
 					<svg
-						class="w-3 h-3"
+						class="h-3 w-3"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -103,7 +103,7 @@
 			<button
 				type="button"
 				onclick={clearAll}
-				class="text-label text-secondary hover:text-primary transition-colors"
+				class="text-label text-secondary transition-colors hover:text-primary"
 			>
 				Clear all
 			</button>
@@ -112,9 +112,9 @@
 
 	<!-- Available Tags (Hierarchical List) -->
 	{#if (selectedTags().length === 0 || groupedTags().rootTags.length > 0 || groupedTags().groups.size > 0) && (groupedTags().rootTags.length > 0 || groupedTags().groups.size > 0)}
-		<div class="flex flex-col gap-section">
+		<div class="gap-section flex flex-col">
 			{#if selectedTags().length === 0}
-				<span class="text-label text-secondary uppercase tracking-wider">Filter by tag:</span>
+				<span class="text-label tracking-wider text-secondary uppercase">Filter by tag:</span>
 			{/if}
 
 			<!-- Root Tags -->
@@ -124,7 +124,7 @@
 						<button
 							type="button"
 							onclick={() => toggleTag(tag._id)}
-							class="inline-flex items-center px-badge py-badge rounded-md text-label font-medium transition-colors hover:opacity-80 border border-base"
+							class="inline-flex items-center rounded-md border border-base px-badge py-badge text-label font-medium transition-colors hover:opacity-80"
 							style="background-color: {tag.color}20; color: {tag.color};"
 							title="Click to filter by this tag"
 						>
@@ -136,16 +136,16 @@
 
 			<!-- Child Tags (Grouped by Parent) -->
 			{#each Array.from(groupedTags().groups.entries()) as [parentId, children]}
-				{@const parent = groupedTags().tagMap.get(parentId)}
+				{@const parent = parentId !== 'root' ? groupedTags().tagMap.get(parentId) : undefined}
 				{#if parent}
-					<div class="flex flex-col gap-section pl-indent">
+					<div class="gap-section flex flex-col pl-indent">
 						<span class="text-label text-secondary">{parent.displayName}:</span>
 						<div class="flex flex-wrap gap-icon">
 							{#each children as tag}
 								<button
 									type="button"
 									onclick={() => toggleTag(tag._id)}
-									class="inline-flex items-center px-badge py-badge rounded-md text-label font-medium transition-colors hover:opacity-80 border border-base"
+									class="inline-flex items-center rounded-md border border-base px-badge py-badge text-label font-medium transition-colors hover:opacity-80"
 									style="background-color: {tag.color}20; color: {tag.color};"
 									title="Click to filter by this tag"
 								>
@@ -159,4 +159,3 @@
 		</div>
 	{/if}
 </div>
-

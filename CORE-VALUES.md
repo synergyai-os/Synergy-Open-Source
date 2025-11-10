@@ -21,6 +21,7 @@ These six values guide every decision we make. When in doubt, refer back to thes
 We document what went wrong as much as what went right.
 
 **In practice:**
+
 - Commit messages explain not just what changed, but why previous approaches failed
 - Documentation includes "what we tried first" sections
 - Pattern files start with symptoms and anti-patterns before solutions
@@ -33,6 +34,7 @@ We document what went wrong as much as what went right.
 Open source isn't just about code. It's about process, decisions, mistakes, and victories.
 
 **In practice:**
+
 - Development docs live in `/dev-docs` alongside code
 - We share our cursor commands and AI workflows (see `.cursor/commands/`)
 - Blog posts come from actual notes we take while building
@@ -45,6 +47,7 @@ Open source isn't just about code. It's about process, decisions, mistakes, and 
 We work with AI tools like Cursor and Claude. It's part of our workflow, not something to hide.
 
 **In practice:**
+
 - We have `/start` commands to onboard new AI sessions efficiently
 - Documentation is optimized for both humans and AI scrapers (clear structure, semantic headers, no fluff)
 - We acknowledge when AI suggested a solution or pattern
@@ -57,6 +60,7 @@ We work with AI tools like Cursor and Claude. It's part of our workflow, not som
 Side project energy means we ship when ready, polish when it matters, and iterate continuously.
 
 **In practice:**
+
 - No version numbers (just continuous improvement)
 - Tests for critical paths, not 100% coverage theater
 - Design tokens over pixel-perfect mockups
@@ -69,6 +73,7 @@ Side project energy means we ship when ready, polish when it matters, and iterat
 We practice what we preach: the CODE framework (Collect → Organise → Distill → Express).
 
 **In practice:**
+
 - Collect: Document patterns as we discover them
 - Organise: Structure docs by domain (svelte-reactivity.md, convex-integration.md)
 - Distill: INDEX.md provides quick pattern lookup
@@ -81,6 +86,7 @@ We practice what we preach: the CODE framework (Collect → Organise → Distill
 We make money without charging for knowledge. Our goals, metrics, and revenue are public—no secrets.
 
 **In practice:**
+
 - Core platform: FREE forever (open source, self-hosted)
 - Knowledge/docs: FREE forever (learning should be accessible)
 - Revenue streams: Managed hosting, enterprise support, marketplace (80/20 split favoring builders), consulting
@@ -122,12 +128,14 @@ When two approaches both seem valid:
 ### How We Collaborate
 
 **For Contributors:**
+
 - Fork it, try it, break it, fix it, share what you learned
 - Submit PRs with context (why did you make this change?)
 - Ask questions in discussions (we're all learning together)
 - Share your use case (helps us understand real needs)
 
 **For Maintainers:**
+
 - Review with curiosity, not criticism
 - Explain the "why" behind suggestions
 - Celebrate contributions, especially first-time ones
@@ -175,4 +183,3 @@ That's the **Synergy** in SynergyOS.
 **Status:** Living document - will evolve as we learn and grow
 
 **Questions?** Open a discussion. We're figuring this out together.
-

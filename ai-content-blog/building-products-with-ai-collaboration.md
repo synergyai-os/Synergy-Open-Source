@@ -1,10 +1,10 @@
 ---
-title: "Building Products with AI: How Randy Ships Features in Hours, Not Weeks"
+title: 'Building Products with AI: How Randy Ships Features in Hours, Not Weeks'
 date: 2025-01-08
-tags: ["BLOG", "Product Development", "AI Collaboration", "SynergyOS", "Building in Public"]
+tags: ['BLOG', 'Product Development', 'AI Collaboration', 'SynergyOS', 'Building in Public']
 aiGenerated: false
-slug: "building-products-with-ai-collaboration"
-series: "Building in Public: The SYOS Journey"
+slug: 'building-products-with-ai-collaboration'
+series: 'Building in Public: The SYOS Journey'
 ---
 
 # Building Products with AI: How Randy Ships Features in Hours, Not Weeks
@@ -16,6 +16,7 @@ Hi, I'm Randy. I build products. Sometimes they work, sometimes they fail specta
 This blog series is about how I'm building **SynergyOS (SYOS)** — an open source knowledge retention platform — in public, with a small team, using modern tools including AI collaboration.
 
 **What to expect from this series:**
+
 - Real product decisions (and mistakes)
 - How we build with teams in product-driven organizations
 - Collaboration between humans and AI (not replacing, augmenting)
@@ -58,6 +59,7 @@ This took 15 minutes. It saved hours of rework.
 ## The Build: Pairing with AI Like a Senior Dev
 
 I work with Claude (the AI) like I'd work with a senior developer:
+
 - I explain the context
 - I define the requirements
 - I guide the architecture
@@ -68,7 +70,7 @@ I work with Claude (the AI) like I'd work with a senior developer:
 
 **Me**: "We need a `note` type in our Convex database. Include title, ProseMirror content (JSON), markdown version, AI-generated flag, and blog category. Make it part of our inbox system."
 
-**Claude**: *Generates complete schema extension, API mutations, authentication checks*
+**Claude**: _Generates complete schema extension, API mutations, authentication checks_
 
 **Result**: 15 minutes. Would've taken me 2 hours manually.
 
@@ -80,9 +82,9 @@ I work with Claude (the AI) like I'd work with a senior developer:
 
 **Me**: "Build a ProseMirror editor component in Svelte 5. Notion-like feel. SSR-safe."
 
-**Claude**: *Generates editor with toolbar, formatting, history plugin*
+**Claude**: _Generates editor with toolbar, formatting, history plugin_
 
-**Problem**: Server crashes on page load. 
+**Problem**: Server crashes on page load.
 
 **Why**: ProseMirror is browser-only. Svelte 5 runs on server AND client. Mixing them = 💥
 
@@ -102,9 +104,10 @@ We don't just build "a button." We build **reusable components** that the whole 
 
 **Me**: "Create atomic components: KeyboardShortcut, FormInput, FormTextarea. Use our design token system (no hardcoded values)."
 
-**Claude**: *Generates three clean components with semantic tokens*
+**Claude**: _Generates three clean components with semantic tokens_
 
 **What I Added**:
+
 - Documentation in `dev-docs/design-tokens.md`
 - Usage patterns for the team
 - Integration examples in existing modals
@@ -125,13 +128,14 @@ Here's where human judgment matters.
 
 **The Question**: When do we show this menu? Always? Only on long pastes? User setting?
 
-**My Call**: 
+**My Call**:
+
 - Show on paste (if text > 50 words)
 - Dismissible by clicking away
 - Add a global setting to disable it
 - Placeholder detection logic (improve later)
 
-**Claude**: *Implements exactly that*
+**Claude**: _Implements exactly that_
 
 **Result**: 30 minutes for the feature, 5 minutes for the product decision.
 
@@ -144,24 +148,27 @@ Here's where human judgment matters.
 Building fast means breaking things. Here's what failed:
 
 ### Bug 1: SSR 500 Errors
+
 **Symptom**: Server crashes, no error message in browser  
 **Diagnosis**: Client-only runes (`$state`) running on server  
 **Fix**: Wrap in `if (browser)` checks  
 **Time**: 20 minutes  
 **Pattern Documented**: `dev-docs/patterns/svelte-reactivity.md#L400`
 
-### Bug 2: ProseMirror `$from` Collision  
+### Bug 2: ProseMirror `$from` Collision
+
 **Symptom**: Svelte error: "$ prefix is reserved"  
 **Diagnosis**: ProseMirror uses `$from`, Svelte 5 reserves `$` for runes  
 **Fix**: Rename in destructuring: `const { $from: from } = selection`  
 **Time**: 10 minutes  
 **Pattern Documented**: Same doc, line 450
 
-### Bug 3: Permission Errors on macOS  
+### Bug 3: Permission Errors on macOS
+
 **Symptom**: Can't read `.env.local` file  
 **Diagnosis**: macOS quarantine attributes  
 **Fix**: `xattr -d com.apple.quarantine .env.local`  
-**Time**: 5 minutes  
+**Time**: 5 minutes
 
 **Total Debug Time**: 35 minutes. Fast because we **document patterns as we go**.
 
@@ -192,6 +199,7 @@ In one afternoon:
 ## How This Changes Product Development
 
 ### Old Way (Solo Developer):
+
 1. Research ProseMirror docs (2 hours)
 2. Set up schema, API, types (2 hours)
 3. Build editor component (4 hours)
@@ -201,6 +209,7 @@ In one afternoon:
 7. **Total**: 14 hours over 2-3 days
 
 ### New Way (Human + AI):
+
 1. Define requirements (15 min)
 2. Prompt AI for schema/API (15 min)
 3. Prompt AI for editor (30 min)
@@ -247,6 +256,7 @@ Every pattern we learn gets documented:
 - `dev-docs/patterns/INDEX.md` — Fast symptom → solution lookup
 
 **Why This Matters for Teams**:
+
 - New team members onboard faster
 - AI sessions pick up where humans left off
 - Mistakes don't repeat
@@ -269,6 +279,7 @@ Because this is the benchmark: **What can we create in 5 minutes with AI collabo
 - Could I write this manually in 5 minutes? Not even close.
 
 This is the future of product development:
+
 - **Humans**: Vision, decisions, architecture, edge cases
 - **AI**: Implementation, iteration, documentation, speed
 - **Together**: 4x faster, better documented, more ambitious
@@ -302,6 +313,7 @@ We're building this for teams like Saprolab and ZDHC — digital builders who ne
 5. **Test in production mindset** (SSR, mobile, edge cases)
 
 **The tools**:
+
 - Cursor (AI pair programming)
 - Convex (real-time backend)
 - SvelteKit 5 (modern frontend)
@@ -309,6 +321,7 @@ We're building this for teams like Saprolab and ZDHC — digital builders who ne
 - Design tokens (consistency without micromanagement)
 
 **The approach**:
+
 - Product thinking first
 - AI for acceleration
 - Human for edge cases
@@ -344,6 +357,7 @@ Got questions? Found a better way? Built something similar?
 ## P.S. — The Meta Layer
 
 This blog post was:
+
 1. Written in the note editor we built yesterday
 2. Tagged "BLOG" in our system
 3. Exported to markdown automatically
@@ -367,4 +381,3 @@ This is **post #2** in the SYOS journey. Here's what's coming:
 **Follow along**: We're building a product OS for knowledge workers. In public. With AI. For teams.
 
 **Randy & SYOS**
-

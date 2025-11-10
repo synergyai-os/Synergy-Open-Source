@@ -17,9 +17,9 @@ function getHighlighter() {
 
 const config = defineConfig({
 	extensions: ['.svx', '.md'],
-	
+
 	highlight: false, // Disabled temporarily to test MDX
-	
+
 	rehypePlugins: [
 		rehypeSlug,
 		[
@@ -29,11 +29,10 @@ const config = defineConfig({
 			}
 		]
 	],
-	
+
 	smartypants: {
 		dashes: 'oldschool'
 	}
 });
 
 export default config;
-

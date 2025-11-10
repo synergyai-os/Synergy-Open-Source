@@ -13,6 +13,7 @@
 **Estimate**: 4 hours
 
 ### What Gets Built
+
 - 6 new database tables in `convex/schema.ts`
 - Seed script in `convex/seed/rbac.ts`
 - 6 roles seeded
@@ -20,6 +21,7 @@
 - ~50 role-permission mappings seeded
 
 ### Acceptance Criteria
+
 - [ ] All 6 tables added to schema.ts (roles, permissions, rolePermissions, userRoles, resourceGuests, permissionAuditLog)
 - [ ] Schema deployed successfully (`npx convex deploy`)
 - [ ] Seed script creates 6 roles (Admin, Manager, Team Lead, Billing Admin, Member, Guest)
@@ -28,10 +30,12 @@
 - [ ] Can query roles and permissions in Convex dashboard
 
 ### Files Changed
+
 - `convex/schema.ts` - Add 6 new tables
 - `convex/seed/rbac.ts` - New seed script
 
 ### Test Plan
+
 1. Run seed script
 2. Open Convex dashboard → Check roles table has 6 roles
 3. Check permissions table has 20 permissions
@@ -40,6 +44,7 @@
 6. Verify Team Lead role has limited permissions with "own" scope
 
 ### Dependencies
+
 None (first slice)
 
 ---
@@ -53,12 +58,14 @@ None (first slice)
 **Estimate**: 4 hours
 
 ### What Gets Built
+
 - `convex/permissions.ts` with core functions
 - Permission checking logic with scope support
 - Helper functions for common patterns
 - Basic unit tests
 
 ### Acceptance Criteria
+
 - [ ] `userHasPermission()` function works correctly
 - [ ] Handles "all" scope (grants access)
 - [ ] Handles "own" scope (checks resource ownership)
@@ -70,10 +77,12 @@ None (first slice)
 - [ ] Unit tests pass (test multi-role, scope checking)
 
 ### Files Changed
+
 - `convex/permissions.ts` - New file with permission functions
 - `convex/permissions.test.ts` - New unit tests
 
 ### Test Plan
+
 1. Create test user with Admin role
 2. Call `userHasPermission(userId, "teams.create")` → Should return true
 3. Create test user with Team Lead role for Team A
@@ -84,6 +93,7 @@ None (first slice)
 8. Run unit tests → All pass
 
 ### Dependencies
+
 - Slice 1 (needs seeded data)
 
 ---
@@ -97,12 +107,14 @@ None (first slice)
 **Estimate**: 3 hours
 
 ### What Gets Built
+
 - `convex/roles.ts` with role management functions
 - Role assignment/revocation mutations
 - Audit logging for role changes
 - Query functions to get user roles
 
 ### Acceptance Criteria
+
 - [ ] `assignRole()` mutation works
 - [ ] Prevents duplicate role assignments
 - [ ] Prevents non-admins from assigning Admin role
@@ -114,10 +126,12 @@ None (first slice)
 - [ ] Integration tests pass
 
 ### Files Changed
+
 - `convex/roles.ts` - New file with role management
 - `convex/roles.test.ts` - Integration tests
 
 ### Test Plan
+
 1. Admin assigns Team Lead role to User A for Team X
 2. Check userRoles table → Entry exists
 3. Check permissionAuditLog → Assignment logged
@@ -131,6 +145,7 @@ None (first slice)
 11. Run integration tests → All pass
 
 ### Dependencies
+
 - Slice 1 (needs tables)
 - Slice 2 (uses permission checking)
 
@@ -145,11 +160,13 @@ None (first slice)
 **Estimate**: 4 hours
 
 ### What Gets Built
+
 - Add permission checks to existing team functions
 - Protect create, delete, update, member add/remove
 - Resource-scoped permission checking
 
 ### Acceptance Criteria
+
 - [ ] `createTeam()` requires "teams.create" permission
 - [ ] `deleteTeam()` requires "teams.delete" permission
 - [ ] `updateTeamSettings()` requires "teams.settings.update" with resource scope
@@ -161,10 +178,12 @@ None (first slice)
 - [ ] Integration tests pass
 
 ### Files Changed
+
 - `convex/teams.ts` - Add permission checks to existing functions
 - `convex/teams.test.ts` - Integration tests for permissions
 
 ### Test Plan
+
 1. Admin creates team → ✅ Success
 2. Member tries to create team → ❌ Permission denied
 3. Team Lead of Team A updates Team A settings → ✅ Success
@@ -176,6 +195,7 @@ None (first slice)
 9. Run integration tests → All pass
 
 ### Dependencies
+
 - Slice 1 (needs tables)
 - Slice 2 (uses permission functions)
 - Slice 3 (needs role assignment to test)
@@ -191,11 +211,13 @@ None (first slice)
 **Estimate**: 3 hours
 
 ### What Gets Built
+
 - Add permission checks to user invite/remove
 - Protect role assignment functions
 - Org settings protection
 
 ### Acceptance Criteria
+
 - [ ] `inviteUser()` requires "users.invite" permission
 - [ ] `removeUser()` requires "users.remove" permission
 - [ ] `assignRole()` requires "users.roles.assign" permission
@@ -207,11 +229,13 @@ None (first slice)
 - [ ] Integration tests pass
 
 ### Files Changed
+
 - `convex/users.ts` - Add permission checks
 - `convex/organizations.ts` - Add permission checks
 - `convex/users.test.ts` - Integration tests
 
 ### Test Plan
+
 1. Admin invites user → ✅ Success
 2. Member tries to invite user → ❌ Permission denied
 3. Manager invites user → ✅ Success
@@ -223,6 +247,7 @@ None (first slice)
 9. Run integration tests → All pass
 
 ### Dependencies
+
 - Slice 1 (needs tables)
 - Slice 2 (uses permission functions)
 - Slice 3 (role management)
@@ -238,12 +263,14 @@ None (first slice)
 **Estimate**: 5 hours
 
 ### What Gets Built
+
 - `usePermissions` composable
 - Permission query functions
 - Update UI components with permission gates
 - Permission-based button visibility
 
 ### Acceptance Criteria
+
 - [ ] `usePermissions.svelte.ts` composable created
 - [ ] `convex/permissions.ts` has `getUserPermissions` query
 - [ ] Composable provides `can()`, `canAny()`, `canAll()` functions
@@ -256,6 +283,7 @@ None (first slice)
 - [ ] E2E tests pass
 
 ### Files Changed
+
 - `src/lib/composables/usePermissions.svelte.ts` - New composable
 - `src/lib/components/teams/TeamManagementPanel.svelte` - Add permission gates
 - `src/lib/components/users/UserManagementPanel.svelte` - Add permission gates
@@ -263,6 +291,7 @@ None (first slice)
 - `tests/e2e/permissions.spec.ts` - E2E tests
 
 ### Test Plan
+
 1. Login as Admin → All buttons visible
 2. Login as Team Lead → Only team management for their team visible
 3. Login as Member → Limited UI (view only)
@@ -274,6 +303,7 @@ None (first slice)
 9. Run E2E tests → All pass
 
 ### Dependencies
+
 - Slice 1-5 (needs complete backend)
 
 ---
@@ -287,6 +317,7 @@ None (first slice)
 **Estimate**: 5 hours
 
 ### What Gets Built
+
 - Complete unit test coverage
 - Integration test suite
 - E2E test suite
@@ -295,6 +326,7 @@ None (first slice)
 - Testing checklist completed
 
 ### Acceptance Criteria
+
 - [ ] Unit tests cover all permission functions (>90% coverage)
 - [ ] Integration tests cover complete permission flows
 - [ ] E2E tests cover all user journeys
@@ -308,6 +340,7 @@ None (first slice)
 - [ ] Performance acceptable (permission checks < 100ms)
 
 ### Files Changed
+
 - `convex/permissions.test.ts` - Complete unit tests
 - `convex/roles.test.ts` - Complete integration tests
 - `tests/e2e/permissions.spec.ts` - Complete E2E tests
@@ -316,6 +349,7 @@ None (first slice)
 - `dev-docs/1-projects/rbac-phase-1/testing-checklist.md` - Complete manual tests
 
 ### Test Plan
+
 1. Run all unit tests → 100% pass
 2. Run all integration tests → 100% pass
 3. Run all E2E tests → 100% pass
@@ -328,21 +362,22 @@ None (first slice)
 10. User acceptance testing → User confirms all features work
 
 ### Dependencies
+
 - Slice 1-6 (needs complete system)
 
 ---
 
 ## Summary
 
-| Slice | Description | Hours | Depends On |
-|-------|-------------|-------|------------|
-| 1 | Database Foundation | 4h | None |
-| 2 | Core Permission Functions | 4h | Slice 1 |
-| 3 | Role Management | 3h | Slices 1-2 |
-| 4 | Team Management Protection | 4h | Slices 1-3 |
-| 5 | User Management Protection | 3h | Slices 1-3 |
-| 6 | Frontend Permission System | 5h | Slices 1-5 |
-| 7 | Testing & Documentation | 5h | Slices 1-6 |
+| Slice | Description                | Hours | Depends On |
+| ----- | -------------------------- | ----- | ---------- |
+| 1     | Database Foundation        | 4h    | None       |
+| 2     | Core Permission Functions  | 4h    | Slice 1    |
+| 3     | Role Management            | 3h    | Slices 1-2 |
+| 4     | Team Management Protection | 4h    | Slices 1-3 |
+| 5     | User Management Protection | 3h    | Slices 1-3 |
+| 6     | Frontend Permission System | 5h    | Slices 1-5 |
+| 7     | Testing & Documentation    | 5h    | Slices 1-6 |
 
 **Total**: 28 hours (~3.5 days)
 
@@ -351,6 +386,7 @@ None (first slice)
 ## Testing After Each Slice
 
 After completing each slice, test with user before moving to next:
+
 1. Demo what was built
 2. Let user test functionality
 3. Get feedback
@@ -359,5 +395,3 @@ After completing each slice, test with user before moving to next:
 6. Move to next slice
 
 This ensures we're building the right thing!
-
-

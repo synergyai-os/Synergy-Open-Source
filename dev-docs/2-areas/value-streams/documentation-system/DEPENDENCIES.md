@@ -9,6 +9,7 @@
 ### None Currently ✅
 
 All dependencies are in place:
+
 - ✅ SvelteKit 5 installed and working
 - ✅ Design token system complete
 - ✅ Component library ready
@@ -27,11 +28,12 @@ All dependencies are in place:
 **Why It Matters**: Consistent styling, themeable, maintainable
 
 **Example**:
+
 ```css
 @theme {
-  --color-sidebar: #1e1e1e;
-  --color-sidebar-primary: #ffffff;
-  --spacing-nav-item: 0.75rem;
+	--color-sidebar: #1e1e1e;
+	--color-sidebar-primary: #ffffff;
+	--spacing-nav-item: 0.75rem;
 }
 ```
 
@@ -46,6 +48,7 @@ All dependencies are in place:
 **Why It Matters**: MDX routes map directly to URLs
 
 **Example**:
+
 ```
 /src/routes/docs/+page.svelte     → /docs
 /src/routes/docs/[slug]/+page.svelte → /docs/architecture
@@ -62,6 +65,7 @@ All dependencies are in place:
 **Why It Matters**: Don't rebuild from scratch
 
 **Available**:
+
 - `Sidebar.svelte` - Existing sidebar (can adapt for docs)
 - `Modal.svelte` - For Cmd+K search
 - `Button.svelte` - Consistent buttons
@@ -77,6 +81,7 @@ All dependencies are in place:
 **Why It Matters**: Show "100+ commits" milestone
 
 **Use Case**:
+
 - Track GitHub commits
 - Display contributor leaderboard
 - Show progress toward 100+ commits
@@ -92,6 +97,7 @@ All dependencies are in place:
 **Why It Matters**: Track which docs are read, improve popular ones
 
 **Metrics**:
+
 - Page views per doc
 - Time on page
 - Search queries
@@ -109,18 +115,20 @@ All dependencies are in place:
 **Why**: Enables Markdown + Svelte components
 
 **Installation**:
+
 ```bash
 npm install -D mdsvex
 ```
 
 **Configuration**:
+
 ```javascript
 // svelte.config.js
 import { mdsvex } from 'mdsvex';
 
 export default {
-  preprocess: [mdsvex(), vitePreprocess()],
-  extensions: ['.svelte', '.md', '.svx']
+	preprocess: [mdsvex(), vitePreprocess()],
+	extensions: ['.svelte', '.md', '.svx']
 };
 ```
 
@@ -135,10 +143,12 @@ export default {
 **Why**: Deep linking, table of contents
 
 **Plugins**:
+
 - `rehype-slug` - Adds IDs to headings
 - `rehype-autolink-headings` - Adds anchor links
 
 **Installation**:
+
 ```bash
 npm install -D rehype-slug rehype-autolink-headings
 ```
@@ -154,22 +164,24 @@ npm install -D rehype-slug rehype-autolink-headings
 **Why**: Beautiful code blocks (like VS Code)
 
 **Installation**:
+
 ```bash
 npm install -D shiki
 ```
 
 **Configuration**:
+
 ```javascript
 // mdsvex.config.js
 import { getHighlighter } from 'shiki';
 
 export default {
-  highlight: {
-    highlighter: async (code, lang) => {
-      const highlighter = await getHighlighter({ theme: 'nord' });
-      return highlighter.codeToHtml(code, { lang });
-    }
-  }
+	highlight: {
+		highlighter: async (code, lang) => {
+			const highlighter = await getHighlighter({ theme: 'nord' });
+			return highlighter.codeToHtml(code, { lang });
+		}
+	}
 };
 ```
 
@@ -184,17 +196,19 @@ export default {
 **Why**: Fast Cmd+K search (no server needed)
 
 **Installation**:
+
 ```bash
 npm install fuse.js
 ```
 
 **Usage**:
+
 ```typescript
 import Fuse from 'fuse.js';
 
 const fuse = new Fuse(docs, {
-  keys: ['title', 'content'],
-  threshold: 0.3
+	keys: ['title', 'content'],
+	threshold: 0.3
 });
 
 const results = fuse.search(query);
@@ -275,6 +289,7 @@ const results = fuse.search(query);
 ### None
 
 This value stream is **independent**:
+
 - No waiting on other teams
 - No shared resources
 - No coordination overhead
@@ -293,6 +308,7 @@ This value stream is **independent**:
 **Impact**: Medium (slows contributions)
 
 **Mitigation**:
+
 - Provide templates
 - Clear examples
 - AI assistant for MDX authoring
@@ -307,6 +323,7 @@ This value stream is **independent**:
 **Impact**: Low (annoying, not blocking)
 
 **Mitigation**:
+
 - Incremental builds
 - Parallel processing
 - Cached syntax highlighting
@@ -321,6 +338,7 @@ This value stream is **independent**:
 **Impact**: Medium (slow page loads)
 
 **Mitigation**:
+
 - Compress index (gzip)
 - Lazy load search (only when opened)
 - Server-side search fallback (future)
@@ -335,6 +353,7 @@ This value stream is **independent**:
 **Impact**: High (breaks trust)
 
 **Mitigation**:
+
 - Docs live with code (same repo)
 - PRs require doc updates
 - Automated checks (broken links, outdated examples)
@@ -349,6 +368,7 @@ This value stream is **independent**:
 **Considered**: Confluence, Notion, GitBook
 
 **Rejected Because**:
+
 - Not version controlled (can't track changes)
 - Not AI-navigable (Cursor can't reference)
 - Not self-hostable (vendor lock-in)
@@ -363,6 +383,7 @@ This value stream is **independent**:
 **Considered**: Docusaurus (React), Nextra (Next.js), VitePress (Vue)
 
 **Rejected Because**:
+
 - Different framework (React/Vue vs. Svelte)
 - Separate deployment (not in-app)
 - Overkill (too many features we don't need)
@@ -376,6 +397,7 @@ This value stream is **independent**:
 **Considered**: Headless CMS for content management
 
 **Rejected Because**:
+
 - Extra complexity (another service)
 - Not version controlled (Git > CMS)
 - Not free (costs scale with users)
@@ -388,11 +410,13 @@ This value stream is **independent**:
 ## Timeline (Outcome-Based, No Dates)
 
 ### Phase 1: Foundation (Complete) ✅
+
 - ✅ Design tokens
 - ✅ SvelteKit setup
 - ✅ Existing docs in `/dev-docs`
 
 ### Phase 2: MDX Setup (Current) 🔄
+
 - Install mdsvex, rehype, shiki
 - Create route structure
 - Build components
@@ -403,6 +427,7 @@ This value stream is **independent**:
 **Risk**: Low
 
 ### Phase 3: AI Navigation (Next) ⏳
+
 - `@` reference system
 - Cmd+K search
 - GitHub integration
@@ -412,6 +437,7 @@ This value stream is **independent**:
 **Risk**: Low
 
 ### Phase 4: Living Docs (Future) ⏳
+
 - Auto-update from code
 - Version comparison
 - AI summarization
@@ -425,6 +451,7 @@ This value stream is **independent**:
 ## Success Criteria
 
 ### Phase 2 Success (MDX Setup)
+
 - ✅ `/docs` route works
 - ✅ Sidebar navigates docs
 - ✅ Design tokens applied
@@ -432,12 +459,14 @@ This value stream is **independent**:
 - ✅ First 5 docs migrated
 
 ### Phase 3 Success (AI Navigation)
+
 - ✅ Cursor AI can reference docs with `@`
 - ✅ Cmd+K search works
 - ✅ Search finds docs in < 100ms
 - ✅ All docs migrated
 
 ### Phase 4 Success (Living Docs)
+
 - ✅ GitHub shows contributor progress
 - ✅ Docs update automatically from code comments
 - ✅ AI summarizes long docs
@@ -448,14 +477,14 @@ This value stream is **independent**:
 ## Questions to Answer
 
 ### Open Questions
+
 - **Search Strategy**: Client-side (fast, offline) or server-side (smaller bundle)?
-  - *Leaning*: Client-side (simpler, faster, offline-capable)
-  
+  - _Leaning_: Client-side (simpler, faster, offline-capable)
 - **Contributor Dashboard**: Convex query or GitHub API?
-  - *Leaning*: GitHub API (source of truth), cached in Convex
+  - _Leaning_: GitHub API (source of truth), cached in Convex
 
 - **Versioning**: Show "last updated" or full version history?
-  - *Leaning*: "Last updated" for now, full history later
+  - _Leaning_: "Last updated" for now, full history later
 
 ---
 
@@ -472,4 +501,3 @@ This value stream is **independent**:
 **Last Updated**: November 8, 2025  
 **Next Review**: After Phase 2 complete  
 **Contact**: Randy Hereman (Founder)
-

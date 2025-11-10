@@ -13,28 +13,28 @@
 ```svelte
 <!-- ❌ WRONG: DropdownMenu.Item intercepts clicks -->
 <DropdownMenu.Item
-  onSelect={(e) => {
-    e.preventDefault();
-    toggleTheme();
-  }}
+	onSelect={(e) => {
+		e.preventDefault();
+		toggleTheme();
+	}}
 >
-  <Switch.Root checked={$isDark} />
+	<Switch.Root checked={$isDark} />
 </DropdownMenu.Item>
 
 <!-- ✅ CORRECT: Plain div wrapper (bits-ui pattern) -->
 <div class="px-menu-item py-menu-item">
-  <div class="flex items-center justify-between gap-icon-wide">
-    <span class="font-medium text-sm text-primary">
-      {$isDark ? 'Dark mode' : 'Light mode'}
-    </span>
-    <Switch.Root
-      checked={$isDark}
-      onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
-      class="h-4 w-8 {$isDark ? 'bg-gray-900' : 'bg-gray-300'}"
-    >
-      <Switch.Thumb class="h-3 w-3 data-[state=checked]:translate-x-4" />
-    </Switch.Root>
-  </div>
+	<div class="flex items-center justify-between gap-icon-wide">
+		<span class="text-sm font-medium text-primary">
+			{$isDark ? 'Dark mode' : 'Light mode'}
+		</span>
+		<Switch.Root
+			checked={$isDark}
+			onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+			class="h-4 w-8 {$isDark ? 'bg-gray-900' : 'bg-gray-300'}"
+		>
+			<Switch.Thumb class="h-3 w-3 data-[state=checked]:translate-x-4" />
+		</Switch.Root>
+	</div>
 </div>
 ```
 
@@ -52,25 +52,34 @@
 
 ```svelte
 <!-- ❌ WRONG: Cramped design -->
-<button class="p-inbox-card">  <!-- 12px padding -->
-  <div class="mb-3">            <!-- 12px margin -->
-    <svg class="w-4 h-4 text-secondary">...</svg>  <!-- Small icon -->
-    <h3 class="text-sm font-semibold">{name}</h3>  <!-- Small text -->
-  </div>
-  <div class="text-sm text-secondary">{count} cards</div>
+<button class="p-inbox-card">
+	<!-- 12px padding -->
+	<div class="mb-3">
+		<!-- 12px margin -->
+		<svg class="h-4 w-4 text-secondary">...</svg>
+		<!-- Small icon -->
+		<h3 class="text-sm font-semibold">{name}</h3>
+		<!-- Small text -->
+	</div>
+	<div class="text-sm text-secondary">{count} cards</div>
 </button>
 
 <!-- ✅ CORRECT: Generous spacing (design token mandate) -->
-<button class="p-inbox-container">  <!-- 16px padding ✅ -->
-  <div class="mb-4">                 <!-- 16px margin ✅ -->
-    <svg class="w-5 h-5 text-accent-primary">...</svg>  <!-- Larger icon ✅ -->
-    <h3 class="text-lg font-semibold text-primary">{name}</h3>  <!-- Clear hierarchy ✅ -->
-  </div>
-  <div class="text-sm text-secondary">{count} cards</div>
+<button class="p-inbox-container">
+	<!-- 16px padding ✅ -->
+	<div class="mb-4">
+		<!-- 16px margin ✅ -->
+		<svg class="h-5 w-5 text-accent-primary">...</svg>
+		<!-- Larger icon ✅ -->
+		<h3 class="text-lg font-semibold text-primary">{name}</h3>
+		<!-- Clear hierarchy ✅ -->
+	</div>
+	<div class="text-sm text-secondary">{count} cards</div>
 </button>
 ```
 
 **Design Token Rules**:
+
 - **Padding**: `p-inbox-container` (16px), not `p-inbox-card` (12px)
 - **Margins**: `mb-4` (16px) for major elements, `mb-3` (12px) for minor
 - **Icons**: `w-5 h-5` for prominence, `text-accent-primary` for emphasis
@@ -89,19 +98,21 @@
 
 ```svelte
 <!-- ❌ WRONG: No fixed height -->
-<div class="py-system-header border-b">  <!-- Height varies -->
-  <h2>Page Title</h2>
+<div class="border-b py-system-header">
+	<!-- Height varies -->
+	<h2>Page Title</h2>
 </div>
 
 <!-- ✅ CORRECT: Fixed height + padding (design token mandate) -->
 <div
-  class="h-system-header py-system-header border-b border-base flex items-center justify-between flex-shrink-0"
+	class="flex h-system-header flex-shrink-0 items-center justify-between border-b border-base py-system-header"
 >
-  <h2 class="text-sm font-normal text-secondary">Page Title</h2>
+	<h2 class="text-sm font-normal text-secondary">Page Title</h2>
 </div>
 ```
 
 **Design Token Rules**:
+
 - **Height**: `h-system-header` (64px fixed)
 - **Padding**: `py-system-header` (12px)
 - **Layout**: `flex items-center` centers content vertically
@@ -119,29 +130,30 @@
 **Fix**:
 
 ```svelte
+<!-- ✅ CORRECT: User-controlled edit mode -->
+<script>
+	let editMode = $state(false);
+</script>
+
 <!-- ❌ WRONG: Always editable -->
 <FlashcardComponent editable={true} />
 
-<!-- ✅ CORRECT: User-controlled edit mode -->
-<script>
-  let editMode = $state(false);
-</script>
-
 <FlashcardComponent editable={editMode} />
 <Button onclick={() => (editMode = !editMode)}>
-  {editMode ? 'Done Editing' : 'Edit'}
+	{editMode ? 'Done Editing' : 'Edit'}
 </Button>
 ```
 
 **Visual Indicators** (for edit mode):
+
 ```svelte
 <!-- Footer: Text + background change -->
 <div class="transition-colors {isEditing ? 'bg-accent-primary/20' : 'bg-base/10'}">
-  {#if isEditing}
-    <span class="text-accent-primary font-medium">• Editing...</span>
-  {:else}
-    <span class="text-secondary">• Click to edit</span>
-  {/if}
+	{#if isEditing}
+		<span class="font-medium text-accent-primary">• Editing...</span>
+	{:else}
+		<span class="text-secondary">• Click to edit</span>
+	{/if}
 </div>
 
 <!-- Textarea: Focus ring -->
@@ -166,8 +178,8 @@ let currentIndex = $state(0);
 let approvedIndices = $state<Set<number>>(new Set());
 
 function handleApprove() {
-  approvedIndices.add(currentIndex); // ❌ Card still in list
-  currentIndex++;
+	approvedIndices.add(currentIndex); // ❌ Card still in list
+	currentIndex++;
 }
 
 // ✅ CORRECT: Queue-based removal
@@ -176,16 +188,16 @@ let approvedCards = $state<Card[]>([]);
 let isAnimating = $state(false);
 
 function handleApprove() {
-  if (isAnimating || reviewQueue.length === 0) return;
-  
-  const card = reviewQueue[0];
-  approvedCards.push(card);
-  isAnimating = true;
-  
-  setTimeout(() => {
-    reviewQueue = reviewQueue.slice(1); // ✅ Remove from queue
-    isAnimating = false;
-  }, 400);
+	if (isAnimating || reviewQueue.length === 0) return;
+
+	const card = reviewQueue[0];
+	approvedCards.push(card);
+	isAnimating = true;
+
+	setTimeout(() => {
+		reviewQueue = reviewQueue.slice(1); // ✅ Remove from queue
+		isAnimating = false;
+	}, 400);
 }
 
 const currentCard = $derived(reviewQueue[0]); // Always first card
@@ -205,36 +217,39 @@ const currentCard = $derived(reviewQueue[0]); // Always first card
 ```typescript
 // ❌ WRONG: Instant action, no feedback
 function handleApprove() {
-  approvedCards.push(card);
-  reviewQueue = reviewQueue.slice(1);
+	approvedCards.push(card);
+	reviewQueue = reviewQueue.slice(1);
 }
 
 // ✅ CORRECT: Show feedback first
 let showFeedback = $state<'approved' | 'rejected' | null>(null);
 
 function handleApprove() {
-  showFeedback = 'approved'; // ✅ Immediate visual feedback
-  setTimeout(() => {
-    approvedCards.push(card);
-    reviewQueue = reviewQueue.slice(1);
-    showFeedback = null;
-  }, 400);
+	showFeedback = 'approved'; // ✅ Immediate visual feedback
+	setTimeout(() => {
+		approvedCards.push(card);
+		reviewQueue = reviewQueue.slice(1);
+		showFeedback = null;
+	}, 400);
 }
 ```
 
 **Visual Overlay**:
+
 ```svelte
 {#if showFeedback}
-  <div class="absolute inset-0 z-10 flex items-center justify-center rounded-lg
-    {showFeedback === 'approved' ? 'bg-green-500/20' : 'bg-red-500/20'}">
-    <svg class="w-20 h-20 {showFeedback === 'approved' ? 'text-green-500' : 'text-red-500'}">
-      {#if showFeedback === 'approved'}
-        <path d="M5 13l4 4L19 7" />  <!-- Checkmark -->
-      {:else}
-        <path d="M6 18L18 6M6 6l12 12" />  <!-- X -->
-      {/if}
-    </svg>
-  </div>
+	<div
+		class="absolute inset-0 z-10 flex items-center justify-center rounded-lg
+    {showFeedback === 'approved' ? 'bg-green-500/20' : 'bg-red-500/20'}"
+	>
+		<svg class="h-20 w-20 {showFeedback === 'approved' ? 'text-green-500' : 'text-red-500'}">
+			{#if showFeedback === 'approved'}
+				<path d="M5 13l4 4L19 7" /> <!-- Checkmark -->
+			{:else}
+				<path d="M6 18L18 6M6 6l12 12" /> <!-- X -->
+			{/if}
+		</svg>
+	</div>
 {/if}
 ```
 
@@ -251,16 +266,14 @@ function handleApprove() {
 
 ```svelte
 <!-- ❌ WRONG: Height constraint -->
-<div class="w-full h-full">
-  <textarea class="w-full h-full" />  <!-- ❌ Constrained -->
+<div class="h-full w-full">
+	<textarea class="h-full w-full" />
+	<!-- ❌ Constrained -->
 </div>
 
 <!-- ✅ CORRECT: Remove h-full, use field-sizing-content -->
-<div class="w-full flex items-center justify-center min-w-0">
-  <textarea
-    class="field-sizing-content"
-    style="overflow: hidden;"
-  />
+<div class="flex w-full min-w-0 items-center justify-center">
+	<textarea class="field-sizing-content" style="overflow: hidden;" />
 </div>
 ```
 
@@ -279,14 +292,16 @@ function handleApprove() {
 ```svelte
 <!-- ❌ WRONG: No centering or fixed size -->
 <div class="flex-1 p-inbox-container">
-  <FlashcardComponent />
+	<FlashcardComponent />
 </div>
 
 <!-- ✅ CORRECT: Fixed size, centered, responsive -->
-<div class="flex-1 flex items-center justify-center p-inbox-container overflow-auto">
-  <div style="width: 500px; height: 700px; max-width: calc(100% - 2rem); max-height: calc(100% - 2rem);">
-    <FlashcardComponent />
-  </div>
+<div class="flex flex-1 items-center justify-center overflow-auto p-inbox-container">
+	<div
+		style="width: 500px; height: 700px; max-width: calc(100% - 2rem); max-height: calc(100% - 2rem);"
+	>
+		<FlashcardComponent />
+	</div>
 </div>
 ```
 
@@ -305,52 +320,54 @@ function handleApprove() {
 ```typescript
 // ❌ WRONG: No priority checks
 $effect(() => {
-  function handleKeyDown(e: KeyboardEvent) {
-    if (e.key === 'ArrowUp') {
-      flipCard(); // ❌ Always fires, even when dropdown is open
-    }
-  }
-  window.addEventListener('keydown', handleKeyDown);
-  return () => window.removeEventListener('keydown', handleKeyDown);
+	function handleKeyDown(e: KeyboardEvent) {
+		if (e.key === 'ArrowUp') {
+			flipCard(); // ❌ Always fires, even when dropdown is open
+		}
+	}
+	window.addEventListener('keydown', handleKeyDown);
+	return () => window.removeEventListener('keydown', handleKeyDown);
 });
 
 // ✅ CORRECT: Check for active dropdowns/inputs first
 $effect(() => {
-  function handleKeyDown(e: KeyboardEvent) {
-    // Priority 1: Check if typing in input/textarea
-    const activeElement = document.activeElement;
-    const isInputFocused =
-      activeElement?.tagName === 'INPUT' ||
-      activeElement?.tagName === 'TEXTAREA' ||
-      (activeElement instanceof HTMLElement && activeElement.isContentEditable);
+	function handleKeyDown(e: KeyboardEvent) {
+		// Priority 1: Check if typing in input/textarea
+		const activeElement = document.activeElement;
+		const isInputFocused =
+			activeElement?.tagName === 'INPUT' ||
+			activeElement?.tagName === 'TEXTAREA' ||
+			(activeElement instanceof HTMLElement && activeElement.isContentEditable);
 
-    // Priority 2: Check if dropdown/combobox is open
-    const isDropdownOpen = 
-      document.querySelector('[data-bits-combobox-content]') !== null ||
-      document.querySelector('[role="listbox"]') !== null;
+		// Priority 2: Check if dropdown/combobox is open
+		const isDropdownOpen =
+			document.querySelector('[data-bits-combobox-content]') !== null ||
+			document.querySelector('[role="listbox"]') !== null;
 
-    // Skip card hotkeys if input or dropdown is active (except ESC)
-    if ((isInputFocused || isDropdownOpen) && e.key !== 'Escape') return;
+		// Skip card hotkeys if input or dropdown is active (except ESC)
+		if ((isInputFocused || isDropdownOpen) && e.key !== 'Escape') return;
 
-    // Priority 3: Card navigation (only when nothing else is active)
-    if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      flipCard(); // ✅ Only fires when safe
-    }
-  }
-  
-  window.addEventListener('keydown', handleKeyDown);
-  return () => window.removeEventListener('keydown', handleKeyDown);
+		// Priority 3: Card navigation (only when nothing else is active)
+		if (e.key === 'ArrowUp') {
+			e.preventDefault();
+			flipCard(); // ✅ Only fires when safe
+		}
+	}
+
+	window.addEventListener('keydown', handleKeyDown);
+	return () => window.removeEventListener('keydown', handleKeyDown);
 });
 ```
 
 **Priority Hierarchy**:
+
 1. 🥇 **Dropdowns/Modals** - Check for `[data-bits-combobox-content]` or `[role="listbox"]`
 2. 🥈 **Input Fields** - Check `activeElement.tagName` for INPUT/TEXTAREA
 3. 🥉 **Component Hotkeys** - Only process when nothing else is active
 4. ⚠️ **ESC Exception** - Always allow ESC to close dropdowns/dialogs
 
 **Complementary Pattern** - Component-level hotkey (e.g., 'T' to open tags):
+
 ```typescript
 // Parent component implements specific hotkeys
 let tagComboboxOpen = $state(false);
@@ -385,28 +402,29 @@ $effect(() => {
 
 ```svelte
 <!-- ❌ WRONG: Standard overlay -->
-<Dialog.Overlay class="fixed inset-0 z-50 bg-overlay" />
-<Dialog.Content class="fixed ... shadow-modal">
-  <!-- content -->
+<Dialog.Overlay class="bg-overlay fixed inset-0 z-50" />
+<Dialog.Content class="shadow-modal fixed ...">
+	<!-- content -->
 </Dialog.Content>
 
 <!-- ✅ CORRECT: Premium "spotlight" effect -->
 <Dialog.Overlay
-  class="fixed inset-0 z-50 bg-black/65 backdrop-blur-sm 
-    data-[state=open]:animate-in data-[state=closed]:animate-out 
-    data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+	class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed 
+    inset-0 z-50 
+    bg-black/65 backdrop-blur-sm"
 />
 <Dialog.Content
-  class="fixed left-1/2 top-1/2 z-50 max-w-[600px] -translate-x-1/2 -translate-y-1/2 
-    shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out 
-    data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 
-    data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-top-[48%]"
+	class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-top-[48%] fixed 
+    top-1/2 left-1/2 z-50 
+    max-w-[600px] -translate-x-1/2 
+    -translate-y-1/2 shadow-2xl"
 >
-  <!-- content -->
+	<!-- content -->
 </Dialog.Content>
 ```
 
 **Key Elements**:
+
 1. **Dark overlay** (65% black) - Creates spotlight effect
 2. **Backdrop blur** (`backdrop-blur-sm`) - Premium feel (Raycast, macOS Spotlight)
 3. **Scale animation** (`zoom-in-95`) - Modal "pops" into view
@@ -414,6 +432,7 @@ $effect(() => {
 5. **Coordinated animations** - Fade + zoom + slide for polish
 
 **Technical**:
+
 - Hardware accelerated (transform, opacity)
 - ~200ms total animation time
 - Smooth 60fps transitions
@@ -433,37 +452,38 @@ $effect(() => {
 
 ```svelte
 <!-- ❌ WRONG: Generic input -->
-<input 
-  class="w-full px-4 py-2 border border-gray-300"
-  placeholder="Search for something to create..."
+<input
+	class="w-full border border-gray-300 px-4 py-2"
+	placeholder="Search for something to create..."
 />
 
 <!-- ✅ CORRECT: Premium command palette input -->
-<div class="flex items-center border-b border-base/50 px-4 py-3">
-  <!-- Icon on left (search/logo) -->
-  <svg class="w-5 h-5 text-tertiary mr-3 flex-shrink-0">
-    <!-- search icon -->
-  </svg>
-  
-  <!-- Minimal, transparent input -->
-  <Command.Input
-    class="placeholder:text-tertiary bg-transparent focus:outline-hidden 
-      flex-1 text-base transition-colors focus:ring-0 border-0 p-0"
-    placeholder="Type a command or search..."
-  />
+<div class="border-base/50 flex items-center border-b px-4 py-3">
+	<!-- Icon on left (search/logo) -->
+	<svg class="mr-3 h-5 w-5 flex-shrink-0 text-tertiary">
+		<!-- search icon -->
+	</svg>
+
+	<!-- Minimal, transparent input -->
+	<Command.Input
+		class="flex-1 border-0 bg-transparent 
+      p-0 text-base transition-colors placeholder:text-tertiary focus:ring-0 focus:outline-hidden"
+		placeholder="Type a command or search..."
+	/>
 </div>
 
 <!-- Items with keyboard shortcuts on right -->
 <Command.Item class="flex items-center justify-between px-3 py-2.5">
-  <div class="flex items-center gap-icon">
-    <span class="text-xl">📝</span>
-    <span>Note</span>
-  </div>
-  <span class="text-xs text-tertiary bg-base/50 px-2 py-1 rounded font-mono">N</span>
+	<div class="flex items-center gap-icon">
+		<span class="text-xl">📝</span>
+		<span>Note</span>
+	</div>
+	<span class="bg-base/50 rounded px-2 py-1 font-mono text-xs text-tertiary">N</span>
 </Command.Item>
 ```
 
 **Key Patterns** (from 1Password, Raycast, Todoist, Slack):
+
 1. ✅ **Icon on left** (search or app logo)
 2. ✅ **Transparent background** with minimal border
 3. ✅ **Short placeholder** (not verbose)
@@ -485,32 +505,34 @@ $effect(() => {
 ```typescript
 // ❌ WRONG: Both keys do the same thing
 shortcuts.register({
-  key: 'n',
-  handler: () => openCreateModal(), // Same modal
+	key: 'n',
+	handler: () => openCreateModal() // Same modal
 });
 shortcuts.register({
-  key: 'c', 
-  handler: () => openCreateModal(), // Same modal
+	key: 'c',
+	handler: () => openCreateModal() // Same modal
 });
 
 // ✅ CORRECT: Clear separation of intent
 shortcuts.register({
-  key: 'n',
-  handler: () => quickCreateNote(), // Direct action (fast)
-  description: 'New note (quick)',
+	key: 'n',
+	handler: () => quickCreateNote(), // Direct action (fast)
+	description: 'New note (quick)'
 });
 shortcuts.register({
-  key: 'c',
-  handler: () => openCommandCenter(), // Full palette (options)
-  description: 'Command Center',
+	key: 'c',
+	handler: () => openCommandCenter(), // Full palette (options)
+	description: 'Command Center'
 });
 ```
 
 **Mental Model**:
+
 - **N** = **N**ew (direct, specific, fast) - Creates default item type immediately
 - **C** = **C**ommand (choose, search, explore) - Opens full palette with all options
 
 **Benefits**:
+
 - Muscle memory: N for speed, C for choice
 - Clear naming: "Command Center" not "New Item"
 - Scalable: Add more quick actions (F, H, etc.)
@@ -529,6 +551,7 @@ shortcuts.register({
 **Pattern**: Composable control panel using base components + slots
 
 **Base Components**:
+
 - `ControlPanel.Root` - Container (toolbar/popover/embedded)
 - `ControlPanel.Group` - Groups related controls
 - `ControlPanel.Button` - Icon button with active state
@@ -539,40 +562,42 @@ shortcuts.register({
 ```svelte
 <!-- Toolbar -->
 <ControlPanel.Root variant="toolbar">
-  <ControlPanel.Group>
-    <ControlPanel.Button active={isBold} onclick={toggleBold}>
-      <BoldIcon />
-    </ControlPanel.Button>
-  </ControlPanel.Group>
+	<ControlPanel.Group>
+		<ControlPanel.Button active={isBold} onclick={toggleBold}>
+			<BoldIcon />
+		</ControlPanel.Button>
+	</ControlPanel.Group>
 </ControlPanel.Root>
 
 <!-- Popover (contextual) -->
 <ControlPanel.Root variant="popover" bind:open={popoverOpen}>
-  {#snippet trigger()}
-    <button>Settings</button>
-  {/snippet}
-  
-  <ControlPanel.Group label="Options">
-    <ControlPanel.Button active={isActive} onclick={toggle}>
-      <Icon />
-    </ControlPanel.Button>
-  </ControlPanel.Group>
+	{#snippet trigger()}
+		<button>Settings</button>
+	{/snippet}
+
+	<ControlPanel.Group label="Options">
+		<ControlPanel.Button active={isActive} onclick={toggle}>
+			<Icon />
+		</ControlPanel.Button>
+	</ControlPanel.Group>
 </ControlPanel.Root>
 
 <!-- Embedded (inline) -->
 <ControlPanel.Root variant="embedded">
-  <ControlPanel.Button onclick={handleAction}>
-    <Icon /> Action
-  </ControlPanel.Button>
+	<ControlPanel.Button onclick={handleAction}>
+		<Icon /> Action
+	</ControlPanel.Button>
 </ControlPanel.Root>
 ```
 
 **Three Variants**:
+
 1. **toolbar** - Fixed header with border-bottom (notes editor)
 2. **popover** - Contextual floating panel (Bits UI Popover)
 3. **embedded** - Inline controls (sidebar actions)
 
 **Product Team Ownership**:
+
 - Teams own **control panel content** (buttons, groups, logic)
 - Design system owns **base components** (Root, Button, etc.)
 - All panels use same design tokens (consistency)
@@ -587,11 +612,11 @@ shortcuts.register({
 
 **Symptom**: Hardcoded UI elements (shortcuts, inputs) duplicated across components  
 **Root Cause**: No atomic component library for common UI elements  
-**Fix**: 
+**Fix**:
 
 ```svelte
 // ❌ WRONG - Hardcoded keyboard shortcut
-<span class="text-xs text-tertiary bg-base/50 px-2 py-1 rounded">(C)</span>
+<span class="bg-base/50 rounded px-2 py-1 text-xs text-tertiary">(C)</span>
 
 // ✅ CORRECT - Atomic component
 <KeyboardShortcut keys="C" />
@@ -605,17 +630,20 @@ shortcuts.register({
 <FormTextarea label="Content" rows={4} bind:value={content} />
 ```
 
-**Apply when**:  
+**Apply when**:
+
 - Creating any UI element that appears in multiple places
 - Building forms, modals, or repeating UI patterns
 - Need to update styling/behavior across entire app
 
 **Benefits**:
+
 - Change shortcut 'C' → 'A' in one place, updates everywhere
 - Consistent form styling via design tokens
 - Self-documenting (semantic component names)
 
 **Available Atomic Components**:
+
 - `<KeyboardShortcut keys="C" />` - Keyboard shortcut badges
 - `<FormInput>` - Text inputs with labels
 - `<FormTextarea>` - Textareas with labels
@@ -628,7 +656,7 @@ shortcuts.register({
 
 **Symptom**: Need rich text editing with Notion-like feel and AI detection  
 **Root Cause**: `<textarea>` doesn't support formatting, embeds, or change tracking  
-**Fix**: 
+**Fix**:
 
 ```svelte
 // ❌ WRONG - Plain textarea for notes
@@ -650,11 +678,13 @@ shortcuts.register({
 ```
 
 **Apply when**:
+
 - User needs to create/edit rich text notes
 - AI-generated content detection required
 - Export to markdown needed (e.g., blog posts)
 
 **State Management**:
+
 ```typescript
 // Store both ProseMirror JSON and markdown
 let noteContent = $state(''); // ProseMirror JSON string
@@ -663,16 +693,18 @@ let noteIsAIGenerated = $state(false);
 ```
 
 **API Integration**:
+
 ```typescript
 await convexClient.mutation(api.notes.createNote, {
-  title: noteTitle || undefined,
-  content: noteContent, // ProseMirror JSON
-  contentMarkdown: noteContentMarkdown || undefined,
-  isAIGenerated: noteIsAIGenerated || undefined,
+	title: noteTitle || undefined,
+	content: noteContent, // ProseMirror JSON
+	contentMarkdown: noteContentMarkdown || undefined,
+	isAIGenerated: noteIsAIGenerated || undefined
 });
 ```
 
 **Common Gotchas**:
+
 - ProseMirror uses `$from`/`$to` properties → Svelte 5 reserves `$` prefix → rename with `{ $from: from }`
 - See pattern: [svelte-reactivity.md#L450](../patterns/svelte-reactivity.md#L450)
 
@@ -691,7 +723,7 @@ await convexClient.mutation(api.notes.createNote, {
 import hljs from 'highlight.js';
 const highlighted = hljs.highlight(code, { language }).value; // Returns HTML string
 const decoration = Decoration.node(pos, pos + node.nodeSize, {
-  class: 'hljs' // Only adds class, doesn't inject HTML - NO COLORS!
+	class: 'hljs' // Only adds class, doesn't inject HTML - NO COLORS!
 });
 
 // ✅ CORRECT - prosemirror-highlight plugin
@@ -705,52 +737,57 @@ const syntaxHighlightPlugin = createHighlightPlugin({ parser });
 
 // Add to editor state BEFORE custom plugins
 EditorState.create({
-  doc,
-  plugins: [
-    buildInputRules(schema),
-    syntaxHighlightPlugin, // ← Add syntax highlighting first
-    customCodeBlockPlugin, // ← Then custom plugins
-  ],
+	doc,
+	plugins: [
+		buildInputRules(schema),
+		syntaxHighlightPlugin, // ← Add syntax highlighting first
+		customCodeBlockPlugin // ← Then custom plugins
+	]
 });
 ```
 
 **Install**:
+
 ```bash
 npm install prosemirror-highlight lowlight
 ```
 
 **Design Token Integration**:
+
 ```css
 /* src/app.css - Define semantic code color tokens */
 --color-code-bg: var(--color-sidebar-bg);
 --color-code-text: var(--color-sidebar-text-primary);
---color-code-keyword: oklch(69% 0.17 10);     /* Warm red */
---color-code-string: oklch(75% 0.12 220);     /* Blue */
---color-code-function: oklch(75% 0.15 290);   /* Purple */
+--color-code-keyword: oklch(69% 0.17 10); /* Warm red */
+--color-code-string: oklch(75% 0.12 220); /* Blue */
+--color-code-function: oklch(75% 0.15 290); /* Purple */
 --color-code-comment: var(--color-text-tertiary); /* Muted */
 
 /* NoteEditor.svelte - Use tokens for highlighting */
 :global(.ProseMirror pre) {
-  background-color: var(--color-code-bg);
-  color: var(--color-code-text);
+	background-color: var(--color-code-bg);
+	color: var(--color-code-text);
 }
 :global(.ProseMirror .hljs-keyword) {
-  color: var(--color-code-keyword);
+	color: var(--color-code-keyword);
 }
 ```
 
 **Apply when**:
+
 - Code blocks need syntax highlighting
 - Automatic language detection required
 - Must match app's design system (light/dark mode)
 
 **Why Not Manual highlight.js**:
+
 - `Decoration.node()` only adds attributes/classes to existing DOM
 - Cannot inject HTML structure (nested `<span>` tags with classes)
 - highlight.js returns HTML string, but ProseMirror needs actual DOM manipulation
 - `prosemirror-highlight` handles DOM rendering correctly
 
 **Common Gotchas**:
+
 - Plugin order matters: syntax highlight plugin MUST load before custom plugins
 - Language attribute must be on code_block node schema
 - CSS classes are `.hljs-keyword`, `.hljs-string`, etc. (from lowlight/highlight.js)
@@ -764,47 +801,51 @@ npm install prosemirror-highlight lowlight
 
 **Symptom**: Component has large `<style>` block with hardcoded values, inconsistent spacing/colors  
 **Root Cause**: Developer skipped design token system and wrote custom CSS  
-**Fix**: 
+**Fix**:
 
 ```svelte
 <!-- ❌ WRONG - Custom CSS classes not in design system -->
 <div class="note-header">
-  <h2 class="note-title">{title}</h2>
-  <button class="action-button">Save</button>
+	<h2 class="note-title">{title}</h2>
+	<button class="action-button">Save</button>
+</div>
+
+<!-- ✅ CORRECT - Design tokens via Tailwind utility classes -->
+<div
+	class="sticky top-0 z-10 flex h-system-header items-center justify-between border-b border-base bg-surface px-inbox-header py-system-header"
+>
+	<h2 class="text-sm font-normal text-secondary">{title}</h2>
+	<button class="rounded-md bg-accent-primary px-4 py-2 text-white hover:bg-accent-hover">
+		Save
+	</button>
 </div>
 
 <style>
-.note-header {
-  padding: 16px 24px;
-  background: #1a1a1a;
-  border-bottom: 1px solid #333;
-}
-.note-title {
-  font-size: 14px;
-  color: #999;
-}
-.action-button {
-  padding: 8px 16px;
-  background: #4F46E5;
-  border-radius: 6px;
-}
+	.note-header {
+		padding: 16px 24px;
+		background: #1a1a1a;
+		border-bottom: 1px solid #333;
+	}
+	.note-title {
+		font-size: 14px;
+		color: #999;
+	}
+	.action-button {
+		padding: 8px 16px;
+		background: #4f46e5;
+		border-radius: 6px;
+	}
 </style>
-
-<!-- ✅ CORRECT - Design tokens via Tailwind utility classes -->
-<div class="sticky top-0 z-10 bg-surface border-b border-base px-inbox-header py-system-header h-system-header flex items-center justify-between">
-  <h2 class="text-sm font-normal text-secondary">{title}</h2>
-  <button class="px-4 py-2 bg-accent-primary text-white rounded-md hover:bg-accent-hover">
-    Save
-  </button>
-</div>
 ```
 
 **Apply when**:
+
 - Creating new components (check existing components for patterns)
 - Component has `<style>` block with custom classes
 - Spacing/colors don't match rest of app
 
 **Design Token Checklist**:
+
 - ✅ Spacing: Use `px-inbox-header`, `py-system-header`, `gap-icon` (never `px-4`, `py-2`)
 - ✅ Colors: Use `bg-surface`, `text-secondary`, `border-base` (never `#1a1a1a`, `#999`)
 - ✅ Typography: Use `text-sm`, `text-label` (never `text-[14px]`)
@@ -812,12 +853,14 @@ npm install prosemirror-highlight lowlight
 - ✅ Heights: Use `h-system-header` (never `h-[64px]`)
 
 **How to Fix**:
+
 1. Find similar component (e.g., `ReadwiseDetail.svelte` for detail views)
 2. Copy structure and token usage
 3. Remove `<style>` block entirely
 4. Reference `dev-docs/design-tokens.md` for token list
 
-**Why Critical**: 
+**Why Critical**:
+
 - Breaks light/dark mode consistency
 - Makes global design changes impossible
 - Creates maintenance debt
@@ -831,37 +874,42 @@ npm install prosemirror-highlight lowlight
 
 **Symptom**: Navbar stays white in dark mode, or uses wrong background color  
 **Root Cause**: Using `rgba(var(--color-bg-base-rgb), 0.95)` or other non-existent CSS variables with fallback values  
-**Fix**: 
+**Fix**:
 
 ```css
 /* ❌ WRONG - Non-existent variable with hardcoded fallback */
 .docs-navbar {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: var(--color-bg-base);
-  border-bottom: 1px solid var(--color-border-base);
-  backdrop-filter: blur(8px);
-  background: rgba(var(--color-bg-base-rgb, 255, 255, 255), 0.95); /* ❌ Overrides above, always white */
+	position: sticky;
+	top: 0;
+	z-index: 100;
+	background: var(--color-bg-base);
+	border-bottom: 1px solid var(--color-border-base);
+	backdrop-filter: blur(8px);
+	background: rgba(
+		var(--color-bg-base-rgb, 255, 255, 255),
+		0.95
+	); /* ❌ Overrides above, always white */
 }
 
 /* ✅ CORRECT - Use semantic surface token */
 .docs-navbar {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: var(--color-bg-surface);
-  border-bottom: 1px solid var(--color-border-base);
+	position: sticky;
+	top: 0;
+	z-index: 100;
+	background: var(--color-bg-surface);
+	border-bottom: 1px solid var(--color-border-base);
 }
 ```
 
 **Why This Breaks**:
+
 1. `--color-bg-base-rgb` doesn't exist in design system
 2. Fallback `255, 255, 255` (white) always applies
 3. Second `background:` declaration overrides the first
 4. Dark mode never activates for this component
 
 **How to Fix**:
+
 1. Check `src/app.css` for available CSS variables (all start with `--color-`)
 2. Use `bg-surface` for elevated headers/navbars (provides contrast)
 3. Use `bg-base` for page backgrounds
@@ -869,6 +917,7 @@ npm install prosemirror-highlight lowlight
 5. Remove backdrop-filter/blur unless explicitly in design system
 
 **Available Background Tokens**:
+
 - `--color-bg-base`: Page background
 - `--color-bg-surface`: Card/surface background (slightly elevated)
 - `--color-bg-elevated`: Modal/popover background (most elevated)
@@ -876,28 +925,27 @@ npm install prosemirror-highlight lowlight
 - `--color-bg-hover-solid`: Hover state (solid, no transparency)
 
 **Pattern: Header/Navbar Backgrounds**:
+
 ```svelte
 <!-- Navbar (top-level navigation) -->
-<nav class="sticky top-0 z-10 bg-surface border-b border-base">
-  ...
-</nav>
+<nav class="sticky top-0 z-10 border-b border-base bg-surface">...</nav>
 
 <!-- Page Header (content header) -->
-<div class="sticky top-0 z-10 bg-surface border-b border-base px-inbox-header py-system-header">
-  ...
+<div class="sticky top-0 z-10 border-b border-base bg-surface px-inbox-header py-system-header">
+	...
 </div>
 
 <!-- Modal Header -->
-<div class="bg-elevated border-b border-base px-header py-header">
-  ...
-</div>
+<div class="border-b border-base bg-elevated px-header py-header">...</div>
 ```
 
-**Reference Implementation**: 
+**Reference Implementation**:
+
 - `src/lib/components/inbox/InboxHeader.svelte` (perfect example)
 - `src/lib/components/sidebar/SidebarHeader.svelte`
 
-**Why Critical**: 
+**Why Critical**:
+
 - Breaks dark mode entirely for the component
 - Users see jarring white flash in dark mode
 - Creates accessibility issues (poor contrast)
@@ -911,35 +959,34 @@ npm install prosemirror-highlight lowlight
 
 **Symptom**: Modal has huge whitespace, title looks like header not input, disconnected feel  
 **Root Cause**: Oversized typography (text-3xl), excessive min-heights (400px), large gaps  
-**Fix**: 
+**Fix**:
 
 ```svelte
 <!-- ❌ WRONG - Oversized title, massive void -->
-<input
-  placeholder="Untitled note..."
-  class="text-3xl font-bold mb-content-spacing"
-/>
+<input placeholder="Untitled note..." class="mb-content-spacing text-3xl font-bold" />
 <div class="min-h-[400px]">
-  <Editor />
+	<Editor />
 </div>
 
 <!-- ✅ CORRECT - Compact, input-sized, tight spacing -->
 <input
-  placeholder="Untitled note..."
-  class="text-xl font-semibold mb-3 focus:placeholder:text-surface-secondary transition-colors"
+	placeholder="Untitled note..."
+	class="focus:placeholder:text-surface-secondary mb-3 text-xl font-semibold transition-colors"
 />
 <div class="min-h-[120px]">
-  <Editor />
+	<Editor />
 </div>
 ```
 
 **Typography Scale**:
+
 - **Title input**: `text-xl` (20px) + `font-semibold` (600)
 - **Body editor**: `text-base` (16px) + `font-regular` (400)
 - **Gap**: `mb-3` (12px) between fields
 - **Min-height**: `120px` (grows with content)
 
 **Key Principles**:
+
 1. **Input-sized title** - Should feel like a form field, not a header
 2. **Compact spacing** - 12px gap keeps fields connected
 3. **Minimal heights** - Start small, grow organically
@@ -947,11 +994,13 @@ npm install prosemirror-highlight lowlight
 5. **Information density** - Prioritize content over chrome
 
 **Apply when**:
+
 - Creating modal forms for quick capture (notes, issues, tasks)
 - Building Linear/Notion-style focused input experiences
 - User needs to stay in flow, minimal friction
 
 **Anti-patterns**:
+
 - ❌ Title > 24px (feels like page header)
 - ❌ Gaps > 24px (fields feel disconnected)
 - ❌ Min-height > 200px (creates empty void)
@@ -971,12 +1020,12 @@ npm install prosemirror-highlight lowlight
 ```typescript
 // ❌ WRONG: Auto-focus on mount blocks global shortcuts
 onMount(() => {
-  titleElement?.focus(); // Blocks J/K navigation
+	titleElement?.focus(); // Blocks J/K navigation
 });
 
 // ✅ CORRECT: Default unfocused, Enter to activate edit mode
 type Props = {
-  autoFocus?: boolean; // Control focus behavior
+	autoFocus?: boolean; // Control focus behavior
 };
 
 let { autoFocus = false }: Props = $props();
@@ -985,93 +1034,100 @@ let editMode = $state(false);
 
 // Mount without auto-focus
 onMount(() => {
-  if (autoFocus) {
-    titleElement?.focus();
-  }
+	if (autoFocus) {
+		titleElement?.focus();
+	}
 });
 
 // Handle Enter key to activate edit mode
 $effect(() => {
-  if (!browser) return;
-  
-  function handleKeyDown(event: KeyboardEvent) {
-    if (editMode) return;
-    
-    // Check if any input is focused
-    const activeElement = document.activeElement;
-    const isInputFocused = activeElement?.tagName === 'INPUT' || 
-                          activeElement?.tagName === 'TEXTAREA' ||
-                          (activeElement instanceof HTMLElement && activeElement.isContentEditable);
-    
-    if (isInputFocused) return;
-    
-    // Enter activates edit mode
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      editMode = true;
-      setTimeout(() => editorRef?.focusTitle(), 0);
-    }
-  }
-  
-  window.addEventListener('keydown', handleKeyDown);
-  return () => window.removeEventListener('keydown', handleKeyDown);
+	if (!browser) return;
+
+	function handleKeyDown(event: KeyboardEvent) {
+		if (editMode) return;
+
+		// Check if any input is focused
+		const activeElement = document.activeElement;
+		const isInputFocused =
+			activeElement?.tagName === 'INPUT' ||
+			activeElement?.tagName === 'TEXTAREA' ||
+			(activeElement instanceof HTMLElement && activeElement.isContentEditable);
+
+		if (isInputFocused) return;
+
+		// Enter activates edit mode
+		if (event.key === 'Enter') {
+			event.preventDefault();
+			editMode = true;
+			setTimeout(() => editorRef?.focusTitle(), 0);
+		}
+	}
+
+	window.addEventListener('keydown', handleKeyDown);
+	return () => window.removeEventListener('keydown', handleKeyDown);
 });
 
 // Track when user leaves edit mode (ESC already handled by input blur)
 $effect(() => {
-  if (!browser || !editMode) return;
-  
-  function handleFocusOut() {
-    setTimeout(() => {
-      const activeElement = document.activeElement;
-      const isInputFocused = activeElement?.tagName === 'INPUT' || 
-                            activeElement?.tagName === 'TEXTAREA' ||
-                            (activeElement instanceof HTMLElement && activeElement.isContentEditable);
-      
-      if (!isInputFocused) {
-        editMode = false;
-      }
-    }, 100);
-  }
-  
-  document.addEventListener('focusout', handleFocusOut);
-  return () => document.removeEventListener('focusout', handleFocusOut);
+	if (!browser || !editMode) return;
+
+	function handleFocusOut() {
+		setTimeout(() => {
+			const activeElement = document.activeElement;
+			const isInputFocused =
+				activeElement?.tagName === 'INPUT' ||
+				activeElement?.tagName === 'TEXTAREA' ||
+				(activeElement instanceof HTMLElement && activeElement.isContentEditable);
+
+			if (!isInputFocused) {
+				editMode = false;
+			}
+		}, 100);
+	}
+
+	document.addEventListener('focusout', handleFocusOut);
+	return () => document.removeEventListener('focusout', handleFocusOut);
 });
 ```
 
 **Input Component Pattern** (expose focus method):
+
 ```typescript
 // In NoteEditor.svelte
 export function focusTitle() {
-  titleElement?.focus();
+	titleElement?.focus();
 }
 
 // Handle ESC to exit edit mode
 function handleTitleKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape') {
-    (e.target as HTMLInputElement).blur(); // ✅ Exit edit mode
-    e.preventDefault();
-  }
+	if (e.key === 'Escape') {
+		(e.target as HTMLInputElement).blur(); // ✅ Exit edit mode
+		e.preventDefault();
+	}
 }
 ```
 
 **Keyboard Flow**:
+
 1. **Navigation Mode** (default): J/K keys work, no input focused
 2. **Press Enter**: Activate edit mode, focus input field
 3. **Press ESC**: Exit edit mode, blur input, return to navigation
 4. **Tab out**: Auto-exit edit mode when focus leaves
 
-**Apply when**: 
+**Apply when**:
+
 - List/detail views with keyboard navigation (inbox, cards, items)
 - Global shortcuts conflict with input fields
 - Need explicit navigation vs edit modes
 
 **Anti-patterns**:
+
 - ❌ Auto-focusing inputs on item selection (blocks shortcuts)
 - ❌ No way to exit edit mode without mouse
 - ❌ ESC key doesn't blur inputs
 
 **Priority Order** (from INDEX.md):
+
 1. Dropdown/Combobox (highest priority)
 2. Input fields (when focused)
 3. Component shortcuts (J/K navigation)
@@ -1090,44 +1146,44 @@ function handleTitleKeydown(e: KeyboardEvent) {
 ```typescript
 // ❌ WRONG: ESC closes modal immediately
 function handleKeyDown(e: KeyboardEvent) {
-  if (e.key === 'Escape') {
-    closeModal();
-  }
+	if (e.key === 'Escape') {
+		closeModal();
+	}
 }
 
 // ✅ CORRECT: Hierarchical ESC - blur first, then close
 function handleKeyDown(e: KeyboardEvent) {
-  if (e.key === 'Escape') {
-    const activeElement = document.activeElement as HTMLElement;
-    
-    // Level 1: Close dropdown/combobox
-    if (tagComboboxOpen) {
-      return; // Let component handle it
-    }
-    
-    // Level 2: Blur input/editor
-    if (activeElement && isInputElement(activeElement)) {
-      e.preventDefault();
-      e.stopPropagation();
-      activeElement.blur();
-      
-      // Refocus modal container for shortcuts
-      setTimeout(() => modalContainerRef?.focus(), 0);
-      return;
-    }
-    
-    // Level 3: Close modal (nothing focused)
-    closeModal();
-  }
+	if (e.key === 'Escape') {
+		const activeElement = document.activeElement as HTMLElement;
+
+		// Level 1: Close dropdown/combobox
+		if (tagComboboxOpen) {
+			return; // Let component handle it
+		}
+
+		// Level 2: Blur input/editor
+		if (activeElement && isInputElement(activeElement)) {
+			e.preventDefault();
+			e.stopPropagation();
+			activeElement.blur();
+
+			// Refocus modal container for shortcuts
+			setTimeout(() => modalContainerRef?.focus(), 0);
+			return;
+		}
+
+		// Level 3: Close modal (nothing focused)
+		closeModal();
+	}
 }
 
 function isInputElement(el: HTMLElement): boolean {
-  return (
-    el.tagName === 'INPUT' ||
-    el.tagName === 'TEXTAREA' ||
-    el.isContentEditable ||
-    el.getAttribute('role') === 'textbox'
-  );
+	return (
+		el.tagName === 'INPUT' ||
+		el.tagName === 'TEXTAREA' ||
+		el.isContentEditable ||
+		el.getAttribute('role') === 'textbox'
+	);
 }
 ```
 
@@ -1136,14 +1192,14 @@ function isInputElement(el: HTMLElement): boolean {
 ```typescript
 // In input component (e.g., NoteEditor.svelte)
 function handleTitleKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape') {
-    (e.target as HTMLInputElement).blur();
-    e.preventDefault();
-    e.stopPropagation(); // ✅ Critical - prevent modal handler from firing
-    
-    // Notify parent to refocus modal container
-    onEscape?.();
-  }
+	if (e.key === 'Escape') {
+		(e.target as HTMLInputElement).blur();
+		e.preventDefault();
+		e.stopPropagation(); // ✅ Critical - prevent modal handler from firing
+
+		// Notify parent to refocus modal container
+		onEscape?.();
+	}
 }
 ```
 
@@ -1151,16 +1207,16 @@ function handleTitleKeydown(e: KeyboardEvent) {
 
 ```typescript
 // In prosemirror-setup.ts
-keys["Escape"] = (state, dispatch, view: EditorView) => {
-  if (view && view.dom) {
-    view.dom.blur();
-    // Notify parent to refocus
-    if (onEscape) {
-      setTimeout(() => onEscape(), 0);
-    }
-    return true; // ✅ Stops propagation in ProseMirror
-  }
-  return false;
+keys['Escape'] = (state, dispatch, view: EditorView) => {
+	if (view && view.dom) {
+		view.dom.blur();
+		// Notify parent to refocus
+		if (onEscape) {
+			setTimeout(() => onEscape(), 0);
+		}
+		return true; // ✅ Stops propagation in ProseMirror
+	}
+	return false;
 };
 ```
 
@@ -1169,10 +1225,10 @@ keys["Escape"] = (state, dispatch, view: EditorView) => {
 ```svelte
 <!-- QuickCreateModal.svelte -->
 <NoteEditorWithDetection
-  onEscape={() => {
-    // Refocus modal so keyboard shortcuts (T) work
-    setTimeout(() => modalContainerRef?.focus(), 0);
-  }}
+	onEscape={() => {
+		// Refocus modal so keyboard shortcuts (T) work
+		setTimeout(() => modalContainerRef?.focus(), 0);
+	}}
 />
 
 <!-- NoteEditorWithDetection.svelte -->
@@ -1186,38 +1242,43 @@ keys["Escape"] = (state, dispatch, view: EditorView) => {
 **Visual Feedback for Onboarding**:
 
 1. **Tooltip on first ESC press** (educate user):
+
    ```svelte
    {#if showEscHint && !hasSeenEscHint}
-     <div class="absolute top-4 right-4 bg-accent-primary text-white px-3 py-2 rounded-md shadow-lg">
-       Press <kbd>ESC</kbd> again to close
-     </div>
+   	<div
+   		class="absolute top-4 right-4 rounded-md bg-accent-primary px-3 py-2 text-white shadow-lg"
+   	>
+   		Press <kbd>ESC</kbd> again to close
+   	</div>
    {/if}
    ```
 
 2. **Visual focus indicator** (show what's active):
+
    ```css
    /* Input focused: show focus ring */
    input:focus-visible {
-     outline: 2px solid var(--accent-primary);
+   	outline: 2px solid var(--accent-primary);
    }
-   
+
    /* Modal focused (no input): subtle glow */
-   [role="dialog"]:focus-visible {
-     box-shadow: 0 0 0 3px var(--accent-primary-alpha);
+   [role='dialog']:focus-visible {
+   	box-shadow: 0 0 0 3px var(--accent-primary-alpha);
    }
    ```
 
 3. **Keyboard shortcut hints** (contextual help):
+
    ```svelte
    {#if !inputFocused}
-     <div class="absolute bottom-4 left-4 flex gap-2 text-xs text-tertiary">
-       <kbd>T</kbd> Tags
-       <kbd>ESC</kbd> Close
-     </div>
+   	<div class="absolute bottom-4 left-4 flex gap-2 text-xs text-tertiary">
+   		<kbd>T</kbd> Tags
+   		<kbd>ESC</kbd> Close
+   	</div>
    {:else}
-     <div class="absolute bottom-4 left-4 text-xs text-tertiary">
-       <kbd>ESC</kbd> Exit input
-     </div>
+   	<div class="absolute bottom-4 left-4 text-xs text-tertiary">
+   		<kbd>ESC</kbd> Exit input
+   	</div>
    {/if}
    ```
 
@@ -1227,6 +1288,7 @@ keys["Escape"] = (state, dispatch, view: EditorView) => {
    - Session 11+: Hide hints (power user mode)
 
 **User Flow**:
+
 ```
 C → Modal opens, title focused
 Type → User enters text
@@ -1238,18 +1300,21 @@ ESC #3 → Modal closes
 
 **Why**: Enables keyboard-first workflow - users can navigate between inputs and modal shortcuts without touching the mouse. Visual feedback helps users discover and learn the hierarchical behavior during onboarding.
 
-**Apply when**: 
+**Apply when**:
+
 - Modal with multiple inputs/editors
 - Modal has its own keyboard shortcuts (T, S, etc.)
 - Users need to switch between typing and navigation
 
 **Anti-patterns**:
+
 - ❌ ESC closes modal immediately (blocks shortcuts)
 - ❌ No visual feedback on what's focused
 - ❌ No hints for power users during onboarding
 - ❌ ESC handler doesn't stop propagation (modal sees event and closes)
 
 **Complementary Patterns**:
+
 - Store `hasSeenEscHint` in localStorage for progressive disclosure
 - Track shortcut usage for adaptive UI (hide hints for power users)
 - Use `setTimeout(0)` for refocus to avoid timing conflicts
@@ -1268,42 +1333,45 @@ ESC #3 → Modal closes
 ```typescript
 // vite.config.ts
 export default defineConfig({
-  plugins: [
-    tailwindcss(),
-    {
-      name: 'redirect-markdown',
-      configureServer(server) {
-        server.middlewares.use((req, res, next) => {
-          // Redirect .md URLs to clean URLs (for documentation system)
-          if (req.url?.endsWith('.md')) {
-            const cleanUrl = req.url.replace(/\.md$/, '');
-            res.writeHead(301, { Location: cleanUrl });
-            res.end();
-            return;
-          }
-          next();
-        });
-      }
-    },
-    sveltekit()
-  ],
-  // ... rest of config
+	plugins: [
+		tailwindcss(),
+		{
+			name: 'redirect-markdown',
+			configureServer(server) {
+				server.middlewares.use((req, res, next) => {
+					// Redirect .md URLs to clean URLs (for documentation system)
+					if (req.url?.endsWith('.md')) {
+						const cleanUrl = req.url.replace(/\.md$/, '');
+						res.writeHead(301, { Location: cleanUrl });
+						res.end();
+						return;
+					}
+					next();
+				});
+			}
+		},
+		sveltekit()
+	]
+	// ... rest of config
 });
 ```
 
 **Apply when**:
+
 - Documentation system serves markdown files dynamically
 - Raw markdown appears instead of rendered HTML
 - URLs with `.md` extension should redirect to clean URLs
 - Vite intercepts requests before SvelteKit hooks run
 
 **Why it works**:
+
 - Vite middleware runs before file serving
 - 301 redirect preserves hash fragments for anchor links
 - Browser automatically follows redirect to dynamic route
 - Dynamic route handler renders markdown to HTML with proper UTF-8 encoding
 
 **Correct Pattern**:
+
 1. Add Vite plugin with `configureServer` hook
 2. Intercept requests ending with `.md`
 3. Issue 301 redirect to URL without extension
@@ -1317,7 +1385,7 @@ export default defineConfig({
 
 **Symptom**: Typing `-` or `1.` doesn't create lists, stays as plain text  
 **Root Cause**: `prosemirror-schema-basic` doesn't include list nodes by default  
-**Fix**: 
+**Fix**:
 
 ```typescript
 // ❌ WRONG - Lists don't exist in basicSchema
@@ -1358,12 +1426,14 @@ keys["Shift-Tab"] = liftListItem(schema.nodes.list_item); // Outdent
 ```
 
 **Apply when**:
+
 - ProseMirror editor needs bullet or ordered lists
 - Input rules for `-` or `1.` don't trigger
 - List-related commands throw "undefined" errors
 - Documentation says "list elements defined in prosemirror-schema-list module"
 
 **Why it works**:
+
 - `addListNodes()` adds three nodes: `bullet_list`, `ordered_list`, `list_item`
 - Nodes follow standard HTML structure: `<ul><li><p>text</p></li></ul>`
 - `wrappingInputRule` converts paragraph to wrapped list structure
@@ -1371,6 +1441,7 @@ keys["Shift-Tab"] = liftListItem(schema.nodes.list_item); // Outdent
 - `liftListItem` enables Shift+Enter or double-Enter to exit
 
 **Correct Pattern**:
+
 1. Import `addListNodes` from `prosemirror-schema-list`
 2. Wrap `basicSchema.spec.nodes` with `addListNodes(nodes, "paragraph block*", "block")`
 3. Chain to your custom nodes with `.addToEnd()`
@@ -1420,12 +1491,14 @@ $effect(() => {
 ```
 
 **Apply when**:
+
 - Building premium UI components (TOC, modals, drawers)
 - Micro-interactions need organic feel (hover, focus, active states)
 - Sequential reveals enhance perceived performance
 - Design requires Apple/Linear-quality polish
 
 **Why it works**:
+
 - `spring()` creates physics-based motion (mass, stiffness, damping)
 - Transitions feel natural, not mechanical
 - Staggered delays create elegant cascades
@@ -1433,6 +1506,7 @@ $effect(() => {
 - Combines with CSS for best of both worlds
 
 **Premium Animation Stack**:
+
 1. **Spring physics**: `spring()` for organic scale/position changes
 2. **Transition directives**: `in:fly`, `out:fade` for enter/exit
 3. **Staggered timing**: `delay: i * 40ms` for sequential reveals
@@ -1440,6 +1514,7 @@ $effect(() => {
 5. **Elastic curves**: `cubic-bezier(0.34, 1.56, 0.64, 1)` for bounce
 
 **Configuration Guide**:
+
 - **Stiffness** (0.1-0.5): Lower = slower, bouncier
 - **Damping** (0.5-1.0): Lower = more oscillation
 - **Delay multiplier** (30-50ms): Faster for small lists, slower for impact
@@ -1457,41 +1532,40 @@ $effect(() => {
 ```typescript
 // ❌ WRONG: Reading state when it might be deactivated
 function insertEmoji(view: EditorView, emoji: string) {
-  const state = emojiPluginKey.getState(view.state);
-  if (!state?.active) return; // ❌ Fails! State already deactivated
-  const { from, to } = state;
-  view.dispatch(view.state.tr.insertText(emoji, from, to));
+	const state = emojiPluginKey.getState(view.state);
+	if (!state?.active) return; // ❌ Fails! State already deactivated
+	const { from, to } = state;
+	view.dispatch(view.state.tr.insertText(emoji, from, to));
 }
 
 // ✅ CORRECT: Capture positions while state is active
 let range = $state<{ from: number; to: number } | null>(null);
 
 function updateMenu() {
-  const state = emojiPluginKey.getState(editorView.state);
-  if (state?.active) {
-    range = { from: state.from, to: state.to }; // Store positions eagerly
-  } else {
-    range = null;
-  }
+	const state = emojiPluginKey.getState(editorView.state);
+	if (state?.active) {
+		range = { from: state.from, to: state.to }; // Store positions eagerly
+	} else {
+		range = null;
+	}
 }
 
 function insertEmoji(view: EditorView, emoji: string, from: number, to: number) {
-  // Accept positions as parameters (like insertMention pattern)
-  const tr = view.state.tr
-    .insertText(emoji, from, to)
-    .setMeta("deactivateEmoji", true);
-  view.dispatch(tr);
-  view.focus();
+	// Accept positions as parameters (like insertMention pattern)
+	const tr = view.state.tr.insertText(emoji, from, to).setMeta('deactivateEmoji', true);
+	view.dispatch(tr);
+	view.focus();
 }
 
 function selectEmoji(emoji: string) {
-  if (editorView && range) {
-    insertEmoji(editorView, emoji, range.from, range.to); // Use stored range
-  }
+	if (editorView && range) {
+		insertEmoji(editorView, emoji, range.from, range.to); // Use stored range
+	}
 }
 ```
 
 **Key Pattern**: **Capture state positions eagerly, use them lazily**
+
 1. ✅ Store `{ from, to }` positions when plugin state is active
 2. ✅ Pass positions as function parameters (not read from state)
 3. ✅ Match ProseMirror's `insertMention()` pattern (accepts range directly)
@@ -1500,13 +1574,14 @@ function selectEmoji(emoji: string) {
 **Why**: ProseMirror plugin state is reactive to document changes. Between capturing user input (Enter key) and executing the insertion, the state may deactivate (due to event propagation, focus changes, or plugin logic), causing reads to fail.
 
 **Plugin Integration**:
+
 ```typescript
 // Plugin must return true to prevent ProseMirror defaults
 props: {
   handleKeyDown(view: EditorView, event: KeyboardEvent) {
     const state = emojiPluginKey.getState(view.state);
     if (!state?.active) return false;
-    
+
     if (["ArrowUp", "ArrowDown", "Enter", "Escape"].includes(event.key)) {
       return true; // ✅ Prevent ProseMirror from handling these keys
     }
@@ -1515,7 +1590,8 @@ props: {
 }
 ```
 
-**Apply when**: 
+**Apply when**:
+
 - Building ProseMirror plugins with dropdown menus (emoji picker, mentions, slash commands)
 - Any plugin where user selection happens after state changes
 - Menu state must survive event propagation chain
@@ -1533,96 +1609,103 @@ props: {
 ```svelte
 // ❌ WRONG - Multiple redundant navigation systems
 <DocLayout>
-  <Sidebar><!-- 29 items --></Sidebar>
-  <TopNav><!-- 10 items --></TopNav>
-  <TOC />
-  <Content />
+	<Sidebar><!-- 29 items --></Sidebar>
+	<TopNav><!-- 10 items --></TopNav>
+	<TOC />
+	<Content />
 </DocLayout>
 
 // ✅ CORRECT - Single responsibility per navigation tier
 <DocLayout>
-  <TopNav><!-- 10 items: primary categories --></TopNav>
-  <Breadcrumbs />  <!-- Location context -->
-  <TOC />          <!-- On-page navigation -->
-  <Content />
+	<TopNav><!-- 10 items: primary categories --></TopNav>
+	<Breadcrumbs />
+	<!-- Location context -->
+	<TOC />
+	<!-- On-page navigation -->
+	<Content />
 </DocLayout>
 ```
 
 **Implementation**:
 
 1. **Breadcrumb Component** (auto-generated from URL):
+
 ```svelte
 <script lang="ts">
-  import { page } from '$app/stores';
-  
-  // Map URL segments to readable names
-  const segmentMap: Record<string, string> = {
-    'dev-docs': 'Documentation',
-    '2-areas': 'Core Areas',
-    'patterns': 'Patterns',
-    // ... more mappings
-  };
-  
-  const breadcrumbs = $derived.by(() => {
-    const segments = $page.url.pathname.split('/').filter(Boolean);
-    return segments.map((segment, index) => ({
-      href: '/' + segments.slice(0, index + 1).join('/'),
-      label: segmentMap[segment] || formatSegment(segment)
-    }));
-  });
+	import { page } from '$app/stores';
+
+	// Map URL segments to readable names
+	const segmentMap: Record<string, string> = {
+		'dev-docs': 'Documentation',
+		'2-areas': 'Core Areas',
+		patterns: 'Patterns'
+		// ... more mappings
+	};
+
+	const breadcrumbs = $derived.by(() => {
+		const segments = $page.url.pathname.split('/').filter(Boolean);
+		return segments.map((segment, index) => ({
+			href: '/' + segments.slice(0, index + 1).join('/'),
+			label: segmentMap[segment] || formatSegment(segment)
+		}));
+	});
 </script>
 
 <nav aria-label="Breadcrumb">
-  <ol>
-    <li><a href="/">🏠 Home</a></li>
-    {#each breadcrumbs as crumb, i}
-      <li>
-        <span aria-hidden="true">/</span>
-        {#if i === breadcrumbs.length - 1}
-          <span aria-current="page">{crumb.label}</span>
-        {:else}
-          <a href={crumb.href}>{crumb.label}</a>
-        {/if}
-      </li>
-    {/each}
-  </ol>
+	<ol>
+		<li><a href="/">🏠 Home</a></li>
+		{#each breadcrumbs as crumb, i}
+			<li>
+				<span aria-hidden="true">/</span>
+				{#if i === breadcrumbs.length - 1}
+					<span aria-current="page">{crumb.label}</span>
+				{:else}
+					<a href={crumb.href}>{crumb.label}</a>
+				{/if}
+			</li>
+		{/each}
+	</ol>
 </nav>
 ```
 
 2. **Layout Without Sidebar**:
+
 ```svelte
 <div class="docs-layout">
-  <TableOfContents {headings} /> <!-- Floats left: 2rem -->
-  
-  <main class="docs-content">
-    <div class="docs-content-inner">
-      <Breadcrumb /> <!-- Location context -->
-      <article>{@render children?.()}</article>
-    </div>
-  </main>
+	<TableOfContents {headings} />
+	<!-- Floats left: 2rem -->
+
+	<main class="docs-content">
+		<div class="docs-content-inner">
+			<Breadcrumb />
+			<!-- Location context -->
+			<article>{@render children?.()}</article>
+		</div>
+	</main>
 </div>
 
 <style>
-  .docs-layout {
-    display: flex;
-    min-height: 100vh;
-  }
-  
-  .docs-content {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    padding: 2rem var(--spacing-content-padding);
-  }
-  
-  .docs-content-inner {
-    width: 100%;
-    max-width: 900px;
-  }
+	.docs-layout {
+		display: flex;
+		min-height: 100vh;
+	}
+
+	.docs-content {
+		flex: 1;
+		display: flex;
+		justify-content: center;
+		padding: 2rem var(--spacing-content-padding);
+	}
+
+	.docs-content-inner {
+		width: 100%;
+		max-width: 900px;
+	}
 </style>
 ```
 
 3. **Navigation Hierarchy**:
+
 ```
 Top Nav (7 items)     → Primary categories (Documentation, Design, About)
   ↓
@@ -1633,20 +1716,23 @@ Breadcrumbs          → Current location context (Home > Design > Tokens)
 TOC (floating)       → On-page navigation (sections within doc)
 ```
 
-**Why**: 
+**Why**:
+
 - **Cognitive load**: 7 nav items < 29 sidebar items (Miller's Law)
 - **Clarity**: Each navigation tier has single responsibility
 - **Modern**: Follows Stripe/Vercel/Linear pattern
 - **Mobile-first**: One less thing to hide on mobile
 - **Accessible**: Breadcrumbs provide hierarchical context
 
-**Apply when**: 
+**Apply when**:
+
 - Documentation site with >20 pages
 - Multiple navigation systems created independently
 - Users report "can't find anything" or "too overwhelming"
 - Analytics show low engagement with sidebar
 
 **Implementation Details**:
+
 - Breadcrumbs: `font-size: 0.875rem`, staggered entrance (40ms delay per item)
 - TOC: Shifted from `left: 280px` (sidebar width) → `left: 2rem`
 - Removed: 260px of horizontal space, 29 sidebar items, redundant scrolling
@@ -1666,25 +1752,19 @@ TOC (floating)       → On-page navigation (sections within doc)
 ```svelte
 <!-- src/routes/+layout.svelte -->
 <script lang="ts">
-  import { onMount } from 'svelte';
+	import { onMount } from 'svelte';
 
-  // Load Toaster client-side only (SSR workaround)
-  let Toaster = $state<any>(null);
-  
-  onMount(async () => {
-    const module = await import('svelte-sonner');
-    Toaster = module.Toaster;
-  });
+	// Load Toaster client-side only (SSR workaround)
+	let Toaster = $state<any>(null);
+
+	onMount(async () => {
+		const module = await import('svelte-sonner');
+		Toaster = module.Toaster;
+	});
 </script>
 
 {#if Toaster}
-  <svelte:component 
-    this={Toaster}
-    position="top-right"
-    expand={false}
-    richColors
-    closeButton
-  />
+	<svelte:component this={Toaster} position="top-right" expand={false} richColors closeButton />
 {/if}
 ```
 
@@ -1713,21 +1793,22 @@ const toastId = toast.loading('Processing...', { id: 'process-toast' });
 
 // Promise (auto-updates based on state)
 toast.promise(saveData(), {
-  loading: 'Saving...',
-  success: 'Saved successfully!',
-  error: 'Failed to save'
+	loading: 'Saving...',
+	success: 'Saved successfully!',
+	error: 'Failed to save'
 });
 ```
 
 **Custom Durations**:
 
 ```typescript
-toast.success('Quick message', { duration: 2000 });   // 2s
-toast.error('Important error', { duration: 5000 });   // 5s (errors stay longer)
-toast.info('Read this', { duration: Infinity });      // Manual dismiss only
+toast.success('Quick message', { duration: 2000 }); // 2s
+toast.error('Important error', { duration: 5000 }); // 5s (errors stay longer)
+toast.info('Read this', { duration: Infinity }); // Manual dismiss only
 ```
 
 **Design Principles**:
+
 - ✅ **Accessible by default**: ARIA labels, keyboard dismissible (ESC)
 - ✅ **Consistent**: Uses `richColors` for semantic color coding (green=success, red=error)
 - ✅ **Non-blocking**: Positioned top-right, auto-dismisses
@@ -1736,16 +1817,17 @@ toast.info('Read this', { duration: Infinity });      // Manual dismiss only
 
 **When to Use**:
 
-| Feedback Type | Use Toast | Alternative |
-|---|---|---|
-| Success confirmation | ✅ Yes | - |
-| Error during async operation | ✅ Yes | Modal (if action required) |
-| Form validation error | ❌ No | Inline validation |
-| Loading >2s | ✅ Yes (with promise) | Progress bar |
-| Loading <2s | ❌ No | Optimistic UI |
-| Delete confirmation | ❌ No | Modal or inline confirm |
+| Feedback Type                | Use Toast             | Alternative                |
+| ---------------------------- | --------------------- | -------------------------- |
+| Success confirmation         | ✅ Yes                | -                          |
+| Error during async operation | ✅ Yes                | Modal (if action required) |
+| Form validation error        | ❌ No                 | Inline validation          |
+| Loading >2s                  | ✅ Yes (with promise) | Progress bar               |
+| Loading <2s                  | ❌ No                 | Optimistic UI              |
+| Delete confirmation          | ❌ No                 | Modal or inline confirm    |
 
 **Duration Guidelines**:
+
 - **Success**: 3s (default)
 - **Error**: 4s (slightly longer to read)
 - **Warning**: 3.5s
@@ -1753,11 +1835,13 @@ toast.info('Read this', { duration: Infinity });      // Manual dismiss only
 - **Loading**: Infinite (manual dismiss or promise resolution)
 
 **Styling**:
+
 - Uses `richColors` prop for semantic colors
 - Inherits from design tokens (no custom CSS needed)
 - Respects user's dark/light mode preference
 
 **Why This Library**:
+
 - ✅ Built for Svelte 5 (native runes)
 - ✅ Accessible (WCAG 2.1 AA)
 - ✅ Lightweight (~2KB)
@@ -1772,4 +1856,3 @@ toast.info('Read this', { duration: Infinity });      // Manual dismiss only
 **Pattern Count**: 25  
 **Last Updated**: 2025-11-10  
 **Design Token Reference**: `dev-docs/design-tokens.md`
-

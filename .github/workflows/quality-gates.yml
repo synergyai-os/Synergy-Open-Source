@@ -9,35 +9,35 @@ jobs:
   quality-checks:
     name: Quality Checks
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Type check
         run: npm run check
         continue-on-error: true # TODO: Set to false after fixing remaining 26 errors (SYOS-26)
-      
+
       - name: Lint
         run: npm run lint
         continue-on-error: false
-      
+
       - name: Build verification
         run: npm run build
         env:
           # Use a placeholder Convex URL for build verification
           VITE_CONVEX_URL: ${{ secrets.CONVEX_URL || 'https://placeholder.convex.cloud' }}
         continue-on-error: false
-      
+
       - name: Quality check summary
         if: always()
         run: |
@@ -54,23 +54,22 @@ jobs:
   # tests:
   #   name: Run Tests
   #   runs-on: ubuntu-latest
-  #   
+  #
   #   steps:
   #     - name: Checkout code
   #       uses: actions/checkout@v4
-  #     
+  #
   #     - name: Setup Node.js
   #       uses: actions/setup-node@v4
   #       with:
   #         node-version: '20'
   #         cache: 'npm'
-  #     
+  #
   #     - name: Install dependencies
   #       run: npm ci
-  #     
+  #
   #     - name: Run unit tests
   #       run: npm run test:unit
-  #     
+  #
   #     - name: Run E2E tests
   #       run: npm run test:e2e
-

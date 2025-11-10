@@ -6,89 +6,89 @@
 
 ## 🔴 CRITICAL Patterns (Fix Immediately)
 
-| Symptom | Solution | Details |
-|---------|----------|---------|
-| Auth fails, `op://...` strings in browser | Use actual values in .env.local for PUBLIC_ vars | [auth-deployment.md#L10](auth-deployment.md#L10) |
-| Logout doesn't work, cookies persist | Match exact attributes when deleting cookies | [auth-deployment.md#L160](auth-deployment.md#L160) |
-| Build fails: "Could not load [deleted-file]" | Check all imports before deleting files | [auth-deployment.md#L260](auth-deployment.md#L260) |
-| Auth works but users not in Convex DB | Deploy Convex functions to correct environment | [auth-deployment.md#L510](auth-deployment.md#L510) |
-| State not updating in UI | Use `$state({})` + getters | [svelte-reactivity.md#L10](svelte-reactivity.md#L10) |
-| `undefined is not a valid Convex value` | Strip undefined from payloads | [convex-integration.md#L10](convex-integration.md#L10) |
-| `Only actions can be defined in Node.js` | Separate "use node" files | [convex-integration.md#L50](convex-integration.md#L50) |
-| Composable receives stale values | Pass functions `() => value` | [svelte-reactivity.md#L80](svelte-reactivity.md#L80) |
-| Component shows stale/old data | Key on data, not ID | [svelte-reactivity.md#L140](svelte-reactivity.md#L140) |
-| `.ts` file: "Cannot assign to constant" | Rename to `.svelte.ts` | [svelte-reactivity.md#L180](svelte-reactivity.md#L180) |
-| 500 error with ProseMirror/Monaco | Guard with `{#if browser}` | [svelte-reactivity.md#L400](svelte-reactivity.md#L400) |
-| Event listeners don't fire (no errors) | Browser check inside $effect | [svelte-reactivity.md#L500](svelte-reactivity.md#L500) |
-| Build fails: ENOENT file not found | Remove phantom dependencies | [svelte-reactivity.md#L550](svelte-reactivity.md#L550) |
-| Server crashes on startup / 500 on all routes | Remove top-level await in config | [svelte-reactivity.md#L600](svelte-reactivity.md#L600) |
-| Page freezes, effect_update_depth_exceeded error | Use untrack() or plain vars in $effect | [svelte-reactivity.md#L700](svelte-reactivity.md#L700) |
-| Component has custom CSS/hardcoded values | Use design tokens (bg-surface, px-inbox-header) | [ui-patterns.md#L780](ui-patterns.md#L780) |
-| Navbar/header stays white in dark mode | Remove non-existent CSS vars (--color-bg-base-rgb) | [ui-patterns.md#L828](ui-patterns.md#L828) |
-| Scrollbar positioned at far right (outside padding) | Use scrollable-outer + scrollable-inner utilities | [component-architecture.md#L180](../component-architecture.md#L180) |
-| Raw markdown displayed instead of rendered HTML | Add Vite middleware to redirect .md URLs | [ui-patterns.md#L1100](ui-patterns.md#L1100) |
-| Vercel build: "Could not resolve _generated/dataModel" | Commit _generated to git, separate deployments | [convex-integration.md#L540](convex-integration.md#L540) |
-| Deployment fails: "Could not resolve _generated/dataModel" during bundling | Use import type for _generated imports | [convex-integration.md#L590](convex-integration.md#L590) |
-| Query returns empty, ArgumentValidationError for valid field | Git conflicts block deployment, stale code running | [convex-integration.md#L640](convex-integration.md#L640) |
+| Symptom                                                                     | Solution                                           | Details                                                             |
+| --------------------------------------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------- |
+| Auth fails, `op://...` strings in browser                                   | Use actual values in .env.local for PUBLIC\_ vars  | [auth-deployment.md#L10](auth-deployment.md#L10)                    |
+| Logout doesn't work, cookies persist                                        | Match exact attributes when deleting cookies       | [auth-deployment.md#L160](auth-deployment.md#L160)                  |
+| Build fails: "Could not load [deleted-file]"                                | Check all imports before deleting files            | [auth-deployment.md#L260](auth-deployment.md#L260)                  |
+| Auth works but users not in Convex DB                                       | Deploy Convex functions to correct environment     | [auth-deployment.md#L510](auth-deployment.md#L510)                  |
+| State not updating in UI                                                    | Use `$state({})` + getters                         | [svelte-reactivity.md#L10](svelte-reactivity.md#L10)                |
+| `undefined is not a valid Convex value`                                     | Strip undefined from payloads                      | [convex-integration.md#L10](convex-integration.md#L10)              |
+| `Only actions can be defined in Node.js`                                    | Separate "use node" files                          | [convex-integration.md#L50](convex-integration.md#L50)              |
+| Composable receives stale values                                            | Pass functions `() => value`                       | [svelte-reactivity.md#L80](svelte-reactivity.md#L80)                |
+| Component shows stale/old data                                              | Key on data, not ID                                | [svelte-reactivity.md#L140](svelte-reactivity.md#L140)              |
+| `.ts` file: "Cannot assign to constant"                                     | Rename to `.svelte.ts`                             | [svelte-reactivity.md#L180](svelte-reactivity.md#L180)              |
+| 500 error with ProseMirror/Monaco                                           | Guard with `{#if browser}`                         | [svelte-reactivity.md#L400](svelte-reactivity.md#L400)              |
+| Event listeners don't fire (no errors)                                      | Browser check inside $effect                       | [svelte-reactivity.md#L500](svelte-reactivity.md#L500)              |
+| Build fails: ENOENT file not found                                          | Remove phantom dependencies                        | [svelte-reactivity.md#L550](svelte-reactivity.md#L550)              |
+| Server crashes on startup / 500 on all routes                               | Remove top-level await in config                   | [svelte-reactivity.md#L600](svelte-reactivity.md#L600)              |
+| Page freezes, effect_update_depth_exceeded error                            | Use untrack() or plain vars in $effect             | [svelte-reactivity.md#L700](svelte-reactivity.md#L700)              |
+| Component has custom CSS/hardcoded values                                   | Use design tokens (bg-surface, px-inbox-header)    | [ui-patterns.md#L780](ui-patterns.md#L780)                          |
+| Navbar/header stays white in dark mode                                      | Remove non-existent CSS vars (--color-bg-base-rgb) | [ui-patterns.md#L828](ui-patterns.md#L828)                          |
+| Scrollbar positioned at far right (outside padding)                         | Use scrollable-outer + scrollable-inner utilities  | [component-architecture.md#L180](../component-architecture.md#L180) |
+| Raw markdown displayed instead of rendered HTML                             | Add Vite middleware to redirect .md URLs           | [ui-patterns.md#L1100](ui-patterns.md#L1100)                        |
+| Vercel build: "Could not resolve \_generated/dataModel"                     | Commit \_generated to git, separate deployments    | [convex-integration.md#L540](convex-integration.md#L540)            |
+| Deployment fails: "Could not resolve \_generated/dataModel" during bundling | Use import type for \_generated imports            | [convex-integration.md#L590](convex-integration.md#L590)            |
+| Query returns empty, ArgumentValidationError for valid field                | Git conflicts block deployment, stale code running | [convex-integration.md#L640](convex-integration.md#L640)            |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
-| Symptom | Solution | Details |
-|---------|----------|---------|
-| Production auth fails with "Invalid redirect URI" | Use separate staging/production credentials | [auth-deployment.md#L60](auth-deployment.md#L60) |
-| Auth works on myapp.com but fails on www.myapp.com | Add both www and non-www to redirect URIs | [auth-deployment.md#L110](auth-deployment.md#L110) |
-| User auto-logs back in after logout | Revoke session on auth provider | [auth-deployment.md#L210](auth-deployment.md#L210) |
-| Data doesn't update automatically | Use `useQuery()` not manual | [svelte-reactivity.md#L220](svelte-reactivity.md#L220) |
-| Widget disappears too early | Polling updates only, not completion | [svelte-reactivity.md#L280](svelte-reactivity.md#L280) |
-| Duplicate timers / early dismissal | Track timers with Set | [svelte-reactivity.md#L340](svelte-reactivity.md#L340) |
-| Component doesn't update on route change | Use $effect + $page.url.pathname | [svelte-reactivity.md#L650](svelte-reactivity.md#L650) |
-| Switch in dropdown broken | Use plain div wrapper | [ui-patterns.md#L10](ui-patterns.md#L10) |
-| Conflicting keyboard shortcuts | Check priority: dropdowns > inputs > component | [ui-patterns.md#L430](ui-patterns.md#L430) |
-| J/K navigation blocked by auto-focused input | Use autoFocus prop + Enter/ESC edit mode | [ui-patterns.md#L880](ui-patterns.md#L880) |
-| ProseMirror "$ prefix reserved" | Rename `$from` → `from` | [svelte-reactivity.md#L450](svelte-reactivity.md#L450) |
-| Code blocks show plain text, no syntax colors | Use prosemirror-highlight + lowlight | [ui-patterns.md#L760](ui-patterns.md#L760) |
-| Typing `-` or `1.` doesn't create lists | Use addListNodes() from prosemirror-schema-list | [ui-patterns.md#L1150](ui-patterns.md#L1150) |
-| ProseMirror menu doesn't insert selection | Capture range eagerly, pass as parameter | [ui-patterns.md#L1200](ui-patterns.md#L1200) |
-| Users logged out on browser close | Set cookieConfig.maxAge | [convex-integration.md#L100](convex-integration.md#L100) |
-| File not found in Convex | Use TypeScript imports | [convex-integration.md#L140](convex-integration.md#L140) |
-| `InvalidConfig`: hyphens in filename | Use camelCase names | [convex-integration.md#L140](convex-integration.md#L140) |
-| Redundant API paths (api.x.x) | File=noun, Function=verb | [convex-integration.md#L190](convex-integration.md#L190) |
-| `.toLocaleDateString is not a function` | Wrap Convex timestamps in new Date() | [convex-integration.md#L490](convex-integration.md#L490) |
-| Custom JWT auth fails, cyclic import errors | Convex requires OIDC, not raw JWT. Use userId parameter temporarily | [convex-integration.md#L680](convex-integration.md#L680) |
-| After git stash: "Not authenticated" runtime errors | Backend/frontend out of sync. Re-add userId parameters | [convex-integration.md#L690](convex-integration.md#L690) |
-| Analytics events missing in PostHog | Use server-side tracking | [analytics.md#L10](analytics.md#L10) |
+| Symptom                                             | Solution                                                            | Details                                                  |
+| --------------------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------- |
+| Production auth fails with "Invalid redirect URI"   | Use separate staging/production credentials                         | [auth-deployment.md#L60](auth-deployment.md#L60)         |
+| Auth works on myapp.com but fails on www.myapp.com  | Add both www and non-www to redirect URIs                           | [auth-deployment.md#L110](auth-deployment.md#L110)       |
+| User auto-logs back in after logout                 | Revoke session on auth provider                                     | [auth-deployment.md#L210](auth-deployment.md#L210)       |
+| Data doesn't update automatically                   | Use `useQuery()` not manual                                         | [svelte-reactivity.md#L220](svelte-reactivity.md#L220)   |
+| Widget disappears too early                         | Polling updates only, not completion                                | [svelte-reactivity.md#L280](svelte-reactivity.md#L280)   |
+| Duplicate timers / early dismissal                  | Track timers with Set                                               | [svelte-reactivity.md#L340](svelte-reactivity.md#L340)   |
+| Component doesn't update on route change            | Use $effect + $page.url.pathname                                    | [svelte-reactivity.md#L650](svelte-reactivity.md#L650)   |
+| Switch in dropdown broken                           | Use plain div wrapper                                               | [ui-patterns.md#L10](ui-patterns.md#L10)                 |
+| Conflicting keyboard shortcuts                      | Check priority: dropdowns > inputs > component                      | [ui-patterns.md#L430](ui-patterns.md#L430)               |
+| J/K navigation blocked by auto-focused input        | Use autoFocus prop + Enter/ESC edit mode                            | [ui-patterns.md#L880](ui-patterns.md#L880)               |
+| ProseMirror "$ prefix reserved"                     | Rename `$from` → `from`                                             | [svelte-reactivity.md#L450](svelte-reactivity.md#L450)   |
+| Code blocks show plain text, no syntax colors       | Use prosemirror-highlight + lowlight                                | [ui-patterns.md#L760](ui-patterns.md#L760)               |
+| Typing `-` or `1.` doesn't create lists             | Use addListNodes() from prosemirror-schema-list                     | [ui-patterns.md#L1150](ui-patterns.md#L1150)             |
+| ProseMirror menu doesn't insert selection           | Capture range eagerly, pass as parameter                            | [ui-patterns.md#L1200](ui-patterns.md#L1200)             |
+| Users logged out on browser close                   | Set cookieConfig.maxAge                                             | [convex-integration.md#L100](convex-integration.md#L100) |
+| File not found in Convex                            | Use TypeScript imports                                              | [convex-integration.md#L140](convex-integration.md#L140) |
+| `InvalidConfig`: hyphens in filename                | Use camelCase names                                                 | [convex-integration.md#L140](convex-integration.md#L140) |
+| Redundant API paths (api.x.x)                       | File=noun, Function=verb                                            | [convex-integration.md#L190](convex-integration.md#L190) |
+| `.toLocaleDateString is not a function`             | Wrap Convex timestamps in new Date()                                | [convex-integration.md#L490](convex-integration.md#L490) |
+| Custom JWT auth fails, cyclic import errors         | Convex requires OIDC, not raw JWT. Use userId parameter temporarily | [convex-integration.md#L680](convex-integration.md#L680) |
+| After git stash: "Not authenticated" runtime errors | Backend/frontend out of sync. Re-add userId parameters              | [convex-integration.md#L690](convex-integration.md#L690) |
+| Analytics events missing in PostHog                 | Use server-side tracking                                            | [analytics.md#L10](analytics.md#L10)                     |
 
 ## 🟢 REFERENCE Patterns (Best Practices)
 
-| Topic | Pattern | Details |
-|-------|---------|---------|
-| Card design | Use generous padding | [ui-patterns.md#L60](ui-patterns.md#L60) |
-| Header alignment | Fixed height with tokens | [ui-patterns.md#L120](ui-patterns.md#L120) |
-| Edit mode toggle | Separate view/edit states | [ui-patterns.md#L170](ui-patterns.md#L170) |
-| Card removal (Tinder-like) | Queue-based removal | [ui-patterns.md#L220](ui-patterns.md#L220) |
-| Visual feedback | Show overlay before action | [ui-patterns.md#L280](ui-patterns.md#L280) |
-| Toast notifications | svelte-sonner for user feedback | [ui-patterns.md#L1660](ui-patterns.md#L1660) |
-| Textarea auto-resize | Remove h-full, use field-sizing | [ui-patterns.md#L330](ui-patterns.md#L330) |
-| Command palette drama | Dark overlay + blur + animation | [ui-patterns.md#L480](ui-patterns.md#L480) |
-| Command input design | Icon + transparent + shortcuts | [ui-patterns.md#L530](ui-patterns.md#L530) |
-| N vs C keyboard shortcuts | N=new, C=command center | [ui-patterns.md#L580](ui-patterns.md#L580) |
-| Control panel system | Toolbar/popover/embedded controls | [ui-patterns.md#L620](ui-patterns.md#L620) |
-| Atomic components | Reusable KeyboardShortcut, FormInput | [ui-patterns.md#L680](ui-patterns.md#L680) |
-| ProseMirror integration | Rich text with AI detection | [ui-patterns.md#L730](ui-patterns.md#L730) |
-| Compact modal design | Linear-style tight spacing, input-sized fields | [ui-patterns.md#L830](ui-patterns.md#L830) |
-| Hierarchical ESC navigation | Blur input → refocus modal → close | [ui-patterns.md#L930](ui-patterns.md#L930) |
-| Premium animations | Spring physics + staggered transitions | [ui-patterns.md#L1150](ui-patterns.md#L1150) |
-| Navigation architecture | Remove sidebar, add breadcrumbs + hub pages | [ui-patterns.md#L1260](ui-patterns.md#L1260) |
-| Type safety for Convex | Use shared type definitions | [convex-integration.md#L240](convex-integration.md#L240) |
-| Discriminated unions | Type narrowing with discriminator | [convex-integration.md#L290](convex-integration.md#L290) |
-| Enum to database strings | Explicit conversion functions | [convex-integration.md#L340](convex-integration.md#L340) |
-| Event naming | snake_case + past tense | [analytics.md#L60](analytics.md#L60) |
-| Centralized config | Single config.ts file | [convex-integration.md#L390](convex-integration.md#L390) |
-| Reusable entity tagging | Helper + type-safe wrappers | [convex-integration.md#L440](convex-integration.md#L440) |
-| Lock dev server port | strictPort: true to prevent drift | [auth-deployment.md#L310](auth-deployment.md#L310) |
-| User identity | Dual ID system (userId + workosId) for provider flexibility | [auth-deployment.md#L360](auth-deployment.md#L360) |
-| Personal workspace | null = personal, clean queries | [auth-deployment.md#L410](auth-deployment.md#L410) |
-| Multi-account support | Account linking for Slack-style switching | [auth-deployment.md#L460](auth-deployment.md#L460) |
+| Topic                       | Pattern                                                     | Details                                                  |
+| --------------------------- | ----------------------------------------------------------- | -------------------------------------------------------- |
+| Card design                 | Use generous padding                                        | [ui-patterns.md#L60](ui-patterns.md#L60)                 |
+| Header alignment            | Fixed height with tokens                                    | [ui-patterns.md#L120](ui-patterns.md#L120)               |
+| Edit mode toggle            | Separate view/edit states                                   | [ui-patterns.md#L170](ui-patterns.md#L170)               |
+| Card removal (Tinder-like)  | Queue-based removal                                         | [ui-patterns.md#L220](ui-patterns.md#L220)               |
+| Visual feedback             | Show overlay before action                                  | [ui-patterns.md#L280](ui-patterns.md#L280)               |
+| Toast notifications         | svelte-sonner for user feedback                             | [ui-patterns.md#L1660](ui-patterns.md#L1660)             |
+| Textarea auto-resize        | Remove h-full, use field-sizing                             | [ui-patterns.md#L330](ui-patterns.md#L330)               |
+| Command palette drama       | Dark overlay + blur + animation                             | [ui-patterns.md#L480](ui-patterns.md#L480)               |
+| Command input design        | Icon + transparent + shortcuts                              | [ui-patterns.md#L530](ui-patterns.md#L530)               |
+| N vs C keyboard shortcuts   | N=new, C=command center                                     | [ui-patterns.md#L580](ui-patterns.md#L580)               |
+| Control panel system        | Toolbar/popover/embedded controls                           | [ui-patterns.md#L620](ui-patterns.md#L620)               |
+| Atomic components           | Reusable KeyboardShortcut, FormInput                        | [ui-patterns.md#L680](ui-patterns.md#L680)               |
+| ProseMirror integration     | Rich text with AI detection                                 | [ui-patterns.md#L730](ui-patterns.md#L730)               |
+| Compact modal design        | Linear-style tight spacing, input-sized fields              | [ui-patterns.md#L830](ui-patterns.md#L830)               |
+| Hierarchical ESC navigation | Blur input → refocus modal → close                          | [ui-patterns.md#L930](ui-patterns.md#L930)               |
+| Premium animations          | Spring physics + staggered transitions                      | [ui-patterns.md#L1150](ui-patterns.md#L1150)             |
+| Navigation architecture     | Remove sidebar, add breadcrumbs + hub pages                 | [ui-patterns.md#L1260](ui-patterns.md#L1260)             |
+| Type safety for Convex      | Use shared type definitions                                 | [convex-integration.md#L240](convex-integration.md#L240) |
+| Discriminated unions        | Type narrowing with discriminator                           | [convex-integration.md#L290](convex-integration.md#L290) |
+| Enum to database strings    | Explicit conversion functions                               | [convex-integration.md#L340](convex-integration.md#L340) |
+| Event naming                | snake_case + past tense                                     | [analytics.md#L60](analytics.md#L60)                     |
+| Centralized config          | Single config.ts file                                       | [convex-integration.md#L390](convex-integration.md#L390) |
+| Reusable entity tagging     | Helper + type-safe wrappers                                 | [convex-integration.md#L440](convex-integration.md#L440) |
+| Lock dev server port        | strictPort: true to prevent drift                           | [auth-deployment.md#L310](auth-deployment.md#L310)       |
+| User identity               | Dual ID system (userId + workosId) for provider flexibility | [auth-deployment.md#L360](auth-deployment.md#L360)       |
+| Personal workspace          | null = personal, clean queries                              | [auth-deployment.md#L410](auth-deployment.md#L410)       |
+| Multi-account support       | Account linking for Slack-style switching                   | [auth-deployment.md#L460](auth-deployment.md#L460)       |
 
 ---
 
@@ -125,12 +125,12 @@ When using `/save` command:
 
 ## Pattern Template (In Domain Files)
 
-```markdown
+````markdown
 ## #L[NUMBER]: [Pattern Name] [🔴/🟡/🟢 SEVERITY]
 
 **Symptom**: Brief one-line description  
 **Root Cause**: Why it happens  
-**Fix**: 
+**Fix**:
 
 ```[language]
 // ❌ WRONG
@@ -139,13 +139,16 @@ wrong code
 // ✅ CORRECT
 correct code
 ```
+````
 
 **Apply when**: When to use this pattern  
 **Related**: #L[OTHER] (Description)
+
 ```
 
 ---
 
-**Last Updated**: 2025-11-10  
-**Pattern Count**: 60  
+**Last Updated**: 2025-11-10
+**Pattern Count**: 60
 **Format Version**: 2.0
+```

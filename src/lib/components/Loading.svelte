@@ -1,10 +1,10 @@
 <script lang="ts">
 	/**
 	 * Loading Component
-	 * 
+	 *
 	 * Unified loading state component that uses design tokens.
 	 * Use this component throughout the app for consistent loading states.
-	 * 
+	 *
 	 * Props:
 	 * - message: Optional custom loading message (default: "Loading...")
 	 * - size: Spinner size - 'sm' | 'md' | 'lg' (default: 'md')
@@ -20,11 +20,15 @@
 </script>
 
 {#if fullHeight}
-	<div class="flex items-center justify-center h-full w-full">
+	<div class="flex h-full w-full items-center justify-center">
 		<div class="flex flex-col items-center gap-icon">
 			<!-- Loading Spinner -->
 			<svg
-				class="animate-spin text-accent-primary {size === 'sm' ? 'w-4 h-4' : size === 'lg' ? 'w-12 h-12' : 'w-8 h-8'}"
+				class="animate-spin text-accent-primary {size === 'sm'
+					? 'h-4 w-4'
+					: size === 'lg'
+						? 'h-12 w-12'
+						: 'h-8 w-8'}"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -46,7 +50,11 @@
 	<div class="flex flex-col items-center gap-icon py-readable-quote">
 		<!-- Loading Spinner -->
 		<svg
-			class="animate-spin text-accent-primary {size === 'sm' ? 'w-4 h-4' : size === 'lg' ? 'w-12 h-12' : 'w-8 h-8'}"
+			class="animate-spin text-accent-primary {size === 'sm'
+				? 'h-4 w-4'
+				: size === 'lg'
+					? 'h-12 w-12'
+					: 'h-8 w-8'}"
 			fill="none"
 			stroke="currentColor"
 			viewBox="0 0 24 24"
@@ -64,4 +72,3 @@
 		{/if}
 	</div>
 {/if}
-

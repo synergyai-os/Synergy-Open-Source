@@ -38,11 +38,11 @@
 
 	let showAIDetector = $state(false);
 	let detectorPosition = $state<{ x: number; y: number } | undefined>(undefined);
-	let editorRef: any;
+	let editorRef: any = $state(null);
 
 	function handlePaste(text: string, view: any) {
 		if (!browser) return;
-		
+
 		// Only show detector if enabled and text is substantial
 		if (!enableAIDetection || text.length < 100 || isAIGenerated) {
 			return;
@@ -101,9 +101,10 @@
 		/>
 	{:else}
 		<!-- SSR placeholder -->
-		<div class="w-full h-full min-h-[200px] rounded-input border border-base bg-input px-input-x py-input-y text-tertiary">
+		<div
+			class="h-full min-h-[200px] w-full rounded-input border border-base bg-input px-input-x py-input-y text-tertiary"
+		>
 			{placeholder}
 		</div>
 	{/if}
 </div>
-

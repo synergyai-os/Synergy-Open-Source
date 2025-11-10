@@ -1,6 +1,6 @@
 /**
  * Atomic UI Components - Linear Style
- * 
+ *
  * Reusable, composable UI elements following pattern: ui-patterns.md#L680
  * All components are UI-only with stubbed functionality for independent development
  */
@@ -17,4 +17,3 @@ export { default as MetadataBar } from './MetadataBar.svelte';
 export { default as AttachmentButton } from './AttachmentButton.svelte';
 export { default as ToggleSwitch } from './ToggleSwitch.svelte';
 export { default as ContextSelector } from './ContextSelector.svelte';
-

@@ -1,22 +1,22 @@
 <script lang="ts">
 	/**
 	 * Toggle Switch Component (Linear-style)
-	 * 
+	 *
 	 * Atomic component for on/off switches
 	 * Follows pattern: ui-patterns.md#L680 (Atomic Design)
 	 */
-	
+
 	type Props = {
 		checked: boolean;
 		onChange?: (checked: boolean) => void;
 		label?: string;
 		disabled?: boolean;
 	};
-	
+
 	let { checked = false, onChange, label, disabled = false }: Props = $props();
 </script>
 
-<label class="inline-flex items-center gap-2 cursor-pointer">
+<label class="inline-flex cursor-pointer items-center gap-2">
 	{#if label}
 		<span class="text-sm text-secondary">{label}</span>
 	{/if}
@@ -28,7 +28,7 @@
 		{disabled}
 		class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors {checked
 			? 'bg-accent-primary'
-			: 'bg-base'} {disabled ? 'opacity-50 cursor-not-allowed' : ''}"
+			: 'bg-base'} {disabled ? 'cursor-not-allowed opacity-50' : ''}"
 		onclick={() => !disabled && onChange?.(!checked)}
 	>
 		<span
@@ -38,4 +38,3 @@
 		></span>
 	</button>
 </label>
-

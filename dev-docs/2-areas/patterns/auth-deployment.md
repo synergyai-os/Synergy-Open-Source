@@ -4,7 +4,7 @@
 
 ---
 
-## #L10: PUBLIC_ Environment Variables Need Actual Values [🔴 CRITICAL]
+## #L10: PUBLIC\_ Environment Variables Need Actual Values [🔴 CRITICAL]
 
 **Symptom**: Build succeeds but runtime shows placeholder strings in client-side code, auth fails with "Invalid client ID"  
 **Root Cause**: Vite bakes `PUBLIC_*` variables into client-side JavaScript at build time. They need actual values, not references or placeholders.  
@@ -29,7 +29,8 @@ WORKOS_COOKIE_PASSWORD=your_32_char_random_string
 
 **Why**: `PUBLIC_*` variables are replaced at build time by Vite's string replacement. The `.env.local` file is read during build and provides the actual values. It's automatically ignored by git (via `.gitignore`).
 
-**Apply when**: 
+**Apply when**:
+
 - Using any `PUBLIC_*` environment variables
 - Setting up new projects with secrets management
 - Deploying to Vercel/production (use Vercel Environment Variables UI for actual values)
@@ -63,6 +64,7 @@ WORKOS_REDIRECT_URI=https://myapp.com/auth/callback
 ```
 
 **WorkOS Dashboard Setup**:
+
 - **Staging Environment**: Configure `http://127.0.0.1:5173/auth/callback`
 - **Production Environment**: Configure `https://myapp.com/auth/callback`
 - Each environment has different Client ID and API Key
@@ -70,11 +72,12 @@ WORKOS_REDIRECT_URI=https://myapp.com/auth/callback
 **Why**: Auth providers like WorkOS maintain separate environments with different credentials and allowed redirect URIs. Mixing them causes security errors.
 
 **Apply when**:
+
 - Setting up authentication
 - Deploying to production
 - Configuring CI/CD pipelines
 
-**Related**: #L10 (PUBLIC_ environment variables), #L110 (Redirect URI matching)
+**Related**: #L10 (PUBLIC\_ environment variables), #L110 (Redirect URI matching)
 
 ---
 
@@ -94,6 +97,7 @@ https://www.myapp.com/auth/callback    ✅
 ```
 
 **Debug Steps**:
+
 1. Open DevTools → Network tab
 2. Click login button
 3. Find redirect to auth provider (e.g., `api.workos.com`)
@@ -103,6 +107,7 @@ https://www.myapp.com/auth/callback    ✅
 **Why**: Auth providers validate redirect URIs exactly. Even `www.` vs non-`www.` is a different origin.
 
 **Apply when**:
+
 - Setting up OAuth/OIDC authentication
 - Domain configuration changes
 - Getting "Invalid redirect URI" errors
@@ -121,33 +126,34 @@ https://www.myapp.com/auth/callback    ✅
 // ❌ WRONG: Mismatched attributes
 // Setting cookie
 cookies.set('session', token, {
-  path: '/',
-  httpOnly: true,
-  secure: true,
-  sameSite: 'lax'
+	path: '/',
+	httpOnly: true,
+	secure: true,
+	sameSite: 'lax'
 });
 
 // Deleting cookie (missing attributes!)
-cookies.delete('session', { path: '/' });  // ❌ Doesn't delete! Attributes don't match
+cookies.delete('session', { path: '/' }); // ❌ Doesn't delete! Attributes don't match
 
 // ✅ CORRECT: Exact same attributes
 const cookieOptions = {
-  path: '/',
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax' as const
+	path: '/',
+	httpOnly: true,
+	secure: process.env.NODE_ENV === 'production',
+	sameSite: 'lax' as const
 };
 
 // Setting
 cookies.set('session', token, cookieOptions);
 
 // Deleting (reuse same options)
-cookies.delete('session', cookieOptions);  // ✅ Deletes successfully
+cookies.delete('session', cookieOptions); // ✅ Deletes successfully
 ```
 
 **Why**: Browsers use all cookie attributes (path, domain, httpOnly, secure, sameSite) as part of the cookie's identity. Mismatched attributes mean you're trying to delete a different cookie.
 
 **Apply when**:
+
 - Implementing logout functionality
 - Managing session cookies
 - Debugging "sticky" cookies
@@ -165,38 +171,39 @@ cookies.delete('session', cookieOptions);  // ✅ Deletes successfully
 ```typescript
 // ❌ WRONG: Only clear local cookies
 export const GET: RequestHandler = async ({ cookies }) => {
-  cookies.delete('wos-session', cookieOptions);
-  cookies.delete('wos-user', cookieOptions);
-  throw redirect(302, '/');  // ❌ WorkOS session still active!
+	cookies.delete('wos-session', cookieOptions);
+	cookies.delete('wos-user', cookieOptions);
+	throw redirect(302, '/'); // ❌ WorkOS session still active!
 };
 
 // ✅ CORRECT: Clear local + revoke provider session
 export const GET: RequestHandler = async ({ cookies, url }) => {
-  const sessionToken = cookies.get('wos-session');
-  
-  // Clear local cookies
-  cookies.delete('wos-session', cookieOptions);
-  cookies.delete('wos-user', cookieOptions);
-  
-  // Revoke session on WorkOS
-  if (sessionToken) {
-    const payload = JSON.parse(Buffer.from(sessionToken.split('.')[1], 'base64').toString());
-    const sessionId = payload.sid;
-    
-    const workosLogoutUrl = new URL('https://api.workos.com/user_management/sessions/logout');
-    workosLogoutUrl.searchParams.set('session_id', sessionId);
-    workosLogoutUrl.searchParams.set('return_to', `${url.origin}/`);
-    
-    throw redirect(302, workosLogoutUrl.toString());  // ✅ Ends WorkOS session
-  }
-  
-  throw redirect(302, '/');
+	const sessionToken = cookies.get('wos-session');
+
+	// Clear local cookies
+	cookies.delete('wos-session', cookieOptions);
+	cookies.delete('wos-user', cookieOptions);
+
+	// Revoke session on WorkOS
+	if (sessionToken) {
+		const payload = JSON.parse(Buffer.from(sessionToken.split('.')[1], 'base64').toString());
+		const sessionId = payload.sid;
+
+		const workosLogoutUrl = new URL('https://api.workos.com/user_management/sessions/logout');
+		workosLogoutUrl.searchParams.set('session_id', sessionId);
+		workosLogoutUrl.searchParams.set('return_to', `${url.origin}/`);
+
+		throw redirect(302, workosLogoutUrl.toString()); // ✅ Ends WorkOS session
+	}
+
+	throw redirect(302, '/');
 };
 ```
 
 **Why**: OAuth/OIDC providers maintain their own sessions. Clearing local cookies only removes local state - the provider's session remains active and will auto-login on next attempt.
 
 **Apply when**:
+
 - Implementing logout with OAuth/OIDC
 - Using WorkOS, Auth0, Clerk, or similar
 - Need true "sign out" (not just local clear)
@@ -232,6 +239,7 @@ npm run build
 ```
 
 **Automated Check**:
+
 ```bash
 # Add to pre-commit hook or CI
 # Check for unresolved imports
@@ -245,11 +253,13 @@ fi
 **Why**: TypeScript/ESLint may not catch all import errors during development (especially in rarely-visited routes). Production builds fail loudly.
 
 **Apply when**:
+
 - Deleting shared utilities or server files
 - Refactoring authentication/auth files
 - Removing deprecated modules
 
 **Common Missed Imports**:
+
 - Server routes (`+page.server.ts`, `+server.ts`)
 - Rarely-visited routes (admin, docs, etc.)
 - Dynamic routes with parameters
@@ -268,20 +278,21 @@ fi
 ```typescript
 // vite.config.ts
 export default defineConfig({
-  server: {
-    host: '127.0.0.1',  // Use 127.0.0.1 not localhost (WorkOS compatibility)
-    port: 5173,
-    strictPort: true,   // ✅ Fail if port busy (forces cleanup)
-    fs: {
-      allow: ['..']
-    }
-  }
+	server: {
+		host: '127.0.0.1', // Use 127.0.0.1 not localhost (WorkOS compatibility)
+		port: 5173,
+		strictPort: true, // ✅ Fail if port busy (forces cleanup)
+		fs: {
+			allow: ['..']
+		}
+	}
 });
 ```
 
 **Why**: Auth providers require exact redirect URIs. If your app runs on `http://127.0.0.1:5175` but you configured `http://127.0.0.1:5173/auth/callback`, auth fails.
 
 **Apply when**:
+
 - Setting up OAuth/OIDC development
 - Multiple dev servers on same machine
 - Consistent local testing
@@ -299,35 +310,35 @@ export default defineConfig({
 ```typescript
 // ❌ WRONG: Use provider ID everywhere
 users: defineTable({
-  workosId: v.string(),  // Primary identity
-  email: v.string(),
-})
+	workosId: v.string(), // Primary identity
+	email: v.string()
+});
 
 inboxItems: defineTable({
-  userId: v.string(),  // ❌ workosId string - locked to WorkOS
-})
+	userId: v.string() // ❌ workosId string - locked to WorkOS
+});
 
 // ✅ CORRECT: Dual identity system
 users: defineTable({
-  // Convex ID = permanent identity (all relationships use this)
-  _id: "user_123abc",  // ← Use this for all relationships
-  
-  // Auth provider ID = authentication only
-  workosId: v.string(),  // Current: WorkOS
-  // Future: Add more providers
-  // clerkId: v.optional(v.string()),
-  // auth0Id: v.optional(v.string()),
-  
-  email: v.string(),
-})
-  .index("by_workos_id", ["workosId"])  // Fast login lookup
+	// Convex ID = permanent identity (all relationships use this)
+	_id: 'user_123abc', // ← Use this for all relationships
+
+	// Auth provider ID = authentication only
+	workosId: v.string(), // Current: WorkOS
+	// Future: Add more providers
+	// clerkId: v.optional(v.string()),
+	// auth0Id: v.optional(v.string()),
+
+	email: v.string()
+}).index('by_workos_id', ['workosId']); // Fast login lookup
 
 inboxItems: defineTable({
-  userId: v.id("users"),  // ✅ References Convex _id (permanent)
-})
+	userId: v.id('users') // ✅ References Convex _id (permanent)
+});
 ```
 
 **Migration Path**:
+
 ```typescript
 // Switching from WorkOS to Clerk
 1. Add clerkId field to users table
@@ -340,6 +351,7 @@ inboxItems: defineTable({
 **Why**: Auth providers come and go. Your user's identity should be permanent and provider-independent. The Convex `_id` never changes, while provider IDs are just authentication credentials.
 
 **Apply when**:
+
 - Designing auth system from scratch
 - Planning for multi-auth provider support
 - Long-term product strategy (5+ years)
@@ -357,44 +369,44 @@ inboxItems: defineTable({
 ```typescript
 // ❌ WRONG: Create fake organization for personal content
 // Forces complex queries and unnecessary records
-const personalOrg = await ctx.db.insert("organizations", {
-  name: "Personal",
-  slug: "personal",
-  userId: userId,  // One per user!
+const personalOrg = await ctx.db.insert('organizations', {
+	name: 'Personal',
+	slug: 'personal',
+	userId: userId // One per user!
 });
 
-inboxItems.organizationId = personalOrg;  // ❌ Messy
+inboxItems.organizationId = personalOrg; // ❌ Messy
 
 // ✅ CORRECT: null = personal content
 inboxItems: defineTable({
-  userId: v.id("users"),
-  organizationId: v.optional(v.id("organizations")),  // null = personal ✅
-  teamId: v.optional(v.id("teams")),
-  ownershipType: v.optional(
-    v.union(
-      v.literal("user"),         // User owns (personal)
-      v.literal("organization"), // Org owns
-      v.literal("team"),         // Team owns
-    )
-  ),
+	userId: v.id('users'),
+	organizationId: v.optional(v.id('organizations')), // null = personal ✅
+	teamId: v.optional(v.id('teams')),
+	ownershipType: v.optional(
+		v.union(
+			v.literal('user'), // User owns (personal)
+			v.literal('organization'), // Org owns
+			v.literal('team') // Team owns
+		)
+	)
 })
-  .index("by_user", ["userId"])
-  .index("by_organization", ["organizationId"])
-  .index("by_team", ["teamId"])
+	.index('by_user', ['userId'])
+	.index('by_organization', ['organizationId'])
+	.index('by_team', ['teamId']);
 
 // Clean queries
 // Get personal content
 const personal = await ctx.db
-  .query("inboxItems")
-  .withIndex("by_user", q => q.eq("userId", userId))
-  .filter(q => q.eq(q.field("organizationId"), null))  // ✅ Clear!
-  .collect();
+	.query('inboxItems')
+	.withIndex('by_user', (q) => q.eq('userId', userId))
+	.filter((q) => q.eq(q.field('organizationId'), null)) // ✅ Clear!
+	.collect();
 
 // Get team content
 const teamContent = await ctx.db
-  .query("inboxItems")
-  .withIndex("by_team", q => q.eq("teamId", teamId))
-  .collect();
+	.query('inboxItems')
+	.withIndex('by_team', (q) => q.eq('teamId', teamId))
+	.collect();
 ```
 
 **Content Ownership Rules**:
@@ -407,6 +419,7 @@ const teamContent = await ctx.db
 **Why**: `null` is semantically correct for "no organization" and keeps queries simple. Creating fake organizations pollutes the data model and complicates permission checks.
 
 **Apply when**:
+
 - Designing multi-tenancy from scratch
 - Supporting both personal and organization content
 - Need clean "my stuff" vs "team stuff" queries
@@ -459,6 +472,7 @@ accountLinks: defineTable({
 ```
 
 **Linking Flow**:
+
 1. User logged in with account A
 2. User tries to login with account B
 3. System detects existing session
@@ -467,6 +481,7 @@ accountLinks: defineTable({
 6. Both accounts show in switcher
 
 **Switching**:
+
 - Update `activeAccountId` in session cookie
 - No new WorkOS authentication needed
 - Instant context switch
@@ -474,6 +489,7 @@ accountLinks: defineTable({
 **Why**: Users often have multiple work identities (personal email, work email, contractor email). Account linking enables seamless switching like Slack, without logging out.
 
 **Apply when**:
+
 - Building B2B products (users have work + personal)
 - Supporting contractors with multiple clients
 - Users request "switch accounts" feature
@@ -510,6 +526,7 @@ CONVEX_DEPLOY_KEY=dev:blissful-lynx-970|...
 ```
 
 **How to verify:**
+
 ```bash
 # Check which deployment it's using
 npx convex deploy --yes
@@ -524,22 +541,25 @@ CONVEX_DEPLOY_KEY="prod:..." npx convex run users:syncUserFromWorkOS '{"workosId
 ```
 
 **Why**: Vercel deploys your SvelteKit app automatically (from GitHub), but **Convex functions must be manually deployed**. They're separate systems:
+
 - **SvelteKit (Vercel)**: Auto-deploys on git push
 - **Convex (Convex Dashboard)**: Manual `npx convex deploy` required
 
 **Common mistakes:**
+
 - Deploying Convex to DEV but running app in PROD
 - Using wrong `CONVEX_DEPLOY_KEY` from `.env`
 - Forgetting to deploy Convex after schema changes
 - `.env` has multiple keys, grep grabs wrong one
 
 **Apply when**:
+
 - Setting up new auth system
 - Any Convex schema changes
 - Adding new Convex functions
 - Production deployment
 
-**Related**: #L10 (PUBLIC_ environment variables), #L60 (Staging vs Production)
+**Related**: #L10 (PUBLIC\_ environment variables), #L60 (Staging vs Production)
 
 ---
 
@@ -547,4 +567,3 @@ CONVEX_DEPLOY_KEY="prod:..." npx convex run users:syncUserFromWorkOS '{"workosId
 **Pattern Count**: 11  
 **Validated**: WorkOS AuthKit, SvelteKit, Vite, Convex  
 **Format Version**: 2.0
-

@@ -23,12 +23,14 @@
 ### Why the Change?
 
 **Old format (3,224 lines)**:
+
 - ❌ AI must scan entire file for each lookup
 - ❌ High maintenance overhead (4+ updates per pattern)
 - ❌ Slow grep/search due to size
 - ❌ Mixed criticality (critical + nice-to-have)
 
 **New format (tiered)**:
+
 - ✅ AI loads only INDEX.md (200 lines) → jumps to line number
 - ✅ 80% smaller context per lookup
 - ✅ Severity-based prioritization (🔴 Critical, 🟡 Important, 🟢 Reference)
@@ -38,12 +40,14 @@
 ### Migration Status
 
 **✅ Migrated** (30 patterns compressed to 29):
+
 - All critical Svelte 5 patterns (8 patterns)
 - All Convex integration patterns (9 patterns)
 - Essential UI/UX patterns (8 patterns)
 - PostHog analytics patterns (4 patterns)
 
 **Legacy patterns** (if needed, extract from this file below):
+
 - Centralized Configuration (now at convex-integration.md#L390)
 - Persistent Session Config (now at convex-integration.md#L100)
 - Activity Tracker patterns (duplicated in svelte-reactivity.md)
@@ -75,6 +79,7 @@
 ## Pattern Format Comparison
 
 ### Old Format (Verbose)
+
 ```markdown
 ## Pattern Name
 
@@ -83,30 +88,36 @@
 **Issue**: Description
 
 ### Problem
+
 - Bullet 1
 - Bullet 2
 
 ### Root Cause
+
 1. Reason 1
 2. Reason 2
 
 ### Solution
+
 ... (lots of text)
 
 ### Implementation Example
+
 ... (full code)
 
 ### Key Takeaway
+
 ... (more text)
 ```
 
 ### New Format (Compressed)
-```markdown
+
+````markdown
 ## #L10: Pattern Name [🔴 CRITICAL]
 
 **Symptom**: One-line description  
 **Root Cause**: One-line cause  
-**Fix**: 
+**Fix**:
 
 ```[language]
 // ❌ WRONG
@@ -115,9 +126,11 @@ wrong code
 // ✅ CORRECT
 correct code
 ```
+````
 
 **Apply when**: When to use  
 **Related**: #L50 (Other pattern)
+
 ```
 
 **Result**: 70% size reduction, 10x faster lookup.
@@ -136,3 +149,4 @@ The original 3,224-line file is preserved below for reference. However, **all cr
 
 <!-- Include the rest of the original patterns-and-lessons.md below if needed -->
 
+```

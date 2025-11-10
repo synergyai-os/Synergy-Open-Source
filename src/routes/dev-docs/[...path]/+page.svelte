@@ -2,22 +2,22 @@
 	import type { PageData } from './$types';
 	import { marked } from 'marked';
 	import { browser } from '$app/environment';
-	
+
 	let { data }: { data: PageData } = $props();
-	
+
 	// Function to generate heading with ID
 	function parseMarkdownWithIds(markdown: string): string {
 		// Configure marked renderer to add IDs
 		const renderer = new marked.Renderer();
-		
+
 		// Custom heading renderer with line-number-aware IDs
-		renderer.heading = function({ text, depth }: any) {
+		renderer.heading = function ({ text, depth }: any) {
 			// Extract plain text from token
 			const plainText = typeof text === 'string' ? text : text.raw || '';
-			
+
 			// Check if heading starts with #L[NUMBER]: pattern (line-numbered sections)
 			const lineNumberMatch = plainText.match(/^#L(\d+):/);
-			
+
 			let id: string;
 			if (lineNumberMatch) {
 				// Use simple line number as ID (e.g., #L10: Title → id="l10")
@@ -31,42 +31,42 @@
 					.replace(/-+/g, '-') // Replace multiple hyphens with single
 					.trim();
 			}
-			
+
 			return `<h${depth} id="${id}">${plainText}</h${depth}>`;
 		};
-		
+
 		// Custom link renderer to transform .md links to proper routes
-		renderer.link = function({ href, text, title }: any) {
+		renderer.link = function ({ href, text, title }: any) {
 			// Only transform relative .md links (internal docs)
 			if (href && !href.startsWith('http') && !href.startsWith('/')) {
 				// Handle .md file links
 				if (href.includes('.md')) {
 					// Extract path and hash
 					const [path, hash] = href.split('#');
-					
+
 					// Remove .md extension
 					const cleanPath = path.replace(/\.md$/, '');
-					
+
 					// Transform hash to lowercase if it exists (e.g., #L10 → #l10)
 					const cleanHash = hash ? `#${hash.toLowerCase()}` : '';
-					
+
 					// Prepend ./ to make explicitly relative to current directory
 					// This prevents incorrect resolution relative to page URL
 					const relativePath = cleanPath.startsWith('./') ? cleanPath : `./${cleanPath}`;
-					
+
 					// Reconstruct href
 					href = `${relativePath}${cleanHash}`;
 				}
 			}
-			
+
 			// Build the link HTML
 			const titleAttr = title ? ` title="${title}"` : '';
 			return `<a href="${href}"${titleAttr}>${text}</a>`;
 		};
-		
+
 		return marked.parse(markdown, { renderer, async: false }) as string;
 	}
-	
+
 	// Parse markdown to HTML with IDs
 	const htmlContent = $derived(parseMarkdownWithIds(data.content));
 </script>
@@ -86,11 +86,11 @@
 		/* Layout handles styling via DocLayout wrapper */
 		scroll-behavior: smooth;
 	}
-	
+
 	.doc-content {
 		/* Typography styling inherited from DocLayout's .docs-article */
 	}
-	
+
 	/* Ensure headings have scroll margin for proper positioning */
 	.doc-content :global(h1),
 	.doc-content :global(h2),
@@ -99,4 +99,3 @@
 		scroll-margin-top: 2rem;
 	}
 </style>
-

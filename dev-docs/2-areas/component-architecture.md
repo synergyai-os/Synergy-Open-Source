@@ -2,7 +2,8 @@
 
 > **Philosophy**: Build components in layers—from semantic tokens to reusable utilities to documented patterns to composable components. Each layer builds on the previous, creating a consistent, maintainable design system.
 
-> **See Also**: 
+> **See Also**:
+>
 > - [Design Principles](design-principles.md) - Visual philosophy and UX principles that guide component design
 > - [Design Tokens](design-tokens.md) - System reference for all available tokens
 
@@ -49,8 +50,8 @@
 ```css
 /* In src/app.css */
 @theme {
-  --spacing-control-panel-padding: 0.75rem; /* 12px */
-  --color-text-primary: oklch(20.8% 0.042 265.755);
+	--spacing-control-panel-padding: 0.75rem; /* 12px */
+	--color-text-primary: oklch(20.8% 0.042 265.755);
 }
 ```
 
@@ -58,7 +59,7 @@
 
 ```svelte
 <div style="padding: var(--spacing-control-panel-padding);">
-  <!-- content -->
+	<!-- content -->
 </div>
 ```
 
@@ -77,15 +78,15 @@
 ```css
 /* In src/app.css */
 @utility scrollable-outer {
-  padding: var(--spacing-control-panel-padding);
-  /* NO overflow, NO max-height - let inner handle scroll */
+	padding: var(--spacing-control-panel-padding);
+	/* NO overflow, NO max-height - let inner handle scroll */
 }
 
 @utility scrollable-inner {
-  max-height: calc(100vh - 200px);
-  overflow-y: auto;
-  padding-right: 0.25rem;
-  /* Scrollbar renders HERE - inside padding boundary */
+	max-height: calc(100vh - 200px);
+	overflow-y: auto;
+	padding-right: 0.25rem;
+	/* Scrollbar renders HERE - inside padding boundary */
 }
 ```
 
@@ -93,21 +94,23 @@
 
 ```svelte
 <aside class="toc-panel scrollable-outer">
-  <nav class="toc">
-    <ul class="toc-list scrollable-inner">
-      <!-- items -->
-    </ul>
-  </nav>
+	<nav class="toc">
+		<ul class="toc-list scrollable-inner">
+			<!-- items -->
+		</ul>
+	</nav>
 </aside>
 ```
 
 **Why Utilities?**
+
 - ✅ Self-documenting (class names explain behavior)
 - ✅ Pattern enforcement (can't get it wrong)
 - ✅ Consistency (same problem, same solution)
 - ✅ Reusable (works in ANY component)
 
 **When to Create a Utility:**
+
 1. Pattern repeats 3+ times
 2. Bug-prone if done manually (e.g., double overflow)
 3. Clear, single responsibility
@@ -131,20 +134,22 @@
 ```svelte
 <!-- Outer container: padding, NO overflow -->
 <div class="panel scrollable-outer">
-  <!-- Inner list: overflow ONLY here -->
-  <ul class="list scrollable-inner">
-    <!-- items -->
-  </ul>
+	<!-- Inner list: overflow ONLY here -->
+	<ul class="list scrollable-inner">
+		<!-- items -->
+	</ul>
 </div>
 ```
 
 **Pattern Components:**
+
 - Rule: Never nest `overflow-y: auto` containers
 - Rule: Padding belongs on outer, overflow on inner
 - Utilities: `.scrollable-outer`, `.scrollable-inner`
 - Example: TableOfContents.svelte
 
 **When to Document a Pattern:**
+
 1. Solved a bug or design problem
 2. Solution is non-obvious
 3. Applies to multiple components
@@ -163,16 +168,19 @@
 ### Component Types
 
 #### 1. **Atomic Components** (Single responsibility)
+
 - `Button`, `Input`, `Badge`, `Icon`
 - No internal state, pure presentation
 - Use tokens/utilities directly
 
 #### 2. **Feature Components** (Domain-specific)
+
 - `InboxCard`, `FlashcardView`, `NoteEditor`
 - Domain logic + composed atoms
 - Use composables for state
 
 #### 3. **Layout Components** (Structure)
+
 - `Sidebar`, `DocLayout`, `TableOfContents`
 - Composition patterns + layout logic
 - Use patterns (e.g., scrollable containers)
@@ -180,19 +188,21 @@
 ### Component Checklist
 
 **Before creating a component:**
+
 - [ ] Can I use existing utilities instead?
 - [ ] Does a pattern already exist?
 - [ ] Is this truly reusable, or one-off?
 - [ ] Does it have a single, clear responsibility?
 
 **When creating a component:**
+
 - [ ] Use design tokens (never hardcode)
 - [ ] Use utility classes (don't reinvent patterns)
 - [ ] Follow documented patterns
 - [ ] Extract state to composables (`.svelte.ts`)
 - [ ] Add TypeScript types
 
-**See**: [Component Library](component-library/README.md) *(coming soon)*
+**See**: [Component Library](component-library/README.md) _(coming soon)_
 
 ---
 
@@ -200,22 +210,24 @@
 
 ### When to Use What
 
-| Scenario | Solution | Example |
-|----------|----------|---------|
-| Need spacing value | **Token** | `var(--spacing-control-panel-padding)` |
-| Need to prevent double overflow | **Utility** | `.scrollable-outer` + `.scrollable-inner` |
-| Need to solve a common problem | **Pattern** | Scrollable Container Pattern |
-| Need complex behavior + UI | **Component** | `TableOfContents.svelte` |
+| Scenario                        | Solution      | Example                                   |
+| ------------------------------- | ------------- | ----------------------------------------- |
+| Need spacing value              | **Token**     | `var(--spacing-control-panel-padding)`    |
+| Need to prevent double overflow | **Utility**   | `.scrollable-outer` + `.scrollable-inner` |
+| Need to solve a common problem  | **Pattern**   | Scrollable Container Pattern              |
+| Need complex behavior + UI      | **Component** | `TableOfContents.svelte`                  |
 
 ### Red Flags
 
 **❌ Don't do this:**
+
 - Hardcode values (`px-2`, `bg-gray-900`, `12px`)
 - Create utilities for one-off cases
 - Skip documenting patterns after solving bugs
 - Build components without checking existing utilities
 
 **✅ Do this:**
+
 - Use semantic tokens (`px-nav-item`, `bg-elevated`)
 - Create utilities for repeating patterns (3+ uses)
 - Document patterns immediately after solving
@@ -227,56 +239,62 @@
 
 Our architecture maps cleanly to Atomic Design:
 
-| Atomic Design | Our Layer | Example |
-|---------------|-----------|---------|
-| **Atoms** | Tokens + Utilities | `--spacing-control-panel-padding`, `.scrollable-outer` |
-| **Molecules** | Patterns | Scrollable Container, Header Border |
-| **Organisms** | Components | `TableOfContents`, `InboxCard` |
-| **Templates** | Page Layouts | `DocLayout`, Three-Column Layout |
-| **Pages** | Routes | `/inbox/+page.svelte` |
+| Atomic Design | Our Layer          | Example                                                |
+| ------------- | ------------------ | ------------------------------------------------------ |
+| **Atoms**     | Tokens + Utilities | `--spacing-control-panel-padding`, `.scrollable-outer` |
+| **Molecules** | Patterns           | Scrollable Container, Header Border                    |
+| **Organisms** | Components         | `TableOfContents`, `InboxCard`                         |
+| **Templates** | Page Layouts       | `DocLayout`, Three-Column Layout                       |
+| **Pages**     | Routes             | `/inbox/+page.svelte`                                  |
 
-**Key Difference**: We separate *values* (tokens) from *behavior* (utilities) at the atom level.
+**Key Difference**: We separate _values_ (tokens) from _behavior_ (utilities) at the atom level.
 
 ---
 
 ## Real-World Example: Scrollable Container
 
 ### Problem (Before)
+
 TOC scrollbar appeared at far right edge (outside padding), wasting space.
 
 ### Root Cause
+
 Double-nested `overflow-y: auto` (both panel AND list had overflow).
 
 ### Solution (4 Layers)
 
 **1. Token** (semantic value):
+
 ```css
 --spacing-control-panel-padding: 0.75rem; /* 12px */
 ```
 
 **2. Utilities** (pattern enforcement):
+
 ```css
 @utility scrollable-outer {
-  padding: var(--spacing-control-panel-padding);
+	padding: var(--spacing-control-panel-padding);
 }
 
 @utility scrollable-inner {
-  overflow-y: auto;
-  max-height: calc(100vh - 200px);
+	overflow-y: auto;
+	max-height: calc(100vh - 200px);
 }
 ```
 
 **3. Pattern** (documented solution):
+
 - Rule: Padding on outer, overflow on inner
 - Rule: Never nest `overflow-y: auto`
 - Doc: `design-tokens.md` > Scrollable Container Pattern
 
 **4. Component** (implementation):
+
 ```svelte
 <aside class="toc-panel scrollable-outer">
-  <ul class="toc-list scrollable-inner">
-    <!-- items -->
-  </ul>
+	<ul class="toc-list scrollable-inner">
+		<!-- items -->
+	</ul>
 </aside>
 ```
 
@@ -332,12 +350,12 @@ Double-nested `overflow-y: auto` (both panel AND list had overflow).
 
 ### Creating New Layers
 
-| Layer | File | Syntax | When |
-|-------|------|--------|------|
-| Token | `src/app.css` | `@theme { --name: value; }` | Design system change |
-| Utility | `src/app.css` | `@utility name { ... }` | Pattern repeats 3+ times |
-| Pattern | `dev-docs/2-areas/` | Markdown doc | Bug fixed, solution reusable |
-| Component | `src/lib/components/` | `.svelte` file | Complex behavior needed |
+| Layer     | File                  | Syntax                      | When                         |
+| --------- | --------------------- | --------------------------- | ---------------------------- |
+| Token     | `src/app.css`         | `@theme { --name: value; }` | Design system change         |
+| Utility   | `src/app.css`         | `@utility name { ... }`     | Pattern repeats 3+ times     |
+| Pattern   | `dev-docs/2-areas/`   | Markdown doc                | Bug fixed, solution reusable |
+| Component | `src/lib/components/` | `.svelte` file              | Complex behavior needed      |
 
 ### Finding Existing Layers
 
@@ -354,7 +372,7 @@ Double-nested `overflow-y: auto` (both panel AND list had overflow).
 - **[Design Tokens](design-tokens.md)** - All available tokens
 - **[UI Patterns](patterns/ui-patterns.md)** - Solved design problems
 - **[Pattern Index](patterns/INDEX.md)** - Quick symptom → solution lookup
-- **[Component Library](component-library/README.md)** - Component catalog *(coming soon)*
+- **[Component Library](component-library/README.md)** - Component catalog _(coming soon)_
 - **[Composables Analysis](composables-analysis.md)** - State management patterns
 
 ---
@@ -362,4 +380,3 @@ Double-nested `overflow-y: auto` (both panel AND list had overflow).
 **Last Updated**: November 8, 2025  
 **Status**: 🟢 Active  
 **Owner**: Randy (Founder)
-

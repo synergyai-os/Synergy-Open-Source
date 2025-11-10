@@ -5,4 +5,3 @@
 <DocLayout>
 	<slot />
 </DocLayout>
-

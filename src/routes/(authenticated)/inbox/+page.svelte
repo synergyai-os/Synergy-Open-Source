@@ -25,22 +25,25 @@
 
 	// Get workspace context
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
-	const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
-	const activeTeamId = $derived(() => organizations?.activeTeamId ?? null);
+	const activeOrganizationId = $derived(organizations?.activeOrganizationId ?? null);
+	const activeTeamId = $derived(organizations?.activeTeamId ?? null);
 
 	// Convex client setup
 	const convexClient = browser ? useConvexClient() : null;
 	// Store function reference in a stable variable - this ensures the reference never changes
-	const inboxApi = browser ? {
-		getInboxItemWithDetails: makeFunctionReference('inbox:getInboxItemWithDetails') as any,
-		syncReadwiseHighlights: makeFunctionReference('syncReadwise:syncReadwiseHighlights') as any,
-		getSyncProgress: makeFunctionReference('inbox:getSyncProgress') as any,
-	} : null;
-	
+	const inboxApi = browser
+		? {
+				getInboxItemWithDetails: makeFunctionReference('inbox:getInboxItemWithDetails') as any,
+				syncReadwiseHighlights: makeFunctionReference('syncReadwise:syncReadwiseHighlights') as any,
+				getSyncProgress: makeFunctionReference('inbox:getSyncProgress') as any
+			}
+		: null;
+
 	// Initialize inbox items composable with workspace context
+	// Pass functions to ensure reactive updates when organization/team changes
 	const items = useInboxItems({
-		activeOrganizationId: activeOrganizationId(),
-		activeTeamId: activeTeamId()
+		activeOrganizationId: () => activeOrganizationId,
+		activeTeamId: () => activeTeamId
 	});
 
 	// Initialize selected item composable
@@ -102,7 +105,9 @@
 		}
 
 		const selectedId = selected.selectedItemId;
-		const hasSelectedInList = selectedId ? currentItems.some((item) => item._id === selectedId) : false;
+		const hasSelectedInList = selectedId
+			? currentItems.some((item) => item._id === selectedId)
+			: false;
 
 		if (hasSelectedInList) {
 			return;
@@ -159,7 +164,7 @@
 	// Get text content from selected item
 	const sourceText = $derived(() => {
 		if (!selected.selectedItem) return '';
-		
+
 		if (selected.selectedItem.type === 'readwise_highlight') {
 			const item = selected.selectedItem as any;
 			return item.highlight?.text || item.sourceData?.highlightText || '';
@@ -176,15 +181,15 @@
 	// Get source metadata for prompt context
 	const sourceMetadata = $derived(() => {
 		if (!selected.selectedItem) return { title: undefined, author: undefined };
-		
+
 		if (selected.selectedItem.type === 'readwise_highlight') {
 			const item = selected.selectedItem as any;
 			return {
 				title: item.source?.title || item.sourceData?.bookTitle || undefined,
-				author: item.author?.displayName || item.sourceData?.author || undefined,
+				author: item.author?.displayName || item.sourceData?.author || undefined
 			};
 		}
-		
+
 		return { title: undefined, author: undefined };
 	});
 
@@ -207,7 +212,7 @@
 			const result = await convexClient.action(api.flashcards.generateFlashcard, {
 				text: text.trim(),
 				sourceTitle: metadata.title,
-				sourceAuthor: metadata.author,
+				sourceAuthor: metadata.author
 			});
 
 			if (!result.success || !result.flashcards || result.flashcards.length === 0) {
@@ -232,13 +237,13 @@
 			const flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
 				flashcards: generatedFlashcards,
 				sourceInboxItemId: selected.selectedItemId as any,
-				sourceType: selected.selectedItem?.type,
+				sourceType: selected.selectedItem?.type
 			});
 
 			// Mark inbox item as processed
 			if (selected.selectedItemId) {
 				await convexClient.mutation(api.inbox.markProcessed, {
-					inboxItemId: selected.selectedItemId as any,
+					inboxItemId: selected.selectedItemId as any
 				});
 			}
 
@@ -258,13 +263,13 @@
 			const flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
 				flashcards: cards,
 				sourceInboxItemId: selected.selectedItemId as any,
-				sourceType: selected.selectedItem?.type,
+				sourceType: selected.selectedItem?.type
 			});
 
 			// Mark inbox item as processed
 			if (selected.selectedItemId) {
 				await convexClient.mutation(api.inbox.markProcessed, {
-					inboxItemId: selected.selectedItemId as any,
+					inboxItemId: selected.selectedItemId as any
 				});
 			}
 
@@ -290,7 +295,7 @@
 	}
 </script>
 
-<div class="h-full flex overflow-hidden">
+<div class="flex h-full overflow-hidden">
 	<!-- Desktop: 3-column layout -->
 	{#if !isMobile}
 		<!-- Middle Column - Inbox List -->
@@ -301,20 +306,21 @@
 			onWidthChange={layout.handleInboxWidthChange}
 			onClose={layout.handleClose}
 		>
-			<div class="bg-surface h-full flex flex-col overflow-hidden border-r border-base">
+			<div class="flex h-full flex-col overflow-hidden border-r border-base bg-surface">
 				<!-- Sticky Header -->
 				<InboxHeader
 					currentFilter={items.filterType}
-					onFilterChange={(type) => items.setFilter(type, () => clearSelection({ allowAutoSelect: true }))}
+					onFilterChange={(type) =>
+						items.setFilter(type, () => clearSelection({ allowAutoSelect: true }))}
 					onDeleteAll={handleDeleteAll}
 					onDeleteAllRead={handleDeleteAllRead}
 					onDeleteAllCompleted={handleDeleteAllCompleted}
 					onSortClick={handleSortClick}
 					onSync={sync.handleSyncClick}
 					isSyncing={sync.isSyncing}
-					sidebarCollapsed={sidebarCollapsed}
+					{sidebarCollapsed}
 					onSidebarToggle={sidebarContext?.onSidebarToggle}
-					isMobile={isMobile}
+					{isMobile}
 					inboxCount={items.filteredItems.length}
 				/>
 
@@ -326,54 +332,56 @@
 							<Loading message="Loading inbox items..." />
 						{:else if items.queryError}
 							<!-- Error State -->
-							<div class="text-center py-readable-quote">
-								<p class="text-error mb-4">Failed to load inbox items: {items.queryError.toString()}</p>
+							<div class="py-readable-quote text-center">
+								<p class="text-error mb-4">
+									Failed to load inbox items: {items.queryError.toString()}
+								</p>
 								<button
 									type="button"
 									onclick={() => window.location.reload()}
-									class="px-4 py-2 bg-accent-primary text-white rounded-md hover:bg-accent-hover transition-colors"
+									class="rounded-md bg-accent-primary px-4 py-2 text-white transition-colors hover:bg-accent-hover"
 								>
 									Reload Page
 								</button>
 							</div>
 						{:else if items.filteredItems.length === 0}
 							<!-- Empty State -->
-							<div class="text-center py-readable-quote">
-								<p class="text-secondary mb-4">No items in inbox.</p>
+							<div class="py-readable-quote text-center">
+								<p class="mb-4 text-secondary">No items in inbox.</p>
 								<button
 									type="button"
 									onclick={sync.handleSyncClick}
 									disabled={sync.isSyncing}
-									class="px-4 py-2 bg-accent-primary text-white rounded-md hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+									class="rounded-md bg-accent-primary px-4 py-2 text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
 								>
 									{sync.isSyncing ? 'Syncing...' : 'Sync Readwise Highlights'}
 								</button>
 								{#if sync.syncError}
-									<p class="text-error text-sm mt-2">{sync.syncError}</p>
+									<p class="text-error mt-2 text-sm">{sync.syncError}</p>
 								{/if}
 								{#if sync.syncSuccess}
-									<p class="text-success text-sm mt-2">Sync completed successfully!</p>
+									<p class="text-success mt-2 text-sm">Sync completed successfully!</p>
 								{/if}
 							</div>
 						{:else}
-						<!-- Items List -->
-						<div class="flex flex-col gap-inbox-list">
-							{#each items.filteredItems as item}
-								<InboxCard
-									item={item}
-									selected={selected.selectedItemId === item._id}
-									onClick={() => selectItem(item._id)}
-								/>
-							{/each}
-						</div>
+							<!-- Items List -->
+							<div class="flex flex-col gap-inbox-list">
+								{#each items.filteredItems as item}
+									<InboxCard
+										{item}
+										selected={selected.selectedItemId === item._id}
+										onClick={() => selectItem(item._id)}
+									/>
+								{/each}
+							</div>
 						{/if}
 					</div>
 				</div>
 			</div>
 		</ResizableSplitter>
 
-				<!-- Right Panel - Detail View -->
-		<div class="flex-1 bg-elevated overflow-y-auto relative">
+		<!-- Right Panel - Detail View -->
+		<div class="relative flex-1 overflow-y-auto bg-elevated">
 			{#if selected.selectedItem && selected.selectedItemId}
 				<!-- Dynamic detail view based on type -->
 				<!-- Key on selectedItem._id ensures remount only when actual data changes (prevents stale data) -->
@@ -388,34 +396,31 @@
 							onNext={keyboard.handleNextItem}
 							onPrevious={keyboard.handlePreviousItem}
 						/>
-					{:else if selected.selectedItem.type === 'note'}
-						<NoteDetail inboxItem={selected.selectedItem} onClose={() => clearSelection()} />
 					{:else if selected.selectedItem.type === 'photo_note'}
 						<PhotoDetail item={selected.selectedItem} onClose={() => clearSelection()} />
 					{:else if selected.selectedItem.type === 'manual_text'}
 						<ManualDetail item={selected.selectedItem} onClose={() => clearSelection()} />
-						{/if}
-					{/key}
-				
+					{/if}
+				{/key}
+
 				<!-- Flashcard FAB - Centered at bottom of detail view -->
 				{#if browser}
 					<FlashcardFAB
 						selectedItemId={selected.selectedItemId}
-						isGenerating={isGenerating}
+						{isGenerating}
 						onClick={handleGenerateFlashcards}
 					/>
 					{#if generationError}
-						<div class="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-menu-item py-menu-item rounded-md shadow-lg text-sm max-w-md text-center">
+						<div
+							class="absolute bottom-24 left-1/2 z-50 max-w-md -translate-x-1/2 rounded-md bg-red-600 px-menu-item py-menu-item text-center text-sm text-white shadow-lg"
+						>
 							{generationError}
 						</div>
 					{/if}
 				{/if}
 			{:else if sync.showSyncConfig}
 				<!-- Sync Config Panel -->
-				<SyncReadwiseConfig
-					onImport={sync.handleImport}
-					onCancel={sync.handleCancelSync}
-				/>
+				<SyncReadwiseConfig onImport={sync.handleImport} onCancel={sync.handleCancelSync} />
 			{:else if sync.syncProgress}
 				<!-- Progress Tracker -->
 				<SyncProgressTracker
@@ -427,8 +432,8 @@
 				/>
 			{:else}
 				<!-- Empty state -->
-				<div class="p-inbox-container text-center py-12">
-					<div class="text-6xl mb-4">📮</div>
+				<div class="p-inbox-container py-12 text-center">
+					<div class="mb-4 text-6xl">📮</div>
 					<p class="text-secondary">Select an item to view details</p>
 				</div>
 			{/if}
@@ -437,14 +442,12 @@
 		<!-- Mobile: List OR Detail (not both) -->
 		{#if selected.selectedItemId}
 			<!-- Mobile Detail View - Full Screen -->
-			<div class="flex-1 bg-elevated overflow-y-auto h-full w-full relative">
+			<div class="relative h-full w-full flex-1 overflow-y-auto bg-elevated">
 				{#if selected.selectedItem}
 					<!-- Key on selectedItem._id ensures remount only when actual data changes (prevents stale data) -->
 					{#key selected.selectedItem._id}
 						{#if selected.selectedItem.type === 'readwise_highlight'}
 							<ReadwiseDetail item={selected.selectedItem} onClose={() => clearSelection()} />
-						{:else if selected.selectedItem.type === 'note'}
-							<NoteDetail inboxItem={selected.selectedItem} onClose={() => clearSelection()} />
 						{:else if selected.selectedItem.type === 'photo_note'}
 							<PhotoDetail item={selected.selectedItem} onClose={() => clearSelection()} />
 						{:else if selected.selectedItem.type === 'manual_text'}
@@ -456,11 +459,13 @@
 					{#if browser}
 						<FlashcardFAB
 							selectedItemId={selected.selectedItemId}
-							isGenerating={isGenerating}
+							{isGenerating}
 							onClick={handleGenerateFlashcards}
 						/>
 						{#if generationError}
-							<div class="absolute bottom-24 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-menu-item py-menu-item rounded-md shadow-lg text-sm max-w-md text-center">
+							<div
+								class="absolute bottom-24 left-1/2 z-50 max-w-md -translate-x-1/2 rounded-md bg-red-600 px-menu-item py-menu-item text-center text-sm text-white shadow-lg"
+							>
 								{generationError}
 							</div>
 						{/if}
@@ -469,20 +474,21 @@
 			</div>
 		{:else}
 			<!-- Mobile List View - Full Screen -->
-			<div class="flex-1 bg-surface h-full flex flex-col overflow-hidden">
+			<div class="flex h-full flex-1 flex-col overflow-hidden bg-surface">
 				<!-- Sticky Header -->
 				<InboxHeader
 					currentFilter={items.filterType}
-					onFilterChange={(type) => items.setFilter(type, () => clearSelection({ allowAutoSelect: true }))}
+					onFilterChange={(type) =>
+						items.setFilter(type, () => clearSelection({ allowAutoSelect: true }))}
 					onDeleteAll={handleDeleteAll}
 					onDeleteAllRead={handleDeleteAllRead}
 					onDeleteAllCompleted={handleDeleteAllCompleted}
 					onSortClick={handleSortClick}
 					onSync={sync.handleSyncClick}
 					isSyncing={sync.isSyncing}
-					sidebarCollapsed={sidebarCollapsed}
+					{sidebarCollapsed}
 					onSidebarToggle={sidebarContext?.onSidebarToggle}
-					isMobile={isMobile}
+					{isMobile}
 					inboxCount={items.filteredItems.length}
 				/>
 
@@ -494,46 +500,44 @@
 							<Loading message="Loading inbox items..." />
 						{:else if items.queryError}
 							<!-- Error State -->
-							<div class="text-center py-readable-quote">
-								<p class="text-error mb-4">Failed to load inbox items: {items.queryError.toString()}</p>
+							<div class="py-readable-quote text-center">
+								<p class="text-error mb-4">
+									Failed to load inbox items: {items.queryError.toString()}
+								</p>
 								<button
 									type="button"
 									onclick={() => window.location.reload()}
-									class="px-4 py-2 bg-accent-primary text-white rounded-md hover:bg-accent-hover transition-colors"
+									class="rounded-md bg-accent-primary px-4 py-2 text-white transition-colors hover:bg-accent-hover"
 								>
 									Reload Page
 								</button>
 							</div>
 						{:else if items.filteredItems.length === 0}
 							<!-- Empty State -->
-							<div class="text-center py-readable-quote">
-								<p class="text-secondary mb-4">No items in inbox.</p>
+							<div class="py-readable-quote text-center">
+								<p class="mb-4 text-secondary">No items in inbox.</p>
 								<button
 									type="button"
 									onclick={sync.handleSyncClick}
 									disabled={sync.isSyncing}
-									class="px-4 py-2 bg-accent-primary text-white rounded-md hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+									class="rounded-md bg-accent-primary px-4 py-2 text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
 								>
 									{sync.isSyncing ? 'Syncing...' : 'Sync Readwise Highlights'}
 								</button>
 								{#if sync.syncError}
-									<p class="text-error text-sm mt-2">{sync.syncError}</p>
+									<p class="text-error mt-2 text-sm">{sync.syncError}</p>
 								{/if}
 								{#if sync.syncSuccess}
-									<p class="text-success text-sm mt-2">Sync completed successfully!</p>
+									<p class="text-success mt-2 text-sm">Sync completed successfully!</p>
 								{/if}
 							</div>
 						{:else}
-					<!-- Items List -->
-					<div class="flex flex-col gap-inbox-list">
-						{#each items.filteredItems as item}
-							<InboxCard
-								item={item}
-								selected={false}
-								onClick={() => selectItem(item._id)}
-							/>
-						{/each}
-					</div>
+							<!-- Items List -->
+							<div class="flex flex-col gap-inbox-list">
+								{#each items.filteredItems as item}
+									<InboxCard {item} selected={false} onClick={() => selectItem(item._id)} />
+								{/each}
+							</div>
 						{/if}
 					</div>
 				</div>
@@ -546,7 +550,7 @@
 		<FlashcardReviewModal
 			open={showReviewModal}
 			flashcards={generatedFlashcards}
-			sourceContext={sourceContext}
+			{sourceContext}
 			onClose={handleCloseModal}
 			onApproveAll={handleApproveAll}
 			onApproveSelected={handleApproveSelected}
@@ -562,4 +566,3 @@
 		overflow: hidden;
 	}
 </style>
-

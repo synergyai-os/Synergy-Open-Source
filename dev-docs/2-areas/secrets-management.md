@@ -11,6 +11,7 @@
 **Team Sharing:** Share `.env.local` contents securely (1Password, encrypted notes, etc.)
 
 **Why `.env.local`?**
+
 - ✅ Simple - no CLI tools required
 - ✅ Fast - no secret injection overhead
 - ✅ Works with all tools (`npm run dev`, `npx convex dev`, etc.)
@@ -24,6 +25,7 @@
 ### Step 1: Get Your API Keys
 
 **Convex Deploy Key:**
+
 1. Go to: https://dashboard.convex.dev
 2. Select your project
 3. Settings → URL & Deploy Key
@@ -31,12 +33,14 @@
 5. Copy the key
 
 **WorkOS Credentials (Staging for local dev):**
+
 1. Go to: https://dashboard.workos.com
 2. Switch to **Staging** environment (dropdown at top)
 3. Go to **API Keys** section
 4. Copy **Client ID** and **API Key**
 
 **PostHog Key:**
+
 1. Go to: https://posthog.com/settings
 2. Copy Project API Key
 
@@ -64,6 +68,7 @@ PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com
 ```
 
 **Generate cookie password:**
+
 ```bash
 # Generate a secure 32+ character random string
 openssl rand -base64 32
@@ -112,17 +117,17 @@ Go to: **Vercel Dashboard → Project → Settings → Environment Variables**
 
 **Add these:**
 
-| Name | Value | Where to Get It |
-|------|-------|-----------------|
-| `CONVEX_DEPLOY_KEY` | `prod:...` | Convex Dashboard → Settings |
-| `WORKOS_CLIENT_ID` | `client_...` | WorkOS **Production** → API Keys |
-| `WORKOS_API_KEY` | `sk_prod_...` | WorkOS **Production** → API Keys |
-| `WORKOS_COOKIE_PASSWORD` | (32+ chars) | Generate with `openssl rand -base64 32` |
-| `WORKOS_REDIRECT_URI` | `https://synergyos.ai/auth/callback` | Your production domain |
-| `PUBLIC_WORKOS_CLIENT_ID` | `client_...` | Same as `WORKOS_CLIENT_ID` |
-| `PUBLIC_CONVEX_URL` | `https://...convex.cloud` | Convex Dashboard |
-| `PUBLIC_POSTHOG_KEY` | `phc_...` | PostHog Settings |
-| `PUBLIC_POSTHOG_HOST` | `https://eu.i.posthog.com` | Your PostHog region |
+| Name                      | Value                                | Where to Get It                         |
+| ------------------------- | ------------------------------------ | --------------------------------------- |
+| `CONVEX_DEPLOY_KEY`       | `prod:...`                           | Convex Dashboard → Settings             |
+| `WORKOS_CLIENT_ID`        | `client_...`                         | WorkOS **Production** → API Keys        |
+| `WORKOS_API_KEY`          | `sk_prod_...`                        | WorkOS **Production** → API Keys        |
+| `WORKOS_COOKIE_PASSWORD`  | (32+ chars)                          | Generate with `openssl rand -base64 32` |
+| `WORKOS_REDIRECT_URI`     | `https://synergyos.ai/auth/callback` | Your production domain                  |
+| `PUBLIC_WORKOS_CLIENT_ID` | `client_...`                         | Same as `WORKOS_CLIENT_ID`              |
+| `PUBLIC_CONVEX_URL`       | `https://...convex.cloud`            | Convex Dashboard                        |
+| `PUBLIC_POSTHOG_KEY`      | `phc_...`                            | PostHog Settings                        |
+| `PUBLIC_POSTHOG_HOST`     | `https://eu.i.posthog.com`           | Your PostHog region                     |
 
 **Set for**: Production, Preview, Development (all environments)
 
@@ -192,6 +197,7 @@ Same variables as above, but use **Production** WorkOS credentials and productio
 ## 🚨 Security Best Practices
 
 **DO:**
+
 - ✅ Keep `.env.local` out of git (it's in `.gitignore`)
 - ✅ Store production secrets in Vercel Environment Variables
 - ✅ Use **Staging** credentials for local development
@@ -201,6 +207,7 @@ Same variables as above, but use **Production** WorkOS credentials and productio
 - ✅ Use `127.0.0.1` (not `localhost`) for local redirect URIs
 
 **DON'T:**
+
 - ❌ Commit `.env.local` to git
 - ❌ Share secrets in public Slack/Discord
 - ❌ Use production keys in local development
@@ -217,16 +224,19 @@ Same variables as above, but use **Production** WorkOS credentials and productio
 ### Step 1: Generate New Key
 
 **Convex:**
+
 1. Dashboard → Settings → Deploy Keys
 2. Click "Generate Deploy Key"
 3. Copy new key
 
 **WorkOS:**
+
 1. Dashboard → API Keys
 2. Generate new Client ID and API Key
 3. Update redirect URIs if needed
 
 **PostHog:**
+
 1. Settings → Project API Key
 2. Click "Regenerate"
 3. Copy new key
@@ -252,7 +262,8 @@ Immediately revoke the exposed key in the service's dashboard.
 
 ### Error: "Invalid client ID" (WorkOS)
 
-**Fix:** 
+**Fix:**
+
 - Check that `PUBLIC_WORKOS_CLIENT_ID` in `.env.local` has the **actual Client ID** (not a reference)
 - Verify you're using **Staging** credentials for local development
 - Make sure Client ID starts with `client_`
@@ -260,22 +271,25 @@ Immediately revoke the exposed key in the service's dashboard.
 ### Error: "Invalid redirect URI"
 
 **Fix:**
+
 - Use `127.0.0.1` (not `localhost`) in your redirect URI
 - Check WorkOS Dashboard has `http://127.0.0.1:5173/auth/callback` configured
 - Restart dev server after changing `.env.local`
 
-### PUBLIC_ variables not working
+### PUBLIC\_ variables not working
 
 **Problem:** Vite bakes `PUBLIC_*` variables into client code at build time.
 
-**Fix:** 
+**Fix:**
+
 - Always put **actual values** in `.env.local` for `PUBLIC_*` variables
 - Never use references like `op://...` for public variables
 - Restart dev server after changes
 
 ### Secrets not loading
 
-**Fix:** 
+**Fix:**
+
 - Make sure file is named `.env.local` (not `.env.local.txt`)
 - File should be in project root (same directory as `package.json`)
 - Restart your dev server after creating/changing `.env.local`
@@ -285,15 +299,19 @@ Immediately revoke the exposed key in the service's dashboard.
 ## 📚 Resources
 
 **Vite Environment Variables:**
+
 - [Vite Env Variables Guide](https://vitejs.dev/guide/env-and-mode.html)
 
 **Vercel:**
+
 - [Environment Variables](https://vercel.com/docs/concepts/projects/environment-variables)
 
 **WorkOS:**
+
 - [AuthKit Setup](https://workos.com/docs/user-management)
 
 **Convex:**
+
 - [Deploy Keys](https://docs.convex.dev/production/hosting/deploy-keys)
 
 ---
@@ -301,6 +319,7 @@ Immediately revoke the exposed key in the service's dashboard.
 ## 🎯 Quick Reference
 
 **File structure:**
+
 ```
 project-root/
 ├── .env              # Default values, references (committed to git)
@@ -310,10 +329,12 @@ project-root/
 ```
 
 **Variable priority:**
+
 1. `.env.local` (highest priority - actual secrets)
 2. `.env` (lowest priority - defaults/references)
 
 **Commands:**
+
 ```bash
 # Run dev server
 npm run dev

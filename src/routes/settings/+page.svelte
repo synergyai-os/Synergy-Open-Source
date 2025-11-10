@@ -8,22 +8,25 @@
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 
 	// Types for Convex hooks
-	type UseQueryReturn<Query extends FunctionReference<'query'>> = {
-		data: undefined;
-		error: undefined;
-		isLoading: true;
-		isStale: false;
-	} | {
-		data: undefined;
-		error: Error;
-		isLoading: false;
-		isStale: boolean;
-	} | {
-		data: FunctionReturnType<Query>;
-		error: undefined;
-		isLoading: false;
-		isStale: boolean;
-	};
+	type UseQueryReturn<Query extends FunctionReference<'query'>> =
+		| {
+				data: undefined;
+				error: undefined;
+				isLoading: true;
+				isStale: false;
+		  }
+		| {
+				data: undefined;
+				error: Error;
+				isLoading: false;
+				isStale: boolean;
+		  }
+		| {
+				data: FunctionReturnType<Query>;
+				error: undefined;
+				isLoading: false;
+				isStale: boolean;
+		  };
 
 	// Mutation function type - returns a function that takes args and returns a promise
 	type UseMutationReturn<Mutation extends FunctionReference<'mutation'>> = (
@@ -31,7 +34,8 @@
 	) => Promise<FunctionReturnType<Mutation>>;
 
 	// Helper type for function args
-	type FunctionArgs<F extends FunctionReference<any>> = F extends FunctionReference<any, any, infer Args> ? Args : never;
+	type FunctionArgs<F extends FunctionReference<any>> =
+		F extends FunctionReference<any, any, infer Args> ? Args : never;
 
 	// User settings type (decrypted, as returned from query)
 	// Using string literal for Id type since table may not be in generated types yet
@@ -48,21 +52,21 @@
 	// Solution: Import convex-svelte at top level and call hooks synchronously
 	// Guard with browser check for SSR safety
 	// setupConvexAuth already sets up the authenticated client context
-	
+
 	// Import at top level - the module import is safe, hooks are called conditionally
 	import { useConvexClient } from 'convex-svelte';
-	
+
 	// Auth is handled by server-side middleware (no client-side auth needed)
 	const isAuthenticated = true; // User is always authenticated in this route (protected by server)
-	
+
 	// Call useConvexClient at top level (must be synchronous, during component init)
 	// setupConvexAuth should have already set up the authenticated client context
 	const convexClient = browser ? useConvexClient() : null;
-	
+
 	// Create function references using makeFunctionReference
 	// Import at top level (safe to import, execution is guarded)
 	import { makeFunctionReference } from 'convex/server';
-	
+
 	// Get workspace context
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
 	const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
@@ -70,7 +74,7 @@
 	const currentOrganization = $derived(() => {
 		const orgId = activeOrganizationId();
 		if (!orgId) return null;
-		return organizationSummaries().find(org => org.organizationId === orgId);
+		return organizationSummaries().find((org) => org.organizationId === orgId);
 	});
 	const workspaceContext = $derived(() => {
 		if (currentOrganization()) {
@@ -78,36 +82,44 @@
 		}
 		return { type: 'personal', name: 'Personal Workspace' };
 	});
-	
-	const settingsApiFunctions = browser ? {
-		// User settings
-		getUserSettings: makeFunctionReference('settings:getUserSettings') as any,
-		updateClaudeApiKey: makeFunctionReference('settings:updateClaudeApiKey') as any,
-		updateReadwiseApiKey: makeFunctionReference('settings:updateReadwiseApiKey') as any,
-		updateTheme: makeFunctionReference('settings:updateTheme') as any,
-		deleteClaudeApiKey: makeFunctionReference('settings:deleteClaudeApiKey') as any,
-		deleteReadwiseApiKey: makeFunctionReference('settings:deleteReadwiseApiKey') as any,
-		// Organization settings
-		getOrganizationSettings: makeFunctionReference('organizationSettings:getOrganizationSettings') as any,
-		updateOrganizationClaudeApiKey: makeFunctionReference('organizationSettings:updateOrganizationClaudeApiKey') as any,
-		deleteOrganizationClaudeApiKey: makeFunctionReference('organizationSettings:deleteOrganizationClaudeApiKey') as any,
-	} : null;
+
+	const settingsApiFunctions = browser
+		? {
+				// User settings
+				getUserSettings: makeFunctionReference('settings:getUserSettings') as any,
+				updateClaudeApiKey: makeFunctionReference('settings:updateClaudeApiKey') as any,
+				updateReadwiseApiKey: makeFunctionReference('settings:updateReadwiseApiKey') as any,
+				updateTheme: makeFunctionReference('settings:updateTheme') as any,
+				deleteClaudeApiKey: makeFunctionReference('settings:deleteClaudeApiKey') as any,
+				deleteReadwiseApiKey: makeFunctionReference('settings:deleteReadwiseApiKey') as any,
+				// Organization settings
+				getOrganizationSettings: makeFunctionReference(
+					'organizationSettings:getOrganizationSettings'
+				) as any,
+				updateOrganizationClaudeApiKey: makeFunctionReference(
+					'organizationSettings:updateOrganizationClaudeApiKey'
+				) as any,
+				deleteOrganizationClaudeApiKey: makeFunctionReference(
+					'organizationSettings:deleteOrganizationClaudeApiKey'
+				) as any
+			}
+		: null;
 
 	// Load settings using client.query (not useQuery, to keep it simple)
 	let userSettings: UserSettings | null = $state(null);
-	
+
 	// Load settings when client is ready and user is authenticated
 	onMount(async () => {
 		if (!browser || !convexClient || !settingsApiFunctions || !isAuthenticated) {
 			return;
 		}
-		
+
 		try {
 			// Load personal settings
 			const settings = await convexClient.query(settingsApiFunctions.getUserSettings, {});
 			if (settings) {
 				userSettings = settings as UserSettings;
-				
+
 				// SECURITY: NEVER decrypt keys on the client - only track if they exist
 				// Keys are encrypted in the database and should NEVER be sent to the client
 				// Use boolean flags from query to know if keys exist
@@ -115,14 +127,13 @@
 				readwiseHasKey = settings.hasReadwiseKey || false;
 				// Keep inputs empty - never display actual keys on client
 			}
-			
+
 			// Load organization settings if in org workspace
 			const orgId = activeOrganizationId();
 			if (orgId) {
-				const orgSettings = await convexClient.query(
-					settingsApiFunctions.getOrganizationSettings, 
-					{ organizationId: orgId }
-				);
+				const orgSettings = await convexClient.query(settingsApiFunctions.getOrganizationSettings, {
+					organizationId: orgId
+				});
 				if (orgSettings) {
 					isOrgAdmin = orgSettings.isAdmin || false;
 					// Track if org has Claude key (Readwise is always personal)
@@ -133,7 +144,7 @@
 			// Silently handle errors - user will see empty inputs
 		}
 	});
-	
+
 	// Mutation functions - created when client and functions are ready
 	let updateClaudeApiKeyFn: ((args: { apiKey: string }) => Promise<string>) | null = $state(null);
 	let updateReadwiseApiKeyFn: ((args: { apiKey: string }) => Promise<string>) | null = $state(null);
@@ -144,29 +155,41 @@
 	// Initialize mutations and actions when ready
 	$effect(() => {
 		if (!browser || !convexClient || !settingsApiFunctions) return;
-		
+
 		// Create action functions for API key updates (they're actions, not mutations, because they validate via HTTP)
-		updateClaudeApiKeyFn = ((args: { apiKey: string }) => 
-			convexClient!.action(settingsApiFunctions.updateClaudeApiKey, args)) as typeof updateClaudeApiKeyFn;
-		updateReadwiseApiKeyFn = ((args: { apiKey: string }) => 
-			convexClient!.action(settingsApiFunctions.updateReadwiseApiKey, args)) as typeof updateReadwiseApiKeyFn;
+		updateClaudeApiKeyFn = ((args: { apiKey: string }) =>
+			convexClient!.action(
+				settingsApiFunctions.updateClaudeApiKey,
+				args
+			)) as typeof updateClaudeApiKeyFn;
+		updateReadwiseApiKeyFn = ((args: { apiKey: string }) =>
+			convexClient!.action(
+				settingsApiFunctions.updateReadwiseApiKey,
+				args
+			)) as typeof updateReadwiseApiKeyFn;
 		// Theme update is still a mutation (no validation needed)
-		updateThemeFn = ((args: { theme: 'light' | 'dark' }) => 
+		updateThemeFn = ((args: { theme: 'light' | 'dark' }) =>
 			convexClient!.mutation(settingsApiFunctions.updateTheme, args)) as typeof updateThemeFn;
 		// Delete functions are mutations
-		deleteClaudeApiKeyFn = (() => 
-			convexClient!.mutation(settingsApiFunctions.deleteClaudeApiKey, {})) as typeof deleteClaudeApiKeyFn;
-		deleteReadwiseApiKeyFn = (() => 
-			convexClient!.mutation(settingsApiFunctions.deleteReadwiseApiKey, {})) as typeof deleteReadwiseApiKeyFn;
+		deleteClaudeApiKeyFn = (() =>
+			convexClient!.mutation(
+				settingsApiFunctions.deleteClaudeApiKey,
+				{}
+			)) as typeof deleteClaudeApiKeyFn;
+		deleteReadwiseApiKeyFn = (() =>
+			convexClient!.mutation(
+				settingsApiFunctions.deleteReadwiseApiKey,
+				{}
+			)) as typeof deleteReadwiseApiKeyFn;
 	});
 
 	// State for API keys (initialized from Convex)
 	// CRITICAL: These are for user input ONLY - we NEVER store or display actual saved keys on the client
-	
+
 	// Personal workspace keys
 	let claudeApiKey = $state('');
 	let readwiseApiKey = $state('');
-	
+
 	// Organization workspace keys (separate state)
 	let orgClaudeApiKey = $state('');
 	let orgReadwiseApiKey = $state(''); // User's personal Readwise for org imports
@@ -179,7 +202,7 @@
 	let claudeError = $state<string | null>(null);
 	let claudeShowCheckmark = $state(false); // Temporary checkmark after validation
 	let claudeHasKey = $state(false); // Track if key exists (for delete icon)
-	
+
 	let readwiseValidationState = $state<'idle' | 'validating' | 'valid' | 'invalid'>('idle');
 	let readwiseError = $state<string | null>(null);
 	let readwiseShowCheckmark = $state(false); // Temporary checkmark after validation
@@ -188,7 +211,12 @@
 	// Handle blur validation for Claude API key
 	async function handleClaudeKeyBlur() {
 		// Only validate if there's a value and we're not already validating
-		if (!claudeApiKey.trim() || claudeValidationState === 'validating' || !updateClaudeApiKeyFn || !isAuthenticated) {
+		if (
+			!claudeApiKey.trim() ||
+			claudeValidationState === 'validating' ||
+			!updateClaudeApiKeyFn ||
+			!isAuthenticated
+		) {
 			return;
 		}
 
@@ -210,21 +238,27 @@
 			const rawMessage = error instanceof Error ? error.message : String(error);
 			// Remove all technical details: Convex prefixes, file paths, line numbers, "Called by client"
 			let cleanMessage = rawMessage
-				.replace(/^\[CONVEX[^\]]+\]\s*\[Request ID:[^\]]+\]\s*Server Error\s*Uncaught Error:\s*/i, '')
+				.replace(
+					/^\[CONVEX[^\]]+\]\s*\[Request ID:[^\]]+\]\s*Server Error\s*Uncaught Error:\s*/i,
+					''
+				)
 				.replace(/\s*at handler[^]*$/i, '') // Remove "at handler (file:line)"
 				.replace(/\s*Called by client.*$/i, '') // Remove "Called by client"
 				.replace(/\([^)]+\/[^)]+\.ts:\d+:\d+\)/g, '') // Remove file paths like "(../convex/settings.ts:77:2)"
 				.trim();
-			
+
 			// Simplify common error messages
 			if (cleanMessage.includes('Invalid') || cleanMessage.includes('invalid')) {
 				cleanMessage = 'Invalid API key. Please check your key and try again.';
-			} else if (cleanMessage.includes('Authentication') || cleanMessage.includes('authentication')) {
+			} else if (
+				cleanMessage.includes('Authentication') ||
+				cleanMessage.includes('authentication')
+			) {
 				cleanMessage = 'Authentication failed. Please verify your API key.';
 			} else if (cleanMessage.includes('format')) {
 				cleanMessage = 'Invalid API key format.';
 			}
-			
+
 			claudeError = cleanMessage || 'Invalid API key. Please check your key and try again.';
 		}
 	}
@@ -232,7 +266,12 @@
 	// Handle blur validation for Readwise API key
 	async function handleReadwiseKeyBlur() {
 		// Only validate if there's a value and we're not already validating
-		if (!readwiseApiKey.trim() || readwiseValidationState === 'validating' || !updateReadwiseApiKeyFn || !isAuthenticated) {
+		if (
+			!readwiseApiKey.trim() ||
+			readwiseValidationState === 'validating' ||
+			!updateReadwiseApiKeyFn ||
+			!isAuthenticated
+		) {
 			return;
 		}
 
@@ -254,21 +293,27 @@
 			const rawMessage = error instanceof Error ? error.message : String(error);
 			// Remove all technical details: Convex prefixes, file paths, line numbers, "Called by client"
 			let cleanMessage = rawMessage
-				.replace(/^\[CONVEX[^\]]+\]\s*\[Request ID:[^\]]+\]\s*Server Error\s*Uncaught Error:\s*/i, '')
+				.replace(
+					/^\[CONVEX[^\]]+\]\s*\[Request ID:[^\]]+\]\s*Server Error\s*Uncaught Error:\s*/i,
+					''
+				)
 				.replace(/\s*at handler[^]*$/i, '') // Remove "at handler (file:line)"
 				.replace(/\s*Called by client.*$/i, '') // Remove "Called by client"
 				.replace(/\([^)]+\/[^)]+\.ts:\d+:\d+\)/g, '') // Remove file paths like "(../convex/settings.ts:77:2)"
 				.trim();
-			
+
 			// Simplify common error messages
 			if (cleanMessage.includes('Invalid') || cleanMessage.includes('invalid')) {
 				cleanMessage = 'Invalid API key. Please check your key and try again.';
-			} else if (cleanMessage.includes('Authentication') || cleanMessage.includes('authentication')) {
+			} else if (
+				cleanMessage.includes('Authentication') ||
+				cleanMessage.includes('authentication')
+			) {
 				cleanMessage = 'Authentication failed. Please verify your API key.';
 			} else if (cleanMessage.includes('format')) {
 				cleanMessage = 'Invalid API key format.';
 			}
-			
+
 			readwiseError = cleanMessage || 'Invalid API key. Please check your key and try again.';
 		}
 	}
@@ -303,7 +348,7 @@
 	// Delete API key handlers
 	async function handleDeleteClaudeKey() {
 		if (!deleteClaudeApiKeyFn) return;
-		
+
 		try {
 			await deleteClaudeApiKeyFn();
 			claudeApiKey = '';
@@ -318,7 +363,7 @@
 
 	async function handleDeleteReadwiseKey() {
 		if (!deleteReadwiseApiKeyFn) return;
-		
+
 		try {
 			await deleteReadwiseApiKeyFn();
 			readwiseApiKey = '';
@@ -332,19 +377,29 @@
 	}
 </script>
 
-<div class="h-screen bg-base overflow-y-auto">
-	<div class="max-w-4xl mx-auto p-inbox-container">
+<div class="h-screen overflow-y-auto bg-base">
+	<div class="mx-auto max-w-4xl p-inbox-container">
 		<!-- Page Title -->
-		<h1 class="text-2xl font-bold text-primary mb-4">Settings</h1>
+		<h1 class="mb-4 text-2xl font-bold text-primary">Settings</h1>
 
 		<!-- Workspace Context Banner -->
-		<div class="mb-8 bg-accent-primary/10 border border-accent-primary/20 rounded-md p-4">
+		<div class="mb-8 rounded-md border border-accent-primary/20 bg-accent-primary/10 p-4">
 			<div class="flex items-start gap-3">
-				<svg class="w-5 h-5 text-accent-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+				<svg
+					class="mt-0.5 h-5 w-5 flex-shrink-0 text-accent-primary"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+					/>
 				</svg>
-				<div class="flex-1 min-w-0">
-					<p class="text-sm font-medium text-accent-primary mb-1">
+				<div class="min-w-0 flex-1">
+					<p class="mb-1 text-sm font-medium text-accent-primary">
 						{#if workspaceContext().type === 'personal'}
 							Personal Settings
 						{:else}
@@ -355,10 +410,11 @@
 						{#if workspaceContext().type === 'personal'}
 							These settings apply to your personal workspace only.
 						{:else}
-							These settings apply to {workspaceContext().name} organization. Switch to personal workspace for your personal settings.
+							These settings apply to {workspaceContext().name} organization. Switch to personal workspace
+							for your personal settings.
 						{/if}
 					</p>
-					<p class="text-xs text-tertiary mt-2">
+					<p class="mt-2 text-xs text-tertiary">
 						<strong>Coming soon:</strong> Team-specific settings and advanced organization management.
 					</p>
 				</div>
@@ -367,36 +423,38 @@
 
 		<div class="flex flex-col gap-settings-section">
 			<!-- General Section -->
-			<section class="bg-elevated rounded-md border border-base">
+			<section class="rounded-md border border-base bg-elevated">
 				<div class="px-inbox-card py-inbox-card">
-					<h2 class="text-base font-bold text-primary mb-6">General</h2>
+					<h2 class="mb-6 text-base font-bold text-primary">General</h2>
 
 					<div class="flex flex-col gap-settings-row">
-					<!-- Theme Preference -->
-					<div class="px-settings-row py-settings-row border-b border-base last:border-b-0">
-						<div class="flex items-start justify-between gap-4">
-							<div class="flex-1 min-w-0">
-								<label for="theme-toggle" class="block text-sm font-medium text-primary mb-1">
-									Interface theme
-									<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 ml-2">
-										👤 Personal Only
-									</span>
-								</label>
-								<p class="text-sm text-secondary">
-									{#if workspaceContext().type === 'organization'}
-										Theme preferences are personal. Switch to your personal workspace to change.
-									{:else}
-										Select your preferred color scheme
-									{/if}
-								</p>
-							</div>
+						<!-- Theme Preference -->
+						<div class="border-b border-base px-settings-row py-settings-row last:border-b-0">
+							<div class="flex items-start justify-between gap-4">
+								<div class="min-w-0 flex-1">
+									<label for="theme-toggle" class="mb-1 block text-sm font-medium text-primary">
+										Interface theme
+										<span
+											class="ml-2 inline-flex items-center rounded bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+										>
+											👤 Personal Only
+										</span>
+									</label>
+									<p class="text-sm text-secondary">
+										{#if workspaceContext().type === 'organization'}
+											Theme preferences are personal. Switch to your personal workspace to change.
+										{:else}
+											Select your preferred color scheme
+										{/if}
+									</p>
+								</div>
 								<div class="flex items-center gap-icon" role="presentation">
 									<span class="text-sm text-secondary">
 										{$isDark ? 'Dark mode' : 'Light mode'}
 									</span>
 									{#if $isDark}
 										<svg
-											class="w-4 h-4 text-secondary flex-shrink-0"
+											class="h-4 w-4 flex-shrink-0 text-secondary"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24"
@@ -411,7 +469,7 @@
 										</svg>
 									{:else}
 										<svg
-											class="w-4 h-4 text-secondary flex-shrink-0"
+											class="h-4 w-4 flex-shrink-0 text-secondary"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24"
@@ -425,21 +483,24 @@
 											/>
 										</svg>
 									{/if}
-								<Switch.Root
-									id="theme-toggle"
-									checked={$isDark}
-									disabled={workspaceContext().type === 'organization'}
-									onCheckedChange={(checked) => {
-										if (workspaceContext().type !== 'organization') {
-											theme.setTheme(checked ? 'dark' : 'light');
-										}
-									}}
-									class="relative inline-flex h-4 w-8 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 {workspaceContext().type === 'organization' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} {$isDark ? 'bg-gray-900' : 'bg-gray-300'}"
-								>
-									<Switch.Thumb
-										class="pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0 data-[state=checked]:translate-x-4"
-									/>
-								</Switch.Root>
+									<Switch.Root
+										id="theme-toggle"
+										checked={$isDark}
+										disabled={workspaceContext().type === 'organization'}
+										onCheckedChange={(checked) => {
+											if (workspaceContext().type !== 'organization') {
+												theme.setTheme(checked ? 'dark' : 'light');
+											}
+										}}
+										class="relative inline-flex h-4 w-8 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none {workspaceContext()
+											.type === 'organization'
+											? 'cursor-not-allowed opacity-50'
+											: 'cursor-pointer'} {$isDark ? 'bg-gray-900' : 'bg-gray-300'}"
+									>
+										<Switch.Thumb
+											class="pointer-events-none inline-block h-3 w-3 translate-x-0 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out data-[state=checked]:translate-x-4"
+										/>
+									</Switch.Root>
 								</div>
 							</div>
 						</div>
@@ -448,28 +509,34 @@
 			</section>
 
 			<!-- AI Section -->
-			<section class="bg-elevated rounded-md border border-base">
+			<section class="rounded-md border border-base bg-elevated">
 				<div class="px-inbox-card py-inbox-card">
-					<h2 class="text-base font-bold text-primary mb-6">AI</h2>
+					<h2 class="mb-6 text-base font-bold text-primary">AI</h2>
 
 					<div class="flex flex-col gap-settings-row">
 						<!-- Claude API Key -->
-						<div class="px-settings-row py-settings-row border-b border-base last:border-b-0">
+						<div class="border-b border-base px-settings-row py-settings-row last:border-b-0">
 							<div class="flex items-start justify-between gap-4">
-								<div class="flex-1 min-w-0">
-									<label for="claude-key" class="block text-sm font-medium text-primary mb-1">
+								<div class="min-w-0 flex-1">
+									<label for="claude-key" class="mb-1 block text-sm font-medium text-primary">
 										Claude API Key
 										{#if workspaceContext().type === 'organization'}
-											<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 ml-2">
+											<span
+												class="ml-2 inline-flex items-center rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+											>
 												🏢 Organization
 											</span>
 											{#if !isOrgAdmin}
-												<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 ml-1">
+												<span
+													class="ml-1 inline-flex items-center rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+												>
 													🔒 Admin Only
 												</span>
 											{/if}
 										{:else}
-											<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 ml-2">
+											<span
+												class="ml-2 inline-flex items-center rounded bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+											>
 												👤 Personal
 											</span>
 										{/if}
@@ -477,7 +544,8 @@
 									<p class="text-sm text-secondary">
 										{#if workspaceContext().type === 'organization'}
 											{#if isOrgAdmin}
-												Organization's Claude API key (admin controlled). Cost attributed to organization.
+												Organization's Claude API key (admin controlled). Cost attributed to
+												organization.
 											{:else}
 												Contact an admin to configure the organization's Claude API key.
 											{/if}
@@ -486,7 +554,7 @@
 										{/if}
 									</p>
 								</div>
-								<div class="flex flex-col gap-1 flex-shrink-0">
+								<div class="flex flex-shrink-0 flex-col gap-1">
 									<div class="relative inline-block">
 										<input
 											id="claude-key"
@@ -494,21 +562,29 @@
 											bind:value={claudeApiKey}
 											oninput={(e) => handleClaudeKeyInput(e.currentTarget.value)}
 											onblur={handleClaudeKeyBlur}
-											disabled={claudeValidationState === 'validating' || (workspaceContext().type === 'organization' && !isOrgAdmin)}
-											placeholder={workspaceContext().type === 'organization' && !isOrgAdmin ? 'Contact admin' : (claudeHasKey ? '••••••••••••••••' : 'sk-...')}
-											class="w-64 px-3 py-2 pr-10 text-sm bg-base border {claudeValidationState === 'valid'
+											disabled={claudeValidationState === 'validating' ||
+												(workspaceContext().type === 'organization' && !isOrgAdmin)}
+											placeholder={workspaceContext().type === 'organization' && !isOrgAdmin
+												? 'Contact admin'
+												: claudeHasKey
+													? '••••••••••••••••'
+													: 'sk-...'}
+											class="w-64 border bg-base px-3 py-2 pr-10 text-sm {claudeValidationState ===
+											'valid'
 												? 'border-green-500'
 												: claudeValidationState === 'invalid'
 													? 'border-red-500'
-													: 'border-base'} rounded-md text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all {claudeValidationState === 'validating' || (workspaceContext().type === 'organization' && !isOrgAdmin)
-												? 'opacity-50 cursor-not-allowed'
+													: 'border-base'} rounded-md text-primary transition-all placeholder:text-tertiary focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none {claudeValidationState ===
+												'validating' ||
+											(workspaceContext().type === 'organization' && !isOrgAdmin)
+												? 'cursor-not-allowed opacity-50'
 												: ''}"
 										/>
 										<!-- Validation indicator icon / Delete button -->
 										{#if claudeValidationState === 'validating'}
-											<div class="absolute right-2 top-1/2 -translate-y-1/2">
+											<div class="absolute top-1/2 right-2 -translate-y-1/2">
 												<svg
-													class="w-4 h-4 text-tertiary animate-spin"
+													class="h-4 w-4 animate-spin text-tertiary"
 													fill="none"
 													viewBox="0 0 24 24"
 												>
@@ -529,12 +605,8 @@
 											</div>
 										{:else if claudeShowCheckmark}
 											<!-- Temporary checkmark (shows for 3 seconds after validation) -->
-											<div class="absolute right-2 top-1/2 -translate-y-1/2">
-												<svg
-													class="w-5 h-5 text-green-500"
-													fill="currentColor"
-													viewBox="0 0 20 20"
-												>
+											<div class="absolute top-1/2 right-2 -translate-y-1/2">
+												<svg class="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
 													<path
 														fill-rule="evenodd"
 														d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -547,15 +619,10 @@
 											<button
 												type="button"
 												onclick={handleDeleteClaudeKey}
-												class="absolute right-2 top-1/2 -translate-y-1/2 text-secondary hover:text-red-500 transition-colors z-10"
+												class="absolute top-1/2 right-2 z-10 -translate-y-1/2 text-secondary transition-colors hover:text-red-500"
 												title="Remove API key"
 											>
-												<svg
-													class="w-4 h-4"
-													fill="none"
-													stroke="currentColor"
-													viewBox="0 0 24 24"
-												>
+												<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path
 														stroke-linecap="round"
 														stroke-linejoin="round"
@@ -565,9 +632,9 @@
 												</svg>
 											</button>
 										{:else if claudeValidationState === 'invalid'}
-											<div class="absolute right-2 top-1/2 -translate-y-1/2">
+											<div class="absolute top-1/2 right-2 -translate-y-1/2">
 												<svg
-													class="w-4 h-4 text-red-500"
+													class="h-4 w-4 text-red-500"
 													fill="none"
 													stroke="currentColor"
 													viewBox="0 0 24 24"
@@ -584,15 +651,15 @@
 									</div>
 									<!-- Success/Error message or Get API key link below input -->
 									{#if claudeShowCheckmark}
-										<p class="text-xs text-green-500 mt-1 max-w-64">API key is valid and saved</p>
+										<p class="mt-1 max-w-64 text-xs text-green-500">API key is valid and saved</p>
 									{:else if claudeValidationState === 'invalid' && claudeError}
-										<p class="text-xs text-red-500 mt-1 max-w-64">{claudeError}</p>
+										<p class="mt-1 max-w-64 text-xs text-red-500">{claudeError}</p>
 									{:else if !claudeHasKey && claudeValidationState !== 'validating'}
 										<a
 											href="https://console.anthropic.com/settings/keys"
 											target="_blank"
 											rel="noopener noreferrer"
-											class="text-xs text-blue-500 hover:text-blue-600 mt-1 max-w-64 underline transition-colors"
+											class="mt-1 max-w-64 text-xs text-blue-500 underline transition-colors hover:text-blue-600"
 										>
 											Get API key
 										</a>
@@ -605,21 +672,20 @@
 			</section>
 
 			<!-- Sources Section -->
-			<section class="bg-elevated rounded-md border border-base">
+			<section class="rounded-md border border-base bg-elevated">
 				<div class="px-inbox-card py-inbox-card">
-					<h2 class="text-base font-bold text-primary mb-6">Sources</h2>
+					<h2 class="mb-6 text-base font-bold text-primary">Sources</h2>
 
 					<div class="flex flex-col gap-settings-row">
 						<!-- Readwise API Key -->
-						<div class="px-settings-row py-settings-row border-b border-base last:border-b-0">
+						<div class="border-b border-base px-settings-row py-settings-row last:border-b-0">
 							<div class="flex items-start justify-between gap-4">
-								<div class="flex-1 min-w-0">
-									<label
-										for="readwise-key"
-										class="block text-sm font-medium text-primary mb-1"
-									>
+								<div class="min-w-0 flex-1">
+									<label for="readwise-key" class="mb-1 block text-sm font-medium text-primary">
 										Readwise API Key
-										<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 ml-2">
+										<span
+											class="ml-2 inline-flex items-center rounded bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+										>
 											👤 Personal (User-owned)
 										</span>
 									</label>
@@ -631,12 +697,12 @@
 										{/if}
 									</p>
 									{#if workspaceContext().type === 'organization'}
-										<p class="text-xs text-blue-600 dark:text-blue-400 mt-1">
+										<p class="mt-1 text-xs text-blue-600 dark:text-blue-400">
 											💡 Tip: Use the same key across workspaces to sync content everywhere
 										</p>
 									{/if}
 								</div>
-								<div class="flex flex-col gap-1 flex-shrink-0">
+								<div class="flex flex-shrink-0 flex-col gap-1">
 									<div class="relative inline-block">
 										<input
 											id="readwise-key"
@@ -646,19 +712,21 @@
 											onblur={handleReadwiseKeyBlur}
 											disabled={readwiseValidationState === 'validating'}
 											placeholder={readwiseHasKey ? '••••••••••••••••' : 'token_...'}
-											class="w-64 px-3 py-2 pr-10 text-sm bg-base border {readwiseValidationState === 'valid'
+											class="w-64 border bg-base px-3 py-2 pr-10 text-sm {readwiseValidationState ===
+											'valid'
 												? 'border-green-500'
 												: readwiseValidationState === 'invalid'
 													? 'border-red-500'
-													: 'border-base'} rounded-md text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all {readwiseValidationState === 'validating'
-												? 'opacity-50 cursor-not-allowed'
+													: 'border-base'} rounded-md text-primary transition-all placeholder:text-tertiary focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none {readwiseValidationState ===
+											'validating'
+												? 'cursor-not-allowed opacity-50'
 												: ''}"
 										/>
 										<!-- Validation indicator icon / Delete button -->
 										{#if readwiseValidationState === 'validating'}
-											<div class="absolute right-2 top-1/2 -translate-y-1/2">
+											<div class="absolute top-1/2 right-2 -translate-y-1/2">
 												<svg
-													class="w-4 h-4 text-tertiary animate-spin"
+													class="h-4 w-4 animate-spin text-tertiary"
 													fill="none"
 													viewBox="0 0 24 24"
 												>
@@ -679,12 +747,8 @@
 											</div>
 										{:else if readwiseShowCheckmark}
 											<!-- Temporary checkmark (shows for 3 seconds after validation) -->
-											<div class="absolute right-2 top-1/2 -translate-y-1/2">
-												<svg
-													class="w-5 h-5 text-green-500"
-													fill="currentColor"
-													viewBox="0 0 20 20"
-												>
+											<div class="absolute top-1/2 right-2 -translate-y-1/2">
+												<svg class="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
 													<path
 														fill-rule="evenodd"
 														d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -697,15 +761,10 @@
 											<button
 												type="button"
 												onclick={handleDeleteReadwiseKey}
-												class="absolute right-2 top-1/2 -translate-y-1/2 text-secondary hover:text-red-500 transition-colors z-10"
+												class="absolute top-1/2 right-2 z-10 -translate-y-1/2 text-secondary transition-colors hover:text-red-500"
 												title="Remove API key"
 											>
-												<svg
-													class="w-4 h-4"
-													fill="none"
-													stroke="currentColor"
-													viewBox="0 0 24 24"
-												>
+												<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path
 														stroke-linecap="round"
 														stroke-linejoin="round"
@@ -715,9 +774,9 @@
 												</svg>
 											</button>
 										{:else if readwiseValidationState === 'invalid'}
-											<div class="absolute right-2 top-1/2 -translate-y-1/2">
+											<div class="absolute top-1/2 right-2 -translate-y-1/2">
 												<svg
-													class="w-4 h-4 text-red-500"
+													class="h-4 w-4 text-red-500"
 													fill="none"
 													stroke="currentColor"
 													viewBox="0 0 24 24"
@@ -734,15 +793,15 @@
 									</div>
 									<!-- Success/Error message or Get API key link below input -->
 									{#if readwiseShowCheckmark}
-										<p class="text-xs text-green-500 mt-1 max-w-64">API key is valid and saved</p>
+										<p class="mt-1 max-w-64 text-xs text-green-500">API key is valid and saved</p>
 									{:else if readwiseValidationState === 'invalid' && readwiseError}
-										<p class="text-xs text-red-500 mt-1 max-w-64">{readwiseError}</p>
+										<p class="mt-1 max-w-64 text-xs text-red-500">{readwiseError}</p>
 									{:else if !readwiseHasKey && readwiseValidationState !== 'validating'}
 										<a
 											href="https://readwise.io/access_token"
 											target="_blank"
 											rel="noopener noreferrer"
-											class="text-xs text-blue-500 hover:text-blue-600 mt-1 max-w-64 underline transition-colors"
+											class="mt-1 max-w-64 text-xs text-blue-500 underline transition-colors hover:text-blue-600"
 										>
 											Get API key
 										</a>
@@ -756,4 +815,3 @@
 		</div>
 	</div>
 </div>
-

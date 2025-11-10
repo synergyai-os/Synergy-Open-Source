@@ -9,11 +9,13 @@ Reusable, composable UI elements following atomic design principles. All compone
 ## Components
 
 ### Form Components
+
 - **`KeyboardShortcut`** - Display keyboard shortcuts consistently
 - **`FormInput`** - Text input with label
 - **`FormTextarea`** - Textarea with label
 
 ### Metadata Components (Linear-style)
+
 - **`StatusPill`** - Status selector with icon (Backlog, In Progress, Done, etc.)
 - **`PrioritySelector`** - Priority levels with visual indicators (None, Low, Medium, High, Urgent)
 - **`AssigneeSelector`** - User assignment with avatar/initials
@@ -21,6 +23,7 @@ Reusable, composable UI elements following atomic design principles. All compone
 - **`ContextSelector`** - Context/Template/Team selector (PAI, Template buttons)
 
 ### Utility Components
+
 - **`MetadataBar`** - Horizontal container for metadata pills
 - **`AttachmentButton`** - File attachment button with count
 - **`ToggleSwitch`** - On/off toggle switch
@@ -60,6 +63,7 @@ import {
 ## Stubbed Functionality
 
 All components have **onChange** handlers but **no backend integration**. This allows:
+
 - ✅ UI development independent of backend
 - ✅ Easy testing of visual states
 - ✅ Future integration without UI changes
@@ -70,6 +74,7 @@ All components have **onChange** handlers but **no backend integration**. This a
 ## Next Steps
 
 To make these components functional:
+
 1. Add Convex schema for metadata (status, priority, assignee, project)
 2. Create mutations for updating metadata
 3. Wire up onChange handlers to mutations
@@ -81,4 +86,3 @@ To make these components functional:
 ## Examples
 
 See `QuickCreateModal.svelte` for full integration example with all components working together in Linear-style layout.
-

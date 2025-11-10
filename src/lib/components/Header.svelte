@@ -9,10 +9,10 @@
 </script>
 
 <header
-	class="sticky top-0 z-50 bg-surface border-b border-base px-inbox-container py-system-header h-system-header flex items-center justify-between"
+	class="sticky top-0 z-50 flex h-system-header items-center justify-between border-b border-base bg-surface px-inbox-container py-system-header"
 >
 	<!-- Logo -->
-	<a href="/" class="text-xl font-bold text-primary hover:text-accent-primary transition-colors">
+	<a href="/" class="text-xl font-bold text-primary transition-colors hover:text-accent-primary">
 		SYOS
 	</a>
 
@@ -28,4 +28,3 @@
 		{/if}
 	</div>
 </header>
-

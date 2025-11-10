@@ -1,6 +1,6 @@
 /**
  * Flashcard generation prompt template
- * 
+ *
  * This template is used to generate flashcards from text input using Claude API.
  * Variables are interpolated using {{variable}} syntax.
  */
@@ -38,4 +38,3 @@ export const flashcardGenerationTemplate = `<prompt>
     Only return the JSON array, no additional text or explanation.
   </output_format>
 </prompt>`;
-

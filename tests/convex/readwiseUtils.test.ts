@@ -1,12 +1,12 @@
 /**
  * Test: parseAuthorString
- * 
+ *
  * WHY THIS TEST MATTERS:
  * - This function is CRITICAL to Readwise sync - if it breaks, highlights won't match sources correctly
  * - Handles complex author string formats from Readwise API
  * - If broken, causes duplicate sources or missing metadata in inbox
  * - Pure function = easy to test, fast to run
- * 
+ *
  * This is the ONE test that gives confidence the sync workflow won't break.
  */
 
@@ -89,4 +89,3 @@ describe('parseAuthorString', () => {
 		expect(result).toEqual(['Ryan Holiday', 'Stephen Hanselman']);
 	});
 });
-

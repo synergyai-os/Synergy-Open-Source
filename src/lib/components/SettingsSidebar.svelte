@@ -22,7 +22,7 @@
 
 <!-- Settings Sidebar - Fixed width, no collapse/resize functionality -->
 <aside
-	class="bg-sidebar text-sidebar-primary flex flex-col border-r border-sidebar h-full overflow-hidden"
+	class="flex h-full flex-col overflow-hidden border-r border-sidebar bg-sidebar text-sidebar-primary"
 	style="width: 286px; flex-shrink: 0;"
 >
 	<!-- Header with Back Button -->
@@ -33,20 +33,20 @@
 	/>
 
 	<!-- Navigation - Scrollable area -->
-	<nav class="flex-1 px-nav-container py-nav-container overflow-y-auto">
+	<nav class="flex-1 overflow-y-auto px-nav-container py-nav-container">
 		<!-- Settings Section -->
 		<div class="px-section py-section">
-			<p class="text-label font-medium text-sidebar-tertiary uppercase tracking-wider mb-1.5">
+			<p class="mb-1.5 text-label font-medium tracking-wider text-sidebar-tertiary uppercase">
 				Settings
 			</p>
 			<div class="space-y-0.5">
 				<a
 					href="/settings"
-					class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings')}
 				>
 					<svg
-						class="w-4 h-4 flex-shrink-0"
+						class="h-4 w-4 flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -70,11 +70,11 @@
 
 				<a
 					href="/settings/account"
-					class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/account')}
 				>
 					<svg
-						class="w-4 h-4 flex-shrink-0"
+						class="h-4 w-4 flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -92,11 +92,11 @@
 
 				<a
 					href="/settings/integrations"
-					class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/integrations')}
 				>
 					<svg
-						class="w-4 h-4 flex-shrink-0"
+						class="h-4 w-4 flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -114,11 +114,11 @@
 
 				<a
 					href="/settings/notifications"
-					class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/notifications')}
 				>
 					<svg
-						class="w-4 h-4 flex-shrink-0"
+						class="h-4 w-4 flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -136,11 +136,11 @@
 
 				<a
 					href="/settings/privacy"
-					class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/privacy')}
 				>
 					<svg
-						class="w-4 h-4 flex-shrink-0"
+						class="h-4 w-4 flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -159,19 +159,19 @@
 		</div>
 
 		<!-- Preferences Section -->
-		<div class="border-t border-sidebar my-2"></div>
+		<div class="my-2 border-t border-sidebar"></div>
 		<div class="px-section py-section">
-			<p class="text-label font-medium text-sidebar-tertiary uppercase tracking-wider mb-1.5">
+			<p class="mb-1.5 text-label font-medium tracking-wider text-sidebar-tertiary uppercase">
 				Preferences
 			</p>
 			<div class="space-y-0.5">
 				<a
 					href="/settings/appearance"
-					class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/appearance')}
 				>
 					<svg
-						class="w-4 h-4 flex-shrink-0"
+						class="h-4 w-4 flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -189,11 +189,11 @@
 
 				<a
 					href="/settings/keyboard"
-					class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/keyboard')}
 				>
 					<svg
-						class="w-4 h-4 flex-shrink-0"
+						class="h-4 w-4 flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -211,11 +211,11 @@
 
 				<a
 					href="/settings/data"
-					class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/data')}
 				>
 					<svg
-						class="w-4 h-4 flex-shrink-0"
+						class="h-4 w-4 flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -234,19 +234,19 @@
 		</div>
 
 		<!-- Advanced Section -->
-		<div class="border-t border-sidebar my-2"></div>
+		<div class="my-2 border-t border-sidebar"></div>
 		<div class="px-section py-section">
-			<p class="text-label font-medium text-sidebar-tertiary uppercase tracking-wider mb-1.5">
+			<p class="mb-1.5 text-label font-medium tracking-wider text-sidebar-tertiary uppercase">
 				Advanced
 			</p>
 			<div class="space-y-0.5">
 				<a
 					href="/settings/billing"
-					class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/billing')}
 				>
 					<svg
-						class="w-4 h-4 flex-shrink-0"
+						class="h-4 w-4 flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -264,11 +264,11 @@
 
 				<a
 					href="/settings/api"
-					class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/api')}
 				>
 					<svg
-						class="w-4 h-4 flex-shrink-0"
+						class="h-4 w-4 flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -286,11 +286,11 @@
 
 				<a
 					href="/settings/permissions-test"
-					class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/permissions-test')}
 				>
 					<svg
-						class="w-4 h-4 flex-shrink-0"
+						class="h-4 w-4 flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -309,4 +309,3 @@
 		</div>
 	</nav>
 </aside>
-

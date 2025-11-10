@@ -7,23 +7,27 @@ This document outlines the architecture for future multi-tenancy support and pro
 **Status**: All content is user-scoped. Each user only sees and can access their own content.
 
 **Schema**:
+
 - All content tables have `userId` field
 - All queries filter by `userId` using indexes like `by_user`
 - No organization or team concepts exist in queries
 
 **Access Control**:
+
 - Simple: `userId` match = access granted
 - No permission checks needed beyond authentication
 
 ## Future State (Multi-Tenant)
 
 **Vision**: Organizations and teams can share content. Users can be part of multiple organizations and teams. Content can be:
+
 - **User-owned**: Personal content (current state)
 - **Organization-owned**: Shared across organization
 - **Team-owned**: Shared within a team
 - **Purchased**: Content bought by user/org/team
 
 **Schema** (Already in place):
+
 - `organizations` table - Organizations
 - `teams` table - Teams within organizations
 - `organizationMembers` table - Many-to-many: users ↔ organizations
@@ -32,6 +36,7 @@ This document outlines the architecture for future multi-tenancy support and pro
 - Indexes exist for `by_organization` and `by_team` (unused for now)
 
 **Access Control** (Stub functions in `convex/permissions.ts`):
+
 - `getUserOrganizationIds()` - Get user's org memberships
 - `getUserTeamIds()` - Get user's team memberships
 - `canAccessContent()` - Check if user can access specific content
@@ -47,59 +52,59 @@ Update stub functions to query membership tables:
 
 ```typescript
 export async function getUserOrganizationIds(
-  ctx: QueryCtx | MutationCtx,
-  userId: string
+	ctx: QueryCtx | MutationCtx,
+	userId: string
 ): Promise<string[]> {
-  const memberships = await ctx.db
-    .query("organizationMembers")
-    .withIndex("by_user", (q) => q.eq("userId", userId))
-    .collect();
-  return memberships.map(m => m.organizationId);
+	const memberships = await ctx.db
+		.query('organizationMembers')
+		.withIndex('by_user', (q) => q.eq('userId', userId))
+		.collect();
+	return memberships.map((m) => m.organizationId);
 }
 
 export async function getUserTeamIds(
-  ctx: QueryCtx | MutationCtx,
-  userId: string
+	ctx: QueryCtx | MutationCtx,
+	userId: string
 ): Promise<string[]> {
-  const memberships = await ctx.db
-    .query("teamMembers")
-    .withIndex("by_user", (q) => q.eq("userId", userId))
-    .collect();
-  return memberships.map(m => m.teamId);
+	const memberships = await ctx.db
+		.query('teamMembers')
+		.withIndex('by_user', (q) => q.eq('userId', userId))
+		.collect();
+	return memberships.map((m) => m.teamId);
 }
 
 export async function canAccessContent(
-  ctx: QueryCtx | MutationCtx,
-  userId: string,
-  content: { userId: string; organizationId?: string; teamId?: string; ownershipType?: string }
+	ctx: QueryCtx | MutationCtx,
+	userId: string,
+	content: { userId: string; organizationId?: string; teamId?: string; ownershipType?: string }
 ): Promise<boolean> {
-  // User owns it
-  if (content.userId === userId) {
-    return true;
-  }
-  
-  // Check org membership
-  if (content.organizationId) {
-    const orgIds = await getUserOrganizationIds(ctx, userId);
-    if (orgIds.includes(content.organizationId)) {
-      return true;
-    }
-  }
-  
-  // Check team membership
-  if (content.teamId) {
-    const teamIds = await getUserTeamIds(ctx, userId);
-    if (teamIds.includes(content.teamId)) {
-      return true;
-    }
-  }
-  
-  // Check purchased content (future)
-  if (content.ownershipType === "purchased") {
-    // TODO: Check if user has purchased this content
-  }
-  
-  return false;
+	// User owns it
+	if (content.userId === userId) {
+		return true;
+	}
+
+	// Check org membership
+	if (content.organizationId) {
+		const orgIds = await getUserOrganizationIds(ctx, userId);
+		if (orgIds.includes(content.organizationId)) {
+			return true;
+		}
+	}
+
+	// Check team membership
+	if (content.teamId) {
+		const teamIds = await getUserTeamIds(ctx, userId);
+		if (teamIds.includes(content.teamId)) {
+			return true;
+		}
+	}
+
+	// Check purchased content (future)
+	if (content.ownershipType === 'purchased') {
+		// TODO: Check if user has purchased this content
+	}
+
+	return false;
 }
 ```
 
@@ -114,77 +119,80 @@ export async function canAccessContent(
 ```typescript
 // Before (user-scoped only):
 export const getUserFlashcards = query({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
+	args: {},
+	handler: async (ctx) => {
+		const userId = await getAuthUserId(ctx);
+		if (!userId) {
+			throw new Error('Not authenticated');
+		}
 
-    const flashcards = await ctx.db
-      .query("flashcards")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .collect();
+		const flashcards = await ctx.db
+			.query('flashcards')
+			.withIndex('by_user', (q) => q.eq('userId', userId))
+			.collect();
 
-    return flashcards;
-  },
+		return flashcards;
+	}
 });
 
 // After (multi-tenant):
 export const getUserFlashcards = query({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
+	args: {},
+	handler: async (ctx) => {
+		const userId = await getAuthUserId(ctx);
+		if (!userId) {
+			throw new Error('Not authenticated');
+		}
 
-    // Get user's accessible org/team IDs
-    const orgIds = await getUserOrganizationIds(ctx, userId);
-    const teamIds = await getUserTeamIds(ctx, userId);
+		// Get user's accessible org/team IDs
+		const orgIds = await getUserOrganizationIds(ctx, userId);
+		const teamIds = await getUserTeamIds(ctx, userId);
 
-    // Query user-owned content
-    const userFlashcards = await ctx.db
-      .query("flashcards")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .collect();
+		// Query user-owned content
+		const userFlashcards = await ctx.db
+			.query('flashcards')
+			.withIndex('by_user', (q) => q.eq('userId', userId))
+			.collect();
 
-    // Query org-owned content
-    const orgFlashcards = orgIds.length > 0
-      ? await Promise.all(
-          orgIds.map(orgId =>
-            ctx.db
-              .query("flashcards")
-              .withIndex("by_organization", (q) => q.eq("organizationId", orgId))
-              .collect()
-          )
-        ).then(results => results.flat())
-      : [];
+		// Query org-owned content
+		const orgFlashcards =
+			orgIds.length > 0
+				? await Promise.all(
+						orgIds.map((orgId) =>
+							ctx.db
+								.query('flashcards')
+								.withIndex('by_organization', (q) => q.eq('organizationId', orgId))
+								.collect()
+						)
+					).then((results) => results.flat())
+				: [];
 
-    // Query team-owned content
-    const teamFlashcards = teamIds.length > 0
-      ? await Promise.all(
-          teamIds.map(teamId =>
-            ctx.db
-              .query("flashcards")
-              .withIndex("by_team", (q) => q.eq("teamId", teamId))
-              .collect()
-          )
-        ).then(results => results.flat())
-      : [];
+		// Query team-owned content
+		const teamFlashcards =
+			teamIds.length > 0
+				? await Promise.all(
+						teamIds.map((teamId) =>
+							ctx.db
+								.query('flashcards')
+								.withIndex('by_team', (q) => q.eq('teamId', teamId))
+								.collect()
+						)
+					).then((results) => results.flat())
+				: [];
 
-    // Combine and deduplicate
-    const allFlashcards = [...userFlashcards, ...orgFlashcards, ...teamFlashcards];
-    const uniqueFlashcards = Array.from(
-      new Map(allFlashcards.map(card => [card._id, card])).values()
-    );
+		// Combine and deduplicate
+		const allFlashcards = [...userFlashcards, ...orgFlashcards, ...teamFlashcards];
+		const uniqueFlashcards = Array.from(
+			new Map(allFlashcards.map((card) => [card._id, card])).values()
+		);
 
-    return uniqueFlashcards;
-  },
+		return uniqueFlashcards;
+	}
 });
 ```
 
 **Files to Update**:
+
 - `convex/inbox.ts` - `listInboxItems`, `getInboxItem`, `getInboxItemWithDetails`
 - `convex/flashcards.ts` - `getUserFlashcards`, `getDueFlashcards`, `getFlashcard`
 - Any other queries that filter by `userId` only
@@ -198,65 +206,65 @@ export const getUserFlashcards = query({
 ```typescript
 // Before:
 export const reviewFlashcard = mutation({
-  args: {
-    flashcardId: v.id("flashcards"),
-    rating: v.union(v.literal("again"), v.literal("hard"), v.literal("good"), v.literal("easy")),
-  },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
+	args: {
+		flashcardId: v.id('flashcards'),
+		rating: v.union(v.literal('again'), v.literal('hard'), v.literal('good'), v.literal('easy'))
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx);
+		if (!userId) {
+			throw new Error('Not authenticated');
+		}
 
-    const flashcard = await ctx.db.get(args.flashcardId);
-    if (!flashcard) {
-      throw new Error("Flashcard not found");
-    }
+		const flashcard = await ctx.db.get(args.flashcardId);
+		if (!flashcard) {
+			throw new Error('Flashcard not found');
+		}
 
-    if (flashcard.userId !== userId) {
-      throw new Error("Not authorized");
-    }
-    
-    // ... rest of logic
-  },
+		if (flashcard.userId !== userId) {
+			throw new Error('Not authorized');
+		}
+
+		// ... rest of logic
+	}
 });
 
 // After:
 export const reviewFlashcard = mutation({
-  args: {
-    flashcardId: v.id("flashcards"),
-    rating: v.union(v.literal("again"), v.literal("hard"), v.literal("good"), v.literal("easy")),
-  },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
+	args: {
+		flashcardId: v.id('flashcards'),
+		rating: v.union(v.literal('again'), v.literal('hard'), v.literal('good'), v.literal('easy'))
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx);
+		if (!userId) {
+			throw new Error('Not authenticated');
+		}
 
-    const flashcard = await ctx.db.get(args.flashcardId);
-    if (!flashcard) {
-      throw new Error("Flashcard not found");
-    }
+		const flashcard = await ctx.db.get(args.flashcardId);
+		if (!flashcard) {
+			throw new Error('Flashcard not found');
+		}
 
-    // Use permission helper instead of direct userId check
-    const hasAccess = await canAccessContent(ctx, userId, flashcard);
-    if (!hasAccess) {
-      throw new Error("Not authorized");
-    }
-    
-    // ... rest of logic
-  },
+		// Use permission helper instead of direct userId check
+		const hasAccess = await canAccessContent(ctx, userId, flashcard);
+		if (!hasAccess) {
+			throw new Error('Not authorized');
+		}
+
+		// ... rest of logic
+	}
 });
 ```
 
 ### Step 4: Add Organization/Team UI (1-2 weeks)
 
 **Tasks**:
+
 1. Create organization management UI
    - Create organization
    - Invite members
    - Manage roles (owner, admin, member)
-   
 2. Create team management UI
    - Create teams within organizations
    - Add/remove team members
@@ -291,7 +299,7 @@ Use `canAccessContent()` to verify access:
 ```typescript
 const hasAccess = await canAccessContent(ctx, userId, content);
 if (!hasAccess) {
-  throw new Error("Not authorized");
+	throw new Error('Not authorized');
 }
 ```
 
@@ -328,12 +336,12 @@ if (!hasAccess) return null;
 **Use when**: Small dataset, can filter in memory
 
 ```typescript
-const allItems = await ctx.db.query("table").collect();
+const allItems = await ctx.db.query('table').collect();
 const accessibleItems = await Promise.all(
-  allItems.map(item => 
-    canAccessContent(ctx, userId, item).then(hasAccess => hasAccess ? item : null)
-  )
-).then(items => items.filter(Boolean));
+	allItems.map((item) =>
+		canAccessContent(ctx, userId, item).then((hasAccess) => (hasAccess ? item : null))
+	)
+).then((items) => items.filter(Boolean));
 ```
 
 **Note**: Pattern 3 is less efficient for large datasets. Prefer Pattern 1.
@@ -363,6 +371,7 @@ const accessibleItems = await Promise.all(
 ### Unit Tests
 
 Test permission helpers:
+
 - `getUserOrganizationIds()` returns correct org IDs
 - `getUserTeamIds()` returns correct team IDs
 - `canAccessContent()` correctly grants/denies access based on ownership
@@ -370,6 +379,7 @@ Test permission helpers:
 ### Integration Tests
 
 Test queries:
+
 - User sees their own content
 - User sees org content when member
 - User sees team content when member
@@ -379,6 +389,7 @@ Test queries:
 ### E2E Tests
 
 Test UI:
+
 - Organization creation and membership
 - Team creation and membership
 - Content sharing across org/team
@@ -411,11 +422,13 @@ Test UI:
 **Status**: Deferred - Easy to add later
 
 **Why Deferred**:
+
 - Current architecture already supports it (each email = separate `userId`)
 - No schema changes needed now
 - Low migration cost (~1-2 days when needed)
 
 **Future Implementation**:
+
 1. Add `userAccounts` table to link multiple `userId`s to same person (optional)
 2. Add account switcher UI component (dropdown menu)
 3. Store active account in localStorage
@@ -428,4 +441,3 @@ Test UI:
 - `dev-docs/product-vision-and-plan.md` - Product vision and multi-tenancy goals
 - `convex/schema.ts` - Database schema with multi-tenancy fields
 - `convex/permissions.ts` - Permission helper functions
-

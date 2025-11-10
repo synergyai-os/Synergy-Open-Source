@@ -4,30 +4,32 @@ import { env } from '$env/dynamic/private';
 
 // Define public routes that don't require authentication
 const publicPaths = [
-	'/',              // Homepage
-	'/login',         // Login page
-	'/register',      // Registration page
-	'/auth',          // Auth callback routes
+	'/', // Homepage
+	'/login', // Login page
+	'/register', // Registration page
+	'/auth' // Auth callback routes
 ];
 
 // Check if path is public
 function isPublicPath(pathname: string): boolean {
-	return publicPaths.some(p => pathname === p || pathname.startsWith(p + '/')) ||
-	       pathname.startsWith('/dev-docs') || 
-	       pathname.startsWith('/docs') ||
-	       pathname.startsWith('/marketing-docs');
+	return (
+		publicPaths.some((p) => pathname === p || pathname.startsWith(p + '/')) ||
+		pathname.startsWith('/dev-docs') ||
+		pathname.startsWith('/docs') ||
+		pathname.startsWith('/marketing-docs')
+	);
 }
 
 // Redirect .md URLs to dynamic routes (prevents raw markdown files from being served)
 const redirectMarkdownUrls: Handle = async ({ event, resolve }) => {
 	const { pathname } = event.url;
-	
+
 	// If URL ends with .md, redirect to the version without .md
 	if (pathname.match(/\.md$/)) {
 		const cleanPath = pathname.replace(/\.md$/, '');
 		throw redirect(301, cleanPath + event.url.search + event.url.hash);
 	}
-	
+
 	return resolve(event);
 };
 
@@ -36,18 +38,18 @@ const workosAuth: Handle = async ({ event, resolve }) => {
 	// Get session token and user data from cookies
 	const accessToken = event.cookies.get('wos-session');
 	const userDataCookie = event.cookies.get('wos-user');
-	
+
 	// Initialize auth object
 	event.locals.auth = {
 		user: null,
 		sessionId: accessToken || undefined
 	};
-	
+
 	// If we have user data cookie, parse it
 	if (userDataCookie) {
 		try {
 			const userData = JSON.parse(userDataCookie);
-			
+
 			// Default to personal workspace if not set
 			if (!userData.activeWorkspace) {
 				userData.activeWorkspace = {
@@ -56,7 +58,7 @@ const workosAuth: Handle = async ({ event, resolve }) => {
 					name: 'Private workspace'
 				};
 			}
-			
+
 			event.locals.auth.user = userData;
 		} catch (error) {
 			console.error('Failed to parse user data cookie:', error);
@@ -66,7 +68,7 @@ const workosAuth: Handle = async ({ event, resolve }) => {
 			event.locals.auth.sessionId = undefined;
 		}
 	}
-	
+
 	return resolve(event);
 };
 
@@ -79,14 +81,14 @@ const requireAuth: Handle = async ({ event, resolve }) => {
 	if (isPublicPath(event.url.pathname)) {
 		// Special handling: if authenticated user visits /login or /register, redirect them
 		const isAuthPage = event.url.pathname === '/login' || event.url.pathname === '/register';
-		
+
 		// Skip redirect during build context
 		if (!isBuildContext && isAuthPage && event.locals.auth.sessionId) {
 			// Authenticated user trying to access login/register page
 			const redirectTo = event.url.searchParams.get('redirectTo') || '/inbox';
 			throw redirect(302, redirectTo);
 		}
-		
+
 		return resolve(event);
 	}
 
@@ -98,7 +100,10 @@ const requireAuth: Handle = async ({ event, resolve }) => {
 	// Check if user is authenticated
 	if (!event.locals.auth.sessionId) {
 		// Redirect to login if not authenticated
-		throw redirect(302, `/login?redirectTo=${encodeURIComponent(event.url.pathname + event.url.search)}`);
+		throw redirect(
+			302,
+			`/login?redirectTo=${encodeURIComponent(event.url.pathname + event.url.search)}`
+		);
 	}
 
 	// User is authenticated, proceed
@@ -108,7 +113,6 @@ const requireAuth: Handle = async ({ event, resolve }) => {
 // Apply hooks in sequence
 export const handle = sequence(
 	redirectMarkdownUrls, // First, redirect any .md URLs to clean URLs
-	workosAuth,           // Then handle WorkOS auth
-	requireAuth           // Finally enforce authentication for protected routes
+	workosAuth, // Then handle WorkOS auth
+	requireAuth // Finally enforce authentication for protected routes
 );
-

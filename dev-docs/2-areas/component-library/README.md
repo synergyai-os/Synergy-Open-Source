@@ -20,6 +20,7 @@ This section will document all UI components with:
 ## Planned Components
 
 ### Core UI
+
 - **Buttons** - Primary, secondary, ghost, danger variants
 - **Forms** - Inputs, textareas, selects, checkboxes, radio buttons
 - **Cards** - Inbox cards, flashcards, detail panels
@@ -27,6 +28,7 @@ This section will document all UI components with:
 - **Navigation** - Sidebar, breadcrumbs, tabs, pagination
 
 ### Product OS Specific
+
 - **OKR Cards** - Objective and key result displays
 - **Roadmap Views** - Timeline, kanban, list views
 - **Opportunity Trees** - Visual discovery trees
@@ -38,16 +40,19 @@ This section will document all UI components with:
 ## Why This Matters
 
 **For Designers:**
+
 - Find component specs without digging through code
 - Ensure consistency across the product
 - Understand constraints and capabilities
 
 **For Engineers:**
+
 - See usage examples and props
 - Understand accessibility requirements
 - Follow established patterns
 
 **For Product Managers:**
+
 - Understand what's possible with existing components
 - Reference components in feature specs
 - Avoid reinventing the wheel
@@ -70,46 +75,56 @@ The components exist in `/src/lib/components/` but are not yet documented. Prior
 
 Each component will follow this structure:
 
-```markdown
+````markdown
 # ComponentName
 
 > One-sentence description
 
 ## Preview
+
 [Screenshot or Figma embed]
 
 ## Usage
+
 When to use this component and when not to.
 
 ## Variants
+
 - Default
 - Primary
 - Secondary
 - etc.
 
 ## Props/API
+
 | Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| ... | ... | ... | ... |
+| ---- | ---- | ------- | ----------- |
+| ...  | ...  | ...     | ...         |
 
 ## Examples
+
 ```svelte
 <Component prop="value" />
 ```
+````
 
 ## Accessibility
+
 - Keyboard navigation: Tab, Enter, Escape
 - Screen reader: ARIA labels, roles
 - WCAG: AA compliance
 
 ## Design Tokens Used
+
 - `px-button-x` - Horizontal padding
 - `bg-primary` - Background color
 - etc.
 
 ## Do's and Don'ts
+
 ✅ Do: ...
 ❌ Don't: ...
+
 ```
 
 ---
@@ -131,3 +146,4 @@ When to use this component and when not to.
 **Estimated**: 1 day for 10-15 core components
 
 
+```

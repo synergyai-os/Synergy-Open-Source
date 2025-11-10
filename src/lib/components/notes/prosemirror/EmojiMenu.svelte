@@ -72,10 +72,10 @@
 
 	let filteredEmojis = $derived.by(() => {
 		if (!query) return EMOJIS.slice(0, 10); // Show first 10 if no query
-		
+
 		const lowerQuery = query.toLowerCase();
 		return EMOJIS.filter(({ keywords }) =>
-			keywords.some(keyword => keyword.startsWith(lowerQuery))
+			keywords.some((keyword) => keyword.startsWith(lowerQuery))
 		).slice(0, 10); // Limit to 10 results
 	});
 
@@ -92,10 +92,10 @@
 			isVisible = true;
 			query = state.query;
 			selectedIndex = 0; // Reset selection on query change
-			
+
 			// Store range for emoji insertion
 			range = { from: state.from, to: state.to };
-			
+
 			// Calculate coords
 			const domCoords = editorView.coordsAtPos(state.from);
 			coords = {
@@ -192,22 +192,22 @@
 	.emoji-menu {
 		position: fixed;
 		z-index: 10000;
-		
+
 		/* Solid backdrop - no transparency */
 		background: rgb(255, 255, 255);
 		backdrop-filter: blur(8px);
-		
+
 		/* Strong border for visual separation */
 		border: 1px solid rgba(0, 0, 0, 0.12);
 		border-radius: 8px;
-		
+
 		/* Layered shadow for depth */
-		box-shadow: 
+		box-shadow:
 			0 0 0 1px rgba(0, 0, 0, 0.04),
 			0 4px 6px -1px rgba(0, 0, 0, 0.08),
-			0 10px 15px -3px rgba(0, 0, 0, 0.10),
+			0 10px 15px -3px rgba(0, 0, 0, 0.1),
 			0 20px 25px -5px rgba(0, 0, 0, 0.08);
-		
+
 		overflow-y: auto;
 		overflow-x: hidden;
 		max-height: 280px;
@@ -215,38 +215,38 @@
 		padding: 4px 0;
 		animation: slideIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 	}
-	
+
 	/* Scrollbar styling */
 	.emoji-menu::-webkit-scrollbar {
 		width: 6px;
 	}
-	
+
 	.emoji-menu::-webkit-scrollbar-track {
 		background: transparent;
 	}
-	
+
 	.emoji-menu::-webkit-scrollbar-thumb {
 		background: rgba(0, 0, 0, 0.15);
 		border-radius: 3px;
 	}
-	
+
 	.emoji-menu::-webkit-scrollbar-thumb:hover {
 		background: rgba(0, 0, 0, 0.25);
 	}
-	
+
 	:global(.dark) .emoji-menu::-webkit-scrollbar-thumb {
 		background: rgba(255, 255, 255, 0.15);
 	}
-	
+
 	:global(.dark) .emoji-menu::-webkit-scrollbar-thumb:hover {
 		background: rgba(255, 255, 255, 0.25);
 	}
-	
+
 	/* Dark mode support */
 	:global(.dark) .emoji-menu {
 		background: rgb(30, 30, 30);
 		border-color: rgba(255, 255, 255, 0.12);
-		box-shadow: 
+		box-shadow:
 			0 0 0 1px rgba(255, 255, 255, 0.08),
 			0 4px 6px -1px rgba(0, 0, 0, 0.4),
 			0 10px 15px -3px rgba(0, 0, 0, 0.5),
@@ -287,11 +287,11 @@
 		background: rgba(99, 102, 241, 0.08);
 		border-left-color: rgb(99, 102, 241);
 	}
-	
+
 	:global(.dark) .emoji-menu-item:hover {
 		background: rgba(255, 255, 255, 0.06);
 	}
-	
+
 	:global(.dark) .emoji-menu-item.selected {
 		background: rgba(99, 102, 241, 0.15);
 		border-left-color: rgb(129, 140, 248);
@@ -336,13 +336,12 @@
 		color: rgba(0, 0, 0, 0.9);
 		font-weight: 500;
 	}
-	
+
 	:global(.dark) .keywords {
 		color: rgba(255, 255, 255, 0.65);
 	}
-	
+
 	:global(.dark) .emoji-menu-item.selected .keywords {
 		color: rgba(255, 255, 255, 0.95);
 	}
 </style>
-

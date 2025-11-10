@@ -9,6 +9,7 @@
 ## The Problem We're Solving
 
 ### For Product Teams
+
 Product teams today struggle with:
 
 1. **Fragmented Tools**
@@ -42,7 +43,9 @@ Product teams today struggle with:
    - **Custom builds**: Expensive, time-consuming, hard to maintain
 
 ### For Organizations (Saprolab, ZDHC)
+
 Software companies (even those who don't think they are) need:
+
 - A system to **organize teams** and their knowledge
 - **Product discovery** and **delivery** tools in one place
 - **Outcome-driven frameworks** (OKRs, continuous discovery)
@@ -54,7 +57,9 @@ Software companies (even those who don't think they are) need:
 ## Our Solution: The Product OS
 
 ### What It Is
+
 An **open-source, modular platform** that integrates:
+
 - **Product discovery** (user research, opportunity trees, continuous discovery)
 - **Product delivery** (roadmaps, goal tracking, sprint planning)
 - **Team collaboration** (meetings, alignment, communication)
@@ -65,18 +70,21 @@ An **open-source, modular platform** that integrates:
 ### What Makes It Different
 
 #### 1. Learning Built In
+
 - **Glossaries** surface automatically in context
 - **AI summaries** of long documents
 - **Onboarding** embedded in workflows
 - **Learning from decisions** captured and accessible
 
 #### 2. AI Coaching with Your Data
+
 - Not generic ChatGPT—trained on **your** company data
 - Context-aware suggestions during workshops
 - Automated workshop generation from strategy
 - Decision support based on past outcomes
 
 #### 3. Privacy-First
+
 - **Offline-first**: Works without internet
 - **Self-hosted**: Run on your infrastructure
 - **Cloud-hosted**: Managed service option
@@ -84,12 +92,14 @@ An **open-source, modular platform** that integrates:
 - **Open source**: Audit the code, trust the system
 
 #### 4. Community-Driven
+
 - **Builder marketplace**: Custom apps, workflows, integrations
 - **Open standards**: Extend, customize, integrate
 - **Passionate community**: Product people building better tools together
 - **No vendor lock-in**: Export your data anytime
 
 #### 5. Outcome-Driven Frameworks
+
 - **OKRs** (Objectives & Key Results)
 - **Continuous discovery** (Teresa Torres)
 - **Jobs-to-be-Done** (JTBD)
@@ -102,6 +112,7 @@ An **open-source, modular platform** that integrates:
 ## How It Works
 
 ### For Teams
+
 1. **Set Outcomes**: Define clear, measurable goals (not outputs)
 2. **Discover Opportunities**: Use AI-powered research tools to understand users
 3. **Align Strategy**: Automated workshops based on your goals
@@ -110,12 +121,14 @@ An **open-source, modular platform** that integrates:
 6. **Learn**: AI captures decisions, builds glossaries, surfaces insights
 
 ### For Individuals
+
 1. **AI Coach**: Ask questions, get context-aware answers from company data
 2. **Learning**: Glossaries, onboarding, training embedded in workflows
 3. **Clarity**: Always know what the team is working on and why
 4. **Autonomy**: Self-service access to all context, no need to ask
 
 ### For Leaders
+
 1. **Visibility**: Real-time alignment dashboards
 2. **Automated Reporting**: Status updates generated automatically
 3. **Data-Driven**: Track outcomes, not outputs
@@ -126,13 +139,15 @@ An **open-source, modular platform** that integrates:
 ## Target Audience
 
 ### Primary: Saprolab (First Partner)
+
 - **Who**: IT management supplier building products for large non-profits
 - **Problem**: Need to replace Holaspirit with something customizable, open, and affordable
-- **Use Case**: 
+- **Use Case**:
   - Internal operations (team alignment, knowledge sharing)
   - Client work (ZDHC project management)
 
 ### Secondary: ZDHC (End User via Saprolab)
+
 - **Who**: Large non-profit running multiple product teams
 - **Problem**: Too many products, unclear roadmaps, misaligned teams, knowledge silos
 - **Use Case**:
@@ -142,6 +157,7 @@ An **open-source, modular platform** that integrates:
   - Glossary & knowledge sharing
 
 ### Tertiary: Product Teams Everywhere
+
 - **Who**: Startups, scale-ups, enterprises building digital products
 - **Problem**: Same problems (fragmented tools, unclear strategies, siloed knowledge)
 - **Use Case**: End-to-end product development platform
@@ -151,17 +167,20 @@ An **open-source, modular platform** that integrates:
 ## Business Model
 
 ### Phase 1: Validate with Saprolab
+
 - **Cost**: $60/month (Cursor AI)
 - **Revenue**: $X/month from Saprolab (first partner)
 - **Goal**: Reach profitability (Revenue > Costs)
 
 ### Phase 2: Scale with Open Source
+
 - **Community Edition**: Free, self-hosted, core features
 - **Managed Service**: Paid hosting with SLAs, support, backups
 - **Enterprise**: Custom deployments, dedicated support, training
 - **Marketplace**: Revenue share with builders who create apps
 
 ### Phase 3: Ecosystem
+
 - **Integrations**: Connect with existing tools (Jira, Notion, Slack, etc.)
 - **Consulting**: Help teams adopt product frameworks
 - **Training**: Workshops, courses, certifications
@@ -172,6 +191,7 @@ An **open-source, modular platform** that integrates:
 ## Why This Will Work
 
 ### Proof Points
+
 1. **One developer built this** with $60/month and AI
    - Proves it's achievable without VC funding
    - Rapid iterations, no bureaucracy
@@ -194,6 +214,7 @@ An **open-source, modular platform** that integrates:
    - Static docs → Living, searchable knowledge
 
 ### Market Timing
+
 - **Product teams** demand better tools (Holaspirit, Notion, Jira fatigue)
 - **AI adoption** accelerating (but generic ChatGPT isn't enough)
 - **Privacy concerns** rising (companies want control over data)
@@ -206,30 +227,35 @@ An **open-source, modular platform** that integrates:
 We'll know we're succeeding when:
 
 ### Adoption
+
 - ✅ Saprolab using it daily for internal ops
 - ✅ ZDHC onboarded and running product teams on it
 - ✅ 5+ organizations self-hosting within 6 months
 - ✅ 100+ teams using managed service within 12 months
 
 ### Engagement
+
 - ✅ Teams coming back daily (DAU/MAU > 50%)
 - ✅ Positive feedback from users ("This changed how we work")
 - ✅ Feature requests from power users
 - ✅ Low churn (< 5% monthly)
 
 ### Community
+
 - ✅ Developers contributing (Bjorn and others)
 - ✅ Builder marketplace with 10+ apps
 - ✅ 1,000+ GitHub stars within 12 months
 - ✅ Active Discord/community forum
 
 ### Revenue
+
 - ✅ Saprolab paying covers costs
 - ✅ 3+ paying customers within 6 months
 - ✅ Profitability within 12 months
 - ✅ Sustainable without VC funding
 
 ### Impact
+
 - ✅ Teams making better product decisions
 - ✅ Reduced time to onboard new members
 - ✅ Clearer alignment on goals
@@ -240,18 +266,21 @@ We'll know we're succeeding when:
 ## Long-Term Vision
 
 ### Year 1: Foundation
+
 - Saprolab & ZDHC validated
 - Core product discovery & delivery tools shipped
 - Community growing (100+ contributors)
 - Profitability reached
 
 ### Year 2: Ecosystem
+
 - Builder marketplace launched (50+ apps)
 - 1,000+ organizations using it
 - Training & consulting services
 - Conference/community events
 
 ### Year 3: Standard
+
 - Industry-standard for product teams
 - 10,000+ organizations
 - Integrations with every major tool
@@ -262,18 +291,22 @@ We'll know we're succeeding when:
 ## What We're NOT Building
 
 ### Not a CRM
+
 - We're not Salesforce or HubSpot
 - We don't manage customer relationships (unless a builder creates that app)
 
 ### Not a Project Management Tool
+
 - We're not Asana or Monday.com
 - We're product-focused (discovery + delivery), not task-focused
 
 ### Not a Generic Collaboration Tool
+
 - We're not Slack or Microsoft Teams
 - We integrate with them, but focus on product workflows
 
 ### Not a Solo Tool
+
 - We evolved from personal knowledge management, but now focus on teams
 - Individual features exist, but serve team outcomes
 
@@ -282,15 +315,19 @@ We'll know we're succeeding when:
 ## How to Talk About It
 
 ### Elevator Pitch (30 seconds)
+
 "We're building the open-source Product OS—a platform that embeds learning, AI coaching, and product discovery at the core. Think Holaspirit meets Notion meets ChatGPT, but privacy-first, community-driven, and built for product teams."
 
 ### For Saprolab (1 minute)
+
 "You need to replace Holaspirit with something that's customizable, affordable, and open. We built a platform that handles team alignment, knowledge sharing, and product management—with AI coaching trained on your data, not generic advice. You can self-host it, customize workflows, and it costs a fraction of existing tools. Plus, it's open source, so you're never locked in."
 
 ### For ZDHC (1 minute)
+
 "Running multiple product teams is hard—unclear roadmaps, misaligned goals, knowledge silos. We built a platform that brings everything together: product discovery, roadmap tracking, automated status reports, and built-in glossaries. Your teams stay aligned, meetings are more effective, and onboarding new members is painless. It's like having an AI coach that knows your organization."
 
 ### For the Community (1 minute)
+
 "Product teams deserve better tools. We're building an open-source Product OS that embeds learning, AI coaching, and product frameworks at the core. It's privacy-first (self-host or cloud), community-driven (build your own apps), and outcome-focused (track what matters). Join us to help accelerate the smart use of AI for product teams everywhere."
 
 ---
@@ -298,22 +335,27 @@ We'll know we're succeeding when:
 ## Risks & Mitigations
 
 ### Risk: "Too ambitious"
+
 - **Mitigation**: Start small (Saprolab validation), expand incrementally
 - **Proof**: Already built working foundation with $60/month
 
 ### Risk: "Open source = no revenue"
+
 - **Mitigation**: Managed service, enterprise support, marketplace revenue share
 - **Proof**: PostHog, Supabase, Cal.com prove the model
 
 ### Risk: "Community won't contribute"
+
 - **Mitigation**: Clear contribution guidelines, starter issues, great DX
 - **Proof**: Solving real pain = motivated contributors
 
 ### Risk: "AI hype will fade"
+
 - **Mitigation**: AI is an enhancement, not the core value prop
 - **Proof**: Product frameworks are timeless, AI makes them easier
 
 ### Risk: "Incumbents will copy us"
+
 - **Mitigation**: Open source community = moat; incumbents can't pivot fast
 - **Proof**: Speed and community beat features
 
@@ -338,7 +380,7 @@ We'll know we're succeeding when:
 ---
 
 **Ready to dive deeper?**
+
 - **Strategy**: Read [Product Strategy](./product-strategy.md) for outcome-driven roadmap
 - **Personas**: Check [Target Personas](../audience/target-personas.md) for buyer/user profiles
 - **Launch**: Review [1-Day Community Launch](../launch-plans/1-day-community-launch.md) to start building momentum
-
