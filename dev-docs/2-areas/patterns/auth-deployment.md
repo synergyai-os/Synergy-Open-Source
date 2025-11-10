@@ -482,8 +482,69 @@ accountLinks: defineTable({
 
 ---
 
+---
+
+## #L510: Deploy Convex to Correct Environment [🔴 CRITICAL]
+
+**Symptom**: Auth works end-to-end but users not appearing in Convex database, logs show "Server Error" or "Could not find function"  
+**Root Cause**: Convex functions deployed to DEV, not PROD (or vice versa)  
+**Fix**:
+
+```bash
+# ❌ WRONG: Using grep with multiple matches
+CONVEX_DEPLOY_KEY=$(grep CONVEX_DEPLOY_KEY .env | cut -d= -f2)
+# If .env has:
+# CONVEX_DEPLOY_KEY=dev:blissful-lynx-970
+# CONVEX_DEPLOY_KEY_PROD=prod:prestigious-whale-251
+# ↑ Grabs the first one (DEV)! ❌
+
+# ✅ CORRECT: Explicit production deployment
+CONVEX_DEPLOY_KEY="prod:prestigious-whale-251|your_key_here" npx convex deploy --yes
+
+# ✅ BEST: Structure .env properly
+# .env (committed, default = production)
+CONVEX_DEPLOY_KEY=prod:prestigious-whale-251|...
+
+# .env.local (not committed, override for local dev)
+CONVEX_DEPLOY_KEY=dev:blissful-lynx-970|...
+```
+
+**How to verify:**
+```bash
+# Check which deployment it's using
+npx convex deploy --yes
+# Look for: "Deploying to https://[deployment-name].convex.cloud..."
+
+# List functions in production
+CONVEX_DEPLOY_KEY="prod:..." npx convex run --help
+# Should show your latest functions
+
+# Test a specific mutation
+CONVEX_DEPLOY_KEY="prod:..." npx convex run users:syncUserFromWorkOS '{"workosId":"test","email":"test@example.com","emailVerified":true}'
+```
+
+**Why**: Vercel deploys your SvelteKit app automatically (from GitHub), but **Convex functions must be manually deployed**. They're separate systems:
+- **SvelteKit (Vercel)**: Auto-deploys on git push
+- **Convex (Convex Dashboard)**: Manual `npx convex deploy` required
+
+**Common mistakes:**
+- Deploying Convex to DEV but running app in PROD
+- Using wrong `CONVEX_DEPLOY_KEY` from `.env`
+- Forgetting to deploy Convex after schema changes
+- `.env` has multiple keys, grep grabs wrong one
+
+**Apply when**:
+- Setting up new auth system
+- Any Convex schema changes
+- Adding new Convex functions
+- Production deployment
+
+**Related**: #L10 (PUBLIC_ environment variables), #L60 (Staging vs Production)
+
+---
+
 **Last Updated**: 2025-11-10  
-**Pattern Count**: 10  
+**Pattern Count**: 11  
 **Validated**: WorkOS AuthKit, SvelteKit, Vite, Convex  
 **Format Version**: 2.0
 

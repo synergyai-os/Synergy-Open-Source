@@ -11,6 +11,7 @@
 | Auth fails, `op://...` strings in browser | Use actual values in .env.local for PUBLIC_ vars | [auth-deployment.md#L10](auth-deployment.md#L10) |
 | Logout doesn't work, cookies persist | Match exact attributes when deleting cookies | [auth-deployment.md#L160](auth-deployment.md#L160) |
 | Build fails: "Could not load [deleted-file]" | Check all imports before deleting files | [auth-deployment.md#L260](auth-deployment.md#L260) |
+| Auth works but users not in Convex DB | Deploy Convex functions to correct environment | [auth-deployment.md#L510](auth-deployment.md#L510) |
 | State not updating in UI | Use `$state({})` + getters | [svelte-reactivity.md#L10](svelte-reactivity.md#L10) |
 | `undefined is not a valid Convex value` | Strip undefined from payloads | [convex-integration.md#L10](convex-integration.md#L10) |
 | `Only actions can be defined in Node.js` | Separate "use node" files | [convex-integration.md#L50](convex-integration.md#L50) |
