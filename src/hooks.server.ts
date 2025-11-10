@@ -46,7 +46,18 @@ const workosAuth: Handle = async ({ event, resolve }) => {
 	// If we have user data cookie, parse it
 	if (userDataCookie) {
 		try {
-			event.locals.auth.user = JSON.parse(userDataCookie);
+			const userData = JSON.parse(userDataCookie);
+			
+			// Default to personal workspace if not set
+			if (!userData.activeWorkspace) {
+				userData.activeWorkspace = {
+					type: 'personal',
+					id: null,
+					name: 'Private workspace'
+				};
+			}
+			
+			event.locals.auth.user = userData;
 		} catch (error) {
 			console.error('Failed to parse user data cookie:', error);
 			// Clear invalid cookies

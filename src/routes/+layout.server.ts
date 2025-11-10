@@ -4,7 +4,12 @@ import type { LayoutServerLoad } from './$types';
 export const load: LayoutServerLoad = async ({ locals }) => {
 	return {
 		user: locals.auth.user,
-		isAuthenticated: !!locals.auth.sessionId
+		isAuthenticated: !!locals.auth.sessionId,
+		activeWorkspace: locals.auth.user?.activeWorkspace || {
+			type: 'personal',
+			id: null,
+			name: 'Private workspace'
+		}
 	};
 };
 

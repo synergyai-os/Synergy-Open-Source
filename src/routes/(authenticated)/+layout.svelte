@@ -13,12 +13,13 @@
 
     const organizations = getContext<UseOrganizations | undefined>('organizations');
     const isAuthenticated = $derived(data.isAuthenticated);
-    const accountEmail = $derived(() => data.user?.email ?? 'user@example.com');
-    const accountName = $derived(() => 
+	const accountEmail = $derived(() => data.user?.email ?? 'user@example.com');
+	const accountName = $derived(() => 
 		data.user?.firstName && data.user?.lastName 
 			? `${data.user.firstName} ${data.user.lastName}` 
 			: data.user?.email ?? 'Personal workspace'
 	);
+	const workspaceName = $derived(() => data.activeWorkspace?.name ?? 'Private workspace');
 
 	// Initialize global shortcuts (only in browser - SSR safe)
 	const shortcuts = browser ? useGlobalShortcuts() : null;
@@ -156,6 +157,7 @@
                 onSidebarToggle={() => (sidebarCollapsed = !sidebarCollapsed)}
                 accountName={accountName()}
                 accountEmail={accountEmail()}
+                workspaceName={workspaceName()}
             />
             <div class="flex-1 overflow-hidden">
                 {@render children()}
