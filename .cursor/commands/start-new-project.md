@@ -58,8 +58,8 @@ const LINEAR = {
 
 1. **Read `/start` command** - Understand codebase patterns and architecture
 2. **Read `dev-docs/2-areas/product-principles.md`** ⭐ - How we make decisions (Outcomes Over Outputs, etc.)
-3. **Read `dev-docs/product-vision-and-plan.md`** - Understand current state and direction
-4. **Read `dev-docs/patterns/INDEX.md`** - Check for existing patterns to reuse
+3. **Read `dev-docs/2-areas/product-vision-and-plan.md`** - Understand current state and direction
+4. **Read `dev-docs/2-areas/patterns/INDEX.md`** - Check for existing patterns to reuse
 5. **Read `dev-docs/2-areas/flow-metrics.md`** - Understand Linear labeling system
 
 ---
@@ -610,13 +610,13 @@ See dev-docs/1-projects/[name]/ for architecture and decisions
 
 **Extract patterns**:
 1. Review project docs in `dev-docs/1-projects/[name]/`
-2. Extract reusable patterns → `dev-docs/2-areas/` or `dev-docs/patterns/`
-3. Update `dev-docs/patterns/INDEX.md`
+2. Extract reusable patterns → `dev-docs/2-areas/patterns/` (add to domain files)
+3. Update `dev-docs/2-areas/patterns/INDEX.md` (add to symptom table)
 4. Move project docs → `dev-docs/4-archive/`
 
 **Example**:
 - `decisions/001-workspace-context.md` → Keep in archive for reference
-- Workspace switching pattern → Extract to `dev-docs/patterns/workspace-patterns.md`
+- Workspace switching pattern → Extract to `dev-docs/2-areas/patterns/ui-patterns.md` (or appropriate domain file)
 
 ---
 
