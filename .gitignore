@@ -14,7 +14,7 @@ node_modules
 Thumbs.db
 
 # Env
-# .env with 1Password references is SAFE TO COMMIT (per secrets-management.md)
+# .env with placeholders/template values is SAFE TO COMMIT
 # .env.local with actual secrets must be IGNORED
 .env.local
 .env.*.local

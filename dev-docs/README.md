@@ -121,7 +121,7 @@ This documentation follows the [PARA system](https://fortelabs.com/blog/para/):
 ### ⚡ Getting Started
 
 **→ [Start Me Guide](2-areas/start-me.md)** - Get SynergyOS running locally in 5 minutes  
-**→ [Secrets Management](2-areas/secrets-management.md)** - 1Password CLI setup for secure development
+**→ [Secrets Management](2-areas/secrets-management.md)** - `.env.local` setup for secure development
 
 ---
 
@@ -216,7 +216,7 @@ This documentation follows the [PARA system](https://fortelabs.com/blog/para/):
 - `dev-docs/2-areas/patterns/INDEX.md` - Pattern lookup
 - `dev-docs/2-areas/architecture.md` - Tech architecture
 - `dev-docs/2-areas/design-tokens.md` - Token reference
-- `dev-docs/2-areas/secrets-management.md` - 1Password CLI & secret management
+- `dev-docs/2-areas/secrets-management.md` - `.env.local` & secret management
 - `dev-docs/2-areas/posthog.md` - Analytics & AARRR tracking
 
 ### Code

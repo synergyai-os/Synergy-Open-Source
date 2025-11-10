@@ -6,14 +6,14 @@
 
 ## #L10: PUBLIC_ Environment Variables Need Actual Values [🔴 CRITICAL]
 
-**Symptom**: Build succeeds but runtime shows `op://...` strings in client-side code, auth fails with "Invalid client ID"  
-**Root Cause**: Vite bakes `PUBLIC_*` variables into client-side JavaScript at build time. It reads `.env` literally and doesn't execute `op run`.  
+**Symptom**: Build succeeds but runtime shows placeholder strings in client-side code, auth fails with "Invalid client ID"  
+**Root Cause**: Vite bakes `PUBLIC_*` variables into client-side JavaScript at build time. They need actual values, not references or placeholders.  
 **Fix**:
 
 ```bash
-# ❌ WRONG: 1Password references in .env for PUBLIC_ variables
+# ❌ WRONG: Placeholders or references in .env for PUBLIC_ variables
 # .env
-PUBLIC_WORKOS_CLIENT_ID=op://SYOS/WorkOS-Production/client-id  # ❌ Baked as literal string
+PUBLIC_WORKOS_CLIENT_ID=<your_client_id_here>  # ❌ Baked as literal string
 
 # ✅ CORRECT: Actual values in .env.local for PUBLIC_ variables
 # .env.local (not committed to git)
@@ -21,16 +21,18 @@ PUBLIC_WORKOS_CLIENT_ID=client_01K9KZHJAB3NETZ1Z9MANRBGXQ  # ✅ Actual value
 PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
 PUBLIC_POSTHOG_KEY=phc_your_actual_key
 
-# Server-side variables can still use 1Password references
-WORKOS_API_KEY=op://SYOS/WorkOS-Production/api-key  # ✅ OK for server
+# Server-side variables also go in .env.local for simplicity
+WORKOS_API_KEY=sk_staging_your_actual_key  # ✅ Actual value
+WORKOS_CLIENT_ID=client_01K9KZHJAB3NETZ1Z9MANRBGXQ
+WORKOS_COOKIE_PASSWORD=your_32_char_random_string
 ```
 
-**Why**: `PUBLIC_*` variables are replaced at build time by Vite's string replacement. The `op run` command only injects environment variables at runtime, but by then Vite has already replaced `PUBLIC_*` with literal strings from `.env`.
+**Why**: `PUBLIC_*` variables are replaced at build time by Vite's string replacement. The `.env.local` file is read during build and provides the actual values. It's automatically ignored by git (via `.gitignore`).
 
 **Apply when**: 
-- Using any `PUBLIC_*` environment variables with 1Password
+- Using any `PUBLIC_*` environment variables
 - Setting up new projects with secrets management
-- Deploying to Vercel/production (use Vercel UI for actual values)
+- Deploying to Vercel/production (use Vercel Environment Variables UI for actual values)
 
 **Related**: #L60 (Staging vs Production credentials)
 

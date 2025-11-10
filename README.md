@@ -50,7 +50,7 @@ npx convex dev
 
 **Having trouble?** See [Start Me Guide](dev-docs/2-areas/start-me.md) for detailed troubleshooting.
 
-**Managing Secrets?** See [Secrets Management Guide](dev-docs/2-areas/secrets-management.md) for 1Password CLI setup.
+**Managing Secrets?** See [Secrets Management Guide](dev-docs/2-areas/secrets-management.md) for `.env.local` setup.
 
 ### Testing
 

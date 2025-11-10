@@ -44,60 +44,43 @@ This document contains the setup steps for WorkOS AuthKit (completed during migr
 3. Copy your **Production Client ID** (starts with `client_`)
 4. Copy your **Production API Key** (starts with `sk_`)
 
-## 2. Store Credentials in 1Password
+## 2. Generate Cookie Password
 
-Generate a secure cookie password and store all credentials:
+Generate a secure random password for cookie encryption:
 
 ```bash
 # Generate a secure cookie password (32+ characters)
 openssl rand -base64 32
 
-# Create 1Password item with all credentials
-op item create \
-  --vault SYOS \
-  --category "API Credential" \
-  --title "WorkOS-Production" \
-  'client-id[password]=<your_workos_client_id>' \
-  'api-key[password]=<your_workos_api_key>' \
-  'cookie-password[password]=<generated_cookie_password>'
+# Save this password - you'll need it for .env.local and Vercel
 ```
 
-## 3. Update Local Environment Files
+## 3. Create `.env.local` File
 
-⚠️ **CRITICAL**: `PUBLIC_*` variables need **actual values** in `.env.local` (not 1Password references)!
+Create `.env.local` in the project root with your actual secret values:
 
-**Why**: Vite bakes `PUBLIC_*` into client-side JavaScript at build time. It reads `.env` literally and doesn't execute `op run`.
-
-**`.env`** (1Password references for server-side vars):
 ```env
-# WorkOS Authentication (Staging for local dev)
-WORKOS_API_KEY=op://SYOS/WorkOS-Staging/api-key
-WORKOS_CLIENT_ID=op://SYOS/WorkOS-Staging/client-id
+# .env.local - NEVER commit this file!
+
+# Convex
+CONVEX_DEPLOY_KEY=prod:...your_actual_deploy_key_here
+
+# WorkOS - Staging (for local development)
+WORKOS_CLIENT_ID=client_01K9...staging_id_here
+WORKOS_API_KEY=sk_staging_...your_key_here
+WORKOS_COOKIE_PASSWORD=your_32_character_random_string_here
 WORKOS_REDIRECT_URI=http://127.0.0.1:5173/auth/callback
-WORKOS_COOKIE_PASSWORD=op://SYOS/WorkOS-Staging/cookie-password
-```
 
-**`.env.local`** (actual values for PUBLIC_ vars - not committed to git):
-```env
-# ⚠️ These need ACTUAL values (not op:// references)!
-PUBLIC_WORKOS_CLIENT_ID=client_01K9STAGING_ACTUAL_ID_HERE
+# Public variables (need actual values, not references)
+PUBLIC_WORKOS_CLIENT_ID=client_01K9...staging_id_here
 PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
-PUBLIC_POSTHOG_KEY=phc_your_actual_key
+PUBLIC_POSTHOG_KEY=phc_your_actual_key_here
 PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com
-
-# You can also put server-side vars here to avoid op run
-WORKOS_CLIENT_ID=client_01K9STAGING_ACTUAL_ID_HERE
-WORKOS_API_KEY=sk_staging_actual_key_here
-WORKOS_COOKIE_PASSWORD=your_32_char_password
-WORKOS_REDIRECT_URI=http://127.0.0.1:5173/auth/callback
 ```
 
-**To get actual values**:
-```bash
-# Get from 1Password
-op read "op://SYOS/WorkOS-Staging/client-id"
-op read "op://SYOS/WorkOS-Staging/api-key"
-```
+⚠️ **Important**: Use **Staging** WorkOS credentials for local development, **Production** credentials for Vercel.
+
+⚠️ **Why `.env.local`?** Vite bakes `PUBLIC_*` vars into client-side JavaScript at build time. They need actual values, not references. The `.env.local` file is automatically ignored by git (via `.gitignore`).
 
 ## 4. Add to Convex Dashboard
 
@@ -114,21 +97,21 @@ Go to Vercel Dashboard → Project → Settings → Environment Variables and ad
 - `WORKOS_CLIENT_ID` = Production Client ID
 - `PUBLIC_WORKOS_CLIENT_ID` = Production Client ID (actual value, not op:// reference!)
 - `WORKOS_REDIRECT_URI` = `https://synergyos.ai/auth/callback` (use canonical domain)
-- `WORKOS_COOKIE_PASSWORD` = (from 1Password)
+- `WORKOS_COOKIE_PASSWORD` = (generate with `openssl rand -base64 32`)
 - `PUBLIC_CONVEX_URL` = Your Convex production URL (actual value!)
 - `PUBLIC_POSTHOG_KEY` = Your PostHog key (actual value!)
 - `PUBLIC_POSTHOG_HOST` = `https://eu.i.posthog.com`
 
 ## 6. Test Locally
 
-After setting up the environment variables:
+After setting up `.env.local`:
 
 ```bash
-# If you put actual values in .env.local, just run:
+# Run dev server
 npm run dev
 
-# OR if using op run (but PUBLIC_ vars must still be in .env.local):
-op run -- npm run dev
+# In another terminal, run Convex dev
+npx convex dev
 ```
 
 Then test (use `127.0.0.1` not `localhost`):
@@ -191,7 +174,7 @@ After deployment, verify:
 
 ### 1. PUBLIC_ Variables Must Have Actual Values
 **Problem**: Vite bakes `PUBLIC_*` vars into client-side JS at build time  
-**Solution**: Put actual values in `.env.local`, not 1Password references  
+**Solution**: Put actual values in `.env.local` (never references or placeholders)  
 **See**: [patterns/auth-deployment.md#L10](dev-docs/2-areas/patterns/auth-deployment.md#L10)
 
 ### 2. Staging vs Production Credentials
