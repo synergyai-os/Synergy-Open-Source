@@ -195,9 +195,11 @@ export const listOrganizationInvites = query({
 export const createOrganization = mutation({
   args: {
     name: v.string(),
+    userId: v.optional(v.id("users")), // TODO: Remove once Convex auth context is set up
   },
   handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
+    // Try explicit userId first (client passes it), fallback to auth context
+    const userId = args.userId ?? await getAuthUserId(ctx);
     if (!userId) {
       throw new Error("Not authenticated");
     }

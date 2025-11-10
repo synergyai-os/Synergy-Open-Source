@@ -15,7 +15,8 @@
 	// Set up Convex client (unauthenticated - WorkOS handles auth separately)
 	setupConvex(PUBLIC_CONVEX_URL);
 
-	const organizationStore = useOrganizations();
+	// TODO: Remove userId param once Convex auth context is set up with WorkOS JWT
+	const organizationStore = useOrganizations({ userId: data.user?.userId });
 	setContext('organizations', organizationStore);
 
 	let posthogReady = $state(false);

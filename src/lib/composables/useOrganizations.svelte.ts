@@ -61,8 +61,9 @@ const STORAGE_DETAILS_KEY = 'activeOrganizationDetails';
 const SENTINEL_ORGANIZATION_ID = '000000000000000000000000';
 const PERSONAL_SENTINEL = '__personal__';
 
-export function useOrganizations() {
+export function useOrganizations(options?: { userId?: string }) {
   const convexClient = browser ? useConvexClient() : null;
+  const userId = options?.userId;
 
   const storedActiveId = browser ? localStorage.getItem(STORAGE_KEY) : null;
   const initialActiveId = storedActiveId === PERSONAL_SENTINEL ? null : storedActiveId;
@@ -314,6 +315,7 @@ export function useOrganizations() {
     try {
       const result = await convexClient.mutation(api.organizations.createOrganization, {
         name: trimmed,
+        userId: userId as any, // TODO: Remove once Convex auth context is set up
       });
       
       if (result?.organizationId) {
