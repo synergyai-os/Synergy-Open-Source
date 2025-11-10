@@ -29,6 +29,7 @@
 | Raw markdown displayed instead of rendered HTML | Add Vite middleware to redirect .md URLs | [ui-patterns.md#L1100](ui-patterns.md#L1100) |
 | Vercel build: "Could not resolve _generated/dataModel" | Commit _generated to git, separate deployments | [convex-integration.md#L540](convex-integration.md#L540) |
 | Deployment fails: "Could not resolve _generated/dataModel" during bundling | Use import type for _generated imports | [convex-integration.md#L590](convex-integration.md#L590) |
+| Query returns empty, ArgumentValidationError for valid field | Git conflicts block deployment, stale code running | [convex-integration.md#L640](convex-integration.md#L640) |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -143,6 +144,6 @@ correct code
 
 ---
 
-**Last Updated**: 2025-11-09  
-**Pattern Count**: 57  
+**Last Updated**: 2025-11-10  
+**Pattern Count**: 58  
 **Format Version**: 2.0

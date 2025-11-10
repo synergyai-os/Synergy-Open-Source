@@ -629,7 +629,56 @@ import type { DataModel } from "./_generated/dataModel";
 
 ---
 
-**Pattern Count**: 13  
-**Last Validated**: 2025-11-09  
+## #L640: Silent Deployment Failures from Git Conflicts [🔴 CRITICAL]
+
+**Symptom**: Query returns empty results even with correct args, Convex dashboard shows `ArgumentValidationError: Object contains extra field [fieldName]` for valid fields  
+**Root Cause**: Git merge conflicts block Convex deployment silently, backend runs stale code without parameter changes  
+**Fix**:
+
+```bash
+# 1. Check for conflict markers in Convex files
+grep -r "<<<<<<< HEAD\|=======\|>>>>>>>" convex/
+
+# 2. Resolve conflicts (take appropriate version or merge manually)
+git show HEAD:convex/problematic-file.ts > convex/problematic-file.ts
+
+# 3. OR delete non-critical files (e.g., seed data, tests)
+rm convex/seed/conflicted-file.ts
+
+# 4. Force clean deployment
+npx convex deploy --yes
+
+# 5. Verify in Convex dashboard logs (not just terminal)
+# Look for deployment success + query execution logs
+```
+
+**Debugging Steps**:
+1. Check `npx convex dev` terminal for compilation errors (not just warnings)
+2. Open Convex dashboard → Logs tab
+3. Click on failing query to see actual error (not summary)
+4. Look for `ArgumentValidationError` indicating schema mismatch
+5. Compare deployed schema vs local code
+
+**Why**: Convex can't parse conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`), silently skips deployment, continues serving old functions. Frontend sends new params, backend rejects them.  
+
+**Common Scenarios**:
+- Cherry-picking commits between branches
+- Merging branches with schema changes
+- Stashing/unstashing with conflicts
+- Multiple AI agents working in different branches
+
+**Prevention**:
+- Always check `npx convex dev` output after git operations
+- Use `git diff --check` before committing
+- Verify deployment success in Convex dashboard, not just terminal
+- Delete test/seed files if they conflict (non-critical)
+
+**Apply when**: Query fails with schema validation errors despite correct code  
+**Related**: #L590 (Type imports), #L540 (Deployment issues)
+
+---
+
+**Pattern Count**: 14  
+**Last Validated**: 2025-11-10  
 **Context7 Source**: `/get-convex/convex-backend`
 
