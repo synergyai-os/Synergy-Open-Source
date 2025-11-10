@@ -103,17 +103,17 @@ User: randyhereman@gmail.com
 
 We're building this in **end-to-end slices** that work immediately:
 
-| Slice | Goal | Status |
-|-------|------|--------|
-| **1** | Workspace Context & Indicator | 🚧 In Progress |
-| **2** | Create First Organization | ⏳ Not Started |
-| **3** | Switch Between Personal & One Org | ⏳ Not Started |
-| **4** | Keyboard Shortcuts (CMD+1/2) | ⏳ Not Started |
-| **5** | Multiple Organizations (4 total) | ⏳ Not Started |
-| **6** | CMD+K Workspace Search | ⏳ Not Started |
-| **7** | Account Linking (Stretch Goal) | ⏳ Not Started |
+| Slice | Goal | Status | Linear Ticket |
+|-------|------|--------|---------------|
+| **1** | Workspace Context & Indicator | ✅ Done | [SYOS-1](https://linear.app/younghumanclub/issue/SYOS-1) |
+| **2** | Create First Organization | 🟡 In Review | [SYOS-2](https://linear.app/younghumanclub/issue/SYOS-2) |
+| **3** | Switch Between Personal & One Org | ⏳ Not Started | SYOS-3 |
+| **4** | Keyboard Shortcuts (CMD+1/2) | ⏳ Not Started | SYOS-4 |
+| **5** | Multiple Organizations (4 total) | ⏳ Not Started | SYOS-5 |
+| **6** | CMD+K Workspace Search | ⏳ Not Started | SYOS-6 |
+| **7** | Account Linking (Stretch Goal) | ⏳ Not Started | SYOS-7 |
 
-**Current Focus**: Slice 1 - Get workspace indicator showing "Private workspace"
+**Current Focus**: Slice 2 - Testing organization creation (SYOS-2 in review)
 
 **Detailed Breakdown**: See [vertical-slices.md](./vertical-slices.md)
 
