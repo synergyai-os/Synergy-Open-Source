@@ -26,6 +26,8 @@ import type * as prompts_flashcardGeneration from "../prompts/flashcardGeneratio
 import type * as rbac_permissions from "../rbac/permissions.js";
 import type * as rbac_queries from "../rbac/queries.js";
 import type * as rbac_roles from "../rbac/roles.js";
+import type * as rbac_seedRBAC from "../rbac/seedRBAC.js";
+import type * as rbac_setupAdmin from "../rbac/setupAdmin.js";
 import type * as readwiseApi from "../readwiseApi.js";
 import type * as readwiseCleanup from "../readwiseCleanup.js";
 import type * as readwiseUtils from "../readwiseUtils.js";
@@ -72,6 +74,8 @@ declare const fullApi: ApiFromModules<{
   "rbac/permissions": typeof rbac_permissions;
   "rbac/queries": typeof rbac_queries;
   "rbac/roles": typeof rbac_roles;
+  "rbac/seedRBAC": typeof rbac_seedRBAC;
+  "rbac/setupAdmin": typeof rbac_setupAdmin;
   readwiseApi: typeof readwiseApi;
   readwiseCleanup: typeof readwiseCleanup;
   readwiseUtils: typeof readwiseUtils;

@@ -54,6 +54,8 @@
 | `InvalidConfig`: hyphens in filename | Use camelCase names | [convex-integration.md#L140](convex-integration.md#L140) |
 | Redundant API paths (api.x.x) | File=noun, Function=verb | [convex-integration.md#L190](convex-integration.md#L190) |
 | `.toLocaleDateString is not a function` | Wrap Convex timestamps in new Date() | [convex-integration.md#L490](convex-integration.md#L490) |
+| Custom JWT auth fails, cyclic import errors | Convex requires OIDC, not raw JWT. Use userId parameter temporarily | [convex-integration.md#L680](convex-integration.md#L680) |
+| After git stash: "Not authenticated" runtime errors | Backend/frontend out of sync. Re-add userId parameters | [convex-integration.md#L690](convex-integration.md#L690) |
 | Analytics events missing in PostHog | Use server-side tracking | [analytics.md#L10](analytics.md#L10) |
 
 ## 🟢 REFERENCE Patterns (Best Practices)
@@ -145,5 +147,5 @@ correct code
 ---
 
 **Last Updated**: 2025-11-10  
-**Pattern Count**: 58  
+**Pattern Count**: 60  
 **Format Version**: 2.0
