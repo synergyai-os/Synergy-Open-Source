@@ -290,8 +290,200 @@ export default defineConfig({
 
 ---
 
-**Last Updated**: 2025-11-09  
-**Pattern Count**: 7  
-**Validated**: WorkOS AuthKit, SvelteKit, Vite  
+## #L360: Dual Identity System for Provider Flexibility [🟢 REFERENCE]
+
+**Symptom**: Need to migrate auth providers but all relationships reference provider-specific IDs  
+**Root Cause**: Using auth provider ID (e.g., `workosId`) as primary identity for relationships  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Use provider ID everywhere
+users: defineTable({
+  workosId: v.string(),  // Primary identity
+  email: v.string(),
+})
+
+inboxItems: defineTable({
+  userId: v.string(),  // ❌ workosId string - locked to WorkOS
+})
+
+// ✅ CORRECT: Dual identity system
+users: defineTable({
+  // Convex ID = permanent identity (all relationships use this)
+  _id: "user_123abc",  // ← Use this for all relationships
+  
+  // Auth provider ID = authentication only
+  workosId: v.string(),  // Current: WorkOS
+  // Future: Add more providers
+  // clerkId: v.optional(v.string()),
+  // auth0Id: v.optional(v.string()),
+  
+  email: v.string(),
+})
+  .index("by_workos_id", ["workosId"])  // Fast login lookup
+
+inboxItems: defineTable({
+  userId: v.id("users"),  // ✅ References Convex _id (permanent)
+})
+```
+
+**Migration Path**:
+```typescript
+// Switching from WorkOS to Clerk
+1. Add clerkId field to users table
+2. User logs in with Clerk → lookup by email
+3. Update user record with clerkId
+4. Keep workosId for reference
+5. All relationships still work (they use userId)
+```
+
+**Why**: Auth providers come and go. Your user's identity should be permanent and provider-independent. The Convex `_id` never changes, while provider IDs are just authentication credentials.
+
+**Apply when**:
+- Designing auth system from scratch
+- Planning for multi-auth provider support
+- Long-term product strategy (5+ years)
+
+**Related**: #L410 (Personal workspace pattern)
+
+---
+
+## #L410: Personal Workspace Pattern (Null = Personal) [🟢 REFERENCE]
+
+**Symptom**: Need to distinguish personal content from org/team content in queries  
+**Root Cause**: Creating fake "Personal" organizations adds complexity and confusing queries  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Create fake organization for personal content
+// Forces complex queries and unnecessary records
+const personalOrg = await ctx.db.insert("organizations", {
+  name: "Personal",
+  slug: "personal",
+  userId: userId,  // One per user!
+});
+
+inboxItems.organizationId = personalOrg;  // ❌ Messy
+
+// ✅ CORRECT: null = personal content
+inboxItems: defineTable({
+  userId: v.id("users"),
+  organizationId: v.optional(v.id("organizations")),  // null = personal ✅
+  teamId: v.optional(v.id("teams")),
+  ownershipType: v.optional(
+    v.union(
+      v.literal("user"),         // User owns (personal)
+      v.literal("organization"), // Org owns
+      v.literal("team"),         // Team owns
+    )
+  ),
+})
+  .index("by_user", ["userId"])
+  .index("by_organization", ["organizationId"])
+  .index("by_team", ["teamId"])
+
+// Clean queries
+// Get personal content
+const personal = await ctx.db
+  .query("inboxItems")
+  .withIndex("by_user", q => q.eq("userId", userId))
+  .filter(q => q.eq(q.field("organizationId"), null))  // ✅ Clear!
+  .collect();
+
+// Get team content
+const teamContent = await ctx.db
+  .query("inboxItems")
+  .withIndex("by_team", q => q.eq("teamId", teamId))
+  .collect();
+```
+
+**Content Ownership Rules**:
+| `ownershipType` | `organizationId` | Stays When User Leaves? |
+|-----------------|------------------|------------------------|
+| `"user"` | `null` | ❌ Moves with user |
+| `"organization"` | `"org_123"` | ✅ Stays in org |
+| `"team"` | `"org_123"` + `teamId` | ✅ Stays in team |
+
+**Why**: `null` is semantically correct for "no organization" and keeps queries simple. Creating fake organizations pollutes the data model and complicates permission checks.
+
+**Apply when**:
+- Designing multi-tenancy from scratch
+- Supporting both personal and organization content
+- Need clean "my stuff" vs "team stuff" queries
+
+**Related**: #L360 (Dual identity), #L460 (Account linking)
+
+---
+
+## #L460: Account Linking for Multi-Account Support [🟢 REFERENCE]
+
+**Symptom**: Users need to switch between personal and work accounts (Slack-style)  
+**Root Cause**: One email = one account, no way to link multiple identities  
+**Fix**:
+
+```typescript
+// Each email creates separate user record
+// randy@personal.com → user_123
+// randy@work.com     → user_456
+
+// Link accounts together
+accountLinks: defineTable({
+  primaryUserId: v.id("users"),     // Main account
+  linkedUserId: v.id("users"),      // Linked account
+  linkType: v.optional(v.string()), // "work", "personal"
+  verifiedAt: v.number(),
+  createdAt: v.number(),
+})
+  .index("by_primary", ["primaryUserId"])
+  .index("by_linked", ["linkedUserId"])
+
+// Session structure
+{
+  "wos-session": "jwt_token",
+  "wos-user": {
+    "userId": "user_123",  // Active account
+    "linkedAccounts": [
+      { "userId": "user_456", "email": "randy@work.com" }
+    ]
+  }
+}
+
+// Account switcher UI (CMD+K)
+┌─────────────────────────────────────┐
+│  ● Randy (Personal)         CMD+1   │  ← Active
+│    randy@personal.com               │
+│                                     │
+│  ○ Randy @ Work             CMD+2   │
+│    randy@work.com                   │
+└─────────────────────────────────────┘
+```
+
+**Linking Flow**:
+1. User logged in with account A
+2. User tries to login with account B
+3. System detects existing session
+4. Prompt: "Link account B to account A?"
+5. User confirms → create `accountLinks` record
+6. Both accounts show in switcher
+
+**Switching**:
+- Update `activeAccountId` in session cookie
+- No new WorkOS authentication needed
+- Instant context switch
+
+**Why**: Users often have multiple work identities (personal email, work email, contractor email). Account linking enables seamless switching like Slack, without logging out.
+
+**Apply when**:
+- Building B2B products (users have work + personal)
+- Supporting contractors with multiple clients
+- Users request "switch accounts" feature
+
+**Related**: #L360 (Dual identity), #L410 (Personal workspace)
+
+---
+
+**Last Updated**: 2025-11-10  
+**Pattern Count**: 10  
+**Validated**: WorkOS AuthKit, SvelteKit, Vite, Convex  
 **Format Version**: 2.0
 

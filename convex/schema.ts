@@ -2,6 +2,43 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 const schema = defineSchema({
+  // Users table - WorkOS authentication
+  users: defineTable({
+    // Auth provider identity (flexible for future provider switching)
+    workosId: v.string(),           // Current: WorkOS user ID (unique)
+    // Future: Add clerkId, auth0Id, etc. if we switch providers
+    email: v.string(),               // User email from auth provider
+    emailVerified: v.boolean(),      // Email verification status
+    
+    // Profile
+    firstName: v.optional(v.string()),
+    lastName: v.optional(v.string()),
+    name: v.optional(v.string()),    // Computed: firstName + lastName
+    profileImageUrl: v.optional(v.string()),
+    
+    // Timestamps
+    createdAt: v.number(),
+    updatedAt: v.number(),
+    lastLoginAt: v.optional(v.number()),
+    
+    // Soft delete (optional)
+    deletedAt: v.optional(v.number()),
+  })
+    .index("by_workos_id", ["workosId"])  // Fast lookup by WorkOS ID
+    .index("by_email", ["email"]),        // Fast lookup by email
+
+  // Account linking - Multiple email accounts for same person
+  // Enables Slack-style account switching (CMD+1, CMD+2, CMD+3)
+  accountLinks: defineTable({
+    primaryUserId: v.id("users"),        // Main account
+    linkedUserId: v.id("users"),         // Linked account (e.g., work email)
+    linkType: v.optional(v.string()),    // "work", "personal", etc.
+    verifiedAt: v.number(),              // When link was verified
+    createdAt: v.number(),
+  })
+    .index("by_primary", ["primaryUserId"])   // Get all linked accounts
+    .index("by_linked", ["linkedUserId"]),    // Check if account is linked
+
   // Organizations table - ready for future multi-tenancy
   organizations: defineTable({
     name: v.string(),

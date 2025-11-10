@@ -81,6 +81,9 @@
 | Centralized config | Single config.ts file | [convex-integration.md#L390](convex-integration.md#L390) |
 | Reusable entity tagging | Helper + type-safe wrappers | [convex-integration.md#L440](convex-integration.md#L440) |
 | Lock dev server port | strictPort: true to prevent drift | [auth-deployment.md#L310](auth-deployment.md#L310) |
+| User identity | Dual ID system (userId + workosId) for provider flexibility | [auth-deployment.md#L360](auth-deployment.md#L360) |
+| Personal workspace | null = personal, clean queries | [auth-deployment.md#L410](auth-deployment.md#L410) |
+| Multi-account support | Account linking for Slack-style switching | [auth-deployment.md#L460](auth-deployment.md#L460) |
 
 ---
 
