@@ -81,34 +81,50 @@ export async function hasPermission(
           return true;
         }
         
-        // If scope is "own", check if user owns the resource
-        // Handle "own" scope: user must own the specific resource
+        // Handle "own" scope: user must own the resource OR have team-scoped role
         if (perm.scope === "own") {
-          if (!context?.resourceOwnerId) {
-            // Scope is "own" but no resourceOwnerId provided - deny access
+          // CASE 1: Team-scoped permission (e.g., Team Lead managing their team)
+          // If context has teamId, and this permission exists, it means getUserPermissions
+          // already filtered to roles with matching teamId - user has permission!
+          if (context?.teamId && !context.resourceOwnerId) {
             await logPermissionCheck(ctx, {
               userId,
               action: "check",
               permissionSlug,
               roleSlug: perm.roleSlug,
-              result: "denied",
-              reason: "Scope is 'own' but resourceOwnerId not provided",
+              result: "allowed",
+              reason: "User has team-scoped role for this team",
               context,
             });
-            return false;
+            return true;
           }
           
-          const isOwner = context.resourceOwnerId === userId;
+          // CASE 2: Resource ownership check (e.g., user editing their own profile)
+          if (context?.resourceOwnerId) {
+            const isOwner = context.resourceOwnerId === userId;
+            await logPermissionCheck(ctx, {
+              userId,
+              action: "check",
+              permissionSlug,
+              roleSlug: perm.roleSlug,
+              result: isOwner ? "allowed" : "denied",
+              reason: isOwner ? "User owns resource" : "Resource not owned by user",
+              context,
+            });
+            return isOwner;
+          }
+          
+          // CASE 3: No way to determine ownership - deny
           await logPermissionCheck(ctx, {
             userId,
             action: "check",
             permissionSlug,
             roleSlug: perm.roleSlug,
-            result: isOwner ? "allowed" : "denied",
-            reason: isOwner ? undefined : "Resource not owned by user",
+            result: "denied",
+            reason: "Scope is 'own' but neither teamId nor resourceOwnerId provided",
             context,
           });
-          return isOwner;
+          return false;
         }
         
         // If permission exists but scope is "none" or conditions not met
