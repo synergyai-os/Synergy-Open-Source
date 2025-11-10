@@ -65,6 +65,11 @@ const PERSONAL_SENTINEL = '__personal__';
 export function useOrganizations(options?: { userId?: () => string | undefined }) {
   const convexClient = browser ? useConvexClient() : null;
   const getUserId = options?.userId || (() => undefined);
+  
+  // DEBUG: Log userId on every call
+  if (browser) {
+    console.log('[useOrganizations] getUserId() =', getUserId());
+  }
 
   const storedActiveId = browser ? localStorage.getItem(STORAGE_KEY) : null;
   const initialActiveId = storedActiveId === PERSONAL_SENTINEL ? null : storedActiveId;
@@ -100,7 +105,11 @@ export function useOrganizations(options?: { userId?: () => string | undefined }
     },
   });
 
-  const organizationsQuery = browser ? useQuery(api.organizations.listOrganizations, () => ({ userId: getUserId() as any })) : null;
+  const organizationsQuery = browser ? useQuery(api.organizations.listOrganizations, () => {
+    const uid = getUserId();
+    console.log('[useOrganizations] Query args: userId =', uid);
+    return { userId: uid as any };
+  }) : null;
   const organizationInvitesQuery = browser
     ? useQuery(api.organizations.listOrganizationInvites, () => ({ userId: getUserId() as any }))
     : null;
@@ -116,8 +125,10 @@ export function useOrganizations(options?: { userId?: () => string | undefined }
 
   const isLoading = $derived(organizationsQuery ? organizationsQuery.data === undefined : false);
 
-  const organizationsData = $derived((): OrganizationSummary[] =>
-    ((organizationsQuery?.data ?? []) as OrganizationSummary[]).map((org: OrganizationSummary) => ({
+  const organizationsData = $derived((): OrganizationSummary[] => {
+    const rawData = organizationsQuery?.data ?? [];
+    console.log('[useOrganizations] Query returned:', rawData);
+    return (rawData as OrganizationSummary[]).map((org: OrganizationSummary) => ({
       organizationId: org.organizationId,
       name: org.name,
       initials: org.initials,
@@ -127,8 +138,8 @@ export function useOrganizations(options?: { userId?: () => string | undefined }
       joinedAt: org.joinedAt,
       memberCount: org.memberCount,
       teamCount: org.teamCount,
-    }))
-  );
+    }));
+  });
 
   const organizationInvites = $derived((): OrganizationInvite[] =>
     (organizationInvitesQuery?.data ?? []) as OrganizationInvite[]

@@ -93,7 +93,9 @@ export const listOrganizations = query({
   handler: async (ctx, args) => {
     // Try explicit userId first (client passes it), fallback to auth context
     const userId = args.userId ?? await getAuthUserId(ctx);
+    console.log('[listOrganizations] userId:', userId, 'type:', typeof userId);
     if (!userId) {
+      console.log('[listOrganizations] No userId, returning []');
       return [];
     }
 
@@ -101,6 +103,8 @@ export const listOrganizations = query({
       .query("organizationMembers")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
+    
+    console.log('[listOrganizations] Found memberships:', memberships.length);
 
     const organizations = await Promise.all(
       memberships.map(async (membership) => {
