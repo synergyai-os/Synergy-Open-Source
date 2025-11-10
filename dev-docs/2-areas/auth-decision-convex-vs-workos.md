@@ -16,7 +16,7 @@
 **Rationale**: Given our multi-tenancy roadmap, enterprise marketplace vision, and small team size, WorkOS AuthKit provides enterprise-ready features out-of-the-box that would take 4-8 weeks to build with Convex Auth. Time-to-market and enterprise readiness outweigh the benefits of full control.
 
 **Time Saved**: 4-8 weeks of auth engineering work  
-**Cost**: Free up to 1M MAUs, then pay-as-you-grow  
+**Cost**: Free up to 1M MAUs (custom domains optional at $99/month for branding)  
 **Trade-Off**: External dependency vs. enterprise features and time savings
 
 ---
@@ -186,15 +186,54 @@ From [Product Principles](product-principles.md):
 **Maintenance Cost**: $0 (WorkOS handles it)  
 **Total**: ~3 hours
 
-**Monetary**: 
-- 0-1M MAUs: **Free**
-- 1M-5M MAUs: Pay-as-you-grow pricing
-- Enterprise features (SSO): Per-company pricing
+**Monetary Costs**:
+
+| Feature | Cost | When You Need It |
+|---------|------|------------------|
+| **Core Authentication** | **Free** | Always (up to 1M MAUs) |
+| Default WorkOS domains | Free | ✅ Use this initially |
+| Hosted login/register UI | Free | Included |
+| Email/password auth | Free | Included |
+| Social logins (Google, etc.) | Free | Included |
+| Organizations & teams | Free | Included |
+| Multiple roles | Free | Included |
+| **Custom Domains** | **$99/month** | Optional (for branding) |
+| Custom AuthKit domain (`auth.synergyos.ai`) | Included in $99 | When you want branded URLs |
+| Custom email domain (`noreply@synergyos.ai`) | Included in $99 | When you want branded emails |
+| Custom Admin Portal domain | Included in $99 | When you want branded admin |
+| **User Volume** | **Usage-based** | At scale |
+| 0-1M MAUs | Free | Current (likely years of runway) |
+| 1M-5M MAUs | $2,500/month per additional 1M | When successful |
+| **Enterprise Features** | **Per-connection** | When targeting enterprises |
+| SSO/SAML per organization | Per-company pricing | When enterprise asks |
+| Directory Sync | Per-company pricing | When enterprise asks |
+
+**Cost Scenarios**:
+
+**Scenario 1: Early Stage (Year 1)**
+- MAUs: <10,000
+- Custom domains: No (use default)
+- **Monthly cost**: $0
+- **Total Year 1**: $0
+
+**Scenario 2: Growth Stage (Year 2)**
+- MAUs: 50,000-100,000
+- Custom domains: Yes (better branding)
+- **Monthly cost**: $99
+- **Total Year 2**: $1,188
+
+**Scenario 3: Scale (Year 3+)**
+- MAUs: 1.5M (past free tier)
+- Custom domains: Yes
+- Additional 500K MAUs: $1,250/month
+- **Monthly cost**: $99 + $1,250 = $1,349
+- **Total Year 3**: $16,188
 
 **Break-Even Analysis**:
 - If we reach 1M+ users, we're successful enough to afford WorkOS
-- If we don't reach 1M users, WorkOS is free
+- If we don't reach 1M users, WorkOS is free (except optional $99/month for custom domains)
 - Time saved (10-16 weeks) = 2-3 major product features shipped
+- **Recommendation**: Skip custom domains initially, add when you have revenue ($5K+ MRR)
 
 ---
 
@@ -479,6 +518,7 @@ We believe reaching product-market fit faster is more valuable than avoiding ven
 | Date | Change | Author |
 |------|--------|--------|
 | 2025-11-10 | Initial decision document | Randy Hereman |
+| 2025-11-10 | Added custom domain pricing clarification ($99/month) and cost scenarios | Randy Hereman |
 | 2026-Q2 | (Planned review after multi-tenancy launch) | - |
 
 ---
