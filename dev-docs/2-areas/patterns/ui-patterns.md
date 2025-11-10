@@ -1666,16 +1666,29 @@ TOC (floating)       → On-page navigation (sections within doc)
 ```svelte
 <!-- src/routes/+layout.svelte -->
 <script lang="ts">
-  import { Toaster } from 'svelte-sonner';
+  import { onMount } from 'svelte';
+
+  // Load Toaster client-side only (SSR workaround)
+  let Toaster = $state<any>(null);
+  
+  onMount(async () => {
+    const module = await import('svelte-sonner');
+    Toaster = module.Toaster;
+  });
 </script>
 
-<Toaster 
-  position="top-right"
-  expand={false}
-  richColors
-  closeButton
-/>
+{#if Toaster}
+  <svelte:component 
+    this={Toaster}
+    position="top-right"
+    expand={false}
+    richColors
+    closeButton
+  />
+{/if}
 ```
+
+**Why client-side only?** svelte-sonner imports `.svelte` files during SSR, causing `ERR_UNKNOWN_FILE_EXTENSION`. Loading in `onMount()` avoids this.
 
 **Usage** (anywhere in app):
 
