@@ -62,9 +62,9 @@ const STORAGE_DETAILS_KEY = 'activeOrganizationDetails';
 const SENTINEL_ORGANIZATION_ID = '000000000000000000000000';
 const PERSONAL_SENTINEL = '__personal__';
 
-export function useOrganizations(options?: { userId?: string }) {
+export function useOrganizations(options?: { userId?: () => string | undefined }) {
   const convexClient = browser ? useConvexClient() : null;
-  const userId = options?.userId;
+  const getUserId = options?.userId || (() => undefined);
 
   const storedActiveId = browser ? localStorage.getItem(STORAGE_KEY) : null;
   const initialActiveId = storedActiveId === PERSONAL_SENTINEL ? null : storedActiveId;
@@ -100,11 +100,11 @@ export function useOrganizations(options?: { userId?: string }) {
     },
   });
 
-  const organizationsQuery = browser ? useQuery(api.organizations.listOrganizations, () => ({ userId: userId as any })) : null;
+  const organizationsQuery = browser ? useQuery(api.organizations.listOrganizations, () => ({ userId: getUserId() as any })) : null;
   const organizationInvitesQuery = browser
-    ? useQuery(api.organizations.listOrganizationInvites, () => ({ userId: userId as any }))
+    ? useQuery(api.organizations.listOrganizationInvites, () => ({ userId: getUserId() as any }))
     : null;
-  const teamInvitesQuery = browser ? useQuery(api.teams.listTeamInvites, () => ({ userId: userId as any })) : null;
+  const teamInvitesQuery = browser ? useQuery(api.teams.listTeamInvites, () => ({ userId: getUserId() as any })) : null;
   
   // Query teams - pass organizationId if we have one, undefined if in personal workspace mode
   // The Convex function now accepts optional organizationId and returns [] when undefined
@@ -316,7 +316,7 @@ export function useOrganizations(options?: { userId?: string }) {
     try {
       const result = await convexClient.mutation(api.organizations.createOrganization, {
         name: trimmed,
-        userId: userId as any, // TODO: Remove once Convex auth context is set up
+        userId: getUserId() as any, // TODO: Remove once Convex auth context is set up
       });
       
       if (result?.organizationId) {
