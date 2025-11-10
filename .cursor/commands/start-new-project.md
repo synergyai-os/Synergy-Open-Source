@@ -200,23 +200,35 @@ mcp_Linear_create_issue({
   team: "SYOS",
   title: "[Slice N] Descriptive Title",
   description: `
-**Goal**: What this slice delivers
+**Goal**: What this slice delivers (one sentence)
 
-**Acceptance Criteria:**
+**Acceptance Criteria** (AI checks these off when complete):
 - [ ] Specific, testable requirement
 - [ ] Another requirement
+- [ ] Yet another requirement
 
-**Files Changed:**
+**Files Changed** (AI updates with ✅ when done):
 - path/to/file.ts - What changes
+- path/to/component.svelte - What changes
 
-**Test Plan:**
-1. Step-by-step test
-2. Expected result
+**Test Plan** (User checks these off when tested):
+- [ ] Step 1 - Action to take → [Link to page](http://127.0.0.1:5173/page) if applicable
+- [ ] Step 2 - What to verify
+- [ ] Step 3 - Expected result
+- [ ] Check [relevant doc](http://127.0.0.1:5173/dev-docs/path) for usage examples
+
+**Implementation Notes** (AI adds as work progresses):
+- Key decisions made
+- Edge cases handled
+- Issues fixed
 
 **Flow Distribution**: [Type label - auto-filled from labels]
-**Estimate**: X hours
+**Estimate**: X hours (actual: Yh - AI updates when done)
 **Branch**: feature/branch-name
 **Linear ID**: [Will be auto-filled after creation - copy to commits]
+
+**Commits** (AI adds when committing):
+- abc1234 - Description
   `,
   project: "Project Name",
   state: "Todo",
@@ -241,6 +253,90 @@ mcp_Linear_create_issue({
 3. Use this ID in all commit messages: `Linear: SYOS-123`
 
 **Why**: Enables automation, links commits to tickets, tracks Flow Distribution
+
+---
+
+### 📋 **Ticket Management Rules (AI Responsibilities)**
+
+**✅ AI MUST Check Off When Complete:**
+
+1. **Acceptance Criteria**:
+   - Check off each item as you complete it
+   - Don't wait until the end - update in real-time
+   - If you can't complete an item, explain why in a comment
+
+2. **Files Changed**:
+   - Add ✅ emoji when file is modified
+   - Update description if actual changes differ from plan
+
+3. **Implementation Notes**:
+   - Add key decisions as you make them
+   - Document edge cases you handled
+   - Note any issues you fixed along the way
+
+4. **Estimate → Actual**:
+   - Update "Estimate: Xh (actual: Yh)" when done
+   - Helps improve future estimates
+
+5. **Commits List**:
+   - Add commit hashes and descriptions as you commit
+   - Format: `abc1234 - Brief description`
+
+**📝 User Will Check Off:**
+
+1. **Test Plan** - User manually tests each step
+   - AI provides clear, actionable steps with links
+   - User checks off after testing
+   - User confirms it works as expected
+
+**🔄 When to Update Tickets:**
+
+- **During work**: Check off acceptance criteria, update files, add notes
+- **After each commit**: Add commit hash to list
+- **When complete**: Mark all acceptance criteria done, update estimate
+- **Before "In Review"**: Ensure ticket is fully updated
+
+**Example Update Flow:**
+```typescript
+// 1. Start work → Mark criteria as you complete them
+mcp_Linear_update_issue({
+  id: "issue-id",
+  description: `
+**Acceptance Criteria** (AI checks these off when complete):
+- [x] Install svelte-sonner ← Just completed
+- [ ] Create toast helper ← Working on this
+- [ ] Add to layout
+  `
+})
+
+// 2. After first commit → Add to commits list
+mcp_Linear_update_issue({
+  id: "issue-id",
+  description: `
+...
+**Commits** (AI adds when committing):
+- ff8c280 - Initial toast implementation
+  `
+})
+
+// 3. When done → All criteria checked, estimate updated
+mcp_Linear_update_issue({
+  id: "issue-id",
+  description: `
+**Acceptance Criteria** (AI checks these off when complete):
+- [x] Install svelte-sonner
+- [x] Create toast helper
+- [x] Add to layout
+
+**Estimate**: 2-4h (actual: ~2h)
+
+**Commits** (AI adds when committing):
+- ff8c280 - Initial implementation
+- f6716ee - SSR fix
+- 0d7e370 - Deprecation fix
+  `
+})
+```
 
 **Labeling Rules** (see `dev-docs/2-areas/flow-metrics.md`):
 - **Type** (required, one): `feature`, `bug`, `tech-debt`, `risk`
@@ -336,6 +432,28 @@ mcp_Linear_update_project({
 ---
 
 ### 5. Build Vertical Slices (Shape Up)
+
+**🚦 When to Continue vs. Stop for Review**
+
+**✅ Continue Automatically When:**
+- Slice follows same patterns as previous slices
+- Backend-only work (APIs, database, logic)
+- Well-defined acceptance criteria (no ambiguity)
+- Low risk of breaking changes
+- Similar to existing features (e.g., Slice 4 → Slice 5 same patterns)
+- You're 95%+ confident it will work
+
+**⛔ Stop and Ask for Review When:**
+- Frontend/UX decisions needed (layout, interaction, design)
+- Breaking changes or migrations required
+- Architecture changes or new patterns introduced
+- Unclear requirements or acceptance criteria
+- Integration with external services (needs testing)
+- User experience could vary (need validation)
+- Security-sensitive operations
+- You're <90% confident
+
+**🎯 Default Rule**: If the next slice is "more of the same pattern", **continue**. If it's "different territory", **stop and ask**.
 
 **For each slice**:
 

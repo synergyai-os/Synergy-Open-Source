@@ -83,6 +83,63 @@
 
 ---
 
+## 📋 **Linear Ticket Management (AI Responsibilities)**
+
+**When you create or manage tickets:**
+
+### ✅ **AI Must Check Off (Don't Wait for User)**:
+
+1. **Acceptance Criteria** - Check off as you complete each item
+2. **Files Changed** - Add ✅ emoji when file is modified  
+3. **Implementation Notes** - Add key decisions, edge cases, fixes
+4. **Estimate → Actual** - Update when done (e.g., "2-4h (actual: ~2h)")
+5. **Commits List** - Add hash + description after each commit
+
+### 📝 **User Will Check Off (Never Touch These)**:
+
+1. **Test Plan** - User manually tests and checks off
+   - Provide clear steps with working links
+   - Format: `- [ ] Action → [Link](http://127.0.0.1:5173/page) if applicable`
+   - User checks after testing
+
+### 🔄 **When to Update**:
+
+- **During work**: Check off criteria as you complete them
+- **After commits**: Add commit hashes to ticket
+- **Before "In Review"**: Ensure all AI-owned items are checked/updated
+- **Never**: Check off user's test plan items
+
+### 📋 **Ticket Template Format**:
+
+```markdown
+**Goal**: One sentence what this delivers
+
+**Acceptance Criteria** (AI checks these off when complete):
+- [ ] Specific requirement
+- [ ] Another requirement
+
+**Files Changed** (AI updates with ✅ when done):
+- path/to/file.ts - What changes
+
+**Test Plan** (User checks these off when tested):
+- [ ] Step 1 → [Link to page](http://127.0.0.1:5173/page)
+- [ ] Step 2 - What to verify
+- [ ] Check [doc](http://127.0.0.1:5173/dev-docs/path)
+
+**Implementation Notes** (AI adds as work progresses):
+- Key decisions
+- Edge cases handled
+
+**Estimate**: Xh (actual: Yh - AI updates)
+**Linear ID**: SYOS-123
+**Commits**: 
+- abc1234 - Description
+```
+
+**See**: `/start-new-project` for full examples and workflow
+
+---
+
 ## 🎯 Remember
 
 1. **Communication** - Short, dense, concise
