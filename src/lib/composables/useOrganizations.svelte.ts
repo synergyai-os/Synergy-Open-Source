@@ -90,6 +90,12 @@ export function useOrganizations() {
       createTeam: false,
       joinTeam: false,
     },
+    loading: {
+      createOrganization: false,
+      joinOrganization: false,
+      createTeam: false,
+      joinTeam: false,
+    },
   });
 
   const organizationsQuery = browser ? useQuery(api.organizations.listOrganizations, () => ({})) : null;
@@ -303,15 +309,33 @@ export function useOrganizations() {
     const trimmed = payload.name.trim();
     if (!trimmed) return;
 
+    state.loading.createOrganization = true;
+
     try {
       const result = await convexClient.mutation(api.organizations.createOrganization, {
         name: trimmed,
       });
+      
       if (result?.organizationId) {
+        // Switch to new organization
         setActiveOrganization(result.organizationId);
+        
+        // Show success toast
+        if (browser && posthog) {
+          posthog.capture(AnalyticsEventName.OrganizationCreated, {
+            organizationId: result.organizationId,
+            organizationName: trimmed,
+          });
+        }
+        
+        // Close modal on success
+        closeModal('createOrganization');
       }
+    } catch (error) {
+      console.error('Failed to create organization:', error);
+      // Keep modal open on error so user can retry
     } finally {
-      closeModal('createOrganization');
+      state.loading.createOrganization = false;
     }
   }
 
@@ -450,6 +474,9 @@ export function useOrganizations() {
     },
     get modals() {
       return state.modals;
+    },
+    get loading() {
+      return state.loading;
     },
     get isLoading() {
       return isLoading;

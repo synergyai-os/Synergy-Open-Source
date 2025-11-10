@@ -6,7 +6,7 @@
     organizations,
     activeOrganizationName
   }: {
-    organizations: Pick<UseOrganizations, 'modals' | 'closeModal' | 'createOrganization' | 'joinOrganization' | 'createTeam' | 'joinTeam'>;
+    organizations: Pick<UseOrganizations, 'modals' | 'loading' | 'closeModal' | 'createOrganization' | 'joinOrganization' | 'createTeam' | 'joinTeam'>;
     activeOrganizationName: string | null;
   } = $props();
 
@@ -15,9 +15,12 @@
   let teamName = $state('');
   let teamCode = $state('');
 
-  function submitCreateOrganization() {
-    organizations.createOrganization({ name: organizationName });
-    organizationName = '';
+  async function submitCreateOrganization() {
+    await organizations.createOrganization({ name: organizationName });
+    // Only clear if modal closed (success)
+    if (!organizations.modals.createOrganization) {
+      organizationName = '';
+    }
   }
 
   function submitJoinOrganization() {
@@ -67,16 +70,26 @@
         <div class="flex items-center justify-end gap-2 pt-2">
           <button
             type="button"
-            class="px-3 py-1.5 rounded-md border border-base text-sm font-medium text-secondary hover:text-primary"
+            class="px-3 py-1.5 rounded-md border border-base text-sm font-medium text-secondary hover:text-primary disabled:opacity-50"
             onclick={() => organizations.closeModal('createOrganization')}
+            disabled={organizations.loading.createOrganization}
           >
             Cancel
           </button>
           <button
             type="submit"
-            class="px-3 py-1.5 rounded-md bg-accent-primary text-on-solid text-sm font-medium"
+            class="px-3 py-1.5 rounded-md bg-accent-primary text-on-solid text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            disabled={organizations.loading.createOrganization}
           >
-            Create
+            {#if organizations.loading.createOrganization}
+              <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Creating...
+            {:else}
+              Create
+            {/if}
           </button>
         </div>
       </form>
