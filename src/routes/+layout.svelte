@@ -9,6 +9,7 @@
     import { setupConvex } from 'convex-svelte';
     import { useOrganizations } from '$lib/composables/useOrganizations.svelte';
     import OrganizationModals from '$lib/components/organizations/OrganizationModals.svelte';
+    import { Toaster } from 'svelte-sonner';
 
     let { children, data } = $props();
 
@@ -69,4 +70,12 @@
 <OrganizationModals
     organizations={organizationStore}
     activeOrganizationName={activeOrganizationName()}
+/>
+
+<!-- Toast notifications - positioned top-right, styled with design tokens -->
+<Toaster 
+    position="top-right"
+    expand={false}
+    richColors
+    closeButton
 />

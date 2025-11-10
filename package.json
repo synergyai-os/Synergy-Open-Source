@@ -30,6 +30,7 @@
 		"@tailwindcss/vite": "^4.1.14",
 		"@types/node": "^22",
 		"@vitest/browser": "^3.2.4",
+		"convex-test": "^0.0.38",
 		"eslint": "^9.38.0",
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.12.4",
@@ -81,6 +82,7 @@
 		"prosemirror-state": "^1.4.4",
 		"prosemirror-view": "^1.41.3",
 		"resend": "^6.4.0",
+		"svelte-sonner": "^1.0.6",
 		"ts-fsrs": "^5.2.3"
 	}
 }

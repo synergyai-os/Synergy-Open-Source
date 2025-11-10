@@ -3,6 +3,7 @@ import { useConvexClient, useQuery } from 'convex-svelte';
 import { api } from '$lib/convex';
 import { AnalyticsEventName } from '$lib/analytics/events';
 import posthog from 'posthog-js';
+import { toast } from '$lib/utils/toast';
 
 export type OrganizationRole = 'owner' | 'admin' | 'member';
 
@@ -323,11 +324,16 @@ export function useOrganizations(options?: { userId?: string }) {
         setActiveOrganization(result.organizationId);
         
         // Show success toast
-        if (browser && posthog) {
-          posthog.capture(AnalyticsEventName.OrganizationCreated, {
-            organizationId: result.organizationId,
-            organizationName: trimmed,
-          });
+        if (browser) {
+          toast.success(`${trimmed} created successfully!`);
+          
+          // Track analytics
+          if (posthog) {
+            posthog.capture(AnalyticsEventName.OrganizationCreated, {
+              organizationId: result.organizationId,
+              organizationName: trimmed,
+            });
+          }
         }
         
         // Close modal on success
@@ -335,6 +341,12 @@ export function useOrganizations(options?: { userId?: string }) {
       }
     } catch (error) {
       console.error('Failed to create organization:', error);
+      
+      // Show error toast
+      if (browser) {
+        toast.error('Failed to create organization. Please try again.');
+      }
+      
       // Keep modal open on error so user can retry
     } finally {
       state.loading.createOrganization = false;
