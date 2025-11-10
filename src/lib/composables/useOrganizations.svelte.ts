@@ -100,11 +100,11 @@ export function useOrganizations(options?: { userId?: string }) {
     },
   });
 
-  const organizationsQuery = browser ? useQuery(api.organizations.listOrganizations, () => ({})) : null;
+  const organizationsQuery = browser ? useQuery(api.organizations.listOrganizations, () => ({ userId: userId as any })) : null;
   const organizationInvitesQuery = browser
-    ? useQuery(api.organizations.listOrganizationInvites, () => ({}))
+    ? useQuery(api.organizations.listOrganizationInvites, () => ({ userId: userId as any }))
     : null;
-  const teamInvitesQuery = browser ? useQuery(api.teams.listTeamInvites, () => ({})) : null;
+  const teamInvitesQuery = browser ? useQuery(api.teams.listTeamInvites, () => ({ userId: userId as any })) : null;
   
   // Query teams - pass organizationId if we have one, undefined if in personal workspace mode
   // The Convex function now accepts optional organizationId and returns [] when undefined

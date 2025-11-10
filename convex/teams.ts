@@ -165,9 +165,12 @@ export const listTeams = query({
 });
 
 export const listTeamInvites = query({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
+  args: {
+    userId: v.optional(v.id("users")), // TODO: Remove once Convex auth context is set up
+  },
+  handler: async (ctx, args) => {
+    // Try explicit userId first (client passes it), fallback to auth context
+    const userId = args.userId ?? await getAuthUserId(ctx);
     if (!userId) {
       return [];
     }
