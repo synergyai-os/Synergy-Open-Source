@@ -119,7 +119,7 @@ export const exportNoteToBlog = action({
 	args: {
 		noteId: v.id("inboxItems"),
 	},
-	handler: async (ctx, args): Promise<{ filepath: string; content: string }> => {
+	handler: async (ctx, args): Promise<{ filepath: string; content: string; success: boolean }> => {
 		const userId = await getAuthUserId(ctx);
 		if (!userId) {
 			throw new Error("Not authenticated");
