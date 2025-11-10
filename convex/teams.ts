@@ -318,14 +318,14 @@ export const createTeamInvite = mutation({
       .first();
 
     // RBAC Permission Check: Check "teams.add-members" permission with resource scoping
-    // Team Leads can only invite to their own teams (resourceOwnerId = userId for teams they lead)
+    // Team Leads can only invite to their own teams (via RBAC role with teamId scope)
     // Admins/Managers can invite to any team (scope: "all")
     await requirePermission(ctx, userId, "teams.add-members", {
       organizationId: team.organizationId,
       teamId: args.teamId,
       resourceType: "team",
       resourceId: args.teamId,
-      resourceOwnerId: membership?.role === "admin" ? userId : undefined,
+      // Note: resourceOwnerId not used - RBAC handles scoping via teamId in userRoles table
     });
 
     if (!args.email && !args.invitedUserId) {
@@ -556,14 +556,14 @@ export const updateTeam = mutation({
       .first();
 
     // RBAC Permission Check: Check "teams.update" permission
-    // Team Leads can only update their own teams
-    // Admins/Managers can update any team
+    // Team Leads can only update their own teams (via RBAC role with teamId scope)
+    // Admins/Managers can update any team (scope: "all")
     await requirePermission(ctx, userId, "teams.update", {
       organizationId: team.organizationId,
       teamId: args.teamId,
       resourceType: "team",
       resourceId: args.teamId,
-      resourceOwnerId: membership?.role === "admin" ? userId : undefined,
+      // Note: resourceOwnerId not used - RBAC handles scoping via teamId in userRoles table
     });
 
     const updates: Partial<Doc<"teams">> = {

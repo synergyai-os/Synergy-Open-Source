@@ -50,8 +50,12 @@
 					// Transform hash to lowercase if it exists (e.g., #L10 → #l10)
 					const cleanHash = hash ? `#${hash.toLowerCase()}` : '';
 					
+					// Prepend ./ to make explicitly relative to current directory
+					// This prevents incorrect resolution relative to page URL
+					const relativePath = cleanPath.startsWith('./') ? cleanPath : `./${cleanPath}`;
+					
 					// Reconstruct href
-					href = `${cleanPath}${cleanHash}`;
+					href = `${relativePath}${cleanHash}`;
 				}
 			}
 			

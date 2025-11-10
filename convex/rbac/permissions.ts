@@ -82,7 +82,22 @@ export async function hasPermission(
         }
         
         // If scope is "own", check if user owns the resource
-        if (perm.scope === "own" && context?.resourceOwnerId) {
+        // Handle "own" scope: user must own the specific resource
+        if (perm.scope === "own") {
+          if (!context?.resourceOwnerId) {
+            // Scope is "own" but no resourceOwnerId provided - deny access
+            await logPermissionCheck(ctx, {
+              userId,
+              action: "check",
+              permissionSlug,
+              roleSlug: perm.roleSlug,
+              result: "denied",
+              reason: "Scope is 'own' but resourceOwnerId not provided",
+              context,
+            });
+            return false;
+          }
+          
           const isOwner = context.resourceOwnerId === userId;
           await logPermissionCheck(ctx, {
             userId,
