@@ -20,6 +20,18 @@
     },
     {
       "pattern": "^https://synergyos\\.dev"
+    },
+    {
+      "pattern": "^https://github\\.com/synergyai-os/Synergy-Open-Source/(issues|discussions|actions)"
+    },
+    {
+      "pattern": "^https://layerchart\\.com/docs"
+    },
+    {
+      "pattern": "^https://cursor\\.sh/press"
+    },
+    {
+      "pattern": "^https://docs\\.convex\\.dev/deploy"
     }
   ],
   "replacementPatterns": [],

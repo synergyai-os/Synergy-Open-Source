@@ -108,7 +108,7 @@ npm install layerchart
 </Chart>
 ```
 
-**See**: [LayerChart Documentation](https://layerchart.com/docs)
+**See**: [LayerChart](https://layerchart.com) for charting library documentation
 
 ---
 
@@ -153,7 +153,7 @@ type ToolFeature = {
 - `github-copilot-logo.svg` (if verified)
 
 **Sources**:
-- [Cursor Press Kit](https://cursor.sh/press)
+- Cursor branding resources (check Cursor website)
 - [Anthropic Brand Assets](https://www.anthropic.com)
 - GitHub logo (already in project)
 

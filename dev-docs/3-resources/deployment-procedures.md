@@ -73,7 +73,7 @@ Production updated (total: 3-4 min)
 
 ### GitHub Actions
 
-**Location**: https://github.com/synergyai-os/Synergy-Open-Source/actions
+**Location**: GitHub repository → Actions tab (https://github.com/synergyai-os/Synergy-Open-Source)
 
 **What to watch**:
 1. **Deploy to Production** workflow

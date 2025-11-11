@@ -294,7 +294,7 @@ Immediately revoke the exposed key in the service's dashboard.
 - [AuthKit Setup](https://workos.com/docs/user-management)
 
 **Convex:**
-- [Deployment Documentation](https://docs.convex.dev/deploy)
+- [Convex Documentation](https://docs.convex.dev/)
 
 ---
 

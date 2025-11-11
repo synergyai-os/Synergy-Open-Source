@@ -430,5 +430,5 @@
 ---
 
 **Transparency = Trust**  
-We share our metrics openly because we believe in building in public. Questions? Ask in [Discord](https://discord.gg/synergyos) or [open an issue](https://github.com/synergyai-os/Synergy-Open-Source/issues).
+We share our metrics openly because we believe in building in public. Questions? Ask in [Discord](https://discord.gg/synergyos) or visit the [GitHub repository](https://github.com/synergyai-os/Synergy-Open-Source).
 
