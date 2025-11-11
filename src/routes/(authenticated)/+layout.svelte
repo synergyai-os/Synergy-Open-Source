@@ -9,6 +9,7 @@
 	import { getContext, setContext } from 'svelte';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 	import { useGlobalShortcuts, SHORTCUTS } from '$lib/composables/useGlobalShortcuts.svelte';
+	import { toast } from '$lib/utils/toast';
 
 	let { children, data } = $props();
 
@@ -115,9 +116,49 @@
 			preventDefault: true
 		});
 
+		// CMD+1/2/3/4/5 - Workspace switching shortcuts
+		// Personal workspace is always index 0, organizations follow (1, 2, 3, 4...)
+		for (let i = 1; i <= 5; i++) {
+			shortcuts.register({
+				key: i.toString(),
+				meta: true,
+				handler: () => {
+					if (!organizations) return;
+
+					// Build workspace list: Personal (index 0) + Organizations (index 1+)
+					const workspaceIndex = i - 1; // Convert to 0-based index
+					const orgList = organizations.organizations ?? [];
+
+					if (workspaceIndex === 0) {
+						// CMD+1 → Personal workspace
+						organizations.setActiveOrganization(null);
+						toast.success('Switched to Personal workspace');
+					} else {
+						// CMD+2/3/4/5 → Organizations (index 1, 2, 3, 4)
+						const orgIndex = workspaceIndex - 1; // Convert to org array index
+						const targetOrg = orgList[orgIndex];
+
+						if (targetOrg) {
+							organizations.setActiveOrganization(targetOrg.organizationId);
+							toast.success(`Switched to ${targetOrg.name}`);
+						} else {
+							// No organization at this index - show info toast
+							toast.info(`No workspace at position ${i}. Create one to use CMD+${i}.`);
+						}
+					}
+				},
+				description: `Switch to workspace ${i}`,
+				preventDefault: true
+			});
+		}
+
 		return () => {
 			shortcuts.unregister(SHORTCUTS.CREATE);
 			shortcuts.unregister(SHORTCUTS.COMMAND_PALETTE, { meta: true });
+			// Unregister workspace shortcuts
+			for (let i = 1; i <= 5; i++) {
+				shortcuts.unregister(i.toString(), { meta: true });
+			}
 		};
 	});
 
