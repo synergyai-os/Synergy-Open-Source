@@ -1,18 +1,10 @@
 {
   "ignorePatterns": [
     {
-      "pattern": "^http"
-    },
-    {
-      "pattern": "^https"
+      "pattern": "^(?!http)"
     }
   ],
-  "replacementPatterns": [
-    {
-      "pattern": "\\.md",
-      "replacement": ""
-    }
-  ],
+  "replacementPatterns": [],
   "httpHeaders": [
     {
       "urls": ["https://github.com"],
