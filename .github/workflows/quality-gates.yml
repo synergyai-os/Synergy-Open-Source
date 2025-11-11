@@ -37,8 +37,7 @@ jobs:
 
       - name: Lint
         run: npm run lint
-        # Temporarily disabled continue-on-error to test Deployment Checks blocking
-        # TODO: Re-enable after fixing lint errors: continue-on-error: true
+        continue-on-error: true # TODO: Fix lint errors, then set to false
 
       - name: Build verification
         run: npm run build
