@@ -4,6 +4,11 @@ import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { cwd } from 'process';
 
+// Utility: Strip PARA numbering (1-, 2-, 3-, 4-) from folder/file names
+function cleanParaName(name: string): string {
+	return name.replace(/^\d+-/, '');
+}
+
 export const load: PageServerLoad = async ({ params }) => {
 	const { path } = params;
 	
@@ -22,7 +27,10 @@ export const load: PageServerLoad = async ({ params }) => {
 			
 			// Extract title from frontmatter or first heading
 			const titleMatch = content.match(/^#\s+(.+)$/m) || content.match(/^title:\s*(.+)$/m);
-			const title = titleMatch ? titleMatch[1].trim() : path.split('/').pop() || 'Documentation';
+			let title = titleMatch ? titleMatch[1].trim() : path.split('/').pop() || 'Documentation';
+			
+			// Clean PARA prefix from title (strip "1-", "2-", etc. and trailing slashes)
+			title = cleanParaName(title).replace(/\/$/, '');
 			
 			return {
 				content,
