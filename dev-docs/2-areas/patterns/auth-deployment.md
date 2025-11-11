@@ -563,7 +563,156 @@ CONVEX_DEPLOY_KEY="prod:..." npx convex run users:syncUserFromWorkOS '{"workosId
 
 ---
 
-**Last Updated**: 2025-11-10  
-**Pattern Count**: 11  
-**Validated**: WorkOS AuthKit, SvelteKit, Vite, Convex  
+## #L610: Session Expiry Must Match Session TTL Not Token Expiry [🔴 CRITICAL]
+
+**Symptom**: Users logged out after 5 minutes, session doesn't persist across page refreshes  
+**Root Cause**: Setting session `expiresAt` to WorkOS token expiry (5 min) instead of app session TTL (30 days)  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Use WorkOS token expiry for session
+const expiresAt = authResponse.session?.expires_at !== undefined
+    ? Date.parse(authResponse.session.expires_at)  // ❌ 5 minutes!
+    : Date.now() + authResponse.expires_in * 1000;
+
+await establishSession({
+    event,
+    convexUserId,
+    workosUserId: authResponse.user.id,
+    expiresAt,  // ❌ Session expires in 5 minutes
+    // ...
+});
+
+// ✅ CORRECT: Use app-defined session TTL (30 days)
+const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+const expiresAt = Date.now() + SESSION_TTL_MS;
+
+await establishSession({
+    event,
+    convexUserId,
+    workosUserId: authResponse.user.id,
+    expiresAt,  // ✅ Session lasts 30 days
+    // ...
+});
+```
+
+**Why**: WorkOS tokens expire quickly (5 min) for security, but your APP session should last much longer (days/weeks). The token expiry is ONLY used internally to know when to refresh. Session expiry determines how long users stay logged in.
+
+**Token Refresh Flow**:
+```typescript
+// Session valid for 30 days
+// WorkOS token refreshes automatically every 5 min (handled in session middleware)
+// User stays logged in seamlessly for 30 days
+```
+
+**Apply when**:
+- Implementing OAuth/OIDC authentication
+- Users complaining about frequent logouts
+- Session persistence issues
+- Using any auth provider with short-lived tokens (WorkOS, Auth0, Clerk)
+
+**Related**: #L60 (Environment configuration), #L210 (Session revocation)
+
+---
+
+## #L660: Reactive Queries Need $derived Wrapper [🔴 CRITICAL]
+
+**Symptom**: Query doesn't re-run when reactive dependency changes, UI shows stale data  
+**Root Cause**: Query created with conditional but not wrapped in `$derived`, evaluated only at initialization  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Conditional query without $derived
+const linkedAccountsQuery = browser && currentUserId 
+    ? useQuery(api.users.listLinkedAccounts, () => ({ userId: currentUserId }))
+    : null;
+// ❌ Only evaluated once at component init, never re-runs when currentUserId changes
+
+// ✅ CORRECT: Wrap query in $derived
+const linkedAccountsQuery = $derived(
+    browser && currentUserId 
+        ? useQuery(api.users.listLinkedAccounts, () => ({ userId: currentUserId }))
+        : null
+);
+// ✅ Re-evaluated when currentUserId changes, query re-runs
+```
+
+**Why**: In Svelte 5, reactive values (`$derived`, `$state`) must be wrapped in `$derived()` to track dependencies. Without it, the expression is only evaluated once at initialization.
+
+**Debugging**:
+```javascript
+// Add effect to see when query updates
+$effect(() => {
+    console.log('Query state:', {
+        currentUserId,
+        hasQuery: !!linkedAccountsQuery,
+        data: linkedAccountsQuery?.data
+    });
+});
+```
+
+**Apply when**:
+- Using `useQuery` with conditional logic
+- Query depends on reactive state (`$state`, `$derived`)
+- UI not updating when auth state changes
+- Account switching or multi-account features
+
+**Related**: svelte-reactivity.md#L10 (Reactive state with getters), svelte-reactivity.md#L80 (Passing reactive values)
+
+---
+
+## #L710: Account Linking Must Use Bidirectional Links [🟢 REFERENCE]
+
+**Symptom**: User can't see linked accounts from both directions (A→B works, but B→A doesn't)  
+**Root Cause**: Only creating single directional link in database  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Single directional link
+await ctx.db.insert('accountLinks', {
+    primaryUserId,
+    linkedUserId
+});
+// ❌ Query only works for primary user
+
+// ✅ CORRECT: Bidirectional links
+async function createDirectedLink(ctx, fromUserId, toUserId, linkType) {
+    const existing = await ctx.db
+        .query('accountLinks')
+        .withIndex('by_primary', (q) => 
+            q.eq('primaryUserId', fromUserId).eq('linkedUserId', toUserId))
+        .first();
+    
+    if (!existing) {
+        await ctx.db.insert('accountLinks', {
+            primaryUserId: fromUserId,
+            linkedUserId: toUserId,
+            linkType: linkType ?? undefined,
+            verifiedAt: Date.now(),
+            createdAt: Date.now()
+        });
+    }
+}
+
+// Create BOTH directions
+await createDirectedLink(ctx, primaryUserId, linkedUserId, linkType);
+await createDirectedLink(ctx, linkedUserId, primaryUserId, linkType);
+// ✅ Query works from either user
+```
+
+**Why**: Users should see all linked accounts regardless of which account they're currently using. Bidirectional links ensure consistency and prevent edge cases where links only work in one direction.
+
+**Apply when**:
+- Implementing Slack-style account switching
+- Multi-account support
+- Account linking features
+- User has multiple work identities
+
+**Related**: #L460 (Account linking pattern), #L360 (Dual identity)
+
+---
+
+**Last Updated**: 2025-11-11  
+**Pattern Count**: 14  
+**Validated**: WorkOS AuthKit, SvelteKit, Vite, Convex, Svelte 5  
 **Format Version**: 2.0

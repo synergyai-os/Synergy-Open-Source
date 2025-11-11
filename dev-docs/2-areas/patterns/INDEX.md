@@ -32,6 +32,8 @@
 | Deployment fails: "Could not resolve \_generated/dataModel" during bundling | Use import type for \_generated imports                | [convex-integration.md#L590](convex-integration.md#L590)            |
 | Query returns empty, ArgumentValidationError for valid field                | Git conflicts block deployment, stale code running     | [convex-integration.md#L640](convex-integration.md#L640)            |
 | Code compiles but Bugbot finds logic bugs                                   | Automated code review catches architectural mismatches | [convex-integration.md#L700](convex-integration.md#L700)            |
+| Users logged out after 5 minutes, session doesn't persist                   | Use app session TTL (30 days), not token expiry (5 min) | [auth-deployment.md#L610](auth-deployment.md#L610)                  |
+| Query doesn't re-run when dependency changes, UI shows stale data           | Wrap conditional query in $derived                     | [auth-deployment.md#L660](auth-deployment.md#L660)                  |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -93,6 +95,7 @@
 | User identity               | Dual ID system (userId + workosId) for provider flexibility | [auth-deployment.md#L360](auth-deployment.md#L360)       |
 | Personal workspace          | null = personal, clean queries                              | [auth-deployment.md#L410](auth-deployment.md#L410)       |
 | Multi-account support       | Account linking for Slack-style switching                   | [auth-deployment.md#L460](auth-deployment.md#L460)       |
+| Account linking direction   | Create bidirectional links for symmetry                     | [auth-deployment.md#L710](auth-deployment.md#L710)       |
 
 ---
 
