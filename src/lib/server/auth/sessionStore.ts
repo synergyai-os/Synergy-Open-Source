@@ -18,15 +18,23 @@ function createConvexClient() {
 	return new ConvexHttpClient(publicEnv.PUBLIC_CONVEX_URL);
 }
 
+export type AuthFlowMode = 'sign-in' | 'sign-up';
+
 export interface LoginStateMetadata {
 	codeVerifier: string;
 	redirectTo?: string | null;
+	flowMode: AuthFlowMode;
+	linkAccount: boolean;
+	primaryUserId?: Id<'users'> | null;
 }
 
 export async function createLoginState(options: {
 	state: string;
 	codeVerifier: string;
 	redirectTo?: string;
+	flowMode?: AuthFlowMode;
+	linkAccount?: boolean;
+	primaryUserId?: Id<'users'>;
 	ipAddress?: string;
 	userAgent?: string | null;
 	now?: number;
@@ -39,6 +47,9 @@ export async function createLoginState(options: {
 		stateHash: hashValue(options.state),
 		codeVerifierCiphertext: encryptSecret(options.codeVerifier),
 		redirectTo: options.redirectTo,
+		flowMode: options.flowMode,
+		linkAccount: options.linkAccount ?? false,
+		primaryUserId: options.primaryUserId,
 		ipAddress: options.ipAddress,
 		userAgent: options.userAgent ?? undefined,
 		createdAt: now,
@@ -58,9 +69,14 @@ export async function consumeLoginState(state: string) {
 		return null;
 	}
 
+	const flowMode = result.flowMode === 'sign-up' ? 'sign-up' : 'sign-in';
+
 	return {
 		codeVerifier: decryptSecret(result.codeVerifierCiphertext),
-		redirectTo: result.redirectTo ?? undefined
+		redirectTo: result.redirectTo ?? undefined,
+		flowMode,
+		linkAccount: Boolean(result.linkAccount),
+		primaryUserId: result.primaryUserId ?? undefined
 	};
 }
 
@@ -157,6 +173,22 @@ export async function getSessionRecord(sessionId: string): Promise<SessionRecord
 		userAgent: result.userAgent ?? undefined,
 		userSnapshot: result.userSnapshot
 	};
+}
+
+export async function getActiveSessionRecordForUser(
+	userId: Id<'users'>
+): Promise<SessionRecord | null> {
+	const client = createConvexClient();
+	const convexQuery = (client as any).query.bind(client);
+	const result = await convexQuery('authSessions:getActiveSessionForUser', {
+		userId
+	});
+
+	if (!result) {
+		return null;
+	}
+
+	return getSessionRecord(result.sessionId);
 }
 
 export async function updateSessionSecrets(options: {

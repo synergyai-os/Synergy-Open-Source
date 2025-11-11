@@ -6,6 +6,9 @@ export const createLoginState = mutation({
 		stateHash: v.string(),
 		codeVerifierCiphertext: v.string(),
 		redirectTo: v.optional(v.string()),
+		flowMode: v.optional(v.string()),
+		linkAccount: v.optional(v.boolean()),
+		primaryUserId: v.optional(v.id('users')),
 		ipAddress: v.optional(v.string()),
 		userAgent: v.optional(v.string()),
 		createdAt: v.number(),
@@ -26,6 +29,9 @@ export const createLoginState = mutation({
 			stateHash: args.stateHash,
 			codeVerifierCiphertext: args.codeVerifierCiphertext,
 			redirectTo: args.redirectTo,
+			flowMode: args.flowMode,
+			linkAccount: args.linkAccount,
+			primaryUserId: args.primaryUserId,
 			ipAddress: args.ipAddress,
 			userAgent: args.userAgent,
 			createdAt: args.createdAt,
@@ -60,9 +66,44 @@ export const consumeLoginState = mutation({
 		return {
 			codeVerifierCiphertext: record.codeVerifierCiphertext,
 			redirectTo: record.redirectTo,
+			flowMode: record.flowMode,
+			linkAccount: record.linkAccount ?? false,
+			primaryUserId: record.primaryUserId ?? undefined,
 			ipAddress: record.ipAddress,
 			userAgent: record.userAgent,
 			createdAt: record.createdAt
+		};
+	}
+});
+
+export const getActiveSessionForUser = query({
+	args: {
+		userId: v.id('users')
+	},
+	handler: async (ctx, args) => {
+		const sessions = await ctx.db
+			.query('authSessions')
+			.withIndex('by_convex_user', (q) => q.eq('convexUserId', args.userId))
+			.collect();
+
+		const now = Date.now();
+		const validSessions = sessions.filter((session) => session.isValid && session.expiresAt > now);
+
+		if (validSessions.length === 0) {
+			return null;
+		}
+
+		const sorted = validSessions.sort((a, b) => {
+			const aTimestamp = a.lastSeenAt ?? a.createdAt;
+			const bTimestamp = b.lastSeenAt ?? b.createdAt;
+			return bTimestamp - aTimestamp;
+		});
+
+		const session = sorted[0];
+
+		return {
+			sessionId: session.sessionId,
+			expiresAt: session.expiresAt
 		};
 	}
 });
@@ -186,11 +227,11 @@ export const updateSessionSecrets = mutation({
 			patch.csrfTokenHash = args.csrfTokenHash;
 		}
 
-		if (args.expiresAt) {
+		if (args.expiresAt !== undefined) {
 			patch.expiresAt = args.expiresAt;
 		}
 
-		if (args.lastRefreshedAt) {
+		if (args.lastRefreshedAt !== undefined) {
 			patch.lastRefreshedAt = args.lastRefreshedAt;
 		}
 

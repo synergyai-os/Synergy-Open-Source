@@ -1,5 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
+import type { MutationCtx, QueryCtx } from './_generated/server';
+import type { Id } from './_generated/dataModel';
 import { getAuthUserId } from './auth';
 import { requirePermission } from './rbac/permissions';
 
@@ -166,5 +168,105 @@ export const updateUserProfile = mutation({
 		await ctx.db.patch(args.targetUserId, updates);
 
 		return { success: true };
+	}
+});
+
+async function linkExists(
+	ctx: MutationCtx | QueryCtx,
+	primaryUserId: Id<'users'>,
+	linkedUserId: Id<'users'>
+) {
+	const links = await ctx.db
+		.query('accountLinks')
+		.withIndex('by_primary', (q) => q.eq('primaryUserId', primaryUserId))
+		.collect();
+
+	return links.some((link) => link.linkedUserId === linkedUserId);
+}
+
+async function createDirectedLink(
+	ctx: MutationCtx,
+	primaryUserId: Id<'users'>,
+	linkedUserId: Id<'users'>,
+	linkType?: string
+) {
+	if (await linkExists(ctx, primaryUserId, linkedUserId)) {
+		return;
+	}
+
+	await ctx.db.insert('accountLinks', {
+		primaryUserId,
+		linkedUserId,
+		linkType,
+		verifiedAt: Date.now(),
+		createdAt: Date.now()
+	});
+}
+
+export const linkAccounts = mutation({
+	args: {
+		primaryUserId: v.id('users'),
+		linkedUserId: v.id('users'),
+		linkType: v.optional(v.string())
+	},
+	handler: async (ctx, args) => {
+		if (args.primaryUserId === args.linkedUserId) {
+			throw new Error('Cannot link the same account');
+		}
+
+		// Ensure both users exist
+		const primary = await ctx.db.get(args.primaryUserId);
+		const linked = await ctx.db.get(args.linkedUserId);
+
+		if (!primary || !linked) {
+			throw new Error('One or both accounts no longer exist');
+		}
+
+		await createDirectedLink(ctx, args.primaryUserId, args.linkedUserId, args.linkType ?? undefined);
+		await createDirectedLink(ctx, args.linkedUserId, args.primaryUserId, args.linkType ?? undefined);
+
+		return { success: true };
+	}
+});
+
+export const validateAccountLink = query({
+	args: {
+		primaryUserId: v.id('users'),
+		linkedUserId: v.id('users')
+	},
+	handler: async (ctx, args) => {
+		const exists = await linkExists(ctx, args.primaryUserId, args.linkedUserId);
+		return { linked: exists };
+	}
+});
+
+export const listLinkedAccounts = query({
+	args: {
+		userId: v.id('users')
+	},
+	handler: async (ctx, args) => {
+		const links = await ctx.db
+			.query('accountLinks')
+			.withIndex('by_primary', (q) => q.eq('primaryUserId', args.userId))
+			.collect();
+
+		const results = [];
+
+		for (const link of links) {
+			const user = await ctx.db.get(link.linkedUserId);
+			if (!user) continue;
+
+			results.push({
+				userId: link.linkedUserId,
+				email: (user as any).email ?? null,
+				name: (user as any).name ?? null,
+				firstName: (user as any).firstName ?? null,
+				lastName: (user as any).lastName ?? null,
+				linkType: link.linkType ?? null,
+				verifiedAt: link.verifiedAt
+			});
+		}
+
+		return results;
 	}
 });

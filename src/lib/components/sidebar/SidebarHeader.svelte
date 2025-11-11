@@ -3,14 +3,24 @@
 	import OrganizationSwitcher from '../organizations/OrganizationSwitcher.svelte';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 
+	type LinkedAccount = {
+		userId: string;
+		email: string | null;
+		name: string | null;
+		firstName: string | null;
+		lastName: string | null;
+	};
+
 	type Props = {
 		workspaceName?: string;
 		accountEmail?: string;
+		linkedAccounts?: LinkedAccount[];
 		onSettings?: () => void;
 		onInviteMembers?: () => void;
 		onSwitchWorkspace?: () => void;
 		onCreateWorkspace?: () => void;
 		onAddAccount?: () => void;
+		onSwitchAccount?: (targetUserId: string, redirectTo?: string) => void;
 		onLogout?: () => void;
 		onSearch?: () => void;
 		onEdit?: () => void;
@@ -22,11 +32,13 @@
 	let {
 		workspaceName = 'Axon',
 		accountEmail = 'user@example.com',
+		linkedAccounts = [],
 		onSettings,
 		onInviteMembers,
 		onSwitchWorkspace,
 		onCreateWorkspace,
 		onAddAccount,
+		onSwitchAccount,
 		onLogout,
 		onSearch,
 		onEdit,
@@ -58,6 +70,7 @@
 				{teamInvites}
 				{accountEmail}
 				accountName={workspaceName}
+				{linkedAccounts}
 				{sidebarCollapsed}
 				variant="sidebar"
 				{isLoading}
@@ -75,6 +88,7 @@
 				onSwitchWorkspace={() => onSwitchWorkspace?.()}
 				onCreateWorkspace={() => onCreateWorkspace?.()}
 				onAddAccount={() => onAddAccount?.()}
+				onSwitchAccount={(targetUserId, redirectTo) => onSwitchAccount?.(targetUserId, redirectTo)}
 				onLogout={() => onLogout?.()}
 			/>
 		</div>

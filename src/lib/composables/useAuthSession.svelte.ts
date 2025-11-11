@@ -21,6 +21,7 @@ export interface UseAuthSessionReturn {
 	get error(): string | null;
 	refresh: () => Promise<void>;
 	logout: () => Promise<void>;
+	switchAccount: (targetUserId: string, redirectTo?: string) => Promise<void>;
 }
 
 interface SessionResponse {
@@ -72,7 +73,8 @@ export function useAuthSession(): UseAuthSessionReturn {
 
 			state.isAuthenticated = data.authenticated;
 			state.user = data.authenticated && data.user ? data.user : null;
-			state.csrfToken = data.csrfToken ?? readCookie('axon_csrf');
+			const cookieToken = readCookie('syos_csrf') ?? readCookie('axon_csrf');
+			state.csrfToken = data.csrfToken ?? cookieToken;
 		} catch (error) {
 			console.error('Failed to load auth session', error);
 			state.isAuthenticated = false;
@@ -86,7 +88,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 	async function logout() {
 		if (!browser) return;
 
-		const csrfToken = state.csrfToken ?? readCookie('axon_csrf');
+		const csrfToken = state.csrfToken ?? readCookie('syos_csrf') ?? readCookie('axon_csrf');
 		if (!csrfToken) {
 			state.error = 'Unable to verify session (missing CSRF token).';
 			return;
@@ -120,6 +122,50 @@ export function useAuthSession(): UseAuthSessionReturn {
 		}
 	}
 
+	async function switchAccount(targetUserId: string, redirectTo?: string) {
+		if (!browser) return;
+
+		const csrfToken = state.csrfToken ?? readCookie('syos_csrf') ?? readCookie('axon_csrf');
+		if (!csrfToken) {
+			state.error = 'Unable to verify session (missing CSRF token).';
+			return;
+		}
+
+		state.isLoading = true;
+		state.error = null;
+
+		try {
+			const response = await fetch('/auth/switch', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRF-Token': csrfToken
+				},
+				credentials: 'include',
+				body: JSON.stringify({
+					targetUserId,
+					redirect: redirectTo
+				})
+			});
+
+			if (!response.ok) {
+				const result = await response.json().catch(() => null);
+				state.error =
+					(result as { error?: string } | null)?.error ?? 'Failed to switch accounts.';
+				return;
+			}
+
+			const result = (await response.json()) as { redirect?: string };
+			state.csrfToken = null;
+			window.location.href = result.redirect ?? redirectTo ?? '/inbox';
+		} catch (error) {
+			console.error('Account switch failed', error);
+			state.error = 'Unable to switch accounts right now.';
+		} finally {
+			state.isLoading = false;
+		}
+	}
+
 	if (browser) {
 		loadSession();
 	}
@@ -138,6 +184,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 			return state.error;
 		},
 		refresh: loadSession,
-		logout
+		logout,
+		switchAccount
 	};
 }

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { getContext } from 'svelte';
 	import { browser } from '$app/environment';
+	import { page } from '$app/stores';
 	import { useConvexClient } from 'convex-svelte';
 	import { makeFunctionReference } from 'convex/server';
 	import { api } from '$lib/convex';
@@ -78,6 +79,27 @@
 		isMobile: boolean;
 		onSidebarToggle: () => void;
 	}>('sidebar');
+
+	// Check for linked account success message
+	const showLinkedSuccess = $derived($page.url.searchParams.get('linked') === '1');
+	let linkedSuccessTimeout: ReturnType<typeof setTimeout> | null = null;
+
+	$effect(() => {
+		if (showLinkedSuccess && browser) {
+			// Auto-dismiss after 5 seconds
+			linkedSuccessTimeout = setTimeout(() => {
+				const url = new URL(window.location.href);
+				url.searchParams.delete('linked');
+				window.history.replaceState({}, '', url);
+			}, 5000);
+		}
+
+		return () => {
+			if (linkedSuccessTimeout) {
+				clearTimeout(linkedSuccessTimeout);
+			}
+		};
+	});
 
 	// Initialize sync composable
 	// Note: onItemsReload is no longer needed - useQuery automatically updates when items are added
@@ -295,6 +317,29 @@
 </script>
 
 <div class="flex h-full overflow-hidden">
+	<!-- Success message for linked account -->
+	{#if showLinkedSuccess}
+		<div class="fixed top-4 right-4 z-50 flex items-center gap-icon rounded-lg border border-accent-primary bg-elevated px-4 py-3 shadow-lg">
+			<svg class="h-5 w-5 flex-shrink-0 text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+			</svg>
+			<span class="text-sm font-medium text-primary">Account linked successfully! You can now switch between your accounts.</span>
+			<button
+				onclick={() => {
+					const url = new URL(window.location.href);
+					url.searchParams.delete('linked');
+					window.history.replaceState({}, '', url);
+				}}
+				class="ml-2 text-secondary hover:text-primary transition-colors"
+				aria-label="Dismiss"
+			>
+				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+				</svg>
+			</button>
+		</div>
+	{/if}
+
 	<!-- Desktop: 3-column layout -->
 	{#if !isMobile}
 		<!-- Middle Column - Inbox List -->

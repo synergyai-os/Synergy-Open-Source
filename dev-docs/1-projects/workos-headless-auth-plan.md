@@ -31,11 +31,11 @@
    - Writes a new `auth_sessions` record:
      - Fields: `sessionId` (UUID), `workosSessionId`, `workosUserId`, `convexUserId`, `refreshToken`, `accessToken`, `expiresAt`, `ip`, `userAgent`, `createdAt`, `lastSeenAt`.
      - Allows multiple sessions per user by not reusing `sessionId`.
-   - Sets `axon_session` cookie => signed, HTTP-only, `Secure`, `SameSite=Lax`, stores only opaque `sessionId`.
+   - Sets `syos_session` cookie => signed, HTTP-only, `Secure`, `SameSite=Lax`, stores only opaque `sessionId`.
    - Returns 302 → original redirect target (fallback `/inbox`).
 
 3. **Session validation (`hooks.server.ts`)**
-   - Reads `axon_session` cookie.
+   - Reads `syos_session` cookie.
    - Looks up `auth_sessions` by `sessionId`, verifies expiry + integrity (HMAC signature).
    - Refreshes tokens when `expiresAt` < now + 5 minutes (server-to-WorkOS call, writes new tokens). Refreshes happen at most once per request cycle, then cached for subsequent requests.
    - Populates `event.locals.auth = { sessionId, user, workosUserId, accessToken }`. Access token stays server-side only.
@@ -43,7 +43,7 @@
 4. **Logout (`/auth/logout` POST)**
    - Requires CSRF token.
    - Deletes `auth_sessions` record, revokes WorkOS session (`/sessions/logout`).
-   - Clears `axon_session` cookie and returns 303 to `/login`.
+   - Clears `syos_session` cookie and returns 303 to `/login`.
 
 5. **Session introspection (`/auth/session` GET)**
    - Returns minimal JSON (user info, expiry, needsReauth flag) for client hydration.
@@ -85,8 +85,8 @@
 ### Environment Variables
 - `WORKOS_CLIENT_ID`, `WORKOS_API_KEY`, `WORKOS_REDIRECT_URI`.
 - `WORKOS_PROJECT_ID` (needed for some API calls).
-- `AXON_SESSION_SECRET` (cookie signing).
-- `AXON_SESSION_TTL_DAYS` (optional override).
+- `SYOS_SESSION_SECRET` (cookie signing).
+- `SYOS_SESSION_TTL_DAYS` (optional override).
 
 ### Open Questions / Assumptions
 - Assume concurrent sessions mean “multiple browsers/devices per user” rather than multi-account login within one tab; we’ll design for both but UI for account switching is out of scope.

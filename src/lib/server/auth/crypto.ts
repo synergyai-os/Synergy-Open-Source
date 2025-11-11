@@ -1,10 +1,10 @@
 import { env } from '$env/dynamic/private';
 import crypto from 'node:crypto';
 
-const SESSION_SECRET = env.AXON_SESSION_SECRET;
+const SESSION_SECRET = env.SYOS_SESSION_SECRET;
 
 if (!SESSION_SECRET) {
-	throw new Error('AXON_SESSION_SECRET is required to use headless WorkOS auth.');
+	throw new Error('SYOS_SESSION_SECRET is required to use headless WorkOS auth.');
 }
 
 const ENCRYPTION_KEY = crypto.createHash('sha256').update(`${SESSION_SECRET}:encryption`).digest();

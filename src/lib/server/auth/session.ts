@@ -16,12 +16,14 @@ import {
 } from './crypto';
 import { refreshWorkOSSession } from './workos';
 
-export const SESSION_COOKIE_NAME = 'axon_session';
-export const CSRF_COOKIE_NAME = 'axon_csrf';
+export const SESSION_COOKIE_NAME = 'syos_session';
+export const CSRF_COOKIE_NAME = 'syos_csrf';
 export const LEGACY_SESSION_COOKIE = 'wos-session';
 export const LEGACY_USER_COOKIE = 'wos-user';
+const LEGACY_AXON_SESSION_COOKIE = 'axon_session';
+const LEGACY_AXON_CSRF_COOKIE = 'axon_csrf';
 
-const SESSION_TTL_DAYS = Number(env.AXON_SESSION_TTL_DAYS ?? '30');
+const SESSION_TTL_DAYS = Number(env.SYOS_SESSION_TTL_DAYS ?? '30');
 const SESSION_MAX_AGE = Math.max(1, SESSION_TTL_DAYS) * 24 * 60 * 60; // seconds
 const COOKIE_BASE_OPTIONS = {
 	path: '/',
@@ -92,12 +94,20 @@ export async function establishSession(options: {
 		userAgent: options.event.request.headers.get('user-agent')
 	});
 
+	console.log('🔍 Setting session cookies:', {
+		sessionCookieName: SESSION_COOKIE_NAME,
+		csrfCookieName: CSRF_COOKIE_NAME,
+		cookieOptions: sessionCookieOptions
+	});
+
 	options.event.cookies.set(
 		SESSION_COOKIE_NAME,
 		encodeSessionCookie(sessionId),
 		sessionCookieOptions
 	);
 	options.event.cookies.set(CSRF_COOKIE_NAME, csrfToken, csrfCookieOptions);
+
+	console.log('✅ Session cookies set successfully');
 
 	// Clean up legacy cookies if present
 	options.event.cookies.delete(LEGACY_SESSION_COOKIE, { path: '/' });
@@ -112,12 +122,27 @@ export async function establishSession(options: {
 		csrfToken
 	};
 
+	console.log('✅ Session established for user:', options.userSnapshot.email);
+
 	return sessionId;
 }
 
 export async function resolveRequestSession(event: RequestEvent) {
-	const sessionCookie = event.cookies.get(SESSION_COOKIE_NAME);
-	const csrfCookie = event.cookies.get(CSRF_COOKIE_NAME);
+	console.log('🔍 Resolving session for:', event.url.pathname);
+	
+	const primarySessionCookie = event.cookies.get(SESSION_COOKIE_NAME);
+	const legacyAxonSessionCookie = event.cookies.get(LEGACY_AXON_SESSION_COOKIE);
+	const sessionCookie = primarySessionCookie ?? legacyAxonSessionCookie;
+
+	console.log('🔍 Session cookies:', {
+		hasPrimarySession: !!primarySessionCookie,
+		hasLegacySession: !!legacyAxonSessionCookie,
+		hasAnySession: !!sessionCookie
+	});
+
+	const primaryCsrfCookie = event.cookies.get(CSRF_COOKIE_NAME);
+	const legacyAxonCsrfCookie = event.cookies.get(LEGACY_AXON_CSRF_COOKIE);
+	const csrfCookieValue = primaryCsrfCookie ?? legacyAxonCsrfCookie;
 
 	// Always clear legacy cookies if encountered
 	const legacySession = event.cookies.get(LEGACY_SESSION_COOKIE);
@@ -128,13 +153,19 @@ export async function resolveRequestSession(event: RequestEvent) {
 	if (legacyUser) {
 		event.cookies.delete(LEGACY_USER_COOKIE, { path: '/' });
 	}
+	if (legacyAxonSessionCookie) {
+		event.cookies.delete(LEGACY_AXON_SESSION_COOKIE, { path: '/' });
+	}
+	if (legacyAxonCsrfCookie) {
+		event.cookies.delete(LEGACY_AXON_CSRF_COOKIE, { path: '/' });
+	}
 
 	if (!sessionCookie) {
 		event.locals.auth = {
 			sessionId: undefined,
 			user: null
 		};
-		if (csrfCookie) {
+		if (csrfCookieValue) {
 			event.cookies.delete(CSRF_COOKIE_NAME, { path: '/' });
 		}
 		return;
@@ -176,7 +207,7 @@ export async function resolveRequestSession(event: RequestEvent) {
 	let accessToken = record.accessToken;
 	let refreshToken = record.refreshToken;
 	let expiresAt = record.expiresAt;
-	let csrfToken = csrfCookie;
+	let csrfToken = csrfCookieValue;
 
 	const csrfMismatch =
 		!csrfToken || hashValue(csrfToken) !== record.csrfTokenHash;
@@ -269,4 +300,8 @@ export function clearSessionCookies(event: RequestEvent) {
 		secure: env.NODE_ENV === 'production'
 	});
 	event.cookies.delete(CSRF_COOKIE_NAME, { path: '/' });
+	event.cookies.delete(LEGACY_AXON_SESSION_COOKIE, { path: '/' });
+	event.cookies.delete(LEGACY_AXON_CSRF_COOKIE, { path: '/' });
+	event.cookies.delete(LEGACY_SESSION_COOKIE, { path: '/' });
+	event.cookies.delete(LEGACY_USER_COOKIE, { path: '/' });
 }
