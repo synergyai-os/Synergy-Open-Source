@@ -1,0 +1,9 @@
+blank_issues_enabled: false
+contact_links:
+  - name: GitHub Discussions
+    url: https://github.com/synergyai-os/Synergy-Open-Source/discussions
+    about: Ask questions, share ideas, and discuss the project
+  - name: Discord Community
+    url: https://discord.gg/synergyos
+    about: Join our Discord for real-time chat and support
+

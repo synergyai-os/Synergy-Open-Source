@@ -1,6 +1,6 @@
 {
 	"name": "synergyos",
-	"private": true,
+	"private": false,
 	"version": "0.1.0",
 	"description": "Open Source Knowledge Retention System - Transform content into actionable knowledge",
 	"type": "module",
