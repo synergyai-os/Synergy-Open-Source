@@ -129,7 +129,7 @@ npm install --save-dev mdsvex rehype-slug rehype-autolink-headings shiki fuse.js
 ### 4. Test Setup (30 min)
 ```bash
 npm run dev
-# Visit http://localhost:5173/docs
+# Visit /docs in your browser (default: http://localhost:5173/docs)
 ```
 
 ---

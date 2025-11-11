@@ -80,7 +80,7 @@ SynergyOS is the open-source Product OS for teams who believe in continuous disc
 **Media Contact**  
 Randy Hereman  
 Founder, SynergyOS  
-[GitHub](https://github.com/synergyos) | [Community](https://synergyos.dev/community)
+[GitHub](https://github.com/synergyai-os/Synergy-Open-Source)
 
 ---
 

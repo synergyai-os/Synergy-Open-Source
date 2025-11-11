@@ -31,13 +31,13 @@
 5. Copy the key
 
 **WorkOS Credentials (Staging for local dev):**
-1. Go to: https://dashboard.workos.com
+1. Go to WorkOS Dashboard (requires authentication)
 2. Switch to **Staging** environment (dropdown at top)
 3. Go to **API Keys** section
 4. Copy **Client ID** and **API Key**
 
 **PostHog Key:**
-1. Go to: https://posthog.com/settings
+1. Go to PostHog Settings (requires authentication)
 2. Copy Project API Key
 
 ### Step 2: Create `.env.local`
@@ -294,7 +294,7 @@ Immediately revoke the exposed key in the service's dashboard.
 - [AuthKit Setup](https://workos.com/docs/user-management)
 
 **Convex:**
-- [Deploy Keys](https://docs.convex.dev/production/hosting/deploy-keys)
+- [Deployment Documentation](https://docs.convex.dev/deploy)
 
 ---
 

@@ -26,7 +26,7 @@
 - **AI Coaching** - Context-aware AI trained on company data, not generic ChatGPT
 - **Builder Marketplace** - Custom apps, workflows, integrations (80/20 revenue share)
 
-**Want to contribute?** Check [Contributing Guidelines](../CONTRIBUTING.md) or browse [good first issues](https://github.com/synergyai-os/Synergy-Open-Source/labels/good%20first%20issue)
+**Want to contribute?** Check [Contributing Guidelines](../CONTRIBUTING.md) or browse [open issues](https://github.com/synergyai-os/Synergy-Open-Source/issues)
 
 ### Why It's Different
 

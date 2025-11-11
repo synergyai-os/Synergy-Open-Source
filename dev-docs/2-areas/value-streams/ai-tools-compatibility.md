@@ -108,7 +108,7 @@ npm install layerchart
 </Chart>
 ```
 
-**See**: [LayerChart Spline Example](https://layerchart.com/examples/Spline)
+**See**: [LayerChart Documentation](https://layerchart.com/docs)
 
 ---
 
@@ -135,7 +135,7 @@ type ToolFeature = {
 
 **Styling**: Use design tokens (bg-surface, border-base, etc.)
 
-**See**: [Bits UI Table](https://www.bits-ui.com/docs/components/table)
+**See**: [Bits UI Documentation](https://www.bits-ui.com/docs)
 
 ---
 

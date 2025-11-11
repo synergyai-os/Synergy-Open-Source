@@ -80,7 +80,7 @@ You need **TWO terminal windows** running simultaneously:
 npm run dev
 ```
 
-**Opens:** http://localhost:5173
+**Opens:** Development server (default: http://localhost:5173)
 
 ### Terminal 2: Convex Database
 
@@ -94,7 +94,7 @@ npx convex dev
 
 ## ✅ Verify It's Working
 
-**1. Open browser:** http://localhost:5173
+**1. Open browser:** Navigate to the development server URL (default: http://localhost:5173)
 
 **2. You should see the SynergyOS homepage**
 
@@ -146,7 +146,7 @@ cd /Users/YOUR-USERNAME/Coding/SynergyOS
 1. **Read the docs:** [Architecture Overview](architecture.md)
 2. **Check patterns:** [Pattern Index](patterns/INDEX.md) for common solutions
 3. **Design system:** [Design Tokens](design-tokens.md) for UI styling
-4. **Start coding:** Pick an issue from [Good First Issues](https://github.com/synergyai-os/Synergy-Open-Source/labels/good%20first%20issue)
+4. **Start coding:** Pick an issue from [open issues](https://github.com/synergyai-os/Synergy-Open-Source/issues)
 
 ---
 

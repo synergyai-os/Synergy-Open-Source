@@ -2,6 +2,21 @@
   "ignorePatterns": [
     {
       "pattern": "^(?!http)"
+    },
+    {
+      "pattern": "^http://localhost"
+    },
+    {
+      "pattern": "^https://dashboard\\.workos\\.com"
+    },
+    {
+      "pattern": "^https://dashboard\\.convex\\.dev"
+    },
+    {
+      "pattern": "^https://posthog\\.com/settings"
+    },
+    {
+      "pattern": "^https://synergyos\\.dev"
     }
   ],
   "replacementPatterns": [],

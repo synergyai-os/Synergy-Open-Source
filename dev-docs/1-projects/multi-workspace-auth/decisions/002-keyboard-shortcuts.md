@@ -231,7 +231,7 @@ if ((e.metaKey || e.ctrlKey) && e.key === '1') {
 ## References
 
 - [Slack Keyboard Shortcuts](https://slack.com/help/articles/201374536-Slack-keyboard-shortcuts)
-- [Linear Keyboard Shortcuts](https://linear.app/docs/keyboard-shortcuts)
+- [Linear Documentation](https://linear.app/docs) (keyboard shortcuts available in Linear app)
 - Related: [ADR 001: Workspace Context](./001-workspace-context.md)
 
 ---
