@@ -5,9 +5,11 @@
 	
 	let { data }: { data: PageData } = $props();
 	
-	// Utility: Strip PARA numbering (1-, 2-, 3-, 4-) from folder/file names
+	// Utility: Strip PARA numbering (1-, 2-, 3-, 4-) from folder/file names and capitalize
 	function cleanParaName(name: string): string {
-		return name.replace(/^\d+-/, '').replace(/\/$/, '');
+		const cleaned = name.replace(/^\d+-/, '').replace(/\/$/, '');
+		// Capitalize first letter
+		return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
 	}
 	
 	// Function to generate heading with ID
