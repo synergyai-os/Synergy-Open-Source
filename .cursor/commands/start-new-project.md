@@ -10,42 +10,42 @@
 
 ```typescript
 const LINEAR = {
-  team: "SYOS",
-  teamId: "08d684b7-986f-4781-8bc5-e4d9aead6935",
-  
-  labels: {
-    // Type (Flow Distribution - REQUIRED)
-    feature: "ba9cfc2b-a993-4265-80dc-07fd1c831029",
-    bug: "62008be5-0ff6-4aae-ba9b-c2887257acf8",
-    "tech-debt": "7cec9e22-31d4-4166-ba92-61d8f8c18809",
-    risk: "99472a27-79b0-475b-bd4a-d4d66e3f2b81",
-    
-    // Scope (Flow Distribution - REQUIRED, can be multiple)
-    frontend: "70068764-575a-48a6-b4d1-3735a044230e",
-    backend: "7299ef53-982d-429d-b513-ccf190b28c16",
-    ui: "ace175ff-3cce-4416-bacc-529ee85e72a9",
-    auth: "1ce394e6-d0ac-41c0-a3b2-f8dd062f7725",
-    workspace: "ede0cdda-d56f-4f0d-a6b9-5522df50839f",
-    analytics: "1e82f018-fec6-4d0f-9369-ab1e98cdd613",
-    devops: "df3e1654-2066-423b-905a-41dfc69f2cd5",
-    security: "9a561550-aff8-4cd3-a1f5-3cd5b9008b97",
-    
-    // Special
-    shaping: "5a657e67-a6d7-4b49-9299-91e60daf44b3"
-  },
-  
-  // Size: Use Linear's native "estimate" field (NOT labels)
-  estimates: {
-    // Use numeric values for Linear API:
-    // 0 = No estimate, 1 = XS, 2 = S, 3 = M, 4 = L, 5 = XL
-    none: 0,
-    xs: 1,    // < 2h
-    s: 2,     // 2-4h  
-    m: 3,     // 4-8h (half day)
-    l: 4,     // 1-2 days
-    xl: 5     // 2+ days (break down!)
-  }
-}
+	team: 'SYOS',
+	teamId: '08d684b7-986f-4781-8bc5-e4d9aead6935',
+
+	labels: {
+		// Type (Flow Distribution - REQUIRED)
+		feature: 'ba9cfc2b-a993-4265-80dc-07fd1c831029',
+		bug: '62008be5-0ff6-4aae-ba9b-c2887257acf8',
+		'tech-debt': '7cec9e22-31d4-4166-ba92-61d8f8c18809',
+		risk: '99472a27-79b0-475b-bd4a-d4d66e3f2b81',
+
+		// Scope (Flow Distribution - REQUIRED, can be multiple)
+		frontend: '70068764-575a-48a6-b4d1-3735a044230e',
+		backend: '7299ef53-982d-429d-b513-ccf190b28c16',
+		ui: 'ace175ff-3cce-4416-bacc-529ee85e72a9',
+		auth: '1ce394e6-d0ac-41c0-a3b2-f8dd062f7725',
+		workspace: 'ede0cdda-d56f-4f0d-a6b9-5522df50839f',
+		analytics: '1e82f018-fec6-4d0f-9369-ab1e98cdd613',
+		devops: 'df3e1654-2066-423b-905a-41dfc69f2cd5',
+		security: '9a561550-aff8-4cd3-a1f5-3cd5b9008b97',
+
+		// Special
+		shaping: '5a657e67-a6d7-4b49-9299-91e60daf44b3'
+	},
+
+	// Size: Use Linear's native "estimate" field (NOT labels)
+	estimates: {
+		// Use numeric values for Linear API:
+		// 0 = No estimate, 1 = XS, 2 = S, 3 = M, 4 = L, 5 = XL
+		none: 0,
+		xs: 1, // < 2h
+		s: 2, // 2-4h
+		m: 3, // 4-8h (half day)
+		l: 4, // 1-2 days
+		xl: 5 // 2+ days (break down!)
+	}
+};
 ```
 
 **Benefits**: ⚡ Faster (no lookups), 💰 Cheaper (fewer MCP calls), 🎯 Precise (exact IDs)
@@ -63,6 +63,7 @@ const LINEAR = {
 5. **Read `dev-docs/2-areas/flow-metrics.md`** - Understand Linear labeling system
 
 **Project Info:**
+
 - **Production Domain**: `www.synergyos.ai` (always use www prefix)
 - **GitHub Repo**: `synergyai-os/Synergy-Open-Source`
 - **Linear Team**: `SYOS`
@@ -76,11 +77,13 @@ const LINEAR = {
 **Before coding**:
 
 #### Define Team & Ownership
+
 - **Who owns this project?** (e.g., Randy, Platform Team, etc.)
 - If not yet defined, write **"Not defined"** and assign later
 - Document in project README
 
 #### Define Outcome & Success Signals
+
 - **What business outcome does this achieve?** (not just features)
 - If not yet validated with users, write: **"{Your best guess} (by AI → real outcome is not defined or linked yet)"**
 - Define **success signals**:
@@ -89,10 +92,12 @@ const LINEAR = {
 - Include **validation plan**: How will you test assumptions with real users?
 
 **Example outcomes**:
+
 - ❌ Bad: "Build RBAC system" (output, not outcome)
 - ✅ Good: "Enable secure delegation of team management without admin bottlenecks" (business outcome)
 
 #### Validate Naming (Business-Friendly)
+
 - **Use common language** that all roles understand (not just developers)
 - Avoid technical jargon in project names (e.g., "Team Access & Permissions" not "RBAC Phase 1")
 - **Validate with user** before finalizing names
@@ -102,18 +107,21 @@ const LINEAR = {
   - User-facing descriptions
 
 **Example naming**:
+
 - ❌ Bad: "RBAC Phase 1" (developer jargon)
 - ✅ Good: "Team Access & Permissions" (everyone understands)
 
 #### Check for Existing Projects
+
 ```typescript
 // List existing projects first
-mcp_Linear_list_projects({ team: "SYOS" })
+mcp_Linear_list_projects({ team: 'SYOS' });
 
 // Validate: Create new project or use existing?
 ```
 
 #### Create Architecture Document
+
 - Create architecture document (if needed)
 - Discuss with user to validate approach
 - Break down into vertical slices (Shape Up style)
@@ -122,6 +130,7 @@ mcp_Linear_list_projects({ team: "SYOS" })
 **Example**: `dev-docs/2-areas/workos-convex-auth-architecture.md`
 
 **⚠️ Do NOT start coding until user confirms**:
+
 1. ✅ Team ownership assigned
 2. ✅ Outcome defined (even if AI guess)
 3. ✅ Naming validated (business-friendly)
@@ -159,31 +168,40 @@ dev-docs/
    - Status, branch, Linear link, dates
 
 2. **Team & Ownership** (NEW ⭐):
+
    ```markdown
    ## 👥 Team & Ownership
+
    **Team**: [Team Name or "Not defined"]
-   
+
    **Key Contributors**:
+
    - [Name] - [Role/Responsibility]
    ```
 
 3. **Outcome & Success Signals** (NEW ⭐):
+
    ```markdown
    ## 🎯 Outcome & Success Signals
+
    **Outcome**: {Your outcome guess} (by AI → real outcome is not defined or linked yet)
-   
+
    ### How We'll Know We Succeeded
+
    **Leading Indicators** (Early signals):
+
    - [ ] Signal 1
    - [ ] Signal 2
-   
+
    **Lagging Indicators** (Outcome signals):
+
    - [ ] Outcome 1
    - [ ] Outcome 2
-   
+
    ⚠️ These are AI guesses - Validate with real users!
-   
+
    **Validation Plan**:
+
    1. How to test assumption 1
    2. How to test assumption 2
    ```
@@ -207,9 +225,9 @@ dev-docs/
 ```typescript
 // Create ticket with proper labels and estimate
 mcp_Linear_create_issue({
-  team: "SYOS",
-  title: "[Slice N] Descriptive Title",
-  description: `
+	team: 'SYOS',
+	title: '[Slice N] Descriptive Title',
+	description: `
 **Goal**: What this slice delivers (one sentence)
 
 **Acceptance Criteria** (AI checks these off when complete):
@@ -240,25 +258,26 @@ mcp_Linear_create_issue({
 **Commits** (AI adds when committing):
 - abc1234 - Description
   `,
-  project: "Project Name",
-  state: "Todo",
-  estimate: 2,  // Use numeric estimate: 1=XS, 2=S, 3=M, 4=L, 5=XL
-  labels: [
-    "feature",    // Type: feature | bug | tech-debt | risk (REQUIRED for Flow Metrics)
-    "backend",    // Scope: frontend | backend | ui | auth | workspace | analytics | devops | security
-    "workspace"   // Scope: Can have multiple scope labels
-  ]
-})
+	project: 'Project Name',
+	state: 'Todo',
+	estimate: 2, // Use numeric estimate: 1=XS, 2=S, 3=M, 4=L, 5=XL
+	labels: [
+		'feature', // Type: feature | bug | tech-debt | risk (REQUIRED for Flow Metrics)
+		'backend', // Scope: frontend | backend | ui | auth | workspace | analytics | devops | security
+		'workspace' // Scope: Can have multiple scope labels
+	]
+});
 ```
 
 **⚠️ After Creating Ticket:**
+
 1. Copy the returned Linear ticket ID (e.g., `SYOS-123`)
 2. **Update ticket description** to include the ID:
    ```typescript
    mcp_Linear_update_issue({
-     id: "issue-id",
-     description: "... **Linear ID**: SYOS-123 ..."
-   })
+   	id: 'issue-id',
+   	description: '... **Linear ID**: SYOS-123 ...'
+   });
    ```
 3. Use this ID in all commit messages: `Linear: SYOS-123`
 
@@ -307,32 +326,33 @@ mcp_Linear_create_issue({
 - **Before "In Review"**: Ensure ticket is fully updated
 
 **Example Update Flow:**
+
 ```typescript
 // 1. Start work → Mark criteria as you complete them
 mcp_Linear_update_issue({
-  id: "issue-id",
-  description: `
+	id: 'issue-id',
+	description: `
 **Acceptance Criteria** (AI checks these off when complete):
 - [x] Install svelte-sonner ← Just completed
 - [ ] Create toast helper ← Working on this
 - [ ] Add to layout
   `
-})
+});
 
 // 2. After first commit → Add to commits list
 mcp_Linear_update_issue({
-  id: "issue-id",
-  description: `
+	id: 'issue-id',
+	description: `
 ...
 **Commits** (AI adds when committing):
 - ff8c280 - Initial toast implementation
   `
-})
+});
 
 // 3. When done → All criteria checked, estimate updated
 mcp_Linear_update_issue({
-  id: "issue-id",
-  description: `
+	id: 'issue-id',
+	description: `
 **Acceptance Criteria** (AI checks these off when complete):
 - [x] Install svelte-sonner
 - [x] Create toast helper
@@ -345,19 +365,22 @@ mcp_Linear_update_issue({
 - f6716ee - SSR fix
 - 0d7e370 - Deprecation fix
   `
-})
+});
 ```
 
 **Labeling + Estimate Rules** (see `dev-docs/2-areas/flow-metrics.md`):
 
 **Labels** (for Flow Distribution):
+
 - **Type** (required, one): `feature`, `bug`, `tech-debt`, `risk`
 - **Scope** (required, one or more): `frontend`, `backend`, `ui`, `auth`, `workspace`, `analytics`, `devops`, `security`
 
 **Estimate Field** (Linear's native field):
+
 - **Size** (required): `1=XS` (<2h), `2=S` (2-4h), `3=M` (4-8h), `4=L` (1-2 days), `5=XL` (break down!)
 
 **Examples**:
+
 ```typescript
 // Feature slice (backend + frontend, small size)
 {
@@ -388,13 +411,13 @@ mcp_Linear_update_issue({
 
 ```typescript
 // Get project
-mcp_Linear_get_project({ query: "Project Name" })
+mcp_Linear_get_project({ query: 'Project Name' });
 
 // Update with description
 mcp_Linear_update_project({
-  id: "project-id",
-  summary: "One-line summary for project list",
-  description: `
+	id: 'project-id',
+	summary: 'One-line summary for project list',
+	description: `
 # Project Overview
 
 **Team**: [Team Name or "Not defined"]
@@ -441,14 +464,16 @@ mcp_Linear_update_project({
 1. Decision 1 and rationale
 2. Decision 2 and rationale
   `
-})
+});
 ```
 
 **Purpose split**:
+
 - **Linear Project**: High-level overview for org-wide visibility (PMs, stakeholders, teammates)
 - **Dev-Docs**: Technical details for developers and AI (architecture, patterns, decisions)
 
 **Ticket states**:
+
 - `"Todo"` - Not started
 - `"In Progress"` - Currently working
 - `"Done"` - Completed
@@ -462,6 +487,7 @@ mcp_Linear_update_project({
 **🚦 When to Continue vs. Stop for Review**
 
 **✅ Continue Automatically When:**
+
 - Slice follows same patterns as previous slices
 - Backend-only work (APIs, database, logic)
 - Well-defined acceptance criteria (no ambiguity)
@@ -470,6 +496,7 @@ mcp_Linear_update_project({
 - You're 95%+ confident it will work
 
 **⛔ Stop and Ask for Review When:**
+
 - Frontend/UX decisions needed (layout, interaction, design)
 - Breaking changes or migrations required
 - Architecture changes or new patterns introduced
@@ -484,55 +511,58 @@ mcp_Linear_update_project({
 **For each slice**:
 
 1. **Start work** → Update Linear:
+
    ```typescript
    mcp_Linear_update_issue({
-     id: "issue-id",
-     state: "In Progress"
-   })
+   	id: 'issue-id',
+   	state: 'In Progress'
+   });
    ```
 
 2. **Build end-to-end** (backend + frontend working together)
 
 3. **Commit** (descriptive message with Linear ID, on feature branch):
+
    ```bash
    git add src/ convex/ dev-docs/1-projects/
    git commit -m "✅ [SLICE-N] Title" -m "TYPE: feature | SCOPE: area | SIZE: small | IMPACT: high
 
    - What was added/changed
    - Why it matters
-   
+
    Addresses: vertical-slices.md#slice-N
    Linear: SYOS-N"
    ```
-   
+
    **⚠️ ALWAYS include `Linear: SYOS-N`** - Enables automation and links commits to tickets
    **⚠️ Commit to feature branch** - Create PR to main when ready (don't push directly to main)
 
 4. **Test with user** (get feedback before next slice)
 
 5. **Mark for review** in Linear (ticket + one-line comment):
+
    ```typescript
    // Update ticket status to "In Review" (human will mark "Done" after testing)
    mcp_Linear_update_issue({
-     id: "issue-id",
-     state: "In Review"
-   })
-   
+   	id: 'issue-id',
+   	state: 'In Review'
+   });
+
    // Add one-line completion comment
    mcp_Linear_create_comment({
-     issueId: "issue-id",
-     body: "✅ Ready for review - [What shipped in 1 sentence] | Commit: abc1234"
-   })
+   	issueId: 'issue-id',
+   	body: '✅ Ready for review - [What shipped in 1 sentence] | Commit: abc1234'
+   });
    ```
-   
+
    **⚠️ Human marks "Done"** - AI marks "In Review", human tests and confirms
 
 6. **Update TODO list**:
    ```typescript
    todo_write({
-     merge: true,
-     todos: [{ id: "slice-N", status: "completed" }]
-   })
+   	merge: true,
+   	todos: [{ id: 'slice-N', status: 'completed' }]
+   });
    ```
 
 **Repeat** until all slices complete.
@@ -542,12 +572,14 @@ mcp_Linear_update_project({
 ### 6. Create Pull Request (When Ready to Merge)
 
 **Before PR**:
+
 - All Linear tickets reviewed and marked "Done" by human
 - All tests passing
 - Documentation complete
 - User tested all slices
 
 **Create PR** (push feature branch, then create PR to main):
+
 ```bash
 # Push feature branch (not main)
 git push origin feature/[branch-name]
@@ -559,28 +591,35 @@ git push origin feature/[branch-name]
 **⚠️ Never push directly to main** - Always use PR workflow for review and CI checks
 
 **PR Description Template**:
+
 ```markdown
 ## Summary
+
 [1-2 sentence overview]
 
 ## Linear Project
+
 [Link to Linear project]
 
 ## Completed Tickets
+
 - [x] SYOS-1: Slice 1 description
 - [x] SYOS-2: Slice 2 description
-...
+      ...
 
 ## Documentation
+
 - Project README: `dev-docs/1-projects/[name]/README.md`
 - Architecture: `dev-docs/2-areas/[arch-doc].md`
 
 ## Testing
+
 - [ ] All slices tested by user
 - [ ] No breaking changes
 - [ ] Documentation updated
 
 ## Deployment Notes
+
 [Any special deployment steps]
 ```
 
@@ -595,10 +634,12 @@ git push origin feature/[branch-name]
 ```
 
 **Update template**:
+
 ```markdown
 ## 🚀 [Project Name] Shipped
 
 **What we built:**
+
 - Feature 1: Brief description
 - Feature 2: Brief description
 - Feature 3: Brief description
@@ -621,12 +662,14 @@ See dev-docs/1-projects/[name]/ for architecture and decisions
 ### 7. After Merge (Cleanup)
 
 **Extract patterns**:
+
 1. Review project docs in `dev-docs/1-projects/[name]/`
 2. Extract reusable patterns → `dev-docs/2-areas/patterns/` (add to domain files)
 3. Update `dev-docs/2-areas/patterns/INDEX.md` (add to symptom table)
 4. Move project docs → `dev-docs/4-archive/`
 
 **Example**:
+
 - `decisions/001-workspace-context.md` → Keep in archive for reference
 - Workspace switching pattern → Extract to `dev-docs/2-areas/patterns/ui-patterns.md` (or appropriate domain file)
 
@@ -649,6 +692,7 @@ Linear: [ticket ID]
 ```
 
 **Common types**:
+
 - `✅ [SLICE-N]` - Completed vertical slice
 - `📦 [PROJECT]` - Project setup/documentation
 - `🔧 [FIX]` - Bug fix
@@ -659,19 +703,19 @@ Linear: [ticket ID]
 
 ## Quick Reference
 
-| Step | Action | Tool |
-|------|--------|------|
-| Plan | Validate architecture | Discussion with user |
-| Branch | `git checkout -b feature/name` | Git |
-| Docs | Create PARA structure | `dev-docs/1-projects/` |
-| Tickets | Create Linear issues | `mcp_Linear_create_issue` |
-| Build | Implement slice | Code |
-| Update | Mark slice complete | `mcp_Linear_update_issue` |
-| Commit | Commit changes | Git |
-| Test | User tests slice | Manual QA |
-| PR | Create pull request | GitHub |
-| Merge | After approval | GitHub |
-| Archive | Extract patterns, archive | Docs |
+| Step    | Action                         | Tool                      |
+| ------- | ------------------------------ | ------------------------- |
+| Plan    | Validate architecture          | Discussion with user      |
+| Branch  | `git checkout -b feature/name` | Git                       |
+| Docs    | Create PARA structure          | `dev-docs/1-projects/`    |
+| Tickets | Create Linear issues           | `mcp_Linear_create_issue` |
+| Build   | Implement slice                | Code                      |
+| Update  | Mark slice complete            | `mcp_Linear_update_issue` |
+| Commit  | Commit changes                 | Git                       |
+| Test    | User tests slice               | Manual QA                 |
+| PR      | Create pull request            | GitHub                    |
+| Merge   | After approval                 | GitHub                    |
+| Archive | Extract patterns, archive      | Docs                      |
 
 ---
 
@@ -688,6 +732,7 @@ Linear: [ticket ID]
 **Branch**: `feature/multi-workspace-auth`
 
 **Documentation**:
+
 - `dev-docs/1-projects/multi-workspace-auth/README.md`
 - `dev-docs/1-projects/multi-workspace-auth/vertical-slices.md`
 - `dev-docs/1-projects/multi-workspace-auth/decisions/001-workspace-context.md`
@@ -695,6 +740,7 @@ Linear: [ticket ID]
 **Linear**: 7 tickets (SYOS-1 through SYOS-7)
 
 **Slices**:
+
 1. Workspace Context & Indicator ✅
 2. Create First Organization (in progress)
 3. Switch Between Workspaces

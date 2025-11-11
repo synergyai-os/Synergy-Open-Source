@@ -7,6 +7,7 @@
 ## Prerequisites
 
 Before testing:
+
 - [ ] All 7 slices implemented
 - [ ] All automated tests passing
 - [ ] Test data seeded (users with different roles)
@@ -17,14 +18,14 @@ Before testing:
 
 Create these test users for manual testing:
 
-| User | Email | Roles | Teams |
-|------|-------|-------|-------|
-| Alice Admin | alice@test.com | Admin | - |
-| Bob Manager | bob@test.com | Manager | - |
-| Charlie Team Lead | charlie@test.com | Team Lead | Team Alpha |
-| Diana Billing Admin | diana@test.com | Billing Admin | - |
-| Eve Multi-Role | eve@test.com | Billing Admin + Team Lead | Team Beta |
-| Frank Member | frank@test.com | Member | Team Alpha, Team Beta |
+| User                | Email            | Roles                     | Teams                 |
+| ------------------- | ---------------- | ------------------------- | --------------------- |
+| Alice Admin         | alice@test.com   | Admin                     | -                     |
+| Bob Manager         | bob@test.com     | Manager                   | -                     |
+| Charlie Team Lead   | charlie@test.com | Team Lead                 | Team Alpha            |
+| Diana Billing Admin | diana@test.com   | Billing Admin             | -                     |
+| Eve Multi-Role      | eve@test.com     | Billing Admin + Team Lead | Team Beta             |
+| Frank Member        | frank@test.com   | Member                    | Team Alpha, Team Beta |
 
 ---
 
@@ -417,19 +418,19 @@ Ensure existing features still work:
 
 ### Completed By
 
-- [ ] Tester Name: _______________
-- [ ] Date: _______________
+- [ ] Tester Name: **\*\***\_\_\_**\*\***
+- [ ] Date: **\*\***\_\_\_**\*\***
 - [ ] All tests passed: Yes / No
-- [ ] Issues found: _______________
+- [ ] Issues found: **\*\***\_\_\_**\*\***
 
 ### Issues Found
 
 Document any issues:
 
-| # | Description | Severity | Status |
-|---|-------------|----------|--------|
-| 1 | | High/Med/Low | Open/Fixed |
-| 2 | | High/Med/Low | Open/Fixed |
+| #   | Description | Severity     | Status     |
+| --- | ----------- | ------------ | ---------- |
+| 1   |             | High/Med/Low | Open/Fixed |
+| 2   |             | High/Med/Low | Open/Fixed |
 
 ### User Acceptance
 
@@ -437,8 +438,8 @@ Document any issues:
 - [ ] User confirmed features work as expected
 - [ ] User approved for production
 
-**Signed off by**: _______________ (User)  
-**Date**: _______________
+**Signed off by**: **\*\***\_\_\_**\*\*** (User)  
+**Date**: **\*\***\_\_\_**\*\***
 
 ---
 
@@ -452,5 +453,3 @@ After all tests pass:
 - [ ] Merge PR
 - [ ] Deploy to production
 - [ ] Monitor for issues
-
-

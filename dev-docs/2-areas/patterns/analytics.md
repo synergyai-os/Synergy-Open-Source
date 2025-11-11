@@ -22,24 +22,24 @@ import { PostHog } from 'posthog-node';
 let client: PostHog | null = null;
 
 export function getPostHogClient() {
-  if (!client) {
-    client = new PostHog(PUBLIC_POSTHOG_KEY, { host: PUBLIC_POSTHOG_HOST });
-  }
-  return client;
+	if (!client) {
+		client = new PostHog(PUBLIC_POSTHOG_KEY, { host: PUBLIC_POSTHOG_HOST });
+	}
+	return client;
 }
 
 // src/routes/api/posthog/track/+server.ts
 export const POST = async ({ request }) => {
-  const { event, distinctId, properties } = await request.json();
-  await getPostHogClient().capture({ event, distinctId, properties });
-  return json({ ok: true });
+	const { event, distinctId, properties } = await request.json();
+	await getPostHogClient().capture({ event, distinctId, properties });
+	return json({ ok: true });
 };
 
 // src/routes/login/+page.svelte
 await trackPosthogEvent({
-  event: 'user_signed_in',
-  distinctId: email,
-  properties: { method: 'password' }
+	event: 'user_signed_in',
+	distinctId: email,
+	properties: { method: 'password' }
 });
 ```
 
@@ -66,21 +66,22 @@ posthog.capture('Team Invite Sent', { teamID: team.id });
 // ✅ CORRECT: Enum + snake_case + past tense
 // src/lib/analytics/events.ts
 export enum AnalyticsEventName {
-  USER_SIGNED_IN = 'user_signed_in',
-  USER_SIGNED_UP = 'user_signed_up',
-  TEAM_INVITE_SENT = 'team_invite_sent',
-  ORGANIZATION_CREATED = 'organization_created',
+	USER_SIGNED_IN = 'user_signed_in',
+	USER_SIGNED_UP = 'user_signed_up',
+	TEAM_INVITE_SENT = 'team_invite_sent',
+	ORGANIZATION_CREATED = 'organization_created'
 }
 
 // Usage
 captureAnalyticsEvent(ctx, AnalyticsEventName.TEAM_INVITE_SENT, {
-  distinctId,
-  groups: { organization: orgId, team: teamId },
-  properties: { scope: 'team', team_id: teamId, invite_channel: 'email' }
+	distinctId,
+	groups: { organization: orgId, team: teamId },
+	properties: { scope: 'team', team_id: teamId, invite_channel: 'email' }
 });
 ```
 
 **Naming Rules**:
+
 - **Events**: `snake_case` + past tense (e.g., `user_signed_in`, `organization_created`)
 - **Properties**: `snake_case` (e.g., `team_id`, `organization_id`, `invite_channel`)
 - **Booleans**: Prefix with verb (e.g., `is_active`, `has_subscription`)
@@ -101,22 +102,22 @@ captureAnalyticsEvent(ctx, AnalyticsEventName.TEAM_INVITE_SENT, {
 ```typescript
 // ❌ WRONG: No group context
 posthog.capture('feature_used', {
-  distinctId: userId,
-  properties: { feature_name: 'exports' }
+	distinctId: userId,
+	properties: { feature_name: 'exports' }
 });
 
 // ✅ CORRECT: Include groups for filtering
 captureAnalyticsEvent(ctx, AnalyticsEventName.FEATURE_USED, {
-  distinctId: userId,
-  groups: {
-    organization: organizationId,  // ✅ Filter by org
-    team: teamId                   // ✅ Filter by team
-  },
-  properties: {
-    feature_name: 'exports',
-    organization_id: organizationId, // ✅ Redundant for filtering
-    team_id: teamId
-  }
+	distinctId: userId,
+	groups: {
+		organization: organizationId, // ✅ Filter by org
+		team: teamId // ✅ Filter by team
+	},
+	properties: {
+		feature_name: 'exports',
+		organization_id: organizationId, // ✅ Redundant for filtering
+		team_id: teamId
+	}
 });
 ```
 
@@ -135,12 +136,12 @@ captureAnalyticsEvent(ctx, AnalyticsEventName.FEATURE_USED, {
 ```typescript
 // ❌ WRONG: Human-friendly names in code
 export enum AnalyticsEventName {
-  USER_SIGNED_IN = 'User Signed In',  // ❌ Display name in code
+	USER_SIGNED_IN = 'User Signed In' // ❌ Display name in code
 }
 
 // ✅ CORRECT: Machine-friendly names, tweak display in PostHog UI
 export enum AnalyticsEventName {
-  USER_SIGNED_IN = 'user_signed_in',  // ✅ Machine name
+	USER_SIGNED_IN = 'user_signed_in' // ✅ Machine name
 }
 
 // In PostHog UI Event Definitions:
@@ -157,4 +158,3 @@ export enum AnalyticsEventName {
 **Pattern Count**: 4  
 **Last Updated**: 2025-11-07  
 **Full Strategy**: `dev-docs/multi-tenancy-analytics.md`
-

@@ -7,12 +7,14 @@
 ## Pre-Launch Checklist (Do This First)
 
 ### ✅ Clarity on Positioning
+
 - [ ] Product name finalized (or use "Axon" for now)
 - [ ] Elevator pitch ready (30 seconds)
 - [ ] Target audience clear (Saprolab, ZDHC, product teams)
 - [ ] Value proposition clear (see [Value Proposition](../strategy/value-proposition.md))
 
 ### ✅ Foundation Ready
+
 - [ ] Codebase cleaned up (remove personal data, API keys)
 - [ ] README.md drafted (see below)
 - [ ] License chosen (MIT recommended for trust)
@@ -23,13 +25,15 @@
 ## Hour 1-2: GitHub Repo Setup
 
 ### Tasks
+
 1. **Create public GitHub repo** (if not already public)
    - Repo name: `[username]/[product-name]` or `[product-name]/[product-name]`
    - Description: "Open-source Product OS for teams—embed learning, AI coaching, product discovery & delivery"
    - Topics: `product-management`, `open-source`, `saas`, `collaboration`, `ai-coaching`
 
 2. **Write README.md**
-   ```markdown
+
+   ````markdown
    # [Product Name]
 
    > An open-source Product OS that embeds learning, AI coaching, and product frameworks at the core—built for product teams who want to build better products.
@@ -37,6 +41,7 @@
    ## 🎯 What Is This?
 
    [Product Name] is a platform for product teams that combines:
+
    - **Product Discovery** (user research, opportunity trees, continuous discovery)
    - **Product Delivery** (outcome-driven roadmaps, OKRs, sprint planning)
    - **Team Collaboration** (meetings, alignment, communication)
@@ -48,6 +53,7 @@
    ## 🚀 Why We Built This
 
    Product teams struggle with:
+
    - Fragmented tools (Notion + Jira + Miro + Slack = context switching hell)
    - Learning takes too much effort (glossaries exist, but nobody uses them)
    - Alignment is hard (unclear strategies, misaligned teams)
@@ -88,6 +94,7 @@
    # Run dev server
    npm run dev
    ```
+   ````
 
    See [QUICK-START.md](./dev-docs/QUICK-START.md) for detailed setup.
 
@@ -98,14 +105,12 @@
    **Good First Issues**: Check out issues tagged [`good first issue`](https://github.com/[username]/[product-name]/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
 
    ## 📖 Documentation
-
    - **[Product Vision](./marketing-docs/strategy/product-vision-2.0.md)** - What we're building and why
    - **[Architecture](./dev-docs/architecture.md)** - Tech stack and patterns
    - **[Design Tokens](./dev-docs/design-tokens.md)** - UI design system
    - **[Patterns](./dev-docs/patterns/INDEX.md)** - Code patterns and best practices
 
    ## 💬 Community
-
    - **Discord**: [Join our Discord](https://discord.gg/[invite-link])
    - **Twitter**: [@[product_name]](https://twitter.com/[product_name])
    - **Blog**: [Journey Blog](https://[your-site].com/blog)
@@ -131,9 +136,12 @@
    - [SvelteKit](https://kit.svelte.dev) - Frontend framework
    - Open-source community ❤️
 
-   ---
+   ***
 
    **Star ⭐ this repo if you find it useful!**
+
+   ```
+
    ```
 
 3. **Add LICENSE file**
@@ -141,6 +149,7 @@
    - Generator: https://choosealicense.com/licenses/mit/
 
 4. **Add CODE_OF_CONDUCT.md**
+
    ```markdown
    # Code of Conduct
 
@@ -151,12 +160,14 @@
    ## Our Standards
 
    **Examples of behavior that contributes to a positive environment:**
+
    - Being respectful of differing viewpoints
    - Gracefully accepting constructive criticism
    - Focusing on what is best for the community
    - Showing empathy towards other community members
 
    **Unacceptable behavior:**
+
    - Trolling, insulting/derogatory comments, personal attacks
    - Public or private harassment
    - Publishing others' private information without permission
@@ -174,6 +185,7 @@
    ```
 
 5. **Add CONTRIBUTING.md**
+
    ```markdown
    # Contributing to [Product Name]
 
@@ -234,6 +246,7 @@
 ## Hour 3-4: Discord Server Setup
 
 ### Tasks
+
 1. **Create Discord server**
    - Name: [Product Name] Community
    - Icon: Product logo or simple logo
@@ -254,18 +267,21 @@
    - **User** (everyone else)
 
 4. **Write welcome message** (post in #general)
+
    ```markdown
    Welcome to the [Product Name] community! 🎉
 
    We're building an open-source Product OS for teams—embedding learning, AI coaching, and product frameworks at the core.
 
    **Quick Links**:
+
    - 🐙 GitHub: https://github.com/[username]/[product-name]
    - 📖 Docs: [link]
    - 💬 Support: Ask in #support
    - 💡 Ideas: Share in #ideas
 
    **How to Get Started**:
+
    - Introduce yourself in #introductions
    - Star ⭐ the GitHub repo
    - Check out `good first issue` tags on GitHub
@@ -284,12 +300,14 @@
 ## Hour 5-6: Social Presence Setup
 
 ### Twitter/X
+
 1. **Create account**: @[product_name]
 2. **Profile**:
    - Bio: "Open-source Product OS for teams. Learning, AI coaching, product discovery & delivery—built in. Privacy-first, community-driven. Built by @[your_handle]"
    - Link: GitHub repo
    - Banner: Simple visual (product screenshot or logo)
 3. **Pin first tweet**:
+
    ```
    Introducing [Product Name] 🚀
 
@@ -306,12 +324,14 @@
    ```
 
 ### LinkedIn
+
 1. **Create company page**: [Product Name]
 2. **Profile**:
    - Description: Same as Twitter
    - Link: GitHub repo
    - Banner: Same as Twitter
 3. **Post launch announcement**:
+
    ```
    We're launching [Product Name] today—an open-source Product OS for teams.
 
@@ -345,9 +365,11 @@
 ## Hour 7-8: First Journey Blog Post
 
 ### Topic
+
 **"Why I'm Building [Product Name]: From Learning Problems to an Open-Source Product OS"**
 
 ### Outline
+
 1. **The Problem** (2-3 paragraphs)
    - Learning takes too much effort in organizations
    - Glossaries exist, but nobody uses them
@@ -379,6 +401,7 @@
    - Consider contributing
 
 ### Publish
+
 - Post to your personal site/blog
 - Share on Twitter (thread)
 - Share on LinkedIn (long-form post)
@@ -389,17 +412,20 @@
 ## Post-Launch Tasks (Within 24 Hours)
 
 ### Engage
+
 - [ ] Reply to all Twitter mentions/comments
 - [ ] Reply to all LinkedIn comments
 - [ ] Welcome new Discord members
 - [ ] Answer questions in #support
 
 ### Share
+
 - [ ] Post in relevant subreddits (r/ProductManagement, r/opensource, r/SideProject)
 - [ ] Post in relevant Slack/Discord communities (Mind the Product, Product School)
 - [ ] Email friends/colleagues who might be interested
 
 ### Track
+
 - [ ] Monitor GitHub stars (goal: 10+ in first 24 hours)
 - [ ] Monitor Discord joins (goal: 20+ in first 24 hours)
 - [ ] Monitor blog post views (goal: 100+ in first 24 hours)
@@ -409,20 +435,24 @@
 ## Success Criteria (24 Hours)
 
 ### GitHub
+
 - ✅ 10+ stars
 - ✅ 5+ watchers
 - ✅ 1+ fork
 
 ### Discord
+
 - ✅ 20+ members
 - ✅ 5+ messages (engagement)
 
 ### Social
+
 - ✅ 50+ Twitter followers
 - ✅ 10+ LinkedIn post reactions
 - ✅ 1+ reshare/mention
 
 ### Blog
+
 - ✅ 100+ page views
 - ✅ 5+ comments/DMs with feedback
 
@@ -431,16 +461,19 @@
 ## Next Steps (Week 1)
 
 ### Day 2-3: Engagement
+
 - Reply to all comments, messages, questions
 - Publish second blog post (see [Journey Blog Topics](./journey-blog-topics.md))
 - Create 2-3 starter issues on GitHub
 
 ### Day 4-5: Content
+
 - Tweet daily (tips, behind-the-scenes, community amplification)
 - Post on LinkedIn (long-form post on product problems)
 - Engage in relevant communities (Reddit, Slack, Discord)
 
 ### Day 6-7: Contributors
+
 - Welcome first contributors
 - Help them get started (review PRs, answer questions)
 - Shout out contributors on social (recognition)
@@ -450,14 +483,17 @@
 ## Troubleshooting
 
 ### "No one is joining Discord"
+
 - **Fix**: Share invite link more (Twitter, LinkedIn, Reddit)
 - **Fix**: Add value in Discord first (post helpful content, not just promotion)
 
 ### "No one is starring GitHub repo"
+
 - **Fix**: Improve README (clearer value prop, screenshots, GIFs)
 - **Fix**: Post in more communities (Hacker News, relevant subreddits)
 
 ### "No engagement on social"
+
 - **Fix**: Ask questions (invite engagement)
 - **Fix**: Tag relevant people/communities (mention product influencers)
 - **Fix**: Reshare at different times (time zones matter)
@@ -469,7 +505,7 @@
 ---
 
 **Related**:
+
 - [Community Strategy](../go-to-market/community-strategy.md) - Long-term community growth
 - [Content Marketing Plan](../go-to-market/content-marketing-plan.md) - Ongoing content strategy
 - [Journey Blog Topics](./journey-blog-topics.md) - Blog post ideas
-

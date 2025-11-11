@@ -9,6 +9,7 @@ SynergyOS is a full-stack open source application built with modern web technolo
 ## Tech Stack
 
 ### Frontend
+
 - **Framework**: SvelteKit 5 (with TypeScript)
 - **UI Components**: Bits UI (headless components) + Tailwind CSS 4
 - **Mobile**: Capacitor 7 (iOS support configured)
@@ -16,11 +17,13 @@ SynergyOS is a full-stack open source application built with modern web technolo
 - **Build Tool**: Vite 7
 
 ### Backend
+
 - **Database & Backend**: Convex (serverless, real-time database)
 - **Authentication**: WorkOS AuthKit (enterprise-grade, OAuth 2.0)
 - **Email Service**: Resend
 
 ### Development Tools
+
 - **Testing**: Vitest (unit tests) + Playwright (E2E tests)
 - **Linting**: ESLint + Prettier
 - **Type Safety**: TypeScript
@@ -30,6 +33,7 @@ SynergyOS is a full-stack open source application built with modern web technolo
 ### SvelteKit 5 + Svelte 5 Runes
 
 **Why We Chose It:**
+
 - **Server-Side Rendering (SSR)**: Built-in SSR and static site generation for better performance and SEO
 - **File-Based Routing**: Intuitive `+page.svelte`, `+layout.svelte`, `+page.server.ts` structure
 - **First-Class TypeScript**: End-to-end type safety from frontend to backend
@@ -39,6 +43,7 @@ SynergyOS is a full-stack open source application built with modern web technolo
 **Quick Start:**
 
 **File Structure:**
+
 ```
 src/routes/
   +page.svelte              # Homepage (client component)
@@ -50,14 +55,15 @@ src/routes/
 ```
 
 **Reactive State:**
+
 ```typescript
 <script lang="ts">
   // Reactive state
   let count = $state(0);
-  
+
   // Derived values (computed)
   const doubled = $derived(count * 2);
-  
+
   // Side effects
   $effect(() => {
     console.log(`Count changed to ${count}`);
@@ -70,18 +76,20 @@ src/routes/
 ```
 
 **Server-Side Data Loading:**
+
 ```typescript
 // +page.server.ts
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {
-  return {
-    user: { name: 'Randy' }
-  };
+	return {
+		user: { name: 'Randy' }
+	};
 };
 ```
 
 **See Also:**
+
 - [Svelte 5 Reactivity Patterns](patterns/svelte-reactivity.md) - Complete guide to `$state`, `$derived`, composables
 - [Composables Analysis](composables-analysis.md) - Reusable logic patterns
 - Official Docs: Use Context7 for latest SvelteKit and Svelte 5 documentation
@@ -91,6 +99,7 @@ export const load: PageServerLoad = async ({ params }) => {
 ### Convex
 
 **Why We Chose It:**
+
 - **Real-Time Subscriptions**: Live queries update UI automatically when data changes
 - **Serverless Functions**: No infrastructure management, auto-scaling, zero DevOps
 - **TypeScript End-to-End**: Type-safe queries/mutations with auto-generated client types
@@ -99,72 +108,76 @@ export const load: PageServerLoad = async ({ params }) => {
 **Quick Start:**
 
 **Schema Definition:**
+
 ```typescript
 // convex/schema.ts
-import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
+import { defineSchema, defineTable } from 'convex/server';
+import { v } from 'convex/values';
 
 export default defineSchema({
-  notes: defineTable({
-    title: v.string(),
-    content: v.string(),
-    userId: v.id("users"),
-    createdAt: v.number(),
-  }).index("by_user", ["userId"]),
+	notes: defineTable({
+		title: v.string(),
+		content: v.string(),
+		userId: v.id('users'),
+		createdAt: v.number()
+	}).index('by_user', ['userId'])
 });
 ```
 
 **Queries (Read Data):**
+
 ```typescript
 // convex/notes.ts
-import { query } from "./_generated/server";
-import { v } from "convex/values";
+import { query } from './_generated/server';
+import { v } from 'convex/values';
 
 export const list = query({
-  args: { userId: v.id("users") },
-  handler: async (ctx, { userId }) => {
-    return await ctx.db
-      .query("notes")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .collect();
-  },
+	args: { userId: v.id('users') },
+	handler: async (ctx, { userId }) => {
+		return await ctx.db
+			.query('notes')
+			.withIndex('by_user', (q) => q.eq('userId', userId))
+			.collect();
+	}
 });
 ```
 
 **Mutations (Write Data):**
+
 ```typescript
 // convex/notes.ts
-import { mutation } from "./_generated/server";
+import { mutation } from './_generated/server';
 
 export const create = mutation({
-  args: { title: v.string(), content: v.string() },
-  handler: async (ctx, { title, content }) => {
-    const userId = await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
-    
-    return await ctx.db.insert("notes", {
-      title,
-      content,
-      userId,
-      createdAt: Date.now(),
-    });
-  },
+	args: { title: v.string(), content: v.string() },
+	handler: async (ctx, { title, content }) => {
+		const userId = await getAuthUserId(ctx);
+		if (!userId) throw new Error('Not authenticated');
+
+		return await ctx.db.insert('notes', {
+			title,
+			content,
+			userId,
+			createdAt: Date.now()
+		});
+	}
 });
 ```
 
 **Using in Components:**
+
 ```typescript
 <script lang="ts">
   import { useQuery, useMutation } from 'convex-svelte';
   import { api } from '$convex/_generated/api';
-  
+
   // Reactive query (auto-updates)
   const notesQuery = useQuery(api.notes.list, () => ({ userId }));
   const notes = $derived(notesQuery?.data ?? []);
-  
+
   // Mutation
   const createNote = useMutation(api.notes.create);
-  
+
   async function handleCreate() {
     await createNote({ title: 'New Note', content: '' });
   }
@@ -172,6 +185,7 @@ export const create = mutation({
 ```
 
 **See Also:**
+
 - [Convex Integration Patterns](patterns/convex-integration.md) - Avoid undefined, runtime restrictions, auth
 - [Authentication Architecture](#authentication-architecture) - How Convex Auth works
 - Official Docs: Use Context7 for latest Convex documentation
@@ -181,6 +195,7 @@ export const create = mutation({
 ### Tailwind CSS 4
 
 **Why We Chose It:**
+
 - **Utility-First CSS**: Rapid UI development with composable utility classes
 - **Design Tokens via CSS Variables**: Semantic tokens that adapt to light/dark mode automatically
 - **No Build Step**: Tailwind CSS 4 uses native CSS features (no PostCSS required)
@@ -190,20 +205,22 @@ export const create = mutation({
 **Quick Start:**
 
 **Design Token System:**
+
 ```css
 /* src/app.css */
 @theme {
-  /* Semantic color tokens */
-  --color-surface: light-dark(white, #1a1a1a);
-  --color-primary: light-dark(#1a1a1a, #f5f5f5);
-  
-  /* Spacing tokens */
-  --spacing-nav-item: 0.5rem;
-  --spacing-inbox-container: 1.5rem;
+	/* Semantic color tokens */
+	--color-surface: light-dark(white, #1a1a1a);
+	--color-primary: light-dark(#1a1a1a, #f5f5f5);
+
+	/* Spacing tokens */
+	--spacing-nav-item: 0.5rem;
+	--spacing-inbox-container: 1.5rem;
 }
 ```
 
 **Using Semantic Tokens:**
+
 ```svelte
 <!-- ❌ WRONG: Hardcoded values -->
 <div class="px-2 py-1.5 bg-gray-900 text-white">
@@ -213,14 +230,16 @@ export const create = mutation({
 ```
 
 **Why Tokens Matter:**
+
 ```svelte
 <!-- These automatically adapt to light/dark mode -->
-<div class="bg-surface text-primary border-accent-primary">
-  <!-- No manual dark: variants needed! -->
+<div class="border-accent-primary bg-surface text-primary">
+	<!-- No manual dark: variants needed! -->
 </div>
 ```
 
 **See Also:**
+
 - [Design Tokens](design-tokens.md) - Complete token reference ⭐ **MANDATORY**
 - [Design Principles](design-principles.md) - Visual philosophy, accessibility, UX
 - [Component Architecture](component-architecture.md) - Tokens → Utilities → Patterns → Components
@@ -232,6 +251,7 @@ export const create = mutation({
 ### PostHog
 
 **Why We Chose It:**
+
 - **Open Source**: Self-hostable, transparent, privacy-friendly alternative to Google Analytics
 - **Product Analytics**: Event tracking, funnels, retention, user paths, cohorts
 - **Feature Flags**: Toggle features without deploys, A/B testing, gradual rollouts
@@ -241,6 +261,7 @@ export const create = mutation({
 **Quick Start:**
 
 **Server-Side Tracking (Recommended):**
+
 ```typescript
 // src/lib/server/posthog.ts
 import { PostHog } from 'posthog-node';
@@ -248,25 +269,30 @@ import { PostHog } from 'posthog-node';
 let client: PostHog | null = null;
 
 export function getPostHogClient() {
-  if (!client) {
-    client = new PostHog(PUBLIC_POSTHOG_KEY, {
-      host: PUBLIC_POSTHOG_HOST
-    });
-  }
-  return client;
+	if (!client) {
+		client = new PostHog(PUBLIC_POSTHOG_KEY, {
+			host: PUBLIC_POSTHOG_HOST
+		});
+	}
+	return client;
 }
 
 // Track critical events server-side (bypasses browser blockers)
-export async function trackEvent(event: string, distinctId: string, properties: Record<string, any>) {
-  await getPostHogClient().capture({
-    event,
-    distinctId,
-    properties
-  });
+export async function trackEvent(
+	event: string,
+	distinctId: string,
+	properties: Record<string, any>
+) {
+	await getPostHogClient().capture({
+		event,
+		distinctId,
+		properties
+	});
 }
 ```
 
 **Event Naming Conventions:**
+
 ```typescript
 // Use object_action format
 await trackEvent('user_signed_in', email, { method: 'password' });
@@ -275,11 +301,13 @@ await trackEvent('inbox_synced', userId, { itemCount: 42 });
 ```
 
 **Why Server-Side:**
+
 - Browser privacy tools block `*.posthog.com` requests
 - Server-to-server requests guarantee event delivery
 - Critical for tracking sign-ups, conversions, payments
 
 **See Also:**
+
 - [Analytics Patterns](patterns/analytics.md) - Server-side tracking, event naming, AARRR funnel
 - [PostHog Setup](posthog.md) - Configuration and usage guide
 - Official Docs: Use Context7 for latest PostHog documentation
@@ -289,6 +317,7 @@ await trackEvent('inbox_synced', userId, { itemCount: 42 });
 ### ProseMirror
 
 **Why We Chose It:**
+
 - **Collaborative Editing Foundation**: Built for real-time collaboration (CRDT-ready)
 - **Schema-Based**: Precise document model prevents invalid content states
 - **Extensible Plugins**: Modular architecture for mentions, emoji, code blocks, etc.
@@ -298,6 +327,7 @@ await trackEvent('inbox_synced', userId, { itemCount: 42 });
 **Quick Start:**
 
 **Basic Editor Setup:**
+
 ```typescript
 // See: src/lib/components/notes/NoteEditor.svelte
 import { EditorView } from 'prosemirror-view';
@@ -308,28 +338,29 @@ let editorElement: HTMLDivElement;
 let editorView: EditorView | null = null;
 
 onMount(() => {
-  const state = createEditorState(content);
-  editorView = new EditorView(editorElement, {
-    state,
-    dispatchTransaction(transaction) {
-      const newState = editorView!.state.apply(transaction);
-      editorView!.updateState(newState);
-      
-      // Export to markdown
-      const markdown = exportMarkdown(newState);
-      onContentChange?.(markdown);
-    }
-  });
+	const state = createEditorState(content);
+	editorView = new EditorView(editorElement, {
+		state,
+		dispatchTransaction(transaction) {
+			const newState = editorView!.state.apply(transaction);
+			editorView!.updateState(newState);
+
+			// Export to markdown
+			const markdown = exportMarkdown(newState);
+			onContentChange?.(markdown);
+		}
+	});
 });
 ```
 
 **Plugin System:**
+
 ```typescript
 // Mentions plugin
 import { createMentionPlugin } from '$lib/utils/prosemirror-mentions';
 const mentionPlugin = createMentionPlugin([
-  { id: 'randy', label: 'Randy', icon: '👤' },
-  { id: 'project', label: 'project', icon: '📁' },
+	{ id: 'randy', label: 'Randy', icon: '👤' },
+	{ id: 'project', label: 'project', icon: '📁' }
 ]);
 
 // Emoji plugin
@@ -342,31 +373,33 @@ const syntaxPlugin = createSyntaxHighlightPlugin();
 
 // Add to editor state
 const state = EditorState.create({
-  schema,
-  plugins: [mentionPlugin, emojiPlugin, syntaxPlugin]
+	schema,
+	plugins: [mentionPlugin, emojiPlugin, syntaxPlugin]
 });
 ```
 
 **Document Model:**
+
 ```typescript
 // ProseMirror uses a precise schema
 const schema = new Schema({
-  nodes: {
-    doc: { content: "block+" },
-    paragraph: { content: "inline*", group: "block" },
-    heading: { content: "inline*", group: "block", attrs: { level: {} } },
-    codeBlock: { content: "text*", group: "block", attrs: { language: {} } },
-    text: { inline: true }
-  },
-  marks: {
-    strong: {},
-    em: {},
-    code: {}
-  }
+	nodes: {
+		doc: { content: 'block+' },
+		paragraph: { content: 'inline*', group: 'block' },
+		heading: { content: 'inline*', group: 'block', attrs: { level: {} } },
+		codeBlock: { content: 'text*', group: 'block', attrs: { language: {} } },
+		text: { inline: true }
+	},
+	marks: {
+		strong: {},
+		em: {},
+		code: {}
+	}
 });
 ```
 
 **Export to Markdown:**
+
 ```typescript
 import { exportMarkdown } from '$lib/utils/prosemirror-setup';
 
@@ -375,6 +408,7 @@ const markdown = exportMarkdown(editorView.state);
 ```
 
 **Key Files:**
+
 - `src/lib/components/notes/NoteEditor.svelte` - Main editor component
 - `src/lib/utils/prosemirror-setup.ts` - Editor state creation and export
 - `src/lib/utils/prosemirror-mentions.ts` - Mention plugin
@@ -382,6 +416,7 @@ const markdown = exportMarkdown(editorView.state);
 - `src/lib/utils/prosemirror-codeblock.ts` - Code block syntax highlighting
 
 **See Also:**
+
 - Pattern documentation coming when we next refactor editor code
 - Official Docs: Use Context7 for latest ProseMirror documentation
 
@@ -392,32 +427,39 @@ const markdown = exportMarkdown(editorView.state);
 The following tools are part of our stack and will be documented with rationale + quick start guides when we next work with them:
 
 **UI & Components:**
+
 - **Bits UI** - Headless component library (accessible, unstyled primitives)
 - **Layerchart** - Charts and data visualization
 
 **Mobile:**
+
 - **Capacitor 7** - Cross-platform mobile (iOS support configured)
 
 **Testing:**
+
 - **Vitest** - Unit tests (fast, Vite-native)
 - **Playwright** - E2E tests (browser automation)
 
 **Integrations:**
+
 - **Readwise API** - Import highlights from reading apps
 - **Resend** - Transactional email service
 - **Claude API** - AI-powered flashcard generation
 
 **Documentation:**
+
 - **MDsveX** - Markdown in Svelte components
 - **Shiki** - Syntax highlighting for code blocks
 - **Rehype** - Markdown processing (auto-linking headings, slugs)
 
 **Utilities:**
+
 - **ts-fsrs** - Spaced repetition algorithm (flashcards)
 - **marked** - Markdown parser and renderer
 - **highlight.js** / **lowlight** - Code syntax highlighting
 
 **Follow the pattern:** When you touch any of these tools, add a section above with:
+
 1. **Why** we chose it (rationale)
 2. **Quick Start** (setup + basic usage)
 3. **Links** to Context7 docs and any pattern files
@@ -425,11 +467,11 @@ The following tools are part of our stack and will be documented with rationale 
 ## Authentication Architecture
 
 > ✅ **CURRENT**: We now use **WorkOS AuthKit** for authentication (migrated Nov 2025).
-> 
+>
 > **📖 Complete Architecture**: [WorkOS + Convex Auth Architecture](workos-convex-auth-architecture.md) ⭐ **READ THIS FIRST**
-> 
+>
 > **🔧 Deployment Patterns**: [patterns/auth-deployment.md](patterns/auth-deployment.md)
-> 
+>
 > The information below is **ARCHIVED** from the old Convex Auth implementation and kept for reference.
 
 ---
@@ -444,6 +486,7 @@ SynergyOS now uses WorkOS AuthKit. See [patterns/auth-deployment.md](patterns/au
 <summary>Click to expand archived Convex Auth documentation</summary>
 
 SynergyOS used a **hybrid authentication approach** that combined:
+
 - **Server-side validation** (primary security layer)
 - **Client-side state management** (UX layer)
 
@@ -518,19 +561,21 @@ SynergyOS used a **hybrid authentication approach** that combined:
 #### Authentication Setup
 
 **`convex/auth.ts`** - Backend authentication configuration
+
 ```typescript
-import { convexAuth } from "@convex-dev/auth/server";
-import { Password } from "@convex-dev/auth/providers/Password";
+import { convexAuth } from '@convex-dev/auth/server';
+import { Password } from '@convex-dev/auth/providers/Password';
 
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
-  providers: [Password], // Email/password auth
+	providers: [Password] // Email/password auth
 });
 ```
 
 **`convex/http.ts`** - HTTP routes for authentication
+
 ```typescript
-import { httpRouter } from "convex/server";
-import { auth } from "./auth";
+import { httpRouter } from 'convex/server';
+import { auth } from './auth';
 
 const http = httpRouter();
 auth.addHttpRoutes(http); // Adds /api/auth/* routes
@@ -538,6 +583,7 @@ export default http;
 ```
 
 **`src/hooks.server.ts`** - SvelteKit server hooks
+
 ```typescript
 import { sequence } from '@sveltejs/kit/hooks';
 import { createConvexAuthHooks } from '@mmailaender/convex-auth-svelte/sveltekit/server';
@@ -545,29 +591,34 @@ import { createConvexAuthHooks } from '@mmailaender/convex-auth-svelte/sveltekit
 const { handleAuth } = createConvexAuthHooks();
 export const handle = sequence(handleAuth);
 ```
+
 - Handles all POST requests to `/api/auth`
 - Manages JWT token storage in secure cookies
 - Validates authentication state on every request
 
 **`src/routes/+layout.server.ts`** - Load auth state
+
 ```typescript
 import { createConvexAuthHandlers } from '@mmailaender/convex-auth-svelte/sveltekit/server';
 
 const { getAuthState } = createConvexAuthHandlers();
 
 export const load: LayoutServerLoad = async (event) => {
-  return { authState: await getAuthState(event) };
+	return { authState: await getAuthState(event) };
 };
 ```
+
 - Loads authentication state on every page load
 - Available to all pages via `data.authState`
 
 **`src/routes/+layout.svelte`** - Client-side auth setup
+
 ```typescript
 import { setupConvexAuth } from '@mmailaender/convex-auth-svelte/sveltekit';
 
 setupConvexAuth({ getServerState: () => data.authState });
 ```
+
 - Initializes Convex client with auth state
 - Makes `useAuth()` hook available throughout the app
 
@@ -607,33 +658,33 @@ Protect routes in `src/hooks.server.ts`:
 ```typescript
 import { sequence, redirect } from '@sveltejs/kit/hooks';
 import {
-  createConvexAuthHooks,
-  createRouteMatcher
+	createConvexAuthHooks,
+	createRouteMatcher
 } from '@mmailaender/convex-auth-svelte/sveltekit/server';
 
 // Define public routes
 const isPublicRoute = createRouteMatcher([
-  '/',
-  '/login',
-  '/register',
-  '/about',
-  // Note: '/api/auth' is automatically handled
+	'/',
+	'/login',
+	'/register',
+	'/about'
+	// Note: '/api/auth' is automatically handled
 ]);
 
 const { handleAuth, isAuthenticated } = createConvexAuthHooks();
 
 const requireAuth: Handle = async ({ event, resolve }) => {
-  // Allow public routes
-  if (isPublicRoute(event.url.pathname)) {
-    return resolve(event);
-  }
+	// Allow public routes
+	if (isPublicRoute(event.url.pathname)) {
+		return resolve(event);
+	}
 
-  // Check authentication for protected routes
-  if (!(await isAuthenticated(event))) {
-    throw redirect(302, `/login?redirectTo=${encodeURIComponent(event.url.pathname)}`);
-  }
+	// Check authentication for protected routes
+	if (!(await isAuthenticated(event))) {
+		throw redirect(302, `/login?redirectTo=${encodeURIComponent(event.url.pathname)}`);
+	}
 
-  return resolve(event);
+	return resolve(event);
 };
 
 export const handle = sequence(handleAuth, requireAuth);
@@ -652,12 +703,16 @@ import type { PageServerLoad } from './$types';
 const { isAuthenticated } = createConvexAuthHandlers();
 
 export const load: PageServerLoad = async (event) => {
-  if (!(await isAuthenticated(event))) {
-    throw redirect(302, `/login?redirectTo=${encodeURIComponent(event.url.pathname)}`);
-  }
-  
-  // Return page data for authenticated users
-  return { user: { /* user data */ } };
+	if (!(await isAuthenticated(event))) {
+		throw redirect(302, `/login?redirectTo=${encodeURIComponent(event.url.pathname)}`);
+	}
+
+	// Return page data for authenticated users
+	return {
+		user: {
+			/* user data */
+		}
+	};
 };
 ```
 
@@ -667,36 +722,36 @@ Always validate authentication in Convex queries and mutations:
 
 ```typescript
 // convex/users.ts
-import { query, mutation } from "./_generated/server";
-import { getAuthUserId } from "@convex-dev/auth/server";
+import { query, mutation } from './_generated/server';
+import { getAuthUserId } from '@convex-dev/auth/server';
 
 // Example: Get current user
 export const getCurrentUser = query({
-  args: {},
-  handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
-      throw new Error("Client is not authenticated");
-    }
-    
-    // Return user data
-    const user = await ctx.db.get(userId);
-    return user;
-  }
+	args: {},
+	handler: async (ctx) => {
+		const userId = await getAuthUserId(ctx);
+		if (userId === null) {
+			throw new Error('Client is not authenticated');
+		}
+
+		// Return user data
+		const user = await ctx.db.get(userId);
+		return user;
+	}
 });
 
 // Example: Update user profile
 export const updateProfile = mutation({
-  args: { name: v.string() },
-  handler: async (ctx, { name }) => {
-    const userId = await getAuthUserId(ctx);
-    if (userId === null) {
-      throw new Error("Client is not authenticated");
-    }
-    
-    // Update only the authenticated user's data
-    await ctx.db.patch(userId, { name });
-  }
+	args: { name: v.string() },
+	handler: async (ctx, { name }) => {
+		const userId = await getAuthUserId(ctx);
+		if (userId === null) {
+			throw new Error('Client is not authenticated');
+		}
+
+		// Update only the authenticated user's data
+		await ctx.db.patch(userId, { name });
+	}
 });
 ```
 
@@ -711,15 +766,15 @@ import { api } from '$convex/_generated/api';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
-  const { createConvexHttpClient } = createConvexAuthHandlers();
-  
-  // Create authenticated HTTP client
-  const client = await createConvexHttpClient(event);
-  
-  // Make authenticated query
-  const user = await client.query(api.users.getCurrentUser, {});
-  
-  return { user };
+	const { createConvexHttpClient } = createConvexAuthHandlers();
+
+	// Create authenticated HTTP client
+	const client = await createConvexHttpClient(event);
+
+	// Make authenticated query
+	const user = await client.query(api.users.getCurrentUser, {});
+
+	return { user };
 };
 ```
 
@@ -761,6 +816,7 @@ export const load: PageServerLoad = async (event) => {
 ### Current Implementation: WorkOS AuthKit
 
 For the current authentication implementation, see:
+
 - **[patterns/auth-deployment.md](patterns/auth-deployment.md)** - Complete patterns and examples
 - **Migration**: Completed Nov 2025 from `@mmailaender/convex-auth-svelte` to WorkOS AuthKit
 - **Features**: OAuth 2.0, hosted UI, enterprise-grade security, free tier up to 1M MAUs
@@ -772,6 +828,7 @@ For the current authentication implementation, see:
 > 🚧 **Status**: Design Phase - Implementation Pending (Nov 2025)
 
 SynergyOS implements a **Permission-Based Access Control** system where:
+
 - Users are assigned **roles** (Admin, Manager, Team Lead, Billing Admin, Member, Guest)
 - Roles have **permissions** (e.g., `teams.create`, `org.billing.view`)
 - Features check **permissions**, not roles directly (scalable approach)
@@ -803,6 +860,7 @@ const permissions = usePermissions(() => userId, () => orgId);
 ```
 
 **See full documentation for**:
+
 - Complete role and permission definitions
 - Database schema and migration plan
 - Code examples and patterns
@@ -819,6 +877,7 @@ Axon uses **Svelte 5 composables** to extract reusable logic from components. Al
 ### Composable Structure
 
 All composables:
+
 - Use `.svelte.ts` extension (required for Svelte 5 runes)
 - Located in `src/lib/composables/`
 - Use single `$state` object pattern for reactivity
@@ -854,39 +913,43 @@ All composables:
 ### Composable Patterns
 
 **Pattern 1: Single `$state` Object with Getters**
+
 ```typescript
 const state = $state({
-  isSyncing: false,
-  syncError: null as string | null,
+	isSyncing: false,
+	syncError: null as string | null
 });
 
 return {
-  get isSyncing() { return state.isSyncing; },
-  get syncError() { return state.syncError; },
+	get isSyncing() {
+		return state.isSyncing;
+	},
+	get syncError() {
+		return state.syncError;
+	}
 };
 ```
 
 **Pattern 2: Function Parameters for Reactive Values**
+
 ```typescript
 export function useKeyboardNavigation(
-  filteredItems: () => InboxItem[],
-  selectedItemId: () => string | null,
-  onSelectItem: (itemId: string) => void
+	filteredItems: () => InboxItem[],
+	selectedItemId: () => string | null,
+	onSelectItem: (itemId: string) => void
 ) {
-  // Call functions to get current reactive values
-  const items = filteredItems();
-  const currentId = selectedItemId();
+	// Call functions to get current reactive values
+	const items = filteredItems();
+	const currentId = selectedItemId();
 }
 ```
 
 **Pattern 3: Reactive Queries with `useQuery()`**
+
 ```typescript
 import { useQuery } from 'convex-svelte';
 
-const inboxQuery = useQuery(
-  api.inbox.listInboxItems,
-  () => ({ processed: false })
-);
+const inboxQuery = useQuery(api.inbox.listInboxItems, () => ({ processed: false }));
 
 const inboxItems = $derived(inboxQuery?.data ?? []);
 ```
@@ -927,11 +990,13 @@ Axon/
 ## Environment Variables
 
 ### Frontend (.env.local)
+
 ```env
 PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
 ```
 
 ### Backend (set via `npx convex env set`)
+
 ```bash
 # Convex deployment URL (set automatically)
 CONVEX_URL=https://your-deployment.convex.cloud
@@ -946,11 +1011,13 @@ RESEND_API_KEY=your-resend-api-key
 ### Running Locally
 
 1. **Start Convex backend:**
+
    ```bash
    npx convex dev
    ```
 
 2. **Start SvelteKit dev server:**
+
    ```bash
    npm run dev
    ```
@@ -1005,4 +1072,3 @@ RESEND_API_KEY=your-resend-api-key
 - **[WorkOS Documentation](https://workos.com/docs)** - AuthKit guides
 - **[SvelteKit Documentation](https://kit.svelte.dev/docs)** - Framework docs
 - **[Capacitor Documentation](https://capacitorjs.com/docs)** - Mobile integration
-

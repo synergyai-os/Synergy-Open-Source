@@ -30,7 +30,7 @@
 	// Query all flashcards (for "All Cards" collection)
 	const allFlashcardsQuery = browser
 		? useQuery(api.flashcards.getUserFlashcards, () => ({
-				tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined,
+				tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined
 			}))
 		: null;
 
@@ -40,7 +40,9 @@
 	const filteredCollections = $derived(
 		selectedTagIds.length === 0
 			? collections
-			: collections.filter((c: { tagId: Id<'tags'> | 'all' }) => selectedTagIds.includes(c.tagId as Id<'tags'>))
+			: collections.filter((c: { tagId: Id<'tags'> | 'all' }) =>
+					selectedTagIds.includes(c.tagId as Id<'tags'>)
+				)
 	);
 
 	// Build "All Cards" collection
@@ -49,7 +51,9 @@
 		name: 'All Cards',
 		color: undefined,
 		count: allFlashcards.length,
-		dueCount: allFlashcards.filter((f: { fsrsDue?: number }) => f.fsrsDue && f.fsrsDue <= Date.now()).length,
+		dueCount: allFlashcards.filter(
+			(f: { fsrsDue?: number }) => f.fsrsDue && f.fsrsDue <= Date.now()
+		).length
 	});
 
 	// Combined collections (All Cards + filtered collections)
@@ -81,10 +85,7 @@
 
 	// Query flashcards for each collection when needed
 	// We'll query them on-demand when opening a collection
-	async function openCollection(collection: {
-		tagId: Id<'tags'> | 'all';
-		name: string;
-	}) {
+	async function openCollection(collection: { tagId: Id<'tags'> | 'all'; name: string }) {
 		if (!browser || !convexClient) return;
 
 		// Get flashcards for this collection
@@ -96,7 +97,7 @@
 			// Query flashcards for this specific tag
 			try {
 				const result = await convexClient.query(api.flashcards.getUserFlashcards, {
-					tagIds: [collection.tagId as Id<'tags'>],
+					tagIds: [collection.tagId as Id<'tags'>]
 				});
 				flashcards = result ?? [];
 			} catch (err) {
@@ -126,11 +127,11 @@
 <div class="h-full overflow-y-auto bg-base">
 	<!-- Header -->
 	<div
-		class="sticky top-0 z-10 bg-base border-b border-base px-inbox-container py-system-header h-system-header flex items-center justify-between flex-shrink-0"
+		class="sticky top-0 z-10 flex h-system-header flex-shrink-0 items-center justify-between border-b border-base bg-base px-inbox-container py-system-header"
 	>
 		<div class="flex items-center gap-icon">
 			<svg
-				class="w-5 h-5 text-accent-primary flex-shrink-0"
+				class="h-5 w-5 flex-shrink-0 text-accent-primary"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -148,7 +149,9 @@
 				{#if allFlashcards.length > 0}
 					<span class="text-sm text-secondary">
 						({allFlashcards.length} card{allFlashcards.length !== 1 ? 's' : ''}
-						• {allFlashcards.filter((f: { fsrsDue?: number }) => f.fsrsDue && f.fsrsDue <= Date.now()).length} due)
+						• {allFlashcards.filter(
+							(f: { fsrsDue?: number }) => f.fsrsDue && f.fsrsDue <= Date.now()
+						).length} due)
 					</span>
 				{/if}
 			</div>
@@ -156,9 +159,9 @@
 		{#if allFlashcards.length > 0}
 			<Button.Root
 				href="/study"
-				class="px-nav-item py-nav-item text-sm font-medium rounded-md bg-accent-primary text-white hover:opacity-90 transition-opacity flex items-center gap-icon"
+				class="flex items-center gap-icon rounded-md bg-accent-primary px-nav-item py-nav-item text-sm font-medium text-white transition-opacity hover:opacity-90"
 			>
-				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -175,25 +178,21 @@
 		<!-- Tag Filter -->
 		{#if allTags.length > 0}
 			<div class="mb-inbox-title">
-				<TagFilter
-					selectedTagIds={selectedTagIds}
-					availableTags={allTags}
-					onTagsChange={handleTagsChange}
-				/>
+				<TagFilter {selectedTagIds} availableTags={allTags} onTagsChange={handleTagsChange} />
 			</div>
 		{/if}
 
 		{#if isLoading}
-			<div class="text-center py-readable-quote">
+			<div class="py-readable-quote text-center">
 				<p class="text-secondary">Loading flashcards...</p>
 			</div>
 		{:else if error}
-			<div class="text-center py-readable-quote">
-				<p class="text-primary font-medium mb-2">Error</p>
+			<div class="py-readable-quote text-center">
+				<p class="mb-2 font-medium text-primary">Error</p>
 				<p class="text-secondary">{error}</p>
 			</div>
 		{:else if displayCollections().length === 0}
-			<div class="text-center py-readable-quote">
+			<div class="py-readable-quote text-center">
 				<p class="text-secondary">
 					{selectedTagIds.length > 0
 						? 'No collections found with selected tags.'
@@ -202,12 +201,9 @@
 			</div>
 		{:else}
 			<!-- Collections Grid -->
-			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-inbox-list">
+			<div class="grid grid-cols-1 gap-inbox-list md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 				{#each displayCollections() as collection}
-					<FlashcardCollectionCard
-						collection={collection}
-						onClick={() => openCollection(collection)}
-					/>
+					<FlashcardCollectionCard {collection} onClick={() => openCollection(collection)} />
 				{/each}
 			</div>
 		{/if}

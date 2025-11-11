@@ -13,7 +13,7 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
 		secure: process.env.NODE_ENV === 'production',
 		sameSite: 'lax' as const
 	};
-	
+
 	cookies.delete('wos-session', cookieOptions);
 	cookies.delete('wos-user', cookieOptions);
 
@@ -28,7 +28,7 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
 			// This will end the WorkOS session and redirect back to our app
 			const workosLogoutUrl = new URL('https://api.workos.com/user_management/sessions/logout');
 			workosLogoutUrl.searchParams.set('session_id', sessionId);
-			
+
 			// Optional: Specify where to redirect after logout
 			const returnUrl = `${url.origin}/`;
 			workosLogoutUrl.searchParams.set('return_to', returnUrl);
@@ -50,4 +50,3 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
 };
 
 export const POST: RequestHandler = GET;
-

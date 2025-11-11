@@ -12,7 +12,7 @@ I've designed and documented a complete Role-Based Access Control system for Axo
 ✅ Permission-based design (scalable, no code changes for new roles)  
 ✅ Resource-scoped permissions (Team Leads only manage their teams)  
 ✅ Guest access design (like Notion/Google Docs)  
-✅ Complete implementation plan with code examples  
+✅ Complete implementation plan with code examples
 
 ---
 
@@ -23,6 +23,7 @@ I've designed and documented a complete Role-Based Access Control system for Axo
 **Executive summary** - Read this to understand the entire system at a high level.
 
 **Contains:**
+
 - What we built today
 - Key decisions explained
 - Real-world examples
@@ -39,6 +40,7 @@ I've designed and documented a complete Role-Based Access Control system for Axo
 **Visual diagrams** showing how everything works.
 
 **Contains:**
+
 - System architecture diagrams
 - Permission flow charts
 - Multi-role examples
@@ -55,6 +57,7 @@ I've designed and documented a complete Role-Based Access Control system for Axo
 **70+ page complete system design** - Everything needed for implementation.
 
 **Contains:**
+
 - Complete database schema (5 new tables)
 - All permissions defined
 - Role definitions
@@ -74,6 +77,7 @@ I've designed and documented a complete Role-Based Access Control system for Axo
 **One-page developer reference** for daily use.
 
 **Contains:**
+
 - Quick permission check examples
 - Permission matrix
 - Role definitions
@@ -122,7 +126,7 @@ Added RBAC section to main architecture document linking to all RBAC docs.
 ### The System in One Picture
 
 ```
-User (Sarah) 
+User (Sarah)
     ↓ has multiple
 Roles (billing_admin + team_lead)
     ↓ grant
@@ -133,14 +137,14 @@ Features (View Billing + Update Her Team)
 
 ### Roles We Designed
 
-| Role | What They Can Do |
-|------|------------------|
-| **Admin** 👑 | Everything |
-| **Manager** 🏢 | Teams & Users (not org settings or billing) |
-| **Team Lead** 👔 | Only their team(s) |
-| **Billing Admin** 💳 | Only billing |
-| **Member** 👤 | Basic access |
-| **Guest** 🎫 | Specific invited resources (Phase 3) |
+| Role                 | What They Can Do                            |
+| -------------------- | ------------------------------------------- |
+| **Admin** 👑         | Everything                                  |
+| **Manager** 🏢       | Teams & Users (not org settings or billing) |
+| **Team Lead** 👔     | Only their team(s)                          |
+| **Billing Admin** 💳 | Only billing                                |
+| **Member** 👤        | Basic access                                |
+| **Guest** 🎫         | Specific invited resources (Phase 3)        |
 
 ### Implementation Phases
 
@@ -162,6 +166,7 @@ Features (View Billing + Update Her Team)
 ### Before Implementation
 
 Answer these questions (in RBAC-SUMMARY.md):
+
 1. Should existing org owners become `admin` role?
 2. What default role for new users? (`member`?)
 3. Can inviters assign any role or limited roles?
@@ -183,18 +188,23 @@ Answer these questions (in RBAC-SUMMARY.md):
 ### Your Original Requirements
 
 ✅ **"Only admins can do all, but billing admin could control billing"**
+
 - Solved with multi-role support + permission-based design
 
 ✅ **"Team lead can configure team settings but only managers or admins can create teams"**
+
 - Solved with permission scoping (`teams.settings.update` for team_lead with `own` scope)
 
 ✅ **"Each feature should not be linked to the role but features need to be linked to the role"**
+
 - Solved with permission-based access control (roles grant permissions, permissions enable features)
 
 ✅ **"Team lead should only control their own teams, not others"**
+
 - Solved with resource-scoped permissions (scope: `own`)
 
 ✅ **"Later we should allow invite and guest"**
+
 - Designed in Phase 3 with `resourceGuests` table
 
 ---
@@ -268,4 +278,3 @@ dev-docs/
 ```
 
 **🎯 Start with RBAC-SUMMARY.md → Give feedback → We implement!**
-

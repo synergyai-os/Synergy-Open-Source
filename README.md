@@ -20,16 +20,19 @@ A modern knowledge retention and learning platform built with SvelteKit, Convex,
 ### TL;DR
 
 **1. Install dependencies:**
+
 ```bash
 npm install
 ```
 
 **2. Setup Convex & get your deployment URL:**
+
 ```bash
 npx convex dev
 ```
 
 **3. Create `.env.local` with your Convex URL:**
+
 ```env
 PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
 ```
@@ -37,11 +40,13 @@ PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
 **4. Run TWO terminals:**
 
 Terminal 1 - Frontend:
+
 ```bash
 npm run dev
 ```
 
 Terminal 2 - Database:
+
 ```bash
 npx convex dev
 ```
@@ -55,11 +60,13 @@ npx convex dev
 ### Testing
 
 Run unit tests:
+
 ```bash
 npm run test:unit
 ```
 
 Run e2e tests:
+
 ```bash
 npm run test:e2e
 ```
@@ -67,11 +74,13 @@ npm run test:e2e
 ### Building
 
 Build for production:
+
 ```bash
 npm run build
 ```
 
 Preview production build:
+
 ```bash
 npm run preview
 ```
@@ -98,6 +107,7 @@ SynergyOS/
 ## Current Status: Phase 1 Complete ✅
 
 **Phase 1: UI/UX with Mock Data** - Complete
+
 - ✅ Three-column inbox layout (Linear-style)
 - ✅ Polymorphic source views (Readwise, Photo, Manual)
 - ✅ Mock flashcard generation workflow
@@ -115,9 +125,11 @@ SynergyOS/
 ## Environment Variables
 
 ### Frontend (.env.local)
+
 - `PUBLIC_CONVEX_URL` - Your Convex deployment URL
 
 ### Backend (set via `npx convex env set`)
+
 - `RESEND_API_KEY` - Your Resend API key for sending emails
 
 ## Contributing
@@ -125,6 +137,7 @@ SynergyOS/
 We're building SynergyOS in public and learning together. Whether you're fixing a bug, adding a feature, or just sharing a pattern you discovered, contributions are welcome.
 
 **Quick Start:**
+
 - Read our [Contributing Guidelines](CONTRIBUTING.md) for commit message format and workflow
 - Check our [Core Values](CORE-VALUES.md) to understand how we make decisions
 - Browse `dev-docs/patterns/INDEX.md` for existing patterns before building

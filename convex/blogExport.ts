@@ -1,14 +1,14 @@
 /**
  * Blog Export System
- * 
+ *
  * Converts notes to markdown and exports them to /ai-content-blog/
  * Uses Convex actions for file system access
  */
 
-import { action } from "./_generated/server";
-import { v } from "convex/values";
-import { getAuthUserId } from "./auth";
-import { api } from "./_generated/api";
+import { action } from './_generated/server';
+import { v } from 'convex/values';
+import { getAuthUserId } from './auth';
+import { api } from './_generated/api';
 
 /**
  * Convert ProseMirror JSON to Markdown
@@ -39,14 +39,14 @@ function nodeToMarkdown(node: any): string {
 			return paragraphText ? `${paragraphText}\n\n` : '';
 
 		case 'bullet_list':
-			return node.content
-				.map((item: any) => `- ${extractText(item)}\n`)
-				.join('') + '\n';
+			return node.content.map((item: any) => `- ${extractText(item)}\n`).join('') + '\n';
 
 		case 'ordered_list':
-			return node.content
-				.map((item: any, idx: number) => `${idx + 1}. ${extractText(item)}\n`)
-				.join('') + '\n';
+			return (
+				node.content
+					.map((item: any, idx: number) => `${idx + 1}. ${extractText(item)}\n`)
+					.join('') + '\n'
+			);
 
 		case 'blockquote':
 			const quoteText = extractText(node);
@@ -64,7 +64,7 @@ function nodeToMarkdown(node: any): string {
 function extractText(node: any): string {
 	if (node.text) {
 		let text = node.text;
-		
+
 		// Apply marks (bold, italic, code)
 		if (node.marks) {
 			for (const mark of node.marks) {
@@ -81,7 +81,7 @@ function extractText(node: any): string {
 				}
 			}
 		}
-		
+
 		return text;
 	}
 
@@ -117,25 +117,25 @@ slug: "${note.slug || 'untitled'}"
  */
 export const exportNoteToBlog = action({
 	args: {
-		noteId: v.id("inboxItems"),
+		noteId: v.id('inboxItems')
 	},
 	handler: async (ctx, args): Promise<{ filepath: string; content: string; success: boolean }> => {
 		const userId = await getAuthUserId(ctx);
 		if (!userId) {
-			throw new Error("Not authenticated");
+			throw new Error('Not authenticated');
 		}
 
 		// Get the note
 		const note: any = await ctx.runQuery(api.notes.getNote, {
-			noteId: args.noteId,
+			noteId: args.noteId
 		});
 
 		if (!note) {
-			throw new Error("Note not found");
+			throw new Error('Note not found');
 		}
 
-		if (note.type !== "note") {
-			throw new Error("Item is not a note");
+		if (note.type !== 'note') {
+			throw new Error('Item is not a note');
 		}
 
 		// Convert ProseMirror JSON to markdown
@@ -144,7 +144,7 @@ export const exportNoteToBlog = action({
 			const doc = JSON.parse(note.content);
 			markdown = prosemirrorToMarkdown(doc);
 		} catch (err) {
-			throw new Error("Failed to parse note content");
+			throw new Error('Failed to parse note content');
 		}
 
 		// Generate frontmatter
@@ -154,7 +154,8 @@ export const exportNoteToBlog = action({
 		const fullMarkdown = frontmatter + markdown;
 
 		// Generate filename
-		const slug: string = note.slug || note.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'untitled';
+		const slug: string =
+			note.slug || note.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'untitled';
 		const filename: string = `${slug}.md`;
 		const filepath: string = `/ai-content-blog/${filename}`;
 
@@ -165,15 +166,15 @@ export const exportNoteToBlog = action({
 		// Mark note as published
 		await ctx.runMutation(api.notes.markAsPublished, {
 			noteId: args.noteId,
-			publishedTo: filepath,
+			publishedTo: filepath
 		});
 
 		return {
 			filepath,
 			content: fullMarkdown,
-			success: true,
+			success: true
 		};
-	},
+	}
 });
 
 /**
@@ -188,10 +189,9 @@ export const listBlogPosts = action({
 		}
 
 		const notes = await ctx.runQuery(api.notes.listNotes, {
-			blogOnly: true,
+			blogOnly: true
 		});
 
 		return notes;
-	},
+	}
 });
-

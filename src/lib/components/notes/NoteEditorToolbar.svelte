@@ -64,7 +64,7 @@
 			onclick={() => runCommand(toggleMark(editorState?.schema.marks.strong!))}
 			title="Bold (Cmd+B)"
 		>
-			<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path
 					stroke-linecap="round"
 					stroke-linejoin="round"
@@ -85,7 +85,7 @@
 			onclick={() => runCommand(toggleMark(editorState?.schema.marks.em!))}
 			title="Italic (Cmd+I)"
 		>
-			<svg class="w-4 h-4 italic" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<svg class="h-4 w-4 italic" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<line x1="19" y1="4" x2="10" y2="4" stroke-width="2" />
 				<line x1="14" y1="20" x2="5" y2="20" stroke-width="2" />
 				<line x1="15" y1="4" x2="9" y2="20" stroke-width="2" />
@@ -97,7 +97,7 @@
 			onclick={() => runCommand(toggleMark(editorState?.schema.marks.code!))}
 			title="Code (Cmd+`)"
 		>
-			<svg class="w-4 h-4 font-mono" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<svg class="h-4 w-4 font-mono" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path
 					stroke-linecap="round"
 					stroke-linejoin="round"
@@ -142,7 +142,7 @@
 	<!-- History Group -->
 	<ControlPanel.Group>
 		<ControlPanel.Button onclick={() => runCommand(undo)} title="Undo (Cmd+Z)">
-			<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path
 					stroke-linecap="round"
 					stroke-linejoin="round"
@@ -153,7 +153,7 @@
 		</ControlPanel.Button>
 
 		<ControlPanel.Button onclick={() => runCommand(redo)} title="Redo (Cmd+Shift+Z)">
-			<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path
 					stroke-linecap="round"
 					stroke-linejoin="round"

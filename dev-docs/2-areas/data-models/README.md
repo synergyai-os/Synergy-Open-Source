@@ -21,12 +21,14 @@ This section will document the database schema:
 ### Core Entities
 
 #### **Users & Auth**
+
 - `users` - User accounts, profiles, preferences
 - `sessions` - Authentication sessions
 - `organizations` - Multi-tenancy support (future)
 - `teams` - Team membership within orgs (future)
 
 #### **Product Discovery**
+
 - `opportunities` - Opportunity tree nodes
 - `research` - User research interviews, observations
 - `insights` - Tagged insights from research
@@ -34,24 +36,28 @@ This section will document the database schema:
 - `experiments` - A/B tests, prototypes
 
 #### **Product Delivery**
+
 - `objectives` - OKRs (objectives & key results)
 - `keyResults` - Measurable outcomes
 - `roadmapItems` - Features, initiatives, milestones
 - `dependencies` - Inter-feature relationships
 
 #### **Team Collaboration**
+
 - `meetings` - Stand-ups, retros, planning sessions
 - `actionItems` - Tasks from meetings
 - `decisions` - Documented decision log with rationale
 - `statusUpdates` - Automated + manual progress updates
 
 #### **Knowledge Management**
+
 - `glossaryTerms` - Team vocabulary, definitions
 - `documents` - Docs, specs, templates
 - `tags` - Taxonomy for categorization
 - `comments` - Discussion threads
 
 #### **AI & Automation**
+
 - `aiContext` - Company-specific training data
 - `workflows` - Custom automation rules
 - `integrations` - External tool connections (Jira, Notion, etc.)
@@ -62,18 +68,18 @@ This section will document the database schema:
 
 Each entity follows this structure:
 
-```markdown
+````markdown
 # EntityName
 
 > One-sentence description
 
 ## Schema
 
-| Field | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
-| _id | Id<"table"> | ✅ | auto | Convex ID |
-| userId | Id<"users"> | ✅ | - | Owner |
-| ... | ... | ... | ... | ... |
+| Field  | Type        | Required | Default | Description |
+| ------ | ----------- | -------- | ------- | ----------- |
+| \_id   | Id<"table"> | ✅       | auto    | Convex ID   |
+| userId | Id<"users"> | ✅       | -       | Owner       |
+| ...    | ...         | ...      | ...     | ...         |
 
 ## Relationships
 
@@ -83,14 +89,17 @@ Each entity follows this structure:
 ## Discriminated Unions (if applicable)
 
 ```typescript
-type InboxItem = {
-  type: "readwise_highlight"
-  // ...
-} | {
-  type: "manual_note"
-  // ...
-}
+type InboxItem =
+	| {
+			type: 'readwise_highlight';
+			// ...
+	  }
+	| {
+			type: 'manual_note';
+			// ...
+	  };
 ```
+````
 
 ## Validation Rules
 
@@ -103,11 +112,9 @@ type InboxItem = {
 ```typescript
 // Get all active items for user
 ctx.db
-  .query("table")
-  .withIndex("by_user_status", (q) => 
-    q.eq("userId", userId).eq("status", "active")
-  )
-  .collect()
+	.query('table')
+	.withIndex('by_user_status', (q) => q.eq('userId', userId).eq('status', 'active'))
+	.collect();
 ```
 
 ## Indexes
@@ -119,11 +126,14 @@ ctx.db
 ## Migrations
 
 ### v2 (2025-02-01)
+
 - Added `tags` field (string[])
 - Migrated existing items
 
 ### v1 (2025-01-01)
+
 - Initial schema
+
 ```
 
 ---
@@ -221,3 +231,4 @@ ctx.db
 **Estimated**: 0.5 day for current schema + future planning
 
 
+```

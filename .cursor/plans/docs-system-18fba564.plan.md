@@ -1,4 +1,5 @@
 <!-- 18fba564-2e7d-46d1-a191-da77ae6d14b7 95f488b3-f91c-498b-afec-f28db0033ee2 -->
+
 # Documentation System Implementation Plan
 
 ## Structure Overview
@@ -6,9 +7,9 @@
 ```
 /dev-docs/
   README.md                    ← Comprehensive entry point
-  
+
   /1-projects/                 ← Time-bound initiatives (currently empty)
-  
+
   /2-areas/                    ← Ongoing responsibilities (about us)
     /value-streams/            ← Active outcomes (moved from root)
     /patterns/                 ← Architecture patterns (moved from root)
@@ -16,10 +17,10 @@
     design-tokens.md
     composables-analysis.md
     ...
-  
+
   /3-resources/                ← External reference material
     (third-party guides, checklists not created by us)
-  
+
   /4-archive/                  ← Deprecated/completed
     patterns-and-lessons-LEGACY.md
     ...
@@ -38,7 +39,6 @@
 3. Create `mdsvex.config.js` (syntax highlighting, rehype plugins)
 4. Test route: `/dev-docs/test` → renders static `test.md` as MDX
 5. **Integration test workflow**:
-
    - Press C → create note → save to inbox (Convex)
    - View note in inbox → edit note
    - Export note as MDX file (button in note editor)
@@ -90,7 +90,7 @@
 
 ### Slice 3: MDX Routes & Layout (3 hours)
 
-**Goal**: SvelteKit routes render all /dev-docs/* as web pages with nav
+**Goal**: SvelteKit routes render all /dev-docs/\* as web pages with nav
 
 **Steps**:
 

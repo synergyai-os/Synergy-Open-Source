@@ -1,4 +1,5 @@
 <!-- a28e2691-7efc-46b1-826b-a378aa6697da f507d26b-711f-43f6-a805-916d8d7b4b7b -->
+
 # Fix Emoji Picker Enter Key Issue
 
 ## Problem
@@ -28,16 +29,16 @@ In the `handleKeyDown` function (line 25), add a check to detect if a menu/popup
 ```typescript
 // Handle Enter key to enter edit mode
 if (event.key === 'Enter') {
-    // Check if emoji menu or other popup menus are active
-    const emojiMenuActive = document.querySelector('.emoji-menu') !== null;
-    if (emojiMenuActive) return; // Let the emoji menu handle Enter
-    
-    event.preventDefault();
-    editMode = true;
-    // Focus the editor title after a tick
-    setTimeout(() => {
-        editorRef?.focusTitle();
-    }, 0);
+	// Check if emoji menu or other popup menus are active
+	const emojiMenuActive = document.querySelector('.emoji-menu') !== null;
+	if (emojiMenuActive) return; // Let the emoji menu handle Enter
+
+	event.preventDefault();
+	editMode = true;
+	// Focus the editor title after a tick
+	setTimeout(() => {
+		editorRef?.focusTitle();
+	}, 0);
 }
 ```
 

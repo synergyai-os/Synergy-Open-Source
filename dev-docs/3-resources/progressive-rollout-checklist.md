@@ -7,6 +7,7 @@
 ## Pre-Rollout: Development Phase
 
 ### Code Implementation
+
 - [ ] Feature code complete
 - [ ] Feature wrapped in flag check
 - [ ] Flag constant added to `src/lib/featureFlags.ts`
@@ -17,17 +18,20 @@
 - [ ] Linter passes (`npm run lint`)
 
 ### Testing
+
 - [ ] Tested locally with flag enabled
 - [ ] Tested locally with flag disabled (graceful degradation)
 - [ ] Browser console clean (no errors)
 - [ ] PostHog events firing correctly
 
 ### Documentation
+
 - [ ] PR description complete
 - [ ] Linear issue updated
 - [ ] Feature flag documented (if complex targeting)
 
 ### Deployment
+
 - [ ] PR merged to `main`
 - [ ] GitHub Actions passed (Convex deployed)
 - [ ] Vercel deployment succeeded
@@ -38,10 +42,12 @@
 ## Phase 1: Developer Only (Day 1)
 
 ### Enable for Self
+
 - [ ] Flag enabled for your user ID only
 - [ ] Verified flag working in production
 
 ### Testing (1+ hour)
+
 - [ ] All user flows tested with real data
 - [ ] Edge cases explored
 - [ ] Performance acceptable
@@ -49,6 +55,7 @@
 - [ ] PostHog events captured correctly
 
 ### Monitoring
+
 - [ ] Zero errors in PostHog
 - [ ] No performance degradation
 - [ ] Feature behaves as expected
@@ -60,17 +67,20 @@
 ## Phase 2: Team Testing (Day 2-3)
 
 ### Enable for Team
+
 - [ ] Flag enabled for team domain
 - [ ] Team notified (Slack/email)
 - [ ] Testing guidelines shared
 
 ### Team Feedback (1-2 days)
+
 - [ ] At least 3 team members tested
 - [ ] Feedback collected (Linear/Slack)
 - [ ] Critical bugs identified and fixed
 - [ ] UX issues addressed
 
 ### Monitoring
+
 - [ ] Error rate < 0.1%
 - [ ] No performance issues reported
 - [ ] PostHog session replays reviewed
@@ -83,17 +93,21 @@
 ## Phase 3: Beta Users (Week 1, Optional)
 
 ### Enable for Beta
+
 Choose one:
+
 - [ ] **Option A**: Percentage rollout (5-10%)
 - [ ] **Option B**: Opt-in users only
 
 ### Monitoring (Daily)
+
 - [ ] Error rate compared to baseline
 - [ ] User feedback gathered
 - [ ] Session replays reviewed
 - [ ] Support tickets checked
 
 ### Metrics to Track
+
 - [ ] Feature adoption rate (% of enabled users who use it)
 - [ ] Completion rate (% who finish flow)
 - [ ] Error rate (vs baseline)
@@ -106,36 +120,42 @@ Choose one:
 ## Phase 4: Gradual Rollout (Week 2)
 
 ### Day 1: 5% Rollout
+
 - [ ] Percentage set to 5%
 - [ ] Monitor for 24 hours
 - [ ] Error rate acceptable (< 0.1% increase)
 - [ ] No critical issues reported
 
 ### Day 2: 10% Rollout
+
 - [ ] Percentage increased to 10%
 - [ ] Monitor for 24 hours
 - [ ] Error rate stable
 - [ ] Performance metrics stable
 
 ### Day 3: 25% Rollout
+
 - [ ] Percentage increased to 25%
 - [ ] Monitor for 24 hours
 - [ ] Support tickets reviewed
 - [ ] User feedback positive
 
 ### Day 4: 50% Rollout
+
 - [ ] Percentage increased to 50%
 - [ ] Monitor for 24 hours
 - [ ] Large-scale performance validated
 - [ ] No scaling issues
 
 ### Day 5: 100% Rollout
+
 - [ ] Percentage increased to 100%
 - [ ] Monitor for 48+ hours
 - [ ] All users have access
 - [ ] No major issues
 
 **Emergency Rollback**: If error rate spikes at any %, immediately:
+
 ```typescript
 await toggleFlag({ flag: 'feature_name', enabled: false });
 ```
@@ -145,17 +165,20 @@ await toggleFlag({ flag: 'feature_name', enabled: false });
 ## Phase 5: Stabilization (Week 3-4)
 
 ### Monitor at 100%
+
 - [ ] 2 weeks at 100% with no issues
 - [ ] Error rate baseline (not increasing)
 - [ ] User feedback stabilized
 - [ ] No outstanding critical bugs
 
 ### Prepare Flag Removal
+
 - [ ] Create cleanup issue in Linear
 - [ ] Document old code to remove
 - [ ] Schedule flag removal PR
 
 ### Remove Flag
+
 - [ ] Create PR to remove flag
 - [ ] Remove flag checks from code
 - [ ] Make new code the default path
@@ -173,17 +196,20 @@ await toggleFlag({ flag: 'feature_name', enabled: false });
 ### When to Rollback
 
 **Immediate (< 1 min)**:
+
 - Error rate spike > 1%
 - Critical feature broken
 - Data loss potential
 - Security issue
 
 **Scheduled (within 1 hour)**:
+
 - Non-critical bugs affecting users
 - Performance degradation
 - Unexpected behavior
 
 **No Rollback Needed**:
+
 - UI polish issues
 - Non-blocking bugs
 - Edge case issues
@@ -191,31 +217,36 @@ await toggleFlag({ flag: 'feature_name', enabled: false });
 ### How to Rollback
 
 **Step 1: Disable Flag**
+
 ```typescript
 // In Convex function runner
-await toggleFlag({ 
-  flag: 'problematic_feature', 
-  enabled: false 
+await toggleFlag({
+	flag: 'problematic_feature',
+	enabled: false
 });
 ```
 
 **Step 2: Verify**
+
 - [ ] Error rate drops (PostHog)
 - [ ] Users getting old version
 - [ ] New errors stopped
 
 **Step 3: Communicate**
+
 - [ ] Update Linear issue
 - [ ] Notify team (Slack)
 - [ ] Document issue for fix
 
 **Step 4: Fix**
+
 - [ ] Identify root cause
 - [ ] Fix bug locally
 - [ ] Test thoroughly
 - [ ] Deploy fix
 
 **Step 5: Re-enable**
+
 - [ ] Start at 5% again
 - [ ] Monitor closely
 - [ ] Increase gradually
@@ -227,6 +258,7 @@ await toggleFlag({
 ### Create in PostHog
 
 **Feature Flag Dashboard** (per flag):
+
 1. **Evaluation Count** - `feature_flag_checked` events
 2. **Enabled Rate** - % where `enabled = true`
 3. **Feature Usage** - `feature_used` events
@@ -234,6 +266,7 @@ await toggleFlag({
 5. **Error Distribution** - Group errors by `error_name`
 
 **Rollout Metrics** (during rollout):
+
 1. **Percentage Rollout** - Current percentage
 2. **Users Affected** - Distinct user count
 3. **Error Rate vs Baseline** - Compare to pre-rollout
@@ -293,6 +326,7 @@ Will update when resolved.
 ### Metrics to Hit
 
 **Before 100% Rollout**:
+
 - Error rate increase < 0.1%
 - Feature adoption > 50% of enabled users
 - Completion rate > 80% for key flows
@@ -300,6 +334,7 @@ Will update when resolved.
 - Positive user feedback
 
 **For Flag Removal**:
+
 - 2+ weeks at 100%
 - Error rate stable
 - No outstanding critical bugs
@@ -310,21 +345,25 @@ Will update when resolved.
 ## Quick Reference
 
 ### Check Flag Status
+
 ```typescript
 await getFlag({ flag: 'feature_name' });
 ```
 
 ### Update Percentage
+
 ```typescript
 await updateRollout({ flag: 'feature_name', percentage: 25 });
 ```
 
 ### Disable Flag
+
 ```typescript
 await toggleFlag({ flag: 'feature_name', enabled: false });
 ```
 
 ### Monitor in PostHog
+
 ```
 Filter events:
 - feature_flag = "feature_name"
@@ -340,4 +379,3 @@ Filter events:
 - [Deployment Procedures](./deployment-procedures.md)
 - [Error Handling & Monitoring](./error-handling-monitoring.md)
 - [Git Workflow Guide](./git-workflow.md)
-

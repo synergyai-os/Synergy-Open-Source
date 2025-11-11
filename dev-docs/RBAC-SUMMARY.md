@@ -32,6 +32,7 @@ User → Roles (multiple) → Permissions (actions) → Features
 ### 1. [rbac-architecture.md](./rbac-architecture.md) - Complete System Design (70+ pages)
 
 **Contains:**
+
 - ✅ Complete database schema (5 new tables)
 - ✅ All Phase 1 permissions (10 permissions)
 - ✅ Role definitions (6 roles)
@@ -48,6 +49,7 @@ User → Roles (multiple) → Permissions (actions) → Features
 ### 2. [rbac-quick-reference.md](./rbac-quick-reference.md) - Developer Cheat Sheet (1 page)
 
 **Contains:**
+
 - ⚡ Quick permission check examples
 - ⚡ Permission matrix
 - ⚡ Role definitions
@@ -61,6 +63,7 @@ User → Roles (multiple) → Permissions (actions) → Features
 ### 3. [rbac-visual-overview.md](./rbac-visual-overview.md) - Visual Guide
 
 **Contains:**
+
 - 🎨 System architecture diagrams
 - 🎨 Permission flow charts
 - 🎨 Multi-role examples
@@ -79,25 +82,27 @@ Added RBAC section linking to all documentation.
 
 ## 🎭 Roles Designed
 
-| Role | Level | Description | Phase |
-|------|-------|-------------|-------|
-| **Admin** | Organization | Full system access | Phase 1 |
-| **Manager** | Organization | Manage teams & users | Phase 1 |
-| **Team Lead** | Team | Manage specific team(s) only | Phase 1 |
-| **Billing Admin** | Organization | Manage billing only | Phase 2 |
-| **Member** | Team | Regular team member | Phase 1 |
-| **Guest** | Resource | Limited resource access | Phase 3 |
+| Role              | Level        | Description                  | Phase   |
+| ----------------- | ------------ | ---------------------------- | ------- |
+| **Admin**         | Organization | Full system access           | Phase 1 |
+| **Manager**       | Organization | Manage teams & users         | Phase 1 |
+| **Team Lead**     | Team         | Manage specific team(s) only | Phase 1 |
+| **Billing Admin** | Organization | Manage billing only          | Phase 2 |
+| **Member**        | Team         | Regular team member          | Phase 1 |
+| **Guest**         | Resource     | Limited resource access      | Phase 3 |
 
 ---
 
 ## 🔐 Phase 1 Permissions
 
 **User Management:**
+
 - `users.invite` - Invite users to organization
 - `users.remove` - Remove users from organization
 - `users.roles.assign` - Assign roles to users
 
 **Team Management:**
+
 - `teams.create` - Create new teams
 - `teams.delete` - Delete teams
 - `teams.settings.update` - Update team settings
@@ -105,6 +110,7 @@ Added RBAC section linking to all documentation.
 - `teams.members.remove` - Remove members from team
 
 **Organization Settings:**
+
 - `org.settings.view` - View organization settings
 - `org.settings.update` - Update organization settings
 
@@ -133,6 +139,7 @@ Added RBAC section linking to all documentation.
 **Timeline**: ~2 weeks
 
 **Steps:**
+
 1. Add new tables to `convex/schema.ts`
 2. Create seed script (`convex/rbac/seed.ts`)
 3. Run seed to populate roles & permissions
@@ -144,6 +151,7 @@ Added RBAC section linking to all documentation.
 9. Test thoroughly
 
 **Deliverables:**
+
 - ✅ Users can be assigned multiple roles
 - ✅ All user/team management protected by permissions
 - ✅ Org settings require appropriate permissions
@@ -156,12 +164,14 @@ Added RBAC section linking to all documentation.
 **Timeline**: ~1 week
 
 **Steps:**
+
 1. Add billing permissions to seed data
 2. Assign to `billing_admin` and `admin` roles
 3. Protect billing endpoints
 4. Update billing UI with permission gates
 
 **Deliverables:**
+
 - ✅ Billing Admin role functional
 - ✅ Only authorized users can view/update billing
 
@@ -172,6 +182,7 @@ Added RBAC section linking to all documentation.
 **Timeline**: ~2 weeks
 
 **Steps:**
+
 1. Add `resourceGuests` table
 2. Create invitation system
 3. Implement resource-specific permission checks
@@ -179,6 +190,7 @@ Added RBAC section linking to all documentation.
 5. Build guest UI experience
 
 **Deliverables:**
+
 - ✅ Users can invite guests to specific resources
 - ✅ Guests can only access invited resources
 - ✅ Time-limited access works
@@ -197,14 +209,15 @@ Added RBAC section linking to all documentation.
 ```typescript
 // Sarah has TWO roles
 userRoles: [
-  { userId: sarah, roleId: "billing_admin", organizationId: org1 },
-  { userId: sarah, roleId: "team_lead", organizationId: org1, teamId: teamA }
-]
+	{ userId: sarah, roleId: 'billing_admin', organizationId: org1 },
+	{ userId: sarah, roleId: 'team_lead', organizationId: org1, teamId: teamA }
+];
 ```
 
 When checking permissions, system checks ALL roles and grants access if ANY role allows it.
 
 **Benefits:**
+
 - ✅ Real-world flexibility (people wear multiple hats)
 - ✅ No need to create combined roles (billing_admin_and_team_lead)
 - ✅ Easy to add/remove individual roles
@@ -219,19 +232,28 @@ When checking permissions, system checks ALL roles and grants access if ANY role
 **Why This Is Correct:**
 
 ❌ **Old Way (Role-Based)**:
+
 ```typescript
-if (user.role === "admin") { allowAction(); }
-if (user.role === "team_lead") { allowAction(); }
+if (user.role === 'admin') {
+	allowAction();
+}
+if (user.role === 'team_lead') {
+	allowAction();
+}
 // Adding new role = change code everywhere!
 ```
 
 ✅ **New Way (Permission-Based)**:
+
 ```typescript
-if (userHasPermission(user, "teams.create")) { allowAction(); }
+if (userHasPermission(user, 'teams.create')) {
+	allowAction();
+}
 // Adding new role = just assign permissions in database!
 ```
 
 **Benefits:**
+
 - ✅ Add roles without code changes
 - ✅ Change what roles can do in database
 - ✅ More granular control
@@ -248,14 +270,17 @@ if (userHasPermission(user, "teams.create")) { allowAction(); }
 **Our Choice**: Action-level permissions
 
 ✅ **Good Examples:**
+
 - `teams.create` - Clear, specific
 - `teams.settings.update` - Covers all settings
 - `org.billing.view` - Distinct from update
 
 ❌ **Too Broad:**
+
 - `teams.manage` - What does this include?
 
 ❌ **Too Granular:**
+
 - `teams.name.update` - Too many permissions to manage
 - `teams.description.update`
 
@@ -281,6 +306,7 @@ if (userHasPermission(user, "teams.create")) { allowAction(); }
 ```
 
 **Benefits:**
+
 - ✅ Guests don't need org membership
 - ✅ Access only specific resources they're invited to
 - ✅ Different permission levels (view, comment, edit)
@@ -294,16 +320,19 @@ if (userHasPermission(user, "teams.create")) { allowAction(); }
 ### Example 1: Sarah (Billing Admin + Team Lead)
 
 **Roles:**
+
 - `billing_admin` (org-level)
 - `team_lead` for Marketing team (team-level)
 
 **What Sarah Can Do:**
+
 - ✅ View billing dashboard (from billing_admin)
 - ✅ Update payment methods (from billing_admin)
 - ✅ Update Marketing team settings (from team_lead)
 - ✅ Add members to Marketing team (from team_lead)
 
 **What Sarah Cannot Do:**
+
 - ❌ Update Engineering team settings (not her team)
 - ❌ Create new teams (needs manager or admin role)
 - ❌ Update org settings (needs admin role)
@@ -313,9 +342,11 @@ if (userHasPermission(user, "teams.create")) { allowAction(); }
 ### Example 2: Bob (Manager)
 
 **Roles:**
+
 - `manager` (org-level)
 
 **What Bob Can Do:**
+
 - ✅ Create teams
 - ✅ Delete teams
 - ✅ Update ANY team's settings (scope: all)
@@ -325,6 +356,7 @@ if (userHasPermission(user, "teams.create")) { allowAction(); }
 - ✅ View org settings
 
 **What Bob Cannot Do:**
+
 - ❌ Update org settings (needs admin role)
 - ❌ Manage billing (needs billing_admin role)
 - ❌ Assign admin role (only admins can do this)
@@ -334,14 +366,17 @@ if (userHasPermission(user, "teams.create")) { allowAction(); }
 ### Example 3: Alice (Team Lead)
 
 **Roles:**
+
 - `team_lead` for Engineering team (team-level)
 
 **What Alice Can Do:**
+
 - ✅ Update Engineering team settings (her team)
 - ✅ Add members to Engineering team
 - ✅ Remove members from Engineering team
 
 **What Alice Cannot Do:**
+
 - ❌ Update Design team settings (not her team)
 - ❌ Create new teams (needs manager or admin)
 - ❌ Delete teams (needs manager or admin)
@@ -371,6 +406,7 @@ export const deleteTeam = mutation({
 ### 2. Principle of Least Privilege
 
 Users get ONLY permissions they need:
+
 - Start restrictive
 - Add permissions as needed
 - Regular audits to remove unused permissions
@@ -378,6 +414,7 @@ Users get ONLY permissions they need:
 ### 3. Separation of Duties
 
 Critical actions require appropriate roles:
+
 - Can't approve your own expense (different person needed)
 - Billing changes require billing_admin
 - Org changes require admin
@@ -385,12 +422,14 @@ Critical actions require appropriate roles:
 ### 4. Audit Logging
 
 All permission checks logged in `permissionChecks` table:
+
 - Who accessed what
 - When they accessed it
 - Was access granted or denied
 - Which role granted access
 
 **Use Cases:**
+
 - Security audits
 - Compliance reporting
 - Debugging permission issues
@@ -476,13 +515,13 @@ All permission checks logged in `permissionChecks` table:
 
 ## 📖 Documentation Index
 
-| Document | Purpose | When to Use |
-|----------|---------|-------------|
-| **[rbac-architecture.md](./rbac-architecture.md)** | Complete system design | Implementation, architecture review |
-| **[rbac-quick-reference.md](./rbac-quick-reference.md)** | Developer cheat sheet | Daily development, quick lookups |
-| **[rbac-visual-overview.md](./rbac-visual-overview.md)** | Visual diagrams | Understanding, presentations |
-| **[RBAC-SUMMARY.md](./RBAC-SUMMARY.md)** | Executive summary | High-level overview (you are here) |
-| **[architecture.md](./2-areas/architecture.md)** | System architecture | Technical context |
+| Document                                                 | Purpose                | When to Use                         |
+| -------------------------------------------------------- | ---------------------- | ----------------------------------- |
+| **[rbac-architecture.md](./rbac-architecture.md)**       | Complete system design | Implementation, architecture review |
+| **[rbac-quick-reference.md](./rbac-quick-reference.md)** | Developer cheat sheet  | Daily development, quick lookups    |
+| **[rbac-visual-overview.md](./rbac-visual-overview.md)** | Visual diagrams        | Understanding, presentations        |
+| **[RBAC-SUMMARY.md](./RBAC-SUMMARY.md)**                 | Executive summary      | High-level overview (you are here)  |
+| **[architecture.md](./2-areas/architecture.md)**         | System architecture    | Technical context                   |
 
 ---
 
@@ -497,7 +536,7 @@ All permission checks logged in `permissionChecks` table:
 ✅ **Code patterns** provided for Convex + Svelte  
 ✅ **Migration plan** step-by-step  
 ✅ **Testing strategy** included  
-✅ **Visual diagrams** for understanding  
+✅ **Visual diagrams** for understanding
 
 ---
 
@@ -521,6 +560,7 @@ All permission checks logged in `permissionChecks` table:
 6. ✅ Timeline acceptable (~2 weeks for Phase 1)?
 
 **Once confirmed, we can:**
+
 - Create migration scripts
 - Implement permission functions
 - Update Convex functions
@@ -535,4 +575,3 @@ All permission checks logged in `permissionChecks` table:
 **Status**: Ready for Review & Implementation
 
 **Let me know if you'd like any adjustments before we proceed!** 🎯
-

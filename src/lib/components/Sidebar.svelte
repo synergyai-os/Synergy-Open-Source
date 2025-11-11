@@ -1,16 +1,16 @@
 <script lang="ts">
-    import { goto } from '$app/navigation';
-    import { dev } from '$app/environment';
-    import { tweened } from 'svelte/motion';
-    import { cubicOut } from 'svelte/easing';
-    import { fade } from 'svelte/transition';
-    import { getContext } from 'svelte';
-    import ResizableSplitter from './ResizableSplitter.svelte';
-    import SidebarHeader from './sidebar/SidebarHeader.svelte';
-    import CleanReadwiseButton from './sidebar/CleanReadwiseButton.svelte';
-    import TeamList from './organizations/TeamList.svelte';
-    import CreateMenu from './sidebar/CreateMenu.svelte';
-    import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import { goto } from '$app/navigation';
+	import { dev } from '$app/environment';
+	import { tweened } from 'svelte/motion';
+	import { cubicOut } from 'svelte/easing';
+	import { fade } from 'svelte/transition';
+	import { getContext } from 'svelte';
+	import ResizableSplitter from './ResizableSplitter.svelte';
+	import SidebarHeader from './sidebar/SidebarHeader.svelte';
+	import CleanReadwiseButton from './sidebar/CleanReadwiseButton.svelte';
+	import TeamList from './organizations/TeamList.svelte';
+	import CreateMenu from './sidebar/CreateMenu.svelte';
+	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 
 	type Props = {
 		inboxCount: number;
@@ -38,10 +38,12 @@
 		user = null
 	}: Props = $props();
 
-    // Get user info from props (passed from layout)
-    const accountEmail = user?.email ?? 'user@example.com';
-    const accountName = user?.firstName ? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}` : 'Personal workspace';
-    const organizations = getContext<UseOrganizations | undefined>('organizations');
+	// Get user info from props (passed from layout)
+	const accountEmail = user?.email ?? 'user@example.com';
+	const accountName = user?.firstName
+		? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}`
+		: 'Personal workspace';
+	const organizations = getContext<UseOrganizations | undefined>('organizations');
 
 	let isPinned = $state(false);
 	let isHovered = $state(false);
@@ -52,15 +54,16 @@
 	// Track mouse position globally to close sidebar when mouse goes too far right
 	function handleDocumentMouseMove(e: MouseEvent) {
 		if (!sidebarCollapsed || isMobile || !hoverState) return;
-		
+
 		const target = e.target as HTMLElement | null;
 		if (target) {
 			// Check if mouse is over dropdown menu
-			const isOverDropdown = target.closest('[data-radix-portal]') || 
-				target.closest('[role="menu"]') || 
+			const isOverDropdown =
+				target.closest('[data-radix-portal]') ||
+				target.closest('[role="menu"]') ||
 				target.closest('[data-radix-dropdown-menu-content]') ||
 				target.closest('[data-bits-ui-dropdown-menu-content]');
-			
+
 			if (isOverDropdown) {
 				// Cancel any pending hide timeout
 				if (hoverDebounceTimeout) {
@@ -71,11 +74,11 @@
 				return;
 			}
 		}
-		
+
 		// Check if mouse is over sidebar or hover zone - keep open
 		const sidebarElement = document.querySelector('aside.fixed, aside:not(.hidden)');
 		const hoverZoneElement = document.querySelector('[role="presentation"]');
-		
+
 		if (sidebarElement) {
 			const sidebarRect = sidebarElement.getBoundingClientRect();
 			if (e.clientX >= sidebarRect.left && e.clientX <= sidebarRect.right) {
@@ -87,7 +90,7 @@
 				return;
 			}
 		}
-		
+
 		if (hoverZoneElement) {
 			const hoverZoneRect = hoverZoneElement.getBoundingClientRect();
 			if (e.clientX >= hoverZoneRect.left && e.clientX <= hoverZoneRect.right) {
@@ -99,14 +102,14 @@
 				return;
 			}
 		}
-		
+
 		// Check if mouse has moved too far to the right - close sidebar
 		// Get sidebar position to calculate threshold
 		if (sidebarElement) {
 			const sidebarRect = sidebarElement.getBoundingClientRect();
 			const rightEdge = sidebarRect.right;
-			const closeThreshold = rightEdge + (sidebarWidth * 0.1);
-			
+			const closeThreshold = rightEdge + sidebarWidth * 0.1;
+
 			// Only close if mouse is far to the right (beyond threshold)
 			// This allows moving mouse back into screen without closing
 			if (e.clientX >= closeThreshold) {
@@ -118,13 +121,13 @@
 	// Track hover state with debouncing to prevent flickering
 	let hoverState = $state(false);
 	let hoverDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
-	
+
 	// Debounced hover state - only update after a short delay to prevent rapid flickering
 	function setHoverState(newState: boolean, delay = 50) {
 		if (hoverDebounceTimeout) {
 			clearTimeout(hoverDebounceTimeout);
 		}
-		
+
 		if (newState) {
 			// Opening immediately (no delay)
 			hoverState = true;
@@ -156,7 +159,7 @@
 	// Use hoverState (debounced) instead of isHovered to prevent flickering
 	$effect(() => {
 		if (isMobile) return;
-		
+
 		if (sidebarCollapsed && !hoverState && !isPinned) {
 			// Collapsing - animate to 0
 			animatedWidth.set(0, { duration: 250, easing: cubicOut });
@@ -183,13 +186,11 @@
 
 	// Track if we're in the middle of a collapse animation
 	let isCollapsing = $state(false);
-	
+
 	// Determine if sidebar should use ResizableSplitter
 	// Use hoverState (debounced) to prevent flickering from rapid mount/unmount
 	const useResizable = $derived(
-		!isMobile && 
-		!isCollapsing &&
-		(!sidebarCollapsed || (sidebarCollapsed && hoverState))
+		!isMobile && !isCollapsing && (!sidebarCollapsed || (sidebarCollapsed && hoverState))
 	);
 
 	const visibleTeams = $derived(() => organizations?.teams ?? []);
@@ -199,7 +200,7 @@
 	// Set up document mouse tracking when sidebar is hovered and collapsed
 	$effect(() => {
 		if (typeof window === 'undefined') return;
-		
+
 		if (sidebarCollapsed && !isMobile && hoverState) {
 			document.addEventListener('mousemove', handleDocumentMouseMove);
 			return () => {
@@ -213,7 +214,7 @@
 <!-- Keep width stable at 8px to prevent flickering from width changes -->
 {#if !isMobile && sidebarCollapsed}
 	<div
-		class="fixed left-0 top-0 bottom-0 hover:bg-transparent pointer-events-auto"
+		class="pointer-events-auto fixed top-0 bottom-0 left-0 hover:bg-transparent"
 		style="width: 8px; z-index: 50;"
 		onmouseenter={() => {
 			// Clear any pending hide timeout
@@ -238,7 +239,7 @@
 <!-- Mobile Backdrop Overlay (shown when sidebar is open on mobile) -->
 {#if isMobile && !sidebarCollapsed}
 	<div
-		class="fixed inset-0 bg-black/50 z-40 transition-opacity"
+		class="fixed inset-0 z-40 bg-black/50 transition-opacity"
 		onclick={() => onToggleCollapse()}
 		onkeydown={(e) => {
 			if (e.key === 'Enter' || e.key === ' ') {
@@ -275,7 +276,7 @@
 		}}
 	>
 		<aside
-			class="bg-sidebar text-sidebar-primary flex flex-col border-r border-sidebar h-full overflow-hidden"
+			class="flex h-full flex-col overflow-hidden border-r border-sidebar bg-sidebar text-sidebar-primary"
 			style="pointer-events: auto; z-index: 50;"
 			onmouseenter={() => {
 				// Clear any pending hide timeout
@@ -314,25 +315,25 @@
 			<!-- Sticky Header with Workspace Menu -->
 			<SidebarHeader
 				workspaceName={accountName}
-				accountEmail={accountEmail}
-				sidebarCollapsed={sidebarCollapsed}
-				isMobile={isMobile}
-				isHovered={isHovered}
+				{accountEmail}
+				{sidebarCollapsed}
+				{isMobile}
+				{isHovered}
 				onSettings={() => {
 					goto('/settings');
 				}}
-			onInviteMembers={() => {
-				goto('/settings');
-			}}
-			onSwitchWorkspace={() => {
-				console.log('Switch workspace menu selected');
-			}}
-			onCreateWorkspace={() => {
-				console.log('Create workspace menu selected');
-			}}
-			onAddAccount={() => {
-				console.log('Add account menu selected');
-			}}
+				onInviteMembers={() => {
+					goto('/settings');
+				}}
+				onSwitchWorkspace={() => {
+					console.log('Switch workspace menu selected');
+				}}
+				onCreateWorkspace={() => {
+					console.log('Create workspace menu selected');
+				}}
+				onAddAccount={() => {
+					console.log('Add account menu selected');
+				}}
 				onLogout={() => {
 					// Use window.location to trigger server endpoint (not client-side routing)
 					if (typeof window !== 'undefined') {
@@ -343,7 +344,10 @@
 
 			<!-- Navigation - Scrollable area -->
 			{#if !sidebarCollapsed || isPinned || (hoverState && !isMobile)}
-				<nav class="flex-1 px-nav-container py-nav-container overflow-y-auto" transition:fade={{ duration: 200 }}>
+				<nav
+					class="flex-1 overflow-y-auto px-nav-container py-nav-container"
+					transition:fade={{ duration: 200 }}
+				>
 					<!-- Command Center Button (Header) -->
 					<button
 						onclick={() => {
@@ -351,11 +355,11 @@
 								onQuickCreate('header_button');
 							}
 						}}
-						class="w-full flex items-center gap-icon px-button-x py-button-y rounded-button bg-button-primary text-button-primary-text hover:bg-button-primary-hover transition-all duration-150 mb-nav-group"
+						class="bg-button-primary text-button-primary-text hover:bg-button-primary-hover mb-nav-group flex w-full items-center gap-icon rounded-button px-button-x py-button-y transition-all duration-150"
 						title="Command Center (C)"
 					>
 						<svg
-							class="w-4 h-4 flex-shrink-0"
+							class="h-4 w-4 flex-shrink-0"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -375,12 +379,12 @@
 					<!-- My Mind -->
 					<a
 						href="/my-mind"
-						class="group relative flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+						class="group relative flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 						title="My Mind"
 					>
 						<!-- Icon -->
 						<svg
-							class="w-4 h-4 flex-shrink-0"
+							class="h-4 w-4 flex-shrink-0"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -393,18 +397,18 @@
 								d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
 							/>
 						</svg>
-						<span class="font-normal flex-1 min-w-0">My Mind</span>
+						<span class="min-w-0 flex-1 font-normal">My Mind</span>
 					</a>
 
 					<!-- Inbox -->
 					<a
 						href="/inbox"
-						class="group relative flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+						class="group relative flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 						title="Inbox"
 					>
 						<!-- Icon -->
 						<svg
-							class="w-4 h-4 flex-shrink-0"
+							class="h-4 w-4 flex-shrink-0"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -417,10 +421,10 @@
 								d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
 							/>
 						</svg>
-						<span class="font-normal flex-1 min-w-0">Inbox</span>
+						<span class="min-w-0 flex-1 font-normal">Inbox</span>
 						{#if inboxCount > 0}
 							<span
-								class="bg-sidebar-badge text-sidebar-badge text-label font-medium px-badge py-badge rounded min-w-[18px] text-center flex-shrink-0"
+								class="min-w-[18px] flex-shrink-0 rounded bg-sidebar-badge px-badge py-badge text-center text-label font-medium text-sidebar-badge"
 							>
 								{inboxCount}
 							</span>
@@ -430,12 +434,12 @@
 					<!-- Flashcards -->
 					<a
 						href="/flashcards"
-						class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+						class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 						title="Flashcards"
 					>
 						<!-- Icon -->
 						<svg
-							class="w-4 h-4 flex-shrink-0"
+							class="h-4 w-4 flex-shrink-0"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -454,12 +458,12 @@
 					<!-- Study -->
 					<a
 						href="/study"
-						class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+						class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 						title="Study Session"
 					>
 						<!-- Icon -->
 						<svg
-							class="w-4 h-4 flex-shrink-0"
+							class="h-4 w-4 flex-shrink-0"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -478,12 +482,12 @@
 					<!-- Tags -->
 					<a
 						href="/tags"
-						class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+						class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 						title="Tags"
 					>
 						<!-- Icon -->
 						<svg
-							class="w-4 h-4 flex-shrink-0"
+							class="h-4 w-4 flex-shrink-0"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -499,55 +503,55 @@
 						<span class="font-normal">Tags</span>
 					</a>
 
-			{#if organizations}
-				<TeamList
-					teams={visibleTeams()}
-					teamInvites={teamInvites()}
-					activeTeamId={activeTeamId()}
-					sidebarCollapsed={sidebarCollapsed}
-					isMobile={isMobile}
-					onSelectTeam={(teamId) => organizations.setActiveTeam(teamId)}
-					onCreateTeam={() => organizations.openModal('createTeam')}
-					onJoinTeam={() => organizations.openModal('joinTeam')}
-					onAcceptInvite={(inviteId) => organizations.acceptTeamInvite(inviteId)}
-					onDeclineInvite={(inviteId) => organizations.declineTeamInvite(inviteId)}
-				/>
-			{/if}
+					{#if organizations}
+						<TeamList
+							teams={visibleTeams()}
+							teamInvites={teamInvites()}
+							activeTeamId={activeTeamId()}
+							{sidebarCollapsed}
+							{isMobile}
+							onSelectTeam={(teamId) => organizations.setActiveTeam(teamId)}
+							onCreateTeam={() => organizations.openModal('createTeam')}
+							onJoinTeam={() => organizations.openModal('joinTeam')}
+							onAcceptInvite={(inviteId) => organizations.acceptTeamInvite(inviteId)}
+							onDeclineInvite={(inviteId) => organizations.declineTeamInvite(inviteId)}
+						/>
+					{/if}
 
 					<!-- Categories Section -->
-					<div class="border-t border-sidebar my-2"></div>
+					<div class="my-2 border-t border-sidebar"></div>
 					<div class="px-section py-section">
-						<p class="text-label font-medium text-sidebar-tertiary uppercase tracking-wider mb-1.5">
+						<p class="mb-1.5 text-label font-medium tracking-wider text-sidebar-tertiary uppercase">
 							Categories
 						</p>
 						<div class="space-y-0.5">
 							<button
 								type="button"
-								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 							>
 								<span class="font-normal">Product Delivery</span>
 							</button>
 							<button
 								type="button"
-								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary pl-indent"
+								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item pl-indent text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 							>
 								<span class="font-normal">Sprint Planning</span>
 							</button>
 							<button
 								type="button"
-								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary pl-indent"
+								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item pl-indent text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 							>
 								<span class="font-normal">Roadmapping</span>
 							</button>
 							<button
 								type="button"
-								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 							>
 								<span class="font-normal">Product Discovery</span>
 							</button>
 							<button
 								type="button"
-								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 							>
 								<span class="font-normal">Leadership</span>
 							</button>
@@ -558,7 +562,10 @@
 
 			<!-- Footer Actions -->
 			{#if (!sidebarCollapsed || isPinned || (hoverState && !isMobile)) && !isMobile}
-				<div class="px-nav-container py-nav-container border-t border-sidebar" transition:fade={{ duration: 200 }}>
+				<div
+					class="border-t border-sidebar px-nav-container py-nav-container"
+					transition:fade={{ duration: 200 }}
+				>
 					<CreateMenu
 						open={createMenuOpen}
 						onOpenChange={onCreateMenuChange || (() => {})}
@@ -580,18 +587,21 @@
 
 			<!-- Development Test Menu (only in dev mode) -->
 			{#if dev && (!sidebarCollapsed || isPinned || (hoverState && !isMobile)) && !isMobile}
-				<div class="px-nav-container py-nav-container border-t border-sidebar" transition:fade={{ duration: 200 }}>
+				<div
+					class="border-t border-sidebar px-nav-container py-nav-container"
+					transition:fade={{ duration: 200 }}
+				>
 					<div class="px-section py-section">
-						<p class="text-label font-medium text-sidebar-tertiary uppercase tracking-wider mb-1.5">
+						<p class="mb-1.5 text-label font-medium tracking-wider text-sidebar-tertiary uppercase">
 							🧪 Development
 						</p>
 						<div class="space-y-0.5">
 							<a
 								href="/test/claude"
-								class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+								class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 							>
 								<svg
-									class="w-4 h-4 flex-shrink-0"
+									class="h-4 w-4 flex-shrink-0"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -606,49 +616,49 @@
 								</svg>
 								<span class="font-normal">Claude Test</span>
 							</a>
-					<a
-						href="/test/readwise"
-						class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
-					>
-						<svg
-							class="w-4 h-4 flex-shrink-0"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-							/>
-						</svg>
-						<span class="font-normal">Readwise Test</span>
-					</a>
-					<a
-						href="/dev-docs"
-						target="_blank"
-						rel="noopener noreferrer"
-						class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
-					>
-						<svg
-							class="w-4 h-4 flex-shrink-0"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-							/>
-						</svg>
-						<span class="font-normal">Dev Docs</span>
-					</a>
-					<CleanReadwiseButton />
+							<a
+								href="/test/readwise"
+								class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+							>
+								<svg
+									class="h-4 w-4 flex-shrink-0"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+									/>
+								</svg>
+								<span class="font-normal">Readwise Test</span>
+							</a>
+							<a
+								href="/dev-docs"
+								target="_blank"
+								rel="noopener noreferrer"
+								class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+							>
+								<svg
+									class="h-4 w-4 flex-shrink-0"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+									/>
+								</svg>
+								<span class="font-normal">Dev Docs</span>
+							</a>
+							<CleanReadwiseButton />
 						</div>
 					</div>
 				</div>
@@ -656,8 +666,8 @@
 		</aside>
 	</ResizableSplitter>
 {:else}
-		<aside
-		class="bg-sidebar text-sidebar-primary flex flex-col border-r border-sidebar overflow-hidden h-full"
+	<aside
+		class="flex h-full flex-col overflow-hidden border-r border-sidebar bg-sidebar text-sidebar-primary"
 		class:fixed={(sidebarCollapsed && !isMobile && hoverState) || (isMobile && !sidebarCollapsed)}
 		class:z-50={(sidebarCollapsed && !isMobile && hoverState) || (isMobile && !sidebarCollapsed)}
 		style="width: {displayWidth()}px; transition: width 250ms cubic-bezier(0.4, 0, 0.2, 1);"
@@ -674,16 +684,17 @@
 			// Only hide if mouse is actually leaving the sidebar area (not just hovering over dropdown)
 			const relatedTarget = e.relatedTarget as HTMLElement | null;
 			// Check if mouse is moving to a dropdown menu or portal element
-			if (relatedTarget && (
-				relatedTarget.closest('[data-radix-portal]') ||
-				relatedTarget.closest('[role="menu"]') ||
-				relatedTarget.closest('[data-radix-dropdown-menu-content]') ||
-				relatedTarget.closest('[data-bits-ui-dropdown-menu-content]')
-			)) {
+			if (
+				relatedTarget &&
+				(relatedTarget.closest('[data-radix-portal]') ||
+					relatedTarget.closest('[role="menu"]') ||
+					relatedTarget.closest('[data-radix-dropdown-menu-content]') ||
+					relatedTarget.closest('[data-bits-ui-dropdown-menu-content]'))
+			) {
 				// Don't hide - mouse is going to dropdown
 				return;
 			}
-			
+
 			// Don't close immediately on mouseleave - let global mouse tracker handle it
 			// This allows mouse to exit on left side without closing, and will close
 			// when mouse moves too far to the right via the global tracker
@@ -692,10 +703,10 @@
 		<!-- Sticky Header with Workspace Menu -->
 		<SidebarHeader
 			workspaceName={accountName}
-			accountEmail={accountEmail}
-			sidebarCollapsed={sidebarCollapsed}
-			isMobile={isMobile}
-			isHovered={isHovered}
+			{accountEmail}
+			{sidebarCollapsed}
+			{isMobile}
+			{isHovered}
 			onSettings={() => {
 				if (typeof window !== 'undefined') {
 					window.location.href = '/settings';
@@ -711,16 +722,16 @@
 
 		<!-- Navigation -->
 		{#if !sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)}
-			<nav class="flex-1 px-nav-container py-nav-container overflow-y-auto">
+			<nav class="flex-1 overflow-y-auto px-nav-container py-nav-container">
 				<!-- My Mind -->
 				<a
 					href="/my-mind"
-					class="group relative flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+					class="group relative flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:justify-center={isMobile && sidebarCollapsed}
 					title={isMobile && sidebarCollapsed ? 'My Mind' : ''}
 				>
 					<svg
-						class="w-4 h-4 flex-shrink-0"
+						class="h-4 w-4 flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -741,12 +752,12 @@
 				<!-- Inbox -->
 				<a
 					href="/inbox"
-					class="group relative flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+					class="group relative flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:justify-center={isMobile && sidebarCollapsed}
 					title={isMobile && sidebarCollapsed ? 'Inbox' : ''}
 				>
 					<svg
-						class="w-4 h-4 flex-shrink-0"
+						class="h-4 w-4 flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -760,10 +771,10 @@
 						/>
 					</svg>
 					{#if !isMobile}
-						<span class="font-normal flex-1 min-w-0">Inbox</span>
+						<span class="min-w-0 flex-1 font-normal">Inbox</span>
 						{#if inboxCount > 0}
 							<span
-								class="bg-sidebar-badge text-sidebar-badge text-label font-medium px-badge py-badge rounded min-w-[18px] text-center flex-shrink-0"
+								class="min-w-[18px] flex-shrink-0 rounded bg-sidebar-badge px-badge py-badge text-center text-label font-medium text-sidebar-badge"
 							>
 								{inboxCount}
 							</span>
@@ -771,7 +782,7 @@
 					{:else if isMobile && sidebarCollapsed}
 						{#if inboxCount > 0}
 							<span
-								class="absolute top-0 right-0 bg-sidebar-badge text-sidebar-badge text-label font-medium px-1 py-0.5 rounded leading-none"
+								class="absolute top-0 right-0 rounded bg-sidebar-badge px-1 py-0.5 text-label leading-none font-medium text-sidebar-badge"
 							>
 								{inboxCount}
 							</span>
@@ -780,7 +791,7 @@
 						<span class="font-normal">Inbox</span>
 						{#if inboxCount > 0}
 							<span
-								class="bg-sidebar-badge text-sidebar-badge text-label font-medium px-badge py-badge rounded min-w-[18px] text-center flex-shrink-0"
+								class="min-w-[18px] flex-shrink-0 rounded bg-sidebar-badge px-badge py-badge text-center text-label font-medium text-sidebar-badge"
 							>
 								{inboxCount}
 							</span>
@@ -791,12 +802,12 @@
 				<!-- Flashcards -->
 				<a
 					href="/flashcards"
-					class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:justify-center={isMobile && sidebarCollapsed}
 					title={isMobile && sidebarCollapsed ? 'Flashcards' : ''}
 				>
 					<svg
-						class="w-4 h-4 flex-shrink-0"
+						class="h-4 w-4 flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -817,12 +828,12 @@
 				<!-- Study -->
 				<a
 					href="/study"
-					class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:justify-center={isMobile && sidebarCollapsed}
 					title={isMobile && sidebarCollapsed ? 'Study' : ''}
 				>
 					<svg
-						class="w-4 h-4 flex-shrink-0"
+						class="h-4 w-4 flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -843,12 +854,12 @@
 				<!-- Tags -->
 				<a
 					href="/tags"
-					class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:justify-center={isMobile && sidebarCollapsed}
 					title={isMobile && sidebarCollapsed ? 'Tags' : ''}
 				>
 					<svg
-						class="w-4 h-4 flex-shrink-0"
+						class="h-4 w-4 flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -866,56 +877,56 @@
 					{/if}
 				</a>
 
-		{#if organizations}
-			<TeamList
-				teams={visibleTeams()}
-				teamInvites={teamInvites()}
-				activeTeamId={activeTeamId()}
-				sidebarCollapsed={sidebarCollapsed}
-				isMobile={isMobile}
-				onSelectTeam={(teamId) => organizations.setActiveTeam(teamId)}
-				onCreateTeam={() => organizations.openModal('createTeam')}
-				onJoinTeam={() => organizations.openModal('joinTeam')}
-				onAcceptInvite={(inviteId) => organizations.acceptTeamInvite(inviteId)}
-				onDeclineInvite={(inviteId) => organizations.declineTeamInvite(inviteId)}
-			/>
-		{/if}
+				{#if organizations}
+					<TeamList
+						teams={visibleTeams()}
+						teamInvites={teamInvites()}
+						activeTeamId={activeTeamId()}
+						{sidebarCollapsed}
+						{isMobile}
+						onSelectTeam={(teamId) => organizations.setActiveTeam(teamId)}
+						onCreateTeam={() => organizations.openModal('createTeam')}
+						onJoinTeam={() => organizations.openModal('joinTeam')}
+						onAcceptInvite={(inviteId) => organizations.acceptTeamInvite(inviteId)}
+						onDeclineInvite={(inviteId) => organizations.declineTeamInvite(inviteId)}
+					/>
+				{/if}
 
 				<!-- Categories Section -->
 				{#if !isMobile}
-					<div class="border-t border-sidebar my-2"></div>
+					<div class="my-2 border-t border-sidebar"></div>
 					<div class="px-section py-section">
-						<p class="text-label font-medium text-sidebar-tertiary uppercase tracking-wider mb-1.5">
+						<p class="mb-1.5 text-label font-medium tracking-wider text-sidebar-tertiary uppercase">
 							Categories
 						</p>
 						<div class="space-y-0.5">
 							<button
 								type="button"
-								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 							>
 								<span class="font-normal">Product Delivery</span>
 							</button>
 							<button
 								type="button"
-								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary pl-indent"
+								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item pl-indent text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 							>
 								<span class="font-normal">Sprint Planning</span>
 							</button>
 							<button
 								type="button"
-								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary pl-indent"
+								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item pl-indent text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 							>
 								<span class="font-normal">Roadmapping</span>
 							</button>
 							<button
 								type="button"
-								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 							>
 								<span class="font-normal">Product Discovery</span>
 							</button>
 							<button
 								type="button"
-								class="w-full flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 							>
 								<span class="font-normal">Leadership</span>
 							</button>
@@ -927,18 +938,21 @@
 
 		<!-- Footer Actions -->
 		{#if (!sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)) && !isMobile}
-			<div class="px-nav-container py-nav-container border-t border-sidebar" transition:fade={{ duration: 200 }}>
+			<div
+				class="border-t border-sidebar px-nav-container py-nav-container"
+				transition:fade={{ duration: 200 }}
+			>
 				<button
 					onclick={() => {
 						if (onQuickCreate) {
 							onQuickCreate('footer_button');
 						}
 					}}
-					class="w-full flex items-center gap-icon px-button-x py-button-y rounded-button bg-button-primary text-button-primary-text hover:bg-button-primary-hover transition-all duration-150"
+					class="bg-button-primary text-button-primary-text hover:bg-button-primary-hover flex w-full items-center gap-icon rounded-button px-button-x py-button-y transition-all duration-150"
 					title="Command Center (C)"
 				>
 					<svg
-						class="w-4 h-4 flex-shrink-0"
+						class="h-4 w-4 flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -959,18 +973,21 @@
 
 		<!-- Development Test Menu (only in dev mode) -->
 		{#if dev && (!sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)) && !isMobile}
-			<div class="px-nav-container py-nav-container border-t border-sidebar" transition:fade={{ duration: 200 }}>
+			<div
+				class="border-t border-sidebar px-nav-container py-nav-container"
+				transition:fade={{ duration: 200 }}
+			>
 				<div class="px-section py-section">
-					<p class="text-label font-medium text-sidebar-tertiary uppercase tracking-wider mb-1.5">
+					<p class="mb-1.5 text-label font-medium tracking-wider text-sidebar-tertiary uppercase">
 						🧪 Development
 					</p>
 					<div class="space-y-0.5">
 						<a
 							href="/test/claude"
-							class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+							class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 						>
 							<svg
-								class="w-4 h-4 flex-shrink-0"
+								class="h-4 w-4 flex-shrink-0"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -987,10 +1004,10 @@
 						</a>
 						<a
 							href="/test/readwise"
-							class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+							class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 						>
 							<svg
-								class="w-4 h-4 flex-shrink-0"
+								class="h-4 w-4 flex-shrink-0"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -1009,10 +1026,10 @@
 							href="/dev-docs"
 							target="_blank"
 							rel="noopener noreferrer"
-							class="group flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-sidebar-hover transition-all duration-150 text-sm text-sidebar-secondary hover:text-sidebar-primary"
+							class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 						>
 							<svg
-								class="w-4 h-4 flex-shrink-0"
+								class="h-4 w-4 flex-shrink-0"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"

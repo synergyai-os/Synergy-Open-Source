@@ -7,6 +7,7 @@ Based on actual API responses from Readwise API.
 ### Endpoint: `GET /api/v2/highlights/`
 
 ### Response Structure
+
 ```typescript
 {
   count: number,           // Total number of highlights
@@ -17,6 +18,7 @@ Based on actual API responses from Readwise API.
 ```
 
 ### Highlight Object
+
 ```typescript
 {
   id: number,                    // Readwise highlight ID (unique)
@@ -34,6 +36,7 @@ Based on actual API responses from Readwise API.
 ```
 
 **Key Observations:**
+
 - `book_id` is just a number - need to join with books endpoint to get source details
 - Tags are arrays but appear empty in examples (may be used for highlight-level tags)
 - Location is numeric (offset or page number)
@@ -45,6 +48,7 @@ Based on actual API responses from Readwise API.
 ### Endpoint: `GET /api/v2/books/`
 
 ### Response Structure
+
 ```typescript
 {
   count: number,           // Total number of books/sources
@@ -55,6 +59,7 @@ Based on actual API responses from Readwise API.
 ```
 
 ### Source/Book Object
+
 ```typescript
 {
   id: number,                    // Readwise source ID (unique) - matches highlight.book_id
@@ -75,6 +80,7 @@ Based on actual API responses from Readwise API.
 ```
 
 ### Tag Object (on Sources)
+
 ```typescript
 {
   id: number,              // Readwise tag ID
@@ -84,6 +90,7 @@ Based on actual API responses from Readwise API.
 ```
 
 **Key Observations:**
+
 - Authors are strings (not separate objects with IDs from Readwise)
 - One author string can contain multiple authors (comma-separated)
 - Tags exist at the source level with structured objects (`{id, name, user_book}`)
@@ -95,12 +102,14 @@ Based on actual API responses from Readwise API.
 ## Relationships
 
 ### In Readwise API:
+
 ```
 Author (string) → Source/Book (id) → Highlights (id, book_id)
 Tags → Sources (user_book)
 ```
 
 ### Notes:
+
 - **Authors**: Just strings, no IDs. Same author name may appear across multiple sources.
 - **Sources**: Have unique IDs, linked to highlights via `book_id`.
 - **Tags**: Attached to sources (books), not individual highlights in the examples.
@@ -151,4 +160,3 @@ Tags → Sources (user_book)
 1. Design schema tables based on this structure
 2. Plan normalization logic (author parsing, tag handling)
 3. Design sync strategy (fetch books first, then highlights, link them)
-

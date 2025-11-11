@@ -34,18 +34,21 @@ Each value stream has its own folder with:
 ## Active Value Streams
 
 ### 1. [Documentation System](./documentation-system/)
+
 **Outcome**: Product teams can find and maintain living documentation at the speed of thought  
 **Team**: Core (Randy + AI)  
 **Status**: In progress  
 **Success Signal**: Onboarding time < 3 days, Cursor AI finds docs 95% of time
 
 ### 2. [Authentication & Multi-Tenancy](./auth-multi-tenancy/)
+
 **Outcome**: Organizations can safely share knowledge with their teams  
 **Team**: Core (Randy + AI)  
 **Status**: Foundation complete, multi-tenancy next  
 **Success Signal**: Saprolab onboards ZDHC with zero security concerns
 
 ### 3. [Inbox & Knowledge Collection](./inbox-collection/)
+
 **Outcome**: Users effortlessly capture knowledge from any source  
 **Team**: Core (Randy + AI)  
 **Status**: Complete (Readwise sync working)  
@@ -56,16 +59,19 @@ Each value stream has its own folder with:
 ## How We Use Value Streams
 
 ### For Planning
+
 - **No timelines**: Focus on outcomes, not deadlines
 - **Clear dependencies**: Document what blocks progress
 - **Autonomous teams**: Teams own their stream end-to-end
 
 ### For Development
+
 - **Work in public**: All streams documented, open source
 - **AI-navigable**: Reference with `@value-streams/stream-name`
 - **Living docs**: Update as you learn, not quarterly
 
 ### For Contributors
+
 - **Pick a stream**: Find the outcome you care about
 - **Understand context**: Read README → ARCHITECTURE → DEPENDENCIES
 - **Start contributing**: No permission needed, PRs welcome
@@ -120,4 +126,3 @@ This is how **Champions League product teams** work:
 ---
 
 **Next Steps**: Pick a value stream, read the README, start contributing. No permission needed.
-

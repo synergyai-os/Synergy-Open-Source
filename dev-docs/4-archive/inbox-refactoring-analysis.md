@@ -10,6 +10,7 @@
 Based on analysis of `inbox-refactoring-assessment.md` and the way-of-working principles, I've created a **microstep-by-microstep refactoring plan** with **44 small, independently testable steps**.
 
 **Key Findings**:
+
 - ✅ Assessment correctly identifies 760-line page as too complex
 - ✅ Refactoring approach aligns with Svelte 5 best practices
 - ✅ Microstep approach ensures safety and user confirmation at each stage
@@ -88,9 +89,11 @@ Based on analysis of `inbox-refactoring-assessment.md` and the way-of-working pr
 ## Refactoring Strategy: Microstep Breakdown
 
 ### Phase 1: Sync Logic (16 microsteps)
+
 **Why First**: Most self-contained, clear boundaries, easy to test
 
 **Microstep Pattern**:
+
 1. Create skeleton file
 2. Extract state variables one-by-one
 3. Extract functions one-by-one
@@ -104,9 +107,11 @@ Based on analysis of `inbox-refactoring-assessment.md` and the way-of-working pr
 ---
 
 ### Phase 2: Data Fetching (10 microsteps)
+
 **Why Second**: Used everywhere, but well-defined boundaries
 
 **Microstep Pattern**:
+
 1. Create composable
 2. Extract state (filterType, inboxItems, isLoading)
 3. Extract functions (loadItems, setFilter)
@@ -119,9 +124,11 @@ Based on analysis of `inbox-refactoring-assessment.md` and the way-of-working pr
 ---
 
 ### Phase 3: Selected Item (8 microsteps)
+
 **Why Third**: Has race condition logic, needs careful extraction
 
 **Microstep Pattern**:
+
 1. Create composable
 2. Extract state (selectedItemId, selectedItem)
 3. Extract query tracking logic
@@ -134,9 +141,11 @@ Based on analysis of `inbox-refactoring-assessment.md` and the way-of-working pr
 ---
 
 ### Phase 4: Keyboard Navigation (6 microsteps)
+
 **Why Fourth**: Simple extraction, clear boundaries
 
 **Microstep Pattern**:
+
 1. Create composable
 2. Extract navigation functions
 3. Extract event handlers
@@ -148,9 +157,11 @@ Based on analysis of `inbox-refactoring-assessment.md` and the way-of-working pr
 ---
 
 ### Phase 5: Layout State (4 microsteps)
+
 **Why Last**: Simplest, smallest impact
 
 **Microstep Pattern**:
+
 1. Extract state
 2. Extract handlers
 3. Wire up
@@ -163,21 +174,25 @@ Based on analysis of `inbox-refactoring-assessment.md` and the way-of-working pr
 ## Safety Mechanisms
 
 ### 1. Parallel Implementation
+
 - Each microstep keeps old code while adding new
 - Only removes old code after verification
 - Can revert individual steps
 
 ### 2. Verification Checklist
+
 - After each phase: comprehensive checklist
 - User confirms before proceeding
 - No assumptions about functionality
 
 ### 3. Incremental Testing
+
 - Test after each logical group of microsteps
 - Test after each phase completion
 - Full regression test before moving to next phase
 
 ### 4. Type Safety
+
 - TypeScript ensures type correctness
 - Each composable has proper types
 - Compile-time checks catch errors early
@@ -187,21 +202,25 @@ Based on analysis of `inbox-refactoring-assessment.md` and the way-of-working pr
 ## Expected Outcomes
 
 ### Code Reduction
+
 - **Current**: 760 lines in `+page.svelte`
 - **Target**: ~200 lines in `+page.svelte`
 - **Reduction**: ~74% (560 lines extracted)
 
 ### Maintainability
+
 - **Before**: 7 mixed concerns in one file
 - **After**: Single responsibility per file
 - **Benefit**: Easy to find and fix bugs
 
 ### Testability
+
 - **Before**: Hard to test (logic embedded in component)
 - **After**: Composables can be unit tested
 - **Benefit**: Better test coverage possible
 
 ### Reusability
+
 - **Before**: Logic duplicated
 - **After**: Composables reusable across app
 - **Benefit**: DRY principle applied
@@ -211,17 +230,20 @@ Based on analysis of `inbox-refactoring-assessment.md` and the way-of-working pr
 ## Risk Assessment
 
 ### Low Risk Areas
+
 - ✅ Creating skeleton files
 - ✅ Extracting simple state variables
 - ✅ Extracting simple functions
 - ✅ Layout state extraction
 
 ### Medium Risk Areas
+
 - ⚠️ Data fetching extraction (core functionality)
 - ⚠️ Selected item extraction (race conditions)
 - ⚠️ Sync logic wiring (complex state)
 
 ### High Risk Areas
+
 - ❌ Component splitting (future phase, not in initial plan)
 - ❌ Major architectural changes (not needed)
 
@@ -236,6 +258,7 @@ Based on analysis of `inbox-refactoring-assessment.md` and the way-of-working pr
 **Total Refactoring**: 10-15 hours (spread across sessions)
 
 **Realistic Timeline**:
+
 - Phase 1: 3-4 hours (16 steps)
 - Phase 2: 2-3 hours (10 steps)
 - Phase 3: 2-3 hours (8 steps)
@@ -243,13 +266,14 @@ Based on analysis of `inbox-refactoring-assessment.md` and the way-of-working pr
 - Phase 5: 1 hour (4 steps)
 - **Total**: 9-13 hours
 
-*Note: This doesn't include testing/verification time, which should be done with user*
+_Note: This doesn't include testing/verification time, which should be done with user_
 
 ---
 
 ## Success Criteria
 
 ### Phase Completion Criteria
+
 - [ ] All microsteps in phase completed
 - [ ] Page compiles without errors
 - [ ] All functionality works as before
@@ -258,6 +282,7 @@ Based on analysis of `inbox-refactoring-assessment.md` and the way-of-working pr
 - [ ] No unused code remaining
 
 ### Overall Completion Criteria
+
 - [ ] `+page.svelte` reduced to ~200 lines
 - [ ] 4-5 composables created and working
 - [ ] All functionality preserved
@@ -292,4 +317,3 @@ Based on analysis of `inbox-refactoring-assessment.md` and the way-of-working pr
 - **Microstep Plan**: `dev-docs/inbox-refactoring-microsteps.md`
 - **Way of Working**: Cursor rules / workspace rules
 - **Svelte 5 Docs**: Context7 (when needed during implementation)
-

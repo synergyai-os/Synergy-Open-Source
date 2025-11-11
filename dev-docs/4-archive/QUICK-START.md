@@ -71,4 +71,3 @@ Knowledge retention app using the CODE framework (Collect → Organise → Disti
 2. Check `.cursor/rules/way-of-working.mdc`
 3. Pick a focused task from the plan
 4. Reference `dev-docs/design-tokens.md` when building UI
-

@@ -8,6 +8,7 @@
 ## Testing Philosophy
 
 Following the **Testing Pyramid**:
+
 - **Unit Tests** (70%): Pure functions, utilities, composables, business logic
 - **Component Tests** (20%): UI components, user interactions, state changes
 - **E2E Tests** (10%): Critical user flows, integration scenarios
@@ -36,6 +37,7 @@ These are easy to write, high-value, and build testing confidence.
 **Why**: Pure functions are easiest to test, no mocking needed.
 
 **Candidates**:
+
 - ✅ `getTypeIcon()` in `InboxCard.svelte` (Lines 29-40)
   - **Type**: Unit test
   - **Complexity**: Very Low
@@ -45,7 +47,7 @@ These are easy to write, high-value, and build testing confidence.
     - Returns default icon for unknown type
 
 - ✅ `normalizeTagName()` in `convex/readwiseUtils.ts` (if exists)
-  - **Type**: Unit test  
+  - **Type**: Unit test
   - **Complexity**: Low
   - **Value**: High (data consistency)
   - **Test Cases**:
@@ -76,6 +78,7 @@ These are easy to write, high-value, and build testing confidence.
     - Handles tags with multiple levels
 
 **After Refactoring** (extract these):
+
 - `getNextItemIndex()` / `getPreviousItemIndex()` - Navigation utilities
 - `formatSyncMessage()` - Sync result formatting
 
@@ -86,6 +89,7 @@ These are easy to write, high-value, and build testing confidence.
 **Why**: Build confidence in component testing before tackling complex ones.
 
 **Candidate**:
+
 - ✅ `InboxCard.svelte` (87 lines)
   - **Type**: Component test (vitest-browser-svelte)
   - **Complexity**: Low-Medium
@@ -100,6 +104,7 @@ These are easy to write, high-value, and build testing confidence.
     - Shows no tags when tags array is empty
 
 **Why This One First?**
+
 - Small, focused component
 - Clear props interface
 - No complex state or side effects
@@ -162,6 +167,7 @@ These test how multiple pieces work together.
     - Works in both desktop and mobile views
 
 **Why E2E?**
+
 - Tests actual keyboard events
 - Tests scroll behavior
 - Tests focus management
@@ -220,6 +226,7 @@ These test how multiple pieces work together.
 ## Recommended Test Implementation Order
 
 ### Phase 1: Foundation (Week 1)
+
 1. ✅ `getTypeIcon()` - Pure function, instant win
 2. ✅ `InboxCard.svelte` - Component testing practice
 3. ✅ `normalizeTagName()` - Data consistency
@@ -230,6 +237,7 @@ These test how multiple pieces work together.
 ---
 
 ### Phase 2: During Refactoring (Week 2)
+
 5. ✅ Extract `useKeyboardNavigation` → test it
 6. ✅ Extract `useSelectedItem` → test query tracking
 7. ✅ Extract navigation utilities → test them
@@ -239,6 +247,7 @@ These test how multiple pieces work together.
 ---
 
 ### Phase 3: Integration (Week 3)
+
 8. ✅ Keyboard navigation E2E test
 9. ✅ Item selection flow E2E test
 10. ✅ Tag creation E2E test
@@ -250,20 +259,22 @@ These test how multiple pieces work together.
 ## Testing Tools & Setup
 
 ### Unit Tests (Vitest)
+
 ```typescript
 // src/lib/utils/getTypeIcon.test.ts
 import { describe, it, expect } from 'vitest';
 import { getTypeIcon } from './getTypeIcon';
 
 describe('getTypeIcon', () => {
-  it('returns correct icon for readwise_highlight', () => {
-    expect(getTypeIcon('readwise_highlight')).toBe('📚');
-  });
-  // ... more tests
+	it('returns correct icon for readwise_highlight', () => {
+		expect(getTypeIcon('readwise_highlight')).toBe('📚');
+	});
+	// ... more tests
 });
 ```
 
 ### Component Tests (vitest-browser-svelte)
+
 ```typescript
 // src/lib/components/inbox/InboxCard.svelte.test.ts
 import { render } from 'vitest-browser-svelte';
@@ -271,40 +282,41 @@ import { expect, test } from 'vitest';
 import InboxCard from './InboxCard.svelte';
 
 test('renders item title and snippet', async () => {
-  const screen = render(InboxCard, {
-    item: {
-      _id: 'test-1',
-      type: 'readwise_highlight',
-      title: 'Test Title',
-      snippet: 'Test snippet...',
-      // ...
-    },
-    selected: false,
-    onClick: () => {}
-  });
+	const screen = render(InboxCard, {
+		item: {
+			_id: 'test-1',
+			type: 'readwise_highlight',
+			title: 'Test Title',
+			snippet: 'Test snippet...'
+			// ...
+		},
+		selected: false,
+		onClick: () => {}
+	});
 
-  await expect.element(screen.getByText('Test Title')).toBeVisible();
-  await expect.element(screen.getByText('Test snippet...')).toBeVisible();
+	await expect.element(screen.getByText('Test Title')).toBeVisible();
+	await expect.element(screen.getByText('Test snippet...')).toBeVisible();
 });
 ```
 
 ### E2E Tests (Playwright)
+
 ```typescript
 // e2e/inbox-navigation.test.ts
 import { test, expect } from '@playwright/test';
 
 test('keyboard navigation works', async ({ page }) => {
-  await page.goto('/inbox');
-  
-  // Wait for inbox items to load
-  await page.waitForSelector('[data-inbox-item-id]');
-  
-  // Press J to navigate down
-  await page.keyboard.press('J');
-  
-  // Verify first item is selected
-  const firstItem = page.locator('[data-inbox-item-id]').first();
-  await expect(firstItem).toHaveClass(/border-selected/);
+	await page.goto('/inbox');
+
+	// Wait for inbox items to load
+	await page.waitForSelector('[data-inbox-item-id]');
+
+	// Press J to navigate down
+	await page.keyboard.press('J');
+
+	// Verify first item is selected
+	const firstItem = page.locator('[data-inbox-item-id]').first();
+	await expect(firstItem).toHaveClass(/border-selected/);
 });
 ```
 
@@ -313,19 +325,21 @@ test('keyboard navigation works', async ({ page }) => {
 ## Mocking Strategy
 
 ### Convex Queries/Mutations
+
 - **Option 1**: Mock `useConvexClient()` in tests
 - **Option 2**: Use Vitest's `vi.mock()` to mock Convex client
 - **Option 3**: Create test fixtures with sample data
 
 ### Example Mock Setup:
+
 ```typescript
 // src/lib/test-utils/mockConvex.ts
 import { vi } from 'vitest';
 
 export const mockConvexClient = {
-  query: vi.fn(),
-  mutation: vi.fn(),
-  action: vi.fn(),
+	query: vi.fn(),
+	mutation: vi.fn(),
+	action: vi.fn()
 };
 ```
 
@@ -334,11 +348,13 @@ export const mockConvexClient = {
 ## Test Coverage Goals
 
 ### Initial Target (Phase 1)
+
 - **Utilities**: 80%+ coverage
 - **Simple Components**: 60%+ coverage
 - **Critical Paths**: 100% coverage
 
 ### After Refactoring
+
 - **Composables**: 80%+ coverage
 - **All Components**: 60%+ coverage
 - **E2E Critical Flows**: 100% coverage
@@ -396,4 +412,3 @@ Before we proceed, let's discuss:
 3. Start with Phase 1 tests
 4. Document patterns in `dev-docs/patterns-and-lessons.md`
 5. Integrate tests into refactoring plan
-

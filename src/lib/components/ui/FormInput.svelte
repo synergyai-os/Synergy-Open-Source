@@ -1,7 +1,7 @@
 <script lang="ts">
 	/**
 	 * Reusable Form Input Component
-	 * 
+	 *
 	 * Consistent text input with label, using design tokens throughout.
 	 * Ensures all form inputs have the same styling across the app.
 	 */
@@ -25,7 +25,7 @@
 		type = 'text',
 		required = false,
 		disabled = false,
-		class: customClass = '',
+		class: customClass = ''
 	}: Props = $props();
 
 	// Generate ID if not provided
@@ -48,7 +48,6 @@
 		{required}
 		{disabled}
 		bind:value
-		class="rounded-input border border-base bg-input px-input-x py-input-y text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-accent-primary transition-all {customClass}"
+		class="rounded-input border border-base bg-input px-input-x py-input-y text-primary transition-all placeholder:text-tertiary focus:ring-2 focus:ring-accent-primary focus:outline-none {customClass}"
 	/>
 </div>
-

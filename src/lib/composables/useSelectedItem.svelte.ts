@@ -20,7 +20,7 @@ export function useSelectedItem(
 	// Selected item state
 	const state = $state({
 		selectedItemId: null as string | null,
-		selectedItem: null as InboxItemWithDetails | null,
+		selectedItem: null as InboxItemWithDetails | null
 	});
 
 	// Query tracking for race condition prevention
@@ -77,11 +77,14 @@ export function useSelectedItem(
 	// Return state and functions using getters for reactivity
 	return {
 		// State - getters ensure reactivity is tracked
-		get selectedItemId() { return state.selectedItemId; },
-		get selectedItem() { return state.selectedItem; },
+		get selectedItemId() {
+			return state.selectedItemId;
+		},
+		get selectedItem() {
+			return state.selectedItem;
+		},
 		// Functions
 		selectItem,
-		clearSelection,
+		clearSelection
 	};
 }
-

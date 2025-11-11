@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import type { EditorView } from 'prosemirror-view';
-	import { mentionPluginKey, insertMention, type MentionItem } from '$lib/utils/prosemirror-mentions';
+	import {
+		mentionPluginKey,
+		insertMention,
+		type MentionItem
+	} from '$lib/utils/prosemirror-mentions';
 
 	type Props = {
 		editorView: EditorView | null;
@@ -30,7 +34,7 @@
 			const coords = editorView.coordsAtPos(state.range.from);
 			position = {
 				top: coords.bottom + 5,
-				left: coords.left,
+				left: coords.left
 			};
 			selectedIndex = 0;
 		} else {
@@ -60,7 +64,7 @@
 						active: false,
 						range: null,
 						query: '',
-						items: [],
+						items: []
 					})
 				);
 			}
@@ -95,13 +99,16 @@
 
 {#if active && position && items.length > 0}
 	<div
-		class="fixed z-50 bg-elevated rounded-md shadow-lg border border-base min-w-[280px] max-h-[320px] overflow-y-auto py-1"
+		class="fixed z-50 max-h-[320px] min-w-[280px] overflow-y-auto rounded-md border border-base bg-elevated py-1 shadow-lg"
 		style="top: {position.top}px; left: {position.left}px;"
 	>
 		{#each items as item, index}
 			<button
 				type="button"
-				class="w-full px-3 py-2 text-sm text-left hover:bg-hover-solid flex items-center gap-2 transition-colors {index === selectedIndex ? 'bg-hover-solid' : ''}"
+				class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-hover-solid {index ===
+				selectedIndex
+					? 'bg-hover-solid'
+					: ''}"
 				onclick={() => handleItemClick(item)}
 			>
 				{#if item.icon}
@@ -117,4 +124,3 @@
 		{/each}
 	</div>
 {/if}
-

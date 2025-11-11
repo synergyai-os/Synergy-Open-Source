@@ -14,43 +14,44 @@
 
 	const convexClient = browser ? useConvexClient() : null;
 	const note = useNote(convexClient);
-	
+
 	let editorRef: any = $state(null);
 	let editMode = $state(false);
 
 	// Handle Enter key to activate edit mode
 	$effect(() => {
 		if (!browser) return;
-		
+
 		function handleKeyDown(event: KeyboardEvent) {
 			// Only handle Enter when not already in edit mode
 			if (editMode) return;
-			
+
 			// Check if any input is focused
 			const activeElement = document.activeElement;
-			const isInputFocused = activeElement?.tagName === 'INPUT' || 
-			                      activeElement?.tagName === 'TEXTAREA' ||
-			                      (activeElement instanceof HTMLElement && activeElement.isContentEditable);
-			
+			const isInputFocused =
+				activeElement?.tagName === 'INPUT' ||
+				activeElement?.tagName === 'TEXTAREA' ||
+				(activeElement instanceof HTMLElement && activeElement.isContentEditable);
+
 			if (isInputFocused) return;
-			
-		// Handle Enter key to enter edit mode
-		if (event.key === 'Enter') {
-			// Check if emoji menu or other popup menus are active
-			const emojiMenuActive = document.querySelector('.emoji-menu') !== null;
-			if (emojiMenuActive) return; // Let the emoji menu handle Enter
-			
-			event.preventDefault();
-			editMode = true;
-			// Focus the editor title after a tick
-			setTimeout(() => {
-				editorRef?.focusTitle();
-			}, 0);
+
+			// Handle Enter key to enter edit mode
+			if (event.key === 'Enter') {
+				// Check if emoji menu or other popup menus are active
+				const emojiMenuActive = document.querySelector('.emoji-menu') !== null;
+				if (emojiMenuActive) return; // Let the emoji menu handle Enter
+
+				event.preventDefault();
+				editMode = true;
+				// Focus the editor title after a tick
+				setTimeout(() => {
+					editorRef?.focusTitle();
+				}, 0);
+			}
 		}
-		}
-		
+
 		window.addEventListener('keydown', handleKeyDown);
-		
+
 		return () => {
 			window.removeEventListener('keydown', handleKeyDown);
 		};
@@ -59,23 +60,24 @@
 	// Track when user leaves edit mode (ESC key already handled by NoteEditor)
 	$effect(() => {
 		if (!browser || !editMode) return;
-		
+
 		function handleFocusOut() {
 			// Small delay to check if focus moved to another input in the editor
 			setTimeout(() => {
 				const activeElement = document.activeElement;
-				const isInputFocused = activeElement?.tagName === 'INPUT' || 
-				                      activeElement?.tagName === 'TEXTAREA' ||
-				                      (activeElement instanceof HTMLElement && activeElement.isContentEditable);
-				
+				const isInputFocused =
+					activeElement?.tagName === 'INPUT' ||
+					activeElement?.tagName === 'TEXTAREA' ||
+					(activeElement instanceof HTMLElement && activeElement.isContentEditable);
+
 				if (!isInputFocused) {
 					editMode = false;
 				}
 			}, 100);
 		}
-		
+
 		document.addEventListener('focusout', handleFocusOut);
-		
+
 		return () => {
 			document.removeEventListener('focusout', handleFocusOut);
 		};
@@ -102,16 +104,15 @@
 	function handleAIFlagged() {
 		note.markAsAIGenerated();
 	}
-	
+
 	async function handleExportToDocs() {
 		if (!convexClient || !inboxItem._id) return;
-		
+
 		try {
-			const result = await convexClient.mutation(
-				api.notes.exportToDevDocs,
-				{ noteId: inboxItem._id }
-			);
-			
+			const result = await convexClient.mutation(api.notes.exportToDevDocs, {
+				noteId: inboxItem._id
+			});
+
 			if (result?.slug) {
 				// Open the exported note in a new tab
 				window.open(`/dev-docs/notes/${result.slug}`, '_blank');
@@ -147,20 +148,20 @@
 	});
 </script>
 
-<div class="flex flex-col h-full">
+<div class="flex h-full flex-col">
 	<!-- Header - Matches ReadwiseDetail pattern -->
 	<div
-		class="sticky top-0 z-10 bg-surface border-b border-base px-inbox-header py-system-header h-system-header flex items-center justify-between flex-shrink-0"
+		class="sticky top-0 z-10 flex h-system-header flex-shrink-0 items-center justify-between border-b border-base bg-surface px-inbox-header py-system-header"
 	>
 		<!-- Left: Title + Save Status -->
 		<div class="flex items-center gap-icon">
 			<button
 				type="button"
-				class="flex items-center gap-icon px-nav-item py-nav-item rounded-md hover:bg-hover-solid transition-colors text-secondary hover:text-primary"
+				class="flex items-center gap-icon rounded-md px-nav-item py-nav-item text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
 				onclick={onClose}
 				aria-label="Back to inbox"
 			>
-				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -184,16 +185,16 @@
 			<button
 				type="button"
 				onclick={handleExportToDocs}
-				class="px-4 py-2 bg-primary text-primary border border-base rounded-md hover:bg-hover-solid transition-colors text-sm font-medium"
+				class="bg-primary rounded-md border border-base px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-hover-solid"
 			>
 				Export to Docs
 			</button>
-			
+
 			<!-- Export to Blog Button -->
 			<button
 				type="button"
 				onclick={handleExportToBlog}
-				class="px-4 py-2 bg-accent-primary text-white rounded-md hover:bg-accent-hover transition-colors text-sm font-medium"
+				class="rounded-md bg-accent-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
 			>
 				Export to Blog
 			</button>
@@ -216,7 +217,7 @@
 	</div>
 
 	<!-- Footer with metadata -->
-	<div class="px-inbox-container py-system-header border-t border-base">
+	<div class="border-t border-base px-inbox-container py-system-header">
 		<div class="flex items-center justify-between text-label text-tertiary">
 			<div class="flex items-center gap-2">
 				<span>
@@ -230,11 +231,10 @@
 			</div>
 
 			{#if inboxItem.blogCategory === 'BLOG'}
-				<span class="px-badge py-badge bg-accent-primary text-white rounded text-label font-medium">
+				<span class="rounded bg-accent-primary px-badge py-badge text-label font-medium text-white">
 					BLOG
 				</span>
 			{/if}
 		</div>
 	</div>
 </div>
-

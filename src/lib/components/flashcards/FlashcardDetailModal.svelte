@@ -77,7 +77,8 @@
 				(activeElement instanceof HTMLElement && activeElement.isContentEditable);
 
 			// Ignore if dropdown/combobox is open (e.g., tag selector, color picker)
-			const isDropdownOpen = document.querySelector('[data-bits-combobox-content]') !== null ||
+			const isDropdownOpen =
+				document.querySelector('[data-bits-combobox-content]') !== null ||
 				document.querySelector('[role="listbox"]') !== null;
 
 			if ((isInputFocused || isDropdownOpen) && e.key !== 'Escape') return;
@@ -177,7 +178,7 @@
 			await convexClient.mutation(api.flashcards.updateFlashcard, {
 				flashcardId: currentCard._id,
 				question: questionValue,
-				answer: answerValue,
+				answer: answerValue
 			});
 			isEditing = false;
 		} catch (err) {
@@ -205,7 +206,7 @@
 
 		try {
 			await convexClient.mutation(api.flashcards.deleteFlashcard, {
-				flashcardId: currentCard._id,
+				flashcardId: currentCard._id
 			});
 
 			// Remove from local array
@@ -236,28 +237,24 @@
 		answerValue = value;
 	}
 
-	const progressText = $derived(
-		`Card ${currentIndex + 1} of ${flashcards.length}`
-	);
+	const progressText = $derived(`Card ${currentIndex + 1} of ${flashcards.length}`);
 </script>
 
 <Dialog.Root
-	open={open}
+	{open}
 	onOpenChange={(isOpen) => {
 		if (!isOpen) onClose();
 	}}
 >
 	<Dialog.Portal>
-		<Dialog.Overlay class="fixed inset-0 bg-black/50 z-50 transition-opacity" />
-		<Dialog.Content
-			class="fixed inset-0 bg-base z-50 flex flex-col overflow-hidden"
-		>
+		<Dialog.Overlay class="fixed inset-0 z-50 bg-black/50 transition-opacity" />
+		<Dialog.Content class="fixed inset-0 z-50 flex flex-col overflow-hidden bg-base">
 			<!-- Header -->
 			<div
-				class="px-inbox-container py-system-header h-system-header border-b border-base flex items-center justify-between flex-shrink-0 gap-icon"
+				class="flex h-system-header flex-shrink-0 items-center justify-between gap-icon border-b border-base px-inbox-container py-system-header"
 			>
-				<div class="flex-1 min-w-0">
-					<h2 class="text-lg font-semibold text-primary mb-1">
+				<div class="min-w-0 flex-1">
+					<h2 class="mb-1 text-lg font-semibold text-primary">
 						{collectionName || 'Flashcards'}
 					</h2>
 					<p class="text-sm text-secondary">{progressText}</p>
@@ -265,9 +262,9 @@
 				<Dialog.Close
 					type="button"
 					onclick={onClose}
-					class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-hover-solid transition-colors text-secondary hover:text-primary flex-shrink-0"
+					class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
 				>
-					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -279,9 +276,11 @@
 			</div>
 
 			<!-- Content Area -->
-			<div class="flex-1 flex overflow-hidden min-h-0 bg-base">
+			<div class="flex min-h-0 flex-1 overflow-hidden bg-base">
 				<!-- Left: Card View -->
-				<div class="flex-1 flex items-center justify-center p-inbox-container overflow-auto bg-base">
+				<div
+					class="flex flex-1 items-center justify-center overflow-auto bg-base p-inbox-container"
+				>
 					{#if currentCard}
 						<div
 							class="relative transition-all duration-400"
@@ -289,39 +288,43 @@
 						>
 							{#if isEditing}
 								<!-- Edit Mode -->
-								<div class="w-full h-full bg-elevated border-2 border-accent-primary rounded-lg shadow-xl flex flex-col overflow-hidden">
-									<div class="flex-1 flex flex-col p-inbox-container overflow-auto">
+								<div
+									class="flex h-full w-full flex-col overflow-hidden rounded-lg border-2 border-accent-primary bg-elevated shadow-xl"
+								>
+									<div class="flex flex-1 flex-col overflow-auto p-inbox-container">
 										<div class="mb-4">
-											<label class="block text-sm font-medium text-secondary mb-2">Question</label>
+											<label class="mb-2 block text-sm font-medium text-secondary">Question</label>
 											<textarea
 												bind:value={questionValue}
-												class="w-full px-inbox-card py-inbox-card rounded-md border border-base bg-base text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary resize-none"
+												class="w-full resize-none rounded-md border border-base bg-base px-inbox-card py-inbox-card text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
 												rows="4"
 												placeholder="Question..."
 											></textarea>
 										</div>
 										<div>
-											<label class="block text-sm font-medium text-secondary mb-2">Answer</label>
+											<label class="mb-2 block text-sm font-medium text-secondary">Answer</label>
 											<textarea
 												bind:value={answerValue}
-												class="w-full px-inbox-card py-inbox-card rounded-md border border-base bg-base text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary resize-none"
+												class="w-full resize-none rounded-md border border-base bg-base px-inbox-card py-inbox-card text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
 												rows="6"
 												placeholder="Answer..."
 											></textarea>
 										</div>
 									</div>
-									<div class="px-inbox-container py-system-header border-t border-base flex items-center justify-end gap-icon">
+									<div
+										class="flex items-center justify-end gap-icon border-t border-base px-inbox-container py-system-header"
+									>
 										<Button.Root
 											onclick={handleCancel}
 											disabled={isSaving}
-											class="px-nav-item py-nav-item text-sm font-medium rounded-md bg-base border border-base hover:bg-hover-solid transition-colors disabled:opacity-50"
+											class="rounded-md border border-base bg-base px-nav-item py-nav-item text-sm font-medium transition-colors hover:bg-hover-solid disabled:opacity-50"
 										>
 											Cancel
 										</Button.Root>
 										<Button.Root
 											onclick={handleSave}
 											disabled={isSaving}
-											class="px-nav-item py-nav-item text-sm font-medium rounded-md bg-accent-primary text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+											class="rounded-md bg-accent-primary px-nav-item py-nav-item text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
 										>
 											{isSaving ? 'Saving...' : 'Save'}
 										</Button.Root>
@@ -332,16 +335,16 @@
 								<FlashcardComponent
 									flashcard={{
 										question: currentCard.question,
-										answer: currentCard.answer,
+										answer: currentCard.answer
 									}}
-									isFlipped={isFlipped}
+									{isFlipped}
 									onFlip={flipCard}
 									editable={false}
 								/>
 							{/if}
 						</div>
 					{:else}
-						<div class="text-center py-readable-quote">
+						<div class="py-readable-quote text-center">
 							<p class="text-secondary">No cards in this collection</p>
 						</div>
 					{/if}
@@ -350,7 +353,7 @@
 				<!-- Right: Metadata Sidebar -->
 				{#if currentCard}
 					<div
-						class="w-80 border-l border-base bg-surface p-inbox-container overflow-y-auto flex-shrink-0"
+						class="w-80 flex-shrink-0 overflow-y-auto border-l border-base bg-surface p-inbox-container"
 					>
 						<FlashcardMetadata
 							flashcard={currentCard}
@@ -366,14 +369,14 @@
 			<!-- Footer: Navigation -->
 			{#if currentCard && !isEditing}
 				<div
-					class="px-inbox-container py-system-header h-system-header border-t border-base bg-surface flex items-center justify-between flex-shrink-0 gap-icon"
+					class="flex h-system-header flex-shrink-0 items-center justify-between gap-icon border-t border-base bg-surface px-inbox-container py-system-header"
 				>
 					<Button.Root
 						onclick={previousCard}
 						disabled={currentIndex === 0}
-						class="px-nav-item py-nav-item text-sm font-medium rounded-md bg-elevated border border-base hover:bg-hover-solid transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-elevated flex items-center gap-icon text-secondary disabled:text-tertiary"
+						class="flex items-center gap-icon rounded-md border border-base bg-elevated px-nav-item py-nav-item text-sm font-medium text-secondary transition-colors hover:bg-hover-solid disabled:cursor-not-allowed disabled:text-tertiary disabled:opacity-40 disabled:hover:bg-elevated"
 					>
-						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -391,10 +394,10 @@
 					<Button.Root
 						onclick={nextCard}
 						disabled={currentIndex === flashcards.length - 1}
-						class="px-nav-item py-nav-item text-sm font-medium rounded-md bg-elevated border border-base hover:bg-hover-solid transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-elevated flex items-center gap-icon text-secondary disabled:text-tertiary"
+						class="flex items-center gap-icon rounded-md border border-base bg-elevated px-nav-item py-nav-item text-sm font-medium text-secondary transition-colors hover:bg-hover-solid disabled:cursor-not-allowed disabled:text-tertiary disabled:opacity-40 disabled:hover:bg-elevated"
 					>
 						Next
-						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -414,4 +417,3 @@
 		transition-duration: 400ms;
 	}
 </style>
-

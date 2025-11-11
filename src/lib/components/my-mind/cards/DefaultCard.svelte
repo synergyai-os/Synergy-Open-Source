@@ -1,5 +1,8 @@
 <script lang="ts">
-	import type { MockInboxItem, InputSourceType } from '../../../../../dev-docs/4-archive/mock-data-brain-inputs';
+	import type {
+		MockInboxItem,
+		InputSourceType
+	} from '../../../../../dev-docs/4-archive/mock-data-brain-inputs';
 
 	interface Props {
 		item: MockInboxItem;
@@ -80,33 +83,33 @@
 <button
 	type="button"
 	onclick={onClick}
-	class="w-full text-left bg-elevated rounded-md border border-base hover:border-elevated hover:shadow-md transition-all duration-150 cursor-pointer overflow-hidden"
+	class="w-full cursor-pointer overflow-hidden rounded-md border border-base bg-elevated text-left transition-all duration-150 hover:border-elevated hover:shadow-md"
 >
 	<div class="p-6">
 		<div class="flex items-start gap-icon">
 			<!-- Type Icon -->
-			<div class="text-2xl flex-shrink-0 leading-none">{getTypeIcon(item.type)}</div>
+			<div class="flex-shrink-0 text-2xl leading-none">{getTypeIcon(item.type)}</div>
 
 			<!-- Content -->
-			<div class="flex-1 min-w-0">
+			<div class="min-w-0 flex-1">
 				<!-- Title -->
-				<h3 class="text-base font-semibold text-primary mb-1 line-clamp-2 leading-tight">
+				<h3 class="mb-1 line-clamp-2 text-base leading-tight font-semibold text-primary">
 					{item.title}
 				</h3>
 
 				<!-- Snippet -->
-				<p class="text-sm text-secondary mb-2 line-clamp-2 leading-relaxed">
+				<p class="mb-2 line-clamp-2 text-sm leading-relaxed text-secondary">
 					{item.snippet}
 				</p>
 
 				<!-- Type Label -->
-				<p class="text-xs text-tertiary mb-2">{getTypeLabel(item.type)}</p>
+				<p class="mb-2 text-xs text-tertiary">{getTypeLabel(item.type)}</p>
 
 				<!-- Tags -->
 				{#if item.tags && item.tags.length > 0}
-					<div class="flex flex-wrap gap-1 mb-2">
+					<div class="mb-2 flex flex-wrap gap-1">
 						{#each item.tags.slice(0, 2) as tag}
-							<span class="bg-tag text-tag text-label px-badge py-badge rounded">
+							<span class="rounded bg-tag px-badge py-badge text-label text-tag">
 								{tag}
 							</span>
 						{/each}
@@ -119,4 +122,3 @@
 		</div>
 	</div>
 </button>
-

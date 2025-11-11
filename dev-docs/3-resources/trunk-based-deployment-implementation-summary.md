@@ -11,11 +11,13 @@
 ### ✅ Step 0: Git + Linear Foundation
 
 **Created**:
+
 - `.github/pull_request_template.md` - PR template with feature flag checklist
 - `dev-docs/3-resources/git-workflow.md` - Complete git workflow guide
 - `dev-docs/3-resources/linear-github-integration.md` - Linear integration guide
 
 **Workflow**:
+
 - Branch naming: `feature/SYN-123-description`
 - Short-lived branches (< 2 days)
 - Merge to main via PR
@@ -26,28 +28,31 @@
 ### ✅ Step 1: Feature Flag Infrastructure
 
 **Created**:
+
 - `src/lib/featureFlags.ts` - Feature flag constants and utilities
 - `convex/featureFlags.ts` - Backend flag evaluation logic
 - `convex/schema.ts` - Added `featureFlags` table
 - `dev-docs/2-areas/patterns/feature-flags.md` - Complete flag patterns doc
 
 **Features**:
+
 - User-based targeting
 - Percentage rollouts (with consistent hashing)
 - Domain-based access (team members)
 - PostHog integration ready
 
 **Usage Example**:
+
 ```typescript
 // Add flag constant
 export const FeatureFlags = {
-  NOTES_EDITOR_BETA: 'notes_editor_beta',
+	NOTES_EDITOR_BETA: 'notes_editor_beta'
 };
 
 // Use in component
 const enabled = useQuery(api.featureFlags.checkFlag, () => ({
-  flag: FeatureFlags.NOTES_EDITOR_BETA,
-  userId: $user._id
+	flag: FeatureFlags.NOTES_EDITOR_BETA,
+	userId: $user._id
 }));
 ```
 
@@ -56,11 +61,13 @@ const enabled = useQuery(api.featureFlags.checkFlag, () => ({
 ### ✅ Step 2: Error Boundaries + Instrumentation
 
 **Created**:
+
 - `src/lib/components/ErrorBoundary.svelte` - Svelte 5 error boundary
 - `src/lib/utils/errorReporting.ts` - Error reporting utilities
 - `dev-docs/3-resources/error-handling-monitoring.md` - Monitoring guide
 
 **Features**:
+
 - Graceful error handling
 - Automatic PostHog reporting
 - Feature flag association
@@ -68,12 +75,10 @@ const enabled = useQuery(api.featureFlags.checkFlag, () => ({
 - User flow monitoring
 
 **Usage Example**:
+
 ```svelte
-<ErrorBoundary 
-  componentName="NewFeature" 
-  featureFlag="new_feature_beta"
->
-  <NewFeature />
+<ErrorBoundary componentName="NewFeature" featureFlag="new_feature_beta">
+	<NewFeature />
 </ErrorBoundary>
 ```
 
@@ -82,11 +87,13 @@ const enabled = useQuery(api.featureFlags.checkFlag, () => ({
 ### ✅ Step 3: Vercel Continuous Deployment
 
 **Created**:
+
 - `.github/workflows/deploy.yml` - Auto-deploy Convex on main merge
 - `.github/workflows/quality-gates.yml` - PR quality checks
 - `dev-docs/3-resources/deployment-procedures.md` - Deployment guide
 
 **Flow**:
+
 ```
 Push to main
     ↓
@@ -98,6 +105,7 @@ Production updated (total: 3-4 min)
 ```
 
 **Rollback**:
+
 - Feature flags: < 1 minute
 - Full deployment: < 5 minutes
 
@@ -106,9 +114,11 @@ Production updated (total: 3-4 min)
 ### ✅ Step 4: Progressive Rollout Process
 
 **Created**:
+
 - `dev-docs/3-resources/progressive-rollout-checklist.md` - Complete checklist
 
 **Phases**:
+
 1. **Developer Only** (Day 1) - Test with real data
 2. **Team Testing** (Day 2-3) - Internal feedback
 3. **Beta Users** (Week 1, optional) - 5-10% or opt-in
@@ -122,6 +132,7 @@ Production updated (total: 3-4 min)
 ### 1. Set Up GitHub Secrets
 
 **Required for CI/CD**:
+
 ```
 1. Go to: GitHub repo → Settings → Secrets and variables → Actions
 2. Add secret: CONVEX_DEPLOY_KEY
@@ -139,6 +150,7 @@ Without this, GitHub Actions cannot deploy Convex backend.
 **Follow the guide**: `dev-docs/3-resources/linear-github-integration.md`
 
 **Steps**:
+
 1. Linear → Settings → Integrations → GitHub
 2. Click "Add GitHub Integration"
 3. Authorize and connect SynergyOS repo
@@ -151,29 +163,30 @@ Without this, GitHub Actions cannot deploy Convex backend.
 ### 3. Create Your First Feature Flag
 
 **Test the system**:
+
 ```typescript
 // 1. Add to src/lib/featureFlags.ts
 export const FeatureFlags = {
-  TEST_FLAG: 'test_flag',
+	TEST_FLAG: 'test_flag'
 };
 
 // 2. Create flag in Convex function runner
 await upsertFlag({
-  flag: 'test_flag',
-  enabled: false
+	flag: 'test_flag',
+	enabled: false
 });
 
 // 3. Use in component
-const testEnabled = useQuery(
-  api.featureFlags.checkFlag,
-  () => ({ flag: FeatureFlags.TEST_FLAG, userId: $user._id })
-);
+const testEnabled = useQuery(api.featureFlags.checkFlag, () => ({
+	flag: FeatureFlags.TEST_FLAG,
+	userId: $user._id
+}));
 
 // 4. Enable for yourself
 await upsertFlag({
-  flag: 'test_flag',
-  enabled: true,
-  allowedUserIds: ['your-user-id']
+	flag: 'test_flag',
+	enabled: true,
+	allowedUserIds: ['your-user-id']
 });
 
 // 5. Verify it works
@@ -186,12 +199,14 @@ await upsertFlag({
 **Create monitoring dashboards**:
 
 **Error Dashboard**:
+
 - Error rate (last hour)
 - Errors by component
 - Errors by feature flag
 - Error severity distribution
 
 **Feature Flag Dashboard**:
+
 - Flag evaluations
 - Feature usage rate
 - Error rate per flag
@@ -202,6 +217,7 @@ await upsertFlag({
 ### 5. Practice the Workflow
 
 **First real feature**:
+
 1. Create Linear issue
 2. Create branch: `feature/SYN-XXX-feature-name`
 3. Implement with feature flag
@@ -221,12 +237,14 @@ await upsertFlag({
 ### ✅ What We Built (Trunk-Based)
 
 **Single Branch Strategy**:
+
 - `main` branch → Production (always)
 - No staging environment
 - No long-lived feature branches
 - Deploy 2-5x per day
 
 **Why**:
+
 - Faster feedback loops
 - Less coordination overhead
 - Real production testing
@@ -235,11 +253,13 @@ await upsertFlag({
 ### ❌ What We Didn't Build
 
 **Staging Environment**:
+
 - Separate Convex deployment
 - Separate Vercel environment
 - Promotion workflow
 
 **Why Not**:
+
 - Adds complexity
 - Staging never matches production
 - Feature flags provide safer testing
@@ -327,6 +347,7 @@ await toggleFlag({ flag: 'broken_feature', enabled: false });
 ## Success Metrics
 
 **Target** (after 3 months):
+
 - Deploy frequency: 2-5x per day
 - Time to production: < 5 minutes
 - Rollback time: < 1 minute (flags) or < 5 min (deployment)
@@ -338,6 +359,7 @@ await toggleFlag({ flag: 'broken_feature', enabled: false });
 ## Resources
 
 ### Documentation
+
 - [Git Workflow Guide](./git-workflow.md)
 - [Feature Flags Pattern](../2-areas/patterns/feature-flags.md)
 - [Error Handling & Monitoring](./error-handling-monitoring.md)
@@ -346,6 +368,7 @@ await toggleFlag({ flag: 'broken_feature', enabled: false });
 - [Linear GitHub Integration](./linear-github-integration.md)
 
 ### External Resources
+
 - [Trunk-Based Development](https://trunkbaseddevelopment.com/)
 - [Feature Flags Best Practices](https://martinfowler.com/articles/feature-toggles.html)
 - [Continuous Deployment](https://continuousdelivery.com/)
@@ -355,16 +378,19 @@ await toggleFlag({ flag: 'broken_feature', enabled: false });
 ## Support
 
 ### Questions?
+
 - Check documentation first
 - Ask in team Slack
 - Review PostHog dashboards
 
 ### Issues?
+
 - Check PostHog for errors
 - Review deployment logs (GitHub Actions + Vercel)
 - Rollback via feature flag if needed
 
 ### Want to Improve?
+
 - Track your deployment metrics
 - Iterate on the process
 - Update documentation as you learn
@@ -374,18 +400,21 @@ await toggleFlag({ flag: 'broken_feature', enabled: false });
 ## Next Steps
 
 **Immediate** (this week):
+
 1. [ ] Set up GitHub secrets
 2. [ ] Complete Linear integration
 3. [ ] Create test feature flag
 4. [ ] Set up PostHog dashboards
 
 **Short-term** (this month):
+
 1. [ ] Practice workflow with 2-3 features
 2. [ ] Refine rollout process
 3. [ ] Build confidence with flags
 4. [ ] Establish deployment cadence
 
 **Long-term** (next quarter):
+
 1. [ ] 2-5 deploys per day
 2. [ ] 100% features behind flags
 3. [ ] Automated rollback triggers
@@ -394,4 +423,3 @@ await toggleFlag({ flag: 'broken_feature', enabled: false });
 ---
 
 **Status**: System is ready. Start using it! 🚀
-

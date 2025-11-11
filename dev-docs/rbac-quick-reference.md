@@ -20,20 +20,21 @@ if (permissions.can("teams.create")) {
 
 ## 👥 Roles at a Glance
 
-| Role | Level | Key Abilities |
-|------|-------|---------------|
-| **Admin** | Org | Everything |
-| **Manager** | Org | Create teams, manage all teams |
-| **Team Lead** | Team | Manage only their team(s) |
-| **Billing Admin** | Org | Billing only (can combine with other roles) |
-| **Member** | Team | Regular user |
-| **Guest** | Resource | Access specific shared resources |
+| Role              | Level    | Key Abilities                               |
+| ----------------- | -------- | ------------------------------------------- |
+| **Admin**         | Org      | Everything                                  |
+| **Manager**       | Org      | Create teams, manage all teams              |
+| **Team Lead**     | Team     | Manage only their team(s)                   |
+| **Billing Admin** | Org      | Billing only (can combine with other roles) |
+| **Member**        | Team     | Regular user                                |
+| **Guest**         | Resource | Access specific shared resources            |
 
 ---
 
 ## 🔑 Phase 1 Permissions
 
 ### User Management
+
 - `users.invite` - Invite users
 - `users.remove` - Remove users
 - `users.roles.assign` - Assign roles
@@ -41,6 +42,7 @@ if (permissions.can("teams.create")) {
 - `users.view` - View users
 
 ### Team Management
+
 - `teams.create` - Create teams
 - `teams.delete` - Delete teams
 - `teams.view` - View teams
@@ -50,6 +52,7 @@ if (permissions.can("teams.create")) {
 - `teams.members.view` - View team members
 
 ### Organization Settings
+
 - `org.settings.view` - View org settings
 - `org.settings.update` - Update org settings
 - `org.delete` - Delete organization
@@ -58,12 +61,12 @@ if (permissions.can("teams.create")) {
 
 ## 🔍 Permission Scopes
 
-| Scope | Meaning | Example |
-|-------|---------|---------|
-| `all` | Access to all resources | Admin can manage any team |
-| `own` | Only resources you own | Team Lead manages their team only |
-| `assigned` | Only assigned resources | Member sees teams they're in |
-| `none` | Explicitly no access | - |
+| Scope      | Meaning                 | Example                           |
+| ---------- | ----------------------- | --------------------------------- |
+| `all`      | Access to all resources | Admin can manage any team         |
+| `own`      | Only resources you own  | Team Lead manages their team only |
+| `assigned` | Only assigned resources | Member sees teams they're in      |
+| `none`     | Explicitly no access    | -                                 |
 
 ---
 
@@ -73,11 +76,11 @@ if (permissions.can("teams.create")) {
 
 ```typescript
 export const deleteTeam = mutation({
-  args: { userId: v.id("users"), teamId: v.id("teams"), orgId: v.id("organizations") },
-  handler: async (ctx, args) => {
-    await requirePermission(ctx, args.userId, "teams.delete", args.teamId, args.orgId);
-    // ... perform deletion
-  },
+	args: { userId: v.id('users'), teamId: v.id('teams'), orgId: v.id('organizations') },
+	handler: async (ctx, args) => {
+		await requirePermission(ctx, args.userId, 'teams.delete', args.teamId, args.orgId);
+		// ... perform deletion
+	}
 });
 ```
 
@@ -85,11 +88,14 @@ export const deleteTeam = mutation({
 
 ```svelte
 <script lang="ts">
-  const permissions = usePermissions(() => userId, () => orgId);
+	const permissions = usePermissions(
+		() => userId,
+		() => orgId
+	);
 </script>
 
-{#if permissions.can("teams.create")}
-  <button>Create Team</button>
+{#if permissions.can('teams.create')}
+	<button>Create Team</button>
 {/if}
 ```
 
@@ -98,9 +104,9 @@ export const deleteTeam = mutation({
 ```typescript
 // Sarah has BOTH roles - gets permissions from BOTH
 userRoles: [
-  { userId: "sarah", role: "billing_admin", orgId: "acme" },
-  { userId: "sarah", role: "team_lead", orgId: "acme", teamId: "team_a" }
-]
+	{ userId: 'sarah', role: 'billing_admin', orgId: 'acme' },
+	{ userId: 'sarah', role: 'team_lead', orgId: 'acme', teamId: 'team_a' }
+];
 
 // Sarah can:
 // 1. View billing (from billing_admin)
@@ -111,24 +117,25 @@ userRoles: [
 
 ## 📊 Role-Permission Matrix
 
-| Permission | Admin | Manager | Team Lead | Billing Admin | Member |
-|------------|-------|---------|-----------|---------------|--------|
-| `users.invite` | ✅ all | ✅ all | ❌ | ❌ | ❌ |
-| `users.roles.assign` | ✅ all | ✅ all | ❌ | ❌ | ❌ |
-| `teams.create` | ✅ all | ✅ all | ❌ | ❌ | ❌ |
-| `teams.delete` | ✅ all | ✅ all | ❌ | ❌ | ❌ |
-| `teams.settings.update` | ✅ all | ✅ all | ✅ own | ❌ | ❌ |
-| `teams.members.add` | ✅ all | ✅ all | ✅ own | ❌ | ❌ |
-| `teams.view` | ✅ all | ✅ all | ✅ own | ❌ | ✅ assigned |
-| `org.settings.update` | ✅ all | ❌ | ❌ | ❌ | ❌ |
-| `org.billing.view` | ✅ all | ❌ | ❌ | ✅ all | ❌ |
-| `org.billing.update` | ✅ all | ❌ | ❌ | ✅ all | ❌ |
+| Permission              | Admin  | Manager | Team Lead | Billing Admin | Member      |
+| ----------------------- | ------ | ------- | --------- | ------------- | ----------- |
+| `users.invite`          | ✅ all | ✅ all  | ❌        | ❌            | ❌          |
+| `users.roles.assign`    | ✅ all | ✅ all  | ❌        | ❌            | ❌          |
+| `teams.create`          | ✅ all | ✅ all  | ❌        | ❌            | ❌          |
+| `teams.delete`          | ✅ all | ✅ all  | ❌        | ❌            | ❌          |
+| `teams.settings.update` | ✅ all | ✅ all  | ✅ own    | ❌            | ❌          |
+| `teams.members.add`     | ✅ all | ✅ all  | ✅ own    | ❌            | ❌          |
+| `teams.view`            | ✅ all | ✅ all  | ✅ own    | ❌            | ✅ assigned |
+| `org.settings.update`   | ✅ all | ❌      | ❌        | ❌            | ❌          |
+| `org.billing.view`      | ✅ all | ❌      | ❌        | ✅ all        | ❌          |
+| `org.billing.update`    | ✅ all | ❌      | ❌        | ✅ all        | ❌          |
 
 ---
 
 ## 🗄️ Key Tables
 
 ### `userRoles` - User's assigned roles
+
 ```typescript
 {
   userId: Id<"users">,
@@ -141,6 +148,7 @@ userRoles: [
 ```
 
 ### `rolePermissions` - What each role can do
+
 ```typescript
 {
   roleId: "team_lead",
@@ -159,7 +167,7 @@ userRoles: [
 // User: Sarah (team_lead of Team A)
 // Action: Update Team A settings
 
-await requirePermission(ctx, sarahId, "teams.settings.update", teamAId, orgId);
+await requirePermission(ctx, sarahId, 'teams.settings.update', teamAId, orgId);
 
 // ✅ ALLOWED because:
 // 1. Sarah has team_lead role for Team A
@@ -173,7 +181,7 @@ await requirePermission(ctx, sarahId, "teams.settings.update", teamAId, orgId);
 // User: Sarah (team_lead of Team A)
 // Action: Update Team B settings
 
-await requirePermission(ctx, sarahId, "teams.settings.update", teamBId, orgId);
+await requirePermission(ctx, sarahId, 'teams.settings.update', teamBId, orgId);
 
 // ❌ DENIED because:
 // 1. Sarah has team_lead role for Team A (not Team B)
@@ -186,7 +194,7 @@ await requirePermission(ctx, sarahId, "teams.settings.update", teamBId, orgId);
 // User: Sarah (billing_admin + team_lead of Team A)
 // Action: View billing
 
-await requirePermission(ctx, sarahId, "org.billing.view", undefined, orgId);
+await requirePermission(ctx, sarahId, 'org.billing.view', undefined, orgId);
 
 // ✅ ALLOWED because:
 // 1. Sarah has billing_admin role
@@ -199,6 +207,7 @@ await requirePermission(ctx, sarahId, "org.billing.view", undefined, orgId);
 ## 🔧 Implementation Checklist
 
 ### Phase 1: Foundation
+
 - [ ] Add database tables (roles, permissions, rolePermissions, userRoles, permissionAuditLog)
 - [ ] Seed initial data (roles + permissions + mappings)
 - [ ] Implement permission functions (userHasPermission, requirePermission)
@@ -209,11 +218,13 @@ await requirePermission(ctx, sarahId, "org.billing.view", undefined, orgId);
 - [ ] Write tests (unit + integration + E2E)
 
 ### Phase 2: Billing
+
 - [ ] Add billing permissions
 - [ ] Protect billing functions
 - [ ] Update billing UI
 
 ### Phase 3: Guest Access
+
 - [ ] Add resourceGuests table
 - [ ] Implement guest invitation
 - [ ] Build sharing UI
@@ -223,21 +234,23 @@ await requirePermission(ctx, sarahId, "org.billing.view", undefined, orgId);
 ## 🚨 Common Mistakes to Avoid
 
 1. ❌ **Don't check roles directly**
+
    ```typescript
    // BAD
    if (user.role === "admin") { ... }
-   
+
    // GOOD
    if (await userHasPermission(ctx, userId, "teams.create")) { ... }
    ```
 
 2. ❌ **Don't forget resource scope**
+
    ```typescript
    // BAD - Team lead can update ANY team
-   await requirePermission(ctx, userId, "teams.settings.update");
-   
+   await requirePermission(ctx, userId, 'teams.settings.update');
+
    // GOOD - Team lead can only update THEIR team
-   await requirePermission(ctx, userId, "teams.settings.update", teamId, orgId);
+   await requirePermission(ctx, userId, 'teams.settings.update', teamId, orgId);
    ```
 
 3. ❌ **Don't skip audit logging**

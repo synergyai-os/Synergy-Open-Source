@@ -18,8 +18,15 @@
 		onRejectAll: () => void;
 	}
 
-	let { open, flashcards, sourceContext, onClose, onApproveAll, onApproveSelected, onRejectAll }: Props =
-		$props();
+	let {
+		open,
+		flashcards,
+		sourceContext,
+		onClose,
+		onApproveAll,
+		onApproveSelected,
+		onRejectAll
+	}: Props = $props();
 
 	// Study mode state - cards are removed from queue when rated
 	let reviewQueue = $state<Flashcard[]>([]);
@@ -190,26 +197,28 @@
 </script>
 
 <Dialog.Root
-	open={open}
+	{open}
 	onOpenChange={(isOpen) => {
 		if (!isOpen) onClose();
 	}}
 >
 	<Dialog.Portal>
-		<Dialog.Overlay class="fixed inset-0 bg-black/50 z-50 transition-opacity" />
+		<Dialog.Overlay class="fixed inset-0 z-50 bg-black/50 transition-opacity" />
 		<Dialog.Content
-			class="fixed inset-0 sm:inset-auto sm:left-1/2 sm:top-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 bg-elevated sm:rounded-lg shadow-xl sm:border border-base sm:max-w-4xl w-full h-full sm:h-[90vh] overflow-hidden z-50 flex flex-col"
+			class="fixed inset-0 z-50 flex h-full w-full flex-col overflow-hidden border-base bg-elevated shadow-xl sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-[90vh] sm:max-w-4xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg sm:border"
 		>
 			<!-- Header -->
-			<div class="px-inbox-container py-system-header h-system-header border-b border-base flex items-center justify-between flex-shrink-0 gap-icon">
-				<div class="flex-1 min-w-0">
-					<h2 class="text-lg font-semibold text-primary mb-2">Review Flashcards</h2>
-					<div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-icon text-sm">
+			<div
+				class="flex h-system-header flex-shrink-0 items-center justify-between gap-icon border-b border-base px-inbox-container py-system-header"
+			>
+				<div class="min-w-0 flex-1">
+					<h2 class="mb-2 text-lg font-semibold text-primary">Review Flashcards</h2>
+					<div class="flex flex-col gap-2 text-sm sm:flex-row sm:items-center sm:gap-icon">
 						{#if sourceContext}
 							<p class="text-secondary">From: {sourceContext}</p>
 						{/if}
 						{#if sourceContext}
-							<span class="hidden sm:inline text-secondary">•</span>
+							<span class="hidden text-secondary sm:inline">•</span>
 						{/if}
 						<p class="font-medium text-primary">{progressText}</p>
 					</div>
@@ -217,9 +226,9 @@
 				<Dialog.Close
 					type="button"
 					onclick={onClose}
-					class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-hover-solid transition-colors text-secondary hover:text-primary flex-shrink-0"
+					class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
 				>
-					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -231,48 +240,63 @@
 			</div>
 
 			<!-- Content - Flashcard Display (Centered) -->
-			<div class="flex-1 flex items-center justify-center p-inbox-container overflow-auto relative">
+			<div class="relative flex flex-1 items-center justify-center overflow-auto p-inbox-container">
 				{#if reviewQueue.length === 0}
-					<div class="text-center py-readable-quote">
-						<div class="text-6xl mb-4">✅</div>
-						<p class="text-lg font-semibold text-primary mb-2">Review Complete!</p>
+					<div class="py-readable-quote text-center">
+						<div class="mb-4 text-6xl">✅</div>
+						<p class="mb-2 text-lg font-semibold text-primary">Review Complete!</p>
 						<p class="text-secondary">
 							Approved: {approvedCards.length} • Rejected: {rejectedCards.length}
 						</p>
 					</div>
 				{:else if currentCard}
 					<!-- Hotkey Hint: Decline (Left) -->
-					<div class="absolute left-4 flex flex-col items-center gap-2 z-20 opacity-60">
+					<div class="absolute left-4 z-20 flex flex-col items-center gap-2 opacity-60">
 						<div class="flex flex-col items-center gap-1">
 							<!-- Keyboard key -->
-							<div class="flex items-center justify-center w-12 h-12 rounded-lg bg-elevated border-2 border-base shadow-sm">
-								<svg class="w-7 h-7 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+							<div
+								class="flex h-12 w-12 items-center justify-center rounded-lg border-2 border-base bg-elevated shadow-sm"
+							>
+								<svg
+									class="h-7 w-7 text-secondary"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2.5"
+										d="M15 19l-7-7 7-7"
+									/>
 								</svg>
 							</div>
 							<!-- Small label -->
-							<span class="text-xs text-secondary font-medium">Decline</span>
+							<span class="text-xs font-medium text-secondary">Decline</span>
 						</div>
 					</div>
 
 					<!-- Card Container with Animation -->
 					<div
 						class="relative transition-all duration-400 {isAnimating
-							? (showFeedback === 'approved'
-								? 'translate-x-full opacity-0 scale-95'
-								: 'translate-x-[-100%] opacity-0 scale-95')
-							: 'translate-x-0 opacity-100 scale-100'}"
+							? showFeedback === 'approved'
+								? 'translate-x-full scale-95 opacity-0'
+								: 'translate-x-[-100%] scale-95 opacity-0'
+							: 'translate-x-0 scale-100 opacity-100'}"
 						style="width: 500px; height: 700px; max-width: calc(100% - 2rem); max-height: calc(100% - 2rem);"
 					>
 						<!-- Visual Feedback Overlay -->
 						{#if showFeedback}
 							<div
-								class="absolute inset-0 z-10 flex items-center justify-center rounded-lg {showFeedback === 'approved'
+								class="absolute inset-0 z-10 flex items-center justify-center rounded-lg {showFeedback ===
+								'approved'
 									? 'bg-green-500/20'
 									: 'bg-red-500/20'}"
 							>
 								<svg
-									class="w-20 h-20 {showFeedback === 'approved' ? 'text-green-500' : 'text-red-500'}"
+									class="h-20 w-20 {showFeedback === 'approved'
+										? 'text-green-500'
+										: 'text-red-500'}"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -297,10 +321,10 @@
 						{/if}
 
 						<!-- Flashcard Component -->
-						<div class="relative w-full h-full">
+						<div class="relative h-full w-full">
 							<FlashcardComponent
 								flashcard={currentCard}
-								isFlipped={isFlipped}
+								{isFlipped}
 								onFlip={handleFlip}
 								editable={editMode}
 								onQuestionChange={(value) => updateFlashcard('question', value)}
@@ -310,21 +334,32 @@
 					</div>
 
 					<!-- Hotkey Hint: Accept (Right) -->
-					<div class="absolute right-4 flex flex-col items-center gap-2 z-20 opacity-60">
+					<div class="absolute right-4 z-20 flex flex-col items-center gap-2 opacity-60">
 						<div class="flex flex-col items-center gap-1">
 							<!-- Keyboard key -->
-							<div class="flex items-center justify-center w-12 h-12 rounded-lg bg-elevated border-2 border-base shadow-sm">
-								<svg class="w-7 h-7 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+							<div
+								class="flex h-12 w-12 items-center justify-center rounded-lg border-2 border-base bg-elevated shadow-sm"
+							>
+								<svg
+									class="h-7 w-7 text-secondary"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2.5"
+										d="M9 5l7 7-7 7"
+									/>
 								</svg>
 							</div>
 							<!-- Small label -->
-							<span class="text-xs text-secondary font-medium">Accept</span>
+							<span class="text-xs font-medium text-secondary">Accept</span>
 						</div>
 					</div>
 				{/if}
 			</div>
-
 		</Dialog.Content>
 	</Dialog.Portal>
 </Dialog.Root>

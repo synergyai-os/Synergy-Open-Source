@@ -13,6 +13,7 @@
 **Team**: Randy (Founder)
 
 **Key Contributors**:
+
 - Randy - Product decisions, validation, testing
 - AI Assistant - Technical implementation, documentation
 
@@ -25,12 +26,14 @@
 ### How We'll Know We Succeeded
 
 **Leading Indicators** (Early signals):
+
 - [ ] Randy actively uses all 4 workspaces daily (SynergyAI, Saprolab, ZDHC, PurposePilot)
 - [ ] Workspace switching happens 10+ times per day (shows value)
 - [ ] Content stays isolated (no accidental cross-posting)
 - [ ] Randy reports "feels organized, not overwhelming"
 
 **Lagging Indicators** (Outcome signals):
+
 - [ ] 100% of work content in correct workspace (no "I put this in wrong place")
 - [ ] Reduced context switching time (< 2 seconds to switch)
 - [ ] Can find content faster (know which workspace it's in)
@@ -39,6 +42,7 @@
 **⚠️ These are AI guesses - Validate with Randy's actual usage!**
 
 **Validation Plan**:
+
 1. Randy uses system for 2 weeks
 2. Interview Randy: "How has this changed your workflow?"
 3. Track actual switching frequency vs. assumptions
@@ -49,6 +53,7 @@
 ## 👋 Start Here
 
 This project adds multi-workspace support to SynergyOS, enabling:
+
 - **Personal workspaces** (private content)
 - **Organizations** (SynergyAI, Saprolab, ZDHC, PurposePilot)
 - **Teams** within organizations (future)
@@ -90,6 +95,7 @@ User: randyhereman@gmail.com
 ```
 
 **Key Design Principles:**
+
 - `organizationId = null` → Personal workspace (clean, semantic)
 - Content isolation via workspace filtering
 - Session stores active workspace context
@@ -103,15 +109,15 @@ User: randyhereman@gmail.com
 
 We're building this in **end-to-end slices** that work immediately:
 
-| Slice | Goal | Status | Linear Ticket |
-|-------|------|--------|---------------|
-| **1** | Workspace Context & Indicator | ✅ Done | [SYOS-1](https://linear.app/younghumanclub/issue/SYOS-1) |
-| **2** | Create First Organization | 🟡 In Review | [SYOS-2](https://linear.app/younghumanclub/issue/SYOS-2) |
-| **3** | Switch Between Personal & One Org | ⏳ Not Started | SYOS-3 |
-| **4** | Keyboard Shortcuts (CMD+1/2) | ⏳ Not Started | SYOS-4 |
-| **5** | Multiple Organizations (4 total) | ⏳ Not Started | SYOS-5 |
-| **6** | CMD+K Workspace Search | ⏳ Not Started | SYOS-6 |
-| **7** | Account Linking (Stretch Goal) | ⏳ Not Started | SYOS-7 |
+| Slice | Goal                              | Status         | Linear Ticket                                            |
+| ----- | --------------------------------- | -------------- | -------------------------------------------------------- |
+| **1** | Workspace Context & Indicator     | ✅ Done        | [SYOS-1](https://linear.app/younghumanclub/issue/SYOS-1) |
+| **2** | Create First Organization         | 🟡 In Review   | [SYOS-2](https://linear.app/younghumanclub/issue/SYOS-2) |
+| **3** | Switch Between Personal & One Org | ⏳ Not Started | SYOS-3                                                   |
+| **4** | Keyboard Shortcuts (CMD+1/2)      | ⏳ Not Started | SYOS-4                                                   |
+| **5** | Multiple Organizations (4 total)  | ⏳ Not Started | SYOS-5                                                   |
+| **6** | CMD+K Workspace Search            | ⏳ Not Started | SYOS-6                                                   |
+| **7** | Account Linking (Stretch Goal)    | ⏳ Not Started | SYOS-7                                                   |
 
 **Current Focus**: Slice 2 - Testing organization creation (SYOS-2 in review)
 
@@ -122,6 +128,7 @@ We're building this in **end-to-end slices** that work immediately:
 ## 🎫 Linear Tickets
 
 All work is tracked in Linear:
+
 - [View Project Board](https://linear.app/younghumanclub/project/auth-and-system-foundation-498d3cff7ef0/overview)
 - Milestones map to vertical slices
 - Each ticket is a complete end-to-end feature
@@ -130,35 +137,37 @@ All work is tracked in Linear:
 
 ## 📚 Documentation
 
-| Document | Purpose |
-|----------|---------|
-| [README.md](./README.md) | 👈 You are here (project overview) |
-| [architecture.md](./architecture.md) | Technical design & database schema |
-| [vertical-slices.md](./vertical-slices.md) | Shape Up breakdown |
-| [testing-checklist.md](./testing-checklist.md) | Manual QA steps |
-| [decisions/](./decisions/) | Architecture Decision Records (ADRs) |
+| Document                                       | Purpose                              |
+| ---------------------------------------------- | ------------------------------------ |
+| [README.md](./README.md)                       | 👈 You are here (project overview)   |
+| [architecture.md](./architecture.md)           | Technical design & database schema   |
+| [vertical-slices.md](./vertical-slices.md)     | Shape Up breakdown                   |
+| [testing-checklist.md](./testing-checklist.md) | Manual QA steps                      |
+| [decisions/](./decisions/)                     | Architecture Decision Records (ADRs) |
 
 ---
 
 ## 🔑 Key Decisions
 
-| ADR | Decision | Rationale |
-|-----|----------|-----------|
-| [001](./decisions/001-workspace-context.md) | Store workspace in session cookie | Fast, persistent, server-accessible |
-| [002](./decisions/002-keyboard-shortcuts.md) | CMD+1/2/3 for switching | Linear-style, muscle memory |
-| [003](./decisions/003-session-strategy.md) | Single activeWorkspace field | Simple, scales to multi-account |
+| ADR                                          | Decision                          | Rationale                           |
+| -------------------------------------------- | --------------------------------- | ----------------------------------- |
+| [001](./decisions/001-workspace-context.md)  | Store workspace in session cookie | Fast, persistent, server-accessible |
+| [002](./decisions/002-keyboard-shortcuts.md) | CMD+1/2/3 for switching           | Linear-style, muscle memory         |
+| [003](./decisions/003-session-strategy.md)   | Single activeWorkspace field      | Simple, scales to multi-account     |
 
 ---
 
 ## 🧪 Testing Strategy
 
 **Manual Testing (Randy):**
+
 - Create orgs via UI
 - Switch between workspaces
 - Verify content isolation
 - Test keyboard shortcuts
 
 **Automated Testing (Future):**
+
 - E2E tests for workspace switching
 - Convex function tests for isolation
 
@@ -225,4 +234,3 @@ All work is tracked in Linear:
 
 **Last Updated**: 2025-11-10  
 **Next Review**: After each slice completion
-

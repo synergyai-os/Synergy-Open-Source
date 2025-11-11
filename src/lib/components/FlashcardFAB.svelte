@@ -14,26 +14,16 @@
 </script>
 
 {#if isVisible}
-	<div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-50">
+	<div class="absolute bottom-6 left-1/2 z-50 -translate-x-1/2">
 		<Button.Root
 			onclick={onClick}
 			disabled={isGenerating}
-			class="flex items-center gap-icon px-menu-item py-menu-item bg-accent-primary text-white rounded-md shadow-lg hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-150 font-medium"
+			class="flex items-center gap-icon rounded-md bg-accent-primary px-menu-item py-menu-item font-medium text-white shadow-lg transition-all duration-150 hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
 		>
 			{#if isGenerating}
 				<!-- Loading spinner -->
-				<svg
-					class="w-5 h-5 animate-spin"
-					fill="none"
-					viewBox="0 0 24 24"
-				>
-					<circle
-						class="opacity-25"
-						cx="12"
-						cy="12"
-						r="10"
-						stroke="currentColor"
-						stroke-width="4"
+				<svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
+					<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
 					></circle>
 					<path
 						class="opacity-75"
@@ -44,12 +34,7 @@
 				<span>Generating...</span>
 			{:else}
 				<!-- Flashcard icon -->
-				<svg
-					class="w-5 h-5"
-					fill="none"
-					stroke="currentColor"
-					viewBox="0 0 24 24"
-				>
+				<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -62,4 +47,3 @@
 		</Button.Root>
 	</div>
 {/if}
-

@@ -1,28 +1,28 @@
 <script lang="ts">
 	/**
 	 * Attachment Button Component (Linear-style)
-	 * 
+	 *
 	 * Atomic component for file attachments
 	 * Follows pattern: ui-patterns.md#L680 (Atomic Design)
 	 */
-	
+
 	type Props = {
 		count?: number;
 		onClick?: () => void;
 		disabled?: boolean;
 	};
-	
+
 	let { count = 0, onClick, disabled = false }: Props = $props();
 </script>
 
 <button
 	type="button"
-	class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-tertiary hover:bg-hover-solid transition-colors"
+	class="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-tertiary transition-colors hover:bg-hover-solid"
 	{disabled}
 	onclick={() => !disabled && onClick?.()}
 	aria-label="Attach files"
 >
-	<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+	<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 		<path
 			stroke-linecap="round"
 			stroke-linejoin="round"
@@ -34,4 +34,3 @@
 		<span class="text-xs font-medium">{count}</span>
 	{/if}
 </button>
-

@@ -1,1 +1,548 @@
-import{d as st,f as g,e as _e,a as i,c as _,b as Me}from"../chunks/ClEwQIZJ.js";import{o as it}from"../chunks/QKLj4cNN.js";import{p as lt,a1 as ot,V as a,c as o,t as ee,j as t,T as c,a as nt,s as f,Y as we,r as n,f as w}from"../chunks/kOT-I_MI.js";import{s as te}from"../chunks/LC4C1fji.js";import{i as m}from"../chunks/SF-wfan-.js";import{c as ke}from"../chunks/BLTX30nU.js";import{r as Ae,s as Ce}from"../chunks/CxucRfwL.js";import{s as Ie}from"../chunks/DjvPQNYr.js";import{b as Ke}from"../chunks/BHj6_6we.js";import{s as dt,a as vt}from"../chunks/DgY3EWrn.js";import{S as ct,t as ut,a as pt,i as ft}from"../chunks/DEx5EEyN.js";import{u as mt}from"../chunks/-dmxCEhl.js";import{u as gt,m as D}from"../chunks/CmDhudRb.js";var ht=Me('<svg class="w-4 h-4 text-secondary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>'),yt=Me('<svg class="w-4 h-4 text-secondary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>'),xt=g('<div class="absolute right-2 top-1/2 -translate-y-1/2"><svg class="w-4 h-4 text-tertiary animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>'),bt=g('<div class="absolute right-2 top-1/2 -translate-y-1/2"><svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg></div>'),_t=g('<button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 text-secondary hover:text-red-500 transition-colors z-10" title="Remove API key"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>'),wt=g('<div class="absolute right-2 top-1/2 -translate-y-1/2"><svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></div>'),kt=g('<p class="text-xs text-green-500 mt-1 max-w-64">API key is valid and saved</p>'),At=g('<p class="text-xs text-red-500 mt-1 max-w-64"> </p>'),Ct=g('<a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-500 hover:text-blue-600 mt-1 max-w-64 underline transition-colors">Get API key</a>'),It=g('<div class="absolute right-2 top-1/2 -translate-y-1/2"><svg class="w-4 h-4 text-tertiary animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>'),Kt=g('<div class="absolute right-2 top-1/2 -translate-y-1/2"><svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg></div>'),Mt=g('<button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 text-secondary hover:text-red-500 transition-colors z-10" title="Remove API key"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>'),Pt=g('<div class="absolute right-2 top-1/2 -translate-y-1/2"><svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></div>'),Rt=g('<p class="text-xs text-green-500 mt-1 max-w-64">API key is valid and saved</p>'),St=g('<p class="text-xs text-red-500 mt-1 max-w-64"> </p>'),zt=g('<a href="https://readwise.io/access_token" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-500 hover:text-blue-600 mt-1 max-w-64 underline transition-colors">Get API key</a>'),Bt=g('<div class="h-screen bg-base overflow-y-auto"><div class="max-w-4xl mx-auto p-inbox-container"><h1 class="text-2xl font-bold text-primary mb-8">Settings</h1> <div class="flex flex-col gap-settings-section"><section class="bg-elevated rounded-md border border-base"><div class="px-inbox-card py-inbox-card"><h2 class="text-base font-bold text-primary mb-6">General</h2> <div class="flex flex-col gap-settings-row"><div class="px-settings-row py-settings-row border-b border-base last:border-b-0"><div class="flex items-start justify-between gap-4"><div class="flex-1 min-w-0"><label for="theme-toggle" class="block text-sm font-medium text-primary mb-1">Interface theme</label> <p class="text-sm text-secondary">Select your preferred color scheme</p></div> <div class="flex items-center gap-icon" role="presentation"><span class="text-sm text-secondary"> </span> <!> <!></div></div></div></div></div></section> <section class="bg-elevated rounded-md border border-base"><div class="px-inbox-card py-inbox-card"><h2 class="text-base font-bold text-primary mb-6">AI</h2> <div class="flex flex-col gap-settings-row"><div class="px-settings-row py-settings-row border-b border-base last:border-b-0"><div class="flex items-start justify-between gap-4"><div class="flex-1 min-w-0"><label for="claude-key" class="block text-sm font-medium text-primary mb-1">Claude API Key</label> <p class="text-sm text-secondary">Used for AI-powered flashcard generation from your content</p></div> <div class="flex flex-col gap-1 flex-shrink-0"><div class="relative inline-block"><input id="claude-key" type="password"/> <!></div> <!></div></div></div></div></div></section> <section class="bg-elevated rounded-md border border-base"><div class="px-inbox-card py-inbox-card"><h2 class="text-base font-bold text-primary mb-6">Sources</h2> <div class="flex flex-col gap-settings-row"><div class="px-settings-row py-settings-row border-b border-base last:border-b-0"><div class="flex items-start justify-between gap-4"><div class="flex-1 min-w-0"><label for="readwise-key" class="block text-sm font-medium text-primary mb-1">Readwise API Key</label> <p class="text-sm text-secondary">Import highlights and notes from your Readwise account</p></div> <div class="flex flex-col gap-1 flex-shrink-0"><div class="relative inline-block"><input id="readwise-key" type="password"/> <!></div> <!></div></div></div></div></div></section></div></div></div>');function Xt(Pe,Re){lt(Re,!0);const F=()=>vt(ft,"$isDark",Se),[Se,ze]=dt(),Be=mt(),H=we(()=>Be.isAuthenticated),A=gt(),C={getUserSettings:D("settings:getUserSettings"),updateClaudeApiKey:D("settings:updateClaudeApiKey"),updateReadwiseApiKey:D("settings:updateReadwiseApiKey"),updateTheme:D("settings:updateTheme"),deleteClaudeApiKey:D("settings:deleteClaudeApiKey"),deleteReadwiseApiKey:D("settings:deleteReadwiseApiKey")};let je=c(null);it(async()=>{if(!(!A||!C||!t(H)))try{const e=await A.query(C.getUserSettings,{});e&&(a(je,e,!0),a(P,e.hasClaudeKey||!1,!0),a(R,e.hasReadwiseKey||!1,!0))}catch{}});let L=c(null),U=c(null),Ee=c(null),q=c(null),G=c(null);ot(()=>{!A||!C||(a(L,e=>A.action(C.updateClaudeApiKey,e)),a(U,e=>A.action(C.updateReadwiseApiKey,e)),a(Ee,e=>A.mutation(C.updateTheme,e)),a(q,()=>A.mutation(C.deleteClaudeApiKey,{})),a(G,()=>A.mutation(C.deleteReadwiseApiKey,{})))});let z=c(""),B=c(""),u=c("idle"),j=c(null),E=c(!1),P=c(!1),p=c("idle"),T=c(null),V=c(!1),R=c(!1);async function Te(){if(!(!t(z).trim()||t(u)==="validating"||!t(L)||!t(H))){a(u,"validating"),a(j,null);try{await t(L)({apiKey:t(z).trim()}),a(u,"valid"),a(P,!0),a(E,!0),setTimeout(()=>{a(E,!1)},3e3)}catch(e){a(u,"invalid");let s=(e instanceof Error?e.message:String(e)).replace(/^\[CONVEX[^\]]+\]\s*\[Request ID:[^\]]+\]\s*Server Error\s*Uncaught Error:\s*/i,"").replace(/\s*at handler[^]*$/i,"").replace(/\s*Called by client.*$/i,"").replace(/\([^)]+\/[^)]+\.ts:\d+:\d+\)/g,"").trim();s.includes("Invalid")||s.includes("invalid")?s="Invalid API key. Please check your key and try again.":s.includes("Authentication")||s.includes("authentication")?s="Authentication failed. Please verify your API key.":s.includes("format")&&(s="Invalid API key format."),a(j,s||"Invalid API key. Please check your key and try again.",!0)}}}async function Ve(){if(!(!t(B).trim()||t(p)==="validating"||!t(U)||!t(H))){a(p,"validating"),a(T,null);try{await t(U)({apiKey:t(B).trim()}),a(p,"valid"),a(R,!0),a(V,!0),setTimeout(()=>{a(V,!1)},3e3)}catch(e){a(p,"invalid");let s=(e instanceof Error?e.message:String(e)).replace(/^\[CONVEX[^\]]+\]\s*\[Request ID:[^\]]+\]\s*Server Error\s*Uncaught Error:\s*/i,"").replace(/\s*at handler[^]*$/i,"").replace(/\s*Called by client.*$/i,"").replace(/\([^)]+\/[^)]+\.ts:\d+:\d+\)/g,"").trim();s.includes("Invalid")||s.includes("invalid")?s="Invalid API key. Please check your key and try again.":s.includes("Authentication")||s.includes("authentication")?s="Authentication failed. Please verify your API key.":s.includes("format")&&(s="Invalid API key format."),a(T,s||"Invalid API key. Please check your key and try again.",!0)}}}function De(e){a(z,e,!0),t(u)!=="idle"&&(a(u,"idle"),a(j,null)),a(E,!1),e.trim()||a(P,!1)}function Fe(e){a(B,e,!0),t(p)!=="idle"&&(a(p,"idle"),a(T,null)),a(V,!1),e.trim()||a(R,!1)}async function He(){if(t(q))try{await t(q)(),a(z,""),a(P,!1),a(E,!1),a(u,"idle"),a(j,null)}catch{}}async function Le(){if(t(G))try{await t(G)(),a(B,""),a(R,!1),a(V,!1),a(p,"idle"),a(T,null)}catch{}}var N=Bt(),ae=o(N),re=f(o(ae),2),O=o(re),se=o(O),ie=f(o(se),2),le=o(ie),oe=o(le),ne=f(o(oe),2),X=o(ne),Ue=o(X,!0);n(X);var de=f(X,2);{var qe=e=>{var l=ht();i(e,l)},Ge=e=>{var l=yt();i(e,l)};m(de,e=>{F()?e(qe):e(Ge,!1)})}var Ne=f(de,2);{let e=we(()=>F()?"bg-gray-900":"bg-gray-300");ke(Ne,()=>pt,(l,s)=>{s(l,{id:"theme-toggle",get checked(){return F()},onCheckedChange:y=>{ut.setTheme(y?"dark":"light")},get class(){return`relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${t(e)??""}`},children:(y,M)=>{var r=_(),d=w(r);ke(d,()=>ct,(h,k)=>{k(h,{class:"pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0 data-[state=checked]:translate-x-4"})}),i(y,r)},$$slots:{default:!0}})})}n(ne),n(oe),n(le),n(ie),n(se),n(O);var Y=f(O,2),ve=o(Y),ce=f(o(ve),2),ue=o(ce),pe=o(ue),fe=f(o(pe),2),J=o(fe),I=o(J);Ae(I),I.__input=e=>De(e.currentTarget.value);var Oe=f(I,2);{var Xe=e=>{var l=xt();i(e,l)},Ye=e=>{var l=_(),s=w(l);{var y=r=>{var d=bt();i(r,d)},M=r=>{var d=_(),h=w(d);{var k=v=>{var b=_t();b.__click=He,i(v,b)},x=v=>{var b=_(),W=w(b);{var Z=S=>{var $=wt();i(S,$)};m(W,S=>{t(u)==="invalid"&&S(Z)},!0)}i(v,b)};m(h,v=>{t(P)?v(k):v(x,!1)},!0)}i(r,d)};m(s,r=>{t(E)?r(y):r(M,!1)},!0)}i(e,l)};m(Oe,e=>{t(u)==="validating"?e(Xe):e(Ye,!1)})}n(J);var Je=f(J,2);{var Qe=e=>{var l=kt();i(e,l)},We=e=>{var l=_(),s=w(l);{var y=r=>{var d=At(),h=o(d,!0);n(d),ee(()=>te(h,t(j))),i(r,d)},M=r=>{var d=_(),h=w(d);{var k=x=>{var v=Ct();i(x,v)};m(h,x=>{!t(P)&&t(u)!=="validating"&&x(k)},!0)}i(r,d)};m(s,r=>{t(u)==="invalid"&&t(j)?r(y):r(M,!1)},!0)}i(e,l)};m(Je,e=>{t(E)?e(Qe):e(We,!1)})}n(fe),n(pe),n(ue),n(ce),n(ve),n(Y);var me=f(Y,2),ge=o(me),he=f(o(ge),2),ye=o(he),xe=o(ye),be=f(o(xe),2),Q=o(be),K=o(Q);Ae(K),K.__input=e=>Fe(e.currentTarget.value);var Ze=f(K,2);{var $e=e=>{var l=It();i(e,l)},et=e=>{var l=_(),s=w(l);{var y=r=>{var d=Kt();i(r,d)},M=r=>{var d=_(),h=w(d);{var k=v=>{var b=Mt();b.__click=Le,i(v,b)},x=v=>{var b=_(),W=w(b);{var Z=S=>{var $=Pt();i(S,$)};m(W,S=>{t(p)==="invalid"&&S(Z)},!0)}i(v,b)};m(h,v=>{t(R)?v(k):v(x,!1)},!0)}i(r,d)};m(s,r=>{t(V)?r(y):r(M,!1)},!0)}i(e,l)};m(Ze,e=>{t(p)==="validating"?e($e):e(et,!1)})}n(Q);var tt=f(Q,2);{var at=e=>{var l=Rt();i(e,l)},rt=e=>{var l=_(),s=w(l);{var y=r=>{var d=St(),h=o(d,!0);n(d),ee(()=>te(h,t(T))),i(r,d)},M=r=>{var d=_(),h=w(d);{var k=x=>{var v=zt();i(x,v)};m(h,x=>{!t(R)&&t(p)!=="validating"&&x(k)},!0)}i(r,d)};m(s,r=>{t(p)==="invalid"&&t(T)?r(y):r(M,!1)},!0)}i(e,l)};m(tt,e=>{t(V)?e(at):e(rt,!1)})}n(be),n(xe),n(ye),n(he),n(ge),n(me),n(re),n(ae),n(N),ee(()=>{te(Ue,F()?"Dark mode":"Light mode"),I.disabled=t(u)==="validating",Ce(I,"placeholder",t(P)?"••••••••••••••••":"sk-..."),Ie(I,1,`w-64 px-3 py-2 pr-10 text-sm bg-base border ${t(u)==="valid"?"border-green-500":t(u)==="invalid"?"border-red-500":"border-base"} rounded-md text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${t(u)==="validating"?"opacity-50 cursor-not-allowed":""}`),K.disabled=t(p)==="validating",Ce(K,"placeholder",t(R)?"••••••••••••••••":"token_..."),Ie(K,1,`w-64 px-3 py-2 pr-10 text-sm bg-base border ${t(p)==="valid"?"border-green-500":t(p)==="invalid"?"border-red-500":"border-base"} rounded-md text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${t(p)==="validating"?"opacity-50 cursor-not-allowed":""}`)}),_e("blur",I,Te),Ke(I,()=>t(z),e=>a(z,e)),_e("blur",K,Ve),Ke(K,()=>t(B),e=>a(B,e)),i(Pe,N),nt(),ze()}st(["input","click"]);export{Xt as component};
+import { d as st, f as g, e as _e, a as i, c as _, b as Me } from '../chunks/ClEwQIZJ.js';
+import { o as it } from '../chunks/QKLj4cNN.js';
+import {
+	p as lt,
+	a1 as ot,
+	V as a,
+	c as o,
+	t as ee,
+	j as t,
+	T as c,
+	a as nt,
+	s as f,
+	Y as we,
+	r as n,
+	f as w
+} from '../chunks/kOT-I_MI.js';
+import { s as te } from '../chunks/LC4C1fji.js';
+import { i as m } from '../chunks/SF-wfan-.js';
+import { c as ke } from '../chunks/BLTX30nU.js';
+import { r as Ae, s as Ce } from '../chunks/CxucRfwL.js';
+import { s as Ie } from '../chunks/DjvPQNYr.js';
+import { b as Ke } from '../chunks/BHj6_6we.js';
+import { s as dt, a as vt } from '../chunks/DgY3EWrn.js';
+import { S as ct, t as ut, a as pt, i as ft } from '../chunks/DEx5EEyN.js';
+import { u as mt } from '../chunks/-dmxCEhl.js';
+import { u as gt, m as D } from '../chunks/CmDhudRb.js';
+var ht = Me(
+		'<svg class="w-4 h-4 text-secondary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>'
+	),
+	yt = Me(
+		'<svg class="w-4 h-4 text-secondary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>'
+	),
+	xt = g(
+		'<div class="absolute right-2 top-1/2 -translate-y-1/2"><svg class="w-4 h-4 text-tertiary animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>'
+	),
+	bt = g(
+		'<div class="absolute right-2 top-1/2 -translate-y-1/2"><svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg></div>'
+	),
+	_t = g(
+		'<button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 text-secondary hover:text-red-500 transition-colors z-10" title="Remove API key"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>'
+	),
+	wt = g(
+		'<div class="absolute right-2 top-1/2 -translate-y-1/2"><svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></div>'
+	),
+	kt = g('<p class="text-xs text-green-500 mt-1 max-w-64">API key is valid and saved</p>'),
+	At = g('<p class="text-xs text-red-500 mt-1 max-w-64"> </p>'),
+	Ct = g(
+		'<a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-500 hover:text-blue-600 mt-1 max-w-64 underline transition-colors">Get API key</a>'
+	),
+	It = g(
+		'<div class="absolute right-2 top-1/2 -translate-y-1/2"><svg class="w-4 h-4 text-tertiary animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></div>'
+	),
+	Kt = g(
+		'<div class="absolute right-2 top-1/2 -translate-y-1/2"><svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg></div>'
+	),
+	Mt = g(
+		'<button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 text-secondary hover:text-red-500 transition-colors z-10" title="Remove API key"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>'
+	),
+	Pt = g(
+		'<div class="absolute right-2 top-1/2 -translate-y-1/2"><svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></div>'
+	),
+	Rt = g('<p class="text-xs text-green-500 mt-1 max-w-64">API key is valid and saved</p>'),
+	St = g('<p class="text-xs text-red-500 mt-1 max-w-64"> </p>'),
+	zt = g(
+		'<a href="https://readwise.io/access_token" target="_blank" rel="noopener noreferrer" class="text-xs text-blue-500 hover:text-blue-600 mt-1 max-w-64 underline transition-colors">Get API key</a>'
+	),
+	Bt = g(
+		'<div class="h-screen bg-base overflow-y-auto"><div class="max-w-4xl mx-auto p-inbox-container"><h1 class="text-2xl font-bold text-primary mb-8">Settings</h1> <div class="flex flex-col gap-settings-section"><section class="bg-elevated rounded-md border border-base"><div class="px-inbox-card py-inbox-card"><h2 class="text-base font-bold text-primary mb-6">General</h2> <div class="flex flex-col gap-settings-row"><div class="px-settings-row py-settings-row border-b border-base last:border-b-0"><div class="flex items-start justify-between gap-4"><div class="flex-1 min-w-0"><label for="theme-toggle" class="block text-sm font-medium text-primary mb-1">Interface theme</label> <p class="text-sm text-secondary">Select your preferred color scheme</p></div> <div class="flex items-center gap-icon" role="presentation"><span class="text-sm text-secondary"> </span> <!> <!></div></div></div></div></div></section> <section class="bg-elevated rounded-md border border-base"><div class="px-inbox-card py-inbox-card"><h2 class="text-base font-bold text-primary mb-6">AI</h2> <div class="flex flex-col gap-settings-row"><div class="px-settings-row py-settings-row border-b border-base last:border-b-0"><div class="flex items-start justify-between gap-4"><div class="flex-1 min-w-0"><label for="claude-key" class="block text-sm font-medium text-primary mb-1">Claude API Key</label> <p class="text-sm text-secondary">Used for AI-powered flashcard generation from your content</p></div> <div class="flex flex-col gap-1 flex-shrink-0"><div class="relative inline-block"><input id="claude-key" type="password"/> <!></div> <!></div></div></div></div></div></section> <section class="bg-elevated rounded-md border border-base"><div class="px-inbox-card py-inbox-card"><h2 class="text-base font-bold text-primary mb-6">Sources</h2> <div class="flex flex-col gap-settings-row"><div class="px-settings-row py-settings-row border-b border-base last:border-b-0"><div class="flex items-start justify-between gap-4"><div class="flex-1 min-w-0"><label for="readwise-key" class="block text-sm font-medium text-primary mb-1">Readwise API Key</label> <p class="text-sm text-secondary">Import highlights and notes from your Readwise account</p></div> <div class="flex flex-col gap-1 flex-shrink-0"><div class="relative inline-block"><input id="readwise-key" type="password"/> <!></div> <!></div></div></div></div></div></section></div></div></div>'
+	);
+function Xt(Pe, Re) {
+	lt(Re, !0);
+	const F = () => vt(ft, '$isDark', Se),
+		[Se, ze] = dt(),
+		Be = mt(),
+		H = we(() => Be.isAuthenticated),
+		A = gt(),
+		C = {
+			getUserSettings: D('settings:getUserSettings'),
+			updateClaudeApiKey: D('settings:updateClaudeApiKey'),
+			updateReadwiseApiKey: D('settings:updateReadwiseApiKey'),
+			updateTheme: D('settings:updateTheme'),
+			deleteClaudeApiKey: D('settings:deleteClaudeApiKey'),
+			deleteReadwiseApiKey: D('settings:deleteReadwiseApiKey')
+		};
+	let je = c(null);
+	it(async () => {
+		if (!(!A || !C || !t(H)))
+			try {
+				const e = await A.query(C.getUserSettings, {});
+				e && (a(je, e, !0), a(P, e.hasClaudeKey || !1, !0), a(R, e.hasReadwiseKey || !1, !0));
+			} catch {}
+	});
+	let L = c(null),
+		U = c(null),
+		Ee = c(null),
+		q = c(null),
+		G = c(null);
+	ot(() => {
+		!A ||
+			!C ||
+			(a(L, (e) => A.action(C.updateClaudeApiKey, e)),
+			a(U, (e) => A.action(C.updateReadwiseApiKey, e)),
+			a(Ee, (e) => A.mutation(C.updateTheme, e)),
+			a(q, () => A.mutation(C.deleteClaudeApiKey, {})),
+			a(G, () => A.mutation(C.deleteReadwiseApiKey, {})));
+	});
+	let z = c(''),
+		B = c(''),
+		u = c('idle'),
+		j = c(null),
+		E = c(!1),
+		P = c(!1),
+		p = c('idle'),
+		T = c(null),
+		V = c(!1),
+		R = c(!1);
+	async function Te() {
+		if (!(!t(z).trim() || t(u) === 'validating' || !t(L) || !t(H))) {
+			(a(u, 'validating'), a(j, null));
+			try {
+				(await t(L)({ apiKey: t(z).trim() }),
+					a(u, 'valid'),
+					a(P, !0),
+					a(E, !0),
+					setTimeout(() => {
+						a(E, !1);
+					}, 3e3));
+			} catch (e) {
+				a(u, 'invalid');
+				let s = (e instanceof Error ? e.message : String(e))
+					.replace(
+						/^\[CONVEX[^\]]+\]\s*\[Request ID:[^\]]+\]\s*Server Error\s*Uncaught Error:\s*/i,
+						''
+					)
+					.replace(/\s*at handler[^]*$/i, '')
+					.replace(/\s*Called by client.*$/i, '')
+					.replace(/\([^)]+\/[^)]+\.ts:\d+:\d+\)/g, '')
+					.trim();
+				(s.includes('Invalid') || s.includes('invalid')
+					? (s = 'Invalid API key. Please check your key and try again.')
+					: s.includes('Authentication') || s.includes('authentication')
+						? (s = 'Authentication failed. Please verify your API key.')
+						: s.includes('format') && (s = 'Invalid API key format.'),
+					a(j, s || 'Invalid API key. Please check your key and try again.', !0));
+			}
+		}
+	}
+	async function Ve() {
+		if (!(!t(B).trim() || t(p) === 'validating' || !t(U) || !t(H))) {
+			(a(p, 'validating'), a(T, null));
+			try {
+				(await t(U)({ apiKey: t(B).trim() }),
+					a(p, 'valid'),
+					a(R, !0),
+					a(V, !0),
+					setTimeout(() => {
+						a(V, !1);
+					}, 3e3));
+			} catch (e) {
+				a(p, 'invalid');
+				let s = (e instanceof Error ? e.message : String(e))
+					.replace(
+						/^\[CONVEX[^\]]+\]\s*\[Request ID:[^\]]+\]\s*Server Error\s*Uncaught Error:\s*/i,
+						''
+					)
+					.replace(/\s*at handler[^]*$/i, '')
+					.replace(/\s*Called by client.*$/i, '')
+					.replace(/\([^)]+\/[^)]+\.ts:\d+:\d+\)/g, '')
+					.trim();
+				(s.includes('Invalid') || s.includes('invalid')
+					? (s = 'Invalid API key. Please check your key and try again.')
+					: s.includes('Authentication') || s.includes('authentication')
+						? (s = 'Authentication failed. Please verify your API key.')
+						: s.includes('format') && (s = 'Invalid API key format.'),
+					a(T, s || 'Invalid API key. Please check your key and try again.', !0));
+			}
+		}
+	}
+	function De(e) {
+		(a(z, e, !0), t(u) !== 'idle' && (a(u, 'idle'), a(j, null)), a(E, !1), e.trim() || a(P, !1));
+	}
+	function Fe(e) {
+		(a(B, e, !0), t(p) !== 'idle' && (a(p, 'idle'), a(T, null)), a(V, !1), e.trim() || a(R, !1));
+	}
+	async function He() {
+		if (t(q))
+			try {
+				(await t(q)(), a(z, ''), a(P, !1), a(E, !1), a(u, 'idle'), a(j, null));
+			} catch {}
+	}
+	async function Le() {
+		if (t(G))
+			try {
+				(await t(G)(), a(B, ''), a(R, !1), a(V, !1), a(p, 'idle'), a(T, null));
+			} catch {}
+	}
+	var N = Bt(),
+		ae = o(N),
+		re = f(o(ae), 2),
+		O = o(re),
+		se = o(O),
+		ie = f(o(se), 2),
+		le = o(ie),
+		oe = o(le),
+		ne = f(o(oe), 2),
+		X = o(ne),
+		Ue = o(X, !0);
+	n(X);
+	var de = f(X, 2);
+	{
+		var qe = (e) => {
+				var l = ht();
+				i(e, l);
+			},
+			Ge = (e) => {
+				var l = yt();
+				i(e, l);
+			};
+		m(de, (e) => {
+			F() ? e(qe) : e(Ge, !1);
+		});
+	}
+	var Ne = f(de, 2);
+	{
+		let e = we(() => (F() ? 'bg-gray-900' : 'bg-gray-300'));
+		ke(
+			Ne,
+			() => pt,
+			(l, s) => {
+				s(l, {
+					id: 'theme-toggle',
+					get checked() {
+						return F();
+					},
+					onCheckedChange: (y) => {
+						ut.setTheme(y ? 'dark' : 'light');
+					},
+					get class() {
+						return `relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${t(e) ?? ''}`;
+					},
+					children: (y, M) => {
+						var r = _(),
+							d = w(r);
+						(ke(
+							d,
+							() => ct,
+							(h, k) => {
+								k(h, {
+									class:
+										'pointer-events-none inline-block h-3 w-3 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0 data-[state=checked]:translate-x-4'
+								});
+							}
+						),
+							i(y, r));
+					},
+					$$slots: { default: !0 }
+				});
+			}
+		);
+	}
+	(n(ne), n(oe), n(le), n(ie), n(se), n(O));
+	var Y = f(O, 2),
+		ve = o(Y),
+		ce = f(o(ve), 2),
+		ue = o(ce),
+		pe = o(ue),
+		fe = f(o(pe), 2),
+		J = o(fe),
+		I = o(J);
+	(Ae(I), (I.__input = (e) => De(e.currentTarget.value)));
+	var Oe = f(I, 2);
+	{
+		var Xe = (e) => {
+				var l = xt();
+				i(e, l);
+			},
+			Ye = (e) => {
+				var l = _(),
+					s = w(l);
+				{
+					var y = (r) => {
+							var d = bt();
+							i(r, d);
+						},
+						M = (r) => {
+							var d = _(),
+								h = w(d);
+							{
+								var k = (v) => {
+										var b = _t();
+										((b.__click = He), i(v, b));
+									},
+									x = (v) => {
+										var b = _(),
+											W = w(b);
+										{
+											var Z = (S) => {
+												var $ = wt();
+												i(S, $);
+											};
+											m(
+												W,
+												(S) => {
+													t(u) === 'invalid' && S(Z);
+												},
+												!0
+											);
+										}
+										i(v, b);
+									};
+								m(
+									h,
+									(v) => {
+										t(P) ? v(k) : v(x, !1);
+									},
+									!0
+								);
+							}
+							i(r, d);
+						};
+					m(
+						s,
+						(r) => {
+							t(E) ? r(y) : r(M, !1);
+						},
+						!0
+					);
+				}
+				i(e, l);
+			};
+		m(Oe, (e) => {
+			t(u) === 'validating' ? e(Xe) : e(Ye, !1);
+		});
+	}
+	n(J);
+	var Je = f(J, 2);
+	{
+		var Qe = (e) => {
+				var l = kt();
+				i(e, l);
+			},
+			We = (e) => {
+				var l = _(),
+					s = w(l);
+				{
+					var y = (r) => {
+							var d = At(),
+								h = o(d, !0);
+							(n(d), ee(() => te(h, t(j))), i(r, d));
+						},
+						M = (r) => {
+							var d = _(),
+								h = w(d);
+							{
+								var k = (x) => {
+									var v = Ct();
+									i(x, v);
+								};
+								m(
+									h,
+									(x) => {
+										!t(P) && t(u) !== 'validating' && x(k);
+									},
+									!0
+								);
+							}
+							i(r, d);
+						};
+					m(
+						s,
+						(r) => {
+							t(u) === 'invalid' && t(j) ? r(y) : r(M, !1);
+						},
+						!0
+					);
+				}
+				i(e, l);
+			};
+		m(Je, (e) => {
+			t(E) ? e(Qe) : e(We, !1);
+		});
+	}
+	(n(fe), n(pe), n(ue), n(ce), n(ve), n(Y));
+	var me = f(Y, 2),
+		ge = o(me),
+		he = f(o(ge), 2),
+		ye = o(he),
+		xe = o(ye),
+		be = f(o(xe), 2),
+		Q = o(be),
+		K = o(Q);
+	(Ae(K), (K.__input = (e) => Fe(e.currentTarget.value)));
+	var Ze = f(K, 2);
+	{
+		var $e = (e) => {
+				var l = It();
+				i(e, l);
+			},
+			et = (e) => {
+				var l = _(),
+					s = w(l);
+				{
+					var y = (r) => {
+							var d = Kt();
+							i(r, d);
+						},
+						M = (r) => {
+							var d = _(),
+								h = w(d);
+							{
+								var k = (v) => {
+										var b = Mt();
+										((b.__click = Le), i(v, b));
+									},
+									x = (v) => {
+										var b = _(),
+											W = w(b);
+										{
+											var Z = (S) => {
+												var $ = Pt();
+												i(S, $);
+											};
+											m(
+												W,
+												(S) => {
+													t(p) === 'invalid' && S(Z);
+												},
+												!0
+											);
+										}
+										i(v, b);
+									};
+								m(
+									h,
+									(v) => {
+										t(R) ? v(k) : v(x, !1);
+									},
+									!0
+								);
+							}
+							i(r, d);
+						};
+					m(
+						s,
+						(r) => {
+							t(V) ? r(y) : r(M, !1);
+						},
+						!0
+					);
+				}
+				i(e, l);
+			};
+		m(Ze, (e) => {
+			t(p) === 'validating' ? e($e) : e(et, !1);
+		});
+	}
+	n(Q);
+	var tt = f(Q, 2);
+	{
+		var at = (e) => {
+				var l = Rt();
+				i(e, l);
+			},
+			rt = (e) => {
+				var l = _(),
+					s = w(l);
+				{
+					var y = (r) => {
+							var d = St(),
+								h = o(d, !0);
+							(n(d), ee(() => te(h, t(T))), i(r, d));
+						},
+						M = (r) => {
+							var d = _(),
+								h = w(d);
+							{
+								var k = (x) => {
+									var v = zt();
+									i(x, v);
+								};
+								m(
+									h,
+									(x) => {
+										!t(R) && t(p) !== 'validating' && x(k);
+									},
+									!0
+								);
+							}
+							i(r, d);
+						};
+					m(
+						s,
+						(r) => {
+							t(p) === 'invalid' && t(T) ? r(y) : r(M, !1);
+						},
+						!0
+					);
+				}
+				i(e, l);
+			};
+		m(tt, (e) => {
+			t(V) ? e(at) : e(rt, !1);
+		});
+	}
+	(n(be),
+		n(xe),
+		n(ye),
+		n(he),
+		n(ge),
+		n(me),
+		n(re),
+		n(ae),
+		n(N),
+		ee(() => {
+			(te(Ue, F() ? 'Dark mode' : 'Light mode'),
+				(I.disabled = t(u) === 'validating'),
+				Ce(I, 'placeholder', t(P) ? '••••••••••••••••' : 'sk-...'),
+				Ie(
+					I,
+					1,
+					`w-64 px-3 py-2 pr-10 text-sm bg-base border ${t(u) === 'valid' ? 'border-green-500' : t(u) === 'invalid' ? 'border-red-500' : 'border-base'} rounded-md text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${t(u) === 'validating' ? 'opacity-50 cursor-not-allowed' : ''}`
+				),
+				(K.disabled = t(p) === 'validating'),
+				Ce(K, 'placeholder', t(R) ? '••••••••••••••••' : 'token_...'),
+				Ie(
+					K,
+					1,
+					`w-64 px-3 py-2 pr-10 text-sm bg-base border ${t(p) === 'valid' ? 'border-green-500' : t(p) === 'invalid' ? 'border-red-500' : 'border-base'} rounded-md text-primary placeholder:text-tertiary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${t(p) === 'validating' ? 'opacity-50 cursor-not-allowed' : ''}`
+				));
+		}),
+		_e('blur', I, Te),
+		Ke(
+			I,
+			() => t(z),
+			(e) => a(z, e)
+		),
+		_e('blur', K, Ve),
+		Ke(
+			K,
+			() => t(B),
+			(e) => a(B, e)
+		),
+		i(Pe, N),
+		nt(),
+		ze());
+}
+st(['input', 'click']);
+export { Xt as component };

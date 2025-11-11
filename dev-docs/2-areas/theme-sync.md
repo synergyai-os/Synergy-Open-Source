@@ -3,25 +3,29 @@
 ## Current Implementation
 
 ### Local Persistence ✅
+
 - Theme preference is stored in `localStorage` as `'axon-theme'`
 - Persists across browser sessions on the same device
 - Applied immediately on page load (prevents FOUC)
 
 ### Theme Store
+
 Located at `src/lib/stores/theme.ts`:
+
 - Singleton reactive store accessible via `createThemeStore()`
 - Applies theme class (`dark` or `light`) to `<html>` element
 - All components using `createThemeStore()` share the same reactive state
 
 ### Usage in Components
+
 ```typescript
 import { createThemeStore } from '$lib/stores/theme';
 
 const theme = createThemeStore();
 
 // Access current theme
-theme.theme // 'light' | 'dark'
-theme.isDark // boolean
+theme.theme; // 'light' | 'dark'
+theme.isDark; // boolean
 
 // Change theme
 theme.setTheme('light');
@@ -33,13 +37,14 @@ theme.toggleTheme();
 ### Plan
 
 1. **Add to User Settings Schema**
+
    ```typescript
    // convex/schema.ts
    userSettings: defineTable({
-     userId: v.id('users'),
-     theme: v.union(v.literal('light'), v.literal('dark')),
-     // ... other settings
-   })
+   	userId: v.id('users'),
+   	theme: v.union(v.literal('light'), v.literal('dark'))
+   	// ... other settings
+   });
    ```
 
 2. **Create Convex Functions**
@@ -66,4 +71,3 @@ theme.toggleTheme();
 4. ⏳ Create Convex queries/mutations for theme
 5. ⏳ Integrate Convex sync into theme store
 6. ⏳ Test cross-device sync flow
-

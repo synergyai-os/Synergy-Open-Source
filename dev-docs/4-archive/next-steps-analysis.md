@@ -10,12 +10,14 @@
 **Decision**: Define and build later. Manual tagging workflow is sufficient for now.
 
 **Current State**:
+
 - ✅ Schema ready (`flashcardTags` junction table)
 - ✅ Backend supports tags (`createFlashcards` accepts `tagIds`)
 - ✅ Manual tagging works in flashcard detail modal
 - ❌ Auto-inheritance from inbox items not implemented (intentional deferral)
 
 **Future Considerations**:
+
 - Whether to inherit highlight tags, source tags, or both
 - Tag conflict resolution strategies
 - Collections vs tags: Tags work fine as collections for now
@@ -27,15 +29,18 @@
 ### Priority: End of Session Stats + Streaks + Tag-Based Analytics
 
 **Data Available** (from `flashcardReviews` table):
+
 - Rating (again/hard/good/easy)
 - Review time (seconds per card)
 - Review timestamp
 - FSRS metrics (stability, difficulty, scheduled days, elapsed days)
 
 ### A. Session Statistics (Priority 1)
+
 **Location**: `/study` page, shown after session completion
 
 **Metrics**:
+
 1. Cards reviewed (total in session)
 2. Accuracy rate (% of good + easy ratings)
 3. Average review time (mean seconds per card)
@@ -43,32 +48,39 @@
 5. Ratings breakdown (count of again/hard/good/easy)
 
 **Implementation**:
+
 - Aggregate data already tracked in `useStudySession` composable
 - Display detailed stats card replacing simple "Session Complete!" message
 
 ### B. Streak Tracking (Priority 2)
+
 **Location**: `/flashcards/analytics` page + session stats
 
 **Metrics**:
+
 - Current streak (consecutive days with reviews)
 - Longest streak
 - Streak calendar view
 
 **Implementation**:
+
 - New Convex query: `getStreakData` - aggregates review dates from `flashcardReviews`
 - Calculate consecutive days from `reviewedAt` timestamps
 - Store in composable or derive from query
 
 ### C. Tag/Category-Based Analytics (Priority 3)
+
 **Location**: `/flashcards/analytics` page
 
 **Metrics**:
+
 1. **Performance by Tag**: Accuracy rate, average time, total reviews per tag
 2. **Tag Activity Graph**: Reviews per tag over time
 3. **Most Challenging Tags**: Tags with lowest accuracy or highest "again" ratings
 4. **Tag Progress**: Cards mastered per tag
 
 **Implementation**:
+
 - New Convex query: `getTagAnalytics` - join `flashcardReviews` with `flashcardTags` and `tags`
 - Group reviews by tag, calculate metrics
 - Filterable by date range
@@ -76,8 +88,10 @@
 **Collections vs Tags**: Tags work fine as collections. No need for separate collection system—tags provide sufficient organization and filtering.
 
 ### Analytics Location
+
 **Route**: `/flashcards/analytics` (nested route under flashcards)
 **Architecture**: Component-based for reusability
+
 - Analytics components in `src/lib/components/analytics/`
 - Can be embedded in other dashboards/pages as needed
 
@@ -87,12 +101,14 @@
 
 **Question**: Is session configuration (cards per session, study mode) relevant now?
 
-**Current Approach**: 
+**Current Approach**:
+
 - Session limit is hardcoded to 10 in `useStudySession` composable
 - Session auto-starts with all due cards (up to limit)
 - Works well for current use case
 
 **If Needed Later**:
+
 - **Storage Strategy**: Use `userAlgorithmSettings` table (extend existing schema)
 - **Loading Pattern**: Query on page load, cache in composable/store
 - **No DB calls per session**: Settings loaded once, stored in composable state
@@ -107,6 +123,7 @@
 ### Recommended: LayerChart (`@techniq/layerchart`)
 
 **Why LayerChart?**
+
 - ✅ **Svelte-native**: Built specifically for Svelte, composable components
 - ✅ **Tailwind Integration**: Supports Tailwind CSS classes for styling
 - ✅ **Svelte 5 Compatible**: Works with Svelte 5 runes
@@ -116,44 +133,50 @@
 - ✅ **Performance**: Compiled by Svelte, efficient rendering
 
 **Features**:
+
 - Line charts, bar charts, pie charts, area charts
 - Animated transitions (tweened/spring support)
 - Responsive and customizable
 - TypeScript support
 
 **Installation**:
+
 ```bash
 npm install @techniq/layerchart
 ```
 
 **Example Usage**:
+
 ```svelte
 <script lang="ts">
-  import { Chart, Line, Axis } from '@techniq/layerchart';
-  import { data } from './data';
+	import { Chart, Line, Axis } from '@techniq/layerchart';
+	import { data } from './data';
 </script>
 
-<Chart data={data} x="date" y="reviews">
-  <Line />
-  <Axis placement="bottom" />
-  <Axis placement="left" />
+<Chart {data} x="date" y="reviews">
+	<Line />
+	<Axis placement="bottom" />
+	<Axis placement="left" />
 </Chart>
 ```
 
 ### Alternative: Charts.css (For Simple Charts)
 
 **When to Use**:
+
 - Very simple, static charts
 - No interactivity needed
 - Minimal JavaScript bundle size
 - Pure CSS approach
 
 **Limitations**:
+
 - Limited interactivity
 - Less customizable than LayerChart
 - Not ideal for complex analytics
 
 ### Not Recommended
+
 - **Recharts**: React-only, no Svelte support
 - **Chart.js**: Requires wrapper, less Svelte-idiomatic
 - **Carbon Charts**: Large bundle, may be overkill
@@ -163,33 +186,39 @@ npm install @techniq/layerchart
 ## Summary & Implementation Plan
 
 ### Priority 1: Session Statistics
+
 **Effort**: Low (2-4 hours)  
 **Value**: High  
 **Status**: Ready to implement
 
 **Implementation Steps**:
+
 1. Extend `useStudySession` to track session metrics (ratings, times)
 2. Create `SessionStatsCard.svelte` component
 3. Display in `/study` page after session completion
 4. Metrics: accuracy rate, average time, ratings breakdown, duration
 
 ### Priority 2: Streak Tracking
+
 **Effort**: Low-Medium (3-5 hours)  
 **Value**: High  
 **Status**: Ready to implement
 
 **Implementation Steps**:
+
 1. Create `getStreakData` Convex query (aggregate `flashcardReviews` by date)
 2. Create `StreakDisplay.svelte` component
 3. Display in `/flashcards/analytics` and session stats
 4. Calculate consecutive days from review timestamps
 
 ### Priority 3: Tag-Based Analytics
+
 **Effort**: Medium (4-6 hours)  
 **Value**: High  
 **Status**: Ready to implement
 
 **Implementation Steps**:
+
 1. Create `getTagAnalytics` Convex query (join reviews with tags)
 2. Install LayerChart: `npm install @techniq/layerchart`
 3. Create analytics components:
@@ -202,14 +231,17 @@ npm install @techniq/layerchart
 ### Technical Decisions
 
 **Charting Library**: **LayerChart** (`@techniq/layerchart`)
+
 - Svelte-native, Tailwind-compatible, composable
 - Best fit for Svelte 5 + Bits UI architecture
 
 **Analytics Location**: `/flashcards/analytics` (nested route)
+
 - Component-based architecture for reusability
 - Can embed analytics components elsewhere as needed
 
-**Data Storage**: 
+**Data Storage**:
+
 - Session stats: Tracked in `useStudySession` composable (client-side)
 - Streaks: Calculated from `flashcardReviews` table (server-side query)
 - Tag analytics: Aggregated from `flashcardReviews` + `flashcardTags` (server-side query)
@@ -226,6 +258,7 @@ npm install @techniq/layerchart
 4. Implement **Tag-Based Analytics** (Priority 3)
 
 **Deferred**:
+
 - Tagging auto-inheritance (define later)
 - Session configuration (not needed yet)
 - Auto-tagging system (nice to have, after multi-tenancy) — See Section 5
@@ -245,23 +278,28 @@ Automatic content tagging without using LLMs, using semantic similarity, keyword
 ### Research Findings
 
 #### Approach 1: Semantic Similarity with Embeddings (Recommended)
+
 **How it works**:
+
 - Generate embeddings for existing tagged content using Sentence Transformers
 - When new content arrives, generate its embedding
 - Find similar content using cosine similarity (Convex RAG vector search)
 - Suggest tags from similar content above similarity threshold
 
 **Pros**:
+
 - Captures semantic meaning ("ML" matches "Machine Learning")
 - Works with Convex RAG (already using Convex)
 - No training data needed (unsupervised)
 - Pre-trained models available
 
 **Cons**:
+
 - Requires embedding generation (~50-100ms per text)
 - Needs existing tagged content to learn from
 
 **Requirements**:
+
 - Sentence Transformers (Python) or embedding library
 - Convex RAG component (vector search)
 - Existing tagged content as reference
@@ -271,21 +309,26 @@ Automatic content tagging without using LLMs, using semantic similarity, keyword
 ---
 
 #### Approach 2: Keyword Extraction + Matching
+
 **How it works**:
+
 - Extract keywords from new content (TF-IDF, RAKE, YAKE)
 - Match extracted keywords against existing tag names
 - Suggest tags based on keyword overlap
 
 **Pros**:
+
 - Very fast (no embeddings needed)
 - Simple to implement
 - Works immediately
 
 **Cons**:
+
 - Misses semantic matches
 - Can be noisy
 
 **Requirements**:
+
 - Keyword extraction library (`yake`, `rake-nltk`, `scikit-learn` TF-IDF)
 
 **Implementation Confidence**: 95%
@@ -293,16 +336,20 @@ Automatic content tagging without using LLMs, using semantic similarity, keyword
 ---
 
 #### Approach 3: Topic Modeling (Top2Vec / LDA)
+
 **How it works**:
+
 - Train topic model on all content (Top2Vec finds topics automatically)
 - Assign new content to discovered topics
 - Map topics to tags
 
 **Pros**:
+
 - Discovers patterns automatically
 - Good for large content sets
 
 **Cons**:
+
 - Requires retraining as content grows
 - Topics may not match tag structure
 
@@ -315,6 +362,7 @@ Automatic content tagging without using LLMs, using semantic similarity, keyword
 **Combination**: Embeddings (70%) + Keyword Matching (30%)
 
 **Implementation Strategy**:
+
 ```typescript
 // Pseudocode
 1. When new inbox item arrives:
@@ -352,6 +400,7 @@ Automatic content tagging without using LLMs, using semantic similarity, keyword
    - Org embeddings for institutional knowledge
 
 **Implementation Requirements**:
+
 - Scoped embeddings per user/team/org
 - Separate vector indexes for each scope
 - Tag suggestion filtering by scope
@@ -360,11 +409,13 @@ Automatic content tagging without using LLMs, using semantic similarity, keyword
 ### Implementation Requirements
 
 #### Minimal (Keyword Matching Only):
+
 - Node.js keyword extraction library (`yake` or `natural`)
 - Tag name matching logic
 - **Effort**: 4-6 hours
 
 #### Recommended (Hybrid: Embeddings + Keywords):
+
 - Convex RAG component (vector search)
 - Embedding generation (Sentence Transformers via API or local)
 - Keyword extraction library
@@ -372,6 +423,7 @@ Automatic content tagging without using LLMs, using semantic similarity, keyword
 - **Effort**: 8-12 hours
 
 #### Advanced (With Topic Modeling):
+
 - Top2Vec or LDA library
 - Topic-to-tag mapping system
 - Periodic retraining pipeline
@@ -399,4 +451,3 @@ Automatic content tagging without using LLMs, using semantic similarity, keyword
 - Store tag suggestions with confidence scores
 - Allow users to approve/reject suggestions to improve accuracy
 - Track suggestion accuracy for continuous improvement
-

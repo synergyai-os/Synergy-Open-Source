@@ -5,19 +5,19 @@
 	let toolbarBold = $state(false);
 	let toolbarItalic = $state(false);
 	let toolbarCode = $state(false);
-	
+
 	let popoverOpen = $state(false);
 	let popoverOption1 = $state(false);
 	let popoverOption2 = $state(true);
-	
+
 	let embeddedActive = $state(false);
 </script>
 
 <div class="min-h-screen bg-base p-8">
-	<div class="max-w-4xl mx-auto space-y-8">
+	<div class="mx-auto max-w-4xl space-y-8">
 		<!-- Header -->
 		<div>
-			<h1 class="text-3xl font-bold text-primary mb-2">Control Panel Component System</h1>
+			<h1 class="mb-2 text-3xl font-bold text-primary">Control Panel Component System</h1>
 			<p class="text-secondary">
 				Demo page showcasing all control panel variants, button states, and design tokens.
 			</p>
@@ -26,11 +26,11 @@
 		<!-- Toolbar Variant -->
 		<section class="space-y-4">
 			<div>
-				<h2 class="text-xl font-semibold text-primary mb-1">Toolbar Variant</h2>
+				<h2 class="mb-1 text-xl font-semibold text-primary">Toolbar Variant</h2>
 				<p class="text-sm text-secondary">Fixed header with border-bottom (like notes editor)</p>
 			</div>
-			
-			<div class="bg-elevated border border-base rounded-md overflow-hidden">
+
+			<div class="overflow-hidden rounded-md border border-base bg-elevated">
 				<ControlPanel.Root variant="toolbar">
 					<ControlPanel.Group>
 						<ControlPanel.Button
@@ -38,7 +38,7 @@
 							onclick={() => (toolbarBold = !toolbarBold)}
 							title="Bold"
 						>
-							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -59,7 +59,7 @@
 							onclick={() => (toolbarItalic = !toolbarItalic)}
 							title="Italic"
 						>
-							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<line x1="19" y1="4" x2="10" y2="4" stroke-width="2" />
 								<line x1="14" y1="20" x2="5" y2="20" stroke-width="2" />
 								<line x1="15" y1="4" x2="9" y2="20" stroke-width="2" />
@@ -71,7 +71,7 @@
 							onclick={() => (toolbarCode = !toolbarCode)}
 							title="Code"
 						>
-							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -86,7 +86,7 @@
 
 					<ControlPanel.Group>
 						<ControlPanel.Button title="Undo">
-							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -97,7 +97,7 @@
 						</ControlPanel.Button>
 
 						<ControlPanel.Button title="Redo">
-							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -114,7 +114,7 @@
 				</div>
 			</div>
 
-			<div class="text-sm text-secondary space-y-1">
+			<div class="space-y-1 text-sm text-secondary">
 				<p><strong>State:</strong></p>
 				<p>Bold: {toolbarBold ? '✅ Active' : '⬜ Inactive'}</p>
 				<p>Italic: {toolbarItalic ? '✅ Active' : '⬜ Inactive'}</p>
@@ -125,15 +125,15 @@
 		<!-- Popover Variant -->
 		<section class="space-y-4">
 			<div>
-				<h2 class="text-xl font-semibold text-primary mb-1">Popover Variant</h2>
+				<h2 class="mb-1 text-xl font-semibold text-primary">Popover Variant</h2>
 				<p class="text-sm text-secondary">Contextual floating panel (Notion-like)</p>
 			</div>
 
-			<div class="bg-elevated border border-base rounded-md p-8">
+			<div class="rounded-md border border-base bg-elevated p-8">
 				<ControlPanel.Root variant="popover" bind:open={popoverOpen}>
 					{#snippet trigger()}
 						<button
-							class="px-4 py-2 bg-accent-primary text-white rounded-md hover:bg-accent-hover transition-colors"
+							class="rounded-md bg-accent-primary px-4 py-2 text-white transition-colors hover:bg-accent-hover"
 						>
 							{popoverOpen ? 'Close Settings' : 'Open Settings'}
 						</button>
@@ -145,7 +145,7 @@
 							onclick={() => (popoverOption1 = !popoverOption1)}
 							title="Option 1"
 						>
-							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -160,7 +160,7 @@
 							onclick={() => (popoverOption2 = !popoverOption2)}
 							title="Option 2"
 						>
-							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -175,7 +175,7 @@
 
 					<ControlPanel.Group label="Actions">
 						<ControlPanel.Button title="Save">
-							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -188,7 +188,7 @@
 				</ControlPanel.Root>
 			</div>
 
-			<div class="text-sm text-secondary space-y-1">
+			<div class="space-y-1 text-sm text-secondary">
 				<p><strong>State:</strong></p>
 				<p>Popover Open: {popoverOpen ? '✅ Yes' : '⬜ No'}</p>
 				<p>Option 1: {popoverOption1 ? '✅ Active' : '⬜ Inactive'}</p>
@@ -200,20 +200,20 @@
 		<!-- Embedded Variant -->
 		<section class="space-y-4">
 			<div>
-				<h2 class="text-xl font-semibold text-primary mb-1">Embedded Variant</h2>
+				<h2 class="mb-1 text-xl font-semibold text-primary">Embedded Variant</h2>
 				<p class="text-sm text-secondary">Inline controls (sidebar actions, settings panels)</p>
 			</div>
 
-			<div class="bg-elevated border border-base rounded-md p-8">
+			<div class="rounded-md border border-base bg-elevated p-8">
 				<div class="space-y-4">
-					<h3 class="text-label text-tertiary uppercase tracking-wider">Actions</h3>
-					
+					<h3 class="text-label tracking-wider text-tertiary uppercase">Actions</h3>
+
 					<ControlPanel.Root variant="embedded">
 						<ControlPanel.Button
 							active={embeddedActive}
 							onclick={() => (embeddedActive = !embeddedActive)}
 						>
-							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -233,7 +233,7 @@
 				</div>
 			</div>
 
-			<div class="text-sm text-secondary space-y-1">
+			<div class="space-y-1 text-sm text-secondary">
 				<p><strong>State:</strong></p>
 				<p>View Active: {embeddedActive ? '✅ Active' : '⬜ Inactive'}</p>
 			</div>
@@ -242,17 +242,15 @@
 		<!-- Button States Demo -->
 		<section class="space-y-4">
 			<div>
-				<h2 class="text-xl font-semibold text-primary mb-1">Button States</h2>
-				<p class="text-sm text-secondary">
-					Hover, active, and disabled states using design tokens
-				</p>
+				<h2 class="mb-1 text-xl font-semibold text-primary">Button States</h2>
+				<p class="text-sm text-secondary">Hover, active, and disabled states using design tokens</p>
 			</div>
 
-			<div class="bg-elevated border border-base rounded-md p-8">
+			<div class="rounded-md border border-base bg-elevated p-8">
 				<ControlPanel.Root variant="embedded">
 					<ControlPanel.Group>
 						<ControlPanel.Button title="Normal Button">
-							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -263,7 +261,7 @@
 						</ControlPanel.Button>
 
 						<ControlPanel.Button active={true} title="Active Button">
-							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -274,7 +272,7 @@
 						</ControlPanel.Button>
 
 						<ControlPanel.Button disabled={true} title="Disabled Button">
-							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -289,8 +287,8 @@
 
 			<div class="text-sm text-secondary">
 				<p class="text-tertiary italic">
-					Hover over buttons to see hover states. Active button uses selected state. Disabled
-					button is grayed out.
+					Hover over buttons to see hover states. Active button uses selected state. Disabled button
+					is grayed out.
 				</p>
 			</div>
 		</section>
@@ -298,14 +296,14 @@
 		<!-- Design Tokens Reference -->
 		<section class="space-y-4">
 			<div>
-				<h2 class="text-xl font-semibold text-primary mb-1">Design Tokens</h2>
+				<h2 class="mb-1 text-xl font-semibold text-primary">Design Tokens</h2>
 				<p class="text-sm text-secondary">All control panels use semantic design tokens</p>
 			</div>
 
-			<div class="bg-elevated border border-base rounded-md p-6 space-y-4">
+			<div class="space-y-4 rounded-md border border-base bg-elevated p-6">
 				<div>
-					<h3 class="font-semibold text-primary mb-2">Spacing Tokens</h3>
-					<ul class="text-sm text-secondary space-y-1">
+					<h3 class="mb-2 font-semibold text-primary">Spacing Tokens</h3>
+					<ul class="space-y-1 text-sm text-secondary">
 						<li><code>p-control-panel-padding</code> - Panel container padding (12px)</li>
 						<li><code>gap-control-group</code> - Gap between groups (8px)</li>
 						<li><code>gap-control-item-gap</code> - Gap between buttons (4px)</li>
@@ -314,8 +312,8 @@
 				</div>
 
 				<div>
-					<h3 class="font-semibold text-primary mb-2">Color Tokens</h3>
-					<ul class="text-sm text-secondary space-y-1">
+					<h3 class="mb-2 font-semibold text-primary">Color Tokens</h3>
+					<ul class="space-y-1 text-sm text-secondary">
 						<li><code>bg-control</code> - Panel background (adapts to theme)</li>
 						<li><code>border-control-border</code> - Panel border</li>
 						<li><code>bg-control-button-hover</code> - Button hover state</li>
@@ -326,12 +324,10 @@
 		</section>
 
 		<!-- Documentation Link -->
-		<section class="bg-accent-primary/10 border border-accent-primary/20 rounded-md p-6">
-			<h3 class="font-semibold text-primary mb-2">Documentation</h3>
-			<p class="text-sm text-secondary mb-4">
-				For full documentation, see:
-			</p>
-			<ul class="text-sm text-secondary space-y-1">
+		<section class="rounded-md border border-accent-primary/20 bg-accent-primary/10 p-6">
+			<h3 class="mb-2 font-semibold text-primary">Documentation</h3>
+			<p class="mb-4 text-sm text-secondary">For full documentation, see:</p>
+			<ul class="space-y-1 text-sm text-secondary">
 				<li>
 					• <strong>Pattern:</strong>
 					<code>dev-docs/patterns/ui-patterns.md#L620</code>
@@ -348,4 +344,3 @@
 		</section>
 	</div>
 </div>
-

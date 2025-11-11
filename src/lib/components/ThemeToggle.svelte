@@ -1,15 +1,15 @@
 <script lang="ts">
 	/**
 	 * Theme Toggle Component
-	 * 
+	 *
 	 * Reusable component for switching between light/dark modes
 	 * Syncs with localStorage and applies theme to document.documentElement
-	 * 
+	 *
 	 * Usage:
 	 *   <ThemeToggle /> - Icon only (for navbar)
 	 *   <ThemeToggle showLabel={true} /> - With label (for settings)
 	 */
-	
+
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
 
@@ -50,7 +50,7 @@
 
 <button
 	type="button"
-	class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-hover-solid transition-colors text-secondary hover:text-primary"
+	class="flex h-8 w-8 items-center justify-center rounded-md text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
 	aria-label="Toggle theme"
 	title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
 	onclick={toggleTheme}
@@ -58,7 +58,7 @@
 	{#if isDark}
 		<!-- Sun icon (show in dark mode - clicking switches to light) -->
 		<svg
-			class="w-5 h-5"
+			class="h-5 w-5"
 			fill="none"
 			stroke="currentColor"
 			viewBox="0 0 24 24"
@@ -74,7 +74,7 @@
 	{:else}
 		<!-- Moon icon (show in light mode - clicking switches to dark) -->
 		<svg
-			class="w-5 h-5"
+			class="h-5 w-5"
 			fill="none"
 			stroke="currentColor"
 			viewBox="0 0 24 24"
@@ -93,4 +93,3 @@
 		<span class="ml-2 text-sm">{isDark ? 'Light mode' : 'Dark mode'}</span>
 	{/if}
 </button>
-

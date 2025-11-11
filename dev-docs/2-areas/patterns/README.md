@@ -50,12 +50,12 @@ patterns/
 
 ## Pattern Format
 
-```markdown
+````markdown
 ## #L[NUMBER]: [Pattern Name] [🔴/🟡/🟢 SEVERITY]
 
 **Symptom**: One-line description  
 **Root Cause**: One-line cause  
-**Fix**: 
+**Fix**:
 
 ```[language]
 // ❌ WRONG
@@ -64,10 +64,12 @@ wrong code
 // ✅ CORRECT
 correct code
 ```
+````
 
 **Apply when**: When to use this pattern  
 **Related**: #L[OTHER] (Other pattern)
-```
+
+````
 
 ---
 
@@ -111,7 +113,7 @@ For library-specific patterns (Svelte 5, Convex), validate with Context7.
 2. Scan symptom tables
 3. Jump to line number (e.g., svelte-reactivity.md#L10)
 4. Apply fix
-```
+````
 
 ### `/save` Command
 
@@ -157,4 +159,3 @@ All patterns validated against official documentation:
 **Last Updated**: 2025-11-07  
 **Format Version**: 2.0  
 **Validated**: Yes (Context7)
-

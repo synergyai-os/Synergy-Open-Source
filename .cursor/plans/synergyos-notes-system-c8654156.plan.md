@@ -1,4 +1,5 @@
 <!-- c8654156-20a0-4b00-8c14-04630f284873 3ef63af4-db57-4cdb-bf16-c87d5a2f54fd -->
+
 # SynergyOS Note System & Blog Workflow
 
 ## Overview
@@ -185,11 +186,11 @@ Action to export note to `/ai-content-blog/`:
 
 ```markdown
 ---
-title: "Note Title"
+title: 'Note Title'
 date: 2025-01-XX
-tags: ["BLOG", "SynergyOS", ...]
+tags: ['BLOG', 'SynergyOS', ...]
 aiGenerated: true/false
-slug: "note-slug"
+slug: 'note-slug'
 ---
 
 # Note Title

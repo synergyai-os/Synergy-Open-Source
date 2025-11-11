@@ -21,11 +21,13 @@ The patterns have been reorganized into a tiered system for faster AI lookup and
 ## Why the Change?
 
 **Old** (3,224 lines):
+
 - ❌ AI scans entire file for each lookup
 - ❌ High maintenance (4+ updates per pattern)
 - ❌ Slow search
 
 **New** (tiered, ~200 lines per file):
+
 - ✅ AI loads INDEX → jumps to line number
 - ✅ 80% smaller context
 - ✅ Validated with Context7
@@ -36,6 +38,7 @@ The patterns have been reorganized into a tiered system for faster AI lookup and
 ## Quick Examples
 
 ### Finding a Pattern (Old Way)
+
 1. Open patterns-and-lessons.md (3,224 lines)
 2. Scroll through Quick Diagnostic table
 3. Click anchor link
@@ -43,6 +46,7 @@ The patterns have been reorganized into a tiered system for faster AI lookup and
 5. Read verbose format
 
 ### Finding a Pattern (New Way)
+
 1. Open patterns/INDEX.md (200 lines)
 2. Scan symptom table
 3. Click line number link (e.g., svelte-reactivity.md#L10)
@@ -65,6 +69,7 @@ The patterns have been reorganized into a tiered system for faster AI lookup and
 ## All Patterns Migrated ✅
 
 All 30 critical patterns have been:
+
 - ✅ Validated with Context7 (Svelte 5, Convex docs)
 - ✅ Compressed (70% size reduction)
 - ✅ Categorized by severity

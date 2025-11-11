@@ -1,8 +1,8 @@
 /**
  * Example Test: Filtering Inbox Items
- * 
+ *
  * This demonstrates the testing strategy from dev-docs/testing-strategy.md
- * 
+ *
  * What we're testing: Business logic (filtering by type)
  * Why: This logic is critical - if filtering breaks, users can't find items
  * How: Pure function test (simple, fast, reliable)
@@ -12,10 +12,7 @@ import { describe, it, expect } from 'vitest';
 
 // Simple utility function to filter inbox items by type
 // This is the kind of logic you SHOULD test
-export function filterByType<T extends { type: string }>(
-	items: T[],
-	type: string
-): T[] {
+export function filterByType<T extends { type: string }>(items: T[], type: string): T[] {
 	return items.filter((item) => item.type === type);
 }
 
@@ -45,9 +42,7 @@ describe('filterByType', () => {
 	});
 
 	it('returns empty array when no matches', () => {
-		const items: InboxItem[] = [
-			{ id: '1', type: 'readwise_highlight', title: 'Highlight 1' }
-		];
+		const items: InboxItem[] = [{ id: '1', type: 'readwise_highlight', title: 'Highlight 1' }];
 
 		const result = filterByType(items, 'photo_note');
 
@@ -74,4 +69,3 @@ describe('filterByType', () => {
 		expect(result).toHaveLength(0);
 	});
 });
-

@@ -13,20 +13,20 @@
 ```typescript
 // ❌ WRONG: Returns undefined while loading
 useQuery(
-  api.teams.list,
-  () => activeOrgId ? { organizationId: activeOrgId } : undefined  // ❌ undefined
+	api.teams.list,
+	() => (activeOrgId ? { organizationId: activeOrgId } : undefined) // ❌ undefined
 );
 
 // ✅ CORRECT: Always send serializable value (Context7 validated)
-const SENTINEL_ORG_ID = "00000000000000000000000000000000";
+const SENTINEL_ORG_ID = '00000000000000000000000000000000';
 useQuery(
-  api.teams.list,
-  () => ({ organizationId: activeOrgId ?? SENTINEL_ORG_ID })  // ✅ Always valid
+	api.teams.list,
+	() => ({ organizationId: activeOrgId ?? SENTINEL_ORG_ID }) // ✅ Always valid
 );
 
 // For mutations: Strip undefined fields
 const args: any = { toOrgId, count };
-if (fromOrgId) args.fromOrgId = fromOrgId;  // ✅ Only add if defined
+if (fromOrgId) args.fromOrgId = fromOrgId; // ✅ Only add if defined
 await mutation(api.orgs.switch, args);
 ```
 
@@ -95,9 +95,9 @@ const { handleAuth } = createConvexAuthHooks();
 import { config } from '$lib/config';
 
 const { handleAuth } = createConvexAuthHooks({
-  cookieConfig: {
-    maxAge: config.auth.sessionMaxAgeSeconds // 30 days in seconds
-  }
+	cookieConfig: {
+		maxAge: config.auth.sessionMaxAgeSeconds // 30 days in seconds
+	}
 });
 ```
 
@@ -115,11 +115,11 @@ const { handleAuth } = createConvexAuthHooks({
 
 ```typescript
 // ❌ WRONG: File system access
-"use node";
+'use node';
 import { readFileSync } from 'fs';
 
 export function loadPrompt(name: string) {
-  return readFileSync(`./prompts/${name}.xml`, 'utf-8'); // ❌ Fails in serverless
+	return readFileSync(`./prompts/${name}.xml`, 'utf-8'); // ❌ Fails in serverless
 }
 
 // ❌ WRONG: Hyphen in filename
@@ -133,13 +133,13 @@ export const flashcardTemplate = `<prompt>...</prompt>`; // ✅ String export
 import { flashcardTemplate } from './prompts/flashcardGeneration';
 
 const templates: Record<string, string> = {
-  'flashcard-generation': flashcardTemplate,
+	'flashcard-generation': flashcardTemplate
 };
 
 export function loadPrompt(name: string): string {
-  const template = templates[name];
-  if (!template) throw new Error(`Prompt "${name}" not found`);
-  return template;
+	const template = templates[name];
+	if (!template) throw new Error(`Prompt "${name}" not found`);
+	return template;
 }
 ```
 
@@ -174,6 +174,7 @@ export const generateFlashcard = action({ ... });
 ```
 
 **Naming Rules**:
+
 - **Files**: Domain/module names (nouns) - `flashcards.ts`, `inbox.ts`, `flashcardGeneration.ts`
 - **Functions**: Actions/verbs - `create`, `list`, `generate`, `sync`
 - **Result**: Clean paths - `api.flashcards.create`, `api.inbox.list`
@@ -192,31 +193,31 @@ export const generateFlashcard = action({ ... });
 ```typescript
 // ❌ WRONG: any everywhere
 export function useInboxSync(
-  convexClient: any,  // ❌ No type safety
-  inboxApi: any       // ❌ No IntelliSense
-) { }
+	convexClient: any, // ❌ No type safety
+	inboxApi: any // ❌ No IntelliSense
+) {}
 
 // ✅ CORRECT: Shared types (Context7 validated)
 // src/lib/types/convex.ts
 import type { FunctionReference } from 'convex/server';
 
 export interface ConvexClient {
-  query<Q extends FunctionReference<'query'>>(query: Q, args?: unknown): Promise<unknown>;
-  action<A extends FunctionReference<'action'>>(action: A, args?: unknown): Promise<unknown>;
-  mutation<M extends FunctionReference<'mutation'>>(mutation: M, args?: unknown): Promise<unknown>;
+	query<Q extends FunctionReference<'query'>>(query: Q, args?: unknown): Promise<unknown>;
+	action<A extends FunctionReference<'action'>>(action: A, args?: unknown): Promise<unknown>;
+	mutation<M extends FunctionReference<'mutation'>>(mutation: M, args?: unknown): Promise<unknown>;
 }
 
 export interface InboxApi {
-  listInboxItems: FunctionReference<'query', 'public', { processed?: boolean }>;
-  syncReadwiseHighlights: FunctionReference<'action', 'public', { dateRange?: string }>;
+	listInboxItems: FunctionReference<'query', 'public', { processed?: boolean }>;
+	syncReadwiseHighlights: FunctionReference<'action', 'public', { dateRange?: string }>;
 }
 
 // Usage
 export function useInboxSync(
-  convexClient: ConvexClient | null,  // ✅ Type safe
-  inboxApi: InboxApi | null           // ✅ IntelliSense works
+	convexClient: ConvexClient | null, // ✅ Type safe
+	inboxApi: InboxApi | null // ✅ IntelliSense works
 ) {
-  const items = await convexClient.query(inboxApi.listInboxItems, {}) as InboxItem[];
+	const items = (await convexClient.query(inboxApi.listInboxItems, {})) as InboxItem[];
 }
 ```
 
@@ -235,44 +236,44 @@ export function useInboxSync(
 ```typescript
 // ❌ WRONG: No discriminator
 type InboxItem = {
-  _id: string;
-  highlightId?: string;  // ❌ Optional, hard to narrow
-  text?: string;         // ❌ Optional, hard to narrow
+	_id: string;
+	highlightId?: string; // ❌ Optional, hard to narrow
+	text?: string; // ❌ Optional, hard to narrow
 };
 
 // ✅ CORRECT: Discriminated union (Context7 validated)
 type BaseInboxItem = {
-  _id: string;
-  type: 'readwise_highlight' | 'photo_note' | 'manual_text'; // Discriminator
-  userId: string;
-  processed: boolean;
+	_id: string;
+	type: 'readwise_highlight' | 'photo_note' | 'manual_text'; // Discriminator
+	userId: string;
+	processed: boolean;
 };
 
 type ReadwiseHighlight = BaseInboxItem & {
-  type: 'readwise_highlight'; // ✅ Literal type
-  highlightId: string;
-  highlight: { text: string } | null;
+	type: 'readwise_highlight'; // ✅ Literal type
+	highlightId: string;
+	highlight: { text: string } | null;
 };
 
 type PhotoNote = BaseInboxItem & {
-  type: 'photo_note';
-  imageFileId?: string;
+	type: 'photo_note';
+	imageFileId?: string;
 };
 
 type ManualText = BaseInboxItem & {
-  type: 'manual_text';
-  text?: string;
+	type: 'manual_text';
+	text?: string;
 };
 
 type InboxItemWithDetails = ReadwiseHighlight | PhotoNote | ManualText;
 
 // Usage with type narrowing
 function process(item: InboxItemWithDetails) {
-  if (item.type === 'readwise_highlight') {
-    console.log(item.highlight?.text); // ✅ TypeScript knows highlight exists
-  } else if (item.type === 'photo_note') {
-    console.log(item.imageFileId);     // ✅ TypeScript knows imageFileId exists
-  }
+	if (item.type === 'readwise_highlight') {
+		console.log(item.highlight?.text); // ✅ TypeScript knows highlight exists
+	} else if (item.type === 'photo_note') {
+		console.log(item.imageFileId); // ✅ TypeScript knows imageFileId exists
+	}
 }
 ```
 
@@ -295,32 +296,42 @@ fsrsState: newCard.state as 'new' | 'learning'; // ❌ TypeScript error
 
 // ✅ CORRECT: Explicit conversion functions
 function stateToString(state: State): 'new' | 'learning' | 'review' | 'relearning' {
-  switch (state) {
-    case State.New: return 'new';
-    case State.Learning: return 'learning';
-    case State.Review: return 'review';
-    case State.Relearning: return 'relearning';
-    default: return 'new';
-  }
+	switch (state) {
+		case State.New:
+			return 'new';
+		case State.Learning:
+			return 'learning';
+		case State.Review:
+			return 'review';
+		case State.Relearning:
+			return 'relearning';
+		default:
+			return 'new';
+	}
 }
 
 function stringToState(state: string): State {
-  switch (state) {
-    case 'new': return State.New;
-    case 'learning': return State.Learning;
-    case 'review': return State.Review;
-    case 'relearning': return State.Relearning;
-    default: return State.New;
-  }
+	switch (state) {
+		case 'new':
+			return State.New;
+		case 'learning':
+			return State.Learning;
+		case 'review':
+			return State.Review;
+		case 'relearning':
+			return State.Relearning;
+		default:
+			return State.New;
+	}
 }
 
 // Usage
 await ctx.db.insert('flashcards', {
-  fsrsState: stateToString(card.state), // ✅ Convert enum to string
+	fsrsState: stateToString(card.state) // ✅ Convert enum to string
 });
 
 const card: Card = {
-  state: stringToState(flashcard.fsrsState), // ✅ Convert string to enum
+	state: stringToState(flashcard.fsrsState) // ✅ Convert string to enum
 };
 ```
 
@@ -339,7 +350,7 @@ const card: Card = {
 ```typescript
 // ❌ WRONG: Hardcoded values
 const { handleAuth } = createConvexAuthHooks({
-  cookieConfig: { maxAge: 2592000 } // ❌ What is this number?
+	cookieConfig: { maxAge: 2592000 } // ❌ What is this number?
 });
 
 // ✅ CORRECT: Centralized config
@@ -347,17 +358,17 @@ const { handleAuth } = createConvexAuthHooks({
 const SESSION_DURATION_DAYS = 30;
 
 export const config = {
-  auth: {
-    sessionDurationDays: SESSION_DURATION_DAYS,
-    sessionMaxAgeSeconds: SESSION_DURATION_DAYS * 24 * 60 * 60
-  }
+	auth: {
+		sessionDurationDays: SESSION_DURATION_DAYS,
+		sessionMaxAgeSeconds: SESSION_DURATION_DAYS * 24 * 60 * 60
+	}
 } as const;
 
 // hooks.server.ts
 import { config } from '$lib/config';
 
 const { handleAuth } = createConvexAuthHooks({
-  cookieConfig: { maxAge: config.auth.sessionMaxAgeSeconds } // ✅ Clear
+	cookieConfig: { maxAge: config.auth.sessionMaxAgeSeconds } // ✅ Clear
 });
 ```
 
@@ -376,54 +387,54 @@ const { handleAuth } = createConvexAuthHooks({
 ```typescript
 // ❌ WRONG: Duplicate mutations for each entity
 export const assignTagsToHighlight = mutation({
-  handler: async (ctx, args) => {
-    // ... 50 lines of validation and assignment logic
-  }
+	handler: async (ctx, args) => {
+		// ... 50 lines of validation and assignment logic
+	}
 });
 
 export const assignTagsToFlashcard = mutation({
-  handler: async (ctx, args) => {
-    // ... SAME 50 lines of validation and assignment logic
-  }
+	handler: async (ctx, args) => {
+		// ... SAME 50 lines of validation and assignment logic
+	}
 });
 
 // ✅ CORRECT: Shared helper with type-safe wrappers (Context7 validated)
 
 // Helper function (private, reduces duplication)
 async function assignTagsToEntity(
-  ctx: MutationCtx,
-  userId: Id<"users">,
-  entityType: "highlights" | "flashcards",
-  entityId: Id<any>,
-  tagIds: Id<"tags">[]
+	ctx: MutationCtx,
+	userId: Id<'users'>,
+	entityType: 'highlights' | 'flashcards',
+	entityId: Id<any>,
+	tagIds: Id<'tags'>[]
 ) {
-  // 1. Validate entity ownership
-  // 2. Validate tag access
-  // 3. Clear old assignments from junction table
-  // 4. Create new assignments
+	// 1. Validate entity ownership
+	// 2. Validate tag access
+	// 3. Clear old assignments from junction table
+	// 4. Create new assignments
 }
 
 // Type-safe public mutations (one per entity)
 export const assignTagsToHighlight = mutation({
-  args: {
-    highlightId: v.id("highlights"),
-    tagIds: v.array(v.id("tags")),
-  },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    return await assignTagsToEntity(ctx, userId, "highlights", args.highlightId, args.tagIds);
-  },
+	args: {
+		highlightId: v.id('highlights'),
+		tagIds: v.array(v.id('tags'))
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx);
+		return await assignTagsToEntity(ctx, userId, 'highlights', args.highlightId, args.tagIds);
+	}
 });
 
 export const assignTagsToFlashcard = mutation({
-  args: {
-    flashcardId: v.id("flashcards"),
-    tagIds: v.array(v.id("tags")),
-  },
-  handler: async (ctx, args) => {
-    const userId = await getAuthUserId(ctx);
-    return await assignTagsToEntity(ctx, userId, "flashcards", args.flashcardId, args.tagIds);
-  },
+	args: {
+		flashcardId: v.id('flashcards'),
+		tagIds: v.array(v.id('tags'))
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx);
+		return await assignTagsToEntity(ctx, userId, 'flashcards', args.flashcardId, args.tagIds);
+	}
 });
 ```
 
@@ -432,24 +443,27 @@ export const assignTagsToFlashcard = mutation({
 ```typescript
 // src/lib/composables/useTagging.svelte.ts
 export function useTagging(entityType: 'highlight' | 'flashcard') {
-  const state = $state({ isAssigning: false, error: null });
-  const convexClient = browser ? useConvexClient() : null;
-  
-  // Dynamic mutation reference: 'tags:assignTagsToHighlight', 'tags:assignTagsToFlashcard'
-  const mutation = browser ? 
-    makeFunctionReference(`tags:assignTagsTo${capitalize(entityType)}`) : null;
-  
-  async function assignTags(entityId: Id<any>, tagIds: Id<'tags'>[]) {
-    await convexClient.mutation(mutation, {
-      [`${entityType}Id`]: entityId,
-      tagIds,
-    });
-  }
-  
-  return {
-    get isAssigning() { return state.isAssigning; },
-    assignTags,
-  };
+	const state = $state({ isAssigning: false, error: null });
+	const convexClient = browser ? useConvexClient() : null;
+
+	// Dynamic mutation reference: 'tags:assignTagsToHighlight', 'tags:assignTagsToFlashcard'
+	const mutation = browser
+		? makeFunctionReference(`tags:assignTagsTo${capitalize(entityType)}`)
+		: null;
+
+	async function assignTags(entityId: Id<any>, tagIds: Id<'tags'>[]) {
+		await convexClient.mutation(mutation, {
+			[`${entityType}Id`]: entityId,
+			tagIds
+		});
+	}
+
+	return {
+		get isAssigning() {
+			return state.isAssigning;
+		},
+		assignTags
+	};
 }
 
 // Usage in any component
@@ -458,6 +472,7 @@ await tagging.assignTags(flashcardId, [tag1, tag2]);
 ```
 
 **Benefits**:
+
 - ✅ Type-safe mutations (Convex validators per entity)
 - ✅ ~70% code reduction (shared helper)
 - ✅ Easy to extend (~30 min per new entity)
@@ -465,6 +480,7 @@ await tagging.assignTags(flashcardId, [tag1, tag2]);
 - ✅ No breaking changes (existing code works)
 
 **Schema Requirements**:
+
 - Junction table per entity: `highlightTags`, `flashcardTags`
 - Index: `by_highlight`, `by_flashcard`, `by_tag`
 - Same structure: `{ entityId, tagId }`
@@ -496,8 +512,9 @@ await tagging.assignTags(flashcardId, [tag1, tag2]);
 **Related**: #L10 (Serializable values), #L240 (Type definitions)
 
 **Common Fields**:
+
 - `createdAt` - When the record was created
-- `updatedAt` - When the record was last modified  
+- `updatedAt` - When the record was last modified
 - Any custom timestamp field
 
 ---
@@ -524,19 +541,21 @@ git commit -m "fix: commit convex/_generated per Convex docs"
 ```json
 // vercel.json
 {
-  "buildCommand": "npm run build"  // ✅ JUST frontend - no convex deploy
+	"buildCommand": "npm run build" // ✅ JUST frontend - no convex deploy
 }
 ```
 
 **3. Convex: Deploy Separately via GitHub Integration**
 
 In [Convex Dashboard](https://dashboard.convex.dev):
+
 - Settings → GitHub Integration
 - Connect repo: `synergyai-os/Synergy-Open-Source`
 - Branch: `main`
 - Path: `convex/` (default)
 
 **Why This Works**:
+
 1. `_generated` files exist in git → Vite can import them → build succeeds ✅
 2. Convex deploys independently on push → no circular dependency ✅
 3. Separation of concerns → frontend build fast (~30s) ✅
@@ -558,26 +577,29 @@ PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com
 import adapter from '@sveltejs/adapter-vercel';
 
 export default {
-  kit: {
-    adapter: adapter(),
-    alias: {
-      $convex: './convex'  // ✅ Required for $convex/_generated imports
-    }
-  }
+	kit: {
+		adapter: adapter(),
+		alias: {
+			$convex: './convex' // ✅ Required for $convex/_generated imports
+		}
+	}
 };
 ```
 
 **Why Old Approach Failed**:
+
 - ❌ `npx convex codegen` → tries to bundle functions → imports `_generated` → doesn't exist → fail
 - ❌ `npx convex deploy` → same bundling issue → circular dependency
 - ❌ Adding `_generated` THEN deploying → timing issues, cache problems
 
 **Why New Approach Works**:
+
 - ✅ `_generated` in git → always present → no bundling chicken-and-egg
 - ✅ Convex deploys separately → dedicated environment → reliable
 - ✅ Vercel fast → no Convex CLI overhead → 30s builds
 
 **Migration Steps**:
+
 1. Locally: `npx convex codegen` to generate types
 2. Remove `convex/_generated` from `.gitignore`
 3. Commit `_generated` files to git
@@ -586,6 +608,7 @@ export default {
 6. Push to GitHub → watch both deploy independently!
 
 **Common Mistakes**:
+
 - ❌ Forgetting to commit `_generated` to git (build will fail)
 - ❌ Missing `$convex` alias in svelte.config.js (Rollup can't resolve)
 - ❌ Wrong `PUBLIC_CONVEX_URL` (using .site instead of .cloud)
@@ -595,7 +618,7 @@ export default {
 **Related**: #L50 (Runtime restrictions), #L140 (File system)
 **Source**: [Convex Best Practices](https://docs.convex.dev/understanding/best-practices/other-recommendations)
 
-## #L590: Type-Only Imports for _generated Files [🔴 CRITICAL]
+## #L590: Type-Only Imports for \_generated Files [🔴 CRITICAL]
 
 **Symptom**: Deployment fails with `Could not resolve "./_generated/dataModel"` during bundling  
 **Root Cause**: esbuild tries to resolve runtime imports during bundling, but `dataModel.js` doesn't exist (only `.d.ts` type definitions)  
@@ -607,17 +630,19 @@ import { Doc, Id } from './_generated/dataModel';
 
 // ✅ CORRECT - Type-only import (stripped during bundling)
 import type { Doc, Id } from './_generated/dataModel';
-import type { DataModel } from "./_generated/dataModel";
+import type { DataModel } from './_generated/dataModel';
 ```
 
 **Why This Works**:
+
 - Type-only imports are erased during transpilation
 - esbuild doesn't try to resolve them as runtime dependencies
 - No circular dependency during `npx convex deploy`
 
 **Common Files to Fix**:
+
 - `convex/auth.ts` - DataModel imports
-- `convex/featureFlags.ts` - Doc, Id imports  
+- `convex/featureFlags.ts` - Doc, Id imports
 - `convex/teams.ts` - Doc, Id imports
 - `convex/tags.ts` - Doc, Id imports
 - `convex/organizations.ts` - Doc, Id imports
@@ -653,21 +678,24 @@ npx convex deploy --yes
 ```
 
 **Debugging Steps**:
+
 1. Check `npx convex dev` terminal for compilation errors (not just warnings)
 2. Open Convex dashboard → Logs tab
 3. Click on failing query to see actual error (not summary)
 4. Look for `ArgumentValidationError` indicating schema mismatch
 5. Compare deployed schema vs local code
 
-**Why**: Convex can't parse conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`), silently skips deployment, continues serving old functions. Frontend sends new params, backend rejects them.  
+**Why**: Convex can't parse conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`), silently skips deployment, continues serving old functions. Frontend sends new params, backend rejects them.
 
 **Common Scenarios**:
+
 - Cherry-picking commits between branches
 - Merging branches with schema changes
 - Stashing/unstashing with conflicts
 - Multiple AI agents working in different branches
 
 **Prevention**:
+
 - Always check `npx convex dev` output after git operations
 - Use `git diff --check` before committing
 - Verify deployment success in Convex dashboard, not just terminal
@@ -684,54 +712,61 @@ npx convex deploy --yes
 **Root Cause**: Convex doesn't support raw JWT authentication - requires OpenID Connect (OIDC) provider with discovery endpoint
 
 **What We Tried** (Didn't Work):
+
 ```typescript
 // ❌ This approach doesn't work with Convex
-import { defineAuth } from "convex/server"; // defineAuth doesn't exist
+import { defineAuth } from 'convex/server'; // defineAuth doesn't exist
 export default {
-  providers: [{
-    domain: "https://www.synergyos.ai",
-    applicationID: "convex",
-  }]
+	providers: [
+		{
+			domain: 'https://www.synergyos.ai',
+			applicationID: 'convex'
+		}
+	]
 };
 ```
 
 **Why It Failed**:
+
 - Convex expects OIDC providers (Google, Auth0, WorkOS as OIDC)
 - Needs discovery endpoint: `https://domain/.well-known/openid-configuration`
 - Requires proper key rotation, token validation, etc.
 - Raw JWT signing isn't enough
 
 **Working Temporary Solution**:
+
 ```typescript
 // Backend: Accept userId as optional parameter
 export const myMutation = mutation({
-  args: {
-    // ... other args
-    userId: v.optional(v.id("users")), // TODO: Remove once OIDC set up
-  },
-  handler: async (ctx, args) => {
-    // Fallback pattern
-    const userId = args.userId ?? await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
-    // ... rest of logic
-  }
+	args: {
+		// ... other args
+		userId: v.optional(v.id('users')) // TODO: Remove once OIDC set up
+	},
+	handler: async (ctx, args) => {
+		// Fallback pattern
+		const userId = args.userId ?? (await getAuthUserId(ctx));
+		if (!userId) throw new Error('Not authenticated');
+		// ... rest of logic
+	}
 });
 
 // Frontend: Pass userId from HTTP-only cookie
 const userId = $page.data.user?.userId;
 await convexClient.mutation(api.myModule.myMutation, {
-  userId: userId as any,
-  // ... other args
+	userId: userId as any
+	// ... other args
 });
 ```
 
 **Why This Is Secure**:
+
 - ✅ WorkOS handles authentication (OAuth)
 - ✅ UserId stored in HTTP-only cookie (can't be tampered by JS)
 - ✅ RBAC permission checks happen server-side
 - ✅ Only routing/context info, not authentication proof
 
 **Future: Full OIDC Setup**:
+
 - Configure WorkOS as OIDC provider
 - Set up discovery endpoint
 - Use Convex's built-in OIDC validation
@@ -749,6 +784,7 @@ await convexClient.mutation(api.myModule.myMutation, {
 **Root Cause**: Stash reverted to a state where backend/frontend were out of sync
 
 **What Happened**:
+
 1. Working code: Frontend passes `userId`, backend accepts it ✅
 2. Attempted JWT auth implementation (failed - needs OIDC)
 3. Used `git stash` to revert changes
@@ -759,41 +795,45 @@ await convexClient.mutation(api.myModule.myMutation, {
    - Result: "Not authenticated" errors everywhere
 
 **Fix Pattern**:
+
 ```typescript
 // 1. Add userId parameter to backend mutations
 export const myMutation = mutation({
-  args: {
-    // ... existing args
-    userId: v.optional(v.id("users")), // Re-add this
-  },
-  handler: async (ctx, args) => {
-    // 2. Use fallback pattern
-    const userId = args.userId ?? await getAuthUserId(ctx);
-    if (!userId) throw new Error("Not authenticated");
-    // ... rest
-  }
+	args: {
+		// ... existing args
+		userId: v.optional(v.id('users')) // Re-add this
+	},
+	handler: async (ctx, args) => {
+		// 2. Use fallback pattern
+		const userId = args.userId ?? (await getAuthUserId(ctx));
+		if (!userId) throw new Error('Not authenticated');
+		// ... rest
+	}
 });
 
 // 3. Ensure frontend passes userId
 await convexClient.mutation(api.myModule.myMutation, {
-  userId: userId as any,
-  // ... other args
+	userId: userId as any
+	// ... other args
 });
 ```
 
 **Prevention**:
+
 - Before `git stash`, note exactly what working state you want to return to
 - After revert, check both backend args AND frontend calls are aligned
 - Test a mutation immediately after revert to verify auth works
 - Consider `git stash show -p` to preview what will be reverted
 
 **Why It's Subtle**:
+
 - Code compiles ✅ (TypeScript happy)
 - No linter errors ✅
 - Only fails at runtime when user triggers mutation
 - Error message says "Not authenticated" (misleading - it's about parameter passing)
 
 **Debugging Checklist**:
+
 1. Check backend mutation args: `userId: v.optional(v.id("users"))` present?
 2. Check handler: Uses `args.userId ?? await getAuthUserId(ctx)` pattern?
 3. Check frontend: Passes `userId` parameter?
@@ -810,6 +850,7 @@ await convexClient.mutation(api.myModule.myMutation, {
 **Root Cause**: AI code review tools catch architectural mismatches and logic errors that static analysis misses
 
 **What Happened** (RBAC Implementation):
+
 1. ✅ Code compiled successfully
 2. ✅ Manual testing worked
 3. ✅ CI passed (type errors temporarily disabled)
@@ -819,47 +860,51 @@ await convexClient.mutation(api.myModule.myMutation, {
    - **Silent Permission Failures**: Missing `resourceOwnerId` for "own" scope silently failed instead of denying
 
 **Why Static Analysis Missed It**:
+
 - TypeScript only checks types, not business logic
 - Tests didn't cover edge cases (Team Lead scenarios)
 - Manual testing used Admin role (always works)
 
 **Bugbot Value**:
+
 - ✅ Found architectural mismatches (old vs new role system)
 - ✅ Caught undefined behavior paths (silent failures)
 - ✅ Identified logic errors before production
 
 **Fix Pattern**:
+
 ```typescript
 // ❌ WRONG: Using legacy role field
-resourceOwnerId: membership?.role === "admin" ? userId : undefined
+resourceOwnerId: membership?.role === 'admin' ? userId : undefined;
 
 // ✅ CORRECT: RBAC handles scoping via teamId in userRoles table
 // Don't pass resourceOwnerId - RBAC checks teamId scope automatically
-await requirePermission(ctx, userId, "teams.update", {
-  organizationId: team.organizationId,
-  teamId: args.teamId,
-  resourceType: "team",
-  resourceId: args.teamId,
-  // Note: resourceOwnerId not used - RBAC handles scoping via teamId
+await requirePermission(ctx, userId, 'teams.update', {
+	organizationId: team.organizationId,
+	teamId: args.teamId,
+	resourceType: 'team',
+	resourceId: args.teamId
+	// Note: resourceOwnerId not used - RBAC handles scoping via teamId
 });
 
 // ✅ CORRECT: Handle "own" scope with team-scoped roles
-if (perm.scope === "own") {
-  // CASE 1: Team-scoped permission (Team Lead managing their team)
-  if (context?.teamId && !context.resourceOwnerId) {
-    // getUserPermissions already filtered to roles with matching teamId
-    return true; // User has team-scoped role for this team
-  }
-  // CASE 2: Resource ownership check
-  if (context?.resourceOwnerId) {
-    return context.resourceOwnerId === userId;
-  }
-  // CASE 3: No ownership info - deny explicitly
-  return false;
+if (perm.scope === 'own') {
+	// CASE 1: Team-scoped permission (Team Lead managing their team)
+	if (context?.teamId && !context.resourceOwnerId) {
+		// getUserPermissions already filtered to roles with matching teamId
+		return true; // User has team-scoped role for this team
+	}
+	// CASE 2: Resource ownership check
+	if (context?.resourceOwnerId) {
+		return context.resourceOwnerId === userId;
+	}
+	// CASE 3: No ownership info - deny explicitly
+	return false;
 }
 ```
 
 **Prevention**:
+
 - ✅ Enable automated code review (Bugbot, CodeQL, etc.)
 - ✅ Review Bugbot findings before merging
 - ✅ Test with different roles (not just Admin)
@@ -876,17 +921,20 @@ if (perm.scope === "own") {
 **Root Cause**: Convex has separate dev and production deployments, need explicit deploy key
 
 **What Happened**:
+
 1. ✅ Merged RBAC to `main` (production)
 2. ✅ Deployed with `npx convex deploy` → deployed to **dev** (`blissful-lynx-970`)
 3. ❌ Production (`prestigious-whale-251`) still empty
 4. ❌ User looking at production dashboard sees empty database
 
 **Why It Happened**:
+
 - `npx convex deploy` defaults to dev deployment
 - Production requires `CONVEX_DEPLOY_KEY_PROD` environment variable
 - No visual indication which deployment you're targeting
 
 **Fix Pattern**:
+
 ```bash
 # ❌ WRONG: Deploys to dev by default
 npx convex deploy
@@ -900,6 +948,7 @@ npx convex deploy --env-file .env.production --yes
 ```
 
 **Deployment Workflow**:
+
 ```bash
 # 1. Deploy functions to production
 CONVEX_DEPLOY_KEY="prod:prestigious-whale-251|..." npx convex deploy --yes
@@ -912,11 +961,13 @@ CONVEX_DEPLOY_KEY="prod:prestigious-whale-251|..." npx convex run rbac/setupAdmi
 ```
 
 **Verification**:
+
 - Check Convex dashboard URL: `prestigious-whale-251` = production
 - Verify deployment in dashboard → Logs tab
 - Check data exists in production tables
 
 **Prevention**:
+
 - Always check which deployment you're targeting
 - Use `CONVEX_DEPLOY_KEY_PROD` from `.env.local`
 - Verify in Convex dashboard after deployment
@@ -933,17 +984,20 @@ CONVEX_DEPLOY_KEY="prod:prestigious-whale-251|..." npx convex run rbac/setupAdmi
 **Root Cause**: Feature branches don't automatically update when main changes
 
 **What Happened**:
+
 1. ✅ Merged `feature/team-access-permissions` → `main`
 2. ✅ Deleted feature branch
 3. ⚠️ Other branches (`feature/ai-docs-system`, `feature/multi-workspace-auth`) still behind main
 4. ⚠️ Future merges will have conflicts
 
 **Why It Matters**:
+
 - Other branches missing RBAC foundation
 - Will cause merge conflicts when they're merged
 - Risk of losing work or breaking code
 
 **Fix Pattern**:
+
 ```bash
 # ✅ CORRECT: Update all feature branches before deleting merged branch
 
@@ -969,17 +1023,20 @@ git push origin --delete feature/team-access-permissions
 ```
 
 **Merge Strategy**:
+
 - `-X theirs`: Prefer main's version for conflicts (production code is source of truth)
 - `--no-edit`: Use default merge message
 - Verify branch's unique commits are preserved: `git log feature/branch ^main`
 
 **When to Update Branches**:
+
 - ✅ After merging major feature to main
 - ✅ Before deleting merged branch
 - ✅ Before starting new work on feature branch
 - ❌ Don't update if branch is abandoned/archived
 
 **Prevention**:
+
 - Update branches immediately after merge
 - Document branch cleanup in PR template
 - Use branch protection rules (require up-to-date)
@@ -993,4 +1050,3 @@ git push origin --delete feature/team-access-permissions
 **Pattern Count**: 19  
 **Last Validated**: 2025-11-10  
 **Context7 Source**: `/get-convex/convex-backend`, WorkOS OIDC docs
-

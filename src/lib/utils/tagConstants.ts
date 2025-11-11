@@ -1,6 +1,6 @@
 /**
  * Tag System Constants
- * 
+ *
  * Centralized constants for tag colors, validation, and configuration
  */
 
@@ -22,7 +22,7 @@ export const TAG_COLORS: TagColor[] = [
 	{ name: 'Yellow', hex: '#facc15' }, // yellow-400
 	{ name: 'Orange', hex: '#fb923c' }, // orange-400
 	{ name: 'Pink', hex: '#f472b6' }, // pink-400
-	{ name: 'Red', hex: '#f87171' }, // red-400
+	{ name: 'Red', hex: '#f87171' } // red-400
 ];
 
 /**
@@ -34,4 +34,3 @@ export const DEFAULT_TAG_COLOR = TAG_COLORS[0].hex;
  * Maximum length for tag names (in characters)
  */
 export const MAX_TAG_NAME_LENGTH = 50;
-

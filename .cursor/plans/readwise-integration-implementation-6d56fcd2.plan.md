@@ -1,4 +1,5 @@
 <!-- 6d56fcd2-6686-460a-bb6b-4a97f40a9ce5 a42dd591-9c1f-4efb-832e-943709e0f1f6 -->
+
 # Readwise Integration Implementation Plan
 
 ## Overview
@@ -74,7 +75,6 @@ Main sync function `syncReadwiseHighlights`:
 6. Create/assign tags from source tags
 7. Fetch all highlights (paginated)
 8. For each highlight:
-
    - Find or create source
    - Insert/update highlight in `highlights` table
    - Create inbox item in `inboxItems` table (type: `readwise_highlight`)
@@ -190,18 +190,18 @@ Actions:
 
 ```typescript
 inboxItems: defineTable(
-  v.union(
-    v.object({
-      type: v.literal("readwise_highlight"),
-      userId: v.id("users"),
-      processed: v.boolean(),
-      processedAt: v.optional(v.number()),
-      createdAt: v.number(),
-      highlightId: v.id("highlights"), // Link to highlights table
-    }),
-    // Future types: photo_note, manual_text, etc.
-  )
-)
+	v.union(
+		v.object({
+			type: v.literal('readwise_highlight'),
+			userId: v.id('users'),
+			processed: v.boolean(),
+			processedAt: v.optional(v.number()),
+			createdAt: v.number(),
+			highlightId: v.id('highlights') // Link to highlights table
+		})
+		// Future types: photo_note, manual_text, etc.
+	)
+);
 ```
 
 ### Sync Flow

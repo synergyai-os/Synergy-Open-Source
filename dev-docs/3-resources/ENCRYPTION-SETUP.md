@@ -25,6 +25,7 @@ npx convex env set API_KEY_ENCRYPTION_KEY <your-generated-key>
 Replace `<your-generated-key>` with the output from step 1.
 
 **Example**:
+
 ```bash
 npx convex env set API_KEY_ENCRYPTION_KEY a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2
 ```
@@ -67,7 +68,7 @@ You should see `API_KEY_ENCRYPTION_KEY` in the list.
 
 **Cause**: Existing keys in the database were stored before encryption was enabled.
 
-**Solution**: 
+**Solution**:
+
 1. Clear existing API keys from the database (via Convex dashboard or migration)
 2. Users will need to re-enter their API keys (they'll be encrypted on save)
-

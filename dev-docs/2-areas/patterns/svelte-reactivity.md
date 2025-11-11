@@ -8,27 +8,33 @@
 
 **Symptom**: `sync.showSyncConfig` doesn't trigger UI updates  
 **Root Cause**: Individual `$state` variables lose reactivity when returned from composables. Svelte 5 requires getter pattern for proper tracking.  
-**Fix**: 
+**Fix**:
 
 ```typescript
 // ❌ WRONG: Individual $state variables
 export function useInboxSync() {
-  let showSyncConfig = $state(false);
-  return { showSyncConfig }; // ❌ Reactivity lost
+	let showSyncConfig = $state(false);
+	return { showSyncConfig }; // ❌ Reactivity lost
 }
 
 // ✅ CORRECT: Single $state object + getters (Context7 validated)
 export function useInboxSync() {
-  const state = $state({
-    showSyncConfig: false,
-    isSyncing: false,
-  });
-  
-  return {
-    get showSyncConfig() { return state.showSyncConfig; },
-    get isSyncing() { return state.isSyncing; },
-    open: () => { state.showSyncConfig = true; },
-  };
+	const state = $state({
+		showSyncConfig: false,
+		isSyncing: false
+	});
+
+	return {
+		get showSyncConfig() {
+			return state.showSyncConfig;
+		},
+		get isSyncing() {
+			return state.isSyncing;
+		},
+		open: () => {
+			state.showSyncConfig = true;
+		}
+	};
 }
 ```
 
@@ -47,27 +53,27 @@ export function useInboxSync() {
 ```typescript
 // ❌ WRONG: Direct value capture
 export function useKeyboard(
-  items: InboxItem[],          // ❌ Captured at init
-  selectedId: string | null    // ❌ Never updates
+	items: InboxItem[], // ❌ Captured at init
+	selectedId: string | null // ❌ Never updates
 ) {
-  const current = items[0];    // Always stale
+	const current = items[0]; // Always stale
 }
 
 // ✅ CORRECT: Function parameters (Context7 validated)
 export function useKeyboard(
-  items: () => InboxItem[],           // ✅ Function
-  selectedId: () => string | null,    // ✅ Function
-  onSelect: (id: string) => void      // ✅ Callback
+	items: () => InboxItem[], // ✅ Function
+	selectedId: () => string | null, // ✅ Function
+	onSelect: (id: string) => void // ✅ Callback
 ) {
-  const currentItems = items();       // Get latest value
-  const current = currentItems[0];    // Always fresh
+	const currentItems = items(); // Get latest value
+	const current = currentItems[0]; // Always fresh
 }
 
 // Usage in component
 const keyboard = useKeyboard(
-  () => filteredItems,         // ✅ Arrow function
-  () => selected.id,           // ✅ Arrow function
-  (id) => selected.select(id)  // ✅ Callback
+	() => filteredItems, // ✅ Arrow function
+	() => selected.id, // ✅ Arrow function
+	(id) => selected.select(id) // ✅ Callback
 );
 ```
 
@@ -86,12 +92,12 @@ const keyboard = useKeyboard(
 ```svelte
 <!-- ❌ WRONG: Keys on ID that triggers load -->
 {#key selectedItemId}
-  <Detail item={selectedItem} />  <!-- ❌ selectedItem still old -->
+	<Detail item={selectedItem} /> <!-- ❌ selectedItem still old -->
 {/key}
 
 <!-- ✅ CORRECT: Keys on actual data (Context7 validated) -->
 {#key selectedItem._id}
-  <Detail item={selectedItem} />  <!-- ✅ Waits for data -->
+	<Detail item={selectedItem} /> <!-- ✅ Waits for data -->
 {/key}
 ```
 
@@ -131,7 +137,7 @@ src/lib/composables/useInboxSync.svelte.ts  // ✅ Svelte compiler processes
 // ❌ WRONG: Manual one-time query
 let items = $state<InboxItem[]>([]);
 const loadItems = async () => {
-  items = await convexClient.query(api.inbox.list, {});
+	items = await convexClient.query(api.inbox.list, {});
 };
 await sync();
 await loadItems(); // ❌ Manual refresh needed
@@ -140,8 +146,8 @@ await loadItems(); // ❌ Manual refresh needed
 import { useQuery } from 'convex-svelte';
 
 const query = useQuery(
-  api.inbox.list,
-  () => ({ processed: false })  // Reactive args
+	api.inbox.list,
+	() => ({ processed: false }) // Reactive args
 );
 
 const items = $derived(query?.data ?? []); // ✅ Auto-updates
@@ -162,30 +168,31 @@ const items = $derived(query?.data ?? []); // ✅ Auto-updates
 ```typescript
 // ❌ WRONG: Polling marks completion
 async function poll() {
-  const progress = await query(api.getSyncProgress, {});
-  if (!progress) {
-    updateActivity(id, { status: 'completed' }); // ❌ Too early!
-  }
+	const progress = await query(api.getSyncProgress, {});
+	if (!progress) {
+		updateActivity(id, { status: 'completed' }); // ❌ Too early!
+	}
 }
 
 // ✅ CORRECT: Polling updates progress only
 async function poll() {
-  const progress = await query(api.getSyncProgress, {});
-  if (progress) {
-    updateActivity(id, { status: 'running', progress }); // ✅ Updates only
-  }
-  // ✅ No completion logic here - action result handles it
+	const progress = await query(api.getSyncProgress, {});
+	if (progress) {
+		updateActivity(id, { status: 'running', progress }); // ✅ Updates only
+	}
+	// ✅ No completion logic here - action result handles it
 }
 
 async function handleSync() {
-  const interval = setInterval(poll, 500);
-  const result = await action(api.sync, {});
-  clearInterval(interval);          // ✅ Stop polling first
-  await poll();                     // ✅ Final update
-  updateActivity(id, {              // ✅ Single completion source
-    status: 'completed',
-    progress: { message: `Done: ${result.count}` }
-  });
+	const interval = setInterval(poll, 500);
+	const result = await action(api.sync, {});
+	clearInterval(interval); // ✅ Stop polling first
+	await poll(); // ✅ Final update
+	updateActivity(id, {
+		// ✅ Single completion source
+		status: 'completed',
+		progress: { message: `Done: ${result.count}` }
+	});
 }
 ```
 
@@ -204,29 +211,29 @@ async function handleSync() {
 ```typescript
 // ❌ WRONG: No tracking, creates duplicates
 export function setupAutoDismiss() {
-  for (const activity of state.activities) {
-    if (activity.status === 'completed') {
-      setTimeout(() => remove(activity.id), 5000); // ❌ Called every $effect run
-    }
-  }
+	for (const activity of state.activities) {
+		if (activity.status === 'completed') {
+			setTimeout(() => remove(activity.id), 5000); // ❌ Called every $effect run
+		}
+	}
 }
 
 // ✅ CORRECT: Track with Set (Context7 validated)
 interface ActivityState {
-  activities: Activity[];
-  dismissTimers: Set<string>; // ✅ Track which have timers
+	activities: Activity[];
+	dismissTimers: Set<string>; // ✅ Track which have timers
 }
 
 export function setupAutoDismiss() {
-  for (const activity of state.activities) {
-    if (activity.status === 'completed' && !state.dismissTimers.has(activity.id)) {
-      state.dismissTimers.add(activity.id); // ✅ Mark as having timer
-      setTimeout(() => {
-        state.dismissTimers.delete(activity.id); // ✅ Clean up
-        remove(activity.id);
-      }, 5000);
-    }
-  }
+	for (const activity of state.activities) {
+		if (activity.status === 'completed' && !state.dismissTimers.has(activity.id)) {
+			state.dismissTimers.add(activity.id); // ✅ Mark as having timer
+			setTimeout(() => {
+				state.dismissTimers.delete(activity.id); // ✅ Clean up
+				remove(activity.id);
+			}, 5000);
+		}
+	}
 }
 ```
 
@@ -245,11 +252,11 @@ export function setupAutoDismiss() {
 ```typescript
 // ❌ WRONG: Redundant defaults
 const items = $derived(query?.data ?? []); // ✅ Already defaults to []
-const filtered = $derived(items || []);     // ❌ Redundant
+const filtered = $derived(items || []); // ❌ Redundant
 
 // ✅ CORRECT: Trust upstream defaults (Context7 validated)
-const items = $derived(query?.data ?? []);  // ✅ Defaults to []
-const filtered = $derived(items);           // ✅ No redundant check
+const items = $derived(query?.data ?? []); // ✅ Defaults to []
+const filtered = $derived(items); // ✅ No redundant check
 ```
 
 **Why**: `$derived` values are always defined when upstream handles defaults.  
@@ -269,7 +276,7 @@ const filtered = $derived(items);           // ✅ No redundant check
 <script>
   let count = $state(0);
   let doubled = $state(0);
-  
+
   $effect(() => {
     doubled = count * 2; // ❌ Should use $derived
   });
@@ -279,7 +286,7 @@ const filtered = $derived(items);           // ✅ No redundant check
 <script>
   let count = $state(0);
   let doubled = $derived(count * 2); // ✅ Computed value
-  
+
   $effect(() => {
     // ✅ Side effects only (logging, API calls, cleanup)
     console.log('Count changed:', count);
@@ -297,7 +304,7 @@ const filtered = $derived(items);           // ✅ No redundant check
 
 **Symptom**: 500 Server Error, "ReferenceError: window is not defined" during SSR  
 **Root Cause**: Browser-only libraries (ProseMirror, Monaco, Chart.js) execute on server  
-**Fix**: 
+**Fix**:
 
 ```svelte
 // ❌ WRONG - Imports execute during SSR
@@ -324,16 +331,19 @@ const filtered = $derived(items);           // ✅ No redundant check
 ```
 
 **Apply when**:
+
 - Using browser-only libraries (ProseMirror, Monaco Editor, Chart.js, PDF.js)
 - Component uses `window`, `document`, or browser APIs
 - Linter shows "ReferenceError: X is not defined" during build
 
 **Why it breaks**:
+
 - SvelteKit runs components on server first (SSR)
 - Import statements execute immediately (top-level code)
 - ProseMirror/Monaco try to access `window` → server crash
 
 **SSR-Safe Pattern**:
+
 1. Use `type` imports for browser-only types: `import type { X } from 'lib'`
 2. Wrap component in `{#if browser}` block
 3. Provide SSR placeholder for better UX
@@ -347,7 +357,7 @@ const filtered = $derived(items);           // ✅ No redundant check
 
 **Symptom**: "The $ prefix is reserved" error with ProseMirror selection  
 **Root Cause**: ProseMirror uses `$from`/`$to` properties, Svelte 5 reserves `$` for runes  
-**Fix**: 
+**Fix**:
 
 ```typescript
 // ❌ WRONG - $ prefix conflicts with Svelte 5 runes
@@ -360,11 +370,13 @@ editorState.doc.nodesBetween(from.pos, to, callback);
 ```
 
 **Apply when**:
+
 - Using ProseMirror with Svelte 5
 - Error: "The $ prefix is reserved, and cannot be used for variables and imports"
 - Accessing `$from`, `$to`, `$cursor`, `$anchor`, or `$head` from selection
 
 **ProseMirror Properties to Rename**:
+
 - `$from` → `from`
 - `$to` → `to`
 - `$cursor` → `cursor`
@@ -379,38 +391,41 @@ editorState.doc.nodesBetween(from.pos, to, callback);
 
 **Symptom**: Event listeners not working, keyboard shortcuts don't fire, no errors  
 **Root Cause**: Module-level `if (browser)` prevents `$effect` from being defined during SSR  
-**Fix**: 
+**Fix**:
 
 ```typescript
 // ❌ WRONG - Module-level if check prevents $effect registration
 if (browser) {
-  $effect(() => {
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  });
+	$effect(() => {
+		document.addEventListener('keydown', handleKeyDown);
+		return () => document.removeEventListener('keydown', handleKeyDown);
+	});
 }
 
 // ✅ CORRECT - Browser check inside $effect
 $effect(() => {
-  if (!browser) return;
-  
-  document.addEventListener('keydown', handleKeyDown);
-  return () => document.removeEventListener('keydown', handleKeyDown);
+	if (!browser) return;
+
+	document.addEventListener('keydown', handleKeyDown);
+	return () => document.removeEventListener('keydown', handleKeyDown);
 });
 ```
 
 **Apply when**:
+
 - Composables setting up event listeners
 - $effect needs browser APIs (window, document, localStorage)
 - Event listeners mysteriously not firing
 
 **Why it breaks**:
+
 - `.svelte.ts` files evaluated during SSR where `browser = false`
 - Module-level `if (browser)` block skipped entirely
 - `$effect` never defined → never runs on client
 - Client hydration doesn't re-evaluate module → effect stays undefined
 
 **Correct Pattern**:
+
 1. Always define `$effect` unconditionally
 2. Put browser check INSIDE the effect: `if (!browser) return;`
 3. `$effect` only runs in browser anyway, but must be defined
@@ -424,7 +439,7 @@ $effect(() => {
 
 **Symptom**: Build fails with "ENOENT: no such file or directory" referencing non-existent files, dev server won't start  
 **Root Cause**: SvelteKit config references files/libraries that don't exist. Vite's dependency optimizer fails during preprocessing, crashing entire build.  
-**Fix**: 
+**Fix**:
 
 ```javascript
 // ❌ WRONG - Config references non-existent files
@@ -464,18 +479,21 @@ const config = {
 ```
 
 **Apply when**:
+
 - Build fails with "ENOENT" or "Error during dependency optimization"
 - Error mentions preprocessing or file not found
 - Library is installed but files it references don't exist
 - Added library for future feature but not using it yet
 
 **Why it breaks**:
+
 - SvelteKit config runs during build initialization
 - Preprocessors (mdsvex, etc.) execute during Vite's dependency optimization
 - Referenced files must exist even if not actively used
 - Build crashes before dev server can start
 
 **Resolution Steps**:
+
 1. Identify the library causing the error from stack trace
 2. Check if you're actually using it (search for markdown files, etc.)
 3. If not in use: Remove from `svelte.config.js`, `package.json`, delete config file
@@ -490,7 +508,7 @@ const config = {
 
 **Symptom**: Server crashes on startup, "Cannot use 'import.meta' outside a module", 500 errors on all routes  
 **Root Cause**: Node.js config files (mdsvex.config.js, etc.) can't use top-level await. Module loads before async resolution completes.  
-**Fix**: 
+**Fix**:
 
 ```javascript
 // ❌ WRONG - Top-level await breaks config loading
@@ -530,18 +548,21 @@ export default defineConfig({
 ```
 
 **Apply when**:
+
 - Config files need async initialization (highlighters, plugins, external data)
 - Build crashes with module/import errors
 - 500 errors on all routes immediately after adding config
 - Using libraries that require async setup (Shiki, database connections, etc.)
 
 **Why it breaks**:
+
 - Config files load during Node.js require() phase (synchronous)
 - Top-level await only works in ES modules with proper setup
 - SvelteKit/Vite config loading doesn't support top-level await
 - Server crashes before any routes can load
 
 **Correct Pattern**:
+
 1. Create lazy initializer function
 2. Cache promise to avoid multiple initializations
 3. Call async function inside actual usage (highlighter callback)
@@ -564,11 +585,11 @@ import { onMount } from 'svelte';
 let headings = $state<Heading[]>([]);
 
 onMount(() => {
-  const elements = document.querySelectorAll('h1, h2, h3');
-  headings = Array.from(elements).map(el => ({
-    id: el.id,
-    text: el.textContent || ''
-  }));
+	const elements = document.querySelectorAll('h1, h2, h3');
+	headings = Array.from(elements).map((el) => ({
+		id: el.id,
+		text: el.textContent || ''
+	}));
 });
 
 // ✅ CORRECT - Re-extracts on every route change
@@ -578,35 +599,38 @@ import { page } from '$app/stores';
 let headings = $state<Heading[]>([]);
 
 $effect(() => {
-  if (!browser) return;
-  
-  // Access pathname to track route changes
-  $page.url.pathname;
-  
-  // Use setTimeout to ensure DOM has updated
-  setTimeout(() => {
-    const elements = document.querySelectorAll('h1, h2, h3');
-    headings = Array.from(elements).map(el => ({
-      id: el.id,
-      text: el.textContent || ''
-    }));
-  }, 50);
+	if (!browser) return;
+
+	// Access pathname to track route changes
+	$page.url.pathname;
+
+	// Use setTimeout to ensure DOM has updated
+	setTimeout(() => {
+		const elements = document.querySelectorAll('h1, h2, h3');
+		headings = Array.from(elements).map((el) => ({
+			id: el.id,
+			text: el.textContent || ''
+		}));
+	}, 50);
 });
 ```
 
 **Apply when**:
+
 - Component needs to react to route changes (navigation, TOC, breadcrumbs)
 - Extracting data from DOM that changes per page
 - Updating component state based on current URL/path
 - Building layout components that wrap dynamic content
 
 **Why it works**:
+
 - `$effect()` re-runs when dependencies change
 - Accessing `$page.url.pathname` makes it a dependency
 - SvelteKit updates `$page` store on navigation
 - `setTimeout` ensures DOM has updated with new content before extraction
 
 **Correct Pattern**:
+
 1. Use `$effect()` instead of `onMount()` for route-reactive logic
 2. Import and access `$page.url.pathname` to create dependency
 3. Add browser check to prevent SSR errors
@@ -629,65 +653,69 @@ let lastPath = $state<string | null>(null);
 let isProcessing = $state(false);
 
 $effect(() => {
-  const currentPath = $page.url.pathname;
-  
-  // Reading $state variables creates reactive dependencies
-  if (lastPath === currentPath) return;  // ← Reads $state
-  
-  lastPath = currentPath;  // ← Writes $state → triggers re-run → LOOP!
-  isProcessing = true;     // ← Writes $state → triggers re-run → LOOP!
-  
-  // ... do work
+	const currentPath = $page.url.pathname;
+
+	// Reading $state variables creates reactive dependencies
+	if (lastPath === currentPath) return; // ← Reads $state
+
+	lastPath = currentPath; // ← Writes $state → triggers re-run → LOOP!
+	isProcessing = true; // ← Writes $state → triggers re-run → LOOP!
+
+	// ... do work
 });
 
 // ✅ CORRECT - Use untrack() for non-reactive state, or plain variables
 import { untrack } from 'svelte';
 
-let lastPath: string | null = null;  // Plain variable (not $state)
-let isProcessing = false;            // Plain variable (not $state)
+let lastPath: string | null = null; // Plain variable (not $state)
+let isProcessing = false; // Plain variable (not $state)
 
 $effect(() => {
-  const currentPath = $page.url.pathname;
-  
-  // Untracked reads don't create reactive dependencies
-  const shouldSkip = untrack(() => lastPath === currentPath);
-  if (shouldSkip) return;
-  
-  // Untracked writes don't trigger re-runs
-  untrack(() => {
-    lastPath = currentPath;
-    isProcessing = true;
-  });
-  
-  // ... do work
-  
-  return () => {
-    untrack(() => {
-      isProcessing = false;
-    });
-  };
+	const currentPath = $page.url.pathname;
+
+	// Untracked reads don't create reactive dependencies
+	const shouldSkip = untrack(() => lastPath === currentPath);
+	if (shouldSkip) return;
+
+	// Untracked writes don't trigger re-runs
+	untrack(() => {
+		lastPath = currentPath;
+		isProcessing = true;
+	});
+
+	// ... do work
+
+	return () => {
+		untrack(() => {
+			isProcessing = false;
+		});
+	};
 });
 ```
 
 **Apply when**:
+
 - $effect needs to track state variables but not trigger on their changes
 - Implementing debouncing, throttling, or tracking "previous" values
 - Managing flags like `isLoading`, `hasInitialized`, `lastValue`
 - Error: `effect_update_depth_exceeded` appears in console
 
 **Why it breaks**:
+
 - Svelte 5 $effect automatically tracks all `$state` reads as dependencies
 - Any write to a tracked `$state` triggers the effect to re-run
 - Reading + writing same $state = instant infinite loop
 - Browser freezes trying to resolve infinite reactive updates
 
 **Correct Pattern**:
+
 1. **Option A**: Use plain variables (not `$state`) for tracking state that shouldn't trigger reactivity
 2. **Option B**: Wrap reads in `untrack(() => variable)` to prevent dependency tracking
 3. **Option C**: Wrap writes in `untrack(() => { variable = value })` to prevent re-triggers
 4. Only use `$state` for values that should cause UI updates when changed
 
 **When to use each option**:
+
 - **Plain variables**: Best for internal tracking (lastValue, counters, flags)
 - **untrack() reads**: When you need `$state` benefits but conditional skipping
 - **untrack() writes**: When updating `$state` shouldn't re-trigger the effect
@@ -700,4 +728,3 @@ $effect(() => {
 **Pattern Count**: 15  
 **Last Validated**: 2025-11-08  
 **Context7 Source**: `/sveltejs/svelte`, `@sveltejs/kit`
-

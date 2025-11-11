@@ -1,1 +1,15 @@
-aside.svelte-129hoe0{position:relative}aside.svelte-129hoe0:hover{z-index:40}aside.fixed.svelte-129hoe0{top:0;left:0;bottom:0;height:100vh}.fixed.bottom-4.right-4{z-index:9999}
+aside.svelte-129hoe0 {
+	position: relative;
+}
+aside.svelte-129hoe0:hover {
+	z-index: 40;
+}
+aside.fixed.svelte-129hoe0 {
+	top: 0;
+	left: 0;
+	bottom: 0;
+	height: 100vh;
+}
+.fixed.bottom-4.right-4 {
+	z-index: 9999;
+}

@@ -38,32 +38,32 @@
 <button
 	type="button"
 	onclick={onClick}
-	class="w-full text-left bg-elevated rounded-md border border-base hover:border-elevated hover:shadow-md transition-all duration-150 cursor-pointer overflow-hidden"
+	class="w-full cursor-pointer overflow-hidden rounded-md border border-base bg-elevated text-left transition-all duration-150 hover:border-elevated hover:shadow-md"
 >
 	<!-- Optional Image Placeholder (for future) -->
 	<!-- Could add imageUrl here if available -->
 
 	<div class="p-6">
 		<!-- Title -->
-		<h3 class="text-lg font-semibold text-primary mb-2 line-clamp-2 leading-tight">
+		<h3 class="mb-2 line-clamp-2 text-lg leading-tight font-semibold text-primary">
 			{item.title}
 		</h3>
 
 		<!-- Snippet/Excerpt -->
-		<p class="text-sm text-secondary mb-3 line-clamp-3 leading-relaxed">
+		<p class="mb-3 line-clamp-3 text-sm leading-relaxed text-secondary">
 			{item.snippet}
 		</p>
 
 		<!-- Source/Domain -->
 		{#if domain}
-			<p class="text-xs text-tertiary mb-3">{domain}</p>
+			<p class="mb-3 text-xs text-tertiary">{domain}</p>
 		{/if}
 
 		<!-- Tags -->
 		{#if item.tags && item.tags.length > 0}
-			<div class="flex flex-wrap gap-1 mb-3">
+			<div class="mb-3 flex flex-wrap gap-1">
 				{#each item.tags.slice(0, 3) as tag}
-					<span class="bg-tag text-tag text-label px-badge py-badge rounded">
+					<span class="rounded bg-tag px-badge py-badge text-label text-tag">
 						{tag}
 					</span>
 				{/each}
@@ -74,4 +74,3 @@
 		<p class="text-xs text-tertiary">{formatDate(item.createdAt)}</p>
 	</div>
 </button>
-

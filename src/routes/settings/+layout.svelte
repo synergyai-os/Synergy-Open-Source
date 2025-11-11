@@ -17,7 +17,7 @@
 </script>
 
 {#if data.isAuthenticated}
-	<div class="h-screen flex overflow-hidden">
+	<div class="flex h-screen overflow-hidden">
 		<!-- Settings Sidebar - Fixed, no collapse/resize -->
 		<SettingsSidebar {isMobile} />
 
@@ -27,4 +27,3 @@
 		</div>
 	</div>
 {/if}
-

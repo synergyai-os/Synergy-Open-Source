@@ -1,14 +1,14 @@
 /**
  * Feature Flag System
- * 
+ *
  * Central registry for all feature flags in the application.
  * Use these constants instead of hard-coded strings to ensure type safety.
- * 
+ *
  * Naming Convention: <AREA>_<FEATURE>_<STATUS>
  * - AREA: notes, inbox, sync, etc.
  * - FEATURE: What it does
  * - STATUS: beta, dev, rollout, etc.
- * 
+ *
  * @example
  * ```typescript
  * import { FeatureFlags } from '$lib/featureFlags';
@@ -33,7 +33,7 @@ export const FeatureFlags = {
 	 * Example: Readwise sync v2 with improved error handling
 	 * Status: Not yet implemented
 	 */
-	SYNC_READWISE_V2_ROLLOUT: 'sync_readwise_v2_rollout',
+	SYNC_READWISE_V2_ROLLOUT: 'sync_readwise_v2_rollout'
 } as const;
 
 /**
@@ -78,16 +78,16 @@ export interface FeatureFlagRule {
 /**
  * Client-side feature flag hook
  * Use this in Svelte components to check flags
- * 
+ *
  * @example
  * ```svelte
  * <script lang="ts">
  *   import { useFeatureFlag } from '$lib/featureFlags';
  *   import { FeatureFlags } from '$lib/featureFlags';
- *   
+ *
  *   const showNewEditor = useFeatureFlag(FeatureFlags.NOTES_PROSEMIRROR_BETA);
  * </script>
- * 
+ *
  * {#if $showNewEditor}
  *   <NewEditor />
  * {:else}
@@ -110,7 +110,7 @@ export function useFeatureFlag(flag: FeatureFlagKey) {
 /**
  * Hash function for consistent percentage-based rollouts
  * Same user + same flag = same result every time
- * 
+ *
  * @param userId - User identifier
  * @param flag - Feature flag name
  * @returns Number between 0 and 99 (for percentage comparison)
@@ -118,19 +118,19 @@ export function useFeatureFlag(flag: FeatureFlagKey) {
 export function getUserRolloutBucket(userId: string, flag: string): number {
 	let hash = 0;
 	const str = `${userId}:${flag}`;
-	
+
 	for (let i = 0; i < str.length; i++) {
 		const char = str.charCodeAt(i);
 		hash = (hash << 5) - hash + char;
 		hash = hash & hash; // Convert to 32-bit integer
 	}
-	
+
 	return Math.abs(hash) % 100;
 }
 
 /**
  * Check if user is in rollout percentage
- * 
+ *
  * @example
  * ```typescript
  * // User will consistently be in or out based on their ID
@@ -140,14 +140,14 @@ export function getUserRolloutBucket(userId: string, flag: string): number {
 export function isInRollout(userId: string, flag: string, percentage: number): boolean {
 	if (percentage >= 100) return true;
 	if (percentage <= 0) return false;
-	
+
 	const bucket = getUserRolloutBucket(userId, flag);
 	return bucket < percentage;
 }
 
 /**
  * Check if email matches allowed domains
- * 
+ *
  * @example
  * ```typescript
  * isAllowedDomain('user@acme.com', ['@acme.com']) // true
@@ -155,6 +155,5 @@ export function isInRollout(userId: string, flag: string, percentage: number): b
  * ```
  */
 export function isAllowedDomain(email: string, allowedDomains: string[]): boolean {
-	return allowedDomains.some(domain => email.endsWith(domain));
+	return allowedDomains.some((domain) => email.endsWith(domain));
 }
-

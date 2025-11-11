@@ -9,6 +9,7 @@
 **Goal**: Make all relative markdown links directory-aware so they resolve correctly.
 
 ### Acceptance Criteria
+
 - [ ] Links in `/dev-docs/2-areas/README.md` work correctly
 - [ ] Subdirectory links work (e.g., `patterns/INDEX.md`)
 - [ ] Parent directory links work (e.g., `../../architecture.md`)
@@ -21,42 +22,44 @@
 **File**: `src/routes/dev-docs/[...path]/+page.svelte`
 
 **Current Code**:
+
 ```typescript
-renderer.link = function({ href, text, title }: any) {
-  if (href && !href.startsWith('http') && !href.startsWith('/')) {
-    if (href.includes('.md')) {
-      const [path, hash] = href.split('#');
-      const cleanPath = path.replace(/\.md$/, '');
-      const cleanHash = hash ? `#${hash.toLowerCase()}` : '';
-      href = `${cleanPath}${cleanHash}`;
-    }
-  }
-  // ... build link HTML
+renderer.link = function ({ href, text, title }: any) {
+	if (href && !href.startsWith('http') && !href.startsWith('/')) {
+		if (href.includes('.md')) {
+			const [path, hash] = href.split('#');
+			const cleanPath = path.replace(/\.md$/, '');
+			const cleanHash = hash ? `#${hash.toLowerCase()}` : '';
+			href = `${cleanPath}${cleanHash}`;
+		}
+	}
+	// ... build link HTML
 };
 ```
 
 **New Code**:
+
 ```typescript
-renderer.link = function({ href, text, title }: any) {
-  if (href && !href.startsWith('http') && !href.startsWith('/')) {
-    if (href.includes('.md')) {
-      const [path, hash] = href.split('#');
-      const cleanPath = path.replace(/\.md$/, '');
-      const cleanHash = hash ? `#${hash.toLowerCase()}` : '';
-      
-      // Make relative links explicit for browser resolution
-      const finalPath = cleanPath.startsWith('./') || cleanPath.startsWith('../') 
-        ? cleanPath 
-        : './' + cleanPath;
-      
-      href = `${finalPath}${cleanHash}`;
-    }
-  }
-  // ... build link HTML
+renderer.link = function ({ href, text, title }: any) {
+	if (href && !href.startsWith('http') && !href.startsWith('/')) {
+		if (href.includes('.md')) {
+			const [path, hash] = href.split('#');
+			const cleanPath = path.replace(/\.md$/, '');
+			const cleanHash = hash ? `#${hash.toLowerCase()}` : '';
+
+			// Make relative links explicit for browser resolution
+			const finalPath =
+				cleanPath.startsWith('./') || cleanPath.startsWith('../') ? cleanPath : './' + cleanPath;
+
+			href = `${finalPath}${cleanHash}`;
+		}
+	}
+	// ... build link HTML
 };
 ```
 
 ### Test Plan
+
 1. Navigate to `/dev-docs/2-areas`
 2. Click "Product Vision & Plan" → should go to `/dev-docs/2-areas/product-vision-and-plan`
 3. Click "Pattern Index" → should go to `/dev-docs/2-areas/patterns/INDEX`
@@ -65,6 +68,7 @@ renderer.link = function({ href, text, title }: any) {
 6. Click parent link (`../../architecture.md`) → should work
 
 ### Expected Result
+
 All 20+ links in `/dev-docs/2-areas/README.md` work without 404 errors.
 
 ---
@@ -74,6 +78,7 @@ All 20+ links in `/dev-docs/2-areas/README.md` work without 404 errors.
 **Goal**: Strip "N-" prefix from all UI displays while keeping folder structure.
 
 ### Acceptance Criteria
+
 - [ ] Breadcrumbs show "projects" not "1-projects"
 - [ ] Page titles show "Areas" not "2-areas"
 - [ ] Navigation menu shows clean names
@@ -85,30 +90,34 @@ All 20+ links in `/dev-docs/2-areas/README.md` work without 404 errors.
 **File**: `src/routes/dev-docs/[...path]/+page.svelte`
 
 **Add utility function**:
+
 ```typescript
 function cleanParaName(name: string): string {
-  return name.replace(/^\d+-/, '');
+	return name.replace(/^\d+-/, '');
 }
 ```
 
 **Update displays**:
+
 ```typescript
 // Breadcrumbs
-const breadcrumbs = path.split('/').map(segment => cleanParaName(segment));
+const breadcrumbs = path.split('/').map((segment) => cleanParaName(segment));
 
 // Page title
 const pageTitle = cleanParaName(lastSegment);
 
 // Folder listings
-folders.map(f => ({ ...f, displayName: cleanParaName(f.name) }))
+folders.map((f) => ({ ...f, displayName: cleanParaName(f.name) }));
 ```
 
 **Files to Update**:
+
 - `src/routes/dev-docs/[...path]/+page.svelte` - Main doc renderer
 - Breadcrumb component (if separate)
 - Navigation menu (if shows folder names)
 
 ### Test Plan
+
 1. Navigate to `/dev-docs/1-projects`
 2. Check breadcrumb shows "Documentation / Projects" (not "1 Projects")
 3. Check page title shows "Projects" (not "1-projects")
@@ -117,6 +126,7 @@ folders.map(f => ({ ...f, displayName: cleanParaName(f.name) }))
 6. Verify URLs still work with "1-projects" in path
 
 ### Expected Result
+
 No "1-", "2-", "3-", "4-" visible anywhere in UI, but paths still work.
 
 ---
@@ -126,6 +136,7 @@ No "1-", "2-", "3-", "4-" visible anywhere in UI, but paths still work.
 **Goal**: Automated validation of all markdown links on every commit.
 
 ### Acceptance Criteria
+
 - [ ] GitHub Action runs on every push
 - [ ] Checks all `.md` files in `dev-docs/`
 - [ ] Validates internal links (not external)
@@ -153,10 +164,10 @@ on:
 jobs:
   check-links:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Check Markdown Links
         uses: gaurav-nelson/github-action-markdown-link-check@v1
         with:
@@ -170,22 +181,23 @@ jobs:
 
 ```json
 {
-  "ignorePatterns": [
-    {
-      "pattern": "^http"
-    }
-  ],
-  "replacementPatterns": [
-    {
-      "pattern": "\\.md$",
-      "replacement": ""
-    }
-  ],
-  "aliveStatusCodes": [200, 206]
+	"ignorePatterns": [
+		{
+			"pattern": "^http"
+		}
+	],
+	"replacementPatterns": [
+		{
+			"pattern": "\\.md$",
+			"replacement": ""
+		}
+	],
+	"aliveStatusCodes": [200, 206]
 }
 ```
 
 ### Test Plan
+
 1. Create intentionally broken link in test doc
 2. Commit and push to branch
 3. Verify GitHub Action runs
@@ -195,6 +207,7 @@ jobs:
 7. Test with various link types (relative, parent, subdirs)
 
 ### Expected Result
+
 - Broken links caught immediately
 - Clear error messages showing which files/links
 - Build only passes when all links valid
@@ -226,14 +239,15 @@ After all slices complete:
 ## Success Metrics
 
 **Before**:
+
 - ~20+ broken links in `/dev-docs/2-areas`
 - Manual link checking required
 - PARA numbers visible everywhere
 
 **After**:
+
 - 0 broken links
 - Automated link validation
 - Clean UI (no PARA numbers visible)
 
 **Validation**: Randy clicks through docs and confirms all links work.
-

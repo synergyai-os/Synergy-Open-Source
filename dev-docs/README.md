@@ -11,6 +11,7 @@
 ### What's Working Now
 
 **Knowledge Foundation** (Built & Tested ✅):
+
 - **Rich Notes** - ProseMirror editor with AI content detection, markdown export for blog
 - **Flashcard Creation** - AI-powered flashcard generation from highlights/notes (Claude API)
 - **Universal Inbox** - Collect and organize content from any source (Readwise integration ready)
@@ -19,6 +20,7 @@
 ### What We're Building (Join Us 🚀)
 
 **The Full Product OS** - Help us build it:
+
 - **Product Discovery** - User research, opportunity trees, continuous discovery
 - **Product Delivery** - OKRs, roadmaps, goal tracking, sprint planning
 - **Team Collaboration** - Meetings, alignment, automated status reports
@@ -42,42 +44,48 @@
 ## 🎯 Pick Your Path
 
 ### 🐛 I'm Debugging (Engineer)
+
 **→ [Pattern Index](2-areas/patterns/INDEX)** - Symptom → Solution in < 2 min
 
 ### 🎨 I'm Designing (Designer)
+
 **→ [Design Principles](2-areas/design-principles.md)** - Visual philosophy, accessibility, UX ⭐  
 **→ [Component Architecture](2-areas/component-architecture)** - Tokens → Utilities → Patterns → Components  
 **→ [Design Tokens](2-areas/design-tokens)** - Spacing, colors, typography ✅  
-**→ [Component Library](2-areas/component-library)** *(Coming Soon)*
+**→ [Component Library](2-areas/component-library)** _(Coming Soon)_
 
 ### 📊 I'm Planning (Product Manager)
+
 **→ [Product Principles](2-areas/product-principles.md)** - How we make decisions ⭐  
 **→ [Product Vision 2.0](../marketing-docs/strategy/product-vision-2.0.md)** - What we're building  
 **→ [Metrics & Outcomes](2-areas/metrics)** - Public dashboard (revenue, OKRs, AARRR) 💰  
 **→ [Product Strategy](../marketing-docs/strategy/product-strategy.md)** - Outcome-driven roadmap  
-**→ [User Journeys](2-areas/user-journeys)** *(Coming Soon)*
+**→ [User Journeys](2-areas/user-journeys)** _(Coming Soon)_
 
 ### 🏗️ I'm Building (All Roles)
+
 **→ [Architecture](2-areas/architecture.md)** - System overview + tech stack ✅
+**→ [Git Workflow](2-areas/git-workflow.md)** - Git, GitHub, Vercel, IDE guide ⚡ **NEW**
 **→ [Trunk-Based Deployment](3-resources/trunk-based-deployment-implementation-summary.md)** - Ship to production constantly ⚡
-**→ [Navigation Philosophy](2-areas/navigation-philosophy.md)** - UX psychology + 10-item nav strategy 🧠 **NEW**
-**→ [Data Models](2-areas/data-models)** *(Coming Soon)*
+**→ [Navigation Philosophy](2-areas/navigation-philosophy.md)** - UX psychology + 10-item nav strategy 🧠
+**→ [Data Models](2-areas/data-models)** _(Coming Soon)_
 
 ---
 
 ## ⚡ Quick Wins
 
-| I need to... | Go here | Time |
-|-------------|---------|------|
-| Browse all docs | [📚 All Docs Hub](/dev-docs/all) - Visual directory | 1 min |
-| Fix a bug | [Pattern Index 🔴](2-areas/patterns/INDEX#-critical-patterns-fix-immediately) | 2 min |
-| Deploy to production | [Trunk-Based Deployment ⚡](3-resources/trunk-based-deployment-implementation-summary.md) | 5 min |
-| Setup feature flags | [Feature Flags Pattern](2-areas/patterns/feature-flags.md) | 10 min |
-| Setup secrets | [Secrets Management 🔐](2-areas/secrets-management.md) | 5 min |
-| See metrics/OKRs | [Metrics Dashboard 💰](2-areas/metrics) | 3 min |
-| Find a component | [Component Library](2-areas/component-library) *(Coming Soon)* | 3 min |
-| Check design system | [Design Tokens](2-areas/design-tokens) | 5 min |
-| Understand vision | [Product Vision 2.0](../marketing-docs/strategy/product-vision-2.0.md) | 10 min |
+| I need to...            | Go here                                                                                       | Time   |
+| ----------------------- | --------------------------------------------------------------------------------------------- | ------ |
+| Browse all docs         | [📚 All Docs Hub](/dev-docs/all) - Visual directory                                           | 1 min  |
+| Fix a bug               | [Pattern Index 🔴](2-areas/patterns/INDEX#-critical-patterns-fix-immediately)                 | 2 min  |
+| Understand Git workflow | [Git Workflow Guide](2-areas/git-workflow.md) / [Cheat Sheet](3-resources/git-cheat-sheet.md) | 5 min  |
+| Deploy to production    | [Trunk-Based Deployment ⚡](3-resources/trunk-based-deployment-implementation-summary.md)     | 5 min  |
+| Setup feature flags     | [Feature Flags Pattern](2-areas/patterns/feature-flags.md)                                    | 10 min |
+| Setup secrets           | [Secrets Management 🔐](2-areas/secrets-management.md)                                        | 5 min  |
+| See metrics/OKRs        | [Metrics Dashboard 💰](2-areas/metrics)                                                       | 3 min  |
+| Find a component        | [Component Library](2-areas/component-library) _(Coming Soon)_                                | 3 min  |
+| Check design system     | [Design Tokens](2-areas/design-tokens)                                                        | 5 min  |
+| Understand vision       | [Product Vision 2.0](../marketing-docs/strategy/product-vision-2.0.md)                        | 10 min |
 
 ---
 
@@ -93,24 +101,28 @@ This documentation follows the [PARA system](https://fortelabs.com/blog/para/):
 ### Key Areas
 
 **Product & Strategy:**
+
 - **[Product Vision 2.0](../marketing-docs/strategy/product-vision-2.0.md)** ⭐ **Current Vision**
 - **[Product Vision (Original)](2-areas/product-vision-and-plan.md)** - Historical (CODE framework)
 - **[Architecture](2-areas/architecture.md)** - Tech stack, auth, composables
 - **[Multi-Tenancy](2-areas/multi-tenancy-migration.md)** - Org/team architecture
 
 **Design & UI:**
+
 - **[Design Tokens](2-areas/design-tokens.md)** 🎨 **MANDATORY** - Never hardcode
-- **[Component Library](2-areas/component-library)** *(Coming Soon)*
+- **[Component Library](2-areas/component-library)** _(Coming Soon)_
 - **[UI Patterns](2-areas/patterns/ui-patterns.md)** - Solved design problems
 - **[Composables Analysis](2-areas/composables-analysis.md)** - Reusable logic
 
 **Development & Patterns:**
+
 - **[Pattern Index](2-areas/patterns/INDEX.md)** ⚡ **DEBUG HERE**
 - **[Svelte 5 Reactivity](2-areas/patterns/svelte-reactivity.md)** - $state, $derived, $effect
 - **[Convex Integration](2-areas/patterns/convex-integration.md)** - Queries, mutations, auth
 - **[Analytics](2-areas/patterns/analytics.md)** - PostHog tracking
 
 **Active Work:**
+
 - **[Value Streams](2-areas/value-streams/)** - Outcome-driven initiatives
 - **[Documentation System](2-areas/value-streams/documentation-system/)** - Living docs
 
@@ -128,18 +140,21 @@ This documentation follows the [PARA system](https://fortelabs.com/blog/para/):
 ### 👋 New to SynergyOS? (Pick your role)
 
 **Product Manager:**
+
 1. Read [Product Vision 2.0](../marketing-docs/strategy/product-vision-2.0.md) (10 min) ⭐
 2. Review [Product Strategy](../marketing-docs/strategy/product-strategy.md) (15 min)
 3. Check [Target Personas](../marketing-docs/audience/target-personas.md) (10 min)
-4. Explore [User Journeys](2-areas/user-journeys) *(Coming Soon)*
+4. Explore [User Journeys](2-areas/user-journeys) _(Coming Soon)_
 
 **Designer:**
+
 1. Review [Design Tokens](2-areas/design-tokens) (15 min) 🎨 **MANDATORY**
-2. Explore [Component Library](2-areas/component-library) *(Coming Soon)*
+2. Explore [Component Library](2-areas/component-library) _(Coming Soon)_
 3. Check [UI Patterns](2-areas/patterns/ui-patterns.md) (10 min)
 4. Review [Interaction Patterns](2-areas/patterns/ui-patterns.md#L1150) (5 min)
 
 **Engineer:**
+
 1. Load [Pattern Index](2-areas/patterns/INDEX) (5 min) ⚡
 2. Read [Trunk-Based Deployment](3-resources/trunk-based-deployment-implementation-summary.md) (10 min) **NEW**
 3. Read [Architecture](2-areas/architecture) (20 min)
@@ -210,6 +225,7 @@ This documentation follows the [PARA system](https://fortelabs.com/blog/para/):
 ## 📁 Key Files
 
 ### Documentation
+
 - `dev-docs/README.md` - You are here
 - `dev-docs/2-areas/metrics.md` - **Public metrics & OKRs** (updated monthly)
 - `dev-docs/2-areas/product-vision-and-plan.md` - Vision & roadmap
@@ -220,12 +236,14 @@ This documentation follows the [PARA system](https://fortelabs.com/blog/para/):
 - `dev-docs/2-areas/posthog.md` - Analytics & AARRR tracking
 
 ### Code
+
 - `src/lib/composables/` - Svelte 5 composables (`.svelte.ts`)
 - `src/lib/components/` - UI components
 - `src/app.css` - Design token definitions
 - `convex/schema.ts` - Database schema
 
 ### Configuration
+
 - `.cursor/commands/start.md` - Universal onboarding
 - `.cursor/rules/way-of-working.mdc` - Project rules
 
@@ -234,18 +252,21 @@ This documentation follows the [PARA system](https://fortelabs.com/blog/para/):
 ## 💡 Best Practices
 
 **Before Writing Code:**
+
 1. Check `patterns/INDEX.md` for existing patterns
 2. Use design tokens (never hardcode)
 3. Follow composables pattern (`.svelte.ts`, single `$state`, getters)
 4. Use Context7 for library docs
 
 **When Debugging:**
+
 1. Use `/root-cause` → Load `patterns/INDEX.md`
 2. Scan symptom table → jump to line number
 3. Use Context7 for verification
 4. Only fix if 95%+ confident
 
 **Common Mistakes:**
+
 - Hardcoded values (use tokens)
 - Missing `.svelte.ts` extension
 - Multiple `$state` variables (use single object)
@@ -288,6 +309,7 @@ When you discover/solve something:
 ## 🎯 Current Focus
 
 **Foundation**: Technical foundation for Product OS
+
 - ✅ SvelteKit 5 + Convex architecture
 - ✅ Design token system
 - ✅ Pattern documentation
@@ -295,6 +317,7 @@ When you discover/solve something:
 - 🔄 Multi-tenancy architecture (orgs & teams)
 
 **Next (Product OS Features)**:
+
 - Product discovery tools (opportunity trees, research)
 - OKR & roadmap tracking
 - Team collaboration features
@@ -302,6 +325,7 @@ When you discover/solve something:
 - Builder marketplace (SDK + revenue share)
 
 **See**:
+
 - [Product Vision 2.0](../marketing-docs/strategy/product-vision-2.0.md) - What we're building
 - [Product Strategy](../marketing-docs/strategy/product-strategy.md) - Outcome-driven roadmap
 - [Marketplace Strategy](../marketing-docs/opportunities/marketplace-strategy.md) - Builder ecosystem
@@ -311,4 +335,3 @@ When you discover/solve something:
 **Questions?** Open a GitHub discussion or check [patterns/INDEX.md](2-areas/patterns/INDEX.md) for common issues.
 
 **Ready to build?** Start with [product-vision-and-plan.md](2-areas/product-vision-and-plan.md), then pick a task!
-

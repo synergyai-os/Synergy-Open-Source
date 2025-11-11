@@ -30,7 +30,7 @@
 			<Spline class="stroke-accent-primary" strokeWidth={3} />
 		</Svg>
 	</Chart>
-	
+
 	<div class="chart-legend">
 		<span class="legend-label">📈 Predicted GitHub Stars Growth</span>
 	</div>
@@ -61,4 +61,3 @@
 		font-weight: 500;
 	}
 </style>
-

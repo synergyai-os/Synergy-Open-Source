@@ -45,10 +45,11 @@ export function useInboxLayout(): UseInboxLayoutReturn {
 	// Return state and functions using getters for reactivity
 	return {
 		// State - getters ensure reactivity is tracked
-		get inboxWidth() { return state.inboxWidth; },
+		get inboxWidth() {
+			return state.inboxWidth;
+		},
 		// Functions
 		handleInboxWidthChange,
-		handleClose,
+		handleClose
 	};
 }
-

@@ -6,7 +6,7 @@ import { cwd } from 'process';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const { path } = params;
-	
+
 	// Try common variations: exact path, with .md, as README
 	const possiblePaths = [
 		`marketing-docs/${path}.md`,
@@ -14,16 +14,18 @@ export const load: PageServerLoad = async ({ params }) => {
 		`marketing-docs/${path}/index.md`,
 		`marketing-docs/${path}`
 	];
-	
+
 	for (const filePath of possiblePaths) {
 		try {
 			const fullPath = join(cwd(), filePath);
 			const content = await readFile(fullPath, 'utf-8');
-			
+
 			// Extract title from frontmatter or first heading
 			const titleMatch = content.match(/^#\s+(.+)$/m) || content.match(/^title:\s*(.+)$/m);
-			const title = titleMatch ? titleMatch[1].trim() : path.split('/').pop() || 'Marketing Documentation';
-			
+			const title = titleMatch
+				? titleMatch[1].trim()
+				: path.split('/').pop() || 'Marketing Documentation';
+
 			return {
 				content,
 				title,
@@ -34,8 +36,10 @@ export const load: PageServerLoad = async ({ params }) => {
 			continue;
 		}
 	}
-	
-	// No file found
-	throw error(404, `Marketing documentation page not found: ${path}. Check that the markdown file exists in the marketing-docs/ folder.`);
-};
 
+	// No file found
+	throw error(
+		404,
+		`Marketing documentation page not found: ${path}. Check that the markdown file exists in the marketing-docs/ folder.`
+	);
+};

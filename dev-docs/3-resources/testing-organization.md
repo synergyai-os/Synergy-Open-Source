@@ -28,20 +28,24 @@ Axon/
 ## 🎯 Organization Rules
 
 ### 1. **Convex/Backend Tests** → `tests/` folder
+
 **Location**: `tests/convex/`
 
-**Why**: 
+**Why**:
+
 - Keeps `convex/` folder clean (only production code)
 - Easy to find all backend tests in one place
 - Matches backend code structure
 
 **Example**:
+
 ```
 convex/readwiseUtils.ts          # Source code
 tests/convex/readwiseUtils.test.ts  # Test code
 ```
 
 **Import pattern**:
+
 ```typescript
 import { parseAuthorString } from '../../convex/readwiseUtils';
 ```
@@ -49,14 +53,17 @@ import { parseAuthorString } from '../../convex/readwiseUtils';
 ---
 
 ### 2. **Frontend Unit Tests** → Co-located with source
+
 **Location**: Next to the source file
 
 **Why**:
+
 - Easy to find (test is right next to code)
 - Common pattern in frontend projects
 - Clear relationship between test and source
 
 **Example**:
+
 ```
 src/lib/utils/
   ├── filterInboxItems.ts
@@ -66,14 +73,17 @@ src/lib/utils/
 ---
 
 ### 3. **E2E Tests** → `e2e/` folder
+
 **Location**: `e2e/`
 
 **Why**:
+
 - Separate from unit tests (different tooling: Playwright)
 - Different purpose (full workflows, not individual functions)
 - Standard pattern (Playwright convention)
 
 **Example**:
+
 ```
 e2e/
   ├── demo.test.ts
@@ -83,13 +93,16 @@ e2e/
 ---
 
 ### 4. **Component Tests** → Co-located with component
+
 **Location**: Next to Svelte component
 
 **Why**:
+
 - Component-specific tests belong with component
 - Easy to find when working on component
 
 **Example**:
+
 ```
 src/routes/
   ├── +page.svelte
@@ -110,14 +123,17 @@ src/routes/
 ## 🚫 What We Avoided
 
 ### ❌ Tests in `convex/` folder
+
 **Problem**: Mixes production code with test code
 **Solution**: `tests/convex/` folder
 
 ### ❌ All tests in one `tests/` folder
+
 **Problem**: Frontend tests should be co-located for easy discovery
 **Solution**: Only backend tests in `tests/`, frontend co-located
 
 ### ❌ Tests scattered everywhere
+
 **Problem**: Hard to find, no pattern
 **Solution**: Clear rules for each type
 
@@ -125,12 +141,12 @@ src/routes/
 
 ## 📝 Quick Reference
 
-| Test Type | Location | Pattern |
-|-----------|----------|---------|
-| Convex/Backend | `tests/convex/` | `tests/convex/[name].test.ts` |
-| Frontend Utils | Co-located | `src/lib/utils/[name].test.ts` |
-| Components | Co-located | `src/routes/[name].spec.ts` |
-| E2E | `e2e/` | `e2e/[name].test.ts` |
+| Test Type      | Location        | Pattern                        |
+| -------------- | --------------- | ------------------------------ |
+| Convex/Backend | `tests/convex/` | `tests/convex/[name].test.ts`  |
+| Frontend Utils | Co-located      | `src/lib/utils/[name].test.ts` |
+| Components     | Co-located      | `src/routes/[name].spec.ts`    |
+| E2E            | `e2e/`          | `e2e/[name].test.ts`           |
 
 ---
 
@@ -141,4 +157,3 @@ src/routes/
 **E2E tests** → `e2e/` folder (different tooling)
 
 **Result**: Clean, organized, easy to find tests.
-

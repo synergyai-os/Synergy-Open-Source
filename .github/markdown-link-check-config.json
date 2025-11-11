@@ -1,52 +1,51 @@
 {
-  "ignorePatterns": [
-    {
-      "pattern": "^(?!http)"
-    },
-    {
-      "pattern": "^http://localhost"
-    },
-    {
-      "pattern": "^http://127\\.0\\.0\\.1"
-    },
-    {
-      "pattern": "^https://dashboard\\.workos\\.com"
-    },
-    {
-      "pattern": "^https://dashboard\\.convex\\.dev"
-    },
-    {
-      "pattern": "^https://posthog\\.com/settings"
-    },
-    {
-      "pattern": "^https://synergyos\\.dev"
-    },
-    {
-      "pattern": "^https://github\\.com/synergyai-os/Synergy-Open-Source/(issues|discussions|actions)"
-    },
-    {
-      "pattern": "^https://layerchart\\.com/docs"
-    },
-    {
-      "pattern": "^https://cursor\\.sh/press"
-    },
-    {
-      "pattern": "^https://docs\\.convex\\.dev/deploy"
-    }
-  ],
-  "replacementPatterns": [],
-  "httpHeaders": [
-    {
-      "urls": ["https://github.com"],
-      "headers": {
-        "Accept-Encoding": "zstd, br, gzip, deflate"
-      }
-    }
-  ],
-  "timeout": "10s",
-  "retryOn429": true,
-  "retryCount": 3,
-  "fallbackRetryDelay": "30s",
-  "aliveStatusCodes": [200, 206]
+	"ignorePatterns": [
+		{
+			"pattern": "^(?!http)"
+		},
+		{
+			"pattern": "^http://localhost"
+		},
+		{
+			"pattern": "^http://127\\.0\\.0\\.1"
+		},
+		{
+			"pattern": "^https://dashboard\\.workos\\.com"
+		},
+		{
+			"pattern": "^https://dashboard\\.convex\\.dev"
+		},
+		{
+			"pattern": "^https://posthog\\.com/settings"
+		},
+		{
+			"pattern": "^https://synergyos\\.dev"
+		},
+		{
+			"pattern": "^https://github\\.com/synergyai-os/Synergy-Open-Source/(issues|discussions|actions)"
+		},
+		{
+			"pattern": "^https://layerchart\\.com/docs"
+		},
+		{
+			"pattern": "^https://cursor\\.sh/press"
+		},
+		{
+			"pattern": "^https://docs\\.convex\\.dev/deploy"
+		}
+	],
+	"replacementPatterns": [],
+	"httpHeaders": [
+		{
+			"urls": ["https://github.com"],
+			"headers": {
+				"Accept-Encoding": "zstd, br, gzip, deflate"
+			}
+		}
+	],
+	"timeout": "10s",
+	"retryOn429": true,
+	"retryCount": 3,
+	"fallbackRetryDelay": "30s",
+	"aliveStatusCodes": [200, 206]
 }
-

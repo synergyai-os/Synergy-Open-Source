@@ -26,6 +26,7 @@
 ### What is RBAC?
 
 **Role-Based Access Control (RBAC)** is a permission system where:
+
 - Users are assigned **roles** (e.g., Admin, Team Lead, Member)
 - Roles have **permissions** (e.g., `teams.create`, `billing.view`)
 - Features check permissions, not roles directly
@@ -34,14 +35,14 @@
 
 ```typescript
 // ❌ BAD: Checking roles directly
-if (user.role === "admin" || user.role === "manager") {
-  allowCreateTeam();
+if (user.role === 'admin' || user.role === 'manager') {
+	allowCreateTeam();
 }
 // Problem: Adding new roles requires changing code everywhere!
 
 // ✅ GOOD: Checking permissions
-if (userHasPermission(user, "teams.create")) {
-  allowCreateTeam();
+if (userHasPermission(user, 'teams.create')) {
+	allowCreateTeam();
 }
 // Benefit: Add new roles by just assigning permissions in database!
 ```
@@ -65,6 +66,7 @@ User → UserRoles (many-to-many) → Role → RolePermissions → Permission �
 ```
 
 **Example:**
+
 1. Sarah has roles: `billing_admin` + `team_lead` (for Team A)
 2. `billing_admin` role has permission: `org.billing.view`
 3. `team_lead` role has permission: `teams.settings.update` (scope: own teams)
@@ -72,24 +74,25 @@ User → UserRoles (many-to-many) → Role → RolePermissions → Permission �
 
 ### 2. Permission Scopes
 
-| Scope | Description | Example |
-|-------|-------------|---------|
-| **all** | Access to all resources | Admin can manage any team |
-| **own** | Access only to resources you own | Team Lead manages their team only |
-| **assigned** | Access to assigned resources | Member can only see teams they're in |
-| **none** | No access | Member can't create teams |
+| Scope        | Description                      | Example                              |
+| ------------ | -------------------------------- | ------------------------------------ |
+| **all**      | Access to all resources          | Admin can manage any team            |
+| **own**      | Access only to resources you own | Team Lead manages their team only    |
+| **assigned** | Access to assigned resources     | Member can only see teams they're in |
+| **none**     | No access                        | Member can't create teams            |
 
 ### 3. Permission Levels
 
-| Level | Where Applied | Examples |
-|-------|---------------|----------|
-| **Organization** | Org-wide actions | Create teams, manage billing |
-| **Team** | Team-specific actions | Update team settings, add members |
-| **Resource** | Specific resource | Edit a note, view a page |
+| Level            | Where Applied         | Examples                          |
+| ---------------- | --------------------- | --------------------------------- |
+| **Organization** | Org-wide actions      | Create teams, manage billing      |
+| **Team**         | Team-specific actions | Update team settings, add members |
+| **Resource**     | Specific resource     | Edit a note, view a page          |
 
 ### 4. Guest Access Pattern
 
 Guests are **resource-specific** users (like Notion/Google Docs):
+
 - Don't belong to organization or team
 - Only access specific resources they're invited to
 - Time-limited access (expires automatically)
@@ -120,15 +123,16 @@ roles: defineTable({
 ```
 
 **Initial Data:**
+
 ```typescript
 [
-  { id: "admin", name: "Admin", level: "organization", isSystem: true },
-  { id: "manager", name: "Manager", level: "organization", isSystem: true },
-  { id: "team_lead", name: "Team Lead", level: "team", isSystem: true },
-  { id: "billing_admin", name: "Billing Admin", level: "organization", isSystem: true },
-  { id: "member", name: "Member", level: "team", isSystem: true },
-  { id: "guest", name: "Guest", level: "resource", isSystem: true },
-]
+	{ id: 'admin', name: 'Admin', level: 'organization', isSystem: true },
+	{ id: 'manager', name: 'Manager', level: 'organization', isSystem: true },
+	{ id: 'team_lead', name: 'Team Lead', level: 'team', isSystem: true },
+	{ id: 'billing_admin', name: 'Billing Admin', level: 'organization', isSystem: true },
+	{ id: 'member', name: 'Member', level: 'team', isSystem: true },
+	{ id: 'guest', name: 'Guest', level: 'resource', isSystem: true }
+];
 ```
 
 ---
@@ -137,28 +141,30 @@ roles: defineTable({
 
 ```typescript
 permissions: defineTable({
-  id: v.string(),                    // "teams.create", "org.billing.view"
-  name: v.string(),                  // "Create Teams", "View Billing"
-  description: v.string(),           // Human-readable description
-  category: v.union(
-    v.literal("user_management"),
-    v.literal("team_management"),
-    v.literal("org_settings"),
-    v.literal("billing"),
-    v.literal("content"),
-    v.literal("guest_management")
-  ),
-  level: v.union(
-    v.literal("organization"),       // Org-level permission
-    v.literal("team"),               // Team-level permission
-    v.literal("resource")            // Resource-level permission
-  ),
-  createdAt: v.number(),
-}).index("by_id", ["id"])            // Unique permission lookup
-  .index("by_category", ["category"]);
+	id: v.string(), // "teams.create", "org.billing.view"
+	name: v.string(), // "Create Teams", "View Billing"
+	description: v.string(), // Human-readable description
+	category: v.union(
+		v.literal('user_management'),
+		v.literal('team_management'),
+		v.literal('org_settings'),
+		v.literal('billing'),
+		v.literal('content'),
+		v.literal('guest_management')
+	),
+	level: v.union(
+		v.literal('organization'), // Org-level permission
+		v.literal('team'), // Team-level permission
+		v.literal('resource') // Resource-level permission
+	),
+	createdAt: v.number()
+})
+	.index('by_id', ['id']) // Unique permission lookup
+	.index('by_category', ['category']);
 ```
 
 **Permission Naming Convention:**
+
 ```
 {resource}.{action}
 {resource}.{subresource}.{action}
@@ -178,22 +184,23 @@ Examples:
 
 ```typescript
 rolePermissions: defineTable({
-  roleId: v.string(),                // Link to roles table
-  permissionId: v.string(),          // Link to permissions table
-  scope: v.union(
-    v.literal("all"),                // Access to all resources
-    v.literal("own"),                // Access only to owned resources
-    v.literal("assigned"),           // Access to assigned resources
-    v.literal("none")                // Explicitly no access
-  ),
-  createdAt: v.number(),
+	roleId: v.string(), // Link to roles table
+	permissionId: v.string(), // Link to permissions table
+	scope: v.union(
+		v.literal('all'), // Access to all resources
+		v.literal('own'), // Access only to owned resources
+		v.literal('assigned'), // Access to assigned resources
+		v.literal('none') // Explicitly no access
+	),
+	createdAt: v.number()
 })
-  .index("by_role", ["roleId"])
-  .index("by_permission", ["permissionId"])
-  .index("by_role_permission", ["roleId", "permissionId"]); // Unique constraint
+	.index('by_role', ['roleId'])
+	.index('by_permission', ['permissionId'])
+	.index('by_role_permission', ['roleId', 'permissionId']); // Unique constraint
 ```
 
 **Example Data:**
+
 ```typescript
 // Admin has all permissions with "all" scope
 { roleId: "admin", permissionId: "teams.create", scope: "all" }
@@ -215,23 +222,24 @@ rolePermissions: defineTable({
 
 ```typescript
 userRoles: defineTable({
-  userId: v.id("users"),
-  role: v.string(),                  // Role ID (links to roles table)
-  organizationId: v.id("organizations"),
-  teamId: v.optional(v.id("teams")), // For team-level roles
-  assignedBy: v.id("users"),         // Who assigned this role
-  assignedAt: v.number(),
-  expiresAt: v.optional(v.number()), // Optional expiration
-  revokedAt: v.optional(v.number()), // Soft delete
+	userId: v.id('users'),
+	role: v.string(), // Role ID (links to roles table)
+	organizationId: v.id('organizations'),
+	teamId: v.optional(v.id('teams')), // For team-level roles
+	assignedBy: v.id('users'), // Who assigned this role
+	assignedAt: v.number(),
+	expiresAt: v.optional(v.number()), // Optional expiration
+	revokedAt: v.optional(v.number()) // Soft delete
 })
-  .index("by_user", ["userId"])
-  .index("by_organization", ["organizationId"])
-  .index("by_team", ["teamId"])
-  .index("by_user_org", ["userId", "organizationId"])
-  .index("by_user_team", ["userId", "teamId"]);
+	.index('by_user', ['userId'])
+	.index('by_organization', ['organizationId'])
+	.index('by_team', ['teamId'])
+	.index('by_user_org', ['userId', 'organizationId'])
+	.index('by_user_team', ['userId', 'teamId']);
 ```
 
 **Example: User with Multiple Roles**
+
 ```typescript
 // Sarah is Billing Admin (org-level)
 {
@@ -260,28 +268,28 @@ userRoles: defineTable({
 
 ```typescript
 resourceGuests: defineTable({
-  guestUserId: v.id("users"),        // Guest user (may not be org member)
-  resourceType: v.union(
-    v.literal("note"),
-    v.literal("page"),
-    v.literal("project"),
-    v.literal("team")                // Future: guest team member
-  ),
-  resourceId: v.string(),            // ID of the resource (polymorphic)
-  permission: v.union(
-    v.literal("view"),               // Read-only
-    v.literal("comment"),            // Can add comments
-    v.literal("edit")                // Full edit access
-  ),
-  invitedBy: v.id("users"),
-  invitedAt: v.number(),
-  expiresAt: v.optional(v.number()), // Time-bound access
-  revokedAt: v.optional(v.number()), // Manual revocation
-  lastAccessedAt: v.optional(v.number()),
+	guestUserId: v.id('users'), // Guest user (may not be org member)
+	resourceType: v.union(
+		v.literal('note'),
+		v.literal('page'),
+		v.literal('project'),
+		v.literal('team') // Future: guest team member
+	),
+	resourceId: v.string(), // ID of the resource (polymorphic)
+	permission: v.union(
+		v.literal('view'), // Read-only
+		v.literal('comment'), // Can add comments
+		v.literal('edit') // Full edit access
+	),
+	invitedBy: v.id('users'),
+	invitedAt: v.number(),
+	expiresAt: v.optional(v.number()), // Time-bound access
+	revokedAt: v.optional(v.number()), // Manual revocation
+	lastAccessedAt: v.optional(v.number())
 })
-  .index("by_guest", ["guestUserId"])
-  .index("by_resource", ["resourceType", "resourceId"])
-  .index("by_guest_resource", ["guestUserId", "resourceType", "resourceId"]);
+	.index('by_guest', ['guestUserId'])
+	.index('by_resource', ['resourceType', 'resourceId'])
+	.index('by_guest_resource', ['guestUserId', 'resourceType', 'resourceId']);
 ```
 
 ---
@@ -290,27 +298,27 @@ resourceGuests: defineTable({
 
 ```typescript
 permissionAuditLog: defineTable({
-  userId: v.id("users"),             // User affected
-  action: v.union(
-    v.literal("role_assigned"),
-    v.literal("role_revoked"),
-    v.literal("permission_checked"),
-    v.literal("access_denied"),
-    v.literal("guest_invited"),
-    v.literal("guest_revoked")
-  ),
-  roleId: v.optional(v.string()),
-  permissionId: v.optional(v.string()),
-  resourceType: v.optional(v.string()),
-  resourceId: v.optional(v.string()),
-  performedBy: v.id("users"),
-  reason: v.optional(v.string()),
-  metadata: v.optional(v.any()),     // Additional context
-  timestamp: v.number(),
+	userId: v.id('users'), // User affected
+	action: v.union(
+		v.literal('role_assigned'),
+		v.literal('role_revoked'),
+		v.literal('permission_checked'),
+		v.literal('access_denied'),
+		v.literal('guest_invited'),
+		v.literal('guest_revoked')
+	),
+	roleId: v.optional(v.string()),
+	permissionId: v.optional(v.string()),
+	resourceType: v.optional(v.string()),
+	resourceId: v.optional(v.string()),
+	performedBy: v.id('users'),
+	reason: v.optional(v.string()),
+	metadata: v.optional(v.any()), // Additional context
+	timestamp: v.number()
 })
-  .index("by_user", ["userId"])
-  .index("by_action", ["action"])
-  .index("by_timestamp", ["timestamp"]);
+	.index('by_user', ['userId'])
+	.index('by_action', ['action'])
+	.index('by_timestamp', ['timestamp']);
 ```
 
 ---
@@ -318,10 +326,12 @@ permissionAuditLog: defineTable({
 ### Schema Update Summary
 
 **Changes to Existing Tables:**
+
 - ❌ **No changes** to existing tables!
 - ✅ Only **add new tables**
 
 **New Tables Added:**
+
 1. `roles` - Role definitions
 2. `permissions` - Permission definitions
 3. `rolePermissions` - Role-to-permission mappings
@@ -337,14 +347,14 @@ permissionAuditLog: defineTable({
 
 #### Role Definitions
 
-| Role | Level | Description |
-|------|-------|-------------|
-| **Admin** | Organization | Full access to everything in organization |
-| **Manager** | Organization | Create teams, manage multiple teams |
-| **Team Lead** | Team | Manage only their assigned team(s) |
-| **Billing Admin** | Organization | Billing and subscription management only |
-| **Member** | Team | Regular user, team member access |
-| **Guest** | Resource | Access specific shared resources only |
+| Role              | Level        | Description                               |
+| ----------------- | ------------ | ----------------------------------------- |
+| **Admin**         | Organization | Full access to everything in organization |
+| **Manager**       | Organization | Create teams, manage multiple teams       |
+| **Team Lead**     | Team         | Manage only their assigned team(s)        |
+| **Billing Admin** | Organization | Billing and subscription management only  |
+| **Member**        | Team         | Regular user, team member access          |
+| **Guest**         | Resource     | Access specific shared resources only     |
 
 ---
 
@@ -352,49 +362,49 @@ permissionAuditLog: defineTable({
 
 ##### User Management Permissions
 
-| Permission ID | Name | Description | Category |
-|---------------|------|-------------|----------|
-| `users.invite` | Invite Users | Invite new users to organization | `user_management` |
-| `users.remove` | Remove Users | Remove users from organization | `user_management` |
-| `users.roles.assign` | Assign Roles | Assign roles to users | `user_management` |
-| `users.roles.revoke` | Revoke Roles | Remove roles from users | `user_management` |
-| `users.view` | View Users | View user list and profiles | `user_management` |
+| Permission ID        | Name         | Description                      | Category          |
+| -------------------- | ------------ | -------------------------------- | ----------------- |
+| `users.invite`       | Invite Users | Invite new users to organization | `user_management` |
+| `users.remove`       | Remove Users | Remove users from organization   | `user_management` |
+| `users.roles.assign` | Assign Roles | Assign roles to users            | `user_management` |
+| `users.roles.revoke` | Revoke Roles | Remove roles from users          | `user_management` |
+| `users.view`         | View Users   | View user list and profiles      | `user_management` |
 
 ##### Team Management Permissions
 
-| Permission ID | Name | Description | Category |
-|---------------|------|-------------|----------|
-| `teams.create` | Create Teams | Create new teams | `team_management` |
-| `teams.delete` | Delete Teams | Delete teams | `team_management` |
-| `teams.view` | View Teams | View team list and details | `team_management` |
-| `teams.settings.update` | Update Team Settings | Modify team settings | `team_management` |
-| `teams.members.add` | Add Team Members | Add members to team | `team_management` |
-| `teams.members.remove` | Remove Team Members | Remove members from team | `team_management` |
-| `teams.members.view` | View Team Members | See team member list | `team_management` |
+| Permission ID           | Name                 | Description                | Category          |
+| ----------------------- | -------------------- | -------------------------- | ----------------- |
+| `teams.create`          | Create Teams         | Create new teams           | `team_management` |
+| `teams.delete`          | Delete Teams         | Delete teams               | `team_management` |
+| `teams.view`            | View Teams           | View team list and details | `team_management` |
+| `teams.settings.update` | Update Team Settings | Modify team settings       | `team_management` |
+| `teams.members.add`     | Add Team Members     | Add members to team        | `team_management` |
+| `teams.members.remove`  | Remove Team Members  | Remove members from team   | `team_management` |
+| `teams.members.view`    | View Team Members    | See team member list       | `team_management` |
 
 ##### Organization Settings Permissions
 
-| Permission ID | Name | Description | Category |
-|---------------|------|-------------|----------|
-| `org.settings.view` | View Org Settings | View organization settings | `org_settings` |
+| Permission ID         | Name                | Description                  | Category       |
+| --------------------- | ------------------- | ---------------------------- | -------------- |
+| `org.settings.view`   | View Org Settings   | View organization settings   | `org_settings` |
 | `org.settings.update` | Update Org Settings | Modify organization settings | `org_settings` |
-| `org.delete` | Delete Organization | Delete the organization | `org_settings` |
+| `org.delete`          | Delete Organization | Delete the organization      | `org_settings` |
 
 ##### Billing Permissions (Phase 2 - Placeholder)
 
-| Permission ID | Name | Description | Category |
-|---------------|------|-------------|----------|
-| `org.billing.view` | View Billing | View billing information | `billing` |
-| `org.billing.update` | Update Billing | Update billing settings | `billing` |
-| `org.billing.payment_methods.add` | Add Payment Methods | Add payment methods | `billing` |
-| `org.billing.payment_methods.remove` | Remove Payment Methods | Remove payment methods | `billing` |
+| Permission ID                        | Name                   | Description              | Category  |
+| ------------------------------------ | ---------------------- | ------------------------ | --------- |
+| `org.billing.view`                   | View Billing           | View billing information | `billing` |
+| `org.billing.update`                 | Update Billing         | Update billing settings  | `billing` |
+| `org.billing.payment_methods.add`    | Add Payment Methods    | Add payment methods      | `billing` |
+| `org.billing.payment_methods.remove` | Remove Payment Methods | Remove payment methods   | `billing` |
 
 ##### Guest Management Permissions (Phase 3 - Placeholder)
 
-| Permission ID | Name | Description | Category |
-|---------------|------|-------------|----------|
-| `resources.guest.invite` | Invite Guests | Invite guests to resources | `guest_management` |
-| `resources.guest.revoke` | Revoke Guest Access | Remove guest access | `guest_management` |
+| Permission ID            | Name                | Description                | Category           |
+| ------------------------ | ------------------- | -------------------------- | ------------------ |
+| `resources.guest.invite` | Invite Guests       | Invite guests to resources | `guest_management` |
+| `resources.guest.revoke` | Revoke Guest Access | Remove guest access        | `guest_management` |
 
 ---
 
@@ -405,8 +415,8 @@ permissionAuditLog: defineTable({
 **Scope**: Organization  
 **Access**: ALL permissions with "all" scope
 
-| Permission | Scope | Notes |
-|------------|-------|-------|
+| Permission      | Scope | Notes              |
+| --------------- | ----- | ------------------ |
 | All permissions | `all` | Full system access |
 
 ##### Manager Role
@@ -414,65 +424,65 @@ permissionAuditLog: defineTable({
 **Scope**: Organization  
 **Focus**: Team management and user management
 
-| Permission | Scope | Notes |
-|------------|-------|-------|
-| `users.invite` | `all` | Can invite users to org |
-| `users.view` | `all` | Can view all users |
-| `users.roles.assign` | `all` | Can assign roles (except Admin) |
-| `teams.create` | `all` | Can create teams |
-| `teams.delete` | `all` | Can delete teams |
-| `teams.view` | `all` | Can view all teams |
-| `teams.settings.update` | `all` | Can update any team |
-| `teams.members.add` | `all` | Can add members to any team |
-| `teams.members.remove` | `all` | Can remove members from any team |
-| `teams.members.view` | `all` | Can view members of any team |
-| `org.settings.view` | `all` | Can view org settings (read-only) |
+| Permission              | Scope | Notes                             |
+| ----------------------- | ----- | --------------------------------- |
+| `users.invite`          | `all` | Can invite users to org           |
+| `users.view`            | `all` | Can view all users                |
+| `users.roles.assign`    | `all` | Can assign roles (except Admin)   |
+| `teams.create`          | `all` | Can create teams                  |
+| `teams.delete`          | `all` | Can delete teams                  |
+| `teams.view`            | `all` | Can view all teams                |
+| `teams.settings.update` | `all` | Can update any team               |
+| `teams.members.add`     | `all` | Can add members to any team       |
+| `teams.members.remove`  | `all` | Can remove members from any team  |
+| `teams.members.view`    | `all` | Can view members of any team      |
+| `org.settings.view`     | `all` | Can view org settings (read-only) |
 
 ##### Team Lead Role
 
 **Scope**: Team  
 **Focus**: Manage only their assigned team(s)
 
-| Permission | Scope | Notes |
-|------------|-------|-------|
-| `teams.view` | `own` | Can view their team(s) only |
-| `teams.settings.update` | `own` | Can update their team(s) only |
-| `teams.members.add` | `own` | Can add members to their team(s) |
-| `teams.members.remove` | `own` | Can remove members from their team(s) |
-| `teams.members.view` | `own` | Can view members of their team(s) |
-| `users.view` | `assigned` | Can view users in their team(s) |
+| Permission              | Scope      | Notes                                 |
+| ----------------------- | ---------- | ------------------------------------- |
+| `teams.view`            | `own`      | Can view their team(s) only           |
+| `teams.settings.update` | `own`      | Can update their team(s) only         |
+| `teams.members.add`     | `own`      | Can add members to their team(s)      |
+| `teams.members.remove`  | `own`      | Can remove members from their team(s) |
+| `teams.members.view`    | `own`      | Can view members of their team(s)     |
+| `users.view`            | `assigned` | Can view users in their team(s)       |
 
 ##### Billing Admin Role
 
 **Scope**: Organization  
 **Focus**: Billing only (can be combined with other roles)
 
-| Permission | Scope | Notes |
-|------------|-------|-------|
-| `org.billing.view` | `all` | Can view billing info |
-| `org.billing.update` | `all` | Can update billing settings |
-| `org.billing.payment_methods.add` | `all` | Can add payment methods |
-| `org.billing.payment_methods.remove` | `all` | Can remove payment methods |
-| `users.view` | `all` | Can view users (for billing purposes) |
+| Permission                           | Scope | Notes                                 |
+| ------------------------------------ | ----- | ------------------------------------- |
+| `org.billing.view`                   | `all` | Can view billing info                 |
+| `org.billing.update`                 | `all` | Can update billing settings           |
+| `org.billing.payment_methods.add`    | `all` | Can add payment methods               |
+| `org.billing.payment_methods.remove` | `all` | Can remove payment methods            |
+| `users.view`                         | `all` | Can view users (for billing purposes) |
 
 ##### Member Role
 
 **Scope**: Team  
 **Focus**: Regular user access
 
-| Permission | Scope | Notes |
-|------------|-------|-------|
-| `teams.view` | `assigned` | Can view teams they're in |
+| Permission           | Scope      | Notes                           |
+| -------------------- | ---------- | ------------------------------- |
+| `teams.view`         | `assigned` | Can view teams they're in       |
 | `teams.members.view` | `assigned` | Can view members of their teams |
-| `users.view` | `assigned` | Can view users in their teams |
+| `users.view`         | `assigned` | Can view users in their teams   |
 
 ##### Guest Role (Phase 3)
 
 **Scope**: Resource  
 **Focus**: Specific resource access only
 
-| Permission | Scope | Notes |
-|------------|-------|-------|
+| Permission          | Scope      | Notes                           |
+| ------------------- | ---------- | ------------------------------- |
 | (Resource-specific) | `assigned` | Defined per resource invitation |
 
 ---
@@ -486,7 +496,7 @@ permissionAuditLog: defineTable({
 
 /**
  * Check if user has permission to perform action
- * 
+ *
  * @param userId - User ID
  * @param permissionId - Permission to check (e.g., "teams.create")
  * @param resourceId - Optional resource ID for scoped checks
@@ -494,87 +504,81 @@ permissionAuditLog: defineTable({
  * @returns true if user has permission, false otherwise
  */
 export async function userHasPermission(
-  ctx: any,
-  userId: Id<"users">,
-  permissionId: string,
-  resourceId?: string,
-  organizationId?: Id<"organizations">
+	ctx: any,
+	userId: Id<'users'>,
+	permissionId: string,
+	resourceId?: string,
+	organizationId?: Id<'organizations'>
 ): Promise<boolean> {
-  // 1. Get all active roles for user in this organization
-  const userRoles = await ctx.db
-    .query("userRoles")
-    .withIndex("by_user_org", (q) => 
-      q.eq("userId", userId).eq("organizationId", organizationId)
-    )
-    .filter((q) => 
-      q.and(
-        q.eq(q.field("revokedAt"), null),  // Not revoked
-        q.or(
-          q.eq(q.field("expiresAt"), null),  // No expiration
-          q.gt(q.field("expiresAt"), Date.now())  // Not expired
-        )
-      )
-    )
-    .collect();
+	// 1. Get all active roles for user in this organization
+	const userRoles = await ctx.db
+		.query('userRoles')
+		.withIndex('by_user_org', (q) => q.eq('userId', userId).eq('organizationId', organizationId))
+		.filter((q) =>
+			q.and(
+				q.eq(q.field('revokedAt'), null), // Not revoked
+				q.or(
+					q.eq(q.field('expiresAt'), null), // No expiration
+					q.gt(q.field('expiresAt'), Date.now()) // Not expired
+				)
+			)
+		)
+		.collect();
 
-  // 2. For each role, check if it has the permission
-  for (const userRole of userRoles) {
-    // Get role-permission mapping
-    const rolePermission = await ctx.db
-      .query("rolePermissions")
-      .withIndex("by_role_permission", (q) => 
-        q.eq("roleId", userRole.role).eq("permissionId", permissionId)
-      )
-      .first();
+	// 2. For each role, check if it has the permission
+	for (const userRole of userRoles) {
+		// Get role-permission mapping
+		const rolePermission = await ctx.db
+			.query('rolePermissions')
+			.withIndex('by_role_permission', (q) =>
+				q.eq('roleId', userRole.role).eq('permissionId', permissionId)
+			)
+			.first();
 
-    if (!rolePermission) continue;  // Role doesn't have this permission
+		if (!rolePermission) continue; // Role doesn't have this permission
 
-    // 3. Check scope
-    switch (rolePermission.scope) {
-      case "all":
-        return true;  // Full access
+		// 3. Check scope
+		switch (rolePermission.scope) {
+			case 'all':
+				return true; // Full access
 
-      case "own":
-        // Check if user owns the resource
-        if (!resourceId) return false;
-        
-        // For teams: check if user is team lead of this team
-        if (permissionId.startsWith("teams.")) {
-          const isTeamLead = await ctx.db
-            .query("userRoles")
-            .withIndex("by_user_team", (q) => 
-              q.eq("userId", userId).eq("teamId", resourceId)
-            )
-            .filter((q) => q.eq(q.field("role"), "team_lead"))
-            .first();
-          
-          if (isTeamLead) return true;
-        }
-        break;
+			case 'own':
+				// Check if user owns the resource
+				if (!resourceId) return false;
 
-      case "assigned":
-        // Check if user is assigned to the resource
-        if (!resourceId) return false;
-        
-        // For teams: check if user is member
-        if (permissionId.startsWith("teams.")) {
-          const isMember = await ctx.db
-            .query("teamMembers")
-            .withIndex("by_team_user", (q) => 
-              q.eq("teamId", resourceId).eq("userId", userId)
-            )
-            .first();
-          
-          if (isMember) return true;
-        }
-        break;
+				// For teams: check if user is team lead of this team
+				if (permissionId.startsWith('teams.')) {
+					const isTeamLead = await ctx.db
+						.query('userRoles')
+						.withIndex('by_user_team', (q) => q.eq('userId', userId).eq('teamId', resourceId))
+						.filter((q) => q.eq(q.field('role'), 'team_lead'))
+						.first();
 
-      case "none":
-        continue;  // Explicitly no access
-    }
-  }
+					if (isTeamLead) return true;
+				}
+				break;
 
-  return false;  // No role grants this permission
+			case 'assigned':
+				// Check if user is assigned to the resource
+				if (!resourceId) return false;
+
+				// For teams: check if user is member
+				if (permissionId.startsWith('teams.')) {
+					const isMember = await ctx.db
+						.query('teamMembers')
+						.withIndex('by_team_user', (q) => q.eq('teamId', resourceId).eq('userId', userId))
+						.first();
+
+					if (isMember) return true;
+				}
+				break;
+
+			case 'none':
+				continue; // Explicitly no access
+		}
+	}
+
+	return false; // No role grants this permission
 }
 ```
 
@@ -589,84 +593,84 @@ export async function userHasPermission(
  * Require permission - throws error if user doesn't have it
  */
 export async function requirePermission(
-  ctx: any,
-  userId: Id<"users">,
-  permissionId: string,
-  resourceId?: string,
-  organizationId?: Id<"organizations">
+	ctx: any,
+	userId: Id<'users'>,
+	permissionId: string,
+	resourceId?: string,
+	organizationId?: Id<'organizations'>
 ): Promise<void> {
-  const hasPermission = await userHasPermission(
-    ctx,
-    userId,
-    permissionId,
-    resourceId,
-    organizationId
-  );
+	const hasPermission = await userHasPermission(
+		ctx,
+		userId,
+		permissionId,
+		resourceId,
+		organizationId
+	);
 
-  if (!hasPermission) {
-    // Log access denial
-    await ctx.db.insert("permissionAuditLog", {
-      userId,
-      action: "access_denied",
-      permissionId,
-      resourceId,
-      performedBy: userId,
-      timestamp: Date.now(),
-    });
+	if (!hasPermission) {
+		// Log access denial
+		await ctx.db.insert('permissionAuditLog', {
+			userId,
+			action: 'access_denied',
+			permissionId,
+			resourceId,
+			performedBy: userId,
+			timestamp: Date.now()
+		});
 
-    throw new Error(`Permission denied: ${permissionId}`);
-  }
+		throw new Error(`Permission denied: ${permissionId}`);
+	}
 }
 
 /**
  * Get all permissions for a user
  */
 export async function getUserPermissions(
-  ctx: any,
-  userId: Id<"users">,
-  organizationId: Id<"organizations">
+	ctx: any,
+	userId: Id<'users'>,
+	organizationId: Id<'organizations'>
 ): Promise<Array<{ permissionId: string; scope: string }>> {
-  const userRoles = await ctx.db
-    .query("userRoles")
-    .withIndex("by_user_org", (q) => 
-      q.eq("userId", userId).eq("organizationId", organizationId)
-    )
-    .filter((q) => q.eq(q.field("revokedAt"), null))
-    .collect();
+	const userRoles = await ctx.db
+		.query('userRoles')
+		.withIndex('by_user_org', (q) => q.eq('userId', userId).eq('organizationId', organizationId))
+		.filter((q) => q.eq(q.field('revokedAt'), null))
+		.collect();
 
-  const permissions: Array<{ permissionId: string; scope: string }> = [];
+	const permissions: Array<{ permissionId: string; scope: string }> = [];
 
-  for (const userRole of userRoles) {
-    const rolePermissions = await ctx.db
-      .query("rolePermissions")
-      .withIndex("by_role", (q) => q.eq("roleId", userRole.role))
-      .collect();
+	for (const userRole of userRoles) {
+		const rolePermissions = await ctx.db
+			.query('rolePermissions')
+			.withIndex('by_role', (q) => q.eq('roleId', userRole.role))
+			.collect();
 
-    permissions.push(...rolePermissions.map(rp => ({
-      permissionId: rp.permissionId,
-      scope: rp.scope
-    })));
-  }
+		permissions.push(
+			...rolePermissions.map((rp) => ({
+				permissionId: rp.permissionId,
+				scope: rp.scope
+			}))
+		);
+	}
 
-  return permissions;
+	return permissions;
 }
 
 /**
  * Check if user has any of the listed permissions
  */
 export async function userHasAnyPermission(
-  ctx: any,
-  userId: Id<"users">,
-  permissionIds: string[],
-  resourceId?: string,
-  organizationId?: Id<"organizations">
+	ctx: any,
+	userId: Id<'users'>,
+	permissionIds: string[],
+	resourceId?: string,
+	organizationId?: Id<'organizations'>
 ): Promise<boolean> {
-  for (const permissionId of permissionIds) {
-    if (await userHasPermission(ctx, userId, permissionId, resourceId, organizationId)) {
-      return true;
-    }
-  }
-  return false;
+	for (const permissionId of permissionIds) {
+		if (await userHasPermission(ctx, userId, permissionId, resourceId, organizationId)) {
+			return true;
+		}
+	}
+	return false;
 }
 ```
 
@@ -685,20 +689,20 @@ sequenceDiagram
 
     User->>Frontend: Click "Delete Team"
     Frontend->>Convex: mutation(api.teams.delete, {teamId})
-    
+
     Convex->>Convex: getUserId(ctx)
     Convex->>DB: Query userRoles (userId + orgId)
     DB-->>Convex: [billing_admin, team_lead]
-    
+
     Convex->>DB: Query rolePermissions (billing_admin)
     DB-->>Convex: No teams.delete permission
-    
+
     Convex->>DB: Query rolePermissions (team_lead)
     DB-->>Convex: teams.delete (scope: own)
-    
+
     Convex->>DB: Check if user is team lead of this team
     DB-->>Convex: No
-    
+
     Convex->>DB: Insert permissionAuditLog (access_denied)
     Convex-->>Frontend: Error: Permission denied
     Frontend-->>User: "You don't have permission to delete this team"
@@ -713,18 +717,18 @@ graph TD
     A[User Action Request] --> B{Get User Roles}
     B --> C[Role 1: Billing Admin]
     B --> D[Role 2: Team Lead]
-    
+
     C --> E{Has Permission?}
     D --> F{Has Permission?}
-    
+
     E --> |No| G[Check Next Role]
     F --> |Yes scope:own| H{Is User's Team?}
-    
+
     H --> |Yes| I[✅ ALLOW]
     H --> |No| G
-    
+
     G --> J[❌ DENY]
-    
+
     style I fill:#90EE90
     style J fill:#FFB6C1
 ```
@@ -743,17 +747,17 @@ sequenceDiagram
 
     Admin->>Frontend: Assign "Team Lead" to Sarah (Team A)
     Frontend->>Convex: mutation(api.roles.assignRole, {...})
-    
+
     Convex->>Convex: requirePermission(admin, "users.roles.assign")
     Convex->>DB: Check admin has permission
     DB-->>Convex: ✅ Yes (Admin role)
-    
+
     Convex->>DB: Insert userRoles entry
     DB-->>Convex: Success
-    
+
     Convex->>AuditLog: Log role assignment
     AuditLog-->>Convex: Logged
-    
+
     Convex-->>Frontend: Success
     Frontend-->>Admin: "Sarah is now Team Lead of Team A"
 ```
@@ -772,15 +776,15 @@ sequenceDiagram
     Owner->>System: Share Note X with guest@email.com (edit)
     System->>DB: Create resourceGuest entry
     System->>Guest: Send email invitation
-    
+
     Guest->>System: Click invitation link
     System->>DB: Verify resourceGuest exists
     DB-->>System: Found (noteId: X, permission: edit)
-    
+
     Guest->>System: Edit note
     System->>DB: Check guest access
     DB-->>System: ✅ Has edit permission
-    
+
     System->>DB: Save note changes
     System-->>Guest: Saved
 ```
@@ -793,51 +797,51 @@ sequenceDiagram
 
 ```typescript
 // convex/teams.ts
-import { mutation } from "./_generated/server";
-import { v } from "convex/values";
-import { requirePermission } from "./permissions";
-import { getUserIdFromArgs } from "./auth";
+import { mutation } from './_generated/server';
+import { v } from 'convex/values';
+import { requirePermission } from './permissions';
+import { getUserIdFromArgs } from './auth';
 
 export const createTeam = mutation({
-  args: {
-    userId: v.id("users"),
-    organizationId: v.id("organizations"),
-    name: v.string(),
-    slug: v.string(),
-  },
-  handler: async (ctx, args) => {
-    // 1. Get authenticated user
-    const userId = getUserIdFromArgs(args);
+	args: {
+		userId: v.id('users'),
+		organizationId: v.id('organizations'),
+		name: v.string(),
+		slug: v.string()
+	},
+	handler: async (ctx, args) => {
+		// 1. Get authenticated user
+		const userId = getUserIdFromArgs(args);
 
-    // 2. Check permission (throws if denied)
-    await requirePermission(
-      ctx,
-      userId,
-      "teams.create",
-      undefined,  // No specific resource
-      args.organizationId
-    );
+		// 2. Check permission (throws if denied)
+		await requirePermission(
+			ctx,
+			userId,
+			'teams.create',
+			undefined, // No specific resource
+			args.organizationId
+		);
 
-    // 3. Perform action
-    const teamId = await ctx.db.insert("teams", {
-      organizationId: args.organizationId,
-      name: args.name,
-      slug: args.slug,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-    });
+		// 3. Perform action
+		const teamId = await ctx.db.insert('teams', {
+			organizationId: args.organizationId,
+			name: args.name,
+			slug: args.slug,
+			createdAt: Date.now(),
+			updatedAt: Date.now()
+		});
 
-    // 4. Audit log
-    await ctx.db.insert("permissionAuditLog", {
-      userId,
-      action: "team_created",
-      resourceId: teamId,
-      performedBy: userId,
-      timestamp: Date.now(),
-    });
+		// 4. Audit log
+		await ctx.db.insert('permissionAuditLog', {
+			userId,
+			action: 'team_created',
+			resourceId: teamId,
+			performedBy: userId,
+			timestamp: Date.now()
+		});
 
-    return teamId;
-  },
+		return teamId;
+	}
 });
 ```
 
@@ -848,35 +852,35 @@ export const createTeam = mutation({
 ```typescript
 // convex/teams.ts
 export const updateTeamSettings = mutation({
-  args: {
-    userId: v.id("users"),
-    organizationId: v.id("organizations"),
-    teamId: v.id("teams"),
-    settings: v.object({
-      name: v.optional(v.string()),
-      description: v.optional(v.string()),
-    }),
-  },
-  handler: async (ctx, args) => {
-    const userId = getUserIdFromArgs(args);
+	args: {
+		userId: v.id('users'),
+		organizationId: v.id('organizations'),
+		teamId: v.id('teams'),
+		settings: v.object({
+			name: v.optional(v.string()),
+			description: v.optional(v.string())
+		})
+	},
+	handler: async (ctx, args) => {
+		const userId = getUserIdFromArgs(args);
 
-    // Check permission WITH resource ID (for scope check)
-    await requirePermission(
-      ctx,
-      userId,
-      "teams.settings.update",
-      args.teamId,  // ← Resource ID for "own" scope check
-      args.organizationId
-    );
+		// Check permission WITH resource ID (for scope check)
+		await requirePermission(
+			ctx,
+			userId,
+			'teams.settings.update',
+			args.teamId, // ← Resource ID for "own" scope check
+			args.organizationId
+		);
 
-    // Update team
-    await ctx.db.patch(args.teamId, {
-      ...args.settings,
-      updatedAt: Date.now(),
-    });
+		// Update team
+		await ctx.db.patch(args.teamId, {
+			...args.settings,
+			updatedAt: Date.now()
+		});
 
-    return { success: true };
-  },
+		return { success: true };
+	}
 });
 ```
 
@@ -891,41 +895,40 @@ import { api } from '$convex/_generated/api';
 import type { Id } from '$convex/_generated/dataModel';
 
 export function usePermissions(
-  userId: () => Id<"users">,
-  organizationId: () => Id<"organizations">
+	userId: () => Id<'users'>,
+	organizationId: () => Id<'organizations'>
 ) {
-  // Get all user permissions
-  const permissionsQuery = useQuery(
-    api.permissions.getUserPermissions,
-    () => ({
-      userId: userId(),
-      organizationId: organizationId()
-    })
-  );
+	// Get all user permissions
+	const permissionsQuery = useQuery(api.permissions.getUserPermissions, () => ({
+		userId: userId(),
+		organizationId: organizationId()
+	}));
 
-  const permissions = $derived(permissionsQuery?.data ?? []);
+	const permissions = $derived(permissionsQuery?.data ?? []);
 
-  // Check if user has specific permission
-  function can(permissionId: string): boolean {
-    return permissions.some(p => p.permissionId === permissionId);
-  }
+	// Check if user has specific permission
+	function can(permissionId: string): boolean {
+		return permissions.some((p) => p.permissionId === permissionId);
+	}
 
-  // Check if user has any of the permissions
-  function canAny(permissionIds: string[]): boolean {
-    return permissionIds.some(id => can(id));
-  }
+	// Check if user has any of the permissions
+	function canAny(permissionIds: string[]): boolean {
+		return permissionIds.some((id) => can(id));
+	}
 
-  // Check if user has all permissions
-  function canAll(permissionIds: string[]): boolean {
-    return permissionIds.every(id => can(id));
-  }
+	// Check if user has all permissions
+	function canAll(permissionIds: string[]): boolean {
+		return permissionIds.every((id) => can(id));
+	}
 
-  return {
-    get permissions() { return permissions; },
-    can,
-    canAny,
-    canAll,
-  };
+	return {
+		get permissions() {
+			return permissions;
+		},
+		can,
+		canAny,
+		canAll
+	};
 }
 ```
 
@@ -933,24 +936,22 @@ export function usePermissions(
 
 ```svelte
 <script lang="ts">
-  import { usePermissions } from '$lib/composables/usePermissions.svelte';
-  
-  const permissions = usePermissions(
-    () => userId,
-    () => organizationId
-  );
+	import { usePermissions } from '$lib/composables/usePermissions.svelte';
+
+	const permissions = usePermissions(
+		() => userId,
+		() => organizationId
+	);
 </script>
 
 <!-- Only show button if user has permission -->
-{#if permissions.can("teams.create")}
-  <button onclick={handleCreateTeam}>
-    Create Team
-  </button>
+{#if permissions.can('teams.create')}
+	<button onclick={handleCreateTeam}> Create Team </button>
 {/if}
 
 <!-- Show if user has ANY of these permissions -->
-{#if permissions.canAny(["teams.create", "teams.delete"])}
-  <TeamManagementPanel />
+{#if permissions.canAny(['teams.create', 'teams.delete'])}
+	<TeamManagementPanel />
 {/if}
 ```
 
@@ -961,81 +962,75 @@ export function usePermissions(
 ```typescript
 // convex/roles.ts
 export const assignRole = mutation({
-  args: {
-    userId: v.id("users"),
-    targetUserId: v.id("users"),
-    role: v.string(),
-    organizationId: v.id("organizations"),
-    teamId: v.optional(v.id("teams")),
-  },
-  handler: async (ctx, args) => {
-    const userId = getUserIdFromArgs(args);
+	args: {
+		userId: v.id('users'),
+		targetUserId: v.id('users'),
+		role: v.string(),
+		organizationId: v.id('organizations'),
+		teamId: v.optional(v.id('teams'))
+	},
+	handler: async (ctx, args) => {
+		const userId = getUserIdFromArgs(args);
 
-    // Check permission to assign roles
-    await requirePermission(
-      ctx,
-      userId,
-      "users.roles.assign",
-      undefined,
-      args.organizationId
-    );
+		// Check permission to assign roles
+		await requirePermission(ctx, userId, 'users.roles.assign', undefined, args.organizationId);
 
-    // Prevent assigning Admin role unless user is Admin
-    if (args.role === "admin") {
-      const isAdmin = await userHasPermission(
-        ctx,
-        userId,
-        "org.delete",  // Only admins have this
-        undefined,
-        args.organizationId
-      );
-      
-      if (!isAdmin) {
-        throw new Error("Only admins can assign admin role");
-      }
-    }
+		// Prevent assigning Admin role unless user is Admin
+		if (args.role === 'admin') {
+			const isAdmin = await userHasPermission(
+				ctx,
+				userId,
+				'org.delete', // Only admins have this
+				undefined,
+				args.organizationId
+			);
 
-    // Check if role already assigned
-    const existing = await ctx.db
-      .query("userRoles")
-      .withIndex("by_user_org", (q) => 
-        q.eq("userId", args.targetUserId).eq("organizationId", args.organizationId)
-      )
-      .filter((q) => 
-        q.and(
-          q.eq(q.field("role"), args.role),
-          q.eq(q.field("teamId"), args.teamId ?? null),
-          q.eq(q.field("revokedAt"), null)
-        )
-      )
-      .first();
+			if (!isAdmin) {
+				throw new Error('Only admins can assign admin role');
+			}
+		}
 
-    if (existing) {
-      throw new Error("User already has this role");
-    }
+		// Check if role already assigned
+		const existing = await ctx.db
+			.query('userRoles')
+			.withIndex('by_user_org', (q) =>
+				q.eq('userId', args.targetUserId).eq('organizationId', args.organizationId)
+			)
+			.filter((q) =>
+				q.and(
+					q.eq(q.field('role'), args.role),
+					q.eq(q.field('teamId'), args.teamId ?? null),
+					q.eq(q.field('revokedAt'), null)
+				)
+			)
+			.first();
 
-    // Assign role
-    const roleId = await ctx.db.insert("userRoles", {
-      userId: args.targetUserId,
-      role: args.role,
-      organizationId: args.organizationId,
-      teamId: args.teamId,
-      assignedBy: userId,
-      assignedAt: Date.now(),
-    });
+		if (existing) {
+			throw new Error('User already has this role');
+		}
 
-    // Audit log
-    await ctx.db.insert("permissionAuditLog", {
-      userId: args.targetUserId,
-      action: "role_assigned",
-      roleId: args.role,
-      performedBy: userId,
-      metadata: { teamId: args.teamId },
-      timestamp: Date.now(),
-    });
+		// Assign role
+		const roleId = await ctx.db.insert('userRoles', {
+			userId: args.targetUserId,
+			role: args.role,
+			organizationId: args.organizationId,
+			teamId: args.teamId,
+			assignedBy: userId,
+			assignedAt: Date.now()
+		});
 
-    return roleId;
-  },
+		// Audit log
+		await ctx.db.insert('permissionAuditLog', {
+			userId: args.targetUserId,
+			action: 'role_assigned',
+			roleId: args.role,
+			performedBy: userId,
+			metadata: { teamId: args.teamId },
+			timestamp: Date.now()
+		});
+
+		return roleId;
+	}
 });
 ```
 
@@ -1046,62 +1041,56 @@ export const assignRole = mutation({
 ```typescript
 // convex/roles.ts
 export const revokeRole = mutation({
-  args: {
-    userId: v.id("users"),
-    targetUserId: v.id("users"),
-    role: v.string(),
-    organizationId: v.id("organizations"),
-    teamId: v.optional(v.id("teams")),
-    reason: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    const userId = getUserIdFromArgs(args);
+	args: {
+		userId: v.id('users'),
+		targetUserId: v.id('users'),
+		role: v.string(),
+		organizationId: v.id('organizations'),
+		teamId: v.optional(v.id('teams')),
+		reason: v.optional(v.string())
+	},
+	handler: async (ctx, args) => {
+		const userId = getUserIdFromArgs(args);
 
-    // Check permission
-    await requirePermission(
-      ctx,
-      userId,
-      "users.roles.revoke",
-      undefined,
-      args.organizationId
-    );
+		// Check permission
+		await requirePermission(ctx, userId, 'users.roles.revoke', undefined, args.organizationId);
 
-    // Find role assignment
-    const userRole = await ctx.db
-      .query("userRoles")
-      .withIndex("by_user_org", (q) => 
-        q.eq("userId", args.targetUserId).eq("organizationId", args.organizationId)
-      )
-      .filter((q) => 
-        q.and(
-          q.eq(q.field("role"), args.role),
-          q.eq(q.field("teamId"), args.teamId ?? null),
-          q.eq(q.field("revokedAt"), null)
-        )
-      )
-      .first();
+		// Find role assignment
+		const userRole = await ctx.db
+			.query('userRoles')
+			.withIndex('by_user_org', (q) =>
+				q.eq('userId', args.targetUserId).eq('organizationId', args.organizationId)
+			)
+			.filter((q) =>
+				q.and(
+					q.eq(q.field('role'), args.role),
+					q.eq(q.field('teamId'), args.teamId ?? null),
+					q.eq(q.field('revokedAt'), null)
+				)
+			)
+			.first();
 
-    if (!userRole) {
-      throw new Error("Role assignment not found");
-    }
+		if (!userRole) {
+			throw new Error('Role assignment not found');
+		}
 
-    // Soft delete (set revokedAt)
-    await ctx.db.patch(userRole._id, {
-      revokedAt: Date.now(),
-    });
+		// Soft delete (set revokedAt)
+		await ctx.db.patch(userRole._id, {
+			revokedAt: Date.now()
+		});
 
-    // Audit log
-    await ctx.db.insert("permissionAuditLog", {
-      userId: args.targetUserId,
-      action: "role_revoked",
-      roleId: args.role,
-      performedBy: userId,
-      reason: args.reason,
-      timestamp: Date.now(),
-    });
+		// Audit log
+		await ctx.db.insert('permissionAuditLog', {
+			userId: args.targetUserId,
+			action: 'role_revoked',
+			roleId: args.role,
+			performedBy: userId,
+			reason: args.reason,
+			timestamp: Date.now()
+		});
 
-    return { success: true };
-  },
+		return { success: true };
+	}
 });
 ```
 
@@ -1155,6 +1144,7 @@ export const revokeRole = mutation({
 #### Step 5: Protect Existing Functions (4 hours)
 
 Update existing Convex functions:
+
 ```typescript
 // convex/teams.ts
 // - createTeam() → Add requirePermission("teams.create")
@@ -1179,8 +1169,8 @@ Update existing Convex functions:
 <!-- src/lib/components/teams/TeamManagementPanel.svelte -->
 <!-- Add permission checks to buttons/actions -->
 
-{#if permissions.can("teams.create")}
-  <CreateTeamButton />
+{#if permissions.can('teams.create')}
+	<CreateTeamButton />
 {/if}
 ```
 
@@ -1221,58 +1211,58 @@ Update existing Convex functions:
 
 ```typescript
 // convex/permissions.test.ts
-describe("userHasPermission", () => {
-  test("admin has all permissions", async () => {
-    const hasPermission = await userHasPermission(
-      ctx,
-      adminUserId,
-      "teams.create",
-      undefined,
-      orgId
-    );
-    expect(hasPermission).toBe(true);
-  });
+describe('userHasPermission', () => {
+	test('admin has all permissions', async () => {
+		const hasPermission = await userHasPermission(
+			ctx,
+			adminUserId,
+			'teams.create',
+			undefined,
+			orgId
+		);
+		expect(hasPermission).toBe(true);
+	});
 
-  test("team lead can only update their team", async () => {
-    const canUpdateOwn = await userHasPermission(
-      ctx,
-      teamLeadUserId,
-      "teams.settings.update",
-      ownTeamId,
-      orgId
-    );
-    expect(canUpdateOwn).toBe(true);
+	test('team lead can only update their team', async () => {
+		const canUpdateOwn = await userHasPermission(
+			ctx,
+			teamLeadUserId,
+			'teams.settings.update',
+			ownTeamId,
+			orgId
+		);
+		expect(canUpdateOwn).toBe(true);
 
-    const canUpdateOther = await userHasPermission(
-      ctx,
-      teamLeadUserId,
-      "teams.settings.update",
-      otherTeamId,
-      orgId
-    );
-    expect(canUpdateOther).toBe(false);
-  });
+		const canUpdateOther = await userHasPermission(
+			ctx,
+			teamLeadUserId,
+			'teams.settings.update',
+			otherTeamId,
+			orgId
+		);
+		expect(canUpdateOther).toBe(false);
+	});
 
-  test("user with multiple roles gets combined permissions", async () => {
-    // User is both billing_admin and team_lead
-    const canViewBilling = await userHasPermission(
-      ctx,
-      userId,
-      "org.billing.view",
-      undefined,
-      orgId
-    );
-    expect(canViewBilling).toBe(true);
+	test('user with multiple roles gets combined permissions', async () => {
+		// User is both billing_admin and team_lead
+		const canViewBilling = await userHasPermission(
+			ctx,
+			userId,
+			'org.billing.view',
+			undefined,
+			orgId
+		);
+		expect(canViewBilling).toBe(true);
 
-    const canUpdateTeam = await userHasPermission(
-      ctx,
-      userId,
-      "teams.settings.update",
-      ownTeamId,
-      orgId
-    );
-    expect(canUpdateTeam).toBe(true);
-  });
+		const canUpdateTeam = await userHasPermission(
+			ctx,
+			userId,
+			'teams.settings.update',
+			ownTeamId,
+			orgId
+		);
+		expect(canUpdateTeam).toBe(true);
+	});
 });
 ```
 
@@ -1282,27 +1272,21 @@ describe("userHasPermission", () => {
 
 ```typescript
 // Test role assignment workflow
-test("admin can assign team lead role", async () => {
-  // Admin assigns team lead role to user
-  const result = await ctx.runMutation(api.roles.assignRole, {
-    userId: adminUserId,
-    targetUserId: newUserId,
-    role: "team_lead",
-    organizationId: orgId,
-    teamId: teamId,
-  });
+test('admin can assign team lead role', async () => {
+	// Admin assigns team lead role to user
+	const result = await ctx.runMutation(api.roles.assignRole, {
+		userId: adminUserId,
+		targetUserId: newUserId,
+		role: 'team_lead',
+		organizationId: orgId,
+		teamId: teamId
+	});
 
-  expect(result).toBeDefined();
+	expect(result).toBeDefined();
 
-  // Verify user now has team lead permissions
-  const canUpdate = await userHasPermission(
-    ctx,
-    newUserId,
-    "teams.settings.update",
-    teamId,
-    orgId
-  );
-  expect(canUpdate).toBe(true);
+	// Verify user now has team lead permissions
+	const canUpdate = await userHasPermission(ctx, newUserId, 'teams.settings.update', teamId, orgId);
+	expect(canUpdate).toBe(true);
 });
 ```
 
@@ -1312,36 +1296,36 @@ test("admin can assign team lead role", async () => {
 
 ```typescript
 // tests/permissions/team-management.spec.ts
-test("team lead can manage their team", async ({ page }) => {
-  // Login as team lead
-  await loginAs(page, "teamlead@example.com");
+test('team lead can manage their team', async ({ page }) => {
+	// Login as team lead
+	await loginAs(page, 'teamlead@example.com');
 
-  // Navigate to their team
-  await page.goto("/teams/team-a");
+	// Navigate to their team
+	await page.goto('/teams/team-a');
 
-  // Should see "Edit Settings" button
-  const editButton = page.getByRole("button", { name: "Edit Settings" });
-  await expect(editButton).toBeVisible();
+	// Should see "Edit Settings" button
+	const editButton = page.getByRole('button', { name: 'Edit Settings' });
+	await expect(editButton).toBeVisible();
 
-  // Click and update settings
-  await editButton.click();
-  await page.fill("#team-name", "Updated Team Name");
-  await page.click("button[type=submit]");
+	// Click and update settings
+	await editButton.click();
+	await page.fill('#team-name', 'Updated Team Name');
+	await page.click('button[type=submit]');
 
-  // Should see success message
-  await expect(page.getByText("Settings updated")).toBeVisible();
+	// Should see success message
+	await expect(page.getByText('Settings updated')).toBeVisible();
 });
 
-test("team lead cannot manage other teams", async ({ page }) => {
-  // Login as team lead
-  await loginAs(page, "teamlead@example.com");
+test('team lead cannot manage other teams', async ({ page }) => {
+	// Login as team lead
+	await loginAs(page, 'teamlead@example.com');
 
-  // Navigate to OTHER team
-  await page.goto("/teams/team-b");
+	// Navigate to OTHER team
+	await page.goto('/teams/team-b');
 
-  // Should NOT see "Edit Settings" button
-  const editButton = page.getByRole("button", { name: "Edit Settings" });
-  await expect(editButton).not.toBeVisible();
+	// Should NOT see "Edit Settings" button
+	const editButton = page.getByRole('button', { name: 'Edit Settings' });
+	await expect(editButton).not.toBeVisible();
 });
 ```
 
@@ -1352,6 +1336,7 @@ test("team lead cannot manage other teams", async ({ page }) => {
 ### 1. Role Hierarchy (Optional)
 
 Implement role inheritance:
+
 - Admin inherits Manager permissions
 - Manager inherits Team Lead permissions
 - Simplifies role-permission mappings
@@ -1359,14 +1344,15 @@ Implement role inheritance:
 ```typescript
 // roles table: add parentRoleId field
 roles: defineTable({
-  // ... existing fields
-  parentRoleId: v.optional(v.string()),  // Inherit from parent
-})
+	// ... existing fields
+	parentRoleId: v.optional(v.string()) // Inherit from parent
+});
 ```
 
 ### 2. Dynamic Permissions
 
 Allow creating custom permissions at runtime:
+
 - Org admins can create custom roles
 - Assign custom permissions to roles
 - Don't hardcode permissions in schema
@@ -1374,20 +1360,24 @@ Allow creating custom permissions at runtime:
 ### 3. Permission Conditions
 
 Add context-based conditions:
+
 ```typescript
 rolePermissions: {
-  // ... existing fields
-  conditions: v.optional(v.object({
-    timeRange: v.optional(v.object({ start: v.string(), end: v.string() })),
-    ipWhitelist: v.optional(v.array(v.string())),
-    requireMFA: v.optional(v.boolean()),
-  }))
+	// ... existing fields
+	conditions: v.optional(
+		v.object({
+			timeRange: v.optional(v.object({ start: v.string(), end: v.string() })),
+			ipWhitelist: v.optional(v.array(v.string())),
+			requireMFA: v.optional(v.boolean())
+		})
+	);
 }
 ```
 
 ### 4. Audit Dashboard
 
 Build UI to view:
+
 - Permission usage analytics
 - Access denied events
 - Role assignment history
@@ -1396,6 +1386,7 @@ Build UI to view:
 ### 5. Permission Templates
 
 Pre-built role templates for common use cases:
+
 - "Engineering Team" template
 - "Sales Team" template
 - "Support Team" template
@@ -1407,6 +1398,7 @@ Pre-built role templates for common use cases:
 ### Phase 1 Permissions (20 total)
 
 #### User Management (5)
+
 - `users.invite`
 - `users.remove`
 - `users.roles.assign`
@@ -1414,6 +1406,7 @@ Pre-built role templates for common use cases:
 - `users.view`
 
 #### Team Management (7)
+
 - `teams.create`
 - `teams.delete`
 - `teams.view`
@@ -1423,17 +1416,20 @@ Pre-built role templates for common use cases:
 - `teams.members.view`
 
 #### Organization Settings (3)
+
 - `org.settings.view`
 - `org.settings.update`
 - `org.delete`
 
 #### Billing - Placeholder (4)
+
 - `org.billing.view`
 - `org.billing.update`
 - `org.billing.payment_methods.add`
 - `org.billing.payment_methods.remove`
 
 #### Guest Management - Placeholder (2)
+
 - `resources.guest.invite`
 - `resources.guest.revoke`
 
@@ -1441,12 +1437,12 @@ Pre-built role templates for common use cases:
 
 ## Questions & Decisions Log
 
-| Date | Question | Decision | Rationale |
-|------|----------|----------|-----------|
-| 2025-11-10 | Support multiple roles per user? | ✅ Yes (many-to-many) | User can be Billing Admin + Team Lead |
-| 2025-11-10 | Permission granularity level? | Medium (action-based) | Balance clarity and manageability |
-| 2025-11-10 | Guest access pattern? | Resource-specific with expiration | Follows Notion/Google Docs model |
-| 2025-11-10 | Phase 1 scope? | User/Team Management + Org Settings | Foundation for all other features |
+| Date       | Question                         | Decision                            | Rationale                             |
+| ---------- | -------------------------------- | ----------------------------------- | ------------------------------------- |
+| 2025-11-10 | Support multiple roles per user? | ✅ Yes (many-to-many)               | User can be Billing Admin + Team Lead |
+| 2025-11-10 | Permission granularity level?    | Medium (action-based)               | Balance clarity and manageability     |
+| 2025-11-10 | Guest access pattern?            | Resource-specific with expiration   | Follows Notion/Google Docs model      |
+| 2025-11-10 | Phase 1 scope?                   | User/Team Management + Org Settings | Foundation for all other features     |
 
 ---
 
@@ -1461,4 +1457,3 @@ Pre-built role templates for common use cases:
 
 **Document Status**: ✅ Ready for Review  
 **Next Step**: Review with team → Approval → Begin Phase 1 Implementation
-

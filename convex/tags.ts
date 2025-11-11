@@ -1,34 +1,37 @@
 /**
  * Tag Queries and Mutations
- * 
+ *
  * Handles tag management with hierarchical support, color selection, and assignment to highlights
  */
 
-import { query, mutation } from "./_generated/server";
-import { v } from "convex/values";
-import { getAuthUserId } from "./auth";
-import { normalizeTagName } from "./readwiseUtils";
-import type { Doc, Id } from "./_generated/dataModel";
-import { canAccessContent } from "./permissions";
-import type { QueryCtx, MutationCtx } from "./_generated/server";
+import { query, mutation } from './_generated/server';
+import { v } from 'convex/values';
+import { getAuthUserId } from './auth';
+import { normalizeTagName } from './readwiseUtils';
+import type { Doc, Id } from './_generated/dataModel';
+import { canAccessContent } from './permissions';
+import type { QueryCtx, MutationCtx } from './_generated/server';
 // TODO: Re-enable server-side analytics via HTTP action bridge
 // import { captureAnalyticsEvent } from "./posthog";
 // import { AnalyticsEventName } from "../src/lib/analytics/events";
 
 export interface TagWithHierarchy {
-	_id: Id<"tags">;
-	userId: Id<"users">;
+	_id: Id<'tags'>;
+	userId: Id<'users'>;
 	name: string;
 	displayName: string;
 	color: string;
-	parentId: Id<"tags"> | undefined;
+	parentId: Id<'tags'> | undefined;
 	externalId: number | undefined;
 	createdAt: number;
 	level: number; // Depth in hierarchy (0 = root level)
 	children?: TagWithHierarchy[];
 }
 
-async function resolveDistinctId(ctx: QueryCtx | MutationCtx, userId: Id<'users'>): Promise<string> {
+async function resolveDistinctId(
+	ctx: QueryCtx | MutationCtx,
+	userId: Id<'users'>
+): Promise<string> {
 	const user = await ctx.db.get(userId);
 	const email = (user as unknown as { email?: string } | undefined)?.email;
 	return typeof email === 'string' ? email : userId;
@@ -39,12 +42,12 @@ async function resolveDistinctId(ctx: QueryCtx | MutationCtx, userId: Id<'users'
  * Groups tags by parent and returns a flat list with hierarchy level
  */
 export interface TagWithHierarchy {
-	_id: Id<"tags">;
-	userId: Id<"users">;
+	_id: Id<'tags'>;
+	userId: Id<'users'>;
 	name: string;
 	displayName: string;
 	color: string;
-	parentId: Id<"tags"> | undefined;
+	parentId: Id<'tags'> | undefined;
 	externalId: number | undefined;
 	createdAt: number;
 	level: number; // Depth in hierarchy (0 = root level)
@@ -52,7 +55,7 @@ export interface TagWithHierarchy {
 }
 
 function buildTagTree(tags: any[]): TagWithHierarchy[] {
-	const tagMap = new Map<Id<"tags">, TagWithHierarchy>();
+	const tagMap = new Map<Id<'tags'>, TagWithHierarchy>();
 	const rootTags: TagWithHierarchy[] = [];
 
 	// First pass: create tag objects
@@ -60,7 +63,7 @@ function buildTagTree(tags: any[]): TagWithHierarchy[] {
 		const tagWithHierarchy: TagWithHierarchy = {
 			...tag,
 			level: 0, // Will be calculated in second pass
-			children: [],
+			children: []
 		};
 		tagMap.set(tag._id, tagWithHierarchy);
 	}
@@ -109,17 +112,17 @@ function buildTagTree(tags: any[]): TagWithHierarchy[] {
  */
 async function getTagDescendants(
 	ctx: QueryCtx | MutationCtx,
-	tagId: Id<"tags">,
-	userId: Id<"users">
-): Promise<Id<"tags">[]> {
-	const descendants: Id<"tags">[] = [tagId];
-	const queue: Id<"tags">[] = [tagId];
+	tagId: Id<'tags'>,
+	userId: Id<'users'>
+): Promise<Id<'tags'>[]> {
+	const descendants: Id<'tags'>[] = [tagId];
+	const queue: Id<'tags'>[] = [tagId];
 
 	while (queue.length > 0) {
 		const currentTagId = queue.shift()!;
 		const children = await ctx.db
-			.query("tags")
-			.withIndex("by_user_parent", (q: any) => q.eq("userId", userId).eq("parentId", currentTagId))
+			.query('tags')
+			.withIndex('by_user_parent', (q: any) => q.eq('userId', userId).eq('parentId', currentTagId))
 			.collect();
 
 		for (const child of children) {
@@ -137,14 +140,14 @@ async function getTagDescendants(
  */
 export async function getTagDescendantsForTags(
 	ctx: QueryCtx | MutationCtx,
-	tagIds: Id<"tags">[],
-	userId: Id<"users">
-): Promise<Id<"tags">[]> {
+	tagIds: Id<'tags'>[],
+	userId: Id<'users'>
+): Promise<Id<'tags'>[]> {
 	if (tagIds.length === 0) {
 		return [];
 	}
 
-	const allDescendants = new Set<Id<"tags">>();
+	const allDescendants = new Set<Id<'tags'>>();
 	for (const tagId of tagIds) {
 		const descendants = await getTagDescendants(ctx, tagId, userId);
 		for (const descId of descendants) {
@@ -168,13 +171,13 @@ export const listAllTags = query({
 
 		// Get all user tags
 		const tags = await ctx.db
-			.query("tags")
-			.withIndex("by_user", (q) => q.eq("userId", userId))
+			.query('tags')
+			.withIndex('by_user', (q) => q.eq('userId', userId))
 			.collect();
 
 		// Build hierarchical tree structure
 		return buildTagTree(tags);
-	},
+	}
 });
 
 /**
@@ -191,12 +194,12 @@ export const listUserTags = query({
 
 		// Get all user tags (including shared ones)
 		const tags = await ctx.db
-			.query("tags")
-			.withIndex("by_user", (q) => q.eq("userId", userId))
+			.query('tags')
+			.withIndex('by_user', (q) => q.eq('userId', userId))
 			.collect();
 
 		// Return tags with ownership info (no hierarchy for simple list view)
-		return tags.map(tag => ({
+		return tags.map((tag) => ({
 			_id: tag._id,
 			displayName: tag.displayName ?? tag.name,
 			color: tag.color,
@@ -204,9 +207,9 @@ export const listUserTags = query({
 			organizationId: tag.organizationId ?? undefined,
 			teamId: tag.teamId ?? undefined,
 			userId: tag.userId,
-			createdAt: tag.createdAt,
+			createdAt: tag.createdAt
 		}));
-	},
+	}
 });
 
 /**
@@ -215,7 +218,7 @@ export const listUserTags = query({
  */
 export const getTagsForHighlight = query({
 	args: {
-		highlightId: v.id("highlights"),
+		highlightId: v.id('highlights')
 	},
 	handler: async (ctx, args) => {
 		const userId = await getAuthUserId(ctx);
@@ -225,8 +228,8 @@ export const getTagsForHighlight = query({
 
 		// Get highlight tags
 		const highlightTags = await ctx.db
-			.query("highlightTags")
-			.withIndex("by_highlight", (q) => q.eq("highlightId", args.highlightId))
+			.query('highlightTags')
+			.withIndex('by_highlight', (q) => q.eq('highlightId', args.highlightId))
 			.collect();
 
 		const tagIds = highlightTags.map((ht) => ht.tagId);
@@ -234,7 +237,7 @@ export const getTagsForHighlight = query({
 
 		// Filter out null tags and return
 		return tags.filter((t): t is NonNullable<typeof t> => t !== null);
-	},
+	}
 });
 
 /**
@@ -243,7 +246,7 @@ export const getTagsForHighlight = query({
  */
 export const getTagsForFlashcard = query({
 	args: {
-		flashcardId: v.id("flashcards"),
+		flashcardId: v.id('flashcards')
 	},
 	handler: async (ctx, args) => {
 		const userId = await getAuthUserId(ctx);
@@ -253,8 +256,8 @@ export const getTagsForFlashcard = query({
 
 		// Get flashcard tags
 		const flashcardTags = await ctx.db
-			.query("flashcardTags")
-			.withIndex("by_flashcard", (q) => q.eq("flashcardId", args.flashcardId))
+			.query('flashcardTags')
+			.withIndex('by_flashcard', (q) => q.eq('flashcardId', args.flashcardId))
 			.collect();
 
 		const tagIds = flashcardTags.map((ft) => ft.tagId);
@@ -262,7 +265,7 @@ export const getTagsForFlashcard = query({
 
 		// Filter out null tags and return
 		return tags.filter((t): t is NonNullable<typeof t> => t !== null);
-	},
+	}
 });
 
 /**
@@ -272,50 +275,50 @@ export const createTag = mutation({
 	args: {
 		displayName: v.string(),
 		color: v.string(), // Hex color code
-		parentId: v.optional(v.id("tags")),
-		ownership: v.optional(v.union(v.literal("user"), v.literal("organization"), v.literal("team"))),
-		organizationId: v.optional(v.id("organizations")),
-		teamId: v.optional(v.id("teams")),
+		parentId: v.optional(v.id('tags')),
+		ownership: v.optional(v.union(v.literal('user'), v.literal('organization'), v.literal('team'))),
+		organizationId: v.optional(v.id('organizations')),
+		teamId: v.optional(v.id('teams'))
 	},
 	handler: async (ctx, args) => {
 		const userId = await getAuthUserId(ctx);
 		if (!userId) {
-			throw new Error("Not authenticated");
+			throw new Error('Not authenticated');
 		}
 
-		const ownership = args.ownership ?? "user";
-		let organizationId: Id<"organizations"> | undefined = undefined;
-		let teamId: Id<"teams"> | undefined = undefined;
+		const ownership = args.ownership ?? 'user';
+		let organizationId: Id<'organizations'> | undefined = undefined;
+		let teamId: Id<'teams'> | undefined = undefined;
 
-		if (ownership === "organization") {
+		if (ownership === 'organization') {
 			if (!args.organizationId) {
-				throw new Error("organizationId is required for organization tags");
+				throw new Error('organizationId is required for organization tags');
 			}
 			const membership = await ctx.db
-				.query("organizationMembers")
-				.withIndex("by_organization_user", (q) =>
-					q.eq("organizationId", args.organizationId!).eq("userId", userId)
+				.query('organizationMembers')
+				.withIndex('by_organization_user', (q) =>
+					q.eq('organizationId', args.organizationId!).eq('userId', userId)
 				)
 				.first();
 			if (!membership) {
-				throw new Error("You do not have access to this organization");
+				throw new Error('You do not have access to this organization');
 			}
 			organizationId = args.organizationId;
 			teamId = undefined;
-		} else if (ownership === "team") {
+		} else if (ownership === 'team') {
 			if (!args.teamId) {
-				throw new Error("teamId is required for team tags");
+				throw new Error('teamId is required for team tags');
 			}
 			const teamMembership = await ctx.db
-				.query("teamMembers")
-				.withIndex("by_team_user", (q) => q.eq("teamId", args.teamId!).eq("userId", userId))
+				.query('teamMembers')
+				.withIndex('by_team_user', (q) => q.eq('teamId', args.teamId!).eq('userId', userId))
 				.first();
 			if (!teamMembership) {
-				throw new Error("You do not have access to this team");
+				throw new Error('You do not have access to this team');
 			}
 			const team = await ctx.db.get(args.teamId);
 			if (!team) {
-				throw new Error("Team not found");
+				throw new Error('Team not found');
 			}
 			teamId = args.teamId;
 			organizationId = team.organizationId;
@@ -327,31 +330,31 @@ export const createTag = mutation({
 		// Validate tag name
 		const normalizedName = normalizeTagName(args.displayName);
 		if (!normalizedName || normalizedName.length === 0) {
-			throw new Error("Tag name cannot be empty");
+			throw new Error('Tag name cannot be empty');
 		}
 
 		// Check max length (50 chars)
 		if (normalizedName.length > 50) {
-			throw new Error("Tag name cannot exceed 50 characters");
+			throw new Error('Tag name cannot exceed 50 characters');
 		}
 
-		let existing: Doc<"tags"> | null = null;
-		if (ownership === "user") {
+		let existing: Doc<'tags'> | null = null;
+		if (ownership === 'user') {
 			existing = await ctx.db
-				.query("tags")
-				.withIndex("by_user_name", (q) => q.eq("userId", userId).eq("name", normalizedName))
+				.query('tags')
+				.withIndex('by_user_name', (q) => q.eq('userId', userId).eq('name', normalizedName))
 				.first();
-		} else if (ownership === "organization" && organizationId) {
+		} else if (ownership === 'organization' && organizationId) {
 			existing = await ctx.db
-				.query("tags")
-				.withIndex("by_organization_name", (q) =>
-					q.eq("organizationId", organizationId).eq("name", normalizedName)
+				.query('tags')
+				.withIndex('by_organization_name', (q) =>
+					q.eq('organizationId', organizationId).eq('name', normalizedName)
 				)
 				.first();
-		} else if (ownership === "team" && teamId) {
+		} else if (ownership === 'team' && teamId) {
 			existing = await ctx.db
-				.query("tags")
-				.withIndex("by_team_name", (q) => q.eq("teamId", teamId).eq("name", normalizedName))
+				.query('tags')
+				.withIndex('by_team_name', (q) => q.eq('teamId', teamId).eq('name', normalizedName))
 				.first();
 		}
 
@@ -363,41 +366,41 @@ export const createTag = mutation({
 		// We can't check against existing tag ID since we're creating new tag
 		// So we check if parentId would create a cycle by walking up the chain
 		if (args.parentId) {
-			let currentParentId: Id<"tags"> | undefined = args.parentId;
-			const visited = new Set<Id<"tags">>();
+			let currentParentId: Id<'tags'> | undefined = args.parentId;
+			const visited = new Set<Id<'tags'>>();
 
 			while (currentParentId) {
 				if (visited.has(currentParentId)) {
-					throw new Error("Circular reference detected in parent chain");
+					throw new Error('Circular reference detected in parent chain');
 				}
 				visited.add(currentParentId);
 
-				const parentTag: Doc<"tags"> | null = await ctx.db.get(currentParentId);
+				const parentTag: Doc<'tags'> | null = await ctx.db.get(currentParentId);
 				if (!parentTag) {
-					throw new Error("Parent tag not found");
+					throw new Error('Parent tag not found');
 				}
 				if (parentTag.userId !== userId) {
 					const hasAccess = await canAccessContent(ctx, userId, {
 						userId: parentTag.userId,
 						organizationId: parentTag.organizationId ?? undefined,
-						teamId: parentTag.teamId ?? undefined,
+						teamId: parentTag.teamId ?? undefined
 					});
 					if (!hasAccess) {
-						throw new Error("Parent tag does not belong to current user scope");
+						throw new Error('Parent tag does not belong to current user scope');
 					}
 				}
 				if (parentTag.organizationId !== organizationId) {
-					throw new Error("Parent tag must belong to the same organization");
+					throw new Error('Parent tag must belong to the same organization');
 				}
 				if (parentTag.teamId !== teamId) {
-					throw new Error("Parent tag must belong to the same team");
+					throw new Error('Parent tag must belong to the same team');
 				}
 				currentParentId = parentTag.parentId;
 			}
 		}
 
 		// Create tag
-		const tagId = await ctx.db.insert("tags", {
+		const tagId = await ctx.db.insert('tags', {
 			userId,
 			name: normalizedName,
 			displayName: args.displayName,
@@ -406,54 +409,54 @@ export const createTag = mutation({
 			createdAt: Date.now(),
 			organizationId,
 			teamId,
-			ownershipType: ownership,
+			ownershipType: ownership
 		});
 
 		const distinctId = await resolveDistinctId(ctx, userId as Id<'users'>);
 
-		if (ownership === "organization" && organizationId) {
-		const tagCount = await ctx.db
-			.query("tags")
-			.withIndex("by_organization", (q: any) => q.eq("organizationId", organizationId))
-			.collect();
+		if (ownership === 'organization' && organizationId) {
+			const tagCount = await ctx.db
+				.query('tags')
+				.withIndex('by_organization', (q: any) => q.eq('organizationId', organizationId))
+				.collect();
 
-		// TODO: Re-enable server-side analytics via HTTP action bridge
-		// await captureAnalyticsEvent({
-		// 	name: AnalyticsEventName.ORGANIZATION_TAG_ASSIGNED,
-		// 	distinctId,
-		// 	groups: { organization: organizationId },
-		// 	properties: {
-		// 		scope: "organization",
-		// 		organizationId,
-		// 		tagId,
-		// 		tagName: args.displayName,
-		// 		tagsAssignedCount: tagCount.length,
-		// 	},
-		// });
-	} else if (ownership === "team" && teamId) {
-		const tagCount = await ctx.db
-			.query("tags")
-			.withIndex("by_team", (q: any) => q.eq("teamId", teamId))
-			.collect();
+			// TODO: Re-enable server-side analytics via HTTP action bridge
+			// await captureAnalyticsEvent({
+			// 	name: AnalyticsEventName.ORGANIZATION_TAG_ASSIGNED,
+			// 	distinctId,
+			// 	groups: { organization: organizationId },
+			// 	properties: {
+			// 		scope: "organization",
+			// 		organizationId,
+			// 		tagId,
+			// 		tagName: args.displayName,
+			// 		tagsAssignedCount: tagCount.length,
+			// 	},
+			// });
+		} else if (ownership === 'team' && teamId) {
+			const tagCount = await ctx.db
+				.query('tags')
+				.withIndex('by_team', (q: any) => q.eq('teamId', teamId))
+				.collect();
 
-		// TODO: Re-enable server-side analytics via HTTP action bridge
-		// await captureAnalyticsEvent({
-		// 	name: AnalyticsEventName.TEAM_TAG_ASSIGNED,
-		// 	distinctId,
-		// 	groups: { organization: organizationId!, team: teamId },
-		// 	properties: {
-		// 		scope: "team",
-		// 		organizationId: organizationId!,
-		// 		teamId,
-		// 		tagId,
-		// 		tagName: args.displayName,
-		// 		tagsAssignedCount: tagCount.length,
-		// 	},
-		// });
-	}
- 
+			// TODO: Re-enable server-side analytics via HTTP action bridge
+			// await captureAnalyticsEvent({
+			// 	name: AnalyticsEventName.TEAM_TAG_ASSIGNED,
+			// 	distinctId,
+			// 	groups: { organization: organizationId!, team: teamId },
+			// 	properties: {
+			// 		scope: "team",
+			// 		organizationId: organizationId!,
+			// 		teamId,
+			// 		tagId,
+			// 		tagName: args.displayName,
+			// 		tagsAssignedCount: tagCount.length,
+			// 	},
+			// });
+		}
+
 		return tagId;
-	},
+	}
 });
 
 /**
@@ -462,7 +465,7 @@ export const createTag = mutation({
  */
 export const countTagItems = query({
 	args: {
-		tagId: v.id("tags"),
+		tagId: v.id('tags')
 	},
 	handler: async (ctx, args) => {
 		const userId = await getAuthUserId(ctx);
@@ -472,8 +475,8 @@ export const countTagItems = query({
 
 		// Count highlights
 		const highlightAssignments = await ctx.db
-			.query("highlightTags")
-			.withIndex("by_tag", (q) => q.eq("tagId", args.tagId))
+			.query('highlightTags')
+			.withIndex('by_tag', (q) => q.eq('tagId', args.tagId))
 			.collect();
 
 		// TODO: Count flashcards when implemented
@@ -482,9 +485,9 @@ export const countTagItems = query({
 		return {
 			highlights: highlightAssignments.length,
 			flashcards: flashcardCount,
-			total: highlightAssignments.length + flashcardCount,
+			total: highlightAssignments.length + flashcardCount
 		};
-	},
+	}
 });
 
 /**
@@ -493,73 +496,73 @@ export const countTagItems = query({
  */
 export const shareTag = mutation({
 	args: {
-		tagId: v.id("tags"),
-		shareWith: v.union(v.literal("organization"), v.literal("team")),
-		organizationId: v.optional(v.id("organizations")),
-		teamId: v.optional(v.id("teams")),
+		tagId: v.id('tags'),
+		shareWith: v.union(v.literal('organization'), v.literal('team')),
+		organizationId: v.optional(v.id('organizations')),
+		teamId: v.optional(v.id('teams'))
 	},
 	handler: async (ctx, args) => {
 		const userId = await getAuthUserId(ctx);
 		if (!userId) {
-			throw new Error("Not authenticated");
+			throw new Error('Not authenticated');
 		}
 
 		// Get the tag
 		const tag = await ctx.db.get(args.tagId);
 		if (!tag) {
-			throw new Error("Tag not found");
+			throw new Error('Tag not found');
 		}
 
 		// Verify user owns this tag
 		if (tag.userId !== userId) {
-			throw new Error("You can only share tags you own");
+			throw new Error('You can only share tags you own');
 		}
 
 		// Verify tag is currently user-owned
-		if (tag.ownershipType !== "user" && tag.ownershipType !== undefined) {
-			throw new Error("Tag is already shared");
+		if (tag.ownershipType !== 'user' && tag.ownershipType !== undefined) {
+			throw new Error('Tag is already shared');
 		}
 
 		// Validate sharing parameters
-		let organizationId: Id<"organizations"> | undefined = undefined;
-		let teamId: Id<"teams"> | undefined = undefined;
+		let organizationId: Id<'organizations'> | undefined = undefined;
+		let teamId: Id<'teams'> | undefined = undefined;
 
-		if (args.shareWith === "organization") {
+		if (args.shareWith === 'organization') {
 			if (!args.organizationId) {
-				throw new Error("organizationId is required when sharing with organization");
+				throw new Error('organizationId is required when sharing with organization');
 			}
 
 			// Verify user is member of the organization
 			const membership = await ctx.db
-				.query("organizationMembers")
-				.withIndex("by_organization_user", (q) =>
-					q.eq("organizationId", args.organizationId!).eq("userId", userId)
+				.query('organizationMembers')
+				.withIndex('by_organization_user', (q) =>
+					q.eq('organizationId', args.organizationId!).eq('userId', userId)
 				)
 				.first();
 			if (!membership) {
-				throw new Error("You are not a member of this organization");
+				throw new Error('You are not a member of this organization');
 			}
 
 			organizationId = args.organizationId;
 			teamId = undefined;
-		} else if (args.shareWith === "team") {
+		} else if (args.shareWith === 'team') {
 			if (!args.teamId) {
-				throw new Error("teamId is required when sharing with team");
+				throw new Error('teamId is required when sharing with team');
 			}
 
 			// Verify user is member of the team
 			const teamMembership = await ctx.db
-				.query("teamMembers")
-				.withIndex("by_team_user", (q) => q.eq("teamId", args.teamId!).eq("userId", userId))
+				.query('teamMembers')
+				.withIndex('by_team_user', (q) => q.eq('teamId', args.teamId!).eq('userId', userId))
 				.first();
 			if (!teamMembership) {
-				throw new Error("You are not a member of this team");
+				throw new Error('You are not a member of this team');
 			}
 
 			// Get team to verify it exists and get organization
 			const team = await ctx.db.get(args.teamId);
 			if (!team) {
-				throw new Error("Team not found");
+				throw new Error('Team not found');
 			}
 
 			teamId = args.teamId;
@@ -568,19 +571,19 @@ export const shareTag = mutation({
 
 		// Check for naming conflicts in target scope
 		const normalizedName = tag.name;
-		let existing: Doc<"tags"> | null = null;
+		let existing: Doc<'tags'> | null = null;
 
-		if (args.shareWith === "organization" && organizationId) {
+		if (args.shareWith === 'organization' && organizationId) {
 			existing = await ctx.db
-				.query("tags")
-				.withIndex("by_organization_name", (q) =>
-					q.eq("organizationId", organizationId).eq("name", normalizedName)
+				.query('tags')
+				.withIndex('by_organization_name', (q) =>
+					q.eq('organizationId', organizationId).eq('name', normalizedName)
 				)
 				.first();
-		} else if (args.shareWith === "team" && teamId) {
+		} else if (args.shareWith === 'team' && teamId) {
 			existing = await ctx.db
-				.query("tags")
-				.withIndex("by_team_name", (q) => q.eq("teamId", teamId).eq("name", normalizedName))
+				.query('tags')
+				.withIndex('by_team_name', (q) => q.eq('teamId', teamId).eq('name', normalizedName))
 				.first();
 		}
 
@@ -592,13 +595,13 @@ export const shareTag = mutation({
 		await ctx.db.patch(args.tagId, {
 			ownershipType: args.shareWith,
 			organizationId,
-			teamId,
+			teamId
 		});
 
 		// Find all highlights linked to this tag
 		const tagAssignments = await ctx.db
-			.query("highlightTags")
-			.withIndex("by_tag", (q) => q.eq("tagId", args.tagId))
+			.query('highlightTags')
+			.withIndex('by_tag', (q) => q.eq('tagId', args.tagId))
 			.collect();
 
 		// Transfer ownership of all linked highlights
@@ -609,7 +612,7 @@ export const shareTag = mutation({
 				await ctx.db.patch(assignment.highlightId, {
 					ownershipType: args.shareWith,
 					organizationId,
-					teamId,
+					teamId
 				});
 				highlightsTransferred++;
 			}
@@ -630,7 +633,7 @@ export const shareTag = mutation({
 			organizationName: organization?.name,
 			teamId,
 			teamName: teamDoc?.name,
-			highlightsTransferred,
+			highlightsTransferred
 		});
 
 		return {
@@ -639,9 +642,9 @@ export const shareTag = mutation({
 			scope: args.shareWith,
 			organizationId,
 			teamId,
-			itemsTransferred: highlightsTransferred,
+			itemsTransferred: highlightsTransferred
 		};
-	},
+	}
 });
 
 /**
@@ -650,23 +653,23 @@ export const shareTag = mutation({
  */
 async function assignTagsToEntity(
 	ctx: MutationCtx,
-	userId: Id<"users">,
-	entityType: "highlights" | "flashcards",
-	entityId: Id<"highlights"> | Id<"flashcards">,
-	tagIds: Id<"tags">[]
-): Promise<Id<"tags">[]> {
+	userId: Id<'users'>,
+	entityType: 'highlights' | 'flashcards',
+	entityId: Id<'highlights'> | Id<'flashcards'>,
+	tagIds: Id<'tags'>[]
+): Promise<Id<'tags'>[]> {
 	// Map entity types to their junction tables and ID field names
 	const entityConfig = {
 		highlights: {
-			table: "highlights" as const,
-			junctionTable: "highlightTags" as const,
-			idField: "highlightId" as const,
+			table: 'highlights' as const,
+			junctionTable: 'highlightTags' as const,
+			idField: 'highlightId' as const
 		},
 		flashcards: {
-			table: "flashcards" as const,
-			junctionTable: "flashcardTags" as const,
-			idField: "flashcardId" as const,
-		},
+			table: 'flashcards' as const,
+			junctionTable: 'flashcardTags' as const,
+			idField: 'flashcardId' as const
+		}
 	};
 
 	const config = entityConfig[entityType];
@@ -677,48 +680,45 @@ async function assignTagsToEntity(
 		throw new Error(`${entityType.slice(0, -1)} not found`);
 	}
 	// Type guard: Both highlights and flashcards have userId field
-	if (!("userId" in entity) || entity.userId !== userId) {
+	if (!('userId' in entity) || entity.userId !== userId) {
 		throw new Error(`${entityType.slice(0, -1)} not found or access denied`);
-		}
+	}
 
 	// 2. Verify all tags exist and user has access
 	const tags = await Promise.all(tagIds.map((tagId) => ctx.db.get(tagId)));
-		for (const tag of tags) {
-			if (!tag) {
-				throw new Error("One or more tags not found");
-			}
-			if (tag.userId !== userId) {
-				const hasAccess = await canAccessContent(ctx, userId, {
-					userId: tag.userId,
-					organizationId: tag.organizationId ?? undefined,
-					teamId: tag.teamId ?? undefined,
-				});
-				if (!hasAccess) {
-					throw new Error("One or more tags are not accessible");
-				}
+	for (const tag of tags) {
+		if (!tag) {
+			throw new Error('One or more tags not found');
+		}
+		if (tag.userId !== userId) {
+			const hasAccess = await canAccessContent(ctx, userId, {
+				userId: tag.userId,
+				organizationId: tag.organizationId ?? undefined,
+				teamId: tag.teamId ?? undefined
+			});
+			if (!hasAccess) {
+				throw new Error('One or more tags are not accessible');
 			}
 		}
+	}
 
 	// 3. Get and remove existing assignments
-		const existingAssignments = await ctx.db
+	const existingAssignments = await ctx.db
 		.query(config.junctionTable)
-		.withIndex(
-			`by_${entityType.slice(0, -1)}` as any,
-			(q: any) => q.eq(config.idField, entityId)
-		)
-			.collect();
+		.withIndex(`by_${entityType.slice(0, -1)}` as any, (q: any) => q.eq(config.idField, entityId))
+		.collect();
 
-		for (const assignment of existingAssignments) {
-			await ctx.db.delete(assignment._id);
-		}
+	for (const assignment of existingAssignments) {
+		await ctx.db.delete(assignment._id);
+	}
 
 	// 4. Create new assignments
 	for (const tagId of tagIds) {
 		await ctx.db.insert(config.junctionTable, {
 			[config.idField]: entityId,
-					tagId,
+			tagId
 		} as any);
-			}
+	}
 
 	return tagIds;
 }
@@ -728,23 +728,17 @@ async function assignTagsToEntity(
  */
 export const assignTagsToHighlight = mutation({
 	args: {
-		highlightId: v.id("highlights"),
-		tagIds: v.array(v.id("tags")),
+		highlightId: v.id('highlights'),
+		tagIds: v.array(v.id('tags'))
 	},
 	handler: async (ctx, args) => {
 		const userId = await getAuthUserId(ctx);
 		if (!userId) {
-			throw new Error("Not authenticated");
+			throw new Error('Not authenticated');
 		}
 
-		return await assignTagsToEntity(
-			ctx,
-			userId,
-			"highlights",
-			args.highlightId,
-			args.tagIds
-		);
-	},
+		return await assignTagsToEntity(ctx, userId, 'highlights', args.highlightId, args.tagIds);
+	}
 });
 
 /**
@@ -752,23 +746,17 @@ export const assignTagsToHighlight = mutation({
  */
 export const assignTagsToFlashcard = mutation({
 	args: {
-		flashcardId: v.id("flashcards"),
-		tagIds: v.array(v.id("tags")),
+		flashcardId: v.id('flashcards'),
+		tagIds: v.array(v.id('tags'))
 	},
 	handler: async (ctx, args) => {
 		const userId = await getAuthUserId(ctx);
 		if (!userId) {
-			throw new Error("Not authenticated");
+			throw new Error('Not authenticated');
 		}
 
-		return await assignTagsToEntity(
-			ctx,
-			userId,
-			"flashcards",
-			args.flashcardId,
-			args.tagIds
-		);
-	},
+		return await assignTagsToEntity(ctx, userId, 'flashcards', args.flashcardId, args.tagIds);
+	}
 });
 
 /**
@@ -776,26 +764,26 @@ export const assignTagsToFlashcard = mutation({
  */
 export const unassignTagFromHighlight = mutation({
 	args: {
-		highlightId: v.id("highlights"),
-		tagId: v.id("tags"),
+		highlightId: v.id('highlights'),
+		tagId: v.id('tags')
 	},
 	handler: async (ctx, args) => {
 		const userId = await getAuthUserId(ctx);
 		if (!userId) {
-			throw new Error("Not authenticated");
+			throw new Error('Not authenticated');
 		}
 
 		// Verify highlight exists and belongs to user
 		const highlight = await ctx.db.get(args.highlightId);
 		if (!highlight || highlight.userId !== userId) {
-			throw new Error("Highlight not found or access denied");
+			throw new Error('Highlight not found or access denied');
 		}
 
 		// Find and delete the assignment
 		const assignment = await ctx.db
-			.query("highlightTags")
-			.withIndex("by_highlight_tag", (q) =>
-				q.eq("highlightId", args.highlightId).eq("tagId", args.tagId)
+			.query('highlightTags')
+			.withIndex('by_highlight_tag', (q) =>
+				q.eq('highlightId', args.highlightId).eq('tagId', args.tagId)
 			)
 			.first();
 
@@ -804,6 +792,5 @@ export const unassignTagFromHighlight = mutation({
 		}
 
 		return args.tagId;
-	},
+	}
 });
-

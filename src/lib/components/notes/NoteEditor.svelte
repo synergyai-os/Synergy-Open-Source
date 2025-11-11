@@ -3,13 +3,12 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { EditorView } from 'prosemirror-view';
 	import { EditorState, Transaction } from 'prosemirror-state';
-	import {
-		createEditorState,
-		exportEditorJSON,
-		isEditorEmpty
-	} from '$lib/utils/prosemirror-setup';
+	import { createEditorState, exportEditorJSON, isEditorEmpty } from '$lib/utils/prosemirror-setup';
 	import { createMentionPlugin, type MentionItem } from '$lib/utils/prosemirror-mentions';
-	import { createCodeBlockPlugin, createSyntaxHighlightPlugin } from '$lib/utils/prosemirror-codeblock';
+	import {
+		createCodeBlockPlugin,
+		createSyntaxHighlightPlugin
+	} from '$lib/utils/prosemirror-codeblock';
 	import { createEmojiPlugin } from './prosemirror/emoji-plugin';
 	import NoteEditorToolbar from './NoteEditorToolbar.svelte';
 	import MentionMenu from './MentionMenu.svelte';
@@ -60,7 +59,7 @@
 		{ id: 'project', label: 'project', icon: '📁', description: 'Reference a project' },
 		{ id: 'todo', label: 'todo', icon: '✅', description: 'Add a todo item' },
 		{ id: 'note', label: 'note', icon: '📝', description: 'Link to a note' },
-		{ id: 'date', label: 'date', icon: '📅', description: 'Insert date' },
+		{ id: 'date', label: 'date', icon: '📅', description: 'Insert date' }
 	];
 
 	const mentionPlugin = createMentionPlugin(mentionItems);
@@ -95,7 +94,7 @@
 			target.blur();
 			e.preventDefault();
 			e.stopPropagation(); // Prevent modal from closing
-			
+
 			// Notify parent (modal) to refocus itself
 			onEscape?.();
 		}
@@ -123,7 +122,15 @@
 	onMount(() => {
 		if (!editorElement) return;
 
-		const state = createEditorState(content || undefined, onPaste, onEscape, mentionPlugin, syntaxHighlightPlugin, codeBlockPlugin, emojiPlugin);
+		const state = createEditorState(
+			content || undefined,
+			onPaste,
+			onEscape,
+			mentionPlugin,
+			syntaxHighlightPlugin,
+			codeBlockPlugin,
+			emojiPlugin
+		);
 		editorState = state;
 		isEmpty = isEditorEmpty(state);
 
@@ -180,13 +187,17 @@
 	}
 </script>
 
-<div class="flex flex-col {compact ? '' : 'h-full'} text-surface-primary {compact ? '' : 'overflow-hidden'}">
+<div
+	class="flex flex-col {compact ? '' : 'h-full'} text-surface-primary {compact
+		? ''
+		: 'overflow-hidden'}"
+>
 	<!-- AI Generated Badge -->
 	{#if isAIGenerated}
-		<div class="px-content-padding py-section bg-warning-subtle border-b border-divider">
-			<div class="flex items-center gap-icon text-sm text-warning-primary">
+		<div class="bg-warning-subtle border-divider border-b px-content-padding py-section">
+			<div class="text-warning-primary flex items-center gap-icon text-sm">
 				<svg
-					class="w-4 h-4"
+					class="h-4 w-4"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -210,7 +221,7 @@
 	{/if}
 
 	<!-- Scrollable Editor Content -->
-	<div class="{compact ? '' : 'flex-1 overflow-y-auto'}">
+	<div class={compact ? '' : 'flex-1 overflow-y-auto'}>
 		<div class="max-w-full px-inbox-container pt-3 pb-5">
 			<!-- Title Input -->
 			<input
@@ -221,17 +232,19 @@
 				onkeydown={handleTitleKeydown}
 				placeholder="Note title"
 				disabled={readonly}
-				class="w-full text-lg font-semibold bg-transparent border-none outline-none text-primary placeholder:text-gray-400 mb-3 focus:placeholder:text-gray-500 transition-colors p-0"
+				class="mb-3 w-full border-none bg-transparent p-0 text-lg font-semibold text-primary transition-colors outline-none placeholder:text-gray-400 focus:placeholder:text-gray-500"
 			/>
 
 			<!-- ProseMirror Editor with Placeholder Overlay -->
 			<div class="relative">
 				<div
 					bind:this={editorElement}
-					class="prose prose-sm prose-neutral dark:prose-invert prose-p:my-0 prose-p:leading-relaxed max-w-none min-h-[60px] text-secondary {compact ? 'max-h-[60vh] overflow-y-auto' : ''}"
+					class="prose prose-sm prose-neutral dark:prose-invert prose-p:my-0 prose-p:leading-relaxed min-h-[60px] max-w-none text-secondary {compact
+						? 'max-h-[60vh] overflow-y-auto'
+						: ''}"
 				></div>
 				{#if isEmpty && !isFocused}
-					<div class="absolute top-0 left-0 text-sm text-tertiary pointer-events-none">
+					<div class="pointer-events-none absolute top-0 left-0 text-sm text-tertiary">
 						{placeholder}
 					</div>
 				{/if}
@@ -491,4 +504,3 @@
 		padding: 0 2px;
 	}
 </style>
-
