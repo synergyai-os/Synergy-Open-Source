@@ -9,7 +9,7 @@
 ### Automatic Deployments
 
 **When**: Push to `main` branch
-**How**: GitHub Actions + Vercel
+**How**: GitHub Actions + Vercel (with Deployment Checks)
 
 **Flow**:
 ```
@@ -19,10 +19,35 @@ GitHub Actions triggered
     ↓
 1. Deploy Convex backend (< 1 min)
     ↓
-2. Vercel auto-deploys frontend (2-3 min)
+2. Quality checks run (types, lint, build)
+    ↓
+3. If checks pass → Notify Vercel
+    ↓
+4. Vercel Deployment Check passes → Promote to production (2-3 min)
     ↓
 Production updated (total: 3-4 min)
 ```
+
+**Preview Deployments** (PR branches):
+- Vercel auto-deploys previews on every push (immediate feedback)
+- Previews are free/cheap (Vercel free tier: unlimited)
+- **Trade-off**: Previews deploy even if checks fail (acceptable cost for fast iteration)
+- Production only deploys after checks pass (via Deployment Checks)
+
+### Deployment Checks (Production Only)
+
+**Purpose**: Prevent production deployments if quality checks fail
+
+**Configuration**:
+1. Vercel Dashboard → Project → Settings → Git → Deployment Checks
+2. Add check: "Quality Checks" (matches GitHub Actions workflow name)
+3. Require this check to pass before promoting to production
+
+**Result**: Production deployments only happen after:
+- ✅ Type checks pass
+- ✅ Linter passes  
+- ✅ Build succeeds
+- ✅ Convex backend deployed
 
 ### No Manual Steps
 

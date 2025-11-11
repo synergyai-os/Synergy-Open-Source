@@ -48,6 +48,25 @@ jobs:
           else
             echo "❌ Some quality checks failed" >> $GITHUB_STEP_SUMMARY
           fi
+      
+      # Notify Vercel that quality checks passed (for Deployment Checks)
+      - name: Notify Vercel - Quality Checks Passed
+        if: success()
+        uses: 'vercel/repository-dispatch/actions/status@v1'
+        with:
+          # This name must match the check name in Vercel Dashboard → Settings → Git → Deployment Checks
+          name: "Quality Checks"
+          status: "success"
+          description: "All quality checks passed (types, lint, build)"
+      
+      # Notify Vercel if checks failed
+      - name: Notify Vercel - Quality Checks Failed
+        if: failure()
+        uses: 'vercel/repository-dispatch/actions/status@v1'
+        with:
+          name: "Quality Checks"
+          status: "failure"
+          description: "Quality checks failed - see GitHub Actions for details"
 
   # Optional: Run tests (currently commented out as tests may not be stable)
   # Uncomment when test suite is reliable
