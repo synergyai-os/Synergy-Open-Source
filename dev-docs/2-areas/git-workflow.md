@@ -111,9 +111,12 @@ git push origin feature/your-feature-name
 
 **What happens**:
 
-- Code is reviewed
+- **CodeRabbit reviews automatically** - AI-powered code review (see [CodeRabbit Integration](coderabbit-integration.md))
+- Code is reviewed by team members
 - CI checks run (quality gates, link checker)
 - Vercel creates preview deployment
+
+**Tip**: Add `Closes SYOS-XXX` in PR description to link to Linear tickets. CodeRabbit will automatically comment on the Linear ticket.
 
 ---
 
