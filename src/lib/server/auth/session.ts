@@ -30,7 +30,7 @@ const COOKIE_BASE_OPTIONS = {
 	sameSite: 'lax' as const,
 	secure: env.NODE_ENV === 'production'
 };
-const REFRESH_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
+const REFRESH_THRESHOLD_MS = 1 * 60 * 1000; // 1 minute - refresh only in last minute before expiry
 
 export const sessionCookieOptions = {
 	...COOKIE_BASE_OPTIONS,
@@ -183,6 +183,7 @@ export async function resolveRequestSession(event: RequestEvent) {
 
 	const record = await getSessionRecord(sessionId);
 	if (!record) {
+		console.warn('⚠️  Session record not found in Convex for sessionId:', sessionId);
 		clearSessionCookies(event);
 		event.locals.auth = {
 			sessionId: undefined,
@@ -190,10 +191,21 @@ export async function resolveRequestSession(event: RequestEvent) {
 		};
 		return;
 	}
+	
+	console.log('✅ Session record found:', {
+		sessionId: record.sessionId,
+		expiresAt: new Date(record.expiresAt).toISOString(),
+		userEmail: record.userSnapshot?.email
+	});
 
 	const now = Date.now();
 
 	if (record.expiresAt <= now) {
+		console.warn('⚠️  Session expired:', {
+			sessionId: record.sessionId,
+			expiresAt: new Date(record.expiresAt).toISOString(),
+			now: new Date(now).toISOString()
+		});
 		await invalidateSession(record.sessionId);
 		clearSessionCookies(event);
 		event.locals.auth = {
@@ -256,7 +268,11 @@ export async function resolveRequestSession(event: RequestEvent) {
 			event.cookies.set(CSRF_COOKIE_NAME, csrfToken, csrfCookieOptions);
 			expiresAt = refreshedExpiresAt;
 		} catch (error) {
-			console.error('Failed to refresh WorkOS session', error);
+			console.error('❌ Failed to refresh WorkOS session - logging user out', {
+				sessionId: record.sessionId,
+				userEmail: record.userSnapshot?.email,
+				error: (error as Error)?.message
+			});
 			await invalidateSession(record.sessionId);
 			clearSessionCookies(event);
 			event.locals.auth = {
