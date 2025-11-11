@@ -2,6 +2,56 @@ import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
 const schema = defineSchema({
+	// Ephemeral login state for WorkOS PKCE + state flow
+	authLoginState: defineTable({
+		stateHash: v.string(),
+		codeVerifierCiphertext: v.string(),
+		redirectTo: v.optional(v.string()),
+		ipAddress: v.optional(v.string()),
+		userAgent: v.optional(v.string()),
+		createdAt: v.number(),
+		expiresAt: v.number()
+	})
+		.index('by_state', ['stateHash'])
+		.index('by_expires', ['expiresAt']),
+
+	// Server-managed authenticated sessions
+	authSessions: defineTable({
+		sessionId: v.string(),
+		convexUserId: v.id('users'),
+		workosUserId: v.string(),
+		workosSessionId: v.string(),
+		accessTokenCiphertext: v.string(),
+		refreshTokenCiphertext: v.string(),
+		csrfTokenHash: v.string(),
+		expiresAt: v.number(),
+		createdAt: v.number(),
+		lastRefreshedAt: v.optional(v.number()),
+		lastSeenAt: v.optional(v.number()),
+		ipAddress: v.optional(v.string()),
+		userAgent: v.optional(v.string()),
+		isValid: v.boolean(),
+		revokedAt: v.optional(v.number()),
+		userSnapshot: v.object({
+			userId: v.id('users'),
+			workosId: v.string(),
+			email: v.string(),
+			firstName: v.optional(v.string()),
+			lastName: v.optional(v.string()),
+			name: v.optional(v.string()),
+			activeWorkspace: v.optional(
+				v.object({
+					type: v.union(v.literal('personal'), v.literal('organization')),
+					id: v.optional(v.string()),
+					name: v.optional(v.string())
+				})
+			)
+		})
+	})
+		.index('by_session', ['sessionId'])
+		.index('by_convex_user', ['convexUserId'])
+		.index('by_workos_session', ['workosSessionId']),
+
 	// Users table - WorkOS authentication
 	users: defineTable({
 		// Auth provider identity (flexible for future provider switching)

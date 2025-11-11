@@ -1,6 +1,6 @@
 import { sequence } from '@sveltejs/kit/hooks';
 import { redirect, type Handle } from '@sveltejs/kit';
-import { env } from '$env/dynamic/private';
+import { resolveRequestSession } from '$lib/server/auth/session';
 
 // Define public routes that don't require authentication
 const publicPaths = [
@@ -33,42 +33,9 @@ const redirectMarkdownUrls: Handle = async ({ event, resolve }) => {
 	return resolve(event);
 };
 
-// WorkOS auth middleware
-const workosAuth: Handle = async ({ event, resolve }) => {
-	// Get session token and user data from cookies
-	const accessToken = event.cookies.get('wos-session');
-	const userDataCookie = event.cookies.get('wos-user');
-
-	// Initialize auth object
-	event.locals.auth = {
-		user: null,
-		sessionId: accessToken || undefined
-	};
-
-	// If we have user data cookie, parse it
-	if (userDataCookie) {
-		try {
-			const userData = JSON.parse(userDataCookie);
-
-			// Default to personal workspace if not set
-			if (!userData.activeWorkspace) {
-				userData.activeWorkspace = {
-					type: 'personal',
-					id: null,
-					name: 'Private workspace'
-				};
-			}
-
-			event.locals.auth.user = userData;
-		} catch (error) {
-			console.error('Failed to parse user data cookie:', error);
-			// Clear invalid cookies
-			event.cookies.delete('wos-session', { path: '/' });
-			event.cookies.delete('wos-user', { path: '/' });
-			event.locals.auth.sessionId = undefined;
-		}
-	}
-
+// Resolve server-side session for each request
+const sessionHandle: Handle = async ({ event, resolve }) => {
+	await resolveRequestSession(event);
 	return resolve(event);
 };
 
@@ -113,6 +80,6 @@ const requireAuth: Handle = async ({ event, resolve }) => {
 // Apply hooks in sequence
 export const handle = sequence(
 	redirectMarkdownUrls, // First, redirect any .md URLs to clean URLs
-	workosAuth, // Then handle WorkOS auth
+	sessionHandle, // Resolve server-managed session
 	requireAuth // Finally enforce authentication for protected routes
 );

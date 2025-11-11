@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { Button } from 'bits-ui';
 	import { page } from '$app/stores';
-	import { env } from '$env/dynamic/public';
 
 	// Get redirectTo parameter from URL query string
 	const redirectTo = $derived($page.url.searchParams.get('redirectTo') || '/inbox');
@@ -11,17 +10,9 @@
 	function handleLogin() {
 		isLoading = true;
 
-		// Build WorkOS authorization URL
-		const authUrl = new URL('https://api.workos.com/user_management/authorize');
-		authUrl.searchParams.set('client_id', env.PUBLIC_WORKOS_CLIENT_ID);
-		authUrl.searchParams.set('redirect_uri', `${window.location.origin}/auth/callback`);
-		authUrl.searchParams.set('response_type', 'code');
-		authUrl.searchParams.set('provider', 'authkit'); // Specify AuthKit for email/password
-		authUrl.searchParams.set('state', redirectTo);
-		authUrl.searchParams.set('screen_hint', 'sign-in');
-
-		// Redirect to WorkOS
-		window.location.href = authUrl.toString();
+		const target = new URL('/auth/start', window.location.origin);
+		target.searchParams.set('redirect', redirectTo);
+		window.location.href = target.toString();
 	}
 </script>
 

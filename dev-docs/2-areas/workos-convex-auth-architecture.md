@@ -38,6 +38,9 @@ This architecture implements **enterprise-grade authentication** for SynergyOS u
 ✅ **Multi-Tenancy Ready**: Architecture supports organizations/teams  
 ✅ **Clean Start**: Fresh user database (old auth deleted)
 
+> **Nov 2025 Update**  
+> The headless integration now issues a single `axon_session` cookie (HTTP-only, signed) and an accompanying `axon_csrf` token for double-submit CSRF protection. Session data (access + refresh tokens, CSRF hash, device metadata) lives in the Convex `authSessions` table, enabling multiple concurrent logins per user and server-side token refresh without browser roundtrips. The legacy `wos-session`/`wos-user` cookies have been retired.
+
 ---
 
 ## Architecture Principles
