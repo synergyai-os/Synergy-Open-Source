@@ -43,16 +43,28 @@ Production updated (total: 3-4 min)
 2. Click **"Deployment Checks"** section
 3. Click **"+ Add Checks"** button
 4. Select **"Import from GitHub"** → Choose **"GitHub"**
-5. Configure the check:
-   - **Check Name**: `Quality Checks` (must match exactly - see `.github/workflows/quality-gates.yml` line 58)
-   - This will import checks from your GitHub repository
-6. Save
+5. You'll see two options:
+   
+   **Option A: Connect GitHub Actions (Use This One)**
+   - Modal shows "Send workflow updates to Vercel"
+   - In **"Check Name"** field, enter: `Quality Checks` (exact match required)
+   - This matches the name in `.github/workflows/quality-gates.yml` line 60
+   - The workflow already has the notification snippet configured
+   - Click Save/Add
+   - ✅ **This is all you need!** You don't need to use "Select checks to add"
+   
+   **Option B: Select checks to add (Not Needed)**
+   - Shows "No configured checks found" - this is normal
+   - Checks will automatically appear after the next commit to `main` triggers the workflow
+   - You can ignore this section - Option A is sufficient
+6. After adding, the check will appear in Deployment Checks list after next commit to `main`
 
 **How It Works**:
-1. GitHub Actions runs quality checks on PR/push to `main`
+1. When code is pushed to `main`, GitHub Actions workflow runs quality checks
 2. On success/failure, notifies Vercel via `repository_dispatch` with check name "Quality Checks"
 3. Vercel receives the check status and blocks production promotion if failed
 4. Production deployment only proceeds when "Quality Checks" passes
+5. The check will appear in Vercel's Deployment Checks list automatically after first run
 
 **Result**: Production deployments only happen after:
 - ✅ Type checks pass
@@ -66,7 +78,30 @@ Production updated (total: 3-4 min)
 - No SSH into servers
 - No manual database migrations
 - No configuration file updates
+- **No manual branch deletion** - Merged branches auto-delete (`.github/workflows/cleanup-merged-branches.yml`)
 - Just merge → monitor
+
+### Automatic Branch Cleanup
+
+**When**: PR is merged to `main`  
+**How**: GitHub Actions workflow (`.github/workflows/cleanup-merged-branches.yml`)
+
+**What happens**:
+1. PR merged → Workflow triggers
+2. Checks if branch is protected (main, master, develop) → Skips if protected
+3. Deletes the merged branch automatically
+4. No manual cleanup needed
+
+**Protected branches** (never auto-deleted):
+- `main`
+- `master`
+- `develop`
+
+**Benefits**:
+- ✅ Reduces manual work
+- ✅ Keeps repository clean
+- ✅ Prevents branch clutter
+- ✅ Safe (skips protected branches)
 
 ---
 

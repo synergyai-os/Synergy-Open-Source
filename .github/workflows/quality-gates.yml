@@ -1,8 +1,10 @@
 name: Quality Gates
 
-# Run on all pull requests
+# Run on pull requests AND pushes to main (for Vercel Deployment Checks)
 on:
   pull_request:
+    branches: [main]
+  push:
     branches: [main]
 
 jobs:
