@@ -59,7 +59,8 @@
 3. Update domain file OR add new pattern
 4. Update INDEX.md symptom table
 5. Mark Linear ticket as "In Review" (human marks "Done")
-6. Commit (local only, don't push)
+6. Commit locally (on feature branch)
+7. Create PR to main (don't push directly to main)
 
 ---
 

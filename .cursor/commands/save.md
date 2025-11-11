@@ -11,14 +11,14 @@
 2. **Use grep first** - Search patterns before reading full files
 3. **Stage all files once** - Single `git add` for all changed files
 4. **Commit with multi-line message** - Use `-m` multiple times for body paragraphs
-5. **Ask before pushing** - Always prompt "Push to GitHub? (Y/N)" after commit
+5. **Create PR workflow** - Commit to feature branch, create PR to main (don't push directly to main)
 
 **Key workflow:**
 - Step 1: Analyze as user story + capture flow metrics + determine flow distribution
 - Step 2: Use `grep` to search INDEX.md and domain files in parallel
 - Step 3: Use `search_replace` or `write` for updates
 - Step 4: Stage → commit with optimized format → show `git log -1 --stat`
-- Step 5: Prompt user, then push if Y
+- Step 5: Push feature branch → create PR to main (don't push directly to main)
 
 ---
 
@@ -502,18 +502,22 @@ added secure flag to cookies. Security vulnerability patched.
 - ❌ `fix(notes): clear state on switch`
 - ✅ `🐛 [BUGFIX] users see correct note immediately`
 
-**Do NOT push yet** - proceed to step 5.
+**Do NOT push to main** - proceed to step 5.
 
-### 5. Push to GitHub
+### 5. Create Pull Request
 
-After successful commit, ask user:
+After successful commit on feature branch:
 
-**"Push to GitHub? (Y/N)"**
+**If on feature branch:**
+- Push feature branch: `git push origin feature/[branch-name]`
+- Create PR to main via GitHub UI or CLI
+- Wait for review and approval before merging
 
-- **Y** → Run `git push` with `['all']` permissions
-- **N** → Done. Commit stays local.
+**If on main branch:**
+- Create feature branch first: `git checkout -b feature/[descriptive-name]`
+- Then push and create PR
 
-Keep response concise. Show push result or "Staying local" confirmation.
+**⚠️ Never push directly to main** - Always use PR workflow for review and CI checks
 
 ---
 
@@ -554,8 +558,9 @@ Keep response concise. Show push result or "Staying local" confirmation.
 
 **After Commit:**
 - [ ] Showed commit with `git log -1 --stat`
-- [ ] Asked user: "Push to GitHub? (Y/N)"
-- [ ] Executed user's choice (push or stay local)
+- [ ] Verified on feature branch (not main)
+- [ ] Pushed feature branch: `git push origin feature/[branch-name]`
+- [ ] Created PR to main (or prompted user to create PR)
 
 ---
 
@@ -566,7 +571,7 @@ Keep response concise. Show push result or "Staying local" confirmation.
 - ❌ Don't skip Context7 validation for library patterns
 - ❌ Don't commit before capturing knowledge
 - ❌ Don't add to Critical unless it breaks functionality
-- ❌ Don't push without asking user first
+- ❌ Don't push directly to main - always use PR workflow
 - ❌ Don't use multiple git add commands - batch all files
 - ❌ Don't skip flow distribution category
 - ❌ Don't skip metadata line (first body line)
@@ -593,13 +598,14 @@ Keep response concise. Show push result or "Staying local" confirmation.
    Line 1: TYPE: X | SCOPE: Y | SIZE: Z | DAYS: N | IMPACT: I
    Body: USER STORY (👤🎯💡) + SLICE + JOURNEY (🛑⚠️✅) + PATTERN + FLOW METRICS
    
-5. Ask: "Push to GitHub? (Y/N)"
-   → Y: git push (requires ['all'] permissions)
-   → N: "✅ Committed locally. Not pushed."
+5. Push feature branch → Create PR to main
+   → Push: `git push origin feature/[branch-name]`
+   → Create PR via GitHub UI or CLI
+   → Wait for review before merging
 ```
 
 **End message format:**
-- If pushed: "✅ Pushed to GitHub. Commit [hash]"
-- If not pushed: "✅ Committed locally. Not pushed."
+- If PR created: "✅ Pushed feature branch. PR created: [link]"
+- If committed only: "✅ Committed locally on feature branch. Ready for PR when you are."
 
 Keep it short. User wants concise confirmations.
