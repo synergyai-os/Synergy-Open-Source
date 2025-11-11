@@ -5,6 +5,11 @@
 	
 	let { data }: { data: PageData } = $props();
 	
+	// Utility: Strip PARA numbering (1-, 2-, 3-, 4-) from folder/file names
+	function cleanParaName(name: string): string {
+		return name.replace(/^\d+-/, '').replace(/\/$/, '');
+	}
+	
 	// Function to generate heading with ID
 	function parseMarkdownWithIds(markdown: string): string {
 		// Configure marked renderer to add IDs
@@ -13,10 +18,13 @@
 		// Custom heading renderer with line-number-aware IDs
 		renderer.heading = function({ text, depth }: any) {
 			// Extract plain text from token
-			const plainText = typeof text === 'string' ? text : text.raw || '';
+			let plainText = typeof text === 'string' ? text : text.raw || '';
 			
 			// Check if heading starts with #L[NUMBER]: pattern (line-numbered sections)
 			const lineNumberMatch = plainText.match(/^#L(\d+):/);
+			
+			// Clean PARA prefix from heading text (strip "1-", "2-", etc. and trailing slashes)
+			const displayText = cleanParaName(plainText);
 			
 			let id: string;
 			if (lineNumberMatch) {
@@ -32,7 +40,7 @@
 					.trim();
 			}
 			
-			return `<h${depth} id="${id}">${plainText}</h${depth}>`;
+			return `<h${depth} id="${id}">${displayText}</h${depth}>`;
 		};
 		
 		// Custom link renderer to transform .md links to proper routes
