@@ -474,7 +474,7 @@ Build something awesome? Earn revenue!
 
 - **Discord**: [Join our community](https://discord.gg/synergyos)
 - **GitHub Discussions**: [Ask here](https://github.com/synergyai-os/Synergy-Open-Source/discussions)
-- **Email**: randy@synergyos.dev
+- **Email**: randy@synergyos.ai
 
 ---
 

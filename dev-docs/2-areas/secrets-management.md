@@ -31,13 +31,13 @@
 5. Copy the key
 
 **WorkOS Credentials (Staging for local dev):**
-1. Go to: https://dashboard.workos.com
+1. Go to WorkOS Dashboard (requires authentication)
 2. Switch to **Staging** environment (dropdown at top)
 3. Go to **API Keys** section
 4. Copy **Client ID** and **API Key**
 
 **PostHog Key:**
-1. Go to: https://posthog.com/settings
+1. Go to PostHog Settings (requires authentication)
 2. Copy Project API Key
 
 ### Step 2: Create `.env.local`
@@ -118,7 +118,7 @@ Go to: **Vercel Dashboard → Project → Settings → Environment Variables**
 | `WORKOS_CLIENT_ID` | `client_...` | WorkOS **Production** → API Keys |
 | `WORKOS_API_KEY` | `sk_prod_...` | WorkOS **Production** → API Keys |
 | `WORKOS_COOKIE_PASSWORD` | (32+ chars) | Generate with `openssl rand -base64 32` |
-| `WORKOS_REDIRECT_URI` | `https://synergyos.ai/auth/callback` | Your production domain |
+| `WORKOS_REDIRECT_URI` | `https://www.synergyos.ai/auth/callback` | Your production domain |
 | `PUBLIC_WORKOS_CLIENT_ID` | `client_...` | Same as `WORKOS_CLIENT_ID` |
 | `PUBLIC_CONVEX_URL` | `https://...convex.cloud` | Convex Dashboard |
 | `PUBLIC_POSTHOG_KEY` | `phc_...` | PostHog Settings |
@@ -294,7 +294,7 @@ Immediately revoke the exposed key in the service's dashboard.
 - [AuthKit Setup](https://workos.com/docs/user-management)
 
 **Convex:**
-- [Deploy Keys](https://docs.convex.dev/production/hosting/deploy-keys)
+- [Convex Documentation](https://docs.convex.dev/)
 
 ---
 

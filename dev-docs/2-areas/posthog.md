@@ -252,7 +252,7 @@ The AARRR framework (Acquisition, Activation, Retention, Referral, Revenue) prov
 > - Analytics views and dashboards
 > - Testing scenarios and validation
 
-The workspace success criteria introduce organization and team lifecycles that must be captured consistently. All lifecycle events should originate from trusted environments (Convex mutations/actions or authenticated Svelte server loaders) and use PostHog [group analytics](https://posthog.com/docs/product-analytics/libraries/js#group-analytics) to guarantee org/team scoping.
+The workspace success criteria introduce organization and team lifecycles that must be captured consistently. All lifecycle events should originate from trusted environments (Convex mutations/actions or authenticated Svelte server loaders) and use PostHog group analytics to guarantee org/team scoping. See [PostHog documentation](https://posthog.com/docs) for group analytics implementation details.
 
 ### Success Criteria Coverage
 

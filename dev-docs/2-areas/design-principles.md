@@ -495,7 +495,7 @@
 ## Further Reading
 
 ### Accessibility
-- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
+- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/)
 - [Inclusive Design Principles](https://inclusivedesignprinciples.org/)
 - [ADHD-Friendly Design](https://uxdesign.cc/designing-for-adhd-5e4e1c16d5f3)
 

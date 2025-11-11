@@ -441,8 +441,7 @@ Use this for every feature before building:
 
 ## 📞 Questions?
 
-- **Discord**: #product channel
-- **GitHub Discussions**: [Ask here](https://github.com/synergyai-os/Synergy-Open-Source/discussions)
+- **Discord**: [Join our community](https://discord.gg/synergyos)
 - **Product Lead**: Randy (founder)
 
 ---

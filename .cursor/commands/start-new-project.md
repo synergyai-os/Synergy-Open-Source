@@ -62,6 +62,11 @@ const LINEAR = {
 4. **Read `dev-docs/2-areas/patterns/INDEX.md`** - Check for existing patterns to reuse
 5. **Read `dev-docs/2-areas/flow-metrics.md`** - Understand Linear labeling system
 
+**Project Info:**
+- **Production Domain**: `www.synergyos.ai` (always use www prefix)
+- **GitHub Repo**: `synergyai-os/Synergy-Open-Source`
+- **Linear Team**: `SYOS`
+
 ---
 
 ## Workflow
@@ -488,7 +493,7 @@ mcp_Linear_update_project({
 
 2. **Build end-to-end** (backend + frontend working together)
 
-3. **Commit** (descriptive message with Linear ID):
+3. **Commit** (descriptive message with Linear ID, on feature branch):
    ```bash
    git add src/ convex/ dev-docs/1-projects/
    git commit -m "✅ [SLICE-N] Title" -m "TYPE: feature | SCOPE: area | SIZE: small | IMPACT: high
@@ -501,6 +506,7 @@ mcp_Linear_update_project({
    ```
    
    **⚠️ ALWAYS include `Linear: SYOS-N`** - Enables automation and links commits to tickets
+   **⚠️ Commit to feature branch** - Create PR to main when ready (don't push directly to main)
 
 4. **Test with user** (get feedback before next slice)
 
@@ -541,10 +547,16 @@ mcp_Linear_update_project({
 - Documentation complete
 - User tested all slices
 
-**Create PR**:
+**Create PR** (push feature branch, then create PR to main):
 ```bash
+# Push feature branch (not main)
 git push origin feature/[branch-name]
+
+# Then create PR via GitHub UI or CLI
+# PR should target: main ← feature/[branch-name]
 ```
+
+**⚠️ Never push directly to main** - Always use PR workflow for review and CI checks
 
 **PR Description Template**:
 ```markdown

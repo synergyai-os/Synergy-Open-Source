@@ -307,7 +307,6 @@ If "In Review" band keeps widening:
 ## 📚 References
 
 - [Flow Metrics Overview](https://getdx.com/blog/flow-metrics/)
-- [Optimizing Software Delivery with Flow Metrics](https://www.planview.com/resources/articles/using-flow-metrics-to-optimize-software-delivery/)
 - [Linear Insights Documentation](https://linear.app/docs/insights)
 - [Automated Cycle Reports for Linear](https://screenful.com/blog/create-automated-cycle-reports-for-linear)
 - [Developer Velocity Guide](https://uplevelteam.com/blog/measuring-developer-velocity)

@@ -108,7 +108,7 @@ npm install layerchart
 </Chart>
 ```
 
-**See**: [LayerChart Spline Example](https://layerchart.com/examples/Spline)
+**See**: [LayerChart](https://layerchart.com) for charting library documentation
 
 ---
 
@@ -135,7 +135,7 @@ type ToolFeature = {
 
 **Styling**: Use design tokens (bg-surface, border-base, etc.)
 
-**See**: [Bits UI Table](https://www.bits-ui.com/docs/components/table)
+**See**: [Bits UI Documentation](https://www.bits-ui.com/docs)
 
 ---
 
@@ -153,7 +153,7 @@ type ToolFeature = {
 - `github-copilot-logo.svg` (if verified)
 
 **Sources**:
-- [Cursor Press Kit](https://cursor.sh/press)
+- Cursor branding resources (check Cursor website)
 - [Anthropic Brand Assets](https://www.anthropic.com)
 - GitHub logo (already in project)
 

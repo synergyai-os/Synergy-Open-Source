@@ -183,7 +183,7 @@ CodeBlock.svelte        → Syntax highlighting (Shiki)
 ```bash
 npm install
 npm run dev
-# Visit http://localhost:5173/docs
+# Visit /docs in your browser (default: http://localhost:5173/docs)
 ```
 
 ### 3. Make Your First Contribution

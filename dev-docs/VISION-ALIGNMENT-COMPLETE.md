@@ -124,20 +124,20 @@
 ## Navigation Quick Reference
 
 ### Dev Docs
-- Homepage: http://localhost:5173/dev-docs/README
-- Pattern Index: http://localhost:5173/dev-docs/2-areas/patterns/INDEX
-- Design Tokens: http://localhost:5173/dev-docs/2-areas/design-tokens
+- Homepage: `/dev-docs/README`
+- Pattern Index: `/dev-docs/2-areas/patterns/INDEX`
+- Design Tokens: `/dev-docs/2-areas/design-tokens`
 
 ### Marketing Docs (Now Accessible!)
-- Product Vision 2.0: http://localhost:5173/marketing-docs/strategy/product-vision-2.0
-- Product Strategy: http://localhost:5173/marketing-docs/strategy/product-strategy
-- Target Personas: http://localhost:5173/marketing-docs/audience/target-personas
-- Marketplace Strategy: http://localhost:5173/marketing-docs/opportunities/marketplace-strategy
+- Product Vision 2.0: `/marketing-docs/strategy/product-vision-2.0`
+- Product Strategy: `/marketing-docs/strategy/product-strategy`
+- Target Personas: `/marketing-docs/audience/target-personas`
+- Marketplace Strategy: `/marketing-docs/opportunities/marketplace-strategy`
 
 ### Coming Soon Placeholders
-- Component Library: http://localhost:5173/dev-docs/2-areas/component-library
-- User Journeys: http://localhost:5173/dev-docs/2-areas/user-journeys
-- Data Models: http://localhost:5173/dev-docs/2-areas/data-models
+- Component Library: `/dev-docs/2-areas/component-library`
+- User Journeys: `/dev-docs/2-areas/user-journeys`
+- Data Models: `/dev-docs/2-areas/data-models`
 
 ---
 
