@@ -1313,6 +1313,84 @@ export default defineConfig({
 
 ---
 
+## #L1120: Directory-Aware Markdown Link Resolution [🟡 IMPORTANT]
+
+**Symptom**: Relative markdown links break when navigating between directories (e.g., `../../architecture.md` returns 404)  
+**Root Cause**: Link renderer prepends `./` to all relative paths, corrupting parent directory references (`../`)  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Prepends ./ to ALL relative paths (breaks ../)
+renderer.link = function({ href, text, title }: any) {
+  if (href && !href.startsWith('http') && !href.startsWith('/')) {
+    if (href.includes('.md')) {
+      const [path, hash] = href.split('#');
+      const cleanPath = path.replace(/\.md$/, '');
+      const cleanHash = hash ? `#${hash.toLowerCase()}` : '';
+      
+      // This breaks ../parent.md → ./../../parent.md (wrong!)
+      const relativePath = cleanPath.startsWith('./') ? cleanPath : `./${cleanPath}`;
+      
+      href = `${relativePath}${cleanHash}`;
+    }
+  }
+  // ... build link HTML
+};
+
+// ✅ CORRECT: Preserve both ./ and ../ prefixes
+renderer.link = function({ href, text, title }: any) {
+  if (href && !href.startsWith('http') && !href.startsWith('/')) {
+    if (href.includes('.md')) {
+      const [path, hash] = href.split('#');
+      const cleanPath = path.replace(/\.md$/, '');
+      const cleanHash = hash ? `#${hash.toLowerCase()}` : '';
+      
+      // Make relative links explicit for browser resolution
+      // Preserve ./ and ../ prefixes, otherwise prepend ./
+      const finalPath = cleanPath.startsWith('./') || cleanPath.startsWith('../') 
+        ? cleanPath 
+        : './' + cleanPath;
+      
+      href = `${finalPath}${cleanHash}`;
+    }
+  }
+  
+  const titleAttr = title ? ` title="${title}"` : '';
+  return `<a href="${href}"${titleAttr}>${text}</a>`;
+};
+```
+
+**Why it works**:
+- Browser resolves `./file.md` relative to current directory ✅
+- Browser resolves `../file.md` relative to parent directory ✅
+- Browser resolves `../../file.md` correctly up two levels ✅
+- Prepending `./` to bare filenames makes them explicitly relative ✅
+- Hash fragments (`#L10`) still work with lowercase transformation ✅
+
+**Apply when**:
+- Building documentation systems with nested directories
+- Markdown renderer needs to handle same-directory, subdirectory, and parent directory links
+- SvelteKit dynamic routes with catch-all parameters (`[...path]`)
+- Links include `.md` extensions that need stripping
+
+**Test cases**:
+```markdown
+[Same directory](product-vision.md)           → ./product-vision
+[Subdirectory](patterns/INDEX.md)             → ./patterns/INDEX
+[Parent directory](../../architecture.md)     → ../../architecture
+[With hash](patterns/INDEX.md#L10)            → ./patterns/INDEX#l10
+```
+
+**Common gotchas**:
+- Don't forget to preserve existing `./` prefixes (avoid `././file`)
+- Hash fragments should be lowercased for consistency
+- External links (`http://`) should skip transformation entirely
+- Absolute paths (`/`) should skip transformation entirely
+
+**Related**: #L1100 (Raw markdown rendering), svelte-reactivity.md#L400 (SSR browser libraries)
+
+---
+
 ## #L1150: ProseMirror List Support with addListNodes [🟡 IMPORTANT]
 
 **Symptom**: Typing `-` or `1.` doesn't create lists, stays as plain text  
@@ -1769,7 +1847,7 @@ toast.info('Read this', { duration: Infinity });      // Manual dismiss only
 
 ---
 
-**Pattern Count**: 25  
-**Last Updated**: 2025-11-10  
+**Pattern Count**: 26  
+**Last Updated**: 2025-11-11  
 **Design Token Reference**: `dev-docs/design-tokens.md`
 

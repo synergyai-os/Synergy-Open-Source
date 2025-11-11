@@ -27,6 +27,7 @@
 | Navbar/header stays white in dark mode | Remove non-existent CSS vars (--color-bg-base-rgb) | [ui-patterns.md#L828](ui-patterns.md#L828) |
 | Scrollbar positioned at far right (outside padding) | Use scrollable-outer + scrollable-inner utilities | [component-architecture.md#L180](../component-architecture.md#L180) |
 | Raw markdown displayed instead of rendered HTML | Add Vite middleware to redirect .md URLs | [ui-patterns.md#L1100](ui-patterns.md#L1100) |
+| Parent directory links (../) return 404 in docs | Preserve ./ and ../ prefixes in link renderer | [ui-patterns.md#L1120](ui-patterns.md#L1120) |
 | Vercel build: "Could not resolve _generated/dataModel" | Commit _generated to git, separate deployments | [convex-integration.md#L540](convex-integration.md#L540) |
 | Deployment fails: "Could not resolve _generated/dataModel" during bundling | Use import type for _generated imports | [convex-integration.md#L590](convex-integration.md#L590) |
 | Query returns empty, ArgumentValidationError for valid field | Git conflicts block deployment, stale code running | [convex-integration.md#L640](convex-integration.md#L640) |
@@ -149,6 +150,6 @@ correct code
 
 ---
 
-**Last Updated**: 2025-11-10  
-**Pattern Count**: 63  
+**Last Updated**: 2025-11-11  
+**Pattern Count**: 64  
 **Format Version**: 2.0
