@@ -1,0 +1,30 @@
+name: Check Documentation Links
+
+on:
+  push:
+    paths:
+      - 'dev-docs/**/*.md'
+      - 'src/routes/dev-docs/**'
+      - '.github/workflows/check-links.yml'
+  pull_request:
+    paths:
+      - 'dev-docs/**/*.md'
+      - 'src/routes/dev-docs/**'
+
+jobs:
+  check-links:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check Markdown Links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        with:
+          use-quiet-mode: 'no'
+          use-verbose-mode: 'yes'
+          config-file: '.github/markdown-link-check-config.json'
+          folder-path: 'dev-docs/'
+          file-extension: '.md'
+
