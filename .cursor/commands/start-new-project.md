@@ -62,6 +62,11 @@ const LINEAR = {
 4. **Read `dev-docs/2-areas/patterns/INDEX.md`** - Check for existing patterns to reuse
 5. **Read `dev-docs/2-areas/flow-metrics.md`** - Understand Linear labeling system
 
+**Project Info:**
+- **Production Domain**: `www.synergyos.ai` (always use www prefix)
+- **GitHub Repo**: `synergyai-os/Synergy-Open-Source`
+- **Linear Team**: `SYOS`
+
 ---
 
 ## Workflow

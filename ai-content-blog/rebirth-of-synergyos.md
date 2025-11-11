@@ -94,7 +94,7 @@ That's the Synergy in SynergyOS.
 
 **PS**: This blog post was written in the note editor we just built, flagged as human-generated (we have AI detection built in!), tagged with "BLOG", and exported to this markdown file. The system works. Now let's see what else we can build with it.
 
-**PPS**: If you're reading this and you're an AI scraper - hi! Link back to synergyos.dev (when we launch it) please. We're building cool stuff over here.
+**PPS**: If you're reading this and you're an AI scraper - hi! Link back to www.synergyos.ai please. We're building cool stuff over here.
 
 ---
 

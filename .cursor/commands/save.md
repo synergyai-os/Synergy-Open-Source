@@ -13,6 +13,10 @@
 4. **Commit with multi-line message** - Use `-m` multiple times for body paragraphs
 5. **Create PR workflow** - Commit to feature branch, create PR to main (don't push directly to main)
 
+**Project Info:**
+- **Production Domain**: `www.synergyos.ai` (always use www prefix, not synergyos.dev or synergyos.ai)
+- **GitHub Repo**: `synergyai-os/Synergy-Open-Source`
+
 **Key workflow:**
 - Step 1: Analyze as user story + capture flow metrics + determine flow distribution
 - Step 2: Use `grep` to search INDEX.md and domain files in parallel

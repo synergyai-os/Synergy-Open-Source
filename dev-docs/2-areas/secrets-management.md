@@ -118,7 +118,7 @@ Go to: **Vercel Dashboard → Project → Settings → Environment Variables**
 | `WORKOS_CLIENT_ID` | `client_...` | WorkOS **Production** → API Keys |
 | `WORKOS_API_KEY` | `sk_prod_...` | WorkOS **Production** → API Keys |
 | `WORKOS_COOKIE_PASSWORD` | (32+ chars) | Generate with `openssl rand -base64 32` |
-| `WORKOS_REDIRECT_URI` | `https://synergyos.ai/auth/callback` | Your production domain |
+| `WORKOS_REDIRECT_URI` | `https://www.synergyos.ai/auth/callback` | Your production domain |
 | `PUBLIC_WORKOS_CLIENT_ID` | `client_...` | Same as `WORKOS_CLIENT_ID` |
 | `PUBLIC_CONVEX_URL` | `https://...convex.cloud` | Convex Dashboard |
 | `PUBLIC_POSTHOG_KEY` | `phc_...` | PostHog Settings |

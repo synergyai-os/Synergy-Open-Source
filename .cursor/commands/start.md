@@ -150,6 +150,7 @@
 5. **Investigate first** - Understand before acting
 6. **Confirm before building** - Scope, plan, get approval
 7. **Context7 first** - For library docs before web search
+8. **Domain**: Production domain is `www.synergyos.ai` (not synergyos.dev or synergyos.ai)
 
 ---
 
