@@ -38,10 +38,21 @@ Production updated (total: 3-4 min)
 
 **Purpose**: Prevent production deployments if quality checks fail
 
-**Configuration**:
-1. Vercel Dashboard → Project → Settings → Git → Deployment Checks
-2. Add check: "Quality Checks" (matches GitHub Actions workflow name)
-3. Require this check to pass before promoting to production
+**Configuration Steps**:
+1. Vercel Dashboard → Project → Settings → **Build and Deployment** (in sidebar)
+2. Click **"Deployment Checks"** section
+3. Click **"+ Add Checks"** button
+4. Select **"Import from GitHub"** → Choose **"GitHub"**
+5. Configure the check:
+   - **Check Name**: `Quality Checks` (must match exactly - see `.github/workflows/quality-gates.yml` line 58)
+   - This will import checks from your GitHub repository
+6. Save
+
+**How It Works**:
+1. GitHub Actions runs quality checks on PR/push to `main`
+2. On success/failure, notifies Vercel via `repository_dispatch` with check name "Quality Checks"
+3. Vercel receives the check status and blocks production promotion if failed
+4. Production deployment only proceeds when "Quality Checks" passes
 
 **Result**: Production deployments only happen after:
 - ✅ Type checks pass
