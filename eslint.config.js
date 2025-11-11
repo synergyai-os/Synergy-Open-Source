@@ -18,6 +18,15 @@ export default defineConfig(
 	prettier,
 	...svelte.configs.prettier,
 	{
+		ignores: [
+			'www/**',
+			'ios/App/App/public/**',
+			'convex/_generated/**',
+			'.svelte-kit/**',
+			'node_modules/**'
+		]
+	},
+	{
 		languageOptions: {
 			globals: { ...globals.browser, ...globals.node }
 		},
