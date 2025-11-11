@@ -77,10 +77,9 @@ export const POST: RequestHandler = async (event) => {
 
 		console.log('✅ User synced to Convex, userId:', convexUserId);
 
-		const expiresAt =
-			authResponse.session?.expires_at !== undefined
-				? Date.parse(authResponse.session.expires_at)
-				: Date.now() + authResponse.expires_in * 1000;
+		// Calculate session expiry (30 days from now, not the WorkOS token expiry!)
+		const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
+		const expiresAt = Date.now() + SESSION_TTL_MS;
 
 		// Establish session
 		console.log('🔍 Establishing session...');

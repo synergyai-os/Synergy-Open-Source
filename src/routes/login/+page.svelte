@@ -61,7 +61,8 @@
 				body: JSON.stringify({
 					email: email.trim(),
 					password,
-					redirect: redirectTarget
+					redirect: redirectTarget,
+					linkAccount: linkingFlow() // Pass the linkAccount flag
 				})
 			});
 

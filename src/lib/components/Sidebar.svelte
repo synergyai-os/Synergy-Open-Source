@@ -52,9 +52,11 @@ import { browser, dev } from '$app/environment';
 
 	// Query for linked accounts
 	const currentUserId = $derived(authSession.user?.userId as Id<'users'> | undefined);
-	const linkedAccountsQuery = browser && currentUserId 
-		? useQuery(api.users.listLinkedAccounts, () => ({ userId: currentUserId }))
-		: null;
+	const linkedAccountsQuery = $derived(
+		browser && currentUserId 
+			? useQuery(api.users.listLinkedAccounts, () => ({ userId: currentUserId }))
+			: null
+	);
 	const linkedAccounts = $derived(linkedAccountsQuery?.data ?? []);
 
 	let isPinned = $state(false);
