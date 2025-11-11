@@ -24,6 +24,10 @@
 - [UI Patterns](patterns/ui-patterns.md) - UI/UX patterns
 - [Analytics](patterns/analytics.md) - PostHog tracking
 
+### Development Tools & Integrations
+
+- [CodeRabbit Integration](coderabbit-integration.md) - AI-powered PR reviews with Linear integration 🤖
+
 ### Value Streams
 
 - [Overview](value-streams/README.md) - Value stream mapping
