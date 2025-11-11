@@ -1,52 +1,52 @@
-# Pull Request
-
-## Linear Issue
-
-<!-- Link to Linear issue: SYN-XXX -->
-
-Closes:
-
 ## What Changed
 
-<!-- Brief description of the changes -->
+Brief description of your changes.
 
 ## Why
 
-<!-- Business/technical justification for the change -->
+Why this change is needed. What problem does it solve?
 
-## Feature Flag
+## Type of Change
 
-<!-- If this introduces new functionality -->
+- [ ] Bug fix (non-breaking change which fixes an issue)
+- [ ] New feature (non-breaking change which adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] Documentation update
+- [ ] Refactoring (no functional changes)
+- [ ] Performance improvement
+- [ ] Test addition/update
 
-- [ ] New feature is behind a feature flag
-- [ ] Flag defaults to `false`
-- [ ] Flag name: `_______`
+## Screenshots (if UI changes)
 
-## Safety Checks
-
-- [ ] Error boundary wraps new components (if applicable)
-- [ ] PostHog events added for key user actions
-- [ ] No breaking changes to existing features
+Before/after screenshots or screen recordings.
 
 ## Testing
 
-<!-- Describe how you tested these changes -->
+How has this been tested?
 
-- [ ] Tested locally
-- [ ] Types pass (`npm run check`)
+- [ ] Unit tests added/updated
+- [ ] E2E tests added/updated
+- [ ] Manual testing completed
+- [ ] Tested on different browsers/devices
+
+## Checklist
+
+- [ ] Code follows project patterns (see `dev-docs/patterns/INDEX.md`)
+- [ ] Design tokens used (no hardcoded values)
+- [ ] TypeScript types are correct
+- [ ] Tests added/updated and passing
+- [ ] Documentation updated (if needed)
 - [ ] Linter passes (`npm run lint`)
+- [ ] Type check passes (`npm run check`)
+- [ ] Build succeeds (`npm run build`)
+- [ ] No console errors/warnings
+- [ ] Accessibility considered (if UI changes)
 
-## Screenshots/Video
+## Related Issues
 
-<!-- If UI changes, add screenshots or video -->
+Closes #<issue-number>
+Related to #<issue-number>
 
-## Rollout Plan
+## Additional Notes
 
-<!-- For features: How will you roll this out? -->
-
-- [ ] Developer only → Team → Beta users → 100%
-- [ ] Direct to 100% (small/low-risk changes)
-
-## Notes
-
-<!-- Any additional context, dependencies, or follow-up work -->
+Any additional information reviewers should know.
