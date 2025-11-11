@@ -9,7 +9,7 @@
 
 <div class="flex flex-col gap-control-item-gap">
 	{#if label}
-		<span class="text-label text-tertiary uppercase tracking-wider px-1">
+		<span class="px-1 text-label tracking-wider text-tertiary uppercase">
 			{label}
 		</span>
 	{/if}
@@ -17,4 +17,3 @@
 		{@render children()}
 	</div>
 </div>
-

@@ -28,7 +28,7 @@
 
 ## Template: README.md
 
-```markdown
+````markdown
 # Value Stream: [Name]
 
 > **Outcome**: [One sentence user outcome - what value does this deliver?]
@@ -44,11 +44,13 @@
 ## User Outcome (Not Project Goal)
 
 ### Before (Pain)
+
 - [Pain point 1]
 - [Pain point 2]
 - [Pain point 3]
 
 ### After (Outcome)
+
 - [Outcome 1 - measurable]
 - [Outcome 2 - measurable]
 - [Outcome 3 - measurable]
@@ -58,14 +60,17 @@
 ## Success Signals
 
 ### Leading Indicators (What we can control)
+
 - ✅ [Thing we can do daily]
 - ✅ [Thing we can do daily]
 
 ### Lagging Indicators (What we measure)
+
 - 🎯 **[Metric]**: [Target] (from [Current])
 - 🎯 **[Metric]**: [Target] (from [Current])
 
 ### Impact (Why it matters)
+
 - [Business impact]
 - [User impact]
 - [Team impact]
@@ -83,12 +88,15 @@
 ## Tech Stack
 
 ### Framework
+
 - **[Framework]**: [Why]
 
 ### Key Libraries
+
 - **[Library]**: [What it does]
 
 ### Integrations
+
 - **[Service]**: [How we use it]
 
 ---
@@ -102,6 +110,7 @@
 ## Key Decisions
 
 ### Why [Decision X]?
+
 - **Rationale**: [Why we chose this]
 - **Trade-offs**: [What we gained/lost]
 - **Alternatives Considered**: [What we rejected and why]
@@ -111,12 +120,15 @@
 ## Dependencies
 
 ### Blockers (External)
+
 - ❌ [What's blocking us that we can't control]
 
 ### Enablers (Internal)
+
 - ✅ [What we have that enables this]
 
 ### Nice-to-Have (Future)
+
 - 🔄 [What would make this better]
 
 ---
@@ -124,15 +136,19 @@
 ## Getting Started (For Contributors)
 
 ### 1. Read the Context
+
 - [Link to press release if exists]
 - [Link to ARCHITECTURE.md]
 
 ### 2. Run Locally
+
 ```bash
 [Commands to run]
 ```
+````
 
 ### 3. Make Your First Contribution
+
 - [Where to start]
 
 ---
@@ -140,24 +156,27 @@
 ## Roadmap (Outcome-Based, No Dates)
 
 ### Phase 1: Foundation
+
 - ✅ [Done]
 - ✅ [Done]
 
 ### Phase 2: [Phase Name] (Current)
+
 - 🔄 [In progress]
 - 🔄 [In progress]
 
 ### Phase 3: [Phase Name] (Next)
+
 - ⏳ [Planned]
 
 ---
 
 ## Metrics Dashboard
 
-| Metric | Current | Target | Status |
-|--------|---------|--------|--------|
-| [Metric 1] | [Now] | [Goal] | 🔄 |
-| [Metric 2] | [Now] | [Goal] | 🔄 |
+| Metric     | Current | Target | Status |
+| ---------- | ------- | ------ | ------ |
+| [Metric 1] | [Now]   | [Goal] | 🔄     |
+| [Metric 2] | [Now]   | [Goal] | 🔄     |
 
 ---
 
@@ -165,7 +184,8 @@
 **Last Updated**: [Date]  
 **Next Milestone**: [What's next]  
 **Contribution Opportunity**: [High/Medium/Low]
-```
+
+````
 
 ---
 
@@ -180,9 +200,11 @@
 
 ## System Overview
 
-```
+````
+
 [ASCII diagram or description of components and data flow]
-```
+
+````
 
 ---
 
@@ -221,13 +243,14 @@
 **Design Tokens** (if UI):
 ```css
 [Relevant tokens]
-```
+````
 
 ---
 
 ## Data Flow
 
 ### [Scenario 1]
+
 ```
 1. [Step 1]
 2. [Step 2]
@@ -241,9 +264,11 @@
 ### [External System]
 
 **How It Works**:
+
 - [Integration detail]
 
 **Best Practices**:
+
 - [Practice 1]
 
 ---
@@ -281,6 +306,7 @@
 ## Future Enhancements
 
 ### Phase N (Timeline)
+
 - [Enhancement 1]
 - [Enhancement 2]
 
@@ -288,7 +314,8 @@
 
 **Last Updated**: [Date]  
 **Next Review**: [When to revisit this]
-```
+
+````
 
 ---
 
@@ -338,7 +365,7 @@
 **Installation**:
 ```bash
 [How to add it]
-```
+````
 
 **Status**: ⏳ Pending
 
@@ -400,6 +427,7 @@
 ## Timeline (Outcome-Based, No Dates)
 
 ### Phase 1: [Phase Name] (Status)
+
 - [Item]
 
 **Blocker**: [What's blocking or "None"]  
@@ -411,6 +439,7 @@
 ## Success Criteria
 
 ### Phase N Success
+
 - ✅ [Criteria 1]
 - ✅ [Criteria 2]
 
@@ -419,6 +448,7 @@
 ## Questions to Answer
 
 ### Open Questions
+
 - **[Question]**: [Current thinking]
 
 ---
@@ -426,6 +456,7 @@
 **Last Updated**: [Date]  
 **Next Review**: [When]  
 **Contact**: [Owner]
+
 ```
 
 ---
@@ -490,3 +521,4 @@ See `/dev-docs/value-streams/documentation-system/` for a complete example:
 
 **Questions?** Open a GitHub discussion or ask in Discord #development channel.
 
+```

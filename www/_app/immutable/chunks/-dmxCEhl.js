@@ -1,1 +1,24 @@
-import{g as u}from"./BMem1uWD.js";function s(){try{const e=u();if(!e)throw new Error("setupConvexAuth must be called before useAuth");return{get isLoading(){return e.isLoading},get isAuthenticated(){return e.isAuthenticated},get token(){return e.token},fetchAccessToken:()=>e.fetchAccessToken(),signIn:(t,n)=>e.signIn(t,n),signOut:()=>e.signOut()}}catch{throw new Error("setupConvexAuth must be called before useAuth")}}export{s as u};
+import { g as u } from './BMem1uWD.js';
+function s() {
+	try {
+		const e = u();
+		if (!e) throw new Error('setupConvexAuth must be called before useAuth');
+		return {
+			get isLoading() {
+				return e.isLoading;
+			},
+			get isAuthenticated() {
+				return e.isAuthenticated;
+			},
+			get token() {
+				return e.token;
+			},
+			fetchAccessToken: () => e.fetchAccessToken(),
+			signIn: (t, n) => e.signIn(t, n),
+			signOut: () => e.signOut()
+		};
+	} catch {
+		throw new Error('setupConvexAuth must be called before useAuth');
+	}
+}
+export { s as u };

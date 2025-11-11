@@ -7,6 +7,7 @@
 ## What Goes in builders/?
 
 **Builder Plans** are detailed implementation plans for significant features, refactorings, or system changes. They provide:
+
 - Clear problem statements
 - Step-by-step implementation plans
 - Success metrics and rollout strategies
@@ -14,12 +15,14 @@
 - Time estimates
 
 **Examples:**
+
 - Navigation redesigns
 - Major refactorings
 - New system architectures
 - Feature rollouts
 
 **Not Builder Plans:**
+
 - Quick fixes or bug fixes → Just make a PR
 - Small features → Document in patterns/
 - Ongoing documentation → 2-areas/
@@ -30,10 +33,13 @@
 ## Available Plans
 
 ### Active Plans
+
 - [10-Item Navigation Redesign](plans/10-item-navigation-redesign.md) - Reduce nav from 19+ to 10 items using hub pages + Cmd+K search
 
 ### Template
+
 Use this structure for new plans:
+
 1. **Problem Statement** - What are we solving?
 2. **Solution Overview** - High-level approach
 3. **Implementation Plan** - Detailed steps with time estimates
@@ -46,6 +52,7 @@ Use this structure for new plans:
 ## When to Create a Builder Plan
 
 **Create a plan if:**
+
 - ✅ Change affects >5 files
 - ✅ Requires >4 hours of work
 - ✅ Impacts user experience significantly
@@ -53,6 +60,7 @@ Use this structure for new plans:
 - ✅ Has multiple phases or dependencies
 
 **Skip the plan if:**
+
 - ❌ Simple bug fix
 - ❌ Small refactoring (1-2 files)
 - ❌ Already documented in patterns/
@@ -62,4 +70,3 @@ Use this structure for new plans:
 
 **Created**: November 9, 2025  
 **Owner**: Randy (Founder)
-

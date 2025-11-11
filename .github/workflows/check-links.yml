@@ -14,13 +14,13 @@ on:
 jobs:
   check-links:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
+
       - name: Check External Links Only
         uses: gaurav-nelson/github-action-markdown-link-check@v1
         with:
@@ -29,4 +29,3 @@ jobs:
           config-file: '.github/markdown-link-check-config.json'
           folder-path: 'dev-docs/'
           file-extension: '.md'
-

@@ -13,6 +13,7 @@
 **Recommendation**: **Yes, refactor is needed** to improve maintainability, testability, and scalability.
 
 **Complexity Metrics**:
+
 - Total inbox code: **3,570 lines** across 10 files
 - Main page: **760 lines** (should be <200 for optimal maintainability)
 - Functions/methods: **27** in single page component
@@ -88,7 +89,9 @@ inbox/
 ## Problems Identified
 
 ### 1. **Violation of Single Responsibility Principle**
+
 The page component handles:
+
 - Data fetching
 - State management
 - Business logic (sync)
@@ -97,22 +100,26 @@ The page component handles:
 - Layout management
 
 ### 2. **Hard to Test**
+
 - Logic is embedded in component
 - No separation between business logic and UI
 - Difficult to unit test individual pieces
 
 ### 3. **Hard to Maintain**
+
 - 760 lines in single file
 - Many interdependencies
 - Changes in one area can break others
 - Hard to find specific functionality
 
 ### 4. **Poor Reusability**
+
 - Sync logic can't be reused elsewhere
 - Keyboard navigation logic duplicated
 - Query tracking pattern repeated
 
 ### 5. **Performance Concerns**
+
 - Large component bundle
 - All logic loads at once
 - No code splitting
@@ -128,46 +135,47 @@ Based on **Svelte 5 best practices** and **SvelteKit architecture patterns** fro
 Create reusable composables for shared logic:
 
 #### `src/lib/composables/useInboxItems.ts`
+
 ```typescript
 // Extracts: Data fetching, filtering, loading states
 export function useInboxItems(filterType: InboxItemType | 'all') {
-  // Loading logic
-  // Filter logic
-  // Query management
+	// Loading logic
+	// Filter logic
+	// Query management
 }
 ```
 
 #### `src/lib/composables/useSelectedItem.ts`
+
 ```typescript
 // Extracts: Selected item state, query tracking, race condition handling
 export function useSelectedItem(selectedItemId: string | null) {
-  // Query tracking
-  // Race condition prevention
-  // Loading states
+	// Query tracking
+	// Race condition prevention
+	// Loading states
 }
 ```
 
 #### `src/lib/composables/useInboxSync.ts`
+
 ```typescript
 // Extracts: Sync logic, progress polling, activity tracking
 export function useInboxSync() {
-  // Sync initiation
-  // Progress polling
-  // Activity tracker integration
-  // Error/success handling
+	// Sync initiation
+	// Progress polling
+	// Activity tracker integration
+	// Error/success handling
 }
 ```
 
 #### `src/lib/composables/useKeyboardNavigation.ts`
+
 ```typescript
 // Extracts: J/K navigation, item selection, scroll management
-export function useKeyboardNavigation(
-  items: InboxItem[],
-  onSelect: (id: string) => void
-) {
-  // Keyboard handlers
-  // Navigation logic
-  // Scroll management
+export function useKeyboardNavigation(items: InboxItem[], onSelect: (id: string) => void) {
+	// Keyboard handlers
+	// Navigation logic
+	// Scroll management
 }
 ```
 
@@ -176,6 +184,7 @@ export function useKeyboardNavigation(
 Create Svelte 5 `$state` stores (following Context7 patterns):
 
 #### `src/lib/stores/inboxStore.svelte.ts`
+
 ```typescript
 // Shared inbox state
 export const inboxState = $state({
@@ -195,12 +204,14 @@ export const selectedItem = $derived(...);
 Break down large components:
 
 #### Split `ReadwiseDetail.svelte` (711 lines)
+
 - Extract: `ReadwiseDetailHeader.svelte` (pagination, actions)
 - Extract: `ReadwiseDetailContent.svelte` (highlight display)
 - Extract: `ReadwiseDetailSidebar.svelte` (tags, source, actions)
 - Main component orchestrates these
 
 #### Split `TagSelector.svelte` (682 lines)
+
 - Extract: `TagPill.svelte` (individual tag display)
 - Extract: `TagColorPicker.svelte` (color selection)
 - Extract: `TagSearchInput.svelte` (search/filter logic)
@@ -211,11 +222,12 @@ Break down large components:
 For server-side data fetching where appropriate:
 
 #### `src/routes/(authenticated)/inbox/+page.server.ts`
+
 ```typescript
 // Server-side load for initial inbox items
 export async function load({ fetch }) {
-  // Load initial items
-  // Can be cached/prerendered
+	// Load initial items
+	// Can be cached/prerendered
 }
 ```
 
@@ -224,18 +236,20 @@ export async function load({ fetch }) {
 Create pure utility functions:
 
 #### `src/lib/utils/inboxNavigation.ts`
+
 ```typescript
 // Pure functions for navigation
-export function getNextItemIndex(current: number, total: number): number
-export function getPreviousItemIndex(current: number, total: number): number
-export function scrollItemIntoView(itemId: string): void
+export function getNextItemIndex(current: number, total: number): number;
+export function getPreviousItemIndex(current: number, total: number): number;
+export function scrollItemIntoView(itemId: string): void;
 ```
 
 #### `src/lib/utils/inboxSync.ts`
+
 ```typescript
 // Sync-related utilities
-export function buildSyncOptions(params): SyncOptions
-export function formatSyncMessage(result): string
+export function buildSyncOptions(params): SyncOptions;
+export function formatSyncMessage(result): string;
 ```
 
 ---
@@ -307,29 +321,34 @@ inbox/
 ## Migration Strategy
 
 ### Step 1: Extract Sync Logic (Low Risk)
+
 - Create `useInboxSync.ts`
 - Move sync-related code
 - Test thoroughly
 - Update `+page.svelte` to use composable
 
 ### Step 2: Extract Data Fetching (Medium Risk)
+
 - Create `useInboxItems.ts` and `useSelectedItem.ts`
 - Move query logic
 - Test race conditions carefully
 - Update page to use composables
 
 ### Step 3: Extract Keyboard Navigation (Low Risk)
+
 - Create `useKeyboardNavigation.ts`
 - Move keyboard handlers
 - Test navigation thoroughly
 
 ### Step 4: Extract Stores (Medium Risk)
+
 - Create `inboxStore.svelte.ts`
 - Move shared state
 - Update components to use store
 - Test state reactivity
 
 ### Step 5: Split Large Components (High Risk)
+
 - Split `ReadwiseDetail` first
 - Then `TagSelector`
 - Test thoroughly after each split
@@ -359,6 +378,7 @@ inbox/
 ## Context7 Best Practices Applied
 
 Based on Svelte/SvelteKit documentation:
+
 - ✅ Extract composables for reusable logic
 - ✅ Use `$state` stores for shared state
 - ✅ Keep components <200 lines when possible
@@ -371,9 +391,9 @@ Based on Svelte/SvelteKit documentation:
 ## Confidence Level: **85%**
 
 This refactoring aligns with Svelte 5 and SvelteKit best practices. The remaining 15% accounts for:
+
 - Edge cases we might discover during migration
 - Potential performance implications
 - Team-specific preferences
 
 **Recommendation**: Proceed with phased refactoring, starting with composables (Phase 1).
-

@@ -3,7 +3,7 @@ import { browser } from '$app/environment';
 
 /**
  * Platform detection utilities
- * 
+ *
  * Detects three distinct platforms:
  * - iOS: Native iOS app via Capacitor
  * - Mobile Web: Web browser on mobile device
@@ -20,26 +20,26 @@ let platformCached: Platform | null = null;
  */
 export function isMobileDevice(): boolean {
 	if (!browser) return false;
-	
+
 	if (isMobileCached !== null) return isMobileCached;
-	
+
 	isMobileCached = window.innerWidth < 768;
 	return isMobileCached;
 }
 
 /**
  * Get the current platform
- * 
+ *
  * - 'ios': Native iOS app (via Capacitor)
  * - 'mobile-web': Web browser on mobile device
  * - 'desktop-web': Web browser on desktop
  */
 export function getPlatform(): Platform {
 	if (platformCached !== null) return platformCached;
-	
+
 	if (browser) {
 		const capacitorPlatform = Capacitor.getPlatform();
-		
+
 		if (capacitorPlatform === 'ios') {
 			platformCached = 'ios';
 		} else if (isMobileDevice()) {
@@ -51,7 +51,7 @@ export function getPlatform(): Platform {
 		// SSR - default to desktop
 		platformCached = 'desktop-web';
 	}
-	
+
 	return platformCached;
 }
 
@@ -82,15 +82,15 @@ export function resetPlatformCache(): void {
 
 /**
  * Reactive platform detection for use in Svelte components
- * 
+ *
  * Usage in component:
  * ```svelte
  * <script>
  *   import { getPlatform, isMobileDevice } from '$lib/utils/platform';
- *   
+ *
  *   let platform = $state(getPlatform());
  *   let isMobile = $state(isMobileDevice());
- *   
+ *
  *   $effect(() => {
  *     if (browser) {
  *       const updatePlatform = () => {
@@ -98,7 +98,7 @@ export function resetPlatformCache(): void {
  *         platform = getPlatform();
  *         isMobile = isMobileDevice();
  *       };
- *       
+ *
  *       window.addEventListener('resize', updatePlatform);
  *       return () => window.removeEventListener('resize', updatePlatform);
  *     }
@@ -106,4 +106,3 @@ export function resetPlatformCache(): void {
  * </script>
  * ```
  */
-

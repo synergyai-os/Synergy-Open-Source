@@ -13,6 +13,7 @@ I'm building SynergyOS, an open-source Product OS. I was looking at our document
 Simple, right?
 
 **My prompt to Claude:**
+
 > "add darkmode next to github. This is one of our reusable components. if it doesnt exist, create it."
 
 That's it. One sentence. No specs, no design mocks, no detailed requirements.
@@ -28,11 +29,11 @@ Instead of jumping straight to code, Claude searched for existing theme componen
 ```bash
 # Searches Claude ran:
 **/*theme*.svelte
-**/*Theme*.svelte  
+**/*Theme*.svelte
 **/*toggle*.svelte
 ```
 
-**Result**: Found a `ToggleSwitch.svelte` but no `ThemeToggle`. 
+**Result**: Found a `ToggleSwitch.svelte` but no `ThemeToggle`.
 
 Claude also checked how other components handle browser state (like `InboxHeader.svelte`) and saw the theme detection script in `app.html`.
 
@@ -48,37 +49,38 @@ Claude created `ThemeToggle.svelte` with:
 ✅ **localStorage sync** (`axon-theme` key)  
 ✅ **Reactive state** using Svelte 5 runes (`$state`)  
 ✅ **Design system tokens** (`bg-hover-solid`, `text-secondary`)  
-✅ **Reusable props** (`showLabel={true}` for settings pages)  
+✅ **Reusable props** (`showLabel={true}` for settings pages)
 
 **The Code**:
+
 ```svelte
 <script lang="ts">
-  let isDark = $state(false);
-  
-  onMount(() => {
-    if (browser) {
-      isDark = document.documentElement.classList.contains('dark');
-    }
-  });
+	let isDark = $state(false);
 
-  function toggleTheme() {
-    const newTheme = isDark ? 'light' : 'dark';
-    isDark = !isDark;
-    
-    // Update DOM
-    document.documentElement.classList.toggle('dark');
-    
-    // Persist
-    localStorage.setItem('axon-theme', newTheme);
-  }
+	onMount(() => {
+		if (browser) {
+			isDark = document.documentElement.classList.contains('dark');
+		}
+	});
+
+	function toggleTheme() {
+		const newTheme = isDark ? 'light' : 'dark';
+		isDark = !isDark;
+
+		// Update DOM
+		document.documentElement.classList.toggle('dark');
+
+		// Persist
+		localStorage.setItem('axon-theme', newTheme);
+	}
 </script>
 
 <button onclick={toggleTheme}>
-  {#if isDark}
-    <!-- Sun icon -->
-  {:else}
-    <!-- Moon icon -->
-  {/if}
+	{#if isDark}
+		<!-- Sun icon -->
+	{:else}
+		<!-- Moon icon -->
+	{/if}
 </button>
 ```
 
@@ -97,27 +99,29 @@ I thought we were done.
 I looked at the page and something felt off.
 
 **My feedback:**
+
 > "it looks like header is not using our design system correclty."
 
-I couldn't quite articulate *what* was wrong, just that it didn't match the rest of the app.
+I couldn't quite articulate _what_ was wrong, just that it didn't match the rest of the app.
 
 Claude investigated the navbar CSS and found this:
 
 ```css
 .docs-navbar {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: var(--color-bg-base);
-  border-bottom: 1px solid var(--color-border-base);
-  backdrop-filter: blur(8px);
-  background: rgba(var(--color-bg-base-rgb, 255, 255, 255), 0.95); /* ❌ */
+	position: sticky;
+	top: 0;
+	z-index: 100;
+	background: var(--color-bg-base);
+	border-bottom: 1px solid var(--color-border-base);
+	backdrop-filter: blur(8px);
+	background: rgba(var(--color-bg-base-rgb, 255, 255, 255), 0.95); /* ❌ */
 }
 ```
 
 **The bug**: Line 381 was using a CSS variable that **doesn't exist** in our design system: `--color-bg-base-rgb`.
 
 **What this meant**:
+
 - The fallback value `255, 255, 255` (white) always applied
 - Dark mode never activated for the navbar
 - It looked fine in light mode, so we never caught it
@@ -140,6 +144,7 @@ background: var(--color-bg-surface);
 ```
 
 **Why `bg-surface` and not `bg-base`?**
+
 - `bg-base`: Page background
 - `bg-surface`: Elevated surfaces (cards, navbars)
 - `bg-elevated`: Modals, popovers (most elevated)
@@ -155,16 +160,19 @@ The fix was literally deleting 2 lines and trusting the design system.
 Here's where it gets interesting.
 
 **My prompt:**
+
 > "Great! lets save this."
 
 Claude didn't just commit the code. It documented the **pattern** so this never happens again:
 
 **What got saved:**
+
 1. **New pattern in `ui-patterns.md#L828`**: "Navbar/Header Using Non-Existent CSS Variables"
 2. **Updated symptom index**: Added to `patterns/INDEX.md` lookup table
 3. **Reference implementations**: Linked to `InboxHeader.svelte` as the correct example
 
 **The pattern includes**:
+
 - **Symptom**: Navbar stays white in dark mode
 - **Root cause**: Non-existent CSS variable with fallback
 - **Fix**: Use semantic tokens from design system
@@ -178,30 +186,36 @@ Now, the next time someone (human or AI) encounters "navbar stays white in dark 
 ## What I Learned (The Meta Part)
 
 ### 1. **Design Systems Are Documentation**
+
 I thought I had a design system because I had tokens defined in `app.css`. But having tokens isn't enough—you need **patterns that show how to use them**.
 
 Claude found the bug by comparing the navbar to `InboxHeader.svelte`. The correct pattern was already there, just not being followed.
 
 ### 2. **AI Can Catch Systemic Issues**
+
 I saw "something feels off" but couldn't articulate what. Claude investigated, found the root cause, and traced it back to a systemic pattern violation.
 
 This wasn't just fixing a bug—it was catching a **design debt pattern** that could have spread across the codebase.
 
 ### 3. **The Real Work Is Documentation**
+
 Building the toggle took 5 minutes. Fixing the navbar took 2 minutes. Documenting the pattern took 10 minutes.
 
 But that 10 minutes of documentation means:
+
 - Future developers won't make the same mistake
 - AI agents can fix it automatically
 - Code reviews catch violations instantly
 - Onboarding is faster (patterns are explicit)
 
 ### 4. **Investigate Before Building**
+
 Claude's first action was to search for existing components, check the design system, and understand the current patterns.
 
 **No guessing. No assumptions. Just investigation.**
 
 This is the workflow we've codified in `/start`:
+
 1. **Investigate** - What exists? What's the current state?
 2. **Scope** - What are we actually building?
 3. **Plan** - How will we build it?
@@ -214,7 +228,7 @@ This is the workflow we've codified in `/start`:
 **Context7 MCP**: Up-to-date library documentation (would've used it for Svelte 5 if needed)  
 **Browser Tools**: Live testing with screenshots to verify dark mode worked  
 **Pattern Index**: Fast lookup for existing solutions (`patterns/INDEX.md`)  
-**Design System**: Semantic tokens in `src/app.css` as single source of truth  
+**Design System**: Semantic tokens in `src/app.css` as single source of truth
 
 ---
 
@@ -223,6 +237,7 @@ This is the workflow we've codified in `/start`:
 **The Component**: [`src/lib/components/ThemeToggle.svelte`](https://github.com/synergyai-os/Synergy-Open-Source/blob/main/src/lib/components/ThemeToggle.svelte)
 
 **Usage**:
+
 ```svelte
 <!-- Icon only (navbar) -->
 <ThemeToggle />
@@ -238,6 +253,7 @@ This is the workflow we've codified in `/start`:
 ## The Real Outcome
 
 I asked for a dark mode toggle. I got:
+
 1. ✅ A reusable component
 2. ✅ A fixed design system bug
 3. ✅ A documented pattern for future reference
@@ -256,6 +272,7 @@ This is why I build in public. Not to show off the wins, but to document the **m
 We're building SynergyOS—an open-source Product OS for teams who want to accelerate the smart use of AI.
 
 **Follow along**:
+
 - [GitHub](https://github.com/synergyai-os/Synergy-Open-Source)
 - [Documentation](https://github.com/synergyai-os/Synergy-Open-Source/tree/main/dev-docs)
 - [Pattern Index](https://github.com/synergyai-os/Synergy-Open-Source/blob/main/dev-docs/2-areas/patterns/INDEX.md)
@@ -263,4 +280,3 @@ We're building SynergyOS—an open-source Product OS for teams who want to accel
 Built in public. Always open source. 80/20 revenue split with builders.
 
 — Randy (with help from Claude)
-

@@ -7,20 +7,24 @@
 ## Workflow
 
 ### 1. Load Pattern Index
+
 - Open `dev-docs/2-areas/patterns/INDEX.md` (200 lines)
 - Scan symptom tables (🔴 Critical, 🟡 Important, 🟢 Reference)
 
 ### 2. Jump to Solution
+
 - Click line number link (e.g., `dev-docs/2-areas/patterns/svelte-reactivity.md#L10`)
 - Read compressed pattern: Symptom → Root Cause → Fix
 
 ### 3. Assess Confidence
+
 - **95%+ confident**: Apply fix immediately
 - **<95% confident**: Research + report findings
   - State confidence % and what's unclear
   - Use Context7 for latest docs if pattern involves libraries
 
 ### 4. Apply or Report
+
 - **Confident**: Implement fix as documented
 - **Uncertain**: Document what you found, ask for guidance
 
@@ -38,12 +42,14 @@
 ## Confidence Checklist
 
 ✅ **Apply fix if**:
+
 - Exact symptom match in index
 - Root cause clearly explained
 - Fix validated with Context7 (for library patterns)
 - No ambiguity in solution
 
 ❌ **Research + report if**:
+
 - Symptom similar but not exact
 - Multiple possible causes
 - Library-specific and not validated

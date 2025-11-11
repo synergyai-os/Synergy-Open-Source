@@ -12,6 +12,7 @@
 **How**: GitHub Actions + Vercel (with Deployment Checks)
 
 **Flow**:
+
 ```
 Push to main
     ↓
@@ -29,6 +30,7 @@ Production updated (total: 3-4 min)
 ```
 
 **Preview Deployments** (PR branches):
+
 - Vercel auto-deploys previews on every push (immediate feedback)
 - Previews are free/cheap (Vercel free tier: unlimited)
 - **Trade-off**: Previews deploy even if checks fail (acceptable cost for fast iteration)
@@ -39,12 +41,13 @@ Production updated (total: 3-4 min)
 **Purpose**: Prevent production deployments if quality checks fail
 
 **Configuration Steps**:
+
 1. Vercel Dashboard → Project → Settings → **Build and Deployment** (in sidebar)
 2. Click **"Deployment Checks"** section
 3. Click **"+ Add Checks"** button
 4. Select **"Import from GitHub"** → Choose **"GitHub"**
 5. You'll see two options:
-   
+
    **Option A: Connect GitHub Actions (Use This One)**
    - Modal shows "Send workflow updates to Vercel"
    - In **"Check Name"** field, enter: `Quality Checks` (exact match required)
@@ -52,14 +55,16 @@ Production updated (total: 3-4 min)
    - The workflow already has the notification snippet configured
    - Click Save/Add
    - ✅ **This is all you need!** You don't need to use "Select checks to add"
-   
+
    **Option B: Select checks to add (Not Needed)**
    - Shows "No configured checks found" - this is normal
    - Checks will automatically appear after the next commit to `main` triggers the workflow
    - You can ignore this section - Option A is sufficient
+
 6. After adding, the check will appear in Deployment Checks list after next commit to `main`
 
 **How It Works**:
+
 1. When code is pushed to `main`, GitHub Actions workflow runs quality checks
 2. On success/failure, notifies Vercel via `repository_dispatch` with check name "Quality Checks"
 3. Vercel receives the check status and blocks production promotion if failed
@@ -67,14 +72,16 @@ Production updated (total: 3-4 min)
 5. The check will appear in Vercel's Deployment Checks list automatically after first run
 
 **Result**: Production deployments only happen after:
+
 - ✅ Type checks pass
-- ✅ Linter passes  
+- ✅ Linter passes
 - ✅ Build succeeds
 - ✅ Convex backend deployed
 
 ### No Manual Steps
 
 **Everything is automated**:
+
 - No SSH into servers
 - No manual database migrations
 - No configuration file updates
@@ -87,17 +94,20 @@ Production updated (total: 3-4 min)
 **How**: GitHub Actions workflow (`.github/workflows/cleanup-merged-branches.yml`)
 
 **What happens**:
+
 1. PR merged → Workflow triggers
 2. Checks if branch is protected (main, master, develop) → Skips if protected
 3. Deletes the merged branch automatically
 4. No manual cleanup needed
 
 **Protected branches** (never auto-deleted):
+
 - `main`
 - `master`
 - `develop`
 
 **Benefits**:
+
 - ✅ Reduces manual work
 - ✅ Keeps repository clean
 - ✅ Prevents branch clutter
@@ -110,18 +120,21 @@ Production updated (total: 3-4 min)
 ### Before Merging PR
 
 **Required**:
+
 - [ ] Types pass (`npm run check`)
 - [ ] Linter passes (`npm run lint`)
 - [ ] Build succeeds (`npm run build`)
 - [ ] PR checklist completed
 
 **For New Features**:
+
 - [ ] Feature behind flag
 - [ ] Flag defaults to `false`
 - [ ] Error boundary wraps component
 - [ ] PostHog events added
 
 **Optional** (recommended):
+
 - [ ] Tested locally
 - [ ] Reviewed by teammate
 - [ ] Breaking changes documented
@@ -129,11 +142,13 @@ Production updated (total: 3-4 min)
 ### After Merge
 
 **Automatic**:
+
 - ✅ GitHub Actions deploy Convex
 - ✅ Vercel deploys frontend
 - ✅ Both complete in ~4 minutes
 
 **Manual**:
+
 - [ ] Verify deployment succeeded (check Vercel dashboard)
 - [ ] Monitor for errors (PostHog dashboard)
 - [ ] Test critical paths in production
@@ -147,12 +162,14 @@ Production updated (total: 3-4 min)
 **Location**: GitHub repository → Actions tab (https://github.com/synergyai-os/Synergy-Open-Source)
 
 **What to watch**:
+
 1. **Deploy to Production** workflow
    - Should complete in < 2 minutes
    - Green checkmark = success
    - Red X = failed deployment
 
 **If Failed**:
+
 1. Click into failed workflow
 2. Read error message
 3. Common issues:
@@ -165,15 +182,16 @@ Production updated (total: 3-4 min)
 **Location**: https://vercel.com/dashboard
 
 **What to watch**:
+
 1. **Latest Deployment**
    - Should show "Ready" in ~3 minutes
    - Click for build logs
-   
 2. **Production URL**
    - Visit site, verify it loads
    - Check browser console for errors
 
 **If Failed**:
+
 1. Click "View Function Logs"
 2. Look for build errors
 3. Common issues:
@@ -186,14 +204,13 @@ Production updated (total: 3-4 min)
 **Location**: Your PostHog dashboard
 
 **What to watch**:
+
 1. **Error Rate** (first 15 minutes)
    - Should remain stable
    - Spike = potential issue
-   
 2. **Page Views**
    - Should show recent activity
    - No activity = site might be down
-   
 3. **Recent Events**
    - Look for `error_occurred` events
    - Check if related to your changes
@@ -207,14 +224,15 @@ Production updated (total: 3-4 min)
 **When**: Feature is broken but app still works
 
 **Steps**:
+
 ```typescript
 // 1. Identify problematic flag from PostHog
 // Errors show: feature_flag = "notes_editor_beta"
 
 // 2. Disable flag (Convex function runner)
-await toggleFlag({ 
-  flag: 'notes_editor_beta', 
-  enabled: false 
+await toggleFlag({
+	flag: 'notes_editor_beta',
+	enabled: false
 });
 
 // 3. Verify error rate drops (PostHog)
@@ -228,6 +246,7 @@ await toggleFlag({
 **When**: Multiple features broken or app not loading
 
 **Via Vercel Dashboard**:
+
 ```
 1. Go to Vercel dashboard
 2. Click "Deployments"
@@ -237,6 +256,7 @@ await toggleFlag({
 ```
 
 **Via Vercel CLI**:
+
 ```bash
 # Install Vercel CLI if not already
 npm i -g vercel
@@ -252,6 +272,7 @@ vercel rollback
 **When**: Rollback doesn't fix it, need hot fix
 
 **Steps**:
+
 ```bash
 # 1. Create fix branch from main
 git checkout main
@@ -284,20 +305,22 @@ git push -u origin fix/critical-bug
 ### Rolling Out a Feature
 
 **Day 0**: Code merged, flag disabled
+
 ```typescript
 // Feature is in production but invisible
-await upsertFlag({ 
-  flag: 'notes_editor_beta', 
-  enabled: false 
+await upsertFlag({
+	flag: 'notes_editor_beta',
+	enabled: false
 });
 ```
 
 **Day 1**: Enable for yourself
+
 ```typescript
 await upsertFlag({
-  flag: 'notes_editor_beta',
-  enabled: true,
-  allowedUserIds: ['your-user-id']
+	flag: 'notes_editor_beta',
+	enabled: true,
+	allowedUserIds: ['your-user-id']
 });
 
 // Test for 1+ hours
@@ -305,11 +328,12 @@ await upsertFlag({
 ```
 
 **Day 2-3**: Enable for team
+
 ```typescript
 await upsertFlag({
-  flag: 'notes_editor_beta',
-  enabled: true,
-  allowedDomains: ['@yourcompany.com']
+	flag: 'notes_editor_beta',
+	enabled: true,
+	allowedDomains: ['@yourcompany.com']
 });
 
 // Team tests for 1-2 days
@@ -317,6 +341,7 @@ await upsertFlag({
 ```
 
 **Week 1**: Percentage rollout begins
+
 ```typescript
 // Day 1: 5%
 await updateRollout({ flag: 'notes_editor_beta', percentage: 5 });
@@ -340,11 +365,13 @@ await updateRollout({ flag: 'notes_editor_beta', percentage: 100 });
 ```
 
 **Week 2-3**: Stability period
+
 - Feature at 100%
 - Monitor for issues
 - If stable for 2 weeks, schedule flag removal
 
 **Week 4**: Remove flag
+
 ```bash
 # Create cleanup PR
 git checkout -b chore/remove-editor-flag
@@ -363,6 +390,7 @@ git checkout -b chore/remove-editor-flag
 ### High Error Rate
 
 **PostHog Investigation**:
+
 ```
 1. Filter events by: error_occurred
 2. Group by: feature_flag
@@ -370,6 +398,7 @@ git checkout -b chore/remove-editor-flag
 ```
 
 **Action**:
+
 ```typescript
 // Disable problematic flag
 await toggleFlag({ flag: 'problematic_feature', enabled: false });
@@ -378,16 +407,19 @@ await toggleFlag({ flag: 'problematic_feature', enabled: false });
 ### Site Not Loading
 
 **Check Vercel**:
+
 1. Dashboard → Latest deployment
 2. Status should be "Ready"
 3. If "Error", click for logs
 
 **Check Convex**:
+
 1. Convex dashboard
 2. Logs tab
 3. Look for errors
 
 **Emergency Fix**:
+
 ```bash
 # If frontend issue
 vercel rollback
@@ -399,6 +431,7 @@ vercel rollback
 ### Performance Degradation
 
 **PostHog Investigation**:
+
 ```
 1. Filter events by: performance_metric
 2. Look for: duration_ms increasing
@@ -406,6 +439,7 @@ vercel rollback
 ```
 
 **Action**:
+
 ```typescript
 // If related to feature flag
 await toggleFlag({ flag: 'slow_feature', enabled: false });
@@ -420,9 +454,11 @@ await toggleFlag({ flag: 'slow_feature', enabled: false });
 ### Required Secrets
 
 **GitHub Secrets** (for Actions):
+
 - `CONVEX_DEPLOY_KEY` - Convex production deploy key
 
 **Vercel Environment Variables**:
+
 - `CONVEX_DEPLOYMENT` - Convex production URL (auto-set)
 - `POSTHOG_API_KEY` - PostHog production project key
 - `VITE_CONVEX_URL` - Public Convex URL (for client)
@@ -430,6 +466,7 @@ await toggleFlag({ flag: 'slow_feature', enabled: false });
 ### Setting Secrets
 
 **GitHub**:
+
 ```
 1. Repo → Settings → Secrets and variables → Actions
 2. Click "New repository secret"
@@ -439,6 +476,7 @@ await toggleFlag({ flag: 'slow_feature', enabled: false });
 ```
 
 **Vercel**:
+
 ```
 1. Project → Settings → Environment Variables
 2. Add variables for "Production" environment
@@ -453,12 +491,14 @@ await toggleFlag({ flag: 'slow_feature', enabled: false });
 ### Target Metrics
 
 **Ideal**:
+
 - Deploy to production: 2-5 times per day
 - Merge to main: Multiple developers daily
 - Time to production: < 5 minutes from merge
 - Rollback time: < 1 minute (via flags) or < 5 minutes (via deployment)
 
 **Current**:
+
 - Track your actual metrics
 - Improve over time
 - Don't force it - quality over speed
@@ -470,12 +510,14 @@ await toggleFlag({ flag: 'slow_feature', enabled: false });
 ### ✅ DO
 
 **Deploy Small Changes**:
+
 ```
 Better: 10 small deploys per day
 Worse: 1 giant deploy per week
 ```
 
 **Monitor Every Deployment**:
+
 ```
 1. Check GitHub Actions - passed?
 2. Check Vercel - deployed?
@@ -484,6 +526,7 @@ Worse: 1 giant deploy per week
 ```
 
 **Use Feature Flags**:
+
 ```
 Every new feature behind flag
 Deploy code hidden
@@ -491,6 +534,7 @@ Enable progressively
 ```
 
 **Stay and Monitor**:
+
 ```
 Don't deploy and leave
 Watch for 15-30 minutes
@@ -501,18 +545,21 @@ Be ready to rollback
 ### ❌ DON'T
 
 **Don't Deploy and Disappear**:
+
 ```
 Bad: Merge PR, go to lunch
 Good: Merge PR, monitor for 30 min
 ```
 
 **Don't Skip Monitoring**:
+
 ```
 Bad: Assume it worked
 Good: Verify in dashboard
 ```
 
 **Don't Deploy Fridays** (initially):
+
 ```
 Bad: Deploy risky feature Friday 5pm
 Good: Deploy Tuesday morning
@@ -520,6 +567,7 @@ Reason: More time to fix issues
 ```
 
 **Don't Panic on Errors**:
+
 ```
 1. Check PostHog - how bad?
 2. Feature flag? Disable it
@@ -536,6 +584,7 @@ Reason: More time to fix issues
 **Symptoms**: Vercel shows "Building" for > 10 minutes
 
 **Actions**:
+
 1. Check build logs in Vercel
 2. Look for hanging process
 3. Cancel and retry deployment
@@ -545,18 +594,21 @@ Reason: More time to fix issues
 **Common Issues**:
 
 **Missing Secret**:
+
 ```
 Error: CONVEX_DEPLOY_KEY not found
 Fix: Add secret in repo settings
 ```
 
 **npm install fails**:
+
 ```
 Error: Cannot find module 'X'
 Fix: Check package.json, run npm install locally
 ```
 
 **Convex deploy fails**:
+
 ```
 Error: Schema validation failed
 Fix: Check schema changes, fix locally, push
@@ -567,6 +619,7 @@ Fix: Check schema changes, fix locally, push
 **Likely**: Feature flag issue, not deployment issue
 
 **Check**:
+
 1. PostHog → Recent errors
 2. Identify feature flag
 3. Disable flag
@@ -577,6 +630,7 @@ Fix: Check schema changes, fix locally, push
 ## Quick Reference
 
 ### Monitor Deployment
+
 ```
 1. GitHub Actions - backend deployed?
 2. Vercel dashboard - frontend deployed?
@@ -585,16 +639,19 @@ Fix: Check schema changes, fix locally, push
 ```
 
 ### Rollback Feature
+
 ```typescript
 await toggleFlag({ flag: 'feature_name', enabled: false });
 ```
 
 ### Rollback Deployment
+
 ```bash
 vercel rollback
 ```
 
 ### Emergency Fix
+
 ```bash
 git checkout -b fix/critical
 # Fix bug
@@ -610,4 +667,3 @@ git push
 - [Git Workflow Guide](./git-workflow.md)
 - [Feature Flags Pattern](../2-areas/patterns/feature-flags.md)
 - [Error Handling & Monitoring](./error-handling-monitoring.md)
-

@@ -13,17 +13,20 @@ No archived documentation yet. This is where completed projects, deprecated patt
 ## What Goes in 4-archive/?
 
 **Archive** items are:
+
 - ✅ Completed projects (finished, no longer active)
 - ✅ Deprecated features or approaches
 - ✅ Superseded documentation (replaced by newer versions)
 - ✅ Historical decisions (valuable context, no longer relevant)
 
 **Examples:**
+
 - "Old Authentication System (replaced 2024-Q3)"
 - "Initial MVP Launch Project (completed 2024-Q1)"
 - "Deprecated API v1 Documentation"
 
 **Not Archive:**
+
 - Active projects → 1-projects/
 - Current best practices → 2-areas/patterns/
 - Still-useful resources → 3-resources/
@@ -35,6 +38,7 @@ No archived documentation yet. This is where completed projects, deprecated patt
 ### When to Archive
 
 Archive when:
+
 - Project completed and no longer needs active tracking
 - Feature deprecated and removed from codebase
 - Documentation replaced by newer version
@@ -58,4 +62,3 @@ Archive when:
 - 📜 Learning from past approaches
 - 📜 Reference for similar future projects
 - 📜 Institutional knowledge preservation
-

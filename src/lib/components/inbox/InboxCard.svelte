@@ -45,7 +45,7 @@
 <button
 	type="button"
 	data-inbox-item-id={item._id}
-	class="w-full text-left bg-elevated rounded-md transition-all duration-150 border outline-none"
+	class="w-full rounded-md border bg-elevated text-left transition-all duration-150 outline-none"
 	class:border-2={selected}
 	class:border-selected={selected}
 	class:border-base={!selected}
@@ -63,20 +63,22 @@
 	<div class="px-inbox-card py-inbox-card">
 		<div class="flex items-start gap-inbox-icon">
 			<!-- Icon -->
-			<div class="text-xl flex-shrink-0 leading-none">{getTypeIcon(item.type)}</div>
+			<div class="flex-shrink-0 text-xl leading-none">{getTypeIcon(item.type)}</div>
 
 			<!-- Content -->
-			<div class="flex-1 min-w-0">
-				<h3 class="font-semibold text-primary truncate text-sm leading-tight">{item.title || 'Untitled'}</h3>
-				<p class="text-secondary text-xs mt-0.5 line-clamp-2 leading-relaxed">
+			<div class="min-w-0 flex-1">
+				<h3 class="truncate text-sm leading-tight font-semibold text-primary">
+					{item.title || 'Untitled'}
+				</h3>
+				<p class="mt-0.5 line-clamp-2 text-xs leading-relaxed text-secondary">
 					{item.snippet || 'No preview available'}
 				</p>
 				{#if item.tags && item.tags.length > 0}
-					<div class="flex items-center gap-1 mt-1.5">
+					<div class="mt-1.5 flex items-center gap-1">
 						<!-- Tags -->
 						<div class="flex flex-wrap gap-1">
 							{#each item.tags.slice(0, 2) as tag}
-								<span class="bg-tag text-tag text-label px-badge py-badge rounded">
+								<span class="rounded bg-tag px-badge py-badge text-label text-tag">
 									{tag}
 								</span>
 							{/each}

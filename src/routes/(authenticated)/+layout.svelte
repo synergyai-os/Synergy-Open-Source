@@ -1,24 +1,24 @@
 <script lang="ts">
-    import { browser } from '$app/environment';
-    import { page } from '$app/stores';
-    import Sidebar from '$lib/components/Sidebar.svelte';
-    import GlobalActivityTracker from '$lib/components/GlobalActivityTracker.svelte';
-    import AppTopBar from '$lib/components/organizations/AppTopBar.svelte';
-    import QuickCreateModal from '$lib/components/QuickCreateModal.svelte';
-    import OrganizationModals from '$lib/components/organizations/OrganizationModals.svelte';
-    import { getContext, setContext } from 'svelte';
-    import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
-    import { useGlobalShortcuts, SHORTCUTS } from '$lib/composables/useGlobalShortcuts.svelte';
+	import { browser } from '$app/environment';
+	import { page } from '$app/stores';
+	import Sidebar from '$lib/components/Sidebar.svelte';
+	import GlobalActivityTracker from '$lib/components/GlobalActivityTracker.svelte';
+	import AppTopBar from '$lib/components/organizations/AppTopBar.svelte';
+	import QuickCreateModal from '$lib/components/QuickCreateModal.svelte';
+	import OrganizationModals from '$lib/components/organizations/OrganizationModals.svelte';
+	import { getContext, setContext } from 'svelte';
+	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import { useGlobalShortcuts, SHORTCUTS } from '$lib/composables/useGlobalShortcuts.svelte';
 
 	let { children, data } = $props();
 
-    const organizations = getContext<UseOrganizations | undefined>('organizations');
-    const isAuthenticated = $derived(data.isAuthenticated);
+	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const isAuthenticated = $derived(data.isAuthenticated);
 	const accountEmail = $derived(() => data.user?.email ?? 'user@example.com');
-	const accountName = $derived(() => 
-		data.user?.firstName && data.user?.lastName 
-			? `${data.user.firstName} ${data.user.lastName}` 
-			: data.user?.email ?? 'Personal workspace'
+	const accountName = $derived(() =>
+		data.user?.firstName && data.user?.lastName
+			? `${data.user.firstName} ${data.user.lastName}`
+			: (data.user?.email ?? 'Personal workspace')
 	);
 	const workspaceName = $derived(() => data.activeWorkspace?.name ?? 'Private workspace');
 
@@ -99,7 +99,7 @@
 				quickCreateModalOpen = true;
 			},
 			description: 'Create note',
-			preventDefault: true,
+			preventDefault: true
 		});
 
 		// 'Cmd+K' - Opens Command Center (full Quick Create palette)
@@ -112,7 +112,7 @@
 				quickCreateModalOpen = true;
 			},
 			description: 'Command Center',
-			preventDefault: true,
+			preventDefault: true
 		});
 
 		return () => {
@@ -130,16 +130,16 @@
 </script>
 
 {#if isAuthenticated}
-	<div class="h-screen flex overflow-hidden">
+	<div class="flex h-screen overflow-hidden">
 		<!-- Shared Sidebar Component -->
 		<Sidebar
-			inboxCount={inboxCount}
-			isMobile={isMobile}
-			sidebarCollapsed={sidebarCollapsed}
+			{inboxCount}
+			{isMobile}
+			{sidebarCollapsed}
 			onToggleCollapse={() => (sidebarCollapsed = !sidebarCollapsed)}
-			sidebarWidth={sidebarWidth}
+			{sidebarWidth}
 			onSidebarWidthChange={handleSidebarWidthChange}
-			createMenuOpen={createMenuOpen}
+			{createMenuOpen}
 			onCreateMenuChange={(open) => (createMenuOpen = open)}
 			onQuickCreate={(trigger) => {
 				quickCreateTrigger = trigger;
@@ -150,21 +150,21 @@
 		/>
 
 		<!-- Main Content Area -->
-        <div class="flex-1 overflow-hidden flex flex-col">
-            <AppTopBar
-                organizations={organizations}
-                isMobile={isMobile}
-                sidebarCollapsed={sidebarCollapsed}
-                onSidebarToggle={() => (sidebarCollapsed = !sidebarCollapsed)}
-                accountName={accountName()}
-                accountEmail={accountEmail()}
-                workspaceName={workspaceName()}
-            />
-            <div class="flex-1 overflow-hidden">
-                {@render children()}
-            </div>
-        </div>
-		
+		<div class="flex flex-1 flex-col overflow-hidden">
+			<AppTopBar
+				{organizations}
+				{isMobile}
+				{sidebarCollapsed}
+				onSidebarToggle={() => (sidebarCollapsed = !sidebarCollapsed)}
+				accountName={accountName()}
+				accountEmail={accountEmail()}
+				workspaceName={workspaceName()}
+			/>
+			<div class="flex-1 overflow-hidden">
+				{@render children()}
+			</div>
+		</div>
+
 		<!-- Global Activity Tracker -->
 		<GlobalActivityTracker />
 
@@ -186,9 +186,9 @@
 	</div>
 {:else}
 	<!-- Not authenticated - shouldn't reach here due to redirect, but show login prompt -->
-	<div class="h-screen flex items-center justify-center bg-base">
+	<div class="flex h-screen items-center justify-center bg-base">
 		<div class="text-center">
-			<p class="text-primary mb-4">Please log in to continue</p>
+			<p class="mb-4 text-primary">Please log in to continue</p>
 			<a href="/login" class="text-accent-primary">Go to Login</a>
 		</div>
 	</div>

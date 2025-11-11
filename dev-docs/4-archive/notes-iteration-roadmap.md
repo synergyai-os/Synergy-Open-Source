@@ -14,6 +14,7 @@ The notes system in SynergyOS is designed to evolve incrementally. This document
 ### ✅ Completed Features
 
 **Rich Text Editor**
+
 - ProseMirror-based editor with basic formatting
 - Bold, italic, code, headings (H1-H3)
 - Keyboard shortcuts (Cmd+B, Cmd+I, etc.)
@@ -21,29 +22,34 @@ The notes system in SynergyOS is designed to evolve incrementally. This document
 - Auto-save with debouncing
 
 **AI Content Detection**
+
 - Contextual menu on paste (substantial content)
 - Manual flagging as AI-generated
 - Visual badge for AI content
 - Setting to enable/disable detection
 
 **Inbox Integration**
+
 - Notes appear in universal inbox
 - NoteDetail component for viewing/editing
 - Processed workflow (mark as done)
 - Workspace context support (personal/org/team)
 
 **Blog Workflow**
+
 - Export to markdown with frontmatter
 - Slug generation from title
 - "BLOG" category tagging
 - File path tracking (`publishedTo`)
 
 **Create Menu**
+
 - Dropdown from sidebar "New Item" button
 - C hotkey for quick creation
 - Options: Note, Flashcard, Highlight
 
 **Core Infrastructure**
+
 - Convex schema with note type
 - CRUD mutations (`notes.ts`)
 - Composable state management (`useNote`)
@@ -67,7 +73,7 @@ The notes system in SynergyOS is designed to evolve incrementally. This document
 
 2. **Markdown Shortcuts**
    - `#` + space → H1
-   - `##` + space → H2  
+   - `##` + space → H2
    - `*` + space → Bullet list
    - `1.` + space → Numbered list
    - `` ` `` + space → Code block
@@ -85,6 +91,7 @@ The notes system in SynergyOS is designed to evolve incrementally. This document
    - Text color options
 
 ### Technical Requirements
+
 - Extend ProseMirror schema for new marks
 - Build slash command menu component
 - Implement markdown input rules
@@ -129,6 +136,7 @@ The notes system in SynergyOS is designed to evolve incrementally. This document
    - Syntax highlighting (via Prism or similar)
 
 ### Technical Requirements
+
 - Convex file storage integration
 - Embed renderer component
 - oEmbed API for external content
@@ -173,6 +181,7 @@ The notes system in SynergyOS is designed to evolve incrementally. This document
    - Blame view (who changed what)
 
 ### Technical Requirements
+
 - ProseMirror collab plugin
 - Convex real-time sync
 - Comments schema and UI
@@ -214,6 +223,7 @@ The notes system in SynergyOS is designed to evolve incrementally. This document
    - Generate summaries
 
 ### Technical Requirements
+
 - Claude API integration (already have for flashcards)
 - Prompt engineering for each feature
 - UI for AI suggestions
@@ -255,6 +265,7 @@ The notes system in SynergyOS is designed to evolve incrementally. This document
    - Community template library
 
 ### Technical Requirements
+
 - Link parsing and rendering
 - Graph visualization library
 - Search indexing (Convex search or external)
@@ -296,6 +307,7 @@ The notes system in SynergyOS is designed to evolve incrementally. This document
    - Developer documentation
 
 ### Technical Requirements
+
 - Prosemirror-markdown library
 - PDF generation library
 - Public hosting infrastructure
@@ -337,6 +349,7 @@ The notes system in SynergyOS is designed to evolve incrementally. This document
    - Voice input
 
 ### Technical Requirements
+
 - Capacitor plugins (camera, voice, storage)
 - Offline-first architecture
 - Sync conflict resolution
@@ -377,6 +390,7 @@ The notes system in SynergyOS is designed to evolve incrementally. This document
    - Writing consistency
 
 ### Technical Requirements
+
 - Analytics queries
 - Data visualization library
 - Graph algorithms
@@ -439,4 +453,3 @@ That's the SynergyOS way.
 **Questions or suggestions?** Open an issue on GitHub or reach out.
 
 **Want to contribute?** Check out the repo and dive in. We're building this together.
-

@@ -88,4 +88,3 @@ export const verifiedTools: AITool[] = [
 		url: 'https://claude.ai'
 	}
 ];
-

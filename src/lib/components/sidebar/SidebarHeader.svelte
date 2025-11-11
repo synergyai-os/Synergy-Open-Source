@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { getContext } from 'svelte';
-    import OrganizationSwitcher from '../organizations/OrganizationSwitcher.svelte';
-    import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import { getContext } from 'svelte';
+	import OrganizationSwitcher from '../organizations/OrganizationSwitcher.svelte';
+	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 
 	type Props = {
 		workspaceName?: string;
@@ -34,36 +34,40 @@
 		sidebarCollapsed = false,
 		isHovered = false
 	}: Props = $props();
-    const organizations = getContext<UseOrganizations | undefined>('organizations');
-    const organizationInvites = $derived(organizations?.organizationInvites ?? []);
-    const teamInvites = $derived(organizations?.teamInvites ?? []);
-    const organizationSummaries = $derived(organizations?.organizations ?? []);
-    const activeOrganizationId = $derived(organizations?.activeOrganizationId ?? null);
-    const activeOrganization = $derived(organizations?.activeOrganization ?? null);
-    const isLoading = $derived(organizations?.isLoading ?? false);
+	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const organizationInvites = $derived(organizations?.organizationInvites ?? []);
+	const teamInvites = $derived(organizations?.teamInvites ?? []);
+	const organizationSummaries = $derived(organizations?.organizations ?? []);
+	const activeOrganizationId = $derived(organizations?.activeOrganizationId ?? null);
+	const activeOrganization = $derived(organizations?.activeOrganization ?? null);
+	const isLoading = $derived(organizations?.isLoading ?? false);
 </script>
 
 <!-- Sticky Header -->
-<div class="sticky top-0 z-10 bg-sidebar border-b border-sidebar px-header py-system-header h-system-header flex items-center justify-between gap-icon flex-shrink-0">
+<div
+	class="sticky top-0 z-10 flex h-system-header flex-shrink-0 items-center justify-between gap-icon border-b border-sidebar bg-sidebar px-header py-system-header"
+>
 	{#if !sidebarCollapsed || (isMobile && !sidebarCollapsed) || (isHovered && !isMobile)}
 		<!-- Workspace Menu with Logo and Name - Takes remaining space -->
-		<div class="flex-1 min-w-0">
+		<div class="min-w-0 flex-1">
 			<OrganizationSwitcher
 				organizations={organizationSummaries}
-				activeOrganizationId={activeOrganizationId}
-				activeOrganization={activeOrganization}
-				organizationInvites={organizationInvites}
-				teamInvites={teamInvites}
-				accountEmail={accountEmail}
+				{activeOrganizationId}
+				{activeOrganization}
+				{organizationInvites}
+				{teamInvites}
+				{accountEmail}
 				accountName={workspaceName}
-				sidebarCollapsed={sidebarCollapsed}
+				{sidebarCollapsed}
 				variant="sidebar"
-				isLoading={isLoading}
-				onSelectOrganization={(organizationId) => organizations?.setActiveOrganization(organizationId)}
+				{isLoading}
+				onSelectOrganization={(organizationId) =>
+					organizations?.setActiveOrganization(organizationId)}
 				onCreateOrganization={() => organizations?.openModal('createOrganization')}
 				onJoinOrganization={() => organizations?.openModal('joinOrganization')}
 				onAcceptOrganizationInvite={(code) => organizations?.acceptOrganizationInvite(code)}
-				onDeclineOrganizationInvite={(inviteId) => organizations?.declineOrganizationInvite(inviteId)}
+				onDeclineOrganizationInvite={(inviteId) =>
+					organizations?.declineOrganizationInvite(inviteId)}
 				onAcceptTeamInvite={(code) => organizations?.acceptTeamInvite(code)}
 				onDeclineTeamInvite={(inviteId) => organizations?.declineTeamInvite(inviteId)}
 				onSettings={() => onSettings?.()}
@@ -76,15 +80,15 @@
 		</div>
 
 		<!-- Action Icons (Search and Edit) - Always on the right -->
-		<div class="flex items-center gap-0.5 flex-shrink-0">
+		<div class="flex flex-shrink-0 items-center gap-0.5">
 			<button
 				type="button"
 				onclick={() => onSearch?.()}
-				class="p-1.5 rounded hover:bg-sidebar-hover-solid transition-colors text-sidebar-secondary hover:text-sidebar-primary"
+				class="rounded p-1.5 text-sidebar-secondary transition-colors hover:bg-sidebar-hover-solid hover:text-sidebar-primary"
 				aria-label="Search"
 			>
 				<svg
-					class="w-4 h-4"
+					class="h-4 w-4"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -101,11 +105,11 @@
 			<button
 				type="button"
 				onclick={() => onEdit?.()}
-				class="p-1.5 rounded hover:bg-sidebar-hover-solid transition-colors text-sidebar-secondary hover:text-sidebar-primary"
+				class="rounded p-1.5 text-sidebar-secondary transition-colors hover:bg-sidebar-hover-solid hover:text-sidebar-primary"
 				aria-label="Edit"
 			>
 				<svg
-					class="w-4 h-4"
+					class="h-4 w-4"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -116,8 +120,8 @@
 						stroke-linejoin="round"
 						stroke-width="2"
 						d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-				/>
-			</svg>
+					/>
+				</svg>
 			</button>
 		</div>
 	{/if}
@@ -126,4 +130,3 @@
 <style>
 	/* Sticky positioning is handled by the sticky class */
 </style>
-

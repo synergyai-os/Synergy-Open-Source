@@ -16,6 +16,7 @@ And potentially many more sources in the future.
 ## Design Principles
 
 ### 1. Universal Inbox Abstraction
+
 - **All sources** → Same inbox workflow
 - **Polymorphic structure** → Discriminated unions per source type
 - **Common fields** → userId, processed, createdAt, etc.
@@ -24,6 +25,7 @@ And potentially many more sources in the future.
 ### 2. Source-Specific Needs
 
 #### Readwise Highlights
+
 - Links to `sources` table (books/articles)
 - Links to `authors` table
 - Has location (page/offset)
@@ -31,23 +33,27 @@ And potentially many more sources in the future.
 - Has tags (from Readwise)
 
 #### Readwise Reader Documents
+
 - Similar structure to highlights but represents full documents
 - May have HTML content
 - Different API structure
 
 #### Photos
+
 - Image file storage (Convex file storage)
 - OCR text extraction
 - Source metadata (where photo was taken, etc.)
 - No author/source relationship (or manual attribution)
 
 #### Manual Text
+
 - Just text content
 - User-defined metadata
 - No external source
 - No author (unless user manually adds one)
 
 #### URLs (Chrome Extension)
+
 - URL capture
 - Page title/meta
 - Possibly full content scrape
@@ -55,6 +61,7 @@ And potentially many more sources in the future.
 - No author (unless extracted from page)
 
 #### Emails
+
 - Email content (subject, body, sender)
 - Sender as "author"
 - Email metadata (date, attachments, etc.)
@@ -63,6 +70,7 @@ And potentially many more sources in the future.
 ## Current Schema Analysis
 
 ### What We Have Now
+
 ```typescript
 // Current schema focuses on Readwise highlights:
 - authors table
@@ -77,11 +85,13 @@ And potentially many more sources in the future.
 ### Problem: Too Readwise-Specific
 
 The current schema assumes:
+
 - All content has an author
 - All content comes from a source (book/article)
 - Highlights are the primary content type
 
 This doesn't work for:
+
 - Manual text (no author/source)
 - Photos (no author, no source)
 - URLs (no author unless extracted)
@@ -95,103 +105,104 @@ Use Convex's discriminated union pattern for a single `inboxItems` table:
 
 ```typescript
 inboxItems: defineTable(
-  v.union(
-    // Readwise Highlight
-    v.object({
-      type: v.literal("readwise_highlight"),
-      userId: v.id("users"),
-      // Common fields
-      processed: v.boolean(),
-      processedAt: v.optional(v.number()),
-      createdAt: v.number(),
-      // Type-specific
-      sourceId: v.id("sources"), // Link to sources table
-      text: v.string(),
-      location: v.optional(v.number()),
-      locationType: v.optional(v.string()),
-      note: v.optional(v.string()),
-      externalId: v.string(), // Readwise highlight ID
-      externalUrl: v.string(),
-      highlightedAt: v.optional(v.number()),
-    }),
-    // Readwise Reader Document
-    v.object({
-      type: v.literal("readwise_reader_document"),
-      userId: v.id("users"),
-      processed: v.boolean(),
-      processedAt: v.optional(v.number()),
-      createdAt: v.number(),
-      // Type-specific
-      sourceId: v.optional(v.id("sources")), // May link to source if exists
-      documentId: v.string(), // Readwise document ID
-      title: v.string(),
-      url: v.string(),
-      htmlContent: v.optional(v.string()),
-      externalUrl: v.string(),
-    }),
-    // Photo Note
-    v.object({
-      type: v.literal("photo_note"),
-      userId: v.id("users"),
-      processed: v.boolean(),
-      processedAt: v.optional(v.number()),
-      createdAt: v.number(),
-      // Type-specific
-      imageFileId: v.id("_storage"), // Convex file storage ID
-      transcribedText: v.optional(v.string()), // OCR result
-      source: v.optional(v.string()), // Where photo came from
-      ocrStatus: v.optional(v.string()), // "pending", "completed", "failed"
-    }),
-    // Manual Text
-    v.object({
-      type: v.literal("manual_text"),
-      userId: v.id("users"),
-      processed: v.boolean(),
-      processedAt: v.optional(v.number()),
-      createdAt: v.number(),
-      // Type-specific
-      text: v.string(),
-      bookTitle: v.optional(v.string()), // Optional manual attribution
-      pageNumber: v.optional(v.number()),
-    }),
-    // URL Capture
-    v.object({
-      type: v.literal("url_capture"),
-      userId: v.id("users"),
-      processed: v.boolean(),
-      processedAt: v.optional(v.number()),
-      createdAt: v.number(),
-      // Type-specific
-      url: v.string(),
-      title: v.optional(v.string()),
-      description: v.optional(v.string()),
-      htmlContent: v.optional(v.string()), // Full page content if scraped
-      author: v.optional(v.string()), // Extracted from page
-    }),
-    // Email
-    v.object({
-      type: v.literal("email"),
-      userId: v.id("users"),
-      processed: v.boolean(),
-      processedAt: v.optional(v.number()),
-      createdAt: v.number(),
-      // Type-specific
-      emailId: v.string(), // Unique email identifier
-      subject: v.string(),
-      body: v.string(),
-      sender: v.string(), // Email address
-      senderName: v.optional(v.string()),
-      receivedAt: v.number(),
-      threadId: v.optional(v.string()),
-    })
-  )
+	v.union(
+		// Readwise Highlight
+		v.object({
+			type: v.literal('readwise_highlight'),
+			userId: v.id('users'),
+			// Common fields
+			processed: v.boolean(),
+			processedAt: v.optional(v.number()),
+			createdAt: v.number(),
+			// Type-specific
+			sourceId: v.id('sources'), // Link to sources table
+			text: v.string(),
+			location: v.optional(v.number()),
+			locationType: v.optional(v.string()),
+			note: v.optional(v.string()),
+			externalId: v.string(), // Readwise highlight ID
+			externalUrl: v.string(),
+			highlightedAt: v.optional(v.number())
+		}),
+		// Readwise Reader Document
+		v.object({
+			type: v.literal('readwise_reader_document'),
+			userId: v.id('users'),
+			processed: v.boolean(),
+			processedAt: v.optional(v.number()),
+			createdAt: v.number(),
+			// Type-specific
+			sourceId: v.optional(v.id('sources')), // May link to source if exists
+			documentId: v.string(), // Readwise document ID
+			title: v.string(),
+			url: v.string(),
+			htmlContent: v.optional(v.string()),
+			externalUrl: v.string()
+		}),
+		// Photo Note
+		v.object({
+			type: v.literal('photo_note'),
+			userId: v.id('users'),
+			processed: v.boolean(),
+			processedAt: v.optional(v.number()),
+			createdAt: v.number(),
+			// Type-specific
+			imageFileId: v.id('_storage'), // Convex file storage ID
+			transcribedText: v.optional(v.string()), // OCR result
+			source: v.optional(v.string()), // Where photo came from
+			ocrStatus: v.optional(v.string()) // "pending", "completed", "failed"
+		}),
+		// Manual Text
+		v.object({
+			type: v.literal('manual_text'),
+			userId: v.id('users'),
+			processed: v.boolean(),
+			processedAt: v.optional(v.number()),
+			createdAt: v.number(),
+			// Type-specific
+			text: v.string(),
+			bookTitle: v.optional(v.string()), // Optional manual attribution
+			pageNumber: v.optional(v.number())
+		}),
+		// URL Capture
+		v.object({
+			type: v.literal('url_capture'),
+			userId: v.id('users'),
+			processed: v.boolean(),
+			processedAt: v.optional(v.number()),
+			createdAt: v.number(),
+			// Type-specific
+			url: v.string(),
+			title: v.optional(v.string()),
+			description: v.optional(v.string()),
+			htmlContent: v.optional(v.string()), // Full page content if scraped
+			author: v.optional(v.string()) // Extracted from page
+		}),
+		// Email
+		v.object({
+			type: v.literal('email'),
+			userId: v.id('users'),
+			processed: v.boolean(),
+			processedAt: v.optional(v.number()),
+			createdAt: v.number(),
+			// Type-specific
+			emailId: v.string(), // Unique email identifier
+			subject: v.string(),
+			body: v.string(),
+			sender: v.string(), // Email address
+			senderName: v.optional(v.string()),
+			receivedAt: v.number(),
+			threadId: v.optional(v.string())
+		})
+	)
 )
-  .index("by_user", ["userId"])
-  .index("by_user_type", ["userId", "type"])
-  .index("by_user_processed", ["userId", "processed"]);
+	.index('by_user', ['userId'])
+	.index('by_user_type', ['userId', 'type'])
+	.index('by_user_processed', ['userId', 'processed']);
 ```
 
 **Pros:**
+
 - ✅ Single table for all inbox items
 - ✅ Type-safe discriminated unions
 - ✅ Common fields shared
@@ -200,6 +211,7 @@ inboxItems: defineTable(
 - ✅ Scales to new source types easily
 
 **Cons:**
+
 - ⚠️ Type-specific queries require type checking
 - ⚠️ Some fields are optional (sourceId, authorId) making queries complex
 
@@ -241,6 +253,7 @@ inboxItems: defineTable(
 ```
 
 **Pros:**
+
 - ✅ Best of both worlds
 - ✅ Complex relationships in specialized tables
 - ✅ Simple types directly in inbox
@@ -248,6 +261,7 @@ inboxItems: defineTable(
 - ✅ Type-safe discriminated unions
 
 **Cons:**
+
 - ⚠️ More complex schema
 - ⚠️ Need to join tables for some queries
 
@@ -262,10 +276,12 @@ inboxItems: defineTable(
 ```
 
 **Pros:**
+
 - ✅ Type-specific queries are simple
 - ✅ No type checking needed
 
 **Cons:**
+
 - ❌ Hard to query "all inbox items"
 - ❌ Duplicate common fields across tables
 - ❌ Doesn't scale well (new source = new table)
@@ -290,58 +306,58 @@ For sources that need relationships (like Readwise highlights with authors/sourc
 ## Updated Schema Design
 
 ### Core Universal Table
+
 ```typescript
 inboxItems: defineTable(
-  v.union(
-    // Readwise Highlight
-    v.object({
-      type: v.literal("readwise_highlight"),
-      userId: v.id("users"),
-      processed: v.boolean(),
-      processedAt: v.optional(v.number()),
-      createdAt: v.number(),
-      lastSyncedAt: v.optional(v.number()),
-      // Links to specialized tables
-      sourceId: v.id("sources"),
-      highlightId: v.id("highlights"), // Or embed highlight data here
-    }),
-    // Photo Note
-    v.object({
-      type: v.literal("photo_note"),
-      userId: v.id("users"),
-      processed: v.boolean(),
-      processedAt: v.optional(v.number()),
-      createdAt: v.number(),
-      // Inline data
-      imageFileId: v.id("_storage"),
-      transcribedText: v.optional(v.string()),
-      source: v.optional(v.string()),
-      ocrStatus: v.optional(v.union(
-        v.literal("pending"),
-        v.literal("completed"),
-        v.literal("failed")
-      )),
-    }),
-    // Manual Text
-    v.object({
-      type: v.literal("manual_text"),
-      userId: v.id("users"),
-      processed: v.boolean(),
-      processedAt: v.optional(v.number()),
-      createdAt: v.number(),
-      text: v.string(),
-      bookTitle: v.optional(v.string()),
-      pageNumber: v.optional(v.number()),
-    }),
-    // Add more types as needed...
-  )
+	v.union(
+		// Readwise Highlight
+		v.object({
+			type: v.literal('readwise_highlight'),
+			userId: v.id('users'),
+			processed: v.boolean(),
+			processedAt: v.optional(v.number()),
+			createdAt: v.number(),
+			lastSyncedAt: v.optional(v.number()),
+			// Links to specialized tables
+			sourceId: v.id('sources'),
+			highlightId: v.id('highlights') // Or embed highlight data here
+		}),
+		// Photo Note
+		v.object({
+			type: v.literal('photo_note'),
+			userId: v.id('users'),
+			processed: v.boolean(),
+			processedAt: v.optional(v.number()),
+			createdAt: v.number(),
+			// Inline data
+			imageFileId: v.id('_storage'),
+			transcribedText: v.optional(v.string()),
+			source: v.optional(v.string()),
+			ocrStatus: v.optional(
+				v.union(v.literal('pending'), v.literal('completed'), v.literal('failed'))
+			)
+		}),
+		// Manual Text
+		v.object({
+			type: v.literal('manual_text'),
+			userId: v.id('users'),
+			processed: v.boolean(),
+			processedAt: v.optional(v.number()),
+			createdAt: v.number(),
+			text: v.string(),
+			bookTitle: v.optional(v.string()),
+			pageNumber: v.optional(v.number())
+		})
+		// Add more types as needed...
+	)
 )
-  .index("by_user", ["userId"])
-  .index("by_user_type", ["userId", "type"])
-  .index("by_user_processed", ["userId", "processed"]);
+	.index('by_user', ['userId'])
+	.index('by_user_type', ['userId', 'type'])
+	.index('by_user_processed', ['userId', 'processed']);
 ```
 
 ### Specialized Tables (Still Needed)
+
 ```typescript
 // For filtering/grouping capabilities
 - authors
@@ -354,23 +370,28 @@ inboxItems: defineTable(
 ## Questions to Resolve
 
 ### 1. Reader API Integration
+
 **Question**: Should Reader API documents go into `inboxItems` or separate flow?
 
 **Answer**: Put in `inboxItems` as `readwise_reader_document` type. They're still inbox items that need review/processing.
 
 ### 2. Author Attribution
+
 **Question**: How to handle authors for non-Readwise sources?
 
-**Answer**: 
+**Answer**:
+
 - Manual text: Optional `authorId` field (user can attribute)
 - Photos: No author (unless manually added)
 - URLs: Extract author from page metadata (if available)
 - Emails: `sender` field (can link to authors table if desired)
 
 ### 3. Source Attribution
+
 **Question**: Should all inbox items have a "source"?
 
-**Answer**: 
+**Answer**:
+
 - Readwise: Links to `sources` table
 - Photos: Optional `source` string field
 - Manual: Optional `bookTitle` (informal source)
@@ -378,20 +399,24 @@ inboxItems: defineTable(
 - Emails: Email thread as source
 
 ### 4. Tagging System
+
 **Question**: Should tags be universal or type-specific?
 
 **Answer**: **Universal tagging** - All inbox items can have tags via `inboxItemTags` table:
+
 ```typescript
 inboxItemTags: defineTable({
-  inboxItemId: v.id("inboxItems"),
-  tagId: v.id("tags"),
-})
+	inboxItemId: v.id('inboxItems'),
+	tagId: v.id('tags')
+});
 ```
 
 ### 5. Duplicate Prevention
+
 **Question**: How to prevent duplicates across different source types?
 
 **Answer**: Type-specific external IDs:
+
 - Readwise highlights: `externalId` field
 - URLs: URL as unique identifier
 - Emails: Email ID/thread ID
@@ -400,6 +425,7 @@ inboxItemTags: defineTable({
 ## Reader API Structure Review
 
 Based on the API docs provided, Reader API documents have:
+
 - `id` (document ID)
 - `url` (unique URL identifier)
 - `title`, `author`, `summary`
@@ -420,6 +446,7 @@ Or: Reader documents can be a new inbox item type `readwise_reader_document` if 
 5. **Type-specific external IDs** for duplicate prevention
 
 This design:
+
 - ✅ Scales to any future source type
 - ✅ Maintains complex relationships where needed
 - ✅ Keeps simple types simple
@@ -432,4 +459,3 @@ This design:
 2. **Keep existing tables** (authors, sources, tags) for Readwise
 3. **Design sync logic** to populate `inboxItems` from Readwise
 4. **Plan for future sources** (photos, manual, URLs, emails)
-

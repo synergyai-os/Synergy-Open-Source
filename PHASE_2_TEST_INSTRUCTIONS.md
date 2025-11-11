@@ -3,6 +3,7 @@
 ## What We're Testing
 
 Validating that:
+
 1. User can share a personal tag with an organization
 2. `tag_shared` event is captured with correct properties
 3. PostHog receives the event with proper group analytics
@@ -19,19 +20,21 @@ Validating that:
 ### 1. Create a Personal Tag (If Needed)
 
 **Via Browser Console:**
+
 ```javascript
 // Get Convex client from the page
 const convexClient = window.__CONVEX_CLIENT__; // or however you access it
 
 // Create a test tag
 await convexClient.mutation(api.tags.createTag, {
-  displayName: "JavaScript Concepts",
-  color: "#3B82F6",
-  ownership: "user"
+	displayName: 'JavaScript Concepts',
+	color: '#3B82F6',
+	ownership: 'user'
 });
 ```
 
 **Or via UI** (if tag creation UI exists):
+
 - Navigate to tags/collections
 - Create a new tag named "JavaScript Concepts"
 - Ensure it's created in your personal workspace
@@ -39,33 +42,35 @@ await convexClient.mutation(api.tags.createTag, {
 ### 2. Share the Tag with Organization
 
 **Via Browser Console:**
+
 ```javascript
 // First, get the tag ID
 const tags = await convexClient.query(api.tags.listUserTags, {});
-console.log("Your tags:", tags);
+console.log('Your tags:', tags);
 
 // Find your test tag
-const testTag = tags.find(t => t.displayName === "JavaScript Concepts");
-console.log("Test tag:", testTag);
+const testTag = tags.find((t) => t.displayName === 'JavaScript Concepts');
+console.log('Test tag:', testTag);
 
 // Get your active organization ID
 const orgs = await convexClient.query(api.organizations.listOrganizations, {});
-console.log("Your orgs:", orgs);
+console.log('Your orgs:', orgs);
 const testOrg = orgs[0]; // Use first org
 
 // Share the tag
 const result = await convexClient.mutation(api.tags.shareTag, {
-  tagId: testTag._id,
-  shareWith: "organization",
-  organizationId: testOrg.organizationId
+	tagId: testTag._id,
+	shareWith: 'organization',
+	organizationId: testOrg.organizationId
 });
 
-console.log("Share result:", result);
+console.log('Share result:', result);
 ```
 
 ### 3. Verify Console Output
 
 You should see:
+
 ```
 📊 [TAG SHARED] {
   tagId: 'j57xxxxx',
@@ -84,6 +89,7 @@ You should see:
 Once the mutation works, we'll add PostHog capture to test the full flow.
 
 **Expected PostHog Event:**
+
 ```typescript
 {
   event: 'tag_shared',
@@ -116,6 +122,7 @@ Once the mutation works, we'll add PostHog capture to test the full flow.
 ## Next Steps
 
 After validation:
+
 1. Add client-side PostHog capture to mutation
 2. Test event appears in PostHog
 3. Verify different user can see/use the shared tag
@@ -125,18 +132,21 @@ After validation:
 ## Troubleshooting
 
 **Error: "Tag not found"**
+
 - Verify tag ID is correct
 - Check tag exists in database
 
 **Error: "You are not a member of this organization"**
+
 - Verify you've joined "Test Org"
 - Check organization membership
 
 **Error: "Tag is already shared"**
+
 - Tag was already shared previously
 - Create a new personal tag for testing
 
 **Error: "Tag name already exists in this organization"**
+
 - Another user already has a tag with that name in the org
 - Try a different tag name
-

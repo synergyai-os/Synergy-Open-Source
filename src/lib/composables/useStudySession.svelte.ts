@@ -53,7 +53,7 @@ export function useStudySession(): UseStudySessionReturn {
 		currentCardStartTime: null as number | null,
 		isReviewing: false,
 		selectedTagIds: [] as Id<'tags'>[],
-		sessionLimit: 10,
+		sessionLimit: 10
 	});
 
 	// Convex client for mutations
@@ -61,14 +61,11 @@ export function useStudySession(): UseStudySessionReturn {
 
 	// Query for due flashcards (reactive to tag selection)
 	const dueCardsQuery = browser
-		? useQuery(
-				api.flashcards.getDueFlashcards,
-				() => ({
-					limit: state.sessionLimit,
-					algorithm: 'fsrs',
-					tagIds: state.selectedTagIds.length > 0 ? state.selectedTagIds : undefined,
-				})
-			)
+		? useQuery(api.flashcards.getDueFlashcards, () => ({
+				limit: state.sessionLimit,
+				algorithm: 'fsrs',
+				tagIds: state.selectedTagIds.length > 0 ? state.selectedTagIds : undefined
+			}))
 		: null;
 
 	// Derived state
@@ -126,7 +123,7 @@ export function useStudySession(): UseStudySessionReturn {
 			await convexClient.mutation(api.flashcards.reviewFlashcard, {
 				flashcardId: currentCard._id,
 				rating,
-				reviewTime,
+				reviewTime
 			});
 
 			// Remove card from queue (queue-based removal pattern)
@@ -143,7 +140,12 @@ export function useStudySession(): UseStudySessionReturn {
 
 	// Auto-start session when due cards are loaded
 	$effect(() => {
-		if (browser && dueCardsQuery?.data && state.reviewQueue.length === 0 && !state.sessionStartTime) {
+		if (
+			browser &&
+			dueCardsQuery?.data &&
+			state.reviewQueue.length === 0 &&
+			!state.sessionStartTime
+		) {
 			startSession();
 		}
 	});
@@ -191,7 +193,6 @@ export function useStudySession(): UseStudySessionReturn {
 		flipCard,
 		rateCard,
 		startSession,
-		resetSession,
+		resetSession
 	};
 }
-

@@ -1,10 +1,10 @@
 <script lang="ts">
 	/**
 	 * Reusable Keyboard Shortcut Badge Component
-	 * 
+	 *
 	 * Displays keyboard shortcuts in a consistent, branded style.
 	 * When shortcut changes (e.g., 'N' → 'A + B'), updates everywhere automatically.
-	 * 
+	 *
 	 * Examples:
 	 * - <KeyboardShortcut keys="C" />
 	 * - <KeyboardShortcut keys={['Cmd', 'K']} />
@@ -24,12 +24,11 @@
 
 <div class="inline-flex items-center gap-1">
 	{#each keysArray as key, i}
-		<kbd class="bg-base/50 text-tertiary rounded font-mono {sizeClasses}">
+		<kbd class="bg-base/50 rounded font-mono text-tertiary {sizeClasses}">
 			{key}
 		</kbd>
 		{#if i < keysArray.length - 1}
-			<span class="text-tertiary text-xs">+</span>
+			<span class="text-xs text-tertiary">+</span>
 		{/if}
 	{/each}
 </div>
-

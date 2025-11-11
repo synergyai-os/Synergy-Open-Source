@@ -1,6 +1,6 @@
 /**
  * Feature Flags - Convex Backend
- * 
+ *
  * Provides server-side feature flag evaluation with support for:
  * - User-based targeting
  * - Percentage-based rollouts
@@ -14,7 +14,7 @@ import type { Doc, Id } from './_generated/dataModel';
 
 /**
  * Check if a feature flag is enabled for a specific user
- * 
+ *
  * Evaluation order:
  * 1. If flag doesn't exist or is disabled globally → false
  * 2. If user is in allowedUserIds → true
@@ -25,7 +25,7 @@ import type { Doc, Id } from './_generated/dataModel';
 export const checkFlag = query({
 	args: {
 		flag: v.string(),
-		userId: v.optional(v.id('users')),
+		userId: v.optional(v.id('users'))
 	},
 	handler: async (ctx, { flag, userId }) => {
 		// Get flag configuration
@@ -63,8 +63,8 @@ export const checkFlag = query({
 		// Check domain-based access
 		if (user.email && flagConfig.allowedDomains?.length) {
 			const emailDomain = user.email.split('@')[1];
-			const isAllowed = flagConfig.allowedDomains.some((domain) =>
-				domain.replace('@', '').toLowerCase() === emailDomain.toLowerCase()
+			const isAllowed = flagConfig.allowedDomains.some(
+				(domain) => domain.replace('@', '').toLowerCase() === emailDomain.toLowerCase()
 			);
 			if (isAllowed) {
 				return true;
@@ -80,7 +80,7 @@ export const checkFlag = query({
 
 		// Default to global enabled setting
 		return flagConfig.enabled;
-	},
+	}
 });
 
 /**
@@ -94,7 +94,7 @@ export const listFlags = query({
 		// if (!identity || !isAdmin(identity)) throw new Error('Unauthorized');
 
 		return await ctx.db.query('featureFlags').collect();
-	},
+	}
 });
 
 /**
@@ -107,7 +107,7 @@ export const getFlag = query({
 			.query('featureFlags')
 			.withIndex('by_flag', (q) => q.eq('flag', flag))
 			.first();
-	},
+	}
 });
 
 /**
@@ -119,7 +119,7 @@ export const upsertFlag = mutation({
 		enabled: v.boolean(),
 		rolloutPercentage: v.optional(v.number()),
 		allowedUserIds: v.optional(v.array(v.id('users'))),
-		allowedDomains: v.optional(v.array(v.string())),
+		allowedDomains: v.optional(v.array(v.string()))
 	},
 	handler: async (ctx, args) => {
 		// TODO: Add admin permission check
@@ -140,7 +140,7 @@ export const upsertFlag = mutation({
 				rolloutPercentage: args.rolloutPercentage,
 				allowedUserIds: args.allowedUserIds,
 				allowedDomains: args.allowedDomains,
-				updatedAt: now,
+				updatedAt: now
 			});
 			return existing._id;
 		} else {
@@ -152,10 +152,10 @@ export const upsertFlag = mutation({
 				allowedUserIds: args.allowedUserIds,
 				allowedDomains: args.allowedDomains,
 				createdAt: now,
-				updatedAt: now,
+				updatedAt: now
 			});
 		}
-	},
+	}
 });
 
 /**
@@ -164,7 +164,7 @@ export const upsertFlag = mutation({
 export const toggleFlag = mutation({
 	args: {
 		flag: v.string(),
-		enabled: v.boolean(),
+		enabled: v.boolean()
 	},
 	handler: async (ctx, { flag, enabled }) => {
 		// TODO: Add admin permission check
@@ -180,9 +180,9 @@ export const toggleFlag = mutation({
 
 		await ctx.db.patch(existing._id, {
 			enabled,
-			updatedAt: Date.now(),
+			updatedAt: Date.now()
 		});
-	},
+	}
 });
 
 /**
@@ -191,7 +191,7 @@ export const toggleFlag = mutation({
 export const updateRollout = mutation({
 	args: {
 		flag: v.string(),
-		percentage: v.number(),
+		percentage: v.number()
 	},
 	handler: async (ctx, { flag, percentage }) => {
 		// TODO: Add admin permission check
@@ -211,9 +211,9 @@ export const updateRollout = mutation({
 
 		await ctx.db.patch(existing._id, {
 			rolloutPercentage: percentage,
-			updatedAt: Date.now(),
+			updatedAt: Date.now()
 		});
-	},
+	}
 });
 
 /**
@@ -234,7 +234,7 @@ export const deleteFlag = mutation({
 		}
 
 		await ctx.db.delete(existing._id);
-	},
+	}
 });
 
 /**
@@ -253,4 +253,3 @@ function getUserRolloutBucket(userId: Id<'users'>, flag: string): number {
 
 	return Math.abs(hash) % 100;
 }
-

@@ -7,4 +7,3 @@ const app = defineApp();
 // app.use(resend);
 
 export default app;
-

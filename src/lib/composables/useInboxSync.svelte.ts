@@ -36,9 +36,9 @@ export function useInboxSync(
 		syncError: null as string | null,
 		syncSuccess: false,
 		syncProgress: null as SyncProgress,
-		showSyncConfig: false,
+		showSyncConfig: false
 	});
-	
+
 	let progressPollInterval: ReturnType<typeof setInterval> | null = null;
 	let syncActivityId: string | null = null; // Track activity ID for global tracker
 
@@ -46,25 +46,25 @@ export function useInboxSync(
 	function handleSyncClick() {
 		// Show config panel instead of directly syncing
 		state.showSyncConfig = true;
-		
+
 		// Clear any stale sync state when opening config (in case of previous incomplete sync)
 		state.syncProgress = null;
 		state.syncSuccess = false;
 		state.syncError = null;
 		state.isSyncing = false;
-		
+
 		// Clear any existing poll interval (shouldn't exist, but safety check)
 		if (progressPollInterval) {
 			clearInterval(progressPollInterval);
 			progressPollInterval = null;
 		}
-		
+
 		// Clear any stale activity from previous sync (if it exists)
 		if (syncActivityId) {
 			removeActivity(syncActivityId);
 			syncActivityId = null;
 		}
-		
+
 		// Clear selection to show config panel
 		if (onClearSelection) {
 			onClearSelection();
@@ -75,16 +75,16 @@ export function useInboxSync(
 	// Only updates progress state - does NOT mark completion (that's handled by handleImport based on action result)
 	async function pollSyncProgress() {
 		if (!browser || !convexClient || !inboxApi) return;
-		
+
 		// Don't poll if we're just showing the config panel (not actively syncing)
 		if (!state.isSyncing && !state.syncProgress) return;
-		
+
 		try {
-			const progress = await convexClient.query(inboxApi.getSyncProgress, {}) as SyncProgress;
+			const progress = (await convexClient.query(inboxApi.getSyncProgress, {})) as SyncProgress;
 			if (progress) {
 				// Update progress state
 				state.syncProgress = progress;
-				
+
 				// Update global tracker if activity exists
 				if (syncActivityId) {
 					updateActivity(syncActivityId, {
@@ -103,7 +103,7 @@ export function useInboxSync(
 			// This prevents race conditions where completion is marked too early
 		} catch (error) {
 			console.error('Failed to poll sync progress:', error);
-			
+
 			// Only update tracker on error if we're actively syncing
 			if (syncActivityId && state.isSyncing) {
 				updateActivity(syncActivityId, {
@@ -134,7 +134,7 @@ export function useInboxSync(
 			clearInterval(progressPollInterval);
 			progressPollInterval = null;
 		}
-		
+
 		// Clear any existing activity
 		if (syncActivityId) {
 			removeActivity(syncActivityId);
@@ -176,18 +176,21 @@ export function useInboxSync(
 		pollSyncProgress();
 
 		try {
-			const result = await convexClient.action(inboxApi.syncReadwiseHighlights, options) as SyncReadwiseResult;
-			
+			const result = (await convexClient.action(
+				inboxApi.syncReadwiseHighlights,
+				options
+			)) as SyncReadwiseResult;
+
 			// Stop polling immediately after action completes (before processing result)
 			// This prevents race conditions where pollSyncProgress might mark completion too early
 			if (progressPollInterval) {
 				clearInterval(progressPollInterval);
 				progressPollInterval = null;
 			}
-			
+
 			// Final poll to get the last progress update (if any)
 			await pollSyncProgress();
-			
+
 			// Show friendly message if nothing new was imported (quantity-based)
 			if (options.quantity && result?.newCount === 0 && result?.skippedCount > 0) {
 				state.syncError = null;
@@ -196,9 +199,9 @@ export function useInboxSync(
 					step: 'Already imported',
 					current: result.skippedCount,
 					total: result.skippedCount,
-					message: `All ${result.skippedCount} highlights are already in your inbox. No new items imported.`,
+					message: `All ${result.skippedCount} highlights are already in your inbox. No new items imported.`
 				};
-				
+
 				// Update global tracker
 				if (syncActivityId) {
 					updateActivity(syncActivityId, {
@@ -211,12 +214,12 @@ export function useInboxSync(
 						}
 					});
 				}
-				
+
 				// Reload inbox items
 				if (onItemsReload) {
 					await onItemsReload();
 				}
-				
+
 				// Clear progress after 4 seconds
 				// Activity auto-dismiss is handled by setupAutoDismiss() in GlobalActivityTracker
 				setTimeout(() => {
@@ -234,7 +237,7 @@ export function useInboxSync(
 				state.syncSuccess = false;
 				state.syncProgress = null;
 				state.isSyncing = false;
-				
+
 				// Update global tracker
 				// Activity auto-dismiss is handled by setupAutoDismiss() in GlobalActivityTracker
 				if (syncActivityId) {
@@ -248,24 +251,25 @@ export function useInboxSync(
 			} else {
 				// New items imported
 				state.syncSuccess = true;
-				
+
 				// Update global tracker with success message
 				if (syncActivityId && result) {
 					updateActivity(syncActivityId, {
 						status: 'completed',
 						progress: {
-							message: result.newCount > 0 
-								? `Imported ${result.newCount} new highlight${result.newCount === 1 ? '' : 's'}`
-								: 'Sync completed'
+							message:
+								result.newCount > 0
+									? `Imported ${result.newCount} new highlight${result.newCount === 1 ? '' : 's'}`
+									: 'Sync completed'
 						}
 					});
 				}
-				
+
 				// Reload inbox items after successful sync
 				if (onItemsReload) {
 					await onItemsReload();
 				}
-				
+
 				// Clear progress after 2 seconds
 				// Activity auto-dismiss is handled by setupAutoDismiss() in GlobalActivityTracker
 				setTimeout(() => {
@@ -282,7 +286,7 @@ export function useInboxSync(
 			state.syncError = error instanceof Error ? error.message : 'Failed to sync';
 			state.syncProgress = null;
 			state.isSyncing = false;
-			
+
 			// Update global tracker with error
 			if (syncActivityId) {
 				updateActivity(syncActivityId, {
@@ -291,7 +295,7 @@ export function useInboxSync(
 						message: state.syncError
 					}
 				});
-				
+
 				// Keep error visible longer
 				setTimeout(() => {
 					if (syncActivityId) {
@@ -300,7 +304,7 @@ export function useInboxSync(
 					}
 				}, 5000);
 			}
-			
+
 			if (progressPollInterval) {
 				clearInterval(progressPollInterval);
 				progressPollInterval = null;
@@ -313,7 +317,7 @@ export function useInboxSync(
 		state.syncProgress = null;
 		state.isSyncing = false;
 		state.syncError = null;
-		
+
 		// Remove activity from global tracker
 		if (syncActivityId) {
 			updateActivity(syncActivityId, {
@@ -326,7 +330,7 @@ export function useInboxSync(
 				}
 			}, 1000);
 		}
-		
+
 		if (progressPollInterval) {
 			clearInterval(progressPollInterval);
 			progressPollInterval = null;
@@ -337,16 +341,25 @@ export function useInboxSync(
 	// State object is already reactive, so we merge it with functions
 	return {
 		// State - directly reference the reactive state object properties
-		get isSyncing() { return state.isSyncing; },
-		get syncError() { return state.syncError; },
-		get syncSuccess() { return state.syncSuccess; },
-		get syncProgress() { return state.syncProgress; },
-		get showSyncConfig() { return state.showSyncConfig; },
+		get isSyncing() {
+			return state.isSyncing;
+		},
+		get syncError() {
+			return state.syncError;
+		},
+		get syncSuccess() {
+			return state.syncSuccess;
+		},
+		get syncProgress() {
+			return state.syncProgress;
+		},
+		get showSyncConfig() {
+			return state.showSyncConfig;
+		},
 		// Functions
 		handleSyncClick,
 		pollSyncProgress,
 		handleImport,
-		handleCancelSync,
+		handleCancelSync
 	};
 }
-

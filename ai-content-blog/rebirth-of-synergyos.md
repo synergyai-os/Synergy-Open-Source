@@ -1,9 +1,9 @@
 ---
-title: "The Rebirth of SynergyOS: How We Failed at 1.0 and Started Over"
+title: 'The Rebirth of SynergyOS: How We Failed at 1.0 and Started Over'
 date: 2025-01-07
-tags: ["BLOG", "SynergyOS", "Open Source", "Product Development", "Learning"]
+tags: ['BLOG', 'SynergyOS', 'Open Source', 'Product Development', 'Learning']
 aiGenerated: false
-slug: "rebirth-of-synergyos"
+slug: 'rebirth-of-synergyos'
 ---
 
 # The Rebirth of SynergyOS: How We Failed at 1.0 and Started Over
@@ -12,7 +12,7 @@ slug: "rebirth-of-synergyos"
 
 ## The Failed 1.0 (A Story of Hubris)
 
-Once upon a time (well, not that long ago), there was an ambitious product called "Axon 1.0." 
+Once upon a time (well, not that long ago), there was an ambitious product called "Axon 1.0."
 
 It was going to be THE knowledge retention system. Polished. Perfect. Ready to change the world. We had big plans. We had features. We had... well, we had a lot of confidence.
 
@@ -45,7 +45,7 @@ We're collaborating with AI. Yes, really. We have conversations with Claude in C
 The CODE framework we're building (Collect → Organise → Distill → Express) isn't just for users. It's how we're actually working:
 
 - **Collect**: Learning from our failures, successes, and conversations with AI
-- **Organise**: Documenting patterns in dev-docs, organizing knowledge systematically  
+- **Organise**: Documenting patterns in dev-docs, organizing knowledge systematically
 - **Distill**: Extracting reusable patterns and insights from our experiences
 - **Express**: Writing code, blog posts, and building in the open
 
@@ -62,7 +62,7 @@ We're building it as we need it. We're fixing problems as we encounter them. We'
 
 ## The Tech Stack (For the Nerds)
 
-- **Frontend**: SvelteKit 5 + TypeScript (Svelte 5 runes are *chef's kiss*)
+- **Frontend**: SvelteKit 5 + TypeScript (Svelte 5 runes are _chef's kiss_)
 - **Backend**: Convex (real-time database, serverless functions - it's brilliant)
 - **Editor**: ProseMirror (because rich text is hard, and they did it right)
 - **UI**: Bits UI + Tailwind CSS 4 + Semantic Design Tokens (yes, we built a whole token system)
@@ -98,8 +98,7 @@ That's the Synergy in SynergyOS.
 
 ---
 
-*Last Updated*: January 7, 2025  
-*Written by*: Randy & Claude (the human-AI collaboration is real)  
-*Read Time*: 3 minutes  
-*Vibe*: Dramatic but funny, just how we like it
-
+_Last Updated_: January 7, 2025  
+_Written by_: Randy & Claude (the human-AI collaboration is real)  
+_Read Time_: 3 minutes  
+_Vibe_: Dramatic but funny, just how we like it

@@ -9,14 +9,16 @@ const isDev = process.env.NODE_ENV !== 'production';
 const serverUrl = isDev ? 'http://192.168.68.110:5173' : undefined;
 
 const config: CapacitorConfig = {
-  appId: 'com.axon.app',
-  appName: 'Axon',
-  webDir: 'www',
-  // Enable live reload in development
-  server: isDev ? {
-    url: serverUrl,
-    cleartext: true // Allow HTTP (not HTTPS) connections
-  } : undefined
+	appId: 'com.axon.app',
+	appName: 'Axon',
+	webDir: 'www',
+	// Enable live reload in development
+	server: isDev
+		? {
+				url: serverUrl,
+				cleartext: true // Allow HTTP (not HTTPS) connections
+			}
+		: undefined
 };
 
 export default config;

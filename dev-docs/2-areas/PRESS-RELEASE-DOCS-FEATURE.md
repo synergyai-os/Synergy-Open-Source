@@ -15,6 +15,7 @@ SynergyOS now includes a powerful documentation system that works the way modern
 ### The Problem We Solve
 
 Product teams create documentation that:
+
 - **Gets stale immediately** - Written once, never updated
 - **Lives in silos** - Notion for planning, GitHub for code, Slack for decisions, Confluence for... nobody knows
 - **Ignores AI** - Cursor AI can't find your architecture docs when you need them
@@ -24,21 +25,25 @@ Product teams create documentation that:
 ### What Makes This Different
 
 **1. AI-Native Architecture**
+
 - Reference any doc with `@QUICK-START.md` in Cursor
 - AI understands context: value streams, dependencies, outcomes
 - Search works like conversation: "What patterns do we use for Svelte reactivity?"
 
 **2. Value Stream Organization**
+
 - Documents organized by **value streams** (customer outcomes), not projects
 - Each stream: clear outcome, team, tech stack, dependencies
 - Independent teams can move at championship speed
 
 **3. Living Documentation**
+
 - Integrated with your codebase (not a separate wiki)
 - Updates happen where you work (SvelteKit routes + MDX)
 - Design tokens ensure consistency (light/dark mode, mobile-ready)
 
 **4. Built for Product Teams**
+
 - Outcome-driven templates (not feature specs)
 - Dependency tracking (what's blocking this team?)
 - Quick-start guides that actually work
@@ -46,7 +51,7 @@ Product teams create documentation that:
 
 ### Customer Quote
 
-*"We were drowning in documentation scattered across five tools. With SynergyOS, everything lives in one place, and Cursor AI can actually find it when we need it. Our onboarding time dropped from 2 weeks to 3 days."*  
+_"We were drowning in documentation scattered across five tools. With SynergyOS, everything lives in one place, and Cursor AI can actually find it when we need it. Our onboarding time dropped from 2 weeks to 3 days."_  
 — Product team using SynergyOS
 
 ### How It Works
@@ -87,6 +92,7 @@ Founder, SynergyOS
 ### Technical Details
 
 **Built With:**
+
 - SvelteKit 5 (framework)
 - MDX via mdsvex (content)
 - Design tokens (theming)
@@ -94,11 +100,13 @@ Founder, SynergyOS
 - AI-navigable structure
 
 **Integrations:**
+
 - Cursor AI (native @ references)
 - GitHub (contribution tracking)
 - PostHog (privacy-friendly analytics)
 
 **Open Standards:**
+
 - Markdown/MDX (portable)
 - Git-based (version control)
 - Self-hostable (your data, your rules)
@@ -106,4 +114,3 @@ Founder, SynergyOS
 ---
 
 **End of Press Release**
-

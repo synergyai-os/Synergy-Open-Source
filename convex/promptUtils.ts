@@ -5,7 +5,7 @@
 import { flashcardGenerationTemplate } from './prompts/flashcardGeneration';
 
 const promptTemplates: Record<string, string> = {
-	'flashcard-generation': flashcardGenerationTemplate,
+	'flashcard-generation': flashcardGenerationTemplate
 };
 
 /**
@@ -36,7 +36,7 @@ function getNestedProperty(obj: any, path: string): string | undefined {
  * Interpolate variables in prompt template
  * Supports: {{variable}}, {{object.property}}, {{array.0.item}}
  * Handles empty values by replacing with empty string (removes placeholder)
- * 
+ *
  * @param template - Prompt template with {{variable}} placeholders
  * @param variables - Object with variables to interpolate (supports nested objects)
  * @returns Interpolated template string
@@ -61,11 +61,11 @@ function interpolateVariables(template: string, variables: Record<string, any>):
 
 /**
  * Load and interpolate a prompt template
- * 
+ *
  * @param promptName - Name of prompt template (e.g., 'flashcard-generation')
  * @param variables - Object with variables to interpolate (supports nested objects)
  * @returns Interpolated prompt string
- * 
+ *
  * @example
  * ```typescript
  * const prompt = loadPrompt('flashcard-generation', {
@@ -77,9 +77,11 @@ function interpolateVariables(template: string, variables: Record<string, any>):
 export function loadPrompt(promptName: string, variables?: Record<string, any>): string {
 	// Get template from registry
 	const template = promptTemplates[promptName];
-	
+
 	if (!template) {
-		throw new Error(`Prompt template "${promptName}" not found. Available templates: ${Object.keys(promptTemplates).join(', ')}`);
+		throw new Error(
+			`Prompt template "${promptName}" not found. Available templates: ${Object.keys(promptTemplates).join(', ')}`
+		);
 	}
 
 	// Remove XML declaration if present (for cleaner output)
@@ -95,10 +97,10 @@ export function loadPrompt(promptName: string, variables?: Record<string, any>):
 
 /**
  * Extract all variables from a prompt template (for validation/documentation)
- * 
+ *
  * @param template - Prompt template string
  * @returns Array of variable names found in template
- * 
+ *
  * @example
  * ```typescript
  * const template = 'Hello {{name}}, from {{source.title}}';
@@ -117,4 +119,3 @@ export function extractVariables(template: string): string[] {
 
 	return Array.from(variables);
 }
-

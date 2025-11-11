@@ -83,14 +83,14 @@
 <div class="h-full overflow-y-auto bg-base">
 	<!-- Header -->
 	<div
-		class="sticky top-0 z-10 bg-surface border-b border-base px-inbox-container py-system-header h-system-header flex items-center justify-between flex-shrink-0"
+		class="sticky top-0 z-10 flex h-system-header flex-shrink-0 items-center justify-between border-b border-base bg-surface px-inbox-container py-system-header"
 	>
 		<h2 class="text-sm font-normal text-secondary">Study Session</h2>
 		<div class="flex items-center gap-icon">
 			{#if study.sessionStartTime}
 				<Button.Root
 					onclick={() => study.resetSession()}
-					class="px-nav-item py-nav-item text-sm text-secondary hover:text-primary rounded-md hover:bg-hover-solid transition-colors"
+					class="rounded-md px-nav-item py-nav-item text-sm text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
 				>
 					Reset
 				</Button.Root>
@@ -99,10 +99,10 @@
 	</div>
 
 	<!-- Content -->
-	<div class="flex-1 flex flex-col items-center justify-center p-inbox-container min-h-0">
+	<div class="flex min-h-0 flex-1 flex-col items-center justify-center p-inbox-container">
 		<!-- Tag Filter (shown when no active session) -->
-		{#if !study.sessionStartTime && (study.reviewQueue.length === 0 && study.cardsReviewed === 0)}
-			<div class="w-full max-w-4xl mx-auto mb-6">
+		{#if !study.sessionStartTime && study.reviewQueue.length === 0 && study.cardsReviewed === 0}
+			<div class="mx-auto mb-6 w-full max-w-4xl">
 				<TagFilter
 					selectedTagIds={study.selectedTagIds}
 					availableTags={allTags}
@@ -112,51 +112,51 @@
 		{/if}
 
 		{#if study.isLoading}
-			<div class="text-center py-readable-quote">
+			<div class="py-readable-quote text-center">
 				<p class="text-secondary">Loading flashcards...</p>
 			</div>
 		{:else if study.error}
-			<div class="text-center py-readable-quote">
-				<p class="text-primary font-medium mb-2">Error</p>
+			<div class="py-readable-quote text-center">
+				<p class="mb-2 font-medium text-primary">Error</p>
 				<p class="text-secondary">{study.error}</p>
 			</div>
 		{:else if study.reviewQueue.length === 0 && study.cardsReviewed === 0}
 			<!-- Empty State -->
-			<div class="text-center py-readable-quote max-w-readable mx-auto">
-				<div class="text-6xl mb-4">📚</div>
-				<p class="text-lg font-semibold text-primary mb-2">No cards due for review</p>
+			<div class="mx-auto max-w-readable py-readable-quote text-center">
+				<div class="mb-4 text-6xl">📚</div>
+				<p class="mb-2 text-lg font-semibold text-primary">No cards due for review</p>
 				<p class="text-secondary">All caught up! Check back later for more cards to study.</p>
 			</div>
 		{:else if study.reviewQueue.length === 0 && study.cardsReviewed > 0}
 			<!-- Session Complete -->
-			<div class="text-center py-readable-quote max-w-readable mx-auto">
-				<div class="text-6xl mb-4">✅</div>
-				<p class="text-lg font-semibold text-primary mb-2">Session Complete!</p>
-				<p class="text-secondary mb-4">
+			<div class="mx-auto max-w-readable py-readable-quote text-center">
+				<div class="mb-4 text-6xl">✅</div>
+				<p class="mb-2 text-lg font-semibold text-primary">Session Complete!</p>
+				<p class="mb-4 text-secondary">
 					You reviewed {study.cardsReviewed} card{study.cardsReviewed !== 1 ? 's' : ''} in{' '}
 					{Math.floor(sessionDuration / 60)}:{String(sessionDuration % 60).padStart(2, '0')}
 				</p>
 				<Button.Root
 					onclick={() => study.startSession()}
-					class="px-menu-item py-menu-item text-sm font-medium rounded-md bg-accent-primary text-white hover:opacity-90 transition-opacity"
+					class="rounded-md bg-accent-primary px-menu-item py-menu-item text-sm font-medium text-white transition-opacity hover:opacity-90"
 				>
 					Start New Session
 				</Button.Root>
 			</div>
 		{:else if study.currentCard}
 			<!-- Study Interface -->
-			<div class="w-full max-w-4xl mx-auto">
+			<div class="mx-auto w-full max-w-4xl">
 				<!-- Progress Bar -->
 				<div class="mb-6">
-					<div class="flex items-center justify-between text-sm text-secondary mb-2">
+					<div class="mb-2 flex items-center justify-between text-sm text-secondary">
 						<span>
 							Card {study.cardsReviewed + 1} of {totalCards}
 						</span>
 						<span>{Math.round(progressPercent)}%</span>
 					</div>
-					<div class="w-full bg-base border border-base rounded-full h-2 overflow-hidden">
+					<div class="h-2 w-full overflow-hidden rounded-full border border-base bg-base">
 						<div
-							class="bg-accent-primary h-2 rounded-full transition-all duration-300"
+							class="h-2 rounded-full bg-accent-primary transition-all duration-300"
 							style="width: {progressPercent}%"
 						></div>
 					</div>
@@ -164,13 +164,13 @@
 
 				<!-- Card Container (centered, fixed size) -->
 				<div
-					class="flex-1 flex items-center justify-center overflow-auto relative"
+					class="relative flex flex-1 items-center justify-center overflow-auto"
 					style="min-height: 500px;"
 				>
 					<div
 						class="relative transition-all duration-400 {study.isReviewing
-							? 'opacity-50 scale-95'
-							: 'opacity-100 scale-100'}"
+							? 'scale-95 opacity-50'
+							: 'scale-100 opacity-100'}"
 						style="width: 500px; height: 700px; max-width: calc(100% - 2rem); max-height: calc(100% - 2rem);"
 					>
 						<StudyCard
@@ -186,9 +186,7 @@
 				<!-- Instructions -->
 				<div class="mt-6 text-center">
 					<p class="text-sm text-secondary">
-						{study.isFlipped
-							? 'Press 1-4 to rate, ↑/↓ to flip back'
-							: '↑/↓ to flip card'}
+						{study.isFlipped ? 'Press 1-4 to rate, ↑/↓ to flip back' : '↑/↓ to flip card'}
 					</p>
 				</div>
 			</div>
@@ -201,4 +199,3 @@
 		transition-duration: 400ms;
 	}
 </style>
-

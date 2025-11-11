@@ -9,6 +9,7 @@
 ## Context
 
 We need a role management system that:
+
 1. Allows users to have multiple roles (e.g., Billing Admin + Team Lead)
 2. Supports resource-scoped permissions (Team Lead only manages their teams)
 3. Scales easily when adding new roles
@@ -50,24 +51,27 @@ We will implement a **Permission-Based Access Control (PBAC)** system where:
 ### Why Permission-Based (Not Role-Based)?
 
 **Problem with role-checking:**
+
 ```typescript
 // ❌ BAD: Checking roles directly
-if (user.role === "admin" || user.role === "manager") {
-  allowCreateTeam();
+if (user.role === 'admin' || user.role === 'manager') {
+	allowCreateTeam();
 }
 // Adding new role requires changing code everywhere!
 ```
 
 **Solution with permission-checking:**
+
 ```typescript
 // ✅ GOOD: Checking permissions
-if (userHasPermission(user, "teams.create")) {
-  allowCreateTeam();
+if (userHasPermission(user, 'teams.create')) {
+	allowCreateTeam();
 }
 // Add new role by just assigning permissions in database!
 ```
 
 **Benefits:**
+
 - **Scalable**: Add new roles without code changes
 - **Maintainable**: Permission logic in one place
 - **Flexible**: Combine roles to create custom access patterns
@@ -76,15 +80,18 @@ if (userHasPermission(user, "teams.create")) {
 ### Why Multiple Roles?
 
 **Real-world scenario:**
+
 - Sarah manages billing (Billing Admin)
 - Sarah also leads Team A (Team Lead)
 - She needs permissions from BOTH roles
 
 **Alternative considered: Single role with all permissions**
+
 - Problem: Creates role explosion ("Billing Admin + Team Lead", "Billing Admin + Team Lead + X")
 - Problem: Doesn't scale (n × m role combinations)
 
 **Our approach:**
+
 - Users can have multiple roles
 - Permissions aggregated (union of all roles)
 - If ANY role grants permission → ALLOW
@@ -92,10 +99,12 @@ if (userHasPermission(user, "teams.create")) {
 ### Why Resource-Scoped Permissions?
 
 **User story:**
+
 - Team Leads should manage only THEIR teams
 - NOT all teams in the organization
 
 **Implementation:**
+
 ```typescript
 // Permission with scope
 rolePermissions: {
@@ -110,6 +119,7 @@ userHasPermission(userId, "teams.settings.update", teamId)
 ```
 
 **Benefits:**
+
 - **Security**: Team Leads can't access other teams
 - **Principle of least privilege**: Users have minimum necessary access
 - **Clear intent**: Scope makes permissions explicit
@@ -117,26 +127,30 @@ userHasPermission(userId, "teams.settings.update", teamId)
 ### Why Medium Granularity?
 
 **Too broad:**
+
 ```typescript
-"teams.manage"  // What does this include? Unclear!
+'teams.manage'; // What does this include? Unclear!
 ```
 
 **Too granular:**
+
 ```typescript
-"teams.name.update"
-"teams.description.update"
-"teams.slug.update"
+'teams.name.update';
+'teams.description.update';
+'teams.slug.update';
 // Too many permissions = management nightmare!
 ```
 
 **Just right:**
+
 ```typescript
-"teams.settings.update"  // Clear: All team settings
-"teams.create"           // Clear: Create team action
-"teams.delete"           // Clear: Delete team action
+'teams.settings.update'; // Clear: All team settings
+'teams.create'; // Clear: Create team action
+'teams.delete'; // Clear: Delete team action
 ```
 
 **Benefits:**
+
 - **Clear intent**: Each permission has obvious meaning
 - **Manageable**: ~20 permissions instead of 100+
 - **Flexible**: Can add more granular permissions later if needed
@@ -144,16 +158,19 @@ userHasPermission(userId, "teams.settings.update", teamId)
 ### Why Audit Logging?
 
 **Requirements:**
+
 - Security: Track who did what
 - Compliance: Demonstrate access controls
 - Debugging: Investigate why user can/can't do something
 
 **Implementation:**
+
 - Log ALL permission checks (granted and denied)
 - Log ALL role assignments and revocations
 - Include: who, what, when, resource, result
 
 **Benefits:**
+
 - **Security**: Detect unauthorized access attempts
 - **Compliance**: Audit trail for regulators
 - **Debugging**: See exactly why permission was granted/denied
@@ -170,27 +187,30 @@ userHasPermission(userId, "teams.settings.update", teamId)
 ✅ **Security**: Resource-scoped permissions  
 ✅ **Maintainability**: Permission logic centralized  
 ✅ **Auditability**: Complete access trail  
-✅ **Future-proof**: Easy to add guest access, temporary permissions  
+✅ **Future-proof**: Easy to add guest access, temporary permissions
 
 ### Negative
 
 ❌ **Complexity**: More tables (6 new) vs simple role field  
 ❌ **Performance**: Permission checks query multiple tables  
-❌ **Learning curve**: Developers must understand permission system  
+❌ **Learning curve**: Developers must understand permission system
 
 ### Mitigations
 
 **Complexity mitigation:**
+
 - Comprehensive documentation (rbac-architecture.md)
 - Quick reference guide (rbac-quick-reference.md)
 - Clear code examples and patterns
 
 **Performance mitigation:**
+
 - Database indexes on userRoles and rolePermissions
 - Cache user permissions in memory (future optimization)
 - Permission checks typically < 100ms (acceptable)
 
 **Learning curve mitigation:**
+
 - Visual diagrams (rbac-visual-overview.md)
 - Code examples in docs
 - Helper functions (`requirePermission()` is easy to use)
@@ -202,11 +222,13 @@ userHasPermission(userId, "teams.settings.update", teamId)
 ### Alternative 1: Direct Role Checking
 
 **Approach**: Features check user role directly
+
 ```typescript
 if (user.role === "admin") { ... }
 ```
 
 **Why rejected:**
+
 - Not scalable (code changes everywhere when adding roles)
 - Can't have multiple roles
 - No resource scoping
@@ -218,6 +240,7 @@ if (user.role === "admin") { ... }
 **Approach**: Create combined roles like "Billing Admin + Team Lead"
 
 **Why rejected:**
+
 - Role explosion (n × m combinations)
 - Hard to maintain (which combinations to support?)
 - Not flexible (user can't have 3+ roles)
@@ -229,6 +252,7 @@ if (user.role === "admin") { ... }
 **Approach**: Dynamic policies based on user attributes, resource attributes, environment
 
 **Why rejected:**
+
 - Too complex for current needs
 - Harder to understand and debug
 - RBAC sufficient for our use cases
@@ -241,6 +265,7 @@ if (user.role === "admin") { ... }
 **Approach**: Very granular permissions (teams.name.update, teams.description.update)
 
 **Why rejected:**
+
 - Too many permissions to manage (100+)
 - Unclear where to draw the line (how granular is too granular?)
 - Can add more granularity later if specific need arises
@@ -250,21 +275,25 @@ if (user.role === "admin") { ... }
 ## Implementation Notes
 
 ### Phase 1 (Current Project)
+
 - User & Team Management
 - Organization Settings
 - 20 permissions total
 - 6 roles (Admin, Manager, Team Lead, Billing Admin, Member, Guest)
 
 ### Phase 2 (Future)
+
 - Billing permissions (use existing structure)
 - 4 additional permissions
 
 ### Phase 3 (Future)
+
 - Guest access (resource-specific sharing)
 - `resourceGuests` table
 - Time-bound access
 
 ### Future Optimizations
+
 - Cache user permissions in memory
 - Precompute common permission checks
 - Add permission hierarchy (if needed)
@@ -290,5 +319,3 @@ if (user.role === "admin") { ... }
 ---
 
 **This decision is accepted and ready for implementation.**
-
-

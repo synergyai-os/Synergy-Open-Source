@@ -1,14 +1,14 @@
 /**
  * API Key Validation Utilities
- * 
+ *
  * Validates API keys before storing them to ensure they work correctly.
  * Uses Convex actions to make HTTP requests to external APIs.
  */
 
-"use node";
+'use node';
 
-import { internalAction } from "./_generated/server";
-import { v } from "convex/values";
+import { internalAction } from './_generated/server';
+import { v } from 'convex/values';
 
 /**
  * Validate a Claude API key by making a minimal API request
@@ -16,29 +16,29 @@ import { v } from "convex/values";
  */
 export const validateClaudeApiKey = internalAction({
 	args: {
-		apiKey: v.string(),
+		apiKey: v.string()
 	},
 	handler: async (ctx, args) => {
 		try {
 			// Make a minimal API call to validate the key
 			// Using messages.create with minimal content
-			const response = await fetch("https://api.anthropic.com/v1/messages", {
-				method: "POST",
+			const response = await fetch('https://api.anthropic.com/v1/messages', {
+				method: 'POST',
 				headers: {
-					"x-api-key": args.apiKey,
-					"anthropic-version": "2023-06-01",
-					"content-type": "application/json",
+					'x-api-key': args.apiKey,
+					'anthropic-version': '2023-06-01',
+					'content-type': 'application/json'
 				},
 				body: JSON.stringify({
-					model: "claude-3-haiku-20240307", // Use the cheapest model for validation
+					model: 'claude-3-haiku-20240307', // Use the cheapest model for validation
 					max_tokens: 10, // Minimal token count for validation
 					messages: [
 						{
-							role: "user",
-							content: "test",
-						},
-					],
-				}),
+							role: 'user',
+							content: 'test'
+						}
+					]
+				})
 			});
 
 			if (!response.ok) {
@@ -55,7 +55,7 @@ export const validateClaudeApiKey = internalAction({
 				}
 				return {
 					valid: false,
-					error: errorMessage,
+					error: errorMessage
 				};
 			}
 
@@ -63,15 +63,13 @@ export const validateClaudeApiKey = internalAction({
 		} catch (error) {
 			// Return validation error details
 			const errorMessage =
-				error instanceof Error
-					? error.message
-					: "Unknown error validating Claude API key";
+				error instanceof Error ? error.message : 'Unknown error validating Claude API key';
 			return {
 				valid: false,
-				error: errorMessage,
+				error: errorMessage
 			};
 		}
-	},
+	}
 });
 
 /**
@@ -80,16 +78,16 @@ export const validateClaudeApiKey = internalAction({
  */
 export const validateReadwiseApiKey = internalAction({
 	args: {
-		apiKey: v.string(),
+		apiKey: v.string()
 	},
 	handler: async (ctx, args) => {
 		try {
 			// Readwise provides a dedicated auth validation endpoint
-			const response = await fetch("https://readwise.io/api/v2/auth/", {
-				method: "GET",
+			const response = await fetch('https://readwise.io/api/v2/auth/', {
+				method: 'GET',
 				headers: {
-					Authorization: `Token ${args.apiKey}`,
-				},
+					Authorization: `Token ${args.apiKey}`
+				}
 			});
 
 			// 204 No Content means the token is valid
@@ -105,19 +103,16 @@ export const validateReadwiseApiKey = internalAction({
 			}
 			return {
 				valid: false,
-				error: errorMessage,
+				error: errorMessage
 			};
 		} catch (error) {
 			// Return validation error details
 			const errorMessage =
-				error instanceof Error
-					? error.message
-					: "Unknown error validating Readwise API key";
+				error instanceof Error ? error.message : 'Unknown error validating Readwise API key';
 			return {
 				valid: false,
-				error: errorMessage,
+				error: errorMessage
 			};
 		}
-	},
+	}
 });
-

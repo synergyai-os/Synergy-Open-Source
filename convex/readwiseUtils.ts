@@ -1,6 +1,6 @@
 /**
  * Readwise Data Normalization Utilities
- * 
+ *
  * Helper functions for normalizing data from Readwise API
  * (author names, tag names, dates, etc.)
  */
@@ -12,7 +12,7 @@
  * - Remove extra spaces
  */
 export function normalizeAuthorName(name: string): string {
-  return name.trim().toLowerCase().replace(/\s+/g, " ");
+	return name.trim().toLowerCase().replace(/\s+/g, ' ');
 }
 
 /**
@@ -24,25 +24,25 @@ export function normalizeAuthorName(name: string): string {
  * - "John Doe and Jane Smith"
  */
 export function parseAuthorString(authors: string): string[] {
-  if (!authors || !authors.trim()) {
-    return [];
-  }
+	if (!authors || !authors.trim()) {
+		return [];
+	}
 
-  // Split by comma and "and"
-  const authorList = authors
-    .split(/,\s*(?:and\s+)?/i) // Split on comma, optionally followed by "and"
-    .map((author) => author.trim())
-    .filter((author) => author.length > 0);
+	// Split by comma and "and"
+	const authorList = authors
+		.split(/,\s*(?:and\s+)?/i) // Split on comma, optionally followed by "and"
+		.map((author) => author.trim())
+		.filter((author) => author.length > 0);
 
-  // If no commas, try splitting on "and"
-  if (authorList.length === 1) {
-    const parts = authors.split(/\s+and\s+/i);
-    if (parts.length > 1) {
-      return parts.map((part) => part.trim()).filter((part) => part.length > 0);
-    }
-  }
+	// If no commas, try splitting on "and"
+	if (authorList.length === 1) {
+		const parts = authors.split(/\s+and\s+/i);
+		if (parts.length > 1) {
+			return parts.map((part) => part.trim()).filter((part) => part.length > 0);
+		}
+	}
 
-  return authorList;
+	return authorList;
 }
 
 /**
@@ -50,19 +50,19 @@ export function parseAuthorString(authors: string): string[] {
  * Returns undefined if date is null/undefined/empty
  */
 export function parseISODate(dateStr: string | null | undefined): number | undefined {
-  if (!dateStr) {
-    return undefined;
-  }
+	if (!dateStr) {
+		return undefined;
+	}
 
-  try {
-    const date = new Date(dateStr);
-    if (isNaN(date.getTime())) {
-      return undefined;
-    }
-    return date.getTime();
-  } catch {
-    return undefined;
-  }
+	try {
+		const date = new Date(dateStr);
+		if (isNaN(date.getTime())) {
+			return undefined;
+		}
+		return date.getTime();
+	} catch {
+		return undefined;
+	}
 }
 
 /**
@@ -72,6 +72,5 @@ export function parseISODate(dateStr: string | null | undefined): number | undef
  * - Remove extra spaces
  */
 export function normalizeTagName(tag: string): string {
-  return tag.trim().toLowerCase().replace(/\s+/g, " ");
+	return tag.trim().toLowerCase().replace(/\s+/g, ' ');
 }
-

@@ -1,6 +1,6 @@
 /**
  * Global theme management store
- * 
+ *
  * Handles dark/light mode theming with:
  * - localStorage persistence for immediate persistence
  * - Future: Convex integration for cross-device sync when logged in

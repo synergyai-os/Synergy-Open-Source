@@ -19,6 +19,7 @@
 ```
 
 **Flow**:
+
 1. **Plan** in Linear (create tickets, projects)
 2. **Code** in Cursor AI (MCP updates Linear automatically)
 3. **Review** in GitHub (PR references Linear tickets)
@@ -72,46 +73,48 @@ Workspace: Young Human Club
 
 ```typescript
 // List teams and projects
-mcp_Linear_list_teams()
-mcp_Linear_list_projects({ team: "SYOS" })
+mcp_Linear_list_teams();
+mcp_Linear_list_projects({ team: 'SYOS' });
 
 // Create and update tickets
 mcp_Linear_create_issue({
-  team: "SYOS",
-  title: "[Slice 1] Workspace Context",
-  description: "...",
-  labels: ["feature", "backend", "s"],
-  project: "Auth and System Foundation"
-})
+	team: 'SYOS',
+	title: '[Slice 1] Workspace Context',
+	description: '...',
+	labels: ['feature', 'backend', 's'],
+	project: 'Auth and System Foundation'
+});
 
 mcp_Linear_update_issue({
-  id: "issue-id",
-  state: "In Progress" | "Done"
-})
+	id: 'issue-id',
+	state: 'In Progress' | 'Done'
+});
 
 // Add comments
 mcp_Linear_create_comment({
-  issueId: "issue-id",
-  body: "✅ Complete - Feature shipped | Commit: abc1234"
-})
+	issueId: 'issue-id',
+	body: '✅ Complete - Feature shipped | Commit: abc1234'
+});
 
 // Update project description
 mcp_Linear_update_project({
-  id: "project-id",
-  summary: "One-line summary",
-  description: "Full project overview"
-})
+	id: 'project-id',
+	summary: 'One-line summary',
+	description: 'Full project overview'
+});
 ```
 
 ### **Cursor Workflows**
 
 **Starting a New Project** (`/start-new-project`):
+
 1. Create git branch
 2. Create PARA documentation structure
 3. Create Linear project + tickets via MCP
 4. Initialize project description
 
 **Completing a Slice**:
+
 1. Code the feature
 2. Commit with structured message
 3. Update Linear ticket status to "Done"
@@ -119,6 +122,7 @@ mcp_Linear_update_project({
 5. Test with user before next slice
 
 **Shipping a Project**:
+
 1. Create PR on GitHub
 2. Wait for approval
 3. Merge to main
@@ -152,22 +156,27 @@ Repository: SynergyOS
 
 ```markdown
 ## Summary
+
 Multi-workspace authentication support
 
 ## Linear Project
+
 https://linear.app/younghumanclub/project/auth-and-system-foundation-498d3cff7ef0
 
 ## Completed Tickets
+
 - [x] SYOS-1: Workspace Context & Indicator
 - [x] SYOS-2: Create First Organization
 - [x] SYOS-3: Workspace Switching
-...
+      ...
 
 ## Documentation
+
 - Project README: dev-docs/1-projects/multi-workspace-auth/README.md
 - Architecture: dev-docs/2-areas/workos-convex-auth-architecture.md
 
 ## Testing
+
 - [x] All slices tested by Randy
 - [x] No breaking changes
 - [x] Documentation updated
@@ -181,23 +190,23 @@ https://linear.app/younghumanclub/project/auth-and-system-foundation-498d3cff7ef
 
 ```typescript
 // 1. Create project
-mcp_Linear_get_project({ query: "Auth and System Foundation" })
+mcp_Linear_get_project({ query: 'Auth and System Foundation' });
 
 // 2. Update project description
 mcp_Linear_update_project({
-  id: "project-id",
-  summary: "Multi-workspace authentication",
-  description: "# Project Overview\n..."
-})
+	id: 'project-id',
+	summary: 'Multi-workspace authentication',
+	description: '# Project Overview\n...'
+});
 
 // 3. Create tickets for each slice
 mcp_Linear_create_issue({
-  team: "SYOS",
-  title: "[Slice 1] Workspace Context & Indicator",
-  labels: ["feature", "backend", "workspace", "s"],
-  project: "Auth and System Foundation",
-  state: "Todo"
-})
+	team: 'SYOS',
+	title: '[Slice 1] Workspace Context & Indicator',
+	labels: ['feature', 'backend', 'workspace', 's'],
+	project: 'Auth and System Foundation',
+	state: 'Todo'
+});
 ```
 
 ---
@@ -265,22 +274,27 @@ git push origin main
 ### **How Linear Tracks Flow**
 
 **Flow Velocity**:
+
 - Counts tickets moved to "Done" per cycle
 - Filtered by cycle: `cycle:"Nov 1-14"`
 
 **Flow Distribution**:
+
 - Groups by type label: `feature`, `bug`, `tech-debt`, `risk`
 - View in Insights panel (Cmd+Shift+I)
 
 **Flow Time**:
+
 - Measures time from "Todo" → "Done"
 - Status transitions automatically tracked
 
 **Flow Load** (WIP):
+
 - Counts tickets in "In Progress"
 - Filter: `status:"In Progress"`
 
 **Flow Efficiency**:
+
 - Requires manual tracking (active vs waiting time)
 - Or use external tools like Screenful
 
@@ -298,14 +312,14 @@ git push origin main
 
 ```typescript
 mcp_Linear_create_issue({
-  title: "[Slice 1] Workspace Context & Indicator",
-  labels: [
-    "feature",      // Type: New functionality
-    "backend",      // Scope: Convex functions
-    "workspace",    // Scope: Multi-tenancy
-    "s"             // Size: 2-4 hours
-  ]
-})
+	title: '[Slice 1] Workspace Context & Indicator',
+	labels: [
+		'feature', // Type: New functionality
+		'backend', // Scope: Convex functions
+		'workspace', // Scope: Multi-tenancy
+		's' // Size: 2-4 hours
+	]
+});
 ```
 
 ---
@@ -315,40 +329,41 @@ mcp_Linear_create_issue({
 ```typescript
 // Defined in /start-new-project command
 const LINEAR_DEFAULTS = {
-  team: "SYOS",
-  teamId: "08d684b7-986f-4781-8bc5-e4d9aead6935",
-  
-  labels: {
-    // Type
-    feature: "ba9cfc2b-a993-4265-80dc-07fd1c831029",
-    bug: "62008be5-0ff6-4aae-ba9b-c2887257acf8",
-    "tech-debt": "7cec9e22-31d4-4166-ba92-61d8f8c18809",
-    risk: "99472a27-79b0-475b-bd4a-d4d66e3f2b81",
-    
-    // Scope
-    frontend: "70068764-575a-48a6-b4d1-3735a044230e",
-    backend: "7299ef53-982d-429d-b513-ccf190b28c16",
-    ui: "ace175ff-3cce-4416-bacc-529ee85e72a9",
-    auth: "1ce394e6-d0ac-41c0-a3b2-f8dd062f7725",
-    workspace: "ede0cdda-d56f-4f0d-a6b9-5522df50839f",
-    analytics: "1e82f018-fec6-4d0f-9369-ab1e98cdd613",
-    devops: "df3e1654-2066-423b-905a-41dfc69f2cd5",
-    security: "9a561550-aff8-4cd3-a1f5-3cd5b9008b97",
-    
-    // Size
-    xs: "3af5aae3-2503-40b7-b51c-4ec4f56cd2fc",
-    s: "4bcc3827-94f3-4eda-8581-c76e6e51dead",
-    m: "8171cae2-3a72-46a0-9d68-b2eb64d90def",
-    l: "9fc2063b-a156-4519-8c33-83432e7e9deb",
-    xl: "5840c3f2-c2fc-4354-bff7-6eedba83d709",
-    
-    // Special
-    shaping: "5a657e67-a6d7-4b49-9299-91e60daf44b3"
-  }
-}
+	team: 'SYOS',
+	teamId: '08d684b7-986f-4781-8bc5-e4d9aead6935',
+
+	labels: {
+		// Type
+		feature: 'ba9cfc2b-a993-4265-80dc-07fd1c831029',
+		bug: '62008be5-0ff6-4aae-ba9b-c2887257acf8',
+		'tech-debt': '7cec9e22-31d4-4166-ba92-61d8f8c18809',
+		risk: '99472a27-79b0-475b-bd4a-d4d66e3f2b81',
+
+		// Scope
+		frontend: '70068764-575a-48a6-b4d1-3735a044230e',
+		backend: '7299ef53-982d-429d-b513-ccf190b28c16',
+		ui: 'ace175ff-3cce-4416-bacc-529ee85e72a9',
+		auth: '1ce394e6-d0ac-41c0-a3b2-f8dd062f7725',
+		workspace: 'ede0cdda-d56f-4f0d-a6b9-5522df50839f',
+		analytics: '1e82f018-fec6-4d0f-9369-ab1e98cdd613',
+		devops: 'df3e1654-2066-423b-905a-41dfc69f2cd5',
+		security: '9a561550-aff8-4cd3-a1f5-3cd5b9008b97',
+
+		// Size
+		xs: '3af5aae3-2503-40b7-b51c-4ec4f56cd2fc',
+		s: '4bcc3827-94f3-4eda-8581-c76e6e51dead',
+		m: '8171cae2-3a72-46a0-9d68-b2eb64d90def',
+		l: '9fc2063b-a156-4519-8c33-83432e7e9deb',
+		xl: '5840c3f2-c2fc-4354-bff7-6eedba83d709',
+
+		// Special
+		shaping: '5a657e67-a6d7-4b49-9299-91e60daf44b3'
+	}
+};
 ```
 
 **Benefits**:
+
 - ⚡ Faster (no lookup calls)
 - 💰 Cheaper (fewer MCP requests)
 - 🎯 More precise (exact IDs)
@@ -357,20 +372,20 @@ const LINEAR_DEFAULTS = {
 
 ## 🚀 Quick Reference
 
-| Tool | Purpose | Key Actions |
-|------|---------|-------------|
+| Tool       | Purpose          | Key Actions                                 |
+| ---------- | ---------------- | ------------------------------------------- |
 | **Linear** | Project tracking | Create tickets, update status, view metrics |
-| **Cursor** | Development | Code with AI, update Linear via MCP |
-| **GitHub** | Version control | Create branches, PR, merge |
+| **Cursor** | Development      | Code with AI, update Linear via MCP         |
+| **GitHub** | Version control  | Create branches, PR, merge                  |
 
-| MCP Function | When to Use |
-|--------------|-------------|
-| `list_teams` | Get team ID |
-| `list_projects` | Get project ID |
-| `create_issue` | New ticket |
-| `update_issue` | Change status, add labels |
-| `create_comment` | Add completion note |
-| `update_project` | Update description |
+| MCP Function     | When to Use               |
+| ---------------- | ------------------------- |
+| `list_teams`     | Get team ID               |
+| `list_projects`  | Get project ID            |
+| `create_issue`   | New ticket                |
+| `update_issue`   | Change status, add labels |
+| `create_comment` | Add completion note       |
+| `update_project` | Update description        |
 
 ---
 
@@ -385,4 +400,3 @@ const LINEAR_DEFAULTS = {
 
 **Last Updated**: 2025-11-10  
 **Related**: [Flow Metrics](./flow-metrics.md), [/start-new-project](./.cursor/commands/start-new-project.md)
-

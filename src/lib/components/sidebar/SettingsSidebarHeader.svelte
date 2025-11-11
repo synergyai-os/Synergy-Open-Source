@@ -7,16 +7,18 @@
 </script>
 
 <!-- Sticky Header with Back Button -->
-<div class="sticky top-0 z-10 bg-sidebar border-b border-sidebar px-header py-system-header h-system-header flex items-center justify-between flex-shrink-0">
+<div
+	class="sticky top-0 z-10 flex h-system-header flex-shrink-0 items-center justify-between border-b border-sidebar bg-sidebar px-header py-system-header"
+>
 	<div class="flex items-center gap-icon">
 		<button
 			type="button"
 			onclick={() => onBack?.()}
-			class="flex items-center gap-icon text-sidebar-secondary hover:text-sidebar-primary transition-colors group"
+			class="group flex items-center gap-icon text-sidebar-secondary transition-colors hover:text-sidebar-primary"
 		>
 			<!-- Back Arrow Icon -->
 			<svg
-				class="w-4 h-4 flex-shrink-0"
+				class="h-4 w-4 flex-shrink-0"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -29,8 +31,7 @@
 					d="M10 19l-7-7m0 0l7-7m-7 7h18"
 				/>
 			</svg>
-			<span class="font-medium text-sm">Back</span>
+			<span class="text-sm font-medium">Back</span>
 		</button>
 	</div>
 </div>
-

@@ -1,6 +1,6 @@
 /**
  * Note Management Composable
- * 
+ *
  * Manages note state with auto-save, AI detection, and blog export
  * Following Svelte 5 composables pattern
  */
@@ -30,7 +30,7 @@ export function useNote(convexClient: ConvexClient | null) {
 		isAIGenerated: false,
 		isSaving: false,
 		lastSaved: null,
-		error: null,
+		error: null
 	});
 
 	let autoSaveTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -52,7 +52,7 @@ export function useNote(convexClient: ConvexClient | null) {
 			const noteId = await convexClient.mutation(api.notes.createNote, {
 				title,
 				content: content || JSON.stringify({ type: 'doc', content: [] }),
-				isAIGenerated,
+				isAIGenerated
 			});
 
 			state.noteId = noteId;
@@ -103,7 +103,7 @@ export function useNote(convexClient: ConvexClient | null) {
 				title: state.title,
 				content: state.content,
 				contentMarkdown: state.contentMarkdown,
-				isAIGenerated: state.isAIGenerated,
+				isAIGenerated: state.isAIGenerated
 			});
 
 			state.lastSaved = Date.now();
@@ -127,7 +127,7 @@ export function useNote(convexClient: ConvexClient | null) {
 			state.error = null;
 
 			await convexClient.mutation(api.notes.markAsAIGenerated, {
-				noteId: state.noteId,
+				noteId: state.noteId
 			});
 
 			state.isAIGenerated = true;
@@ -153,7 +153,7 @@ export function useNote(convexClient: ConvexClient | null) {
 
 			await convexClient.mutation(api.notes.markForBlogExport, {
 				noteId: state.noteId,
-				slug,
+				slug
 			});
 
 			state.lastSaved = Date.now();
@@ -227,7 +227,6 @@ export function useNote(convexClient: ConvexClient | null) {
 		markAsAIGenerated,
 		markForBlogExport,
 		loadNote,
-		clear,
+		clear
 	};
 }
-

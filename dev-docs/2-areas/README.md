@@ -7,6 +7,7 @@
 ## Core Areas
 
 ### Product & Strategy
+
 - [Product Vision & Plan](product-vision-and-plan.md) - Vision, strategy, roadmap ⭐ START HERE
 - [Product Principles](product-principles.md) - How we make decisions
 - [Architecture](architecture.md) - Tech stack, auth, project structure
@@ -16,6 +17,7 @@
 - [Composables Analysis](composables-analysis.md) - Svelte 5 composables
 
 ### Patterns
+
 - [Pattern Index](patterns/INDEX.md) - Fast symptom lookup ⭐ DEBUG HERE
 - [Svelte Reactivity](patterns/svelte-reactivity.md) - Svelte 5 patterns
 - [Convex Integration](patterns/convex-integration.md) - Backend patterns
@@ -23,11 +25,13 @@
 - [Analytics](patterns/analytics.md) - PostHog tracking
 
 ### Value Streams
+
 - [Overview](value-streams/README.md) - Value stream mapping
 - [Documentation System](value-streams/documentation-system/START-HERE.md) - This system
 - [How to Document](value-streams/HOW-TO-DOCUMENT.md) - Documentation guide
 
 ### Future Architecture
+
 - [Multi-Tenancy Migration](multi-tenancy-migration.md) - Orgs/teams architecture
 
 ---
@@ -37,6 +41,7 @@
 **Areas** are ongoing responsibilities with no end date. As long as the product exists, these need maintenance.
 
 **Examples:**
+
 - Product vision & strategy (always evolving)
 - Architecture decisions (living documentation)
 - Design system (maintained & expanded)
@@ -44,7 +49,7 @@
 - Value streams (active initiatives)
 
 **Not Areas:**
+
 - Time-bound projects with deadlines → 1-projects/
 - Reference material we didn't create → 3-resources/
 - Completed/deprecated work → 4-archive/
-

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	
+
 	let { data }: { data: PageData } = $props();
-	
+
 	// Parse ProseMirror JSON to extract title and markdown
 	let title = $derived(data.note.title || 'Untitled Note');
 	let markdown = $derived(data.note.contentMarkdown || '');
@@ -25,7 +25,7 @@
 			<span class="ai-badge">AI Generated</span>
 		{/if}
 	</header>
-	
+
 	<article class="note-content">
 		{@html markdown}
 	</article>
@@ -37,24 +37,24 @@
 		margin: 0 auto;
 		padding: var(--spacing-content);
 	}
-	
+
 	.note-header {
 		margin-bottom: var(--spacing-section);
 		padding-bottom: var(--spacing-content);
 		border-bottom: 1px solid var(--color-border);
 	}
-	
+
 	.note-header h1 {
 		margin: 0 0 var(--spacing-sm) 0;
 		color: var(--color-text-primary);
 	}
-	
+
 	.text-secondary {
 		margin: 0;
 		color: var(--color-text-secondary);
 		font-size: var(--font-size-sm);
 	}
-	
+
 	.ai-badge {
 		display: inline-block;
 		margin-top: var(--spacing-sm);
@@ -64,33 +64,33 @@
 		border-radius: 4px;
 		font-size: var(--font-size-sm);
 	}
-	
+
 	.note-content {
 		line-height: 1.6;
 		color: var(--color-text-primary);
 	}
-	
+
 	.note-content :global(h2) {
 		margin-top: var(--spacing-lg);
 		margin-bottom: var(--spacing-md);
 	}
-	
+
 	.note-content :global(h3) {
 		margin-top: var(--spacing-md);
 		margin-bottom: var(--spacing-sm);
 	}
-	
+
 	.note-content :global(p) {
 		margin-bottom: var(--spacing-md);
 	}
-	
+
 	.note-content :global(code) {
 		background-color: var(--color-surface);
 		padding: 2px 6px;
 		border-radius: 3px;
 		font-family: monospace;
 	}
-	
+
 	.note-content :global(pre) {
 		background-color: var(--color-surface);
 		padding: var(--spacing-md);
@@ -99,4 +99,3 @@
 		margin-bottom: var(--spacing-md);
 	}
 </style>
-

@@ -5,15 +5,15 @@
 
 	// Check if we're in development mode
 	let isDev = $derived(dev);
-	
+
 	// Get the status and error message
 	let status = $derived(page.status);
 	let message = $derived(page.error?.message || 'An error occurred');
-	
+
 	function goHome() {
 		goto('/inbox');
 	}
-	
+
 	function goBack() {
 		history.back();
 	}
@@ -21,32 +21,28 @@
 
 <!-- Main Content -->
 <div class="h-full overflow-y-auto bg-base">
-	<div class="max-w-2xl mx-auto py-16 px-6">
+	<div class="mx-auto max-w-2xl px-6 py-16">
 		<!-- Error Content -->
-		<div class="text-center mb-12">
+		<div class="mb-12 text-center">
 			<!-- Status Code -->
-			<div class="inline-block mb-6">
-				<div class="text-[120px] font-light text-tertiary leading-none">
+			<div class="mb-6 inline-block">
+				<div class="text-[120px] leading-none font-light text-tertiary">
 					{status}
 				</div>
 			</div>
-			
+
 			{#if status === 404}
-				<h1 class="text-2xl font-normal text-primary mb-3">
-					Page not found
-				</h1>
-				<p class="text-base text-secondary max-w-md mx-auto">
+				<h1 class="mb-3 text-2xl font-normal text-primary">Page not found</h1>
+				<p class="mx-auto max-w-md text-base text-secondary">
 					The page you're looking for doesn't exist or has been moved.
 				</p>
 			{:else if status === 500}
-				<h1 class="text-2xl font-normal text-primary mb-3">
-					Something went wrong
-				</h1>
-				<p class="text-base text-secondary max-w-md mx-auto">
+				<h1 class="mb-3 text-2xl font-normal text-primary">Something went wrong</h1>
+				<p class="mx-auto max-w-md text-base text-secondary">
 					We're working to fix it. Please try again in a moment.
 				</p>
 			{:else}
-				<h1 class="text-2xl font-normal text-primary mb-3">
+				<h1 class="mb-3 text-2xl font-normal text-primary">
 					{message}
 				</h1>
 			{/if}
@@ -54,16 +50,18 @@
 
 		<!-- Development details (only show in dev mode) -->
 		{#if isDev && page.error}
-			<div class="mb-8 p-4 bg-surface rounded-md border border-base">
-				<div class="flex items-center gap-icon mb-3">
-					<span class="text-label font-medium text-tertiary uppercase tracking-wider">
+			<div class="mb-8 rounded-md border border-base bg-surface p-4">
+				<div class="mb-3 flex items-center gap-icon">
+					<span class="text-label font-medium tracking-wider text-tertiary uppercase">
 						Development Info
 					</span>
 				</div>
 				{#if page.error?.message}
 					<div>
-						<span class="text-sm font-medium text-secondary block mb-1">Message:</span>
-						<code class="block text-sm text-primary break-all text-left p-2 bg-base rounded border border-base">
+						<span class="mb-1 block text-sm font-medium text-secondary">Message:</span>
+						<code
+							class="block rounded border border-base bg-base p-2 text-left text-sm break-all text-primary"
+						>
 							{page.error.message}
 						</code>
 					</div>
@@ -72,21 +70,20 @@
 		{/if}
 
 		<!-- Action Buttons -->
-		<div class="flex flex-col sm:flex-row gap-3 justify-center">
+		<div class="flex flex-col justify-center gap-3 sm:flex-row">
 			<button
 				onclick={goHome}
-				class="px-6 py-2 bg-accent-primary text-white rounded-md hover:bg-accent-hover transition-colors duration-150 font-medium text-sm"
+				class="rounded-md bg-accent-primary px-6 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-accent-hover"
 			>
 				Go to Inbox
 			</button>
-			
+
 			<button
 				onclick={goBack}
-				class="px-6 py-2 bg-surface border border-base text-primary rounded-md hover:bg-hover-solid transition-colors duration-150 font-medium text-sm"
+				class="rounded-md border border-base bg-surface px-6 py-2 text-sm font-medium text-primary transition-colors duration-150 hover:bg-hover-solid"
 			>
 				Go Back
 			</button>
 		</div>
 	</div>
 </div>
-

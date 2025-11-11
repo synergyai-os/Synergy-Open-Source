@@ -34,12 +34,14 @@
 	--spacing-icon-gap: 0.5rem; /* 8px - gap-2 equivalent */
 	--spacing-icon-gap-wide: 0.625rem; /* 10px - gap-2.5 equivalent */
 	--spacing-indent: 1.5rem; /* 24px - pl-6 equivalent for nested/indented items */
-	
+
 	/* System-Level Spacing Tokens - Base tokens used across entire app */
 	--spacing-system-header-y: 0.75rem; /* 12px - py-3 equivalent - vertical padding for header/footer borders */
-	--spacing-system-content-y: var(--spacing-system-header-y); /* 12px - references system header - vertical padding for content areas between borders */
+	--spacing-system-content-y: var(
+		--spacing-system-header-y
+	); /* 12px - references system header - vertical padding for content areas between borders */
 	--spacing-system-header-height: 4rem; /* 64px - FIXED total height for all headers - ensures border alignment regardless of content height */
-	
+
 	/* Inbox Spacing Tokens */
 	--spacing-inbox-container: 1rem; /* 16px - p-4 equivalent */
 	--spacing-inbox-card-x: 0.75rem; /* 12px - px-3 equivalent */
@@ -48,7 +50,9 @@
 	--spacing-inbox-icon-gap: 0.5rem; /* 8px - gap-2 equivalent */
 	--spacing-inbox-title-bottom: 1rem; /* 16px - mb-4 equivalent */
 	--spacing-inbox-header-x: 1rem; /* 16px - px-4 equivalent */
-	--spacing-inbox-header-y: calc(var(--spacing-system-header-y) + 0.25rem); /* 16px - system header + 4px to match SidebarHeader total height */
+	--spacing-inbox-header-y: calc(
+		var(--spacing-system-header-y) + 0.25rem
+	); /* 16px - system header + 4px to match SidebarHeader total height */
 
 	/* Settings Spacing Tokens */
 	--spacing-settings-section-gap: 1.5rem; /* 24px - gap-6 equivalent - gap between section cards */
@@ -141,7 +145,7 @@ html:not(.dark) {
 	--color-bg-hover-solid: oklch(96.7% 0.003 264.542); /* gray-100 */
 	--color-tag-bg: oklch(96.7% 0.003 264.542); /* gray-100 */
 	--color-tag-text: oklch(44.6% 0.043 257.281); /* gray-600 */
-	
+
 	/* Light mode code syntax colors */
 	--color-code-bg: oklch(98.8% 0.002 264.531); /* gray-50 - light background */
 	--color-code-text: oklch(20.8% 0.042 265.755); /* gray-900 - dark text */

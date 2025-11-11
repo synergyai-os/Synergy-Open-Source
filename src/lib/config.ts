@@ -13,4 +13,3 @@ export const config = {
 		sessionMaxAgeSeconds: SESSION_DURATION_DAYS * 24 * 60 * 60
 	}
 } as const;
-

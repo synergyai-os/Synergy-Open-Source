@@ -1,30 +1,30 @@
 <script lang="ts">
 	/**
 	 * Project Selector Component (Linear-style)
-	 * 
+	 *
 	 * Atomic component for project selection
 	 * Follows pattern: ui-patterns.md#L680 (Atomic Design)
 	 */
-	
+
 	type Project = {
 		id: string;
 		name: string;
 		icon?: string;
 		color: string;
 	};
-	
+
 	type Props = {
 		project?: Project;
 		onChange?: (project: Project | undefined) => void;
 		readonly?: boolean;
 	};
-	
+
 	let { project, onChange, readonly = false }: Props = $props();
 </script>
 
 <button
 	type="button"
-	class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-sm font-normal bg-transparent hover:bg-hover-solid transition-colors text-secondary"
+	class="inline-flex items-center gap-1.5 rounded-md bg-transparent px-2 py-1 text-sm font-normal text-secondary transition-colors hover:bg-hover-solid"
 	disabled={readonly}
 	onclick={() => !readonly && onChange?.(project)}
 >
@@ -32,14 +32,11 @@
 		{#if project.icon}
 			<span class="text-base leading-none">{project.icon}</span>
 		{:else}
-			<div
-				class="w-3 h-3 rounded-sm"
-				style="background-color: {project.color}"
-			></div>
+			<div class="h-3 w-3 rounded-sm" style="background-color: {project.color}"></div>
 		{/if}
 		<span>{project.name}</span>
 	{:else}
-		<svg class="w-4 h-4 text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+		<svg class="h-4 w-4 text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 			<path
 				stroke-linecap="round"
 				stroke-linejoin="round"
@@ -50,4 +47,3 @@
 		<span class="text-tertiary">No project</span>
 	{/if}
 </button>
-

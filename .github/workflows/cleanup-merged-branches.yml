@@ -11,32 +11,31 @@ jobs:
   delete-branch:
     name: Delete Merged Branch
     runs-on: ubuntu-latest
-    
+
     # Only run if PR was merged (not just closed)
     if: github.event.pull_request.merged == true
-    
+
     permissions:
-      contents: write  # Required to delete branches
-    
+      contents: write # Required to delete branches
+
     steps:
       - name: Delete branch
         run: |
           BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
-          
+
           # Skip if branch is main or a protected branch
           if [[ "$BRANCH_NAME" == "main" ]] || [[ "$BRANCH_NAME" == "master" ]] || [[ "$BRANCH_NAME" == "develop" ]]; then
             echo "⚠️ Skipping deletion of protected branch: $BRANCH_NAME"
             exit 0
           fi
-          
+
           echo "🗑️ Deleting merged branch: $BRANCH_NAME"
-          
+
           # Delete branch using GitHub CLI
           gh api repos/${{ github.repository }}/git/refs/heads/$BRANCH_NAME \
             -X DELETE \
             --silent || echo "Branch $BRANCH_NAME may have already been deleted"
-          
+
           echo "✅ Branch $BRANCH_NAME deleted successfully"
         env:
           GH_TOKEN: ${{ github.token }}
-

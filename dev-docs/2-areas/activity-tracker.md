@@ -31,31 +31,31 @@ import { addActivity, updateActivity, removeActivity } from '$lib/stores/activit
 
 // Add a new activity
 const activityId = addActivity({
-  id: `sync-readwise-${Date.now()}`, // Unique ID
-  type: 'sync', // Activity type: 'sync' | 'generation' | 'bulk' | 'notification' | 'export' | etc.
-  status: 'running', // 'pending' | 'running' | 'completed' | 'error' | 'cancelled'
-  metadata: {
-    source: 'readwise', // Source of the activity
-    operation: 'import' // Type of operation
-  },
-  progress: {
-    step: 'Starting sync...',
-    current: 0,
-    total: 100,
-    message: 'Fetching highlights...'
-  },
-  quickActions: [
-    {
-      label: 'View Inbox',
-      action: () => navigate('/inbox')
-    }
-  ],
-  onCancel: () => {
-    // Handle cancellation
-    cancelSync();
-  },
-  autoDismiss: true,
-  dismissAfter: 5000 // milliseconds
+	id: `sync-readwise-${Date.now()}`, // Unique ID
+	type: 'sync', // Activity type: 'sync' | 'generation' | 'bulk' | 'notification' | 'export' | etc.
+	status: 'running', // 'pending' | 'running' | 'completed' | 'error' | 'cancelled'
+	metadata: {
+		source: 'readwise', // Source of the activity
+		operation: 'import' // Type of operation
+	},
+	progress: {
+		step: 'Starting sync...',
+		current: 0,
+		total: 100,
+		message: 'Fetching highlights...'
+	},
+	quickActions: [
+		{
+			label: 'View Inbox',
+			action: () => navigate('/inbox')
+		}
+	],
+	onCancel: () => {
+		// Handle cancellation
+		cancelSync();
+	},
+	autoDismiss: true,
+	dismissAfter: 5000 // milliseconds
 });
 ```
 
@@ -64,13 +64,13 @@ const activityId = addActivity({
 ```typescript
 // Update activity progress
 updateActivity(activityId, {
-  status: 'running',
-  progress: {
-    step: 'Importing highlights',
-    current: 45,
-    total: 100,
-    message: 'Processing highlight 45 of 100...'
-  }
+	status: 'running',
+	progress: {
+		step: 'Importing highlights',
+		current: 45,
+		total: 100,
+		message: 'Processing highlight 45 of 100...'
+	}
 });
 ```
 
@@ -79,16 +79,16 @@ updateActivity(activityId, {
 ```typescript
 // Mark as completed
 updateActivity(activityId, {
-  status: 'completed',
-  progress: {
-    message: 'Imported 25 new highlights'
-  }
+	status: 'completed',
+	progress: {
+		message: 'Imported 25 new highlights'
+	}
 });
 
 // Auto-dismiss after delay (if autoDismiss is enabled)
 // Or manually remove:
 setTimeout(() => {
-  removeActivity(activityId);
+	removeActivity(activityId);
 }, 3000);
 ```
 
@@ -97,15 +97,15 @@ setTimeout(() => {
 ```typescript
 // Update activity with error
 updateActivity(activityId, {
-  status: 'error',
-  progress: {
-    message: error instanceof Error ? error.message : 'Failed to sync'
-  }
+	status: 'error',
+	progress: {
+		message: error instanceof Error ? error.message : 'Failed to sync'
+	}
 });
 
 // Keep error visible longer
 setTimeout(() => {
-  removeActivity(activityId);
+	removeActivity(activityId);
 }, 5000);
 ```
 
@@ -114,12 +114,12 @@ setTimeout(() => {
 ```typescript
 // Mark as cancelled
 updateActivity(activityId, {
-  status: 'cancelled'
+	status: 'cancelled'
 });
 
 // Remove after delay
 setTimeout(() => {
-  removeActivity(activityId);
+	removeActivity(activityId);
 }, 1000);
 ```
 
@@ -187,21 +187,21 @@ Add contextual actions to activities:
 
 ```typescript
 quickActions: [
-  {
-    label: 'Copy Link',
-    action: () => navigator.clipboard.writeText(item.link),
-    icon: '📋' // Optional
-  },
-  {
-    label: 'View Item',
-    action: () => navigate(`/inbox/${itemId}`)
-  },
-  {
-    label: 'Share',
-    action: () => shareItem(itemId),
-    variant: 'primary' // 'primary' | 'secondary' | 'danger'
-  }
-]
+	{
+		label: 'Copy Link',
+		action: () => navigator.clipboard.writeText(item.link),
+		icon: '📋' // Optional
+	},
+	{
+		label: 'View Item',
+		action: () => navigate(`/inbox/${itemId}`)
+	},
+	{
+		label: 'Share',
+		action: () => shareItem(itemId),
+		variant: 'primary' // 'primary' | 'secondary' | 'danger'
+	}
+];
 ```
 
 ## Integration Example: Readwise Sync
@@ -217,43 +217,43 @@ let syncActivityId: string | null = null;
 
 // 3. Add activity when sync starts
 async function handleImport(options) {
-  syncActivityId = addActivity({
-    id: `sync-readwise-${Date.now()}`,
-    type: 'sync',
-    status: 'running',
-    metadata: { source: 'readwise', operation: 'import' },
-    progress: { step: 'Starting sync...', indeterminate: true },
-    onCancel: () => handleCancelSync(),
-    autoDismiss: true,
-    dismissAfter: 5000
-  });
-  
-  // ... start sync operation
+	syncActivityId = addActivity({
+		id: `sync-readwise-${Date.now()}`,
+		type: 'sync',
+		status: 'running',
+		metadata: { source: 'readwise', operation: 'import' },
+		progress: { step: 'Starting sync...', indeterminate: true },
+		onCancel: () => handleCancelSync(),
+		autoDismiss: true,
+		dismissAfter: 5000
+	});
+
+	// ... start sync operation
 }
 
 // 4. Update progress during sync
 const pollSyncProgress = async () => {
-  const progress = await convexClient.query(api.inbox.getSyncProgress, {});
-  if (progress && syncActivityId) {
-    updateActivity(syncActivityId, {
-      status: 'running',
-      progress: {
-        step: progress.step,
-        current: progress.current,
-        total: progress.total,
-        message: progress.message
-      }
-    });
-  }
+	const progress = await convexClient.query(api.inbox.getSyncProgress, {});
+	if (progress && syncActivityId) {
+		updateActivity(syncActivityId, {
+			status: 'running',
+			progress: {
+				step: progress.step,
+				current: progress.current,
+				total: progress.total,
+				message: progress.message
+			}
+		});
+	}
 };
 
 // 5. Complete activity
 if (syncActivityId) {
-  updateActivity(syncActivityId, {
-    status: 'completed',
-    progress: { message: `Imported ${result.newCount} highlights` }
-  });
-  setTimeout(() => removeActivity(syncActivityId!), 3000);
+	updateActivity(syncActivityId, {
+		status: 'completed',
+		progress: { message: `Imported ${result.newCount} highlights` }
+	});
+	setTimeout(() => removeActivity(syncActivityId!), 3000);
 }
 ```
 
@@ -318,4 +318,3 @@ The tracker is designed to be extensible:
 - `dev-docs/design-tokens.md` - Design token system
 - `dev-docs/architecture.md` - Overall architecture
 - `dev-docs/QUICK-START.md` - Getting started guide
-

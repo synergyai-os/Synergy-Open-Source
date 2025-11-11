@@ -49,30 +49,31 @@
 	}
 </script>
 
-<Dialog.Root open={open} onOpenChange={(isOpen) => {
-	if (!isOpen) onClose();
-}}>
+<Dialog.Root
+	{open}
+	onOpenChange={(isOpen) => {
+		if (!isOpen) onClose();
+	}}
+>
 	<Dialog.Portal>
-		<Dialog.Overlay
-			class="fixed inset-0 bg-black/50 z-50 transition-opacity"
-		/>
+		<Dialog.Overlay class="fixed inset-0 z-50 bg-black/50 transition-opacity" />
 		<Dialog.Content
-			class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-elevated rounded-lg shadow-xl border border-base max-w-2xl w-full max-h-[90vh] overflow-y-auto z-50"
+			class="fixed top-1/2 left-1/2 z-50 max-h-[90vh] w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border border-base bg-elevated shadow-xl"
 		>
 			{#if item}
 				<div class="p-6">
 					<!-- Header -->
-					<div class="flex items-center justify-between mb-6">
+					<div class="mb-6 flex items-center justify-between">
 						<div>
-							<h2 class="text-xl font-semibold text-primary mb-1">{item.title}</h2>
+							<h2 class="mb-1 text-xl font-semibold text-primary">{item.title}</h2>
 							<p class="text-sm text-tertiary">{getTypeLabel(item.type)}</p>
 						</div>
 						<Dialog.Close
 							type="button"
 							onclick={onClose}
-							class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-hover-solid transition-colors text-secondary hover:text-primary"
+							class="flex h-8 w-8 items-center justify-center rounded-md text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
 						>
-							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -88,7 +89,7 @@
 						<!-- Main Content -->
 						<div class="prose prose-sm max-w-none">
 							{#if item.type === 'readwise_highlight'}
-								<p class="text-lg leading-readable tracking-readable text-primary mb-4">
+								<p class="mb-4 text-lg leading-readable tracking-readable text-primary">
 									{item.snippet}
 								</p>
 								{#if item.sourceTitle || item.author}
@@ -100,9 +101,11 @@
 									</p>
 								{/if}
 							{:else if item.type === 'code_snippet' && item.code}
-								<pre class="bg-surface p-4 rounded-md overflow-x-auto"><code class="text-sm">{item.code}</code></pre>
+								<pre class="overflow-x-auto rounded-md bg-surface p-4"><code class="text-sm"
+										>{item.code}</code
+									></pre>
 							{:else if item.text}
-								<p class="text-base leading-readable text-primary whitespace-pre-wrap">
+								<p class="text-base leading-readable whitespace-pre-wrap text-primary">
 									{item.text}
 								</p>
 							{:else}
@@ -111,7 +114,7 @@
 						</div>
 
 						<!-- Metadata -->
-						<div class="border-t border-base pt-4 space-y-2">
+						<div class="space-y-2 border-t border-base pt-4">
 							<div class="flex items-center gap-2 text-sm text-secondary">
 								<span>Created:</span>
 								<span>{formatDate(item.createdAt)}</span>
@@ -134,7 +137,7 @@
 							{#if item.tags && item.tags.length > 0}
 								<div class="flex flex-wrap gap-2">
 									{#each item.tags as tag}
-										<span class="bg-tag text-tag text-label px-badge py-badge rounded">
+										<span class="rounded bg-tag px-badge py-badge text-label text-tag">
 											{tag}
 										</span>
 									{/each}
@@ -147,4 +150,3 @@
 		</Dialog.Content>
 	</Dialog.Portal>
 </Dialog.Root>
-

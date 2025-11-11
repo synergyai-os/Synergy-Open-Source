@@ -20,7 +20,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { reportError } from '$lib/utils/errorReporting';
-	
+
 	interface Props {
 		/** Child components to wrap */
 		children: import('svelte').Snippet;
@@ -33,28 +33,28 @@
 		/** Callback when error occurs */
 		onError?: (error: Error) => void;
 	}
-	
-	let { 
-		children, 
+
+	let {
+		children,
 		fallback,
 		componentName = 'UnknownComponent',
 		featureFlag,
 		onError
 	}: Props = $props();
-	
+
 	let error = $state<Error | null>(null);
 	let errorInfo = $state<string>('');
-	
+
 	// Track if we've already reported this error to prevent duplicates
 	let errorReported = false;
-	
+
 	/**
 	 * Handle errors caught by the boundary
 	 */
 	function handleError(err: Error) {
 		error = err;
 		errorInfo = err.stack || err.message;
-		
+
 		// Report to PostHog (only once)
 		if (!errorReported) {
 			reportError({
@@ -64,27 +64,27 @@
 				errorBoundary: true,
 				context: {
 					timestamp: Date.now(),
-					userAgent: navigator.userAgent,
+					userAgent: navigator.userAgent
 				}
 			});
 			errorReported = true;
 		}
-		
+
 		// Call custom error handler if provided
 		if (onError) {
 			onError(err);
 		}
-		
+
 		// Log to console in development
 		if (import.meta.env.DEV) {
 			console.error('ErrorBoundary caught:', {
 				component: componentName,
 				error: err,
-				featureFlag,
+				featureFlag
 			});
 		}
 	}
-	
+
 	/**
 	 * Reset error state (for retry functionality)
 	 */
@@ -93,7 +93,7 @@
 		errorInfo = '';
 		errorReported = false;
 	}
-	
+
 	// Set up global error listener for this component's errors
 	onMount(() => {
 		const errorHandler = (event: ErrorEvent) => {
@@ -103,9 +103,9 @@
 				handleError(event.error);
 			}
 		};
-		
+
 		window.addEventListener('error', errorHandler);
-		
+
 		return () => {
 			window.removeEventListener('error', errorHandler);
 		};
@@ -123,7 +123,7 @@
 				<p class="error-boundary-message">
 					We've been notified and will fix this issue as soon as possible.
 				</p>
-				
+
 				{#if import.meta.env.DEV}
 					<!-- Show error details in development -->
 					<details class="error-boundary-details">
@@ -131,18 +131,10 @@
 						<pre class="error-boundary-stack">{errorInfo}</pre>
 					</details>
 				{/if}
-				
+
 				<div class="error-boundary-actions">
-					<button 
-						class="error-boundary-retry"
-						onclick={() => resetError()}
-					>
-						Try Again
-					</button>
-					<button 
-						class="error-boundary-reload"
-						onclick={() => window.location.reload()}
-					>
+					<button class="error-boundary-retry" onclick={() => resetError()}> Try Again </button>
+					<button class="error-boundary-reload" onclick={() => window.location.reload()}>
 						Reload Page
 					</button>
 				</div>
@@ -162,38 +154,38 @@
 		padding: var(--spacing-page);
 		min-height: 300px;
 	}
-	
+
 	.error-boundary-content {
 		max-width: 500px;
 		text-align: center;
 	}
-	
+
 	.error-boundary-title {
 		font-size: var(--font-size-heading-2);
 		font-weight: var(--font-weight-semibold);
 		color: var(--color-text-primary);
 		margin-bottom: var(--spacing-stack-sm);
 	}
-	
+
 	.error-boundary-message {
 		font-size: var(--font-size-body);
 		color: var(--color-text-secondary);
 		margin-bottom: var(--spacing-stack-lg);
 	}
-	
+
 	.error-boundary-details {
 		margin-top: var(--spacing-stack-md);
 		margin-bottom: var(--spacing-stack-lg);
 		text-align: left;
 	}
-	
+
 	.error-boundary-details summary {
 		cursor: pointer;
 		color: var(--color-text-secondary);
 		font-size: var(--font-size-small);
 		margin-bottom: var(--spacing-stack-sm);
 	}
-	
+
 	.error-boundary-stack {
 		background: var(--color-surface-secondary);
 		border: 1px solid var(--color-border);
@@ -205,13 +197,13 @@
 		color: var(--color-text-error);
 		max-height: 300px;
 	}
-	
+
 	.error-boundary-actions {
 		display: flex;
 		gap: var(--spacing-inline-sm);
 		justify-content: center;
 	}
-	
+
 	.error-boundary-retry,
 	.error-boundary-reload {
 		padding: var(--spacing-inset-button);
@@ -222,25 +214,24 @@
 		transition: all 0.2s;
 		border: 1px solid var(--color-border);
 	}
-	
+
 	.error-boundary-retry {
 		background: var(--color-primary);
 		color: white;
 		border-color: var(--color-primary);
 	}
-	
+
 	.error-boundary-retry:hover {
 		background: var(--color-primary-hover);
 		border-color: var(--color-primary-hover);
 	}
-	
+
 	.error-boundary-reload {
 		background: transparent;
 		color: var(--color-text-primary);
 	}
-	
+
 	.error-boundary-reload:hover {
 		background: var(--color-surface-secondary);
 	}
 </style>
-

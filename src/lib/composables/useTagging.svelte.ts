@@ -1,15 +1,15 @@
 /**
  * useTagging Composable - Generic tagging system for any entity
- * 
+ *
  * Provides reusable tagging functionality for highlights, flashcards, and other entities.
  * Follows Svelte 5 composables pattern with single $state object and getters.
- * 
+ *
  * Usage:
  * ```typescript
  * const tagging = useTagging('highlight');
  * await tagging.assignTags(highlightId, [tag1Id, tag2Id]);
  * ```
- * 
+ *
  * @see dev-docs/patterns/svelte-reactivity.md#L10 - Composables pattern
  * @see TAGGING_SYSTEM_ANALYSIS.md - Architecture and design decisions
  */
@@ -35,7 +35,7 @@ export function useTagging(entityType: EntityType) {
 	// Svelte 5 pattern: Single $state object with getters
 	const state = $state({
 		isAssigning: false,
-		error: null as string | null,
+		error: null as string | null
 	});
 
 	// Get Convex client (only in browser)
@@ -64,7 +64,7 @@ export function useTagging(entityType: EntityType) {
 			// Build args dynamically: { highlightId: ..., tagIds: ... }
 			const args = {
 				[`${entityType}Id`]: entityId,
-				tagIds,
+				tagIds
 			};
 
 			await convexClient.mutation(assignTagsMutation, args);
@@ -94,7 +94,7 @@ export function useTagging(entityType: EntityType) {
 			const tagId = await convexClient.mutation(createTagMutation, {
 				displayName,
 				color,
-				parentId,
+				parentId
 			});
 
 			return tagId as Id<'tags'>;
@@ -116,7 +116,6 @@ export function useTagging(entityType: EntityType) {
 
 		// Action functions
 		assignTags,
-		createTag,
+		createTag
 	};
 }
-

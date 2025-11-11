@@ -1,6 +1,6 @@
 /**
  * Error Reporting Utilities
- * 
+ *
  * Centralized error reporting to PostHog and other monitoring services.
  * Includes context enrichment, error categorization, and feature flag tracking.
  */
@@ -42,7 +42,7 @@ export function reportError(report: ErrorReport): void {
 		userAction,
 		context = {},
 		severity = 'medium',
-		userId,
+		userId
 	} = report;
 
 	// Build error properties
@@ -51,21 +51,21 @@ export function reportError(report: ErrorReport): void {
 		error_message: error.message,
 		error_name: error.name,
 		error_stack: error.stack,
-		
+
 		// Context
 		component_name: componentName,
 		feature_flag: featureFlag,
 		error_boundary: errorBoundary,
 		user_action: userAction,
 		severity,
-		
+
 		// Environment
 		url: window.location.href,
 		user_agent: navigator.userAgent,
 		timestamp: new Date().toISOString(),
-		
+
 		// Additional context
-		...context,
+		...context
 	};
 
 	// Report to PostHog
@@ -74,13 +74,13 @@ export function reportError(report: ErrorReport): void {
 		if (window.posthog) {
 			// @ts-ignore
 			window.posthog.capture('error_occurred', errorProperties);
-			
+
 			// If error boundary caught it, track separately
 			if (errorBoundary) {
 				// @ts-ignore
 				window.posthog.capture('error_boundary_caught', {
 					...errorProperties,
-					recovered: true,
+					recovered: true
 				});
 			}
 		}
@@ -121,7 +121,7 @@ export function reportFeatureFlagCheck(
 				enabled,
 				user_id: userId,
 				timestamp: new Date().toISOString(),
-				...metadata,
+				...metadata
 			});
 		}
 	} catch (e) {
@@ -148,7 +148,7 @@ export function reportFeatureUsed(
 				feature,
 				feature_flag: flag,
 				timestamp: new Date().toISOString(),
-				...metadata,
+				...metadata
 			});
 		}
 	} catch (e) {
@@ -180,7 +180,7 @@ export function reportPerformance(
 				duration_seconds: (durationMs / 1000).toFixed(2),
 				is_slow: durationMs > 3000,
 				timestamp: new Date().toISOString(),
-				...metadata,
+				...metadata
 			});
 		}
 	} catch (e) {
@@ -209,7 +209,7 @@ export function reportFlowCompletion(
 				step,
 				completed,
 				timestamp: new Date().toISOString(),
-				...metadata,
+				...metadata
 			});
 		}
 	} catch (e) {
@@ -220,7 +220,7 @@ export function reportFlowCompletion(
 /**
  * Performance timing helper
  * Wraps async operations and reports timing
- * 
+ *
  * @example
  * const result = await withTiming('sync_readwise', async () => {
  *   return await syncReadwise();
@@ -232,26 +232,26 @@ export async function withTiming<T>(
 	metadata?: Record<string, unknown>
 ): Promise<T> {
 	const start = performance.now();
-	
+
 	try {
 		const result = await fn();
 		const duration = performance.now() - start;
-		
+
 		reportPerformance(operation, duration, {
 			...metadata,
-			success: true,
+			success: true
 		});
-		
+
 		return result;
 	} catch (error) {
 		const duration = performance.now() - start;
-		
+
 		reportPerformance(operation, duration, {
 			...metadata,
 			success: false,
-			error: error instanceof Error ? error.message : String(error),
+			error: error instanceof Error ? error.message : String(error)
 		});
-		
+
 		throw error;
 	}
 }
@@ -259,7 +259,7 @@ export async function withTiming<T>(
 /**
  * Error boundary helper for functional components
  * Use when you can't wrap with <ErrorBoundary> component
- * 
+ *
  * @example
  * const result = await withErrorBoundary(
  *   async () => riskyOperation(),
@@ -279,9 +279,8 @@ export async function withErrorBoundary<T>(
 	} catch (error) {
 		reportError({
 			error: error instanceof Error ? error : new Error(String(error)),
-			...context,
+			...context
 		});
 		return null;
 	}
 }
-

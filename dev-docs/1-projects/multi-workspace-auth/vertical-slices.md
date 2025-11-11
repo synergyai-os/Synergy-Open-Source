@@ -15,10 +15,12 @@ Each slice delivers **working functionality** that Randy can test right away.
 ### What We're Building
 
 **Backend:**
+
 - Update session cookie structure to include `activeWorkspace`
 - Helper functions to get/set active workspace
 
 **Frontend:**
+
 - Header shows current workspace name
 - "Private workspace" for personal
 - Organization name for orgs
@@ -54,11 +56,13 @@ Each slice delivers **working functionality** that Randy can test right away.
 ### What We're Building
 
 **Backend:**
+
 - `convex/organizations.ts` - New file
 - `createOrganization` mutation
 - `listUserOrganizations` query
 
 **Frontend:**
+
 - "Create organization" button in workspace switcher
 - Simple modal with name + slug fields
 - Success feedback
@@ -97,11 +101,13 @@ Each slice delivers **working functionality** that Randy can test right away.
 ### What We're Building
 
 **Backend:**
+
 - `switchWorkspace` mutation
 - Update session with new active workspace
 - Queries filter by active workspace
 
 **Frontend:**
+
 - Workspace switcher menu (dropdown)
 - Shows Personal + SynergyAI
 - ✓ indicator on active workspace
@@ -145,6 +151,7 @@ Each slice delivers **working functionality** that Randy can test right away.
 ### What We're Building
 
 **Frontend:**
+
 - Global keyboard event listeners
 - `CMD+1` → Switch to workspace 1 (Personal)
 - `CMD+2` → Switch to workspace 2 (SynergyAI)
@@ -182,9 +189,11 @@ Each slice delivers **working functionality** that Randy can test right away.
 ### What We're Building
 
 **Backend:**
+
 - No changes needed (reuse existing)
 
 **Frontend:**
+
 - Create 3 more orgs via UI
 - Workspace switcher lists all 4
 - CMD+1/2/3/4/5 for switching
@@ -225,6 +234,7 @@ Each slice delivers **working functionality** that Randy can test right away.
 ### What We're Building
 
 **Frontend:**
+
 - Integrate workspace switching into existing CMD+K
 - Type "switch" or "workspace" → Shows all workspaces
 - Type partial name "Sapr" → Filters to Saprolab
@@ -262,11 +272,13 @@ Each slice delivers **working functionality** that Randy can test right away.
 ### What We're Building
 
 **Backend:**
+
 - `accountLinks` table (already in schema)
 - `linkAccount` mutation
 - `getLinkedAccounts` query
 
 **Frontend:**
+
 - "Add an account..." option in switcher
 - Link account flow (login with second email)
 - Prompt to link when detecting existing session
@@ -305,15 +317,15 @@ Each slice delivers **working functionality** that Randy can test right away.
 
 ## 📊 Progress Tracking
 
-| Slice | Start Date | End Date | Status | Linear Ticket |
-|-------|------------|----------|--------|---------------|
-| 1 | 2025-11-10 | TBD | 🚧 In Progress | TBD |
-| 2 | TBD | TBD | ⏳ Not Started | TBD |
-| 3 | TBD | TBD | ⏳ Not Started | TBD |
-| 4 | TBD | TBD | ⏳ Not Started | TBD |
-| 5 | TBD | TBD | ⏳ Not Started | TBD |
-| 6 | TBD | TBD | ⏳ Not Started | TBD |
-| 7 | TBD | TBD | ⏳ Not Started | TBD |
+| Slice | Start Date | End Date | Status         | Linear Ticket |
+| ----- | ---------- | -------- | -------------- | ------------- |
+| 1     | 2025-11-10 | TBD      | 🚧 In Progress | TBD           |
+| 2     | TBD        | TBD      | ⏳ Not Started | TBD           |
+| 3     | TBD        | TBD      | ⏳ Not Started | TBD           |
+| 4     | TBD        | TBD      | ⏳ Not Started | TBD           |
+| 5     | TBD        | TBD      | ⏳ Not Started | TBD           |
+| 6     | TBD        | TBD      | ⏳ Not Started | TBD           |
+| 7     | TBD        | TBD      | ⏳ Not Started | TBD           |
 
 ---
 
@@ -322,10 +334,10 @@ Each slice delivers **working functionality** that Randy can test right away.
 **Current Focus**: Slice 1 - Workspace Context & Indicator
 
 **After each slice:**
+
 1. Test with Randy
 2. Get feedback
 3. Adjust if needed
 4. Move to next slice
 
 **Estimated Timeline**: 1-2 weeks (1-2 days per slice)
-

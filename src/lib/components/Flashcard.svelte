@@ -92,20 +92,20 @@
 	// Keyboard navigation is handled by parent component
 </script>
 
-<div class="relative w-full h-full perspective-1000">
+<div class="perspective-1000 relative h-full w-full">
 	<div
-		class="relative w-full h-full transition-transform duration-500 transform-style-preserve-3d {isFlipped
+		class="transform-style-preserve-3d relative h-full w-full transition-transform duration-500 {isFlipped
 			? 'rotate-y-180'
 			: ''}"
 	>
 		<!-- Front Side (Question) -->
 		<div
-			class="absolute inset-0 w-full h-full backface-hidden card-face-front rounded-lg shadow-xl flex flex-col overflow-hidden bg-surface"
+			class="card-face-front absolute inset-0 flex h-full w-full flex-col overflow-hidden rounded-lg bg-surface shadow-xl backface-hidden"
 			style="background: linear-gradient(135deg, var(--color-bg-surface) 0%, var(--color-bg-elevated) 100%); border: 2px solid var(--color-border-base);"
 		>
-			<div class="flex-1 flex items-center justify-center p-inbox-container overflow-auto min-w-0">
+			<div class="flex min-w-0 flex-1 items-center justify-center overflow-auto p-inbox-container">
 				{#if isEditingQuestion && editable && onQuestionChange}
-					<div class="w-full flex items-center justify-center min-w-0">
+					<div class="flex w-full min-w-0 items-center justify-center">
 						<textarea
 							bind:value={questionValue}
 							onblur={saveQuestion}
@@ -122,39 +122,45 @@
 								}
 							}}
 							use:autofocus
-							class="text-primary text-2xl sm:text-3xl leading-readable text-center max-w-readable mx-auto px-inbox-container flashcard-edit-question break-words overflow-wrap-anywhere min-w-0 bg-transparent border-none p-0 focus:outline-none focus:ring-2 focus:ring-accent-primary/50 rounded-sm resize-none field-sizing-content"
+							class="flashcard-edit-question overflow-wrap-anywhere mx-auto field-sizing-content max-w-readable min-w-0 resize-none rounded-sm border-none bg-transparent p-0 px-inbox-container text-center text-2xl leading-readable break-words text-primary focus:ring-2 focus:ring-accent-primary/50 focus:outline-none sm:text-3xl"
 							style="font-weight: inherit; word-break: break-word; overflow-wrap: anywhere; margin: 0; display: block; width: 100%; overflow: hidden;"
 							placeholder="Question..."
 						></textarea>
 					</div>
-				{:else}
-					{#if editable && onQuestionChange}
-						<button
-							type="button"
-							class="w-full h-full flex items-center justify-center cursor-text bg-transparent border-none p-0 min-w-0"
-							onclick={startEditingQuestion}
+				{:else if editable && onQuestionChange}
+					<button
+						type="button"
+						class="flex h-full w-full min-w-0 cursor-text items-center justify-center border-none bg-transparent p-0"
+						onclick={startEditingQuestion}
+					>
+						<p
+							class="overflow-wrap-anywhere mx-auto max-w-readable min-w-0 px-inbox-container text-center text-2xl leading-readable break-words text-primary sm:text-3xl"
+							style="word-break: break-word; overflow-wrap: anywhere;"
 						>
-							<p class="text-primary text-2xl sm:text-3xl leading-readable text-center max-w-readable mx-auto px-inbox-container break-words overflow-wrap-anywhere min-w-0" style="word-break: break-word; overflow-wrap: anywhere;">
-								{flashcard.question}
-							</p>
-						</button>
-					{:else}
-						<div class="w-full h-full flex items-center justify-center min-w-0">
-							<p class="text-primary text-2xl sm:text-3xl leading-readable text-center max-w-readable mx-auto px-inbox-container break-words overflow-wrap-anywhere min-w-0" style="word-break: break-word; overflow-wrap: anywhere;">
-								{flashcard.question}
-							</p>
-						</div>
-					{/if}
+							{flashcard.question}
+						</p>
+					</button>
+				{:else}
+					<div class="flex h-full w-full min-w-0 items-center justify-center">
+						<p
+							class="overflow-wrap-anywhere mx-auto max-w-readable min-w-0 px-inbox-container text-center text-2xl leading-readable break-words text-primary sm:text-3xl"
+							style="word-break: break-word; overflow-wrap: anywhere;"
+						>
+							{flashcard.question}
+						</p>
+					</div>
 				{/if}
 			</div>
 			<div
-				class="px-inbox-container py-system-header border-t border-base flex items-center justify-center gap-icon flex-shrink-0 transition-colors {isEditingQuestion
+				class="flex flex-shrink-0 items-center justify-center gap-icon border-t border-base px-inbox-container py-system-header transition-colors {isEditingQuestion
 					? 'bg-accent-primary/20'
 					: 'bg-base/10'}"
 			>
 				<span class="text-sm text-secondary">↑/↓ Flip</span>
 				{#if isEditingQuestion}
-					<span class="text-sm text-accent-primary font-medium">• Editing... (Click outside to save)</span>
+					<span class="text-sm font-medium text-accent-primary"
+						>• Editing... (Click outside to save)</span
+					>
 				{:else if editable && onQuestionChange}
 					<span class="text-sm text-secondary">• Click to edit</span>
 				{/if}
@@ -163,12 +169,12 @@
 
 		<!-- Back Side (Answer) - Precious/Shiny -->
 		<div
-			class="absolute inset-0 w-full h-full backface-hidden card-face-back rounded-lg shadow-xl flex flex-col overflow-hidden bg-elevated card-shiny"
+			class="card-face-back card-shiny absolute inset-0 flex h-full w-full flex-col overflow-hidden rounded-lg bg-elevated shadow-xl backface-hidden"
 			style="background: linear-gradient(135deg, var(--color-bg-elevated) 0%, var(--color-accent-primary) 20%, var(--color-bg-elevated) 100%); border: 2px solid var(--color-accent-primary);"
 		>
-			<div class="flex-1 flex items-center justify-center p-inbox-container overflow-auto min-w-0">
+			<div class="flex min-w-0 flex-1 items-center justify-center overflow-auto p-inbox-container">
 				{#if isEditingAnswer && editable && onAnswerChange}
-					<div class="w-full flex items-center justify-center min-w-0">
+					<div class="flex w-full min-w-0 items-center justify-center">
 						<textarea
 							bind:value={answerValue}
 							onblur={saveAnswer}
@@ -185,39 +191,45 @@
 								}
 							}}
 							use:autofocus
-							class="text-primary text-xl sm:text-2xl leading-readable text-center max-w-readable mx-auto px-inbox-container flashcard-edit-answer break-words overflow-wrap-anywhere min-w-0 bg-transparent border-none p-0 focus:outline-none focus:ring-2 focus:ring-accent-primary/50 rounded-sm resize-none field-sizing-content"
+							class="flashcard-edit-answer overflow-wrap-anywhere mx-auto field-sizing-content max-w-readable min-w-0 resize-none rounded-sm border-none bg-transparent p-0 px-inbox-container text-center text-xl leading-readable break-words text-primary focus:ring-2 focus:ring-accent-primary/50 focus:outline-none sm:text-2xl"
 							style="font-weight: inherit; word-break: break-word; overflow-wrap: anywhere; margin: 0; display: block; width: 100%; overflow: hidden;"
 							placeholder="Answer..."
 						></textarea>
 					</div>
-				{:else}
-					{#if editable && onAnswerChange}
-						<button
-							type="button"
-							class="w-full h-full flex items-center justify-center cursor-text bg-transparent border-none p-0 min-w-0"
-							onclick={startEditingAnswer}
+				{:else if editable && onAnswerChange}
+					<button
+						type="button"
+						class="flex h-full w-full min-w-0 cursor-text items-center justify-center border-none bg-transparent p-0"
+						onclick={startEditingAnswer}
+					>
+						<p
+							class="overflow-wrap-anywhere mx-auto max-w-readable min-w-0 px-inbox-container text-center text-xl leading-readable break-words text-primary sm:text-2xl"
+							style="word-break: break-word; overflow-wrap: anywhere;"
 						>
-							<p class="text-primary text-xl sm:text-2xl leading-readable text-center max-w-readable mx-auto px-inbox-container break-words overflow-wrap-anywhere min-w-0" style="word-break: break-word; overflow-wrap: anywhere;">
-								{flashcard.answer}
-							</p>
-						</button>
-					{:else}
-						<div class="w-full h-full flex items-center justify-center min-w-0">
-							<p class="text-primary text-xl sm:text-2xl leading-readable text-center max-w-readable mx-auto px-inbox-container break-words overflow-wrap-anywhere min-w-0" style="word-break: break-word; overflow-wrap: anywhere;">
-								{flashcard.answer}
-							</p>
-						</div>
-					{/if}
+							{flashcard.answer}
+						</p>
+					</button>
+				{:else}
+					<div class="flex h-full w-full min-w-0 items-center justify-center">
+						<p
+							class="overflow-wrap-anywhere mx-auto max-w-readable min-w-0 px-inbox-container text-center text-xl leading-readable break-words text-primary sm:text-2xl"
+							style="word-break: break-word; overflow-wrap: anywhere;"
+						>
+							{flashcard.answer}
+						</p>
+					</div>
 				{/if}
 			</div>
 			<div
-				class="px-inbox-container py-system-header border-t border-accent-primary flex items-center justify-center gap-icon flex-shrink-0 transition-colors {isEditingAnswer
+				class="flex flex-shrink-0 items-center justify-center gap-icon border-t border-accent-primary px-inbox-container py-system-header transition-colors {isEditingAnswer
 					? 'bg-accent-primary/30'
 					: 'bg-accent-primary/10'}"
 			>
 				<span class="text-sm text-secondary">↑/↓ Flip</span>
 				{#if isEditingAnswer}
-					<span class="text-sm text-accent-primary font-medium">• Editing... (Click outside to save)</span>
+					<span class="text-sm font-medium text-accent-primary"
+						>• Editing... (Click outside to save)</span
+					>
 				{:else if editable && onAnswerChange}
 					<span class="text-sm text-secondary">• Click to edit</span>
 				{/if}
@@ -275,4 +287,3 @@
 		}
 	}
 </style>
-

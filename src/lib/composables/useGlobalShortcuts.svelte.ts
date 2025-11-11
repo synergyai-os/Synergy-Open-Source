@@ -1,6 +1,6 @@
 /**
  * Global Keyboard Shortcuts Composable
- * 
+ *
  * Manages application-wide keyboard shortcuts
  * Following Svelte 5 composables pattern
  */
@@ -24,7 +24,7 @@ export function useGlobalShortcuts() {
 	// Internal state using single $state object pattern
 	const state = $state({
 		shortcuts: new Map<string, ShortcutConfig>(),
-		isEnabled: true,
+		isEnabled: true
 	});
 
 	/**
@@ -38,12 +38,15 @@ export function useGlobalShortcuts() {
 	/**
 	 * Unregister a keyboard shortcut
 	 */
-	function unregister(key: string, modifiers?: {
-		ctrl?: boolean;
-		meta?: boolean;
-		shift?: boolean;
-		alt?: boolean;
-	}) {
+	function unregister(
+		key: string,
+		modifiers?: {
+			ctrl?: boolean;
+			meta?: boolean;
+			shift?: boolean;
+			alt?: boolean;
+		}
+	) {
 		const shortcutKey = modifiers ? getShortcutKey({ key, ...modifiers } as ShortcutConfig) : key;
 		state.shortcuts.delete(shortcutKey);
 	}
@@ -66,7 +69,7 @@ export function useGlobalShortcuts() {
 	 * Generate unique key for shortcut map
 	 */
 	function getShortcutKey(config: Omit<ShortcutConfig, 'handler'>): string {
-		const parts = [];
+		const parts: string[] = [];
 		if (config.ctrl) parts.push('ctrl');
 		if (config.meta) parts.push('meta');
 		if (config.shift) parts.push('shift');
@@ -101,7 +104,7 @@ export function useGlobalShortcuts() {
 			ctrl: e.ctrlKey,
 			meta: e.metaKey,
 			shift: e.shiftKey,
-			alt: e.altKey,
+			alt: e.altKey
 		} as ShortcutConfig);
 
 		const shortcut = state.shortcuts.get(key);
@@ -117,7 +120,7 @@ export function useGlobalShortcuts() {
 	// Set up global event listener (only runs in browser due to $effect)
 	$effect(() => {
 		if (!browser) return;
-		
+
 		document.addEventListener('keydown', handleKeyDown);
 
 		return () => {
@@ -136,7 +139,7 @@ export function useGlobalShortcuts() {
 		register,
 		unregister,
 		enable,
-		disable,
+		disable
 	};
 }
 
@@ -148,6 +151,5 @@ export const SHORTCUTS = {
 	COMMAND_PALETTE: 'k',
 	SEARCH: '/',
 	ESCAPE: 'escape',
-	SAVE: 's',
+	SAVE: 's'
 } as const;
-

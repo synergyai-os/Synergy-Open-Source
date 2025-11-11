@@ -11,6 +11,7 @@ Workflow for documenting patterns and making commits that align with our brand.
 **Updated**: November 8, 2025
 
 **What changed:**
+
 - Now uses **Conventional Commits** format (type(scope): subject)
 - Requires **WHY** section explaining the problem/goal
 - Includes **JOURNEY** for iteration 2+ solutions (what failed, why, final approach)
@@ -22,6 +23,7 @@ Workflow for documenting patterns and making commits that align with our brand.
 Our old format was too terse. Didn't align with our brand (building in public, learning from failure, human + AI collaboration). New format tells the story, not just the what.
 
 **Example commit using new format:**
+
 ```
 fix(notes): clear note detail state on switch to prevent stale data
 
@@ -34,7 +36,7 @@ JOURNEY:
 - Final solution: Added explicit clear() call on note switch
 
 PATTERN:
-- Updated: "Component State Management" (#L450)  
+- Updated: "Component State Management" (#L450)
 - Added edge case: clear() on reactive param change
 - Documented in: dev-docs/patterns/svelte-reactivity.md
 - Severity: 🟡 (Important - affects UX)
@@ -75,6 +77,7 @@ AI assistants: These commands are loaded via the `.cursorrules` file. When you s
 ## Philosophy
 
 These commands exist because:
+
 1. We build with AI openly (Cursor + Claude)
 2. Onboarding new AI sessions should be fast
 3. Knowledge capture should be systematic
@@ -85,8 +88,8 @@ Our brand is about **learning from failure** and **building in public**. These c
 ---
 
 **Last Updated**: November 8, 2025
-**See also**: 
+**See also**:
+
 - `CORE-VALUES.md` - Our values
 - `CONTRIBUTING.md` - Contribution guidelines
 - `.gitmessage` - Commit template
-

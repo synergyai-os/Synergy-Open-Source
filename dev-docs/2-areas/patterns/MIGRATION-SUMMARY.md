@@ -28,7 +28,6 @@ dev-docs/patterns/
   - Confirmed `$state` object + getter pattern
   - Confirmed function parameter pattern for reactive values
   - Confirmed `$derived` vs `$effect` usage
-  
 - ✅ **Convex**: Validated with Context7 `/get-convex/convex-backend`
   - Confirmed "use node" restrictions (actions only)
   - Confirmed useQuery subscription pattern
@@ -37,50 +36,60 @@ dev-docs/patterns/
 ### 3. Compressed Format
 
 **Old format** (average 100 lines per pattern):
+
 ```markdown
 ## Pattern Name
+
 **Tags**: `tag1`, `tag2`
 **Date**: 2025-01-02
 **Issue**: Description
 
 ### Problem
+
 - Detailed symptoms
 - Multiple bullet points
 - Edge cases
 
 ### Root Cause
+
 - Detailed explanation
 - Technical details
 - References
 
 ### Solution
+
 ... lots of text ...
 
 ### Implementation Example
+
 ... full code ...
 
 ### Key Takeaway
+
 ... more text ...
 ```
 
 **New format** (average 40 lines per pattern):
-```markdown
+
+````markdown
 ## #L10: Pattern Name [🔴 CRITICAL]
 
 **Symptom**: One-line description
 **Root Cause**: One-line cause
-**Fix**: 
+**Fix**:
 
 ```ts
 // ❌ WRONG
-code
+code;
 
 // ✅ CORRECT
-code
+code;
 ```
+````
 
 **Apply when**: When to use
 **Related**: #L50 (Other)
+
 ```
 
 **Result**: 60% compression per pattern
@@ -221,8 +230,9 @@ If needed, old system preserved at:
 
 ---
 
-**Migration Status**: ✅ Complete  
-**AI Ready**: ✅ Yes  
-**Human Ready**: ✅ Yes  
+**Migration Status**: ✅ Complete
+**AI Ready**: ✅ Yes
+**Human Ready**: ✅ Yes
 **Validated**: ✅ 100%
 
+```

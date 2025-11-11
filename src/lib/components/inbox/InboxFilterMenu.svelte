@@ -21,10 +21,10 @@
 <DropdownMenu.Root bind:open={menuOpen}>
 	<DropdownMenu.Trigger
 		type="button"
-		class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-hover-solid transition-colors text-secondary hover:text-primary"
+		class="flex h-8 w-8 items-center justify-center rounded-md text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
 		aria-label="Filter inbox items"
 	>
-		<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+		<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 			<path
 				stroke-linecap="round"
 				stroke-linejoin="round"
@@ -36,20 +36,20 @@
 
 	<DropdownMenu.Portal>
 		<DropdownMenu.Content
-			class="bg-elevated rounded-md shadow-lg border border-base min-w-[180px] py-1 z-50"
+			class="z-50 min-w-[180px] rounded-md border border-base bg-elevated py-1 shadow-lg"
 			side="bottom"
 			align="end"
 			sideOffset={4}
 		>
 			<DropdownMenu.Item
-				class="px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer flex items-center justify-between focus:bg-hover-solid outline-none"
+				class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 				textValue="All"
 				onSelect={() => handleFilterSelect('all')}
 			>
 				<span class="font-normal">All</span>
 				{#if currentFilter === 'all'}
 					<svg
-						class="w-4 h-4 text-secondary flex-shrink-0"
+						class="h-4 w-4 flex-shrink-0 text-secondary"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -65,14 +65,14 @@
 			</DropdownMenu.Item>
 
 			<DropdownMenu.Item
-				class="px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer flex items-center justify-between focus:bg-hover-solid outline-none"
+				class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 				textValue="Readwise"
 				onSelect={() => handleFilterSelect('readwise_highlight')}
 			>
 				<span class="font-normal">Readwise</span>
 				{#if currentFilter === 'readwise_highlight'}
 					<svg
-						class="w-4 h-4 text-secondary flex-shrink-0"
+						class="h-4 w-4 flex-shrink-0 text-secondary"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -88,14 +88,14 @@
 			</DropdownMenu.Item>
 
 			<DropdownMenu.Item
-				class="px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer flex items-center justify-between focus:bg-hover-solid outline-none"
+				class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 				textValue="Photos"
 				onSelect={() => handleFilterSelect('photo_note')}
 			>
 				<span class="font-normal">Photos</span>
 				{#if currentFilter === 'photo_note'}
 					<svg
-						class="w-4 h-4 text-secondary flex-shrink-0"
+						class="h-4 w-4 flex-shrink-0 text-secondary"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -111,14 +111,14 @@
 			</DropdownMenu.Item>
 
 			<DropdownMenu.Item
-				class="px-menu-item py-menu-item text-sm text-primary hover:bg-hover-solid cursor-pointer flex items-center justify-between focus:bg-hover-solid outline-none"
+				class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 				textValue="Manual"
 				onSelect={() => handleFilterSelect('manual_text')}
 			>
 				<span class="font-normal">Manual</span>
 				{#if currentFilter === 'manual_text'}
 					<svg
-						class="w-4 h-4 text-secondary flex-shrink-0"
+						class="h-4 w-4 flex-shrink-0 text-secondary"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"

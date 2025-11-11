@@ -25,6 +25,7 @@
 ### What This Document Covers
 
 This architecture implements **enterprise-grade authentication** for SynergyOS using:
+
 - **WorkOS AuthKit** (OAuth 2.0 provider)
 - **Convex** (serverless database + functions)
 - **SvelteKit** (server-side middleware)
@@ -73,19 +74,19 @@ This architecture implements **enterprise-grade authentication** for SynergyOS u
 
 ### 2. Privacy Guarantees
 
-| Data | Stored Where | Client Can See? |
-|------|-------------|-----------------|
-| WorkOS `access_token` | HTTP-only cookie | ❌ No (XSS protected) |
-| WorkOS `client_secret` | Server env var | ❌ Never |
-| Convex `userId` | HTTP-only cookie | ❌ No |
-| User email | Convex DB | ✅ Only if server sends it |
-| User name | Convex DB | ✅ Only if server sends it |
+| Data                   | Stored Where     | Client Can See?            |
+| ---------------------- | ---------------- | -------------------------- |
+| WorkOS `access_token`  | HTTP-only cookie | ❌ No (XSS protected)      |
+| WorkOS `client_secret` | Server env var   | ❌ Never                   |
+| Convex `userId`        | HTTP-only cookie | ❌ No                      |
+| User email             | Convex DB        | ✅ Only if server sends it |
+| User name              | Convex DB        | ✅ Only if server sends it |
 
 ### 3. Session Persistence
 
 ```typescript
 // 30-day sessions by default
-maxAge: 60 * 60 * 24 * 30  // seconds
+maxAge: 60 * 60 * 24 * 30; // seconds
 
 // How it works:
 // 1. User logs in → WorkOS returns access_token
@@ -110,30 +111,30 @@ sequenceDiagram
     participant CVX as Convex DB
 
     Note over B,CVX: 🔐 INITIAL LOGIN (happens once per 30 days)
-    
+
     B->>SK: Click "Login" button
     SK->>B: Redirect to WorkOS AuthKit
     B->>WOS: User enters email/password
     WOS->>SK: Callback with authorization code
-    
+
     Note over SK: 🛡️ SERVER-SIDE ONLY ⬇️
-    
+
     SK->>WOS: Exchange code + client_secret for access_token
     WOS->>SK: Returns { access_token, user: { id, email, name } }
-    
+
     SK->>CVX: mutation: createOrUpdateUser(workosId, email, name)
     CVX->>CVX: Upsert user in `users` table
     CVX->>SK: Returns Convex userId (_id)
-    
+
     SK->>B: Set HTTP-only cookies (30 days):<br/>• wos-session (access_token)<br/>• wos-user (userId + email)
-    
+
     B->>SK: Redirect to /inbox (user logged in!)
-    
+
     Note over B,CVX: 📅 NEXT 30 DAYS (automatic authentication)
-    
+
     B->>SK: Every request includes cookies automatically
     SK->>SK: hooks.server.ts validates wos-session cookie
-    
+
     alt Session valid
         SK->>CVX: Query with userId from cookie
         CVX->>SK: Returns user's data
@@ -146,23 +147,19 @@ sequenceDiagram
 ### Flow Steps Explained
 
 **Login Flow (Steps 1-10):**
+
 1. User clicks "Login" → SvelteKit redirects to WorkOS
 2. User authenticates with WorkOS (OAuth 2.0)
 3. WorkOS returns authorization code to SvelteKit callback
 4. **Server exchanges code for access_token** (client_secret never exposed)
 5. Server receives WorkOS user data (`id`, `email`, `firstName`, `lastName`)
 6. **Server creates/updates user in Convex** (mutation call)
-7. Convex returns the Convex `userId` (_id)
+7. Convex returns the Convex `userId` (\_id)
 8. **Server sets HTTP-only cookies** (access_token + userId)
 9. User redirected to `/inbox`
 10. ✅ **User logged in for 30 days**
 
-**Subsequent Requests (Steps 11-15):**
-11. Browser automatically sends cookies with every request
-12. SvelteKit middleware validates session in `hooks.server.ts`
-13. If valid → attach `userId` to `event.locals.auth`
-14. Convex queries use `userId` for data access
-15. ✅ **Seamless authentication (no re-login)**
+**Subsequent Requests (Steps 11-15):** 11. Browser automatically sends cookies with every request 12. SvelteKit middleware validates session in `hooks.server.ts` 13. If valid → attach `userId` to `event.locals.auth` 14. Convex queries use `userId` for data access 15. ✅ **Seamless authentication (no re-login)**
 
 ---
 
@@ -174,49 +171,49 @@ sequenceDiagram
 // convex/schema.ts
 
 users: defineTable({
-  // Auth provider identity (flexible for future provider switching)
-  workosId: v.string(),           // Current: WorkOS user ID (unique)
-  // Future: Add clerkId, auth0Id, etc. if we switch providers
-  email: v.string(),               // User email from auth provider
-  emailVerified: v.boolean(),      // Email verification status
-  
-  // Profile
-  firstName: v.optional(v.string()),
-  lastName: v.optional(v.string()),
-  name: v.optional(v.string()),    // Computed: firstName + lastName
-  profileImageUrl: v.optional(v.string()),
-  
-  // Timestamps
-  createdAt: v.number(),
-  updatedAt: v.number(),
-  lastLoginAt: v.optional(v.number()),
-  
-  // Soft delete (optional)
-  deletedAt: v.optional(v.number()),
+	// Auth provider identity (flexible for future provider switching)
+	workosId: v.string(), // Current: WorkOS user ID (unique)
+	// Future: Add clerkId, auth0Id, etc. if we switch providers
+	email: v.string(), // User email from auth provider
+	emailVerified: v.boolean(), // Email verification status
+
+	// Profile
+	firstName: v.optional(v.string()),
+	lastName: v.optional(v.string()),
+	name: v.optional(v.string()), // Computed: firstName + lastName
+	profileImageUrl: v.optional(v.string()),
+
+	// Timestamps
+	createdAt: v.number(),
+	updatedAt: v.number(),
+	lastLoginAt: v.optional(v.number()),
+
+	// Soft delete (optional)
+	deletedAt: v.optional(v.number())
 })
-  .index("by_workos_id", ["workosId"])  // Fast lookup by WorkOS ID
-  .index("by_email", ["email"])          // Fast lookup by email
+	.index('by_workos_id', ['workosId']) // Fast lookup by WorkOS ID
+	.index('by_email', ['email']); // Fast lookup by email
 
 // Account linking - Multiple email accounts for same person
 accountLinks: defineTable({
-  primaryUserId: v.id("users"),        // Main account
-  linkedUserId: v.id("users"),         // Linked account (e.g., work email)
-  linkType: v.optional(v.string()),    // "work", "personal", etc.
-  verifiedAt: v.number(),              // When link was verified
-  createdAt: v.number(),
+	primaryUserId: v.id('users'), // Main account
+	linkedUserId: v.id('users'), // Linked account (e.g., work email)
+	linkType: v.optional(v.string()), // "work", "personal", etc.
+	verifiedAt: v.number(), // When link was verified
+	createdAt: v.number()
 })
-  .index("by_primary", ["primaryUserId"])   // Get all linked accounts
-  .index("by_linked", ["linkedUserId"])     // Check if account is linked
+	.index('by_primary', ['primaryUserId']) // Get all linked accounts
+	.index('by_linked', ['linkedUserId']); // Check if account is linked
 ```
 
 **Key Design Decisions:**
 
-1. **Dual Identity System**: 
+1. **Dual Identity System**:
    - `userId` (Convex `_id`) = Permanent identity for all relationships
    - `workosId` = Auth provider ID (can change if we switch providers)
    - Future-proof: Add `clerkId`, `auth0Id` etc. if needed
 
-2. **No `defaultOrganizationId`**: 
+2. **No `defaultOrganizationId`**:
    - Active workspace tracked in session/localStorage (not DB)
    - Keeps user table simple and focused
    - UI handles workspace context switching
@@ -228,11 +225,11 @@ accountLinks: defineTable({
 
 ### Index Strategy
 
-| Index | Purpose | Query Pattern |
-|-------|---------|---------------|
-| `by_workos_id` | User sync on login | `getUserByWorkosId(workosId)` |
-| `by_email` | Admin lookups | `getUserByEmail(email)` |
-| Primary `_id` | All user queries | `userId` references throughout schema |
+| Index          | Purpose            | Query Pattern                         |
+| -------------- | ------------------ | ------------------------------------- |
+| `by_workos_id` | User sync on login | `getUserByWorkosId(workosId)`         |
+| `by_email`     | Admin lookups      | `getUserByEmail(email)`               |
+| Primary `_id`  | All user queries   | `userId` references throughout schema |
 
 ### Workspace & Content Ownership Model
 
@@ -259,11 +256,11 @@ User: randy@synergyai.nl
 
 **Content Ownership Rules:**
 
-| Ownership Type | Stays When User Leaves? | Example |
-|----------------|------------------------|---------|
-| `"user"` | ❌ Moves with user | Personal flashcards |
-| `"team"` | ✅ Stays in team | Team roadmap |
-| `"organization"` | ✅ Stays in org | Company glossary |
+| Ownership Type   | Stays When User Leaves? | Example             |
+| ---------------- | ----------------------- | ------------------- |
+| `"user"`         | ❌ Moves with user      | Personal flashcards |
+| `"team"`         | ✅ Stays in team        | Team roadmap        |
+| `"organization"` | ✅ Stays in org         | Company glossary    |
 
 **Query Pattern:**
 
@@ -344,42 +341,44 @@ users (new!)
 **File**: `src/routes/auth/callback/+server.ts`
 
 **Current Implementation** ✅ (Partial - needs user sync):
+
 ```typescript
 export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
-  const code = url.searchParams.get('code');
-  
-  // Exchange code for access_token
-  const response = await fetch('https://api.workos.com/user_management/authenticate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      client_id: env.WORKOS_CLIENT_ID,
-      client_secret: env.WORKOS_API_KEY,
-      code,
-      grant_type: 'authorization_code'
-    })
-  });
-  
-  const data = await response.json();
-  // data = { access_token, user: { id, email, first_name, last_name } }
-  
-  // ✅ Store WorkOS token
-  cookies.set('wos-session', data.access_token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 60 * 60 * 24 * 30  // 30 days
-  });
-  
-  // ⚠️ MISSING: Sync user to Convex
-  // TODO: Call Convex mutation to create/update user
-  // TODO: Store Convex userId in cookie
-  
-  throw redirect(302, '/inbox');
+	const code = url.searchParams.get('code');
+
+	// Exchange code for access_token
+	const response = await fetch('https://api.workos.com/user_management/authenticate', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({
+			client_id: env.WORKOS_CLIENT_ID,
+			client_secret: env.WORKOS_API_KEY,
+			code,
+			grant_type: 'authorization_code'
+		})
+	});
+
+	const data = await response.json();
+	// data = { access_token, user: { id, email, first_name, last_name } }
+
+	// ✅ Store WorkOS token
+	cookies.set('wos-session', data.access_token, {
+		httpOnly: true,
+		secure: process.env.NODE_ENV === 'production',
+		sameSite: 'lax',
+		maxAge: 60 * 60 * 24 * 30 // 30 days
+	});
+
+	// ⚠️ MISSING: Sync user to Convex
+	// TODO: Call Convex mutation to create/update user
+	// TODO: Store Convex userId in cookie
+
+	throw redirect(302, '/inbox');
 };
 ```
 
 **Needs Enhancement** 🔧:
+
 - Call Convex mutation to sync user
 - Store Convex `userId` in cookie
 - Handle sync errors gracefully
@@ -389,45 +388,47 @@ export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
 **File**: `src/hooks.server.ts`
 
 **Current Implementation** ✅ (Working):
+
 ```typescript
 const workosAuth: Handle = async ({ event, resolve }) => {
-  const accessToken = event.cookies.get('wos-session');
-  const userDataCookie = event.cookies.get('wos-user');
-  
-  event.locals.auth = {
-    user: null,
-    sessionId: accessToken || undefined
-  };
-  
-  if (userDataCookie) {
-    try {
-      event.locals.auth.user = JSON.parse(userDataCookie);
-    } catch (error) {
-      console.error('Failed to parse user data cookie:', error);
-      event.cookies.delete('wos-session', { path: '/' });
-      event.cookies.delete('wos-user', { path: '/' });
-    }
-  }
-  
-  return resolve(event);
+	const accessToken = event.cookies.get('wos-session');
+	const userDataCookie = event.cookies.get('wos-user');
+
+	event.locals.auth = {
+		user: null,
+		sessionId: accessToken || undefined
+	};
+
+	if (userDataCookie) {
+		try {
+			event.locals.auth.user = JSON.parse(userDataCookie);
+		} catch (error) {
+			console.error('Failed to parse user data cookie:', error);
+			event.cookies.delete('wos-session', { path: '/' });
+			event.cookies.delete('wos-user', { path: '/' });
+		}
+	}
+
+	return resolve(event);
 };
 
 const requireAuth: Handle = async ({ event, resolve }) => {
-  if (isPublicPath(event.url.pathname)) {
-    return resolve(event);
-  }
-  
-  if (!event.locals.auth.sessionId) {
-    throw redirect(302, `/login?redirectTo=${encodeURIComponent(event.url.pathname)}`);
-  }
-  
-  return resolve(event);
+	if (isPublicPath(event.url.pathname)) {
+		return resolve(event);
+	}
+
+	if (!event.locals.auth.sessionId) {
+		throw redirect(302, `/login?redirectTo=${encodeURIComponent(event.url.pathname)}`);
+	}
+
+	return resolve(event);
 };
 
 export const handle = sequence(workosAuth, requireAuth);
 ```
 
 **Needs Enhancement** 🔧:
+
 - Validate WorkOS token expiration
 - Refresh token if expired (optional)
 - Set Convex auth context for queries
@@ -437,82 +438,84 @@ export const handle = sequence(workosAuth, requireAuth);
 **File**: `convex/users.ts` (NEW)
 
 **To Be Created** 🔨:
+
 ```typescript
-import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { v } from 'convex/values';
+import { mutation, query } from './_generated/server';
 
 // Create or update user from WorkOS data
 export const syncUserFromWorkOS = mutation({
-  args: {
-    workosId: v.string(),
-    email: v.string(),
-    firstName: v.optional(v.string()),
-    lastName: v.optional(v.string()),
-    emailVerified: v.optional(v.boolean()),
-  },
-  handler: async (ctx, args) => {
-    // Check if user exists
-    const existingUser = await ctx.db
-      .query("users")
-      .withIndex("by_workos_id", (q) => q.eq("workosId", args.workosId))
-      .first();
-    
-    const now = Date.now();
-    const name = args.firstName && args.lastName
-      ? `${args.firstName} ${args.lastName}`
-      : args.firstName || args.lastName || undefined;
-    
-    if (existingUser) {
-      // Update existing user
-      await ctx.db.patch(existingUser._id, {
-        email: args.email,
-        firstName: args.firstName,
-        lastName: args.lastName,
-        name,
-        emailVerified: args.emailVerified ?? true,
-        updatedAt: now,
-        lastLoginAt: now,
-      });
-      return existingUser._id;
-    } else {
-      // Create new user
-      const userId = await ctx.db.insert("users", {
-        workosId: args.workosId,
-        email: args.email,
-        firstName: args.firstName,
-        lastName: args.lastName,
-        name,
-        emailVerified: args.emailVerified ?? true,
-        createdAt: now,
-        updatedAt: now,
-        lastLoginAt: now,
-      });
-      return userId;
-    }
-  },
+	args: {
+		workosId: v.string(),
+		email: v.string(),
+		firstName: v.optional(v.string()),
+		lastName: v.optional(v.string()),
+		emailVerified: v.optional(v.boolean())
+	},
+	handler: async (ctx, args) => {
+		// Check if user exists
+		const existingUser = await ctx.db
+			.query('users')
+			.withIndex('by_workos_id', (q) => q.eq('workosId', args.workosId))
+			.first();
+
+		const now = Date.now();
+		const name =
+			args.firstName && args.lastName
+				? `${args.firstName} ${args.lastName}`
+				: args.firstName || args.lastName || undefined;
+
+		if (existingUser) {
+			// Update existing user
+			await ctx.db.patch(existingUser._id, {
+				email: args.email,
+				firstName: args.firstName,
+				lastName: args.lastName,
+				name,
+				emailVerified: args.emailVerified ?? true,
+				updatedAt: now,
+				lastLoginAt: now
+			});
+			return existingUser._id;
+		} else {
+			// Create new user
+			const userId = await ctx.db.insert('users', {
+				workosId: args.workosId,
+				email: args.email,
+				firstName: args.firstName,
+				lastName: args.lastName,
+				name,
+				emailVerified: args.emailVerified ?? true,
+				createdAt: now,
+				updatedAt: now,
+				lastLoginAt: now
+			});
+			return userId;
+		}
+	}
 });
 
 // Get user by Convex ID
 export const getUserById = query({
-  args: { userId: v.id("users") },
-  handler: async (ctx, args) => {
-    return await ctx.db.get(args.userId);
-  },
+	args: { userId: v.id('users') },
+	handler: async (ctx, args) => {
+		return await ctx.db.get(args.userId);
+	}
 });
 
 // Get current authenticated user
 export const getCurrentUser = query({
-  args: {},
-  handler: async (ctx) => {
-    // This will work after Convex auth is set up
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      return null;
-    }
-    
-    // identity.subject will be the Convex userId
-    return await ctx.db.get(identity.subject as any);
-  },
+	args: {},
+	handler: async (ctx) => {
+		// This will work after Convex auth is set up
+		const identity = await ctx.auth.getUserIdentity();
+		if (!identity) {
+			return null;
+		}
+
+		// identity.subject will be the Convex userId
+		return await ctx.db.get(identity.subject as any);
+	}
 });
 ```
 
@@ -521,23 +524,26 @@ export const getCurrentUser = query({
 **File**: `convex/auth.ts`
 
 **Current Implementation** ⚠️ (Needs update):
+
 ```typescript
 // Current (returns null - not working)
 export async function getAuthUserId(ctx: any) {
-  const identity = await ctx.auth.getUserIdentity();
-  if (!identity) {
-    return null;
-  }
-  return identity.subject;
+	const identity = await ctx.auth.getUserIdentity();
+	if (!identity) {
+		return null;
+	}
+	return identity.subject;
 }
 ```
 
 **Why it doesn't work:**
+
 - Convex client not authenticated
 - No JWT token sent with queries
 - `getUserIdentity()` always returns `null`
 
 **Needs Enhancement** 🔧:
+
 - Set up Convex client authentication
 - Pass WorkOS token or Convex JWT
 - Extract userId from token claims
@@ -552,11 +558,11 @@ export async function getAuthUserId(ctx: any) {
 // src/routes/auth/callback/+server.ts
 
 cookies.set('wos-session', accessToken, {
-  path: '/',                    // Available on all routes
-  httpOnly: true,               // ✅ JavaScript can't read (XSS protection)
-  secure: process.env.NODE_ENV === 'production', // ✅ HTTPS only in prod
-  sameSite: 'lax',             // ✅ CSRF protection
-  maxAge: 60 * 60 * 24 * 30    // ✅ 30 days
+	path: '/', // Available on all routes
+	httpOnly: true, // ✅ JavaScript can't read (XSS protection)
+	secure: process.env.NODE_ENV === 'production', // ✅ HTTPS only in prod
+	sameSite: 'lax', // ✅ CSRF protection
+	maxAge: 60 * 60 * 24 * 30 // ✅ 30 days
 });
 ```
 
@@ -569,9 +575,9 @@ cookies.set('wos-session', accessToken, {
 const accessToken = event.cookies.get('wos-session');
 
 if (accessToken) {
-  // Optional: Verify token with WorkOS
-  // For now: Presence = valid (WorkOS token is secure)
-  event.locals.auth.sessionId = accessToken;
+	// Optional: Verify token with WorkOS
+	// For now: Presence = valid (WorkOS token is secure)
+	event.locals.auth.sessionId = accessToken;
 }
 ```
 
@@ -580,15 +586,15 @@ if (accessToken) {
 ```typescript
 // Public routes (no auth required)
 const publicPaths = [
-  '/',              // Homepage
-  '/login',         // Login page
-  '/register',      // Registration page
-  '/auth',          // Auth callback
+	'/', // Homepage
+	'/login', // Login page
+	'/register', // Registration page
+	'/auth' // Auth callback
 ];
 
 // All other routes require authentication
 if (!isPublicPath(pathname) && !event.locals.auth.sessionId) {
-  throw redirect(302, '/login');
+	throw redirect(302, '/login');
 }
 ```
 
@@ -598,31 +604,33 @@ if (!isPublicPath(pathname) && !event.locals.auth.sessionId) {
 // convex/inbox.ts
 
 export const listInboxItems = query({
-  args: {},
-  handler: async (ctx) => {
-    // Get authenticated user
-    const userId = await getAuthUserId(ctx);
-    if (!userId) {
-      throw new Error("Not authenticated");
-    }
-    
-    // Only return user's own data
-    return await ctx.db
-      .query("inboxItems")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .collect();
-  },
+	args: {},
+	handler: async (ctx) => {
+		// Get authenticated user
+		const userId = await getAuthUserId(ctx);
+		if (!userId) {
+			throw new Error('Not authenticated');
+		}
+
+		// Only return user's own data
+		return await ctx.db
+			.query('inboxItems')
+			.withIndex('by_user', (q) => q.eq('userId', userId))
+			.collect();
+	}
 });
 ```
 
 ### 5. Orphaned Sessions (⚠️ TODO: Phase 3)
 
 **Current Behavior:**
+
 - Middleware checks cookie presence only
 - Does NOT verify user exists in Convex DB
 - Result: Deleted users can still access app until cookie expires
 
 **Security Scenario:**
+
 ```
 1. User registers → creates Convex user record
 2. Session cookie stored (30-day lifespan)
@@ -632,6 +640,7 @@ export const listInboxItems = query({
 ```
 
 **Risk Level:** 🟡 **Medium**
+
 - **Impact:** Orphaned sessions after user deletion
 - **Likelihood:** Low (user deletion is rare)
 - **Mitigation:** Queries will fail (user data not found)
@@ -639,68 +648,73 @@ export const listInboxItems = query({
 **Phase 3 Enhancement Options:**
 
 **Option A: DB Verification in Middleware** (Most Secure)
+
 ```typescript
 // src/hooks.server.ts
 const workosAuth: Handle = async ({ event, resolve }) => {
-  const userDataCookie = event.cookies.get('wos-user');
-  
-  if (userDataCookie) {
-    const userData = JSON.parse(userDataCookie);
-    
-    // ✅ Verify user still exists in Convex
-    const convex = new ConvexHttpClient(publicEnv.PUBLIC_CONVEX_URL);
-    const userExists = await convex.query(api.users.getUserById, { 
-      userId: userData.userId 
-    });
-    
-    if (!userExists) {
-      // Clear orphaned session
-      event.cookies.delete('wos-session', { path: '/' });
-      event.cookies.delete('wos-user', { path: '/' });
-      throw redirect(302, '/login?error=session_expired');
-    }
-    
-    event.locals.auth.user = userData;
-  }
-  
-  return resolve(event);
+	const userDataCookie = event.cookies.get('wos-user');
+
+	if (userDataCookie) {
+		const userData = JSON.parse(userDataCookie);
+
+		// ✅ Verify user still exists in Convex
+		const convex = new ConvexHttpClient(publicEnv.PUBLIC_CONVEX_URL);
+		const userExists = await convex.query(api.users.getUserById, {
+			userId: userData.userId
+		});
+
+		if (!userExists) {
+			// Clear orphaned session
+			event.cookies.delete('wos-session', { path: '/' });
+			event.cookies.delete('wos-user', { path: '/' });
+			throw redirect(302, '/login?error=session_expired');
+		}
+
+		event.locals.auth.user = userData;
+	}
+
+	return resolve(event);
 };
 ```
 
 **Tradeoffs:**
+
 - ✅ Catches deleted/banned users immediately
 - ✅ Prevents orphaned sessions
 - ❌ DB query on every request (slower)
 - ❌ Increases Convex usage costs
 
 **Option B: Selective Verification** (Balanced)
+
 ```typescript
 // Only verify on sensitive operations
 // Examples: payments, admin actions, data exports
 
 // convex/payments.ts
 export const purchaseContent = mutation({
-  handler: async (ctx, args) => {
-    const userId = args.userId;
-    
-    // ✅ Verify user exists before processing payment
-    const user = await ctx.db.get(userId);
-    if (!user || user.deletedAt) {
-      throw new Error("User account not found or deleted");
-    }
-    
-    // Process payment...
-  }
+	handler: async (ctx, args) => {
+		const userId = args.userId;
+
+		// ✅ Verify user exists before processing payment
+		const user = await ctx.db.get(userId);
+		if (!user || user.deletedAt) {
+			throw new Error('User account not found or deleted');
+		}
+
+		// Process payment...
+	}
 });
 ```
 
 **Tradeoffs:**
+
 - ✅ Fast for most requests
 - ✅ Secure for critical operations
 - ✅ Lower Convex usage
 - ⚠️ Requires manual verification in sensitive mutations
 
 **Option C: Periodic Token Refresh** (Future)
+
 ```typescript
 // WorkOS supports token refresh
 // Refresh token every N hours → re-verify user exists
@@ -708,6 +722,7 @@ export const purchaseContent = mutation({
 ```
 
 **Recommendation for Phase 3:**
+
 - Start with **Option B** (Selective Verification)
 - Monitor for issues
 - Upgrade to **Option A** if user deletion becomes common
@@ -750,16 +765,16 @@ export const purchaseContent = mutation({
 // src/routes/auth/callback/+server.ts
 
 // Option 1: 7 days (stricter)
-maxAge: 60 * 60 * 24 * 7
+maxAge: 60 * 60 * 24 * 7;
 
 // Option 2: 30 days (current - balanced)
-maxAge: 60 * 60 * 24 * 30
+maxAge: 60 * 60 * 24 * 30;
 
 // Option 3: 90 days (longer)
-maxAge: 60 * 60 * 24 * 90
+maxAge: 60 * 60 * 24 * 90;
 
 // Option 4: 1 year (persistent)
-maxAge: 60 * 60 * 24 * 365
+maxAge: 60 * 60 * 24 * 365;
 ```
 
 ### Logout Implementation
@@ -767,31 +782,33 @@ maxAge: 60 * 60 * 24 * 365
 **File**: `src/routes/logout/+server.ts`
 
 **Current Implementation** ✅ (Working):
+
 ```typescript
 export const GET: RequestHandler = async ({ cookies, url }) => {
   const sessionToken = cookies.get('wos-session');
-  
+
   // Clear local cookies
   cookies.delete('wos-session', { path: '/', httpOnly: true, ... });
   cookies.delete('wos-user', { path: '/', httpOnly: true, ... });
-  
+
   // Revoke WorkOS session
   if (sessionToken) {
     const payload = JSON.parse(Buffer.from(sessionToken.split('.')[1], 'base64').toString());
     const sessionId = payload.sid;
-    
+
     const workosLogoutUrl = new URL('https://api.workos.com/user_management/sessions/logout');
     workosLogoutUrl.searchParams.set('session_id', sessionId);
     workosLogoutUrl.searchParams.set('return_to', `${url.origin}/`);
-    
+
     throw redirect(302, workosLogoutUrl.toString());
   }
-  
+
   throw redirect(302, '/');
 };
 ```
 
 **Why WorkOS logout is important:**
+
 - Clears cookies locally ✅
 - Revokes session on WorkOS ✅
 - Prevents auto-login on next attempt ✅
@@ -860,6 +877,7 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
 ### Implementation Path
 
 **Phase 2.1: Account Linking Flow**
+
 1. Detect multiple logins from same browser
 2. Prompt user to link accounts
 3. Verify ownership (email confirmation)
@@ -867,6 +885,7 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
 5. Merge session data
 
 **Phase 2.2: Account Switcher UI**
+
 1. Build CMD+K command palette
 2. List linked accounts with indicators
 3. Keyboard shortcuts (CMD+1/2/3)
@@ -874,6 +893,7 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
 5. Switch logic (update session)
 
 **Phase 2.3: Context Switching**
+
 1. Update queries to use active account
 2. Workspace context selector
 3. Personal content always accessible
@@ -907,18 +927,21 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
 ### Migration Steps
 
 **Step 1: Implement New Auth** 🔨
+
 - ✅ Add `users` table to schema
 - ✅ Create user sync mutation
 - ✅ Update auth callback to sync users
 - ✅ Test WorkOS login flow
 
 **Step 2: Validate** ✅
+
 - ✅ Create test user via WorkOS
 - ✅ Verify user in Convex `users` table
 - ✅ Test Convex queries with new userId
 - ✅ Confirm all app features work
 
 **Step 3: Cleanup** 🧹
+
 ```sql
 -- In Convex Dashboard → Data → Tables
 
@@ -929,6 +952,7 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
 ```
 
 **No data migration needed** ✅
+
 - Reason: All test accounts, no real users
 - Approach: Clean start with WorkOS
 - Benefit: No legacy data complexity
@@ -942,6 +966,7 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
 #### Issue 1: "User not found" errors in Convex queries
 
 **Symptom:**
+
 ```
 Error: Document not found for ID: "user_xxx"
 ```
@@ -949,6 +974,7 @@ Error: Document not found for ID: "user_xxx"
 **Cause:** User not synced to Convex on login
 
 **Fix:**
+
 - Check `convex/users.ts` mutation is called in auth callback
 - Verify `userId` is stored in cookie
 - Check Convex Dashboard → Data → users table for user
@@ -962,12 +988,13 @@ Error: Document not found for ID: "user_xxx"
 **Cause:** Cookie not set or expired
 
 **Fix:**
+
 ```typescript
 // Verify cookie attributes in auth callback
 cookies.set('wos-session', token, {
-  path: '/',          // ✅ Must be '/'
-  httpOnly: true,     // ✅ Must be true
-  maxAge: 60*60*24*30 // ✅ Must be > 0
+	path: '/', // ✅ Must be '/'
+	httpOnly: true, // ✅ Must be true
+	maxAge: 60 * 60 * 24 * 30 // ✅ Must be > 0
 });
 ```
 
@@ -980,6 +1007,7 @@ cookies.set('wos-session', token, {
 **Cause:** Convex client not authenticated
 
 **Fix:**
+
 - Set up Convex JWT authentication
 - Pass WorkOS token to Convex client
 - Update `convex/auth.ts` helper
@@ -993,6 +1021,7 @@ cookies.set('wos-session', token, {
 **Cause:** Mismatch between app and WorkOS config
 
 **Fix:**
+
 - Check `WORKOS_REDIRECT_URI` in `.env.local`
 - Verify WorkOS Dashboard → Redirects matches exactly
 - Use `127.0.0.1` not `localhost` for HTTP
@@ -1052,18 +1081,21 @@ cookies.set('wos-session', token, {
 ## Resources
 
 **Documentation:**
+
 - [WorkOS AuthKit Docs](https://workos.com/docs/user-management)
 - [Convex Auth Guide](https://docs.convex.dev/auth)
 - [OAuth 2.0 Spec](https://oauth.net/2/)
 
 **Internal Docs:**
+
 - [Architecture Overview](architecture.md)
 - [Auth Deployment Patterns](patterns/auth-deployment.md)
 - [Multi-Tenancy Migration](multi-tenancy-migration.md)
 - [Product Vision 2.0](../../marketing-docs/strategy/product-vision-2.0.md)
 
 **Related Patterns:**
-- [#L10: PUBLIC_ Environment Variables](patterns/auth-deployment.md#L10)
+
+- [#L10: PUBLIC\_ Environment Variables](patterns/auth-deployment.md#L10)
 - [#L60: Staging vs Production Credentials](patterns/auth-deployment.md#L60)
 - [#L110: www vs non-www Redirect URIs](patterns/auth-deployment.md#L110)
 
@@ -1072,4 +1104,3 @@ cookies.set('wos-session', token, {
 **Last Updated**: Nov 10, 2025  
 **Status**: 🟡 In Progress  
 **Confidence**: 95% (validated architecture, ready to implement)
-

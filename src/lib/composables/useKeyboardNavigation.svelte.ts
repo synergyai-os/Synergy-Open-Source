@@ -41,14 +41,12 @@ export function useKeyboardNavigation(
 	function navigateItems(direction: 'up' | 'down') {
 		const items = filteredItems();
 		if (items.length === 0) return;
-		
+
 		const currentId = selectedItemId();
-		const currentIndex = currentId 
-			? items.findIndex(item => item._id === currentId)
-			: -1;
-		
+		const currentIndex = currentId ? items.findIndex((item) => item._id === currentId) : -1;
+
 		let newIndex: number;
-		
+
 		if (currentIndex === -1) {
 			// No item selected, select first or last
 			newIndex = direction === 'down' ? 0 : items.length - 1;
@@ -60,7 +58,7 @@ export function useKeyboardNavigation(
 				newIndex = currentIndex > 0 ? currentIndex - 1 : items.length - 1; // Wrap to end
 			}
 		}
-		
+
 		const newItem = items[newIndex];
 		if (newItem) {
 			// Clear any active hover states by blurring all items first
@@ -69,7 +67,7 @@ export function useKeyboardNavigation(
 					el.blur();
 				}
 			});
-			
+
 			onSelectItem(newItem._id);
 			// Scroll item into view
 			setTimeout(() => {
@@ -84,13 +82,13 @@ export function useKeyboardNavigation(
 		const items = filteredItems();
 		const currentId = selectedItemId();
 		if (!currentId || items.length === 0) return -1;
-		return items.findIndex(item => item._id === currentId);
+		return items.findIndex((item) => item._id === currentId);
 	}
-	
+
 	function handleNextItem() {
 		navigateItems('down');
 	}
-	
+
 	function handlePreviousItem() {
 		navigateItems('up');
 	}
@@ -102,12 +100,13 @@ export function useKeyboardNavigation(
 			function handleKeyDown(event: KeyboardEvent) {
 				// Ignore if user is typing in input/textarea
 				const activeElement = document.activeElement;
-				const isInputFocused = activeElement?.tagName === 'INPUT' || 
-				                      activeElement?.tagName === 'TEXTAREA' ||
-				                      (activeElement instanceof HTMLElement && activeElement.isContentEditable);
-				
+				const isInputFocused =
+					activeElement?.tagName === 'INPUT' ||
+					activeElement?.tagName === 'TEXTAREA' ||
+					(activeElement instanceof HTMLElement && activeElement.isContentEditable);
+
 				if (isInputFocused) return;
-				
+
 				// Handle J (down/next) and K (up/previous)
 				if (event.key === 'j' || event.key === 'J') {
 					event.preventDefault();
@@ -117,9 +116,9 @@ export function useKeyboardNavigation(
 					navigateItems('up');
 				}
 			}
-			
+
 			window.addEventListener('keydown', handleKeyDown);
-			
+
 			return () => {
 				window.removeEventListener('keydown', handleKeyDown);
 			};
@@ -131,7 +130,6 @@ export function useKeyboardNavigation(
 		navigateItems,
 		getCurrentItemIndex,
 		handleNextItem,
-		handlePreviousItem,
+		handlePreviousItem
 	};
 }
-

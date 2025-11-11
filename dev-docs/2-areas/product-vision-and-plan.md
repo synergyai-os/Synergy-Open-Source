@@ -26,17 +26,20 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
 ## 📊 Architecture Principles
 
 ### Universal Inbox System
+
 - **Core Concept**: A unified inbox that receives content from ANY source
 - **User Review**: Every item must be reviewed by user before AI processing (to avoid wasting tokens on irrelevant data)
 - **Scalable**: Designed to handle 100+ different content types (messages, notifications, updates, etc.)
 - **Source-Agnostic**: Inbox is content-type agnostic; each source type has its own detail view
 
 ### Polymorphic Data Model
+
 - Using discriminated unions in database schema
 - Each content type (Readwise highlight, photo note, manual text) stored with type discriminator
 - Different detail views for each type in the UI
 
 ### Output Flexibility
+
 - **Flashcards**: Primary output (for now)
 - **Future Outputs**: Notes, templates, frameworks, vector search results
 - **Organized by**: Categories/topics (supporting nested topics)
@@ -46,30 +49,35 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
 **Status**: Architecture future-proofed, implementation deferred
 
 **Multi-Tenancy Vision** (Future):
+
 - Organizations and teams can share content
 - Users can be part of multiple organizations and teams
 - Content ownership: user-owned, organization-owned, team-owned, or purchased
 - Training bundles can be created and sold/bought (individual or team-based)
 
 **Current Approach**: Minimal future-proofing
+
 - Schema includes nullable `organizationId`, `teamId`, and `ownershipType` fields
 - Permission helper patterns created (stub functions, user-scoped for now)
 - All queries remain user-scoped (no breaking changes)
 - Migration path documented for when multi-tenancy is validated
 
 **Multiple Accounts Vision** (Future):
+
 - Users can login with multiple email accounts (personal + work)
 - Account switcher UI (like Linear/Slack)
 - Each account can belong to different organizations
 - Switch between accounts via menu bar
 
 **Why Deferred**:
+
 - Current architecture already supports multiple accounts (each email = separate `userId`)
 - No schema changes needed now - add account linking table when implementing
 - Low migration cost (~1-2 days when needed)
 - Focus on Phase 3 (study system) is priority
 
 **When to Implement**:
+
 - Multi-tenancy: When organizations/teams are validated as needed
 - Multiple accounts: Before public launch or when users request it
 
@@ -78,11 +86,13 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
 ## 🎨 UI/UX Vision
 
 ### Three-Column Layout (Linear-style)
+
 - **Left**: Navigation sidebar (collapsible, resizable)
 - **Middle**: Inbox list (narrow: 175-250px, resizable)
 - **Right**: Detail panel (takes most space, dynamic based on content type)
 
 ### Design System
+
 - **Approach**: Semantic design tokens (spacing, colors, typography)
 - **Token-based**: All spacing/colors use semantic tokens that adapt to light/dark mode
 - **Scalable**: Change once in CSS variables, updates everywhere
@@ -100,9 +110,11 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
 ## 📋 Updated Development Plan
 
 ### Phase 1: UI/UX with Mock Data ✅ COMPLETE
+
 **Goal**: Validate workflow and user experience before backend integration
 
 **Completed:**
+
 - ✅ Three-column inbox layout (Linear-style)
 - ✅ Resizable sidebar with hover-to-reveal
 - ✅ Resizable inbox column
@@ -113,13 +125,16 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
 - ✅ Light/dark mode theming system
 
 ### Phase 2: Flashcard Creation & Storage ✅ NEARLY COMPLETE
+
 **Goal**: AI-powered flashcard generation from inbox items and storage in database
 
 **Key Separation of Concerns:**
+
 - **Flashcard Creation**: Generate flashcards from inbox items via AI (✅ 95% Complete)
 - **Study Sessions**: Review and study flashcards using SRS algorithms (Phase 3+)
 
 **Tasks:**
+
 1. ✅ **Enhanced Convex Schema Design** (COMPLETE)
    - ✅ `userSettings` (already exists)
    - ✅ `inboxItems` (already exists, polymorphic)
@@ -147,11 +162,13 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
    - Filtering by source type
 
 ### Phase 2A: AI Flashcard Generation ✅ MOSTLY COMPLETE
+
 **Goal**: Generate flashcards from approved inbox items using AI
 
 **Status**: 95% Complete - Only tagging integration remaining
 
 **Completed Tasks:**
+
 1. ✅ **Claude Integration**
    - ✅ Convex action for Claude API calls (`api.flashcards.generateFlashcard`)
    - ✅ Prompt engineering with XML templates and variable interpolation
@@ -183,6 +200,7 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
    - ✅ Processed items filtered from active inbox view
 
 **Remaining Tasks:**
+
 1. ⏳ **Tagging System Integration** (Last 5%)
    - ⏳ Flashcards inherit tags from source inbox item
    - ⏳ User can add/remove tags during flashcard review
@@ -190,12 +208,14 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
    - ⏳ Support hierarchical tags (schema ready, UI needed)
 
 ### Phase 3: Study Session System (NEXT PHASE)
+
 **Goal**: Implement spaced repetition study sessions
 
 **Prerequisites**: Phase 2A complete (flashcards in database) ✅ Ready
 **Status**: Can start after tagging integration (or start in parallel)
 
 **Tasks:**
+
 1. **Study Session Loading**
    - Efficient querying for large datasets (10,000+ cards)
    - Default session size: 10 cards (user-configurable in settings)
@@ -223,9 +243,11 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
    - Analytics dashboard
 
 ### Phase 4: Additional Sources & Features
+
 **Goal**: Expand input sources and outputs
 
 **Tasks:**
+
 1. **Photo Input**
    - Photo capture/upload
    - OCR/vision AI for text extraction
@@ -243,6 +265,7 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
 ## ✅ What We've Accomplished
 
 ### Design Token System (Major Achievement)
+
 - **Semantic Spacing Tokens**: 14 tokens (px-nav-item, py-nav-item, gap-icon, etc.)
 - **Semantic Color Tokens**: 10 tokens (bg-sidebar, text-sidebar-primary, etc.)
 - **Typography Tokens**: text-label custom size
@@ -252,6 +275,7 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
 - **Enforcement**: Rules in `.cursor/rules/way-of-working.mdc`
 
 ### UI Components
+
 - **Sidebar**: Fully functional with resizable, collapsible, hover-to-reveal
 - **ResizableSplitter**: Reusable component for dynamic layouts
 - **WorkspaceMenu**: Dropdown with theme toggle (Bits UI Switch)
@@ -260,6 +284,7 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
 - **Flashcard UI**: Basic list and study interface
 
 ### Theme System
+
 - **Theme Store**: Svelte store with localStorage persistence
 - **FOUC Prevention**: Inline script in app.html
 - **Workspace Menu Toggle**: Bits UI Switch component
@@ -268,6 +293,7 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
 ## 📍 Current State
 
 ### What Works
+
 - ✅ Complete sidebar navigation system
 - ✅ Three-column inbox layout with real Convex data
 - ✅ Design token system (fully functional)
@@ -282,6 +308,7 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
 - ✅ Convex API naming conventions (file = module, function = action)
 
 ### What's Complete
+
 - ✅ Convex schema for data storage (flashcards, reviews, settings)
 - ✅ Real data queries/subscriptions (useQuery for real-time updates)
 - ✅ AI flashcard generation (Claude with prompt templates)
@@ -289,6 +316,7 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
 - ✅ FSRS algorithm integration (state conversion, card initialization)
 
 ### What's Remaining
+
 - ⏳ Tagging system integration (inherit tags from inbox items to flashcards)
 - ⏳ Readwise API integration (Phase 2B - future)
 - ⏳ Settings page (API key management)
@@ -299,9 +327,11 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
 ## 🚀 Current Focus: Notes System & Blog Workflow
 
 ### Phase 2B: Rich Note-Taking System (In Progress)
+
 **Status**: Building comprehensive note system with ProseMirror
 
 **Features**:
+
 - Rich text editor with Notion-like feel
 - AI content detection and tagging
 - Blog content workflow (`/ai-content-blog/`)
@@ -314,9 +344,11 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
 ---
 
 ### Next: Complete Phase 2A (Tagging Integration)
+
 **Status**: 95% Complete - Only tagging remaining
 
 **Task**: Tagging System Integration
+
 - Inherit tags from inbox items when creating flashcards
 - Allow tag editing during flashcard review modal
 - Store tags in `flashcardTags` junction table
@@ -329,9 +361,11 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
 ---
 
 ### Phase 3: Study Session System (Ready to Start)
+
 **Prerequisites**: Phase 2A complete (or can start in parallel)
 
 **Tasks:**
+
 1. Study session loading (efficient queries for due cards)
 2. FSRS algorithm integration (schema ready, UI needed)
 3. Rating system (Again/Hard/Good/Easy - replace Approve/Reject)
@@ -347,18 +381,21 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
 ### Future Tasks (Phase 2B+)
 
 **Task 2: Settings Page & User Preferences**
+
 - Create `/settings` route
 - Build Readwise API key input form
 - Store API key securely in Convex userSettings
 - Sync theme preference to Convex
 
 **Task 3: Readwise API Integration**
+
 - Create Convex action for Readwise API
 - Fetch highlights endpoint
 - Transform Readwise data to inboxItem format
 - Manual sync button in UI
 
 **Task 6: Category Management**
+
 - CRUD operations for categories
 - Nested topic support
 - UI for creating/editing categories
@@ -366,6 +403,7 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
 - Category filtering in flashcard view
 
 **Task 7: Photo Input & OCR**
+
 - Photo capture/upload UI
 - Image processing (Convex action)
 - OCR/vision AI integration
@@ -375,15 +413,18 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
 ## 📚 Key Files Reference
 
 ### Documentation
+
 - `dev-docs/2-areas/design-tokens.md` - Complete design token reference
 - `dev-docs/2-areas/architecture.md` - Tech stack & authentication details
 - `dev-docs/2-areas/theme-sync.md` - Theme sync to Convex guide
 - `dev-docs/2-areas/product-vision-and-plan.md` - This file
 
 ### Rules & Guidelines
+
 - `.cursor/rules/way-of-working.mdc` - **CRITICAL**: Token usage rules (ALWAYS check)
 
 ### Core Components
+
 - `src/lib/components/Sidebar.svelte` - Main sidebar component
 - `src/lib/components/sidebar/SidebarHeader.svelte` - Sidebar header
 - `src/lib/components/sidebar/WorkspaceMenu.svelte` - Workspace dropdown
@@ -392,10 +433,12 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
 - `src/routes/flashcards/+page.svelte` - Flashcard UI (currently uses mock data)
 
 ### Design System
+
 - `src/app.css` - **ALL DESIGN TOKENS HERE** (spacing, colors, typography)
 - `src/lib/stores/theme.ts` - Theme management store
 
 ### Backend (Convex)
+
 - `convex/schema.ts` - Database schema (needs to be created/expanded)
 - `convex/auth.ts` - Authentication setup
 - `convex/http.ts` - HTTP routes
@@ -435,103 +478,111 @@ SynergyOS helps users collect, organize, distill, and express knowledge from div
 ### Flashcard Schema Design
 
 **Core Flashcard Table:**
+
 ```typescript
 flashcards: defineTable({
-  userId: v.id("users"),
-  question: v.string(),
-  answer: v.string(),
-  sourceInboxItemId: v.optional(v.id("inboxItems")), // Link to source
-  sourceType: v.optional(v.string()), // "readwise_highlight", "photo_note", etc.
-  // SRS Algorithm Support
-  algorithm: v.string(), // "fsrs", "anki2", "custom" (user-selectable)
-  // FSRS-specific fields (if algorithm = "fsrs")
-  fsrsStability: v.optional(v.number()),
-  fsrsDifficulty: v.optional(v.number()),
-  fsrsDue: v.optional(v.number()), // Next review timestamp
-  fsrsState: v.optional(v.union(
-    v.literal("new"),
-    v.literal("learning"),
-    v.literal("review"),
-    v.literal("relearning")
-  )),
-  // Anki2-specific fields (if algorithm = "anki2")
-  ankiEase: v.optional(v.number()),
-  ankiInterval: v.optional(v.number()),
-  ankiDue: v.optional(v.number()),
-  // Common fields
-  reps: v.number(), // Total reviews
-  lapses: v.number(), // Times forgotten
-  lastReviewAt: v.optional(v.number()),
-  createdAt: v.number(),
+	userId: v.id('users'),
+	question: v.string(),
+	answer: v.string(),
+	sourceInboxItemId: v.optional(v.id('inboxItems')), // Link to source
+	sourceType: v.optional(v.string()), // "readwise_highlight", "photo_note", etc.
+	// SRS Algorithm Support
+	algorithm: v.string(), // "fsrs", "anki2", "custom" (user-selectable)
+	// FSRS-specific fields (if algorithm = "fsrs")
+	fsrsStability: v.optional(v.number()),
+	fsrsDifficulty: v.optional(v.number()),
+	fsrsDue: v.optional(v.number()), // Next review timestamp
+	fsrsState: v.optional(
+		v.union(v.literal('new'), v.literal('learning'), v.literal('review'), v.literal('relearning'))
+	),
+	// Anki2-specific fields (if algorithm = "anki2")
+	ankiEase: v.optional(v.number()),
+	ankiInterval: v.optional(v.number()),
+	ankiDue: v.optional(v.number()),
+	// Common fields
+	reps: v.number(), // Total reviews
+	lapses: v.number(), // Times forgotten
+	lastReviewAt: v.optional(v.number()),
+	createdAt: v.number()
 })
-  .index("by_user", ["userId"])
-  .index("by_user_algorithm", ["userId", "algorithm"])
-  .index("by_user_due", ["userId", "algorithm", "fsrsDue"]) // For FSRS
-  .index("by_user_anki_due", ["userId", "algorithm", "ankiDue"]) // For Anki2
-  .index("by_source", ["sourceInboxItemId"])
+	.index('by_user', ['userId'])
+	.index('by_user_algorithm', ['userId', 'algorithm'])
+	.index('by_user_due', ['userId', 'algorithm', 'fsrsDue']) // For FSRS
+	.index('by_user_anki_due', ['userId', 'algorithm', 'ankiDue']) // For Anki2
+	.index('by_source', ['sourceInboxItemId']);
 ```
 
 **Review History Table:**
+
 ```typescript
 flashcardReviews: defineTable({
-  flashcardId: v.id("flashcards"),
-  userId: v.id("users"),
-  rating: v.union(
-    v.literal("again"), // Rating.Again
-    v.literal("hard"),  // Rating.Hard
-    v.literal("good"),  // Rating.Good
-    v.literal("easy")   // Rating.Easy
-  ),
-  algorithm: v.string(), // Which algorithm was used
-  reviewTime: v.number(), // Time spent (seconds)
-  reviewedAt: v.number(), // Timestamp
-  // Algorithm-specific review data
-  fsrsLog: v.optional(v.object({
-    stability: v.number(),
-    difficulty: v.number(),
-    scheduledDays: v.number(),
-  })),
+	flashcardId: v.id('flashcards'),
+	userId: v.id('users'),
+	rating: v.union(
+		v.literal('again'), // Rating.Again
+		v.literal('hard'), // Rating.Hard
+		v.literal('good'), // Rating.Good
+		v.literal('easy') // Rating.Easy
+	),
+	algorithm: v.string(), // Which algorithm was used
+	reviewTime: v.number(), // Time spent (seconds)
+	reviewedAt: v.number(), // Timestamp
+	// Algorithm-specific review data
+	fsrsLog: v.optional(
+		v.object({
+			stability: v.number(),
+			difficulty: v.number(),
+			scheduledDays: v.number()
+		})
+	)
 })
-  .index("by_flashcard", ["flashcardId"])
-  .index("by_user", ["userId"])
-  .index("by_user_reviewed", ["userId", "reviewedAt"])
+	.index('by_flashcard', ['flashcardId'])
+	.index('by_user', ['userId'])
+	.index('by_user_reviewed', ['userId', 'reviewedAt']);
 ```
 
 **User Algorithm Settings:**
+
 ```typescript
 userAlgorithmSettings: defineTable({
-  userId: v.id("users"),
-  defaultAlgorithm: v.string(), // "fsrs" | "anki2" | "custom"
-  fsrsParams: v.optional(v.object({
-    // FSRS parameters (customizable)
-    enableFuzz: v.boolean(),
-    maximumInterval: v.number(),
-    // ... other FSRS params
-  })),
-  anki2Params: v.optional(v.object({
-    // Anki2 parameters
-    initialFactor: v.number(),
-    // ... other Anki2 params
-  })),
-  // Feature flags for A/B testing
-  algorithmFeatureFlags: v.optional(v.object({
-    testFSRS: v.boolean(),
-    testAnki2: v.boolean(),
-    // ... other flags
-  })),
-})
-  .index("by_user", ["userId"])
+	userId: v.id('users'),
+	defaultAlgorithm: v.string(), // "fsrs" | "anki2" | "custom"
+	fsrsParams: v.optional(
+		v.object({
+			// FSRS parameters (customizable)
+			enableFuzz: v.boolean(),
+			maximumInterval: v.number()
+			// ... other FSRS params
+		})
+	),
+	anki2Params: v.optional(
+		v.object({
+			// Anki2 parameters
+			initialFactor: v.number()
+			// ... other Anki2 params
+		})
+	),
+	// Feature flags for A/B testing
+	algorithmFeatureFlags: v.optional(
+		v.object({
+			testFSRS: v.boolean(),
+			testAnki2: v.boolean()
+			// ... other flags
+		})
+	)
+}).index('by_user', ['userId']);
 ```
 
 **Flashcard Tags (Many-to-Many):**
+
 ```typescript
 flashcardTags: defineTable({
-  flashcardId: v.id("flashcards"),
-  tagId: v.id("tags"),
+	flashcardId: v.id('flashcards'),
+	tagId: v.id('tags')
 })
-  .index("by_flashcard", ["flashcardId"])
-  .index("by_tag", ["tagId"])
-  .index("by_flashcard_tag", ["flashcardId", "tagId"])
+	.index('by_flashcard', ['flashcardId'])
+	.index('by_tag', ['tagId'])
+	.index('by_flashcard_tag', ['flashcardId', 'tagId']);
 ```
 
 ### Study Session Loading Strategy
@@ -541,30 +592,31 @@ flashcardTags: defineTable({
 **Solution**: Query only cards needed for current session
 
 **Efficient Query Pattern:**
+
 ```typescript
 // Get next 10 cards due for review (FSRS example)
 const getDueCards = query({
-  args: {
-    userId: v.id("users"),
-    algorithm: v.string(),
-    limit: v.number(), // Default: 10, user-configurable
-  },
-  handler: async (ctx, args) => {
-    const now = Date.now();
-    return await ctx.db
-      .query("flashcards")
-      .withIndex("by_user_due", (q) =>
-        q.eq("userId", args.userId)
-         .eq("algorithm", args.algorithm)
-         .lte("fsrsDue", now) // Only due cards
-      )
-      .order("asc") // Oldest due first
-      .take(args.limit); // Limit to session size
-  },
+	args: {
+		userId: v.id('users'),
+		algorithm: v.string(),
+		limit: v.number() // Default: 10, user-configurable
+	},
+	handler: async (ctx, args) => {
+		const now = Date.now();
+		return await ctx.db
+			.query('flashcards')
+			.withIndex(
+				'by_user_due',
+				(q) => q.eq('userId', args.userId).eq('algorithm', args.algorithm).lte('fsrsDue', now) // Only due cards
+			)
+			.order('asc') // Oldest due first
+			.take(args.limit); // Limit to session size
+	}
 });
 ```
 
 **Performance Optimizations:**
+
 - Use indexes on `(userId, algorithm, dueDate)` for efficient queries
 - Limit query results to session size (default 10)
 - Cache algorithm parameters in user settings
@@ -578,6 +630,7 @@ const getDueCards = query({
 **Question**: Which SRS algorithm(s) should we support?
 
 **Options:**
+
 1. **FSRS (Free Spaced Repetition Scheduler)** - Recommended
    - Modern, ML-optimized
    - TypeScript library available (`ts-fsrs`)
@@ -596,6 +649,7 @@ const getDueCards = query({
 **Recommendation**: Start with FSRS, add Anki2 as option, allow user to switch per deck/category.
 
 **Feature Flags for Testing:**
+
 - Allow A/B testing between algorithms
 - Track effectiveness metrics
 - User can opt-in to algorithm testing
@@ -605,6 +659,7 @@ const getDueCards = query({
 **Question**: When is an inbox item "done"?
 
 **Current Understanding:**
+
 1. **Unprocessed**: New item in inbox
 2. **Tagged** (optional): User adds tags during organize phase
 3. **Action Required**: User decides:
@@ -613,12 +668,14 @@ const getDueCards = query({
 4. **Processed/Archived**: Removed from active inbox
 
 **Open Questions:**
+
 - Should tagging be required before creating flashcards?
 - Can items be processed multiple times (create flashcards, then archive later)?
 - Should we track "flashcards created from this item" count?
 - Do we need an "archive" status or just "processed"?
 
-**Recommendation**: 
+**Recommendation**:
+
 - Tagging is optional (user can skip organize phase)
 - Items can have multiple actions (create flashcards AND archive)
 - Track `flashcardsCreatedCount` on inbox items
@@ -631,7 +688,8 @@ const getDueCards = query({
 **Current Schema**: Tags table exists, junction tables for sources/highlights
 
 **Decisions Needed:**
-1. **Flashcard Tags**: 
+
+1. **Flashcard Tags**:
    - ✅ Flashcards inherit tags from source inbox item
    - ✅ User can add/remove tags during review
    - ✅ Tags stored in `flashcardTags` junction table
@@ -645,7 +703,8 @@ const getDueCards = query({
    - ✅ Already supported in schema (`parentId` field)
    - ⏳ UI for hierarchical tag management
 
-**Recommendation**: 
+**Recommendation**:
+
 - Use existing tag system (tags table + junction tables)
 - Add `inboxItemTags` if needed for direct tagging
 - Support tag inheritance: inbox item → flashcard
@@ -655,12 +714,14 @@ const getDueCards = query({
 **Question**: What should be the default session size and behavior?
 
 **Decisions:**
+
 - ✅ Default session size: **10 cards** (user-configurable in settings)
 - ⏳ Default algorithm: **FSRS** (user can change)
 - ⏳ Session behavior: Show only due cards, or mix new + due?
 - ⏳ Should sessions be time-limited or card-limited?
 
 **Recommendation**:
+
 - Default: 10 cards, FSRS algorithm, due cards only
 - User can configure in settings
 - Future: "Study for 15 minutes" mode
@@ -668,6 +729,7 @@ const getDueCards = query({
 ## 🏁 Success Criteria for MVP
 
 ### Minimum Viable Product (MVP) - Phase 2 Status
+
 1. ✅ Universal inbox UI (DONE)
 2. ⏳ Readwise highlights import (Phase 2B - Future)
 3. ✅ User review workflow (tagging optional - UI ready, backend integration pending)
@@ -676,12 +738,14 @@ const getDueCards = query({
 6. ✅ Inbox item lifecycle (processed/archived) (DONE)
 
 ### Phase 3: Study System (Future)
+
 7. ⏳ Study session loading (efficient queries)
 8. ⏳ FSRS algorithm integration
 9. ⏳ Rating system (Again/Hard/Good/Easy)
 10. ⏳ Review history tracking
 
 ### Beyond MVP
+
 - Photo input & OCR
 - Additional output types (notes, templates)
 - Anki2 algorithm support
@@ -705,4 +769,3 @@ const getDueCards = query({
 - `dev-docs/2-areas/multi-tenancy-migration.md` - Multi-tenancy architecture and migration guide
 - `marketing-docs/brand/identity.md` - SynergyOS brand identity and voice
 - `convex/schema.ts` - Current database schema
-

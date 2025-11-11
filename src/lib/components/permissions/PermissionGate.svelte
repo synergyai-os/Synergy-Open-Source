@@ -1,17 +1,17 @@
 <script lang="ts">
 	/**
 	 * Permission Gate Component
-	 * 
+	 *
 	 * Conditionally renders children based on user permissions.
 	 * Uses design tokens for loading/error states.
-	 * 
+	 *
 	 * @see dev-docs/rbac-architecture.md - Permission system architecture
 	 * @see dev-docs/2-areas/design-tokens.md - Design token reference
-	 * 
+	 *
 	 * @example
 	 * ```svelte
-	 * <PermissionGate 
-	 *   can="teams.create" 
+	 * <PermissionGate
+	 *   can="teams.create"
 	 *   {permissions}
 	 *   fallback="You don't have permission to create teams"
 	 * >
@@ -38,20 +38,24 @@
 		showLoading?: boolean;
 	}
 
-	let { can, permissions, children, fallback, fallbackSnippet, showLoading = true }: Props =
-		$props();
+	let {
+		can,
+		permissions,
+		children,
+		fallback,
+		fallbackSnippet,
+		showLoading = true
+	}: Props = $props();
 
 	const hasPermission = $derived(permissions.can(can));
 </script>
 
 {#if permissions.isLoading && showLoading}
 	<!-- Loading state with design tokens -->
-	<div class="px-nav-item py-nav-item text-secondary text-sm">Loading permissions...</div>
+	<div class="px-nav-item py-nav-item text-sm text-secondary">Loading permissions...</div>
 {:else if permissions.error}
 	<!-- Error state with design tokens -->
-	<div class="px-nav-item py-nav-item text-sm text-error">
-		Error loading permissions
-	</div>
+	<div class="text-error px-nav-item py-nav-item text-sm">Error loading permissions</div>
 {:else if hasPermission}
 	<!-- Render children if user has permission -->
 	{@render children()}
@@ -60,8 +64,7 @@
 	{@render fallbackSnippet()}
 {:else if fallback}
 	<!-- Render fallback message with design tokens -->
-	<div class="px-nav-item py-nav-item text-secondary text-sm">
+	<div class="px-nav-item py-nav-item text-sm text-secondary">
 		{fallback}
 	</div>
 {/if}
-

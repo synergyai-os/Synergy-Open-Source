@@ -7,6 +7,7 @@
 ## 📂 Document Structure
 
 ### Strategy
+
 Core product vision, strategy, and positioning documents that define what we're building and why.
 
 - **[Product Vision 2.0](./strategy/product-vision-2.0.md)** - The evolved vision: from personal knowledge tool to organizational product platform
@@ -15,12 +16,14 @@ Core product vision, strategy, and positioning documents that define what we're 
 - **[Roadmap Themes](./strategy/roadmap.md)** - High-level outcome-driven roadmap (no dates, just outcomes)
 
 ### Audience
+
 Who we're building for, their problems, and how we solve them.
 
 - **[Target Personas](./audience/target-personas.md)** - Buyer (Saprolab), Users (Saprolab + ZDHC), System personas
 - **[Success Signals](./audience/success-signals.md)** - How we know we're winning (usage, feedback, contributions)
 
 ### Go-to-Market
+
 How we acquire users, build community, and create awareness.
 
 - **[Community Strategy](./go-to-market/community-strategy.md)** - Building an open-source community of product builders
@@ -28,6 +31,7 @@ How we acquire users, build community, and create awareness.
 - **[Social Automation](./go-to-market/social-automation.md)** - AI-powered content distribution from journey blog
 
 ### Launch Plans
+
 Actionable plans to start building momentum.
 
 - **[1-Day Community Launch](./launch-plans/1-day-community-launch.md)** - Todo list to launch community in 24 hours
@@ -35,6 +39,7 @@ Actionable plans to start building momentum.
 - **[Journey Blog Topics](./launch-plans/journey-blog-topics.md)** - Blog post ideas organized by persona pain points
 
 ### Opportunities
+
 High-level ideas to explore and iterate on.
 
 - **[High-Level Ideas](./opportunities/high-level-ideas.md)** - All potential opportunities and directions
@@ -46,15 +51,18 @@ High-level ideas to explore and iterate on.
 ## 🎯 Quick Start
 
 **If you're new here:**
+
 1. Read **[Product Vision 2.0](./strategy/product-vision-2.0.md)** to understand what we're building
 2. Check **[Target Personas](./audience/target-personas.md)** to see who we serve
 3. Review **[1-Day Community Launch](./launch-plans/1-day-community-launch.md)** to start building momentum
 
 **If you're building:**
+
 - Reference **[Product Strategy](./strategy/product-strategy.md)** for outcome-driven priorities
 - Use **[Success Signals](./audience/success-signals.md)** to validate features
 
 **If you're marketing:**
+
 - Follow **[Community Strategy](./go-to-market/community-strategy.md)** for growth
 - Use **[Journey Blog Topics](./launch-plans/journey-blog-topics.md)** for content ideas
 
@@ -77,13 +85,14 @@ No VC funding. No deadlines. Just rapid iterations, outcome-driven development, 
 Open source. Offline-capable. Self-hostable. Your data, your AI, your privacy.
 
 **Outcomes over outputs**  
-We don't ship features. We achieve outcomes. Every document here is focused on *what success looks like*, not *when we'll ship*.
+We don't ship features. We achieve outcomes. Every document here is focused on _what success looks like_, not _when we'll ship_.
 
 ---
 
 ## 🤝 Contributing
 
 These documents are living artifacts. As we learn, we update them. If you're contributing:
+
 - Focus on **outcomes**, not timelines
 - Keep it **concise but detailed** enough to dive deeper
 - Use **high-level concepts**—we'll figure out implementation together
@@ -95,4 +104,3 @@ These documents are living artifacts. As we learn, we update them. If you're con
 **Status**: Active Development  
 **Budget**: $60/month (Cursor AI)  
 **First Partner**: Saprolab (targeting ZDHC team)
-

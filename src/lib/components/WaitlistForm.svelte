@@ -9,12 +9,12 @@
 	let isSubmitting = $state(false);
 	let error = $state<string | null>(null);
 	let success = $state(false);
-	
+
 	const client = useConvexClient();
 
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
-		
+
 		if (!email || email.trim().length === 0) {
 			error = 'Email is required';
 			return;
@@ -26,7 +26,7 @@
 		try {
 			await client.mutation(api.waitlist.joinWaitlist, {
 				email: email.trim(),
-				name: name.trim() || undefined,
+				name: name.trim() || undefined
 			});
 
 			success = true;
@@ -84,11 +84,7 @@
 				</div>
 			{/if}
 
-			<button
-				type="submit"
-				class="submit-button"
-				disabled={isSubmitting}
-			>
+			<button type="submit" class="submit-button" disabled={isSubmitting}>
 				{isSubmitting ? 'Joining...' : 'Join the Waitlist'}
 			</button>
 
@@ -205,4 +201,3 @@
 		font-size: 1rem;
 	}
 </style>
-

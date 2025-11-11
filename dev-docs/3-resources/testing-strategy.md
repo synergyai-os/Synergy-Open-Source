@@ -16,19 +16,23 @@
 ## 📊 What to Test (Prioritized)
 
 ### 1. **Business Logic** ⭐ HIGHEST PRIORITY
+
 **What**: Functions that transform data, calculate values, make decisions  
 **Why**: Bugs here break core functionality  
-**Example**: 
+**Example**:
+
 - Filtering inbox items by type
 - Calculating sync progress percentages
 - Data transformation (Readwise → InboxItem)
 
 **Test**: Pure functions, validation logic, state management
 
-### 2. **Integration Points** ⭐ HIGH PRIORITY  
+### 2. **Integration Points** ⭐ HIGH PRIORITY
+
 **What**: Connections between systems (API calls, database queries)  
 **Why**: External dependencies fail silently  
 **Example**:
+
 - Convex queries/mutations
 - Readwise API calls
 - Authentication flow
@@ -36,9 +40,11 @@
 **Test**: Mock external calls, verify data flow
 
 ### 3. **User Workflows** ⭐ MEDIUM PRIORITY
+
 **What**: Critical paths users take  
 **Why**: Broken workflows block users  
 **Example**:
+
 - Login → View inbox → Select item
 - Sync Readwise → See progress → View new items
 - Generate flashcard → Study
@@ -46,9 +52,11 @@
 **Test**: End-to-end (E2E) tests for happy paths
 
 ### 4. **Edge Cases** ⚠️ LOW PRIORITY (Only Critical Ones)
+
 **What**: Unusual but possible scenarios  
 **Why**: Only test if they cause real problems  
 **Example**:
+
 - Empty inbox state
 - API timeout handling
 - Invalid API key
@@ -60,6 +68,7 @@
 ## ❌ What NOT to Test
 
 ### Don't Test These:
+
 - **UI rendering** (unless it's critical to UX)
 - **Styling/CSS** (visual testing is manual)
 - **Third-party libraries** (they test themselves)
@@ -73,9 +82,11 @@
 ## 🛠️ Testing Types (What Tool for What Job)
 
 ### **Unit Tests** (Vitest) - Pure Logic
+
 **Use for**: Composables, utility functions, data transformations
 
 **Example**: Testing `useInboxItems` filtering logic
+
 ```typescript
 // ✅ Good: Tests business logic
 test('filters items by type', () => {
@@ -94,30 +105,34 @@ test('useInboxItems returns reactive state', () => {
 ```
 
 ### **Integration Tests** (Vitest) - Connected Systems
+
 **Use for**: Convex queries/mutations, API integrations
 
 **Example**: Testing sync workflow
+
 ```typescript
 // ✅ Good: Tests integration with Convex
 test('syncReadwise imports highlights', async () => {
-  const mockClient = createMockConvexClient();
-  const result = await syncReadwise(mockClient, { quantity: 10 });
-  expect(result.newCount).toBeGreaterThan(0);
+	const mockClient = createMockConvexClient();
+	const result = await syncReadwise(mockClient, { quantity: 10 });
+	expect(result.newCount).toBeGreaterThan(0);
 });
 ```
 
 ### **E2E Tests** (Playwright) - User Workflows
+
 **Use for**: Critical user paths, happy paths
 
 **Example**: Testing complete sync flow
+
 ```typescript
 // ✅ Good: Tests user workflow
 test('user can sync Readwise highlights', async ({ page }) => {
-  await page.goto('/inbox');
-  await page.click('button:has-text("Sync")');
-  await page.fill('[name="quantity"]', '10');
-  await page.click('button:has-text("Import")');
-  await expect(page.locator('text=Imported 10')).toBeVisible();
+	await page.goto('/inbox');
+	await page.click('button:has-text("Sync")');
+	await page.fill('[name="quantity"]', '10');
+	await page.click('button:has-text("Import")');
+	await expect(page.locator('text=Imported 10')).toBeVisible();
 });
 ```
 
@@ -129,22 +144,23 @@ test('user can sync Readwise highlights', async ({ page }) => {
 
 ```typescript
 test('description of what it does', () => {
-  // ARRANGE: Set up test data
-  const items = [
-    { type: 'readwise_highlight', processed: false },
-    { type: 'photo_note', processed: false }
-  ];
-  
-  // ACT: Do the thing
-  const filtered = filterByType(items, 'readwise_highlight');
-  
-  // ASSERT: Check the result
-  expect(filtered).toHaveLength(1);
-  expect(filtered[0].type).toBe('readwise_highlight');
+	// ARRANGE: Set up test data
+	const items = [
+		{ type: 'readwise_highlight', processed: false },
+		{ type: 'photo_note', processed: false }
+	];
+
+	// ACT: Do the thing
+	const filtered = filterByType(items, 'readwise_highlight');
+
+	// ASSERT: Check the result
+	expect(filtered).toHaveLength(1);
+	expect(filtered[0].type).toBe('readwise_highlight');
 });
 ```
 
 ### Keep Tests Simple
+
 - **One assertion per test** (when possible)
 - **Clear test names** (describe what happens)
 - **Test behavior, not implementation**
@@ -156,15 +172,18 @@ test('description of what it does', () => {
 Before you ship, ask: **"What would break my confidence?"**
 
 ### ✅ Must Have (Before Any Release)
+
 - [ ] Critical user workflows work (E2E)
 - [ ] Business logic functions correctly (Unit)
 - [ ] Data sync works (Integration)
 
 ### ✅ Should Have (Before Major Features)
+
 - [ ] Error handling works (try/catch scenarios)
 - [ ] Edge cases that broke before (regression tests)
 
 ### ⚠️ Nice to Have (When Time Permits)
+
 - [ ] UI component rendering (if complex)
 - [ ] Performance under load (if relevant)
 
@@ -173,12 +192,13 @@ Before you ship, ask: **"What would break my confidence?"**
 ## 🚀 Quick Start Guide
 
 ### 1. Test Your First Function
+
 Pick a pure function (no side effects) and test it:
 
 ```typescript
 // src/lib/utils/filterInboxItems.ts
 export function filterByType(items: InboxItem[], type: string) {
-  return items.filter(item => item.type === type);
+	return items.filter((item) => item.type === type);
 }
 
 // src/lib/utils/filterInboxItems.test.ts
@@ -186,40 +206,42 @@ import { describe, it, expect } from 'vitest';
 import { filterByType } from './filterInboxItems';
 
 describe('filterByType', () => {
-  it('filters items by type', () => {
-    const items = [
-      { type: 'readwise_highlight', id: '1' },
-      { type: 'photo_note', id: '2' }
-    ];
-    
-    const result = filterByType(items, 'readwise_highlight');
-    
-    expect(result).toHaveLength(1);
-    expect(result[0].id).toBe('1');
-  });
-  
-  it('returns empty array when no matches', () => {
-    const items = [{ type: 'readwise_highlight', id: '1' }];
-    const result = filterByType(items, 'photo_note');
-    expect(result).toHaveLength(0);
-  });
+	it('filters items by type', () => {
+		const items = [
+			{ type: 'readwise_highlight', id: '1' },
+			{ type: 'photo_note', id: '2' }
+		];
+
+		const result = filterByType(items, 'readwise_highlight');
+
+		expect(result).toHaveLength(1);
+		expect(result[0].id).toBe('1');
+	});
+
+	it('returns empty array when no matches', () => {
+		const items = [{ type: 'readwise_highlight', id: '1' }];
+		const result = filterByType(items, 'photo_note');
+		expect(result).toHaveLength(0);
+	});
 });
 ```
 
 ### 2. Test a Composable
+
 Test the logic, not the reactivity:
 
 ```typescript
 // Test the filtering logic, not Svelte runes
 describe('useInboxItems filtering', () => {
-  it('filters by type correctly', () => {
-    // Test the filter function, not the composable itself
-    // (Composables are harder to test, focus on pure functions)
-  });
+	it('filters by type correctly', () => {
+		// Test the filter function, not the composable itself
+		// (Composables are harder to test, focus on pure functions)
+	});
 });
 ```
 
 ### 3. Test a User Workflow (E2E)
+
 Pick one critical path and test it:
 
 ```typescript
@@ -227,18 +249,18 @@ Pick one critical path and test it:
 import { test, expect } from '@playwright/test';
 
 test('user can sync Readwise highlights', async ({ page }) => {
-  // Login (if needed)
-  await page.goto('/inbox');
-  
-  // Click sync button
-  await page.click('button:has-text("Sync")');
-  
-  // Configure sync
-  await page.fill('[name="quantity"]', '10');
-  await page.click('button:has-text("Import")');
-  
-  // Wait for success
-  await expect(page.locator('text=/Imported \\d+/')).toBeVisible();
+	// Login (if needed)
+	await page.goto('/inbox');
+
+	// Click sync button
+	await page.click('button:has-text("Sync")');
+
+	// Configure sync
+	await page.fill('[name="quantity"]', '10');
+	await page.click('button:has-text("Import")');
+
+	// Wait for success
+	await expect(page.locator('text=/Imported \\d+/')).toBeVisible();
 });
 ```
 
@@ -247,12 +269,14 @@ test('user can sync Readwise highlights', async ({ page }) => {
 ## 🔍 When to Write Tests
 
 ### ✅ Write Tests When:
+
 - **Adding new business logic** (calculations, transformations)
 - **Fixing a bug** (write test first to prevent regression)
 - **Integrating with external APIs** (mock and verify)
 - **Before refactoring** (tests give you confidence)
 
 ### ❌ Don't Write Tests When:
+
 - **Just styling/UI** (manual check is faster)
 - **Simple pass-through code** (no logic to test)
 - **Exploring/prototyping** (test when it stabilizes)
@@ -262,16 +286,19 @@ test('user can sync Readwise highlights', async ({ page }) => {
 ## 🎓 Learning Path
 
 ### Week 1: Start Simple
+
 - Write 1 unit test for a pure function
 - Write 1 E2E test for a critical workflow
 - Run tests before committing
 
 ### Week 2: Build Habits
+
 - Test new business logic as you write it
 - Test bug fixes before fixing them
 - Keep tests simple and focused
 
 ### Week 3: Refine
+
 - Remove tests that don't add value
 - Focus on what breaks confidence
 - Document patterns that work
@@ -300,10 +327,12 @@ test('user can sync Readwise highlights', async ({ page }) => {
 ## 📚 Examples in This Codebase
 
 ### Good Test Examples
+
 - `e2e/demo.test.ts` - Simple E2E test
 - Future: Unit tests for composable logic
 
 ### What to Test Next
+
 1. **Inbox filtering logic** (pure function)
 2. **Sync progress calculation** (business logic)
 3. **Readwise data transformation** (integration)
@@ -321,4 +350,3 @@ test('user can sync Readwise highlights', async ({ page }) => {
 - ✅ Keep it simple
 
 **You don't need to test everything. Test what lets you ship with confidence.**
-

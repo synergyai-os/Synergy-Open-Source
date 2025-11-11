@@ -7,6 +7,7 @@ npm install --save-dev mdsvex rehype-slug rehype-autolink-headings shiki fuse.js
 ```
 
 This will install:
+
 - `mdsvex` - MDX support for SvelteKit
 - `rehype-slug` - Auto-generate heading IDs
 - `rehype-autolink-headings` - Add anchor links to headings
@@ -14,4 +15,3 @@ This will install:
 - `fuse.js` - Fuzzy search for Cmd+K functionality
 
 After installation, you can delete this file.
-

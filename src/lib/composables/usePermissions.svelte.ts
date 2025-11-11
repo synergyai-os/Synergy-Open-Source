@@ -1,12 +1,12 @@
 /**
  * Composable for checking user permissions
- * 
+ *
  * Provides reactive permission checking based on RBAC system.
  * Follows Svelte 5 composable patterns:
  * - Single $state object for reactivity
  * - Getters for reactive returns
  * - Function parameters for reactive inputs
- * 
+ *
  * @see dev-docs/2-areas/patterns/svelte-reactivity.md - Pattern #L10, #L80
  * @see dev-docs/rbac-architecture.md - Permission system architecture
  */
@@ -32,18 +32,18 @@ export interface UsePermissionsReturn {
 
 /**
  * Hook to check user permissions reactively
- * 
+ *
  * @example
  * ```svelte
  * <script lang="ts">
  *   import { usePermissions } from '$lib/composables/usePermissions.svelte';
- *   
+ *
  *   const permissions = usePermissions({
  *     userId: () => $currentUserId,
  *     organizationId: () => $activeOrganizationId
  *   });
  * </script>
- * 
+ *
  * {#if permissions.can('teams.create')}
  *   <button>Create Team</button>
  * {/if}
@@ -52,28 +52,25 @@ export interface UsePermissionsReturn {
 export function usePermissions(params: UsePermissionsParams): UsePermissionsReturn {
 	// Query user permissions from Convex
 	const permissionsQuery = browser
-		? useQuery(
-				api.rbac.permissions.getUserPermissionsQuery,
-				() => {
-					const userId = params.userId();
-					if (!userId) return 'skip' as any;
+		? useQuery(api.rbac.permissions.getUserPermissionsQuery, () => {
+				const userId = params.userId();
+				if (!userId) return 'skip' as any;
 
-					const args: any = { userId };
+				const args: any = { userId };
 
-					// Add context filters
-					const orgId = params.organizationId?.();
-					const teamId = params.teamId?.();
+				// Add context filters
+				const orgId = params.organizationId?.();
+				const teamId = params.teamId?.();
 
-					if (orgId !== undefined) {
-						args.organizationId = orgId;
-					}
-					if (teamId) {
-						args.teamId = teamId;
-					}
-
-					return args;
+				if (orgId !== undefined) {
+					args.organizationId = orgId;
 				}
-		  )
+				if (teamId) {
+					args.teamId = teamId;
+				}
+
+				return args;
+			})
 		: null;
 
 	// Derive permissions array from query
@@ -87,7 +84,7 @@ export function usePermissions(params: UsePermissionsParams): UsePermissionsRetu
 
 	/**
 	 * Check if user has a specific permission
-	 * 
+	 *
 	 * @param action - Permission slug (e.g., "teams.create")
 	 * @returns true if user has the permission
 	 */
@@ -97,7 +94,7 @@ export function usePermissions(params: UsePermissionsParams): UsePermissionsRetu
 
 	/**
 	 * Check if user does NOT have a specific permission
-	 * 
+	 *
 	 * @param action - Permission slug (e.g., "teams.create")
 	 * @returns true if user lacks the permission
 	 */
@@ -120,4 +117,3 @@ export function usePermissions(params: UsePermissionsParams): UsePermissionsRetu
 		cannot
 	};
 }
-

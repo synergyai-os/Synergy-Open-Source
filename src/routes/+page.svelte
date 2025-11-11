@@ -22,17 +22,17 @@
 		{
 			emoji: '💸',
 			title: '$50-200/user/month',
-			description: '10 tools that don\'t talk to each other. Holaspirit alone was bleeding us dry.'
+			description: "10 tools that don't talk to each other. Holaspirit alone was bleeding us dry."
 		},
 		{
 			emoji: '🔒',
 			title: 'Vendor Lock-In',
-			description: 'Your data trapped in someone else\'s database. Export? Good luck with that.'
+			description: "Your data trapped in someone else's database. Export? Good luck with that."
 		},
 		{
 			emoji: '🤖',
 			title: 'AI Feels Like Hype',
-			description: 'Generic ChatGPT doesn\'t know your company. You need AI trained on YOUR data.'
+			description: "Generic ChatGPT doesn't know your company. You need AI trained on YOUR data."
 		}
 	];
 
@@ -41,13 +41,16 @@
 		{ value: '12', label: 'GitHub Stars (so far)' },
 		{ value: '45', label: 'Docs Pages (AI-readable)' },
 		{ value: '3', label: 'Core Contributors' },
-		{ value: '12', label: 'Open PRs (we\'re shipping)' }
+		{ value: '12', label: "Open PRs (we're shipping)" }
 	];
 </script>
 
 <svelte:head>
 	<title>SynergyOS - The Product OS Built by Builders</title>
-	<meta name="description" content="Open source Product OS. Built with AI, for builders who want control over their data." />
+	<meta
+		name="description"
+		content="Open source Product OS. Built with AI, for builders who want control over their data."
+	/>
 </svelte:head>
 
 <Header isAuthenticated={data.isAuthenticated} />
@@ -55,30 +58,62 @@
 <div class="homepage-layout">
 	<!-- Hero Section -->
 	<section class="hero-section bg-surface">
-		<div class="hero-content px-inbox-container py-readable-quote max-w-readable mx-auto text-center">
+		<div
+			class="hero-content mx-auto max-w-readable px-inbox-container py-readable-quote text-center"
+		>
 			<!-- Badge -->
-			<div class="badge" in:fly={{ y: -20, duration: prefersReducedMotion ? 0 : 300, delay: prefersReducedMotion ? 0 : 100, easing: quintOut }}>
+			<div
+				class="badge"
+				in:fly={{
+					y: -20,
+					duration: prefersReducedMotion ? 0 : 300,
+					delay: prefersReducedMotion ? 0 : 100,
+					easing: quintOut
+				}}
+			>
 				<span class="badge-icon">🤖</span>
 				<span class="badge-text">Co-built with Claude Sonnet 4.5</span>
 			</div>
 
 			<!-- Headline -->
-			<h1 class="hero-title text-primary" in:fly={{ y: 20, duration: prefersReducedMotion ? 0 : 300, delay: prefersReducedMotion ? 0 : 200, easing: quintOut }}>
+			<h1
+				class="hero-title text-primary"
+				in:fly={{
+					y: 20,
+					duration: prefersReducedMotion ? 0 : 300,
+					delay: prefersReducedMotion ? 0 : 200,
+					easing: quintOut
+				}}
+			>
 				The Product OS we built<br />
 				<span class="gradient-text">because Holaspirit cost too much</span>
 			</h1>
 
 			<!-- Subheading -->
-			<p class="hero-lead text-secondary" in:fly={{ y: 20, duration: prefersReducedMotion ? 0 : 300, delay: prefersReducedMotion ? 0 : 300, easing: quintOut }}>
+			<p
+				class="hero-lead text-secondary"
+				in:fly={{
+					y: 20,
+					duration: prefersReducedMotion ? 0 : 300,
+					delay: prefersReducedMotion ? 0 : 300,
+					easing: quintOut
+				}}
+			>
 				Open source. AI-augmented. Built by builders, for builders.<br />
 				No subscriptions. No vendor lock-in. Just code.
 			</p>
 
 			<!-- CTAs -->
-			<div class="cta-group" in:fly={{ y: 20, duration: prefersReducedMotion ? 0 : 300, delay: prefersReducedMotion ? 0 : 400, easing: quintOut }}>
-				<a href="#waitlist" class="cta-primary">
-					Join the Waitlist
-				</a>
+			<div
+				class="cta-group"
+				in:fly={{
+					y: 20,
+					duration: prefersReducedMotion ? 0 : 300,
+					delay: prefersReducedMotion ? 0 : 400,
+					easing: quintOut
+				}}
+			>
+				<a href="#waitlist" class="cta-primary"> Join the Waitlist </a>
 				<a
 					href="https://github.com/synergyai-os/Synergy-Open-Source"
 					target="_blank"
@@ -86,7 +121,9 @@
 					class="cta-secondary"
 				>
 					<svg class="github-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-						<path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+						<path
+							d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"
+						/>
 					</svg>
 					<span>Star on GitHub</span>
 					<span class="star-count">12</span>
@@ -94,7 +131,15 @@
 			</div>
 
 			<!-- Quick Links -->
-			<div class="quick-links" in:fly={{ y: 20, duration: prefersReducedMotion ? 0 : 300, delay: prefersReducedMotion ? 0 : 500, easing: quintOut }}>
+			<div
+				class="quick-links"
+				in:fly={{
+					y: 20,
+					duration: prefersReducedMotion ? 0 : 300,
+					delay: prefersReducedMotion ? 0 : 500,
+					easing: quintOut
+				}}
+			>
 				<a href="/dev-docs" class="quick-link text-secondary">📚 Read the Docs</a>
 				<span class="quick-link-separator text-tertiary">·</span>
 				<a href="/login" class="quick-link text-tertiary">🔒 Login (Coming Soon)</a>
@@ -104,14 +149,30 @@
 
 	<!-- Pain Points Section -->
 	<section class="pain-section bg-elevated">
-		<div class="section-content px-inbox-container py-readable-quote max-w-5xl mx-auto">
-			<h2 class="section-title text-primary text-center" in:fly={{ y: 20, duration: prefersReducedMotion ? 0 : 300, delay: prefersReducedMotion ? 0 : 100, easing: quintOut }}>
+		<div class="section-content mx-auto max-w-5xl px-inbox-container py-readable-quote">
+			<h2
+				class="section-title text-center text-primary"
+				in:fly={{
+					y: 20,
+					duration: prefersReducedMotion ? 0 : 300,
+					delay: prefersReducedMotion ? 0 : 100,
+					easing: quintOut
+				}}
+			>
 				Sound Familiar?
 			</h2>
 
 			<div class="pain-grid gap-inbox-list">
 				{#each painPoints as pain, i}
-					<div class="pain-card bg-surface" in:fly={{ y: 30, duration: prefersReducedMotion ? 0 : 300, delay: prefersReducedMotion ? 0 : 200 + i * 100, easing: quintOut }}>
+					<div
+						class="pain-card bg-surface"
+						in:fly={{
+							y: 30,
+							duration: prefersReducedMotion ? 0 : 300,
+							delay: prefersReducedMotion ? 0 : 200 + i * 100,
+							easing: quintOut
+						}}
+					>
 						<span class="pain-emoji">{pain.emoji}</span>
 						<h3 class="pain-title text-primary">{pain.title}</h3>
 						<p class="pain-description text-secondary">{pain.description}</p>
@@ -123,17 +184,34 @@
 
 	<!-- Solution Section -->
 	<section class="solution-section bg-surface">
-		<div class="section-content px-inbox-container py-readable-quote max-w-3xl mx-auto">
-			<div class="solution-content" in:fly={{ y: 30, duration: prefersReducedMotion ? 0 : 400, delay: prefersReducedMotion ? 0 : 100, easing: quintOut }}>
+		<div class="section-content mx-auto max-w-3xl px-inbox-container py-readable-quote">
+			<div
+				class="solution-content"
+				in:fly={{
+					y: 30,
+					duration: prefersReducedMotion ? 0 : 400,
+					delay: prefersReducedMotion ? 0 : 100,
+					easing: quintOut
+				}}
+			>
 				<span class="eyebrow text-accent-primary">We Felt It Too</span>
 				<h2 class="section-title text-primary">So We Started Building</h2>
 				<p class="solution-lead text-secondary">
-					Daily. With AI as our copilot, not our boss. In the open. With real code solving real pain.
+					Daily. With AI as our copilot, not our boss. In the open. With real code solving real
+					pain.
 				</p>
 
 				<ul class="feature-list">
 					<li class="feature-item">
-						<svg class="feature-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<svg
+							class="feature-icon"
+							width="20"
+							height="20"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+						>
 							<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
 							<polyline points="22 4 12 14.01 9 11.01"></polyline>
 						</svg>
@@ -143,7 +221,15 @@
 						</div>
 					</li>
 					<li class="feature-item">
-						<svg class="feature-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<svg
+							class="feature-icon"
+							width="20"
+							height="20"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+						>
 							<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
 							<polyline points="22 4 12 14.01 9 11.01"></polyline>
 						</svg>
@@ -153,7 +239,15 @@
 						</div>
 					</li>
 					<li class="feature-item">
-						<svg class="feature-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<svg
+							class="feature-icon"
+							width="20"
+							height="20"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+						>
 							<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
 							<polyline points="22 4 12 14.01 9 11.01"></polyline>
 						</svg>
@@ -169,17 +263,41 @@
 
 	<!-- Build in Public Section -->
 	<section class="stats-section bg-elevated">
-		<div class="section-content px-inbox-container py-readable-quote max-w-5xl mx-auto">
-			<h2 class="section-title text-primary text-center" in:fly={{ y: 20, duration: prefersReducedMotion ? 0 : 300, delay: prefersReducedMotion ? 0 : 100, easing: quintOut }}>
+		<div class="section-content mx-auto max-w-5xl px-inbox-container py-readable-quote">
+			<h2
+				class="section-title text-center text-primary"
+				in:fly={{
+					y: 20,
+					duration: prefersReducedMotion ? 0 : 300,
+					delay: prefersReducedMotion ? 0 : 100,
+					easing: quintOut
+				}}
+			>
 				Built in Public
 			</h2>
-			<p class="section-lead text-secondary text-center" in:fly={{ y: 20, duration: prefersReducedMotion ? 0 : 300, delay: prefersReducedMotion ? 0 : 200, easing: quintOut }}>
+			<p
+				class="section-lead text-center text-secondary"
+				in:fly={{
+					y: 20,
+					duration: prefersReducedMotion ? 0 : 300,
+					delay: prefersReducedMotion ? 0 : 200,
+					easing: quintOut
+				}}
+			>
 				We're not finished. We're not polished. But it works—for us.
 			</p>
 
 			<div class="stats-grid gap-icon">
 				{#each stats as stat, i}
-					<div class="stat-card bg-surface" in:scale={{ duration: prefersReducedMotion ? 0 : 300, delay: prefersReducedMotion ? 0 : 300 + i * 80, start: 0.9, easing: quintOut }}>
+					<div
+						class="stat-card bg-surface"
+						in:scale={{
+							duration: prefersReducedMotion ? 0 : 300,
+							delay: prefersReducedMotion ? 0 : 300 + i * 80,
+							start: 0.9,
+							easing: quintOut
+						}}
+					>
 						<div class="stat-value text-accent-primary">{stat.value}</div>
 						<div class="stat-label text-secondary">{stat.label}</div>
 					</div>
@@ -187,7 +305,15 @@
 			</div>
 
 			<!-- Cost Comparison -->
-			<div class="cost-comparison" in:fly={{ y: 30, duration: prefersReducedMotion ? 0 : 400, delay: prefersReducedMotion ? 0 : 600, easing: quintOut }}>
+			<div
+				class="cost-comparison"
+				in:fly={{
+					y: 30,
+					duration: prefersReducedMotion ? 0 : 400,
+					delay: prefersReducedMotion ? 0 : 600,
+					easing: quintOut
+				}}
+			>
 				<h3 class="cost-title text-primary">Not Another SaaS</h3>
 				<div class="cost-table">
 					<div class="cost-row strike">
@@ -213,10 +339,18 @@
 
 	<!-- Final CTA Section - Combined -->
 	<section id="join" class="final-cta-section bg-surface">
-		<div class="section-content px-inbox-container py-readable-quote max-w-5xl mx-auto">
+		<div class="section-content mx-auto max-w-5xl px-inbox-container py-readable-quote">
 			<!-- Main Header -->
-			<div class="text-center mb-12" in:fly={{ y: 30, duration: prefersReducedMotion ? 0 : 400, delay: prefersReducedMotion ? 0 : 100, easing: quintOut }}>
-				<h2 class="section-title text-primary mb-4">Join the Movement</h2>
+			<div
+				class="mb-12 text-center"
+				in:fly={{
+					y: 30,
+					duration: prefersReducedMotion ? 0 : 400,
+					delay: prefersReducedMotion ? 0 : 100,
+					easing: quintOut
+				}}
+			>
+				<h2 class="section-title mb-4 text-primary">Join the Movement</h2>
 				<p class="section-lead text-secondary">
 					Don't want another SaaS subscription?<br />
 					Want control over your data?<br />
@@ -227,10 +361,20 @@
 			<!-- Two-Column Layout -->
 			<div class="join-grid">
 				<!-- Left: Join Core Team -->
-				<div class="join-section" in:fly={{ x: -30, duration: prefersReducedMotion ? 0 : 400, delay: prefersReducedMotion ? 0 : 200, easing: quintOut }}>
+				<div
+					class="join-section"
+					in:fly={{
+						x: -30,
+						duration: prefersReducedMotion ? 0 : 400,
+						delay: prefersReducedMotion ? 0 : 200,
+						easing: quintOut
+					}}
+				>
 					<div class="core-team-card">
 						<h3 class="join-heading text-primary">🚀 Join the Core Team</h3>
-						<p class="join-subheading text-secondary">Build with us. Get recognized. Shape the future.</p>
+						<p class="join-subheading text-secondary">
+							Build with us. Get recognized. Shape the future.
+						</p>
 
 						<!-- Contribution Ladder -->
 						<div class="contribution-ladder">
@@ -264,17 +408,34 @@
 							</div>
 						</div>
 
-						<a href="https://github.com/synergyai-os/Synergy-Open-Source" target="_blank" rel="noopener noreferrer" class="action-button action-button-accent">
+						<a
+							href="https://github.com/synergyai-os/Synergy-Open-Source"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="action-button action-button-accent"
+						>
 							🏗️ Start Building & Get Recognized
 						</a>
 					</div>
 				</div>
 
 				<!-- Right: Waitlist -->
-				<div id="waitlist" class="join-section" in:fly={{ x: 30, duration: prefersReducedMotion ? 0 : 400, delay: prefersReducedMotion ? 0 : 200, easing: quintOut }}>
+				<div
+					id="waitlist"
+					class="join-section"
+					in:fly={{
+						x: 30,
+						duration: prefersReducedMotion ? 0 : 400,
+						delay: prefersReducedMotion ? 0 : 200,
+						easing: quintOut
+					}}
+				>
 					<div class="waitlist-card">
 						<h3 class="join-heading text-primary">📬 Join the Waitlist</h3>
-						<p class="join-subheading text-secondary">Don't want another SaaS subscription?<br />Want control over your data?<br />Want to build, not just use?</p>
+						<p class="join-subheading text-secondary">
+							Don't want another SaaS subscription?<br />Want control over your data?<br />Want to
+							build, not just use?
+						</p>
 
 						<WaitlistForm />
 					</div>
@@ -282,17 +443,30 @@
 			</div>
 
 			<!-- Bottom Links -->
-			<div class="cta-links text-center mt-8" in:fly={{ y: 20, duration: prefersReducedMotion ? 0 : 300, delay: prefersReducedMotion ? 0 : 400, easing: quintOut }}>
+			<div
+				class="cta-links mt-8 text-center"
+				in:fly={{
+					y: 20,
+					duration: prefersReducedMotion ? 0 : 300,
+					delay: prefersReducedMotion ? 0 : 400,
+					easing: quintOut
+				}}
+			>
 				<a href="/dev-docs" class="cta-link text-secondary">📚 Read the Docs</a>
 				<span class="cta-link-separator text-tertiary">·</span>
-				<a href="https://github.com/synergyai-os/Synergy-Open-Source" target="_blank" rel="noopener noreferrer" class="cta-link text-secondary">💻 Explore the Code</a>
+				<a
+					href="https://github.com/synergyai-os/Synergy-Open-Source"
+					target="_blank"
+					rel="noopener noreferrer"
+					class="cta-link text-secondary">💻 Explore the Code</a
+				>
 			</div>
 		</div>
 	</section>
 
 	<!-- Footer -->
 	<footer class="footer bg-elevated">
-		<div class="footer-content px-inbox-container py-header max-w-5xl mx-auto">
+		<div class="footer-content mx-auto max-w-5xl px-inbox-container py-header">
 			<div class="footer-grid">
 				<div class="footer-section">
 					<h3 class="footer-title text-primary">SynergyOS</h3>
@@ -310,15 +484,33 @@
 					<h4 class="footer-heading text-secondary">Resources</h4>
 					<ul class="footer-links">
 						<li><a href="/dev-docs" class="footer-link text-secondary">Documentation</a></li>
-						<li><a href="https://github.com/synergyai-os/Synergy-Open-Source" target="_blank" rel="noopener noreferrer" class="footer-link text-secondary">GitHub</a></li>
-						<li><a href="/dev-docs/2-areas/patterns/INDEX" class="footer-link text-secondary">Patterns</a></li>
+						<li>
+							<a
+								href="https://github.com/synergyai-os/Synergy-Open-Source"
+								target="_blank"
+								rel="noopener noreferrer"
+								class="footer-link text-secondary">GitHub</a
+							>
+						</li>
+						<li>
+							<a href="/dev-docs/2-areas/patterns/INDEX" class="footer-link text-secondary"
+								>Patterns</a
+							>
+						</li>
 					</ul>
 				</div>
 
 				<div class="footer-section">
 					<h4 class="footer-heading text-secondary">Community</h4>
 					<ul class="footer-links">
-						<li><a href="https://github.com/synergyai-os/Synergy-Open-Source/issues" target="_blank" rel="noopener noreferrer" class="footer-link text-secondary">Report an Issue</a></li>
+						<li>
+							<a
+								href="https://github.com/synergyai-os/Synergy-Open-Source/issues"
+								target="_blank"
+								rel="noopener noreferrer"
+								class="footer-link text-secondary">Report an Issue</a
+							>
+						</li>
 						<li><a href="/CONTRIBUTING" class="footer-link text-secondary">Contribute</a></li>
 						<li><a href="/dev-docs" class="footer-link text-secondary">Start Building</a></li>
 					</ul>
@@ -378,7 +570,11 @@
 	}
 
 	.gradient-text {
-		background: linear-gradient(135deg, var(--color-accent-primary), var(--color-accent-secondary, var(--color-accent-primary)));
+		background: linear-gradient(
+			135deg,
+			var(--color-accent-primary),
+			var(--color-accent-secondary, var(--color-accent-primary))
+		);
 		-webkit-background-clip: text;
 		-webkit-text-fill-color: transparent;
 		background-clip: text;

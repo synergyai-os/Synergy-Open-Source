@@ -9,9 +9,11 @@ export const sendTestEmailInternal = internalAction({
 		// Get API key from Convex environment variables
 		// In Convex, environment variables set via 'npx convex env set' are available as process.env
 		const apiKey = process.env.RESEND_API_KEY;
-		
+
 		if (!apiKey) {
-			throw new Error('RESEND_API_KEY environment variable is not set. Run: npx convex env set RESEND_API_KEY your-key');
+			throw new Error(
+				'RESEND_API_KEY environment variable is not set. Run: npx convex env set RESEND_API_KEY your-key'
+			);
 		}
 
 		// Initialize Resend client with the API key
@@ -45,7 +47,9 @@ export const sendTestEmailInternal = internalAction({
 			};
 		} catch (error) {
 			console.error('Error sending email:', error);
-			throw new Error(`Failed to send email: ${error instanceof Error ? error.message : String(error)}`);
+			throw new Error(
+				`Failed to send email: ${error instanceof Error ? error.message : String(error)}`
+			);
 		}
 	}
 });
@@ -59,4 +63,3 @@ export const sendTestEmail = action({
 		return { success: true, message: 'Test email sent to randy@synergyai.nl', details: result };
 	}
 });
-

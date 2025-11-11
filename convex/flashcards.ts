@@ -52,7 +52,7 @@ export const createFlashcard = mutation({
 		answer: v.string(),
 		sourceInboxItemId: v.optional(v.id('inboxItems')),
 		sourceType: v.optional(v.string()),
-		tagIds: v.optional(v.array(v.id('tags'))),
+		tagIds: v.optional(v.array(v.id('tags')))
 	},
 	handler: async (ctx, args) => {
 		const userId = await getAuthUserId(ctx);
@@ -91,7 +91,7 @@ export const createFlashcard = mutation({
 			reps: newCardState.reps,
 			lapses: newCardState.lapses,
 			lastReviewAt: newCardState.last_review?.getTime(),
-			createdAt: Date.now(),
+			createdAt: Date.now()
 		});
 
 		// Add tags if provided
@@ -99,13 +99,13 @@ export const createFlashcard = mutation({
 			for (const tagId of args.tagIds) {
 				await ctx.db.insert('flashcardTags', {
 					flashcardId,
-					tagId,
+					tagId
 				});
 			}
 		}
 
 		return flashcardId;
-	},
+	}
 });
 
 /**
@@ -116,12 +116,12 @@ export const createFlashcards = mutation({
 		flashcards: v.array(
 			v.object({
 				question: v.string(),
-				answer: v.string(),
+				answer: v.string()
 			})
 		),
 		sourceInboxItemId: v.optional(v.id('inboxItems')),
 		sourceType: v.optional(v.string()),
-		tagIds: v.optional(v.array(v.id('tags'))),
+		tagIds: v.optional(v.array(v.id('tags')))
 	},
 	handler: async (ctx, args) => {
 		const userId = await getAuthUserId(ctx);
@@ -161,7 +161,7 @@ export const createFlashcards = mutation({
 				reps: newCardState.reps,
 				lapses: newCardState.lapses,
 				lastReviewAt: newCardState.last_review?.getTime(),
-				createdAt: Date.now(),
+				createdAt: Date.now()
 			});
 
 			flashcardIds.push(flashcardId);
@@ -171,14 +171,14 @@ export const createFlashcards = mutation({
 				for (const tagId of args.tagIds) {
 					await ctx.db.insert('flashcardTags', {
 						flashcardId,
-						tagId,
+						tagId
 					});
 				}
 			}
 		}
 
 		return flashcardIds;
-	},
+	}
 });
 
 /**
@@ -188,7 +188,7 @@ export const reviewFlashcard = mutation({
 	args: {
 		flashcardId: v.id('flashcards'),
 		rating: v.union(v.literal('again'), v.literal('hard'), v.literal('good'), v.literal('easy')),
-		reviewTime: v.optional(v.number()), // Time spent in seconds
+		reviewTime: v.optional(v.number()) // Time spent in seconds
 	},
 	handler: async (ctx, args) => {
 		const userId = await getAuthUserId(ctx);
@@ -215,7 +215,7 @@ export const reviewFlashcard = mutation({
 			again: Rating.Again,
 			hard: Rating.Hard,
 			good: Rating.Good,
-			easy: Rating.Easy,
+			easy: Rating.Easy
 		};
 
 		const fsrsRating = ratingMap[args.rating];
@@ -236,7 +236,7 @@ export const reviewFlashcard = mutation({
 			reps: flashcard.reps,
 			lapses: flashcard.lapses,
 			state: stringToState(flashcard.fsrsState || 'new'),
-			last_review: flashcard.lastReviewAt ? new Date(flashcard.lastReviewAt) : undefined,
+			last_review: flashcard.lastReviewAt ? new Date(flashcard.lastReviewAt) : undefined
 		};
 
 		// Get FSRS scheduler
@@ -253,7 +253,7 @@ export const reviewFlashcard = mutation({
 			fsrsState: stateToString(result.card.state),
 			reps: result.card.reps,
 			lapses: result.card.lapses,
-			lastReviewAt: now.getTime(),
+			lastReviewAt: now.getTime()
 		});
 
 		// Create review record
@@ -268,15 +268,15 @@ export const reviewFlashcard = mutation({
 				stability: result.log.stability,
 				difficulty: result.log.difficulty,
 				scheduledDays: result.log.scheduled_days,
-				elapsedDays: result.log.elapsed_days,
-			},
+				elapsedDays: result.log.elapsed_days
+			}
 		});
 
 		return {
 			success: true,
-			nextDue: result.card.due.getTime(),
+			nextDue: result.card.due.getTime()
 		};
-	},
+	}
 });
 
 /**
@@ -286,7 +286,7 @@ export const updateFlashcard = mutation({
 	args: {
 		flashcardId: v.id('flashcards'),
 		question: v.optional(v.string()),
-		answer: v.optional(v.string()),
+		answer: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
 		const userId = await getAuthUserId(ctx);
@@ -319,7 +319,7 @@ export const updateFlashcard = mutation({
 		await ctx.db.patch(args.flashcardId, updates);
 
 		return { success: true };
-	},
+	}
 });
 
 /**
@@ -327,7 +327,7 @@ export const updateFlashcard = mutation({
  */
 export const deleteFlashcard = mutation({
 	args: {
-		flashcardId: v.id('flashcards'),
+		flashcardId: v.id('flashcards')
 	},
 	handler: async (ctx, args) => {
 		const userId = await getAuthUserId(ctx);
@@ -368,7 +368,7 @@ export const deleteFlashcard = mutation({
 		await ctx.db.delete(args.flashcardId);
 
 		return { success: true };
-	},
+	}
 });
 
 /**
@@ -378,7 +378,7 @@ export const getDueFlashcards = query({
 	args: {
 		limit: v.optional(v.number()),
 		algorithm: v.optional(v.string()),
-		tagIds: v.optional(v.array(v.id('tags'))),
+		tagIds: v.optional(v.array(v.id('tags')))
 	},
 	handler: async (ctx, args) => {
 		const userId = await getAuthUserId(ctx);
@@ -393,7 +393,9 @@ export const getDueFlashcards = query({
 		// Query due cards
 		let dueCards = await ctx.db
 			.query('flashcards')
-			.withIndex('by_user_due', (q) => q.eq('userId', userId).eq('algorithm', algorithm).lte('fsrsDue', now))
+			.withIndex('by_user_due', (q) =>
+				q.eq('userId', userId).eq('algorithm', algorithm).lte('fsrsDue', now)
+			)
 			.order('asc')
 			.take(limit * 2); // Get more than needed in case we filter by tags
 
@@ -426,7 +428,7 @@ export const getDueFlashcards = query({
 
 		// Limit to requested amount
 		return dueCards.slice(0, limit);
-	},
+	}
 });
 
 /**
@@ -434,7 +436,7 @@ export const getDueFlashcards = query({
  */
 export const getUserFlashcards = query({
 	args: {
-		tagIds: v.optional(v.array(v.id('tags'))),
+		tagIds: v.optional(v.array(v.id('tags')))
 	},
 	handler: async (ctx, args) => {
 		const userId = await getAuthUserId(ctx);
@@ -475,7 +477,7 @@ export const getUserFlashcards = query({
 		}
 
 		return flashcards;
-	},
+	}
 });
 
 /**
@@ -503,9 +505,7 @@ export const getFlashcardsByCollection = query({
 			.collect();
 
 		// Get all flashcard-tag relationships
-		const flashcardTags = await ctx.db
-			.query('flashcardTags')
-			.collect();
+		const flashcardTags = await ctx.db.query('flashcardTags').collect();
 
 		// Create a map of tagId -> flashcardIds
 		const tagToFlashcards = new Map<Id<'tags'>, Set<Id<'flashcards'>>>();
@@ -525,16 +525,14 @@ export const getFlashcardsByCollection = query({
 		const collections = tags.map((tag) => {
 			const flashcardIds = tagToFlashcards.get(tag._id) || new Set();
 			const collectionFlashcards = flashcards.filter((f) => flashcardIds.has(f._id));
-			const dueCount = collectionFlashcards.filter(
-				(f) => f.fsrsDue && f.fsrsDue <= now
-			).length;
+			const dueCount = collectionFlashcards.filter((f) => f.fsrsDue && f.fsrsDue <= now).length;
 
 			return {
 				tagId: tag._id,
 				name: tag.displayName,
 				color: tag.color,
 				count: collectionFlashcards.length,
-				dueCount,
+				dueCount
 			};
 		});
 
@@ -545,7 +543,7 @@ export const getFlashcardsByCollection = query({
 		});
 
 		return collections;
-	},
+	}
 });
 
 /**
@@ -553,7 +551,7 @@ export const getFlashcardsByCollection = query({
  */
 export const getFlashcard = query({
 	args: {
-		flashcardId: v.id('flashcards'),
+		flashcardId: v.id('flashcards')
 	},
 	handler: async (ctx, args) => {
 		const userId = await getAuthUserId(ctx);
@@ -571,7 +569,7 @@ export const getFlashcard = query({
 		}
 
 		return flashcard;
-	},
+	}
 });
 
 /**
@@ -579,7 +577,7 @@ export const getFlashcard = query({
  */
 export const getFlashcardTags = query({
 	args: {
-		flashcardId: v.id('flashcards'),
+		flashcardId: v.id('flashcards')
 	},
 	handler: async (ctx, args) => {
 		const userId = await getAuthUserId(ctx);
@@ -600,13 +598,11 @@ export const getFlashcardTags = query({
 			.collect();
 
 		// Get tag details
-		const tags = await Promise.all(
-			flashcardTags.map((ft) => ctx.db.get(ft.tagId))
-		);
+		const tags = await Promise.all(flashcardTags.map((ft) => ctx.db.get(ft.tagId)));
 
 		// Filter out null tags and return
 		return tags.filter((t): t is NonNullable<typeof t> => t !== null);
-	},
+	}
 });
 
 /**
@@ -616,7 +612,7 @@ export const generateFlashcard = action({
 	args: {
 		text: v.string(),
 		sourceTitle: v.optional(v.string()),
-		sourceAuthor: v.optional(v.string()),
+		sourceAuthor: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
 		const userId = await getAuthUserId(ctx);
@@ -625,18 +621,16 @@ export const generateFlashcard = action({
 		}
 
 		// Get encrypted API key using internal query from settings
-		const keys: { claudeApiKey: string | null; readwiseApiKey: string | null } | null = await ctx.runQuery(
-			internal.settings.getEncryptedKeysInternal,
-			{}
-		);
-		
+		const keys: { claudeApiKey: string | null; readwiseApiKey: string | null } | null =
+			await ctx.runQuery(internal.settings.getEncryptedKeysInternal, {});
+
 		if (!keys?.claudeApiKey) {
 			throw new Error('Claude API key not configured. Please add your API key in Settings.');
 		}
 
 		// Decrypt API key using cryptoActions (which has "use node")
 		const apiKey: string = await ctx.runAction(internal.cryptoActions.decryptApiKey, {
-			encryptedApiKey: keys.claudeApiKey,
+			encryptedApiKey: keys.claudeApiKey
 		});
 
 		// Load prompt template with variables
@@ -644,8 +638,8 @@ export const generateFlashcard = action({
 			text: args.text,
 			source: {
 				title: args.sourceTitle,
-				author: args.sourceAuthor,
-			},
+				author: args.sourceAuthor
+			}
 		});
 
 		try {
@@ -654,7 +648,7 @@ export const generateFlashcard = action({
 				headers: {
 					'x-api-key': apiKey,
 					'anthropic-version': '2023-06-01',
-					'content-type': 'application/json',
+					'content-type': 'application/json'
 				},
 				body: JSON.stringify({
 					model: 'claude-3-haiku-20240307',
@@ -662,10 +656,10 @@ export const generateFlashcard = action({
 					messages: [
 						{
 							role: 'user',
-							content: prompt,
-						},
-					],
-				}),
+							content: prompt
+						}
+					]
+				})
 			});
 
 			if (!response.ok) {
@@ -713,21 +707,20 @@ export const generateFlashcard = action({
 				flashcards = [
 					{
 						question: 'Generated Question',
-						answer: content,
-					},
+						answer: content
+					}
 				];
 			}
 
 			return {
 				success: true,
 				flashcards,
-				rawResponse: content,
+				rawResponse: content
 			};
 		} catch (error) {
 			throw new Error(
 				`Failed to generate flashcard: ${error instanceof Error ? error.message : String(error)}`
 			);
 		}
-	},
+	}
 });
-

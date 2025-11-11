@@ -15,7 +15,7 @@
 		ProjectSelector,
 		AttachmentButton,
 		ToggleSwitch,
-		ContextSelector,
+		ContextSelector
 	} from '$lib/components/ui';
 	// TODO: Uncomment when implementing PostHog tracking
 	// import { AnalyticsEventName } from '$lib/analytics/events';
@@ -33,7 +33,7 @@
 		open = $bindable(false),
 		triggerMethod = 'keyboard_n',
 		currentView = 'inbox',
-		initialType = null,
+		initialType = null
 	}: Props = $props();
 
 	const convexClient = browser ? useConvexClient() : null;
@@ -52,23 +52,31 @@
 	let selectedTagIds = $state<Id<'tags'>[]>([]);
 	let isCreating = $state(false);
 	let tagComboboxOpen = $state(false);
-	
+
 	// Modal container ref for refocusing after blur
 	let modalContainerRef = $state<HTMLDivElement | null>(null);
-	
+
 	// Note-specific state (for ProseMirror)
 	let noteTitle = $state('');
 	let noteContent = $state(''); // ProseMirror JSON string
 	let noteContentMarkdown = $state(''); // Markdown version
 	let noteIsAIGenerated = $state(false);
-	
+
 	// Metadata state (UI only - stubbed for now)
 	let noteStatus = $state<'backlog' | 'todo' | 'in_progress' | 'done' | 'cancelled'>('backlog');
 	let notePriority = $state<'none' | 'low' | 'medium' | 'high' | 'urgent'>('none');
-	let noteAssignee = $state<{id: string; name: string; initials: string; color: string} | undefined>(undefined);
-	let noteProject = $state<{id: string; name: string; icon?: string; color: string} | undefined>(undefined);
-	let noteContext = $state<{id: string; name: string; icon: string; type: 'team' | 'template' | 'workspace'} | undefined>({ id: 'pai', name: 'PAI', icon: '🔥', type: 'team' });
-	let noteTemplate = $state<{id: string; name: string; icon: string; type: 'team' | 'template' | 'workspace'} | undefined>(undefined);
+	let noteAssignee = $state<
+		{ id: string; name: string; initials: string; color: string } | undefined
+	>(undefined);
+	let noteProject = $state<{ id: string; name: string; icon?: string; color: string } | undefined>(
+		undefined
+	);
+	let noteContext = $state<
+		{ id: string; name: string; icon: string; type: 'team' | 'template' | 'workspace' } | undefined
+	>({ id: 'pai', name: 'PAI', icon: '🔥', type: 'team' });
+	let noteTemplate = $state<
+		{ id: string; name: string; icon: string; type: 'team' | 'template' | 'workspace' } | undefined
+	>(undefined);
 	let createMore = $state(false);
 	let attachmentCount = $state(0);
 	let isFullscreen = $state(false);
@@ -181,7 +189,7 @@
 			const tagId = await convexClient.mutation(api.tags.createTag, {
 				displayName,
 				color,
-				parentId,
+				parentId
 			});
 
 			// TODO: Implement PostHog tracking
@@ -225,24 +233,24 @@
 			const now = Date.now();
 			let contentLength = 0;
 
-		if (selectedType === 'note') {
-			// Use the new notes API for rich text notes
-			await convexClient.mutation(api.notes.createNote, {
-				title: noteTitle || undefined,
-				content: typeof noteContent === 'string' ? noteContent : JSON.stringify(noteContent),
-				contentMarkdown: noteContentMarkdown || undefined,
-				isAIGenerated: noteIsAIGenerated || undefined,
-			});
-				
+			if (selectedType === 'note') {
+				// Use the new notes API for rich text notes
+				await convexClient.mutation(api.notes.createNote, {
+					title: noteTitle || undefined,
+					content: typeof noteContent === 'string' ? noteContent : JSON.stringify(noteContent),
+					contentMarkdown: noteContentMarkdown || undefined,
+					isAIGenerated: noteIsAIGenerated || undefined
+				});
+
 				// If there are tags, we need to link them after creation
 				// TODO: Update notes.createNote to accept tagIds parameter
-				
+
 				contentLength = noteContent.length;
 			} else if (selectedType === 'flashcard') {
 				await convexClient.mutation(api.inbox.createFlashcardInInbox, {
 					question: question,
 					answer: answer,
-					tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined,
+					tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined
 				});
 				contentLength = question.length + answer.length;
 			} else if (selectedType === 'highlight') {
@@ -250,7 +258,7 @@
 					text: content,
 					sourceTitle: sourceTitle || undefined,
 					note: note || undefined,
-					tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined,
+					tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined
 				});
 				contentLength = content.length;
 			}
@@ -342,13 +350,13 @@
 			// Check if any input/component is currently focused
 			const activeElement = document.activeElement as HTMLElement;
 			const modalElement = e.currentTarget as HTMLElement;
-			
+
 			// If tag combobox is open, let it handle ESC first
 			if (tagComboboxOpen) {
 				// TagSelector will close and blur, don't close modal
 				return;
 			}
-			
+
 			// If an input, textarea, or contenteditable is focused, blur it first
 			if (
 				activeElement &&
@@ -361,14 +369,14 @@
 				e.preventDefault();
 				e.stopPropagation();
 				activeElement.blur();
-				
+
 				// Refocus modal container so modal shortcuts (like T) continue working
 				setTimeout(() => {
 					modalContainerRef?.focus();
 				}, 0);
 				return;
 			}
-			
+
 			// If nothing is focused inside modal, close it
 			handleOpenChange(false);
 			return;
@@ -383,11 +391,7 @@
 
 		// Don't intercept if user is typing in any input field
 		const target = e.target as HTMLElement;
-		if (
-			target.tagName === 'INPUT' ||
-			target.tagName === 'TEXTAREA' ||
-			target.isContentEditable
-		) {
+		if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
 			return;
 		}
 
@@ -396,7 +400,7 @@
 		if (!selectedType) {
 			return;
 		}
-		
+
 		// T key: Open tag selector (only for note type, when tag combobox is not already open)
 		if ((e.key === 't' || e.key === 'T') && selectedType === 'note' && !tagComboboxOpen) {
 			e.preventDefault();
@@ -406,31 +410,30 @@
 	}
 </script>
 
-<Dialog.Root open={open} onOpenChange={handleOpenChange}>
+<Dialog.Root {open} onOpenChange={handleOpenChange}>
 	<Dialog.Portal>
 		<!-- Dramatic Spotlight Overlay: 65% black + backdrop blur -->
 		<Dialog.Overlay
-			class="fixed inset-0 z-50 bg-black/65 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+			class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/65 backdrop-blur-sm"
 		/>
 		<!-- Command Center Modal: Scale-up animation + dramatic shadow -->
 		<Dialog.Content
-			class="{isFullscreen 
-				? 'fixed inset-0 z-50 w-full h-full overflow-y-auto bg-elevated border-0 p-0 shadow-2xl' 
-				: 'fixed left-1/2 top-1/2 z-50 max-h-[80vh] w-full max-w-[900px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-md bg-elevated border border-base p-0 shadow-2xl'
-			} data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]"
+			class="{isFullscreen
+				? 'fixed inset-0 z-50 h-full w-full overflow-y-auto border-0 bg-elevated p-0 shadow-2xl'
+				: 'fixed top-1/2 left-1/2 z-50 max-h-[80vh] w-full max-w-[900px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-md border border-base bg-elevated p-0 shadow-2xl'} data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]"
 		>
 			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 			<div bind:this={modalContainerRef} onkeydown={handleKeyDown} role="dialog" tabindex="-1">
 				{#if !selectedType}
 					<!-- Command Center -->
 					<Command.Root
-						class="flex h-full w-full flex-col overflow-hidden rounded-lg bg-elevated border border-base/30 shadow-lg"
+						class="border-base/30 flex h-full w-full flex-col overflow-hidden rounded-lg border bg-elevated shadow-lg"
 					>
 						<!-- Search Input with Icon -->
-						<div class="flex items-center border-b border-base/50 px-4 py-3">
+						<div class="border-base/50 flex items-center border-b px-4 py-3">
 							<!-- Search Icon -->
 							<svg
-								class="w-5 h-5 text-tertiary mr-3 flex-shrink-0"
+								class="mr-3 h-5 w-5 flex-shrink-0 text-tertiary"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -444,24 +447,26 @@
 								/>
 							</svg>
 							<Command.Input
-								class="placeholder:text-tertiary bg-transparent focus:outline-hidden flex-1 text-base transition-colors focus:ring-0 border-0 p-0"
+								class="flex-1 border-0 bg-transparent p-0 text-base transition-colors placeholder:text-tertiary focus:ring-0 focus:outline-hidden"
 								placeholder="Type a command or search..."
 							/>
 						</div>
-						<Command.List class="max-h-[280px] overflow-y-auto overflow-x-hidden px-2 pb-2">
+						<Command.List class="max-h-[280px] overflow-x-hidden overflow-y-auto px-2 pb-2">
 							<Command.Viewport>
 								<Command.Empty
-									class="text-secondary flex w-full items-center justify-center pb-6 pt-8 text-sm"
+									class="flex w-full items-center justify-center pt-8 pb-6 text-sm text-secondary"
 								>
 									No results found.
 								</Command.Empty>
 								<Command.Group>
-									<Command.GroupHeading class="text-tertiary px-3 pb-2 pt-4 text-xs uppercase tracking-wider">
+									<Command.GroupHeading
+										class="px-3 pt-4 pb-2 text-xs tracking-wider text-tertiary uppercase"
+									>
 										Create New
 									</Command.GroupHeading>
 									<Command.GroupItems>
 										<Command.Item
-											class="rounded-button data-selected:bg-hover-solid outline-hidden flex h-auto cursor-pointer select-none items-center justify-between px-3 py-2.5 text-sm transition-colors"
+											class="flex h-auto cursor-pointer items-center justify-between rounded-button px-3 py-2.5 text-sm outline-hidden transition-colors select-none data-selected:bg-hover-solid"
 											onSelect={() => handleTypeSelect('note', 'click')}
 											keywords={['note', 'text', 'thought', 'idea', 'write', 'capture']}
 										>
@@ -469,15 +474,14 @@
 												<span class="text-xl">📝</span>
 												<div class="flex flex-col items-start">
 													<span class="font-medium text-primary">Note</span>
-													<span class="text-xs text-secondary"
-														>Capture a quick thought or idea</span
+													<span class="text-xs text-secondary">Capture a quick thought or idea</span
 													>
 												</div>
 											</div>
 											<KeyboardShortcut keys="C" />
 										</Command.Item>
 										<Command.Item
-											class="rounded-button data-selected:bg-hover-solid outline-hidden flex h-auto cursor-pointer select-none items-center justify-between px-3 py-2.5 text-sm transition-colors"
+											class="flex h-auto cursor-pointer items-center justify-between rounded-button px-3 py-2.5 text-sm outline-hidden transition-colors select-none data-selected:bg-hover-solid"
 											onSelect={() => handleTypeSelect('flashcard', 'click')}
 											keywords={[
 												'flashcard',
@@ -486,7 +490,7 @@
 												'answer',
 												'study',
 												'memorize',
-												'learn',
+												'learn'
 											]}
 										>
 											<div class="flex items-center gap-icon">
@@ -501,7 +505,7 @@
 											<KeyboardShortcut keys="F" />
 										</Command.Item>
 										<Command.Item
-											class="rounded-button data-selected:bg-hover-solid outline-hidden flex h-auto cursor-pointer select-none items-center justify-between px-3 py-2.5 text-sm transition-colors"
+											class="flex h-auto cursor-pointer items-center justify-between rounded-button px-3 py-2.5 text-sm outline-hidden transition-colors select-none data-selected:bg-hover-solid"
 											onSelect={() => handleTypeSelect('highlight', 'click')}
 											keywords={[
 												'highlight',
@@ -510,7 +514,7 @@
 												'passage',
 												'book',
 												'article',
-												'read',
+												'read'
 											]}
 										>
 											<div class="flex items-center gap-icon">
@@ -541,8 +545,18 @@
 										onChange={(ctx) => (noteContext = ctx)}
 										tabIndex={-1}
 									/>
-									<svg class="w-3 h-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+									<svg
+										class="h-3 w-3 text-gray-300"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M9 5l7 7-7 7"
+										/>
 									</svg>
 									<ContextSelector
 										context={noteTemplate}
@@ -550,12 +564,12 @@
 										tabIndex={-1}
 									/>
 								</div>
-								
+
 								<!-- Top Right Actions -->
 								<div class="flex items-center gap-form-field">
 									<button
 										type="button"
-										class="px-inbox-card py-input-y text-sm text-secondary hover:text-primary transition-colors"
+										class="px-inbox-card py-input-y text-sm text-secondary transition-colors hover:text-primary"
 										onclick={() => {
 											// TODO: Implement draft save logic
 											console.log('Save as draft clicked');
@@ -565,30 +579,45 @@
 									</button>
 									<button
 										type="button"
-										class="p-1.5 text-tertiary hover:text-secondary transition-colors"
-										onclick={() => isFullscreen = !isFullscreen}
+										class="p-1.5 text-tertiary transition-colors hover:text-secondary"
+										onclick={() => (isFullscreen = !isFullscreen)}
 										aria-label={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
 									>
 										{#if isFullscreen}
 											<!-- Exit Fullscreen Icon -->
-											<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25" />
+											<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													stroke-width="2"
+													d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5l5.25 5.25"
+												/>
 											</svg>
 										{:else}
 											<!-- Fullscreen Icon -->
-											<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-												<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+											<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													stroke-width="2"
+													d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+												/>
 											</svg>
 										{/if}
 									</button>
 									<button
 										type="button"
-										class="p-1.5 text-tertiary hover:text-secondary transition-colors"
+										class="p-1.5 text-tertiary transition-colors hover:text-secondary"
 										onclick={() => handleOpenChange(false)}
 										aria-label="Close"
 									>
-										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-											<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M6 18L18 6M6 6l12 12"
+											/>
 										</svg>
 									</button>
 								</div>
@@ -600,131 +629,132 @@
 								</Dialog.Title>
 							</div>
 						{/if}
-						
-						<div class="flex flex-col gap-content-section {selectedType === 'note' ? '' : 'px-content-padding mt-content-section'}">
-						<!-- Content fields based on type -->
-						{#if selectedType === 'note'}
-							<!-- Minimal Note Editor - Linear Style -->
-							<NoteEditorWithDetection
-								content={noteContent}
-								title={noteTitle}
-								onContentChange={(content: string, markdown: string) => {
-									noteContent = content;
-									noteContentMarkdown = markdown;
-								}}
-								onTitleChange={(title: string) => {
-									noteTitle = title;
-								}}
-								onAIFlagged={() => {
-									noteIsAIGenerated = true;
-								}}
-								onEscape={() => {
-									// Refocus modal container so keyboard shortcuts (T) work after ESC
-									setTimeout(() => modalContainerRef?.focus(), 0);
-								}}
-								placeholder="Add description..."
-								showToolbar={false}
-								enableAIDetection={false}
-								compact={true}
-								autoFocus={true}
-							/>
-						{:else if selectedType === 'flashcard'}
-							<FormTextarea
-								label="Question"
-								placeholder="What do you want to remember?"
-								rows={3}
-								bind:value={question}
-							/>
 
-							<FormTextarea
-								label="Answer"
-								placeholder="The answer or explanation..."
-								rows={3}
-								bind:value={answer}
-							/>
-						{:else if selectedType === 'highlight'}
-							<FormInput
-								label="Source (optional)"
-								placeholder="Book, article, or source name..."
-								bind:value={sourceTitle}
-							/>
-
-							<FormTextarea
-								label="Highlight"
-								placeholder="Paste or type the highlighted text..."
-								rows={4}
-								bind:value={content}
-							/>
-
-							<FormTextarea
-								label="Note (optional)"
-								placeholder="Add your thoughts..."
-								rows={2}
-								bind:value={note}
-							/>
-						{/if}
-
-						{#if selectedType === 'note'}
-							<!-- Row 1: Metadata Pills + Tags (Linear-style) -->
-							<div class="flex items-center gap-2 overflow-x-auto py-1.5 px-inbox-container border-b border-base">
-								<AttachmentButton
-									count={attachmentCount}
-									onClick={() => {
-										// TODO: Implement attachment logic
-										console.log('Attach file clicked');
-									}}
-								/>
-								<StatusPill
-									status={noteStatus}
-									onChange={(s) => (noteStatus = s)}
-								/>
-								<PrioritySelector
-									priority={notePriority}
-									onChange={(p) => (notePriority = p)}
-								/>
-								<AssigneeSelector
-									assignee={noteAssignee}
-									onChange={(a) => (noteAssignee = a)}
-								/>
-								<ProjectSelector
-									project={noteProject}
-									onChange={(proj) => (noteProject = proj)}
-								/>
-								<TagSelector
-									bind:comboboxOpen={tagComboboxOpen}
-									bind:selectedTagIds
-									availableTags={availableTags}
-									onTagsChange={handleTagsChange}
-									onCreateTagWithColor={handleCreateTag}
-									showLabel={false}
-								/>
-							</div>
-						{/if}
-
-						<!-- Row 2: Actions Only (Linear-style footer) -->
-						<div class="flex items-center justify-end gap-button-group py-2 {selectedType === 'note' ? 'px-inbox-container' : ''}">
+						<div
+							class="flex flex-col gap-content-section {selectedType === 'note'
+								? ''
+								: 'mt-content-section px-content-padding'}"
+						>
+							<!-- Content fields based on type -->
 							{#if selectedType === 'note'}
-								<ToggleSwitch
-									checked={createMore}
-									onChange={(checked) => (createMore = checked)}
-									label="Create more"
+								<!-- Minimal Note Editor - Linear Style -->
+								<NoteEditorWithDetection
+									content={noteContent}
+									title={noteTitle}
+									onContentChange={(content: string, markdown: string) => {
+										noteContent = content;
+										noteContentMarkdown = markdown;
+									}}
+									onTitleChange={(title: string) => {
+										noteTitle = title;
+									}}
+									onAIFlagged={() => {
+										noteIsAIGenerated = true;
+									}}
+									onEscape={() => {
+										// Refocus modal container so keyboard shortcuts (T) work after ESC
+										setTimeout(() => modalContainerRef?.focus(), 0);
+									}}
+									placeholder="Add description..."
+									showToolbar={false}
+									enableAIDetection={false}
+									compact={true}
+									autoFocus={true}
+								/>
+							{:else if selectedType === 'flashcard'}
+								<FormTextarea
+									label="Question"
+									placeholder="What do you want to remember?"
+									rows={3}
+									bind:value={question}
+								/>
+
+								<FormTextarea
+									label="Answer"
+									placeholder="The answer or explanation..."
+									rows={3}
+									bind:value={answer}
+								/>
+							{:else if selectedType === 'highlight'}
+								<FormInput
+									label="Source (optional)"
+									placeholder="Book, article, or source name..."
+									bind:value={sourceTitle}
+								/>
+
+								<FormTextarea
+									label="Highlight"
+									placeholder="Paste or type the highlighted text..."
+									rows={4}
+									bind:value={content}
+								/>
+
+								<FormTextarea
+									label="Note (optional)"
+									placeholder="Add your thoughts..."
+									rows={2}
+									bind:value={note}
 								/>
 							{/if}
-							<button
-								onclick={() => handleOpenChange(false)}
-								class="px-inbox-card py-input-y text-sm text-secondary hover:text-primary transition-colors"
+
+							{#if selectedType === 'note'}
+								<!-- Row 1: Metadata Pills + Tags (Linear-style) -->
+								<div
+									class="flex items-center gap-2 overflow-x-auto border-b border-base px-inbox-container py-1.5"
+								>
+									<AttachmentButton
+										count={attachmentCount}
+										onClick={() => {
+											// TODO: Implement attachment logic
+											console.log('Attach file clicked');
+										}}
+									/>
+									<StatusPill status={noteStatus} onChange={(s) => (noteStatus = s)} />
+									<PrioritySelector priority={notePriority} onChange={(p) => (notePriority = p)} />
+									<AssigneeSelector assignee={noteAssignee} onChange={(a) => (noteAssignee = a)} />
+									<ProjectSelector
+										project={noteProject}
+										onChange={(proj) => (noteProject = proj)}
+									/>
+									<TagSelector
+										bind:comboboxOpen={tagComboboxOpen}
+										bind:selectedTagIds
+										{availableTags}
+										onTagsChange={handleTagsChange}
+										onCreateTagWithColor={handleCreateTag}
+										showLabel={false}
+									/>
+								</div>
+							{/if}
+
+							<!-- Row 2: Actions Only (Linear-style footer) -->
+							<div
+								class="flex items-center justify-end gap-button-group py-2 {selectedType === 'note'
+									? 'px-inbox-container'
+									: ''}"
 							>
-								Cancel
-							</button>
-							<button
-								onclick={handleCreate}
-								disabled={isCreating}
-								class="flex items-center gap-form-field px-inbox-card py-input-y text-sm bg-accent-primary text-white rounded-md hover:opacity-90 disabled:opacity-50 transition-all font-medium"
-							>
-								{isCreating ? 'Creating...' : selectedType === 'note' ? 'Create issue' : 'Create'}
-								<KeyboardShortcut keys={['Cmd', 'Enter']} />
-			</button>
-						</div>
+								{#if selectedType === 'note'}
+									<ToggleSwitch
+										checked={createMore}
+										onChange={(checked) => (createMore = checked)}
+										label="Create more"
+									/>
+								{/if}
+								<button
+									onclick={() => handleOpenChange(false)}
+									class="px-inbox-card py-input-y text-sm text-secondary transition-colors hover:text-primary"
+								>
+									Cancel
+								</button>
+								<button
+									onclick={handleCreate}
+									disabled={isCreating}
+									class="flex items-center gap-form-field rounded-md bg-accent-primary px-inbox-card py-input-y text-sm font-medium text-white transition-all hover:opacity-90 disabled:opacity-50"
+								>
+									{isCreating ? 'Creating...' : selectedType === 'note' ? 'Create issue' : 'Create'}
+									<KeyboardShortcut keys={['Cmd', 'Enter']} />
+								</button>
+							</div>
 						</div>
 					</div>
 				{/if}
@@ -732,4 +762,3 @@
 		</Dialog.Content>
 	</Dialog.Portal>
 </Dialog.Root>
-
