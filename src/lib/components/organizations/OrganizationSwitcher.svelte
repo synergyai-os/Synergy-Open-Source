@@ -6,6 +6,7 @@
 		TeamInvite
 	} from '$lib/composables/useOrganizations.svelte';
 	import { theme, isDark } from '$lib/stores/theme';
+	import KeyboardShortcut from '$lib/components/ui/KeyboardShortcut.svelte';
 
 	type Variant = 'sidebar' | 'topbar';
 
@@ -246,7 +247,7 @@
 						textValue="Personal workspace"
 						onSelect={() => handleSelect(null)}
 					>
-						<div class="flex min-w-0 items-center gap-icon-wide">
+						<div class="flex min-w-0 flex-1 items-center gap-icon-wide">
 							<div
 								class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-sidebar-hover text-xs font-semibold text-sidebar-primary shadow-sm"
 							>
@@ -257,25 +258,30 @@
 								<span class="truncate text-label text-tertiary">Private workspace</span>
 							</div>
 						</div>
-						{#if isPersonalActive()}
-							<svg
-								class="h-4 w-4 flex-shrink-0 text-accent-primary"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M5 13l4 4L19 7"
-								/>
-							</svg>
-						{/if}
+						<div class="ml-auto flex items-center gap-icon">
+							<KeyboardShortcut keys={['Meta', '1']} size="sm" />
+							{#if isPersonalActive()}
+								<svg
+									class="h-4 w-4 flex-shrink-0 text-accent-primary"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M5 13l4 4L19 7"
+									/>
+								</svg>
+							{/if}
+						</div>
 					</DropdownMenu.Item>
 
 					{#if hasOrganizations()}
-						{#each organizations as organization (organization.organizationId)}
+						{#each organizations as organization, index (organization.organizationId)}
+							{@const shortcutNumber = index + 2}
+							{@const showShortcut = shortcutNumber <= 9}
 							<DropdownMenu.Item
 								class={`flex cursor-pointer items-center justify-between rounded-none px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid ${
 									organization.organizationId === activeOrganizationId
@@ -285,7 +291,7 @@
 								textValue={organization.name}
 								onSelect={() => handleSelect(organization.organizationId)}
 							>
-								<div class="flex min-w-0 items-center gap-icon-wide">
+								<div class="flex min-w-0 flex-1 items-center gap-icon-wide">
 									<div
 										class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-sidebar-hover text-xs font-semibold text-sidebar-primary shadow-sm"
 									>
@@ -298,21 +304,26 @@
 										>
 									</div>
 								</div>
-								{#if organization.organizationId === activeOrganizationId}
-									<svg
-										class="h-4 w-4 flex-shrink-0 text-accent-primary"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M5 13l4 4L19 7"
-										/>
-									</svg>
-								{/if}
+								<div class="ml-auto flex items-center gap-icon">
+									{#if showShortcut}
+										<KeyboardShortcut keys={['Meta', shortcutNumber.toString()]} size="sm" />
+									{/if}
+									{#if organization.organizationId === activeOrganizationId}
+										<svg
+											class="h-4 w-4 flex-shrink-0 text-accent-primary"
+											fill="none"
+											stroke="currentColor"
+											viewBox="0 0 24 24"
+										>
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M5 13l4 4L19 7"
+											/>
+										</svg>
+									{/if}
+								</div>
 							</DropdownMenu.Item>
 						{/each}
 					{:else}
