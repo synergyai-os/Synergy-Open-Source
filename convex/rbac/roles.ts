@@ -131,7 +131,9 @@ export const getUserRoles = query({
 		teamId: v.optional(v.id('teams'))
 	},
 	handler: async (ctx, args) => {
-		const query = ctx.db.query('userRoles').withIndex('by_user', (q) => q.eq('userId', args.userId));
+		const query = ctx.db
+			.query('userRoles')
+			.withIndex('by_user', (q) => q.eq('userId', args.userId));
 
 		const allRoles = await query.collect();
 

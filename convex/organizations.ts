@@ -71,7 +71,7 @@ function generateInviteCode(prefix: string): string {
 async function ensureUniqueOrganizationSlug(ctx: MutationCtx, baseSlug: string): Promise<string> {
 	let slug = baseSlug;
 	let suffix = 1;
-	 
+
 	while (true) {
 		const existing = await ctx.db
 			.query('organizations')
