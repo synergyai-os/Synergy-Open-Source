@@ -45,8 +45,9 @@ test.describe('Quick Create Modal - SessionID Authentication', () => {
 		await noteEditor.click();
 		await noteEditor.fill('Automated test note - sessionId validation');
 
-		// Submit with CMD+Enter (as per UI requirement)
-		await page.keyboard.press('Meta+Enter');
+		// Submit by clicking the Create button (CMD+Enter shortcut doesn't work in tests)
+		const createButton = modal.locator('button:has-text("Create issue")').first();
+		await createButton.click();
 
 		// Wait a bit for the mutation to complete
 		await page.waitForTimeout(2000);
