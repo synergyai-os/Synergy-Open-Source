@@ -40,10 +40,11 @@ test.describe('Quick Create Modal - SessionID Authentication', () => {
 		await expect(modal).toBeVisible({ timeout: 2000 });
 
 		// Type note content in the ProseMirror editor
+		// IMPORTANT: Use .type() not .fill() for ProseMirror - .fill() doesn't trigger state updates
 		const noteEditor = modal.locator('.ProseMirror').first();
 		await noteEditor.waitFor({ state: 'visible', timeout: 5000 });
 		await noteEditor.click();
-		await noteEditor.fill('Automated test note - sessionId validation');
+		await noteEditor.type('Test note for sessionId validation', { delay: 50 });
 
 		// Submit by clicking the Create button (CMD+Enter shortcut doesn't work in tests)
 		const createButton = modal.locator('button:has-text("Create issue")').first();
