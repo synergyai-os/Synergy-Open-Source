@@ -261,7 +261,15 @@
 							isPersonalActive() ? 'bg-hover-subtle text-primary' : 'text-primary'
 						}`}
 						textValue="Personal workspace"
-						onSelect={() => handleSelect(null)}
+						onSelect={(e) => {
+							// Prevent selection if clicking on the '...' menu button
+							const target = e.detail.originalEvent?.target as HTMLElement;
+							if (target?.closest('[data-workspace-menu-trigger]')) {
+								e.preventDefault();
+								return;
+							}
+							handleSelect(null);
+						}}
 					>
 						<div class="flex min-w-0 flex-1 items-center gap-icon-wide">
 							<div
@@ -269,28 +277,71 @@
 							>
 								{(accountName.slice(0, 2) || 'PW').toUpperCase()}
 							</div>
-							<div class="flex min-w-0 flex-col">
-								<span class="truncate font-medium">{accountName}</span>
-								<span class="truncate text-label text-tertiary">Private workspace</span>
+							<div class="flex min-w-0 flex-1 items-center gap-icon">
+								<div class="flex min-w-0 flex-col">
+									<span class="truncate font-medium">{accountName}</span>
+									<span class="truncate text-label text-tertiary">Private workspace</span>
+								</div>
+								{#if isPersonalActive()}
+									<svg
+										class="h-4 w-4 flex-shrink-0 text-accent-primary"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M5 13l4 4L19 7"
+										/>
+									</svg>
+								{/if}
 							</div>
 						</div>
 						<div class="ml-auto flex items-center gap-icon">
 							<KeyboardShortcut keys={['Meta', '1']} size="sm" />
-							{#if isPersonalActive()}
-								<svg
-									class="h-4 w-4 flex-shrink-0 text-accent-primary"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
+							<DropdownMenu.Root>
+								<DropdownMenu.Trigger
+									type="button"
+									data-workspace-menu-trigger
+									class="flex h-6 w-6 items-center justify-center rounded-md text-tertiary transition-colors hover:bg-hover-solid hover:text-primary"
+									onpointerdown={(e) => e.stopPropagation()}
 								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M5 13l4 4L19 7"
-									/>
-								</svg>
-							{/if}
+									<svg
+										class="h-3.5 w-3.5"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+										/>
+									</svg>
+								</DropdownMenu.Trigger>
+								<DropdownMenu.Portal>
+									<DropdownMenu.Content
+										class="z-50 min-w-[160px] rounded-md border border-base bg-elevated py-1 shadow-lg"
+										side="right"
+										align="end"
+										sideOffset={4}
+									>
+										<DropdownMenu.Item
+											class="cursor-pointer px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+											textValue="Log out"
+											onSelect={(e) => {
+												e.preventDefault();
+												handleLogout();
+											}}
+										>
+											<span class="font-medium">Log out</span>
+										</DropdownMenu.Item>
+									</DropdownMenu.Content>
+								</DropdownMenu.Portal>
+							</DropdownMenu.Root>
 						</div>
 					</DropdownMenu.Item>
 
@@ -305,7 +356,15 @@
 										: ''
 								}`}
 								textValue={organization.name}
-								onSelect={() => handleSelect(organization.organizationId)}
+								onSelect={(e) => {
+									// Prevent selection if clicking on the '...' menu button
+									const target = e.detail.originalEvent?.target as HTMLElement;
+									if (target?.closest('[data-workspace-menu-trigger]')) {
+										e.preventDefault();
+										return;
+									}
+									handleSelect(organization.organizationId);
+								}}
 							>
 								<div class="flex min-w-0 flex-1 items-center gap-icon-wide">
 									<div
@@ -313,32 +372,74 @@
 									>
 										{organization.initials}
 									</div>
-									<div class="flex min-w-0 flex-col">
-										<span class="truncate font-medium">{organization.name}</span>
-										<span class="truncate text-label text-tertiary capitalize"
-											>{organization.role}</span
-										>
+									<div class="flex min-w-0 flex-1 items-center gap-icon">
+										<div class="flex min-w-0 flex-col">
+											<span class="truncate font-medium">{organization.name}</span>
+											<span class="truncate text-label text-tertiary capitalize"
+												>{organization.role}</span
+											>
+										</div>
+										{#if organization.organizationId === activeOrganizationId}
+											<svg
+												class="h-4 w-4 flex-shrink-0 text-accent-primary"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+											>
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													stroke-width="2"
+													d="M5 13l4 4L19 7"
+												/>
+											</svg>
+										{/if}
 									</div>
 								</div>
 								<div class="ml-auto flex items-center gap-icon">
 									{#if showShortcut}
 										<KeyboardShortcut keys={['Meta', shortcutNumber.toString()]} size="sm" />
 									{/if}
-									{#if organization.organizationId === activeOrganizationId}
-										<svg
-											class="h-4 w-4 flex-shrink-0 text-accent-primary"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
+									<DropdownMenu.Root>
+										<DropdownMenu.Trigger
+											type="button"
+											class="flex h-6 w-6 items-center justify-center rounded-md text-tertiary transition-colors hover:bg-hover-solid hover:text-primary"
+											onpointerdown={(e) => e.stopPropagation()}
 										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M5 13l4 4L19 7"
-											/>
-										</svg>
-									{/if}
+											<svg
+												class="h-3.5 w-3.5"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+											>
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													stroke-width="2"
+													d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+												/>
+											</svg>
+										</DropdownMenu.Trigger>
+										<DropdownMenu.Portal>
+											<DropdownMenu.Content
+												class="z-50 min-w-[160px] rounded-md border border-base bg-elevated py-1 shadow-lg"
+												side="right"
+												align="end"
+												sideOffset={4}
+											>
+												<DropdownMenu.Item
+													class="cursor-pointer px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+													textValue="Log out"
+													onSelect={(e) => {
+														e.preventDefault();
+														handleLogout();
+													}}
+												>
+													<span class="font-medium">Log out</span>
+												</DropdownMenu.Item>
+											</DropdownMenu.Content>
+										</DropdownMenu.Portal>
+									</DropdownMenu.Root>
 								</div>
 							</DropdownMenu.Item>
 						{/each}
@@ -477,15 +578,67 @@
 						</DropdownMenu.Label>
 						{#each linkedAccounts as account}
 							<DropdownMenu.Item
-								class="cursor-pointer px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+								class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 								textValue={account.email ?? 'Linked account'}
-								onSelect={() => handleSwitchAccount(account.userId)}
+								onSelect={(e) => {
+									// Prevent selection if clicking on the '...' menu button
+									const target = e?.detail?.originalEvent?.target as HTMLElement | undefined;
+									if (target?.closest('[data-workspace-menu-trigger]')) {
+										e.preventDefault();
+										return;
+									}
+									handleSwitchAccount(account.userId);
+								}}
 							>
-								<div class="flex flex-col gap-0.5">
-									<span class="font-medium">{account.name ?? account.email ?? 'Linked account'}</span>
-									{#if account.email && account.name}
-										<span class="text-xs text-secondary">{account.email}</span>
-									{/if}
+								<div class="flex min-w-0 flex-1 items-center gap-icon">
+									<div class="flex min-w-0 flex-col">
+										<span class="font-medium">{account.name ?? account.email ?? 'Linked account'}</span>
+										{#if account.email && account.name}
+											<span class="text-xs text-secondary">{account.email}</span>
+										{/if}
+									</div>
+								</div>
+								<div class="ml-auto flex items-center gap-icon">
+									<DropdownMenu.Root>
+										<DropdownMenu.Trigger
+											type="button"
+											class="flex h-6 w-6 items-center justify-center rounded-md text-tertiary transition-colors hover:bg-hover-solid hover:text-primary"
+											onpointerdown={(e) => e.stopPropagation()}
+										>
+											<svg
+												class="h-3.5 w-3.5"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+											>
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													stroke-width="2"
+													d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+												/>
+											</svg>
+										</DropdownMenu.Trigger>
+										<DropdownMenu.Portal>
+											<DropdownMenu.Content
+												class="z-50 min-w-[160px] rounded-md border border-base bg-elevated py-1 shadow-lg"
+												side="right"
+												align="end"
+												sideOffset={4}
+											>
+												<DropdownMenu.Item
+													class="cursor-pointer px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+													textValue="Log out"
+													onSelect={(e) => {
+														e.preventDefault();
+														handleLogout();
+													}}
+												>
+													<span class="font-medium">Log out</span>
+												</DropdownMenu.Item>
+											</DropdownMenu.Content>
+										</DropdownMenu.Portal>
+									</DropdownMenu.Root>
 								</div>
 							</DropdownMenu.Item>
 						{/each}
