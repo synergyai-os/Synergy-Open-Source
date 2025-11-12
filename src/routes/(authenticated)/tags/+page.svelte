@@ -12,8 +12,8 @@
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
 	const convexClient = useConvexClient();
 
-	// Get user ID from page data
-	const getUserId = () => $page.data.user?.userId;
+	// Get sessionId from page data
+	const getSessionId = () => $page.data.sessionId;
 
 	// Fetch user's tags
 	const tagsQuery = browser && getSessionId()

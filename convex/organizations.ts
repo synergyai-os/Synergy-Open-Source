@@ -101,7 +101,7 @@ export const listOrganizations = query({
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
-		const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const memberships = await ctx.db
 			.query('organizationMembers')
@@ -219,7 +219,7 @@ export const createOrganization = mutation({
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
-		const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const trimmedName = args.name.trim();
 		if (!trimmedName) {

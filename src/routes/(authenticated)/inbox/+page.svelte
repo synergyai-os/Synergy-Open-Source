@@ -260,11 +260,16 @@
 		if (!convexClient || !selected.selectedItemId) return;
 
 		try {
+			const sessionId = getSessionId();
+			if (!sessionId) {
+				throw new Error('Session ID is required');
+			}
+
 			// Save all flashcards to database
-		const flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
-			sessionId,
-			flashcards: generatedFlashcards,
-			sourceInboxItemId: selected.selectedItemId as any,
+			const flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
+				sessionId,
+				flashcards: generatedFlashcards,
+				sourceInboxItemId: selected.selectedItemId as any,
 				sourceType: selected.selectedItem?.type
 			});
 
@@ -293,15 +298,15 @@
 		if (!convexClient || !selected.selectedItemId) return;
 
 		try {
-			// Save selected flashcards to database (with any edits applied)
-			const userId = getUserId();
-			if (!userId) {
-				throw new Error('User ID is required');
+			const sessionId = getSessionId();
+			if (!sessionId) {
+				throw new Error('Session ID is required');
 			}
 
-		const flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
-			sessionId,
-			flashcards: cards,
+			// Save selected flashcards to database (with any edits applied)
+			const flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
+				sessionId,
+				flashcards: cards,
 				sourceInboxItemId: selected.selectedItemId as any,
 				sourceType: selected.selectedItem?.type
 			});

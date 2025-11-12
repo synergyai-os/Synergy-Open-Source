@@ -28,6 +28,9 @@ jobs:
       - name: Run session validation tests
         run: npm run test:unit:server
       
+      - name: Run integration tests
+        run: npm run test:integration
+      
       - name: Check for linting errors
         run: npm run lint
 

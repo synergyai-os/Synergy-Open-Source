@@ -1047,6 +1047,144 @@ git push origin --delete feature/team-access-permissions
 
 ---
 
-**Pattern Count**: 19  
-**Last Validated**: 2025-11-10  
-**Context7 Source**: `/get-convex/convex-backend`, WorkOS OIDC docs
+## #L850: Missing Destructuring from validateSessionAndGetUserId [🔴 CRITICAL]
+
+**Symptom**: Database queries fail with type errors, userId is an object instead of string  
+**Root Cause**: `validateSessionAndGetUserId()` returns `{ userId, session }` but code assigns directly  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Missing destructuring (userId becomes an object)
+const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+// userId is now { userId: "...", session: {...} } not a string!
+
+const tags = await ctx.db
+	.query('tags')
+	.withIndex('by_user', (q) => q.eq('userId', userId)) // ❌ Fails - expects string, got object
+	.collect();
+
+// ✅ CORRECT: Destructure to extract userId
+const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+// userId is now the string ID
+
+const tags = await ctx.db
+	.query('tags')
+	.withIndex('by_user', (q) => q.eq('userId', userId)) // ✅ Works
+	.collect();
+```
+
+**Why**: Function returns object with two properties, must destructure to get the ID string.  
+**Apply when**: Any Convex function using `validateSessionAndGetUserId()`  
+**Related**: #L240 (Type definitions), #L900 (Integration testing catches this)
+
+**Prevention**:
+- Static analysis: `scripts/check-sessionid-usage.sh` catches missing destructuring
+- Integration tests: Would fail immediately with type error
+- ESLint rule: Can detect missing destructuring from known functions
+
+---
+
+## #L900: Integration Testing with convex-test [🟡 IMPORTANT]
+
+**Symptom**: Unit tests pass but bugs slip through to production  
+**Root Cause**: Unit tests mock dependencies, don't catch integration issues  
+**Fix**:
+
+```typescript
+// Unit tests (isolated) - don't catch destructuring bugs
+describe('validateSessionAndGetUserId', () => {
+	it('returns userId', async () => {
+		const result = await validateSessionAndGetUserId(ctx, sessionId);
+		expect(result.userId).toBe(validUserId); // ✅ Test uses correct pattern
+	});
+});
+
+// But real code has bug:
+const userId = await validateSessionAndGetUserId(ctx, args.sessionId); // ❌ Bug not caught!
+
+// ✅ CORRECT: Integration tests run actual functions
+import { convexTest } from 'convex-test';
+import { api } from '../../../convex/_generated/api';
+import { createTestSession } from './setup';
+
+describe('Tags Integration', () => {
+	it('should list tags', async () => {
+		const t = convexTest();
+		const { sessionId, userId } = await createTestSession(t);
+		
+		// Runs actual Convex function - would fail if destructuring missing
+		const tags = await t.query(api.tags.listTags, { sessionId });
+		
+		expect(tags).toBeDefined();
+		expect(Array.isArray(tags)).toBe(true);
+	});
+});
+```
+
+**Test Structure**:
+
+```
+tests/convex/integration/
+├── README.md           - Documentation
+├── setup.ts            - Test helpers (createTestSession, cleanup)
+├── tags.integration.test.ts
+├── flashcards.integration.test.ts
+└── [module].integration.test.ts
+```
+
+**Test Helpers**:
+
+```typescript
+// setup.ts
+export async function createTestSession(t: ConvexTestingHelper) {
+	const userId = await t.run(async (ctx) => {
+		return await ctx.db.insert('users', {
+			email: `test-${Date.now()}@example.com`,
+			name: 'Test User'
+		});
+	});
+	
+	const sessionId = `test_session_${Date.now()}`;
+	await t.run(async (ctx) => {
+		await ctx.db.insert('authSessions', {
+			sessionId,
+			convexUserId: userId,
+			isValid: true,
+			expiresAt: Date.now() + 3600000
+		});
+	});
+	
+	return { sessionId, userId };
+}
+```
+
+**What Integration Tests Catch**:
+- ✅ Missing destructuring (type errors)
+- ✅ Database query errors (indexes, field names)
+- ✅ Auth flow bugs (session validation)
+- ✅ Return value contracts (shape mismatches)
+- ✅ User isolation (data leaks)
+
+**Performance**: < 30 seconds for full suite (vs minutes for E2E)
+
+**CI Integration**:
+
+```json
+// package.json
+{
+	"scripts": {
+		"test:integration": "vitest --run tests/convex/integration",
+		"precommit": "npm run test:sessionid && npm run test:integration"
+	}
+}
+```
+
+**Why**: Integration tests bridge the gap between unit tests and E2E tests.  
+**Apply when**: Testing Convex functions end-to-end without full UI  
+**Related**: #L850 (Would catch destructuring bugs), #L240 (Type safety)
+
+---
+
+**Pattern Count**: 21  
+**Last Validated**: 2025-11-12  
+**Context7 Source**: `/get-convex/convex-backend`, `convex-test` NPM docs

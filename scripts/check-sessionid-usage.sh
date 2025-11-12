@@ -71,11 +71,29 @@ for file in $COMPONENTS_WITH_CONVEX; do
   fi
 done
 
-# 3. Check Convex function args still using userId
-echo "🔧 Checking Convex function signatures..."
+# 3. Check for missing destructuring from validateSessionAndGetUserId
+echo "🔍 Checking for missing destructuring bugs..."
 echo ""
 
 CONVEX_FILES=$(find convex/ -name "*.ts" ! -name "*.test.ts" ! -path "convex/_generated/*" 2>/dev/null || true)
+
+for file in $CONVEX_FILES; do
+  # Look for const userId = await validateSessionAndGetUserId (missing destructuring)
+  MISSING_DESTRUCTURE=$(grep -n "const userId = await validateSessionAndGetUserId" "$file" || true)
+  
+  if [ ! -z "$MISSING_DESTRUCTURE" ]; then
+    echo -e "${RED}❌ CRITICAL: Missing destructuring in $file${NC}"
+    echo "   Found: const userId = await validateSessionAndGetUserId(...)"
+    echo "   Should be: const { userId } = await validateSessionAndGetUserId(...)"
+    echo "$MISSING_DESTRUCTURE"
+    echo ""
+    ISSUES_FOUND=$((ISSUES_FOUND + 1))
+  fi
+done
+
+# 4. Check Convex function args still using userId
+echo "🔧 Checking Convex function signatures..."
+echo ""
 
 for file in $CONVEX_FILES; do
   # Look for functions with userId in args that aren't internal functions
@@ -88,7 +106,7 @@ for file in $CONVEX_FILES; do
   fi
 done
 
-# 4. Summary
+# 5. Summary
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 if [ $ISSUES_FOUND -eq 0 ]; then

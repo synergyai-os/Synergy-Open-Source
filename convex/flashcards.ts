@@ -62,7 +62,7 @@ export const createFlashcard = mutation({
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
-		const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Get user's algorithm settings (default to FSRS)
 		const settings = await ctx.db
@@ -133,7 +133,7 @@ export const createFlashcards = mutation({
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
-		const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Get user's algorithm settings
 		const settings = await ctx.db
@@ -202,7 +202,7 @@ export const reviewFlashcard = mutation({
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
-		const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Get flashcard
 		const flashcard = await ctx.db.get(args.flashcardId);
@@ -302,7 +302,7 @@ export const updateFlashcard = mutation({
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
-		const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const flashcard = await ctx.db.get(args.flashcardId);
 		if (!flashcard) {
@@ -343,7 +343,7 @@ export const deleteFlashcard = mutation({
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
-		const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const flashcard = await ctx.db.get(args.flashcardId);
 		if (!flashcard) {
@@ -461,7 +461,7 @@ export const getUserFlashcards = query({
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
-		const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		let flashcards = await ctx.db
 			.query('flashcards')

@@ -98,7 +98,7 @@ export const getUserById = query({
 	args: { sessionId: v.string() },
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
-		const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 		return await ctx.db.get(userId);
 	}
 });
@@ -134,7 +134,7 @@ export const getCurrentUser = query({
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
-		const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 		
 		// Return user record
 		return await ctx.db.get(userId);

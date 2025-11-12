@@ -16,7 +16,9 @@
 		"lint": "prettier --check . && eslint .",
 		"test:unit": "vitest",
 		"test:unit:server": "vitest --run --project=server",
-		"test": "npm run test:unit:server && npm run test:e2e",
+		"test:integration": "vitest --run tests/convex/integration",
+		"test:integration:watch": "vitest tests/convex/integration",
+		"test": "npm run test:unit:server && npm run test:integration && npm run test:e2e",
 		"test:e2e": "playwright test",
 		"test:e2e:setup": "playwright test e2e/auth.setup.ts",
 		"test:e2e:quick-create": "playwright test e2e/quick-create.spec.ts",
@@ -25,7 +27,7 @@
 		"test:e2e:auth": "playwright test e2e/auth-security.test.ts",
 		"test:e2e:critical": "playwright test e2e/quick-create.spec.ts e2e/settings-security.spec.ts e2e/inbox-workflow.spec.ts",
 		"test:sessionid": "./scripts/check-sessionid-usage.sh",
-		"precommit": "npm run test:sessionid && npm run lint && npm run test:unit:server"
+		"precommit": "npm run test:sessionid && npm run lint && npm run test:unit:server && npm run test:integration"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.4.0",

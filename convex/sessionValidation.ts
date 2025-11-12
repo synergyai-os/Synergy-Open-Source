@@ -43,7 +43,7 @@ export async function validateSession(
 				q.gt(q.field('expiresAt'), now)
 			)
 		)
-		.order('desc', '_creationTime')
+		.order('desc')
 		.first();
 
 	if (!session) {

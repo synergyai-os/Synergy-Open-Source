@@ -172,7 +172,7 @@ export const listAllTags = query({
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
-		const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Get all user tags
 		const tags = await ctx.db
@@ -196,7 +196,7 @@ export const listUserTags = query({
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
-		const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Get all user tags (including shared ones)
 		const tags = await ctx.db
@@ -292,7 +292,7 @@ export const createTag = mutation({
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
-		const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const ownership = args.ownership ?? 'user';
 		let organizationId: Id<'organizations'> | undefined = undefined;
@@ -515,7 +515,7 @@ export const shareTag = mutation({
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
-		const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Get the tag
 		const tag = await ctx.db.get(args.tagId);
@@ -747,7 +747,7 @@ export const assignTagsToHighlight = mutation({
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
-		const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		return await assignTagsToEntity(ctx, userId, 'highlights', args.highlightId, args.tagIds);
 	}
@@ -767,7 +767,7 @@ export const assignTagsToFlashcard = mutation({
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
-		const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		return await assignTagsToEntity(ctx, userId, 'flashcards', args.flashcardId, args.tagIds);
 	}
@@ -787,7 +787,7 @@ export const unassignTagFromHighlight = mutation({
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
-		const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Verify highlight exists and belongs to user
 		const highlight = await ctx.db.get(args.highlightId);

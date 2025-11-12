@@ -42,6 +42,7 @@
 | localStorage session data visible in DevTools, fails SOC 2 audit             | Use Web Crypto API (AES-256-GCM + PBKDF2)              | [auth-deployment.md#L960](auth-deployment.md#L960)                  |
 | `Cannot call replaceState(...) before router is initialized` on page load    | Try-catch guard around replaceState in $effect          | [svelte-reactivity.md#L730](svelte-reactivity.md#L730)              |
 | Account switch takes 5+ seconds, query costs spike with many linked accounts | Add MAX_LINK_DEPTH=3 and MAX_TOTAL_ACCOUNTS=10 limits   | [auth-deployment.md#L1010](auth-deployment.md#L1010)                |
+| Database queries fail, userId is an object instead of string                 | Destructure validateSessionAndGetUserId: const { userId } = await... | [convex-integration.md#L850](convex-integration.md#L850)            |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -71,6 +72,7 @@
 | After git stash: "Not authenticated" runtime errors | Backend/frontend out of sync. Re-add userId parameters              | [convex-integration.md#L690](convex-integration.md#L690) |
 | Production database empty after deployment          | Deployed to dev instead of production, need CONVEX_DEPLOY_KEY_PROD  | [convex-integration.md#L750](convex-integration.md#L750) |
 | Feature branches outdated after merge               | Merge main into branches before deleting merged branch              | [convex-integration.md#L800](convex-integration.md#L800) |
+| Unit tests pass but bugs slip through to production | Add integration tests with convex-test                              | [convex-integration.md#L900](convex-integration.md#L900) |
 | Analytics events missing in PostHog                 | Use server-side tracking                                            | [analytics.md#L10](analytics.md#L10)                     |
 
 ## 🟢 REFERENCE Patterns (Best Practices)

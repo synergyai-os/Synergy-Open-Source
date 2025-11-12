@@ -117,13 +117,13 @@
 		} else {
 			// Query flashcards for this specific tag
 			try {
-				const userId = getUserId();
-				if (!userId) {
-					throw new Error('User ID is required');
+				const sessionId = getSessionId();
+				if (!sessionId) {
+					throw new Error('Session ID is required');
 				}
 
 				const result = await convexClient.query(api.flashcards.getUserFlashcards, {
-					userId,
+					sessionId,
 					tagIds: [collection.tagId as Id<'tags'>]
 				});
 				flashcards = result ?? [];

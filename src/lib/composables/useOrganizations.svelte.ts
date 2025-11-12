@@ -80,10 +80,12 @@ function getStorageDetailsKey(userId: string | undefined): string {
 
 export function useOrganizations(options?: {
 	userId?: () => string | undefined;
+	sessionId?: () => string | undefined;
 	orgFromUrl?: () => string | null; // Reactive URL parameter
 }) {
 	const convexClient = browser ? useConvexClient() : null;
 	const getUserId = options?.userId || (() => undefined);
+	const getSessionId = options?.sessionId || (() => undefined);
 	const getOrgFromUrl = options?.orgFromUrl || (() => null);
 
 	// Get account-specific storage keys

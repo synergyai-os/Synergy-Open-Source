@@ -361,7 +361,7 @@ export const getUserPermissionsQuery = query({
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
-		const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 		
 		const context: PermissionContext = {};
 
