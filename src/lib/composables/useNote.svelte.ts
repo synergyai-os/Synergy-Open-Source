@@ -20,10 +20,7 @@ export type NoteState = {
 	error: string | null;
 };
 
-export function useNote(
-	convexClient: ConvexClient | null,
-	getSessionId: () => string | undefined
-) {
+export function useNote(convexClient: ConvexClient | null, getSessionId: () => string | undefined) {
 	// Internal state using single $state object pattern
 	const state = $state<NoteState>({
 		noteId: null,

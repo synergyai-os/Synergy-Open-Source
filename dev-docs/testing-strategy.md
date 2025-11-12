@@ -18,8 +18,9 @@ npm run test:unit:server
 ```
 
 **Coverage**:
+
 - ✅ Session validation logic
-- ✅ Impersonation attack prevention  
+- ✅ Impersonation attack prevention
 - ✅ Session expiration/revocation
 - ✅ Database query efficiency
 
@@ -33,11 +34,13 @@ npm run test:sessionid
 ```
 
 **What It Checks**:
+
 - ❌ **BLOCKS**: Client code passing `userId` to migrated functions
 - ⚠️ **WARNS**: Convex functions still using `userId` args
 - ⚠️ **WARNS**: Components that may need migration
 
 **Exit Codes**:
+
 - `0` = Safe to commit
 - `1` = Issues found, blocks commit
 
@@ -51,6 +54,7 @@ npm run test:e2e:quick-create
 ```
 
 **Coverage**:
+
 - Quick Create Modal (C key)
 - Note creation flow
 - Flashcard creation flow
@@ -64,11 +68,13 @@ npm run test:e2e:quick-create
 **Status**: Active
 
 **Runs automatically before every commit**:
+
 1. Static analysis (`npm run test:sessionid`)
 2. Linter (`npm run lint`)
 3. Unit tests (`npm run test:unit:server`)
 
 **To install**:
+
 ```bash
 npm install husky --save-dev
 npx husky install
@@ -81,6 +87,7 @@ npx husky install
 **Triggers**: On all PRs and pushes to main/develop
 
 **Jobs**:
+
 1. **check-sessionid**: Static analysis + unit tests + linter
 2. **e2e-quick-create**: Full E2E test suite
 
@@ -89,27 +96,29 @@ npx husky install
 ## How It Caught The Bug 🐛
 
 ### The Issue
+
 `QuickCreateModal.svelte` was still using `userId` instead of `sessionId`:
 
 ```typescript
 // ❌ OLD (caused ArgumentValidationError)
 await convexClient.mutation(api.notes.createNote, {
-  userId,  // Client-supplied
-  title: noteTitle,
-  content: noteContent
+	userId, // Client-supplied
+	title: noteTitle,
+	content: noteContent
 });
 
 // ✅ NEW (secure)
 await convexClient.mutation(api.notes.createNote, {
-  sessionId,  // Server-validated
-  title: noteTitle,
-  content: noteContent
+	sessionId, // Server-validated
+	title: noteTitle,
+	content: noteContent
 });
 ```
 
 ### How We Catch It Now
 
 **Static Analysis** (runs on commit):
+
 ```bash
 $ npm run test:sessionid
 ❌ Found userId passed to createNote (should use sessionId):
@@ -117,11 +126,12 @@ src/lib/components/QuickCreateModal.svelte:258
 ```
 
 **E2E Test** (runs in CI):
+
 ```typescript
 test('should create note via keyboard shortcut without errors', async ({ page }) => {
-  await page.keyboard.press('c');
-  // Test would fail with console error:
-  // ArgumentValidationError: Object is missing required field `sessionId`
+	await page.keyboard.press('c');
+	// Test would fail with console error:
+	// ArgumentValidationError: Object is missing required field `sessionId`
 });
 ```
 
@@ -209,6 +219,7 @@ chmod +x .husky/pre-commit
 ### Static Analysis False Positive
 
 If script incorrectly flags code:
+
 1. Check if it's a schema definition (expected)
 2. Check if it's an internal function (expected)
 3. Add exclusion to script if needed
@@ -216,6 +227,7 @@ If script incorrectly flags code:
 ### E2E Test Timeout
 
 E2E tests may timeout if:
+
 - Dev server not running
 - Convex not accessible
 - Auth not configured

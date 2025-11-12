@@ -5,11 +5,13 @@ Run CI checks locally before pushing to GitHub.
 ## ✅ Quick Start (Recommended)
 
 **Run all CI checks locally:**
+
 ```bash
 npm run ci:local
 ```
 
 **This runs:**
+
 1. ✓ Type check (`npm run check`)
 2. ✓ Lint (`npm run lint`)
 3. ✓ Build (`npm run build`)
@@ -53,16 +55,19 @@ npm run check && npm run lint && npm run build
 ## 🚨 Important Notes
 
 ### 1. Secret Scanning (TruffleHog)
+
 **Not run locally** - Only in CI (step 34-37 in workflow)
 
 **Why:** TruffleHog scans entire git history, not just working directory.  
 **Local alternative:** Don't commit API keys/secrets in `.env` files
 
 ### 2. Type Check Warnings
+
 **Expected:** 66 TypeScript errors in test files (SYOS-72)  
 **CI behavior:** Type check has `continue-on-error: true` so it doesn't block
 
 ### 3. Lint vs Build
+
 - **Lint** checks code style (Prettier + ESLint)
 - **Build** checks if code compiles (TypeScript + Vite)
 
@@ -73,17 +78,20 @@ npm run check && npm run lint && npm run build
 ## 🔄 Keeping in Sync
 
 **When CI workflow changes:**
+
 1. Update `.github/workflows/quality-gates.yml`
 2. Update `ci:local` script in `package.json` to match
-3. *Optionally* update `scripts/test-locally.sh` (if you use it)
+3. _Optionally_ update `scripts/test-locally.sh` (if you use it)
 4. Update this doc
 
 **Example:** If we add E2E tests to CI:
+
 ```json
 "ci:local": "npm run check && npm run lint && npm run build && npm run test:e2e"
 ```
 
 **Why npm scripts are better:**
+
 - ✅ One source of truth (`package.json`)
 - ✅ Platform-independent (works on Windows/Mac/Linux)
 - ✅ Easier to maintain
@@ -99,6 +107,7 @@ npm run precommit
 ```
 
 **This includes:**
+
 - SessionID usage check
 - Lint
 - Unit tests (server)
@@ -110,13 +119,13 @@ npm run precommit
 
 ## 📋 Quick Reference
 
-| Command | What it does | CI Step |
-|---------|-------------|---------|
-| `npm run ci:local` | All CI quality checks | Steps 39-48 |
-| `npm run check` | TypeScript check (warns only) | Step 39-41 |
-| `npm run lint` | Prettier + ESLint (fails on error) | Step 43-45 |
-| `npm run build` | Build verification (fails on error) | Step 47-52 |
-| `npm run precommit` | All pre-commit checks + tests | (local only) |
+| Command             | What it does                        | CI Step      |
+| ------------------- | ----------------------------------- | ------------ |
+| `npm run ci:local`  | All CI quality checks               | Steps 39-48  |
+| `npm run check`     | TypeScript check (warns only)       | Step 39-41   |
+| `npm run lint`      | Prettier + ESLint (fails on error)  | Step 43-45   |
+| `npm run build`     | Build verification (fails on error) | Step 47-52   |
+| `npm run precommit` | All pre-commit checks + tests       | (local only) |
 
 ---
 
@@ -139,6 +148,7 @@ A: Almost - excludes TruffleHog secret scanning (git history scan).
 ## 🚀 Workflow
 
 **Before pushing:**
+
 ```bash
 # 1. Run CI checks locally
 npm run ci:local
@@ -151,6 +161,6 @@ git push
 ```
 
 **After CI changes:**
+
 - Update `ci:local` script in package.json
 - Run `npm run ci:local` to verify
-

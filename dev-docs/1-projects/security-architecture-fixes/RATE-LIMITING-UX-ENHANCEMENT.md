@@ -11,6 +11,7 @@
 Rate limiting was working ✅, but the error messaging was **not user-friendly**:
 
 **Before**:
+
 - Generic "Too many requests" error
 - No visual distinction (looked like regular info message)
 - No progress indication (static message with number)
@@ -33,6 +34,7 @@ Added **error/destructive color tokens** to the design system:
 ```
 
 **Utility Classes**:
+
 - `bg-error` - Error background color
 - `border-error` - Error border color
 - `text-error` - Primary error text
@@ -47,6 +49,7 @@ Added **error/destructive color tokens** to the design system:
 Created a delightful, reusable component: `src/lib/components/ui/RateLimitError.svelte`
 
 **Features**:
+
 - 🔴 **Clear Visual Design**: Red error styling (not blue info)
 - ⏱️ **Live Countdown Timer**: 52... 51... 50... (shows progress)
 - ⚡ **Real-time Updates**: Counts down every second
@@ -56,6 +59,7 @@ Created a delightful, reusable component: `src/lib/components/ui/RateLimitError.
 - 🌓 **Theme Aware**: Works in light and dark mode
 
 **Props**:
+
 ```typescript
 {
   retryAfter: number;        // seconds to wait
@@ -71,22 +75,18 @@ Created a delightful, reusable component: `src/lib/components/ui/RateLimitError.
 Both pages now use the delightful error component:
 
 **Login** (`/login`):
+
 ```svelte
 {#if isRateLimited}
-  <RateLimitError 
-    retryAfter={rateLimitRetryAfter}
-    actionLabel="logging in"
-  />
+	<RateLimitError retryAfter={rateLimitRetryAfter} actionLabel="logging in" />
 {/if}
 ```
 
 **Register** (`/register`):
+
 ```svelte
 {#if isRateLimited}
-  <RateLimitError 
-    retryAfter={rateLimitRetryAfter}
-    actionLabel="creating accounts"
-  />
+	<RateLimitError retryAfter={rateLimitRetryAfter} actionLabel="creating accounts" />
 {/if}
 ```
 
@@ -95,6 +95,7 @@ Both pages now use the delightful error component:
 ## 🎨 Visual Comparison
 
 ### Before
+
 ```
 ┌─────────────────────────────────────────────┐
 │ Too many requests                           │ ← Blue info box (confusing)
@@ -102,6 +103,7 @@ Both pages now use the delightful error component:
 ```
 
 ### After
+
 ```
 ┌─────────────────────────────────────────────┐
 │ ⚠️  Whoa, slow down! You've tried logging  │ ← Red error box (clear)
@@ -125,20 +127,24 @@ Both pages now use the delightful error component:
 ## 🎯 Design Principles Applied
 
 ### 1. **Privacy First** ✅
+
 - Clear error messages don't leak sensitive info
 - Rate limit is IP-based (no user tracking)
 
 ### 2. **Outcomes Over Outputs** ✅
+
 - Focused on **user understanding** (outcome), not just "showing an error" (output)
 - User knows **exactly** when they can retry
 
 ### 3. **Delight in Details** ✅ 🌟
+
 - **Live countdown** creates anticipation and delight
 - **Clear visual hierarchy** with red error styling
 - **Smooth transitions** and real-time updates
 - **Accessibility** with proper semantic HTML
 
 ### 4. **Privacy First + Design Excellence** ✅
+
 - Error tokens work in light **and** dark mode
 - Consistent with overall design system
 - Reusable across the entire application
@@ -148,9 +154,11 @@ Both pages now use the delightful error component:
 ## 📊 Technical Implementation
 
 ### Files Created (1)
+
 1. `src/lib/components/ui/RateLimitError.svelte` - Reusable countdown error component
 
 ### Files Modified (4)
+
 1. `src/app.css` - Added error color tokens + utilities
 2. `src/lib/components/ui/index.ts` - Exported RateLimitError
 3. `src/routes/login/+page.svelte` - Uses RateLimitError component
@@ -183,11 +191,13 @@ Both pages now use the delightful error component:
 ## 🌓 Theme Support
 
 ### Light Mode
+
 - Red-50 background (soft red)
 - Red-500 border (clear red)
 - Red-700/Red-800 text (dark red, readable)
 
 ### Dark Mode
+
 - Red-900/30 background (dark red tint)
 - Red-500 border (same red)
 - Red-300 text (light red, readable on dark)
@@ -201,10 +211,12 @@ Both pages now use the delightful error component:
 This component can now be used **anywhere** rate limiting occurs:
 
 ### Current Usage
+
 - ✅ Login page (`/login`)
 - ✅ Register page (`/register`)
 
 ### Future Usage (easy to add)
+
 - API rate limiting
 - Comment posting limits
 - File upload limits
@@ -212,11 +224,9 @@ This component can now be used **anywhere** rate limiting occurs:
 - Any action with rate limits!
 
 **Example**:
+
 ```svelte
-<RateLimitError 
-  retryAfter={30}
-  actionLabel="uploading files"
-/>
+<RateLimitError retryAfter={30} actionLabel="uploading files" />
 ```
 
 ---
@@ -224,6 +234,7 @@ This component can now be used **anywhere** rate limiting occurs:
 ## 🎨 Design System Impact
 
 ### New Tokens Added
+
 ```css
 @utility bg-error { ... }
 @utility border-error { ... }
@@ -232,6 +243,7 @@ This component can now be used **anywhere** rate limiting occurs:
 ```
 
 ### Can Now Be Used For
+
 - ✅ Form validation errors
 - ✅ API error messages
 - ✅ Permission denied errors
@@ -245,6 +257,7 @@ This component can now be used **anywhere** rate limiting occurs:
 ## ✅ Success Metrics
 
 ### User Experience
+
 - ✅ **Clear Visual Design**: Red error (not blue info)
 - ✅ **Progress Indicator**: Live countdown timer
 - ✅ **User Understanding**: Knows exactly when to retry
@@ -252,6 +265,7 @@ This component can now be used **anywhere** rate limiting occurs:
 - ✅ **No Frustration**: Clear communication reduces anger
 
 ### Technical
+
 - ✅ **Design System Integration**: Error tokens added
 - ✅ **Reusable Component**: Can be used anywhere
 - ✅ **Accessible**: Screen reader friendly
@@ -269,6 +283,7 @@ This component can now be used **anywhere** rate limiting occurs:
 > — User feedback
 
 **What We Learned**:
+
 1. **Small touches matter**: A countdown timer takes ~5 lines of code but creates huge UX improvement
 2. **Design system thinking**: Adding error tokens enables future error handling across the entire app
 3. **User-first messaging**: "Whoa, slow down!" is friendlier than "Too many requests"
@@ -280,6 +295,7 @@ This component can now be used **anywhere** rate limiting occurs:
 ## 🔮 Future Enhancements
 
 **Potential Improvements** (not implemented yet):
+
 1. **Sound/haptic feedback** when countdown completes
 2. **Auto-enable submit button** when countdown hits 0
 3. **Animate the number** (smooth transitions)
@@ -293,6 +309,7 @@ This component can now be used **anywhere** rate limiting occurs:
 ## 📝 Summary
 
 ### What We Built
+
 ✅ Error color tokens in design system  
 ✅ Reusable RateLimitError component with countdown  
 ✅ Updated login and register pages  
@@ -300,16 +317,17 @@ This component can now be used **anywhere** rate limiting occurs:
 ✅ Accessible, type-safe implementation
 
 ### Impact
+
 - **Better UX**: Users understand errors and know when to retry
 - **Design System**: Pattern established for all future errors
 - **Maintainable**: Reusable component reduces future work
 - **Delightful**: Countdown creates unexpected positive emotion
 
 ### Time Investment
+
 - **5 hours** to build
 - **Infinite value** for all future error states
 
 ---
 
 **Next**: Test manually to see the delightful countdown in action! 🎉
-

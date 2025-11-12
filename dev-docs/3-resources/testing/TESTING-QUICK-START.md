@@ -33,40 +33,42 @@ import { api } from '../../../convex/_generated/api';
 import { createTestSession } from './setup';
 
 describe('My Module', () => {
-  it('should work', async () => {
-    const t = convexTest();
-    const { sessionId, userId } = await createTestSession(t);
-    
-    const result = await t.query(api.myModule.myFunction, {
-      sessionId
-    });
-    
-    expect(result).toBeDefined();
-  });
+	it('should work', async () => {
+		const t = convexTest();
+		const { sessionId, userId } = await createTestSession(t);
+
+		const result = await t.query(api.myModule.myFunction, {
+			sessionId
+		});
+
+		expect(result).toBeDefined();
+	});
 });
 ```
 
 ## 🔍 What Runs When
 
 **Pre-commit (automatic):**
+
 - Static analysis
-- Linter  
+- Linter
 - Unit tests
 - Integration tests
 
 **CI/CD (automatic):**
+
 - All tests
 - E2E tests
 - Blocks PR if any fail
 
 ## 🎯 Coverage Status
 
-| Layer | Tests | Status |
-|-------|-------|--------|
-| Static Analysis | ✅ Active | Complete |
-| Unit Tests | 49 | Good |
-| **Integration Tests** | **11** | **In Progress** |
-| E2E Tests | 16 | Good |
+| Layer                 | Tests     | Status          |
+| --------------------- | --------- | --------------- |
+| Static Analysis       | ✅ Active | Complete        |
+| Unit Tests            | 49        | Good            |
+| **Integration Tests** | **11**    | **In Progress** |
+| E2E Tests             | 16        | Good            |
 
 ## 📚 Resources
 
@@ -74,4 +76,3 @@ describe('My Module', () => {
 - [Integration Test README](./tests/convex/integration/README.md)
 - [SYOS-44: Testing Infrastructure](https://linear.app/younghumanclub/issue/SYOS-44)
 - [SYOS-45: Integration Tests](https://linear.app/younghumanclub/issue/SYOS-45)
-

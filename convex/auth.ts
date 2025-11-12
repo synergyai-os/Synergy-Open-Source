@@ -8,11 +8,11 @@ import { validateSessionAndGetUserId, getUserIdFromSession } from './sessionVali
 
 /**
  * Get authenticated user ID from sessionId (RECOMMENDED)
- * 
+ *
  * This is the secure way to authenticate Convex functions.
- * 
+ *
  * Security: Derives userId from server-validated sessionId, preventing impersonation attacks.
- * 
+ *
  * Usage:
  * ```typescript
  * export const myQuery = query({
@@ -23,7 +23,7 @@ import { validateSessionAndGetUserId, getUserIdFromSession } from './sessionVali
  *   }
  * });
  * ```
- * 
+ *
  * @param ctx Query or Mutation context
  * @param sessionId Session ID from authenticated SvelteKit session
  * @returns userId
@@ -39,10 +39,10 @@ export async function getAuthUserId(
 
 /**
  * Get authenticated user ID from sessionId (returns null if invalid)
- * 
+ *
  * Similar to getAuthUserId() but returns null instead of throwing.
  * Useful for optional authentication scenarios.
- * 
+ *
  * @param ctx Query or Mutation context
  * @param sessionId Session ID from authenticated SvelteKit session
  * @returns userId or null if session invalid

@@ -1,13 +1,15 @@
 /**
  * Flashcards Module Integration Tests
- * 
+ *
  * Tests actual Convex functions to catch bugs like destructuring issues
  */
 
 import { describe, it, expect, afterEach } from 'vitest';
 import { convexTest } from 'convex-test';
 import { api } from '../../../convex/_generated/api';
-import { createTestSession, createTestNote, cleanupTestData } from './setup';
+import schema from '../../../convex/schema';
+import { modules } from './test.setup';
+import { createTestSession, cleanupTestData } from './setup';
 
 describe('Flashcards Integration Tests', () => {
 	let userId: any;
@@ -15,13 +17,13 @@ describe('Flashcards Integration Tests', () => {
 	afterEach(async () => {
 		// Cleanup after each test
 		if (userId) {
-			const t = convexTest();
+			const t = convexTest(schema, modules);
 			await cleanupTestData(t, userId);
 		}
 	});
 
 	it('should create flashcard without type errors', async () => {
-		const t = convexTest();
+		const t = convexTest(schema, modules);
 		const { sessionId, userId: testUserId } = await createTestSession(t);
 		userId = testUserId;
 
@@ -37,7 +39,7 @@ describe('Flashcards Integration Tests', () => {
 	});
 
 	it('should list user flashcards', async () => {
-		const t = convexTest();
+		const t = convexTest(schema, modules);
 		const { sessionId, userId: testUserId } = await createTestSession(t);
 		userId = testUserId;
 
@@ -50,7 +52,7 @@ describe('Flashcards Integration Tests', () => {
 		});
 
 		// List flashcards (tests destructuring)
-		const flashcards = await t.query(api.flashcards.listFlashcards, {
+		const flashcards = await t.query(api.flashcards.getUserFlashcards, {
 			sessionId
 		});
 
@@ -60,7 +62,7 @@ describe('Flashcards Integration Tests', () => {
 	});
 
 	it('should review flashcard and update state', async () => {
-		const t = convexTest();
+		const t = convexTest(schema, modules);
 		const { sessionId, userId: testUserId } = await createTestSession(t);
 		userId = testUserId;
 
@@ -76,15 +78,16 @@ describe('Flashcards Integration Tests', () => {
 		const result = await t.mutation(api.flashcards.reviewFlashcard, {
 			sessionId,
 			flashcardId,
-			rating: 3 // Good
+			rating: 'good' // Valid rating: 'again', 'hard', 'good', 'easy'
 		});
 
 		expect(result).toBeDefined();
-		expect(result.flashcardId).toBe(flashcardId);
+		expect(result.success).toBe(true);
+		expect(result.nextDue).toBeDefined();
 	});
 
 	it('should fail with invalid sessionId', async () => {
-		const t = convexTest();
+		const t = convexTest(schema, modules);
 
 		// Try to create flashcard with invalid sessionId
 		await expect(
@@ -98,7 +101,7 @@ describe('Flashcards Integration Tests', () => {
 	});
 
 	it('should enforce user isolation', async () => {
-		const t = convexTest();
+		const t = convexTest(schema, modules);
 
 		// Create two users
 		const { sessionId: session1, userId: user1 } = await createTestSession(t);
@@ -113,7 +116,7 @@ describe('Flashcards Integration Tests', () => {
 		});
 
 		// User2 should not see user1's flashcards
-		const user2Flashcards = await t.query(api.flashcards.listFlashcards, {
+		const user2Flashcards = await t.query(api.flashcards.getUserFlashcards, {
 			sessionId: session2
 		});
 
@@ -125,4 +128,3 @@ describe('Flashcards Integration Tests', () => {
 		userId = null;
 	});
 });
-

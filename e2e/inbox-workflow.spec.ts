@@ -1,8 +1,8 @@
 /**
  * E2E Tests for Inbox Module - Core Workflow
- * 
+ *
  * CRITICAL: Tests the main user workflow (process inbox items)
- * 
+ *
  * These tests verify:
  * - Inbox items list uses sessionId
  * - Mark as processed uses sessionId
@@ -57,7 +57,9 @@ test.describe('Inbox Workflow - SessionID Authentication', () => {
 		});
 
 		// Find first inbox item by looking for buttons with emoji indicators
-		const firstItem = page.locator('button:has-text("📚"), button:has-text("📝"), button:has-text("💭")').first();
+		const firstItem = page
+			.locator('button:has-text("📚"), button:has-text("📝"), button:has-text("💭")')
+			.first();
 
 		if (await firstItem.isVisible({ timeout: 3000 })) {
 			// Click to select item
@@ -76,7 +78,7 @@ test.describe('Inbox Workflow - SessionID Authentication', () => {
 					(err) => err.includes('sessionId') && err.includes('ArgumentValidationError')
 				);
 				expect(hasSessionIdError).toBe(false);
-				
+
 				console.log('✅ Successfully marked item as processed');
 			} else {
 				console.log('Skip button not found in detail view - item type may not support skipping');
@@ -96,9 +98,12 @@ test.describe('Inbox Workflow - SessionID Authentication', () => {
 		});
 
 		// Find first inbox item
-		const firstItem = page.locator('[data-testid="inbox-item"], button').filter({ 
-			hasText: /manual entry|highlight|article/i 
-		}).first();
+		const firstItem = page
+			.locator('[data-testid="inbox-item"], button')
+			.filter({
+				hasText: /manual entry|highlight|article/i
+			})
+			.first();
 
 		if (await firstItem.isVisible({ timeout: 3000 })) {
 			await firstItem.click();
@@ -149,8 +154,8 @@ test.describe('Inbox Security - User Isolation', () => {
 		await page.waitForTimeout(2000);
 
 		// Get all inbox items
-		const inboxItems = page.locator('[data-testid="inbox-item"], button').filter({ 
-			hasText: /manual entry|highlight|article|readwise/i 
+		const inboxItems = page.locator('[data-testid="inbox-item"], button').filter({
+			hasText: /manual entry|highlight|article|readwise/i
 		});
 
 		const itemCount = await inboxItems.count();
@@ -220,19 +225,18 @@ test.describe('Inbox Sync Progress - SessionID Authentication', () => {
 
 /**
  * Test Strategy:
- * 
+ *
  * These tests focus on the core inbox workflow that users perform daily:
  * 1. View inbox items (listInboxItems with sessionId)
  * 2. Navigate between items (getInboxItem with sessionId)
  * 3. Mark items processed (markProcessed with sessionId)
  * 4. Sync progress tracking (getSyncProgress with sessionId)
- * 
+ *
  * High value tests because:
  * - Inbox is the main feature users interact with
  * - Any sessionId bug here affects all users
  * - Processing items is the core workflow
- * 
+ *
  * If these tests fail, it means we have a critical bug that would
  * affect production users immediately.
  */
-

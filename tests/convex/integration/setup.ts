@@ -7,6 +7,9 @@
 import type { TestConvex } from 'convex-test';
 import type { Id } from '../../../convex/_generated/dataModel';
 
+// Counter to ensure unique sessions even within the same millisecond
+let sessionCounter = 0;
+
 /**
  * Create a test session and user for integration tests
  * Returns sessionId and userId for use in test queries/mutations
@@ -15,12 +18,13 @@ export async function createTestSession(
 	t: TestConvex<any>
 ): Promise<{ sessionId: string; userId: Id<'users'> }> {
 	const now = Date.now();
+	const uniqueId = `${now}_${sessionCounter++}`; // Ensure uniqueness
 
 	// Create a test user with all required fields
 	const userId = await t.run(async (ctx) => {
 		return await ctx.db.insert('users', {
-			workosId: `test_workos_${now}`,
-			email: `test-${now}@example.com`,
+			workosId: `test_workos_${uniqueId}`,
+			email: `test-${uniqueId}@example.com`,
 			name: 'Test User',
 			firstName: 'Test',
 			lastName: 'User',
@@ -32,13 +36,13 @@ export async function createTestSession(
 	});
 
 	// Create a test session with all required fields
-	const sessionId = `test_session_${now}`;
+	const sessionId = `test_session_${uniqueId}`;
 	await t.run(async (ctx) => {
 		await ctx.db.insert('authSessions', {
 			sessionId,
 			convexUserId: userId,
-			workosUserId: `test_workos_${now}`,
-			workosSessionId: `test_workos_session_${now}`,
+			workosUserId: `test_workos_${uniqueId}`,
+			workosSessionId: `test_workos_session_${uniqueId}`,
 			accessTokenCiphertext: 'test_access_token',
 			refreshTokenCiphertext: 'test_refresh_token',
 			csrfTokenHash: 'test_csrf_hash',
@@ -47,8 +51,8 @@ export async function createTestSession(
 			createdAt: now,
 			userSnapshot: {
 				userId,
-				workosId: `test_workos_${now}`,
-				email: `test-${now}@example.com`,
+				workosId: `test_workos_${uniqueId}`,
+				email: `test-${uniqueId}@example.com`,
 				firstName: 'Test',
 				lastName: 'User',
 				name: 'Test User'
@@ -314,8 +318,29 @@ export async function cleanupTestData(t: TestConvex<any>, userId?: Id<'users'>):
 			await ctx.db.delete(tag._id);
 		}
 
-		// Clean up user
-		await ctx.db.delete(userId);
+		// Clean up flashcards
+		const flashcards = await ctx.db
+			.query('flashcards')
+			.withIndex('by_user', (q) => q.eq('userId', userId))
+			.collect();
+		for (const flashcard of flashcards) {
+			await ctx.db.delete(flashcard._id);
+		}
+
+		// Clean up auth sessions
+		const authSessions = await ctx.db
+			.query('authSessions')
+			.withIndex('by_convex_user', (q) => q.eq('convexUserId', userId))
+			.collect();
+		for (const session of authSessions) {
+			await ctx.db.delete(session._id);
+		}
+
+		// Clean up user (check if it exists first)
+		const user = await ctx.db.get(userId);
+		if (user) {
+			await ctx.db.delete(userId);
+		}
 	});
 }
 
@@ -345,7 +370,10 @@ export async function cleanupTestOrganization(
 			await ctx.db.delete(invite._id);
 		}
 
-		// Clean up organization
-		await ctx.db.delete(organizationId);
+		// Clean up organization (check if it exists first)
+		const org = await ctx.db.get(organizationId);
+		if (org) {
+			await ctx.db.delete(organizationId);
+		}
 	});
 }

@@ -180,7 +180,7 @@ Permissions update reactively when roles change:
 
 ## Architecture
 
-See [dev-docs/rbac-architecture.md](../../../../dev-docs/rbac-architecture.md) for complete system architecture.
+See [dev-docs/2-areas/rbac/rbac-architecture.md](../../../../dev-docs/2-areas/rbac/rbac-architecture.md) for complete system architecture.
 
 ## Testing
 

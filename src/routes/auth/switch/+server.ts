@@ -23,12 +23,10 @@ function sanitizeRedirect(target: unknown, origin: string): string | undefined {
 	}
 }
 
-export const POST: RequestHandler = withRateLimit(
-	RATE_LIMITS.accountSwitch,
-	async ({ event }) => {
-		if (!event.locals.auth.sessionId || !event.locals.auth.user?.userId) {
-			return json({ error: 'Not authenticated' }, { status: 401 });
-		}
+export const POST: RequestHandler = withRateLimit(RATE_LIMITS.accountSwitch, async ({ event }) => {
+	if (!event.locals.auth.sessionId || !event.locals.auth.user?.userId) {
+		return json({ error: 'Not authenticated' }, { status: 401 });
+	}
 
 	const csrfHeader = event.request.headers.get('x-csrf-token');
 	if (!csrfHeader || csrfHeader !== event.locals.auth.csrfToken) {
@@ -92,7 +90,10 @@ export const POST: RequestHandler = withRateLimit(
 	}
 
 	if (targetSession.expiresAt <= Date.now()) {
-		return json({ error: 'Linked account session expired. Please sign in again.' }, { status: 409 });
+		return json(
+			{ error: 'Linked account session expired. Please sign in again.' },
+			{ status: 409 }
+		);
 	}
 
 	// Establish a new session for the linked account on this device
@@ -112,4 +113,3 @@ export const POST: RequestHandler = withRateLimit(
 	// Note: Multi-session support - session is preserved in Convex and client localStorage
 	return json({ success: true, redirect: redirectHint ?? '/inbox' });
 });
-

@@ -11,7 +11,7 @@ import { validateSessionAndGetUserId } from './sessionValidation';
 
 /**
  * Create a new note
- * 
+ *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const createNote = mutation({
@@ -52,7 +52,7 @@ export const createNote = mutation({
 
 /**
  * Update an existing note
- * 
+ *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const updateNote = mutation({
@@ -105,7 +105,7 @@ export const updateNote = mutation({
 
 /**
  * Mark note as AI-generated
- * 
+ *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const markAsAIGenerated = mutation({
@@ -139,7 +139,7 @@ export const markAsAIGenerated = mutation({
 
 /**
  * Mark note for blog export
- * 
+ *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const markForBlogExport = mutation({
@@ -174,7 +174,7 @@ export const markForBlogExport = mutation({
 
 /**
  * Mark note as published to blog file
- * 
+ *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const markAsPublished = mutation({
@@ -210,7 +210,7 @@ export const markAsPublished = mutation({
 
 /**
  * Delete a note
- * 
+ *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const deleteNote = mutation({
@@ -240,7 +240,7 @@ export const deleteNote = mutation({
 
 /**
  * Export note to dev docs (set slug for /dev-docs/notes/[slug] route)
- * 
+ *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const exportToDevDocs = mutation({
@@ -280,7 +280,7 @@ export const exportToDevDocs = mutation({
 
 /**
  * List all notes for current user
- * 
+ *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const listNotes = query({
@@ -335,7 +335,7 @@ export const listNotes = query({
 
 /**
  * Get a single note by ID
- * 
+ *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const getNote = query({

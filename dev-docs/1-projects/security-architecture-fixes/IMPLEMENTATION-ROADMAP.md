@@ -12,6 +12,7 @@
 This roadmap addresses 10 critical and important issues identified in the security audit of our multi-account authentication system.
 
 **Priority Distribution**:
+
 - 🔴 **Critical**: 2 issues (security vulnerabilities)
 - 🟡 **Important**: 4 issues (architecture & documentation)
 - 🟢 **Minor**: 4 issues (optimization & polish)
@@ -29,16 +30,19 @@ This roadmap addresses 10 critical and important issues identified in the securi
 **Spec**: [01-web-crypto-implementation.md](./01-web-crypto-implementation.md)
 
 **Files to Modify**:
+
 - `src/lib/client/sessionStorage.ts` (complete rewrite of crypto functions)
 - Add new: `src/lib/client/crypto.ts` (Web Crypto wrapper)
 - Update: `src/lib/composables/useAuthSession.svelte.ts` (async crypto calls)
 
 **Testing**:
+
 - Unit tests for encryption/decryption
 - E2E tests for session persistence
 - Performance benchmarks (Web Crypto vs XOR)
 
 **Acceptance Criteria**:
+
 - [ ] All session data encrypted with AES-256-GCM
 - [ ] PBKDF2 key derivation (100k iterations)
 - [ ] IV randomness verified
@@ -54,15 +58,18 @@ This roadmap addresses 10 critical and important issues identified in the securi
 **Spec**: [02-bfs-limits-implementation.md](./02-bfs-limits-implementation.md)
 
 **Files to Modify**:
+
 - `convex/users.ts` (add depth/account limits to BFS)
 - `convex/schema.ts` (add validation to accountLinks)
 
 **Testing**:
+
 - Unit tests with circular links (A→B→C→A)
 - Performance tests with 100 linked accounts
 - Error handling tests (max depth exceeded)
 
 **Acceptance Criteria**:
+
 - [ ] MAX_LINK_DEPTH = 3 (hardcoded)
 - [ ] MAX_TOTAL_ACCOUNTS = 10 (hardcoded)
 - [ ] Clear error messages when limits exceeded
@@ -78,26 +85,30 @@ This roadmap addresses 10 critical and important issues identified in the securi
 **Spec**: [03-rate-limiting-implementation.md](./03-rate-limiting-implementation.md)
 
 **Files to Modify**:
+
 - Add new: `src/lib/server/middleware/rateLimit.ts`
 - Update: `src/routes/auth/switch/+server.ts`
 - Update: `src/routes/auth/login/+server.ts`
 - Update: `src/routes/auth/register/+server.ts`
 
 **Testing**:
+
 - Load tests (100 requests/second)
 - E2E tests (verify 429 responses)
 - Redis integration tests (if using distributed rate limiting)
 
 **Acceptance Criteria**:
+
 - [ ] 10 account switches per minute per IP
 - [ ] 5 login attempts per minute per IP
 - [ ] 3 registration attempts per minute per IP
-- [ ] Rate limit headers (X-RateLimit-*)
+- [ ] Rate limit headers (X-RateLimit-\*)
 - [ ] Graceful degradation (in-memory fallback)
 
 ---
 
 **Phase 1 Deliverables**:
+
 - ✅ All critical security vulnerabilities fixed
 - ✅ 100% test coverage for security-critical code
 - ✅ Performance benchmarks documented
@@ -116,6 +127,7 @@ This roadmap addresses 10 critical and important issues identified in the securi
 **Spec**: [04-session-refactor.md](./04-session-refactor.md)
 
 **New Structure**:
+
 ```
 src/lib/server/auth/
 ├─ crypto.ts (unchanged)
@@ -134,11 +146,13 @@ src/lib/server/auth/
 ```
 
 **Testing**:
+
 - Unit tests for each module (80%+ coverage)
 - Integration tests for session lifecycle
 - Refactoring validation (no behavior changes)
 
 **Acceptance Criteria**:
+
 - [ ] No file > 150 lines
 - [ ] Each module has single responsibility
 - [ ] All existing tests pass (no regressions)
@@ -154,17 +168,20 @@ src/lib/server/auth/
 **Spec**: [05-convex-optimization.md](./05-convex-optimization.md)
 
 **Changes**:
+
 1. Add index to `authSessions` table
 2. Pass `sessionId` explicitly to `validateSession()`
 3. Implement in-memory cache (Convex Durable Objects)
 4. Update all 87 function calls
 
 **Testing**:
+
 - Load tests (1000 queries/second)
 - Cache hit rate monitoring
 - Database query profiling
 
 **Acceptance Criteria**:
+
 - [ ] Query time < 10ms (from ~50ms)
 - [ ] Cache hit rate > 90% after warmup
 - [ ] All 87 functions updated
@@ -179,29 +196,33 @@ src/lib/server/auth/
 **Spec**: [06-audit-logging.md](./06-audit-logging.md)
 
 **New Schema**:
+
 ```typescript
 auditLog: defineTable({
-  userId: v.id('users'),
-  action: v.string(),
-  metadata: v.any(),
-  ipAddress: v.string(),
-  userAgent: v.string(),
-  timestamp: v.number()
-}).index('by_user_time', ['userId', 'timestamp'])
+	userId: v.id('users'),
+	action: v.string(),
+	metadata: v.any(),
+	ipAddress: v.string(),
+	userAgent: v.string(),
+	timestamp: v.number()
+}).index('by_user_time', ['userId', 'timestamp']);
 ```
 
 **Events to Log**:
+
 - `account_linked`, `account_unlinked`
 - `account_switched`
 - `session_created`, `session_revoked`
 - `login_failed`, `registration_failed`
 
 **Testing**:
+
 - Verify all events logged
 - Query performance tests
 - Retention policy tests (auto-delete after 90 days)
 
 **Acceptance Criteria**:
+
 - [ ] All sensitive operations logged
 - [ ] Query API for audit reports
 - [ ] 90-day retention (configurable)
@@ -211,6 +232,7 @@ auditLog: defineTable({
 ---
 
 **Phase 2 Deliverables**:
+
 - ✅ Clean, maintainable codebase
 - ✅ 10x faster session validation
 - ✅ SOC 2 audit trail ready
@@ -227,11 +249,13 @@ auditLog: defineTable({
 **Spec**: [07-documentation-updates.md](./07-documentation-updates.md)
 
 **Files to Update**:
+
 - `workos-convex-auth-architecture.md` (remove stale sections)
 - `multi-session-architecture.md` (add security notes)
 - `workos-headless-auth-security.md` (update with Phase 1 fixes)
 
 **Changes**:
+
 - Remove all "TODO", "⏳ Pending", "🟡 In Progress" markers
 - Update status to "✅ Complete"
 - Add "Last Validated" dates
@@ -239,6 +263,7 @@ auditLog: defineTable({
 - Remove references to deleted functions
 
 **Acceptance Criteria**:
+
 - [ ] No stale content (validation script passes)
 - [ ] All code examples run without errors
 - [ ] Mermaid diagrams render correctly
@@ -258,10 +283,12 @@ auditLog: defineTable({
 4. **BFS Traversal** (graph diagram)
 
 **Files to Update**:
+
 - `multi-session-architecture.md` (add diagrams 1-4)
 - `workos-convex-auth-architecture.md` (update existing diagram)
 
 **Acceptance Criteria**:
+
 - [ ] All diagrams render in GitHub
 - [ ] Diagrams match actual implementation
 - [ ] Diagrams exported as PNG for presentations
@@ -275,6 +302,7 @@ auditLog: defineTable({
 **New Document**: `dev-docs/2-areas/testing-strategy.md`
 
 **Contents**:
+
 - Unit test strategy (Vitest)
 - Integration test strategy (Playwright)
 - E2E test strategy (auth flows)
@@ -283,6 +311,7 @@ auditLog: defineTable({
 - Performance benchmarks
 
 **Acceptance Criteria**:
+
 - [ ] Coverage targets documented
 - [ ] Test commands in README
 - [ ] CI pipeline configured
@@ -291,6 +320,7 @@ auditLog: defineTable({
 ---
 
 **Phase 3 Deliverables**:
+
 - ✅ Documentation 100% accurate
 - ✅ Compliance-ready diagrams
 - ✅ Clear testing guidelines
@@ -309,6 +339,7 @@ auditLog: defineTable({
 **Approach**: Use Convex in-memory cache for hot sessions
 
 **Acceptance Criteria**:
+
 - [ ] Cache hit rate > 90%
 - [ ] TTL = 5 minutes (configurable)
 - [ ] Automatic cache invalidation on logout
@@ -324,6 +355,7 @@ auditLog: defineTable({
 **New**: Sliding window (refresh at 50% of TTL)
 
 **Acceptance Criteria**:
+
 - [ ] Smooth token rotation
 - [ ] No user-visible "refresh" delays
 - [ ] Configurable refresh threshold
@@ -335,10 +367,12 @@ auditLog: defineTable({
 **Spec**: [12-health-checks.md](./12-health-checks.md)
 
 **New Endpoints**:
+
 - `/health` (basic)
 - `/health/detailed` (with component status)
 
 **Acceptance Criteria**:
+
 - [ ] Monitors WorkOS connectivity
 - [ ] Monitors Convex connectivity
 - [ ] Reports active session count
@@ -353,6 +387,7 @@ auditLog: defineTable({
 **Approach**: Graceful degradation when WorkOS is down
 
 **Acceptance Criteria**:
+
 - [ ] Automatic retry with exponential backoff
 - [ ] Circuit opens after 5 consecutive failures
 - [ ] Resets after 30 seconds
@@ -361,6 +396,7 @@ auditLog: defineTable({
 ---
 
 **Phase 4 Deliverables**:
+
 - ✅ 10x performance improvement
 - ✅ Resilient to external service failures
 - ✅ Production monitoring ready
@@ -371,22 +407,26 @@ auditLog: defineTable({
 ## 📈 Success Metrics
 
 ### Security
+
 - ✅ Zero critical vulnerabilities (from 2)
 - ✅ SOC 2 audit trail complete
 - ✅ OWASP Top 10 compliance
 
 ### Performance
+
 - ✅ Session validation < 10ms (from ~50ms)
 - ✅ Account switching < 200ms (from ~500ms)
 - ✅ 99.9% uptime for auth endpoints
 
 ### Quality
+
 - ✅ 80%+ unit test coverage
 - ✅ 90%+ E2E coverage for auth flows
 - ✅ Zero documentation debt
 - ✅ All files < 200 lines
 
 ### Maintainability
+
 - ✅ Clear separation of concerns
 - ✅ New developer onboarding < 1 day
 - ✅ Bug fix time < 2 hours (avg)
@@ -395,12 +435,12 @@ auditLog: defineTable({
 
 ## 🚦 Decision Log
 
-| Date | Decision | Rationale |
-|------|----------|-----------|
-| 2025-11-12 | Use Web Crypto API over library | Native browser API, no dependencies |
-| 2025-11-12 | BFS depth limit = 3 | Matches Slack's implementation |
-| 2025-11-12 | In-memory cache over Redis | Simpler, Convex supports it natively |
-| 2025-11-12 | 90-day audit log retention | Balance compliance vs storage costs |
+| Date       | Decision                        | Rationale                            |
+| ---------- | ------------------------------- | ------------------------------------ |
+| 2025-11-12 | Use Web Crypto API over library | Native browser API, no dependencies  |
+| 2025-11-12 | BFS depth limit = 3             | Matches Slack's implementation       |
+| 2025-11-12 | In-memory cache over Redis      | Simpler, Convex supports it natively |
+| 2025-11-12 | 90-day audit log retention      | Balance compliance vs storage costs  |
 
 ---
 
@@ -415,4 +455,3 @@ auditLog: defineTable({
 ---
 
 **Next Steps**: Review this roadmap with the team, then proceed to Phase 1.1.
-

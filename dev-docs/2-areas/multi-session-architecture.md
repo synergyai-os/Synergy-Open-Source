@@ -3,6 +3,7 @@
 ## Overview
 
 SynergyOS supports multiple concurrent user sessions (like Slack and Notion), allowing users to:
+
 - Log in with multiple email accounts
 - Switch between accounts without re-authentication
 - Maintain independent sessions for each account
@@ -37,6 +38,7 @@ All user sessions are stored in browser localStorage in an encrypted format:
 ```
 
 **Security**:
+
 - Sessions are encrypted with simple XOR encryption (prevents casual inspection)
 - Encryption key is derived from browser fingerprint (user agent + screen dimensions)
 - Sessions are automatically cleaned up when expired
@@ -44,6 +46,7 @@ All user sessions are stored in browser localStorage in an encrypted format:
 ### Server-Side (Convex)
 
 Each session is stored independently in the `authSessions` table:
+
 - One record per user session
 - Sessions don't interfere with each other
 - Each session has its own expiry and tokens
@@ -51,6 +54,7 @@ Each session is stored independently in the `authSessions` table:
 ### Account Linking
 
 Accounts are linked using the `accountLinks` table:
+
 - Bidirectional links (A ↔ B)
 - Links are verified when switching
 - Transitive linking supported (if B links to A and C links to B, then A can access C via B)
@@ -114,12 +118,12 @@ import { useAuthSession } from '$lib/composables/useAuthSession.svelte';
 const auth = useAuthSession();
 
 // Check authentication
-auth.isAuthenticated // boolean
-auth.user // User object or null
+auth.isAuthenticated; // boolean
+auth.user; // User object or null
 
 // Get available accounts
-auth.availableAccounts // Array of { userId, email, name }
-auth.activeAccountId // Current account ID
+auth.availableAccounts; // Array of { userId, email, name }
+auth.activeAccountId; // Current account ID
 
 // Switch accounts
 await auth.switchAccount(targetUserId);
@@ -131,6 +135,7 @@ await auth.logout();
 ### Server-Side Session Management
 
 Sessions are automatically managed:
+
 - `hooks.server.ts` resolves sessions from cookies
 - Session records are created when users log in
 - Sessions are invalidated when users log out
@@ -172,4 +177,3 @@ Sessions are automatically managed:
 2. Add server-side session sync (optional, for cross-device session sharing)
 3. Add UI for viewing/revoking sessions per account
 4. Add session activity timeline (last used, location, etc.)
-

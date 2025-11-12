@@ -1,11 +1,11 @@
 /**
  * E2E Tests for Quick Create Modal
- * 
+ *
  * Tests the sessionId-based authentication in Quick Create flows
  * This catches regressions like the one discovered with QuickCreateModal
- * 
+ *
  * CRITICAL: These tests verify that all create operations use sessionId correctly
- * 
+ *
  * Setup: Run `npm run test:e2e:setup` first to authenticate test user
  */
 
@@ -18,7 +18,7 @@ test.describe('Quick Create Modal - SessionID Authentication', () => {
 	test.beforeEach(async ({ page }) => {
 		// Navigate to inbox where Quick Create is available
 		await page.goto('/inbox');
-		
+
 		// Wait for page to be fully loaded
 		await page.waitForLoadState('networkidle');
 	});
@@ -57,11 +57,11 @@ test.describe('Quick Create Modal - SessionID Authentication', () => {
 		const hasSessionIdError = consoleErrors.some(
 			(err) => err.includes('sessionId') || err.includes('ArgumentValidationError')
 		);
-		
+
 		if (hasSessionIdError) {
 			console.error('Console errors detected:', consoleErrors);
 		}
-		
+
 		expect(hasSessionIdError).toBe(false);
 
 		// Modal should close after successful creation
@@ -157,10 +157,10 @@ test.describe('Quick Create Modal - SessionID Authentication', () => {
 		await page.route('**/api/notes/createNote', async (route) => {
 			const request = route.request();
 			const postData = request.postDataJSON();
-			
+
 			// Remove sessionId to simulate the bug
 			delete postData.sessionId;
-			
+
 			await route.continue({
 				postData: JSON.stringify(postData)
 			});
@@ -198,11 +198,11 @@ test.describe('Quick Create Modal - Tag Selection', () => {
 		});
 
 		await page.goto('/inbox');
-		
+
 		// Wait for inbox to load before opening modal
 		await page.waitForLoadState('networkidle');
 		await page.waitForTimeout(2000); // Give time for tags query to initialize
-		
+
 		await page.keyboard.press('c');
 
 		const modal = page.locator('[role="dialog"]').first();
@@ -217,7 +217,7 @@ test.describe('Quick Create Modal - Tag Selection', () => {
 			(err) => err.includes('listAllTags') && err.includes('sessionId')
 		);
 		expect(hasTagError).toBe(false);
-		
+
 		// Close modal (ESC key)
 		await page.keyboard.press('Escape');
 	});
@@ -225,16 +225,15 @@ test.describe('Quick Create Modal - Tag Selection', () => {
 
 /**
  * CI/CD Integration Notes:
- * 
+ *
  * Add to package.json:
  * "scripts": {
  *   "test:e2e:quick-create": "playwright test e2e/quick-create.spec.ts"
  * }
- * 
+ *
  * Add to GitHub Actions (.github/workflows/test.yml):
  * - name: Run Quick Create Tests
  *   run: npm run test:e2e:quick-create
- * 
+ *
  * This ensures the Quick Create modal always works with sessionId auth
  */
-

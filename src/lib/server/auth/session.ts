@@ -129,7 +129,7 @@ export async function establishSession(options: {
 
 export async function resolveRequestSession(event: RequestEvent) {
 	console.log('🔍 Resolving session for:', event.url.pathname);
-	
+
 	const primarySessionCookie = event.cookies.get(SESSION_COOKIE_NAME);
 	const legacyAxonSessionCookie = event.cookies.get(LEGACY_AXON_SESSION_COOKIE);
 	const sessionCookie = primarySessionCookie ?? legacyAxonSessionCookie;
@@ -191,7 +191,7 @@ export async function resolveRequestSession(event: RequestEvent) {
 		};
 		return;
 	}
-	
+
 	console.log('✅ Session record found:', {
 		sessionId: record.sessionId,
 		expiresAt: new Date(record.expiresAt).toISOString(),
@@ -221,8 +221,7 @@ export async function resolveRequestSession(event: RequestEvent) {
 	let expiresAt = record.expiresAt;
 	let csrfToken = csrfCookieValue;
 
-	const csrfMismatch =
-		!csrfToken || hashValue(csrfToken) !== record.csrfTokenHash;
+	const csrfMismatch = !csrfToken || hashValue(csrfToken) !== record.csrfTokenHash;
 	if (csrfMismatch) {
 		csrfToken = generateRandomToken(32);
 		await updateSessionSecrets({
@@ -294,12 +293,11 @@ export async function resolveRequestSession(event: RequestEvent) {
 		sessionId: activeSessionId,
 		user: {
 			...record.userSnapshot,
-			activeWorkspace:
-				record.userSnapshot.activeWorkspace ?? {
-					type: 'personal',
-					id: null,
-					name: 'Private workspace'
-				}
+			activeWorkspace: record.userSnapshot.activeWorkspace ?? {
+				type: 'personal',
+				id: null,
+				name: 'Private workspace'
+			}
 		},
 		workosSessionId: record.workosSessionId,
 		accessToken,

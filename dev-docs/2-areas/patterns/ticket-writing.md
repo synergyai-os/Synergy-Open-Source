@@ -7,6 +7,7 @@
 ## When to Use This Guide
 
 **For:**
+
 - Product engineers writing technical tickets
 - Breaking down overlapping work into parallel tracks
 - Creating tickets for AI agents (Cursor, Claude, etc.)
@@ -26,7 +27,7 @@
 
 #### Structure
 
-```markdown
+````markdown
 ## Context
 
 [1-2 sentences: Why this work matters]
@@ -40,6 +41,7 @@
 **Outcome**: [What success looks like]  
 **User Impact**: [How users benefit]  
 **Success Metrics**:
+
 - [Measurable criteria 1]
 - [Measurable criteria 2]
 
@@ -48,18 +50,22 @@
 ## Technical Scope
 
 **What to build:**
+
 - [Specific module 1] - [What it does]
 - [Specific module 2] - [What it does]
 
 **Implementation pattern:**
+
 ```[language]
 // Example showing the pattern
 const example = () => {
   // Clear code example
 };
 ```
+````
 
 **Files to modify:**
+
 - `path/to/file1.ts` - [What changes]
 - `path/to/file2.ts` - [What changes]
 
@@ -78,25 +84,30 @@ const example = () => {
 - **Docs**: Link to relevant docs
 - **Examples**: Link to similar implementations
 - **Tools**: Libraries or tools needed
+
 ```
 
 #### Example
 
 **❌ BAD (Too vague for AI):**
 ```
+
 Title: Fix test coverage
 Description: We need better tests
+
 ```
 
 **✅ GOOD (Clear for AI + user-centric):**
 ```
+
 Title: Expand integration test coverage - Organizations, Users, RBAC modules
 
 ## Goal
-Add integration tests for Organizations, Users, and RBAC modules following 
+
+Add integration tests for Organizations, Users, and RBAC modules following
 the pattern established in Tags/Flashcards tests.
 
-**User outcome**: Catch authorization bugs before production (e.g., users 
+**User outcome**: Catch authorization bugs before production (e.g., users
 accessing other orgs' data).
 
 ## Technical Scope
@@ -104,36 +115,41 @@ accessing other orgs' data).
 **Test these functions:**
 
 ### Organizations (`convex/organizations.ts`)
+
 - `createOrganization` - Creates org, assigns creator as owner
 - `updateOrganization` - Only owners/admins can update
 - `deleteOrganization` - Only owners can delete
 
 ### Testing Pattern
+
 ```typescript
 import { convexTest } from 'convex-test';
 import { createTestSession } from './helpers';
 
 test('createOrganization assigns creator as owner', async () => {
-  const t = convexTest(schema);
-  const session = await createTestSession(t, 'owner@example.com');
-  
-  const orgId = await t.mutation(api.organizations.createOrganization, {
-    sessionId: session.sessionId,
-    name: 'Test Org'
-  });
-  
-  expect(orgId).toBeDefined();
+	const t = convexTest(schema);
+	const session = await createTestSession(t, 'owner@example.com');
+
+	const orgId = await t.mutation(api.organizations.createOrganization, {
+		sessionId: session.sessionId,
+		name: 'Test Org'
+	});
+
+	expect(orgId).toBeDefined();
 });
 ```
 
 ## Files to Create
+
 - `tests/convex/integration/organizations.test.ts` (~150 lines, 6-8 tests)
 - `tests/convex/integration/users.test.ts` (~100 lines, 4-6 tests)
 
 ## Success Criteria
+
 - All 15-20 tests passing in < 30 seconds ✅
 - Tests catch missing sessionId destructuring ✅
 - Zero flaky tests (run 10 times, 100% pass rate) ✅
+
 ```
 
 ---
@@ -166,40 +182,46 @@ test('createOrganization assigns creator as owner', async () => {
 #### Splitting Process
 
 1. **Identify Technical Boundaries**
-   ```
-   Example:
-   - Track A: Testing infrastructure (integration tests, test helpers)
-   - Track B: CI/CD pipeline (quality gates, secret scanning)
-   ```
+```
+
+Example:
+
+- Track A: Testing infrastructure (integration tests, test helpers)
+- Track B: CI/CD pipeline (quality gates, secret scanning)
+
+```
 
 2. **Redistribute Subtasks**
-   ```
-   Old: SYOS-44 & SYOS-50 (overlapping)
-   ↓
-   New: SYOS-59 (testing) & SYOS-60 (CI/CD)
-   
-   - E2E test fixes → Split into:
-     - SYOS-63: Fix E2E CI execution (Track A)
-     - SYOS-70: Expand E2E coverage (Track B)
-   ```
+```
+
+Old: SYOS-44 & SYOS-50 (overlapping)
+↓
+New: SYOS-59 (testing) & SYOS-60 (CI/CD)
+
+- E2E test fixes → Split into:
+  - SYOS-63: Fix E2E CI execution (Track A)
+  - SYOS-70: Expand E2E coverage (Track B)
+
+````
 
 3. **Update Old Tickets**
-   ```markdown
-   ## ⚠️ SUPERSEDED BY SYOS-59
-   
-   This ticket has been reorganized for parallel AI implementation.
-   
-   **Use these instead:**
-   - **SYOS-59**: Test Infrastructure & Coverage
-   - **SYOS-60**: CI/CD Pipeline & Security Gates
-   
-   **Why reorganized:** [Brief explanation]
-   ```
+```markdown
+## ⚠️ SUPERSEDED BY SYOS-59
+
+This ticket has been reorganized for parallel AI implementation.
+
+**Use these instead:**
+- **SYOS-59**: Test Infrastructure & Coverage
+- **SYOS-60**: CI/CD Pipeline & Security Gates
+
+**Why reorganized:** [Brief explanation]
+````
 
 4. **Ensure Clear Dependencies**
+
    ```markdown
    ## Dependencies
-   
+
    - Requires: [What must be done first]
    - Blocks: [What waits for this]
    - Parallel: [What can run simultaneously]
@@ -214,6 +236,7 @@ test('createOrganization assigns creator as owner', async () => {
 **Non-Goals**: [What Track B handles]
 
 **Subtasks:**
+
 - TICKET-X: [Clear technical scope]
 - TICKET-Y: [Clear technical scope]
 
@@ -227,6 +250,7 @@ test('createOrganization assigns creator as owner', async () => {
 **Non-Goals**: [What Track A handles]
 
 **Subtasks:**
+
 - TICKET-Z: [Clear technical scope]
 
 **Can ship independently**: Yes/No
@@ -246,21 +270,26 @@ test('createOrganization assigns creator as owner', async () => {
 ## Subtasks (Priority Order)
 
 **🔴 URGENT (Ship First)**
+
 - TICKET-1: [Title] (URGENT) - [Why urgent]
 - TICKET-2: [Title] (URGENT) - [Why urgent]
 
 **🟠 HIGH (Ship Week 1)**
+
 - TICKET-3: [Title] (HIGH) - [Impact]
 - TICKET-4: [Title] (HIGH) - [Impact]
 
 **🟡 MEDIUM (Ship Week 2)**
+
 - TICKET-5: [Title] (MEDIUM) - [Nice to have]
 
 **🟢 LOW (Future/Optional)**
+
 - TICKET-6: [Title] (LOW) - [Can defer]
 ```
 
 **Benefits**:
+
 - Visual priority scanning (🔴 urgent stands out)
 - Clear shipping sequence
 - Easy to defer low priority work
@@ -285,6 +314,7 @@ test('createOrganization assigns creator as owner', async () => {
 ```
 
 **Why this works**:
+
 - Prevents AI agents from over-implementing
 - Clarifies boundaries between tracks
 - Makes scope discussions explicit
@@ -303,19 +333,23 @@ test('createOrganization assigns creator as owner', async () => {
 ## Files to Modify
 
 **New files:**
+
 - `tests/convex/integration/organizations.test.ts` (~150 lines, 6-8 tests)
 - `tests/convex/integration/users.test.ts` (~100 lines, 4-6 tests)
 
 **Update:**
+
 - `playwright.config.ts` - Add CI-specific config (lines 20-35)
 - `e2e/**/*.spec.ts` - Fix race conditions, add proper waits
 - `dev-docs/testing-workflow.md` - Document new tests (add section)
 
 **Remove:**
+
 - `src/legacy/old-test.ts` - No longer needed
 ```
 
 **Why estimates help**:
+
 - AI can gauge complexity
 - Easier to validate completion
 - Clear scope boundaries
@@ -354,9 +388,11 @@ Description: Extract session logic to .svelte.ts file
 
 ```markdown
 Parent: TICKET-A
+
 - Subtask 1: Fix E2E tests
 
-Parent: TICKET-B  
+Parent: TICKET-B
+
 - Subtask 2: Fix E2E tests
 ```
 
@@ -383,6 +419,7 @@ Description: Add more tests
 
 ```markdown
 ## Dependencies
+
 - Requires some other work
 - Blocks future stuff
 ```
@@ -398,27 +435,32 @@ Description: Add more tests
 Before creating a ticket, verify:
 
 **User Story:**
+
 - [ ] Clear WHO benefits (user, developer, contributor)
 - [ ] Clear WHAT VALUE delivered (outcome, not output)
 - [ ] Clear WHY it matters (pain point solved)
 
 **Technical Detail:**
+
 - [ ] Specific modules/functions listed
 - [ ] Code examples or patterns provided
 - [ ] Files to modify with line count estimates
 - [ ] Non-goals explicitly stated
 
 **Success Criteria:**
+
 - [ ] Measurable (numbers, counts, times)
 - [ ] Testable (can verify completion)
 - [ ] Complete (nothing left ambiguous)
 
 **Dependencies:**
+
 - [ ] Requires: Clear prerequisites
 - [ ] Blocks: Clear downstream work
 - [ ] Parallel: Clear what can run simultaneously
 
 **Resources:**
+
 - [ ] Documentation links
 - [ ] Example implementations
 - [ ] Tools/libraries needed
@@ -430,12 +472,14 @@ Before creating a ticket, verify:
 ### Heuristics
 
 **Split if:**
+
 - ✅ 2+ AI agents could work in parallel
 - ✅ Clean technical boundaries exist (testing vs deployment)
 - ✅ Both tracks ship value independently
 - ✅ Total work > 1 week (splitting reduces risk)
 
 **Keep together if:**
+
 - ❌ Technical boundary is fuzzy (lots of shared files)
 - ❌ One track depends entirely on the other
 - ❌ Total work < 3 days (overhead not worth it)
@@ -455,6 +499,7 @@ Before creating a ticket, verify:
 [Benefits]: Parallel execution, clear scope, no conflicts
 
 **Migration:**
+
 - Old tickets marked "SUPERSEDED BY"
 - Old subtasks cancelled or redirected
 - New tickets link to old for context
@@ -467,12 +512,14 @@ Before creating a ticket, verify:
 ### Before (Overlapping)
 
 **SYOS-44**: Improve CI/CD test automation
+
 - Static analysis ✅
 - Integration tests ✅
 - **E2E test fixes** ⚠️ (overlap)
 - **TypeScript checks** ⚠️ (overlap)
 
 **SYOS-50**: Improve CI/CD test automation - Part 2
+
 - Quality gates
 - Secret scanning
 - **E2E test coverage** ⚠️ (overlap)
@@ -485,6 +532,7 @@ Before creating a ticket, verify:
 ### After (Clean Separation)
 
 **SYOS-59: Test Infrastructure & Coverage**
+
 - Focus: Testing infrastructure, test coverage
 - SYOS-61: Integration tests (Organizations, Users, RBAC)
 - SYOS-62: Integration tests (Notes, Inbox)
@@ -492,6 +540,7 @@ Before creating a ticket, verify:
 - SYOS-64: Contract tests (future)
 
 **SYOS-60: CI/CD Pipeline & Security Gates**
+
 - Focus: CI/CD pipeline, security scanning
 - SYOS-65: Enable quality gates
 - SYOS-66: Add secret scanning
@@ -502,10 +551,12 @@ Before creating a ticket, verify:
 - SYOS-71: TypeScript pre-commit hook
 
 **Resolution**:
+
 - E2E split: CI execution (Track A) vs coverage expansion (Track B)
 - TypeScript: Pre-commit hook only (Track B), not strict mode
 
 **Benefits**:
+
 - Agent 1 writes tests without touching CI
 - Agent 2 fixes CI without writing tests
 - Zero conflicts, parallel execution
@@ -522,4 +573,3 @@ Before creating a ticket, verify:
 
 **Last Updated**: 2025-11-12  
 **Related**: Linear Integration, Product Principles, Flow Metrics
-

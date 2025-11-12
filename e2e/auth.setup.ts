@@ -1,9 +1,9 @@
 /**
  * Playwright Authentication Setup
- * 
+ *
  * This script logs in once before all tests and saves the authenticated state.
  * All tests can then reuse this state without re-authenticating.
- * 
+ *
  * See: https://playwright.dev/docs/auth
  */
 
@@ -20,7 +20,7 @@ const __dirname = dirname(__filename);
 const envPath = resolve(__dirname, '../.env.test');
 try {
 	const envContent = readFileSync(envPath, 'utf-8');
-	envContent.split('\n').forEach(line => {
+	envContent.split('\n').forEach((line) => {
 		const match = line.match(/^([^#=]+)=(.*)$/);
 		if (match) {
 			const [, key, value] = match;

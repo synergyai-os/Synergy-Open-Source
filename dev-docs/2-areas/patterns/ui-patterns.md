@@ -1960,7 +1960,7 @@ toast.info('Read this', { duration: Infinity }); // Manual dismiss only
 
 	// Main title showing the action
 	const titleText = $derived(() => {
-		return workspaceType === 'personal' 
+		return workspaceType === 'personal'
 			? `Loading ${workspaceName}'s workspace`
 			: `Loading ${workspaceName}`;
 	});
@@ -1968,9 +1968,7 @@ toast.info('Read this', { duration: Infinity }); // Manual dismiss only
 	// Detailed progress steps - varied, actionable verbs
 	const getStageMessage = (stageNum: number) => {
 		if (stageNum === 0) {
-			return workspaceType === 'personal'
-				? 'Gathering user data'
-				: 'Gathering organization data';
+			return workspaceType === 'personal' ? 'Gathering user data' : 'Gathering organization data';
 		}
 		if (stageNum === 1) {
 			return workspaceType === 'personal'
@@ -1987,8 +1985,12 @@ toast.info('Read this', { duration: Infinity }); // Manual dismiss only
 			return;
 		}
 		stage = 0;
-		const timer1 = setTimeout(() => { stage = 1; }, 1500);
-		const timer2 = setTimeout(() => { stage = 2; }, 3500);
+		const timer1 = setTimeout(() => {
+			stage = 1;
+		}, 1500);
+		const timer2 = setTimeout(() => {
+			stage = 2;
+		}, 3500);
 		return () => {
 			clearTimeout(timer1);
 			clearTimeout(timer2);
@@ -2000,18 +2002,20 @@ toast.info('Read this', { duration: Infinity }); // Manual dismiss only
 
 {#if show}
 	<div
-		class="fixed inset-0 z-50 flex items-center justify-center 
-		       bg-gradient-to-br from-accent-primary/10 via-base to-accent-primary/5 
+		class="via-base fixed inset-0 z-50 flex items-center
+		       justify-center bg-gradient-to-br from-accent-primary/10 to-accent-primary/5
 		       backdrop-blur-xl"
 		in:fade={{ duration: 0 }}
 		out:fade={{ duration: 300 }}
 	>
 		<div class="flex flex-col items-center gap-content-section">
 			<div class="relative h-12 w-12">
-				<div class="absolute inset-0 animate-spin rounded-full border-4 
-				            border-border-base border-t-accent-primary"></div>
+				<div
+					class="absolute inset-0 animate-spin rounded-full border-4
+				            border-border-base border-t-accent-primary"
+				></div>
 			</div>
-			<div class="text-center max-w-md">
+			<div class="max-w-md text-center">
 				<h2 class="text-2xl font-semibold text-primary">{titleText()}</h2>
 			</div>
 			<div class="text-center">
@@ -2034,11 +2038,11 @@ let accountSwitchOverlay = $state({
 onSwitchAccount={(targetUserId, redirectTo) => {
 	const targetAccount = linkedAccounts.find(a => a.userId === targetUserId);
 	const targetName = targetAccount?.firstName || targetAccount?.email;
-	
+
 	// Show overlay IMMEDIATELY (no delay)
 	accountSwitchOverlay.show = true;
 	accountSwitchOverlay.targetName = targetName;
-	
+
 	// Then perform async action
 	authSession.switchAccount(targetUserId, redirectTo);
 }}
@@ -2056,9 +2060,9 @@ onSwitchAccount={(targetUserId, redirectTo) => {
 			if (switchingData) {
 				const data = JSON.parse(switchingData);
 				const accountName = data.accountName || 'workspace';
-				
+
 				// Inject static overlay on DOMContentLoaded
-				document.addEventListener('DOMContentLoaded', function() {
+				document.addEventListener('DOMContentLoaded', function () {
 					const overlay = document.createElement('div');
 					overlay.id = '__switching-overlay';
 					overlay.innerHTML = `
@@ -2158,12 +2162,16 @@ onMount(() => {
 	const flowConfigs = {
 		'account-registration': {
 			title: (name: string) => `Setting up ${name}'s account`,
-			stages: ['Creating your account', 'Preparing your workspace', 'Setting up your first workspace']
+			stages: [
+				'Creating your account',
+				'Preparing your workspace',
+				'Setting up your first workspace'
+			]
 		},
 		'workspace-creation': {
 			title: (name: string) => `Creating ${name}`,
 			stages: ['Setting up workspace', 'Configuring permissions', 'Preparing workspace']
-		},
+		}
 		// ... other flows
 	};
 
@@ -2175,8 +2183,8 @@ onMount(() => {
 {#if show}
 	<!-- z-[9999] ensures it's above toasts (which typically use z-50) -->
 	<div
-		class="fixed inset-0 z-[9999] flex items-center justify-center 
-		       bg-gradient-to-br from-accent-primary/10 via-base to-accent-primary/5 
+		class="via-base fixed inset-0 z-[9999] flex items-center
+		       justify-center bg-gradient-to-br from-accent-primary/10 to-accent-primary/5
 		       backdrop-blur-xl"
 		in:fade={{ duration: 0 }}
 		out:fade={{ duration: 300 }}
@@ -2218,8 +2226,12 @@ export function useLoadingOverlay() {
 	}
 
 	return {
-		get show() { return state.show; },
-		get flow() { return state.flow; },
+		get show() {
+			return state.show;
+		},
+		get flow() {
+			return state.flow;
+		},
 		// ... other getters
 		showOverlay,
 		hideOverlay
@@ -2304,10 +2316,10 @@ loadingOverlay.showOverlay({
 <!-- ✅ CORRECT: Red error box with live countdown -->
 <script lang="ts">
   import RateLimitError from '$lib/components/ui/RateLimitError.svelte';
-  
+
   let isRateLimited = $state(false);
   let rateLimitRetryAfter = $state(0);
-  
+
   // On 429 response:
   if (response.status === 429) {
     isRateLimited = true;
@@ -2316,7 +2328,7 @@ loadingOverlay.showOverlay({
 </script>
 
 {#if isRateLimited}
-  <RateLimitError 
+  <RateLimitError
     retryAfter={rateLimitRetryAfter}
     actionLabel="logging in"  <!-- "creating accounts", "uploading files", etc. -->
   />
@@ -2328,98 +2340,108 @@ loadingOverlay.showOverlay({
 ```css
 /* src/app.css - Error color tokens */
 @theme {
-  /* Light mode */
-  --color-error-bg: oklch(97% 0.013 25);
-  --color-error-border: oklch(64.8% 0.294 27.325);
-  --color-error-text: oklch(50% 0.227 27.325);
-  --color-error-text-secondary: oklch(41.2% 0.2 27.325);
+	/* Light mode */
+	--color-error-bg: oklch(97% 0.013 25);
+	--color-error-border: oklch(64.8% 0.294 27.325);
+	--color-error-text: oklch(50% 0.227 27.325);
+	--color-error-text-secondary: oklch(41.2% 0.2 27.325);
 }
 
 /* Dark mode overrides */
 html.dark {
-  --color-error-bg: oklch(25% 0.05 27.325 / 0.3);
-  --color-error-border: oklch(64.8% 0.294 27.325);
-  --color-error-text: oklch(87.2% 0.204 27.271);
-  --color-error-text-secondary: oklch(87.2% 0.204 27.271);
+	--color-error-bg: oklch(25% 0.05 27.325 / 0.3);
+	--color-error-border: oklch(64.8% 0.294 27.325);
+	--color-error-text: oklch(87.2% 0.204 27.271);
+	--color-error-text-secondary: oklch(87.2% 0.204 27.271);
 }
 
 /* Utility classes */
-@utility bg-error { background-color: var(--color-error-bg); }
-@utility border-error { border-color: var(--color-error-border); }
-@utility text-error { color: var(--color-error-text); }
-@utility text-error-secondary { color: var(--color-error-text-secondary); }
+@utility bg-error {
+	background-color: var(--color-error-bg);
+}
+@utility border-error {
+	border-color: var(--color-error-border);
+}
+@utility text-error {
+	color: var(--color-error-text);
+}
+@utility text-error-secondary {
+	color: var(--color-error-text-secondary);
+}
 ```
 
 **Component Implementation** (`src/lib/components/ui/RateLimitError.svelte`):
 
 ```svelte
 <script lang="ts">
-  import { onMount } from 'svelte';
-  
-  interface Props {
-    retryAfter: number; // seconds
-    message?: string;
-    actionLabel?: string;
-  }
-  
-  let { retryAfter, message, actionLabel = "making requests" }: Props = $props();
-  let timeRemaining = $state(retryAfter);
-  
-  onMount(() => {
-    const intervalId = setInterval(() => {
-      timeRemaining--;
-      if (timeRemaining <= 0) clearInterval(intervalId);
-    }, 1000);
-    
-    return () => clearInterval(intervalId);
-  });
-  
-  const defaultMessage = $derived(
-    `Whoa, slow down! You've tried ${actionLabel} too many times.`
-  );
+	import { onMount } from 'svelte';
+
+	interface Props {
+		retryAfter: number; // seconds
+		message?: string;
+		actionLabel?: string;
+	}
+
+	let { retryAfter, message, actionLabel = 'making requests' }: Props = $props();
+	let timeRemaining = $state(retryAfter);
+
+	onMount(() => {
+		const intervalId = setInterval(() => {
+			timeRemaining--;
+			if (timeRemaining <= 0) clearInterval(intervalId);
+		}, 1000);
+
+		return () => clearInterval(intervalId);
+	});
+
+	const defaultMessage = $derived(`Whoa, slow down! You've tried ${actionLabel} too many times.`);
 </script>
 
 <div class="rounded-input border border-error bg-error px-input-x py-input-y">
-  <div class="flex items-start gap-icon">
-    <!-- Warning icon -->
-    <svg class="h-5 w-5 flex-shrink-0 text-error mt-0.5">...</svg>
-    
-    <div class="flex-1">
-      <p class="text-sm font-medium text-error-secondary">
-        {message || defaultMessage}
-      </p>
-      
-      {#if timeRemaining > 0}
-        <p class="mt-1 text-sm text-error">
-          Please wait <span class="font-semibold tabular-nums">{timeRemaining}</span> 
-          {timeRemaining === 1 ? 'second' : 'seconds'} before trying again.
-        </p>
-      {:else}
-        <p class="mt-1 text-sm text-error">You can try again now!</p>
-      {/if}
-    </div>
-  </div>
+	<div class="flex items-start gap-icon">
+		<!-- Warning icon -->
+		<svg class="mt-0.5 h-5 w-5 flex-shrink-0 text-error">...</svg>
+
+		<div class="flex-1">
+			<p class="text-sm font-medium text-error-secondary">
+				{message || defaultMessage}
+			</p>
+
+			{#if timeRemaining > 0}
+				<p class="mt-1 text-sm text-error">
+					Please wait <span class="font-semibold tabular-nums">{timeRemaining}</span>
+					{timeRemaining === 1 ? 'second' : 'seconds'} before trying again.
+				</p>
+			{:else}
+				<p class="mt-1 text-sm text-error">You can try again now!</p>
+			{/if}
+		</div>
+	</div>
 </div>
 ```
 
-**Why**: 
+**Why**:
+
 - **Red = Error** (universal warning signal, not blue/gray info)
 - **Live Countdown** (shows progress, reduces frustration)
 - **Delight Factor** (unexpected animation creates positive emotion)
 - **Clear Hierarchy** (error icon + bold primary message)
 
 **Design Principles Applied**:
+
 - **Delight in Details** - Countdown timer exceeds user expectations
 - **Outcomes Over Outputs** - User understands when to retry (outcome), not just "error shown" (output)
 - **Design System** - Reusable tokens enable consistent error states app-wide
 
 **UX Best Practices**:
+
 - Place errors **above form buttons** (natural reading order)
 - Use `tabular-nums` for countdown (prevents layout shift)
 - Show completion message ("You can try again now!")
 - Accessible (semantic HTML, screen reader friendly)
 
 **Reusability**:
+
 ```svelte
 <!-- Login rate limit -->
 <RateLimitError retryAfter={60} actionLabel="logging in" />

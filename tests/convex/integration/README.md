@@ -10,6 +10,7 @@ Integration tests that run actual Convex functions end-to-end using `convex-test
 ### The Gap We're Filling
 
 Our unit tests didn't catch the destructuring bug because:
+
 - Unit tests: `expect(result.userId).toBe(...)` ✅ (correct pattern)
 - Real code: `const userId = await validateSessionAndGetUserId(...)` ❌ (wrong pattern)
 
@@ -49,16 +50,16 @@ import { api } from '../../../convex/_generated/api';
 import { createTestSession } from './setup';
 
 describe('Tags Module', () => {
-  it('should list user tags', async () => {
-    const t = convexTest();
-    const { sessionId, userId } = await createTestSession(t);
-    
-    // This will fail if userId is an object instead of a string
-    const tags = await t.query(api.tags.listTags, { sessionId });
-    
-    expect(tags).toBeDefined();
-    expect(Array.isArray(tags)).toBe(true);
-  });
+	it('should list user tags', async () => {
+		const t = convexTest();
+		const { sessionId, userId } = await createTestSession(t);
+
+		// This will fail if userId is an object instead of a string
+		const tags = await t.query(api.tags.listTags, { sessionId });
+
+		expect(tags).toBeDefined();
+		expect(Array.isArray(tags)).toBe(true);
+	});
 });
 ```
 
@@ -73,6 +74,7 @@ describe('Tags Module', () => {
 ## CI/CD Integration
 
 These tests run automatically:
+
 - Pre-commit hook (fast tests only)
 - GitHub Actions on every PR
 - Block merge if tests fail
@@ -80,7 +82,7 @@ These tests run automatically:
 ---
 
 **Related:**
+
 - [Testing Strategy](../../../dev-docs/testing-strategy.md)
 - [Testing Coverage](../../../dev-docs/testing-coverage.md)
 - [SYOS-45](https://linear.app/younghumanclub/issue/SYOS-45)
-

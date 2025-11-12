@@ -8,9 +8,9 @@ import { internal } from './_generated/api';
 
 /**
  * Get user settings for the current authenticated user
- * 
+ *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
- * 
+ *
  * Note: We return encrypted keys here and decrypt them client-side, OR
  * we call an internal mutation to decrypt. Actually, queries can't use Node.js crypto.
  * So we'll use an internal action to decrypt.
@@ -81,7 +81,7 @@ export const getEncryptedKeysInternal = internalQuery({
  * Update Claude API key
  * Validates, encrypts, and saves the key securely.
  * Uses action to handle validation and encryption (which requires Node.js runtime).
- * 
+ *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const updateClaudeApiKey = action({
@@ -134,7 +134,7 @@ export const updateClaudeApiKey = action({
  * Update Readwise API key
  * Validates, encrypts, and saves the key securely.
  * Uses action to handle validation and encryption (which requires Node.js runtime).
- * 
+ *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const updateReadwiseApiKey = action({
@@ -267,7 +267,7 @@ export const updateReadwiseApiKeyInternal = internalMutation({
 
 /**
  * Update theme preference
- * 
+ *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const updateTheme = mutation({
@@ -308,7 +308,7 @@ export const updateTheme = mutation({
 
 /**
  * Delete Claude API key
- * 
+ *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const deleteClaudeApiKey = mutation({
@@ -340,7 +340,7 @@ export const deleteClaudeApiKey = mutation({
 
 /**
  * Delete Readwise API key
- * 
+ *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const deleteReadwiseApiKey = mutation({

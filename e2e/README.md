@@ -73,9 +73,9 @@ import { test, expect } from '@playwright/test';
 test.use({ storageState: 'e2e/.auth/user.json' });
 
 test('my test', async ({ page }) => {
-  // User is already logged in
-  await page.goto('/inbox');
-  // ... test authenticated features
+	// User is already logged in
+	await page.goto('/inbox');
+	// ... test authenticated features
 });
 ```
 
@@ -136,4 +136,3 @@ This means the auth migration has a bug! The E2E test successfully caught a regr
 - [Playwright Authentication](https://playwright.dev/docs/auth)
 - [Playwright Best Practices](https://playwright.dev/docs/best-practices)
 - [Test Debugging](https://playwright.dev/docs/debug)
-

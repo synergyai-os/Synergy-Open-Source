@@ -14,9 +14,7 @@
 	}
 
 	const redirectTarget = $derived(
-		$page.url.searchParams.get('redirect') ??
-			$page.url.searchParams.get('redirectTo') ??
-			'/inbox'
+		$page.url.searchParams.get('redirect') ?? $page.url.searchParams.get('redirectTo') ?? '/inbox'
 	);
 	const linkingFlow = $derived(() =>
 		parseBooleanFlag(
@@ -39,7 +37,7 @@
 	let isRateLimited = $state(false);
 	let rateLimitRetryAfter = $state(0);
 	let showLoadingOverlay = $state(false);
-	
+
 	// Try to get loadingOverlay from context (if authenticated), otherwise use local state
 	let loadingOverlay: UseLoadingOverlayReturn | null = null;
 	try {
@@ -49,8 +47,7 @@
 	}
 
 	$effect(() => {
-		const prefill =
-			$page.url.searchParams.get('email') ?? $page.url.searchParams.get('login_hint');
+		const prefill = $page.url.searchParams.get('email') ?? $page.url.searchParams.get('login_hint');
 		if (prefill) {
 			email = prefill;
 		}
@@ -70,7 +67,7 @@
 		isRateLimited = false;
 		showCreateAccountLink = false;
 		isSubmitting = true;
-		
+
 		// Show loading overlay for account linking
 		if (linkingFlow()) {
 			if (loadingOverlay) {
@@ -96,28 +93,42 @@
 				})
 			});
 
-		const data = await response.json();
+			const data = await response.json();
 
-		if (!response.ok) {
-			// Handle rate limiting with delightful countdown
-			if (response.status === 429) {
-				const retryAfter = parseInt(data.retryAfter || response.headers.get('Retry-After') || '60');
-				isRateLimited = true;
-				rateLimitRetryAfter = retryAfter;
+			if (!response.ok) {
+				// Handle rate limiting with delightful countdown
+				if (response.status === 429) {
+					const retryAfter = parseInt(
+						data.retryAfter || response.headers.get('Retry-After') || '60'
+					);
+					isRateLimited = true;
+					rateLimitRetryAfter = retryAfter;
+					isSubmitting = false;
+					// Hide overlay on error
+					if (loadingOverlay) {
+						loadingOverlay.hideOverlay();
+					} else {
+						showLoadingOverlay = false;
+					}
+					return;
+				}
+
+				errorMessage = data.error ?? 'Unable to sign in. Please try again.';
+
+				// Show "Create Account" link if credentials are wrong (might not have account)
+				if (response.status === 401 || response.status === 404) {
+					showCreateAccountLink = true;
+				}
+
 				isSubmitting = false;
+				// Hide overlay on error
+				if (loadingOverlay) {
+					loadingOverlay.hideOverlay();
+				} else {
+					showLoadingOverlay = false;
+				}
 				return;
 			}
-			
-			errorMessage = data.error ?? 'Unable to sign in. Please try again.';
-			
-			// Show "Create Account" link if credentials are wrong (might not have account)
-			if (response.status === 401 || response.status === 404) {
-				showCreateAccountLink = true;
-			}
-			
-			isSubmitting = false;
-			return;
-		}
 
 			// Success - redirect to target (overlay will persist through redirect)
 			await goto(data.redirectTo ?? '/inbox');
@@ -136,8 +147,12 @@
 </script>
 
 <div class="min-h-screen bg-base">
-	<div class="mx-auto flex min-h-screen max-w-2xl items-center justify-center px-section py-system-content">
-		<div class="w-full max-w-md rounded-modal border border-base bg-elevated shadow-sm p-content-padding">
+	<div
+		class="mx-auto flex min-h-screen max-w-2xl items-center justify-center px-section py-system-content"
+	>
+		<div
+			class="w-full max-w-md rounded-modal border border-base bg-elevated p-content-padding shadow-sm"
+		>
 			<header class="flex flex-col gap-form-section text-center">
 				<h1 class="text-2xl font-semibold tracking-tight text-primary">Welcome back</h1>
 				<p class="text-sm text-secondary">
@@ -146,77 +161,92 @@
 						href={linkingFlow()
 							? `/register?linkAccount=1&redirect=${encodeURIComponent(redirectTarget)}&email=${encodeURIComponent(email)}`
 							: `/register?redirect=${encodeURIComponent(redirectTarget)}${email ? `&email=${encodeURIComponent(email)}` : ''}`}
-						class="text-accent-primary hover:text-accent-hover"
-					>Create one</a>.
+						class="text-accent-primary hover:text-accent-hover">Create one</a
+					>.
 				</p>
 			</header>
 
-		{#if isRateLimited}
-			<div class="mt-content-section">
-				<RateLimitError 
-					retryAfter={rateLimitRetryAfter}
-					actionLabel="logging in"
+			{#if isRateLimited}
+				<div class="mt-content-section">
+					<RateLimitError retryAfter={rateLimitRetryAfter} actionLabel="logging in" />
+				</div>
+			{:else if errorMessage}
+				<div
+					class="mt-content-section rounded-input border border-error bg-error px-input-x py-input-y"
+				>
+					<p class="text-sm font-medium text-error-secondary">{errorMessage}</p>
+					{#if showCreateAccountLink}
+						<p class="mt-2 text-sm text-error">
+							Don't have an account?
+							<a
+								href="/register?email={encodeURIComponent(email)}"
+								class="font-semibold text-error-secondary underline hover:text-error"
+							>
+								Create one here
+							</a>
+						</p>
+					{/if}
+				</div>
+			{/if}
+			{#if linkingFlow()}
+				<div
+					class="bg-hover-subtle mt-content-section flex items-center gap-icon rounded-input border border-base px-input-x py-input-y text-sm text-secondary"
+				>
+					<svg
+						class="h-4 w-4 flex-shrink-0 text-accent-primary"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M13.828 10.172a4 4 0 010 5.656l-2 2a4 4 0 01-5.656-5.656l1-1"
+						/>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M10.172 13.828a4 4 0 010-5.656l2-2a4 4 0 015.656 5.656l-1 1"
+						/>
+					</svg>
+					<span>Link another email to your SynergyOS account.</span>
+				</div>
+			{/if}
+
+			<form class="mt-content-section flex flex-col gap-form-section" onsubmit={handleSubmit}>
+				<FormInput
+					type="email"
+					label="Email"
+					placeholder="you@example.com"
+					bind:value={email}
+					required={true}
+					autocomplete="email"
 				/>
-			</div>
-		{:else if errorMessage}
-			<div class="mt-content-section rounded-input border border-error bg-error px-input-x py-input-y">
-				<p class="text-sm font-medium text-error-secondary">{errorMessage}</p>
-				{#if showCreateAccountLink}
-					<p class="mt-2 text-sm text-error">
-						Don't have an account? 
-						<a href="/register?email={encodeURIComponent(email)}" class="text-error-secondary hover:text-error font-semibold underline">
-							Create one here
-						</a>
-					</p>
-				{/if}
-			</div>
-		{/if}
-		{#if linkingFlow()}
-			<div class="mt-content-section flex items-center gap-icon rounded-input border border-base bg-hover-subtle px-input-x py-input-y text-sm text-secondary">
-				<svg class="h-4 w-4 flex-shrink-0 text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 010 5.656l-2 2a4 4 0 01-5.656-5.656l1-1" />
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.172 13.828a4 4 0 010-5.656l2-2a4 4 0 015.656 5.656l-1 1" />
-				</svg>
-				<span>Link another email to your SynergyOS account.</span>
-			</div>
-		{/if}
 
-		<form class="mt-content-section flex flex-col gap-form-section" onsubmit={handleSubmit}>
-			<FormInput
-				type="email"
-				label="Email"
-				placeholder="you@example.com"
-				bind:value={email}
-				required={true}
-				autocomplete="email"
-			/>
+				<FormInput
+					type="password"
+					label="Password"
+					placeholder="Enter your password"
+					bind:value={password}
+					required={true}
+					autocomplete="current-password"
+				/>
 
-			<FormInput
-				type="password"
-				label="Password"
-				placeholder="Enter your password"
-				bind:value={password}
-				required={true}
-				autocomplete="current-password"
-			/>
-
-			<Button variant="primary" type="submit" disabled={isSubmitting}>
-				{#if isSubmitting}
-					Signing in…
-				{:else}
-					Sign in
-				{/if}
-			</Button>
-		</form>
+				<Button variant="primary" type="submit" disabled={isSubmitting}>
+					{#if isSubmitting}
+						Signing in…
+					{:else}
+						Sign in
+					{/if}
+				</Button>
+			</form>
 		</div>
 	</div>
 </div>
 
 <!-- Loading Overlay (for non-authenticated context) -->
 {#if showLoadingOverlay && !loadingOverlay}
-	<LoadingOverlay
-		show={true}
-		flow="account-linking"
-		subtitle={email.trim() || 'account'}
-	/>
+	<LoadingOverlay show={true} flow="account-linking" subtitle={email.trim() || 'account'} />
 {/if}

@@ -38,19 +38,11 @@
 		},
 		'account-linking': {
 			title: (name: string) => `Linking ${name} to SynergyOS`,
-			stages: [
-				'Authenticating account',
-				'Linking accounts',
-				'Preparing workspace'
-			]
+			stages: ['Authenticating account', 'Linking accounts', 'Preparing workspace']
 		},
 		'workspace-creation': {
 			title: (name: string) => `Creating ${name}`,
-			stages: [
-				'Setting up workspace',
-				'Configuring permissions',
-				'Preparing workspace'
-			]
+			stages: ['Setting up workspace', 'Configuring permissions', 'Preparing workspace']
 		},
 		'workspace-switching': {
 			title: (name: string) => `Loading ${name}`,
@@ -62,33 +54,21 @@
 		},
 		'workspace-joining': {
 			title: (name: string) => `Joining ${name}`,
-			stages: [
-				'Validating invite',
-				'Setting up permissions',
-				'Preparing workspace'
-			]
+			stages: ['Validating invite', 'Setting up permissions', 'Preparing workspace']
 		},
-		'onboarding': {
+		onboarding: {
 			title: (name: string) => `Welcome to SynergyOS, ${name}!`,
-			stages: [
-				'Setting up your workspace',
-				'Preparing your first workspace',
-				'Almost ready...'
-			]
+			stages: ['Setting up your workspace', 'Preparing your first workspace', 'Almost ready...']
 		},
-		'custom': {
+		custom: {
 			title: (name: string) => title || 'Loading...',
 			stages: customStages.length > 0 ? customStages : ['Loading...']
 		}
 	};
 
 	const config = $derived(flowConfigs[flow]);
-	const displayTitle = $derived(
-		title || config.title(subtitle || 'workspace')
-	);
-	const stages = $derived(
-		customStages.length > 0 ? customStages : config.stages
-	);
+	const displayTitle = $derived(title || config.title(subtitle || 'workspace'));
+	const stages = $derived(customStages.length > 0 ? customStages : config.stages);
 	const currentStageText = $derived(stages[Math.min(stage, stages.length - 1)]);
 
 	// Update stage based on elapsed time
@@ -123,7 +103,7 @@
 {#if show}
 	<!-- z-[9999] ensures it's above toasts (which typically use z-50) -->
 	<div
-		class="fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-accent-primary/10 via-base to-accent-primary/5 backdrop-blur-xl"
+		class="via-base fixed inset-0 z-[9999] flex items-center justify-center bg-gradient-to-br from-accent-primary/10 to-accent-primary/5 backdrop-blur-xl"
 		in:fade={{ duration: 0 }}
 		out:fade={{ duration: 300 }}
 	>
@@ -136,7 +116,7 @@
 			</div>
 
 			<!-- Main title -->
-			<div class="text-center max-w-md">
+			<div class="max-w-md text-center">
 				<h2 class="text-2xl font-semibold text-primary">{displayTitle}</h2>
 			</div>
 
@@ -159,4 +139,3 @@
 		animation: spin 1s linear infinite;
 	}
 </style>
-

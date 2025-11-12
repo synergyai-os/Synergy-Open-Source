@@ -224,10 +224,11 @@ export const listUserTags = query({
  */
 export const getTagsForHighlight = query({
 	args: {
+		sessionId: v.string(),
 		highlightId: v.id('highlights')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			return [];
 		}
@@ -252,10 +253,11 @@ export const getTagsForHighlight = query({
  */
 export const getTagsForFlashcard = query({
 	args: {
+		sessionId: v.string(),
 		flashcardId: v.id('flashcards')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			return [];
 		}
@@ -276,7 +278,7 @@ export const getTagsForFlashcard = query({
 
 /**
  * Mutation: Create a new tag with color selection and optional parent
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */
@@ -473,10 +475,11 @@ export const createTag = mutation({
  */
 export const countTagItems = query({
 	args: {
+		sessionId: v.string(),
 		tagId: v.id('tags')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			return { highlights: 0, flashcards: 0, total: 0 };
 		}
@@ -501,7 +504,7 @@ export const countTagItems = query({
 /**
  * Mutation: Share a personal tag with an organization or team
  * Converts a user-owned tag to organization or team ownership
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */
@@ -735,7 +738,7 @@ async function assignTagsToEntity(
 
 /**
  * Mutation: Assign multiple tags to a highlight (replaces existing assignments)
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */
@@ -755,7 +758,7 @@ export const assignTagsToHighlight = mutation({
 
 /**
  * Mutation: Assign multiple tags to a flashcard (replaces existing assignments)
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */
@@ -775,7 +778,7 @@ export const assignTagsToFlashcard = mutation({
 
 /**
  * Mutation: Remove a single tag from a highlight
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */

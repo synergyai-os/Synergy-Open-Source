@@ -219,7 +219,7 @@
 
 	<DropdownMenu.Portal>
 		<DropdownMenu.Content
-			class="z-50 min-w-[280px] max-h-[600px] overflow-y-auto rounded-md border border-base bg-elevated py-1 shadow-lg"
+			class="z-50 max-h-[600px] min-w-[280px] overflow-y-auto rounded-md border border-base bg-elevated py-1 shadow-lg"
 			side="bottom"
 			align={variant === 'topbar' ? 'center' : 'start'}
 			sideOffset={6}
@@ -251,11 +251,11 @@
 
 			<!-- Current Account Section -->
 			<div class="flex items-center justify-between px-3 py-1">
-				<p class="truncate text-xs font-semibold text-tertiary uppercase tracking-wide">
+				<p class="truncate text-xs font-semibold tracking-wide text-tertiary uppercase">
 					{accountEmail}
 				</p>
 				<!-- Current Account menu (logout, create workspace) -->
-				<DropdownMenu.Root open={accountMenuOpen} onOpenChange={(open) => accountMenuOpen = open}>
+				<DropdownMenu.Root open={accountMenuOpen} onOpenChange={(open) => (accountMenuOpen = open)}>
 					<DropdownMenu.Trigger
 						type="button"
 						class="flex h-5 w-5 items-center justify-center rounded text-tertiary transition-colors hover:bg-hover-solid hover:text-primary"
@@ -263,12 +263,7 @@
 							e.stopPropagation(); // Prevent parent menu from closing
 						}}
 					>
-						<svg
-							class="h-3.5 w-3.5"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
+						<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -296,12 +291,7 @@
 								}}
 							>
 								<div class="flex items-center gap-2">
-									<svg
-										class="h-4 w-4"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
+									<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -321,12 +311,7 @@
 								}}
 							>
 								<div class="flex items-center gap-2">
-									<svg
-										class="h-4 w-4"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
+									<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -338,7 +323,7 @@
 								</div>
 							</DropdownMenu.Item>
 							<DropdownMenu.Item
-								class="cursor-pointer px-menu-item py-1.5 text-sm text-danger outline-none hover:bg-hover-solid focus:bg-hover-solid"
+								class="text-danger cursor-pointer px-menu-item py-1.5 text-sm outline-none hover:bg-hover-solid focus:bg-hover-solid"
 								textValue="Log out"
 								onSelect={() => {
 									accountMenuOpen = false;
@@ -346,12 +331,7 @@
 								}}
 							>
 								<div class="flex items-center gap-2">
-									<svg
-										class="h-4 w-4"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
+									<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -413,7 +393,7 @@
 				>
 					<div class="flex min-w-0 flex-1 items-center gap-2">
 						<div
-							class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded text-xs font-semibold bg-sidebar-hover"
+							class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded bg-sidebar-hover text-xs font-semibold"
 						>
 							{organization.initials}
 						</div>
@@ -448,7 +428,12 @@
 			>
 				<div class="flex items-center gap-2">
 					<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M12 4v16m8-8H4"
+						/>
 					</svg>
 					<span>New workspace</span>
 				</div>
@@ -459,13 +444,13 @@
 				<DropdownMenu.Separator class="my-1 border-t border-base" />
 				{#each linkedAccounts as account (account.userId)}
 					<div class="flex items-center justify-between px-3 py-1">
-						<p class="truncate text-xs font-semibold text-tertiary uppercase tracking-wide">
+						<p class="truncate text-xs font-semibold tracking-wide text-tertiary uppercase">
 							{account.email ?? account.name ?? 'Linked account'}
 						</p>
 						<!-- Account menu (logout, create workspace) -->
-						<DropdownMenu.Root 
-							open={linkedAccountMenuOpen[account.userId] ?? false} 
-							onOpenChange={(open) => linkedAccountMenuOpen[account.userId] = open}
+						<DropdownMenu.Root
+							open={linkedAccountMenuOpen[account.userId] ?? false}
+							onOpenChange={(open) => (linkedAccountMenuOpen[account.userId] = open)}
 						>
 							<DropdownMenu.Trigger
 								type="button"
@@ -474,12 +459,7 @@
 									e.stopPropagation(); // Prevent parent menu from closing
 								}}
 							>
-								<svg
-									class="h-3.5 w-3.5"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
+								<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path
 										stroke-linecap="round"
 										stroke-linejoin="round"
@@ -507,12 +487,7 @@
 										}}
 									>
 										<div class="flex items-center gap-2">
-											<svg
-												class="h-4 w-4"
-												fill="none"
-												stroke="currentColor"
-												viewBox="0 0 24 24"
-											>
+											<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 												<path
 													stroke-linecap="round"
 													stroke-linejoin="round"
@@ -532,12 +507,7 @@
 										}}
 									>
 										<div class="flex items-center gap-2">
-											<svg
-												class="h-4 w-4"
-												fill="none"
-												stroke="currentColor"
-												viewBox="0 0 24 24"
-											>
+											<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 												<path
 													stroke-linecap="round"
 													stroke-linejoin="round"
@@ -549,7 +519,7 @@
 										</div>
 									</DropdownMenu.Item>
 									<DropdownMenu.Item
-										class="cursor-pointer px-menu-item py-1.5 text-sm text-danger outline-none hover:bg-hover-solid focus:bg-hover-solid"
+										class="text-danger cursor-pointer px-menu-item py-1.5 text-sm outline-none hover:bg-hover-solid focus:bg-hover-solid"
 										textValue="Log out"
 										onSelect={() => {
 											linkedAccountMenuOpen[account.userId] = false;
@@ -557,12 +527,7 @@
 										}}
 									>
 										<div class="flex items-center gap-2">
-											<svg
-												class="h-4 w-4"
-												fill="none"
-												stroke="currentColor"
-												viewBox="0 0 24 24"
-											>
+											<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 												<path
 													stroke-linecap="round"
 													stroke-linejoin="round"
@@ -620,7 +585,7 @@
 							>
 								<div class="flex min-w-0 flex-1 items-center gap-2">
 									<div
-										class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded text-xs font-semibold bg-sidebar-hover"
+										class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded bg-sidebar-hover text-xs font-semibold"
 									>
 										{org.initials ?? org.name.slice(0, 2).toUpperCase()}
 									</div>
@@ -632,7 +597,6 @@
 							</DropdownMenu.Item>
 						{/each}
 					{/if}
-
 				{/each}
 			{/if}
 
@@ -676,7 +640,7 @@
 			{#if organizationInvites.length > 0}
 				<DropdownMenu.Separator class="my-1 border-t border-base" />
 				<div class="px-menu-item py-1">
-					<p class="text-xs font-semibold text-tertiary uppercase tracking-wide">
+					<p class="text-xs font-semibold tracking-wide text-tertiary uppercase">
 						Organization invites
 					</p>
 				</div>
@@ -699,7 +663,7 @@
 								<div class="mt-2 flex gap-1">
 									<button
 										type="button"
-										class="text-on-solid rounded-md bg-accent-primary px-2.5 py-1 text-xs font-medium hover:bg-accent-primary-hover"
+										class="text-on-solid hover:bg-accent-primary-hover rounded-md bg-accent-primary px-2.5 py-1 text-xs font-medium"
 										onclick={() => handleAcceptOrganizationInvite(invite.code)}
 									>
 										Accept
@@ -722,7 +686,7 @@
 			{#if teamInvites.length > 0}
 				<DropdownMenu.Separator class="my-1 border-t border-base" />
 				<div class="px-menu-item py-1">
-					<p class="text-xs font-semibold text-tertiary uppercase tracking-wide">Team invites</p>
+					<p class="text-xs font-semibold tracking-wide text-tertiary uppercase">Team invites</p>
 				</div>
 				{#each teamInvites as invite (invite.inviteId)}
 					<div class="px-menu-item py-2">
@@ -741,7 +705,7 @@
 								<div class="mt-2 flex gap-1">
 									<button
 										type="button"
-										class="text-on-solid rounded-md bg-accent-primary px-2.5 py-1 text-xs font-medium hover:bg-accent-primary-hover"
+										class="text-on-solid hover:bg-accent-primary-hover rounded-md bg-accent-primary px-2.5 py-1 text-xs font-medium"
 										onclick={() => handleAcceptTeamInvite(invite.code)}
 									>
 										Join team

@@ -409,7 +409,7 @@ async function shareTagToOrganization(tagId, organizationId) {
  * - If user leaves org → org content stays (becomes "public knowledge" of org)
  *
  * @see dev-docs/multi-tenancy-analytics.md for analytics patterns
- * @see TAGGING_SYSTEM_ANALYSIS.md for tagging architecture
+ * @see TAGGING_SYSTEM_ANALYSIS.md (same directory) for tagging architecture
  */
 ```
 

@@ -8,18 +8,18 @@ import { requirePermission } from './rbac/permissions';
 
 /**
  * Account Linking Limits
- * 
+ *
  * These limits prevent DoS attacks via circular account links
  * and keep query costs reasonable.
- * 
+ *
  * MAX_LINK_DEPTH: Maximum number of hops in BFS traversal
  * - A→B→C→D = 3 hops (acceptable)
  * - A→B→C→D→E = 4 hops (rejected)
- * 
+ *
  * MAX_TOTAL_ACCOUNTS: Maximum accounts a user can have linked
  * - Prevents abuse (1000s of linked accounts)
  * - Matches industry standard (Slack: ~5-10)
- * 
+ *
  * RATIONALE:
  * - Slack uses depth=3 for workspace switching
  * - 99% of users have ≤3 email addresses
@@ -124,7 +124,7 @@ export const getUserByWorkosId = query({
  */
 /**
  * Get current user by userId
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and use ctx.auth.getUserIdentity() instead
  */
@@ -135,7 +135,7 @@ export const getCurrentUser = query({
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-		
+
 		// Return user record
 		return await ctx.db.get(userId);
 	}
@@ -203,14 +203,14 @@ export const updateUserProfile = mutation({
 
 /**
  * Check if two users are linked (directly or transitively)
- * 
+ *
  * Uses BFS with depth and account limits to prevent abuse.
- * 
+ *
  * @param ctx - Query or mutation context
  * @param primaryUserId - Starting user
  * @param linkedUserId - Target user to check
  * @returns true if linked (within depth limit), false otherwise
- * 
+ *
  * Examples:
  * - A→B: linkExists(A, B) = true (depth 1)
  * - A→B→C: linkExists(A, C) = true (depth 2)
@@ -280,7 +280,7 @@ async function linkExists(
 
 /**
  * Get all transitively linked accounts up to max depth
- * 
+ *
  * Used to validate link graphs before creating new links.
  */
 async function getTransitiveLinks(
@@ -298,7 +298,7 @@ async function getTransitiveLinks(
 		if (visited.has(current.userId)) {
 			continue;
 		}
-		
+
 		// Always add to visited set (even at maxDepth) to count the node
 		visited.add(current.userId);
 
@@ -324,9 +324,9 @@ async function getTransitiveLinks(
 
 /**
  * Check if creating a link would exceed depth or account limit
- * 
+ *
  * This is a dry-run validation before creating the link.
- * 
+ *
  * @returns true if link would exceed limits, false if safe to create
  */
 async function checkLinkDepth(
@@ -397,11 +397,23 @@ export const linkAccounts = mutation({
 		// Check if linking would create too-deep chain or exceed account limit
 		const wouldExceedDepth = await checkLinkDepth(ctx, args.primaryUserId, args.linkedUserId);
 		if (wouldExceedDepth) {
-			throw new Error(`Cannot link accounts: would exceed maximum depth of ${MAX_LINK_DEPTH} or account limit of ${MAX_TOTAL_ACCOUNTS}`);
+			throw new Error(
+				`Cannot link accounts: would exceed maximum depth of ${MAX_LINK_DEPTH} or account limit of ${MAX_TOTAL_ACCOUNTS}`
+			);
 		}
 
-		await createDirectedLink(ctx, args.primaryUserId, args.linkedUserId, args.linkType ?? undefined);
-		await createDirectedLink(ctx, args.linkedUserId, args.primaryUserId, args.linkType ?? undefined);
+		await createDirectedLink(
+			ctx,
+			args.primaryUserId,
+			args.linkedUserId,
+			args.linkType ?? undefined
+		);
+		await createDirectedLink(
+			ctx,
+			args.linkedUserId,
+			args.primaryUserId,
+			args.linkType ?? undefined
+		);
 
 		return { success: true };
 	}

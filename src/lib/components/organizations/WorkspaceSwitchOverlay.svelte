@@ -16,7 +16,7 @@
 
 	// Main title showing the action
 	const titleText = $derived(() => {
-		return workspaceType === 'personal' 
+		return workspaceType === 'personal'
 			? `Loading ${workspaceName}'s workspace`
 			: `Loading ${workspaceName}`;
 	});
@@ -24,9 +24,7 @@
 	// Detailed progress steps - varied, actionable verbs
 	const getStageMessage = (stageNum: number) => {
 		if (stageNum === 0) {
-			return workspaceType === 'personal'
-				? 'Gathering user data'
-				: 'Gathering organization data';
+			return workspaceType === 'personal' ? 'Gathering user data' : 'Gathering organization data';
 		}
 		if (stageNum === 1) {
 			return workspaceType === 'personal'
@@ -67,7 +65,7 @@
 
 {#if show}
 	<div
-		class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-accent-primary/10 via-base to-accent-primary/5 backdrop-blur-xl"
+		class="via-base fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-accent-primary/10 to-accent-primary/5 backdrop-blur-xl"
 		in:fade={{ duration: 0 }}
 		out:fade={{ duration: 300 }}
 	>
@@ -80,7 +78,7 @@
 			</div>
 
 			<!-- Main action title -->
-			<div class="text-center max-w-md">
+			<div class="max-w-md text-center">
 				<h2 class="text-2xl font-semibold text-primary">{titleText()}</h2>
 			</div>
 
@@ -103,4 +101,3 @@
 		animation: spin 1s linear infinite;
 	}
 </style>
-

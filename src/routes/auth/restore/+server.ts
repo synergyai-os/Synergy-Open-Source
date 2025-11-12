@@ -55,4 +55,3 @@ export const POST: RequestHandler = async (event) => {
 		return json({ error: 'Failed to restore session' }, { status: 500 });
 	}
 };
-

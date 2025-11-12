@@ -24,36 +24,39 @@
 	const getSessionId = () => $page.data.sessionId;
 
 	// Query all tags for filtering
-	const allTagsQuery = browser && getSessionId()
-		? useQuery(api.tags.listAllTags, () => {
-				const sessionId = getSessionId();
-				if (!sessionId) return null;
-				return { sessionId };
-			})
-		: null;
+	const allTagsQuery =
+		browser && getSessionId()
+			? useQuery(api.tags.listAllTags, () => {
+					const sessionId = getSessionId();
+					if (!sessionId) return null;
+					return { sessionId };
+				})
+			: null;
 	const allTags = $derived(allTagsQuery?.data ?? []);
 
 	// Query collections
-	const collectionsQuery = browser && getSessionId()
-		? useQuery(api.flashcards.getFlashcardsByCollection, () => {
-				const sessionId = getSessionId();
-				if (!sessionId) return null;
-				return { sessionId };
-			})
-		: null;
+	const collectionsQuery =
+		browser && getSessionId()
+			? useQuery(api.flashcards.getFlashcardsByCollection, () => {
+					const sessionId = getSessionId();
+					if (!sessionId) return null;
+					return { sessionId };
+				})
+			: null;
 	const collections = $derived(collectionsQuery?.data ?? []);
 
 	// Query all flashcards (for "All Cards" collection)
-	const allFlashcardsQuery = browser && getSessionId()
-		? useQuery(api.flashcards.getUserFlashcards, () => {
-				const sessionId = getSessionId();
-				if (!sessionId) return null;
-				return {
-					sessionId,
-					tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined
-				};
-			})
-		: null;
+	const allFlashcardsQuery =
+		browser && getSessionId()
+			? useQuery(api.flashcards.getUserFlashcards, () => {
+					const sessionId = getSessionId();
+					if (!sessionId) return null;
+					return {
+						sessionId,
+						tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined
+					};
+				})
+			: null;
 
 	const allFlashcards = $derived(allFlashcardsQuery?.data ?? []);
 

@@ -37,13 +37,14 @@
 	const tagging = useTagging('flashcard', getUserId);
 
 	// Load all available tags
-	const allTagsQuery = browser && getUserId()
-		? useQuery(api.tags.listAllTags, () => {
-				const userId = getUserId();
-				if (!userId) return null;
-				return { userId };
-			})
-		: null;
+	const allTagsQuery =
+		browser && getUserId()
+			? useQuery(api.tags.listAllTags, () => {
+					const userId = getUserId();
+					if (!userId) return null;
+					return { userId };
+				})
+			: null;
 	const availableTags = $derived(allTagsQuery?.data ?? []);
 
 	// Query tags for this flashcard (using the correct endpoint we created)

@@ -1,6 +1,10 @@
 import { redirect, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { SESSION_COOKIE_NAME, clearSessionCookies, decodeSessionCookie } from '$lib/server/auth/session';
+import {
+	SESSION_COOKIE_NAME,
+	clearSessionCookies,
+	decodeSessionCookie
+} from '$lib/server/auth/session';
 import { getSessionRecord, invalidateSession } from '$lib/server/auth/sessionStore';
 import { hashValue } from '$lib/server/auth/crypto';
 import { revokeWorkOSSession } from '$lib/server/auth/workos';
@@ -17,10 +21,8 @@ export const GET: RequestHandler = async () => {
 	});
 };
 
-export const POST: RequestHandler = withRateLimit(
-	RATE_LIMITS.logout,
-	async ({ event }) => {
-		const sessionCookie = event.cookies.get(SESSION_COOKIE_NAME);
+export const POST: RequestHandler = withRateLimit(RATE_LIMITS.logout, async ({ event }) => {
+	const sessionCookie = event.cookies.get(SESSION_COOKIE_NAME);
 	if (!sessionCookie) {
 		clearSessionCookies(event);
 		return json({ success: false, error: 'No session found' }, { status: 401 });

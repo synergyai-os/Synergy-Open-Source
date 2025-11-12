@@ -1,6 +1,6 @@
 <script lang="ts">
-import { goto } from '$app/navigation';
-import { browser, dev } from '$app/environment';
+	import { goto } from '$app/navigation';
+	import { browser, dev } from '$app/environment';
 	import { tweened } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
 	import { fade } from 'svelte/transition';
@@ -411,13 +411,14 @@ import { browser, dev } from '$app/environment';
 				}}
 				onSwitchAccount={async (targetUserId, redirectTo) => {
 					// Find the account being switched to
-					const targetAccount = linkedAccountOrganizations.find(a => a.userId === targetUserId);
-					const targetName = targetAccount?.firstName || targetAccount?.name || targetAccount?.email || 'account';
-					
+					const targetAccount = linkedAccountOrganizations.find((a) => a.userId === targetUserId);
+					const targetName =
+						targetAccount?.firstName || targetAccount?.name || targetAccount?.email || 'account';
+
 					// Show overlay IMMEDIATELY before API call/redirect
 					accountSwitchOverlay.show = true;
 					accountSwitchOverlay.targetName = targetName;
-					
+
 					try {
 						// Then perform the switch (which will set sessionStorage and redirect)
 						await authSession.switchAccount(targetUserId, redirectTo);
@@ -587,7 +588,6 @@ import { browser, dev } from '$app/environment';
 				</nav>
 			{/if}
 
-
 			<!-- Development Test Menu (only in dev mode) -->
 			{#if dev && (!sidebarCollapsed || isPinned || (hoverState && !isMobile)) && !isMobile}
 				<div
@@ -747,13 +747,14 @@ import { browser, dev } from '$app/environment';
 			}}
 			onSwitchAccount={async (targetUserId, redirectTo) => {
 				// Find the account being switched to
-				const targetAccount = linkedAccountOrganizations.find(a => a.userId === targetUserId);
-				const targetName = targetAccount?.firstName || targetAccount?.name || targetAccount?.email || 'account';
-				
+				const targetAccount = linkedAccountOrganizations.find((a) => a.userId === targetUserId);
+				const targetName =
+					targetAccount?.firstName || targetAccount?.name || targetAccount?.email || 'account';
+
 				// Show overlay IMMEDIATELY before API call/redirect
 				accountSwitchOverlay.show = true;
 				accountSwitchOverlay.targetName = targetName;
-				
+
 				try {
 					// Then perform the switch (which will set sessionStorage and redirect)
 					await authSession.switchAccount(targetUserId, redirectTo);
@@ -946,7 +947,6 @@ import { browser, dev } from '$app/environment';
 				{/if}
 			</nav>
 		{/if}
-
 
 		<!-- Development Test Menu (only in dev mode) -->
 		{#if dev && (!sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)) && !isMobile}

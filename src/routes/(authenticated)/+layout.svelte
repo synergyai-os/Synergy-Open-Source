@@ -68,7 +68,7 @@
 				sessionStorage.removeItem('switchingAccount');
 
 				// Ensure minimum 5 second display
-				const elapsed = Date.now() - accountSwitchingState.startTime;
+				const elapsed = Date.now() - (accountSwitchingState.startTime ?? Date.now());
 				const minimumDuration = 5000;
 				const remaining = Math.max(0, minimumDuration - elapsed);
 
@@ -296,14 +296,12 @@
 			<LoadingOverlay
 				show={true}
 				flow="workspace-switching"
-				subtitle={
-					organizations?.isSwitching
-						? organizations.switchingTo ?? 'workspace'
-						: accountSwitchingState.switchingTo ?? 'account'
-				}
+				subtitle={organizations?.isSwitching
+					? (organizations.switchingTo ?? 'workspace')
+					: (accountSwitchingState.switchingTo ?? 'account')}
 			/>
 		{/if}
-		
+
 		<!-- Global Loading Overlay (for account registration, linking, workspace creation) -->
 		<LoadingOverlay
 			show={loadingOverlay.show}

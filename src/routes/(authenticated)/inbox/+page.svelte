@@ -349,22 +349,41 @@
 <div class="flex h-full overflow-hidden">
 	<!-- Success message for linked account -->
 	{#if showLinkedSuccess}
-		<div class="fixed top-4 right-4 z-50 flex items-center gap-icon rounded-lg border border-accent-primary bg-elevated px-4 py-3 shadow-lg">
-			<svg class="h-5 w-5 flex-shrink-0 text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+		<div
+			class="fixed top-4 right-4 z-50 flex items-center gap-icon rounded-lg border border-accent-primary bg-elevated px-4 py-3 shadow-lg"
+		>
+			<svg
+				class="h-5 w-5 flex-shrink-0 text-accent-primary"
+				fill="none"
+				stroke="currentColor"
+				viewBox="0 0 24 24"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+				/>
 			</svg>
-			<span class="text-sm font-medium text-primary">Account linked successfully! You can now switch between your accounts.</span>
+			<span class="text-sm font-medium text-primary"
+				>Account linked successfully! You can now switch between your accounts.</span
+			>
 			<button
 				onclick={() => {
 					const url = new URL(window.location.href);
 					url.searchParams.delete('linked');
 					replaceState(url.pathname + url.search, {});
 				}}
-				class="ml-2 text-secondary hover:text-primary transition-colors"
+				class="ml-2 text-secondary transition-colors hover:text-primary"
 				aria-label="Dismiss"
 			>
 				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M6 18L18 6M6 6l12 12"
+					/>
 				</svg>
 			</button>
 		</div>
@@ -407,7 +426,7 @@
 						{:else if items.queryError}
 							<!-- Error State -->
 							<div class="py-readable-quote text-center">
-								<p class="text-error mb-4">
+								<p class="mb-4 text-error">
 									Failed to load inbox items: {items.queryError.toString()}
 								</p>
 								<button
@@ -431,7 +450,7 @@
 									{sync.isSyncing ? 'Syncing...' : 'Sync Readwise Highlights'}
 								</button>
 								{#if sync.syncError}
-									<p class="text-error mt-2 text-sm">{sync.syncError}</p>
+									<p class="mt-2 text-sm text-error">{sync.syncError}</p>
 								{/if}
 								{#if sync.syncSuccess}
 									<p class="text-success mt-2 text-sm">Sync completed successfully!</p>
@@ -579,7 +598,7 @@
 						{:else if items.queryError}
 							<!-- Error State -->
 							<div class="py-readable-quote text-center">
-								<p class="text-error mb-4">
+								<p class="mb-4 text-error">
 									Failed to load inbox items: {items.queryError.toString()}
 								</p>
 								<button
@@ -603,7 +622,7 @@
 									{sync.isSyncing ? 'Syncing...' : 'Sync Readwise Highlights'}
 								</button>
 								{#if sync.syncError}
-									<p class="text-error mt-2 text-sm">{sync.syncError}</p>
+									<p class="mt-2 text-sm text-error">{sync.syncError}</p>
 								{/if}
 								{#if sync.syncSuccess}
 									<p class="text-success mt-2 text-sm">Sync completed successfully!</p>

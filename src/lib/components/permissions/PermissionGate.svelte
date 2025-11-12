@@ -5,7 +5,7 @@
 	 * Conditionally renders children based on user permissions.
 	 * Uses design tokens for loading/error states.
 	 *
-	 * @see dev-docs/rbac-architecture.md - Permission system architecture
+	 * @see dev-docs/2-areas/rbac/rbac-architecture.md - Permission system architecture
 	 * @see dev-docs/2-areas/design-tokens.md - Design token reference
 	 *
 	 * @example
@@ -55,7 +55,7 @@
 	<div class="px-nav-item py-nav-item text-sm text-secondary">Loading permissions...</div>
 {:else if permissions.error}
 	<!-- Error state with design tokens -->
-	<div class="text-error px-nav-item py-nav-item text-sm">Error loading permissions</div>
+	<div class="px-nav-item py-nav-item text-sm text-error">Error loading permissions</div>
 {:else if hasPermission}
 	<!-- Render children if user has permission -->
 	{@render children()}

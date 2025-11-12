@@ -4,7 +4,12 @@ import { api } from '$lib/convex';
 import { PUBLIC_CONVEX_URL } from '$env/static/public';
 import { createUserWithPassword, authenticateWithPassword } from '$lib/server/auth/workos';
 import { establishSession } from '$lib/server/auth/session';
-import { generateSessionId, generateRandomToken, hashValue, encryptSecret } from '$lib/server/auth/crypto';
+import {
+	generateSessionId,
+	generateRandomToken,
+	hashValue,
+	encryptSecret
+} from '$lib/server/auth/crypto';
 import type { Id } from '$lib/convex';
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
 
@@ -13,10 +18,8 @@ import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
  * POST /auth/register
  * Body: { email, password, firstName?, lastName?, redirect? }
  */
-export const POST: RequestHandler = withRateLimit(
-	RATE_LIMITS.register,
-	async ({ event }) => {
-		console.log('🔍 POST /auth/register - Headless user registration');
+export const POST: RequestHandler = withRateLimit(RATE_LIMITS.register, async ({ event }) => {
+	console.log('🔍 POST /auth/register - Headless user registration');
 
 	try {
 		const body = await event.request.json();
@@ -24,10 +27,7 @@ export const POST: RequestHandler = withRateLimit(
 
 		if (!email || !password) {
 			console.error('❌ Missing email or password');
-			return json(
-				{ error: 'Email and password are required' },
-				{ status: 400 }
-			);
+			return json({ error: 'Email and password are required' }, { status: 400 });
 		}
 
 		// Validate email format
@@ -40,10 +40,7 @@ export const POST: RequestHandler = withRateLimit(
 		// Validate password strength (minimum 8 characters)
 		if (password.length < 8) {
 			console.error('❌ Password too short');
-			return json(
-				{ error: 'Password must be at least 8 characters' },
-				{ status: 400 }
-			);
+			return json({ error: 'Password must be at least 8 characters' }, { status: 400 });
 		}
 
 		console.log('🔍 Creating user:', email);
@@ -89,7 +86,7 @@ export const POST: RequestHandler = withRateLimit(
 		// --- ACCOUNT LINKING FLOW ---
 		if (linkAccount) {
 			console.log('🔗 Account linking requested during registration');
-			
+
 			try {
 				// Get primary user from current session (already resolved by hooks)
 				const primaryUserId = event.locals.auth?.user?.userId as Id<'users'> | undefined;
@@ -135,7 +132,7 @@ export const POST: RequestHandler = withRateLimit(
 						name:
 							authResponse.user.first_name && authResponse.user.last_name
 								? `${authResponse.user.first_name} ${authResponse.user.last_name}`
-								: authResponse.user.first_name ?? authResponse.user.last_name ?? undefined
+								: (authResponse.user.first_name ?? authResponse.user.last_name ?? undefined)
 					},
 					ipAddress: event.getClientAddress(),
 					userAgent: event.request.headers.get('user-agent') ?? undefined
@@ -162,7 +159,7 @@ export const POST: RequestHandler = withRateLimit(
 						name:
 							authResponse.user.first_name && authResponse.user.last_name
 								? `${authResponse.user.first_name} ${authResponse.user.last_name}`
-								: authResponse.user.first_name ?? authResponse.user.last_name ?? undefined
+								: (authResponse.user.first_name ?? authResponse.user.last_name ?? undefined)
 					}
 				});
 				console.log('✅ Switched to newly linked account successfully');
@@ -174,10 +171,7 @@ export const POST: RequestHandler = withRateLimit(
 				});
 			} catch (linkError) {
 				console.error('❌ Account linking failed:', linkError);
-				return json(
-					{ error: 'Failed to link accounts. Please try again.' },
-					{ status: 500 }
-				);
+				return json({ error: 'Failed to link accounts. Please try again.' }, { status: 500 });
 			}
 		}
 
@@ -201,7 +195,7 @@ export const POST: RequestHandler = withRateLimit(
 				name:
 					authResponse.user.first_name && authResponse.user.last_name
 						? `${authResponse.user.first_name} ${authResponse.user.last_name}`
-						: authResponse.user.first_name ?? authResponse.user.last_name ?? undefined
+						: (authResponse.user.first_name ?? authResponse.user.last_name ?? undefined)
 			}
 		});
 
@@ -216,13 +210,13 @@ export const POST: RequestHandler = withRateLimit(
 
 		// Parse WorkOS error if available
 		const errorMessage = (err as Error)?.message ?? 'Registration failed';
-		
+
 		// Check for duplicate email error
 		// WorkOS returns: "email_not_available", "already exists", or 400/409/422 status codes
 		if (
-			errorMessage.includes('400') || 
-			errorMessage.includes('422') || 
-			errorMessage.includes('409') || 
+			errorMessage.includes('400') ||
+			errorMessage.includes('422') ||
+			errorMessage.includes('409') ||
 			errorMessage.includes('email_not_available') ||
 			errorMessage.includes('already exists') ||
 			errorMessage.includes('not available') ||
@@ -230,7 +224,7 @@ export const POST: RequestHandler = withRateLimit(
 			(errorMessage.toLowerCase().includes('email') && errorMessage.toLowerCase().includes('taken'))
 		) {
 			return json(
-				{ 
+				{
 					error: 'This email is already registered',
 					redirectToLogin: true
 				},
@@ -240,16 +234,18 @@ export const POST: RequestHandler = withRateLimit(
 
 		// Invalid email format
 		if (errorMessage.includes('invalid_email') || errorMessage.includes('email format')) {
-			return json(
-				{ error: 'Please enter a valid email address.' },
-				{ status: 400 }
-			);
+			return json({ error: 'Please enter a valid email address.' }, { status: 400 });
 		}
 
 		// Weak password
-		if (errorMessage.includes('password') && (errorMessage.includes('weak') || errorMessage.includes('too short'))) {
+		if (
+			errorMessage.includes('password') &&
+			(errorMessage.includes('weak') || errorMessage.includes('too short'))
+		) {
 			return json(
-				{ error: 'Password must be at least 8 characters long. Please choose a stronger password.' },
+				{
+					error: 'Password must be at least 8 characters long. Please choose a stronger password.'
+				},
 				{ status: 400 }
 			);
 		}
@@ -261,4 +257,3 @@ export const POST: RequestHandler = withRateLimit(
 		);
 	}
 });
-

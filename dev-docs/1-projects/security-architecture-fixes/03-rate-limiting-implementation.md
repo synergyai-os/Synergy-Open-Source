@@ -31,18 +31,19 @@ POST /auth/register (account creation) → Spam accounts
 ### Strategy
 
 Use **sliding window** algorithm (industry standard):
+
 - More accurate than fixed window
 - Prevents burst attacks at window boundaries
 - Supported by most Redis libraries
 
 ### Limits
 
-| Endpoint | Limit | Window | Rationale |
-|----------|-------|--------|-----------|
-| `/auth/switch` | 10 requests | 1 minute | Normal users switch <5x/min |
-| `/auth/login` | 5 requests | 1 minute | Legitimate typos = 2-3 attempts |
-| `/auth/register` | 3 requests | 1 minute | Should only register once |
-| `/auth/logout` | 5 requests | 1 minute | Multiple sessions = multiple logouts |
+| Endpoint         | Limit       | Window   | Rationale                            |
+| ---------------- | ----------- | -------- | ------------------------------------ |
+| `/auth/switch`   | 10 requests | 1 minute | Normal users switch <5x/min          |
+| `/auth/login`    | 5 requests  | 1 minute | Legitimate typos = 2-3 attempts      |
+| `/auth/register` | 3 requests  | 1 minute | Should only register once            |
+| `/auth/logout`   | 5 requests  | 1 minute | Multiple sessions = multiple logouts |
 
 ### Implementation Tiers
 
@@ -61,7 +62,7 @@ Use **sliding window** algorithm (industry standard):
 ```typescript
 /**
  * Rate Limiter - Sliding Window Algorithm
- * 
+ *
  * TIER 1: In-memory (single server)
  * TODO: Upgrade to Redis for multi-server (Tier 2)
  */
@@ -78,7 +79,7 @@ interface RateLimitConfig {
 
 /**
  * In-memory store (Tier 1 only)
- * 
+ *
  * Structure: Map<key, timestamps[]>
  * - key = "prefix:identifier" (e.g., "login:192.168.1.1")
  * - timestamps = [t1, t2, t3, ...] (sorted, oldest first)
@@ -89,24 +90,27 @@ const store = new Map<string, RateLimitEntry>();
  * Cleanup old entries every 5 minutes
  * Prevents memory leak
  */
-setInterval(() => {
-	const now = Date.now();
-	const CLEANUP_THRESHOLD = 10 * 60 * 1000; // 10 minutes
-	
-	for (const [key, entry] of store.entries()) {
-		// Remove timestamps older than 10 minutes
-		entry.timestamps = entry.timestamps.filter(ts => now - ts < CLEANUP_THRESHOLD);
-		
-		// Delete empty entries
-		if (entry.timestamps.length === 0) {
-			store.delete(key);
+setInterval(
+	() => {
+		const now = Date.now();
+		const CLEANUP_THRESHOLD = 10 * 60 * 1000; // 10 minutes
+
+		for (const [key, entry] of store.entries()) {
+			// Remove timestamps older than 10 minutes
+			entry.timestamps = entry.timestamps.filter((ts) => now - ts < CLEANUP_THRESHOLD);
+
+			// Delete empty entries
+			if (entry.timestamps.length === 0) {
+				store.delete(key);
+			}
 		}
-	}
-}, 5 * 60 * 1000);
+	},
+	5 * 60 * 1000
+);
 
 /**
  * Check if request is rate limited
- * 
+ *
  * @param identifier - IP address or user ID
  * @param config - Rate limit configuration
  * @returns { allowed: boolean, remaining: number, resetAt: number }
@@ -123,24 +127,24 @@ export function checkRateLimit(
 	const key = `${config.keyPrefix}:${identifier}`;
 	const now = Date.now();
 	const windowStart = now - config.windowMs;
-	
+
 	// Get or create entry
 	let entry = store.get(key);
 	if (!entry) {
 		entry = { timestamps: [] };
 		store.set(key, entry);
 	}
-	
+
 	// Remove timestamps outside current window (sliding window)
-	entry.timestamps = entry.timestamps.filter(ts => ts > windowStart);
-	
+	entry.timestamps = entry.timestamps.filter((ts) => ts > windowStart);
+
 	// Check if limit exceeded
 	if (entry.timestamps.length >= config.maxRequests) {
 		// Calculate when oldest timestamp will expire
 		const oldestTimestamp = entry.timestamps[0];
 		const resetAt = oldestTimestamp + config.windowMs;
 		const retryAfter = Math.ceil((resetAt - now) / 1000); // seconds
-		
+
 		return {
 			allowed: false,
 			remaining: 0,
@@ -148,14 +152,14 @@ export function checkRateLimit(
 			retryAfter
 		};
 	}
-	
+
 	// Record this request
 	entry.timestamps.push(now);
-	
+
 	// Calculate reset time (when oldest request expires)
 	const oldestTimestamp = entry.timestamps[0];
 	const resetAt = oldestTimestamp + config.windowMs;
-	
+
 	return {
 		allowed: true,
 		remaining: config.maxRequests - entry.timestamps.length,
@@ -191,7 +195,7 @@ export const RATE_LIMITS = {
 
 /**
  * Get client identifier (IP address)
- * 
+ *
  * Respects X-Forwarded-For header (for proxies)
  */
 export function getClientIdentifier(request: Request): string {
@@ -201,20 +205,20 @@ export function getClientIdentifier(request: Request): string {
 		// Take first IP (client IP)
 		return forwardedFor.split(',')[0].trim();
 	}
-	
+
 	// Check for real IP header (some CDNs)
 	const realIp = request.headers.get('x-real-ip');
 	if (realIp) {
 		return realIp.trim();
 	}
-	
+
 	// Fallback to 'unknown' (should not happen in production)
 	return 'unknown';
 }
 
 /**
  * SvelteKit middleware wrapper
- * 
+ *
  * Usage:
  * export const POST = withRateLimit(
  *   RATE_LIMITS.login,
@@ -228,14 +232,14 @@ export function withRateLimit<T>(
 	return async (event: RequestEvent): Promise<T | Response> => {
 		const identifier = getClientIdentifier(event.request);
 		const result = checkRateLimit(identifier, config);
-		
+
 		// Set rate limit headers (standard)
 		const headers = {
 			'X-RateLimit-Limit': config.maxRequests.toString(),
 			'X-RateLimit-Remaining': result.remaining.toString(),
 			'X-RateLimit-Reset': result.resetAt.toString()
 		};
-		
+
 		if (!result.allowed) {
 			// Return 429 Too Many Requests
 			return new Response(
@@ -254,17 +258,17 @@ export function withRateLimit<T>(
 				}
 			);
 		}
-		
+
 		// Execute handler
 		const response = await handler({ event });
-		
+
 		// Add rate limit headers to successful responses
 		if (response instanceof Response) {
 			Object.entries(headers).forEach(([key, value]) => {
 				response.headers.set(key, value);
 			});
 		}
-		
+
 		return response;
 	};
 }
@@ -282,17 +286,14 @@ import type { RequestHandler } from './$types';
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
 // ... existing imports
 
-export const POST: RequestHandler = withRateLimit(
-	RATE_LIMITS.accountSwitch,
-	async ({ event }) => {
-		// Existing logic (unchanged)
-		if (!event.locals.auth.sessionId || !event.locals.auth.user?.userId) {
-			return json({ error: 'Not authenticated' }, { status: 401 });
-		}
-		
-		// ... rest of existing code
+export const POST: RequestHandler = withRateLimit(RATE_LIMITS.accountSwitch, async ({ event }) => {
+	// Existing logic (unchanged)
+	if (!event.locals.auth.sessionId || !event.locals.auth.user?.userId) {
+		return json({ error: 'Not authenticated' }, { status: 401 });
 	}
-);
+
+	// ... rest of existing code
+});
 ```
 
 **File**: `src/routes/auth/login/+server.ts`
@@ -300,12 +301,9 @@ export const POST: RequestHandler = withRateLimit(
 ```typescript
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
 
-export const POST: RequestHandler = withRateLimit(
-	RATE_LIMITS.login,
-	async ({ event }) => {
-		// Existing login logic...
-	}
-);
+export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ event }) => {
+	// Existing login logic...
+});
 ```
 
 **File**: `src/routes/auth/register/+server.ts`
@@ -313,12 +311,9 @@ export const POST: RequestHandler = withRateLimit(
 ```typescript
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
 
-export const POST: RequestHandler = withRateLimit(
-	RATE_LIMITS.register,
-	async ({ event }) => {
-		// Existing registration logic...
-	}
-);
+export const POST: RequestHandler = withRateLimit(RATE_LIMITS.register, async ({ event }) => {
+	// Existing registration logic...
+});
 ```
 
 **File**: `src/routes/logout/+server.ts`
@@ -326,12 +321,9 @@ export const POST: RequestHandler = withRateLimit(
 ```typescript
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
 
-export const POST: RequestHandler = withRateLimit(
-	RATE_LIMITS.logout,
-	async ({ event }) => {
-		// Existing logout logic...
-	}
-);
+export const POST: RequestHandler = withRateLimit(RATE_LIMITS.logout, async ({ event }) => {
+	// Existing logout logic...
+});
 ```
 
 ---
@@ -352,20 +344,20 @@ async function switchAccount(targetUserId: string, redirectTo?: string) {
 			credentials: 'include',
 			body: JSON.stringify({ targetUserId, redirect: redirectTo })
 		});
-		
+
 		// Handle rate limiting
 		if (response.status === 429) {
 			const data = await response.json();
 			const retryAfter = response.headers.get('Retry-After');
-			
+
 			toast.error(`Too many account switches. Please wait ${retryAfter} seconds.`);
 			return;
 		}
-		
+
 		if (!response.ok) {
 			throw new Error('Account switch failed');
 		}
-		
+
 		// ... existing success logic
 	} catch (error) {
 		console.error('Failed to switch account:', error);
@@ -391,10 +383,10 @@ describe('Rate Limiter', () => {
 		// Clear store between tests
 		// (would need to export store for testing)
 	});
-	
+
 	it('should allow requests within limit', () => {
 		const config = RATE_LIMITS.login;
-		
+
 		// First 5 requests should succeed
 		for (let i = 0; i < 5; i++) {
 			const result = checkRateLimit('test-ip', config);
@@ -402,57 +394,57 @@ describe('Rate Limiter', () => {
 			expect(result.remaining).toBe(5 - i - 1);
 		}
 	});
-	
+
 	it('should block requests exceeding limit', () => {
 		const config = RATE_LIMITS.login;
-		
+
 		// Exhaust limit
 		for (let i = 0; i < 5; i++) {
 			checkRateLimit('test-ip', config);
 		}
-		
+
 		// 6th request should be blocked
 		const result = checkRateLimit('test-ip', config);
 		expect(result.allowed).toBe(false);
 		expect(result.remaining).toBe(0);
 		expect(result.retryAfter).toBeGreaterThan(0);
 	});
-	
+
 	it('should reset after window expires', async () => {
 		const config = {
 			maxRequests: 2,
 			windowMs: 100, // 100ms for testing
 			keyPrefix: 'test'
 		};
-		
+
 		// Exhaust limit
 		checkRateLimit('test-ip', config);
 		checkRateLimit('test-ip', config);
-		
+
 		// Should be blocked
 		let result = checkRateLimit('test-ip', config);
 		expect(result.allowed).toBe(false);
-		
+
 		// Wait for window to expire
-		await new Promise(resolve => setTimeout(resolve, 150));
-		
+		await new Promise((resolve) => setTimeout(resolve, 150));
+
 		// Should be allowed again
 		result = checkRateLimit('test-ip', config);
 		expect(result.allowed).toBe(true);
 	});
-	
+
 	it('should handle multiple clients independently', () => {
 		const config = RATE_LIMITS.login;
-		
+
 		// Client 1 exhausts limit
 		for (let i = 0; i < 5; i++) {
 			checkRateLimit('client-1', config);
 		}
-		
+
 		// Client 1 blocked
 		let result = checkRateLimit('client-1', config);
 		expect(result.allowed).toBe(false);
-		
+
 		// Client 2 still allowed
 		result = checkRateLimit('client-2', config);
 		expect(result.allowed).toBe(true);
@@ -470,28 +462,30 @@ import { test, expect } from '@playwright/test';
 test.describe('Rate Limiting', () => {
 	test('should block excessive login attempts', async ({ page }) => {
 		await page.goto('/login');
-		
+
 		// Try logging in 6 times (limit is 5)
 		for (let i = 0; i < 6; i++) {
 			await page.fill('[name="email"]', 'test@example.com');
 			await page.fill('[name="password"]', 'wrong-password');
 			await page.click('button[type="submit"]');
-			
+
 			if (i < 5) {
 				// First 5 attempts should show "Invalid credentials"
 				await expect(page.locator('[data-testid="error-message"]')).toContainText('Invalid');
 			} else {
 				// 6th attempt should show rate limit error
-				await expect(page.locator('[data-testid="error-message"]')).toContainText('Too many requests');
+				await expect(page.locator('[data-testid="error-message"]')).toContainText(
+					'Too many requests'
+				);
 			}
 		}
 	});
-	
+
 	test('should show rate limit headers', async ({ page }) => {
 		const response = await page.request.post('/auth/login', {
 			data: { email: 'test@example.com', password: 'password' }
 		});
-		
+
 		expect(response.headers()['x-ratelimit-limit']).toBe('5');
 		expect(response.headers()['x-ratelimit-remaining']).toBeDefined();
 		expect(response.headers()['x-ratelimit-reset']).toBeDefined();
@@ -530,26 +524,26 @@ export async function checkRateLimitRedis(
 		// Fallback to in-memory
 		return checkRateLimit(identifier, config);
 	}
-	
+
 	const key = `ratelimit:${config.keyPrefix}:${identifier}`;
 	const now = Date.now();
 	const windowStart = now - config.windowMs;
-	
+
 	// Use Redis sorted set (ZSET) for sliding window
 	// Score = timestamp, Value = unique ID
-	
+
 	// Remove old timestamps
 	await redis.zremrangebyscore(key, 0, windowStart);
-	
+
 	// Count current requests
 	const count = await redis.zcard(key);
-	
+
 	if (count >= config.maxRequests) {
 		// Get oldest timestamp for reset calculation
 		const oldest = await redis.zrange(key, 0, 0, 'WITHSCORES');
 		const resetAt = parseInt(oldest[1]) + config.windowMs;
 		const retryAfter = Math.ceil((resetAt - now) / 1000);
-		
+
 		return {
 			allowed: false,
 			remaining: 0,
@@ -557,16 +551,16 @@ export async function checkRateLimitRedis(
 			retryAfter
 		};
 	}
-	
+
 	// Add current request
 	await redis.zadd(key, now, `${now}-${Math.random()}`);
-	
+
 	// Set expiry (cleanup)
 	await redis.expire(key, Math.ceil(config.windowMs / 1000) + 60);
-	
+
 	// Calculate remaining
 	const remaining = config.maxRequests - count - 1;
-	
+
 	return {
 		allowed: true,
 		remaining,
@@ -605,15 +599,18 @@ export async function checkRateLimitRedis(
 ## Performance Impact
 
 **Overhead**:
+
 - In-memory: < 1ms per request
 - Redis: < 5ms per request (network latency)
 
 **Memory Usage**:
+
 - In-memory: ~100 bytes per client (tracked)
 - Cleanup every 5 minutes keeps memory bounded
 - For 1000 active users: ~100KB total
 
 **Scalability**:
+
 - In-memory: Single server only
 - Redis: Multi-server, distributed
 
@@ -665,4 +662,3 @@ export async function checkRateLimitRedis(
 ---
 
 **Next Steps**: Implement Tier 1, test, deploy, then plan Tier 2 upgrade.
-

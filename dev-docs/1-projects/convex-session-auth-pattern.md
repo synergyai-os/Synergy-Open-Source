@@ -37,13 +37,13 @@ This document explains our **temporary but secure** authentication pattern for C
 
 ### Attack Mitigation
 
-| Attack Vector | Mitigation |
-|---------------|------------|
-| Browser DevTools manipulation | Convex validates session exists in DB |
-| Stolen userId | Session must be active and non-expired |
-| Replay attacks | Session expiry + CSRF tokens |
-| Direct Convex API calls | Session validation catches unauthorized calls |
-| Man-in-the-middle | HTTPS enforced |
+| Attack Vector                 | Mitigation                                    |
+| ----------------------------- | --------------------------------------------- |
+| Browser DevTools manipulation | Convex validates session exists in DB         |
+| Stolen userId                 | Session must be active and non-expired        |
+| Replay attacks                | Session expiry + CSRF tokens                  |
+| Direct Convex API calls       | Session validation catches unauthorized calls |
+| Man-in-the-middle             | HTTPS enforced                                |
 
 ---
 
@@ -55,17 +55,17 @@ This document explains our **temporary but secure** authentication pattern for C
 import { validateSession } from './sessionValidation';
 
 export const createNote = mutation({
-  args: {
-    userId: v.id('users'), // Required
-    // ... other args
-  },
-  handler: async (ctx, args) => {
-    // Validate session (prevents impersonation)
-    await validateSession(ctx, args.userId);
-    
-    // Proceed with mutation
-    // ...
-  }
+	args: {
+		userId: v.id('users') // Required
+		// ... other args
+	},
+	handler: async (ctx, args) => {
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+
+		// Proceed with mutation
+		// ...
+	}
 });
 ```
 
@@ -85,6 +85,7 @@ await convexClient.mutation(api.notes.createNote, {
 ### 3. Session Validation
 
 The `validateSession` helper:
+
 - Queries `authSessions` table for userId
 - Checks session exists
 - Checks session not expired
@@ -112,12 +113,13 @@ The `validateSession` helper:
 ### Recommended Logging
 
 Add to production monitoring:
+
 ```typescript
 // In sessionValidation.ts
 console.warn('Session validation failed:', {
-  userId,
-  reason: 'not_found' | 'expired',
-  timestamp: Date.now()
+	userId,
+	reason: 'not_found' | 'expired',
+	timestamp: Date.now()
 });
 ```
 
@@ -171,4 +173,3 @@ console.warn('Session validation failed:', {
 - [Convex JWT Auth Docs](https://docs.convex.dev/auth/advanced/custom-jwt)
 - [WorkOS Custom Claims](https://workos.com/blog/how-to-add-custom-claims-to-jwts)
 - [Session Security Best Practices](https://stack.convex.dev/sessions-wrappers-as-middleware)
-

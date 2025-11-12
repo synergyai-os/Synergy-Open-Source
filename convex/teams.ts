@@ -108,7 +108,7 @@ async function ensureOrganizationMembership(
 
 /**
  * List teams for an organization
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */

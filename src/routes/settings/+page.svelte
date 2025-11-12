@@ -122,9 +122,11 @@
 				console.error('Session ID not available');
 				return;
 			}
-			
+
 			// Load personal settings
-			const settings = await convexClient.query(settingsApiFunctions.getUserSettings, { sessionId });
+			const settings = await convexClient.query(settingsApiFunctions.getUserSettings, {
+				sessionId
+			});
 			if (settings) {
 				userSettings = settings as UserSettings;
 
@@ -154,9 +156,15 @@
 	});
 
 	// Mutation functions - created when client and functions are ready
-	let updateClaudeApiKeyFn: ((args: { sessionId: string; apiKey: string }) => Promise<string>) | null = $state(null);
-	let updateReadwiseApiKeyFn: ((args: { sessionId: string; apiKey: string }) => Promise<string>) | null = $state(null);
-	let updateThemeFn: ((args: { sessionId: string; theme: 'light' | 'dark' }) => Promise<string>) | null = $state(null);
+	let updateClaudeApiKeyFn:
+		| ((args: { sessionId: string; apiKey: string }) => Promise<string>)
+		| null = $state(null);
+	let updateReadwiseApiKeyFn:
+		| ((args: { sessionId: string; apiKey: string }) => Promise<string>)
+		| null = $state(null);
+	let updateThemeFn:
+		| ((args: { sessionId: string; theme: 'light' | 'dark' }) => Promise<string>)
+		| null = $state(null);
 	let deleteClaudeApiKeyFn: ((sessionId: string) => Promise<string | null>) | null = $state(null);
 	let deleteReadwiseApiKeyFn: ((sessionId: string) => Promise<string | null>) | null = $state(null);
 
@@ -180,15 +188,13 @@
 			convexClient!.mutation(settingsApiFunctions.updateTheme, args)) as typeof updateThemeFn;
 		// Delete functions are mutations
 		deleteClaudeApiKeyFn = ((sessionId: string) =>
-			convexClient!.mutation(
-				settingsApiFunctions.deleteClaudeApiKey,
-				{ sessionId }
-			)) as typeof deleteClaudeApiKeyFn;
+			convexClient!.mutation(settingsApiFunctions.deleteClaudeApiKey, {
+				sessionId
+			})) as typeof deleteClaudeApiKeyFn;
 		deleteReadwiseApiKeyFn = ((sessionId: string) =>
-			convexClient!.mutation(
-				settingsApiFunctions.deleteReadwiseApiKey,
-				{ sessionId }
-			)) as typeof deleteReadwiseApiKeyFn;
+			convexClient!.mutation(settingsApiFunctions.deleteReadwiseApiKey, {
+				sessionId
+			})) as typeof deleteReadwiseApiKeyFn;
 	});
 
 	// State for API keys (initialized from Convex)

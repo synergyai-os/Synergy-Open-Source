@@ -9,48 +9,48 @@ on:
 jobs:
   check-sessionid:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Check for userId/sessionId issues
         run: |
           chmod +x scripts/check-sessionid-usage.sh
           ./scripts/check-sessionid-usage.sh
-      
+
       - name: Run unit tests
         uses: actions/setup-node@v3
         with:
           node-version: '20'
-      
+
       - run: npm ci
-      
+
       - name: Run session validation tests
         run: npm run test:unit:server
-      
+
       - name: Run integration tests
         run: npm run test:integration
-      
+
       - name: Check for linting errors
         run: npm run lint
 
   e2e-quick-create:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - uses: actions/setup-node@v3
         with:
           node-version: '20'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Install Playwright
         run: npx playwright install --with-deps
-      
+
       - name: Run Quick Create E2E tests
         run: npm run test:e2e -- e2e/quick-create.spec.ts
         env:
@@ -58,11 +58,10 @@ jobs:
           WORKOS_CLIENT_ID: ${{ secrets.WORKOS_TEST_CLIENT_ID }}
           AUTH_SECRET: ${{ secrets.TEST_AUTH_SECRET }}
           PUBLIC_CONVEX_URL: ${{ secrets.TEST_CONVEX_URL }}
-      
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v3
         with:
           name: playwright-results
           path: test-results/
-

@@ -80,7 +80,7 @@
 | Browse all docs         | [📚 All Docs Hub](/dev-docs/all) - Visual directory                                           | 1 min  |
 | Fix a bug               | [Pattern Index 🔴](2-areas/patterns/INDEX#-critical-patterns-fix-immediately)                 | 2 min  |
 | Understand Git workflow | [Git Workflow Guide](2-areas/git-workflow.md) / [Cheat Sheet](3-resources/git-cheat-sheet.md) | 5 min  |
-| Get PR reviewed         | [CodeRabbit Integration 🤖](2-areas/coderabbit-integration.md) - AI-powered code reviews    | 2 min  |
+| Get PR reviewed         | [CodeRabbit Integration 🤖](2-areas/coderabbit-integration.md) - AI-powered code reviews      | 2 min  |
 | Deploy to production    | [Trunk-Based Deployment ⚡](3-resources/trunk-based-deployment-implementation-summary.md)     | 5 min  |
 | Setup feature flags     | [Feature Flags Pattern](2-areas/patterns/feature-flags.md)                                    | 10 min |
 | Setup secrets           | [Secrets Management 🔐](2-areas/secrets-management.md)                                        | 5 min  |

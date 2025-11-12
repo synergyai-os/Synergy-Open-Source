@@ -14,7 +14,7 @@ import { validateSessionAndGetUserId } from './sessionValidation';
  * Optionally filter by type (readwise_highlight, photo_note, manual_text, etc.)
  * Filters by workspace context (personal, organization, or team)
  * Returns items with basic display info (title, snippet, tags) for inbox list
- * 
+ *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const listInboxItems = query({
@@ -180,7 +180,7 @@ export const listInboxItems = query({
  */
 /**
  * Get a single inbox item by ID
- * 
+ *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const getInboxItem = query({
@@ -208,13 +208,13 @@ export const getInboxItem = query({
 /**
  * Get inbox item with full details (highlight, source, tags, etc.)
  * This is useful for displaying detailed information in the inbox UI
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */
 /**
  * Get inbox item with full details (highlight, source, tags)
- * 
+ *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const getInboxItemWithDetails = query({
@@ -315,13 +315,13 @@ export const getInboxItemWithDetails = query({
  */
 /**
  * Mark an inbox item as processed
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */
 /**
  * Mark inbox item as processed
- * 
+ *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const markProcessed = mutation({
@@ -352,13 +352,13 @@ export const markProcessed = mutation({
 
 /**
  * Query: Get sync progress for current user
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */
 /**
  * Get Readwise sync progress for current user
- * 
+ *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const getSyncProgress = query({
@@ -390,13 +390,13 @@ export const getSyncProgress = query({
  */
 /**
  * Quick Create: Create a manual text note and add to inbox
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */
 /**
  * Create a note in inbox
- * 
+ *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const createNoteInInbox = mutation({
@@ -428,13 +428,13 @@ export const createNoteInInbox = mutation({
 
 /**
  * Quick Create: Create a flashcard and add to inbox
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */
 /**
  * Create a flashcard in inbox
- * 
+ *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const createFlashcardInInbox = mutation({
@@ -485,13 +485,13 @@ export const createFlashcardInInbox = mutation({
 
 /**
  * Quick Create: Create a manual highlight and add to inbox
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */
 /**
  * Create a highlight in inbox
- * 
+ *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const createHighlightInInbox = mutation({

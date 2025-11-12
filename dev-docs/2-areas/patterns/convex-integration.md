@@ -488,7 +488,7 @@ await tagging.assignTags(flashcardId, [tag1, tag2]);
 **Why**: Shared helper reduces duplication while maintaining type safety at mutation boundaries.  
 **Apply when**: Implementing tagging for new entity types  
 **Related**: #L240 (Type safety), #L190 (Naming conventions)  
-**See**: `TAGGING_SYSTEM_ANALYSIS.md` for full architecture
+**See**: `4-archive/TAGGING_SYSTEM_ANALYSIS.md` for full architecture
 
 ---
 
@@ -1078,6 +1078,7 @@ const tags = await ctx.db
 **Related**: #L240 (Type definitions), #L900 (Integration testing catches this)
 
 **Prevention**:
+
 - Static analysis: `scripts/check-sessionid-usage.sh` catches missing destructuring
 - Integration tests: Would fail immediately with type error
 - ESLint rule: Can detect missing destructuring from known functions
@@ -1111,10 +1112,10 @@ describe('Tags Integration', () => {
 	it('should list tags', async () => {
 		const t = convexTest();
 		const { sessionId, userId } = await createTestSession(t);
-		
+
 		// Runs actual Convex function - would fail if destructuring missing
 		const tags = await t.query(api.tags.listTags, { sessionId });
-		
+
 		expect(tags).toBeDefined();
 		expect(Array.isArray(tags)).toBe(true);
 	});
@@ -1143,7 +1144,7 @@ export async function createTestSession(t: ConvexTestingHelper) {
 			name: 'Test User'
 		});
 	});
-	
+
 	const sessionId = `test_session_${Date.now()}`;
 	await t.run(async (ctx) => {
 		await ctx.db.insert('authSessions', {
@@ -1153,12 +1154,13 @@ export async function createTestSession(t: ConvexTestingHelper) {
 			expiresAt: Date.now() + 3600000
 		});
 	});
-	
+
 	return { sessionId, userId };
 }
 ```
 
 **What Integration Tests Catch**:
+
 - ✅ Missing destructuring (type errors)
 - ✅ Database query errors (indexes, field names)
 - ✅ Auth flow bugs (session validation)

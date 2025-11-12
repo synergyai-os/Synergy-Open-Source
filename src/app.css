@@ -97,7 +97,7 @@
 	--color-bg-selected: oklch(55.4% 0.218 251.813); /* blue-600 - selected state */
 	--color-tag-bg: oklch(96.7% 0.003 264.542); /* gray-100 light, gray-700 dark */
 	--color-tag-text: oklch(44.6% 0.043 257.281); /* gray-600 light, gray-300 dark */
-	
+
 	/* Error/Destructive Color Tokens */
 	--color-error-bg: oklch(97% 0.013 25); /* red-50 light, red-900/20 dark */
 	--color-error-border: oklch(64.8% 0.294 27.325); /* red-500 - error state border */
@@ -151,7 +151,7 @@ html:not(.dark) {
 	--color-bg-hover-solid: oklch(96.7% 0.003 264.542); /* gray-100 */
 	--color-tag-bg: oklch(96.7% 0.003 264.542); /* gray-100 */
 	--color-tag-text: oklch(44.6% 0.043 257.281); /* gray-600 */
-	
+
 	/* Light mode error colors */
 	--color-error-bg: oklch(97% 0.013 25); /* red-50 */
 	--color-error-border: oklch(64.8% 0.294 27.325); /* red-500 */
@@ -184,7 +184,7 @@ html.dark {
 	--color-bg-hover-solid: oklch(27.9% 0.041 260.031); /* gray-800 */
 	--color-tag-bg: oklch(37.2% 0.044 257.287); /* gray-700 */
 	--color-tag-text: oklch(70.4% 0.04 256.788); /* gray-300 */
-	
+
 	/* Dark mode error colors */
 	--color-error-bg: oklch(25% 0.05 27.325 / 0.3); /* red-900/30 */
 	--color-error-border: oklch(64.8% 0.294 27.325); /* red-500 */

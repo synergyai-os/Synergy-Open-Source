@@ -84,7 +84,9 @@ export function useInboxSync(
 		if (!sessionId) return;
 
 		try {
-			const progress = (await convexClient.query(inboxApi.getSyncProgress, { sessionId })) as SyncProgress;
+			const progress = (await convexClient.query(inboxApi.getSyncProgress, {
+				sessionId
+			})) as SyncProgress;
 			if (progress) {
 				// Update progress state
 				state.syncProgress = progress;

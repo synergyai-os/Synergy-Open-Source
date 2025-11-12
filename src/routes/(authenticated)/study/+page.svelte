@@ -12,13 +12,14 @@
 	const study = useStudySession(getSessionId);
 
 	// Query all tags for filtering
-	const allTagsQuery = browser && getSessionId()
-		? useQuery(api.tags.listAllTags, () => {
-				const sessionId = getSessionId();
-				if (!sessionId) return null;
-				return { sessionId };
-			})
-		: null;
+	const allTagsQuery =
+		browser && getSessionId()
+			? useQuery(api.tags.listAllTags, () => {
+					const sessionId = getSessionId();
+					if (!sessionId) return null;
+					return { sessionId };
+				})
+			: null;
 	const allTags = $derived(allTagsQuery?.data ?? []);
 
 	// Keyboard shortcuts for ratings

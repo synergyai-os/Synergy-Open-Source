@@ -61,7 +61,7 @@ function sanitizeEmail(value: string | null): string | undefined {
 
 export const GET: RequestHandler = async (event) => {
 	console.log('🔍 Auth start - Initiating WorkOS flow');
-	
+
 	// Validate WorkOS configuration (checked at request time, not import time)
 	if (!publicEnv.PUBLIC_WORKOS_CLIENT_ID) {
 		console.error('❌ PUBLIC_WORKOS_CLIENT_ID is not configured');

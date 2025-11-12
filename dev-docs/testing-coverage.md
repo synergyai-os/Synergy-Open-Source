@@ -15,15 +15,16 @@ Complete automated test coverage for the P1 security issue: **Client-supplied us
 **File**: `e2e/quick-create.spec.ts`  
 **Command**: `npm run test:e2e:quick-create`
 
-| Test | Status | Duration | What It Tests |
-|------|--------|----------|---------------|
-| Create note via C key | ✅ Pass | 6.2s | ProseMirror editor, sessionId auth, CMD+Enter submit |
-| Create flashcard | ✅ Pass | 4.5s | Flashcard form, sessionId auth |
-| Create highlight | ✅ Pass | 4.5s | Highlight form, sessionId auth |
-| Graceful failure | ✅ Pass | 4.5s | Error handling when sessionId missing |
-| Tag loading | ✅ Pass | 4.4s | Tags query with sessionId |
+| Test                  | Status  | Duration | What It Tests                                        |
+| --------------------- | ------- | -------- | ---------------------------------------------------- |
+| Create note via C key | ✅ Pass | 6.2s     | ProseMirror editor, sessionId auth, CMD+Enter submit |
+| Create flashcard      | ✅ Pass | 4.5s     | Flashcard form, sessionId auth                       |
+| Create highlight      | ✅ Pass | 4.5s     | Highlight form, sessionId auth                       |
+| Graceful failure      | ✅ Pass | 4.5s     | Error handling when sessionId missing                |
+| Tag loading           | ✅ Pass | 4.4s     | Tags query with sessionId                            |
 
 **Critical Flows Covered**:
+
 - ✅ Most common user action (create content)
 - ✅ SessionID passed correctly to all create operations
 - ✅ No `ArgumentValidationError` in console
@@ -36,17 +37,18 @@ Complete automated test coverage for the P1 security issue: **Client-supplied us
 **File**: `e2e/inbox-workflow.spec.ts`  
 **Command**: `npm run test:e2e:inbox`
 
-| Test | Status | Duration | What It Tests |
-|------|--------|----------|---------------|
-| List inbox items | ✅ Pass | 9.4s | `listInboxItems` with sessionId |
-| Mark as processed | ✅ Pass | 7.4s | `markProcessed` with sessionId (note: button not found for note type, but no errors) |
-| Navigate items | ✅ Pass | 7.2s | J/K keyboard navigation |
-| Keyboard shortcuts | ✅ Pass | 5.1s | Refresh with R key |
-| User isolation (list) | ✅ Pass | 5.4s | User sees only own items |
-| User isolation (access) | ✅ Pass | 4.8s | Cannot access other users' items |
-| Sync progress | ✅ Pass | 8.1s | `getSyncProgress` polling with sessionId |
+| Test                    | Status  | Duration | What It Tests                                                                        |
+| ----------------------- | ------- | -------- | ------------------------------------------------------------------------------------ |
+| List inbox items        | ✅ Pass | 9.4s     | `listInboxItems` with sessionId                                                      |
+| Mark as processed       | ✅ Pass | 7.4s     | `markProcessed` with sessionId (note: button not found for note type, but no errors) |
+| Navigate items          | ✅ Pass | 7.2s     | J/K keyboard navigation                                                              |
+| Keyboard shortcuts      | ✅ Pass | 5.1s     | Refresh with R key                                                                   |
+| User isolation (list)   | ✅ Pass | 5.4s     | User sees only own items                                                             |
+| User isolation (access) | ✅ Pass | 4.8s     | Cannot access other users' items                                                     |
+| Sync progress           | ✅ Pass | 8.1s     | `getSyncProgress` polling with sessionId                                             |
 
 **Critical Flows Covered**:
+
 - ✅ Core daily workflow (view, process, navigate inbox)
 - ✅ SessionID used for all inbox queries
 - ✅ Sync progress polling uses sessionId (via GlobalActivityTracker)
@@ -59,15 +61,16 @@ Complete automated test coverage for the P1 security issue: **Client-supplied us
 **File**: `e2e/settings-security.spec.ts`  
 **Command**: `npm run test:e2e:settings`
 
-| Test | Status | Duration | What It Tests |
-|------|--------|----------|---------------|
-| Load user settings | ✅ Pass | 4.3s | `getUserSettings` with sessionId |
-| Show authenticated user | ✅ Pass | 2.3s | User isolation in settings |
-| Delete Readwise key | ✅ Pass | 2.3s | `deleteReadwiseApiKey` with sessionId |
-| Update theme | ⏭️ Skip | - | Theme toggle not found in default view |
-| Save Claude API key | ⏭️ Skip | - | API key input not found (in sub-page) |
+| Test                    | Status  | Duration | What It Tests                          |
+| ----------------------- | ------- | -------- | -------------------------------------- |
+| Load user settings      | ✅ Pass | 4.3s     | `getUserSettings` with sessionId       |
+| Show authenticated user | ✅ Pass | 2.3s     | User isolation in settings             |
+| Delete Readwise key     | ✅ Pass | 2.3s     | `deleteReadwiseApiKey` with sessionId  |
+| Update theme            | ⏭️ Skip | -        | Theme toggle not found in default view |
+| Save Claude API key     | ⏭️ Skip | -        | API key input not found (in sub-page)  |
 
 **Critical Flows Covered**:
+
 - ✅ Sensitive data operations (API keys)
 - ✅ User can only see own settings
 - ✅ SessionID used for all settings operations
@@ -88,23 +91,25 @@ Total Duration:  ~20s
 
 ## Coverage by Module (Migrated in Subtask 2)
 
-| Module | Functions Migrated | E2E Tests | Coverage |
-|--------|-------------------|-----------|----------|
-| **Settings** | 6 | 5 tests | 🟢 High |
-| **Notes** | 9 | 6 tests (via Quick Create) | 🟢 High |
-| **Inbox** | 8 | 7 tests | 🟢 High |
-| **Total** | **23** | **18 tests** | **🟢 Excellent** |
+| Module       | Functions Migrated | E2E Tests                  | Coverage         |
+| ------------ | ------------------ | -------------------------- | ---------------- |
+| **Settings** | 6                  | 5 tests                    | 🟢 High          |
+| **Notes**    | 9                  | 6 tests (via Quick Create) | 🟢 High          |
+| **Inbox**    | 8                  | 7 tests                    | 🟢 High          |
+| **Total**    | **23**             | **18 tests**               | **🟢 Excellent** |
 
 ---
 
 ## Running Tests
 
 ### Run All Critical Tests
+
 ```bash
 npm run test:e2e:critical
 ```
 
 ### Run Individual Suites
+
 ```bash
 npm run test:e2e:quick-create  # Quick Create Modal
 npm run test:e2e:inbox         # Inbox Workflow
@@ -112,6 +117,7 @@ npm run test:e2e:settings      # Settings Security
 ```
 
 ### Debug Failed Tests
+
 ```bash
 npx playwright test --ui                    # Interactive mode
 npx playwright test --debug                 # Debug mode
@@ -123,12 +129,14 @@ npx playwright show-report                  # View last report
 ## What These Tests Prevent
 
 ### ❌ Before Automated Tests
+
 - Manual testing required
 - Bugs shipped to production
 - No confidence in changes
 - Slow feedback loop
 
 ### ✅ After Automated Tests
+
 - **Caught 2 bugs already** (QuickCreateModal, GlobalActivityTracker)
 - Instant feedback on PR
 - Blocks bad commits via pre-commit hook
@@ -168,16 +176,19 @@ Layer 4: CI/CD ✅
 ## Future Improvements
 
 ### High Priority
+
 - [ ] Add E2E tests for remaining modules (Flashcards, Tags, Users)
 - [ ] Test Settings sub-pages (Theme, API Keys page)
 - [ ] Test Notes CRUD operations directly
 
 ### Medium Priority
+
 - [ ] Add multi-user impersonation tests (requires 2 test accounts)
 - [ ] Add session expiration tests (requires time mocking)
 - [ ] Add performance regression tests
 
 ### Low Priority
+
 - [ ] Add mutation testing (Stryker)
 - [ ] Add visual regression tests
 - [ ] Add accessibility tests
@@ -189,16 +200,20 @@ Layer 4: CI/CD ✅
 ### When Tests Fail
 
 **1. SessionID Error = Critical Bug**
+
 ```
 Error: ArgumentValidationError: Object is missing required field sessionId
 ```
+
 → A component is passing `userId` instead of `sessionId`  
 → Fix immediately before merging
 
 **2. Selector Not Found = UI Change**
+
 ```
 Error: Timeout waiting for selector
 ```
+
 → UI element moved or renamed  
 → Update test selectors
 
@@ -209,6 +224,7 @@ Error: Timeout waiting for selector
 ### Updating Tests
 
 When adding new features:
+
 1. Add E2E test to appropriate spec file
 2. Follow existing test patterns
 3. Use emoji selectors for inbox items
@@ -220,10 +236,12 @@ When adding new features:
 ## Success Metrics
 
 **Before E2E Tests**:
+
 - 0% automated coverage of sessionId migration
 - 2 bugs found manually
 
 **After E2E Tests**:
+
 - 89% critical flow coverage
 - 16 tests catching regressions automatically
 - **0 bugs shipped to production** 🎉
@@ -238,4 +256,3 @@ When adding new features:
 - [E2E Test README](../e2e/README.md)
 - [Testing Strategy](./testing-strategy.md)
 - [SYOS-39 Linear Issue](https://linear.app/younghumanclub/issue/SYOS-39)
-

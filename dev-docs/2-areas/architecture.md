@@ -842,8 +842,8 @@ SynergyOS implements a **Permission-Based Access Control** system where:
 
 ### Documentation
 
-- **[📖 RBAC Architecture](../rbac-architecture.md)** - Complete system design with database schema, diagrams, and implementation guide
-- **[⚡ Quick Reference](../rbac-quick-reference.md)** - Fast lookup for common patterns and permissions
+- **[📖 RBAC Architecture](rbac/rbac-architecture.md)** - Complete system design with database schema, diagrams, and implementation guide
+- **[⚡ Quick Reference](rbac/rbac-quick-reference.md)** - Fast lookup for common patterns and permissions
 
 ### Example Usage
 
@@ -872,7 +872,7 @@ const permissions = usePermissions(() => userId, () => orgId);
 
 ### Composables Overview
 
-Axon uses **Svelte 5 composables** to extract reusable logic from components. All composables follow established patterns documented in `dev-docs/patterns-and-lessons.md`.
+Axon uses **Svelte 5 composables** to extract reusable logic from components. All composables follow established patterns documented in [`dev-docs/2-areas/patterns/`](patterns/) (see [INDEX.md](patterns/INDEX.md) for fast lookup).
 
 ### Composable Structure
 

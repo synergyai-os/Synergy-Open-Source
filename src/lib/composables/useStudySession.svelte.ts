@@ -43,9 +43,7 @@ export interface UseStudySessionReturn {
 	resetSession: () => void;
 }
 
-export function useStudySession(
-	getSessionId: () => string | undefined
-): UseStudySessionReturn {
+export function useStudySession(getSessionId: () => string | undefined): UseStudySessionReturn {
 	// Session state
 	const state = $state({
 		reviewQueue: [] as StudyFlashcard[],
@@ -126,18 +124,18 @@ export function useStudySession(
 				? Math.floor((Date.now() - state.currentCardStartTime) / 1000)
 				: undefined;
 
-		// Submit rating to backend
-		const sessionId = getSessionId();
-		if (!sessionId) {
-			throw new Error('Session ID is required');
-		}
+			// Submit rating to backend
+			const sessionId = getSessionId();
+			if (!sessionId) {
+				throw new Error('Session ID is required');
+			}
 
-		await convexClient.mutation(api.flashcards.reviewFlashcard, {
-			sessionId,
-			flashcardId: currentCard._id,
-			rating,
-			reviewTime
-		});
+			await convexClient.mutation(api.flashcards.reviewFlashcard, {
+				sessionId,
+				flashcardId: currentCard._id,
+				rating,
+				reviewTime
+			});
 
 			// Remove card from queue (queue-based removal pattern)
 			state.reviewQueue = state.reviewQueue.slice(1);

@@ -5,7 +5,7 @@
 	 * Button that automatically disables based on user permissions.
 	 * Uses design tokens for consistent styling.
 	 *
-	 * @see dev-docs/rbac-architecture.md - Permission system architecture
+	 * @see dev-docs/2-areas/rbac/rbac-architecture.md - Permission system architecture
 	 * @see dev-docs/2-areas/design-tokens.md - Design token reference (Button spacing tokens)
 	 *
 	 * @example

@@ -45,12 +45,13 @@
 	const convexClient = browser ? useConvexClient() : null;
 
 	// Query all available tags
-	const allTagsQuery = browser && sessionId
-		? useQuery(api.tags.listAllTags, () => {
-				if (!sessionId) return null;
-				return { sessionId };
-			})
-		: null;
+	const allTagsQuery =
+		browser && sessionId
+			? useQuery(api.tags.listAllTags, () => {
+					if (!sessionId) return null;
+					return { sessionId };
+				})
+			: null;
 	const availableTags = $derived(allTagsQuery?.data ?? []);
 
 	// Component state
@@ -197,13 +198,13 @@
 		}
 
 		try {
-			if (!userId) {
-				throw new Error('User ID is required');
+			if (!sessionId) {
+				throw new Error('Session ID is required');
 			}
 
-		const tagId = await convexClient.mutation(api.tags.createTag, {
-			sessionId,
-			displayName,
+			const tagId = await convexClient.mutation(api.tags.createTag, {
+				sessionId,
+				displayName,
 				color,
 				parentId
 			});
@@ -253,7 +254,7 @@
 				if (!sessionId) {
 					throw new Error('Session ID is required');
 				}
-				
+
 				// Use the new notes API for rich text notes
 				await convexClient.mutation(api.notes.createNote, {
 					sessionId, // Session validation in Convex

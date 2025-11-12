@@ -84,16 +84,16 @@
 		}
 
 		console.log('🔐 Setting up Convex auth for authenticated user');
-		
+
 		// Fetch WorkOS access token and set it on Convex client
 		convexClient.setAuth(async () => {
 			console.log('🔍 Fetching WorkOS access token for Convex...');
-			
+
 			try {
 				const response = await fetch('/auth/token', {
 					credentials: 'include'
 				});
-				
+
 				if (!response.ok) {
 					console.error('❌ Failed to fetch auth token:', response.status);
 					return null;

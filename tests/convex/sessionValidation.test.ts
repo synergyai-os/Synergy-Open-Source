@@ -1,19 +1,19 @@
 /**
  * Session Validation Tests
- * 
+ *
  * Tests for the new secure session validation pattern:
  * sessionId → validate → derive userId
- * 
+ *
  * Security tests ensure impersonation attacks are prevented.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import type { QueryCtx, MutationCtx } from '../../convex/_generated/server';
 import type { Id } from '../../convex/_generated/dataModel';
-import { 
-	validateSessionAndGetUserId, 
+import {
+	validateSessionAndGetUserId,
 	getUserIdFromSession,
-	validateSession 
+	validateSession
 } from '../../convex/sessionValidation';
 
 // Mock database context
@@ -75,9 +75,9 @@ describe('validateSessionAndGetUserId', () => {
 
 		const ctx = createMockCtx([mockSession]);
 
-		await expect(
-			validateSessionAndGetUserId(ctx, validSessionId)
-		).rejects.toThrow('Session not found or expired');
+		await expect(validateSessionAndGetUserId(ctx, validSessionId)).rejects.toThrow(
+			'Session not found or expired'
+		);
 	});
 
 	it('should throw error for revoked session', async () => {
@@ -91,9 +91,9 @@ describe('validateSessionAndGetUserId', () => {
 
 		const ctx = createMockCtx([mockSession]);
 
-		await expect(
-			validateSessionAndGetUserId(ctx, validSessionId)
-		).rejects.toThrow('Session has been revoked');
+		await expect(validateSessionAndGetUserId(ctx, validSessionId)).rejects.toThrow(
+			'Session has been revoked'
+		);
 	});
 
 	it('should throw error for invalid session', async () => {
@@ -107,17 +107,17 @@ describe('validateSessionAndGetUserId', () => {
 
 		const ctx = createMockCtx([mockSession]);
 
-		await expect(
-			validateSessionAndGetUserId(ctx, validSessionId)
-		).rejects.toThrow('Session not found or expired');
+		await expect(validateSessionAndGetUserId(ctx, validSessionId)).rejects.toThrow(
+			'Session not found or expired'
+		);
 	});
 
 	it('should throw error for non-existent session', async () => {
 		const ctx = createMockCtx([]);
 
-		await expect(
-			validateSessionAndGetUserId(ctx, 'nonexistent_session')
-		).rejects.toThrow('Session not found or expired');
+		await expect(validateSessionAndGetUserId(ctx, 'nonexistent_session')).rejects.toThrow(
+			'Session not found or expired'
+		);
 	});
 });
 
@@ -208,9 +208,7 @@ describe('validateSession (DEPRECATED)', () => {
 
 		const ctx = createMockCtx([mockSession]);
 
-		await expect(
-			validateSession(ctx, validUserId)
-		).rejects.toThrow('Session not found');
+		await expect(validateSession(ctx, validUserId)).rejects.toThrow('Session not found');
 	});
 });
 
@@ -246,9 +244,9 @@ describe('Security: Impersonation Prevention', () => {
 		const ctx = createMockCtx([]);
 
 		// Attacker tries to use a forged/non-existent sessionId
-		await expect(
-			validateSessionAndGetUserId(ctx, 'forged_session_id')
-		).rejects.toThrow('Session not found or expired');
+		await expect(validateSessionAndGetUserId(ctx, 'forged_session_id')).rejects.toThrow(
+			'Session not found or expired'
+		);
 	});
 
 	it('should fail when attacker tries to use expired stolen session', async () => {
@@ -263,9 +261,9 @@ describe('Security: Impersonation Prevention', () => {
 
 		const ctx = createMockCtx([stolenExpiredSession]);
 
-		await expect(
-			validateSessionAndGetUserId(ctx, 'stolen_session')
-		).rejects.toThrow('Session not found or expired');
+		await expect(validateSessionAndGetUserId(ctx, 'stolen_session')).rejects.toThrow(
+			'Session not found or expired'
+		);
 	});
 
 	it('should fail when attacker tries to use revoked stolen session', async () => {
@@ -280,9 +278,9 @@ describe('Security: Impersonation Prevention', () => {
 
 		const ctx = createMockCtx([stolenRevokedSession]);
 
-		await expect(
-			validateSessionAndGetUserId(ctx, 'stolen_session')
-		).rejects.toThrow('Session has been revoked');
+		await expect(validateSessionAndGetUserId(ctx, 'stolen_session')).rejects.toThrow(
+			'Session has been revoked'
+		);
 	});
 });
 
@@ -321,4 +319,3 @@ describe('Performance: Query Efficiency', () => {
 		expect(queryTableName).toBe('authSessions');
 	});
 });
-

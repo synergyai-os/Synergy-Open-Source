@@ -134,10 +134,8 @@ export const getUserRoles = query({
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-		
-		const query = ctx.db
-			.query('userRoles')
-			.withIndex('by_user', (q) => q.eq('userId', userId));
+
+		const query = ctx.db.query('userRoles').withIndex('by_user', (q) => q.eq('userId', userId));
 
 		const allRoles = await query.collect();
 

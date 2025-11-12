@@ -45,9 +45,9 @@ Implement permission-based access control system where users can have multiple r
 
 ## Documentation
 - **Project README**: dev-docs/1-projects/rbac-phase-1/README.md
-- **Architecture**: dev-docs/rbac-architecture.md
-- **Quick Reference**: dev-docs/rbac-quick-reference.md
-- **Visual Diagrams**: dev-docs/rbac-visual-overview.md
+- **Architecture**: dev-docs/2-areas/rbac/rbac-architecture.md
+- **Quick Reference**: dev-docs/2-areas/rbac/rbac-quick-reference.md
+- **Visual Diagrams**: dev-docs/2-areas/rbac/rbac-visual-overview.md
 - **Decisions**: dev-docs/1-projects/rbac-phase-1/decisions/
 
 ## Branch
@@ -114,7 +114,7 @@ mcp_Linear_create_issue({
 **Estimate**: 4 hours
 
 **Documentation:**
-- Architecture: dev-docs/rbac-architecture.md (Database Schema section)
+- Architecture: dev-docs/2-areas/rbac/rbac-architecture.md (Database Schema section)
 - Vertical Slices: dev-docs/1-projects/rbac-phase-1/vertical-slices.md#slice-1
 
 **Branch**: feature/rbac-phase-1
@@ -159,7 +159,7 @@ mcp_Linear_create_issue({
 **Estimate**: 4 hours
 
 **Documentation:**
-- Architecture: dev-docs/rbac-architecture.md (Permission Checking Logic section)
+- Architecture: dev-docs/2-areas/rbac/rbac-architecture.md (Permission Checking Logic section)
 - Vertical Slices: dev-docs/1-projects/rbac-phase-1/vertical-slices.md#slice-2
 
 **Branch**: feature/rbac-phase-1
@@ -209,7 +209,7 @@ mcp_Linear_create_issue({
 **Estimate**: 3 hours
 
 **Documentation:**
-- Architecture: dev-docs/rbac-architecture.md (Implementation Patterns section)
+- Architecture: dev-docs/2-areas/rbac/rbac-architecture.md (Implementation Patterns section)
 - Vertical Slices: dev-docs/1-projects/rbac-phase-1/vertical-slices.md#slice-3
 
 **Branch**: feature/rbac-phase-1
@@ -259,7 +259,7 @@ mcp_Linear_create_issue({
 **Estimate**: 4 hours
 
 **Documentation:**
-- Architecture: dev-docs/rbac-architecture.md (Implementation Patterns section)
+- Architecture: dev-docs/2-areas/rbac/rbac-architecture.md (Implementation Patterns section)
 - Vertical Slices: dev-docs/1-projects/rbac-phase-1/vertical-slices.md#slice-4
 
 **Branch**: feature/rbac-phase-1
@@ -310,7 +310,7 @@ mcp_Linear_create_issue({
 **Estimate**: 3 hours
 
 **Documentation:**
-- Architecture: dev-docs/rbac-architecture.md (Implementation Patterns section)
+- Architecture: dev-docs/2-areas/rbac/rbac-architecture.md (Implementation Patterns section)
 - Vertical Slices: dev-docs/1-projects/rbac-phase-1/vertical-slices.md#slice-5
 
 **Branch**: feature/rbac-phase-1
@@ -364,7 +364,7 @@ mcp_Linear_create_issue({
 **Estimate**: 5 hours
 
 **Documentation:**
-- Architecture: dev-docs/rbac-architecture.md (Implementation Patterns section)
+- Architecture: dev-docs/2-areas/rbac/rbac-architecture.md (Implementation Patterns section)
 - Vertical Slices: dev-docs/1-projects/rbac-phase-1/vertical-slices.md#slice-6
 
 **Branch**: feature/rbac-phase-1
@@ -402,7 +402,7 @@ mcp_Linear_create_issue({
 - convex/permissions.test.ts - Complete unit tests
 - convex/roles.test.ts - Complete integration tests
 - tests/e2e/permissions.spec.ts - Complete E2E tests
-- dev-docs/rbac-architecture.md - Update with implementation notes
+- dev-docs/2-areas/rbac/rbac-architecture.md - Update with implementation notes
 - dev-docs/patterns/INDEX.md - Add RBAC pattern
 - dev-docs/1-projects/rbac-phase-1/testing-checklist.md - Complete manual tests
 

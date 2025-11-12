@@ -114,7 +114,7 @@ export const createFlashcard = mutation({
 
 /**
  * Create multiple flashcards (batch operation)
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */
@@ -189,7 +189,7 @@ export const createFlashcards = mutation({
 
 /**
  * Review a flashcard (update FSRS state based on rating)
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */
@@ -289,7 +289,7 @@ export const reviewFlashcard = mutation({
 
 /**
  * Update flashcard question and answer
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */
@@ -386,7 +386,7 @@ export const deleteFlashcard = mutation({
  */
 /**
  * Get flashcards due for review
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */
@@ -505,7 +505,7 @@ export const getUserFlashcards = query({
  */
 /**
  * Get flashcards grouped by collection (tag)
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */

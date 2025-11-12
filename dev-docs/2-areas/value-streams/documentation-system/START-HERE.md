@@ -29,7 +29,7 @@ An **AI-native documentation system** built into SynergyOS where:
 
 - [x] MDX configuration (`mdsvex.config.js`)
 - [x] SvelteKit config updated
-- [x] Install instructions (`INSTALL_DEPS.md`)
+- [x] Install instructions (`3-resources/setup/INSTALL_DEPS.md`)
 
 ### ✅ Documentation
 
@@ -73,7 +73,7 @@ Open [FRESH-START-PLAN.md](../FRESH-START-PLAN.md) and execute Day 2, Step 3 onw
 
 /mdsvex.config.js                       ← MDX configuration
 /svelte.config.js                       ← Updated for MDX
-/INSTALL_DEPS.md                        ← Installation instructions
+/3-resources/setup/INSTALL_DEPS.md      ← Installation instructions
 ```
 
 ---
@@ -120,7 +120,7 @@ We'll know we've succeeded when:
 ## Next Steps
 
 1. ✅ **Read this file** (you're here)
-2. ⏳ **Run npm install** (see [INSTALL_DEPS.md](../../../INSTALL_DEPS.md))
+2. ⏳ **Run npm install** (see [INSTALL_DEPS.md](../../../../3-resources/setup/INSTALL_DEPS.md))
 3. ⏳ **Follow Day 2, Step 3** in [FRESH-START-PLAN.md](../FRESH-START-PLAN.md)
 4. ⏳ **Ship it** (test, deploy, announce)
 

@@ -208,7 +208,7 @@ export const listOrganizationInvites = query({
 
 /**
  * Create a new organization
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */
@@ -458,9 +458,9 @@ export const recordOrganizationSwitch = mutation({
 	handler: async (ctx, args) => {
 		// Silently skip analytics tracking if session not available - non-critical, shouldn't break UX
 		try {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			console.warn('⚠️ Skipping organization switch tracking: User not authenticated');
+			const userId = await getAuthUserId(ctx);
+			if (!userId) {
+				console.warn('⚠️ Skipping organization switch tracking: User not authenticated');
 				return;
 			}
 		} catch (error) {
