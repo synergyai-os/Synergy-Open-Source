@@ -285,7 +285,15 @@ export const listLinkedAccounts = query({
 			.withIndex('by_primary', (q) => q.eq('primaryUserId', args.userId))
 			.collect();
 
-		const results = [];
+		const results: {
+			userId: Id<'users'>;
+			email: string | null;
+			name: string | null;
+			firstName: string | null;
+			lastName: string | null;
+			linkType: string | null;
+			verifiedAt: number;
+		}[] = [];
 
 		for (const link of links) {
 			const user = await ctx.db.get(link.linkedUserId);
