@@ -12,20 +12,32 @@
 2. **Use grep first** - Search patterns before reading full files
 3. **Stage all files once** - Single `git add` for all changed files
 4. **Commit with multi-line message** - Use `-m` multiple times for body paragraphs
-5. **Create PR workflow** - Commit to feature branch, create PR to main (don't push directly to main)
+5. **Never push to main** - Commit locally only (user will push when ready)
 
 **Project Info:**
 
 - **Production Domain**: `www.synergyos.ai` (always use www prefix, not synergyos.dev or synergyos.ai)
 - **GitHub Repo**: `synergyai-os/Synergy-Open-Source`
 
+**🎯 Pattern Files Location:**
+
+- **INDEX**: `dev-docs/2-areas/patterns/INDEX.md` (symptom lookup table)
+- **Domain Files** (add patterns here):
+  - `dev-docs/2-areas/patterns/svelte-reactivity.md`
+  - `dev-docs/2-areas/patterns/convex-integration.md`
+  - `dev-docs/2-areas/patterns/ui-patterns.md`
+  - `dev-docs/2-areas/patterns/analytics.md`
+  - `dev-docs/2-areas/patterns/auth-deployment.md`
+
+**⚠️ DON'T read `patterns-and-lessons.md`** - it's just a redirect file. Go directly to the files above.
+
 **Key workflow:**
 
 - Step 1: Analyze as user story + capture flow metrics + determine flow distribution
-- Step 2: Use `grep` to search INDEX.md and domain files in parallel
-- Step 3: Use `search_replace` or `write` for updates
+- Step 2: Use `grep` to search `dev-docs/2-areas/patterns/INDEX.md` and domain files in parallel
+- Step 3: Use `search_replace` to update domain files + INDEX.md
 - Step 4: Stage → commit with optimized format → show `git log -1 --stat`
-- Step 5: Push feature branch → create PR to main (don't push directly to main)
+- Step 5: Report status (don't push to GitHub)
 
 ---
 
@@ -86,19 +98,21 @@ So that [outcome/value]
 
 ### 2. Audit Existing Patterns
 
-**Search `dev-docs/2-areas/patterns/INDEX.md`**:
+**🔍 Search Strategy (use grep tool in parallel):**
 
-1. Scan symptom tables for matches
-2. Grep domain files for keywords
-3. Check Related links in found patterns
+1. **Search INDEX**: `grep` in `dev-docs/2-areas/patterns/INDEX.md` for symptom keywords
+2. **Search domain files**: `grep` in `dev-docs/2-areas/patterns/*.md` for related patterns
+3. **Check line numbers**: Found patterns reference exact line numbers (e.g., #L810)
 
-**Decision**:
+**Decision tree:**
 
-- **Exact match exists**: Update existing pattern (add edge case, enhance example)
-- **Similar exists**: Add new pattern + link to related
-- **Nothing found**: Create new pattern
+- **Exact match exists** → Update existing pattern (add edge case, enhance example)
+- **Similar pattern exists** → Add new pattern + link to related (#L references)
+- **Nothing found** → Create new pattern in appropriate domain file
 
 ### 3. Update Patterns ⭐ DO THIS FIRST
+
+**⚠️ CRITICAL**: Always update patterns BEFORE committing code changes!
 
 #### If Updating Existing Pattern:
 
@@ -567,13 +581,15 @@ After successful commit on feature branch:
 
 **Before Committing:**
 
+- [ ] ⚠️ Did NOT read `patterns-and-lessons.md` (it's just a redirect!)
 - [ ] Searched `dev-docs/2-areas/patterns/INDEX.md` for existing patterns (grep tool)
-- [ ] Decided: update existing or create new
+- [ ] Searched domain files (svelte-reactivity.md, convex-integration.md, etc.) in parallel
+- [ ] Decided: update existing pattern or create new
 - [ ] Updated domain file with pattern/enhancement (search_replace)
 - [ ] Validated with Context7 (if library-specific)
-- [ ] Updated `dev-docs/2-areas/patterns/INDEX.md` symptom table
-- [ ] Chose correct severity (🔴🟡🟢)
-- [ ] Determined flow distribution category
+- [ ] Updated `dev-docs/2-areas/patterns/INDEX.md` symptom table with line number reference
+- [ ] Chose correct severity (🔴 Critical | 🟡 Important | 🟢 Reference)
+- [ ] Determined flow distribution category (FEATURE | BUGFIX | TECH-DEBT | DOCS | RISK)
 
 **Commit Message:**
 
@@ -598,18 +614,19 @@ After successful commit on feature branch:
 
 ## Anti-Patterns
 
-- ❌ Don't duplicate patterns - search first
-- ❌ Don't change line numbers - keep them stable
-- ❌ Don't skip Context7 validation for library patterns
-- ❌ Don't commit before capturing knowledge
-- ❌ Don't add to Critical unless it breaks functionality
-- ❌ Don't push directly to main - always use PR workflow
-- ❌ Don't use multiple git add commands - batch all files
-- ❌ Don't skip flow distribution category
-- ❌ Don't skip metadata line (first body line)
-- ❌ Don't exceed 50 chars in subject line
-- ❌ Don't use tables/bold - they don't render on GitHub
-- ❌ Don't include redundant gitmoji + conventional type in subject
+- ❌ Don't read `patterns-and-lessons.md` - it's just a redirect! Use domain files instead
+- ❌ Don't duplicate patterns - search INDEX.md and domain files first
+- ❌ Don't change existing line numbers - keep them stable (#L10, #L50, etc.)
+- ❌ Don't skip Context7 validation for library patterns (Svelte 5, Convex, etc.)
+- ❌ Don't commit code before capturing knowledge in patterns
+- ❌ Don't add to Critical (🔴) unless it breaks functionality
+- ❌ Don't push to GitHub - user will push when ready
+- ❌ Don't use multiple git add commands - batch all files with `git add -A`
+- ❌ Don't skip flow distribution category (FEATURE | BUGFIX | TECH-DEBT | DOCS | RISK)
+- ❌ Don't skip metadata line (first body line shows in GitHub preview)
+- ❌ Don't exceed 50 chars in subject line (gets truncated)
+- ❌ Don't use tables/bold in commit messages - they don't render on GitHub
+- ❌ Don't include redundant gitmoji + conventional type in subject ([FEATURE] not ✨feat:)
 
 ---
 
@@ -621,24 +638,29 @@ After successful commit on feature branch:
    - Category: FEATURE | BUGFIX | TECH-DEBT | DOCS | RISK
    - Type, scope, size, days, hours, blocked, files, impact
 
-2. grep dev-docs/2-areas/patterns/INDEX.md → Check existing patterns
+2. Search patterns (use grep, batch parallel reads):
+   - INDEX: dev-docs/2-areas/patterns/INDEX.md
+   - Domain files: svelte-reactivity.md, convex-integration.md, ui-patterns.md, 
+     analytics.md, auth-deployment.md
+   - ⚠️ DON'T read patterns-and-lessons.md (it's just a redirect)
 
-3. Update patterns → search_replace domain files + INDEX.md
+3. Update patterns FIRST (before committing code):
+   - Add/update domain file with search_replace
+   - Update INDEX.md symptom table
+   - Use line numbers for references (#L810)
 
 4. Commit with optimized format:
    Subject: [ICON CATEGORY] outcome (max 50 chars)
    Line 1: TYPE: X | SCOPE: Y | SIZE: Z | DAYS: N | IMPACT: I
    Body: USER STORY (👤🎯💡) + SLICE + JOURNEY (🛑⚠️✅) + PATTERN + FLOW METRICS
 
-5. Push feature branch → Create PR to main
-   → Push: `git push origin feature/[branch-name]`
-   → Create PR via GitHub UI or CLI
-   → Wait for review before merging
+5. Report status (DON'T push to GitHub):
+   → Show: git log -1 --stat
+   → Confirm: "✅ Committed locally. Ready when you want to push."
 ```
 
 **End message format:**
 
-- If PR created: "✅ Pushed feature branch. PR created: [link]"
-- If committed only: "✅ Committed locally on feature branch. Ready for PR when you are."
-
-Keep it short. User wants concise confirmations.
+- Always: "✅ Committed [N] files. Not pushed to GitHub (as requested)."
+- Show git log output for review
+- Keep it short - user wants concise confirmations
