@@ -261,9 +261,10 @@
 
 		try {
 			// Save all flashcards to database
-			const flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
-				flashcards: generatedFlashcards,
-				sourceInboxItemId: selected.selectedItemId as any,
+		const flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
+			sessionId,
+			flashcards: generatedFlashcards,
+			sourceInboxItemId: selected.selectedItemId as any,
 				sourceType: selected.selectedItem?.type
 			});
 
@@ -298,9 +299,9 @@
 				throw new Error('User ID is required');
 			}
 
-			const flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
-				userId,
-				flashcards: cards,
+		const flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
+			sessionId,
+			flashcards: cards,
 				sourceInboxItemId: selected.selectedItemId as any,
 				sourceType: selected.selectedItem?.type
 			});

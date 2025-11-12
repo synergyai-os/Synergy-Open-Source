@@ -16,11 +16,11 @@
 	const getUserId = () => $page.data.user?.userId;
 
 	// Fetch user's tags
-	const tagsQuery = browser && getUserId()
+	const tagsQuery = browser && getSessionId()
 		? useQuery(api.tags.listUserTags, () => {
-				const userId = getUserId();
-				if (!userId) return null;
-				return { userId };
+				const sessionId = getSessionId();
+				if (!sessionId) return null;
+				return { sessionId };
 			})
 		: null;
 	const userTags = $derived(tagsQuery?.data ?? []);

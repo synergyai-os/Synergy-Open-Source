@@ -20,36 +20,36 @@
 	let modalCollectionName = $state('');
 	let modalInitialIndex = $state(0);
 
-	// Get userId from page data
-	const getUserId = () => $page.data.user?.userId;
+	// Get sessionId from page data
+	const getSessionId = () => $page.data.sessionId;
 
 	// Query all tags for filtering
-	const allTagsQuery = browser && getUserId()
+	const allTagsQuery = browser && getSessionId()
 		? useQuery(api.tags.listAllTags, () => {
-				const userId = getUserId();
-				if (!userId) return null;
-				return { userId };
+				const sessionId = getSessionId();
+				if (!sessionId) return null;
+				return { sessionId };
 			})
 		: null;
 	const allTags = $derived(allTagsQuery?.data ?? []);
 
 	// Query collections
-	const collectionsQuery = browser && getUserId()
+	const collectionsQuery = browser && getSessionId()
 		? useQuery(api.flashcards.getFlashcardsByCollection, () => {
-				const userId = getUserId();
-				if (!userId) return null;
-				return { userId };
+				const sessionId = getSessionId();
+				if (!sessionId) return null;
+				return { sessionId };
 			})
 		: null;
 	const collections = $derived(collectionsQuery?.data ?? []);
 
 	// Query all flashcards (for "All Cards" collection)
-	const allFlashcardsQuery = browser && getUserId()
+	const allFlashcardsQuery = browser && getSessionId()
 		? useQuery(api.flashcards.getUserFlashcards, () => {
-				const userId = getUserId();
-				if (!userId) return null;
+				const sessionId = getSessionId();
+				if (!sessionId) return null;
 				return {
-					userId,
+					sessionId,
 					tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined
 				};
 			})

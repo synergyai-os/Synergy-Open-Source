@@ -201,9 +201,9 @@
 				throw new Error('User ID is required');
 			}
 
-			const tagId = await convexClient.mutation(api.tags.createTag, {
-				userId,
-				displayName,
+		const tagId = await convexClient.mutation(api.tags.createTag, {
+			sessionId,
+			displayName,
 				color,
 				parentId
 			});
