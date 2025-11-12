@@ -1,6 +1,7 @@
 import { query, mutation, action, internalMutation, internalQuery } from './_generated/server';
 import { v } from 'convex/values';
 import { getAuthUserId } from './auth';
+import { validateSession } from './sessionValidation';
 // Note: We use dynamic imports for crypto functions to avoid bundler issues
 // Mutations have Node.js runtime by default and can use dynamic imports
 import { internal } from './_generated/api';
@@ -10,13 +11,18 @@ import { internal } from './_generated/api';
  * Note: We return encrypted keys here and decrypt them client-side, OR
  * we call an internal mutation to decrypt. Actually, queries can't use Node.js crypto.
  * So we'll use an internal action to decrypt.
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
  */
 export const getUserSettings = query({
-	handler: async (ctx) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			return null;
-		}
+	args: {
+		userId: v.id('users') // Required: passed from authenticated SvelteKit session
+	},
+	handler: async (ctx, args) => {
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		// Find or create user settings
 		const settings = await ctx.db

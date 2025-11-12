@@ -2,6 +2,7 @@
 	import { getContext } from 'svelte';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
+	import { replaceState } from '$app/navigation';
 	import { useConvexClient } from 'convex-svelte';
 	import { makeFunctionReference } from 'convex/server';
 	import { api } from '$lib/convex';
@@ -24,10 +25,13 @@
 	import { useInboxLayout } from '$lib/composables/useInboxLayout.svelte';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 
-	// Get workspace context
+	// Get user ID from page data (provided by authenticated layout)
+	const getUserId = () => $page.data.user?.userId;
+
+	// Get workspace context (functions for reactivity)
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
-	const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
-	const activeTeamId = $derived(() => organizations?.activeTeamId ?? null);
+	const activeOrganizationId = () => organizations?.activeOrganizationId ?? null;
+	const activeTeamId = () => organizations?.activeTeamId ?? null;
 
 	// Convex client setup
 	const convexClient = browser ? useConvexClient() : null;
@@ -42,12 +46,13 @@
 
 	// Initialize inbox items composable with workspace context
 	const items = useInboxItems({
-		activeOrganizationId: activeOrganizationId(),
-		activeTeamId: activeTeamId()
+		userId: getUserId, // Required for session validation - function ensures reactivity
+		activeOrganizationId: activeOrganizationId, // Pass function for reactivity
+		activeTeamId: activeTeamId // Pass function for reactivity
 	});
 
 	// Initialize selected item composable
-	const selected = useSelectedItem(convexClient, inboxApi);
+	const selected = useSelectedItem(convexClient, inboxApi, getUserId);
 
 	// Track whether auto-selection should run when items are available
 	const autoSelectState = $state({ enabled: true });
@@ -90,7 +95,7 @@
 			linkedSuccessTimeout = setTimeout(() => {
 				const url = new URL(window.location.href);
 				url.searchParams.delete('linked');
-				window.history.replaceState({}, '', url);
+				replaceState(url.pathname + url.search, {});
 			}, 5000);
 		}
 
@@ -106,6 +111,7 @@
 	const sync = useInboxSync(
 		convexClient,
 		inboxApi,
+		getUserId, // Required for session validation
 		undefined, // onItemsReload not needed - useQuery handles reactivity automatically
 		() => clearSelection()
 	);
@@ -263,7 +269,13 @@
 
 			// Mark inbox item as processed
 			if (selected.selectedItemId) {
+				const userId = getUserId();
+				if (!userId) {
+					throw new Error('User ID is required');
+				}
+
 				await convexClient.mutation(api.inbox.markProcessed, {
+					userId,
 					inboxItemId: selected.selectedItemId as any
 				});
 			}
@@ -281,7 +293,13 @@
 
 		try {
 			// Save selected flashcards to database (with any edits applied)
+			const userId = getUserId();
+			if (!userId) {
+				throw new Error('User ID is required');
+			}
+
 			const flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
+				userId,
 				flashcards: cards,
 				sourceInboxItemId: selected.selectedItemId as any,
 				sourceType: selected.selectedItem?.type
@@ -289,7 +307,13 @@
 
 			// Mark inbox item as processed
 			if (selected.selectedItemId) {
+				const userId = getUserId();
+				if (!userId) {
+					throw new Error('User ID is required');
+				}
+
 				await convexClient.mutation(api.inbox.markProcessed, {
+					userId,
 					inboxItemId: selected.selectedItemId as any
 				});
 			}
@@ -328,7 +352,7 @@
 				onclick={() => {
 					const url = new URL(window.location.href);
 					url.searchParams.delete('linked');
-					window.history.replaceState({}, '', url);
+					replaceState(url.pathname + url.search, {});
 				}}
 				class="ml-2 text-secondary hover:text-primary transition-colors"
 				aria-label="Dismiss"

@@ -698,6 +698,7 @@ $effect(() => {
 - $effect needs to track state variables but not trigger on their changes
 - Implementing debouncing, throttling, or tracking "previous" values
 - Managing flags like `isLoading`, `hasInitialized`, `lastValue`
+- Processing URL parameters that trigger state updates
 - Error: `effect_update_depth_exceeded` appears in console
 
 **Why it breaks**:
@@ -721,10 +722,234 @@ $effect(() => {
 - **untrack() writes**: When updating `$state` shouldn't re-trigger the effect
 - **$state**: Only for values that directly affect rendered output
 
-**Related**: #L220 (useQuery reactivity), #L650 (onMount vs $effect), #L400 (SSR browser checks)
+**Example: URL Parameter Processing**:
+
+```typescript
+// ❌ WRONG - URL param triggers infinite loop
+$effect(() => {
+	const urlOrgParam = $page.url.searchParams.get('org'); // ← Reactive read
+	if (urlOrgParam && urlOrgParam !== state.activeOrganizationId) {
+		state.activeOrganizationId = urlOrgParam; // ← Writes $state → LOOP!
+		// URL still has ?org=... → effect runs again → infinite loop
+	}
+});
+
+// ✅ CORRECT - untrack() + URL cleanup
+import { untrack } from 'svelte';
+import { replaceState } from '$app/navigation';
+
+// Module-level tracking (plain variable, not $state)
+let lastProcessedOrgParam: string | null = null;
+
+$effect(() => {
+	if (!browser) return;
+	
+	const urlOrgParam = getOrgFromUrl(); // Reactive read from URL
+	
+	// Skip if already processed (untrack prevents reactive dependency)
+	if (untrack(() => urlOrgParam === lastProcessedOrgParam && urlOrgParam === state.activeOrganizationId)) {
+		return;
+	}
+	
+	if (urlOrgParam && urlOrgParam !== state.activeOrganizationId) {
+		// Update tracking without triggering re-run
+		untrack(() => {
+			lastProcessedOrgParam = urlOrgParam;
+		});
+		
+		state.activeOrganizationId = urlOrgParam;
+		
+		// Clean up URL param immediately (prevents reprocessing)
+		const url = new URL(window.location.href);
+		url.searchParams.delete('org');
+		replaceState(url.pathname + url.search, {});
+	}
+});
+```
+
+**Why URL cleanup matters**: Removing the URL parameter immediately after processing prevents the effect from seeing it again on the next reactive update, breaking the loop.
+
+**Related**: #L220 (useQuery reactivity), #L650 (onMount vs $effect), #L400 (SSR browser checks), #L730 (Router initialization timing)
 
 ---
 
-**Pattern Count**: 15  
-**Last Validated**: 2025-11-08  
+## #L730: Router Not Initialized During Initial $effect [🔴 CRITICAL]
+
+**Symptom**: `Error: Cannot call replaceState(...) before router is initialized` when loading page with URL parameters  
+**Root Cause**: `replaceState()` called in `$effect` during initial page hydration, before SvelteKit router is ready. Router initializes after component mount.  
+**Fix**:
+
+```typescript
+// ❌ WRONG - replaceState() in $effect without guard
+$effect(() => {
+	const urlParam = getParamFromUrl();
+	if (urlParam) {
+		state.value = urlParam;
+		
+		// Crashes on initial page load
+		const url = new URL(window.location.href);
+		url.searchParams.delete('param');
+		replaceState(url.pathname + url.search, {});
+	}
+});
+
+// ✅ CORRECT - Try-catch guard for router readiness (Context7 validated)
+$effect(() => {
+	const urlParam = getParamFromUrl();
+	if (urlParam) {
+		state.value = urlParam;
+		
+		// Guard for initial page load when router isn't initialized yet
+		try {
+			const url = new URL(window.location.href);
+			url.searchParams.delete('param');
+			replaceState(url.pathname + url.search, {});
+		} catch (e) {
+			// Router not ready - URL persists but won't cause issues
+			// if proper tracking (e.g., lastProcessedParam) prevents reprocessing
+			console.debug('Router not ready, deferring URL cleanup');
+		}
+	}
+});
+```
+
+**Why it works**: Try-catch allows code to proceed gracefully when router isn't ready. URL parameter will be cleaned on next navigation, but won't cause reprocessing if proper tracking is implemented (see #L700).
+
+**Apply when**:
+- Using `replaceState()`, `pushState()`, or `goto()` in `$effect`
+- Processing URL parameters during initial page load
+- Error mentions "Cannot call [navigation function] before router is initialized"
+
+**Alternative approach**: Use `afterNavigate()` hook for URL cleanup (runs after router ready):
+
+```typescript
+import { afterNavigate } from '$app/navigation';
+
+let pendingUrlCleanup = false;
+
+$effect(() => {
+	const urlParam = getParamFromUrl();
+	if (urlParam) {
+		state.value = urlParam;
+		pendingUrlCleanup = true;
+	}
+});
+
+afterNavigate(() => {
+	if (pendingUrlCleanup) {
+		const url = new URL(window.location.href);
+		url.searchParams.delete('param');
+		replaceState(url.pathname + url.search, {});
+		pendingUrlCleanup = false;
+	}
+});
+```
+
+**Related**: #L700 (URL param infinite loops), #L650 (onMount vs $effect), #L500 (Browser checks in effects)
+
+---
+
+## #L750: Use untrack() in Cleanup Handlers to Prevent State Mutation Errors [🔴 CRITICAL]
+
+**Symptom**: `state_unsafe_mutation` error: "Updating state inside `$derived(...)`, `$inspect(...)` or a template expression is forbidden"  
+**Root Cause**: Event handlers (like ProseMirror `blur`) fire during component cleanup/teardown, trying to mutate `$state` during reactive evaluation  
+**Fix**:
+
+```typescript
+// ❌ WRONG: State mutation in event handler called during cleanup
+let isFocused = $state(false);
+
+const editorView = new EditorView(container, {
+	handleDOMEvents: {
+		blur: () => {
+			isFocused = false; // ❌ Error: state_unsafe_mutation
+			return false;
+		}
+	}
+});
+// When modal closes, blur fires during cleanup → error
+
+// ✅ CORRECT: Wrap state mutation in untrack()
+import { untrack } from 'svelte';
+
+let isFocused = $state(false);
+
+const editorView = new EditorView(container, {
+	handleDOMEvents: {
+		blur: () => {
+			untrack(() => {
+				isFocused = false; // ✅ Safe: not tracked during cleanup
+			});
+			return false;
+		}
+	}
+});
+```
+
+**Why**: During component cleanup, Svelte is in a reactive evaluation context. Mutating `$state` during this phase violates Svelte's reactivity rules. `untrack()` prevents the mutation from being tracked as a reactive update.
+
+**Apply when**:
+- Event handlers mutate `$state` (focus/blur, scroll, resize)
+- Using third-party libraries that call handlers during cleanup (ProseMirror, Monaco)
+- Modal/component teardown triggers state updates
+- `state_unsafe_mutation` errors in console
+
+**Related**: #L700 (Effect update depth), #L400 (SSR browser checks)
+
+---
+
+## #L800: Browser-Only Tests Need .svelte.test.ts Extension [🔴 CRITICAL]
+
+**Symptom**: Tests fail with "encryptSession can only be called in the browser" or "expected false to be true" for `isWebCryptoSupported()`  
+**Root Cause**: Tests with `.test.ts` extension run in Node environment (server project). Web Crypto API only exists in browser.  
+**Fix**:
+
+```bash
+# ❌ WRONG: .test.ts runs in Node (server project)
+src/lib/client/crypto.test.ts          # ❌ No Web Crypto API
+src/lib/client/crypto.perf.test.ts     # ❌ No Web Crypto API
+
+# ✅ CORRECT: .svelte.test.ts runs in browser (client project)
+src/lib/client/crypto.svelte.test.ts       # ✅ Web Crypto API available
+src/lib/client/crypto.perf.svelte.test.ts  # ✅ Web Crypto API available
+```
+
+**vitest.config.ts shows two projects:**
+
+```typescript
+test: {
+	projects: [
+		{
+			name: 'client',
+			environment: 'browser',  // Playwright browser
+			browser: { enabled: true, provider: 'playwright' },
+			include: ['src/**/*.svelte.{test,spec}.{js,ts}']  // ← .svelte.test.ts
+		},
+		{
+			name: 'server',
+			environment: 'node',  // Node.js
+			include: ['src/**/*.{test,spec}.{js,ts}'],  // ← .test.ts
+			exclude: ['src/**/*.svelte.{test,spec}.{js,ts}']
+		}
+	]
+}
+```
+
+**Why**: Browser-only APIs (Web Crypto, localStorage, IndexedDB, canvas) need real browser environment. Vitest uses Playwright to run `.svelte.test.ts` files in actual Chromium.
+
+**Apply when**:
+- Testing Web Crypto API (encryption, hashing)
+- Testing browser storage (localStorage, sessionStorage, IndexedDB)
+- Testing browser APIs (Geolocation, Notifications, canvas, WebGL)
+- Component tests that need real DOM
+- Tests fail with "X is not defined" for browser globals
+
+**Performance**: Browser tests slower (~100-500ms startup) than Node tests (~1-5ms). Use Node for pure logic, browser for APIs.
+
+**Related**: #L400 (SSR-unsafe libraries), #L500 ($effect browser checks)
+
+---
+
+**Pattern Count**: 17  
+**Last Validated**: 2025-11-12  
 **Context7 Source**: `/sveltejs/svelte`, `@sveltejs/kit`

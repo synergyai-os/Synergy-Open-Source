@@ -3,12 +3,22 @@
 	import OrganizationSwitcher from '../organizations/OrganizationSwitcher.svelte';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 
+	type OrganizationInfo = {
+		organizationId: string;
+		name: string;
+		initials?: string;
+		slug?: string;
+		role: 'owner' | 'admin' | 'member';
+		[key: string]: any;
+	};
+
 	type LinkedAccount = {
 		userId: string;
 		email: string | null;
 		name: string | null;
 		firstName: string | null;
 		lastName: string | null;
+		organizations?: OrganizationInfo[];
 	};
 
 	type Props = {

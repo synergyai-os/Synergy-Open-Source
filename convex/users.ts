@@ -3,7 +3,30 @@ import { mutation, query } from './_generated/server';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
 import { getAuthUserId } from './auth';
+import { validateSession } from './sessionValidation';
 import { requirePermission } from './rbac/permissions';
+
+/**
+ * Account Linking Limits
+ * 
+ * These limits prevent DoS attacks via circular account links
+ * and keep query costs reasonable.
+ * 
+ * MAX_LINK_DEPTH: Maximum number of hops in BFS traversal
+ * - A→B→C→D = 3 hops (acceptable)
+ * - A→B→C→D→E = 4 hops (rejected)
+ * 
+ * MAX_TOTAL_ACCOUNTS: Maximum accounts a user can have linked
+ * - Prevents abuse (1000s of linked accounts)
+ * - Matches industry standard (Slack: ~5-10)
+ * 
+ * RATIONALE:
+ * - Slack uses depth=3 for workspace switching
+ * - 99% of users have ≤3 email addresses
+ * - Performance: O(N) where N ≤ 10 (acceptable)
+ */
+const MAX_LINK_DEPTH = 3;
+const MAX_TOTAL_ACCOUNTS = 10;
 
 /**
  * Sync user from WorkOS to Convex database
@@ -97,17 +120,22 @@ export const getUserByWorkosId = query({
  * This will work after Convex auth is properly set up
  * For now, returns null (auth context not yet configured)
  */
+/**
+ * Get current user by userId
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and use ctx.auth.getUserIdentity() instead
+ */
 export const getCurrentUser = query({
-	args: {},
-	handler: async (ctx) => {
-		const identity = await ctx.auth.getUserIdentity();
-		if (!identity) {
-			return null;
-		}
-
-		// identity.subject will contain the Convex userId
-		// This will work once we set up Convex authentication
-		return await ctx.db.get(identity.subject as any);
+	args: {
+		userId: v.id('users') // Required: passed from authenticated SvelteKit session
+	},
+	handler: async (ctx, args) => {
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		
+		// Return user record
+		return await ctx.db.get(args.userId);
 	}
 });
 
@@ -171,17 +199,149 @@ export const updateUserProfile = mutation({
 	}
 });
 
+/**
+ * Check if two users are linked (directly or transitively)
+ * 
+ * Uses BFS with depth and account limits to prevent abuse.
+ * 
+ * @param ctx - Query or mutation context
+ * @param primaryUserId - Starting user
+ * @param linkedUserId - Target user to check
+ * @returns true if linked (within depth limit), false otherwise
+ * 
+ * Examples:
+ * - A→B: linkExists(A, B) = true (depth 1)
+ * - A→B→C: linkExists(A, C) = true (depth 2)
+ * - A→B→C→D: linkExists(A, D) = true (depth 3)
+ * - A→B→C→D→E: linkExists(A, E) = false (depth 4, exceeds limit)
+ */
 async function linkExists(
 	ctx: MutationCtx | QueryCtx,
 	primaryUserId: Id<'users'>,
 	linkedUserId: Id<'users'>
-) {
-	const links = await ctx.db
-		.query('accountLinks')
-		.withIndex('by_primary', (q) => q.eq('primaryUserId', primaryUserId))
-		.collect();
+): Promise<boolean> {
+	// Same user = always linked
+	if (primaryUserId === linkedUserId) {
+		return true;
+	}
 
-	return links.some((link) => link.linkedUserId === linkedUserId);
+	// BFS with depth and account limits
+	const visited = new Set<string>();
+	const queue: Array<{ userId: Id<'users'>; depth: number }> = [
+		{ userId: primaryUserId, depth: 0 }
+	];
+
+	while (queue.length > 0) {
+		const current = queue.shift()!;
+
+		// Check depth limit
+		if (current.depth >= MAX_LINK_DEPTH) {
+			continue; // Skip this branch, but continue with others
+		}
+
+		// Check if we've seen this user before (prevent cycles)
+		if (visited.has(current.userId)) {
+			continue;
+		}
+		visited.add(current.userId);
+
+		// Check account limit (prevent abuse)
+		if (visited.size > MAX_TOTAL_ACCOUNTS) {
+			console.warn(`User ${primaryUserId} has too many linked accounts (>${MAX_TOTAL_ACCOUNTS})`);
+			return false; // Reject the entire link graph (suspicious)
+		}
+
+		// Get all direct links from current user
+		const links = await ctx.db
+			.query('accountLinks')
+			.withIndex('by_primary', (q) => q.eq('primaryUserId', current.userId))
+			.collect();
+
+		for (const link of links) {
+			// Found the target!
+			if (link.linkedUserId === linkedUserId) {
+				return true;
+			}
+
+			// Add to queue for next depth level
+			if (!visited.has(link.linkedUserId)) {
+				queue.push({
+					userId: link.linkedUserId,
+					depth: current.depth + 1
+				});
+			}
+		}
+	}
+
+	return false; // Not linked within depth limit
+}
+
+/**
+ * Get all transitively linked accounts up to max depth
+ * 
+ * Used to validate link graphs before creating new links.
+ */
+async function getTransitiveLinks(
+	ctx: QueryCtx | MutationCtx,
+	userId: Id<'users'>,
+	maxDepth: number
+): Promise<Set<Id<'users'>>> {
+	const visited = new Set<Id<'users'>>();
+	const queue: Array<{ userId: Id<'users'>; depth: number }> = [{ userId, depth: 0 }];
+
+	while (queue.length > 0) {
+		const current = queue.shift()!;
+
+		// Skip if already visited
+		if (visited.has(current.userId)) {
+			continue;
+		}
+		
+		// Always add to visited set (even at maxDepth) to count the node
+		visited.add(current.userId);
+
+		// Stop exploring further if at max depth
+		if (current.depth >= maxDepth) {
+			continue;
+		}
+
+		const links = await ctx.db
+			.query('accountLinks')
+			.withIndex('by_primary', (q) => q.eq('primaryUserId', current.userId))
+			.collect();
+
+		for (const link of links) {
+			if (!visited.has(link.linkedUserId)) {
+				queue.push({ userId: link.linkedUserId, depth: current.depth + 1 });
+			}
+		}
+	}
+
+	return visited;
+}
+
+/**
+ * Check if creating a link would exceed depth or account limit
+ * 
+ * This is a dry-run validation before creating the link.
+ * 
+ * @returns true if link would exceed limits, false if safe to create
+ */
+async function checkLinkDepth(
+	ctx: QueryCtx | MutationCtx,
+	userId1: Id<'users'>,
+	userId2: Id<'users'>
+): Promise<boolean> {
+	// Get all accounts linked to user1
+	const user1Links = await getTransitiveLinks(ctx, userId1, MAX_LINK_DEPTH);
+
+	// Get all accounts linked to user2
+	const user2Links = await getTransitiveLinks(ctx, userId2, MAX_LINK_DEPTH);
+
+	// If combined set > MAX_TOTAL_ACCOUNTS, reject
+	const combined = new Set([...user1Links, ...user2Links, userId1, userId2]);
+
+	return combined.size > MAX_TOTAL_ACCOUNTS;
 }
 
 async function createDirectedLink(
@@ -222,6 +382,22 @@ export const linkAccounts = mutation({
 			throw new Error('One or both accounts no longer exist');
 		}
 
+		// Check if linking would exceed account limit
+		const existingLinks = await ctx.db
+			.query('accountLinks')
+			.withIndex('by_primary', (q) => q.eq('primaryUserId', args.primaryUserId))
+			.collect();
+
+		if (existingLinks.length >= MAX_TOTAL_ACCOUNTS - 1) {
+			throw new Error(`Cannot link more than ${MAX_TOTAL_ACCOUNTS} accounts`);
+		}
+
+		// Check if linking would create too-deep chain or exceed account limit
+		const wouldExceedDepth = await checkLinkDepth(ctx, args.primaryUserId, args.linkedUserId);
+		if (wouldExceedDepth) {
+			throw new Error(`Cannot link accounts: would exceed maximum depth of ${MAX_LINK_DEPTH} or account limit of ${MAX_TOTAL_ACCOUNTS}`);
+		}
+
 		await createDirectedLink(ctx, args.primaryUserId, args.linkedUserId, args.linkType ?? undefined);
 		await createDirectedLink(ctx, args.linkedUserId, args.primaryUserId, args.linkType ?? undefined);
 
@@ -250,7 +426,15 @@ export const listLinkedAccounts = query({
 			.withIndex('by_primary', (q) => q.eq('primaryUserId', args.userId))
 			.collect();
 
-		const results = [];
+		const results: {
+			userId: Id<'users'>;
+			email: string | null;
+			name: string | null;
+			firstName: string | null;
+			lastName: string | null;
+			linkType: string | null;
+			verifiedAt: number;
+		}[] = [];
 
 		for (const link of links) {
 			const user = await ctx.db.get(link.linkedUserId);

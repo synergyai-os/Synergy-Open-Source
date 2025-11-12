@@ -7,6 +7,7 @@
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 import { getAuthUserId } from './auth';
+import { validateSession } from './sessionValidation';
 import { normalizeTagName } from './readwiseUtils';
 import type { Doc, Id } from './_generated/dataModel';
 import { canAccessContent } from './permissions';
@@ -161,13 +162,20 @@ export async function getTagDescendantsForTags(
 /**
  * Query: List all tags for the current user with hierarchical structure
  */
+/**
+ * List all tags for the current user
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
+ */
 export const listAllTags = query({
-	args: {},
-	handler: async (ctx) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			return [];
-		}
+	args: {
+		userId: v.id('users') // Required: passed from authenticated SvelteKit session
+	},
+	handler: async (ctx, args) => {
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		// Get all user tags
 		const tags = await ctx.db
@@ -183,14 +191,18 @@ export const listAllTags = query({
 /**
  * Query: Get user's tags with ownership information
  * Returns all tags the user owns, including shared tags
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
  */
 export const listUserTags = query({
-	args: {},
-	handler: async (ctx) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			return [];
-		}
+	args: {
+		userId: v.id('users') // Required: passed from authenticated SvelteKit session
+	},
+	handler: async (ctx, args) => {
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		// Get all user tags (including shared ones)
 		const tags = await ctx.db
@@ -270,9 +282,13 @@ export const getTagsForFlashcard = query({
 
 /**
  * Mutation: Create a new tag with color selection and optional parent
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
  */
 export const createTag = mutation({
 	args: {
+		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
 		displayName: v.string(),
 		color: v.string(), // Hex color code
 		parentId: v.optional(v.id('tags')),
@@ -281,10 +297,9 @@ export const createTag = mutation({
 		teamId: v.optional(v.id('teams'))
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		const ownership = args.ownership ?? 'user';
 		let organizationId: Id<'organizations'> | undefined = undefined;
@@ -493,19 +508,22 @@ export const countTagItems = query({
 /**
  * Mutation: Share a personal tag with an organization or team
  * Converts a user-owned tag to organization or team ownership
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
  */
 export const shareTag = mutation({
 	args: {
+		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
 		tagId: v.id('tags'),
 		shareWith: v.union(v.literal('organization'), v.literal('team')),
 		organizationId: v.optional(v.id('organizations')),
 		teamId: v.optional(v.id('teams'))
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		// Get the tag
 		const tag = await ctx.db.get(args.tagId);
@@ -725,17 +743,20 @@ async function assignTagsToEntity(
 
 /**
  * Mutation: Assign multiple tags to a highlight (replaces existing assignments)
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
  */
 export const assignTagsToHighlight = mutation({
 	args: {
+		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
 		highlightId: v.id('highlights'),
 		tagIds: v.array(v.id('tags'))
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		return await assignTagsToEntity(ctx, userId, 'highlights', args.highlightId, args.tagIds);
 	}
@@ -743,17 +764,20 @@ export const assignTagsToHighlight = mutation({
 
 /**
  * Mutation: Assign multiple tags to a flashcard (replaces existing assignments)
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
  */
 export const assignTagsToFlashcard = mutation({
 	args: {
+		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
 		flashcardId: v.id('flashcards'),
 		tagIds: v.array(v.id('tags'))
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		return await assignTagsToEntity(ctx, userId, 'flashcards', args.flashcardId, args.tagIds);
 	}
@@ -761,17 +785,20 @@ export const assignTagsToFlashcard = mutation({
 
 /**
  * Mutation: Remove a single tag from a highlight
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
  */
 export const unassignTagFromHighlight = mutation({
 	args: {
+		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
 		highlightId: v.id('highlights'),
 		tagId: v.id('tags')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		// Verify highlight exists and belongs to user
 		const highlight = await ctx.db.get(args.highlightId);

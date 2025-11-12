@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Button, DropdownMenu, Tooltip } from 'bits-ui';
 	import { browser } from '$app/environment';
+	import { page } from '$app/stores';
 	import { useConvexClient, useQuery } from 'convex-svelte';
 	import { makeFunctionReference } from 'convex/server';
 	import { api } from '$lib/convex';
@@ -34,6 +35,7 @@
 	const canNavigatePrevious = $derived(onPrevious !== undefined && currentIndex > 0);
 
 	const convexClient = browser ? useConvexClient() : null;
+	const getUserId = () => $page.data.user?.userId;
 	const markProcessedApi = browser ? (makeFunctionReference('inbox:markProcessed') as any) : null;
 
 	// Tag APIs (only if tags module exists in API)
@@ -53,8 +55,14 @@
 	// Query all tags for user (with error handling if API not generated yet)
 	// Note: useQuery returns {data, isLoading, error, isStale} - extract the data property
 	const allTagsQuery = useQuery(
-		browser && (api as any).tags?.listAllTags ? (api as any).tags.listAllTags : null,
-		browser && (api as any).tags?.listAllTags ? {} : null
+		browser && (api as any).tags?.listAllTags && getUserId() ? (api as any).tags.listAllTags : null,
+		browser && (api as any).tags?.listAllTags && getUserId()
+			? () => {
+					const userId = getUserId();
+					if (!userId) return null;
+					return { userId };
+				}
+			: null
 	);
 
 	// Extract data from useQuery result (which returns {data, isLoading, error, isStale})
@@ -208,7 +216,13 @@
 		selectedTagIds = tagIds;
 
 		try {
+			const userId = getUserId();
+			if (!userId) {
+				throw new Error('User ID is required');
+			}
+
 			await convexClient.mutation(assignTagsApi, {
+				userId,
 				highlightId: highlightId,
 				tagIds: tagIds
 			});
@@ -237,7 +251,13 @@
 		}
 
 		try {
+			const userId = getUserId();
+			if (!userId) {
+				throw new Error('User ID is required');
+			}
+
 			const tagId = await convexClient.mutation(createTagApi, {
+				userId,
 				displayName,
 				color,
 				parentId

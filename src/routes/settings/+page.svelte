@@ -2,6 +2,7 @@
 	import { Switch } from 'bits-ui';
 	import { theme, isDark } from '$lib/stores/theme';
 	import { browser } from '$app/environment';
+	import { page } from '$app/stores';
 	import { onMount, getContext } from 'svelte';
 	import type { FunctionReference, FunctionReturnType } from 'convex/server';
 	import type { Id } from '../../../convex/_generated/dataModel';
@@ -115,8 +116,15 @@
 		}
 
 		try {
+			// Get userId from page data (provided by authenticated layout)
+			const userId = $page.data.user?.userId;
+			if (!userId) {
+				console.error('User ID not available');
+				return;
+			}
+			
 			// Load personal settings
-			const settings = await convexClient.query(settingsApiFunctions.getUserSettings, {});
+			const settings = await convexClient.query(settingsApiFunctions.getUserSettings, { userId });
 			if (settings) {
 				userSettings = settings as UserSettings;
 

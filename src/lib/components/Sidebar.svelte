@@ -10,6 +10,7 @@ import { browser, dev } from '$app/environment';
 	import CleanReadwiseButton from './sidebar/CleanReadwiseButton.svelte';
 	import TeamList from './organizations/TeamList.svelte';
 	import CreateMenu from './sidebar/CreateMenu.svelte';
+	import WorkspaceSwitchOverlay from './organizations/WorkspaceSwitchOverlay.svelte';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 	import { useAuthSession } from '$lib/composables/useAuthSession.svelte';
 	import { useQuery } from 'convex-svelte';
@@ -50,20 +51,64 @@ import { browser, dev } from '$app/environment';
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
 	const authSession = useAuthSession();
 
-	// Query for linked accounts
-	const currentUserId = $derived(authSession.user?.userId as Id<'users'> | undefined);
-	const linkedAccountsQuery = $derived(
-		browser && currentUserId 
-			? useQuery(api.users.listLinkedAccounts, () => ({ userId: currentUserId }))
-			: null
+	// Get available accounts from localStorage (not database)
+	// This ensures only accounts with active sessions are shown
+	const linkedAccounts = $derived(authSession.availableAccounts ?? []);
+
+	// Fetch organizations for each linked account
+	// Use a Map to maintain queries keyed by userId for proper reactivity
+	const orgQueriesMap = new Map<string, ReturnType<typeof useQuery>>();
+
+	// Create/update queries reactively when linkedAccounts changes
+	$effect(() => {
+		if (!browser) return;
+
+		// Get current account IDs
+		const currentAccountIds = new Set(linkedAccounts.map((a) => a.userId));
+
+		// Remove queries for accounts that are no longer linked
+		for (const userId of orgQueriesMap.keys()) {
+			if (!currentAccountIds.has(userId)) {
+				orgQueriesMap.delete(userId);
+			}
+		}
+
+		// Create queries for new accounts
+		for (const account of linkedAccounts) {
+			if (!orgQueriesMap.has(account.userId)) {
+				const query = useQuery(api.organizations.listOrganizations, () => ({
+					userId: account.userId as Id<'users'>
+				}));
+				orgQueriesMap.set(account.userId, query);
+			}
+		}
+	});
+
+	const linkedAccountOrganizations = $derived(
+		linkedAccounts.map((account) => ({
+			userId: account.userId,
+			email: account.email,
+			name: account.name,
+			firstName: account.firstName,
+			lastName: account.lastName,
+			organizations: (orgQueriesMap.get(account.userId)?.data ?? []) as any[]
+		}))
 	);
-	const linkedAccounts = $derived(linkedAccountsQuery?.data ?? []);
 
 	let isPinned = $state(false);
 	let isHovered = $state(false);
 	let isHoveringRightEdge = $state(false); // Track if mouse is near right edge for resize handle
 	let hoverTimeoutId: ReturnType<typeof setTimeout> | null = null;
 	let hoverZoneTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+	// Immediate overlay state for account switching (shows before page reload)
+	let accountSwitchOverlay = $state<{
+		show: boolean;
+		targetName: string | null;
+	}>({
+		show: false,
+		targetName: null
+	});
 
 	// Track mouse position globally to close sidebar when mouse goes too far right
 	function handleDocumentMouseMove(e: MouseEvent) {
@@ -330,7 +375,7 @@ import { browser, dev } from '$app/environment';
 			<SidebarHeader
 				workspaceName={accountName}
 				{accountEmail}
-				{linkedAccounts}
+				linkedAccounts={linkedAccountOrganizations}
 				{sidebarCollapsed}
 				{isMobile}
 				{isHovered}
@@ -356,8 +401,25 @@ import { browser, dev } from '$app/environment';
 					});
 					goto(`/login?${params.toString()}`);
 				}}
-				onSwitchAccount={(targetUserId, redirectTo) => {
-					authSession.switchAccount(targetUserId, redirectTo);
+				onSwitchAccount={async (targetUserId, redirectTo) => {
+					// Find the account being switched to
+					const targetAccount = linkedAccountOrganizations.find(a => a.userId === targetUserId);
+					const targetName = targetAccount?.firstName || targetAccount?.name || targetAccount?.email || 'account';
+					
+					// Show overlay IMMEDIATELY before API call/redirect
+					accountSwitchOverlay.show = true;
+					accountSwitchOverlay.targetName = targetName;
+					
+					try {
+						// Then perform the switch (which will set sessionStorage and redirect)
+						await authSession.switchAccount(targetUserId, redirectTo);
+					} catch (error) {
+						// Reset overlay if switch fails
+						accountSwitchOverlay.show = false;
+						accountSwitchOverlay.targetName = '';
+						console.error('Failed to switch account:', error);
+						// Optionally show error toast to user
+					}
 				}}
 				onLogout={() => {
 					authSession.logout();
@@ -370,34 +432,6 @@ import { browser, dev } from '$app/environment';
 					class="flex-1 overflow-y-auto px-nav-container py-nav-container"
 					transition:fade={{ duration: 200 }}
 				>
-					<!-- Command Center Button (Header) -->
-					<button
-						onclick={() => {
-							if (onQuickCreate) {
-								onQuickCreate('header_button');
-							}
-						}}
-						class="bg-button-primary text-button-primary-text hover:bg-button-primary-hover mb-nav-group flex w-full items-center gap-icon rounded-button px-button-x py-button-y transition-all duration-150"
-						title="Command Center (C)"
-					>
-						<svg
-							class="h-4 w-4 flex-shrink-0"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-							/>
-						</svg>
-						<span class="font-medium">Command Center</span>
-						<span class="ml-auto text-xs opacity-60">C</span>
-					</button>
-
 					<!-- My Mind -->
 					<a
 						href="/my-mind"
@@ -539,73 +573,9 @@ import { browser, dev } from '$app/environment';
 							onDeclineInvite={(inviteId) => organizations.declineTeamInvite(inviteId)}
 						/>
 					{/if}
-
-					<!-- Categories Section -->
-					<div class="my-2 border-t border-sidebar"></div>
-					<div class="px-section py-section">
-						<p class="mb-1.5 text-label font-medium tracking-wider text-sidebar-tertiary uppercase">
-							Categories
-						</p>
-						<div class="space-y-0.5">
-							<button
-								type="button"
-								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<span class="font-normal">Product Delivery</span>
-							</button>
-							<button
-								type="button"
-								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item pl-indent text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<span class="font-normal">Sprint Planning</span>
-							</button>
-							<button
-								type="button"
-								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item pl-indent text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<span class="font-normal">Roadmapping</span>
-							</button>
-							<button
-								type="button"
-								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<span class="font-normal">Product Discovery</span>
-							</button>
-							<button
-								type="button"
-								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<span class="font-normal">Leadership</span>
-							</button>
-						</div>
-					</div>
 				</nav>
 			{/if}
 
-			<!-- Footer Actions -->
-			{#if (!sidebarCollapsed || isPinned || (hoverState && !isMobile)) && !isMobile}
-				<div
-					class="border-t border-sidebar px-nav-container py-nav-container"
-					transition:fade={{ duration: 200 }}
-				>
-					<CreateMenu
-						open={createMenuOpen}
-						onOpenChange={onCreateMenuChange || (() => {})}
-						onCreateNote={() => {
-							console.log('Create note clicked');
-							// TODO: Navigate to note creation or open modal
-						}}
-						onCreateFlashcard={() => {
-							console.log('Create flashcard clicked');
-							// TODO: Navigate to flashcard creation or open modal
-						}}
-						onCreateHighlight={() => {
-							console.log('Create highlight clicked');
-							// TODO: Navigate to highlight creation or open modal
-						}}
-					/>
-				</div>
-			{/if}
 
 			<!-- Development Test Menu (only in dev mode) -->
 			{#if dev && (!sidebarCollapsed || isPinned || (hoverState && !isMobile)) && !isMobile}
@@ -910,85 +880,9 @@ import { browser, dev } from '$app/environment';
 						onDeclineInvite={(inviteId) => organizations.declineTeamInvite(inviteId)}
 					/>
 				{/if}
-
-				<!-- Categories Section -->
-				{#if !isMobile}
-					<div class="my-2 border-t border-sidebar"></div>
-					<div class="px-section py-section">
-						<p class="mb-1.5 text-label font-medium tracking-wider text-sidebar-tertiary uppercase">
-							Categories
-						</p>
-						<div class="space-y-0.5">
-							<button
-								type="button"
-								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<span class="font-normal">Product Delivery</span>
-							</button>
-							<button
-								type="button"
-								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item pl-indent text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<span class="font-normal">Sprint Planning</span>
-							</button>
-							<button
-								type="button"
-								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item pl-indent text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<span class="font-normal">Roadmapping</span>
-							</button>
-							<button
-								type="button"
-								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<span class="font-normal">Product Discovery</span>
-							</button>
-							<button
-								type="button"
-								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<span class="font-normal">Leadership</span>
-							</button>
-						</div>
-					</div>
-				{/if}
 			</nav>
 		{/if}
 
-		<!-- Footer Actions -->
-		{#if (!sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)) && !isMobile}
-			<div
-				class="border-t border-sidebar px-nav-container py-nav-container"
-				transition:fade={{ duration: 200 }}
-			>
-				<button
-					onclick={() => {
-						if (onQuickCreate) {
-							onQuickCreate('footer_button');
-						}
-					}}
-					class="bg-button-primary text-button-primary-text hover:bg-button-primary-hover flex w-full items-center gap-icon rounded-button px-button-x py-button-y transition-all duration-150"
-					title="Command Center (C)"
-				>
-					<svg
-						class="h-4 w-4 flex-shrink-0"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-						xmlns="http://www.w3.org/2000/svg"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-						/>
-					</svg>
-					<span class="font-medium">Command Center</span>
-					<span class="ml-auto text-xs opacity-60">C</span>
-				</button>
-			</div>
-		{/if}
 
 		<!-- Development Test Menu (only in dev mode) -->
 		{#if dev && (!sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)) && !isMobile}
@@ -1069,6 +963,15 @@ import { browser, dev } from '$app/environment';
 			</div>
 		{/if}
 	</aside>
+{/if}
+
+<!-- Immediate overlay for account switching (before page reload) -->
+{#if accountSwitchOverlay.show}
+	<WorkspaceSwitchOverlay
+		show={true}
+		workspaceName={accountSwitchOverlay.targetName ?? 'account'}
+		workspaceType="personal"
+	/>
 {/if}
 
 <style>

@@ -17,3 +17,4 @@ export { default as MetadataBar } from './MetadataBar.svelte';
 export { default as AttachmentButton } from './AttachmentButton.svelte';
 export { default as ToggleSwitch } from './ToggleSwitch.svelte';
 export { default as ContextSelector } from './ContextSelector.svelte';
+export { default as RateLimitError } from './RateLimitError.svelte';

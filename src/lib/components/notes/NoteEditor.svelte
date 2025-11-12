@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount, onDestroy, untrack } from 'svelte';
 	import { EditorView } from 'prosemirror-view';
 	import { EditorState, Transaction } from 'prosemirror-state';
 	import { createEditorState, exportEditorJSON, isEditorEmpty } from '$lib/utils/prosemirror-setup';
@@ -145,11 +145,15 @@
 			},
 			handleDOMEvents: {
 				focus: () => {
-					isFocused = true;
+					untrack(() => {
+						isFocused = true;
+					});
 					return false;
 				},
 				blur: () => {
-					isFocused = false;
+					untrack(() => {
+						isFocused = false;
+					});
 					return false;
 				}
 			}

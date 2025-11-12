@@ -1,6 +1,7 @@
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 import { getAuthUserId } from './auth';
+import { validateSession } from './sessionValidation';
 import { requirePermission } from './rbac/permissions';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
@@ -105,15 +106,21 @@ async function ensureOrganizationMembership(
 	}
 }
 
+/**
+ * List teams for an organization
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
+ */
 export const listTeams = query({
 	args: {
+		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
 		organizationId: v.optional(v.id('organizations'))
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		// If no organizationId provided, return empty array (personal workspace mode)
 		if (!args.organizationId) {

@@ -2,6 +2,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { Button, FormInput } from '$lib/components/ui';
+	import RateLimitError from '$lib/components/ui/RateLimitError.svelte';
 
 	function parseBooleanFlag(value: string | null): boolean {
 		if (!value) return false;
@@ -32,6 +33,8 @@
 	let isSubmitting = $state(false);
 	let errorMessage = $state<string | null>(null);
 	let showCreateAccountLink = $state(false);
+	let isRateLimited = $state(false);
+	let rateLimitRetryAfter = $state(0);
 
 	$effect(() => {
 		const prefill =
@@ -52,12 +55,15 @@
 		if (isSubmitting) return;
 
 		errorMessage = null;
+		isRateLimited = false;
+		showCreateAccountLink = false;
 		isSubmitting = true;
 
 		try {
 			const response = await fetch('/auth/login', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
+				credentials: 'include', // Include cookies so session can be resolved for account linking
 				body: JSON.stringify({
 					email: email.trim(),
 					password,
@@ -69,6 +75,15 @@
 		const data = await response.json();
 
 		if (!response.ok) {
+			// Handle rate limiting with delightful countdown
+			if (response.status === 429) {
+				const retryAfter = parseInt(data.retryAfter || response.headers.get('Retry-After') || '60');
+				isRateLimited = true;
+				rateLimitRetryAfter = retryAfter;
+				isSubmitting = false;
+				return;
+			}
+			
 			errorMessage = data.error ?? 'Unable to sign in. Please try again.';
 			
 			// Show "Create Account" link if credentials are wrong (might not have account)
@@ -97,17 +112,29 @@
 				<h1 class="text-2xl font-semibold tracking-tight text-primary">Welcome back</h1>
 				<p class="text-sm text-secondary">
 					Sign in to continue where you left off. Don't have an account?
-					<a href="/register" class="text-accent-primary hover:text-accent-hover">Create one</a>.
+					<a
+						href={linkingFlow()
+							? `/register?linkAccount=1&redirect=${encodeURIComponent(redirectTarget)}&email=${encodeURIComponent(email)}`
+							: `/register?redirect=${encodeURIComponent(redirectTarget)}${email ? `&email=${encodeURIComponent(email)}` : ''}`}
+						class="text-accent-primary hover:text-accent-hover"
+					>Create one</a>.
 				</p>
 			</header>
 
-		{#if errorMessage}
-			<div class="mt-content-section rounded-input border border-accent-primary bg-hover-solid px-input-x py-input-y text-sm">
-				<p class="text-primary">{errorMessage}</p>
+		{#if isRateLimited}
+			<div class="mt-content-section">
+				<RateLimitError 
+					retryAfter={rateLimitRetryAfter}
+					actionLabel="logging in"
+				/>
+			</div>
+		{:else if errorMessage}
+			<div class="mt-content-section rounded-input border border-error bg-error px-input-x py-input-y">
+				<p class="text-sm font-medium text-error-secondary">{errorMessage}</p>
 				{#if showCreateAccountLink}
-					<p class="mt-2 text-secondary">
+					<p class="mt-2 text-sm text-error">
 						Don't have an account? 
-						<a href="/register?email={encodeURIComponent(email)}" class="text-accent-primary hover:text-accent-hover font-medium">
+						<a href="/register?email={encodeURIComponent(email)}" class="text-error-secondary hover:text-error font-semibold underline">
 							Create one here
 						</a>
 					</p>

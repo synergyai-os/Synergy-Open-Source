@@ -32,6 +32,16 @@
 | Deployment fails: "Could not resolve \_generated/dataModel" during bundling | Use import type for \_generated imports                | [convex-integration.md#L590](convex-integration.md#L590)            |
 | Query returns empty, ArgumentValidationError for valid field                | Git conflicts block deployment, stale code running     | [convex-integration.md#L640](convex-integration.md#L640)            |
 | Code compiles but Bugbot finds logic bugs                                   | Automated code review catches architectural mismatches | [convex-integration.md#L700](convex-integration.md#L700)            |
+| Users logged out after 5 minutes, session doesn't persist                   | Use app session TTL (30 days), not token expiry (5 min) | [auth-deployment.md#L610](auth-deployment.md#L610)                  |
+| Query doesn't re-run when dependency changes, UI shows stale data           | Wrap conditional query in $derived                     | [auth-deployment.md#L660](auth-deployment.md#L660)                  |
+| "Not authenticated" in Convex, queries return empty                          | Pass userId parameter + validate session               | [auth-deployment.md#L760](auth-deployment.md#L760)                  |
+| `state_unsafe_mutation` error during component cleanup                       | Wrap state mutations in untrack() in event handlers    | [svelte-reactivity.md#L750](svelte-reactivity.md#L750)              |
+| Account/workspace switch navigates but lands on wrong workspace              | Match function signature to call sites (silent param drop) | [auth-deployment.md#L810](auth-deployment.md#L810)                  |
+| Switching accounts shows wrong workspaces, data from another account         | Use account-specific localStorage keys `{key}_{userId}` | [auth-deployment.md#L860](auth-deployment.md#L860)                  |
+| Tests fail with "can only be called in the browser" or Web Crypto undefined | Rename .test.ts → .svelte.test.ts for browser environment | [svelte-reactivity.md#L800](svelte-reactivity.md#L800)              |
+| localStorage session data visible in DevTools, fails SOC 2 audit             | Use Web Crypto API (AES-256-GCM + PBKDF2)              | [auth-deployment.md#L960](auth-deployment.md#L960)                  |
+| `Cannot call replaceState(...) before router is initialized` on page load    | Try-catch guard around replaceState in $effect          | [svelte-reactivity.md#L730](svelte-reactivity.md#L730)              |
+| Account switch takes 5+ seconds, query costs spike with many linked accounts | Add MAX_LINK_DEPTH=3 and MAX_TOTAL_ACCOUNTS=10 limits   | [auth-deployment.md#L1010](auth-deployment.md#L1010)                |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -40,6 +50,7 @@
 | Production auth fails with "Invalid redirect URI"   | Use separate staging/production credentials                         | [auth-deployment.md#L60](auth-deployment.md#L60)         |
 | Auth works on myapp.com but fails on www.myapp.com  | Add both www and non-www to redirect URIs                           | [auth-deployment.md#L110](auth-deployment.md#L110)       |
 | User auto-logs back in after logout                 | Revoke session on auth provider                                     | [auth-deployment.md#L210](auth-deployment.md#L210)       |
+| 403 Forbidden switching from Account C to B (A→B, B→C work) | Use BFS to find transitive links (A→B→C)                            | [auth-deployment.md#L910](auth-deployment.md#L910)       |
 | Data doesn't update automatically                   | Use `useQuery()` not manual                                         | [svelte-reactivity.md#L220](svelte-reactivity.md#L220)   |
 | Widget disappears too early                         | Polling updates only, not completion                                | [svelte-reactivity.md#L280](svelte-reactivity.md#L280)   |
 | Duplicate timers / early dismissal                  | Track timers with Set                                               | [svelte-reactivity.md#L340](svelte-reactivity.md#L340)   |
@@ -71,7 +82,9 @@
 | Edit mode toggle            | Separate view/edit states                                   | [ui-patterns.md#L170](ui-patterns.md#L170)               |
 | Card removal (Tinder-like)  | Queue-based removal                                         | [ui-patterns.md#L220](ui-patterns.md#L220)               |
 | Visual feedback             | Show overlay before action                                  | [ui-patterns.md#L280](ui-patterns.md#L280)               |
+| Loading feels generic       | Contextual overlay + progressive stages + zero flash        | [ui-patterns.md#L1950](ui-patterns.md#L1950)             |
 | Toast notifications         | svelte-sonner for user feedback                             | [ui-patterns.md#L1660](ui-patterns.md#L1660)             |
+| Rate limit errors           | Red error box + live countdown timer                        | [ui-patterns.md#L2000](ui-patterns.md#L2000)             |
 | Textarea auto-resize        | Remove h-full, use field-sizing                             | [ui-patterns.md#L330](ui-patterns.md#L330)               |
 | Command palette drama       | Dark overlay + blur + animation                             | [ui-patterns.md#L480](ui-patterns.md#L480)               |
 | Command input design        | Icon + transparent + shortcuts                              | [ui-patterns.md#L530](ui-patterns.md#L530)               |
@@ -93,6 +106,7 @@
 | User identity               | Dual ID system (userId + workosId) for provider flexibility | [auth-deployment.md#L360](auth-deployment.md#L360)       |
 | Personal workspace          | null = personal, clean queries                              | [auth-deployment.md#L410](auth-deployment.md#L410)       |
 | Multi-account support       | Account linking for Slack-style switching                   | [auth-deployment.md#L460](auth-deployment.md#L460)       |
+| Account linking direction   | Create bidirectional links for symmetry                     | [auth-deployment.md#L710](auth-deployment.md#L710)       |
 
 ---
 
@@ -152,7 +166,7 @@ correct code
 
 ---
 
-**Last Updated**: 2025-11-11
-**Pattern Count**: 64
+**Last Updated**: 2025-11-12
+**Pattern Count**: 70
 **Format Version**: 2.0
 ```

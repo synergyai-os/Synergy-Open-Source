@@ -2,6 +2,7 @@ import { query, mutation, action } from './_generated/server';
 import { v } from 'convex/values';
 import { internal } from './_generated/api';
 import { getAuthUserId } from './auth';
+import { validateSession } from './sessionValidation';
 import { createEmptyCard, fsrs, Rating, State, type Card } from 'ts-fsrs';
 import { loadPrompt } from './promptUtils';
 import { getTagDescendantsForTags } from './tags';
@@ -46,8 +47,15 @@ function stringToState(state: string): State {
 /**
  * Create a new flashcard from AI-generated content
  */
+/**
+ * Create a single flashcard
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
+ */
 export const createFlashcard = mutation({
 	args: {
+		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
 		question: v.string(),
 		answer: v.string(),
 		sourceInboxItemId: v.optional(v.id('inboxItems')),
@@ -55,10 +63,9 @@ export const createFlashcard = mutation({
 		tagIds: v.optional(v.array(v.id('tags')))
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		// Get user's algorithm settings (default to FSRS)
 		const settings = await ctx.db
@@ -110,9 +117,13 @@ export const createFlashcard = mutation({
 
 /**
  * Create multiple flashcards (batch operation)
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
  */
 export const createFlashcards = mutation({
 	args: {
+		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
 		flashcards: v.array(
 			v.object({
 				question: v.string(),
@@ -124,10 +135,9 @@ export const createFlashcards = mutation({
 		tagIds: v.optional(v.array(v.id('tags')))
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		// Get user's algorithm settings
 		const settings = await ctx.db
@@ -183,18 +193,21 @@ export const createFlashcards = mutation({
 
 /**
  * Review a flashcard (update FSRS state based on rating)
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
  */
 export const reviewFlashcard = mutation({
 	args: {
+		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
 		flashcardId: v.id('flashcards'),
 		rating: v.union(v.literal('again'), v.literal('hard'), v.literal('good'), v.literal('easy')),
 		reviewTime: v.optional(v.number()) // Time spent in seconds
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		// Get flashcard
 		const flashcard = await ctx.db.get(args.flashcardId);
@@ -281,18 +294,21 @@ export const reviewFlashcard = mutation({
 
 /**
  * Update flashcard question and answer
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
  */
 export const updateFlashcard = mutation({
 	args: {
+		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
 		flashcardId: v.id('flashcards'),
 		question: v.optional(v.string()),
 		answer: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		const flashcard = await ctx.db.get(args.flashcardId);
 		if (!flashcard) {
@@ -324,16 +340,19 @@ export const updateFlashcard = mutation({
 
 /**
  * Delete a flashcard
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
  */
 export const deleteFlashcard = mutation({
 	args: {
+		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
 		flashcardId: v.id('flashcards')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		const flashcard = await ctx.db.get(args.flashcardId);
 		if (!flashcard) {
@@ -374,17 +393,23 @@ export const deleteFlashcard = mutation({
 /**
  * Get flashcards due for review
  */
+/**
+ * Get flashcards due for review
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
+ */
 export const getDueFlashcards = query({
 	args: {
+		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
 		limit: v.optional(v.number()),
 		algorithm: v.optional(v.string()),
 		tagIds: v.optional(v.array(v.id('tags')))
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		const algorithm = args.algorithm || 'fsrs';
 		const limit = args.limit || 10;
@@ -434,15 +459,21 @@ export const getDueFlashcards = query({
 /**
  * Get all flashcards for a user
  */
+/**
+ * Get all flashcards for a user
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
+ */
 export const getUserFlashcards = query({
 	args: {
+		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
 		tagIds: v.optional(v.array(v.id('tags')))
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		let flashcards = await ctx.db
 			.query('flashcards')
@@ -484,13 +515,20 @@ export const getUserFlashcards = query({
  * Get flashcards grouped by collections (tags)
  * Returns collections with card counts and due counts
  */
+/**
+ * Get flashcards grouped by collection (tag)
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
+ */
 export const getFlashcardsByCollection = query({
-	args: {},
-	handler: async (ctx) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+	args: {
+		userId: v.id('users') // Required: passed from authenticated SvelteKit session
+	},
+	handler: async (ctx, args) => {
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		// Get all user tags
 		const tags = await ctx.db

@@ -6,6 +6,7 @@ import { api } from '$convex/_generated/api';
 import type { Id } from '$lib/convex';
 import { getActiveSessionRecordForUser } from '$lib/server/auth/sessionStore';
 import { establishSession } from '$lib/server/auth/session';
+import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
 
 function sanitizeRedirect(target: unknown, origin: string): string | undefined {
 	if (typeof target !== 'string' || target.length === 0) {
@@ -22,10 +23,12 @@ function sanitizeRedirect(target: unknown, origin: string): string | undefined {
 	}
 }
 
-export const POST: RequestHandler = async (event) => {
-	if (!event.locals.auth.sessionId || !event.locals.auth.user?.userId) {
-		return json({ error: 'Not authenticated' }, { status: 401 });
-	}
+export const POST: RequestHandler = withRateLimit(
+	RATE_LIMITS.accountSwitch,
+	async ({ event }) => {
+		if (!event.locals.auth.sessionId || !event.locals.auth.user?.userId) {
+			return json({ error: 'Not authenticated' }, { status: 401 });
+		}
 
 	const csrfHeader = event.request.headers.get('x-csrf-token');
 	if (!csrfHeader || csrfHeader !== event.locals.auth.csrfToken) {
@@ -72,7 +75,14 @@ export const POST: RequestHandler = async (event) => {
 	});
 
 	if (!linkStatus?.linked) {
-		return json({ error: 'Accounts are not linked' }, { status: 403 });
+		return json(
+			{
+				error: 'Accounts are not linked',
+				code: 'NOT_LINKED',
+				message: 'These accounts are not connected. Please link them first.'
+			},
+			{ status: 403 }
+		);
 	}
 
 	const targetSession = await getActiveSessionRecordForUser(targetUserId);
@@ -97,6 +107,9 @@ export const POST: RequestHandler = async (event) => {
 		userSnapshot: targetSession.userSnapshot
 	});
 
+	console.log('✅ Account switch successful');
+
+	// Note: Multi-session support - session is preserved in Convex and client localStorage
 	return json({ success: true, redirect: redirectHint ?? '/inbox' });
-};
+});
 

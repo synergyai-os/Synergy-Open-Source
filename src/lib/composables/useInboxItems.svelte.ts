@@ -12,8 +12,9 @@ import type { InboxItem } from '$lib/composables/useKeyboardNavigation.svelte';
 type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 
 export interface UseInboxItemsParams {
-	activeOrganizationId?: string | null;
-	activeTeamId?: string | null;
+	userId: () => string | undefined; // Required: Function returning Convex user ID from authenticated session
+	activeOrganizationId?: (() => string | null) | string | null; // Function or value for reactivity
+	activeTeamId?: (() => string | null) | string | null; // Function or value for reactivity
 }
 
 export interface UseInboxItemsReturn {
@@ -33,16 +34,31 @@ export function useInboxItems(params?: UseInboxItemsParams): UseInboxItemsReturn
 
 	// Use reactive query for real-time inbox items updates
 	// This automatically subscribes to changes and updates when new items are added during sync
-	const inboxQuery = browser
+	const inboxQuery = browser && params?.userId
 		? useQuery(api.inbox.listInboxItems, () => {
-				const baseArgs: any = { processed: false };
+				const userId = params.userId(); // Get current userId (reactive)
+				if (!userId) return null; // Skip query if userId not available
+				
+				const baseArgs: any = { 
+					userId, // Required for session validation
+					processed: false 
+				};
 
-				// Add workspace context
-				if (params?.activeOrganizationId !== undefined) {
-					baseArgs.organizationId = params.activeOrganizationId;
+				// Add workspace context (handle both function and value)
+				// IMPORTANT: Pass null explicitly for personal workspace to filter correctly
+				const orgId = typeof params?.activeOrganizationId === 'function' 
+					? params.activeOrganizationId() 
+					: params?.activeOrganizationId;
+				if (orgId !== undefined) {
+					// Pass null explicitly for personal workspace (required for filtering)
+					baseArgs.organizationId = orgId;
 				}
-				if (params?.activeTeamId) {
-					baseArgs.teamId = params.activeTeamId;
+				
+				const teamId = typeof params?.activeTeamId === 'function'
+					? params.activeTeamId()
+					: params?.activeTeamId;
+				if (teamId) {
+					baseArgs.teamId = teamId;
 				}
 
 				// Add type filter if not 'all'

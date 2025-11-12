@@ -43,7 +43,9 @@ export interface UseStudySessionReturn {
 	resetSession: () => void;
 }
 
-export function useStudySession(): UseStudySessionReturn {
+export function useStudySession(
+	getUserId: () => string | undefined
+): UseStudySessionReturn {
 	// Session state
 	const state = $state({
 		reviewQueue: [] as StudyFlashcard[],
@@ -61,11 +63,16 @@ export function useStudySession(): UseStudySessionReturn {
 
 	// Query for due flashcards (reactive to tag selection)
 	const dueCardsQuery = browser
-		? useQuery(api.flashcards.getDueFlashcards, () => ({
-				limit: state.sessionLimit,
-				algorithm: 'fsrs',
-				tagIds: state.selectedTagIds.length > 0 ? state.selectedTagIds : undefined
-			}))
+		? useQuery(api.flashcards.getDueFlashcards, () => {
+				const userId = getUserId();
+				if (!userId) return 'skip'; // Use Convex 'skip' pattern to skip query when userId not available
+				return {
+					userId,
+					limit: state.sessionLimit,
+					algorithm: 'fsrs',
+					tagIds: state.selectedTagIds.length > 0 ? state.selectedTagIds : undefined
+				};
+			})
 		: null;
 
 	// Derived state
@@ -120,7 +127,13 @@ export function useStudySession(): UseStudySessionReturn {
 				: undefined;
 
 			// Submit rating to backend
+			const userId = getUserId();
+			if (!userId) {
+				throw new Error('User ID is required');
+			}
+
 			await convexClient.mutation(api.flashcards.reviewFlashcard, {
+				userId,
 				flashcardId: currentCard._id,
 				rating,
 				reviewTime

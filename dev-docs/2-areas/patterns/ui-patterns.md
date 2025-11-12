@@ -1934,6 +1934,338 @@ toast.info('Read this', { duration: Infinity }); // Manual dismiss only
 
 ---
 
-**Pattern Count**: 26  
-**Last Updated**: 2025-11-11  
+## #L1950: Contextual Loading Overlay with Progressive Messaging [🟢 REFERENCE]
+
+**Symptom**: Generic "Loading..." messages feel unpolished, users uncertain what's happening  
+**Root Cause**: Static loading text without context or progress indication  
+**Fix**:
+
+**Component Pattern** (`WorkspaceSwitchOverlay.svelte`):
+
+```svelte
+<script lang="ts">
+	import { fade } from 'svelte/transition';
+
+	let {
+		show = false,
+		workspaceName = 'workspace',
+		workspaceType = 'personal' as 'personal' | 'organization'
+	}: {
+		show?: boolean;
+		workspaceName?: string;
+		workspaceType?: 'personal' | 'organization';
+	} = $props();
+
+	let stage = $state(0);
+
+	// Main title showing the action
+	const titleText = $derived(() => {
+		return workspaceType === 'personal' 
+			? `Loading ${workspaceName}'s workspace`
+			: `Loading ${workspaceName}`;
+	});
+
+	// Detailed progress steps - varied, actionable verbs
+	const getStageMessage = (stageNum: number) => {
+		if (stageNum === 0) {
+			return workspaceType === 'personal'
+				? 'Gathering user data'
+				: 'Gathering organization data';
+		}
+		if (stageNum === 1) {
+			return workspaceType === 'personal'
+				? 'Fetching your notes and highlights'
+				: 'Syncing workspace settings';
+		}
+		return 'Preparing workspace';
+	};
+
+	// Progressive timing (1.5s, 3.5s intervals)
+	$effect(() => {
+		if (!show) {
+			stage = 0;
+			return;
+		}
+		stage = 0;
+		const timer1 = setTimeout(() => { stage = 1; }, 1500);
+		const timer2 = setTimeout(() => { stage = 2; }, 3500);
+		return () => {
+			clearTimeout(timer1);
+			clearTimeout(timer2);
+		};
+	});
+
+	const currentStageText = $derived(getStageMessage(stage));
+</script>
+
+{#if show}
+	<div
+		class="fixed inset-0 z-50 flex items-center justify-center 
+		       bg-gradient-to-br from-accent-primary/10 via-base to-accent-primary/5 
+		       backdrop-blur-xl"
+		in:fade={{ duration: 0 }}
+		out:fade={{ duration: 300 }}
+	>
+		<div class="flex flex-col items-center gap-content-section">
+			<div class="relative h-12 w-12">
+				<div class="absolute inset-0 animate-spin rounded-full border-4 
+				            border-border-base border-t-accent-primary"></div>
+			</div>
+			<div class="text-center max-w-md">
+				<h2 class="text-2xl font-semibold text-primary">{titleText()}</h2>
+			</div>
+			<div class="text-center">
+				<p class="text-sm text-secondary">{currentStageText}</p>
+			</div>
+		</div>
+	</div>
+{/if}
+```
+
+**Instant Display Pattern** (show before async action):
+
+```typescript
+// Sidebar.svelte - show overlay BEFORE API call/redirect
+let accountSwitchOverlay = $state({
+	show: false,
+	targetName: null
+});
+
+onSwitchAccount={(targetUserId, redirectTo) => {
+	const targetAccount = linkedAccounts.find(a => a.userId === targetUserId);
+	const targetName = targetAccount?.firstName || targetAccount?.email;
+	
+	// Show overlay IMMEDIATELY (no delay)
+	accountSwitchOverlay.show = true;
+	accountSwitchOverlay.targetName = targetName;
+	
+	// Then perform async action
+	authSession.switchAccount(targetUserId, redirectTo);
+}}
+```
+
+**Prevent Flash on Page Reload** (inline script technique):
+
+```html
+<!-- app.html - Inject overlay BEFORE Svelte loads -->
+<script>
+	// Similar to theme FOUC prevention
+	(function () {
+		try {
+			const switchingData = sessionStorage.getItem('switchingAccount');
+			if (switchingData) {
+				const data = JSON.parse(switchingData);
+				const accountName = data.accountName || 'workspace';
+				
+				// Inject static overlay on DOMContentLoaded
+				document.addEventListener('DOMContentLoaded', function() {
+					const overlay = document.createElement('div');
+					overlay.id = '__switching-overlay';
+					overlay.innerHTML = `
+						<div style="position: fixed; inset: 0; z-index: 9999; 
+						            display: flex; align-items: center; justify-content: center;
+						            background: linear-gradient(...); backdrop-filter: blur(24px);">
+							<!-- Static spinner and text -->
+							<h2>Loading ${accountName}'s workspace</h2>
+						</div>
+					`;
+					document.body.appendChild(overlay);
+					window.__hasStaticOverlay = true;
+				});
+			}
+		} catch (e) {
+			console.warn('Could not check switching state', e);
+		}
+	})();
+</script>
+```
+
+```typescript
+// +layout.svelte - Clean up static overlay when Svelte takes over
+onMount(() => {
+	if (window.__hasStaticOverlay) {
+		const staticOverlay = document.getElementById('__switching-overlay');
+		if (staticOverlay) {
+			staticOverlay.remove();
+		}
+		delete window.__hasStaticOverlay;
+	}
+	// ... rest of onMount logic
+});
+```
+
+**Key Principles**:
+
+1. **Contextual Title**: Action-oriented ("Loading Saprolab" not "Saprolab")
+2. **Progressive Stages**: Varied verbs (Gathering → Syncing → Preparing)
+3. **Instant Feedback**: Show before async action, not after
+4. **Zero Flash on Reload**: Inline script injects overlay before Svelte loads
+5. **Workspace Context**: Different messages for personal vs organization
+6. **Minimum Duration**: 5 seconds minimum for polish (prevents flash)
+7. **Smooth Transitions**: Instant in (0ms), gradual out (300ms)
+8. **Seamless Handoff**: Static overlay → Svelte reactive overlay with no gap
+
+**Why This Works**:
+
+- Removes redundancy (title ≠ subtitle)
+- Creates sense of progress (3 distinct stages)
+- Builds confidence (users see what's happening)
+- Feels intentional (minimum duration prevents jarring flash)
+- Zero visual discontinuity (inline script = same technique as theme FOUC)
+- Continuous overlay from click → 5 seconds → completion
+
+**Apply when**: Long-running operations (workspace switching, account changes, data migrations)  
+**Related**: #L280 (Visual Feedback), #L480 (Command Palette), #L1660 (Toast Notifications)
+
+---
+
+## #L2000: Delightful Error States with Countdown Timer [🟢 REFERENCE]
+
+**Symptom**: Rate limit errors shown as generic gray info boxes  
+**Root Cause**: Missing error color tokens + no progress indication  
+**Fix**:
+
+```svelte
+<!-- ❌ WRONG: Generic blue info box with static message -->
+<div class="border-accent-primary bg-hover-solid text-primary">
+  Too many requests. Please wait 52 seconds.
+</div>
+
+<!-- ✅ CORRECT: Red error box with live countdown -->
+<script lang="ts">
+  import RateLimitError from '$lib/components/ui/RateLimitError.svelte';
+  
+  let isRateLimited = $state(false);
+  let rateLimitRetryAfter = $state(0);
+  
+  // On 429 response:
+  if (response.status === 429) {
+    isRateLimited = true;
+    rateLimitRetryAfter = parseInt(data.retryAfter || '60');
+  }
+</script>
+
+{#if isRateLimited}
+  <RateLimitError 
+    retryAfter={rateLimitRetryAfter}
+    actionLabel="logging in"  <!-- "creating accounts", "uploading files", etc. -->
+  />
+{/if}
+```
+
+**Design System Setup**:
+
+```css
+/* src/app.css - Error color tokens */
+@theme {
+  /* Light mode */
+  --color-error-bg: oklch(97% 0.013 25);
+  --color-error-border: oklch(64.8% 0.294 27.325);
+  --color-error-text: oklch(50% 0.227 27.325);
+  --color-error-text-secondary: oklch(41.2% 0.2 27.325);
+}
+
+/* Dark mode overrides */
+html.dark {
+  --color-error-bg: oklch(25% 0.05 27.325 / 0.3);
+  --color-error-border: oklch(64.8% 0.294 27.325);
+  --color-error-text: oklch(87.2% 0.204 27.271);
+  --color-error-text-secondary: oklch(87.2% 0.204 27.271);
+}
+
+/* Utility classes */
+@utility bg-error { background-color: var(--color-error-bg); }
+@utility border-error { border-color: var(--color-error-border); }
+@utility text-error { color: var(--color-error-text); }
+@utility text-error-secondary { color: var(--color-error-text-secondary); }
+```
+
+**Component Implementation** (`src/lib/components/ui/RateLimitError.svelte`):
+
+```svelte
+<script lang="ts">
+  import { onMount } from 'svelte';
+  
+  interface Props {
+    retryAfter: number; // seconds
+    message?: string;
+    actionLabel?: string;
+  }
+  
+  let { retryAfter, message, actionLabel = "making requests" }: Props = $props();
+  let timeRemaining = $state(retryAfter);
+  
+  onMount(() => {
+    const intervalId = setInterval(() => {
+      timeRemaining--;
+      if (timeRemaining <= 0) clearInterval(intervalId);
+    }, 1000);
+    
+    return () => clearInterval(intervalId);
+  });
+  
+  const defaultMessage = $derived(
+    `Whoa, slow down! You've tried ${actionLabel} too many times.`
+  );
+</script>
+
+<div class="rounded-input border border-error bg-error px-input-x py-input-y">
+  <div class="flex items-start gap-icon">
+    <!-- Warning icon -->
+    <svg class="h-5 w-5 flex-shrink-0 text-error mt-0.5">...</svg>
+    
+    <div class="flex-1">
+      <p class="text-sm font-medium text-error-secondary">
+        {message || defaultMessage}
+      </p>
+      
+      {#if timeRemaining > 0}
+        <p class="mt-1 text-sm text-error">
+          Please wait <span class="font-semibold tabular-nums">{timeRemaining}</span> 
+          {timeRemaining === 1 ? 'second' : 'seconds'} before trying again.
+        </p>
+      {:else}
+        <p class="mt-1 text-sm text-error">You can try again now!</p>
+      {/if}
+    </div>
+  </div>
+</div>
+```
+
+**Why**: 
+- **Red = Error** (universal warning signal, not blue/gray info)
+- **Live Countdown** (shows progress, reduces frustration)
+- **Delight Factor** (unexpected animation creates positive emotion)
+- **Clear Hierarchy** (error icon + bold primary message)
+
+**Design Principles Applied**:
+- **Delight in Details** - Countdown timer exceeds user expectations
+- **Outcomes Over Outputs** - User understands when to retry (outcome), not just "error shown" (output)
+- **Design System** - Reusable tokens enable consistent error states app-wide
+
+**UX Best Practices**:
+- Place errors **above form buttons** (natural reading order)
+- Use `tabular-nums` for countdown (prevents layout shift)
+- Show completion message ("You can try again now!")
+- Accessible (semantic HTML, screen reader friendly)
+
+**Reusability**:
+```svelte
+<!-- Login rate limit -->
+<RateLimitError retryAfter={60} actionLabel="logging in" />
+
+<!-- File upload limit -->
+<RateLimitError retryAfter={30} actionLabel="uploading files" />
+
+<!-- API rate limit -->
+<RateLimitError retryAfter={120} actionLabel="making API requests" />
+```
+
+**Apply when**: Any rate-limited action (auth, API calls, file uploads, search queries)  
+**Related**: #L280 (Visual Feedback), #L1660 (Toast Notifications), #L1950 (Contextual Loading)
+
+---
+
+**Pattern Count**: 28  
+**Last Updated**: 2025-11-12  
 **Design Token Reference**: `dev-docs/design-tokens.md`

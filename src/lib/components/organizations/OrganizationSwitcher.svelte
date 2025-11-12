@@ -10,12 +10,22 @@
 
 	type Variant = 'sidebar' | 'topbar';
 
+	type OrganizationInfo = {
+		organizationId: string;
+		name: string;
+		initials?: string;
+		slug?: string;
+		role: 'owner' | 'admin' | 'member';
+		[key: string]: any;
+	};
+
 	type LinkedAccount = {
 		userId: string;
 		email: string | null;
 		name: string | null;
 		firstName: string | null;
 		lastName: string | null;
+		organizations?: OrganizationInfo[];
 	};
 
 	let {
@@ -141,8 +151,8 @@
 		onAddAccount?.();
 	}
 
-	function handleSwitchAccount(targetUserId: string) {
-		onSwitchAccount?.(targetUserId);
+	function handleSwitchAccount(targetUserId: string, redirectTo?: string) {
+		onSwitchAccount?.(targetUserId, redirectTo);
 	}
 
 	function handleLogout() {
@@ -199,86 +209,220 @@
 
 	<DropdownMenu.Portal>
 		<DropdownMenu.Content
-			class="z-50 min-w-[260px] rounded-md border border-base bg-elevated py-1 shadow-lg"
+			class="z-50 min-w-[280px] max-h-[600px] overflow-y-auto rounded-md border border-base bg-elevated py-1 shadow-lg"
 			side="bottom"
 			align={variant === 'topbar' ? 'center' : 'start'}
 			sideOffset={6}
 		>
-			<div class="px-menu-item py-menu-item">
+			<!-- Top Actions: Settings, Invite, Dark Mode -->
+			<div class="px-3 py-2">
 				<p class="truncate text-sm font-medium text-primary">{accountName}</p>
-				<p class="truncate text-label text-secondary">{accountEmail}</p>
+				<p class="truncate text-xs text-secondary">{accountEmail}</p>
+			</div>
+
+			<div class="flex items-center gap-1 px-2 py-1">
+				<button
+					type="button"
+					class="flex-1 rounded px-2 py-1.5 text-xs text-primary hover:bg-hover-solid"
+					onclick={handleSettings}
+				>
+					⚙️ Settings
+				</button>
+				<button
+					type="button"
+					class="flex-1 rounded px-2 py-1.5 text-xs text-primary hover:bg-hover-solid"
+					onclick={handleInviteMembers}
+				>
+					➕ Invite members
+				</button>
 			</div>
 
 			<DropdownMenu.Separator class="my-1 border-t border-base" />
 
-			<DropdownMenu.Item
-				class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
-				textValue="Settings"
-				onSelect={handleSettings}
-			>
-				<span class="font-medium">Settings</span>
-				<span class="text-label text-tertiary">G then S</span>
-			</DropdownMenu.Item>
-
-			<DropdownMenu.Item
-				class="cursor-pointer px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
-				textValue="Invite members"
-				onSelect={handleInviteMembers}
-			>
-				Invite and manage members
-			</DropdownMenu.Item>
-
-			<DropdownMenu.Sub>
-				<DropdownMenu.SubTrigger
-					class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
-					textValue="Switch workspace"
-				>
-					<span class="font-medium">Switch workspace</span>
-					<div class="flex items-center gap-1 text-label text-tertiary">
-						<span>O then W</span>
-						<svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<!-- Current Account Section -->
+			<div class="flex items-center justify-between px-3 py-1">
+				<p class="truncate text-xs font-semibold text-tertiary uppercase tracking-wide">
+					{accountEmail}
+				</p>
+				<!-- Current Account menu (logout, create workspace) -->
+				<DropdownMenu.Root>
+					<DropdownMenu.Trigger
+						type="button"
+						class="flex h-5 w-5 items-center justify-center rounded text-tertiary transition-colors hover:bg-hover-solid hover:text-primary"
+					>
+						<svg
+							class="h-3.5 w-3.5"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
 								stroke-width="2"
-								d="M9 5l7 7-7 7"
+								d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
 							/>
 						</svg>
-					</div>
-				</DropdownMenu.SubTrigger>
-
-				<DropdownMenu.SubContent
-					class="min-w-[260px] rounded-md border border-base bg-elevated py-1 shadow-lg"
-					sideOffset={8}
-					alignOffset={-4}
-				>
-					<div class="px-menu-item py-menu-item">
-						<p class="text-xs text-label tracking-wide text-tertiary uppercase">Workspaces</p>
-					</div>
-
-					<DropdownMenu.Item
-						class={`flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-sm outline-none hover:bg-hover-solid focus:bg-hover-solid ${
-							isPersonalActive() ? 'bg-hover-subtle text-primary' : 'text-primary'
-						}`}
-						textValue="Personal workspace"
-						onSelect={() => handleSelect(null)}
-					>
-						<div class="flex min-w-0 flex-1 items-center gap-icon-wide">
-							<div
-								class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-sidebar-hover text-xs font-semibold text-sidebar-primary shadow-sm"
+					</DropdownMenu.Trigger>
+					<DropdownMenu.Portal>
+						<DropdownMenu.Content
+							class="z-50 min-w-[180px] rounded-md border border-base bg-elevated py-1 shadow-lg"
+							side="right"
+							align="start"
+							sideOffset={4}
+						>
+							<DropdownMenu.Item
+								class="cursor-pointer px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+								textValue="Join or create workspace"
+								onSelect={handleCreateWorkspace}
 							>
-								{(accountName.slice(0, 2) || 'PW').toUpperCase()}
-							</div>
-							<div class="flex min-w-0 flex-col">
-								<span class="truncate font-medium">{accountName}</span>
-								<span class="truncate text-label text-tertiary">Private workspace</span>
-							</div>
+								<div class="flex items-center gap-2">
+									<svg
+										class="h-4 w-4"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M12 4v16m8-8H4"
+										/>
+									</svg>
+									<span>Join or create workspace</span>
+								</div>
+							</DropdownMenu.Item>
+							<DropdownMenu.Item
+								class="cursor-pointer px-menu-item py-1.5 text-sm text-danger outline-none hover:bg-hover-solid focus:bg-hover-solid"
+								textValue="Log out"
+								onSelect={handleLogout}
+							>
+								<div class="flex items-center gap-2">
+									<svg
+										class="h-4 w-4"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+										/>
+									</svg>
+									<span>Log out</span>
+								</div>
+							</DropdownMenu.Item>
+						</DropdownMenu.Content>
+					</DropdownMenu.Portal>
+				</DropdownMenu.Root>
+			</div>
+
+			<!-- Current Account Workspaces -->
+			<DropdownMenu.Item
+				class={`flex cursor-pointer items-center justify-between px-menu-item py-1.5 text-sm outline-none hover:bg-hover-solid focus:bg-hover-solid ${
+					isPersonalActive() ? '' : 'text-primary'
+				}`}
+				textValue="Personal workspace"
+				onSelect={() => handleSelect(null)}
+			>
+				<div class="flex min-w-0 flex-1 items-center gap-2">
+					<div
+						class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded text-xs font-semibold"
+					>
+						{(accountName.slice(0, 2) || 'PW').toUpperCase()}
+					</div>
+					<div class="flex min-w-0 flex-col">
+						<span class="truncate text-sm">{accountName}</span>
+						<span class="truncate text-xs text-tertiary">Private workspace</span>
+					</div>
+				</div>
+				{#if isPersonalActive()}
+					<svg
+						class="h-4 w-4 flex-shrink-0 text-accent-primary"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M5 13l4 4L19 7"
+						/>
+					</svg>
+				{/if}
+			</DropdownMenu.Item>
+
+			{#each organizations as organization (organization.organizationId)}
+				<DropdownMenu.Item
+					class={`flex cursor-pointer items-center justify-between px-menu-item py-1.5 text-sm outline-none hover:bg-hover-solid focus:bg-hover-solid ${
+						organization.organizationId === activeOrganizationId ? '' : 'text-primary'
+					}`}
+					textValue={organization.name}
+					onSelect={() => handleSelect(organization.organizationId)}
+				>
+					<div class="flex min-w-0 flex-1 items-center gap-2">
+						<div
+							class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded text-xs font-semibold bg-sidebar-hover"
+						>
+							{organization.initials}
 						</div>
-						<div class="ml-auto flex items-center gap-icon">
-							<KeyboardShortcut keys={['Meta', '1']} size="sm" />
-							{#if isPersonalActive()}
+						<div class="flex min-w-0 flex-col">
+							<span class="truncate text-sm font-medium">{organization.name}</span>
+							<span class="truncate text-xs text-tertiary capitalize">{organization.role}</span>
+						</div>
+					</div>
+					{#if organization.organizationId === activeOrganizationId}
+						<svg
+							class="h-4 w-4 flex-shrink-0 text-accent-primary"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M5 13l4 4L19 7"
+							/>
+						</svg>
+					{/if}
+				</DropdownMenu.Item>
+			{/each}
+
+			<!-- New workspace button for current account -->
+			<DropdownMenu.Item
+				class="cursor-pointer px-menu-item py-1.5 text-sm text-accent-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+				textValue="New workspace"
+				onSelect={handleCreateWorkspace}
+			>
+				<div class="flex items-center gap-2">
+					<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+					</svg>
+					<span>New workspace</span>
+				</div>
+			</DropdownMenu.Item>
+
+			<!-- Linked Accounts Section -->
+			{#if linkedAccounts.length > 0}
+				<DropdownMenu.Separator class="my-1 border-t border-base" />
+				{#each linkedAccounts as account (account.userId)}
+					<div class="flex items-center justify-between px-3 py-1">
+						<p class="truncate text-xs font-semibold text-tertiary uppercase tracking-wide">
+							{account.email ?? account.name ?? 'Linked account'}
+						</p>
+						<!-- Account menu (logout, create workspace) -->
+						<DropdownMenu.Root>
+							<DropdownMenu.Trigger
+								type="button"
+								class="flex h-5 w-5 items-center justify-center rounded text-tertiary transition-colors hover:bg-hover-solid hover:text-primary"
+							>
 								<svg
-									class="h-4 w-4 flex-shrink-0 text-accent-primary"
+									class="h-3.5 w-3.5"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -287,281 +431,248 @@
 										stroke-linecap="round"
 										stroke-linejoin="round"
 										stroke-width="2"
-										d="M5 13l4 4L19 7"
+										d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
 									/>
 								</svg>
-							{/if}
+							</DropdownMenu.Trigger>
+							<DropdownMenu.Portal>
+								<DropdownMenu.Content
+									class="z-50 min-w-[180px] rounded-md border border-base bg-elevated py-1 shadow-lg"
+									side="right"
+									align="start"
+									sideOffset={4}
+								>
+									<DropdownMenu.Item
+										class="cursor-pointer px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+										textValue="Join or create workspace"
+										onSelect={() =>
+											handleSwitchAccount(account.userId, '/inbox?create=workspace')}
+									>
+										<div class="flex items-center gap-2">
+											<svg
+												class="h-4 w-4"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+											>
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													stroke-width="2"
+													d="M12 4v16m8-8H4"
+												/>
+											</svg>
+											<span>Join or create workspace</span>
+										</div>
+									</DropdownMenu.Item>
+									<DropdownMenu.Item
+										class="cursor-pointer px-menu-item py-1.5 text-sm text-danger outline-none hover:bg-hover-solid focus:bg-hover-solid"
+										textValue="Log out"
+										onSelect={handleLogout}
+									>
+										<div class="flex items-center gap-2">
+											<svg
+												class="h-4 w-4"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+											>
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													stroke-width="2"
+													d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+												/>
+											</svg>
+											<span>Log out</span>
+										</div>
+									</DropdownMenu.Item>
+								</DropdownMenu.Content>
+							</DropdownMenu.Portal>
+						</DropdownMenu.Root>
+					</div>
+
+					<!-- Personal workspace for linked account -->
+					<DropdownMenu.Item
+						class="flex cursor-pointer items-center justify-between px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+						textValue={`${account.name ?? account.email}'s personal workspace`}
+						onSelect={() => handleSwitchAccount(account.userId)}
+					>
+						<div class="flex min-w-0 flex-1 items-center gap-2">
+							<div
+								class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded text-xs font-semibold"
+							>
+								{account.name
+									? account.name.slice(0, 2).toUpperCase()
+									: account.email
+										? account.email.slice(0, 2).toUpperCase()
+										: 'PW'}
+							</div>
+							<div class="flex min-w-0 flex-col">
+								<span class="truncate text-sm">
+									{account.name
+										? `${account.firstName ?? account.name}`
+										: account.email
+											? account.email.split('@')[0]
+											: 'Personal workspace'}
+								</span>
+								<span class="truncate text-xs text-tertiary">Private workspace</span>
+							</div>
 						</div>
 					</DropdownMenu.Item>
 
-					{#if hasOrganizations()}
-						{#each organizations as organization, index (organization.organizationId)}
-							{@const shortcutNumber = index + 2}
-							{@const showShortcut = shortcutNumber <= 9}
+					<!-- Organizations for linked account -->
+					{#if account.organizations && account.organizations.length > 0}
+						{#each account.organizations as org (org.organizationId)}
 							<DropdownMenu.Item
-								class={`flex cursor-pointer items-center justify-between rounded-none px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid ${
-									organization.organizationId === activeOrganizationId
-										? 'bg-hover-subtle text-primary'
-										: ''
-								}`}
-								textValue={organization.name}
-								onSelect={() => handleSelect(organization.organizationId)}
+								class="flex cursor-pointer items-center justify-between px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+								textValue={org.name}
+								onSelect={() => {
+									// Switch to account and navigate to organization
+									handleSwitchAccount(account.userId, `/inbox?org=${org.organizationId}`);
+								}}
 							>
-								<div class="flex min-w-0 flex-1 items-center gap-icon-wide">
+								<div class="flex min-w-0 flex-1 items-center gap-2">
 									<div
-										class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-sidebar-hover text-xs font-semibold text-sidebar-primary shadow-sm"
+										class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded text-xs font-semibold bg-sidebar-hover"
 									>
-										{organization.initials}
+										{org.initials ?? org.name.slice(0, 2).toUpperCase()}
 									</div>
 									<div class="flex min-w-0 flex-col">
-										<span class="truncate font-medium">{organization.name}</span>
-										<span class="truncate text-label text-tertiary capitalize"
-											>{organization.role}</span
-										>
+										<span class="truncate text-sm font-medium">{org.name}</span>
+										<span class="truncate text-xs text-tertiary capitalize">{org.role}</span>
 									</div>
-								</div>
-								<div class="ml-auto flex items-center gap-icon">
-									{#if showShortcut}
-										<KeyboardShortcut keys={['Meta', shortcutNumber.toString()]} size="sm" />
-									{/if}
-									{#if organization.organizationId === activeOrganizationId}
-										<svg
-											class="h-4 w-4 flex-shrink-0 text-accent-primary"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M5 13l4 4L19 7"
-											/>
-										</svg>
-									{/if}
 								</div>
 							</DropdownMenu.Item>
 						{/each}
-					{:else}
-						<div class="px-menu-item py-2 text-label text-secondary">
-							You haven't joined any organizations yet.
-						</div>
 					{/if}
 
-					{#if organizationInvites.length}
-						<DropdownMenu.Separator class="my-1 border-t border-base" />
-						<div class="px-menu-item py-menu-item">
-							<p class="text-xs text-label tracking-wide text-tertiary uppercase">
-								Organization invites
-							</p>
-						</div>
-						{#each organizationInvites as invite (invite.inviteId)}
-							<div class="px-menu-item py-menu-item">
-								<div class="flex items-start gap-icon-wide">
-									<div
-										class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-sidebar-hover text-xs font-semibold text-sidebar-primary shadow-sm"
-									>
-										{invite.organizationName.slice(0, 2).toUpperCase()}
-									</div>
-									<div class="min-w-0 flex-1">
-										<div class="flex items-center justify-between gap-icon">
-											<span class="truncate text-sm font-medium text-primary"
-												>{invite.organizationName}</span
-											>
-											<span class="text-label text-tertiary">{invite.role}</span>
-										</div>
-										<p class="truncate text-label text-secondary">Invited by {invite.invitedBy}</p>
-										<div class="mt-2 flex gap-1">
-											<button
-												type="button"
-												class="text-on-solid rounded-md bg-accent-primary px-2.5 py-1 text-xs font-medium"
-												onclick={() => handleAcceptOrganizationInvite(invite.code)}
-											>
-												Accept
-											</button>
-											<button
-												type="button"
-												class="rounded-md border border-base px-2.5 py-1 text-xs font-medium text-secondary hover:text-primary"
-												onclick={() => handleDeclineOrganizationInvite(invite.inviteId)}
-											>
-												Decline
-											</button>
-										</div>
-									</div>
-								</div>
-							</div>
-						{/each}
-					{/if}
-
-					{#if teamInvites.length}
-						<DropdownMenu.Separator class="my-1 border-t border-base" />
-						<div class="px-menu-item py-menu-item">
-							<p class="text-xs text-label tracking-wide text-tertiary uppercase">Team invites</p>
-						</div>
-						{#each teamInvites as invite (invite.inviteId)}
-							<div class="px-menu-item py-menu-item">
-								<div class="flex items-start gap-icon-wide">
-									<div
-										class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-sidebar-hover text-xs font-semibold text-sidebar-primary shadow-sm"
-									>
-										{invite.teamName.slice(0, 2).toUpperCase()}
-									</div>
-									<div class="min-w-0 flex-1">
-										<div class="flex items-center justify-between gap-icon">
-											<span class="truncate text-sm font-medium text-primary"
-												>{invite.teamName}</span
-											>
-											<span class="truncate text-label text-tertiary"
-												>{invite.organizationName}</span
-											>
-										</div>
-										<p class="truncate text-label text-secondary">Invited by {invite.invitedBy}</p>
-										<div class="mt-2 flex gap-1">
-											<button
-												type="button"
-												class="text-on-solid rounded-md bg-accent-primary px-2.5 py-1 text-xs font-medium"
-												onclick={() => handleAcceptTeamInvite(invite.code)}
-											>
-												Join team
-											</button>
-											<button
-												type="button"
-												class="rounded-md border border-base px-2.5 py-1 text-xs font-medium text-secondary hover:text-primary"
-												onclick={() => handleDeclineTeamInvite(invite.inviteId)}
-											>
-												Decline
-											</button>
-										</div>
-									</div>
-								</div>
-							</div>
-						{/each}
-					{/if}
-
-					<DropdownMenu.Separator class="my-1 border-t border-base" />
-
-					<DropdownMenu.Item
-						class="cursor-pointer px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
-						textValue="Create organization"
-						onSelect={handleCreateOrganization}
-					>
-						<div class="flex items-center gap-icon-wide">
-							<span class="text-lg leading-none">✦</span>
-							<span class="font-medium">Create organization</span>
-						</div>
-					</DropdownMenu.Item>
-
-					<DropdownMenu.Item
-						class="cursor-pointer px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
-						textValue="Join organization"
-						onSelect={handleJoinOrganization}
-					>
-						<div class="flex items-center gap-icon-wide">
-							<span class="text-lg leading-none">➕</span>
-							<span class="font-medium">Join organization</span>
-						</div>
-					</DropdownMenu.Item>
-
-					<DropdownMenu.Item
-						class="cursor-pointer px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
-						textValue="Create or join workspace"
-						onSelect={handleCreateWorkspace}
-					>
-						Create or join a workspace…
-					</DropdownMenu.Item>
-
-					{#if linkedAccounts.length > 0}
-						<DropdownMenu.Separator class="my-1 h-px bg-border" />
-						<DropdownMenu.Label class="px-menu-item py-1.5 text-xs font-semibold text-secondary">
-							Linked Accounts
-						</DropdownMenu.Label>
-						{#each linkedAccounts as account}
-							<DropdownMenu.Item
-								class="cursor-pointer px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
-								textValue={account.email ?? 'Linked account'}
-								onSelect={() => handleSwitchAccount(account.userId)}
-							>
-								<div class="flex flex-col gap-0.5">
-									<span class="font-medium">{account.name ?? account.email ?? 'Linked account'}</span>
-									{#if account.email && account.name}
-										<span class="text-xs text-secondary">{account.email}</span>
-									{/if}
-								</div>
-							</DropdownMenu.Item>
-						{/each}
-						<DropdownMenu.Separator class="my-1 h-px bg-border" />
-					{/if}
-
-					<DropdownMenu.Item
-						class="cursor-pointer px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
-						textValue="Add account"
-						onSelect={handleAddAccount}
-					>
-						Add an account…
-					</DropdownMenu.Item>
-				</DropdownMenu.SubContent>
-			</DropdownMenu.Sub>
-
-			<div class="px-menu-item py-menu-item">
-				<div class="flex min-w-0 items-center justify-between gap-icon-wide">
-					<div class="flex items-center gap-icon">
-						<span class="text-sm font-medium text-primary"
-							>{$isDark ? 'Dark mode' : 'Light mode'}</span
-						>
-						{#if $isDark}
-							<svg
-								class="h-4 w-4 flex-shrink-0 text-secondary"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-								/>
-							</svg>
-						{:else}
-							<svg
-								class="h-4 w-4 flex-shrink-0 text-secondary"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-								/>
-							</svg>
-						{/if}
-					</div>
-					<Switch.Root
-						checked={$isDark}
-						onCheckedChange={(checked) => theme.setTheme(checked ? 'dark' : 'light')}
-						class="relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none {$isDark
-							? 'bg-gray-900'
-							: 'bg-gray-300'}"
-					>
-						<Switch.Thumb
-							class="pointer-events-none inline-block h-3 w-3 translate-x-0 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out data-[state=checked]:translate-x-4"
-						/>
-					</Switch.Root>
-				</div>
-			</div>
+				{/each}
+			{/if}
 
 			<DropdownMenu.Separator class="my-1 border-t border-base" />
 
+			<!-- Create/Join organization -->
 			<DropdownMenu.Item
-				class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-sm text-sidebar-secondary outline-none hover:bg-hover-solid hover:text-sidebar-primary focus:bg-hover-solid"
-				textValue="Log out"
-				onSelect={handleLogout}
+				class="cursor-pointer px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+				textValue="Create organization"
+				onSelect={handleCreateOrganization}
 			>
-				<span class="font-medium">Log out</span>
-				<span class="text-label text-tertiary">⌥⇧Q</span>
+				<div class="flex items-center gap-2">
+					<span class="text-base leading-none">✦</span>
+					<span>Create organization</span>
+				</div>
 			</DropdownMenu.Item>
+
+			<DropdownMenu.Item
+				class="cursor-pointer px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+				textValue="Join organization"
+				onSelect={handleJoinOrganization}
+			>
+				<div class="flex items-center gap-2">
+					<span class="text-base leading-none">➕</span>
+					<span>Join organization</span>
+				</div>
+			</DropdownMenu.Item>
+
+			<DropdownMenu.Separator class="my-1 border-t border-base" />
+
+			<!-- Add account -->
+			<DropdownMenu.Item
+				class="cursor-pointer px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+				textValue="Add account"
+				onSelect={handleAddAccount}
+			>
+				Add an account…
+			</DropdownMenu.Item>
+
+			<!-- Organization Invites -->
+			{#if organizationInvites.length > 0}
+				<DropdownMenu.Separator class="my-1 border-t border-base" />
+				<div class="px-menu-item py-1">
+					<p class="text-xs font-semibold text-tertiary uppercase tracking-wide">
+						Organization invites
+					</p>
+				</div>
+				{#each organizationInvites as invite (invite.inviteId)}
+					<div class="px-menu-item py-2">
+						<div class="flex items-start gap-2">
+							<div
+								class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-sidebar-hover text-xs font-semibold text-sidebar-primary"
+							>
+								{invite.organizationName.slice(0, 2).toUpperCase()}
+							</div>
+							<div class="min-w-0 flex-1">
+								<div class="flex items-center justify-between gap-2">
+									<span class="truncate text-sm font-medium text-primary"
+										>{invite.organizationName}</span
+									>
+									<span class="text-xs text-tertiary">{invite.role}</span>
+								</div>
+								<p class="truncate text-xs text-secondary">Invited by {invite.invitedBy}</p>
+								<div class="mt-2 flex gap-1">
+									<button
+										type="button"
+										class="text-on-solid rounded-md bg-accent-primary px-2.5 py-1 text-xs font-medium hover:bg-accent-primary-hover"
+										onclick={() => handleAcceptOrganizationInvite(invite.code)}
+									>
+										Accept
+									</button>
+									<button
+										type="button"
+										class="rounded-md border border-base px-2.5 py-1 text-xs font-medium text-secondary hover:bg-hover-solid hover:text-primary"
+										onclick={() => handleDeclineOrganizationInvite(invite.inviteId)}
+									>
+										Decline
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				{/each}
+			{/if}
+
+			<!-- Team Invites -->
+			{#if teamInvites.length > 0}
+				<DropdownMenu.Separator class="my-1 border-t border-base" />
+				<div class="px-menu-item py-1">
+					<p class="text-xs font-semibold text-tertiary uppercase tracking-wide">Team invites</p>
+				</div>
+				{#each teamInvites as invite (invite.inviteId)}
+					<div class="px-menu-item py-2">
+						<div class="flex items-start gap-2">
+							<div
+								class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-sidebar-hover text-xs font-semibold text-sidebar-primary"
+							>
+								{invite.teamName.slice(0, 2).toUpperCase()}
+							</div>
+							<div class="min-w-0 flex-1">
+								<div class="flex items-center justify-between gap-2">
+									<span class="truncate text-sm font-medium text-primary">{invite.teamName}</span>
+									<span class="truncate text-xs text-tertiary">{invite.organizationName}</span>
+								</div>
+								<p class="truncate text-xs text-secondary">Invited by {invite.invitedBy}</p>
+								<div class="mt-2 flex gap-1">
+									<button
+										type="button"
+										class="text-on-solid rounded-md bg-accent-primary px-2.5 py-1 text-xs font-medium hover:bg-accent-primary-hover"
+										onclick={() => handleAcceptTeamInvite(invite.code)}
+									>
+										Join team
+									</button>
+									<button
+										type="button"
+										class="rounded-md border border-base px-2.5 py-1 text-xs font-medium text-secondary hover:bg-hover-solid hover:text-primary"
+										onclick={() => handleDeclineTeamInvite(invite.inviteId)}
+									>
+										Decline
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				{/each}
+			{/if}
 		</DropdownMenu.Content>
 	</DropdownMenu.Portal>
 </DropdownMenu.Root>

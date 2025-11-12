@@ -4,6 +4,8 @@ import { api } from '$lib/convex';
 import { AnalyticsEventName } from '$lib/analytics/events';
 import posthog from 'posthog-js';
 import { toast } from '$lib/utils/toast';
+import { untrack } from 'svelte';
+import { replaceState } from '$app/navigation';
 
 export type OrganizationRole = 'owner' | 'admin' | 'member';
 
@@ -57,23 +59,44 @@ type ModalKey = 'createOrganization' | 'joinOrganization' | 'createTeam' | 'join
 
 export type UseOrganizations = ReturnType<typeof useOrganizations>;
 
-const STORAGE_KEY = 'activeOrganizationId';
-const STORAGE_DETAILS_KEY = 'activeOrganizationDetails';
+const STORAGE_KEY_PREFIX = 'activeOrganizationId';
+const STORAGE_DETAILS_KEY_PREFIX = 'activeOrganizationDetails';
 const SENTINEL_ORGANIZATION_ID = '000000000000000000000000';
 const PERSONAL_SENTINEL = '__personal__';
 
-export function useOrganizations(options?: { userId?: () => string | undefined }) {
+// Module-level tracking for URL param processing (pattern #L700 - plain variable, not $state)
+let lastProcessedOrgParam: string | null = null;
+
+// Get account-specific storage keys
+function getStorageKey(userId: string | undefined): string {
+	return userId ? `${STORAGE_KEY_PREFIX}_${userId}` : STORAGE_KEY_PREFIX;
+}
+
+function getStorageDetailsKey(userId: string | undefined): string {
+	return userId ? `${STORAGE_DETAILS_KEY_PREFIX}_${userId}` : STORAGE_DETAILS_KEY_PREFIX;
+}
+
+export function useOrganizations(options?: {
+	userId?: () => string | undefined;
+	orgFromUrl?: () => string | null; // Reactive URL parameter
+}) {
 	const convexClient = browser ? useConvexClient() : null;
 	const getUserId = options?.userId || (() => undefined);
+	const getOrgFromUrl = options?.orgFromUrl || (() => null);
 
-	const storedActiveId = browser ? localStorage.getItem(STORAGE_KEY) : null;
+	// Get account-specific storage keys
+	const currentUserId = browser ? getUserId() : undefined;
+	const storageKey = getStorageKey(currentUserId);
+	const storageDetailsKey = getStorageDetailsKey(currentUserId);
+
+	const storedActiveId = browser ? localStorage.getItem(storageKey) : null;
 	const initialActiveId = storedActiveId === PERSONAL_SENTINEL ? null : storedActiveId;
 
 	// Load cached organization details for optimistic UI
 	let cachedOrgDetails: OrganizationSummary | null = null;
 	if (browser && initialActiveId) {
 		try {
-			const stored = localStorage.getItem(STORAGE_DETAILS_KEY);
+			const stored = localStorage.getItem(storageDetailsKey);
 			if (stored) {
 				cachedOrgDetails = JSON.parse(stored);
 			}
@@ -86,6 +109,10 @@ export function useOrganizations(options?: { userId?: () => string | undefined }
 		activeOrganizationId: initialActiveId,
 		activeTeamId: null as string | null,
 		cachedOrganization: cachedOrgDetails,
+		isSwitching: false,
+		switchingTo: null as string | null,
+		switchingToType: 'personal' as 'personal' | 'organization',
+		switchStartTime: null as number | null,
 		modals: {
 			createOrganization: false,
 			joinOrganization: false,
@@ -100,8 +127,12 @@ export function useOrganizations(options?: { userId?: () => string | undefined }
 		}
 	});
 
-	const organizationsQuery = browser
-		? useQuery(api.organizations.listOrganizations, () => ({ userId: getUserId() as any }))
+	const organizationsQuery = browser && getUserId()
+		? useQuery(api.organizations.listOrganizations, () => {
+				const userId = getUserId();
+				if (!userId) return null; // Skip query if userId not available
+				return { userId };
+			})
 		: null;
 	const organizationInvitesQuery = browser
 		? useQuery(api.organizations.listOrganizationInvites, () => ({ userId: getUserId() as any }))
@@ -112,10 +143,16 @@ export function useOrganizations(options?: { userId?: () => string | undefined }
 
 	// Query teams - pass organizationId if we have one, undefined if in personal workspace mode
 	// The Convex function now accepts optional organizationId and returns [] when undefined
-const teamsQuery = browser
+const teamsQuery = browser && getUserId()
 	? useQuery(api.teams.listTeams, () => {
+			const userId = getUserId();
+			if (!userId) return null; // Skip query if userId not available
+			
 			const organizationId = state.activeOrganizationId;
-			return organizationId ? { organizationId } : {};
+			return {
+				userId,
+				...(organizationId ? { organizationId } : {})
+			};
 		})
 	: null;
 
@@ -156,18 +193,70 @@ const teamsQuery = browser
 	);
 
 	$effect(() => {
-		// Wait until query has loaded before applying logic
+		if (!browser) return;
+
+		// Priority 1: URL parameter (from account/workspace switching)
+		// Call function to get reactive value from parent
+		const urlOrgParam = getOrgFromUrl();
+
+		// Skip if already processed (pattern #L700 - untrack prevents reactive dependency)
+		if (
+			untrack(
+				() =>
+					urlOrgParam === lastProcessedOrgParam && urlOrgParam === state.activeOrganizationId
+			)
+		) {
+			return;
+		}
+
+		if (urlOrgParam && urlOrgParam !== state.activeOrganizationId) {
+			console.log('🔗 Setting organization from URL param:', urlOrgParam);
+
+			// Update tracking without triggering re-run (pattern #L700)
+			untrack(() => {
+				lastProcessedOrgParam = urlOrgParam;
+			});
+
+		state.activeOrganizationId = urlOrgParam;
+
+		// Clean up URL param immediately (inbox pattern - prevents reprocessing)
+		// Guard for initial page load when router isn't initialized yet
+		try {
+			const url = new URL(window.location.href);
+			url.searchParams.delete('org');
+			replaceState(url.pathname + url.search, {});
+		} catch (e) {
+			// Router not ready on initial load - URL will persist but won't cause reprocessing
+			// because lastProcessedOrgParam tracking prevents the effect from running again
+			console.debug('Router not ready, deferring URL cleanup');
+		}
+
+			return; // Stop here, let validation handle the rest
+		}
+
+		// Reset tracking if URL param removed
+		if (!urlOrgParam && lastProcessedOrgParam) {
+			untrack(() => {
+				lastProcessedOrgParam = null;
+			});
+		}
+
+		// Priority 2: Wait until query has loaded before applying validation logic
 		// This prevents resetting activeOrganizationId during initial loading state
 		if (organizationsQuery && organizationsQuery.data === undefined) {
 			return;
 		}
 
+		const currentUserId = getUserId();
+		const storageKey = getStorageKey(currentUserId);
+		const storageDetailsKey = getStorageDetailsKey(currentUserId);
+
 		const list = organizationsData();
 		if (!list || list.length === 0) {
 			state.activeOrganizationId = null;
 			if (browser) {
-				localStorage.setItem(STORAGE_KEY, PERSONAL_SENTINEL);
-				localStorage.removeItem(STORAGE_DETAILS_KEY);
+				localStorage.setItem(storageKey, PERSONAL_SENTINEL);
+				localStorage.removeItem(storageDetailsKey);
 			}
 			return;
 		}
@@ -184,46 +273,35 @@ const teamsQuery = browser
 				) {
 					state.cachedOrganization = activeOrg;
 					if (browser) {
-						localStorage.setItem(STORAGE_DETAILS_KEY, JSON.stringify(activeOrg));
+						localStorage.setItem(storageDetailsKey, JSON.stringify(activeOrg));
 					}
 				}
 				return; // Active org is valid and cached
 			}
 
-			// Active org not found in list - fallback to first org
-			const fallback = list[0];
-			state.activeOrganizationId = fallback?.organizationId ?? null;
+			// Active org not found in list - fallback to personal workspace (not first org!)
+			state.activeOrganizationId = null;
 			if (browser) {
-				if (fallback) {
-					localStorage.setItem(STORAGE_KEY, fallback.organizationId);
-					localStorage.setItem(STORAGE_DETAILS_KEY, JSON.stringify(fallback));
-					state.cachedOrganization = fallback;
-				} else {
-					localStorage.setItem(STORAGE_KEY, PERSONAL_SENTINEL);
-					localStorage.removeItem(STORAGE_DETAILS_KEY);
-					state.cachedOrganization = null;
-				}
+				localStorage.setItem(storageKey, PERSONAL_SENTINEL);
+				localStorage.removeItem(storageDetailsKey);
+				state.cachedOrganization = null;
 			}
 			return;
 		}
 
 		// No active org - check if user wants personal workspace
 		if (browser) {
-			const stored = localStorage.getItem(STORAGE_KEY);
+			const stored = localStorage.getItem(storageKey);
 			if (stored === PERSONAL_SENTINEL) {
 				return;
 			}
 		}
 
-		// Default to first org
-		const first = list[0];
-		if (first) {
-			state.activeOrganizationId = first.organizationId;
-			state.cachedOrganization = first;
-			if (browser) {
-				localStorage.setItem(STORAGE_KEY, first.organizationId);
-				localStorage.setItem(STORAGE_DETAILS_KEY, JSON.stringify(first));
-			}
+		// Default to personal workspace (not first org!)
+		// This ensures new accounts start on their personal workspace
+		state.activeOrganizationId = null;
+		if (browser) {
+			localStorage.setItem(storageKey, PERSONAL_SENTINEL);
 		}
 	});
 
@@ -234,17 +312,75 @@ const teamsQuery = browser
 		}
 	});
 
+	// Track switching completion - clear switching state when queries settle
+	$effect(() => {
+		if (!state.isSwitching || !browser) return;
+
+		// Check if queries have settled (not loading)
+		const queriesSettled = organizationsQuery?.data !== undefined;
+		
+		let timeoutId: ReturnType<typeof setTimeout> | null = null;
+		
+		if (queriesSettled && state.switchStartTime) {
+			const elapsed = Date.now() - state.switchStartTime;
+			const minimumDuration = 5000; // Minimum 5 seconds for delightful experience
+			
+			if (elapsed >= minimumDuration) {
+				// Clear switching state immediately
+				state.isSwitching = false;
+				state.switchingTo = null;
+				state.switchingToType = 'personal';
+				state.switchStartTime = null;
+			} else {
+				// Wait for remaining time to reach minimum duration
+				const remaining = minimumDuration - elapsed;
+				timeoutId = setTimeout(() => {
+					state.isSwitching = false;
+					state.switchingTo = null;
+					state.switchingToType = 'personal';
+					state.switchStartTime = null;
+				}, remaining);
+			}
+		}
+		
+		// Cleanup: clear timeout if effect re-runs or component unmounts
+		return () => {
+			if (timeoutId) {
+				clearTimeout(timeoutId);
+			}
+		};
+	});
+
 	function setActiveOrganization(organizationId: string | null) {
 		const previousOrganizationId = state.activeOrganizationId;
+		
+		// Set switching state before changing organization
+		state.isSwitching = true;
+		state.switchStartTime = browser ? Date.now() : null;
+		
+		// Determine target organization name and type for display
+		if (organizationId) {
+			const targetOrg = organizationsData().find((org) => org.organizationId === organizationId);
+			state.switchingTo = targetOrg?.name ?? 'organization';
+			state.switchingToType = 'organization';
+		} else {
+			state.switchingTo = 'Personal workspace';
+			state.switchingToType = 'personal';
+		}
+		
 		state.activeOrganizationId = organizationId;
 		state.activeTeamId = null;
+
+		const currentUserId = getUserId();
+		const storageKey = getStorageKey(currentUserId);
+		const storageDetailsKey = getStorageDetailsKey(currentUserId);
 
 		if (!organizationId) {
 			// Switching to personal workspace - clear cached org details
 			state.cachedOrganization = null;
 			if (browser) {
-				localStorage.setItem(STORAGE_KEY, PERSONAL_SENTINEL);
-				localStorage.removeItem(STORAGE_DETAILS_KEY);
+				localStorage.setItem(storageKey, PERSONAL_SENTINEL);
+				localStorage.removeItem(storageDetailsKey);
 			}
 			return;
 		}
@@ -256,14 +392,23 @@ const teamsQuery = browser
 		if (summary) {
 			state.cachedOrganization = summary;
 			if (browser) {
-				localStorage.setItem(STORAGE_KEY, organizationId);
-				localStorage.setItem(STORAGE_DETAILS_KEY, JSON.stringify(summary));
+				localStorage.setItem(storageKey, organizationId);
+				localStorage.setItem(storageDetailsKey, JSON.stringify(summary));
 			}
 		} else if (browser) {
-			localStorage.setItem(STORAGE_KEY, organizationId);
+			localStorage.setItem(storageKey, organizationId);
 		}
 
 		if (convexClient) {
+			const currentUserId = getUserId();
+			
+			// Only record organization switch if user is authenticated
+			// Analytics tracking is non-critical, so skip if not ready
+			if (!currentUserId) {
+				console.debug('⏭️ Skipping organization switch tracking - user not authenticated yet');
+				return;
+			}
+			
 			const mutationArgs: any = {
 				toOrganizationId: organizationId,
 				availableTeamCount
@@ -323,12 +468,17 @@ const teamsQuery = browser
 		const trimmed = payload.name.trim();
 		if (!trimmed) return;
 
+		const userId = getUserId();
+		if (!userId) {
+			throw new Error('User ID is required. Please log in again.');
+		}
+
 		state.loading.createOrganization = true;
 
 		try {
 			const result = await convexClient.mutation(api.organizations.createOrganization, {
 				name: trimmed,
-				userId: getUserId() as any // TODO: Remove once Convex auth context is set up
+				userId
 			});
 
 			if (result?.organizationId) {
@@ -506,6 +656,15 @@ const teamsQuery = browser
 		},
 		get isLoading() {
 			return isLoading;
+		},
+		get isSwitching() {
+			return state.isSwitching;
+		},
+		get switchingTo() {
+			return state.switchingTo;
+		},
+		get switchingToType() {
+			return state.switchingToType;
 		},
 		setActiveOrganization,
 		setActiveTeam,
