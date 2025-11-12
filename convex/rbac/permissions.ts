@@ -355,11 +355,14 @@ async function logPermissionCheck(
  */
 export const getUserPermissionsQuery = query({
 	args: {
-		userId: v.id('users'),
+		sessionId: v.string(), // Session validation (derives userId securely)
 		organizationId: v.optional(v.id('organizations')),
 		teamId: v.optional(v.id('teams'))
 	},
 	handler: async (ctx, args) => {
+		// Validate session and get userId (prevents impersonation)
+		const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+		
 		const context: PermissionContext = {};
 
 		if (args.organizationId) {
@@ -371,7 +374,7 @@ export const getUserPermissionsQuery = query({
 		}
 
 		// Get all permissions for user
-		const permissions = await getUserPermissions(ctx, args.userId, context);
+		const permissions = await getUserPermissions(ctx, userId, context);
 
 		// Return flattened permissions with slug and scope
 		return permissions.map((p) => ({

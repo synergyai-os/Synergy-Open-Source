@@ -7,6 +7,7 @@
 import { mutation, query } from '../_generated/server';
 import { v } from 'convex/values';
 import { getAuthUserId } from '../auth';
+import { validateSessionAndGetUserId } from '../sessionValidation';
 import type { Id } from '../_generated/dataModel';
 import { requirePermission } from './permissions';
 
@@ -126,14 +127,17 @@ export const revokeRole = mutation({
  */
 export const getUserRoles = query({
 	args: {
-		userId: v.id('users'),
+		sessionId: v.string(), // Session validation (derives userId securely)
 		organizationId: v.optional(v.id('organizations')),
 		teamId: v.optional(v.id('teams'))
 	},
 	handler: async (ctx, args) => {
+		// Validate session and get userId (prevents impersonation)
+		const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+		
 		const query = ctx.db
 			.query('userRoles')
-			.withIndex('by_user', (q) => q.eq('userId', args.userId));
+			.withIndex('by_user', (q) => q.eq('userId', userId));
 
 		const allRoles = await query.collect();
 
