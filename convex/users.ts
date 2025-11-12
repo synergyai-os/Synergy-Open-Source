@@ -3,6 +3,7 @@ import { mutation, query } from './_generated/server';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
 import { getAuthUserId } from './auth';
+import { validateSession } from './sessionValidation';
 import { requirePermission } from './rbac/permissions';
 
 /**
@@ -97,17 +98,22 @@ export const getUserByWorkosId = query({
  * This will work after Convex auth is properly set up
  * For now, returns null (auth context not yet configured)
  */
+/**
+ * Get current user by userId
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and use ctx.auth.getUserIdentity() instead
+ */
 export const getCurrentUser = query({
-	args: {},
-	handler: async (ctx) => {
-		const identity = await ctx.auth.getUserIdentity();
-		if (!identity) {
-			return null;
-		}
-
-		// identity.subject will contain the Convex userId
-		// This will work once we set up Convex authentication
-		return await ctx.db.get(identity.subject as any);
+	args: {
+		userId: v.id('users') // Required: passed from authenticated SvelteKit session
+	},
+	handler: async (ctx, args) => {
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		
+		// Return user record
+		return await ctx.db.get(args.userId);
 	}
 });
 

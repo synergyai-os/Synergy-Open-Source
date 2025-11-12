@@ -34,6 +34,8 @@
 | Code compiles but Bugbot finds logic bugs                                   | Automated code review catches architectural mismatches | [convex-integration.md#L700](convex-integration.md#L700)            |
 | Users logged out after 5 minutes, session doesn't persist                   | Use app session TTL (30 days), not token expiry (5 min) | [auth-deployment.md#L610](auth-deployment.md#L610)                  |
 | Query doesn't re-run when dependency changes, UI shows stale data           | Wrap conditional query in $derived                     | [auth-deployment.md#L660](auth-deployment.md#L660)                  |
+| "Not authenticated" in Convex, queries return empty                          | Pass userId parameter + validate session               | [auth-deployment.md#L760](auth-deployment.md#L760)                  |
+| `state_unsafe_mutation` error during component cleanup                       | Wrap state mutations in untrack() in event handlers    | [svelte-reactivity.md#L750](svelte-reactivity.md#L750)              |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -155,7 +157,7 @@ correct code
 
 ---
 
-**Last Updated**: 2025-11-11
-**Pattern Count**: 64
+**Last Updated**: 2025-11-12
+**Pattern Count**: 66
 **Format Version**: 2.0
 ```

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { page } from '$app/stores';
 	import { useQuery, useConvexClient } from 'convex-svelte';
 	import { Button } from 'bits-ui';
 	import TagFilter from '$lib/components/TagFilter.svelte';
@@ -20,7 +21,14 @@
 	let modalInitialIndex = $state(0);
 
 	// Query all tags for filtering
-	const allTagsQuery = browser ? useQuery(api.tags.listAllTags, {}) : null;
+	const getUserId = () => $page.data.user?.userId;
+	const allTagsQuery = browser && getUserId()
+		? useQuery(api.tags.listAllTags, () => {
+				const userId = getUserId();
+				if (!userId) return null;
+				return { userId };
+			})
+		: null;
 	const allTags = $derived(allTagsQuery?.data ?? []);
 
 	// Query collections

@@ -7,12 +7,17 @@
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 import { getAuthUserId } from './auth';
+import { validateSession } from './sessionValidation';
 
 /**
  * Create a new note
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
  */
 export const createNote = mutation({
 	args: {
+		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
 		title: v.optional(v.string()),
 		content: v.string(), // ProseMirror JSON
 		contentMarkdown: v.optional(v.string()),
@@ -21,10 +26,10 @@ export const createNote = mutation({
 		teamId: v.optional(v.id('teams'))
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		
+		const userId = args.userId;
 
 		const now = Date.now();
 
@@ -272,19 +277,22 @@ export const exportToDevDocs = mutation({
 
 /**
  * List all notes for current user
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
  */
 export const listNotes = query({
 	args: {
+		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
 		processed: v.optional(v.boolean()),
 		blogOnly: v.optional(v.boolean()),
 		organizationId: v.optional(v.union(v.id('organizations'), v.null())),
 		teamId: v.optional(v.id('teams'))
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			return [];
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		const itemsQuery = ctx.db
 			.query('inboxItems')

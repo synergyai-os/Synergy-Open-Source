@@ -725,6 +725,55 @@ $effect(() => {
 
 ---
 
-**Pattern Count**: 15  
-**Last Validated**: 2025-11-08  
+## #L750: Use untrack() in Cleanup Handlers to Prevent State Mutation Errors [🔴 CRITICAL]
+
+**Symptom**: `state_unsafe_mutation` error: "Updating state inside `$derived(...)`, `$inspect(...)` or a template expression is forbidden"  
+**Root Cause**: Event handlers (like ProseMirror `blur`) fire during component cleanup/teardown, trying to mutate `$state` during reactive evaluation  
+**Fix**:
+
+```typescript
+// ❌ WRONG: State mutation in event handler called during cleanup
+let isFocused = $state(false);
+
+const editorView = new EditorView(container, {
+	handleDOMEvents: {
+		blur: () => {
+			isFocused = false; // ❌ Error: state_unsafe_mutation
+			return false;
+		}
+	}
+});
+// When modal closes, blur fires during cleanup → error
+
+// ✅ CORRECT: Wrap state mutation in untrack()
+import { untrack } from 'svelte';
+
+let isFocused = $state(false);
+
+const editorView = new EditorView(container, {
+	handleDOMEvents: {
+		blur: () => {
+			untrack(() => {
+				isFocused = false; // ✅ Safe: not tracked during cleanup
+			});
+			return false;
+		}
+	}
+});
+```
+
+**Why**: During component cleanup, Svelte is in a reactive evaluation context. Mutating `$state` during this phase violates Svelte's reactivity rules. `untrack()` prevents the mutation from being tracked as a reactive update.
+
+**Apply when**:
+- Event handlers mutate `$state` (focus/blur, scroll, resize)
+- Using third-party libraries that call handlers during cleanup (ProseMirror, Monaco)
+- Modal/component teardown triggers state updates
+- `state_unsafe_mutation` errors in console
+
+**Related**: #L700 (Effect update depth), #L400 (SSR browser checks)
+
+---
+
+**Pattern Count**: 16  
+**Last Validated**: 2025-11-12  
 **Context7 Source**: `/sveltejs/svelte`, `@sveltejs/kit`

@@ -2,6 +2,7 @@
 	import { useQuery, useConvexClient } from 'convex-svelte';
 	import { api } from '$lib/convex';
 	import { getContext } from 'svelte';
+	import { page } from '$app/stores';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 	import ShareTagModal from '$lib/components/tags/ShareTagModal.svelte';
 	import posthog from 'posthog-js';
@@ -11,8 +12,17 @@
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
 	const convexClient = useConvexClient();
 
+	// Get user ID from page data
+	const getUserId = () => $page.data.user?.userId;
+
 	// Fetch user's tags
-	const tagsQuery = useQuery(api.tags.listUserTags, () => ({}));
+	const tagsQuery = browser && getUserId()
+		? useQuery(api.tags.listUserTags, () => {
+				const userId = getUserId();
+				if (!userId) return null;
+				return { userId };
+			})
+		: null;
 	const userTags = $derived(tagsQuery?.data ?? []);
 	const isLoading = $derived(tagsQuery?.isLoading ?? false);
 

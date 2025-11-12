@@ -24,6 +24,9 @@
 	import { useInboxLayout } from '$lib/composables/useInboxLayout.svelte';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 
+	// Get user ID from page data (provided by authenticated layout)
+	const getUserId = () => $page.data.user?.userId;
+
 	// Get workspace context
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
 	const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
@@ -42,6 +45,7 @@
 
 	// Initialize inbox items composable with workspace context
 	const items = useInboxItems({
+		userId: getUserId, // Required for session validation - function ensures reactivity
 		activeOrganizationId: activeOrganizationId(),
 		activeTeamId: activeTeamId()
 	});

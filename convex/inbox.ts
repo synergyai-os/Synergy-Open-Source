@@ -7,25 +7,29 @@
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 import { getAuthUserId } from './auth';
+import { validateSession } from './sessionValidation';
 
 /**
  * List all inbox items for the current user
  * Optionally filter by type (readwise_highlight, photo_note, manual_text, etc.)
  * Filters by workspace context (personal, organization, or team)
  * Returns items with basic display info (title, snippet, tags) for inbox list
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
  */
 export const listInboxItems = query({
 	args: {
+		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
 		filterType: v.optional(v.string()), // Optional type filter
 		processed: v.optional(v.boolean()), // Optional processed filter
 		organizationId: v.optional(v.union(v.id('organizations'), v.null())), // Workspace context
 		teamId: v.optional(v.id('teams')) // Team context
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			return [];
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		let itemsQuery = ctx.db.query('inboxItems').withIndex('by_user', (q) => q.eq('userId', userId));
 

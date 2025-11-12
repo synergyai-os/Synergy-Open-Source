@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { page } from '$app/stores';
 	import { useQuery } from 'convex-svelte';
 	import { useStudySession } from '$lib/composables/useStudySession.svelte';
 	import StudyCard from '$lib/components/study/StudyCard.svelte';
@@ -10,7 +11,14 @@
 	const study = useStudySession();
 
 	// Query all tags for filtering
-	const allTagsQuery = browser ? useQuery(api.tags.listAllTags, {}) : null;
+	const getUserId = () => $page.data.user?.userId;
+	const allTagsQuery = browser && getUserId()
+		? useQuery(api.tags.listAllTags, () => {
+				const userId = getUserId();
+				if (!userId) return null;
+				return { userId };
+			})
+		: null;
 	const allTags = $derived(allTagsQuery?.data ?? []);
 
 	// Keyboard shortcuts for ratings

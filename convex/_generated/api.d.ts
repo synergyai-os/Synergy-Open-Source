@@ -32,6 +32,7 @@ import type * as rbac_setupAdmin from "../rbac/setupAdmin.js";
 import type * as readwiseApi from "../readwiseApi.js";
 import type * as readwiseCleanup from "../readwiseCleanup.js";
 import type * as readwiseUtils from "../readwiseUtils.js";
+import type * as sessionValidation from "../sessionValidation.js";
 import type * as settings from "../settings.js";
 import type * as syncReadwise from "../syncReadwise.js";
 import type * as syncReadwiseMutations from "../syncReadwiseMutations.js";
@@ -81,6 +82,7 @@ declare const fullApi: ApiFromModules<{
   readwiseApi: typeof readwiseApi;
   readwiseCleanup: typeof readwiseCleanup;
   readwiseUtils: typeof readwiseUtils;
+  sessionValidation: typeof sessionValidation;
   settings: typeof settings;
   syncReadwise: typeof syncReadwise;
   syncReadwiseMutations: typeof syncReadwiseMutations;

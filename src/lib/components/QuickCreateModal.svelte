@@ -27,19 +27,26 @@
 		triggerMethod?: 'keyboard_n' | 'header_button' | 'footer_button';
 		currentView?: 'inbox' | 'flashcards' | 'tags' | 'my_mind' | 'study';
 		initialType?: ContentType | null;
+		userId?: Id<'users'>; // Required for session validation
 	};
 
 	let {
 		open = $bindable(false),
 		triggerMethod = 'keyboard_n',
 		currentView = 'inbox',
-		initialType = null
+		initialType = null,
+		userId
 	}: Props = $props();
 
 	const convexClient = browser ? useConvexClient() : null;
 
 	// Query all available tags
-	const allTagsQuery = browser ? useQuery(api.tags.listAllTags, {}) : null;
+	const allTagsQuery = browser && userId
+		? useQuery(api.tags.listAllTags, () => {
+				if (!userId) return null;
+				return { userId };
+			})
+		: null;
 	const availableTags = $derived(allTagsQuery?.data ?? []);
 
 	// Component state
@@ -234,8 +241,13 @@
 			let contentLength = 0;
 
 			if (selectedType === 'note') {
+				if (!userId) {
+					throw new Error('User ID is required');
+				}
+				
 				// Use the new notes API for rich text notes
 				await convexClient.mutation(api.notes.createNote, {
+					userId, // Session validation in Convex
 					title: noteTitle || undefined,
 					content: typeof noteContent === 'string' ? noteContent : JSON.stringify(noteContent),
 					contentMarkdown: noteContentMarkdown || undefined,

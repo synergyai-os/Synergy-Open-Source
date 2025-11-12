@@ -7,6 +7,7 @@
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 import { getAuthUserId } from './auth';
+import { validateSession } from './sessionValidation';
 import { normalizeTagName } from './readwiseUtils';
 import type { Doc, Id } from './_generated/dataModel';
 import { canAccessContent } from './permissions';
@@ -161,13 +162,20 @@ export async function getTagDescendantsForTags(
 /**
  * Query: List all tags for the current user with hierarchical structure
  */
+/**
+ * List all tags for the current user
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
+ */
 export const listAllTags = query({
-	args: {},
-	handler: async (ctx) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			return [];
-		}
+	args: {
+		userId: v.id('users') // Required: passed from authenticated SvelteKit session
+	},
+	handler: async (ctx, args) => {
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		// Get all user tags
 		const tags = await ctx.db
@@ -183,14 +191,18 @@ export const listAllTags = query({
 /**
  * Query: Get user's tags with ownership information
  * Returns all tags the user owns, including shared tags
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
  */
 export const listUserTags = query({
-	args: {},
-	handler: async (ctx) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			return [];
-		}
+	args: {
+		userId: v.id('users') // Required: passed from authenticated SvelteKit session
+	},
+	handler: async (ctx, args) => {
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		// Get all user tags (including shared ones)
 		const tags = await ctx.db

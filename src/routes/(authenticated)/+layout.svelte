@@ -216,6 +216,7 @@
 			triggerMethod={quickCreateTrigger}
 			currentView={getCurrentView()}
 			initialType={quickCreateInitialType}
+			userId={data.user?.userId}
 		/>
 
 		<!-- Organization Modals (Create/Join Org, Create/Join Team) -->

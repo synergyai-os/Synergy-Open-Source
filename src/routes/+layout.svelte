@@ -6,16 +6,16 @@
 	import posthog from 'posthog-js';
 	import { beforeNavigate, afterNavigate } from '$app/navigation';
 	import { onMount, setContext } from 'svelte';
-	import { setupConvex } from 'convex-svelte';
+	import { setupConvex, useConvexClient } from 'convex-svelte';
 	import { useOrganizations } from '$lib/composables/useOrganizations.svelte';
 	import OrganizationModals from '$lib/components/organizations/OrganizationModals.svelte';
 
 	let { children, data } = $props();
 
-	// Set up Convex client (unauthenticated - WorkOS handles auth separately)
+	// Set up Convex client
 	setupConvex(PUBLIC_CONVEX_URL);
+	const convexClient = browser ? useConvexClient() : null;
 
-	// TODO: Remove userId param once Convex auth context is set up with WorkOS JWT
 	const organizationStore = useOrganizations({ userId: () => data.user?.userId });
 	setContext('organizations', organizationStore);
 
@@ -57,6 +57,52 @@
 		} else {
 			posthog.reset();
 		}
+	});
+
+	// Set Convex auth token when user is authenticated
+	$effect(() => {
+		console.log('🔍 Convex auth $effect triggered:', {
+			browser,
+			hasConvexClient: !!convexClient,
+			isAuthenticated: data.isAuthenticated,
+			userEmail: data.user?.email
+		});
+
+		if (!browser || !convexClient) {
+			console.log('⏸️  Skipping Convex auth setup (no browser or client)');
+			return;
+		}
+
+		if (!data.isAuthenticated) {
+			console.log('🔓 User not authenticated, clearing Convex auth');
+			convexClient.setAuth(async () => null);
+			return;
+		}
+
+		console.log('🔐 Setting up Convex auth for authenticated user');
+		
+		// Fetch WorkOS access token and set it on Convex client
+		convexClient.setAuth(async () => {
+			console.log('🔍 Fetching WorkOS access token for Convex...');
+			
+			try {
+				const response = await fetch('/auth/token', {
+					credentials: 'include'
+				});
+				
+				if (!response.ok) {
+					console.error('❌ Failed to fetch auth token:', response.status);
+					return null;
+				}
+
+				const { token } = await response.json();
+				console.log('✅ WorkOS token fetched successfully:', token ? 'present' : 'missing');
+				return token;
+			} catch (error) {
+				console.error('❌ Error fetching auth token:', error);
+				return null;
+			}
+		});
 	});
 
 	// Theme is initialized via inline script in app.html for FOUC prevention

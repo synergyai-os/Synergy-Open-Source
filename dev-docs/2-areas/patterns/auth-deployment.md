@@ -712,7 +712,102 @@ await createDirectedLink(ctx, linkedUserId, primaryUserId, linkType);
 
 ---
 
-**Last Updated**: 2025-11-11  
-**Pattern Count**: 14  
+## #L760: Pass userId to Convex Queries/Mutations When JWT Auth Fails [🔴 CRITICAL]
+
+**Symptom**: "Not authenticated" errors in Convex, queries return empty arrays, mutations fail  
+**Root Cause**: WorkOS password auth tokens don't include `aud` claim required for Convex JWT validation, so `ctx.auth.getUserIdentity()` returns `null`  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Using getAuthUserId which returns null
+export const listItems = query({
+	args: {},
+	handler: async (ctx) => {
+		const userId = await getAuthUserId(ctx); // ❌ Returns null
+		if (!userId) return [];
+		// ...
+	}
+});
+
+// ✅ CORRECT: Accept userId parameter + validate session
+import { validateSession } from './sessionValidation';
+
+export const listItems = query({
+	args: {
+		userId: v.id('users') // Required: passed from authenticated SvelteKit session
+	},
+	handler: async (ctx, args) => {
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
+		// ...
+	}
+});
+```
+
+**Client-side pattern**:
+
+```typescript
+// ✅ Get userId from page data
+const getUserId = () => $page.data.user?.userId;
+
+// ✅ Pass to query (reactive)
+const itemsQuery = browser && getUserId()
+	? useQuery(api.items.listItems, () => {
+			const userId = getUserId();
+			if (!userId) return null; // Skip query if userId not available
+			return { userId };
+		})
+	: null;
+```
+
+**Why**: WorkOS password auth tokens lack `aud` claim, breaking Convex JWT validation. Passing `userId` from authenticated SvelteKit session + validating against `authSessions` table provides secure workaround.
+
+**Session Validation Helper** (`convex/sessionValidation.ts`):
+
+```typescript
+export async function validateSession(
+	ctx: QueryCtx | MutationCtx,
+	userId: Id<'users'>
+) {
+	const session = await ctx.db
+		.query('authSessions')
+		.filter((q) => q.eq(q.field('convexUserId'), userId))
+		.order('desc')
+		.first();
+
+	if (!session) {
+		throw new Error('Session not found - user must log in');
+	}
+
+	if (session.expiresAt < Date.now()) {
+		throw new Error('Session expired - user must log in again');
+	}
+
+	return session;
+}
+```
+
+**Migration Checklist**:
+1. Add `userId: v.id('users')` to query/mutation args
+2. Import `validateSession` from `./sessionValidation`
+3. Call `await validateSession(ctx, args.userId)` at start of handler
+4. Update client code to pass `userId` from `$page.data.user?.userId`
+5. Wrap query in conditional: `browser && getUserId() ? useQuery(...) : null`
+
+**Apply when**:
+- Convex queries/mutations return empty/null unexpectedly
+- "Not authenticated" errors in Convex logs
+- Using WorkOS password auth (not AuthKit hosted UI)
+- JWT validation fails due to missing `aud` claim
+
+**TODO**: Once WorkOS adds `aud` claim support, migrate back to JWT-based auth
+
+**Related**: #L680 (Custom JWT auth), #L610 (Session expiry), #L660 (Reactive queries)
+
+---
+
+**Last Updated**: 2025-11-12  
+**Pattern Count**: 15  
 **Validated**: WorkOS AuthKit, SvelteKit, Vite, Convex, Svelte 5  
 **Format Version**: 2.0
