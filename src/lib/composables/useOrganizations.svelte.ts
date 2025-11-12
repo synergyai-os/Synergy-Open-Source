@@ -1,9 +1,11 @@
 import { browser } from '$app/environment';
+import { page } from '$app/stores';
 import { useConvexClient, useQuery } from 'convex-svelte';
 import { api } from '$lib/convex';
 import { AnalyticsEventName } from '$lib/analytics/events';
 import posthog from 'posthog-js';
 import { toast } from '$lib/utils/toast';
+import { get } from 'svelte/store';
 
 export type OrganizationRole = 'owner' | 'admin' | 'member';
 
@@ -80,8 +82,18 @@ export function useOrganizations(options?: { userId?: () => string | undefined }
 	const storageKey = getStorageKey(currentUserId);
 	const storageDetailsKey = getStorageDetailsKey(currentUserId);
 
+	// Check for org query parameter (takes precedence over localStorage)
+	let initialActiveIdFromUrl: string | null = null;
+	if (browser) {
+		const pageStore = get(page);
+		const orgParam = pageStore?.url?.searchParams?.get('org');
+		if (orgParam) {
+			initialActiveIdFromUrl = orgParam;
+		}
+	}
+
 	const storedActiveId = browser ? localStorage.getItem(storageKey) : null;
-	const initialActiveId = storedActiveId === PERSONAL_SENTINEL ? null : storedActiveId;
+	const initialActiveId = initialActiveIdFromUrl || (storedActiveId === PERSONAL_SENTINEL ? null : storedActiveId);
 
 	// Load cached organization details for optimistic UI
 	let cachedOrgDetails: OrganizationSummary | null = null;
