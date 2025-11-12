@@ -55,23 +55,42 @@ import { browser, dev } from '$app/environment';
 	const linkedAccounts = $derived(authSession.availableAccounts ?? []);
 
 	// Fetch organizations for each linked account
-	// Note: We need to create queries at component initialization, not inside $derived
-	const linkedAccountOrgQueries = browser
-		? linkedAccounts.map((account) =>
-				useQuery(api.organizations.listOrganizations, () => ({
+	// Use a Map to maintain queries keyed by userId for proper reactivity
+	const orgQueriesMap = new Map<string, ReturnType<typeof useQuery>>();
+
+	// Create/update queries reactively when linkedAccounts changes
+	$effect(() => {
+		if (!browser) return;
+
+		// Get current account IDs
+		const currentAccountIds = new Set(linkedAccounts.map((a) => a.userId));
+
+		// Remove queries for accounts that are no longer linked
+		for (const userId of orgQueriesMap.keys()) {
+			if (!currentAccountIds.has(userId)) {
+				orgQueriesMap.delete(userId);
+			}
+		}
+
+		// Create queries for new accounts
+		for (const account of linkedAccounts) {
+			if (!orgQueriesMap.has(account.userId)) {
+				const query = useQuery(api.organizations.listOrganizations, () => ({
 					userId: account.userId as Id<'users'>
-				}))
-			)
-		: [];
+				}));
+				orgQueriesMap.set(account.userId, query);
+			}
+		}
+	});
 
 	const linkedAccountOrganizations = $derived(
-		linkedAccounts.map((account, index) => ({
+		linkedAccounts.map((account) => ({
 			userId: account.userId,
 			email: account.email,
 			name: account.name,
 			firstName: account.firstName,
 			lastName: account.lastName,
-			organizations: (linkedAccountOrgQueries[index]?.data ?? []) as any[]
+			organizations: (orgQueriesMap.get(account.userId)?.data ?? []) as any[]
 		}))
 	);
 
