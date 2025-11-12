@@ -1,6 +1,7 @@
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 import { getAuthUserId } from './auth';
+import { validateSession } from './sessionValidation';
 import { requirePermission } from './rbac/permissions';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
@@ -90,16 +91,20 @@ async function getUserEmail(ctx: QueryCtx | MutationCtx, userId: Id<'users'>) {
 	return typeof emailField === 'string' ? emailField : null;
 }
 
+/**
+ * List all organizations the user is a member of
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
+ */
 export const listOrganizations = query({
 	args: {
-		userId: v.optional(v.id('users')) // TODO: Remove once Convex auth context is set up
+		userId: v.id('users') // Required: passed from authenticated SvelteKit session
 	},
 	handler: async (ctx, args) => {
-		// Try explicit userId first (client passes it), fallback to auth context
-		const userId = args.userId ?? (await getAuthUserId(ctx));
-		if (!userId) {
-			return [];
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		const memberships = await ctx.db
 			.query('organizationMembers')
@@ -204,17 +209,21 @@ export const listOrganizationInvites = query({
 	}
 });
 
+/**
+ * Create a new organization
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
+ */
 export const createOrganization = mutation({
 	args: {
 		name: v.string(),
-		userId: v.optional(v.id('users')) // TODO: Remove once Convex auth context is set up
+		userId: v.id('users') // Required: passed from authenticated SvelteKit session
 	},
 	handler: async (ctx, args) => {
-		// Try explicit userId first (client passes it), fallback to auth context
-		const userId = args.userId ?? (await getAuthUserId(ctx));
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		const trimmedName = args.name.trim();
 		if (!trimmedName) {

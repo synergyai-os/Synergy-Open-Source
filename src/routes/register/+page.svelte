@@ -8,6 +8,10 @@
 			$page.url.searchParams.get('redirectTo') ??
 			'/inbox'
 	);
+	const linkingFlow = $derived(() => {
+		const value = $page.url.searchParams.get('linkAccount') ?? $page.url.searchParams.get('link_account');
+		return value === '1' || value === 'true' || value === 'yes';
+	});
 
 	let email = $state('');
 	let password = $state('');
@@ -49,12 +53,14 @@
 			const response = await fetch('/auth/register', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
+				credentials: 'include', // Include cookies so session can be resolved for account linking
 				body: JSON.stringify({
 					email: email.trim(),
 					password,
 					firstName: firstName.trim() || undefined,
 					lastName: lastName.trim() || undefined,
-					redirect: redirectTarget
+					redirect: redirectTarget,
+					linkAccount: linkingFlow() // Pass the linkAccount flag
 				})
 			});
 

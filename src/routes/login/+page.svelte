@@ -58,6 +58,7 @@
 			const response = await fetch('/auth/login', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
+				credentials: 'include', // Include cookies so session can be resolved for account linking
 				body: JSON.stringify({
 					email: email.trim(),
 					password,
@@ -97,7 +98,12 @@
 				<h1 class="text-2xl font-semibold tracking-tight text-primary">Welcome back</h1>
 				<p class="text-sm text-secondary">
 					Sign in to continue where you left off. Don't have an account?
-					<a href="/register" class="text-accent-primary hover:text-accent-hover">Create one</a>.
+					<a
+						href={linkingFlow()
+							? `/register?linkAccount=1&redirect=${encodeURIComponent(redirectTarget)}&email=${encodeURIComponent(email)}`
+							: `/register?redirect=${encodeURIComponent(redirectTarget)}${email ? `&email=${encodeURIComponent(email)}` : ''}`}
+						class="text-accent-primary hover:text-accent-hover"
+					>Create one</a>.
 				</p>
 			</header>
 

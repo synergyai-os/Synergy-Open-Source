@@ -1,4 +1,22 @@
 import { browser } from '$app/environment';
+import {
+	loadSessions,
+	addSession,
+	removeSession,
+	setActiveAccount,
+	getActiveSession,
+	getAllSessions,
+	getActiveAccountId,
+	type SessionData
+} from '$lib/client/sessionStorage';
+
+export interface LinkedAccountInfo {
+	userId: string;
+	email: string;
+	name?: string;
+	firstName?: string;
+	lastName?: string;
+}
 
 export interface UseAuthSessionReturn {
 	get isLoading(): boolean;
@@ -19,6 +37,8 @@ export interface UseAuthSessionReturn {
 		  }
 		| null;
 	get error(): string | null;
+	get availableAccounts(): LinkedAccountInfo[];
+	get activeAccountId(): string | null;
 	refresh: () => Promise<void>;
 	logout: () => Promise<void>;
 	switchAccount: (targetUserId: string, redirectTo?: string) => Promise<void>;
@@ -45,7 +65,8 @@ export function useAuthSession(): UseAuthSessionReturn {
 		isAuthenticated: false,
 		user: null as UseAuthSessionReturn['user'],
 		csrfToken: null as string | null,
-		error: null as string | null
+		error: null as string | null,
+		availableAccounts: [] as LinkedAccountInfo[]
 	});
 
 	async function loadSession() {
@@ -58,6 +79,9 @@ export function useAuthSession(): UseAuthSessionReturn {
 		state.error = null;
 
 		try {
+			// Check localStorage for active session first
+			const localSession = getActiveSession();
+			
 			const response = await fetch('/auth/session', {
 				headers: {
 					Accept: 'application/json'
@@ -75,6 +99,25 @@ export function useAuthSession(): UseAuthSessionReturn {
 			state.user = data.authenticated && data.user ? data.user : null;
 			const cookieToken = readCookie('syos_csrf') ?? readCookie('axon_csrf');
 			state.csrfToken = data.csrfToken ?? cookieToken;
+
+			// If authenticated, store/update session in localStorage
+			if (data.authenticated && data.user && data.csrfToken && data.expiresAt) {
+				addSession(data.user.userId, {
+					sessionId: 'current', // Will be updated by server response
+					csrfToken: data.csrfToken,
+					expiresAt: data.expiresAt,
+					userEmail: data.user.email,
+					userName: data.user.name
+				});
+			}
+
+			// Load all available accounts
+			const allSessions = getAllSessions();
+			state.availableAccounts = Object.entries(allSessions).map(([userId, session]) => ({
+				userId,
+				email: session.userEmail,
+				name: session.userName
+			}));
 		} catch (error) {
 			console.error('Failed to load auth session', error);
 			state.isAuthenticated = false;
@@ -94,6 +137,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 			return;
 		}
 
+		const currentUserId = state.user?.userId;
 		state.isLoading = true;
 		state.error = null;
 
@@ -107,7 +151,26 @@ export function useAuthSession(): UseAuthSessionReturn {
 			});
 
 			if (response.ok || response.status === 303 || response.redirected) {
-				window.location.href = '/login';
+				// Remove current session from localStorage
+				if (currentUserId) {
+					removeSession(currentUserId);
+				}
+
+				// Check if other sessions exist
+				const remainingSessions = getAllSessions();
+				const remainingAccounts = Object.keys(remainingSessions);
+
+				if (remainingAccounts.length > 0) {
+					// Switch to first available account
+					const nextUserId = remainingAccounts[0];
+					setActiveAccount(nextUserId);
+					
+					// Reload to switch to the other account
+					window.location.href = '/inbox?switched=1';
+				} else {
+					// No other sessions, go to login
+					window.location.href = '/login';
+				}
 				return;
 			}
 
@@ -125,7 +188,16 @@ export function useAuthSession(): UseAuthSessionReturn {
 	async function switchAccount(targetUserId: string, redirectTo?: string) {
 		if (!browser) return;
 
-		const csrfToken = state.csrfToken ?? readCookie('syos_csrf') ?? readCookie('axon_csrf');
+		// Check if session exists in localStorage
+		const allSessions = getAllSessions();
+		if (!allSessions[targetUserId]) {
+			state.error = 'Session not found. Please log in to this account first.';
+			return;
+		}
+
+		const targetSession = allSessions[targetUserId];
+		const csrfToken = state.csrfToken ?? targetSession.csrfToken ?? readCookie('syos_csrf') ?? readCookie('axon_csrf');
+		
 		if (!csrfToken) {
 			state.error = 'Unable to verify session (missing CSRF token).';
 			return;
@@ -135,6 +207,9 @@ export function useAuthSession(): UseAuthSessionReturn {
 		state.error = null;
 
 		try {
+			// Update active account in localStorage
+			setActiveAccount(targetUserId);
+
 			const response = await fetch('/auth/switch', {
 				method: 'POST',
 				headers: {
@@ -155,7 +230,16 @@ export function useAuthSession(): UseAuthSessionReturn {
 				return;
 			}
 
-			const result = (await response.json()) as { redirect?: string };
+			const result = (await response.json()) as { redirect?: string; csrfToken?: string };
+			
+			// Update CSRF token for new session
+			if (result.csrfToken) {
+				addSession(targetUserId, {
+					...targetSession,
+					csrfToken: result.csrfToken
+				});
+			}
+
 			state.csrfToken = null;
 			window.location.href = result.redirect ?? redirectTo ?? '/inbox';
 		} catch (error) {
@@ -182,6 +266,12 @@ export function useAuthSession(): UseAuthSessionReturn {
 		},
 		get error() {
 			return state.error;
+		},
+		get availableAccounts() {
+			return state.availableAccounts;
+		},
+		get activeAccountId() {
+			return getActiveAccountId();
 		},
 		refresh: loadSession,
 		logout,

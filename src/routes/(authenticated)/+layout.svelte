@@ -217,6 +217,8 @@
 			currentView={getCurrentView()}
 			initialType={quickCreateInitialType}
 			userId={data.user?.userId}
+			organizationId={organizations?.activeOrganizationId ?? null}
+			teamId={organizations?.activeTeamId ?? null}
 		/>
 
 		<!-- Organization Modals (Create/Join Org, Create/Join Team) -->

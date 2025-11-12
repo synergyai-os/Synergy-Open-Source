@@ -2,6 +2,7 @@
 	import { getContext } from 'svelte';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
+	import { replaceState } from '$app/navigation';
 	import { useConvexClient } from 'convex-svelte';
 	import { makeFunctionReference } from 'convex/server';
 	import { api } from '$lib/convex';
@@ -94,7 +95,7 @@
 			linkedSuccessTimeout = setTimeout(() => {
 				const url = new URL(window.location.href);
 				url.searchParams.delete('linked');
-				window.history.replaceState({}, '', url);
+				replaceState(url.pathname + url.search, {});
 			}, 5000);
 		}
 
@@ -351,7 +352,7 @@
 				onclick={() => {
 					const url = new URL(window.location.href);
 					url.searchParams.delete('linked');
-					window.history.replaceState({}, '', url);
+					replaceState(url.pathname + url.search, {});
 				}}
 				class="ml-2 text-secondary hover:text-primary transition-colors"
 				aria-label="Dismiss"

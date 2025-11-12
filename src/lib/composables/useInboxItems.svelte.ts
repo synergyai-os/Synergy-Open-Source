@@ -45,10 +45,12 @@ export function useInboxItems(params?: UseInboxItemsParams): UseInboxItemsReturn
 				};
 
 				// Add workspace context (handle both function and value)
+				// IMPORTANT: Pass null explicitly for personal workspace to filter correctly
 				const orgId = typeof params?.activeOrganizationId === 'function' 
 					? params.activeOrganizationId() 
 					: params?.activeOrganizationId;
-				if (orgId !== undefined && orgId !== null) {
+				if (orgId !== undefined) {
+					// Pass null explicitly for personal workspace (required for filtering)
 					baseArgs.organizationId = orgId;
 				}
 				

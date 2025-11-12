@@ -100,8 +100,12 @@ export function useOrganizations(options?: { userId?: () => string | undefined }
 		}
 	});
 
-	const organizationsQuery = browser
-		? useQuery(api.organizations.listOrganizations, () => ({ userId: getUserId() as any }))
+	const organizationsQuery = browser && getUserId()
+		? useQuery(api.organizations.listOrganizations, () => {
+				const userId = getUserId();
+				if (!userId) return null; // Skip query if userId not available
+				return { userId };
+			})
 		: null;
 	const organizationInvitesQuery = browser
 		? useQuery(api.organizations.listOrganizationInvites, () => ({ userId: getUserId() as any }))
@@ -329,12 +333,17 @@ const teamsQuery = browser && getUserId()
 		const trimmed = payload.name.trim();
 		if (!trimmed) return;
 
+		const userId = getUserId();
+		if (!userId) {
+			throw new Error('User ID is required. Please log in again.');
+		}
+
 		state.loading.createOrganization = true;
 
 		try {
 			const result = await convexClient.mutation(api.organizations.createOrganization, {
 				name: trimmed,
-				userId: getUserId() as any // TODO: Remove once Convex auth context is set up
+				userId
 			});
 
 			if (result?.organizationId) {

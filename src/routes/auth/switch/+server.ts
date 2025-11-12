@@ -97,6 +97,9 @@ export const POST: RequestHandler = async (event) => {
 		userSnapshot: targetSession.userSnapshot
 	});
 
+	console.log('✅ Account switch successful');
+
+	// Note: Multi-session support - session is preserved in Convex and client localStorage
 	return json({ success: true, redirect: redirectHint ?? '/inbox' });
 };
 

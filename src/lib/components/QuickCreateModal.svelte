@@ -28,6 +28,8 @@
 		currentView?: 'inbox' | 'flashcards' | 'tags' | 'my_mind' | 'study';
 		initialType?: ContentType | null;
 		userId?: Id<'users'>; // Required for session validation
+		organizationId?: string | null; // Active organization ID (for workspace context)
+		teamId?: string | null; // Active team ID (for workspace context)
 	};
 
 	let {
@@ -35,7 +37,9 @@
 		triggerMethod = 'keyboard_n',
 		currentView = 'inbox',
 		initialType = null,
-		userId
+		userId,
+		organizationId = null,
+		teamId = null
 	}: Props = $props();
 
 	const convexClient = browser ? useConvexClient() : null;
@@ -256,7 +260,9 @@
 					title: noteTitle || undefined,
 					content: typeof noteContent === 'string' ? noteContent : JSON.stringify(noteContent),
 					contentMarkdown: noteContentMarkdown || undefined,
-					isAIGenerated: noteIsAIGenerated || undefined
+					isAIGenerated: noteIsAIGenerated || undefined,
+					organizationId: organizationId || undefined, // Pass active organization context
+					teamId: teamId || undefined // Pass active team context
 				});
 
 				// If there are tags, we need to link them after creation
