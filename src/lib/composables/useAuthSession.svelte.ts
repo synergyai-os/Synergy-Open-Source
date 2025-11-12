@@ -168,8 +168,27 @@ export function useAuthSession(): UseAuthSessionReturn {
 					const nextUserId = remainingAccounts[0];
 					setActiveAccount(nextUserId);
 					
-					// Reload to switch to the other account
-					window.location.href = '/inbox?switched=1';
+					// Restore session for the next account
+					try {
+						const restoreResponse = await fetch('/auth/restore', {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							credentials: 'include',
+							body: JSON.stringify({ userId: nextUserId })
+						});
+
+						if (restoreResponse.ok) {
+							// Session restored, redirect to inbox
+							window.location.href = '/inbox?switched=1';
+						} else {
+							// Failed to restore, go to login
+							console.error('Failed to restore session for next account');
+							window.location.href = '/login';
+						}
+					} catch (error) {
+						console.error('Failed to restore session:', error);
+						window.location.href = '/login';
+					}
 				} else {
 					// No other sessions, go to login
 					window.location.href = '/login';
