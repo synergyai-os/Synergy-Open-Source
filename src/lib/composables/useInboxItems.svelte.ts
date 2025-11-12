@@ -12,7 +12,7 @@ import type { InboxItem } from '$lib/composables/useKeyboardNavigation.svelte';
 type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 
 export interface UseInboxItemsParams {
-	userId: () => string | undefined; // Required: Function returning Convex user ID from authenticated session
+	sessionId: () => string | undefined; // Required: Function returning sessionId from authenticated session
 	activeOrganizationId?: (() => string | null) | string | null; // Function or value for reactivity
 	activeTeamId?: (() => string | null) | string | null; // Function or value for reactivity
 }
@@ -34,13 +34,13 @@ export function useInboxItems(params?: UseInboxItemsParams): UseInboxItemsReturn
 
 	// Use reactive query for real-time inbox items updates
 	// This automatically subscribes to changes and updates when new items are added during sync
-	const inboxQuery = browser && params?.userId
+	const inboxQuery = browser && params?.sessionId
 		? useQuery(api.inbox.listInboxItems, () => {
-				const userId = params.userId(); // Get current userId (reactive)
-				if (!userId) return null; // Skip query if userId not available
+				const sessionId = params.sessionId(); // Get current sessionId (reactive)
+				if (!sessionId) return null; // Skip query if sessionId not available
 				
 				const baseArgs: any = { 
-					userId, // Required for session validation
+					sessionId, // Required for session validation
 					processed: false 
 				};
 

@@ -27,7 +27,7 @@ export interface UseInboxSyncReturn {
 export function useInboxSync(
 	convexClient: ConvexClient | null,
 	inboxApi: InboxApi | null,
-	getUserId: () => string | undefined,
+	getSessionId: () => string | undefined,
 	onItemsReload?: () => Promise<void>,
 	onClearSelection?: () => void
 ): UseInboxSyncReturn {
@@ -80,11 +80,11 @@ export function useInboxSync(
 		// Don't poll if we're just showing the config panel (not actively syncing)
 		if (!state.isSyncing && !state.syncProgress) return;
 
-		const userId = getUserId();
-		if (!userId) return;
+		const sessionId = getSessionId();
+		if (!sessionId) return;
 
 		try {
-			const progress = (await convexClient.query(inboxApi.getSyncProgress, { userId })) as SyncProgress;
+			const progress = (await convexClient.query(inboxApi.getSyncProgress, { sessionId })) as SyncProgress;
 			if (progress) {
 				// Update progress state
 				state.syncProgress = progress;

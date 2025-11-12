@@ -25,8 +25,8 @@
 	import { useInboxLayout } from '$lib/composables/useInboxLayout.svelte';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 
-	// Get user ID from page data (provided by authenticated layout)
-	const getUserId = () => $page.data.user?.userId;
+	// Get sessionId from page data (provided by authenticated layout)
+	const getSessionId = () => $page.data.sessionId;
 
 	// Get workspace context (functions for reactivity)
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
@@ -46,13 +46,13 @@
 
 	// Initialize inbox items composable with workspace context
 	const items = useInboxItems({
-		userId: getUserId, // Required for session validation - function ensures reactivity
+		sessionId: getSessionId, // Required for session validation - function ensures reactivity
 		activeOrganizationId: activeOrganizationId, // Pass function for reactivity
 		activeTeamId: activeTeamId // Pass function for reactivity
 	});
 
 	// Initialize selected item composable
-	const selected = useSelectedItem(convexClient, inboxApi, getUserId);
+	const selected = useSelectedItem(convexClient, inboxApi, getSessionId);
 
 	// Track whether auto-selection should run when items are available
 	const autoSelectState = $state({ enabled: true });
@@ -111,7 +111,7 @@
 	const sync = useInboxSync(
 		convexClient,
 		inboxApi,
-		getUserId, // Required for session validation
+		getSessionId, // Required for session validation
 		undefined, // onItemsReload not needed - useQuery handles reactivity automatically
 		() => clearSelection()
 	);
@@ -269,13 +269,13 @@
 
 			// Mark inbox item as processed
 			if (selected.selectedItemId) {
-				const userId = getUserId();
-				if (!userId) {
-					throw new Error('User ID is required');
+				const sessionId = getSessionId();
+				if (!sessionId) {
+					throw new Error('Session ID is required');
 				}
 
 				await convexClient.mutation(api.inbox.markProcessed, {
-					userId,
+					sessionId,
 					inboxItemId: selected.selectedItemId as any
 				});
 			}
@@ -307,13 +307,13 @@
 
 			// Mark inbox item as processed
 			if (selected.selectedItemId) {
-				const userId = getUserId();
-				if (!userId) {
-					throw new Error('User ID is required');
+				const sessionId = getSessionId();
+				if (!sessionId) {
+					throw new Error('Session ID is required');
 				}
 
 				await convexClient.mutation(api.inbox.markProcessed, {
-					userId,
+					sessionId,
 					inboxItemId: selected.selectedItemId as any
 				});
 			}
