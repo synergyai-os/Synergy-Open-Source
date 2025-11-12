@@ -53,7 +53,10 @@
 		onCreateWorkspace,
 		onAddAccount,
 		onSwitchAccount,
-		onLogout
+		onLogout,
+		onLogoutAccount,
+		onCreateWorkspaceForAccount,
+		onJoinWorkspaceForAccount
 	}: {
 		organizations?: OrganizationSummary[];
 		activeOrganizationId?: string | null;
@@ -77,9 +80,12 @@
 		onInviteMembers?: () => void;
 		onSwitchWorkspace?: () => void;
 		onCreateWorkspace?: () => void;
+		onCreateWorkspaceForAccount?: (targetUserId: string) => void;
+		onJoinWorkspaceForAccount?: (targetUserId: string) => void;
 		onAddAccount?: () => void;
 		onSwitchAccount?: (targetUserId: string, redirectTo?: string) => void;
 		onLogout?: () => void;
+		onLogoutAccount?: (targetUserId: string) => void;
 	} = $props();
 
 	const hasOrganizations = $derived(() => organizations.length > 0);
@@ -283,7 +289,7 @@
 						>
 							<DropdownMenu.Item
 								class="cursor-pointer px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
-								textValue="Join or create workspace"
+								textValue="Create workspace"
 								onSelect={() => {
 									accountMenuOpen = false;
 									handleCreateWorkspace();
@@ -303,7 +309,32 @@
 											d="M12 4v16m8-8H4"
 										/>
 									</svg>
-									<span>Join or create workspace</span>
+									<span>Create workspace</span>
+								</div>
+							</DropdownMenu.Item>
+							<DropdownMenu.Item
+								class="cursor-pointer px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+								textValue="Join workspace"
+								onSelect={() => {
+									accountMenuOpen = false;
+									onJoinOrganization?.();
+								}}
+							>
+								<div class="flex items-center gap-2">
+									<svg
+										class="h-4 w-4"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+										/>
+									</svg>
+									<span>Join workspace</span>
 								</div>
 							</DropdownMenu.Item>
 							<DropdownMenu.Item
@@ -469,10 +500,10 @@
 								>
 									<DropdownMenu.Item
 										class="cursor-pointer px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
-										textValue="Join or create workspace"
+										textValue="Create workspace"
 										onSelect={() => {
 											linkedAccountMenuOpen[account.userId] = false;
-											handleSwitchAccount(account.userId, '/inbox?create=workspace');
+											onCreateWorkspaceForAccount?.(account.userId);
 										}}
 									>
 										<div class="flex items-center gap-2">
@@ -489,7 +520,32 @@
 													d="M12 4v16m8-8H4"
 												/>
 											</svg>
-											<span>Join or create workspace</span>
+											<span>Create workspace</span>
+										</div>
+									</DropdownMenu.Item>
+									<DropdownMenu.Item
+										class="cursor-pointer px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+										textValue="Join workspace"
+										onSelect={() => {
+											linkedAccountMenuOpen[account.userId] = false;
+											onJoinWorkspaceForAccount?.(account.userId);
+										}}
+									>
+										<div class="flex items-center gap-2">
+											<svg
+												class="h-4 w-4"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+											>
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													stroke-width="2"
+													d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+												/>
+											</svg>
+											<span>Join workspace</span>
 										</div>
 									</DropdownMenu.Item>
 									<DropdownMenu.Item
@@ -497,7 +553,7 @@
 										textValue="Log out"
 										onSelect={() => {
 											linkedAccountMenuOpen[account.userId] = false;
-											handleLogout();
+											onLogoutAccount?.(account.userId);
 										}}
 									>
 										<div class="flex items-center gap-2">

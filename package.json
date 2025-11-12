@@ -17,7 +17,10 @@
 		"test:unit": "vitest",
 		"test:unit:server": "vitest --run --project=server",
 		"test": "npm run test:unit:server && npm run test:e2e",
-		"test:e2e": "playwright test"
+		"test:e2e": "playwright test",
+		"test:e2e:quick-create": "playwright test e2e/quick-create.spec.ts",
+		"test:sessionid": "./scripts/check-sessionid-usage.sh",
+		"precommit": "npm run test:sessionid && npm run lint && npm run test:unit:server"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.4.0",

@@ -32,8 +32,8 @@
 	async function pollSyncProgress(): Promise<void> {
 		if (!browser || !convexClient || !inboxApi) return;
 
-		const userId = $page.data.user?.userId;
-		if (!userId) return;
+		const sessionId = $page.data.sessionId;
+		if (!sessionId) return;
 
 		// Find all sync activities
 		const syncActivities = activities.filter((a) => a.type === 'sync' && a.status === 'running');
@@ -41,7 +41,7 @@
 		if (syncActivities.length === 0) return;
 
 		try {
-			const progress = await convexClient.query(inboxApi.getSyncProgress, { userId });
+			const progress = await convexClient.query(inboxApi.getSyncProgress, { sessionId });
 
 			// Update all sync activities
 			for (const activity of syncActivities) {

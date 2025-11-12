@@ -9,6 +9,7 @@ import {
 	getActiveAccountId,
 	type SessionData
 } from '$lib/client/sessionStorage';
+import { toast } from '$lib/utils/toast';
 
 export interface LinkedAccountInfo {
 	userId: string;
@@ -41,6 +42,7 @@ export interface UseAuthSessionReturn {
 	get activeAccountId(): string | null;
 	refresh: () => Promise<void>;
 	logout: () => Promise<void>;
+	logoutAccount: (targetUserId: string) => Promise<void>;
 	switchAccount: (targetUserId: string, redirectTo?: string) => Promise<void>;
 }
 
@@ -137,14 +139,41 @@ export function useAuthSession(): UseAuthSessionReturn {
 
 	async function logout() {
 		if (!browser) return;
+		const currentUserId = state.user?.userId;
+		if (!currentUserId) {
+			state.error = 'No active session to log out.';
+			return;
+		}
+		await logoutAccount(currentUserId);
+	}
 
+	async function logoutAccount(targetUserId: string) {
+		if (!browser) return;
+
+		const currentUserId = state.user?.userId;
+		const isLoggingOutCurrentAccount = targetUserId === currentUserId;
+
+		// For non-current accounts: just remove from localStorage (session isn't active)
+		if (!isLoggingOutCurrentAccount) {
+			// Get account info for toast message
+			const allSessions = await getAllSessions();
+			const targetSession = allSessions[targetUserId];
+			const accountName = targetSession?.userName || targetSession?.userEmail || 'Account';
+			
+			await removeSession(targetUserId);
+			await loadSession(); // Refresh available accounts list
+			
+			toast.success(`${accountName} logged out`);
+			return;
+		}
+
+		// For current account: call server to invalidate active session
 		const csrfToken = state.csrfToken ?? readCookie('syos_csrf') ?? readCookie('axon_csrf');
 		if (!csrfToken) {
 			state.error = 'Unable to verify session (missing CSRF token).';
 			return;
 		}
 
-		const currentUserId = state.user?.userId;
 		state.isLoading = true;
 		state.error = null;
 
@@ -168,9 +197,10 @@ export function useAuthSession(): UseAuthSessionReturn {
 
 			if (response.ok || response.status === 303 || response.redirected) {
 				// Remove current session from localStorage
-				if (currentUserId) {
-					await removeSession(currentUserId);
-				}
+				await removeSession(targetUserId);
+				
+				// Show success toast before redirect
+				toast.success('Logged out successfully');
 
 				// Check if other sessions exist
 				const remainingSessions = await getAllSessions();
@@ -332,6 +362,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 		},
 		refresh: loadSession,
 		logout,
+		logoutAccount,
 		switchAccount
 	};
 }

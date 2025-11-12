@@ -460,10 +460,16 @@ export const recordOrganizationSwitch = mutation({
 		availableTeamCount: v.number()
 	},
 	handler: async (ctx, args) => {
+		// Silently skip analytics tracking if session not available - non-critical, shouldn't break UX
+		try {
 		const userId = await getAuthUserId(ctx);
 		if (!userId) {
-			// Silently skip analytics tracking - non-critical, shouldn't break UX
 			console.warn('⚠️ Skipping organization switch tracking: User not authenticated');
+				return;
+			}
+		} catch (error) {
+			// Session not found or expired - silently skip tracking
+			console.debug('⏭️ Skipping organization switch tracking: Session not available');
 			return;
 		}
 

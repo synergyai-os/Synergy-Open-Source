@@ -19,6 +19,20 @@
 
 ---
 
+## 🔍 Problem-Solving Workflow (MANDATORY)
+
+**Before implementing any fix or feature:**
+
+1. **Identify Problem** - Clearly state what's broken or what needs to be built
+2. **Confirm Root Cause** - Investigate why it's happening (check logs, trace code flow, test hypotheses)
+3. **Validate Pattern with DevDocs** - Check `dev-docs/2-areas/patterns/INDEX.md` for existing solutions
+4. **Create Hypothesis to Solution** - Design the fix based on root cause and patterns
+5. **Confidence Check**:
+   - **95%+ confident**: Implement directly
+   - **<95% confident**: Provide short recap (problem → solution → confidence score) and wait for confirmation
+
+**Why**: Prevents writing unnecessary code, introducing bugs, creating spaghetti code, and leaving garbage in the codebase. We want simple, clean, maintainable, scalable, reliable, secure code.
+
 ## 🔍 Workflow: Investigate → Scope → Plan → Confirm
 
 **Before building anything:**

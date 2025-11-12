@@ -391,6 +391,14 @@ import { browser, dev } from '$app/environment';
 				onCreateWorkspace={() => {
 					organizations?.openModal('createOrganization');
 				}}
+				onCreateWorkspaceForAccount={async (targetUserId) => {
+					// Switch to the target account and redirect to open create modal
+					await authSession.switchAccount(targetUserId, '/inbox?create=organization');
+				}}
+				onJoinWorkspaceForAccount={async (targetUserId) => {
+					// Switch to the target account and redirect to open join modal
+					await authSession.switchAccount(targetUserId, '/inbox?join=organization');
+				}}
 				onAddAccount={() => {
 					const currentPath = browser
 						? `${window.location.pathname}${window.location.search}`
@@ -423,6 +431,9 @@ import { browser, dev } from '$app/environment';
 				}}
 				onLogout={() => {
 					authSession.logout();
+				}}
+				onLogoutAccount={(targetUserId) => {
+					authSession.logoutAccount(targetUserId);
 				}}
 			/>
 
@@ -696,6 +707,7 @@ import { browser, dev } from '$app/environment';
 		<SidebarHeader
 			workspaceName={accountName}
 			{accountEmail}
+			linkedAccounts={linkedAccountOrganizations}
 			{sidebarCollapsed}
 			{isMobile}
 			{isHovered}
@@ -704,8 +716,60 @@ import { browser, dev } from '$app/environment';
 					window.location.href = '/settings';
 				}
 			}}
+			onInviteMembers={() => {
+				if (typeof window !== 'undefined') {
+					window.location.href = '/settings';
+				}
+			}}
+			onSwitchWorkspace={() => {
+				console.log('Switch workspace menu selected');
+			}}
+			onCreateWorkspace={() => {
+				organizations?.openModal('createOrganization');
+			}}
+			onCreateWorkspaceForAccount={async (targetUserId) => {
+				// Switch to the target account and redirect to open create modal
+				await authSession.switchAccount(targetUserId, '/inbox?create=organization');
+			}}
+			onJoinWorkspaceForAccount={async (targetUserId) => {
+				// Switch to the target account and redirect to open join modal
+				await authSession.switchAccount(targetUserId, '/inbox?join=organization');
+			}}
+			onAddAccount={() => {
+				const currentPath = browser
+					? `${window.location.pathname}${window.location.search}`
+					: '/inbox';
+				const params = new URLSearchParams({
+					linkAccount: '1',
+					redirect: currentPath
+				});
+				goto(`/login?${params.toString()}`);
+			}}
+			onSwitchAccount={async (targetUserId, redirectTo) => {
+				// Find the account being switched to
+				const targetAccount = linkedAccountOrganizations.find(a => a.userId === targetUserId);
+				const targetName = targetAccount?.firstName || targetAccount?.name || targetAccount?.email || 'account';
+				
+				// Show overlay IMMEDIATELY before API call/redirect
+				accountSwitchOverlay.show = true;
+				accountSwitchOverlay.targetName = targetName;
+				
+				try {
+					// Then perform the switch (which will set sessionStorage and redirect)
+					await authSession.switchAccount(targetUserId, redirectTo);
+				} catch (error) {
+					// Reset overlay if switch fails
+					accountSwitchOverlay.show = false;
+					accountSwitchOverlay.targetName = '';
+					console.error('Failed to switch account:', error);
+					// Optionally show error toast to user
+				}
+			}}
 			onLogout={() => {
 				authSession.logout();
+			}}
+			onLogoutAccount={(targetUserId) => {
+				authSession.logoutAccount(targetUserId);
 			}}
 		/>
 

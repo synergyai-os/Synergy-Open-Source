@@ -196,6 +196,25 @@ const teamsQuery = browser && getUserId()
 	$effect(() => {
 		if (!browser) return;
 
+		// Check for modal trigger URL parameters
+		const urlParams = new URLSearchParams(window.location.search);
+		const createParam = urlParams.get('create');
+		const joinParam = urlParams.get('join');
+		
+		if (createParam === 'organization') {
+			state.modals.createOrganization = true;
+			// Clean up URL param
+			urlParams.delete('create');
+			const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+			replaceState(newUrl, {});
+		} else if (joinParam === 'organization') {
+			state.modals.joinOrganization = true;
+			// Clean up URL param
+			urlParams.delete('join');
+			const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+			replaceState(newUrl, {});
+		}
+
 		// Priority 1: URL parameter (from account/workspace switching)
 		// Call function to get reactive value from parent
 		const urlOrgParam = getOrgFromUrl();

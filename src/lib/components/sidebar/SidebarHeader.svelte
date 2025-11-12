@@ -29,9 +29,12 @@
 		onInviteMembers?: () => void;
 		onSwitchWorkspace?: () => void;
 		onCreateWorkspace?: () => void;
+		onCreateWorkspaceForAccount?: (targetUserId: string) => void;
+		onJoinWorkspaceForAccount?: (targetUserId: string) => void;
 		onAddAccount?: () => void;
 		onSwitchAccount?: (targetUserId: string, redirectTo?: string) => void;
 		onLogout?: () => void;
+		onLogoutAccount?: (targetUserId: string) => void;
 		onSearch?: () => void;
 		onEdit?: () => void;
 		isMobile?: boolean;
@@ -47,9 +50,12 @@
 		onInviteMembers,
 		onSwitchWorkspace,
 		onCreateWorkspace,
+		onCreateWorkspaceForAccount,
+		onJoinWorkspaceForAccount,
 		onAddAccount,
 		onSwitchAccount,
 		onLogout,
+		onLogoutAccount,
 		onSearch,
 		onEdit,
 		isMobile = false,
@@ -97,9 +103,12 @@
 				onInviteMembers={() => onInviteMembers?.()}
 				onSwitchWorkspace={() => onSwitchWorkspace?.()}
 				onCreateWorkspace={() => onCreateWorkspace?.()}
+				onCreateWorkspaceForAccount={(targetUserId) => onCreateWorkspaceForAccount?.(targetUserId)}
+				onJoinWorkspaceForAccount={(targetUserId) => onJoinWorkspaceForAccount?.(targetUserId)}
 				onAddAccount={() => onAddAccount?.()}
 				onSwitchAccount={(targetUserId, redirectTo) => onSwitchAccount?.(targetUserId, redirectTo)}
 				onLogout={() => onLogout?.()}
+				onLogoutAccount={(targetUserId) => onLogoutAccount?.(targetUserId)}
 			/>
 		</div>
 
