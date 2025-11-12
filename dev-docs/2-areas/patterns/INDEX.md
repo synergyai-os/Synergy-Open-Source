@@ -111,6 +111,9 @@
 | Multi-account support       | Account linking for Slack-style switching                   | [auth-deployment.md#L460](auth-deployment.md#L460)       |
 | Account linking direction   | Create bidirectional links for symmetry                     | [auth-deployment.md#L710](auth-deployment.md#L710)       |
 | E2E testing for auth        | 4-layer defense (static + unit + E2E + CI/CD)              | [auth-deployment.md#L1060](auth-deployment.md#L1060)     |
+| Ticket writing for AI       | User stories + technical detail for parallel AI execution   | [ticket-writing.md](ticket-writing.md)                   |
+| Split overlapping tickets   | Separate by technical boundary for parallel implementation  | [ticket-writing.md](ticket-writing.md)                   |
+| AI-ready ticket structure   | Clear scope, files, patterns, success criteria              | [ticket-writing.md](ticket-writing.md)                   |
 
 ---
 
@@ -121,6 +124,7 @@
 - **Convex Integration** → [convex-integration.md](convex-integration.md)
 - **UI/UX Patterns** → [ui-patterns.md](ui-patterns.md)
 - **Analytics (PostHog)** → [analytics.md](analytics.md)
+- **Ticket Writing** → [ticket-writing.md](ticket-writing.md)
 
 ---
 
