@@ -1,52 +1,58 @@
-import { redirect } from '@sveltejs/kit';
+import { redirect, json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { env } from '$env/dynamic/private';
+import { SESSION_COOKIE_NAME, clearSessionCookies, decodeSessionCookie } from '$lib/server/auth/session';
+import { getSessionRecord, invalidateSession } from '$lib/server/auth/sessionStore';
+import { hashValue } from '$lib/server/auth/crypto';
+import { revokeWorkOSSession } from '$lib/server/auth/workos';
 
-export const GET: RequestHandler = async ({ cookies, url }) => {
-	// Get the session token before deleting
-	const sessionToken = cookies.get('wos-session');
+const ALLOWED_METHODS = 'POST';
 
-	// Clear both WorkOS session and user cookies locally
-	const cookieOptions = {
-		path: '/',
-		httpOnly: true,
-		secure: process.env.NODE_ENV === 'production',
-		sameSite: 'lax' as const
-	};
-
-	cookies.delete('wos-session', cookieOptions);
-	cookies.delete('wos-user', cookieOptions);
-
-	// If we have a session token, redirect to WorkOS logout to end the WorkOS session
-	if (sessionToken && env.WORKOS_CLIENT_ID) {
-		try {
-			// Extract session ID from JWT (it's in the 'sid' claim)
-			const payload = JSON.parse(Buffer.from(sessionToken.split('.')[1], 'base64').toString());
-			const sessionId = payload.sid;
-
-			// Build WorkOS logout URL
-			// This will end the WorkOS session and redirect back to our app
-			const workosLogoutUrl = new URL('https://api.workos.com/user_management/sessions/logout');
-			workosLogoutUrl.searchParams.set('session_id', sessionId);
-
-			// Optional: Specify where to redirect after logout
-			const returnUrl = `${url.origin}/`;
-			workosLogoutUrl.searchParams.set('return_to', returnUrl);
-
-			// Redirect to WorkOS logout endpoint
-			throw redirect(302, workosLogoutUrl.toString());
-		} catch (error) {
-			// Only catch actual errors, not redirects
-			if (error instanceof Error) {
-				console.error('Error building logout URL:', error.message);
-			}
-			// Re-throw redirects
-			throw error;
+export const GET: RequestHandler = async () => {
+	return new Response('Method Not Allowed', {
+		status: 405,
+		headers: {
+			Allow: ALLOWED_METHODS
 		}
-	}
-
-	// No session token, just redirect to homepage
-	throw redirect(302, '/');
+	});
 };
 
-export const POST: RequestHandler = GET;
+export const POST: RequestHandler = async (event) => {
+	const sessionCookie = event.cookies.get(SESSION_COOKIE_NAME);
+	if (!sessionCookie) {
+		clearSessionCookies(event);
+		throw redirect(303, '/login');
+	}
+
+	const sessionId = decodeSessionCookie(sessionCookie);
+	if (!sessionId) {
+		clearSessionCookies(event);
+		throw redirect(303, '/login');
+	}
+
+	const sessionRecord = await getSessionRecord(sessionId);
+	if (!sessionRecord) {
+		clearSessionCookies(event);
+		throw redirect(303, '/login');
+	}
+
+	const csrfHeader = event.request.headers.get('x-csrf-token');
+	if (!csrfHeader) {
+		return json({ error: 'Missing CSRF token' }, { status: 400 });
+	}
+
+	if (hashValue(csrfHeader) !== sessionRecord.csrfTokenHash) {
+		return json({ error: 'Invalid CSRF token' }, { status: 403 });
+	}
+
+	try {
+		await revokeWorkOSSession(sessionRecord.workosSessionId);
+	} catch (error) {
+		console.error('Failed to revoke WorkOS session during logout', error);
+		// Continue with local logout even if WorkOS call fails
+	}
+
+	await invalidateSession(sessionRecord.sessionId);
+	clearSessionCookies(event);
+
+	throw redirect(303, '/login');
+};

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { dev } from '$app/environment';
+import { goto } from '$app/navigation';
+import { browser, dev } from '$app/environment';
 	import { tweened } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
 	import { fade } from 'svelte/transition';
@@ -11,6 +11,10 @@
 	import TeamList from './organizations/TeamList.svelte';
 	import CreateMenu from './sidebar/CreateMenu.svelte';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import { useAuthSession } from '$lib/composables/useAuthSession.svelte';
+	import { useQuery } from 'convex-svelte';
+	import { api } from '$lib/convex';
+	import type { Id } from '$lib/convex';
 
 	type Props = {
 		inboxCount: number;
@@ -44,6 +48,16 @@
 		? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}`
 		: 'Personal workspace';
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const authSession = useAuthSession();
+
+	// Query for linked accounts
+	const currentUserId = $derived(authSession.user?.userId as Id<'users'> | undefined);
+	const linkedAccountsQuery = $derived(
+		browser && currentUserId 
+			? useQuery(api.users.listLinkedAccounts, () => ({ userId: currentUserId }))
+			: null
+	);
+	const linkedAccounts = $derived(linkedAccountsQuery?.data ?? []);
 
 	let isPinned = $state(false);
 	let isHovered = $state(false);
@@ -316,6 +330,7 @@
 			<SidebarHeader
 				workspaceName={accountName}
 				{accountEmail}
+				{linkedAccounts}
 				{sidebarCollapsed}
 				{isMobile}
 				{isHovered}
@@ -332,13 +347,20 @@
 					console.log('Create workspace menu selected');
 				}}
 				onAddAccount={() => {
-					console.log('Add account menu selected');
+					const currentPath = browser
+						? `${window.location.pathname}${window.location.search}`
+						: '/inbox';
+					const params = new URLSearchParams({
+						linkAccount: '1',
+						redirect: currentPath
+					});
+					goto(`/login?${params.toString()}`);
+				}}
+				onSwitchAccount={(targetUserId, redirectTo) => {
+					authSession.switchAccount(targetUserId, redirectTo);
 				}}
 				onLogout={() => {
-					// Use window.location to trigger server endpoint (not client-side routing)
-					if (typeof window !== 'undefined') {
-						window.location.href = '/logout';
-					}
+					authSession.logout();
 				}}
 			/>
 
@@ -712,11 +734,8 @@
 					window.location.href = '/settings';
 				}
 			}}
-			onLogout={async () => {
-				// Redirect to logout endpoint (clears session and redirects)
-				if (typeof window !== 'undefined') {
-					window.location.href = '/logout';
-				}
+			onLogout={() => {
+				authSession.logout();
 			}}
 		/>
 

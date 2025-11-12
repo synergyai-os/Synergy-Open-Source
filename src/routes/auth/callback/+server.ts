@@ -1,102 +1,147 @@
 import { redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { env } from '$env/dynamic/private';
 import { env as publicEnv } from '$env/dynamic/public';
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '$convex/_generated/api';
+import { consumeLoginState } from '$lib/server/auth/sessionStore';
+import { exchangeAuthorizationCode } from '$lib/server/auth/workos';
+import { establishSession } from '$lib/server/auth/session';
 
-export const GET: RequestHandler = async ({ url, cookies, fetch }) => {
-	const code = url.searchParams.get('code');
-	const state = url.searchParams.get('state');
-	const error = url.searchParams.get('error');
-	const errorDescription = url.searchParams.get('error_description');
+export const GET: RequestHandler = async (event) => {
+	const code = event.url.searchParams.get('code');
+	const state = event.url.searchParams.get('state');
+	const error = event.url.searchParams.get('error');
+	const errorDescription = event.url.searchParams.get('error_description');
 
 	if (error) {
 		console.error('❌ WorkOS returned error:', error, errorDescription);
-		throw redirect(302, `/login?error=${error}`);
+		throw redirect(302, `/login?error=${encodeURIComponent(error)}`);
 	}
 
-	if (!code) {
-		console.error('❌ No code received');
-		throw redirect(302, '/login?error=no_code');
+	if (!code || !state) {
+		console.error('❌ Missing code or state in WorkOS callback');
+		throw redirect(302, '/login?error=invalid_callback');
 	}
 
 	try {
-		// Exchange code for session with WorkOS
-		const response = await fetch('https://api.workos.com/user_management/authenticate', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				client_id: env.WORKOS_CLIENT_ID,
-				client_secret: env.WORKOS_API_KEY,
-				code,
-				grant_type: 'authorization_code'
-			})
-		});
+		console.log('🔍 Auth callback - Starting flow with state:', state?.substring(0, 10) + '...');
+		
+		const loginState = await consumeLoginState(state);
 
-		if (!response.ok) {
-			const errorText = await response.text();
-			console.error('❌ WorkOS authentication failed:', errorText);
-			throw redirect(302, '/login?error=auth_failed');
+		if (!loginState) {
+			console.error('❌ Invalid or expired login state.');
+			throw redirect(302, '/login?error=invalid_state');
 		}
 
-		const data = await response.json();
+		console.log('✅ Login state retrieved successfully');
 
-		// Create Convex client for server-side mutation
-		const convex = new ConvexHttpClient(publicEnv.PUBLIC_CONVEX_URL);
+		const { codeVerifier, redirectTo, flowMode, linkAccount, primaryUserId } = loginState;
 
-		// Sync user to Convex database
-		const convexUserId = await convex.mutation(api.users.syncUserFromWorkOS, {
-			workosId: data.user.id,
-			email: data.user.email,
-			firstName: data.user.first_name,
-			lastName: data.user.last_name,
-			emailVerified: data.user.email_verified ?? true
+		console.log('🔍 Exchanging authorization code with WorkOS...');
+		const authResponse = await exchangeAuthorizationCode({
+			code,
+			codeVerifier
 		});
+		
+		console.log('✅ Authorization code exchanged, user:', authResponse.user.email);
 
-		// Set session cookie with access token
-		cookies.set('wos-session', data.access_token, {
-			path: '/',
-			httpOnly: true,
-			secure: process.env.NODE_ENV === 'production',
-			sameSite: 'lax',
-			maxAge: 60 * 60 * 24 * 30 // 30 days
-		});
+	console.log('🔍 Syncing user to Convex...');
+	const convex = new ConvexHttpClient(publicEnv.PUBLIC_CONVEX_URL);
 
-		// Store user data with Convex userId in cookie
-		cookies.set(
-			'wos-user',
-			JSON.stringify({
-				userId: convexUserId, // Convex user ID (for queries)
-				workosId: data.user.id, // WorkOS user ID (for reference)
-				email: data.user.email,
-				firstName: data.user.first_name,
-				lastName: data.user.last_name
-			}),
-			{
-				path: '/',
-				httpOnly: true,
-				secure: process.env.NODE_ENV === 'production',
-				sameSite: 'lax',
-				maxAge: 60 * 60 * 24 * 30 // 30 days
-			}
-		);
+	const convexUserId = await convex.mutation(api.users.syncUserFromWorkOS, {
+		workosId: authResponse.user.id,
+		email: authResponse.user.email,
+		firstName: authResponse.user.first_name,
+		lastName: authResponse.user.last_name,
+		emailVerified: authResponse.user.email_verified ?? true
+	});
+	
+	console.log('✅ User synced to Convex, userId:', convexUserId);
 
-		// Redirect to intended destination or inbox
-		const redirectTo = state || '/inbox';
-		throw redirect(302, redirectTo);
-	} catch (error) {
-		// Re-throw redirects (they're not errors in SvelteKit)
-		if (error instanceof Response) {
-			throw error;
+	const expiresAt =
+		authResponse.session?.expires_at !== undefined
+			? Date.parse(authResponse.session.expires_at)
+			: Date.now() + authResponse.expires_in * 1000;
+
+	// Handle account linking flow
+	if (linkAccount && primaryUserId && primaryUserId !== convexUserId) {
+		try {
+			await convex.mutation(api.users.linkAccounts, {
+				primaryUserId,
+				linkedUserId: convexUserId
+			});
+
+			// Create session record for linked account (so they can switch to it later)
+			const { createSessionRecord } = await import('$lib/server/auth/sessionStore');
+			const { generateCsrfToken } = await import('$lib/server/auth/crypto');
+
+			await createSessionRecord({
+				convexUserId,
+				workosUserId: authResponse.user.id,
+				workosSessionId: authResponse.session.id,
+				accessToken: authResponse.access_token,
+				refreshToken: authResponse.refresh_token,
+				csrfToken: generateCsrfToken(),
+				expiresAt,
+				userSnapshot: {
+					userId: convexUserId,
+					workosId: authResponse.user.id,
+					email: authResponse.user.email,
+					firstName: authResponse.user.first_name ?? undefined,
+					lastName: authResponse.user.last_name ?? undefined,
+					name:
+						authResponse.user.first_name && authResponse.user.last_name
+							? `${authResponse.user.first_name} ${authResponse.user.last_name}`
+							: authResponse.user.first_name ?? authResponse.user.last_name ?? undefined
+				},
+				ipAddress: event.getClientAddress(),
+				userAgent: event.request.headers.get('user-agent')
+			});
+
+			// Stay on primary account - redirect with success message
+			const successUrl = new URL(redirectTo ?? '/inbox', event.url.origin);
+			successUrl.searchParams.set('linked', '1');
+			throw redirect(302, successUrl.pathname + successUrl.search);
+		} catch (linkError) {
+			console.error('Failed to link accounts', linkError);
+			throw redirect(302, `/login?error=link_failed`);
+		}
+	}
+
+	// Normal login/signup flow - establish session for the account that just logged in
+	await establishSession({
+		event,
+		convexUserId,
+		workosUserId: authResponse.user.id,
+		workosSessionId: authResponse.session.id,
+		accessToken: authResponse.access_token,
+		refreshToken: authResponse.refresh_token,
+		expiresAt,
+		userSnapshot: {
+			userId: convexUserId,
+			workosId: authResponse.user.id,
+			email: authResponse.user.email,
+			firstName: authResponse.user.first_name ?? undefined,
+			lastName: authResponse.user.last_name ?? undefined,
+			name:
+				authResponse.user.first_name && authResponse.user.last_name
+					? `${authResponse.user.first_name} ${authResponse.user.last_name}`
+					: authResponse.user.first_name ?? authResponse.user.last_name ?? undefined
+		}
+	});
+
+	throw redirect(302, redirectTo ?? '/inbox');
+	} catch (err) {
+		if (err instanceof Response) {
+			throw err;
 		}
 
-		// Log actual errors
-		console.error('Auth callback error:', error);
-
-		// Redirect to login with error message
+		console.error('❌ Auth callback error:', err);
+		console.error('Error details:', {
+			name: (err as Error)?.name,
+			message: (err as Error)?.message,
+			stack: (err as Error)?.stack
+		});
 		throw redirect(302, '/login?error=callback_failed');
 	}
 };

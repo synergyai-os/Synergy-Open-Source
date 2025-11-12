@@ -1,44 +1,168 @@
 <script lang="ts">
-	import { Button } from 'bits-ui';
-	import { env } from '$env/dynamic/public';
+	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
+	import { Button, FormInput } from '$lib/components/ui';
 
-	let isLoading = $state(false);
+	const redirectTarget = $derived(
+		$page.url.searchParams.get('redirect') ??
+			$page.url.searchParams.get('redirectTo') ??
+			'/inbox'
+	);
 
-	function handleRegister() {
-		isLoading = true;
+	let email = $state('');
+	let password = $state('');
+	let confirmPassword = $state('');
+	let firstName = $state('');
+	let lastName = $state('');
+	let isSubmitting = $state(false);
+	let errorMessage = $state<string | null>(null);
 
-		// Build WorkOS authorization URL with sign-up hint
-		const authUrl = new URL('https://api.workos.com/user_management/authorize');
-		authUrl.searchParams.set('client_id', env.PUBLIC_WORKOS_CLIENT_ID);
-		authUrl.searchParams.set('redirect_uri', `${window.location.origin}/auth/callback`);
-		authUrl.searchParams.set('response_type', 'code');
-		authUrl.searchParams.set('provider', 'authkit'); // Specify AuthKit for email/password
-		authUrl.searchParams.set('state', '/inbox');
-		authUrl.searchParams.set('screen_hint', 'sign-up');
+	$effect(() => {
+		const prefill =
+			$page.url.searchParams.get('email') ?? $page.url.searchParams.get('login_hint');
+		if (prefill) {
+			email = prefill;
+		}
+	});
 
-		// Redirect to WorkOS
-		window.location.href = authUrl.toString();
+	async function handleSubmit(event: SubmitEvent) {
+		event.preventDefault();
+		if (isSubmitting) return;
+
+		errorMessage = null;
+
+		// Validate passwords match
+		if (password !== confirmPassword) {
+			errorMessage = 'Passwords do not match';
+			return;
+		}
+
+		// Validate password strength
+		if (password.length < 8) {
+			errorMessage = 'Password must be at least 8 characters';
+			return;
+		}
+
+		isSubmitting = true;
+
+		try {
+			const response = await fetch('/auth/register', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					email: email.trim(),
+					password,
+					firstName: firstName.trim() || undefined,
+					lastName: lastName.trim() || undefined,
+					redirect: redirectTarget
+				})
+			});
+
+		const data = await response.json();
+
+		if (!response.ok) {
+			// If email already exists, show helpful message and redirect to login
+			if (data.redirectToLogin && response.status === 409) {
+				errorMessage = 'This email is already registered. Taking you to the login page...';
+				// Redirect to login with email prefilled after 2 seconds
+				setTimeout(() => {
+					goto(`/login?email=${encodeURIComponent(email)}`);
+				}, 2000);
+				return;
+			}
+			
+			// Show the specific error message from the server
+			errorMessage = data.error ?? 'Unable to create account. Please try again.';
+			isSubmitting = false;
+			return;
+		}
+
+		// Success - redirect to target
+		await goto(data.redirectTo ?? '/inbox');
+		} catch (err) {
+			console.error('Registration error:', err);
+			errorMessage = 'Network error. Please check your connection and try again.';
+			isSubmitting = false;
+		}
 	}
 </script>
 
-<div class="flex min-h-screen items-center justify-center bg-base px-4 py-12 sm:px-6 lg:px-8">
-	<div class="w-full max-w-md space-y-8">
-		<div>
-			<h2 class="mt-6 text-center text-3xl font-extrabold text-primary">Create your account</h2>
-			<p class="mt-2 text-center text-sm text-secondary">
-				Already have an account?
-				<a href="/login" class="font-medium text-blue-600 hover:text-blue-500"> Sign in </a>
-			</p>
-		</div>
+<div class="min-h-screen bg-base">
+	<div class="mx-auto flex min-h-screen max-w-2xl items-center justify-center px-section py-system-content">
+		<div class="w-full max-w-md rounded-modal border border-base bg-elevated shadow-sm p-content-padding">
+			<header class="flex flex-col gap-form-section text-center">
+				<h1 class="text-2xl font-semibold tracking-tight text-primary">Create your account</h1>
+				<p class="text-sm text-secondary">
+					Already using SynergyOS?
+					<a href="/login" class="text-accent-primary hover:text-accent-hover">Sign in instead</a>.
+				</p>
+			</header>
 
-		<div>
-			<Button.Root
-				onclick={handleRegister}
-				disabled={isLoading}
-				class="flex w-full justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-			>
-				{isLoading ? 'Redirecting to sign up...' : 'Create account with WorkOS'}
-			</Button.Root>
+			{#if errorMessage}
+				<div class="mt-content-section rounded-input border border-accent-primary bg-hover-solid px-input-x py-input-y text-sm text-primary">
+					{errorMessage}
+				</div>
+			{/if}
+
+			<form class="mt-content-section flex flex-col gap-form-section" onsubmit={handleSubmit}>
+				<div class="flex gap-form-section">
+					<FormInput
+						type="text"
+						label="First name"
+						placeholder="John"
+						bind:value={firstName}
+						required={false}
+						autocomplete="given-name"
+					/>
+					<FormInput
+						type="text"
+						label="Last name"
+						placeholder="Doe"
+						bind:value={lastName}
+						required={false}
+						autocomplete="family-name"
+					/>
+				</div>
+
+				<FormInput
+					type="email"
+					label="Email"
+					placeholder="you@example.com"
+					bind:value={email}
+					required={true}
+					autocomplete="email"
+				/>
+
+				<FormInput
+					type="password"
+					label="Password"
+					placeholder="At least 8 characters"
+					bind:value={password}
+					required={true}
+					autocomplete="new-password"
+				/>
+
+				<FormInput
+					type="password"
+					label="Confirm password"
+					placeholder="Re-enter your password"
+					bind:value={confirmPassword}
+					required={true}
+					autocomplete="new-password"
+				/>
+
+				<Button variant="primary" type="submit" disabled={isSubmitting}>
+					{#if isSubmitting}
+						Creating account…
+					{:else}
+						Create account
+					{/if}
+				</Button>
+			</form>
+
+			<p class="mt-content-section text-center text-label text-secondary">
+				By creating an account, you agree to our Terms of Service and Privacy Policy.
+			</p>
 		</div>
 	</div>
 </div>

@@ -112,11 +112,12 @@ export function useOrganizations(options?: { userId?: () => string | undefined }
 
 	// Query teams - pass organizationId if we have one, undefined if in personal workspace mode
 	// The Convex function now accepts optional organizationId and returns [] when undefined
-	const teamsQuery = browser
-		? useQuery(api.teams.listTeams, () => ({
-				organizationId: state.activeOrganizationId as any
-			}))
-		: null;
+const teamsQuery = browser
+	? useQuery(api.teams.listTeams, () => {
+			const organizationId = state.activeOrganizationId;
+			return organizationId ? { organizationId } : {};
+		})
+	: null;
 
 	const isLoading = $derived(organizationsQuery ? organizationsQuery.data === undefined : false);
 

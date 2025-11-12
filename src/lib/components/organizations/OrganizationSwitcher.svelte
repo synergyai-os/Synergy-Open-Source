@@ -10,6 +10,14 @@
 
 	type Variant = 'sidebar' | 'topbar';
 
+	type LinkedAccount = {
+		userId: string;
+		email: string | null;
+		name: string | null;
+		firstName: string | null;
+		lastName: string | null;
+	};
+
 	let {
 		organizations = [] as OrganizationSummary[],
 		activeOrganizationId = null as string | null,
@@ -18,6 +26,7 @@
 		teamInvites = [] as TeamInvite[],
 		accountEmail = 'user@example.com',
 		accountName = 'Personal workspace',
+		linkedAccounts = [] as LinkedAccount[],
 		variant = 'sidebar' as Variant,
 		sidebarCollapsed = false,
 		isLoading = false,
@@ -33,6 +42,7 @@
 		onSwitchWorkspace,
 		onCreateWorkspace,
 		onAddAccount,
+		onSwitchAccount,
 		onLogout
 	}: {
 		organizations?: OrganizationSummary[];
@@ -42,6 +52,7 @@
 		teamInvites?: TeamInvite[];
 		accountEmail?: string;
 		accountName?: string;
+		linkedAccounts?: LinkedAccount[];
 		variant?: Variant;
 		sidebarCollapsed?: boolean;
 		isLoading?: boolean;
@@ -57,6 +68,7 @@
 		onSwitchWorkspace?: () => void;
 		onCreateWorkspace?: () => void;
 		onAddAccount?: () => void;
+		onSwitchAccount?: (targetUserId: string, redirectTo?: string) => void;
 		onLogout?: () => void;
 	} = $props();
 
@@ -127,6 +139,10 @@
 
 	function handleAddAccount() {
 		onAddAccount?.();
+	}
+
+	function handleSwitchAccount(targetUserId: string) {
+		onSwitchAccount?.(targetUserId);
 	}
 
 	function handleLogout() {
@@ -453,6 +469,28 @@
 					>
 						Create or join a workspace…
 					</DropdownMenu.Item>
+
+					{#if linkedAccounts.length > 0}
+						<DropdownMenu.Separator class="my-1 h-px bg-border" />
+						<DropdownMenu.Label class="px-menu-item py-1.5 text-xs font-semibold text-secondary">
+							Linked Accounts
+						</DropdownMenu.Label>
+						{#each linkedAccounts as account}
+							<DropdownMenu.Item
+								class="cursor-pointer px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+								textValue={account.email ?? 'Linked account'}
+								onSelect={() => handleSwitchAccount(account.userId)}
+							>
+								<div class="flex flex-col gap-0.5">
+									<span class="font-medium">{account.name ?? account.email ?? 'Linked account'}</span>
+									{#if account.email && account.name}
+										<span class="text-xs text-secondary">{account.email}</span>
+									{/if}
+								</div>
+							</DropdownMenu.Item>
+						{/each}
+						<DropdownMenu.Separator class="my-1 h-px bg-border" />
+					{/if}
 
 					<DropdownMenu.Item
 						class="cursor-pointer px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
