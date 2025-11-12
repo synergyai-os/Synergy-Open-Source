@@ -39,17 +39,14 @@ test.describe('Quick Create Modal - SessionID Authentication', () => {
 		const modal = page.locator('[role="dialog"]').first();
 		await expect(modal).toBeVisible({ timeout: 2000 });
 
-		// Type note content
-		// Note: The actual selector will depend on your modal structure
-		// Adjust if needed based on how your NoteEditorWithDetection works
-		const noteEditor = modal.locator('.ProseMirror, [contenteditable="true"]').first();
-		if (await noteEditor.isVisible()) {
-			await noteEditor.click();
-			await noteEditor.fill('Automated test note - sessionId validation');
-		}
+		// Type note content in the ProseMirror editor
+		const noteEditor = modal.locator('.ProseMirror').first();
+		await noteEditor.waitFor({ state: 'visible', timeout: 5000 });
+		await noteEditor.click();
+		await noteEditor.fill('Automated test note - sessionId validation');
 
-		// Press Enter or click save button
-		await page.keyboard.press('Enter');
+		// Submit with CMD+Enter (as per UI requirement)
+		await page.keyboard.press('Meta+Enter');
 
 		// Wait a bit for the mutation to complete
 		await page.waitForTimeout(2000);
@@ -199,20 +196,28 @@ test.describe('Quick Create Modal - Tag Selection', () => {
 		});
 
 		await page.goto('/inbox');
+		
+		// Wait for inbox to load before opening modal
+		await page.waitForLoadState('networkidle');
+		await page.waitForTimeout(2000); // Give time for tags query to initialize
+		
 		await page.keyboard.press('c');
 
 		const modal = page.locator('[role="dialog"]').first();
-		await expect(modal).toBeVisible({ timeout: 2000 });
+		await expect(modal).toBeVisible({ timeout: 3000 });
 
-		// Tag selector should load without errors
-		// (QuickCreateModal queries tags with sessionId)
-		await page.waitForTimeout(1000);
+		// Wait for tags to load
+		const tagsButton = modal.locator('button:has-text("Add Tags")').first();
+		await expect(tagsButton).toBeVisible({ timeout: 5000 });
 
 		// Verify no tag loading errors
 		const hasTagError = consoleErrors.some(
 			(err) => err.includes('listAllTags') && err.includes('sessionId')
 		);
 		expect(hasTagError).toBe(false);
+		
+		// Close modal (ESC key)
+		await page.keyboard.press('Escape');
 	});
 });
 
