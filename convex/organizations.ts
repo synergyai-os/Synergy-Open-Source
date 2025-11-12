@@ -215,12 +215,11 @@ export const listOrganizationInvites = query({
 export const createOrganization = mutation({
 	args: {
 		name: v.string(),
-		userId: v.id('users') // Required: passed from authenticated SvelteKit session
+		sessionId: v.string() // Session validation (derives userId securely)
 	},
 	handler: async (ctx, args) => {
-		// Validate session (prevents impersonation)
-		await validateSession(ctx, args.userId);
-		const userId = args.userId;
+		// Validate session and get userId (prevents impersonation)
+		const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const trimmedName = args.name.trim();
 		if (!trimmedName) {
