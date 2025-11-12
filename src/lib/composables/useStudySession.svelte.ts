@@ -44,7 +44,7 @@ export interface UseStudySessionReturn {
 }
 
 export function useStudySession(
-	getUserId: () => string | undefined
+	getSessionId: () => string | undefined
 ): UseStudySessionReturn {
 	// Session state
 	const state = $state({
@@ -64,10 +64,10 @@ export function useStudySession(
 	// Query for due flashcards (reactive to tag selection)
 	const dueCardsQuery = browser
 		? useQuery(api.flashcards.getDueFlashcards, () => {
-				const userId = getUserId();
-				if (!userId) return 'skip'; // Use Convex 'skip' pattern to skip query when userId not available
+				const sessionId = getSessionId();
+				if (!sessionId) return 'skip'; // Use Convex 'skip' pattern to skip query when sessionId not available
 				return {
-					userId,
+					sessionId,
 					limit: state.sessionLimit,
 					algorithm: 'fsrs',
 					tagIds: state.selectedTagIds.length > 0 ? state.selectedTagIds : undefined
