@@ -389,7 +389,7 @@ import { browser, dev } from '$app/environment';
 					console.log('Switch workspace menu selected');
 				}}
 				onCreateWorkspace={() => {
-					console.log('Create workspace menu selected');
+					organizations?.openModal('createOrganization');
 				}}
 				onAddAccount={() => {
 					const currentPath = browser

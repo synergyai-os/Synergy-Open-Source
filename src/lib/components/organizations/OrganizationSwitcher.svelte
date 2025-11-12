@@ -158,6 +158,10 @@
 	function handleLogout() {
 		onLogout?.();
 	}
+
+	// State for nested account menus
+	let accountMenuOpen = $state(false);
+	const linkedAccountMenuOpen = $state<Record<string, boolean>>({});
 </script>
 
 <DropdownMenu.Root>
@@ -245,10 +249,13 @@
 					{accountEmail}
 				</p>
 				<!-- Current Account menu (logout, create workspace) -->
-				<DropdownMenu.Root>
+				<DropdownMenu.Root open={accountMenuOpen} onOpenChange={(open) => accountMenuOpen = open}>
 					<DropdownMenu.Trigger
 						type="button"
 						class="flex h-5 w-5 items-center justify-center rounded text-tertiary transition-colors hover:bg-hover-solid hover:text-primary"
+						onclick={(e) => {
+							e.stopPropagation(); // Prevent parent menu from closing
+						}}
 					>
 						<svg
 							class="h-3.5 w-3.5"
@@ -270,11 +277,17 @@
 							side="right"
 							align="start"
 							sideOffset={4}
+							onClickOutside={(e) => {
+								e.stopPropagation(); // Prevent parent menu from closing
+							}}
 						>
 							<DropdownMenu.Item
 								class="cursor-pointer px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 								textValue="Join or create workspace"
-								onSelect={handleCreateWorkspace}
+								onSelect={() => {
+									accountMenuOpen = false;
+									handleCreateWorkspace();
+								}}
 							>
 								<div class="flex items-center gap-2">
 									<svg
@@ -296,7 +309,10 @@
 							<DropdownMenu.Item
 								class="cursor-pointer px-menu-item py-1.5 text-sm text-danger outline-none hover:bg-hover-solid focus:bg-hover-solid"
 								textValue="Log out"
-								onSelect={handleLogout}
+								onSelect={() => {
+									accountMenuOpen = false;
+									handleLogout();
+								}}
 							>
 								<div class="flex items-center gap-2">
 									<svg
@@ -416,10 +432,16 @@
 							{account.email ?? account.name ?? 'Linked account'}
 						</p>
 						<!-- Account menu (logout, create workspace) -->
-						<DropdownMenu.Root>
+						<DropdownMenu.Root 
+							open={linkedAccountMenuOpen[account.userId] ?? false} 
+							onOpenChange={(open) => linkedAccountMenuOpen[account.userId] = open}
+						>
 							<DropdownMenu.Trigger
 								type="button"
 								class="flex h-5 w-5 items-center justify-center rounded text-tertiary transition-colors hover:bg-hover-solid hover:text-primary"
+								onclick={(e) => {
+									e.stopPropagation(); // Prevent parent menu from closing
+								}}
 							>
 								<svg
 									class="h-3.5 w-3.5"
@@ -441,12 +463,17 @@
 									side="right"
 									align="start"
 									sideOffset={4}
+									onClickOutside={(e) => {
+										e.stopPropagation(); // Prevent parent menu from closing
+									}}
 								>
 									<DropdownMenu.Item
 										class="cursor-pointer px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 										textValue="Join or create workspace"
-										onSelect={() =>
-											handleSwitchAccount(account.userId, '/inbox?create=workspace')}
+										onSelect={() => {
+											linkedAccountMenuOpen[account.userId] = false;
+											handleSwitchAccount(account.userId, '/inbox?create=workspace');
+										}}
 									>
 										<div class="flex items-center gap-2">
 											<svg
@@ -468,7 +495,10 @@
 									<DropdownMenu.Item
 										class="cursor-pointer px-menu-item py-1.5 text-sm text-danger outline-none hover:bg-hover-solid focus:bg-hover-solid"
 										textValue="Log out"
-										onSelect={handleLogout}
+										onSelect={() => {
+											linkedAccountMenuOpen[account.userId] = false;
+											handleLogout();
+										}}
 									>
 										<div class="flex items-center gap-2">
 											<svg

@@ -109,6 +109,7 @@ export function useOrganizations(options?: {
 		activeOrganizationId: initialActiveId,
 		activeTeamId: null as string | null,
 		cachedOrganization: cachedOrgDetails,
+		lastUserId: undefined as string | undefined,
 		isSwitching: false,
 		switchingTo: null as string | null,
 		switchingToType: 'personal' as 'personal' | 'organization',
@@ -309,6 +310,37 @@ const teamsQuery = browser && getUserId()
 		const list = teamsData();
 		if (state.activeTeamId && list.every((team) => team.teamId !== state.activeTeamId)) {
 			state.activeTeamId = null;
+		}
+	});
+
+	// Clear active organization when userId changes (account switch)
+	$effect(() => {
+		if (!browser) return;
+
+		const currentUserId = getUserId();
+
+		// If userId changes, clear active organization to prevent showing wrong account's orgs
+		// This will be set correctly by the URL param or validation logic
+		if (currentUserId !== undefined) {
+			// Store previous userId to detect changes
+			const prevUserId = untrack(() => state.lastUserId);
+
+			if (prevUserId !== undefined && prevUserId !== currentUserId) {
+				// User switched accounts - clear active org and let validation logic set it correctly
+				state.activeOrganizationId = null;
+				state.cachedOrganization = null;
+
+				// Clear storage for old account
+				const oldStorageKey = getStorageKey(prevUserId);
+				const oldStorageDetailsKey = getStorageDetailsKey(prevUserId);
+				localStorage.removeItem(oldStorageKey);
+				localStorage.removeItem(oldStorageDetailsKey);
+			}
+
+			// Update tracked userId
+			untrack(() => {
+				state.lastUserId = currentUserId;
+			});
 		}
 	});
 
