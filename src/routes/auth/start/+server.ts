@@ -61,11 +61,11 @@ function sanitizeEmail(value: string | null): string | undefined {
 export const GET: RequestHandler = async (event) => {
 	console.log('🔍 Auth start - Initiating WorkOS flow');
 	
+	// Validate WorkOS configuration (checked at request time, not import time)
 	if (!env.WORKOS_CLIENT_ID) {
 		console.error('❌ WORKOS_CLIENT_ID is not configured');
 		throw new Error('WORKOS_CLIENT_ID is not configured.');
 	}
-
 	if (!env.WORKOS_REDIRECT_URI) {
 		console.error('❌ WORKOS_REDIRECT_URI is not configured');
 		throw new Error('WORKOS_REDIRECT_URI is not configured.');

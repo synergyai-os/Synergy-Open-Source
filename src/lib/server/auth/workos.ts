@@ -2,16 +2,20 @@ import { env } from '$env/dynamic/private';
 
 const WORKOS_BASE_URL = 'https://api.workos.com';
 
-if (!env.WORKOS_CLIENT_ID) {
-	throw new Error('WORKOS_CLIENT_ID is not configured.');
-}
+// Note: Environment variable validation moved inside functions to prevent import-time errors
+// during build/deployment. Variables are checked when actually used, not when module loads.
 
-if (!env.WORKOS_API_KEY) {
-	throw new Error('WORKOS_API_KEY is not configured.');
-}
-
-if (!env.WORKOS_REDIRECT_URI) {
-	throw new Error('WORKOS_REDIRECT_URI is not configured.');
+/** Validate required WorkOS environment variables are present */
+function validateWorkOSConfig() {
+	if (!env.WORKOS_CLIENT_ID) {
+		throw new Error('WORKOS_CLIENT_ID is not configured.');
+	}
+	if (!env.WORKOS_API_KEY) {
+		throw new Error('WORKOS_API_KEY is not configured.');
+	}
+	if (!env.WORKOS_REDIRECT_URI) {
+		throw new Error('WORKOS_REDIRECT_URI is not configured.');
+	}
 }
 
 interface WorkOSUser {
@@ -65,6 +69,7 @@ export async function exchangeAuthorizationCode(options: {
 	code: string;
 	codeVerifier: string;
 }) {
+	validateWorkOSConfig();
 	console.log('🔍 Calling WorkOS authenticate endpoint...');
 	const response = await fetch(`${WORKOS_BASE_URL}/user_management/authenticate`, {
 		method: 'POST',
@@ -138,6 +143,7 @@ export async function refreshWorkOSSession(options: {
 	workosSessionId: string;
 	refreshToken: string;
 }) {
+	validateWorkOSConfig();
 	console.log('🔍 Refreshing WorkOS session...');
 	
 	const response = await fetch(`${WORKOS_BASE_URL}/user_management/authenticate`, {
@@ -198,6 +204,7 @@ export async function refreshWorkOSSession(options: {
 }
 
 export async function revokeWorkOSSession(workosSessionId: string) {
+	validateWorkOSConfig();
 	const response = await fetch(`${WORKOS_BASE_URL}/user_management/sessions/logout`, {
 		method: 'POST',
 		headers: buildHeaders(true),
@@ -222,6 +229,7 @@ export async function authenticateWithPassword(options: {
 	ipAddress?: string;
 	userAgent?: string | null;
 }): Promise<WorkOSAuthResponse> {
+	validateWorkOSConfig();
 	console.log('🔍 Authenticating with password for:', options.email);
 
 	const response = await fetch(`${WORKOS_BASE_URL}/user_management/authenticate`, {
@@ -299,6 +307,7 @@ export async function createUserWithPassword(options: {
 	firstName?: string;
 	lastName?: string;
 }): Promise<{ userId: string }> {
+	validateWorkOSConfig();
 	console.log('🔍 Creating new user:', options.email);
 
 	const response = await fetch(`${WORKOS_BASE_URL}/user_management/users`, {
