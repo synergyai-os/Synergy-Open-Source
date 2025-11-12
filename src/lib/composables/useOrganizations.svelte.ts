@@ -181,24 +181,18 @@ const teamsQuery = browser && getUserId()
 		}))
 	);
 
-	// Reactively check for org query parameter and set active organization
-	// Subscribe to page store changes to detect URL parameter updates
-	if (browser) {
-		$effect(() => {
-			const unsubscribe = page.subscribe(($page) => {
-				const orgParam = $page?.url?.searchParams?.get('org');
-				if (orgParam && orgParam !== state.activeOrganizationId) {
-					console.log('🔗 Setting organization from URL param:', orgParam);
-					state.activeOrganizationId = orgParam;
-				}
-			});
-			
-			return () => unsubscribe();
-		});
-	}
+	// Read org parameter from URL (reactive via $derived)
+	const urlOrgParam = $derived(browser ? get(page)?.url?.searchParams?.get('org') : null);
 
 	$effect(() => {
-		// Wait until query has loaded before applying logic
+		// Priority 1: URL parameter (from account/workspace switching)
+		if (urlOrgParam && urlOrgParam !== state.activeOrganizationId) {
+			console.log('🔗 Setting organization from URL param:', urlOrgParam);
+			state.activeOrganizationId = urlOrgParam;
+			return; // Stop here, let the validation effect handle the rest
+		}
+
+		// Priority 2: Wait until query has loaded before applying validation logic
 		// This prevents resetting activeOrganizationId during initial loading state
 		if (organizationsQuery && organizationsQuery.data === undefined) {
 			return;
