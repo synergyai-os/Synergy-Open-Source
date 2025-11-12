@@ -46,5 +46,28 @@ export default defineConfig(
 				svelteConfig
 			}
 		}
+	},
+	{
+		// Relax rules for test files
+		files: ['**/*.test.ts', '**/*.spec.ts', 'tests/**/*.ts', 'e2e/**/*.ts'],
+		rules: {
+			'@typescript-eslint/no-explicit-any': 'off',
+			'@typescript-eslint/no-unused-vars': 'warn'
+		}
+	},
+	{
+		// Relax rules for permissions test page (intentional any types for demo)
+		files: ['src/routes/settings/permissions-test/**/*.svelte'],
+		rules: {
+			'@typescript-eslint/no-explicit-any': 'off',
+			'@typescript-eslint/no-unused-vars': 'warn'
+		}
+	},
+	{
+		// Relax rules for usePermissions (Convex API types are complex)
+		files: ['src/lib/composables/usePermissions.svelte.ts'],
+		rules: {
+			'@typescript-eslint/no-explicit-any': 'off'
+		}
 	}
 );

@@ -8,7 +8,7 @@
  * - Function parameters for reactive inputs
  *
  * @see dev-docs/2-areas/patterns/svelte-reactivity.md - Pattern #L10, #L80
- * @see dev-docs/rbac-architecture.md - Permission system architecture
+ * @see dev-docs/2-areas/rbac/rbac-architecture.md - Permission system architecture
  */
 
 import { browser } from '$app/environment';
@@ -18,6 +18,7 @@ import type { Id } from '$convex/_generated/dataModel';
 
 export interface UsePermissionsParams {
 	sessionId: () => string | null;
+	userId?: () => Id<'users'> | null;
 	organizationId?: () => Id<'organizations'> | null;
 	teamId?: () => Id<'teams'> | null;
 }
@@ -39,7 +40,7 @@ export interface UsePermissionsReturn {
  *   import { usePermissions } from '$lib/composables/usePermissions.svelte';
  *
  *   const permissions = usePermissions({
- *     userId: () => $currentUserId,
+ *     sessionId: () => $page.data.sessionId,
  *     organizationId: () => $activeOrganizationId
  *   });
  * </script>

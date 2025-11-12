@@ -1,40 +1,58 @@
 /**
  * Integration Test Setup and Helpers
- * 
+ *
  * Provides test fixtures and utilities for Convex integration tests
  */
 
-import type { ConvexTestingHelper } from 'convex-test';
+import type { TestConvex } from 'convex-test';
 import type { Id } from '../../../convex/_generated/dataModel';
-import { api } from '../../../convex/_generated/api';
 
 /**
  * Create a test session and user for integration tests
  * Returns sessionId and userId for use in test queries/mutations
  */
 export async function createTestSession(
-	t: ConvexTestingHelper
+	t: TestConvex<any>
 ): Promise<{ sessionId: string; userId: Id<'users'> }> {
-	// Create a test user
+	const now = Date.now();
+
+	// Create a test user with all required fields
 	const userId = await t.run(async (ctx) => {
 		return await ctx.db.insert('users', {
-			email: `test-${Date.now()}@example.com`,
+			workosId: `test_workos_${now}`,
+			email: `test-${now}@example.com`,
 			name: 'Test User',
-			isAnonymous: false
+			firstName: 'Test',
+			lastName: 'User',
+			emailVerified: true,
+			createdAt: now,
+			updatedAt: now,
+			lastLoginAt: now
 		});
 	});
 
-	// Create a test session
-	const sessionId = `test_session_${Date.now()}`;
+	// Create a test session with all required fields
+	const sessionId = `test_session_${now}`;
 	await t.run(async (ctx) => {
 		await ctx.db.insert('authSessions', {
 			sessionId,
 			convexUserId: userId,
-			workosUserId: 'test_workos_user',
+			workosUserId: `test_workos_${now}`,
+			workosSessionId: `test_workos_session_${now}`,
+			accessTokenCiphertext: 'test_access_token',
+			refreshTokenCiphertext: 'test_refresh_token',
+			csrfTokenHash: 'test_csrf_hash',
 			isValid: true,
-			expiresAt: Date.now() + 3600000, // 1 hour from now
-			createdAt: Date.now(),
-			lastAccessedAt: Date.now()
+			expiresAt: now + 3600000, // 1 hour from now
+			createdAt: now,
+			userSnapshot: {
+				userId,
+				workosId: `test_workos_${now}`,
+				email: `test-${now}@example.com`,
+				firstName: 'Test',
+				lastName: 'User',
+				name: 'Test User'
+			}
 		});
 	});
 
@@ -45,7 +63,7 @@ export async function createTestSession(
  * Create a test tag for a user
  */
 export async function createTestTag(
-	t: ConvexTestingHelper,
+	t: TestConvex<any>,
 	userId: Id<'users'>,
 	name: string = 'Test Tag'
 ): Promise<Id<'tags'>> {
@@ -53,8 +71,10 @@ export async function createTestTag(
 		return await ctx.db.insert('tags', {
 			userId,
 			name,
-			ownership: 'user',
-			color: '#3b82f6'
+			displayName: name, // displayName is required
+			ownershipType: 'user',
+			color: '#3b82f6',
+			createdAt: Date.now()
 		});
 	});
 }
@@ -63,7 +83,7 @@ export async function createTestTag(
  * Create a test note for a user
  */
 export async function createTestNote(
-	t: ConvexTestingHelper,
+	t: TestConvex<any>,
 	userId: Id<'users'>,
 	title: string = 'Test Note'
 ): Promise<Id<'notes'>> {
@@ -84,7 +104,7 @@ export async function createTestNote(
  * Create a test organization
  */
 export async function createTestOrganization(
-	t: ConvexTestingHelper,
+	t: TestConvex<any>,
 	name: string = 'Test Org'
 ): Promise<Id<'organizations'>> {
 	return await t.run(async (ctx) => {
@@ -92,7 +112,143 @@ export async function createTestOrganization(
 			name,
 			slug: `test-org-${Date.now()}`,
 			createdAt: Date.now(),
-			updatedAt: Date.now()
+			updatedAt: Date.now(),
+			plan: 'starter'
+		});
+	});
+}
+
+/**
+ * Create an organization membership
+ */
+export async function createTestOrganizationMember(
+	t: TestConvex<any>,
+	organizationId: Id<'organizations'>,
+	userId: Id<'users'>,
+	role: 'owner' | 'admin' | 'member' = 'member'
+): Promise<Id<'organizationMembers'>> {
+	return await t.run(async (ctx) => {
+		return await ctx.db.insert('organizationMembers', {
+			organizationId,
+			userId,
+			role,
+			joinedAt: Date.now()
+		});
+	});
+}
+
+/**
+ * Create an organization invite
+ */
+export async function createTestInvite(
+	t: TestConvex<any>,
+	organizationId: Id<'organizations'>,
+	invitedBy: Id<'users'>,
+	options?: {
+		email?: string;
+		invitedUserId?: Id<'users'>;
+		role?: 'owner' | 'admin' | 'member';
+	}
+): Promise<{ inviteId: Id<'organizationInvites'>; code: string }> {
+	const code = `TEST-${Date.now()}`;
+	const inviteId = await t.run(async (ctx) => {
+		return await ctx.db.insert('organizationInvites', {
+			organizationId,
+			invitedBy,
+			email: options?.email,
+			invitedUserId: options?.invitedUserId,
+			role: options?.role ?? 'member',
+			code,
+			createdAt: Date.now()
+		});
+	});
+	return { inviteId, code };
+}
+
+/**
+ * Create a test role
+ */
+export async function createTestRole(
+	t: TestConvex<any>,
+	slug: string,
+	name: string
+): Promise<Id<'roles'>> {
+	const now = Date.now();
+	return await t.run(async (ctx) => {
+		return await ctx.db.insert('roles', {
+			slug,
+			name,
+			description: `Test role: ${name}`,
+			isSystem: false,
+			createdAt: now,
+			updatedAt: now
+		});
+	});
+}
+
+/**
+ * Create a test permission
+ */
+export async function createTestPermission(
+	t: TestConvex<any>,
+	slug: string,
+	name: string
+): Promise<Id<'permissions'>> {
+	const now = Date.now();
+	return await t.run(async (ctx) => {
+		return await ctx.db.insert('permissions', {
+			slug,
+			action: slug, // action field is required
+			description: `Test permission: ${name}`,
+			category: 'test',
+			requiresResource: false, // No resource check required for test permissions
+			isSystem: false, // Not a system permission
+			createdAt: now,
+			updatedAt: now
+		});
+	});
+}
+
+/**
+ * Assign a role to a user
+ */
+export async function assignRoleToUser(
+	t: TestConvex<any>,
+	userId: Id<'users'>,
+	roleId: Id<'roles'>,
+	context?: {
+		organizationId?: Id<'organizations'>;
+		teamId?: Id<'teams'>;
+		assignedBy?: Id<'users'>;
+	}
+): Promise<Id<'userRoles'>> {
+	return await t.run(async (ctx) => {
+		return await ctx.db.insert('userRoles', {
+			userId,
+			roleId,
+			organizationId: context?.organizationId,
+			teamId: context?.teamId,
+			assignedBy: context?.assignedBy ?? userId, // Default to self-assignment for tests
+			assignedAt: Date.now()
+		});
+	});
+}
+
+/**
+ * Assign a permission to a role
+ */
+export async function assignPermissionToRole(
+	t: TestConvex<any>,
+	roleId: Id<'roles'>,
+	permissionId: Id<'permissions'>,
+	scope: 'all' | 'own' | 'none' = 'all'
+): Promise<Id<'rolePermissions'>> {
+	return await t.run(async (ctx) => {
+		return await ctx.db.insert('rolePermissions', {
+			roleId,
+			permissionId,
+			scope,
+			createdAt: Date.now()
 		});
 	});
 }
@@ -100,10 +256,7 @@ export async function createTestOrganization(
 /**
  * Clean up test data after tests
  */
-export async function cleanupTestData(
-	t: ConvexTestingHelper,
-	userId?: Id<'users'>
-): Promise<void> {
+export async function cleanupTestData(t: TestConvex<any>, userId?: Id<'users'>): Promise<void> {
 	if (!userId) return;
 
 	await t.run(async (ctx) => {
@@ -116,6 +269,42 @@ export async function cleanupTestData(
 			await ctx.db.delete(session._id);
 		}
 
+		// Clean up user roles
+		const userRoles = await ctx.db
+			.query('userRoles')
+			.withIndex('by_user', (q) => q.eq('userId', userId))
+			.collect();
+		for (const userRole of userRoles) {
+			await ctx.db.delete(userRole._id);
+		}
+
+		// Clean up organization memberships
+		const orgMembers = await ctx.db
+			.query('organizationMembers')
+			.withIndex('by_user', (q) => q.eq('userId', userId))
+			.collect();
+		for (const member of orgMembers) {
+			await ctx.db.delete(member._id);
+		}
+
+		// Clean up organization invites sent by user
+		const invites = await ctx.db
+			.query('organizationInvites')
+			.filter((q) => q.eq(q.field('invitedBy'), userId))
+			.collect();
+		for (const invite of invites) {
+			await ctx.db.delete(invite._id);
+		}
+
+		// Clean up account links
+		const links = await ctx.db
+			.query('accountLinks')
+			.withIndex('by_primary', (q) => q.eq('primaryUserId', userId))
+			.collect();
+		for (const link of links) {
+			await ctx.db.delete(link._id);
+		}
+
 		// Clean up tags
 		const tags = await ctx.db
 			.query('tags')
@@ -125,17 +314,38 @@ export async function cleanupTestData(
 			await ctx.db.delete(tag._id);
 		}
 
-		// Clean up notes
-		const notes = await ctx.db
-			.query('notes')
-			.withIndex('by_user', (q) => q.eq('userId', userId))
-			.collect();
-		for (const note of notes) {
-			await ctx.db.delete(note._id);
-		}
-
 		// Clean up user
 		await ctx.db.delete(userId);
 	});
 }
 
+/**
+ * Clean up test organization and related data
+ */
+export async function cleanupTestOrganization(
+	t: TestConvex<any>,
+	organizationId: Id<'organizations'>
+): Promise<void> {
+	await t.run(async (ctx) => {
+		// Clean up organization members
+		const members = await ctx.db
+			.query('organizationMembers')
+			.withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
+			.collect();
+		for (const member of members) {
+			await ctx.db.delete(member._id);
+		}
+
+		// Clean up organization invites
+		const invites = await ctx.db
+			.query('organizationInvites')
+			.withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
+			.collect();
+		for (const invite of invites) {
+			await ctx.db.delete(invite._id);
+		}
+
+		// Clean up organization
+		await ctx.db.delete(organizationId);
+	});
+}
