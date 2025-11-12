@@ -43,6 +43,8 @@
 | `Cannot call replaceState(...) before router is initialized` on page load    | Try-catch guard around replaceState in $effect                       | [svelte-reactivity.md#L730](svelte-reactivity.md#L730)              |
 | Account switch takes 5+ seconds, query costs spike with many linked accounts | Add MAX_LINK_DEPTH=3 and MAX_TOTAL_ACCOUNTS=10 limits                | [auth-deployment.md#L1010](auth-deployment.md#L1010)                |
 | Database queries fail, userId is an object instead of string                 | Destructure validateSessionAndGetUserId: const { userId } = await... | [convex-integration.md#L850](convex-integration.md#L850)            |
+| convex-test fails: "(intermediate value).glob is not a function"              | Create test.setup.ts with import.meta.glob() modules map            | [convex-integration.md#L950](convex-integration.md#L950)            |
+| Test insert fails: "Validator error: Missing required field X in object"      | Include ALL schema fields in test helpers (firstName, updatedAt...)  | [convex-integration.md#L1000](convex-integration.md#L1000)          |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -73,7 +75,11 @@
 | Production database empty after deployment                  | Deployed to dev instead of production, need CONVEX_DEPLOY_KEY_PROD  | [convex-integration.md#L750](convex-integration.md#L750) |
 | Feature branches outdated after merge                       | Merge main into branches before deleting merged branch              | [convex-integration.md#L800](convex-integration.md#L800) |
 | Unit tests pass but bugs slip through to production         | Add integration tests with convex-test                              | [convex-integration.md#L900](convex-integration.md#L900) |
+| Test cleanup fails: "Delete on non-existent doc"            | Check document exists before deleting in cleanup                    | [convex-integration.md#L1050](convex-integration.md#L1050) |
+| User isolation test fails - User 2 sees User 1's data       | Use counter + timestamp for unique session IDs                      | [convex-integration.md#L1100](convex-integration.md#L1100) |
+| Test fails: "Session not found" with getAuthUserId(ctx)     | Use sessionId parameter pattern or skip test (convex-test limit)    | [convex-integration.md#L1150](convex-integration.md#L1150) |
 | Analytics events missing in PostHog                         | Use server-side tracking                                            | [analytics.md#L10](analytics.md#L10)                     |
+| ESLint errors in test files blocking CI                     | Relax rules for test files (allow `any` types)                      | [ci-cd.md#L60](ci-cd.md#L60)                             |
 
 ## 🟢 REFERENCE Patterns (Best Practices)
 
@@ -175,6 +181,6 @@ correct code
 ---
 
 **Last Updated**: 2025-11-12
-**Pattern Count**: 70
+**Pattern Count**: 75
 **Format Version**: 2.0
 ```

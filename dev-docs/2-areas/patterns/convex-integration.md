@@ -1187,6 +1187,252 @@ export async function createTestSession(t: ConvexTestingHelper) {
 
 ---
 
-**Pattern Count**: 21  
+---
+
+## #L950: convex-test Requires Modules Map [🔴 CRITICAL]
+
+**Symptom**: `TypeError: (intermediate value).glob is not a function` from convex-test  
+**Root Cause**: convex-test needs `import.meta.glob()` map of Convex functions to mock the backend  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Missing modules parameter
+const t = convexTest(schema); // ❌ Fails with .glob error
+
+// ✅ CORRECT: Create test.setup.ts with modules map
+// tests/convex/integration/test.setup.ts
+export const modules = import.meta.glob("../../../convex/**/!(*.*.*)*.*s");
+// Pattern: Match all .ts/.js files in convex/, exclude files with multiple dots (*.test.ts, *.config.ts)
+
+// Pass both schema AND modules to convexTest
+import { convexTest } from 'convex-test';
+import schema from '../../../convex/schema';
+import { modules } from './test.setup';
+
+const t = convexTest(schema, modules); // ✅ Works
+```
+
+**Why**: convex-test uses `import.meta.glob()` to discover and bundle Convex function files for the mock backend.  
+**Apply when**: Setting up convex-test for integration testing  
+**Related**: #L900 (Integration testing pattern)
+
+---
+
+## #L1000: Schema Validation Errors in Tests [🔴 CRITICAL]
+
+**Symptom**: `Validator error: Missing required field X in object` during test data insertion  
+**Root Cause**: Test helpers don't match actual schema requirements  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Missing required fields
+await ctx.db.insert('users', {
+	workosId: `test_${now}`,
+	email: `test@example.com`,
+	// ❌ Missing: firstName, lastName, emailVerified, updatedAt, lastLoginAt
+});
+
+// ✅ CORRECT: Include ALL schema-required fields
+await ctx.db.insert('users', {
+	workosId: `test_workos_${now}`,
+	email: `test-${now}@example.com`,
+	name: 'Test User',
+	firstName: 'Test',       // ✅ Required
+	lastName: 'User',        // ✅ Required
+	emailVerified: true,     // ✅ Required
+	createdAt: now,
+	updatedAt: now,          // ✅ Required
+	lastLoginAt: now         // ✅ Required
+});
+
+// Common missing fields by table:
+// - users: firstName, lastName, emailVerified, updatedAt, lastLoginAt
+// - authSessions: workosSessionId, accessTokenCiphertext, refreshTokenCiphertext, csrfTokenHash, userSnapshot
+// - roles: updatedAt
+// - permissions: requiresResource, isSystem, updatedAt
+// - tags: displayName, createdAt
+// - userRoles: assignedBy, assignedAt
+```
+
+**Debugging Pattern**:
+1. Run integration tests
+2. Note `Validator error: Missing required field X`
+3. Check `convex/schema.ts` for table definition
+4. Update test helper in `tests/convex/integration/setup.ts`
+5. Re-run tests to verify
+
+**Why**: Integration tests validate against actual schema, not mocked types.  
+**Apply when**: Creating test data helpers for convex-test  
+**Related**: #L950 (convex-test setup), #L900 (Integration testing)
+
+---
+
+## #L1050: Cleanup Must Check Document Existence [🟡 IMPORTANT]
+
+**Symptom**: `Error: Delete on non-existent doc` during test cleanup  
+**Root Cause**: Document may have been deleted by test or cascade deleted  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Assumes document exists
+await ctx.db.delete(userId); // ❌ Fails if user already deleted
+
+// ✅ CORRECT: Check existence first
+const user = await ctx.db.get(userId);
+if (user) {
+	await ctx.db.delete(userId); // ✅ Safe
+}
+
+// ✅ CORRECT: Cleanup pattern for test helpers
+export async function cleanupTestData(t: TestConvex<any>, userId: Id<'users'>) {
+	await t.run(async (ctx) => {
+		// 1. Clean up child documents first (sessions, roles, etc.)
+		const sessions = await ctx.db
+			.query('authSessions')
+			.withIndex('by_convex_user', (q) => q.eq('convexUserId', userId))
+			.collect();
+		for (const session of sessions) {
+			await ctx.db.delete(session._id);
+		}
+
+		// 2. Check parent exists before deleting
+		const user = await ctx.db.get(userId);
+		if (user) {
+			await ctx.db.delete(userId); // ✅ Only delete if exists
+		}
+	});
+}
+```
+
+**Common Cleanup Order** (child first, parent last):
+1. authSessions (child of user)
+2. userRoles (child of user)  
+3. organizationMembers (child of user)
+4. flashcards (child of user)
+5. tags (child of user)
+6. user (parent) - check exists
+
+**Why**: Tests may delete documents explicitly, or cascade deletes may remove them.  
+**Apply when**: Writing test cleanup functions  
+**Related**: #L1000 (Schema validation), #L900 (Integration testing)
+
+---
+
+## #L1100: User Isolation Requires Unique Sessions [🟡 IMPORTANT]
+
+**Symptom**: `expected 1 to be +0` - User 2 sees User 1's data in isolation tests  
+**Root Cause**: Sessions created in same millisecond have identical timestamps, causing collisions  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Timestamp alone not unique enough
+const sessionId = `test_session_${Date.now()}`;
+// Multiple calls in same millisecond → same ID → collision
+
+// ✅ CORRECT: Counter + timestamp for uniqueness
+let sessionCounter = 0; // Module-level counter
+
+export async function createTestSession(t: TestConvex<any>) {
+	const now = Date.now();
+	const uniqueId = `${now}_${sessionCounter++}`; // ✅ Always unique
+
+	const userId = await t.run(async (ctx) => {
+		return await ctx.db.insert('users', {
+			workosId: `test_workos_${uniqueId}`,    // ✅ Unique
+			email: `test-${uniqueId}@example.com`,  // ✅ Unique
+			// ... other fields
+		});
+	});
+
+	const sessionId = `test_session_${uniqueId}`; // ✅ Unique
+	await t.run(async (ctx) => {
+		await ctx.db.insert('authSessions', {
+			sessionId,
+			convexUserId: userId,
+			// ... other fields
+		});
+	});
+
+	return { sessionId, userId };
+}
+```
+
+**Why This Matters**: User isolation tests create multiple users rapidly. Without counter, sessions can collide.
+
+**Test Pattern**:
+```typescript
+// User isolation test (now works correctly)
+it('should enforce user isolation', async () => {
+	const t = convexTest(schema, modules);
+
+	const { sessionId: session1, userId: user1 } = await createTestSession(t);
+	const { sessionId: session2, userId: user2 } = await createTestSession(t);
+	// ✅ Counter ensures session1 !== session2
+
+	await createTestTag(t, user1, 'User 1 Tag');
+
+	const user2Tags = await t.query(api.tags.listUserTags, { sessionId: session2 });
+	expect(user2Tags.length).toBe(0); // ✅ Now passes
+});
+```
+
+**Why**: Counter ensures uniqueness even when tests run in same millisecond.  
+**Apply when**: Creating test data helpers that need unique identifiers  
+**Related**: #L950 (convex-test setup), #L900 (Integration testing)
+
+---
+
+## #L1150: convex-test Limitations with Context-Based Auth [🟡 CAUTION]
+
+**Symptom**: `Session not found or expired` when testing functions using `getAuthUserId(ctx)`  
+**Root Cause**: convex-test doesn't populate auth context automatically, only supports sessionId parameter pattern  
+**Fix**:
+
+```typescript
+// ❌ WON'T WORK in convex-test: Context-based auth
+export const removeOrganizationMember = mutation({
+	args: {
+		organizationId: v.id('organizations'),
+		targetUserId: v.id('users')
+		// ❌ No sessionId parameter
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx); // ❌ Returns null in convex-test
+		if (!userId) throw new Error('Not authenticated'); // Always fails in tests
+		// ...
+	}
+});
+
+// ✅ WORKS in convex-test: sessionId parameter pattern
+export const createOrganization = mutation({
+	args: {
+		name: v.string(),
+		sessionId: v.string() // ✅ Explicit parameter
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId); // ✅ Works
+		// ...
+	}
+});
+
+// ✅ WORKAROUND: Skip tests for context-based auth functions
+it.skip('should remove organization member', async () => {
+	// TODO: This test requires context-based auth which isn't supported by convex-test yet
+	// Will work once migrated to sessionId parameter pattern
+});
+```
+
+**Migration Path**:
+1. Identify functions using `getAuthUserId(ctx)` without sessionId parameter
+2. Either: Add `sessionId` parameter (preferred) OR skip integration tests
+3. Document with TODO comment explaining the limitation
+
+**Why**: convex-test is a mock backend that doesn't populate auth context from Convex Auth library.  
+**Apply when**: Migrating codebase to sessionId pattern or writing integration tests  
+**Related**: #L850 (validateSessionAndGetUserId pattern), #L900 (Integration testing)
+
+---
+
+**Pattern Count**: 26  
 **Last Validated**: 2025-11-12  
 **Context7 Source**: `/get-convex/convex-backend`, `convex-test` NPM docs
