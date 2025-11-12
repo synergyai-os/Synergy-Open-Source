@@ -1253,7 +1253,101 @@ try {
 
 ---
 
+## #L1060: E2E Testing for SessionID-Based Authentication [🟢 REFERENCE]
+
+**Symptom**: Security regressions ship to production (e.g., client-supplied `userId` allows impersonation)  
+**Root Cause**: Manual testing is slow, error-prone, and doesn't catch all edge cases  
+**Fix**:
+
+```typescript
+// e2e/auth.setup.ts - Authenticate once, reuse across tests
+import { test as setup, expect } from '@playwright/test';
+
+const authFile = 'e2e/.auth/user.json';
+
+setup('authenticate', async ({ page }) => {
+    const email = process.env.TEST_USER_EMAIL;
+    const password = process.env.TEST_USER_PASSWORD;
+    
+    await page.goto('/login');
+    await page.locator('input[type="email"]').fill(email);
+    await page.locator('input[type="password"]').fill(password);
+    await page.locator('button[type="submit"]').click();
+    
+    await page.waitForURL(/\/(inbox|dashboard)/);
+    await page.context().storageState({ path: authFile });
+});
+
+// e2e/security.spec.ts - Test critical flows
+import { test, expect } from '@playwright/test';
+
+test.use({ storageState: 'e2e/.auth/user.json' });
+
+test('should prevent ArgumentValidationError with sessionId', async ({ page }) => {
+    const consoleErrors: string[] = [];
+    page.on('console', (msg) => {
+        if (msg.type() === 'error') {
+            consoleErrors.push(msg.text());
+        }
+    });
+    
+    // Test critical user flow (e.g., create note)
+    await page.goto('/inbox');
+    await page.keyboard.press('c'); // Quick create
+    await page.locator('.ProseMirror').type('Test note');
+    await page.locator('button:has-text("Create")').click();
+    
+    // Verify no sessionId errors
+    const hasSessionIdError = consoleErrors.some(
+        (err) => err.includes('sessionId') || err.includes('ArgumentValidationError')
+    );
+    expect(hasSessionIdError).toBe(false);
+});
+```
+
+**4-Layer Defense**:
+
+1. **Static Analysis** - Scan code for `userId` passed to migrated functions
+2. **Unit Tests** - Test session validation logic (49 tests)
+3. **E2E Tests** - Test real user flows with authentication (16 tests)
+4. **CI/CD** - Block PRs if tests fail
+
+**Why**: 
+- Manual testing missed 2 bugs (QuickCreateModal, GlobalActivityTracker)
+- E2E tests catch regressions **before production**
+- Authenticated test user enables realistic testing
+- Console error detection catches `ArgumentValidationError` early
+
+**Test User Setup**:
+```bash
+# .env.test (gitignored)
+TEST_USER_EMAIL=test+cicd@example.com
+TEST_USER_PASSWORD=secure_password_here
+```
+
+**Apply when**:
+- Migrating authentication patterns (e.g., `userId` → `sessionId`)
+- Testing security-critical flows (API keys, user isolation)
+- Building features with auth requirements
+- Implementing RBAC or multi-tenancy
+
+**Coverage by Module**:
+- **Quick Create**: 6 tests (note, flashcard, highlight, tags)
+- **Inbox**: 7 tests (list, process, navigate, sync progress)
+- **Settings**: 5 tests (API keys, theme, user isolation)
+
+**Run Tests**:
+```bash
+npm run test:e2e:setup           # Authenticate once
+npm run test:e2e:critical        # Run all critical tests
+npx playwright test --ui         # Debug mode
+```
+
+**Related**: #L760 (Pass userId when needed), #L810 (Parameter dropping), #L610 (Session expiry)
+
+---
+
 **Last Updated**: 2025-11-12  
-**Pattern Count**: 20  
-**Validated**: WorkOS AuthKit, SvelteKit, Vite, Convex, Svelte 5, Web Crypto API  
+**Pattern Count**: 21  
+**Validated**: WorkOS AuthKit, SvelteKit, Vite, Convex, Svelte 5, Web Crypto API, Playwright  
 **Format Version**: 2.0
