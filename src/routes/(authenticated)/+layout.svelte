@@ -275,7 +275,7 @@
 			triggerMethod={quickCreateTrigger}
 			currentView={getCurrentView()}
 			initialType={quickCreateInitialType}
-			userId={(data.user?.userId as Id<'users'> | undefined)}
+			sessionId={data.sessionId}
 			organizationId={organizations?.activeOrganizationId ?? null}
 			teamId={organizations?.activeTeamId ?? null}
 		/>
