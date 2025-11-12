@@ -20,19 +20,19 @@ export const POST: RequestHandler = async (event) => {
 	const sessionCookie = event.cookies.get(SESSION_COOKIE_NAME);
 	if (!sessionCookie) {
 		clearSessionCookies(event);
-		throw redirect(303, '/login');
+		return json({ success: false, error: 'No session found' }, { status: 401 });
 	}
 
 	const sessionId = decodeSessionCookie(sessionCookie);
 	if (!sessionId) {
 		clearSessionCookies(event);
-		throw redirect(303, '/login');
+		return json({ success: false, error: 'Invalid session' }, { status: 401 });
 	}
 
 	const sessionRecord = await getSessionRecord(sessionId);
 	if (!sessionRecord) {
 		clearSessionCookies(event);
-		throw redirect(303, '/login');
+		return json({ success: false, error: 'Session not found' }, { status: 401 });
 	}
 
 	const csrfHeader = event.request.headers.get('x-csrf-token');
@@ -44,15 +44,25 @@ export const POST: RequestHandler = async (event) => {
 		return json({ error: 'Invalid CSRF token' }, { status: 403 });
 	}
 
+	console.log('🔓 Logout initiated for session:', sessionId);
+	console.log('👤 User:', sessionRecord.userSnapshot.email);
+
 	try {
 		await revokeWorkOSSession(sessionRecord.workosSessionId);
+		console.log('✅ WorkOS session revoked');
 	} catch (error) {
-		console.error('Failed to revoke WorkOS session during logout', error);
+		console.error('⚠️ Failed to revoke WorkOS session (non-fatal):', error);
 		// Continue with local logout even if WorkOS call fails
 	}
 
 	await invalidateSession(sessionRecord.sessionId);
 	clearSessionCookies(event);
+	console.log('✅ Session invalidated and cookies cleared');
 
-	throw redirect(303, '/login');
+	// Note: Multi-session support
+	// - This only logs out the current active account
+	// - Other accounts remain logged in (stored in client localStorage)
+	// - Client will handle switching to another account if available
+
+	return json({ success: true });
 };
