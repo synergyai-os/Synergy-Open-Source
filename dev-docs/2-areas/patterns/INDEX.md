@@ -78,7 +78,7 @@
 | Edit mode toggle            | Separate view/edit states                                   | [ui-patterns.md#L170](ui-patterns.md#L170)               |
 | Card removal (Tinder-like)  | Queue-based removal                                         | [ui-patterns.md#L220](ui-patterns.md#L220)               |
 | Visual feedback             | Show overlay before action                                  | [ui-patterns.md#L280](ui-patterns.md#L280)               |
-| Loading feels generic       | Contextual overlay with progressive stages                  | [ui-patterns.md#L1950](ui-patterns.md#L1950)             |
+| Loading feels generic       | Contextual overlay + progressive stages + zero flash        | [ui-patterns.md#L1950](ui-patterns.md#L1950)             |
 | Toast notifications         | svelte-sonner for user feedback                             | [ui-patterns.md#L1660](ui-patterns.md#L1660)             |
 | Textarea auto-resize        | Remove h-full, use field-sizing                             | [ui-patterns.md#L330](ui-patterns.md#L330)               |
 | Command palette drama       | Dark overlay + blur + animation                             | [ui-patterns.md#L480](ui-patterns.md#L480)               |

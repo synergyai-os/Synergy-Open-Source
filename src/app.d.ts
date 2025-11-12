@@ -31,6 +31,10 @@ declare global {
 		// interface PageState {}
 		// interface Platform {}
 	}
+
+	interface Window {
+		__hasStaticOverlay?: boolean;
+	}
 }
 
 export {};

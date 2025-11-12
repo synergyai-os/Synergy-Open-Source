@@ -42,6 +42,15 @@
 	onMount(() => {
 		if (!browser) return;
 
+		// Remove static overlay if it exists (from app.html inline script)
+		if (window.__hasStaticOverlay) {
+			const staticOverlay = document.getElementById('__switching-overlay');
+			if (staticOverlay) {
+				staticOverlay.remove();
+			}
+			delete window.__hasStaticOverlay;
+		}
+
 		const switchingData = sessionStorage.getItem('switchingAccount');
 		if (switchingData) {
 			try {

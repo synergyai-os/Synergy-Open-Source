@@ -2044,14 +2044,66 @@ onSwitchAccount={(targetUserId, redirectTo) => {
 }}
 ```
 
+**Prevent Flash on Page Reload** (inline script technique):
+
+```html
+<!-- app.html - Inject overlay BEFORE Svelte loads -->
+<script>
+	// Similar to theme FOUC prevention
+	(function () {
+		try {
+			const switchingData = sessionStorage.getItem('switchingAccount');
+			if (switchingData) {
+				const data = JSON.parse(switchingData);
+				const accountName = data.accountName || 'workspace';
+				
+				// Inject static overlay on DOMContentLoaded
+				document.addEventListener('DOMContentLoaded', function() {
+					const overlay = document.createElement('div');
+					overlay.id = '__switching-overlay';
+					overlay.innerHTML = `
+						<div style="position: fixed; inset: 0; z-index: 9999; 
+						            display: flex; align-items: center; justify-content: center;
+						            background: linear-gradient(...); backdrop-filter: blur(24px);">
+							<!-- Static spinner and text -->
+							<h2>Loading ${accountName}'s workspace</h2>
+						</div>
+					`;
+					document.body.appendChild(overlay);
+					window.__hasStaticOverlay = true;
+				});
+			}
+		} catch (e) {
+			console.warn('Could not check switching state', e);
+		}
+	})();
+</script>
+```
+
+```typescript
+// +layout.svelte - Clean up static overlay when Svelte takes over
+onMount(() => {
+	if (window.__hasStaticOverlay) {
+		const staticOverlay = document.getElementById('__switching-overlay');
+		if (staticOverlay) {
+			staticOverlay.remove();
+		}
+		delete window.__hasStaticOverlay;
+	}
+	// ... rest of onMount logic
+});
+```
+
 **Key Principles**:
 
 1. **Contextual Title**: Action-oriented ("Loading Saprolab" not "Saprolab")
 2. **Progressive Stages**: Varied verbs (Gathering → Syncing → Preparing)
 3. **Instant Feedback**: Show before async action, not after
-4. **Workspace Context**: Different messages for personal vs organization
-5. **Minimum Duration**: 5 seconds minimum for polish (prevents flash)
-6. **Smooth Transitions**: Instant in (0ms), gradual out (300ms)
+4. **Zero Flash on Reload**: Inline script injects overlay before Svelte loads
+5. **Workspace Context**: Different messages for personal vs organization
+6. **Minimum Duration**: 5 seconds minimum for polish (prevents flash)
+7. **Smooth Transitions**: Instant in (0ms), gradual out (300ms)
+8. **Seamless Handoff**: Static overlay → Svelte reactive overlay with no gap
 
 **Why This Works**:
 
@@ -2059,6 +2111,8 @@ onSwitchAccount={(targetUserId, redirectTo) => {
 - Creates sense of progress (3 distinct stages)
 - Builds confidence (users see what's happening)
 - Feels intentional (minimum duration prevents jarring flash)
+- Zero visual discontinuity (inline script = same technique as theme FOUC)
+- Continuous overlay from click → 5 seconds → completion
 
 **Apply when**: Long-running operations (workspace switching, account changes, data migrations)  
 **Related**: #L280 (Visual Feedback), #L480 (Command Palette), #L1660 (Toast Notifications)

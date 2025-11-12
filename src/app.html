@@ -33,6 +33,86 @@
 					document.documentElement.classList.add('dark');
 				}
 			})();
+
+			// Prevent overlay flash during account/workspace switching
+			(function () {
+				try {
+					const switchingData = sessionStorage.getItem('switchingAccount');
+					if (switchingData) {
+						const data = JSON.parse(switchingData);
+						const accountName = data.accountName || 'workspace';
+						
+						// Inject overlay HTML immediately (before Svelte loads)
+						document.addEventListener('DOMContentLoaded', function() {
+							const overlay = document.createElement('div');
+							overlay.id = '__switching-overlay';
+							overlay.innerHTML = `
+								<div style="
+									position: fixed;
+									inset: 0;
+									z-index: 9999;
+									display: flex;
+									align-items: center;
+									justify-content: center;
+									background: linear-gradient(to bottom right, 
+										rgba(37, 99, 235, 0.1), 
+										var(--color-bg-base, #ffffff), 
+										rgba(37, 99, 235, 0.05));
+									backdrop-filter: blur(24px);
+									-webkit-backdrop-filter: blur(24px);
+								">
+									<div style="
+										display: flex;
+										flex-direction: column;
+										align-items: center;
+										gap: 2rem;
+									">
+										<div style="
+											position: relative;
+											width: 48px;
+											height: 48px;
+										">
+											<div style="
+												position: absolute;
+												inset: 0;
+												border-radius: 9999px;
+												border: 4px solid var(--color-border-base, rgba(0, 0, 0, 0.1));
+												border-top-color: var(--color-accent-primary, rgb(37, 99, 235));
+												animation: __spin 1s linear infinite;
+											"></div>
+										</div>
+										<div style="text-align: center; max-width: 28rem;">
+											<h2 style="
+												font-size: 1.5rem;
+												font-weight: 600;
+												color: var(--color-text-primary, rgb(17, 24, 39));
+											">Loading ${accountName}'s workspace</h2>
+										</div>
+										<div style="text-align: center;">
+											<p style="
+												font-size: 0.875rem;
+												color: var(--color-text-secondary, rgb(107, 114, 128));
+											">Gathering user data</p>
+										</div>
+									</div>
+								</div>
+								<style>
+									@keyframes __spin {
+										to { transform: rotate(360deg); }
+									}
+								</style>
+							`;
+							document.body.appendChild(overlay);
+							
+							// Set a marker so Svelte knows to clean this up
+							window.__hasStaticOverlay = true;
+						});
+					}
+				} catch (e) {
+					// Silently fail if sessionStorage isn't available
+					console.warn('Could not check switching state', e);
+				}
+			})();
 		</script>
 		%sveltekit.head%
 	</head>
