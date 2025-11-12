@@ -1,9 +1,9 @@
 import { AuthConfig } from 'convex/server';
 
 const clientId = process.env.WORKOS_CLIENT_ID;
-if (!clientId) {
-	throw new Error('WORKOS_CLIENT_ID environment variable is required');
-}
+
+// Note: If WORKOS_CLIENT_ID is not set, Convex auth will fail at runtime with a clear error
+// We don't validate here because this file gets imported during SvelteKit build where env vars aren't available
 
 // Configure Convex to accept WorkOS JWTs
 // See: https://docs.convex.dev/auth/authkit
