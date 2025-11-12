@@ -130,11 +130,11 @@ export function useOrganizations(options?: {
 		}
 	});
 
-	const organizationsQuery = browser && getUserId()
+	const organizationsQuery = browser && getSessionId()
 		? useQuery(api.organizations.listOrganizations, () => {
-				const userId = getUserId();
-				if (!userId) return null; // Skip query if userId not available
-				return { userId };
+				const sessionId = getSessionId();
+				if (!sessionId) return null; // Skip query if sessionId not available
+				return { sessionId };
 			})
 		: null;
 	const organizationInvitesQuery = browser
@@ -543,10 +543,16 @@ const teamsQuery = browser && getUserId()
 		}
 
 		try {
-			const result = await convexClient.mutation(api.organizations.createOrganization, {
-				name: trimmed,
-				userId
-			});
+		// Get sessionId
+		const sessionId = getSessionId();
+		if (!sessionId) {
+			throw new Error('Session ID not available');
+		}
+		
+		const result = await convexClient.mutation(api.organizations.createOrganization, {
+			name: trimmed,
+			sessionId
+		});
 
 			if (result?.organizationId) {
 				// Switch to new organization (overlay will persist during switch)

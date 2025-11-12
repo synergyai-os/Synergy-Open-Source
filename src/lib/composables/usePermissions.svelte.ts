@@ -17,7 +17,7 @@ import { api } from '$lib/convex';
 import type { Id } from '$convex/_generated/dataModel';
 
 export interface UsePermissionsParams {
-	userId: () => Id<'users'> | null;
+	sessionId: () => string | null;
 	organizationId?: () => Id<'organizations'> | null;
 	teamId?: () => Id<'teams'> | null;
 }
@@ -53,10 +53,10 @@ export function usePermissions(params: UsePermissionsParams): UsePermissionsRetu
 	// Query user permissions from Convex
 	const permissionsQuery = browser
 		? useQuery(api.rbac.permissions.getUserPermissionsQuery, () => {
-				const userId = params.userId();
-				if (!userId) return 'skip' as any;
+				const sessionId = params.sessionId();
+				if (!sessionId) return 'skip' as any;
 
-				const args: any = { userId };
+				const args: any = { sessionId };
 
 				// Add context filters
 				const orgId = params.organizationId?.();
