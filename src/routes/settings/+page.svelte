@@ -116,15 +116,15 @@
 		}
 
 		try {
-			// Get userId from page data (provided by authenticated layout)
-			const userId = $page.data.user?.userId;
-			if (!userId) {
-				console.error('User ID not available');
+			// Get sessionId from page data (provided by authenticated layout)
+			const sessionId = $page.data.sessionId;
+			if (!sessionId) {
+				console.error('Session ID not available');
 				return;
 			}
 			
 			// Load personal settings
-			const settings = await convexClient.query(settingsApiFunctions.getUserSettings, { userId });
+			const settings = await convexClient.query(settingsApiFunctions.getUserSettings, { sessionId });
 			if (settings) {
 				userSettings = settings as UserSettings;
 
@@ -154,40 +154,40 @@
 	});
 
 	// Mutation functions - created when client and functions are ready
-	let updateClaudeApiKeyFn: ((args: { apiKey: string }) => Promise<string>) | null = $state(null);
-	let updateReadwiseApiKeyFn: ((args: { apiKey: string }) => Promise<string>) | null = $state(null);
-	let updateThemeFn: ((args: { theme: 'light' | 'dark' }) => Promise<string>) | null = $state(null);
-	let deleteClaudeApiKeyFn: (() => Promise<string | null>) | null = $state(null);
-	let deleteReadwiseApiKeyFn: (() => Promise<string | null>) | null = $state(null);
+	let updateClaudeApiKeyFn: ((args: { sessionId: string; apiKey: string }) => Promise<string>) | null = $state(null);
+	let updateReadwiseApiKeyFn: ((args: { sessionId: string; apiKey: string }) => Promise<string>) | null = $state(null);
+	let updateThemeFn: ((args: { sessionId: string; theme: 'light' | 'dark' }) => Promise<string>) | null = $state(null);
+	let deleteClaudeApiKeyFn: ((sessionId: string) => Promise<string | null>) | null = $state(null);
+	let deleteReadwiseApiKeyFn: ((sessionId: string) => Promise<string | null>) | null = $state(null);
 
 	// Initialize mutations and actions when ready
 	$effect(() => {
 		if (!browser || !convexClient || !settingsApiFunctions) return;
 
 		// Create action functions for API key updates (they're actions, not mutations, because they validate via HTTP)
-		updateClaudeApiKeyFn = ((args: { apiKey: string }) =>
+		updateClaudeApiKeyFn = ((args: { sessionId: string; apiKey: string }) =>
 			convexClient!.action(
 				settingsApiFunctions.updateClaudeApiKey,
 				args
 			)) as typeof updateClaudeApiKeyFn;
-		updateReadwiseApiKeyFn = ((args: { apiKey: string }) =>
+		updateReadwiseApiKeyFn = ((args: { sessionId: string; apiKey: string }) =>
 			convexClient!.action(
 				settingsApiFunctions.updateReadwiseApiKey,
 				args
 			)) as typeof updateReadwiseApiKeyFn;
 		// Theme update is still a mutation (no validation needed)
-		updateThemeFn = ((args: { theme: 'light' | 'dark' }) =>
+		updateThemeFn = ((args: { sessionId: string; theme: 'light' | 'dark' }) =>
 			convexClient!.mutation(settingsApiFunctions.updateTheme, args)) as typeof updateThemeFn;
 		// Delete functions are mutations
-		deleteClaudeApiKeyFn = (() =>
+		deleteClaudeApiKeyFn = ((sessionId: string) =>
 			convexClient!.mutation(
 				settingsApiFunctions.deleteClaudeApiKey,
-				{}
+				{ sessionId }
 			)) as typeof deleteClaudeApiKeyFn;
-		deleteReadwiseApiKeyFn = (() =>
+		deleteReadwiseApiKeyFn = ((sessionId: string) =>
 			convexClient!.mutation(
 				settingsApiFunctions.deleteReadwiseApiKey,
-				{}
+				{ sessionId }
 			)) as typeof deleteReadwiseApiKeyFn;
 	});
 
@@ -218,8 +218,10 @@
 
 	// Handle blur validation for Claude API key
 	async function handleClaudeKeyBlur() {
+		const sessionId = $page.data.sessionId;
 		// Only validate if there's a value and we're not already validating
 		if (
+			!sessionId ||
 			!claudeApiKey.trim() ||
 			claudeValidationState === 'validating' ||
 			!updateClaudeApiKeyFn ||
@@ -232,7 +234,7 @@
 		claudeError = null;
 
 		try {
-			await updateClaudeApiKeyFn({ apiKey: claudeApiKey.trim() });
+			await updateClaudeApiKeyFn({ sessionId, apiKey: claudeApiKey.trim() });
 			claudeValidationState = 'valid';
 			claudeHasKey = true; // Mark that key exists
 			claudeShowCheckmark = true; // Show checkmark temporarily
@@ -273,8 +275,10 @@
 
 	// Handle blur validation for Readwise API key
 	async function handleReadwiseKeyBlur() {
+		const sessionId = $page.data.sessionId;
 		// Only validate if there's a value and we're not already validating
 		if (
+			!sessionId ||
 			!readwiseApiKey.trim() ||
 			readwiseValidationState === 'validating' ||
 			!updateReadwiseApiKeyFn ||
@@ -287,7 +291,7 @@
 		readwiseError = null;
 
 		try {
-			await updateReadwiseApiKeyFn({ apiKey: readwiseApiKey.trim() });
+			await updateReadwiseApiKeyFn({ sessionId, apiKey: readwiseApiKey.trim() });
 			readwiseValidationState = 'valid';
 			readwiseHasKey = true; // Mark that key exists
 			readwiseShowCheckmark = true; // Show checkmark temporarily
@@ -355,10 +359,11 @@
 
 	// Delete API key handlers
 	async function handleDeleteClaudeKey() {
-		if (!deleteClaudeApiKeyFn) return;
+		const sessionId = $page.data.sessionId;
+		if (!sessionId || !deleteClaudeApiKeyFn) return;
 
 		try {
-			await deleteClaudeApiKeyFn();
+			await deleteClaudeApiKeyFn(sessionId);
 			claudeApiKey = '';
 			claudeHasKey = false;
 			claudeShowCheckmark = false;
@@ -370,10 +375,11 @@
 	}
 
 	async function handleDeleteReadwiseKey() {
-		if (!deleteReadwiseApiKeyFn) return;
+		const sessionId = $page.data.sessionId;
+		if (!sessionId || !deleteReadwiseApiKeyFn) return;
 
 		try {
-			await deleteReadwiseApiKeyFn();
+			await deleteReadwiseApiKeyFn(sessionId);
 			readwiseApiKey = '';
 			readwiseHasKey = false;
 			readwiseShowCheckmark = false;

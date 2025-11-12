@@ -1,28 +1,27 @@
 import { query, mutation, action, internalMutation, internalQuery } from './_generated/server';
 import { v } from 'convex/values';
 import { getAuthUserId } from './auth';
-import { validateSession } from './sessionValidation';
+import { validateSessionAndGetUserId } from './sessionValidation';
 // Note: We use dynamic imports for crypto functions to avoid bundler issues
 // Mutations have Node.js runtime by default and can use dynamic imports
 import { internal } from './_generated/api';
 
 /**
  * Get user settings for the current authenticated user
+ * 
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ * 
  * Note: We return encrypted keys here and decrypt them client-side, OR
  * we call an internal mutation to decrypt. Actually, queries can't use Node.js crypto.
  * So we'll use an internal action to decrypt.
- * 
- * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
- * and remove explicit userId parameter
  */
 export const getUserSettings = query({
 	args: {
-		userId: v.id('users') // Required: passed from authenticated SvelteKit session
+		sessionId: v.string() // Required: passed from authenticated SvelteKit session
 	},
 	handler: async (ctx, args) => {
-		// Validate session (prevents impersonation)
-		await validateSession(ctx, args.userId);
-		const userId = args.userId;
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Find or create user settings
 		const settings = await ctx.db
@@ -82,14 +81,19 @@ export const getEncryptedKeysInternal = internalQuery({
  * Update Claude API key
  * Validates, encrypts, and saves the key securely.
  * Uses action to handle validation and encryption (which requires Node.js runtime).
+ * 
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const updateClaudeApiKey = action({
 	args: {
+		sessionId: v.string(),
 		apiKey: v.string()
 	},
 	handler: async (ctx, args): Promise<string> => {
-		// Get user ID
-		const userId: string | null = await ctx.runQuery(internal.settings.getUserId);
+		// Get user ID from sessionId (secure)
+		const userId: string | null = await ctx.runQuery(internal.settings.getUserIdFromSessionId, {
+			sessionId: args.sessionId
+		});
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
@@ -130,14 +134,19 @@ export const updateClaudeApiKey = action({
  * Update Readwise API key
  * Validates, encrypts, and saves the key securely.
  * Uses action to handle validation and encryption (which requires Node.js runtime).
+ * 
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const updateReadwiseApiKey = action({
 	args: {
+		sessionId: v.string(),
 		apiKey: v.string()
 	},
 	handler: async (ctx, args): Promise<string> => {
-		// Get user ID
-		const userId = await ctx.runQuery(internal.settings.getUserId);
+		// Get user ID from sessionId (secure)
+		const userId = await ctx.runQuery(internal.settings.getUserIdFromSessionId, {
+			sessionId: args.sessionId
+		});
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
@@ -168,12 +177,15 @@ export const updateReadwiseApiKey = action({
 });
 
 /**
- * Internal query to get the current user ID
- * Used by actions which can't directly access getAuthUserId
+ * Internal query to get the current user ID from sessionId
+ * Used by actions which need to derive userId from sessionId
  */
-export const getUserId = internalQuery({
-	handler: async (ctx) => {
-		return await getAuthUserId(ctx);
+export const getUserIdFromSessionId = internalQuery({
+	args: {
+		sessionId: v.string()
+	},
+	handler: async (ctx, args) => {
+		return await getAuthUserId(ctx, args.sessionId);
 	}
 });
 
@@ -255,13 +267,16 @@ export const updateReadwiseApiKeyInternal = internalMutation({
 
 /**
  * Update theme preference
+ * 
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const updateTheme = mutation({
 	args: {
+		sessionId: v.string(),
 		theme: v.union(v.literal('light'), v.literal('dark'))
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
@@ -293,10 +308,15 @@ export const updateTheme = mutation({
 
 /**
  * Delete Claude API key
+ * 
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const deleteClaudeApiKey = mutation({
-	handler: async (ctx) => {
-		const userId = await getAuthUserId(ctx);
+	args: {
+		sessionId: v.string()
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
@@ -320,10 +340,15 @@ export const deleteClaudeApiKey = mutation({
 
 /**
  * Delete Readwise API key
+ * 
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const deleteReadwiseApiKey = mutation({
-	handler: async (ctx) => {
-		const userId = await getAuthUserId(ctx);
+	args: {
+		sessionId: v.string()
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
