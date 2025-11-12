@@ -108,6 +108,7 @@
 | Personal workspace          | null = personal, clean queries                              | [auth-deployment.md#L410](auth-deployment.md#L410)       |
 | Multi-account support       | Account linking for Slack-style switching                   | [auth-deployment.md#L460](auth-deployment.md#L460)       |
 | Account linking direction   | Create bidirectional links for symmetry                     | [auth-deployment.md#L710](auth-deployment.md#L710)       |
+| E2E testing for auth        | 4-layer defense (static + unit + E2E + CI/CD)              | [auth-deployment.md#L1060](auth-deployment.md#L1060)     |
 
 ---
 
