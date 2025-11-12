@@ -432,12 +432,15 @@ export const validateAccountLink = query({
 
 export const listLinkedAccounts = query({
 	args: {
-		userId: v.id('users')
+		sessionId: v.string() // Session validation (derives userId securely)
 	},
 	handler: async (ctx, args) => {
+		// Validate session and get userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
 		const links = await ctx.db
 			.query('accountLinks')
-			.withIndex('by_primary', (q) => q.eq('primaryUserId', args.userId))
+			.withIndex('by_primary', (q) => q.eq('primaryUserId', userId))
 			.collect();
 
 		const results: {

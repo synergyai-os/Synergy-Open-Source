@@ -28,7 +28,7 @@
 		browser && getSessionId()
 			? useQuery(api.tags.listAllTags, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) return null;
+					if (!sessionId) return 'skip';
 					return { sessionId };
 				})
 			: null;
@@ -39,7 +39,7 @@
 		browser && getSessionId()
 			? useQuery(api.flashcards.getFlashcardsByCollection, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) return null;
+					if (!sessionId) return 'skip';
 					return { sessionId };
 				})
 			: null;
@@ -50,7 +50,7 @@
 		browser && getSessionId()
 			? useQuery(api.flashcards.getUserFlashcards, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) return null;
+					if (!sessionId) return 'skip';
 					return {
 						sessionId,
 						tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined

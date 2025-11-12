@@ -32,27 +32,34 @@
 
 	const convexClient = browser ? useConvexClient() : null;
 	const getUserId = () => $page.data.user?.userId;
+	const getSessionId = () => $page.data.sessionId;
 
 	// Setup tagging system for flashcards
 	const tagging = useTagging('flashcard', getUserId);
 
 	// Load all available tags
 	const allTagsQuery =
-		browser && getUserId()
+		browser && getSessionId()
 			? useQuery(api.tags.listAllTags, () => {
-					const userId = getUserId();
-					if (!userId) return null;
-					return { userId };
+					const sessionId = getSessionId();
+					if (!sessionId) return 'skip';
+					return { sessionId };
 				})
 			: null;
 	const availableTags = $derived(allTagsQuery?.data ?? []);
 
 	// Query tags for this flashcard (using the correct endpoint we created)
-	const flashcardTagsQuery = browser
-		? useQuery(api.tags.getTagsForFlashcard, () => ({
-				flashcardId: flashcard._id
-			}))
-		: null;
+	const flashcardTagsQuery =
+		browser && getSessionId()
+			? useQuery(api.tags.getTagsForFlashcard, () => {
+					const sessionId = getSessionId();
+					if (!sessionId) return 'skip';
+					return {
+						sessionId,
+						flashcardId: flashcard._id
+					};
+				})
+			: null;
 
 	const tags = $derived(flashcardTagsQuery?.data ?? []);
 

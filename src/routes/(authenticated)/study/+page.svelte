@@ -16,7 +16,7 @@
 		browser && getSessionId()
 			? useQuery(api.tags.listAllTags, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) return null;
+					if (!sessionId) return 'skip';
 					return { sessionId };
 				})
 			: null;

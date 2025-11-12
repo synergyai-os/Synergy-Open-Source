@@ -48,7 +48,7 @@
 	const allTagsQuery =
 		browser && sessionId
 			? useQuery(api.tags.listAllTags, () => {
-					if (!sessionId) return null;
+					if (!sessionId) return 'skip';
 					return { sessionId };
 				})
 			: null;
@@ -262,8 +262,8 @@
 					content: typeof noteContent === 'string' ? noteContent : JSON.stringify(noteContent),
 					contentMarkdown: noteContentMarkdown || undefined,
 					isAIGenerated: noteIsAIGenerated || undefined,
-					organizationId: organizationId || undefined, // Pass active organization context
-					teamId: teamId || undefined // Pass active team context
+					organizationId: (organizationId as Id<'organizations'>) || undefined, // Pass active organization context
+					teamId: (teamId as Id<'teams'>) || undefined // Pass active team context
 				});
 
 				// If there are tags, we need to link them after creation

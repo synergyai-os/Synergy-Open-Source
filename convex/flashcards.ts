@@ -392,15 +392,14 @@ export const deleteFlashcard = mutation({
  */
 export const getDueFlashcards = query({
 	args: {
-		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
+		sessionId: v.string(), // Session validation (derives userId securely)
 		limit: v.optional(v.number()),
 		algorithm: v.optional(v.string()),
 		tagIds: v.optional(v.array(v.id('tags')))
 	},
 	handler: async (ctx, args) => {
-		// Validate session (prevents impersonation)
-		await validateSession(ctx, args.userId);
-		const userId = args.userId;
+		// Validate session and get userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const algorithm = args.algorithm || 'fsrs';
 		const limit = args.limit || 10;
@@ -511,12 +510,11 @@ export const getUserFlashcards = query({
  */
 export const getFlashcardsByCollection = query({
 	args: {
-		userId: v.id('users') // Required: passed from authenticated SvelteKit session
+		sessionId: v.string() // Session validation (derives userId securely)
 	},
 	handler: async (ctx, args) => {
-		// Validate session (prevents impersonation)
-		await validateSession(ctx, args.userId);
-		const userId = args.userId;
+		// Validate session and get userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Get all user tags
 		const tags = await ctx.db

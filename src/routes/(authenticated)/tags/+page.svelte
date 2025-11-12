@@ -20,7 +20,7 @@
 		browser && getSessionId()
 			? useQuery(api.tags.listUserTags, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) return null;
+					if (!sessionId) return 'skip';
 					return { sessionId };
 				})
 			: null;
@@ -52,13 +52,13 @@
 		isSharing = true;
 
 		try {
-			const userId = getUserId();
-			if (!userId) {
-				throw new Error('User ID is required');
+			const sessionId = getSessionId();
+			if (!sessionId) {
+				throw new Error('Session ID is required');
 			}
 
 			const result = await convexClient.mutation(api.tags.shareTag, {
-				userId,
+				sessionId,
 				tagId: selectedTagForSharing._id,
 				shareWith,
 				organizationId: targetId as any

@@ -55,43 +55,17 @@
 	// This ensures only accounts with active sessions are shown
 	const linkedAccounts = $derived(authSession.availableAccounts ?? []);
 
-	// Fetch organizations for each linked account
-	// Use a Map to maintain queries keyed by userId for proper reactivity
-	const orgQueriesMap = new Map<string, ReturnType<typeof useQuery>>();
-
-	// Create/update queries reactively when linkedAccounts changes
-	$effect(() => {
-		if (!browser) return;
-
-		// Get current account IDs
-		const currentAccountIds = new Set(linkedAccounts.map((a) => a.userId));
-
-		// Remove queries for accounts that are no longer linked
-		for (const userId of orgQueriesMap.keys()) {
-			if (!currentAccountIds.has(userId)) {
-				orgQueriesMap.delete(userId);
-			}
-		}
-
-		// Create queries for new accounts
-		for (const account of linkedAccounts) {
-			if (!orgQueriesMap.has(account.userId)) {
-				const query = useQuery(api.organizations.listOrganizations, () => ({
-					userId: account.userId as Id<'users'>
-				}));
-				orgQueriesMap.set(account.userId, query);
-			}
-		}
-	});
-
+	// TODO: Fetch organizations for each linked account
+	// This requires an internal API that can query orgs by userId (linked account support)
+	// For now, just pass empty organizations for linked accounts
 	const linkedAccountOrganizations = $derived(
 		linkedAccounts.map((account) => ({
 			userId: account.userId,
 			email: account.email,
-			name: account.name,
-			firstName: account.firstName,
-			lastName: account.lastName,
-			organizations: (orgQueriesMap.get(account.userId)?.data ?? []) as any[]
+			name: account.name ?? null,
+			firstName: account.firstName ?? null,
+			lastName: account.lastName ?? null,
+			organizations: [] as any[]
 		}))
 	);
 

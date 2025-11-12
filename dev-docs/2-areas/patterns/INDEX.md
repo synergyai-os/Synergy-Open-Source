@@ -120,6 +120,9 @@
 | Ticket writing for AI       | User stories + technical detail for parallel AI execution   | [ticket-writing.md](ticket-writing.md)                   |
 | Split overlapping tickets   | Separate by technical boundary for parallel implementation  | [ticket-writing.md](ticket-writing.md)                   |
 | AI-ready ticket structure   | Clear scope, files, patterns, success criteria              | [ticket-writing.md](ticket-writing.md)                   |
+| Incremental CI gates        | Enable lint/build first, defer type check to separate work  | [ci-cd.md#L10](ci-cd.md#L10)                             |
+| Local CI testing            | npm scripts > shell scripts for consistency                 | [ci-cd.md#L110](ci-cd.md#L110)                           |
+| Secret scanning             | TruffleHog with .secretsignore for safe patterns            | [ci-cd.md#L160](ci-cd.md#L160)                           |
 
 ---
 
@@ -130,6 +133,7 @@
 - **Convex Integration** → [convex-integration.md](convex-integration.md)
 - **UI/UX Patterns** → [ui-patterns.md](ui-patterns.md)
 - **Analytics (PostHog)** → [analytics.md](analytics.md)
+- **CI/CD & Tooling** → [ci-cd.md](ci-cd.md)
 - **Ticket Writing** → [ticket-writing.md](ticket-writing.md)
 
 ---

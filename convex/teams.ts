@@ -114,13 +114,12 @@ async function ensureOrganizationMembership(
  */
 export const listTeams = query({
 	args: {
-		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
+		sessionId: v.string(), // Session validation (derives userId securely)
 		organizationId: v.optional(v.id('organizations'))
 	},
 	handler: async (ctx, args) => {
-		// Validate session (prevents impersonation)
-		await validateSession(ctx, args.userId);
-		const userId = args.userId;
+		// Validate session and get userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// If no organizationId provided, return empty array (personal workspace mode)
 		if (!args.organizationId) {
