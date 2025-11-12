@@ -1,11 +1,9 @@
 import { browser } from '$app/environment';
-import { page } from '$app/stores';
 import { useConvexClient, useQuery } from 'convex-svelte';
 import { api } from '$lib/convex';
 import { AnalyticsEventName } from '$lib/analytics/events';
 import posthog from 'posthog-js';
 import { toast } from '$lib/utils/toast';
-import { get } from 'svelte/store';
 
 export type OrganizationRole = 'owner' | 'admin' | 'member';
 
@@ -73,9 +71,13 @@ function getStorageDetailsKey(userId: string | undefined): string {
 	return userId ? `${STORAGE_DETAILS_KEY_PREFIX}_${userId}` : STORAGE_DETAILS_KEY_PREFIX;
 }
 
-export function useOrganizations(options?: { userId?: () => string | undefined }) {
+export function useOrganizations(options?: {
+	userId?: () => string | undefined;
+	orgFromUrl?: () => string | null; // Reactive URL parameter
+}) {
 	const convexClient = browser ? useConvexClient() : null;
 	const getUserId = options?.userId || (() => undefined);
+	const getOrgFromUrl = options?.orgFromUrl || (() => null);
 
 	// Get account-specific storage keys
 	const currentUserId = browser ? getUserId() : undefined;
@@ -181,15 +183,14 @@ const teamsQuery = browser && getUserId()
 		}))
 	);
 
-	// Read org parameter from URL (reactive via $derived)
-	const urlOrgParam = $derived(browser ? get(page)?.url?.searchParams?.get('org') : null);
-
 	$effect(() => {
 		// Priority 1: URL parameter (from account/workspace switching)
+		// Call function to get reactive value from parent
+		const urlOrgParam = getOrgFromUrl();
 		if (urlOrgParam && urlOrgParam !== state.activeOrganizationId) {
 			console.log('🔗 Setting organization from URL param:', urlOrgParam);
 			state.activeOrganizationId = urlOrgParam;
-			return; // Stop here, let the validation effect handle the rest
+			return; // Stop here, let validation handle the rest
 		}
 
 		// Priority 2: Wait until query has loaded before applying validation logic

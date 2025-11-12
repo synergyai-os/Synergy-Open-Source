@@ -3,6 +3,7 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { PUBLIC_CONVEX_URL, PUBLIC_POSTHOG_HOST, PUBLIC_POSTHOG_KEY } from '$env/static/public';
 	import { browser } from '$app/environment';
+	import { page } from '$app/stores';
 	import posthog from 'posthog-js';
 	import { beforeNavigate, afterNavigate } from '$app/navigation';
 	import { onMount, setContext } from 'svelte';
@@ -16,7 +17,10 @@
 	setupConvex(PUBLIC_CONVEX_URL);
 	const convexClient = browser ? useConvexClient() : null;
 
-	const organizationStore = useOrganizations({ userId: () => data.user?.userId });
+	const organizationStore = useOrganizations({
+		userId: () => data.user?.userId,
+		orgFromUrl: () => $page.url.searchParams.get('org')
+	});
 	setContext('organizations', organizationStore);
 
 	let posthogReady = $state(false);
