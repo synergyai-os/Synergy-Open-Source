@@ -6,14 +6,17 @@ import { createUserWithPassword, authenticateWithPassword } from '$lib/server/au
 import { establishSession } from '$lib/server/auth/session';
 import { generateSessionId, generateRandomToken, hashValue, encryptSecret } from '$lib/server/auth/crypto';
 import type { Id } from '$lib/convex';
+import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
 
 /**
  * Headless user registration endpoint
  * POST /auth/register
  * Body: { email, password, firstName?, lastName?, redirect? }
  */
-export const POST: RequestHandler = async (event) => {
-	console.log('🔍 POST /auth/register - Headless user registration');
+export const POST: RequestHandler = withRateLimit(
+	RATE_LIMITS.register,
+	async ({ event }) => {
+		console.log('🔍 POST /auth/register - Headless user registration');
 
 	try {
 		const body = await event.request.json();
@@ -257,5 +260,5 @@ export const POST: RequestHandler = async (event) => {
 			{ status: 500 }
 		);
 	}
-};
+});
 

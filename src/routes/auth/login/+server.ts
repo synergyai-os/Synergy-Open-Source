@@ -154,8 +154,31 @@ export const POST: RequestHandler = withRateLimit(
 					success: true,
 					redirectTo: `${redirect ?? '/inbox'}?linked=1`
 				});
-			} catch (linkError) {
+			} catch (linkError: any) {
 				console.error('❌ Account linking failed:', linkError);
+				
+				// Handle specific linking errors
+				if (linkError.message?.includes('Cannot link more than')) {
+					return json(
+						{
+							error: 'Too many linked accounts',
+							message: `You've reached the maximum of 10 linked accounts. Please unlink an account first.`
+						},
+						{ status: 400 }
+					);
+				}
+				
+				if (linkError.message?.includes('would exceed maximum depth')) {
+					return json(
+						{
+							error: 'Link depth exceeded',
+							message: 'Cannot link these accounts due to complexity limits. Please contact support.'
+						},
+						{ status: 400 }
+					);
+				}
+				
+				// Generic linking error
 				return json(
 					{ error: 'Failed to link accounts. Please try again.' },
 					{ status: 500 }

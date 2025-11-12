@@ -4,6 +4,7 @@ import { SESSION_COOKIE_NAME, clearSessionCookies, decodeSessionCookie } from '$
 import { getSessionRecord, invalidateSession } from '$lib/server/auth/sessionStore';
 import { hashValue } from '$lib/server/auth/crypto';
 import { revokeWorkOSSession } from '$lib/server/auth/workos';
+import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
 
 const ALLOWED_METHODS = 'POST';
 
@@ -16,8 +17,10 @@ export const GET: RequestHandler = async () => {
 	});
 };
 
-export const POST: RequestHandler = async (event) => {
-	const sessionCookie = event.cookies.get(SESSION_COOKIE_NAME);
+export const POST: RequestHandler = withRateLimit(
+	RATE_LIMITS.logout,
+	async ({ event }) => {
+		const sessionCookie = event.cookies.get(SESSION_COOKIE_NAME);
 	if (!sessionCookie) {
 		clearSessionCookies(event);
 		return json({ success: false, error: 'No session found' }, { status: 401 });
@@ -65,4 +68,4 @@ export const POST: RequestHandler = async (event) => {
 	// - Client will handle switching to another account if available
 
 	return json({ success: true });
-};
+});

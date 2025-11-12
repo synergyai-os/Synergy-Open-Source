@@ -2,6 +2,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { Button, FormInput } from '$lib/components/ui';
+	import RateLimitError from '$lib/components/ui/RateLimitError.svelte';
 
 	const redirectTarget = $derived(
 		$page.url.searchParams.get('redirect') ??
@@ -20,6 +21,8 @@
 	let lastName = $state('');
 	let isSubmitting = $state(false);
 	let errorMessage = $state<string | null>(null);
+	let isRateLimited = $state(false);
+	let rateLimitRetryAfter = $state(0);
 
 	$effect(() => {
 		const prefill =
@@ -34,6 +37,7 @@
 		if (isSubmitting) return;
 
 		errorMessage = null;
+		isRateLimited = false;
 
 		// Validate passwords match
 		if (password !== confirmPassword) {
@@ -67,6 +71,15 @@
 		const data = await response.json();
 
 		if (!response.ok) {
+			// Handle rate limiting with delightful countdown
+			if (response.status === 429) {
+				const retryAfter = parseInt(data.retryAfter || response.headers.get('Retry-After') || '60');
+				isRateLimited = true;
+				rateLimitRetryAfter = retryAfter;
+				isSubmitting = false;
+				return;
+			}
+			
 			// If email already exists, show helpful message and redirect to login
 			if (data.redirectToLogin && response.status === 409) {
 				errorMessage = 'This email is already registered. Taking you to the login page...';
@@ -104,9 +117,16 @@
 				</p>
 			</header>
 
-			{#if errorMessage}
-				<div class="mt-content-section rounded-input border border-accent-primary bg-hover-solid px-input-x py-input-y text-sm text-primary">
-					{errorMessage}
+			{#if isRateLimited}
+				<div class="mt-content-section">
+					<RateLimitError 
+						retryAfter={rateLimitRetryAfter}
+						actionLabel="creating accounts"
+					/>
+				</div>
+			{:else if errorMessage}
+				<div class="mt-content-section rounded-input border border-error bg-error px-input-x py-input-y">
+					<p class="text-sm font-medium text-error-secondary">{errorMessage}</p>
 				</div>
 			{/if}
 

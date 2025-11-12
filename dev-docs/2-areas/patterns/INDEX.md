@@ -40,6 +40,7 @@
 | Switching accounts shows wrong workspaces, data from another account         | Use account-specific localStorage keys `{key}_{userId}` | [auth-deployment.md#L860](auth-deployment.md#L860)                  |
 | Tests fail with "can only be called in the browser" or Web Crypto undefined | Rename .test.ts → .svelte.test.ts for browser environment | [svelte-reactivity.md#L800](svelte-reactivity.md#L800)              |
 | localStorage session data visible in DevTools, fails SOC 2 audit             | Use Web Crypto API (AES-256-GCM + PBKDF2)              | [auth-deployment.md#L960](auth-deployment.md#L960)                  |
+| `Cannot call replaceState(...) before router is initialized` on page load    | Try-catch guard around replaceState in $effect          | [svelte-reactivity.md#L730](svelte-reactivity.md#L730)              |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -164,6 +165,6 @@ correct code
 ---
 
 **Last Updated**: 2025-11-12
-**Pattern Count**: 68
+**Pattern Count**: 69
 **Format Version**: 2.0
 ```

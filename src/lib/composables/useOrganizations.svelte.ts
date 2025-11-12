@@ -217,12 +217,19 @@ const teamsQuery = browser && getUserId()
 				lastProcessedOrgParam = urlOrgParam;
 			});
 
-			state.activeOrganizationId = urlOrgParam;
+		state.activeOrganizationId = urlOrgParam;
 
-			// Clean up URL param immediately (inbox pattern - prevents reprocessing)
+		// Clean up URL param immediately (inbox pattern - prevents reprocessing)
+		// Guard for initial page load when router isn't initialized yet
+		try {
 			const url = new URL(window.location.href);
 			url.searchParams.delete('org');
 			replaceState(url.pathname + url.search, {});
+		} catch (e) {
+			// Router not ready on initial load - URL will persist but won't cause reprocessing
+			// because lastProcessedOrgParam tracking prevents the effect from running again
+			console.debug('Router not ready, deferring URL cleanup');
+		}
 
 			return; // Stop here, let validation handle the rest
 		}
@@ -384,6 +391,15 @@ const teamsQuery = browser && getUserId()
 		}
 
 		if (convexClient) {
+			const currentUserId = getUserId();
+			
+			// Only record organization switch if user is authenticated
+			// Analytics tracking is non-critical, so skip if not ready
+			if (!currentUserId) {
+				console.debug('⏭️ Skipping organization switch tracking - user not authenticated yet');
+				return;
+			}
+			
 			const mutationArgs: any = {
 				toOrganizationId: organizationId,
 				availableTeamCount

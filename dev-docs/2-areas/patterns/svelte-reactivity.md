@@ -769,7 +769,83 @@ $effect(() => {
 
 **Why URL cleanup matters**: Removing the URL parameter immediately after processing prevents the effect from seeing it again on the next reactive update, breaking the loop.
 
-**Related**: #L220 (useQuery reactivity), #L650 (onMount vs $effect), #L400 (SSR browser checks)
+**Related**: #L220 (useQuery reactivity), #L650 (onMount vs $effect), #L400 (SSR browser checks), #L730 (Router initialization timing)
+
+---
+
+## #L730: Router Not Initialized During Initial $effect [🔴 CRITICAL]
+
+**Symptom**: `Error: Cannot call replaceState(...) before router is initialized` when loading page with URL parameters  
+**Root Cause**: `replaceState()` called in `$effect` during initial page hydration, before SvelteKit router is ready. Router initializes after component mount.  
+**Fix**:
+
+```typescript
+// ❌ WRONG - replaceState() in $effect without guard
+$effect(() => {
+	const urlParam = getParamFromUrl();
+	if (urlParam) {
+		state.value = urlParam;
+		
+		// Crashes on initial page load
+		const url = new URL(window.location.href);
+		url.searchParams.delete('param');
+		replaceState(url.pathname + url.search, {});
+	}
+});
+
+// ✅ CORRECT - Try-catch guard for router readiness (Context7 validated)
+$effect(() => {
+	const urlParam = getParamFromUrl();
+	if (urlParam) {
+		state.value = urlParam;
+		
+		// Guard for initial page load when router isn't initialized yet
+		try {
+			const url = new URL(window.location.href);
+			url.searchParams.delete('param');
+			replaceState(url.pathname + url.search, {});
+		} catch (e) {
+			// Router not ready - URL persists but won't cause issues
+			// if proper tracking (e.g., lastProcessedParam) prevents reprocessing
+			console.debug('Router not ready, deferring URL cleanup');
+		}
+	}
+});
+```
+
+**Why it works**: Try-catch allows code to proceed gracefully when router isn't ready. URL parameter will be cleaned on next navigation, but won't cause reprocessing if proper tracking is implemented (see #L700).
+
+**Apply when**:
+- Using `replaceState()`, `pushState()`, or `goto()` in `$effect`
+- Processing URL parameters during initial page load
+- Error mentions "Cannot call [navigation function] before router is initialized"
+
+**Alternative approach**: Use `afterNavigate()` hook for URL cleanup (runs after router ready):
+
+```typescript
+import { afterNavigate } from '$app/navigation';
+
+let pendingUrlCleanup = false;
+
+$effect(() => {
+	const urlParam = getParamFromUrl();
+	if (urlParam) {
+		state.value = urlParam;
+		pendingUrlCleanup = true;
+	}
+});
+
+afterNavigate(() => {
+	if (pendingUrlCleanup) {
+		const url = new URL(window.location.href);
+		url.searchParams.delete('param');
+		replaceState(url.pathname + url.search, {});
+		pendingUrlCleanup = false;
+	}
+});
+```
+
+**Related**: #L700 (URL param infinite loops), #L650 (onMount vs $effect), #L500 (Browser checks in effects)
 
 ---
 
