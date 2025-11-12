@@ -1,6 +1,7 @@
 import { redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { env } from '$env/dynamic/private';
+import { env as publicEnv } from '$env/dynamic/public';
 import { createLoginState, type AuthFlowMode } from '$lib/server/auth/sessionStore';
 import { generateRandomToken } from '$lib/server/auth/crypto';
 import { createHash } from 'node:crypto';
@@ -62,9 +63,9 @@ export const GET: RequestHandler = async (event) => {
 	console.log('🔍 Auth start - Initiating WorkOS flow');
 	
 	// Validate WorkOS configuration (checked at request time, not import time)
-	if (!env.WORKOS_CLIENT_ID) {
-		console.error('❌ WORKOS_CLIENT_ID is not configured');
-		throw new Error('WORKOS_CLIENT_ID is not configured.');
+	if (!publicEnv.PUBLIC_WORKOS_CLIENT_ID) {
+		console.error('❌ PUBLIC_WORKOS_CLIENT_ID is not configured');
+		throw new Error('PUBLIC_WORKOS_CLIENT_ID is not configured.');
 	}
 	if (!env.WORKOS_REDIRECT_URI) {
 		console.error('❌ WORKOS_REDIRECT_URI is not configured');
@@ -72,7 +73,7 @@ export const GET: RequestHandler = async (event) => {
 	}
 
 	console.log('✅ WorkOS credentials present');
-	console.log('   Client ID:', env.WORKOS_CLIENT_ID?.substring(0, 15) + '...');
+	console.log('   Client ID:', publicEnv.PUBLIC_WORKOS_CLIENT_ID?.substring(0, 15) + '...');
 	console.log('   Redirect URI:', env.WORKOS_REDIRECT_URI);
 
 	const redirectParam =
@@ -111,7 +112,7 @@ export const GET: RequestHandler = async (event) => {
 	console.log('✅ Login state created');
 
 	const authorizeUrl = new URL(WORKOS_AUTHORIZE_URL);
-	authorizeUrl.searchParams.set('client_id', env.WORKOS_CLIENT_ID);
+	authorizeUrl.searchParams.set('client_id', publicEnv.PUBLIC_WORKOS_CLIENT_ID);
 	authorizeUrl.searchParams.set('redirect_uri', env.WORKOS_REDIRECT_URI);
 	authorizeUrl.searchParams.set('response_type', 'code');
 	authorizeUrl.searchParams.set('code_challenge', codeChallenge);

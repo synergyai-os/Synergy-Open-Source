@@ -1,4 +1,5 @@
 import { env } from '$env/dynamic/private';
+import { env as publicEnv } from '$env/dynamic/public';
 
 const WORKOS_BASE_URL = 'https://api.workos.com';
 
@@ -7,8 +8,8 @@ const WORKOS_BASE_URL = 'https://api.workos.com';
 
 /** Validate required WorkOS environment variables are present */
 function validateWorkOSConfig() {
-	if (!env.WORKOS_CLIENT_ID) {
-		throw new Error('WORKOS_CLIENT_ID is not configured.');
+	if (!publicEnv.PUBLIC_WORKOS_CLIENT_ID) {
+		throw new Error('PUBLIC_WORKOS_CLIENT_ID is not configured.');
 	}
 	if (!env.WORKOS_API_KEY) {
 		throw new Error('WORKOS_API_KEY is not configured.');
@@ -75,7 +76,7 @@ export async function exchangeAuthorizationCode(options: {
 		method: 'POST',
 		headers: buildHeaders(),
 		body: JSON.stringify({
-			client_id: env.WORKOS_CLIENT_ID,
+			client_id: publicEnv.PUBLIC_WORKOS_CLIENT_ID,
 			client_secret: env.WORKOS_API_KEY,
 			code: options.code,
 			grant_type: 'authorization_code',
@@ -150,7 +151,7 @@ export async function refreshWorkOSSession(options: {
 		method: 'POST',
 		headers: buildHeaders(),
 		body: JSON.stringify({
-			client_id: env.WORKOS_CLIENT_ID,
+			client_id: publicEnv.PUBLIC_WORKOS_CLIENT_ID,
 			client_secret: env.WORKOS_API_KEY,
 			grant_type: 'refresh_token',
 			refresh_token: options.refreshToken
@@ -236,7 +237,7 @@ export async function authenticateWithPassword(options: {
 		method: 'POST',
 		headers: buildHeaders(),
 		body: JSON.stringify({
-			client_id: env.WORKOS_CLIENT_ID,
+			client_id: publicEnv.PUBLIC_WORKOS_CLIENT_ID,
 			client_secret: env.WORKOS_API_KEY,
 			grant_type: 'password',
 			email: options.email,
