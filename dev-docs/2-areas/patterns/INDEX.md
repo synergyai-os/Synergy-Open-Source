@@ -41,6 +41,7 @@
 | Tests fail with "can only be called in the browser" or Web Crypto undefined | Rename .test.ts → .svelte.test.ts for browser environment | [svelte-reactivity.md#L800](svelte-reactivity.md#L800)              |
 | localStorage session data visible in DevTools, fails SOC 2 audit             | Use Web Crypto API (AES-256-GCM + PBKDF2)              | [auth-deployment.md#L960](auth-deployment.md#L960)                  |
 | `Cannot call replaceState(...) before router is initialized` on page load    | Try-catch guard around replaceState in $effect          | [svelte-reactivity.md#L730](svelte-reactivity.md#L730)              |
+| Account switch takes 5+ seconds, query costs spike with many linked accounts | Add MAX_LINK_DEPTH=3 and MAX_TOTAL_ACCOUNTS=10 limits   | [auth-deployment.md#L1010](auth-deployment.md#L1010)                |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -166,6 +167,6 @@ correct code
 ---
 
 **Last Updated**: 2025-11-12
-**Pattern Count**: 69
+**Pattern Count**: 70
 **Format Version**: 2.0
 ```
