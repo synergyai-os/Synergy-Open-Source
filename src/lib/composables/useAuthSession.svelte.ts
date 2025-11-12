@@ -111,13 +111,16 @@ export function useAuthSession(): UseAuthSessionReturn {
 				});
 			}
 
-			// Load all available accounts
+			// Load all available accounts (excluding current user)
 			const allSessions = getAllSessions();
-			state.availableAccounts = Object.entries(allSessions).map(([userId, session]) => ({
-				userId,
-				email: session.userEmail,
-				name: session.userName
-			}));
+			const currentUserId = data.user?.userId;
+			state.availableAccounts = Object.entries(allSessions)
+				.filter(([userId]) => userId !== currentUserId)
+				.map(([userId, session]) => ({
+					userId,
+					email: session.userEmail,
+					name: session.userName
+				}));
 		} catch (error) {
 			console.error('Failed to load auth session', error);
 			state.isAuthenticated = false;
