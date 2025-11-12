@@ -22,7 +22,7 @@ export type NoteState = {
 
 export function useNote(
 	convexClient: ConvexClient | null,
-	getUserId: () => string | undefined
+	getSessionId: () => string | undefined
 ) {
 	// Internal state using single $state object pattern
 	const state = $state<NoteState>({
@@ -49,10 +49,16 @@ export function useNote(
 		if (!convexClient || !browser) return null;
 
 		try {
+			const sessionId = getSessionId();
+			if (!sessionId) {
+				throw new Error('Session ID is required');
+			}
+
 			state.isSaving = true;
 			state.error = null;
 
 			const noteId = await convexClient.mutation(api.notes.createNote, {
+				sessionId,
 				title,
 				content: content || JSON.stringify({ type: 'doc', content: [] }),
 				isAIGenerated
@@ -98,16 +104,16 @@ export function useNote(
 		if (!convexClient || !browser || !state.noteId) return false;
 
 		try {
-			const userId = getUserId();
-			if (!userId) {
-				throw new Error('User ID is required');
+			const sessionId = getSessionId();
+			if (!sessionId) {
+				throw new Error('Session ID is required');
 			}
 
 			state.isSaving = true;
 			state.error = null;
 
 			await convexClient.mutation(api.notes.updateNote, {
-				userId,
+				sessionId,
 				noteId: state.noteId,
 				title: state.title,
 				content: state.content,
@@ -132,16 +138,16 @@ export function useNote(
 		if (!convexClient || !browser || !state.noteId) return false;
 
 		try {
-			const userId = getUserId();
-			if (!userId) {
-				throw new Error('User ID is required');
+			const sessionId = getSessionId();
+			if (!sessionId) {
+				throw new Error('Session ID is required');
 			}
 
 			state.isSaving = true;
 			state.error = null;
 
 			await convexClient.mutation(api.notes.markAsAIGenerated, {
-				userId,
+				sessionId,
 				noteId: state.noteId
 			});
 
@@ -163,16 +169,16 @@ export function useNote(
 		if (!convexClient || !browser || !state.noteId) return false;
 
 		try {
-			const userId = getUserId();
-			if (!userId) {
-				throw new Error('User ID is required');
+			const sessionId = getSessionId();
+			if (!sessionId) {
+				throw new Error('Session ID is required');
 			}
 
 			state.isSaving = true;
 			state.error = null;
 
 			await convexClient.mutation(api.notes.markForBlogExport, {
-				userId,
+				sessionId,
 				noteId: state.noteId,
 				slug
 			});

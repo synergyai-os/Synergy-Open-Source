@@ -14,8 +14,8 @@
 	let { inboxItem, onClose }: Props = $props();
 
 	const convexClient = browser ? useConvexClient() : null;
-	const getUserId = () => $page.data.user?.userId;
-	const note = useNote(convexClient, getUserId);
+	const getSessionId = () => $page.data.sessionId;
+	const note = useNote(convexClient, getSessionId);
 
 	let editorRef: any = $state(null);
 	let editMode = $state(false);

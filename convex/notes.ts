@@ -7,17 +7,16 @@
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 import { getAuthUserId } from './auth';
-import { validateSession } from './sessionValidation';
+import { validateSessionAndGetUserId } from './sessionValidation';
 
 /**
  * Create a new note
  * 
- * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
- * and remove explicit userId parameter
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const createNote = mutation({
 	args: {
-		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
 		title: v.optional(v.string()),
 		content: v.string(), // ProseMirror JSON
 		contentMarkdown: v.optional(v.string()),
@@ -26,10 +25,8 @@ export const createNote = mutation({
 		teamId: v.optional(v.id('teams'))
 	},
 	handler: async (ctx, args) => {
-		// Validate session (prevents impersonation)
-		await validateSession(ctx, args.userId);
-		
-		const userId = args.userId;
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const now = Date.now();
 
@@ -55,16 +52,12 @@ export const createNote = mutation({
 
 /**
  * Update an existing note
- */
-/**
- * Update an existing note
  * 
- * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
- * and remove explicit userId parameter
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const updateNote = mutation({
 	args: {
-		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
 		noteId: v.id('inboxItems'),
 		title: v.optional(v.string()),
 		content: v.optional(v.string()),
@@ -74,9 +67,8 @@ export const updateNote = mutation({
 		slug: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
-		// Validate session (prevents impersonation)
-		await validateSession(ctx, args.userId);
-		const userId = args.userId;
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const note = await ctx.db.get(args.noteId);
 
@@ -114,18 +106,16 @@ export const updateNote = mutation({
 /**
  * Mark note as AI-generated
  * 
- * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
- * and remove explicit userId parameter
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const markAsAIGenerated = mutation({
 	args: {
-		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
 		noteId: v.id('inboxItems')
 	},
 	handler: async (ctx, args) => {
-		// Validate session (prevents impersonation)
-		await validateSession(ctx, args.userId);
-		const userId = args.userId;
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const note = await ctx.db.get(args.noteId);
 
@@ -150,19 +140,17 @@ export const markAsAIGenerated = mutation({
 /**
  * Mark note for blog export
  * 
- * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
- * and remove explicit userId parameter
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const markForBlogExport = mutation({
 	args: {
-		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
 		noteId: v.id('inboxItems'),
 		slug: v.string()
 	},
 	handler: async (ctx, args) => {
-		// Validate session (prevents impersonation)
-		await validateSession(ctx, args.userId);
-		const userId = args.userId;
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const note = await ctx.db.get(args.noteId);
 
@@ -187,19 +175,17 @@ export const markForBlogExport = mutation({
 /**
  * Mark note as published to blog file
  * 
- * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
- * and remove explicit userId parameter
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const markAsPublished = mutation({
 	args: {
-		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
 		noteId: v.id('inboxItems'),
 		publishedTo: v.string() // File path
 	},
 	handler: async (ctx, args) => {
-		// Validate session (prevents impersonation)
-		await validateSession(ctx, args.userId);
-		const userId = args.userId;
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const note = await ctx.db.get(args.noteId);
 
@@ -225,18 +211,16 @@ export const markAsPublished = mutation({
 /**
  * Delete a note
  * 
- * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
- * and remove explicit userId parameter
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const deleteNote = mutation({
 	args: {
-		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
 		noteId: v.id('inboxItems')
 	},
 	handler: async (ctx, args) => {
-		// Validate session (prevents impersonation)
-		await validateSession(ctx, args.userId);
-		const userId = args.userId;
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const note = await ctx.db.get(args.noteId);
 
@@ -257,18 +241,16 @@ export const deleteNote = mutation({
 /**
  * Export note to dev docs (set slug for /dev-docs/notes/[slug] route)
  * 
- * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
- * and remove explicit userId parameter
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const exportToDevDocs = mutation({
 	args: {
-		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
 		noteId: v.id('inboxItems')
 	},
 	handler: async (ctx, args) => {
-		// Validate session (prevents impersonation)
-		await validateSession(ctx, args.userId);
-		const userId = args.userId;
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const note = await ctx.db.get(args.noteId);
 
@@ -299,21 +281,19 @@ export const exportToDevDocs = mutation({
 /**
  * List all notes for current user
  * 
- * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
- * and remove explicit userId parameter
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const listNotes = query({
 	args: {
-		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
 		processed: v.optional(v.boolean()),
 		blogOnly: v.optional(v.boolean()),
 		organizationId: v.optional(v.union(v.id('organizations'), v.null())),
 		teamId: v.optional(v.id('teams'))
 	},
 	handler: async (ctx, args) => {
-		// Validate session (prevents impersonation)
-		await validateSession(ctx, args.userId);
-		const userId = args.userId;
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const itemsQuery = ctx.db
 			.query('inboxItems')
@@ -355,13 +335,16 @@ export const listNotes = query({
 
 /**
  * Get a single note by ID
+ * 
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const getNote = query({
 	args: {
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
 		noteId: v.id('inboxItems')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			return null;
 		}
