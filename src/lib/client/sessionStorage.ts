@@ -1,13 +1,15 @@
 /**
  * Client-side multi-session storage
  * Manages multiple user sessions (Slack/Notion pattern)
- * Sessions are stored in localStorage with basic encryption
+ * Sessions are stored in localStorage with AES-256-GCM encryption
  */
 
 import { browser } from '$app/environment';
+import { encryptSession, decryptSession, isWebCryptoSupported } from './crypto';
 
 const STORAGE_KEY = 'syos_sessions';
 const ACTIVE_ACCOUNT_KEY = 'syos_active_account';
+const MIGRATION_FLAG_KEY = 'syos_crypto_migrated'; // Track migration status
 
 export interface SessionData {
 	sessionId: string;
@@ -23,18 +25,10 @@ export interface MultiSessionStore {
 }
 
 /**
- * Simple XOR encryption for localStorage
- * Not cryptographically secure, but prevents casual inspection
+ * DEPRECATED: Old XOR encryption (kept for migration only)
+ * DO NOT USE for new code!
  */
-function simpleEncrypt(text: string, key: string): string {
-	let result = '';
-	for (let i = 0; i < text.length; i++) {
-		result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-	}
-	return btoa(result);
-}
-
-function simpleDecrypt(encrypted: string, key: string): string {
+function legacyDecrypt(encrypted: string, key: string): string {
 	try {
 		const decoded = atob(encrypted);
 		let result = '';
@@ -47,29 +41,90 @@ function simpleDecrypt(encrypted: string, key: string): string {
 	}
 }
 
-// Simple key derived from user agent + screen properties
-function getStorageKey(): string {
+function getLegacyStorageKey(): string {
 	if (!browser) return 'default-key';
 	return `${navigator.userAgent}-${screen.width}x${screen.height}`.slice(0, 32);
 }
 
 /**
+ * Migrate from XOR encryption to Web Crypto API
+ * This is called automatically on first load
+ */
+async function migrateToWebCrypto(): Promise<void> {
+	if (!browser || !isWebCryptoSupported()) {
+		console.warn('Web Crypto API not available, skipping migration');
+		return;
+	}
+	
+	const migrated = localStorage.getItem(MIGRATION_FLAG_KEY);
+	if (migrated === 'true') {
+		return; // Already migrated
+	}
+	
+	console.log('🔐 Migrating session encryption from XOR to Web Crypto API...');
+	
+	try {
+		// Try to load old encrypted data
+		const oldEncrypted = localStorage.getItem(STORAGE_KEY);
+		if (!oldEncrypted) {
+			// No old data to migrate
+			localStorage.setItem(MIGRATION_FLAG_KEY, 'true');
+			return;
+		}
+		
+		// Decrypt with old XOR method
+		const oldDecrypted = legacyDecrypt(oldEncrypted, getLegacyStorageKey());
+		if (!oldDecrypted) {
+			console.warn('Failed to decrypt old session data, clearing');
+			localStorage.removeItem(STORAGE_KEY);
+			localStorage.setItem(MIGRATION_FLAG_KEY, 'true');
+			return;
+		}
+		
+		// Parse old data
+		const oldData = JSON.parse(oldDecrypted) as MultiSessionStore;
+		
+		// Re-encrypt with new Web Crypto method
+		const newEncrypted = await encryptSession(JSON.stringify(oldData));
+		localStorage.setItem(STORAGE_KEY, newEncrypted);
+		
+		// Mark migration complete
+		localStorage.setItem(MIGRATION_FLAG_KEY, 'true');
+		
+		console.log('✅ Session encryption migration complete');
+	} catch (error) {
+		console.error('Migration failed:', error);
+		// Clear corrupted data
+		localStorage.removeItem(STORAGE_KEY);
+		localStorage.setItem(MIGRATION_FLAG_KEY, 'true');
+	}
+}
+
+/**
  * Load all sessions from localStorage
  */
-export function loadSessions(): MultiSessionStore {
+export async function loadSessions(): Promise<MultiSessionStore> {
 	if (!browser) {
 		return { activeAccount: null, sessions: {} };
 	}
-
+	
+	// Run migration if needed (idempotent)
+	await migrateToWebCrypto();
+	
+	if (!isWebCryptoSupported()) {
+		console.error('Web Crypto API not supported in this browser');
+		return { activeAccount: null, sessions: {} };
+	}
+	
 	try {
 		const encrypted = localStorage.getItem(STORAGE_KEY);
 		if (!encrypted) {
 			return { activeAccount: null, sessions: {} };
 		}
-
-		const decrypted = simpleDecrypt(encrypted, getStorageKey());
+		
+		const decrypted = await decryptSession(encrypted);
 		const parsed = JSON.parse(decrypted) as MultiSessionStore;
-
+		
 		// Clean up expired sessions
 		const now = Date.now();
 		const validSessions: Record<string, SessionData> = {};
@@ -78,19 +133,21 @@ export function loadSessions(): MultiSessionStore {
 				validSessions[userId] = session;
 			}
 		}
-
+		
 		// If active account session expired, switch to first valid one
 		let activeAccount = parsed.activeAccount;
 		if (activeAccount && !validSessions[activeAccount]) {
 			activeAccount = Object.keys(validSessions)[0] || null;
 		}
-
+		
 		return {
 			activeAccount,
 			sessions: validSessions
 		};
 	} catch (error) {
 		console.error('Failed to load sessions from localStorage:', error);
+		// Clear corrupted data
+		localStorage.removeItem(STORAGE_KEY);
 		return { activeAccount: null, sessions: {} };
 	}
 }
@@ -98,14 +155,17 @@ export function loadSessions(): MultiSessionStore {
 /**
  * Save all sessions to localStorage
  */
-export function saveSessions(store: MultiSessionStore): void {
-	if (!browser) return;
-
+export async function saveSessions(store: MultiSessionStore): Promise<void> {
+	if (!browser || !isWebCryptoSupported()) {
+		console.warn('Cannot save sessions: Web Crypto API not available');
+		return;
+	}
+	
 	try {
 		const json = JSON.stringify(store);
-		const encrypted = simpleEncrypt(json, getStorageKey());
+		const encrypted = await encryptSession(json);
 		localStorage.setItem(STORAGE_KEY, encrypted);
-
+		
 		// Also store active account separately for quick access
 		if (store.activeAccount) {
 			localStorage.setItem(ACTIVE_ACCOUNT_KEY, store.activeAccount);
@@ -120,32 +180,32 @@ export function saveSessions(store: MultiSessionStore): void {
 /**
  * Add or update a session
  */
-export function addSession(userId: string, session: SessionData): void {
-	const store = loadSessions();
+export async function addSession(userId: string, session: SessionData): Promise<void> {
+	const store = await loadSessions();
 	store.sessions[userId] = session;
-
+	
 	// If this is the first session, make it active
 	if (!store.activeAccount || Object.keys(store.sessions).length === 1) {
 		store.activeAccount = userId;
 	}
-
-	saveSessions(store);
+	
+	await saveSessions(store);
 }
 
 /**
  * Remove a session
  */
-export function removeSession(userId: string): void {
-	const store = loadSessions();
+export async function removeSession(userId: string): Promise<void> {
+	const store = await loadSessions();
 	delete store.sessions[userId];
-
+	
 	// If we removed the active account, switch to another
 	if (store.activeAccount === userId) {
 		const remainingSessions = Object.keys(store.sessions);
 		store.activeAccount = remainingSessions[0] || null;
 	}
-
-	saveSessions(store);
+	
+	await saveSessions(store);
 }
 
 /**

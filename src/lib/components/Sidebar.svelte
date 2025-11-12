@@ -10,6 +10,7 @@ import { browser, dev } from '$app/environment';
 	import CleanReadwiseButton from './sidebar/CleanReadwiseButton.svelte';
 	import TeamList from './organizations/TeamList.svelte';
 	import CreateMenu from './sidebar/CreateMenu.svelte';
+	import WorkspaceSwitchOverlay from './organizations/WorkspaceSwitchOverlay.svelte';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 	import { useAuthSession } from '$lib/composables/useAuthSession.svelte';
 	import { useQuery } from 'convex-svelte';
@@ -99,6 +100,15 @@ import { browser, dev } from '$app/environment';
 	let isHoveringRightEdge = $state(false); // Track if mouse is near right edge for resize handle
 	let hoverTimeoutId: ReturnType<typeof setTimeout> | null = null;
 	let hoverZoneTimeoutId: ReturnType<typeof setTimeout> | null = null;
+
+	// Immediate overlay state for account switching (shows before page reload)
+	let accountSwitchOverlay = $state<{
+		show: boolean;
+		targetName: string | null;
+	}>({
+		show: false,
+		targetName: null
+	});
 
 	// Track mouse position globally to close sidebar when mouse goes too far right
 	function handleDocumentMouseMove(e: MouseEvent) {
@@ -392,6 +402,15 @@ import { browser, dev } from '$app/environment';
 					goto(`/login?${params.toString()}`);
 				}}
 				onSwitchAccount={(targetUserId, redirectTo) => {
+					// Find the account being switched to
+					const targetAccount = linkedAccountOrganizations.find(a => a.userId === targetUserId);
+					const targetName = targetAccount?.firstName || targetAccount?.name || targetAccount?.email || 'account';
+					
+					// Show overlay IMMEDIATELY before API call/redirect
+					accountSwitchOverlay.show = true;
+					accountSwitchOverlay.targetName = targetName;
+					
+					// Then perform the switch (which will set sessionStorage and redirect)
 					authSession.switchAccount(targetUserId, redirectTo);
 				}}
 				onLogout={() => {
@@ -936,6 +955,15 @@ import { browser, dev } from '$app/environment';
 			</div>
 		{/if}
 	</aside>
+{/if}
+
+<!-- Immediate overlay for account switching (before page reload) -->
+{#if accountSwitchOverlay.show}
+	<WorkspaceSwitchOverlay
+		show={true}
+		workspaceName={accountSwitchOverlay.targetName ?? 'account'}
+		workspaceType="personal"
+	/>
 {/if}
 
 <style>

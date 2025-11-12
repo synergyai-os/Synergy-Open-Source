@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import GlobalActivityTracker from '$lib/components/GlobalActivityTracker.svelte';
 	import AppTopBar from '$lib/components/organizations/AppTopBar.svelte';
 	import QuickCreateModal from '$lib/components/QuickCreateModal.svelte';
 	import OrganizationModals from '$lib/components/organizations/OrganizationModals.svelte';
+	import WorkspaceSwitchOverlay from '$lib/components/organizations/WorkspaceSwitchOverlay.svelte';
 	import { getContext, setContext } from 'svelte';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 	import { useGlobalShortcuts, SHORTCUTS } from '$lib/composables/useGlobalShortcuts.svelte';
@@ -22,6 +24,53 @@
 			: (data.user?.email ?? 'Personal workspace')
 	);
 	const workspaceName = $derived(() => data.activeWorkspace?.name ?? 'Private workspace');
+
+	// Account switching state (for page reloads)
+	let accountSwitchingState = $state<{
+		isSwitching: boolean;
+		switchingTo: string | null;
+		switchingToType: 'personal' | 'organization';
+		startTime: number | null;
+	}>({
+		isSwitching: false,
+		switchingTo: null,
+		switchingToType: 'personal',
+		startTime: null
+	});
+
+	// Check for account switching flag on mount
+	onMount(() => {
+		if (!browser) return;
+
+		const switchingData = sessionStorage.getItem('switchingAccount');
+		if (switchingData) {
+			try {
+				const parsed = JSON.parse(switchingData);
+				accountSwitchingState.isSwitching = true;
+				accountSwitchingState.switchingTo = parsed.accountName || 'account';
+				accountSwitchingState.switchingToType = 'personal'; // Account switches are always to personal workspace
+				accountSwitchingState.startTime = parsed.startTime || Date.now();
+
+				// Clear the flag immediately (we've read it)
+				sessionStorage.removeItem('switchingAccount');
+
+				// Ensure minimum 5 second display
+				const elapsed = Date.now() - accountSwitchingState.startTime;
+				const minimumDuration = 5000;
+				const remaining = Math.max(0, minimumDuration - elapsed);
+
+				setTimeout(() => {
+					accountSwitchingState.isSwitching = false;
+					accountSwitchingState.switchingTo = null;
+					accountSwitchingState.switchingToType = 'personal';
+					accountSwitchingState.startTime = null;
+				}, remaining);
+			} catch (e) {
+				console.warn('Failed to parse account switching data', e);
+				sessionStorage.removeItem('switchingAccount');
+			}
+		}
+	});
 
 	// Initialize global shortcuts (only in browser - SSR safe)
 	const shortcuts = browser ? useGlobalShortcuts() : null;
@@ -228,6 +277,21 @@
 				activeOrganizationName={organizations.activeOrganization?.name ?? null}
 			/>
 		{/if}
+
+		<!-- Workspace Switch Loading Overlay -->
+		<WorkspaceSwitchOverlay
+			show={(organizations?.isSwitching ?? false) || accountSwitchingState.isSwitching}
+			workspaceName={
+				organizations?.isSwitching
+					? organizations.switchingTo ?? 'workspace'
+					: accountSwitchingState.switchingTo ?? 'account'
+			}
+			workspaceType={
+				organizations?.isSwitching
+					? organizations.switchingToType ?? 'personal'
+					: accountSwitchingState.switchingToType
+			}
+		/>
 	</div>
 {:else}
 	<!-- Not authenticated - shouldn't reach here due to redirect, but show login prompt -->

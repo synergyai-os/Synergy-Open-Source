@@ -111,6 +111,7 @@ export function useOrganizations(options?: {
 		cachedOrganization: cachedOrgDetails,
 		isSwitching: false,
 		switchingTo: null as string | null,
+		switchingToType: 'personal' as 'personal' | 'organization',
 		switchStartTime: null as number | null,
 		modals: {
 			createOrganization: false,
@@ -319,6 +320,7 @@ const teamsQuery = browser && getUserId()
 				// Clear switching state immediately
 				state.isSwitching = false;
 				state.switchingTo = null;
+				state.switchingToType = 'personal';
 				state.switchStartTime = null;
 			} else {
 				// Wait for remaining time to reach minimum duration
@@ -326,6 +328,7 @@ const teamsQuery = browser && getUserId()
 				setTimeout(() => {
 					state.isSwitching = false;
 					state.switchingTo = null;
+					state.switchingToType = 'personal';
 					state.switchStartTime = null;
 				}, remaining);
 			}
@@ -339,12 +342,14 @@ const teamsQuery = browser && getUserId()
 		state.isSwitching = true;
 		state.switchStartTime = browser ? Date.now() : null;
 		
-		// Determine target organization name for display
+		// Determine target organization name and type for display
 		if (organizationId) {
 			const targetOrg = organizationsData().find((org) => org.organizationId === organizationId);
 			state.switchingTo = targetOrg?.name ?? 'organization';
+			state.switchingToType = 'organization';
 		} else {
 			state.switchingTo = 'Personal workspace';
+			state.switchingToType = 'personal';
 		}
 		
 		state.activeOrganizationId = organizationId;
@@ -632,6 +637,9 @@ const teamsQuery = browser && getUserId()
 		},
 		get switchingTo() {
 			return state.switchingTo;
+		},
+		get switchingToType() {
+			return state.switchingToType;
 		},
 		setActiveOrganization,
 		setActiveTeam,

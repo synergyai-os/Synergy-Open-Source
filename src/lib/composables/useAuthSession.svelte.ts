@@ -218,12 +218,19 @@ export function useAuthSession(): UseAuthSessionReturn {
 		}
 
 		const targetSession = allSessions[targetUserId];
+		const targetAccountName = targetSession.userName || targetSession.userEmail || 'account';
 		const csrfToken = state.csrfToken ?? targetSession.csrfToken ?? readCookie('syos_csrf') ?? readCookie('axon_csrf');
 		
 		if (!csrfToken) {
 			state.error = 'Unable to verify session (missing CSRF token).';
 			return;
 		}
+
+		// Set switching flag before redirect - overlay will show on page load
+		sessionStorage.setItem('switchingAccount', JSON.stringify({
+			accountName: targetAccountName,
+			startTime: Date.now()
+		}));
 
 		state.isLoading = true;
 		state.error = null;
@@ -246,6 +253,8 @@ export function useAuthSession(): UseAuthSessionReturn {
 			});
 
 			if (!response.ok) {
+				// Clear switching flag on error
+				sessionStorage.removeItem('switchingAccount');
 				const result = await response.json().catch(() => null);
 				state.error =
 					(result as { error?: string } | null)?.error ?? 'Failed to switch accounts.';
@@ -265,6 +274,8 @@ export function useAuthSession(): UseAuthSessionReturn {
 			state.csrfToken = null;
 			window.location.href = result.redirect ?? redirectTo ?? '/inbox';
 		} catch (error) {
+			// Clear switching flag on error
+			sessionStorage.removeItem('switchingAccount');
 			console.error('Account switch failed', error);
 			state.error = 'Unable to switch accounts right now.';
 		} finally {

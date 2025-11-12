@@ -72,7 +72,14 @@ export const POST: RequestHandler = async (event) => {
 	});
 
 	if (!linkStatus?.linked) {
-		return json({ error: 'Accounts are not linked' }, { status: 403 });
+		return json(
+			{
+				error: 'Accounts are not linked',
+				code: 'NOT_LINKED',
+				message: 'These accounts are not connected. Please link them first.'
+			},
+			{ status: 403 }
+		);
 	}
 
 	const targetSession = await getActiveSessionRecordForUser(targetUserId);

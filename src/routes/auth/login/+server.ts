@@ -5,14 +5,17 @@ import { PUBLIC_CONVEX_URL } from '$env/static/public';
 import { authenticateWithPassword } from '$lib/server/auth/workos';
 import { establishSession } from '$lib/server/auth/session';
 import { generateSessionId, generateRandomToken, hashValue, encryptSecret } from '$lib/server/auth/crypto';
+import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
 
 /**
  * Headless password authentication endpoint
  * POST /auth/login
  * Body: { email, password, redirect? }
  */
-export const POST: RequestHandler = async (event) => {
-	console.log('🔍 POST /auth/login - Headless password authentication');
+export const POST: RequestHandler = withRateLimit(
+	RATE_LIMITS.login,
+	async ({ event }) => {
+		console.log('🔍 POST /auth/login - Headless password authentication');
 
 	try {
 		const body = await event.request.json();
@@ -226,5 +229,5 @@ export const POST: RequestHandler = async (event) => {
 			{ status: 500 }
 		);
 	}
-};
+});
 

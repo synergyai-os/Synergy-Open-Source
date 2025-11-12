@@ -1934,6 +1934,137 @@ toast.info('Read this', { duration: Infinity }); // Manual dismiss only
 
 ---
 
-**Pattern Count**: 26  
-**Last Updated**: 2025-11-11  
+## #L1950: Contextual Loading Overlay with Progressive Messaging [🟢 REFERENCE]
+
+**Symptom**: Generic "Loading..." messages feel unpolished, users uncertain what's happening  
+**Root Cause**: Static loading text without context or progress indication  
+**Fix**:
+
+**Component Pattern** (`WorkspaceSwitchOverlay.svelte`):
+
+```svelte
+<script lang="ts">
+	import { fade } from 'svelte/transition';
+
+	let {
+		show = false,
+		workspaceName = 'workspace',
+		workspaceType = 'personal' as 'personal' | 'organization'
+	}: {
+		show?: boolean;
+		workspaceName?: string;
+		workspaceType?: 'personal' | 'organization';
+	} = $props();
+
+	let stage = $state(0);
+
+	// Main title showing the action
+	const titleText = $derived(() => {
+		return workspaceType === 'personal' 
+			? `Loading ${workspaceName}'s workspace`
+			: `Loading ${workspaceName}`;
+	});
+
+	// Detailed progress steps - varied, actionable verbs
+	const getStageMessage = (stageNum: number) => {
+		if (stageNum === 0) {
+			return workspaceType === 'personal'
+				? 'Gathering user data'
+				: 'Gathering organization data';
+		}
+		if (stageNum === 1) {
+			return workspaceType === 'personal'
+				? 'Fetching your notes and highlights'
+				: 'Syncing workspace settings';
+		}
+		return 'Preparing workspace';
+	};
+
+	// Progressive timing (1.5s, 3.5s intervals)
+	$effect(() => {
+		if (!show) {
+			stage = 0;
+			return;
+		}
+		stage = 0;
+		const timer1 = setTimeout(() => { stage = 1; }, 1500);
+		const timer2 = setTimeout(() => { stage = 2; }, 3500);
+		return () => {
+			clearTimeout(timer1);
+			clearTimeout(timer2);
+		};
+	});
+
+	const currentStageText = $derived(getStageMessage(stage));
+</script>
+
+{#if show}
+	<div
+		class="fixed inset-0 z-50 flex items-center justify-center 
+		       bg-gradient-to-br from-accent-primary/10 via-base to-accent-primary/5 
+		       backdrop-blur-xl"
+		in:fade={{ duration: 0 }}
+		out:fade={{ duration: 300 }}
+	>
+		<div class="flex flex-col items-center gap-content-section">
+			<div class="relative h-12 w-12">
+				<div class="absolute inset-0 animate-spin rounded-full border-4 
+				            border-border-base border-t-accent-primary"></div>
+			</div>
+			<div class="text-center max-w-md">
+				<h2 class="text-2xl font-semibold text-primary">{titleText()}</h2>
+			</div>
+			<div class="text-center">
+				<p class="text-sm text-secondary">{currentStageText}</p>
+			</div>
+		</div>
+	</div>
+{/if}
+```
+
+**Instant Display Pattern** (show before async action):
+
+```typescript
+// Sidebar.svelte - show overlay BEFORE API call/redirect
+let accountSwitchOverlay = $state({
+	show: false,
+	targetName: null
+});
+
+onSwitchAccount={(targetUserId, redirectTo) => {
+	const targetAccount = linkedAccounts.find(a => a.userId === targetUserId);
+	const targetName = targetAccount?.firstName || targetAccount?.email;
+	
+	// Show overlay IMMEDIATELY (no delay)
+	accountSwitchOverlay.show = true;
+	accountSwitchOverlay.targetName = targetName;
+	
+	// Then perform async action
+	authSession.switchAccount(targetUserId, redirectTo);
+}}
+```
+
+**Key Principles**:
+
+1. **Contextual Title**: Action-oriented ("Loading Saprolab" not "Saprolab")
+2. **Progressive Stages**: Varied verbs (Gathering → Syncing → Preparing)
+3. **Instant Feedback**: Show before async action, not after
+4. **Workspace Context**: Different messages for personal vs organization
+5. **Minimum Duration**: 5 seconds minimum for polish (prevents flash)
+6. **Smooth Transitions**: Instant in (0ms), gradual out (300ms)
+
+**Why This Works**:
+
+- Removes redundancy (title ≠ subtitle)
+- Creates sense of progress (3 distinct stages)
+- Builds confidence (users see what's happening)
+- Feels intentional (minimum duration prevents jarring flash)
+
+**Apply when**: Long-running operations (workspace switching, account changes, data migrations)  
+**Related**: #L280 (Visual Feedback), #L480 (Command Palette), #L1660 (Toast Notifications)
+
+---
+
+**Pattern Count**: 27  
+**Last Updated**: 2025-11-12  
 **Design Token Reference**: `dev-docs/design-tokens.md`
