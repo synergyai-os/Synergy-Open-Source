@@ -80,3 +80,35 @@ All 30 critical patterns have been:
 ---
 
 **Start using the new structure**: [patterns/INDEX.md](patterns/INDEX.md)
+
+---
+
+## 📚 Documentation Organization Pattern
+
+**Date**: 2025-11-12  
+**Pattern**: PARA-based documentation organization
+
+### What We Learned
+
+When organizing documentation at scale, use **PARA principles**:
+
+- **2-areas/**: Group by **domain** (product, architecture, design, development)
+- **3-resources/**: Group by **purpose** (testing, deployment, guides, setup)
+- **1-projects/**: Keep root clean - all files in project folders
+- **Consolidate duplicates**: One source of truth per topic
+
+### Key Principles
+
+1. **Domain grouping** (2-areas): Related files together (auth architecture files in `architecture/auth/`)
+2. **Purpose grouping** (3-resources): Quick lookup by use case (all testing docs in `testing/`)
+3. **Clean roots**: Only README.md at root level, everything else in folders
+4. **Update references**: Always update cross-references when moving files
+
+### Benefits
+
+- ✅ Easier navigation (related files grouped)
+- ✅ Clearer ownership (domains obvious)
+- ✅ Scalable (easy to add new files)
+- ✅ PARA-aligned (Areas = ongoing, Resources = reference)
+
+**See**: [2-areas/README.md](2-areas/README.md) and [3-resources/README.md](3-resources/README.md) for structure

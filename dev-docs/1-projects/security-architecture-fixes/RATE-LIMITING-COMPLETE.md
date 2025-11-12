@@ -424,7 +424,7 @@ export const RATE_LIMITS = {
 
 ## Related Documents
 
-- [Security Audit](../SECURITY-AUDIT-2025-11-12.md)
+- [Security Audit](./SECURITY-AUDIT-2025-11-12.md)
 - [Implementation Roadmap](./IMPLEMENTATION-ROADMAP.md)
 - [Rate Limiting Spec](./03-rate-limiting-implementation.md)
 - [Linear Issue SYOS-31](https://linear.app/younghumanclub/issue/SYOS-31)

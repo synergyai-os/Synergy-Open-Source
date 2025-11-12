@@ -8,7 +8,7 @@
 
 ## Quick Start
 
-1. **Read the audit**: [../SECURITY-AUDIT-2025-11-12.md](../SECURITY-AUDIT-2025-11-12.md)
+1. **Read the audit**: [SECURITY-AUDIT-2025-11-12.md](./SECURITY-AUDIT-2025-11-12.md)
 2. **Review the roadmap**: [IMPLEMENTATION-ROADMAP.md](./IMPLEMENTATION-ROADMAP.md)
 3. **Start with Phase 1** (critical security fixes)
 
@@ -21,7 +21,7 @@
 | Document                                                           | Purpose            | Read Time |
 | ------------------------------------------------------------------ | ------------------ | --------- |
 | [IMPLEMENTATION-ROADMAP.md](./IMPLEMENTATION-ROADMAP.md)           | 4-week phased plan | 15 min    |
-| [../SECURITY-AUDIT-2025-11-12.md](../SECURITY-AUDIT-2025-11-12.md) | Full audit report  | 30 min    |
+| [SECURITY-AUDIT-2025-11-12.md](./SECURITY-AUDIT-2025-11-12.md) | Full audit report  | 30 min    |
 
 ### Implementation Specs (Phase 1: Critical)
 
@@ -242,10 +242,10 @@ To be created as needed:
 
 ## Related Documents
 
-- [Security Audit Report](../SECURITY-AUDIT-2025-11-12.md)
-- [Architecture Overview](../../2-areas/architecture.md)
-- [WorkOS Auth Architecture](../../2-areas/workos-convex-auth-architecture.md)
-- [Multi-Session Architecture](../../2-areas/multi-session-architecture.md)
+- [Security Audit Report](./SECURITY-AUDIT-2025-11-12.md)
+- [Architecture Overview](../../2-areas/architecture/architecture.md)
+- [WorkOS Auth Architecture](../../2-areas/architecture/auth/workos-convex-auth-architecture.md)
+- [Multi-Session Architecture](../../2-areas/architecture/auth/multi-session-architecture.md)
 - [Patterns Index](../../2-areas/patterns/INDEX.md)
 
 ---

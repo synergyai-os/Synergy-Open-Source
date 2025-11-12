@@ -786,8 +786,8 @@ test.describe('Session Encryption', () => {
 ## Related Documents
 
 - [Implementation Roadmap](./IMPLEMENTATION-ROADMAP.md)
-- [Security Audit Report](../SECURITY-AUDIT-2025-11-12.md)
-- [Multi-Session Architecture](../../2-areas/multi-session-architecture.md)
+- [Security Audit Report](./SECURITY-AUDIT-2025-11-12.md)
+- [Multi-Session Architecture](../../2-areas/architecture/auth/multi-session-architecture.md)
 
 ---
 

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/stores';
 	import { getContext } from 'svelte';
 	import { usePermissions } from '$lib/composables/usePermissions.svelte';
 	import { PermissionGate, PermissionButton } from '$lib/components/permissions';
@@ -9,9 +10,8 @@
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 
 	// Get user from page data
-	const { data } = $props();
-	const userId = data.user?.userId;
-	const sessionId = data.sessionId;
+	const userId = $derived($page.data.user?.userId);
+	const sessionId = $derived($page.data.sessionId);
 
 	// Get workspace context from Svelte context (set by root layout)
 	const organizations = getContext<UseOrganizations | undefined>('organizations');

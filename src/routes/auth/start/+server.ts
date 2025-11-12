@@ -5,6 +5,7 @@ import { env as publicEnv } from '$env/dynamic/public';
 import { createLoginState, type AuthFlowMode } from '$lib/server/auth/sessionStore';
 import { generateRandomToken } from '$lib/server/auth/crypto';
 import { createHash } from 'node:crypto';
+import type { Id } from '../../../convex/_generated/dataModel';
 
 const WORKOS_AUTHORIZE_URL = 'https://api.workos.com/user_management/authorize';
 
@@ -85,7 +86,9 @@ export const GET: RequestHandler = async (event) => {
 		event.url.searchParams.get('linkAccount') ?? event.url.searchParams.get('link_account')
 	);
 	const primaryUserId =
-		linkAccount && event.locals.auth.user?.userId ? event.locals.auth.user.userId : undefined;
+		linkAccount && event.locals.auth.user?.userId
+			? (event.locals.auth.user.userId as Id<'users'>)
+			: undefined;
 	const loginHint = sanitizeEmail(
 		event.url.searchParams.get('login_hint') ??
 			event.url.searchParams.get('loginHint') ??

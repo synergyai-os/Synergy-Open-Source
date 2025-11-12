@@ -279,7 +279,7 @@ describe('RBAC Integration Tests', () => {
 		await assignPermissionToRole(t, userRole, profilePermission, 'own');
 		await assignRoleToUser(t, userId, userRole);
 
-		cleanupQueue.push({ userId, otherUserId });
+		cleanupQueue.push({ userId }, { userId: otherUserId });
 
 		// Should deny access to other user's profile
 		const result = await t.run(async (ctx) => {

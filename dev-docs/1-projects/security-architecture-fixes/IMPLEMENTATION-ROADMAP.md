@@ -446,10 +446,10 @@ auditLog: defineTable({
 
 ## 🔗 Related Documents
 
-- [Security Audit Report](../SECURITY-AUDIT-2025-11-12.md)
-- [Architecture Overview](../../2-areas/architecture.md)
-- [WorkOS Auth Architecture](../../2-areas/workos-convex-auth-architecture.md)
-- [Multi-Session Architecture](../../2-areas/multi-session-architecture.md)
+- [Security Audit Report](./SECURITY-AUDIT-2025-11-12.md)
+- [Architecture Overview](../../2-areas/architecture/architecture.md)
+- [WorkOS Auth Architecture](../../2-areas/architecture/auth/workos-convex-auth-architecture.md)
+- [Multi-Session Architecture](../../2-areas/architecture/auth/multi-session-architecture.md)
 - [Patterns Index](../../2-areas/patterns/INDEX.md)
 
 ---

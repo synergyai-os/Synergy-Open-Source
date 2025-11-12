@@ -84,22 +84,23 @@ export async function createTestTag(
 }
 
 /**
- * Create a test note for a user
+ * Create a test note for a user (creates an inbox item with type 'note')
  */
 export async function createTestNote(
 	t: TestConvex<any>,
 	userId: Id<'users'>,
 	title: string = 'Test Note'
-): Promise<Id<'notes'>> {
+): Promise<Id<'inboxItems'>> {
 	return await t.run(async (ctx) => {
-		return await ctx.db.insert('notes', {
+		return await ctx.db.insert('inboxItems', {
+			type: 'note' as const,
 			userId,
 			title,
 			content: 'Test content',
-			format: 'markdown' as const,
-			status: 'active' as const,
-			createdAt: Date.now(),
-			updatedAt: Date.now()
+			contentMarkdown: 'Test content',
+			status: 'backlog' as const,
+			processedAt: undefined,
+			createdAt: Date.now()
 		});
 	});
 }

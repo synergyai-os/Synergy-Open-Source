@@ -51,7 +51,7 @@
 		if (!browser || !PUBLIC_POSTHOG_KEY || !posthogReady) return;
 
 		if (data.user) {
-			posthog.identify(data.user.id, {
+			posthog.identify(data.user.userId, {
 				email: data.user.email,
 				name:
 					data.user.firstName && data.user.lastName

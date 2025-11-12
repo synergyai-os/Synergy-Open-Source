@@ -6,20 +6,40 @@
 
 ## Available Resources
 
+### Testing
+
+- **[Testing Strategy](testing/testing-strategy.md)** - Testing approach & philosophy
+- **[Testing Organization](testing/testing-organization.md)** - Test structure & organization
+- **[Testing Priorities](testing/testing-priorities.md)** - What to test first
+- **[Testing Quick Reference](testing/testing-quick-reference.md)** - Quick lookup guide
+- **[Test Automation](testing/test-automation.md)** - Automated testing setup
+- **[Phase 2 Test Instructions](testing/PHASE_2_TEST_INSTRUCTIONS.md)** - Phase 2 testing guide
+- **[PostHog Test Plan](testing/POSTHOG_TEST_PLAN.md)** - Analytics testing
+- **[Testing Quick Start](testing/TESTING-QUICK-START.md)** - Get started with testing
+
 ### Deployment & Operations
 
-- **[Trunk-Based Deployment Summary](trunk-based-deployment-implementation-summary.md)** ⭐ **START HERE** - Complete implementation overview
-- [Git Workflow Guide](git-workflow.md) - Branch strategy, PRs, Linear integration
-- [Deployment Procedures](deployment-procedures.md) - CI/CD, monitoring, rollback playbooks
-- [Progressive Rollout Checklist](progressive-rollout-checklist.md) - Phased feature rollout guide
-- [Error Handling & Monitoring](error-handling-monitoring.md) - Error boundaries, PostHog integration
-- [Linear + GitHub Integration](linear-github-integration.md) - Issue tracking workflow
+- **[Trunk-Based Deployment Summary](deployment/trunk-based-deployment-implementation-summary.md)** ⭐ **START HERE** - Complete implementation overview
+- **[Deployment Procedures](deployment/deployment-procedures.md)** - CI/CD, monitoring, rollback playbooks
+- **[Progressive Rollout Checklist](deployment/progressive-rollout-checklist.md)** - Phased feature rollout guide
+- **[Production Checklist](deployment/production-checklist.md)** - Pre-launch verification
+- **[Error Handling & Monitoring](deployment/error-handling-monitoring.md)** - Error boundaries, PostHog integration
+- **[Mobile Strategy](deployment/mobile-strategy.md)** - iOS/Android deployment
 
-### Production & Quality
+### Guides & Quick References
 
-- [Production Checklist](production-checklist.md) - Pre-launch verification
-- [Testing Strategy](testing-strategy.md) - Testing approach
-- [Mobile Strategy](mobile-strategy.md) - iOS/Android deployment
+- **[Git Cheat Sheet](guides/git-cheat-sheet.md)** - Quick Git reference
+- **[Linear + GitHub Integration](guides/linear-github-integration.md)** - Issue tracking workflow
+- **[Legacy Code Cleanup Guide](guides/legacy-code-cleanup-guide.md)** - Identify and remove unused code
+
+### Setup
+
+- **[Install Dependencies](setup/INSTALL_DEPS.md)** - Initial setup instructions
+- **[WorkOS Setup](setup/WORKOS_SETUP.md)** - WorkOS configuration
+
+### Security & Configuration
+
+- **[Encryption Setup](encryption/ENCRYPTION-SETUP.md)** - Encryption configuration
 
 ---
 
@@ -59,3 +79,16 @@
 | **2-areas/**          | Our ongoing work   | "Product Vision"               |
 
 **Rule of thumb:** If we wrote it and learned from doing it → **patterns**. If we're referencing external knowledge → **resources**.
+
+---
+
+## Organization Structure
+
+```
+3-resources/
+├── testing/         # All testing documentation
+├── deployment/      # CI/CD, operations, production
+├── guides/          # Quick references & cheat sheets
+├── setup/           # Initial setup instructions
+└── encryption/      # Security & configuration
+```

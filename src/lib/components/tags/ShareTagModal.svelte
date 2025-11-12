@@ -3,6 +3,8 @@
 	import { onMount } from 'svelte';
 	import { useQuery } from 'convex-svelte';
 	import { api } from '$lib/convex';
+	import { page } from '$app/stores';
+	import { browser } from '$app/environment';
 
 	type Tag = {
 		_id: Id<'tags'>;
@@ -27,10 +29,21 @@
 
 	let { tag, organizations, isSharing, onShare, onClose }: Props = $props();
 
+	const getSessionId = () => $page.data.sessionId;
 	let selectedOrganization = $state<string>('');
 
 	// Fetch item counts for this tag
-	const itemCountsQuery = useQuery(api.tags.countTagItems, () => ({ tagId: tag._id }));
+	const itemCountsQuery =
+		browser && getSessionId()
+			? useQuery(api.tags.countTagItems, () => {
+					const sessionId = getSessionId();
+					if (!sessionId) return 'skip';
+					return {
+						sessionId,
+						tagId: tag._id
+					};
+				})
+			: null;
 	const itemCounts = $derived(itemCountsQuery?.data ?? { highlights: 0, flashcards: 0, total: 0 });
 
 	// Auto-select first org if available

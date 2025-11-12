@@ -144,8 +144,8 @@ describe('Users Integration Tests', () => {
 
 	it('should link accounts bidirectionally', async () => {
 		const t = convexTest(schema, modules);
-		const { userId: user1 } = await createTestSession(t);
-		const { userId: user2 } = await createTestSession(t);
+		const { sessionId: session1, userId: user1 } = await createTestSession(t);
+		const { sessionId: session2, userId: user2 } = await createTestSession(t);
 
 		cleanupQueue.push(user1, user2);
 
@@ -158,11 +158,11 @@ describe('Users Integration Tests', () => {
 		expect(result.success).toBe(true);
 
 		// Verify bidirectional links
-		const links1 = await t.query(api.users.listLinkedAccounts, { userId: user1 });
+		const links1 = await t.query(api.users.listLinkedAccounts, { sessionId: session1 });
 		expect(links1.length).toBe(1);
 		expect(links1[0].userId).toBe(user2);
 
-		const links2 = await t.query(api.users.listLinkedAccounts, { userId: user2 });
+		const links2 = await t.query(api.users.listLinkedAccounts, { sessionId: session2 });
 		expect(links2.length).toBe(1);
 		expect(links2[0].userId).toBe(user1);
 	});
@@ -199,7 +199,7 @@ describe('Users Integration Tests', () => {
 	// TODO: Backend implementation needs to be fixed to properly enforce depth limits
 	it.skip('should enforce account link depth limits', async () => {
 		const t = convexTest(schema, modules);
-		const users = [];
+		const users: any[] = [];
 
 		// Create 11 users (exceeds MAX_TOTAL_ACCOUNTS=10)
 		for (let i = 0; i < 11; i++) {

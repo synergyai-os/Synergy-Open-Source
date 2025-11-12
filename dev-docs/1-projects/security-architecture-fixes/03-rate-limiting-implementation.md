@@ -656,8 +656,8 @@ export async function checkRateLimitRedis(
 ## Related Documents
 
 - [Implementation Roadmap](./IMPLEMENTATION-ROADMAP.md)
-- [Security Audit Report](../SECURITY-AUDIT-2025-11-12.md)
-- [WorkOS Auth Architecture](../../2-areas/workos-convex-auth-architecture.md)
+- [Security Audit Report](./SECURITY-AUDIT-2025-11-12.md)
+- [WorkOS Auth Architecture](../../2-areas/architecture/auth/workos-convex-auth-architecture.md)
 
 ---
 
