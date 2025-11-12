@@ -10,12 +10,22 @@
 
 	type Variant = 'sidebar' | 'topbar';
 
+	type OrganizationInfo = {
+		organizationId: string;
+		name: string;
+		initials?: string;
+		slug?: string;
+		role: 'owner' | 'admin' | 'member';
+		[key: string]: any;
+	};
+
 	type LinkedAccount = {
 		userId: string;
 		email: string | null;
 		name: string | null;
 		firstName: string | null;
 		lastName: string | null;
+		organizations?: OrganizationInfo[];
 	};
 
 	let {
@@ -305,18 +315,78 @@
 							{account.email ?? account.name ?? 'Linked account'}
 						</p>
 					</div>
-					<!-- TODO: Fetch and display workspaces for each linked account -->
-					<!-- For now, just show a placeholder -->
-					<div class="px-menu-item py-1.5 text-sm text-tertiary">
-						<span class="text-xs">Click to switch to this account</span>
-					</div>
+
+					<!-- Personal workspace for linked account -->
 					<DropdownMenu.Item
-						class="cursor-pointer px-menu-item py-1.5 text-sm text-accent-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
-						textValue="Switch to this account"
+						class="flex cursor-pointer items-center justify-between px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+						textValue={`${account.name ?? account.email}'s personal workspace`}
 						onSelect={() => handleSwitchAccount(account.userId)}
 					>
+						<div class="flex min-w-0 flex-1 items-center gap-2">
+							<div
+								class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded text-xs font-semibold"
+							>
+								{account.name
+									? account.name.slice(0, 2).toUpperCase()
+									: account.email
+										? account.email.slice(0, 2).toUpperCase()
+										: 'PW'}
+							</div>
+							<div class="flex min-w-0 flex-col">
+								<span class="truncate text-sm">
+									{account.name
+										? `${account.firstName ?? account.name}`
+										: account.email
+											? account.email.split('@')[0]
+											: 'Personal workspace'}
+								</span>
+								<span class="truncate text-xs text-tertiary">Private workspace</span>
+							</div>
+						</div>
+					</DropdownMenu.Item>
+
+					<!-- Organizations for linked account -->
+					{#if account.organizations && account.organizations.length > 0}
+						{#each account.organizations as org (org.organizationId)}
+							<DropdownMenu.Item
+								class="flex cursor-pointer items-center justify-between px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+								textValue={org.name}
+								onSelect={() => {
+									// Switch to account and navigate to organization
+									handleSwitchAccount(account.userId, `/inbox?org=${org.organizationId}`);
+								}}
+							>
+								<div class="flex min-w-0 flex-1 items-center gap-2">
+									<div
+										class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded text-xs font-semibold bg-sidebar-hover"
+									>
+										{org.initials ?? org.name.slice(0, 2).toUpperCase()}
+									</div>
+									<div class="flex min-w-0 flex-col">
+										<span class="truncate text-sm font-medium">{org.name}</span>
+										<span class="truncate text-xs text-tertiary capitalize">{org.role}</span>
+									</div>
+								</div>
+							</DropdownMenu.Item>
+						{/each}
+					{/if}
+
+					<!-- New workspace button for linked account -->
+					<DropdownMenu.Item
+						class="cursor-pointer px-menu-item py-1.5 text-sm text-accent-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+						textValue="New workspace"
+						onSelect={() => handleSwitchAccount(account.userId, '/inbox?create=workspace')}
+					>
 						<div class="flex items-center gap-2">
-							<span>Switch to {account.name ?? account.email}</span>
+							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M12 4v16m8-8H4"
+								/>
+							</svg>
+							<span>New workspace</span>
 						</div>
 					</DropdownMenu.Item>
 				{/each}

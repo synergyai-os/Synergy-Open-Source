@@ -54,6 +54,25 @@ import { browser, dev } from '$app/environment';
 	// This ensures only accounts with active sessions are shown
 	const linkedAccounts = $derived(authSession.availableAccounts ?? []);
 
+	// Fetch organizations for each linked account
+	const linkedAccountOrganizations = $derived(
+		browser
+			? linkedAccounts.map((account) => {
+					const orgQuery = useQuery(api.organizations.listOrganizations, () => ({
+						userId: account.userId as Id<'users'>
+					}));
+					return {
+						userId: account.userId,
+						email: account.email,
+						name: account.name,
+						firstName: account.firstName,
+						lastName: account.lastName,
+						organizations: (orgQuery?.data ?? []) as any[]
+					};
+				})
+			: []
+	);
+
 	let isPinned = $state(false);
 	let isHovered = $state(false);
 	let isHoveringRightEdge = $state(false); // Track if mouse is near right edge for resize handle
@@ -325,7 +344,7 @@ import { browser, dev } from '$app/environment';
 			<SidebarHeader
 				workspaceName={accountName}
 				{accountEmail}
-				{linkedAccounts}
+				linkedAccounts={linkedAccountOrganizations}
 				{sidebarCollapsed}
 				{isMobile}
 				{isHovered}
