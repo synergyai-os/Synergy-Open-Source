@@ -3,7 +3,7 @@ import { mutation, query } from './_generated/server';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
 import { getAuthUserId } from './auth';
-import { validateSession } from './sessionValidation';
+import { validateSession, validateSessionAndGetUserId } from './sessionValidation';
 import { requirePermission } from './rbac/permissions';
 
 /**
@@ -95,9 +95,11 @@ export const syncUserFromWorkOS = mutation({
  * Used to fetch user profile data
  */
 export const getUserById = query({
-	args: { userId: v.id('users') },
+	args: { sessionId: v.string() },
 	handler: async (ctx, args) => {
-		return await ctx.db.get(args.userId);
+		// Validate session and get userId (prevents impersonation)
+		const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+		return await ctx.db.get(userId);
 	}
 });
 
@@ -128,14 +130,14 @@ export const getUserByWorkosId = query({
  */
 export const getCurrentUser = query({
 	args: {
-		userId: v.id('users') // Required: passed from authenticated SvelteKit session
+		sessionId: v.string() // Session validation (derives userId securely)
 	},
 	handler: async (ctx, args) => {
-		// Validate session (prevents impersonation)
-		await validateSession(ctx, args.userId);
+		// Validate session and get userId (prevents impersonation)
+		const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
 		
 		// Return user record
-		return await ctx.db.get(args.userId);
+		return await ctx.db.get(userId);
 	}
 });
 
