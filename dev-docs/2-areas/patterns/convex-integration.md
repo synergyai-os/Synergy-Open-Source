@@ -1187,6 +1187,95 @@ export async function createTestSession(t: ConvexTestingHelper) {
 
 ---
 
+## #L1200: SessionId Migration Pattern [🔴 CRITICAL]
+
+**Symptom**: TypeScript errors "Expected 2 arguments, but got 1" or "Property 'sessionId' is missing"  
+**Root Cause**: Migrating from userId parameter to sessionId-based authentication requires destructuring pattern  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Old userId parameter pattern
+export const listTags = query({
+	args: {
+		userId: v.id('users') // ❌ Client can fake userId
+	},
+	handler: async (ctx, args) => {
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
+		// ... query logic
+	}
+});
+
+// ✅ CORRECT: SessionId with destructuring (Context7 validated)
+import { validateSessionAndGetUserId } from './sessionValidation';
+
+export const listTags = query({
+	args: {
+		sessionId: v.string() // ✅ Server validates session
+	},
+	handler: async (ctx, args) => {
+		// CRITICAL: Must destructure to get userId
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+		// ... query logic with userId
+	}
+});
+
+// Frontend usage with 'skip' pattern
+const tagsQuery = browser && getSessionId()
+	? useQuery(api.tags.listAllTags, () => {
+			const sessionId = getSessionId();
+			if (!sessionId) return 'skip'; // ✅ Convex 'skip' pattern
+			return { sessionId };
+		})
+	: null;
+```
+
+**Migration Checklist**:
+
+1. **Backend (Convex)**:
+   - Change `userId: v.id('users')` → `sessionId: v.string()`
+   - Import `validateSessionAndGetUserId`
+   - Destructure: `const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId)`
+   
+2. **Frontend (Svelte)**:
+   - Change `const getUserId = () => $page.data.user?.userId` → `const getSessionId = () => $page.data.sessionId`
+   - Use 'skip' pattern: `if (!sessionId) return 'skip';`
+   - Type cast Ids: `organizationId as Id<'organizations'>`
+
+3. **Tests**:
+   - Update test helpers to return `{ sessionId, userId }`
+   - Pass `sessionId` to query/mutation calls
+   - Fix cleanup queue types
+
+**Common Gotchas**:
+
+```typescript
+// ❌ WRONG: Missing destructuring
+const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+// userId is now { userId: "...", ... } object, not string!
+
+// ✅ CORRECT: Destructure to extract userId
+const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+// ❌ WRONG: Type mismatch with 'skip'
+useQuery(api.tags.listAllTags, () => {
+	if (!sessionId) return null; // ❌ null not valid
+	return { sessionId };
+});
+
+// ✅ CORRECT: Use Convex 'skip' pattern
+useQuery(api.tags.listAllTags, () => {
+	if (!sessionId) return 'skip'; // ✅ Convex recognizes 'skip'
+	return { sessionId };
+});
+```
+
+**Why**: SessionId pattern prevents impersonation attacks - server validates session instead of trusting client-provided userId.  
+**Apply when**: Migrating from userId to sessionId authentication, or creating new authenticated queries/mutations  
+**Related**: #L850 (Destructuring pattern), #L680 (Auth without JWT), #L760 (Session validation)
+
+---
+
 ---
 
 ## #L950: convex-test Requires Modules Map [🔴 CRITICAL]

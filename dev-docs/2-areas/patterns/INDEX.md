@@ -45,6 +45,7 @@
 | Database queries fail, userId is an object instead of string                 | Destructure validateSessionAndGetUserId: const { userId } = await... | [convex-integration.md#L850](convex-integration.md#L850)            |
 | convex-test fails: "(intermediate value).glob is not a function"              | Create test.setup.ts with import.meta.glob() modules map            | [convex-integration.md#L950](convex-integration.md#L950)            |
 | Test insert fails: "Validator error: Missing required field X in object"      | Include ALL schema fields in test helpers (firstName, updatedAt...)  | [convex-integration.md#L1000](convex-integration.md#L1000)          |
+| TypeScript errors "Expected 2 arguments" or "Property 'sessionId' is missing" | Migrate from userId to sessionId parameter + destructure response    | [convex-integration.md#L1200](convex-integration.md#L1200)          |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -185,6 +186,6 @@ correct code
 ---
 
 **Last Updated**: 2025-11-12
-**Pattern Count**: 75
+**Pattern Count**: 76
 **Format Version**: 2.0
 ```
