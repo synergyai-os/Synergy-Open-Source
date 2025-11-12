@@ -822,6 +822,58 @@ const editorView = new EditorView(container, {
 
 ---
 
-**Pattern Count**: 16  
+## #L800: Browser-Only Tests Need .svelte.test.ts Extension [🔴 CRITICAL]
+
+**Symptom**: Tests fail with "encryptSession can only be called in the browser" or "expected false to be true" for `isWebCryptoSupported()`  
+**Root Cause**: Tests with `.test.ts` extension run in Node environment (server project). Web Crypto API only exists in browser.  
+**Fix**:
+
+```bash
+# ❌ WRONG: .test.ts runs in Node (server project)
+src/lib/client/crypto.test.ts          # ❌ No Web Crypto API
+src/lib/client/crypto.perf.test.ts     # ❌ No Web Crypto API
+
+# ✅ CORRECT: .svelte.test.ts runs in browser (client project)
+src/lib/client/crypto.svelte.test.ts       # ✅ Web Crypto API available
+src/lib/client/crypto.perf.svelte.test.ts  # ✅ Web Crypto API available
+```
+
+**vitest.config.ts shows two projects:**
+
+```typescript
+test: {
+	projects: [
+		{
+			name: 'client',
+			environment: 'browser',  // Playwright browser
+			browser: { enabled: true, provider: 'playwright' },
+			include: ['src/**/*.svelte.{test,spec}.{js,ts}']  // ← .svelte.test.ts
+		},
+		{
+			name: 'server',
+			environment: 'node',  // Node.js
+			include: ['src/**/*.{test,spec}.{js,ts}'],  // ← .test.ts
+			exclude: ['src/**/*.svelte.{test,spec}.{js,ts}']
+		}
+	]
+}
+```
+
+**Why**: Browser-only APIs (Web Crypto, localStorage, IndexedDB, canvas) need real browser environment. Vitest uses Playwright to run `.svelte.test.ts` files in actual Chromium.
+
+**Apply when**:
+- Testing Web Crypto API (encryption, hashing)
+- Testing browser storage (localStorage, sessionStorage, IndexedDB)
+- Testing browser APIs (Geolocation, Notifications, canvas, WebGL)
+- Component tests that need real DOM
+- Tests fail with "X is not defined" for browser globals
+
+**Performance**: Browser tests slower (~100-500ms startup) than Node tests (~1-5ms). Use Node for pure logic, browser for APIs.
+
+**Related**: #L400 (SSR-unsafe libraries), #L500 ($effect browser checks)
+
+---
+
+**Pattern Count**: 17  
 **Last Validated**: 2025-11-12  
 **Context7 Source**: `/sveltejs/svelte`, `@sveltejs/kit`

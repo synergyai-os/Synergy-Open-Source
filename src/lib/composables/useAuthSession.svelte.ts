@@ -80,7 +80,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 
 		try {
 			// Check localStorage for active session first
-			const localSession = getActiveSession();
+			const localSession = await getActiveSession();
 			
 			const response = await fetch('/auth/session', {
 				headers: {
@@ -102,7 +102,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 
 			// If authenticated, store/update session in localStorage
 			if (data.authenticated && data.user && data.csrfToken && data.expiresAt) {
-				addSession(data.user.userId, {
+				await addSession(data.user.userId, {
 					sessionId: 'current', // Will be updated by server response
 					csrfToken: data.csrfToken,
 					expiresAt: data.expiresAt,
@@ -112,7 +112,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 			}
 
 			// Load all available accounts (excluding current user)
-			const allSessions = getAllSessions();
+			const allSessions = await getAllSessions();
 			const currentUserId = data.user?.userId;
 			state.availableAccounts = Object.entries(allSessions)
 				.filter(([userId]) => userId !== currentUserId)
@@ -153,20 +153,29 @@ export function useAuthSession(): UseAuthSessionReturn {
 				credentials: 'include'
 			});
 
+			// Handle rate limiting
+			if (response.status === 429) {
+				const data = await response.json().catch(() => null);
+				const retryAfter = response.headers.get('Retry-After') || data?.retryAfter || '60';
+				state.error = `Too many logout attempts. Please wait ${retryAfter} seconds before trying again.`;
+				state.isLoading = false;
+				return;
+			}
+
 			if (response.ok || response.status === 303 || response.redirected) {
 				// Remove current session from localStorage
 				if (currentUserId) {
-					removeSession(currentUserId);
+					await removeSession(currentUserId);
 				}
 
 				// Check if other sessions exist
-				const remainingSessions = getAllSessions();
+				const remainingSessions = await getAllSessions();
 				const remainingAccounts = Object.keys(remainingSessions);
 
 				if (remainingAccounts.length > 0) {
 					// Switch to first available account
 					const nextUserId = remainingAccounts[0];
-					setActiveAccount(nextUserId);
+					await setActiveAccount(nextUserId);
 					
 					// Restore session for the next account
 					try {
@@ -211,7 +220,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 		if (!browser) return;
 
 		// Check if session exists in localStorage
-		const allSessions = getAllSessions();
+		const allSessions = await getAllSessions();
 		if (!allSessions[targetUserId]) {
 			state.error = 'Session not found. Please log in to this account first.';
 			return;
@@ -237,7 +246,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 
 		try {
 			// Update active account in localStorage
-			setActiveAccount(targetUserId);
+			await setActiveAccount(targetUserId);
 
 			const response = await fetch('/auth/switch', {
 				method: 'POST',
@@ -252,6 +261,17 @@ export function useAuthSession(): UseAuthSessionReturn {
 				})
 			});
 
+			// Handle rate limiting
+			if (response.status === 429) {
+				// Clear switching flag on error
+				sessionStorage.removeItem('switchingAccount');
+				const data = await response.json().catch(() => null);
+				const retryAfter = response.headers.get('Retry-After') || data?.retryAfter || '60';
+				state.error = `Too many account switches. Please wait ${retryAfter} seconds before trying again.`;
+				state.isLoading = false;
+				return;
+			}
+
 			if (!response.ok) {
 				// Clear switching flag on error
 				sessionStorage.removeItem('switchingAccount');
@@ -265,7 +285,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 			
 			// Update CSRF token for new session
 			if (result.csrfToken) {
-				addSession(targetUserId, {
+				await addSession(targetUserId, {
 					...targetSession,
 					csrfToken: result.csrfToken
 				});
@@ -304,6 +324,8 @@ export function useAuthSession(): UseAuthSessionReturn {
 			return state.availableAccounts;
 		},
 		get activeAccountId() {
+			// Note: This getter must be sync, so it returns a Promise
+			// Callers should await this value
 			return getActiveAccountId();
 		},
 		refresh: loadSession,

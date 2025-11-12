@@ -211,22 +211,22 @@ export async function removeSession(userId: string): Promise<void> {
 /**
  * Set the active account
  */
-export function setActiveAccount(userId: string | null): void {
-	const store = loadSessions();
+export async function setActiveAccount(userId: string | null): Promise<void> {
+	const store = await loadSessions();
 	if (userId && store.sessions[userId]) {
 		store.activeAccount = userId;
-		saveSessions(store);
+		await saveSessions(store);
 	} else if (userId === null) {
 		store.activeAccount = null;
-		saveSessions(store);
+		await saveSessions(store);
 	}
 }
 
 /**
  * Get the active session
  */
-export function getActiveSession(): SessionData | null {
-	const store = loadSessions();
+export async function getActiveSession(): Promise<SessionData | null> {
+	const store = await loadSessions();
 	if (!store.activeAccount) return null;
 	return store.sessions[store.activeAccount] || null;
 }
@@ -234,17 +234,17 @@ export function getActiveSession(): SessionData | null {
 /**
  * Get all sessions
  */
-export function getAllSessions(): Record<string, SessionData> {
-	const store = loadSessions();
+export async function getAllSessions(): Promise<Record<string, SessionData>> {
+	const store = await loadSessions();
 	return store.sessions;
 }
 
 /**
  * Get active account ID
  */
-export function getActiveAccountId(): string | null {
+export async function getActiveAccountId(): Promise<string | null> {
 	if (!browser) return null;
-	const store = loadSessions();
+	const store = await loadSessions();
 	return store.activeAccount;
 }
 
@@ -255,5 +255,6 @@ export function clearAllSessions(): void {
 	if (!browser) return;
 	localStorage.removeItem(STORAGE_KEY);
 	localStorage.removeItem(ACTIVE_ACCOUNT_KEY);
+	localStorage.removeItem(MIGRATION_FLAG_KEY);
 }
 
