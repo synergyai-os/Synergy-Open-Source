@@ -181,13 +181,42 @@ async function linkExists(
 	ctx: MutationCtx | QueryCtx,
 	primaryUserId: Id<'users'>,
 	linkedUserId: Id<'users'>
-) {
-	const links = await ctx.db
-		.query('accountLinks')
-		.withIndex('by_primary', (q) => q.eq('primaryUserId', primaryUserId))
-		.collect();
+): Promise<boolean> {
+	// Same user = always linked
+	if (primaryUserId === linkedUserId) {
+		return true;
+	}
 
-	return links.some((link) => link.linkedUserId === linkedUserId);
+	// Use BFS to find transitive links (A→B→C allows A to switch to C)
+	const visited = new Set<string>();
+	const queue: Id<'users'>[] = [primaryUserId];
+
+	while (queue.length > 0) {
+		const currentUserId = queue.shift()!;
+
+		if (visited.has(currentUserId)) {
+			continue;
+		}
+		visited.add(currentUserId);
+
+		// Check direct links from current user
+		const links = await ctx.db
+			.query('accountLinks')
+			.withIndex('by_primary', (q) => q.eq('primaryUserId', currentUserId))
+			.collect();
+
+		for (const link of links) {
+			if (link.linkedUserId === linkedUserId) {
+				return true; // Found the target!
+			}
+			// Add to queue to check transitive links
+			if (!visited.has(link.linkedUserId)) {
+				queue.push(link.linkedUserId);
+			}
+		}
+	}
+
+	return false;
 }
 
 async function createDirectedLink(

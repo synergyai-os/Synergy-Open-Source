@@ -214,9 +214,36 @@
 			align={variant === 'topbar' ? 'center' : 'start'}
 			sideOffset={6}
 		>
-			<!-- Current Account Section -->
+			<!-- Top Actions: Settings, Invite, Dark Mode -->
 			<div class="px-3 py-2">
-				<p class="truncate text-xs font-medium text-secondary">{accountEmail}</p>
+				<p class="truncate text-sm font-medium text-primary">{accountName}</p>
+				<p class="truncate text-xs text-secondary">{accountEmail}</p>
+			</div>
+
+			<div class="flex items-center gap-1 px-2 py-1">
+				<button
+					type="button"
+					class="flex-1 rounded px-2 py-1.5 text-xs text-primary hover:bg-hover-solid"
+					onclick={handleSettings}
+				>
+					⚙️ Settings
+				</button>
+				<button
+					type="button"
+					class="flex-1 rounded px-2 py-1.5 text-xs text-primary hover:bg-hover-solid"
+					onclick={handleInviteMembers}
+				>
+					➕ Invite members
+				</button>
+			</div>
+
+			<DropdownMenu.Separator class="my-1 border-t border-base" />
+
+			<!-- Current Account Section -->
+			<div class="px-3 py-1">
+				<p class="truncate text-xs font-semibold text-tertiary uppercase tracking-wide">
+					{accountEmail}
+				</p>
 			</div>
 
 			<!-- Current Account Workspaces -->
@@ -310,10 +337,85 @@
 			{#if linkedAccounts.length > 0}
 				<DropdownMenu.Separator class="my-1 border-t border-base" />
 				{#each linkedAccounts as account (account.userId)}
-					<div class="px-3 py-2">
-						<p class="truncate text-xs font-medium text-secondary">
+					<div class="flex items-center justify-between px-3 py-1">
+						<p class="truncate text-xs font-semibold text-tertiary uppercase tracking-wide">
 							{account.email ?? account.name ?? 'Linked account'}
 						</p>
+						<!-- Account menu (logout, create workspace) -->
+						<DropdownMenu.Root>
+							<DropdownMenu.Trigger
+								type="button"
+								class="flex h-5 w-5 items-center justify-center rounded text-tertiary transition-colors hover:bg-hover-solid hover:text-primary"
+							>
+								<svg
+									class="h-3.5 w-3.5"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+									/>
+								</svg>
+							</DropdownMenu.Trigger>
+							<DropdownMenu.Portal>
+								<DropdownMenu.Content
+									class="z-50 min-w-[180px] rounded-md border border-base bg-elevated py-1 shadow-lg"
+									side="right"
+									align="start"
+									sideOffset={4}
+								>
+									<DropdownMenu.Item
+										class="cursor-pointer px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+										textValue="Join or create workspace"
+										onSelect={() =>
+											handleSwitchAccount(account.userId, '/inbox?create=workspace')}
+									>
+										<div class="flex items-center gap-2">
+											<svg
+												class="h-4 w-4"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+											>
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													stroke-width="2"
+													d="M12 4v16m8-8H4"
+												/>
+											</svg>
+											<span>Join or create workspace</span>
+										</div>
+									</DropdownMenu.Item>
+									<DropdownMenu.Item
+										class="cursor-pointer px-menu-item py-1.5 text-sm text-danger outline-none hover:bg-hover-solid focus:bg-hover-solid"
+										textValue="Log out"
+										onSelect={handleLogout}
+									>
+										<div class="flex items-center gap-2">
+											<svg
+												class="h-4 w-4"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+											>
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													stroke-width="2"
+													d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+												/>
+											</svg>
+											<span>Log out</span>
+										</div>
+									</DropdownMenu.Item>
+								</DropdownMenu.Content>
+							</DropdownMenu.Portal>
+						</DropdownMenu.Root>
 					</div>
 
 					<!-- Personal workspace for linked account -->
@@ -371,24 +473,6 @@
 						{/each}
 					{/if}
 
-					<!-- New workspace button for linked account -->
-					<DropdownMenu.Item
-						class="cursor-pointer px-menu-item py-1.5 text-sm text-accent-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
-						textValue="New workspace"
-						onSelect={() => handleSwitchAccount(account.userId, '/inbox?create=workspace')}
-					>
-						<div class="flex items-center gap-2">
-							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M12 4v16m8-8H4"
-								/>
-							</svg>
-							<span>New workspace</span>
-						</div>
-					</DropdownMenu.Item>
 				{/each}
 			{/if}
 
@@ -417,14 +501,6 @@
 				</div>
 			</DropdownMenu.Item>
 
-			<DropdownMenu.Item
-				class="cursor-pointer px-menu-item py-1.5 text-sm text-tertiary outline-none hover:bg-hover-solid hover:text-primary focus:bg-hover-solid"
-				textValue="Create or join workspace"
-				onSelect={handleCreateWorkspace}
-			>
-				Create or join a workspace…
-			</DropdownMenu.Item>
-
 			<DropdownMenu.Separator class="my-1 border-t border-base" />
 
 			<!-- Add account -->
@@ -434,15 +510,6 @@
 				onSelect={handleAddAccount}
 			>
 				Add an account…
-			</DropdownMenu.Item>
-
-			<!-- Log out all accounts -->
-			<DropdownMenu.Item
-				class="cursor-pointer px-menu-item py-1.5 text-sm text-tertiary outline-none hover:bg-hover-solid hover:text-primary focus:bg-hover-solid"
-				textValue="Log out all accounts"
-				onSelect={handleLogout}
-			>
-				Log out all accounts
 			</DropdownMenu.Item>
 
 			<!-- Organization Invites -->

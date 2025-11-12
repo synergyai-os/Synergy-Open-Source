@@ -55,22 +55,24 @@ import { browser, dev } from '$app/environment';
 	const linkedAccounts = $derived(authSession.availableAccounts ?? []);
 
 	// Fetch organizations for each linked account
+	// Note: We need to create queries at component initialization, not inside $derived
+	const linkedAccountOrgQueries = browser
+		? linkedAccounts.map((account) =>
+				useQuery(api.organizations.listOrganizations, () => ({
+					userId: account.userId as Id<'users'>
+				}))
+			)
+		: [];
+
 	const linkedAccountOrganizations = $derived(
-		browser
-			? linkedAccounts.map((account) => {
-					const orgQuery = useQuery(api.organizations.listOrganizations, () => ({
-						userId: account.userId as Id<'users'>
-					}));
-					return {
-						userId: account.userId,
-						email: account.email,
-						name: account.name,
-						firstName: account.firstName,
-						lastName: account.lastName,
-						organizations: (orgQuery?.data ?? []) as any[]
-					};
-				})
-			: []
+		linkedAccounts.map((account, index) => ({
+			userId: account.userId,
+			email: account.email,
+			name: account.name,
+			firstName: account.firstName,
+			lastName: account.lastName,
+			organizations: (linkedAccountOrgQueries[index]?.data ?? []) as any[]
+		}))
 	);
 
 	let isPinned = $state(false);
