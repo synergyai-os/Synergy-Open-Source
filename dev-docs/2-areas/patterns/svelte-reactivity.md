@@ -698,6 +698,7 @@ $effect(() => {
 - $effect needs to track state variables but not trigger on their changes
 - Implementing debouncing, throttling, or tracking "previous" values
 - Managing flags like `isLoading`, `hasInitialized`, `lastValue`
+- Processing URL parameters that trigger state updates
 - Error: `effect_update_depth_exceeded` appears in console
 
 **Why it breaks**:
@@ -720,6 +721,53 @@ $effect(() => {
 - **untrack() reads**: When you need `$state` benefits but conditional skipping
 - **untrack() writes**: When updating `$state` shouldn't re-trigger the effect
 - **$state**: Only for values that directly affect rendered output
+
+**Example: URL Parameter Processing**:
+
+```typescript
+// ❌ WRONG - URL param triggers infinite loop
+$effect(() => {
+	const urlOrgParam = $page.url.searchParams.get('org'); // ← Reactive read
+	if (urlOrgParam && urlOrgParam !== state.activeOrganizationId) {
+		state.activeOrganizationId = urlOrgParam; // ← Writes $state → LOOP!
+		// URL still has ?org=... → effect runs again → infinite loop
+	}
+});
+
+// ✅ CORRECT - untrack() + URL cleanup
+import { untrack } from 'svelte';
+import { replaceState } from '$app/navigation';
+
+// Module-level tracking (plain variable, not $state)
+let lastProcessedOrgParam: string | null = null;
+
+$effect(() => {
+	if (!browser) return;
+	
+	const urlOrgParam = getOrgFromUrl(); // Reactive read from URL
+	
+	// Skip if already processed (untrack prevents reactive dependency)
+	if (untrack(() => urlOrgParam === lastProcessedOrgParam && urlOrgParam === state.activeOrganizationId)) {
+		return;
+	}
+	
+	if (urlOrgParam && urlOrgParam !== state.activeOrganizationId) {
+		// Update tracking without triggering re-run
+		untrack(() => {
+			lastProcessedOrgParam = urlOrgParam;
+		});
+		
+		state.activeOrganizationId = urlOrgParam;
+		
+		// Clean up URL param immediately (prevents reprocessing)
+		const url = new URL(window.location.href);
+		url.searchParams.delete('org');
+		replaceState(url.pathname + url.search, {});
+	}
+});
+```
+
+**Why URL cleanup matters**: Removing the URL parameter immediately after processing prevents the effect from seeing it again on the next reactive update, breaking the loop.
 
 **Related**: #L220 (useQuery reactivity), #L650 (onMount vs $effect), #L400 (SSR browser checks)
 

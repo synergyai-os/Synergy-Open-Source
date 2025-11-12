@@ -4,6 +4,8 @@ import { api } from '$lib/convex';
 import { AnalyticsEventName } from '$lib/analytics/events';
 import posthog from 'posthog-js';
 import { toast } from '$lib/utils/toast';
+import { untrack } from 'svelte';
+import { replaceState } from '$app/navigation';
 
 export type OrganizationRole = 'owner' | 'admin' | 'member';
 
@@ -62,6 +64,9 @@ const STORAGE_DETAILS_KEY_PREFIX = 'activeOrganizationDetails';
 const SENTINEL_ORGANIZATION_ID = '000000000000000000000000';
 const PERSONAL_SENTINEL = '__personal__';
 
+// Module-level tracking for URL param processing (pattern #L700 - plain variable, not $state)
+let lastProcessedOrgParam: string | null = null;
+
 // Get account-specific storage keys
 function getStorageKey(userId: string | undefined): string {
 	return userId ? `${STORAGE_KEY_PREFIX}_${userId}` : STORAGE_KEY_PREFIX;
@@ -104,6 +109,9 @@ export function useOrganizations(options?: {
 		activeOrganizationId: initialActiveId,
 		activeTeamId: null as string | null,
 		cachedOrganization: cachedOrgDetails,
+		isSwitching: false,
+		switchingTo: null as string | null,
+		switchStartTime: null as number | null,
 		modals: {
 			createOrganization: false,
 			joinOrganization: false,
@@ -184,13 +192,45 @@ const teamsQuery = browser && getUserId()
 	);
 
 	$effect(() => {
+		if (!browser) return;
+
 		// Priority 1: URL parameter (from account/workspace switching)
 		// Call function to get reactive value from parent
 		const urlOrgParam = getOrgFromUrl();
+
+		// Skip if already processed (pattern #L700 - untrack prevents reactive dependency)
+		if (
+			untrack(
+				() =>
+					urlOrgParam === lastProcessedOrgParam && urlOrgParam === state.activeOrganizationId
+			)
+		) {
+			return;
+		}
+
 		if (urlOrgParam && urlOrgParam !== state.activeOrganizationId) {
 			console.log('🔗 Setting organization from URL param:', urlOrgParam);
+
+			// Update tracking without triggering re-run (pattern #L700)
+			untrack(() => {
+				lastProcessedOrgParam = urlOrgParam;
+			});
+
 			state.activeOrganizationId = urlOrgParam;
+
+			// Clean up URL param immediately (inbox pattern - prevents reprocessing)
+			const url = new URL(window.location.href);
+			url.searchParams.delete('org');
+			replaceState(url.pathname + url.search, {});
+
 			return; // Stop here, let validation handle the rest
+		}
+
+		// Reset tracking if URL param removed
+		if (!urlOrgParam && lastProcessedOrgParam) {
+			untrack(() => {
+				lastProcessedOrgParam = null;
+			});
 		}
 
 		// Priority 2: Wait until query has loaded before applying validation logic
@@ -264,8 +304,49 @@ const teamsQuery = browser && getUserId()
 		}
 	});
 
+	// Track switching completion - clear switching state when queries settle
+	$effect(() => {
+		if (!state.isSwitching || !browser) return;
+
+		// Check if queries have settled (not loading)
+		const queriesSettled = organizationsQuery?.data !== undefined;
+		
+		if (queriesSettled && state.switchStartTime) {
+			const elapsed = Date.now() - state.switchStartTime;
+			const minimumDuration = 5000; // Minimum 5 seconds for delightful experience
+			
+			if (elapsed >= minimumDuration) {
+				// Clear switching state immediately
+				state.isSwitching = false;
+				state.switchingTo = null;
+				state.switchStartTime = null;
+			} else {
+				// Wait for remaining time to reach minimum duration
+				const remaining = minimumDuration - elapsed;
+				setTimeout(() => {
+					state.isSwitching = false;
+					state.switchingTo = null;
+					state.switchStartTime = null;
+				}, remaining);
+			}
+		}
+	});
+
 	function setActiveOrganization(organizationId: string | null) {
 		const previousOrganizationId = state.activeOrganizationId;
+		
+		// Set switching state before changing organization
+		state.isSwitching = true;
+		state.switchStartTime = browser ? Date.now() : null;
+		
+		// Determine target organization name for display
+		if (organizationId) {
+			const targetOrg = organizationsData().find((org) => org.organizationId === organizationId);
+			state.switchingTo = targetOrg?.name ?? 'organization';
+		} else {
+			state.switchingTo = 'Personal workspace';
+		}
+		
 		state.activeOrganizationId = organizationId;
 		state.activeTeamId = null;
 
@@ -545,6 +626,12 @@ const teamsQuery = browser && getUserId()
 		},
 		get isLoading() {
 			return isLoading;
+		},
+		get isSwitching() {
+			return state.isSwitching;
+		},
+		get switchingTo() {
+			return state.switchingTo;
 		},
 		setActiveOrganization,
 		setActiveTeam,
