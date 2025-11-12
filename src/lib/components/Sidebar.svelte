@@ -405,34 +405,6 @@ import { browser, dev } from '$app/environment';
 					class="flex-1 overflow-y-auto px-nav-container py-nav-container"
 					transition:fade={{ duration: 200 }}
 				>
-					<!-- Command Center Button (Header) -->
-					<button
-						onclick={() => {
-							if (onQuickCreate) {
-								onQuickCreate('header_button');
-							}
-						}}
-						class="bg-button-primary text-button-primary-text hover:bg-button-primary-hover mb-nav-group flex w-full items-center gap-icon rounded-button px-button-x py-button-y transition-all duration-150"
-						title="Command Center (C)"
-					>
-						<svg
-							class="h-4 w-4 flex-shrink-0"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-							/>
-						</svg>
-						<span class="font-medium">Command Center</span>
-						<span class="ml-auto text-xs opacity-60">C</span>
-					</button>
-
 					<!-- My Mind -->
 					<a
 						href="/my-mind"
@@ -574,73 +546,9 @@ import { browser, dev } from '$app/environment';
 							onDeclineInvite={(inviteId) => organizations.declineTeamInvite(inviteId)}
 						/>
 					{/if}
-
-					<!-- Categories Section -->
-					<div class="my-2 border-t border-sidebar"></div>
-					<div class="px-section py-section">
-						<p class="mb-1.5 text-label font-medium tracking-wider text-sidebar-tertiary uppercase">
-							Categories
-						</p>
-						<div class="space-y-0.5">
-							<button
-								type="button"
-								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<span class="font-normal">Product Delivery</span>
-							</button>
-							<button
-								type="button"
-								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item pl-indent text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<span class="font-normal">Sprint Planning</span>
-							</button>
-							<button
-								type="button"
-								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item pl-indent text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<span class="font-normal">Roadmapping</span>
-							</button>
-							<button
-								type="button"
-								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<span class="font-normal">Product Discovery</span>
-							</button>
-							<button
-								type="button"
-								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<span class="font-normal">Leadership</span>
-							</button>
-						</div>
-					</div>
 				</nav>
 			{/if}
 
-			<!-- Footer Actions -->
-			{#if (!sidebarCollapsed || isPinned || (hoverState && !isMobile)) && !isMobile}
-				<div
-					class="border-t border-sidebar px-nav-container py-nav-container"
-					transition:fade={{ duration: 200 }}
-				>
-					<CreateMenu
-						open={createMenuOpen}
-						onOpenChange={onCreateMenuChange || (() => {})}
-						onCreateNote={() => {
-							console.log('Create note clicked');
-							// TODO: Navigate to note creation or open modal
-						}}
-						onCreateFlashcard={() => {
-							console.log('Create flashcard clicked');
-							// TODO: Navigate to flashcard creation or open modal
-						}}
-						onCreateHighlight={() => {
-							console.log('Create highlight clicked');
-							// TODO: Navigate to highlight creation or open modal
-						}}
-					/>
-				</div>
-			{/if}
 
 			<!-- Development Test Menu (only in dev mode) -->
 			{#if dev && (!sidebarCollapsed || isPinned || (hoverState && !isMobile)) && !isMobile}
@@ -945,85 +853,9 @@ import { browser, dev } from '$app/environment';
 						onDeclineInvite={(inviteId) => organizations.declineTeamInvite(inviteId)}
 					/>
 				{/if}
-
-				<!-- Categories Section -->
-				{#if !isMobile}
-					<div class="my-2 border-t border-sidebar"></div>
-					<div class="px-section py-section">
-						<p class="mb-1.5 text-label font-medium tracking-wider text-sidebar-tertiary uppercase">
-							Categories
-						</p>
-						<div class="space-y-0.5">
-							<button
-								type="button"
-								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<span class="font-normal">Product Delivery</span>
-							</button>
-							<button
-								type="button"
-								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item pl-indent text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<span class="font-normal">Sprint Planning</span>
-							</button>
-							<button
-								type="button"
-								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item pl-indent text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<span class="font-normal">Roadmapping</span>
-							</button>
-							<button
-								type="button"
-								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<span class="font-normal">Product Discovery</span>
-							</button>
-							<button
-								type="button"
-								class="flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<span class="font-normal">Leadership</span>
-							</button>
-						</div>
-					</div>
-				{/if}
 			</nav>
 		{/if}
 
-		<!-- Footer Actions -->
-		{#if (!sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)) && !isMobile}
-			<div
-				class="border-t border-sidebar px-nav-container py-nav-container"
-				transition:fade={{ duration: 200 }}
-			>
-				<button
-					onclick={() => {
-						if (onQuickCreate) {
-							onQuickCreate('footer_button');
-						}
-					}}
-					class="bg-button-primary text-button-primary-text hover:bg-button-primary-hover flex w-full items-center gap-icon rounded-button px-button-x py-button-y transition-all duration-150"
-					title="Command Center (C)"
-				>
-					<svg
-						class="h-4 w-4 flex-shrink-0"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-						xmlns="http://www.w3.org/2000/svg"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-						/>
-					</svg>
-					<span class="font-medium">Command Center</span>
-					<span class="ml-auto text-xs opacity-60">C</span>
-				</button>
-			</div>
-		{/if}
 
 		<!-- Development Test Menu (only in dev mode) -->
 		{#if dev && (!sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)) && !isMobile}

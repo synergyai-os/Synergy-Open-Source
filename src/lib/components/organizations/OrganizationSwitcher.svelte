@@ -240,10 +240,84 @@
 			<DropdownMenu.Separator class="my-1 border-t border-base" />
 
 			<!-- Current Account Section -->
-			<div class="px-3 py-1">
+			<div class="flex items-center justify-between px-3 py-1">
 				<p class="truncate text-xs font-semibold text-tertiary uppercase tracking-wide">
 					{accountEmail}
 				</p>
+				<!-- Current Account menu (logout, create workspace) -->
+				<DropdownMenu.Root>
+					<DropdownMenu.Trigger
+						type="button"
+						class="flex h-5 w-5 items-center justify-center rounded text-tertiary transition-colors hover:bg-hover-solid hover:text-primary"
+					>
+						<svg
+							class="h-3.5 w-3.5"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+							/>
+						</svg>
+					</DropdownMenu.Trigger>
+					<DropdownMenu.Portal>
+						<DropdownMenu.Content
+							class="z-50 min-w-[180px] rounded-md border border-base bg-elevated py-1 shadow-lg"
+							side="right"
+							align="start"
+							sideOffset={4}
+						>
+							<DropdownMenu.Item
+								class="cursor-pointer px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+								textValue="Join or create workspace"
+								onSelect={handleCreateWorkspace}
+							>
+								<div class="flex items-center gap-2">
+									<svg
+										class="h-4 w-4"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M12 4v16m8-8H4"
+										/>
+									</svg>
+									<span>Join or create workspace</span>
+								</div>
+							</DropdownMenu.Item>
+							<DropdownMenu.Item
+								class="cursor-pointer px-menu-item py-1.5 text-sm text-danger outline-none hover:bg-hover-solid focus:bg-hover-solid"
+								textValue="Log out"
+								onSelect={handleLogout}
+							>
+								<div class="flex items-center gap-2">
+									<svg
+										class="h-4 w-4"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+										/>
+									</svg>
+									<span>Log out</span>
+								</div>
+							</DropdownMenu.Item>
+						</DropdownMenu.Content>
+					</DropdownMenu.Portal>
+				</DropdownMenu.Root>
 			</div>
 
 			<!-- Current Account Workspaces -->
