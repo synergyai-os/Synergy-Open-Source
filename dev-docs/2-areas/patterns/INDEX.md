@@ -36,6 +36,8 @@
 | Query doesn't re-run when dependency changes, UI shows stale data           | Wrap conditional query in $derived                     | [auth-deployment.md#L660](auth-deployment.md#L660)                  |
 | "Not authenticated" in Convex, queries return empty                          | Pass userId parameter + validate session               | [auth-deployment.md#L760](auth-deployment.md#L760)                  |
 | `state_unsafe_mutation` error during component cleanup                       | Wrap state mutations in untrack() in event handlers    | [svelte-reactivity.md#L750](svelte-reactivity.md#L750)              |
+| Account/workspace switch navigates but lands on wrong workspace              | Match function signature to call sites (silent param drop) | [auth-deployment.md#L810](auth-deployment.md#L810)                  |
+| Switching accounts shows wrong workspaces, data from another account         | Use account-specific localStorage keys `{key}_{userId}` | [auth-deployment.md#L860](auth-deployment.md#L860)                  |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -44,6 +46,7 @@
 | Production auth fails with "Invalid redirect URI"   | Use separate staging/production credentials                         | [auth-deployment.md#L60](auth-deployment.md#L60)         |
 | Auth works on myapp.com but fails on www.myapp.com  | Add both www and non-www to redirect URIs                           | [auth-deployment.md#L110](auth-deployment.md#L110)       |
 | User auto-logs back in after logout                 | Revoke session on auth provider                                     | [auth-deployment.md#L210](auth-deployment.md#L210)       |
+| 403 Forbidden switching from Account C to B (A→B, B→C work) | Use BFS to find transitive links (A→B→C)                            | [auth-deployment.md#L910](auth-deployment.md#L910)       |
 | Data doesn't update automatically                   | Use `useQuery()` not manual                                         | [svelte-reactivity.md#L220](svelte-reactivity.md#L220)   |
 | Widget disappears too early                         | Polling updates only, not completion                                | [svelte-reactivity.md#L280](svelte-reactivity.md#L280)   |
 | Duplicate timers / early dismissal                  | Track timers with Set                                               | [svelte-reactivity.md#L340](svelte-reactivity.md#L340)   |

@@ -807,7 +807,173 @@ export async function validateSession(
 
 ---
 
+## #L810: Silent Function Parameter Dropping [🔴 CRITICAL]
+
+**Symptom**: Account/workspace switching navigates correctly but lands on wrong workspace, URL missing expected query parameters  
+**Root Cause**: Function called with more parameters than its signature accepts - extra parameters silently dropped  
+**Fix**:
+
+```typescript
+// ❌ WRONG - Function signature accepts 1 param, called with 2
+function handleSwitchAccount(targetUserId: string) {
+    onSwitchAccount?.(targetUserId);  // ❌ redirectTo is dropped!
+}
+
+// Called elsewhere:
+handleSwitchAccount(userId, '/inbox?org=saprolab-id');
+//                           ^^^^^^^^^^^^^^^^^^^^^^^^
+//                           This parameter is silently LOST!
+
+// ✅ CORRECT - Function signature matches call sites
+function handleSwitchAccount(targetUserId: string, redirectTo?: string) {
+    onSwitchAccount?.(targetUserId, redirectTo);  // ✅ Both params passed
+}
+```
+
+**Why**: JavaScript/TypeScript allows functions to be called with extra args - they're just ignored if not in signature. No errors, just silent data loss.
+
+**Apply when**:
+- Multi-parameter callbacks or event handlers
+- Account/workspace/organization switching logic
+- Any function that accepts optional URL/redirect parameters
+- Wrapper functions that delegate to other functions
+
+**Debug approach**:
+1. Check URL in browser - is query param present?
+2. Add console.log in function - are all params received?
+3. Trace backwards from server response to initial call
+4. **Don't assume framework issue** - verify data flow first!
+
+**Related**: Account switching, URL parameters, multi-account patterns
+
+---
+
+## #L860: Account-Specific localStorage Keys [🔴 CRITICAL]
+
+**Symptom**: Switching between accounts shows wrong workspaces, data from one account appearing in another  
+**Root Cause**: Single localStorage key shared across all accounts - last active workspace overwrites previous  
+**Fix**:
+
+```typescript
+// ❌ WRONG - Single key for all accounts
+const STORAGE_KEY = 'activeOrganizationId';
+localStorage.setItem(STORAGE_KEY, orgId);  // ❌ Overwrites for all accounts!
+
+// When user switches back to Account A:
+const orgId = localStorage.getItem(STORAGE_KEY);  // ❌ Gets Account B's workspace!
+
+// ✅ CORRECT - Account-specific keys
+function getStorageKey(userId: string | undefined): string {
+    return userId ? `activeOrganizationId_${userId}` : 'activeOrganizationId';
+}
+
+function getStorageDetailsKey(userId: string | undefined): string {
+    return userId ? `activeOrganizationDetails_${userId}` : 'activeOrganizationDetails';
+}
+
+// Each account has independent state:
+localStorage.setItem(getStorageKey(userIdA), orgIdA);  // ✅ Account A's workspace
+localStorage.setItem(getStorageKey(userIdB), orgIdB);  // ✅ Account B's workspace
+```
+
+**Why**: localStorage is per-domain, not per-user. Multi-account systems need user-scoped keys.
+
+**Apply when**:
+- Multi-account session management (Slack/Notion pattern)
+- User can switch between different logged-in accounts
+- Each account has independent workspaces/organizations
+- Storing user-specific preferences or state
+
+**Pattern**: `{key}_{userId}` for all user-specific localStorage keys
+
+**Related**: #L810 (Silent parameter dropping), multi-session management
+
+---
+
+## #L910: Transitive Account Linking with BFS [🟡 IMPORTANT]
+
+**Symptom**: 403 Forbidden when switching from Account C to Account B, but A→B and B→C work individually  
+**Root Cause**: Direct link check only - doesn't traverse transitive relationships (A→B→C implies A can access C)  
+**Fix**:
+
+```typescript
+// ❌ WRONG - Only checks direct links
+async function linkExists(
+    ctx: QueryCtx,
+    userId1: Id<'users'>,
+    userId2: Id<'users'>
+): Promise<boolean> {
+    const link = await ctx.db
+        .query('accountLinks')
+        .filter(q => 
+            q.or(
+                q.and(q.eq(q.field('primaryUserId'), userId1), q.eq(q.field('linkedUserId'), userId2)),
+                q.and(q.eq(q.field('primaryUserId'), userId2), q.eq(q.field('linkedUserId'), userId1))
+            )
+        )
+        .first();
+    
+    return !!link;  // ❌ Only checks A→B, not A→B→C!
+}
+
+// ✅ CORRECT - BFS to find transitive links
+async function linkExists(
+    ctx: QueryCtx,
+    userId1: Id<'users'>,
+    userId2: Id<'users'>
+): Promise<boolean> {
+    if (userId1 === userId2) return true;
+    
+    const visited = new Set<string>([userId1]);
+    const queue: Id<'users'>[] = [userId1];
+    
+    while (queue.length > 0) {
+        const current = queue.shift()!;
+        
+        // Get all links for current user
+        const links = await ctx.db
+            .query('accountLinks')
+            .filter(q =>
+                q.or(
+                    q.eq(q.field('primaryUserId'), current),
+                    q.eq(q.field('linkedUserId'), current)
+                )
+            )
+            .collect();
+        
+        for (const link of links) {
+            const neighbor = link.primaryUserId === current
+                ? link.linkedUserId
+                : link.primaryUserId;
+            
+            if (neighbor === userId2) return true;  // ✅ Found transitive link!
+            
+            if (!visited.has(neighbor)) {
+                visited.add(neighbor);
+                queue.push(neighbor);
+            }
+        }
+    }
+    
+    return false;
+}
+```
+
+**Why**: Account linking creates a graph - BFS traverses all reachable nodes (transitive closure).
+
+**Apply when**:
+- Multi-account linking (user can link multiple email addresses)
+- Need to check if two accounts are connected (directly or transitively)
+- User switches between any linked account, not just directly linked
+- Implementing "Add Account" feature (Slack/Notion pattern)
+
+**Security**: Validate session exists for target account - don't auto-create sessions for linked accounts!
+
+**Related**: #L860 (Account-specific localStorage), multi-session management, account switching
+
+---
+
 **Last Updated**: 2025-11-12  
-**Pattern Count**: 15  
+**Pattern Count**: 18  
 **Validated**: WorkOS AuthKit, SvelteKit, Vite, Convex, Svelte 5  
 **Format Version**: 2.0
