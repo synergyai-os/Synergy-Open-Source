@@ -182,17 +182,20 @@ const teamsQuery = browser && getUserId()
 	);
 
 	// Reactively check for org query parameter and set active organization
-	$effect(() => {
-		if (!browser) return;
-
-		const pageStore = get(page);
-		const orgParam = pageStore?.url?.searchParams?.get('org');
-		
-		if (orgParam && orgParam !== state.activeOrganizationId) {
-			console.log('🔗 Setting organization from URL param:', orgParam);
-			state.activeOrganizationId = orgParam;
-		}
-	});
+	// Subscribe to page store changes to detect URL parameter updates
+	if (browser) {
+		$effect(() => {
+			const unsubscribe = page.subscribe(($page) => {
+				const orgParam = $page?.url?.searchParams?.get('org');
+				if (orgParam && orgParam !== state.activeOrganizationId) {
+					console.log('🔗 Setting organization from URL param:', orgParam);
+					state.activeOrganizationId = orgParam;
+				}
+			});
+			
+			return () => unsubscribe();
+		});
+	}
 
 	$effect(() => {
 		// Wait until query has loaded before applying logic
