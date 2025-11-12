@@ -5,12 +5,14 @@
  * This catches regressions like the one discovered with QuickCreateModal
  * 
  * CRITICAL: These tests verify that all create operations use sessionId correctly
+ * 
+ * Setup: Run `npm run test:e2e:setup` first to authenticate test user
  */
 
 import { test, expect } from '@playwright/test';
 
-// Authentication setup - reuse authenticated state
-test.use({ storageState: 'e2e/auth.setup.ts-authenticate-setup/storage.json' });
+// Authentication setup - reuse authenticated state from auth.setup.ts
+test.use({ storageState: 'e2e/.auth/user.json' });
 
 test.describe('Quick Create Modal - SessionID Authentication', () => {
 	test.beforeEach(async ({ page }) => {
@@ -188,8 +190,6 @@ test.describe('Quick Create Modal - SessionID Authentication', () => {
 });
 
 test.describe('Quick Create Modal - Tag Selection', () => {
-	test.use({ storageState: 'e2e/auth.setup.ts-authenticate-setup/storage.json' });
-
 	test('should load tags with sessionId authentication', async ({ page }) => {
 		const consoleErrors: string[] = [];
 		page.on('console', (msg) => {
