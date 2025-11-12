@@ -10,7 +10,7 @@ import { browser, dev } from '$app/environment';
 	import CleanReadwiseButton from './sidebar/CleanReadwiseButton.svelte';
 	import TeamList from './organizations/TeamList.svelte';
 	import CreateMenu from './sidebar/CreateMenu.svelte';
-	import WorkspaceSwitchOverlay from './organizations/WorkspaceSwitchOverlay.svelte';
+	import LoadingOverlay from './ui/LoadingOverlay.svelte';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 	import { useAuthSession } from '$lib/composables/useAuthSession.svelte';
 	import { useQuery } from 'convex-svelte';
@@ -1031,10 +1031,10 @@ import { browser, dev } from '$app/environment';
 
 <!-- Immediate overlay for account switching (before page reload) -->
 {#if accountSwitchOverlay.show}
-	<WorkspaceSwitchOverlay
+	<LoadingOverlay
 		show={true}
-		workspaceName={accountSwitchOverlay.targetName ?? 'account'}
-		workspaceType="personal"
+		flow="workspace-switching"
+		subtitle={accountSwitchOverlay.targetName ?? 'account'}
 	/>
 {/if}
 

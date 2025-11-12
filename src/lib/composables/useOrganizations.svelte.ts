@@ -6,6 +6,8 @@ import posthog from 'posthog-js';
 import { toast } from '$lib/utils/toast';
 import { untrack } from 'svelte';
 import { replaceState } from '$app/navigation';
+import { getContext } from 'svelte';
+import type { UseLoadingOverlayReturn } from '$lib/composables/useLoadingOverlay.svelte';
 
 export type OrganizationRole = 'owner' | 'admin' | 'member';
 
@@ -526,6 +528,20 @@ const teamsQuery = browser && getUserId()
 
 		state.loading.createOrganization = true;
 
+		// Show loading overlay
+		let loadingOverlay: UseLoadingOverlayReturn | null = null;
+		try {
+			loadingOverlay = getContext<UseLoadingOverlayReturn>('loadingOverlay');
+			if (loadingOverlay) {
+				loadingOverlay.showOverlay({
+					flow: 'workspace-creation',
+					subtitle: trimmed
+				});
+			}
+		} catch {
+			// Context not available, continue without overlay
+		}
+
 		try {
 			const result = await convexClient.mutation(api.organizations.createOrganization, {
 				name: trimmed,
@@ -533,7 +549,7 @@ const teamsQuery = browser && getUserId()
 			});
 
 			if (result?.organizationId) {
-				// Switch to new organization
+				// Switch to new organization (overlay will persist during switch)
 				setActiveOrganization(result.organizationId);
 
 				// Show success toast
@@ -551,6 +567,13 @@ const teamsQuery = browser && getUserId()
 
 				// Close modal on success
 				closeModal('createOrganization');
+				
+				// Hide overlay after a short delay (workspace switch overlay will take over)
+				if (loadingOverlay && browser) {
+					setTimeout(() => {
+						loadingOverlay?.hideOverlay();
+					}, 500);
+				}
 			}
 		} catch (error) {
 			console.error('Failed to create organization:', error);
@@ -558,6 +581,11 @@ const teamsQuery = browser && getUserId()
 			// Show error toast
 			if (browser) {
 				toast.error('Failed to create organization. Please try again.');
+			}
+
+			// Hide overlay on error
+			if (loadingOverlay) {
+				loadingOverlay.hideOverlay();
 			}
 
 			// Keep modal open on error so user can retry

@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
+	import { getContext } from 'svelte';
 	import { Button, FormInput } from '$lib/components/ui';
 	import RateLimitError from '$lib/components/ui/RateLimitError.svelte';
+	import LoadingOverlay from '$lib/components/ui/LoadingOverlay.svelte';
+	import type { UseLoadingOverlayReturn } from '$lib/composables/useLoadingOverlay.svelte';
 
 	function parseBooleanFlag(value: string | null): boolean {
 		if (!value) return false;
@@ -35,6 +38,15 @@
 	let showCreateAccountLink = $state(false);
 	let isRateLimited = $state(false);
 	let rateLimitRetryAfter = $state(0);
+	let showLoadingOverlay = $state(false);
+	
+	// Try to get loadingOverlay from context (if authenticated), otherwise use local state
+	let loadingOverlay: UseLoadingOverlayReturn | null = null;
+	try {
+		loadingOverlay = getContext<UseLoadingOverlayReturn>('loadingOverlay');
+	} catch {
+		// Not in authenticated context, use local state
+	}
 
 	$effect(() => {
 		const prefill =
@@ -58,6 +70,18 @@
 		isRateLimited = false;
 		showCreateAccountLink = false;
 		isSubmitting = true;
+		
+		// Show loading overlay for account linking
+		if (linkingFlow()) {
+			if (loadingOverlay) {
+				loadingOverlay.showOverlay({
+					flow: 'account-linking',
+					subtitle: email.trim() || 'account'
+				});
+			} else {
+				showLoadingOverlay = true;
+			}
+		}
 
 		try {
 			const response = await fetch('/auth/login', {
@@ -95,12 +119,18 @@
 			return;
 		}
 
-			// Success - redirect to target
+			// Success - redirect to target (overlay will persist through redirect)
 			await goto(data.redirectTo ?? '/inbox');
 		} catch (err) {
 			console.error('Login error:', err);
 			errorMessage = 'Network error. Please check your connection and try again.';
 			isSubmitting = false;
+			// Hide overlay on error
+			if (loadingOverlay) {
+				loadingOverlay.hideOverlay();
+			} else {
+				showLoadingOverlay = false;
+			}
 		}
 	}
 </script>
@@ -181,3 +211,12 @@
 		</div>
 	</div>
 </div>
+
+<!-- Loading Overlay (for non-authenticated context) -->
+{#if showLoadingOverlay && !loadingOverlay}
+	<LoadingOverlay
+		show={true}
+		flow="account-linking"
+		subtitle={email.trim() || 'account'}
+	/>
+{/if}

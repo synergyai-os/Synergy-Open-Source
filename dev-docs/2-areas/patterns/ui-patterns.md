@@ -2115,7 +2115,177 @@ onMount(() => {
 - Continuous overlay from click → 5 seconds → completion
 
 **Apply when**: Long-running operations (workspace switching, account changes, data migrations)  
-**Related**: #L280 (Visual Feedback), #L480 (Command Palette), #L1660 (Toast Notifications)
+**Related**: #L280 (Visual Feedback), #L480 (Command Palette), #L1660 (Toast Notifications), #L2200 (Reusable Loading Overlay)
+
+---
+
+## #L2200: Reusable Loading Overlay with Higher Z-Index [🟡 IMPORTANT]
+
+**Symptom**: Loading overlay appears below toast notifications, overlay needs different messages for different flows  
+**Root Cause**: Hardcoded overlay component with low z-index, not reusable across flows  
+**Fix**:
+
+**Reusable Component Pattern** (`LoadingOverlay.svelte`):
+
+```svelte
+<script lang="ts">
+	import { fade } from 'svelte/transition';
+
+	export type LoadingFlow =
+		| 'account-registration'
+		| 'account-linking'
+		| 'workspace-creation'
+		| 'workspace-switching'
+		| 'workspace-joining'
+		| 'onboarding'
+		| 'custom';
+
+	let {
+		show = false,
+		flow = 'custom' as LoadingFlow,
+		title = '',
+		subtitle = '',
+		customStages = [] as string[]
+	}: {
+		show?: boolean;
+		flow?: LoadingFlow;
+		title?: string;
+		subtitle?: string;
+		customStages?: string[];
+	} = $props();
+
+	// Flow-specific configurations
+	const flowConfigs = {
+		'account-registration': {
+			title: (name: string) => `Setting up ${name}'s account`,
+			stages: ['Creating your account', 'Preparing your workspace', 'Setting up your first workspace']
+		},
+		'workspace-creation': {
+			title: (name: string) => `Creating ${name}`,
+			stages: ['Setting up workspace', 'Configuring permissions', 'Preparing workspace']
+		},
+		// ... other flows
+	};
+
+	const config = $derived(flowConfigs[flow]);
+	const displayTitle = $derived(title || config.title(subtitle || 'workspace'));
+	const stages = $derived(customStages.length > 0 ? customStages : config.stages);
+</script>
+
+{#if show}
+	<!-- z-[9999] ensures it's above toasts (which typically use z-50) -->
+	<div
+		class="fixed inset-0 z-[9999] flex items-center justify-center 
+		       bg-gradient-to-br from-accent-primary/10 via-base to-accent-primary/5 
+		       backdrop-blur-xl"
+		in:fade={{ duration: 0 }}
+		out:fade={{ duration: 300 }}
+	>
+		<!-- Spinner + title + progressive stages -->
+	</div>
+{/if}
+```
+
+**Composable Pattern** (`useLoadingOverlay.svelte.ts`):
+
+```typescript
+export function useLoadingOverlay() {
+	const state = $state({
+		show: false,
+		flow: 'custom' as LoadingFlow,
+		title: '',
+		subtitle: '',
+		customStages: [] as string[]
+	});
+
+	function showOverlay(config: {
+		flow?: LoadingFlow;
+		title?: string;
+		subtitle?: string;
+		customStages?: string[];
+	}) {
+		if (!browser) return;
+		state.show = true;
+		state.flow = config.flow ?? 'custom';
+		state.title = config.title ?? '';
+		state.subtitle = config.subtitle ?? '';
+		state.customStages = config.customStages ?? [];
+	}
+
+	function hideOverlay() {
+		if (!browser) return;
+		state.show = false;
+	}
+
+	return {
+		get show() { return state.show; },
+		get flow() { return state.flow; },
+		// ... other getters
+		showOverlay,
+		hideOverlay
+	};
+}
+```
+
+**Usage in Layout** (`+layout.svelte`):
+
+```typescript
+const loadingOverlay = useLoadingOverlay();
+setContext('loadingOverlay', loadingOverlay);
+```
+
+```svelte
+<LoadingOverlay
+	show={loadingOverlay.show}
+	flow={loadingOverlay.flow}
+	title={loadingOverlay.title}
+	subtitle={loadingOverlay.subtitle}
+	customStages={loadingOverlay.customStages}
+/>
+```
+
+**Usage in Flows**:
+
+```typescript
+// Account registration
+loadingOverlay.showOverlay({
+	flow: 'account-registration',
+	subtitle: firstName || email
+});
+
+// Workspace creation
+loadingOverlay.showOverlay({
+	flow: 'workspace-creation',
+	subtitle: workspaceName
+});
+
+// Custom flow
+loadingOverlay.showOverlay({
+	flow: 'custom',
+	title: 'Custom Title',
+	customStages: ['Step 1', 'Step 2', 'Step 3']
+});
+```
+
+**Key Principles**:
+
+1. **Higher Z-Index**: Use `z-[9999]` to ensure overlay appears above toasts (`z-50`)
+2. **Flow-Based Messages**: Pre-configured messages per flow type (registration, linking, creation, etc.)
+3. **Context-Aware**: Works in authenticated and non-authenticated contexts
+4. **Centralized State**: Single composable manages overlay state globally
+5. **Progressive Stages**: Each flow has 3 stages that progress over time
+6. **Error Handling**: Hide overlay on errors to prevent stuck states
+
+**Why This Works**:
+
+- **Single Source of Truth**: One component handles all loading states
+- **Consistent UX**: Same visual treatment across all flows
+- **Easy to Extend**: Add new flows by updating `flowConfigs`
+- **Above Everything**: Higher z-index ensures overlay is always visible
+- **Context-Aware**: Can be used from any component via context
+
+**Apply when**: Need loading overlay for account operations, workspace operations, or any long-running async action  
+**Related**: #L1950 (Contextual Loading Overlay), #L1660 (Toast Notifications), #L280 (Visual Feedback)
 
 ---
 

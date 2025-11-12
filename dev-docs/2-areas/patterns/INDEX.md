@@ -83,6 +83,7 @@
 | Card removal (Tinder-like)  | Queue-based removal                                         | [ui-patterns.md#L220](ui-patterns.md#L220)               |
 | Visual feedback             | Show overlay before action                                  | [ui-patterns.md#L280](ui-patterns.md#L280)               |
 | Loading feels generic       | Contextual overlay + progressive stages + zero flash        | [ui-patterns.md#L1950](ui-patterns.md#L1950)             |
+| Overlay below toasts        | Reusable overlay with z-[9999] + flow-based messages        | [ui-patterns.md#L2200](ui-patterns.md#L2200)             |
 | Toast notifications         | svelte-sonner for user feedback                             | [ui-patterns.md#L1660](ui-patterns.md#L1660)             |
 | Rate limit errors           | Red error box + live countdown timer                        | [ui-patterns.md#L2000](ui-patterns.md#L2000)             |
 | Textarea auto-resize        | Remove h-full, use field-sizing                             | [ui-patterns.md#L330](ui-patterns.md#L330)               |

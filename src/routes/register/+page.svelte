@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
+	import { getContext } from 'svelte';
 	import { Button, FormInput } from '$lib/components/ui';
 	import RateLimitError from '$lib/components/ui/RateLimitError.svelte';
+	import LoadingOverlay from '$lib/components/ui/LoadingOverlay.svelte';
+	import type { UseLoadingOverlayReturn } from '$lib/composables/useLoadingOverlay.svelte';
 
 	const redirectTarget = $derived(
 		$page.url.searchParams.get('redirect') ??
@@ -23,6 +26,15 @@
 	let errorMessage = $state<string | null>(null);
 	let isRateLimited = $state(false);
 	let rateLimitRetryAfter = $state(0);
+	let showLoadingOverlay = $state(false);
+	
+	// Try to get loadingOverlay from context (if authenticated), otherwise use local state
+	let loadingOverlay: UseLoadingOverlayReturn | null = null;
+	try {
+		loadingOverlay = getContext<UseLoadingOverlayReturn>('loadingOverlay');
+	} catch {
+		// Not in authenticated context, use local state
+	}
 
 	$effect(() => {
 		const prefill =
@@ -52,6 +64,30 @@
 		}
 
 		isSubmitting = true;
+		
+		// Show loading overlay
+		const accountName = firstName.trim() || email.trim() || 'account';
+		if (linkingFlow()) {
+			// Account linking flow
+			if (loadingOverlay) {
+				loadingOverlay.showOverlay({
+					flow: 'account-linking',
+					subtitle: accountName
+				});
+			} else {
+				showLoadingOverlay = true;
+			}
+		} else {
+			// New account registration
+			if (loadingOverlay) {
+				loadingOverlay.showOverlay({
+					flow: 'account-registration',
+					subtitle: accountName
+				});
+			} else {
+				showLoadingOverlay = true;
+			}
+		}
 
 		try {
 			const response = await fetch('/auth/register', {
@@ -96,12 +132,18 @@
 			return;
 		}
 
-		// Success - redirect to target
+		// Success - redirect to target (overlay will persist through redirect)
 		await goto(data.redirectTo ?? '/inbox');
 		} catch (err) {
 			console.error('Registration error:', err);
 			errorMessage = 'Network error. Please check your connection and try again.';
 			isSubmitting = false;
+			// Hide overlay on error
+			if (loadingOverlay) {
+				loadingOverlay.hideOverlay();
+			} else {
+				showLoadingOverlay = false;
+			}
 		}
 	}
 </script>
@@ -192,3 +234,12 @@
 		</div>
 	</div>
 </div>
+
+<!-- Loading Overlay (for non-authenticated context) -->
+{#if showLoadingOverlay && !loadingOverlay}
+	<LoadingOverlay
+		show={true}
+		flow={linkingFlow() ? 'account-linking' : 'account-registration'}
+		subtitle={firstName.trim() || email.trim() || 'account'}
+	/>
+{/if}
