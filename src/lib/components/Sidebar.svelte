@@ -50,14 +50,9 @@ import { browser, dev } from '$app/environment';
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
 	const authSession = useAuthSession();
 
-	// Query for linked accounts
-	const currentUserId = $derived(authSession.user?.userId as Id<'users'> | undefined);
-	const linkedAccountsQuery = $derived(
-		browser && currentUserId 
-			? useQuery(api.users.listLinkedAccounts, () => ({ userId: currentUserId }))
-			: null
-	);
-	const linkedAccounts = $derived(linkedAccountsQuery?.data ?? []);
+	// Get available accounts from localStorage (not database)
+	// This ensures only accounts with active sessions are shown
+	const linkedAccounts = $derived(authSession.availableAccounts ?? []);
 
 	let isPinned = $state(false);
 	let isHovered = $state(false);
