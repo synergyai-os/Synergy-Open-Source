@@ -12,6 +12,7 @@
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 	import { useGlobalShortcuts, SHORTCUTS } from '$lib/composables/useGlobalShortcuts.svelte';
 	import { toast } from '$lib/utils/toast';
+	import type { Id } from '$lib/convex';
 
 	let { children, data } = $props();
 
@@ -274,7 +275,7 @@
 			triggerMethod={quickCreateTrigger}
 			currentView={getCurrentView()}
 			initialType={quickCreateInitialType}
-			userId={data.user?.userId}
+			userId={(data.user?.userId as Id<'users'> | undefined)}
 			organizationId={organizations?.activeOrganizationId ?? null}
 			teamId={organizations?.activeTeamId ?? null}
 		/>

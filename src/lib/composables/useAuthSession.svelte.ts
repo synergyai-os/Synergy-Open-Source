@@ -66,7 +66,8 @@ export function useAuthSession(): UseAuthSessionReturn {
 		user: null as UseAuthSessionReturn['user'],
 		csrfToken: null as string | null,
 		error: null as string | null,
-		availableAccounts: [] as LinkedAccountInfo[]
+		availableAccounts: [] as LinkedAccountInfo[],
+		activeAccountId: null as string | null
 	});
 
 	async function loadSession() {
@@ -99,6 +100,9 @@ export function useAuthSession(): UseAuthSessionReturn {
 			state.user = data.authenticated && data.user ? data.user : null;
 			const cookieToken = readCookie('syos_csrf') ?? readCookie('axon_csrf');
 			state.csrfToken = data.csrfToken ?? cookieToken;
+			
+			// Cache the active account ID synchronously
+			state.activeAccountId = data.user?.userId ?? null;
 
 			// If authenticated, store/update session in localStorage
 			if (data.authenticated && data.user && data.csrfToken && data.expiresAt) {
@@ -324,9 +328,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 			return state.availableAccounts;
 		},
 		get activeAccountId() {
-			// Note: This getter must be sync, so it returns a Promise
-			// Callers should await this value
-			return getActiveAccountId();
+			return state.activeAccountId;
 		},
 		refresh: loadSession,
 		logout,

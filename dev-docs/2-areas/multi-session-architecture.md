@@ -138,7 +138,7 @@ Sessions are automatically managed:
 
 ## Security Considerations
 
-1. **localStorage Encryption**: Basic XOR encryption prevents casual inspection. For production, consider upgrading to WebCrypto API.
+1. **⚠️ CRITICAL P1 (SYOS-29)**: Current XOR encryption is NOT cryptographically secure. An attacker with basic JavaScript knowledge can easily decrypt session data. **MUST migrate to Web Crypto API (AES-256-GCM) before production**. See security audit for details. This is not an optional enhancement - it's a critical security requirement.
 
 2. **CSRF Protection**: Each session has its own CSRF token stored in localStorage and validated on every sensitive operation.
 
@@ -164,11 +164,11 @@ Sessions are automatically managed:
 
 3. **LocalStorage size**: Browsers limit localStorage to ~5-10MB. In practice, this supports hundreds of accounts.
 
-4. **Simple encryption**: XOR encryption is not cryptographically secure. Suitable for preventing casual inspection only.
+4. **⚠️ CRITICAL SECURITY ISSUE**: Current XOR encryption provides NO real security. This is a P1 critical vulnerability that must be addressed before production deployment.
 
 ## Future Enhancements
 
-1. Upgrade to WebCrypto API for stronger client-side encryption
+1. **🔴 P1 CRITICAL (SYOS-29)**: Migrate to WebCrypto API (AES-256-GCM) for client-side encryption - REQUIRED before production
 2. Add server-side session sync (optional, for cross-device session sharing)
 3. Add UI for viewing/revoking sessions per account
 4. Add session activity timeline (last used, location, etc.)

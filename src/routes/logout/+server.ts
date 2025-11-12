@@ -47,9 +47,6 @@ export const POST: RequestHandler = withRateLimit(
 		return json({ error: 'Invalid CSRF token' }, { status: 403 });
 	}
 
-	console.log('🔓 Logout initiated for session:', sessionId);
-	console.log('👤 User:', sessionRecord.userSnapshot.email);
-
 	try {
 		await revokeWorkOSSession(sessionRecord.workosSessionId);
 		console.log('✅ WorkOS session revoked');

@@ -127,6 +127,11 @@ export const RATE_LIMITS = {
 		maxRequests: 5,
 		windowMs: 60 * 1000,
 		keyPrefix: 'logout'
+	},
+	token: {
+		maxRequests: 60,
+		windowMs: 60 * 1000, // 1 minute (higher limit for frequent client requests)
+		keyPrefix: 'token'
 	}
 } as const;
 

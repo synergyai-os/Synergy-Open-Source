@@ -62,10 +62,10 @@ export function useStudySession(
 	const convexClient = browser ? useConvexClient() : null;
 
 	// Query for due flashcards (reactive to tag selection)
-	const dueCardsQuery = browser && getUserId()
+	const dueCardsQuery = browser
 		? useQuery(api.flashcards.getDueFlashcards, () => {
 				const userId = getUserId();
-				if (!userId) return null;
+				if (!userId) return 'skip'; // Use Convex 'skip' pattern to skip query when userId not available
 				return {
 					userId,
 					limit: state.sessionLimit,

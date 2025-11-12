@@ -401,7 +401,7 @@ import { browser, dev } from '$app/environment';
 					});
 					goto(`/login?${params.toString()}`);
 				}}
-				onSwitchAccount={(targetUserId, redirectTo) => {
+				onSwitchAccount={async (targetUserId, redirectTo) => {
 					// Find the account being switched to
 					const targetAccount = linkedAccountOrganizations.find(a => a.userId === targetUserId);
 					const targetName = targetAccount?.firstName || targetAccount?.name || targetAccount?.email || 'account';
@@ -410,8 +410,16 @@ import { browser, dev } from '$app/environment';
 					accountSwitchOverlay.show = true;
 					accountSwitchOverlay.targetName = targetName;
 					
-					// Then perform the switch (which will set sessionStorage and redirect)
-					authSession.switchAccount(targetUserId, redirectTo);
+					try {
+						// Then perform the switch (which will set sessionStorage and redirect)
+						await authSession.switchAccount(targetUserId, redirectTo);
+					} catch (error) {
+						// Reset overlay if switch fails
+						accountSwitchOverlay.show = false;
+						accountSwitchOverlay.targetName = '';
+						console.error('Failed to switch account:', error);
+						// Optionally show error toast to user
+					}
 				}}
 				onLogout={() => {
 					authSession.logout();

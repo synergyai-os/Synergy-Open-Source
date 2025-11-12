@@ -319,6 +319,8 @@ const teamsQuery = browser && getUserId()
 		// Check if queries have settled (not loading)
 		const queriesSettled = organizationsQuery?.data !== undefined;
 		
+		let timeoutId: ReturnType<typeof setTimeout> | null = null;
+		
 		if (queriesSettled && state.switchStartTime) {
 			const elapsed = Date.now() - state.switchStartTime;
 			const minimumDuration = 5000; // Minimum 5 seconds for delightful experience
@@ -332,7 +334,7 @@ const teamsQuery = browser && getUserId()
 			} else {
 				// Wait for remaining time to reach minimum duration
 				const remaining = minimumDuration - elapsed;
-				setTimeout(() => {
+				timeoutId = setTimeout(() => {
 					state.isSwitching = false;
 					state.switchingTo = null;
 					state.switchingToType = 'personal';
@@ -340,6 +342,13 @@ const teamsQuery = browser && getUserId()
 				}, remaining);
 			}
 		}
+		
+		// Cleanup: clear timeout if effect re-runs or component unmounts
+		return () => {
+			if (timeoutId) {
+				clearTimeout(timeoutId);
+			}
+		};
 	});
 
 	function setActiveOrganization(organizationId: string | null) {

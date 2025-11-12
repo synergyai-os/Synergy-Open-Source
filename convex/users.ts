@@ -292,10 +292,18 @@ async function getTransitiveLinks(
 	while (queue.length > 0) {
 		const current = queue.shift()!;
 
-		if (current.depth >= maxDepth || visited.has(current.userId)) {
+		// Skip if already visited
+		if (visited.has(current.userId)) {
 			continue;
 		}
+		
+		// Always add to visited set (even at maxDepth) to count the node
 		visited.add(current.userId);
+
+		// Stop exploring further if at max depth
+		if (current.depth >= maxDepth) {
+			continue;
+		}
 
 		const links = await ctx.db
 			.query('accountLinks')
