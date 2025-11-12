@@ -57,23 +57,37 @@ type ModalKey = 'createOrganization' | 'joinOrganization' | 'createTeam' | 'join
 
 export type UseOrganizations = ReturnType<typeof useOrganizations>;
 
-const STORAGE_KEY = 'activeOrganizationId';
-const STORAGE_DETAILS_KEY = 'activeOrganizationDetails';
+const STORAGE_KEY_PREFIX = 'activeOrganizationId';
+const STORAGE_DETAILS_KEY_PREFIX = 'activeOrganizationDetails';
 const SENTINEL_ORGANIZATION_ID = '000000000000000000000000';
 const PERSONAL_SENTINEL = '__personal__';
+
+// Get account-specific storage keys
+function getStorageKey(userId: string | undefined): string {
+	return userId ? `${STORAGE_KEY_PREFIX}_${userId}` : STORAGE_KEY_PREFIX;
+}
+
+function getStorageDetailsKey(userId: string | undefined): string {
+	return userId ? `${STORAGE_DETAILS_KEY_PREFIX}_${userId}` : STORAGE_DETAILS_KEY_PREFIX;
+}
 
 export function useOrganizations(options?: { userId?: () => string | undefined }) {
 	const convexClient = browser ? useConvexClient() : null;
 	const getUserId = options?.userId || (() => undefined);
 
-	const storedActiveId = browser ? localStorage.getItem(STORAGE_KEY) : null;
+	// Get account-specific storage keys
+	const currentUserId = browser ? getUserId() : undefined;
+	const storageKey = getStorageKey(currentUserId);
+	const storageDetailsKey = getStorageDetailsKey(currentUserId);
+
+	const storedActiveId = browser ? localStorage.getItem(storageKey) : null;
 	const initialActiveId = storedActiveId === PERSONAL_SENTINEL ? null : storedActiveId;
 
 	// Load cached organization details for optimistic UI
 	let cachedOrgDetails: OrganizationSummary | null = null;
 	if (browser && initialActiveId) {
 		try {
-			const stored = localStorage.getItem(STORAGE_DETAILS_KEY);
+			const stored = localStorage.getItem(storageDetailsKey);
 			if (stored) {
 				cachedOrgDetails = JSON.parse(stored);
 			}
@@ -172,12 +186,16 @@ const teamsQuery = browser && getUserId()
 			return;
 		}
 
+		const currentUserId = getUserId();
+		const storageKey = getStorageKey(currentUserId);
+		const storageDetailsKey = getStorageDetailsKey(currentUserId);
+
 		const list = organizationsData();
 		if (!list || list.length === 0) {
 			state.activeOrganizationId = null;
 			if (browser) {
-				localStorage.setItem(STORAGE_KEY, PERSONAL_SENTINEL);
-				localStorage.removeItem(STORAGE_DETAILS_KEY);
+				localStorage.setItem(storageKey, PERSONAL_SENTINEL);
+				localStorage.removeItem(storageDetailsKey);
 			}
 			return;
 		}
@@ -194,46 +212,35 @@ const teamsQuery = browser && getUserId()
 				) {
 					state.cachedOrganization = activeOrg;
 					if (browser) {
-						localStorage.setItem(STORAGE_DETAILS_KEY, JSON.stringify(activeOrg));
+						localStorage.setItem(storageDetailsKey, JSON.stringify(activeOrg));
 					}
 				}
 				return; // Active org is valid and cached
 			}
 
-			// Active org not found in list - fallback to first org
-			const fallback = list[0];
-			state.activeOrganizationId = fallback?.organizationId ?? null;
+			// Active org not found in list - fallback to personal workspace (not first org!)
+			state.activeOrganizationId = null;
 			if (browser) {
-				if (fallback) {
-					localStorage.setItem(STORAGE_KEY, fallback.organizationId);
-					localStorage.setItem(STORAGE_DETAILS_KEY, JSON.stringify(fallback));
-					state.cachedOrganization = fallback;
-				} else {
-					localStorage.setItem(STORAGE_KEY, PERSONAL_SENTINEL);
-					localStorage.removeItem(STORAGE_DETAILS_KEY);
-					state.cachedOrganization = null;
-				}
+				localStorage.setItem(storageKey, PERSONAL_SENTINEL);
+				localStorage.removeItem(storageDetailsKey);
+				state.cachedOrganization = null;
 			}
 			return;
 		}
 
 		// No active org - check if user wants personal workspace
 		if (browser) {
-			const stored = localStorage.getItem(STORAGE_KEY);
+			const stored = localStorage.getItem(storageKey);
 			if (stored === PERSONAL_SENTINEL) {
 				return;
 			}
 		}
 
-		// Default to first org
-		const first = list[0];
-		if (first) {
-			state.activeOrganizationId = first.organizationId;
-			state.cachedOrganization = first;
-			if (browser) {
-				localStorage.setItem(STORAGE_KEY, first.organizationId);
-				localStorage.setItem(STORAGE_DETAILS_KEY, JSON.stringify(first));
-			}
+		// Default to personal workspace (not first org!)
+		// This ensures new accounts start on their personal workspace
+		state.activeOrganizationId = null;
+		if (browser) {
+			localStorage.setItem(storageKey, PERSONAL_SENTINEL);
 		}
 	});
 
@@ -249,12 +256,16 @@ const teamsQuery = browser && getUserId()
 		state.activeOrganizationId = organizationId;
 		state.activeTeamId = null;
 
+		const currentUserId = getUserId();
+		const storageKey = getStorageKey(currentUserId);
+		const storageDetailsKey = getStorageDetailsKey(currentUserId);
+
 		if (!organizationId) {
 			// Switching to personal workspace - clear cached org details
 			state.cachedOrganization = null;
 			if (browser) {
-				localStorage.setItem(STORAGE_KEY, PERSONAL_SENTINEL);
-				localStorage.removeItem(STORAGE_DETAILS_KEY);
+				localStorage.setItem(storageKey, PERSONAL_SENTINEL);
+				localStorage.removeItem(storageDetailsKey);
 			}
 			return;
 		}
@@ -266,11 +277,11 @@ const teamsQuery = browser && getUserId()
 		if (summary) {
 			state.cachedOrganization = summary;
 			if (browser) {
-				localStorage.setItem(STORAGE_KEY, organizationId);
-				localStorage.setItem(STORAGE_DETAILS_KEY, JSON.stringify(summary));
+				localStorage.setItem(storageKey, organizationId);
+				localStorage.setItem(storageDetailsKey, JSON.stringify(summary));
 			}
 		} else if (browser) {
-			localStorage.setItem(STORAGE_KEY, organizationId);
+			localStorage.setItem(storageKey, organizationId);
 		}
 
 		if (convexClient) {
