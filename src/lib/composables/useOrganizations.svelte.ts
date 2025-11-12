@@ -82,18 +82,8 @@ export function useOrganizations(options?: { userId?: () => string | undefined }
 	const storageKey = getStorageKey(currentUserId);
 	const storageDetailsKey = getStorageDetailsKey(currentUserId);
 
-	// Check for org query parameter (takes precedence over localStorage)
-	let initialActiveIdFromUrl: string | null = null;
-	if (browser) {
-		const pageStore = get(page);
-		const orgParam = pageStore?.url?.searchParams?.get('org');
-		if (orgParam) {
-			initialActiveIdFromUrl = orgParam;
-		}
-	}
-
 	const storedActiveId = browser ? localStorage.getItem(storageKey) : null;
-	const initialActiveId = initialActiveIdFromUrl || (storedActiveId === PERSONAL_SENTINEL ? null : storedActiveId);
+	const initialActiveId = storedActiveId === PERSONAL_SENTINEL ? null : storedActiveId;
 
 	// Load cached organization details for optimistic UI
 	let cachedOrgDetails: OrganizationSummary | null = null;
@@ -190,6 +180,19 @@ const teamsQuery = browser && getUserId()
 			joinedAt: team.joinedAt
 		}))
 	);
+
+	// Reactively check for org query parameter and set active organization
+	$effect(() => {
+		if (!browser) return;
+
+		const pageStore = get(page);
+		const orgParam = pageStore?.url?.searchParams?.get('org');
+		
+		if (orgParam && orgParam !== state.activeOrganizationId) {
+			console.log('🔗 Setting organization from URL param:', orgParam);
+			state.activeOrganizationId = orgParam;
+		}
+	});
 
 	$effect(() => {
 		// Wait until query has loaded before applying logic
