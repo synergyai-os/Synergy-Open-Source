@@ -8,11 +8,28 @@
  */
 
 import { test as setup, expect } from '@playwright/test';
-import * as dotenv from 'dotenv';
-import * as path from 'path';
+import { readFileSync } from 'fs';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
-// Load test environment variables
-dotenv.config({ path: path.resolve(__dirname, '../.env.test') });
+// Get __dirname equivalent in ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load test environment variables from .env.test
+const envPath = resolve(__dirname, '../.env.test');
+try {
+	const envContent = readFileSync(envPath, 'utf-8');
+	envContent.split('\n').forEach(line => {
+		const match = line.match(/^([^#=]+)=(.*)$/);
+		if (match) {
+			const [, key, value] = match;
+			process.env[key.trim()] = value.trim();
+		}
+	});
+} catch (error) {
+	console.warn('Warning: Could not load .env.test file');
+}
 
 const authFile = 'e2e/.auth/user.json';
 
