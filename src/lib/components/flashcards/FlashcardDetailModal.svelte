@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { page } from '$app/stores';
 	import { Dialog } from 'bits-ui';
 	import { useConvexClient } from 'convex-svelte';
 	import FlashcardComponent from '$lib/components/Flashcard.svelte';
@@ -33,6 +34,7 @@
 	let { open, flashcards, initialIndex = 0, collectionName, onClose }: Props = $props();
 
 	const convexClient = browser ? useConvexClient() : null;
+	const getUserId = () => $page.data.user?.userId;
 
 	// State
 	let currentIndex = $state(initialIndex);
@@ -175,7 +177,13 @@
 
 		isSaving = true;
 		try {
+			const userId = getUserId();
+			if (!userId) {
+				throw new Error('User ID is required');
+			}
+
 			await convexClient.mutation(api.flashcards.updateFlashcard, {
+				userId,
 				flashcardId: currentCard._id,
 				question: questionValue,
 				answer: answerValue
@@ -205,7 +213,13 @@
 		}
 
 		try {
+			const userId = getUserId();
+			if (!userId) {
+				throw new Error('User ID is required');
+			}
+
 			await convexClient.mutation(api.flashcards.deleteFlashcard, {
+				userId,
 				flashcardId: currentCard._id
 			});
 

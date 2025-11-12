@@ -15,7 +15,8 @@ export interface UseSelectedItemReturn {
 
 export function useSelectedItem(
 	convexClient: ConvexClient | null,
-	inboxApi: InboxApi | null
+	inboxApi: InboxApi | null,
+	getUserId: () => string | undefined
 ): UseSelectedItemReturn {
 	// Selected item state
 	const state = $state({
@@ -35,13 +36,23 @@ export function useSelectedItem(
 			return;
 		}
 
+		const userId = getUserId();
+		if (!userId) {
+			state.selectedItem = null;
+			currentQueryId = null;
+			return;
+		}
+
 		// Generate unique ID for this query
 		const queryId = state.selectedItemId;
 		currentQueryId = queryId;
 
 		// Load item details
 		convexClient
-			.query(inboxApi.getInboxItemWithDetails, { inboxItemId: state.selectedItemId })
+			.query(inboxApi.getInboxItemWithDetails, {
+				userId,
+				inboxItemId: state.selectedItemId
+			})
 			.then((result) => {
 				// Only update if this is still the current query (prevent race conditions)
 				if (currentQueryId === queryId) {

@@ -20,8 +20,10 @@
 	let modalCollectionName = $state('');
 	let modalInitialIndex = $state(0);
 
-	// Query all tags for filtering
+	// Get userId from page data
 	const getUserId = () => $page.data.user?.userId;
+
+	// Query all tags for filtering
 	const allTagsQuery = browser && getUserId()
 		? useQuery(api.tags.listAllTags, () => {
 				const userId = getUserId();
@@ -32,14 +34,25 @@
 	const allTags = $derived(allTagsQuery?.data ?? []);
 
 	// Query collections
-	const collectionsQuery = browser ? useQuery(api.flashcards.getFlashcardsByCollection, {}) : null;
+	const collectionsQuery = browser && getUserId()
+		? useQuery(api.flashcards.getFlashcardsByCollection, () => {
+				const userId = getUserId();
+				if (!userId) return null;
+				return { userId };
+			})
+		: null;
 	const collections = $derived(collectionsQuery?.data ?? []);
 
 	// Query all flashcards (for "All Cards" collection)
-	const allFlashcardsQuery = browser
-		? useQuery(api.flashcards.getUserFlashcards, () => ({
-				tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined
-			}))
+	const allFlashcardsQuery = browser && getUserId()
+		? useQuery(api.flashcards.getUserFlashcards, () => {
+				const userId = getUserId();
+				if (!userId) return null;
+				return {
+					userId,
+					tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined
+				};
+			})
 		: null;
 
 	const allFlashcards = $derived(allFlashcardsQuery?.data ?? []);
@@ -104,7 +117,13 @@
 		} else {
 			// Query flashcards for this specific tag
 			try {
+				const userId = getUserId();
+				if (!userId) {
+					throw new Error('User ID is required');
+				}
+
 				const result = await convexClient.query(api.flashcards.getUserFlashcards, {
+					userId,
 					tagIds: [collection.tagId as Id<'tags'>]
 				});
 				flashcards = result ?? [];

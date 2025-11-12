@@ -56,8 +56,15 @@ export const createNote = mutation({
 /**
  * Update an existing note
  */
+/**
+ * Update an existing note
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
+ */
 export const updateNote = mutation({
 	args: {
+		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
 		noteId: v.id('inboxItems'),
 		title: v.optional(v.string()),
 		content: v.optional(v.string()),
@@ -67,10 +74,9 @@ export const updateNote = mutation({
 		slug: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		const note = await ctx.db.get(args.noteId);
 
@@ -107,16 +113,19 @@ export const updateNote = mutation({
 
 /**
  * Mark note as AI-generated
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
  */
 export const markAsAIGenerated = mutation({
 	args: {
+		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
 		noteId: v.id('inboxItems')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		const note = await ctx.db.get(args.noteId);
 
@@ -140,17 +149,20 @@ export const markAsAIGenerated = mutation({
 
 /**
  * Mark note for blog export
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
  */
 export const markForBlogExport = mutation({
 	args: {
+		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
 		noteId: v.id('inboxItems'),
 		slug: v.string()
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		const note = await ctx.db.get(args.noteId);
 
@@ -174,17 +186,20 @@ export const markForBlogExport = mutation({
 
 /**
  * Mark note as published to blog file
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
  */
 export const markAsPublished = mutation({
 	args: {
+		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
 		noteId: v.id('inboxItems'),
 		publishedTo: v.string() // File path
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		const note = await ctx.db.get(args.noteId);
 
@@ -209,16 +224,19 @@ export const markAsPublished = mutation({
 
 /**
  * Delete a note
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
  */
 export const deleteNote = mutation({
 	args: {
+		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
 		noteId: v.id('inboxItems')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		const note = await ctx.db.get(args.noteId);
 
@@ -238,16 +256,19 @@ export const deleteNote = mutation({
 
 /**
  * Export note to dev docs (set slug for /dev-docs/notes/[slug] route)
+ * 
+ * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
+ * and remove explicit userId parameter
  */
 export const exportToDevDocs = mutation({
 	args: {
+		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
 		noteId: v.id('inboxItems')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		// Validate session (prevents impersonation)
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
 
 		const note = await ctx.db.get(args.noteId);
 

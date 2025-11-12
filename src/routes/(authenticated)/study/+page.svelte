@@ -8,10 +8,10 @@
 	import { Button } from 'bits-ui';
 	import { api } from '$lib/convex';
 
-	const study = useStudySession();
+	const getUserId = () => $page.data.user?.userId;
+	const study = useStudySession(getUserId);
 
 	// Query all tags for filtering
-	const getUserId = () => $page.data.user?.userId;
 	const allTagsQuery = browser && getUserId()
 		? useQuery(api.tags.listAllTags, () => {
 				const userId = getUserId();

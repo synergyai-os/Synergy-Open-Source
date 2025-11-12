@@ -193,7 +193,12 @@
 		}
 
 		try {
+			if (!userId) {
+				throw new Error('User ID is required');
+			}
+
 			const tagId = await convexClient.mutation(api.tags.createTag, {
+				userId,
 				displayName,
 				color,
 				parentId
@@ -259,14 +264,24 @@
 
 				contentLength = noteContent.length;
 			} else if (selectedType === 'flashcard') {
+				if (!userId) {
+					throw new Error('User ID is required');
+				}
+
 				await convexClient.mutation(api.inbox.createFlashcardInInbox, {
+					userId,
 					question: question,
 					answer: answer,
 					tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined
 				});
 				contentLength = question.length + answer.length;
 			} else if (selectedType === 'highlight') {
+				if (!userId) {
+					throw new Error('User ID is required');
+				}
+
 				await convexClient.mutation(api.inbox.createHighlightInInbox, {
+					userId,
 					text: content,
 					sourceTitle: sourceTitle || undefined,
 					note: note || undefined,

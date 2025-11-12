@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { page } from '$app/stores';
 	import { useConvexClient } from 'convex-svelte';
 	import NoteEditorWithDetection from '../notes/NoteEditorWithDetection.svelte';
 	import { useNote } from '$lib/composables/useNote.svelte';
@@ -13,7 +14,8 @@
 	let { inboxItem, onClose }: Props = $props();
 
 	const convexClient = browser ? useConvexClient() : null;
-	const note = useNote(convexClient);
+	const getUserId = () => $page.data.user?.userId;
+	const note = useNote(convexClient, getUserId);
 
 	let editorRef: any = $state(null);
 	let editMode = $state(false);
@@ -109,7 +111,13 @@
 		if (!convexClient || !inboxItem._id) return;
 
 		try {
+			const userId = getUserId();
+			if (!userId) {
+				throw new Error('User ID is required');
+			}
+
 			const result = await convexClient.mutation(api.notes.exportToDevDocs, {
+				userId,
 				noteId: inboxItem._id
 			});
 

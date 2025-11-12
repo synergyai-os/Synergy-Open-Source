@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { page } from '$app/stores';
 	import { onMount, onDestroy } from 'svelte';
 	import { useConvexClient } from 'convex-svelte';
 	import { makeFunctionReference } from 'convex/server';
@@ -31,13 +32,16 @@
 	async function pollSyncProgress(): Promise<void> {
 		if (!browser || !convexClient || !inboxApi) return;
 
+		const userId = $page.data.user?.userId;
+		if (!userId) return;
+
 		// Find all sync activities
 		const syncActivities = activities.filter((a) => a.type === 'sync' && a.status === 'running');
 
 		if (syncActivities.length === 0) return;
 
 		try {
-			const progress = await convexClient.query(inboxApi.getSyncProgress, {});
+			const progress = await convexClient.query(inboxApi.getSyncProgress, { userId });
 
 			// Update all sync activities
 			for (const activity of syncActivities) {

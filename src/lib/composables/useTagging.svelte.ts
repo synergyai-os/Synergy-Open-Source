@@ -31,7 +31,10 @@ function capitalize(str: string): string {
 /**
  * Generic tagging composable - works for any entity type
  */
-export function useTagging(entityType: EntityType) {
+export function useTagging(
+	entityType: EntityType,
+	getUserId: () => string | undefined
+) {
 	// Svelte 5 pattern: Single $state object with getters
 	const state = $state({
 		isAssigning: false,
@@ -61,8 +64,14 @@ export function useTagging(entityType: EntityType) {
 		state.error = null;
 
 		try {
-			// Build args dynamically: { highlightId: ..., tagIds: ... }
+			const userId = getUserId();
+			if (!userId) {
+				throw new Error('User ID is required');
+			}
+
+			// Build args dynamically: { userId, highlightId: ..., tagIds: ... }
 			const args = {
+				userId,
 				[`${entityType}Id`]: entityId,
 				tagIds
 			};
@@ -91,7 +100,13 @@ export function useTagging(entityType: EntityType) {
 		state.error = null;
 
 		try {
+			const userId = getUserId();
+			if (!userId) {
+				throw new Error('User ID is required');
+			}
+
 			const tagId = await convexClient.mutation(createTagMutation, {
+				userId,
 				displayName,
 				color,
 				parentId

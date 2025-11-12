@@ -13,8 +13,8 @@ type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 
 export interface UseInboxItemsParams {
 	userId: () => string | undefined; // Required: Function returning Convex user ID from authenticated session
-	activeOrganizationId?: string | null;
-	activeTeamId?: string | null;
+	activeOrganizationId?: (() => string | null) | string | null; // Function or value for reactivity
+	activeTeamId?: (() => string | null) | string | null; // Function or value for reactivity
 }
 
 export interface UseInboxItemsReturn {
@@ -44,12 +44,19 @@ export function useInboxItems(params?: UseInboxItemsParams): UseInboxItemsReturn
 					processed: false 
 				};
 
-				// Add workspace context
-				if (params?.activeOrganizationId !== undefined) {
-					baseArgs.organizationId = params.activeOrganizationId;
+				// Add workspace context (handle both function and value)
+				const orgId = typeof params?.activeOrganizationId === 'function' 
+					? params.activeOrganizationId() 
+					: params?.activeOrganizationId;
+				if (orgId !== undefined && orgId !== null) {
+					baseArgs.organizationId = orgId;
 				}
-				if (params?.activeTeamId) {
-					baseArgs.teamId = params.activeTeamId;
+				
+				const teamId = typeof params?.activeTeamId === 'function'
+					? params.activeTeamId()
+					: params?.activeTeamId;
+				if (teamId) {
+					baseArgs.teamId = teamId;
 				}
 
 				// Add type filter if not 'all'

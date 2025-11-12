@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { page } from '$app/stores';
 	import { useQuery, useConvexClient } from 'convex-svelte';
 	import { api } from '$lib/convex';
 	import { Button } from 'bits-ui';
@@ -30,12 +31,19 @@
 	let { flashcard, onEdit, onDelete }: Props = $props();
 
 	const convexClient = browser ? useConvexClient() : null;
+	const getUserId = () => $page.data.user?.userId;
 
 	// Setup tagging system for flashcards
-	const tagging = useTagging('flashcard');
+	const tagging = useTagging('flashcard', getUserId);
 
 	// Load all available tags
-	const allTagsQuery = browser ? useQuery(api.tags.listAllTags, {}) : null;
+	const allTagsQuery = browser && getUserId()
+		? useQuery(api.tags.listAllTags, () => {
+				const userId = getUserId();
+				if (!userId) return null;
+				return { userId };
+			})
+		: null;
 	const availableTags = $derived(allTagsQuery?.data ?? []);
 
 	// Query tags for this flashcard (using the correct endpoint we created)

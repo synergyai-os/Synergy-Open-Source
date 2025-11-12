@@ -51,7 +51,13 @@
 		isSharing = true;
 
 		try {
+			const userId = getUserId();
+			if (!userId) {
+				throw new Error('User ID is required');
+			}
+
 			const result = await convexClient.mutation(api.tags.shareTag, {
+				userId,
 				tagId: selectedTagForSharing._id,
 				shareWith,
 				organizationId: targetId as any

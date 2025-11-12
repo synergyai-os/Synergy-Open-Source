@@ -20,7 +20,10 @@ export type NoteState = {
 	error: string | null;
 };
 
-export function useNote(convexClient: ConvexClient | null) {
+export function useNote(
+	convexClient: ConvexClient | null,
+	getUserId: () => string | undefined
+) {
 	// Internal state using single $state object pattern
 	const state = $state<NoteState>({
 		noteId: null,
@@ -95,10 +98,16 @@ export function useNote(convexClient: ConvexClient | null) {
 		if (!convexClient || !browser || !state.noteId) return false;
 
 		try {
+			const userId = getUserId();
+			if (!userId) {
+				throw new Error('User ID is required');
+			}
+
 			state.isSaving = true;
 			state.error = null;
 
 			await convexClient.mutation(api.notes.updateNote, {
+				userId,
 				noteId: state.noteId,
 				title: state.title,
 				content: state.content,
@@ -123,10 +132,16 @@ export function useNote(convexClient: ConvexClient | null) {
 		if (!convexClient || !browser || !state.noteId) return false;
 
 		try {
+			const userId = getUserId();
+			if (!userId) {
+				throw new Error('User ID is required');
+			}
+
 			state.isSaving = true;
 			state.error = null;
 
 			await convexClient.mutation(api.notes.markAsAIGenerated, {
+				userId,
 				noteId: state.noteId
 			});
 
@@ -148,10 +163,16 @@ export function useNote(convexClient: ConvexClient | null) {
 		if (!convexClient || !browser || !state.noteId) return false;
 
 		try {
+			const userId = getUserId();
+			if (!userId) {
+				throw new Error('User ID is required');
+			}
+
 			state.isSaving = true;
 			state.error = null;
 
 			await convexClient.mutation(api.notes.markForBlogExport, {
+				userId,
 				noteId: state.noteId,
 				slug
 			});
