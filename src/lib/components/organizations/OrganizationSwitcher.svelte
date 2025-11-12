@@ -151,8 +151,8 @@
 		onAddAccount?.();
 	}
 
-	function handleSwitchAccount(targetUserId: string) {
-		onSwitchAccount?.(targetUserId);
+	function handleSwitchAccount(targetUserId: string, redirectTo?: string) {
+		onSwitchAccount?.(targetUserId, redirectTo);
 	}
 
 	function handleLogout() {
