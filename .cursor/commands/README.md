@@ -19,6 +19,8 @@
 | `/start-new-project` | 755 lines | 594 lines | 21% (161 lines) | ✅ Optimized |
 | `/save` | 898 lines | 272 lines | 70% (626 lines) | ✅ Optimized |
 | `/root-cause` | 65 lines | 65 lines | 0% | ✅ Already optimal |
+| `/pr` | 1 line | 365 lines | New command | ✅ Created |
+| `/pr-close` | 1 line | 341 lines | New command | ✅ Created |
 
 **Total Reduction**: ~558 lines removed from `/save`, extracted to `commit-message-format.md` (406 lines)
 
@@ -120,6 +122,8 @@
 
 - **`/start-new-project`** - New project setup (594 lines)
 - **`/save`** - Knowledge capture (272 lines)
+- **`/pr`** - Create Pull Requests (365 lines)
+- **`/pr-close`** - Post-merge cleanup (341 lines)
 
 ### Documentation (Referenced by Commands)
 
