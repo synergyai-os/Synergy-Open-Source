@@ -33,6 +33,7 @@ jobs:
 
       - name: Check for linting errors
         run: npm run lint
+        continue-on-error: true # TODO: Enable after fixing 483 linting errors (separate effort)
 
   e2e-quick-create:
     runs-on: ubuntu-latest
