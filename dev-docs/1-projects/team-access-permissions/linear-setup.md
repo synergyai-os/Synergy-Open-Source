@@ -1,6 +1,18 @@
 # Linear Ticket Setup for RBAC Phase 1
 
-**Copy and run these commands to create Linear tickets**
+**⚠️ DEPRECATED**: This file uses outdated Linear patterns. 
+
+**For current patterns, use:**
+- **Command**: `/linear` - Complete Linear workflow reference (constants, ticket creation, examples)
+- **Rule**: `.cursor/rules/working-with-linear.mdc` - Critical rules (Project ID required, Assign user)
+
+**What's outdated in this file:**
+- ❌ Uses `project: 'name'` instead of `projectId: projectId`
+- ❌ Uses label names instead of label IDs
+- ❌ Missing `assigneeId` requirement
+- ❌ Missing `estimate` field (uses old size labels)
+
+**This file is kept for historical reference only.** Do not use these examples for new tickets.
 
 ---
 
@@ -83,6 +95,7 @@ Implement permission-based access control system where users can have multiple r
 ### Slice 1: Database Foundation
 
 ```typescript
+// ⚠️ DEPRECATED EXAMPLE - See /linear command for correct format
 mcp_Linear_create_issue({
 	team: 'SYOS',
 	title: '[Slice 1] Database Foundation - Schema + Seed Data',
@@ -119,9 +132,9 @@ mcp_Linear_create_issue({
 
 **Branch**: feature/rbac-phase-1
   `,
-	project: 'RBAC Phase 1: Permissions System',
+	project: 'RBAC Phase 1: Permissions System', // ⚠️ DEPRECATED
 	state: 'Todo',
-	labels: ['backend', 'database', 'rbac']
+	labels: ['backend', 'database', 'rbac'] // ⚠️ DEPRECATED
 });
 ```
 

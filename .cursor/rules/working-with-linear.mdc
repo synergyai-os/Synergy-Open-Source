@@ -1,0 +1,84 @@
+---
+alwaysApply: true
+---
+
+# Working with Linear - Critical Rules
+
+**Purpose**: Essential rules that MUST be followed when creating Linear tickets.
+
+---
+
+## 🚨 CRITICAL: NEVER Start Without Linear Project ID
+
+**Before writing ANY code or creating tickets:**
+
+1. **Check if project exists**:
+   ```typescript
+   const projects = await mcp_Linear_list_projects({ team: 'SYOS' });
+   const project = projects.find(p => p.name === 'Project Name');
+   ```
+
+2. **If project doesn't exist → CREATE IT FIRST**:
+   ```typescript
+   const newProject = await mcp_Linear_create_project({
+     team: 'SYOS',
+     name: 'Project Name',
+     summary: 'One-line summary',
+     description: '# Project Overview\n...',
+     state: 'planned'
+   });
+   ```
+
+3. **Store project ID** for all ticket creation:
+   ```typescript
+   const projectId = project?.id || newProject.id;
+   ```
+
+**Validation**: Do you have a Linear Project ID? If no → Create project first.
+
+---
+
+## 🚨 CRITICAL: ALWAYS Assign User as Ticket Owner
+
+**Every ticket MUST be assigned to Randy:**
+
+```typescript
+await mcp_Linear_create_issue({
+  team: 'SYOS',
+  projectId: projectId, // ✅ Required (get/create first)
+  assigneeId: 'c7c555a2-895a-48b6-ae24-d4147d44b1d5', // ✅ ALWAYS assign to Randy
+  estimate: 2, // ✅ Required (numeric: 0-5)
+  labels: [
+    'ba9cfc2b-a993-4265-80dc-07fd1c831029', // feature (type - required)
+    '7299ef53-982d-429d-b513-ccf190b28c16'  // backend (scope - required)
+  ]
+});
+```
+
+**Hardcoded IDs:**
+- **Team**: `SYOS` (`08d684b7-986f-4781-8bc5-e4d9aead6935`)
+- **User (Randy)**: `c7c555a2-895a-48b6-ae24-d4147d44b1d5`
+
+---
+
+## 📋 Required Ticket Fields
+
+**Every ticket MUST have:**
+- `team: 'SYOS'`
+- `projectId` (not name - get/create project first)
+- `assigneeId: 'c7c555a2-895a-48b6-ae24-d4147d44b1d5'` (Randy)
+- `estimate: 0-5` (0=none, 1=xs, 2=s, 3=m, 4=l, 5=xl)
+- `labels` (Type: feature/bug/tech-debt/risk + Scope: backend/frontend/ui/etc.)
+
+---
+
+## 📚 Full Reference
+
+**For complete details, examples, and workflows:**
+- **Command**: `/linear` - Full Linear workflow reference
+- **Docs**: `dev-docs/2-areas/development/tools/linear-integration.md`
+
+---
+
+**Last Updated**: 2025-11-13  
+**Purpose**: Prevent Linear workflow failures - ensure project ID exists and user is assigned

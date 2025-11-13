@@ -88,9 +88,23 @@
 
 **Before Writing Code:**
 
-- Check `dev-docs/2-areas/patterns/INDEX.md` for existing solutions
-- Use Context7 for library documentation
-- Investigate, scope, plan, get confirmation
+1. **Read `dev-docs/2-areas/development/coding-standards.md`** ⭐ **CRITICAL** - Prevents linting errors
+2. Check `dev-docs/2-areas/patterns/INDEX.md` for existing solutions
+3. Use Context7 for library documentation
+4. Investigate, scope, plan, get confirmation
+
+**Coding Standards (MANDATORY for AI Agents):**
+- ❌ NEVER use `any` type (use proper types or `unknown` + type guards)
+- ❌ NEVER use `{#each}` without keys `(item._id)`
+- ❌ NEVER use `goto()` without `resolveRoute()`
+- ❌ NEVER use `Map`/`Set` (use `SvelteMap`/`SvelteSet` or plain objects)
+- ❌ NEVER leave unused imports/variables
+- ✅ ALWAYS use TypeScript types
+- ✅ ALWAYS use design tokens
+- ✅ ALWAYS use `.svelte.ts` for composables
+- ✅ ALWAYS use `useQuery()` for Convex data
+
+**See**: `dev-docs/2-areas/development/coding-standards.md` for complete rules
 
 **When Debugging:**
 
@@ -107,78 +121,27 @@
 
 ---
 
-## 📋 **Linear Ticket Management (AI Responsibilities)**
+## 📋 **Linear Ticket Management**
 
-**When you create or manage tickets:**
+**For Linear workflow, ticket creation, and management:**
+- **Command**: `/linear` - Complete Linear reference (constants, ticket writing, workflows)
+- **Rule**: `.cursor/rules/working-with-linear.mdc` - Critical rules (Project ID required, Assign user)
 
-### ✅ **AI Must Check Off (Don't Wait for User)**:
-
-1. **Acceptance Criteria** - Check off as you complete each item
-2. **Files Changed** - Add ✅ emoji when file is modified
-3. **Implementation Notes** - Add key decisions, edge cases, fixes
-4. **Estimate → Actual** - Update when done (e.g., "2-4h (actual: ~2h)")
-5. **Commits List** - Add hash + description after each commit
-
-### 📝 **User Will Check Off (Never Touch These)**:
-
-1. **Test Plan** - User manually tests and checks off
-   - Provide clear steps with working links
-   - Format: `- [ ] Action → [Link](http://127.0.0.1:5173/page) if applicable`
-   - User checks after testing
-
-### 🔄 **When to Update**:
-
-- **During work**: Check off criteria as you complete them
-- **After commits**: Add commit hashes to ticket
-- **Before "In Review"**: Ensure all AI-owned items are checked/updated
-- **Never**: Check off user's test plan items
-
-### 📋 **Ticket Template Format**:
-
-```markdown
-**Goal**: One sentence what this delivers
-
-**Acceptance Criteria** (AI checks these off when complete):
-
-- [ ] Specific requirement
-- [ ] Another requirement
-
-**Files Changed** (AI updates with ✅ when done):
-
-- path/to/file.ts - What changes
-
-**Test Plan** (User checks these off when tested):
-
-- [ ] Step 1 → [Link to page](http://127.0.0.1:5173/page)
-- [ ] Step 2 - What to verify
-- [ ] Check [doc](http://127.0.0.1:5173/dev-docs/path)
-
-**Implementation Notes** (AI adds as work progresses):
-
-- Key decisions
-- Edge cases handled
-
-**Estimate**: Xh (actual: Yh - AI updates)
-**Linear ID**: SYOS-123
-**Commits**:
-
-- abc1234 - Description
-```
-
-**See**: `/start-new-project` for full examples and workflow
+**See**: `/linear` command for complete Linear workflow
 
 ---
 
 ## 🎯 Remember
 
-1. **Communication** - Short, dense, concise
-2. **No auto-docs** - Never create docs unless asked
-3. **Product Principles** - Read first, outcomes over outputs
-4. **Business Language** - Avoid jargon in project names
-5. **Investigate first** - Understand before acting
-6. **Confirm before building** - Scope, plan, get approval
-7. **Context7 first** - For library docs before web search
-8. **Domain**: Production domain is `www.synergyos.ai` (not synergyos.dev or synergyos.ai)
+1. **Coding Standards** - Read `dev-docs/2-areas/development/coding-standards.md` FIRST ⭐
+2. **Communication** - Short, dense, concise
+3. **No auto-docs** - Never create docs unless asked
+4. **Product Principles** - Read first, outcomes over outputs
+5. **Business Language** - Avoid jargon in project names
+6. **Investigate first** - Understand before acting
+7. **Confirm before building** - Scope, plan, get approval
+8. **Context7 first** - For library docs before web search
+9. **Domain**: Production domain is `www.synergyos.ai` (not synergyos.dev or synergyos.ai)
 
 ---
 
@@ -186,9 +149,10 @@
 
 **Before starting ANY work:**
 
-1. **`dev-docs/2-areas/product-principles.md`** ⭐ - How we make decisions (Outcomes Over Outputs, Privacy First, etc.)
-2. **`.cursor/rules/way-of-working.mdc`** - Project overview, tech stack, conventions
-3. **`dev-docs/2-areas/patterns/INDEX.md`** - Existing solutions, don't reinvent
+1. **`dev-docs/2-areas/development/coding-standards.md`** ⭐ **CRITICAL** - Coding rules for AI agents (prevents 483 linting errors)
+2. **`dev-docs/2-areas/product-principles.md`** ⭐ - How we make decisions (Outcomes Over Outputs, Privacy First, etc.)
+3. **`.cursor/rules/way-of-working.mdc`** - Project overview, tech stack, conventions
+4. **`dev-docs/2-areas/patterns/INDEX.md`** - Existing solutions, don't reinvent
 
 **Key principles:**
 
@@ -199,6 +163,6 @@
 
 **For Linear ticket management:**
 
-- Read `dev-docs/2-areas/linear-integration.md` - Cursor + Linear + GitHub workflow
-- Read `dev-docs/2-areas/flow-metrics.md` - Flow Distribution tracking
-- Use `/start-new-project` for new initiatives
+- **Command**: `/linear` - Complete Linear workflow reference
+- **Docs**: `dev-docs/2-areas/development/tools/linear-integration.md` - Integration overview
+- **Command**: `/start-new-project` - For new initiatives

@@ -6,49 +6,17 @@
 
 ---
 
-## Hardcoded Constants (for Speed)
+## 📋 Linear Constants & Workflow
 
-```typescript
-const LINEAR = {
-	team: 'SYOS',
-	teamId: '08d684b7-986f-4781-8bc5-e4d9aead6935',
+**For hardcoded constants and complete Linear workflow:**
+- **Command**: `/linear` - All constants, ticket writing format, examples
 
-	labels: {
-		// Type (Flow Distribution - REQUIRED)
-		feature: 'ba9cfc2b-a993-4265-80dc-07fd1c831029',
-		bug: '62008be5-0ff6-4aae-ba9b-c2887257acf8',
-		'tech-debt': '7cec9e22-31d4-4166-ba92-61d8f8c18809',
-		risk: '99472a27-79b0-475b-bd4a-d4d66e3f2b81',
+**Quick Reference:**
+- **Team**: `SYOS` (`08d684b7-986f-4781-8bc5-e4d9aead6935`)
+- **User (Randy)**: `c7c555a2-895a-48b6-ae24-d4147d44b1d5`
+- **Estimate**: Numeric (0-5): 0=none, 1=xs, 2=s, 3=m, 4=l, 5=xl
 
-		// Scope (Flow Distribution - REQUIRED, can be multiple)
-		frontend: '70068764-575a-48a6-b4d1-3735a044230e',
-		backend: '7299ef53-982d-429d-b513-ccf190b28c16',
-		ui: 'ace175ff-3cce-4416-bacc-529ee85e72a9',
-		auth: '1ce394e6-d0ac-41c0-a3b2-f8dd062f7725',
-		workspace: 'ede0cdda-d56f-4f0d-a6b9-5522df50839f',
-		analytics: '1e82f018-fec6-4d0f-9369-ab1e98cdd613',
-		devops: 'df3e1654-2066-423b-905a-41dfc69f2cd5',
-		security: '9a561550-aff8-4cd3-a1f5-3cd5b9008b97',
-
-		// Special
-		shaping: '5a657e67-a6d7-4b49-9299-91e60daf44b3'
-	},
-
-	// Size: Use Linear's native "estimate" field (NOT labels)
-	estimates: {
-		// Use numeric values for Linear API:
-		// 0 = No estimate, 1 = XS, 2 = S, 3 = M, 4 = L, 5 = XL
-		none: 0,
-		xs: 1, // < 2h
-		s: 2, // 2-4h
-		m: 3, // 4-8h (half day)
-		l: 4, // 1-2 days
-		xl: 5 // 2+ days (break down!)
-	}
-};
-```
-
-**Benefits**: ⚡ Faster (no lookups), 💰 Cheaper (fewer MCP calls), 🎯 Precise (exact IDs)
+**See**: `/linear` command for complete constants and ticket creation examples
 
 ---
 
@@ -57,10 +25,12 @@ const LINEAR = {
 **Before starting any project, read these in order:**
 
 1. **Read `/start` command** - Understand codebase patterns and architecture
-2. **Read `dev-docs/2-areas/product-principles.md`** ⭐ - How we make decisions (Outcomes Over Outputs, etc.)
-3. **Read `dev-docs/2-areas/product-vision-and-plan.md`** - Understand current state and direction
-4. **Read `dev-docs/2-areas/patterns/INDEX.md`** - Check for existing patterns to reuse
-5. **Read `dev-docs/2-areas/flow-metrics.md`** - Understand Linear labeling system
+2. **Read `/linear` command** ⭐ **CRITICAL** - Linear workflow, constants, ticket creation
+3. **Read `dev-docs/2-areas/development/coding-standards.md`** ⭐ **CRITICAL** - Coding rules (prevents linting errors)
+4. **Read `dev-docs/2-areas/product-principles.md`** ⭐ - How we make decisions (Outcomes Over Outputs, etc.)
+5. **Read `dev-docs/2-areas/product-vision-and-plan.md`** - Understand current state and direction
+6. **Read `dev-docs/2-areas/patterns/INDEX.md`** - Check for existing patterns to reuse
+7. **Read `dev-docs/2-areas/flow-metrics.md`** - Understand Linear labeling system
 
 **Project Info:**
 
@@ -222,52 +192,31 @@ dev-docs/
 
 **Step 4a: Create tickets** (one per vertical slice):
 
+**⚠️ CRITICAL**: Before creating tickets, read `/linear` command for:
+- Hardcoded constants (team ID, user ID, labels)
+- Ticket writing format (Marty Cagan + Shape Up)
+- Required fields and validation
+
+**Quick Example:**
+
 ```typescript
-// Create ticket with proper labels and estimate
+// See /linear command for complete constants and format
 mcp_Linear_create_issue({
 	team: 'SYOS',
 	title: '[Slice N] Descriptive Title',
-	description: `
-**Goal**: What this slice delivers (one sentence)
-
-**Acceptance Criteria** (AI checks these off when complete):
-- [ ] Specific, testable requirement
-- [ ] Another requirement
-- [ ] Yet another requirement
-
-**Files Changed** (AI updates with ✅ when done):
-- path/to/file.ts - What changes
-- path/to/component.svelte - What changes
-
-**Test Plan** (User checks these off when tested):
-- [ ] Step 1 - Action to take → [Link to page](http://127.0.0.1:5173/page) if applicable
-- [ ] Step 2 - What to verify
-- [ ] Step 3 - Expected result
-- [ ] Check [relevant doc](http://127.0.0.1:5173/dev-docs/path) for usage examples
-
-**Implementation Notes** (AI adds as work progresses):
-- Key decisions made
-- Edge cases handled
-- Issues fixed
-
-**Flow Distribution**: [Type + Scope labels]
-**Actual Time**: Yh (AI updates when done)
-**Branch**: feature/branch-name
-**Linear ID**: [Will be auto-filled after creation - copy to commits]
-
-**Commits** (AI adds when committing):
-- abc1234 - Description
-  `,
-	project: 'Project Name',
+	description: '...', // Use ticket writing format from /linear command
+	projectId: projectId, // ✅ Required (get/create first)
+	assigneeId: 'c7c555a2-895a-48b6-ae24-d4147d44b1d5', // ✅ Randy
 	state: 'Todo',
-	estimate: 2, // Use numeric estimate: 1=XS, 2=S, 3=M, 4=L, 5=XL
+	estimate: 2, // Numeric: 1=XS, 2=S, 3=M, 4=L, 5=XL
 	labels: [
-		'feature', // Type: feature | bug | tech-debt | risk (REQUIRED for Flow Metrics)
-		'backend', // Scope: frontend | backend | ui | auth | workspace | analytics | devops | security
-		'workspace' // Scope: Can have multiple scope labels
+		'ba9cfc2b-a993-4265-80dc-07fd1c831029', // feature (type)
+		'7299ef53-982d-429d-b513-ccf190b28c16'  // backend (scope)
 	]
 });
 ```
+
+**See**: `/linear` command for complete ticket creation workflow and constants
 
 **⚠️ After Creating Ticket:**
 
@@ -285,127 +234,18 @@ mcp_Linear_create_issue({
 
 ---
 
-### 📋 **Ticket Management Rules (AI Responsibilities)**
+### 📋 **Ticket Management**
 
-**✅ AI MUST Check Off When Complete:**
+**For complete ticket management rules and examples:**
+- **Command**: `/linear` - Ticket writing format, update workflows, examples
 
-1. **Acceptance Criteria**:
-   - Check off each item as you complete it
-   - Don't wait until the end - update in real-time
-   - If you can't complete an item, explain why in a comment
+**Quick Summary:**
+- **AI updates**: Acceptance criteria, files changed, implementation notes, commits list
+- **User updates**: Test plan (never check off user's test items)
+- **Estimate**: Use numeric values (0-5) - see `/linear` for mapping
+- **Labels**: Type (one) + Scope (one or more) - see `/linear` for all label IDs
 
-2. **Files Changed**:
-   - Add ✅ emoji when file is modified
-   - Update description if actual changes differ from plan
-
-3. **Implementation Notes**:
-   - Add key decisions as you make them
-   - Document edge cases you handled
-   - Note any issues you fixed along the way
-
-4. **Estimate → Actual**:
-   - Update "Estimate: Xh (actual: Yh)" when done
-   - Helps improve future estimates
-
-5. **Commits List**:
-   - Add commit hashes and descriptions as you commit
-   - Format: `abc1234 - Brief description`
-
-**📝 User Will Check Off:**
-
-1. **Test Plan** - User manually tests each step
-   - AI provides clear, actionable steps with links
-   - User checks off after testing
-   - User confirms it works as expected
-
-**🔄 When to Update Tickets:**
-
-- **During work**: Check off acceptance criteria, update files, add notes
-- **After each commit**: Add commit hash to list
-- **When complete**: Mark all acceptance criteria done, update estimate
-- **Before "In Review"**: Ensure ticket is fully updated
-
-**Example Update Flow:**
-
-```typescript
-// 1. Start work → Mark criteria as you complete them
-mcp_Linear_update_issue({
-	id: 'issue-id',
-	description: `
-**Acceptance Criteria** (AI checks these off when complete):
-- [x] Install svelte-sonner ← Just completed
-- [ ] Create toast helper ← Working on this
-- [ ] Add to layout
-  `
-});
-
-// 2. After first commit → Add to commits list
-mcp_Linear_update_issue({
-	id: 'issue-id',
-	description: `
-...
-**Commits** (AI adds when committing):
-- ff8c280 - Initial toast implementation
-  `
-});
-
-// 3. When done → All criteria checked, estimate updated
-mcp_Linear_update_issue({
-	id: 'issue-id',
-	description: `
-**Acceptance Criteria** (AI checks these off when complete):
-- [x] Install svelte-sonner
-- [x] Create toast helper
-- [x] Add to layout
-
-**Estimate**: 2-4h (actual: ~2h)
-
-**Commits** (AI adds when committing):
-- ff8c280 - Initial implementation
-- f6716ee - SSR fix
-- 0d7e370 - Deprecation fix
-  `
-});
-```
-
-**Labeling + Estimate Rules** (see `dev-docs/2-areas/flow-metrics.md`):
-
-**Labels** (for Flow Distribution):
-
-- **Type** (required, one): `feature`, `bug`, `tech-debt`, `risk`
-- **Scope** (required, one or more): `frontend`, `backend`, `ui`, `auth`, `workspace`, `analytics`, `devops`, `security`
-
-**Estimate Field** (Linear's native field):
-
-- **Size** (required): `1=XS` (<2h), `2=S` (2-4h), `3=M` (4-8h), `4=L` (1-2 days), `5=XL` (break down!)
-
-**Examples**:
-
-```typescript
-// Feature slice (backend + frontend, small size)
-{
-  labels: ["feature", "backend", "frontend", "workspace"],
-  estimate: 2  // S = 2-4h
-}
-
-// Bug fix (auth-specific, extra small)
-{
-  labels: ["bug", "auth", "backend"],
-  estimate: 1  // XS = <2h
-}
-
-// Tech debt (refactoring UI components, large)
-{
-  labels: ["tech-debt", "ui", "frontend"],
-  estimate: 4  // L = 1-2 days
-}
-
-// Security fix (critical risk, medium)
-{
-  labels: ["risk", "security", "backend"],
-  estimate: 3  // M = 4-8h
-}
-```
+**See**: `/linear` command for complete ticket management workflow
 
 **Step 4b: Initialize Linear project** (for org-wide visibility):
 
@@ -520,6 +360,8 @@ mcp_Linear_update_project({
    ```
 
 2. **Build end-to-end** (backend + frontend working together)
+   - **Follow coding standards** - No `any` types, keys in `{#each}`, `resolveRoute()` for navigation
+   - **Check linting** - Run `npm run lint` before committing (errors visible but non-blocking)
 
 3. **Commit** (descriptive message with Linear ID, on feature branch):
 

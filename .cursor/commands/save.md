@@ -66,6 +66,8 @@
   - **Linear ticket ID** in commit message: `Linear: SYOS-123`
   - This enables automation and Flow Metrics tracking
 
+**See**: `/linear` command for complete Linear workflow and constants
+
 **User Story Format:**
 
 ```

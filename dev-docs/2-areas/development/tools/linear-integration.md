@@ -81,8 +81,13 @@ mcp_Linear_create_issue({
 	team: 'SYOS',
 	title: '[Slice 1] Workspace Context',
 	description: '...',
-	labels: ['feature', 'backend', 's'],
-	project: 'Auth and System Foundation'
+	projectId: projectId, // ✅ Required (get/create first)
+	assigneeId: 'c7c555a2-895a-48b6-ae24-d4147d44b1d5', // ✅ Required (Randy)
+	estimate: 2, // ✅ Required (numeric: 0-5, not size labels)
+	labels: [
+		'ba9cfc2b-a993-4265-80dc-07fd1c831029', // feature (type)
+		'7299ef53-982d-429d-b513-ccf190b28c16'  // backend (scope)
+	]
 });
 
 mcp_Linear_update_issue({
@@ -203,8 +208,14 @@ mcp_Linear_update_project({
 mcp_Linear_create_issue({
 	team: 'SYOS',
 	title: '[Slice 1] Workspace Context & Indicator',
-	labels: ['feature', 'backend', 'workspace', 's'],
-	project: 'Auth and System Foundation',
+	projectId: projectId, // ✅ Required (get/create first)
+	assigneeId: 'c7c555a2-895a-48b6-ae24-d4147d44b1d5', // ✅ Required (Randy)
+	estimate: 2, // ✅ Required (numeric: 0-5, 2=S=2-4h)
+	labels: [
+		'ba9cfc2b-a993-4265-80dc-07fd1c831029', // feature (type)
+		'7299ef53-982d-429d-b513-ccf190b28c16', // backend (scope)
+		'ede0cdda-d56f-4f0d-a6b9-5522df50839f'  // workspace (scope)
+	],
 	state: 'Todo'
 });
 ```
@@ -304,69 +315,66 @@ git push origin main
 
 ### **Every Ticket Must Have**
 
-1. **Type** (one): `feature`, `bug`, `tech-debt`, `risk`
-2. **Scope** (one or more): `frontend`, `backend`, `ui`, `auth`, `workspace`, `analytics`, `devops`, `security`
-3. **Size** (one): `xs`, `s`, `m`, `l`, `xl`
+1. **Type** (one): `feature`, `bug`, `tech-debt`, `risk` (use label IDs)
+2. **Scope** (one or more): `frontend`, `backend`, `ui`, `auth`, `workspace`, `analytics`, `devops`, `security` (use label IDs)
+3. **Estimate** (numeric field): `0-5` (0=none, 1=xs, 2=s, 3=m, 4=l, 5=xl) - **NOT size labels**
 
 ### **Example**
 
 ```typescript
 mcp_Linear_create_issue({
+	team: 'SYOS',
 	title: '[Slice 1] Workspace Context & Indicator',
+	projectId: projectId, // ✅ Required (get/create first)
+	assigneeId: 'c7c555a2-895a-48b6-ae24-d4147d44b1d5', // ✅ Required (Randy)
+	estimate: 2, // ✅ Required (numeric: 2=S=2-4h, NOT size label)
 	labels: [
-		'feature', // Type: New functionality
-		'backend', // Scope: Convex functions
-		'workspace', // Scope: Multi-tenancy
-		's' // Size: 2-4 hours
+		'ba9cfc2b-a993-4265-80dc-07fd1c831029', // feature (type - label ID)
+		'7299ef53-982d-429d-b513-ccf190b28c16', // backend (scope - label ID)
+		'ede0cdda-d56f-4f0d-a6b9-5522df50839f'  // workspace (scope - label ID)
 	]
 });
 ```
+
+**⚠️ CRITICAL**: 
+- Use `estimate` field (numeric), NOT size labels
+- Use label IDs (not names) - see `/linear` command for all IDs
+- Always include `projectId` and `assigneeId`
+
+**See**: `/linear` command for complete labeling reference
 
 ---
 
 ## 🎯 Hardcoded Constants (for Speed)
 
+**⚠️ IMPORTANT**: Use `/linear` command for complete constants reference.
+
+**Quick Reference:**
+
 ```typescript
-// Defined in /start-new-project command
-const LINEAR_DEFAULTS = {
-	team: 'SYOS',
-	teamId: '08d684b7-986f-4781-8bc5-e4d9aead6935',
+const LINEAR_TEAM_ID = '08d684b7-986f-4781-8bc5-e4d9aead6935'; // SYOS
+const RANDY_USER_ID = 'c7c555a2-895a-48b6-ae24-d4147d44b1d5'; // Randy Hereman
 
-	labels: {
-		// Type
-		feature: 'ba9cfc2b-a993-4265-80dc-07fd1c831029',
-		bug: '62008be5-0ff6-4aae-ba9b-c2887257acf8',
-		'tech-debt': '7cec9e22-31d4-4166-ba92-61d8f8c18809',
-		risk: '99472a27-79b0-475b-bd4a-d4d66e3f2b81',
+// Use estimate field (numeric: 0-5), NOT size labels
+const ESTIMATES = {
+  none: 0, xs: 1, s: 2, m: 3, l: 4, xl: 5
+};
 
-		// Scope
-		frontend: '70068764-575a-48a6-b4d1-3735a044230e',
-		backend: '7299ef53-982d-429d-b513-ccf190b28c16',
-		ui: 'ace175ff-3cce-4416-bacc-529ee85e72a9',
-		auth: '1ce394e6-d0ac-41c0-a3b2-f8dd062f7725',
-		workspace: 'ede0cdda-d56f-4f0d-a6b9-5522df50839f',
-		analytics: '1e82f018-fec6-4d0f-9369-ab1e98cdd613',
-		devops: 'df3e1654-2066-423b-905a-41dfc69f2cd5',
-		security: '9a561550-aff8-4cd3-a1f5-3cd5b9008b97',
-
-		// Size
-		xs: '3af5aae3-2503-40b7-b51c-4ec4f56cd2fc',
-		s: '4bcc3827-94f3-4eda-8581-c76e6e51dead',
-		m: '8171cae2-3a72-46a0-9d68-b2eb64d90def',
-		l: '9fc2063b-a156-4519-8c33-83432e7e9deb',
-		xl: '5840c3f2-c2fc-4354-bff7-6eedba83d709',
-
-		// Special
-		shaping: '5a657e67-a6d7-4b49-9299-91e60daf44b3'
-	}
+// Label IDs (see /linear command for complete list)
+const LINEAR_LABELS = {
+  feature: 'ba9cfc2b-a993-4265-80dc-07fd1c831029',
+  backend: '7299ef53-982d-429d-b513-ccf190b28c16',
+  // ... see /linear command for all labels
 };
 ```
 
-**Benefits**:
+**⚠️ CRITICAL**: 
+- Use `projectId` (not `project` name)
+- Use `estimate` field (numeric 0-5), NOT size labels
+- Use label IDs (not label names)
+- Always set `assigneeId` to Randy's ID
 
-- ⚡ Faster (no lookup calls)
-- 💰 Cheaper (fewer MCP requests)
-- 🎯 More precise (exact IDs)
+**See**: `/linear` command for complete constants and examples
 
 ---
 
@@ -398,5 +406,8 @@ const LINEAR_DEFAULTS = {
 
 ---
 
-**Last Updated**: 2025-11-10  
-**Related**: [Flow Metrics](./flow-metrics.md), [/start-new-project](./.cursor/commands/start-new-project.md)
+**Last Updated**: 2025-11-13  
+**Related**: 
+- **Command**: `/linear` - Complete Linear workflow reference (constants, ticket creation, examples)
+- **Rule**: `.cursor/rules/working-with-linear.mdc` - Critical rules (Project ID required, Assign user)
+- **Docs**: [Flow Metrics](./flow-metrics.md), [Ticket Writing](../patterns/ticket-writing.md)
