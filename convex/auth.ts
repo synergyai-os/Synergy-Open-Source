@@ -56,7 +56,7 @@ export async function getAuthUserIdOrNull(
 
 // DEPRECATED: Legacy function for backward compatibility
 // This was used when Convex JWT auth was attempted but WorkOS tokens lack 'aud' claim
-export async function getAuthUserIdFromJWT(ctx: any) {
+export async function getAuthUserIdFromJWT(ctx: QueryCtx | MutationCtx) {
 	const identity = await ctx.auth.getUserIdentity();
 	if (!identity) {
 		return null;

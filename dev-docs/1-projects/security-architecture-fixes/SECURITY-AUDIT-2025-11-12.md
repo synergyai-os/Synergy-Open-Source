@@ -543,7 +543,7 @@ Do NOT deploy to production with sensitive data until:
 
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - [WorkOS Security Docs](https://workos.com/docs/security)
-- [Convex Security Guide](https://docs.convex.dev/production/security)
+- [Convex Documentation](https://docs.convex.dev/)
 
 **SvelteKit Auth**:
 
@@ -552,7 +552,7 @@ Do NOT deploy to production with sensitive data until:
 
 **Compliance**:
 
-- [SOC 2 Requirements](https://www.aicpa.org/soc2)
+- [SOC 2 Overview](https://www.aicpa.org/interestareas/frc/assuranceadvisoryservices/aicpasoc2report.html)
 - [GDPR Checklist](https://gdpr.eu/checklist/)
 
 ---

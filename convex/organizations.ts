@@ -147,11 +147,10 @@ export const listOrganizations = query({
 
 export const listOrganizationInvites = query({
 	args: {
-		userId: v.optional(v.id('users')) // TODO: Remove once Convex auth context is set up
+		sessionId: v.string()
 	},
 	handler: async (ctx, args) => {
-		// Try explicit userId first (client passes it), fallback to auth context
-		const userId = args.userId ?? (await getAuthUserId(ctx));
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			return [];
 		}
@@ -350,10 +349,11 @@ export const createOrganizationInvite = mutation({
 
 export const acceptOrganizationInvite = mutation({
 	args: {
+		sessionId: v.string(),
 		code: v.string()
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
@@ -457,17 +457,10 @@ export const recordOrganizationSwitch = mutation({
 	},
 	handler: async (ctx, args) => {
 		// Silently skip analytics tracking if session not available - non-critical, shouldn't break UX
-		try {
-			const userId = await getAuthUserId(ctx);
-			if (!userId) {
-				console.warn('⚠️ Skipping organization switch tracking: User not authenticated');
-				return;
-			}
-		} catch (error) {
-			// Session not found or expired - silently skip tracking
-			console.debug('⏭️ Skipping organization switch tracking: Session not available');
-			return;
-		}
+		// Note: This mutation doesn't require auth - it's just analytics tracking
+		// If we need to track userId, we should add sessionId to args
+		// For now, skip tracking since we don't have sessionId available
+		return;
 
 		// TODO: Re-enable server-side analytics via HTTP action bridge
 		// const distinctId = await resolveDistinctId(ctx, userId);

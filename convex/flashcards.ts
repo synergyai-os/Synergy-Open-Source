@@ -575,10 +575,11 @@ export const getFlashcardsByCollection = query({
  */
 export const getFlashcard = query({
 	args: {
+		sessionId: v.string(),
 		flashcardId: v.id('flashcards')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
@@ -601,10 +602,11 @@ export const getFlashcard = query({
  */
 export const getFlashcardTags = query({
 	args: {
+		sessionId: v.string(),
 		flashcardId: v.id('flashcards')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
@@ -634,12 +636,13 @@ export const getFlashcardTags = query({
  */
 export const generateFlashcard = action({
 	args: {
+		sessionId: v.string(),
 		text: v.string(),
 		sourceTitle: v.optional(v.string()),
 		sourceAuthor: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}

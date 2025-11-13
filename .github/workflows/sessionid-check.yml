@@ -59,6 +59,8 @@ jobs:
           WORKOS_CLIENT_ID: ${{ secrets.WORKOS_TEST_CLIENT_ID }}
           AUTH_SECRET: ${{ secrets.TEST_AUTH_SECRET }}
           PUBLIC_CONVEX_URL: ${{ secrets.TEST_CONVEX_URL }}
+          # Placeholder session secret for E2E tests (must be ≥32 chars)
+          SYOS_SESSION_SECRET: ${{ secrets.SYOS_SESSION_SECRET || 'placeholder-secret-for-e2e-tests-only-32chars' }}
 
       - name: Upload test results
         if: always()

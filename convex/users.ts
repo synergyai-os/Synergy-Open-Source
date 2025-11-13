@@ -149,15 +149,14 @@ export const getCurrentUser = query({
  */
 export const updateUserProfile = mutation({
 	args: {
+		sessionId: v.string(),
 		targetUserId: v.id('users'),
 		firstName: v.optional(v.string()),
 		lastName: v.optional(v.string()),
-		profileImageUrl: v.optional(v.string()),
-		userId: v.optional(v.id('users')) // TODO: Remove once Convex auth context is set up
+		profileImageUrl: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
-		// Try explicit userId first (client passes it), fallback to auth context
-		const userId = args.userId ?? (await getAuthUserId(ctx));
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}

@@ -183,11 +183,10 @@ export const listTeams = query({
 
 export const listTeamInvites = query({
 	args: {
-		userId: v.optional(v.id('users')) // TODO: Remove once Convex auth context is set up
+		sessionId: v.string()
 	},
 	handler: async (ctx, args) => {
-		// Try explicit userId first (client passes it), fallback to auth context
-		const userId = args.userId ?? (await getAuthUserId(ctx));
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			return [];
 		}
@@ -247,13 +246,12 @@ export const listTeamInvites = query({
 
 export const createTeam = mutation({
 	args: {
+		sessionId: v.string(),
 		organizationId: v.id('organizations'),
-		name: v.string(),
-		userId: v.optional(v.id('users')) // TODO: Remove once Convex auth context is set up
+		name: v.string()
 	},
 	handler: async (ctx, args) => {
-		// Try explicit userId first (client passes it), fallback to auth context
-		const userId = args.userId ?? (await getAuthUserId(ctx));
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
@@ -311,13 +309,14 @@ export const createTeam = mutation({
 
 export const createTeamInvite = mutation({
 	args: {
+		sessionId: v.string(),
 		teamId: v.id('teams'),
 		email: v.optional(v.string()),
 		invitedUserId: v.optional(v.id('users')),
 		role: v.optional(v.union(v.literal('admin'), v.literal('member')))
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
@@ -427,10 +426,11 @@ export const createTeamInvite = mutation({
 
 export const acceptTeamInvite = mutation({
 	args: {
+		sessionId: v.string(),
 		code: v.string()
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
@@ -551,11 +551,12 @@ export const declineTeamInvite = mutation({
  */
 export const updateTeam = mutation({
 	args: {
+		sessionId: v.string(),
 		teamId: v.id('teams'),
 		name: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
@@ -609,10 +610,11 @@ export const updateTeam = mutation({
  */
 export const deleteTeam = mutation({
 	args: {
+		sessionId: v.string(),
 		teamId: v.id('teams')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
@@ -667,11 +669,12 @@ export const deleteTeam = mutation({
  */
 export const removeTeamMember = mutation({
 	args: {
+		sessionId: v.string(),
 		teamId: v.id('teams'),
 		targetUserId: v.id('users')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}

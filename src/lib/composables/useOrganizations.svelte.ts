@@ -140,11 +140,19 @@ export function useOrganizations(options?: {
 					return { sessionId };
 				})
 			: null;
-	const organizationInvitesQuery = browser
-		? useQuery(api.organizations.listOrganizationInvites, () => ({ userId: getUserId() as any }))
+	const organizationInvitesQuery = browser && getSessionId()
+		? useQuery(api.organizations.listOrganizationInvites, () => {
+				const sessionId = getSessionId();
+				if (!sessionId) return null;
+				return { sessionId };
+			})
 		: null;
-	const teamInvitesQuery = browser
-		? useQuery(api.teams.listTeamInvites, () => ({ userId: getUserId() as any }))
+	const teamInvitesQuery = browser && getSessionId()
+		? useQuery(api.teams.listTeamInvites, () => {
+				const sessionId = getSessionId();
+				if (!sessionId) return null;
+				return { sessionId };
+			})
 		: null;
 
 	// Query teams - pass organizationId if we have one, undefined if in personal workspace mode
