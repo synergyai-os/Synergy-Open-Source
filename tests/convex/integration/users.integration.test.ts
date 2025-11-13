@@ -109,7 +109,7 @@ describe('Users Integration Tests', () => {
 
 	it('should update own profile with RBAC permission check', async () => {
 		const t = convexTest(schema, modules);
-		const { userId } = await createTestSession(t);
+		const { sessionId, userId } = await createTestSession(t);
 
 		// Set up RBAC: User role with users.manage-profile permission (scope: "own")
 		const userRole = await createTestRole(t, 'user', 'User');
@@ -125,10 +125,10 @@ describe('Users Integration Tests', () => {
 
 		// User should be able to update their own profile
 		const result = await t.mutation(api.users.updateUserProfile, {
+			sessionId,
 			targetUserId: userId,
 			firstName: 'Updated',
-			lastName: 'Name',
-			userId
+			lastName: 'Name'
 		});
 
 		expect(result.success).toBe(true);
