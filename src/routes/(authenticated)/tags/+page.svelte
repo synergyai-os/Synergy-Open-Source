@@ -12,17 +12,18 @@
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
 	const convexClient = useConvexClient();
 
-	// Get user ID from page data
-	const getUserId = () => $page.data.user?.userId;
+	// Get sessionId from page data
+	const getSessionId = () => $page.data.sessionId;
 
 	// Fetch user's tags
-	const tagsQuery = browser && getUserId()
-		? useQuery(api.tags.listUserTags, () => {
-				const userId = getUserId();
-				if (!userId) return null;
-				return { userId };
-			})
-		: null;
+	const tagsQuery =
+		browser && getSessionId()
+			? useQuery(api.tags.listUserTags, () => {
+					const sessionId = getSessionId();
+					if (!sessionId) return 'skip';
+					return { sessionId };
+				})
+			: null;
 	const userTags = $derived(tagsQuery?.data ?? []);
 	const isLoading = $derived(tagsQuery?.isLoading ?? false);
 
@@ -51,13 +52,13 @@
 		isSharing = true;
 
 		try {
-			const userId = getUserId();
-			if (!userId) {
-				throw new Error('User ID is required');
+			const sessionId = getSessionId();
+			if (!sessionId) {
+				throw new Error('Session ID is required');
 			}
 
 			const result = await convexClient.mutation(api.tags.shareTag, {
-				userId,
+				sessionId,
 				tagId: selectedTagForSharing._id,
 				shareWith,
 				organizationId: targetId as any

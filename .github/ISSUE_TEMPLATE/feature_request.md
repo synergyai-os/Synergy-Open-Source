@@ -23,6 +23,7 @@ What other solutions did you think about? Why did you choose this approach?
 Who needs this? Provide example scenarios or user stories.
 
 **Example:**
+
 - As a [user type], I want to [action] so that [benefit]
 
 ## Success Metrics
@@ -38,4 +39,3 @@ Add any other context, mockups, or examples about the feature request here.
 - [ ] I've searched existing issues to avoid duplicates
 - [ ] I've checked the roadmap to see if this is planned
 - [ ] I've read the [Product Principles](dev-docs/2-areas/product-principles.md)
-

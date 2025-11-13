@@ -344,7 +344,7 @@ None (first slice)
 - `convex/permissions.test.ts` - Complete unit tests
 - `convex/roles.test.ts` - Complete integration tests
 - `tests/e2e/permissions.spec.ts` - Complete E2E tests
-- `dev-docs/rbac-architecture.md` - Update with implementation notes
+- `dev-docs/2-areas/rbac/rbac-architecture.md` - Update with implementation notes
 - `dev-docs/patterns/INDEX.md` - Add RBAC pattern
 - `dev-docs/1-projects/rbac-phase-1/testing-checklist.md` - Complete manual tests
 

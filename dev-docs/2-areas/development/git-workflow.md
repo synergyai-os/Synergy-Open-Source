@@ -381,8 +381,8 @@ git pull origin main
 
 ## Related Resources
 
-- **[Git Cheat Sheet](../3-resources/git-cheat-sheet.md)** - Quick reference
-- **[Deployment Procedures](../3-resources/deployment-procedures.md)** - CI/CD details
+- **[Git Cheat Sheet](../../3-resources/guides/git-cheat-sheet.md)** - Quick reference
+- **[Deployment Procedures](../../3-resources/deployment/deployment-procedures.md)** - CI/CD details
 - **[Start Me Guide](start-me.md)** - Initial setup
 
 ---

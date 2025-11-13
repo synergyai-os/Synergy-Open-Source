@@ -7,16 +7,19 @@
 	import AppTopBar from '$lib/components/organizations/AppTopBar.svelte';
 	import QuickCreateModal from '$lib/components/QuickCreateModal.svelte';
 	import OrganizationModals from '$lib/components/organizations/OrganizationModals.svelte';
-	import WorkspaceSwitchOverlay from '$lib/components/organizations/WorkspaceSwitchOverlay.svelte';
+	import LoadingOverlay from '$lib/components/ui/LoadingOverlay.svelte';
 	import { getContext, setContext } from 'svelte';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 	import { useGlobalShortcuts, SHORTCUTS } from '$lib/composables/useGlobalShortcuts.svelte';
+	import { useLoadingOverlay } from '$lib/composables/useLoadingOverlay.svelte';
 	import { toast } from '$lib/utils/toast';
 	import type { Id } from '$lib/convex';
 
 	let { children, data } = $props();
 
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const loadingOverlay = useLoadingOverlay();
+	setContext('loadingOverlay', loadingOverlay);
 	const isAuthenticated = $derived(data.isAuthenticated);
 	const accountEmail = $derived(() => data.user?.email ?? 'user@example.com');
 	const accountName = $derived(() =>
@@ -65,7 +68,7 @@
 				sessionStorage.removeItem('switchingAccount');
 
 				// Ensure minimum 5 second display
-				const elapsed = Date.now() - accountSwitchingState.startTime;
+				const elapsed = Date.now() - (accountSwitchingState.startTime ?? Date.now());
 				const minimumDuration = 5000;
 				const remaining = Math.max(0, minimumDuration - elapsed);
 
@@ -275,7 +278,7 @@
 			triggerMethod={quickCreateTrigger}
 			currentView={getCurrentView()}
 			initialType={quickCreateInitialType}
-			userId={(data.user?.userId as Id<'users'> | undefined)}
+			sessionId={data.sessionId}
 			organizationId={organizations?.activeOrganizationId ?? null}
 			teamId={organizations?.activeTeamId ?? null}
 		/>
@@ -288,19 +291,24 @@
 			/>
 		{/if}
 
-		<!-- Workspace Switch Loading Overlay -->
-		<WorkspaceSwitchOverlay
-			show={(organizations?.isSwitching ?? false) || accountSwitchingState.isSwitching}
-			workspaceName={
-				organizations?.isSwitching
-					? organizations.switchingTo ?? 'workspace'
-					: accountSwitchingState.switchingTo ?? 'account'
-			}
-			workspaceType={
-				organizations?.isSwitching
-					? organizations.switchingToType ?? 'personal'
-					: accountSwitchingState.switchingToType
-			}
+		<!-- Loading Overlay (workspace switching, account operations, etc.) -->
+		{#if (organizations?.isSwitching ?? false) || accountSwitchingState.isSwitching}
+			<LoadingOverlay
+				show={true}
+				flow="workspace-switching"
+				subtitle={organizations?.isSwitching
+					? (organizations.switchingTo ?? 'workspace')
+					: (accountSwitchingState.switchingTo ?? 'account')}
+			/>
+		{/if}
+
+		<!-- Global Loading Overlay (for account registration, linking, workspace creation) -->
+		<LoadingOverlay
+			show={loadingOverlay.show}
+			flow={loadingOverlay.flow}
+			title={loadingOverlay.title}
+			subtitle={loadingOverlay.subtitle}
+			customStages={loadingOverlay.customStages}
 		/>
 	</div>
 {:else}

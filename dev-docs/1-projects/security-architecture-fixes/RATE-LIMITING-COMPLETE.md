@@ -10,6 +10,7 @@
 ## Summary
 
 Successfully implemented **Tier 1 (In-Memory)** rate limiting for all auth endpoints to protect against:
+
 - ✅ Brute force attacks (login)
 - ✅ DoS attacks (account switching spam)
 - ✅ Registration spam (fake accounts)
@@ -24,14 +25,16 @@ Successfully implemented **Tier 1 (In-Memory)** rate limiting for all auth endpo
 **File**: `src/lib/server/middleware/rateLimit.ts`
 
 **Features**:
+
 - Sliding window algorithm (industry standard)
 - In-memory store with automatic cleanup (prevents memory leaks)
-- Standard rate limit headers (X-RateLimit-*)
+- Standard rate limit headers (X-RateLimit-\*)
 - Retry-After header on 429 responses
 - IP-based tracking with X-Forwarded-For support
 - SvelteKit middleware wrapper for easy integration
 
 **Performance**:
+
 - < 1ms overhead per request
 - Automatic cleanup every 5 minutes
 - ~100 bytes per tracked client
@@ -41,12 +44,12 @@ Successfully implemented **Tier 1 (In-Memory)** rate limiting for all auth endpo
 
 ## Protected Endpoints
 
-| Endpoint | Limit | Window | Status |
-|----------|-------|--------|--------|
-| `/auth/login` | 5 requests | 1 minute | ✅ Protected |
-| `/auth/register` | 3 requests | 1 minute | ✅ Protected |
-| `/auth/switch` | 10 requests | 1 minute | ✅ Protected |
-| `/logout` | 5 requests | 1 minute | ✅ Protected |
+| Endpoint         | Limit       | Window   | Status       |
+| ---------------- | ----------- | -------- | ------------ |
+| `/auth/login`    | 5 requests  | 1 minute | ✅ Protected |
+| `/auth/register` | 3 requests  | 1 minute | ✅ Protected |
+| `/auth/switch`   | 10 requests | 1 minute | ✅ Protected |
+| `/logout`        | 5 requests  | 1 minute | ✅ Protected |
 
 ---
 
@@ -95,6 +98,7 @@ Successfully implemented **Tier 1 (In-Memory)** rate limiting for all auth endpo
 **Results**: 14/14 tests passing ✅
 
 **Coverage**:
+
 - ✅ Requests within limit allowed
 - ✅ Requests exceeding limit blocked
 - ✅ Window expiration and reset
@@ -109,6 +113,7 @@ Successfully implemented **Tier 1 (In-Memory)** rate limiting for all auth endpo
 **File**: `e2e/rate-limiting.test.ts`
 
 **Coverage**:
+
 - ✅ Login endpoint rate limiting
 - ✅ Registration endpoint rate limiting
 - ✅ Rate limit headers on all responses
@@ -161,8 +166,8 @@ Retry-After: 42
 
 ```typescript
 if (response.status === 429) {
-  const retryAfter = response.headers.get('Retry-After') || '60';
-  error = `Too many account switches. Please wait ${retryAfter} seconds before trying again.`;
+	const retryAfter = response.headers.get('Retry-After') || '60';
+	error = `Too many account switches. Please wait ${retryAfter} seconds before trying again.`;
 }
 ```
 
@@ -170,8 +175,8 @@ if (response.status === 429) {
 
 ```typescript
 if (response.status === 429) {
-  const retryAfter = response.headers.get('Retry-After') || '60';
-  error = `Too many logout attempts. Please wait ${retryAfter} seconds before trying again.`;
+	const retryAfter = response.headers.get('Retry-After') || '60';
+	error = `Too many logout attempts. Please wait ${retryAfter} seconds before trying again.`;
 }
 ```
 
@@ -183,30 +188,31 @@ if (response.status === 429) {
 
 ```typescript
 export const RATE_LIMITS = {
-  accountSwitch: {
-    maxRequests: 10,
-    windowMs: 60 * 1000, // 1 minute
-    keyPrefix: 'switch'
-  },
-  login: {
-    maxRequests: 5,
-    windowMs: 60 * 1000,
-    keyPrefix: 'login'
-  },
-  register: {
-    maxRequests: 3,
-    windowMs: 60 * 1000,
-    keyPrefix: 'register'
-  },
-  logout: {
-    maxRequests: 5,
-    windowMs: 60 * 1000,
-    keyPrefix: 'logout'
-  }
+	accountSwitch: {
+		maxRequests: 10,
+		windowMs: 60 * 1000, // 1 minute
+		keyPrefix: 'switch'
+	},
+	login: {
+		maxRequests: 5,
+		windowMs: 60 * 1000,
+		keyPrefix: 'login'
+	},
+	register: {
+		maxRequests: 3,
+		windowMs: 60 * 1000,
+		keyPrefix: 'register'
+	},
+	logout: {
+		maxRequests: 5,
+		windowMs: 60 * 1000,
+		keyPrefix: 'logout'
+	}
 } as const;
 ```
 
 **Rationale**:
+
 - **Login (5)**: Allows for 2-3 legitimate typos
 - **Register (3)**: Users should only register once (plus retries)
 - **Switch (10)**: Normal users switch < 5x/min, allows buffer
@@ -219,17 +225,20 @@ export const RATE_LIMITS = {
 ### Tier 1: In-Memory (Current Implementation) ✅
 
 **Pros**:
+
 - ✅ Simple implementation (no external dependencies)
 - ✅ Zero latency (local Map)
 - ✅ No cost (no Redis/external service)
 - ✅ Perfect for single-server deployments
 
 **Cons**:
+
 - ⚠️ Single-server only (not distributed)
 - ⚠️ Rate limits reset on server restart
 - ⚠️ Not suitable for multi-server (Vercel edge functions)
 
 **Use Cases**:
+
 - ✅ MVP/Beta (current stage)
 - ✅ Single Vercel deployment
 - ✅ < 10k users
@@ -238,12 +247,14 @@ export const RATE_LIMITS = {
 ### Tier 2: Redis (Future Upgrade Path)
 
 **When to Upgrade**:
+
 - Multi-server deployments (Vercel edge functions)
 - > 10k users
 - Stricter security requirements
 - Distributed rate limiting needed
 
 **Implementation Path**:
+
 1. Install `ioredis`
 2. Set `REDIS_URL` environment variable
 3. Update `rateLimit.ts` to use Redis (code ready in spec)
@@ -344,6 +355,7 @@ export const RATE_LIMITS = {
 ### Post-Deployment Monitoring
 
 **Metrics to Track**:
+
 - 429 response rate (should be < 1% of requests)
 - Rate limit violations by endpoint
 - User complaints about being blocked
@@ -357,6 +369,7 @@ export const RATE_LIMITS = {
 ### When to Upgrade
 
 **Triggers**:
+
 - Deploying to multi-server (Vercel edge functions)
 - > 10,000 concurrent users
 - Rate limits not working consistently (due to multi-server)
@@ -367,6 +380,7 @@ export const RATE_LIMITS = {
 **Spec**: See `03-rate-limiting-implementation.md` (lines 504-577)
 
 **Steps**:
+
 1. Provision Redis instance (Upstash, Redis Cloud, etc.)
 2. Install `ioredis`: `npm install ioredis`
 3. Add `REDIS_URL` to `.env`
@@ -410,7 +424,7 @@ export const RATE_LIMITS = {
 
 ## Related Documents
 
-- [Security Audit](../SECURITY-AUDIT-2025-11-12.md)
+- [Security Audit](./SECURITY-AUDIT-2025-11-12.md)
 - [Implementation Roadmap](./IMPLEMENTATION-ROADMAP.md)
 - [Rate Limiting Spec](./03-rate-limiting-implementation.md)
 - [Linear Issue SYOS-31](https://linear.app/younghumanclub/issue/SYOS-31)
@@ -444,4 +458,3 @@ export const RATE_LIMITS = {
 
 **Implementation Complete**: ✅ Ready for User Validation
 **Next Action**: Manual testing by user → Staging deployment
-

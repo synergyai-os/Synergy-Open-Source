@@ -25,8 +25,8 @@
 	import { useInboxLayout } from '$lib/composables/useInboxLayout.svelte';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 
-	// Get user ID from page data (provided by authenticated layout)
-	const getUserId = () => $page.data.user?.userId;
+	// Get sessionId from page data (provided by authenticated layout)
+	const getSessionId = () => $page.data.sessionId;
 
 	// Get workspace context (functions for reactivity)
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
@@ -46,13 +46,13 @@
 
 	// Initialize inbox items composable with workspace context
 	const items = useInboxItems({
-		userId: getUserId, // Required for session validation - function ensures reactivity
+		sessionId: getSessionId, // Required for session validation - function ensures reactivity
 		activeOrganizationId: activeOrganizationId, // Pass function for reactivity
 		activeTeamId: activeTeamId // Pass function for reactivity
 	});
 
 	// Initialize selected item composable
-	const selected = useSelectedItem(convexClient, inboxApi, getUserId);
+	const selected = useSelectedItem(convexClient, inboxApi, getSessionId);
 
 	// Track whether auto-selection should run when items are available
 	const autoSelectState = $state({ enabled: true });
@@ -111,7 +111,7 @@
 	const sync = useInboxSync(
 		convexClient,
 		inboxApi,
-		getUserId, // Required for session validation
+		getSessionId, // Required for session validation
 		undefined, // onItemsReload not needed - useQuery handles reactivity automatically
 		() => clearSelection()
 	);
@@ -260,8 +260,14 @@
 		if (!convexClient || !selected.selectedItemId) return;
 
 		try {
+			const sessionId = getSessionId();
+			if (!sessionId) {
+				throw new Error('Session ID is required');
+			}
+
 			// Save all flashcards to database
 			const flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
+				sessionId,
 				flashcards: generatedFlashcards,
 				sourceInboxItemId: selected.selectedItemId as any,
 				sourceType: selected.selectedItem?.type
@@ -269,13 +275,13 @@
 
 			// Mark inbox item as processed
 			if (selected.selectedItemId) {
-				const userId = getUserId();
-				if (!userId) {
-					throw new Error('User ID is required');
+				const sessionId = getSessionId();
+				if (!sessionId) {
+					throw new Error('Session ID is required');
 				}
 
 				await convexClient.mutation(api.inbox.markProcessed, {
-					userId,
+					sessionId,
 					inboxItemId: selected.selectedItemId as any
 				});
 			}
@@ -292,14 +298,14 @@
 		if (!convexClient || !selected.selectedItemId) return;
 
 		try {
-			// Save selected flashcards to database (with any edits applied)
-			const userId = getUserId();
-			if (!userId) {
-				throw new Error('User ID is required');
+			const sessionId = getSessionId();
+			if (!sessionId) {
+				throw new Error('Session ID is required');
 			}
 
+			// Save selected flashcards to database (with any edits applied)
 			const flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
-				userId,
+				sessionId,
 				flashcards: cards,
 				sourceInboxItemId: selected.selectedItemId as any,
 				sourceType: selected.selectedItem?.type
@@ -307,13 +313,13 @@
 
 			// Mark inbox item as processed
 			if (selected.selectedItemId) {
-				const userId = getUserId();
-				if (!userId) {
-					throw new Error('User ID is required');
+				const sessionId = getSessionId();
+				if (!sessionId) {
+					throw new Error('Session ID is required');
 				}
 
 				await convexClient.mutation(api.inbox.markProcessed, {
-					userId,
+					sessionId,
 					inboxItemId: selected.selectedItemId as any
 				});
 			}
@@ -343,22 +349,41 @@
 <div class="flex h-full overflow-hidden">
 	<!-- Success message for linked account -->
 	{#if showLinkedSuccess}
-		<div class="fixed top-4 right-4 z-50 flex items-center gap-icon rounded-lg border border-accent-primary bg-elevated px-4 py-3 shadow-lg">
-			<svg class="h-5 w-5 flex-shrink-0 text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+		<div
+			class="fixed top-4 right-4 z-50 flex items-center gap-icon rounded-lg border border-accent-primary bg-elevated px-4 py-3 shadow-lg"
+		>
+			<svg
+				class="h-5 w-5 flex-shrink-0 text-accent-primary"
+				fill="none"
+				stroke="currentColor"
+				viewBox="0 0 24 24"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+				/>
 			</svg>
-			<span class="text-sm font-medium text-primary">Account linked successfully! You can now switch between your accounts.</span>
+			<span class="text-sm font-medium text-primary"
+				>Account linked successfully! You can now switch between your accounts.</span
+			>
 			<button
 				onclick={() => {
 					const url = new URL(window.location.href);
 					url.searchParams.delete('linked');
 					replaceState(url.pathname + url.search, {});
 				}}
-				class="ml-2 text-secondary hover:text-primary transition-colors"
+				class="ml-2 text-secondary transition-colors hover:text-primary"
 				aria-label="Dismiss"
 			>
 				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M6 18L18 6M6 6l12 12"
+					/>
 				</svg>
 			</button>
 		</div>
@@ -401,7 +426,7 @@
 						{:else if items.queryError}
 							<!-- Error State -->
 							<div class="py-readable-quote text-center">
-								<p class="text-error mb-4">
+								<p class="mb-4 text-error">
 									Failed to load inbox items: {items.queryError.toString()}
 								</p>
 								<button
@@ -425,7 +450,7 @@
 									{sync.isSyncing ? 'Syncing...' : 'Sync Readwise Highlights'}
 								</button>
 								{#if sync.syncError}
-									<p class="text-error mt-2 text-sm">{sync.syncError}</p>
+									<p class="mt-2 text-sm text-error">{sync.syncError}</p>
 								{/if}
 								{#if sync.syncSuccess}
 									<p class="text-success mt-2 text-sm">Sync completed successfully!</p>
@@ -573,7 +598,7 @@
 						{:else if items.queryError}
 							<!-- Error State -->
 							<div class="py-readable-quote text-center">
-								<p class="text-error mb-4">
+								<p class="mb-4 text-error">
 									Failed to load inbox items: {items.queryError.toString()}
 								</p>
 								<button
@@ -597,7 +622,7 @@
 									{sync.isSyncing ? 'Syncing...' : 'Sync Readwise Highlights'}
 								</button>
 								{#if sync.syncError}
-									<p class="text-error mt-2 text-sm">{sync.syncError}</p>
+									<p class="mt-2 text-sm text-error">{sync.syncError}</p>
 								{/if}
 								{#if sync.syncSuccess}
 									<p class="text-success mt-2 text-sm">Sync completed successfully!</p>

@@ -1,12 +1,7 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { env as publicEnv } from '$env/dynamic/public';
 import type { Id } from '$lib/convex';
-import {
-	decryptSecret,
-	encryptSecret,
-	generateSessionId,
-	hashValue
-} from './crypto';
+import { decryptSecret, encryptSecret, generateSessionId, hashValue } from './crypto';
 
 const LOGIN_STATE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 

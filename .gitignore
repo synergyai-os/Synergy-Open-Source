@@ -32,3 +32,4 @@ vite.config.ts.timestamp-*
 playwright/.auth
 test-results
 playwright-report
+e2e/.auth/*.json

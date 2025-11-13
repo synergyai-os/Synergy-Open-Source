@@ -6,6 +6,8 @@ import posthog from 'posthog-js';
 import { toast } from '$lib/utils/toast';
 import { untrack } from 'svelte';
 import { replaceState } from '$app/navigation';
+import { getContext } from 'svelte';
+import type { UseLoadingOverlayReturn } from '$lib/composables/useLoadingOverlay.svelte';
 
 export type OrganizationRole = 'owner' | 'admin' | 'member';
 
@@ -78,10 +80,12 @@ function getStorageDetailsKey(userId: string | undefined): string {
 
 export function useOrganizations(options?: {
 	userId?: () => string | undefined;
+	sessionId?: () => string | undefined;
 	orgFromUrl?: () => string | null; // Reactive URL parameter
 }) {
 	const convexClient = browser ? useConvexClient() : null;
 	const getUserId = options?.userId || (() => undefined);
+	const getSessionId = options?.sessionId || (() => undefined);
 	const getOrgFromUrl = options?.orgFromUrl || (() => null);
 
 	// Get account-specific storage keys
@@ -109,6 +113,7 @@ export function useOrganizations(options?: {
 		activeOrganizationId: initialActiveId,
 		activeTeamId: null as string | null,
 		cachedOrganization: cachedOrgDetails,
+		lastUserId: undefined as string | undefined,
 		isSwitching: false,
 		switchingTo: null as string | null,
 		switchingToType: 'personal' as 'personal' | 'organization',
@@ -127,34 +132,44 @@ export function useOrganizations(options?: {
 		}
 	});
 
-	const organizationsQuery = browser && getUserId()
-		? useQuery(api.organizations.listOrganizations, () => {
-				const userId = getUserId();
-				if (!userId) return null; // Skip query if userId not available
-				return { userId };
+	const organizationsQuery =
+		browser && getSessionId()
+			? useQuery(api.organizations.listOrganizations, () => {
+					const sessionId = getSessionId();
+					if (!sessionId) return null; // Skip query if sessionId not available
+					return { sessionId };
+				})
+			: null;
+	const organizationInvitesQuery = browser && getSessionId()
+		? useQuery(api.organizations.listOrganizationInvites, () => {
+				const sessionId = getSessionId();
+				if (!sessionId) return null;
+				return { sessionId };
 			})
 		: null;
-	const organizationInvitesQuery = browser
-		? useQuery(api.organizations.listOrganizationInvites, () => ({ userId: getUserId() as any }))
-		: null;
-	const teamInvitesQuery = browser
-		? useQuery(api.teams.listTeamInvites, () => ({ userId: getUserId() as any }))
+	const teamInvitesQuery = browser && getSessionId()
+		? useQuery(api.teams.listTeamInvites, () => {
+				const sessionId = getSessionId();
+				if (!sessionId) return null;
+				return { sessionId };
+			})
 		: null;
 
 	// Query teams - pass organizationId if we have one, undefined if in personal workspace mode
 	// The Convex function now accepts optional organizationId and returns [] when undefined
-const teamsQuery = browser && getUserId()
-	? useQuery(api.teams.listTeams, () => {
-			const userId = getUserId();
-			if (!userId) return null; // Skip query if userId not available
-			
-			const organizationId = state.activeOrganizationId;
-			return {
-				userId,
-				...(organizationId ? { organizationId } : {})
-			};
-		})
-	: null;
+	const teamsQuery =
+		browser && getUserId()
+			? useQuery(api.teams.listTeams, () => {
+					const userId = getUserId();
+					if (!userId) return null; // Skip query if userId not available
+
+					const organizationId = state.activeOrganizationId;
+					return {
+						userId,
+						...(organizationId ? { organizationId } : {})
+					};
+				})
+			: null;
 
 	const isLoading = $derived(organizationsQuery ? organizationsQuery.data === undefined : false);
 
@@ -195,6 +210,27 @@ const teamsQuery = browser && getUserId()
 	$effect(() => {
 		if (!browser) return;
 
+		// Check for modal trigger URL parameters
+		const urlParams = new URLSearchParams(window.location.search);
+		const createParam = urlParams.get('create');
+		const joinParam = urlParams.get('join');
+
+		if (createParam === 'organization') {
+			state.modals.createOrganization = true;
+			// Clean up URL param
+			urlParams.delete('create');
+			const newUrl =
+				window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+			replaceState(newUrl, {});
+		} else if (joinParam === 'organization') {
+			state.modals.joinOrganization = true;
+			// Clean up URL param
+			urlParams.delete('join');
+			const newUrl =
+				window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+			replaceState(newUrl, {});
+		}
+
 		// Priority 1: URL parameter (from account/workspace switching)
 		// Call function to get reactive value from parent
 		const urlOrgParam = getOrgFromUrl();
@@ -202,8 +238,7 @@ const teamsQuery = browser && getUserId()
 		// Skip if already processed (pattern #L700 - untrack prevents reactive dependency)
 		if (
 			untrack(
-				() =>
-					urlOrgParam === lastProcessedOrgParam && urlOrgParam === state.activeOrganizationId
+				() => urlOrgParam === lastProcessedOrgParam && urlOrgParam === state.activeOrganizationId
 			)
 		) {
 			return;
@@ -217,19 +252,19 @@ const teamsQuery = browser && getUserId()
 				lastProcessedOrgParam = urlOrgParam;
 			});
 
-		state.activeOrganizationId = urlOrgParam;
+			state.activeOrganizationId = urlOrgParam;
 
-		// Clean up URL param immediately (inbox pattern - prevents reprocessing)
-		// Guard for initial page load when router isn't initialized yet
-		try {
-			const url = new URL(window.location.href);
-			url.searchParams.delete('org');
-			replaceState(url.pathname + url.search, {});
-		} catch (e) {
-			// Router not ready on initial load - URL will persist but won't cause reprocessing
-			// because lastProcessedOrgParam tracking prevents the effect from running again
-			console.debug('Router not ready, deferring URL cleanup');
-		}
+			// Clean up URL param immediately (inbox pattern - prevents reprocessing)
+			// Guard for initial page load when router isn't initialized yet
+			try {
+				const url = new URL(window.location.href);
+				url.searchParams.delete('org');
+				replaceState(url.pathname + url.search, {});
+			} catch (e) {
+				// Router not ready on initial load - URL will persist but won't cause reprocessing
+				// because lastProcessedOrgParam tracking prevents the effect from running again
+				console.debug('Router not ready, deferring URL cleanup');
+			}
 
 			return; // Stop here, let validation handle the rest
 		}
@@ -312,19 +347,50 @@ const teamsQuery = browser && getUserId()
 		}
 	});
 
+	// Clear active organization when userId changes (account switch)
+	$effect(() => {
+		if (!browser) return;
+
+		const currentUserId = getUserId();
+
+		// If userId changes, clear active organization to prevent showing wrong account's orgs
+		// This will be set correctly by the URL param or validation logic
+		if (currentUserId !== undefined) {
+			// Store previous userId to detect changes
+			const prevUserId = untrack(() => state.lastUserId);
+
+			if (prevUserId !== undefined && prevUserId !== currentUserId) {
+				// User switched accounts - clear active org and let validation logic set it correctly
+				state.activeOrganizationId = null;
+				state.cachedOrganization = null;
+
+				// Clear storage for old account
+				const oldStorageKey = getStorageKey(prevUserId);
+				const oldStorageDetailsKey = getStorageDetailsKey(prevUserId);
+				localStorage.removeItem(oldStorageKey);
+				localStorage.removeItem(oldStorageDetailsKey);
+			}
+
+			// Update tracked userId
+			untrack(() => {
+				state.lastUserId = currentUserId;
+			});
+		}
+	});
+
 	// Track switching completion - clear switching state when queries settle
 	$effect(() => {
 		if (!state.isSwitching || !browser) return;
 
 		// Check if queries have settled (not loading)
 		const queriesSettled = organizationsQuery?.data !== undefined;
-		
+
 		let timeoutId: ReturnType<typeof setTimeout> | null = null;
-		
+
 		if (queriesSettled && state.switchStartTime) {
 			const elapsed = Date.now() - state.switchStartTime;
 			const minimumDuration = 5000; // Minimum 5 seconds for delightful experience
-			
+
 			if (elapsed >= minimumDuration) {
 				// Clear switching state immediately
 				state.isSwitching = false;
@@ -342,7 +408,7 @@ const teamsQuery = browser && getUserId()
 				}, remaining);
 			}
 		}
-		
+
 		// Cleanup: clear timeout if effect re-runs or component unmounts
 		return () => {
 			if (timeoutId) {
@@ -353,11 +419,11 @@ const teamsQuery = browser && getUserId()
 
 	function setActiveOrganization(organizationId: string | null) {
 		const previousOrganizationId = state.activeOrganizationId;
-		
+
 		// Set switching state before changing organization
 		state.isSwitching = true;
 		state.switchStartTime = browser ? Date.now() : null;
-		
+
 		// Determine target organization name and type for display
 		if (organizationId) {
 			const targetOrg = organizationsData().find((org) => org.organizationId === organizationId);
@@ -367,7 +433,7 @@ const teamsQuery = browser && getUserId()
 			state.switchingTo = 'Personal workspace';
 			state.switchingToType = 'personal';
 		}
-		
+
 		state.activeOrganizationId = organizationId;
 		state.activeTeamId = null;
 
@@ -401,14 +467,14 @@ const teamsQuery = browser && getUserId()
 
 		if (convexClient) {
 			const currentUserId = getUserId();
-			
+
 			// Only record organization switch if user is authenticated
 			// Analytics tracking is non-critical, so skip if not ready
 			if (!currentUserId) {
 				console.debug('⏭️ Skipping organization switch tracking - user not authenticated yet');
 				return;
 			}
-			
+
 			const mutationArgs: any = {
 				toOrganizationId: organizationId,
 				availableTeamCount
@@ -475,14 +541,34 @@ const teamsQuery = browser && getUserId()
 
 		state.loading.createOrganization = true;
 
+		// Show loading overlay
+		let loadingOverlay: UseLoadingOverlayReturn | null = null;
 		try {
+			loadingOverlay = getContext<UseLoadingOverlayReturn>('loadingOverlay');
+			if (loadingOverlay) {
+				loadingOverlay.showOverlay({
+					flow: 'workspace-creation',
+					subtitle: trimmed
+				});
+			}
+		} catch {
+			// Context not available, continue without overlay
+		}
+
+		try {
+			// Get sessionId
+			const sessionId = getSessionId();
+			if (!sessionId) {
+				throw new Error('Session ID not available');
+			}
+
 			const result = await convexClient.mutation(api.organizations.createOrganization, {
 				name: trimmed,
-				userId
+				sessionId
 			});
 
 			if (result?.organizationId) {
-				// Switch to new organization
+				// Switch to new organization (overlay will persist during switch)
 				setActiveOrganization(result.organizationId);
 
 				// Show success toast
@@ -500,6 +586,13 @@ const teamsQuery = browser && getUserId()
 
 				// Close modal on success
 				closeModal('createOrganization');
+
+				// Hide overlay after a short delay (workspace switch overlay will take over)
+				if (loadingOverlay && browser) {
+					setTimeout(() => {
+						loadingOverlay?.hideOverlay();
+					}, 500);
+				}
 			}
 		} catch (error) {
 			console.error('Failed to create organization:', error);
@@ -507,6 +600,11 @@ const teamsQuery = browser && getUserId()
 			// Show error toast
 			if (browser) {
 				toast.error('Failed to create organization. Please try again.');
+			}
+
+			// Hide overlay on error
+			if (loadingOverlay) {
+				loadingOverlay.hideOverlay();
 			}
 
 			// Keep modal open on error so user can retry

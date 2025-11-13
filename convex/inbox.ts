@@ -7,29 +7,27 @@
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 import { getAuthUserId } from './auth';
-import { validateSession } from './sessionValidation';
+import { validateSessionAndGetUserId } from './sessionValidation';
 
 /**
  * List all inbox items for the current user
  * Optionally filter by type (readwise_highlight, photo_note, manual_text, etc.)
  * Filters by workspace context (personal, organization, or team)
  * Returns items with basic display info (title, snippet, tags) for inbox list
- * 
- * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
- * and remove explicit userId parameter
+ *
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
  */
 export const listInboxItems = query({
 	args: {
-		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
 		filterType: v.optional(v.string()), // Optional type filter
 		processed: v.optional(v.boolean()), // Optional processed filter
 		organizationId: v.optional(v.union(v.id('organizations'), v.null())), // Workspace context
 		teamId: v.optional(v.id('teams')) // Team context
 	},
 	handler: async (ctx, args) => {
-		// Validate session (prevents impersonation)
-		await validateSession(ctx, args.userId);
-		const userId = args.userId;
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		let itemsQuery = ctx.db.query('inboxItems').withIndex('by_user', (q) => q.eq('userId', userId));
 
@@ -180,12 +178,18 @@ export const listInboxItems = query({
 /**
  * Get a single inbox item by ID
  */
+/**
+ * Get a single inbox item by ID
+ *
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ */
 export const getInboxItem = query({
 	args: {
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
 		inboxItemId: v.id('inboxItems')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			return null;
 		}
@@ -204,19 +208,23 @@ export const getInboxItem = query({
 /**
  * Get inbox item with full details (highlight, source, tags, etc.)
  * This is useful for displaying detailed information in the inbox UI
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */
+/**
+ * Get inbox item with full details (highlight, source, tags)
+ *
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ */
 export const getInboxItemWithDetails = query({
 	args: {
-		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
 		inboxItemId: v.id('inboxItems')
 	},
 	handler: async (ctx, args) => {
-		// Validate session (prevents impersonation)
-		await validateSession(ctx, args.userId);
-		const userId = args.userId;
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const item = await ctx.db.get(args.inboxItemId);
 
@@ -307,19 +315,23 @@ export const getInboxItemWithDetails = query({
  */
 /**
  * Mark an inbox item as processed
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */
+/**
+ * Mark inbox item as processed
+ *
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ */
 export const markProcessed = mutation({
 	args: {
-		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
 		inboxItemId: v.id('inboxItems')
 	},
 	handler: async (ctx, args) => {
-		// Validate session (prevents impersonation)
-		await validateSession(ctx, args.userId);
-		const userId = args.userId;
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const item = await ctx.db.get(args.inboxItemId);
 
@@ -340,18 +352,22 @@ export const markProcessed = mutation({
 
 /**
  * Query: Get sync progress for current user
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */
+/**
+ * Get Readwise sync progress for current user
+ *
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ */
 export const getSyncProgress = query({
 	args: {
-		userId: v.id('users') // Required: passed from authenticated SvelteKit session
+		sessionId: v.string() // Required: passed from authenticated SvelteKit session
 	},
 	handler: async (ctx, args) => {
-		// Validate session (prevents impersonation)
-		await validateSession(ctx, args.userId);
-		const userId = args.userId;
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const progress = await ctx.db
 			.query('syncProgress')
@@ -374,21 +390,25 @@ export const getSyncProgress = query({
  */
 /**
  * Quick Create: Create a manual text note and add to inbox
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */
+/**
+ * Create a note in inbox
+ *
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ */
 export const createNoteInInbox = mutation({
 	args: {
-		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
 		text: v.string(),
 		title: v.optional(v.string()),
 		tagIds: v.optional(v.array(v.id('tags')))
 	},
 	handler: async (ctx, args) => {
-		// Validate session (prevents impersonation)
-		await validateSession(ctx, args.userId);
-		const userId = args.userId;
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// Create inbox item (manual_text type)
 		const inboxItemId = await ctx.db.insert('inboxItems', {
@@ -408,21 +428,25 @@ export const createNoteInInbox = mutation({
 
 /**
  * Quick Create: Create a flashcard and add to inbox
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */
+/**
+ * Create a flashcard in inbox
+ *
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ */
 export const createFlashcardInInbox = mutation({
 	args: {
-		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
 		question: v.string(),
 		answer: v.string(),
 		tagIds: v.optional(v.array(v.id('tags')))
 	},
 	handler: async (ctx, args) => {
-		// Validate session (prevents impersonation)
-		await validateSession(ctx, args.userId);
-		const userId = args.userId;
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// 1. Create flashcard
 		const flashcardId = await ctx.db.insert('flashcards', {
@@ -461,22 +485,26 @@ export const createFlashcardInInbox = mutation({
 
 /**
  * Quick Create: Create a manual highlight and add to inbox
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */
+/**
+ * Create a highlight in inbox
+ *
+ * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
+ */
 export const createHighlightInInbox = mutation({
 	args: {
-		userId: v.id('users'), // Required: passed from authenticated SvelteKit session
+		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
 		text: v.string(),
 		sourceTitle: v.optional(v.string()),
 		note: v.optional(v.string()),
 		tagIds: v.optional(v.array(v.id('tags')))
 	},
 	handler: async (ctx, args) => {
-		// Validate session (prevents impersonation)
-		await validateSession(ctx, args.userId);
-		const userId = args.userId;
+		// Validate session and derive userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		// 1. Get or create "Manual" source
 		const manualSourceTitle = args.sourceTitle || 'Manual Entry';

@@ -183,10 +183,10 @@ Implement permission-based access control system for User Management, Team Manag
 
 ## 📚 Documentation
 
-- **Architecture**: [rbac-architecture.md](../../rbac-architecture.md) - Complete system design
-- **Quick Reference**: [rbac-quick-reference.md](../../rbac-quick-reference.md) - Developer cheat sheet
-- **Visual Overview**: [rbac-visual-overview.md](../../rbac-visual-overview.md) - Diagrams
-- **Implementation Roadmap**: [rbac-implementation-roadmap.md](../../rbac-implementation-roadmap.md) - Implementation guide
+- **Architecture**: [rbac-architecture.md](../../2-areas/rbac/rbac-architecture.md) - Complete system design
+- **Quick Reference**: [rbac-quick-reference.md](../../2-areas/rbac/rbac-quick-reference.md) - Developer cheat sheet
+- **Visual Overview**: [rbac-visual-overview.md](../../2-areas/rbac/rbac-visual-overview.md) - Diagrams
+- **Implementation Roadmap**: [rbac-implementation-roadmap.md](../../2-areas/rbac/rbac-implementation-roadmap.md) - Implementation guide
 - **Vertical Slices**: [vertical-slices.md](./vertical-slices.md) - Detailed slice breakdown
 - **Testing Checklist**: [testing-checklist.md](./testing-checklist.md) - Manual QA steps
 - **Decisions**: [decisions/](./decisions/) - Architecture Decision Records

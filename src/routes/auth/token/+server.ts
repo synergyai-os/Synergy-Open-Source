@@ -7,7 +7,7 @@ import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
 
 /**
  * GET /auth/token
- * 
+ *
  * Returns the WorkOS access token for the current session.
  * Used by Convex client to authenticate queries/mutations.
  */
@@ -58,4 +58,3 @@ export const GET: RequestHandler = withRateLimit(RATE_LIMITS.token, async ({ eve
 		return json({ error: 'Failed to retrieve access token' }, { status: 500 });
 	}
 });
-

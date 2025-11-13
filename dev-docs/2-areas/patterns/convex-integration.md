@@ -488,7 +488,7 @@ await tagging.assignTags(flashcardId, [tag1, tag2]);
 **Why**: Shared helper reduces duplication while maintaining type safety at mutation boundaries.  
 **Apply when**: Implementing tagging for new entity types  
 **Related**: #L240 (Type safety), #L190 (Naming conventions)  
-**See**: `TAGGING_SYSTEM_ANALYSIS.md` for full architecture
+**See**: `4-archive/TAGGING_SYSTEM_ANALYSIS.md` for full architecture
 
 ---
 
@@ -1047,6 +1047,485 @@ git push origin --delete feature/team-access-permissions
 
 ---
 
-**Pattern Count**: 19  
-**Last Validated**: 2025-11-10  
-**Context7 Source**: `/get-convex/convex-backend`, WorkOS OIDC docs
+## #L850: Missing Destructuring from validateSessionAndGetUserId [🔴 CRITICAL]
+
+**Symptom**: Database queries fail with type errors, userId is an object instead of string  
+**Root Cause**: `validateSessionAndGetUserId()` returns `{ userId, session }` but code assigns directly  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Missing destructuring (userId becomes an object)
+const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+// userId is now { userId: "...", session: {...} } not a string!
+
+const tags = await ctx.db
+	.query('tags')
+	.withIndex('by_user', (q) => q.eq('userId', userId)) // ❌ Fails - expects string, got object
+	.collect();
+
+// ✅ CORRECT: Destructure to extract userId
+const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+// userId is now the string ID
+
+const tags = await ctx.db
+	.query('tags')
+	.withIndex('by_user', (q) => q.eq('userId', userId)) // ✅ Works
+	.collect();
+```
+
+**Why**: Function returns object with two properties, must destructure to get the ID string.  
+**Apply when**: Any Convex function using `validateSessionAndGetUserId()`  
+**Related**: #L240 (Type definitions), #L900 (Integration testing catches this)
+
+**Prevention**:
+
+- Static analysis: `scripts/check-sessionid-usage.sh` catches missing destructuring
+- Integration tests: Would fail immediately with type error
+- ESLint rule: Can detect missing destructuring from known functions
+
+---
+
+## #L900: Integration Testing with convex-test [🟡 IMPORTANT]
+
+**Symptom**: Unit tests pass but bugs slip through to production  
+**Root Cause**: Unit tests mock dependencies, don't catch integration issues  
+**Fix**:
+
+```typescript
+// Unit tests (isolated) - don't catch destructuring bugs
+describe('validateSessionAndGetUserId', () => {
+	it('returns userId', async () => {
+		const result = await validateSessionAndGetUserId(ctx, sessionId);
+		expect(result.userId).toBe(validUserId); // ✅ Test uses correct pattern
+	});
+});
+
+// But real code has bug:
+const userId = await validateSessionAndGetUserId(ctx, args.sessionId); // ❌ Bug not caught!
+
+// ✅ CORRECT: Integration tests run actual functions
+import { convexTest } from 'convex-test';
+import { api } from '../../../convex/_generated/api';
+import { createTestSession } from './setup';
+
+describe('Tags Integration', () => {
+	it('should list tags', async () => {
+		const t = convexTest();
+		const { sessionId, userId } = await createTestSession(t);
+
+		// Runs actual Convex function - would fail if destructuring missing
+		const tags = await t.query(api.tags.listTags, { sessionId });
+
+		expect(tags).toBeDefined();
+		expect(Array.isArray(tags)).toBe(true);
+	});
+});
+```
+
+**Test Structure**:
+
+```
+tests/convex/integration/
+├── README.md           - Documentation
+├── setup.ts            - Test helpers (createTestSession, cleanup)
+├── tags.integration.test.ts
+├── flashcards.integration.test.ts
+└── [module].integration.test.ts
+```
+
+**Test Helpers**:
+
+```typescript
+// setup.ts
+export async function createTestSession(t: ConvexTestingHelper) {
+	const userId = await t.run(async (ctx) => {
+		return await ctx.db.insert('users', {
+			email: `test-${Date.now()}@example.com`,
+			name: 'Test User'
+		});
+	});
+
+	const sessionId = `test_session_${Date.now()}`;
+	await t.run(async (ctx) => {
+		await ctx.db.insert('authSessions', {
+			sessionId,
+			convexUserId: userId,
+			isValid: true,
+			expiresAt: Date.now() + 3600000
+		});
+	});
+
+	return { sessionId, userId };
+}
+```
+
+**What Integration Tests Catch**:
+
+- ✅ Missing destructuring (type errors)
+- ✅ Database query errors (indexes, field names)
+- ✅ Auth flow bugs (session validation)
+- ✅ Return value contracts (shape mismatches)
+- ✅ User isolation (data leaks)
+
+**Performance**: < 30 seconds for full suite (vs minutes for E2E)
+
+**CI Integration**:
+
+```json
+// package.json
+{
+	"scripts": {
+		"test:integration": "vitest --run tests/convex/integration",
+		"precommit": "npm run test:sessionid && npm run test:integration"
+	}
+}
+```
+
+**Why**: Integration tests bridge the gap between unit tests and E2E tests.  
+**Apply when**: Testing Convex functions end-to-end without full UI  
+**Related**: #L850 (Would catch destructuring bugs), #L240 (Type safety)
+
+---
+
+## #L1200: SessionId Migration Pattern [🔴 CRITICAL]
+
+**Symptom**: TypeScript errors "Expected 2 arguments, but got 1" or "Property 'sessionId' is missing"  
+**Root Cause**: Migrating from userId parameter to sessionId-based authentication requires destructuring pattern  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Old userId parameter pattern
+export const listTags = query({
+	args: {
+		userId: v.id('users') // ❌ Client can fake userId
+	},
+	handler: async (ctx, args) => {
+		await validateSession(ctx, args.userId);
+		const userId = args.userId;
+		// ... query logic
+	}
+});
+
+// ✅ CORRECT: SessionId with destructuring (Context7 validated)
+import { validateSessionAndGetUserId } from './sessionValidation';
+
+export const listTags = query({
+	args: {
+		sessionId: v.string() // ✅ Server validates session
+	},
+	handler: async (ctx, args) => {
+		// CRITICAL: Must destructure to get userId
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+		// ... query logic with userId
+	}
+});
+
+// Frontend usage with 'skip' pattern
+const tagsQuery =
+	browser && getSessionId()
+		? useQuery(api.tags.listAllTags, () => {
+				const sessionId = getSessionId();
+				if (!sessionId) return 'skip'; // ✅ Convex 'skip' pattern
+				return { sessionId };
+			})
+		: null;
+```
+
+**Migration Checklist**:
+
+1. **Backend (Convex)**:
+   - Change `userId: v.id('users')` → `sessionId: v.string()`
+   - Import `validateSessionAndGetUserId`
+   - Destructure: `const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId)`
+2. **Frontend (Svelte)**:
+   - Change `const getUserId = () => $page.data.user?.userId` → `const getSessionId = () => $page.data.sessionId`
+   - Use 'skip' pattern: `if (!sessionId) return 'skip';`
+   - Type cast Ids: `organizationId as Id<'organizations'>`
+
+3. **Tests**:
+   - Update test helpers to return `{ sessionId, userId }`
+   - Pass `sessionId` to query/mutation calls
+   - Fix cleanup queue types
+
+**Common Gotchas**:
+
+```typescript
+// ❌ WRONG: Missing destructuring
+const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
+// userId is now { userId: "...", ... } object, not string!
+
+// ✅ CORRECT: Destructure to extract userId
+const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+// ❌ WRONG: Type mismatch with 'skip'
+useQuery(api.tags.listAllTags, () => {
+	if (!sessionId) return null; // ❌ null not valid
+	return { sessionId };
+});
+
+// ✅ CORRECT: Use Convex 'skip' pattern
+useQuery(api.tags.listAllTags, () => {
+	if (!sessionId) return 'skip'; // ✅ Convex recognizes 'skip'
+	return { sessionId };
+});
+```
+
+**Why**: SessionId pattern prevents impersonation attacks - server validates session instead of trusting client-provided userId.  
+**Apply when**: Migrating from userId to sessionId authentication, or creating new authenticated queries/mutations  
+**Related**: #L850 (Destructuring pattern), #L680 (Auth without JWT), #L760 (Session validation)
+
+---
+
+---
+
+## #L950: convex-test Requires Modules Map [🔴 CRITICAL]
+
+**Symptom**: `TypeError: (intermediate value).glob is not a function` from convex-test  
+**Root Cause**: convex-test needs `import.meta.glob()` map of Convex functions to mock the backend  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Missing modules parameter
+const t = convexTest(schema); // ❌ Fails with .glob error
+
+// ✅ CORRECT: Create test.setup.ts with modules map
+// tests/convex/integration/test.setup.ts
+export const modules = import.meta.glob('../../../convex/**/!(*.*.*)*.*s');
+// Pattern: Match all .ts/.js files in convex/, exclude files with multiple dots (*.test.ts, *.config.ts)
+
+// Pass both schema AND modules to convexTest
+import { convexTest } from 'convex-test';
+import schema from '../../../convex/schema';
+import { modules } from './test.setup';
+
+const t = convexTest(schema, modules); // ✅ Works
+```
+
+**Why**: convex-test uses `import.meta.glob()` to discover and bundle Convex function files for the mock backend.  
+**Apply when**: Setting up convex-test for integration testing  
+**Related**: #L900 (Integration testing pattern)
+
+---
+
+## #L1000: Schema Validation Errors in Tests [🔴 CRITICAL]
+
+**Symptom**: `Validator error: Missing required field X in object` during test data insertion  
+**Root Cause**: Test helpers don't match actual schema requirements  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Missing required fields
+await ctx.db.insert('users', {
+	workosId: `test_${now}`,
+	email: `test@example.com`
+	// ❌ Missing: firstName, lastName, emailVerified, updatedAt, lastLoginAt
+});
+
+// ✅ CORRECT: Include ALL schema-required fields
+await ctx.db.insert('users', {
+	workosId: `test_workos_${now}`,
+	email: `test-${now}@example.com`,
+	name: 'Test User',
+	firstName: 'Test', // ✅ Required
+	lastName: 'User', // ✅ Required
+	emailVerified: true, // ✅ Required
+	createdAt: now,
+	updatedAt: now, // ✅ Required
+	lastLoginAt: now // ✅ Required
+});
+
+// Common missing fields by table:
+// - users: firstName, lastName, emailVerified, updatedAt, lastLoginAt
+// - authSessions: workosSessionId, accessTokenCiphertext, refreshTokenCiphertext, csrfTokenHash, userSnapshot
+// - roles: updatedAt
+// - permissions: requiresResource, isSystem, updatedAt
+// - tags: displayName, createdAt
+// - userRoles: assignedBy, assignedAt
+```
+
+**Debugging Pattern**:
+
+1. Run integration tests
+2. Note `Validator error: Missing required field X`
+3. Check `convex/schema.ts` for table definition
+4. Update test helper in `tests/convex/integration/setup.ts`
+5. Re-run tests to verify
+
+**Why**: Integration tests validate against actual schema, not mocked types.  
+**Apply when**: Creating test data helpers for convex-test  
+**Related**: #L950 (convex-test setup), #L900 (Integration testing)
+
+---
+
+## #L1050: Cleanup Must Check Document Existence [🟡 IMPORTANT]
+
+**Symptom**: `Error: Delete on non-existent doc` during test cleanup  
+**Root Cause**: Document may have been deleted by test or cascade deleted  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Assumes document exists
+await ctx.db.delete(userId); // ❌ Fails if user already deleted
+
+// ✅ CORRECT: Check existence first
+const user = await ctx.db.get(userId);
+if (user) {
+	await ctx.db.delete(userId); // ✅ Safe
+}
+
+// ✅ CORRECT: Cleanup pattern for test helpers
+export async function cleanupTestData(t: TestConvex<any>, userId: Id<'users'>) {
+	await t.run(async (ctx) => {
+		// 1. Clean up child documents first (sessions, roles, etc.)
+		const sessions = await ctx.db
+			.query('authSessions')
+			.withIndex('by_convex_user', (q) => q.eq('convexUserId', userId))
+			.collect();
+		for (const session of sessions) {
+			await ctx.db.delete(session._id);
+		}
+
+		// 2. Check parent exists before deleting
+		const user = await ctx.db.get(userId);
+		if (user) {
+			await ctx.db.delete(userId); // ✅ Only delete if exists
+		}
+	});
+}
+```
+
+**Common Cleanup Order** (child first, parent last):
+
+1. authSessions (child of user)
+2. userRoles (child of user)
+3. organizationMembers (child of user)
+4. flashcards (child of user)
+5. tags (child of user)
+6. user (parent) - check exists
+
+**Why**: Tests may delete documents explicitly, or cascade deletes may remove them.  
+**Apply when**: Writing test cleanup functions  
+**Related**: #L1000 (Schema validation), #L900 (Integration testing)
+
+---
+
+## #L1100: User Isolation Requires Unique Sessions [🟡 IMPORTANT]
+
+**Symptom**: `expected 1 to be +0` - User 2 sees User 1's data in isolation tests  
+**Root Cause**: Sessions created in same millisecond have identical timestamps, causing collisions  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Timestamp alone not unique enough
+const sessionId = `test_session_${Date.now()}`;
+// Multiple calls in same millisecond → same ID → collision
+
+// ✅ CORRECT: Counter + timestamp for uniqueness
+let sessionCounter = 0; // Module-level counter
+
+export async function createTestSession(t: TestConvex<any>) {
+	const now = Date.now();
+	const uniqueId = `${now}_${sessionCounter++}`; // ✅ Always unique
+
+	const userId = await t.run(async (ctx) => {
+		return await ctx.db.insert('users', {
+			workosId: `test_workos_${uniqueId}`, // ✅ Unique
+			email: `test-${uniqueId}@example.com` // ✅ Unique
+			// ... other fields
+		});
+	});
+
+	const sessionId = `test_session_${uniqueId}`; // ✅ Unique
+	await t.run(async (ctx) => {
+		await ctx.db.insert('authSessions', {
+			sessionId,
+			convexUserId: userId
+			// ... other fields
+		});
+	});
+
+	return { sessionId, userId };
+}
+```
+
+**Why This Matters**: User isolation tests create multiple users rapidly. Without counter, sessions can collide.
+
+**Test Pattern**:
+
+```typescript
+// User isolation test (now works correctly)
+it('should enforce user isolation', async () => {
+	const t = convexTest(schema, modules);
+
+	const { sessionId: session1, userId: user1 } = await createTestSession(t);
+	const { sessionId: session2, userId: user2 } = await createTestSession(t);
+	// ✅ Counter ensures session1 !== session2
+
+	await createTestTag(t, user1, 'User 1 Tag');
+
+	const user2Tags = await t.query(api.tags.listUserTags, { sessionId: session2 });
+	expect(user2Tags.length).toBe(0); // ✅ Now passes
+});
+```
+
+**Why**: Counter ensures uniqueness even when tests run in same millisecond.  
+**Apply when**: Creating test data helpers that need unique identifiers  
+**Related**: #L950 (convex-test setup), #L900 (Integration testing)
+
+---
+
+## #L1150: convex-test Limitations with Context-Based Auth [🟡 CAUTION]
+
+**Symptom**: `Session not found or expired` when testing functions using `getAuthUserId(ctx)`  
+**Root Cause**: convex-test doesn't populate auth context automatically, only supports sessionId parameter pattern  
+**Fix**:
+
+```typescript
+// ❌ WON'T WORK in convex-test: Context-based auth
+export const removeOrganizationMember = mutation({
+	args: {
+		organizationId: v.id('organizations'),
+		targetUserId: v.id('users')
+		// ❌ No sessionId parameter
+	},
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx); // ❌ Returns null in convex-test
+		if (!userId) throw new Error('Not authenticated'); // Always fails in tests
+		// ...
+	}
+});
+
+// ✅ WORKS in convex-test: sessionId parameter pattern
+export const createOrganization = mutation({
+	args: {
+		name: v.string(),
+		sessionId: v.string() // ✅ Explicit parameter
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId); // ✅ Works
+		// ...
+	}
+});
+
+// ✅ WORKAROUND: Skip tests for context-based auth functions
+it.skip('should remove organization member', async () => {
+	// TODO: This test requires context-based auth which isn't supported by convex-test yet
+	// Will work once migrated to sessionId parameter pattern
+});
+```
+
+**Migration Path**:
+
+1. Identify functions using `getAuthUserId(ctx)` without sessionId parameter
+2. Either: Add `sessionId` parameter (preferred) OR skip integration tests
+3. Document with TODO comment explaining the limitation
+
+**Why**: convex-test is a mock backend that doesn't populate auth context from Convex Auth library.  
+**Apply when**: Migrating codebase to sessionId pattern or writing integration tests  
+**Related**: #L850 (validateSessionAndGetUserId pattern), #L900 (Integration testing)
+
+---
+
+**Pattern Count**: 26  
+**Last Validated**: 2025-11-12  
+**Context7 Source**: `/get-convex/convex-backend`, `convex-test` NPM docs

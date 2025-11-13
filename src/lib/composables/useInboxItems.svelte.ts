@@ -12,7 +12,7 @@ import type { InboxItem } from '$lib/composables/useKeyboardNavigation.svelte';
 type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 
 export interface UseInboxItemsParams {
-	userId: () => string | undefined; // Required: Function returning Convex user ID from authenticated session
+	sessionId: () => string | undefined; // Required: Function returning sessionId from authenticated session
 	activeOrganizationId?: (() => string | null) | string | null; // Function or value for reactivity
 	activeTeamId?: (() => string | null) | string | null; // Function or value for reactivity
 }
@@ -34,41 +34,44 @@ export function useInboxItems(params?: UseInboxItemsParams): UseInboxItemsReturn
 
 	// Use reactive query for real-time inbox items updates
 	// This automatically subscribes to changes and updates when new items are added during sync
-	const inboxQuery = browser && params?.userId
-		? useQuery(api.inbox.listInboxItems, () => {
-				const userId = params.userId(); // Get current userId (reactive)
-				if (!userId) return null; // Skip query if userId not available
-				
-				const baseArgs: any = { 
-					userId, // Required for session validation
-					processed: false 
-				};
+	const inboxQuery =
+		browser && params?.sessionId
+			? useQuery(api.inbox.listInboxItems, () => {
+					const sessionId = params.sessionId(); // Get current sessionId (reactive)
+					if (!sessionId) return null; // Skip query if sessionId not available
 
-				// Add workspace context (handle both function and value)
-				// IMPORTANT: Pass null explicitly for personal workspace to filter correctly
-				const orgId = typeof params?.activeOrganizationId === 'function' 
-					? params.activeOrganizationId() 
-					: params?.activeOrganizationId;
-				if (orgId !== undefined) {
-					// Pass null explicitly for personal workspace (required for filtering)
-					baseArgs.organizationId = orgId;
-				}
-				
-				const teamId = typeof params?.activeTeamId === 'function'
-					? params.activeTeamId()
-					: params?.activeTeamId;
-				if (teamId) {
-					baseArgs.teamId = teamId;
-				}
+					const baseArgs: any = {
+						sessionId, // Required for session validation
+						processed: false
+					};
 
-				// Add type filter if not 'all'
-				if (state.filterType !== 'all') {
-					baseArgs.filterType = state.filterType;
-				}
+					// Add workspace context (handle both function and value)
+					// IMPORTANT: Pass null explicitly for personal workspace to filter correctly
+					const orgId =
+						typeof params?.activeOrganizationId === 'function'
+							? params.activeOrganizationId()
+							: params?.activeOrganizationId;
+					if (orgId !== undefined) {
+						// Pass null explicitly for personal workspace (required for filtering)
+						baseArgs.organizationId = orgId;
+					}
 
-				return baseArgs;
-			})
-		: null;
+					const teamId =
+						typeof params?.activeTeamId === 'function'
+							? params.activeTeamId()
+							: params?.activeTeamId;
+					if (teamId) {
+						baseArgs.teamId = teamId;
+					}
+
+					// Add type filter if not 'all'
+					if (state.filterType !== 'all') {
+						baseArgs.filterType = state.filterType;
+					}
+
+					return baseArgs;
+				})
+			: null;
 
 	// Derived state from query
 	const inboxItems = $derived((inboxQuery?.data ?? []) as InboxItem[]);

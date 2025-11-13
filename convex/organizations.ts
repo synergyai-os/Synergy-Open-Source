@@ -1,7 +1,7 @@
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 import { getAuthUserId } from './auth';
-import { validateSession } from './sessionValidation';
+import { validateSession, validateSessionAndGetUserId } from './sessionValidation';
 import { requirePermission } from './rbac/permissions';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
@@ -93,18 +93,15 @@ async function getUserEmail(ctx: QueryCtx | MutationCtx, userId: Id<'users'>) {
 
 /**
  * List all organizations the user is a member of
- * 
- * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
- * and remove explicit userId parameter
+ * Uses sessionId-based authentication to prevent impersonation attacks
  */
 export const listOrganizations = query({
 	args: {
-		userId: v.id('users') // Required: passed from authenticated SvelteKit session
+		sessionId: v.string() // Session validation (derives userId securely)
 	},
 	handler: async (ctx, args) => {
-		// Validate session (prevents impersonation)
-		await validateSession(ctx, args.userId);
-		const userId = args.userId;
+		// Validate session and get userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const memberships = await ctx.db
 			.query('organizationMembers')
@@ -150,11 +147,10 @@ export const listOrganizations = query({
 
 export const listOrganizationInvites = query({
 	args: {
-		userId: v.optional(v.id('users')) // TODO: Remove once Convex auth context is set up
+		sessionId: v.string()
 	},
 	handler: async (ctx, args) => {
-		// Try explicit userId first (client passes it), fallback to auth context
-		const userId = args.userId ?? (await getAuthUserId(ctx));
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			return [];
 		}
@@ -211,19 +207,18 @@ export const listOrganizationInvites = query({
 
 /**
  * Create a new organization
- * 
+ *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
  */
 export const createOrganization = mutation({
 	args: {
 		name: v.string(),
-		userId: v.id('users') // Required: passed from authenticated SvelteKit session
+		sessionId: v.string() // Session validation (derives userId securely)
 	},
 	handler: async (ctx, args) => {
-		// Validate session (prevents impersonation)
-		await validateSession(ctx, args.userId);
-		const userId = args.userId;
+		// Validate session and get userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const trimmedName = args.name.trim();
 		if (!trimmedName) {
@@ -354,10 +349,11 @@ export const createOrganizationInvite = mutation({
 
 export const acceptOrganizationInvite = mutation({
 	args: {
+		sessionId: v.string(),
 		code: v.string()
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
@@ -460,12 +456,11 @@ export const recordOrganizationSwitch = mutation({
 		availableTeamCount: v.number()
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			// Silently skip analytics tracking - non-critical, shouldn't break UX
-			console.warn('⚠️ Skipping organization switch tracking: User not authenticated');
-			return;
-		}
+		// Silently skip analytics tracking if session not available - non-critical, shouldn't break UX
+		// Note: This mutation doesn't require auth - it's just analytics tracking
+		// If we need to track userId, we should add sessionId to args
+		// For now, skip tracking since we don't have sessionId available
+		return;
 
 		// TODO: Re-enable server-side analytics via HTTP action bridge
 		// const distinctId = await resolveDistinctId(ctx, userId);

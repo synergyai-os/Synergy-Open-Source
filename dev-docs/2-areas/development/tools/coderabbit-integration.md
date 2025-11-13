@@ -61,12 +61,14 @@
 
 ```markdown
 ## Description
+
 Adds user authentication flow.
 
 Closes SYOS-15
 ```
 
 **Result**:
+
 - CodeRabbit reviews PR
 - Comments on Linear ticket SYOS-15
 - Adds relevant labels
@@ -87,18 +89,21 @@ Closes SYOS-15
 ### What CodeRabbit Checks
 
 **Code Quality**:
+
 - ESLint violations
 - TypeScript errors
 - Code style consistency
 - Security issues
 
 **Pattern Compliance**:
+
 - Design tokens usage (no hardcoded values)
 - Composables pattern (single `$state` object)
 - Convex patterns (no browser APIs)
 - Component architecture (Tokens → Utilities → Patterns → Components)
 
 **Documentation**:
+
 - Missing docstrings
 - Incomplete README updates
 - Broken links
@@ -110,11 +115,13 @@ Closes SYOS-15
 ### Design Tokens
 
 **✅ Correct**:
+
 ```svelte
 <div class="bg-sidebar text-sidebar-primary px-nav-item py-nav-item">
 ```
 
 **❌ Incorrect**:
+
 ```svelte
 <div class="bg-gray-900 text-white px-2 py-1.5">
 ```
@@ -126,18 +133,24 @@ Closes SYOS-15
 ### Composables Pattern
 
 **✅ Correct**:
+
 ```typescript
 // src/lib/composables/useExample.svelte.ts
 export function useExample() {
-  const state = $state({ count: 0, error: null });
-  return {
-    get count() { return state.count; },
-    get error() { return state.error; }
-  };
+	const state = $state({ count: 0, error: null });
+	return {
+		get count() {
+			return state.count;
+		},
+		get error() {
+			return state.error;
+		}
+	};
 }
 ```
 
 **❌ Incorrect**:
+
 ```typescript
 // Multiple $state variables
 const count = $state(0);
@@ -151,21 +164,23 @@ const error = $state(null);
 ### Convex Patterns
 
 **✅ Correct**:
+
 ```typescript
 // convex/myFunction.ts
-import { query } from "./_generated/server";
-import { getAuthUserId } from "./auth";
+import { query } from './_generated/server';
+import { getAuthUserId } from './auth';
 
 export const myQuery = query(async (ctx) => {
-  const userId = await getAuthUserId(ctx);
-  // ... use userId
+	const userId = await getAuthUserId(ctx);
+	// ... use userId
 });
 ```
 
 **❌ Incorrect**:
+
 ```typescript
 // Browser APIs don't work in Convex
-const userId = localStorage.getItem("userId");
+const userId = localStorage.getItem('userId');
 ```
 
 **Why**: Convex runs server-side, no browser APIs available.
@@ -179,6 +194,7 @@ const userId = localStorage.getItem("userId");
 ### Example 1: New Feature PR
 
 **PR Description**:
+
 ```markdown
 ## Feature: Add User Profile Page
 
@@ -187,12 +203,14 @@ Adds user profile page with avatar upload.
 Closes SYOS-42
 
 ## Changes
+
 - New route: `/settings/profile`
 - New component: `ProfileEditor.svelte`
 - Convex mutation: `updateProfile`
 ```
 
 **CodeRabbit Will**:
+
 - Review code for design tokens usage
 - Check composables pattern compliance
 - Verify Convex patterns
@@ -202,6 +220,7 @@ Closes SYOS-42
 ### Example 2: Bug Fix PR
 
 **PR Description**:
+
 ```markdown
 ## Fix: Broken Link Resolution
 
@@ -211,6 +230,7 @@ Fixes SYOS-15
 ```
 
 **CodeRabbit Will**:
+
 - Review markdown files
 - Check for broken links
 - Verify documentation updates
@@ -271,11 +291,13 @@ CodeRabbit learns from your codebase over time:
 ### CodeRabbit Not Reviewing PRs
 
 **Check**:
+
 1. Is `.coderabbit.yaml` in repository root?
 2. Is CodeRabbit app installed in GitHub?
 3. Is repository connected in CodeRabbit dashboard?
 
 **Fix**:
+
 1. Verify configuration file exists
 2. Check GitHub App settings
 3. Reconnect repository if needed
@@ -283,20 +305,24 @@ CodeRabbit learns from your codebase over time:
 ### Reviews Not Aligned with Patterns
 
 **Check**:
+
 1. Are path-specific instructions correct in `.coderabbit.yaml`?
 2. Are pattern docs up to date?
 
 **Fix**:
+
 1. Update `.coderabbit.yaml` with correct patterns
 2. Update pattern docs if patterns changed
 
 ### Linear Integration Not Working
 
 **Check**:
+
 1. Is Linear team name correct? (Should be `SYOS`)
 2. Is Linear API key configured in CodeRabbit?
 
 **Fix**:
+
 1. Verify team name in `.coderabbit.yaml`
 2. Check CodeRabbit dashboard → Integrations → Linear
 
@@ -339,4 +365,3 @@ CodeRabbit learns from your codebase over time:
 4. **Iterate** → Push updates and CodeRabbit reviews incrementally
 
 The account is set up and ready. CodeRabbit will start learning from your first PR and improve over time.
-

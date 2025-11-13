@@ -55,14 +55,14 @@ async function migrateToWebCrypto(): Promise<void> {
 		console.warn('Web Crypto API not available, skipping migration');
 		return;
 	}
-	
+
 	const migrated = localStorage.getItem(MIGRATION_FLAG_KEY);
 	if (migrated === 'true') {
 		return; // Already migrated
 	}
-	
+
 	console.log('🔐 Migrating session encryption from XOR to Web Crypto API...');
-	
+
 	try {
 		// Try to load old encrypted data
 		const oldEncrypted = localStorage.getItem(STORAGE_KEY);
@@ -71,7 +71,7 @@ async function migrateToWebCrypto(): Promise<void> {
 			localStorage.setItem(MIGRATION_FLAG_KEY, 'true');
 			return;
 		}
-		
+
 		// Decrypt with old XOR method
 		const oldDecrypted = legacyDecrypt(oldEncrypted, getLegacyStorageKey());
 		if (!oldDecrypted) {
@@ -80,17 +80,17 @@ async function migrateToWebCrypto(): Promise<void> {
 			localStorage.setItem(MIGRATION_FLAG_KEY, 'true');
 			return;
 		}
-		
+
 		// Parse old data
 		const oldData = JSON.parse(oldDecrypted) as MultiSessionStore;
-		
+
 		// Re-encrypt with new Web Crypto method
 		const newEncrypted = await encryptSession(JSON.stringify(oldData));
 		localStorage.setItem(STORAGE_KEY, newEncrypted);
-		
+
 		// Mark migration complete
 		localStorage.setItem(MIGRATION_FLAG_KEY, 'true');
-		
+
 		console.log('✅ Session encryption migration complete');
 	} catch (error) {
 		console.error('Migration failed:', error);
@@ -107,24 +107,24 @@ export async function loadSessions(): Promise<MultiSessionStore> {
 	if (!browser) {
 		return { activeAccount: null, sessions: {} };
 	}
-	
+
 	// Run migration if needed (idempotent)
 	await migrateToWebCrypto();
-	
+
 	if (!isWebCryptoSupported()) {
 		console.error('Web Crypto API not supported in this browser');
 		return { activeAccount: null, sessions: {} };
 	}
-	
+
 	try {
 		const encrypted = localStorage.getItem(STORAGE_KEY);
 		if (!encrypted) {
 			return { activeAccount: null, sessions: {} };
 		}
-		
+
 		const decrypted = await decryptSession(encrypted);
 		const parsed = JSON.parse(decrypted) as MultiSessionStore;
-		
+
 		// Clean up expired sessions
 		const now = Date.now();
 		const validSessions: Record<string, SessionData> = {};
@@ -133,13 +133,13 @@ export async function loadSessions(): Promise<MultiSessionStore> {
 				validSessions[userId] = session;
 			}
 		}
-		
+
 		// If active account session expired, switch to first valid one
 		let activeAccount = parsed.activeAccount;
 		if (activeAccount && !validSessions[activeAccount]) {
 			activeAccount = Object.keys(validSessions)[0] || null;
 		}
-		
+
 		return {
 			activeAccount,
 			sessions: validSessions
@@ -160,12 +160,12 @@ export async function saveSessions(store: MultiSessionStore): Promise<void> {
 		console.warn('Cannot save sessions: Web Crypto API not available');
 		return;
 	}
-	
+
 	try {
 		const json = JSON.stringify(store);
 		const encrypted = await encryptSession(json);
 		localStorage.setItem(STORAGE_KEY, encrypted);
-		
+
 		// Also store active account separately for quick access
 		if (store.activeAccount) {
 			localStorage.setItem(ACTIVE_ACCOUNT_KEY, store.activeAccount);
@@ -183,12 +183,12 @@ export async function saveSessions(store: MultiSessionStore): Promise<void> {
 export async function addSession(userId: string, session: SessionData): Promise<void> {
 	const store = await loadSessions();
 	store.sessions[userId] = session;
-	
+
 	// If this is the first session, make it active
 	if (!store.activeAccount || Object.keys(store.sessions).length === 1) {
 		store.activeAccount = userId;
 	}
-	
+
 	await saveSessions(store);
 }
 
@@ -198,13 +198,13 @@ export async function addSession(userId: string, session: SessionData): Promise<
 export async function removeSession(userId: string): Promise<void> {
 	const store = await loadSessions();
 	delete store.sessions[userId];
-	
+
 	// If we removed the active account, switch to another
 	if (store.activeAccount === userId) {
 		const remainingSessions = Object.keys(store.sessions);
 		store.activeAccount = remainingSessions[0] || null;
 	}
-	
+
 	await saveSessions(store);
 }
 
@@ -257,4 +257,3 @@ export function clearAllSessions(): void {
 	localStorage.removeItem(ACTIVE_ACCOUNT_KEY);
 	localStorage.removeItem(MIGRATION_FLAG_KEY);
 }
-

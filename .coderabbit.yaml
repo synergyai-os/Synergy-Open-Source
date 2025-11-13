@@ -8,37 +8,37 @@ profile: chill
 language:
   - name: typescript
     path_patterns:
-      - "src/lib/composables/**/*.svelte.ts"
-      - "src/lib/composables/**/*.ts"
+      - 'src/lib/composables/**/*.svelte.ts'
+      - 'src/lib/composables/**/*.ts'
     instructions:
-      - "Follow Svelte 5 composables pattern: single \$state object with getter returns"
-      - "Use explicit TypeScript return types"
-      - "File extension must be .svelte.ts (required for runes)"
-      - "Never use multiple \$state variables - use single object pattern"
-      - "For reactive values, use function parameters: items: () => Item[]"
-      - "See: dev-docs/2-areas/patterns/svelte-reactivity.md"
+      - "Follow Svelte 5 composables pattern: single \\$state object with getter returns"
+      - 'Use explicit TypeScript return types'
+      - 'File extension must be .svelte.ts (required for runes)'
+      - "Never use multiple \\$state variables - use single object pattern"
+      - 'For reactive values, use function parameters: items: () => Item[]'
+      - 'See: dev-docs/2-areas/patterns/svelte-reactivity.md'
 
   - name: svelte
     path_patterns:
-      - "src/lib/components/**/*.svelte"
-      - "src/routes/**/*.svelte"
+      - 'src/lib/components/**/*.svelte'
+      - 'src/routes/**/*.svelte'
     instructions:
-      - "Use design tokens from src/app.css - NEVER hardcode values"
-      - "Use semantic tokens: bg-sidebar, text-sidebar-primary, px-nav-item, etc."
-      - "Never use: px-2, py-1.5, gap-2, bg-gray-900, text-white, text-[10px]"
-      - "Check dev-docs/design-tokens.md before adding new tokens"
-      - "Use Bits UI components for headless UI primitives"
-      - "Follow component architecture: Tokens → Utilities → Patterns → Components"
-      - "See: dev-docs/2-areas/component-architecture.md"
+      - 'Use design tokens from src/app.css - NEVER hardcode values'
+      - 'Use semantic tokens: bg-sidebar, text-sidebar-primary, px-nav-item, etc.'
+      - 'Never use: px-2, py-1.5, gap-2, bg-gray-900, text-white, text-[10px]'
+      - 'Check dev-docs/design-tokens.md before adding new tokens'
+      - 'Use Bits UI components for headless UI primitives'
+      - 'Follow component architecture: Tokens → Utilities → Patterns → Components'
+      - 'See: dev-docs/2-areas/component-architecture.md'
 
   - name: typescript
     path_patterns:
-      - "convex/**/*.ts"
+      - 'convex/**/*.ts'
     instructions:
-      - "Follow Convex patterns: useQuery, useMutation, useAction"
-      - "Never use browser APIs (window, document, localStorage)"
-      - "Use Convex auth helpers: getAuthUserId(), requireAuth()"
-      - "See: dev-docs/2-areas/patterns/convex-integration.md"
+      - 'Follow Convex patterns: useQuery, useMutation, useAction'
+      - 'Never use browser APIs (window, document, localStorage)'
+      - 'Use Convex auth helpers: getAuthUserId(), requireAuth()'
+      - 'See: dev-docs/2-areas/patterns/convex-integration.md'
 
 # Enabled tools
 tools:
@@ -78,4 +78,3 @@ review:
   auto_approve:
     enabled: true
     min_approvals: 1
-

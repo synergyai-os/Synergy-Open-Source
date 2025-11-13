@@ -11,12 +11,12 @@ jobs:
   quality-checks:
     name: Quality Checks
     runs-on: ubuntu-latest
-    
+
     # Grant permissions for GitHub status updates and Vercel notifications
     permissions:
       contents: read
-      statuses: write  # Required for commit status updates
-      checks: write    # Required for check runs
+      statuses: write # Required for commit status updates
+      checks: write # Required for check runs
 
     steps:
       - name: Checkout code
@@ -31,20 +31,32 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Secret Scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified
+
       - name: Type check
         run: npm run check
-        continue-on-error: true # TODO: Set to false after fixing remaining 26 errors (SYOS-26)
+        continue-on-error: true # TODO: Enable after fixing integration test errors (SYOS-72)
 
       - name: Lint
         run: npm run lint
-        continue-on-error: true # TODO: Fix lint errors, then set to false
+        continue-on-error: true # TODO: Enable after fixing 483 linting errors (separate effort)
 
       - name: Build verification
         run: npm run build
         env:
-          # Use a placeholder Convex URL for build verification
+          # Convex configuration (both VITE_ and PUBLIC_ prefixes for SvelteKit compatibility)
           VITE_CONVEX_URL: ${{ secrets.CONVEX_URL || 'https://placeholder.convex.cloud' }}
-        continue-on-error: true # TODO: Fix build errors, then set to false
+          PUBLIC_CONVEX_URL: ${{ secrets.CONVEX_URL || 'https://placeholder.convex.cloud' }}
+          # Session management (required for crypto module initialization)
+          SYOS_SESSION_SECRET: ${{ secrets.SYOS_SESSION_SECRET || 'placeholder-secret-for-ci-build-verification-only-32chars' }}
+          # WorkOS configuration (may be checked at build time, use placeholders)
+          PUBLIC_WORKOS_CLIENT_ID: ${{ secrets.WORKOS_CLIENT_ID || 'placeholder-client-id' }}
+          WORKOS_API_KEY: ${{ secrets.WORKOS_API_KEY || 'placeholder-api-key' }}
+          WORKOS_REDIRECT_URI: ${{ secrets.WORKOS_REDIRECT_URI || 'http://localhost:5173/auth/callback' }}
+        # Quality gate enabled - Build errors block merges
 
       - name: Quality check summary
         if: always()
@@ -61,7 +73,7 @@ jobs:
       # Status is determined by step success/failure, not by input parameter
       # Run regardless of previous step failures (if: always) so Vercel always receives status
       - name: Notify Vercel - Quality Checks
-        if: always()  # Run even if previous steps failed
+        if: always() # Run even if previous steps failed
         uses: 'vercel/repository-dispatch/actions/status@v1'
         with:
           # This name must match the check name in Vercel Dashboard → Settings → Git → Deployment Checks

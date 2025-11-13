@@ -640,7 +640,7 @@ After successful commit on feature branch:
 
 2. Search patterns (use grep, batch parallel reads):
    - INDEX: dev-docs/2-areas/patterns/INDEX.md
-   - Domain files: svelte-reactivity.md, convex-integration.md, ui-patterns.md, 
+   - Domain files: svelte-reactivity.md, convex-integration.md, ui-patterns.md,
      analytics.md, auth-deployment.md
    - ⚠️ DON'T read patterns-and-lessons.md (it's just a redirect)
 

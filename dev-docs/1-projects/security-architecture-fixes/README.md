@@ -8,7 +8,7 @@
 
 ## Quick Start
 
-1. **Read the audit**: [../SECURITY-AUDIT-2025-11-12.md](../SECURITY-AUDIT-2025-11-12.md)
+1. **Read the audit**: [SECURITY-AUDIT-2025-11-12.md](./SECURITY-AUDIT-2025-11-12.md)
 2. **Review the roadmap**: [IMPLEMENTATION-ROADMAP.md](./IMPLEMENTATION-ROADMAP.md)
 3. **Start with Phase 1** (critical security fixes)
 
@@ -18,22 +18,23 @@
 
 ### Main Documents
 
-| Document | Purpose | Read Time |
-|----------|---------|-----------|
-| [IMPLEMENTATION-ROADMAP.md](./IMPLEMENTATION-ROADMAP.md) | 4-week phased plan | 15 min |
-| [../SECURITY-AUDIT-2025-11-12.md](../SECURITY-AUDIT-2025-11-12.md) | Full audit report | 30 min |
+| Document                                                       | Purpose            | Read Time |
+| -------------------------------------------------------------- | ------------------ | --------- |
+| [IMPLEMENTATION-ROADMAP.md](./IMPLEMENTATION-ROADMAP.md)       | 4-week phased plan | 15 min    |
+| [SECURITY-AUDIT-2025-11-12.md](./SECURITY-AUDIT-2025-11-12.md) | Full audit report  | 30 min    |
 
 ### Implementation Specs (Phase 1: Critical)
 
-| Spec | Priority | Time | Description |
-|------|----------|------|-------------|
-| [01-web-crypto-implementation.md](./01-web-crypto-implementation.md) | 🔴 Critical | 2 days | Replace XOR with AES-256-GCM |
-| [02-bfs-limits-implementation.md](./02-bfs-limits-implementation.md) | 🔴 Critical | 1 day | Add depth limits to BFS |
-| [03-rate-limiting-implementation.md](./03-rate-limiting-implementation.md) | 🔴 Critical | 1 day | Prevent DoS attacks |
+| Spec                                                                       | Priority    | Time   | Description                  |
+| -------------------------------------------------------------------------- | ----------- | ------ | ---------------------------- |
+| [01-web-crypto-implementation.md](./01-web-crypto-implementation.md)       | 🔴 Critical | 2 days | Replace XOR with AES-256-GCM |
+| [02-bfs-limits-implementation.md](./02-bfs-limits-implementation.md)       | 🔴 Critical | 1 day  | Add depth limits to BFS      |
+| [03-rate-limiting-implementation.md](./03-rate-limiting-implementation.md) | 🔴 Critical | 1 day  | Prevent DoS attacks          |
 
 ### Implementation Specs (Phase 2-4: Important)
 
 To be created as needed:
+
 - `04-session-refactor.md` - Refactor auth code
 - `05-convex-optimization.md` - Optimize queries
 - `06-audit-logging.md` - Add audit trail
@@ -52,11 +53,13 @@ To be created as needed:
 **Grade**: B+ (would be A- after Phase 1)
 
 **Critical Issues** (fix immediately):
+
 1. XOR encryption → Web Crypto API
 2. Unbounded BFS → Add limits
 3. No rate limiting → Add middleware
 
 **Timeline**:
+
 - **Week 1**: Fix critical security issues
 - **Week 2**: Refactor architecture
 - **Week 3**: Update documentation
@@ -77,11 +80,13 @@ To be created as needed:
 **Spec**: [01-web-crypto-implementation.md](./01-web-crypto-implementation.md)
 
 **Files**:
+
 - Create: `src/lib/client/crypto.ts`
 - Update: `src/lib/client/sessionStorage.ts`
 - Update: `src/lib/composables/useAuthSession.svelte.ts`
 
 **Tests**:
+
 - Unit: `crypto.test.ts`
 - Performance: `crypto.perf.test.ts`
 - E2E: `session-encryption.test.ts`
@@ -97,10 +102,12 @@ To be created as needed:
 **Spec**: [02-bfs-limits-implementation.md](./02-bfs-limits-implementation.md)
 
 **Files**:
+
 - Update: `convex/users.ts` (add limits to linkExists)
 - Update: `convex/users.ts` (add validation to linkAccounts)
 
 **Tests**:
+
 - Unit: `users.test.ts` (circular links, depth limits)
 - Performance: `users.perf.test.ts` (100ms target)
 
@@ -115,12 +122,14 @@ To be created as needed:
 **Spec**: [03-rate-limiting-implementation.md](./03-rate-limiting-implementation.md)
 
 **Files**:
+
 - Create: `src/lib/server/middleware/rateLimit.ts`
 - Update: `src/routes/auth/switch/+server.ts`
 - Update: `src/routes/auth/login/+server.ts`
 - Update: `src/routes/auth/register/+server.ts`
 
 **Tests**:
+
 - Unit: `rateLimit.test.ts`
 - E2E: `rate-limiting.test.ts`
 
@@ -197,32 +206,35 @@ To be created as needed:
 
 ### Priority Matrix
 
-| Fix | Priority | Impact | Effort | ROI |
-|-----|----------|--------|--------|-----|
-| Web Crypto | 🔴 Critical | High | 2 days | Excellent |
-| BFS Limits | 🔴 Critical | High | 1 day | Excellent |
-| Rate Limiting | 🔴 Critical | Medium | 1 day | Excellent |
-| Session Refactor | 🟡 Important | Medium | 3 days | Good |
-| Convex Optimization | 🟡 Important | High | 2 days | Excellent |
-| Audit Logging | 🟡 Important | Medium | 2 days | Good |
-| Documentation | 🟡 Important | Medium | 5 days | Good |
-| Optimization | 🟢 Minor | Medium | 5 days | Good |
+| Fix                 | Priority     | Impact | Effort | ROI       |
+| ------------------- | ------------ | ------ | ------ | --------- |
+| Web Crypto          | 🔴 Critical  | High   | 2 days | Excellent |
+| BFS Limits          | 🔴 Critical  | High   | 1 day  | Excellent |
+| Rate Limiting       | 🔴 Critical  | Medium | 1 day  | Excellent |
+| Session Refactor    | 🟡 Important | Medium | 3 days | Good      |
+| Convex Optimization | 🟡 Important | High   | 2 days | Excellent |
+| Audit Logging       | 🟡 Important | Medium | 2 days | Good      |
+| Documentation       | 🟡 Important | Medium | 5 days | Good      |
+| Optimization        | 🟢 Minor     | Medium | 5 days | Good      |
 
 ---
 
 ## Team Assignments
 
 **Backend Engineer** (Week 1):
+
 - Day 1-2: Web Crypto implementation
 - Day 3: BFS limits
 - Day 4: Rate limiting backend
 
 **Frontend Engineer** (Week 1):
+
 - Day 1-2: Web Crypto client integration
 - Day 3: Error handling for limits
 - Day 4: Rate limit UI handling
 
 **QA Engineer** (Week 1):
+
 - Day 1-4: Write tests as specs are completed
 - Day 5: Integration testing
 
@@ -230,10 +242,10 @@ To be created as needed:
 
 ## Related Documents
 
-- [Security Audit Report](../SECURITY-AUDIT-2025-11-12.md)
-- [Architecture Overview](../../2-areas/architecture.md)
-- [WorkOS Auth Architecture](../../2-areas/workos-convex-auth-architecture.md)
-- [Multi-Session Architecture](../../2-areas/multi-session-architecture.md)
+- [Security Audit Report](./SECURITY-AUDIT-2025-11-12.md)
+- [Architecture Overview](../../2-areas/architecture/architecture.md)
+- [WorkOS Auth Architecture](../../2-areas/architecture/auth/workos-convex-auth-architecture.md)
+- [Multi-Session Architecture](../../2-areas/architecture/auth/multi-session-architecture.md)
 - [Patterns Index](../../2-areas/patterns/INDEX.md)
 
 ---
@@ -245,4 +257,3 @@ To be created as needed:
 **Stuck?**: Check patterns or ask team
 
 Let's build something secure! 🛡️
-

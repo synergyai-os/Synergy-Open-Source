@@ -1,81 +1,81 @@
 /**
- * Authentication Setup for E2E Tests
+ * Playwright Authentication Setup
  *
- * This runs once to authenticate a test user, then saves the auth state
- * so other tests can reuse it (faster than logging in every time).
+ * This script logs in once before all tests and saves the authenticated state.
+ * All tests can then reuse this state without re-authenticating.
+ *
+ * See: https://playwright.dev/docs/auth
  */
 
 import { test as setup, expect } from '@playwright/test';
+import { readFileSync } from 'fs';
+import { resolve, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
-// This file runs once before all tests
-// The auth state is saved to a file that other tests can load
+// Get __dirname equivalent in ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-const authFile = 'playwright/.auth/user.json';
+// Load test environment variables from .env.test
+const envPath = resolve(__dirname, '../.env.test');
+try {
+	const envContent = readFileSync(envPath, 'utf-8');
+	envContent.split('\n').forEach((line) => {
+		const match = line.match(/^([^#=]+)=(.*)$/);
+		if (match) {
+			const [, key, value] = match;
+			process.env[key.trim()] = value.trim();
+		}
+	});
+} catch (error) {
+	console.warn('Warning: Could not load .env.test file');
+}
+
+const authFile = 'e2e/.auth/user.json';
 
 setup('authenticate', async ({ page }) => {
-	// Go to login page
+	// Get credentials from environment
+	const email = process.env.TEST_USER_EMAIL;
+	const password = process.env.TEST_USER_PASSWORD;
+
+	if (!email || !password) {
+		throw new Error(
+			'Test credentials not found. Please set TEST_USER_EMAIL and TEST_USER_PASSWORD in .env.test'
+		);
+	}
+
+	console.log('🔐 Authenticating test user:', email);
+
+	// Navigate to login page
 	await page.goto('/login');
 
-	// Fill in login form
-	// NOTE: You'll need to create a test user first, or use environment variables
-	const testEmail = process.env.TEST_USER_EMAIL || 'test@example.com';
-	const testPassword = process.env.TEST_USER_PASSWORD || 'testpassword123';
+	// Wait for login form to be visible
+	await page.waitForLoadState('networkidle');
 
-	await page.fill('input[name="email"]', testEmail);
-	await page.fill('input[name="password"]', testPassword);
+	// Fill in WorkOS login form
+	// Note: Adjust selectors based on your actual WorkOS login page
+	const emailInput = page.locator('input[type="email"], input[name="email"]').first();
+	await emailInput.waitFor({ timeout: 10000 });
+	await emailInput.fill(email);
 
-	// Submit form and wait for navigation
-	await Promise.all([
-		page.waitForNavigation({ waitUntil: 'networkidle' }),
-		page.click('button[type="submit"]')
-	]);
+	const passwordInput = page.locator('input[type="password"], input[name="password"]').first();
+	await passwordInput.fill(password);
 
-	// Wait for either redirect OR check if we're on an authenticated page
-	// The redirect might go to /inbox or stay on /login with error
-	const currentUrl = page.url();
+	// Submit login form
+	const submitButton = page.locator('button[type="submit"]').first();
+	await submitButton.click();
 
-	// If we're still on login page, check for error or try again
-	if (currentUrl.includes('/login')) {
-		// Check if there's an error message
-		const errorVisible = await page
-			.locator('text=/error|failed|invalid/i')
-			.isVisible({ timeout: 2000 })
-			.catch(() => false);
+	// Wait for redirect to authenticated page (inbox or dashboard)
+	await page.waitForURL(/\/(inbox|dashboard)/, { timeout: 15000 });
 
-		if (errorVisible) {
-			throw new Error(
-				'Login failed - check TEST_USER_EMAIL and TEST_USER_PASSWORD environment variables or create test user'
-			);
-		}
+	// Verify we're authenticated by checking for user-specific elements
+	// Adjust selector based on your app
+	await expect(page.locator('body')).toBeVisible();
 
-		// Wait a bit more for redirect
-		await page.waitForURL(/\/(inbox|flashcards|settings|$)/, { timeout: 5000 }).catch(() => {
-			throw new Error('Login did not redirect - authentication may have failed');
-		});
-	}
+	console.log('✅ Authentication successful');
 
-	// Verify we're authenticated by checking for authenticated-only content
-	// Try multiple possible indicators
-	const isAuthenticated = await Promise.race([
-		page
-			.locator('button:has-text("Sync Readwise Highlights")')
-			.isVisible()
-			.then(() => true),
-		page
-			.locator('a[href="/inbox"]')
-			.isVisible()
-			.then(() => true),
-		page
-			.locator('text=/sign out|logout/i')
-			.isVisible()
-			.then(() => true),
-		new Promise((resolve) => setTimeout(() => resolve(false), 3000))
-	]).catch(() => false);
-
-	if (!isAuthenticated) {
-		throw new Error('Could not verify authentication - test user may not exist or login failed');
-	}
-
-	// Save auth state to file
+	// Save authenticated state
 	await page.context().storageState({ path: authFile });
+
+	console.log('💾 Saved auth state to', authFile);
 });

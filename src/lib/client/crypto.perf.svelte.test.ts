@@ -10,4 +10,3 @@ describe('Web Crypto Performance', () => {
 		expect(avgTime).toBeLessThan(20);
 	}, 30000); // 30s timeout for benchmark
 });
-

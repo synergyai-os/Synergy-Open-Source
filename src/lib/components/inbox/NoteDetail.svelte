@@ -14,8 +14,8 @@
 	let { inboxItem, onClose }: Props = $props();
 
 	const convexClient = browser ? useConvexClient() : null;
-	const getUserId = () => $page.data.user?.userId;
-	const note = useNote(convexClient, getUserId);
+	const getSessionId = () => $page.data.sessionId;
+	const note = useNote(convexClient, getSessionId);
 
 	let editorRef: any = $state(null);
 	let editMode = $state(false);
@@ -111,13 +111,13 @@
 		if (!convexClient || !inboxItem._id) return;
 
 		try {
-			const userId = getUserId();
-			if (!userId) {
-				throw new Error('User ID is required');
+			const sessionId = getSessionId();
+			if (!sessionId) {
+				throw new Error('Session ID is required');
 			}
 
 			const result = await convexClient.mutation(api.notes.exportToDevDocs, {
-				userId,
+				sessionId,
 				noteId: inboxItem._id
 			});
 

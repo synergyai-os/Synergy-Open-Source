@@ -66,10 +66,7 @@ function buildHeaders(includeAuth = false) {
 	return headers;
 }
 
-export async function exchangeAuthorizationCode(options: {
-	code: string;
-	codeVerifier: string;
-}) {
+export async function exchangeAuthorizationCode(options: { code: string; codeVerifier: string }) {
 	validateWorkOSConfig();
 	console.log('🔍 Calling WorkOS authenticate endpoint...');
 	const response = await fetch(`${WORKOS_BASE_URL}/user_management/authenticate`, {
@@ -111,17 +108,17 @@ export async function exchangeAuthorizationCode(options: {
 	// Extract session ID from the access token JWT (it's in the "sid" claim)
 	let sessionId = 'session_unknown';
 	let expiresAt: string | undefined;
-	
+
 	try {
 		const tokenPayload = data.access_token.split('.')[1];
 		const decodedPayload = JSON.parse(Buffer.from(tokenPayload, 'base64').toString());
 		sessionId = decodedPayload.sid || 'session_unknown';
-		
+
 		// Get expiration from JWT (exp is in seconds, convert to ISO string)
 		if (decodedPayload.exp) {
 			expiresAt = new Date(decodedPayload.exp * 1000).toISOString();
 		}
-		
+
 		console.log('🔍 Extracted session ID from JWT:', sessionId);
 	} catch (err) {
 		console.warn('⚠️  Could not extract session ID from access token:', err);
@@ -146,7 +143,7 @@ export async function refreshWorkOSSession(options: {
 }) {
 	validateWorkOSConfig();
 	console.log('🔍 Refreshing WorkOS session...');
-	
+
 	const response = await fetch(`${WORKOS_BASE_URL}/user_management/authenticate`, {
 		method: 'POST',
 		headers: buildHeaders(),
@@ -177,12 +174,12 @@ export async function refreshWorkOSSession(options: {
 	// Extract session info from the new access token
 	let sessionId = options.workosSessionId; // Default to existing session ID
 	let expiresAt: string | undefined;
-	
+
 	try {
 		const tokenPayload = data.access_token.split('.')[1];
 		const decodedPayload = JSON.parse(Buffer.from(tokenPayload, 'base64').toString());
 		sessionId = decodedPayload.sid || sessionId;
-		
+
 		if (decodedPayload.exp) {
 			expiresAt = new Date(decodedPayload.exp * 1000).toISOString();
 		}

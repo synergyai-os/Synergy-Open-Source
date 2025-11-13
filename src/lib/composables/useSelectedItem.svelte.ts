@@ -16,7 +16,7 @@ export interface UseSelectedItemReturn {
 export function useSelectedItem(
 	convexClient: ConvexClient | null,
 	inboxApi: InboxApi | null,
-	getUserId: () => string | undefined
+	getSessionId: () => string | undefined
 ): UseSelectedItemReturn {
 	// Selected item state
 	const state = $state({
@@ -36,8 +36,8 @@ export function useSelectedItem(
 			return;
 		}
 
-		const userId = getUserId();
-		if (!userId) {
+		const sessionId = getSessionId();
+		if (!sessionId) {
 			state.selectedItem = null;
 			currentQueryId = null;
 			return;
@@ -50,7 +50,7 @@ export function useSelectedItem(
 		// Load item details
 		convexClient
 			.query(inboxApi.getInboxItemWithDetails, {
-				userId,
+				sessionId,
 				inboxItemId: state.selectedItemId
 			})
 			.then((result) => {

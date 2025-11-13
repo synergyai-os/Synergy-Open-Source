@@ -10,8 +10,8 @@
  * await tagging.assignTags(highlightId, [tag1Id, tag2Id]);
  * ```
  *
- * @see dev-docs/patterns/svelte-reactivity.md#L10 - Composables pattern
- * @see TAGGING_SYSTEM_ANALYSIS.md - Architecture and design decisions
+ * @see dev-docs/2-areas/patterns/svelte-reactivity.md#L10 - Composables pattern
+ * @see dev-docs/4-archive/TAGGING_SYSTEM_ANALYSIS.md - Architecture and design decisions
  */
 
 import { browser } from '$app/environment';
@@ -31,10 +31,7 @@ function capitalize(str: string): string {
 /**
  * Generic tagging composable - works for any entity type
  */
-export function useTagging(
-	entityType: EntityType,
-	getUserId: () => string | undefined
-) {
+export function useTagging(entityType: EntityType, getUserId: () => string | undefined) {
 	// Svelte 5 pattern: Single $state object with getters
 	const state = $state({
 		isAssigning: false,

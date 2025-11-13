@@ -1,6 +1,6 @@
 <script lang="ts">
-import { goto } from '$app/navigation';
-import { browser, dev } from '$app/environment';
+	import { goto } from '$app/navigation';
+	import { browser, dev } from '$app/environment';
 	import { tweened } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
 	import { fade } from 'svelte/transition';
@@ -10,7 +10,7 @@ import { browser, dev } from '$app/environment';
 	import CleanReadwiseButton from './sidebar/CleanReadwiseButton.svelte';
 	import TeamList from './organizations/TeamList.svelte';
 	import CreateMenu from './sidebar/CreateMenu.svelte';
-	import WorkspaceSwitchOverlay from './organizations/WorkspaceSwitchOverlay.svelte';
+	import LoadingOverlay from './ui/LoadingOverlay.svelte';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 	import { useAuthSession } from '$lib/composables/useAuthSession.svelte';
 	import { useQuery } from 'convex-svelte';
@@ -55,43 +55,17 @@ import { browser, dev } from '$app/environment';
 	// This ensures only accounts with active sessions are shown
 	const linkedAccounts = $derived(authSession.availableAccounts ?? []);
 
-	// Fetch organizations for each linked account
-	// Use a Map to maintain queries keyed by userId for proper reactivity
-	const orgQueriesMap = new Map<string, ReturnType<typeof useQuery>>();
-
-	// Create/update queries reactively when linkedAccounts changes
-	$effect(() => {
-		if (!browser) return;
-
-		// Get current account IDs
-		const currentAccountIds = new Set(linkedAccounts.map((a) => a.userId));
-
-		// Remove queries for accounts that are no longer linked
-		for (const userId of orgQueriesMap.keys()) {
-			if (!currentAccountIds.has(userId)) {
-				orgQueriesMap.delete(userId);
-			}
-		}
-
-		// Create queries for new accounts
-		for (const account of linkedAccounts) {
-			if (!orgQueriesMap.has(account.userId)) {
-				const query = useQuery(api.organizations.listOrganizations, () => ({
-					userId: account.userId as Id<'users'>
-				}));
-				orgQueriesMap.set(account.userId, query);
-			}
-		}
-	});
-
+	// TODO: Fetch organizations for each linked account
+	// This requires an internal API that can query orgs by userId (linked account support)
+	// For now, just pass empty organizations for linked accounts
 	const linkedAccountOrganizations = $derived(
 		linkedAccounts.map((account) => ({
 			userId: account.userId,
 			email: account.email,
-			name: account.name,
-			firstName: account.firstName,
-			lastName: account.lastName,
-			organizations: (orgQueriesMap.get(account.userId)?.data ?? []) as any[]
+			name: account.name ?? null,
+			firstName: account.firstName ?? null,
+			lastName: account.lastName ?? null,
+			organizations: [] as any[]
 		}))
 	);
 
@@ -389,7 +363,15 @@ import { browser, dev } from '$app/environment';
 					console.log('Switch workspace menu selected');
 				}}
 				onCreateWorkspace={() => {
-					console.log('Create workspace menu selected');
+					organizations?.openModal('createOrganization');
+				}}
+				onCreateWorkspaceForAccount={async (targetUserId) => {
+					// Switch to the target account and redirect to open create modal
+					await authSession.switchAccount(targetUserId, '/inbox?create=organization');
+				}}
+				onJoinWorkspaceForAccount={async (targetUserId) => {
+					// Switch to the target account and redirect to open join modal
+					await authSession.switchAccount(targetUserId, '/inbox?join=organization');
 				}}
 				onAddAccount={() => {
 					const currentPath = browser
@@ -403,13 +385,14 @@ import { browser, dev } from '$app/environment';
 				}}
 				onSwitchAccount={async (targetUserId, redirectTo) => {
 					// Find the account being switched to
-					const targetAccount = linkedAccountOrganizations.find(a => a.userId === targetUserId);
-					const targetName = targetAccount?.firstName || targetAccount?.name || targetAccount?.email || 'account';
-					
+					const targetAccount = linkedAccountOrganizations.find((a) => a.userId === targetUserId);
+					const targetName =
+						targetAccount?.firstName || targetAccount?.name || targetAccount?.email || 'account';
+
 					// Show overlay IMMEDIATELY before API call/redirect
 					accountSwitchOverlay.show = true;
 					accountSwitchOverlay.targetName = targetName;
-					
+
 					try {
 						// Then perform the switch (which will set sessionStorage and redirect)
 						await authSession.switchAccount(targetUserId, redirectTo);
@@ -423,6 +406,9 @@ import { browser, dev } from '$app/environment';
 				}}
 				onLogout={() => {
 					authSession.logout();
+				}}
+				onLogoutAccount={(targetUserId) => {
+					authSession.logoutAccount(targetUserId);
 				}}
 			/>
 
@@ -576,7 +562,6 @@ import { browser, dev } from '$app/environment';
 				</nav>
 			{/if}
 
-
 			<!-- Development Test Menu (only in dev mode) -->
 			{#if dev && (!sidebarCollapsed || isPinned || (hoverState && !isMobile)) && !isMobile}
 				<div
@@ -696,6 +681,7 @@ import { browser, dev } from '$app/environment';
 		<SidebarHeader
 			workspaceName={accountName}
 			{accountEmail}
+			linkedAccounts={linkedAccountOrganizations}
 			{sidebarCollapsed}
 			{isMobile}
 			{isHovered}
@@ -704,8 +690,61 @@ import { browser, dev } from '$app/environment';
 					window.location.href = '/settings';
 				}
 			}}
+			onInviteMembers={() => {
+				if (typeof window !== 'undefined') {
+					window.location.href = '/settings';
+				}
+			}}
+			onSwitchWorkspace={() => {
+				console.log('Switch workspace menu selected');
+			}}
+			onCreateWorkspace={() => {
+				organizations?.openModal('createOrganization');
+			}}
+			onCreateWorkspaceForAccount={async (targetUserId) => {
+				// Switch to the target account and redirect to open create modal
+				await authSession.switchAccount(targetUserId, '/inbox?create=organization');
+			}}
+			onJoinWorkspaceForAccount={async (targetUserId) => {
+				// Switch to the target account and redirect to open join modal
+				await authSession.switchAccount(targetUserId, '/inbox?join=organization');
+			}}
+			onAddAccount={() => {
+				const currentPath = browser
+					? `${window.location.pathname}${window.location.search}`
+					: '/inbox';
+				const params = new URLSearchParams({
+					linkAccount: '1',
+					redirect: currentPath
+				});
+				goto(`/login?${params.toString()}`);
+			}}
+			onSwitchAccount={async (targetUserId, redirectTo) => {
+				// Find the account being switched to
+				const targetAccount = linkedAccountOrganizations.find((a) => a.userId === targetUserId);
+				const targetName =
+					targetAccount?.firstName || targetAccount?.name || targetAccount?.email || 'account';
+
+				// Show overlay IMMEDIATELY before API call/redirect
+				accountSwitchOverlay.show = true;
+				accountSwitchOverlay.targetName = targetName;
+
+				try {
+					// Then perform the switch (which will set sessionStorage and redirect)
+					await authSession.switchAccount(targetUserId, redirectTo);
+				} catch (error) {
+					// Reset overlay if switch fails
+					accountSwitchOverlay.show = false;
+					accountSwitchOverlay.targetName = '';
+					console.error('Failed to switch account:', error);
+					// Optionally show error toast to user
+				}
+			}}
 			onLogout={() => {
 				authSession.logout();
+			}}
+			onLogoutAccount={(targetUserId) => {
+				authSession.logoutAccount(targetUserId);
 			}}
 		/>
 
@@ -883,7 +922,6 @@ import { browser, dev } from '$app/environment';
 			</nav>
 		{/if}
 
-
 		<!-- Development Test Menu (only in dev mode) -->
 		{#if dev && (!sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)) && !isMobile}
 			<div
@@ -967,10 +1005,10 @@ import { browser, dev } from '$app/environment';
 
 <!-- Immediate overlay for account switching (before page reload) -->
 {#if accountSwitchOverlay.show}
-	<WorkspaceSwitchOverlay
+	<LoadingOverlay
 		show={true}
-		workspaceName={accountSwitchOverlay.targetName ?? 'account'}
-		workspaceType="personal"
+		flow="workspace-switching"
+		subtitle={accountSwitchOverlay.targetName ?? 'account'}
 	/>
 {/if}
 

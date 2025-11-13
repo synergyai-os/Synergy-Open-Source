@@ -44,14 +44,16 @@ When making a repository public on GitHub, there are several best practices to f
 #### Recommended Settings for `main` Branch:
 
 **Basic Protection**:
+
 - ✅ **Block force pushes**: Prevent force pushes to matching branches
 - ✅ **Block deletions**: Prevent deletion of matching branches
-- ✅ **Require pull request reviews before merging**: 
+- ✅ **Require pull request reviews before merging**:
   - Required approving reviews: `1`
   - Dismiss stale pull request approvals when new commits are pushed: `true`
   - Require review from Code Owners: `false` (optional, enable if you add CODEOWNERS)
 
 **Status Checks**:
+
 - ✅ **Require status checks to pass before merging**:
   - Require branches to be up to date before merging: `true`
   - Required status checks:
@@ -59,6 +61,7 @@ When making a repository public on GitHub, there are several best practices to f
     - Add any other required checks
 
 **Additional Settings**:
+
 - ✅ **Require conversation resolution before merging**: All comments must be resolved
 - ✅ **Do not allow bypassing the above settings**: Even admins must follow rules
 - ⚠️ **Allow force pushes**: `false` (keep disabled)
@@ -211,6 +214,7 @@ gh api repos/synergyai-os/Synergy-Open-Source/branches/main/protection
 ### Dependabot Not Running
 
 **Check**:
+
 1. `Settings` → `Code security and analysis` → Dependabot alerts enabled
 2. `Settings` → `Secrets and variables` → `Actions` → Check for required secrets
 3. Review `.github/dependabot.yml` (if exists)
@@ -218,6 +222,7 @@ gh api repos/synergyai-os/Synergy-Open-Source/branches/main/protection
 ### Status Checks Not Showing
 
 **Check**:
+
 1. Workflow file exists: `.github/workflows/quality-gates.yml`
 2. Workflow runs successfully on PRs
 3. Branch protection rule includes the check name exactly
@@ -241,4 +246,3 @@ gh api repos/synergyai-os/Synergy-Open-Source/branches/main/protection
 4. ✅ **Monitor activity** (watch for issues, PRs, discussions)
 
 **Status**: Ready for open source! 🎉
-

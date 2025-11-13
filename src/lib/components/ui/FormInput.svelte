@@ -14,6 +14,7 @@
 		type?: 'text' | 'email' | 'password' | 'url';
 		required?: boolean;
 		disabled?: boolean;
+		autocomplete?: string;
 		class?: string; // Allow custom classes for specific cases
 	};
 
@@ -25,6 +26,7 @@
 		type = 'text',
 		required = false,
 		disabled = false,
+		autocomplete = '',
 		class: customClass = ''
 	}: Props = $props();
 
@@ -47,6 +49,7 @@
 		{placeholder}
 		{required}
 		{disabled}
+		{autocomplete}
 		bind:value
 		class="rounded-input border border-base bg-input px-input-x py-input-y text-primary transition-all placeholder:text-tertiary focus:ring-2 focus:ring-accent-primary focus:outline-none {customClass}"
 	/>

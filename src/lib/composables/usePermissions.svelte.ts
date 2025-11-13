@@ -8,7 +8,7 @@
  * - Function parameters for reactive inputs
  *
  * @see dev-docs/2-areas/patterns/svelte-reactivity.md - Pattern #L10, #L80
- * @see dev-docs/rbac-architecture.md - Permission system architecture
+ * @see dev-docs/2-areas/rbac/rbac-architecture.md - Permission system architecture
  */
 
 import { browser } from '$app/environment';
@@ -17,7 +17,8 @@ import { api } from '$lib/convex';
 import type { Id } from '$convex/_generated/dataModel';
 
 export interface UsePermissionsParams {
-	userId: () => Id<'users'> | null;
+	sessionId: () => string | null;
+	userId?: () => Id<'users'> | null;
 	organizationId?: () => Id<'organizations'> | null;
 	teamId?: () => Id<'teams'> | null;
 }
@@ -39,7 +40,7 @@ export interface UsePermissionsReturn {
  *   import { usePermissions } from '$lib/composables/usePermissions.svelte';
  *
  *   const permissions = usePermissions({
- *     userId: () => $currentUserId,
+ *     sessionId: () => $page.data.sessionId,
  *     organizationId: () => $activeOrganizationId
  *   });
  * </script>
@@ -53,10 +54,10 @@ export function usePermissions(params: UsePermissionsParams): UsePermissionsRetu
 	// Query user permissions from Convex
 	const permissionsQuery = browser
 		? useQuery(api.rbac.permissions.getUserPermissionsQuery, () => {
-				const userId = params.userId();
-				if (!userId) return 'skip' as any;
+				const sessionId = params.sessionId();
+				if (!sessionId) return 'skip' as any;
 
-				const args: any = { userId };
+				const args: any = { sessionId };
 
 				// Add context filters
 				const orgId = params.organizationId?.();

@@ -10,9 +10,9 @@ export const load: PageServerLoad = async (event) => {
 
 	const { slug } = event.params;
 
-	// Get userId from session (required for listNotes query)
-	const userId = event.locals.auth.user?.userId;
-	if (!userId) {
+	// Get sessionId from session (required for listNotes query)
+	const sessionId = event.locals.auth.sessionId;
+	if (!sessionId) {
 		// If not authenticated, return empty array (no notes shown)
 		return {
 			note: null,
@@ -22,7 +22,7 @@ export const load: PageServerLoad = async (event) => {
 
 	// Query notes to find one with matching slug
 	const notes = await client.query(api.notes.listNotes, {
-		userId,
+		sessionId,
 		processed: false,
 		blogOnly: false
 	});

@@ -35,6 +35,7 @@
 
 	const convexClient = browser ? useConvexClient() : null;
 	const getUserId = () => $page.data.user?.userId;
+	const getSessionId = () => $page.data.sessionId;
 
 	// State
 	let currentIndex = $state(initialIndex);
@@ -177,13 +178,13 @@
 
 		isSaving = true;
 		try {
-			const userId = getUserId();
-			if (!userId) {
-				throw new Error('User ID is required');
+			const sessionId = getSessionId();
+			if (!sessionId) {
+				throw new Error('Session ID is required');
 			}
 
 			await convexClient.mutation(api.flashcards.updateFlashcard, {
-				userId,
+				sessionId,
 				flashcardId: currentCard._id,
 				question: questionValue,
 				answer: answerValue
@@ -213,13 +214,13 @@
 		}
 
 		try {
-			const userId = getUserId();
-			if (!userId) {
-				throw new Error('User ID is required');
+			const sessionId = getSessionId();
+			if (!sessionId) {
+				throw new Error('Session ID is required');
 			}
 
 			await convexClient.mutation(api.flashcards.deleteFlashcard, {
-				userId,
+				sessionId,
 				flashcardId: currentCard._id
 			});
 

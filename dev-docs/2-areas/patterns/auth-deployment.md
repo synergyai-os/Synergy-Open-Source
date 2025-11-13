@@ -571,16 +571,17 @@ CONVEX_DEPLOY_KEY="prod:..." npx convex run users:syncUserFromWorkOS '{"workosId
 
 ```typescript
 // ❌ WRONG: Use WorkOS token expiry for session
-const expiresAt = authResponse.session?.expires_at !== undefined
-    ? Date.parse(authResponse.session.expires_at)  // ❌ 5 minutes!
-    : Date.now() + authResponse.expires_in * 1000;
+const expiresAt =
+	authResponse.session?.expires_at !== undefined
+		? Date.parse(authResponse.session.expires_at) // ❌ 5 minutes!
+		: Date.now() + authResponse.expires_in * 1000;
 
 await establishSession({
-    event,
-    convexUserId,
-    workosUserId: authResponse.user.id,
-    expiresAt,  // ❌ Session expires in 5 minutes
-    // ...
+	event,
+	convexUserId,
+	workosUserId: authResponse.user.id,
+	expiresAt // ❌ Session expires in 5 minutes
+	// ...
 });
 
 // ✅ CORRECT: Use app-defined session TTL (30 days)
@@ -588,17 +589,18 @@ const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const expiresAt = Date.now() + SESSION_TTL_MS;
 
 await establishSession({
-    event,
-    convexUserId,
-    workosUserId: authResponse.user.id,
-    expiresAt,  // ✅ Session lasts 30 days
-    // ...
+	event,
+	convexUserId,
+	workosUserId: authResponse.user.id,
+	expiresAt // ✅ Session lasts 30 days
+	// ...
 });
 ```
 
 **Why**: WorkOS tokens expire quickly (5 min) for security, but your APP session should last much longer (days/weeks). The token expiry is ONLY used internally to know when to refresh. Session expiry determines how long users stay logged in.
 
 **Token Refresh Flow**:
+
 ```typescript
 // Session valid for 30 days
 // WorkOS token refreshes automatically every 5 min (handled in session middleware)
@@ -606,6 +608,7 @@ await establishSession({
 ```
 
 **Apply when**:
+
 - Implementing OAuth/OIDC authentication
 - Users complaining about frequent logouts
 - Session persistence issues
@@ -623,16 +626,17 @@ await establishSession({
 
 ```typescript
 // ❌ WRONG: Conditional query without $derived
-const linkedAccountsQuery = browser && currentUserId 
-    ? useQuery(api.users.listLinkedAccounts, () => ({ userId: currentUserId }))
-    : null;
+const linkedAccountsQuery =
+	browser && currentUserId
+		? useQuery(api.users.listLinkedAccounts, () => ({ userId: currentUserId }))
+		: null;
 // ❌ Only evaluated once at component init, never re-runs when currentUserId changes
 
 // ✅ CORRECT: Wrap query in $derived
 const linkedAccountsQuery = $derived(
-    browser && currentUserId 
-        ? useQuery(api.users.listLinkedAccounts, () => ({ userId: currentUserId }))
-        : null
+	browser && currentUserId
+		? useQuery(api.users.listLinkedAccounts, () => ({ userId: currentUserId }))
+		: null
 );
 // ✅ Re-evaluated when currentUserId changes, query re-runs
 ```
@@ -640,18 +644,20 @@ const linkedAccountsQuery = $derived(
 **Why**: In Svelte 5, reactive values (`$derived`, `$state`) must be wrapped in `$derived()` to track dependencies. Without it, the expression is only evaluated once at initialization.
 
 **Debugging**:
+
 ```javascript
 // Add effect to see when query updates
 $effect(() => {
-    console.log('Query state:', {
-        currentUserId,
-        hasQuery: !!linkedAccountsQuery,
-        data: linkedAccountsQuery?.data
-    });
+	console.log('Query state:', {
+		currentUserId,
+		hasQuery: !!linkedAccountsQuery,
+		data: linkedAccountsQuery?.data
+	});
 });
 ```
 
 **Apply when**:
+
 - Using `useQuery` with conditional logic
 - Query depends on reactive state (`$state`, `$derived`)
 - UI not updating when auth state changes
@@ -670,28 +676,27 @@ $effect(() => {
 ```typescript
 // ❌ WRONG: Single directional link
 await ctx.db.insert('accountLinks', {
-    primaryUserId,
-    linkedUserId
+	primaryUserId,
+	linkedUserId
 });
 // ❌ Query only works for primary user
 
 // ✅ CORRECT: Bidirectional links
 async function createDirectedLink(ctx, fromUserId, toUserId, linkType) {
-    const existing = await ctx.db
-        .query('accountLinks')
-        .withIndex('by_primary', (q) => 
-            q.eq('primaryUserId', fromUserId).eq('linkedUserId', toUserId))
-        .first();
-    
-    if (!existing) {
-        await ctx.db.insert('accountLinks', {
-            primaryUserId: fromUserId,
-            linkedUserId: toUserId,
-            linkType: linkType ?? undefined,
-            verifiedAt: Date.now(),
-            createdAt: Date.now()
-        });
-    }
+	const existing = await ctx.db
+		.query('accountLinks')
+		.withIndex('by_primary', (q) => q.eq('primaryUserId', fromUserId).eq('linkedUserId', toUserId))
+		.first();
+
+	if (!existing) {
+		await ctx.db.insert('accountLinks', {
+			primaryUserId: fromUserId,
+			linkedUserId: toUserId,
+			linkType: linkType ?? undefined,
+			verifiedAt: Date.now(),
+			createdAt: Date.now()
+		});
+	}
 }
 
 // Create BOTH directions
@@ -703,6 +708,7 @@ await createDirectedLink(ctx, linkedUserId, primaryUserId, linkType);
 **Why**: Users should see all linked accounts regardless of which account they're currently using. Bidirectional links ensure consistency and prevent edge cases where links only work in one direction.
 
 **Apply when**:
+
 - Implementing Slack-style account switching
 - Multi-account support
 - Account linking features
@@ -752,13 +758,14 @@ export const listItems = query({
 const getUserId = () => $page.data.user?.userId;
 
 // ✅ Pass to query (reactive)
-const itemsQuery = browser && getUserId()
-	? useQuery(api.items.listItems, () => {
-			const userId = getUserId();
-			if (!userId) return null; // Skip query if userId not available
-			return { userId };
-		})
-	: null;
+const itemsQuery =
+	browser && getUserId()
+		? useQuery(api.items.listItems, () => {
+				const userId = getUserId();
+				if (!userId) return null; // Skip query if userId not available
+				return { userId };
+			})
+		: null;
 ```
 
 **Why**: WorkOS password auth tokens lack `aud` claim, breaking Convex JWT validation. Passing `userId` from authenticated SvelteKit session + validating against `authSessions` table provides secure workaround.
@@ -766,10 +773,7 @@ const itemsQuery = browser && getUserId()
 **Session Validation Helper** (`convex/sessionValidation.ts`):
 
 ```typescript
-export async function validateSession(
-	ctx: QueryCtx | MutationCtx,
-	userId: Id<'users'>
-) {
+export async function validateSession(ctx: QueryCtx | MutationCtx, userId: Id<'users'>) {
 	const session = await ctx.db
 		.query('authSessions')
 		.filter((q) => q.eq(q.field('convexUserId'), userId))
@@ -789,6 +793,7 @@ export async function validateSession(
 ```
 
 **Migration Checklist**:
+
 1. Add `userId: v.id('users')` to query/mutation args
 2. Import `validateSession` from `./sessionValidation`
 3. Call `await validateSession(ctx, args.userId)` at start of handler
@@ -796,6 +801,7 @@ export async function validateSession(
 5. Wrap query in conditional: `browser && getUserId() ? useQuery(...) : null`
 
 **Apply when**:
+
 - Convex queries/mutations return empty/null unexpectedly
 - "Not authenticated" errors in Convex logs
 - Using WorkOS password auth (not AuthKit hosted UI)
@@ -816,7 +822,7 @@ export async function validateSession(
 ```typescript
 // ❌ WRONG - Function signature accepts 1 param, called with 2
 function handleSwitchAccount(targetUserId: string) {
-    onSwitchAccount?.(targetUserId);  // ❌ redirectTo is dropped!
+	onSwitchAccount?.(targetUserId); // ❌ redirectTo is dropped!
 }
 
 // Called elsewhere:
@@ -826,19 +832,21 @@ handleSwitchAccount(userId, '/inbox?org=saprolab-id');
 
 // ✅ CORRECT - Function signature matches call sites
 function handleSwitchAccount(targetUserId: string, redirectTo?: string) {
-    onSwitchAccount?.(targetUserId, redirectTo);  // ✅ Both params passed
+	onSwitchAccount?.(targetUserId, redirectTo); // ✅ Both params passed
 }
 ```
 
 **Why**: JavaScript/TypeScript allows functions to be called with extra args - they're just ignored if not in signature. No errors, just silent data loss.
 
 **Apply when**:
+
 - Multi-parameter callbacks or event handlers
 - Account/workspace/organization switching logic
 - Any function that accepts optional URL/redirect parameters
 - Wrapper functions that delegate to other functions
 
 **Debug approach**:
+
 1. Check URL in browser - is query param present?
 2. Add console.log in function - are all params received?
 3. Trace backwards from server response to initial call
@@ -857,28 +865,29 @@ function handleSwitchAccount(targetUserId: string, redirectTo?: string) {
 ```typescript
 // ❌ WRONG - Single key for all accounts
 const STORAGE_KEY = 'activeOrganizationId';
-localStorage.setItem(STORAGE_KEY, orgId);  // ❌ Overwrites for all accounts!
+localStorage.setItem(STORAGE_KEY, orgId); // ❌ Overwrites for all accounts!
 
 // When user switches back to Account A:
-const orgId = localStorage.getItem(STORAGE_KEY);  // ❌ Gets Account B's workspace!
+const orgId = localStorage.getItem(STORAGE_KEY); // ❌ Gets Account B's workspace!
 
 // ✅ CORRECT - Account-specific keys
 function getStorageKey(userId: string | undefined): string {
-    return userId ? `activeOrganizationId_${userId}` : 'activeOrganizationId';
+	return userId ? `activeOrganizationId_${userId}` : 'activeOrganizationId';
 }
 
 function getStorageDetailsKey(userId: string | undefined): string {
-    return userId ? `activeOrganizationDetails_${userId}` : 'activeOrganizationDetails';
+	return userId ? `activeOrganizationDetails_${userId}` : 'activeOrganizationDetails';
 }
 
 // Each account has independent state:
-localStorage.setItem(getStorageKey(userIdA), orgIdA);  // ✅ Account A's workspace
-localStorage.setItem(getStorageKey(userIdB), orgIdB);  // ✅ Account B's workspace
+localStorage.setItem(getStorageKey(userIdA), orgIdA); // ✅ Account A's workspace
+localStorage.setItem(getStorageKey(userIdB), orgIdB); // ✅ Account B's workspace
 ```
 
 **Why**: localStorage is per-domain, not per-user. Multi-account systems need user-scoped keys.
 
 **Apply when**:
+
 - Multi-account session management (Slack/Notion pattern)
 - User can switch between different logged-in accounts
 - Each account has independent workspaces/organizations
@@ -899,69 +908,65 @@ localStorage.setItem(getStorageKey(userIdB), orgIdB);  // ✅ Account B's worksp
 ```typescript
 // ❌ WRONG - Only checks direct links
 async function linkExists(
-    ctx: QueryCtx,
-    userId1: Id<'users'>,
-    userId2: Id<'users'>
+	ctx: QueryCtx,
+	userId1: Id<'users'>,
+	userId2: Id<'users'>
 ): Promise<boolean> {
-    const link = await ctx.db
-        .query('accountLinks')
-        .filter(q => 
-            q.or(
-                q.and(q.eq(q.field('primaryUserId'), userId1), q.eq(q.field('linkedUserId'), userId2)),
-                q.and(q.eq(q.field('primaryUserId'), userId2), q.eq(q.field('linkedUserId'), userId1))
-            )
-        )
-        .first();
-    
-    return !!link;  // ❌ Only checks A→B, not A→B→C!
+	const link = await ctx.db
+		.query('accountLinks')
+		.filter((q) =>
+			q.or(
+				q.and(q.eq(q.field('primaryUserId'), userId1), q.eq(q.field('linkedUserId'), userId2)),
+				q.and(q.eq(q.field('primaryUserId'), userId2), q.eq(q.field('linkedUserId'), userId1))
+			)
+		)
+		.first();
+
+	return !!link; // ❌ Only checks A→B, not A→B→C!
 }
 
 // ✅ CORRECT - BFS to find transitive links
 async function linkExists(
-    ctx: QueryCtx,
-    userId1: Id<'users'>,
-    userId2: Id<'users'>
+	ctx: QueryCtx,
+	userId1: Id<'users'>,
+	userId2: Id<'users'>
 ): Promise<boolean> {
-    if (userId1 === userId2) return true;
-    
-    const visited = new Set<string>([userId1]);
-    const queue: Id<'users'>[] = [userId1];
-    
-    while (queue.length > 0) {
-        const current = queue.shift()!;
-        
-        // Get all links for current user
-        const links = await ctx.db
-            .query('accountLinks')
-            .filter(q =>
-                q.or(
-                    q.eq(q.field('primaryUserId'), current),
-                    q.eq(q.field('linkedUserId'), current)
-                )
-            )
-            .collect();
-        
-        for (const link of links) {
-            const neighbor = link.primaryUserId === current
-                ? link.linkedUserId
-                : link.primaryUserId;
-            
-            if (neighbor === userId2) return true;  // ✅ Found transitive link!
-            
-            if (!visited.has(neighbor)) {
-                visited.add(neighbor);
-                queue.push(neighbor);
-            }
-        }
-    }
-    
-    return false;
+	if (userId1 === userId2) return true;
+
+	const visited = new Set<string>([userId1]);
+	const queue: Id<'users'>[] = [userId1];
+
+	while (queue.length > 0) {
+		const current = queue.shift()!;
+
+		// Get all links for current user
+		const links = await ctx.db
+			.query('accountLinks')
+			.filter((q) =>
+				q.or(q.eq(q.field('primaryUserId'), current), q.eq(q.field('linkedUserId'), current))
+			)
+			.collect();
+
+		for (const link of links) {
+			const neighbor = link.primaryUserId === current ? link.linkedUserId : link.primaryUserId;
+
+			if (neighbor === userId2) return true; // ✅ Found transitive link!
+
+			if (!visited.has(neighbor)) {
+				visited.add(neighbor);
+				queue.push(neighbor);
+			}
+		}
+	}
+
+	return false;
 }
 ```
 
 **Why**: Account linking creates a graph - BFS traverses all reachable nodes (transitive closure).
 
 **Apply when**:
+
 - Multi-account linking (user can link multiple email addresses)
 - Need to check if two accounts are connected (directly or transitively)
 - User switches between any linked account, not just directly linked
@@ -988,38 +993,34 @@ function simpleEncrypt(text: string, key: string): string {
 	for (let i = 0; i < text.length; i++) {
 		result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
 	}
-	return btoa(result);  // ❌ Attackers can decrypt with browser console
+	return btoa(result); // ❌ Attackers can decrypt with browser console
 }
 
 // ✅ CORRECT: AES-256-GCM with PBKDF2 (SOC 2 compliant)
 async function encryptSession(plaintext: string): Promise<string> {
 	const encoder = new TextEncoder();
 	const data = encoder.encode(plaintext);
-	
+
 	// Derive 256-bit key with PBKDF2 (100k iterations)
-	const key = await deriveKey();  // PBKDF2 with browser fingerprint
-	
+	const key = await deriveKey(); // PBKDF2 with browser fingerprint
+
 	// Generate random IV (never reuse!)
 	const iv = crypto.getRandomValues(new Uint8Array(12));
-	
+
 	// Encrypt with AES-256-GCM (authenticated encryption)
-	const ciphertext = await crypto.subtle.encrypt(
-		{ name: 'AES-GCM', iv },
-		key,
-		data
-	);
-	
+	const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, data);
+
 	// Combine IV + ciphertext (GCM auth tag included)
 	const combined = new Uint8Array(iv.length + ciphertext.byteLength);
 	combined.set(iv, 0);
 	combined.set(new Uint8Array(ciphertext), iv.length);
-	
+
 	return btoa(String.fromCharCode(...combined));
 }
 
 async function deriveKey(): Promise<CryptoKey> {
 	const encoder = new TextEncoder();
-	
+
 	// Browser fingerprint for key uniqueness
 	const fingerprint = [
 		navigator.userAgent,
@@ -1027,7 +1028,7 @@ async function deriveKey(): Promise<CryptoKey> {
 		screen.height,
 		new Date().getTimezoneOffset()
 	].join('|');
-	
+
 	const keyMaterial = await crypto.subtle.importKey(
 		'raw',
 		encoder.encode(fingerprint),
@@ -1035,18 +1036,18 @@ async function deriveKey(): Promise<CryptoKey> {
 		false,
 		['deriveKey']
 	);
-	
+
 	// Derive AES-256 key (100k iterations, OWASP 2024 standard)
 	return await crypto.subtle.deriveKey(
 		{
 			name: 'PBKDF2',
 			salt: encoder.encode('syos-session-v1'),
-			iterations: 100_000,  // OWASP recommendation
+			iterations: 100_000, // OWASP recommendation
 			hash: 'SHA-256'
 		},
 		keyMaterial,
 		{ name: 'AES-GCM', length: 256 },
-		false,  // Not extractable
+		false, // Not extractable
 		['encrypt', 'decrypt']
 	);
 }
@@ -1057,23 +1058,24 @@ async function deriveKey(): Promise<CryptoKey> {
 ```typescript
 async function migrateToWebCrypto(): Promise<void> {
 	const migrated = localStorage.getItem('syos_crypto_migrated');
-	if (migrated === 'true') return;  // Already migrated
-	
+	if (migrated === 'true') return; // Already migrated
+
 	const oldEncrypted = localStorage.getItem('syos_sessions');
 	if (oldEncrypted) {
 		// Decrypt with old XOR method
 		const oldData = legacyDecrypt(oldEncrypted);
-		
+
 		// Re-encrypt with Web Crypto API
 		const newEncrypted = await encryptSession(oldData);
 		localStorage.setItem('syos_sessions', newEncrypted);
 	}
-	
+
 	localStorage.setItem('syos_crypto_migrated', 'true');
 }
 ```
 
 **Why Web Crypto?**
+
 - **AES-256-GCM**: NIST-approved authenticated encryption (detects tampering)
 - **PBKDF2**: Slow key derivation prevents brute force (100k iterations)
 - **Random IV**: Prevents pattern analysis (different ciphertext each time)
@@ -1082,27 +1084,32 @@ async function migrateToWebCrypto(): Promise<void> {
 **Security Properties:**
 
 ✅ **Protects Against:**
+
 - Casual browser console inspection
 - XSS attacks extracting session metadata
 - Malicious extensions reading localStorage
 - Data tampering (GCM authentication tag)
 
 ❌ **Does NOT Protect Against:**
+
 - Physical device access (browser has key material)
 - Browser vulnerabilities (if compromised, encryption won't help)
 - Memory dumps during encryption/decryption
 
 **Performance:**
+
 - First encryption: ~50ms (key derivation, then cached)
 - Subsequent: ~2-3ms (key already derived)
 - **Negligible impact** - users won't notice
 
 **Compliance:**
+
 - ✅ **SOC 2**: "Data at rest must be encrypted"
 - ✅ **GDPR**: "Appropriate technical measures"
 - ⚠️ **HIPAA**: PHI shouldn't be in localStorage (use httpOnly cookies)
 
 **Apply when**:
+
 - Storing session data in localStorage
 - Multi-account session management (Slack/Notion pattern)
 - SOC 2, GDPR, or enterprise security requirements
@@ -1123,106 +1130,110 @@ async function migrateToWebCrypto(): Promise<void> {
 ```typescript
 // ❌ WRONG - Unbounded BFS (DoS vulnerability)
 async function linkExists(
-    ctx: QueryCtx,
-    primaryUserId: Id<'users'>,
-    linkedUserId: Id<'users'>
+	ctx: QueryCtx,
+	primaryUserId: Id<'users'>,
+	linkedUserId: Id<'users'>
 ): Promise<boolean> {
-    const visited = new Set<string>();
-    const queue: Id<'users'>[] = [primaryUserId];  // ❌ No depth tracking!
-    
-    while (queue.length > 0) {  // ❌ Could iterate 100+ times!
-        const current = queue.shift()!;
-        // ... BFS without limits
-    }
+	const visited = new Set<string>();
+	const queue: Id<'users'>[] = [primaryUserId]; // ❌ No depth tracking!
+
+	while (queue.length > 0) {
+		// ❌ Could iterate 100+ times!
+		const current = queue.shift()!;
+		// ... BFS without limits
+	}
 }
 
 // ✅ CORRECT - Bounded BFS with depth and account limits
-const MAX_LINK_DEPTH = 3;       // Matches Slack (A→B→C→D max)
-const MAX_TOTAL_ACCOUNTS = 10;  // Industry standard
+const MAX_LINK_DEPTH = 3; // Matches Slack (A→B→C→D max)
+const MAX_TOTAL_ACCOUNTS = 10; // Industry standard
 
 async function linkExists(
-    ctx: QueryCtx,
-    primaryUserId: Id<'users'>,
-    linkedUserId: Id<'users'>
+	ctx: QueryCtx,
+	primaryUserId: Id<'users'>,
+	linkedUserId: Id<'users'>
 ): Promise<boolean> {
-    if (primaryUserId === linkedUserId) return true;
-    
-    const visited = new Set<string>();
-    const queue: Array<{ userId: Id<'users'>; depth: number }> = [
-        { userId: primaryUserId, depth: 0 }
-    ];
-    
-    while (queue.length > 0) {
-        const current = queue.shift()!;
-        
-        // ✅ Enforce depth limit (prevent deep chains)
-        if (current.depth >= MAX_LINK_DEPTH) {
-            continue;  // Skip this branch
-        }
-        
-        // ✅ Enforce account limit (prevent abuse)
-        if (visited.size > MAX_TOTAL_ACCOUNTS) {
-            console.warn(`User ${primaryUserId} has too many linked accounts`);
-            return false;  // Suspicious - reject
-        }
-        
-        if (visited.has(current.userId)) continue;
-        visited.add(current.userId);
-        
-        const links = await ctx.db
-            .query('accountLinks')
-            .withIndex('by_primary', q => q.eq('primaryUserId', current.userId))
-            .collect();
-        
-        for (const link of links) {
-            if (link.linkedUserId === linkedUserId) return true;
-            
-            if (!visited.has(link.linkedUserId)) {
-                queue.push({
-                    userId: link.linkedUserId,
-                    depth: current.depth + 1  // ✅ Track depth
-                });
-            }
-        }
-    }
-    
-    return false;
+	if (primaryUserId === linkedUserId) return true;
+
+	const visited = new Set<string>();
+	const queue: Array<{ userId: Id<'users'>; depth: number }> = [
+		{ userId: primaryUserId, depth: 0 }
+	];
+
+	while (queue.length > 0) {
+		const current = queue.shift()!;
+
+		// ✅ Enforce depth limit (prevent deep chains)
+		if (current.depth >= MAX_LINK_DEPTH) {
+			continue; // Skip this branch
+		}
+
+		// ✅ Enforce account limit (prevent abuse)
+		if (visited.size > MAX_TOTAL_ACCOUNTS) {
+			console.warn(`User ${primaryUserId} has too many linked accounts`);
+			return false; // Suspicious - reject
+		}
+
+		if (visited.has(current.userId)) continue;
+		visited.add(current.userId);
+
+		const links = await ctx.db
+			.query('accountLinks')
+			.withIndex('by_primary', (q) => q.eq('primaryUserId', current.userId))
+			.collect();
+
+		for (const link of links) {
+			if (link.linkedUserId === linkedUserId) return true;
+
+			if (!visited.has(link.linkedUserId)) {
+				queue.push({
+					userId: link.linkedUserId,
+					depth: current.depth + 1 // ✅ Track depth
+				});
+			}
+		}
+	}
+
+	return false;
 }
 
 // ✅ Validate BEFORE creating links
 export const linkAccounts = mutation({
-    handler: async (ctx, args) => {
-        // Check existing link count
-        const existingLinks = await ctx.db
-            .query('accountLinks')
-            .withIndex('by_primary', q => q.eq('primaryUserId', args.primaryUserId))
-            .collect();
-        
-        if (existingLinks.length >= MAX_TOTAL_ACCOUNTS - 1) {
-            throw new Error(`Cannot link more than ${MAX_TOTAL_ACCOUNTS} accounts`);
-        }
-        
-        // Check if linking would exceed depth
-        const wouldExceed = await checkLinkDepth(ctx, args.primaryUserId, args.linkedUserId);
-        if (wouldExceed) {
-            throw new Error(`Cannot link: would exceed maximum depth of ${MAX_LINK_DEPTH}`);
-        }
-        
-        // Create link...
-    }
+	handler: async (ctx, args) => {
+		// Check existing link count
+		const existingLinks = await ctx.db
+			.query('accountLinks')
+			.withIndex('by_primary', (q) => q.eq('primaryUserId', args.primaryUserId))
+			.collect();
+
+		if (existingLinks.length >= MAX_TOTAL_ACCOUNTS - 1) {
+			throw new Error(`Cannot link more than ${MAX_TOTAL_ACCOUNTS} accounts`);
+		}
+
+		// Check if linking would exceed depth
+		const wouldExceed = await checkLinkDepth(ctx, args.primaryUserId, args.linkedUserId);
+		if (wouldExceed) {
+			throw new Error(`Cannot link: would exceed maximum depth of ${MAX_LINK_DEPTH}`);
+		}
+
+		// Create link...
+	}
 });
 ```
 
-**Why**: 
+**Why**:
+
 - **DoS Attack**: Malicious user creates 100 accounts → links in circle → 100 queries per switch → $6/month cost per 1000 users
 - **Performance**: Unbounded BFS = O(N) where N = all linked accounts (could be 100+)
 - **User Experience**: 5+ second delays make app feel broken
 
 **Limits Rationale**:
+
 - `MAX_LINK_DEPTH = 3`: Slack's depth limit, covers 99% of legitimate use cases (personal + 2 work emails)
 - `MAX_TOTAL_ACCOUNTS = 10`: Slack/Notion standard, average user has 2-3 email addresses
 
 **Security Impact**:
+
 - ✅ DoS prevention: Max 10 queries (was unbounded)
 - ✅ Cost control: Predictable query costs
 - ✅ Performance: O(N) where N ≤ 10 (acceptable)
@@ -1230,12 +1241,14 @@ export const linkAccounts = mutation({
 - ✅ Backward compatible: Existing links work, only new links validated
 
 **Apply when**:
+
 - Implementing account linking/switching (Slack/Notion pattern)
 - BFS traversal on user-controlled data
 - Multi-tenancy with account relationships
 - Any feature where users can create graph structures
 
 **Error Handling**:
+
 ```typescript
 // Client-side: Catch and display user-friendly errors
 try {
@@ -1253,7 +1266,106 @@ try {
 
 ---
 
+## #L1060: E2E Testing for SessionID-Based Authentication [🟢 REFERENCE]
+
+**Symptom**: Security regressions ship to production (e.g., client-supplied `userId` allows impersonation)  
+**Root Cause**: Manual testing is slow, error-prone, and doesn't catch all edge cases  
+**Fix**:
+
+```typescript
+// e2e/auth.setup.ts - Authenticate once, reuse across tests
+import { test as setup, expect } from '@playwright/test';
+
+const authFile = 'e2e/.auth/user.json';
+
+setup('authenticate', async ({ page }) => {
+	const email = process.env.TEST_USER_EMAIL;
+	const password = process.env.TEST_USER_PASSWORD;
+
+	await page.goto('/login');
+	await page.locator('input[type="email"]').fill(email);
+	await page.locator('input[type="password"]').fill(password);
+	await page.locator('button[type="submit"]').click();
+
+	await page.waitForURL(/\/(inbox|dashboard)/);
+	await page.context().storageState({ path: authFile });
+});
+
+// e2e/security.spec.ts - Test critical flows
+import { test, expect } from '@playwright/test';
+
+test.use({ storageState: 'e2e/.auth/user.json' });
+
+test('should prevent ArgumentValidationError with sessionId', async ({ page }) => {
+	const consoleErrors: string[] = [];
+	page.on('console', (msg) => {
+		if (msg.type() === 'error') {
+			consoleErrors.push(msg.text());
+		}
+	});
+
+	// Test critical user flow (e.g., create note)
+	await page.goto('/inbox');
+	await page.keyboard.press('c'); // Quick create
+	await page.locator('.ProseMirror').type('Test note');
+	await page.locator('button:has-text("Create")').click();
+
+	// Verify no sessionId errors
+	const hasSessionIdError = consoleErrors.some(
+		(err) => err.includes('sessionId') || err.includes('ArgumentValidationError')
+	);
+	expect(hasSessionIdError).toBe(false);
+});
+```
+
+**4-Layer Defense**:
+
+1. **Static Analysis** - Scan code for `userId` passed to migrated functions
+2. **Unit Tests** - Test session validation logic (49 tests)
+3. **E2E Tests** - Test real user flows with authentication (16 tests)
+4. **CI/CD** - Block PRs if tests fail
+
+**Why**:
+
+- Manual testing missed 2 bugs (QuickCreateModal, GlobalActivityTracker)
+- E2E tests catch regressions **before production**
+- Authenticated test user enables realistic testing
+- Console error detection catches `ArgumentValidationError` early
+
+**Test User Setup**:
+
+```bash
+# .env.test (gitignored)
+TEST_USER_EMAIL=test+cicd@example.com
+TEST_USER_PASSWORD=secure_password_here
+```
+
+**Apply when**:
+
+- Migrating authentication patterns (e.g., `userId` → `sessionId`)
+- Testing security-critical flows (API keys, user isolation)
+- Building features with auth requirements
+- Implementing RBAC or multi-tenancy
+
+**Coverage by Module**:
+
+- **Quick Create**: 6 tests (note, flashcard, highlight, tags)
+- **Inbox**: 7 tests (list, process, navigate, sync progress)
+- **Settings**: 5 tests (API keys, theme, user isolation)
+
+**Run Tests**:
+
+```bash
+npm run test:e2e:setup           # Authenticate once
+npm run test:e2e:critical        # Run all critical tests
+npx playwright test --ui         # Debug mode
+```
+
+**Related**: #L760 (Pass userId when needed), #L810 (Parameter dropping), #L610 (Session expiry)
+
+---
+
 **Last Updated**: 2025-11-12  
-**Pattern Count**: 20  
-**Validated**: WorkOS AuthKit, SvelteKit, Vite, Convex, Svelte 5, Web Crypto API  
+**Pattern Count**: 21  
+**Validated**: WorkOS AuthKit, SvelteKit, Vite, Convex, Svelte 5, Web Crypto API, Playwright  
 **Format Version**: 2.0

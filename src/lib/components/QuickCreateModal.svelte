@@ -27,7 +27,7 @@
 		triggerMethod?: 'keyboard_n' | 'header_button' | 'footer_button';
 		currentView?: 'inbox' | 'flashcards' | 'tags' | 'my_mind' | 'study';
 		initialType?: ContentType | null;
-		userId?: Id<'users'>; // Required for session validation
+		sessionId?: string; // Required for session validation
 		organizationId?: string | null; // Active organization ID (for workspace context)
 		teamId?: string | null; // Active team ID (for workspace context)
 	};
@@ -37,7 +37,7 @@
 		triggerMethod = 'keyboard_n',
 		currentView = 'inbox',
 		initialType = null,
-		userId,
+		sessionId,
 		organizationId = null,
 		teamId = null
 	}: Props = $props();
@@ -45,12 +45,13 @@
 	const convexClient = browser ? useConvexClient() : null;
 
 	// Query all available tags
-	const allTagsQuery = browser && userId
-		? useQuery(api.tags.listAllTags, () => {
-				if (!userId) return null;
-				return { userId };
-			})
-		: null;
+	const allTagsQuery =
+		browser && sessionId
+			? useQuery(api.tags.listAllTags, () => {
+					if (!sessionId) return 'skip';
+					return { sessionId };
+				})
+			: null;
 	const availableTags = $derived(allTagsQuery?.data ?? []);
 
 	// Component state
@@ -197,12 +198,12 @@
 		}
 
 		try {
-			if (!userId) {
-				throw new Error('User ID is required');
+			if (!sessionId) {
+				throw new Error('Session ID is required');
 			}
 
 			const tagId = await convexClient.mutation(api.tags.createTag, {
-				userId,
+				sessionId,
 				displayName,
 				color,
 				parentId
@@ -250,19 +251,19 @@
 			let contentLength = 0;
 
 			if (selectedType === 'note') {
-				if (!userId) {
-					throw new Error('User ID is required');
+				if (!sessionId) {
+					throw new Error('Session ID is required');
 				}
-				
+
 				// Use the new notes API for rich text notes
 				await convexClient.mutation(api.notes.createNote, {
-					userId, // Session validation in Convex
+					sessionId, // Session validation in Convex
 					title: noteTitle || undefined,
 					content: typeof noteContent === 'string' ? noteContent : JSON.stringify(noteContent),
 					contentMarkdown: noteContentMarkdown || undefined,
 					isAIGenerated: noteIsAIGenerated || undefined,
-					organizationId: organizationId || undefined, // Pass active organization context
-					teamId: teamId || undefined // Pass active team context
+					organizationId: (organizationId as Id<'organizations'>) || undefined, // Pass active organization context
+					teamId: (teamId as Id<'teams'>) || undefined // Pass active team context
 				});
 
 				// If there are tags, we need to link them after creation
@@ -270,24 +271,24 @@
 
 				contentLength = noteContent.length;
 			} else if (selectedType === 'flashcard') {
-				if (!userId) {
-					throw new Error('User ID is required');
+				if (!sessionId) {
+					throw new Error('Session ID is required');
 				}
 
 				await convexClient.mutation(api.inbox.createFlashcardInInbox, {
-					userId,
+					sessionId,
 					question: question,
 					answer: answer,
 					tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined
 				});
 				contentLength = question.length + answer.length;
 			} else if (selectedType === 'highlight') {
-				if (!userId) {
-					throw new Error('User ID is required');
+				if (!sessionId) {
+					throw new Error('Session ID is required');
 				}
 
 				await convexClient.mutation(api.inbox.createHighlightInInbox, {
-					userId,
+					sessionId,
 					text: content,
 					sourceTitle: sourceTitle || undefined,
 					note: note || undefined,

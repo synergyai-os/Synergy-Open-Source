@@ -4,7 +4,12 @@ import { api, type Id } from '$lib/convex';
 import { PUBLIC_CONVEX_URL } from '$env/static/public';
 import { authenticateWithPassword } from '$lib/server/auth/workos';
 import { establishSession } from '$lib/server/auth/session';
-import { generateSessionId, generateRandomToken, hashValue, encryptSecret } from '$lib/server/auth/crypto';
+import {
+	generateSessionId,
+	generateRandomToken,
+	hashValue,
+	encryptSecret
+} from '$lib/server/auth/crypto';
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
 
 /**
@@ -12,10 +17,8 @@ import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
  * POST /auth/login
  * Body: { email, password, redirect? }
  */
-export const POST: RequestHandler = withRateLimit(
-	RATE_LIMITS.login,
-	async ({ event }) => {
-		console.log('🔍 POST /auth/login - Headless password authentication');
+export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ event }) => {
+	console.log('🔍 POST /auth/login - Headless password authentication');
 
 	try {
 		const body = await event.request.json();
@@ -23,10 +26,7 @@ export const POST: RequestHandler = withRateLimit(
 
 		if (!email || !password) {
 			console.error('❌ Missing email or password');
-			return json(
-				{ error: 'Email and password are required' },
-				{ status: 400 }
-			);
+			return json({ error: 'Email and password are required' }, { status: 400 });
 		}
 
 		// Validate email format
@@ -117,7 +117,7 @@ export const POST: RequestHandler = withRateLimit(
 						name:
 							authResponse.user.first_name && authResponse.user.last_name
 								? `${authResponse.user.first_name} ${authResponse.user.last_name}`
-								: authResponse.user.first_name ?? authResponse.user.last_name ?? undefined
+								: (authResponse.user.first_name ?? authResponse.user.last_name ?? undefined)
 					},
 					ipAddress: event.getClientAddress(),
 					userAgent: event.request.headers.get('user-agent') ?? undefined
@@ -144,7 +144,7 @@ export const POST: RequestHandler = withRateLimit(
 						name:
 							authResponse.user.first_name && authResponse.user.last_name
 								? `${authResponse.user.first_name} ${authResponse.user.last_name}`
-								: authResponse.user.first_name ?? authResponse.user.last_name ?? undefined
+								: (authResponse.user.first_name ?? authResponse.user.last_name ?? undefined)
 					}
 				});
 				console.log('✅ Switched to newly linked account successfully');
@@ -156,7 +156,7 @@ export const POST: RequestHandler = withRateLimit(
 				});
 			} catch (linkError: any) {
 				console.error('❌ Account linking failed:', linkError);
-				
+
 				// Handle specific linking errors
 				if (linkError.message?.includes('Cannot link more than')) {
 					return json(
@@ -167,22 +167,20 @@ export const POST: RequestHandler = withRateLimit(
 						{ status: 400 }
 					);
 				}
-				
+
 				if (linkError.message?.includes('would exceed maximum depth')) {
 					return json(
 						{
 							error: 'Link depth exceeded',
-							message: 'Cannot link these accounts due to complexity limits. Please contact support.'
+							message:
+								'Cannot link these accounts due to complexity limits. Please contact support.'
 						},
 						{ status: 400 }
 					);
 				}
-				
+
 				// Generic linking error
-				return json(
-					{ error: 'Failed to link accounts. Please try again.' },
-					{ status: 500 }
-				);
+				return json({ error: 'Failed to link accounts. Please try again.' }, { status: 500 });
 			}
 		}
 
@@ -206,7 +204,7 @@ export const POST: RequestHandler = withRateLimit(
 				name:
 					authResponse.user.first_name && authResponse.user.last_name
 						? `${authResponse.user.first_name} ${authResponse.user.last_name}`
-						: authResponse.user.first_name ?? authResponse.user.last_name ?? undefined
+						: (authResponse.user.first_name ?? authResponse.user.last_name ?? undefined)
 			}
 		});
 
@@ -221,7 +219,7 @@ export const POST: RequestHandler = withRateLimit(
 
 		// Parse WorkOS error if available
 		const errorMessage = (err as Error)?.message ?? 'Authentication failed';
-		
+
 		// Invalid credentials (wrong email or password)
 		if (errorMessage.includes('401') || errorMessage.includes('invalid_credentials')) {
 			return json(
@@ -231,7 +229,11 @@ export const POST: RequestHandler = withRateLimit(
 		}
 
 		// Account locked or suspended
-		if (errorMessage.includes('403') || errorMessage.includes('locked') || errorMessage.includes('suspended')) {
+		if (
+			errorMessage.includes('403') ||
+			errorMessage.includes('locked') ||
+			errorMessage.includes('suspended')
+		) {
 			return json(
 				{ error: 'Your account has been locked. Please contact support for assistance.' },
 				{ status: 403 }
@@ -241,7 +243,10 @@ export const POST: RequestHandler = withRateLimit(
 		// Account not found
 		if (errorMessage.includes('404') || errorMessage.includes('not found')) {
 			return json(
-				{ error: 'No account found with this email. Please check your email or create a new account.' },
+				{
+					error:
+						'No account found with this email. Please check your email or create a new account.'
+				},
 				{ status: 404 }
 			);
 		}
@@ -253,4 +258,3 @@ export const POST: RequestHandler = withRateLimit(
 		);
 	}
 });
-

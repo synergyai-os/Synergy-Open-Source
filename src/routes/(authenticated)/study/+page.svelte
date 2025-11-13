@@ -8,17 +8,18 @@
 	import { Button } from 'bits-ui';
 	import { api } from '$lib/convex';
 
-	const getUserId = () => $page.data.user?.userId;
-	const study = useStudySession(getUserId);
+	const getSessionId = () => $page.data.sessionId;
+	const study = useStudySession(getSessionId);
 
 	// Query all tags for filtering
-	const allTagsQuery = browser && getUserId()
-		? useQuery(api.tags.listAllTags, () => {
-				const userId = getUserId();
-				if (!userId) return null;
-				return { userId };
-			})
-		: null;
+	const allTagsQuery =
+		browser && getSessionId()
+			? useQuery(api.tags.listAllTags, () => {
+					const sessionId = getSessionId();
+					if (!sessionId) return 'skip';
+					return { sessionId };
+				})
+			: null;
 	const allTags = $derived(allTagsQuery?.data ?? []);
 
 	// Keyboard shortcuts for ratings

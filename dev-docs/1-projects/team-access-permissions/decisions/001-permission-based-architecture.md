@@ -311,9 +311,9 @@ if (user.role === "admin") { ... }
 
 ## Related Documents
 
-- **Architecture**: [rbac-architecture.md](../../../rbac-architecture.md)
-- **Quick Reference**: [rbac-quick-reference.md](../../../rbac-quick-reference.md)
-- **Visual Overview**: [rbac-visual-overview.md](../../../rbac-visual-overview.md)
+- **Architecture**: [rbac-architecture.md](../../../2-areas/rbac/rbac-architecture.md)
+- **Quick Reference**: [rbac-quick-reference.md](../../../2-areas/rbac/rbac-quick-reference.md)
+- **Visual Overview**: [rbac-visual-overview.md](../../../2-areas/rbac/rbac-visual-overview.md)
 - **Project README**: [README.md](../README.md)
 
 ---

@@ -10,8 +10,8 @@
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 
 	// Get user from page data
-	const { data } = $props();
-	const userId = data.user?.userId;
+	const userId = $derived($page.data.user?.userId);
+	const sessionId = $derived($page.data.sessionId);
 
 	// Get workspace context from Svelte context (set by root layout)
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
@@ -22,6 +22,7 @@
 
 	// Initialize permissions composable with workspace context
 	const permissions = usePermissions({
+		sessionId: () => sessionId as any,
 		userId: () => userId as any,
 		organizationId: () => activeOrganizationId as any
 	});
@@ -158,7 +159,7 @@
 			<div class="border-subtle mt-4 rounded-md border bg-surface p-3">
 				<h3 class="mb-2 text-label font-semibold text-secondary">Your Permissions:</h3>
 				<ul class="space-y-1">
-					{#each permissions.permissions as permission}
+					{#each permissions.permissions as permission (permission)}
 						<li class="font-mono text-sm text-primary">✓ {permission}</li>
 					{/each}
 				</ul>

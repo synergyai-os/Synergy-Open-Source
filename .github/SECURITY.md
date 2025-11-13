@@ -85,4 +85,3 @@ We support responsible disclosure. Any activities conducted in a manner consiste
 - [GitHub Security Best Practices](https://docs.github.com/en/code-security)
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - [CWE Top 25](https://cwe.mitre.org/top25/)
-

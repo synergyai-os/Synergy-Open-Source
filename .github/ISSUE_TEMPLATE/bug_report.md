@@ -44,4 +44,3 @@ Add any other context about the problem here.
 - [ ] I've searched existing issues to avoid duplicates
 - [ ] I've included all relevant information
 - [ ] I've tested on the latest version
-

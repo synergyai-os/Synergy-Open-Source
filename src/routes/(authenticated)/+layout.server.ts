@@ -10,6 +10,10 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 
 	return {
 		user: locals.auth.user,
-		isAuthenticated: true
+		isAuthenticated: true,
+		// Expose sessionId to client for Convex authentication
+		// Security: sessionId is already validated by hooks.server.ts middleware
+		// and cryptographically signed - safe to expose for auth purposes
+		sessionId: locals.auth.sessionId
 	};
 };

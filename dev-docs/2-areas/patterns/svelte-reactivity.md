@@ -743,22 +743,26 @@ let lastProcessedOrgParam: string | null = null;
 
 $effect(() => {
 	if (!browser) return;
-	
+
 	const urlOrgParam = getOrgFromUrl(); // Reactive read from URL
-	
+
 	// Skip if already processed (untrack prevents reactive dependency)
-	if (untrack(() => urlOrgParam === lastProcessedOrgParam && urlOrgParam === state.activeOrganizationId)) {
+	if (
+		untrack(
+			() => urlOrgParam === lastProcessedOrgParam && urlOrgParam === state.activeOrganizationId
+		)
+	) {
 		return;
 	}
-	
+
 	if (urlOrgParam && urlOrgParam !== state.activeOrganizationId) {
 		// Update tracking without triggering re-run
 		untrack(() => {
 			lastProcessedOrgParam = urlOrgParam;
 		});
-		
+
 		state.activeOrganizationId = urlOrgParam;
-		
+
 		// Clean up URL param immediately (prevents reprocessing)
 		const url = new URL(window.location.href);
 		url.searchParams.delete('org');
@@ -785,7 +789,7 @@ $effect(() => {
 	const urlParam = getParamFromUrl();
 	if (urlParam) {
 		state.value = urlParam;
-		
+
 		// Crashes on initial page load
 		const url = new URL(window.location.href);
 		url.searchParams.delete('param');
@@ -798,7 +802,7 @@ $effect(() => {
 	const urlParam = getParamFromUrl();
 	if (urlParam) {
 		state.value = urlParam;
-		
+
 		// Guard for initial page load when router isn't initialized yet
 		try {
 			const url = new URL(window.location.href);
@@ -816,6 +820,7 @@ $effect(() => {
 **Why it works**: Try-catch allows code to proceed gracefully when router isn't ready. URL parameter will be cleaned on next navigation, but won't cause reprocessing if proper tracking is implemented (see #L700).
 
 **Apply when**:
+
 - Using `replaceState()`, `pushState()`, or `goto()` in `$effect`
 - Processing URL parameters during initial page load
 - Error mentions "Cannot call [navigation function] before router is initialized"
@@ -889,6 +894,7 @@ const editorView = new EditorView(container, {
 **Why**: During component cleanup, Svelte is in a reactive evaluation context. Mutating `$state` during this phase violates Svelte's reactivity rules. `untrack()` prevents the mutation from being tracked as a reactive update.
 
 **Apply when**:
+
 - Event handlers mutate `$state` (focus/blur, scroll, resize)
 - Using third-party libraries that call handlers during cleanup (ProseMirror, Monaco)
 - Modal/component teardown triggers state updates
@@ -921,23 +927,24 @@ test: {
 	projects: [
 		{
 			name: 'client',
-			environment: 'browser',  // Playwright browser
+			environment: 'browser', // Playwright browser
 			browser: { enabled: true, provider: 'playwright' },
-			include: ['src/**/*.svelte.{test,spec}.{js,ts}']  // ← .svelte.test.ts
+			include: ['src/**/*.svelte.{test,spec}.{js,ts}'] // ← .svelte.test.ts
 		},
 		{
 			name: 'server',
-			environment: 'node',  // Node.js
-			include: ['src/**/*.{test,spec}.{js,ts}'],  // ← .test.ts
+			environment: 'node', // Node.js
+			include: ['src/**/*.{test,spec}.{js,ts}'], // ← .test.ts
 			exclude: ['src/**/*.svelte.{test,spec}.{js,ts}']
 		}
-	]
+	];
 }
 ```
 
 **Why**: Browser-only APIs (Web Crypto, localStorage, IndexedDB, canvas) need real browser environment. Vitest uses Playwright to run `.svelte.test.ts` files in actual Chromium.
 
 **Apply when**:
+
 - Testing Web Crypto API (encryption, hashing)
 - Testing browser storage (localStorage, sessionStorage, IndexedDB)
 - Testing browser APIs (Geolocation, Notifications, canvas, WebGL)

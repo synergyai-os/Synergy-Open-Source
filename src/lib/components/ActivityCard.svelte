@@ -80,7 +80,7 @@
 				</svg>
 			{:else if activity.status === 'error'}
 				<svg
-					class="text-error h-4 w-4 flex-shrink-0"
+					class="h-4 w-4 flex-shrink-0 text-error"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
