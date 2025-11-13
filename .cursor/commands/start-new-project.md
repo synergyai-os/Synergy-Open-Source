@@ -28,7 +28,8 @@
 2. **Read `/linear` command** ⭐ **CRITICAL** - Linear workflow, constants, ticket creation
 3. **Read `dev-docs/2-areas/development/coding-standards.md`** ⭐ **CRITICAL** - Coding rules (prevents linting errors)
 4. **Read `dev-docs/2-areas/product-principles.md`** ⭐ - How we make decisions (Outcomes Over Outputs, etc.)
-5. **Read `dev-docs/2-areas/product-vision-and-plan.md`** - Understand current state and direction
+5. **Read `marketing-docs/strategy/product-vision-2.0.md`** ⭐ - Current product vision (The Open-Source Product OS)
+   - ⚠️ **DO NOT read** `dev-docs/2-areas/product/product-vision-and-plan.md` - It's HISTORICAL
 6. **Read `dev-docs/2-areas/patterns/INDEX.md`** - Check for existing patterns to reuse
 7. **Read `dev-docs/2-areas/flow-metrics.md`** - Understand Linear labeling system
 

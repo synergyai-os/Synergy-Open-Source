@@ -48,11 +48,13 @@ jobs:
         run: npm run build
         env:
           # Convex configuration (both VITE_ and PUBLIC_ prefixes for SvelteKit compatibility)
+          # Note: Placeholders work fine - build only checks syntax/imports, doesn't make API calls
           VITE_CONVEX_URL: ${{ secrets.CONVEX_URL || 'https://placeholder.convex.cloud' }}
           PUBLIC_CONVEX_URL: ${{ secrets.CONVEX_URL || 'https://placeholder.convex.cloud' }}
           # Session management (required for crypto module initialization)
           SYOS_SESSION_SECRET: ${{ secrets.SYOS_SESSION_SECRET || 'placeholder-secret-for-ci-build-verification-only-32chars' }}
-          # WorkOS configuration (may be checked at build time, use placeholders)
+          # WorkOS configuration (placeholders sufficient - build doesn't validate auth)
+          # Production keys NOT needed here - they go in Vercel for actual deployments
           PUBLIC_WORKOS_CLIENT_ID: ${{ secrets.WORKOS_CLIENT_ID || 'placeholder-client-id' }}
           WORKOS_API_KEY: ${{ secrets.WORKOS_API_KEY || 'placeholder-api-key' }}
           WORKOS_REDIRECT_URI: ${{ secrets.WORKOS_REDIRECT_URI || 'http://localhost:5173/auth/callback' }}

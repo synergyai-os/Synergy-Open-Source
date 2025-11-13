@@ -1,0 +1,18 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:5173",
+  "loginUser": "randy+cicduser@synergyai.nl",
+  "loginPassword": "djz5gxt2tjg@wjz4BAF",
+  "executionArgs": {
+    "projectName": "SynergyOS",
+    "projectPath": "/Users/randyhereman/Coding/SynergyOS",
+    "testIds": [],
+    "additionalInstruction": "",
+    "envs": {
+      "API_KEY": "sk-user-E4hgUNFGg8JSYe1jwMK4WDTbGpiyFBLOfRyTYPW1-ybI_J74kmW-unaiQ1GGDtAiNrR72QxlVqdyBCjP8cKjuv1SqasAw0dM-c5fQV9E2EuHmF_j4YG-X1UKRYKF0ZU-Xfs"
+    }
+  },
+  "proxy": "http://5e349bcb-d65e-48a8-bceb-646b269db493:CqP1VqNAyPFvCD9OfhtBemgvB4qslTvj@tun.testsprite.com:8080"
+}

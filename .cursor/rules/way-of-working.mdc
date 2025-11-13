@@ -2,9 +2,9 @@
 alwaysApply: true
 ---
 
-## Project: Axon
+## Project: SynergyOS
 
-**Knowledge retention app** using CODE framework (Collect → Organise → Distill → Express).
+**The Open-Source Product OS** - An open-source, modular platform that integrates product discovery, delivery, and team collaboration with AI coaching trained on company data.
 
 **Tech Stack:**
 - Frontend: SvelteKit 5 + TypeScript + Svelte 5 Runes
@@ -17,9 +17,10 @@ alwaysApply: true
 ## Essential Documentation
 
 Read in order:
-1. `dev-docs/product-vision-and-plan.md` - Product vision, current state, next steps
-2. `dev-docs/2-areas/product-principles.md` - How we make decisions (Privacy First, Outcomes Over Outputs, etc.) ⭐
-3. **`dev-docs/patterns/INDEX.md`** - Fast pattern lookup (START HERE for debugging) ⭐
+1. `marketing-docs/strategy/product-vision-2.0.md` - **Current product vision** (The Open-Source Product OS) ⭐
+   - ⚠️ **DO NOT read** `dev-docs/2-areas/product/product-vision-and-plan.md` - It's HISTORICAL
+2. `dev-docs/2-areas/product/product-principles.md` - How we make decisions (Privacy First, Outcomes Over Outputs, etc.) ⭐
+3. **`dev-docs/2-areas/patterns/INDEX.md`** - Fast pattern lookup (START HERE for debugging) ⭐
 4. `dev-docs/2-areas/component-architecture.md` - Component strategy: Tokens → Utilities → Patterns → Components
 5. `dev-docs/2-areas/design-principles.md` - Visual philosophy, accessibility, UX (MANDATORY for UI) ⭐
 6. `dev-docs/architecture.md` - Tech stack, auth, composables, project structure
@@ -113,7 +114,7 @@ const data = $derived(query?.data ?? []);
 - `dev-docs/patterns/analytics.md` - PostHog patterns
 - `dev-docs/architecture.md` - Tech architecture
 - `dev-docs/design-tokens.md` - Token reference
-- `dev-docs/product-vision-and-plan.md` - Vision and roadmap
+- `marketing-docs/strategy/product-vision-2.0.md` - Current product vision (The Open-Source Product OS)
 
 **Code:**
 - `src/lib/composables/` - Composables (`.svelte.ts`)
@@ -166,7 +167,7 @@ const data = $derived(query?.data ?? []);
 
 ## Starting a Task
 
-1. Read `dev-docs/product-vision-and-plan.md` - Understand current state
+1. Read `marketing-docs/strategy/product-vision-2.0.md` - Understand current product vision
 2. Check `dev-docs/patterns/INDEX.md` - See if patterns exist
 3. Review `dev-docs/design-tokens.md` - If building UI
 4. Check `dev-docs/architecture.md` - If working on architecture

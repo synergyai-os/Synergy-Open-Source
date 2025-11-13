@@ -8,33 +8,94 @@ alwaysApply: true
 
 ---
 
-## 🚨 CRITICAL: NEVER Start Without Linear Project ID
+# 🚨🚨🚨 CRITICAL: REFUSE to Work Without Linear Ticket ID 🚨🚨🚨
 
-**Before writing ANY code or creating tickets:**
+## ⛔ **FIRST CHECK - BEFORE ANYTHING ELSE**
 
-1. **Check if project exists**:
-   ```typescript
-   const projects = await mcp_Linear_list_projects({ team: 'SYOS' });
-   const project = projects.find(p => p.name === 'Project Name');
+**⚠️ HARD BLOCKER: You can ONLY work when a Linear ticket ID is present in the conversation context.**
+
+**When `/start` is invoked or user asks you to work:**
+
+### IMMEDIATE CHECK (Before reading docs, calling tools, or doing ANY work):
+
+1. **Scan conversation for Linear ticket ID**:
+   - Pattern: "SYOS-123", "SYOS-XXX" (any number)
+   - Keywords: "ticket SYOS-", "Linear ticket", "issue SYOS-"
+   - Check user's message, conversation history
+
+2. **IF NO TICKET ID FOUND → STOP IMMEDIATELY:**
+
+   **DO NOT:**
+   - ❌ Read any documentation files
+   - ❌ Call any tools (read_file, codebase_search, etc.)
+   - ❌ Investigate the codebase
+   - ❌ Proceed with onboarding
+   - ❌ Do ANY work
+
+   **RESPOND WITH:**
+   ```
+   ❌ I cannot proceed without a Linear ticket ID.
+   
+   Please provide:
+   - Linear ticket ID (e.g., SYOS-123)
+   - OR say "create new ticket" and I'll help you create one
+   
+   Once I have a ticket ID, I'll proceed with the work.
    ```
 
-2. **If project doesn't exist → CREATE IT FIRST**:
+3. **IF TICKET ID FOUND → Continue with work**
+
+---
+
+## 📋 Creating Projects/Tickets (Only When User Requests)
+
+**If user says "create new ticket" or "create project":**
+
+1. **If project doesn't exist → CREATE IT FIRST** (only if user explicitly asks):
    ```typescript
-   const newProject = await mcp_Linear_create_project({
+   const projects = await mcp_Linear_list_projects({ team: 'SYOS' });
+   let project = projects.find(p => p.name === 'Project Name');
+   
+   if (!project) {
+     // Only create if user explicitly requests it
+     project = await mcp_Linear_create_project({
+       team: 'SYOS',
+       name: 'Project Name',
+       summary: 'One-line summary',
+       description: '# Project Overview\n...',
+       state: 'planned'
+     });
+   }
+   
+   const projectId = project.id; // ✅ Must have project ID before proceeding
+   ```
+
+3. **If ticket doesn't exist → CREATE IT FIRST** (only if user explicitly asks):
+   ```typescript
+   // Must have projectId first (from step 2)
+   const ticket = await mcp_Linear_create_issue({
      team: 'SYOS',
-     name: 'Project Name',
-     summary: 'One-line summary',
-     description: '# Project Overview\n...',
-     state: 'planned'
+     projectId: projectId, // ✅ Required
+     assigneeId: 'c7c555a2-895a-48b6-ae24-d4147d44b1d5', // ✅ Required
+     // ... see /linear command for complete format
    });
    ```
 
-3. **Store project ID** for all ticket creation:
-   ```typescript
-   const projectId = project?.id || newProject.id;
-   ```
+**🚫 REFUSAL RULE**: 
+- **NO Linear project/ticket** → **REFUSE to work**
+- **NO project ID** → **STOP and ask**
+- **NO ticket ID** → **STOP and ask**
 
-**Validation**: Do you have a Linear Project ID? If no → Create project first.
+**Response format when refusing:**
+```
+❌ I cannot proceed without a Linear project or ticket.
+
+Please provide:
+- Linear project ID (or create one with /start-new-project)
+- OR Linear ticket ID (e.g., SYOS-123)
+
+Once you have a project/ticket, I'll be happy to help!
+```
 
 ---
 

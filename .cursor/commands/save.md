@@ -1,6 +1,62 @@
 # save
 
-**Purpose**: Capture knowledge and commit work.
+**Purpose**: Capture knowledge, update Linear tickets, and commit work.
+
+---
+
+# 🚨🚨🚨 CRITICAL: Linear Ticket Required 🚨🚨🚨
+
+## ⛔ **DO NOT PROCEED WITHOUT LINEAR TICKET ID**
+
+**BEFORE doing ANYTHING (analyzing, updating patterns, committing):**
+
+### Step 1: Check for Linear Ticket ID
+
+**Look in the conversation for:**
+- "SYOS-123" or "SYOS-XXX" format
+- "ticket SYOS-123"
+- "Linear ticket"
+- Any mention of a Linear issue ID
+
+### Step 2: Decision
+
+**IF NO TICKET ID FOUND:**
+```
+❌ STOP IMMEDIATELY - I cannot save work without a Linear ticket ID.
+
+Please provide:
+- Linear ticket ID (e.g., SYOS-123)
+- OR say "create new ticket" and I'll help you create one
+
+Once I have a ticket ID, I'll proceed with saving.
+```
+
+**IF TICKET ID FOUND:**
+
+1. **Get ticket details** using `mcp_Linear_get_issue({ id: 'SYOS-123' })`
+2. **Check project ID** (REQUIRED unless user explicitly says "no"):
+   - If missing → Ask user: "Ticket SYOS-123 has no project ID. Which project should this belong to? (Say 'no project' to skip)"
+   - If user says "no project" → Continue (only exception)
+   - If user provides project → Get/create project → Update ticket with `projectId`
+   - If project ID exists → Continue
+3. **Check assignee** (ALWAYS set to Randy):
+   - If missing or not Randy → Update ticket with `assigneeId: 'c7c555a2-895a-48b6-ae24-d4147d44b1d5'`
+4. **Check estimate** (ALWAYS numeric):
+   - If missing or label (like "m") → Convert to numeric (m=3, s=2, l=4, etc.) and update ticket
+   - Use `estimate: 0-5` (numeric, not label)
+   - Default to `2` (s) if cannot determine
+
+**DO NOT:**
+- ❌ Analyze work (until ticket validated)
+- ❌ Update patterns (until ticket validated)
+- ❌ Commit changes (until ticket validated)
+- ❌ Do ANY work (until ticket validated)
+
+**ONLY AFTER ticket validated → Continue below**
+
+---
+
+## ✅ If Ticket ID Present - Continue with Save Workflow
 
 ---
 
@@ -33,15 +89,125 @@
 
 **Key workflow:**
 
+- Step 0: **🚨 Check for Linear ticket ID** (STOP if missing)
 - Step 1: Analyze as user story + capture flow metrics + determine flow distribution
-- Step 2: Use `grep` to search `dev-docs/2-areas/patterns/INDEX.md` and domain files in parallel
-- Step 3: Use `search_replace` to update domain files + INDEX.md
-- Step 4: Stage → commit with optimized format → show `git log -1 --stat`
-- Step 5: Report status (don't push to GitHub)
+- Step 2: **Update Linear ticket** (acceptance criteria, files changed, commits list)
+- Step 3: Use `grep` to search `dev-docs/2-areas/patterns/INDEX.md` and domain files in parallel
+- Step 4: Use `search_replace` to update domain files + INDEX.md
+- Step 5: Stage → commit with optimized format (include `Linear: SYOS-123`) → show `git log -1 --stat`
+- Step 6: Report status (don't push to GitHub)
 
 ---
 
 ## Workflow
+
+### 0. 🚨 Validate & Update Linear Ticket (DO THIS FIRST)
+
+**Before analyzing or committing, validate and update the Linear ticket:**
+
+1. **Get ticket ID from conversation** (e.g., SYOS-123)
+
+2. **Get ticket details** to check current state:
+   ```typescript
+   const ticket = await mcp_Linear_get_issue({ id: 'SYOS-123' });
+   
+   // Check project ID
+   if (!ticket.projectId) {
+     // Ask user for project (only continue if they say "no project")
+     // If user provides project → Update ticket with projectId
+   }
+   
+   // Check assignee (ALWAYS set to Randy)
+   const RANDY_USER_ID = 'c7c555a2-895a-48b6-ae24-d4147d44b1d5';
+   if (!ticket.assignee || ticket.assignee.id !== RANDY_USER_ID) {
+     // Update ticket with assigneeId
+   }
+   
+   // Check estimate (convert labels to numeric)
+   const ESTIMATES = { none: 0, xs: 1, s: 2, m: 3, l: 4, xl: 5 };
+   let estimate = ticket.estimate;
+   if (!estimate || typeof estimate === 'string') {
+     // Convert label to numeric (e.g., "m" → 3)
+     estimate = ESTIMATES[estimate as keyof typeof ESTIMATES] || 2; // Default to "s"
+     // Update ticket with numeric estimate
+   }
+   ```
+
+3. **Update ticket with completion status** (preserve projectId, assigneeId, estimate):
+   ```typescript
+   // Constants from /linear command
+   const RANDY_USER_ID = 'c7c555a2-895a-48b6-ae24-d4147d44b1d5';
+   const ESTIMATES = { none: 0, xs: 1, s: 2, m: 3, l: 4, xl: 5 };
+   
+   // Get ticket details first (from step 2)
+   const ticket = await mcp_Linear_get_issue({ id: 'SYOS-123' });
+   
+   // Ensure project ID (REQUIRED unless user explicitly says "no project")
+   let projectId = ticket.projectId;
+   if (!projectId) {
+     // Ask user: "Ticket SYOS-123 has no project ID. Which project should this belong to? (Say 'no project' to skip)"
+     // If user says "no project" → Continue with projectId = null/undefined
+     // If user provides project name → Get/create project → projectId = project.id
+     // If user doesn't respond → STOP (project ID is required)
+   }
+   
+   // Ensure assignee is Randy (ALWAYS)
+   const assigneeId = RANDY_USER_ID;
+   
+   // Ensure estimate is numeric (convert labels)
+   let estimate = ticket.estimate;
+   if (!estimate || typeof estimate === 'string') {
+     estimate = ESTIMATES[estimate as keyof typeof ESTIMATES] || 2; // Default to "s" (2)
+   }
+   
+   // Update ticket with completion status (preserve projectId, assigneeId, estimate)
+   await mcp_Linear_update_issue({
+     id: 'SYOS-123',
+     projectId: projectId, // ✅ Preserve or set from user
+     assigneeId: assigneeId, // ✅ ALWAYS Randy
+     estimate: estimate, // ✅ Numeric (0-5)
+     description: `
+     **Acceptance Criteria** (AI checks these off when complete):
+     - [x] Requirement 1 ← Completed
+     - [x] Requirement 2 ← Completed
+     - [ ] Requirement 3 ← Still pending
+     
+     **Files Changed** (AI updates with ✅ when done):
+     - ✅ path/to/file.ts - What changed
+     - ✅ path/to/component.svelte - What changed
+     
+     **Implementation Notes** (AI adds as work progresses):
+     - Key decision: Used composable pattern
+     - Edge case: Handled null values
+     
+     **Commits** (AI adds when committing):
+     - [commit-hash] - Description
+     `
+   });
+   ```
+
+4. **Add completion comment**:
+   ```typescript
+   await mcp_Linear_create_comment({
+     issueId: 'SYOS-123',
+     body: '✅ Ready for review - [Brief description of what shipped] | Commit: [hash]'
+   });
+   ```
+
+5. **Mark ticket as "In Review"** (preserve projectId, assigneeId, estimate):
+   ```typescript
+   await mcp_Linear_update_issue({
+     id: 'SYOS-123',
+     projectId: projectId, // ✅ Preserve from step 2
+     assigneeId: RANDY_USER_ID, // ✅ ALWAYS Randy
+     estimate: estimate, // ✅ Numeric (preserve from step 2)
+     state: 'In Review' // Human will mark "Done" after testing
+   });
+   ```
+
+**See**: `/linear` command for complete ticket update workflow
+
+---
 
 ### 1. Analyze Session - Frame as User Story + Flow Metrics
 
@@ -61,10 +227,10 @@
 
 **⚠️ Linear Integration:**
 
-- Every Linear ticket MUST include:
-  - **Flow Distribution label**: `feature`, `bug`, `tech-debt`, or `risk`
-  - **Linear ticket ID** in commit message: `Linear: SYOS-123`
-  - This enables automation and Flow Metrics tracking
+- **Ticket ID MUST be in conversation** (checked in Step 0)
+- **Update ticket BEFORE committing** (Step 0 workflow)
+- **Commit message MUST include**: `Linear: SYOS-123`
+- **Flow Distribution label**: Already set when ticket was created (`feature`, `bug`, `tech-debt`, or `risk`)
 
 **See**: `/linear` command for complete Linear workflow and constants
 
@@ -169,6 +335,8 @@ So that [outcome/value]
 
 ### 4. Commit
 
+**⚠️ CRITICAL**: Commit message MUST include `Linear: SYOS-123` (use ticket ID from conversation)
+
 Use **optimized format** for GitHub list view display.
 
 #### Format Template
@@ -224,7 +392,7 @@ TYPE: X | SCOPE: Y | SIZE: Z | DAYS: N | IMPACT: I
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🤖 AI: [collaboration notes]
-🔗 CLOSES: #[issue]
+🔗 Linear: SYOS-123
 ```
 
 **📖 KEY OPTIMIZATION:**
@@ -583,6 +751,13 @@ After successful commit on feature branch:
 
 **Before Committing:**
 
+- [ ] **🚨 Linear ticket ID present** in conversation (SYOS-XXX format)
+- [ ] **Got ticket details** using `mcp_Linear_get_issue({ id: 'SYOS-123' })`
+- [ ] **Project ID validated** (asked user if missing, only continue if they say "no project")
+- [ ] **Assignee set to Randy** (`assigneeId: 'c7c555a2-895a-48b6-ae24-d4147d44b1d5'`)
+- [ ] **Estimate is numeric** (converted labels like "m" → 3, default to 2 if missing)
+- [ ] **Updated Linear ticket** (acceptance criteria, files changed, commits list, comment)
+- [ ] **Marked ticket "In Review"** (preserving projectId, assigneeId, estimate)
 - [ ] ⚠️ Did NOT read `patterns-and-lessons.md` (it's just a redirect!)
 - [ ] Searched `dev-docs/2-areas/patterns/INDEX.md` for existing patterns (grep tool)
 - [ ] Searched domain files (svelte-reactivity.md, convex-integration.md, etc.) in parallel
@@ -603,7 +778,7 @@ After successful commit on feature branch:
 - [ ] Created PATTERN section if applicable
 - [ ] Filled FLOW METRICS section (7 data points)
 - [ ] Credited AI collaboration if applicable
-- [ ] Added issue reference if applicable (CLOSES: #123)
+- [ ] **Added Linear ticket reference**: `Linear: SYOS-123` (REQUIRED)
 
 **After Commit:**
 
@@ -635,30 +810,47 @@ After successful commit on feature branch:
 ## Quick AI Workflow
 
 ```
-1. Analyze → Frame as user story + flow metrics + distribution
+0. 🚨 Check for Linear ticket ID (STOP if missing)
+   - Look for SYOS-XXX in conversation
+   - If missing → STOP and ask for ticket ID
+
+1. Validate & Update Linear ticket FIRST (before committing):
+   - Get ticket details: mcp_Linear_get_issue({ id: 'SYOS-123' })
+   - Check project ID: If missing → Ask user (only continue if they say "no project")
+   - Check assignee: If missing/not Randy → Set to Randy (c7c555a2-895a-48b6-ae24-d4147d44b1d5)
+   - Check estimate: If missing/label → Convert to numeric (m=3, s=2, l=4, default=2)
+   - Update acceptance criteria (check off completed items)
+   - Update files changed (add ✅ emoji)
+   - Add implementation notes
+   - Add commit hash to commits list
+   - Add completion comment
+   - Mark ticket "In Review" (preserving projectId, assigneeId, estimate)
+
+2. Analyze → Frame as user story + flow metrics + distribution
    - WHO benefits? WHAT VALUE? WHAT SLICE?
    - Category: FEATURE | BUGFIX | TECH-DEBT | DOCS | RISK
    - Type, scope, size, days, hours, blocked, files, impact
 
-2. Search patterns (use grep, batch parallel reads):
+3. Search patterns (use grep, batch parallel reads):
    - INDEX: dev-docs/2-areas/patterns/INDEX.md
    - Domain files: svelte-reactivity.md, convex-integration.md, ui-patterns.md,
      analytics.md, auth-deployment.md
    - ⚠️ DON'T read patterns-and-lessons.md (it's just a redirect)
 
-3. Update patterns FIRST (before committing code):
+4. Update patterns (before committing code):
    - Add/update domain file with search_replace
    - Update INDEX.md symptom table
    - Use line numbers for references (#L810)
 
-4. Commit with optimized format:
+5. Commit with optimized format:
    Subject: [ICON CATEGORY] outcome (max 50 chars)
    Line 1: TYPE: X | SCOPE: Y | SIZE: Z | DAYS: N | IMPACT: I
    Body: USER STORY (👤🎯💡) + SLICE + JOURNEY (🛑⚠️✅) + PATTERN + FLOW METRICS
+   Footer: Linear: SYOS-123 (REQUIRED)
 
-5. Report status (DON'T push to GitHub):
+6. Report status (DON'T push to GitHub):
    → Show: git log -1 --stat
-   → Confirm: "✅ Committed locally. Ready when you want to push."
+   → Confirm: "✅ Committed locally. Linear ticket updated. Ready when you want to push."
 ```
 
 **End message format:**

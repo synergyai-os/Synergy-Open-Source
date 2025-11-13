@@ -4,6 +4,47 @@
 
 ---
 
+# 🚨🚨🚨 CRITICAL: STOP AND CHECK THIS FIRST 🚨🚨🚨
+
+## ⛔ **DO NOT READ DOCUMENTATION UNTIL YOU CHECK THIS**
+
+**BEFORE reading any docs, calling any tools, or doing ANY work:**
+
+### Step 1: Check for Linear Ticket ID
+
+**Look in the conversation for:**
+- "SYOS-123" or "SYOS-XXX" format
+- "ticket SYOS-123"
+- "Linear ticket"
+- Any mention of a Linear issue ID
+
+### Step 2: Decision
+
+**IF NO TICKET ID FOUND:**
+```
+❌ STOP IMMEDIATELY - I cannot proceed without a Linear ticket ID.
+
+Please provide:
+- Linear ticket ID (e.g., SYOS-123)
+- OR say "create new ticket" and I'll help you create one
+
+Once I have a ticket ID, I'll proceed with the work.
+```
+
+**DO NOT:**
+- ❌ Read documentation
+- ❌ Call any tools
+- ❌ Investigate the codebase
+- ❌ Do ANY work
+
+**ONLY AFTER ticket ID is provided → Continue below**
+
+---
+
+## ✅ If Ticket ID Present - Continue Onboarding
+
+---
+
 ## ⚠️ CRITICAL: Communication Style
 
 **User prefers concise, dense communication:**
@@ -33,16 +74,23 @@
 
 **Why**: Prevents writing unnecessary code, introducing bugs, creating spaghetti code, and leaving garbage in the codebase. We want simple, clean, maintainable, scalable, reliable, secure code.
 
-## 🔍 Workflow: Investigate → Scope → Plan → Confirm
+## 🔍 Workflow: Linear Ticket Check → Investigate → Scope → Plan → Confirm
 
-**Before building anything:**
+**Before doing ANYTHING:**
+
+0. **🚨 Linear Ticket Check** - **MUST HAVE Linear ticket ID** (REFUSE if missing)
+   - Check conversation for ticket ID (SYOS-XXX format)
+   - If missing → STOP and ask for ticket ID
+   - If present → Continue to step 1
 
 1. **Investigate** - Understand current state, existing patterns
 2. **Scope** - Define what's in/out
 3. **Plan** - Outline approach, steps, issues
 4. **Confirm** - Get user approval
 
-**Never start coding without user confirmation.**
+**Never start ANY work without:**
+- ✅ Linear ticket ID (e.g., SYOS-123)
+- ✅ User confirmation
 
 ---
 
@@ -121,27 +169,52 @@
 
 ---
 
-## 📋 **Linear Ticket Management**
+## 🚨 **CRITICAL: Linear Ticket ID Required**
 
-**For Linear workflow, ticket creation, and management:**
-- **Command**: `/linear` - Complete Linear reference (constants, ticket writing, workflows)
-- **Rule**: `.cursor/rules/working-with-linear.mdc` - Critical rules (Project ID required, Assign user)
+**⚠️ HARD BLOCKER: You can ONLY work with a Linear ticket ID present in context.**
 
-**See**: `/linear` command for complete Linear workflow
+**Before reading docs, investigating, or doing ANY work:**
+
+1. **Check conversation for Linear ticket ID**:
+   - Look for: "SYOS-123", "ticket SYOS-123", "Linear ticket SYOS-XXX"
+   - Check if user mentioned a ticket in their request
+
+2. **If NO ticket ID found → STOP and respond:**
+   ```
+   ❌ I cannot proceed without a Linear ticket ID.
+   
+   Please provide:
+   - Linear ticket ID (e.g., SYOS-123)
+   - OR say "create new ticket" and I'll help you create one using /linear command
+   
+   Once I have a ticket ID, I'll proceed with the work.
+   ```
+
+3. **If ticket ID provided → Continue with work**
+
+**Why**: 
+- All work must be tracked in Linear for visibility and Flow Metrics
+- Keeps workflow clean and documentation focused
+- Prevents undocumented work
+
+**Rule**: `.cursor/rules/working-with-linear.mdc` - **REFUSE to work without Linear ticket ID**
+
+**See**: `/linear` command for ticket creation workflow
 
 ---
 
 ## 🎯 Remember
 
-1. **Coding Standards** - Read `dev-docs/2-areas/development/coding-standards.md` FIRST ⭐
-2. **Communication** - Short, dense, concise
-3. **No auto-docs** - Never create docs unless asked
-4. **Product Principles** - Read first, outcomes over outputs
-5. **Business Language** - Avoid jargon in project names
-6. **Investigate first** - Understand before acting
-7. **Confirm before building** - Scope, plan, get approval
-8. **Context7 first** - For library docs before web search
-9. **Domain**: Production domain is `www.synergyos.ai` (not synergyos.dev or synergyos.ai)
+1. **🚨 Linear Required** - **REFUSE to work without Linear project/ticket** ⭐ **CRITICAL**
+2. **Coding Standards** - Read `dev-docs/2-areas/development/coding-standards.md` FIRST ⭐
+3. **Communication** - Short, dense, concise
+4. **No auto-docs** - Never create docs unless asked
+5. **Product Principles** - Read first, outcomes over outputs
+6. **Business Language** - Avoid jargon in project names
+7. **Investigate first** - Understand before acting
+8. **Confirm before building** - Scope, plan, get approval
+9. **Context7 first** - For library docs before web search
+10. **Domain**: Production domain is `www.synergyos.ai` (not synergyos.dev or synergyos.ai)
 
 ---
 
@@ -150,9 +223,12 @@
 **Before starting ANY work:**
 
 1. **`dev-docs/2-areas/development/coding-standards.md`** ⭐ **CRITICAL** - Coding rules for AI agents (prevents 483 linting errors)
-2. **`dev-docs/2-areas/product-principles.md`** ⭐ - How we make decisions (Outcomes Over Outputs, Privacy First, etc.)
-3. **`.cursor/rules/way-of-working.mdc`** - Project overview, tech stack, conventions
-4. **`dev-docs/2-areas/patterns/INDEX.md`** - Existing solutions, don't reinvent
+2. **`marketing-docs/strategy/product-vision-2.0.md`** ⭐ **CRITICAL** - Current product vision (The Open-Source Product OS)
+   - ⚠️ **DO NOT read** `dev-docs/2-areas/product/product-vision-and-plan.md` - It's HISTORICAL
+   - ✅ **Read** `marketing-docs/strategy/product-vision-2.0.md` - Current vision
+3. **`dev-docs/2-areas/product/product-principles.md`** ⭐ - How we make decisions (Outcomes Over Outputs, Privacy First, etc.)
+4. **`.cursor/rules/way-of-working.mdc`** - Project overview, tech stack, conventions
+5. **`dev-docs/2-areas/patterns/INDEX.md`** - Existing solutions, don't reinvent
 
 **Key principles:**
 
@@ -160,6 +236,11 @@
 - **Business-Friendly Naming** - Use common language, not jargon
 - **Team Ownership** - Know who owns the work
 - **AI Transparency** - Mark guesses as: `{Your guess} (by AI → not validated yet)`
+
+**⚠️ IMPORTANT**: 
+- Project is **SynergyOS** (The Open-Source Product OS) - NOT "Axon"
+- Current vision: `marketing-docs/strategy/product-vision-2.0.md`
+- Historical docs are marked as HISTORICAL - ignore them
 
 **For Linear ticket management:**
 
