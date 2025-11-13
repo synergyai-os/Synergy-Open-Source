@@ -17,9 +17,7 @@
 					const theme =
 						stored === 'light' || stored === 'dark'
 							? stored
-							: window.matchMedia('(prefers-color-scheme: dark)').matches
-								? 'dark'
-								: 'light';
+							: 'light'; // Default to light mode
 
 					if (theme === 'dark') {
 						document.documentElement.classList.add('dark');
@@ -29,8 +27,9 @@
 						document.documentElement.classList.remove('dark');
 					}
 				} catch (e) {
-					// Fallback to dark mode if localStorage access fails
-					document.documentElement.classList.add('dark');
+					// Fallback to light mode if localStorage access fails
+					document.documentElement.classList.add('light');
+					document.documentElement.classList.remove('dark');
 				}
 			})();
 

@@ -14,7 +14,7 @@ export type Theme = 'light' | 'dark';
  * Initialize theme from localStorage or system preference
  */
 function getInitialTheme(): Theme {
-	if (typeof window === 'undefined') return 'dark';
+	if (typeof window === 'undefined') return 'light';
 
 	try {
 		const stored = localStorage.getItem('axon-theme');
@@ -25,9 +25,8 @@ function getInitialTheme(): Theme {
 		console.warn('Failed to load theme from localStorage:', error);
 	}
 
-	// Default to system preference
-	const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-	return prefersDark ? 'dark' : 'light';
+	// Default to light mode
+	return 'light';
 }
 
 /**
