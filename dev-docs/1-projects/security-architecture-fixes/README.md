@@ -18,9 +18,9 @@
 
 ### Main Documents
 
-| Document                                                           | Purpose            | Read Time |
-| ------------------------------------------------------------------ | ------------------ | --------- |
-| [IMPLEMENTATION-ROADMAP.md](./IMPLEMENTATION-ROADMAP.md)           | 4-week phased plan | 15 min    |
+| Document                                                       | Purpose            | Read Time |
+| -------------------------------------------------------------- | ------------------ | --------- |
+| [IMPLEMENTATION-ROADMAP.md](./IMPLEMENTATION-ROADMAP.md)       | 4-week phased plan | 15 min    |
 | [SECURITY-AUDIT-2025-11-12.md](./SECURITY-AUDIT-2025-11-12.md) | Full audit report  | 30 min    |
 
 ### Implementation Specs (Phase 1: Critical)

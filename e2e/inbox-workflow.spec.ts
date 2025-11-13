@@ -185,10 +185,6 @@ test.describe('Inbox Security - User Isolation', () => {
 
 		// If sessionId auth works, getInboxItem will return null or throw
 		// for items not owned by this user
-		const hasUnauthorizedError = consoleErrors.some(
-			(err) => err.includes('unauthorized') || err.includes('not found')
-		);
-
 		// No unauthorized errors is good (user only sees their items)
 		// Unauthorized errors are also fine (proper rejection)
 		// Only sessionId errors are bad

@@ -1221,13 +1221,14 @@ export const listTags = query({
 });
 
 // Frontend usage with 'skip' pattern
-const tagsQuery = browser && getSessionId()
-	? useQuery(api.tags.listAllTags, () => {
-			const sessionId = getSessionId();
-			if (!sessionId) return 'skip'; // ✅ Convex 'skip' pattern
-			return { sessionId };
-		})
-	: null;
+const tagsQuery =
+	browser && getSessionId()
+		? useQuery(api.tags.listAllTags, () => {
+				const sessionId = getSessionId();
+				if (!sessionId) return 'skip'; // ✅ Convex 'skip' pattern
+				return { sessionId };
+			})
+		: null;
 ```
 
 **Migration Checklist**:
@@ -1236,7 +1237,6 @@ const tagsQuery = browser && getSessionId()
    - Change `userId: v.id('users')` → `sessionId: v.string()`
    - Import `validateSessionAndGetUserId`
    - Destructure: `const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId)`
-   
 2. **Frontend (Svelte)**:
    - Change `const getUserId = () => $page.data.user?.userId` → `const getSessionId = () => $page.data.sessionId`
    - Use 'skip' pattern: `if (!sessionId) return 'skip';`
@@ -1290,7 +1290,7 @@ const t = convexTest(schema); // ❌ Fails with .glob error
 
 // ✅ CORRECT: Create test.setup.ts with modules map
 // tests/convex/integration/test.setup.ts
-export const modules = import.meta.glob("../../../convex/**/!(*.*.*)*.*s");
+export const modules = import.meta.glob('../../../convex/**/!(*.*.*)*.*s');
 // Pattern: Match all .ts/.js files in convex/, exclude files with multiple dots (*.test.ts, *.config.ts)
 
 // Pass both schema AND modules to convexTest
@@ -1317,7 +1317,7 @@ const t = convexTest(schema, modules); // ✅ Works
 // ❌ WRONG: Missing required fields
 await ctx.db.insert('users', {
 	workosId: `test_${now}`,
-	email: `test@example.com`,
+	email: `test@example.com`
 	// ❌ Missing: firstName, lastName, emailVerified, updatedAt, lastLoginAt
 });
 
@@ -1326,12 +1326,12 @@ await ctx.db.insert('users', {
 	workosId: `test_workos_${now}`,
 	email: `test-${now}@example.com`,
 	name: 'Test User',
-	firstName: 'Test',       // ✅ Required
-	lastName: 'User',        // ✅ Required
-	emailVerified: true,     // ✅ Required
+	firstName: 'Test', // ✅ Required
+	lastName: 'User', // ✅ Required
+	emailVerified: true, // ✅ Required
 	createdAt: now,
-	updatedAt: now,          // ✅ Required
-	lastLoginAt: now         // ✅ Required
+	updatedAt: now, // ✅ Required
+	lastLoginAt: now // ✅ Required
 });
 
 // Common missing fields by table:
@@ -1344,6 +1344,7 @@ await ctx.db.insert('users', {
 ```
 
 **Debugging Pattern**:
+
 1. Run integration tests
 2. Note `Validator error: Missing required field X`
 3. Check `convex/schema.ts` for table definition
@@ -1394,8 +1395,9 @@ export async function cleanupTestData(t: TestConvex<any>, userId: Id<'users'>) {
 ```
 
 **Common Cleanup Order** (child first, parent last):
+
 1. authSessions (child of user)
-2. userRoles (child of user)  
+2. userRoles (child of user)
 3. organizationMembers (child of user)
 4. flashcards (child of user)
 5. tags (child of user)
@@ -1427,8 +1429,8 @@ export async function createTestSession(t: TestConvex<any>) {
 
 	const userId = await t.run(async (ctx) => {
 		return await ctx.db.insert('users', {
-			workosId: `test_workos_${uniqueId}`,    // ✅ Unique
-			email: `test-${uniqueId}@example.com`,  // ✅ Unique
+			workosId: `test_workos_${uniqueId}`, // ✅ Unique
+			email: `test-${uniqueId}@example.com` // ✅ Unique
 			// ... other fields
 		});
 	});
@@ -1437,7 +1439,7 @@ export async function createTestSession(t: TestConvex<any>) {
 	await t.run(async (ctx) => {
 		await ctx.db.insert('authSessions', {
 			sessionId,
-			convexUserId: userId,
+			convexUserId: userId
 			// ... other fields
 		});
 	});
@@ -1449,6 +1451,7 @@ export async function createTestSession(t: TestConvex<any>) {
 **Why This Matters**: User isolation tests create multiple users rapidly. Without counter, sessions can collide.
 
 **Test Pattern**:
+
 ```typescript
 // User isolation test (now works correctly)
 it('should enforce user isolation', async () => {
@@ -1512,6 +1515,7 @@ it.skip('should remove organization member', async () => {
 ```
 
 **Migration Path**:
+
 1. Identify functions using `getAuthUserId(ctx)` without sessionId parameter
 2. Either: Add `sessionId` parameter (preferred) OR skip integration tests
 3. Document with TODO comment explaining the limitation

@@ -71,17 +71,17 @@ export const GET: RequestHandler = async (event) => {
 					linkedUserId: convexUserId
 				});
 
-			// Create session record for linked account (so they can switch to it later)
-			const { createSessionRecord } = await import('$lib/server/auth/sessionStore');
-			const { generateRandomToken } = await import('$lib/server/auth/crypto');
+				// Create session record for linked account (so they can switch to it later)
+				const { createSessionRecord } = await import('$lib/server/auth/sessionStore');
+				const { generateRandomToken } = await import('$lib/server/auth/crypto');
 
-			await createSessionRecord({
-				convexUserId,
-				workosUserId: authResponse.user.id,
-				workosSessionId: authResponse.session.id,
-				accessToken: authResponse.access_token,
-				refreshToken: authResponse.refresh_token,
-				csrfToken: generateRandomToken(32),
+				await createSessionRecord({
+					convexUserId,
+					workosUserId: authResponse.user.id,
+					workosSessionId: authResponse.session.id,
+					accessToken: authResponse.access_token,
+					refreshToken: authResponse.refresh_token,
+					csrfToken: generateRandomToken(32),
 					expiresAt,
 					userSnapshot: {
 						userId: convexUserId,

@@ -416,7 +416,7 @@ git commit --no-verify  # ⚠️ DON'T DO THIS unless emergency
 - [Integration Test README](../tests/convex/integration/README.md)
 - [SYOS-44: Testing Infrastructure](https://linear.app/younghumanclub/issue/SYOS-44)
 - [SYOS-45: Integration Tests](https://linear.app/younghumanclub/issue/SYOS-45)
-- [convex-test Documentation](https://www.npmjs.com/package/convex-test)
+- [convex-test Documentation](https://github.com/get-convex/convex-test)
 
 ---
 

@@ -6,81 +6,81 @@
 
 ## 🔴 CRITICAL Patterns (Fix Immediately)
 
-| Symptom                                                                      | Solution                                                             | Details                                                             |
-| ---------------------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Auth fails, `op://...` strings in browser                                    | Use actual values in .env.local for PUBLIC\_ vars                    | [auth-deployment.md#L10](auth-deployment.md#L10)                    |
-| Logout doesn't work, cookies persist                                         | Match exact attributes when deleting cookies                         | [auth-deployment.md#L160](auth-deployment.md#L160)                  |
-| Build fails: "Could not load [deleted-file]"                                 | Check all imports before deleting files                              | [auth-deployment.md#L260](auth-deployment.md#L260)                  |
-| Auth works but users not in Convex DB                                        | Deploy Convex functions to correct environment                       | [auth-deployment.md#L510](auth-deployment.md#L510)                  |
-| State not updating in UI                                                     | Use `$state({})` + getters                                           | [svelte-reactivity.md#L10](svelte-reactivity.md#L10)                |
-| `undefined is not a valid Convex value`                                      | Strip undefined from payloads                                        | [convex-integration.md#L10](convex-integration.md#L10)              |
-| `Only actions can be defined in Node.js`                                     | Separate "use node" files                                            | [convex-integration.md#L50](convex-integration.md#L50)              |
-| Composable receives stale values                                             | Pass functions `() => value`                                         | [svelte-reactivity.md#L80](svelte-reactivity.md#L80)                |
-| Component shows stale/old data                                               | Key on data, not ID                                                  | [svelte-reactivity.md#L140](svelte-reactivity.md#L140)              |
-| `.ts` file: "Cannot assign to constant"                                      | Rename to `.svelte.ts`                                               | [svelte-reactivity.md#L180](svelte-reactivity.md#L180)              |
-| 500 error with ProseMirror/Monaco                                            | Guard with `{#if browser}`                                           | [svelte-reactivity.md#L400](svelte-reactivity.md#L400)              |
-| Event listeners don't fire (no errors)                                       | Browser check inside $effect                                         | [svelte-reactivity.md#L500](svelte-reactivity.md#L500)              |
-| Build fails: ENOENT file not found                                           | Remove phantom dependencies                                          | [svelte-reactivity.md#L550](svelte-reactivity.md#L550)              |
-| Server crashes on startup / 500 on all routes                                | Remove top-level await in config                                     | [svelte-reactivity.md#L600](svelte-reactivity.md#L600)              |
-| Page freezes, effect_update_depth_exceeded error                             | Use untrack() or plain vars in $effect                               | [svelte-reactivity.md#L700](svelte-reactivity.md#L700)              |
-| Component has custom CSS/hardcoded values                                    | Use design tokens (bg-surface, px-inbox-header)                      | [ui-patterns.md#L780](ui-patterns.md#L780)                          |
-| Navbar/header stays white in dark mode                                       | Remove non-existent CSS vars (--color-bg-base-rgb)                   | [ui-patterns.md#L828](ui-patterns.md#L828)                          |
-| Scrollbar positioned at far right (outside padding)                          | Use scrollable-outer + scrollable-inner utilities                    | [component-architecture.md#L180](../component-architecture.md#L180) |
-| Raw markdown displayed instead of rendered HTML                              | Add Vite middleware to redirect .md URLs                             | [ui-patterns.md#L1100](ui-patterns.md#L1100)                        |
-| Parent directory links (../) return 404 in docs                              | Preserve ./ and ../ prefixes in link renderer                        | [ui-patterns.md#L1120](ui-patterns.md#L1120)                        |
-| Vercel build: "Could not resolve \_generated/dataModel"                      | Commit \_generated to git, separate deployments                      | [convex-integration.md#L540](convex-integration.md#L540)            |
-| Deployment fails: "Could not resolve \_generated/dataModel" during bundling  | Use import type for \_generated imports                              | [convex-integration.md#L590](convex-integration.md#L590)            |
-| Query returns empty, ArgumentValidationError for valid field                 | Git conflicts block deployment, stale code running                   | [convex-integration.md#L640](convex-integration.md#L640)            |
-| Code compiles but Bugbot finds logic bugs                                    | Automated code review catches architectural mismatches               | [convex-integration.md#L700](convex-integration.md#L700)            |
-| Users logged out after 5 minutes, session doesn't persist                    | Use app session TTL (30 days), not token expiry (5 min)              | [auth-deployment.md#L610](auth-deployment.md#L610)                  |
-| Query doesn't re-run when dependency changes, UI shows stale data            | Wrap conditional query in $derived                                   | [auth-deployment.md#L660](auth-deployment.md#L660)                  |
-| "Not authenticated" in Convex, queries return empty                          | Pass userId parameter + validate session                             | [auth-deployment.md#L760](auth-deployment.md#L760)                  |
-| `state_unsafe_mutation` error during component cleanup                       | Wrap state mutations in untrack() in event handlers                  | [svelte-reactivity.md#L750](svelte-reactivity.md#L750)              |
-| Account/workspace switch navigates but lands on wrong workspace              | Match function signature to call sites (silent param drop)           | [auth-deployment.md#L810](auth-deployment.md#L810)                  |
-| Switching accounts shows wrong workspaces, data from another account         | Use account-specific localStorage keys `{key}_{userId}`              | [auth-deployment.md#L860](auth-deployment.md#L860)                  |
-| Tests fail with "can only be called in the browser" or Web Crypto undefined  | Rename .test.ts → .svelte.test.ts for browser environment            | [svelte-reactivity.md#L800](svelte-reactivity.md#L800)              |
-| localStorage session data visible in DevTools, fails SOC 2 audit             | Use Web Crypto API (AES-256-GCM + PBKDF2)                            | [auth-deployment.md#L960](auth-deployment.md#L960)                  |
-| `Cannot call replaceState(...) before router is initialized` on page load    | Try-catch guard around replaceState in $effect                       | [svelte-reactivity.md#L730](svelte-reactivity.md#L730)              |
-| Account switch takes 5+ seconds, query costs spike with many linked accounts | Add MAX_LINK_DEPTH=3 and MAX_TOTAL_ACCOUNTS=10 limits                | [auth-deployment.md#L1010](auth-deployment.md#L1010)                |
-| Database queries fail, userId is an object instead of string                 | Destructure validateSessionAndGetUserId: const { userId } = await... | [convex-integration.md#L850](convex-integration.md#L850)            |
-| convex-test fails: "(intermediate value).glob is not a function"              | Create test.setup.ts with import.meta.glob() modules map            | [convex-integration.md#L950](convex-integration.md#L950)            |
+| Symptom                                                                       | Solution                                                             | Details                                                             |
+| ----------------------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Auth fails, `op://...` strings in browser                                     | Use actual values in .env.local for PUBLIC\_ vars                    | [auth-deployment.md#L10](auth-deployment.md#L10)                    |
+| Logout doesn't work, cookies persist                                          | Match exact attributes when deleting cookies                         | [auth-deployment.md#L160](auth-deployment.md#L160)                  |
+| Build fails: "Could not load [deleted-file]"                                  | Check all imports before deleting files                              | [auth-deployment.md#L260](auth-deployment.md#L260)                  |
+| Auth works but users not in Convex DB                                         | Deploy Convex functions to correct environment                       | [auth-deployment.md#L510](auth-deployment.md#L510)                  |
+| State not updating in UI                                                      | Use `$state({})` + getters                                           | [svelte-reactivity.md#L10](svelte-reactivity.md#L10)                |
+| `undefined is not a valid Convex value`                                       | Strip undefined from payloads                                        | [convex-integration.md#L10](convex-integration.md#L10)              |
+| `Only actions can be defined in Node.js`                                      | Separate "use node" files                                            | [convex-integration.md#L50](convex-integration.md#L50)              |
+| Composable receives stale values                                              | Pass functions `() => value`                                         | [svelte-reactivity.md#L80](svelte-reactivity.md#L80)                |
+| Component shows stale/old data                                                | Key on data, not ID                                                  | [svelte-reactivity.md#L140](svelte-reactivity.md#L140)              |
+| `.ts` file: "Cannot assign to constant"                                       | Rename to `.svelte.ts`                                               | [svelte-reactivity.md#L180](svelte-reactivity.md#L180)              |
+| 500 error with ProseMirror/Monaco                                             | Guard with `{#if browser}`                                           | [svelte-reactivity.md#L400](svelte-reactivity.md#L400)              |
+| Event listeners don't fire (no errors)                                        | Browser check inside $effect                                         | [svelte-reactivity.md#L500](svelte-reactivity.md#L500)              |
+| Build fails: ENOENT file not found                                            | Remove phantom dependencies                                          | [svelte-reactivity.md#L550](svelte-reactivity.md#L550)              |
+| Server crashes on startup / 500 on all routes                                 | Remove top-level await in config                                     | [svelte-reactivity.md#L600](svelte-reactivity.md#L600)              |
+| Page freezes, effect_update_depth_exceeded error                              | Use untrack() or plain vars in $effect                               | [svelte-reactivity.md#L700](svelte-reactivity.md#L700)              |
+| Component has custom CSS/hardcoded values                                     | Use design tokens (bg-surface, px-inbox-header)                      | [ui-patterns.md#L780](ui-patterns.md#L780)                          |
+| Navbar/header stays white in dark mode                                        | Remove non-existent CSS vars (--color-bg-base-rgb)                   | [ui-patterns.md#L828](ui-patterns.md#L828)                          |
+| Scrollbar positioned at far right (outside padding)                           | Use scrollable-outer + scrollable-inner utilities                    | [component-architecture.md#L180](../component-architecture.md#L180) |
+| Raw markdown displayed instead of rendered HTML                               | Add Vite middleware to redirect .md URLs                             | [ui-patterns.md#L1100](ui-patterns.md#L1100)                        |
+| Parent directory links (../) return 404 in docs                               | Preserve ./ and ../ prefixes in link renderer                        | [ui-patterns.md#L1120](ui-patterns.md#L1120)                        |
+| Vercel build: "Could not resolve \_generated/dataModel"                       | Commit \_generated to git, separate deployments                      | [convex-integration.md#L540](convex-integration.md#L540)            |
+| Deployment fails: "Could not resolve \_generated/dataModel" during bundling   | Use import type for \_generated imports                              | [convex-integration.md#L590](convex-integration.md#L590)            |
+| Query returns empty, ArgumentValidationError for valid field                  | Git conflicts block deployment, stale code running                   | [convex-integration.md#L640](convex-integration.md#L640)            |
+| Code compiles but Bugbot finds logic bugs                                     | Automated code review catches architectural mismatches               | [convex-integration.md#L700](convex-integration.md#L700)            |
+| Users logged out after 5 minutes, session doesn't persist                     | Use app session TTL (30 days), not token expiry (5 min)              | [auth-deployment.md#L610](auth-deployment.md#L610)                  |
+| Query doesn't re-run when dependency changes, UI shows stale data             | Wrap conditional query in $derived                                   | [auth-deployment.md#L660](auth-deployment.md#L660)                  |
+| "Not authenticated" in Convex, queries return empty                           | Pass userId parameter + validate session                             | [auth-deployment.md#L760](auth-deployment.md#L760)                  |
+| `state_unsafe_mutation` error during component cleanup                        | Wrap state mutations in untrack() in event handlers                  | [svelte-reactivity.md#L750](svelte-reactivity.md#L750)              |
+| Account/workspace switch navigates but lands on wrong workspace               | Match function signature to call sites (silent param drop)           | [auth-deployment.md#L810](auth-deployment.md#L810)                  |
+| Switching accounts shows wrong workspaces, data from another account          | Use account-specific localStorage keys `{key}_{userId}`              | [auth-deployment.md#L860](auth-deployment.md#L860)                  |
+| Tests fail with "can only be called in the browser" or Web Crypto undefined   | Rename .test.ts → .svelte.test.ts for browser environment            | [svelte-reactivity.md#L800](svelte-reactivity.md#L800)              |
+| localStorage session data visible in DevTools, fails SOC 2 audit              | Use Web Crypto API (AES-256-GCM + PBKDF2)                            | [auth-deployment.md#L960](auth-deployment.md#L960)                  |
+| `Cannot call replaceState(...) before router is initialized` on page load     | Try-catch guard around replaceState in $effect                       | [svelte-reactivity.md#L730](svelte-reactivity.md#L730)              |
+| Account switch takes 5+ seconds, query costs spike with many linked accounts  | Add MAX_LINK_DEPTH=3 and MAX_TOTAL_ACCOUNTS=10 limits                | [auth-deployment.md#L1010](auth-deployment.md#L1010)                |
+| Database queries fail, userId is an object instead of string                  | Destructure validateSessionAndGetUserId: const { userId } = await... | [convex-integration.md#L850](convex-integration.md#L850)            |
+| convex-test fails: "(intermediate value).glob is not a function"              | Create test.setup.ts with import.meta.glob() modules map             | [convex-integration.md#L950](convex-integration.md#L950)            |
 | Test insert fails: "Validator error: Missing required field X in object"      | Include ALL schema fields in test helpers (firstName, updatedAt...)  | [convex-integration.md#L1000](convex-integration.md#L1000)          |
 | TypeScript errors "Expected 2 arguments" or "Property 'sessionId' is missing" | Migrate from userId to sessionId parameter + destructure response    | [convex-integration.md#L1200](convex-integration.md#L1200)          |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
-| Symptom                                                     | Solution                                                            | Details                                                  |
-| ----------------------------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------- |
-| Production auth fails with "Invalid redirect URI"           | Use separate staging/production credentials                         | [auth-deployment.md#L60](auth-deployment.md#L60)         |
-| Auth works on myapp.com but fails on www.myapp.com          | Add both www and non-www to redirect URIs                           | [auth-deployment.md#L110](auth-deployment.md#L110)       |
-| User auto-logs back in after logout                         | Revoke session on auth provider                                     | [auth-deployment.md#L210](auth-deployment.md#L210)       |
-| 403 Forbidden switching from Account C to B (A→B, B→C work) | Use BFS to find transitive links (A→B→C)                            | [auth-deployment.md#L910](auth-deployment.md#L910)       |
-| Data doesn't update automatically                           | Use `useQuery()` not manual                                         | [svelte-reactivity.md#L220](svelte-reactivity.md#L220)   |
-| Widget disappears too early                                 | Polling updates only, not completion                                | [svelte-reactivity.md#L280](svelte-reactivity.md#L280)   |
-| Duplicate timers / early dismissal                          | Track timers with Set                                               | [svelte-reactivity.md#L340](svelte-reactivity.md#L340)   |
-| Component doesn't update on route change                    | Use $effect + $page.url.pathname                                    | [svelte-reactivity.md#L650](svelte-reactivity.md#L650)   |
-| Switch in dropdown broken                                   | Use plain div wrapper                                               | [ui-patterns.md#L10](ui-patterns.md#L10)                 |
-| Conflicting keyboard shortcuts                              | Check priority: dropdowns > inputs > component                      | [ui-patterns.md#L430](ui-patterns.md#L430)               |
-| J/K navigation blocked by auto-focused input                | Use autoFocus prop + Enter/ESC edit mode                            | [ui-patterns.md#L880](ui-patterns.md#L880)               |
-| ProseMirror "$ prefix reserved"                             | Rename `$from` → `from`                                             | [svelte-reactivity.md#L450](svelte-reactivity.md#L450)   |
-| Code blocks show plain text, no syntax colors               | Use prosemirror-highlight + lowlight                                | [ui-patterns.md#L760](ui-patterns.md#L760)               |
-| Typing `-` or `1.` doesn't create lists                     | Use addListNodes() from prosemirror-schema-list                     | [ui-patterns.md#L1150](ui-patterns.md#L1150)             |
-| ProseMirror menu doesn't insert selection                   | Capture range eagerly, pass as parameter                            | [ui-patterns.md#L1200](ui-patterns.md#L1200)             |
-| Users logged out on browser close                           | Set cookieConfig.maxAge                                             | [convex-integration.md#L100](convex-integration.md#L100) |
-| File not found in Convex                                    | Use TypeScript imports                                              | [convex-integration.md#L140](convex-integration.md#L140) |
-| `InvalidConfig`: hyphens in filename                        | Use camelCase names                                                 | [convex-integration.md#L140](convex-integration.md#L140) |
-| Redundant API paths (api.x.x)                               | File=noun, Function=verb                                            | [convex-integration.md#L190](convex-integration.md#L190) |
-| `.toLocaleDateString is not a function`                     | Wrap Convex timestamps in new Date()                                | [convex-integration.md#L490](convex-integration.md#L490) |
-| Custom JWT auth fails, cyclic import errors                 | Convex requires OIDC, not raw JWT. Use userId parameter temporarily | [convex-integration.md#L680](convex-integration.md#L680) |
-| After git stash: "Not authenticated" runtime errors         | Backend/frontend out of sync. Re-add userId parameters              | [convex-integration.md#L690](convex-integration.md#L690) |
-| Production database empty after deployment                  | Deployed to dev instead of production, need CONVEX_DEPLOY_KEY_PROD  | [convex-integration.md#L750](convex-integration.md#L750) |
-| Feature branches outdated after merge                       | Merge main into branches before deleting merged branch              | [convex-integration.md#L800](convex-integration.md#L800) |
-| Unit tests pass but bugs slip through to production         | Add integration tests with convex-test                              | [convex-integration.md#L900](convex-integration.md#L900) |
+| Symptom                                                     | Solution                                                            | Details                                                    |
+| ----------------------------------------------------------- | ------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Production auth fails with "Invalid redirect URI"           | Use separate staging/production credentials                         | [auth-deployment.md#L60](auth-deployment.md#L60)           |
+| Auth works on myapp.com but fails on www.myapp.com          | Add both www and non-www to redirect URIs                           | [auth-deployment.md#L110](auth-deployment.md#L110)         |
+| User auto-logs back in after logout                         | Revoke session on auth provider                                     | [auth-deployment.md#L210](auth-deployment.md#L210)         |
+| 403 Forbidden switching from Account C to B (A→B, B→C work) | Use BFS to find transitive links (A→B→C)                            | [auth-deployment.md#L910](auth-deployment.md#L910)         |
+| Data doesn't update automatically                           | Use `useQuery()` not manual                                         | [svelte-reactivity.md#L220](svelte-reactivity.md#L220)     |
+| Widget disappears too early                                 | Polling updates only, not completion                                | [svelte-reactivity.md#L280](svelte-reactivity.md#L280)     |
+| Duplicate timers / early dismissal                          | Track timers with Set                                               | [svelte-reactivity.md#L340](svelte-reactivity.md#L340)     |
+| Component doesn't update on route change                    | Use $effect + $page.url.pathname                                    | [svelte-reactivity.md#L650](svelte-reactivity.md#L650)     |
+| Switch in dropdown broken                                   | Use plain div wrapper                                               | [ui-patterns.md#L10](ui-patterns.md#L10)                   |
+| Conflicting keyboard shortcuts                              | Check priority: dropdowns > inputs > component                      | [ui-patterns.md#L430](ui-patterns.md#L430)                 |
+| J/K navigation blocked by auto-focused input                | Use autoFocus prop + Enter/ESC edit mode                            | [ui-patterns.md#L880](ui-patterns.md#L880)                 |
+| ProseMirror "$ prefix reserved"                             | Rename `$from` → `from`                                             | [svelte-reactivity.md#L450](svelte-reactivity.md#L450)     |
+| Code blocks show plain text, no syntax colors               | Use prosemirror-highlight + lowlight                                | [ui-patterns.md#L760](ui-patterns.md#L760)                 |
+| Typing `-` or `1.` doesn't create lists                     | Use addListNodes() from prosemirror-schema-list                     | [ui-patterns.md#L1150](ui-patterns.md#L1150)               |
+| ProseMirror menu doesn't insert selection                   | Capture range eagerly, pass as parameter                            | [ui-patterns.md#L1200](ui-patterns.md#L1200)               |
+| Users logged out on browser close                           | Set cookieConfig.maxAge                                             | [convex-integration.md#L100](convex-integration.md#L100)   |
+| File not found in Convex                                    | Use TypeScript imports                                              | [convex-integration.md#L140](convex-integration.md#L140)   |
+| `InvalidConfig`: hyphens in filename                        | Use camelCase names                                                 | [convex-integration.md#L140](convex-integration.md#L140)   |
+| Redundant API paths (api.x.x)                               | File=noun, Function=verb                                            | [convex-integration.md#L190](convex-integration.md#L190)   |
+| `.toLocaleDateString is not a function`                     | Wrap Convex timestamps in new Date()                                | [convex-integration.md#L490](convex-integration.md#L490)   |
+| Custom JWT auth fails, cyclic import errors                 | Convex requires OIDC, not raw JWT. Use userId parameter temporarily | [convex-integration.md#L680](convex-integration.md#L680)   |
+| After git stash: "Not authenticated" runtime errors         | Backend/frontend out of sync. Re-add userId parameters              | [convex-integration.md#L690](convex-integration.md#L690)   |
+| Production database empty after deployment                  | Deployed to dev instead of production, need CONVEX_DEPLOY_KEY_PROD  | [convex-integration.md#L750](convex-integration.md#L750)   |
+| Feature branches outdated after merge                       | Merge main into branches before deleting merged branch              | [convex-integration.md#L800](convex-integration.md#L800)   |
+| Unit tests pass but bugs slip through to production         | Add integration tests with convex-test                              | [convex-integration.md#L900](convex-integration.md#L900)   |
 | Test cleanup fails: "Delete on non-existent doc"            | Check document exists before deleting in cleanup                    | [convex-integration.md#L1050](convex-integration.md#L1050) |
 | User isolation test fails - User 2 sees User 1's data       | Use counter + timestamp for unique session IDs                      | [convex-integration.md#L1100](convex-integration.md#L1100) |
 | Test fails: "Session not found" with getAuthUserId(ctx)     | Use sessionId parameter pattern or skip test (convex-test limit)    | [convex-integration.md#L1150](convex-integration.md#L1150) |
-| Analytics events missing in PostHog                         | Use server-side tracking                                            | [analytics.md#L10](analytics.md#L10)                     |
-| ESLint errors in test files blocking CI                     | Relax rules for test files (allow `any` types)                      | [ci-cd.md#L60](ci-cd.md#L60)                             |
+| Analytics events missing in PostHog                         | Use server-side tracking                                            | [analytics.md#L10](analytics.md#L10)                       |
+| ESLint errors in test files blocking CI                     | Relax rules for test files (allow `any` types)                      | [ci-cd.md#L60](ci-cd.md#L60)                               |
 
 ## 🟢 REFERENCE Patterns (Best Practices)
 

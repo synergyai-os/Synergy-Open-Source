@@ -35,7 +35,7 @@ test.describe('Auth Security - SessionID Validation', () => {
 		await expect(page.locator('body')).toBeVisible();
 	});
 
-	test('should not allow accessing other user data', async ({ page, browser }) => {
+	test('should not allow accessing other user data', async ({ page }) => {
 		// Use authenticated state
 		test.use({ storageState: 'e2e/.auth/user.json' });
 
@@ -53,11 +53,10 @@ test.describe('Auth Security - SessionID Validation', () => {
 		// TODO: Add explicit verification if we expose user metadata in UI
 	});
 
-	test('should invalidate session after expiration', async ({ page }) => {
+	test.skip('should invalidate session after expiration', async () => {
 		// TODO: Implement session expiration test
 		// This requires mocking time or waiting for actual expiration
 		// For now, document the expected behavior
-		test.skip('Session expiration testing requires time mocking');
 	});
 });
 

@@ -543,11 +543,11 @@ Do NOT deploy to production with sensitive data until:
 
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - [WorkOS Security Docs](https://workos.com/docs/security)
-- [Convex Security Guide](https://docs.convex.dev/security)
+- [Convex Security Guide](https://docs.convex.dev/production/security)
 
 **SvelteKit Auth**:
 
-- [SvelteKit Authentication Patterns](https://kit.svelte.dev/docs/authentication)
+- [SvelteKit Hooks Documentation](https://kit.svelte.dev/docs/hooks)
 - [Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html)
 
 **Compliance**:

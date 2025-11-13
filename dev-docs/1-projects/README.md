@@ -6,12 +6,12 @@
 
 ## 🚧 Active Projects (4)
 
-| Project                                                 | Status         | Owner | Started      | Slices | Est |
-| ------------------------------------------------------- | -------------- | ----- | ------------ | ------ | --- |
-| [Team Access & Permissions](./team-access-permissions/) | 🚧 In Progress | Randy | Nov 10, 2025 | 0/7    | 28h |
-| [Multi-Workspace Auth](./multi-workspace-auth/)         | 🚧 In Progress | Randy | Nov 10, 2025 | 0/7    | -   |
-| [Security Architecture Fixes](./security-architecture-fixes/) | 🚧 In Progress | Randy | Nov 12, 2025 | - | 4 weeks |
-| [AI Docs System](./ai-docs-system/) | 🚧 In Progress | Randy | - | - | - |
+| Project                                                       | Status         | Owner | Started      | Slices | Est     |
+| ------------------------------------------------------------- | -------------- | ----- | ------------ | ------ | ------- |
+| [Team Access & Permissions](./team-access-permissions/)       | 🚧 In Progress | Randy | Nov 10, 2025 | 0/7    | 28h     |
+| [Multi-Workspace Auth](./multi-workspace-auth/)               | 🚧 In Progress | Randy | Nov 10, 2025 | 0/7    | -       |
+| [Security Architecture Fixes](./security-architecture-fixes/) | 🚧 In Progress | Randy | Nov 12, 2025 | -      | 4 weeks |
+| [AI Docs System](./ai-docs-system/)                           | 🚧 In Progress | Randy | -            | -      | -       |
 
 **See Also**: [Project Initialization Summary](../4-archive/PROJECT-INITIALIZATION-COMPLETE.md)
 

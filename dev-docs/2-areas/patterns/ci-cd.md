@@ -7,7 +7,7 @@
 ## #L10: Incremental CI Gate Enablement [🟢 REFERENCE]
 
 **Context**: Enabling all CI quality gates at once can block development if there are existing errors  
-**Strategy**: Enable gates incrementally, fixing critical issues first  
+**Strategy**: Enable gates incrementally, fixing critical issues first
 
 **Approach**:
 
@@ -30,12 +30,14 @@
 ```
 
 **Why**:
+
 - ✅ Lint and build failures are typically easier to fix
 - ✅ TypeScript errors can be numerous and require dedicated effort
 - ✅ Prevents blocking all development while fixing type errors
 - ✅ Progressive improvement vs. all-or-nothing
 
 **Apply when**:
+
 - Adding CI gates to existing project with technical debt
 - Large number of TypeScript errors exist
 - Need to balance quality improvements with velocity
@@ -82,6 +84,7 @@ export default [
 ```
 
 **Why**:
+
 - Tests often need `any` for mocking external APIs
 - Test code prioritizes readability over type safety
 - Integration tests with complex library types (e.g., Convex, Playwright) benefit from relaxed rules
@@ -97,6 +100,7 @@ rules: {
 ```
 
 **Apply when**:
+
 - Adding ESLint to project with existing tests
 - Working with complex external library types
 - Test mocks require `any` types
@@ -109,7 +113,7 @@ rules: {
 ## #L110: Local CI Testing - npm Scripts > Shell Scripts [🟢 REFERENCE]
 
 **Context**: Developers need to run CI checks locally before pushing  
-**Best Practice**: Use npm scripts that mirror CI exactly  
+**Best Practice**: Use npm scripts that mirror CI exactly
 
 **Pattern**:
 
@@ -138,6 +142,7 @@ npm run build   # Build verification
 ```
 
 **Why npm scripts > shell scripts**:
+
 - ✅ Platform-independent (Windows/Mac/Linux)
 - ✅ Single source of truth (`package.json`)
 - ✅ Easier to maintain (one place to update)
@@ -160,13 +165,13 @@ npm run build
 ```yaml
 # .github/workflows/quality-gates.yml
 - name: Type check
-  run: npm run check  # ✅ Same command as local
+  run: npm run check # ✅ Same command as local
 
 - name: Lint
-  run: npm run lint   # ✅ Same command as local
+  run: npm run lint # ✅ Same command as local
 
 - name: Build
-  run: npm run build  # ✅ Same command as local
+  run: npm run build # ✅ Same command as local
 ```
 
 **Documentation**:
@@ -177,18 +182,22 @@ Create `CI-LOCAL-TESTING.md`:
 # Local CI Testing Guide
 
 ## Quick Start
+
 npm run ci:local
 
 ## Individual Commands
+
 - `npm run check` - Type check
 - `npm run lint` - Lint + format check
 - `npm run build` - Build verification
 
 ## Keeping in Sync
+
 When CI workflow changes, update the `ci:local` script in `package.json`.
 ```
 
 **Apply when**:
+
 - Setting up CI for the first time
 - Developers frequently push failing commits
 - Want to catch issues before CI runs
@@ -201,7 +210,7 @@ When CI workflow changes, update the `ci:local` script in `package.json`.
 ## #L160: Secret Scanning with TruffleHog [🟢 REFERENCE]
 
 **Context**: Prevent accidental commits of API keys, tokens, and credentials  
-**Tool**: [TruffleHog](https://github.com/trufflesecurity/trufflehog) by Truffle Security  
+**Tool**: [TruffleHog](https://github.com/trufflesecurity/trufflehog) by Truffle Security
 
 **Setup**:
 
@@ -231,18 +240,21 @@ YOUR_API_KEY_HERE
 ```
 
 **Why**:
+
 - ✅ Catches real secrets before they reach production
 - ✅ `--only-verified` reduces false positives
 - ✅ Runs on every PR, not just main branch
 - ✅ `.secretsignore` handles legitimate patterns (e.g., public URLs)
 
 **Common false positives**:
+
 - Convex deployment URLs (public by design)
 - Example/demo keys in documentation
 - Test fixtures with fake credentials
 - Placeholder values like `YOUR_API_KEY_HERE`
 
 **Apply when**:
+
 - Setting up CI/CD for the first time
 - Project handles sensitive credentials
 - Multiple developers committing code
@@ -253,4 +265,3 @@ YOUR_API_KEY_HERE
 ---
 
 ## Format Version: 1.0
-
