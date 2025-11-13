@@ -55,12 +55,18 @@ jobs:
       - name: Run Quick Create E2E tests
         run: npm run test:e2e -- e2e/quick-create.spec.ts
         env:
-          # Add test credentials here
-          WORKOS_CLIENT_ID: ${{ secrets.WORKOS_TEST_CLIENT_ID }}
-          AUTH_SECRET: ${{ secrets.TEST_AUTH_SECRET }}
-          PUBLIC_CONVEX_URL: ${{ secrets.TEST_CONVEX_URL }}
-          # Placeholder session secret for E2E tests (must be ≥32 chars)
+          # Convex configuration
+          PUBLIC_CONVEX_URL: ${{ secrets.TEST_CONVEX_URL || secrets.CONVEX_URL || 'https://placeholder.convex.cloud' }}
+          VITE_CONVEX_URL: ${{ secrets.TEST_CONVEX_URL || secrets.CONVEX_URL || 'https://placeholder.convex.cloud' }}
+          # WorkOS authentication (required for headless auth)
+          PUBLIC_WORKOS_CLIENT_ID: ${{ secrets.WORKOS_TEST_CLIENT_ID || secrets.WORKOS_CLIENT_ID || 'test-client-id' }}
+          WORKOS_API_KEY: ${{ secrets.WORKOS_TEST_API_KEY || secrets.WORKOS_API_KEY || 'test-api-key' }}
+          WORKOS_REDIRECT_URI: ${{ secrets.WORKOS_TEST_REDIRECT_URI || secrets.WORKOS_REDIRECT_URI || 'http://localhost:5173/auth/callback' }}
+          # Session management
           SYOS_SESSION_SECRET: ${{ secrets.SYOS_SESSION_SECRET || 'placeholder-secret-for-e2e-tests-only-32chars' }}
+          # Legacy/test credentials (may be used by some test utilities)
+          WORKOS_CLIENT_ID: ${{ secrets.WORKOS_TEST_CLIENT_ID || secrets.WORKOS_CLIENT_ID || 'test-client-id' }}
+          AUTH_SECRET: ${{ secrets.TEST_AUTH_SECRET || secrets.SYOS_SESSION_SECRET || 'placeholder-secret-for-e2e-tests-only-32chars' }}
 
       - name: Upload test results
         if: always()

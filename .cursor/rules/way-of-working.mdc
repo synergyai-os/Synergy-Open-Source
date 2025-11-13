@@ -105,6 +105,7 @@ const data = $derived(query?.data ?? []);
 ## Key Files
 
 **Documentation:**
+- `dev-docs/2-areas/development/coding-standards.md` - **Coding rules for AI agents** ⭐ CRITICAL
 - `dev-docs/patterns/INDEX.md` - Pattern lookup (START HERE)
 - `dev-docs/patterns/svelte-reactivity.md` - Svelte 5 patterns
 - `dev-docs/patterns/convex-integration.md` - Convex patterns
@@ -129,10 +130,24 @@ const data = $derived(query?.data ?? []);
 ## Best Practices
 
 **Before Writing Code:**
-1. Check `patterns/INDEX.md` for existing patterns
-2. Use design tokens (never hardcode)
-3. Follow composables pattern (`.svelte.ts`, single `$state`, getters)
-4. Use Context7 for library docs
+1. **Read `dev-docs/2-areas/development/coding-standards.md`** - CRITICAL: Prevents linting errors ⭐
+2. Check `patterns/INDEX.md` for existing patterns
+3. Use design tokens (never hardcode)
+4. Follow composables pattern (`.svelte.ts`, single `$state`, getters)
+5. Use Context7 for library docs
+
+**Coding Standards (MANDATORY for AI Agents):**
+- ❌ NEVER use `any` type (use proper types or `unknown` + type guards)
+- ❌ NEVER use `{#each}` without keys `(item._id)`
+- ❌ NEVER use `goto()` without `resolveRoute()`
+- ❌ NEVER use `Map`/`Set` (use `SvelteMap`/`SvelteSet` or plain objects)
+- ❌ NEVER leave unused imports/variables
+- ✅ ALWAYS use TypeScript types
+- ✅ ALWAYS use design tokens
+- ✅ ALWAYS use `.svelte.ts` for composables
+- ✅ ALWAYS use `useQuery()` for Convex data
+
+**See**: `dev-docs/2-areas/development/coding-standards.md` for complete rules
 
 **When Debugging:**
 1. Use `/root-cause` → Load `patterns/INDEX.md`
