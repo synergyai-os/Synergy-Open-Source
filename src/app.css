@@ -80,6 +80,23 @@
 	--spacing-control-button-padding: 0.5rem; /* 8px - square button padding */
 	--spacing-control-divider: 0.5rem; /* 8px - margin around dividers */
 
+	/* Marketing Page Spacing Tokens */
+	/* Use these for all marketing/content pages (landing pages, blog posts, documentation) */
+	--spacing-marketing-section-y: 7rem; /* 112px - Section vertical padding (top and bottom) */
+	--spacing-marketing-section-gap: 5rem; /* 80px - Gap between major sections (when stacked) */
+	--spacing-marketing-container-x: 1.5rem; /* 24px - Page horizontal padding (mobile/desktop) */
+	--spacing-marketing-title-to-lead: 1.5rem; /* 24px - H2 to lead paragraph spacing */
+	--spacing-marketing-lead-to-content: 3rem; /* 48px - Lead paragraph to content spacing */
+	--spacing-marketing-card-padding: 2.5rem; /* 40px - Card internal padding */
+	--spacing-marketing-card-gap: 2rem; /* 32px - Gap between cards in grid */
+	--spacing-marketing-element-gap: 1.5rem; /* 24px - Gap between related elements (badges, buttons) */
+	--spacing-marketing-text-gap: 1rem; /* 16px - Gap between text elements (title to description) */
+	--spacing-marketing-hero-y: 5rem; /* 80px - Hero section vertical padding (top) */
+	--spacing-marketing-hero-bottom: 8rem; /* 128px - Hero section vertical padding (bottom - extended) */
+	--spacing-marketing-cta-gap: 1rem; /* 16px - Gap between CTA buttons */
+	--spacing-marketing-badge-gap: 0.75rem; /* 12px - Gap between trust badges */
+	--spacing-marketing-list-gap: 0.875rem; /* 14px - Gap between list items (bullet points, checkmarks) */
+
 	/* Unified Brand Color Tokens - Used throughout the app */
 	/* These change automatically based on .dark class on <html> */
 	--color-text-primary: oklch(20.8% 0.042 265.755); /* gray-900 light, white dark */
@@ -499,6 +516,57 @@ html:not(.dark) {
 }
 @utility text-sidebar-badge {
 	color: var(--color-sidebar-badge-text);
+}
+
+/* Marketing Page Spacing Utilities */
+/* Use these for all marketing/content pages (landing pages, blog posts, documentation) */
+@utility py-marketing-section {
+	padding-block: var(--spacing-marketing-section-y);
+}
+@utility gap-marketing-section {
+	gap: var(--spacing-marketing-section-gap);
+}
+@utility px-marketing-container {
+	padding-inline: var(--spacing-marketing-container-x);
+}
+@utility mb-marketing-title-to-lead {
+	margin-bottom: var(--spacing-marketing-title-to-lead);
+}
+@utility mt-marketing-content {
+	margin-top: var(--spacing-marketing-lead-to-content);
+}
+@utility mb-marketing-content {
+	margin-bottom: var(--spacing-marketing-lead-to-content);
+}
+@utility p-marketing-card {
+	padding: var(--spacing-marketing-card-padding);
+}
+@utility gap-marketing-card {
+	gap: var(--spacing-marketing-card-gap);
+}
+@utility gap-marketing-element {
+	gap: var(--spacing-marketing-element-gap);
+}
+@utility gap-marketing-text {
+	gap: var(--spacing-marketing-text-gap);
+}
+@utility mb-marketing-text {
+	margin-bottom: var(--spacing-marketing-text-gap);
+}
+@utility py-marketing-hero {
+	padding-block: var(--spacing-marketing-hero-y);
+}
+@utility pb-marketing-hero {
+	padding-bottom: var(--spacing-marketing-hero-bottom);
+}
+@utility gap-marketing-cta {
+	gap: var(--spacing-marketing-cta-gap);
+}
+@utility gap-marketing-badge {
+	gap: var(--spacing-marketing-badge-gap);
+}
+@utility gap-marketing-list {
+	gap: var(--spacing-marketing-list-gap);
 }
 
 /* Form & Input Color Utilities */
