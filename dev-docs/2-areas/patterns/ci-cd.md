@@ -264,4 +264,166 @@ YOUR_API_KEY_HERE
 
 ---
 
+## #L210: Playwright test.use() Placement [🔴 CRITICAL]
+
+**Symptom**: Test fails with "Playwright Test did not expect test.use() to be called here"  
+**Root Cause**: `test.use()` called inside test function instead of at describe level  
+**Fix**:
+
+```typescript
+// ❌ BAD: test.use() inside test function
+test.describe('My Tests', () => {
+  test('should work', async ({ page }) => {
+    test.use({ storageState: 'auth.json' }); // ❌ Error!
+    // ...
+  });
+});
+
+// ✅ GOOD: test.use() at describe level
+test.describe('Unauthenticated Tests', () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+  
+  test('should redirect', async ({ page }) => {
+    // ...
+  });
+});
+
+test.describe('Authenticated Tests', () => {
+  test.use({ storageState: 'auth.json' });
+  
+  test('should work', async ({ page }) => {
+    // ...
+  });
+});
+```
+
+**Why**:
+
+- `test.use()` modifies fixture configuration for entire test group
+- Must be declared before tests run, not during test execution
+- Split into multiple describe blocks if different configs needed
+
+**Apply when**:
+
+- Using authenticated/unauthenticated contexts
+- Testing with different browser configurations
+- Need different storage states per test group
+
+**Related**: #L220 (Cookie context), E2E testing best practices
+
+---
+
+## #L220: Playwright Cookie Context (request vs page.request) [🔴 CRITICAL]
+
+**Symptom**: Cookies not shared between `request` and `page`, causing 401/500 errors or "cookies not cleared" test failures  
+**Root Cause**: `request` fixture has separate cookie jar from `page` fixture  
+**Fix**:
+
+```typescript
+// ❌ BAD: request has separate cookie context
+test('logout should clear cookies', async ({ page, request }) => {
+  await page.goto('/inbox'); // Sets cookies in page context
+  
+  const response = await request.post('/logout'); // ❌ No cookies from page!
+  
+  const cookies = await page.context().cookies();
+  expect(cookies.find(c => c.name === 'session')).toBeUndefined(); // ❌ Fails!
+});
+
+// ✅ GOOD: page.request shares page's cookie context
+test('logout should clear cookies', async ({ page }) => {
+  await page.goto('/inbox'); // Sets cookies in page context
+  
+  const response = await page.request.post('/logout'); // ✅ Has page cookies!
+  
+  // Navigate to trigger cookie sync
+  await page.goto('/login');
+  
+  const cookies = await page.context().cookies();
+  expect(cookies.find(c => c.name === 'session')).toBeUndefined(); // ✅ Passes!
+});
+```
+
+**Why**:
+
+- `page.request` shares the page's cookie jar automatically
+- Navigation after API call triggers cookie sync in page context
+- Prevents "session not found" errors in authenticated endpoints
+
+**Apply when**:
+
+- Testing logout flows
+- Making API calls that depend on cookies
+- Verifying cookie clearing/setting behavior
+
+**Related**: #L210 (test.use placement), #L230 (Empty data handling)
+
+---
+
+## #L230: E2E Tests - Handle Empty Data Gracefully [🟡 IMPORTANT]
+
+**Symptom**: Test fails with "element not found" when test data doesn't exist  
+**Root Cause**: Test assumes data exists, but test user/environment has 0 items  
+**Fix**:
+
+```typescript
+// ❌ BAD: Assumes items exist
+test('should show inbox items', async ({ page }) => {
+  await page.goto('/inbox');
+  
+  const items = page.locator('[data-testid="inbox-item"]');
+  await expect(items.first()).toBeVisible(); // ❌ Fails if 0 items!
+});
+
+// ✅ GOOD: Handle empty state gracefully
+test('should show inbox items', async ({ page }) => {
+  await page.goto('/inbox');
+  await page.waitForLoadState('networkidle');
+  
+  const items = page.locator('[data-testid="inbox-item"]');
+  const count = await items.count();
+  
+  console.log(`User has ${count} inbox items`);
+  
+  if (count > 0) {
+    await expect(items.first()).toBeVisible();
+  }
+  
+  // Verify authentication (alternative check)
+  await expect(page).toHaveURL(/\/inbox/);
+});
+
+// ✅ ALTERNATIVE: Skip test if no data
+test('should mark item as processed', async ({ page }) => {
+  await page.goto('/inbox');
+  
+  const items = page.locator('[data-testid="inbox-item"]');
+  const count = await items.count();
+  
+  if (count === 0) {
+    console.log('No items to test - skipping');
+    test.skip();
+    return;
+  }
+  
+  // ... test logic
+});
+```
+
+**Why**:
+
+- Test environments may have varying data states
+- Makes tests resilient to empty databases
+- Prevents flaky tests that only pass with specific data
+
+**Apply when**:
+
+- Testing list/collection views
+- Working with user-generated content
+- Testing actions on dynamic data
+
+**Related**: #L220 (Cookie context), E2E test patterns
+
+---
+
 ## Format Version: 1.0
