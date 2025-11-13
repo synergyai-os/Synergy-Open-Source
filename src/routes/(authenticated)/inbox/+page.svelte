@@ -498,8 +498,8 @@
 					{/if}
 				{/key}
 
-				<!-- Flashcard FAB - Centered at bottom of detail view -->
-				{#if browser}
+				<!-- Flashcard FAB - Only show for Readwise highlights -->
+				{#if browser && selected.selectedItem?.type === 'readwise_highlight'}
 					<FlashcardFAB
 						selectedItemId={selected.selectedItemId}
 						{isGenerating}
@@ -552,8 +552,8 @@
 						{/if}
 					{/key}
 
-					<!-- Flashcard FAB - Centered at bottom of detail view -->
-					{#if browser}
+					<!-- Flashcard FAB - Only show for Readwise highlights -->
+					{#if browser && selected.selectedItem?.type === 'readwise_highlight'}
 						<FlashcardFAB
 							selectedItemId={selected.selectedItemId}
 							{isGenerating}

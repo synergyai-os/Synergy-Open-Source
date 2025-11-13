@@ -21,6 +21,76 @@
 ### Step 2: Decision
 
 **IF NO TICKET ID FOUND:**
+
+**If user says "create new ticket" or "we have no ticket yet":**
+
+1. **ASK user for project** (REQUIRED unless user says "no project"):
+   ```
+   Which project should this ticket belong to? 
+   (Say "no project" to skip, or provide project name)
+   ```
+   - If user says "no project" → Continue without project
+   - If user provides project name → Get/create project → Use `projectId`
+   - If user doesn't respond → STOP (project ID is required)
+
+2. **Create ticket** with required fields:
+   
+   **Linear Constants** (always available):
+   ```typescript
+   const LINEAR_TEAM_ID = '08d684b7-986f-4781-8bc5-e4d9aead6935'; // SYOS
+   const LINEAR_TEAM_NAME = 'SYOS';
+   const RANDY_USER_ID = 'c7c555a2-895a-48b6-ae24-d4147d44b1d5'; // Randy Hereman
+   
+   const LINEAR_LABELS = {
+     // Type (REQUIRED - pick one)
+     feature: 'ba9cfc2b-a993-4265-80dc-07fd1c831029',
+     bug: '62008be5-0ff6-4aae-ba9b-c2887257acf8',
+     'tech-debt': '7cec9e22-31d4-4166-ba92-61d8f8c18809',
+     risk: '99472a27-79b0-475b-bd4a-d4d66e3f2b81',
+     
+     // Scope (REQUIRED - pick one or more)
+     backend: '7299ef53-982d-429d-b513-ccf190b28c16',
+     frontend: '70068764-575a-48a6-b4d1-3735a044230e',
+     ui: 'ace175ff-3cce-4416-bacc-529ee85e72a9',
+     auth: '1ce394e6-d0ac-41c0-a3b2-f8dd062f7725',
+     workspace: 'ede0cdda-d56f-4f0d-a6b9-5522df50839f',
+     analytics: '1e82f018-fec6-4d0f-9369-ab1e98cdd613',
+     devops: 'df3e1654-2066-423b-905a-41dfc69f2cd5',
+     security: '9a561550-aff8-4cd3-a1f5-3cd5b9008b97'
+   };
+   
+   const ESTIMATES = {
+     none: 0,    // No estimate
+     xs: 1,      // < 2h
+     s: 2,       // 2-4h (default)
+     m: 3,       // 4-8h (half day)
+     l: 4,       // 1-2 days
+     xl: 5       // 2+ days (break down!)
+   };
+   ```
+   
+   **Create ticket:**
+   ```typescript
+   await mcp_Linear_create_issue({
+     team: LINEAR_TEAM_NAME, // 'SYOS'
+     title: '[Descriptive Title]',
+     description: '...', // See ticket-writing-format.md for structure
+     projectId: projectId, // ✅ From step 1 (or null if "no project")
+     assigneeId: RANDY_USER_ID, // ✅ ALWAYS Randy
+     state: 'Todo',
+     estimate: ESTIMATES.s, // ✅ Default to "s" (2) - numeric
+     labels: [
+       LINEAR_LABELS.bug, // ✅ Type (required, one)
+       LINEAR_LABELS.backend // ✅ Scope (required, one or more)
+     ]
+   });
+   ```
+   
+   **Ticket Writing Format**: See `dev-docs/2-areas/development/ticket-writing-format.md` for complete structure
+
+3. **Continue with onboarding** using the new ticket ID
+
+**If user doesn't say "create new ticket":**
 ```
 ❌ STOP IMMEDIATELY - I cannot proceed without a Linear ticket ID.
 
@@ -199,7 +269,7 @@ Once I have a ticket ID, I'll proceed with the work.
 
 **Rule**: `.cursor/rules/working-with-linear.mdc` - **REFUSE to work without Linear ticket ID**
 
-**See**: `/linear` command for ticket creation workflow
+**Linear Constants & Workflow**: All constants and workflows are in this `/start` command (see above)
 
 ---
 
@@ -244,6 +314,55 @@ Once I have a ticket ID, I'll proceed with the work.
 
 **For Linear ticket management:**
 
-- **Command**: `/linear` - Complete Linear workflow reference
-- **Docs**: `dev-docs/2-areas/development/tools/linear-integration.md` - Integration overview
+- **Constants & Workflow**: All in this `/start` command (see ticket creation section above)
+- **Ticket Writing Format**: `dev-docs/2-areas/development/ticket-writing-format.md` - Complete template
+- **Creating Subtickets**: See "Creating Subtickets" section below
 - **Command**: `/start-new-project` - For new initiatives
+
+---
+
+## 📋 Creating Subtickets (Child Issues)
+
+**When to use**: Break down large tickets into focused, actionable subtickets.
+
+### Workflow
+
+1. **Get parent ticket** - `mcp_Linear_get_issue({ id: 'SYOS-84' })`
+2. **Create subticket** - One ticket per issue/fix
+3. **Link with `parentId`** - Use parent ticket's ID
+
+### Example
+
+```typescript
+// Get parent ticket
+const parent = await mcp_Linear_get_issue({ id: 'SYOS-84' });
+
+// Create subticket
+await mcp_Linear_create_issue({
+  team: LINEAR_TEAM_NAME,
+  title: 'Fix: [Specific Issue]',
+  description: `# Issue Description
+
+**Parent:** [SYOS-84](https://linear.app/younghumanclub/issue/SYOS-84)
+
+[Issue details...]`,
+  projectId: parent.projectId, // ✅ Use same project as parent
+  parentId: parent.id, // ✅ Link to parent
+  assigneeId: RANDY_USER_ID, // ✅ Always assign to Randy
+  state: 'Todo',
+  estimate: ESTIMATES.s, // ✅ Numeric estimate (typically 1-3 for subtasks)
+  labels: [
+    LINEAR_LABELS.bug, // ✅ Type
+    LINEAR_LABELS.auth, // ✅ Scope
+    LINEAR_LABELS.backend
+  ]
+});
+```
+
+### Best Practices
+
+- ✅ **One issue per subticket** - Each subticket should be independently fixable
+- ✅ **Use parent's project** - Subtickets inherit parent's project
+- ✅ **Clear titles** - Start with "Fix:" or "Add:" for clarity
+- ✅ **Link to parent** - Include parent ticket link in description
+- ✅ **Appropriate estimates** - Smaller than parent (typically 1-3)

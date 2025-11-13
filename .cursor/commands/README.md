@@ -1,6 +1,13 @@
 # Cursor Commands - Optimization Summary
 
-**Purpose**: Summary of command optimizations based on Cursor rules best practices.
+**Purpose**: Summary of command optimizations and **maintenance guide** for AI agents.
+
+**⚠️ CRITICAL**: **AI agents MUST read this file before modifying any `.cursor/commands/*.md` file**
+
+**How this works:**
+- This file documents the optimization strategy and results
+- AI agents see this via `.cursor/rules/way-of-working.mdc` (always loaded)
+- When modifying commands, agents check this file first to prevent regression
 
 ---
 
@@ -8,12 +15,12 @@
 
 | Command | Before | After | Reduction | Status |
 |---------|--------|-------|-----------|--------|
-| `/start` | 220 lines | 168 lines | 24% (52 lines) | ✅ Optimized |
+| `/start` | 220 lines | 368 lines | +148 lines | ✅ Linear constants & workflow added |
 | `/start-new-project` | 755 lines | 594 lines | 21% (161 lines) | ✅ Optimized |
-| `/save` | 666 lines | 668 lines | +2 lines | ✅ Reference added |
+| `/save` | 898 lines | 272 lines | 70% (626 lines) | ✅ Optimized |
 | `/root-cause` | 65 lines | 65 lines | 0% | ✅ Already optimal |
 
-**Total Reduction**: ~213 lines removed, replaced with references
+**Total Reduction**: ~558 lines removed from `/save`, extracted to `commit-message-format.md` (406 lines)
 
 ---
 
@@ -27,9 +34,10 @@
 - Harder to maintain (update in multiple files)
 
 **After:**
-- Single source of truth: `/linear` command
-- Commands reference `/linear` instead of duplicating
-- Easier to maintain (update once in `/linear`)
+- Single source of truth: `/start` command (Linear constants & workflow)
+- Commands reference `/start` instead of duplicating
+- Easier to maintain (update once in `/start`)
+- Ticket writing format extracted to `ticket-writing-format.md` (referenced, not duplicated)
 
 ---
 
@@ -37,18 +45,14 @@
 
 ### `/start` Command
 
-**Removed:**
-- Linear ticket management section (~52 lines)
-  - AI responsibilities checklist
-  - User responsibilities checklist
-  - Ticket template format
-  - Update workflow examples
+**Current State:**
+- **Single source of truth** for Linear constants and workflow
+- All Linear constants inline (LINEAR_TEAM_ID, RANDY_USER_ID, ESTIMATES, LINEAR_LABELS)
+- Complete ticket creation workflow
+- Subticket creation workflow
+- Ticket writing format extracted to `ticket-writing-format.md` (referenced)
 
-**Added:**
-- Reference to `/linear` command
-- Reference to `.cursor/rules/working-with-linear.mdc` rule
-
-**Result:** 24% reduction, clearer structure
+**Result:** Self-contained Linear workflow (368 lines) - constants always available for speed
 
 ---
 
@@ -73,10 +77,18 @@
 
 ### `/save` Command
 
-**Added:**
-- Reference to `/linear` command for Linear workflow
+**Removed:**
+- Commit message format template (~400 lines) → Extracted to `dev-docs/2-areas/development/commit-message-format.md`
+- All commit message examples (~200 lines) → Moved to `commit-message-format.md`
+- Teaching notes and anti-patterns (~26 lines) → Moved to `commit-message-format.md`
+- Ticket creation workflow → Moved to `/start` command
 
-**Result:** Minimal change, better integration
+**Added:**
+- Reference to `commit-message-format.md` for complete format
+- Reference to `/start` for ticket creation
+- Simplified workflow with references
+
+**Result:** 70% reduction (898 → 272 lines), focused workflow
 
 ---
 
@@ -88,11 +100,12 @@
 
 ## ✅ Benefits
 
-1. **Single Source of Truth**: Linear constants/workflows in `/linear` command only
-2. **Easier Maintenance**: Update Linear info once, not in multiple files
-3. **Clearer Structure**: Commands focus on their specific workflows
-4. **Better Discoverability**: References guide users to complete information
-5. **Reduced Context**: Less duplication = less to read
+1. **Single Source of Truth**: Linear constants/workflows in `/start` command only
+2. **Speed**: Constants always available in `/start` (loaded first) - no need to load separate command
+3. **Easier Maintenance**: Update Linear info once in `/start`, not in multiple files
+4. **Clearer Structure**: Commands focus on their specific workflows
+5. **Better Discoverability**: References guide users to complete information
+6. **Reduced Context**: Less duplication = less to read
 
 ---
 
@@ -100,17 +113,18 @@
 
 ### Universal Commands (Always Available)
 
-- **`/start`** - Onboarding (168 lines)
+- **`/start`** - Onboarding + ticket creation (288 lines)
 - **`/root-cause`** - Debug workflow (65 lines)
 
 ### Project Workflow Commands
 
 - **`/start-new-project`** - New project setup (594 lines)
-- **`/save`** - Knowledge capture (668 lines)
+- **`/save`** - Knowledge capture (272 lines)
 
-### Reference Commands
+### Documentation (Referenced by Commands)
 
-- **`/linear`** - Complete Linear workflow (366 lines)
+- **`commit-message-format.md`** - Commit message format with examples (406 lines)
+- **`ticket-writing-format.md`** - Linear ticket writing format template
 
 ---
 
@@ -124,10 +138,83 @@
 
 ---
 
+## 🛠️ Maintenance Guide for AI Agents
+
+**Before modifying any `.cursor/commands/*.md` file:**
+
+### Step 1: Check Current State
+
+1. Read `.cursor/commands/README.md` (this file) - Understand optimization strategy
+2. Check `.cursor/rules/README.md` - Understand rules vs commands distinction
+3. Review target command - Understand current structure
+
+### Step 2: Evaluate Need for Optimization
+
+**Red flags (command needs optimization):**
+- Command exceeds ~300 lines
+- Duplicates content from other commands/docs
+- Contains examples/templates that could be extracted
+- Same constants/workflows appear in multiple commands
+
+**If red flags present → Proceed to Step 3**
+
+**If no red flags → Make minimal changes, update this README if structure changes**
+
+### Step 3: Optimize (If Needed)
+
+**Extraction Strategy:**
+
+1. **Identify extractable content:**
+   - Examples/templates → Extract to `dev-docs/2-areas/development/[topic].md`
+   - Constants/workflows → Extract to single source command (e.g., `/linear`)
+   - Detailed workflows → Extract to separate doc, reference from command
+
+2. **Create extraction:**
+   - Create new doc file in appropriate location
+   - Move content with proper formatting
+   - Add clear purpose and "See" references
+
+3. **Update command:**
+   - Remove extracted content
+   - Add reference: "See `path/to/doc.md` for complete format/examples"
+   - Keep workflow steps concise
+   - Update line count in this README
+
+4. **Update this README:**
+   - Add entry to "Optimization Results" table
+   - Document what was extracted and where
+   - Update "Command Organization" section if needed
+
+### Step 4: Verify
+
+- [ ] Command is focused and concise (< 300 lines ideal)
+- [ ] No duplication with other commands/docs
+- [ ] References point to correct locations
+- [ ] This README updated with changes
+- [ ] `.cursor/rules/way-of-working.mdc` updated if needed
+
+---
+
+## 📋 Optimization Checklist
+
+**When optimizing a command:**
+
+- [ ] Read `.cursor/commands/README.md` first
+- [ ] Read `.cursor/rules/README.md` for rules vs commands guidance
+- [ ] Identify extractable content (examples, constants, workflows)
+- [ ] Create extraction file in appropriate location
+- [ ] Update command with references
+- [ ] Update this README with optimization details
+- [ ] Verify no duplication remains
+- [ ] Test that references work correctly
+
+---
+
 ## 📖 Related Documentation
 
 - **Rules**: `.cursor/rules/README.md` - Rules optimization guide
-- **Linear**: `.cursor/commands/linear.md` - Complete Linear reference
+- **Linear Constants**: `.cursor/commands/start.md` - Single source of truth (all constants & workflow)
+- **Ticket Format**: `dev-docs/2-areas/development/ticket-writing-format.md` - Ticket writing template
 - **Rules**: `.cursor/rules/working-with-linear.mdc` - Critical Linear rules
 
 ---

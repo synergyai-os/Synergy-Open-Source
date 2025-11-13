@@ -125,6 +125,34 @@ const data = $derived(query?.data ?? []);
 **Commands:**
 - `.cursor/commands/save.md` - Save patterns workflow
 - `.cursor/commands/root-cause.md` - Debug workflow
+- `.cursor/commands/README.md` - **Command optimization guide** ⭐ (read before modifying commands)
+
+---
+
+## Command Optimization (MANDATORY for AI Agents)
+
+**⚠️ BEFORE modifying any `.cursor/commands/*.md` file:**
+
+1. **Read `.cursor/commands/README.md`** - Understand optimization strategy
+2. **Check `.cursor/rules/README.md`** - Understand rules vs commands distinction
+
+**Key Principle: Remove Duplication, Add References**
+
+**When a command exceeds ~300 lines or duplicates content:**
+
+- ❌ **DON'T** add more content to the command
+- ✅ **DO** extract to separate documentation file
+- ✅ **DO** add reference in command (e.g., "See `dev-docs/...` for complete format")
+- ✅ **DO** update `.cursor/commands/README.md` with optimization details
+
+**Examples:**
+- Commit message format → `dev-docs/2-areas/development/commit-message-format.md` (406 lines)
+- Linear constants → `/linear` command (single source of truth)
+- Ticket creation → `/start` command (workflow handler)
+
+**Why**: Commands loaded on-demand, but duplication makes maintenance harder. Single source of truth = update once, reference everywhere.
+
+**See**: `.cursor/commands/README.md` for complete optimization strategy and examples
 
 ---
 

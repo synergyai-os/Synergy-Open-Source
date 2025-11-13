@@ -378,6 +378,47 @@ const LINEAR_LABELS = {
 
 ---
 
+## 📋 Creating Subtickets (Child Issues)
+
+**When to use**: Break down large tickets into focused, actionable subtickets.
+
+### Workflow
+
+1. **Identify parent ticket** - Get ticket ID (e.g., SYOS-84)
+2. **Create subtickets** - One ticket per issue/fix
+3. **Link with `parentId`** - Use parent ticket's ID
+
+### Example: Creating Subtickets
+
+```typescript
+// Get parent ticket
+const parent = await mcp_Linear_get_issue({ id: 'SYOS-84' });
+
+// Create subticket
+await mcp_Linear_create_issue({
+  team: 'SYOS',
+  title: 'Fix: [Specific Issue]',
+  description: '# Issue Description\n\n**Parent:** [SYOS-84](url)\n\n...',
+  projectId: parent.projectId, // ✅ Use same project as parent
+  parentId: parent.id, // ✅ Link to parent
+  assigneeId: RANDY_USER_ID, // ✅ Always assign to Randy
+  estimate: 2, // ✅ Numeric estimate
+  labels: ['bug', 'auth', 'backend'] // ✅ Appropriate labels
+});
+```
+
+### Best Practices
+
+- ✅ **One issue per subticket** - Each subticket should be independently fixable
+- ✅ **Use parent's project** - Subtickets inherit parent's project
+- ✅ **Clear titles** - Start with "Fix:" or "Add:" for clarity
+- ✅ **Link to parent** - Include parent ticket link in description
+- ✅ **Appropriate estimates** - Smaller than parent (typically 1-3)
+
+**See**: `/linear` command for complete ticket creation workflow
+
+---
+
 ## 🚀 Quick Reference
 
 | Tool       | Purpose          | Key Actions                                 |
