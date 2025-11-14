@@ -13,6 +13,7 @@
 | Build fails: "Could not load [deleted-file]"                                                      | Check all imports before deleting files                                      | [auth-deployment.md#L260](auth-deployment.md#L260)                  |
 | Auth works but users not in Convex DB                                                             | Deploy Convex functions to correct environment                               | [auth-deployment.md#L510](auth-deployment.md#L510)                  |
 | State not updating in UI                                                                          | Use `$state({})` + getters                                                   | [svelte-reactivity.md#L10](svelte-reactivity.md#L10)                |
+| Map/Set mutations don't update UI (tag selection, shortcuts broken)                              | Use SvelteMap/SvelteSet from svelte/reactivity                               | [svelte-reactivity.md#L360](svelte-reactivity.md#L360)              |
 | `undefined is not a valid Convex value`                                                           | Strip undefined from payloads                                                | [convex-integration.md#L10](convex-integration.md#L10)              |
 | `Only actions can be defined in Node.js`                                                          | Separate "use node" files                                                    | [convex-integration.md#L50](convex-integration.md#L50)              |
 | Composable receives stale values                                                                  | Pass functions `() => value`                                                 | [svelte-reactivity.md#L80](svelte-reactivity.md#L80)                |
@@ -204,6 +205,6 @@ correct code
 ---
 
 **Last Updated**: 2025-11-13
-**Pattern Count**: 79
+**Pattern Count**: 80
 **Format Version**: 2.0
 ```

@@ -246,11 +246,11 @@ export function setupAutoDismiss() {
 
 **Why**: `SvelteSet` is reactive - `.add()` and `.delete()` trigger UI updates. Regular `Set` inside `$state` doesn't trigger reactivity when mutated.  
 **Apply when**: Using timers inside `$effect` or reactive contexts  
-**Related**: #L280 (Polling patterns), #L850 (Map/Set reactivity)
+**Related**: #L280 (Polling patterns), #L360 (Map/Set reactivity)
 
 ---
 
-## #L850: Map/Set Not Reactive - Use SvelteMap/SvelteSet [🔴 CRITICAL]
+## #L360: Map/Set Not Reactive - Use SvelteMap/SvelteSet [🔴 CRITICAL]
 
 **Symptom**: Tag selection, keyboard shortcuts, or other Map/Set mutations don't update UI  
 **Root Cause**: JavaScript `Map`/`Set` are not reactive in Svelte 5. Mutations (`.set()`, `.add()`, `.delete()`) don't trigger re-renders, causing silent bugs and stale UI.  
