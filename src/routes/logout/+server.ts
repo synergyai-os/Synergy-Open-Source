@@ -1,4 +1,6 @@
-import { redirect, json } from '@sveltejs/kit';
+import { json } from '@sveltejs/kit';
+// TODO: Re-enable when redirect is needed
+// import { redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import {
 	SESSION_COOKIE_NAME,

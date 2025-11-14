@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Button from '$lib/components/ui/Button.svelte';
+	import { resolve } from '$app/paths';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	let {
@@ -14,7 +15,7 @@
 >
 	<!-- Logo -->
 	<a
-		href={resolveRoute('/')}
+		href={resolve('/')}
 		class="text-xl font-bold text-primary transition-colors hover:text-accent-primary"
 	>
 		SYOS
@@ -24,11 +25,11 @@
 	<div class="flex items-center gap-icon">
 		{#if isAuthenticated}
 			<!-- Logged in: Show Dashboard button -->
-			<Button variant="primary" href={resolveRoute('/inbox')}>Dashboard</Button>
+			<Button variant="primary" href={resolve('/inbox')}>Dashboard</Button>
 		{:else}
 			<!-- Not logged in: Show Register/Login -->
-			<Button variant="secondary" href={resolveRoute('/register')}>Register</Button>
-			<Button variant="primary" href={resolveRoute('/login')}>Login</Button>
+			<Button variant="secondary" href={resolve('/register')}>Register</Button>
+			<Button variant="primary" href={resolve('/login')}>Login</Button>
 		{/if}
 	</div>
 </header>

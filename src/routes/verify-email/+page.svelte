@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { PinInput, Button } from '$lib/components/ui';
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	const email = $derived($page.url.searchParams.get('email') ?? '');
@@ -49,7 +50,7 @@
 				} else {
 					console.log('📋 No 6-digit code found in clipboard');
 				}
-			} catch (err) {
+			} catch (_err) {
 				// Silently fail - user might have denied clipboard permission
 				// or there might be no clipboard access (Firefox private mode, etc.)
 				console.log('📋 Could not read clipboard (permission denied or not available)');
@@ -99,8 +100,8 @@
 
 			// Success - redirect
 			await goto(data.redirectTo ?? resolveRoute('/inbox'));
-		} catch (err) {
-			console.error('Verification error:', err);
+		} catch (_err) {
+			console.error('Verification error:', _err);
 			errorMessage = 'Network error. Please check your connection and try again.';
 			isSubmitting = false;
 			code = ''; // Clear the code
@@ -137,8 +138,8 @@
 			setTimeout(() => {
 				resendSuccess = false;
 			}, 5000);
-		} catch (err) {
-			console.error('Resend error:', err);
+		} catch (_err) {
+			console.error('Resend error:', _err);
 			errorMessage = 'Network error. Please check your connection and try again.';
 		} finally {
 			isResending = false;

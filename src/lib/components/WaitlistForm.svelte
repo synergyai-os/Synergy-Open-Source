@@ -3,6 +3,7 @@
 	import { api } from '$lib/convex';
 	import { fly } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
+	import { resolve } from '$app/paths';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	let email = $state('');

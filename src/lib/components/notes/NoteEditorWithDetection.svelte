@@ -3,6 +3,7 @@
 	import type { EditorView } from 'prosemirror-view';
 	import NoteEditor from './NoteEditor.svelte';
 	import AIContentDetector from './AIContentDetector.svelte';
+	import type NoteEditorComponent from './NoteEditor.svelte';
 
 	type Props = {
 		content?: string;
@@ -38,7 +39,7 @@
 
 	let showAIDetector = $state(false);
 	let detectorPosition = $state<{ x: number; y: number } | undefined>(undefined);
-	let editorRef: EditorView | undefined;
+	let editorRef: NoteEditorComponent | undefined;
 
 	function handlePaste(text: string, view: EditorView) {
 		if (!browser) return;

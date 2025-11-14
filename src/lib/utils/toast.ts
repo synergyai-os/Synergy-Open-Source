@@ -28,10 +28,12 @@
  */
 
 import { browser } from '$app/environment';
-import type { SonnerToast, ToastOptions, PromiseToastMessages } from '$lib/types/sonner';
+import type { ToastId, ToastOptions, PromiseToastMessages } from '$lib/types/sonner';
 
 // Lazy-load svelte-sonner only on client side to avoid SSR issues
-let sonnerToast: SonnerToast | null = null;
+// Use unknown type since svelte-sonner's toast has a more flexible signature
+// than our SonnerToast interface (accepts AnyComponent, not just string)
+let sonnerToast: unknown = null;
 
 if (browser) {
 	import('svelte-sonner').then((module) => {
@@ -57,12 +59,25 @@ const getSonner = () =>
  * @param message - Success message to display
  * @param options - Optional toast configuration
  */
-function success(message: string, options?: ToastOptions) {
-	const toast = getSonner();
-	return toast.success?.(message, {
+function success(message: string, options?: ToastOptions): ToastId | undefined {
+	const toast = getSonner() as {
+		success?: (message: string, options?: ToastOptions) => ToastId | undefined;
+		error?: (message: string, options?: ToastOptions) => ToastId | undefined;
+		info?: (message: string, options?: ToastOptions) => ToastId | undefined;
+		warning?: (message: string, options?: ToastOptions) => ToastId | undefined;
+		loading?: (message: string, options?: ToastOptions) => ToastId | undefined;
+		promise?: <T>(
+			promise: Promise<T>,
+			messages: PromiseToastMessages<T>,
+			options?: ToastOptions
+		) => Promise<T>;
+		dismiss?: (toastId?: ToastId) => void;
+	};
+	const result = toast.success?.(message, {
 		duration: 3000,
 		...options
 	});
+	return result as ToastId | undefined;
 }
 
 /**
@@ -70,12 +85,15 @@ function success(message: string, options?: ToastOptions) {
  * @param message - Error message to display
  * @param options - Optional toast configuration
  */
-function error(message: string, options?: ToastOptions) {
-	const toast = getSonner();
-	return toast.error?.(message, {
+function error(message: string, options?: ToastOptions): ToastId | undefined {
+	const toast = getSonner() as {
+		error?: (message: string, options?: ToastOptions) => ToastId | undefined;
+	};
+	const result = toast.error?.(message, {
 		duration: 4000, // Errors stay slightly longer
 		...options
 	});
+	return result as ToastId | undefined;
 }
 
 /**
@@ -83,12 +101,15 @@ function error(message: string, options?: ToastOptions) {
  * @param message - Info message to display
  * @param options - Optional toast configuration
  */
-function info(message: string, options?: ToastOptions) {
-	const toast = getSonner();
-	return toast.info?.(message, {
+function info(message: string, options?: ToastOptions): ToastId | undefined {
+	const toast = getSonner() as {
+		info?: (message: string, options?: ToastOptions) => ToastId | undefined;
+	};
+	const result = toast.info?.(message, {
 		duration: 3000,
 		...options
 	});
+	return result as ToastId | undefined;
 }
 
 /**
@@ -96,12 +117,15 @@ function info(message: string, options?: ToastOptions) {
  * @param message - Warning message to display
  * @param options - Optional toast configuration
  */
-function warning(message: string, options?: ToastOptions) {
-	const toast = getSonner();
-	return toast.warning?.(message, {
+function warning(message: string, options?: ToastOptions): ToastId | undefined {
+	const toast = getSonner() as {
+		warning?: (message: string, options?: ToastOptions) => ToastId | undefined;
+	};
+	const result = toast.warning?.(message, {
 		duration: 3500,
 		...options
 	});
+	return result as ToastId | undefined;
 }
 
 /**
@@ -109,9 +133,12 @@ function warning(message: string, options?: ToastOptions) {
  * @param message - Loading message to display
  * @param options - Optional toast configuration (must include `id` for dismissal)
  */
-function loading(message: string, options?: ToastOptions) {
-	const toast = getSonner();
-	return toast.loading?.(message, options);
+function loading(message: string, options?: ToastOptions): ToastId | undefined {
+	const toast = getSonner() as {
+		loading?: (message: string, options?: ToastOptions) => ToastId | undefined;
+	};
+	const result = toast.loading?.(message, options);
+	return result as ToastId | undefined;
 }
 
 /**
@@ -124,7 +151,13 @@ function promise<T>(
 	messages: PromiseToastMessages<T>,
 	options?: ToastOptions
 ) {
-	const toast = getSonner();
+	const toast = getSonner() as {
+		promise?: <T>(
+			promise: Promise<T>,
+			messages: PromiseToastMessages<T>,
+			options?: ToastOptions
+		) => Promise<T>;
+	};
 	return toast.promise?.(promise, messages, options);
 }
 
@@ -133,7 +166,9 @@ function promise<T>(
  * @param toastId - Optional toast ID (dismisses all if not provided)
  */
 function dismiss(toastId?: string | number) {
-	const toast = getSonner();
+	const toast = getSonner() as {
+		dismiss?: (toastId?: ToastId) => void;
+	};
 	return toast.dismiss?.(toastId);
 }
 
@@ -142,9 +177,11 @@ function dismiss(toastId?: string | number) {
  * @param message - Message to display
  * @param options - Optional toast configuration
  */
-function custom(message: string, options?: ToastOptions) {
-	if (!browser || !sonnerToast) return;
-	return sonnerToast(message, options);
+function custom(message: string, options?: ToastOptions): ToastId | undefined {
+	if (!browser || !sonnerToast) return undefined;
+	const toast = sonnerToast as (message: string, options?: ToastOptions) => ToastId | undefined;
+	const result = toast(message, options);
+	return result as ToastId | undefined;
 }
 
 export const toast = {

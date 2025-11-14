@@ -22,14 +22,15 @@
 
 	let { assignee, onChange, readonly = false }: Props = $props();
 
-	function getInitials(name: string): string {
-		return name
-			.split(' ')
-			.map((n) => n[0])
-			.join('')
-			.toUpperCase()
-			.slice(0, 2);
-	}
+	// TODO: Re-enable when needed for dynamic initials generation
+	// function _getInitials(name: string): string {
+	// 	return name
+	// 		.split(' ')
+	// 		.map((n) => n[0])
+	// 		.join('')
+	// 		.toUpperCase()
+	// 		.slice(0, 2);
+	// }
 </script>
 
 <button

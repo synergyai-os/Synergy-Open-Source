@@ -9,6 +9,7 @@
  */
 
 import { mutation } from '../_generated/server';
+import type { Id } from '../_generated/dataModel';
 
 export const seedRBAC = mutation({
 	args: {},

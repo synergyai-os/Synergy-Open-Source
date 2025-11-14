@@ -1,7 +1,7 @@
 // Test file for CodeRabbit review
 // This file intentionally includes some issues for CodeRabbit to catch
 
-const unusedVariable = 'This should trigger a lint error';
+const _unusedVariable = 'This should trigger a lint error';
 
 // Missing return type annotation
 export function testFunction(param: string) {

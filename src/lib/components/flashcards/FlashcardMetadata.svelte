@@ -28,9 +28,9 @@
 		onDelete: () => void;
 	};
 
-	let { flashcard: { _id, userId, createdAt, updatedAt, state, dueDate, easeFactor, interval, repetitions, lastReview, tags, collectionId, sourceId, highlightId, noteId, isAIGenerated, aiPrompt, aiModel, aiTemperature, aiMaxTokens, question, answer }, onEdit, onDelete }: Props = $props();
+	let { flashcard, onEdit, onDelete }: Props = $props();
 
-	const convexClient = browser ? useConvexClient() : null;
+	const _convexClient = browser ? useConvexClient() : null;
 	const getUserId = () => $page.data.user?.userId;
 	const getSessionId = () => $page.data.sessionId;
 
@@ -61,7 +61,8 @@
 				})
 			: null;
 
-	const tags = $derived(flashcardTagsQuery?.data ?? []);
+	// TODO: Re-enable when needed
+	// const tags = $derived(flashcardTagsQuery?.data ?? []);
 
 	// Track selected tag IDs for TagSelector
 	let selectedTagIds = $state<Id<'tags'>[]>([]);
@@ -127,7 +128,7 @@
 
 	// Format date
 	function formatDate(timestamp: number): string {
-		const date = new Date(timestamp);
+		const _date = new Date(timestamp);
 		const now = Date.now();
 		const diffMs = now - timestamp;
 		const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));

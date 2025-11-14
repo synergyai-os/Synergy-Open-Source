@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	// TODO: Re-enable when goto is needed
+	// import { goto } from '$app/navigation';
 	import MetricsForecast from '$lib/components/ai-tools/MetricsForecast.svelte';
 	import ToolComparisonTable from '$lib/components/ai-tools/ToolComparisonTable.svelte';
 	import { verifiedTools } from '$lib/services/metricsService';
@@ -7,6 +8,7 @@
 	import { fade, fly, scale, slide } from 'svelte/transition';
 	import { quintOut, elasticOut } from 'svelte/easing';
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	// Animation state
@@ -25,7 +27,8 @@
 
 	// Count-up animation for social proof
 	let contributorCount = 0;
-	let starCount = 0;
+	// TODO: Re-enable when star count display is needed
+	// let _starCount = 0;
 	let docsCount = 0;
 
 	const targetCounts = {
@@ -76,7 +79,7 @@
 			const current = Math.floor(start + (end - start) * eased);
 
 			if (type === 'contributors') contributorCount = current;
-			else if (type === 'stars') starCount = current;
+			// else if (type === 'stars') _starCount = current;
 			else if (type === 'docs') docsCount = current;
 
 			if (progress < 1) requestAnimationFrame(animate);
@@ -309,7 +312,15 @@
 							transition:slide={{ duration: prefersReducedMotion ? 0 : 200, easing: quintOut }}
 						>
 							{#each group.items as item (item.href)}
-								<a href={item.href} class="nav-dropdown-item" onclick={() => closeAllMenus()}>
+								<a
+									href={item.href.startsWith('http') ||
+									item.href.startsWith('#') ||
+									item.href === '/CONTRIBUTING'
+										? item.href
+										: resolveRoute(item.href)}
+									class="nav-dropdown-item"
+									onclick={() => closeAllMenus()}
+								>
 									<div class="nav-dropdown-content">
 										<span class="nav-dropdown-label">
 											{item.label}
@@ -412,7 +423,11 @@
 					<div class="mobile-menu-cards">
 						{#each group.items as item, itemIndex (item.href)}
 							<a
-								href={item.href}
+								href={item.href.startsWith('http') ||
+								item.href.startsWith('#') ||
+								item.href === '/CONTRIBUTING'
+									? item.href
+									: resolveRoute(item.href)}
 								class="mobile-menu-card"
 								onclick={() => (mobileMenuOpen = false)}
 								in:fly={{
@@ -574,7 +589,12 @@
 			<!-- Quick Actions - De-emphasized -->
 			<div class="quick-actions-minimal">
 				{#each quickActions as action (action.href)}
-					<a href={action.href} class="action-card-minimal">
+					<a
+						href={action.href.startsWith('http') || action.href.startsWith('#')
+							? action.href
+							: resolveRoute(action.href)}
+						class="action-card-minimal"
+					>
 						<span class="action-icon-minimal">{action.icon}</span>
 						<span class="action-title-minimal">{action.title}</span>
 						{#if action.tag}
@@ -633,7 +653,12 @@
 					<ul class="role-links">
 						{#each role.links as link (link.href)}
 							<li>
-								<a href={link.href} class="role-link">
+								<a
+									href={link.href.startsWith('http') || link.href.startsWith('#')
+										? link.href
+										: resolveRoute(link.href)}
+									class="role-link"
+								>
 									{link.label}
 									<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
 										<path
@@ -741,9 +766,7 @@
 						</svg>
 						Star on GitHub
 					</a>
-					<a href="/CONTRIBUTING" class="btn btn-secondary">
-						📖 Contributing Guide
-					</a>
+					<a href="/CONTRIBUTING" class="btn btn-secondary"> 📖 Contributing Guide </a>
 				</div>
 			</div>
 

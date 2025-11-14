@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { page } from '$app/stores';
+	// TODO: Re-enable when page is needed
+	// import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import GlobalActivityTracker from '$lib/components/GlobalActivityTracker.svelte';
@@ -8,13 +9,15 @@
 	import QuickCreateModal from '$lib/components/QuickCreateModal.svelte';
 	import OrganizationModals from '$lib/components/organizations/OrganizationModals.svelte';
 	import LoadingOverlay from '$lib/components/ui/LoadingOverlay.svelte';
+	import { resolve } from '$app/paths';
 	import { resolveRoute } from '$lib/utils/navigation';
 	import { getContext, setContext } from 'svelte';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 	import { useGlobalShortcuts, SHORTCUTS } from '$lib/composables/useGlobalShortcuts.svelte';
 	import { useLoadingOverlay } from '$lib/composables/useLoadingOverlay.svelte';
 	import { toast } from '$lib/utils/toast';
-	import type { Id } from '$lib/convex';
+	// TODO: Re-enable when Id type is needed
+	// import type { Id } from '$lib/convex';
 
 	let { children, data } = $props();
 

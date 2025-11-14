@@ -93,8 +93,10 @@
 | User isolation test fails - User 2 sees User 1's data                         | Use counter + timestamp for unique session IDs                        | [convex-integration.md#L1100](convex-integration.md#L1100) |
 | Test fails: "Session not found" with getAuthUserId(ctx)                       | Use sessionId parameter pattern or skip test (convex-test limit)      | [convex-integration.md#L1150](convex-integration.md#L1150) |
 | UI feature shows for manual entries but should only show for API-synced items | Check sync metadata field (lastSyncedAt), not just type or externalId | [convex-integration.md#L370](convex-integration.md#L370)   |
+| Type annotations extremely long and hard to read with inline import() syntax | Use top-level imports: `import type { Doc } from '...'`                | [convex-integration.md#L1600](convex-integration.md#L1600) |
 | Analytics events missing in PostHog                                           | Use server-side tracking                                              | [analytics.md#L10](analytics.md#L10)                       |
 | ESLint errors in test files blocking CI                                       | Relax rules for test files (allow `any` types)                        | [ci-cd.md#L60](ci-cd.md#L60)                               |
+| ESLint rule reports false positives for correct code, 50+ per-line disables   | Disable rule globally with documentation when rule has known limitations | [ci-cd.md#L70](ci-cd.md#L70)                               |
 | Playwright test fails: "did not expect test.use() here"                       | Move test.use() to describe level, not inside test                    | [ci-cd.md#L210](ci-cd.md#L210)                             |
 | Cookies not cleared/shared in Playwright tests                                | Use page.request instead of request fixture                           | [ci-cd.md#L220](ci-cd.md#L220)                             |
 | E2E test fails with "element not found" on empty data                         | Handle empty state gracefully, use .count() + conditional checks      | [ci-cd.md#L230](ci-cd.md#L230)                             |

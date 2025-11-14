@@ -15,7 +15,7 @@
  */
 
 import type { QueryCtx, MutationCtx } from './_generated/server';
-import type { Id } from './_generated/dataModel';
+import type { Doc, Id } from './_generated/dataModel';
 
 /**
  * DEPRECATED: Validates that a userId corresponds to an active session

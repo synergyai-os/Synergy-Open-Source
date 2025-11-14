@@ -3,6 +3,8 @@
 	import { fade, fly } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import { onMount } from 'svelte';
+	import { resolve } from '$app/paths';
+	import { resolveRoute } from '$lib/utils/navigation';
 
 	let visible = $state(false);
 	let searchQuery = $state('');
@@ -389,7 +391,11 @@
 								icon={page.icon}
 								title={page.title}
 								description={page.description}
-								href={page.href}
+								href={page.href.startsWith('http') ||
+								page.href.startsWith('#') ||
+								page.href === '/CONTRIBUTING'
+									? page.href
+									: resolveRoute(page.href)}
 								badge={page.badge}
 							/>
 						{/each}

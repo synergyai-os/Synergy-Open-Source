@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { marked } from 'marked';
-	import { browser } from '$app/environment';
+	// TODO: Re-enable when browser is needed
+	// import { browser } from '$app/environment';
 
 	let { data }: { data: PageData } = $props();
 

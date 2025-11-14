@@ -8,6 +8,7 @@ import { browser } from '$app/environment';
 import { useQuery } from 'convex-svelte';
 import { api } from '$lib/convex';
 import type { InboxItem } from '$lib/composables/useKeyboardNavigation.svelte';
+import type { Id } from '$lib/convex';
 
 type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 
@@ -38,14 +39,24 @@ export function useInboxItems(params?: UseInboxItemsParams): UseInboxItemsReturn
 		browser && params?.sessionId
 			? useQuery(api.inbox.listInboxItems, () => {
 					const sessionId = params.sessionId(); // Get current sessionId (reactive)
-					if (!sessionId) return null; // Skip query if sessionId not available
+					if (!sessionId) {
+						// Return a sentinel value instead of null to satisfy type checker
+						// The query will be skipped when sessionId is not available
+						return { sessionId: '', processed: false } as {
+							sessionId: string;
+							processed: boolean;
+							filterType?: string;
+							organizationId?: Id<'organizations'> | null;
+							teamId?: Id<'teams'>;
+						};
+					}
 
 					const baseArgs: {
 						sessionId: string;
 						processed: boolean;
 						filterType?: string;
-						organizationId?: string | null;
-						teamId?: string | null;
+						organizationId?: Id<'organizations'> | null;
+						teamId?: Id<'teams'>;
 					} = {
 						sessionId, // Required for session validation
 						processed: false
@@ -59,7 +70,8 @@ export function useInboxItems(params?: UseInboxItemsParams): UseInboxItemsReturn
 							: params?.activeOrganizationId;
 					if (orgId !== undefined) {
 						// Pass null explicitly for personal workspace (required for filtering)
-						baseArgs.organizationId = orgId;
+						// Cast to Id type for type safety
+						baseArgs.organizationId = orgId as Id<'organizations'> | null;
 					}
 
 					const teamId =
@@ -67,7 +79,8 @@ export function useInboxItems(params?: UseInboxItemsParams): UseInboxItemsReturn
 							? params.activeTeamId()
 							: params?.activeTeamId;
 					if (teamId) {
-						baseArgs.teamId = teamId;
+						// Cast to Id type for type safety
+						baseArgs.teamId = teamId as Id<'teams'>;
 					}
 
 					// Add type filter if not 'all'

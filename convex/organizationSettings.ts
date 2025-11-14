@@ -10,14 +10,15 @@ import { internal } from './_generated/api';
 import { v } from 'convex/values';
 import { getAuthUserId } from './auth';
 import type { QueryCtx, MutationCtx } from './_generated/server';
+import type { Id } from './_generated/dataModel';
 
 /**
  * Helper: Check if user is admin or owner of organization
  */
 async function isOrganizationAdmin(
 	ctx: QueryCtx | MutationCtx,
-	userId: string,
-	organizationId: string
+	userId: Id<'users'>,
+	organizationId: Id<'organizations'>
 ): Promise<boolean> {
 	const membership = await ctx.db
 		.query('organizationMembers')
@@ -103,7 +104,7 @@ export const updateOrganizationClaudeApiKey = action({
 
 		// Verify user is admin (actions can't access db, need to run query)
 		const settings = await ctx.runQuery(internal.organizationSettings.checkAdminAccess, {
-			userId: userId as any,
+			userId: userId,
 			organizationId: args.organizationId
 		});
 		if (!settings?.isAdmin) {
@@ -145,7 +146,7 @@ export const updateOrganizationClaudeApiKey = action({
  */
 export const checkAdminAccess = internalQuery({
 	args: {
-		userId: v.string(),
+		userId: v.id('users'),
 		organizationId: v.id('organizations')
 	},
 	handler: async (ctx, args) => {

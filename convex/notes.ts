@@ -6,6 +6,8 @@
 
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
+// TODO: Re-enable when Doc type is needed
+// import type { Doc } from './_generated/dataModel';
 import { getAuthUserId } from './auth';
 import { validateSessionAndGetUserId } from './sessionValidation';
 
@@ -80,7 +82,17 @@ export const updateNote = mutation({
 			throw new Error('Item is not a note');
 		}
 
-		const updateData: Partial<Doc<'inboxItems'>> & { updatedAt: number } = {
+		// Type-safe update data for note type only
+		const updateData: {
+			updatedAt: number;
+			title?: string;
+			content?: string;
+			contentMarkdown?: string;
+			blogCategory?: string;
+			slug?: string;
+			isAIGenerated?: boolean;
+			aiGeneratedAt?: number;
+		} = {
 			updatedAt: Date.now()
 		};
 

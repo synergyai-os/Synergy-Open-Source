@@ -6,6 +6,7 @@
 	import RateLimitError from '$lib/components/ui/RateLimitError.svelte';
 	import LoadingOverlay from '$lib/components/ui/LoadingOverlay.svelte';
 	import type { UseLoadingOverlayReturn } from '$lib/composables/useLoadingOverlay.svelte';
+	import { resolve } from '$app/paths';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	function parseBooleanFlag(value: string | null): boolean {

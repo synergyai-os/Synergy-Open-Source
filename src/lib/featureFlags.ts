@@ -95,9 +95,9 @@ export interface FeatureFlagRule {
  * {/if}
  * ```
  */
-export function useFeatureFlag(flag: FeatureFlagKey) {
+export function useFeatureFlag(_flag: FeatureFlagKey) {
 	// This is a placeholder - actual implementation will use Convex query
-	// Will be implemented with: useQuery(api.featureFlags.checkFlag, () => ({ flag, userId }))
+	// Will be implemented with: useQuery(api.featureFlags.checkFlag, () => ({ flag: _flag, userId }))
 	return {
 		subscribe: (handler: (value: boolean) => void) => {
 			// Placeholder: always return false until Convex integration is complete

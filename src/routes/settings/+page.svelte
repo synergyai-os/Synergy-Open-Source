@@ -8,8 +8,9 @@
 	import type { Id } from '../../../convex/_generated/dataModel';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 
-	// Types for Convex hooks
-	type UseQueryReturn<Query extends FunctionReference<'query'>> =
+	// Types for Convex hooks (currently unused but kept for future use)
+	// type UseQueryReturn<Query extends FunctionReference<'query'>> =
+	type _UseQueryReturn<Query extends FunctionReference<'query'>> =
 		| {
 				data: undefined;
 				error: undefined;
@@ -29,14 +30,18 @@
 				isStale: boolean;
 		  };
 
-	// Mutation function type - returns a function that takes args and returns a promise
-	type UseMutationReturn<Mutation extends FunctionReference<'mutation'>> = (
+	// Mutation function type - returns a function that takes args and returns a promise (currently unused but kept for future use)
+	// type UseMutationReturn<Mutation extends FunctionReference<'mutation'>> = (
+	type _UseMutationReturn<Mutation extends FunctionReference<'mutation'>> = (
 		args: FunctionArgs<Mutation>
 	) => Promise<FunctionReturnType<Mutation>>;
 
 	// Helper type for function args
-	type FunctionArgs<F extends FunctionReference<any>> =
-		F extends FunctionReference<any, any, infer Args> ? Args : never;
+	// Using 'public' | 'internal' for visibility constraint since we're only inferring Args
+	type FunctionArgs<F extends FunctionReference<'query' | 'mutation' | 'action'>> =
+		F extends FunctionReference<'query' | 'mutation' | 'action', 'public' | 'internal', infer Args>
+			? Args
+			: never;
 
 	// User settings type (decrypted, as returned from query)
 	// Using string literal for Id type since table may not be in generated types yet
@@ -155,7 +160,8 @@
 		: null;
 
 	// Load settings using client.query (not useQuery, to keep it simple)
-	let userSettings: UserSettings | null = $state(null);
+	// TODO: Re-enable when userSettings is needed
+	let _userSettings: UserSettings | null = $state(null);
 
 	// Load settings when client is ready and user is authenticated
 	onMount(async () => {
@@ -176,7 +182,15 @@
 				sessionId
 			});
 			if (settings) {
-				userSettings = settings as UserSettings;
+				// Query returns { hasClaudeKey, hasReadwiseKey, theme } | null
+				// Create UserSettings-compatible object for type compatibility
+				// TODO: Re-enable when userSettings is needed
+				_userSettings = {
+					_id: '', // Not needed for display
+					userId: '', // Not needed for display
+					theme: settings.theme as 'light' | 'dark' | undefined,
+					_creationTime: 0 // Not needed for display
+				};
 
 				// SECURITY: NEVER decrypt keys on the client - only track if they exist
 				// Keys are encrypted in the database and should NEVER be sent to the client
@@ -190,7 +204,8 @@
 			const orgId = activeOrganizationId();
 			if (orgId) {
 				const orgSettings = await convexClient.query(settingsApiFunctions.getOrganizationSettings, {
-					organizationId: orgId
+					sessionId,
+					organizationId: orgId as Id<'organizations'>
 				});
 				if (orgSettings) {
 					isOrgAdmin = orgSettings.isAdmin || false;
@@ -198,7 +213,7 @@
 					// orgClaudeHasKey will be added below if needed
 				}
 			}
-		} catch (e) {
+		} catch (_e) {
 			// Silently handle errors - user will see empty inputs
 		}
 	});
@@ -210,9 +225,11 @@
 	let updateReadwiseApiKeyFn:
 		| ((args: { sessionId: string; apiKey: string }) => Promise<string>)
 		| null = $state(null);
-	let updateThemeFn:
+	// TODO: Re-enable when updateThemeFn is needed (currently only used as type)
+	type UpdateThemeFn =
 		| ((args: { sessionId: string; theme: 'light' | 'dark' }) => Promise<string>)
-		| null = $state(null);
+		| null;
+	let _updateThemeFn: UpdateThemeFn = $state(null);
 	let deleteClaudeApiKeyFn: ((sessionId: string) => Promise<string | null>) | null = $state(null);
 	let deleteReadwiseApiKeyFn: ((sessionId: string) => Promise<string | null>) | null = $state(null);
 
@@ -232,15 +249,15 @@
 				args
 			)) as typeof updateReadwiseApiKeyFn;
 		// Theme update is still a mutation (no validation needed)
-		updateThemeFn = ((args: { sessionId: string; theme: 'light' | 'dark' }) =>
-			convexClient!.mutation(settingsApiFunctions.updateTheme, args)) as typeof updateThemeFn;
-		// Delete functions are mutations
+		_updateThemeFn = ((args: { sessionId: string; theme: 'light' | 'dark' }) =>
+			convexClient!.mutation(settingsApiFunctions.updateTheme, args)) as typeof _updateThemeFn;
+		// Delete functions are actions (they validate via HTTP)
 		deleteClaudeApiKeyFn = ((sessionId: string) =>
-			convexClient!.mutation(settingsApiFunctions.deleteClaudeApiKey, {
+			convexClient!.action(settingsApiFunctions.deleteClaudeApiKey, {
 				sessionId
 			})) as typeof deleteClaudeApiKeyFn;
 		deleteReadwiseApiKeyFn = ((sessionId: string) =>
-			convexClient!.mutation(settingsApiFunctions.deleteReadwiseApiKey, {
+			convexClient!.action(settingsApiFunctions.deleteReadwiseApiKey, {
 				sessionId
 			})) as typeof deleteReadwiseApiKeyFn;
 	});
@@ -253,8 +270,9 @@
 	let readwiseApiKey = $state('');
 
 	// Organization workspace keys (separate state)
-	let orgClaudeApiKey = $state('');
-	let orgReadwiseApiKey = $state(''); // User's personal Readwise for org imports
+	// TODO: Re-enable when org API keys are needed
+	let _orgClaudeApiKey = $state('');
+	let _orgReadwiseApiKey = $state(''); // User's personal Readwise for org imports
 	let isOrgAdmin = $state(false); // Whether user can edit org settings
 
 	// Settings are loaded directly in onMount above, no separate effect needed
@@ -423,7 +441,7 @@
 			claudeShowCheckmark = false;
 			claudeValidationState = 'idle';
 			claudeError = null;
-		} catch (e) {
+		} catch (_e) {
 			// Handle error silently - could show error message here if needed
 		}
 	}
@@ -439,7 +457,7 @@
 			readwiseShowCheckmark = false;
 			readwiseValidationState = 'idle';
 			readwiseError = null;
-		} catch (e) {
+		} catch (_e) {
 			// Handle error silently - could show error message here if needed
 		}
 	}

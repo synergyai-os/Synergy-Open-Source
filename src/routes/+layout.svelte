@@ -113,7 +113,7 @@
 	// Components using createThemeStore() will initialize reactively on first use
 
 	// Dynamically import Toaster only on client side (SSR issue with svelte-sonner)
-	let Toaster = $state<any>(null);
+	let Toaster = $state<typeof import('svelte-sonner').Toaster | null>(null);
 
 	onMount(async () => {
 		// Import svelte-sonner only on client side to avoid SSR issues

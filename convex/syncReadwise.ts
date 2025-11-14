@@ -13,6 +13,7 @@ import { internal } from './_generated/api';
 import { parseAuthorString } from './readwiseUtils';
 import type { FunctionReference } from 'convex/server';
 import type { ActionCtx } from './_generated/server';
+import type { Id } from './_generated/dataModel';
 import type {
 	ReadwiseHighlight,
 	ReadwiseSource,
@@ -546,11 +547,12 @@ export const syncReadwiseHighlightsInternal = internalAction({
 					}
 
 					// Create or update highlight
+					// sourceId is string | null, but we've verified it exists, so cast to Id<'sources'>
 					const highlightId = await ctx.runMutation(
 						internal.syncReadwiseMutations.findOrCreateHighlight,
 						{
 							userId,
-							sourceId: sourceId as any, // Type assertion needed for Id conversion
+							sourceId: sourceId as Id<'sources'>,
 							readwiseHighlight: highlight
 						}
 					);

@@ -58,7 +58,9 @@ export const sendTestEmailInternal = internalAction({
 // Public action that calls the internal action to send email
 // Actions can make HTTP requests, so we use an action for Resend API calls
 export const sendTestEmail = action({
-	handler: async (ctx): Promise<{
+	handler: async (
+		ctx
+	): Promise<{
 		success: boolean;
 		message: string;
 		details: { success: boolean; emailId?: string; message: string; result?: unknown };

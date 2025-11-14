@@ -19,7 +19,14 @@
 	const convexClient = browser ? useConvexClient() : null;
 	const inboxApi = browser
 		? {
-				getSyncProgress: makeFunctionReference('inbox:getSyncProgress') as any
+				getSyncProgress: makeFunctionReference(
+					'inbox:getSyncProgress'
+				) as import('convex/server').FunctionReference<
+					'query',
+					'public',
+					{ sessionId: string },
+					import('$lib/types/convex').SyncProgress
+				>
 			}
 		: null;
 

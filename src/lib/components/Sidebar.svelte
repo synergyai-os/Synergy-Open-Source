@@ -9,16 +9,12 @@
 	import SidebarHeader from './sidebar/SidebarHeader.svelte';
 	import CleanReadwiseButton from './sidebar/CleanReadwiseButton.svelte';
 	import TeamList from './organizations/TeamList.svelte';
-	import CreateMenu from './sidebar/CreateMenu.svelte';
 	import LoadingOverlay from './ui/LoadingOverlay.svelte';
 	import type {
 		UseOrganizations,
 		OrganizationSummary
 	} from '$lib/composables/useOrganizations.svelte';
 	import { useAuthSession } from '$lib/composables/useAuthSession.svelte';
-	import { useQuery } from 'convex-svelte';
-	import { api } from '$lib/convex';
-	import type { Id } from '$lib/convex';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	type Props = {
@@ -385,7 +381,8 @@
 						linkAccount: '1',
 						redirect: currentPath
 					});
-					goto(`${resolveRoute('/login')}?${params.toString()}`);
+					const loginPath = resolveRoute('/login');
+					goto(`${loginPath}?${params.toString()}`);
 				}}
 				onSwitchAccount={async (targetUserId, redirectTo) => {
 					// Find the account being switched to
@@ -721,7 +718,8 @@
 					linkAccount: '1',
 					redirect: currentPath
 				});
-				goto(`${resolveRoute('/login')}?${params.toString()}`);
+				const loginPath = resolveRoute('/login');
+				goto(`${loginPath}?${params.toString()}`);
 			}}
 			onSwitchAccount={async (targetUserId, redirectTo) => {
 				// Find the account being switched to

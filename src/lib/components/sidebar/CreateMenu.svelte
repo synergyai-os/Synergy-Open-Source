@@ -16,7 +16,7 @@
 		onCreateNote,
 		onCreateFlashcard,
 		onCreateHighlight,
-		triggerElement
+		triggerElement: _triggerElement
 	}: Props = $props();
 
 	function handleSelect(action: (() => void) | undefined) {

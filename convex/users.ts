@@ -1,7 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import type { MutationCtx, QueryCtx } from './_generated/server';
-import type { Id } from './_generated/dataModel';
+import type { Doc, Id } from './_generated/dataModel';
 import { getAuthUserId } from './auth';
 import { validateSessionAndGetUserId } from './sessionValidation';
 import { requirePermission } from './rbac/permissions';
@@ -456,12 +456,13 @@ export const listLinkedAccounts = query({
 			const user = await ctx.db.get(link.linkedUserId);
 			if (!user) continue;
 
+			// User is already typed as Doc<'users'>, so we can access properties directly
 			results.push({
 				userId: link.linkedUserId,
-				email: (user as any).email ?? null,
-				name: (user as any).name ?? null,
-				firstName: (user as any).firstName ?? null,
-				lastName: (user as any).lastName ?? null,
+				email: user.email ?? null,
+				name: user.name ?? null,
+				firstName: user.firstName ?? null,
+				lastName: user.lastName ?? null,
 				linkType: link.linkType ?? null,
 				verifiedAt: link.verifiedAt
 			});

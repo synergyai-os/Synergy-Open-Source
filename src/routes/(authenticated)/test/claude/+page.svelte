@@ -5,6 +5,7 @@
 	import { useConvexClient } from 'convex-svelte';
 	import { makeFunctionReference } from 'convex/server';
 	import type { FunctionReference } from 'convex/server';
+	import { resolve } from '$app/paths';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	let testInput = $state('');
@@ -47,7 +48,7 @@
 				isLoading: false,
 				data: data ? { hasClaudeKey: data.hasClaudeKey || false } : null
 			};
-		} catch (e) {
+		} catch (_e) {
 			settings = { isLoading: false, data: null };
 		}
 	});

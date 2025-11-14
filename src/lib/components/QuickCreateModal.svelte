@@ -95,8 +95,8 @@
 
 	// Timing tracking for analytics
 	// TODO: Re-enable when analytics tracking is needed
-	// let openedAt = $state(0);
-	// let typeSelectedAt = $state(0);
+	let _openedAt = $state(0);
+	let _typeSelectedAt = $state(0);
 	let tagModificationStartedAt = $state(0);
 
 	// Set initial type when modal opens (for quick create shortcuts like 'N')
@@ -105,7 +105,7 @@
 		if (open) {
 			if (initialType) {
 				selectedType = initialType;
-				typeSelectedAt = Date.now();
+				_typeSelectedAt = Date.now();
 				console.log('✅ selectedType SET TO:', selectedType);
 			} else {
 				console.log('⚠️ No initialType - showing command palette');
@@ -121,7 +121,7 @@
 	// Track when modal opens
 	$effect(() => {
 		if (open && browser) {
-			openedAt = Date.now();
+			_openedAt = Date.now();
 			// TODO: Implement PostHog tracking
 			// trackEvent({
 			// 	name: AnalyticsEventName.QUICK_CREATE_OPENED,
@@ -140,7 +140,7 @@
 	// Track type selection
 	function handleTypeSelect(type: ContentType, _method: 'click' | 'keyboard_c' | 'keyboard_nav') {
 		selectedType = type;
-		typeSelectedAt = Date.now();
+		_typeSelectedAt = Date.now();
 
 		// TODO: Implement PostHog tracking
 		// if (browser) {
@@ -347,7 +347,7 @@
 		noteIsAIGenerated = false;
 		selectedTagIds = [];
 		tagModificationStartedAt = 0;
-		typeSelectedAt = 0;
+		_typeSelectedAt = 0;
 		isFullscreen = false;
 	}
 
@@ -463,7 +463,6 @@
 				? 'fixed inset-0 z-50 h-full w-full overflow-y-auto border-0 bg-elevated p-0 shadow-2xl'
 				: 'fixed top-1/2 left-1/2 z-50 max-h-[80vh] w-full max-w-[900px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-md border border-base bg-elevated p-0 shadow-2xl'} data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]"
 		>
-			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 			<div bind:this={modalContainerRef} onkeydown={handleKeyDown} role="dialog" tabindex="-1">
 				{#if !selectedType}
 					<!-- Command Center -->

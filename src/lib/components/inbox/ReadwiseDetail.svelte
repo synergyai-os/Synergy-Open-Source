@@ -3,14 +3,15 @@
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
+	import { resolve } from '$app/paths';
 	import { useConvexClient, useQuery } from 'convex-svelte';
 	import { makeFunctionReference } from 'convex/server';
 	import { api } from '$lib/convex';
 	import TagSelector from './TagSelector.svelte';
 	import type { Id } from '../../../../convex/_generated/dataModel';
 	import { DEFAULT_TAG_COLOR } from '$lib/utils/tagConstants';
-	import type { InboxItemWithDetails } from '$lib/types/convex';
-	import type { Doc } from '../../../../convex/_generated/dataModel';
+	// TODO: Re-enable when Doc type is needed
+	// import type { Doc } from '../../../../convex/_generated/dataModel';
 	import type { FunctionReference } from 'convex/server';
 
 	import type { ReadwiseHighlightWithDetails } from '$lib/types/convex';
@@ -41,7 +42,7 @@
 	const canNavigatePrevious = $derived(onPrevious !== undefined && currentIndex > 0);
 
 	const convexClient = browser ? useConvexClient() : null;
-	const getUserId = () => $page.data.user?.userId;
+	const getSessionId = () => $page.data.sessionId;
 	const markProcessedApi = browser
 		? (makeFunctionReference('inbox:markProcessed') as FunctionReference<
 				'mutation',
@@ -56,7 +57,7 @@
 	let createTagApi: FunctionReference<
 		'mutation',
 		'public',
-		{ sessionId: string; displayName: string; color?: string },
+		{ sessionId: string; displayName: string; color?: string; parentId?: Id<'tags'> },
 		Id<'tags'>
 	> | null = null;
 	let assignTagsApi: FunctionReference<
@@ -70,7 +71,7 @@
 			createTagApi = makeFunctionReference('tags:createTag') as FunctionReference<
 				'mutation',
 				'public',
-				{ sessionId: string; displayName: string; color?: string },
+				{ sessionId: string; displayName: string; color?: string; parentId?: Id<'tags'> },
 				Id<'tags'>
 			>;
 			assignTagsApi = makeFunctionReference('tags:assignTagsToHighlight') as FunctionReference<
@@ -88,11 +89,14 @@
 	// Query all tags for user (with error handling if API not generated yet)
 	// Note: useQuery returns {data, isLoading, error, isStale} - extract the data property
 	const allTagsQuery =
-		browser && api.tags?.listAllTags && getUserId()
+		browser && api.tags?.listAllTags && getSessionId()
 			? useQuery(api.tags.listAllTags, () => {
-					const userId = getUserId();
-					if (!userId) return null;
-					return { userId };
+					const sessionId = getSessionId();
+					if (!sessionId) {
+						// Return skip pattern - Convex recognizes this
+						return 'skip' as 'skip' & { sessionId: string };
+					}
+					return { sessionId };
 				})
 			: null;
 
@@ -155,7 +159,7 @@
 		}
 
 		if (item?.tags && Array.isArray(item.tags) && item.tags.length > 0) {
-			const tagIds = item.tags.map((tag) => tag._id).filter(Boolean);
+			const tagIds = item.tags.map((tag) => tag._id as Id<'tags'>).filter(Boolean) as Id<'tags'>[];
 
 			// Only update if the tag IDs are different (avoid infinite loops)
 			const currentSorted = [...selectedTagIds].sort().join(',');
@@ -196,11 +200,20 @@
 
 	// Available tags from query (with color) - includes tags from item if available
 	// CRITICAL: This must always include ALL user tags from allTags query for global availability
+	// Note: listAllTags returns TagWithHierarchy[] (flattened hierarchical structure)
+	type TagWithHierarchy = {
+		_id: Id<'tags'>;
+		displayName: string;
+		color: string;
+		parentId?: Id<'tags'>;
+		level: number;
+		children?: TagWithHierarchy[];
+	};
 	const availableTags = $derived(() => {
 		const tagsData = allTags(); // Call the derived function to get the actual tags data
 		const tagsMap = new SvelteMap<
 			string,
-			{ _id: Id<'tags'>; displayName: string; color: string }
+			{ _id: Id<'tags'>; displayName: string; color: string; parentId?: Id<'tags'>; level?: number }
 		>();
 
 		// Add tags from allTags query (all user tags - should be available everywhere)
@@ -209,7 +222,7 @@
 			// tagsData can be undefined (loading), null (error), or an array
 			if (Array.isArray(tagsData)) {
 				// Always process tagsData if it's an array (even if empty - that's fine)
-				tagsData.forEach((tag: Doc<'tags'>) => {
+				tagsData.forEach((tag: TagWithHierarchy) => {
 					if (tag?._id) {
 						tagsMap.set(tag._id, {
 							_id: tag._id,
@@ -225,15 +238,16 @@
 
 		// Also add tags from item.tags (in case they're not in allTags query yet - fallback only)
 		// This ensures we have tags even if allTags hasn't loaded yet
+		// Note: item.tags may not have parentId/level (those are from TagWithHierarchy)
 		if (item?.tags && Array.isArray(item.tags)) {
 			item.tags.forEach((tag) => {
 				if (tag?._id && !tagsMap.has(tag._id)) {
 					tagsMap.set(tag._id, {
-						_id: tag._id,
+						_id: tag._id as Id<'tags'>,
 						displayName: tag.displayName || tag.name,
 						color: tag.color || DEFAULT_TAG_COLOR,
-						parentId: tag.parentId,
-						level: tag.level || 0
+						parentId: (tag as { parentId?: Id<'tags'> }).parentId,
+						level: (tag as { level?: number }).level || 0
 					});
 				}
 			});
@@ -257,7 +271,7 @@
 
 			await convexClient.mutation(assignTagsApi, {
 				sessionId,
-				highlightId: highlightId!,
+				highlightId: highlightId! as Id<'highlights'>,
 				tagIds: tagIds
 			});
 
@@ -270,7 +284,9 @@
 			isUpdatingTags = false;
 			// Revert on error
 			if (item?.tags) {
-				selectedTagIds = item.tags.map((tag) => tag._id).filter(Boolean);
+				selectedTagIds = item.tags
+					.map((tag) => tag._id as Id<'tags'>)
+					.filter(Boolean) as Id<'tags'>[];
 			}
 		}
 	}

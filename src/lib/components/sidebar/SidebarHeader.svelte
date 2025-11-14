@@ -9,8 +9,7 @@
 		initials?: string;
 		slug?: string;
 		role: 'owner' | 'admin' | 'member';
-		[key: string]: any;
-	};
+	} & Record<string, unknown>;
 
 	type LinkedAccount = {
 		userId: string;

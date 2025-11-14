@@ -1,7 +1,8 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
-import { ConvexHttpClient } from 'convex/browser';
-import { api, internal } from '$lib/convex';
-import { PUBLIC_CONVEX_URL } from '$env/static/public';
+// TODO: Re-enable when Convex client is needed
+// import { ConvexHttpClient } from 'convex/browser';
+// import { api, internal } from '$lib/convex';
+// import { PUBLIC_CONVEX_URL } from '$env/static/public';
 import { createPasswordReset } from '$lib/server/auth/workos';
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
 
@@ -49,8 +50,8 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 	} catch (err) {
 		console.error('❌ Forgot password error:', err);
 
-		// Parse error message
-		const errorMessage = (err as Error)?.message ?? 'Failed to send reset email';
+		// Parse error message (not used but kept for future error handling)
+		const _errorMessage = (err as Error)?.message ?? 'Failed to send reset email';
 
 		// Don't leak information about whether user exists
 		// Always return success message

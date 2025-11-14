@@ -18,7 +18,7 @@
 	let {
 		flashcard,
 		isFlipped = false,
-		onFlip,
+		onFlip: _onFlip,
 		editable = false,
 		onQuestionChange,
 		onAnswerChange

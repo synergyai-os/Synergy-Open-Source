@@ -9,16 +9,20 @@ import type { FunctionReference } from 'convex/server';
 // Note: convex-svelte doesn't export a ConvexClient type, so we define a minimal interface
 // that matches the actual client's methods. This provides type safety without being overly strict.
 // The client methods accept FunctionReference types and return Promises.
+// ConvexHttpClient from 'convex/browser' uses string paths, so we support both.
 export interface ConvexClient {
 	query<Query extends FunctionReference<'query'>>(query: Query, args?: unknown): Promise<unknown>;
+	query(path: string, args?: unknown): Promise<unknown>; // For ConvexHttpClient compatibility
 	action<Action extends FunctionReference<'action'>>(
 		action: Action,
 		args?: unknown
 	): Promise<unknown>;
+	action(path: string, args?: unknown): Promise<unknown>; // For ConvexHttpClient compatibility
 	mutation<Mutation extends FunctionReference<'mutation'>>(
 		mutation: Mutation,
 		args?: unknown
 	): Promise<unknown>;
+	mutation(path: string, args?: unknown): Promise<unknown>; // For ConvexHttpClient compatibility
 }
 
 // Inbox API functions interface
@@ -34,7 +38,7 @@ export interface InboxApi {
 			quantity?: 5 | 10 | 25 | 50 | 100 | 250 | 500 | 1000;
 		}
 	>;
-	getSyncProgress: FunctionReference<'query', 'public', {}>;
+	getSyncProgress: FunctionReference<'query', 'public', { sessionId: string }>;
 }
 
 // Sync progress type (return type from getSyncProgress)
@@ -117,16 +121,21 @@ export type ReadwiseHighlightWithDetails = BaseInboxItem & {
 	}>;
 };
 
-// Photo note with details
+// Photo note with details (matches schema)
 export type PhotoNoteWithDetails = BaseInboxItem & {
 	type: 'photo_note';
-	imageFileId?: string;
+	imageFileId: string; // Required in schema
+	transcribedText?: string; // Optional OCR result
+	source?: string; // Optional source
+	ocrStatus?: 'pending' | 'completed' | 'failed'; // Optional OCR status
 };
 
-// Manual text with details
+// Manual text with details (matches schema)
 export type ManualTextWithDetails = BaseInboxItem & {
 	type: 'manual_text';
-	text?: string;
+	text: string; // Required in schema
+	bookTitle?: string; // Optional manual attribution
+	pageNumber?: number; // Optional page number
 };
 
 // Note with details

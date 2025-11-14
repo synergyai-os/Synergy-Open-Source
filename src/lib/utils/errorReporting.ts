@@ -42,7 +42,7 @@ export function reportError(report: ErrorReport): void {
 		userAction,
 		context = {},
 		severity = 'medium',
-		userId
+		userId: _userId
 	} = report;
 
 	// Build error properties

@@ -35,10 +35,19 @@ if (!CONVEX_URL) {
 
 const client = new ConvexHttpClient(CONVEX_URL);
 
+// ProseMirror node structure (simplified for this converter)
+type ProseMirrorNode = {
+	type: string;
+	attrs?: Record<string, unknown>;
+	content?: ProseMirrorNode[];
+	text?: string;
+	marks?: Array<{ type: string; [key: string]: unknown }>;
+};
+
 // Simple markdown to ProseMirror converter
 function markdownToProseMirror(markdown: string) {
 	const lines = markdown.split('\n');
-	const content: any[] = [];
+	const content: ProseMirrorNode[] = [];
 
 	for (let i = 0; i < lines.length; i++) {
 		const line = lines[i];

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import { Dialog } from 'bits-ui';
 	import type { MockInboxItem } from '../../../../dev-docs/4-archive/mock-data-brain-inputs';
 

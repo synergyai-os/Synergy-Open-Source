@@ -2,7 +2,7 @@
 	import { browser } from '$app/environment';
 	import { onMount, onDestroy, untrack } from 'svelte';
 	import { EditorView } from 'prosemirror-view';
-	import { EditorState, Transaction } from 'prosemirror-state';
+	import type { EditorState, Transaction } from 'prosemirror-state';
 	import { createEditorState, exportEditorJSON, isEditorEmpty } from '$lib/utils/prosemirror-setup';
 	import { createMentionPlugin, type MentionItem } from '$lib/utils/prosemirror-mentions';
 	import {

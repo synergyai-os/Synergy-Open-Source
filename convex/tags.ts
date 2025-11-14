@@ -63,7 +63,14 @@ function buildTagTree(tags: Doc<'tags'>[]): TagWithHierarchy[] {
 	// First pass: create tag objects
 	for (const tag of tags) {
 		const tagWithHierarchy: TagWithHierarchy = {
-			...tag,
+			_id: tag._id,
+			userId: tag.userId,
+			name: tag.name,
+			displayName: tag.displayName,
+			color: tag.color,
+			parentId: tag.parentId, // Can be undefined
+			externalId: tag.externalId,
+			createdAt: tag._creationTime,
 			level: 0, // Will be calculated in second pass
 			children: []
 		};
@@ -432,7 +439,6 @@ export const createTag = mutation({
 			// 	.query('tags')
 			// 	.withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
 			// 	.collect();
-
 			// await captureAnalyticsEvent({
 			// 	name: AnalyticsEventName.ORGANIZATION_TAG_ASSIGNED,
 			// 	distinctId,
@@ -451,7 +457,6 @@ export const createTag = mutation({
 			// 	.query('tags')
 			// 	.withIndex('by_team', (q) => q.eq('teamId', teamId))
 			// 	.collect();
-
 			// TODO: Re-enable server-side analytics via HTTP action bridge
 			// await captureAnalyticsEvent({
 			// 	name: AnalyticsEventName.TEAM_TAG_ASSIGNED,
@@ -674,24 +679,12 @@ async function assignTagsToEntity(
 	entityId: Id<'highlights'> | Id<'flashcards'>,
 	tagIds: Id<'tags'>[]
 ): Promise<Id<'tags'>[]> {
-	// Map entity types to their junction tables and ID field names
-	const entityConfig = {
-		highlights: {
-			table: 'highlights' as const,
-			junctionTable: 'highlightTags' as const,
-			idField: 'highlightId' as const
-		},
-		flashcards: {
-			table: 'flashcards' as const,
-			junctionTable: 'flashcardTags' as const,
-			idField: 'flashcardId' as const
-		}
-	};
-
-	const config = entityConfig[entityType];
-
 	// 1. Verify entity exists and belongs to user
-	const entity = await ctx.db.get(entityId as any);
+	// Type assertion based on entityType to narrow the union type
+	const entity =
+		entityType === 'highlights'
+			? await ctx.db.get(entityId as Id<'highlights'>)
+			: await ctx.db.get(entityId as Id<'flashcards'>);
 	if (!entity) {
 		throw new Error(`${entityType.slice(0, -1)} not found`);
 	}
@@ -719,23 +712,36 @@ async function assignTagsToEntity(
 	}
 
 	// 3. Get and remove existing assignments
-	// Dynamic index name - TypeScript can't validate at compile time
-	const indexName = `by_${entityType.slice(0, -1)}` as string;
-	const existingAssignments = await ctx.db
-		.query(config.junctionTable)
-		.withIndex(indexName, (q) => q.eq(config.idField, entityId))
-		.collect();
+	// Use conditional logic to properly type each branch
+	const existingAssignments =
+		entityType === 'highlights'
+			? await ctx.db
+					.query('highlightTags')
+					.withIndex('by_highlight', (q) => q.eq('highlightId', entityId as Id<'highlights'>))
+					.collect()
+			: await ctx.db
+					.query('flashcardTags')
+					.withIndex('by_flashcard', (q) => q.eq('flashcardId', entityId as Id<'flashcards'>))
+					.collect();
 
 	for (const assignment of existingAssignments) {
 		await ctx.db.delete(assignment._id);
 	}
 
 	// 4. Create new assignments
+	// Use conditional logic to properly type the insert based on entityType
 	for (const tagId of tagIds) {
-		await ctx.db.insert(config.junctionTable, {
-			[config.idField]: entityId,
-			tagId
-		} as any);
+		if (entityType === 'highlights') {
+			await ctx.db.insert('highlightTags', {
+				highlightId: entityId as Id<'highlights'>,
+				tagId
+			});
+		} else {
+			await ctx.db.insert('flashcardTags', {
+				flashcardId: entityId as Id<'flashcards'>,
+				tagId
+			});
+		}
 	}
 
 	return tagIds;

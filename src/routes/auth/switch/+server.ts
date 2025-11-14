@@ -36,7 +36,7 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.accountSwitch, asy
 	let payload: unknown;
 	try {
 		payload = await event.request.json();
-	} catch (error) {
+	} catch (_error) {
 		return json({ error: 'Invalid request body' }, { status: 400 });
 	}
 

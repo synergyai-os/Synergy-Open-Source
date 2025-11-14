@@ -6,7 +6,8 @@
 	import { onMount } from 'svelte';
 	import { useQuery } from 'convex-svelte';
 	import { api } from '$lib/convex';
-	import { resolveRoute } from '$lib/utils/navigation';
+	// TODO: Re-enable when resolveRoute is needed
+	// import { resolveRoute } from '$lib/utils/navigation';
 
 	let { data } = $props();
 
@@ -870,9 +871,7 @@
 							>
 						</li>
 						<li>
-							<a href="/CONTRIBUTING" class="footer-link text-secondary"
-								>Contribute</a
-							>
+							<a href="/CONTRIBUTING" class="footer-link text-secondary">Contribute</a>
 						</li>
 					</ul>
 				</div>

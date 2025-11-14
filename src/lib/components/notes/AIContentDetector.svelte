@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
-	import { EditorView } from 'prosemirror-view';
+	// TODO: Re-enable when EditorView is needed
+	// import { EditorView } from 'prosemirror-view';
 
 	type Props = {
 		visible: boolean;

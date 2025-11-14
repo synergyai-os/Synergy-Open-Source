@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { resolve } from '$app/paths';
 	import { fly } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import { resolveRoute } from '$lib/utils/navigation';
@@ -124,7 +125,7 @@
 						</span>
 					{:else}
 						<!-- Intermediate links -->
-						<a href={crumb.href} class="breadcrumb-link">
+						<a href={resolveRoute(crumb.href)} class="breadcrumb-link">
 							{crumb.label}
 						</a>
 					{/if}

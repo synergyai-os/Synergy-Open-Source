@@ -14,8 +14,9 @@ import {
 	baseKeymap,
 	toggleMark,
 	setBlockType,
-	chainCommands,
-	exitCode
+	chainCommands
+	// TODO: Re-enable when exitCode is needed
+	// exitCode
 } from 'prosemirror-commands';
 import {
 	inputRules,

@@ -41,7 +41,7 @@ function getNestedProperty(obj: unknown, path: string): string | undefined {
  * @param variables - Object with variables to interpolate (supports nested objects)
  * @returns Interpolated template string
  */
-function interpolateVariables(template: string, variables: Record<string, any>): string {
+function interpolateVariables(template: string, variables: Record<string, unknown>): string {
 	// Match {{variable}} or {{nested.property}} patterns
 	const variablePattern = /\{\{([^}]+)\}\}/g;
 
@@ -74,7 +74,7 @@ function interpolateVariables(template: string, variables: Record<string, any>):
  * });
  * ```
  */
-export function loadPrompt(promptName: string, variables?: Record<string, any>): string {
+export function loadPrompt(promptName: string, variables?: Record<string, unknown>): string {
 	// Get template from registry
 	const template = promptTemplates[promptName];
 

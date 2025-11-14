@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import type { Snippet } from 'svelte';
 
 	let {
@@ -14,8 +15,7 @@
 		onclick?: () => void;
 		children: Snippet;
 		class?: string;
-		[key: string]: any;
-	} = $props();
+	} & Record<string, unknown> = $props();
 
 	// Base classes using design tokens
 	const baseClasses =

@@ -7,6 +7,7 @@ import posthog from 'posthog-js';
 import { toast } from '$lib/utils/toast';
 import { untrack } from 'svelte';
 import { replaceState } from '$app/navigation';
+import { resolve } from '$app/paths';
 import { getContext } from 'svelte';
 import type { UseLoadingOverlayReturn } from '$lib/composables/useLoadingOverlay.svelte';
 import type { Id } from '$lib/convex';
@@ -65,7 +66,7 @@ export type UseOrganizations = ReturnType<typeof useOrganizations>;
 
 const STORAGE_KEY_PREFIX = 'activeOrganizationId';
 const STORAGE_DETAILS_KEY_PREFIX = 'activeOrganizationDetails';
-const SENTINEL_ORGANIZATION_ID = '000000000000000000000000';
+const _SENTINEL_ORGANIZATION_ID = '000000000000000000000000';
 const PERSONAL_SENTINEL = '__personal__';
 
 // Module-level tracking for URL param processing (pattern #L700 - plain variable, not $state)
@@ -266,7 +267,7 @@ export function useOrganizations(options?: {
 				const newUrl =
 					window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
 				replaceState(newUrl, {});
-			} catch (e) {
+			} catch (_e) {
 				// Router not ready on initial load - URL will persist but won't cause reprocessing
 				// because lastProcessedOrgParam tracking prevents the effect from running again
 				console.debug('Router not ready, deferring URL cleanup');
@@ -486,18 +487,18 @@ export function useOrganizations(options?: {
 				toOrganizationId: Id<'organizations'>;
 				availableTeamCount: number;
 			} = {
-				toOrganizationId: organizationId,
+				toOrganizationId: organizationId as Id<'organizations'>,
 				availableTeamCount
 			};
 
 			if (previousOrganizationId) {
-				mutationArgs.fromOrganizationId = previousOrganizationId;
+				mutationArgs.fromOrganizationId = previousOrganizationId as Id<'organizations'>;
 			}
 
 			convexClient
 				.mutation(api.organizations.recordOrganizationSwitch, mutationArgs)
-				.catch((error) => {
-					console.warn('Failed to record organization switch', error);
+				.catch((_error) => {
+					console.warn('Failed to record organization switch', _error);
 				});
 		}
 
@@ -521,8 +522,8 @@ export function useOrganizations(options?: {
 					AnalyticsEventName.ORGANIZATION_SWITCHED,
 					properties
 				);
-			} catch (error) {
-				console.warn('Failed to capture PostHog event', error);
+			} catch (_error) {
+				console.warn('Failed to capture PostHog event', _error);
 			}
 		}
 	}
@@ -604,8 +605,8 @@ export function useOrganizations(options?: {
 					}, 500);
 				}
 			}
-		} catch (error) {
-			console.error('Failed to create organization:', error);
+		} catch (_error) {
+			console.error('Failed to create organization:', _error);
 
 			// Show error toast
 			if (browser) {

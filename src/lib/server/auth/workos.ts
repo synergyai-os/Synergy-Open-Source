@@ -90,16 +90,31 @@ export async function exchangeAuthorizationCode(options: { code: string; codeVer
 		throw new Error(`WorkOS authenticate failed (${response.status}): ${errorText}`);
 	}
 
-	const data = (await response.json()) as any;
+	const data = (await response.json()) as unknown;
+	// Validate response structure
+	if (
+		typeof data !== 'object' ||
+		data === null ||
+		!('access_token' in data) ||
+		!('refresh_token' in data) ||
+		!('user' in data)
+	) {
+		throw new Error('WorkOS authenticate response missing required fields.');
+	}
+	const typedData = data as {
+		access_token: string;
+		refresh_token: string;
+		expires_in?: number;
+		user: WorkOSUser;
+	};
 	console.log('🔍 WorkOS response data:', {
-		hasAccessToken: !!data.access_token,
-		hasRefreshToken: !!data.refresh_token,
-		hasUser: !!data.user,
-		hasSession: !!data.session,
-		userEmail: data.user?.email
+		hasAccessToken: !!typedData.access_token,
+		hasRefreshToken: !!typedData.refresh_token,
+		hasUser: !!typedData.user,
+		userEmail: typedData.user?.email
 	});
 
-	if (!data.access_token || !data.refresh_token || !data.user) {
+	if (!typedData.access_token || !typedData.refresh_token || !typedData.user) {
 		console.error('❌ Missing required fields. Response:', JSON.stringify(data, null, 2));
 		throw new Error('WorkOS authenticate response missing required fields.');
 	}
@@ -110,8 +125,11 @@ export async function exchangeAuthorizationCode(options: { code: string; codeVer
 	let expiresAt: string | undefined;
 
 	try {
-		const tokenPayload = data.access_token.split('.')[1];
-		const decodedPayload = JSON.parse(Buffer.from(tokenPayload, 'base64').toString());
+		const tokenPayload = typedData.access_token.split('.')[1];
+		const decodedPayload = JSON.parse(Buffer.from(tokenPayload, 'base64').toString()) as {
+			sid?: string;
+			exp?: number;
+		};
 		sessionId = decodedPayload.sid || 'session_unknown';
 
 		// Get expiration from JWT (exp is in seconds, convert to ISO string)
@@ -126,7 +144,10 @@ export async function exchangeAuthorizationCode(options: { code: string; codeVer
 
 	// Create a synthetic session object since WorkOS doesn't return one
 	const response_with_session: WorkOSAuthResponse = {
-		...data,
+		access_token: typedData.access_token,
+		refresh_token: typedData.refresh_token,
+		expires_in: typedData.expires_in || 300,
+		user: typedData.user,
 		session: {
 			id: sessionId,
 			expires_at: expiresAt
@@ -161,36 +182,49 @@ export async function refreshWorkOSSession(options: {
 		throw new Error(`WorkOS refresh failed (${response.status}): ${errorText}`);
 	}
 
-	const data = (await response.json()) as any;
-	console.log('🔍 Refresh response:', {
-		hasAccessToken: !!data.access_token,
-		hasRefreshToken: !!data.refresh_token
-	});
-
-	if (!data.access_token || !data.refresh_token) {
+	const data = (await response.json()) as unknown;
+	// Validate response structure
+	if (
+		typeof data !== 'object' ||
+		data === null ||
+		!('access_token' in data) ||
+		!('refresh_token' in data)
+	) {
 		throw new Error('WorkOS refresh response missing required fields.');
 	}
+	const typedData = data as {
+		access_token: string;
+		refresh_token: string;
+		expires_in?: number;
+	};
+	console.log('🔍 Refresh response:', {
+		hasAccessToken: !!typedData.access_token,
+		hasRefreshToken: !!typedData.refresh_token
+	});
 
 	// Extract session info from the new access token
 	let sessionId = options.workosSessionId; // Default to existing session ID
 	let expiresAt: string | undefined;
 
 	try {
-		const tokenPayload = data.access_token.split('.')[1];
-		const decodedPayload = JSON.parse(Buffer.from(tokenPayload, 'base64').toString());
+		const tokenPayload = typedData.access_token.split('.')[1];
+		const decodedPayload = JSON.parse(Buffer.from(tokenPayload, 'base64').toString()) as {
+			sid?: string;
+			exp?: number;
+		};
 		sessionId = decodedPayload.sid || sessionId;
 
 		if (decodedPayload.exp) {
 			expiresAt = new Date(decodedPayload.exp * 1000).toISOString();
 		}
-	} catch (err) {
+	} catch (_err) {
 		console.warn('⚠️  Could not extract session info from refreshed token');
 	}
 
 	const response_with_session: WorkOSRefreshResponse = {
-		access_token: data.access_token,
-		refresh_token: data.refresh_token,
-		expires_in: data.expires_in || 300,
+		access_token: typedData.access_token,
+		refresh_token: typedData.refresh_token,
+		expires_in: typedData.expires_in || 300,
 		session: {
 			id: sessionId,
 			expires_at: expiresAt
@@ -252,40 +286,54 @@ export async function authenticateWithPassword(options: {
 		throw new Error(`WorkOS password authentication failed (${response.status}): ${errorText}`);
 	}
 
-	const data = (await response.json()) as any;
-	console.log('🔍 Password auth response:', {
-		hasAccessToken: !!data.access_token,
-		hasRefreshToken: !!data.refresh_token,
-		hasUser: !!data.user,
-		userEmail: data.user?.email
-	});
-
-	if (!data.access_token || !data.refresh_token || !data.user) {
-		console.error('❌ Missing required fields in password auth response');
+	const data = (await response.json()) as unknown;
+	// Validate response structure
+	if (
+		typeof data !== 'object' ||
+		data === null ||
+		!('access_token' in data) ||
+		!('refresh_token' in data) ||
+		!('user' in data)
+	) {
 		throw new Error('WorkOS password auth response missing required fields.');
 	}
+	const typedData = data as {
+		access_token: string;
+		refresh_token: string;
+		expires_in?: number;
+		user: WorkOSUser;
+	};
+	console.log('🔍 Password auth response:', {
+		hasAccessToken: !!typedData.access_token,
+		hasRefreshToken: !!typedData.refresh_token,
+		hasUser: !!typedData.user,
+		userEmail: typedData.user?.email
+	});
 
 	// Extract session info from JWT
 	let sessionId = 'unknown';
 	let expiresAt: string | undefined;
 
 	try {
-		const tokenPayload = data.access_token.split('.')[1];
-		const decodedPayload = JSON.parse(Buffer.from(tokenPayload, 'base64').toString());
+		const tokenPayload = typedData.access_token.split('.')[1];
+		const decodedPayload = JSON.parse(Buffer.from(tokenPayload, 'base64').toString()) as {
+			sid?: string;
+			exp?: number;
+		};
 		sessionId = decodedPayload.sid || 'unknown';
 
 		if (decodedPayload.exp) {
 			expiresAt = new Date(decodedPayload.exp * 1000).toISOString();
 		}
-	} catch (err) {
+	} catch (_err) {
 		console.warn('⚠️  Could not extract session info from token');
 	}
 
 	const response_with_session: WorkOSAuthResponse = {
-		access_token: data.access_token,
-		refresh_token: data.refresh_token,
-		expires_in: data.expires_in || 300,
-		user: data.user,
+		access_token: typedData.access_token,
+		refresh_token: typedData.refresh_token,
+		expires_in: typedData.expires_in || 300,
+		user: typedData.user,
 		session: {
 			id: sessionId,
 			expires_at: expiresAt
@@ -322,11 +370,16 @@ export async function getUserByEmail(email: string): Promise<WorkOSUser | null> 
 		throw new Error(`WorkOS get user failed (${response.status}): ${errorText}`);
 	}
 
-	const data = (await response.json()) as any;
-	console.log('🔍 WorkOS get user response:', { usersFound: data.data?.length });
+	const data = (await response.json()) as unknown;
+	// Validate response structure
+	if (typeof data !== 'object' || data === null || !('data' in data)) {
+		return null;
+	}
+	const typedData = data as { data?: WorkOSUser[] };
+	console.log('🔍 WorkOS get user response:', { usersFound: typedData.data?.length });
 
 	// Return first user if exists, null otherwise
-	return data.data && data.data.length > 0 ? data.data[0] : null;
+	return typedData.data && typedData.data.length > 0 ? typedData.data[0] : null;
 }
 
 export async function createUserWithPassword(options: {
@@ -358,10 +411,15 @@ export async function createUserWithPassword(options: {
 		throw new Error(`WorkOS user creation failed (${response.status}): ${errorText}`);
 	}
 
-	const data = (await response.json()) as any;
-	console.log('✅ User created successfully:', data.id);
+	const data = (await response.json()) as unknown;
+	// Validate response structure
+	if (typeof data !== 'object' || data === null || !('id' in data) || typeof data.id !== 'string') {
+		throw new Error('WorkOS user creation response missing user ID.');
+	}
+	const typedData = data as { id: string };
+	console.log('✅ User created successfully:', typedData.id);
 
-	return { userId: data.id };
+	return { userId: typedData.id };
 }
 
 /**
@@ -392,10 +450,15 @@ export async function createPasswordReset(options: {
 		throw new Error(`WorkOS password reset failed (${response.status}): ${errorText}`);
 	}
 
-	const data = (await response.json()) as any;
-	console.log('✅ Password reset created:', data.id);
+	const data = (await response.json()) as unknown;
+	// Validate response structure
+	if (typeof data !== 'object' || data === null || !('id' in data) || typeof data.id !== 'string') {
+		throw new Error('WorkOS password reset response missing reset ID.');
+	}
+	const typedData = data as { id: string };
+	console.log('✅ Password reset created:', typedData.id);
 
-	return { passwordResetId: data.id };
+	return { passwordResetId: typedData.id };
 }
 
 /**
@@ -425,8 +488,21 @@ export async function resetPassword(options: {
 		throw new Error(`WorkOS reset password failed (${response.status}): ${errorText}`);
 	}
 
-	const data = (await response.json()) as any;
-	console.log('✅ Password reset successful for user:', data.user?.id);
+	const data = (await response.json()) as unknown;
+	// Validate response structure
+	if (
+		typeof data !== 'object' ||
+		data === null ||
+		!('user' in data) ||
+		typeof data.user !== 'object' ||
+		data.user === null ||
+		!('id' in data.user) ||
+		typeof data.user.id !== 'string'
+	) {
+		throw new Error('WorkOS reset password response missing user ID.');
+	}
+	const typedData = data as { user: { id: string } };
+	console.log('✅ Password reset successful for user:', typedData.user.id);
 
-	return { userId: data.user.id };
+	return { userId: typedData.user.id };
 }

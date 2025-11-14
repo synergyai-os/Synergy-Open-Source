@@ -59,8 +59,7 @@ export interface Activity {
 		format?: string; // 'json', 'csv', etc.
 		itemId?: string; // Related item ID
 		itemType?: string; // Related item type
-		[key: string]: any; // Extensible for future needs
-	};
+	} & Record<string, unknown>;
 
 	// User interactions
 	quickActions?: ActivityQuickAction[];

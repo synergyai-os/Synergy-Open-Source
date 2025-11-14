@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Button, FormInput } from '$lib/components/ui';
 	import RateLimitError from '$lib/components/ui/RateLimitError.svelte';
+	import { resolve } from '$app/paths';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	let email = $state('');

@@ -110,6 +110,53 @@ rules: {
 
 ---
 
+## #L70: Disable ESLint Rules with Known Limitations [🟡 IMPORTANT]
+
+**Symptom**: ESLint rule reports false positives (50+ errors) for correct code, adding per-line disable comments everywhere is not scalable  
+**Root Cause**: ESLint rules can't verify wrapper functions across module boundaries or recognize conditional patterns  
+**Fix**:
+
+```javascript
+// ❌ BAD: Adding disable comments everywhere (not scalable)
+// eslint-disable-next-line svelte/no-navigation-without-resolve
+<a href={resolveRoute('/path')}>Link</a>
+
+// ✅ CORRECT: Disable rule globally with documentation
+// eslint.config.js
+{
+	files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
+	rules: {
+		// Disabled: Rule doesn't recognize resolveRoute() wrapper function.
+		// All navigation uses resolveRoute() from $lib/utils/navigation.ts which wraps SvelteKit's resolve().
+		// This is a known limitation of the ESLint rule - it can't verify wrapper functions across module boundaries.
+		'svelte/no-navigation-without-resolve': 'off'
+	}
+}
+```
+
+**Why**:
+- ESLint rules can't trace function calls across module boundaries
+- Wrapper functions like `resolveRoute()` are correct but unrecognized by rule
+- Per-line disable comments create maintenance burden (50+ instances)
+- Global disable with documentation is scalable and clear
+
+**When to Use**:
+- Rule has known technical limitations (can't verify wrappers, conditionals)
+- Code is functionally correct but rule can't verify it
+- Adding disable comments everywhere would be unmaintainable
+- Rule limitation is documented and understood
+
+**When NOT to Use**:
+- Rule works correctly but you want to bypass it → Fix the code instead
+- Only a few false positives → Use per-line disables with comments
+- Test files → Use file-specific rule relaxation (#L60)
+
+**Example**: `svelte/no-navigation-without-resolve` can't recognize `resolveRoute()` wrapper, but all navigation correctly uses it. Disable globally with explanation.
+
+**Related**: #L60 (ESLint for tests), ui-patterns.md#L1870 (Navigation with resolveRoute)
+
+---
+
 ## #L110: Local CI Testing - npm Scripts > Shell Scripts [🟢 REFERENCE]
 
 **Context**: Developers need to run CI checks locally before pushing  

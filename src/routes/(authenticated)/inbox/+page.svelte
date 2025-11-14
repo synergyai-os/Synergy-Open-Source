@@ -3,6 +3,7 @@
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 	import { replaceState } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { useConvexClient } from 'convex-svelte';
 	import { makeFunctionReference } from 'convex/server';
 	import { api } from '$lib/convex';
@@ -309,7 +310,7 @@
 			}
 
 			// Save all flashcards to database
-			const flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
+			const _flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
 				sessionId,
 				flashcards: generatedFlashcards,
 				sourceInboxItemId: selected.selectedItemId as Id<'inboxItems'>,
@@ -347,7 +348,7 @@
 			}
 
 			// Save selected flashcards to database (with any edits applied)
-			const flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
+			const _flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
 				sessionId,
 				flashcards: cards,
 				sourceInboxItemId: selected.selectedItemId as Id<'inboxItems'>,

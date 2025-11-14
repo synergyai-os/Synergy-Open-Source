@@ -26,7 +26,7 @@ export const mentionPluginKey = new PluginKey<MentionPluginState>('mention');
 
 export function createMentionPlugin(
 	items: MentionItem[],
-	onMentionSelect?: (item: MentionItem, view: EditorView) => void
+	_onMentionSelect?: (item: MentionItem, view: EditorView) => void
 ) {
 	return new Plugin<MentionPluginState>({
 		key: mentionPluginKey,

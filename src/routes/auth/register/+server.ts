@@ -1,6 +1,8 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
 import { ConvexHttpClient } from 'convex/browser';
-import { api, internal } from '$lib/convex';
+import { api } from '$lib/convex';
+// TODO: Re-enable when internal is needed
+// import { internal } from '$lib/convex';
 import { PUBLIC_CONVEX_URL } from '$env/static/public';
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
 import { encryptSecret } from '$lib/server/auth/crypto';

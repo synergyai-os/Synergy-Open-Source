@@ -5,20 +5,21 @@
  * These types are re-exported from prosemirror packages for convenience.
  */
 
-import type { EditorState } from 'prosemirror-state';
+import type { Command } from 'prosemirror-state';
 import type { EditorView } from 'prosemirror-view';
-import type { Transaction } from 'prosemirror-state';
-import type { Node, Schema, MarkSpec, NodeSpec } from 'prosemirror-model';
+// TODO: Re-enable when EditorState is needed
+// import type { EditorState } from 'prosemirror-state';
+// TODO: Re-enable when needed
+// import type { Transaction } from 'prosemirror-state';
+// import type { Node, Schema, MarkSpec, NodeSpec } from 'prosemirror-model';
 
 /**
  * ProseMirror command function type
  * Commands return true if they handled the action, false otherwise
+ *
+ * Uses ProseMirror's Command type directly for perfect compatibility
  */
-export type ProseMirrorCommand = (
-	state: EditorState,
-	dispatch?: ((tr: Transaction) => void) | null,
-	view?: EditorView
-) => boolean;
+export type ProseMirrorCommand = Command;
 
 /**
  * ProseMirror keymap entry

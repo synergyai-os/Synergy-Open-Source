@@ -43,7 +43,7 @@
 			return;
 		}
 
-		const loading = toast.loading('Creating team...');
+		const loadingToastId = toast.loading('Creating team...');
 		const sessionId = $page.data.sessionId;
 		if (!sessionId) {
 			toast.error('Session ID required');
@@ -55,10 +55,14 @@
 				organizationId: activeOrganizationId as Id<'organizations'>,
 				name: `Test Team ${Math.floor(Math.random() * 1000)}`
 			});
-			toast.success('✅ Team created successfully', { id: loading });
+			if (loadingToastId !== undefined) {
+				toast.success('✅ Team created successfully', { id: loadingToastId });
+			}
 		} catch (error) {
 			const message = error instanceof Error ? error.message : 'Unknown error';
-			toast.error(`❌ ${message}`, { id: loading });
+			if (loadingToastId !== undefined) {
+				toast.error(`❌ ${message}`, { id: loadingToastId });
+			}
 		}
 	}
 
@@ -68,7 +72,7 @@
 			return;
 		}
 
-		const loading = toast.loading('Inviting user...');
+		const loadingToastId = toast.loading('Inviting user...');
 		const sessionId = $page.data.sessionId;
 		if (!sessionId) {
 			toast.error('Session ID required');
@@ -81,10 +85,14 @@
 				email: `test${Math.floor(Math.random() * 1000)}@example.com`,
 				role: 'member'
 			});
-			toast.success('✅ User invited successfully', { id: loading });
+			if (loadingToastId !== undefined) {
+				toast.success('✅ User invited successfully', { id: loadingToastId });
+			}
 		} catch (error) {
 			const message = error instanceof Error ? error.message : 'Unknown error';
-			toast.error(`❌ ${message}`, { id: loading });
+			if (loadingToastId !== undefined) {
+				toast.error(`❌ ${message}`, { id: loadingToastId });
+			}
 		}
 	}
 
@@ -94,7 +102,7 @@
 			return;
 		}
 
-		const loading = toast.loading('Updating profile...');
+		const loadingToastId = toast.loading('Updating profile...');
 		const sessionId = $page.data.sessionId;
 		if (!sessionId) {
 			toast.error('Session ID required');
@@ -107,10 +115,14 @@
 				firstName: `Test${Math.floor(Math.random() * 100)}`,
 				lastName: 'User'
 			});
-			toast.success('✅ Profile updated successfully', { id: loading });
+			if (loadingToastId !== undefined) {
+				toast.success('✅ Profile updated successfully', { id: loadingToastId });
+			}
 		} catch (error) {
 			const message = error instanceof Error ? error.message : 'Unknown error';
-			toast.error(`❌ ${message}`, { id: loading });
+			if (loadingToastId !== undefined) {
+				toast.error(`❌ ${message}`, { id: loadingToastId });
+			}
 		}
 	}
 </script>

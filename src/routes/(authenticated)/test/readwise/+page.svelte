@@ -45,7 +45,7 @@
 				isLoading: false,
 				data: data ? { hasReadwiseKey: data.hasReadwiseKey || false } : null
 			};
-		} catch (e) {
+		} catch (_e) {
 			settings = { isLoading: false, data: null };
 		}
 	});

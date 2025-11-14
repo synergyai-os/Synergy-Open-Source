@@ -15,7 +15,7 @@
 		type?: 'text' | 'email' | 'password' | 'url';
 		required?: boolean;
 		disabled?: boolean;
-		autocomplete?: string;
+		autocomplete?: string | null | undefined;
 		class?: string; // Allow custom classes for specific cases
 	};
 
@@ -52,7 +52,7 @@
 		{placeholder}
 		{required}
 		{disabled}
-		autocomplete={(autocomplete as any) || undefined}
+		autocomplete={(autocomplete ?? undefined) as any}
 		bind:value
 		class="rounded-input border border-base bg-input px-input-x py-input-y text-primary transition-all placeholder:text-tertiary focus:ring-2 focus:ring-accent-primary focus:outline-none {customClass}"
 	/>

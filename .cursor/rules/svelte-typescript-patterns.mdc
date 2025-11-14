@@ -1,0 +1,129 @@
+---
+alwaysApply: true
+---
+
+# Svelte 5 + TypeScript + Convex Development Standards
+
+You are an expert senior software engineer specializing in TypeScript, Svelte 5 (Runes), SvelteKit 5, Convex, Tailwind CSS 4, and Bits UI. Focus on high-quality, maintainable solutions that follow established patterns.
+
+## Before You Start
+
+1. **Check existing patterns**: `dev-docs/2-areas/patterns/INDEX.md` - Fast pattern lookup
+2. **Review coding standards**: `dev-docs/2-areas/development/coding-standards.md` - Critical rules
+3. **Run CI locally**: `npm run ci:local` - Verify before pushing (matches CI exactly)
+4. **Reference documentation**: Use `@` syntax to reference docs instead of duplicating content
+
+## Critical Rules (NEVER Do These)
+
+1. ❌ **Never use `any` type** → Use proper types or `unknown` + type guards (blocks CI lint)
+2. ❌ **Never use `{#each}` without keys** → Always `{#each items as item (item._id)}` (ESLint error)
+3. ❌ **Never use `goto()` without `resolveRoute()`** → `goto(resolveRoute('/path'))` (ESLint error)
+4. ❌ **Never use `Map`/`Set`** → Use `SvelteMap`/`SvelteSet` or plain objects (breaks reactivity)
+5. ❌ **Never use hardcoded values** → Use design tokens (see `way-of-working.mdc` for details)
+6. ❌ **Never use multiple `$state` variables** → Use single `$state` object with getters (Svelte 5 pattern)
+7. ❌ **Never use `$effect` for computed values** → Use `$derived` (Svelte 5 best practice)
+8. ❌ **Never pass `undefined` to Convex** → Use sentinel values (Convex requirement)
+9. ❌ **Never use module-level browser checks** → Check inside `$effect` (SSR-safe pattern)
+
+**Exception**: Test files (`.test.ts`, `.spec.ts`) may use `any` - ESLint allows it for test mocks.
+
+## Svelte 5 Patterns
+
+### Composables (`.svelte.ts` extension required)
+
+```typescript
+// ✅ CORRECT: Single $state object with getters (validated with Context7)
+const state = $state({ isOpen: false });
+return {
+  get isOpen() { return state.isOpen; },
+  open: () => { state.isOpen = true; }
+};
+
+// ✅ CORRECT: Function parameters for reactive values
+export function useX(items: () => Item[], onSelect: (id: string) => void) {
+  const current = items(); // Get latest value
+}
+```
+
+**See**: `dev-docs/2-areas/patterns/svelte-reactivity.md` for complete patterns
+
+### Reactivity (Context7 validated)
+
+```svelte
+<!-- ✅ CORRECT: $derived for computed values (Svelte 5 official pattern) -->
+let doubled = $derived(count * 2);
+
+<!-- ❌ WRONG: $effect for computed values (anti-pattern) -->
+<!-- $effect(() => { doubled = count * 2; }); -->
+
+<!-- ✅ CORRECT: $effect for side effects only -->
+$effect(() => {
+  if (!browser) return;
+  // Side effects here (DOM, API calls, cleanup)
+  return () => { /* cleanup */ };
+});
+```
+
+## Convex Integration (Context7 validated)
+
+```typescript
+// ✅ CORRECT: useQuery() for reactive subscriptions (convex-svelte pattern)
+import { useQuery } from 'convex-svelte';
+const query = useQuery(api.inbox.list, () => ({ processed: false }));
+const items = $derived(query?.data ?? []); // Auto-updates on changes
+
+// ✅ CORRECT: useMutation() for writes
+import { useMutation } from 'convex-svelte';
+const createNote = useMutation(api.notes.create);
+
+// ✅ CORRECT: Separate "use node" files for actions only
+// convex/crypto.ts
+"use node";
+export const encrypt = internalAction({ ... });
+```
+
+**See**: `dev-docs/2-areas/patterns/convex-integration.md` for complete patterns
+
+## Design Tokens
+
+**See**: `way-of-working.mdc` - Design token system details and examples
+
+## CI/CD Alignment
+
+**CI runs these checks** (`.github/workflows/quality-gates.yml`):
+- `npm run check` - TypeScript check (warns only, not blocking yet)
+- `npm run lint` - Prettier + ESLint (MUST pass - blocks PRs)
+- `npm run build` - Build verification (MUST pass - blocks PRs)
+- `npm run test:unit:server` - Server unit tests
+- `npm run test:integration` - Convex integration tests
+- `npm run test:e2e` - E2E tests
+
+**Run locally before pushing**: `npm run ci:local` (matches CI exactly)
+
+**See**: `CI-LOCAL-TESTING.md` and `dev-docs/2-areas/patterns/ci-cd.md` for details
+
+## Quick Checklist
+
+Before submitting code:
+- [ ] No `any` types (except test files - ESLint allows it)
+- [ ] All `{#each}` blocks have keys `(item._id)`
+- [ ] All `goto()` use `resolveRoute()`
+- [ ] Using design tokens (see `way-of-working.mdc`)
+- [ ] Composables use `.svelte.ts` extension
+- [ ] Single `$state` object with getters
+- [ ] Using `useQuery()` for Convex data
+- [ ] Browser checks inside `$effect` (not module-level)
+- [ ] Run `npm run ci:local` - All checks pass
+
+## Documentation References
+
+- **Patterns**: `dev-docs/2-areas/patterns/INDEX.md` - Pattern lookup
+- **Svelte 5**: `dev-docs/2-areas/patterns/svelte-reactivity.md` - Reactivity patterns
+- **Convex**: `dev-docs/2-areas/patterns/convex-integration.md` - Convex patterns
+- **Design**: `dev-docs/2-areas/design/design-tokens.md` - Design tokens
+- **Standards**: `dev-docs/2-areas/development/coding-standards.md` - Complete rules
+- **CI/CD**: `dev-docs/2-areas/patterns/ci-cd.md` - CI/CD patterns
+
+---
+
+**Remember**: Reference existing documentation instead of duplicating. This rule file provides quick reminders validated against latest best practices (Svelte 5, Convex, TypeScript) and CI/CD requirements.

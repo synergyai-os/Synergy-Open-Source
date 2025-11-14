@@ -47,7 +47,7 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.register, async ({
 		});
 	} catch (err) {
 		console.error('❌ Resend code error:', err);
-		const errorMessage = (err as Error)?.message ?? 'Failed to resend code';
+		const _errorMessage = (err as Error)?.message ?? 'Failed to resend code';
 
 		return json({ error: 'Unable to resend code. Please try again.' }, { status: 500 });
 	}

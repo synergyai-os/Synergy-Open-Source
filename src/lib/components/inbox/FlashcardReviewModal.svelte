@@ -23,9 +23,9 @@
 		flashcards,
 		sourceContext,
 		onClose,
-		onApproveAll,
+		onApproveAll: _onApproveAll,
 		onApproveSelected,
-		onRejectAll
+		onRejectAll: _onRejectAll
 	}: Props = $props();
 
 	// Study mode state - cards are removed from queue when rated
@@ -174,19 +174,21 @@
 		onClose();
 	}
 
-	function handleApproveAll() {
-		approvedCards = [...reviewQueue];
-		reviewQueue = [];
-		onApproveAll();
-		onClose();
-	}
+	// TODO: Re-enable when needed
+	// function handleApproveAll() {
+	// 	approvedCards = [...reviewQueue];
+	// 	reviewQueue = [];
+	// 	onApproveAll();
+	// 	onClose();
+	// }
 
-	function handleRejectAll() {
-		rejectedCards = [...reviewQueue];
-		reviewQueue = [];
-		onRejectAll();
-		onClose();
-	}
+	// TODO: Re-enable when needed
+	// function handleRejectAll() {
+	// 	rejectedCards = [...reviewQueue];
+	// 	reviewQueue = [];
+	// 	onRejectAll();
+	// 	onClose();
+	// }
 
 	function updateFlashcard(field: 'question' | 'answer', value: string) {
 		if (currentCard) {

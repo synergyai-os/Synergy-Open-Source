@@ -1,13 +1,13 @@
 import { browser } from '$app/environment';
 import {
-	loadSessions,
+	// loadSessions, // TODO: Re-enable when needed
 	addSession,
 	removeSession,
 	setActiveAccount,
 	getActiveSession,
-	getAllSessions,
-	getActiveAccountId,
-	type SessionData
+	getAllSessions
+	// getActiveAccountId, // TODO: Re-enable when needed
+	// type SessionData // TODO: Re-enable when needed
 } from '$lib/client/sessionStorage';
 import { toast } from '$lib/utils/toast';
 
@@ -83,7 +83,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 
 		try {
 			// Check localStorage for active session first
-			const localSession = await getActiveSession();
+			const _localSession = await getActiveSession();
 
 			const response = await fetch('/auth/session', {
 				headers: {

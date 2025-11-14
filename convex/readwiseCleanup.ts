@@ -18,6 +18,7 @@
 
 import { action, internalMutation, internalQuery } from './_generated/server';
 import { internal } from './_generated/api';
+import type { Doc } from './_generated/dataModel';
 import { v } from 'convex/values';
 
 // Internal mutation to delete a batch of inbox items
@@ -189,7 +190,7 @@ export const cleanReadwiseData = action({
 			const inboxItems = (await ctx.runQuery(internal.readwiseCleanup.listInboxItems, {
 				userId,
 				limit: batchSize
-			})) as any[];
+			})) as Array<Doc<'inboxItems'>>;
 
 			if (inboxItems.length === 0) break;
 
@@ -214,7 +215,7 @@ export const cleanReadwiseData = action({
 			const highlights = (await ctx.runQuery(internal.readwiseCleanup.listHighlights, {
 				userId,
 				limit: 20 // Process 20 at a time
-			})) as any[];
+			})) as Array<Doc<'highlights'>>;
 
 			if (highlights.length === 0) break;
 
@@ -258,7 +259,7 @@ export const cleanReadwiseData = action({
 			const sources = (await ctx.runQuery(internal.readwiseCleanup.listSources, {
 				userId,
 				limit: 20 // Process 20 at a time
-			})) as any[];
+			})) as Array<Doc<'sources'>>;
 
 			if (sources.length === 0) break;
 

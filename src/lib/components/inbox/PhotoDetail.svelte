@@ -9,7 +9,7 @@
 
 	let { item, onClose }: Props = $props();
 
-	let editedText = $state(item.sourceData?.transcribedText || item.transcribedText || '');
+	let editedText = $state(item.transcribedText || '');
 
 	function handleSkip() {
 		alert('Item skipped! (Mock)');
@@ -39,15 +39,15 @@
 		<div
 			class="flex aspect-video w-full items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-gray-200"
 		>
-			<span class="text-gray-500">📷 Image: {item.title}</span>
+			<span class="text-gray-500">📷 Image: {item.imageFileId}</span>
 		</div>
 	</div>
 
 	<!-- Source -->
-	{#if item.sourceData?.source}
+	{#if item.source}
 		<div class="mb-6 rounded-lg border border-purple-200 bg-purple-50 p-4">
 			<p class="text-sm font-semibold text-purple-900">Source</p>
-			<p class="text-sm text-purple-700">{item.sourceData.source}</p>
+			<p class="text-sm text-purple-700">{item.source}</p>
 		</div>
 	{/if}
 
@@ -76,7 +76,7 @@
 	<div class="mt-6 border-t border-gray-200 pt-6">
 		<div class="flex items-center justify-between text-xs text-gray-500">
 			<span>Added {new Date(item.createdAt).toLocaleDateString()}</span>
-			<span>ID: {item.id}</span>
+			<span>ID: {item._id}</span>
 		</div>
 	</div>
 </div>

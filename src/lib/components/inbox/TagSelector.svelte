@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Combobox, DropdownMenu } from 'bits-ui';
+	import { Combobox } from 'bits-ui';
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 	import { TAG_COLORS, DEFAULT_TAG_COLOR } from '$lib/utils/tagConstants';
 	import type { Id } from '../../../../convex/_generated/dataModel';
@@ -32,7 +32,7 @@
 		selectedTagIds = $bindable([]),
 		availableTags: _availableTags,
 		onTagsChange,
-		onCreateTag,
+		onCreateTag: _onCreateTag,
 		onCreateTagWithColor,
 		tagInputRef = $bindable(null),
 		comboboxOpen: _comboboxOpenExternal = $bindable(undefined),
@@ -327,10 +327,11 @@
 		}
 	}
 
-	const inputValue = $derived(() => {
-		if (comboboxOpen) return searchValue;
-		return '';
-	});
+	// TODO: Re-enable when needed for combobox display
+	// const _inputValue = $derived(() => {
+	// 	if (comboboxOpen) return searchValue;
+	// 	return '';
+	// });
 
 	// Track focused color index for keyboard navigation
 	let focusedColorIndex = $state(0);
@@ -426,7 +427,7 @@
 	<div class="relative">
 		<Combobox.Root
 			type="multiple"
-			bind:value={selectedTagIds as any}
+			bind:value={selectedTagIds}
 			bind:open={comboboxOpenInternal}
 			onOpenChange={handleOpenChange}
 			onValueChange={(values) => {

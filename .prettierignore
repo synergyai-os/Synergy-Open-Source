@@ -13,3 +13,8 @@ bun.lockb
 convex/_generated/
 www/
 ios/App/App/public/
+
+# Documentation folders (not critical for application)
+/dev-docs/**
+/marketing-docs/**
+/ai-content-blog/**

@@ -410,13 +410,14 @@ export const createTeamInvite = mutation({
 			teamName: string;
 			inviteChannel: string;
 			role: string;
+			inviteTarget?: string;
 		} = {
 			scope: 'team',
 			organizationId: team.organizationId,
-			organizationName: organization.name,
+			organizationName: '', // TODO: Get organization name when analytics is re-enabled
 			teamId: args.teamId,
 			teamName: team.name,
-			inviteChannel,
+			inviteChannel: normalizedEmail ? 'email' : args.invitedUserId ? 'manual' : 'link',
 			role: args.role ?? 'member'
 		};
 
