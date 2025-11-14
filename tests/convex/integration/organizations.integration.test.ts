@@ -92,11 +92,12 @@ describe('Organizations Integration Tests', () => {
 		cleanupQueue.push({ userId: adminUserId, orgId });
 
 		// Admin should be able to create invite
+		const { sessionId: adminSessionId } = await createTestSession(t);
 		const result = await t.mutation(api.organizations.createOrganizationInvite, {
+			sessionId: adminSessionId,
 			organizationId: orgId,
 			email: 'newuser@example.com',
-			role: 'member',
-			userId: adminUserId
+			role: 'member'
 		});
 
 		expect(result).toBeDefined();
@@ -210,7 +211,9 @@ describe('Organizations Integration Tests', () => {
 		cleanupQueue.push({ userId: memberUserId });
 
 		// Remove member
+		const { sessionId: adminSessionId } = await createTestSession(t);
 		const result = await t.mutation(api.organizations.removeOrganizationMember, {
+			sessionId: adminSessionId,
 			organizationId: orgId,
 			targetUserId: memberUserId
 		});

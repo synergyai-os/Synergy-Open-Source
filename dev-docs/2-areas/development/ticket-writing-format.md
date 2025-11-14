@@ -95,11 +95,13 @@
 ## ⚠️ PARALLEL WORK WARNING
 
 **This ticket CAN be worked on by multiple agents simultaneously:**
+
 - Agent 1: Backend (convex/ functions)
 - Agent 2: Frontend (src/lib/components/)
 - Agent 3: Tests (tests/ directory)
 
 **Boundaries:**
+
 - No shared files
 - Clear technical separation
 - Independent shipping
@@ -107,6 +109,7 @@
 **OR**
 
 **This ticket CANNOT be worked on in parallel:**
+
 - Sequential dependencies (Slice 1 → Slice 2 → Slice 3)
 - Shared files that would cause conflicts
 ```
@@ -115,4 +118,3 @@
 
 **Last Updated**: 2025-11-13  
 **Purpose**: Ticket writing format template for Linear tickets
-

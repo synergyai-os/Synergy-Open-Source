@@ -34,7 +34,8 @@
 	let { open, flashcards, initialIndex = 0, collectionName, onClose }: Props = $props();
 
 	const convexClient = browser ? useConvexClient() : null;
-	const getUserId = () => $page.data.user?.userId;
+	// TODO: Re-enable when needed
+	// const getUserId = () => $page.data.user?.userId;
 	const getSessionId = () => $page.data.sessionId;
 
 	// State
@@ -244,13 +245,14 @@
 		}
 	}
 
-	function handleQuestionChange(value: string) {
-		questionValue = value;
-	}
+	// TODO: Re-enable when needed
+	// function handleQuestionChange(value: string) {
+	// 	questionValue = value;
+	// }
 
-	function handleAnswerChange(value: string) {
-		answerValue = value;
-	}
+	// function handleAnswerChange(value: string) {
+	// 	answerValue = value;
+	// }
 
 	const progressText = $derived(`Card ${currentIndex + 1} of ${flashcards.length}`);
 </script>

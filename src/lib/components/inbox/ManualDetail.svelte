@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { Button } from 'bits-ui';
+	import type { InboxItemWithDetails } from '$lib/types/convex';
 
 	type Props = {
-		item: any;
+		item: InboxItemWithDetails & { type: 'manual_text' };
 		onClose: () => void;
 	};
 
@@ -54,7 +55,7 @@
 		<div class="mb-6">
 			<p class="mb-2 text-sm font-medium text-gray-600">Tags</p>
 			<div class="flex flex-wrap gap-2">
-				{#each item.tags as tag}
+				{#each item.tags as tag (tag)}
 					<span class="rounded bg-gray-100 px-2 py-1 text-sm text-gray-600">
 						{tag}
 					</span>

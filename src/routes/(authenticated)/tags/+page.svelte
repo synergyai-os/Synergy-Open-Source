@@ -8,6 +8,7 @@
 	import posthog from 'posthog-js';
 	import { browser } from '$app/environment';
 	import { AnalyticsEventName } from '$lib/analytics/events';
+	import type { Id } from '$lib/convex';
 
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
 	const convexClient = useConvexClient();
@@ -20,7 +21,7 @@
 		browser && getSessionId()
 			? useQuery(api.tags.listUserTags, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) return 'skip';
+					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
 					return { sessionId };
 				})
 			: null;
@@ -61,7 +62,7 @@
 				sessionId,
 				tagId: selectedTagForSharing._id,
 				shareWith,
-				organizationId: targetId as any
+				organizationId: targetId as Id<'organizations'>
 			});
 
 			// TEMPORARY: Client-side PostHog capture for testing

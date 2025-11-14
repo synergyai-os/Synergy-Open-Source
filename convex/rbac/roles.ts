@@ -8,7 +8,6 @@ import { mutation, query } from '../_generated/server';
 import { v } from 'convex/values';
 import { getAuthUserId } from '../auth';
 import { validateSessionAndGetUserId } from '../sessionValidation';
-import type { Id } from '../_generated/dataModel';
 import { requirePermission } from './permissions';
 
 /**
@@ -17,6 +16,7 @@ import { requirePermission } from './permissions';
  */
 export const assignRole = mutation({
 	args: {
+		sessionId: v.string(),
 		userId: v.id('users'),
 		roleSlug: v.string(),
 		organizationId: v.optional(v.id('organizations')),
@@ -26,7 +26,7 @@ export const assignRole = mutation({
 		expiresAt: v.optional(v.number())
 	},
 	handler: async (ctx, args) => {
-		const actingUserId = await getAuthUserId(ctx);
+		const actingUserId = await getAuthUserId(ctx, args.sessionId);
 		if (!actingUserId) {
 			throw new Error('Not authenticated');
 		}
@@ -93,10 +93,11 @@ export const assignRole = mutation({
  */
 export const revokeRole = mutation({
 	args: {
+		sessionId: v.string(),
 		userRoleId: v.id('userRoles')
 	},
 	handler: async (ctx, args) => {
-		const actingUserId = await getAuthUserId(ctx);
+		const actingUserId = await getAuthUserId(ctx, args.sessionId);
 		if (!actingUserId) {
 			throw new Error('Not authenticated');
 		}

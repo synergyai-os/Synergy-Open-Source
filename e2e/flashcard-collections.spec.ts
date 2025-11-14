@@ -37,15 +37,16 @@ test.describe('Flashcard Collections', () => {
 		await page.waitForTimeout(2000);
 
 		// Verify flashcards heading is visible
-		const flashcardsHeading = page.locator('h1, h2').filter({ hasText: /flashcards/i }).first();
+		const flashcardsHeading = page
+			.locator('h1, h2')
+			.filter({ hasText: /flashcards/i })
+			.first();
 		await expect(flashcardsHeading).toBeVisible({ timeout: 5000 });
 
 		// Verify no errors
 		const hasError = consoleErrors.some(
 			(err) =>
-				err.includes('Error') ||
-				err.includes('Failed') ||
-				err.includes('ArgumentValidationError')
+				err.includes('Error') || err.includes('Failed') || err.includes('ArgumentValidationError')
 		);
 		expect(hasError).toBe(false);
 
@@ -207,7 +208,10 @@ test.describe('Flashcard Collections - Tag Filtering', () => {
 
 		// Look for tag selector (implementation may vary)
 		// This test is optional depending on UI implementation
-		const tagSelector = page.locator('select, button').filter({ hasText: /tag|filter/i }).first();
+		const tagSelector = page
+			.locator('select, button')
+			.filter({ hasText: /tag|filter/i })
+			.first();
 
 		if (await tagSelector.isVisible({ timeout: 3000 })) {
 			await tagSelector.click();
@@ -283,4 +287,3 @@ test.describe('Flashcard Collections - Review Mode Integration', () => {
  * - Opening a collection is the entry point to review mode
  * - Any bug here blocks users from reviewing flashcards
  */
-

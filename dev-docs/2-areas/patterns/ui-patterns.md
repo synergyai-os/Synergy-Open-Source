@@ -173,9 +173,9 @@
 **Fix**:
 
 ```typescript
-// ❌ WRONG: Index-based navigation
+// ❌ WRONG: Index-based navigation (also uses non-reactive Set)
 let currentIndex = $state(0);
-let approvedIndices = $state<Set<number>>(new Set());
+let approvedIndices = $state<Set<number>>(new Set()); // ❌ Use SvelteSet for reactivity
 
 function handleApprove() {
 	approvedIndices.add(currentIndex); // ❌ Card still in list
@@ -847,6 +847,7 @@ npm install prosemirror-highlight lowlight
 **Design Token Checklist**:
 
 **Application UI:**
+
 - ✅ Spacing: Use `px-inbox-header`, `py-system-header`, `gap-icon` (never `px-4`, `py-2`)
 - ✅ Colors: Use `bg-surface`, `text-secondary`, `border-base` (never `#1a1a1a`, `#999`)
 - ✅ Typography: Use `text-sm`, `text-label` (never `text-[14px]`)
@@ -854,6 +855,7 @@ npm install prosemirror-highlight lowlight
 - ✅ Heights: Use `h-system-header` (never `h-[64px]`)
 
 **Marketing Pages:**
+
 - ✅ Section Padding: Use `py-marketing-section` (7rem) for all sections
 - ✅ Spacing Hierarchy: Use `mb-marketing-title-to-lead` (1.5rem), `mt-marketing-content` (3rem)
 - ✅ Card Spacing: Use `p-marketing-card` (2.5rem), `gap-marketing-card` (2rem)
@@ -862,22 +864,24 @@ npm install prosemirror-highlight lowlight
 **Two-Tier Approach**:
 
 1. **Utility Classes (Recommended for most pages)**:
+
    ```html
-   <section class="py-marketing-section bg-surface">
-     <div class="mx-auto max-w-4xl px-marketing-container">
-       <h2 class="mb-marketing-title-to-lead">Title</h2>
-       <p class="mb-marketing-content">Lead...</p>
-     </div>
+   <section class="bg-surface py-marketing-section">
+   	<div class="mx-auto max-w-4xl px-marketing-container">
+   		<h2 class="mb-marketing-title-to-lead">Title</h2>
+   		<p class="mb-marketing-content">Lead...</p>
+   	</div>
    </section>
    ```
+
    ✅ Use for: Blog posts, docs, simple marketing pages  
    ✅ Benefits: No `<style>` blocks, fast development, consistent spacing
 
 2. **CSS Variables (For complex custom sections)**:
    ```css
    .hero-section {
-     padding: var(--spacing-marketing-hero-y) 0 var(--spacing-marketing-hero-bottom) 0;
-     background: linear-gradient(...); /* Complex styling */
+   	padding: var(--spacing-marketing-hero-y) 0 var(--spacing-marketing-hero-bottom) 0;
+   	background: linear-gradient(...); /* Complex styling */
    }
    ```
    ✅ Use for: Landing pages with custom gradients, animations, unique layouts  
@@ -1852,6 +1856,58 @@ TOC (floating)       → On-page navigation (sections within doc)
 - Removed: 260px of horizontal space, 29 sidebar items, redundant scrolling
 
 **Related**: navigation-philosophy.md (UX psychology), #L10 (Component architecture)
+
+---
+
+## #L1870: Always Use resolveRoute() for Navigation [🔴 CRITICAL]
+
+**Symptom**: Navigation breaks in production with base path, ESLint errors `no-navigation-without-resolve`, routes don't prefetch  
+**Root Cause**: Hardcoded paths don't respect SvelteKit's `base` configuration, breaking deployments with base paths  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Hardcoded paths break with base paths
+import { goto } from '$app/navigation';
+goto('/inbox');
+<a href="/settings">Settings</a>
+
+// ✅ CORRECT: Use resolveRoute() for all internal navigation
+import { resolveRoute } from '$lib/utils/navigation';
+import { goto } from '$app/navigation';
+
+goto(resolveRoute('/inbox'));
+<a href={resolveRoute('/settings')}>Settings</a>
+```
+
+**Centralized Utility** (`src/lib/utils/navigation.ts`):
+
+```typescript
+/**
+ * Navigation utilities for SvelteKit routes
+ * Re-exports SvelteKit's resolveRoute to ensure consistent route resolution
+ * that respects base paths and enables proper prefetching.
+ */
+export { resolveRoute } from '$app/paths';
+```
+
+**Why**: 
+- SvelteKit 2.0 requires `resolveRoute()` for base path support
+- Enables proper prefetching for better performance
+- Type-safe route resolution
+- Direct re-export avoids deprecation warnings
+
+**Exceptions** (use regular `href`):
+- External links: `href="https://example.com"`
+- Anchors: `href="#section"`
+- Static files: `href="/CONTRIBUTING"` (not a route)
+- Relative paths: `href="./file.md"`
+
+**Apply when**:
+- All `goto()` calls with internal routes
+- All `href` attributes pointing to internal routes
+- Any programmatic navigation (`replaceState`, `pushState`)
+
+**Related**: #L1100 (Markdown link resolution), #L1120 (Parent directory links)
 
 ---
 

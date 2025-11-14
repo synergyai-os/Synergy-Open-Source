@@ -7,11 +7,13 @@
 ## 📊 Optimization Summary
 
 **Before**: `working-with-linear.mdc` was 540 lines with `alwaysApply: true`
+
 - **Problem**: 540 lines included in EVERY chat context
 - **Waste**: Most chats don't need Linear workflow details
 - **Impact**: Consumes context tokens unnecessarily
 
 **After**: Optimized structure
+
 - **Rule**: 84 lines (84% reduction) - Only critical rules
 - **Command**: 366 lines - Loaded only when `/linear` invoked
 - **Total**: Same content, better organization
@@ -23,32 +25,31 @@
 ### Rules (`.cursor/rules/*.mdc`)
 
 **Use for:**
+
 - ✅ Critical rules that MUST be followed always
 - ✅ Universal constraints (coding standards, security)
 - ✅ Short, actionable guidelines (< 100 lines)
 
 **Configuration:**
+
 ```yaml
 ---
-alwaysApply: true  # Include in every chat
+alwaysApply: true # Include in every chat
 ---
-
 # OR
-
 ---
 description: apply when working with PostHog
-globs: ["**/*posthog*", "**/analytics/**"]
+globs: ['**/*posthog*', '**/analytics/**']
 ---
-
 # OR
-
 ---
 description: apply when working with Linear tickets
-globs: ["**/*linear*", ".cursor/commands/linear.md"]
+globs: ['**/*linear*', '.cursor/commands/linear.md']
 ---
 ```
 
 **Best Practices:**
+
 - Keep rules SHORT (< 100 lines)
 - Only include CRITICAL rules
 - Use `globs` to scope when possible
@@ -57,12 +58,14 @@ globs: ["**/*linear*", ".cursor/commands/linear.md"]
 ### Commands (`.cursor/commands/*.md`)
 
 **Use for:**
+
 - ✅ Detailed workflows and references
 - ✅ Step-by-step guides
 - ✅ Examples and templates
 - ✅ Loaded only when invoked (e.g., `/linear`)
 
 **Best Practices:**
+
 - Can be longer (300-500 lines OK)
 - Include complete examples
 - Reference from rules when needed
@@ -72,16 +75,19 @@ globs: ["**/*linear*", ".cursor/commands/linear.md"]
 ## 📋 Current Rules Structure
 
 ### `way-of-working.mdc` (~174 lines)
+
 - **Purpose**: Project overview, tech stack, essential patterns
 - **Why rule**: Universal context needed for all work
 - **Status**: ✅ Appropriate size
 
 ### `working-with-linear.mdc` (84 lines)
+
 - **Purpose**: Critical Linear rules (Project ID required, Assign user)
 - **Why rule**: Must be enforced before creating tickets
 - **Status**: ✅ Optimized (was 540 lines)
 
 ### `posthog-integration.mdc` (~26 lines)
+
 - **Purpose**: PostHog-specific rules (API keys, feature flags)
 - **Why rule**: Security constraint (never hallucinate API keys)
 - **Status**: ✅ Appropriate size
@@ -93,11 +99,13 @@ globs: ["**/*linear*", ".cursor/commands/linear.md"]
 ### Step 1: Identify Critical vs Reference
 
 **Critical (Rule):**
+
 - Must be enforced always
 - Short, actionable
 - Prevents errors
 
 **Reference (Command):**
+
 - Detailed examples
 - Complete workflows
 - Loaded on demand
@@ -105,6 +113,7 @@ globs: ["**/*linear*", ".cursor/commands/linear.md"]
 ### Step 2: Split Content
 
 **Before:**
+
 ```
 rule.mdc (540 lines, alwaysApply: true)
 ├── Critical rules (50 lines)
@@ -114,6 +123,7 @@ rule.mdc (540 lines, alwaysApply: true)
 ```
 
 **After:**
+
 ```
 rule.mdc (84 lines, alwaysApply: true)
 └── Critical rules only
@@ -127,14 +137,16 @@ command.md (366 lines, manual invoke)
 ### Step 3: Use Globs When Possible
 
 **Instead of `alwaysApply: true`:**
+
 ```yaml
 ---
 description: apply when working with Linear
-globs: ["**/*linear*", ".cursor/commands/linear.md"]
+globs: ['**/*linear*', '.cursor/commands/linear.md']
 ---
 ```
 
 **Benefits:**
+
 - Only loaded when relevant
 - Saves context tokens
 - More targeted application
@@ -182,12 +194,15 @@ alwaysApply: true
 **Purpose**: Complete reference for [topic]
 
 ## Constants
+
 [Detailed constants]
 
 ## Examples
+
 [Complete examples]
 
 ## Workflows
+
 [Step-by-step guides]
 ```
 
@@ -195,12 +210,12 @@ alwaysApply: true
 
 ## 🔍 Current Optimization Status
 
-| File | Type | Lines | Status |
-|------|------|-------|--------|
-| `way-of-working.mdc` | Rule | ~174 | ✅ Appropriate |
-| `working-with-linear.mdc` | Rule | 84 | ✅ Optimized |
-| `posthog-integration.mdc` | Rule | ~26 | ✅ Appropriate |
-| `linear.md` | Command | 366 | ✅ Reference only |
+| File                      | Type    | Lines | Status            |
+| ------------------------- | ------- | ----- | ----------------- |
+| `way-of-working.mdc`      | Rule    | ~174  | ✅ Appropriate    |
+| `working-with-linear.mdc` | Rule    | 84    | ✅ Optimized      |
+| `posthog-integration.mdc` | Rule    | ~26   | ✅ Appropriate    |
+| `linear.md`               | Command | 366   | ✅ Reference only |
 
 **Total Rule Context**: ~284 lines (down from 740+)
 
@@ -216,4 +231,3 @@ alwaysApply: true
 
 **Last Updated**: 2025-11-13  
 **Purpose**: Guide for creating optimized Cursor rules
-

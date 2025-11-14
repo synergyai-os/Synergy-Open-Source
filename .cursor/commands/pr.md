@@ -14,6 +14,7 @@
 4. **Committed changes**: All work should be committed to your branch
 
 **Check prerequisites:**
+
 ```bash
 # Check git status
 git status
@@ -30,11 +31,13 @@ git branch --show-current
 ## 📋 Two PR Types
 
 ### 1. Regular PR (Feature/Bug Work)
+
 **Use for**: Features, bug fixes, refactoring, documentation
 **Requires**: Linear ticket ID
 **Branch naming**: `feature/SYN-123-description` or `fix/SYN-123-description`
 
 ### 2. Test PR (CI Verification)
+
 **Use for**: Testing CI workflows, verifying GitHub Actions
 **Requires**: No Linear ticket needed
 **Branch naming**: `test/ci-workflow-verification` or `test/[description]`
@@ -46,18 +49,21 @@ git branch --show-current
 ### Step 1: Verify Branch Status
 
 **Check if you're on a feature branch:**
+
 ```bash
 git branch --show-current
 # Should be: feature/SYN-123-description or fix/SYN-123-description
 ```
 
 **If on `main`:**
+
 ```bash
 # Create feature branch from Linear ticket
 git checkout -b feature/SYN-123-short-description
 ```
 
 **Branch naming conventions:**
+
 - `feature/SYN-123-description` - New features
 - `fix/SYN-123-description` - Bug fixes
 - `docs/SYN-123-description` - Documentation
@@ -70,11 +76,13 @@ git checkout -b feature/SYN-123-short-description
 ### Step 2: Ensure Changes Are Committed
 
 **Check for uncommitted changes:**
+
 ```bash
 git status
 ```
 
 **If uncommitted changes exist:**
+
 ```bash
 # Review changes
 git diff
@@ -91,11 +99,13 @@ git commit -m "feat: [description] [SYN-123]"
 ### Step 3: Push Branch to GitHub
 
 **Push your branch:**
+
 ```bash
 git push -u origin feature/SYN-123-description
 ```
 
 **If branch already exists remotely:**
+
 ```bash
 git push
 ```
@@ -105,6 +115,7 @@ git push
 ### Step 4: Create PR with Template
 
 **Using GitHub CLI:**
+
 ```bash
 gh pr create \
   --title "feat: [Description] [SYN-123]" \
@@ -113,6 +124,7 @@ gh pr create \
 ```
 
 **Manual PR creation:**
+
 1. Go to: https://github.com/synergyai-os/Synergy-Open-Source/pull/new/[branch-name]
 2. PR template auto-fills
 3. Update `Closes: SYN-123` line
@@ -132,6 +144,7 @@ gh pr create \
 5. **Checklist**: Verify all items checked
 
 **Feature Flag Checklist** (if applicable):
+
 - [ ] Feature flag created in `src/lib/featureFlags.ts`
 - [ ] Feature flag added to Convex schema
 - [ ] Feature flag gated in UI/backend
@@ -154,6 +167,7 @@ gh pr create \
    - ✅ Secret scan
 
 **If CI fails:**
+
 - Review error messages
 - Fix issues locally
 - Push fixes: `git push`
@@ -164,11 +178,13 @@ gh pr create \
 ### Step 7: Linear Auto-Linking
 
 **Linear automatically links PR when:**
+
 - Branch name includes Linear ID: `feature/SYN-123-description`
 - PR title includes Linear ID: `feat: add feature [SYN-123]`
 - PR description mentions: `Closes SYN-123`
 
 **Verify linking:**
+
 1. Open Linear issue SYN-123
 2. Scroll to "Git" section
 3. PR should appear with status
@@ -182,6 +198,7 @@ gh pr create \
 ### Step 1: Create Test Branch
 
 **From `main`:**
+
 ```bash
 git checkout main
 git pull origin main
@@ -195,6 +212,7 @@ git checkout -b test/ci-workflow-verification
 ### Step 2: Add Test Commit
 
 **Create a simple test file:**
+
 ```bash
 echo "# CI Workflow Test
 
@@ -213,11 +231,13 @@ git commit -m "test: verify CI workflow with test PR"
 ### Step 3: Push and Create PR
 
 **Push branch:**
+
 ```bash
 git push -u origin test/ci-workflow-verification
 ```
 
 **Create PR:**
+
 ```bash
 gh pr create \
   --title "test: Verify CI workflow" \
@@ -235,6 +255,7 @@ This is a test PR - will be closed after verification." \
 ### Step 4: Verify CI Runs
 
 **Check PR page:**
+
 1. Go to PR on GitHub
 2. Check "Checks" tab
 3. Verify all workflows pass:
@@ -247,6 +268,7 @@ This is a test PR - will be closed after verification." \
 ### Step 5: Clean Up After Testing
 
 **After verifying CI works:**
+
 ```bash
 # Close PR (don't merge test PRs)
 gh pr close [PR-number]
@@ -269,6 +291,7 @@ rm .ci-test.md
 **Location**: `.github/pull_request_template.md`
 
 **Template includes:**
+
 - What Changed / Why
 - Type of Change checklist
 - Testing checklist
@@ -276,6 +299,7 @@ rm .ci-test.md
 - Related Issues section
 
 **For feature flags**, add to PR description:
+
 ```markdown
 ## Feature Flags
 
@@ -332,7 +356,8 @@ rm .ci-test.md
 ### Linear Not Linking
 
 **Problem**: PR doesn't appear in Linear issue
-**Solution**: 
+**Solution**:
+
 - Verify branch name includes Linear ID: `feature/SYN-123-description`
 - Check PR description includes `Closes: SYN-123`
 - Verify GitHub integration in Linear Settings
@@ -341,6 +366,7 @@ rm .ci-test.md
 
 **Problem**: Quality checks fail
 **Solution**:
+
 - Review error messages in PR "Checks" tab
 - Fix issues locally
 - Push fixes: `git push`
@@ -350,6 +376,7 @@ rm .ci-test.md
 
 **Problem**: Branch is behind `main`
 **Solution**:
+
 ```bash
 git checkout main
 git pull origin main

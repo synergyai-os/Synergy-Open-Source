@@ -1,12 +1,14 @@
 # Linear Ticket Setup for RBAC Phase 1
 
-**⚠️ DEPRECATED**: This file uses outdated Linear patterns. 
+**⚠️ DEPRECATED**: This file uses outdated Linear patterns.
 
 **For current patterns, use:**
+
 - **Command**: `/linear` - Complete Linear workflow reference (constants, ticket creation, examples)
 - **Rule**: `.cursor/rules/working-with-linear.mdc` - Critical rules (Project ID required, Assign user)
 
 **What's outdated in this file:**
+
 - ❌ Uses `project: 'name'` instead of `projectId: projectId`
 - ❌ Uses label names instead of label IDs
 - ❌ Missing `assigneeId` requirement

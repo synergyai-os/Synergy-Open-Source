@@ -97,7 +97,7 @@
 			/>
 		</div>
 		<div class="py-1">
-			{#each filteredLanguages as lang}
+			{#each filteredLanguages as lang (lang.value)}
 				<button
 					type="button"
 					class="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors hover:bg-hover-solid {lang.value ===

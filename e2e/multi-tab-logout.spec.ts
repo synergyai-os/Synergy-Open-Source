@@ -69,10 +69,7 @@ test.describe('Multi-Tab Logout', () => {
 		// Tab 1: Perform logout
 		// Get CSRF token from cookies
 		const cookies = await context.cookies();
-		console.log(
-			'Available cookies:',
-			cookies.map((c) => c.name).join(', ')
-		);
+		console.log('Available cookies:', cookies.map((c) => c.name).join(', '));
 		const csrfCookie = cookies.find((c) => c.name === 'syos_csrf');
 		const csrfToken = csrfCookie?.value;
 
@@ -387,4 +384,3 @@ test.describe('Multi-Tab Session Sync', () => {
  * - Unauthorized access after logout
  * - Session hijacking in multi-tab scenarios
  */
-

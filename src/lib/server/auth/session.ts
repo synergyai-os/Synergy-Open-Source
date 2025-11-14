@@ -113,9 +113,30 @@ export async function establishSession(options: {
 	options.event.cookies.delete(LEGACY_SESSION_COOKIE, { path: '/' });
 	options.event.cookies.delete(LEGACY_USER_COOKIE, { path: '/' });
 
+	// Normalize activeWorkspace to ensure id is string | null (not optional)
+	const activeWorkspace = options.userSnapshot.activeWorkspace
+		? {
+				type: options.userSnapshot.activeWorkspace.type,
+				id: options.userSnapshot.activeWorkspace.id ?? null, // Ensure id is string | null, not optional
+				name: options.userSnapshot.activeWorkspace.name
+			}
+		: {
+				type: 'personal' as const,
+				id: null,
+				name: 'Private workspace'
+			};
+
 	options.event.locals.auth = {
 		sessionId,
-		user: options.userSnapshot,
+		user: {
+			userId: options.userSnapshot.userId, // Id<'users'> is compatible with string at runtime
+			workosId: options.userSnapshot.workosId,
+			email: options.userSnapshot.email,
+			firstName: options.userSnapshot.firstName,
+			lastName: options.userSnapshot.lastName,
+			name: options.userSnapshot.name,
+			activeWorkspace
+		},
 		workosSessionId: options.workosSessionId,
 		accessToken: options.accessToken,
 		expiresAt: options.expiresAt,
@@ -289,15 +310,29 @@ export async function resolveRequestSession(event: RequestEvent) {
 		});
 	}
 
+	// Normalize activeWorkspace to ensure id is string | null (not optional)
+	const activeWorkspace = record.userSnapshot.activeWorkspace
+		? {
+				type: record.userSnapshot.activeWorkspace.type,
+				id: record.userSnapshot.activeWorkspace.id ?? null, // Ensure id is string | null, not optional
+				name: record.userSnapshot.activeWorkspace.name
+			}
+		: {
+				type: 'personal' as const,
+				id: null,
+				name: 'Private workspace'
+			};
+
 	event.locals.auth = {
 		sessionId: activeSessionId,
 		user: {
-			...record.userSnapshot,
-			activeWorkspace: record.userSnapshot.activeWorkspace ?? {
-				type: 'personal',
-				id: null,
-				name: 'Private workspace'
-			}
+			userId: record.userSnapshot.userId, // Id<'users'> is compatible with string at runtime
+			workosId: record.userSnapshot.workosId,
+			email: record.userSnapshot.email,
+			firstName: record.userSnapshot.firstName,
+			lastName: record.userSnapshot.lastName,
+			name: record.userSnapshot.name,
+			activeWorkspace
 		},
 		workosSessionId: record.workosSessionId,
 		accessToken,

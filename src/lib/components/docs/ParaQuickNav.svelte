@@ -38,7 +38,7 @@
 
 <nav class="para-quick-nav" aria-label="PARA Navigation">
 	<div class="para-nav-content">
-		{#each paraItems as item}
+		{#each paraItems as item (item.id)}
 			<a
 				href={item.href}
 				class="para-nav-item"

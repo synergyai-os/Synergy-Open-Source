@@ -278,7 +278,7 @@
 							side="right"
 							align="start"
 							sideOffset={4}
-							onClickOutside={(e) => {
+							onInteractOutside={(e) => {
 								e.stopPropagation(); // Prevent parent menu from closing
 							}}
 						>
@@ -474,7 +474,7 @@
 									side="right"
 									align="start"
 									sideOffset={4}
-									onClickOutside={(e) => {
+									onInteractOutside={(e) => {
 										e.stopPropagation(); // Prevent parent menu from closing
 									}}
 								>

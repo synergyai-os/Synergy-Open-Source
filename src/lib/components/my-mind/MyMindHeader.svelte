@@ -113,7 +113,7 @@
 					align="end"
 					sideOffset={4}
 				>
-					{#each Object.entries(sourceTypeLabels) as [type, label]}
+					{#each Object.entries(sourceTypeLabels) as [type, label] (type)}
 						<DropdownMenu.Item
 							class="flex cursor-pointer items-center justify-between gap-icon px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 							textValue={label}
@@ -168,7 +168,7 @@
 					align="end"
 					sideOffset={4}
 				>
-					{#each Object.entries(sortLabels) as [option, label]}
+					{#each Object.entries(sortLabels) as [option, label] (option)}
 						<DropdownMenu.Item
 							class="flex cursor-pointer items-center justify-between gap-icon px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 							textValue={label}

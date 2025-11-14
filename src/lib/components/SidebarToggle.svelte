@@ -5,7 +5,7 @@
 		isMobile?: boolean;
 	}
 
-	let { sidebarCollapsed, onToggle, isMobile = false }: Props = $props();
+	let { sidebarCollapsed, onToggle, isMobile: _isMobile = false }: Props = $props();
 </script>
 
 <button

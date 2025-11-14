@@ -35,11 +35,12 @@
 		answerValue = flashcard.answer;
 	});
 
-	function handleFlip() {
-		if (onFlip) {
-			onFlip();
-		}
-	}
+	// TODO: Re-enable when flip functionality is needed
+	// function handleFlip() {
+	// 	if (onFlip) {
+	// 		onFlip();
+	// 	}
+	// }
 
 	function startEditingQuestion() {
 		if (editable && onQuestionChange) {

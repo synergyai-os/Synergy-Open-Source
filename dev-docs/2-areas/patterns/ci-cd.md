@@ -273,27 +273,27 @@ YOUR_API_KEY_HERE
 ```typescript
 // ❌ BAD: test.use() inside test function
 test.describe('My Tests', () => {
-  test('should work', async ({ page }) => {
-    test.use({ storageState: 'auth.json' }); // ❌ Error!
-    // ...
-  });
+	test('should work', async ({ page }) => {
+		test.use({ storageState: 'auth.json' }); // ❌ Error!
+		// ...
+	});
 });
 
 // ✅ GOOD: test.use() at describe level
 test.describe('Unauthenticated Tests', () => {
-  test.use({ storageState: { cookies: [], origins: [] } });
-  
-  test('should redirect', async ({ page }) => {
-    // ...
-  });
+	test.use({ storageState: { cookies: [], origins: [] } });
+
+	test('should redirect', async ({ page }) => {
+		// ...
+	});
 });
 
 test.describe('Authenticated Tests', () => {
-  test.use({ storageState: 'auth.json' });
-  
-  test('should work', async ({ page }) => {
-    // ...
-  });
+	test.use({ storageState: 'auth.json' });
+
+	test('should work', async ({ page }) => {
+		// ...
+	});
 });
 ```
 
@@ -322,25 +322,25 @@ test.describe('Authenticated Tests', () => {
 ```typescript
 // ❌ BAD: request has separate cookie context
 test('logout should clear cookies', async ({ page, request }) => {
-  await page.goto('/inbox'); // Sets cookies in page context
-  
-  const response = await request.post('/logout'); // ❌ No cookies from page!
-  
-  const cookies = await page.context().cookies();
-  expect(cookies.find(c => c.name === 'session')).toBeUndefined(); // ❌ Fails!
+	await page.goto('/inbox'); // Sets cookies in page context
+
+	const response = await request.post('/logout'); // ❌ No cookies from page!
+
+	const cookies = await page.context().cookies();
+	expect(cookies.find((c) => c.name === 'session')).toBeUndefined(); // ❌ Fails!
 });
 
 // ✅ GOOD: page.request shares page's cookie context
 test('logout should clear cookies', async ({ page }) => {
-  await page.goto('/inbox'); // Sets cookies in page context
-  
-  const response = await page.request.post('/logout'); // ✅ Has page cookies!
-  
-  // Navigate to trigger cookie sync
-  await page.goto('/login');
-  
-  const cookies = await page.context().cookies();
-  expect(cookies.find(c => c.name === 'session')).toBeUndefined(); // ✅ Passes!
+	await page.goto('/inbox'); // Sets cookies in page context
+
+	const response = await page.request.post('/logout'); // ✅ Has page cookies!
+
+	// Navigate to trigger cookie sync
+	await page.goto('/login');
+
+	const cookies = await page.context().cookies();
+	expect(cookies.find((c) => c.name === 'session')).toBeUndefined(); // ✅ Passes!
 });
 ```
 
@@ -369,44 +369,44 @@ test('logout should clear cookies', async ({ page }) => {
 ```typescript
 // ❌ BAD: Assumes items exist
 test('should show inbox items', async ({ page }) => {
-  await page.goto('/inbox');
-  
-  const items = page.locator('[data-testid="inbox-item"]');
-  await expect(items.first()).toBeVisible(); // ❌ Fails if 0 items!
+	await page.goto('/inbox');
+
+	const items = page.locator('[data-testid="inbox-item"]');
+	await expect(items.first()).toBeVisible(); // ❌ Fails if 0 items!
 });
 
 // ✅ GOOD: Handle empty state gracefully
 test('should show inbox items', async ({ page }) => {
-  await page.goto('/inbox');
-  await page.waitForLoadState('networkidle');
-  
-  const items = page.locator('[data-testid="inbox-item"]');
-  const count = await items.count();
-  
-  console.log(`User has ${count} inbox items`);
-  
-  if (count > 0) {
-    await expect(items.first()).toBeVisible();
-  }
-  
-  // Verify authentication (alternative check)
-  await expect(page).toHaveURL(/\/inbox/);
+	await page.goto('/inbox');
+	await page.waitForLoadState('networkidle');
+
+	const items = page.locator('[data-testid="inbox-item"]');
+	const count = await items.count();
+
+	console.log(`User has ${count} inbox items`);
+
+	if (count > 0) {
+		await expect(items.first()).toBeVisible();
+	}
+
+	// Verify authentication (alternative check)
+	await expect(page).toHaveURL(/\/inbox/);
 });
 
 // ✅ ALTERNATIVE: Skip test if no data
 test('should mark item as processed', async ({ page }) => {
-  await page.goto('/inbox');
-  
-  const items = page.locator('[data-testid="inbox-item"]');
-  const count = await items.count();
-  
-  if (count === 0) {
-    console.log('No items to test - skipping');
-    test.skip();
-    return;
-  }
-  
-  // ... test logic
+	await page.goto('/inbox');
+
+	const items = page.locator('[data-testid="inbox-item"]');
+	const count = await items.count();
+
+	if (count === 0) {
+		console.log('No items to test - skipping');
+		test.skip();
+		return;
+	}
+
+	// ... test logic
 });
 ```
 
@@ -423,6 +423,306 @@ test('should mark item as processed', async ({ page }) => {
 - Testing actions on dynamic data
 
 **Related**: #L220 (Cookie context), E2E test patterns
+
+---
+
+## #L240: Multi-Tab Logout Testing [🟡 IMPORTANT]
+
+**Symptom**: Logout in one tab doesn't invalidate other tabs, session persists across tabs  
+**Root Cause**: Tests don't verify multi-tab session invalidation  
+**Fix**:
+
+```typescript
+// ✅ Test multi-tab logout
+test('should log out across all tabs', async ({ context, page }) => {
+	// Tab 1: Navigate to inbox
+	await page.goto('/inbox');
+	await page.waitForLoadState('networkidle');
+	await expect(page).toHaveURL(/\/inbox/);
+
+	// Tab 2: Open second page
+	const page2 = await context.newPage();
+	await page2.goto('/flashcards');
+	await expect(page2).toHaveURL(/\/flashcards/);
+
+	// Tab 3: Open third page
+	const page3 = await context.newPage();
+	await page3.goto('/settings');
+	await expect(page3).toHaveURL(/\/settings/);
+
+	// Tab 1: Perform logout
+	const cookies = await context.cookies();
+	const csrfToken = cookies.find((c) => c.name === 'syos_csrf')?.value;
+
+	await page.request.post('/logout', {
+		headers: { 'X-CSRF-Token': csrfToken }
+	});
+
+	// Navigate to trigger session check
+	await page.goto('/inbox');
+	await expect(page).toHaveURL(/\/login/);
+
+	// Tab 2: Reload and verify redirect to login
+	await page2.reload();
+	await expect(page2).toHaveURL(/\/login/);
+
+	// Tab 3: Reload and verify redirect to login
+	await page3.reload();
+	await expect(page3).toHaveURL(/\/login/);
+
+	await page2.close();
+	await page3.close();
+});
+```
+
+**Why**:
+
+- Multi-tab usage is common in modern web apps
+- Security vulnerability if sessions don't sync across tabs
+- Users expect logout to work globally, not per-tab
+
+**Apply when**:
+
+- Testing authentication/logout flows
+- Verifying session management
+- Testing security-critical features
+
+**Related**: #L220 (Cookie context), #L260 (Session resilience)
+
+---
+
+## #L250: E2E Test Selector Strategy - Text-Based & Emoji [🟢 REFERENCE]
+
+**Context**: Choosing selector strategy for E2E tests  
+**Approach**: Use text-based selectors and emoji indicators instead of data-testid  
+**Fix**:
+
+```typescript
+// ✅ Text-based selectors (no data-testid needed)
+test('should generate flashcards', async ({ page }) => {
+	await page.goto('/inbox');
+
+	// Find by emoji + text
+	const firstItem = page.locator('button:has-text("📚"), button:has-text("📝")').first();
+	await firstItem.click();
+
+	// Find by emoji in button
+	const generateButton = page.locator('button:has-text("🧠")').first();
+	await generateButton.click();
+
+	// Find by heading text
+	const modalHeading = page.locator('h2:has-text("Review Flashcards")');
+	await expect(modalHeading).toBeVisible();
+});
+
+// ✅ Alternative: CSS selectors with text filters
+test('should navigate inbox', async ({ page }) => {
+	const items = page.locator('button').filter({
+		hasText: /manual entry|highlight|article/i
+	});
+
+	await items.first().click();
+});
+```
+
+**Why**:
+
+- ✅ No need to add data-testid attributes to every element
+- ✅ Tests are readable (emojis make intent clear)
+- ✅ Tests fail if UI text changes (catches unintended UX changes)
+- ✅ Follows existing patterns in codebase (`inbox-workflow.spec.ts`)
+
+**Trade-offs**:
+
+- ⚠️ Tests break if text/emojis change (feature, not bug)
+- ⚠️ Requires unique, stable text identifiers
+- ✅ Better than CSS class selectors (less brittle)
+
+**Apply when**:
+
+- Building E2E tests from scratch
+- UI has clear text labels and emoji indicators
+- Want tests to reflect actual user experience
+- Prefer readability over brittle selectors
+
+**Related**: #L230 (Empty data handling), E2E test patterns
+
+---
+
+## #L260: E2E Test Session Resilience [🟡 IMPORTANT]
+
+**Symptom**: Tests fail with 401/500 "Session not found" errors from previous test runs  
+**Root Cause**: Previous tests invalidated session, but new tests assume valid session  
+**Fix**:
+
+```typescript
+// ✅ Handle session expiry gracefully
+test('should clear cookies on logout', async ({ context, page }) => {
+	await page.goto('/inbox');
+	await page.waitForLoadState('networkidle');
+
+	// Get CSRF token
+	const cookies = await context.cookies();
+	const csrfToken = cookies.find((c) => c.name === 'syos_csrf')?.value;
+
+	if (!csrfToken) {
+		console.log('⏭️  Skipping test - CSRF token not available');
+		test.skip();
+		return;
+	}
+
+	// Perform logout
+	const response = await page.request.post('/logout', {
+		headers: { 'X-CSRF-Token': csrfToken }
+	});
+
+	// Handle session errors gracefully
+	if (!response.ok()) {
+		const body = await response.json().catch(() => ({}));
+		console.error('Logout failed:', response.status(), body);
+
+		// Skip if session invalid (from previous tests)
+		if (response.status() === 401 || response.status() === 500) {
+			console.log('⏭️  Skipping test - session invalid from previous tests');
+			test.skip();
+			return;
+		}
+
+		throw new Error(`Logout failed: ${response.status()}`);
+	}
+
+	// ... rest of test
+});
+
+// ✅ Check authentication before proceeding
+test('should sync session across tabs', async ({ page }) => {
+	await page.goto('/inbox');
+	await page.waitForLoadState('networkidle');
+
+	// Check if authenticated (may be logged out from previous tests)
+	if (page.url().includes('/login')) {
+		console.log('⏭️  Skipping test - session expired from previous tests');
+		test.skip();
+		return;
+	}
+
+	// ... rest of test
+});
+```
+
+**Why**:
+
+- Test isolation isn't perfect - sessions may be shared across test runs
+- Graceful skipping prevents cascading failures
+- Makes tests resilient to test execution order
+
+**Apply when**:
+
+- Testing logout/session management
+- Multiple tests modify session state
+- Tests run in parallel or unpredictable order
+- Working with shared test accounts
+
+**Related**: #L240 (Multi-tab logout), #L220 (Cookie context), #L230 (Empty data)
+
+---
+
+## #L270: Playwright Environment Variables Without dotenv [🟢 REFERENCE]
+
+**Context**: Configuring Playwright tests with environment variables in SvelteKit  
+**Problem**: Playwright docs suggest using `dotenv` package, but it's not installed and not needed  
+**Fix**:
+
+```typescript
+// ❌ BAD: Using dotenv (unnecessary dependency)
+import { defineConfig } from '@playwright/test';
+import * as dotenv from 'dotenv'; // ❌ Not installed!
+import * as path from 'path';
+
+dotenv.config({ path: path.resolve(__dirname, '.env.test') });
+
+export default defineConfig({
+	// ...
+});
+```
+
+```json
+// ✅ GOOD: Set env vars in npm script
+{
+	"scripts": {
+		"test:e2e": "E2E_TEST_MODE=true playwright test",
+		"test:e2e:auth": "E2E_TEST_MODE=true playwright test e2e/auth-security.test.ts"
+	}
+}
+```
+
+```typescript
+// ✅ GOOD: Pass env vars to webServer in playwright.config.ts
+import { defineConfig } from '@playwright/test';
+
+export default defineConfig({
+	webServer: {
+		command: 'npm run dev',
+		url: 'http://localhost:5173',
+		env: {
+			// Pass env vars to dev server
+			E2E_TEST_MODE: process.env.E2E_TEST_MODE || 'true'
+		}
+	}
+});
+```
+
+```typescript
+// ✅ Access in test helper endpoint
+export const GET: RequestHandler = async ({ request }) => {
+	// Security: Only allow in E2E_TEST_MODE
+	if (process.env.E2E_TEST_MODE !== 'true') {
+		return json({ error: 'Not found' }, { status: 404 });
+	}
+
+	// ... test helper logic
+};
+```
+
+**Why**:
+
+- ✅ **No external dependencies** - Uses native Node.js `process.env`
+- ✅ **SvelteKit-native** - Works with SvelteKit's built-in `.env` handling
+- ✅ **Cross-platform** - Works on Windows/Mac/Linux
+- ✅ **CI-friendly** - Easy to override in GitHub Actions
+- ✅ **Clear intent** - Env vars are explicitly set in scripts
+
+**Alternatives**:
+
+**Option 1: npm script** (Recommended)
+
+```json
+"test:e2e": "E2E_TEST_MODE=true playwright test"
+```
+
+**Option 2: GitHub Actions** (CI/CD)
+
+```yaml
+- name: Run E2E Tests
+  run: npm run test:e2e
+  env:
+    E2E_TEST_MODE: 'true'
+```
+
+**Option 3: SvelteKit .env files** (Automatic loading)
+
+- `.env` - Base variables (all environments)
+- `.env.local` - Local overrides (gitignored)
+- `.env.test` - Test-specific (loaded automatically)
+
+**Apply when**:
+
+- Setting up Playwright tests in SvelteKit
+- Need environment variables for test configuration
+- Want to avoid adding `dotenv` dependency
+- Following SvelteKit conventions
+
+**Related**: #L260 (Session resilience), E2E test configuration, SvelteKit environment variables
 
 ---
 

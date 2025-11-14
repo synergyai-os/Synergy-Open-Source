@@ -14,6 +14,7 @@
 import { mutation, query } from '../_generated/server';
 import { v } from 'convex/values';
 import type { Id } from '../_generated/dataModel';
+import type { QueryCtx, MutationCtx } from '../_generated/server';
 
 /**
  * Assign admin role to a user
@@ -127,13 +128,13 @@ export const verifyAdminSetup = query({
  * Helper: Get all permissions for a user (flattened from all roles)
  */
 async function getUserPermissions(
-	ctx: any,
+	ctx: QueryCtx | MutationCtx,
 	userId: Id<'users'>
 ): Promise<Array<{ permissionSlug: string; scope: 'all' | 'own' | 'none'; roleName: string }>> {
 	// Get all user's roles
 	const userRoles = await ctx.db
 		.query('userRoles')
-		.withIndex('by_user', (q: any) => q.eq('userId', userId))
+		.withIndex('by_user', (q) => q.eq('userId', userId))
 		.collect();
 
 	if (userRoles.length === 0) {
@@ -154,7 +155,7 @@ async function getUserPermissions(
 		// Get role-permission mappings
 		const rolePerms = await ctx.db
 			.query('rolePermissions')
-			.withIndex('by_role', (q: any) => q.eq('roleId', userRole.roleId))
+			.withIndex('by_role', (q) => q.eq('roleId', userRole.roleId))
 			.collect();
 
 		for (const rolePerm of rolePerms) {

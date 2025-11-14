@@ -3,6 +3,9 @@ import { defineConfig, devices } from '@playwright/test';
 /**
  * Playwright Configuration for E2E Tests
  *
+ * Environment variables (like E2E_TEST_MODE) are set via npm scripts.
+ * Test credentials are loaded from .env.test via Playwright's webServer env.
+ *
  * See https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
@@ -78,6 +81,10 @@ export default defineConfig({
 		command: 'npm run dev',
 		url: 'http://localhost:5173',
 		reuseExistingServer: !process.env.CI,
-		timeout: 120000
+		timeout: 120000,
+		env: {
+			// Pass E2E_TEST_MODE to the dev server
+			E2E_TEST_MODE: process.env.E2E_TEST_MODE || 'true'
+		}
 	}
 });

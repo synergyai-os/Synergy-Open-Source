@@ -13,26 +13,26 @@
 ```typescript
 // ❌ WRONG
 function process(data: any) {
-  return data.value;
+	return data.value;
 }
 
 // ✅ CORRECT: Use proper types
 function process<T extends { value: unknown }>(data: T) {
-  return data.value;
+	return data.value;
 }
 
 // ✅ CORRECT: Use unknown + type guards
 function process(data: unknown) {
-  if (typeof data === 'object' && data !== null && 'value' in data) {
-    return (data as { value: unknown }).value;
-  }
-  throw new Error('Invalid data');
+	if (typeof data === 'object' && data !== null && 'value' in data) {
+		return (data as { value: unknown }).value;
+	}
+	throw new Error('Invalid data');
 }
 
 // ✅ CORRECT: Use Convex types
 import type { Doc, Id } from '../convex/_generated/dataModel';
 function processTag(tag: Doc<'tags'>) {
-  return tag.name;
+	return tag.name;
 }
 ```
 
@@ -47,22 +47,22 @@ function processTag(tag: Doc<'tags'>) {
 ```svelte
 <!-- ❌ WRONG -->
 {#each items as item}
-  <div>{item.name}</div>
+	<div>{item.name}</div>
 {/each}
 
 <!-- ✅ CORRECT: Always provide key -->
 {#each items as item (item._id)}
-  <div>{item.name}</div>
+	<div>{item.name}</div>
 {/each}
 
 <!-- ✅ CORRECT: Use unique identifier -->
 {#each tags as tag (tag._id)}
-  <TagBadge {tag} />
+	<TagBadge {tag} />
 {/each}
 
 <!-- ✅ CORRECT: Use index if no unique ID (rare) -->
 {#each items as item, index (index)}
-  <div>{item.name}</div>
+	<div>{item.name}</div>
 {/each}
 ```
 
@@ -93,9 +93,9 @@ const url = resolveRoute('/settings') + '?tab=permissions';
 goto(url);
 
 // ✅ CORRECT: Using URL object
-goto(resolveRoute('/settings'), { 
-  searchParams: { tab: 'permissions' },
-  invalidateAll: true 
+goto(resolveRoute('/settings'), {
+	searchParams: { tab: 'permissions' },
+	invalidateAll: true
 });
 ```
 
@@ -161,13 +161,13 @@ const _unused = computeValue(); // ESLint ignores _prefixed vars
 ```typescript
 // ✅ CORRECT: Explicit types
 interface User {
-  id: string;
-  name: string;
-  email: string;
+	id: string;
+	name: string;
+	email: string;
 }
 
 function getUser(id: string): Promise<User> {
-  // ...
+	// ...
 }
 
 // ✅ CORRECT: Use Convex generated types
@@ -216,8 +216,12 @@ let data = $state(null);
 // ✅ CORRECT: Single $state object + getters
 const state = $state({ isOpen: false, data: null });
 return {
-  get isOpen() { return state.isOpen; },
-  get data() { return state.data; }
+	get isOpen() {
+		return state.isOpen;
+	},
+	get data() {
+		return state.data;
+	}
 };
 ```
 
@@ -275,18 +279,18 @@ import type { Doc, Id } from './_generated/dataModel';
 ```typescript
 // ❌ WRONG: Module-level browser check
 if (browser) {
-  $effect(() => {
-    document.addEventListener('keydown', handler);
-  });
+	$effect(() => {
+		document.addEventListener('keydown', handler);
+	});
 }
 
 // ✅ CORRECT: Browser check inside $effect
 import { browser } from '$app/environment';
 
 $effect(() => {
-  if (!browser) return;
-  document.addEventListener('keydown', handler);
-  return () => document.removeEventListener('keydown', handler);
+	if (!browser) return;
+	document.addEventListener('keydown', handler);
+	return () => document.removeEventListener('keydown', handler);
 });
 ```
 
@@ -301,26 +305,26 @@ $effect(() => {
 ```typescript
 // ✅ CORRECT: Discriminated union
 type BaseItem = {
-  _id: string;
-  type: 'highlight' | 'note' | 'flashcard';
+	_id: string;
+	type: 'highlight' | 'note' | 'flashcard';
 };
 
 type Highlight = BaseItem & {
-  type: 'highlight';
-  highlightId: string;
+	type: 'highlight';
+	highlightId: string;
 };
 
 type Note = BaseItem & {
-  type: 'note';
-  text: string;
+	type: 'note';
+	text: string;
 };
 
 type InboxItem = Highlight | Note;
 
 function process(item: InboxItem) {
-  if (item.type === 'highlight') {
-    console.log(item.highlightId); // ✅ TypeScript knows highlightId exists
-  }
+	if (item.type === 'highlight') {
+		console.log(item.highlightId); // ✅ TypeScript knows highlightId exists
+	}
 }
 ```
 
@@ -333,19 +337,15 @@ function process(item: InboxItem) {
 ```typescript
 // ✅ CORRECT: Type guard pattern
 function isUser(data: unknown): data is User {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    'id' in data &&
-    'name' in data &&
-    'email' in data
-  );
+	return (
+		typeof data === 'object' && data !== null && 'id' in data && 'name' in data && 'email' in data
+	);
 }
 
 function process(data: unknown) {
-  if (isUser(data)) {
-    console.log(data.email); // ✅ TypeScript knows it's a User
-  }
+	if (isUser(data)) {
+		console.log(data.email); // ✅ TypeScript knows it's a User
+	}
 }
 ```
 
@@ -362,7 +362,7 @@ const result = process(data);
 const result = process(data as ProcessedData);
 // Or better: Fix the function signature
 function process(data: ProcessedData): Result {
-  // ...
+	// ...
 }
 ```
 
@@ -376,13 +376,13 @@ function process(data: ProcessedData): Result {
 
 ```svelte
 <script lang="ts">
-  let count = $state(0);
-  
-  // ✅ CORRECT: Use $derived for computed values
-  let doubled = $derived(count * 2);
-  
-  // ❌ WRONG: Don't use $effect for computed values
-  // $effect(() => { doubled = count * 2; });
+	let count = $state(0);
+
+	// ✅ CORRECT: Use $derived for computed values
+	let doubled = $derived(count * 2);
+
+	// ❌ WRONG: Don't use $effect for computed values
+	// $effect(() => { doubled = count * 2; });
 </script>
 ```
 
@@ -394,13 +394,13 @@ function process(data: ProcessedData): Result {
 
 ```svelte
 <script lang="ts">
-  let count = $state(0);
-  
-  // ✅ CORRECT: $effect for side effects (logging, API calls)
-  $effect(() => {
-    console.log('Count changed:', count);
-    // API call, DOM manipulation, etc.
-  });
+	let count = $state(0);
+
+	// ✅ CORRECT: $effect for side effects (logging, API calls)
+	$effect(() => {
+		console.log('Count changed:', count);
+		// API call, DOM manipulation, etc.
+	});
 </script>
 ```
 
@@ -411,13 +411,13 @@ function process(data: ProcessedData): Result {
 ```typescript
 // ❌ WRONG: Direct value capture
 export function useKeyboard(items: InboxItem[]) {
-  const current = items[0]; // Always stale
+	const current = items[0]; // Always stale
 }
 
 // ✅ CORRECT: Function parameters
 export function useKeyboard(items: () => InboxItem[]) {
-  const currentItems = items(); // Always fresh
-  const current = currentItems[0];
+	const currentItems = items(); // Always fresh
+	const current = currentItems[0];
 }
 
 // Usage
@@ -434,14 +434,12 @@ const keyboard = useKeyboard(() => filteredItems);
 
 ```typescript
 // ❌ WRONG: undefined in payload
-useQuery(api.teams.list, () => 
-  activeOrgId ? { organizationId: activeOrgId } : undefined
-);
+useQuery(api.teams.list, () => (activeOrgId ? { organizationId: activeOrgId } : undefined));
 
 // ✅ CORRECT: Always send serializable value
 const SENTINEL_ORG_ID = '00000000000000000000000000000000';
 useQuery(api.teams.list, () => ({
-  organizationId: activeOrgId ?? SENTINEL_ORG_ID
+	organizationId: activeOrgId ?? SENTINEL_ORG_ID
 }));
 ```
 
@@ -511,12 +509,12 @@ import { convexTest } from 'convex-test';
 import { api } from '../../../convex/_generated/api';
 
 describe('Tags Integration', () => {
-  it('should list tags', async () => {
-    const t = convexTest(schema, modules);
-    const { sessionId } = await createTestSession(t);
-    const tags = await t.query(api.tags.listTags, { sessionId });
-    expect(tags).toBeDefined();
-  });
+	it('should list tags', async () => {
+		const t = convexTest(schema, modules);
+		const { sessionId } = await createTestSession(t);
+		const tags = await t.query(api.tags.listTags, { sessionId });
+		expect(tags).toBeDefined();
+	});
 });
 ```
 
@@ -557,4 +555,3 @@ Before submitting code, verify:
 **Last Updated**: 2025-01-XX  
 **Purpose**: Prevent linting errors that block PRs  
 **Target**: AI agents/LLMs writing code for SynergyOS
-

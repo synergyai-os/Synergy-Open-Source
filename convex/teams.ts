@@ -1,7 +1,7 @@
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 import { getAuthUserId } from './auth';
-import { validateSession } from './sessionValidation';
+import { validateSessionAndGetUserId } from './sessionValidation';
 import { requirePermission } from './rbac/permissions';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
@@ -9,7 +9,8 @@ import type { MutationCtx, QueryCtx } from './_generated/server';
 // import { captureAnalyticsEvent } from "./posthog";
 // import { AnalyticsEventName, type AnalyticsEventPayloads } from "../src/lib/analytics/events";
 
-type TeamRole = 'admin' | 'member';
+// TODO: Re-enable when needed
+// type TeamRole = 'admin' | 'member';
 
 function slugifyName(name: string): string {
 	return (
@@ -28,33 +29,36 @@ function generateInviteCode(prefix: string): string {
 	return `${prefix}-${random}-${randomTrailing}`;
 }
 
-async function resolveDistinctId(
-	ctx: QueryCtx | MutationCtx,
-	userId: Id<'users'>
-): Promise<string> {
-	const user = await ctx.db.get(userId);
-	const email = (user as unknown as { email?: string } | undefined)?.email;
-	return typeof email === 'string' ? email : userId;
-}
+// TODO: Re-enable when server-side analytics is restored
+// async function resolveDistinctId(
+// 	ctx: QueryCtx | MutationCtx,
+// 	userId: Id<'users'>
+// ): Promise<string> {
+// 	const user = await ctx.db.get(userId);
+// 	const email = (user as unknown as { email?: string } | undefined)?.email;
+// 	return typeof email === 'string' ? email : userId;
+// }
 
-async function getOrganizationSummary(
-	ctx: QueryCtx | MutationCtx,
-	organizationId: Id<'organizations'>
-) {
-	const organization = await ctx.db.get(organizationId);
-	if (!organization) {
-		throw new Error('Organization not found');
-	}
-	return organization;
-}
+// TODO: Re-enable when server-side analytics is restored
+// async function getOrganizationSummary(
+// 	ctx: QueryCtx | MutationCtx,
+// 	organizationId: Id<'organizations'>
+// ) {
+// 	const organization = await ctx.db.get(organizationId);
+// 	if (!organization) {
+// 		throw new Error('Organization not found');
+// 	}
+// 	return organization;
+// }
 
-async function getTeamSummary(ctx: QueryCtx | MutationCtx, teamId: Id<'teams'>) {
-	const team = await ctx.db.get(teamId);
-	if (!team) {
-		throw new Error('Team not found');
-	}
-	return team;
-}
+// TODO: Re-enable when server-side analytics is restored
+// async function getTeamSummary(ctx: QueryCtx | MutationCtx, teamId: Id<'teams'>) {
+// 	const team = await ctx.db.get(teamId);
+// 	if (!team) {
+// 		throw new Error('Team not found');
+// 	}
+// 	return team;
+// }
 
 async function ensureUniqueTeamSlug(
 	ctx: MutationCtx,
@@ -285,8 +289,8 @@ export const createTeam = mutation({
 			joinedAt: now
 		});
 
-		const organization = await getOrganizationSummary(ctx, args.organizationId);
 		// TODO: Re-enable server-side analytics via HTTP action bridge
+		// const organization = await getOrganizationSummary(ctx, args.organizationId);
 		// const distinctId = await resolveDistinctId(ctx, userId);
 		//
 		// await captureAnalyticsEvent({
@@ -326,10 +330,11 @@ export const createTeamInvite = mutation({
 			throw new Error('Team not found');
 		}
 
-		const membership = await ctx.db
-			.query('teamMembers')
-			.withIndex('by_team_user', (q) => q.eq('teamId', args.teamId).eq('userId', userId))
-			.first();
+		// TODO: Check if user is already a member before inviting
+		// const membership = await ctx.db
+		// 	.query('teamMembers')
+		// 	.withIndex('by_team_user', (q) => q.eq('teamId', args.teamId).eq('userId', userId))
+		// 	.first();
 
 		// RBAC Permission Check: Check "teams.add-members" permission with resource scoping
 		// Team Leads can only invite to their own teams (via RBAC role with teamId scope)
@@ -393,12 +398,19 @@ export const createTeamInvite = mutation({
 			createdAt: Date.now()
 		});
 
-		const organization = await getOrganizationSummary(ctx, team.organizationId);
-		const distinctId = await resolveDistinctId(ctx, userId);
-		const inviteChannel = normalizedEmail ? 'email' : args.invitedUserId ? 'manual' : 'link';
-
 		// TODO: Re-enable server-side analytics via HTTP action bridge
-		const properties: any = {
+		// const organization = await getOrganizationSummary(ctx, team.organizationId);
+		// const distinctId = await resolveDistinctId(ctx, userId);
+		// const inviteChannel = normalizedEmail ? 'email' : args.invitedUserId ? 'manual' : 'link';
+		const properties: {
+			scope: string;
+			organizationId: string;
+			organizationName: string;
+			teamId: string;
+			teamName: string;
+			inviteChannel: string;
+			role: string;
+		} = {
 			scope: 'team',
 			organizationId: team.organizationId,
 			organizationName: organization.name,
@@ -470,9 +482,9 @@ export const acceptTeamInvite = mutation({
 			});
 		}
 
-		const team = await getTeamSummary(ctx, invite.teamId);
-		const organization = await getOrganizationSummary(ctx, invite.organizationId);
 		// TODO: Re-enable server-side analytics via HTTP action bridge
+		// const team = await getTeamSummary(ctx, invite.teamId);
+		// const organization = await getOrganizationSummary(ctx, invite.organizationId);
 		// const distinctId = await resolveDistinctId(ctx, userId);
 		// const inviteChannel = invite.email ? "email" : invite.invitedUserId ? "manual" : "link";
 		//
@@ -516,10 +528,11 @@ export const acceptTeamInvite = mutation({
 
 export const declineTeamInvite = mutation({
 	args: {
+		sessionId: v.string(),
 		inviteId: v.id('teamInvites')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
@@ -566,10 +579,11 @@ export const updateTeam = mutation({
 			throw new Error('Team not found');
 		}
 
-		const membership = await ctx.db
-			.query('teamMembers')
-			.withIndex('by_team_user', (q) => q.eq('teamId', args.teamId).eq('userId', userId))
-			.first();
+		// TODO: Check membership if needed for validation
+		// const membership = await ctx.db
+		// 	.query('teamMembers')
+		// 	.withIndex('by_team_user', (q) => q.eq('teamId', args.teamId).eq('userId', userId))
+		// 	.first();
 
 		// RBAC Permission Check: Check "teams.update" permission
 		// Team Leads can only update their own teams (via RBAC role with teamId scope)

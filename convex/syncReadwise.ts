@@ -10,9 +10,14 @@
 import { action, internalAction } from './_generated/server';
 import { v } from 'convex/values';
 import { internal } from './_generated/api';
-import { getAuthUserId } from './auth';
-import * as readwiseApi from './readwiseApi';
 import { parseAuthorString } from './readwiseUtils';
+import type { FunctionReference } from 'convex/server';
+import type { ActionCtx } from './_generated/server';
+import type {
+	ReadwiseHighlight,
+	ReadwiseSource,
+	ReadwisePaginatedResponse
+} from '../src/lib/types/readwise';
 
 /**
  * Main sync function - fetches all Readwise data and populates database
@@ -20,6 +25,7 @@ import { parseAuthorString } from './readwiseUtils';
  */
 export const syncReadwiseHighlights = action({
 	args: {
+		sessionId: v.string(),
 		// Time-based import
 		dateRange: v.optional(
 			v.union(
@@ -49,19 +55,40 @@ export const syncReadwiseHighlights = action({
 		)
 	},
 	handler: async (ctx, args) => {
-		const userId = await ctx.runQuery(internal.settings.getUserId);
+		// Use type assertions to avoid circular reference in Convex API types
+		const getUserIdQuery = internal.settings.getUserIdFromSessionId as FunctionReference<
+			'query',
+			'internal',
+			{ sessionId: string },
+			string | null
+		>;
+		const userId = await ctx.runQuery(getUserIdQuery, {
+			sessionId: args.sessionId
+		});
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
 
 		// Get encrypted Readwise API key
-		const encryptedKeys = await ctx.runQuery(internal.settings.getEncryptedKeysInternal);
+		const getKeysQuery = internal.settings.getEncryptedKeysInternal as FunctionReference<
+			'query',
+			'internal',
+			{ userId: string },
+			{ claudeApiKey: string | null; readwiseApiKey: string | null } | null
+		>;
+		const encryptedKeys = await ctx.runQuery(getKeysQuery, { userId });
 		if (!encryptedKeys?.readwiseApiKey) {
 			throw new Error('Readwise API key not found. Please add it in Settings first.');
 		}
 
 		// Decrypt the API key
-		const decryptedKey = await ctx.runAction(internal.cryptoActions.decryptApiKey, {
+		const decryptAction = internal.cryptoActions.decryptApiKey as FunctionReference<
+			'action',
+			'internal',
+			{ encryptedApiKey: string },
+			string
+		>;
+		const decryptedKey = await ctx.runAction(decryptAction, {
 			encryptedApiKey: encryptedKeys.readwiseApiKey
 		});
 
@@ -97,8 +124,20 @@ export const syncReadwiseHighlights = action({
 			}
 		}
 
-		// Run sync
-		return await ctx.runAction(internal.syncReadwise.syncReadwiseHighlightsInternal, {
+		// Run sync (type assertion to avoid circular reference)
+		const syncAction = internal.syncReadwise.syncReadwiseHighlightsInternal as FunctionReference<
+			'action',
+			'internal',
+			{
+				userId: string;
+				apiKey: string;
+				updatedAfter?: string;
+				updatedBefore?: string;
+				limit?: number;
+			},
+			unknown
+		>;
+		return await ctx.runAction(syncAction, {
 			userId,
 			apiKey: decryptedKey,
 			updatedAfter,
@@ -128,7 +167,13 @@ export const syncReadwiseHighlightsInternal = internalAction({
 			let updatedAfter: string | undefined = dateFilter;
 			if (!updatedAfter && !limit && !args.updatedBefore) {
 				// Only use incremental sync if no date filters or limit are provided
-				const userSettings = await ctx.runQuery(internal.settings.getUserSettingsForSync, {
+				const getUserSettingsQuery = internal.settings.getUserSettingsForSync as FunctionReference<
+					'query',
+					'internal',
+					{ userId: string },
+					{ lastReadwiseSyncAt?: number } | null
+				>;
+				const userSettings = await ctx.runQuery(getUserSettingsQuery, {
 					userId
 				});
 				const lastSyncAt = userSettings?.lastReadwiseSyncAt;
@@ -173,7 +218,7 @@ export const syncReadwiseHighlightsInternal = internalAction({
 			let pageCount = 0;
 			let totalChecked = 0;
 			const neededBookIds = new Set<number>(); // Track book_ids we need to fetch
-			const highlightsToProcess: any[] = []; // Track highlights that need importing
+			const highlightsToProcess: ReadwiseHighlight[] = []; // Track highlights that need importing
 
 			// Fetch highlights and check which ones need importing
 			while (true) {
@@ -197,12 +242,15 @@ export const syncReadwiseHighlightsInternal = internalAction({
 					});
 				}
 
-				const response: any = await ctx.runAction(internal.readwiseApi.fetchHighlights, {
-					apiKey,
-					pageCursor,
-					updatedAfter: highlightsUpdatedAfter,
-					updatedBefore: highlightsUpdatedBefore
-				});
+				const response: ReadwisePaginatedResponse<ReadwiseHighlight> = await ctx.runAction(
+					internal.readwiseApi.fetchHighlights,
+					{
+						apiKey,
+						pageCursor,
+						updatedAfter: highlightsUpdatedAfter,
+						updatedBefore: highlightsUpdatedBefore
+					}
+				);
 
 				if (!response.results || response.results.length === 0) {
 					console.log(`[syncReadwise] No more highlights available`);
@@ -566,12 +614,12 @@ export const syncReadwiseHighlightsInternal = internalAction({
  * Helper: Fetch all books with pagination
  */
 async function fetchAllBooks(
-	ctx: any,
+	ctx: ActionCtx,
 	apiKey: string,
 	updatedAfter?: string,
 	updatedBefore?: string
-): Promise<any[]> {
-	const allBooks: any[] = [];
+): Promise<ReadwiseSource[]> {
+	const allBooks: ReadwiseSource[] = [];
 	let pageCursor: string | undefined = undefined;
 	let pageCount = 0;
 
@@ -579,12 +627,15 @@ async function fetchAllBooks(
 		pageCount++;
 		console.log(`[syncReadwise] Fetching books page ${pageCount}...`);
 
-		const response: any = await ctx.runAction(internal.readwiseApi.fetchBooks, {
-			apiKey,
-			pageCursor,
-			updatedAfter,
-			updatedBefore
-		});
+		const response: ReadwisePaginatedResponse<ReadwiseSource> = await ctx.runAction(
+			internal.readwiseApi.fetchBooks,
+			{
+				apiKey,
+				pageCursor,
+				updatedAfter,
+				updatedBefore
+			}
+		);
 
 		allBooks.push(...response.results);
 		pageCursor = response.next || undefined;
@@ -606,57 +657,61 @@ async function fetchAllBooks(
 /**
  * Helper: Fetch all highlights with pagination
  * Supports date range filtering and quantity limiting
+ * TODO: Re-enable when needed
  */
-async function fetchAllHighlights(
-	ctx: any,
-	apiKey: string,
-	updatedAfter?: string,
-	updatedBefore?: string,
-	limit?: number
-): Promise<any[]> {
-	const allHighlights: any[] = [];
-	let pageCursor: string | undefined = undefined;
-	let pageCount = 0;
-
-	while (true) {
-		// Stop if we've reached the quantity limit
-		if (limit && allHighlights.length >= limit) {
-			// Take only up to the limit
-			return allHighlights.slice(0, limit);
-		}
-
-		pageCount++;
-		console.log(`[syncReadwise] Fetching highlights page ${pageCount}...`);
-
-		const response: any = await ctx.runAction(internal.readwiseApi.fetchHighlights, {
-			apiKey,
-			pageCursor,
-			updatedAfter,
-			updatedBefore
-		});
-
-		// Add results
-		const remaining = limit ? limit - allHighlights.length : response.results.length;
-		const toAdd = response.results.slice(0, remaining);
-		allHighlights.push(...toAdd);
-
-		// Stop if we've reached the limit or no more pages
-		if (
-			(limit && allHighlights.length >= limit) ||
-			!response.next ||
-			response.results.length === 0
-		) {
-			break;
-		}
-
-		pageCursor = response.next || undefined;
-
-		// Rate limit: 20 requests/minute for highlights endpoint
-		// Wait 3 seconds between requests to stay under limit
-		if (pageCursor) {
-			await new Promise((resolve) => setTimeout(resolve, 3000));
-		}
-	}
-
-	return allHighlights;
-}
+// async function fetchAllHighlights(
+// 	ctx: ActionCtx,
+// 	apiKey: string,
+// 	updatedAfter?: string,
+// 	updatedBefore?: string,
+// 	limit?: number
+// ): Promise<ReadwiseHighlight[]> {
+// 	const allHighlights: ReadwiseHighlight[] = [];
+// 	let pageCursor: string | undefined = undefined;
+// 	let pageCount = 0;
+//
+// 	while (true) {
+// 		// Stop if we've reached the quantity limit
+// 		if (limit && allHighlights.length >= limit) {
+// 			// Take only up to the limit
+// 			return allHighlights.slice(0, limit);
+// 		}
+//
+// 		pageCount++;
+// 		console.log(`[syncReadwise] Fetching highlights page ${pageCount}...`);
+//
+// 		const response: ReadwisePaginatedResponse<ReadwiseHighlight> = await ctx.runAction(
+// 			internal.readwiseApi.fetchHighlights,
+// 			{
+// 				apiKey,
+// 				pageCursor,
+// 				updatedAfter,
+// 				updatedBefore
+// 			}
+// 		);
+//
+// 		// Add results
+// 		const remaining = limit ? limit - allHighlights.length : response.results.length;
+// 		const toAdd = response.results.slice(0, remaining);
+// 		allHighlights.push(...toAdd);
+//
+// 		// Stop if we've reached the limit or no more pages
+// 		if (
+// 			(limit && allHighlights.length >= limit) ||
+// 			!response.next ||
+// 			response.results.length === 0
+// 		) {
+// 			break;
+// 		}
+//
+// 		pageCursor = response.next || undefined;
+//
+// 		// Rate limit: 20 requests/minute for highlights endpoint
+// 		// Wait 3 seconds between requests to stay under limit
+// 		if (pageCursor) {
+// 			await new Promise((resolve) => setTimeout(resolve, 3000));
+// 		}
+// 	}
+//
+// 	return allHighlights;
+// }

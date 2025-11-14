@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
-	import { onMount, onDestroy } from 'svelte';
+	import { onDestroy } from 'svelte';
 	import { useConvexClient } from 'convex-svelte';
 	import { makeFunctionReference } from 'convex/server';
-	import { api } from '$lib/convex';
 	import {
 		activityState,
 		removeActivity,

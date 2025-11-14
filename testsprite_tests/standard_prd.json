@@ -1,177 +1,156 @@
 {
-  "meta": {
-    "project": "SynergyOS",
-    "date": "2025-11-12",
-    "prepared_by": "Product Team"
-  },
-  "product_overview": "SynergyOS is an open-source, modular platform that integrates product discovery, delivery, and team collaboration with AI coaching trained on company data. It aims to streamline organizational workflows for product teams by combining content aggregation, learning tools, and real-time collaboration, all while ensuring privacy and customization.",
-  "core_goals": [
-    "Create a unified platform that consolidates product discovery, delivery, and team collaboration to reduce tool fragmentation.",
-    "Enhance team learning and knowledge retention through AI-powered flashcard generation and spaced repetition.",
-    "Provide a rich note-taking experience with AI content detection and markdown export capabilities.",
-    "Ensure secure, scalable authentication and permission management with WorkOS and RBAC.",
-    "Offer a seamless user experience with real-time updates, accessibility compliance, and responsive design.",
-    "Support community-driven development with open source architecture and self-hosting capabilities."
-  ],
-  "key_features": [
-    "Universal Inbox to collect and organize content from multiple sources including Readwise, photos, and manual entries with real-time updates and keyboard navigation.",
-    "AI-powered Flashcard System generating study cards from notes and highlights, integrated with FSRS spaced repetition algorithm for effective learning.",
-    "Rich Notes Editor based on ProseMirror supporting markdown, AI content detection, and export functionality.",
-    "Robust Authentication using WorkOS with account linking, multi-account switching, and session management.",
-    "Settings & Permissions system featuring user preferences, role-based access control (RBAC), and permissions management.",
-    "Marketing Landing Page including hero sections, feature highlights, and a waitlist signup form to engage the community."
-  ],
-  "user_flow_summary": [
-    "Users register or login via WorkOS and can link multiple accounts if needed before entering the platform.",
-    "Users access the Universal Inbox to view, filter, and navigate content aggregated from various sources in a three-column real-time interface.",
-    "Users generate flashcards from selected highlights or notes and study them using the spaced repetition schedule provided by the FSRS algorithm.",
-    "Users create, edit, and export rich notes through the ProseMirror-based editor with AI assistance to enhance content.",
-    "Users manage their settings and permissions via a dedicated interface that supports RBAC and profile management.",
-    "Visitors can view the marketing landing page, sign up to the waitlist, and explore product features before registration."
-  ],
-  "validation_criteria": [
-    "Users can successfully authenticate via WorkOS and manage account linking with multi-account support.",
-    "The Universal Inbox updates content in real-time and supports keyboard navigation along with filtering by source type.",
-    "Flashcards are generated accurately from highlights using AI and support spaced repetition scheduling with user progress tracking.",
-    "The Rich Notes Editor supports markdown syntax, AI content detection, and allows exporting notes in markdown format.",
-    "Users can configure and persist settings, with RBAC enforcement ensuring proper permission management.",
-    "Marketing landing page loads within 2 seconds, is responsive across devices, and the waitlist form functions correctly.",
-    "System meets non-functional requirements including performance benchmarks, security standards, accessibility (WCAG 2.1 AA), and responsive design guidelines."
-  ],
-  "code_summary": {
-    "project_name": "SynergyOS",
-    "description": "The Open-Source Product OS - An open-source, modular platform that integrates product discovery, delivery, and team collaboration with AI coaching trained on company data.",
-    "tech_stack": {
-      "frontend": {
-        "framework": "SvelteKit 5",
-        "language": "TypeScript",
-        "ui_library": "Bits UI (headless components)",
-        "styling": "Tailwind CSS 4",
-        "state_management": "Svelte 5 Runes ($state, $derived)",
-        "routing": "SvelteKit file-based routing"
-      },
-      "backend": {
-        "database": "Convex (real-time database & serverless functions)",
-        "auth": "WorkOS",
-        "email": "Resend"
-      },
-      "mobile": {
-        "framework": "Capacitor 7",
-        "platforms": [
-          "iOS"
-        ]
-      },
-      "testing": {
-        "unit": "Vitest",
-        "e2e": "Playwright",
-        "browser": "Vitest Browser"
-      },
-      "deployment": {
-        "platform": "Vercel",
-        "static_adapter": "@sveltejs/adapter-vercel"
-      }
-    },
-    "main_features": [
-      {
-        "name": "Universal Inbox",
-        "description": "Collect and organize content from any source (Readwise integration ready)",
-        "routes": [
-          "/inbox"
-        ]
-      },
-      {
-        "name": "Flashcard System",
-        "description": "AI-powered flashcard generation from highlights/notes with FSRS spaced repetition algorithm",
-        "routes": [
-          "/flashcards",
-          "/study"
-        ]
-      },
-      {
-        "name": "Rich Notes Editor",
-        "description": "ProseMirror-based rich text editor with AI content detection and markdown export",
-        "routes": [
-          "/notes"
-        ]
-      },
-      {
-        "name": "Authentication",
-        "description": "WorkOS-based authentication with account linking and session management",
-        "routes": [
-          "/login",
-          "/register",
-          "/auth/callback"
-        ]
-      },
-      {
-        "name": "Settings & Permissions",
-        "description": "User settings, permissions management, and RBAC system",
-        "routes": [
-          "/settings"
-        ]
-      },
-      {
-        "name": "Waitlist Form",
-        "description": "Community waitlist signup form",
-        "components": [
-          "WaitlistForm"
-        ]
-      },
-      {
-        "name": "Marketing Landing Page",
-        "description": "Product marketing page with hero, features, and CTA sections",
-        "routes": [
-          "/"
-        ]
-      }
-    ],
-    "key_routes": [
-      "/",
-      "/login",
-      "/register",
-      "/inbox",
-      "/flashcards",
-      "/study",
-      "/notes",
-      "/settings",
-      "/tags",
-      "/my-mind"
-    ],
-    "key_components": [
-      "Header",
-      "WaitlistForm",
-      "Inbox components (source-specific detail views)",
-      "Flashcard components",
-      "Notes editor components"
-    ],
-    "design_system": {
-      "tokens": "Semantic design tokens (spacing, colors, typography)",
-      "theming": "Light/dark mode support",
-      "accessibility": "WCAG compliant, reduced motion support"
-    },
-    "testing_setup": {
-      "unit_tests": "Vitest with browser and server environments",
-      "e2e_tests": "Playwright tests for critical workflows",
-      "test_files": [
-        "e2e/auth-security.test.ts",
-        "e2e/inbox-workflow.spec.ts",
-        "e2e/quick-create.spec.ts",
-        "e2e/settings-security.spec.ts"
-      ]
-    },
-    "development_environment": {
-      "local_port": 5173,
-      "host": "127.0.0.1",
-      "dev_command": "npm run dev",
-      "requires": [
-        "Convex dev server (npx convex dev)"
-      ]
-    },
-    "project_structure": {
-      "frontend": "src/routes, src/lib/components, src/lib/composables",
-      "backend": "convex/ (functions, schema, auth)",
-      "tests": "e2e/, tests/convex/",
-      "docs": "dev-docs/, marketing-docs/"
-    }
-  }
+	"meta": {
+		"project": "SynergyOS",
+		"date": "2025-11-12",
+		"prepared_by": "Product Team"
+	},
+	"product_overview": "SynergyOS is an open-source, modular platform that integrates product discovery, delivery, and team collaboration with AI coaching trained on company data. It aims to streamline organizational workflows for product teams by combining content aggregation, learning tools, and real-time collaboration, all while ensuring privacy and customization.",
+	"core_goals": [
+		"Create a unified platform that consolidates product discovery, delivery, and team collaboration to reduce tool fragmentation.",
+		"Enhance team learning and knowledge retention through AI-powered flashcard generation and spaced repetition.",
+		"Provide a rich note-taking experience with AI content detection and markdown export capabilities.",
+		"Ensure secure, scalable authentication and permission management with WorkOS and RBAC.",
+		"Offer a seamless user experience with real-time updates, accessibility compliance, and responsive design.",
+		"Support community-driven development with open source architecture and self-hosting capabilities."
+	],
+	"key_features": [
+		"Universal Inbox to collect and organize content from multiple sources including Readwise, photos, and manual entries with real-time updates and keyboard navigation.",
+		"AI-powered Flashcard System generating study cards from notes and highlights, integrated with FSRS spaced repetition algorithm for effective learning.",
+		"Rich Notes Editor based on ProseMirror supporting markdown, AI content detection, and export functionality.",
+		"Robust Authentication using WorkOS with account linking, multi-account switching, and session management.",
+		"Settings & Permissions system featuring user preferences, role-based access control (RBAC), and permissions management.",
+		"Marketing Landing Page including hero sections, feature highlights, and a waitlist signup form to engage the community."
+	],
+	"user_flow_summary": [
+		"Users register or login via WorkOS and can link multiple accounts if needed before entering the platform.",
+		"Users access the Universal Inbox to view, filter, and navigate content aggregated from various sources in a three-column real-time interface.",
+		"Users generate flashcards from selected highlights or notes and study them using the spaced repetition schedule provided by the FSRS algorithm.",
+		"Users create, edit, and export rich notes through the ProseMirror-based editor with AI assistance to enhance content.",
+		"Users manage their settings and permissions via a dedicated interface that supports RBAC and profile management.",
+		"Visitors can view the marketing landing page, sign up to the waitlist, and explore product features before registration."
+	],
+	"validation_criteria": [
+		"Users can successfully authenticate via WorkOS and manage account linking with multi-account support.",
+		"The Universal Inbox updates content in real-time and supports keyboard navigation along with filtering by source type.",
+		"Flashcards are generated accurately from highlights using AI and support spaced repetition scheduling with user progress tracking.",
+		"The Rich Notes Editor supports markdown syntax, AI content detection, and allows exporting notes in markdown format.",
+		"Users can configure and persist settings, with RBAC enforcement ensuring proper permission management.",
+		"Marketing landing page loads within 2 seconds, is responsive across devices, and the waitlist form functions correctly.",
+		"System meets non-functional requirements including performance benchmarks, security standards, accessibility (WCAG 2.1 AA), and responsive design guidelines."
+	],
+	"code_summary": {
+		"project_name": "SynergyOS",
+		"description": "The Open-Source Product OS - An open-source, modular platform that integrates product discovery, delivery, and team collaboration with AI coaching trained on company data.",
+		"tech_stack": {
+			"frontend": {
+				"framework": "SvelteKit 5",
+				"language": "TypeScript",
+				"ui_library": "Bits UI (headless components)",
+				"styling": "Tailwind CSS 4",
+				"state_management": "Svelte 5 Runes ($state, $derived)",
+				"routing": "SvelteKit file-based routing"
+			},
+			"backend": {
+				"database": "Convex (real-time database & serverless functions)",
+				"auth": "WorkOS",
+				"email": "Resend"
+			},
+			"mobile": {
+				"framework": "Capacitor 7",
+				"platforms": ["iOS"]
+			},
+			"testing": {
+				"unit": "Vitest",
+				"e2e": "Playwright",
+				"browser": "Vitest Browser"
+			},
+			"deployment": {
+				"platform": "Vercel",
+				"static_adapter": "@sveltejs/adapter-vercel"
+			}
+		},
+		"main_features": [
+			{
+				"name": "Universal Inbox",
+				"description": "Collect and organize content from any source (Readwise integration ready)",
+				"routes": ["/inbox"]
+			},
+			{
+				"name": "Flashcard System",
+				"description": "AI-powered flashcard generation from highlights/notes with FSRS spaced repetition algorithm",
+				"routes": ["/flashcards", "/study"]
+			},
+			{
+				"name": "Rich Notes Editor",
+				"description": "ProseMirror-based rich text editor with AI content detection and markdown export",
+				"routes": ["/notes"]
+			},
+			{
+				"name": "Authentication",
+				"description": "WorkOS-based authentication with account linking and session management",
+				"routes": ["/login", "/register", "/auth/callback"]
+			},
+			{
+				"name": "Settings & Permissions",
+				"description": "User settings, permissions management, and RBAC system",
+				"routes": ["/settings"]
+			},
+			{
+				"name": "Waitlist Form",
+				"description": "Community waitlist signup form",
+				"components": ["WaitlistForm"]
+			},
+			{
+				"name": "Marketing Landing Page",
+				"description": "Product marketing page with hero, features, and CTA sections",
+				"routes": ["/"]
+			}
+		],
+		"key_routes": [
+			"/",
+			"/login",
+			"/register",
+			"/inbox",
+			"/flashcards",
+			"/study",
+			"/notes",
+			"/settings",
+			"/tags",
+			"/my-mind"
+		],
+		"key_components": [
+			"Header",
+			"WaitlistForm",
+			"Inbox components (source-specific detail views)",
+			"Flashcard components",
+			"Notes editor components"
+		],
+		"design_system": {
+			"tokens": "Semantic design tokens (spacing, colors, typography)",
+			"theming": "Light/dark mode support",
+			"accessibility": "WCAG compliant, reduced motion support"
+		},
+		"testing_setup": {
+			"unit_tests": "Vitest with browser and server environments",
+			"e2e_tests": "Playwright tests for critical workflows",
+			"test_files": [
+				"e2e/auth-security.test.ts",
+				"e2e/inbox-workflow.spec.ts",
+				"e2e/quick-create.spec.ts",
+				"e2e/settings-security.spec.ts"
+			]
+		},
+		"development_environment": {
+			"local_port": 5173,
+			"host": "127.0.0.1",
+			"dev_command": "npm run dev",
+			"requires": ["Convex dev server (npx convex dev)"]
+		},
+		"project_structure": {
+			"frontend": "src/routes, src/lib/components, src/lib/composables",
+			"backend": "convex/ (functions, schema, auth)",
+			"tests": "e2e/, tests/convex/",
+			"docs": "dev-docs/, marketing-docs/"
+		}
+	}
 }

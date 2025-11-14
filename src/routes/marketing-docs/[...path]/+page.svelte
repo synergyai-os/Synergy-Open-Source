@@ -9,7 +9,13 @@
 		// Configure marked renderer to add IDs
 		const renderer = new marked.Renderer();
 
-		renderer.heading = function ({ text, depth }: any) {
+		renderer.heading = function ({
+			text,
+			depth
+		}: {
+			text: string | { raw?: string };
+			depth: number;
+		}) {
 			// Extract plain text from token
 			const plainText = typeof text === 'string' ? text : text.raw || '';
 

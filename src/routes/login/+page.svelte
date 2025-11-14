@@ -6,6 +6,7 @@
 	import RateLimitError from '$lib/components/ui/RateLimitError.svelte';
 	import LoadingOverlay from '$lib/components/ui/LoadingOverlay.svelte';
 	import type { UseLoadingOverlayReturn } from '$lib/composables/useLoadingOverlay.svelte';
+	import { resolveRoute } from '$lib/utils/navigation';
 
 	function parseBooleanFlag(value: string | null): boolean {
 		if (!value) return false;
@@ -131,7 +132,7 @@
 			}
 
 			// Success - redirect to target (overlay will persist through redirect)
-			await goto(data.redirectTo ?? '/inbox');
+			await goto(data.redirectTo ?? resolveRoute('/inbox'));
 		} catch (err) {
 			console.error('Login error:', err);
 			errorMessage = 'Network error. Please check your connection and try again.';
@@ -159,8 +160,8 @@
 					Sign in to continue where you left off. Don't have an account?
 					<a
 						href={linkingFlow()
-							? `/register?linkAccount=1&redirect=${encodeURIComponent(redirectTarget)}&email=${encodeURIComponent(email)}`
-							: `/register?redirect=${encodeURIComponent(redirectTarget)}${email ? `&email=${encodeURIComponent(email)}` : ''}`}
+							? `${resolveRoute('/register')}?linkAccount=1&redirect=${encodeURIComponent(redirectTarget)}&email=${encodeURIComponent(email)}`
+							: `${resolveRoute('/register')}?redirect=${encodeURIComponent(redirectTarget)}${email ? `&email=${encodeURIComponent(email)}` : ''}`}
 						class="text-accent-primary hover:text-accent-hover">Create one</a
 					>.
 				</p>
@@ -179,7 +180,7 @@
 						<p class="mt-2 text-sm text-error">
 							Don't have an account?
 							<a
-								href="/register?email={encodeURIComponent(email)}"
+								href={`${resolveRoute('/register')}?email=${encodeURIComponent(email)}`}
 								class="font-semibold text-error-secondary underline hover:text-error"
 							>
 								Create one here
@@ -225,14 +226,24 @@
 					autocomplete="email"
 				/>
 
-				<FormInput
-					type="password"
-					label="Password"
-					placeholder="Enter your password"
-					bind:value={password}
-					required={true}
-					autocomplete="current-password"
-				/>
+				<div class="flex flex-col gap-form-field">
+					<FormInput
+						type="password"
+						label="Password"
+						placeholder="Enter your password"
+						bind:value={password}
+						required={true}
+						autocomplete="current-password"
+					/>
+					<div class="text-right">
+						<a
+							href={resolveRoute('/forgot-password')}
+							class="text-sm text-accent-primary hover:text-accent-hover"
+						>
+							Forgot password?
+						</a>
+					</div>
+				</div>
 
 				<Button variant="primary" type="submit" disabled={isSubmitting}>
 					{#if isSubmitting}

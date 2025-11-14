@@ -373,7 +373,7 @@
 		</div>
 
 		<div class="hub-content">
-			{#each filteredCategories() as category, categoryIndex}
+			{#each filteredCategories() as category, categoryIndex (category.id)}
 				<section
 					class="hub-section"
 					in:fly={{ y: 30, duration: 300, delay: 200 + categoryIndex * 50, easing: quintOut }}
@@ -384,7 +384,7 @@
 					</div>
 
 					<div class="hub-grid">
-						{#each category.pages as page}
+						{#each category.pages as page (page.href)}
 							<HubCard
 								icon={page.icon}
 								title={page.title}

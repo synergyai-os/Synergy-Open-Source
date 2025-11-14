@@ -28,21 +28,21 @@
 		onDelete: () => void;
 	};
 
-	let { flashcard, onEdit, onDelete }: Props = $props();
+	let { flashcard: { _id, userId, createdAt, updatedAt, state, dueDate, easeFactor, interval, repetitions, lastReview, tags, collectionId, sourceId, highlightId, noteId, isAIGenerated, aiPrompt, aiModel, aiTemperature, aiMaxTokens, question, answer }, onEdit, onDelete }: Props = $props();
 
 	const convexClient = browser ? useConvexClient() : null;
 	const getUserId = () => $page.data.user?.userId;
 	const getSessionId = () => $page.data.sessionId;
 
 	// Setup tagging system for flashcards
-	const tagging = useTagging('flashcard', getUserId);
+	const tagging = useTagging('flashcard', getUserId, getSessionId);
 
 	// Load all available tags
 	const allTagsQuery =
 		browser && getSessionId()
 			? useQuery(api.tags.listAllTags, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) return 'skip';
+					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
 					return { sessionId };
 				})
 			: null;
@@ -53,7 +53,7 @@
 		browser && getSessionId()
 			? useQuery(api.tags.getTagsForFlashcard, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) return 'skip';
+					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
 					return {
 						sessionId,
 						flashcardId: flashcard._id

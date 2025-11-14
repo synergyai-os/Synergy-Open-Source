@@ -71,9 +71,7 @@ test.describe('Flashcard Approval Flow', () => {
 		// Verify no errors
 		const hasError = consoleErrors.some(
 			(err) =>
-				err.includes('Error') ||
-				err.includes('Failed') ||
-				err.includes('ArgumentValidationError')
+				err.includes('Error') || err.includes('Failed') || err.includes('ArgumentValidationError')
 		);
 		expect(hasError).toBe(false);
 
@@ -340,9 +338,7 @@ test.describe('Flashcard Approval Flow - Complete Workflow', () => {
 		// Verify no errors during save
 		const hasError = consoleErrors.some(
 			(err) =>
-				err.includes('Error') ||
-				err.includes('Failed') ||
-				err.includes('ArgumentValidationError')
+				err.includes('Error') || err.includes('Failed') || err.includes('ArgumentValidationError')
 		);
 		expect(hasError).toBe(false);
 
@@ -375,4 +371,3 @@ test.describe('Flashcard Approval Flow - Complete Workflow', () => {
  * - Keyboard shortcuts are power-user features
  * - Any bug here affects the main value proposition
  */
-

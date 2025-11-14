@@ -6,15 +6,11 @@
 	import RateLimitError from '$lib/components/ui/RateLimitError.svelte';
 	import LoadingOverlay from '$lib/components/ui/LoadingOverlay.svelte';
 	import type { UseLoadingOverlayReturn } from '$lib/composables/useLoadingOverlay.svelte';
+	import { resolveRoute } from '$lib/utils/navigation';
 
 	const redirectTarget = $derived(
 		$page.url.searchParams.get('redirect') ?? $page.url.searchParams.get('redirectTo') ?? '/inbox'
 	);
-	const linkingFlow = $derived(() => {
-		const value =
-			$page.url.searchParams.get('linkAccount') ?? $page.url.searchParams.get('link_account');
-		return value === '1' || value === 'true' || value === 'yes';
-	});
 
 	let email = $state('');
 	let password = $state('');
@@ -61,44 +57,41 @@
 			return;
 		}
 
+		// Validate password doesn't contain email (WorkOS requirement)
+		// Strip + aliases (e.g., "user+alias@example.com" -> "user")
+		const emailLocalPart = email.trim().split('@')[0].split('+')[0].toLowerCase();
+		const passwordLower = password.toLowerCase();
+
+		if (emailLocalPart.length >= 4 && passwordLower.includes(emailLocalPart)) {
+			errorMessage =
+				'Password must not contain your email address. Please choose a different password.';
+			return;
+		}
+
 		isSubmitting = true;
 
 		// Show loading overlay
 		const accountName = firstName.trim() || email.trim() || 'account';
-		if (linkingFlow()) {
-			// Account linking flow
-			if (loadingOverlay) {
-				loadingOverlay.showOverlay({
-					flow: 'account-linking',
-					subtitle: accountName
-				});
-			} else {
-				showLoadingOverlay = true;
-			}
+		if (loadingOverlay) {
+			loadingOverlay.showOverlay({
+				flow: 'account-registration',
+				subtitle: accountName
+			});
 		} else {
-			// New account registration
-			if (loadingOverlay) {
-				loadingOverlay.showOverlay({
-					flow: 'account-registration',
-					subtitle: accountName
-				});
-			} else {
-				showLoadingOverlay = true;
-			}
+			showLoadingOverlay = true;
 		}
 
 		try {
 			const response = await fetch('/auth/register', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				credentials: 'include', // Include cookies so session can be resolved for account linking
+				credentials: 'include',
 				body: JSON.stringify({
 					email: email.trim(),
 					password,
 					firstName: firstName.trim() || undefined,
 					lastName: lastName.trim() || undefined,
-					redirect: redirectTarget,
-					linkAccount: linkingFlow() // Pass the linkAccount flag
+					redirect: redirectTarget
 				})
 			});
 
@@ -113,27 +106,36 @@
 					isRateLimited = true;
 					rateLimitRetryAfter = retryAfter;
 					isSubmitting = false;
-					return;
-				}
-
-				// If email already exists, show helpful message and redirect to login
-				if (data.redirectToLogin && response.status === 409) {
-					errorMessage = 'This email is already registered. Taking you to the login page...';
-					// Redirect to login with email prefilled after 2 seconds
-					setTimeout(() => {
-						goto(`/login?email=${encodeURIComponent(email)}`);
-					}, 2000);
+					// Hide overlay on error
+					if (loadingOverlay) {
+						loadingOverlay.hideOverlay();
+					} else {
+						showLoadingOverlay = false;
+					}
 					return;
 				}
 
 				// Show the specific error message from the server
 				errorMessage = data.error ?? 'Unable to create account. Please try again.';
 				isSubmitting = false;
+				// Hide overlay on error
+				if (loadingOverlay) {
+					loadingOverlay.hideOverlay();
+				} else {
+					showLoadingOverlay = false;
+				}
 				return;
 			}
 
-			// Success - redirect to target (overlay will persist through redirect)
-			await goto(data.redirectTo ?? '/inbox');
+			// Success - redirect to verification page
+			// Hide overlay before redirect
+			if (loadingOverlay) {
+				loadingOverlay.hideOverlay();
+			} else {
+				showLoadingOverlay = false;
+			}
+
+			await goto(`${resolveRoute('/verify-email')}?email=${encodeURIComponent(email.trim())}`);
 		} catch (err) {
 			console.error('Registration error:', err);
 			errorMessage = 'Network error. Please check your connection and try again.';
@@ -159,7 +161,9 @@
 				<h1 class="text-2xl font-semibold tracking-tight text-primary">Create your account</h1>
 				<p class="text-sm text-secondary">
 					Already using SynergyOS?
-					<a href="/login" class="text-accent-primary hover:text-accent-hover">Sign in instead</a>.
+					<a href={resolveRoute('/login')} class="text-accent-primary hover:text-accent-hover"
+						>Sign in instead</a
+					>.
 				</p>
 			</header>
 
@@ -179,6 +183,7 @@
 				<div class="flex gap-form-section">
 					<FormInput
 						type="text"
+						name="firstName"
 						label="First name"
 						placeholder="John"
 						bind:value={firstName}
@@ -187,6 +192,7 @@
 					/>
 					<FormInput
 						type="text"
+						name="lastName"
 						label="Last name"
 						placeholder="Doe"
 						bind:value={lastName}
@@ -197,6 +203,7 @@
 
 				<FormInput
 					type="email"
+					name="email"
 					label="Email"
 					placeholder="you@example.com"
 					bind:value={email}
@@ -204,17 +211,24 @@
 					autocomplete="email"
 				/>
 
-				<FormInput
-					type="password"
-					label="Password"
-					placeholder="At least 8 characters"
-					bind:value={password}
-					required={true}
-					autocomplete="new-password"
-				/>
+				<div>
+					<FormInput
+						type="password"
+						name="password"
+						label="Password"
+						placeholder="At least 8 characters"
+						bind:value={password}
+						required={true}
+						autocomplete="new-password"
+					/>
+					<p class="mt-1 text-xs text-tertiary">
+						Must be at least 8 characters and not contain parts of your email (e.g., "randyhereman")
+					</p>
+				</div>
 
 				<FormInput
 					type="password"
+					name="confirmPassword"
 					label="Confirm password"
 					placeholder="Re-enter your password"
 					bind:value={confirmPassword}
@@ -242,7 +256,7 @@
 {#if showLoadingOverlay && !loadingOverlay}
 	<LoadingOverlay
 		show={true}
-		flow={linkingFlow() ? 'account-linking' : 'account-registration'}
+		flow="account-registration"
 		subtitle={firstName.trim() || email.trim() || 'account'}
 	/>
 {/if}

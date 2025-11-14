@@ -6,6 +6,7 @@
  */
 
 import { browser } from '$app/environment';
+import { SvelteMap } from 'svelte/reactivity';
 
 export type ShortcutHandler = () => void;
 
@@ -23,7 +24,7 @@ export type ShortcutConfig = {
 export function useGlobalShortcuts() {
 	// Internal state using single $state object pattern
 	const state = $state({
-		shortcuts: new Map<string, ShortcutConfig>(),
+		shortcuts: new SvelteMap<string, ShortcutConfig>(),
 		isEnabled: true
 	});
 

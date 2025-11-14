@@ -169,7 +169,7 @@
 	<!-- Quick Actions -->
 	{#if activity.quickActions && activity.quickActions.length > 0}
 		<div class="flex flex-wrap items-center gap-2 border-b border-base px-menu-item py-menu-item">
-			{#each activity.quickActions as action}
+			{#each activity.quickActions as action, index (action.label || index)}
 				<Button.Root
 					onclick={() => handleQuickAction(action.action)}
 					class="flex items-center gap-icon rounded-md px-menu-item py-menu-item text-xs text-primary transition-colors hover:bg-hover-solid"

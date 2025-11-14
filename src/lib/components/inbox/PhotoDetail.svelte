@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { Button } from 'bits-ui';
+	import type { InboxItemWithDetails } from '$lib/types/convex';
 
 	type Props = {
-		item: any;
+		item: InboxItemWithDetails & { type: 'photo_note' };
 		onClose: () => void;
 	};
 

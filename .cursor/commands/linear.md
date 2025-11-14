@@ -18,30 +18,30 @@ const RANDY_USER_ID = 'c7c555a2-895a-48b6-ae24-d4147d44b1d5'; // Randy Hereman
 
 ```typescript
 const LINEAR_LABELS = {
-  // Type (REQUIRED - pick one)
-  feature: 'ba9cfc2b-a993-4265-80dc-07fd1c831029',
-  bug: '62008be5-0ff6-4aae-ba9b-c2887257acf8',
-  'tech-debt': '7cec9e22-31d4-4166-ba92-61d8f8c18809',
-  risk: '99472a27-79b0-475b-bd4a-d4d66e3f2b81',
-  
-  // Scope (REQUIRED - pick one or more)
-  backend: '7299ef53-982d-429d-b513-ccf190b28c16',
-  frontend: '70068764-575a-48a6-b4d1-3735a044230e',
-  ui: 'ace175ff-3cce-4416-bacc-529ee85e72a9',
-  auth: '1ce394e6-d0ac-41c0-a3b2-f8dd062f7725',
-  workspace: 'ede0cdda-d56f-4f0d-a6b9-5522df50839f',
-  analytics: '1e82f018-fec6-4d0f-9369-ab1e98cdd613',
-  devops: 'df3e1654-2066-423b-905a-41dfc69f2cd5',
-  security: '9a561550-aff8-4cd3-a1f5-3cd5b9008b97'
+	// Type (REQUIRED - pick one)
+	feature: 'ba9cfc2b-a993-4265-80dc-07fd1c831029',
+	bug: '62008be5-0ff6-4aae-ba9b-c2887257acf8',
+	'tech-debt': '7cec9e22-31d4-4166-ba92-61d8f8c18809',
+	risk: '99472a27-79b0-475b-bd4a-d4d66e3f2b81',
+
+	// Scope (REQUIRED - pick one or more)
+	backend: '7299ef53-982d-429d-b513-ccf190b28c16',
+	frontend: '70068764-575a-48a6-b4d1-3735a044230e',
+	ui: 'ace175ff-3cce-4416-bacc-529ee85e72a9',
+	auth: '1ce394e6-d0ac-41c0-a3b2-f8dd062f7725',
+	workspace: 'ede0cdda-d56f-4f0d-a6b9-5522df50839f',
+	analytics: '1e82f018-fec6-4d0f-9369-ab1e98cdd613',
+	devops: 'df3e1654-2066-423b-905a-41dfc69f2cd5',
+	security: '9a561550-aff8-4cd3-a1f5-3cd5b9008b97'
 };
 
 const ESTIMATES = {
-  none: 0,    // No estimate
-  xs: 1,      // < 2h
-  s: 2,       // 2-4h
-  m: 3,       // 4-8h (half day)
-  l: 4,       // 1-2 days
-  xl: 5       // 2+ days (break down!)
+	none: 0, // No estimate
+	xs: 1, // < 2h
+	s: 2, // 2-4h
+	m: 3, // 4-8h (half day)
+	l: 4, // 1-2 days
+	xl: 5 // 2+ days (break down!)
 };
 ```
 
@@ -53,18 +53,18 @@ const ESTIMATES = {
 
 ```typescript
 await mcp_Linear_create_issue({
-  team: 'SYOS',
-  title: '[Slice N] Descriptive Title',
-  description: '...', // See ticket writing format below
-  projectId: projectId, // ✅ Required (get/create first)
-  assigneeId: RANDY_USER_ID, // ✅ Required
-  state: 'Todo',
-  estimate: ESTIMATES.s, // ✅ Required (numeric: 0-5)
-  labels: [
-    LINEAR_LABELS.feature, // ✅ Type (required, one)
-    LINEAR_LABELS.backend, // ✅ Scope (required, one or more)
-    LINEAR_LABELS.workspace
-  ]
+	team: 'SYOS',
+	title: '[Slice N] Descriptive Title',
+	description: '...', // See ticket writing format below
+	projectId: projectId, // ✅ Required (get/create first)
+	assigneeId: RANDY_USER_ID, // ✅ Required
+	state: 'Todo',
+	estimate: ESTIMATES.s, // ✅ Required (numeric: 0-5)
+	labels: [
+		LINEAR_LABELS.feature, // ✅ Type (required, one)
+		LINEAR_LABELS.backend, // ✅ Scope (required, one or more)
+		LINEAR_LABELS.workspace
+	]
 });
 ```
 
@@ -159,11 +159,13 @@ await mcp_Linear_create_issue({
 ## ⚠️ PARALLEL WORK WARNING
 
 **This ticket CAN be worked on by multiple agents simultaneously:**
+
 - Agent 1: Backend (convex/ functions)
 - Agent 2: Frontend (src/lib/components/)
 - Agent 3: Tests (tests/ directory)
 
 **Boundaries:**
+
 - No shared files
 - Clear technical separation
 - Independent shipping
@@ -171,6 +173,7 @@ await mcp_Linear_create_issue({
 **OR**
 
 **This ticket CANNOT be worked on in parallel:**
+
 - Sequential dependencies (Slice 1 → Slice 2 → Slice 3)
 - Shared files that would cause conflicts
 ```
@@ -184,17 +187,17 @@ await mcp_Linear_create_issue({
 ```typescript
 // 1. Check if project exists
 const projects = await mcp_Linear_list_projects({ team: 'SYOS' });
-let project = projects.find(p => p.name === 'Project Name');
+let project = projects.find((p) => p.name === 'Project Name');
 
 // 2. Create if missing
 if (!project) {
-  project = await mcp_Linear_create_project({
-    team: 'SYOS',
-    name: 'Project Name',
-    summary: 'One-line summary',
-    description: '# Project Overview\n...',
-    state: 'planned'
-  });
+	project = await mcp_Linear_create_project({
+		team: 'SYOS',
+		name: 'Project Name',
+		summary: 'One-line summary',
+		description: '# Project Overview\n...',
+		state: 'planned'
+	});
 }
 
 const projectId = project.id; // ✅ Use ID, not name
@@ -215,8 +218,8 @@ const projectId = project.id; // ✅ Use ID, not name
 
 ```typescript
 await mcp_Linear_create_comment({
-  issueId: 'SYOS-60',
-  body: `## ✅ URGENT Subtasks Shipped (3/3)
+	issueId: 'SYOS-60',
+	body: `## ✅ URGENT Subtasks Shipped (3/3)
 
 **Commits:**
 - \`fe01139\` - feat(ci): Enable CI/CD quality gates
@@ -237,12 +240,14 @@ await mcp_Linear_create_comment({
 ### When to Use
 
 **Use subtasks when:**
+
 - Breaking down parent ticket (epic → slices)
 - Parallel work tracks (multiple agents)
 - Clear dependencies (Slice 1 → Slice 2)
 - Priority tiers (URGENT vs HIGH)
 
 **Don't use when:**
+
 - Single focused ticket (< 4h)
 - No clear boundaries
 - Better as separate tickets
@@ -255,9 +260,11 @@ await mcp_Linear_create_comment({
 ## Subtasks (Priority Order)
 
 **🔴 URGENT (Ship First)**
+
 - **SYOS-65**: Enable CI/CD quality gates
 
 **🟠 HIGH (Ship Next)**
+
 - **SYOS-72**: Fix TypeScript errors
 ```
 
@@ -265,9 +272,9 @@ await mcp_Linear_create_comment({
 
 ```typescript
 await mcp_Linear_create_issue({
-  team: 'SYOS',
-  title: '[SYOS-60] Enable CI/CD quality gates',
-  description: `
+	team: 'SYOS',
+	title: '[SYOS-60] Enable CI/CD quality gates',
+	description: `
 **Parent**: SYOS-60 - CI/CD Pipeline & Security Gates
 
 **Goal**: Enable lint and build gates
@@ -276,11 +283,11 @@ await mcp_Linear_create_issue({
 - [ ] Lint gate enabled
 - [ ] Build gate enabled
   `,
-  projectId: projectId,
-  assigneeId: RANDY_USER_ID,
-  state: 'Todo',
-  estimate: ESTIMATES.s,
-  labels: [LINEAR_LABELS['tech-debt'], LINEAR_LABELS.devops]
+	projectId: projectId,
+	assigneeId: RANDY_USER_ID,
+	state: 'Todo',
+	estimate: ESTIMATES.s,
+	labels: [LINEAR_LABELS['tech-debt'], LINEAR_LABELS.devops]
 });
 ```
 
@@ -291,48 +298,48 @@ await mcp_Linear_create_issue({
 ```typescript
 // 1. Validate project exists
 const projects = await mcp_Linear_list_projects({ team: 'SYOS' });
-let project = projects.find(p => p.name === 'Auth and System Foundation');
+let project = projects.find((p) => p.name === 'Auth and System Foundation');
 
 if (!project) {
-  project = await mcp_Linear_create_project({
-    team: 'SYOS',
-    name: 'Auth and System Foundation',
-    summary: 'Multi-workspace authentication',
-    description: '# Project Overview\n...',
-    state: 'planned'
-  });
+	project = await mcp_Linear_create_project({
+		team: 'SYOS',
+		name: 'Auth and System Foundation',
+		summary: 'Multi-workspace authentication',
+		description: '# Project Overview\n...',
+		state: 'planned'
+	});
 }
 
 const projectId = project.id;
 
 // 2. Create ticket
 const ticket = await mcp_Linear_create_issue({
-  team: 'SYOS',
-  title: '[Slice 1] Workspace Context & Indicator',
-  description: '...', // Use ticket writing format above
-  projectId: projectId,
-  assigneeId: RANDY_USER_ID,
-  state: 'Todo',
-  estimate: ESTIMATES.s,
-  labels: [LINEAR_LABELS.feature, LINEAR_LABELS.backend, LINEAR_LABELS.workspace]
+	team: 'SYOS',
+	title: '[Slice 1] Workspace Context & Indicator',
+	description: '...', // Use ticket writing format above
+	projectId: projectId,
+	assigneeId: RANDY_USER_ID,
+	state: 'Todo',
+	estimate: ESTIMATES.s,
+	labels: [LINEAR_LABELS.feature, LINEAR_LABELS.backend, LINEAR_LABELS.workspace]
 });
 
 // 3. Update status when starting
 await mcp_Linear_update_issue({
-  id: ticket.id,
-  state: 'In Progress'
+	id: ticket.id,
+	state: 'In Progress'
 });
 
 // 4. Add comment when complete
 await mcp_Linear_create_comment({
-  issueId: ticket.id,
-  body: '✅ Complete - Workspace context stored | Commit: abc1234'
+	issueId: ticket.id,
+	body: '✅ Complete - Workspace context stored | Commit: abc1234'
 });
 
 // 5. Mark for review
 await mcp_Linear_update_issue({
-  id: ticket.id,
-  state: 'In Review'
+	id: ticket.id,
+	state: 'In Review'
 });
 ```
 
@@ -363,4 +370,3 @@ await mcp_Linear_update_issue({
 
 **Last Updated**: 2025-11-13  
 **Purpose**: Complete Linear workflow reference for AI agents
-

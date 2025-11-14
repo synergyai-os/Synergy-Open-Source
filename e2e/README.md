@@ -1,138 +1,301 @@
-# E2E Tests
+# E2E Tests Documentation
+
+## Overview
+
+End-to-end tests for SynergyOS using Playwright. Tests cover critical user flows including authentication, registration, password reset, and core app functionality.
+
+## Test Coverage
+
+### Authentication Flows
+
+- **Login/Logout** (`auth-security.test.ts`)
+  - Session management
+  - CSRF protection
+  - Unauthorized access prevention
+  - Session tracking
+
+- **Registration with Email Verification** (`auth-registration.test.ts`)
+  - New user registration
+  - Email verification with 6-digit PIN
+  - Verification code expiry
+  - Rate limiting on verification attempts
+  - Password validation
+
+- **Password Reset** (`auth-registration.test.ts`)
+  - Forgot password flow
+  - Reset link validation
+  - Password strength validation
+  - Token expiry handling
+
+### Core Features
+
+- **Inbox** (`inbox-workflow.spec.ts`)
+- **Settings** (`settings-security.spec.ts`)
+- **Quick Create** (`quick-create.spec.ts`)
 
 ## Setup
 
-1. **Create `.env.test` file** in project root:
+### 1. Environment Variables
+
+Create `.env.test` in project root:
 
 ```bash
-# Copy the template
-cp .env.test.example .env.test
+# Test user credentials (should exist in WorkOS)
+TEST_USER_EMAIL=your-test-user@example.com
+TEST_USER_PASSWORD=your-secure-password
 
-# Add test credentials
-TEST_USER_EMAIL=randy+cicduser@synergyai.nl
-TEST_USER_PASSWORD=djz5gxt2tjg@wjz4BAF
+# Enable test helper endpoints
+E2E_TEST_MODE=true
+
+# Optional: Custom base URL
+BASE_URL=http://localhost:5173
 ```
 
-2. **Authenticate test user** (run once):
+### 2. Test User Setup
 
-```bash
-npm run test:e2e:setup
-```
+Create a test user in WorkOS:
 
-This logs in the test user and saves the authenticated state to `e2e/.auth/user.json`.
+1. Go to WorkOS dashboard
+2. Create a new user with email verification
+3. Use these credentials in `.env.test`
 
 ## Running Tests
+
+### Local Development
 
 ```bash
 # Run all E2E tests
 npm run test:e2e
 
-# Run specific test suite
-npm run test:e2e:quick-create  # Quick Create Modal tests
-npm run test:e2e:auth          # Auth security tests
+# Run specific test file
+npm run test:e2e:auth         # Auth tests only
+npm run test:e2e:inbox        # Inbox tests only
+npm run test:e2e:settings     # Settings tests only
 
-# Run with UI mode (recommended for development)
+# Run with UI (interactive mode)
 npx playwright test --ui
 
 # Run in headed mode (see browser)
 npx playwright test --headed
 
-# Debug a specific test
-npx playwright test --debug e2e/quick-create.spec.ts
+# Debug specific test
+npx playwright test --debug e2e/auth-registration.test.ts
 ```
 
-## Test Structure
+### CI/Local Pre-PR Validation
 
+```bash
+# Run all checks + tests (recommended before PR)
+npm run ci:local
+
+# This runs:
+# - Type checking (npm run check)
+# - Linting (npm run lint)
+# - Unit tests (npm run test:unit:server)
+# - Integration tests (npm run test:integration)
+# - E2E tests (npm run test:e2e)
+# - Build (npm run build)
 ```
-e2e/
-├── auth.setup.ts           # Authenticates test user (runs first)
-├── .auth/
-│   └── user.json          # Saved auth state (gitignored)
-├── quick-create.spec.ts    # Quick Create Modal tests
-└── auth-security.test.ts   # Auth security tests
-```
 
-## How Authentication Works
+### CI Pipeline
 
-1. **Setup phase** (`auth.setup.ts`):
-   - Logs in with test credentials
-   - Saves authenticated state to `.auth/user.json`
-   - Runs once before all tests
+Tests run automatically in GitHub Actions:
 
-2. **Test phase**:
-   - Tests use saved auth state via `test.use({ storageState: 'e2e/.auth/user.json' })`
-   - No need to log in again for each test
-   - Tests run faster and more reliably
+- On pull requests
+- On pushes to main
+- `E2E_TEST_MODE=true` must be set in CI environment variables
 
-## Writing New Tests
+## Test Helper for Email Verification
+
+### How It Works
+
+The new registration flow requires email verification with a 6-digit PIN code. In E2E tests, we can't access real emails, so we use a test helper endpoint:
 
 ```typescript
-import { test, expect } from '@playwright/test';
+// Get verification code in tests
+const response = await request.get(
+	'/test/get-verification-code?email=test@example.com&type=registration'
+);
+const { code } = await response.json();
+```
 
-// Use authenticated state
-test.use({ storageState: 'e2e/.auth/user.json' });
+### Security
 
-test('my test', async ({ page }) => {
-	// User is already logged in
-	await page.goto('/inbox');
-	// ... test authenticated features
+The test helper endpoint (`/test/get-verification-code`) is secured:
+
+✅ **Only enabled when `E2E_TEST_MODE=true`**
+✅ **IP restricted to localhost only**
+✅ **Returns 404 in production**
+✅ **Requires email + type parameters**
+
+### Usage in Tests
+
+```typescript
+test('should register with email verification', async ({ page, request }) => {
+	// 1. Submit registration form
+	await page.fill('input[type="email"]', 'test@example.com');
+	await page.click('button[type="submit"]');
+
+	// 2. Get verification code from test helper
+	const codeResponse = await request.get(
+		'/test/get-verification-code?email=test@example.com&type=registration'
+	);
+	const { code } = await codeResponse.json();
+
+	// 3. Enter code in PIN input
+	await page.fill('input', code);
+
+	// 4. Verify registration succeeds
+	await expect(page).toHaveURL(/\/inbox/);
 });
 ```
 
-## Test User
+## Authentication Setup
 
-**Email**: `randy+cicduser@synergyai.nl`
-**Purpose**: Dedicated account for CI/CD testing
-**Access**: Has sample data for testing (notes, flashcards, etc.)
+Tests use Playwright's [authentication setup](https://playwright.dev/docs/auth) pattern:
 
-## CI/CD Integration
+1. **Setup phase** (`auth.setup.ts`) - Runs once before all tests
+   - Logs in with test user
+   - Saves authentication state to `e2e/.auth/user.json`
 
-In GitHub Actions, credentials are stored as secrets:
+2. **Test execution** - Tests reuse saved auth state
+   - No re-authentication needed
+   - Tests run faster
+   - Consistent test environment
 
-```yaml
-- name: Run E2E tests
-  env:
-    TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
-    TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
-  run: npm run test:e2e
+### Unauthenticated Tests
+
+For testing unauthenticated flows (login, registration):
+
+```typescript
+test.use({ storageState: { cookies: [], origins: [] } });
+```
+
+## Writing New Tests
+
+### Best Practices
+
+1. **Use data-testid attributes** for selectors
+
+   ```svelte
+   <button data-testid="submit-btn">Submit</button>
+   ```
+
+   ```typescript
+   await page.click('[data-testid="submit-btn"]');
+   ```
+
+2. **Generate unique test data**
+
+   ```typescript
+   const timestamp = Date.now();
+   const testEmail = `test-${timestamp}@example.com`;
+   ```
+
+3. **Clean up test data** if needed
+   - Delete test users after test
+   - Reset state between tests
+
+4. **Use explicit waits**
+
+   ```typescript
+   await expect(page).toHaveURL(/\/inbox/, { timeout: 10000 });
+   ```
+
+5. **Test error states**
+   - Invalid input
+   - Network errors
+   - Rate limiting
+
+### Test Structure
+
+```typescript
+test.describe('Feature Name', () => {
+	// Setup/teardown if needed
+	test.beforeEach(async ({ page }) => {
+		// Setup
+	});
+
+	test('should do something', async ({ page }) => {
+		// Arrange
+		await page.goto('/page');
+
+		// Act
+		await page.click('button');
+
+		// Assert
+		await expect(page).toHaveURL(/\/result/);
+	});
+});
 ```
 
 ## Troubleshooting
 
-### "Authentication failed"
+### Tests Failing Locally
 
-1. Check `.env.test` has correct credentials
-2. Run auth setup: `npm run test:e2e:setup`
-3. Check if test user account is active in WorkOS
+1. **Check environment variables**
 
-### "storageState not found"
+   ```bash
+   cat .env.test
+   # Verify E2E_TEST_MODE=true
+   ```
 
-Run auth setup first: `npm run test:e2e:setup`
+2. **Verify test user exists**
+   - Log in manually with test credentials
+   - Check WorkOS dashboard
 
-### Tests timing out
+3. **Check app is running**
 
-1. Make sure dev server is running: `npm run dev`
-2. Increase timeout in `playwright.config.ts`
-3. Check if Convex is accessible
+   ```bash
+   npm run dev
+   # Should be accessible at http://localhost:5173
+   ```
 
-### "sessionId missing" errors
+4. **Clear auth state**
+   ```bash
+   rm -rf e2e/.auth/user.json
+   npm run test:e2e:setup  # Re-authenticate
+   ```
 
-This means the auth migration has a bug! The E2E test successfully caught a regression.
+### Test Helper Not Working
 
-1. Check console output for specific function
-2. Run static analysis: `npm run test:sessionid`
-3. Fix the component/function to use `sessionId`
+If `/test/get-verification-code` returns 404:
 
-## Best Practices
+1. Check `E2E_TEST_MODE=true` in `.env.test`
+2. Restart dev server
+3. Verify endpoint exists: `curl http://localhost:5173/test/get-verification-code`
 
-1. **Always use auth setup** - Don't log in manually in tests
-2. **Test real user flows** - Use keyboard shortcuts, click buttons
-3. **Check console errors** - Catch ArgumentValidationError
-4. **Keep tests independent** - Each test should work standalone
-5. **Clean up test data** - Delete created items after tests (future improvement)
+### Slow Tests
+
+Playwright might be slow on first run (downloads browsers):
+
+```bash
+# Install browsers manually
+npx playwright install
+```
+
+## Test Reports
+
+After running tests:
+
+```bash
+# View HTML report
+npx playwright show-report
+
+# Report is automatically generated at:
+# playwright-report/index.html
+```
+
+## CI Configuration
+
+See `.github/workflows/` for CI setup:
+
+- Environment variables must be set in GitHub Actions secrets
+- Tests run on every PR
+- Failed tests block merging
 
 ## Further Reading
 
+- [Playwright Documentation](https://playwright.dev/)
 - [Playwright Authentication](https://playwright.dev/docs/auth)
 - [Playwright Best Practices](https://playwright.dev/docs/best-practices)
-- [Test Debugging](https://playwright.dev/docs/debug)

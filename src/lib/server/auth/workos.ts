@@ -299,6 +299,36 @@ export async function authenticateWithPassword(options: {
 /**
  * Create a new user with email and password (headless registration)
  */
+/**
+ * Check if a user exists in WorkOS by email
+ */
+export async function getUserByEmail(email: string): Promise<WorkOSUser | null> {
+	validateWorkOSConfig();
+	console.log('🔍 Checking if user exists:', email);
+
+	const response = await fetch(
+		`${WORKOS_BASE_URL}/user_management/users?email=${encodeURIComponent(email)}`,
+		{
+			method: 'GET',
+			headers: buildHeaders(true)
+		}
+	);
+
+	console.log('🔍 WorkOS get user response status:', response.status);
+
+	if (!response.ok) {
+		const errorText = await response.text();
+		console.error('❌ WorkOS get user failed:', errorText);
+		throw new Error(`WorkOS get user failed (${response.status}): ${errorText}`);
+	}
+
+	const data = (await response.json()) as any;
+	console.log('🔍 WorkOS get user response:', { usersFound: data.data?.length });
+
+	// Return first user if exists, null otherwise
+	return data.data && data.data.length > 0 ? data.data[0] : null;
+}
+
 export async function createUserWithPassword(options: {
 	email: string;
 	password: string;
@@ -332,4 +362,71 @@ export async function createUserWithPassword(options: {
 	console.log('✅ User created successfully:', data.id);
 
 	return { userId: data.id };
+}
+
+/**
+ * Create a password reset token and optionally send reset email
+ * The token is included in the passwordResetUrl as a query parameter
+ */
+export async function createPasswordReset(options: {
+	email: string;
+	passwordResetUrl: string;
+}): Promise<{ passwordResetId: string }> {
+	validateWorkOSConfig();
+	console.log('🔍 Creating password reset for:', options.email);
+
+	const response = await fetch(`${WORKOS_BASE_URL}/user_management/password_reset`, {
+		method: 'POST',
+		headers: buildHeaders(true),
+		body: JSON.stringify({
+			email: options.email,
+			password_reset_url: options.passwordResetUrl
+		})
+	});
+
+	console.log('🔍 WorkOS password reset response status:', response.status);
+
+	if (!response.ok) {
+		const errorText = await response.text();
+		console.error('❌ WorkOS password reset creation failed:', errorText);
+		throw new Error(`WorkOS password reset failed (${response.status}): ${errorText}`);
+	}
+
+	const data = (await response.json()) as any;
+	console.log('✅ Password reset created:', data.id);
+
+	return { passwordResetId: data.id };
+}
+
+/**
+ * Reset a user's password using a reset token
+ */
+export async function resetPassword(options: {
+	token: string;
+	newPassword: string;
+}): Promise<{ userId: string }> {
+	validateWorkOSConfig();
+	console.log('🔍 Resetting password with token');
+
+	const response = await fetch(`${WORKOS_BASE_URL}/user_management/password_reset/confirm`, {
+		method: 'POST',
+		headers: buildHeaders(true),
+		body: JSON.stringify({
+			token: options.token,
+			new_password: options.newPassword
+		})
+	});
+
+	console.log('🔍 WorkOS reset password response status:', response.status);
+
+	if (!response.ok) {
+		const errorText = await response.text();
+		console.error('❌ WorkOS reset password failed:', errorText);
+		throw new Error(`WorkOS reset password failed (${response.status}): ${errorText}`);
+	}
+
+	const data = (await response.json()) as any;
+	console.log('✅ Password reset successful for user:', data.user?.id);
+
+	return { userId: data.user.id };
 }

@@ -2,6 +2,7 @@
 	import { page } from '$app/state';
 	import { dev } from '$app/environment';
 	import { goto } from '$app/navigation';
+	import { resolveRoute } from '$lib/utils/navigation';
 
 	// Check if we're in development mode
 	let isDev = $derived(dev);
@@ -11,7 +12,7 @@
 	let message = $derived(page.error?.message || 'An error occurred');
 
 	function goHome() {
-		goto('/inbox');
+		goto(resolveRoute('/inbox'));
 	}
 
 	function goBack() {

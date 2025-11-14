@@ -14,10 +14,7 @@
 			(function () {
 				try {
 					const stored = localStorage.getItem('axon-theme');
-					const theme =
-						stored === 'light' || stored === 'dark'
-							? stored
-							: 'light'; // Default to light mode
+					const theme = stored === 'light' || stored === 'dark' ? stored : 'light'; // Default to light mode
 
 					if (theme === 'dark') {
 						document.documentElement.classList.add('dark');

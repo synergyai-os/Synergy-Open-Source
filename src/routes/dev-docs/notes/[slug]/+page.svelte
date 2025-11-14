@@ -4,11 +4,12 @@
 	let { data }: { data: PageData } = $props();
 
 	// Parse ProseMirror JSON to extract title and markdown
-	let title = $derived(data.note.title || 'Untitled Note');
-	let markdown = $derived(data.note.contentMarkdown || '');
-	let createdAt = $derived(
-		data.note.createdAt ? new Date(data.note.createdAt).toLocaleDateString() : ''
-	);
+	// Note: data.note may be null, and TypeScript needs type narrowing for NoteWithDetails
+	import type { NoteWithDetails } from '$lib/types/convex';
+	const note = data.note as NoteWithDetails | null;
+	let title = $derived(note?.title || 'Untitled Note');
+	let markdown = $derived(note?.contentMarkdown || '');
+	let createdAt = $derived(note?.createdAt ? new Date(note.createdAt).toLocaleDateString() : '');
 </script>
 
 <svelte:head>
@@ -21,7 +22,7 @@
 		{#if createdAt}
 			<p class="text-secondary">Created: {createdAt}</p>
 		{/if}
-		{#if data.note.isAIGenerated}
+		{#if note?.isAIGenerated}
 			<span class="ai-badge">AI Generated</span>
 		{/if}
 	</header>

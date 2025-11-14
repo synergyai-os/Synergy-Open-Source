@@ -4,7 +4,7 @@
  * Uses prosemirror-highlight with lowlight (highlight.js wrapper)
  */
 
-import { Plugin, PluginKey } from 'prosemirror-state';
+import { Plugin, PluginKey, Transaction } from 'prosemirror-state';
 import { Decoration, DecorationSet, EditorView } from 'prosemirror-view';
 import { createHighlightPlugin } from 'prosemirror-highlight';
 import { createParser } from 'prosemirror-highlight/lowlight';
@@ -47,7 +47,7 @@ export function createCodeBlockPlugin() {
 		key: codeBlockPluginKey,
 
 		appendTransaction(transactions, oldState, newState) {
-			let tr = null;
+			let tr: Transaction | null = null;
 
 			// Check if any code blocks need auto-detection
 			newState.doc.descendants((node, pos) => {
@@ -71,7 +71,7 @@ export function createCodeBlockPlugin() {
 								tr = newState.tr;
 							}
 
-							tr.setNodeMarkup(pos, undefined, {
+							tr!.setNodeMarkup(pos, undefined, {
 								...node.attrs,
 								language: detectedLanguage
 							});

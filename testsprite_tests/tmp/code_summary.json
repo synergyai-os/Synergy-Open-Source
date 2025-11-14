@@ -1,116 +1,115 @@
 {
-  "project_name": "SynergyOS",
-  "description": "The Open-Source Product OS - An open-source, modular platform that integrates product discovery, delivery, and team collaboration with AI coaching trained on company data.",
-  "tech_stack": {
-    "frontend": {
-      "framework": "SvelteKit 5",
-      "language": "TypeScript",
-      "ui_library": "Bits UI (headless components)",
-      "styling": "Tailwind CSS 4",
-      "state_management": "Svelte 5 Runes ($state, $derived)",
-      "routing": "SvelteKit file-based routing"
-    },
-    "backend": {
-      "database": "Convex (real-time database & serverless functions)",
-      "auth": "WorkOS",
-      "email": "Resend"
-    },
-    "mobile": {
-      "framework": "Capacitor 7",
-      "platforms": ["iOS"]
-    },
-    "testing": {
-      "unit": "Vitest",
-      "e2e": "Playwright",
-      "browser": "Vitest Browser"
-    },
-    "deployment": {
-      "platform": "Vercel",
-      "static_adapter": "@sveltejs/adapter-vercel"
-    }
-  },
-  "main_features": [
-    {
-      "name": "Universal Inbox",
-      "description": "Collect and organize content from any source (Readwise integration ready)",
-      "routes": ["/inbox"]
-    },
-    {
-      "name": "Flashcard System",
-      "description": "AI-powered flashcard generation from highlights/notes with FSRS spaced repetition algorithm",
-      "routes": ["/flashcards", "/study"]
-    },
-    {
-      "name": "Rich Notes Editor",
-      "description": "ProseMirror-based rich text editor with AI content detection and markdown export",
-      "routes": ["/notes"]
-    },
-    {
-      "name": "Authentication",
-      "description": "WorkOS-based authentication with account linking and session management",
-      "routes": ["/login", "/register", "/auth/callback"]
-    },
-    {
-      "name": "Settings & Permissions",
-      "description": "User settings, permissions management, and RBAC system",
-      "routes": ["/settings"]
-    },
-    {
-      "name": "Waitlist Form",
-      "description": "Community waitlist signup form",
-      "components": ["WaitlistForm"]
-    },
-    {
-      "name": "Marketing Landing Page",
-      "description": "Product marketing page with hero, features, and CTA sections",
-      "routes": ["/"]
-    }
-  ],
-  "key_routes": [
-    "/",
-    "/login",
-    "/register",
-    "/inbox",
-    "/flashcards",
-    "/study",
-    "/notes",
-    "/settings",
-    "/tags",
-    "/my-mind"
-  ],
-  "key_components": [
-    "Header",
-    "WaitlistForm",
-    "Inbox components (source-specific detail views)",
-    "Flashcard components",
-    "Notes editor components"
-  ],
-  "design_system": {
-    "tokens": "Semantic design tokens (spacing, colors, typography)",
-    "theming": "Light/dark mode support",
-    "accessibility": "WCAG compliant, reduced motion support"
-  },
-  "testing_setup": {
-    "unit_tests": "Vitest with browser and server environments",
-    "e2e_tests": "Playwright tests for critical workflows",
-    "test_files": [
-      "e2e/auth-security.test.ts",
-      "e2e/inbox-workflow.spec.ts",
-      "e2e/quick-create.spec.ts",
-      "e2e/settings-security.spec.ts"
-    ]
-  },
-  "development_environment": {
-    "local_port": 5173,
-    "host": "127.0.0.1",
-    "dev_command": "npm run dev",
-    "requires": ["Convex dev server (npx convex dev)"]
-  },
-  "project_structure": {
-    "frontend": "src/routes, src/lib/components, src/lib/composables",
-    "backend": "convex/ (functions, schema, auth)",
-    "tests": "e2e/, tests/convex/",
-    "docs": "dev-docs/, marketing-docs/"
-  }
+	"project_name": "SynergyOS",
+	"description": "The Open-Source Product OS - An open-source, modular platform that integrates product discovery, delivery, and team collaboration with AI coaching trained on company data.",
+	"tech_stack": {
+		"frontend": {
+			"framework": "SvelteKit 5",
+			"language": "TypeScript",
+			"ui_library": "Bits UI (headless components)",
+			"styling": "Tailwind CSS 4",
+			"state_management": "Svelte 5 Runes ($state, $derived)",
+			"routing": "SvelteKit file-based routing"
+		},
+		"backend": {
+			"database": "Convex (real-time database & serverless functions)",
+			"auth": "WorkOS",
+			"email": "Resend"
+		},
+		"mobile": {
+			"framework": "Capacitor 7",
+			"platforms": ["iOS"]
+		},
+		"testing": {
+			"unit": "Vitest",
+			"e2e": "Playwright",
+			"browser": "Vitest Browser"
+		},
+		"deployment": {
+			"platform": "Vercel",
+			"static_adapter": "@sveltejs/adapter-vercel"
+		}
+	},
+	"main_features": [
+		{
+			"name": "Universal Inbox",
+			"description": "Collect and organize content from any source (Readwise integration ready)",
+			"routes": ["/inbox"]
+		},
+		{
+			"name": "Flashcard System",
+			"description": "AI-powered flashcard generation from highlights/notes with FSRS spaced repetition algorithm",
+			"routes": ["/flashcards", "/study"]
+		},
+		{
+			"name": "Rich Notes Editor",
+			"description": "ProseMirror-based rich text editor with AI content detection and markdown export",
+			"routes": ["/notes"]
+		},
+		{
+			"name": "Authentication",
+			"description": "WorkOS-based authentication with account linking and session management",
+			"routes": ["/login", "/register", "/auth/callback"]
+		},
+		{
+			"name": "Settings & Permissions",
+			"description": "User settings, permissions management, and RBAC system",
+			"routes": ["/settings"]
+		},
+		{
+			"name": "Waitlist Form",
+			"description": "Community waitlist signup form",
+			"components": ["WaitlistForm"]
+		},
+		{
+			"name": "Marketing Landing Page",
+			"description": "Product marketing page with hero, features, and CTA sections",
+			"routes": ["/"]
+		}
+	],
+	"key_routes": [
+		"/",
+		"/login",
+		"/register",
+		"/inbox",
+		"/flashcards",
+		"/study",
+		"/notes",
+		"/settings",
+		"/tags",
+		"/my-mind"
+	],
+	"key_components": [
+		"Header",
+		"WaitlistForm",
+		"Inbox components (source-specific detail views)",
+		"Flashcard components",
+		"Notes editor components"
+	],
+	"design_system": {
+		"tokens": "Semantic design tokens (spacing, colors, typography)",
+		"theming": "Light/dark mode support",
+		"accessibility": "WCAG compliant, reduced motion support"
+	},
+	"testing_setup": {
+		"unit_tests": "Vitest with browser and server environments",
+		"e2e_tests": "Playwright tests for critical workflows",
+		"test_files": [
+			"e2e/auth-security.test.ts",
+			"e2e/inbox-workflow.spec.ts",
+			"e2e/quick-create.spec.ts",
+			"e2e/settings-security.spec.ts"
+		]
+	},
+	"development_environment": {
+		"local_port": 5173,
+		"host": "127.0.0.1",
+		"dev_command": "npm run dev",
+		"requires": ["Convex dev server (npx convex dev)"]
+	},
+	"project_structure": {
+		"frontend": "src/routes, src/lib/components, src/lib/composables",
+		"backend": "convex/ (functions, schema, auth)",
+		"tests": "e2e/, tests/convex/",
+		"docs": "dev-docs/, marketing-docs/"
+	}
 }
-

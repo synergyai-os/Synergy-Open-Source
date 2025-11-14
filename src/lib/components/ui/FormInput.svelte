@@ -8,6 +8,7 @@
 
 	type Props = {
 		id?: string;
+		name?: string;
 		label?: string;
 		placeholder?: string;
 		value?: string;
@@ -20,13 +21,14 @@
 
 	let {
 		id,
+		name,
 		label,
 		placeholder = '',
 		value = $bindable(''),
 		type = 'text',
 		required = false,
 		disabled = false,
-		autocomplete = '',
+		autocomplete,
 		class: customClass = ''
 	}: Props = $props();
 
@@ -45,11 +47,12 @@
 	{/if}
 	<input
 		{id}
+		{name}
 		{type}
 		{placeholder}
 		{required}
 		{disabled}
-		{autocomplete}
+		autocomplete={(autocomplete as any) || undefined}
 		bind:value
 		class="rounded-input border border-base bg-input px-input-x py-input-y text-primary transition-all placeholder:text-tertiary focus:ring-2 focus:ring-accent-primary focus:outline-none {customClass}"
 	/>

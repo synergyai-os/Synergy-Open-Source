@@ -62,7 +62,7 @@
 		<!-- Tags -->
 		{#if item.tags && item.tags.length > 0}
 			<div class="mb-3 flex flex-wrap gap-1">
-				{#each item.tags.slice(0, 3) as tag}
+				{#each item.tags.slice(0, 3) as tag (tag)}
 					<span class="rounded bg-tag px-badge py-badge text-label text-tag">
 						{tag}
 					</span>

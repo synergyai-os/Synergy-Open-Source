@@ -110,21 +110,21 @@ Our spacing scale is based on a 4px base unit (0.25rem):
 
 ✨ **USE THESE FOR ALL MARKETING/CONTENT PAGES** (landing pages, blog posts, documentation)
 
-| Token                                 | Utility Class                | Value          | Usage                                                  |
-| ------------------------------------- | ---------------------------- | -------------- | ------------------------------------------------------ |
-| `--spacing-marketing-section-y`       | `py-marketing-section`       | 7rem (112px)   | **Section vertical padding** (top and bottom)          |
-| `--spacing-marketing-section-gap`     | `gap-marketing-section`      | 5rem (80px)    | **Gap between major sections** (when stacked)          |
-| `--spacing-marketing-container-x`     | `px-marketing-container`     | 1.5rem (24px)  | **Page horizontal padding** (mobile/desktop)           |
-| `--spacing-marketing-title-to-lead`   | `mb-marketing-title-to-lead` | 1.5rem (24px)  | **H2 to lead paragraph** spacing                       |
-| `--spacing-marketing-lead-to-content` | `mt-marketing-content`       | 3rem (48px)    | **Lead paragraph to content** spacing                  |
-| `--spacing-marketing-card-padding`    | `p-marketing-card`           | 2.5rem (40px)  | **Card internal padding**                              |
-| `--spacing-marketing-card-gap`        | `gap-marketing-card`         | 2rem (32px)    | **Gap between cards in grid**                          |
-| `--spacing-marketing-element-gap`     | `gap-marketing-element`      | 1.5rem (24px)  | **Gap between related elements** (badges, buttons)     |
-| `--spacing-marketing-text-gap`        | `gap-marketing-text`         | 1rem (16px)    | **Gap between text elements** (title to description)   |
-| `--spacing-marketing-hero-y`          | `py-marketing-hero`          | 5rem (80px)    | **Hero section vertical padding** (top)                |
-| `--spacing-marketing-hero-bottom`     | `pb-marketing-hero`          | 8rem (128px)   | **Hero section vertical padding** (bottom - extended)  |
-| `--spacing-marketing-cta-gap`         | `gap-marketing-cta`          | 1rem (16px)    | **Gap between CTA buttons**                            |
-| `--spacing-marketing-badge-gap`       | `gap-marketing-badge`        | 0.75rem (12px) | **Gap between trust badges**                           |
+| Token                                 | Utility Class                | Value           | Usage                                                  |
+| ------------------------------------- | ---------------------------- | --------------- | ------------------------------------------------------ |
+| `--spacing-marketing-section-y`       | `py-marketing-section`       | 7rem (112px)    | **Section vertical padding** (top and bottom)          |
+| `--spacing-marketing-section-gap`     | `gap-marketing-section`      | 5rem (80px)     | **Gap between major sections** (when stacked)          |
+| `--spacing-marketing-container-x`     | `px-marketing-container`     | 1.5rem (24px)   | **Page horizontal padding** (mobile/desktop)           |
+| `--spacing-marketing-title-to-lead`   | `mb-marketing-title-to-lead` | 1.5rem (24px)   | **H2 to lead paragraph** spacing                       |
+| `--spacing-marketing-lead-to-content` | `mt-marketing-content`       | 3rem (48px)     | **Lead paragraph to content** spacing                  |
+| `--spacing-marketing-card-padding`    | `p-marketing-card`           | 2.5rem (40px)   | **Card internal padding**                              |
+| `--spacing-marketing-card-gap`        | `gap-marketing-card`         | 2rem (32px)     | **Gap between cards in grid**                          |
+| `--spacing-marketing-element-gap`     | `gap-marketing-element`      | 1.5rem (24px)   | **Gap between related elements** (badges, buttons)     |
+| `--spacing-marketing-text-gap`        | `gap-marketing-text`         | 1rem (16px)     | **Gap between text elements** (title to description)   |
+| `--spacing-marketing-hero-y`          | `py-marketing-hero`          | 5rem (80px)     | **Hero section vertical padding** (top)                |
+| `--spacing-marketing-hero-bottom`     | `pb-marketing-hero`          | 8rem (128px)    | **Hero section vertical padding** (bottom - extended)  |
+| `--spacing-marketing-cta-gap`         | `gap-marketing-cta`          | 1rem (16px)     | **Gap between CTA buttons**                            |
+| `--spacing-marketing-badge-gap`       | `gap-marketing-badge`        | 0.75rem (12px)  | **Gap between trust badges**                           |
 | `--spacing-marketing-list-gap`        | `gap-marketing-list`         | 0.875rem (14px) | **Gap between list items** (bullet points, checkmarks) |
 
 **Why These Tokens:**
@@ -142,22 +142,22 @@ Our spacing scale is based on a 4px base unit (0.25rem):
 ```html
 <!-- Section with consistent padding -->
 <section class="py-marketing-section">
-  <div class="mx-auto max-w-5xl px-marketing-container">
-    <!-- Title with proper spacing to lead -->
-    <h2 class="mb-marketing-title-to-lead text-center text-primary">Our Vision</h2>
-    
-    <!-- Lead with proper spacing to content -->
-    <p class="mb-marketing-content text-center text-secondary">Building the future...</p>
-    
-    <!-- Card grid with proper gaps -->
-    <div class="grid grid-cols-1 gap-marketing-card md:grid-cols-2">
-      <!-- Cards with proper padding -->
-      <div class="p-marketing-card bg-elevated rounded-lg">
-        <h3 class="mb-marketing-text text-primary">Feature Title</h3>
-        <p class="text-secondary">Description...</p>
-      </div>
-    </div>
-  </div>
+	<div class="mx-auto max-w-5xl px-marketing-container">
+		<!-- Title with proper spacing to lead -->
+		<h2 class="mb-marketing-title-to-lead text-center text-primary">Our Vision</h2>
+
+		<!-- Lead with proper spacing to content -->
+		<p class="mb-marketing-content text-center text-secondary">Building the future...</p>
+
+		<!-- Card grid with proper gaps -->
+		<div class="grid grid-cols-1 gap-marketing-card md:grid-cols-2">
+			<!-- Cards with proper padding -->
+			<div class="rounded-lg bg-elevated p-marketing-card">
+				<h3 class="mb-marketing-text text-primary">Feature Title</h3>
+				<p class="text-secondary">Description...</p>
+			</div>
+		</div>
+	</div>
 </section>
 ```
 
@@ -172,6 +172,7 @@ Our spacing scale is based on a 4px base unit (0.25rem):
 ```
 
 **Why use utility classes:**
+
 - ✅ Works across all pages (just add class in HTML)
 - ✅ No need for `<style>` blocks in every component
 - ✅ Consistent with the rest of the design system

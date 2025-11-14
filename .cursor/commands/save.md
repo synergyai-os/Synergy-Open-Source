@@ -1,6 +1,6 @@
 # save
 
-**Purpose**: Capture knowledge, update Linear tickets, and commit work.
+**Purpose**: Capture knowledge locally by updating patterns. **NO COMMIT** - Files saved locally only (saves time/tokens).
 
 ---
 
@@ -8,11 +8,12 @@
 
 ## ⛔ **DO NOT PROCEED WITHOUT LINEAR TICKET ID**
 
-**BEFORE doing ANYTHING (analyzing, updating patterns, committing):**
+**BEFORE doing ANYTHING (analyzing, updating patterns):**
 
 ### Step 1: Check for Linear Ticket ID
 
 **Look in the conversation for:**
+
 - "SYOS-123" or "SYOS-XXX" format
 - "ticket SYOS-123"
 - "Linear ticket"
@@ -27,6 +28,7 @@
 → **Refer to `/start` command** - Ticket creation workflow is handled there
 
 **If user doesn't say "create new ticket":**
+
 ```
 ❌ STOP IMMEDIATELY - I cannot save work without a Linear ticket ID.
 
@@ -54,9 +56,9 @@ Once I have a ticket ID, I'll proceed with saving.
    - Default to `2` (s) if cannot determine
 
 **DO NOT:**
+
 - ❌ Analyze work (until ticket validated)
 - ❌ Update patterns (until ticket validated)
-- ❌ Commit changes (until ticket validated)
 - ❌ Do ANY work (until ticket validated)
 
 **ONLY AFTER ticket validated → Continue below**
@@ -65,18 +67,12 @@ Once I have a ticket ID, I'll proceed with saving.
 
 ## ✅ Workflow
 
-### 0. 🚨 Validate & Update Linear Ticket (DO THIS FIRST)
+### 0. 🚨 Validate Linear Ticket (DO THIS FIRST)
 
-**Before analyzing or committing, validate and update the Linear ticket:**
+**Before analyzing, validate the Linear ticket:**
 
 1. **Get ticket details** → Check project ID, assignee, estimate (see above)
-2. **Update ticket** with completion status (preserve projectId, assigneeId, estimate):
-   - Update acceptance criteria (check off completed items)
-   - Update files changed (add ✅ emoji)
-   - Add implementation notes
-   - Add commit hash to commits list
-3. **Add completion comment**: `✅ Ready for review - [Brief description] | Commit: [hash]`
-4. **Mark ticket "In Review"** (preserving projectId, assigneeId, estimate)
+2. **Note**: We're saving locally only (no commit), so we won't update Linear ticket with commit info
 
 **See**: `/start` command for Linear constants and ticket update workflow
 
@@ -133,7 +129,7 @@ Once I have a ticket ID, I'll proceed with saving.
 
 ### 3. Update Patterns ⭐ DO THIS FIRST
 
-**⚠️ CRITICAL**: Always update patterns BEFORE committing code changes!
+**⚠️ CRITICAL**: Always update patterns to capture knowledge!
 
 #### If Updating Existing Pattern:
 
@@ -151,13 +147,14 @@ Once I have a ticket ID, I'll proceed with saving.
    - PostHog → `dev-docs/2-areas/patterns/analytics.md`
 
 2. Add pattern with **next line number** (gaps of 30-50):
+
    ```markdown
    ## #L[NUMBER]: Pattern Name [🔴/🟡/🟢 SEVERITY]
-   
+
    **Symptom**: One-line description
    **Root Cause**: One-line cause
    **Fix**: [code example]
-   
+
    **Apply when**: When to use
    **Related**: #L[OTHER] (Description)
    ```
@@ -170,55 +167,36 @@ Once I have a ticket ID, I'll proceed with saving.
 
 ---
 
-### 4. Commit
+### 4. Save Locally ✅
 
-**⚠️ CRITICAL**: Commit message MUST include `Linear: SYOS-123` (use ticket ID from conversation)
+**Files are saved locally** - No commit step (saves time/tokens).
 
-**Use optimized format** - See `dev-docs/2-areas/development/commit-message-format.md` for:
-- Complete format template
-- All examples (Feature, Bugfix, Docs, Tech Debt, Risk)
-- Teaching notes and anti-patterns
+**What's saved:**
 
-**Quick format:**
-- Subject: `[ICON CATEGORY] outcome-focused description (max 50 chars)`
-- Line 1: `TYPE: X | SCOPE: Y | SIZE: Z | DAYS: N | IMPACT: I` (metadata for GitHub preview)
-- Body: USER STORY (👤🎯💡) + SLICE + JOURNEY (🛑⚠️✅) + PATTERN + FLOW METRICS
-- Footer: `Linear: SYOS-123` (REQUIRED)
+- Pattern updates in domain files
+- INDEX.md updates
+- All file changes remain in working directory
 
-**Do NOT push to main** - Commit locally only (user will push when ready)
+**No git operations** - Files are ready for you to review and commit when ready.
 
 ---
 
 ## Checklist
 
-**Before Committing:**
+**Before Saving:**
 
 - [ ] **🚨 Linear ticket ID present** in conversation (SYOS-XXX format)
 - [ ] **Got ticket details** → Validated project ID, assignee (Randy), numeric estimate
-- [ ] **Updated Linear ticket** (acceptance criteria, files changed, commits list, comment)
-- [ ] **Marked ticket "In Review"** (preserving projectId, assigneeId, estimate)
 - [ ] Searched `dev-docs/2-areas/patterns/INDEX.md` for existing patterns (grep tool)
 - [ ] Searched domain files in parallel
 - [ ] Updated domain file with pattern/enhancement (search_replace)
 - [ ] Updated `dev-docs/2-areas/patterns/INDEX.md` symptom table with line number reference
 - [ ] Chose correct severity (🔴 Critical | 🟡 Important | 🟢 Reference)
 
-**Commit Message:**
+**After Saving:**
 
-- [ ] Subject: [ICON CATEGORY] outcome (max 50 chars)
-- [ ] First body line: TYPE | SCOPE | SIZE | DAYS | IMPACT (metadata for preview)
-- [ ] USER STORY section with 👤🎯💡 format
-- [ ] Described SLICE (end-to-end functionality delivered)
-- [ ] Added JOURNEY if iteration 2+ (🛑⚠️✅ format)
-- [ ] Created PATTERN section if applicable
-- [ ] Filled FLOW METRICS section (7 data points)
-- [ ] **Added Linear ticket reference**: `Linear: SYOS-123` (REQUIRED)
-
-**After Commit:**
-
-- [ ] Showed commit with `git log -1 --stat`
-- [ ] Verified on feature branch (not main)
-- [ ] Reported status (DON'T push to GitHub - user will push when ready)
+- [ ] Files saved locally (no commit)
+- [ ] Reported status: "✅ Patterns updated locally. Files ready for review."
 
 ---
 
@@ -228,11 +206,9 @@ Once I have a ticket ID, I'll proceed with saving.
 0. 🚨 Check for Linear ticket ID (STOP if missing)
    → If missing and user says "create new ticket" → Refer to /start
 
-1. Validate & Update Linear ticket FIRST:
+1. Validate Linear ticket FIRST:
    - Get ticket details → Check project ID, assignee, estimate
-   - Update acceptance criteria, files changed, commits list
-   - Add completion comment
-   - Mark "In Review" (preserving projectId, assigneeId, estimate)
+   - Note: No Linear update needed (saving locally only)
 
 2. Analyze → Frame as user story + flow metrics + distribution
    - WHO benefits? WHAT VALUE? WHAT SLICE?
@@ -243,25 +219,23 @@ Once I have a ticket ID, I'll proceed with saving.
    - Domain files: svelte-reactivity.md, convex-integration.md, etc.
    - ⚠️ DON'T read patterns-and-lessons.md (redirect)
 
-4. Update patterns (before committing code):
+4. Update patterns:
    - Add/update domain file with search_replace
    - Update INDEX.md symptom table
    - Use line numbers for references (#L810)
 
-5. Commit with optimized format:
-   → See dev-docs/2-areas/development/commit-message-format.md
-   → Include Linear: SYOS-123 in footer
+5. Save locally (NO COMMIT):
+   → Files saved in working directory
+   → Ready for review and commit when you're ready
 
-6. Report status (DON'T push to GitHub):
-   → Show: git log -1 --stat
-   → Confirm: "✅ Committed locally. Linear ticket updated. Ready when you want to push."
+6. Report status:
+   → Confirm: "✅ Patterns updated locally. Files saved. Ready for review."
 ```
 
 ---
 
 ## Related
 
-- **Commit Format**: `dev-docs/2-areas/development/commit-message-format.md` - Complete format with examples
 - **Linear Workflow**: `/start` command - Complete Linear constants and workflow
 - **Patterns**: `dev-docs/2-areas/patterns/INDEX.md` - Pattern lookup
 - **Ticket Creation**: `/start` command - Handles ticket creation workflow
@@ -269,4 +243,4 @@ Once I have a ticket ID, I'll proceed with saving.
 ---
 
 **Last Updated**: 2025-11-13  
-**Purpose**: Optimized workflow for knowledge capture and commits
+**Purpose**: Local knowledge capture (no commit) - saves time/tokens

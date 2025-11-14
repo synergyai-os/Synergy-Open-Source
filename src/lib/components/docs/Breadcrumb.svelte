@@ -2,6 +2,7 @@
 	import { page } from '$app/stores';
 	import { fly } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
+	import { resolveRoute } from '$lib/utils/navigation';
 
 	// Utility: Strip PARA numbering (1-, 2-, 3-, 4-) from folder names
 	function cleanParaName(name: string): string {
@@ -87,7 +88,7 @@
 				class="breadcrumb-item"
 				in:fly={{ x: -10, duration: prefersReducedMotion ? 0 : 250, delay: 0, easing: quintOut }}
 			>
-				<a href="/" class="breadcrumb-link">
+				<a href={resolveRoute('/')} class="breadcrumb-link">
 					<svg
 						class="breadcrumb-home-icon"
 						width="14"

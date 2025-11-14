@@ -7,6 +7,7 @@
 	import { fade, fly, scale, slide } from 'svelte/transition';
 	import { quintOut, elasticOut } from 'svelte/easing';
 	import { onMount } from 'svelte';
+	import { resolveRoute } from '$lib/utils/navigation';
 
 	// Animation state
 	let heroVisible = false;
@@ -248,7 +249,7 @@
 <nav class="docs-navbar" aria-label="Main navigation">
 	<div class="navbar-content">
 		<div class="navbar-left">
-			<a href="/dev-docs" class="navbar-logo">
+			<a href={resolveRoute('/dev-docs')} class="navbar-logo">
 				<span class="logo-icon">⚡</span>
 				<span class="logo-text">SynergyOS Docs</span>
 			</a>
@@ -256,7 +257,7 @@
 
 		<!-- Desktop Navigation -->
 		<div class="navbar-center navbar-desktop">
-			{#each navGroups as group}
+			{#each navGroups as group (group.id)}
 				<div class="nav-group">
 					<button
 						class="nav-group-trigger"
@@ -307,7 +308,7 @@
 							class="nav-dropdown"
 							transition:slide={{ duration: prefersReducedMotion ? 0 : 200, easing: quintOut }}
 						>
-							{#each group.items as item}
+							{#each group.items as item (item.href)}
 								<a href={item.href} class="nav-dropdown-item" onclick={() => closeAllMenus()}>
 									<div class="nav-dropdown-content">
 										<span class="nav-dropdown-label">
@@ -394,7 +395,7 @@
 		</div>
 
 		<div class="mobile-menu-content">
-			{#each navGroups as group, groupIndex}
+			{#each navGroups as group, groupIndex (group.id)}
 				<div
 					class="mobile-menu-section"
 					in:fly={{ y: 20, duration: 250, delay: groupIndex * 80, easing: quintOut }}
@@ -409,7 +410,7 @@
 						{group.label}
 					</h3>
 					<div class="mobile-menu-cards">
-						{#each group.items as item, itemIndex}
+						{#each group.items as item, itemIndex (item.href)}
 							<a
 								href={item.href}
 								class="mobile-menu-card"
@@ -572,7 +573,7 @@
 
 			<!-- Quick Actions - De-emphasized -->
 			<div class="quick-actions-minimal">
-				{#each quickActions as action}
+				{#each quickActions as action (action.href)}
 					<a href={action.href} class="action-card-minimal">
 						<span class="action-icon-minimal">{action.icon}</span>
 						<span class="action-title-minimal">{action.title}</span>
@@ -624,13 +625,13 @@
 		<p class="section-description">Find what you need based on what you do</p>
 
 		<div class="roles-grid">
-			{#each roles as role}
+			{#each roles as role (role.title)}
 				<div class="role-card">
 					<div class="role-icon">{role.icon}</div>
 					<h3 class="role-title">{role.title}</h3>
 					<p class="role-description">{role.description}</p>
 					<ul class="role-links">
-						{#each role.links as link}
+						{#each role.links as link (link.href)}
 							<li>
 								<a href={link.href} class="role-link">
 									{link.label}
@@ -654,7 +655,7 @@
 
 	<!-- Stats Bar -->
 	<section class="stats-bar">
-		{#each stats as stat}
+		{#each stats as stat (stat.label)}
 			<div class="stat">
 				<div class="stat-value">{stat.value}</div>
 				<div class="stat-label">{stat.label}</div>
@@ -676,7 +677,7 @@
 			<div class="verified-tools">
 				<h3 class="verified-title">Verified Compatible</h3>
 				<div class="tool-cards-grid">
-					{#each verifiedTools as tool}
+					{#each verifiedTools as tool (tool.name)}
 						<a href={tool.url} target="_blank" rel="noopener noreferrer" class="ai-tool-card">
 							<div class="tool-logo">{tool.logo}</div>
 							<div class="tool-content">
@@ -703,7 +704,9 @@
 
 				<div class="forecast-callout">
 					<strong>Bold Claim:</strong> We'll hit 100 GitHub stars in 90 days.
-					<a href="/dev-docs/2-areas/metrics" class="metrics-link">Track it live →</a>
+					<a href={resolveRoute('/dev-docs/2-areas/metrics')} class="metrics-link"
+						>Track it live →</a
+					>
 				</div>
 			</div>
 
@@ -738,7 +741,9 @@
 						</svg>
 						Star on GitHub
 					</a>
-					<a href="/CONTRIBUTING" class="btn btn-secondary"> 📖 Contributing Guide </a>
+					<a href="/CONTRIBUTING" class="btn btn-secondary">
+						📖 Contributing Guide
+					</a>
 				</div>
 			</div>
 
@@ -747,13 +752,17 @@
 					<div class="stat-card-icon">💰</div>
 					<div class="stat-card-value">$0 MRR</div>
 					<div class="stat-card-label">Pre-revenue</div>
-					<a href="/dev-docs/2-areas/metrics" class="stat-card-link">View all metrics →</a>
+					<a href={resolveRoute('/dev-docs/2-areas/metrics')} class="stat-card-link"
+						>View all metrics →</a
+					>
 				</div>
 				<div class="stat-card">
 					<div class="stat-card-icon">🎯</div>
 					<div class="stat-card-value">48</div>
 					<div class="stat-card-label">Patterns Documented</div>
-					<a href="/dev-docs/2-areas/patterns/INDEX" class="stat-card-link">Browse patterns →</a>
+					<a href={resolveRoute('/dev-docs/2-areas/patterns/INDEX')} class="stat-card-link"
+						>Browse patterns →</a
+					>
 				</div>
 			</div>
 		</div>
@@ -764,10 +773,13 @@
 		<h2>Ready to dive in?</h2>
 		<p>Choose your path and start exploring</p>
 		<div class="footer-actions">
-			<a href="/dev-docs/2-areas/patterns/INDEX" class="btn btn-large btn-primary">
+			<a href={resolveRoute('/dev-docs/2-areas/patterns/INDEX')} class="btn btn-large btn-primary">
 				🐛 Debug Something
 			</a>
-			<a href="/marketing-docs/strategy/product-vision-2.0" class="btn btn-large btn-secondary">
+			<a
+				href={resolveRoute('/marketing-docs/strategy/product-vision-2.0')}
+				class="btn btn-large btn-secondary"
+			>
 				🚀 See the Vision
 			</a>
 		</div>
@@ -800,18 +812,22 @@
 			<div class="footer-section">
 				<h4 class="footer-heading">Documentation</h4>
 				<ul class="footer-links">
-					<li><a href="/dev-docs/2-areas/patterns/INDEX">Pattern Index</a></li>
-					<li><a href="/dev-docs/2-areas/metrics">Metrics & OKRs</a></li>
-					<li><a href="/dev-docs/2-areas/architecture">Architecture</a></li>
-					<li><a href="/dev-docs/2-areas/design-tokens">Design Tokens</a></li>
+					<li><a href={resolveRoute('/dev-docs/2-areas/patterns/INDEX')}>Pattern Index</a></li>
+					<li><a href={resolveRoute('/dev-docs/2-areas/metrics')}>Metrics & OKRs</a></li>
+					<li><a href={resolveRoute('/dev-docs/2-areas/architecture')}>Architecture</a></li>
+					<li><a href={resolveRoute('/dev-docs/2-areas/design-tokens')}>Design Tokens</a></li>
 				</ul>
 			</div>
 
 			<div class="footer-section">
 				<h4 class="footer-heading">Product</h4>
 				<ul class="footer-links">
-					<li><a href="/marketing-docs/strategy/product-vision-2.0">Product Vision</a></li>
-					<li><a href="/marketing-docs/strategy/product-strategy">Product Strategy</a></li>
+					<li>
+						<a href={resolveRoute('/marketing-docs/strategy/product-vision-2.0')}>Product Vision</a>
+					</li>
+					<li>
+						<a href={resolveRoute('/marketing-docs/strategy/product-strategy')}>Product Strategy</a>
+					</li>
 					<li><a href="/CONTRIBUTING">Contributing Guide</a></li>
 					<li>
 						<a
@@ -840,7 +856,7 @@
 							rel="noopener noreferrer">Discussions</a
 						>
 					</li>
-					<li><a href="/dev-docs/2-areas/metrics">Public Metrics</a></li>
+					<li><a href={resolveRoute('/dev-docs/2-areas/metrics')}>Public Metrics</a></li>
 				</ul>
 			</div>
 		</div>

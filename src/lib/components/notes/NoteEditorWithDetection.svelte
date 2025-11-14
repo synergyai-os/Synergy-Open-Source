@@ -38,9 +38,9 @@
 
 	let showAIDetector = $state(false);
 	let detectorPosition = $state<{ x: number; y: number } | undefined>(undefined);
-	let editorRef: any;
+	let editorRef: EditorView | undefined;
 
-	function handlePaste(text: string, view: any) {
+	function handlePaste(text: string, view: EditorView) {
 		if (!browser) return;
 
 		// Only show detector if enabled and text is substantial

@@ -4,7 +4,7 @@
  * Configures ProseMirror with basic schema, plugins, and commands
  */
 
-import { Schema } from 'prosemirror-model';
+import { Schema, Node } from 'prosemirror-model';
 import { schema as basicSchema } from 'prosemirror-schema-basic';
 import { EditorState, Plugin } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
@@ -24,6 +24,11 @@ import {
 	InputRule
 } from 'prosemirror-inputrules';
 import { splitListItem, liftListItem, sinkListItem, addListNodes } from 'prosemirror-schema-list';
+import type {
+	ProseMirrorCommand,
+	ProseMirrorKeymap,
+	ProseMirrorNodeAttrs
+} from '$lib/types/prosemirror';
 
 /**
  * Extended schema with additional marks and nodes
@@ -96,7 +101,7 @@ export const noteSchema = new Schema({
 				}
 			],
 			toDOM(node) {
-				const attrs: any = {};
+				const attrs: ProseMirrorNodeAttrs = {};
 				if (node.attrs.language) {
 					attrs['data-language'] = node.attrs.language;
 					attrs.class = `language-${node.attrs.language}`;
@@ -110,8 +115,8 @@ export const noteSchema = new Schema({
 /**
  * Custom command: Insert hard break in task item (Shift+Enter)
  */
-function insertHardBreakInTaskItem(schema: Schema) {
-	return (state: any, dispatch: any) => {
+function insertHardBreakInTaskItem(schema: Schema): ProseMirrorCommand {
+	return (state, dispatch) => {
 		const { $from } = state.selection;
 
 		// Check if we're in a task_item
@@ -133,8 +138,8 @@ function insertHardBreakInTaskItem(schema: Schema) {
 /**
  * Custom command: Exit task item on Enter (lift to paragraph)
  */
-function exitTaskItem(schema: Schema) {
-	return (state: any, dispatch: any) => {
+function exitTaskItem(schema: Schema): ProseMirrorCommand {
+	return (state, dispatch) => {
 		const { $from } = state.selection;
 
 		// Check if we're in a task_item
@@ -154,7 +159,7 @@ function exitTaskItem(schema: Schema) {
  * Create keyboard shortcuts
  */
 export function buildKeymap(schema: Schema, onEscape?: () => void) {
-	const keys: { [key: string]: any } = { ...baseKeymap };
+	const keys: ProseMirrorKeymap = { ...baseKeymap };
 
 	// Bold: Cmd/Ctrl + B
 	keys['Mod-b'] = toggleMark(schema.marks.strong);
@@ -188,7 +193,7 @@ export function buildKeymap(schema: Schema, onEscape?: () => void) {
 	keys['Mod-y'] = redo;
 
 	// ESC: Blur editor to allow global shortcuts
-	keys['Escape'] = (state: any, dispatch: any, view: EditorView) => {
+	keys['Escape'] = (state, dispatch, view) => {
 		if (view && view.dom) {
 			view.dom.blur();
 			// Notify parent (modal) to refocus itself
@@ -262,9 +267,12 @@ export function buildInputRules(schema: Schema) {
 	// Task list: [] or [ ] at start of line
 	if (schema.nodes.task_list && schema.nodes.task_item) {
 		rules.push(
-			wrappingInputRule(/^\s*\[\s?\]\s$/, schema.nodes.task_list, undefined, (match, node) => ({
-				checked: false
-			}))
+			wrappingInputRule(
+				/^\s*\[\s?\]\s$/,
+				schema.nodes.task_list,
+				() => ({}), // getAttrs for task_list (empty)
+				() => true // joinPredicate - always allow joining
+			)
 		);
 	}
 
@@ -397,7 +405,7 @@ export function pasteHandlerPlugin(onPaste?: (text: string, view: EditorView) =>
 						if (pos === null) return false;
 
 						const $pos = view.state.doc.resolve(pos);
-						let taskItemNode = null;
+						let taskItemNode: Node | null = null;
 						let taskItemPos = -1;
 
 						// Search for the task_item node
@@ -413,7 +421,7 @@ export function pasteHandlerPlugin(onPaste?: (text: string, view: EditorView) =>
 						if (taskItemNode && taskItemPos >= 0) {
 							// Toggle the checked attribute
 							const tr = view.state.tr.setNodeMarkup(taskItemPos, undefined, {
-								checked: !taskItemNode.attrs.checked
+								checked: !(taskItemNode.attrs as { checked?: boolean }).checked
 							});
 
 							view.dispatch(tr);
@@ -442,7 +450,7 @@ export function createEditorState(
 ) {
 	const doc = content
 		? noteSchema.nodeFromJSON(JSON.parse(content))
-		: noteSchema.nodes.doc.createAndFill();
+		: (noteSchema.nodes.doc.createAndFill() ?? undefined);
 
 	const plugins = [
 		buildInputRules(noteSchema),
@@ -487,5 +495,10 @@ export function exportEditorJSON(state: EditorState): string {
  */
 export function isEditorEmpty(state: EditorState): boolean {
 	const doc = state.doc;
-	return doc.childCount === 1 && doc.firstChild?.isTextblock && doc.firstChild.content.size === 0;
+	const firstChild = doc.firstChild;
+	return (
+		doc.childCount === 1 &&
+		(firstChild?.isTextblock ?? false) &&
+		(firstChild?.content.size ?? 0) === 0
+	);
 }

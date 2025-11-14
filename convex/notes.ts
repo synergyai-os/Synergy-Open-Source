@@ -80,7 +80,7 @@ export const updateNote = mutation({
 			throw new Error('Item is not a note');
 		}
 
-		const updateData: any = {
+		const updateData: Partial<Doc<'inboxItems'>> & { updatedAt: number } = {
 			updatedAt: Date.now()
 		};
 

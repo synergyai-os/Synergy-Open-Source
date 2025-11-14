@@ -5,6 +5,8 @@
  * Uses Svelte 5 $state for reactive state management
  */
 
+import { SvelteSet } from 'svelte/reactivity';
+
 export interface ActivityProgress {
 	// Determinate progress (X/Y)
 	current?: number;
@@ -82,13 +84,13 @@ export interface Activity {
 interface ActivityState {
 	activities: Activity[];
 	pollingInterval: ReturnType<typeof setInterval> | null;
-	dismissTimers: Set<string>; // Track which activities already have dismiss timers
+	dismissTimers: SvelteSet<string>; // Track which activities already have dismiss timers (reactive)
 }
 
 export const activityState = $state<ActivityState>({
 	activities: [],
 	pollingInterval: null,
-	dismissTimers: new Set()
+	dismissTimers: new SvelteSet()
 });
 
 /**

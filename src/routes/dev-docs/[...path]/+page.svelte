@@ -18,7 +18,13 @@
 		const renderer = new marked.Renderer();
 
 		// Custom heading renderer with line-number-aware IDs
-		renderer.heading = function ({ text, depth }: any) {
+		renderer.heading = function ({
+			text,
+			depth
+		}: {
+			text: string | { raw?: string };
+			depth: number;
+		}) {
 			// Extract plain text from token
 			let plainText = typeof text === 'string' ? text : text.raw || '';
 
@@ -46,7 +52,15 @@
 		};
 
 		// Custom link renderer to transform .md links to proper routes
-		renderer.link = function ({ href, text, title }: any) {
+		renderer.link = function ({
+			href,
+			text,
+			title
+		}: {
+			href: string;
+			text: string;
+			title?: string;
+		}) {
 			// Only transform relative .md links (internal docs)
 			if (href && !href.startsWith('http') && !href.startsWith('/')) {
 				// Handle .md file links

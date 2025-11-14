@@ -80,6 +80,11 @@
 	--spacing-control-button-padding: 0.5rem; /* 8px - square button padding */
 	--spacing-control-divider: 0.5rem; /* 8px - margin around dividers */
 
+	/* PIN Input Size Tokens */
+	--size-pin-cell: 4rem; /* 64px - square size for PIN input cells */
+	--size-pin-cell-text: 2rem; /* 32px - text size inside PIN cells */
+	--shadow-pin-glow: 0 0 0 3px var(--color-accent-primary) / 0.15; /* Glow effect for focused PIN cells */
+
 	/* Marketing Page Spacing Tokens */
 	/* Use these for all marketing/content pages (landing pages, blog posts, documentation) */
 	--spacing-marketing-section-y: 7rem; /* 112px - Section vertical padding (top and bottom) */
@@ -586,6 +591,11 @@ html:not(.dark) {
 }
 @utility rounded-modal {
 	border-radius: 0.5rem; /* 8px */
+}
+
+/* Shadow Utilities */
+@utility shadow-pin-glow {
+	box-shadow: var(--shadow-pin-glow);
 }
 
 /* Mobile optimizations */

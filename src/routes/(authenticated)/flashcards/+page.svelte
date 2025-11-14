@@ -8,6 +8,7 @@
 	import FlashcardDetailModal from '$lib/components/flashcards/FlashcardDetailModal.svelte';
 	import { api } from '$lib/convex';
 	import type { Id } from '../../../../convex/_generated/dataModel';
+	import { resolveRoute } from '$lib/utils/navigation';
 
 	const convexClient = browser ? useConvexClient() : null;
 
@@ -28,7 +29,7 @@
 		browser && getSessionId()
 			? useQuery(api.tags.listAllTags, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) return 'skip';
+					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
 					return { sessionId };
 				})
 			: null;
@@ -39,7 +40,7 @@
 		browser && getSessionId()
 			? useQuery(api.flashcards.getFlashcardsByCollection, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) return 'skip';
+					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
 					return { sessionId };
 				})
 			: null;
@@ -50,7 +51,7 @@
 		browser && getSessionId()
 			? useQuery(api.flashcards.getUserFlashcards, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) return 'skip';
+					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
 					return {
 						sessionId,
 						tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined
@@ -82,7 +83,13 @@
 
 	// Combined collections (All Cards + filtered collections)
 	const displayCollections = $derived(() => {
-		const result = [allCardsCollection];
+		const result: Array<{
+			tagId: Id<'tags'> | 'all';
+			name: string;
+			color?: string;
+			count: number;
+			dueCount?: number;
+		}> = [allCardsCollection];
 		// Add filtered collections, but only if they have cards
 		for (const coll of filteredCollections) {
 			if (coll.count > 0) {
@@ -113,7 +120,14 @@
 		if (!browser || !convexClient) return;
 
 		// Get flashcards for this collection
-		let flashcards: any[] = [];
+		let flashcards: Array<{
+			_id: string;
+			question: string;
+			answer: string;
+			tagId?: string;
+			userId: string;
+			createdAt: number;
+		}> = [];
 
 		if (collection.tagId === 'all') {
 			flashcards = allFlashcards;
@@ -188,7 +202,7 @@
 		</div>
 		{#if allFlashcards.length > 0}
 			<Button.Root
-				href="/study"
+				href={resolveRoute('/study')}
 				class="flex items-center gap-icon rounded-md bg-accent-primary px-nav-item py-nav-item text-sm font-medium text-white transition-opacity hover:opacity-90"
 			>
 				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -232,7 +246,7 @@
 		{:else}
 			<!-- Collections Grid -->
 			<div class="grid grid-cols-1 gap-inbox-list md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-				{#each displayCollections() as collection}
+				{#each displayCollections() as collection (collection.tagId)}
 					<FlashcardCollectionCard {collection} onClick={() => openCollection(collection)} />
 				{/each}
 			</div>

@@ -3,7 +3,7 @@ import { mutation, query } from './_generated/server';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
 import { getAuthUserId } from './auth';
-import { validateSession, validateSessionAndGetUserId } from './sessionValidation';
+import { validateSessionAndGetUserId } from './sessionValidation';
 import { requirePermission } from './rbac/permissions';
 
 /**
@@ -168,7 +168,7 @@ export const updateUserProfile = mutation({
 			resourceOwnerId: args.targetUserId // Target user is the "owner" of their profile
 		});
 
-		const updates: any = {
+		const updates: Partial<Doc<'users'>> & { updatedAt: number } = {
 			updatedAt: Date.now()
 		};
 

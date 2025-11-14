@@ -7,7 +7,7 @@
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 import { getAuthUserId } from './auth';
-import { validateSession, validateSessionAndGetUserId } from './sessionValidation';
+import { validateSessionAndGetUserId } from './sessionValidation';
 import { normalizeTagName } from './readwiseUtils';
 import type { Doc, Id } from './_generated/dataModel';
 import { canAccessContent } from './permissions';
@@ -29,14 +29,15 @@ export interface TagWithHierarchy {
 	children?: TagWithHierarchy[];
 }
 
-async function resolveDistinctId(
-	ctx: QueryCtx | MutationCtx,
-	userId: Id<'users'>
-): Promise<string> {
-	const user = await ctx.db.get(userId);
-	const email = (user as unknown as { email?: string } | undefined)?.email;
-	return typeof email === 'string' ? email : userId;
-}
+// TODO: Re-enable when server-side analytics is restored
+// async function resolveDistinctId(
+// 	ctx: QueryCtx | MutationCtx,
+// 	userId: Id<'users'>
+// ): Promise<string> {
+// 	const user = await ctx.db.get(userId);
+// 	const email = (user as unknown as { email?: string } | undefined)?.email;
+// 	return typeof email === 'string' ? email : userId;
+// }
 
 /**
  * Helper: Build hierarchical tag tree structure
@@ -55,7 +56,7 @@ export interface TagWithHierarchy {
 	children?: TagWithHierarchy[];
 }
 
-function buildTagTree(tags: any[]): TagWithHierarchy[] {
+function buildTagTree(tags: Doc<'tags'>[]): TagWithHierarchy[] {
 	const tagMap = new Map<Id<'tags'>, TagWithHierarchy>();
 	const rootTags: TagWithHierarchy[] = [];
 
@@ -123,7 +124,7 @@ async function getTagDescendants(
 		const currentTagId = queue.shift()!;
 		const children = await ctx.db
 			.query('tags')
-			.withIndex('by_user_parent', (q: any) => q.eq('userId', userId).eq('parentId', currentTagId))
+			.withIndex('by_user_parent', (q) => q.eq('userId', userId).eq('parentId', currentTagId))
 			.collect();
 
 		for (const child of children) {
@@ -422,15 +423,16 @@ export const createTag = mutation({
 			ownershipType: ownership
 		});
 
-		const distinctId = await resolveDistinctId(ctx, userId as Id<'users'>);
+		// TODO: Re-enable server-side analytics via HTTP action bridge
+		// const distinctId = await resolveDistinctId(ctx, userId as Id<'users'>);
 
 		if (ownership === 'organization' && organizationId) {
-			const tagCount = await ctx.db
-				.query('tags')
-				.withIndex('by_organization', (q: any) => q.eq('organizationId', organizationId))
-				.collect();
-
 			// TODO: Re-enable server-side analytics via HTTP action bridge
+			// const tagCount = await ctx.db
+			// 	.query('tags')
+			// 	.withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
+			// 	.collect();
+
 			// await captureAnalyticsEvent({
 			// 	name: AnalyticsEventName.ORGANIZATION_TAG_ASSIGNED,
 			// 	distinctId,
@@ -444,10 +446,11 @@ export const createTag = mutation({
 			// 	},
 			// });
 		} else if (ownership === 'team' && teamId) {
-			const tagCount = await ctx.db
-				.query('tags')
-				.withIndex('by_team', (q: any) => q.eq('teamId', teamId))
-				.collect();
+			// TODO: Re-enable server-side analytics via HTTP action bridge
+			// const tagCount = await ctx.db
+			// 	.query('tags')
+			// 	.withIndex('by_team', (q) => q.eq('teamId', teamId))
+			// 	.collect();
 
 			// TODO: Re-enable server-side analytics via HTTP action bridge
 			// await captureAnalyticsEvent({
@@ -716,9 +719,11 @@ async function assignTagsToEntity(
 	}
 
 	// 3. Get and remove existing assignments
+	// Dynamic index name - TypeScript can't validate at compile time
+	const indexName = `by_${entityType.slice(0, -1)}` as string;
 	const existingAssignments = await ctx.db
 		.query(config.junctionTable)
-		.withIndex(`by_${entityType.slice(0, -1)}` as any, (q: any) => q.eq(config.idField, entityId))
+		.withIndex(indexName, (q) => q.eq(config.idField, entityId))
 		.collect();
 
 	for (const assignment of existingAssignments) {

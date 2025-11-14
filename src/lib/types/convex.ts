@@ -48,7 +48,7 @@ export type SyncProgress = {
 // Base inbox item structure (from schema)
 type BaseInboxItem = {
 	_id: string;
-	type: 'readwise_highlight' | 'photo_note' | 'manual_text';
+	type: 'readwise_highlight' | 'photo_note' | 'manual_text' | 'note';
 	userId: string;
 	processed: boolean;
 	processedAt?: number;
@@ -129,11 +129,25 @@ export type ManualTextWithDetails = BaseInboxItem & {
 	text?: string;
 };
 
+// Note with details
+export type NoteWithDetails = BaseInboxItem & {
+	type: 'note';
+	title?: string;
+	content: string; // ProseMirror JSON
+	contentMarkdown?: string;
+	isAIGenerated?: boolean;
+	aiGeneratedAt?: number;
+	blogCategory?: string;
+	slug?: string;
+	updatedAt?: number;
+};
+
 // Union type for inbox item with details (return type from getInboxItemWithDetails)
 export type InboxItemWithDetails =
 	| ReadwiseHighlightWithDetails
 	| PhotoNoteWithDetails
-	| ManualTextWithDetails;
+	| ManualTextWithDetails
+	| NoteWithDetails;
 
 // Sync result type (return type from syncReadwiseHighlights action)
 export interface SyncReadwiseResult {

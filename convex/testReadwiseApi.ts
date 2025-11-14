@@ -25,7 +25,9 @@ export const testFetchHighlights = action({
 		pageSize: v.optional(v.number()),
 		// Optional: API key for direct testing (for use in dashboard)
 		// If not provided, will try to get from user settings (requires auth)
-		apiKey: v.optional(v.string())
+		apiKey: v.optional(v.string()),
+		// Optional: sessionId for authenticated requests (required if apiKey not provided)
+		sessionId: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
 		let decryptedKey: string;
@@ -35,7 +37,14 @@ export const testFetchHighlights = action({
 			decryptedKey = args.apiKey;
 		} else {
 			// Otherwise, get from user settings (requires authentication)
-			const userId = await ctx.runQuery(internal.settings.getUserId);
+			if (!args.sessionId) {
+				throw new Error(
+					'Either apiKey or sessionId must be provided. For testing in dashboard, provide apiKey parameter directly.'
+				);
+			}
+			const userId = await ctx.runQuery(internal.settings.getUserIdFromSessionId, {
+				sessionId: args.sessionId
+			});
 			if (!userId) {
 				throw new Error(
 					'Not authenticated. For testing in dashboard, provide apiKey parameter directly.'
@@ -43,7 +52,9 @@ export const testFetchHighlights = action({
 			}
 
 			// Get encrypted keys
-			const encryptedKeys = await ctx.runQuery(internal.settings.getEncryptedKeysInternal);
+			const encryptedKeys = await ctx.runQuery(internal.settings.getEncryptedKeysInternal, {
+				userId
+			});
 			if (!encryptedKeys?.readwiseApiKey) {
 				throw new Error('Readwise API key not found. Please add it in Settings first.');
 			}
@@ -126,7 +137,9 @@ export const testFetchBooks = action({
 		limit: v.optional(v.number()),
 		// Optional: API key for direct testing (for use in dashboard)
 		// If not provided, will try to get from user settings (requires auth)
-		apiKey: v.optional(v.string())
+		apiKey: v.optional(v.string()),
+		// Optional: sessionId for authenticated requests (required if apiKey not provided)
+		sessionId: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
 		let decryptedKey: string;
@@ -136,14 +149,23 @@ export const testFetchBooks = action({
 			decryptedKey = args.apiKey;
 		} else {
 			// Otherwise, get from user settings (requires authentication)
-			const userId = await ctx.runQuery(internal.settings.getUserId);
+			if (!args.sessionId) {
+				throw new Error(
+					'Either apiKey or sessionId must be provided. For testing in dashboard, provide apiKey parameter directly.'
+				);
+			}
+			const userId = await ctx.runQuery(internal.settings.getUserIdFromSessionId, {
+				sessionId: args.sessionId
+			});
 			if (!userId) {
 				throw new Error(
 					'Not authenticated. For testing in dashboard, provide apiKey parameter directly.'
 				);
 			}
 
-			const encryptedKeys = await ctx.runQuery(internal.settings.getEncryptedKeysInternal);
+			const encryptedKeys = await ctx.runQuery(internal.settings.getEncryptedKeysInternal, {
+				userId
+			});
 			if (!encryptedKeys?.readwiseApiKey) {
 				throw new Error('Readwise API key not found. Please add it in Settings first.');
 			}

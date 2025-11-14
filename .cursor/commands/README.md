@@ -5,6 +5,7 @@
 **⚠️ CRITICAL**: **AI agents MUST read this file before modifying any `.cursor/commands/*.md` file**
 
 **How this works:**
+
 - This file documents the optimization strategy and results
 - AI agents see this via `.cursor/rules/way-of-working.mdc` (always loaded)
 - When modifying commands, agents check this file first to prevent regression
@@ -13,14 +14,14 @@
 
 ## 📊 Optimization Results
 
-| Command | Before | After | Reduction | Status |
-|---------|--------|-------|-----------|--------|
-| `/start` | 220 lines | 368 lines | +148 lines | ✅ Linear constants & workflow added |
-| `/start-new-project` | 755 lines | 594 lines | 21% (161 lines) | ✅ Optimized |
-| `/save` | 898 lines | 272 lines | 70% (626 lines) | ✅ Optimized |
-| `/root-cause` | 65 lines | 65 lines | 0% | ✅ Already optimal |
-| `/pr` | New | 366 lines | N/A | ✅ New command - PR creation workflow |
-| `/pr-close` | New | 415 lines | N/A | ✅ New command - Post-merge cleanup workflow |
+| Command              | Before    | After     | Reduction       | Status                                       |
+| -------------------- | --------- | --------- | --------------- | -------------------------------------------- |
+| `/start`             | 220 lines | 368 lines | +148 lines      | ✅ Linear constants & workflow added         |
+| `/start-new-project` | 755 lines | 594 lines | 21% (161 lines) | ✅ Optimized                                 |
+| `/save`              | 898 lines | 272 lines | 70% (626 lines) | ✅ Optimized                                 |
+| `/root-cause`        | 65 lines  | 65 lines  | 0%              | ✅ Already optimal                           |
+| `/pr`                | New       | 366 lines | N/A             | ✅ New command - PR creation workflow        |
+| `/pr-close`          | New       | 415 lines | N/A             | ✅ New command - Post-merge cleanup workflow |
 
 **Total Reduction**: ~558 lines removed from `/save`, extracted to `commit-message-format.md` (406 lines)
 
@@ -31,11 +32,13 @@
 ### Key Principle: Remove Duplication, Add References
 
 **Before:**
+
 - Commands duplicated Linear constants and workflows
 - Same information in multiple places
 - Harder to maintain (update in multiple files)
 
 **After:**
+
 - Single source of truth: `/start` command (Linear constants & workflow)
 - Commands reference `/start` instead of duplicating
 - Easier to maintain (update once in `/start`)
@@ -48,6 +51,7 @@
 ### `/start` Command
 
 **Current State:**
+
 - **Single source of truth** for Linear constants and workflow
 - All Linear constants inline (LINEAR_TEAM_ID, RANDY_USER_ID, ESTIMATES, LINEAR_LABELS)
 - Complete ticket creation workflow
@@ -61,6 +65,7 @@
 ### `/start-new-project` Command
 
 **Removed:**
+
 - Hardcoded Linear constants block (~48 lines)
 - Detailed ticket management rules (~113 lines)
   - AI responsibilities
@@ -69,6 +74,7 @@
   - Labeling rules
 
 **Added:**
+
 - Quick reference (team ID, user ID, estimate mapping)
 - References to `/linear` command for complete details
 - Prerequisites updated to include `/linear` command
@@ -80,17 +86,19 @@
 ### `/save` Command
 
 **Removed:**
+
 - Commit message format template (~400 lines) → Extracted to `dev-docs/2-areas/development/commit-message-format.md`
 - All commit message examples (~200 lines) → Moved to `commit-message-format.md`
 - Teaching notes and anti-patterns (~26 lines) → Moved to `commit-message-format.md`
 - Ticket creation workflow → Moved to `/start` command
+- **Commit step** → Removed entirely (saves locally only, no git operations)
 
 **Added:**
-- Reference to `commit-message-format.md` for complete format
-- Reference to `/start` for ticket creation
-- Simplified workflow with references
 
-**Result:** 70% reduction (898 → 272 lines), focused workflow
+- Local save workflow (no commit) - saves time/tokens
+- Simplified workflow focused on pattern updates only
+
+**Result:** 70% reduction (898 → 272 lines), local save only (no commit)
 
 ---
 
@@ -121,7 +129,7 @@
 ### Project Workflow Commands
 
 - **`/start-new-project`** - New project setup (594 lines)
-- **`/save`** - Knowledge capture (272 lines)
+- **`/save`** - Local knowledge capture, no commit (272 lines)
 - **`/pr`** - PR creation workflow (366 lines)
 - **`/pr-close`** - Post-merge cleanup workflow (415 lines)
 
@@ -155,6 +163,7 @@
 ### Step 2: Evaluate Need for Optimization
 
 **Red flags (command needs optimization):**
+
 - Command exceeds ~300 lines
 - Duplicates content from other commands/docs
 - Contains examples/templates that could be extracted

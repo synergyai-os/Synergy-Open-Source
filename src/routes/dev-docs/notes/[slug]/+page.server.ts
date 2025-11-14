@@ -27,7 +27,7 @@ export const load: PageServerLoad = async (event) => {
 		blogOnly: false
 	});
 
-	const note = notes.find((n: any) => n.slug === slug);
+	const note = notes.find((n) => n.slug === slug);
 
 	if (!note) {
 		throw error(404, 'Note not found');

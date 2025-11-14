@@ -8,6 +8,7 @@ import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 import { getAuthUserId } from './auth';
 import { validateSessionAndGetUserId } from './sessionValidation';
+import type { ProseMirrorNode } from '../src/lib/types/prosemirror';
 
 /**
  * List all inbox items for the current user
@@ -133,7 +134,7 @@ export const listInboxItems = query({
 						// Try to extract text from ProseMirror JSON
 						try {
 							const proseMirrorDoc = JSON.parse(item.content);
-							const extractText = (node: any): string => {
+							const extractText = (node: ProseMirrorNode): string => {
 								if (node.text) return node.text;
 								if (node.content) {
 									return node.content.map(extractText).join(' ');
@@ -279,7 +280,6 @@ export const getInboxItemWithDetails = query({
 				.collect();
 
 			const tagIds = highlightTags.map((ht) => ht.tagId);
-			const tags = await Promise.all(tagIds.map((tagId) => ctx.db.get(tagId)));
 
 			// Get tags for the source (if any)
 			const sourceTags = await ctx.db
@@ -288,7 +288,6 @@ export const getInboxItemWithDetails = query({
 				.collect();
 
 			const sourceTagIds = sourceTags.map((st) => st.tagId);
-			const sourceTagsData = await Promise.all(sourceTagIds.map((tagId) => ctx.db.get(tagId)));
 
 			// Combine highlight and source tags (unique)
 			const allTagIds = Array.from(new Set([...tagIds, ...sourceTagIds]));

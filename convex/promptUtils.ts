@@ -13,9 +13,9 @@ const promptTemplates: Record<string, string> = {
  * Example: getNestedProperty(obj, 'book.name') => obj.book.name
  * Supports array indices: getNestedProperty(obj, 'items.0.name') => obj.items[0].name
  */
-function getNestedProperty(obj: any, path: string): string | undefined {
+function getNestedProperty(obj: unknown, path: string): string | undefined {
 	const parts = path.split('.');
-	let value: any = obj;
+	let value: unknown = obj;
 
 	for (const part of parts) {
 		if (value === null || value === undefined) {

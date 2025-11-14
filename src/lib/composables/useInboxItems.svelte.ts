@@ -40,7 +40,13 @@ export function useInboxItems(params?: UseInboxItemsParams): UseInboxItemsReturn
 					const sessionId = params.sessionId(); // Get current sessionId (reactive)
 					if (!sessionId) return null; // Skip query if sessionId not available
 
-					const baseArgs: any = {
+					const baseArgs: {
+						sessionId: string;
+						processed: boolean;
+						filterType?: string;
+						organizationId?: string | null;
+						teamId?: string | null;
+					} = {
 						sessionId, // Required for session validation
 						processed: false
 					};

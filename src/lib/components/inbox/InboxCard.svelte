@@ -77,7 +77,7 @@
 					<div class="mt-1.5 flex items-center gap-1">
 						<!-- Tags -->
 						<div class="flex flex-wrap gap-1">
-							{#each item.tags.slice(0, 2) as tag}
+							{#each item.tags.slice(0, 2) as tag (tag)}
 								<span class="rounded bg-tag px-badge py-badge text-label text-tag">
 									{tag}
 								</span>

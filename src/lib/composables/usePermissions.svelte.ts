@@ -14,7 +14,7 @@
 import { browser } from '$app/environment';
 import { useQuery } from 'convex-svelte';
 import { api } from '$lib/convex';
-import type { Id } from '$convex/_generated/dataModel';
+import type { Id } from '$lib/convex';
 
 export interface UsePermissionsParams {
 	sessionId: () => string | null;
@@ -52,32 +52,39 @@ export interface UsePermissionsReturn {
  */
 export function usePermissions(params: UsePermissionsParams): UsePermissionsReturn {
 	// Query user permissions from Convex
-	const permissionsQuery = browser
-		? useQuery(api.rbac.permissions.getUserPermissionsQuery, () => {
-				const sessionId = params.sessionId();
-				if (!sessionId) return 'skip' as any;
+	const permissionsQuery =
+		browser && params.sessionId()
+			? useQuery(api.rbac.permissions.getUserPermissionsQuery, () => {
+					const sessionId = params.sessionId();
+					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
 
-				const args: any = { sessionId };
+					const args: {
+						sessionId: string;
+						organizationId?: Id<'organizations'>;
+						teamId?: Id<'teams'>;
+					} = { sessionId };
 
-				// Add context filters
-				const orgId = params.organizationId?.();
-				const teamId = params.teamId?.();
+					// Add context filters
+					const orgId = params.organizationId?.();
+					const teamId = params.teamId?.();
 
-				if (orgId !== undefined) {
-					args.organizationId = orgId;
-				}
-				if (teamId) {
-					args.teamId = teamId;
-				}
+					if (orgId !== undefined && orgId !== null) {
+						args.organizationId = orgId;
+					}
+					if (teamId !== undefined && teamId !== null) {
+						args.teamId = teamId;
+					}
 
-				return args;
-			})
-		: null;
+					return args;
+				})
+			: null;
 
 	// Derive permissions array from query
 	const permissionsData = $derived(permissionsQuery?.data ?? []);
 	const permissionSlugs = $derived(
-		permissionsData.map((p: any) => p.permissionSlug ?? p.slug ?? '')
+		permissionsData.map(
+			(p: { permissionSlug?: string; slug?: string }) => p.permissionSlug ?? p.slug ?? ''
+		)
 	);
 
 	const isLoading = $derived(permissionsQuery?.isLoading ?? false);

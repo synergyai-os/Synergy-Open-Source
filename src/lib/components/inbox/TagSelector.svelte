@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Combobox, DropdownMenu } from 'bits-ui';
+	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 	import { TAG_COLORS, DEFAULT_TAG_COLOR } from '$lib/utils/tagConstants';
 	import type { Id } from '../../../../convex/_generated/dataModel';
 
@@ -53,7 +54,7 @@
 	// This prevents duplicate optimistic tags once the query has refreshed
 	$effect(() => {
 		if (_availableTags && Array.isArray(_availableTags) && optimisticTags.length > 0) {
-			const propTagIds = new Set(_availableTags.map((tag: Tag) => tag._id).filter(Boolean));
+			const propTagIds = new SvelteSet(_availableTags.map((tag: Tag) => tag._id).filter(Boolean));
 			// Remove optimistic tags that are now in the query results
 			const stillOptimistic = optimisticTags.filter((tag: Tag) => !propTagIds.has(tag._id));
 			if (stillOptimistic.length !== optimisticTags.length) {
@@ -67,7 +68,7 @@
 	const availableTags = $derived(() => {
 		const baseTags = _availableTags && Array.isArray(_availableTags) ? _availableTags : [];
 		// Merge with optimistic tags (tags created but not yet in query results)
-		const tagsMap = new Map<string, Tag>();
+		const tagsMap = new SvelteMap<string, Tag>();
 
 		// First add base tags from prop (from Convex query)
 		baseTags.forEach((tag: Tag) => {
@@ -175,14 +176,14 @@
 
 	// Group tags by hierarchy (parent tags become group headings)
 	const groupedTags = $derived(() => {
-		const groups = new Map<Id<'tags'> | 'root', Tag[]>();
+		const groups = new SvelteMap<Id<'tags'> | 'root', Tag[]>();
 		const rootTags: Tag[] = [];
 		// Use selectedTagIds directly (source of truth) instead of selectedTags() to ensure
 		// all selected IDs are excluded, even if they haven't been resolved in availableTags() yet
-		const selectedIds = new Set(selectedTagIds);
+		const selectedIds = new SvelteSet(selectedTagIds);
 
 		// Use all available tags to build the tag map (needed for parent lookup)
-		const allTagMap = new Map<Id<'tags'>, Tag>();
+		const allTagMap = new SvelteMap<Id<'tags'>, Tag>();
 		const tags = availableTags(); // Call the derived function
 		for (const tag of tags) {
 			allTagMap.set(tag._id, tag);
@@ -383,7 +384,7 @@
 	<!-- Tag Pills Display (shown when tags exist) -->
 	{#if selectedTags().length > 0}
 		<div class="mb-2 flex flex-wrap gap-2">
-			{#each selectedTags() as tag}
+			{#each selectedTags() as tag (tag._id)}
 				<button
 					type="button"
 					class="inline-flex items-center gap-icon rounded bg-tag px-badge py-badge text-label text-tag transition-opacity hover:opacity-80"
@@ -514,7 +515,7 @@
 								Selected
 							</p>
 							<div class="space-y-0.5">
-								{#each selectedTags() as tag}
+								{#each selectedTags() as tag (tag._id)}
 									<button
 										type="button"
 										class="flex w-full cursor-pointer items-center gap-icon px-menu-item py-menu-item text-left text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
@@ -560,7 +561,7 @@
 								Available Tags
 							</p>
 							{#if hasFilteredTags}
-								{#each groupedTags().rootTags as tag}
+								{#each groupedTags().rootTags as tag (tag._id)}
 									<button
 										type="button"
 										class="flex w-full cursor-pointer items-center gap-icon px-menu-item py-menu-item text-left text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
@@ -577,7 +578,7 @@
 								{/each}
 
 								<!-- Grouped tags by parent -->
-								{#each Array.from(groupedTags().groups.entries()) as [parentId, tags]}
+								{#each Array.from(groupedTags().groups.entries()) as [parentId, tags] (parentId)}
 									{@const parentTag = allTags.find((t: Tag) => t._id === parentId)}
 									{#if parentTag}
 										<div class="mt-2">
@@ -586,7 +587,7 @@
 											>
 												{parentTag.displayName}
 											</p>
-											{#each tags as tag}
+											{#each tags as tag (tag._id)}
 												<button
 													type="button"
 													class="flex w-full cursor-pointer items-center gap-icon px-menu-item py-menu-item text-left text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
@@ -648,7 +649,7 @@
 										}
 									}}
 								>
-									{#each TAG_COLORS as color, index}
+									{#each TAG_COLORS as color, index (index)}
 										<button
 											type="button"
 											class="flex w-full cursor-pointer items-center gap-icon px-menu-item py-menu-item text-left text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"

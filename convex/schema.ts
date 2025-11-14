@@ -673,7 +673,32 @@ const schema = defineSchema({
 		.index('by_organization', ['organizationId'])
 		.index('by_team', ['teamId'])
 		.index('by_action', ['action'])
-		.index('by_permission', ['permissionSlug'])
+		.index('by_permission', ['permissionSlug']),
+
+	// ============================================================================
+	// Email Verification Codes - For registration and passwordless auth
+	// ============================================================================
+
+	// Verification Codes - 6-digit PIN codes for email verification
+	verificationCodes: defineTable({
+		email: v.string(), // Email address to verify
+		code: v.string(), // 6-digit PIN code
+		type: v.union(
+			v.literal('registration'), // Email verification during registration
+			v.literal('login'), // Passwordless login (future)
+			v.literal('email_change') // Email change verification (future)
+		),
+		attempts: v.number(), // Number of verification attempts
+		verified: v.boolean(), // Whether code has been verified
+		verifiedAt: v.optional(v.number()), // When code was verified
+		createdAt: v.number(), // When code was created
+		expiresAt: v.number(), // When code expires (10 minutes)
+		ipAddress: v.optional(v.string()), // IP address of requester
+		userAgent: v.optional(v.string()) // User agent of requester
+	})
+		.index('by_email_type', ['email', 'type']) // Fast lookup by email+type
+		.index('by_code', ['code']) // Fast lookup by code
+		.index('by_expires', ['expiresAt']) // Cleanup expired codes
 });
 
 export default schema;

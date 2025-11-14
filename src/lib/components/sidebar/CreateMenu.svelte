@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { DropdownMenu as DropdownMenuPrimitive } from 'bits-ui';
-	import { fade } from 'svelte/transition';
 
 	type Props = {
 		open: boolean;
@@ -20,7 +19,7 @@
 		triggerElement
 	}: Props = $props();
 
-	function handleSelect(action: () => void | undefined) {
+	function handleSelect(action: (() => void) | undefined) {
 		return () => {
 			action?.();
 			onOpenChange(false);
@@ -47,8 +46,6 @@
 	<DropdownMenuPrimitive.Content
 		class="px-menu-container py-menu-container z-50 min-w-[12rem] rounded-md border border-sidebar bg-sidebar shadow-lg"
 		sideOffset={4}
-		transition={fade}
-		transitionConfig={{ duration: 100 }}
 	>
 		<!-- Note Option -->
 		<DropdownMenuPrimitive.Item

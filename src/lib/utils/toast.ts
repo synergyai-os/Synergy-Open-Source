@@ -28,9 +28,10 @@
  */
 
 import { browser } from '$app/environment';
+import type { SonnerToast, ToastOptions, PromiseToastMessages } from '$lib/types/sonner';
 
 // Lazy-load svelte-sonner only on client side to avoid SSR issues
-let sonnerToast: any = null;
+let sonnerToast: SonnerToast | null = null;
 
 if (browser) {
 	import('svelte-sonner').then((module) => {
@@ -56,7 +57,7 @@ const getSonner = () =>
  * @param message - Success message to display
  * @param options - Optional toast configuration
  */
-function success(message: string, options?: any) {
+function success(message: string, options?: ToastOptions) {
 	const toast = getSonner();
 	return toast.success?.(message, {
 		duration: 3000,
@@ -69,7 +70,7 @@ function success(message: string, options?: any) {
  * @param message - Error message to display
  * @param options - Optional toast configuration
  */
-function error(message: string, options?: any) {
+function error(message: string, options?: ToastOptions) {
 	const toast = getSonner();
 	return toast.error?.(message, {
 		duration: 4000, // Errors stay slightly longer
@@ -82,7 +83,7 @@ function error(message: string, options?: any) {
  * @param message - Info message to display
  * @param options - Optional toast configuration
  */
-function info(message: string, options?: any) {
+function info(message: string, options?: ToastOptions) {
 	const toast = getSonner();
 	return toast.info?.(message, {
 		duration: 3000,
@@ -95,7 +96,7 @@ function info(message: string, options?: any) {
  * @param message - Warning message to display
  * @param options - Optional toast configuration
  */
-function warning(message: string, options?: any) {
+function warning(message: string, options?: ToastOptions) {
 	const toast = getSonner();
 	return toast.warning?.(message, {
 		duration: 3500,
@@ -108,7 +109,7 @@ function warning(message: string, options?: any) {
  * @param message - Loading message to display
  * @param options - Optional toast configuration (must include `id` for dismissal)
  */
-function loading(message: string, options?: any) {
+function loading(message: string, options?: ToastOptions) {
 	const toast = getSonner();
 	return toast.loading?.(message, options);
 }
@@ -120,12 +121,8 @@ function loading(message: string, options?: any) {
  */
 function promise<T>(
 	promise: Promise<T>,
-	messages: {
-		loading: string;
-		success: string | ((data: T) => string);
-		error: string | ((error: any) => string);
-	},
-	options?: any
+	messages: PromiseToastMessages<T>,
+	options?: ToastOptions
 ) {
 	const toast = getSonner();
 	return toast.promise?.(promise, messages, options);
@@ -145,7 +142,7 @@ function dismiss(toastId?: string | number) {
  * @param message - Message to display
  * @param options - Optional toast configuration
  */
-function custom(message: string, options?: any) {
+function custom(message: string, options?: ToastOptions) {
 	if (!browser || !sonnerToast) return;
 	return sonnerToast(message, options);
 }

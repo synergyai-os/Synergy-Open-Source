@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 	import type { Id } from '../../../convex/_generated/dataModel';
 
 	type Tag = {
@@ -34,12 +35,12 @@
 
 	// Group tags by hierarchy for display
 	const groupedTags = $derived(() => {
-		const groups = new Map<Id<'tags'> | 'root', Tag[]>();
+		const groups = new SvelteMap<Id<'tags'> | 'root', Tag[]>();
 		const rootTags: Tag[] = [];
-		const selectedIds = new Set(selectedTagIds);
+		const selectedIds = new SvelteSet(selectedTagIds);
 
 		// Build tag map for parent lookup
-		const tagMap = new Map<Id<'tags'>, Tag>();
+		const tagMap = new SvelteMap<Id<'tags'>, Tag>();
 		for (const tag of availableTags) {
 			tagMap.set(tag._id, tag);
 		}
@@ -75,7 +76,7 @@
 	{#if selectedTags().length > 0}
 		<div class="flex flex-wrap items-center gap-icon">
 			<span class="text-label tracking-wider text-secondary uppercase">Filtered by:</span>
-			{#each selectedTags() as tag}
+			{#each selectedTags() as tag (tag._id)}
 				<button
 					type="button"
 					onclick={() => toggleTag(tag._id)}
@@ -120,7 +121,7 @@
 			<!-- Root Tags -->
 			{#if groupedTags().rootTags.length > 0}
 				<div class="flex flex-wrap gap-icon">
-					{#each groupedTags().rootTags as tag}
+					{#each groupedTags().rootTags as tag (tag._id)}
 						<button
 							type="button"
 							onclick={() => toggleTag(tag._id)}
@@ -135,13 +136,13 @@
 			{/if}
 
 			<!-- Child Tags (Grouped by Parent) -->
-			{#each Array.from(groupedTags().groups.entries()) as [parentId, children]}
-				{@const parent = groupedTags().tagMap.get(parentId)}
+			{#each Array.from(groupedTags().groups.entries()) as [parentId, children] (parentId)}
+				{@const parent = parentId !== 'root' ? groupedTags().tagMap.get(parentId) : undefined}
 				{#if parent}
 					<div class="gap-section flex flex-col pl-indent">
 						<span class="text-label text-secondary">{parent.displayName}:</span>
 						<div class="flex flex-wrap gap-icon">
-							{#each children as tag}
+							{#each children as tag (tag._id)}
 								<button
 									type="button"
 									onclick={() => toggleTag(tag._id)}

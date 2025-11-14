@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { page } from '$app/stores';
 	import { spring } from 'svelte/motion';
 	import { fade, fly } from 'svelte/transition';
 
@@ -152,7 +151,7 @@
 				</div>
 
 				<ul class="toc-list scrollable-inner">
-					{#each headings as heading, i}
+					{#each headings as heading, i (heading.id)}
 						<li
 							class="toc-item level-{heading.level}"
 							in:fly={{ y: 10, duration: 300, delay: 150 + i * 30 }}
@@ -177,7 +176,7 @@
 				onclick={toggle}
 				aria-label="Open table of contents"
 			>
-				{#each headings.slice(0, 8) as heading, i}
+				{#each headings.slice(0, 8) as heading, i (heading.id)}
 					<div
 						class="toc-stripe level-{heading.level}"
 						class:active={activeId === heading.id}

@@ -37,7 +37,7 @@
 		browser && getSessionId()
 			? useQuery(api.tags.countTagItems, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) return 'skip';
+					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
 					return {
 						sessionId,
 						tagId: tag._id

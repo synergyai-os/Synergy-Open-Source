@@ -4,6 +4,7 @@
 	import { EditorState } from 'prosemirror-state';
 	import { toggleMark, setBlockType } from 'prosemirror-commands';
 	import { undo, redo } from 'prosemirror-history';
+	import type { ProseMirrorCommand } from '$lib/types/prosemirror';
 
 	type Props = {
 		editorView: EditorView;
@@ -12,7 +13,7 @@
 
 	let { editorView, editorState }: Props = $props();
 
-	function runCommand(command: any) {
+	function runCommand(command: ProseMirrorCommand) {
 		if (!editorView || !editorState) return;
 		command(editorState, editorView.dispatch);
 		editorView.focus();
@@ -28,7 +29,7 @@
 	}
 
 	// Check if block type is active
-	function isBlockActive(nodeType: string, attrs?: any): boolean {
+	function isBlockActive(nodeType: string, attrs?: Record<string, unknown>): boolean {
 		if (!editorState) return false;
 		const { $from: from, to } = editorState.selection;
 		const type = editorState.schema.nodes[nodeType];

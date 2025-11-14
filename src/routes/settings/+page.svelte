@@ -87,22 +87,70 @@
 	const settingsApiFunctions = browser
 		? {
 				// User settings
-				getUserSettings: makeFunctionReference('settings:getUserSettings') as any,
-				updateClaudeApiKey: makeFunctionReference('settings:updateClaudeApiKey') as any,
-				updateReadwiseApiKey: makeFunctionReference('settings:updateReadwiseApiKey') as any,
-				updateTheme: makeFunctionReference('settings:updateTheme') as any,
-				deleteClaudeApiKey: makeFunctionReference('settings:deleteClaudeApiKey') as any,
-				deleteReadwiseApiKey: makeFunctionReference('settings:deleteReadwiseApiKey') as any,
+				getUserSettings: makeFunctionReference('settings:getUserSettings') as FunctionReference<
+					'query',
+					'public',
+					{ sessionId: string },
+					{ hasClaudeKey: boolean; hasReadwiseKey: boolean; theme: string } | null
+				>,
+				updateClaudeApiKey: makeFunctionReference(
+					'settings:updateClaudeApiKey'
+				) as FunctionReference<
+					'action',
+					'public',
+					{ sessionId: string; apiKey: string },
+					Id<'users'>
+				>,
+				updateReadwiseApiKey: makeFunctionReference(
+					'settings:updateReadwiseApiKey'
+				) as FunctionReference<
+					'action',
+					'public',
+					{ sessionId: string; apiKey: string },
+					Id<'users'>
+				>,
+				updateTheme: makeFunctionReference('settings:updateTheme') as FunctionReference<
+					'mutation',
+					'public',
+					{ sessionId: string; theme: string },
+					Id<'userSettings'>
+				>,
+				deleteClaudeApiKey: makeFunctionReference(
+					'settings:deleteClaudeApiKey'
+				) as FunctionReference<'action', 'public', { sessionId: string }, Id<'users'>>,
+				deleteReadwiseApiKey: makeFunctionReference(
+					'settings:deleteReadwiseApiKey'
+				) as FunctionReference<'action', 'public', { sessionId: string }, Id<'users'>>,
 				// Organization settings
 				getOrganizationSettings: makeFunctionReference(
 					'organizationSettings:getOrganizationSettings'
-				) as any,
+				) as FunctionReference<
+					'query',
+					'public',
+					{ sessionId: string; organizationId: Id<'organizations'> },
+					{
+						_id: Id<'organizationSettings'> | null;
+						organizationId: Id<'organizations'>;
+						hasClaudeKey: boolean;
+						isAdmin: boolean;
+					} | null
+				>,
 				updateOrganizationClaudeApiKey: makeFunctionReference(
 					'organizationSettings:updateOrganizationClaudeApiKey'
-				) as any,
+				) as FunctionReference<
+					'action',
+					'public',
+					{ sessionId: string; organizationId: Id<'organizations'>; apiKey: string },
+					Id<'organizations'>
+				>,
 				deleteOrganizationClaudeApiKey: makeFunctionReference(
 					'organizationSettings:deleteOrganizationClaudeApiKey'
-				) as any
+				) as FunctionReference<
+					'mutation',
+					'public',
+					{ sessionId: string; organizationId: Id<'organizations'> },
+					Id<'organizationSettings'> | null
+				>
 			}
 		: null;
 

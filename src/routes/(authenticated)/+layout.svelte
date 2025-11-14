@@ -8,6 +8,7 @@
 	import QuickCreateModal from '$lib/components/QuickCreateModal.svelte';
 	import OrganizationModals from '$lib/components/organizations/OrganizationModals.svelte';
 	import LoadingOverlay from '$lib/components/ui/LoadingOverlay.svelte';
+	import { resolveRoute } from '$lib/utils/navigation';
 	import { getContext, setContext } from 'svelte';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 	import { useGlobalShortcuts, SHORTCUTS } from '$lib/composables/useGlobalShortcuts.svelte';
@@ -316,7 +317,7 @@
 	<div class="flex h-screen items-center justify-center bg-base">
 		<div class="text-center">
 			<p class="mb-4 text-primary">Please log in to continue</p>
-			<a href="/login" class="text-accent-primary">Go to Login</a>
+			<a href={resolveRoute('/login')} class="text-accent-primary">Go to Login</a>
 		</div>
 	</div>
 {/if}

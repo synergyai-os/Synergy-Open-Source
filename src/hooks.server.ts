@@ -7,7 +7,11 @@ const publicPaths = [
 	'/', // Homepage
 	'/login', // Login page
 	'/register', // Registration page
-	'/auth' // Auth callback routes
+	'/verify-email', // Email verification page
+	'/forgot-password', // Password reset request page
+	'/reset-password', // Password reset completion page
+	'/auth', // Auth callback routes (login, register, verify, resend, etc.)
+	'/test' // Test helper endpoints (secured via E2E_TEST_MODE check)
 ];
 
 // Check if path is public
