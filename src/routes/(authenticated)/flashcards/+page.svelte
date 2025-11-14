@@ -7,7 +7,7 @@
 	import FlashcardCollectionCard from '$lib/components/flashcards/FlashcardCollectionCard.svelte';
 	import FlashcardDetailModal from '$lib/components/flashcards/FlashcardDetailModal.svelte';
 	import { api } from '$lib/convex';
-	import type { Id } from '../../../../convex/_generated/dataModel';
+	import type { Doc, Id } from '../../../../convex/_generated/dataModel';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	const convexClient = browser ? useConvexClient() : null;
@@ -17,7 +17,7 @@
 
 	// Modal state
 	let modalOpen = $state(false);
-	let modalFlashcards = $state<any[]>([]);
+	let modalFlashcards = $state<Array<Doc<'flashcards'>>>([]);
 	let modalCollectionName = $state('');
 	let modalInitialIndex = $state(0);
 
@@ -120,14 +120,7 @@
 		if (!browser || !convexClient) return;
 
 		// Get flashcards for this collection
-		let flashcards: Array<{
-			_id: string;
-			question: string;
-			answer: string;
-			tagId?: string;
-			userId: string;
-			createdAt: number;
-		}> = [];
+		let flashcards: Array<Doc<'flashcards'>> = [];
 
 		if (collection.tagId === 'all') {
 			flashcards = allFlashcards;

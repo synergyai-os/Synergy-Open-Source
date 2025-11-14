@@ -1621,6 +1621,36 @@ const settings = await ctx.db
 
 ---
 
+## #L1600: Use Top-Level Imports for Convex Doc Types [🟡 IMPORTANT]
+
+**Symptom**: Type annotations extremely long and hard to read with inline `import()` syntax for Convex `Doc` types  
+**Root Cause**: Inline `import()` syntax makes type annotations verbose and violates coding standards for readability  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Inline import() syntax is hard to read
+let modalFlashcards = $state<Array<import('../../../../convex/_generated/dataModel').Doc<'flashcards'>>>([]);
+let flashcards: Array<import('../../../../convex/_generated/dataModel').Doc<'flashcards'>> = [];
+
+// ✅ CORRECT: Use top-level imports for consistency and readability
+import type { Doc, Id } from '../../../../convex/_generated/dataModel';
+
+let modalFlashcards = $state<Array<Doc<'flashcards'>>>([]);
+let flashcards: Array<Doc<'flashcards'>> = [];
+```
+
+**When to Use**:
+
+- **Always**: When using Convex `Doc` types in type annotations
+- **Consistency**: Matches existing pattern for `Id` type imports (top-level)
+- **Readability**: Makes types easier to scan and understand
+
+**Why**: Top-level imports improve code readability and maintain consistency with how `Id` types are imported. Inline `import()` syntax makes type annotations extremely long and harder to scan.  
+**Apply when**: Using Convex `Doc` types in any type annotations (variables, function parameters, return types)  
+**Related**: #L1250 (Id type assertions), #L590 (import type for _generated files)
+
+---
+
 ## #L1300: Circular API References - Use FunctionReference Type Assertions [🟡 IMPORTANT]
 
 **Symptom**: TypeScript errors "Type of property 'X' circularly references itself" or "Property 'Y' does not exist on type '{}'"  
@@ -2103,6 +2133,6 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.register, async ({
 
 ---
 
-**Pattern Count**: 32  
-**Last Validated**: 2025-11-13  
+**Pattern Count**: 33  
+**Last Validated**: 2025-11-14  
 **Context7 Source**: `/get-convex/convex-backend`, `convex-test` NPM docs, TypeScript type system, SvelteKit docs
