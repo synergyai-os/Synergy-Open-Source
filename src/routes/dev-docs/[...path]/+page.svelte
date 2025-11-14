@@ -59,7 +59,7 @@
 		}: {
 			href: string;
 			text: string;
-			title?: string;
+			title?: string | null;
 		}) {
 			// Only transform relative .md links (internal docs)
 			if (href && !href.startsWith('http') && !href.startsWith('/')) {
@@ -116,6 +116,7 @@
 
 	.doc-content {
 		/* Typography styling inherited from DocLayout's .docs-article */
+		/* Empty ruleset needed for CSS inheritance documentation */
 	}
 
 	/* Ensure headings have scroll margin for proper positioning */
