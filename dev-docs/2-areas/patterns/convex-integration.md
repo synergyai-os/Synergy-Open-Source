@@ -1750,6 +1750,165 @@ const result = await convexClient.action(generateFlashcardAction, {
 
 ---
 
+## #L1550: Systematic `any` Type Elimination Strategy [🟢 REFERENCE]
+
+**Symptom**: Hundreds of `any` types across codebase violating coding standards ("NEVER use `any`")  
+**Root Cause**: Gradual codebase growth without consistent type definitions, external API types missing, union types not narrowed  
+**Fix**:
+
+**Strategy: Phased Approach**
+
+1. **Create Shared Type Definitions** (Phase 1):
+```typescript
+// ✅ Create dedicated type files for external APIs
+// src/lib/types/readwise.ts
+export type ReadwiseHighlight = {
+	id: number;
+	book_id: number;
+	text: string;
+	location?: number;
+	highlighted_at?: string;
+	// ... complete type definition
+};
+
+export type ReadwisePaginatedResponse<T> = {
+	count: number;
+	next: string | null;
+	previous: string | null;
+	results: T[];
+};
+
+// src/lib/types/prosemirror.ts
+export type ProseMirrorDoc = {
+	type: string;
+	content: ProseMirrorContent;
+};
+
+export type ProseMirrorCommand = (
+	state: EditorState,
+	dispatch?: (tr: Transaction) => void
+) => boolean;
+
+// src/lib/types/sonner.ts
+export type ToastOptions = {
+	id?: string | number;
+	duration?: number;
+	description?: string;
+	// ... complete type definition
+};
+```
+
+2. **Fix Convex Backend Files** (Phase 2):
+```typescript
+// ❌ WRONG: any types everywhere
+export const syncReadwise = action({
+	handler: async (ctx, args) => {
+		const highlights: any[] = [];
+		const books: any[] = [];
+		// ...
+	}
+});
+
+// ✅ CORRECT: Import and use proper types
+import type { ReadwiseHighlight, ReadwiseSource, ReadwisePaginatedResponse } from '../src/lib/types/readwise';
+import type { ActionCtx } from './_generated/server';
+
+export const syncReadwise = action({
+	handler: async (ctx: ActionCtx, args) => {
+		const highlights: ReadwiseHighlight[] = [];
+		const books: ReadwiseSource[] = [];
+		const response: ReadwisePaginatedResponse<ReadwiseHighlight> = await ctx.runAction(...);
+		// ...
+	}
+});
+```
+
+3. **Fix Components with Type Narrowing** (Phase 3):
+```typescript
+// ❌ WRONG: Union type without narrowing
+type Props = {
+	item: InboxItemWithDetails; // Union type
+};
+
+// Accessing properties that don't exist on all union members
+item.tags // ❌ Error: Property 'tags' doesn't exist on PhotoNoteWithDetails
+
+// ✅ CORRECT: Narrow union type in component props
+import type { ReadwiseHighlightWithDetails } from '$lib/types/convex';
+
+type Props = {
+	item: ReadwiseHighlightWithDetails; // Narrowed to specific type
+};
+
+// Now TypeScript knows item has tags, highlight, source, etc.
+item.tags // ✅ Type-safe
+```
+
+4. **Fix Utils with Library Types** (Phase 4):
+```typescript
+// ❌ WRONG: any for library types
+import type { ToastOptions } from '$lib/types/sonner';
+
+function success(message: string, options?: any) { // ❌
+	// ...
+}
+
+// ✅ CORRECT: Use proper types
+import type { ToastOptions } from '$lib/types/sonner';
+
+function success(message: string, options?: ToastOptions) { // ✅
+	// ...
+}
+```
+
+5. **Fix Routes with FunctionReference** (Phase 5):
+```typescript
+// ❌ WRONG: as any for function references
+const inboxApi = {
+	getInboxItemWithDetails: makeFunctionReference('inbox:getInboxItemWithDetails') as any,
+};
+
+// ✅ CORRECT: Use FunctionReference type assertion
+import type { FunctionReference } from 'convex/server';
+import type { Id } from '$lib/convex';
+import type { InboxItemWithDetails } from '$lib/types/convex';
+
+const inboxApi = {
+	getInboxItemWithDetails: makeFunctionReference('inbox:getInboxItemWithDetails') as FunctionReference<
+		'query',
+		'public',
+		{ sessionId: string; inboxItemId: Id<'inboxItems'> },
+		InboxItemWithDetails | null
+	>,
+};
+```
+
+**Common Patterns**:
+
+```typescript
+// Pattern 1: External API types → Create dedicated type file
+// Pattern 2: Convex ctx types → Use ActionCtx, QueryCtx, MutationCtx from _generated/server
+// Pattern 3: Union types → Narrow in component props (ReadwiseHighlightWithDetails vs InboxItemWithDetails)
+// Pattern 4: Library types → Create wrapper types (ToastOptions, ProseMirrorCommand)
+// Pattern 5: Function references → Use FunctionReference type assertion, never `as any`
+// Pattern 6: Error handling → Use `unknown` + type guards instead of `any`
+```
+
+**Migration Checklist**:
+
+1. ✅ Create type definition files for external APIs (Readwise, ProseMirror, Sonner)
+2. ✅ Replace `any` in Convex files with proper types (`Doc<>`, `Id<>`, `ActionCtx`, etc.)
+3. ✅ Narrow union types in component props (use specific types like `ReadwiseHighlightWithDetails`)
+4. ✅ Replace `any` in utils with library-specific types (`ToastOptions`, `ProseMirrorCommand`)
+5. ✅ Replace `as any` in routes with `FunctionReference` type assertions
+6. ✅ Use `unknown` + type guards for error handling instead of `any`
+
+**Why**: Systematic elimination of `any` types improves type safety, catches bugs at compile time, enables better IDE support, and prevents runtime errors.  
+**Apply when**: Large-scale type safety improvements, fixing ESLint `no-explicit-any` violations, improving developer experience  
+**Related**: #L1250 (Avoid `any`), #L1300 (FunctionReference), #L240 (Shared types), #L290 (Discriminated unions)
+
+---
+
 ## #L1350: useQuery Argument Functions Must Return Valid Object or Throw [🟡 IMPORTANT]
 
 **Symptom**: TypeScript errors "Argument of type '() => { sessionId: string; } | null' is not assignable" or "Property 'sessionId' is missing"  

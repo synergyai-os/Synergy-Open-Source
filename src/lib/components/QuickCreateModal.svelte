@@ -34,8 +34,8 @@
 
 	let {
 		open = $bindable(false),
-		triggerMethod = 'keyboard_n',
-		currentView = 'inbox',
+		triggerMethod: _triggerMethod = 'keyboard_n',
+		currentView: _currentView = 'inbox',
 		initialType = null,
 		sessionId,
 		organizationId = null,
@@ -138,7 +138,7 @@
 	});
 
 	// Track type selection
-	function handleTypeSelect(type: ContentType, method: 'click' | 'keyboard_c' | 'keyboard_nav') {
+	function handleTypeSelect(type: ContentType, _method: 'click' | 'keyboard_c' | 'keyboard_nav') {
 		selectedType = type;
 		typeSelectedAt = Date.now();
 
