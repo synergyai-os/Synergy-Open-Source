@@ -53,10 +53,6 @@
 		scroll-behavior: smooth;
 	}
 
-	.doc-content {
-		/* Typography styling inherited from DocLayout's .docs-article */
-	}
-
 	/* Ensure headings have scroll margin for proper positioning */
 	.doc-content :global(h1),
 	.doc-content :global(h2),

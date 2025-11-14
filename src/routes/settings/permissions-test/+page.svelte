@@ -206,28 +206,28 @@
 			<PermissionButton
 				requires="teams.create"
 				{permissions}
+				variant="primary"
 				onclick={testCreateTeam}
-				class="btn-primary"
 			>
 				Create Team
 			</PermissionButton>
 			<PermissionButton
 				requires="users.invite"
 				{permissions}
+				variant="primary"
 				onclick={testInviteUser}
-				class="btn-primary"
 			>
 				Invite User
 			</PermissionButton>
 			<PermissionButton
 				requires="users.manage-profile"
 				{permissions}
+				variant="primary"
 				onclick={testUpdateProfile}
-				class="btn-primary"
 			>
 				Update Profile
 			</PermissionButton>
-			<PermissionButton requires="teams.delete" {permissions} class="btn-secondary">
+			<PermissionButton requires="teams.delete" {permissions} variant="secondary">
 				Delete Team (No action)
 			</PermissionButton>
 		</div>
@@ -318,13 +318,3 @@
 		{/if}
 	</div>
 </div>
-
-<style>
-	.btn-primary {
-		@apply bg-primary text-on-primary hover:bg-primary-hover rounded-md px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50;
-	}
-
-	.btn-secondary {
-		@apply bg-secondary text-on-secondary hover:bg-secondary-hover rounded-md px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50;
-	}
-</style>

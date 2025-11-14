@@ -992,6 +992,80 @@ npm install prosemirror-highlight lowlight
 
 ---
 
+## #L950: CSS Warnings from svelte-check (Unused Selectors, Empty Rulesets, @apply) [🟡 IMPORTANT]
+
+**Symptom**: `npm run check` shows CSS warnings: "Unused CSS selector", "Empty ruleset", "Unknown @apply rule"  
+**Root Cause**: Unused CSS selectors from refactoring, empty rulesets with only comments, @apply rules incompatible with Tailwind 4  
+**Fix**:
+
+```svelte
+<!-- ❌ WRONG - Unused CSS selectors, empty ruleset, @apply -->
+<style>
+	.old-action-card {
+		position: relative;
+		padding: 1rem;
+	}
+	
+	.doc-content {
+		/* Typography styling inherited from DocLayout */
+	}
+	
+	.btn-primary {
+		@apply bg-primary text-on-primary hover:bg-primary-hover;
+	}
+</style>
+
+<!-- ✅ CORRECT - Remove unused, use design tokens, prefer component variants -->
+<!-- Remove unused selectors entirely -->
+<!-- Remove empty rulesets (comments don't count as styles) -->
+<!-- Replace @apply with design tokens or use component variant prop -->
+<PermissionButton variant="primary" {permissions} requires="teams.create">
+	Create Team
+</PermissionButton>
+```
+
+**Strategy**:
+
+1. **Unused CSS Selectors**:
+   - Search template for class usage: `grep -r "class=.*selector-name" src/`
+   - If not found, delete entire CSS rule
+   - Check if design tokens replaced it (e.g., `.action-card` → `.action-card-minimal`)
+
+2. **Empty Rulesets**:
+   - Remove rulesets with only comments
+   - If inheritance needed, document in component comment, not CSS
+
+3. **@apply Rules**:
+   - **Option 1** (Preferred): Replace with design tokens
+     ```css
+     .btn-primary {
+     	background: var(--color-accent-primary);
+     	color: white;
+     	border-radius: var(--border-radius-button);
+     	padding: var(--spacing-button-y) var(--spacing-button-x);
+     }
+     ```
+   - **Option 2**: Use component variant prop instead of custom CSS
+     ```svelte
+     <!-- Instead of class="btn-primary" -->
+     <PermissionButton variant="primary">
+     ```
+
+**Apply when**:
+- `npm run check` shows CSS warnings
+- Refactoring components (old styles left behind)
+- Migrating to Tailwind 4 (@apply behavior changed)
+
+**Why Important**:
+- Unused CSS bloats bundle (~2-5KB per file)
+- Empty rulesets confuse developers
+- @apply may not work with Tailwind 4
+- Clean CSS improves maintainability
+
+**Related**: #L780 (Design Tokens), #L828 (CSS Variables), dev-docs/design-tokens.md
+
+---
+
 ## #L830: Compact Modal Input Design - Linear Style [🟢 REFERENCE]
 
 **Symptom**: Modal has huge whitespace, title looks like header not input, disconnected feel  
@@ -2600,6 +2674,6 @@ html.dark {
 
 ---
 
-**Pattern Count**: 28  
-**Last Updated**: 2025-11-12  
+**Pattern Count**: 29  
+**Last Updated**: 2025-11-14  
 **Design Token Reference**: `dev-docs/design-tokens.md`

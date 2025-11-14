@@ -1428,19 +1428,6 @@
 		margin-bottom: 3rem;
 	}
 
-	.ai-badge {
-		display: inline-block;
-		padding: 0.5rem 1rem;
-		background: var(--color-accent-primary);
-		color: white;
-		font-size: 0.75rem;
-		font-weight: 700;
-		letter-spacing: 0.05em;
-		text-transform: uppercase;
-		border-radius: 0.375rem;
-		margin-bottom: 1.5rem;
-	}
-
 	/* Community CTA - Contribution Ladder */
 	.community-cta {
 		background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
@@ -1628,75 +1615,6 @@
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
 		font-weight: 700;
-	}
-
-	/* Quick Actions (Old) */
-	.quick-actions {
-		display: none;
-	}
-
-	.action-card {
-		position: relative;
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-		padding: 1.25rem 1.5rem;
-		background-color: transparent !important;
-		border: 1px solid var(--color-border-base);
-		border-radius: 0.5rem;
-		text-decoration: none;
-		transition: all 0.15s ease;
-	}
-
-	.action-card:hover {
-		border-color: var(--color-text-secondary);
-		background-color: var(--color-bg-hover) !important;
-	}
-
-	.action-card-accent {
-		border-color: var(--color-accent-primary);
-		background-color: oklch(from var(--color-accent-primary) l c h / 0.05) !important;
-	}
-
-	.action-card-accent:hover {
-		background-color: oklch(from var(--color-accent-primary) l c h / 0.1) !important;
-	}
-
-	.action-icon {
-		font-size: 2rem;
-		flex-shrink: 0;
-	}
-
-	.action-content {
-		flex: 1;
-		text-align: left;
-	}
-
-	.action-title {
-		font-size: 1.125rem;
-		font-weight: 600;
-		color: var(--color-text-primary);
-		margin-bottom: 0.25rem;
-	}
-
-	.action-description {
-		font-size: 0.875rem;
-		color: var(--color-text-tertiary);
-		margin: 0;
-	}
-
-	.action-tag {
-		position: absolute;
-		top: 0.5rem;
-		right: 0.5rem;
-		padding: 0.25rem 0.5rem;
-		background: var(--color-accent-primary);
-		color: white;
-		font-size: 0.75rem;
-		font-weight: 600;
-		border-radius: 0.25rem;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
 	}
 
 	/* How It Works Section - Scannable, Visual-First */
@@ -2388,15 +2306,6 @@
 		.action-card-minimal {
 			width: 100%;
 			justify-content: center;
-		}
-
-		.ai-badge {
-			font-size: 0.625rem;
-			padding: 0.375rem 0.75rem;
-		}
-
-		.quick-actions {
-			grid-template-columns: 1fr;
 		}
 
 		.section-title-large {
