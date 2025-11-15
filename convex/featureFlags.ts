@@ -6,10 +6,12 @@
  * - Percentage-based rollouts
  * - Domain-based access (e.g., team members only)
  * - A/B testing preparation
+ * - PostHog analytics tracking
  */
 
 import { v } from 'convex/values';
 import { query, mutation } from './_generated/server';
+import { validateSessionAndGetUserId } from './sessionValidation';
 import type { Id } from './_generated/dataModel';
 
 /**
@@ -25,9 +27,20 @@ import type { Id } from './_generated/dataModel';
 export const checkFlag = query({
 	args: {
 		flag: v.string(),
-		userId: v.optional(v.id('users'))
+		sessionId: v.optional(v.string())
 	},
-	handler: async (ctx, { flag, userId }) => {
+	handler: async (ctx, { flag, sessionId }) => {
+		// Get userId from sessionId if provided
+		let userId: Id<'users'> | undefined;
+		if (sessionId) {
+			try {
+				const result = await validateSessionAndGetUserId(ctx, sessionId);
+				userId = result.userId;
+			} catch {
+				// Invalid session - treat as unauthenticated
+				userId = undefined;
+			}
+		}
 		// Get flag configuration
 		const flagConfig = await ctx.db
 			.query('featureFlags')
@@ -55,31 +68,125 @@ export const checkFlag = query({
 			return false;
 		}
 
+		// Determine result based on targeting rules
+		let result = false;
+
 		// Check if user is explicitly allowed
 		if (flagConfig.allowedUserIds?.includes(userId)) {
-			return true;
+			result = true;
 		}
-
 		// Check domain-based access
-		if (user.email && flagConfig.allowedDomains?.length) {
+		else if (user.email && flagConfig.allowedDomains?.length) {
 			const emailDomain = user.email.split('@')[1];
 			const isAllowed = flagConfig.allowedDomains.some(
 				(domain) => domain.replace('@', '').toLowerCase() === emailDomain.toLowerCase()
 			);
 			if (isAllowed) {
-				return true;
+				result = true;
+			}
+		}
+		// Check percentage-based rollout
+		else if (flagConfig.rolloutPercentage !== undefined) {
+			// Use consistent hashing so same user always gets same result
+			const bucket = getUserRolloutBucket(userId, flag);
+			result = bucket < flagConfig.rolloutPercentage;
+		}
+		// Default to global enabled setting
+		else {
+			result = flagConfig.enabled;
+		}
+
+		// Note: PostHog tracking happens client-side (queries are read-only)
+		// See useFeatureFlag composable for tracking implementation
+
+		return result;
+	}
+});
+
+/**
+ * Check multiple feature flags at once (batch query for performance)
+ * Reduces network round trips and session validation overhead
+ */
+export const checkFlags = query({
+	args: {
+		flags: v.array(v.string()),
+		sessionId: v.optional(v.string())
+	},
+	handler: async (ctx, { flags, sessionId }) => {
+		// Validate session once for all flags
+		let userId: Id<'users'> | undefined;
+		if (sessionId) {
+			try {
+				const result = await validateSessionAndGetUserId(ctx, sessionId);
+				userId = result.userId;
+			} catch {
+				// Invalid session - treat as unauthenticated
+				userId = undefined;
 			}
 		}
 
-		// Check percentage-based rollout
-		if (flagConfig.rolloutPercentage !== undefined) {
-			// Use consistent hashing so same user always gets same result
-			const bucket = getUserRolloutBucket(userId, flag);
-			return bucket < flagConfig.rolloutPercentage;
+		// Get user once if needed (for domain checks)
+		const user = userId ? await ctx.db.get(userId) : null;
+
+		// Fetch all flag configs in parallel
+		const flagConfigs = await Promise.all(
+			flags.map((flag) =>
+				ctx.db
+					.query('featureFlags')
+					.withIndex('by_flag', (q) => q.eq('flag', flag))
+					.first()
+			)
+		);
+
+		// Evaluate all flags
+		const results: Record<string, boolean> = {};
+		for (let i = 0; i < flags.length; i++) {
+			const flag = flags[i];
+			const flagConfig = flagConfigs[i];
+
+			// If flag doesn't exist or is globally disabled, return false
+			if (!flagConfig || !flagConfig.enabled) {
+				results[flag] = false;
+				continue;
+			}
+
+			// If no user context, return global setting
+			if (!userId || !user) {
+				results[flag] = flagConfig.enabled;
+				continue;
+			}
+
+			// Determine result based on targeting rules (same logic as checkFlag)
+			let result = false;
+
+			// Check if user is explicitly allowed
+			if (flagConfig.allowedUserIds?.includes(userId)) {
+				result = true;
+			}
+			// Check domain-based access
+			else if (user.email && flagConfig.allowedDomains?.length) {
+				const emailDomain = user.email.split('@')[1];
+				const isAllowed = flagConfig.allowedDomains.some(
+					(domain) => domain.replace('@', '').toLowerCase() === emailDomain.toLowerCase()
+				);
+				if (isAllowed) {
+					result = true;
+				}
+			}
+			// Check percentage-based rollout
+			else if (flagConfig.rolloutPercentage !== undefined) {
+				const bucket = getUserRolloutBucket(userId, flag);
+				result = bucket < flagConfig.rolloutPercentage;
+			}
+			// Default to global enabled setting
+			else {
+				result = flagConfig.enabled;
+			}
+
+			results[flag] = result;
 		}
 
-		// Default to global enabled setting
-		return flagConfig.enabled;
+		return results;
 	}
 });
 

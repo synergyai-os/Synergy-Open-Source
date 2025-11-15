@@ -85,7 +85,7 @@ export async function establishSession(options: {
 	let ipAddress: string;
 	try {
 		ipAddress = options.event.getClientAddress();
-	} catch (error) {
+	} catch (_error) {
 		// Fallback for environments where getClientAddress fails
 		ipAddress =
 			options.event.request.headers.get('x-forwarded-for') ||
@@ -322,7 +322,7 @@ export async function resolveRequestSession(event: RequestEvent) {
 		let ipAddress: string;
 		try {
 			ipAddress = event.getClientAddress();
-		} catch (error) {
+		} catch (_error) {
 			// Fallback for environments where getClientAddress fails
 			ipAddress =
 				event.request.headers.get('x-forwarded-for') ||

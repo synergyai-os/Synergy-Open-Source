@@ -13,6 +13,8 @@ export enum AnalyticsEventName {
 	TEAM_TAG_ASSIGNED = 'team_tag_assigned',
 	TAG_STUDY_STARTED = 'tag_study_started',
 	TAG_SHARED = 'tag_shared',
+	// Feature Flags
+	FEATURE_FLAG_CHECKED = 'feature_flag_checked',
 	// Quick Create events
 	QUICK_CREATE_OPENED = 'quick_create_opened',
 	QUICK_CREATE_TYPE_SELECTED = 'quick_create_type_selected',
@@ -115,6 +117,14 @@ export type AnalyticsEventPayloads = {
 		team_name?: string;
 		content_type: 'highlights' | 'flashcards' | 'mixed';
 		shared_via: 'tags_page' | 'inline' | 'bulk';
+	};
+	// Feature Flags
+	[AnalyticsEventName.FEATURE_FLAG_CHECKED]: {
+		scope: 'user';
+		flag: string;
+		enabled: boolean;
+		rollout_percentage?: number;
+		evaluation_method: 'allowed_user' | 'allowed_domain' | 'percentage' | 'global';
 	};
 	// Quick Create events
 	[AnalyticsEventName.QUICK_CREATE_OPENED]: {

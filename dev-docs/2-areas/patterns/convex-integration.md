@@ -1577,6 +1577,70 @@ it.skip('should remove organization member', async () => {
 
 ---
 
+## #L1175: Reuse Test Session for RBAC Permission Tests [🔴 CRITICAL]
+
+**Symptom**: RBAC permission test fails with `Permission denied: users.invite` even though permissions are correctly assigned  
+**Root Cause**: Test creates two separate sessions - one for RBAC setup, another for mutation - creating different users  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Creates two different users
+it('should create organization invite with RBAC permission check', async () => {
+	const t = convexTest(schema, modules);
+	const { userId: adminUserId } = await createTestSession(t); // Creates user A
+	const orgId = await createTestOrganization(t, 'Test Org');
+	await createTestOrganizationMember(t, orgId, adminUserId, 'admin');
+
+	// Set up RBAC permissions for adminUserId (user A)
+	const adminRole = await createTestRole(t, 'admin', 'Admin');
+	const invitePermission = await createTestPermission(t, 'users.invite', 'Invite Users');
+	await assignPermissionToRole(t, adminRole, invitePermission, 'all');
+	await assignRoleToUser(t, adminUserId, adminRole, { organizationId: orgId });
+
+	// ❌ Creates user B (different from user A!)
+	const { sessionId: adminSessionId } = await createTestSession(t);
+	const result = await t.mutation(api.organizations.createOrganizationInvite, {
+		sessionId: adminSessionId, // ❌ Uses user B, but RBAC is on user A
+		organizationId: orgId,
+		email: 'newuser@example.com',
+		role: 'member'
+	});
+	// ❌ Fails: Permission denied: users.invite
+});
+
+// ✅ CORRECT: Use same session for RBAC setup and mutation
+it('should create organization invite with RBAC permission check', async () => {
+	const t = convexTest(schema, modules);
+	const { userId: adminUserId, sessionId: adminSessionId } = await createTestSession(t); // ✅ Get both
+	const orgId = await createTestOrganization(t, 'Test Org');
+	await createTestOrganizationMember(t, orgId, adminUserId, 'admin');
+
+	// Set up RBAC permissions for adminUserId
+	const adminRole = await createTestRole(t, 'admin', 'Admin');
+	const invitePermission = await createTestPermission(t, 'users.invite', 'Invite Users');
+	await assignPermissionToRole(t, adminRole, invitePermission, 'all');
+	await assignRoleToUser(t, adminUserId, adminRole, { organizationId: orgId });
+
+	// ✅ Uses same sessionId (same user)
+	const result = await t.mutation(api.organizations.createOrganizationInvite, {
+		sessionId: adminSessionId, // ✅ Uses same user with RBAC
+		organizationId: orgId,
+		email: 'newuser@example.com',
+		role: 'member'
+	});
+	// ✅ Passes: User has RBAC permissions
+});
+```
+
+**Why**: Each `createTestSession()` call creates a new user. RBAC permissions are assigned to a specific `userId`. If the mutation uses a different user's `sessionId`, the permission check fails because that user doesn't have the permissions.
+
+**Pattern**: Always destructure both `userId` and `sessionId` from a single `createTestSession()` call when you need both for RBAC setup and mutation execution.
+
+**Apply when**: Writing integration tests that test RBAC permissions or any test where you set up permissions and then execute mutations  
+**Related**: #L900 (Integration testing), #L1100 (User isolation), #L1150 (convex-test limitations)
+
+---
+
 ---
 
 ## #L1250: Avoid `any` Type - Use Proper `Id<>` Assertions [🔴 CRITICAL]
@@ -1809,6 +1873,9 @@ export type ReadwisePaginatedResponse<T> = {
 };
 
 // src/lib/types/prosemirror.ts
+import type { Command, EditorState, Transaction } from 'prosemirror-state';
+import type { EditorView } from 'prosemirror-view';
+
 export type ProseMirrorDoc = {
 	type: string;
 	content: ProseMirrorContent;
@@ -1818,6 +1885,10 @@ export type ProseMirrorCommand = (
 	state: EditorState,
 	dispatch?: (tr: Transaction) => void
 ) => boolean;
+
+// Re-export EditorState and Transaction for convenience
+export type { EditorState };
+export type { Transaction };
 
 // src/lib/types/sonner.ts
 export type ToastOptions = {
@@ -1932,6 +2003,47 @@ const inboxApi = {
 4. ✅ Replace `any` in utils with library-specific types (`ToastOptions`, `ProseMirrorCommand`)
 5. ✅ Replace `as any` in routes with `FunctionReference` type assertions
 6. ✅ Use `unknown` + type guards for error handling instead of `any`
+7. ✅ Verify completion: Run ESLint, TypeScript check, and tests
+
+**Verification Phase** (Phase 4):
+
+```bash
+# Verify zero violations
+npx eslint src --format=json | grep "@typescript-eslint/no-explicit-any"
+# Expected: 0 violations
+
+# Verify TypeScript check passes
+npm run check
+# Expected: 0 errors
+
+# Verify tests pass
+npm run test:unit:server && npm run test:integration
+# Expected: All type-related tests pass
+```
+
+**ProseMirror Type Enhancement**:
+
+When using ProseMirror types (`EditorState`, `Transaction`), ensure they're exported from type definition file:
+
+```typescript
+// ✅ CORRECT: Export EditorState and Transaction from prosemirror.ts
+// src/lib/types/prosemirror.ts
+import type { Command, EditorState, Transaction } from 'prosemirror-state';
+import type { EditorView } from 'prosemirror-view';
+
+// Re-export for convenience
+export type { EditorState };
+export type { Transaction };
+```
+
+**Success Metrics**:
+
+- ✅ Zero `@typescript-eslint/no-explicit-any` violations
+- ✅ Zero TypeScript errors
+- ✅ All tests pass (type-related)
+- ✅ All `makeFunctionReference()` calls use `FunctionReference` assertions
+- ✅ All external API types properly imported
+- ✅ All error handling uses `unknown` + type guards
 
 **Why**: Systematic elimination of `any` types improves type safety, catches bugs at compile time, enables better IDE support, and prevents runtime errors.  
 **Apply when**: Large-scale type safety improvements, fixing ESLint `no-explicit-any` violations, improving developer experience  
@@ -1993,8 +2105,76 @@ const query = useQuery(api.module.function, () => {
 ```
 
 **Why**: Convex `useQuery` expects argument function to return valid query args object or `'skip'`. Returning `null` breaks type contract.  
+**Note**: TypeScript may not accept `'skip'` as return type. Use `throw new Error()` pattern instead when outer check ensures sessionId exists.  
 **Apply when**: Writing `useQuery` calls with conditional `sessionId`  
 **Related**: #L1200 (SessionId migration), #L220 (useQuery pattern)
+
+---
+
+## #L1360: Batch Queries for Performance [🟡 IMPORTANT]
+
+**Symptom**: Multiple related queries take 3-5 seconds, slow page load  
+**Root Cause**: Each query makes separate network round trip + session validation overhead  
+**Fix**: Create batch query that checks multiple items at once
+
+```typescript
+// ❌ WRONG: Multiple separate queries (slow)
+const flag1Query = useQuery(api.featureFlags.checkFlag, () => ({ flag: 'flag1', sessionId }));
+const flag2Query = useQuery(api.featureFlags.checkFlag, () => ({ flag: 'flag2', sessionId }));
+const flag3Query = useQuery(api.featureFlags.checkFlag, () => ({ flag: 'flag3', sessionId }));
+// Result: 3 network calls, 3x session validation, 3-5 seconds
+
+// ✅ CORRECT: Batch query (fast)
+const flagsQuery = useQuery(api.featureFlags.checkFlags, () => ({
+	sessionId,
+	flags: ['flag1', 'flag2', 'flag3']
+}));
+const flag1 = $derived(flagsQuery?.data?.['flag1'] ?? false);
+const flag2 = $derived(flagsQuery?.data?.['flag2'] ?? false);
+const flag3 = $derived(flagsQuery?.data?.['flag3'] ?? false);
+// Result: 1 network call, 1x session validation, < 1 second
+```
+
+**Backend Implementation**:
+
+```typescript
+// convex/featureFlags.ts
+export const checkFlags = query({
+	args: {
+		flags: v.array(v.string()),
+		sessionId: v.optional(v.string())
+	},
+	handler: async (ctx, { flags, sessionId }) => {
+		// Validate session once for all flags
+		let userId: Id<'users'> | undefined;
+		if (sessionId) {
+			const { userId: id } = await validateSessionAndGetUserId(ctx, sessionId);
+			userId = id;
+		}
+
+		// Fetch all configs in parallel
+		const configs = await Promise.all(
+			flags.map(flag =>
+				ctx.db.query('featureFlags')
+					.withIndex('by_flag', (q) => q.eq('flag', flag))
+					.first()
+			)
+		);
+
+		// Evaluate all flags
+		const results: Record<string, boolean> = {};
+		for (let i = 0; i < flags.length; i++) {
+			results[flags[i]] = evaluateFlag(configs[i], userId);
+		}
+		return results;
+	}
+});
+```
+
+**Performance**: Reduces 3-5 seconds → < 1 second (3-5x faster)  
+**When to Use**: Checking multiple related items (feature flags, settings, permissions)  
+**Trade-off**: Slightly more complex backend, but significant performance gain  
+**Related**: #L1200 (SessionId pattern), #L220 (useQuery pattern)
 
 ---
 

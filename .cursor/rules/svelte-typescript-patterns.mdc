@@ -24,6 +24,7 @@ You are an expert senior software engineer specializing in TypeScript, Svelte 5 
 7. ❌ **Never use `$effect` for computed values** → Use `$derived` (Svelte 5 best practice)
 8. ❌ **Never pass `undefined` to Convex** → Use sentinel values (Convex requirement)
 9. ❌ **Never use module-level browser checks** → Check inside `$effect` (SSR-safe pattern)
+10. ❌ **Never use `userId` parameter in Convex** → Use `sessionId` + `validateSessionAndGetUserId()` (security requirement)
 
 **Exception**: Test files (`.test.ts`, `.spec.ts`) may use `any` - ESLint allows it for test mocks.
 
@@ -66,20 +67,41 @@ $effect(() => {
 
 ## Convex Integration (Context7 validated)
 
+### Authentication Pattern: sessionId (MANDATORY)
+
+**CRITICAL**: Always use `sessionId` for authenticated queries/mutations. Never trust client-provided `userId`.
+
 ```typescript
-// ✅ CORRECT: useQuery() for reactive subscriptions (convex-svelte pattern)
+// ✅ Backend: sessionId parameter + destructure userId
+export const myQuery = query({
+	args: { sessionId: v.string() },
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+	}
+});
+
+// ✅ Frontend: getSessionId from page data + throw pattern
+const getSessionId = () => data.sessionId;
+const query = browser && getSessionId()
+	? useQuery(api.myModule.myQuery, () => {
+			const sessionId = getSessionId();
+			if (!sessionId) throw new Error('sessionId required'); // Outer check ensures it exists
+			return { sessionId };
+		})
+	: null;
+```
+
+**Common Mistakes**: `userId: v.id('users')` → `sessionId: v.string()`, Missing destructuring `{ userId }`, `return 'skip'` → `throw new Error()` (TypeScript doesn't accept 'skip')
+
+**See**: `dev-docs/2-areas/patterns/convex-integration.md#L1200` for complete sessionId migration guide
+
+### Reactive Queries
+
+```typescript
+// ✅ CORRECT: useQuery() for reactive subscriptions
 import { useQuery } from 'convex-svelte';
-const query = useQuery(api.inbox.list, () => ({ processed: false }));
-const items = $derived(query?.data ?? []); // Auto-updates on changes
-
-// ✅ CORRECT: useMutation() for writes
-import { useMutation } from 'convex-svelte';
-const createNote = useMutation(api.notes.create);
-
-// ✅ CORRECT: Separate "use node" files for actions only
-// convex/crypto.ts
-"use node";
-export const encrypt = internalAction({ ... });
+const query = useQuery(api.inbox.list, () => ({ sessionId: getSessionId() }));
+const items = $derived(query?.data ?? []); // Auto-updates
 ```
 
 **See**: `dev-docs/2-areas/patterns/convex-integration.md` for complete patterns
@@ -91,6 +113,7 @@ export const encrypt = internalAction({ ... });
 ## CI/CD Alignment
 
 **CI runs these checks** (`.github/workflows/quality-gates.yml`):
+
 - `npm run check` - TypeScript check (warns only, not blocking yet)
 - `npm run lint` - Prettier + ESLint (MUST pass - blocks PRs)
 - `npm run build` - Build verification (MUST pass - blocks PRs)
@@ -105,13 +128,15 @@ export const encrypt = internalAction({ ... });
 ## Quick Checklist
 
 Before submitting code:
+
 - [ ] No `any` types (except test files - ESLint allows it)
 - [ ] All `{#each}` blocks have keys `(item._id)`
 - [ ] All `goto()` use `resolveRoute()`
 - [ ] Using design tokens (see `way-of-working.mdc`)
 - [ ] Composables use `.svelte.ts` extension
 - [ ] Single `$state` object with getters
-- [ ] Using `useQuery()` for Convex data
+- [ ] Convex uses `sessionId` pattern: `sessionId: v.string()` + destructure `{ userId }`
+- [ ] Frontend: `getSessionId = () => data.sessionId` + `throw` pattern (outer check ensures sessionId exists)
 - [ ] Browser checks inside `$effect` (not module-level)
 - [ ] Run `npm run ci:local` - All checks pass
 
