@@ -53,11 +53,119 @@ BASE_URL=http://localhost:5173
 
 ### 2. Test User Setup
 
-Create a test user in WorkOS:
+**CRITICAL**: Create a non-SSO test user in WorkOS to avoid SSO enforcement errors.
 
-1. Go to WorkOS dashboard
-2. Create a new user with email verification
-3. Use these credentials in `.env.test`
+#### Why Non-SSO?
+
+E2E tests use password authentication (`grant_type: 'password'`). If the test user is linked to an SSO connection in WorkOS, authentication will fail with `"sso_required"` error.
+
+#### Steps to Create Test User:
+
+1. **Go to WorkOS Dashboard**: https://dashboard.workos.com
+2. **Navigate to**: User Management → Users
+3. **Click "Create User"**
+4. **Fill in details**:
+   - Email: `e2e-test@synergyos-testing.com` (or similar non-SSO domain)
+   - Password: Generate strong password (save in password manager)
+   - First Name: `E2E`
+   - Last Name: `Test`
+   - Email Verified: ✅ **Check this box** (critical - skip email verification flow)
+5. **IMPORTANT**: Do NOT link this user to any organization with SSO connections
+6. **Verify**: Email should show as "Verified" after creation
+
+#### Update `.env.test`:
+
+Use the credentials from Step 4 in your `.env.test` file:
+
+```bash
+TEST_USER_EMAIL=e2e-test@synergyos-testing.com
+TEST_USER_PASSWORD=<your-secure-password>
+```
+
+#### Testing SSO Flows (Future):
+
+For testing SSO authentication separately, create a dedicated test suite using [WorkOS Test Identity Provider](https://workos.com/docs/sso/test-sso/testing-with-the-test-identity-provider).
+
+### 3. User Pattern Strategy
+
+SynergyOS E2E tests use a systematic email pattern to avoid WorkOS SSO enforcement and enable clean test management.
+
+#### Email Patterns
+
+##### CI Test Users (Temporary)
+
+These users are created during tests and can be auto-cleaned up:
+
+- `randy+ci-reg-{timestamp}@synergyai.nl` - Registration flow tests
+- `randy+ci-auth-{timestamp}@synergyai.nl` - Authentication tests
+- `randy+ci-rate-{i}-{timestamp}@synergyai.nl` - Rate limiting tests
+
+**Why**: Unique timestamps prevent conflicts, `ci-` prefix enables auto-cleanup
+
+##### Worker Pool Users (Pre-created)
+
+For parallel test execution (Phase 2):
+
+- `randy+worker-0@synergyai.nl`
+- `randy+worker-1@synergyai.nl`
+- `randy+worker-2@synergyai.nl`
+- `randy+worker-3@synergyai.nl`
+- `randy+worker-4@synergyai.nl`
+
+**Why**: Static emails reused across test runs for parallel workers
+
+##### Static User (Long-lived)
+
+For feature tests requiring established accounts:
+
+- `randy+cicduser@synergyai.nl` - Main E2E test account (127+ sign-ins)
+- `randy+cicduser2@synergyai.nl` - Secondary account
+
+**Why**: Persistent data, realistic account state
+
+##### Personal Users (Protected)
+
+Never auto-cleanup:
+
+- `randy+*@synergyai.nl` - User's personal test accounts
+
+**Why**: Developers use these for manual testing
+
+#### Why Not @example.com?
+
+The `example.com` domain is linked to a WorkOS Test Organization with SSO enforcement, causing `sso_required` errors. Using `@synergyai.nl` (non-SSO domain) allows password authentication in tests.
+
+#### Cleanup Policy (Phase 3)
+
+Future cleanup script will:
+
+- ✅ Delete users matching `randy+ci-*@synergyai.nl` older than 7 days
+- ✅ Preserve worker pool, static users, and personal users
+
+### 4. Convex Environment Setup
+
+The E2E tests mock email sending to avoid hitting Resend API rate limits. This requires setting an environment variable in your Convex deployment:
+
+```bash
+# Set E2E_TEST_MODE in Convex (one-time setup)
+npx convex env set E2E_TEST_MODE true
+```
+
+**What this does:**
+
+- Prevents Convex email actions from calling Resend API during tests
+- Mock emails are logged to console for debugging
+- Verification codes are still generated and testable via `/test/get-verification-code`
+
+**Verification:**
+
+```bash
+# Check if E2E_TEST_MODE is set
+npx convex env get E2E_TEST_MODE
+# Should return: true
+```
+
+**Note**: This only affects the development deployment. Production deployments should NOT have `E2E_TEST_MODE` set.
 
 ## Running Tests
 
@@ -264,6 +372,30 @@ If `/test/get-verification-code` returns 404:
 1. Check `E2E_TEST_MODE=true` in `.env.test`
 2. Restart dev server
 3. Verify endpoint exists: `curl http://localhost:5173/test/get-verification-code`
+
+### SSO Required Error
+
+If authentication fails with `"sso_required"` error:
+
+```json
+{
+	"error": "sso_required",
+	"email": "test@example.com",
+	"error_description": "User must authenticate using one of the matching connections.",
+	"connection_ids": ["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]
+}
+```
+
+**Root Cause**: Test user is linked to an SSO connection in WorkOS.
+
+**Solution**:
+
+1. Create a new test user (see [Test User Setup](#2-test-user-setup))
+2. Ensure the new user is NOT linked to any organization with SSO connections
+3. Use a different email domain (e.g., `e2e-test@synergyos-testing.com`)
+4. Update `TEST_USER_EMAIL` in `.env.test`
+
+**Why this happens**: WorkOS enforces SSO when a user is linked to an SSO-enabled organization. E2E tests use password authentication (`grant_type: 'password'`), which is incompatible with SSO enforcement.
 
 ### Slow Tests
 
