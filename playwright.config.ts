@@ -20,8 +20,8 @@ export default defineConfig({
 	// Retry on CI only
 	retries: process.env.CI ? 2 : 0,
 
-	// Opt out of parallel tests on CI
-	workers: process.env.CI ? 1 : undefined,
+	// Enable parallel execution with 5 workers (one per worker user)
+	workers: 5,
 
 	// Reporter to use
 	reporter: 'html',
@@ -54,13 +54,13 @@ export default defineConfig({
 			testMatch: /.*\/(settings|multi-tab|auth-security).*\.(test|spec)\.ts$/,
 			use: {
 				...devices['Desktop Chrome'],
-				// Use authenticated state from setup
+				// Use worker-specific authenticated state from setup
+				// Each worker (0-4) gets its own user.json file to prevent session conflicts
 				storageState: 'e2e/.auth/user.json'
 			},
-			dependencies: ['setup'],
-			// Run tests sequentially to prevent session conflicts with single test account
-			// See: https://playwright.dev/docs/test-parallel#limit-workers-in-one-project
-			workers: 1
+			dependencies: ['setup']
+			// Workers use global config (5 workers) for parallel execution
+			// Each worker authenticates as a different user (handled by auth.setup.ts)
 		},
 
 		// Unauthenticated tests - run with clean storage state
