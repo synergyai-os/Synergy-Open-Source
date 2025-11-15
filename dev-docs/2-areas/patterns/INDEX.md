@@ -66,6 +66,7 @@
 | E2E test helper returns 404, .env.test variables not loaded                                       | Use vite dev --mode test flag (not webServer.env MODE)                       | [ci-cd.md#L280](ci-cd.md#L280)                                      |
 | Playwright tests fail with "Session record not found", auth state conflicts                       | Separate authenticated/unauthenticated projects in playwright.config.ts      | [ci-cd.md#L290](ci-cd.md#L290)                                      |
 | E2E tests fail with WorkOS "sso_required" error                                                    | Use WorkOS Test Identity Provider or bypass for E2E                          | [ci-cd.md#L310](ci-cd.md#L310)                                      |
+| E2E test times out filling Bits UI PinInput (verification codes)                                  | Target hidden input [data-pin-input-input] not visual cells                  | [ui-patterns.md#L2750](ui-patterns.md#L2750)                        |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 

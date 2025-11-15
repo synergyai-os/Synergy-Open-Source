@@ -2015,11 +2015,26 @@ import { resolve as svelteResolve } from '$app/paths';
 import type { RouteId } from '$app/types';
 
 export function resolveRoute(route: string): string {
-	// Type assertion needed for routes that exist but aren't in the strict route type union
-	// This allows routes like /settings/* subroutes that are handled by layouts
-	// @ts-expect-error - SvelteKit's strict route typing doesn't include all valid routes
-	// (e.g., /settings/* subroutes handled by layouts). Runtime validation ensures correctness.
-	return svelteResolve(route as RouteId);
+	// Type assertion needed for routes that exist but aren't in the strict route type union.
+	// SvelteKit's RouteId type is a strict union of generated routes, but doesn't include:
+	// - Dynamic routes with catch-all segments (e.g., /dev-docs/[...path])
+	// - Routes handled by layouts (e.g., /settings/* subroutes)
+	// - Routes that are valid at runtime but not in the generated type manifest
+	//
+	// SvelteKit's resolve() function has overloads that TypeScript infers as requiring
+	// specific RouteId tuples, but at runtime it accepts any valid route string.
+	// We use a double assertion (as unknown as RouteId) to explicitly bypass TypeScript's
+	// strict type checking while maintaining runtime safety. This is safe because:
+	// 1. SvelteKit's resolve() function validates routes at runtime
+	// 2. All routes passed to resolveRoute() are validated against actual route structure
+	// 3. Invalid routes will fail at runtime, not silently break
+	//
+	// This is an acceptable limitation: SvelteKit's type system cannot statically verify
+	// all runtime-valid routes, so we must use a type assertion here.
+	// @ts-expect-error TS2345 - SvelteKit's resolve() has strict RouteId overloads that don't
+	// include all runtime-valid routes. The double assertion (as unknown as RouteId) is safe
+	// because resolve() validates routes at runtime. See: https://kit.svelte.dev/docs/kit/$app-paths#resolve
+	return svelteResolve(route as unknown as RouteId);
 }
 ```
 
@@ -2028,6 +2043,7 @@ export function resolveRoute(route: string): string {
 - `resolve()` has strict typing that only accepts routes in the generated manifest
 - Routes handled by layouts (e.g., `/settings/account` via `/settings/+layout.svelte`) are valid at runtime but not in types
 - Type assertion with `@ts-expect-error` bypasses type checking while maintaining runtime correctness
+- **Documentation required**: `@ts-expect-error` must include detailed explanation of why assertion is safe
 
 **Apply when**:
 - Route type errors with `resolve()` or `resolveRoute()`
@@ -2035,6 +2051,199 @@ export function resolveRoute(route: string): string {
 - Dynamic routes or routes handled by layouts
 
 **Related**: #L1870 (Always use resolveRoute for navigation)
+
+---
+
+## #L2000: Sanitize HTML with DOMPurify to Prevent XSS [🔴 CRITICAL]
+
+**Symptom**: ESLint warnings `svelte/no-at-html-tags`, potential XSS vulnerabilities from user-generated content  
+**Root Cause**: `{@html}` directive renders unsanitized HTML, allowing script injection attacks  
+**Fix**:
+
+```svelte
+<!-- ❌ WRONG: Unsanitized HTML allows XSS attacks -->
+<script lang="ts">
+	let htmlContent = $derived(marked.parse(markdown));
+</script>
+{@html htmlContent}
+```
+
+```svelte
+<!-- ✅ CORRECT: Sanitize HTML before rendering -->
+<script lang="ts">
+	import { sanitizeHtml } from '$lib/utils/htmlSanitize';
+	let htmlContent = $derived(sanitizeHtml(marked.parse(markdown)));
+</script>
+{@html htmlContent}
+```
+
+**Implementation** (`src/lib/utils/htmlSanitize.ts`):
+
+```typescript
+import { browser } from '$app/environment';
+import DOMPurify from 'dompurify';
+
+/**
+ * Sanitize HTML content to prevent XSS attacks.
+ * SSR-safe: Returns unsanitized HTML on server, sanitized on client.
+ */
+export function sanitizeHtml(html: string): string {
+	// SSR: Return unsanitized HTML on server (DOMPurify requires DOM)
+	if (!browser) {
+		return html;
+	}
+
+	const config = {
+		ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'strong', 'em', 'u', 's', 'code', 'pre', 'a', 'ul', 'ol', 'li', 'blockquote', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'img', 'del', 'ins'],
+		ALLOWED_ATTR: ['href', 'title', 'id', 'src', 'alt', 'class', 'lang', 'data-*'],
+		KEEP_CONTENT: true,
+		ALLOW_DATA_ATTR: true
+	};
+
+	// Type assertion needed due to DOMPurify type definition mismatch
+	return DOMPurify.sanitize(html, config as unknown as Parameters<typeof DOMPurify.sanitize>[1]);
+}
+```
+
+**Why**: 
+- User-generated content (markdown, notes) can contain malicious scripts
+- DOMPurify removes dangerous tags/attributes while preserving safe markdown HTML
+- SSR-safe: Returns original HTML on server (DOMPurify requires DOM), sanitizes on client
+
+**Apply when**:
+- Rendering user-generated HTML content
+- Rendering markdown → HTML (even from file system - defense in depth)
+- Any `{@html}` directive with dynamic content
+
+**Security Considerations**:
+- **User-generated content**: MUST be sanitized (high risk)
+- **File system content**: Should also be sanitized (defense in depth)
+- DOMPurify config should allow markdown-safe tags only (h1-h6, p, code, pre, etc.)
+
+**Related**: #L2005 (DOMPurify type compatibility), coding-standards.md (Security best practices)
+
+---
+
+## #L2100: Associate Form Labels with Controls for Accessibility [🟡 IMPORTANT]
+
+**Symptom**: svelte-check warning: "A form label must be associated with a control"  
+**Root Cause**: Form labels without `for` attribute or not wrapping controls violate accessibility standards (WCAG 2.1)  
+**Fix**:
+
+```svelte
+<!-- ❌ WRONG: Label not associated with control -->
+<label class="mb-2 block text-sm font-medium">Question</label>
+<textarea bind:value={question} />
+
+<!-- ✅ CORRECT: Label associated with id/for -->
+<label for="question" class="mb-2 block text-sm font-medium">Question</label>
+<textarea id="question" bind:value={question} />
+
+<!-- ✅ CORRECT: Label wrapping control -->
+<label class="mb-2 block text-sm font-medium">
+	Question
+	<textarea bind:value={question} />
+</label>
+
+<!-- ✅ CORRECT: Form groups use fieldset/legend -->
+<fieldset class="flex flex-col gap-icon">
+	<legend class="text-sm font-normal text-secondary">Select time range:</legend>
+	<RadioGroup.Root bind:value={selectedRange}>
+		<!-- RadioGroup items -->
+	</RadioGroup.Root>
+</fieldset>
+```
+
+**Why**: 
+- Screen readers need label associations to announce form controls correctly
+- Clicking labels should focus/activate associated controls
+- `<fieldset>`/`<legend>` is proper semantic HTML for grouped form controls (radio groups, toggle groups)
+
+**Apply when**:
+- Form labels without `for` attribute
+- Labels not wrapping their controls
+- Form groups (radio buttons, toggle groups) need `<fieldset>`/`<legend>`
+- svelte-check accessibility warnings
+
+**Accessibility Standards**: WCAG 2.1 Level A requires labels to be programmatically associated with controls  
+**Related**: #L680 (Atomic components - FormInput/FormTextarea handle this automatically)
+
+---
+
+## #L2130: Replace autofocus with Programmatic Focus [🟡 IMPORTANT]
+
+**Symptom**: svelte-check warning: "Avoid using autofocus"  
+**Root Cause**: `autofocus` attribute violates accessibility guidelines (WCAG 2.4.3) and can cause issues with screen readers and keyboard navigation  
+**Fix**:
+
+```svelte
+<!-- ❌ WRONG: autofocus attribute -->
+<input type="text" bind:value={searchQuery} autofocus />
+
+<!-- ✅ CORRECT: Programmatic focus -->
+<script>
+	let searchInput = $state<HTMLInputElement | null>(null);
+	
+	function openSelector() {
+		showSelector = true;
+		// Focus after selector shows
+		setTimeout(() => {
+			searchInput?.focus();
+		}, 0);
+	}
+</script>
+
+<input type="text" bind:value={searchQuery} bind:this={searchInput} />
+```
+
+**Why**: 
+- `autofocus` can interfere with screen reader navigation
+- Programmatic focus gives more control over when focus happens
+- `setTimeout` ensures DOM is ready before focusing
+
+**Apply when**:
+- Modal dialogs or popovers that should focus input on open
+- Search inputs in dropdowns or selectors
+- Any form that needs initial focus
+- svelte-check autofocus warnings
+
+**Accessibility**: Programmatic focus is preferred over `autofocus` as it can be controlled and doesn't interfere with screen reader navigation  
+**Related**: #L1085 (Component refs with $state), #L500 ($effect browser checks)
+
+---
+
+## #L2005: Fix DOMPurify Type Compatibility Issues [🟡 IMPORTANT]
+
+**Symptom**: TypeScript error `Argument of type 'DOMPurify.Config' is not assignable to parameter of type 'import(".../dompurify/dist/purify.es").Config'` when using DOMPurify  
+**Root Cause**: DOMPurify has multiple type definitions (ESM vs CJS) causing type incompatibility between Config types  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Direct config causes type mismatch
+const config: DOMPurify.Config = { ALLOWED_TAGS: ['p'] };
+DOMPurify.sanitize(html, config); // Type error!
+
+// ✅ CORRECT: Use type assertion with 'unknown' intermediate
+const config = {
+	ALLOWED_TAGS: ['p'],
+	ALLOWED_ATTR: ['href', 'id']
+};
+
+// Type assertion needed due to DOMPurify type definition mismatch between Config types
+// Using 'unknown' first to safely cast between incompatible Config type definitions
+return DOMPurify.sanitize(html, config as unknown as Parameters<typeof DOMPurify.sanitize>[1]);
+```
+
+**Why**: 
+- DOMPurify has separate type definitions for ESM (`purify.es`) and CJS (`purify.js`)
+- TypeScript infers incompatible Config types between these definitions
+- Using `unknown` as intermediate type allows safe casting between incompatible types
+
+**Apply when**:
+- DOMPurify type errors with Config parameter
+- Type mismatch between DOMPurify Config types
+
+**Related**: #L2000 (HTML sanitization), coding-standards.md (Type assertions)
 
 ---
 
@@ -2674,6 +2883,81 @@ html.dark {
 
 ---
 
-**Pattern Count**: 29  
-**Last Updated**: 2025-11-14  
+## #L2750: E2E Testing Bits UI PinInput Components [🔴 CRITICAL]
+
+**Symptom**: Playwright E2E test fails with "Test timeout exceeded" when trying to fill Bits UI PinInput fields  
+**Root Cause**: Bits UI PinInput renders a hidden `<input>` element with `[data-pin-input-input]` attribute that handles all input. The visible cells are display-only divs that intercept pointer events  
+**Solution**: Target the hidden input element directly instead of clicking visual cells
+
+```typescript
+// ❌ WRONG: Try to click individual cells (fails - cells intercept pointer events)
+const pinInputs = page.locator('input[type="text"], input[type="number"]');
+for (let i = 0; i < 6; i++) {
+  await pinInputs.nth(i).fill(code[i]);
+}
+
+// ❌ WRONG: Try to click visual cells with data-testid (fails - hidden input intercepts)
+const cell = page.locator('[data-testid="pin-input-cell-0"]');
+await cell.click();
+await cell.pressSequentially(code[0]);
+
+// ✅ CORRECT: Target the hidden input element directly
+const hiddenInput = page.locator('[data-pin-input-input]');
+await hiddenInput.fill(code); // Enter all 6 digits at once
+```
+
+**Bits UI PinInput DOM Structure**:
+```html
+<div data-pin-input-root>
+  <!-- Hidden input handles all keyboard input -->
+  <input 
+    data-pin-input-input 
+    maxlength="6" 
+    pattern="^\d+$" 
+    inputmode="numeric" 
+    autocomplete="one-time-code"
+  />
+  
+  <!-- Visual cells for display only -->
+  <div data-pin-input-cell data-testid="pin-input-cell-0">1</div>
+  <div data-pin-input-cell data-testid="pin-input-cell-1">2</div>
+  <!-- ... -->
+</div>
+```
+
+**Why**:
+- Bits UI uses single hidden input for accessibility (screen readers, autocomplete)
+- Visual cells are presentational only
+- Clicking cells fails because hidden input intercepts pointer events
+- `.fill()` bypasses click detection and types directly into input
+
+**Common Mistake**: Adding `data-testid` to cells and clicking them
+- ❌ Cells don't accept input (they're `<div>` elements)
+- ❌ Hidden input intercepts all clicks
+- ✅ Use `[data-pin-input-input]` selector (Bits UI's native attribute)
+
+**Related Test Fixes**:
+If test also fails with backend validation errors (e.g., `lastName cannot be null`):
+```typescript
+// ✅ Fill ALL required form fields in tests
+await page.fill('input[name="firstName"]', 'Test');
+await page.fill('input[name="lastName"]', 'User'); // Don't forget!
+```
+
+**Apply when**: 
+- E2E testing verification codes (email, SMS, 2FA)
+- Testing Bits UI PinInput component
+- Test times out searching for `input[type="text"]` or similar
+
+**Testing Best Practices**:
+1. Use native Bits UI attributes (`[data-pin-input-input]`) over custom test IDs
+2. Type all digits at once with `.fill()` for speed
+3. Verify complete registration/verification flows end-to-end
+
+**Related**: #L250 (E2E test selectors), ci-cd.md#L280 (E2E environment setup), ci-cd.md#L290 (Playwright authentication)
+
+---
+
+**Pattern Count**: 30  
+**Last Updated**: 2025-11-15  
 **Design Token Reference**: `dev-docs/design-tokens.md`

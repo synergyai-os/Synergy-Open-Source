@@ -64,6 +64,7 @@
 			{#each cells as cell, index (index)}
 				<PinInputPrimitive.Cell
 					{cell}
+					data-testid="pin-input-cell-{index}"
 					class="size-pin-cell rounded-input border-2 border-base bg-input text-center font-bold text-primary caret-accent-primary transition-all duration-200 placeholder:text-tertiary focus:border-accent-primary focus:shadow-pin-glow focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 {error
 						? 'border-error'
 						: ''}"

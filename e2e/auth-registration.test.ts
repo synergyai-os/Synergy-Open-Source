@@ -28,10 +28,14 @@ test.describe('Registration with Email Verification', () => {
 		await page.fill('input[name="password"]', testPassword);
 		await page.fill('input[name="confirmPassword"]', testPassword);
 
-		// Optional: Fill in name fields if they exist
+		// Fill in name fields (required for WorkOS user creation)
 		const firstNameInput = page.locator('input[name="firstName"]');
+		const lastNameInput = page.locator('input[name="lastName"]');
 		if (await firstNameInput.isVisible()) {
 			await firstNameInput.fill('Test');
+		}
+		if (await lastNameInput.isVisible()) {
+			await lastNameInput.fill('User');
 		}
 
 		// Step 3: Submit registration form and wait for navigation
@@ -55,19 +59,10 @@ test.describe('Registration with Email Verification', () => {
 		console.log('✅ Retrieved verification code:', codeData.code);
 
 		// Step 6: Enter verification code
-		// PIN input might be rendered as separate inputs or a single input
-		const pinInputs = page.locator('input[type="text"], input[type="number"]');
-		const inputCount = await pinInputs.count();
-
-		if (inputCount === 6) {
-			// Separate inputs for each digit
-			for (let i = 0; i < 6; i++) {
-				await pinInputs.nth(i).fill(codeData.code[i]);
-			}
-		} else {
-			// Single input for all digits
-			await pinInputs.first().fill(codeData.code);
-		}
+		// Bits UI PinInput uses a hidden input element (data-pin-input-input) that handles all input
+		// The visible cells are just visual representations - type into the hidden input directly
+		const hiddenInput = page.locator('[data-pin-input-input]');
+		await hiddenInput.fill(codeData.code);
 
 		// Step 7: Verification should succeed and redirect to inbox
 		await expect(page).toHaveURL(/\/inbox/, { timeout: 10000 });
@@ -98,31 +93,31 @@ test.describe('Registration with Email Verification', () => {
 		await page.fill('input[type="email"]', testEmail);
 		await page.fill('input[name="password"]', testPassword);
 		await page.fill('input[name="confirmPassword"]', testPassword);
+
+		// Fill in name fields (required for WorkOS user creation)
+		const firstNameInput = page.locator('input[name="firstName"]');
+		const lastNameInput = page.locator('input[name="lastName"]');
+		if (await firstNameInput.isVisible()) {
+			await firstNameInput.fill('Test');
+		}
+		if (await lastNameInput.isVisible()) {
+			await lastNameInput.fill('User');
+		}
+
 		await page.click('button[type="submit"]');
 
 		await expect(page).toHaveURL(/\/verify-email/);
 		await page.waitForLoadState('networkidle'); // ✅ Wait for verify-email page to hydrate
 
-		// NOTE: PinInput component uses Bits UI which renders custom cells, not standard inputs
-		// The test might need adjustment based on actual DOM structure
-		// For now, skip this test as it requires investigation of Bits UI PinInput rendering
-		test.skip();
-
 		// Try wrong code 5 times (max attempts)
+		const wrongCode = '000000';
+		const hiddenInput = page.locator('[data-pin-input-input]');
+
 		for (let i = 0; i < 5; i++) {
-			const pinInputs = page.locator('input[type="text"], input[type="number"]');
-			const inputCount = await pinInputs.count();
+			// Enter wrong code into the hidden input element
+			await hiddenInput.fill(wrongCode);
 
-			const wrongCode = '000000';
-			if (inputCount === 6) {
-				for (let j = 0; j < 6; j++) {
-					await pinInputs.nth(j).fill(wrongCode[j]);
-				}
-			} else {
-				await pinInputs.first().fill(wrongCode);
-			}
-
-			// Wait for error message
+			// Wait for error message and code to clear
 			await page.waitForTimeout(1000);
 		}
 
