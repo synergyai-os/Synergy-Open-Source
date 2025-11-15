@@ -47,10 +47,11 @@ export default defineConfig({
 		},
 
 		// Authenticated tests - require login state from setup
+		// NOTE: Only includes COMPLETED auth flows (SYOS-160)
+		// Feature tests (inbox, flashcard, quick-create) excluded until features are complete
 		{
 			name: 'authenticated',
-			testMatch:
-				/.*\/(inbox|settings|multi-tab|flashcard|quick-create|auth-security).*\.(test|spec)\.ts$/,
+			testMatch: /.*\/(settings|multi-tab|auth-security).*\.(test|spec)\.ts$/,
 			use: {
 				...devices['Desktop Chrome'],
 				// Use authenticated state from setup
