@@ -124,7 +124,7 @@ export const listInboxItems = query({
 						// Remove markdown formatting and get first 100 chars
 						snippet = item.contentMarkdown
 							.replace(/^---[\s\S]*?---/, '') // Remove frontmatter
-							.replace(/[#*_`\[\]]/g, '') // Remove markdown symbols
+							.replace(/[#*_`[\]]/g, '') // Remove markdown symbols
 							.trim();
 
 						if (snippet.length > 100) {

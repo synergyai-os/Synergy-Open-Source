@@ -85,6 +85,21 @@ export const sendVerificationEmail = internalAction({
 		firstName: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
+		// E2E test mode - skip actual email sending
+		if (process.env.E2E_TEST_MODE === 'true') {
+			console.log('📧 [E2E Mock] Verification email suppressed:', {
+				to: args.email,
+				code: args.code,
+				firstName: args.firstName || 'User'
+			});
+
+			return {
+				success: true,
+				emailId: `mock-verification-${args.email}-${Date.now()}`
+			};
+		}
+
+		// Production flow - Send real email via Resend
 		const apiKey = process.env.RESEND_API_KEY;
 
 		if (!apiKey) {
@@ -205,6 +220,21 @@ export const sendPasswordResetEmail = internalAction({
 		firstName: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
+		// E2E test mode - skip actual email sending
+		if (process.env.E2E_TEST_MODE === 'true') {
+			console.log('📧 [E2E Mock] Password reset email suppressed:', {
+				to: args.email,
+				resetUrl: args.resetUrl,
+				firstName: args.firstName || 'User'
+			});
+
+			return {
+				success: true,
+				emailId: `mock-password-reset-${args.email}-${Date.now()}`
+			};
+		}
+
+		// Production flow - Send real email via Resend
 		const apiKey = process.env.RESEND_API_KEY;
 
 		if (!apiKey) {

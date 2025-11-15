@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
+	import { sanitizeHtml } from '$lib/utils/htmlSanitize';
 
 	let { data }: { data: PageData } = $props();
 
@@ -9,6 +10,7 @@
 	const note = data.note as NoteWithDetails | null;
 	let title = $derived(note?.title || 'Untitled Note');
 	let markdown = $derived(note?.contentMarkdown || '');
+	let sanitizedMarkdown = $derived(sanitizeHtml(markdown));
 	let createdAt = $derived(note?.createdAt ? new Date(note.createdAt).toLocaleDateString() : '');
 </script>
 
@@ -28,7 +30,7 @@
 	</header>
 
 	<article class="note-content">
-		{@html markdown}
+		{@html sanitizedMarkdown}
 	</article>
 </div>
 

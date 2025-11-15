@@ -11,21 +11,16 @@ function getTestId(testName: string): string {
 }
 
 test.describe('Rate Limiting', () => {
-	// Reset rate limits before each test to ensure isolation
-	// This prevents tests from interfering with each other when run in parallel
-	test.beforeEach(async ({ request }) => {
-		// Clear all rate limits before each test
-		// This ensures each test starts with a clean slate
-		const response = await request.post('/test/reset-rate-limits');
-		if (!response.ok() && response.status() !== 404) {
-			console.warn('⚠️ Failed to reset rate limits before test:', response.status());
-		}
-	});
+	// Test isolation via X-Test-ID header (unique per test run)
+	// Each test generates a unique testId with timestamp + random string
+	// No cleanup needed - tests use separate rate limit buckets
 	test.describe('Login Endpoint', () => {
 		test('should block excessive login attempts', async ({ request }) => {
 			const testId = getTestId('login-excessive');
 			const email = 'randy+cicduser@synergyai.nl';
 			const password = 'wrong-password';
+
+			console.log('[TEST] Starting login test with testId:', testId);
 
 			// Try logging in 6 times (limit is 5/min)
 			for (let i = 0; i < 6; i++) {
@@ -38,6 +33,8 @@ test.describe('Rate Limiting', () => {
 						'X-Test-ID': testId
 					}
 				});
+
+				console.log(`[TEST] Request ${i + 1}/6: status=${response.status()}, testId=${testId}`);
 
 				if (i < 5) {
 					// First 5 attempts should return error (401 or 404 for invalid credentials)

@@ -39,7 +39,7 @@
 
 	let showAIDetector = $state(false);
 	let detectorPosition = $state<{ x: number; y: number } | undefined>(undefined);
-	let editorRef: NoteEditorComponent | undefined;
+	let editorRef = $state<NoteEditorComponent | undefined>(undefined);
 
 	function handlePaste(text: string, view: EditorView) {
 		if (!browser) return;

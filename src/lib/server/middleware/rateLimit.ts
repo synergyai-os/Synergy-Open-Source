@@ -6,6 +6,29 @@
  */
 
 import type { RequestEvent } from '@sveltejs/kit';
+import { env } from '$env/dynamic/private';
+import { writeFileSync, appendFileSync } from 'fs';
+import { join } from 'path';
+
+// Debug logging to file (E2E test mode only)
+const DEBUG_LOG_PATH = join(process.cwd(), 'rate-limit-debug.log');
+
+function debugLog(...args: unknown[]) {
+	const e2eTestMode = process.env.E2E_TEST_MODE || env.E2E_TEST_MODE;
+	if (e2eTestMode === 'true') {
+		const timestamp = new Date().toISOString();
+		const message = args
+			.map((arg) => (typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)))
+			.join(' ');
+		try {
+			appendFileSync(DEBUG_LOG_PATH, `[${timestamp}] ${message}\n`);
+		} catch (_e) {
+			// Ignore write errors
+		}
+	}
+	// Also log to console
+	console.log(...args);
+}
 
 interface RateLimitEntry {
 	timestamps: number[];
@@ -25,6 +48,35 @@ interface RateLimitConfig {
  * - timestamps = [t1, t2, t3, ...] (sorted, oldest first)
  */
 const store = new Map<string, RateLimitEntry>();
+
+/**
+ * Clear all rate limit entries (for E2E tests only)
+ */
+export function clearRateLimits(): void {
+	const beforeSize = store.size;
+	store.clear();
+	debugLog(`🧹 clearRateLimits: Cleared ${beforeSize} entries from rate limit store`);
+
+	// Clear debug log file on first reset (start of test run)
+	if (beforeSize === 0) {
+		try {
+			writeFileSync(DEBUG_LOG_PATH, `=== NEW TEST RUN: ${new Date().toISOString()} ===\n`);
+		} catch (_e) {
+			// Ignore
+		}
+	}
+}
+
+/**
+ * Clear rate limits for a specific identifier pattern (for E2E tests only)
+ */
+export function clearRateLimitsForPattern(pattern: string): void {
+	for (const key of store.keys()) {
+		if (key.includes(pattern)) {
+			store.delete(key);
+		}
+	}
+}
 
 /**
  * Cleanup old entries every 5 minutes
@@ -68,15 +120,37 @@ export function checkRateLimit(
 	const now = Date.now();
 	const windowStart = now - config.windowMs;
 
+	debugLog('=== RATE LIMIT: checkRateLimit START ===');
+	debugLog('Config:', {
+		keyPrefix: config.keyPrefix,
+		maxRequests: config.maxRequests,
+		windowMs: config.windowMs
+	});
+	debugLog('Identifier:', identifier);
+	debugLog('Key:', key);
+
 	// Get or create entry
 	let entry = store.get(key);
 	if (!entry) {
+		debugLog('📝 Creating new entry for key:', key);
 		entry = { timestamps: [] };
 		store.set(key, entry);
+	} else {
+		debugLog('📖 Found existing entry for key:', key);
+		debugLog('Existing timestamps:', entry.timestamps.length);
 	}
 
 	// Remove timestamps outside current window (sliding window)
+	const beforeFilter = entry.timestamps.length;
 	entry.timestamps = entry.timestamps.filter((ts) => ts > windowStart);
+	const afterFilter = entry.timestamps.length;
+
+	if (beforeFilter !== afterFilter) {
+		debugLog(`🧹 Filtered old timestamps: ${beforeFilter} → ${afterFilter}`);
+	}
+
+	debugLog('Current count after filter:', entry.timestamps.length);
+	debugLog('Max requests allowed:', config.maxRequests);
 
 	// Check if limit exceeded
 	if (entry.timestamps.length >= config.maxRequests) {
@@ -84,6 +158,12 @@ export function checkRateLimit(
 		const oldestTimestamp = entry.timestamps[0];
 		const resetAt = oldestTimestamp + config.windowMs;
 		const retryAfter = Math.ceil((resetAt - now) / 1000); // seconds
+
+		debugLog('🚫 RATE LIMIT EXCEEDED!');
+		debugLog('Current count:', entry.timestamps.length);
+		debugLog('Max allowed:', config.maxRequests);
+		debugLog('Retry after (seconds):', retryAfter);
+		debugLog('=== RATE LIMIT: checkRateLimit END (BLOCKED) ===');
 
 		return {
 			allowed: false,
@@ -95,6 +175,10 @@ export function checkRateLimit(
 
 	// Record this request
 	entry.timestamps.push(now);
+	debugLog('✅ Request allowed, recorded timestamp');
+	debugLog('New count:', entry.timestamps.length);
+	debugLog('Remaining:', config.maxRequests - entry.timestamps.length);
+	debugLog('=== RATE LIMIT: checkRateLimit END (ALLOWED) ===');
 
 	// Calculate reset time (when oldest request expires)
 	const oldestTimestamp = entry.timestamps[0];
@@ -142,22 +226,49 @@ export const RATE_LIMITS = {
  * Get client identifier (IP address)
  *
  * Respects X-Forwarded-For header (for proxies)
+ * In E2E test mode, uses X-Test-ID header for test isolation
  */
 export function getClientIdentifier(request: Request): string {
+	// E2E test mode: Use test-specific identifier for isolation
+	// Check process.env first - Playwright's webServer.env sets process.env for the dev server
+	// $env/dynamic/private reads from process.env at runtime, but checking directly is more reliable
+	const e2eTestMode = process.env.E2E_TEST_MODE || env.E2E_TEST_MODE;
+	const testId = request.headers.get('x-test-id');
+
+	debugLog('=== RATE LIMIT: getClientIdentifier START ===');
+	debugLog('E2E_TEST_MODE (process.env):', process.env.E2E_TEST_MODE);
+	debugLog('E2E_TEST_MODE (env):', env.E2E_TEST_MODE);
+	debugLog('E2E_TEST_MODE (final):', e2eTestMode);
+	debugLog('X-Test-ID header:', testId);
+	debugLog('Will use test ID?:', e2eTestMode === 'true' && !!testId);
+
+	if (e2eTestMode === 'true' && testId) {
+		const identifier = `test:${testId}`;
+		debugLog('✅ Using test identifier:', identifier);
+		debugLog('=== RATE LIMIT: getClientIdentifier END ===');
+		return identifier;
+	}
+
 	// Check for forwarded IP (Vercel, Cloudflare, etc.)
 	const forwardedFor = request.headers.get('x-forwarded-for');
 	if (forwardedFor) {
-		// Take first IP (client IP)
-		return forwardedFor.split(',')[0].trim();
+		const identifier = forwardedFor.split(',')[0].trim();
+		debugLog('Using forwarded IP:', identifier);
+		debugLog('=== RATE LIMIT: getClientIdentifier END ===');
+		return identifier;
 	}
 
 	// Check for real IP header (some CDNs)
 	const realIp = request.headers.get('x-real-ip');
 	if (realIp) {
+		debugLog('Using real IP:', realIp);
+		debugLog('=== RATE LIMIT: getClientIdentifier END ===');
 		return realIp.trim();
 	}
 
 	// Fallback to 'unknown' (should not happen in production)
+	debugLog('⚠️ Using fallback: unknown');
+	debugLog('=== RATE LIMIT: getClientIdentifier END ===');
 	return 'unknown';
 }
 
@@ -175,8 +286,14 @@ export function withRateLimit<T>(
 	handler: (context: { event: RequestEvent }) => Promise<T>
 ) {
 	return async (event: RequestEvent): Promise<T | Response> => {
+		debugLog('🔒 withRateLimit CALLED for endpoint:', config.keyPrefix);
+		debugLog('Request URL:', event.url.pathname);
+
 		const identifier = getClientIdentifier(event.request);
+		debugLog('Got identifier from getClientIdentifier:', identifier);
+
 		const result = checkRateLimit(identifier, config);
+		debugLog('checkRateLimit result:', result);
 
 		// Set rate limit headers (standard)
 		const headers = {

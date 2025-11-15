@@ -2,7 +2,6 @@
 	import { page } from '$app/state';
 	import { dev } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	// Check if we're in development mode

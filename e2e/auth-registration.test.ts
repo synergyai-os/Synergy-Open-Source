@@ -12,6 +12,9 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Registration with Email Verification', () => {
+	// Run rate limit test serially to avoid parallel execution issues
+	test.describe.configure({ mode: 'serial' });
+
 	test('should register new user with email verification', async ({ page, request }) => {
 		// Generate unique test email
 		const timestamp = Date.now();
@@ -86,6 +89,17 @@ test.describe('Registration with Email Verification', () => {
 		const timestamp = Date.now();
 		const testEmail = `randy+ci-reg-${timestamp}@synergyai.nl`;
 		const testPassword = 'TestPassword123!';
+		const testId = `rate-limit-test-${timestamp}`;
+
+		// Intercept verification requests to add X-Test-ID header for rate limit isolation
+		await page.route('**/auth/verify-email', async (route) => {
+			await route.continue({
+				headers: {
+					...route.request().headers(),
+					'X-Test-ID': testId
+				}
+			});
+		});
 
 		// Register user
 		await page.goto('/register');
@@ -117,12 +131,23 @@ test.describe('Registration with Email Verification', () => {
 			// Enter wrong code into the hidden input element
 			await hiddenInput.fill(wrongCode);
 
-			// Wait for error message and code to clear
-			await page.waitForTimeout(1000);
+			// Wait for code to be cleared (happens after response completes and isSubmitting is reset)
+			// This is more reliable than waiting for error message visibility
+			await page.waitForFunction(
+				() => {
+					const input = document.querySelector('[data-pin-input-input]') as HTMLInputElement;
+					return input && input.value === '';
+				},
+				{ timeout: 10000 }
+			);
+
+			// Small delay to ensure isSubmitting is fully reset
+			await page.waitForTimeout(100);
 		}
 
 		// 6th attempt should show "too many attempts" error
-		await expect(page.locator('text=/too many attempts/i')).toBeVisible();
+		// Use .first() because both main error container and PinInput show the message
+		await expect(page.locator('text=/too many attempts/i').first()).toBeVisible();
 	});
 
 	test('should show validation errors for invalid input', async ({ page }) => {
@@ -166,8 +191,10 @@ test.describe('Password Reset Flow', () => {
 		await page.fill('input[type="email"]', 'randy+cicduser@synergyai.nl');
 		await page.click('button[type="submit"]');
 
-		// Should show success message (check for actual success message from forgot-password/+page.svelte)
-		await expect(page.locator('text=/Check your email/i')).toBeVisible();
+		// Should show success message (more specific selector to avoid strict mode violation)
+		await expect(
+			page.locator('.text-sm.font-medium.text-primary:has-text("Check your email")')
+		).toBeVisible();
 	});
 
 	test('should reset password with valid token', async ({ page }) => {

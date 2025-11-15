@@ -11,6 +11,8 @@
 import type * as auth from "../auth.js";
 import type * as authSessions from "../authSessions.js";
 import type * as blogExport from "../blogExport.js";
+import type * as circleRoles from "../circleRoles.js";
+import type * as circles from "../circles.js";
 import type * as cryptoActions from "../cryptoActions.js";
 import type * as email from "../email.js";
 import type * as featureFlags from "../featureFlags.js";
@@ -54,6 +56,8 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   authSessions: typeof authSessions;
   blogExport: typeof blogExport;
+  circleRoles: typeof circleRoles;
+  circles: typeof circles;
   cryptoActions: typeof cryptoActions;
   email: typeof email;
   featureFlags: typeof featureFlags;

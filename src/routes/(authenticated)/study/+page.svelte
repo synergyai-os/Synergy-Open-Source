@@ -142,7 +142,7 @@
 				<div class="mb-4 text-6xl">✅</div>
 				<p class="mb-2 text-lg font-semibold text-primary">Session Complete!</p>
 				<p class="mb-4 text-secondary">
-					You reviewed {study.cardsReviewed} card{study.cardsReviewed !== 1 ? 's' : ''} in{' '}
+					You reviewed {study.cardsReviewed} card{study.cardsReviewed !== 1 ? 's' : ''} in
 					{Math.floor(sessionDuration / 60)}:{String(sessionDuration % 60).padStart(2, '0')}
 				</p>
 				<Button.Root

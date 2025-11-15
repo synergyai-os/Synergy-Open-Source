@@ -9,19 +9,25 @@
 	import QuickCreateModal from '$lib/components/QuickCreateModal.svelte';
 	import OrganizationModals from '$lib/components/organizations/OrganizationModals.svelte';
 	import LoadingOverlay from '$lib/components/ui/LoadingOverlay.svelte';
-	import { resolve } from '$app/paths';
 	import { resolveRoute } from '$lib/utils/navigation';
-	import { getContext, setContext } from 'svelte';
-	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import { setContext } from 'svelte';
+	import { useOrganizations } from '$lib/composables/useOrganizations.svelte';
 	import { useGlobalShortcuts, SHORTCUTS } from '$lib/composables/useGlobalShortcuts.svelte';
 	import { useLoadingOverlay } from '$lib/composables/useLoadingOverlay.svelte';
 	import { toast } from '$lib/utils/toast';
+	import { page } from '$app/stores';
 	// TODO: Re-enable when Id type is needed
 	// import type { Id } from '$lib/convex';
 
 	let { children, data } = $props();
 
-	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	// Initialize organizations composable with sessionId from authenticated layout data
+	const organizations = useOrganizations({
+		userId: () => data.user?.userId,
+		sessionId: () => data.sessionId,
+		orgFromUrl: () => $page.url.searchParams.get('org')
+	});
+	setContext('organizations', organizations);
 	const loadingOverlay = useLoadingOverlay();
 	setContext('loadingOverlay', loadingOverlay);
 	const isAuthenticated = $derived(data.isAuthenticated);
@@ -90,7 +96,15 @@
 	});
 
 	// Initialize global shortcuts (only in browser - SSR safe)
-	const shortcuts = browser ? useGlobalShortcuts() : null;
+	// Use $state to make it reactive so $effect tracks changes when it becomes available
+	let shortcuts = $state<ReturnType<typeof useGlobalShortcuts> | null>(null);
+
+	// Initialize shortcuts in browser after mount
+	onMount(() => {
+		if (browser) {
+			shortcuts = useGlobalShortcuts();
+		}
+	});
 
 	// Get inbox count for sidebar - using 0 for now since inbox uses mock data
 	// TODO: Replace with actual Convex query when inbox data is connected
@@ -155,7 +169,7 @@
 
 	// Register keyboard shortcuts for Quick Create
 	$effect(() => {
-		if (!shortcuts) return;
+		if (!shortcuts || !browser) return;
 
 		// 'C' key - Quick create note (direct)
 		shortcuts.register({
@@ -219,12 +233,21 @@
 			});
 		}
 
+		// Mark shortcuts as ready for E2E tests
+		if (document.body) {
+			document.body.setAttribute('data-shortcuts-ready', 'true');
+		}
+
 		return () => {
+			if (!shortcuts) return;
 			shortcuts.unregister(SHORTCUTS.CREATE);
 			shortcuts.unregister(SHORTCUTS.COMMAND_PALETTE, { meta: true });
 			// Unregister workspace shortcuts
 			for (let i = 1; i <= 9; i++) {
 				shortcuts.unregister(i.toString(), { meta: true });
+			}
+			if (document.body) {
+				document.body.removeAttribute('data-shortcuts-ready');
 			}
 		};
 	});
@@ -232,7 +255,7 @@
 	// Redirect to login if not authenticated (shouldn't reach here due to server-side redirect)
 	$effect(() => {
 		if (browser && !isAuthenticated) {
-			window.location.href = '/login';
+			window.location.href = resolveRoute('/login');
 		}
 	});
 </script>
@@ -255,6 +278,7 @@
 				quickCreateModalOpen = true;
 			}}
 			user={data.user}
+			sessionId={data.sessionId}
 		/>
 
 		<!-- Main Content Area -->

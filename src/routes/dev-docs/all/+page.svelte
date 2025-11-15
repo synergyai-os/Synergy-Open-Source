@@ -3,7 +3,6 @@
 	import { fade, fly } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import { onMount } from 'svelte';
-	import { resolve } from '$app/paths';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	let visible = $state(false);

@@ -1,5 +1,5 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
-import { resetPassword } from '$lib/server/auth/workos';
+import { resetPassword, WorkOSError } from '$lib/server/auth/workos';
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
 
 /**
@@ -42,10 +42,55 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 	} catch (err) {
 		console.error('❌ Reset password error:', err);
 
-		// Parse error message
+		// Check if it's a WorkOSError with status code
+		if (err instanceof WorkOSError) {
+			// Use the status code from WorkOS API response
+			const statusCode = err.statusCode;
+
+			// 400 Bad Request - invalid/expired token or validation error
+			if (statusCode === 400) {
+				const errorText = err.originalError?.toLowerCase() ?? '';
+				// Check if it's a weak password error
+				if (
+					errorText.includes('password') &&
+					(errorText.includes('weak') || errorText.includes('too short'))
+				) {
+					return json(
+						{
+							error:
+								'Password must be at least 8 characters long. Please choose a stronger password.'
+						},
+						{ status: 400 }
+					);
+				}
+				// Default 400 error - invalid/expired token
+				return json(
+					{ error: 'Invalid or expired reset link. Please request a new password reset.' },
+					{ status: 400 }
+				);
+			}
+
+			// 410 Gone - token expired (if WorkOS uses this)
+			if (statusCode === 410) {
+				return json(
+					{ error: 'Reset link has expired. Please request a new password reset.' },
+					{ status: 410 }
+				);
+			}
+
+			// Other 4xx errors - client errors
+			if (statusCode >= 400 && statusCode < 500) {
+				return json(
+					{ error: 'Invalid or expired reset link. Please request a new password reset.' },
+					{ status: 400 }
+				);
+			}
+		}
+
+		// Fallback: Check error message for backward compatibility
 		const errorMessage = (err as Error)?.message ?? 'Failed to reset password';
 
-		// Check for specific WorkOS errors
+		// Check for specific error patterns in message
 		if (
 			errorMessage.includes('400') ||
 			errorMessage.includes('invalid') ||
@@ -70,7 +115,7 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 			);
 		}
 
-		// Generic error
+		// Generic server error (only for unexpected 5xx or unknown errors)
 		return json(
 			{ error: 'Unable to reset password. Please try again or request a new reset link.' },
 			{ status: 500 }

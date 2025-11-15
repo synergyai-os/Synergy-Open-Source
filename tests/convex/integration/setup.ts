@@ -346,6 +346,45 @@ export async function cleanupTestData(t: TestConvex<any>, userId?: Id<'users'>):
 }
 
 /**
+ * Create a test circle
+ */
+export async function createTestCircle(
+	t: TestConvex<any>,
+	organizationId: Id<'organizations'>,
+	name: string = 'Test Circle',
+	parentCircleId?: Id<'circles'>
+): Promise<Id<'circles'>> {
+	return await t.run(async (ctx) => {
+		return await ctx.db.insert('circles', {
+			organizationId,
+			name,
+			slug: `test-circle-${Date.now()}`,
+			purpose: 'Test purpose',
+			parentCircleId,
+			createdAt: Date.now(),
+			updatedAt: Date.now()
+		});
+	});
+}
+
+/**
+ * Create a circle membership
+ */
+export async function createTestCircleMember(
+	t: TestConvex<any>,
+	circleId: Id<'circles'>,
+	userId: Id<'users'>
+): Promise<Id<'circleMembers'>> {
+	return await t.run(async (ctx) => {
+		return await ctx.db.insert('circleMembers', {
+			circleId,
+			userId,
+			joinedAt: Date.now()
+		});
+	});
+}
+
+/**
  * Clean up test organization and related data
  */
 export async function cleanupTestOrganization(
@@ -353,6 +392,24 @@ export async function cleanupTestOrganization(
 	organizationId: Id<'organizations'>
 ): Promise<void> {
 	await t.run(async (ctx) => {
+		// Clean up circles and circle members
+		const circles = await ctx.db
+			.query('circles')
+			.withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
+			.collect();
+		for (const circle of circles) {
+			// Clean up circle members first
+			const circleMembers = await ctx.db
+				.query('circleMembers')
+				.withIndex('by_circle', (q) => q.eq('circleId', circle._id))
+				.collect();
+			for (const member of circleMembers) {
+				await ctx.db.delete(member._id);
+			}
+			// Then delete the circle
+			await ctx.db.delete(circle._id);
+		}
+
 		// Clean up organization members
 		const members = await ctx.db
 			.query('organizationMembers')

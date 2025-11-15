@@ -1202,63 +1202,108 @@ export async function authenticateWithPassword(email: string, password: string) 
 
 **Root Cause**: Tests trigger real external API calls (Resend email, payment providers, etc.), hitting rate limits and consuming API quotas
 
-**Fix**:
+**Fix**: Use two-layer defense (check at both caller and action levels)
+
+### Layer 1: Caller Check (convex/verification.ts)
 
 ```typescript
-// convex/email.ts
-"use node";
-import { internalAction } from "./_generated/server";
-import { v } from "convex/values";
+export const createAndSendVerificationCode = action({
+  args: { email: v.string(), type: v.union(...), firstName: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    // 1. Create verification code
+    const { code } = await ctx.runMutation(internal.verification.createVerificationCodeInternal, {
+      email: args.email,
+      type: args.type
+    });
 
+    // 2. Send email - skip in E2E test mode
+    const isTestMode = process.env.E2E_TEST_MODE === 'true';
+    
+    if (!isTestMode) {
+      await ctx.runAction(internal.email.sendVerificationEmail, {
+        email: args.email,
+        code,
+        firstName: args.firstName
+      });
+    } else {
+      console.log('🧪 E2E_TEST_MODE: Skipping email send, code:', code);
+    }
+
+    return { success: true };
+  }
+});
+```
+
+### Layer 2: Action Check (convex/email.ts)
+
+```typescript
 export const sendVerificationEmail = internalAction({
   args: {
-    to: v.string(),
+    email: v.string(),
     code: v.string(),
-    expiresAt: v.number()
+    firstName: v.optional(v.string())
   },
   handler: async (ctx, args) => {
-    // ✅ CORRECT - Detect E2E test mode and skip external API
+    // E2E test mode - return mock response (defense in depth)
     if (process.env.E2E_TEST_MODE === 'true') {
-      console.log('📧 [E2E Mock] Email suppressed:', {
-        to: args.to,
+      console.log('📧 [E2E Mock] Verification email suppressed:', {
+        to: args.email,
         code: args.code,
-        expiresAt: new Date(args.expiresAt).toISOString()
+        firstName: args.firstName || 'User'
       });
       
       return {
-        id: `mock-${args.to}-${Date.now()}`,
-        success: true
+        success: true,
+        emailId: `mock-verification-${args.email}-${Date.now()}`
       };
     }
     
     // Production - real Resend API call
-    const { data, error } = await resend.emails.send({
-      from: 'SynergyOS <verify@synergyos.app>',
-      to: args.to,
-      subject: 'Verify your email',
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      throw new Error('RESEND_API_KEY environment variable is not set');
+    }
+    
+    const resend = new Resend(apiKey);
+    const result = await resend.emails.send({
+      from: 'SynergyOS <noreply@mail.synergyos.ai>',
+      to: args.email,
+      subject: 'Verify your email address',
       html: emailTemplate(args.code)
     });
     
-    if (error) {
-      throw new Error(`Resend API error: ${JSON.stringify(error)}`);
+    if (result.error) {
+      throw new Error(`Resend API error: ${JSON.stringify(result.error)}`);
     }
     
-    return data;
+    return { success: true, emailId: result.data?.id };
   }
 });
 ```
+
+### Setup: Convex Environment Variable
+
+```bash
+# One-time: Set E2E_TEST_MODE in Convex deployment
+npx convex env set E2E_TEST_MODE true
+
+# Verify
+npx convex env get E2E_TEST_MODE  # Should return: true
+```
+
+### Playwright Configuration
 
 ```typescript
 // playwright.config.ts
 export default defineConfig({
   // ...
   webServer: {
-    command: 'npm run dev',
-    port: 5173,
+    command: 'npm run dev:test',  // Uses vite dev --mode test
+    url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
     env: {
-      E2E_TEST_MODE: 'true', // ✅ Enable mocking
-      NODE_ENV: 'test'
+      // Fallback only - actual value comes from .env.test via vite --mode test
+      E2E_TEST_MODE: process.env.E2E_TEST_MODE || 'true'
     }
   }
 });
@@ -1290,6 +1335,237 @@ export default defineConfig({
 - Tests need consistent, predictable behavior
 
 **Related**: #L310 (WorkOS test config), #L280 (Vite mode flag), #L290 (Project separation)
+
+---
+
+## #L330: Rate Limit Test Isolation with X-Test-ID Header [🔴 CRITICAL]
+
+**Symptom**: E2E tests fail with "Too many attempts" errors or rate limit middleware blocks requests before feature logic can execute. Tests that should track 5 verification attempts only register 1-2 attempts.
+
+**Root Cause**: Rate limit middleware uses shared buckets across tests (e.g., `/auth/verify-email` uses `RATE_LIMITS.login` bucket). Multiple test runs or parallel execution exhaust rate limits before feature-level rate limiting (e.g., verification code attempts) can be tested.
+
+**Fix**:
+
+```typescript
+// ✅ CORRECT: Intercept requests to add X-Test-ID header for rate limit isolation
+test('should rate limit verification attempts', async ({ page }) => {
+	const timestamp = Date.now();
+	const testEmail = `test+${timestamp}@example.com`;
+	const testId = `rate-limit-test-${timestamp}`;
+
+	// Intercept verification requests to add X-Test-ID header
+	await page.route('**/auth/verify-email', async (route) => {
+		await route.continue({
+			headers: {
+				...route.request().headers(),
+				'X-Test-ID': testId // ✅ Isolates this test run's rate limit bucket
+			}
+		});
+	});
+
+	// Register user
+	await page.goto('/register');
+	await page.fill('input[type="email"]', testEmail);
+	// ... rest of test
+});
+```
+
+```typescript
+// src/lib/server/middleware/rateLimit.ts
+// ✅ EXISTING: Middleware already supports X-Test-ID header (from SYOS-200)
+export function withRateLimit<T>(
+	config: RateLimitConfig,
+	handler: (context: { event: RequestEvent }) => Promise<T>
+) {
+	return async (event: RequestEvent): Promise<T | Response> => {
+		const identifier = getClientIdentifier(event.request);
+		
+		// Create rate limiter instance
+		const limiter = new RateLimiter({
+			keyPrefix: `${config.keyPrefix}:${identifier}`,
+			tokens: config.tokens,
+			interval: config.interval
+		});
+		
+		// ... rest of rate limiting logic
+	};
+}
+
+function getClientIdentifier(request: Request): string {
+	// Check for X-Test-ID header FIRST (per SYOS-200 pattern)
+	const testId = request.headers.get('X-Test-ID');
+	if (testId) {
+		return `test-${testId}`; // ✅ Isolated bucket per test
+	}
+	
+	// Fallback to IP/fingerprint
+	return getClientIP(request) || 'unknown';
+}
+```
+
+**Why**:
+
+- ✅ Each test run gets isolated rate limit bucket via `X-Test-ID` header
+- ✅ Tests don't interfere with each other (parallel or sequential)
+- ✅ Feature-level rate limiting (e.g., verification code attempts) can execute without middleware interference
+- ✅ Reuses existing `X-Test-ID` infrastructure from SYOS-200
+- ✅ Works for both parallel and serial test execution
+
+**Apply when**:
+
+- E2E tests verify rate limiting behavior (e.g., "should show error after 5 attempts")
+- Tests fail with 429 errors from middleware before feature logic executes
+- Verification code attempts don't increment correctly (middleware blocks requests)
+- Tests need isolated rate limit buckets for parallel execution
+- Testing auth flows (login, registration, password reset, verification)
+
+**Common Mistakes**:
+
+```typescript
+// ❌ WRONG: Skipping rate limit in E2E_TEST_MODE bypasses security testing
+if (process.env.E2E_TEST_MODE === 'true') {
+	return handler({ event }); // ❌ Can't test rate limiting
+}
+
+// ❌ WRONG: Not intercepting requests - tests share rate limit buckets
+test('should rate limit attempts', async ({ page }) => {
+	// Missing page.route() interception
+	await page.goto('/verify-email');
+	// ... test fails with 429 from middleware
+});
+
+// ✅ CORRECT: Use X-Test-ID for test isolation, rate limiting still active
+await page.route('**/auth/verify-email', async (route) => {
+	await route.continue({
+		headers: {
+			...route.request().headers(),
+			'X-Test-ID': `test-${timestamp}` // ✅ Isolated bucket
+		}
+	});
+});
+```
+
+**Related**: #L290 (Playwright project separation), #L320 (Mock external APIs), #L260 (Session resilience), SYOS-200 (X-Test-ID implementation), SYOS-201 (Rate limit test fix), #L340 (Global cleanup in parallel tests)
+
+---
+
+## #L340: Avoid Global Cleanup in Parallel Tests [🔴 CRITICAL]
+
+**Symptom**: Tests pass in single-worker mode but fail in parallel with "Expected: 429, Received: 401" errors. Rate limiting tests don't trigger 429 on 6th request.
+
+**Root Cause**: `test.beforeEach` clears ALL rate limits globally (e.g., `/test/reset-rate-limits` endpoint), causing race conditions in parallel execution. When Test A is on request 6/6 (should be rate limited), Test B's `beforeEach` clears the rate limit store, causing Test A's request to get 401 instead of 429.
+
+**Fix**:
+
+```typescript
+// ❌ WRONG: Global cleanup in beforeEach interferes with parallel tests
+test.describe('Rate Limiting', () => {
+	test.beforeEach(async ({ request }) => {
+		// Clears ALL rate limits - breaks parallel execution
+		await request.post('/test/reset-rate-limits'); // ❌
+	});
+
+	test('should block excessive login attempts', async ({ request }) => {
+		const testId = getTestId('login-excessive'); // Unique per test
+		
+		// ... 6 requests
+		// Request 6 expects 429, but another test's beforeEach cleared limits!
+	});
+});
+
+// ✅ CORRECT: Remove global cleanup, rely on unique test IDs for isolation
+test.describe('Rate Limiting', () => {
+	// No beforeEach - tests use unique IDs for isolation
+	// Each test generates: `login-excessive-1763242332194-jj457c` (timestamp + random)
+	
+	test('should block excessive login attempts', async ({ request }) => {
+		const testId = getTestId('login-excessive'); // ✅ Isolated bucket
+		
+		for (let i = 0; i < 6; i++) {
+			const response = await request.post('/auth/login', {
+				headers: { 'X-Test-ID': testId } // ✅ Unique bucket per test
+			});
+			
+			if (i < 5) {
+				expect([401, 404]).toContain(response.status()); // ✅
+			} else {
+				expect(response.status()).toBe(429); // ✅ Works in parallel!
+			}
+		}
+	});
+});
+```
+
+```typescript
+// e2e/fixtures.ts
+/**
+ * Generate unique test ID for rate limit isolation
+ * Format: {testName}-{timestamp}-{random}
+ */
+export function getTestId(testName: string): string {
+	return `${testName}-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+}
+// Example: "login-excessive-1763242332194-jj457c"
+```
+
+**Why This Works**:
+
+- ✅ Each test run gets unique `X-Test-ID` → isolated rate limit bucket (per #L330)
+- ✅ No global cleanup → no race conditions in parallel execution
+- ✅ Rate limits expire naturally after 60s (sliding window)
+- ✅ Tests can run with `--workers=5` without interference
+
+**Parallel Execution Flow**:
+
+```
+Worker 1: Test A (testId: login-excessive-...1234)
+  Request 1/6 → bucket: test:login-excessive-...1234 (count: 1)
+  Request 2/6 → bucket: test:login-excessive-...1234 (count: 2)
+  ...
+  Request 6/6 → bucket: test:login-excessive-...1234 (count: 6) → 429 ✅
+
+Worker 2: Test B (testId: login-excessive-...5678) [running simultaneously]
+  Request 1/6 → bucket: test:login-excessive-...5678 (count: 1)
+  ❌ BEFORE: beforeEach cleared ALL buckets → Test A's count reset to 0
+  ✅ AFTER: No cleanup → Test A's bucket untouched
+```
+
+**When Global Cleanup IS Needed**:
+
+If tests need cleanup (e.g., database state), make it **test-specific**:
+
+```typescript
+// ✅ CORRECT: Test-specific cleanup
+test.beforeEach(async ({ request }) => {
+	const testId = getTestId('my-test');
+	
+	// Only clear THIS test's data
+	await request.post('/test/cleanup', {
+		data: { testId } // ✅ Scoped to this test
+	});
+});
+```
+
+**Apply when**:
+
+- Tests pass in single-worker mode (`--workers=1`) but fail in parallel (`--workers=5`)
+- Rate limiting tests get unexpected status codes (401 instead of 429)
+- `beforeEach`/`afterEach` hooks modify global state (database, cache, rate limits)
+- Tests use unique identifiers for isolation (testId, userId, email with timestamp)
+
+**Common Symptoms**:
+
+```bash
+# Single worker: PASS
+npm run test:e2e -- rate-limiting.test.ts --workers=1
+# ✅ 9 passed
+
+# Parallel workers: FAIL
+npm run test:e2e -- rate-limiting.test.ts --workers=5
+# ❌ 4 failed: Expected 429, Received 401
+```
+
+**Related**: #L330 (X-Test-ID header), #L290 (Playwright project separation), #L260 (Session resilience), SYOS-200 (Rate limit fix)
 
 ---
 

@@ -5,12 +5,8 @@
  * These types are re-exported from prosemirror packages for convenience.
  */
 
-import type { Command } from 'prosemirror-state';
+import type { Command, EditorState, Transaction } from 'prosemirror-state';
 import type { EditorView } from 'prosemirror-view';
-// TODO: Re-enable when EditorState is needed
-// import type { EditorState } from 'prosemirror-state';
-// TODO: Re-enable when needed
-// import type { Transaction } from 'prosemirror-state';
 // import type { Node, Schema, MarkSpec, NodeSpec } from 'prosemirror-model';
 
 /**
@@ -65,3 +61,15 @@ export type ProseMirrorMark = {
  * ProseMirror paste handler function type
  */
 export type ProseMirrorPasteHandler = (text: string, view: EditorView) => boolean;
+
+/**
+ * ProseMirror EditorState type
+ * Re-exported from prosemirror-state for convenience
+ */
+export type { EditorState };
+
+/**
+ * ProseMirror Transaction type
+ * Re-exported from prosemirror-state for convenience
+ */
+export type { Transaction };

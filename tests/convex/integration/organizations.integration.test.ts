@@ -79,7 +79,7 @@ describe('Organizations Integration Tests', () => {
 
 	it('should create organization invite with RBAC permission check', async () => {
 		const t = convexTest(schema, modules);
-		const { userId: adminUserId } = await createTestSession(t);
+		const { userId: adminUserId, sessionId: adminSessionId } = await createTestSession(t);
 		const orgId = await createTestOrganization(t, 'Test Org');
 		await createTestOrganizationMember(t, orgId, adminUserId, 'admin');
 
@@ -92,7 +92,6 @@ describe('Organizations Integration Tests', () => {
 		cleanupQueue.push({ userId: adminUserId, orgId });
 
 		// Admin should be able to create invite
-		const { sessionId: adminSessionId } = await createTestSession(t);
 		const result = await t.mutation(api.organizations.createOrganizationInvite, {
 			sessionId: adminSessionId,
 			organizationId: orgId,

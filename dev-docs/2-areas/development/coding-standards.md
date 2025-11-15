@@ -366,7 +366,21 @@ function process(data: ProcessedData): Result {
 }
 ```
 
-**Exception**: Only use `@ts-expect-error` with a comment explaining why it's safe.
+**Exception**: Only use `@ts-expect-error` with detailed documentation explaining:
+- Why the assertion is safe
+- What runtime validation ensures correctness
+- Reference to library documentation if applicable
+
+**Example** (acceptable `@ts-expect-error`):
+
+```typescript
+// @ts-expect-error TS2345 - SvelteKit's resolve() has strict RouteId overloads that don't
+// include all runtime-valid routes. The double assertion (as unknown as RouteId) is safe
+// because resolve() validates routes at runtime. See: https://kit.svelte.dev/docs/kit/$app-paths#resolve
+return svelteResolve(route as unknown as RouteId);
+```
+
+**See**: `dev-docs/2-areas/patterns/ui-patterns.md#L1920` - Route type errors pattern
 
 ---
 

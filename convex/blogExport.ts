@@ -30,31 +30,37 @@ function prosemirrorToMarkdown(doc: ProseMirrorDoc): string {
 
 function nodeToMarkdown(node: ProseMirrorNode): string {
 	switch (node.type) {
-		case 'heading':
+		case 'heading': {
 			const level = (node.attrs?.level as number | undefined) || 1;
 			const headingMarks = '#'.repeat(level);
 			const headingText = extractText(node);
 			return `${headingMarks} ${headingText}\n\n`;
+		}
 
-		case 'paragraph':
+		case 'paragraph': {
 			const paragraphText = extractText(node);
 			return paragraphText ? `${paragraphText}\n\n` : '';
+		}
 
-		case 'bullet_list':
+		case 'bullet_list': {
 			return node.content?.map((item) => `- ${extractText(item)}\n`).join('') + '\n' || '';
+		}
 
-		case 'ordered_list':
+		case 'ordered_list': {
 			return (
 				node.content?.map((item, idx) => `${idx + 1}. ${extractText(item)}\n`).join('') + '\n' || ''
 			);
+		}
 
-		case 'blockquote':
+		case 'blockquote': {
 			const quoteText = extractText(node);
 			return `> ${quoteText}\n\n`;
+		}
 
-		case 'code_block':
+		case 'code_block': {
 			const codeText = extractText(node);
 			return `\`\`\`\n${codeText}\n\`\`\`\n\n`;
+		}
 
 		default:
 			return extractText(node) + '\n';

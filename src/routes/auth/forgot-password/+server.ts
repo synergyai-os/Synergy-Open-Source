@@ -45,7 +45,8 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 		// Always return success (don't leak if email exists or not)
 		return json({
 			success: true,
-			message: 'If an account exists with this email, you will receive a password reset link.'
+			message:
+				'Check your email. If an account exists with this email, you will receive a password reset link.'
 		});
 	} catch (err) {
 		console.error('❌ Forgot password error:', err);
@@ -57,7 +58,8 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 		// Always return success message
 		return json({
 			success: true,
-			message: 'If an account exists with this email, you will receive a password reset link.'
+			message:
+				'Check your email. If an account exists with this email, you will receive a password reset link.'
 		});
 	}
 });

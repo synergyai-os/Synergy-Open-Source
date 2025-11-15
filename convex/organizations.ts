@@ -544,3 +544,51 @@ export const removeOrganizationMember = mutation({
 		return { success: true };
 	}
 });
+
+/**
+ * Get all members of an organization
+ */
+export const getMembers = query({
+	args: {
+		sessionId: v.string(),
+		organizationId: v.id('organizations')
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		// Verify user has access to this organization
+		const membership = await ctx.db
+			.query('organizationMembers')
+			.withIndex('by_organization_user', (q) =>
+				q.eq('organizationId', args.organizationId).eq('userId', userId)
+			)
+			.first();
+
+		if (!membership) {
+			throw new Error('You are not a member of this organization');
+		}
+
+		// Get all members of the organization
+		const memberships = await ctx.db
+			.query('organizationMembers')
+			.withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId))
+			.collect();
+
+		const members = await Promise.all(
+			memberships.map(async (membership) => {
+				const user = await ctx.db.get(membership.userId);
+				if (!user) return null;
+
+				return {
+					userId: membership.userId,
+					email: (user as unknown as { email?: string } | undefined)?.email ?? '',
+					name: (user as unknown as { name?: string } | undefined)?.name ?? '',
+					role: membership.role,
+					joinedAt: membership.joinedAt
+				};
+			})
+		);
+
+		return members.filter((m): m is NonNullable<typeof m> => m !== null);
+	}
+});

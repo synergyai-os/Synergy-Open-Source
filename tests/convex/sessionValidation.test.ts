@@ -7,8 +7,8 @@
  * Security tests ensure impersonation attacks are prevented.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
-import type { QueryCtx, MutationCtx } from '../../convex/_generated/server';
+import { describe, it, expect } from 'vitest';
+import type { QueryCtx } from '../../convex/_generated/server';
 import type { Id } from '../../convex/_generated/dataModel';
 import {
 	validateSessionAndGetUserId,
@@ -20,14 +20,14 @@ import {
 function createMockCtx(sessions: any[] = []): QueryCtx {
 	return {
 		db: {
-			query: (tableName: string) => ({
-				filter: (fn: any) => ({
+			query: (_tableName: string) => ({
+				filter: (_fn: any) => ({
 					first: async () => {
 						// Simulate filtering logic
 						return sessions.find((s) => s.isValid && s.expiresAt > Date.now());
 					},
 					// Support .order() chaining for deprecated function
-					order: (direction: string, field: string) => ({
+					order: (_direction: string, _field: string) => ({
 						first: async () => {
 							return sessions.find((s) => s.isValid && s.expiresAt > Date.now());
 						}

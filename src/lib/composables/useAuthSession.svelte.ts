@@ -5,11 +5,13 @@ import {
 	removeSession,
 	setActiveAccount,
 	getActiveSession,
-	getAllSessions
+	getAllSessions,
+	clearAllSessions
 	// getActiveAccountId, // TODO: Re-enable when needed
 	// type SessionData // TODO: Re-enable when needed
 } from '$lib/client/sessionStorage';
 import { toast } from '$lib/utils/toast';
+import { resolveRoute } from '$lib/utils/navigation';
 
 export interface LinkedAccountInfo {
 	userId: string;
@@ -222,19 +224,22 @@ export function useAuthSession(): UseAuthSessionReturn {
 
 						if (restoreResponse.ok) {
 							// Session restored, redirect to inbox
-							window.location.href = '/inbox?switched=1';
+							window.location.href = `${resolveRoute('/inbox')}?switched=1`;
 						} else {
-							// Failed to restore, go to login
+							// Failed to restore, clear all and go to login
 							console.error('Failed to restore session for next account');
-							window.location.href = '/login';
+							clearAllSessions();
+							window.location.href = resolveRoute('/login');
 						}
 					} catch (error) {
 						console.error('Failed to restore session:', error);
-						window.location.href = '/login';
+						clearAllSessions();
+						window.location.href = resolveRoute('/login');
 					}
 				} else {
-					// No other sessions, go to login
-					window.location.href = '/login';
+					// No other sessions, clear all and go to login
+					clearAllSessions();
+					window.location.href = resolveRoute('/login');
 				}
 				return;
 			}
@@ -331,7 +336,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 			}
 
 			state.csrfToken = null;
-			window.location.href = result.redirect ?? redirectTo ?? '/inbox';
+			window.location.href = result.redirect ?? redirectTo ?? resolveRoute('/inbox');
 		} catch (error) {
 			// Clear switching flag on error
 			sessionStorage.removeItem('switchingAccount');

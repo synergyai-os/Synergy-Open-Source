@@ -49,7 +49,9 @@
 	let titleElement: HTMLInputElement;
 	let editorView = $state<EditorView | null>(null);
 	let editorState = $state<EditorState | null>(null);
-	let localTitle = $state(title);
+	// Use writable $derived instead of $state + $effect (Svelte 5 best practice)
+	// localTitle can be written to directly, and resets to title when prop changes
+	let localTitle = $derived(title);
 	let isEmpty = $state(true);
 	let isFocused = $state(false);
 
@@ -66,11 +68,6 @@
 	const emojiPlugin = createEmojiPlugin();
 	const syntaxHighlightPlugin = createSyntaxHighlightPlugin();
 	const codeBlockPlugin = createCodeBlockPlugin();
-
-	// Update local title when prop changes
-	$effect(() => {
-		localTitle = title;
-	});
 
 	// Handle title changes with debouncing
 	let titleDebounceTimeout: ReturnType<typeof setTimeout> | null = null;

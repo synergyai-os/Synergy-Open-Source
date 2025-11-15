@@ -11,6 +11,10 @@ if (!publicEnv.PUBLIC_CONVEX_URL) {
 }
 
 function createConvexClient() {
+	// Debug logging for E2E tests to verify Convex URL
+	if (process.env.E2E_TEST_MODE === 'true') {
+		console.log('🔍 [E2E Debug] PUBLIC_CONVEX_URL:', publicEnv.PUBLIC_CONVEX_URL);
+	}
 	return new ConvexHttpClient(publicEnv.PUBLIC_CONVEX_URL);
 }
 

@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
-
 	interface Props {
 		icon: string;
 		title: string;

@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { resolve } from '$app/paths';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	const statusCode = $derived($page.status);

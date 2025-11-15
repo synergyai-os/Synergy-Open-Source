@@ -10,7 +10,6 @@
 		_id: Id<'tags'>;
 		displayName: string;
 		color: string;
-		ownershipType?: 'user' | 'organization' | 'team';
 	};
 
 	type Organization = {

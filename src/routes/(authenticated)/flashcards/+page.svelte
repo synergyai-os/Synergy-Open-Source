@@ -8,7 +8,6 @@
 	import FlashcardDetailModal from '$lib/components/flashcards/FlashcardDetailModal.svelte';
 	import { api } from '$lib/convex';
 	import type { Doc, Id } from '../../../../convex/_generated/dataModel';
-	import { resolve } from '$app/paths';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	const convexClient = browser ? useConvexClient() : null;
@@ -83,7 +82,7 @@
 	});
 
 	// Combined collections (All Cards + filtered collections)
-	const displayCollections = $derived(() => {
+	const displayCollections = $derived.by(() => {
 		const result: Array<{
 			tagId: Id<'tags'> | 'all';
 			name: string;
@@ -229,7 +228,7 @@
 				<p class="mb-2 font-medium text-primary">Error</p>
 				<p class="text-secondary">{error}</p>
 			</div>
-		{:else if displayCollections().length === 0}
+		{:else if displayCollections.length === 0}
 			<div class="py-readable-quote text-center">
 				<p class="text-secondary">
 					{selectedTagIds.length > 0
@@ -240,7 +239,7 @@
 		{:else}
 			<!-- Collections Grid -->
 			<div class="grid grid-cols-1 gap-inbox-list md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-				{#each displayCollections() as collection (collection.tagId)}
+				{#each displayCollections as collection (collection.tagId)}
 					<FlashcardCollectionCard {collection} onClick={() => openCollection(collection)} />
 				{/each}
 			</div>

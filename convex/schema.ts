@@ -132,6 +132,53 @@ const schema = defineSchema({
 		.index('by_user', ['userId'])
 		.index('by_team_user', ['teamId', 'userId']),
 
+	// Circles - work organization units (not people grouping)
+	// Represents value streams, functions, or coordination contexts
+	circles: defineTable({
+		organizationId: v.id('organizations'),
+		name: v.string(), // "Active Platforms"
+		slug: v.string(), // "active-platforms"
+		purpose: v.optional(v.string()), // Why this work exists
+		parentCircleId: v.optional(v.id('circles')), // Nested circles
+		createdAt: v.number(),
+		updatedAt: v.number(),
+		archivedAt: v.optional(v.number())
+	})
+		.index('by_organization', ['organizationId'])
+		.index('by_parent', ['parentCircleId'])
+		.index('by_slug', ['organizationId', 'slug']),
+
+	// Circle members (many-to-many)
+	circleMembers: defineTable({
+		circleId: v.id('circles'),
+		userId: v.id('users'),
+		joinedAt: v.number()
+	})
+		.index('by_circle', ['circleId'])
+		.index('by_user', ['userId'])
+		.index('by_circle_user', ['circleId', 'userId']),
+
+	// Circle roles - organizational roles within circles (NOT RBAC permissions)
+	// Examples: "Circle Lead", "Dev Lead", "Facilitator"
+	circleRoles: defineTable({
+		circleId: v.id('circles'),
+		name: v.string(), // "Circle Lead"
+		purpose: v.optional(v.string()), // Optional description of role
+		createdAt: v.number()
+	}).index('by_circle', ['circleId']),
+
+	// User circle role assignments (many-to-many)
+	// Users can fill multiple roles, roles can have multiple fillers
+	userCircleRoles: defineTable({
+		userId: v.id('users'),
+		circleRoleId: v.id('circleRoles'),
+		assignedAt: v.number(),
+		assignedBy: v.id('users') // Who made the assignment
+	})
+		.index('by_user', ['userId'])
+		.index('by_role', ['circleRoleId'])
+		.index('by_user_role', ['userId', 'circleRoleId']),
+
 	// Organization invites (pending membership)
 	organizationInvites: defineTable({
 		organizationId: v.id('organizations'),

@@ -6,7 +6,6 @@
 	import RateLimitError from '$lib/components/ui/RateLimitError.svelte';
 	import LoadingOverlay from '$lib/components/ui/LoadingOverlay.svelte';
 	import type { UseLoadingOverlayReturn } from '$lib/composables/useLoadingOverlay.svelte';
-	import { resolve } from '$app/paths';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	function parseBooleanFlag(value: string | null): boolean {
@@ -41,7 +40,7 @@
 	let showLoadingOverlay = $state(false);
 
 	// Try to get loadingOverlay from context (if authenticated), otherwise use local state
-	let loadingOverlay: UseLoadingOverlayReturn | null = null;
+	let loadingOverlay = $state<UseLoadingOverlayReturn | null>(null);
 	try {
 		loadingOverlay = getContext<UseLoadingOverlayReturn>('loadingOverlay');
 	} catch {

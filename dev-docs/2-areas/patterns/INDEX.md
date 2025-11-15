@@ -67,6 +67,8 @@
 | Playwright tests fail with "Session record not found", auth state conflicts                       | Separate authenticated/unauthenticated projects in playwright.config.ts      | [ci-cd.md#L290](ci-cd.md#L290)                                      |
 | E2E tests fail with WorkOS "sso_required" error                                                    | Use WorkOS Test Identity Provider or bypass for E2E                          | [ci-cd.md#L310](ci-cd.md#L310)                                      |
 | E2E test times out filling Bits UI PinInput (verification codes)                                  | Target hidden input [data-pin-input-input] not visual cells                  | [ui-patterns.md#L2750](ui-patterns.md#L2750)                        |
+| E2E tests fail with 429, rate limit tests only register 1-2 attempts instead of 5                 | Use X-Test-ID header for isolated rate limit buckets                         | [ci-cd.md#L330](ci-cd.md#L330)                                      |
+| Tests pass with --workers=1 but fail in parallel with "Expected: 429, Received: 401"               | Remove global beforeEach cleanup, rely on unique testIds for isolation      | [ci-cd.md#L340](ci-cd.md#L340)                                      |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 

@@ -3,13 +3,10 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { PUBLIC_CONVEX_URL, PUBLIC_POSTHOG_HOST, PUBLIC_POSTHOG_KEY } from '$env/static/public';
 	import { browser } from '$app/environment';
-	import { page } from '$app/stores';
 	import posthog from 'posthog-js';
 	import { beforeNavigate, afterNavigate } from '$app/navigation';
-	import { onMount, setContext } from 'svelte';
+	import { onMount } from 'svelte';
 	import { setupConvex, useConvexClient } from 'convex-svelte';
-	import { useOrganizations } from '$lib/composables/useOrganizations.svelte';
-	import OrganizationModals from '$lib/components/organizations/OrganizationModals.svelte';
 
 	let { children, data } = $props();
 
@@ -17,17 +14,7 @@
 	setupConvex(PUBLIC_CONVEX_URL);
 	const convexClient = browser ? useConvexClient() : null;
 
-	const organizationStore = useOrganizations({
-		userId: () => data.user?.userId,
-		orgFromUrl: () => $page.url.searchParams.get('org')
-	});
-	setContext('organizations', organizationStore);
-
 	let posthogReady = $state(false);
-
-	const activeOrganizationName = $derived(
-		() => organizationStore?.activeOrganization?.name ?? null
-	);
 
 	// Initialize PostHog after the component mounts in the browser
 	if (browser && PUBLIC_POSTHOG_KEY) {
@@ -127,11 +114,6 @@
 </svelte:head>
 
 {@render children()}
-
-<OrganizationModals
-	organizations={organizationStore}
-	activeOrganizationName={activeOrganizationName()}
-/>
 
 <!-- Toast notifications - positioned top-right, styled with design tokens -->
 <!-- Loaded client-side only to avoid SSR issues with svelte-sonner -->

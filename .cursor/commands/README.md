@@ -14,16 +14,16 @@
 
 ## 📊 Optimization Results
 
-| Command              | Before    | After     | Reduction       | Status                                       |
-| -------------------- | --------- | --------- | --------------- | -------------------------------------------- |
-| `/start`             | 220 lines | 368 lines | +148 lines      | ✅ Linear constants & workflow added         |
-| `/start-new-project` | 755 lines | 594 lines | 21% (161 lines) | ✅ Optimized                                 |
-| `/save`              | 898 lines | 272 lines | 70% (626 lines) | ✅ Optimized                                 |
-| `/root-cause`        | 65 lines  | 65 lines  | 0%              | ✅ Already optimal                           |
-| `/pr`                | New       | 366 lines | N/A             | ✅ New command - PR creation workflow        |
-| `/pr-close`          | New       | 415 lines | N/A             | ✅ New command - Post-merge cleanup workflow |
+| Command              | Before    | After     | Change     | Status                                       |
+| -------------------- | --------- | --------- | ---------- | -------------------------------------------- |
+| `/start`             | 220 lines | 368 lines | +148 lines | ✅ Linear constants & workflow added         |
+| `/start-new-project` | 755 lines | 594 lines | -21% (161) | ✅ Optimized                                 |
+| `/save`              | 898 lines | 272 lines | -70% (626) | ✅ Optimized                                 |
+| `/root-cause`        | 65 lines  | 239 lines | +174 lines | ✅ Enhanced with "slow = fast" methodology   |
+| `/pr`                | New       | 366 lines | N/A        | ✅ New command - PR creation workflow        |
+| `/pr-close`          | New       | 415 lines | N/A        | ✅ New command - Post-merge cleanup workflow |
 
-**Total Reduction**: ~558 lines removed from `/save`, extracted to `commit-message-format.md` (406 lines)
+**Net Change**: ~384 lines removed (626 from `/save` - 174 to `/root-cause` - 148 to `/start`)
 
 ---
 
@@ -104,7 +104,29 @@
 
 ### `/root-cause` Command
 
-**Status:** Already optimal (65 lines, focused workflow)
+**Enhanced** with systematic investigation methodology (65 → 239 lines)
+
+**Added:**
+
+- **Decision tree**: Known pattern (fast path) vs unknown issue (systematic investigation)
+- **Path B: Systematic Investigation** - 5-step methodology for unknown issues:
+  1. Understand what SHOULD happen (trace expected flow)
+  2. Break into 2-5 investigation steps
+  3. Identify potential root causes (read code, check formats)
+  4. Validate root cause (95%+ confidence required)
+  5. Implement and verify
+- **Red flags**: When NOT to rush (vague errors, multiple causes, "obvious" fixes that failed)
+- **Real example**: Session persistence bug investigation (good vs bad approaches)
+- **Time savings**: Documents how methodical approach (20 min) beats random fixes (2+ hours)
+
+**Why enhancement justified:**
+
+- Commands only loaded when invoked (not in every chat)
+- Prevents wasted time on wrong fixes (saved 2+ hours in actual debugging session)
+- Codifies "slow = fast" principle from successful debugging patterns
+- Complements existing pattern index workflow with guidance for new issues
+
+**Result:** Comprehensive debugging workflow for both known and unknown issues
 
 ---
 
@@ -232,5 +254,6 @@
 
 ---
 
-**Last Updated**: 2025-11-13  
-**Purpose**: Document command optimizations and best practices
+**Last Updated**: 2025-11-15  
+**Purpose**: Document command optimizations and best practices  
+**Latest Change**: Enhanced `/root-cause` with "slow = fast" systematic investigation methodology

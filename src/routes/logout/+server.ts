@@ -24,13 +24,13 @@ export const GET: RequestHandler = async () => {
 };
 
 export const POST: RequestHandler = withRateLimit(RATE_LIMITS.logout, async ({ event }) => {
-	const sessionCookie = event.cookies.get(SESSION_COOKIE_NAME);
-	if (!sessionCookie) {
+	const sessionCookieValue = event.cookies.get(SESSION_COOKIE_NAME);
+	if (!sessionCookieValue) {
 		clearSessionCookies(event);
 		return json({ success: false, error: 'No session found' }, { status: 401 });
 	}
 
-	const sessionId = decodeSessionCookie(sessionCookie);
+	const sessionId = decodeSessionCookie(sessionCookieValue);
 	if (!sessionId) {
 		clearSessionCookies(event);
 		return json({ success: false, error: 'Invalid session' }, { status: 401 });
@@ -42,6 +42,7 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.logout, async ({ e
 		return json({ success: false, error: 'Session not found' }, { status: 401 });
 	}
 
+	// CSRF validation - must come after session validation to ensure we have sessionRecord.csrfTokenHash
 	const csrfHeader = event.request.headers.get('x-csrf-token');
 	if (!csrfHeader) {
 		return json({ error: 'Missing CSRF token' }, { status: 400 });

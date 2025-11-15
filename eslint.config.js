@@ -68,6 +68,17 @@ export default defineConfig(
 		}
 	},
 	{
+		// Allow @html in markdown rendering files - HTML is sanitized via sanitizeHtml() before rendering
+		files: [
+			'src/routes/dev-docs/notes/**/*.svelte',
+			'src/routes/marketing-docs/**/*.svelte',
+			'src/routes/dev-docs/**/*.svelte'
+		],
+		rules: {
+			'svelte/no-at-html-tags': 'off'
+		}
+	},
+	{
 		// Relax rules for test files
 		files: ['**/*.test.ts', '**/*.spec.ts', 'tests/**/*.ts', 'e2e/**/*.ts'],
 		rules: {

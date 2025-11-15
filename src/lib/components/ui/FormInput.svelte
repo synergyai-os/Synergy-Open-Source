@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { FullAutoFill } from 'svelte/elements';
+
 	/**
 	 * Reusable Form Input Component
 	 *
@@ -15,7 +17,7 @@
 		type?: 'text' | 'email' | 'password' | 'url';
 		required?: boolean;
 		disabled?: boolean;
-		autocomplete?: string | null | undefined;
+		autocomplete?: FullAutoFill | null | undefined;
 		class?: string; // Allow custom classes for specific cases
 	};
 
@@ -52,7 +54,7 @@
 		{placeholder}
 		{required}
 		{disabled}
-		autocomplete={(autocomplete ?? undefined) as any}
+		autocomplete={autocomplete ?? undefined}
 		bind:value
 		class="rounded-input border border-base bg-input px-input-x py-input-y text-primary transition-all placeholder:text-tertiary focus:ring-2 focus:ring-accent-primary focus:outline-none {customClass}"
 	/>

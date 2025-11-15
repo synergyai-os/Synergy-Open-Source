@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { marked } from 'marked';
+	import { sanitizeHtml } from '$lib/utils/htmlSanitize';
 
 	let { data }: { data: PageData } = $props();
 
@@ -33,8 +34,8 @@
 		return marked.parse(markdown, { renderer, async: false }) as string;
 	}
 
-	// Parse markdown to HTML with IDs
-	const htmlContent = $derived(parseMarkdownWithIds(data.content));
+	// Parse markdown to HTML with IDs and sanitize
+	const htmlContent = $derived(sanitizeHtml(parseMarkdownWithIds(data.content)));
 </script>
 
 <svelte:head>

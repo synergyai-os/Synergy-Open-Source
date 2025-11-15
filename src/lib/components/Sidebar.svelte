@@ -5,6 +5,8 @@
 	import { cubicOut } from 'svelte/easing';
 	import { fade } from 'svelte/transition';
 	import { getContext } from 'svelte';
+	import { useQuery } from 'convex-svelte';
+	import { api } from '$lib/convex';
 	import ResizableSplitter from './ResizableSplitter.svelte';
 	import SidebarHeader from './sidebar/SidebarHeader.svelte';
 	import CleanReadwiseButton from './sidebar/CleanReadwiseButton.svelte';
@@ -28,6 +30,7 @@
 		onCreateMenuChange?: (open: boolean) => void;
 		onQuickCreate?: (trigger: 'header_button' | 'footer_button') => void;
 		user?: { email: string; firstName?: string; lastName?: string } | null;
+		sessionId?: string;
 	};
 
 	let {
@@ -40,7 +43,8 @@
 		createMenuOpen: _createMenuOpen = false,
 		onCreateMenuChange: _onCreateMenuChange,
 		onQuickCreate: _onQuickCreate,
-		user = null
+		user = null,
+		sessionId
 	}: Props = $props();
 
 	// Get user info from props (passed from layout)
@@ -50,6 +54,16 @@
 		: 'Personal workspace';
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
 	const authSession = useAuthSession();
+
+	// Check if circles UI is enabled (feature flag)
+	const circlesEnabledQuery =
+		browser && sessionId
+			? useQuery(api.featureFlags.checkFlag, () => {
+					if (!sessionId) throw new Error('sessionId required');
+					return { flag: 'circles_ui_beta', sessionId };
+				})
+			: null;
+	const circlesEnabled = $derived(circlesEnabledQuery?.data ?? false);
 
 	// Get available accounts from localStorage (not database)
 	// This ensures only accounts with active sessions are shown
@@ -545,6 +559,32 @@
 						</svg>
 						<span class="font-normal">Tags</span>
 					</a>
+
+					<!-- Circles (Beta - Feature Flag) -->
+					{#if circlesEnabled}
+						<a
+							href={resolveRoute('/org/circles')}
+							class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+							title="Circles"
+						>
+							<!-- Icon: Organization/Circles -->
+							<svg
+								class="h-4 w-4 flex-shrink-0"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+								/>
+							</svg>
+							<span class="font-normal">Circles</span>
+						</a>
+					{/if}
 
 					{#if organizations}
 						<TeamList

@@ -310,8 +310,12 @@
 								>
 									<div class="flex flex-1 flex-col overflow-auto p-inbox-container">
 										<div class="mb-4">
-											<label class="mb-2 block text-sm font-medium text-secondary">Question</label>
+											<label
+												for="flashcard-question"
+												class="mb-2 block text-sm font-medium text-secondary">Question</label
+											>
 											<textarea
+												id="flashcard-question"
 												bind:value={questionValue}
 												class="w-full resize-none rounded-md border border-base bg-base px-inbox-card py-inbox-card text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
 												rows="4"
@@ -319,8 +323,12 @@
 											></textarea>
 										</div>
 										<div>
-											<label class="mb-2 block text-sm font-medium text-secondary">Answer</label>
+											<label
+												for="flashcard-answer"
+												class="mb-2 block text-sm font-medium text-secondary">Answer</label
+											>
 											<textarea
+												id="flashcard-answer"
 												bind:value={answerValue}
 												class="w-full resize-none rounded-md border border-base bg-base px-inbox-card py-inbox-card text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
 												rows="6"

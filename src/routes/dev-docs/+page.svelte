@@ -8,7 +8,6 @@
 	import { fade, fly, scale, slide } from 'svelte/transition';
 	import { quintOut, elasticOut } from 'svelte/easing';
 	import { onMount } from 'svelte';
-	import { resolve } from '$app/paths';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	// Animation state
@@ -766,7 +765,9 @@
 						</svg>
 						Star on GitHub
 					</a>
-					<a href="/CONTRIBUTING" class="btn btn-secondary"> 📖 Contributing Guide </a>
+					<a href={resolveRoute('/CONTRIBUTING')} class="btn btn-secondary">
+						📖 Contributing Guide
+					</a>
 				</div>
 			</div>
 
@@ -851,7 +852,7 @@
 					<li>
 						<a href={resolveRoute('/marketing-docs/strategy/product-strategy')}>Product Strategy</a>
 					</li>
-					<li><a href="/CONTRIBUTING">Contributing Guide</a></li>
+					<li><a href={resolveRoute('/CONTRIBUTING')}>Contributing Guide</a></li>
 					<li>
 						<a
 							href="https://github.com/synergyai-os/Synergy-Open-Source/issues"

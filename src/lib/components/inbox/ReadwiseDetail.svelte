@@ -3,7 +3,6 @@
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
-	import { resolve } from '$app/paths';
 	import { useConvexClient, useQuery } from 'convex-svelte';
 	import { makeFunctionReference } from 'convex/server';
 	import { api } from '$lib/convex';

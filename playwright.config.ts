@@ -40,27 +40,20 @@ export default defineConfig({
 
 	// Configure projects for major browsers
 	projects: [
-		// Setup project - runs authentication before authenticated tests
-		// Runs once per worker (5 times total) to create worker-specific auth files
-		{
-			name: 'setup',
-			testMatch: /.*\.setup\.ts/
-		},
-
-		// Authenticated tests - require login state from setup
-		// NOTE: Only includes COMPLETED auth flows (SYOS-160)
-		// Feature tests (inbox, flashcard, quick-create) excluded until features are complete
+		// Authenticated tests - worker-scoped authentication via fixtures
+		// NOTE: Only core auth and security tests (SYOS-198)
+		// Excludes: API key management, incomplete features
 		{
 			name: 'authenticated',
-			testMatch: /.*\/(settings|multi-tab|auth-security).*\.(test|spec)\.ts$/,
+			testMatch: /.*\/(multi-tab|auth-security).*\.(test|spec)\.ts$/,
 			use: {
 				...devices['Desktop Chrome']
 				// Storage state provided by custom fixture (e2e/fixtures.ts)
-				// Each worker (0-4) uses its own auth file: user-worker-{N}.json
-			},
-			dependencies: ['setup']
+				// Each worker (0-4) authenticates if auth file missing, then uses cached state
+				// Authentication happens in fixture before tests run (worker-scoped)
+			}
+			// No dependencies - authentication handled by fixtures.ts
 			// Workers use global config (5 workers) for parallel execution
-			// Each worker authenticates as a different user (handled by auth.setup.ts + fixtures.ts)
 		},
 
 		// Unauthenticated tests - run with clean storage state

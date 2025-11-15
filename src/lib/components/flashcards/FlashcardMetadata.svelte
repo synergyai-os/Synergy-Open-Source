@@ -10,8 +10,6 @@
 
 	type Flashcard = {
 		_id: Id<'flashcards'>;
-		question: string;
-		answer: string;
 		fsrsStability?: number;
 		fsrsDifficulty?: number;
 		fsrsDue?: number;

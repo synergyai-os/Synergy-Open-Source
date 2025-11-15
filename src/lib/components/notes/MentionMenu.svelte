@@ -102,7 +102,7 @@
 		class="fixed z-50 max-h-[320px] min-w-[280px] overflow-y-auto rounded-md border border-base bg-elevated py-1 shadow-lg"
 		style="top: {position.top}px; left: {position.left}px;"
 	>
-		{#each items as item, index}
+		{#each items as item, index (item.id)}
 			<button
 				type="button"
 				class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-hover-solid {index ===

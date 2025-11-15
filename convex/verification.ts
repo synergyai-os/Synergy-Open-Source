@@ -20,11 +20,11 @@ export const verifyCode = mutation({
 	handler: async (ctx, args) => {
 		const now = Date.now();
 
-		// Find the code
+		// Find the code record by email and type (don't filter by code yet - need to track attempts)
 		const verificationCode = await ctx.db
 			.query('verificationCodes')
 			.withIndex('by_email_type', (q) => q.eq('email', args.email).eq('type', args.type))
-			.filter((q) => q.eq(q.field('code'), args.code))
+			.filter((q) => q.eq(q.field('verified'), false))
 			.first();
 
 		if (!verificationCode) {
@@ -50,20 +50,21 @@ export const verifyCode = mutation({
 			};
 		}
 
-		// Check attempt limit (5 attempts max)
-		if (verificationCode.attempts >= 5) {
-			return {
-				success: false,
-				error: 'Too many attempts'
-			};
-		}
-
 		// Check if code matches
 		if (verificationCode.code !== args.code) {
-			// Increment attempts
+			// Increment attempts FIRST
+			const newAttempts = verificationCode.attempts + 1;
 			await ctx.db.patch(verificationCode._id, {
-				attempts: verificationCode.attempts + 1
+				attempts: newAttempts
 			});
+
+			// Check attempt limit AFTER incrementing (allow 5 attempts, show error on 5th)
+			if (newAttempts >= 5) {
+				return {
+					success: false,
+					error: 'Too many attempts'
+				};
+			}
 
 			return {
 				success: false,

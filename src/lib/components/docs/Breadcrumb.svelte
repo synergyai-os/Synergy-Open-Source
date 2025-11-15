@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { resolve } from '$app/paths';
 	import { fly } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import { resolveRoute } from '$lib/utils/navigation';
@@ -74,11 +73,22 @@
 	});
 
 	// Check for reduced motion preference
-	let prefersReducedMotion = false;
-	if (typeof window !== 'undefined') {
+	let prefersReducedMotion = $state(false);
+
+	$effect(() => {
+		if (typeof window === 'undefined') return;
 		const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 		prefersReducedMotion = mediaQuery.matches;
-	}
+
+		const handleChange = (e: MediaQueryListEvent) => {
+			prefersReducedMotion = e.matches;
+		};
+
+		mediaQuery.addEventListener('change', handleChange);
+		return () => {
+			mediaQuery.removeEventListener('change', handleChange);
+		};
+	});
 </script>
 
 {#if breadcrumbs.length > 0}
@@ -107,7 +117,7 @@
 			</li>
 
 			<!-- Dynamic breadcrumbs -->
-			{#each breadcrumbs as crumb, index}
+			{#each breadcrumbs as crumb, index (crumb.href)}
 				<li
 					class="breadcrumb-item"
 					in:fly={{

@@ -6,8 +6,7 @@
 	import { onMount } from 'svelte';
 	import { useQuery } from 'convex-svelte';
 	import { api } from '$lib/convex';
-	// TODO: Re-enable when resolveRoute is needed
-	// import { resolveRoute } from '$lib/utils/navigation';
+	import { resolveRoute } from '$lib/utils/navigation';
 
 	let { data } = $props();
 
@@ -212,7 +211,7 @@
 			</p>
 
 			<div class="pain-grid gap-inbox-list">
-				{#each painPoints as pain, i}
+				{#each painPoints as pain, i (pain.title)}
 					<div
 						class="pain-card bg-surface"
 						in:fly={{
@@ -464,7 +463,7 @@
 			</h2>
 
 			<div class="differentiators-grid gap-inbox-list">
-				{#each differentiators as diff, i}
+				{#each differentiators as diff, i (diff.title)}
 					<div
 						class="differentiator-card bg-elevated"
 						in:fly={{
@@ -871,7 +870,9 @@
 							>
 						</li>
 						<li>
-							<a href="/CONTRIBUTING" class="footer-link text-secondary">Contribute</a>
+							<a href={resolveRoute('/CONTRIBUTING')} class="footer-link text-secondary"
+								>Contribute</a
+							>
 						</li>
 					</ul>
 				</div>

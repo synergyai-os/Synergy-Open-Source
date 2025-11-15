@@ -1077,6 +1077,39 @@ test: {
 
 ---
 
-**Pattern Count**: 18  
-**Last Validated**: 2025-11-13  
+## #L1085: Component Refs (bind:this) Must Use $state [🟡 IMPORTANT]
+
+**Symptom**: svelte-check warning: "`editorRef` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates"  
+**Root Cause**: Component references assigned via `bind:this` are updated by Svelte, but svelte-check requires them to be declared with `$state` for proper reactivity tracking  
+**Fix**:
+
+```svelte
+<!-- ❌ WRONG: Component ref without $state -->
+<script>
+	let editorRef: NoteEditorComponent | undefined;
+</script>
+
+<NoteEditor bind:this={editorRef} />
+
+<!-- ✅ CORRECT: Component ref with $state -->
+<script>
+	let editorRef = $state<NoteEditorComponent | undefined>(undefined);
+</script>
+
+<NoteEditor bind:this={editorRef} />
+```
+
+**Why**: While component refs don't need reactivity for UI updates (they're just references), svelte-check requires `$state` declaration when variables are updated. This ensures proper tracking and prevents warnings.  
+**Apply when**: 
+- Using `bind:this` to get component instance references
+- svelte-check warns about non-reactive updates
+- Component refs used to call methods (e.g., `editorRef?.focusTitle()`)
+
+**Note**: Component refs are typically used for calling methods, not for reactivity. The `$state` declaration satisfies svelte-check's requirements while maintaining correct behavior.  
+**Related**: #L10 (Reactive state patterns), #L80 (Passing reactive values)
+
+---
+
+**Pattern Count**: 19  
+**Last Validated**: 2025-11-14  
 **Context7 Source**: `/sveltejs/svelte`, `@sveltejs/kit`

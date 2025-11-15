@@ -15,14 +15,36 @@ import { env } from '$env/dynamic/private';
  */
 export const GET: RequestHandler = async ({ url, getClientAddress }) => {
 	// Check if E2E test mode is enabled
-	if (env.E2E_TEST_MODE !== 'true') {
-		console.error('❌ Test helper endpoint called but E2E_TEST_MODE is not enabled');
+	// Check process.env first - Playwright's webServer.env sets process.env for the dev server
+	// $env/dynamic/private reads from process.env at runtime, but checking directly is more reliable
+	const e2eTestMode = process.env.E2E_TEST_MODE || env.E2E_TEST_MODE;
+
+	if (e2eTestMode !== 'true') {
+		console.error('❌ Test helper endpoint called but E2E_TEST_MODE is not enabled', {
+			processEnvValue: process.env.E2E_TEST_MODE,
+			envValue: env.E2E_TEST_MODE,
+			allProcessEnvKeys: Object.keys(process.env).filter(
+				(key) => key.includes('E2E') || key.includes('TEST')
+			)
+		});
 		throw error(404, 'Not found');
 	}
 
+	// Debug log when test mode is enabled (only in test mode to avoid noise)
+	console.log('✅ Test helper endpoint: E2E_TEST_MODE enabled', {
+		source: process.env.E2E_TEST_MODE ? 'process.env' : 'env',
+		value: e2eTestMode
+	});
+
 	// IP restriction: only allow localhost
+	// In test mode, be more lenient with IP checks (Playwright may use different IPs)
 	const clientIp = getClientAddress();
-	const isLocalhost = clientIp === '127.0.0.1' || clientIp === '::1' || clientIp === 'localhost';
+	const isLocalhost =
+		clientIp === '127.0.0.1' ||
+		clientIp === '::1' ||
+		clientIp === 'localhost' ||
+		clientIp.startsWith('127.') || // Allow 127.x.x.x range
+		clientIp === '::ffff:127.0.0.1'; // IPv4-mapped IPv6 localhost
 
 	if (!isLocalhost) {
 		console.error('❌ Test helper endpoint accessed from non-localhost IP:', clientIp);

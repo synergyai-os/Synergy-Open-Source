@@ -70,14 +70,11 @@ export function reportError(report: ErrorReport): void {
 
 	// Report to PostHog
 	try {
-		// @ts-ignore - posthog may not be defined in types
 		if (window.posthog) {
-			// @ts-ignore
 			window.posthog.capture('error_occurred', errorProperties);
 
 			// If error boundary caught it, track separately
 			if (errorBoundary) {
-				// @ts-ignore
 				window.posthog.capture('error_boundary_caught', {
 					...errorProperties,
 					recovered: true
@@ -113,9 +110,7 @@ export function reportFeatureFlagCheck(
 	if (!browser) return;
 
 	try {
-		// @ts-ignore
 		if (window.posthog) {
-			// @ts-ignore
 			window.posthog.capture('feature_flag_checked', {
 				flag,
 				enabled,
@@ -141,9 +136,7 @@ export function reportFeatureUsed(
 	if (!browser) return;
 
 	try {
-		// @ts-ignore
 		if (window.posthog) {
-			// @ts-ignore
 			window.posthog.capture('feature_used', {
 				feature,
 				feature_flag: flag,
@@ -171,9 +164,7 @@ export function reportPerformance(
 	if (durationMs < 1000) return;
 
 	try {
-		// @ts-ignore
 		if (window.posthog) {
-			// @ts-ignore
 			window.posthog.capture('performance_metric', {
 				operation,
 				duration_ms: durationMs,
@@ -201,9 +192,7 @@ export function reportFlowCompletion(
 	if (!browser) return;
 
 	try {
-		// @ts-ignore
 		if (window.posthog) {
-			// @ts-ignore
 			window.posthog.capture('flow_step', {
 				flow,
 				step,

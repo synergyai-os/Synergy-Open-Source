@@ -13,7 +13,7 @@ npm run ci:local
 **This runs:**
 
 1. ✓ Type check (`npm run check`)
-2. ✓ Lint (`npm run lint`)
+2. ✓ Lint (`npm run lint`) - Checks formatting (Prettier) + code quality (ESLint)
 3. ✓ Build (`npm run build`)
 
 **Matches:** `.github/workflows/quality-gates.yml` steps 39-48
@@ -122,10 +122,13 @@ npm run precommit
 | Command             | What it does                        | CI Step      |
 | ------------------- | ----------------------------------- | ------------ |
 | `npm run ci:local`  | All CI quality checks               | Steps 39-48  |
+| `npm run format`    | Auto-fix formatting (Prettier)      | (local only) |
 | `npm run check`     | TypeScript check (warns only)       | Step 39-41   |
 | `npm run lint`      | Prettier + ESLint (fails on error)  | Step 43-45   |
 | `npm run build`     | Build verification (fails on error) | Step 47-52   |
 | `npm run precommit` | All pre-commit checks + tests       | (local only) |
+
+**Note**: Formatting is auto-fixed by pre-commit hooks (husky + lint-staged) before commit, so you rarely need to run `npm run format` manually.
 
 ---
 
@@ -138,7 +141,7 @@ A: No, but run before pushing to avoid CI failures.
 A: Yes, it's not blocking CI yet (SYOS-72 will enable it).
 
 **Q: What if lint fails locally but I can't fix it?**  
-A: Run `npm run format` to auto-fix Prettier issues, then check ESLint errors manually.
+A: Run `npm run format` to auto-fix Prettier issues, then check ESLint errors manually. **Note**: Pre-commit hooks auto-format staged files, so formatting issues are usually caught before commit.
 
 **Q: Does this run the same exact checks as CI?**  
 A: Almost - excludes TruffleHog secret scanning (git history scan).

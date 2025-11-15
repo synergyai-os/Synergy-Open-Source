@@ -7,7 +7,6 @@ import posthog from 'posthog-js';
 import { toast } from '$lib/utils/toast';
 import { untrack } from 'svelte';
 import { replaceState } from '$app/navigation';
-import { resolve } from '$app/paths';
 import { getContext } from 'svelte';
 import type { UseLoadingOverlayReturn } from '$lib/composables/useLoadingOverlay.svelte';
 import type { Id } from '$lib/convex';

@@ -1,0 +1,1724 @@
+
+> synergyos@0.1.0 test:e2e
+> npm run test:e2e:stop-dev && E2E_TEST_MODE=true playwright test
+
+
+> synergyos@0.1.0 test:e2e:stop-dev
+> lsof -ti:5173 | xargs kill -9 2>/dev/null || true
+
+
+Running 76 tests using 1 worker
+
+[1A[2K(node:50791) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:50791) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/76] [setup] › e2e/auth.setup.ts:36:1 › authenticate
+[1A[2K[setup] › e2e/auth.setup.ts:36:1 › authenticate
+🔐 Authenticating test user: randy+cicduser@synergyai.nl
+
+[1A[2K✅ Authentication successful - authenticated elements visible
+
+[1A[2K✅ Session verified - can access protected routes
+
+[1A[2K💾 Saved auth state to e2e/.auth/user.json
+
+[1A[2K(node:51891) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:51891) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[2/76] [chromium] › e2e/auth-registration.test.ts:16:2 › Registration with Email Verification › should register new user with email verification
+[1A[2K[chromium] › e2e/auth-registration.test.ts:16:2 › Registration with Email Verification › should register new user with email verification
+✅ Retrieved verification code: 578494
+
+[1A[2K  1) [chromium] › e2e/auth-registration.test.ts:16:2 › Registration with Email Verification › should register new user with email verification 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('input[type="text"], input[type="number"]').first()[22m
+
+
+      68 | 		} else {
+      69 | 			// Single input for all digits
+    > 70 | 			await pinInputs.first().fill(codeData.code);
+         | 			                        ^
+      71 | 		}
+      72 |
+      73 | 		// Step 7: Verification should succeed and redirect to inbox
+        at /Users/randyhereman/Coding/SynergyOS/e2e/auth-registration.test.ts:70:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-registration-Registra-60a20-ser-with-email-verification-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-registration-Registra-60a20-ser-with-email-verification-chromium/error-context.md
+
+
+[1A[2K(node:53008) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:53008) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[3/76] [chromium] › e2e/auth-registration.test.ts:81:2 › Registration with Email Verification › should reject expired verification code
+[1A[2K[4/76] [chromium] › e2e/auth-registration.test.ts:91:2 › Registration with Email Verification › should rate limit verification attempts
+[1A[2K[5/76] [chromium] › e2e/auth-registration.test.ts:134:2 › Registration with Email Verification › should show validation errors for invalid input
+[1A[2K[6/76] [chromium] › e2e/auth-registration.test.ts:160:2 › Password Reset Flow › should send password reset email
+[1A[2K[WebServer] ❌ WorkOS password reset creation failed: {"message":"User not found: 'test@example.com'.","code":"entity_not_found","entity_id":"test@example.com"}
+
+[1A[2K[WebServer] ❌ Forgot password error: Error: WorkOS password reset failed (404): {"message":"User not found: 'test@example.com'.","code":"entity_not_found","entity_id":"test@example.com"}
+[WebServer]     at createPasswordReset (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:300:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/forgot-password/+server.ts:26:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[7/76] [chromium] › e2e/auth-registration.test.ts:179:2 › Password Reset Flow › should reset password with valid token
+[1A[2K[WebServer] ❌ WorkOS reset password failed: {"message":"Could not locate user with provided token: 'mock_reset_token_12345'","code":"password_reset_token_not_found"}
+
+[1A[2K[WebServer] ❌ Reset password error: WorkOSError: Could not locate user with provided token: 'mock_reset_token_12345'
+[WebServer]     at resetPassword (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:338:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/reset-password/+server.ts:24:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16) {
+[WebServer]   statusCode: 404,
+[WebServer]   originalError: `{"message":"Could not locate user with provided token: 'mock_reset_token_12345'","code":"password_reset_token_not_found"}`
+[WebServer] }
+
+[1A[2K[8/76] [chromium] › e2e/auth-registration.test.ts:224:2 › Password Reset Flow › should show forgot password link on login page
+[1A[2K[9/76] [chromium] › e2e/auth-registration.test.ts:233:2 › Password Reset Flow › should validate password strength on reset
+[1A[2K[10/76] [chromium] › e2e/auth-registration.test.ts:249:2 › Test Helper Security › should only work in test mode
+[1A[2K  2) [chromium] › e2e/auth-registration.test.ts:249:2 › Test Helper Security › should only work in test mode 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeTruthy[2m()[22m
+
+    Received: [31mfalse[39m
+
+      257 | 		// Should work in test mode (E2E_TEST_MODE=true)
+      258 | 		// If this fails, E2E_TEST_MODE is not set in .env.test
+    > 259 | 		expect(response.ok() || response.status() === 404).toBeTruthy();
+          | 		                                                   ^
+      260 | 	});
+      261 |
+      262 | 	test('should validate required parameters', async ({ request }) => {
+        at /Users/randyhereman/Coding/SynergyOS/e2e/auth-registration.test.ts:259:54
+
+
+[1A[2K(node:54148) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:54148) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[11/76] [chromium] › e2e/auth-registration.test.ts:262:2 › Test Helper Security › should validate required parameters
+[1A[2K[12/76] [chromium] › e2e/auth-registration.test.ts:282:2 › Test Helper Security › should return 404 for non-existent code
+[1A[2K[13/76] [chromium] › e2e/auth-security.test.ts:16:2 › Auth Security - Unauthenticated Access › should redirect to login when not authenticated
+[1A[2K[14/76] [chromium] › e2e/auth-security.test.ts:29:2 › Auth Security - Authenticated Access › should allow access to protected routes after login
+[1A[2K[15/76] [chromium] › e2e/auth-security.test.ts:40:2 › Auth Security - Authenticated Access › should not allow accessing other user data
+[1A[2K[chromium] › e2e/auth-security.test.ts:40:2 › Auth Security - Authenticated Access › should not allow accessing other user data
+User has 0 inbox items
+
+[1A[2K[16/76] [chromium] › e2e/auth-security.test.ts:55:7 › Auth Security - Authenticated Access › should invalidate session after expiration
+[1A[2K[17/76] [chromium] › e2e/auth-security.test.ts:76:2 › Logout Security › should invalidate session and clear cookies on logout
+[1A[2K[WebServer] ⚠️ Failed to revoke WorkOS session (non-fatal): Error: WorkOS logout failed (404): {"message":"Cannot POST /user_management/sessions/logout","error":"Not Found"}
+[WebServer]     at revokeWorkOSSession (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:171:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/logout/+server.ts:50:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[18/76] [chromium] › e2e/auth-security.test.ts:124:2 › Logout Security › should handle logout with missing CSRF token
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  3) [chromium] › e2e/auth-security.test.ts:124:2 › Logout Security › should handle logout with missing CSRF token 
+
+    Error: [2mexpect([22m[31mpage[39m[2m).[22mtoHaveURL[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Expected pattern: [32m/\/inbox/[39m
+    Received string:  [31m"http://localhost:5173/login?redirectTo=%2Finbox"[39m
+    Timeout: 5000ms
+
+    Call log:
+    [2m  - Expect "toHaveURL" with timeout 5000ms[22m
+    [2m    9 × unexpected value "http://localhost:5173/login?redirectTo=%2Finbox"[22m
+
+
+      125 | 		// Navigate to authenticated page first to establish session cookies
+      126 | 		await page.goto('/inbox');
+    > 127 | 		await expect(page).toHaveURL(/\/inbox/);
+          | 		                   ^
+      128 | 		// Wait for page to fully load and establish cookies (CSRF token is set during page load)
+      129 | 		await page.waitForLoadState('networkidle');
+      130 |
+        at /Users/randyhereman/Coding/SynergyOS/e2e/auth-security.test.ts:127:22
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-security-Logout-Secur-1cae9-out-with-missing-CSRF-token-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-security-Logout-Secur-1cae9-out-with-missing-CSRF-token-chromium/error-context.md
+
+
+[1A[2K(node:56306) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:56306) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[19/76] [chromium] › e2e/auth-security.test.ts:164:2 › Logout Security › should handle logout with invalid CSRF token
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  4) [chromium] › e2e/auth-security.test.ts:164:2 › Logout Security › should handle logout with invalid CSRF token 
+
+    Error: [2mexpect([22m[31mpage[39m[2m).[22mtoHaveURL[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Expected pattern: [32m/\/inbox/[39m
+    Received string:  [31m"http://localhost:5173/login?redirectTo=%2Finbox"[39m
+    Timeout: 5000ms
+
+    Call log:
+    [2m  - Expect "toHaveURL" with timeout 5000ms[22m
+    [2m    9 × unexpected value "http://localhost:5173/login?redirectTo=%2Finbox"[22m
+
+
+      165 | 		// Navigate to authenticated page first to establish session cookies
+      166 | 		await page.goto('/inbox');
+    > 167 | 		await expect(page).toHaveURL(/\/inbox/);
+          | 		                   ^
+      168 | 		// Wait for page to fully load and establish cookies (CSRF token is set during page load)
+      169 | 		await page.waitForLoadState('networkidle');
+      170 |
+        at /Users/randyhereman/Coding/SynergyOS/e2e/auth-security.test.ts:167:22
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-security-Logout-Secur-c2ea6-out-with-invalid-CSRF-token-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-security-Logout-Secur-c2ea6-out-with-invalid-CSRF-token-chromium/error-context.md
+
+
+[1A[2K(node:57435) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:57435) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[20/76] [chromium] › e2e/auth-security.test.ts:208:2 › Session Tracking › should capture IP address and user-agent on session creation
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  5) [chromium] › e2e/auth-security.test.ts:208:2 › Session Tracking › should capture IP address and user-agent on session creation 
+
+    Error: [2mexpect([22m[31mpage[39m[2m).[22mtoHaveURL[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Expected pattern: [32m/\/inbox/[39m
+    Received string:  [31m"http://localhost:5173/login?redirectTo=%2Finbox"[39m
+    Timeout: 5000ms
+
+    Call log:
+    [2m  - Expect "toHaveURL" with timeout 5000ms[22m
+    [2m    9 × unexpected value "http://localhost:5173/login?redirectTo=%2Finbox"[22m
+
+
+      229 | 		// For now, just verify session works (IP/user-agent captured implicitly)
+      230 | 		await page.goto('/inbox');
+    > 231 | 		await expect(page).toHaveURL(/\/inbox/);
+          | 		                   ^
+      232 |
+      233 | 		// Session is valid - IP/user-agent were captured but not validated
+      234 | 		console.log('✅ Session valid - IP/user-agent captured for audit (not validated for security)');
+        at /Users/randyhereman/Coding/SynergyOS/e2e/auth-security.test.ts:231:22
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-security-Session-Trac-55a1e-r-agent-on-session-creation-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-security-Session-Trac-55a1e-r-agent-on-session-creation-chromium/error-context.md
+
+
+[1A[2K(node:57992) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:57992) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[21/76] [chromium] › e2e/auth-security.test.ts:242:2 › Settings Security › should allow updating own theme
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  6) [chromium] › e2e/auth-security.test.ts:242:2 › Settings Security › should allow updating own theme 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('#theme-toggle')[22m
+
+
+      246 | 		// Click dark mode toggle (use actual id from settings/+page.svelte line 507)
+      247 | 		const darkModeToggle = page.locator('#theme-toggle');
+    > 248 | 		await darkModeToggle.click();
+          | 		                     ^
+      249 |
+      250 | 		// Verify theme changed (check for dark mode class on body/html)
+      251 | 		await expect(page.locator('html')).toHaveClass(/dark/);
+        at /Users/randyhereman/Coding/SynergyOS/e2e/auth-security.test.ts:248:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-security-Settings-Sec-98241-ld-allow-updating-own-theme-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-security-Settings-Sec-98241-ld-allow-updating-own-theme-chromium/error-context.md
+
+
+[1A[2K(node:58576) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:58576) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[22/76] [chromium] › e2e/auth-security.test.ts:254:2 › Settings Security › should securely store API keys
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  7) [chromium] › e2e/auth-security.test.ts:254:2 › Settings Security › should securely store API keys 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.fill: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('#claude-key')[22m
+
+
+      258 | 		// Enter Claude API key (use actual id from settings/+page.svelte line 580)
+      259 | 		const claudeKeyInput = page.locator('#claude-key');
+    > 260 | 		await claudeKeyInput.fill('sk-test-key-12345');
+          | 		                     ^
+      261 | 		await claudeKeyInput.blur();
+      262 |
+      263 | 		// Wait for save/validation
+        at /Users/randyhereman/Coding/SynergyOS/e2e/auth-security.test.ts:260:24
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-security-Settings-Sec-c19ba-uld-securely-store-API-keys-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/auth-security-Settings-Sec-c19ba-uld-securely-store-API-keys-chromium/error-context.md
+
+
+[1A[2K(node:59156) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:59156) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[23/76] [chromium] › e2e/auth-security.test.ts:283:2 › Notes Security › should create note with authenticated session
+[1A[2K[24/76] [chromium] › e2e/auth-security.test.ts:312:2 › Inbox Security › should only show user-owned inbox items
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K[chromium] › e2e/auth-security.test.ts:312:2 › Inbox Security › should only show user-owned inbox items
+⚠️ Session expired or auth state not loaded - skipping test
+
+[1A[2K[25/76] [chromium] › e2e/auth-security.test.ts:346:2 › Inbox Security › should mark item as processed
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K[chromium] › e2e/auth-security.test.ts:346:2 › Inbox Security › should mark item as processed
+No inbox items to test - skipping mark processed test
+
+[1A[2K[26/76] [chromium] › e2e/demo.test.ts:6:1 › home page has expected h1
+[1A[2K[27/76] [chromium] › e2e/flashcard-approval.spec.ts:27:2 › Flashcard Approval Flow › should generate flashcards from inbox item
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K[chromium] › e2e/flashcard-approval.spec.ts:27:2 › Flashcard Approval Flow › should generate flashcards from inbox item
+No inbox items found - skipping test
+
+[1A[2K[28/76] [chromium] › e2e/flashcard-approval.spec.ts:81:2 › Flashcard Approval Flow › should approve current flashcard and advance to next
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K[chromium] › e2e/flashcard-approval.spec.ts:81:2 › Flashcard Approval Flow › should approve current flashcard and advance to next
+No inbox items found - skipping test
+
+[1A[2K[29/76] [chromium] › e2e/flashcard-approval.spec.ts:140:2 › Flashcard Approval Flow › should reject current flashcard using keyboard shortcut
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K[30/76] [chromium] › e2e/flashcard-approval.spec.ts:188:2 › Flashcard Approval Flow › should flip flashcard to show answer
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K[31/76] [chromium] › e2e/flashcard-approval.spec.ts:240:2 › Flashcard Approval Flow › should close modal using ESC key
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K[32/76] [chromium] › e2e/flashcard-approval.spec.ts:280:2 › Flashcard Approval Flow - Complete Workflow › should approve all flashcards and save to database
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K[chromium] › e2e/flashcard-approval.spec.ts:280:2 › Flashcard Approval Flow - Complete Workflow › should approve all flashcards and save to database
+No inbox items found - skipping test
+
+[1A[2K[33/76] [chromium] › e2e/flashcard-collections.spec.ts:30:2 › Flashcard Collections › should load flashcards page without errors
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  8) [chromium] › e2e/flashcard-collections.spec.ts:30:2 › Flashcard Collections › should load flashcards page without errors 
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "/flashcards" until "load"
+      navigated to "http://localhost:5173/login?redirectTo=%2Fflashcards"
+    ============================================================
+
+      20 | 		await page.goto('/flashcards');
+      21 | 		// Wait for page to load and verify we're not redirected to login
+    > 22 | 		await page.waitForURL('/flashcards', { timeout: 10000 });
+         | 		           ^
+      23 | 		await page.waitForLoadState('networkidle');
+      24 | 		// Wait for loading state to finish - collections should appear
+      25 | 		await expect(
+        at /Users/randyhereman/Coding/SynergyOS/e2e/flashcard-collections.spec.ts:22:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/flashcard-collections-Flas-4f68e-shcards-page-without-errors-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/flashcard-collections-Flas-4f68e-shcards-page-without-errors-chromium/error-context.md
+
+
+[1A[2K(node:63592) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:63592) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[34/76] [chromium] › e2e/flashcard-collections.spec.ts:62:2 › Flashcard Collections › should display "All Cards" collection
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  9) [chromium] › e2e/flashcard-collections.spec.ts:62:2 › Flashcard Collections › should display "All Cards" collection 
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "/flashcards" until "load"
+      navigated to "http://localhost:5173/login?redirectTo=%2Fflashcards"
+    ============================================================
+
+      20 | 		await page.goto('/flashcards');
+      21 | 		// Wait for page to load and verify we're not redirected to login
+    > 22 | 		await page.waitForURL('/flashcards', { timeout: 10000 });
+         | 		           ^
+      23 | 		await page.waitForLoadState('networkidle');
+      24 | 		// Wait for loading state to finish - collections should appear
+      25 | 		await expect(
+        at /Users/randyhereman/Coding/SynergyOS/e2e/flashcard-collections.spec.ts:22:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/flashcard-collections-Flas-b5da0-isplay-All-Cards-collection-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/flashcard-collections-Flas-b5da0-isplay-All-Cards-collection-chromium/error-context.md
+
+
+[1A[2K(node:64149) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:64149) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[35/76] [chromium] › e2e/flashcard-collections.spec.ts:80:2 › Flashcard Collections › should display collection counts
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  10) [chromium] › e2e/flashcard-collections.spec.ts:80:2 › Flashcard Collections › should display collection counts 
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "/flashcards" until "load"
+      navigated to "http://localhost:5173/login?redirectTo=%2Fflashcards"
+    ============================================================
+
+      20 | 		await page.goto('/flashcards');
+      21 | 		// Wait for page to load and verify we're not redirected to login
+    > 22 | 		await page.waitForURL('/flashcards', { timeout: 10000 });
+         | 		           ^
+      23 | 		await page.waitForLoadState('networkidle');
+      24 | 		// Wait for loading state to finish - collections should appear
+      25 | 		await expect(
+        at /Users/randyhereman/Coding/SynergyOS/e2e/flashcard-collections.spec.ts:22:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/flashcard-collections-Flas-39b05-d-display-collection-counts-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/flashcard-collections-Flas-39b05-d-display-collection-counts-chromium/error-context.md
+
+
+[1A[2K(node:64727) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:64727) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[36/76] [chromium] › e2e/flashcard-collections.spec.ts:114:2 › Flashcard Collections › should open collection and navigate to review mode
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  11) [chromium] › e2e/flashcard-collections.spec.ts:114:2 › Flashcard Collections › should open collection and navigate to review mode 
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "/flashcards" until "load"
+      navigated to "http://localhost:5173/login?redirectTo=%2Fflashcards"
+    ============================================================
+
+      20 | 		await page.goto('/flashcards');
+      21 | 		// Wait for page to load and verify we're not redirected to login
+    > 22 | 		await page.waitForURL('/flashcards', { timeout: 10000 });
+         | 		           ^
+      23 | 		await page.waitForLoadState('networkidle');
+      24 | 		// Wait for loading state to finish - collections should appear
+      25 | 		await expect(
+        at /Users/randyhereman/Coding/SynergyOS/e2e/flashcard-collections.spec.ts:22:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/flashcard-collections-Flas-7ab68-and-navigate-to-review-mode-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/flashcard-collections-Flas-7ab68-and-navigate-to-review-mode-chromium/error-context.md
+
+
+[1A[2K(node:65278) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:65278) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[37/76] [chromium] › e2e/flashcard-collections.spec.ts:150:2 › Flashcard Collections › should handle empty collection gracefully
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  12) [chromium] › e2e/flashcard-collections.spec.ts:150:2 › Flashcard Collections › should handle empty collection gracefully 
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "/flashcards" until "load"
+      navigated to "http://localhost:5173/login?redirectTo=%2Fflashcards"
+    ============================================================
+
+      20 | 		await page.goto('/flashcards');
+      21 | 		// Wait for page to load and verify we're not redirected to login
+    > 22 | 		await page.waitForURL('/flashcards', { timeout: 10000 });
+         | 		           ^
+      23 | 		await page.waitForLoadState('networkidle');
+      24 | 		// Wait for loading state to finish - collections should appear
+      25 | 		await expect(
+        at /Users/randyhereman/Coding/SynergyOS/e2e/flashcard-collections.spec.ts:22:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/flashcard-collections-Flas-2290d-empty-collection-gracefully-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/flashcard-collections-Flas-2290d-empty-collection-gracefully-chromium/error-context.md
+
+
+[1A[2K(node:65829) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:65829) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[38/76] [chromium] › e2e/flashcard-collections.spec.ts:195:2 › Flashcard Collections › should display tag-based collections if tags exist
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  13) [chromium] › e2e/flashcard-collections.spec.ts:195:2 › Flashcard Collections › should display tag-based collections if tags exist 
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "/flashcards" until "load"
+      navigated to "http://localhost:5173/login?redirectTo=%2Fflashcards"
+    ============================================================
+
+      20 | 		await page.goto('/flashcards');
+      21 | 		// Wait for page to load and verify we're not redirected to login
+    > 22 | 		await page.waitForURL('/flashcards', { timeout: 10000 });
+         | 		           ^
+      23 | 		await page.waitForLoadState('networkidle');
+      24 | 		// Wait for loading state to finish - collections should appear
+      25 | 		await expect(
+        at /Users/randyhereman/Coding/SynergyOS/e2e/flashcard-collections.spec.ts:22:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/flashcard-collections-Flas-c9a61-d-collections-if-tags-exist-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/flashcard-collections-Flas-c9a61-d-collections-if-tags-exist-chromium/error-context.md
+
+
+[1A[2K(node:66402) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:66402) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[39/76] [chromium] › e2e/flashcard-collections.spec.ts:233:2 › Flashcard Collections - Tag Filtering › should filter collections by tag if tag selector exists
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  14) [chromium] › e2e/flashcard-collections.spec.ts:233:2 › Flashcard Collections - Tag Filtering › should filter collections by tag if tag selector exists 
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "/flashcards" until "load"
+      navigated to "http://localhost:5173/login?redirectTo=%2Fflashcards"
+    ============================================================
+
+      240 |
+      241 | 		await page.goto('/flashcards');
+    > 242 | 		await page.waitForURL('/flashcards', { timeout: 10000 });
+          | 		           ^
+      243 | 		await page.waitForLoadState('networkidle');
+      244 | 		await expect(page.locator('h2:has-text("Flashcards")')).toBeVisible({ timeout: 10000 });
+      245 |
+        at /Users/randyhereman/Coding/SynergyOS/e2e/flashcard-collections.spec.ts:242:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/flashcard-collections-Flas-8a769--tag-if-tag-selector-exists-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/flashcard-collections-Flas-8a769--tag-if-tag-selector-exists-chromium/error-context.md
+
+
+[1A[2K(node:66953) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:66953) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[40/76] [chromium] › e2e/flashcard-collections.spec.ts:271:2 › Flashcard Collections - Review Mode Integration › should navigate to review mode when collection has due cards
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  15) [chromium] › e2e/flashcard-collections.spec.ts:271:2 › Flashcard Collections - Review Mode Integration › should navigate to review mode when collection has due cards 
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "/flashcards" until "load"
+      navigated to "http://localhost:5173/login?redirectTo=%2Fflashcards"
+    ============================================================
+
+      278 |
+      279 | 		await page.goto('/flashcards');
+    > 280 | 		await page.waitForURL('/flashcards', { timeout: 10000 });
+          | 		           ^
+      281 | 		await page.waitForLoadState('networkidle');
+      282 | 		await expect(page.locator('h2:has-text("Flashcards")')).toBeVisible({ timeout: 10000 });
+      283 |
+        at /Users/randyhereman/Coding/SynergyOS/e2e/flashcard-collections.spec.ts:280:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/flashcard-collections-Flas-77194-en-collection-has-due-cards-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/flashcard-collections-Flas-77194-en-collection-has-due-cards-chromium/error-context.md
+
+
+[1A[2K(node:67512) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:67512) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[41/76] [chromium] › e2e/inbox-sync.test.ts:13:2 › Inbox Sync Workflow › user can view inbox page
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  16) [chromium] › e2e/inbox-sync.test.ts:13:2 › Inbox Sync Workflow › user can view inbox page ────
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "/inbox" until "load"
+      navigated to "http://localhost:5173/login?redirectTo=%2Finbox"
+    ============================================================
+
+      15 |
+      16 | 		// Wait for page to load and verify we're not redirected to login
+    > 17 | 		await page.waitForURL('/inbox', { timeout: 10000 });
+         | 		           ^
+      18 | 		await page.waitForLoadState('networkidle');
+      19 |
+      20 | 		// Check that inbox page loads
+        at /Users/randyhereman/Coding/SynergyOS/e2e/inbox-sync.test.ts:17:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/inbox-sync-Inbox-Sync-Workflow-user-can-view-inbox-page-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/inbox-sync-Inbox-Sync-Workflow-user-can-view-inbox-page-chromium/error-context.md
+
+
+[1A[2K(node:68078) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:68078) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[42/76] [chromium] › e2e/inbox-sync.test.ts:26:2 › Inbox Sync Workflow › user can open sync configuration
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  17) [chromium] › e2e/inbox-sync.test.ts:26:2 › Inbox Sync Workflow › user can open sync configuration 
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "/inbox" until "load"
+      navigated to "http://localhost:5173/login?redirectTo=%2Finbox"
+    ============================================================
+
+      28 |
+      29 | 		// Wait for page to load and verify we're not redirected to login
+    > 30 | 		await page.waitForURL('/inbox', { timeout: 10000 });
+         | 		           ^
+      31 | 		await page.waitForLoadState('networkidle');
+      32 |
+      33 | 		// Verify inbox header is visible before proceeding
+        at /Users/randyhereman/Coding/SynergyOS/e2e/inbox-sync.test.ts:30:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/inbox-sync-Inbox-Sync-Work-c41f1-can-open-sync-configuration-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/inbox-sync-Inbox-Sync-Work-c41f1-can-open-sync-configuration-chromium/error-context.md
+
+
+[1A[2K(node:68637) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:68637) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[43/76] [chromium] › e2e/inbox-sync.test.ts:63:2 › Inbox Sync Workflow › user can sync Readwise highlights - import 10 items
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  18) [chromium] › e2e/inbox-sync.test.ts:63:2 › Inbox Sync Workflow › user can sync Readwise highlights - import 10 items 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('button').filter({ has: locator('svg path[d*="M12 5v.01M12 12v.01M12 19v.01"]') }).first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 10000ms[22m
+    [2m  - waiting for locator('button').filter({ has: locator('svg path[d*="M12 5v.01M12 12v.01M12 19v.01"]') }).first()[22m
+
+
+      72 | 			.filter({ has: page.locator('svg path[d*="M12 5v.01M12 12v.01M12 19v.01"]') })
+      73 | 			.first();
+    > 74 | 		await expect(menuButton).toBeVisible({ timeout: 10000 });
+         | 		                         ^
+      75 | 		await menuButton.click();
+      76 |
+      77 | 		// Wait for dropdown menu to appear and click "Sync Readwise Highlights"
+        at /Users/randyhereman/Coding/SynergyOS/e2e/inbox-sync.test.ts:74:28
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/inbox-sync-Inbox-Sync-Work-4c5bf-ighlights---import-10-items-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/inbox-sync-Inbox-Sync-Work-4c5bf-ighlights---import-10-items-chromium/error-context.md
+
+
+[1A[2K(node:69189) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:69189) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[44/76] [chromium] › e2e/inbox-workflow.spec.ts:35:2 › Inbox Workflow - SessionID Authentication › should list inbox items without sessionId errors
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  19) [chromium] › e2e/inbox-workflow.spec.ts:35:2 › Inbox Workflow - SessionID Authentication › should list inbox items without sessionId errors 
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "/inbox" until "load"
+      navigated to "http://localhost:5173/login?redirectTo=%2Finbox"
+    ============================================================
+
+      22 |
+      23 | 		// Wait for page to load and verify we're not redirected to login
+    > 24 | 		await page.waitForURL('/inbox', { timeout: 10000 });
+         | 		           ^
+      25 | 		await page.waitForLoadState('networkidle');
+      26 |
+      27 | 		// Verify inbox header is visible before proceeding
+        at /Users/randyhereman/Coding/SynergyOS/e2e/inbox-workflow.spec.ts:24:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/inbox-workflow-Inbox-Workf-4f481-ms-without-sessionId-errors-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/inbox-workflow-Inbox-Workf-4f481-ms-without-sessionId-errors-chromium/error-context.md
+
+
+[1A[2K(node:69760) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:69760) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[45/76] [chromium] › e2e/inbox-workflow.spec.ts:59:2 › Inbox Workflow - SessionID Authentication › should mark inbox item as processed without sessionId errors
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  20) [chromium] › e2e/inbox-workflow.spec.ts:59:2 › Inbox Workflow - SessionID Authentication › should mark inbox item as processed without sessionId errors 
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "/inbox" until "load"
+      navigated to "http://localhost:5173/login?redirectTo=%2Finbox"
+    ============================================================
+
+      22 |
+      23 | 		// Wait for page to load and verify we're not redirected to login
+    > 24 | 		await page.waitForURL('/inbox', { timeout: 10000 });
+         | 		           ^
+      25 | 		await page.waitForLoadState('networkidle');
+      26 |
+      27 | 		// Verify inbox header is visible before proceeding
+        at /Users/randyhereman/Coding/SynergyOS/e2e/inbox-workflow.spec.ts:24:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/inbox-workflow-Inbox-Workf-85950-ed-without-sessionId-errors-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/inbox-workflow-Inbox-Workf-85950-ed-without-sessionId-errors-chromium/error-context.md
+
+
+[1A[2K(node:70322) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:70322) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[46/76] [chromium] › e2e/inbox-workflow.spec.ts:100:2 › Inbox Workflow - SessionID Authentication › should navigate between inbox items without sessionId errors
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  21) [chromium] › e2e/inbox-workflow.spec.ts:100:2 › Inbox Workflow - SessionID Authentication › should navigate between inbox items without sessionId errors 
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "/inbox" until "load"
+      navigated to "http://localhost:5173/login?redirectTo=%2Finbox"
+    ============================================================
+
+      22 |
+      23 | 		// Wait for page to load and verify we're not redirected to login
+    > 24 | 		await page.waitForURL('/inbox', { timeout: 10000 });
+         | 		           ^
+      25 | 		await page.waitForLoadState('networkidle');
+      26 |
+      27 | 		// Verify inbox header is visible before proceeding
+        at /Users/randyhereman/Coding/SynergyOS/e2e/inbox-workflow.spec.ts:24:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/inbox-workflow-Inbox-Workf-ff677-ms-without-sessionId-errors-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/inbox-workflow-Inbox-Workf-ff677-ms-without-sessionId-errors-chromium/error-context.md
+
+
+[1A[2K(node:70888) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:70888) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[47/76] [chromium] › e2e/inbox-workflow.spec.ts:136:2 › Inbox Workflow - SessionID Authentication › should handle keyboard shortcuts without sessionId errors
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  22) [chromium] › e2e/inbox-workflow.spec.ts:136:2 › Inbox Workflow - SessionID Authentication › should handle keyboard shortcuts without sessionId errors 
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "/inbox" until "load"
+      navigated to "http://localhost:5173/login?redirectTo=%2Finbox"
+    ============================================================
+
+      22 |
+      23 | 		// Wait for page to load and verify we're not redirected to login
+    > 24 | 		await page.waitForURL('/inbox', { timeout: 10000 });
+         | 		           ^
+      25 | 		await page.waitForLoadState('networkidle');
+      26 |
+      27 | 		// Verify inbox header is visible before proceeding
+        at /Users/randyhereman/Coding/SynergyOS/e2e/inbox-workflow.spec.ts:24:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/inbox-workflow-Inbox-Workf-ebdff-ts-without-sessionId-errors-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/inbox-workflow-Inbox-Workf-ebdff-ts-without-sessionId-errors-chromium/error-context.md
+
+
+[1A[2K(node:71453) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:71453) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[48/76] [chromium] › e2e/inbox-workflow.spec.ts:159:2 › Inbox Security - User Isolation › should only show user-owned inbox items
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K[chromium] › e2e/inbox-workflow.spec.ts:159:2 › Inbox Security - User Isolation › should only show user-owned inbox items
+User has 0 inbox items
+
+[1A[2K[49/76] [chromium] › e2e/inbox-workflow.spec.ts:179:2 › Inbox Security - User Isolation › should prevent access to other users inbox items
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K[50/76] [chromium] › e2e/inbox-workflow.spec.ts:207:2 › Inbox Sync Progress - SessionID Authentication › should query sync progress with sessionId
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K[51/76] [chromium] › e2e/multi-tab-logout.spec.ts:19:2 › Multi-Tab Logout › should log out across all tabs when one tab logs out
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  23) [chromium] › e2e/multi-tab-logout.spec.ts:19:2 › Multi-Tab Logout › should log out across all tabs when one tab logs out 
+
+    Error: [2mexpect([22m[31mpage[39m[2m).[22mtoHaveURL[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Expected pattern: [32m/\/inbox/[39m
+    Received string:  [31m"http://localhost:5173/login?redirectTo=%2Finbox"[39m
+    Timeout: 5000ms
+
+    Call log:
+    [2m  - Expect "toHaveURL" with timeout 5000ms[22m
+    [2m    9 × unexpected value "http://localhost:5173/login?redirectTo=%2Finbox"[22m
+
+
+      28 | 		await page.goto('/inbox');
+      29 | 		await page.waitForLoadState('networkidle');
+    > 30 | 		await expect(page).toHaveURL(/\/inbox/, { timeout: 5000 });
+         | 		                   ^
+      31 |
+      32 | 		// Tab 2: Open new page and navigate to flashcards (authenticated)
+      33 | 		const page2 = await context.newPage();
+        at /Users/randyhereman/Coding/SynergyOS/e2e/multi-tab-logout.spec.ts:30:22
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/multi-tab-logout-Multi-Tab-4a618--tabs-when-one-tab-logs-out-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/multi-tab-logout-Multi-Tab-4a618--tabs-when-one-tab-logs-out-chromium/error-context.md
+
+
+[1A[2K(node:73686) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:73686) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[52/76] [chromium] › e2e/multi-tab-logout.spec.ts:147:2 › Multi-Tab Logout › should clear session cookies on logout
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K[chromium] › e2e/multi-tab-logout.spec.ts:147:2 › Multi-Tab Logout › should clear session cookies on logout
+Session cookie before: Missing
+
+[1A[2KCSRF cookie before: Missing
+
+[1A[2K⏭️  Skipping test - CSRF token not available
+
+[1A[2K[53/76] [chromium] › e2e/multi-tab-logout.spec.ts:213:2 › Multi-Tab Logout › should prevent access to protected routes after logout
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K[chromium] › e2e/multi-tab-logout.spec.ts:213:2 › Multi-Tab Logout › should prevent access to protected routes after logout
+⏭️  Skipping test - CSRF token not available
+
+[1A[2K[54/76] [chromium] › e2e/multi-tab-logout.spec.ts:290:2 › Multi-Tab Session Sync › should sync session across tabs without logout
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K[chromium] › e2e/multi-tab-logout.spec.ts:290:2 › Multi-Tab Session Sync › should sync session across tabs without logout
+⏭️  Skipping test - not authenticated
+
+[1A[2K[55/76] [chromium] › e2e/quick-create.spec.ts:26:2 › Quick Create Modal - SessionID Authentication › should create note via keyboard shortcut (C key) without errors
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  24) [chromium] › e2e/quick-create.spec.ts:26:2 › Quick Create Modal - SessionID Authentication › should create note via keyboard shortcut (C key) without errors 
+
+    TimeoutError: page.waitForSelector: Timeout 5000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('body[data-shortcuts-ready="true"]') to be visible[22m
+
+
+      34 |
+      35 | 		// Wait for shortcuts to be registered before pressing key
+    > 36 | 		await page.waitForSelector('body[data-shortcuts-ready="true"]', { timeout: 5000 });
+         | 		           ^
+      37 |
+      38 | 		// Press C key to open Quick Create modal
+      39 | 		await page.keyboard.press('c');
+        at /Users/randyhereman/Coding/SynergyOS/e2e/quick-create.spec.ts:36:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/quick-create-Quick-Create--cad5e-ortcut-C-key-without-errors-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/quick-create-Quick-Create--cad5e-ortcut-C-key-without-errors-chromium/error-context.md
+
+
+[1A[2K(node:75887) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:75887) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[56/76] [chromium] › e2e/quick-create.spec.ts:74:2 › Quick Create Modal - SessionID Authentication › should create flashcard via Quick Create without errors
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  25) [chromium] › e2e/quick-create.spec.ts:74:2 › Quick Create Modal - SessionID Authentication › should create flashcard via Quick Create without errors 
+
+    TimeoutError: page.waitForSelector: Timeout 5000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('body[data-shortcuts-ready="true"]') to be visible[22m
+
+
+      81 |
+      82 | 		// Wait for shortcuts to be registered before pressing key
+    > 83 | 		await page.waitForSelector('body[data-shortcuts-ready="true"]', { timeout: 5000 });
+         | 		           ^
+      84 |
+      85 | 		// Open Quick Create modal with CMD+K
+      86 | 		await page.keyboard.press('Meta+k');
+        at /Users/randyhereman/Coding/SynergyOS/e2e/quick-create.spec.ts:83:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/quick-create-Quick-Create--60569-Quick-Create-without-errors-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/quick-create-Quick-Create--60569-Quick-Create-without-errors-chromium/error-context.md
+
+
+[1A[2K(node:76478) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:76478) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[57/76] [chromium] › e2e/quick-create.spec.ts:121:2 › Quick Create Modal - SessionID Authentication › should create highlight via Quick Create without errors
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  26) [chromium] › e2e/quick-create.spec.ts:121:2 › Quick Create Modal - SessionID Authentication › should create highlight via Quick Create without errors 
+
+    TimeoutError: page.waitForSelector: Timeout 5000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('body[data-shortcuts-ready="true"]') to be visible[22m
+
+
+      128 |
+      129 | 		// Wait for shortcuts to be registered before pressing key
+    > 130 | 		await page.waitForSelector('body[data-shortcuts-ready="true"]', { timeout: 5000 });
+          | 		           ^
+      131 |
+      132 | 		// Open Quick Create modal
+      133 | 		await page.keyboard.press('Meta+k');
+        at /Users/randyhereman/Coding/SynergyOS/e2e/quick-create.spec.ts:130:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/quick-create-Quick-Create--8b0ef-Quick-Create-without-errors-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/quick-create-Quick-Create--8b0ef-Quick-Create-without-errors-chromium/error-context.md
+
+
+[1A[2K(node:77045) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:77045) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[58/76] [chromium] › e2e/quick-create.spec.ts:161:2 › Quick Create Modal - SessionID Authentication › should fail gracefully when sessionId is missing
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  27) [chromium] › e2e/quick-create.spec.ts:161:2 › Quick Create Modal - SessionID Authentication › should fail gracefully when sessionId is missing 
+
+    TimeoutError: page.waitForSelector: Timeout 5000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('body[data-shortcuts-ready="true"]') to be visible[22m
+
+
+      177 |
+      178 | 		// Wait for shortcuts to be registered before pressing key
+    > 179 | 		await page.waitForSelector('body[data-shortcuts-ready="true"]', { timeout: 5000 });
+          | 		           ^
+      180 |
+      181 | 		// Try to create a note
+      182 | 		await page.keyboard.press('c');
+        at /Users/randyhereman/Coding/SynergyOS/e2e/quick-create.spec.ts:179:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/quick-create-Quick-Create--012ce-y-when-sessionId-is-missing-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/quick-create-Quick-Create--012ce-y-when-sessionId-is-missing-chromium/error-context.md
+
+
+[1A[2K(node:77598) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:77598) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[59/76] [chromium] › e2e/quick-create.spec.ts:204:2 › Quick Create Modal - Tag Selection › should load tags with sessionId authentication
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  28) [chromium] › e2e/quick-create.spec.ts:204:2 › Quick Create Modal - Tag Selection › should load tags with sessionId authentication 
+
+    TimeoutError: page.waitForSelector: Timeout 5000ms exceeded.
+    Call log:
+    [2m  - waiting for locator('body[data-shortcuts-ready="true"]') to be visible[22m
+
+
+      216 |
+      217 | 		// Wait for shortcuts to be registered before pressing key
+    > 218 | 		await page.waitForSelector('body[data-shortcuts-ready="true"]', { timeout: 5000 });
+          | 		           ^
+      219 | 		await page.waitForTimeout(2000); // Give time for tags query to initialize
+      220 |
+      221 | 		await page.keyboard.press('c');
+        at /Users/randyhereman/Coding/SynergyOS/e2e/quick-create.spec.ts:218:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/quick-create-Quick-Create--0b5b7-th-sessionId-authentication-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/quick-create-Quick-Create--0b5b7-th-sessionId-authentication-chromium/error-context.md
+
+
+[1A[2K(node:78156) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:78156) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[60/76] [chromium] › e2e/rate-limiting.test.ts:27:3 › Rate Limiting › Login Endpoint › should block excessive login attempts
+[1A[2K[WebServer] ❌ WorkOS password auth failed: {"error":"sso_required","email":"test@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+
+[1A[2K[WebServer] ❌ Login error: Error: WorkOS password authentication failed (400): {"error":"sso_required","email":"test@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer]     at authenticateWithPassword (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:194:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/login/+server.ts:35:26)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[WebServer] ❌ WorkOS password auth failed: {"error":"sso_required","email":"test@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+
+[1A[2K[WebServer] ❌ Login error: Error: WorkOS password authentication failed (400): {"error":"sso_required","email":"test@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer]     at authenticateWithPassword (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:194:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/login/+server.ts:35:26)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[WebServer] ❌ WorkOS password auth failed: {"error":"sso_required","email":"test@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+
+[1A[2K[WebServer] ❌ Login error: Error: WorkOS password authentication failed (400): {"error":"sso_required","email":"test@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer]     at authenticateWithPassword (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:194:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/login/+server.ts:35:26)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[WebServer] ❌ WorkOS password auth failed: {"error":"sso_required","email":"test@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer] ❌ Login error: Error: WorkOS password authentication failed (400): {"error":"sso_required","email":"test@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer]     at authenticateWithPassword (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:194:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/login/+server.ts:35:26)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[WebServer] ❌ WorkOS password auth failed: {"error":"sso_required","email":"test@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer] ❌ Login error: Error: WorkOS password authentication failed (400): {"error":"sso_required","email":"test@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer]     at authenticateWithPassword (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:194:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/login/+server.ts:35:26)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[61/76] [chromium] › e2e/rate-limiting.test.ts:58:3 › Rate Limiting › Login Endpoint › should include rate limit headers on login requests
+[1A[2K[WebServer] ❌ WorkOS password auth failed: {"error":"sso_required","email":"test@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+
+[1A[2K[WebServer] ❌ Login error: Error: WorkOS password authentication failed (400): {"error":"sso_required","email":"test@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer]     at authenticateWithPassword (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:194:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/login/+server.ts:35:26)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[62/76] [chromium] › e2e/rate-limiting.test.ts:76:3 › Rate Limiting › Login Endpoint › should include Retry-After header on 429 response
+[1A[2K[WebServer] ❌ WorkOS password auth failed: {"error":"sso_required","email":"rate-limit-test-1763200718150@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+
+[1A[2K[WebServer] ❌ Login error: Error: WorkOS password authentication failed (400): {"error":"sso_required","email":"rate-limit-test-1763200718150@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer]     at authenticateWithPassword (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:194:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/login/+server.ts:35:26)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[WebServer] ❌ WorkOS password auth failed: {"error":"sso_required","email":"rate-limit-test-1763200718150@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+
+[1A[2K[WebServer] ❌ Login error: Error: WorkOS password authentication failed (400): {"error":"sso_required","email":"rate-limit-test-1763200718150@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer]     at authenticateWithPassword (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:194:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/login/+server.ts:35:26)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[WebServer] ❌ WorkOS password auth failed: {"error":"sso_required","email":"rate-limit-test-1763200718150@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer] ❌ Login error: Error: WorkOS password authentication failed (400): {"error":"sso_required","email":"rate-limit-test-1763200718150@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer]     at authenticateWithPassword (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:194:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/login/+server.ts:35:26)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[WebServer] ❌ WorkOS password auth failed: {"error":"sso_required","email":"rate-limit-test-1763200718150@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer] ❌ Login error: Error: WorkOS password authentication failed (400): {"error":"sso_required","email":"rate-limit-test-1763200718150@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer]     at authenticateWithPassword (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:194:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/login/+server.ts:35:26)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[WebServer] ❌ WorkOS password auth failed: {"error":"sso_required","email":"rate-limit-test-1763200718150@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer] ❌ Login error: Error: WorkOS password authentication failed (400): {"error":"sso_required","email":"rate-limit-test-1763200718150@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer]     at authenticateWithPassword (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:194:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/login/+server.ts:35:26)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[63/76] [chromium] › e2e/rate-limiting.test.ts:107:3 › Rate Limiting › Registration Endpoint › should block excessive registration attempts
+[1A[2K[WebServer] ❌ Registration error: Error: [Request ID: d32757d22a4f20de] Server Error
+[WebServer] Uncaught Error: Uncaught Error: Failed to send verification email: Resend API error: {"statusCode":429,"name":"rate_limit_exceeded","message":"Too many requests. You can only make 2 requests per second. See rate limit response headers for more information. Or contact support to increase rate limit."}
+[WebServer]     at handler (../convex/email.ts:191:67)
+[WebServer] 
+[WebServer]     at async handler (../convex/verification.ts:204:16)
+[WebServer] 
+[WebServer]     at ConvexHttpClient.action (file:///Users/randyhereman/Coding/SynergyOS/node_modules/convex/dist/esm/browser/http_client.js:391:15)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/register/+server.ts:59:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+[WebServer] ❌ Error stack: Error: [Request ID: d32757d22a4f20de] Server Error
+[WebServer] Uncaught Error: Uncaught Error: Failed to send verification email: Resend API error: {"statusCode":429,"name":"rate_limit_exceeded","message":"Too many requests. You can only make 2 requests per second. See rate limit response headers for more information. Or contact support to increase rate limit."}
+[WebServer]     at handler (../convex/email.ts:191:67)
+[WebServer] 
+[WebServer]     at async handler (../convex/verification.ts:204:16)
+[WebServer] 
+[WebServer]     at ConvexHttpClient.action (file:///Users/randyhereman/Coding/SynergyOS/node_modules/convex/dist/esm/browser/http_client.js:391:15)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/register/+server.ts:59:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+[WebServer] ❌ Error message: [Request ID: d32757d22a4f20de] Server Error
+[WebServer] Uncaught Error: Uncaught Error: Failed to send verification email: Resend API error: {"statusCode":429,"name":"rate_limit_exceeded","message":"Too many requests. You can only make 2 requests per second. See rate limit response headers for more information. Or contact support to increase rate limit."}
+[WebServer]     at handler (../convex/email.ts:191:67)
+[WebServer] 
+[WebServer]     at async handler (../convex/verification.ts:204:16)
+[WebServer] 
+
+[1A[2K[64/76] [chromium] › e2e/rate-limiting.test.ts:136:3 › Rate Limiting › Registration Endpoint › should include rate limit headers on register requests
+[1A[2K[65/76] [chromium] › e2e/rate-limiting.test.ts:156:3 › Rate Limiting › Account Switch Endpoint › should block excessive account switch attempts
+[1A[2K[66/76] [chromium] › e2e/rate-limiting.test.ts:169:3 › Rate Limiting › Account Switch Endpoint › should include rate limit headers on switch requests
+[1A[2K[67/76] [chromium] › e2e/rate-limiting.test.ts:175:3 › Rate Limiting › Logout Endpoint › should block excessive logout attempts
+[1A[2K[68/76] [chromium] › e2e/rate-limiting.test.ts:188:3 › Rate Limiting › Independent Rate Limiting › should track different endpoints independently
+[1A[2K[WebServer] ❌ WorkOS password auth failed: {"error":"sso_required","email":"independent-test-1763200721472@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+
+[1A[2K[WebServer] ❌ Login error: Error: WorkOS password authentication failed (400): {"error":"sso_required","email":"independent-test-1763200721472@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer]     at authenticateWithPassword (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:194:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/login/+server.ts:35:26)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[WebServer] ❌ WorkOS password auth failed: {"error":"sso_required","email":"independent-test-1763200721472@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer] ❌ Login error: Error: WorkOS password authentication failed (400): {"error":"sso_required","email":"independent-test-1763200721472@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer]     at authenticateWithPassword (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:194:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/login/+server.ts:35:26)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[WebServer] ❌ WorkOS password auth failed: {"error":"sso_required","email":"independent-test-1763200721472@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+
+[1A[2K[WebServer] ❌ Login error: Error: WorkOS password authentication failed (400): {"error":"sso_required","email":"independent-test-1763200721472@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer]     at authenticateWithPassword (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:194:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/login/+server.ts:35:26)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[WebServer] ❌ WorkOS password auth failed: {"error":"sso_required","email":"independent-test-1763200721472@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+
+[1A[2K[WebServer] ❌ Login error: Error: WorkOS password authentication failed (400): {"error":"sso_required","email":"independent-test-1763200721472@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer]     at authenticateWithPassword (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:194:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/login/+server.ts:35:26)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[WebServer] ❌ WorkOS password auth failed: {"error":"sso_required","email":"independent-test-1763200721472@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+
+[1A[2K[WebServer] ❌ Login error: Error: WorkOS password authentication failed (400): {"error":"sso_required","email":"independent-test-1763200721472@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer]     at authenticateWithPassword (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:194:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/login/+server.ts:35:26)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[69/76] [chromium] › e2e/rate-limiting.test.ts:227:3 › Rate Limiting › Rate Limit Headers › should update remaining count with each request
+[1A[2K[WebServer] ❌ WorkOS password auth failed: {"error":"sso_required","email":"header-test-1763200722930@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+
+[1A[2K[WebServer] ❌ Login error: Error: WorkOS password authentication failed (400): {"error":"sso_required","email":"header-test-1763200722930@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer]     at authenticateWithPassword (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:194:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/login/+server.ts:35:26)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[WebServer] ❌ WorkOS password auth failed: {"error":"sso_required","email":"header-test-1763200722930@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+
+[1A[2K[WebServer] ❌ Login error: Error: WorkOS password authentication failed (400): {"error":"sso_required","email":"header-test-1763200722930@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer]     at authenticateWithPassword (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:194:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/login/+server.ts:35:26)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[WebServer] ❌ WorkOS password auth failed: {"error":"sso_required","email":"header-test-1763200722930@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+
+[1A[2K[WebServer] ❌ Login error: Error: WorkOS password authentication failed (400): {"error":"sso_required","email":"header-test-1763200722930@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer]     at authenticateWithPassword (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:194:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/login/+server.ts:35:26)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[70/76] [chromium] › e2e/rate-limiting.test.ts:248:3 › Rate Limiting › Rate Limit Headers › should set consistent rate limit on all responses
+[1A[2K[WebServer] ❌ WorkOS password auth failed: {"error":"sso_required","email":"test1@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+
+[1A[2K[WebServer] ❌ Login error: Error: WorkOS password authentication failed (400): {"error":"sso_required","email":"test1@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer]     at authenticateWithPassword (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:194:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/login/+server.ts:35:26)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[WebServer] ❌ WorkOS password auth failed: {"error":"sso_required","email":"test2@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+
+[1A[2K[WebServer] ❌ Login error: Error: WorkOS password authentication failed (400): {"error":"sso_required","email":"test2@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer]     at authenticateWithPassword (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:194:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/login/+server.ts:35:26)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[71/76] [chromium] › e2e/rate-limiting.test.ts:271:3 › Rate Limiting › Performance › should add minimal overhead to requests
+[1A[2K[WebServer] ❌ WorkOS password auth failed: {"error":"sso_required","email":"perf-test@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer] ❌ Login error: Error: WorkOS password authentication failed (400): {"error":"sso_required","email":"perf-test@example.com","error_description":"User must authenticate using one of the matching connections.","connection_ids":["conn_01K9KZHHQT3QQBBSZ4S2GAET7K"]}
+[WebServer]     at authenticateWithPassword (/Users/randyhereman/Coding/SynergyOS/src/lib/server/auth/workos.ts:194:11)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/routes/auth/login/+server.ts:35:26)
+[WebServer]     at async eval (/Users/randyhereman/Coding/SynergyOS/src/lib/server/middleware/rateLimit.ts:136:22)
+[WebServer]     at async render_endpoint (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/endpoint.js:56:20)
+[WebServer]     at async resolve (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:461:23)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/hooks/sequence.js:102:13)
+[WebServer]     at async fn (/Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/runtime/server/respond.js:326:16)
+
+[1A[2K[72/76] [chromium] › e2e/settings-security.spec.ts:34:2 › Settings Security - API Key Management › should update theme without sessionId errors
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  29) [chromium] › e2e/settings-security.spec.ts:34:2 › Settings Security - API Key Management › should update theme without sessionId errors 
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "/settings" until "load"
+      navigated to "http://localhost:5173/login?redirectTo=%2Fsettings"
+    ============================================================
+
+      21 |
+      22 | 		// Wait for page to load and verify we're not redirected to login
+    > 23 | 		await page.waitForURL('/settings', { timeout: 10000 });
+         | 		           ^
+      24 | 		await page.waitForLoadState('networkidle');
+      25 |
+      26 | 		// Verify settings page loaded successfully
+        at /Users/randyhereman/Coding/SynergyOS/e2e/settings-security.spec.ts:23:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/settings-security-Settings-2b657-me-without-sessionId-errors-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/settings-security-Settings-2b657-me-without-sessionId-errors-chromium/error-context.md
+
+
+[1A[2K(node:80354) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:80354) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[73/76] [chromium] › e2e/settings-security.spec.ts:66:2 › Settings Security - API Key Management › should save Claude API key without sessionId errors
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  30) [chromium] › e2e/settings-security.spec.ts:66:2 › Settings Security - API Key Management › should save Claude API key without sessionId errors 
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "/settings" until "load"
+      navigated to "http://localhost:5173/login?redirectTo=%2Fsettings"
+    ============================================================
+
+      21 |
+      22 | 		// Wait for page to load and verify we're not redirected to login
+    > 23 | 		await page.waitForURL('/settings', { timeout: 10000 });
+         | 		           ^
+      24 | 		await page.waitForLoadState('networkidle');
+      25 |
+      26 | 		// Verify settings page loaded successfully
+        at /Users/randyhereman/Coding/SynergyOS/e2e/settings-security.spec.ts:23:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/settings-security-Settings-bec82-ey-without-sessionId-errors-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/settings-security-Settings-bec82-ey-without-sessionId-errors-chromium/error-context.md
+
+
+[1A[2K(node:80927) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:80927) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[74/76] [chromium] › e2e/settings-security.spec.ts:105:2 › Settings Security - API Key Management › should delete Readwise API key without sessionId errors
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  31) [chromium] › e2e/settings-security.spec.ts:105:2 › Settings Security - API Key Management › should delete Readwise API key without sessionId errors 
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "/settings" until "load"
+      navigated to "http://localhost:5173/login?redirectTo=%2Fsettings"
+    ============================================================
+
+      21 |
+      22 | 		// Wait for page to load and verify we're not redirected to login
+    > 23 | 		await page.waitForURL('/settings', { timeout: 10000 });
+         | 		           ^
+      24 | 		await page.waitForLoadState('networkidle');
+      25 |
+      26 | 		// Verify settings page loaded successfully
+        at /Users/randyhereman/Coding/SynergyOS/e2e/settings-security.spec.ts:23:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/settings-security-Settings-51dfb-ey-without-sessionId-errors-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/settings-security-Settings-51dfb-ey-without-sessionId-errors-chromium/error-context.md
+
+
+[1A[2K(node:81484) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:81484) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[75/76] [chromium] › e2e/settings-security.spec.ts:144:2 › Settings Security - API Key Management › should load user settings with sessionId authentication
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  32) [chromium] › e2e/settings-security.spec.ts:144:2 › Settings Security - API Key Management › should load user settings with sessionId authentication 
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "/settings" until "load"
+      navigated to "http://localhost:5173/login?redirectTo=%2Fsettings"
+    ============================================================
+
+      21 |
+      22 | 		// Wait for page to load and verify we're not redirected to login
+    > 23 | 		await page.waitForURL('/settings', { timeout: 10000 });
+         | 		           ^
+      24 | 		await page.waitForLoadState('networkidle');
+      25 |
+      26 | 		// Verify settings page loaded successfully
+        at /Users/randyhereman/Coding/SynergyOS/e2e/settings-security.spec.ts:23:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/settings-security-Settings-6e56b-th-sessionId-authentication-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/settings-security-Settings-6e56b-th-sessionId-authentication-chromium/error-context.md
+
+
+[1A[2K(node:82040) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:82040) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[76/76] [chromium] › e2e/settings-security.spec.ts:171:2 › Settings Security - User Isolation › should only show authenticated user settings
+[1A[2K[WebServer] ⚠️  Session record not found in Convex for sessionId: 2uz76vaevKcq2vgEgC5ozWsUayRRoOgm
+
+[1A[2K  33) [chromium] › e2e/settings-security.spec.ts:171:2 › Settings Security - User Isolation › should only show authenticated user settings 
+
+    TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "/settings" until "load"
+      navigated to "http://localhost:5173/login?redirectTo=%2Fsettings"
+    ============================================================
+
+      180 |
+      181 | 		// Wait for page to load and verify we're not redirected to login
+    > 182 | 		await page.waitForURL('/settings', { timeout: 10000 });
+          | 		           ^
+      183 | 		await page.waitForLoadState('networkidle');
+      184 |
+      185 | 		// Settings should load (implicit: only this user's settings)
+        at /Users/randyhereman/Coding/SynergyOS/e2e/settings-security.spec.ts:182:14
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/settings-security-Settings-e7dd2-authenticated-user-settings-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/settings-security-Settings-e7dd2-authenticated-user-settings-chromium/error-context.md
+
+
+[1A[2K  33 failed
+    [chromium] › e2e/auth-registration.test.ts:16:2 › Registration with Email Verification › should register new user with email verification 
+    [chromium] › e2e/auth-registration.test.ts:249:2 › Test Helper Security › should only work in test mode 
+    [chromium] › e2e/auth-security.test.ts:124:2 › Logout Security › should handle logout with missing CSRF token 
+    [chromium] › e2e/auth-security.test.ts:164:2 › Logout Security › should handle logout with invalid CSRF token 
+    [chromium] › e2e/auth-security.test.ts:208:2 › Session Tracking › should capture IP address and user-agent on session creation 
+    [chromium] › e2e/auth-security.test.ts:242:2 › Settings Security › should allow updating own theme 
+    [chromium] › e2e/auth-security.test.ts:254:2 › Settings Security › should securely store API keys 
+    [chromium] › e2e/flashcard-collections.spec.ts:30:2 › Flashcard Collections › should load flashcards page without errors 
+    [chromium] › e2e/flashcard-collections.spec.ts:62:2 › Flashcard Collections › should display "All Cards" collection 
+    [chromium] › e2e/flashcard-collections.spec.ts:80:2 › Flashcard Collections › should display collection counts 
+    [chromium] › e2e/flashcard-collections.spec.ts:114:2 › Flashcard Collections › should open collection and navigate to review mode 
+    [chromium] › e2e/flashcard-collections.spec.ts:150:2 › Flashcard Collections › should handle empty collection gracefully 
+    [chromium] › e2e/flashcard-collections.spec.ts:195:2 › Flashcard Collections › should display tag-based collections if tags exist 
+    [chromium] › e2e/flashcard-collections.spec.ts:233:2 › Flashcard Collections - Tag Filtering › should filter collections by tag if tag selector exists 
+    [chromium] › e2e/flashcard-collections.spec.ts:271:2 › Flashcard Collections - Review Mode Integration › should navigate to review mode when collection has due cards 
+    [chromium] › e2e/inbox-sync.test.ts:13:2 › Inbox Sync Workflow › user can view inbox page ──────
+    [chromium] › e2e/inbox-sync.test.ts:26:2 › Inbox Sync Workflow › user can open sync configuration 
+    [chromium] › e2e/inbox-sync.test.ts:63:2 › Inbox Sync Workflow › user can sync Readwise highlights - import 10 items 
+    [chromium] › e2e/inbox-workflow.spec.ts:35:2 › Inbox Workflow - SessionID Authentication › should list inbox items without sessionId errors 
+    [chromium] › e2e/inbox-workflow.spec.ts:59:2 › Inbox Workflow - SessionID Authentication › should mark inbox item as processed without sessionId errors 
+    [chromium] › e2e/inbox-workflow.spec.ts:100:2 › Inbox Workflow - SessionID Authentication › should navigate between inbox items without sessionId errors 
+    [chromium] › e2e/inbox-workflow.spec.ts:136:2 › Inbox Workflow - SessionID Authentication › should handle keyboard shortcuts without sessionId errors 
+    [chromium] › e2e/multi-tab-logout.spec.ts:19:2 › Multi-Tab Logout › should log out across all tabs when one tab logs out 
+    [chromium] › e2e/quick-create.spec.ts:26:2 › Quick Create Modal - SessionID Authentication › should create note via keyboard shortcut (C key) without errors 
+    [chromium] › e2e/quick-create.spec.ts:74:2 › Quick Create Modal - SessionID Authentication › should create flashcard via Quick Create without errors 
+    [chromium] › e2e/quick-create.spec.ts:121:2 › Quick Create Modal - SessionID Authentication › should create highlight via Quick Create without errors 
+    [chromium] › e2e/quick-create.spec.ts:161:2 › Quick Create Modal - SessionID Authentication › should fail gracefully when sessionId is missing 
+    [chromium] › e2e/quick-create.spec.ts:204:2 › Quick Create Modal - Tag Selection › should load tags with sessionId authentication 
+    [chromium] › e2e/settings-security.spec.ts:34:2 › Settings Security - API Key Management › should update theme without sessionId errors 
+    [chromium] › e2e/settings-security.spec.ts:66:2 › Settings Security - API Key Management › should save Claude API key without sessionId errors 
+    [chromium] › e2e/settings-security.spec.ts:105:2 › Settings Security - API Key Management › should delete Readwise API key without sessionId errors 
+    [chromium] › e2e/settings-security.spec.ts:144:2 › Settings Security - API Key Management › should load user settings with sessionId authentication 
+    [chromium] › e2e/settings-security.spec.ts:171:2 › Settings Security - User Isolation › should only show authenticated user settings 
+  20 skipped
+  23 passed (7.5m)
+
+  Serving HTML report at http://localhost:64729. Press Ctrl+C to quit.

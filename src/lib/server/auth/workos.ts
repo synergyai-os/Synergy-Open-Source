@@ -6,6 +6,21 @@ const WORKOS_BASE_URL = 'https://api.workos.com';
 // Note: Environment variable validation moved inside functions to prevent import-time errors
 // during build/deployment. Variables are checked when actually used, not when module loads.
 
+/**
+ * Custom error class for WorkOS API errors that preserves HTTP status codes
+ */
+export class WorkOSError extends Error {
+	statusCode: number;
+	originalError?: string;
+
+	constructor(message: string, statusCode: number, originalError?: string) {
+		super(message);
+		this.name = 'WorkOSError';
+		this.statusCode = statusCode;
+		this.originalError = originalError;
+	}
+}
+
 /** Validate required WorkOS environment variables are present */
 function validateWorkOSConfig() {
 	if (!publicEnv.PUBLIC_WORKOS_CLIENT_ID) {
@@ -485,7 +500,30 @@ export async function resetPassword(options: {
 	if (!response.ok) {
 		const errorText = await response.text();
 		console.error('❌ WorkOS reset password failed:', errorText);
-		throw new Error(`WorkOS reset password failed (${response.status}): ${errorText}`);
+
+		// Parse structured error response if JSON (WorkOS returns JSON errors)
+		let errorMessage = `WorkOS reset password failed (${response.status})`;
+		let parsedError: unknown = null;
+
+		try {
+			parsedError = JSON.parse(errorText);
+			if (
+				typeof parsedError === 'object' &&
+				parsedError !== null &&
+				('error' in parsedError || 'message' in parsedError)
+			) {
+				const errorObj = parsedError as { error?: string; message?: string; code?: string };
+				errorMessage = errorObj.error || errorObj.message || errorMessage;
+			}
+		} catch {
+			// Not JSON, use text as-is
+			if (errorText) {
+				errorMessage = errorText.length > 200 ? errorText.substring(0, 200) + '...' : errorText;
+			}
+		}
+
+		// Throw custom error that preserves HTTP status code
+		throw new WorkOSError(errorMessage, response.status, errorText);
 	}
 
 	const data = (await response.json()) as unknown;

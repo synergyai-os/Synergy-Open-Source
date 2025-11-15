@@ -54,6 +54,8 @@ function markdownToProseMirror(markdown: string) {
 
 		// Skip frontmatter
 		if (line === '---') {
+			// Intentionally empty: increment i until we find closing ---
+			// eslint-disable-next-line no-empty
 			while (i < lines.length && lines[++i] !== '---') {}
 			continue;
 		}

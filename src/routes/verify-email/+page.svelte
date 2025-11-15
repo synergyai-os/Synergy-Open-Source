@@ -3,7 +3,6 @@
 	import { goto } from '$app/navigation';
 	import { PinInput, Button } from '$lib/components/ui';
 	import { onMount } from 'svelte';
-	import { resolve } from '$app/paths';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	const email = $derived($page.url.searchParams.get('email') ?? '');

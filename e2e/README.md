@@ -300,12 +300,14 @@ Tests use Playwright's [worker-scoped authentication](https://playwright.dev/doc
 
 ### Parallel Execution (5 Workers)
 
-1. **Setup phase** (`auth.setup.ts`) - Runs once **per worker** (5 times total)
-   - Worker 0 logs in as `randy+worker-0@synergyai.nl` → saves to `user-worker-0.json`
-   - Worker 1 logs in as `randy+worker-1@synergyai.nl` → saves to `user-worker-1.json`
-   - Worker 2 logs in as `randy+worker-2@synergyai.nl` → saves to `user-worker-2.json`
-   - Worker 3 logs in as `randy+worker-3@synergyai.nl` → saves to `user-worker-3.json`
-   - Worker 4 logs in as `randy+worker-4@synergyai.nl` → saves to `user-worker-4.json`
+1. **Worker fixture** (`e2e/fixtures.ts`) - Runs once **per worker** (5 times total)
+   - Worker 0 checks for `user-worker-0.json` → if missing, logs in as `randy+worker-0@synergyai.nl`
+   - Worker 1 checks for `user-worker-1.json` → if missing, logs in as `randy+worker-1@synergyai.nl`
+   - Worker 2 checks for `user-worker-2.json` → if missing, logs in as `randy+worker-2@synergyai.nl`
+   - Worker 3 checks for `user-worker-3.json` → if missing, logs in as `randy+worker-3@synergyai.nl`
+   - Worker 4 checks for `user-worker-4.json` → if missing, logs in as `randy+worker-4@synergyai.nl`
+   - Authentication happens automatically before first test in each worker
+   - Auth files are reused across test runs (no re-login required if files exist)
 
 2. **Test execution** - Each worker uses its own authenticated session
    - Worker index determined by `test.info().parallelIndex` (0-4)
