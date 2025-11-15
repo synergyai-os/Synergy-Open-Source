@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { resolveRoute } from '$lib/utils/navigation';
 
 	// PARA navigation items
 	const paraItems = [
@@ -38,9 +39,9 @@
 
 <nav class="para-quick-nav" aria-label="PARA Navigation">
 	<div class="para-nav-content">
-		{#each paraItems as item}
+		{#each paraItems as item (item.id)}
 			<a
-				href={item.href}
+				href={resolveRoute(item.href)}
 				class="para-nav-item"
 				class:active={isActive(item)}
 				aria-current={isActive(item) ? 'page' : undefined}

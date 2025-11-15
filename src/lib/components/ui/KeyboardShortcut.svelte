@@ -49,7 +49,7 @@
 </script>
 
 <div class="inline-flex items-center gap-1">
-	{#each normalizedKeys as key, i}
+	{#each normalizedKeys as key, i (`${i}-${key}`)}
 		<kbd class="bg-base/50 rounded font-mono text-tertiary {sizeClasses}">
 			{key}
 		</kbd>

@@ -1,4 +1,5 @@
 import { browser } from '$app/environment';
+import { SvelteURLSearchParams } from 'svelte/reactivity';
 import { useConvexClient, useQuery } from 'convex-svelte';
 import { api } from '$lib/convex';
 import { AnalyticsEventName } from '$lib/analytics/events';
@@ -8,6 +9,7 @@ import { untrack } from 'svelte';
 import { replaceState } from '$app/navigation';
 import { getContext } from 'svelte';
 import type { UseLoadingOverlayReturn } from '$lib/composables/useLoadingOverlay.svelte';
+import type { Id } from '$lib/convex';
 
 export type OrganizationRole = 'owner' | 'admin' | 'member';
 
@@ -63,7 +65,7 @@ export type UseOrganizations = ReturnType<typeof useOrganizations>;
 
 const STORAGE_KEY_PREFIX = 'activeOrganizationId';
 const STORAGE_DETAILS_KEY_PREFIX = 'activeOrganizationDetails';
-const SENTINEL_ORGANIZATION_ID = '000000000000000000000000';
+const _SENTINEL_ORGANIZATION_ID = '000000000000000000000000';
 const PERSONAL_SENTINEL = '__personal__';
 
 // Module-level tracking for URL param processing (pattern #L700 - plain variable, not $state)
@@ -136,37 +138,39 @@ export function useOrganizations(options?: {
 		browser && getSessionId()
 			? useQuery(api.organizations.listOrganizations, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) return null; // Skip query if sessionId not available
+					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
 					return { sessionId };
 				})
 			: null;
-	const organizationInvitesQuery = browser && getSessionId()
-		? useQuery(api.organizations.listOrganizationInvites, () => {
-				const sessionId = getSessionId();
-				if (!sessionId) return null;
-				return { sessionId };
-			})
-		: null;
-	const teamInvitesQuery = browser && getSessionId()
-		? useQuery(api.teams.listTeamInvites, () => {
-				const sessionId = getSessionId();
-				if (!sessionId) return null;
-				return { sessionId };
-			})
-		: null;
+	const organizationInvitesQuery =
+		browser && getSessionId()
+			? useQuery(api.organizations.listOrganizationInvites, () => {
+					const sessionId = getSessionId();
+					if (!sessionId) throw new Error('sessionId required');
+					return { sessionId };
+				})
+			: null;
+	const teamInvitesQuery =
+		browser && getSessionId()
+			? useQuery(api.teams.listTeamInvites, () => {
+					const sessionId = getSessionId();
+					if (!sessionId) throw new Error('sessionId required');
+					return { sessionId };
+				})
+			: null;
 
 	// Query teams - pass organizationId if we have one, undefined if in personal workspace mode
 	// The Convex function now accepts optional organizationId and returns [] when undefined
 	const teamsQuery =
-		browser && getUserId()
+		browser && getSessionId()
 			? useQuery(api.teams.listTeams, () => {
-					const userId = getUserId();
-					if (!userId) return null; // Skip query if userId not available
+					const sessionId = getSessionId();
+					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
 
 					const organizationId = state.activeOrganizationId;
 					return {
-						userId,
-						...(organizationId ? { organizationId } : {})
+						sessionId,
+						...(organizationId ? { organizationId: organizationId as Id<'organizations'> } : {})
 					};
 				})
 			: null;
@@ -211,7 +215,7 @@ export function useOrganizations(options?: {
 		if (!browser) return;
 
 		// Check for modal trigger URL parameters
-		const urlParams = new URLSearchParams(window.location.search);
+		const urlParams = new SvelteURLSearchParams(window.location.search);
 		const createParam = urlParams.get('create');
 		const joinParam = urlParams.get('join');
 
@@ -257,10 +261,12 @@ export function useOrganizations(options?: {
 			// Clean up URL param immediately (inbox pattern - prevents reprocessing)
 			// Guard for initial page load when router isn't initialized yet
 			try {
-				const url = new URL(window.location.href);
-				url.searchParams.delete('org');
-				replaceState(url.pathname + url.search, {});
-			} catch (e) {
+				const urlParams = new SvelteURLSearchParams(window.location.search);
+				urlParams.delete('org');
+				const newUrl =
+					window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+				replaceState(newUrl, {});
+			} catch (_e) {
 				// Router not ready on initial load - URL will persist but won't cause reprocessing
 				// because lastProcessedOrgParam tracking prevents the effect from running again
 				console.debug('Router not ready, deferring URL cleanup');
@@ -475,19 +481,23 @@ export function useOrganizations(options?: {
 				return;
 			}
 
-			const mutationArgs: any = {
-				toOrganizationId: organizationId,
+			const mutationArgs: {
+				fromOrganizationId?: Id<'organizations'>;
+				toOrganizationId: Id<'organizations'>;
+				availableTeamCount: number;
+			} = {
+				toOrganizationId: organizationId as Id<'organizations'>,
 				availableTeamCount
 			};
 
 			if (previousOrganizationId) {
-				mutationArgs.fromOrganizationId = previousOrganizationId;
+				mutationArgs.fromOrganizationId = previousOrganizationId as Id<'organizations'>;
 			}
 
 			convexClient
 				.mutation(api.organizations.recordOrganizationSwitch, mutationArgs)
-				.catch((error) => {
-					console.warn('Failed to record organization switch', error);
+				.catch((_error) => {
+					console.warn('Failed to record organization switch', _error);
 				});
 		}
 
@@ -495,7 +505,7 @@ export function useOrganizations(options?: {
 		// TODO: Remove once server-side analytics via HTTP action bridge is implemented
 		if (browser && typeof posthog !== 'undefined') {
 			try {
-				const properties: any = {
+				const properties: Record<string, unknown> = {
 					scope: 'organization',
 					toOrganizationId: organizationId,
 					availableTeamCount
@@ -511,8 +521,8 @@ export function useOrganizations(options?: {
 					AnalyticsEventName.ORGANIZATION_SWITCHED,
 					properties
 				);
-			} catch (error) {
-				console.warn('Failed to capture PostHog event', error);
+			} catch (_error) {
+				console.warn('Failed to capture PostHog event', _error);
 			}
 		}
 	}
@@ -594,8 +604,8 @@ export function useOrganizations(options?: {
 					}, 500);
 				}
 			}
-		} catch (error) {
-			console.error('Failed to create organization:', error);
+		} catch (_error) {
+			console.error('Failed to create organization:', _error);
 
 			// Show error toast
 			if (browser) {
@@ -615,11 +625,14 @@ export function useOrganizations(options?: {
 
 	async function joinOrganization(payload: { code: string }) {
 		if (!convexClient) return;
+		const sessionId = getSessionId();
+		if (!sessionId) return;
 		const trimmed = payload.code.trim();
 		if (!trimmed) return;
 
 		try {
 			const result = await convexClient.mutation(api.organizations.acceptOrganizationInvite, {
+				sessionId,
 				code: trimmed
 			});
 			if (result?.organizationId) {
@@ -632,12 +645,15 @@ export function useOrganizations(options?: {
 
 	async function createTeam(payload: { name: string }) {
 		if (!convexClient || !state.activeOrganizationId) return;
+		const sessionId = getSessionId();
+		if (!sessionId) return;
 		const trimmed = payload.name.trim();
 		if (!trimmed) return;
 
 		try {
 			const result = await convexClient.mutation(api.teams.createTeam, {
-				organizationId: state.activeOrganizationId as any,
+				sessionId,
+				organizationId: state.activeOrganizationId as Id<'organizations'>,
 				name: trimmed
 			});
 			if (result?.teamId) {
@@ -650,11 +666,14 @@ export function useOrganizations(options?: {
 
 	async function joinTeam(payload: { code: string }) {
 		if (!convexClient) return;
+		const sessionId = getSessionId();
+		if (!sessionId) return;
 		const trimmed = payload.code.trim();
 		if (!trimmed) return;
 
 		try {
 			const result = await convexClient.mutation(api.teams.acceptTeamInvite, {
+				sessionId,
 				code: trimmed
 			});
 			if (result?.organizationId) {
@@ -670,10 +689,13 @@ export function useOrganizations(options?: {
 
 	async function acceptOrganizationInvite(code: string) {
 		if (!convexClient) return;
+		const sessionId = getSessionId();
+		if (!sessionId) return;
 		const trimmed = code.trim();
 		if (!trimmed) return;
 
 		const result = await convexClient.mutation(api.organizations.acceptOrganizationInvite, {
+			sessionId,
 			code: trimmed
 		});
 		if (result?.organizationId) {
@@ -683,17 +705,23 @@ export function useOrganizations(options?: {
 
 	async function declineOrganizationInvite(inviteId: string) {
 		if (!convexClient) return;
+		const sessionId = getSessionId();
+		if (!sessionId) return;
 		await convexClient.mutation(api.organizations.declineOrganizationInvite, {
-			inviteId: inviteId as any
+			sessionId,
+			inviteId: inviteId as Id<'organizationInvites'>
 		});
 	}
 
 	async function acceptTeamInvite(code: string) {
 		if (!convexClient) return;
+		const sessionId = getSessionId();
+		if (!sessionId) return;
 		const trimmed = code.trim();
 		if (!trimmed) return;
 
 		const result = await convexClient.mutation(api.teams.acceptTeamInvite, {
+			sessionId,
 			code: trimmed
 		});
 		if (result?.organizationId) {
@@ -706,8 +734,11 @@ export function useOrganizations(options?: {
 
 	async function declineTeamInvite(inviteId: string) {
 		if (!convexClient) return;
+		const sessionId = getSessionId();
+		if (!sessionId) return;
 		await convexClient.mutation(api.teams.declineTeamInvite, {
-			inviteId: inviteId as any
+			sessionId,
+			inviteId: inviteId as Id<'teamInvites'>
 		});
 	}
 

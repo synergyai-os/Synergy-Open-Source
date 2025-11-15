@@ -647,6 +647,26 @@ await toggleFlag({
 });
 ```
 
+### Performance: Batch Queries
+
+When checking multiple flags, use `checkFlags` batch query instead of multiple `checkFlag` calls:
+
+```typescript
+// ✅ CORRECT: Batch query (fast - < 1 second)
+const flagsQuery = useQuery(api.featureFlags.checkFlags, () => ({
+	sessionId,
+	flags: [FeatureFlags.FLAG1, FeatureFlags.FLAG2, FeatureFlags.FLAG3]
+}));
+const flag1 = $derived(flagsQuery?.data?.[FeatureFlags.FLAG1] ?? false);
+
+// ❌ WRONG: Multiple queries (slow - 3-5 seconds)
+const flag1Query = useQuery(api.featureFlags.checkFlag, () => ({ flag: FeatureFlags.FLAG1, sessionId }));
+const flag2Query = useQuery(api.featureFlags.checkFlag, () => ({ flag: FeatureFlags.FLAG2, sessionId }));
+```
+
+**Performance**: 3-5x faster (1 network call vs 3, 1x session validation vs 3x)  
+**See**: [convex-integration.md#L1360](../patterns/convex-integration.md#L1360) for complete pattern
+
 ---
 
 ## Further Reading

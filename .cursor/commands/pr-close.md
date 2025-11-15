@@ -13,6 +13,7 @@
 3. **Current branch**: Should be the merged feature branch (not `main`)
 
 **Check prerequisites:**
+
 ```bash
 # Verify PR is merged
 gh pr view --json merged
@@ -28,6 +29,7 @@ git branch --show-current
 ### Step 1: Verify PR Status
 
 **Check if PR is actually merged (not just closed):**
+
 ```bash
 # Get current branch
 CURRENT_BRANCH=$(git branch --show-current)
@@ -37,11 +39,13 @@ gh pr view --json merged,state,title --jq '.merged, .state, .title'
 ```
 
 **Expected output:**
+
 - `merged: true` ✅ - PR is merged, proceed
 - `merged: false` + `state: "CLOSED"` ❌ - PR was closed, not merged (don't delete branch)
 - `merged: false` + `state: "OPEN"` ❌ - PR still open (don't delete branch)
 
 **If PR is not merged:**
+
 ```
 ❌ PR is not merged. This command is only for merged PRs.
 
@@ -58,11 +62,13 @@ If PR is still open:
 ### Step 2: Check for Uncommitted Changes
 
 **Verify working directory is clean:**
+
 ```bash
 git status
 ```
 
 **If uncommitted changes exist:**
+
 ```
 ⚠️ Warning: You have uncommitted changes.
 
@@ -81,11 +87,13 @@ After resolving, run /pr-close again.
 ### Step 3: Switch to Main Branch
 
 **Switch to main:**
+
 ```bash
 git checkout main
 ```
 
 **If already on main:**
+
 ```
 ℹ️ Already on main branch. Checking if cleanup is needed...
 ```
@@ -95,16 +103,19 @@ git checkout main
 ### Step 4: Pull Latest Main
 
 **Pull merged changes from remote:**
+
 ```bash
 git pull origin main
 ```
 
 **What this does:**
+
 - Fetches latest commits from `origin/main`
 - Includes your merged PR changes
 - Updates local `main` to match remote
 
 **If pull fails:**
+
 ```
 ❌ Failed to pull main. Possible issues:
 
@@ -125,6 +136,7 @@ git pull origin main
 ### Step 5: Verify Remote Branch Deletion
 
 **Check if remote branch was auto-deleted:**
+
 ```bash
 # Get branch name from merged PR
 BRANCH_NAME=$(gh pr view --json headRefName --jq -r '.headRefName')
@@ -134,6 +146,7 @@ git ls-remote --heads origin $BRANCH_NAME
 ```
 
 **Expected:**
+
 - Empty output ✅ - Remote branch deleted (by GitHub Actions)
 - Branch listed ⚠️ - Remote branch still exists (unusual, but safe to continue)
 
@@ -146,6 +159,7 @@ git ls-remote --heads origin $BRANCH_NAME
 ### Step 6: Check for Extra Commits (Safety Check)
 
 **⚠️ CRITICAL**: Before deleting, check if local branch has commits not in the merged PR:
+
 ```bash
 # Get branch name
 BRANCH_NAME=$(git branch --show-current 2>/dev/null || echo "")
@@ -161,12 +175,12 @@ EXTRA_COMMITS=$(git log main..$BRANCH_NAME --oneline 2>/dev/null | wc -l | tr -d
 if [ "$EXTRA_COMMITS" -gt 0 ]; then
   echo "⚠️ WARNING: Local branch has $EXTRA_COMMITS commit(s) not in main:"
   git log main..$BRANCH_NAME --oneline
-  
+
   # Check if these commits are in another open PR
   echo ""
   echo "Checking if commits are in another PR..."
   gh pr list --head $BRANCH_NAME --json number,state,title --jq '.[] | "PR #\(.number): \(.state) - \(.title)"' 2>/dev/null || echo "No PR found for this branch"
-  
+
   echo ""
   echo "🔒 Safety Check:"
   echo "  - If commits are in another PR → Safe to delete local branch"
@@ -181,6 +195,7 @@ fi
 ### Step 7: Delete Local Branch
 
 **Safely delete local branch:**
+
 ```bash
 # Get branch name
 BRANCH_NAME=$(gh pr view --json headRefName --jq -r '.headRefName')
@@ -190,11 +205,13 @@ git branch -d $BRANCH_NAME
 ```
 
 **What `-d` does:**
+
 - Only deletes if branch is fully merged
 - Prevents accidental deletion of unmerged work
 - Safe default for cleanup
 
 **If deletion fails (branch has extra commits):**
+
 ```bash
 # Check if extra commits are in another PR
 OPEN_PR=$(gh pr list --head $BRANCH_NAME --json number,state --jq '.[] | select(.state == "OPEN") | .number' 2>/dev/null)
@@ -217,12 +234,14 @@ fi
 ### Step 8: Check Other Branches (Optional)
 
 **List other local branches that might need updating:**
+
 ```bash
 # List all local branches except main
 git branch | grep -v "main" | grep -v "^\*"
 ```
 
 **If other branches exist:**
+
 ```
 ℹ️ Other local branches found:
   - feature/SYN-124-other-feature
@@ -237,6 +256,7 @@ See: dev-docs/2-areas/patterns/convex-integration.md#L800
 ```
 
 **When to update:**
+
 - ✅ After merging major features
 - ✅ Before starting new work on feature branch
 - ❌ Don't update if branch is abandoned/archived
@@ -289,7 +309,8 @@ See: dev-docs/2-areas/patterns/convex-integration.md#L800
 ### "PR is not merged"
 
 **Problem**: PR was closed without merging
-**Solution**: 
+**Solution**:
+
 - Keep branch if work might be needed later
 - Or manually force delete: `git branch -D feature/branch-name`
 
@@ -297,11 +318,13 @@ See: dev-docs/2-areas/patterns/convex-integration.md#L800
 
 **Problem**: `git branch -d` fails
 **Possible causes**:
+
 - Branch not fully merged locally (has extra commits)
 - Uncommitted changes
 - Wrong branch name
 
 **Solution**:
+
 ```bash
 # Check for extra commits
 git log main..feature/branch-name --oneline
@@ -317,6 +340,7 @@ git branch -D feature/branch-name
 
 **Edge Case - Extra Commits in Another PR:**
 This is common in team workflows:
+
 1. PR #20 merged (some commits)
 2. Local branch has extra commits (not in PR #20)
 3. Extra commits are in PR #21 (open)
@@ -326,11 +350,13 @@ This is common in team workflows:
 
 **Problem**: `git pull origin main` fails
 **Common causes**:
+
 - Uncommitted changes
 - Local main diverged from remote
 - Network/authentication issue
 
 **Solution**:
+
 ```bash
 # Stash changes
 git stash
@@ -347,6 +373,7 @@ git stash pop
 **Problem**: Remote branch wasn't auto-deleted
 **Why**: GitHub Actions workflow might have failed
 **Solution**:
+
 ```bash
 # Manually delete remote branch
 git push origin --delete feature/branch-name
@@ -358,6 +385,7 @@ git push origin --delete feature/branch-name
 
 **Problem**: Other feature branches behind `main`
 **Solution**: Update them before starting new work
+
 ```bash
 git checkout feature/other-branch
 git merge main --no-edit -X theirs
@@ -371,6 +399,7 @@ git push origin feature/other-branch
 ## 📝 Quick Reference
 
 **Complete cleanup workflow:**
+
 ```bash
 # 1. Verify PR is merged
 gh pr view --json merged
@@ -397,6 +426,7 @@ git ls-remote --heads origin feature/SYN-123-description
 ```
 
 **One-liner (if on feature branch, with safety check):**
+
 ```bash
 BRANCH=$(git branch --show-current) && \
 EXTRA=$(git log main..$BRANCH --oneline | wc -l | tr -d ' ') && \

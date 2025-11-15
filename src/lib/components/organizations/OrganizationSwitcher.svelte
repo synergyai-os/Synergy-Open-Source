@@ -1,12 +1,10 @@
 <script lang="ts">
-	import { DropdownMenu, Switch } from 'bits-ui';
+	import { DropdownMenu } from 'bits-ui';
 	import type {
 		OrganizationInvite,
 		OrganizationSummary,
 		TeamInvite
 	} from '$lib/composables/useOrganizations.svelte';
-	import { theme, isDark } from '$lib/stores/theme';
-	import KeyboardShortcut from '$lib/components/ui/KeyboardShortcut.svelte';
 
 	type Variant = 'sidebar' | 'topbar';
 
@@ -16,8 +14,7 @@
 		initials?: string;
 		slug?: string;
 		role: 'owner' | 'admin' | 'member';
-		[key: string]: any;
-	};
+	} & Record<string, unknown>;
 
 	type LinkedAccount = {
 		userId: string;
@@ -49,7 +46,7 @@
 		onDeclineTeamInvite,
 		onSettings,
 		onInviteMembers,
-		onSwitchWorkspace,
+		onSwitchWorkspace: _onSwitchWorkspace,
 		onCreateWorkspace,
 		onAddAccount,
 		onSwitchAccount,
@@ -88,7 +85,8 @@
 		onLogoutAccount?: (targetUserId: string) => void;
 	} = $props();
 
-	const hasOrganizations = $derived(() => organizations.length > 0);
+	// TODO: Re-enable when needed for conditional rendering
+	// const _hasOrganizations = $derived(() => organizations.length > 0);
 	const showLabels = $derived(() => variant === 'topbar' || !sidebarCollapsed);
 	const isPersonalActive = $derived(() => !activeOrganizationId);
 
@@ -278,7 +276,7 @@
 							side="right"
 							align="start"
 							sideOffset={4}
-							onClickOutside={(e) => {
+							onInteractOutside={(e) => {
 								e.stopPropagation(); // Prevent parent menu from closing
 							}}
 						>
@@ -474,7 +472,7 @@
 									side="right"
 									align="start"
 									sideOffset={4}
-									onClickOutside={(e) => {
+									onInteractOutside={(e) => {
 										e.stopPropagation(); // Prevent parent menu from closing
 									}}
 								>

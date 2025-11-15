@@ -136,7 +136,7 @@
 
 							{#if item.tags && item.tags.length > 0}
 								<div class="flex flex-wrap gap-2">
-									{#each item.tags as tag}
+									{#each item.tags as tag (tag)}
 										<span class="rounded bg-tag px-badge py-badge text-label text-tag">
 											{tag}
 										</span>

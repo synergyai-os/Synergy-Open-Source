@@ -9,9 +9,11 @@
 ## 📋 Linear Constants & Workflow
 
 **For hardcoded constants and complete Linear workflow:**
+
 - **Command**: `/linear` - All constants, ticket writing format, examples
 
 **Quick Reference:**
+
 - **Team**: `SYOS` (`08d684b7-986f-4781-8bc5-e4d9aead6935`)
 - **User (Randy)**: `c7c555a2-895a-48b6-ae24-d4147d44b1d5`
 - **Estimate**: Numeric (0-5): 0=none, 1=xs, 2=s, 3=m, 4=l, 5=xl
@@ -194,6 +196,7 @@ dev-docs/
 **Step 4a: Create tickets** (one per vertical slice):
 
 **⚠️ CRITICAL**: Before creating tickets, read `/linear` command for:
+
 - Hardcoded constants (team ID, user ID, labels)
 - Ticket writing format (Marty Cagan + Shape Up)
 - Required fields and validation
@@ -212,7 +215,7 @@ mcp_Linear_create_issue({
 	estimate: 2, // Numeric: 1=XS, 2=S, 3=M, 4=L, 5=XL
 	labels: [
 		'ba9cfc2b-a993-4265-80dc-07fd1c831029', // feature (type)
-		'7299ef53-982d-429d-b513-ccf190b28c16'  // backend (scope)
+		'7299ef53-982d-429d-b513-ccf190b28c16' // backend (scope)
 	]
 });
 ```
@@ -238,9 +241,11 @@ mcp_Linear_create_issue({
 ### 📋 **Ticket Management**
 
 **For complete ticket management rules and examples:**
+
 - **Command**: `/linear` - Ticket writing format, update workflows, examples
 
 **Quick Summary:**
+
 - **AI updates**: Acceptance criteria, files changed, implementation notes, commits list
 - **User updates**: Test plan (never check off user's test items)
 - **Estimate**: Use numeric values (0-5) - see `/linear` for mapping

@@ -37,7 +37,7 @@ export const load: PageServerLoad = async ({ params }) => {
 				title,
 				path: `/${path}`
 			};
-		} catch (err) {
+		} catch (_err) {
 			// Try next path
 			continue;
 		}

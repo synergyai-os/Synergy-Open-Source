@@ -5,6 +5,7 @@ import { validateSessionAndGetUserId } from './sessionValidation';
 // Note: We use dynamic imports for crypto functions to avoid bundler issues
 // Mutations have Node.js runtime by default and can use dynamic imports
 import { internal } from './_generated/api';
+import type { Id } from './_generated/dataModel';
 
 /**
  * Get user settings for the current authenticated user
@@ -55,15 +56,13 @@ export const getUserSettings = query({
  * This returns the encrypted keys (for use in actions/internal functions)
  */
 export const getEncryptedKeysInternal = internalQuery({
-	handler: async (ctx) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			return null;
-		}
-
+	args: {
+		userId: v.string()
+	},
+	handler: async (ctx, args) => {
 		const settings = await ctx.db
 			.query('userSettings')
-			.withIndex('by_user', (q) => q.eq('userId', userId))
+			.withIndex('by_user', (q) => q.eq('userId', args.userId as Id<'users'>)) // userId comes as string from session but is Id<"users"> at runtime
 			.first();
 
 		if (!settings) {
@@ -124,7 +123,7 @@ export const updateClaudeApiKey = action({
 		// Save encrypted key
 		// userId is already an Id<"users"> from getAuthUserId, so we can use it directly
 		return await ctx.runMutation(internal.settings.updateClaudeApiKeyInternal, {
-			userId: userId as any, // Type assertion needed due to Convex's type system
+			userId: userId as Id<'users'>,
 			encryptedKey
 		});
 	}
@@ -170,7 +169,7 @@ export const updateReadwiseApiKey = action({
 		// Save encrypted key
 		// userId is already an Id<"users"> from getAuthUserId, so we can use it directly
 		return await ctx.runMutation(internal.settings.updateReadwiseApiKeyInternal, {
-			userId: userId as any, // Type assertion needed due to Convex's type system
+			userId: userId as Id<'users'>,
 			encryptedKey
 		});
 	}

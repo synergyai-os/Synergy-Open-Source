@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { marked } from 'marked';
+	import { sanitizeHtml } from '$lib/utils/htmlSanitize';
 
 	let { data }: { data: PageData } = $props();
 
@@ -9,7 +10,13 @@
 		// Configure marked renderer to add IDs
 		const renderer = new marked.Renderer();
 
-		renderer.heading = function ({ text, depth }: any) {
+		renderer.heading = function ({
+			text,
+			depth
+		}: {
+			text: string | { raw?: string };
+			depth: number;
+		}) {
 			// Extract plain text from token
 			const plainText = typeof text === 'string' ? text : text.raw || '';
 
@@ -27,8 +34,8 @@
 		return marked.parse(markdown, { renderer, async: false }) as string;
 	}
 
-	// Parse markdown to HTML with IDs
-	const htmlContent = $derived(parseMarkdownWithIds(data.content));
+	// Parse markdown to HTML with IDs and sanitize
+	const htmlContent = $derived(sanitizeHtml(parseMarkdownWithIds(data.content)));
 </script>
 
 <svelte:head>
@@ -45,10 +52,6 @@
 	.doc-page {
 		/* Layout handles styling via DocLayout wrapper */
 		scroll-behavior: smooth;
-	}
-
-	.doc-content {
-		/* Typography styling inherited from DocLayout's .docs-article */
 	}
 
 	/* Ensure headings have scroll margin for proper positioning */

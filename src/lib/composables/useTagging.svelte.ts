@@ -17,6 +17,7 @@
 import { browser } from '$app/environment';
 import { useConvexClient } from 'convex-svelte';
 import { makeFunctionReference } from 'convex/server';
+import type { FunctionReference } from 'convex/server';
 import type { Id } from '$lib/convex';
 
 type EntityType = 'highlight' | 'flashcard' | 'note' | 'source';
@@ -31,7 +32,11 @@ function capitalize(str: string): string {
 /**
  * Generic tagging composable - works for any entity type
  */
-export function useTagging(entityType: EntityType, getUserId: () => string | undefined) {
+export function useTagging(
+	entityType: EntityType,
+	getUserId: () => string | undefined,
+	getSessionId: () => string | null | undefined
+) {
 	// Svelte 5 pattern: Single $state object with getters
 	const state = $state({
 		isAssigning: false,
@@ -43,16 +48,37 @@ export function useTagging(entityType: EntityType, getUserId: () => string | und
 
 	// Dynamic mutation reference based on entity type
 	// Example: 'highlight' -> 'tags:assignTagsToHighlight'
+	// Use FunctionReference type assertion for type safety (pattern #L1300)
 	const assignTagsMutation = browser
-		? (makeFunctionReference(`tags:assignTagsTo${capitalize(entityType)}`) as any)
+		? (makeFunctionReference(`tags:assignTagsTo${capitalize(entityType)}`) as FunctionReference<
+				'mutation',
+				'public',
+				{
+					sessionId: string;
+					highlightId?: Id<'highlights'>;
+					flashcardId?: Id<'flashcards'>;
+					tagIds: Id<'tags'>[];
+				},
+				Id<'tags'>[]
+			>)
 		: null;
 
-	const createTagMutation = browser ? (makeFunctionReference('tags:createTag') as any) : null;
+	const createTagMutation = browser
+		? (makeFunctionReference('tags:createTag') as FunctionReference<
+				'mutation',
+				'public',
+				{ sessionId: string; displayName: string; color: string; parentId?: Id<'tags'> },
+				Id<'tags'>
+			>)
+		: null;
 
 	/**
 	 * Assign tags to an entity (replaces existing tags)
 	 */
-	async function assignTags(entityId: Id<any>, tagIds: Id<'tags'>[]): Promise<void> {
+	async function assignTags(
+		entityId: Id<'highlights'> | Id<'flashcards'> | Id<'inboxItems'>,
+		tagIds: Id<'tags'>[]
+	): Promise<void> {
 		if (!convexClient || !assignTagsMutation) {
 			throw new Error('Convex client not available (server-side rendering?)');
 		}
@@ -66,12 +92,19 @@ export function useTagging(entityType: EntityType, getUserId: () => string | und
 				throw new Error('User ID is required');
 			}
 
-			// Build args dynamically: { userId, highlightId: ..., tagIds: ... }
-			const args = {
-				userId,
-				[`${entityType}Id`]: entityId,
-				tagIds
-			};
+			// Build args dynamically: { sessionId, highlightId: ..., tagIds: ... }
+			// Note: assignTagsToHighlight uses highlightId, assignTagsToFlashcard uses flashcardId
+			const sessionId = getSessionId();
+			if (!sessionId) {
+				throw new Error('Session ID is required');
+			}
+
+			const args =
+				entityType === 'highlight'
+					? { sessionId, highlightId: entityId as Id<'highlights'>, tagIds }
+					: entityType === 'flashcard'
+						? { sessionId, flashcardId: entityId as Id<'flashcards'>, tagIds }
+						: { sessionId, tagIds }; // Fallback for other types
 
 			await convexClient.mutation(assignTagsMutation, args);
 		} catch (error) {
@@ -97,13 +130,13 @@ export function useTagging(entityType: EntityType, getUserId: () => string | und
 		state.error = null;
 
 		try {
-			const userId = getUserId();
-			if (!userId) {
-				throw new Error('User ID is required');
+			const sessionId = getSessionId();
+			if (!sessionId) {
+				throw new Error('Session ID is required');
 			}
 
 			const tagId = await convexClient.mutation(createTagMutation, {
-				userId,
+				sessionId,
 				displayName,
 				color,
 				parentId

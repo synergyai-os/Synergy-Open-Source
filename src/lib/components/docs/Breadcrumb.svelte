@@ -2,6 +2,7 @@
 	import { page } from '$app/stores';
 	import { fly } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
+	import { resolveRoute } from '$lib/utils/navigation';
 
 	// Utility: Strip PARA numbering (1-, 2-, 3-, 4-) from folder names
 	function cleanParaName(name: string): string {
@@ -72,11 +73,22 @@
 	});
 
 	// Check for reduced motion preference
-	let prefersReducedMotion = false;
-	if (typeof window !== 'undefined') {
+	let prefersReducedMotion = $state(false);
+
+	$effect(() => {
+		if (typeof window === 'undefined') return;
 		const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 		prefersReducedMotion = mediaQuery.matches;
-	}
+
+		const handleChange = (e: MediaQueryListEvent) => {
+			prefersReducedMotion = e.matches;
+		};
+
+		mediaQuery.addEventListener('change', handleChange);
+		return () => {
+			mediaQuery.removeEventListener('change', handleChange);
+		};
+	});
 </script>
 
 {#if breadcrumbs.length > 0}
@@ -87,7 +99,7 @@
 				class="breadcrumb-item"
 				in:fly={{ x: -10, duration: prefersReducedMotion ? 0 : 250, delay: 0, easing: quintOut }}
 			>
-				<a href="/" class="breadcrumb-link">
+				<a href={resolveRoute('/')} class="breadcrumb-link">
 					<svg
 						class="breadcrumb-home-icon"
 						width="14"
@@ -105,7 +117,7 @@
 			</li>
 
 			<!-- Dynamic breadcrumbs -->
-			{#each breadcrumbs as crumb, index}
+			{#each breadcrumbs as crumb, index (crumb.href)}
 				<li
 					class="breadcrumb-item"
 					in:fly={{
@@ -123,7 +135,7 @@
 						</span>
 					{:else}
 						<!-- Intermediate links -->
-						<a href={crumb.href} class="breadcrumb-link">
+						<a href={resolveRoute(crumb.href)} class="breadcrumb-link">
 							{crumb.label}
 						</a>
 					{/if}

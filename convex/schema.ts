@@ -132,6 +132,53 @@ const schema = defineSchema({
 		.index('by_user', ['userId'])
 		.index('by_team_user', ['teamId', 'userId']),
 
+	// Circles - work organization units (not people grouping)
+	// Represents value streams, functions, or coordination contexts
+	circles: defineTable({
+		organizationId: v.id('organizations'),
+		name: v.string(), // "Active Platforms"
+		slug: v.string(), // "active-platforms"
+		purpose: v.optional(v.string()), // Why this work exists
+		parentCircleId: v.optional(v.id('circles')), // Nested circles
+		createdAt: v.number(),
+		updatedAt: v.number(),
+		archivedAt: v.optional(v.number())
+	})
+		.index('by_organization', ['organizationId'])
+		.index('by_parent', ['parentCircleId'])
+		.index('by_slug', ['organizationId', 'slug']),
+
+	// Circle members (many-to-many)
+	circleMembers: defineTable({
+		circleId: v.id('circles'),
+		userId: v.id('users'),
+		joinedAt: v.number()
+	})
+		.index('by_circle', ['circleId'])
+		.index('by_user', ['userId'])
+		.index('by_circle_user', ['circleId', 'userId']),
+
+	// Circle roles - organizational roles within circles (NOT RBAC permissions)
+	// Examples: "Circle Lead", "Dev Lead", "Facilitator"
+	circleRoles: defineTable({
+		circleId: v.id('circles'),
+		name: v.string(), // "Circle Lead"
+		purpose: v.optional(v.string()), // Optional description of role
+		createdAt: v.number()
+	}).index('by_circle', ['circleId']),
+
+	// User circle role assignments (many-to-many)
+	// Users can fill multiple roles, roles can have multiple fillers
+	userCircleRoles: defineTable({
+		userId: v.id('users'),
+		circleRoleId: v.id('circleRoles'),
+		assignedAt: v.number(),
+		assignedBy: v.id('users') // Who made the assignment
+	})
+		.index('by_user', ['userId'])
+		.index('by_role', ['circleRoleId'])
+		.index('by_user_role', ['userId', 'circleRoleId']),
+
 	// Organization invites (pending membership)
 	organizationInvites: defineTable({
 		organizationId: v.id('organizations'),
@@ -673,7 +720,32 @@ const schema = defineSchema({
 		.index('by_organization', ['organizationId'])
 		.index('by_team', ['teamId'])
 		.index('by_action', ['action'])
-		.index('by_permission', ['permissionSlug'])
+		.index('by_permission', ['permissionSlug']),
+
+	// ============================================================================
+	// Email Verification Codes - For registration and passwordless auth
+	// ============================================================================
+
+	// Verification Codes - 6-digit PIN codes for email verification
+	verificationCodes: defineTable({
+		email: v.string(), // Email address to verify
+		code: v.string(), // 6-digit PIN code
+		type: v.union(
+			v.literal('registration'), // Email verification during registration
+			v.literal('login'), // Passwordless login (future)
+			v.literal('email_change') // Email change verification (future)
+		),
+		attempts: v.number(), // Number of verification attempts
+		verified: v.boolean(), // Whether code has been verified
+		verifiedAt: v.optional(v.number()), // When code was verified
+		createdAt: v.number(), // When code was created
+		expiresAt: v.number(), // When code expires (10 minutes)
+		ipAddress: v.optional(v.string()), // IP address of requester
+		userAgent: v.optional(v.string()) // User agent of requester
+	})
+		.index('by_email_type', ['email', 'type']) // Fast lookup by email+type
+		.index('by_code', ['code']) // Fast lookup by code
+		.index('by_expires', ['expiresAt']) // Cleanup expired codes
 });
 
 export default schema;

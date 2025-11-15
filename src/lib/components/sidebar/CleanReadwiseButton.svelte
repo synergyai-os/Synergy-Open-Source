@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { onMount } from 'svelte';
 	import { useConvexClient } from 'convex-svelte';
 	import { makeFunctionReference } from 'convex/server';
+	import type { FunctionReference } from 'convex/server';
+	import { page } from '$app/stores';
 
 	let isCleaning = $state(false);
 	let showConfirm = $state(false);
@@ -11,7 +12,18 @@
 
 	const convexClient = browser ? useConvexClient() : null;
 	const cleanApi = browser
-		? (makeFunctionReference('cleanReadwiseData:cleanReadwiseData') as any)
+		? (makeFunctionReference('cleanReadwiseData:cleanReadwiseData') as FunctionReference<
+				'action',
+				'public',
+				{ sessionId: string },
+				{
+					inboxItemsDeleted: number;
+					highlightsDeleted: number;
+					sourcesDeleted: number;
+					orphanedAuthorsDeleted: number;
+					orphanedTagsDeleted: number;
+				}
+			>)
 		: null;
 
 	async function handleClean() {
@@ -22,12 +34,18 @@
 			return;
 		}
 
+		const sessionId = $page.data.sessionId;
+		if (!sessionId) {
+			error = 'Session ID required';
+			return;
+		}
+
 		isCleaning = true;
 		error = null;
 		success = false;
 
 		try {
-			const result = await convexClient.action(cleanApi, {});
+			const result = await convexClient.action(cleanApi, { sessionId });
 			console.log('Cleanup result:', result);
 			success = true;
 

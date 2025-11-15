@@ -7,14 +7,16 @@
 
 import { action } from './_generated/server';
 import { v } from 'convex/values';
-import { getAuthUserId } from './auth';
-import { api } from './_generated/api';
+import { api, internal } from './_generated/api';
+import type { FunctionReference } from 'convex/server';
+import type { ProseMirrorDoc, ProseMirrorNode } from '../src/lib/types/prosemirror';
+import type { Doc } from './_generated/dataModel';
 
 /**
  * Convert ProseMirror JSON to Markdown
  * This is a simplified converter - in production, use prosemirror-markdown
  */
-function prosemirrorToMarkdown(doc: any): string {
+function prosemirrorToMarkdown(doc: ProseMirrorDoc): string {
 	if (!doc || !doc.content) return '';
 
 	let markdown = '';
@@ -26,42 +28,46 @@ function prosemirrorToMarkdown(doc: any): string {
 	return markdown.trim();
 }
 
-function nodeToMarkdown(node: any): string {
+function nodeToMarkdown(node: ProseMirrorNode): string {
 	switch (node.type) {
-		case 'heading':
-			const level = node.attrs?.level || 1;
+		case 'heading': {
+			const level = (node.attrs?.level as number | undefined) || 1;
 			const headingMarks = '#'.repeat(level);
 			const headingText = extractText(node);
 			return `${headingMarks} ${headingText}\n\n`;
+		}
 
-		case 'paragraph':
+		case 'paragraph': {
 			const paragraphText = extractText(node);
 			return paragraphText ? `${paragraphText}\n\n` : '';
+		}
 
-		case 'bullet_list':
-			return node.content.map((item: any) => `- ${extractText(item)}\n`).join('') + '\n';
+		case 'bullet_list': {
+			return node.content?.map((item) => `- ${extractText(item)}\n`).join('') + '\n' || '';
+		}
 
-		case 'ordered_list':
+		case 'ordered_list': {
 			return (
-				node.content
-					.map((item: any, idx: number) => `${idx + 1}. ${extractText(item)}\n`)
-					.join('') + '\n'
+				node.content?.map((item, idx) => `${idx + 1}. ${extractText(item)}\n`).join('') + '\n' || ''
 			);
+		}
 
-		case 'blockquote':
+		case 'blockquote': {
 			const quoteText = extractText(node);
 			return `> ${quoteText}\n\n`;
+		}
 
-		case 'code_block':
+		case 'code_block': {
 			const codeText = extractText(node);
 			return `\`\`\`\n${codeText}\n\`\`\`\n\n`;
+		}
 
 		default:
 			return extractText(node) + '\n';
 	}
 }
 
-function extractText(node: any): string {
+function extractText(node: ProseMirrorNode): string {
 	if (node.text) {
 		let text = node.text;
 
@@ -86,7 +92,7 @@ function extractText(node: any): string {
 	}
 
 	if (node.content) {
-		return node.content.map((child: any) => extractText(child)).join('');
+		return node.content.map((child) => extractText(child)).join('');
 	}
 
 	return '';
@@ -95,7 +101,7 @@ function extractText(node: any): string {
 /**
  * Generate frontmatter for blog post
  */
-function generateFrontmatter(note: any): string {
+function generateFrontmatter(note: Doc<'inboxItems'> & { type: 'note' }): string {
 	const date = new Date().toISOString().split('T')[0];
 	const aiGenerated = note.isAIGenerated ? 'true' : 'false';
 
@@ -117,16 +123,20 @@ slug: "${note.slug || 'untitled'}"
  */
 export const exportNoteToBlog = action({
 	args: {
+		sessionId: v.string(),
 		noteId: v.id('inboxItems')
 	},
 	handler: async (ctx, args): Promise<{ filepath: string; content: string; success: boolean }> => {
-		const userId = await getAuthUserId(ctx);
+		const userId = await ctx.runQuery(internal.settings.getUserIdFromSessionId, {
+			sessionId: args.sessionId
+		});
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
 
 		// Get the note
-		const note: any = await ctx.runQuery(api.notes.getNote, {
+		const note = await ctx.runQuery(api.notes.getNote, {
+			sessionId: args.sessionId,
 			noteId: args.noteId
 		});
 
@@ -143,7 +153,7 @@ export const exportNoteToBlog = action({
 		try {
 			const doc = JSON.parse(note.content);
 			markdown = prosemirrorToMarkdown(doc);
-		} catch (err) {
+		} catch {
 			throw new Error('Failed to parse note content');
 		}
 
@@ -165,6 +175,7 @@ export const exportNoteToBlog = action({
 
 		// Mark note as published
 		await ctx.runMutation(api.notes.markAsPublished, {
+			sessionId: args.sessionId,
 			noteId: args.noteId,
 			publishedTo: filepath
 		});
@@ -181,14 +192,29 @@ export const exportNoteToBlog = action({
  * List all blog posts (notes with blogCategory = "BLOG")
  */
 export const listBlogPosts = action({
-	args: {},
-	handler: async (ctx) => {
-		const userId = await getAuthUserId(ctx);
+	args: {
+		sessionId: v.string()
+	},
+	handler: async (ctx, args) => {
+		const userId = await ctx.runQuery(internal.settings.getUserIdFromSessionId, {
+			sessionId: args.sessionId
+		});
 		if (!userId) {
 			return [];
 		}
 
-		const notes = await ctx.runQuery(api.notes.listNotes, {
+		// Use type assertion to avoid circular reference in Convex API types
+		// blogExport -> api.notes -> api (includes blogExport) = circular
+		// Type assertion is safe: listNotes returns inboxItems[] which we know at compile time
+		type InboxItem = { _id: string; type: string; [key: string]: unknown };
+		const listNotesQuery = api.notes.listNotes as FunctionReference<
+			'query',
+			'public',
+			{ sessionId: string; blogOnly?: boolean },
+			InboxItem[]
+		>;
+		const notes = await ctx.runQuery(listNotesQuery, {
+			sessionId: args.sessionId,
 			blogOnly: true
 		});
 

@@ -1,7 +1,7 @@
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 import { getAuthUserId } from './auth';
-import { validateSession, validateSessionAndGetUserId } from './sessionValidation';
+import { validateSessionAndGetUserId } from './sessionValidation';
 import { requirePermission } from './rbac/permissions';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
@@ -9,7 +9,8 @@ import type { MutationCtx, QueryCtx } from './_generated/server';
 // import { captureAnalyticsEvent } from "./posthog";
 // import { AnalyticsEventName } from "../src/lib/analytics/events";
 
-type OrganizationRole = 'owner' | 'admin' | 'member';
+// TODO: Re-enable when needed
+// type OrganizationRole = 'owner' | 'admin' | 'member';
 
 function slugifyName(name: string): string {
 	return (
@@ -35,33 +36,36 @@ function initialsFromName(name: string): string {
 	);
 }
 
-async function resolveDistinctId(
-	ctx: QueryCtx | MutationCtx,
-	userId: Id<'users'>
-): Promise<string> {
-	const user = await ctx.db.get(userId);
-	const email = (user as unknown as { email?: string } | undefined)?.email;
-	return typeof email === 'string' ? email : userId;
-}
+// TODO: Re-enable when server-side analytics is restored
+// async function resolveDistinctId(
+// 	ctx: QueryCtx | MutationCtx,
+// 	userId: Id<'users'>
+// ): Promise<string> {
+// 	const user = await ctx.db.get(userId);
+// 	const email = (user as unknown as { email?: string } | undefined)?.email;
+// 	return typeof email === 'string' ? email : userId;
+// }
 
-async function getOrganizationSummary(
-	ctx: QueryCtx | MutationCtx,
-	organizationId: Id<'organizations'>
-) {
-	const organization = await ctx.db.get(organizationId);
-	if (!organization) {
-		throw new Error('Organization not found');
-	}
-	return organization;
-}
+// TODO: Re-enable when server-side analytics is restored
+// async function getOrganizationSummary(
+// 	ctx: QueryCtx | MutationCtx,
+// 	organizationId: Id<'organizations'>
+// ) {
+// 	const organization = await ctx.db.get(organizationId);
+// 	if (!organization) {
+// 		throw new Error('Organization not found');
+// 	}
+// 	return organization;
+// }
 
-async function countOwnedOrganizations(ctx: QueryCtx | MutationCtx, userId: Id<'users'>) {
-	const memberships = await ctx.db
-		.query('organizationMembers')
-		.withIndex('by_user', (q) => q.eq('userId', userId))
-		.collect();
-	return memberships.filter((membership) => membership.role === 'owner').length;
-}
+// TODO: Re-enable when needed
+// async function countOwnedOrganizations(ctx: QueryCtx | MutationCtx, userId: Id<'users'>) {
+// 	const memberships = await ctx.db
+// 		.query('organizationMembers')
+// 		.withIndex('by_user', (q) => q.eq('userId', userId))
+// 		.collect();
+// 	return memberships.filter((membership) => membership.role === 'owner').length;
+// }
 
 function generateInviteCode(prefix: string): string {
 	const random = Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -271,6 +275,7 @@ export const createOrganization = mutation({
 
 export const createOrganizationInvite = mutation({
 	args: {
+		sessionId: v.string(),
 		organizationId: v.id('organizations'),
 		email: v.optional(v.string()),
 		invitedUserId: v.optional(v.id('users')),
@@ -278,8 +283,8 @@ export const createOrganizationInvite = mutation({
 		userId: v.optional(v.id('users')) // TODO: Remove once Convex auth context is set up
 	},
 	handler: async (ctx, args) => {
-		// Try explicit userId first (client passes it), fallback to auth context
-		const userId = args.userId ?? (await getAuthUserId(ctx));
+		// Try explicit userId first (client passes it), fallback to session auth
+		const userId = args.userId ?? (await getAuthUserId(ctx, args.sessionId));
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
@@ -393,8 +398,8 @@ export const acceptOrganizationInvite = mutation({
 			});
 		}
 
-		const organization = await getOrganizationSummary(ctx, invite.organizationId);
 		// TODO: Re-enable server-side analytics via HTTP action bridge
+		// const organization = await getOrganizationSummary(ctx, invite.organizationId);
 		// const distinctId = await resolveDistinctId(ctx, userId);
 		// const inviteChannel = invite.email ? "email" : invite.invitedUserId ? "manual" : "link";
 		//
@@ -421,10 +426,11 @@ export const acceptOrganizationInvite = mutation({
 
 export const declineOrganizationInvite = mutation({
 	args: {
+		sessionId: v.string(),
 		inviteId: v.id('organizationInvites')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
@@ -455,7 +461,7 @@ export const recordOrganizationSwitch = mutation({
 		toOrganizationId: v.id('organizations'),
 		availableTeamCount: v.number()
 	},
-	handler: async (ctx, args) => {
+	handler: async () => {
 		// Silently skip analytics tracking if session not available - non-critical, shouldn't break UX
 		// Note: This mutation doesn't require auth - it's just analytics tracking
 		// If we need to track userId, we should add sessionId to args
@@ -485,11 +491,12 @@ export const recordOrganizationSwitch = mutation({
  */
 export const removeOrganizationMember = mutation({
 	args: {
+		sessionId: v.string(),
 		organizationId: v.id('organizations'),
 		targetUserId: v.id('users')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
@@ -535,5 +542,53 @@ export const removeOrganizationMember = mutation({
 		}
 
 		return { success: true };
+	}
+});
+
+/**
+ * Get all members of an organization
+ */
+export const getMembers = query({
+	args: {
+		sessionId: v.string(),
+		organizationId: v.id('organizations')
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		// Verify user has access to this organization
+		const membership = await ctx.db
+			.query('organizationMembers')
+			.withIndex('by_organization_user', (q) =>
+				q.eq('organizationId', args.organizationId).eq('userId', userId)
+			)
+			.first();
+
+		if (!membership) {
+			throw new Error('You are not a member of this organization');
+		}
+
+		// Get all members of the organization
+		const memberships = await ctx.db
+			.query('organizationMembers')
+			.withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId))
+			.collect();
+
+		const members = await Promise.all(
+			memberships.map(async (membership) => {
+				const user = await ctx.db.get(membership.userId);
+				if (!user) return null;
+
+				return {
+					userId: membership.userId,
+					email: (user as unknown as { email?: string } | undefined)?.email ?? '',
+					name: (user as unknown as { name?: string } | undefined)?.name ?? '',
+					role: membership.role,
+					joinedAt: membership.joinedAt
+				};
+			})
+		);
+
+		return members.filter((m): m is NonNullable<typeof m> => m !== null);
 	}
 });

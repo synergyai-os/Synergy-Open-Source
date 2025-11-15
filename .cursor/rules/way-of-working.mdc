@@ -64,33 +64,13 @@ Read in order:
 
 ## Svelte 5 Composables Pattern
 
-**Structure:**
+**See**: `svelte-typescript-patterns.mdc` - Complete composables patterns and examples
+
+**Quick Reference:**
 - Extension: `.svelte.ts` (required for runes)
 - Location: `src/lib/composables/`
 - Pattern: Single `$state` object with getter returns
 - Types: Explicit TypeScript return types
-
-**Pattern: Single `$state` Object**
-```typescript
-const state = $state({ isSyncing: false, error: null });
-return {
-  get isSyncing() { return state.isSyncing; },
-  get error() { return state.error; }
-};
-```
-
-**Pattern: Function Parameters for Reactive Values**
-```typescript
-export function useX(items: () => Item[], onSelect: (id: string) => void) {
-  const current = items(); // Get current value
-}
-```
-
-**Pattern: Reactive Queries**
-```typescript
-const query = useQuery(api.module.function, () => ({ filter: false }));
-const data = $derived(query?.data ?? []);
-```
 
 **Available Composables:**
 - `useInboxItems` - Inbox queries and filtering
@@ -98,8 +78,6 @@ const data = $derived(query?.data ?? []);
 - `useInboxSync` - Readwise sync operations
 - `useKeyboardNavigation` - J/K navigation
 - `useInboxLayout` - Layout state
-
-**See**: `dev-docs/patterns/INDEX.md` for all patterns
 
 ---
 
@@ -162,19 +140,11 @@ const data = $derived(query?.data ?? []);
 1. **Read `dev-docs/2-areas/development/coding-standards.md`** - CRITICAL: Prevents linting errors ⭐
 2. Check `patterns/INDEX.md` for existing patterns
 3. Use design tokens (never hardcode)
-4. Follow composables pattern (`.svelte.ts`, single `$state`, getters)
+4. Follow composables pattern (see `svelte-typescript-patterns.mdc`)
 5. Use Context7 for library docs
 
 **Coding Standards (MANDATORY for AI Agents):**
-- ❌ NEVER use `any` type (use proper types or `unknown` + type guards)
-- ❌ NEVER use `{#each}` without keys `(item._id)`
-- ❌ NEVER use `goto()` without `resolveRoute()`
-- ❌ NEVER use `Map`/`Set` (use `SvelteMap`/`SvelteSet` or plain objects)
-- ❌ NEVER leave unused imports/variables
-- ✅ ALWAYS use TypeScript types
-- ✅ ALWAYS use design tokens
-- ✅ ALWAYS use `.svelte.ts` for composables
-- ✅ ALWAYS use `useQuery()` for Convex data
+- See `svelte-typescript-patterns.mdc` - Complete critical rules and patterns
 
 **See**: `dev-docs/2-areas/development/coding-standards.md` for complete rules
 

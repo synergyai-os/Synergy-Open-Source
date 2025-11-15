@@ -8,6 +8,7 @@
 import { browser } from '$app/environment';
 import type { ConvexClient } from 'convex/browser';
 import { api } from '$lib/convex';
+import type { Id } from '$lib/convex';
 
 export type NoteState = {
 	noteId: string | null;
@@ -111,7 +112,7 @@ export function useNote(convexClient: ConvexClient | null, getSessionId: () => s
 
 			await convexClient.mutation(api.notes.updateNote, {
 				sessionId,
-				noteId: state.noteId,
+				noteId: state.noteId as Id<'inboxItems'>,
 				title: state.title,
 				content: state.content,
 				contentMarkdown: state.contentMarkdown,
@@ -145,7 +146,7 @@ export function useNote(convexClient: ConvexClient | null, getSessionId: () => s
 
 			await convexClient.mutation(api.notes.markAsAIGenerated, {
 				sessionId,
-				noteId: state.noteId
+				noteId: state.noteId as Id<'inboxItems'>
 			});
 
 			state.isAIGenerated = true;
@@ -176,7 +177,7 @@ export function useNote(convexClient: ConvexClient | null, getSessionId: () => s
 
 			await convexClient.mutation(api.notes.markForBlogExport, {
 				sessionId,
-				noteId: state.noteId,
+				noteId: state.noteId as Id<'inboxItems'>,
 				slug
 			});
 
@@ -193,7 +194,15 @@ export function useNote(convexClient: ConvexClient | null, getSessionId: () => s
 	/**
 	 * Load note from database
 	 */
-	function loadNote(noteId: string, noteData: any) {
+	function loadNote(
+		noteId: string,
+		noteData: {
+			title?: string;
+			content?: string;
+			contentMarkdown?: string;
+			isAIGenerated?: boolean;
+		}
+	) {
 		state.noteId = noteId;
 		state.title = noteData.title || '';
 		state.content = noteData.content || '';

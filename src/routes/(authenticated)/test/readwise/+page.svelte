@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
 	import { useConvexClient } from 'convex-svelte';
 	import { makeFunctionReference } from 'convex/server';
+	import type { FunctionReference } from 'convex/server';
 
 	let testResponse = $state<string | null>(null);
 	let isTesting = $state(false);
@@ -25,13 +27,25 @@
 		}
 
 		try {
-			const getUserSettings = makeFunctionReference('settings:getUserSettings');
-			const data = await convexClient.query(getUserSettings, {});
+			const sessionId = $page.data.sessionId;
+			if (!sessionId) {
+				settings = { isLoading: false, data: null };
+				return;
+			}
+			const getUserSettings = makeFunctionReference(
+				'settings:getUserSettings'
+			) as FunctionReference<
+				'query',
+				'public',
+				{ sessionId: string },
+				{ hasClaudeKey?: boolean; hasReadwiseKey?: boolean } | null
+			>;
+			const data = await convexClient.query(getUserSettings, { sessionId });
 			settings = {
 				isLoading: false,
 				data: data ? { hasReadwiseKey: data.hasReadwiseKey || false } : null
 			};
-		} catch (e) {
+		} catch (_e) {
 			settings = { isLoading: false, data: null };
 		}
 	});

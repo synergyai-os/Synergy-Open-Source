@@ -15,7 +15,7 @@
  */
 
 import type { QueryCtx, MutationCtx } from './_generated/server';
-import type { Id } from './_generated/dataModel';
+import type { Doc, Id } from './_generated/dataModel';
 
 /**
  * DEPRECATED: Validates that a userId corresponds to an active session
@@ -121,7 +121,7 @@ export async function getUserIdFromSession(
 export async function validateSessionAndGetUserId(
 	ctx: QueryCtx | MutationCtx,
 	sessionId: string
-): Promise<{ userId: Id<'users'>; session: any }> {
+): Promise<{ userId: Id<'users'>; session: Doc<'authSessions'> }> {
 	const now = Date.now();
 
 	// Query for active session with all security checks

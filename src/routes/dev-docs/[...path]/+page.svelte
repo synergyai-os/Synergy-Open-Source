@@ -1,7 +1,9 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { marked } from 'marked';
-	import { browser } from '$app/environment';
+	import { sanitizeHtml } from '$lib/utils/htmlSanitize';
+	// TODO: Re-enable when browser is needed
+	// import { browser } from '$app/environment';
 
 	let { data }: { data: PageData } = $props();
 
@@ -18,7 +20,13 @@
 		const renderer = new marked.Renderer();
 
 		// Custom heading renderer with line-number-aware IDs
-		renderer.heading = function ({ text, depth }: any) {
+		renderer.heading = function ({
+			text,
+			depth
+		}: {
+			text: string | { raw?: string };
+			depth: number;
+		}) {
 			// Extract plain text from token
 			let plainText = typeof text === 'string' ? text : text.raw || '';
 
@@ -46,7 +54,15 @@
 		};
 
 		// Custom link renderer to transform .md links to proper routes
-		renderer.link = function ({ href, text, title }: any) {
+		renderer.link = function ({
+			href,
+			text,
+			title
+		}: {
+			href: string;
+			text: string;
+			title?: string | null;
+		}) {
 			// Only transform relative .md links (internal docs)
 			if (href && !href.startsWith('http') && !href.startsWith('/')) {
 				// Handle .md file links
@@ -80,8 +96,8 @@
 		return marked.parse(markdown, { renderer, async: false }) as string;
 	}
 
-	// Parse markdown to HTML with IDs
-	const htmlContent = $derived(parseMarkdownWithIds(data.content));
+	// Parse markdown to HTML with IDs and sanitize
+	const htmlContent = $derived(sanitizeHtml(parseMarkdownWithIds(data.content)));
 </script>
 
 <svelte:head>
@@ -98,10 +114,6 @@
 	.doc-page {
 		/* Layout handles styling via DocLayout wrapper */
 		scroll-behavior: smooth;
-	}
-
-	.doc-content {
-		/* Typography styling inherited from DocLayout's .docs-article */
 	}
 
 	/* Ensure headings have scroll margin for proper positioning */

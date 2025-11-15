@@ -367,7 +367,7 @@ export const checkHighlightExists = internalQuery({
 		externalId: v.string()
 	},
 	handler: async (ctx, args) => {
-		const { userId, externalId } = args;
+		const { externalId } = args;
 
 		const existing = await ctx.db
 			.query('highlights')
@@ -387,7 +387,7 @@ export const getSourceIdByBookId = internalQuery({
 		bookId: v.string() // Readwise book_id (externalId)
 	},
 	handler: async (ctx, args) => {
-		const { userId, bookId } = args;
+		const { bookId } = args;
 
 		const source = await ctx.db
 			.query('sources')
@@ -407,7 +407,7 @@ export const getHighlightIdByExternalId = internalQuery({
 		externalId: v.string()
 	},
 	handler: async (ctx, args) => {
-		const { userId, externalId } = args;
+		const { externalId } = args;
 
 		const highlight = await ctx.db
 			.query('highlights')

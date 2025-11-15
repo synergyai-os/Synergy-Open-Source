@@ -5,22 +5,24 @@
  * Only admins/owners can edit organization settings
  */
 
-import { query, mutation, action, internalMutation } from './_generated/server';
+import { query, mutation, action, internalMutation, internalQuery } from './_generated/server';
 import { internal } from './_generated/api';
 import { v } from 'convex/values';
 import { getAuthUserId } from './auth';
+import type { QueryCtx, MutationCtx } from './_generated/server';
+import type { Id } from './_generated/dataModel';
 
 /**
  * Helper: Check if user is admin or owner of organization
  */
 async function isOrganizationAdmin(
-	ctx: any,
-	userId: string,
-	organizationId: string
+	ctx: QueryCtx | MutationCtx,
+	userId: Id<'users'>,
+	organizationId: Id<'organizations'>
 ): Promise<boolean> {
 	const membership = await ctx.db
 		.query('organizationMembers')
-		.withIndex('by_organization_user', (q: any) =>
+		.withIndex('by_organization_user', (q) =>
 			q.eq('organizationId', organizationId).eq('userId', userId)
 		)
 		.first();
@@ -38,10 +40,11 @@ async function isOrganizationAdmin(
  */
 export const getOrganizationSettings = query({
 	args: {
+		sessionId: v.string(),
 		organizationId: v.id('organizations')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			return null;
 		}
@@ -87,18 +90,24 @@ export const getOrganizationSettings = query({
  */
 export const updateOrganizationClaudeApiKey = action({
 	args: {
+		sessionId: v.string(),
 		organizationId: v.id('organizations'),
 		apiKey: v.string()
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
+		const userId = await ctx.runQuery(internal.settings.getUserIdFromSessionId, {
+			sessionId: args.sessionId
+		});
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
 
-		// Verify user is admin
-		const isAdmin = await isOrganizationAdmin(ctx, userId, args.organizationId);
-		if (!isAdmin) {
+		// Verify user is admin (actions can't access db, need to run query)
+		const settings = await ctx.runQuery(internal.organizationSettings.checkAdminAccess, {
+			userId: userId,
+			organizationId: args.organizationId
+		});
+		if (!settings?.isAdmin) {
 			throw new Error('Only organization admins can update settings');
 		}
 
@@ -133,6 +142,20 @@ export const updateOrganizationClaudeApiKey = action({
 });
 
 /**
+ * Internal query: Check if user is admin of organization
+ */
+export const checkAdminAccess = internalQuery({
+	args: {
+		userId: v.id('users'),
+		organizationId: v.id('organizations')
+	},
+	handler: async (ctx, args) => {
+		const isAdmin = await isOrganizationAdmin(ctx, args.userId, args.organizationId);
+		return { isAdmin };
+	}
+});
+
+/**
  * Internal mutation: Save Claude API key to database
  */
 export const saveClaudeApiKey = internalMutation({
@@ -141,10 +164,7 @@ export const saveClaudeApiKey = internalMutation({
 		apiKey: v.string()
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		// Internal mutation - no auth check needed (called by authenticated action)
 
 		// Find existing settings
 		const existing = await ctx.db
@@ -177,10 +197,11 @@ export const saveClaudeApiKey = internalMutation({
  */
 export const deleteOrganizationClaudeApiKey = mutation({
 	args: {
+		sessionId: v.string(),
 		organizationId: v.id('organizations')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx);
+		const userId = await getAuthUserId(ctx, args.sessionId);
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}

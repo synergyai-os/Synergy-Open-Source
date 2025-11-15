@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
-	import { EditorView } from 'prosemirror-view';
+	// TODO: Re-enable when EditorView is needed
+	// import { EditorView } from 'prosemirror-view';
 
 	type Props = {
 		visible: boolean;
@@ -125,15 +126,7 @@
 		background-color: var(--color-bg-surface-hover);
 	}
 
-	.bg-surface-hover-solid {
-		background-color: var(--color-bg-surface-hover-solid);
-	}
-
 	.bg-primary {
 		background-color: var(--color-bg-primary);
-	}
-
-	.bg-primary-hover {
-		background-color: var(--color-bg-primary-hover);
 	}
 </style>

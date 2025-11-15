@@ -9,6 +9,7 @@
  */
 
 import { mutation } from '../_generated/server';
+import type { Id } from '../_generated/dataModel';
 
 export const seedRBAC = mutation({
 	args: {},
@@ -264,7 +265,11 @@ export const seedRBAC = mutation({
 
 		console.log('Creating role-permission mappings...');
 
-		const mappings: Array<{ roleId: any; permissionId: any; scope: 'all' | 'own' | 'none' }> = [];
+		const mappings: Array<{
+			roleId: Id<'roles'>;
+			permissionId: Id<'permissions'>;
+			scope: 'all' | 'own' | 'none';
+		}> = [];
 
 		// --- Admin Role: Full access (scope: "all") ---
 		const adminPermissions = [

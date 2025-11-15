@@ -154,11 +154,12 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 					success: true,
 					redirectTo: `${redirect ?? '/inbox'}?linked=1`
 				});
-			} catch (linkError: any) {
+			} catch (linkError: unknown) {
 				console.error('❌ Account linking failed:', linkError);
 
 				// Handle specific linking errors
-				if (linkError.message?.includes('Cannot link more than')) {
+				const errorMessage = linkError instanceof Error ? linkError.message : String(linkError);
+				if (errorMessage.includes('Cannot link more than')) {
 					return json(
 						{
 							error: 'Too many linked accounts',
@@ -168,7 +169,7 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 					);
 				}
 
-				if (linkError.message?.includes('would exceed maximum depth')) {
+				if (errorMessage.includes('would exceed maximum depth')) {
 					return json(
 						{
 							error: 'Link depth exceeded',

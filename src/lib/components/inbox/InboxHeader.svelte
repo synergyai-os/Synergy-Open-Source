@@ -36,7 +36,8 @@
 	}: Props = $props();
 
 	let menuOpen = $state(false);
-	let sortMenuOpen = $state(false);
+	// TODO: Re-enable when sort menu is implemented
+	// let sortMenuOpen = $state(false);
 </script>
 
 <div

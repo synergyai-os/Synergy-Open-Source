@@ -1365,7 +1365,131 @@ npx playwright test --ui         # Debug mode
 
 ---
 
-**Last Updated**: 2025-11-12  
-**Pattern Count**: 21  
+## #L1110: Password Validation with Email Aliases [🔴 CRITICAL]
+
+**Symptom**: Password `randyhereman123` accepted for email `randyhereman+test3@gmail.com`, WorkOS rejects with "password contains email"  
+**Root Cause**: Validation checks `randyhereman+test3` instead of stripping `+alias` to get `randyhereman`  
+**Fix**:
+
+```typescript
+// ❌ WRONG - Doesn't handle email aliases
+const emailLocalPart = email.split('@')[0].toLowerCase();
+if (password.toLowerCase().includes(emailLocalPart)) {
+	return { error: 'Password contains email' };
+}
+
+// ✅ CORRECT - Strip +alias before validation
+const emailLocalPart = email.split('@')[0].split('+')[0].toLowerCase();
+const passwordLower = password.toLowerCase();
+
+// Minimum 4 chars to avoid false positives (e.g., "ab@example.com")
+if (emailLocalPart.length >= 4 && passwordLower.includes(emailLocalPart)) {
+	return {
+		error: 'Password must not contain your email address. Please choose a different password.'
+	};
+}
+```
+
+**Frontend + Backend Parity** (validate in both places):
+
+```typescript
+// src/routes/register/+page.svelte - Frontend validation
+async function handleSubmit(event: SubmitEvent) {
+	// Validate password doesn't contain email
+	const emailLocalPart = email.trim().split('@')[0].split('+')[0].toLowerCase();
+	const passwordLower = password.toLowerCase();
+
+	if (emailLocalPart.length >= 4 && passwordLower.includes(emailLocalPart)) {
+		errorMessage =
+			'Password must not contain your email address. Please choose a different password.';
+		return; // ✅ Stop before API call
+	}
+
+	// Submit to backend...
+}
+
+// src/routes/auth/register/+server.ts - Backend validation
+export const POST: RequestHandler = async ({ request }) => {
+	const { email, password } = await request.json();
+
+	// Same validation logic as frontend
+	const emailLocalPart = email.split('@')[0].split('+')[0].toLowerCase();
+	const passwordLower = password.toLowerCase();
+
+	if (emailLocalPart.length >= 4 && passwordLower.includes(emailLocalPart)) {
+		return json(
+			{
+				error: 'Password must not contain your email address. Please choose a different password.'
+			},
+			{ status: 400 }
+		);
+	}
+
+	// Create user in WorkOS...
+};
+```
+
+**Unit Tests** (prevent regressions):
+
+```typescript
+// src/routes/auth/register/register.test.ts
+describe('Password Validation', () => {
+	it('should reject password containing email username with alias', () => {
+		// Bug case: randyhereman+test3@gmail.com with password randyhereman123
+		const result = validatePassword('randyhereman+test3@gmail.com', 'randyhereman123');
+		expect(result.valid).toBe(false);
+		expect(result.error).toContain('must not contain your email');
+	});
+
+	it('should handle email with multiple + aliases', () => {
+		const result = validatePassword('user+test+alias@example.com', 'userpassword123');
+		expect(result.valid).toBe(false);
+	});
+
+	it('should accept password when email username is less than 4 chars', () => {
+		// Short usernames (< 4 chars) allowed to avoid false positives
+		const result = validatePassword('ab@example.com', 'abc12345');
+		expect(result.valid).toBe(true);
+	});
+});
+```
+
+**WorkOS Requirements** (enforce at application layer):
+
+1. **Minimum Length**: 8 characters
+2. **Email Exclusion**: Password cannot contain email local part (before @)
+3. **Case Insensitive**: Check lowercase versions
+4. **Alias Handling**: Strip `+alias` before validation
+
+**Apply when**:
+
+- Implementing registration with WorkOS User Management API
+- Any password validation (registration, password reset, password change)
+- Email addresses support `+` aliases (Gmail, etc.)
+
+**Why Frontend + Backend**:
+
+- ✅ Frontend: Immediate feedback, better UX
+- ✅ Backend: Security (never trust client), prevent WorkOS API errors
+
+**Testing Strategy**:
+
+- ✅ Unit tests (16 tests covering all edge cases)
+- ✅ E2E tests (registration flow with test helper)
+- ✅ CI integration (`npm run test:unit:server`)
+
+**Related Files**:
+
+- Unit tests: `src/routes/auth/register/register.test.ts`
+- Frontend validation: `src/routes/register/+page.svelte`
+- Backend validation: `src/routes/auth/register/+server.ts`
+- Test docs: `dev-docs/2-areas/testing/password-validation-tests.md`
+
+**Related**: #L60 (Environment setup), #L1060 (E2E testing), CI/CD validation
+
+---
+
+**Last Updated**: 2025-11-13  
+**Pattern Count**: 22  
 **Validated**: WorkOS AuthKit, SvelteKit, Vite, Convex, Svelte 5, Web Crypto API, Playwright  
 **Format Version**: 2.0

@@ -1,0 +1,28 @@
+
+> synergyos@0.1.0 test:e2e
+> npm run test:e2e:stop-dev && E2E_TEST_MODE=true playwright test e2e/auth-registration.test.ts
+
+
+> synergyos@0.1.0 test:e2e:stop-dev
+> lsof -ti:5173 | xargs kill -9 2>/dev/null || true
+
+[1A[2K[WebServer] error when starting dev server:
+[WebServer] Error: EPERM: operation not permitted, open '/Users/randyhereman/Coding/SynergyOS/.env'
+[WebServer]     at Object.openSync (node:fs:560:18)
+[WebServer]     at Object.readFileSync (node:fs:444:35)
+[WebServer]     at file:///Users/randyhereman/Coding/SynergyOS/node_modules/vite/dist/node/chunks/config.js:9604:51
+[WebServer]     at Array.flatMap (<anonymous>)
+[WebServer]     at loadEnv (file:///Users/randyhereman/Coding/SynergyOS/node_modules/vite/dist/node/chunks/config.js:9602:45)
+[WebServer]     at get_env (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/vite/utils.js:71:14)
+[WebServer]     at BasicMinimalPluginContext.config (file:///Users/randyhereman/Coding/SynergyOS/node_modules/@sveltejs/kit/src/exports/vite/index.js:251:10)
+[WebServer]     at runConfigHook (file:///Users/randyhereman/Coding/SynergyOS/node_modules/vite/dist/node/chunks/config.js:36548:42)
+[WebServer]     at async resolveConfig (file:///Users/randyhereman/Coding/SynergyOS/node_modules/vite/dist/node/chunks/config.js:36056:13)
+[WebServer]     at async _createServer (file:///Users/randyhereman/Coding/SynergyOS/node_modules/vite/dist/node/chunks/config.js:25979:67)
+
+Error: Process from config.webServer was not able to start. Exit code: 1
+
+[1A[2K
+To open last HTML report run:
+
+  npx playwright show-report
+

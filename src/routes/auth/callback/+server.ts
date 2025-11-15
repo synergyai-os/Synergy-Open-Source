@@ -35,7 +35,13 @@ export const GET: RequestHandler = async (event) => {
 
 		console.log('✅ Login state retrieved successfully');
 
-		const { codeVerifier, redirectTo, flowMode, linkAccount, primaryUserId } = loginState;
+		const {
+			codeVerifier,
+			redirectTo,
+			flowMode: _flowMode,
+			linkAccount,
+			primaryUserId
+		} = loginState;
 
 		console.log('🔍 Exchanging authorization code with WorkOS...');
 		const authResponse = await exchangeAuthorizationCode({

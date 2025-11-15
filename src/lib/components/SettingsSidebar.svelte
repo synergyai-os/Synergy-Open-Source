@@ -3,12 +3,13 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import SettingsSidebarHeader from './sidebar/SettingsSidebarHeader.svelte';
+	import { resolveRoute } from '$lib/utils/navigation';
 
 	type Props = {
 		isMobile?: boolean;
 	};
 
-	let { isMobile = false }: Props = $props();
+	let { isMobile: _isMobile = false }: Props = $props();
 
 	// Get current pathname reactively (safely handle SSR)
 	const currentPath = $derived(browser ? $page.url.pathname : '');
@@ -28,7 +29,7 @@
 	<!-- Header with Back Button -->
 	<SettingsSidebarHeader
 		onBack={() => {
-			goto('/inbox');
+			goto(resolveRoute('/inbox'));
 		}}
 	/>
 
@@ -41,7 +42,7 @@
 			</p>
 			<div class="space-y-0.5">
 				<a
-					href="/settings"
+					href={resolveRoute('/settings')}
 					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings')}
 				>
@@ -69,7 +70,7 @@
 				</a>
 
 				<a
-					href="/settings/account"
+					href={resolveRoute('/settings/account')}
 					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/account')}
 				>
@@ -91,7 +92,7 @@
 				</a>
 
 				<a
-					href="/settings/integrations"
+					href={resolveRoute('/settings/integrations')}
 					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/integrations')}
 				>
@@ -113,7 +114,7 @@
 				</a>
 
 				<a
-					href="/settings/notifications"
+					href={resolveRoute('/settings/notifications')}
 					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/notifications')}
 				>
@@ -135,7 +136,7 @@
 				</a>
 
 				<a
-					href="/settings/privacy"
+					href={resolveRoute('/settings/privacy')}
 					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/privacy')}
 				>
@@ -166,7 +167,7 @@
 			</p>
 			<div class="space-y-0.5">
 				<a
-					href="/settings/appearance"
+					href={resolveRoute('/settings/appearance')}
 					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/appearance')}
 				>
@@ -188,7 +189,7 @@
 				</a>
 
 				<a
-					href="/settings/keyboard"
+					href={resolveRoute('/settings/keyboard')}
 					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/keyboard')}
 				>
@@ -210,7 +211,7 @@
 				</a>
 
 				<a
-					href="/settings/data"
+					href={resolveRoute('/settings/data')}
 					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/data')}
 				>
@@ -241,7 +242,7 @@
 			</p>
 			<div class="space-y-0.5">
 				<a
-					href="/settings/billing"
+					href={resolveRoute('/settings/billing')}
 					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/billing')}
 				>
@@ -263,7 +264,7 @@
 				</a>
 
 				<a
-					href="/settings/api"
+					href={resolveRoute('/settings/api')}
 					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/api')}
 				>
@@ -285,7 +286,7 @@
 				</a>
 
 				<a
-					href="/settings/permissions-test"
+					href={resolveRoute('/settings/permissions-test')}
 					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/permissions-test')}
 				>

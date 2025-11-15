@@ -14,6 +14,7 @@
 	let currentPos = $state<number | null>(null);
 	let currentLanguage = $state<string | null>(null);
 	let searchQuery = $state('');
+	let searchInput = $state<HTMLInputElement | null>(null);
 
 	const filteredLanguages = $derived(
 		searchQuery
@@ -39,6 +40,10 @@
 
 		showSelector = true;
 		searchQuery = '';
+		// Focus input after selector shows
+		setTimeout(() => {
+			searchInput?.focus();
+		}, 0);
 	}
 
 	function selectLanguage(language: string) {
@@ -91,13 +96,13 @@
 			<input
 				type="text"
 				bind:value={searchQuery}
+				bind:this={searchInput}
 				placeholder="Search languages..."
 				class="w-full rounded-md border border-base bg-base px-2 py-1 text-sm text-primary placeholder:text-tertiary focus:ring-1 focus:ring-accent-primary focus:outline-none"
-				autofocus
 			/>
 		</div>
 		<div class="py-1">
-			{#each filteredLanguages as lang}
+			{#each filteredLanguages as lang (lang.value)}
 				<button
 					type="button"
 					class="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors hover:bg-hover-solid {lang.value ===

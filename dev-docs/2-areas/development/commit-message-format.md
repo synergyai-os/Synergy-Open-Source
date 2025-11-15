@@ -403,4 +403,3 @@ added secure flag to cookies. Security vulnerability patched.
 - **Command**: `/save` - When to use this format
 - **Flow Metrics**: `dev-docs/2-areas/product/flow-metrics.md` - Understanding flow distribution
 - **Patterns**: `dev-docs/2-areas/patterns/INDEX.md` - Pattern documentation
-

@@ -23,7 +23,10 @@ export default defineConfig(
 			'ios/App/App/public/**',
 			'convex/_generated/**',
 			'.svelte-kit/**',
-			'node_modules/**'
+			'node_modules/**',
+			'dev-docs/**',
+			'marketing-docs/**',
+			'ai-content-blog/**'
 		]
 	},
 	{
@@ -33,7 +36,18 @@ export default defineConfig(
 		rules: {
 			// typescript-eslint strongly recommend that you do not use the no-undef lint rule on TypeScript projects.
 			// see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors
-			'no-undef': 'off'
+			'no-undef': 'off',
+			// Enforce no explicit any types (except in test files and specific exclusions)
+			'@typescript-eslint/no-explicit-any': 'error',
+			// Ignore variables prefixed with underscore (common convention for intentionally unused vars)
+			'@typescript-eslint/no-unused-vars': [
+				'error',
+				{
+					argsIgnorePattern: '^_',
+					varsIgnorePattern: '^_',
+					caughtErrorsIgnorePattern: '^_'
+				}
+			]
 		}
 	},
 	{
@@ -45,6 +59,23 @@ export default defineConfig(
 				parser: ts.parser,
 				svelteConfig
 			}
+		},
+		rules: {
+			// Disabled: Rule doesn't recognize resolveRoute() wrapper function.
+			// All navigation uses resolveRoute() from $lib/utils/navigation.ts which wraps SvelteKit's resolve().
+			// This is a known limitation of the ESLint rule - it can't verify wrapper functions across module boundaries.
+			'svelte/no-navigation-without-resolve': 'off'
+		}
+	},
+	{
+		// Allow @html in markdown rendering files - HTML is sanitized via sanitizeHtml() before rendering
+		files: [
+			'src/routes/dev-docs/notes/**/*.svelte',
+			'src/routes/marketing-docs/**/*.svelte',
+			'src/routes/dev-docs/**/*.svelte'
+		],
+		rules: {
+			'svelte/no-at-html-tags': 'off'
 		}
 	},
 	{

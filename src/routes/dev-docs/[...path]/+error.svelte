@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { resolveRoute } from '$lib/utils/navigation';
 
 	const statusCode = $derived($page.status);
 	const message = $derived($page.error?.message || 'Page not found');
@@ -16,8 +17,10 @@
 		<p class="error-message">{message}</p>
 
 		<div class="error-actions">
-			<a href="/dev-docs/README" class="btn-primary"> ← Back to Docs Home </a>
-			<a href="/dev-docs/2-areas/patterns/INDEX" class="btn-secondary"> View Pattern Index </a>
+			<a href={resolveRoute('/dev-docs/README')} class="btn-primary"> ← Back to Docs Home </a>
+			<a href={resolveRoute('/dev-docs/2-areas/patterns/INDEX')} class="btn-secondary">
+				View Pattern Index
+			</a>
 		</div>
 
 		<details class="error-debug">

@@ -1,6 +1,8 @@
-import { error } from '@sveltejs/kit';
+// TODO: Re-enable when error is needed
+// import { error } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
-import { browser } from '$app/environment';
+// TODO: Re-enable when browser is needed
+// import { browser } from '$app/environment';
 
 export const load: PageLoad = async ({ params }) => {
 	// On server: just return params, actual doc loading happens in page component

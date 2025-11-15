@@ -10,8 +10,6 @@
 
 	type Flashcard = {
 		_id: Id<'flashcards'>;
-		question: string;
-		answer: string;
 		fsrsStability?: number;
 		fsrsDifficulty?: number;
 		fsrsDue?: number;
@@ -30,19 +28,19 @@
 
 	let { flashcard, onEdit, onDelete }: Props = $props();
 
-	const convexClient = browser ? useConvexClient() : null;
+	const _convexClient = browser ? useConvexClient() : null;
 	const getUserId = () => $page.data.user?.userId;
 	const getSessionId = () => $page.data.sessionId;
 
 	// Setup tagging system for flashcards
-	const tagging = useTagging('flashcard', getUserId);
+	const tagging = useTagging('flashcard', getUserId, getSessionId);
 
 	// Load all available tags
 	const allTagsQuery =
 		browser && getSessionId()
 			? useQuery(api.tags.listAllTags, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) return 'skip';
+					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
 					return { sessionId };
 				})
 			: null;
@@ -53,7 +51,7 @@
 		browser && getSessionId()
 			? useQuery(api.tags.getTagsForFlashcard, () => {
 					const sessionId = getSessionId();
-					if (!sessionId) return 'skip';
+					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
 					return {
 						sessionId,
 						flashcardId: flashcard._id
@@ -61,7 +59,8 @@
 				})
 			: null;
 
-	const tags = $derived(flashcardTagsQuery?.data ?? []);
+	// TODO: Re-enable when needed
+	// const tags = $derived(flashcardTagsQuery?.data ?? []);
 
 	// Track selected tag IDs for TagSelector
 	let selectedTagIds = $state<Id<'tags'>[]>([]);
@@ -127,7 +126,7 @@
 
 	// Format date
 	function formatDate(timestamp: number): string {
-		const date = new Date(timestamp);
+		const _date = new Date(timestamp);
 		const now = Date.now();
 		const diffMs = now - timestamp;
 		const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));

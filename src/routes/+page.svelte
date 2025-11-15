@@ -6,6 +6,7 @@
 	import { onMount } from 'svelte';
 	import { useQuery } from 'convex-svelte';
 	import { api } from '$lib/convex';
+	import { resolveRoute } from '$lib/utils/navigation';
 
 	let { data } = $props();
 
@@ -41,11 +42,11 @@
 			emoji: '🔀',
 			title: 'Context Scattered Everywhere',
 			description:
-				'Notion for docs, Linear for tasks, Slack for decisions. You own deliverables, but you don\'t own outcomes.'
+				"Notion for docs, Linear for tasks, Slack for decisions. You own deliverables, but you don't own outcomes."
 		},
 		{
 			emoji: '🔍',
-			title: 'Knowledge Lives in People\'s Heads',
+			title: "Knowledge Lives in People's Heads",
 			description:
 				'New members ask: "Why did we build this?" Nobody remembers. Decisions aren\'t captured. Outcomes aren\'t tracked.'
 		}
@@ -147,8 +148,8 @@
 					easing: quintOut
 				}}
 			>
-				One platform for product teams. Outcome-driven by design. Integrates your tools. Built in the
-				open by builders learning together. <strong class="text-primary">Join us.</strong>
+				One platform for product teams. Outcome-driven by design. Integrates your tools. Built in
+				the open by builders learning together. <strong class="text-primary">Join us.</strong>
 			</p>
 
 			<!-- Hero CTA -->
@@ -205,12 +206,12 @@
 					easing: quintOut
 				}}
 			>
-				Your tools reinforce the wrong behaviors—shipping features on deadlines, not solving problems
-				with impact
+				Your tools reinforce the wrong behaviors—shipping features on deadlines, not solving
+				problems with impact
 			</p>
 
 			<div class="pain-grid gap-inbox-list">
-				{#each painPoints as pain, i}
+				{#each painPoints as pain, i (pain.title)}
 					<div
 						class="pain-card bg-surface"
 						in:fly={{
@@ -274,9 +275,9 @@
 						We're building the product platform that should exist.
 					</p>
 					<p class="vision-intro-subtext text-secondary">
-						In our daily work with product teams and clients, we see the same problem: existing tools
-						reinforce delivery mode (features, deadlines) instead of outcome mode (problems, impact).
-						So we're building what's missing—in the open, as a community.
+						In our daily work with product teams and clients, we see the same problem: existing
+						tools reinforce delivery mode (features, deadlines) instead of outcome mode (problems,
+						impact). So we're building what's missing—in the open, as a community.
 					</p>
 				</div>
 
@@ -291,31 +292,31 @@
 							easing: quintOut
 						}}
 					>
-					<div class="vision-card-number">01</div>
-					<h3 class="vision-card-title text-primary">Solve Our Own Problem</h3>
-					<p class="vision-card-description text-secondary">
-						We work on products every day. We need a platform that creates alignment, tracks
-						outcomes, and integrates our tools—Notion, Linear, Slack. It doesn't exist. So we're
-						building it.
-					</p>
-				</div>
+						<div class="vision-card-number">01</div>
+						<h3 class="vision-card-title text-primary">Solve Our Own Problem</h3>
+						<p class="vision-card-description text-secondary">
+							We work on products every day. We need a platform that creates alignment, tracks
+							outcomes, and integrates our tools—Notion, Linear, Slack. It doesn't exist. So we're
+							building it.
+						</p>
+					</div>
 
-				<div
-					class="vision-card bg-elevated"
-					in:fly={{
-						y: 30,
-						duration: prefersReducedMotion ? 0 : 400,
-						delay: prefersReducedMotion ? 0 : 400,
-						easing: quintOut
-					}}
-				>
-					<div class="vision-card-number">02</div>
-					<h3 class="vision-card-title text-primary">Build a Community of Builders</h3>
-					<p class="vision-card-description text-secondary">
-						This isn't a solo project. We're learning AI-era product development together—in the
-						open, transparently. Join us. Contribute. Shape what product tools should be.
-					</p>
-				</div>
+					<div
+						class="vision-card bg-elevated"
+						in:fly={{
+							y: 30,
+							duration: prefersReducedMotion ? 0 : 400,
+							delay: prefersReducedMotion ? 0 : 400,
+							easing: quintOut
+						}}
+					>
+						<div class="vision-card-number">02</div>
+						<h3 class="vision-card-title text-primary">Build a Community of Builders</h3>
+						<p class="vision-card-description text-secondary">
+							This isn't a solo project. We're learning AI-era product development together—in the
+							open, transparently. Join us. Contribute. Shape what product tools should be.
+						</p>
+					</div>
 				</div>
 
 				<!-- CTA -->
@@ -378,8 +379,8 @@
 				>
 					<h3 class="feature-title text-primary">🎯 Outcome Frameworks (Built In)</h3>
 					<p class="feature-description text-secondary">
-						OKRs, opportunity solution trees, continuous discovery. Not flexible—opinionated. We guide
-						you to work better, not just differently.
+						OKRs, opportunity solution trees, continuous discovery. Not flexible—opinionated. We
+						guide you to work better, not just differently.
 					</p>
 				</div>
 				<div
@@ -423,8 +424,8 @@
 				>
 					<h3 class="feature-title text-primary">📊 Impact Visibility</h3>
 					<p class="feature-description text-secondary">
-						Show stakeholders outcomes, not status theater. Auto-generated updates from real work. No
-						more "postponed" with no clarity.
+						Show stakeholders outcomes, not status theater. Auto-generated updates from real work.
+						No more "postponed" with no clarity.
 					</p>
 				</div>
 				<div
@@ -438,8 +439,8 @@
 				>
 					<h3 class="feature-title text-primary">⏱️ Realistic Estimates</h3>
 					<p class="feature-description text-secondary">
-						Track full scope—testing, feedback, staging, meetings. Learn from history. Stop working on
-						tasks "knowing they'll likely change."
+						Track full scope—testing, feedback, staging, meetings. Learn from history. Stop working
+						on tasks "knowing they'll likely change."
 					</p>
 				</div>
 			</div>
@@ -462,7 +463,7 @@
 			</h2>
 
 			<div class="differentiators-grid gap-inbox-list">
-				{#each differentiators as diff, i}
+				{#each differentiators as diff, i (diff.title)}
 					<div
 						class="differentiator-card bg-elevated"
 						in:fly={{
@@ -717,9 +718,9 @@
 					<div class="status-badge status-focus">Current Focus</div>
 					<h3 class="status-card-title text-primary">What We're Working On</h3>
 					<p class="status-description text-secondary">
-						<strong>Getting our first real product team using SynergyOS.</strong> That's our
-						outcome. Everything we build is shaped by working with them—capturing real pain points,
-						testing solutions, building a tight feedback loop.
+						<strong>Getting our first real product team using SynergyOS.</strong> That's our outcome.
+						Everything we build is shaped by working with them—capturing real pain points, testing solutions,
+						building a tight feedback loop.
 					</p>
 					<p class="status-description text-secondary">
 						The roadmap below guides us, but it will change based on what we learn.
@@ -727,7 +728,7 @@
 				</div>
 
 				<div
-					class="status-card bg-surface status-join"
+					class="status-card status-join bg-surface"
 					in:fly={{
 						y: 30,
 						duration: prefersReducedMotion ? 0 : 400,
@@ -781,9 +782,7 @@
 				<div class="social-proof-bar">
 					<div class="social-proof-item">
 						<span class="social-proof-icon">👥</span>
-						<span class="social-proof-text"
-							><strong>{waitlistCount}</strong> builders joined</span
-						>
+						<span class="social-proof-text"><strong>{waitlistCount}</strong> builders joined</span>
 					</div>
 					<div class="social-proof-item">
 						<span class="social-proof-icon">⭐</span>
@@ -870,7 +869,11 @@
 								class="footer-link text-secondary">Report an Issue</a
 							>
 						</li>
-						<li><a href="/CONTRIBUTING" class="footer-link text-secondary">Contribute</a></li>
+						<li>
+							<a href={resolveRoute('/CONTRIBUTING')} class="footer-link text-secondary"
+								>Contribute</a
+							>
+						</li>
 					</ul>
 				</div>
 			</div>
@@ -1023,7 +1026,9 @@
 		font-weight: 600;
 		text-decoration: none;
 		transition: all 0.2s ease;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+		box-shadow:
+			0 1px 3px rgba(0, 0, 0, 0.1),
+			0 1px 2px rgba(0, 0, 0, 0.06);
 	}
 
 	.cta-primary:hover {

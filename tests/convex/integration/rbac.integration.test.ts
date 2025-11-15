@@ -7,7 +7,6 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { convexTest } from 'convex-test';
 import { api } from '../../../convex/_generated/api';
-import { internal } from '../../../convex/_generated/api';
 import schema from '../../../convex/schema';
 import { modules } from './test.setup';
 import {
@@ -18,7 +17,6 @@ import {
 	assignRoleToUser,
 	assignPermissionToRole,
 	createTestOrganization,
-	createTestOrganizationMember,
 	cleanupTestOrganization
 } from './setup';
 import { hasPermission, requirePermission } from '../../../convex/rbac/permissions';

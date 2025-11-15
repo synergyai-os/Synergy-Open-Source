@@ -4,7 +4,7 @@
  * Uses prosemirror-highlight with lowlight (highlight.js wrapper)
  */
 
-import { Plugin, PluginKey } from 'prosemirror-state';
+import { Plugin, PluginKey, Transaction } from 'prosemirror-state';
 import { Decoration, DecorationSet, EditorView } from 'prosemirror-view';
 import { createHighlightPlugin } from 'prosemirror-highlight';
 import { createParser } from 'prosemirror-highlight/lowlight';
@@ -47,7 +47,7 @@ export function createCodeBlockPlugin() {
 		key: codeBlockPluginKey,
 
 		appendTransaction(transactions, oldState, newState) {
-			let tr = null;
+			let tr: Transaction | null = null;
 
 			// Check if any code blocks need auto-detection
 			newState.doc.descendants((node, pos) => {
@@ -71,7 +71,7 @@ export function createCodeBlockPlugin() {
 								tr = newState.tr;
 							}
 
-							tr.setNodeMarkup(pos, undefined, {
+							tr!.setNodeMarkup(pos, undefined, {
 								...node.attrs,
 								language: detectedLanguage
 							});
@@ -174,7 +174,8 @@ export function detectLanguage(code: string): string | null {
 	}
 
 	const firstLine = code.split('\n')[0].trim();
-	const firstFewLines = code.split('\n').slice(0, 5).join('\n');
+	// TODO: Re-enable when needed for multi-line detection
+	// const _firstFewLines = code.split('\n').slice(0, 5).join('\n');
 
 	// TypeScript detection (check first - more specific than JS)
 	if (

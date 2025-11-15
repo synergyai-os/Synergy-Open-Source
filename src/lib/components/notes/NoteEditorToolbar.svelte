@@ -4,6 +4,7 @@
 	import { EditorState } from 'prosemirror-state';
 	import { toggleMark, setBlockType } from 'prosemirror-commands';
 	import { undo, redo } from 'prosemirror-history';
+	import type { ProseMirrorCommand } from '$lib/types/prosemirror';
 
 	type Props = {
 		editorView: EditorView;
@@ -12,10 +13,26 @@
 
 	let { editorView, editorState }: Props = $props();
 
-	function runCommand(command: any) {
+	function runCommand(command: ProseMirrorCommand) {
 		if (!editorView || !editorState) return;
 		command(editorState, editorView.dispatch);
 		editorView.focus();
+	}
+
+	// Safe wrapper for toggleMark - returns early if mark doesn't exist
+	function toggleMarkSafe(markType: string) {
+		if (!editorState) return;
+		const mark = editorState.schema.marks[markType];
+		if (!mark) return;
+		runCommand(toggleMark(mark));
+	}
+
+	// Safe wrapper for setBlockType - returns early if node doesn't exist
+	function setBlockTypeSafe(nodeType: string, attrs?: Record<string, unknown>) {
+		if (!editorState) return;
+		const node = editorState.schema.nodes[nodeType];
+		if (!node) return;
+		runCommand(setBlockType(node, attrs));
 	}
 
 	// Check if mark is active
@@ -28,7 +45,7 @@
 	}
 
 	// Check if block type is active
-	function isBlockActive(nodeType: string, attrs?: any): boolean {
+	function isBlockActive(nodeType: string, attrs?: Record<string, unknown>): boolean {
 		if (!editorState) return false;
 		const { $from: from, to } = editorState.selection;
 		const type = editorState.schema.nodes[nodeType];
@@ -61,7 +78,7 @@
 	<ControlPanel.Group>
 		<ControlPanel.Button
 			active={isBoldActive}
-			onclick={() => runCommand(toggleMark(editorState?.schema.marks.strong!))}
+			onclick={() => toggleMarkSafe('strong')}
 			title="Bold (Cmd+B)"
 		>
 			<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,7 +99,7 @@
 
 		<ControlPanel.Button
 			active={isItalicActive}
-			onclick={() => runCommand(toggleMark(editorState?.schema.marks.em!))}
+			onclick={() => toggleMarkSafe('em')}
 			title="Italic (Cmd+I)"
 		>
 			<svg class="h-4 w-4 italic" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,7 +111,7 @@
 
 		<ControlPanel.Button
 			active={isCodeActive}
-			onclick={() => runCommand(toggleMark(editorState?.schema.marks.code!))}
+			onclick={() => toggleMarkSafe('code')}
 			title="Code (Cmd+`)"
 		>
 			<svg class="h-4 w-4 font-mono" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,7 +131,7 @@
 	<ControlPanel.Group>
 		<ControlPanel.Button
 			active={isH1Active}
-			onclick={() => runCommand(setBlockType(editorState?.schema.nodes.heading!, { level: 1 }))}
+			onclick={() => setBlockTypeSafe('heading', { level: 1 })}
 			title="Heading 1 (Cmd+Shift+1)"
 		>
 			<span class="text-sm font-semibold">H1</span>
@@ -122,7 +139,7 @@
 
 		<ControlPanel.Button
 			active={isH2Active}
-			onclick={() => runCommand(setBlockType(editorState?.schema.nodes.heading!, { level: 2 }))}
+			onclick={() => setBlockTypeSafe('heading', { level: 2 })}
 			title="Heading 2 (Cmd+Shift+2)"
 		>
 			<span class="text-sm font-semibold">H2</span>
@@ -130,7 +147,7 @@
 
 		<ControlPanel.Button
 			active={isH3Active}
-			onclick={() => runCommand(setBlockType(editorState?.schema.nodes.heading!, { level: 3 }))}
+			onclick={() => setBlockTypeSafe('heading', { level: 3 })}
 			title="Heading 3 (Cmd+Shift+3)"
 		>
 			<span class="text-sm font-semibold">H3</span>

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { FullAutoFill } from 'svelte/elements';
+
 	/**
 	 * Reusable Form Input Component
 	 *
@@ -8,25 +10,27 @@
 
 	type Props = {
 		id?: string;
+		name?: string;
 		label?: string;
 		placeholder?: string;
 		value?: string;
 		type?: 'text' | 'email' | 'password' | 'url';
 		required?: boolean;
 		disabled?: boolean;
-		autocomplete?: string;
+		autocomplete?: FullAutoFill | null | undefined;
 		class?: string; // Allow custom classes for specific cases
 	};
 
 	let {
 		id,
+		name,
 		label,
 		placeholder = '',
 		value = $bindable(''),
 		type = 'text',
 		required = false,
 		disabled = false,
-		autocomplete = '',
+		autocomplete,
 		class: customClass = ''
 	}: Props = $props();
 
@@ -45,11 +49,12 @@
 	{/if}
 	<input
 		{id}
+		{name}
 		{type}
 		{placeholder}
 		{required}
 		{disabled}
-		{autocomplete}
+		autocomplete={autocomplete ?? undefined}
 		bind:value
 		class="rounded-input border border-base bg-input px-input-x py-input-y text-primary transition-all placeholder:text-tertiary focus:ring-2 focus:ring-accent-primary focus:outline-none {customClass}"
 	/>

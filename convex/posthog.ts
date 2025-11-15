@@ -1,5 +1,7 @@
 'use node';
 
+import { internalAction } from './_generated/server';
+import { v } from 'convex/values';
 import { PostHog } from 'posthog-node';
 import type { AnalyticsEvent, AnalyticsEventName } from '../src/lib/analytics/events';
 
@@ -35,3 +37,32 @@ export async function captureAnalyticsEvent<K extends AnalyticsEventName>(
 		properties: event.properties
 	});
 }
+
+/**
+ * Internal action to capture analytics events from Convex functions
+ * Used by queries/mutations to track events without blocking execution
+ */
+export const captureEvent = internalAction({
+	args: {
+		distinctId: v.string(),
+		event: v.string(),
+		properties: v.optional(v.any()),
+		groups: v.optional(
+			v.object({ organization: v.optional(v.string()), team: v.optional(v.string()) })
+		)
+	},
+	handler: async (_ctx, { distinctId, event, properties, groups }) => {
+		const client = getClient();
+		if (!client) {
+			console.warn('PostHog client not initialized - skipping event:', event);
+			return;
+		}
+
+		await client.capture({
+			event,
+			distinctId,
+			groups,
+			properties
+		});
+	}
+});

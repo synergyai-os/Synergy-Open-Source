@@ -47,55 +47,19 @@ alwaysApply: true
 
 ---
 
-## 📋 Creating Projects/Tickets (Only When User Requests)
+## 📋 Creating Projects/Tickets
 
-**If user says "create new ticket" or "create project":**
+**See**: `/start` command - Complete ticket creation workflow with constants, examples, and format
 
-1. **If project doesn't exist → CREATE IT FIRST** (only if user explicitly asks):
-   ```typescript
-   const projects = await mcp_Linear_list_projects({ team: 'SYOS' });
-   let project = projects.find(p => p.name === 'Project Name');
-   
-   if (!project) {
-     // Only create if user explicitly requests it
-     project = await mcp_Linear_create_project({
-       team: 'SYOS',
-       name: 'Project Name',
-       summary: 'One-line summary',
-       description: '# Project Overview\n...',
-       state: 'planned'
-     });
-   }
-   
-   const projectId = project.id; // ✅ Must have project ID before proceeding
-   ```
-
-3. **If ticket doesn't exist → CREATE IT FIRST** (only if user explicitly asks):
-   ```typescript
-   // Must have projectId first (from step 2)
-   const ticket = await mcp_Linear_create_issue({
-     team: 'SYOS',
-     projectId: projectId, // ✅ Required
-     assigneeId: 'c7c555a2-895a-48b6-ae24-d4147d44b1d5', // ✅ Required
-     // ... see /linear command for complete format
-   });
-   ```
+**Quick Reference:**
+- Use `/start` command when user says "create new ticket"
+- All Linear constants (team ID, user ID, labels, estimates) are in `/start` command
+- Ticket writing format: `dev-docs/2-areas/development/ticket-writing-format.md`
 
 **🚫 REFUSAL RULE**: 
 - **NO Linear project/ticket** → **REFUSE to work**
 - **NO project ID** → **STOP and ask**
 - **NO ticket ID** → **STOP and ask**
-
-**Response format when refusing:**
-```
-❌ I cannot proceed without a Linear project or ticket.
-
-Please provide:
-- Linear project ID (or create one with /start-new-project)
-- OR Linear ticket ID (e.g., SYOS-123)
-
-Once you have a project/ticket, I'll be happy to help!
-```
 
 ---
 
@@ -136,6 +100,7 @@ await mcp_Linear_create_issue({
 ## 📚 Full Reference
 
 **For complete details, examples, and workflows:**
+- **Command**: `/start` - Ticket creation workflow with all constants
 - **Command**: `/linear` - Full Linear workflow reference
 - **Docs**: `dev-docs/2-areas/development/tools/linear-integration.md`
 

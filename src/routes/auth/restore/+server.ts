@@ -1,7 +1,8 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { ConvexHttpClient } from 'convex/browser';
-import { api } from '$convex/_generated/api';
+// TODO: Re-enable when Convex client is needed
+// import { ConvexHttpClient } from 'convex/browser';
+// import { api } from '$convex/_generated/api';
 import { env as publicEnv } from '$env/dynamic/public';
 import type { Id } from '$lib/convex';
 import { getActiveSessionRecordForUser } from '$lib/server/auth/sessionStore';

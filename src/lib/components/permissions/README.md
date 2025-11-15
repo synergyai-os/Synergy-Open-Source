@@ -57,11 +57,21 @@ Conditionally renders children based on permissions.
 </PermissionGate>
 
 <!-- With custom fallback snippet -->
+<script lang="ts">
+	import { PermissionGate } from '$lib/components/permissions';
+	import { usePermissions } from '$lib/composables/usePermissions.svelte';
+	import { resolveRoute } from '$lib/utils/navigation';
+
+	const permissions = usePermissions({
+		userId: () => $currentUserId
+	});
+</script>
+
 <PermissionGate can="teams.delete" {permissions}>
 	{#snippet fallbackSnippet()}
 		<div class="rounded-md bg-yellow-50 p-4 text-yellow-900">
 			<p>Only admins can delete teams.</p>
-			<a href="/help/permissions">Learn more</a>
+			<a href={resolveRoute('/dev-docs/2-areas/rbac/rbac-quick-reference')}>Learn more</a>
 		</div>
 	{/snippet}
 

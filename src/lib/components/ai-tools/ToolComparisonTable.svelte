@@ -14,7 +14,7 @@
 			</tr>
 		</thead>
 		<tbody>
-			{#each verifiedTools as tool}
+			{#each verifiedTools as tool (tool.name)}
 				<tr>
 					<td class="tool-name">
 						<span class="tool-logo">{tool.logo}</span>

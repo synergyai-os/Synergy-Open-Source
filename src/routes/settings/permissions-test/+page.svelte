@@ -8,6 +8,7 @@
 	import { toast } from '$lib/utils/toast';
 	import { browser } from '$app/environment';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import type { Id } from '$lib/convex';
 
 	// Get user from page data
 	const userId = $derived($page.data.user?.userId);
@@ -22,9 +23,10 @@
 
 	// Initialize permissions composable with workspace context
 	const permissions = usePermissions({
-		sessionId: () => sessionId as any,
-		userId: () => userId as any,
-		organizationId: () => activeOrganizationId as any
+		sessionId: () => sessionId ?? null,
+		userId: () => (userId ? (userId as Id<'users'>) : null),
+		organizationId: () =>
+			activeOrganizationId ? (activeOrganizationId as Id<'organizations'>) : null
 	});
 
 	// Convex client
@@ -41,16 +43,26 @@
 			return;
 		}
 
-		const loading = toast.loading('Creating team...');
+		const loadingToastId = toast.loading('Creating team...');
+		const sessionId = $page.data.sessionId;
+		if (!sessionId) {
+			toast.error('Session ID required');
+			return;
+		}
 		try {
 			await convexClient.mutation(api.teams.createTeam, {
-				organizationId: activeOrganizationId as any,
-				name: `Test Team ${Math.floor(Math.random() * 1000)}`,
-				userId: userId as any // Temporary: pass explicitly until Convex auth is set up
+				sessionId,
+				organizationId: activeOrganizationId as Id<'organizations'>,
+				name: `Test Team ${Math.floor(Math.random() * 1000)}`
 			});
-			toast.success('✅ Team created successfully', { id: loading });
-		} catch (error: any) {
-			toast.error(`❌ ${error.message}`, { id: loading });
+			if (loadingToastId !== undefined) {
+				toast.success('✅ Team created successfully', { id: loadingToastId });
+			}
+		} catch (error) {
+			const message = error instanceof Error ? error.message : 'Unknown error';
+			if (loadingToastId !== undefined) {
+				toast.error(`❌ ${message}`, { id: loadingToastId });
+			}
 		}
 	}
 
@@ -60,17 +72,27 @@
 			return;
 		}
 
-		const loading = toast.loading('Inviting user...');
+		const loadingToastId = toast.loading('Inviting user...');
+		const sessionId = $page.data.sessionId;
+		if (!sessionId) {
+			toast.error('Session ID required');
+			return;
+		}
 		try {
 			await convexClient.mutation(api.organizations.createOrganizationInvite, {
-				organizationId: activeOrganizationId as any,
+				sessionId,
+				organizationId: activeOrganizationId as Id<'organizations'>,
 				email: `test${Math.floor(Math.random() * 1000)}@example.com`,
-				role: 'member',
-				userId: userId as any // Temporary: pass explicitly until Convex auth is set up
+				role: 'member'
 			});
-			toast.success('✅ User invited successfully', { id: loading });
-		} catch (error: any) {
-			toast.error(`❌ ${error.message}`, { id: loading });
+			if (loadingToastId !== undefined) {
+				toast.success('✅ User invited successfully', { id: loadingToastId });
+			}
+		} catch (error) {
+			const message = error instanceof Error ? error.message : 'Unknown error';
+			if (loadingToastId !== undefined) {
+				toast.error(`❌ ${message}`, { id: loadingToastId });
+			}
 		}
 	}
 
@@ -80,17 +102,27 @@
 			return;
 		}
 
-		const loading = toast.loading('Updating profile...');
+		const loadingToastId = toast.loading('Updating profile...');
+		const sessionId = $page.data.sessionId;
+		if (!sessionId) {
+			toast.error('Session ID required');
+			return;
+		}
 		try {
 			await convexClient.mutation(api.users.updateUserProfile, {
-				targetUserId: userId as any,
+				sessionId,
+				targetUserId: userId as Id<'users'>,
 				firstName: `Test${Math.floor(Math.random() * 100)}`,
-				lastName: 'User',
-				userId: userId as any // Temporary: pass explicitly until Convex auth is set up
+				lastName: 'User'
 			});
-			toast.success('✅ Profile updated successfully', { id: loading });
-		} catch (error: any) {
-			toast.error(`❌ ${error.message}`, { id: loading });
+			if (loadingToastId !== undefined) {
+				toast.success('✅ Profile updated successfully', { id: loadingToastId });
+			}
+		} catch (error) {
+			const message = error instanceof Error ? error.message : 'Unknown error';
+			if (loadingToastId !== undefined) {
+				toast.error(`❌ ${message}`, { id: loadingToastId });
+			}
 		}
 	}
 </script>
@@ -174,28 +206,28 @@
 			<PermissionButton
 				requires="teams.create"
 				{permissions}
+				variant="primary"
 				onclick={testCreateTeam}
-				class="btn-primary"
 			>
 				Create Team
 			</PermissionButton>
 			<PermissionButton
 				requires="users.invite"
 				{permissions}
+				variant="primary"
 				onclick={testInviteUser}
-				class="btn-primary"
 			>
 				Invite User
 			</PermissionButton>
 			<PermissionButton
 				requires="users.manage-profile"
 				{permissions}
+				variant="primary"
 				onclick={testUpdateProfile}
-				class="btn-primary"
 			>
 				Update Profile
 			</PermissionButton>
-			<PermissionButton requires="teams.delete" {permissions} class="btn-secondary">
+			<PermissionButton requires="teams.delete" {permissions} variant="secondary">
 				Delete Team (No action)
 			</PermissionButton>
 		</div>
@@ -286,13 +318,3 @@
 		{/if}
 	</div>
 </div>
-
-<style>
-	.btn-primary {
-		@apply bg-primary text-on-primary hover:bg-primary-hover rounded-md px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50;
-	}
-
-	.btn-secondary {
-		@apply bg-secondary text-on-secondary hover:bg-secondary-hover rounded-md px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50;
-	}
-</style>

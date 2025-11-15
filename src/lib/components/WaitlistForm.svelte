@@ -3,6 +3,7 @@
 	import { api } from '$lib/convex';
 	import { fly } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
+	import { resolveRoute } from '$lib/utils/navigation';
 
 	let email = $state('');
 	let name = $state('');
@@ -95,7 +96,7 @@
 					/>
 					<span class="checkbox-text text-secondary">
 						I want to receive updates about SynergyOS. You can unsubscribe anytime.
-						<a href="/privacy" class="privacy-link text-accent">Privacy Policy</a>
+						<a href={resolveRoute('/privacy')} class="privacy-link text-accent">Privacy Policy</a>
 					</span>
 				</label>
 			</div>
@@ -111,7 +112,15 @@
 			</button>
 
 			<p class="privacy-note text-tertiary">
-				<svg class="inline-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<svg
+					class="inline-icon"
+					width="14"
+					height="14"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+				>
 					<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
 				</svg>
 				We respect your privacy. No spam. Build together.

@@ -1,0 +1,103 @@
+
+> synergyos@0.1.0 test:e2e
+> npm run test:e2e:stop-dev && E2E_TEST_MODE=true playwright test rate-limiting.test.ts --grep should block excessive login --workers=1
+
+
+> synergyos@0.1.0 test:e2e:stop-dev
+> lsof -ti:5173 | xargs kill -9 2>/dev/null || true
+
+
+Running 1 test using 1 worker
+
+[1A[2K[1/1] [unauthenticated] › e2e/rate-limiting.test.ts:25:3 › Rate Limiting › Login Endpoint › should block excessive login attempts
+[1A[2K[unauthenticated] › e2e/rate-limiting.test.ts:25:3 › Rate Limiting › Login Endpoint › should block excessive login attempts
+[TEST] Starting login test with testId: login-excessive-1763240234504-348p9l
+
+[1A[2K[2m[WebServer] [22m❌ WorkOS password auth failed: {"code":"invalid_credentials","message":"Invalid credentials for 'randy+cicduser@synergyai.nl'."}
+
+[1A[2K[2m[WebServer] [22m❌ Login error: Error: WorkOS password authentication failed (400): {"code":"invalid_credentials","message":"Invalid credentials for 'randy+cicduser@synergyai.nl'."}
+[2m[WebServer] [22m    at authenticateWithPassword [90m(/Users/randyhereman/Coding/SynergyOS/[39msrc/lib/server/auth/workos.ts:194:11[90m)[39m
+[2m[WebServer] [22m[90m    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+[2m[WebServer] [22m    at async eval [90m(/Users/randyhereman/Coding/SynergyOS/[39msrc/routes/auth/login/+server.ts:35:26[90m)[39m
+[2m[WebServer] [22m    at async eval [90m(/Users/randyhereman/Coding/SynergyOS/[39msrc/lib/server/middleware/rateLimit.ts:186:22[90m)[39m
+[2m[WebServer] [22m    at async render_endpoint [90m(/Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/runtime/server/endpoint.js:56:20[90m)[39m
+[2m[WebServer] [22m    at async resolve [90m(/Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/runtime/server/respond.js:461:23[90m)[39m
+[2m[WebServer] [22m    at async fn [90m(file:///Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/exports/hooks/sequence.js:102:13[90m)[39m
+[2m[WebServer] [22m    at async fn [90m(file:///Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/exports/hooks/sequence.js:102:13[90m)[39m
+[2m[WebServer] [22m    at async fn [90m(file:///Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/exports/hooks/sequence.js:102:13[90m)[39m
+[2m[WebServer] [22m    at async fn [90m(/Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/runtime/server/respond.js:326:16[90m)[39m
+
+[1A[2K[TEST] Request 1/6: status=401, testId=login-excessive-1763240234504-348p9l
+
+[1A[2K[2m[WebServer] [22m❌ WorkOS password auth failed: {"code":"invalid_credentials","message":"Invalid credentials for 'randy+cicduser@synergyai.nl'."}
+
+[1A[2K[2m[WebServer] [22m❌ Login error: Error: WorkOS password authentication failed (400): {"code":"invalid_credentials","message":"Invalid credentials for 'randy+cicduser@synergyai.nl'."}
+[2m[WebServer] [22m    at authenticateWithPassword [90m(/Users/randyhereman/Coding/SynergyOS/[39msrc/lib/server/auth/workos.ts:194:11[90m)[39m
+[2m[WebServer] [22m[90m    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+[2m[WebServer] [22m    at async eval [90m(/Users/randyhereman/Coding/SynergyOS/[39msrc/routes/auth/login/+server.ts:35:26[90m)[39m
+[2m[WebServer] [22m    at async eval [90m(/Users/randyhereman/Coding/SynergyOS/[39msrc/lib/server/middleware/rateLimit.ts:186:22[90m)[39m
+[2m[WebServer] [22m    at async render_endpoint [90m(/Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/runtime/server/endpoint.js:56:20[90m)[39m
+[2m[WebServer] [22m    at async resolve [90m(/Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/runtime/server/respond.js:461:23[90m)[39m
+[2m[WebServer] [22m    at async fn [90m(file:///Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/exports/hooks/sequence.js:102:13[90m)[39m
+[2m[WebServer] [22m    at async fn [90m(file:///Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/exports/hooks/sequence.js:102:13[90m)[39m
+[2m[WebServer] [22m    at async fn [90m(file:///Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/exports/hooks/sequence.js:102:13[90m)[39m
+[2m[WebServer] [22m    at async fn [90m(/Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/runtime/server/respond.js:326:16[90m)[39m
+
+[1A[2K[TEST] Request 2/6: status=401, testId=login-excessive-1763240234504-348p9l
+
+[1A[2K[2m[WebServer] [22m❌ WorkOS password auth failed: {"code":"invalid_credentials","message":"Invalid credentials for 'randy+cicduser@synergyai.nl'."}
+
+[1A[2K[2m[WebServer] [22m❌ Login error: Error: WorkOS password authentication failed (400): {"code":"invalid_credentials","message":"Invalid credentials for 'randy+cicduser@synergyai.nl'."}
+[2m[WebServer] [22m    at authenticateWithPassword [90m(/Users/randyhereman/Coding/SynergyOS/[39msrc/lib/server/auth/workos.ts:194:11[90m)[39m
+[2m[WebServer] [22m[90m    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+[2m[WebServer] [22m    at async eval [90m(/Users/randyhereman/Coding/SynergyOS/[39msrc/routes/auth/login/+server.ts:35:26[90m)[39m
+[2m[WebServer] [22m    at async eval [90m(/Users/randyhereman/Coding/SynergyOS/[39msrc/lib/server/middleware/rateLimit.ts:186:22[90m)[39m
+[2m[WebServer] [22m    at async render_endpoint [90m(/Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/runtime/server/endpoint.js:56:20[90m)[39m
+[2m[WebServer] [22m    at async resolve [90m(/Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/runtime/server/respond.js:461:23[90m)[39m
+[2m[WebServer] [22m    at async fn [90m(file:///Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/exports/hooks/sequence.js:102:13[90m)[39m
+[2m[WebServer] [22m    at async fn [90m(file:///Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/exports/hooks/sequence.js:102:13[90m)[39m
+[2m[WebServer] [22m    at async fn [90m(file:///Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/exports/hooks/sequence.js:102:13[90m)[39m
+[2m[WebServer] [22m    at async fn [90m(/Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/runtime/server/respond.js:326:16[90m)[39m
+
+[1A[2K[TEST] Request 3/6: status=401, testId=login-excessive-1763240234504-348p9l
+
+[1A[2K[2m[WebServer] [22m❌ WorkOS password auth failed: {"code":"invalid_credentials","message":"Invalid credentials for 'randy+cicduser@synergyai.nl'."}
+
+[1A[2K[2m[WebServer] [22m❌ Login error: Error: WorkOS password authentication failed (400): {"code":"invalid_credentials","message":"Invalid credentials for 'randy+cicduser@synergyai.nl'."}
+[2m[WebServer] [22m    at authenticateWithPassword [90m(/Users/randyhereman/Coding/SynergyOS/[39msrc/lib/server/auth/workos.ts:194:11[90m)[39m
+[2m[WebServer] [22m[90m    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+[2m[WebServer] [22m    at async eval [90m(/Users/randyhereman/Coding/SynergyOS/[39msrc/routes/auth/login/+server.ts:35:26[90m)[39m
+[2m[WebServer] [22m    at async eval [90m(/Users/randyhereman/Coding/SynergyOS/[39msrc/lib/server/middleware/rateLimit.ts:186:22[90m)[39m
+[2m[WebServer] [22m    at async render_endpoint [90m(/Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/runtime/server/endpoint.js:56:20[90m)[39m
+[2m[WebServer] [22m    at async resolve [90m(/Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/runtime/server/respond.js:461:23[90m)[39m
+[2m[WebServer] [22m    at async fn [90m(file:///Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/exports/hooks/sequence.js:102:13[90m)[39m
+[2m[WebServer] [22m    at async fn [90m(file:///Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/exports/hooks/sequence.js:102:13[90m)[39m
+[2m[WebServer] [22m    at async fn [90m(file:///Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/exports/hooks/sequence.js:102:13[90m)[39m
+[2m[WebServer] [22m    at async fn [90m(/Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/runtime/server/respond.js:326:16[90m)[39m
+
+[1A[2K[TEST] Request 4/6: status=401, testId=login-excessive-1763240234504-348p9l
+
+[1A[2K[2m[WebServer] [22m❌ WorkOS password auth failed: {"code":"invalid_credentials","message":"Invalid credentials for 'randy+cicduser@synergyai.nl'."}
+
+[1A[2K[2m[WebServer] [22m❌ Login error: Error: WorkOS password authentication failed (400): {"code":"invalid_credentials","message":"Invalid credentials for 'randy+cicduser@synergyai.nl'."}
+[2m[WebServer] [22m    at authenticateWithPassword [90m(/Users/randyhereman/Coding/SynergyOS/[39msrc/lib/server/auth/workos.ts:194:11[90m)[39m
+[2m[WebServer] [22m[90m    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)[39m
+[2m[WebServer] [22m    at async eval [90m(/Users/randyhereman/Coding/SynergyOS/[39msrc/routes/auth/login/+server.ts:35:26[90m)[39m
+[2m[WebServer] [22m    at async eval [90m(/Users/randyhereman/Coding/SynergyOS/[39msrc/lib/server/middleware/rateLimit.ts:186:22[90m)[39m
+[2m[WebServer] [22m    at async render_endpoint [90m(/Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/runtime/server/endpoint.js:56:20[90m)[39m
+[2m[WebServer] [22m    at async resolve [90m(/Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/runtime/server/respond.js:461:23[90m)[39m
+[2m[WebServer] [22m    at async fn [90m(file:///Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/exports/hooks/sequence.js:102:13[90m)[39m
+[2m[WebServer] [22m    at async fn [90m(file:///Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/exports/hooks/sequence.js:102:13[90m)[39m
+[2m[WebServer] [22m    at async fn [90m(file:///Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/exports/hooks/sequence.js:102:13[90m)[39m
+[2m[WebServer] [22m    at async fn [90m(/Users/randyhereman/Coding/SynergyOS/[39mnode_modules/[4m@sveltejs/kit[24m/src/runtime/server/respond.js:326:16[90m)[39m
+
+[1A[2K[TEST] Request 5/6: status=401, testId=login-excessive-1763240234504-348p9l
+
+[1A[2K[TEST] Request 6/6: status=429, testId=login-excessive-1763240234504-348p9l
+
+[1A[2K  1 passed (7.0s)
+
+To open last HTML report run:
+[36m[39m
+[36m  npx playwright show-report[39m
+[36m[39m

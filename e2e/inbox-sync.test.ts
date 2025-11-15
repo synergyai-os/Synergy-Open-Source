@@ -13,14 +13,25 @@ test.describe('Inbox Sync Workflow', () => {
 	test('user can view inbox page', async ({ page }) => {
 		await page.goto('/inbox');
 
+		// Wait for page to load and verify we're not redirected to login
+		await page.waitForURL('/inbox', { timeout: 10000 });
+		await page.waitForLoadState('networkidle');
+
 		// Check that inbox page loads
 		// Auth state is automatically loaded from playwright/.auth/user.json
 		// Look for the Inbox header and menu button
-		await expect(page.locator('h2:has-text("Inbox")')).toBeVisible();
+		await expect(page.locator('h2:has-text("Inbox")')).toBeVisible({ timeout: 10000 });
 	});
 
 	test('user can open sync configuration', async ({ page }) => {
 		await page.goto('/inbox');
+
+		// Wait for page to load and verify we're not redirected to login
+		await page.waitForURL('/inbox', { timeout: 10000 });
+		await page.waitForLoadState('networkidle');
+
+		// Verify inbox header is visible before proceeding
+		await expect(page.locator('h2:has-text("Inbox")')).toBeVisible({ timeout: 10000 });
 
 		// Click the three dots menu button (next to "Inbox" header)
 		// The button contains an SVG with three vertical dots

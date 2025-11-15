@@ -7,7 +7,7 @@
 	import TableOfContents from './TableOfContents.svelte';
 
 	type Props = {
-		children?: any;
+		children?: import('svelte').Snippet;
 		headings?: { id: string; text: string; level: number }[];
 	};
 

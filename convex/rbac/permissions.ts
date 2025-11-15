@@ -8,6 +8,7 @@ import { query } from '../_generated/server';
 import { v } from 'convex/values';
 import type { QueryCtx, MutationCtx } from '../_generated/server';
 import type { Id } from '../_generated/dataModel';
+import { validateSessionAndGetUserId } from '../sessionValidation';
 
 // ============================================================================
 // Types
@@ -263,35 +264,36 @@ async function getUserPermissions(
 
 /**
  * Get role permissions for a specific role
+ * TODO: Re-enable when needed
  */
-async function getRolePermissions(
-	ctx: QueryCtx | MutationCtx,
-	roleId: Id<'roles'>
-): Promise<UserPermission[]> {
-	const role = await ctx.db.get(roleId);
-	if (!role) return [];
-
-	const rolePermissions = await ctx.db
-		.query('rolePermissions')
-		.withIndex('by_role', (q) => q.eq('roleId', roleId))
-		.collect();
-
-	const permissions: UserPermission[] = [];
-
-	for (const rolePerm of rolePermissions) {
-		const permission = await ctx.db.get(rolePerm.permissionId);
-		if (!permission) continue;
-
-		permissions.push({
-			permissionSlug: permission.slug,
-			scope: rolePerm.scope,
-			roleSlug: role.slug,
-			roleName: role.name
-		});
-	}
-
-	return permissions;
-}
+// async function getRolePermissions(
+// 	ctx: QueryCtx | MutationCtx,
+// 	roleId: Id<'roles'>
+// ): Promise<UserPermission[]> {
+// 	const role = await ctx.db.get(roleId);
+// 	if (!role) return [];
+//
+// 	const rolePermissions = await ctx.db
+// 		.query('rolePermissions')
+// 		.withIndex('by_role', (q) => q.eq('roleId', roleId))
+// 		.collect();
+//
+// 	const permissions: UserPermission[] = [];
+//
+// 	for (const rolePerm of rolePermissions) {
+// 		const permission = await ctx.db.get(rolePerm.permissionId);
+// 		if (!permission) continue;
+//
+// 		permissions.push({
+// 			permissionSlug: permission.slug,
+// 			scope: rolePerm.scope,
+// 			roleSlug: role.slug,
+// 			roleName: role.name
+// 		});
+// 	}
+//
+// 	return permissions;
+// }
 
 // ============================================================================
 // Audit Logging

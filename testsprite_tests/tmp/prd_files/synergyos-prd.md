@@ -32,6 +32,7 @@ Product teams today struggle with:
 ### For Organizations
 
 Software companies need:
+
 - A system to organize teams and their knowledge
 - Product discovery and delivery tools in one place
 - Outcome-driven frameworks (OKRs, continuous discovery)
@@ -81,6 +82,7 @@ Software companies need:
 ### Technical Architecture
 
 **Frontend**:
+
 - Framework: SvelteKit 5
 - Language: TypeScript
 - UI Library: Bits UI (headless components)
@@ -89,20 +91,24 @@ Software companies need:
 - Routing: SvelteKit file-based routing
 
 **Backend**:
+
 - Database: Convex (real-time database & serverless functions)
 - Authentication: WorkOS
 - Email: Resend
 
 **Mobile**:
+
 - Framework: Capacitor 7
 - Platforms: iOS
 
 **Testing**:
+
 - Unit Tests: Vitest (browser and server environments)
 - E2E Tests: Playwright
 - Test Coverage: Critical workflows (auth, inbox, settings, quick-create)
 
 **Deployment**:
+
 - Platform: Vercel
 - Static Adapter: @sveltejs/adapter-vercel
 
@@ -146,6 +152,7 @@ Software companies need:
 - Real-time updates via Convex
 
 **Acceptance Criteria**:
+
 - [ ] User can view all inbox items in a list
 - [ ] User can select an item to view details
 - [ ] User can filter items by source type
@@ -163,6 +170,7 @@ Software companies need:
 - FSRS algorithm for spaced repetition
 
 **Acceptance Criteria**:
+
 - [ ] User can generate flashcards from selected highlights
 - [ ] Flashcards are generated using AI (Claude API)
 - [ ] User can review generated flashcards before saving
@@ -180,6 +188,7 @@ Software companies need:
 - Progress tracking
 
 **Acceptance Criteria**:
+
 - [ ] User can view all flashcards in a list
 - [ ] User can enter study mode
 - [ ] Study mode shows cards based on FSRS schedule
@@ -197,6 +206,7 @@ Software companies need:
 - Export to markdown for blog
 
 **Acceptance Criteria**:
+
 - [ ] User can create and edit rich text notes
 - [ ] Editor supports markdown syntax
 - [ ] User can export notes to markdown
@@ -214,6 +224,7 @@ Software companies need:
 - Multi-account switching
 
 **Acceptance Criteria**:
+
 - [ ] User can register with email
 - [ ] User can login with WorkOS
 - [ ] Sessions are securely managed
@@ -231,6 +242,7 @@ Software companies need:
 - Organization settings (future)
 
 **Acceptance Criteria**:
+
 - [ ] User can update profile settings
 - [ ] User can configure preferences
 - [ ] Admin can manage permissions
@@ -248,6 +260,7 @@ Software companies need:
 - Community call-to-action
 
 **Acceptance Criteria**:
+
 - [ ] Landing page loads quickly (< 2s)
 - [ ] Hero section clearly communicates value
 - [ ] Features are clearly explained
@@ -440,7 +453,8 @@ Software companies need:
 
 ### Risk: Performance Issues
 
-**Mitigation**: 
+**Mitigation**:
+
 - Optimize database queries
 - Implement caching
 - Use Convex real-time efficiently
@@ -449,6 +463,7 @@ Software companies need:
 ### Risk: Security Vulnerabilities
 
 **Mitigation**:
+
 - Regular security audits
 - Use WorkOS for authentication
 - Follow security best practices
@@ -457,6 +472,7 @@ Software companies need:
 ### Risk: Scalability Challenges
 
 **Mitigation**:
+
 - Design for scale from start
 - Use Convex serverless architecture
 - Optimize database schema
@@ -490,4 +506,3 @@ Software companies need:
 **Last Updated**: November 13, 2025  
 **Owner**: Product Team  
 **Review Cycle**: Monthly
-

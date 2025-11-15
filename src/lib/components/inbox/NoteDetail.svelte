@@ -5,9 +5,12 @@
 	import NoteEditorWithDetection from '../notes/NoteEditorWithDetection.svelte';
 	import { useNote } from '$lib/composables/useNote.svelte';
 	import { api } from '../../../../convex/_generated/api';
+	import type { InboxItemWithDetails } from '$lib/types/convex';
+	import type NoteEditorWithDetectionComponent from '../notes/NoteEditorWithDetection.svelte';
+	import type { Id } from '$lib/convex';
 
 	type Props = {
-		inboxItem: any; // Note inbox item
+		inboxItem: InboxItemWithDetails & { type: 'note' }; // Note inbox item
 		onClose?: () => void;
 	};
 
@@ -17,7 +20,7 @@
 	const getSessionId = () => $page.data.sessionId;
 	const note = useNote(convexClient, getSessionId);
 
-	let editorRef: any = $state(null);
+	let editorRef: NoteEditorWithDetectionComponent | null = $state(null);
 	let editMode = $state(false);
 
 	// Handle Enter key to activate edit mode
@@ -118,7 +121,7 @@
 
 			const result = await convexClient.mutation(api.notes.exportToDevDocs, {
 				sessionId,
-				noteId: inboxItem._id
+				noteId: inboxItem._id as Id<'inboxItems'>
 			});
 
 			if (result?.slug) {

@@ -218,18 +218,25 @@ export function setupAutoDismiss() {
 	}
 }
 
-// ✅ CORRECT: Track with Set (Context7 validated)
+// ✅ CORRECT: Track with SvelteSet (Context7 validated)
+import { SvelteSet } from 'svelte/reactivity';
+
 interface ActivityState {
 	activities: Activity[];
-	dismissTimers: Set<string>; // ✅ Track which have timers
+	dismissTimers: SvelteSet<string>; // ✅ Track which have timers (reactive)
 }
 
+export const activityState = $state<ActivityState>({
+	activities: [],
+	dismissTimers: new SvelteSet()
+});
+
 export function setupAutoDismiss() {
-	for (const activity of state.activities) {
-		if (activity.status === 'completed' && !state.dismissTimers.has(activity.id)) {
-			state.dismissTimers.add(activity.id); // ✅ Mark as having timer
+	for (const activity of activityState.activities) {
+		if (activity.status === 'completed' && !activityState.dismissTimers.has(activity.id)) {
+			activityState.dismissTimers.add(activity.id); // ✅ Reactive - triggers UI updates
 			setTimeout(() => {
-				state.dismissTimers.delete(activity.id); // ✅ Clean up
+				activityState.dismissTimers.delete(activity.id); // ✅ Reactive cleanup
 				remove(activity.id);
 			}, 5000);
 		}
@@ -237,9 +244,59 @@ export function setupAutoDismiss() {
 }
 ```
 
-**Why**: Set prevents creating duplicate timers on `$effect` re-runs.  
+**Why**: `SvelteSet` is reactive - `.add()` and `.delete()` trigger UI updates. Regular `Set` inside `$state` doesn't trigger reactivity when mutated.  
 **Apply when**: Using timers inside `$effect` or reactive contexts  
-**Related**: #L280 (Polling patterns)
+**Related**: #L280 (Polling patterns), #L360 (Map/Set reactivity)
+
+---
+
+## #L360: Map/Set Not Reactive - Use SvelteMap/SvelteSet [🔴 CRITICAL]
+
+**Symptom**: Tag selection, keyboard shortcuts, or other Map/Set mutations don't update UI  
+**Root Cause**: JavaScript `Map`/`Set` are not reactive in Svelte 5. Mutations (`.set()`, `.add()`, `.delete()`) don't trigger re-renders, causing silent bugs and stale UI.  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Regular Map/Set not reactive
+const selected = new Map<string, boolean>();
+selected.set('key', true); // ❌ No UI update
+
+const items = new Set<string>();
+items.add('item'); // ❌ No UI update
+
+const params = new URLSearchParams();
+params.set('key', 'value'); // ❌ No UI update
+
+// ✅ CORRECT: Use Svelte reactivity classes (Context7 validated)
+import { SvelteMap, SvelteSet, SvelteURLSearchParams } from 'svelte/reactivity';
+
+const selected = new SvelteMap<string, boolean>();
+selected.set('key', true); // ✅ Triggers UI update
+
+const items = new SvelteSet<string>();
+items.add('item'); // ✅ Triggers UI update
+
+const params = new SvelteURLSearchParams();
+params.set('key', 'value'); // ✅ Triggers UI update
+
+// ✅ CORRECT: For simple cases, use plain objects/arrays
+const selected = $state<Record<string, boolean>>({});
+selected['key'] = true; // ✅ Reactive
+
+const items = $state<string[]>([]);
+items.push('item'); // ✅ Reactive (array mutation tracked)
+```
+
+**Why**: `SvelteMap`, `SvelteSet`, and `SvelteURLSearchParams` are reactive wrappers that trigger UI updates when mutated. Regular `Map`/`Set` inside `$state` don't track mutations.  
+**Apply when**: 
+- Using `Map`/`Set` for collections that need reactivity
+- Tag selection, keyboard shortcuts, activity tracking
+- URL parameter manipulation
+- Any collection mutations that should update UI
+
+**Note**: `SvelteURL` doesn't exist. For URL manipulation, use `SvelteURLSearchParams` for search params and `window.location.pathname` for pathname.
+
+**Related**: #L340 (Timer tracking with SvelteSet), #L10 (Reactive state patterns)
 
 ---
 
@@ -957,6 +1014,102 @@ test: {
 
 ---
 
-**Pattern Count**: 17  
-**Last Validated**: 2025-11-12  
+## #L850: Always Use Keys in {#each} Blocks [🔴 CRITICAL]
+
+**Symptom**: ESLint `require-each-key` errors (~50 instances), DOM thrashing, list re-render bugs, components show wrong data when list order changes  
+**Root Cause**: Svelte needs keys to track which items changed, moved, or were removed. Without keys, Svelte reuses DOM nodes incorrectly, causing state to persist across items.  
+**Fix**:
+
+```svelte
+<!-- ❌ WRONG: No key - causes ~50 linting errors -->
+{#each items as item}
+	<div>{item.name}</div>
+{/each}
+
+{#each tags as tag}
+	<TagBadge {tag} />
+{/each}
+
+<!-- ✅ CORRECT: Use unique identifier (preferred) -->
+{#each items as item (item._id)}
+	<div>{item.name}</div>
+{/each}
+
+{#each tags as tag (tag._id)}
+	<TagBadge {tag} />
+{/each}
+
+<!-- ✅ CORRECT: Use href/id for navigation items -->
+{#each navItems as item (item.href)}
+	<a href={item.href}>{item.title}</a>
+{/each}
+
+<!-- ✅ CORRECT: Use composite key for nested structures -->
+{#each Array.from(groups.entries()) as [parentId, children] (parentId)}
+	{#each children as child (child._id)}
+		<div>{child.name}</div>
+	{/each}
+{/each}
+
+<!-- ✅ CORRECT: Use index only for static lists (rare) -->
+{#each colors as color, index (index)}
+	<div>{color}</div>
+{/each}
+```
+
+**Key Selection Strategy**:
+
+1. **Convex documents**: Use `_id` (e.g., `item._id`, `tag._id`)
+2. **External data**: Use `id` if available (e.g., `item.id`)
+3. **Navigation items**: Use `href` or `id` (e.g., `item.href`, `item.id`)
+4. **Composite keys**: Use parent ID for outer loop, item ID for inner loop
+5. **Static arrays**: Use `index` only if items never reorder (rare)
+
+**Why**: Keys enable Svelte to:
+- Track which items changed vs moved
+- Preserve component state correctly
+- Optimize DOM updates (no unnecessary re-renders)
+- Prevent bugs where data from one item appears in another
+
+**Apply when**: Every `{#each}` block MUST have a key expression `(key)`.  
+**ESLint Rule**: `svelte/require-each-key` enforces this pattern.  
+**Related**: #L140 (Key on data not ID), #L10 (Reactive state patterns)
+
+---
+
+## #L1085: Component Refs (bind:this) Must Use $state [🟡 IMPORTANT]
+
+**Symptom**: svelte-check warning: "`editorRef` is updated, but is not declared with `$state(...)`. Changing its value will not correctly trigger updates"  
+**Root Cause**: Component references assigned via `bind:this` are updated by Svelte, but svelte-check requires them to be declared with `$state` for proper reactivity tracking  
+**Fix**:
+
+```svelte
+<!-- ❌ WRONG: Component ref without $state -->
+<script>
+	let editorRef: NoteEditorComponent | undefined;
+</script>
+
+<NoteEditor bind:this={editorRef} />
+
+<!-- ✅ CORRECT: Component ref with $state -->
+<script>
+	let editorRef = $state<NoteEditorComponent | undefined>(undefined);
+</script>
+
+<NoteEditor bind:this={editorRef} />
+```
+
+**Why**: While component refs don't need reactivity for UI updates (they're just references), svelte-check requires `$state` declaration when variables are updated. This ensures proper tracking and prevents warnings.  
+**Apply when**: 
+- Using `bind:this` to get component instance references
+- svelte-check warns about non-reactive updates
+- Component refs used to call methods (e.g., `editorRef?.focusTitle()`)
+
+**Note**: Component refs are typically used for calling methods, not for reactivity. The `$state` declaration satisfies svelte-check's requirements while maintaining correct behavior.  
+**Related**: #L10 (Reactive state patterns), #L80 (Passing reactive values)
+
+---
+
+**Pattern Count**: 19  
+**Last Validated**: 2025-11-14  
 **Context7 Source**: `/sveltejs/svelte`, `@sveltejs/kit`

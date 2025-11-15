@@ -86,7 +86,7 @@ mcp_Linear_create_issue({
 	estimate: 2, // ✅ Required (numeric: 0-5, not size labels)
 	labels: [
 		'ba9cfc2b-a993-4265-80dc-07fd1c831029', // feature (type)
-		'7299ef53-982d-429d-b513-ccf190b28c16'  // backend (scope)
+		'7299ef53-982d-429d-b513-ccf190b28c16' // backend (scope)
 	]
 });
 
@@ -214,7 +214,7 @@ mcp_Linear_create_issue({
 	labels: [
 		'ba9cfc2b-a993-4265-80dc-07fd1c831029', // feature (type)
 		'7299ef53-982d-429d-b513-ccf190b28c16', // backend (scope)
-		'ede0cdda-d56f-4f0d-a6b9-5522df50839f'  // workspace (scope)
+		'ede0cdda-d56f-4f0d-a6b9-5522df50839f' // workspace (scope)
 	],
 	state: 'Todo'
 });
@@ -331,12 +331,13 @@ mcp_Linear_create_issue({
 	labels: [
 		'ba9cfc2b-a993-4265-80dc-07fd1c831029', // feature (type - label ID)
 		'7299ef53-982d-429d-b513-ccf190b28c16', // backend (scope - label ID)
-		'ede0cdda-d56f-4f0d-a6b9-5522df50839f'  // workspace (scope - label ID)
+		'ede0cdda-d56f-4f0d-a6b9-5522df50839f' // workspace (scope - label ID)
 	]
 });
 ```
 
-**⚠️ CRITICAL**: 
+**⚠️ CRITICAL**:
+
 - Use `estimate` field (numeric), NOT size labels
 - Use label IDs (not names) - see `/linear` command for all IDs
 - Always include `projectId` and `assigneeId`
@@ -357,18 +358,24 @@ const RANDY_USER_ID = 'c7c555a2-895a-48b6-ae24-d4147d44b1d5'; // Randy Hereman
 
 // Use estimate field (numeric: 0-5), NOT size labels
 const ESTIMATES = {
-  none: 0, xs: 1, s: 2, m: 3, l: 4, xl: 5
+	none: 0,
+	xs: 1,
+	s: 2,
+	m: 3,
+	l: 4,
+	xl: 5
 };
 
 // Label IDs (see /linear command for complete list)
 const LINEAR_LABELS = {
-  feature: 'ba9cfc2b-a993-4265-80dc-07fd1c831029',
-  backend: '7299ef53-982d-429d-b513-ccf190b28c16',
-  // ... see /linear command for all labels
+	feature: 'ba9cfc2b-a993-4265-80dc-07fd1c831029',
+	backend: '7299ef53-982d-429d-b513-ccf190b28c16'
+	// ... see /linear command for all labels
 };
 ```
 
-**⚠️ CRITICAL**: 
+**⚠️ CRITICAL**:
+
 - Use `projectId` (not `project` name)
 - Use `estimate` field (numeric 0-5), NOT size labels
 - Use label IDs (not label names)
@@ -396,14 +403,14 @@ const parent = await mcp_Linear_get_issue({ id: 'SYOS-84' });
 
 // Create subticket
 await mcp_Linear_create_issue({
-  team: 'SYOS',
-  title: 'Fix: [Specific Issue]',
-  description: '# Issue Description\n\n**Parent:** [SYOS-84](url)\n\n...',
-  projectId: parent.projectId, // ✅ Use same project as parent
-  parentId: parent.id, // ✅ Link to parent
-  assigneeId: RANDY_USER_ID, // ✅ Always assign to Randy
-  estimate: 2, // ✅ Numeric estimate
-  labels: ['bug', 'auth', 'backend'] // ✅ Appropriate labels
+	team: 'SYOS',
+	title: 'Fix: [Specific Issue]',
+	description: '# Issue Description\n\n**Parent:** [SYOS-84](url)\n\n...',
+	projectId: parent.projectId, // ✅ Use same project as parent
+	parentId: parent.id, // ✅ Link to parent
+	assigneeId: RANDY_USER_ID, // ✅ Always assign to Randy
+	estimate: 2, // ✅ Numeric estimate
+	labels: ['bug', 'auth', 'backend'] // ✅ Appropriate labels
 });
 ```
 
@@ -448,7 +455,8 @@ await mcp_Linear_create_issue({
 ---
 
 **Last Updated**: 2025-11-13  
-**Related**: 
+**Related**:
+
 - **Command**: `/linear` - Complete Linear workflow reference (constants, ticket creation, examples)
 - **Rule**: `.cursor/rules/working-with-linear.mdc` - Critical rules (Project ID required, Assign user)
 - **Docs**: [Flow Metrics](./flow-metrics.md), [Ticket Writing](../patterns/ticket-writing.md)

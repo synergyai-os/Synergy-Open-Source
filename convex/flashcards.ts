@@ -2,7 +2,7 @@ import { query, mutation, action } from './_generated/server';
 import { v } from 'convex/values';
 import { internal } from './_generated/api';
 import { getAuthUserId } from './auth';
-import { validateSession, validateSessionAndGetUserId } from './sessionValidation';
+import { validateSessionAndGetUserId } from './sessionValidation';
 import { createEmptyCard, fsrs, Rating, State, type Card } from 'ts-fsrs';
 import { loadPrompt } from './promptUtils';
 import { getTagDescendantsForTags } from './tags';
@@ -642,14 +642,16 @@ export const generateFlashcard = action({
 		sourceAuthor: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx, args.sessionId);
+		const userId = await ctx.runQuery(internal.settings.getUserIdFromSessionId, {
+			sessionId: args.sessionId
+		});
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
 
 		// Get encrypted API key using internal query from settings
 		const keys: { claudeApiKey: string | null; readwiseApiKey: string | null } | null =
-			await ctx.runQuery(internal.settings.getEncryptedKeysInternal, {});
+			await ctx.runQuery(internal.settings.getEncryptedKeysInternal, { userId });
 
 		if (!keys?.claudeApiKey) {
 			throw new Error('Claude API key not configured. Please add your API key in Settings.');
@@ -729,7 +731,7 @@ export const generateFlashcard = action({
 						throw new Error('No JSON found in response');
 					}
 				}
-			} catch (parseError) {
+			} catch {
 				// If parsing fails, return a single flashcard with raw content
 				flashcards = [
 					{

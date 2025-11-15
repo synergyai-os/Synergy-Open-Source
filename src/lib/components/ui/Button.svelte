@@ -14,8 +14,7 @@
 		onclick?: () => void;
 		children: Snippet;
 		class?: string;
-		[key: string]: any;
-	} = $props();
+	} & Record<string, unknown> = $props();
 
 	// Base classes using design tokens
 	const baseClasses =

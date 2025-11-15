@@ -170,7 +170,7 @@
 		{#if filteredEmojis.length === 0}
 			<div class="emoji-menu-item empty">No emojis found</div>
 		{:else}
-			{#each filteredEmojis as { emoji, keywords }, i}
+			{#each filteredEmojis as { emoji, keywords }, i (emoji)}
 				<button
 					type="button"
 					class="emoji-menu-item"

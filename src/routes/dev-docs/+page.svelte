@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	// TODO: Re-enable when goto is needed
+	// import { goto } from '$app/navigation';
 	import MetricsForecast from '$lib/components/ai-tools/MetricsForecast.svelte';
 	import ToolComparisonTable from '$lib/components/ai-tools/ToolComparisonTable.svelte';
 	import { verifiedTools } from '$lib/services/metricsService';
@@ -7,6 +8,7 @@
 	import { fade, fly, scale, slide } from 'svelte/transition';
 	import { quintOut, elasticOut } from 'svelte/easing';
 	import { onMount } from 'svelte';
+	import { resolveRoute } from '$lib/utils/navigation';
 
 	// Animation state
 	let heroVisible = false;
@@ -24,7 +26,8 @@
 
 	// Count-up animation for social proof
 	let contributorCount = 0;
-	let starCount = 0;
+	// TODO: Re-enable when star count display is needed
+	// let _starCount = 0;
 	let docsCount = 0;
 
 	const targetCounts = {
@@ -75,7 +78,7 @@
 			const current = Math.floor(start + (end - start) * eased);
 
 			if (type === 'contributors') contributorCount = current;
-			else if (type === 'stars') starCount = current;
+			// else if (type === 'stars') _starCount = current;
 			else if (type === 'docs') docsCount = current;
 
 			if (progress < 1) requestAnimationFrame(animate);
@@ -248,7 +251,7 @@
 <nav class="docs-navbar" aria-label="Main navigation">
 	<div class="navbar-content">
 		<div class="navbar-left">
-			<a href="/dev-docs" class="navbar-logo">
+			<a href={resolveRoute('/dev-docs')} class="navbar-logo">
 				<span class="logo-icon">⚡</span>
 				<span class="logo-text">SynergyOS Docs</span>
 			</a>
@@ -256,7 +259,7 @@
 
 		<!-- Desktop Navigation -->
 		<div class="navbar-center navbar-desktop">
-			{#each navGroups as group}
+			{#each navGroups as group (group.id)}
 				<div class="nav-group">
 					<button
 						class="nav-group-trigger"
@@ -307,8 +310,16 @@
 							class="nav-dropdown"
 							transition:slide={{ duration: prefersReducedMotion ? 0 : 200, easing: quintOut }}
 						>
-							{#each group.items as item}
-								<a href={item.href} class="nav-dropdown-item" onclick={() => closeAllMenus()}>
+							{#each group.items as item (item.href)}
+								<a
+									href={item.href.startsWith('http') ||
+									item.href.startsWith('#') ||
+									item.href === '/CONTRIBUTING'
+										? item.href
+										: resolveRoute(item.href)}
+									class="nav-dropdown-item"
+									onclick={() => closeAllMenus()}
+								>
 									<div class="nav-dropdown-content">
 										<span class="nav-dropdown-label">
 											{item.label}
@@ -394,7 +405,7 @@
 		</div>
 
 		<div class="mobile-menu-content">
-			{#each navGroups as group, groupIndex}
+			{#each navGroups as group, groupIndex (group.id)}
 				<div
 					class="mobile-menu-section"
 					in:fly={{ y: 20, duration: 250, delay: groupIndex * 80, easing: quintOut }}
@@ -409,9 +420,13 @@
 						{group.label}
 					</h3>
 					<div class="mobile-menu-cards">
-						{#each group.items as item, itemIndex}
+						{#each group.items as item, itemIndex (item.href)}
 							<a
-								href={item.href}
+								href={item.href.startsWith('http') ||
+								item.href.startsWith('#') ||
+								item.href === '/CONTRIBUTING'
+									? item.href
+									: resolveRoute(item.href)}
 								class="mobile-menu-card"
 								onclick={() => (mobileMenuOpen = false)}
 								in:fly={{
@@ -572,8 +587,13 @@
 
 			<!-- Quick Actions - De-emphasized -->
 			<div class="quick-actions-minimal">
-				{#each quickActions as action}
-					<a href={action.href} class="action-card-minimal">
+				{#each quickActions as action (action.href)}
+					<a
+						href={action.href.startsWith('http') || action.href.startsWith('#')
+							? action.href
+							: resolveRoute(action.href)}
+						class="action-card-minimal"
+					>
 						<span class="action-icon-minimal">{action.icon}</span>
 						<span class="action-title-minimal">{action.title}</span>
 						{#if action.tag}
@@ -624,15 +644,20 @@
 		<p class="section-description">Find what you need based on what you do</p>
 
 		<div class="roles-grid">
-			{#each roles as role}
+			{#each roles as role (role.title)}
 				<div class="role-card">
 					<div class="role-icon">{role.icon}</div>
 					<h3 class="role-title">{role.title}</h3>
 					<p class="role-description">{role.description}</p>
 					<ul class="role-links">
-						{#each role.links as link}
+						{#each role.links as link (link.href)}
 							<li>
-								<a href={link.href} class="role-link">
+								<a
+									href={link.href.startsWith('http') || link.href.startsWith('#')
+										? link.href
+										: resolveRoute(link.href)}
+									class="role-link"
+								>
 									{link.label}
 									<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
 										<path
@@ -654,7 +679,7 @@
 
 	<!-- Stats Bar -->
 	<section class="stats-bar">
-		{#each stats as stat}
+		{#each stats as stat (stat.label)}
 			<div class="stat">
 				<div class="stat-value">{stat.value}</div>
 				<div class="stat-label">{stat.label}</div>
@@ -676,7 +701,7 @@
 			<div class="verified-tools">
 				<h3 class="verified-title">Verified Compatible</h3>
 				<div class="tool-cards-grid">
-					{#each verifiedTools as tool}
+					{#each verifiedTools as tool (tool.name)}
 						<a href={tool.url} target="_blank" rel="noopener noreferrer" class="ai-tool-card">
 							<div class="tool-logo">{tool.logo}</div>
 							<div class="tool-content">
@@ -703,7 +728,9 @@
 
 				<div class="forecast-callout">
 					<strong>Bold Claim:</strong> We'll hit 100 GitHub stars in 90 days.
-					<a href="/dev-docs/2-areas/metrics" class="metrics-link">Track it live →</a>
+					<a href={resolveRoute('/dev-docs/2-areas/metrics')} class="metrics-link"
+						>Track it live →</a
+					>
 				</div>
 			</div>
 
@@ -738,7 +765,9 @@
 						</svg>
 						Star on GitHub
 					</a>
-					<a href="/CONTRIBUTING" class="btn btn-secondary"> 📖 Contributing Guide </a>
+					<a href={resolveRoute('/CONTRIBUTING')} class="btn btn-secondary">
+						📖 Contributing Guide
+					</a>
 				</div>
 			</div>
 
@@ -747,13 +776,17 @@
 					<div class="stat-card-icon">💰</div>
 					<div class="stat-card-value">$0 MRR</div>
 					<div class="stat-card-label">Pre-revenue</div>
-					<a href="/dev-docs/2-areas/metrics" class="stat-card-link">View all metrics →</a>
+					<a href={resolveRoute('/dev-docs/2-areas/metrics')} class="stat-card-link"
+						>View all metrics →</a
+					>
 				</div>
 				<div class="stat-card">
 					<div class="stat-card-icon">🎯</div>
 					<div class="stat-card-value">48</div>
 					<div class="stat-card-label">Patterns Documented</div>
-					<a href="/dev-docs/2-areas/patterns/INDEX" class="stat-card-link">Browse patterns →</a>
+					<a href={resolveRoute('/dev-docs/2-areas/patterns/INDEX')} class="stat-card-link"
+						>Browse patterns →</a
+					>
 				</div>
 			</div>
 		</div>
@@ -764,10 +797,13 @@
 		<h2>Ready to dive in?</h2>
 		<p>Choose your path and start exploring</p>
 		<div class="footer-actions">
-			<a href="/dev-docs/2-areas/patterns/INDEX" class="btn btn-large btn-primary">
+			<a href={resolveRoute('/dev-docs/2-areas/patterns/INDEX')} class="btn btn-large btn-primary">
 				🐛 Debug Something
 			</a>
-			<a href="/marketing-docs/strategy/product-vision-2.0" class="btn btn-large btn-secondary">
+			<a
+				href={resolveRoute('/marketing-docs/strategy/product-vision-2.0')}
+				class="btn btn-large btn-secondary"
+			>
 				🚀 See the Vision
 			</a>
 		</div>
@@ -800,19 +836,23 @@
 			<div class="footer-section">
 				<h4 class="footer-heading">Documentation</h4>
 				<ul class="footer-links">
-					<li><a href="/dev-docs/2-areas/patterns/INDEX">Pattern Index</a></li>
-					<li><a href="/dev-docs/2-areas/metrics">Metrics & OKRs</a></li>
-					<li><a href="/dev-docs/2-areas/architecture">Architecture</a></li>
-					<li><a href="/dev-docs/2-areas/design-tokens">Design Tokens</a></li>
+					<li><a href={resolveRoute('/dev-docs/2-areas/patterns/INDEX')}>Pattern Index</a></li>
+					<li><a href={resolveRoute('/dev-docs/2-areas/metrics')}>Metrics & OKRs</a></li>
+					<li><a href={resolveRoute('/dev-docs/2-areas/architecture')}>Architecture</a></li>
+					<li><a href={resolveRoute('/dev-docs/2-areas/design-tokens')}>Design Tokens</a></li>
 				</ul>
 			</div>
 
 			<div class="footer-section">
 				<h4 class="footer-heading">Product</h4>
 				<ul class="footer-links">
-					<li><a href="/marketing-docs/strategy/product-vision-2.0">Product Vision</a></li>
-					<li><a href="/marketing-docs/strategy/product-strategy">Product Strategy</a></li>
-					<li><a href="/CONTRIBUTING">Contributing Guide</a></li>
+					<li>
+						<a href={resolveRoute('/marketing-docs/strategy/product-vision-2.0')}>Product Vision</a>
+					</li>
+					<li>
+						<a href={resolveRoute('/marketing-docs/strategy/product-strategy')}>Product Strategy</a>
+					</li>
+					<li><a href={resolveRoute('/CONTRIBUTING')}>Contributing Guide</a></li>
 					<li>
 						<a
 							href="https://github.com/synergyai-os/Synergy-Open-Source/issues"
@@ -840,7 +880,7 @@
 							rel="noopener noreferrer">Discussions</a
 						>
 					</li>
-					<li><a href="/dev-docs/2-areas/metrics">Public Metrics</a></li>
+					<li><a href={resolveRoute('/dev-docs/2-areas/metrics')}>Public Metrics</a></li>
 				</ul>
 			</div>
 		</div>
@@ -1389,19 +1429,6 @@
 		margin-bottom: 3rem;
 	}
 
-	.ai-badge {
-		display: inline-block;
-		padding: 0.5rem 1rem;
-		background: var(--color-accent-primary);
-		color: white;
-		font-size: 0.75rem;
-		font-weight: 700;
-		letter-spacing: 0.05em;
-		text-transform: uppercase;
-		border-radius: 0.375rem;
-		margin-bottom: 1.5rem;
-	}
-
 	/* Community CTA - Contribution Ladder */
 	.community-cta {
 		background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
@@ -1589,75 +1616,6 @@
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
 		font-weight: 700;
-	}
-
-	/* Quick Actions (Old) */
-	.quick-actions {
-		display: none;
-	}
-
-	.action-card {
-		position: relative;
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-		padding: 1.25rem 1.5rem;
-		background-color: transparent !important;
-		border: 1px solid var(--color-border-base);
-		border-radius: 0.5rem;
-		text-decoration: none;
-		transition: all 0.15s ease;
-	}
-
-	.action-card:hover {
-		border-color: var(--color-text-secondary);
-		background-color: var(--color-bg-hover) !important;
-	}
-
-	.action-card-accent {
-		border-color: var(--color-accent-primary);
-		background-color: oklch(from var(--color-accent-primary) l c h / 0.05) !important;
-	}
-
-	.action-card-accent:hover {
-		background-color: oklch(from var(--color-accent-primary) l c h / 0.1) !important;
-	}
-
-	.action-icon {
-		font-size: 2rem;
-		flex-shrink: 0;
-	}
-
-	.action-content {
-		flex: 1;
-		text-align: left;
-	}
-
-	.action-title {
-		font-size: 1.125rem;
-		font-weight: 600;
-		color: var(--color-text-primary);
-		margin-bottom: 0.25rem;
-	}
-
-	.action-description {
-		font-size: 0.875rem;
-		color: var(--color-text-tertiary);
-		margin: 0;
-	}
-
-	.action-tag {
-		position: absolute;
-		top: 0.5rem;
-		right: 0.5rem;
-		padding: 0.25rem 0.5rem;
-		background: var(--color-accent-primary);
-		color: white;
-		font-size: 0.75rem;
-		font-weight: 600;
-		border-radius: 0.25rem;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
 	}
 
 	/* How It Works Section - Scannable, Visual-First */
@@ -2349,15 +2307,6 @@
 		.action-card-minimal {
 			width: 100%;
 			justify-content: center;
-		}
-
-		.ai-badge {
-			font-size: 0.625rem;
-			padding: 0.375rem 0.75rem;
-		}
-
-		.quick-actions {
-			grid-template-columns: 1fr;
 		}
 
 		.section-title-large {

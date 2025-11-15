@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { Button } from 'bits-ui';
+	import type { InboxItemWithDetails } from '$lib/types/convex';
 
 	type Props = {
-		item: any;
+		item: InboxItemWithDetails & { type: 'manual_text' };
 		onClose: () => void;
 	};
 
@@ -32,10 +33,10 @@
 	</div>
 
 	<!-- Source Info -->
-	{#if item.sourceData?.bookTitle}
+	{#if item.bookTitle}
 		<div class="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4">
 			<p class="text-sm font-semibold text-gray-900">Source</p>
-			<p class="text-sm text-gray-700">{item.sourceData.bookTitle}</p>
+			<p class="text-sm text-gray-700">{item.bookTitle}</p>
 		</div>
 	{/if}
 
@@ -44,24 +45,10 @@
 		<p class="mb-2 text-sm font-medium text-gray-600">Note</p>
 		<div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
 			<p class="leading-relaxed whitespace-pre-wrap text-gray-700">
-				{item.sourceData?.text || item.text || 'No content'}
+				{item.text || 'No content'}
 			</p>
 		</div>
 	</div>
-
-	<!-- Tags -->
-	{#if item.tags && item.tags.length > 0}
-		<div class="mb-6">
-			<p class="mb-2 text-sm font-medium text-gray-600">Tags</p>
-			<div class="flex flex-wrap gap-2">
-				{#each item.tags as tag}
-					<span class="rounded bg-gray-100 px-2 py-1 text-sm text-gray-600">
-						{tag}
-					</span>
-				{/each}
-			</div>
-		</div>
-	{/if}
 
 	<!-- Actions -->
 	<div class="space-y-3">
@@ -77,7 +64,7 @@
 	<div class="mt-6 border-t border-gray-200 pt-6">
 		<div class="flex items-center justify-between text-xs text-gray-500">
 			<span>Added {new Date(item.createdAt).toLocaleDateString()}</span>
-			<span>ID: {item.id}</span>
+			<span>ID: {item._id}</span>
 		</div>
 	</div>
 </div>

@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
+	import { page } from '$app/stores';
 	import { useConvexClient } from 'convex-svelte';
 	import { makeFunctionReference } from 'convex/server';
+	import type { FunctionReference } from 'convex/server';
+	import { resolveRoute } from '$lib/utils/navigation';
 
 	let testInput = $state('');
 	let flashcard = $state<{ question: string; answer: string } | null>(null);
@@ -26,13 +29,25 @@
 		}
 
 		try {
-			const getUserSettings = makeFunctionReference('settings:getUserSettings');
-			const data = await convexClient.query(getUserSettings, {});
+			const sessionId = $page.data.sessionId;
+			if (!sessionId) {
+				settings = { isLoading: false, data: null };
+				return;
+			}
+			const getUserSettings = makeFunctionReference(
+				'settings:getUserSettings'
+			) as FunctionReference<
+				'query',
+				'public',
+				{ sessionId: string },
+				{ hasClaudeKey?: boolean; hasReadwiseKey?: boolean } | null
+			>;
+			const data = await convexClient.query(getUserSettings, { sessionId });
 			settings = {
 				isLoading: false,
 				data: data ? { hasClaudeKey: data.hasClaudeKey || false } : null
 			};
-		} catch (e) {
+		} catch (_e) {
 			settings = { isLoading: false, data: null };
 		}
 	});
@@ -57,9 +72,21 @@
 				throw new Error('Convex client not available');
 			}
 
-			const generateFlashcardAction = makeFunctionReference('generateFlashcard:generateFlashcard');
+			const generateFlashcardAction = makeFunctionReference(
+				'generateFlashcard:generateFlashcard'
+			) as FunctionReference<
+				'action',
+				'public',
+				{ sessionId: string; text: string; sourceTitle?: string; sourceAuthor?: string },
+				{ success: boolean; flashcard?: { question: string; answer: string } }
+			>;
+			const sessionId = $page.data.sessionId;
+			if (!sessionId) {
+				throw new Error('Session ID is required');
+			}
 			const result = await convexClient.action(generateFlashcardAction, {
-				text: testInput
+				sessionId,
+				text: testInput.trim()
 			});
 
 			if (result.success && result.flashcard) {
@@ -100,7 +127,8 @@
 							<span class="text-orange-600 dark:text-orange-400"
 								>⚠️ Claude API key not configured.</span
 							>
-							<a href="/settings" class="ml-1 text-accent-primary hover:underline">Go to Settings</a
+							<a href={resolveRoute('/settings')} class="ml-1 text-accent-primary hover:underline"
+								>Go to Settings</a
 							>
 						{/if}
 					</p>

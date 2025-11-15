@@ -1,10 +1,26 @@
 import { test, expect } from '@playwright/test';
 
+/**
+ * Generate unique test ID for rate limit isolation
+ * Each test gets its own rate limit bucket in E2E mode
+ *
+ * Note: Storage state is handled by playwright.config.ts (unauthenticated project)
+ */
+function getTestId(testName: string): string {
+	return `${testName}-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+}
+
 test.describe('Rate Limiting', () => {
+	// Test isolation via X-Test-ID header (unique per test run)
+	// Each test generates a unique testId with timestamp + random string
+	// No cleanup needed - tests use separate rate limit buckets
 	test.describe('Login Endpoint', () => {
-		test('should block excessive login attempts', async ({ page, request }) => {
-			const email = 'test@example.com';
+		test('should block excessive login attempts', async ({ request }) => {
+			const testId = getTestId('login-excessive');
+			const email = 'randy+cicduser@synergyai.nl';
 			const password = 'wrong-password';
+
+			console.log('[TEST] Starting login test with testId:', testId);
 
 			// Try logging in 6 times (limit is 5/min)
 			for (let i = 0; i < 6; i++) {
@@ -12,8 +28,13 @@ test.describe('Rate Limiting', () => {
 					data: {
 						email,
 						password
+					},
+					headers: {
+						'X-Test-ID': testId
 					}
 				});
+
+				console.log(`[TEST] Request ${i + 1}/6: status=${response.status()}, testId=${testId}`);
 
 				if (i < 5) {
 					// First 5 attempts should return error (401 or 404 for invalid credentials)
@@ -30,10 +51,14 @@ test.describe('Rate Limiting', () => {
 		});
 
 		test('should include rate limit headers on login requests', async ({ request }) => {
+			const testId = getTestId('login-headers');
 			const response = await request.post('/auth/login', {
 				data: {
-					email: 'test@example.com',
+					email: 'randy+cicduser@synergyai.nl',
 					password: 'password'
+				},
+				headers: {
+					'X-Test-ID': testId
 				}
 			});
 
@@ -44,18 +69,25 @@ test.describe('Rate Limiting', () => {
 		});
 
 		test('should include Retry-After header on 429 response', async ({ request }) => {
-			const email = 'rate-limit-test-' + Date.now() + '@example.com';
+			const testId = getTestId('login-retry-after');
+			const email = `randy+ci-rate-1-${Date.now()}@synergyai.nl`;
 
 			// Exhaust limit
 			for (let i = 0; i < 5; i++) {
 				await request.post('/auth/login', {
-					data: { email, password: 'test' }
+					data: { email, password: 'test' },
+					headers: {
+						'X-Test-ID': testId
+					}
 				});
 			}
 
 			// Next request should return 429 with Retry-After
 			const response = await request.post('/auth/login', {
-				data: { email, password: 'test' }
+				data: { email, password: 'test' },
+				headers: {
+					'X-Test-ID': testId
+				}
 			});
 
 			expect(response.status()).toBe(429);
@@ -68,14 +100,18 @@ test.describe('Rate Limiting', () => {
 
 	test.describe('Registration Endpoint', () => {
 		test('should block excessive registration attempts', async ({ request }) => {
+			const testId = getTestId('register-excessive');
 			const timestamp = Date.now();
 
 			// Try registering 4 times (limit is 3/min)
 			for (let i = 0; i < 4; i++) {
 				const response = await request.post('/auth/register', {
 					data: {
-						email: `test-${timestamp}-${i}@example.com`,
+						email: `randy+ci-rate-${i}-${timestamp}@synergyai.nl`,
 						password: 'password123'
+					},
+					headers: {
+						'X-Test-ID': testId
 					}
 				});
 
@@ -93,10 +129,14 @@ test.describe('Rate Limiting', () => {
 		});
 
 		test('should include rate limit headers on register requests', async ({ request }) => {
+			const testId = getTestId('register-headers');
 			const response = await request.post('/auth/register', {
 				data: {
-					email: 'newuser-' + Date.now() + '@example.com',
+					email: `randy+ci-rate-new-${Date.now()}@synergyai.nl`,
 					password: 'password123'
+				},
+				headers: {
+					'X-Test-ID': testId
 				}
 			});
 
@@ -108,7 +148,7 @@ test.describe('Rate Limiting', () => {
 	});
 
 	test.describe('Account Switch Endpoint', () => {
-		test('should block excessive account switch attempts', async ({ page, request }) => {
+		test('should block excessive account switch attempts', async () => {
 			// Note: This test requires authentication
 			// In a real scenario, you would set up authenticated sessions first
 
@@ -127,7 +167,7 @@ test.describe('Rate Limiting', () => {
 	});
 
 	test.describe('Logout Endpoint', () => {
-		test('should block excessive logout attempts', async ({ request }) => {
+		test('should block excessive logout attempts', async () => {
 			// Note: Logout rate limiting is less critical but still protected
 
 			test.skip('requires authenticated session setup');
@@ -141,27 +181,37 @@ test.describe('Rate Limiting', () => {
 
 	test.describe('Independent Rate Limiting', () => {
 		test('should track different endpoints independently', async ({ request }) => {
+			const testId = getTestId('independent-endpoints');
 			const timestamp = Date.now();
-			const email = `independent-test-${timestamp}@example.com`;
+			const email = `randy+ci-rate-indep-${timestamp}@synergyai.nl`;
 
 			// Exhaust login limit
 			for (let i = 0; i < 5; i++) {
 				await request.post('/auth/login', {
-					data: { email, password: 'test' }
+					data: { email, password: 'test' },
+					headers: {
+						'X-Test-ID': testId
+					}
 				});
 			}
 
 			// Login should be blocked
 			let response = await request.post('/auth/login', {
-				data: { email, password: 'test' }
+				data: { email, password: 'test' },
+				headers: {
+					'X-Test-ID': testId
+				}
 			});
 			expect(response.status()).toBe(429);
 
-			// But registration should still work (different limit)
+			// But registration should still work (different limit, same test ID = same client)
 			response = await request.post('/auth/register', {
 				data: {
-					email: `different-${timestamp}@example.com`,
+					email: `randy+ci-rate-diff-${timestamp}@synergyai.nl`,
 					password: 'password123'
+				},
+				headers: {
+					'X-Test-ID': testId
 				}
 			});
 			expect(response.status()).not.toBe(429);
@@ -170,12 +220,16 @@ test.describe('Rate Limiting', () => {
 
 	test.describe('Rate Limit Headers', () => {
 		test('should update remaining count with each request', async ({ request }) => {
+			const testId = getTestId('headers-remaining');
 			const timestamp = Date.now();
-			const email = `header-test-${timestamp}@example.com`;
+			const email = `randy+ci-rate-header-${timestamp}@synergyai.nl`;
 
 			for (let i = 0; i < 3; i++) {
 				const response = await request.post('/auth/login', {
-					data: { email, password: 'test' }
+					data: { email, password: 'test' },
+					headers: {
+						'X-Test-ID': testId
+					}
 				});
 
 				const headers = response.headers();
@@ -187,12 +241,19 @@ test.describe('Rate Limiting', () => {
 		});
 
 		test('should set consistent rate limit on all responses', async ({ request }) => {
+			const testId = getTestId('headers-consistent');
 			const response1 = await request.post('/auth/login', {
-				data: { email: 'test1@example.com', password: 'test' }
+				data: { email: 'randy+ci-rate-test1@synergyai.nl', password: 'test' },
+				headers: {
+					'X-Test-ID': testId
+				}
 			});
 
 			const response2 = await request.post('/auth/login', {
-				data: { email: 'test2@example.com', password: 'test' }
+				data: { email: 'randy+ci-rate-test2@synergyai.nl', password: 'test' },
+				headers: {
+					'X-Test-ID': testId
+				}
 			});
 
 			// Both should have same limit
@@ -203,13 +264,17 @@ test.describe('Rate Limiting', () => {
 
 	test.describe('Performance', () => {
 		test('should add minimal overhead to requests', async ({ request }) => {
+			const testId = getTestId('perf-test');
 			const start = Date.now();
 
 			// Make a single request
 			await request.post('/auth/login', {
 				data: {
-					email: 'perf-test@example.com',
+					email: 'randy+ci-rate-perf@synergyai.nl',
 					password: 'test'
+				},
+				headers: {
+					'X-Test-ID': testId
 				}
 			});
 

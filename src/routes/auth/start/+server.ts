@@ -5,7 +5,7 @@ import { env as publicEnv } from '$env/dynamic/public';
 import { createLoginState, type AuthFlowMode } from '$lib/server/auth/sessionStore';
 import { generateRandomToken } from '$lib/server/auth/crypto';
 import { createHash } from 'node:crypto';
-import type { Id } from '../../../convex/_generated/dataModel';
+import type { Id } from '$lib/convex';
 
 const WORKOS_AUTHORIZE_URL = 'https://api.workos.com/user_management/authorize';
 

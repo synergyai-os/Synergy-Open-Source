@@ -60,18 +60,19 @@ export function useStudySession(getSessionId: () => string | undefined): UseStud
 	const convexClient = browser ? useConvexClient() : null;
 
 	// Query for due flashcards (reactive to tag selection)
-	const dueCardsQuery = browser
-		? useQuery(api.flashcards.getDueFlashcards, () => {
-				const sessionId = getSessionId();
-				if (!sessionId) return 'skip'; // Use Convex 'skip' pattern to skip query when sessionId not available
-				return {
-					sessionId,
-					limit: state.sessionLimit,
-					algorithm: 'fsrs',
-					tagIds: state.selectedTagIds.length > 0 ? state.selectedTagIds : undefined
-				};
-			})
-		: null;
+	const dueCardsQuery =
+		browser && getSessionId()
+			? useQuery(api.flashcards.getDueFlashcards, () => {
+					const sessionId = getSessionId();
+					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
+					return {
+						sessionId,
+						limit: state.sessionLimit,
+						algorithm: 'fsrs',
+						tagIds: state.selectedTagIds.length > 0 ? state.selectedTagIds : undefined
+					};
+				})
+			: null;
 
 	// Derived state
 	const isLoading = $derived(dueCardsQuery?.isLoading ?? false);

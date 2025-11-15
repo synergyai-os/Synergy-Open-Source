@@ -341,6 +341,57 @@ const card: Card = {
 
 ---
 
+## #L370: Distinguish API-Synced vs Manual Data [🟡 IMPORTANT]
+
+**Symptom**: UI feature shows for manual entries when it should only show for API-synced items  
+**Root Cause**: Both manual and API-synced data use same discriminated union type, need secondary check  
+**Fix**:
+
+```typescript
+// Schema: Both use same type but different metadata
+// convex/schema.ts
+highlights: defineTable({
+  externalId: v.string(), // Both have this (manual uses "manual_timestamp")
+  lastSyncedAt: v.optional(v.number()), // ✅ Only API-synced highlights have this
+  // ...
+})
+
+// Manual creation (no lastSyncedAt)
+// convex/inbox.ts
+const highlightId = await ctx.db.insert('highlights', {
+  externalId: `manual_${Date.now()}`, // Has externalId
+  // lastSyncedAt: undefined ❌ Not set for manual entries
+});
+
+// API sync (has lastSyncedAt)
+// convex/syncReadwise.ts
+const highlightId = await ctx.db.insert('highlights', {
+  externalId: readwiseHighlight.id, // From API
+  lastSyncedAt: Date.now() // ✅ Only synced items have this
+});
+
+// ❌ WRONG: Check type only
+{#if item?.type === 'readwise_highlight'}
+  <GenerateFlashcardButton /> <!-- Shows for manual entries too -->
+{/if}
+
+// ❌ WRONG: Check externalId (both have it)
+{#if item?.type === 'readwise_highlight' && item?.highlight?.externalId}
+  <GenerateFlashcardButton /> <!-- Still shows for manual entries -->
+{/if}
+
+// ✅ CORRECT: Check sync metadata field
+{#if item?.type === 'readwise_highlight' && item?.highlight?.lastSyncedAt}
+  <GenerateFlashcardButton /> <!-- Only shows for synced items -->
+{/if}
+```
+
+**Why**: API-synced data has metadata fields (lastSyncedAt, externalUrl) that manual entries don't have.  
+**Apply when**: Rendering features that should only apply to API-synced data (not manual entries)  
+**Related**: #L290 (Discriminated unions), #L240 (Shared types)
+
+---
+
 ## #L390: Centralized Configuration [🟢 REFERENCE]
 
 **Symptom**: Settings scattered across codebase, magic numbers  
@@ -1526,6 +1577,742 @@ it.skip('should remove organization member', async () => {
 
 ---
 
-**Pattern Count**: 26  
-**Last Validated**: 2025-11-12  
-**Context7 Source**: `/get-convex/convex-backend`, `convex-test` NPM docs
+## #L1175: Reuse Test Session for RBAC Permission Tests [🔴 CRITICAL]
+
+**Symptom**: RBAC permission test fails with `Permission denied: users.invite` even though permissions are correctly assigned  
+**Root Cause**: Test creates two separate sessions - one for RBAC setup, another for mutation - creating different users  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Creates two different users
+it('should create organization invite with RBAC permission check', async () => {
+	const t = convexTest(schema, modules);
+	const { userId: adminUserId } = await createTestSession(t); // Creates user A
+	const orgId = await createTestOrganization(t, 'Test Org');
+	await createTestOrganizationMember(t, orgId, adminUserId, 'admin');
+
+	// Set up RBAC permissions for adminUserId (user A)
+	const adminRole = await createTestRole(t, 'admin', 'Admin');
+	const invitePermission = await createTestPermission(t, 'users.invite', 'Invite Users');
+	await assignPermissionToRole(t, adminRole, invitePermission, 'all');
+	await assignRoleToUser(t, adminUserId, adminRole, { organizationId: orgId });
+
+	// ❌ Creates user B (different from user A!)
+	const { sessionId: adminSessionId } = await createTestSession(t);
+	const result = await t.mutation(api.organizations.createOrganizationInvite, {
+		sessionId: adminSessionId, // ❌ Uses user B, but RBAC is on user A
+		organizationId: orgId,
+		email: 'newuser@example.com',
+		role: 'member'
+	});
+	// ❌ Fails: Permission denied: users.invite
+});
+
+// ✅ CORRECT: Use same session for RBAC setup and mutation
+it('should create organization invite with RBAC permission check', async () => {
+	const t = convexTest(schema, modules);
+	const { userId: adminUserId, sessionId: adminSessionId } = await createTestSession(t); // ✅ Get both
+	const orgId = await createTestOrganization(t, 'Test Org');
+	await createTestOrganizationMember(t, orgId, adminUserId, 'admin');
+
+	// Set up RBAC permissions for adminUserId
+	const adminRole = await createTestRole(t, 'admin', 'Admin');
+	const invitePermission = await createTestPermission(t, 'users.invite', 'Invite Users');
+	await assignPermissionToRole(t, adminRole, invitePermission, 'all');
+	await assignRoleToUser(t, adminUserId, adminRole, { organizationId: orgId });
+
+	// ✅ Uses same sessionId (same user)
+	const result = await t.mutation(api.organizations.createOrganizationInvite, {
+		sessionId: adminSessionId, // ✅ Uses same user with RBAC
+		organizationId: orgId,
+		email: 'newuser@example.com',
+		role: 'member'
+	});
+	// ✅ Passes: User has RBAC permissions
+});
+```
+
+**Why**: Each `createTestSession()` call creates a new user. RBAC permissions are assigned to a specific `userId`. If the mutation uses a different user's `sessionId`, the permission check fails because that user doesn't have the permissions.
+
+**Pattern**: Always destructure both `userId` and `sessionId` from a single `createTestSession()` call when you need both for RBAC setup and mutation execution.
+
+**Apply when**: Writing integration tests that test RBAC permissions or any test where you set up permissions and then execute mutations  
+**Related**: #L900 (Integration testing), #L1100 (User isolation), #L1150 (convex-test limitations)
+
+---
+
+---
+
+## #L1250: Avoid `any` Type - Use Proper `Id<>` Assertions [🔴 CRITICAL]
+
+**Symptom**: TypeScript errors "Type 'string' is not assignable to type 'Id<\"tableName\">'" or using `as any` to bypass type errors  
+**Root Cause**: Convex `Id<>` types are branded strings - need explicit type assertion, not `any`  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Using `any` bypasses type safety
+await convexClient.mutation(api.notes.updateNote, {
+	sessionId,
+	noteId: state.noteId as any, // ❌ Loses type safety
+	title: state.title
+});
+
+// ✅ CORRECT: Use proper `Id<>` type assertion
+import type { Id } from '$lib/convex';
+
+await convexClient.mutation(api.notes.updateNote, {
+	sessionId,
+	noteId: state.noteId as Id<'inboxItems'>, // ✅ Type-safe assertion
+	title: state.title
+});
+
+// ✅ CORRECT: For backend queries (string → Id conversion)
+const settings = await ctx.db
+	.query('userSettings')
+	.withIndex('by_user', (q) => q.eq('userId', args.userId as Id<'users'>)) // ✅ Safe: userId is Id<"users"> at runtime
+	.first();
+```
+
+**When to Use**:
+
+- **Frontend**: When `state` has `string | null` but Convex expects `Id<"tableName">`
+- **Backend**: When `sessionId` → `userId` conversion returns `string` but queries need `Id<"users">`
+- **Always**: Import `Id` type from `$lib/convex` or `convex/_generated/dataModel`
+
+**Why**: `any` disables type checking - bugs slip through. `Id<>` assertions preserve type safety while allowing necessary conversions.  
+**Apply when**: Converting between `string` and `Id<>` types, or when state types don't match Convex function signatures  
+**Related**: #L1200 (SessionId migration), #L850 (Type safety)
+
+---
+
+## #L1600: Use Top-Level Imports for Convex Doc Types [🟡 IMPORTANT]
+
+**Symptom**: Type annotations extremely long and hard to read with inline `import()` syntax for Convex `Doc` types  
+**Root Cause**: Inline `import()` syntax makes type annotations verbose and violates coding standards for readability  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Inline import() syntax is hard to read
+let modalFlashcards = $state<Array<import('../../../../convex/_generated/dataModel').Doc<'flashcards'>>>([]);
+let flashcards: Array<import('../../../../convex/_generated/dataModel').Doc<'flashcards'>> = [];
+
+// ✅ CORRECT: Use top-level imports for consistency and readability
+import type { Doc, Id } from '../../../../convex/_generated/dataModel';
+
+let modalFlashcards = $state<Array<Doc<'flashcards'>>>([]);
+let flashcards: Array<Doc<'flashcards'>> = [];
+```
+
+**When to Use**:
+
+- **Always**: When using Convex `Doc` types in type annotations
+- **Consistency**: Matches existing pattern for `Id` type imports (top-level)
+- **Readability**: Makes types easier to scan and understand
+
+**Why**: Top-level imports improve code readability and maintain consistency with how `Id` types are imported. Inline `import()` syntax makes type annotations extremely long and harder to scan.  
+**Apply when**: Using Convex `Doc` types in any type annotations (variables, function parameters, return types)  
+**Related**: #L1250 (Id type assertions), #L590 (import type for _generated files)
+
+---
+
+## #L1300: Circular API References - Use FunctionReference Type Assertions [🟡 IMPORTANT]
+
+**Symptom**: TypeScript errors "Type of property 'X' circularly references itself" or "Property 'Y' does not exist on type '{}'"  
+**Root Cause**: Convex API type generation creates circular references when module A calls `api.B.function` and module B calls `api.A.function`  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Direct API call causes circular reference
+import { api, internal } from './_generated/api';
+
+export const listBlogPosts = action({
+	handler: async (ctx, args) => {
+		const notes = await ctx.runQuery(api.notes.listNotes, {
+			// ❌ Circular: blogExport → api.notes → api (includes blogExport)
+			sessionId: args.sessionId,
+			blogOnly: true
+		});
+	}
+});
+
+// ✅ CORRECT: Use FunctionReference type assertion to break circular reference
+import { api, internal } from './_generated/api';
+import type { FunctionReference } from 'convex/server';
+
+export const listBlogPosts = action({
+	handler: async (ctx, args) => {
+		// Type assertion breaks circular reference while preserving type safety
+		const listNotesQuery = api.notes.listNotes as FunctionReference<
+			'query',
+			'public',
+			{ sessionId: string; blogOnly?: boolean },
+			InboxItem[] // ✅ Explicit return type
+		>;
+		const notes = await ctx.runQuery(listNotesQuery, {
+			sessionId: args.sessionId,
+			blogOnly: true
+		});
+	}
+});
+
+// ✅ CORRECT: For internal API calls
+const getUserIdQuery = internal.settings.getUserIdFromSessionId as FunctionReference<
+	'query',
+	'internal',
+	{ sessionId: string },
+	string | null
+>;
+const userId = await ctx.runQuery(getUserIdQuery, { sessionId: args.sessionId });
+```
+
+**Common Patterns**:
+
+```typescript
+// For queries
+const queryRef = api.module.function as FunctionReference<'query', 'public', Args, ReturnType>;
+
+// For mutations
+const mutationRef = internal.module.function as FunctionReference<
+	'mutation',
+	'internal',
+	Args,
+	ReturnType
+>;
+
+// For actions
+const actionRef = internal.module.function as FunctionReference<
+	'action',
+	'internal',
+	Args,
+	ReturnType
+>;
+```
+
+**Frontend Pattern** (using `makeFunctionReference`):
+
+```typescript
+// ❌ WRONG: Using `as any` bypasses type safety
+import { makeFunctionReference } from 'convex/server';
+
+const getUserSettings = makeFunctionReference('settings:getUserSettings') as any; // ❌ No type safety
+const data = await convexClient.query(getUserSettings, {});
+
+// ✅ CORRECT: Use FunctionReference type assertion for type safety
+import { makeFunctionReference } from 'convex/server';
+import type { FunctionReference } from 'convex/server';
+import { page } from '$app/stores';
+
+const sessionId = $page.data.sessionId;
+if (!sessionId) {
+	// Handle missing sessionId
+	return;
+}
+
+const getUserSettings = makeFunctionReference('settings:getUserSettings') as FunctionReference<
+	'query',
+	'public',
+	{ sessionId: string },
+	{ hasClaudeKey?: boolean; hasReadwiseKey?: boolean } | null
+>;
+const data = await convexClient.query(getUserSettings, { sessionId });
+
+// ✅ CORRECT: For actions
+const generateFlashcardAction = makeFunctionReference(
+	'generateFlashcard:generateFlashcard'
+) as FunctionReference<
+	'action',
+	'public',
+	{ sessionId: string; text: string; sourceTitle?: string; sourceAuthor?: string },
+	{ success: boolean; flashcard?: { question: string; answer: string } }
+>;
+const result = await convexClient.action(generateFlashcardAction, {
+	sessionId,
+	text: inputText.trim()
+});
+```
+
+**When to Use**:
+
+- Module A calls `api.B.function` AND module B calls `api.A.function` (circular)
+- TypeScript shows "circularly references itself" error
+- `internal` API shows as `{}` type (circular reference)
+- **Frontend**: Using `makeFunctionReference()` - always use `FunctionReference` type assertion instead of `as any`
+
+**Why**: Type assertions break circular references while preserving type safety. Better than `any` - still validates args/return types.  
+**Apply when**: Encountering circular API reference errors in Convex backend OR using `makeFunctionReference()` in frontend code  
+**Related**: #L1250 (Avoid `any`), #L1200 (SessionId migration)
+
+---
+
+## #L1550: Systematic `any` Type Elimination Strategy [🟢 REFERENCE]
+
+**Symptom**: Hundreds of `any` types across codebase violating coding standards ("NEVER use `any`")  
+**Root Cause**: Gradual codebase growth without consistent type definitions, external API types missing, union types not narrowed  
+**Fix**:
+
+**Strategy: Phased Approach**
+
+1. **Create Shared Type Definitions** (Phase 1):
+```typescript
+// ✅ Create dedicated type files for external APIs
+// src/lib/types/readwise.ts
+export type ReadwiseHighlight = {
+	id: number;
+	book_id: number;
+	text: string;
+	location?: number;
+	highlighted_at?: string;
+	// ... complete type definition
+};
+
+export type ReadwisePaginatedResponse<T> = {
+	count: number;
+	next: string | null;
+	previous: string | null;
+	results: T[];
+};
+
+// src/lib/types/prosemirror.ts
+import type { Command, EditorState, Transaction } from 'prosemirror-state';
+import type { EditorView } from 'prosemirror-view';
+
+export type ProseMirrorDoc = {
+	type: string;
+	content: ProseMirrorContent;
+};
+
+export type ProseMirrorCommand = (
+	state: EditorState,
+	dispatch?: (tr: Transaction) => void
+) => boolean;
+
+// Re-export EditorState and Transaction for convenience
+export type { EditorState };
+export type { Transaction };
+
+// src/lib/types/sonner.ts
+export type ToastOptions = {
+	id?: string | number;
+	duration?: number;
+	description?: string;
+	// ... complete type definition
+};
+```
+
+2. **Fix Convex Backend Files** (Phase 2):
+```typescript
+// ❌ WRONG: any types everywhere
+export const syncReadwise = action({
+	handler: async (ctx, args) => {
+		const highlights: any[] = [];
+		const books: any[] = [];
+		// ...
+	}
+});
+
+// ✅ CORRECT: Import and use proper types
+import type { ReadwiseHighlight, ReadwiseSource, ReadwisePaginatedResponse } from '../src/lib/types/readwise';
+import type { ActionCtx } from './_generated/server';
+
+export const syncReadwise = action({
+	handler: async (ctx: ActionCtx, args) => {
+		const highlights: ReadwiseHighlight[] = [];
+		const books: ReadwiseSource[] = [];
+		const response: ReadwisePaginatedResponse<ReadwiseHighlight> = await ctx.runAction(...);
+		// ...
+	}
+});
+```
+
+3. **Fix Components with Type Narrowing** (Phase 3):
+```typescript
+// ❌ WRONG: Union type without narrowing
+type Props = {
+	item: InboxItemWithDetails; // Union type
+};
+
+// Accessing properties that don't exist on all union members
+item.tags // ❌ Error: Property 'tags' doesn't exist on PhotoNoteWithDetails
+
+// ✅ CORRECT: Narrow union type in component props
+import type { ReadwiseHighlightWithDetails } from '$lib/types/convex';
+
+type Props = {
+	item: ReadwiseHighlightWithDetails; // Narrowed to specific type
+};
+
+// Now TypeScript knows item has tags, highlight, source, etc.
+item.tags // ✅ Type-safe
+```
+
+4. **Fix Utils with Library Types** (Phase 4):
+```typescript
+// ❌ WRONG: any for library types
+import type { ToastOptions } from '$lib/types/sonner';
+
+function success(message: string, options?: any) { // ❌
+	// ...
+}
+
+// ✅ CORRECT: Use proper types
+import type { ToastOptions } from '$lib/types/sonner';
+
+function success(message: string, options?: ToastOptions) { // ✅
+	// ...
+}
+```
+
+5. **Fix Routes with FunctionReference** (Phase 5):
+```typescript
+// ❌ WRONG: as any for function references
+const inboxApi = {
+	getInboxItemWithDetails: makeFunctionReference('inbox:getInboxItemWithDetails') as any,
+};
+
+// ✅ CORRECT: Use FunctionReference type assertion
+import type { FunctionReference } from 'convex/server';
+import type { Id } from '$lib/convex';
+import type { InboxItemWithDetails } from '$lib/types/convex';
+
+const inboxApi = {
+	getInboxItemWithDetails: makeFunctionReference('inbox:getInboxItemWithDetails') as FunctionReference<
+		'query',
+		'public',
+		{ sessionId: string; inboxItemId: Id<'inboxItems'> },
+		InboxItemWithDetails | null
+	>,
+};
+```
+
+**Common Patterns**:
+
+```typescript
+// Pattern 1: External API types → Create dedicated type file
+// Pattern 2: Convex ctx types → Use ActionCtx, QueryCtx, MutationCtx from _generated/server
+// Pattern 3: Union types → Narrow in component props (ReadwiseHighlightWithDetails vs InboxItemWithDetails)
+// Pattern 4: Library types → Create wrapper types (ToastOptions, ProseMirrorCommand)
+// Pattern 5: Function references → Use FunctionReference type assertion, never `as any`
+// Pattern 6: Error handling → Use `unknown` + type guards instead of `any`
+```
+
+**Migration Checklist**:
+
+1. ✅ Create type definition files for external APIs (Readwise, ProseMirror, Sonner)
+2. ✅ Replace `any` in Convex files with proper types (`Doc<>`, `Id<>`, `ActionCtx`, etc.)
+3. ✅ Narrow union types in component props (use specific types like `ReadwiseHighlightWithDetails`)
+4. ✅ Replace `any` in utils with library-specific types (`ToastOptions`, `ProseMirrorCommand`)
+5. ✅ Replace `as any` in routes with `FunctionReference` type assertions
+6. ✅ Use `unknown` + type guards for error handling instead of `any`
+7. ✅ Verify completion: Run ESLint, TypeScript check, and tests
+
+**Verification Phase** (Phase 4):
+
+```bash
+# Verify zero violations
+npx eslint src --format=json | grep "@typescript-eslint/no-explicit-any"
+# Expected: 0 violations
+
+# Verify TypeScript check passes
+npm run check
+# Expected: 0 errors
+
+# Verify tests pass
+npm run test:unit:server && npm run test:integration
+# Expected: All type-related tests pass
+```
+
+**ProseMirror Type Enhancement**:
+
+When using ProseMirror types (`EditorState`, `Transaction`), ensure they're exported from type definition file:
+
+```typescript
+// ✅ CORRECT: Export EditorState and Transaction from prosemirror.ts
+// src/lib/types/prosemirror.ts
+import type { Command, EditorState, Transaction } from 'prosemirror-state';
+import type { EditorView } from 'prosemirror-view';
+
+// Re-export for convenience
+export type { EditorState };
+export type { Transaction };
+```
+
+**Success Metrics**:
+
+- ✅ Zero `@typescript-eslint/no-explicit-any` violations
+- ✅ Zero TypeScript errors
+- ✅ All tests pass (type-related)
+- ✅ All `makeFunctionReference()` calls use `FunctionReference` assertions
+- ✅ All external API types properly imported
+- ✅ All error handling uses `unknown` + type guards
+
+**Why**: Systematic elimination of `any` types improves type safety, catches bugs at compile time, enables better IDE support, and prevents runtime errors.  
+**Apply when**: Large-scale type safety improvements, fixing ESLint `no-explicit-any` violations, improving developer experience  
+**Related**: #L1250 (Avoid `any`), #L1300 (FunctionReference), #L240 (Shared types), #L290 (Discriminated unions)
+
+---
+
+## #L1350: useQuery Argument Functions Must Return Valid Object or Throw [🟡 IMPORTANT]
+
+**Symptom**: TypeScript errors "Argument of type '() => { sessionId: string; } | null' is not assignable" or "Property 'sessionId' is missing"  
+**Root Cause**: `useQuery` argument function returns `null` when `sessionId` is missing, but Convex expects valid object or `'skip'`  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Returns null when sessionId missing
+const organizationsQuery = useQuery(api.organizations.listOrganizations, () => {
+	const sessionId = getSessionId();
+	if (!sessionId) return null; // ❌ null not valid - Convex expects object or 'skip'
+	return { sessionId };
+});
+
+// ✅ CORRECT: Throw error if sessionId required (outer check ensures it exists)
+const organizationsQuery =
+	browser && getSessionId()
+		? useQuery(api.organizations.listOrganizations, () => {
+				const sessionId = getSessionId();
+				if (!sessionId) throw new Error('sessionId required'); // ✅ Ensures valid object returned
+				return { sessionId };
+			})
+		: null;
+
+// ✅ CORRECT: Use Convex 'skip' pattern for optional queries
+const tagsQuery = useQuery(api.tags.listAllTags, () => {
+	const sessionId = getSessionId();
+	if (!sessionId) return 'skip'; // ✅ Convex recognizes 'skip' as valid
+	return { sessionId };
+});
+```
+
+**Pattern**:
+
+```typescript
+// Pattern 1: Required sessionId (throw if missing)
+const query =
+	browser && getSessionId()
+		? useQuery(api.module.function, () => {
+				const sessionId = getSessionId();
+				if (!sessionId) throw new Error('sessionId required');
+				return { sessionId, ...otherArgs };
+			})
+		: null;
+
+// Pattern 2: Optional query (use 'skip')
+const query = useQuery(api.module.function, () => {
+	const sessionId = getSessionId();
+	if (!sessionId) return 'skip';
+	return { sessionId, ...otherArgs };
+});
+```
+
+**Why**: Convex `useQuery` expects argument function to return valid query args object or `'skip'`. Returning `null` breaks type contract.  
+**Note**: TypeScript may not accept `'skip'` as return type. Use `throw new Error()` pattern instead when outer check ensures sessionId exists.  
+**Apply when**: Writing `useQuery` calls with conditional `sessionId`  
+**Related**: #L1200 (SessionId migration), #L220 (useQuery pattern)
+
+---
+
+## #L1360: Batch Queries for Performance [🟡 IMPORTANT]
+
+**Symptom**: Multiple related queries take 3-5 seconds, slow page load  
+**Root Cause**: Each query makes separate network round trip + session validation overhead  
+**Fix**: Create batch query that checks multiple items at once
+
+```typescript
+// ❌ WRONG: Multiple separate queries (slow)
+const flag1Query = useQuery(api.featureFlags.checkFlag, () => ({ flag: 'flag1', sessionId }));
+const flag2Query = useQuery(api.featureFlags.checkFlag, () => ({ flag: 'flag2', sessionId }));
+const flag3Query = useQuery(api.featureFlags.checkFlag, () => ({ flag: 'flag3', sessionId }));
+// Result: 3 network calls, 3x session validation, 3-5 seconds
+
+// ✅ CORRECT: Batch query (fast)
+const flagsQuery = useQuery(api.featureFlags.checkFlags, () => ({
+	sessionId,
+	flags: ['flag1', 'flag2', 'flag3']
+}));
+const flag1 = $derived(flagsQuery?.data?.['flag1'] ?? false);
+const flag2 = $derived(flagsQuery?.data?.['flag2'] ?? false);
+const flag3 = $derived(flagsQuery?.data?.['flag3'] ?? false);
+// Result: 1 network call, 1x session validation, < 1 second
+```
+
+**Backend Implementation**:
+
+```typescript
+// convex/featureFlags.ts
+export const checkFlags = query({
+	args: {
+		flags: v.array(v.string()),
+		sessionId: v.optional(v.string())
+	},
+	handler: async (ctx, { flags, sessionId }) => {
+		// Validate session once for all flags
+		let userId: Id<'users'> | undefined;
+		if (sessionId) {
+			const { userId: id } = await validateSessionAndGetUserId(ctx, sessionId);
+			userId = id;
+		}
+
+		// Fetch all configs in parallel
+		const configs = await Promise.all(
+			flags.map(flag =>
+				ctx.db.query('featureFlags')
+					.withIndex('by_flag', (q) => q.eq('flag', flag))
+					.first()
+			)
+		);
+
+		// Evaluate all flags
+		const results: Record<string, boolean> = {};
+		for (let i = 0; i < flags.length; i++) {
+			results[flags[i]] = evaluateFlag(configs[i], userId);
+		}
+		return results;
+	}
+});
+```
+
+**Performance**: Reduces 3-5 seconds → < 1 second (3-5x faster)  
+**When to Use**: Checking multiple related items (feature flags, settings, permissions)  
+**Trade-off**: Slightly more complex backend, but significant performance gain  
+**Related**: #L1200 (SessionId pattern), #L220 (useQuery pattern)
+
+---
+
+---
+
+## #L1400: Null Checks for Optional Chaining with Nested Properties [🟡 IMPORTANT]
+
+**Symptom**: TypeScript errors "'X' is possibly 'null'" when accessing nested properties after optional chaining  
+**Root Cause**: Optional chaining (`?.`) only guards the immediate property access, not subsequent property accesses  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Optional chaining doesn't guard nested property access
+export function isEditorEmpty(state: EditorState): boolean {
+	const doc = state.doc;
+	const firstChild = doc.firstChild;
+	return (
+		doc.childCount === 1 && (firstChild?.isTextblock ?? false) && firstChild.content.size === 0
+	);
+	// ❌ firstChild.content.size - firstChild could be null
+}
+
+// ✅ CORRECT: Use optional chaining for nested property access
+export function isEditorEmpty(state: EditorState): boolean {
+	const doc = state.doc;
+	const firstChild = doc.firstChild;
+	return (
+		doc.childCount === 1 &&
+		(firstChild?.isTextblock ?? false) &&
+		(firstChild?.content.size ?? 0) === 0
+	);
+	// ✅ firstChild?.content.size - guards nested access
+}
+
+// ✅ CORRECT: Alternative - Extract to variable with null check
+export function isEditorEmpty(state: EditorState): boolean {
+	const doc = state.doc;
+	const firstChild = doc.firstChild;
+	if (!firstChild) return false;
+	return doc.childCount === 1 && firstChild.isTextblock && firstChild.content.size === 0;
+	// ✅ Early return ensures firstChild is not null
+}
+```
+
+**When to Use**:
+
+- Accessing nested properties after optional chaining (`obj?.prop.nested`)
+- TypeScript shows "'X' is possibly 'null'" for nested property access
+- Working with union types that include `null`
+
+**Why**: Optional chaining only guards the immediate property, not subsequent property accesses. Need explicit null checks or additional optional chaining.  
+**Apply when**: Accessing nested properties on potentially null values  
+**Related**: #L1250 (Avoid `any`), #L290 (Discriminated unions)
+
+---
+
+## #L1450: Type Narrowing for Union Types with Type Assertions [🟡 IMPORTANT]
+
+**Symptom**: TypeScript errors "Property 'X' does not exist on type 'Y | Z'" when accessing properties on union types  
+**Root Cause**: TypeScript can't narrow union types without type guards or explicit assertions  
+**Fix**:
+
+```typescript
+// ❌ WRONG: TypeScript can't narrow union type automatically
+let { data }: { data: PageData } = $props();
+let title = $derived(data.note?.title || 'Untitled Note');
+// ❌ Property 'title' does not exist on type 'InboxItemWithDetails | null'
+// InboxItemWithDetails is union of ReadwiseHighlight | PhotoNote | ManualText | NoteWithDetails
+
+// ✅ CORRECT: Use type assertion to narrow to specific union member
+import type { NoteWithDetails } from '$lib/types/convex';
+
+let { data }: { data: PageData } = $props();
+const note = data.note as NoteWithDetails | null; // ✅ Narrow to NoteWithDetails
+let title = $derived(note?.title || 'Untitled Note');
+let markdown = $derived(note?.contentMarkdown || '');
+let createdAt = $derived(note?.createdAt ? new Date(note.createdAt).toLocaleDateString() : '');
+
+// ✅ CORRECT: Use type guard for runtime safety
+function isNoteWithDetails(item: InboxItemWithDetails | null): item is NoteWithDetails {
+	return item !== null && item.type === 'note';
+}
+
+if (isNoteWithDetails(data.note)) {
+	// ✅ TypeScript knows data.note is NoteWithDetails here
+	const title = data.note.title;
+}
+```
+
+**When to Use**:
+
+- Accessing properties that only exist on specific union members
+- TypeScript shows "Property does not exist" errors on union types
+- Working with discriminated unions where you know the specific type
+
+**Why**: Type assertions provide type narrowing when you know the runtime type, but type guards are safer for runtime validation.  
+**Apply when**: Accessing properties specific to one union member, or when TypeScript can't infer the correct type  
+**Related**: #L290 (Discriminated unions), #L1250 (Avoid `any`)
+
+---
+
+---
+
+## #L1500: RequestHandler Syntax - Function Not Object Literal [🟡 IMPORTANT]
+
+**Symptom**: TypeScript error "',' expected" when exporting `RequestHandler` in SvelteKit server routes  
+**Root Cause**: Using object literal syntax `});` instead of function syntax `};`  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Object literal syntax (closing with });
+export const GET: RequestHandler = async ({ url, getClientAddress }) => {
+  // ... handler code
+}); // ❌ TypeScript expects comma (object literal syntax)
+
+// ✅ CORRECT: Function syntax (closing with };
+export const GET: RequestHandler = async ({ url, getClientAddress }) => {
+  // ... handler code
+}; // ✅ Function syntax - no comma needed
+
+// ✅ CORRECT: With wrapper function (still function syntax)
+export const POST: RequestHandler = withRateLimit(RATE_LIMITS.register, async ({ event }) => {
+  // ... handler code
+}); // ✅ This is correct - closing the wrapper function call
+```
+
+**When to Use**:
+
+- Exporting `RequestHandler` in SvelteKit `+server.ts` files
+- TypeScript shows "',' expected" error at end of handler function
+- Using direct function assignment vs wrapper functions
+
+**Why**: `RequestHandler` is a function type, not an object type. Direct assignment uses `};`, wrapper functions use `});` to close the wrapper call.  
+**Apply when**: Creating SvelteKit API route handlers  
+**Related**: #L1250 (Avoid `any`), #L10 (Convex payloads)
+
+---
+
+**Pattern Count**: 33  
+**Last Validated**: 2025-11-14  
+**Context7 Source**: `/get-convex/convex-backend`, `convex-test` NPM docs, TypeScript type system, SvelteKit docs

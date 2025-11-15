@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Button, DropdownMenu, Tooltip } from 'bits-ui';
+	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 	import { useConvexClient, useQuery } from 'convex-svelte';
@@ -8,10 +9,15 @@
 	import TagSelector from './TagSelector.svelte';
 	import type { Id } from '../../../../convex/_generated/dataModel';
 	import { DEFAULT_TAG_COLOR } from '$lib/utils/tagConstants';
+	// TODO: Re-enable when Doc type is needed
+	// import type { Doc } from '../../../../convex/_generated/dataModel';
+	import type { FunctionReference } from 'convex/server';
+
+	import type { ReadwiseHighlightWithDetails } from '$lib/types/convex';
 
 	type Props = {
 		inboxItemId?: string; // Inbox item ID (if using real data)
-		item: any; // Item from getInboxItemWithDetails query
+		item: ReadwiseHighlightWithDetails; // Item from getInboxItemWithDetails query (narrowed to readwise_highlight)
 		onClose: () => void;
 		currentIndex?: number; // Current item index (0-based)
 		totalItems?: number; // Total number of items
@@ -35,17 +41,44 @@
 	const canNavigatePrevious = $derived(onPrevious !== undefined && currentIndex > 0);
 
 	const convexClient = browser ? useConvexClient() : null;
-	const getUserId = () => $page.data.user?.userId;
-	const markProcessedApi = browser ? (makeFunctionReference('inbox:markProcessed') as any) : null;
+	const getSessionId = () => $page.data.sessionId;
+	const markProcessedApi = browser
+		? (makeFunctionReference('inbox:markProcessed') as FunctionReference<
+				'mutation',
+				'public',
+				{ sessionId: string; inboxItemId: Id<'inboxItems'> },
+				void
+			>)
+		: null;
 
 	// Tag APIs (only if tags module exists in API)
 	// Note: These will be null if Convex hasn't regenerated the API yet
-	let createTagApi: any = null;
-	let assignTagsApi: any = null;
-	if (browser && (api as any).tags?.createTag && (api as any).tags?.assignTagsToHighlight) {
+	let createTagApi: FunctionReference<
+		'mutation',
+		'public',
+		{ sessionId: string; displayName: string; color?: string; parentId?: Id<'tags'> },
+		Id<'tags'>
+	> | null = null;
+	let assignTagsApi: FunctionReference<
+		'mutation',
+		'public',
+		{ sessionId: string; highlightId: Id<'highlights'>; tagIds: Id<'tags'>[] },
+		void
+	> | null = null;
+	if (browser && api.tags?.createTag && api.tags?.assignTagsToHighlight) {
 		try {
-			createTagApi = makeFunctionReference('tags:createTag') as any;
-			assignTagsApi = makeFunctionReference('tags:assignTagsToHighlight') as any;
+			createTagApi = makeFunctionReference('tags:createTag') as FunctionReference<
+				'mutation',
+				'public',
+				{ sessionId: string; displayName: string; color?: string; parentId?: Id<'tags'> },
+				Id<'tags'>
+			>;
+			assignTagsApi = makeFunctionReference('tags:assignTagsToHighlight') as FunctionReference<
+				'mutation',
+				'public',
+				{ sessionId: string; highlightId: Id<'highlights'>; tagIds: Id<'tags'>[] },
+				void
+			>;
 		} catch (e) {
 			// Tags API not available yet - component will work without tags feature
 			console.warn('Tags API not available:', e);
@@ -54,16 +87,17 @@
 
 	// Query all tags for user (with error handling if API not generated yet)
 	// Note: useQuery returns {data, isLoading, error, isStale} - extract the data property
-	const allTagsQuery = useQuery(
-		browser && (api as any).tags?.listAllTags && getUserId() ? (api as any).tags.listAllTags : null,
-		browser && (api as any).tags?.listAllTags && getUserId()
-			? () => {
-					const userId = getUserId();
-					if (!userId) return null;
-					return { userId };
-				}
-			: null
-	);
+	const allTagsQuery =
+		browser && api.tags?.listAllTags && getSessionId()
+			? useQuery(api.tags.listAllTags, () => {
+					const sessionId = getSessionId();
+					if (!sessionId) {
+						// Return skip pattern - Convex recognizes this
+						return 'skip' as 'skip' & { sessionId: string };
+					}
+					return { sessionId };
+				})
+			: null;
 
 	// Extract data from useQuery result (which returns {data, isLoading, error, isStale})
 	const allTags = $derived(() => {
@@ -124,7 +158,7 @@
 		}
 
 		if (item?.tags && Array.isArray(item.tags) && item.tags.length > 0) {
-			const tagIds = item.tags.map((tag: any) => tag._id).filter(Boolean);
+			const tagIds = item.tags.map((tag) => tag._id as Id<'tags'>).filter(Boolean) as Id<'tags'>[];
 
 			// Only update if the tag IDs are different (avoid infinite loops)
 			const currentSorted = [...selectedTagIds].sort().join(',');
@@ -132,8 +166,8 @@
 
 			if (currentSorted !== newSorted) {
 				// Check if selectedTagIds contains tags not in item.tags (optimistic add)
-				const selectedSet = new Set(selectedTagIds);
-				const itemSet = new Set(tagIds);
+				const selectedSet = new SvelteSet(selectedTagIds);
+				const itemSet = new SvelteSet(tagIds);
 				const hasOptimisticAdds = [...selectedSet].some((id) => !itemSet.has(id));
 
 				if (hasOptimisticAdds) {
@@ -165,9 +199,21 @@
 
 	// Available tags from query (with color) - includes tags from item if available
 	// CRITICAL: This must always include ALL user tags from allTags query for global availability
+	// Note: listAllTags returns TagWithHierarchy[] (flattened hierarchical structure)
+	type TagWithHierarchy = {
+		_id: Id<'tags'>;
+		displayName: string;
+		color: string;
+		parentId?: Id<'tags'>;
+		level: number;
+		children?: TagWithHierarchy[];
+	};
 	const availableTags = $derived(() => {
 		const tagsData = allTags(); // Call the derived function to get the actual tags data
-		const tagsMap = new Map<string, any>();
+		const tagsMap = new SvelteMap<
+			string,
+			{ _id: Id<'tags'>; displayName: string; color: string; parentId?: Id<'tags'>; level?: number }
+		>();
 
 		// Add tags from allTags query (all user tags - should be available everywhere)
 		// This is the PRIMARY source - tags should be available globally across all cards
@@ -175,7 +221,7 @@
 			// tagsData can be undefined (loading), null (error), or an array
 			if (Array.isArray(tagsData)) {
 				// Always process tagsData if it's an array (even if empty - that's fine)
-				tagsData.forEach((tag: any) => {
+				tagsData.forEach((tag: TagWithHierarchy) => {
 					if (tag?._id) {
 						tagsMap.set(tag._id, {
 							_id: tag._id,
@@ -191,15 +237,16 @@
 
 		// Also add tags from item.tags (in case they're not in allTags query yet - fallback only)
 		// This ensures we have tags even if allTags hasn't loaded yet
+		// Note: item.tags may not have parentId/level (those are from TagWithHierarchy)
 		if (item?.tags && Array.isArray(item.tags)) {
-			item.tags.forEach((tag: any) => {
+			item.tags.forEach((tag) => {
 				if (tag?._id && !tagsMap.has(tag._id)) {
 					tagsMap.set(tag._id, {
-						_id: tag._id,
+						_id: tag._id as Id<'tags'>,
 						displayName: tag.displayName || tag.name,
 						color: tag.color || DEFAULT_TAG_COLOR,
-						parentId: tag.parentId,
-						level: tag.level || 0
+						parentId: (tag as { parentId?: Id<'tags'> }).parentId,
+						level: (tag as { level?: number }).level || 0
 					});
 				}
 			});
@@ -216,14 +263,14 @@
 		selectedTagIds = tagIds;
 
 		try {
-			const userId = getUserId();
-			if (!userId) {
-				throw new Error('User ID is required');
+			const sessionId = $page.data.sessionId;
+			if (!sessionId) {
+				throw new Error('Session ID is required');
 			}
 
 			await convexClient.mutation(assignTagsApi, {
-				userId,
-				highlightId: highlightId,
+				sessionId,
+				highlightId: highlightId! as Id<'highlights'>,
 				tagIds: tagIds
 			});
 
@@ -236,7 +283,9 @@
 			isUpdatingTags = false;
 			// Revert on error
 			if (item?.tags) {
-				selectedTagIds = item.tags.map((tag: any) => tag._id).filter(Boolean);
+				selectedTagIds = item.tags
+					.map((tag) => tag._id as Id<'tags'>)
+					.filter(Boolean) as Id<'tags'>[];
 			}
 		}
 	}
@@ -251,13 +300,13 @@
 		}
 
 		try {
-			const userId = getUserId();
-			if (!userId) {
-				throw new Error('User ID is required');
+			const sessionId = $page.data.sessionId;
+			if (!sessionId) {
+				throw new Error('Session ID is required');
 			}
 
 			const tagId = await convexClient.mutation(createTagApi, {
-				userId,
+				sessionId,
 				displayName,
 				color,
 				parentId
@@ -299,7 +348,14 @@
 		// Mark as processed without generating flashcard
 		if (browser && convexClient && markProcessedApi && inboxItemId) {
 			try {
-				await convexClient.mutation(markProcessedApi, { inboxItemId: inboxItemId as any });
+				const sessionId = $page.data.sessionId;
+				if (!sessionId) {
+					throw new Error('Session ID is required');
+				}
+				await convexClient.mutation(markProcessedApi, {
+					sessionId,
+					inboxItemId: inboxItemId as Id<'inboxItems'>
+				});
 			} catch (error) {
 				console.error('Failed to mark as processed:', error);
 			}
@@ -514,7 +570,7 @@
 							{:else if item.authors && item.authors.length > 0}
 								<p class="text-xs text-secondary">
 									by {item.authors
-										.map((a: any) => a?.displayName)
+										.map((a) => a?.displayName)
 										.filter(Boolean)
 										.join(', ')}
 								</p>
@@ -525,7 +581,7 @@
 
 				<!-- Tags -->
 				{#if highlightId}
-					{#if (api as any).tags?.listAllTags}
+					{#if api.tags?.listAllTags}
 						<TagSelector
 							bind:selectedTagIds
 							availableTags={availableTags()}

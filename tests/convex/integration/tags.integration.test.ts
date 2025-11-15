@@ -107,7 +107,7 @@ describe('Tags Integration Tests', () => {
 		const t = convexTest(schema, modules);
 
 		// Create two users
-		const { sessionId: session1, userId: user1 } = await createTestSession(t);
+		const { sessionId: _session1, userId: user1 } = await createTestSession(t);
 		const { sessionId: session2, userId: user2 } = await createTestSession(t);
 
 		// Create tags for user1

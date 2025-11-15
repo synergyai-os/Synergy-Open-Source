@@ -6,14 +6,14 @@
 
 ## 📊 **Error Breakdown**
 
-| Category | Count | Severity | Priority |
-|----------|-------|----------|----------|
-| `@typescript-eslint/no-explicit-any` | ~250 | High | P1 |
-| `svelte/no-navigation-without-resolve` | ~100 | Medium | P2 |
-| `svelte/require-each-key` | ~50 | Medium | P2 |
-| `@typescript-eslint/no-unused-vars` | ~50 | Low | P3 |
-| `svelte/prefer-svelte-reactivity` | ~10 | Low | P3 |
-| Other (XSS, @ts-ignore, etc.) | ~23 | Varies | P3 |
+| Category                               | Count | Severity | Priority |
+| -------------------------------------- | ----- | -------- | -------- |
+| `@typescript-eslint/no-explicit-any`   | ~250  | High     | P1       |
+| `svelte/no-navigation-without-resolve` | ~100  | Medium   | P2       |
+| `svelte/require-each-key`              | ~50   | Medium   | P2       |
+| `@typescript-eslint/no-unused-vars`    | ~50   | Low      | P3       |
+| `svelte/prefer-svelte-reactivity`      | ~10   | Low      | P3       |
+| Other (XSS, @ts-ignore, etc.)          | ~23   | Varies   | P3       |
 
 **Total**: 483 errors
 
@@ -24,11 +24,13 @@
 ### **Phase 1: Prevention (Immediate)**
 
 ✅ **DONE**: Created `dev-docs/2-areas/development/coding-standards.md`
+
 - Clear rules for AI agents/LLMs
 - Examples of correct patterns
 - Prevents new errors from being introduced
 
 ✅ **DONE**: Linting set to `continue-on-error: true` in CI
+
 - Allows security PRs to merge
 - Errors still visible in CI output
 - Follows precedent (type check already non-blocking)
@@ -39,7 +41,8 @@
 
 #### **P1: Fix `any` Types (~250 errors)**
 
-**Strategy**: 
+**Strategy**:
+
 1. Create script to find all `any` usages
 2. Categorize by file/function
 3. Fix systematically:
@@ -49,6 +52,7 @@
    - Use discriminated unions
 
 **Files to prioritize**:
+
 - `src/lib/composables/useOrganizations.svelte.ts` (2 instances)
 - `src/routes/settings/permissions-test/+page.svelte` (4 instances)
 - `src/routes/(authenticated)/flashcards/+page.svelte` (1 instance)
@@ -58,11 +62,13 @@
 #### **P2: Fix Navigation (~100 errors)**
 
 **Strategy**:
+
 1. Find all `goto()` calls without `resolveRoute()`
 2. Replace with `resolveRoute()` pattern
 3. Test navigation still works
 
 **Files**:
+
 - `src/lib/components/Sidebar.svelte` (4 instances)
 - `src/routes/register/+page.svelte` (2 instances)
 
@@ -71,10 +77,12 @@
 #### **P2: Fix `{#each}` Keys (~50 errors)**
 
 **Strategy**:
+
 1. Find all `{#each}` blocks without keys
 2. Add appropriate keys (usually `item._id` or `index`)
 
 **Files**:
+
 - `src/routes/settings/permissions-test/+page.svelte` (1 instance)
 - `src/lib/components/tags/ShareTagModal.svelte` (1 instance)
 - `src/routes/(authenticated)/tags/+page.svelte` (2 instances)
@@ -85,6 +93,7 @@
 #### **P3: Fix Unused Variables (~50 errors)**
 
 **Strategy**:
+
 1. Run ESLint with `--fix` flag (auto-removes unused imports)
 2. Manually review remaining cases
 3. Prefix intentionally unused vars with `_`
@@ -94,6 +103,7 @@
 #### **P3: Fix SvelteMap/SvelteSet (~10 errors)**
 
 **Strategy**:
+
 1. Find all `Map`/`Set` usage in reactive contexts
 2. Replace with `SvelteMap`/`SvelteSet` or plain objects/arrays
 
@@ -102,6 +112,7 @@
 #### **P3: Fix Other Issues (~23 errors)**
 
 **Strategy**:
+
 - Review each case individually
 - Fix XSS warnings
 - Remove unnecessary `@ts-ignore`
@@ -213,4 +224,3 @@ npm run lint -- --fix
 **Created**: 2025-01-XX  
 **Status**: Planning phase  
 **Next Step**: Create script to find all `any` types
-

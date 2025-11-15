@@ -10,15 +10,25 @@
  * - No ArgumentValidationError
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
-// Use authenticated state from auth.setup.ts
-test.use({ storageState: 'e2e/.auth/user.json' });
+// Worker-scoped authentication provided by custom fixture (e2e/fixtures.ts)
+// Each worker uses its own auth file: user-worker-{N}.json
 
 test.describe('Settings Security - API Key Management', () => {
 	test.beforeEach(async ({ page }) => {
 		await page.goto('/settings');
+
+		// Wait for page to load and verify we're not redirected to login
+		await page.waitForURL('/settings', { timeout: 10000 });
 		await page.waitForLoadState('networkidle');
+
+		// Verify settings page loaded successfully
+		const heading = page
+			.locator('h1, h2')
+			.filter({ hasText: /settings/i })
+			.first();
+		await expect(heading).toBeVisible({ timeout: 10000 });
 	});
 
 	test('should update theme without sessionId errors', async ({ page }) => {
@@ -167,13 +177,15 @@ test.describe('Settings Security - User Isolation', () => {
 		});
 
 		await page.goto('/settings');
+
+		// Wait for page to load and verify we're not redirected to login
+		await page.waitForURL('/settings', { timeout: 10000 });
 		await page.waitForLoadState('networkidle');
-		await page.waitForTimeout(1000);
 
 		// Settings should load (implicit: only this user's settings)
 		// If sessionId auth works correctly, user can only see their own settings
 		const heading = page.locator('h1:has-text("Settings")').first();
-		await expect(heading).toBeVisible({ timeout: 5000 });
+		await expect(heading).toBeVisible({ timeout: 10000 });
 
 		// Verify no sessionId errors accessing settings
 		const hasSessionIdError = consoleErrors.some(

@@ -27,7 +27,13 @@ export const load: PageServerLoad = async (event) => {
 		blogOnly: false
 	});
 
-	const note = notes.find((n: any) => n.slug === slug);
+	// listNotes only returns notes (type === 'note'), so we can safely access slug property
+	// Type assertion needed because Convex return types are union types
+	const note = notes.find((n) => {
+		if (n.type !== 'note') return false;
+		const noteItem = n as typeof n & { type: 'note'; slug?: string };
+		return noteItem.slug === slug;
+	});
 
 	if (!note) {
 		throw error(404, 'Note not found');

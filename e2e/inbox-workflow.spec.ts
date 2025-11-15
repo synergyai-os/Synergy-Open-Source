@@ -19,7 +19,15 @@ test.use({ storageState: 'e2e/.auth/user.json' });
 test.describe('Inbox Workflow - SessionID Authentication', () => {
 	test.beforeEach(async ({ page }) => {
 		await page.goto('/inbox');
+
+		// Wait for page to load and verify we're not redirected to login
+		await page.waitForURL('/inbox', { timeout: 10000 });
 		await page.waitForLoadState('networkidle');
+
+		// Verify inbox header is visible before proceeding
+		const inboxHeading = page.locator('h1, h2').filter({ hasText: /inbox/i }).first();
+		await expect(inboxHeading).toBeVisible({ timeout: 10000 });
+
 		// Give time for inbox items to load
 		await page.waitForTimeout(2000);
 	});

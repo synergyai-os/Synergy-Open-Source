@@ -17,6 +17,29 @@
  */
 
 export const FeatureFlags = {
+	// === Organization & Meeting Modules (SYOS-169) ===
+	/**
+	 * Organization Module Beta
+	 * Status: Phase 1 - Always visible (100% rollout)
+	 * Controls: Org creation, org settings, team management
+	 */
+	ORG_MODULE_BETA: 'org_module_beta',
+
+	/**
+	 * Meeting Module Beta
+	 * Status: Phase 2 - Progressive rollout (starts with Randy only)
+	 * Controls: Meeting creation, meeting list, meeting details
+	 */
+	MEETING_MODULE_BETA: 'meeting_module_beta',
+
+	/**
+	 * Meeting Integrations Beta
+	 * Status: Phase 3 - Disabled (future rollout)
+	 * Controls: Calendar sync, video call integration
+	 */
+	MEETING_INTEGRATIONS_BETA: 'meeting_integrations_beta',
+
+	// === Examples (Not Yet Implemented) ===
 	/**
 	 * Example: New ProseMirror-based notes editor
 	 * Status: Not yet implemented
@@ -78,14 +101,17 @@ export interface FeatureFlagRule {
 /**
  * Client-side feature flag hook
  * Use this in Svelte components to check flags
+ * Automatically tracks flag checks to PostHog
  *
  * @example
  * ```svelte
  * <script lang="ts">
  *   import { useFeatureFlag } from '$lib/featureFlags';
  *   import { FeatureFlags } from '$lib/featureFlags';
+ *   import { useCurrentUser } from '$lib/composables/useCurrentUser';
  *
- *   const showNewEditor = useFeatureFlag(FeatureFlags.NOTES_PROSEMIRROR_BETA);
+ *   const user = useCurrentUser();
+ *   const showNewEditor = useFeatureFlag(FeatureFlags.NOTES_PROSEMIRROR_BETA, () => user()?._id);
  * </script>
  *
  * {#if $showNewEditor}
@@ -95,14 +121,55 @@ export interface FeatureFlagRule {
  * {/if}
  * ```
  */
-export function useFeatureFlag(flag: FeatureFlagKey) {
-	// This is a placeholder - actual implementation will use Convex query
-	// Will be implemented with: useQuery(api.featureFlags.checkFlag, () => ({ flag, userId }))
+export function useFeatureFlag(
+	flag: FeatureFlagKey,
+	getUserId: () => string | undefined
+): {
+	subscribe: (handler: (value: boolean) => void) => () => void;
+} {
+	// Dynamic import to avoid SSR issues
+	if (typeof window === 'undefined') {
+		return {
+			subscribe: (handler: (value: boolean) => void) => {
+				handler(false);
+				return () => {};
+			}
+		};
+	}
+
+	// Use dynamic import for client-only code
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	const { useQuery } = require('convex-svelte');
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	const { api } = require('$lib/convex');
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
+	const { reportFeatureFlagCheck } = require('$lib/utils/errorReporting');
+
+	const userId = getUserId();
+	const flagQuery = useQuery(api.featureFlags.checkFlag, () =>
+		userId ? { flag, userId } : 'skip'
+	);
+
+	let lastValue: boolean | undefined = undefined;
+
 	return {
 		subscribe: (handler: (value: boolean) => void) => {
-			// Placeholder: always return false until Convex integration is complete
-			handler(false);
-			return () => {};
+			const unsubscribe = flagQuery.subscribe((queryResult) => {
+				const enabled = queryResult?.data ?? false;
+
+				// Track to PostHog when value changes
+				if (lastValue !== enabled && userId) {
+					reportFeatureFlagCheck(flag, enabled, userId, {
+						rollout_percentage: undefined, // Could fetch from flag config if needed
+						evaluation_method: 'client_query'
+					});
+					lastValue = enabled;
+				}
+
+				handler(enabled);
+			});
+
+			return unsubscribe;
 		}
 	};
 }

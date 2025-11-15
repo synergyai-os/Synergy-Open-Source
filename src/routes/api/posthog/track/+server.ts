@@ -17,7 +17,7 @@ export const POST = async ({ request }) => {
 
 	try {
 		payload = (await request.json()) as TrackRequestBody;
-	} catch (cause) {
+	} catch (_cause) {
 		throw error(400, 'Invalid JSON payload');
 	}
 

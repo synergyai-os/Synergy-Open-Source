@@ -24,6 +24,9 @@
 	import { useKeyboardNavigation } from '$lib/composables/useKeyboardNavigation.svelte';
 	import { useInboxLayout } from '$lib/composables/useInboxLayout.svelte';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import type { FunctionReference } from 'convex/server';
+	import type { Id } from '$lib/convex';
+	import type { InboxItemWithDetails } from '$lib/types/convex';
 
 	// Get sessionId from page data (provided by authenticated layout)
 	const getSessionId = () => $page.data.sessionId;
@@ -36,11 +39,45 @@
 	// Convex client setup
 	const convexClient = browser ? useConvexClient() : null;
 	// Store function reference in a stable variable - this ensures the reference never changes
+	// Use FunctionReference type assertions to avoid circular API type references
+
 	const inboxApi = browser
 		? {
-				getInboxItemWithDetails: makeFunctionReference('inbox:getInboxItemWithDetails') as any,
-				syncReadwiseHighlights: makeFunctionReference('syncReadwise:syncReadwiseHighlights') as any,
-				getSyncProgress: makeFunctionReference('inbox:getSyncProgress') as any
+				getInboxItemWithDetails: makeFunctionReference(
+					'inbox:getInboxItemWithDetails'
+				) as FunctionReference<
+					'query',
+					'public',
+					{ sessionId: string; inboxItemId: Id<'inboxItems'> },
+					InboxItemWithDetails | null
+				>,
+				syncReadwiseHighlights: makeFunctionReference(
+					'syncReadwise:syncReadwiseHighlights'
+				) as FunctionReference<
+					'action',
+					'public',
+					{
+						sessionId: string;
+						dateRange?: '7d' | '30d' | '90d' | '180d' | '365d' | 'all';
+						customStartDate?: string;
+						customEndDate?: string;
+						quantity?: 5 | 10 | 25 | 50 | 100 | 250 | 500 | 1000;
+					},
+					{
+						success: boolean;
+						sourcesCount: number;
+						highlightsCount: number;
+						newCount: number;
+						skippedCount: number;
+						errorsCount: number;
+					}
+				>,
+				getSyncProgress: makeFunctionReference('inbox:getSyncProgress') as FunctionReference<
+					'query',
+					'public',
+					{ sessionId: string },
+					{ step: string; current: number; total?: number; message?: string } | null
+				>
 			}
 		: null;
 
@@ -182,9 +219,8 @@
 		!selected.selectedItem
 			? undefined
 			: selected.selectedItem.type === 'readwise_highlight'
-				? (selected.selectedItem as any).source?.title ||
-					(selected.selectedItem as any).sourceData?.bookTitle ||
-					'Unknown Source'
+				? (selected.selectedItem as InboxItemWithDetails & { type: 'readwise_highlight' }).source
+						?.title || 'Unknown Source'
 				: 'Inbox Item'
 	);
 
@@ -193,14 +229,14 @@
 		if (!selected.selectedItem) return '';
 
 		if (selected.selectedItem.type === 'readwise_highlight') {
-			const item = selected.selectedItem as any;
-			return item.highlight?.text || item.sourceData?.highlightText || '';
+			const item = selected.selectedItem as InboxItemWithDetails & { type: 'readwise_highlight' };
+			return item.highlight?.text || '';
 		} else if (selected.selectedItem.type === 'manual_text') {
-			const item = selected.selectedItem as any;
+			const item = selected.selectedItem as InboxItemWithDetails & { type: 'manual_text' };
 			return item.text || '';
 		} else if (selected.selectedItem.type === 'photo_note') {
-			const item = selected.selectedItem as any;
-			return item.transcribedText || '';
+			const item = selected.selectedItem as InboxItemWithDetails & { type: 'photo_note' };
+			return (item as { transcribedText?: string }).transcribedText || '';
 		}
 		return '';
 	});
@@ -210,10 +246,10 @@
 		if (!selected.selectedItem) return { title: undefined, author: undefined };
 
 		if (selected.selectedItem.type === 'readwise_highlight') {
-			const item = selected.selectedItem as any;
+			const item = selected.selectedItem as InboxItemWithDetails & { type: 'readwise_highlight' };
 			return {
-				title: item.source?.title || item.sourceData?.bookTitle || undefined,
-				author: item.author?.displayName || item.sourceData?.author || undefined
+				title: item.source?.title || undefined,
+				author: item.author?.displayName || undefined
 			};
 		}
 
@@ -235,8 +271,15 @@
 			// Get source metadata for prompt context
 			const metadata = sourceMetadata();
 
+			// Get sessionId for authenticated request
+			const sessionId = getSessionId();
+			if (!sessionId) {
+				throw new Error('Session ID is required');
+			}
+
 			// Call AI generation with source context
 			const result = await convexClient.action(api.flashcards.generateFlashcard, {
+				sessionId,
 				text: text.trim(),
 				sourceTitle: metadata.title,
 				sourceAuthor: metadata.author
@@ -266,10 +309,10 @@
 			}
 
 			// Save all flashcards to database
-			const flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
+			const _flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
 				sessionId,
 				flashcards: generatedFlashcards,
-				sourceInboxItemId: selected.selectedItemId as any,
+				sourceInboxItemId: selected.selectedItemId as Id<'inboxItems'>,
 				sourceType: selected.selectedItem?.type
 			});
 
@@ -282,7 +325,7 @@
 
 				await convexClient.mutation(api.inbox.markProcessed, {
 					sessionId,
-					inboxItemId: selected.selectedItemId as any
+					inboxItemId: selected.selectedItemId as Id<'inboxItems'>
 				});
 			}
 
@@ -304,10 +347,10 @@
 			}
 
 			// Save selected flashcards to database (with any edits applied)
-			const flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
+			const _flashcardIds = await convexClient.mutation(api.flashcards.createFlashcards, {
 				sessionId,
 				flashcards: cards,
-				sourceInboxItemId: selected.selectedItemId as any,
+				sourceInboxItemId: selected.selectedItemId as Id<'inboxItems'>,
 				sourceType: selected.selectedItem?.type
 			});
 
@@ -320,7 +363,7 @@
 
 				await convexClient.mutation(api.inbox.markProcessed, {
 					sessionId,
-					inboxItemId: selected.selectedItemId as any
+					inboxItemId: selected.selectedItemId as Id<'inboxItems'>
 				});
 			}
 
@@ -459,7 +502,7 @@
 						{:else}
 							<!-- Items List -->
 							<div class="flex flex-col gap-inbox-list">
-								{#each items.filteredItems as item}
+								{#each items.filteredItems as item (item._id)}
 									<InboxCard
 										{item}
 										selected={selected.selectedItemId === item._id}
@@ -498,8 +541,8 @@
 					{/if}
 				{/key}
 
-				<!-- Flashcard FAB - Only show for Readwise highlights -->
-				{#if browser && selected.selectedItem?.type === 'readwise_highlight'}
+				<!-- Flashcard FAB - Only show for Readwise-synced highlights (not manual highlights) -->
+				{#if browser && selected.selectedItem?.type === 'readwise_highlight' && selected.selectedItem?.highlight?.lastSyncedAt}
 					<FlashcardFAB
 						selectedItemId={selected.selectedItemId}
 						{isGenerating}
@@ -552,8 +595,8 @@
 						{/if}
 					{/key}
 
-					<!-- Flashcard FAB - Only show for Readwise highlights -->
-					{#if browser && selected.selectedItem?.type === 'readwise_highlight'}
+					<!-- Flashcard FAB - Only show for Readwise-synced highlights (not manual highlights) -->
+					{#if browser && selected.selectedItem?.type === 'readwise_highlight' && selected.selectedItem?.highlight?.lastSyncedAt}
 						<FlashcardFAB
 							selectedItemId={selected.selectedItemId}
 							{isGenerating}
@@ -631,7 +674,7 @@
 						{:else}
 							<!-- Items List -->
 							<div class="flex flex-col gap-inbox-list">
-								{#each items.filteredItems as item}
+								{#each items.filteredItems as item (item._id)}
 									<InboxCard {item} selected={false} onClick={() => selectItem(item._id)} />
 								{/each}
 							</div>

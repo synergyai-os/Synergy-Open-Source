@@ -61,7 +61,7 @@
 			stages: ['Setting up your workspace', 'Preparing your first workspace', 'Almost ready...']
 		},
 		custom: {
-			title: (name: string) => title || 'Loading...',
+			title: (_name: string) => title || 'Loading...',
 			stages: customStages.length > 0 ? customStages : ['Loading...']
 		}
 	};

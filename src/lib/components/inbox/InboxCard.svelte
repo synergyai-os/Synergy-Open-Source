@@ -5,17 +5,9 @@
 	type InboxItem = {
 		_id: string;
 		type: InboxItemType;
-		userId: string;
-		processed: boolean;
-		processedAt?: number;
-		createdAt: number;
 		title: string; // Enriched from query
 		snippet: string; // Enriched from query
 		tags: string[]; // Enriched from query
-		// Type-specific fields
-		highlightId?: string; // For readwise_highlight
-		imageFileId?: string; // For photo_note
-		text?: string; // For manual_text
 	};
 
 	interface Props {
@@ -77,7 +69,7 @@
 					<div class="mt-1.5 flex items-center gap-1">
 						<!-- Tags -->
 						<div class="flex flex-wrap gap-1">
-							{#each item.tags.slice(0, 2) as tag}
+							{#each item.tags.slice(0, 2) as tag (tag)}
 								<span class="rounded bg-tag px-badge py-badge text-label text-tag">
 									{tag}
 								</span>

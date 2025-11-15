@@ -18,7 +18,7 @@
 
 import { action, internalMutation, internalQuery } from './_generated/server';
 import { internal } from './_generated/api';
-import { getAuthUserId } from './auth';
+import type { Doc } from './_generated/dataModel';
 import { v } from 'convex/values';
 
 // Internal mutation to delete a batch of inbox items
@@ -168,9 +168,13 @@ export const deleteTagsBatch = internalMutation({
 
 // Main action that orchestrates the cleanup
 export const cleanReadwiseData = action({
-	args: {},
-	handler: async (ctx) => {
-		const userId = await getAuthUserId(ctx);
+	args: {
+		sessionId: v.string()
+	},
+	handler: async (ctx, args) => {
+		const userId = await ctx.runQuery(internal.settings.getUserIdFromSessionId, {
+			sessionId: args.sessionId
+		});
 		if (!userId) {
 			throw new Error('Not authenticated');
 		}
@@ -186,11 +190,11 @@ export const cleanReadwiseData = action({
 			const inboxItems = (await ctx.runQuery(internal.readwiseCleanup.listInboxItems, {
 				userId,
 				limit: batchSize
-			})) as any[];
+			})) as Array<Doc<'inboxItems'>>;
 
 			if (inboxItems.length === 0) break;
 
-			const itemIds = inboxItems.map((item: any) => item._id);
+			const itemIds = inboxItems.map((item) => item._id);
 			const deleted = (await ctx.runMutation(internal.readwiseCleanup.deleteInboxItemsBatch, {
 				itemIds
 			})) as number;
@@ -211,7 +215,7 @@ export const cleanReadwiseData = action({
 			const highlights = (await ctx.runQuery(internal.readwiseCleanup.listHighlights, {
 				userId,
 				limit: 20 // Process 20 at a time
-			})) as any[];
+			})) as Array<Doc<'highlights'>>;
 
 			if (highlights.length === 0) break;
 
@@ -220,7 +224,7 @@ export const cleanReadwiseData = action({
 				`[cleanReadwiseData] Processing highlight batch ${batchCount} (${highlights.length} items)...`
 			);
 
-			const highlightIds = highlights.map((h: any) => h._id);
+			const highlightIds = highlights.map((h) => h._id);
 			const result = (await ctx.runMutation(internal.readwiseCleanup.deleteHighlightBatch, {
 				highlightIds
 			})) as { deleted: number; results: Array<{ sourceId: string; tagIds: string[] }> };
@@ -255,7 +259,7 @@ export const cleanReadwiseData = action({
 			const sources = (await ctx.runQuery(internal.readwiseCleanup.listSources, {
 				userId,
 				limit: 20 // Process 20 at a time
-			})) as any[];
+			})) as Array<Doc<'sources'>>;
 
 			if (sources.length === 0) break;
 
@@ -264,7 +268,7 @@ export const cleanReadwiseData = action({
 				`[cleanReadwiseData] Processing source batch ${sourceBatchCount} (${sources.length} items)...`
 			);
 
-			const sourceIds = sources.map((s: any) => s._id);
+			const sourceIds = sources.map((s) => s._id);
 			const result = (await ctx.runMutation(internal.readwiseCleanup.deleteSourceBatch, {
 				sourceIds
 			})) as { deleted: number; results: Array<{ authorIds: string[]; tagIds: string[] }> };

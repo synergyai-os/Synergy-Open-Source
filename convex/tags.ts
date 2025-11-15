@@ -7,7 +7,7 @@
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 import { getAuthUserId } from './auth';
-import { validateSession, validateSessionAndGetUserId } from './sessionValidation';
+import { validateSessionAndGetUserId } from './sessionValidation';
 import { normalizeTagName } from './readwiseUtils';
 import type { Doc, Id } from './_generated/dataModel';
 import { canAccessContent } from './permissions';
@@ -29,14 +29,15 @@ export interface TagWithHierarchy {
 	children?: TagWithHierarchy[];
 }
 
-async function resolveDistinctId(
-	ctx: QueryCtx | MutationCtx,
-	userId: Id<'users'>
-): Promise<string> {
-	const user = await ctx.db.get(userId);
-	const email = (user as unknown as { email?: string } | undefined)?.email;
-	return typeof email === 'string' ? email : userId;
-}
+// TODO: Re-enable when server-side analytics is restored
+// async function resolveDistinctId(
+// 	ctx: QueryCtx | MutationCtx,
+// 	userId: Id<'users'>
+// ): Promise<string> {
+// 	const user = await ctx.db.get(userId);
+// 	const email = (user as unknown as { email?: string } | undefined)?.email;
+// 	return typeof email === 'string' ? email : userId;
+// }
 
 /**
  * Helper: Build hierarchical tag tree structure
@@ -55,14 +56,21 @@ export interface TagWithHierarchy {
 	children?: TagWithHierarchy[];
 }
 
-function buildTagTree(tags: any[]): TagWithHierarchy[] {
+function buildTagTree(tags: Doc<'tags'>[]): TagWithHierarchy[] {
 	const tagMap = new Map<Id<'tags'>, TagWithHierarchy>();
 	const rootTags: TagWithHierarchy[] = [];
 
 	// First pass: create tag objects
 	for (const tag of tags) {
 		const tagWithHierarchy: TagWithHierarchy = {
-			...tag,
+			_id: tag._id,
+			userId: tag.userId,
+			name: tag.name,
+			displayName: tag.displayName,
+			color: tag.color,
+			parentId: tag.parentId, // Can be undefined
+			externalId: tag.externalId,
+			createdAt: tag._creationTime,
 			level: 0, // Will be calculated in second pass
 			children: []
 		};
@@ -123,7 +131,7 @@ async function getTagDescendants(
 		const currentTagId = queue.shift()!;
 		const children = await ctx.db
 			.query('tags')
-			.withIndex('by_user_parent', (q: any) => q.eq('userId', userId).eq('parentId', currentTagId))
+			.withIndex('by_user_parent', (q) => q.eq('userId', userId).eq('parentId', currentTagId))
 			.collect();
 
 		for (const child of children) {
@@ -422,15 +430,15 @@ export const createTag = mutation({
 			ownershipType: ownership
 		});
 
-		const distinctId = await resolveDistinctId(ctx, userId as Id<'users'>);
+		// TODO: Re-enable server-side analytics via HTTP action bridge
+		// const distinctId = await resolveDistinctId(ctx, userId as Id<'users'>);
 
 		if (ownership === 'organization' && organizationId) {
-			const tagCount = await ctx.db
-				.query('tags')
-				.withIndex('by_organization', (q: any) => q.eq('organizationId', organizationId))
-				.collect();
-
 			// TODO: Re-enable server-side analytics via HTTP action bridge
+			// const tagCount = await ctx.db
+			// 	.query('tags')
+			// 	.withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
+			// 	.collect();
 			// await captureAnalyticsEvent({
 			// 	name: AnalyticsEventName.ORGANIZATION_TAG_ASSIGNED,
 			// 	distinctId,
@@ -444,11 +452,11 @@ export const createTag = mutation({
 			// 	},
 			// });
 		} else if (ownership === 'team' && teamId) {
-			const tagCount = await ctx.db
-				.query('tags')
-				.withIndex('by_team', (q: any) => q.eq('teamId', teamId))
-				.collect();
-
+			// TODO: Re-enable server-side analytics via HTTP action bridge
+			// const tagCount = await ctx.db
+			// 	.query('tags')
+			// 	.withIndex('by_team', (q) => q.eq('teamId', teamId))
+			// 	.collect();
 			// TODO: Re-enable server-side analytics via HTTP action bridge
 			// await captureAnalyticsEvent({
 			// 	name: AnalyticsEventName.TEAM_TAG_ASSIGNED,
@@ -671,24 +679,12 @@ async function assignTagsToEntity(
 	entityId: Id<'highlights'> | Id<'flashcards'>,
 	tagIds: Id<'tags'>[]
 ): Promise<Id<'tags'>[]> {
-	// Map entity types to their junction tables and ID field names
-	const entityConfig = {
-		highlights: {
-			table: 'highlights' as const,
-			junctionTable: 'highlightTags' as const,
-			idField: 'highlightId' as const
-		},
-		flashcards: {
-			table: 'flashcards' as const,
-			junctionTable: 'flashcardTags' as const,
-			idField: 'flashcardId' as const
-		}
-	};
-
-	const config = entityConfig[entityType];
-
 	// 1. Verify entity exists and belongs to user
-	const entity = await ctx.db.get(entityId as any);
+	// Type assertion based on entityType to narrow the union type
+	const entity =
+		entityType === 'highlights'
+			? await ctx.db.get(entityId as Id<'highlights'>)
+			: await ctx.db.get(entityId as Id<'flashcards'>);
 	if (!entity) {
 		throw new Error(`${entityType.slice(0, -1)} not found`);
 	}
@@ -716,21 +712,36 @@ async function assignTagsToEntity(
 	}
 
 	// 3. Get and remove existing assignments
-	const existingAssignments = await ctx.db
-		.query(config.junctionTable)
-		.withIndex(`by_${entityType.slice(0, -1)}` as any, (q: any) => q.eq(config.idField, entityId))
-		.collect();
+	// Use conditional logic to properly type each branch
+	const existingAssignments =
+		entityType === 'highlights'
+			? await ctx.db
+					.query('highlightTags')
+					.withIndex('by_highlight', (q) => q.eq('highlightId', entityId as Id<'highlights'>))
+					.collect()
+			: await ctx.db
+					.query('flashcardTags')
+					.withIndex('by_flashcard', (q) => q.eq('flashcardId', entityId as Id<'flashcards'>))
+					.collect();
 
 	for (const assignment of existingAssignments) {
 		await ctx.db.delete(assignment._id);
 	}
 
 	// 4. Create new assignments
+	// Use conditional logic to properly type the insert based on entityType
 	for (const tagId of tagIds) {
-		await ctx.db.insert(config.junctionTable, {
-			[config.idField]: entityId,
-			tagId
-		} as any);
+		if (entityType === 'highlights') {
+			await ctx.db.insert('highlightTags', {
+				highlightId: entityId as Id<'highlights'>,
+				tagId
+			});
+		} else {
+			await ctx.db.insert('flashcardTags', {
+				flashcardId: entityId as Id<'flashcards'>,
+				tagId
+			});
+		}
 	}
 
 	return tagIds;

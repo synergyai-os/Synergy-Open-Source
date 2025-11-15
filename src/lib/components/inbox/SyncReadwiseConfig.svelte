@@ -58,8 +58,8 @@
 	<div class="flex-1 overflow-y-auto px-inbox-container py-system-content">
 		<div class="mx-auto flex max-w-md flex-col gap-6">
 			<!-- Import Type Toggle Switcher -->
-			<div class="flex flex-col gap-icon">
-				<label class="text-sm font-normal text-secondary">Import by:</label>
+			<fieldset class="flex flex-col gap-icon">
+				<legend class="text-sm font-normal text-secondary">Import by:</legend>
 				<ToggleGroup.Root
 					type="single"
 					bind:value={importType}
@@ -84,12 +84,12 @@
 						Custom date
 					</ToggleGroup.Item>
 				</ToggleGroup.Root>
-			</div>
+			</fieldset>
 
 			<!-- Time Range Selection -->
 			{#if importType === 'time'}
-				<div class="flex flex-col gap-icon">
-					<label class="text-sm font-normal text-tertiary">Select time range:</label>
+				<fieldset class="flex flex-col gap-icon">
+					<legend class="text-sm font-normal text-tertiary">Select time range:</legend>
 					<RadioGroup.Root bind:value={selectedRange} class="flex flex-col gap-0.5">
 						<RadioGroup.Item
 							value="7d"
@@ -140,13 +140,13 @@
 							{/snippet}
 						</RadioGroup.Item>
 					</RadioGroup.Root>
-				</div>
+				</fieldset>
 			{/if}
 
 			<!-- Quantity Selection -->
 			{#if importType === 'quantity'}
-				<div class="flex flex-col gap-icon">
-					<label class="text-sm font-normal text-tertiary">Number of highlights:</label>
+				<fieldset class="flex flex-col gap-icon">
+					<legend class="text-sm font-normal text-tertiary">Number of highlights:</legend>
 					<RadioGroup.Root bind:value={selectedQuantity} class="flex flex-col gap-0.5">
 						<RadioGroup.Item
 							value="5"
@@ -229,7 +229,7 @@
 							{/snippet}
 						</RadioGroup.Item>
 					</RadioGroup.Root>
-				</div>
+				</fieldset>
 			{/if}
 
 			<!-- Custom Date Range -->

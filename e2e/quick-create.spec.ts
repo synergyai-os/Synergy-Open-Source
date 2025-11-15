@@ -32,6 +32,9 @@ test.describe('Quick Create Modal - SessionID Authentication', () => {
 			}
 		});
 
+		// Wait for shortcuts to be registered before pressing key
+		await page.waitForSelector('body[data-shortcuts-ready="true"]', { timeout: 5000 });
+
 		// Press C key to open Quick Create modal
 		await page.keyboard.press('c');
 
@@ -76,6 +79,9 @@ test.describe('Quick Create Modal - SessionID Authentication', () => {
 			}
 		});
 
+		// Wait for shortcuts to be registered before pressing key
+		await page.waitForSelector('body[data-shortcuts-ready="true"]', { timeout: 5000 });
+
 		// Open Quick Create modal with CMD+K
 		await page.keyboard.press('Meta+k');
 
@@ -119,6 +125,9 @@ test.describe('Quick Create Modal - SessionID Authentication', () => {
 				consoleErrors.push(msg.text());
 			}
 		});
+
+		// Wait for shortcuts to be registered before pressing key
+		await page.waitForSelector('body[data-shortcuts-ready="true"]', { timeout: 5000 });
 
 		// Open Quick Create modal
 		await page.keyboard.press('Meta+k');
@@ -166,6 +175,9 @@ test.describe('Quick Create Modal - SessionID Authentication', () => {
 			});
 		});
 
+		// Wait for shortcuts to be registered before pressing key
+		await page.waitForSelector('body[data-shortcuts-ready="true"]', { timeout: 5000 });
+
 		// Try to create a note
 		await page.keyboard.press('c');
 		const modal = page.locator('[role="dialog"]').first();
@@ -182,7 +194,7 @@ test.describe('Quick Create Modal - SessionID Authentication', () => {
 
 		// Should show an error message (not crash silently)
 		// Adjust selector based on your error display
-		const errorMessage = page.locator('text=/error|failed/i').first();
+		const _errorMessage = page.locator('text=/error|failed/i').first();
 		// Error should be visible or logged to console
 		// (This test documents expected failure behavior)
 	});
@@ -201,6 +213,9 @@ test.describe('Quick Create Modal - Tag Selection', () => {
 
 		// Wait for inbox to load before opening modal
 		await page.waitForLoadState('networkidle');
+
+		// Wait for shortcuts to be registered before pressing key
+		await page.waitForSelector('body[data-shortcuts-ready="true"]', { timeout: 5000 });
 		await page.waitForTimeout(2000); // Give time for tags query to initialize
 
 		await page.keyboard.press('c');

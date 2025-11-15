@@ -34,8 +34,8 @@
 
 	let {
 		open = $bindable(false),
-		triggerMethod = 'keyboard_n',
-		currentView = 'inbox',
+		triggerMethod: _triggerMethod = 'keyboard_n',
+		currentView: _currentView = 'inbox',
 		initialType = null,
 		sessionId,
 		organizationId = null,
@@ -48,7 +48,7 @@
 	const allTagsQuery =
 		browser && sessionId
 			? useQuery(api.tags.listAllTags, () => {
-					if (!sessionId) return 'skip';
+					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
 					return { sessionId };
 				})
 			: null;
@@ -94,8 +94,9 @@
 	let isFullscreen = $state(false);
 
 	// Timing tracking for analytics
-	let openedAt = $state(0);
-	let typeSelectedAt = $state(0);
+	// TODO: Re-enable when analytics tracking is needed
+	let _openedAt = $state(0);
+	let _typeSelectedAt = $state(0);
 	let tagModificationStartedAt = $state(0);
 
 	// Set initial type when modal opens (for quick create shortcuts like 'N')
@@ -104,7 +105,7 @@
 		if (open) {
 			if (initialType) {
 				selectedType = initialType;
-				typeSelectedAt = Date.now();
+				_typeSelectedAt = Date.now();
 				console.log('✅ selectedType SET TO:', selectedType);
 			} else {
 				console.log('⚠️ No initialType - showing command palette');
@@ -120,7 +121,7 @@
 	// Track when modal opens
 	$effect(() => {
 		if (open && browser) {
-			openedAt = Date.now();
+			_openedAt = Date.now();
 			// TODO: Implement PostHog tracking
 			// trackEvent({
 			// 	name: AnalyticsEventName.QUICK_CREATE_OPENED,
@@ -137,9 +138,9 @@
 	});
 
 	// Track type selection
-	function handleTypeSelect(type: ContentType, method: 'click' | 'keyboard_c' | 'keyboard_nav') {
+	function handleTypeSelect(type: ContentType, _method: 'click' | 'keyboard_c' | 'keyboard_nav') {
 		selectedType = type;
-		typeSelectedAt = Date.now();
+		_typeSelectedAt = Date.now();
 
 		// TODO: Implement PostHog tracking
 		// if (browser) {
@@ -163,8 +164,9 @@
 			tagModificationStartedAt = now;
 		}
 
-		const addedCount = newTagIds.filter((id) => !selectedTagIds.includes(id)).length;
-		const removedCount = selectedTagIds.filter((id) => !newTagIds.includes(id)).length;
+		// TODO: Re-enable when analytics tracking is needed
+		// const addedCount = newTagIds.filter((id) => !selectedTagIds.includes(id)).length;
+		// const removedCount = selectedTagIds.filter((id) => !newTagIds.includes(id)).length;
 
 		selectedTagIds = newTagIds;
 
@@ -247,8 +249,9 @@
 		isCreating = true;
 
 		try {
-			const now = Date.now();
-			let contentLength = 0;
+			// TODO: Re-enable when analytics tracking is needed
+			// const now = Date.now();
+			// let contentLength = 0;
 
 			if (selectedType === 'note') {
 				if (!sessionId) {
@@ -269,7 +272,8 @@
 				// If there are tags, we need to link them after creation
 				// TODO: Update notes.createNote to accept tagIds parameter
 
-				contentLength = noteContent.length;
+				// TODO: Re-enable when analytics tracking is needed
+				// contentLength = noteContent.length;
 			} else if (selectedType === 'flashcard') {
 				if (!sessionId) {
 					throw new Error('Session ID is required');
@@ -281,7 +285,8 @@
 					answer: answer,
 					tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined
 				});
-				contentLength = question.length + answer.length;
+				// TODO: Re-enable when analytics tracking is needed
+				// contentLength = question.length + answer.length;
 			} else if (selectedType === 'highlight') {
 				if (!sessionId) {
 					throw new Error('Session ID is required');
@@ -294,7 +299,8 @@
 					note: note || undefined,
 					tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined
 				});
-				contentLength = content.length;
+				// TODO: Re-enable when analytics tracking is needed
+				// contentLength = content.length;
 			}
 
 			// TODO: Implement PostHog tracking
@@ -341,7 +347,7 @@
 		noteIsAIGenerated = false;
 		selectedTagIds = [];
 		tagModificationStartedAt = 0;
-		typeSelectedAt = 0;
+		_typeSelectedAt = 0;
 		isFullscreen = false;
 	}
 
@@ -349,13 +355,14 @@
 	function handleOpenChange(newOpen: boolean) {
 		if (!newOpen && open && browser) {
 			// Track abandonment
-			const now = Date.now();
-			let abandonStage: 'type_selection' | 'tag_assignment' | 'content_entry' = 'type_selection';
-			if (selectedType && (content || question || answer)) {
-				abandonStage = 'content_entry';
-			} else if (selectedType) {
-				abandonStage = 'tag_assignment';
-			}
+			// TODO: Re-enable when analytics tracking is needed
+			// const now = Date.now();
+			// let abandonStage: 'type_selection' | 'tag_assignment' | 'content_entry' = 'type_selection';
+			// if (selectedType && (content || question || answer)) {
+			// 	abandonStage = 'content_entry';
+			// } else if (selectedType) {
+			// 	abandonStage = 'tag_assignment';
+			// }
 
 			// TODO: Implement PostHog tracking
 			// trackEvent({
@@ -456,7 +463,6 @@
 				? 'fixed inset-0 z-50 h-full w-full overflow-y-auto border-0 bg-elevated p-0 shadow-2xl'
 				: 'fixed top-1/2 left-1/2 z-50 max-h-[80vh] w-full max-w-[900px] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-md border border-base bg-elevated p-0 shadow-2xl'} data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]"
 		>
-			<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 			<div bind:this={modalContainerRef} onkeydown={handleKeyDown} role="dialog" tabindex="-1">
 				{#if !selectedType}
 					<!-- Command Center -->

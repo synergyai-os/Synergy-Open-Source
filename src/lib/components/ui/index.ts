@@ -9,6 +9,7 @@ export { default as Button } from './Button.svelte';
 export { default as KeyboardShortcut } from './KeyboardShortcut.svelte';
 export { default as FormInput } from './FormInput.svelte';
 export { default as FormTextarea } from './FormTextarea.svelte';
+export { default as PinInput } from './PinInput.svelte';
 export { default as StatusPill } from './StatusPill.svelte';
 export { default as PrioritySelector } from './PrioritySelector.svelte';
 export { default as AssigneeSelector } from './AssigneeSelector.svelte';

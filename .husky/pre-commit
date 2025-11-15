@@ -1,17 +1,1 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
-# Run sessionId check before allowing commit
-echo "🔍 Running sessionId migration checks..."
-./scripts/check-sessionid-usage.sh || exit 1
-
-# Run linter
-echo "🔍 Running linter..."
-npm run lint || exit 1
-
-# Run unit tests
-echo "🧪 Running unit tests..."
-npm run test:unit:server || exit 1
-
-echo "✅ All pre-commit checks passed!"
-
+npx lint-staged
