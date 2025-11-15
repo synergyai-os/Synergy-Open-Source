@@ -15,7 +15,7 @@ test.describe('Registration with Email Verification', () => {
 	test('should register new user with email verification', async ({ page, request }) => {
 		// Generate unique test email
 		const timestamp = Date.now();
-		const testEmail = `test-${timestamp}@example.com`;
+		const testEmail = `randy+ci-reg-${timestamp}@synergyai.nl`;
 		const testPassword = 'TestPassword123!';
 
 		// Step 1: Navigate to registration page and wait for hydration
@@ -89,7 +89,7 @@ test.describe('Registration with Email Verification', () => {
 
 	test('should rate limit verification attempts', async ({ page }) => {
 		const timestamp = Date.now();
-		const testEmail = `test-ratelimit-${timestamp}@example.com`;
+		const testEmail = `randy+ci-reg-${timestamp}@synergyai.nl`;
 		const testPassword = 'TestPassword123!';
 
 		// Register user
@@ -145,7 +145,7 @@ test.describe('Registration with Email Verification', () => {
 		await expect(page).not.toHaveURL(/\/verify-email/);
 
 		// Test password mismatch
-		await page.fill('input[type="email"]', 'test@example.com');
+		await page.fill('input[type="email"]', 'test@synergyai.nl');
 		await page.fill('input[name="password"]', 'password123');
 		await page.fill('input[name="confirmPassword"]', 'different123');
 		await page.click('button[type="submit"]');
@@ -167,8 +167,8 @@ test.describe('Password Reset Flow', () => {
 		await expect(page).toHaveURL(/\/forgot-password/);
 		await page.waitForLoadState('networkidle'); // ✅ Wait for hydration
 
-		// Enter email
-		await page.fill('input[type="email"]', 'test@example.com');
+		// Enter email (use existing test user for password reset)
+		await page.fill('input[type="email"]', 'randy+cicduser@synergyai.nl');
 		await page.click('button[type="submit"]');
 
 		// Should show success message (check for actual success message from forgot-password/+page.svelte)
@@ -250,7 +250,7 @@ test.describe('Test Helper Security', () => {
 		// In production, E2E_TEST_MODE will not be set
 
 		const response = await request.get(
-			'/test/get-verification-code?email=test@example.com&type=registration'
+			'/test/get-verification-code?email=test@synergyai.nl&type=registration'
 		);
 
 		// Should work in test mode (E2E_TEST_MODE=true)
@@ -270,11 +270,13 @@ test.describe('Test Helper Security', () => {
 		expect(response.status()).toBe(400);
 
 		// Missing type
-		response = await request.get('/test/get-verification-code?email=test@example.com');
+		response = await request.get('/test/get-verification-code?email=test@synergyai.nl');
 		expect(response.status()).toBe(400);
 
 		// Invalid type
-		response = await request.get('/test/get-verification-code?email=test@example.com&type=invalid');
+		response = await request.get(
+			'/test/get-verification-code?email=test@synergyai.nl&type=invalid'
+		);
 		expect(response.status()).toBe(400);
 	});
 
@@ -285,7 +287,7 @@ test.describe('Test Helper Security', () => {
 		test.skip();
 
 		const response = await request.get(
-			'/test/get-verification-code?email=nonexistent@example.com&type=registration'
+			'/test/get-verification-code?email=nonexistent@synergyai.nl&type=registration'
 		);
 
 		expect(response.status()).toBe(404);
