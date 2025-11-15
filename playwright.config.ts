@@ -77,13 +77,16 @@ export default defineConfig({
 	],
 
 	// Run your local dev server before starting the tests
+	// Note: Test scripts automatically stop dev server before starting test server
+	// This prevents port conflicts (strictPort: true) and ensures E2E_TEST_MODE is loaded
 	webServer: {
-		command: 'npm run dev',
+		command: 'npm run dev:test',
 		url: 'http://localhost:5173',
-		reuseExistingServer: !process.env.CI,
+		reuseExistingServer: !process.env.CI, // CI always starts fresh, local may reuse
 		timeout: 120000,
 		env: {
-			// Pass E2E_TEST_MODE to the dev server
+			// Pass E2E_TEST_MODE from npm script as fallback
+			// The dev:test script runs 'vite dev --mode test' which loads .env.test
 			E2E_TEST_MODE: process.env.E2E_TEST_MODE || 'true'
 		}
 	}

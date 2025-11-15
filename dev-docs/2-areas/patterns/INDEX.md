@@ -46,6 +46,7 @@
 | `Cannot call replaceState(...) before router is initialized` on page load                         | Try-catch guard around replaceState in $effect                               | [svelte-reactivity.md#L730](svelte-reactivity.md#L730)              |
 | Account switch takes 5+ seconds, query costs spike with many linked accounts                      | Add MAX_LINK_DEPTH=3 and MAX_TOTAL_ACCOUNTS=10 limits                        | [auth-deployment.md#L1010](auth-deployment.md#L1010)                |
 | Database queries fail, userId is an object instead of string                                      | Destructure validateSessionAndGetUserId: const { userId } = await...         | [convex-integration.md#L850](convex-integration.md#L850)            |
+| RBAC permission test fails with "Permission denied" even though permissions assigned              | Reuse same test session: destructure both userId and sessionId from createTestSession | [convex-integration.md#L1175](convex-integration.md#L1175)          |
 | convex-test fails: "(intermediate value).glob is not a function"                                  | Create test.setup.ts with import.meta.glob() modules map                     | [convex-integration.md#L950](convex-integration.md#L950)            |
 | Test insert fails: "Validator error: Missing required field X in object"                          | Include ALL schema fields in test helpers (firstName, updatedAt...)          | [convex-integration.md#L1000](convex-integration.md#L1000)          |
 | TypeScript errors "Expected 2 arguments" or "Property 'sessionId' is missing"                     | Migrate from userId to sessionId parameter + destructure response            | [convex-integration.md#L1200](convex-integration.md#L1200)          |
@@ -59,6 +60,9 @@
 | TypeScript error "',' expected" in RequestHandler export                                          | Use function syntax `};` not object literal `});` for direct assignment      | [convex-integration.md#L1500](convex-integration.md#L1500)          |
 | Password accepted but WorkOS rejects with "password contains email"                               | Strip email aliases (+test) before validation, validate frontend + backend   | [auth-deployment.md#L1110](auth-deployment.md#L1110)                |
 | ESLint require-each-key errors, DOM thrashing, list shows wrong data                              | Always use keys in {#each} blocks: (item._id), (item.href), or (index)      | [svelte-reactivity.md#L850](svelte-reactivity.md#L850)              |
+| ESLint warnings `svelte/no-at-html-tags`, XSS vulnerabilities from user-generated content        | Sanitize HTML with DOMPurify before rendering with {@html}                   | [ui-patterns.md#L2000](ui-patterns.md#L2000)                         |
+| TypeScript error: DOMPurify Config type mismatch between ESM/CJS definitions                       | Use type assertion with 'unknown' intermediate: `config as unknown as Parameters<...>[1]` | [ui-patterns.md#L2005](ui-patterns.md#L2005)                         |
+| E2E test helper returns 404, .env.test variables not loaded                                       | Use vite dev --mode test flag (not webServer.env MODE)                       | [ci-cd.md#L280](ci-cd.md#L280)                                      |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -97,11 +101,13 @@
 | Analytics events missing in PostHog                                           | Use server-side tracking                                              | [analytics.md#L10](analytics.md#L10)                       |
 | ESLint errors in test files blocking CI                                       | Relax rules for test files (allow `any` types)                        | [ci-cd.md#L60](ci-cd.md#L60)                               |
 | ESLint rule reports false positives for correct code, 50+ per-line disables   | Disable rule globally with documentation when rule has known limitations | [ci-cd.md#L70](ci-cd.md#L70)                               |
+| ESLint warnings for unused Playwright test parameters (`page`, `request`)     | Use actual parameter names + ESLint disable comment (Playwright validates signatures) | [ci-cd.md#L80](ci-cd.md#L80)                               |
 | CSS warnings from svelte-check (unused selectors, empty rulesets, @apply)    | Remove unused selectors, empty rulesets; replace @apply with design tokens | [ui-patterns.md#L950](ui-patterns.md#L950)                 |
 | Playwright test fails: "did not expect test.use() here"                       | Move test.use() to describe level, not inside test                    | [ci-cd.md#L210](ci-cd.md#L210)                             |
 | Cookies not cleared/shared in Playwright tests                                | Use page.request instead of request fixture                           | [ci-cd.md#L220](ci-cd.md#L220)                             |
 | E2E test fails with "element not found" on empty data                         | Handle empty state gracefully, use .count() + conditional checks      | [ci-cd.md#L230](ci-cd.md#L230)                             |
 | Logout in one tab doesn't invalidate other tabs                               | Test multi-tab session invalidation with context.newPage()            | [ci-cd.md#L240](ci-cd.md#L240)                             |
+| CSRF validation tests return 200 instead of 400/403, security not detected   | Use isolated request context (playwright.request.newContext)          | [ci-cd.md#L245](ci-cd.md#L245)                             |
 | Tests fail with 401/500 "Session not found" from prev tests                   | Skip gracefully if session invalid (test.skip())                      | [ci-cd.md#L260](ci-cd.md#L260)                             |
 
 ## 🟢 REFERENCE Patterns (Best Practices)
@@ -209,7 +215,7 @@ correct code
 
 ---
 
-**Last Updated**: 2025-11-13
-**Pattern Count**: 80
+**Last Updated**: 2025-11-15
+**Pattern Count**: 81
 **Format Version**: 2.0
 ```

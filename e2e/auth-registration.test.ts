@@ -78,7 +78,7 @@ test.describe('Registration with Email Verification', () => {
 		await expect(page.locator('body')).toBeVisible();
 	});
 
-	test('should reject expired verification code', async ({ page, request }) => {
+	test('should reject expired verification code', async () => {
 		// This test would require either:
 		// 1. Mocking time to make code expire
 		// 2. Creating a test mutation to expire the code manually
@@ -88,7 +88,7 @@ test.describe('Registration with Email Verification', () => {
 		test.skip();
 	});
 
-	test('should rate limit verification attempts', async ({ page, request }) => {
+	test('should rate limit verification attempts', async ({ page }) => {
 		const timestamp = Date.now();
 		const testEmail = `test-ratelimit-${timestamp}@example.com`;
 		const testPassword = 'TestPassword123!';
@@ -199,12 +199,26 @@ test.describe('Password Reset Flow', () => {
 		await page.fill('input[name="newPassword"]', 'NewPassword123!');
 		await page.fill('input[name="confirmPassword"]', 'NewPassword123!');
 
-		// Submit (will fail with mock token, but tests UI)
-		await page.click('button[type="submit"]');
+		// Submit form and wait for network request to complete
+		// The form submission triggers a POST to /auth/reset-password
+		const [response] = await Promise.all([
+			page.waitForResponse(
+				(resp) => resp.url().includes('/auth/reset-password') && resp.request().method() === 'POST'
+			),
+			page.click('button[type="submit"]')
+		]);
 
+		// Verify the response indicates an error (should be 400 for invalid token)
+		expect(response.status()).toBe(400);
+
+		// Wait for error message to appear in the UI
+		// The error message is displayed in a div with error styling (from reset-password/+page.svelte line 118-123)
 		// Should show error about invalid/expired token (from auth/reset-password/+server.ts line 55)
-		// (because our mock token is invalid)
-		await expect(page.locator('text=/Invalid or expired reset link/i')).toBeVisible();
+		// The full message is "Invalid or expired reset link. Please request a new password reset."
+		// but we match the key part
+		await expect(page.locator('text=/Invalid or expired reset link/i')).toBeVisible({
+			timeout: 10000
+		});
 	});
 
 	test('should show forgot password link on login page', async ({ page }) => {
@@ -284,18 +298,27 @@ test.describe('Test Helper Security', () => {
 /**
  * Test Setup Instructions:
  *
- * 1. Add to .env.test:
+ * 1. Ensure .env.test exists with:
  *    E2E_TEST_MODE=true
  *
- * 2. Make sure Convex and app are running:
- *    npm run dev
+ * 2. Run tests (automatically handles dev server):
+ *    npm run test:e2e        # All E2E tests
+ *    npm run test:e2e:auth   # Just auth tests
+ *    npm run ci:local        # Full CI suite
  *
- * 3. Run tests:
- *    npm run test:e2e
- *    or
- *    npm run test:e2e:auth  (for just auth tests)
+ * 3. How it works:
+ *    - Test scripts automatically stop your dev server (port 5173)
+ *    - Playwright starts test server: npm run dev:test (vite dev --mode test)
+ *    - Tests run with E2E_TEST_MODE loaded from .env.test
+ *    - After tests, restart your dev server: npm run dev
  *
- * 4. For CI:
- *    - Set E2E_TEST_MODE=true in CI environment
- *    - Tests will run automatically with npm run ci:local
+ * 4. Why auto-stop dev server?
+ *    - WorkOS requires consistent redirect URI (http://127.0.0.1:5173)
+ *    - strictPort: true prevents port drift
+ *    - Test server needs test mode (loads .env.test with E2E_TEST_MODE)
+ *    - Can't run both simultaneously on same port
+ *
+ * 5. For CI:
+ *    - .env.test is committed to repo
+ *    - Fresh server always started (no port conflicts)
  */

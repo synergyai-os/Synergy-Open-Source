@@ -157,6 +157,52 @@ rules: {
 
 ---
 
+## #L80: Handling Unused Playwright Test Parameters [🟡 IMPORTANT]
+
+**Symptom**: ESLint warnings for unused `page`/`request` parameters in Playwright tests, but Playwright requires actual parameter names (not `_page`/`_request`)  
+**Root Cause**: Playwright validates test function signatures - parameters prefixed with `_` are treated as unknown parameters  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Prefixing with `_` breaks Playwright
+test('should reject expired verification code', async ({ _page, _request }) => {
+	test.skip();
+});
+// Error: Test has unknown parameter "_page"
+
+// ✅ CORRECT: Use actual parameter names + ESLint disable comment
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+test('should reject expired verification code', async ({ page, request }) => {
+	test.skip();
+});
+
+// ✅ CORRECT: For non-Playwright tests, use `_` prefix
+test('should handle error', async () => {
+	try {
+		// ...
+	} catch (_error) {
+		// Handle error
+	}
+});
+```
+
+**Why**:
+
+- Playwright validates test function signatures at runtime
+- Parameters must match Playwright's fixture names (`page`, `request`, `context`, etc.)
+- ESLint disable comments are scoped to the specific line, not affecting other code
+- Non-Playwright tests can use `_` prefix convention
+
+**Apply when**:
+
+- Playwright E2E tests with unused fixtures
+- Skipped tests that don't use all fixtures
+- Test hooks (`beforeEach`, `afterEach`) with unused parameters
+
+**Related**: #L60 (ESLint for tests), #L210 (Playwright test.use())
+
+---
+
 ## #L110: Local CI Testing - npm Scripts > Shell Scripts [🟢 REFERENCE]
 
 **Context**: Developers need to run CI checks locally before pushing  
@@ -534,7 +580,102 @@ test('should log out across all tabs', async ({ context, page }) => {
 - Verifying session management
 - Testing security-critical features
 
-**Related**: #L220 (Cookie context), #L260 (Session resilience)
+**Related**: #L220 (Cookie context), #L245 (CSRF testing), #L260 (Session resilience)
+
+---
+
+## #L245: CSRF Validation Testing with Isolated Request Context [🔴 CRITICAL]
+
+**Symptom**: CSRF validation tests return 200 instead of 400/403, security vulnerability not detected  
+**Root Cause**: `page.request` shares cookies with browser context, which may interfere with CSRF header validation  
+**Fix**:
+
+```typescript
+// ❌ BAD: page.request shares cookies, may auto-include CSRF token
+test('should reject logout without CSRF token', async ({ page }) => {
+	await page.goto('/inbox');
+	
+	const response = await page.request.post('/logout', {
+		headers: {} // ❌ Cookies might interfere, test may pass incorrectly
+	});
+	
+	expect(response.status()).toBe(400); // ❌ May get 200 instead!
+});
+
+// ✅ GOOD: Use isolated request context for CSRF testing
+test('should reject logout without CSRF token', async ({ page, playwright }) => {
+	await page.goto('/inbox');
+	await page.waitForLoadState('networkidle');
+	
+	// Create isolated request context WITHOUT cookies (per Context7 pattern)
+	const isolatedRequest = await playwright.request.newContext({
+		baseURL: page.url().split('/').slice(0, 3).join('/')
+	});
+	
+	// Get session cookie manually to include in request
+	const cookies = await page.context().cookies();
+	const sessionCookie = cookies.find((c) => c.name === 'syos_session');
+	
+	if (!sessionCookie) {
+		throw new Error('Session cookie not found');
+	}
+	
+	// Make request with session cookie but WITHOUT CSRF header
+	const response = await isolatedRequest.post('/logout', {
+		headers: {
+			Cookie: `${sessionCookie.name}=${sessionCookie.value}`
+			// Explicitly NO X-CSRF-Token header - tests CSRF validation
+		}
+	});
+	
+	expect(response.status()).toBe(400);
+	const responseData = await response.json();
+	expect(responseData.error).toContain('CSRF');
+	
+	await isolatedRequest.dispose();
+});
+
+// ✅ GOOD: Test invalid CSRF token
+test('should reject logout with invalid CSRF token', async ({ page, playwright }) => {
+	await page.goto('/inbox');
+	await page.waitForLoadState('networkidle');
+	
+	const isolatedRequest = await playwright.request.newContext({
+		baseURL: page.url().split('/').slice(0, 3).join('/')
+	});
+	
+	const cookies = await page.context().cookies();
+	const sessionCookie = cookies.find((c) => c.name === 'syos_session');
+	
+	const response = await isolatedRequest.post('/logout', {
+		headers: {
+			Cookie: `${sessionCookie.name}=${sessionCookie.value}`,
+			'X-CSRF-Token': 'invalid-token-12345' // Invalid CSRF token
+		}
+	});
+	
+	expect(response.status()).toBe(403);
+	const responseData = await response.json();
+	expect(responseData.error).toContain('CSRF');
+	
+	await isolatedRequest.dispose();
+});
+```
+
+**Why**:
+
+- `playwright.request.newContext()` creates isolated cookie storage (per Context7 docs)
+- Allows explicit control over headers without cookie interference
+- Tests security boundaries correctly (CSRF validation)
+- Prevents false positives where tests pass but security is broken
+
+**Apply when**:
+
+- Testing CSRF validation on authenticated endpoints
+- Verifying security boundaries (missing/invalid tokens)
+- Testing logout, account switching, or other sensitive operations
+
+**Related**: #L220 (Cookie context), #L240 (Multi-tab logout), security testing patterns
 
 ---
 
@@ -769,7 +910,114 @@ export const GET: RequestHandler = async ({ request }) => {
 - Want to avoid adding `dotenv` dependency
 - Following SvelteKit conventions
 
-**Related**: #L260 (Session resilience), E2E test configuration, SvelteKit environment variables
+**Related**: #L260 (Session resilience), E2E test configuration, SvelteKit environment variables, #L280 (Vite mode for .env loading)
+
+---
+
+## #L280: Vite Must Use --mode Flag to Load .env.test [🔴 CRITICAL]
+
+**Symptom**: E2E test helper endpoints return 404, environment variables from `.env.test` not accessible  
+**Root Cause**: Vite decides which `.env` files to load **at startup** based on `--mode` flag, not runtime environment variables  
+**Fix**:
+
+```json
+// ❌ WRONG: Setting MODE in webServer.env doesn't work
+// package.json
+{
+  "scripts": {
+    "dev": "vite dev" // ❌ Loads .env (development mode)
+  }
+}
+
+// playwright.config.ts
+export default defineConfig({
+  webServer: {
+    command: 'npm run dev', // ❌ Already decided to load .env, not .env.test
+    env: {
+      MODE: 'test', // ❌ Too late - Vite already chose files
+      E2E_TEST_MODE: 'true' // ❌ Doesn't trigger .env.test loading
+    }
+  }
+});
+```
+
+```json
+// ✅ CORRECT: Use --mode flag in command
+// package.json
+{
+  "scripts": {
+    "dev": "vite dev",
+    "dev:test": "vite dev --mode test" // ✅ Tells Vite to load .env.test
+  }
+}
+
+// playwright.config.ts
+export default defineConfig({
+  webServer: {
+    command: 'npm run dev:test', // ✅ Loads .env.test at startup
+    env: {
+      E2E_TEST_MODE: process.env.E2E_TEST_MODE || 'true' // ✅ Fallback only
+    }
+  }
+});
+```
+
+**Vite Environment File Loading**:
+
+```bash
+# Development mode (default)
+vite dev → loads .env + .env.local
+
+# Test mode (explicit)
+vite dev --mode test → loads .env + .env.test + .env.test.local
+
+# Production mode
+vite build → loads .env + .env.production + .env.production.local
+```
+
+**Port Conflict Management**:
+
+When using `strictPort: true` (required for WorkOS redirect URIs), add auto-stop script:
+
+```json
+{
+  "scripts": {
+    "dev": "vite dev",
+    "dev:test": "vite dev --mode test",
+    "test:e2e": "npm run test:e2e:stop-dev && E2E_TEST_MODE=true playwright test",
+    "test:e2e:stop-dev": "lsof -ti:5173 | xargs kill -9 2>/dev/null || true"
+  }
+}
+```
+
+**Why**:
+
+- ✅ Vite's `--mode` flag is the **official** way to load mode-specific `.env` files
+- ✅ Setting env vars in `webServer.env` happens **after** Vite chooses which files to load
+- ✅ Auto-stop prevents port conflicts when dev server is running
+- ✅ Aligns with Vite's documented behavior (verified with Context7)
+
+**Workflow**:
+
+```bash
+# Normal development
+npm run dev  # Use this daily
+
+# E2E tests (automatic)
+npm run test:e2e  # Stops dev server, Playwright starts test server, tests run
+
+# After tests
+npm run dev  # Restart dev server
+```
+
+**Apply when**:
+
+- Using Vite with mode-specific environment files (`.env.test`, `.env.staging`)
+- E2E tests need different environment variables than development
+- Using `strictPort: true` (WorkOS, OAuth redirects, etc.)
+- Test helper endpoints return 404 because env vars aren't loaded
+
+**Related**: #L270 (Playwright env vars), #L250 (E2E test selectors), #L160 (Secret scanning)
 
 ---
 

@@ -6,10 +6,11 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",
+		"dev:test": "vite dev --mode test",
 		"dev:mobile": "NODE_ENV=development vite dev",
 		"build": "vite build",
 		"preview": "vite preview",
-		"prepare": "svelte-kit sync || echo ''",
+		"prepare": "husky || true",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
@@ -19,12 +20,13 @@
 		"test:integration": "vitest --run tests/convex/integration",
 		"test:integration:watch": "vitest tests/convex/integration",
 		"test": "npm run test:unit:server && npm run test:integration && npm run test:e2e",
-		"test:e2e": "E2E_TEST_MODE=true playwright test",
+		"test:e2e": "npm run test:e2e:stop-dev && E2E_TEST_MODE=true playwright test",
 		"test:e2e:setup": "playwright test e2e/auth.setup.ts",
 		"test:e2e:quick-create": "playwright test e2e/quick-create.spec.ts",
 		"test:e2e:settings": "playwright test e2e/settings-security.spec.ts",
 		"test:e2e:inbox": "playwright test e2e/inbox-workflow.spec.ts",
-		"test:e2e:auth": "E2E_TEST_MODE=true playwright test e2e/auth-security.test.ts e2e/auth-registration.test.ts",
+		"test:e2e:auth": "npm run test:e2e:stop-dev && E2E_TEST_MODE=true playwright test e2e/auth-security.test.ts e2e/auth-registration.test.ts",
+		"test:e2e:stop-dev": "lsof -ti:5173 | xargs kill -9 2>/dev/null || true",
 		"test:e2e:critical": "playwright test e2e/quick-create.spec.ts e2e/settings-security.spec.ts e2e/inbox-workflow.spec.ts",
 		"test:sessionid": "./scripts/check-sessionid-usage.sh",
 		"precommit": "npm run check && npm run test:sessionid && npm run lint && npm run test:unit:server && npm run test:integration",
@@ -39,6 +41,7 @@
 		"@sveltejs/kit": "^2.47.1",
 		"@sveltejs/vite-plugin-svelte": "^6.2.1",
 		"@tailwindcss/vite": "^4.1.14",
+		"@types/dompurify": "^3.0.5",
 		"@types/node": "^22",
 		"@vitest/browser": "^3.2.4",
 		"convex-test": "^0.0.38",
@@ -46,6 +49,8 @@
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-svelte": "^3.12.4",
 		"globals": "^16.4.0",
+		"husky": "^9.1.7",
+		"lint-staged": "^16.2.6",
 		"mdsvex": "^0.12.6",
 		"playwright": "^1.56.1",
 		"prettier": "^3.6.2",
@@ -75,6 +80,7 @@
 		"bits-ui": "^2.14.1",
 		"convex": "^1.28.0",
 		"convex-svelte": "^0.0.11",
+		"dompurify": "^3.3.0",
 		"highlight.js": "^11.11.1",
 		"layerchart": "^1.0.12",
 		"lowlight": "^3.3.0",
@@ -95,5 +101,10 @@
 		"resend": "^6.4.0",
 		"svelte-sonner": "^1.0.6",
 		"ts-fsrs": "^5.2.3"
+	},
+	"lint-staged": {
+		"*.{js,ts,svelte,json,md,css,html}": [
+			"prettier --write"
+		]
 	}
 }
