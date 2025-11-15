@@ -63,6 +63,8 @@
 | ESLint warnings `svelte/no-at-html-tags`, XSS vulnerabilities from user-generated content        | Sanitize HTML with DOMPurify before rendering with {@html}                   | [ui-patterns.md#L2000](ui-patterns.md#L2000)                         |
 | TypeScript error: DOMPurify Config type mismatch between ESM/CJS definitions                       | Use type assertion with 'unknown' intermediate: `config as unknown as Parameters<...>[1]` | [ui-patterns.md#L2005](ui-patterns.md#L2005)                         |
 | E2E test helper returns 404, .env.test variables not loaded                                       | Use vite dev --mode test flag (not webServer.env MODE)                       | [ci-cd.md#L280](ci-cd.md#L280)                                      |
+| Playwright tests fail with "Session record not found", auth state conflicts                       | Separate authenticated/unauthenticated projects in playwright.config.ts      | [ci-cd.md#L290](ci-cd.md#L290)                                      |
+| E2E tests fail with WorkOS "sso_required" error                                                    | Use WorkOS Test Identity Provider or bypass for E2E                          | [ci-cd.md#L310](ci-cd.md#L310)                                      |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -109,6 +111,7 @@
 | Logout in one tab doesn't invalidate other tabs                               | Test multi-tab session invalidation with context.newPage()            | [ci-cd.md#L240](ci-cd.md#L240)                             |
 | CSRF validation tests return 200 instead of 400/403, security not detected   | Use isolated request context (playwright.request.newContext)          | [ci-cd.md#L245](ci-cd.md#L245)                             |
 | Tests fail with 401/500 "Session not found" from prev tests                   | Skip gracefully if session invalid (test.skip())                      | [ci-cd.md#L260](ci-cd.md#L260)                             |
+| E2E tests hit rate limits with "Too many requests" errors from external APIs  | Mock external APIs (email, payment, SMS) with E2E_TEST_MODE flag      | [ci-cd.md#L320](ci-cd.md#L320)                             |
 
 ## 🟢 REFERENCE Patterns (Best Practices)
 
@@ -216,6 +219,6 @@ correct code
 ---
 
 **Last Updated**: 2025-11-15
-**Pattern Count**: 81
+**Pattern Count**: 84
 **Format Version**: 2.0
 ```

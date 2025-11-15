@@ -5,12 +5,11 @@
  * - Registration with email verification (PIN code)
  * - Password reset flow
  * - Email verification with test helper
+ *
+ * Note: Storage state is handled by playwright.config.ts (unauthenticated project)
  */
 
 import { test, expect } from '@playwright/test';
-
-// Use no authentication for registration tests
-test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe('Registration with Email Verification', () => {
 	test('should register new user with email verification', async ({ page, request }) => {

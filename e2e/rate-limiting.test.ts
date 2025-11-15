@@ -1,8 +1,29 @@
 import { test, expect } from '@playwright/test';
 
+/**
+ * Generate unique test ID for rate limit isolation
+ * Each test gets its own rate limit bucket in E2E mode
+ *
+ * Note: Storage state is handled by playwright.config.ts (unauthenticated project)
+ */
+function getTestId(testName: string): string {
+	return `${testName}-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+}
+
 test.describe('Rate Limiting', () => {
+	// Reset rate limits before each test to ensure isolation
+	// This prevents tests from interfering with each other when run in parallel
+	test.beforeEach(async ({ request }) => {
+		// Clear all rate limits before each test
+		// This ensures each test starts with a clean slate
+		const response = await request.post('/test/reset-rate-limits');
+		if (!response.ok() && response.status() !== 404) {
+			console.warn('⚠️ Failed to reset rate limits before test:', response.status());
+		}
+	});
 	test.describe('Login Endpoint', () => {
-		test('should block excessive login attempts', async ({ page, request }) => {
+		test('should block excessive login attempts', async ({ request }) => {
+			const testId = getTestId('login-excessive');
 			const email = 'test@example.com';
 			const password = 'wrong-password';
 
@@ -12,6 +33,9 @@ test.describe('Rate Limiting', () => {
 					data: {
 						email,
 						password
+					},
+					headers: {
+						'X-Test-ID': testId
 					}
 				});
 
@@ -30,10 +54,14 @@ test.describe('Rate Limiting', () => {
 		});
 
 		test('should include rate limit headers on login requests', async ({ request }) => {
+			const testId = getTestId('login-headers');
 			const response = await request.post('/auth/login', {
 				data: {
 					email: 'test@example.com',
 					password: 'password'
+				},
+				headers: {
+					'X-Test-ID': testId
 				}
 			});
 
@@ -44,18 +72,25 @@ test.describe('Rate Limiting', () => {
 		});
 
 		test('should include Retry-After header on 429 response', async ({ request }) => {
+			const testId = getTestId('login-retry-after');
 			const email = 'rate-limit-test-' + Date.now() + '@example.com';
 
 			// Exhaust limit
 			for (let i = 0; i < 5; i++) {
 				await request.post('/auth/login', {
-					data: { email, password: 'test' }
+					data: { email, password: 'test' },
+					headers: {
+						'X-Test-ID': testId
+					}
 				});
 			}
 
 			// Next request should return 429 with Retry-After
 			const response = await request.post('/auth/login', {
-				data: { email, password: 'test' }
+				data: { email, password: 'test' },
+				headers: {
+					'X-Test-ID': testId
+				}
 			});
 
 			expect(response.status()).toBe(429);
@@ -68,6 +103,7 @@ test.describe('Rate Limiting', () => {
 
 	test.describe('Registration Endpoint', () => {
 		test('should block excessive registration attempts', async ({ request }) => {
+			const testId = getTestId('register-excessive');
 			const timestamp = Date.now();
 
 			// Try registering 4 times (limit is 3/min)
@@ -76,6 +112,9 @@ test.describe('Rate Limiting', () => {
 					data: {
 						email: `test-${timestamp}-${i}@example.com`,
 						password: 'password123'
+					},
+					headers: {
+						'X-Test-ID': testId
 					}
 				});
 
@@ -93,10 +132,14 @@ test.describe('Rate Limiting', () => {
 		});
 
 		test('should include rate limit headers on register requests', async ({ request }) => {
+			const testId = getTestId('register-headers');
 			const response = await request.post('/auth/register', {
 				data: {
 					email: 'newuser-' + Date.now() + '@example.com',
 					password: 'password123'
+				},
+				headers: {
+					'X-Test-ID': testId
 				}
 			});
 
@@ -108,7 +151,7 @@ test.describe('Rate Limiting', () => {
 	});
 
 	test.describe('Account Switch Endpoint', () => {
-		test('should block excessive account switch attempts', async ({ page, request }) => {
+		test('should block excessive account switch attempts', async () => {
 			// Note: This test requires authentication
 			// In a real scenario, you would set up authenticated sessions first
 
@@ -127,7 +170,7 @@ test.describe('Rate Limiting', () => {
 	});
 
 	test.describe('Logout Endpoint', () => {
-		test('should block excessive logout attempts', async ({ request }) => {
+		test('should block excessive logout attempts', async () => {
 			// Note: Logout rate limiting is less critical but still protected
 
 			test.skip('requires authenticated session setup');
@@ -141,27 +184,37 @@ test.describe('Rate Limiting', () => {
 
 	test.describe('Independent Rate Limiting', () => {
 		test('should track different endpoints independently', async ({ request }) => {
+			const testId = getTestId('independent-endpoints');
 			const timestamp = Date.now();
 			const email = `independent-test-${timestamp}@example.com`;
 
 			// Exhaust login limit
 			for (let i = 0; i < 5; i++) {
 				await request.post('/auth/login', {
-					data: { email, password: 'test' }
+					data: { email, password: 'test' },
+					headers: {
+						'X-Test-ID': testId
+					}
 				});
 			}
 
 			// Login should be blocked
 			let response = await request.post('/auth/login', {
-				data: { email, password: 'test' }
+				data: { email, password: 'test' },
+				headers: {
+					'X-Test-ID': testId
+				}
 			});
 			expect(response.status()).toBe(429);
 
-			// But registration should still work (different limit)
+			// But registration should still work (different limit, same test ID = same client)
 			response = await request.post('/auth/register', {
 				data: {
 					email: `different-${timestamp}@example.com`,
 					password: 'password123'
+				},
+				headers: {
+					'X-Test-ID': testId
 				}
 			});
 			expect(response.status()).not.toBe(429);
@@ -170,12 +223,16 @@ test.describe('Rate Limiting', () => {
 
 	test.describe('Rate Limit Headers', () => {
 		test('should update remaining count with each request', async ({ request }) => {
+			const testId = getTestId('headers-remaining');
 			const timestamp = Date.now();
 			const email = `header-test-${timestamp}@example.com`;
 
 			for (let i = 0; i < 3; i++) {
 				const response = await request.post('/auth/login', {
-					data: { email, password: 'test' }
+					data: { email, password: 'test' },
+					headers: {
+						'X-Test-ID': testId
+					}
 				});
 
 				const headers = response.headers();
@@ -187,12 +244,19 @@ test.describe('Rate Limiting', () => {
 		});
 
 		test('should set consistent rate limit on all responses', async ({ request }) => {
+			const testId = getTestId('headers-consistent');
 			const response1 = await request.post('/auth/login', {
-				data: { email: 'test1@example.com', password: 'test' }
+				data: { email: 'test1@example.com', password: 'test' },
+				headers: {
+					'X-Test-ID': testId
+				}
 			});
 
 			const response2 = await request.post('/auth/login', {
-				data: { email: 'test2@example.com', password: 'test' }
+				data: { email: 'test2@example.com', password: 'test' },
+				headers: {
+					'X-Test-ID': testId
+				}
 			});
 
 			// Both should have same limit
@@ -203,6 +267,7 @@ test.describe('Rate Limiting', () => {
 
 	test.describe('Performance', () => {
 		test('should add minimal overhead to requests', async ({ request }) => {
+			const testId = getTestId('perf-test');
 			const start = Date.now();
 
 			// Make a single request
@@ -210,6 +275,9 @@ test.describe('Rate Limiting', () => {
 				data: {
 					email: 'perf-test@example.com',
 					password: 'test'
+				},
+				headers: {
+					'X-Test-ID': testId
 				}
 			});
 

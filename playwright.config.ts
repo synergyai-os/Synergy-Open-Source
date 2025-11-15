@@ -40,36 +40,46 @@ export default defineConfig({
 
 	// Configure projects for major browsers
 	projects: [
-		// Setup project - runs authentication before other tests
+		// Setup project - runs authentication before authenticated tests
 		{
 			name: 'setup',
 			testMatch: /.*\.setup\.ts/
 		},
 
+		// Authenticated tests - require login state from setup
 		{
-			name: 'chromium',
+			name: 'authenticated',
+			testMatch:
+				/.*\/(inbox|settings|multi-tab|flashcard|quick-create|auth-security).*\.(test|spec)\.ts$/,
 			use: {
 				...devices['Desktop Chrome'],
 				// Use authenticated state from setup
 				storageState: 'e2e/.auth/user.json'
 			},
-			dependencies: ['setup']
+			dependencies: ['setup'],
+			// Run tests sequentially to prevent session conflicts with single test account
+			// See: https://playwright.dev/docs/test-parallel#limit-workers-in-one-project
+			workers: 1
+		},
+
+		// Unauthenticated tests - run with clean storage state
+		{
+			name: 'unauthenticated',
+			testMatch: /.*\/(auth-registration|rate-limiting|demo).*\.(test|spec)\.ts$/,
+			use: {
+				...devices['Desktop Chrome'],
+				// Empty storage state - no cookies or authentication
+				storageState: { cookies: [], origins: [] }
+			}
+			// No dependencies on setup - can run independently
 		}
 
 		// Uncomment to test on other browsers
 		// {
-		// 	name: 'firefox',
+		// 	name: 'firefox-authenticated',
+		// 	testMatch: /.*\/(inbox|settings|multi-tab|flashcard|quick-create|auth-security).*\.(test|spec)\.ts$/,
 		// 	use: {
 		// 		...devices['Desktop Firefox'],
-		// 		storageState: 'e2e/.auth/user.json',
-		// 	},
-		// 	dependencies: ['setup'],
-		// },
-		//
-		// {
-		// 	name: 'webkit',
-		// 	use: {
-		// 		...devices['Desktop Safari'],
 		// 		storageState: 'e2e/.auth/user.json',
 		// 	},
 		// 	dependencies: ['setup'],

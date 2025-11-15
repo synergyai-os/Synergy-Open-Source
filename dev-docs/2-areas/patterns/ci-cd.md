@@ -1021,4 +1021,276 @@ npm run dev  # Restart dev server
 
 ---
 
+## #L290: Playwright Project Separation for Authentication [🔴 CRITICAL]
+
+**Symptom**: Tests fail with "Session record not found" or authentication state conflicts. Unauthenticated tests (registration, rate-limiting) interfere with authenticated test sessions.
+
+**Root Cause**: All tests share a single `storageState` file (`user.json`), causing conflicts when tests reset storage state with `test.use({ storageState: { cookies: [], origins: [] } })`
+
+**Fix**:
+
+```typescript
+// playwright.config.ts
+// ❌ WRONG - Single project with shared storageState
+projects: [
+  {
+    name: 'chromium',
+    use: {
+      ...devices['Desktop Chrome'],
+      storageState: 'e2e/.auth/user.json' // All tests use this
+    },
+    dependencies: ['setup']
+  }
+]
+
+// ✅ CORRECT - Separate projects by authentication need
+projects: [
+  // Setup project - creates authentication state once
+  {
+    name: 'setup',
+    testMatch: /.*\.setup\.ts/
+  },
+  
+  // Authenticated tests - use pre-saved session
+  {
+    name: 'authenticated',
+    testMatch: /inbox|settings|multi-tab|flashcard|quick-create/,
+    use: {
+      ...devices['Desktop Chrome'],
+      storageState: 'e2e/.auth/user.json'
+    },
+    dependencies: ['setup'] // Wait for auth setup
+  },
+  
+  // Unauthenticated tests - start with empty storage
+  {
+    name: 'unauthenticated',
+    testMatch: /auth-registration|rate-limiting|demo/,
+    use: {
+      ...devices['Desktop Chrome'],
+      storageState: { cookies: [], origins: [] }
+    }
+    // No dependencies - can run independently
+  }
+]
+```
+
+```typescript
+// e2e/rate-limiting.test.ts
+// ❌ WRONG - Reset storage state in test file
+test.use({ storageState: { cookies: [], origins: [] } }); // Conflicts with shared session
+
+// ✅ CORRECT - Let project config handle storage state
+// No test.use() needed - project routes test automatically
+test.describe('Rate Limiting', () => {
+  test('should block excessive login attempts', async ({ request }) => {
+    // Automatically uses empty storage state from 'unauthenticated' project
+  });
+});
+```
+
+**Why**:
+
+- ✅ Tests routed to correct project via `testMatch` patterns (no manual `test.use()`)
+- ✅ No storage state conflicts between authenticated/unauthenticated tests
+- ✅ Clear separation of concerns (each project has specific authentication needs)
+- ✅ Foundation for parallel execution (each project can run independently)
+- ✅ Follows [Playwright official best practices](https://playwright.dev/docs/test-projects)
+
+**Validation**:
+
+```bash
+# Check test routing
+npm run test:e2e -- --list
+
+# Should see:
+# [authenticated] inbox-workflow.spec.ts
+# [authenticated] settings-security.spec.ts
+# [unauthenticated] auth-registration.test.ts
+# [unauthenticated] rate-limiting.test.ts
+```
+
+**Apply when**:
+
+- Tests fail with "Session record not found" errors
+- Authenticated tests redirect to login unexpectedly
+- Unauthenticated tests (registration, rate-limiting) pollute shared session
+- Need to separate test concerns by authentication state
+
+**Related**: #L280 (Vite mode flag), #L270 (Env vars), #L220 (Cookie context)
+
+---
+
+## #L310: WorkOS Test Identity Provider Configuration [🔴 CRITICAL]
+
+**Symptom**: E2E tests fail with WorkOS error `{"error":"sso_required","error_description":"User must authenticate using one of the matching connections"}`
+
+**Root Cause**: Test accounts are configured to require SSO connections, but E2E auth setup tries to use password authentication directly
+
+**Fix**:
+
+**Option 1: Use WorkOS Test Identity Provider** (Recommended)
+
+```typescript
+// e2e/auth.setup.ts
+import { setup, expect } from '@playwright/test';
+
+// ✅ CORRECT - Use WorkOS Test IdP credentials
+const TEST_USER_EMAIL = process.env.TEST_USER_EMAIL || 'test@example.com';
+const TEST_USER_PASSWORD = process.env.TEST_USER_PASSWORD || 'test-password';
+
+setup('authenticate', async ({ page }) => {
+  await page.goto('/login');
+  await page.getByLabel('Email').fill(TEST_USER_EMAIL);
+  await page.getByLabel('Password').fill(TEST_USER_PASSWORD);
+  await page.getByRole('button', { name: 'Sign In' }).click();
+  
+  // Wait for SSO flow to complete (Test IdP handles automatically)
+  await page.waitForURL(/\/(inbox|dashboard)/, { timeout: 15000 });
+  
+  // Save authenticated state
+  await page.context().storageState({ path: 'e2e/.auth/user.json' });
+});
+```
+
+**WorkOS Dashboard Configuration**:
+
+1. Navigate to [Test SSO](https://workos.com/docs/sso/test-sso/testing-with-the-test-identity-provider)
+2. Create test organization with `example.com` domain
+3. Configure Test Identity Provider connection
+4. Use Test IdP credentials in E2E tests
+
+**Option 2: Bypass WorkOS for E2E** (Quick fix, not recommended)
+
+```typescript
+// src/lib/server/auth/workos.ts
+export async function authenticateWithPassword(email: string, password: string) {
+  // ⚠️ ONLY for E2E tests - bypass WorkOS
+  if (process.env.E2E_TEST_MODE === 'true') {
+    // Mock successful authentication
+    return {
+      userId: 'test-user-id',
+      email: email
+    };
+  }
+  
+  // Production - real WorkOS call
+  return await workos.auth.authenticateWithPassword({ email, password });
+}
+```
+
+**Why Option 1 is Better**:
+
+- ✅ Tests real SSO authentication flow (matches production)
+- ✅ No code changes needed (only configuration)
+- ✅ Validates complete auth integration
+- ❌ Option 2 doesn't test real auth (creates maintenance burden)
+
+**Apply when**:
+
+- E2E tests fail with "sso_required" errors
+- WorkOS auth works in development but fails in tests
+- Test accounts are configured for SSO-only authentication
+
+**Related**: #L290 (Project separation), #L320 (Mock external APIs)
+
+---
+
+## #L320: Mock External APIs in E2E Tests [🟡 IMPORTANT]
+
+**Symptom**: E2E tests fail with rate limit errors like `{"statusCode":429,"name":"rate_limit_exceeded","message":"Too many requests. You can only make 2 requests per second..."}`
+
+**Root Cause**: Tests trigger real external API calls (Resend email, payment providers, etc.), hitting rate limits and consuming API quotas
+
+**Fix**:
+
+```typescript
+// convex/email.ts
+"use node";
+import { internalAction } from "./_generated/server";
+import { v } from "convex/values";
+
+export const sendVerificationEmail = internalAction({
+  args: {
+    to: v.string(),
+    code: v.string(),
+    expiresAt: v.number()
+  },
+  handler: async (ctx, args) => {
+    // ✅ CORRECT - Detect E2E test mode and skip external API
+    if (process.env.E2E_TEST_MODE === 'true') {
+      console.log('📧 [E2E Mock] Email suppressed:', {
+        to: args.to,
+        code: args.code,
+        expiresAt: new Date(args.expiresAt).toISOString()
+      });
+      
+      return {
+        id: `mock-${args.to}-${Date.now()}`,
+        success: true
+      };
+    }
+    
+    // Production - real Resend API call
+    const { data, error } = await resend.emails.send({
+      from: 'SynergyOS <verify@synergyos.app>',
+      to: args.to,
+      subject: 'Verify your email',
+      html: emailTemplate(args.code)
+    });
+    
+    if (error) {
+      throw new Error(`Resend API error: ${JSON.stringify(error)}`);
+    }
+    
+    return data;
+  }
+});
+```
+
+```typescript
+// playwright.config.ts
+export default defineConfig({
+  // ...
+  webServer: {
+    command: 'npm run dev',
+    port: 5173,
+    reuseExistingServer: !process.env.CI,
+    env: {
+      E2E_TEST_MODE: 'true', // ✅ Enable mocking
+      NODE_ENV: 'test'
+    }
+  }
+});
+```
+
+**Why**:
+
+- ✅ Tests run faster (no network latency)
+- ✅ No rate limit errors (no external API calls)
+- ✅ No API costs during testing
+- ✅ Still tests full application flow (just skips external service)
+- ✅ Predictable test results (no external service downtime)
+
+**Common APIs to Mock**:
+
+| Service | Rate Limit | Why Mock |
+|---------|------------|----------|
+| Resend Email | 2 req/sec, 100 emails/day | Hit limits quickly with parallel tests |
+| Stripe Payments | N/A | Avoid test charges, token creation |
+| Twilio SMS | Variable | Avoid SMS costs |
+| S3/Storage | N/A | Avoid storage costs, faster tests |
+
+**Apply when**:
+
+- E2E tests hit external API rate limits
+- Tests fail with 429 "Too Many Requests" errors
+- Want to avoid API costs during testing
+- External service downtime causes test flakiness
+- Tests need consistent, predictable behavior
+
+**Related**: #L310 (WorkOS test config), #L280 (Vite mode flag), #L290 (Project separation)
+
+---
+
 ## Format Version: 1.0
