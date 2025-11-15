@@ -41,6 +41,7 @@ export default defineConfig({
 	// Configure projects for major browsers
 	projects: [
 		// Setup project - runs authentication before authenticated tests
+		// Runs once per worker (5 times total) to create worker-specific auth files
 		{
 			name: 'setup',
 			testMatch: /.*\.setup\.ts/
@@ -53,14 +54,13 @@ export default defineConfig({
 			name: 'authenticated',
 			testMatch: /.*\/(settings|multi-tab|auth-security).*\.(test|spec)\.ts$/,
 			use: {
-				...devices['Desktop Chrome'],
-				// Use worker-specific authenticated state from setup
-				// Each worker (0-4) gets its own user.json file to prevent session conflicts
-				storageState: 'e2e/.auth/user.json'
+				...devices['Desktop Chrome']
+				// Storage state provided by custom fixture (e2e/fixtures.ts)
+				// Each worker (0-4) uses its own auth file: user-worker-{N}.json
 			},
 			dependencies: ['setup']
 			// Workers use global config (5 workers) for parallel execution
-			// Each worker authenticates as a different user (handled by auth.setup.ts)
+			// Each worker authenticates as a different user (handled by auth.setup.ts + fixtures.ts)
 		},
 
 		// Unauthenticated tests - run with clean storage state

@@ -11,6 +11,8 @@ import { test as setup, expect } from '@playwright/test';
 import { readFileSync } from 'fs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { ConvexHttpClient } from 'convex/browser';
+import { api } from '../convex/_generated/api.js';
 
 // Get __dirname equivalent in ES module
 const __filename = fileURLToPath(import.meta.url);
@@ -27,24 +29,27 @@ try {
 			process.env[key.trim()] = value.trim();
 		}
 	});
-} catch (error) {
+} catch (_error) {
 	console.warn('Warning: Could not load .env.test file');
 }
 
-const authFile = 'e2e/.auth/user.json';
+setup('authenticate', async ({ page }, testInfo) => {
+	// Get worker index (0-4 for 5 parallel workers)
+	const workerIndex = testInfo.parallelIndex;
 
-setup('authenticate', async ({ page }) => {
-	// Get credentials from environment
-	const email = process.env.TEST_USER_EMAIL;
-	const password = process.env.TEST_USER_PASSWORD;
+	// Select worker-specific credentials from environment
+	// Falls back to shared TEST_USER for single-worker scenarios
+	const email = process.env[`WORKER_${workerIndex}_EMAIL`] || process.env.TEST_USER_EMAIL;
+	const password = process.env[`WORKER_${workerIndex}_PASSWORD`] || process.env.TEST_USER_PASSWORD;
 
 	if (!email || !password) {
 		throw new Error(
-			'Test credentials not found. Please set TEST_USER_EMAIL and TEST_USER_PASSWORD in .env.test'
+			`Worker ${workerIndex} credentials not found. ` +
+				`Set WORKER_${workerIndex}_EMAIL and WORKER_${workerIndex}_PASSWORD in .env.test`
 		);
 	}
 
-	console.log('🔐 Authenticating test user:', email);
+	console.log(`🔐 [Worker ${workerIndex}] Authenticating:`, email);
 
 	// Navigate to login page
 	await page.goto('/login');
@@ -68,14 +73,96 @@ setup('authenticate', async ({ page }) => {
 	// Wait for redirect to authenticated page (inbox or dashboard)
 	await page.waitForURL(/\/(inbox|dashboard)/, { timeout: 15000 });
 
-	// Verify we're authenticated by checking for user-specific elements
-	// Adjust selector based on your app
-	await expect(page.locator('body')).toBeVisible();
+	// Wait for page to fully load (ensures cookies are set)
+	await page.waitForLoadState('networkidle');
 
-	console.log('✅ Authentication successful');
+	// Verify we're authenticated by checking for authenticated page elements
+	// Wait for Inbox header to ensure cookies are properly set and page is loaded
+	const inboxHeader = page.locator('h2:has-text("Inbox"), h1:has-text("Inbox")').first();
+	await expect(inboxHeader).toBeVisible({ timeout: 10000 });
 
-	// Save authenticated state
+	console.log(
+		`✅ [Worker ${workerIndex}] Authentication successful - authenticated elements visible`
+	);
+
+	// Verify session is working by navigating to another protected route
+	await page.goto('/settings');
+	await page.waitForURL('/settings', { timeout: 10000 });
+	console.log(`✅ [Worker ${workerIndex}] Session verified - can access protected routes`);
+
+	// Navigate back to inbox before saving state
+	await page.goto('/inbox');
+	await page.waitForURL('/inbox', { timeout: 10000 });
+
+	// CRITICAL FIX (SYOS-160): Verify session exists in Convex BEFORE saving storageState
+	// This prevents race condition where storageState is saved before Convex write completes
+	console.log(`🔍 [Worker ${workerIndex}] Verifying session exists in Convex database...`);
+
+	const cookies = await page.context().cookies();
+	const sessionCookie = cookies.find((c) => c.name === 'session_id');
+
+	if (!sessionCookie) {
+		throw new Error(`[Worker ${workerIndex}] Session cookie not found after authentication`);
+	}
+
+	const sessionId = sessionCookie.value;
+	console.log(`📋 [Worker ${workerIndex}] Session ID:`, sessionId);
+
+	// Query Convex to verify session exists (with retry logic for race condition)
+	const convexUrl = process.env.PUBLIC_CONVEX_URL;
+	if (!convexUrl) {
+		throw new Error('PUBLIC_CONVEX_URL not set in environment');
+	}
+
+	const convex = new ConvexHttpClient(convexUrl);
+	let session = null;
+	let attempts = 0;
+	const maxAttempts = 10;
+	const retryDelayMs = 200;
+
+	while (!session && attempts < maxAttempts) {
+		attempts++;
+		try {
+			session = await convex.query(api.authSessions.getSessionById, { sessionId });
+
+			if (session) {
+				console.log(
+					`✅ [Worker ${workerIndex}] Session verified in Convex (attempt ${attempts}/${maxAttempts})`
+				);
+				break;
+			} else {
+				console.log(
+					`⏳ [Worker ${workerIndex}] Session not yet in Convex, retrying... (attempt ${attempts}/${maxAttempts})`
+				);
+				await page.waitForTimeout(retryDelayMs);
+			}
+		} catch (error) {
+			console.error(
+				`❌ [Worker ${workerIndex}] Error querying Convex (attempt ${attempts}/${maxAttempts}):`,
+				error
+			);
+			if (attempts === maxAttempts) {
+				throw new Error(
+					`[Worker ${workerIndex}] Failed to verify session in Convex after ${maxAttempts} attempts`
+				);
+			}
+			await page.waitForTimeout(retryDelayMs);
+		}
+	}
+
+	if (!session) {
+		throw new Error(
+			`[Worker ${workerIndex}] Session ${sessionId} not found in Convex after ${maxAttempts} attempts. This indicates a race condition in session creation.`
+		);
+	}
+
+	// Now it's safe to save storageState - session is guaranteed to exist in Convex
+	// Save to worker-specific file for parallel execution
+	const authFile = `e2e/.auth/user-worker-${workerIndex}.json`;
 	await page.context().storageState({ path: authFile });
 
-	console.log('💾 Saved auth state to', authFile);
+	console.log(`💾 [Worker ${workerIndex}] Saved auth state to`, authFile);
+	console.log(
+		`🎉 [Worker ${workerIndex}] Authentication setup complete - session persistent in Convex`
+	);
 });
