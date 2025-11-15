@@ -81,6 +81,22 @@ export async function establishSession(options: {
 }) {
 	const csrfToken = generateRandomToken(32);
 
+	// Get client address with fallback for test environments (e.g., Playwright)
+	let ipAddress: string;
+	try {
+		ipAddress = options.event.getClientAddress();
+	} catch (error) {
+		// Fallback for environments where getClientAddress fails
+		ipAddress =
+			options.event.request.headers.get('x-forwarded-for') ||
+			options.event.request.headers.get('x-real-ip') ||
+			'127.0.0.1';
+
+		if (env.E2E_TEST_MODE === 'true') {
+			console.log('⚠️ getClientAddress failed in establishSession, using fallback:', ipAddress);
+		}
+	}
+
 	const sessionId = await createSessionRecord({
 		convexUserId: options.convexUserId,
 		workosUserId: options.workosUserId,
@@ -90,7 +106,7 @@ export async function establishSession(options: {
 		csrfToken,
 		expiresAt: options.expiresAt,
 		userSnapshot: options.userSnapshot,
-		ipAddress: options.event.getClientAddress(),
+		ipAddress,
 		userAgent: options.event.request.headers.get('user-agent')
 	});
 
@@ -302,9 +318,28 @@ export async function resolveRequestSession(event: RequestEvent) {
 			return;
 		}
 	} else {
+		// Get client address with fallback for test environments (e.g., Playwright)
+		let ipAddress: string;
+		try {
+			ipAddress = event.getClientAddress();
+		} catch (error) {
+			// Fallback for environments where getClientAddress fails
+			ipAddress =
+				event.request.headers.get('x-forwarded-for') ||
+				event.request.headers.get('x-real-ip') ||
+				'127.0.0.1';
+
+			if (env.E2E_TEST_MODE === 'true') {
+				console.log(
+					'⚠️ getClientAddress failed in resolveRequestSession, using fallback:',
+					ipAddress
+				);
+			}
+		}
+
 		await touchSession({
 			sessionId: record.sessionId,
-			ipAddress: event.getClientAddress(),
+			ipAddress,
 			userAgent: event.request.headers.get('user-agent'),
 			now
 		});
