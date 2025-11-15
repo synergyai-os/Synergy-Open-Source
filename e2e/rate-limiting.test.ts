@@ -24,7 +24,7 @@ test.describe('Rate Limiting', () => {
 	test.describe('Login Endpoint', () => {
 		test('should block excessive login attempts', async ({ request }) => {
 			const testId = getTestId('login-excessive');
-			const email = 'test@example.com';
+			const email = 'randy+cicduser@synergyai.nl';
 			const password = 'wrong-password';
 
 			// Try logging in 6 times (limit is 5/min)
@@ -57,7 +57,7 @@ test.describe('Rate Limiting', () => {
 			const testId = getTestId('login-headers');
 			const response = await request.post('/auth/login', {
 				data: {
-					email: 'test@example.com',
+					email: 'randy+cicduser@synergyai.nl',
 					password: 'password'
 				},
 				headers: {
@@ -73,7 +73,7 @@ test.describe('Rate Limiting', () => {
 
 		test('should include Retry-After header on 429 response', async ({ request }) => {
 			const testId = getTestId('login-retry-after');
-			const email = 'rate-limit-test-' + Date.now() + '@example.com';
+			const email = `randy+ci-rate-1-${Date.now()}@synergyai.nl`;
 
 			// Exhaust limit
 			for (let i = 0; i < 5; i++) {
@@ -110,7 +110,7 @@ test.describe('Rate Limiting', () => {
 			for (let i = 0; i < 4; i++) {
 				const response = await request.post('/auth/register', {
 					data: {
-						email: `test-${timestamp}-${i}@example.com`,
+						email: `randy+ci-rate-${i}-${timestamp}@synergyai.nl`,
 						password: 'password123'
 					},
 					headers: {
@@ -135,7 +135,7 @@ test.describe('Rate Limiting', () => {
 			const testId = getTestId('register-headers');
 			const response = await request.post('/auth/register', {
 				data: {
-					email: 'newuser-' + Date.now() + '@example.com',
+					email: `randy+ci-rate-new-${Date.now()}@synergyai.nl`,
 					password: 'password123'
 				},
 				headers: {
@@ -186,7 +186,7 @@ test.describe('Rate Limiting', () => {
 		test('should track different endpoints independently', async ({ request }) => {
 			const testId = getTestId('independent-endpoints');
 			const timestamp = Date.now();
-			const email = `independent-test-${timestamp}@example.com`;
+			const email = `randy+ci-rate-indep-${timestamp}@synergyai.nl`;
 
 			// Exhaust login limit
 			for (let i = 0; i < 5; i++) {
@@ -210,7 +210,7 @@ test.describe('Rate Limiting', () => {
 			// But registration should still work (different limit, same test ID = same client)
 			response = await request.post('/auth/register', {
 				data: {
-					email: `different-${timestamp}@example.com`,
+					email: `randy+ci-rate-diff-${timestamp}@synergyai.nl`,
 					password: 'password123'
 				},
 				headers: {
@@ -225,7 +225,7 @@ test.describe('Rate Limiting', () => {
 		test('should update remaining count with each request', async ({ request }) => {
 			const testId = getTestId('headers-remaining');
 			const timestamp = Date.now();
-			const email = `header-test-${timestamp}@example.com`;
+			const email = `randy+ci-rate-header-${timestamp}@synergyai.nl`;
 
 			for (let i = 0; i < 3; i++) {
 				const response = await request.post('/auth/login', {
@@ -246,14 +246,14 @@ test.describe('Rate Limiting', () => {
 		test('should set consistent rate limit on all responses', async ({ request }) => {
 			const testId = getTestId('headers-consistent');
 			const response1 = await request.post('/auth/login', {
-				data: { email: 'test1@example.com', password: 'test' },
+				data: { email: 'randy+ci-rate-test1@synergyai.nl', password: 'test' },
 				headers: {
 					'X-Test-ID': testId
 				}
 			});
 
 			const response2 = await request.post('/auth/login', {
-				data: { email: 'test2@example.com', password: 'test' },
+				data: { email: 'randy+ci-rate-test2@synergyai.nl', password: 'test' },
 				headers: {
 					'X-Test-ID': testId
 				}
@@ -273,7 +273,7 @@ test.describe('Rate Limiting', () => {
 			// Make a single request
 			await request.post('/auth/login', {
 				data: {
-					email: 'perf-test@example.com',
+					email: 'randy+ci-rate-perf@synergyai.nl',
 					password: 'test'
 				},
 				headers: {
