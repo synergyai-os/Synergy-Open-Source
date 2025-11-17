@@ -186,7 +186,14 @@
 				<div class="text-center">
 					<p class="text-secondary">Circle not found</p>
 					<button
-						onclick={() => goto(resolveRoute('/org/circles'))}
+						onclick={() => {
+							const orgId = organizationId();
+							if (orgId) {
+								goto(resolveRoute(`/org/circles?org=${orgId}`));
+							} else {
+								goto(resolveRoute('/org/circles'));
+							}
+						}}
 						class="text-on-solid mt-4 rounded-md bg-accent-primary px-nav-item py-nav-item text-sm font-medium hover:bg-accent-hover"
 					>
 						Back to Circles

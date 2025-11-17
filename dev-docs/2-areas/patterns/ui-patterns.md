@@ -3408,7 +3408,7 @@ if (args.email) {
 
 ---
 
-## #L3400: Redirect to Organization with Query Parameter [🟡 IMPORTANT]
+## #L3400: Org-Scoped URLs Must Include `?org={id}` Parameter [🟡 IMPORTANT]
 
 **Symptom**: Redirecting to `/org/{organizationId}` results in 404 - route doesn't exist  
 **Root Cause**: Organization routes use query parameter pattern (`/org/circles?org={id}`), not dynamic route segments  
@@ -3418,15 +3418,52 @@ if (args.email) {
 // ❌ WRONG: Non-existent route
 await goto(resolveRoute(`/org/${organizationId}`)); // 404 error
 
-// ✅ CORRECT: Use query parameter pattern
+// ❌ WRONG: Missing org param (not shareable)
+await goto(resolveRoute(`/org/circles/${circleId}`));
+
+// ✅ CORRECT: Use query parameter pattern for all org-scoped URLs
 await goto(resolveRoute(`/org/circles?org=${organizationId}`));
+await goto(resolveRoute(`/org/circles/${circleId}?org=${organizationId}`));
+await goto(resolveRoute(`/org/teams/${teamId}?org=${organizationId}`));
 ```
 
-**Why**: The authenticated layout reads `org` from URL search params via `orgFromUrl` callback. The `useOrganizations` composable automatically sets the active organization from the `org` query parameter.  
-**Apply when**: Redirecting users to organizations after invite acceptance, account creation, or organization switching  
-**Related**: #L1870 (resolveRoute pattern), #L850 in convex-integration.md (Session validation)
+**Why**: 
+- The authenticated layout reads `org` from URL search params via `orgFromUrl` callback
+- The `useOrganizations` composable automatically sets the active organization from the `org` query parameter
+- URLs with explicit org context are shareable/bookmarkable
+- Prevents race conditions where queries run before org context is set
 
-**Source**: SYOS-233 (Invite Acceptance Page)
+**Apply when**: 
+- Redirecting users to organizations after invite acceptance, account creation, or organization switching
+- Navigating between org-scoped routes (circles, teams, members)
+- Creating links in navigation components (Sidebar, breadcrumbs)
+
+**Examples**:
+```typescript
+// Navigation from list to detail
+function handleRowClick(circleId: string) {
+  const orgId = organizationId();
+  if (!orgId) return;
+  goto(resolveRoute(`/org/circles/${circleId}?org=${orgId}`));
+}
+
+// Back button navigation
+onclick={() => {
+  const orgId = organizationId();
+  if (orgId) {
+    goto(resolveRoute(`/org/circles?org=${orgId}`));
+  } else {
+    goto(resolveRoute('/org/circles'));
+  }
+}}
+
+// Sidebar links
+href={resolveRoute(activeOrgId() ? `/org/circles?org=${activeOrgId()}` : '/org/circles')}
+```
+
+**Related**: #L1870 (resolveRoute pattern), #L850 in convex-integration.md (Session validation), `dev-docs/2-areas/architecture/url-patterns.md`
+
+**Source**: SYOS-233 (Invite Acceptance Page), SYOS-235 (URL Patterns Validation)
 
 ---
 

@@ -18,8 +18,15 @@
 
 		try {
 			await organizations.createOrganization({ name: orgName.trim() });
-			// Redirect to /org/circles after successful creation
-			goto(resolveRoute('/org/circles'));
+			// Redirect to /org/circles after successful creation with org context
+			// Wait a moment for activeOrganizationId to be set
+			const orgId = organizations.activeOrganizationId;
+			if (orgId) {
+				goto(resolveRoute(`/org/circles?org=${orgId}`));
+			} else {
+				// Fallback: redirect without org param (will be set from context)
+				goto(resolveRoute('/org/circles'));
+			}
 		} catch (error) {
 			console.error('Failed to create organization:', error);
 			errorMessage = error instanceof Error ? error.message : 'Failed to create organization';

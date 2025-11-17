@@ -50,7 +50,9 @@
 	);
 
 	function handleRowClick(circleId: string) {
-		goto(resolveRoute(`/org/circles/${circleId}`));
+		const orgId = organizationId();
+		if (!orgId) return;
+		goto(resolveRoute(`/org/circles/${circleId}?org=${orgId}`));
 	}
 </script>
 
