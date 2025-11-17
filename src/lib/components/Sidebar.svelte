@@ -57,6 +57,12 @@
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
 	const authSession = useAuthSession();
 
+	// Get active organization ID for org-scoped links
+	const activeOrgId = $derived(() => {
+		if (!organizations) return null;
+		return organizations.activeOrganizationId ?? null;
+	});
+
 	// circlesEnabled is now passed as a prop from the layout (loaded early for instant rendering)
 
 	// Get available accounts from localStorage (not database)
@@ -625,7 +631,9 @@
 					<!-- Circles (Beta - Feature Flag) -->
 					{#if circlesEnabled}
 						<a
-							href={resolveRoute('/org/circles')}
+							href={resolveRoute(
+								activeOrgId() ? `/org/circles?org=${activeOrgId()}` : '/org/circles'
+							)}
 							class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 							title="Circles"
 						>
@@ -650,7 +658,9 @@
 
 					<!-- Members -->
 					<a
-						href={resolveRoute('/org/members')}
+						href={resolveRoute(
+							activeOrgId() ? `/org/members?org=${activeOrgId()}` : '/org/members'
+						)}
 						class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 						title="Members"
 					>
@@ -674,7 +684,7 @@
 
 					<!-- Teams -->
 					<a
-						href={resolveRoute('/org/teams')}
+						href={resolveRoute(activeOrgId() ? `/org/teams?org=${activeOrgId()}` : '/org/teams')}
 						class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 						title="Teams"
 					>

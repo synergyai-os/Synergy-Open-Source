@@ -2,22 +2,32 @@
 	import { Dialog } from 'bits-ui';
 	import { browser } from '$app/environment';
 	import { toast } from '$lib/utils/toast';
-	import type { UseOrganizationMembers } from '$lib/composables/useOrganizationMembers.svelte';
+	import { useConvexClient } from 'convex-svelte';
+	import { api, type Id } from '$lib/convex';
 
 	let {
-		members,
 		open,
-		onOpenChange
+		onOpenChange,
+		type,
+		targetId,
+		targetName,
+		sessionId
 	}: {
-		members: Pick<UseOrganizationMembers, 'inviteMember' | 'loading'>;
 		open: boolean;
 		onOpenChange: (open: boolean) => void;
+		type: 'organization' | 'team';
+		targetId: Id<'organizations'> | Id<'teams'>;
+		targetName: string;
+		sessionId: () => string | undefined;
 	} = $props();
+
+	const convexClient = browser ? useConvexClient() : null;
 
 	let email = $state('');
 	let inviteLink = $state('');
 	let hasGeneratedInvite = $state(false);
 	let emailError = $state<string | null>(null);
+	let isLoading = $state(false);
 
 	// Email validation: requires valid domain with TLD (at least 2 chars)
 	const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z0-9]{2,}$/;
@@ -49,19 +59,61 @@
 		const trimmedEmail = email.trim();
 		if (!validateEmail(trimmedEmail)) return;
 
+		if (!convexClient) {
+			toast.error('Convex client not available');
+			return;
+		}
+
+		const currentSessionId = sessionId();
+		if (!currentSessionId) {
+			toast.error('You must be signed in to invite members');
+			return;
+		}
+
+		isLoading = true;
 		try {
-			const code = await members.inviteMember(trimmedEmail);
+			// Call the appropriate mutation based on type
+			const mutation =
+				type === 'organization'
+					? api.organizations.createOrganizationInvite
+					: api.teams.createTeamInvite;
+
+			const args =
+				type === 'organization'
+					? {
+							sessionId: currentSessionId,
+							organizationId: targetId as Id<'organizations'>,
+							email: trimmedEmail
+						}
+					: {
+							sessionId: currentSessionId,
+							teamId: targetId as Id<'teams'>,
+							email: trimmedEmail
+						};
+
+			const result = await convexClient.mutation(mutation, args);
 			const origin = browser ? window.location.origin : '';
-			inviteLink = `${origin}/invite?code=${code}`;
+			inviteLink = `${origin}/invite?code=${result.code}`;
 			hasGeneratedInvite = true;
 			toast.success('User invited');
 		} catch (error) {
-			// Error already handled by composable toast
-			// Reset form state on error so user can try again
-			if (error instanceof Error && error.message.includes('already exists')) {
-				emailError = 'This user has already been invited';
+			// Handle errors - show user-friendly messages
+			if (error instanceof Error) {
+				if (error.message.includes('already exists') || error.message.includes('already has')) {
+					emailError = 'This user has already been invited';
+				} else if (error.message.includes('already a member')) {
+					emailError = 'This user is already a member';
+				} else if (error.message.includes('Invalid email')) {
+					emailError = 'Please enter a valid email address';
+				} else {
+					toast.error(error.message);
+				}
+			} else {
+				toast.error('Failed to create invite');
 			}
 			console.error('Failed to create invite:', error);
+		} finally {
+			isLoading = false;
 		}
 	}
 
@@ -76,6 +128,8 @@
 			console.error('Failed to copy to clipboard:', error);
 		}
 	}
+
+	const entityType = type === 'organization' ? 'organization' : 'team';
 </script>
 
 <Dialog.Root {open} {onOpenChange}>
@@ -89,7 +143,7 @@
 					<Dialog.Title class="text-lg font-semibold text-primary">Invite Member</Dialog.Title>
 					<Dialog.Description class="mt-1 text-sm text-secondary">
 						Send an invite to a specific user by email. They'll receive a link to join this
-						organization.
+						{entityType}.
 					</Dialog.Description>
 				</div>
 
@@ -119,7 +173,7 @@
 									if (emailError) validateEmail(email);
 								}}
 								required
-								disabled={members.loading.invite}
+								disabled={isLoading}
 							/>
 							{#if emailError}
 								<span class="text-sm text-error">{emailError}</span>
@@ -131,16 +185,16 @@
 								type="button"
 								class="rounded-md border border-base px-3 py-1.5 text-sm font-medium text-secondary transition-colors hover:text-primary disabled:opacity-50"
 								onclick={() => onOpenChange(false)}
-								disabled={members.loading.invite}
+								disabled={isLoading}
 							>
 								Cancel
 							</button>
 							<button
 								type="submit"
 								class="text-on-solid rounded-md bg-accent-primary px-3 py-1.5 text-sm font-medium transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
-								disabled={members.loading.invite || !email.trim() || !!emailError}
+								disabled={isLoading || !email.trim() || !!emailError}
 							>
-								{members.loading.invite ? 'Inviting...' : 'Invite User'}
+								{isLoading ? 'Inviting...' : 'Invite User'}
 							</button>
 						</div>
 					</form>

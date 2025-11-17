@@ -39,12 +39,12 @@ export type UseTeams = ReturnType<typeof useTeams>;
 export function useTeams(options: {
 	sessionId: () => string | undefined;
 	organizationId: () => string | undefined;
-	teamSlug?: () => string | undefined;
+	teamId?: () => string | undefined;
 }) {
 	const convexClient = browser ? useConvexClient() : null;
 	const getSessionId = options.sessionId;
 	const getOrganizationId = options.organizationId;
-	const getTeamSlug = options.teamSlug;
+	const getTeamId = options.teamId;
 
 	const state = $state({
 		modals: {
@@ -55,7 +55,7 @@ export function useTeams(options: {
 		}
 	});
 
-	// Query teams list
+	// Query teams list - wait for org context before querying
 	const teamsQuery =
 		browser && getSessionId() && getOrganizationId()
 			? useQuery(api.teams.listTeams, () => {
@@ -67,19 +67,19 @@ export function useTeams(options: {
 				})
 			: null;
 
-	// Query single team by slug
+	// Query single team by ID - wait for org context before querying
 	const teamQuery =
-		browser && getSessionId() && getOrganizationId() && getTeamSlug && getTeamSlug()
-			? useQuery(api.teams.getTeamBySlug, () => {
+		browser && getSessionId() && getOrganizationId() && getTeamId && getTeamId()
+			? useQuery(api.teams.getTeamById, () => {
 					const sessionId = getSessionId();
 					const organizationId = getOrganizationId();
-					const slug = getTeamSlug?.();
-					if (!sessionId || !organizationId || !slug)
-						throw new Error('sessionId, organizationId, and slug required');
+					const teamId = getTeamId?.();
+					if (!sessionId || !organizationId || !teamId)
+						throw new Error('sessionId, organizationId, and teamId required');
 					return {
 						sessionId,
 						organizationId: organizationId as Id<'organizations'>,
-						slug
+						teamId: teamId as Id<'teams'>
 					};
 				})
 			: null;

@@ -3563,6 +3563,57 @@ return json({ success: true, redirectTo });
 
 ---
 
-**Pattern Count**: 40  
+## #L3600: Server-Side Invite Acceptance After Login [🟡 IMPORTANT]
+
+**Symptom**: User logs in from invite link, gets redirected back to `/invite` page showing "Sign in or create an account" screen instead of being accepted into organization/team  
+**Root Cause**: Login handler redirects to `/invite?code=...` without accepting invite server-side, causing client-side race condition where session cookie may not be immediately available  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Redirect to invite page after login
+// src/routes/auth/login/+server.ts
+return json({ success: true, redirectTo: redirect ?? '/inbox' });
+// If redirect contains /invite?code=..., client tries to accept invite
+// Race condition: session cookie not yet available, auto-accept fails
+
+// ✅ CORRECT: Accept invite server-side before redirect
+// src/routes/auth/login/+server.ts
+await establishSession({ event, ... });
+let redirectTo = redirect ?? '/inbox';
+const inviteMatch = redirectTo.match(/^\/invite\?code=([^&]+)/);
+
+if (inviteMatch) {
+	const inviteCode = inviteMatch[1];
+	const inviteDetails = await convex.query(api.organizations.getInviteByCode, {
+		code: inviteCode
+	});
+	
+	if (inviteDetails?.type === 'organization') {
+		const result = await convex.mutation(api.organizations.acceptOrganizationInvite, {
+			sessionId: event.locals.auth.sessionId!,
+			code: inviteCode
+		});
+		redirectTo = `/org/circles?org=${result.organizationId}`;
+	} else if (inviteDetails?.type === 'team') {
+		const result = await convex.mutation(api.teams.acceptTeamInvite, {
+			sessionId: event.locals.auth.sessionId!,
+			code: inviteCode
+		});
+		redirectTo = `/org/teams/${result.teamId}?org=${result.organizationId}`;
+	}
+}
+
+return json({ success: true, redirectTo });
+```
+
+**Why**: Server-side mutations execute immediately after session establishment, avoiding cookie propagation delays. Direct redirect to organization/team eliminates client-side race conditions.  
+**Apply when**: Accepting invites immediately after login (same pattern as registration)  
+**Related**: #L3500 (Server-Side Invite Acceptance After Registration), #L1200 (SessionId pattern)
+
+**Source**: SYOS-235 (URL Patterns - Login Redirect Fix)
+
+---
+
+**Pattern Count**: 41  
 **Last Validated**: 2025-11-17  
 **Context7 Source**: `/get-convex/convex-backend`, `convex-test` NPM docs, TypeScript type system, SvelteKit docs

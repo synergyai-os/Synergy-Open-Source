@@ -7,7 +7,7 @@
 	import { Dialog } from 'bits-ui';
 	import { useOrganizationMembers } from '$lib/composables/useOrganizationMembers.svelte';
 	import { usePermissions } from '$lib/composables/usePermissions.svelte';
-	import InviteMemberModal from '$lib/components/organizations/InviteMemberModal.svelte';
+	import InviteMemberModal from '$lib/components/InviteMemberModal.svelte';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 	import type { OrganizationMember } from '$lib/composables/useOrganizationMembers.svelte';
 	import type { Id } from '$lib/convex';
@@ -353,8 +353,13 @@
 </Dialog.Root>
 
 <!-- Invite Member Modal -->
-<InviteMemberModal
-	{members}
-	open={showInviteModal}
-	onOpenChange={(open) => (showInviteModal = open)}
-/>
+{#if organizationId()}
+	<InviteMemberModal
+		open={showInviteModal}
+		onOpenChange={(open) => (showInviteModal = open)}
+		type="organization"
+		targetId={organizationId() as Id<'organizations'>}
+		targetName={organizationName()}
+		sessionId={getSessionId}
+	/>
+{/if}

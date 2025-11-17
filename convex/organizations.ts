@@ -219,49 +219,100 @@ export const getInviteByCode = query({
 		code: v.string()
 	},
 	handler: async (ctx, args) => {
-		const invite = await ctx.db
+		// Try organization invite first
+		const orgInvite = await ctx.db
 			.query('organizationInvites')
 			.withIndex('by_code', (q) => q.eq('code', args.code))
 			.first();
 
-		if (!invite) {
-			return null;
+		if (orgInvite) {
+			// Check if invite has been revoked
+			if (orgInvite.revokedAt) {
+				return null;
+			}
+
+			// Check if invite has expired
+			if (orgInvite.expiresAt && orgInvite.expiresAt < Date.now()) {
+				return null;
+			}
+
+			// Check if invite has already been accepted
+			if (orgInvite.acceptedAt) {
+				return null;
+			}
+
+			const organization = await ctx.db.get(orgInvite.organizationId);
+			if (!organization) {
+				return null;
+			}
+
+			const inviter = await ctx.db.get(orgInvite.invitedBy);
+			const inviterName =
+				(inviter as unknown as { name?: string; email?: string } | undefined)?.name ??
+				(inviter as unknown as { email?: string } | undefined)?.email ??
+				'Member';
+
+			return {
+				type: 'organization' as const,
+				organizationId: orgInvite.organizationId,
+				organizationName: organization.name,
+				inviterName,
+				role: orgInvite.role,
+				email: orgInvite.email ?? undefined,
+				invitedUserId: orgInvite.invitedUserId ?? undefined
+			};
 		}
 
-		// Check if invite has been revoked
-		if (invite.revokedAt) {
-			return null;
+		// Try team invite
+		const teamInvite = await ctx.db
+			.query('teamInvites')
+			.withIndex('by_code', (q) => q.eq('code', args.code))
+			.first();
+
+		if (teamInvite) {
+			// Check if invite has been revoked
+			if (teamInvite.revokedAt) {
+				return null;
+			}
+
+			// Check if invite has expired
+			if (teamInvite.expiresAt && teamInvite.expiresAt < Date.now()) {
+				return null;
+			}
+
+			// Check if invite has already been accepted
+			if (teamInvite.acceptedAt) {
+				return null;
+			}
+
+			const team = await ctx.db.get(teamInvite.teamId);
+			const organization = await ctx.db.get(teamInvite.organizationId);
+			if (!team || !organization) {
+				return null;
+			}
+
+			const inviter = await ctx.db.get(teamInvite.invitedBy);
+			const inviterName =
+				(inviter as unknown as { name?: string; email?: string } | undefined)?.name ??
+				(inviter as unknown as { email?: string } | undefined)?.email ??
+				'Member';
+
+			return {
+				type: 'team' as const,
+				teamId: teamInvite.teamId,
+				teamName: team.name,
+				teamSlug: team.slug,
+				organizationId: teamInvite.organizationId,
+				organizationName: organization.name,
+				inviterName,
+				role: teamInvite.role,
+				email: teamInvite.email ?? undefined,
+				invitedUserId: teamInvite.invitedUserId ?? undefined
+			};
 		}
 
-		// Check if invite has expired
-		if (invite.expiresAt && invite.expiresAt < Date.now()) {
-			return null;
-		}
-
-		// Check if invite has already been accepted
-		if (invite.acceptedAt) {
-			return null;
-		}
-
-		const organization = await ctx.db.get(invite.organizationId);
-		if (!organization) {
-			return null;
-		}
-
-		const inviter = await ctx.db.get(invite.invitedBy);
-		const inviterName =
-			(inviter as unknown as { name?: string; email?: string } | undefined)?.name ??
-			(inviter as unknown as { email?: string } | undefined)?.email ??
-			'Member';
-
-		return {
-			organizationId: invite.organizationId,
-			organizationName: organization.name,
-			inviterName,
-			role: invite.role,
-			email: invite.email ?? undefined,
-			invitedUserId: invite.invitedUserId ?? undefined
-		};
+		// No invite found
+		return null;
 	}
 });
 

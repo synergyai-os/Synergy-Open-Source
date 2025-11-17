@@ -365,6 +365,22 @@ export const createTeamInvite = mutation({
 			if (existingEmailInvite && existingEmailInvite.teamId === args.teamId) {
 				throw new Error('An invite for this email already exists');
 			}
+
+			// Check if user with this email is already a team member
+			const teamMembers = await ctx.db
+				.query('teamMembers')
+				.withIndex('by_team', (q) => q.eq('teamId', args.teamId))
+				.collect();
+
+			for (const member of teamMembers) {
+				const user = await ctx.db.get(member.userId);
+				if (user) {
+					const userEmail = (user as unknown as { email?: string } | undefined)?.email;
+					if (userEmail && userEmail.toLowerCase() === normalizedEmail) {
+						throw new Error('User with this email is already a member of this team');
+					}
+				}
+			}
 		}
 
 		if (args.invitedUserId) {
@@ -768,6 +784,72 @@ export const removeTeamMember = mutation({
  * Get a single team by slug
  * Returns team details with members list
  */
+export const getTeamById = query({
+	args: {
+		sessionId: v.string(),
+		organizationId: v.id('organizations'),
+		teamId: v.id('teams')
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		// Verify user has access to this organization
+		const membership = await ctx.db
+			.query('organizationMembers')
+			.withIndex('by_organization_user', (q) =>
+				q.eq('organizationId', args.organizationId).eq('userId', userId)
+			)
+			.first();
+
+		if (!membership) {
+			throw new Error('You do not have access to this organization');
+		}
+
+		// Get team by ID
+		const team = await ctx.db.get(args.teamId);
+		if (!team) {
+			throw new Error('Team not found');
+		}
+
+		// Verify team belongs to organization
+		if (team.organizationId !== args.organizationId) {
+			throw new Error('Team does not belong to this organization');
+		}
+
+		// Get team members
+		const teamMemberships = await ctx.db
+			.query('teamMembers')
+			.withIndex('by_team', (q) => q.eq('teamId', team._id))
+			.collect();
+
+		const members = await Promise.all(
+			teamMemberships.map(async (membership) => {
+				const user = await ctx.db.get(membership.userId);
+				if (!user) return null;
+
+				return {
+					userId: membership.userId,
+					email: (user as unknown as { email?: string } | undefined)?.email ?? '',
+					name: (user as unknown as { name?: string } | undefined)?.name ?? '',
+					role: membership.role,
+					joinedAt: membership.joinedAt
+				};
+			})
+		);
+
+		return {
+			teamId: team._id,
+			organizationId: team.organizationId,
+			name: team.name,
+			slug: team.slug,
+			createdAt: team.createdAt,
+			updatedAt: team.updatedAt,
+			members: members.filter((member): member is NonNullable<typeof member> => member !== null)
+		};
+	}
+});
+
+// Keep getTeamBySlug for backward compatibility (deprecated - use getTeamById)
 export const getTeamBySlug = query({
 	args: {
 		sessionId: v.string(),

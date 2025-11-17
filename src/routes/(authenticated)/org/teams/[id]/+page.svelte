@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
 	import { getContext } from 'svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
 	import { useTeams } from '$lib/composables/useTeams.svelte';
@@ -13,7 +14,7 @@
 		params
 	}: {
 		data: unknown;
-		params: { slug: string };
+		params: { id: string };
 	} = $props();
 
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
@@ -27,13 +28,20 @@
 	});
 	const getSessionId = () => $page.data.sessionId;
 	const getOrganizationId = () => organizationId();
-	const getTeamSlug = () => params.slug;
+	const getTeamId = () => params.id;
 
-	// Initialize teams composable
+	// Redirect to onboarding if no org selected (wait for org context)
+	$effect(() => {
+		if (browser && !organizationId()) {
+			goto(resolveRoute('/org/onboarding'));
+		}
+	});
+
+	// Initialize teams composable - queries wait for org context
 	const teams = useTeams({
 		sessionId: getSessionId,
 		organizationId: getOrganizationId,
-		teamSlug: getTeamSlug
+		teamId: getTeamId
 	});
 
 	const team = $derived(teams.team);

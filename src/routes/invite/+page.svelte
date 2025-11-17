@@ -45,7 +45,7 @@
 
 	// Accept invite handler
 	async function handleAcceptInvite() {
-		if (!inviteCode || !convexClient || !isAuthenticated()) return;
+		if (!inviteCode || !convexClient || !isAuthenticated() || !invite) return;
 
 		const sessionId = getSessionId();
 		if (!sessionId) {
@@ -57,13 +57,32 @@
 		acceptError = null;
 
 		try {
-			const result = await convexClient.mutation(api.organizations.acceptOrganizationInvite, {
-				sessionId,
-				code: inviteCode
-			});
+			let redirectUrl: string;
 
-			// Redirect to organization page
-			await goto(resolveRoute(`/org/circles?org=${result.organizationId}`));
+			if (invite.type === 'organization') {
+				const result = await convexClient.mutation(api.organizations.acceptOrganizationInvite, {
+					sessionId,
+					code: inviteCode
+				});
+
+				// Redirect to organization page
+				redirectUrl = resolveRoute(`/org/circles?org=${result.organizationId}`);
+			} else {
+				const result = await convexClient.mutation(api.teams.acceptTeamInvite, {
+					sessionId,
+					code: inviteCode
+				});
+
+				// Redirect to team detail page using ID from mutation result + org param
+				redirectUrl = resolveRoute(`/org/teams/${result.teamId}?org=${result.organizationId}`);
+			}
+
+			// Use window.location for hard redirect (prevents any page state issues)
+			if (browser) {
+				window.location.href = redirectUrl;
+			} else {
+				goto(redirectUrl);
+			}
 		} catch (err) {
 			acceptError = err instanceof Error ? err.message : 'Failed to accept invite';
 			isAccepting = false;
@@ -127,11 +146,23 @@
 					<div class="mb-6 text-center">
 						<h1 class="mb-2 text-2xl font-semibold text-primary">You've been invited!</h1>
 						<p class="text-sm text-secondary">
-							You've been invited to join an organization on SynergyOS
+							{#if inviteData.type === 'organization'}
+								You've been invited to join an organization on SynergyOS
+							{:else}
+								You've been invited to join a team on SynergyOS
+							{/if}
 						</p>
 					</div>
 
 					<div class="mb-6 space-y-4">
+						{#if inviteData.type === 'team'}
+							<!-- Team name -->
+							<div>
+								<div class="mb-1 text-xs font-medium text-secondary">Team</div>
+								<div class="text-lg font-semibold text-primary">{inviteData.teamName}</div>
+							</div>
+						{/if}
+
 						<!-- Organization name -->
 						<div>
 							<div class="mb-1 text-xs font-medium text-secondary">Organization</div>

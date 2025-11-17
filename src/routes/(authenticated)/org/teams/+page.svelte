@@ -46,8 +46,9 @@
 
 	let showCreateModal = $state(false);
 
-	function handleRowClick(slug: string) {
-		goto(resolveRoute(`/org/teams/${slug}`));
+	function handleRowClick(teamId: string, orgId: string | undefined) {
+		if (!orgId) return;
+		goto(resolveRoute(`/org/teams/${teamId}?org=${orgId}`));
 	}
 </script>
 
@@ -121,7 +122,7 @@
 						{#each teamsList as team (team.teamId)}
 							<tr
 								class="cursor-pointer border-b border-base hover:bg-sidebar-hover"
-								onclick={() => handleRowClick(team.slug)}
+								onclick={() => handleRowClick(team.teamId, organizationId())}
 							>
 								<td class="px-nav-item py-nav-item text-sm text-primary">{team.name}</td>
 								<td class="px-nav-item py-nav-item text-sm text-secondary">
