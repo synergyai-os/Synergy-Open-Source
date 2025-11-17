@@ -1,11 +1,19 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { PinInput, Button } from '$lib/components/ui';
 	import { onMount } from 'svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	const email = $derived($page.url.searchParams.get('email') ?? '');
+
+	// Check if user is already authenticated
+	const getSessionId = () => $page.data.sessionId;
+	const isAuthenticated = $derived(() => {
+		if (!browser) return false;
+		return !!getSessionId();
+	});
 
 	let code = $state('');
 	let isSubmitting = $state(false);
@@ -19,6 +27,19 @@
 	$effect(() => {
 		if (!email) {
 			goto(resolveRoute('/register'));
+		}
+	});
+
+	// Redirect if already authenticated (better UX - don't show verification page if already logged in)
+	$effect(() => {
+		if (isAuthenticated()) {
+			// Check if there's a redirect param (e.g., from invite flow)
+			const redirectParam = $page.url.searchParams.get('redirect');
+			if (redirectParam) {
+				goto(resolveRoute(redirectParam));
+			} else {
+				goto(resolveRoute('/inbox'));
+			}
 		}
 	});
 
@@ -91,13 +112,26 @@
 			const data = await response.json();
 
 			if (!response.ok) {
+				// Handle "email already registered" - redirect to login instead of showing error
+				if (data.redirectToLogin && email) {
+					// Redirect to login with email pre-filled
+					await goto(
+						resolveRoute(
+							`/login?email=${encodeURIComponent(email)}&redirectTo=${encodeURIComponent(
+								$page.url.searchParams.get('redirect') ?? '/inbox'
+							)}`
+						)
+					);
+					return;
+				}
+
 				errorMessage = data.error ?? 'Invalid verification code';
 				isSubmitting = false;
 				code = ''; // Clear the code to allow retry
 				return;
 			}
 
-			// Success - redirect
+			// Success - redirect (user is now authenticated)
 			await goto(data.redirectTo ?? resolveRoute('/inbox'));
 		} catch (_err) {
 			console.error('Verification error:', _err);
@@ -307,7 +341,7 @@
 						</svg>
 						Sending new code...
 					{:else if timeLeft > 540}
-						Request new code in {Math.ceil((timeLeft - 540) / 60)}m
+						Request new code in {timeLeft - 540} sec
 					{:else}
 						Didn't receive it? Resend code
 					{/if}

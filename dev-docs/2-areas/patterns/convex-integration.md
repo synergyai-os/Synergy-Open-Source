@@ -3297,6 +3297,72 @@ $effect(() => {
 
 ---
 
+## #L3300: Owner Bypass Pattern for RBAC Permissions [🟡 IMPORTANT]
+
+**Symptom**: Organization owners can't perform actions even though they should have full access  
+**Root Cause**: RBAC permission checks don't account for implicit owner privileges  
+**Fix**:
+
+```typescript
+// convex/organizations.ts
+export const createOrganizationInvite = mutation({
+	args: {
+		sessionId: v.string(),
+		organizationId: v.id('organizations'),
+		email: v.optional(v.string())
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		// Check if user is an organization owner (owners can always invite members)
+		const userMembership = await ctx.db
+			.query('organizationMembers')
+			.withIndex('by_organization_user', (q) =>
+				q.eq('organizationId', args.organizationId).eq('userId', userId)
+			)
+			.first();
+
+		const isOwner = userMembership?.role === 'owner';
+
+		// RBAC Permission Check: Only owners or users with "users.invite" permission can invite
+		if (!isOwner) {
+			await requirePermission(ctx, userId, 'users.invite', {
+				organizationId: args.organizationId
+			});
+		}
+
+		// ... rest of mutation logic
+	}
+});
+```
+
+**Frontend Pattern** (complementary):
+
+```svelte
+<script lang="ts">
+	const canInviteMembers = $derived(() => {
+		// Owners can always invite members
+		if (organizations && organizations.activeOrganization?.role === 'owner') {
+			return true;
+		}
+		// Non-owners need users.invite permission
+		return permissions.can('users.invite');
+	});
+</script>
+
+{#if canInviteMembers()}
+	<button onclick={() => (showInviteModal = true)}>Invite Member</button>
+{/if}
+```
+
+**Why**: Owners should have implicit full access without needing explicit RBAC roles.  
+**Apply when**: Organization/team management actions (invite, remove, modify)  
+**Related**: #L3200 in ui-patterns.md (Permission-based UI visibility)
+
+**Source**: SYOS-211 (Member Invite Modal)
+
+---
+
 **Pattern Count**: 38  
 **Last Validated**: 2025-11-17  
 **Context7 Source**: `/get-convex/convex-backend`, `convex-test` NPM docs, TypeScript type system, SvelteKit docs

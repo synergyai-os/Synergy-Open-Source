@@ -3292,6 +3292,122 @@ export const removeOrganizationMember = mutation({
 
 ---
 
-**Pattern Count**: 33  
+## #L3300: Email Validation with TLD Check [🟡 IMPORTANT]
+
+**Symptom**: HTML5 email validation accepts invalid emails like `asdfasdf@asdfasdf` (no TLD)  
+**Root Cause**: Browser `type="email"` only checks for `@` symbol, not valid domain structure  
+**Fix**:
+
+```svelte
+<script lang="ts">
+	let email = $state('');
+	let emailError = $state<string | null>(null);
+
+	// Email validation: requires valid domain with TLD (at least 2 chars)
+	const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z0-9]{2,}$/;
+
+	function validateEmail(emailValue: string): boolean {
+		if (!emailValue.trim()) {
+			emailError = 'Email is required';
+			return false;
+		}
+		if (!emailRegex.test(emailValue.trim())) {
+			emailError = 'Please enter a valid email address';
+			return false;
+		}
+		emailError = null;
+		return true;
+	}
+</script>
+
+<input
+	type="email"
+	class="w-full rounded-md border px-nav-item py-nav-item text-sm text-primary focus:outline-none"
+	class:border-base={!emailError}
+	class:border-error={!!emailError}
+	class:bg-elevated={!emailError}
+	class:bg-error={!!emailError}
+	class:focus:border-accent-primary={!emailError}
+	class:focus:border-error={!!emailError}
+	bind:value={email}
+	onblur={() => validateEmail(email)}
+	oninput={() => {
+		if (emailError) validateEmail(email);
+	}}
+	required
+/>
+{#if emailError}
+	<span class="text-sm text-error">{emailError}</span>
+{/if}
+```
+
+**Backend Validation** (security layer):
+
+```typescript
+// convex/organizations.ts
+if (args.email) {
+	const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z0-9]{2,}$/;
+	if (!emailRegex.test(args.email.trim())) {
+		throw new Error('Invalid email format. Please enter a valid email address.');
+	}
+}
+```
+
+**Why**: Frontend validation improves UX (immediate feedback), backend validation prevents security issues.  
+**Apply when**: Email input fields (invites, registration, contact forms)  
+**Related**: #L2000 (Error state design tokens), #L10 in convex-integration.md (Validation patterns)
+
+**Source**: SYOS-211 (Member Invite Modal)
+
+---
+
+## #L3350: Inline Form Error Display Pattern [🟡 IMPORTANT]
+
+**Symptom**: Errors only shown in toast, user doesn't see which field has the problem  
+**Root Cause**: Error handling only at mutation level, not form field level  
+**Fix**:
+
+```svelte
+<script lang="ts">
+	let emailError = $state<string | null>(null);
+
+	async function handleInvite() {
+		const trimmedEmail = email.trim();
+		if (!validateEmail(trimmedEmail)) return;
+
+		try {
+			const code = await members.inviteMember(trimmedEmail);
+			// Success...
+		} catch (error) {
+			// Error already handled by composable toast
+			// Also set inline error for better UX
+			if (error instanceof Error && error.message.includes('already exists')) {
+				emailError = 'This user has already been invited';
+			}
+			console.error('Failed to create invite:', error);
+		}
+	}
+</script>
+
+<!-- Error state styling -->
+<input
+	class:border-error={!!emailError}
+	class:bg-error={!!emailError}
+	class:focus:border-error={!!emailError}
+/>
+{#if emailError}
+	<span class="text-sm text-error">{emailError}</span>
+{/if}
+```
+
+**Why**: Dual feedback (toast + inline) provides better UX - toast for visibility, inline for context.  
+**Apply when**: Form submissions with field-specific errors  
+**Related**: #L2000 (Error state design tokens), #L1660 (Toast notifications)
+
+**Source**: SYOS-211 (Member Invite Modal)
+
+---
+
+**Pattern Count**: 35  
 **Last Updated**: 2025-11-17  
 **Design Token Reference**: `dev-docs/design-tokens.md`

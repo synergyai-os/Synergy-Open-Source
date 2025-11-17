@@ -348,3 +348,147 @@ export const sendPasswordResetEmail = internalAction({
 		}
 	}
 });
+
+/**
+ * Send organization invite email
+ */
+export const sendOrganizationInviteEmail = internalAction({
+	args: {
+		email: v.string(),
+		inviteLink: v.string(),
+		organizationName: v.string(),
+		inviterName: v.string(),
+		role: v.string()
+	},
+	handler: async (ctx, args) => {
+		// E2E test mode - skip actual email sending
+		if (process.env.E2E_TEST_MODE === 'true') {
+			console.log('📧 [E2E Mock] Organization invite email suppressed:', {
+				to: args.email,
+				inviteLink: args.inviteLink,
+				organizationName: args.organizationName,
+				inviterName: args.inviterName,
+				role: args.role
+			});
+
+			return {
+				success: true,
+				emailId: `mock-invite-${args.email}-${Date.now()}`
+			};
+		}
+
+		// Production flow - Send real email via Resend
+		const apiKey = process.env.RESEND_API_KEY;
+
+		if (!apiKey) {
+			throw new Error('RESEND_API_KEY environment variable is not set');
+		}
+
+		const resend = new Resend(apiKey);
+		const roleDisplay =
+			args.role === 'owner' ? 'Owner' : args.role === 'admin' ? 'Admin' : 'Member';
+
+		try {
+			const result = await resend.emails.send({
+				from: 'SynergyOS <noreply@mail.synergyos.ai>',
+				to: args.email,
+				subject: `You've been invited to join ${args.organizationName}`,
+				html: `
+					<!DOCTYPE html>
+					<html>
+					<head>
+						<meta charset="utf-8">
+						<meta name="viewport" content="width=device-width, initial-scale=1.0">
+						<title>Organization Invitation</title>
+					</head>
+					<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+						<table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 40px 20px;">
+							<tr>
+								<td align="center">
+									<table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+										<!-- Header -->
+										<tr>
+											<td style="padding: 40px 40px 24px 40px;">
+												<h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #111827; line-height: 1.3;">
+													You've been invited to join ${args.organizationName}
+												</h1>
+											</td>
+										</tr>
+										
+										<!-- Body -->
+										<tr>
+											<td style="padding: 0 40px 32px 40px;">
+												<p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.5; color: #374151;">
+													Hi,
+												</p>
+												<p style="margin: 0 0 24px 0; font-size: 16px; line-height: 1.5; color: #374151;">
+													<strong>${args.inviterName}</strong> has invited you to join <strong>${args.organizationName}</strong> as a <strong>${roleDisplay}</strong>.
+												</p>
+												
+												<!-- Button -->
+												<table width="100%" cellpadding="0" cellspacing="0">
+													<tr>
+														<td align="center" style="padding: 0 0 24px 0;">
+															<a href="${args.inviteLink}" style="display: inline-block; background-color: #111827; color: #ffffff; text-decoration: none; padding: 12px 32px; border-radius: 6px; font-size: 16px; font-weight: 600;">
+																Accept Invite
+															</a>
+														</td>
+													</tr>
+												</table>
+												
+												<p style="margin: 0 0 16px 0; font-size: 14px; line-height: 1.5; color: #6b7280;">
+													Or copy and paste this link into your browser:
+												</p>
+												<p style="margin: 0 0 24px 0; font-size: 14px; line-height: 1.5; color: #3b82f6; word-break: break-all;">
+													${args.inviteLink}
+												</p>
+											</td>
+										</tr>
+										
+										<!-- Footer -->
+										<tr>
+											<td style="padding: 0 40px 40px 40px; border-top: 1px solid #e5e7eb;">
+												<p style="margin: 16px 0 0 0; font-size: 14px; line-height: 1.5; color: #6b7280;">
+													If you don't have an account, you'll be prompted to create one when you accept the invite.
+												</p>
+											</td>
+										</tr>
+									</table>
+									
+									<!-- Footer text -->
+									<table width="600" cellpadding="0" cellspacing="0" style="margin-top: 24px;">
+										<tr>
+											<td style="padding: 0 40px;">
+												<p style="margin: 0; font-size: 12px; line-height: 1.5; color: #9ca3af; text-align: center;">
+													© ${new Date().getFullYear()} SynergyOS. All rights reserved.
+												</p>
+											</td>
+										</tr>
+									</table>
+								</td>
+							</tr>
+						</table>
+					</body>
+					</html>
+				`,
+				text: `Hi,\n\n${args.inviterName} has invited you to join ${args.organizationName} as a ${roleDisplay}.\n\nAccept your invite: ${args.inviteLink}\n\nIf you don't have an account, you'll be prompted to create one when you accept the invite.\n\n© ${new Date().getFullYear()} SynergyOS. All rights reserved.`
+			});
+
+			console.log('Organization invite email sent:', JSON.stringify(result, null, 2));
+
+			if (result.error) {
+				throw new Error(`Resend API error: ${JSON.stringify(result.error)}`);
+			}
+
+			return {
+				success: true,
+				emailId: result.data?.id
+			};
+		} catch (error) {
+			console.error('Error sending organization invite email:', error);
+			throw new Error(
+				`Failed to send organization invite email: ${error instanceof Error ? error.message : String(error)}`
+			);
+		}
+	}
+});
