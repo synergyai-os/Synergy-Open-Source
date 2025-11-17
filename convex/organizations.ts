@@ -1,10 +1,11 @@
-import { query, mutation } from './_generated/server';
+import { query, mutation, internalMutation } from './_generated/server';
 import { v } from 'convex/values';
 import { getAuthUserId } from './auth';
 import { validateSessionAndGetUserId } from './sessionValidation';
 import { requirePermission } from './rbac/permissions';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
+import { internal } from './_generated/api';
 // TODO: Re-enable server-side analytics via HTTP action bridge
 // import { captureAnalyticsEvent } from "./posthog";
 // import { AnalyticsEventName } from "../src/lib/analytics/events";
@@ -246,6 +247,13 @@ export const createOrganization = mutation({
 			userId,
 			role: 'owner',
 			joinedAt: now
+		});
+
+		// Seed default meeting templates (Governance, Weekly Tactical)
+		// Schedule seeding to run after org creation completes
+		await ctx.scheduler.runAfter(0, internal.meetingTemplates.seedDefaultTemplatesInternal, {
+			organizationId,
+			userId
 		});
 
 		// TODO: Re-enable server-side analytics via HTTP action bridge
@@ -590,5 +598,56 @@ export const getMembers = query({
 		);
 
 		return members.filter((m): m is NonNullable<typeof m> => m !== null);
+	}
+});
+
+/**
+ * Internal mutation to add a user to an organization (for scripts/admin tools)
+ * Use with caution - bypasses normal invitation flow
+ */
+export const addMemberDirect = internalMutation({
+	args: {
+		organizationId: v.id('organizations'),
+		userId: v.id('users'),
+		role: v.union(v.literal('owner'), v.literal('admin'), v.literal('member'))
+	},
+	handler: async (ctx, args) => {
+		// Check if organization exists
+		const organization = await ctx.db.get(args.organizationId);
+		if (!organization) {
+			throw new Error('Organization not found');
+		}
+
+		// Check if user exists
+		const user = await ctx.db.get(args.userId);
+		if (!user) {
+			throw new Error('User not found');
+		}
+
+		// Check if membership already exists
+		const existing = await ctx.db
+			.query('organizationMembers')
+			.withIndex('by_organization_user', (q) =>
+				q.eq('organizationId', args.organizationId).eq('userId', args.userId)
+			)
+			.first();
+
+		if (existing) {
+			console.log(`User ${args.userId} is already a member of org ${args.organizationId}`);
+			return existing._id;
+		}
+
+		// Create membership
+		const membershipId = await ctx.db.insert('organizationMembers', {
+			organizationId: args.organizationId,
+			userId: args.userId,
+			role: args.role,
+			joinedAt: Date.now()
+		});
+
+		console.log(
+			`✅ Added user ${args.userId} to org ${args.organizationId} with role ${args.role}`
+		);
+		return membershipId;
 	}
 });

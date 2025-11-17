@@ -56,6 +56,7 @@
 | Hundreds of `any` types violating coding standards, ESLint no-explicit-any errors                 | Systematic elimination: create type files, narrow unions, use FunctionReference | [convex-integration.md#L1550](convex-integration.md#L1550)          |
 | TypeScript errors "Argument of type '() => {...}                                                  | null' is not assignable" in useQuery                                         | Return valid object or throw, never null (use 'skip' for optional)  | [convex-integration.md#L1350](convex-integration.md#L1350) |
 | Multiple related queries take 3-5 seconds, slow page load                                        | Use batch query to check multiple items at once (1 network call vs N)          | [convex-integration.md#L1360](convex-integration.md#L1360)          |
+| UI elements appear 3-5 seconds after page load, missing data until hard refresh                 | Load critical data server-side in +layout.server.ts using ConvexHttpClient      | [convex-integration.md#L1390](convex-integration.md#L1390)          |
 | TypeScript errors "'X' is possibly 'null'" for nested property access                             | Use optional chaining for nested properties: `obj?.prop?.nested`             | [convex-integration.md#L1400](convex-integration.md#L1400)          |
 | TypeScript errors "Property 'X' does not exist on type 'Y                                         | Z'" on union types                                                           | Use type assertion or type guard to narrow union type               | [convex-integration.md#L1450](convex-integration.md#L1450) |
 | TypeScript error "',' expected" in RequestHandler export                                          | Use function syntax `};` not object literal `});` for direct assignment      | [convex-integration.md#L1500](convex-integration.md#L1500)          |
@@ -69,6 +70,10 @@
 | E2E test times out filling Bits UI PinInput (verification codes)                                  | Target hidden input [data-pin-input-input] not visual cells                  | [ui-patterns.md#L2750](ui-patterns.md#L2750)                        |
 | E2E tests fail with 429, rate limit tests only register 1-2 attempts instead of 5                 | Use X-Test-ID header for isolated rate limit buckets                         | [ci-cd.md#L330](ci-cd.md#L330)                                      |
 | Tests pass with --workers=1 but fail in parallel with "Expected: 429, Received: 401"               | Remove global beforeEach cleanup, rely on unique testIds for isolation      | [ci-cd.md#L340](ci-cd.md#L340)                                      |
+| Feature flags visible to all users when no targeting rules configured                              | Default to false when no targeting rules, require explicit configuration   | [convex-integration.md#L1530](convex-integration.md#L1530)            |
+| Feature flag needs organization-based targeting (multi-tenancy)                                    | Add allowedOrganizationIds field + org membership check                    | [feature-flags.md#L180](feature-flags.md#L180)                        |
+| Can't add more items after selecting - combobox trigger disappears                                 | Add "Add" button next to selected chips, use anchor element for positioning | [ui-patterns.md#L3120](ui-patterns.md#L3120)                            |
+| Need polymorphic schema supporting multiple entity types (users/circles/teams)                     | Use union type discriminator + optional ID fields + validation              | [convex-integration.md#L1700](convex-integration.md#L1700)            |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -82,6 +87,7 @@
 | Widget disappears too early                                                   | Polling updates only, not completion                                  | [svelte-reactivity.md#L280](svelte-reactivity.md#L280)     |
 | Duplicate timers / early dismissal                                            | Track timers with SvelteSet (reactive)                                | [svelte-reactivity.md#L340](svelte-reactivity.md#L340)     |
 | Component doesn't update on route change                                      | Use $effect + $page.url.pathname                                      | [svelte-reactivity.md#L650](svelte-reactivity.md#L650)     |
+| ESLint error: "Found mutable Date class. Use SvelteDate"                     | Use immutable timestamp arithmetic (getTime() + ms)                   | [svelte-reactivity.md#L1150](svelte-reactivity.md#L1150)   |
 | Switch in dropdown broken                                                     | Use plain div wrapper                                                 | [ui-patterns.md#L10](ui-patterns.md#L10)                   |
 | Conflicting keyboard shortcuts                                                | Check priority: dropdowns > inputs > component                        | [ui-patterns.md#L430](ui-patterns.md#L430)                 |
 | J/K navigation blocked by auto-focused input                                  | Use autoFocus prop + Enter/ESC edit mode                              | [ui-patterns.md#L880](ui-patterns.md#L880)                 |
@@ -100,6 +106,9 @@
 | Feature branches outdated after merge                                         | Merge main into branches before deleting merged branch                | [convex-integration.md#L800](convex-integration.md#L800)   |
 | Unit tests pass but bugs slip through to production                           | Add integration tests with convex-test                                | [convex-integration.md#L900](convex-integration.md#L900)   |
 | Test cleanup fails: "Delete on non-existent doc"                              | Check document exists before deleting in cleanup                      | [convex-integration.md#L1050](convex-integration.md#L1050) |
+| `Module "convex-svelte" has no exported member 'useMutation'`                 | Use useConvexClient() + client.mutation() for imperative operations   | [convex-integration.md#L1650](convex-integration.md#L1650) |
+| Content disappears when typing in editor, or editor loses focus on every update | Use role-based rendering: secretary uses local state, viewers use backend state with {#key} | [svelte-reactivity.md#L1200](svelte-reactivity.md#L1200)   |
+| Entity creator not visible in member/attendee lists, dropdown shows empty after creation | Auto-add creator to associated table (meetingAttendees, teamMembers, etc.) | [convex-integration.md#L1700](convex-integration.md#L1700) |
 | User isolation test fails - User 2 sees User 1's data                         | Use counter + timestamp for unique session IDs                        | [convex-integration.md#L1100](convex-integration.md#L1100) |
 | Test fails: "Session not found" with getAuthUserId(ctx)                       | Use sessionId parameter pattern or skip test (convex-test limit)      | [convex-integration.md#L1150](convex-integration.md#L1150) |
 | UI feature shows for manual entries but should only show for API-synced items | Check sync metadata field (lastSyncedAt), not just type or externalId | [convex-integration.md#L370](convex-integration.md#L370)   |
@@ -138,9 +147,13 @@
 | Atomic components           | Reusable KeyboardShortcut, FormInput                        | [ui-patterns.md#L680](ui-patterns.md#L680)               |
 | ProseMirror integration     | Rich text with AI detection                                 | [ui-patterns.md#L730](ui-patterns.md#L730)               |
 | Compact modal design        | Linear-style tight spacing, input-sized fields              | [ui-patterns.md#L830](ui-patterns.md#L830)               |
+| Inline CRUD forms               | Add/edit/delete in list + hover actions + single $state | [ui-patterns.md#L2800](ui-patterns.md#L2800)             |
 | Hierarchical ESC navigation | Blur input → refocus modal → close                          | [ui-patterns.md#L930](ui-patterns.md#L930)               |
 | Premium animations          | Spring physics + staggered transitions                      | [ui-patterns.md#L1150](ui-patterns.md#L1150)             |
+| Approval workflows          | Request table + pending status + real-time query for approver | [convex-integration.md#L1750](convex-integration.md#L1750) |
+| Real-time presence tracking | Heartbeat mutation + lastSeenAt threshold + auto-cleanup | [convex-integration.md#L1800](convex-integration.md#L1800) |
 | Navigation architecture     | Remove sidebar, add breadcrumbs + hub pages                 | [ui-patterns.md#L1260](ui-patterns.md#L1260)             |
+| Sidebar feature flags       | Pass flag props, conditionally render nav links             | [feature-flags.md#L750](feature-flags.md#L750)           |
 | Type safety for Convex      | Use shared type definitions                                 | [convex-integration.md#L240](convex-integration.md#L240) |
 | Discriminated unions        | Type narrowing with discriminator                           | [convex-integration.md#L290](convex-integration.md#L290) |
 | Enum to database strings    | Explicit conversion functions                               | [convex-integration.md#L340](convex-integration.md#L340) |
@@ -222,7 +235,7 @@ correct code
 
 ---
 
-**Last Updated**: 2025-11-15
-**Pattern Count**: 84
+**Last Updated**: 2025-11-17
+**Pattern Count**: 88
 **Format Version**: 2.0
 ```

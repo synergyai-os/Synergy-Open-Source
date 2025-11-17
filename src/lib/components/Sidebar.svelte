@@ -5,8 +5,6 @@
 	import { cubicOut } from 'svelte/easing';
 	import { fade } from 'svelte/transition';
 	import { getContext } from 'svelte';
-	import { useQuery } from 'convex-svelte';
-	import { api } from '$lib/convex';
 	import ResizableSplitter from './ResizableSplitter.svelte';
 	import SidebarHeader from './sidebar/SidebarHeader.svelte';
 	import CleanReadwiseButton from './sidebar/CleanReadwiseButton.svelte';
@@ -30,7 +28,9 @@
 		onCreateMenuChange?: (open: boolean) => void;
 		onQuickCreate?: (trigger: 'header_button' | 'footer_button') => void;
 		user?: { email: string; firstName?: string; lastName?: string } | null;
-		sessionId?: string;
+		circlesEnabled?: boolean;
+		meetingsEnabled?: boolean;
+		dashboardEnabled?: boolean;
 	};
 
 	let {
@@ -44,7 +44,9 @@
 		onCreateMenuChange: _onCreateMenuChange,
 		onQuickCreate: _onQuickCreate,
 		user = null,
-		sessionId
+		circlesEnabled = false,
+		meetingsEnabled = false,
+		dashboardEnabled = false
 	}: Props = $props();
 
 	// Get user info from props (passed from layout)
@@ -55,15 +57,7 @@
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
 	const authSession = useAuthSession();
 
-	// Check if circles UI is enabled (feature flag)
-	const circlesEnabledQuery =
-		browser && sessionId
-			? useQuery(api.featureFlags.checkFlag, () => {
-					if (!sessionId) throw new Error('sessionId required');
-					return { flag: 'circles_ui_beta', sessionId };
-				})
-			: null;
-	const circlesEnabled = $derived(circlesEnabledQuery?.data ?? false);
+	// circlesEnabled is now passed as a prop from the layout (loaded early for instant rendering)
 
 	// Get available accounts from localStorage (not database)
 	// This ensures only accounts with active sessions are shown
@@ -583,6 +577,58 @@
 								/>
 							</svg>
 							<span class="font-normal">Circles</span>
+						</a>
+					{/if}
+
+					<!-- Dashboard (Beta - Feature Flag) -->
+					{#if dashboardEnabled}
+						<a
+							href={resolveRoute('/dashboard')}
+							class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+							title="Dashboard"
+						>
+							<!-- Icon: Clipboard List -->
+							<svg
+								class="h-4 w-4 flex-shrink-0"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+								/>
+							</svg>
+							<span class="font-normal">Dashboard</span>
+						</a>
+					{/if}
+
+					<!-- Meetings (Beta - Feature Flag) -->
+					{#if meetingsEnabled}
+						<a
+							href={resolveRoute('/meetings')}
+							class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+							title="Meetings"
+						>
+							<!-- Icon: Calendar -->
+							<svg
+								class="h-4 w-4 flex-shrink-0"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+								xmlns="http://www.w3.org/2000/svg"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+								/>
+							</svg>
+							<span class="font-normal">Meetings</span>
 						</a>
 					{/if}
 

@@ -830,6 +830,49 @@ $effect(() => {
 
 **Why URL cleanup matters**: Removing the URL parameter immediately after processing prevents the effect from seeing it again on the next reactive update, breaking the loop.
 
+**Example: Meeting Presence Heartbeat (SYOS-227)**:
+
+```typescript
+// ❌ WRONG - Composable methods read reactive state → infinite loop
+const presence = useMeetingPresence({
+	meetingId: () => meeting._id,
+	sessionId: () => data.sessionId
+});
+
+$effect(() => {
+	if (!browser) return;
+	
+	// Calling methods that read internal $state triggers infinite re-runs
+	presence.startHeartbeat(); // ← Reads composable $state
+	
+	return () => {
+		presence.stopHeartbeat(); // ← Reads composable $state
+	};
+});
+
+// ✅ CORRECT - untrack() to prevent reactive dependencies (Svelte 5 standard)
+import { untrack } from 'svelte';
+
+$effect(() => {
+	if (!browser) return;
+	
+	// Call methods without tracking their internal reactive dependencies
+	untrack(() => {
+		presence.startHeartbeat();
+	});
+	
+	return () => {
+		untrack(() => {
+			presence.stopHeartbeat();
+		});
+	};
+});
+```
+
+**Why this happens**: Composable methods (`startHeartbeat()`, `stopHeartbeat()`) may read internal `$state` variables (intervals, flags). When called inside `$effect`, Svelte tracks these reads as dependencies. If the methods also write to `$state`, it creates a read→write→re-run cycle. `untrack()` breaks this by preventing dependency tracking for function calls.
+
+**Apply for**: Lifecycle methods (start/stop), event handlers called from effects, any composable method that manages internal state.
+
 **Related**: #L220 (useQuery reactivity), #L650 (onMount vs $effect), #L400 (SSR browser checks), #L730 (Router initialization timing)
 
 ---
@@ -1110,6 +1153,182 @@ test: {
 
 ---
 
-**Pattern Count**: 19  
-**Last Validated**: 2025-11-14  
-**Context7 Source**: `/sveltejs/svelte`, `@sveltejs/kit`
+## #L1150: Date Mutations in Reactive Context - Use Immutable Timestamps [🟡 IMPORTANT]
+
+**Symptom**: ESLint error `svelte/prefer-svelte-reactivity`: "Found a mutable instance of the built-in Date class. Use SvelteDate instead"  
+**Root Cause**: Mutating `Date` objects (`.setDate()`, `.setMonth()`) inside `$derived`, `$effect`, or reactive contexts violates Svelte 5's immutability principle. JavaScript's `Date` is mutable by design, but reactive contexts require immutability.  
+**Fix**: Use timestamp arithmetic instead of Date mutations
+
+```typescript
+// ❌ WRONG: Date mutations in reactive context
+const upcomingMeetings = $derived.by(() => {
+	let currentDate = new Date(startDate);
+	currentDate.setDate(currentDate.getDate() + 7); // ❌ Mutation
+	return currentDate;
+});
+
+// ✅ CORRECT: Immutable timestamp calculations
+const upcomingMeetings = $derived.by(() => {
+	const currentTime = startDate.getTime() + 7 * 24 * 60 * 60 * 1000;
+	return new Date(currentTime);
+});
+
+// ❌ WRONG: Mutating in loop
+for (let i = 0; i < 7; i++) {
+	date.setDate(date.getDate() + 1); // ❌ Mutation
+	dates.push(date);
+}
+
+// ✅ CORRECT: Create new instances
+for (let i = 0; i < 7; i++) {
+	const time = startTime + i * 24 * 60 * 60 * 1000;
+	dates.push(new Date(time));
+}
+
+// ❌ WRONG: Finding next matching day
+let nextDate = new Date(currentTime);
+while (!daysOfWeek.includes(nextDate.getDay())) {
+	nextDate.setDate(nextDate.getDate() + 1); // ❌ Mutation
+}
+
+// ✅ CORRECT: Helper function + timestamp arithmetic
+function getDayOfWeek(timestamp: number): number {
+	// eslint-disable-next-line svelte/prefer-svelte-reactivity
+	return new Date(timestamp).getDay();
+}
+
+let nextTime = currentTime;
+while (!daysOfWeek.includes(getDayOfWeek(nextTime))) {
+	nextTime += 24 * 60 * 60 * 1000;
+}
+```
+
+**Exception**: When Date mutations are unavoidable (e.g., month boundaries with `.setMonth()`), use ESLint disable comments:
+
+```typescript
+// For monthly recurrence, month boundaries require Date methods
+// eslint-disable-next-line svelte/prefer-svelte-reactivity
+const date = new Date(currentTime);
+// eslint-disable-next-line svelte/prefer-svelte-reactivity
+const newDate = new Date(
+	date.getFullYear(),
+	date.getMonth() + interval,
+	date.getDate()
+);
+```
+
+**Why**: Reactive contexts (`$derived`, `$effect`) require immutability. Mutating objects breaks change detection and violates Svelte's reactivity model. Timestamp arithmetic is immutable and more performant.  
+**Apply when**:
+- Working with dates in `$derived` or `$effect` blocks
+- Calculating date ranges, recurring patterns, or schedules
+- ESLint reports `svelte/prefer-svelte-reactivity` errors
+
+**Related**: #L360 (Map/Set mutations), #L750 (State mutations in cleanup), #L700 (Effect loops)
+
+---
+
+## #L1200: Role-Based Rendering for Real-Time Editors [🟡 IMPORTANT]
+
+**Symptom**: Content disappears when editor types, or editor remounts on every update, losing focus/selection  
+**Root Cause**: Single component handles both editor and viewer modes. Editor's own saves trigger backend updates → remount logic fires → editor loses local state  
+**Fix**:
+
+```svelte
+<!-- ❌ WRONG: Single mode with remount logic -->
+{#key item.notes}
+	<NoteEditor
+		content={notes.localNotes}
+		onContentChange={notes.handleNotesChange}
+		readonly={!isSecretary}
+	/>
+{/key}
+<!-- Problem: Remounts on backend update, even for secretary's own saves -->
+
+<!-- ✅ CORRECT: Separate rendering paths -->
+{#if isSecretary}
+	<!-- EDITOR MODE: Local state, no remount -->
+	<NoteEditor
+		content={notes.localNotes}
+		onContentChange={notes.handleNotesChange}
+		readonly={false}
+		showToolbar={true}
+	/>
+{:else}
+	<!-- READER MODE: Backend state, remount on changes -->
+	{#key item.notes}
+		<NoteEditor
+			content={item.notes || ''}
+			readonly={true}
+			showToolbar={false}
+		/>
+	{/key}
+{/if}
+```
+
+**Composable Pattern** (useAgendaNotes.svelte.ts):
+
+```typescript
+// ✅ CORRECT: Secretary mode - local state is source of truth
+export function useAgendaNotes(params: UseAgendaNotesParams) {
+	const state = $state({
+		localNotes: params.initialNotes() || '',
+		saveState: 'idle' as 'idle' | 'saving' | 'saved' | 'error'
+	});
+
+	// Debounced auto-save (500ms-2s)
+	function handleNotesChange(newContent: string) {
+		state.localNotes = newContent;
+		state.saveState = 'saving';
+		clearTimeout(saveTimeout);
+		saveTimeout = setTimeout(() => saveNotes(), 500);
+	}
+
+	async function saveNotes() {
+		await convexClient.mutation(api.meetingAgendaItems.updateNotes, {
+			sessionId: params.sessionId(),
+			itemId: params.agendaItemId(),
+			notes: state.localNotes
+		});
+		state.saveState = 'saved';
+	}
+
+	return {
+		get localNotes() { return state.localNotes; },
+		get saveState() { return state.saveState; },
+		handleNotesChange,
+		saveImmediately: saveNotes
+	};
+}
+```
+
+**Backend** (real-time via Convex):
+
+```typescript
+// Reader mode gets updates via useQuery subscription
+const item = useQuery(api.meetingAgendaItems.get, () => ({
+	sessionId: getSessionId(),
+	itemId: activeItemId
+}));
+// Auto-updates when secretary saves (Convex real-time)
+```
+
+**Why**: Separating editor and viewer modes prevents the editor from remounting on its own updates. Secretary maintains local state (instant typing), viewers watch backend state (real-time updates via `{#key}`). This is the "1 editor, N readers" pattern - not full collaborative editing.
+
+**Performance**:
+- Secretary: Instant (local state), saves after 500ms-2s debounce
+- Viewers: <1s latency (Convex real-time subscriptions)
+- Cost: 1 mutation per save + N reads (N = number of viewers)
+
+**Apply when**:
+- Building real-time editors with secretary/facilitator model
+- Content disappears when typing (remount bug)
+- Need instant typing for editor, real-time viewing for others
+- Not full collaborative editing (Google Docs style)
+
+**Related**: #L140 ({#key} for data updates), #L220 (useQuery for real-time), #L700 ($effect infinite loops), #L1350 in convex-integration.md (useQuery throw pattern)
+
+---
+
+**Pattern Count**: 21  
+**Last Validated**: 2025-11-17  
+**Context7 Source**: `/sveltejs/svelte`, `@sveltejs/kit`, `/get-convex/convex-js`

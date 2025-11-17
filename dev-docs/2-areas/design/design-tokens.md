@@ -266,6 +266,7 @@ We use unified brand color tokens throughout the application. Colors automatical
 | `--color-bg-hover`        | `hover:bg-hover`        | gray-800/50 | gray-100/50 | Hover background (subtle)                  |
 | `--color-bg-hover-solid`  | `hover:bg-hover-solid`  | gray-800    | gray-100    | Hover background (solid)                   |
 | `--color-bg-selected`     | `bg-selected`           | blue-600    | blue-600    | Selected state background                  |
+| `--color-toggle-off`      | `bg-toggle-off`         | gray-700    | gray-300    | Toggle switch "off" state background       |
 | `--color-tag-bg`          | `bg-tag`                | gray-700    | gray-100    | Tag/chip background                        |
 | `--color-tag-text`        | `text-tag`              | gray-300    | gray-600    | Tag/chip text                              |
 

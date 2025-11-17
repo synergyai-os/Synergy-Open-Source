@@ -179,6 +179,180 @@ const schema = defineSchema({
 		.index('by_role', ['circleRoleId'])
 		.index('by_user_role', ['userId', 'circleRoleId']),
 
+	// Meetings - scheduled meetings with recurrence support
+	meetings: defineTable({
+		organizationId: v.id('organizations'),
+		circleId: v.optional(v.id('circles')), // null = ad-hoc meeting
+		title: v.string(),
+		templateId: v.optional(v.id('meetingTemplates')), // Future: meeting templates
+
+		// Scheduling
+		startTime: v.number(), // Unix timestamp
+		duration: v.number(), // Minutes
+		recurrence: v.optional(
+			v.object({
+				frequency: v.union(v.literal('daily'), v.literal('weekly'), v.literal('monthly')),
+				interval: v.number(), // Every N days/weeks/months
+				daysOfWeek: v.optional(v.array(v.number())), // For weekly: [1,3,5] = Mon,Wed,Fri
+				endDate: v.optional(v.number()) // Optional end date
+			})
+		),
+
+		// Privacy
+		visibility: v.union(
+			v.literal('public'), // All org members
+			v.literal('circle'), // Circle members only
+			v.literal('private') // Invited only
+		),
+
+		// Real-time meeting session (SYOS-173)
+		startedAt: v.optional(v.number()), // When meeting started (live session)
+		currentStep: v.optional(v.string()), // Current step: "check-in" | "agenda" | "closing"
+		closedAt: v.optional(v.number()), // When meeting closed
+		secretaryId: v.optional(v.id('users')), // Meeting facilitator (defaults to createdBy)
+
+		createdAt: v.number(),
+		createdBy: v.id('users'),
+		updatedAt: v.number()
+	})
+		.index('by_organization', ['organizationId'])
+		.index('by_circle', ['circleId'])
+		.index('by_start_time', ['organizationId', 'startTime']),
+
+	// Meeting attendees - polymorphic attendees (user/role/circle)
+	meetingAttendees: defineTable({
+		meetingId: v.id('meetings'),
+
+		// Polymorphic attendee (exactly one must be set)
+		attendeeType: v.union(
+			v.literal('user'), // Specific user
+			v.literal('role'), // Anyone filling this role
+			v.literal('circle'), // All circle members
+			v.literal('team') // All team members
+		),
+		userId: v.optional(v.id('users')),
+		circleRoleId: v.optional(v.id('circleRoles')),
+		circleId: v.optional(v.id('circles')),
+		teamId: v.optional(v.id('teams')),
+
+		addedAt: v.number()
+	})
+		.index('by_meeting', ['meetingId'])
+		.index('by_user', ['userId']),
+
+	// Meeting Agenda Items - real-time collaborative agenda (SYOS-173)
+	meetingAgendaItems: defineTable({
+		meetingId: v.id('meetings'),
+		title: v.string(), // Agenda item title
+		order: v.number(), // Display order (for sorting)
+		notes: v.optional(v.string()), // Markdown notes for the item (SYOS-218)
+		isProcessed: v.optional(v.boolean()), // Processing state, defaults to false (SYOS-218)
+		createdBy: v.id('users'), // Who created this item
+		createdAt: v.number()
+	}).index('by_meeting', ['meetingId']),
+
+	// Secretary Change Requests - workflow for changing meeting secretary
+	secretaryChangeRequests: defineTable({
+		meetingId: v.id('meetings'),
+		requestedBy: v.id('users'), // Who requested the change
+		requestedFor: v.id('users'), // Who they want to become secretary
+		status: v.union(v.literal('pending'), v.literal('approved'), v.literal('denied')),
+		createdAt: v.number(),
+		resolvedAt: v.optional(v.number()),
+		resolvedBy: v.optional(v.id('users'))
+	})
+		.index('by_meeting_status', ['meetingId', 'status'])
+		.index('by_meeting', ['meetingId']),
+
+	// Meeting Presence - real-time tracking of who's in the meeting (SYOS-227)
+	meetingPresence: defineTable({
+		meetingId: v.id('meetings'),
+		userId: v.id('users'),
+		joinedAt: v.number(), // First join timestamp
+		lastSeenAt: v.number() // Heartbeat timestamp (updated every 30s)
+	})
+		.index('by_meeting', ['meetingId'])
+		.index('by_meeting_lastSeen', ['meetingId', 'lastSeenAt']) // For active user queries
+		.index('by_meeting_user', ['meetingId', 'userId']), // For upserts
+
+	// Meeting Action Items - tasks/projects captured during meetings (SYOS-219)
+	meetingActionItems: defineTable({
+		meetingId: v.id('meetings'),
+		agendaItemId: v.id('meetingAgendaItems'), // Traceability to agenda item
+		circleId: v.optional(v.id('circles')),
+
+		// Type
+		type: v.union(v.literal('next-step'), v.literal('project')),
+
+		// Polymorphic assignment (user OR role)
+		assigneeType: v.union(v.literal('user'), v.literal('role')),
+		assigneeUserId: v.optional(v.id('users')),
+		assigneeRoleId: v.optional(v.id('circleRoles')),
+
+		// Details
+		description: v.string(),
+		dueDate: v.optional(v.number()),
+		status: v.union(v.literal('todo'), v.literal('in-progress'), v.literal('done')),
+
+		// Phase 3 sync fields
+		linearTicketId: v.optional(v.string()),
+		notionPageId: v.optional(v.string()),
+
+		// Metadata
+		createdAt: v.number(),
+		createdBy: v.id('users'),
+		updatedAt: v.optional(v.number())
+	})
+		.index('by_meeting', ['meetingId'])
+		.index('by_agenda_item', ['agendaItemId'])
+		.index('by_assignee_user', ['assigneeUserId']),
+
+	// Meeting Decisions - decisions made during meetings (SYOS-220)
+	meetingDecisions: defineTable({
+		meetingId: v.id('meetings'),
+		agendaItemId: v.id('meetingAgendaItems'), // Traceability to agenda item
+		circleId: v.optional(v.id('circles')),
+
+		// Decision content
+		title: v.string(),
+		description: v.string(), // Markdown
+
+		// Metadata
+		decidedAt: v.number(),
+		createdBy: v.id('users'),
+		updatedAt: v.optional(v.number())
+	})
+		.index('by_meeting', ['meetingId'])
+		.index('by_agenda_item', ['agendaItemId'])
+		.index('by_circle', ['circleId']),
+
+	// Meeting Templates - reusable meeting structures with predefined agenda steps
+	meetingTemplates: defineTable({
+		organizationId: v.id('organizations'),
+		name: v.string(), // "Weekly Tactical", "Governance"
+		description: v.optional(v.string()), // Optional template description
+		createdAt: v.number(),
+		createdBy: v.id('users')
+	}).index('by_organization', ['organizationId']),
+
+	// Meeting Template Steps - ordered agenda steps for templates
+	meetingTemplateSteps: defineTable({
+		templateId: v.id('meetingTemplates'),
+		stepType: v.union(
+			v.literal('check-in'), // Opening round
+			v.literal('agenda'), // Open agenda items
+			v.literal('metrics'), // Review metrics
+			v.literal('projects'), // Project updates
+			v.literal('closing'), // Closing round
+			v.literal('custom') // Custom step
+		),
+		title: v.string(), // Step title
+		description: v.optional(v.string()), // Optional step description
+		orderIndex: v.number(), // Display order (0-based)
+		timebox: v.optional(v.number()), // Minutes (optional)
+		createdAt: v.number()
+	}).index('by_template', ['templateId']),
+
 	// Organization invites (pending membership)
 	organizationInvites: defineTable({
 		organizationId: v.id('organizations'),
@@ -599,6 +773,7 @@ const schema = defineSchema({
 		enabled: v.boolean(), // Global enabled/disabled state
 		rolloutPercentage: v.optional(v.number()), // Percentage of users (0-100)
 		allowedUserIds: v.optional(v.array(v.id('users'))), // Specific users who can see this
+		allowedOrganizationIds: v.optional(v.array(v.id('organizations'))), // Specific organizations who can see this
 		allowedDomains: v.optional(v.array(v.string())), // Email domains (e.g., "@yourcompany.com")
 		createdAt: v.number(),
 		updatedAt: v.number()

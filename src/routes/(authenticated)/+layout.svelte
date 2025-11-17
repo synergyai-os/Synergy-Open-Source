@@ -12,6 +12,12 @@
 	import { resolveRoute } from '$lib/utils/navigation';
 	import { setContext } from 'svelte';
 	import { useOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import type {
+		OrganizationSummary,
+		OrganizationInvite,
+		TeamInvite,
+		TeamSummary
+	} from '$lib/composables/useOrganizations.svelte';
 	import { useGlobalShortcuts, SHORTCUTS } from '$lib/composables/useGlobalShortcuts.svelte';
 	import { useLoadingOverlay } from '$lib/composables/useLoadingOverlay.svelte';
 	import { toast } from '$lib/utils/toast';
@@ -21,13 +27,41 @@
 
 	let { children, data } = $props();
 
-	// Initialize organizations composable with sessionId from authenticated layout data
+	// Initialize organizations composable with sessionId and server-side preloaded data
 	const organizations = useOrganizations({
 		userId: () => data.user?.userId,
 		sessionId: () => data.sessionId,
-		orgFromUrl: () => $page.url.searchParams.get('org')
+		orgFromUrl: () => $page.url.searchParams.get('org'),
+		// Server-side preloaded data for instant workspace menu rendering
+		// Cast unknown[] to proper types (server-side data is typed as unknown[] for safety)
+		initialOrganizations: data.organizations as unknown as OrganizationSummary[],
+		initialOrganizationInvites: data.organizationInvites as unknown as OrganizationInvite[],
+		initialTeamInvites: data.teamInvites as unknown as TeamInvite[],
+		initialTeams: data.teams as unknown as TeamSummary[] // Server-side preloaded teams for active organization
 	});
 	setContext('organizations', organizations);
+
+	// Feature flags loaded server-side for instant rendering (no client-side query delay)
+	const circlesEnabled = $derived(data.circlesEnabled ?? false);
+	const meetingsEnabled = $derived(data.meetingsEnabled ?? false);
+	const dashboardEnabled = $derived(data.meetingsEnabled ?? false); // Dashboard uses meetings module flag
+
+	// DEBUG: Log feature flag evaluation in browser console
+	$effect(() => {
+		if (browser) {
+			console.log('[DEBUG] Feature flags (client-side):', {
+				sessionId: data.sessionId,
+				userId: data.user?.userId,
+				userEmail: data.user?.email,
+				circlesEnabled,
+				meetingsEnabled,
+				serverData: {
+					circlesEnabled: data.circlesEnabled,
+					meetingsEnabled: data.meetingsEnabled
+				}
+			});
+		}
+	});
 	const loadingOverlay = useLoadingOverlay();
 	setContext('loadingOverlay', loadingOverlay);
 	const isAuthenticated = $derived(data.isAuthenticated);
@@ -278,7 +312,9 @@
 				quickCreateModalOpen = true;
 			}}
 			user={data.user}
-			sessionId={data.sessionId}
+			{circlesEnabled}
+			{meetingsEnabled}
+			{dashboardEnabled}
 		/>
 
 		<!-- Main Content Area -->
@@ -309,6 +345,7 @@
 			sessionId={data.sessionId}
 			organizationId={organizations?.activeOrganizationId ?? null}
 			teamId={organizations?.activeTeamId ?? null}
+			initialTags={data.tags}
 		/>
 
 		<!-- Organization Modals (Create/Join Org, Create/Join Team) -->

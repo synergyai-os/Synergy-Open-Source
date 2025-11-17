@@ -84,6 +84,10 @@ export function useOrganizations(options?: {
 	userId?: () => string | undefined;
 	sessionId?: () => string | undefined;
 	orgFromUrl?: () => string | null; // Reactive URL parameter
+	initialOrganizations?: OrganizationSummary[]; // Server-side preloaded data for instant rendering
+	initialOrganizationInvites?: OrganizationInvite[]; // Server-side preloaded data
+	initialTeamInvites?: TeamInvite[]; // Server-side preloaded data
+	initialTeams?: TeamSummary[]; // Server-side preloaded teams for active organization
 }) {
 	const convexClient = browser ? useConvexClient() : null;
 	const getUserId = options?.userId || (() => undefined);
@@ -177,39 +181,61 @@ export function useOrganizations(options?: {
 
 	const isLoading = $derived(organizationsQuery ? organizationsQuery.data === undefined : false);
 
-	const organizationsData = $derived((): OrganizationSummary[] =>
-		((organizationsQuery?.data ?? []) as OrganizationSummary[]).map((org: OrganizationSummary) => ({
-			organizationId: org.organizationId,
-			name: org.name,
-			initials: org.initials,
-			slug: org.slug,
-			plan: org.plan,
-			role: org.role,
-			joinedAt: org.joinedAt,
-			memberCount: org.memberCount,
-			teamCount: org.teamCount
-		}))
-	);
+	// Use server-side initial data immediately, then use query data when available (more up-to-date)
+	const organizationsData = $derived((): OrganizationSummary[] => {
+		// If query has data, use it (more up-to-date)
+		if (organizationsQuery?.data !== undefined) {
+			return (organizationsQuery.data as OrganizationSummary[]).map((org: OrganizationSummary) => ({
+				organizationId: org.organizationId,
+				name: org.name,
+				initials: org.initials,
+				slug: org.slug,
+				plan: org.plan,
+				role: org.role,
+				joinedAt: org.joinedAt,
+				memberCount: org.memberCount,
+				teamCount: org.teamCount
+			}));
+		}
+		// Otherwise use server-side initial data for instant rendering
+		return options?.initialOrganizations ?? [];
+	});
 
-	const organizationInvites = $derived(
-		(): OrganizationInvite[] => (organizationInvitesQuery?.data ?? []) as OrganizationInvite[]
-	);
+	const organizationInvites = $derived((): OrganizationInvite[] => {
+		// If query has data, use it (more up-to-date)
+		if (organizationInvitesQuery?.data !== undefined) {
+			return organizationInvitesQuery.data as OrganizationInvite[];
+		}
+		// Otherwise use server-side initial data for instant rendering
+		return options?.initialOrganizationInvites ?? [];
+	});
 
-	const teamInvitesData = $derived(
-		(): TeamInvite[] => (teamInvitesQuery?.data ?? []) as TeamInvite[]
-	);
+	const teamInvitesData = $derived((): TeamInvite[] => {
+		// If query has data, use it (more up-to-date)
+		if (teamInvitesQuery?.data !== undefined) {
+			return teamInvitesQuery.data as TeamInvite[];
+		}
+		// Otherwise use server-side initial data for instant rendering
+		return options?.initialTeamInvites ?? [];
+	});
 
-	const teamsData = $derived((): TeamSummary[] =>
-		((teamsQuery?.data ?? []) as TeamSummary[]).map((team: TeamSummary) => ({
-			teamId: team.teamId,
-			organizationId: team.organizationId,
-			name: team.name,
-			slug: team.slug,
-			memberCount: team.memberCount,
-			role: team.role,
-			joinedAt: team.joinedAt
-		}))
-	);
+	// Use server-side initial data immediately, then use query data when available (more up-to-date)
+	const teamsData = $derived((): TeamSummary[] => {
+		// If query has data, use it (more up-to-date)
+		if (teamsQuery?.data !== undefined) {
+			return (teamsQuery.data as TeamSummary[]).map((team: TeamSummary) => ({
+				teamId: team.teamId,
+				organizationId: team.organizationId,
+				name: team.name,
+				slug: team.slug,
+				memberCount: team.memberCount,
+				role: team.role,
+				joinedAt: team.joinedAt
+			}));
+		}
+		// Otherwise use server-side initial data for instant rendering
+		return options?.initialTeams ?? [];
+	});
 
 	$effect(() => {
 		if (!browser) return;
