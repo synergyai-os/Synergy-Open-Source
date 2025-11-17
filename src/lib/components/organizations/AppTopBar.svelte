@@ -32,10 +32,25 @@
 		onLogout?: () => void;
 	} = $props();
 
-	const organizationInvites = $derived(() => organizations?.organizationInvites ?? []);
-	const teamInvites = $derived(() => organizations?.teamInvites ?? []);
-	const organizationSummaries = $derived(() => organizations?.organizations ?? []);
-	const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
+	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
+	// Pattern: Check object existence first, then access getter property directly
+	// See SYOS-228 for full pattern documentation
+	const organizationInvites = $derived(() => {
+		if (!organizations) return [];
+		return organizations.organizationInvites ?? [];
+	});
+	const teamInvites = $derived(() => {
+		if (!organizations) return [];
+		return organizations.teamInvites ?? [];
+	});
+	const organizationSummaries = $derived(() => {
+		if (!organizations) return [];
+		return organizations.organizations ?? [];
+	});
+	const activeOrganizationId = $derived(() => {
+		if (!organizations) return null;
+		return organizations.activeOrganizationId ?? null;
+	});
 
 	if (!onSidebarToggle) {
 		onSidebarToggle = () => {};

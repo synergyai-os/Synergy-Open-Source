@@ -13,14 +13,23 @@
 
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
 	const circleId = $derived($page.params['id'] as string);
-	const organizationId = $derived(organizations?.activeOrganizationId ?? undefined);
+	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
+	// Pattern: Check object existence first, then access getter property directly
+	// See SYOS-228 for full pattern documentation
+	const organizationId = $derived(() => {
+		if (!organizations) return undefined;
+		return organizations.activeOrganizationId ?? undefined;
+	});
 	const getSessionId = () => $page.data.sessionId;
-	const getOrganizationId = () => organizationId;
+	// CRITICAL: Call $derived function to get primitive value (not the function itself)
+	// Pattern: When passing $derived values to Convex queries, extract primitive first
+	// See SYOS-228 for full pattern documentation
+	const getOrganizationId = () => organizationId();
 	const getCircleId = () => circleId;
 
 	// Redirect to onboarding if no org selected
 	$effect(() => {
-		if (browser && !organizationId) {
+		if (browser && !organizationId()) {
 			goto(resolveRoute('/org/onboarding'));
 		}
 	});

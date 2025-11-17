@@ -23,9 +23,18 @@
 
 	// Get organizations context (manages active organization)
 	const organizationsContext = getContext<UseOrganizations | undefined>('organizations');
-	const activeOrganization = $derived(organizationsContext?.activeOrganization ?? null);
-	const organizationId = $derived(activeOrganization?.organizationId);
-	const hasOrganizations = $derived((organizationsContext?.organizations ?? []).length > 0);
+	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
+	// Pattern: Check object existence first, then access getter property directly
+	// See SYOS-228 for full pattern documentation
+	const activeOrganization = $derived(() => {
+		if (!organizationsContext) return null;
+		return organizationsContext.activeOrganization ?? null;
+	});
+	const organizationId = $derived(() => activeOrganization()?.organizationId);
+	const hasOrganizations = $derived(() => {
+		if (!organizationsContext) return false;
+		return (organizationsContext.organizations ?? []).length > 0;
+	});
 
 	// Check feature flag (SYOS-226: organization-based targeting)
 	const flagQuery =

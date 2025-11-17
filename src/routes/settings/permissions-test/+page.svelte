@@ -16,10 +16,18 @@
 
 	// Get workspace context from Svelte context (set by root layout)
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
-	const activeOrganizationId = $derived(organizations?.activeOrganizationId ?? null);
-	const activeOrganization = $derived(
-		organizations?.organizations.find((org) => org.organizationId === activeOrganizationId)
-	);
+	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
+	// Pattern: Check object existence first, then access getter property directly
+	// See SYOS-228 for full pattern documentation
+	const activeOrganizationId = $derived(() => {
+		if (!organizations) return null;
+		return organizations.activeOrganizationId ?? null;
+	});
+	const activeOrganization = $derived(() => {
+		if (!organizations) return undefined;
+		const orgId = activeOrganizationId();
+		return organizations.organizations.find((org) => org.organizationId === orgId);
+	});
 
 	// Initialize permissions composable with workspace context
 	const permissions = usePermissions({

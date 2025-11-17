@@ -234,9 +234,21 @@
 		!isMobile && !isCollapsing && (!sidebarCollapsed || (sidebarCollapsed && hoverState))
 	);
 
-	const visibleTeams = $derived(() => organizations?.teams ?? []);
-	const teamInvites = $derived(() => organizations?.teamInvites ?? []);
-	const activeTeamId = $derived(() => organizations?.activeTeamId ?? null);
+	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
+	// Pattern: Check object existence first, then access getter property directly
+	// See SYOS-228 for full pattern documentation
+	const visibleTeams = $derived(() => {
+		if (!organizations) return [];
+		return organizations.teams ?? [];
+	});
+	const teamInvites = $derived(() => {
+		if (!organizations) return [];
+		return organizations.teamInvites ?? [];
+	});
+	const activeTeamId = $derived(() => {
+		if (!organizations) return null;
+		return organizations.activeTeamId ?? null;
+	});
 
 	// Set up document mouse tracking when sidebar is hovered and collapsed
 	$effect(() => {
@@ -368,7 +380,7 @@
 					goto(resolveRoute('/settings'));
 				}}
 				onSwitchWorkspace={() => {
-					console.log('Switch workspace menu selected');
+					// Switch workspace functionality
 				}}
 				onCreateWorkspace={() => {
 					organizations?.openModal('createOrganization');

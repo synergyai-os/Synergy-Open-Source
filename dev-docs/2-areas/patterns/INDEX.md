@@ -74,6 +74,9 @@
 | Feature flag needs organization-based targeting (multi-tenancy)                                    | Add allowedOrganizationIds field + org membership check                    | [feature-flags.md#L180](feature-flags.md#L180)                        |
 | Can't add more items after selecting - combobox trigger disappears                                 | Add "Add" button next to selected chips, use anchor element for positioning | [ui-patterns.md#L3120](ui-patterns.md#L3120)                            |
 | Need polymorphic schema supporting multiple entity types (users/circles/teams)                     | Use union type discriminator + optional ID fields + validation              | [convex-integration.md#L1700](convex-integration.md#L1700)            |
+| `$derived` values don't update in child components, props show as functions                      | Call `$derived` functions when passing as props: `organizations={orgs()}`  | [svelte-reactivity.md#L900](svelte-reactivity.md#L900)                  |
+| `$derived` doesn't execute, returns function instead of value, reactivity breaks                  | Access getter properties without optional chaining: check existence first  | [svelte-reactivity.md#L910](svelte-reactivity.md#L910)                  |
+| `state_snapshot_uncloneable` error when passing values to Convex queries                          | Extract primitives from `$derived` by calling function before passing       | [svelte-reactivity.md#L920](svelte-reactivity.md#L920)                  |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 

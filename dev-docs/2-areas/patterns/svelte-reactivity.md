@@ -1329,6 +1329,126 @@ const item = useQuery(api.meetingAgendaItems.get, () => ({
 
 ---
 
-**Pattern Count**: 21  
+---
+
+## #L900: Call $derived Functions When Passing as Props [🔴 CRITICAL]
+
+**Symptom**: `$derived` values don't update in child components, props show as functions instead of values  
+**Root Cause**: `$derived(() => ...)` returns a function. When passed as props without calling, child receives function, not value.  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Passing $derived function directly
+const organizationSummaries = $derived(() => {
+	if (!organizations) return [];
+	return organizations.organizations ?? [];
+});
+
+<ChildComponent organizations={organizationSummaries} /> // ❌ Receives function
+
+// ✅ CORRECT: Call $derived function when passing as prop
+<ChildComponent organizations={organizationSummaries()} /> // ✅ Receives array
+
+// Also fix other $derived props
+<ChildComponent
+	organizations={organizationSummaries()}
+	activeOrganizationId={activeOrganizationId()}
+	activeOrganization={activeOrganization()}
+/>
+```
+
+**In Templates**: Also call explicitly in `{#each}` blocks:
+
+```svelte
+<!-- ❌ WRONG: May not execute -->
+{#each allOrganizations as org (org.id)}
+	{org.name}
+{/each}
+
+<!-- ✅ CORRECT: Explicit call ensures execution -->
+{#each allOrganizations() as org (org.id)}
+	{org.name}
+{/each}
+```
+
+**Why**: `$derived(() => ...)` creates a function that must be called to get the value. Svelte 5 templates should auto-call, but explicit calls ensure reliability.  
+**Apply when**: Passing `$derived(() => ...)` values as props or using in templates  
+**Related**: #L10 (Getter pattern), #L80 (Function parameters), SYOS-228 (Getter reactivity tracking)
+
+---
+
+## #L910: Access Getter Properties from Context Without Optional Chaining [🔴 CRITICAL]
+
+**Symptom**: `$derived` values don't execute, return functions instead of values, reactivity breaks  
+**Root Cause**: Optional chaining (`?.`) in `$derived` expressions prevents Svelte from tracking getter property access from context  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Optional chaining breaks reactivity tracking
+const organizations = getContext<UseOrganizations | undefined>('organizations');
+const organizationSummaries = $derived(() => organizations?.organizations ?? []); // ❌ Not tracked
+
+// ✅ CORRECT: Check object existence first, then access getter directly
+const organizationSummaries = $derived(() => {
+	if (!organizations) return [];
+	return organizations.organizations ?? []; // ✅ Svelte tracks getter access
+});
+
+// Pattern for all getter properties
+const activeOrganizationId = $derived(() => {
+	if (!organizations) return null;
+	return organizations.activeOrganizationId ?? null;
+});
+```
+
+**Why**: Svelte 5 tracks property access for reactivity. Optional chaining (`?.`) can interfere with tracking getter properties from context objects. Checking existence first, then accessing the getter directly ensures proper reactivity.  
+**Apply when**: Accessing getter properties from context composables in `$derived` expressions  
+**Related**: #L10 (Getter pattern), SYOS-228 (Full pattern documentation)
+
+---
+
+## #L920: Extract Primitives from $derived Before Passing to Convex Queries [🔴 CRITICAL]
+
+**Symptom**: `state_snapshot_uncloneable` error: "The following properties cannot be cloned with `$state.snapshot`"  
+**Root Cause**: Passing `$derived` function (not primitive value) to Convex `useQuery`. Convex tries to serialize arguments, Svelte's `$state.snapshot` fails on functions.  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Passing $derived function to Convex
+const organizationId = $derived(() => {
+	if (!organizations) return undefined;
+	return organizations.activeOrganizationId ?? undefined;
+});
+
+const getOrganizationId = () => organizationId; // ❌ Returns function
+
+useQuery(api.circles.list, () => {
+	const orgId = getOrganizationId(); // ❌ Function, not primitive
+	return { sessionId, organizationId: orgId }; // ❌ snapshot fails
+});
+
+// ✅ CORRECT: Call $derived function to get primitive
+const getOrganizationId = () => organizationId(); // ✅ Returns primitive
+
+useQuery(api.circles.list, () => {
+	const orgId = getOrganizationId(); // ✅ Primitive string
+	return { sessionId, organizationId: orgId }; // ✅ Works
+});
+
+// Also fix in $effect checks
+$effect(() => {
+	if (!organizationId()) { // ✅ Call function
+		goto('/onboarding');
+	}
+});
+```
+
+**Why**: Convex queries serialize arguments using `$state.snapshot`. Functions cannot be cloned. Extract primitive values by calling `$derived` functions before passing to Convex.  
+**Apply when**: Passing `$derived` values to Convex queries or mutations  
+**Related**: #L900 (Call $derived functions), #L10 (Convex undefined values)
+
+---
+
+**Pattern Count**: 24  
 **Last Validated**: 2025-11-17  
 **Context7 Source**: `/sveltejs/svelte`, `@sveltejs/kit`, `/get-convex/convex-js`

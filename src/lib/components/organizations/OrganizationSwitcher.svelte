@@ -88,27 +88,18 @@
 	// TODO: Re-enable when needed for conditional rendering
 	// const _hasOrganizations = $derived(() => organizations.length > 0);
 	const showLabels = $derived(() => variant === 'topbar' || !sidebarCollapsed);
-	const isPersonalActive = $derived(() => !activeOrganizationId);
 
 	// Show skeleton when loading with no cached data
 	const showSkeleton = $derived(() => isLoading && !activeOrganization && activeOrganizationId);
 
-	const triggerInitials = $derived(() =>
-		isPersonalActive()
-			? (accountName.slice(0, 2) || 'PW').toUpperCase()
-			: (activeOrganization?.initials ?? '—')
-	);
-	const triggerTitle = $derived(() =>
-		isPersonalActive() ? accountName : (activeOrganization?.name ?? 'Select workspace')
-	);
+	const triggerInitials = $derived(() => activeOrganization?.initials ?? '—');
+	const triggerTitle = $derived(() => activeOrganization?.name ?? 'Select workspace');
 	const triggerSubtitle = $derived(() =>
-		isPersonalActive()
-			? accountEmail
-			: activeOrganization?.role === 'owner'
-				? 'Owner'
-				: activeOrganization?.role === 'admin'
-					? 'Admin'
-					: 'Member'
+		activeOrganization?.role === 'owner'
+			? 'Owner'
+			: activeOrganization?.role === 'admin'
+				? 'Admin'
+				: 'Member'
 	);
 
 	function handleSelect(organizationId: string | null) {
@@ -166,6 +157,65 @@
 	// State for nested account menus
 	let accountMenuOpen = $state(false);
 	const linkedAccountMenuOpen = $state<Record<string, boolean>>({});
+
+	// Combined list of all organizations (current account + linked accounts)
+	// This allows CMD+1-9 shortcuts to work across all accounts
+	type CombinedOrganization = {
+		organizationId: string;
+		name: string;
+		initials?: string;
+		role: 'owner' | 'admin' | 'member';
+		accountUserId?: string; // If from linked account, this is the userId
+		isFromLinkedAccount: boolean;
+	};
+
+	// Combined list of all organizations (current account + linked accounts)
+	// Access props reactively to ensure updates when data loads
+	const allOrganizations = $derived((): CombinedOrganization[] => {
+		const combined: CombinedOrganization[] = [];
+
+		// Add current account's organizations
+		// Access organizations prop reactively (Svelte 5 tracks prop access in $derived)
+		const orgsList = Array.isArray(organizations) ? organizations : [];
+
+		for (const org of orgsList) {
+			if (org && org.organizationId) {
+				combined.push({
+					organizationId: org.organizationId,
+					name: org.name,
+					initials: org.initials,
+					role: org.role,
+					isFromLinkedAccount: false
+				});
+			}
+		}
+
+		// Add linked accounts' organizations
+		// Access linkedAccounts prop reactively
+		const linkedAccountsList = Array.isArray(linkedAccounts) ? linkedAccounts : [];
+		for (const account of linkedAccountsList) {
+			if (
+				account?.organizations &&
+				Array.isArray(account.organizations) &&
+				account.organizations.length > 0
+			) {
+				for (const org of account.organizations) {
+					if (org && org.organizationId) {
+						combined.push({
+							organizationId: org.organizationId,
+							name: org.name,
+							initials: org.initials ?? org.name.slice(0, 2).toUpperCase(),
+							role: org.role,
+							accountUserId: account.userId,
+							isFromLinkedAccount: true
+						});
+					}
+				}
+			}
+		}
+
+		return combined;
+	});
 </script>
 
 <DropdownMenu.Root>
@@ -345,55 +395,31 @@
 				</DropdownMenu.Root>
 			</div>
 
-			<!-- Current Account Workspaces -->
-			<DropdownMenu.Item
-				class={`flex cursor-pointer items-center justify-between px-menu-item py-1.5 text-sm outline-none hover:bg-hover-solid focus:bg-hover-solid ${
-					isPersonalActive() ? '' : 'text-primary'
-				}`}
-				textValue="Personal workspace"
-				onSelect={() => handleSelect(null)}
-			>
-				<div class="flex min-w-0 flex-1 items-center gap-2">
-					<div
-						class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded text-xs font-semibold"
-					>
-						{(accountName.slice(0, 2) || 'PW').toUpperCase()}
-					</div>
-					<div class="flex min-w-0 flex-col">
-						<span class="truncate text-sm">{accountName}</span>
-						<span class="truncate text-xs text-tertiary">Private workspace</span>
-					</div>
-				</div>
-				{#if isPersonalActive()}
-					<svg
-						class="h-4 w-4 flex-shrink-0 text-accent-primary"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M5 13l4 4L19 7"
-						/>
-					</svg>
-				{/if}
-			</DropdownMenu.Item>
-
-			{#each organizations as organization (organization.organizationId)}
+			<!-- All Organizations (current account + linked accounts) -->
+			{#each allOrganizations() as organization (organization.organizationId)}
 				<DropdownMenu.Item
 					class={`flex cursor-pointer items-center justify-between px-menu-item py-1.5 text-sm outline-none hover:bg-hover-solid focus:bg-hover-solid ${
 						organization.organizationId === activeOrganizationId ? '' : 'text-primary'
 					}`}
 					textValue={organization.name}
-					onSelect={() => handleSelect(organization.organizationId)}
+					onSelect={() => {
+						if (organization.isFromLinkedAccount && organization.accountUserId) {
+							// Switch to linked account and navigate to organization
+							handleSwitchAccount(
+								organization.accountUserId,
+								`/inbox?org=${organization.organizationId}`
+							);
+						} else {
+							// Current account organization
+							handleSelect(organization.organizationId);
+						}
+					}}
 				>
 					<div class="flex min-w-0 flex-1 items-center gap-2">
 						<div
 							class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded bg-sidebar-hover text-xs font-semibold"
 						>
-							{organization.initials}
+							{organization.initials ?? organization.name.slice(0, 2).toUpperCase()}
 						</div>
 						<div class="flex min-w-0 flex-col">
 							<span class="truncate text-sm font-medium">{organization.name}</span>
@@ -437,7 +463,8 @@
 				</div>
 			</DropdownMenu.Item>
 
-			<!-- Linked Accounts Section -->
+			<!-- Linked Accounts Section (for account management only) -->
+			<!-- Organizations from linked accounts are shown in the combined list above -->
 			{#if linkedAccounts.length > 0}
 				<DropdownMenu.Separator class="my-1 border-t border-base" />
 				{#each linkedAccounts as account (account.userId)}
@@ -540,61 +567,6 @@
 							</DropdownMenu.Portal>
 						</DropdownMenu.Root>
 					</div>
-
-					<!-- Personal workspace for linked account -->
-					<DropdownMenu.Item
-						class="flex cursor-pointer items-center justify-between px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
-						textValue={`${account.name ?? account.email}'s personal workspace`}
-						onSelect={() => handleSwitchAccount(account.userId)}
-					>
-						<div class="flex min-w-0 flex-1 items-center gap-2">
-							<div
-								class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded text-xs font-semibold"
-							>
-								{account.name
-									? account.name.slice(0, 2).toUpperCase()
-									: account.email
-										? account.email.slice(0, 2).toUpperCase()
-										: 'PW'}
-							</div>
-							<div class="flex min-w-0 flex-col">
-								<span class="truncate text-sm">
-									{account.name
-										? `${account.firstName ?? account.name}`
-										: account.email
-											? account.email.split('@')[0]
-											: 'Personal workspace'}
-								</span>
-								<span class="truncate text-xs text-tertiary">Private workspace</span>
-							</div>
-						</div>
-					</DropdownMenu.Item>
-
-					<!-- Organizations for linked account -->
-					{#if account.organizations && account.organizations.length > 0}
-						{#each account.organizations as org (org.organizationId)}
-							<DropdownMenu.Item
-								class="flex cursor-pointer items-center justify-between px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
-								textValue={org.name}
-								onSelect={() => {
-									// Switch to account and navigate to organization
-									handleSwitchAccount(account.userId, `/inbox?org=${org.organizationId}`);
-								}}
-							>
-								<div class="flex min-w-0 flex-1 items-center gap-2">
-									<div
-										class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded bg-sidebar-hover text-xs font-semibold"
-									>
-										{org.initials ?? org.name.slice(0, 2).toUpperCase()}
-									</div>
-									<div class="flex min-w-0 flex-col">
-										<span class="truncate text-sm font-medium">{org.name}</span>
-										<span class="truncate text-xs text-tertiary capitalize">{org.role}</span>
-									</div>
-								</div>
-							</DropdownMenu.Item>
-						{/each}
-					{/if}
 				{/each}
 			{/if}
 

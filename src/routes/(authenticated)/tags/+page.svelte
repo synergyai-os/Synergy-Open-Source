@@ -29,8 +29,17 @@
 	const isLoading = $derived(tagsQuery?.isLoading ?? false);
 
 	// Get organization data for sharing
-	const organizationSummaries = $derived(() => organizations?.organizations ?? []);
-	const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
+	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
+	// Pattern: Check object existence first, then access getter property directly
+	// See SYOS-228 for full pattern documentation
+	const organizationSummaries = $derived(() => {
+		if (!organizations) return [];
+		return organizations.organizations ?? [];
+	});
+	const activeOrganizationId = $derived(() => {
+		if (!organizations) return null;
+		return organizations.activeOrganizationId ?? null;
+	});
 
 	// Modal state
 	let showShareModal = $state(false);
