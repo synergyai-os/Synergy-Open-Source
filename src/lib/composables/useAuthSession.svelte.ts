@@ -389,11 +389,11 @@ export function useAuthSession(): UseAuthSessionReturn {
 
 		const targetSession = allSessions[targetUserId];
 		const targetAccountName = targetSession.userName || targetSession.userEmail || 'account';
-		const csrfToken =
-			state.csrfToken ??
-			targetSession.csrfToken ??
-			readCookie('syos_csrf') ??
-			readCookie('axon_csrf');
+
+		// CRITICAL: Use CURRENT user's CSRF token, not target user's
+		// The CSRF token protects the switch action itself, not the target account
+		// Target session tokens are placeholders and will be invalid
+		const csrfToken = state.csrfToken ?? readCookie('syos_csrf') ?? readCookie('axon_csrf');
 
 		if (!csrfToken) {
 			state.error = 'Unable to verify session (missing CSRF token).';
