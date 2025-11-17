@@ -3363,6 +3363,76 @@ export const createOrganizationInvite = mutation({
 
 ---
 
+## #L3400: RBAC vs Organization Membership Checks [🟡 IMPORTANT]
+
+**Symptom**: Permission denied errors for basic operations like creating teams/circles  
+**Root Cause**: Using RBAC `requirePermission()` when simple organization membership check is sufficient  
+**Fix**:
+
+```typescript
+// ❌ WRONG: RBAC check for basic org member operations
+export const createTeam = mutation({
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+		
+		// ❌ Too restrictive - only Admin/Manager roles have teams.create permission
+		await requirePermission(ctx, userId, 'teams.create', {
+			organizationId: args.organizationId
+		});
+		// ... create team
+	}
+});
+
+// ✅ CORRECT: Organization membership check (same pattern as circles.create)
+async function ensureOrganizationMembership(
+	ctx: MutationCtx,
+	organizationId: Id<'organizations'>,
+	userId: Id<'users'>
+): Promise<void> {
+	const membership = await ctx.db
+		.query('organizationMembers')
+		.withIndex('by_organization_user', (q) =>
+			q.eq('organizationId', organizationId).eq('userId', userId)
+		)
+		.first();
+
+	if (!membership) {
+		throw new Error('You do not have access to this organization');
+	}
+}
+
+export const createTeam = mutation({
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+		
+		// ✅ Any org member can create teams (matches circles pattern)
+		await ensureOrganizationMembership(ctx, args.organizationId, userId);
+		// ... create team
+	}
+});
+```
+
+**When to Use Each**:
+
+- **Organization Membership** (`ensureOrganizationMembership`):
+  - ✅ Basic CRUD operations (create team, create circle)
+  - ✅ Viewing organization data
+  - ✅ Any operation where "member of org" = sufficient permission
+
+- **RBAC** (`requirePermission`):
+  - ✅ Administrative actions (delete team, remove members)
+  - ✅ Sensitive operations (manage billing, change roles)
+  - ✅ Operations requiring specific roles (Team Lead, Manager, Admin)
+
+**Pattern**: Match existing patterns in codebase. If `circles.create` uses org membership, `teams.create` should too.  
+**Why**: Consistency prevents permission errors and matches user expectations (org members can create teams).  
+**Apply when**: Creating new mutations - check similar operations first  
+**Related**: #L3300 (Owner bypass), #L1175 (RBAC test patterns), `convex/circles.ts` (create pattern), `convex/teams.ts` (create pattern)
+
+**Source**: SYOS-216 (Team Management - Create team modal)
+
+---
+
 ## #L3365: Schedule Non-Blocking Emails After Mutations [🟢 REFERENCE]
 
 **Symptom**: Email sending blocks mutation response, slow user experience  

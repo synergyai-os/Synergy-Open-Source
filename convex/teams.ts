@@ -5,6 +5,7 @@ import { validateSessionAndGetUserId } from './sessionValidation';
 import { requirePermission } from './rbac/permissions';
 import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
+import { internal } from './_generated/api';
 // TODO: Re-enable server-side analytics via HTTP action bridge
 // import { captureAnalyticsEvent } from "./posthog";
 // import { AnalyticsEventName, type AnalyticsEventPayloads } from "../src/lib/analytics/events";
@@ -260,10 +261,8 @@ export const createTeam = mutation({
 			throw new Error('Not authenticated');
 		}
 
-		// RBAC Permission Check: Only users with "teams.create" permission can create teams
-		await requirePermission(ctx, userId, 'teams.create', {
-			organizationId: args.organizationId
-		});
+		// Verify user has access to this organization (same pattern as circles.create)
+		await ensureOrganizationMembership(ctx, args.organizationId, userId);
 
 		const trimmedName = args.name.trim();
 		if (!trimmedName) {
@@ -330,22 +329,26 @@ export const createTeamInvite = mutation({
 			throw new Error('Team not found');
 		}
 
-		// TODO: Check if user is already a member before inviting
-		// const membership = await ctx.db
-		// 	.query('teamMembers')
-		// 	.withIndex('by_team_user', (q) => q.eq('teamId', args.teamId).eq('userId', userId))
-		// 	.first();
+		// Check if user is a team admin (team admins can always invite members)
+		const membership = await ctx.db
+			.query('teamMembers')
+			.withIndex('by_team_user', (q) => q.eq('teamId', args.teamId).eq('userId', userId))
+			.first();
 
-		// RBAC Permission Check: Check "teams.add-members" permission with resource scoping
+		const isTeamAdmin = membership?.role === 'admin';
+
+		// RBAC Permission Check: Team admins can invite, otherwise check "teams.add-members" permission
 		// Team Leads can only invite to their own teams (via RBAC role with teamId scope)
 		// Admins/Managers can invite to any team (scope: "all")
-		await requirePermission(ctx, userId, 'teams.add-members', {
-			organizationId: team.organizationId,
-			teamId: args.teamId,
-			resourceType: 'team',
-			resourceId: args.teamId
-			// Note: resourceOwnerId not used - RBAC handles scoping via teamId in userRoles table
-		});
+		if (!isTeamAdmin) {
+			await requirePermission(ctx, userId, 'teams.add-members', {
+				organizationId: team.organizationId,
+				teamId: args.teamId,
+				resourceType: 'team',
+				resourceId: args.teamId
+				// Note: resourceOwnerId not used - RBAC handles scoping via teamId in userRoles table
+			});
+		}
 
 		if (!args.email && !args.invitedUserId) {
 			throw new Error('Either email or invitedUserId must be provided');
@@ -432,6 +435,33 @@ export const createTeamInvite = mutation({
 		//   groups: { organization: team.organizationId, team: args.teamId },
 		//   properties,
 		// });
+
+		// Send email if email was provided (not userId-only invite)
+		if (normalizedEmail) {
+			// Get organization name, team name, and inviter name for email
+			const organization = await ctx.db.get(team.organizationId);
+			const inviter = await ctx.db.get(userId);
+			const inviterName =
+				(inviter as unknown as { name?: string; email?: string } | undefined)?.name ??
+				(inviter as unknown as { email?: string } | undefined)?.email ??
+				'Member';
+
+			if (organization) {
+				// Construct invite link
+				const baseUrl = process.env.PUBLIC_APP_URL || 'http://localhost:5173';
+				const inviteLink = `${baseUrl}/invite?code=${code}`;
+
+				// Schedule email sending (non-blocking)
+				await ctx.scheduler.runAfter(0, internal.email.sendTeamInviteEmail, {
+					email: normalizedEmail,
+					inviteLink,
+					teamName: team.name,
+					organizationName: organization.name,
+					inviterName,
+					role: args.role ?? 'member'
+				});
+			}
+		}
 
 		return { inviteId, code };
 	}
@@ -731,5 +761,74 @@ export const removeTeamMember = mutation({
 		await ctx.db.delete(targetMembership._id);
 
 		return { success: true };
+	}
+});
+
+/**
+ * Get a single team by slug
+ * Returns team details with members list
+ */
+export const getTeamBySlug = query({
+	args: {
+		sessionId: v.string(),
+		organizationId: v.id('organizations'),
+		slug: v.string()
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		// Verify user has access to this organization
+		const membership = await ctx.db
+			.query('organizationMembers')
+			.withIndex('by_organization_user', (q) =>
+				q.eq('organizationId', args.organizationId).eq('userId', userId)
+			)
+			.first();
+
+		if (!membership) {
+			throw new Error('You do not have access to this organization');
+		}
+
+		// Query teams by organizationId and filter by slug
+		const teams = await ctx.db
+			.query('teams')
+			.withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId))
+			.collect();
+
+		const team = teams.find((t) => t.slug === args.slug);
+		if (!team) {
+			throw new Error('Team not found');
+		}
+
+		// Get team members
+		const teamMemberships = await ctx.db
+			.query('teamMembers')
+			.withIndex('by_team', (q) => q.eq('teamId', team._id))
+			.collect();
+
+		const members = await Promise.all(
+			teamMemberships.map(async (membership) => {
+				const user = await ctx.db.get(membership.userId);
+				if (!user) return null;
+
+				return {
+					userId: membership.userId,
+					email: (user as unknown as { email?: string } | undefined)?.email ?? '',
+					name: (user as unknown as { name?: string } | undefined)?.name ?? '',
+					role: membership.role,
+					joinedAt: membership.joinedAt
+				};
+			})
+		);
+
+		return {
+			teamId: team._id,
+			organizationId: team.organizationId,
+			name: team.name,
+			slug: team.slug,
+			createdAt: team.createdAt,
+			updatedAt: team.updatedAt,
+			members: members.filter((member): member is NonNullable<typeof member> => member !== null)
+		};
 	}
 });
