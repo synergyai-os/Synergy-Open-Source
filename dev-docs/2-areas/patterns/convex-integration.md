@@ -1641,6 +1641,124 @@ it('should create organization invite with RBAC permission check', async () => {
 
 ---
 
+## #L1700: Polymorphic Convex Schema with Union Types [🟡 IMPORTANT]
+
+**Symptom**: Need to support multiple types of related entities (e.g., attendees can be users, circles, or teams)  
+**Root Cause**: Using separate tables or optional fields without discriminator  
+**Fix**:
+
+```typescript
+// ✅ CORRECT: Polymorphic schema with union type discriminator
+meetingAttendees: defineTable({
+	meetingId: v.id('meetings'),
+
+	// Discriminator field (exactly one type)
+	attendeeType: v.union(
+		v.literal('user'),
+		v.literal('role'),
+		v.literal('circle'),
+		v.literal('team')
+	),
+
+	// Optional fields (exactly one must be set based on attendeeType)
+	userId: v.optional(v.id('users')),
+	circleRoleId: v.optional(v.id('circleRoles')),
+	circleId: v.optional(v.id('circles')),
+	teamId: v.optional(v.id('teams')),
+
+	addedAt: v.number()
+})
+	.index('by_meeting', ['meetingId'])
+	.index('by_user', ['userId']),
+
+// ✅ CORRECT: Mutation validates exactly one ID is provided
+export const addAttendee = mutation({
+	args: {
+		sessionId: v.string(),
+		meetingId: v.id('meetings'),
+		attendeeType: v.union(
+			v.literal('user'),
+			v.literal('role'),
+			v.literal('circle'),
+			v.literal('team')
+		),
+		userId: v.optional(v.id('users')),
+		circleRoleId: v.optional(v.id('circleRoles')),
+		circleId: v.optional(v.id('circles')),
+		teamId: v.optional(v.id('teams'))
+	},
+	handler: async (ctx, args) => {
+		// Validate exactly one attendee ID is provided
+		const providedIds = [
+			args.userId,
+			args.circleRoleId,
+			args.circleId,
+			args.teamId
+		].filter((id) => id !== undefined);
+
+		if (providedIds.length !== 1) {
+			throw new Error(
+				'Exactly one of userId, circleRoleId, circleId, or teamId must be provided'
+			);
+		}
+
+		// Check for existing attendee
+		const existingAttendee = await ctx.db
+			.query('meetingAttendees')
+			.withIndex('by_meeting', (q) => q.eq('meetingId', args.meetingId))
+			.filter((q) => {
+				if (args.attendeeType === 'user') {
+					return q.and(
+						q.eq(q.field('attendeeType'), 'user'),
+						q.eq(q.field('userId'), args.userId)
+					);
+				} else if (args.attendeeType === 'circle') {
+					return q.and(
+						q.eq(q.field('attendeeType'), 'circle'),
+						q.eq(q.field('circleId'), args.circleId)
+					);
+				} else if (args.attendeeType === 'team') {
+					return q.and(
+						q.eq(q.field('attendeeType'), 'team'),
+						q.eq(q.field('teamId'), args.teamId)
+					);
+				}
+				// ... other types
+			})
+			.first();
+
+		if (existingAttendee) {
+			throw new Error('Attendee already exists');
+		}
+
+		// Insert with all optional fields (only one will be set)
+		await ctx.db.insert('meetingAttendees', {
+			meetingId: args.meetingId,
+			attendeeType: args.attendeeType,
+			userId: args.userId,
+			circleRoleId: args.circleRoleId,
+			circleId: args.circleId,
+			teamId: args.teamId,
+			addedAt: Date.now()
+		});
+	}
+});
+```
+
+**Key Points**:
+
+1. **Discriminator field** - `attendeeType` union with literal types
+2. **Optional ID fields** - One per type (userId, circleId, teamId, etc.)
+3. **Validation** - Ensure exactly one ID is provided
+4. **Query filtering** - Use discriminator + specific ID field for uniqueness checks
+5. **Insert all fields** - Include all optional fields (only one will have value)
+
+**Why**: Supports multiple entity types in single table while maintaining type safety and validation.  
+**Apply when**: Building relationships that can reference different entity types (attendees, assignees, owners)  
+**Related**: #L290 (Discriminated union types), #L1250 (Id<> type assertions)
+
+---
+
 ---
 
 ## #L1250: Avoid `any` Type - Use Proper `Id<>` Assertions [🔴 CRITICAL]
@@ -2174,7 +2292,99 @@ export const checkFlags = query({
 **Performance**: Reduces 3-5 seconds → < 1 second (3-5x faster)  
 **When to Use**: Checking multiple related items (feature flags, settings, permissions)  
 **Trade-off**: Slightly more complex backend, but significant performance gain  
-**Related**: #L1200 (SessionId pattern), #L220 (useQuery pattern)
+**Related**: #L1200 (SessionId pattern), #L220 (useQuery pattern), #L1390 (Server-side preload)
+
+---
+
+## #L1390: Server-Side Preload for Instant UI Rendering [🔴 CRITICAL]
+
+**Symptom**: UI elements appear 3-5 seconds after page load, missing data until hard refresh, inconsistent behavior after login  
+**Root Cause**: Client-side Convex queries (`useQuery`) only execute after component mount, causing network latency delays  
+**Fix**: Load critical data server-side in `+layout.server.ts` using `ConvexHttpClient`, pass as initial data
+
+```typescript
+// ❌ WRONG: Client-side query (slow, inconsistent)
+// src/lib/components/Sidebar.svelte
+const circlesEnabledQuery = browser && sessionId
+	? useQuery(api.featureFlags.checkFlag, () => {
+			if (!sessionId) throw new Error('sessionId required');
+			return { flag: 'circles_ui_beta', sessionId };
+		})
+	: null;
+const circlesEnabled = $derived(circlesEnabledQuery?.data ?? false);
+// Result: Menu item appears 3-5 seconds after sidebar renders
+
+// ✅ CORRECT: Server-side preload (instant)
+// src/routes/(authenticated)/+layout.server.ts
+export const load: LayoutServerLoad = async ({ locals, url }) => {
+	const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
+	const sessionId = locals.auth.sessionId;
+	
+	let circlesEnabled = false;
+	try {
+		circlesEnabled = await client.query(api.featureFlags.checkFlag, {
+			flag: 'circles_ui_beta',
+			sessionId
+		});
+	} catch (error) {
+		console.warn('Failed to load feature flag server-side:', error);
+	}
+	
+	return {
+		sessionId,
+		circlesEnabled // ✅ Included in initial HTML payload
+	};
+};
+
+// src/routes/(authenticated)/+layout.svelte
+const circlesEnabled = $derived(data.circlesEnabled ?? false);
+
+// src/lib/components/Sidebar.svelte
+// Receive as prop - no client-side query needed
+let { circlesEnabled = false }: Props = $props();
+// Result: Menu item appears instantly with page load
+```
+
+**Hybrid Pattern** (Server-side initial + Client-side reactive):
+
+```typescript
+// Server-side preload for instant rendering
+// src/routes/(authenticated)/+layout.server.ts
+const [organizations, invites] = await Promise.all([
+	client.query(api.organizations.listOrganizations, { sessionId }),
+	client.query(api.organizations.listOrganizationInvites, { sessionId })
+]);
+
+// Pass as initial data
+return { organizations, invites };
+
+// Client-side composable uses initial data immediately, updates when queries complete
+// src/lib/composables/useOrganizations.svelte.ts
+export function useOrganizations(options?: {
+	initialOrganizations?: OrganizationSummary[]; // Server-side preloaded
+	// ...
+}) {
+	const organizationsQuery = browser && getSessionId()
+		? useQuery(api.organizations.listOrganizations, () => {
+				const sessionId = getSessionId();
+				if (!sessionId) throw new Error('sessionId required');
+				return { sessionId };
+			})
+		: null;
+	
+	// Use server-side data immediately, then use query data when available
+	const organizationsData = $derived((): OrganizationSummary[] => {
+		if (organizationsQuery?.data !== undefined) {
+			return organizationsQuery.data as OrganizationSummary[];
+		}
+		return options?.initialOrganizations ?? []; // ✅ Instant rendering
+	});
+}
+```
+
+**Why**: Server-side data is included in initial HTML payload, eliminating network latency for critical UI elements  
+**Apply when**: Data is needed for initial render (feature flags, user data, organizations, etc.)  
+**Related**: #L1360 (Batch queries), #L850 (sessionId pattern), #L10 (Undefined in Convex)
 
 ---
 
@@ -2313,6 +2523,780 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.register, async ({
 
 ---
 
-**Pattern Count**: 33  
-**Last Validated**: 2025-11-14  
+## #L1530: Feature Flag Secure Defaults [🔴 CRITICAL]
+
+**Symptom**: Feature flags visible to all users when no targeting rules configured, security risk  
+**Root Cause**: Flags default to `flagConfig.enabled` (often `true`) when no targeting rules exist, granting access to everyone  
+**Fix**: Default to `false` when no targeting rules configured, require explicit configuration
+
+```typescript
+// ❌ WRONG: Insecure default (everyone gets access)
+const hasTargetingRules =
+	flagConfig.allowedUserIds !== undefined ||
+	flagConfig.allowedDomains !== undefined ||
+	flagConfig.rolloutPercentage !== undefined;
+
+if (flagConfig.allowedUserIds?.includes(userId)) {
+	result = true;
+}
+// ... domain and rollout checks ...
+else if (!hasTargetingRules) {
+	result = flagConfig.enabled; // ❌ Defaults to true for everyone
+}
+
+// ✅ CORRECT: Secure default (require explicit configuration)
+const hasTargetingRules =
+	flagConfig.allowedUserIds !== undefined ||
+	flagConfig.allowedDomains !== undefined ||
+	flagConfig.rolloutPercentage !== undefined;
+
+if (flagConfig.allowedUserIds?.includes(userId)) {
+	result = true;
+}
+// ... domain and rollout checks ...
+else if (!hasTargetingRules) {
+	result = false; // ✅ Secure default - require explicit targeting configuration
+}
+```
+
+**Why**: Security by default - flags should be opt-in, not opt-out. If no targeting rules are configured, assume the flag is not ready for production.  
+**Apply when**: Implementing feature flag evaluation logic  
+**Related**: #L1390 (Server-side preload), #L1360 (Batch queries), feature-flags.md (Feature flag patterns)
+
+**Configuration Required**:
+
+After fix, flags must be explicitly configured:
+
+```typescript
+// Option 1: User-based targeting
+await upsertFlag({
+	flag: 'circles_ui_beta',
+	enabled: true,
+	allowedUserIds: ['user-id-1', 'user-id-2']
+});
+
+// Option 2: Domain-based targeting
+await upsertFlag({
+	flag: 'circles_ui_beta',
+	enabled: true,
+	allowedDomains: ['@synergyai.nl']
+});
+
+// Option 3: Percentage rollout
+await upsertFlag({
+	flag: 'circles_ui_beta',
+	enabled: true,
+	rolloutPercentage: 10 // 10% of users
+});
+```
+
+**Debugging**: Use `debugFlagEvaluation` query to inspect flag evaluation:
+
+```typescript
+// In Convex dashboard function runner
+await debugFlagEvaluation({
+	flag: 'circles_ui_beta',
+	sessionId: 'your-session-id'
+});
+// Returns: { result, reason, flagConfig, hasTargetingRules, ... }
+```
+
+---
+
+## #L1650: useConvexClient for Mutations (No useMutation) [🟡 IMPORTANT]
+
+**Symptom**: `Module "convex-svelte" has no exported member 'useMutation'` error  
+**Root Cause**: convex-svelte doesn't export `useMutation` - use `useConvexClient()` instead  
+**Fix**:
+
+```typescript
+// ❌ WRONG: useMutation doesn't exist
+import { useQuery, useMutation } from 'convex-svelte';
+const createItem = useMutation(api.items.create);
+await createItem({ title: 'New Item' });
+
+// ✅ CORRECT: Use useConvexClient + client.mutation()
+import { useQuery, useConvexClient } from 'convex-svelte';
+import { api } from '$lib/convex';
+
+const convexClient = browser ? useConvexClient() : null;
+
+async function handleCreate() {
+	if (!convexClient) return;
+	
+	await convexClient.mutation(api.items.create, {
+		sessionId: getSessionId(),
+		title: 'New Item'
+	});
+}
+```
+
+**Pattern for Components**:
+
+```svelte
+<script lang="ts">
+	import { browser } from '$app/environment';
+	import { useQuery, useConvexClient } from 'convex-svelte';
+	import { api } from '$lib/convex';
+	
+	// Get client once
+	const convexClient = browser ? useConvexClient() : null;
+	
+	// Reactive queries
+	const items = useQuery(api.items.list, () => ({ sessionId }));
+	
+	// Mutations in async functions
+	async function handleCreate(title: string) {
+		if (!convexClient || !sessionId) return;
+		
+		try {
+			await convexClient.mutation(api.items.create, {
+				sessionId,
+				title
+			});
+		} catch (err) {
+			console.error('Failed to create:', err);
+		}
+	}
+	
+	async function handleUpdate(itemId: Id<'items'>, updates: { title?: string }) {
+		if (!convexClient || !sessionId) return;
+		
+		await convexClient.mutation(api.items.update, {
+			sessionId,
+			itemId,
+			...updates
+		});
+	}
+	
+	async function handleDelete(itemId: Id<'items'>) {
+		if (!convexClient || !sessionId) return;
+		
+		await convexClient.mutation(api.items.remove, {
+			sessionId,
+			itemId
+		});
+	}
+</script>
+
+<button onclick={() => handleCreate('New Item')}>Create</button>
+```
+
+**Why**: convex-svelte provides `useQuery()` for reactive subscriptions and `useConvexClient()` for imperative operations (mutations, actions). This is the documented API pattern.
+
+**Apply when**: Calling Convex mutations from Svelte components  
+**Related**: #L10 (Avoid undefined payloads), #L1350 (useQuery argument functions), ui-patterns.md#L2800 (Inline CRUD forms)
+
+---
+
+## #L1700: Auto-Add Creator as Attendee [🟡 IMPORTANT]
+
+**Symptom**: Entity creator not visible in member/attendee lists, dropdowns show empty, "I don't see myself" bug  
+**Root Cause**: Entity creation mutation doesn't automatically add creator to associated members/attendees table  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Only create entity, forget to add creator
+export const create = mutation({
+	args: { sessionId: v.string(), title: v.string() },
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+		
+		const meetingId = await ctx.db.insert('meetings', {
+			organizationId: args.organizationId,
+			title: args.title,
+			createdBy: userId,
+			createdAt: Date.now()
+		});
+		
+		return { meetingId }; // ❌ Creator not added to attendees
+	}
+});
+
+// ✅ CORRECT: Auto-add creator to associated table
+export const create = mutation({
+	args: { sessionId: v.string(), title: v.string() },
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+		
+		// Create entity
+		const meetingId = await ctx.db.insert('meetings', {
+			organizationId: args.organizationId,
+			title: args.title,
+			createdBy: userId,
+			createdAt: Date.now()
+		});
+		
+		// ✅ Auto-add creator as attendee
+		await ctx.db.insert('meetingAttendees', {
+			meetingId,
+			attendeeType: 'user',
+			userId,
+			addedAt: Date.now()
+		});
+		
+		return { meetingId };
+	}
+});
+```
+
+**Common Entity Patterns**:
+
+```typescript
+// Meetings → meetingAttendees
+await ctx.db.insert('meetingAttendees', {
+	meetingId,
+	attendeeType: 'user',
+	userId,
+	addedAt: Date.now()
+});
+
+// Teams → teamMembers
+await ctx.db.insert('teamMembers', {
+	teamId,
+	userId,
+	role: 'admin', // Creator gets admin role
+	joinedAt: Date.now()
+});
+
+// Projects → projectMembers
+await ctx.db.insert('projectMembers', {
+	projectId,
+	userId,
+	role: 'owner', // Creator gets owner role
+	joinedAt: Date.now()
+});
+
+// Organizations → organizationMembers
+await ctx.db.insert('organizationMembers', {
+	organizationId,
+	userId,
+	role: 'owner',
+	joinedAt: Date.now()
+});
+```
+
+**Why**: Entity-relationship tables need explicit entries. `createdBy` field tracks metadata, but membership/attendance requires separate records for queries/permissions.
+
+**When to Apply**:
+- Creating entities with members/attendees/participants
+- "I don't see myself" bugs in member lists
+- Empty dropdowns after entity creation
+- Permission checks fail for creator
+
+**Related**: #L850 (Destructure validateSessionAndGetUserId), #L1175 (RBAC test patterns), #L240 (Shared types)
+
+---
+
+## #L1750: Real-Time Confirmation Workflow with Request Table [🟢 REFERENCE]
+
+**Symptom**: Need approval workflow for state changes (role assignment, permissions, resource access)  
+**Root Cause**: Direct updates don't allow for approval/rejection flow with real-time notifications  
+**Fix**: Create request table + pending status + real-time query for current approver
+
+**Pattern**: Secretary Change Workflow (SYOS-222)
+
+**1. Schema - Request Table**:
+
+```typescript
+// schema.ts
+secretaryChangeRequests: defineTable({
+	meetingId: v.id('meetings'),
+	requestedBy: v.id('users'),      // Who made the request
+	requestedFor: v.id('users'),     // Who they want to assign
+	status: v.union(
+		v.literal('pending'),
+		v.literal('approved'),
+		v.literal('denied')
+	),
+	createdAt: v.number(),
+	resolvedAt: v.optional(v.number()),
+	resolvedBy: v.optional(v.id('users'))
+})
+	.index('by_meeting_status', ['meetingId', 'status'])
+	.index('by_meeting', ['meetingId']),
+```
+
+**2. Backend - Request + Approve/Deny Mutations**:
+
+```typescript
+// Request secretary change
+export const requestSecretaryChange = mutation({
+	args: {
+		sessionId: v.string(),
+		meetingId: v.id('meetings'),
+		requestedForId: v.id('users')
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+		
+		// Validate requested user is an attendee
+		const attendees = await ctx.db
+			.query('meetingAttendees')
+			.withIndex('by_meeting', (q) => q.eq('meetingId', args.meetingId))
+			.collect();
+			
+		const isAttendee = attendees.some(
+			(a) => a.attendeeType === 'user' && a.userId === args.requestedForId
+		);
+		if (!isAttendee) {
+			throw new Error('Requested secretary must be a meeting attendee');
+		}
+		
+		// Check for existing pending request
+		const existingRequest = await ctx.db
+			.query('secretaryChangeRequests')
+			.withIndex('by_meeting_status', (q) =>
+				q.eq('meetingId', args.meetingId).eq('status', 'pending')
+			)
+			.first();
+			
+		if (existingRequest) {
+			throw new Error('There is already a pending secretary change request');
+		}
+		
+		// Create request
+		const requestId = await ctx.db.insert('secretaryChangeRequests', {
+			meetingId: args.meetingId,
+			requestedBy: userId,
+			requestedFor: args.requestedForId,
+			status: 'pending',
+			createdAt: Date.now()
+		});
+		
+		return { requestId };
+	}
+});
+
+// Approve request
+export const approveSecretaryChange = mutation({
+	args: {
+		sessionId: v.string(),
+		requestId: v.id('secretaryChangeRequests')
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+		
+		const request = await ctx.db.get(args.requestId);
+		if (!request || request.status !== 'pending') {
+			throw new Error('Request not found or already resolved');
+		}
+		
+		const meeting = await ctx.db.get(request.meetingId);
+		const currentSecretaryId = meeting.secretaryId ?? meeting.createdBy;
+		
+		// Only current secretary can approve
+		if (userId !== currentSecretaryId) {
+			throw new Error('Only the current secretary can approve this request');
+		}
+		
+		// Update request status
+		await ctx.db.patch(args.requestId, {
+			status: 'approved',
+			resolvedAt: Date.now(),
+			resolvedBy: userId
+		});
+		
+		// Apply the change
+		await ctx.db.patch(request.meetingId, {
+			secretaryId: request.requestedFor,
+			updatedAt: Date.now()
+		});
+		
+		return { success: true };
+	}
+});
+
+// Deny request
+export const denySecretaryChange = mutation({
+	args: {
+		sessionId: v.string(),
+		requestId: v.id('secretaryChangeRequests')
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+		
+		const request = await ctx.db.get(args.requestId);
+		if (!request || request.status !== 'pending') {
+			throw new Error('Request not found or already resolved');
+		}
+		
+		const meeting = await ctx.db.get(request.meetingId);
+		const currentSecretaryId = meeting.secretaryId ?? meeting.createdBy;
+		
+		if (userId !== currentSecretaryId) {
+			throw new Error('Only the current secretary can deny this request');
+		}
+		
+		await ctx.db.patch(args.requestId, {
+			status: 'denied',
+			resolvedAt: Date.now(),
+			resolvedBy: userId
+		});
+		
+		return { success: true };
+	}
+});
+
+// Real-time query for current approver
+export const watchSecretaryRequests = query({
+	args: {
+		sessionId: v.string(),
+		meetingId: v.id('meetings')
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+		
+		const meeting = await ctx.db.get(args.meetingId);
+		const currentSecretaryId = meeting.secretaryId ?? meeting.createdBy;
+		
+		// Only return requests if user is current secretary
+		if (userId !== currentSecretaryId) {
+			return [];
+		}
+		
+		// Get pending requests
+		const requests = await ctx.db
+			.query('secretaryChangeRequests')
+			.withIndex('by_meeting_status', (q) =>
+				q.eq('meetingId', args.meetingId).eq('status', 'pending')
+			)
+			.collect();
+			
+		// Resolve user names
+		const requestsWithNames = await Promise.all(
+			requests.map(async (request) => {
+				const requestedBy = await ctx.db.get(request.requestedBy);
+				const requestedFor = await ctx.db.get(request.requestedFor);
+				
+				return {
+					...request,
+					requestedByName: requestedBy?.name ?? 'Unknown',
+					requestedForName: requestedFor?.name ?? 'Unknown'
+				};
+			})
+		);
+		
+		return requestsWithNames;
+	}
+});
+```
+
+**3. Frontend - Real-Time Dialog**:
+
+```svelte
+<script lang="ts">
+	import { browser } from '$app/environment';
+	import { useQuery, useConvexClient } from 'convex-svelte';
+	import { api } from '$lib/convex';
+	
+	const convexClient = browser ? useConvexClient() : null;
+	
+	// Real-time subscription (only for current secretary)
+	const requestsQuery = browser ? useQuery(
+		api.meetings.watchSecretaryRequests,
+		() => ({ sessionId: getSessionId(), meetingId: getMeetingId() })
+	) : null;
+	
+	const pendingRequest = $derived(requestsQuery?.data?.[0] ?? null);
+	
+	async function handleApprove(requestId) {
+		if (!convexClient) return;
+		await convexClient.mutation(api.meetings.approveSecretaryChange, {
+			sessionId: getSessionId(),
+			requestId
+		});
+	}
+	
+	async function handleDeny(requestId) {
+		if (!convexClient) return;
+		await convexClient.mutation(api.meetings.denySecretaryChange, {
+			sessionId: getSessionId(),
+			requestId
+		});
+	}
+</script>
+
+<!-- Real-time confirmation dialog -->
+{#if pendingRequest}
+	<dialog open>
+		<h2>Secretary Change Request</h2>
+		<p>
+			{pendingRequest.requestedByName} requests to change the secretary to
+			{pendingRequest.requestedForName}.
+		</p>
+		<button onclick={() => handleDeny(pendingRequest._id)}>Deny</button>
+		<button onclick={() => handleApprove(pendingRequest._id)}>Approve</button>
+	</dialog>
+{/if}
+```
+
+**Why**: Request table + real-time query pattern enables instant notifications to the approver without polling. The approver's browser automatically shows the dialog when a request is created.
+
+**Workflow**:
+1. **User A** clicks to request change → `requestSecretaryChange` mutation
+2. **Request created** → `status: 'pending'` in database
+3. **Current approver's browser** → `watchSecretaryRequests` query triggers (Convex real-time)
+4. **Dialog appears** → Approver clicks Approve/Deny
+5. **Request resolved** → `approveSecretaryChange` or `denySecretaryChange` mutation
+6. **All browsers update** → State changes (Convex real-time subscriptions)
+
+**Performance**:
+- Latency: <100ms (Convex real-time subscriptions)
+- Cost: 1 mutation (request) + 1 read per active approver + 1 mutation (approve/deny)
+
+**Apply when**:
+- Building approval workflows (role changes, permissions, resource access)
+- Need real-time notifications to approver
+- Want atomic state changes with audit trail
+- Avoiding race conditions in concurrent updates
+
+**Related**: #L220 in svelte-reactivity.md (useQuery real-time), #L1350 (useQuery throw pattern), #L1650 (useConvexClient for mutations), #L1200 in svelte-reactivity.md (Role-based rendering)
+
+---
+
+## #L1800: Convex Presence Tracking with Heartbeat Pattern [🟢 REFERENCE]
+
+**Symptom**: Need to track who's actively present in a resource (meeting, document, chat) in real-time  
+**Root Cause**: Static attendee/member lists don't reflect who's actually active. Need live presence tracking with automatic cleanup.  
+**Fix**:
+
+**Pattern**: Heartbeat mutation + lastSeenAt threshold + real-time query
+
+### Schema Design (convex/schema.ts)
+
+```typescript
+meetingPresence: defineTable({
+  meetingId: v.id('meetings'),
+  userId: v.id('users'),
+  joinedAt: v.number(),      // First join timestamp (ms)
+  lastSeenAt: v.number()     // Heartbeat timestamp (ms) - updated every 30s
+})
+  .index('by_meeting', ['meetingId'])
+  .index('by_meeting_lastSeen', ['meetingId', 'lastSeenAt']) // For active queries
+  .index('by_meeting_user', ['meetingId', 'userId'])        // For upserts
+```
+
+### Backend Implementation (convex/meetingPresence.ts)
+
+```typescript
+import { v } from 'convex/values';
+import { mutation, query } from './_generated/server';
+import { validateSessionAndGetUserId } from './sessionValidation';
+
+const ACTIVE_THRESHOLD_MS = 60_000; // 60 seconds
+
+// Upsert presence record (called every 30s from client)
+export const heartbeat = mutation({
+  args: {
+    sessionId: v.string(),
+    meetingId: v.id('meetings')
+  },
+  handler: async (ctx, args) => {
+    const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+    const now = Date.now();
+
+    // Try to find existing presence record
+    const existing = await ctx.db
+      .query('meetingPresence')
+      .withIndex('by_meeting_user', (q) =>
+        q.eq('meetingId', args.meetingId).eq('userId', userId)
+      )
+      .first();
+
+    if (existing) {
+      // Update existing record
+      await ctx.db.patch(existing._id, {
+        lastSeenAt: now
+      });
+    } else {
+      // Create new record
+      await ctx.db.insert('meetingPresence', {
+        meetingId: args.meetingId,
+        userId,
+        joinedAt: now,
+        lastSeenAt: now
+      });
+    }
+  }
+});
+
+// Get currently active users (real-time subscription)
+export const getActivePresence = query({
+  args: {
+    sessionId: v.string(),
+    meetingId: v.id('meetings')
+  },
+  handler: async (ctx, args) => {
+    const { userId: _userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+    const now = Date.now();
+    const threshold = now - ACTIVE_THRESHOLD_MS;
+
+    // Get all presence records updated within threshold
+    const presenceRecords = await ctx.db
+      .query('meetingPresence')
+      .withIndex('by_meeting_lastSeen', (q) =>
+        q.eq('meetingId', args.meetingId).gt('lastSeenAt', threshold)
+      )
+      .collect();
+
+    // Resolve user details
+    return await Promise.all(
+      presenceRecords.map(async (record) => {
+        const user = await ctx.db.get(record.userId);
+        return {
+          userId: record.userId,
+          name: user?.name ?? 'Unknown',
+          joinedAt: record.joinedAt
+        };
+      })
+    );
+  }
+});
+```
+
+### Frontend Composable (src/lib/composables/useMeetingPresence.svelte.ts)
+
+```typescript
+import { useQuery, useConvexClient } from 'convex-svelte';
+import { browser } from '$app/environment';
+import { api, type Id } from '$lib/convex';
+
+const HEARTBEAT_INTERVAL_MS = 30_000; // 30 seconds
+
+export function useMeetingPresence(
+  meetingId: () => Id<'meetings'> | undefined,
+  sessionId: () => string | undefined
+) {
+  const convexClient = useConvexClient();
+  const state = $state({
+    heartbeatInterval: null as NodeJS.Timeout | null
+  });
+
+  // Real-time active users query (browser + defensive checks)
+  const activePresenceQuery =
+    browser && meetingId() && sessionId()
+      ? useQuery(api.meetingPresence.getActivePresence, () => {
+          const mid = meetingId();
+          const sid = sessionId();
+          if (!mid || !sid) {
+            throw new Error('meetingId and sessionId required');
+          }
+          return { meetingId: mid, sessionId: sid };
+        })
+      : null;
+
+  const activeUsers = $derived(activePresenceQuery?.data ?? []);
+  const activeCount = $derived(activeUsers.length);
+
+  async function sendHeartbeat() {
+    const mid = meetingId();
+    const sid = sessionId();
+    if (!browser || !mid || !sid) return;
+
+    try {
+      await convexClient.mutation(api.meetingPresence.heartbeat, {
+        meetingId: mid,
+        sessionId: sid
+      });
+    } catch (error) {
+      console.error('[Presence] Heartbeat failed:', error);
+    }
+  }
+
+  function startHeartbeat() {
+    if (state.heartbeatInterval) return; // Already running
+
+    // Send initial heartbeat immediately
+    sendHeartbeat();
+
+    // Start interval for subsequent heartbeats
+    state.heartbeatInterval = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL_MS);
+  }
+
+  function stopHeartbeat() {
+    if (state.heartbeatInterval) {
+      clearInterval(state.heartbeatInterval);
+      state.heartbeatInterval = null;
+    }
+  }
+
+  return {
+    get activeUsers() {
+      return activeUsers;
+    },
+    get activeCount() {
+      return activeCount;
+    },
+    startHeartbeat,
+    stopHeartbeat
+  };
+}
+```
+
+### Frontend Integration (src/routes/(authenticated)/meetings/[id]/+page.svelte)
+
+```typescript
+import { untrack } from 'svelte';
+import { browser } from '$app/environment';
+import { useMeetingPresence } from '$lib/composables/useMeetingPresence.svelte';
+
+const presence = useMeetingPresence(
+  () => meeting._id,
+  () => data.sessionId
+);
+
+// Start/stop heartbeat on mount/unmount (use untrack() - see #L700 in svelte-reactivity.md)
+$effect(() => {
+  if (!browser) return;
+
+  untrack(() => {
+    presence.startHeartbeat();
+  });
+
+  return () => {
+    untrack(() => {
+      presence.stopHeartbeat();
+    });
+  };
+});
+```
+
+**Why This Works**:
+
+- **Heartbeat pattern**: Client sends "I'm alive" signal every 30s
+- **lastSeenAt threshold**: Server filters records updated within 60s (active users)
+- **Automatic cleanup**: Stale presence records (>60s) excluded from queries (no manual deletion needed)
+- **Real-time**: `useQuery` subscription updates UI instantly when users join/leave
+- **Upsert pattern**: Same mutation handles first join + subsequent heartbeats
+
+**Performance**:
+
+- **Heartbeat cost**: 2 requests/min/user (negligible)
+- **Active threshold**: 60s (2x heartbeat interval for reliability)
+- **Real-time subscriptions**: Built-in Convex (no polling, no extra cost)
+- **Auto-cleanup**: Presence records expire naturally (no scheduled jobs)
+
+**Apply when**:
+
+- Tracking active users in meetings, documents, chat rooms
+- Showing "who's online" indicators
+- Need real-time presence without manual cleanup
+- Want automatic stale record filtering
+
+**Example Use Cases**:
+
+- Meeting attendance tracking (SYOS-227)
+- Document collaboration (who's editing)
+- Chat room presence
+- Live dashboard viewers
+
+**Related**: #L220 in svelte-reactivity.md (useQuery real-time), #L1350 (useQuery throw pattern), #L1650 (useConvexClient), #L700 in svelte-reactivity.md (untrack for lifecycle methods)
+
+**Source**: SYOS-227 (Meeting Presence Tracking), Convex Presence Component pattern
+
+---
+
+**Pattern Count**: 38  
+**Last Validated**: 2025-11-17  
 **Context7 Source**: `/get-convex/convex-backend`, `convex-test` NPM docs, TypeScript type system, SvelteKit docs

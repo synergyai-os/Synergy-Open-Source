@@ -27,20 +27,12 @@ import type { Id } from './_generated/dataModel';
 export const checkFlag = query({
 	args: {
 		flag: v.string(),
-		sessionId: v.optional(v.string())
+		sessionId: v.string() // Required - follows sessionId pattern (#L1200)
 	},
 	handler: async (ctx, { flag, sessionId }) => {
-		// Get userId from sessionId if provided
-		let userId: Id<'users'> | undefined;
-		if (sessionId) {
-			try {
-				const result = await validateSessionAndGetUserId(ctx, sessionId);
-				userId = result.userId;
-			} catch {
-				// Invalid session - treat as unauthenticated
-				userId = undefined;
-			}
-		}
+		// CRITICAL: Must destructure to get userId (pattern #L1200, #L850)
+		// If sessionId is invalid, validateSessionAndGetUserId will throw (correct behavior)
+		const { userId } = await validateSessionAndGetUserId(ctx, sessionId);
 		// Get flag configuration
 		const flagConfig = await ctx.db
 			.query('featureFlags')
@@ -57,11 +49,6 @@ export const checkFlag = query({
 			return false;
 		}
 
-		// If no user context, return global setting
-		if (!userId) {
-			return flagConfig.enabled;
-		}
-
 		// Get user for additional checks
 		const user = await ctx.db.get(userId);
 		if (!user) {
@@ -71,9 +58,35 @@ export const checkFlag = query({
 		// Determine result based on targeting rules
 		let result = false;
 
+		// Check if targeting rules are configured
+		// Empty arrays ([]) mean targeting is configured but restrictive → should return false
+		// Only undefined/null means no targeting rules → can default to global enabled
+		const hasTargetingRules =
+			flagConfig.allowedUserIds !== undefined ||
+			flagConfig.allowedOrganizationIds !== undefined ||
+			flagConfig.allowedDomains !== undefined ||
+			flagConfig.rolloutPercentage !== undefined;
+
 		// Check if user is explicitly allowed
 		if (flagConfig.allowedUserIds?.includes(userId)) {
 			result = true;
+		}
+		// Check organization-based access
+		else if (flagConfig.allowedOrganizationIds?.length) {
+			// Get user's organizations
+			const memberships = await ctx.db
+				.query('organizationMembers')
+				.withIndex('by_user', (q) => q.eq('userId', userId))
+				.collect();
+
+			const userOrgIds = memberships.map((m) => m.organizationId);
+			const hasOrgAccess = flagConfig.allowedOrganizationIds.some((orgId) =>
+				userOrgIds.includes(orgId)
+			);
+
+			if (hasOrgAccess) {
+				result = true;
+			}
 		}
 		// Check domain-based access
 		else if (user.email && flagConfig.allowedDomains?.length) {
@@ -91,9 +104,15 @@ export const checkFlag = query({
 			const bucket = getUserRolloutBucket(userId, flag);
 			result = bucket < flagConfig.rolloutPercentage;
 		}
-		// Default to global enabled setting
+		// Only default to global enabled if NO targeting rules are configured
+		// SECURITY: Default to false (secure by default) - require explicit configuration
+		// If targeting rules exist but don't match, return false (secure by default)
+		else if (!hasTargetingRules) {
+			result = false; // Secure default - require explicit targeting configuration
+		}
+		// Targeting rules exist but user doesn't match → false (secure by default)
 		else {
-			result = flagConfig.enabled;
+			result = false;
 		}
 
 		// Note: PostHog tracking happens client-side (queries are read-only)
@@ -110,23 +129,15 @@ export const checkFlag = query({
 export const checkFlags = query({
 	args: {
 		flags: v.array(v.string()),
-		sessionId: v.optional(v.string())
+		sessionId: v.string() // Required - follows sessionId pattern (#L1200)
 	},
 	handler: async (ctx, { flags, sessionId }) => {
+		// CRITICAL: Must destructure to get userId (pattern #L1200, #L850)
 		// Validate session once for all flags
-		let userId: Id<'users'> | undefined;
-		if (sessionId) {
-			try {
-				const result = await validateSessionAndGetUserId(ctx, sessionId);
-				userId = result.userId;
-			} catch {
-				// Invalid session - treat as unauthenticated
-				userId = undefined;
-			}
-		}
+		const { userId } = await validateSessionAndGetUserId(ctx, sessionId);
 
 		// Get user once if needed (for domain checks)
-		const user = userId ? await ctx.db.get(userId) : null;
+		const user = await ctx.db.get(userId);
 
 		// Fetch all flag configs in parallel
 		const flagConfigs = await Promise.all(
@@ -150,18 +161,44 @@ export const checkFlags = query({
 				continue;
 			}
 
-			// If no user context, return global setting
-			if (!userId || !user) {
-				results[flag] = flagConfig.enabled;
+			// User is guaranteed to exist (sessionId is required, validateSessionAndGetUserId throws if invalid)
+			if (!user) {
+				results[flag] = false;
 				continue;
 			}
 
 			// Determine result based on targeting rules (same logic as checkFlag)
 			let result = false;
 
+			// Check if targeting rules are configured
+			// Empty arrays ([]) mean targeting is configured but restrictive → should return false
+			// Only undefined/null means no targeting rules → can default to global enabled
+			const hasTargetingRules =
+				flagConfig.allowedUserIds !== undefined ||
+				flagConfig.allowedOrganizationIds !== undefined ||
+				flagConfig.allowedDomains !== undefined ||
+				flagConfig.rolloutPercentage !== undefined;
+
 			// Check if user is explicitly allowed
 			if (flagConfig.allowedUserIds?.includes(userId)) {
 				result = true;
+			}
+			// Check organization-based access
+			else if (flagConfig.allowedOrganizationIds?.length) {
+				// Get user's organizations (reuse query from checkFlag)
+				const memberships = await ctx.db
+					.query('organizationMembers')
+					.withIndex('by_user', (q) => q.eq('userId', userId))
+					.collect();
+
+				const userOrgIds = memberships.map((m) => m.organizationId);
+				const hasOrgAccess = flagConfig.allowedOrganizationIds.some((orgId) =>
+					userOrgIds.includes(orgId)
+				);
+
+				if (hasOrgAccess) {
+					result = true;
+				}
 			}
 			// Check domain-based access
 			else if (user.email && flagConfig.allowedDomains?.length) {
@@ -178,9 +215,15 @@ export const checkFlags = query({
 				const bucket = getUserRolloutBucket(userId, flag);
 				result = bucket < flagConfig.rolloutPercentage;
 			}
-			// Default to global enabled setting
+			// Only default to global enabled if NO targeting rules are configured
+			// SECURITY: Default to false (secure by default) - require explicit configuration
+			// If targeting rules exist but don't match, return false (secure by default)
+			else if (!hasTargetingRules) {
+				result = false; // Secure default - require explicit targeting configuration
+			}
+			// Targeting rules exist but user doesn't match → false (secure by default)
 			else {
-				result = flagConfig.enabled;
+				result = false;
 			}
 
 			results[flag] = result;
@@ -218,6 +261,153 @@ export const getFlag = query({
 });
 
 /**
+ * DEBUG: Get feature flag evaluation details for a user
+ * This helps debug why flags are enabled/disabled for specific users
+ */
+export const debugFlagEvaluation = query({
+	args: {
+		flag: v.string(),
+		sessionId: v.string()
+	},
+	handler: async (ctx, { flag, sessionId }) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, sessionId);
+		const user = await ctx.db.get(userId);
+		const flagConfig = await ctx.db
+			.query('featureFlags')
+			.withIndex('by_flag', (q) => q.eq('flag', flag))
+			.first();
+
+		if (!flagConfig) {
+			return {
+				flag,
+				userId,
+				userEmail: user?.email ?? null,
+				flagExists: false,
+				result: false,
+				reason: 'Flag does not exist'
+			};
+		}
+
+		if (!flagConfig.enabled) {
+			return {
+				flag,
+				userId,
+				userEmail: user?.email ?? null,
+				flagExists: true,
+				flagConfig: {
+					enabled: flagConfig.enabled,
+					allowedUserIds: flagConfig.allowedUserIds,
+					allowedOrganizationIds: flagConfig.allowedOrganizationIds,
+					allowedDomains: flagConfig.allowedDomains,
+					rolloutPercentage: flagConfig.rolloutPercentage
+				},
+				result: false,
+				reason: 'Flag is globally disabled'
+			};
+		}
+
+		if (!user) {
+			return {
+				flag,
+				userId,
+				userEmail: null,
+				flagExists: true,
+				flagConfig: {
+					enabled: flagConfig.enabled,
+					allowedUserIds: flagConfig.allowedUserIds,
+					allowedOrganizationIds: flagConfig.allowedOrganizationIds,
+					allowedDomains: flagConfig.allowedDomains,
+					rolloutPercentage: flagConfig.rolloutPercentage
+				},
+				result: false,
+				reason: 'User not found'
+			};
+		}
+
+		const hasTargetingRules =
+			flagConfig.allowedUserIds !== undefined ||
+			flagConfig.allowedOrganizationIds !== undefined ||
+			flagConfig.allowedDomains !== undefined ||
+			flagConfig.rolloutPercentage !== undefined;
+
+		let result = false;
+		let reason = '';
+
+		// Check if user is explicitly allowed
+		if (flagConfig.allowedUserIds?.includes(userId)) {
+			result = true;
+			reason = `User is in allowedUserIds`;
+		}
+		// Check organization-based access
+		else if (flagConfig.allowedOrganizationIds?.length) {
+			const memberships = await ctx.db
+				.query('organizationMembers')
+				.withIndex('by_user', (q) => q.eq('userId', userId))
+				.collect();
+
+			const userOrgIds = memberships.map((m) => m.organizationId);
+			const hasOrgAccess = flagConfig.allowedOrganizationIds.some((orgId) =>
+				userOrgIds.includes(orgId)
+			);
+
+			if (hasOrgAccess) {
+				result = true;
+				reason = `User is member of allowed organization`;
+			} else {
+				reason = `User is not member of any allowed organizations`;
+			}
+		}
+		// Check domain-based access
+		else if (user.email && flagConfig.allowedDomains?.length) {
+			const emailDomain = user.email.split('@')[1];
+			const isAllowed = flagConfig.allowedDomains.some(
+				(domain) => domain.replace('@', '').toLowerCase() === emailDomain.toLowerCase()
+			);
+			if (isAllowed) {
+				result = true;
+				reason = `User email domain matches allowedDomains`;
+			} else {
+				reason = `User email domain ${emailDomain} does not match allowedDomains`;
+			}
+		}
+		// Check percentage-based rollout
+		else if (flagConfig.rolloutPercentage !== undefined) {
+			const bucket = getUserRolloutBucket(userId, flag);
+			result = bucket < flagConfig.rolloutPercentage;
+			reason = `Rollout check: bucket ${bucket} < ${flagConfig.rolloutPercentage}% = ${result}`;
+		}
+		// Only default to global enabled if NO targeting rules are configured
+		// SECURITY: Default to false (secure by default) - require explicit configuration
+		else if (!hasTargetingRules) {
+			result = false; // Secure default - require explicit targeting configuration
+			reason = `No targeting rules configured, defaulting to false (secure by default)`;
+		}
+		// Targeting rules exist but user doesn't match → false (secure by default)
+		else {
+			result = false;
+			reason = `Targeting rules exist but user does not match`;
+		}
+
+		return {
+			flag,
+			userId,
+			userEmail: user.email,
+			flagExists: true,
+			flagConfig: {
+				enabled: flagConfig.enabled,
+				allowedUserIds: flagConfig.allowedUserIds,
+				allowedOrganizationIds: flagConfig.allowedOrganizationIds,
+				allowedDomains: flagConfig.allowedDomains,
+				rolloutPercentage: flagConfig.rolloutPercentage
+			},
+			hasTargetingRules,
+			result,
+			reason
+		};
+	}
+});
+
+/**
  * Create or update a feature flag
  */
 export const upsertFlag = mutation({
@@ -226,6 +416,7 @@ export const upsertFlag = mutation({
 		enabled: v.boolean(),
 		rolloutPercentage: v.optional(v.number()),
 		allowedUserIds: v.optional(v.array(v.id('users'))),
+		allowedOrganizationIds: v.optional(v.array(v.id('organizations'))),
 		allowedDomains: v.optional(v.array(v.string()))
 	},
 	handler: async (ctx, args) => {
@@ -246,6 +437,7 @@ export const upsertFlag = mutation({
 				enabled: args.enabled,
 				rolloutPercentage: args.rolloutPercentage,
 				allowedUserIds: args.allowedUserIds,
+				allowedOrganizationIds: args.allowedOrganizationIds,
 				allowedDomains: args.allowedDomains,
 				updatedAt: now
 			});
@@ -257,6 +449,7 @@ export const upsertFlag = mutation({
 				enabled: args.enabled,
 				rolloutPercentage: args.rolloutPercentage,
 				allowedUserIds: args.allowedUserIds,
+				allowedOrganizationIds: args.allowedOrganizationIds,
 				allowedDomains: args.allowedDomains,
 				createdAt: now,
 				updatedAt: now

@@ -1,0 +1,109 @@
+<script lang="ts">
+	/**
+	 * Dashboard Page - User's action items and upcoming meetings
+	 * Feature flag: meetings-module (SYOS-225)
+	 */
+
+	import { page } from '$app/stores';
+	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
+	import { useQuery } from 'convex-svelte';
+	import { api } from '$lib/convex';
+	import ActionItemsList from '$lib/components/dashboard/ActionItemsList.svelte';
+	import { FeatureFlags } from '$lib/featureFlags';
+	import { resolveRoute } from '$lib/utils/navigation';
+
+	// Get session from page data
+	const sessionId = $derived($page.data.sessionId);
+
+	// Check feature flag
+	const flagQuery =
+		browser && sessionId
+			? useQuery(api.featureFlags.checkFlag, () => {
+					const session = sessionId;
+					if (!session) throw new Error('sessionId required');
+					return {
+						flag: FeatureFlags.MEETINGS_MODULE,
+						sessionId: session
+					};
+				})
+			: null;
+
+	const featureEnabled = $derived(flagQuery?.data ?? false);
+
+	// Redirect if feature not enabled
+	$effect(() => {
+		if (browser && !flagQuery?.isLoading && !featureEnabled) {
+			goto(resolveRoute('/'));
+		}
+	});
+</script>
+
+<svelte:head>
+	<title>Dashboard - SynergyOS</title>
+</svelte:head>
+
+{#if !featureEnabled && !flagQuery?.isLoading}
+	<!-- Feature not enabled - will redirect -->
+	<div class="bg-surface-base flex min-h-screen items-center justify-center">
+		<div class="text-text-secondary">Redirecting...</div>
+	</div>
+{:else if flagQuery?.isLoading}
+	<!-- Loading -->
+	<div class="bg-surface-base flex min-h-screen items-center justify-center">
+		<div class="text-text-secondary">Loading...</div>
+	</div>
+{:else}
+	<!-- Dashboard Page -->
+	<div class="bg-surface-base h-full overflow-y-auto">
+		<!-- Header -->
+		<div class="border-border-subtle bg-surface-base border-b">
+			<div class="mx-auto max-w-6xl px-content-padding py-content-padding">
+				<div class="flex items-center gap-icon-gap">
+					<!-- Icon -->
+					<div class="flex h-12 w-12 items-center justify-center rounded-full bg-accent-primary">
+						<svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+							/>
+						</svg>
+					</div>
+					<div class="flex-1">
+						<h1 class="text-2xl font-semibold text-text-primary">Dashboard</h1>
+						<p class="mt-1 text-sm text-text-secondary">
+							Track your action items and stay on top of what needs to get done.
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Content -->
+		<div class="mx-auto max-w-6xl px-content-padding py-content-padding">
+			<!-- My Action Items Section -->
+			<section class="mb-8">
+				<h2 class="mb-4 text-lg font-semibold text-text-primary">My Action Items</h2>
+				<ActionItemsList {sessionId} />
+			</section>
+
+			<!-- Future: Decisions to Review -->
+			<!-- <section class="mb-8">
+				<h2 class="mb-4 text-lg font-semibold text-text-primary">Decisions to Review</h2>
+				<div class="bg-surface-secondary rounded-lg border border-dashed border-border-base py-8 text-center text-text-tertiary">
+					Coming soon
+				</div>
+			</section> -->
+
+			<!-- Future: Upcoming Meetings -->
+			<!-- <section>
+				<h2 class="mb-4 text-lg font-semibold text-text-primary">Upcoming Meetings</h2>
+				<div class="bg-surface-secondary rounded-lg border border-dashed border-border-base py-8 text-center text-text-tertiary">
+					Coming soon
+				</div>
+			</section> -->
+		</div>
+	</div>
+{/if}

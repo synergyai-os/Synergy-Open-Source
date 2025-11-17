@@ -21,6 +21,12 @@ export interface UsePermissionsParams {
 	userId?: () => Id<'users'> | null;
 	organizationId?: () => Id<'organizations'> | null;
 	teamId?: () => Id<'teams'> | null;
+	initialPermissions?: Array<{
+		permissionSlug: string;
+		scope: string;
+		roleSlug: string;
+		roleName: string;
+	}>; // Server-side preloaded permissions
 }
 
 export interface UsePermissionsReturn {
@@ -79,8 +85,18 @@ export function usePermissions(params: UsePermissionsParams): UsePermissionsRetu
 				})
 			: null;
 
-	// Derive permissions array from query
-	const permissionsData = $derived(permissionsQuery?.data ?? []);
+	// Use server-side initial data immediately, then use query data when available (more up-to-date)
+	const permissionsData = $derived(
+		permissionsQuery?.data !== undefined
+			? (permissionsQuery.data as Array<{
+					permissionSlug?: string;
+					slug?: string;
+					scope?: string;
+					roleSlug?: string;
+					roleName?: string;
+				}>)
+			: (params.initialPermissions ?? [])
+	);
 	const permissionSlugs = $derived(
 		permissionsData.map(
 			(p: { permissionSlug?: string; slug?: string }) => p.permissionSlug ?? p.slug ?? ''

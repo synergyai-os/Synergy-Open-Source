@@ -2958,6 +2958,242 @@ await page.fill('input[name="lastName"]', 'User'); // Don't forget!
 
 ---
 
-**Pattern Count**: 30  
-**Last Updated**: 2025-11-15  
+## #L2800: Inline CRUD Form with Hover Actions [🟢 REFERENCE]
+
+**Symptom**: Need add/edit/delete functionality in a list without separate modals  
+**Root Cause**: Inline forms reduce friction and keep context visible  
+**Fix**:
+
+```svelte
+<script lang="ts">
+	import { useQuery, useConvexClient } from 'convex-svelte';
+	import { api } from '$lib/convex';
+	
+	const convexClient = browser ? useConvexClient() : null;
+	const items = useQuery(api.items.list, () => ({ filter: 'active' }));
+	
+	// Single $state object for all form state
+	const state = $state({
+		isAdding: false,
+		editingId: null as Id<'items'> | null,
+		newTitle: '',
+		editTitle: '',
+		hoveredId: null as Id<'items'> | null
+	});
+	
+	async function handleCreate() {
+		await convexClient.mutation(api.items.create, {
+			title: state.newTitle.trim()
+		});
+		state.isAdding = false;
+		state.newTitle = '';
+	}
+	
+	async function handleUpdate(itemId: Id<'items'>) {
+		await convexClient.mutation(api.items.update, {
+			itemId,
+			title: state.editTitle.trim()
+		});
+		state.editingId = null;
+	}
+</script>
+
+{#if state.isAdding}
+	<div class="rounded-md border-2 border-accent-primary bg-elevated p-4">
+		<input bind:value={state.newTitle} placeholder="Title..." />
+		<button onclick={handleCreate}>Create</button>
+		<button onclick={() => { state.isAdding = false; }}>Cancel</button>
+	</div>
+{:else}
+	<button onclick={() => { state.isAdding = true; }}>Add Item</button>
+{/if}
+
+{#each items ?? [] as item (item._id)}
+	<div
+		role="region"
+		aria-label="Item card"
+		onmouseenter={() => { state.hoveredId = item._id; }}
+		onmouseleave={() => { state.hoveredId = null; }}
+	>
+		{#if state.editingId === item._id}
+			<!-- Edit mode -->
+			<input bind:value={state.editTitle} />
+			<button onclick={() => handleUpdate(item._id)}>Save</button>
+		{:else}
+			<!-- View mode -->
+			<h5>{item.title}</h5>
+			
+			{#if state.hoveredId === item._id}
+				<button onclick={() => { state.editingId = item._id; state.editTitle = item.title; }}>
+					Edit
+				</button>
+				<button onclick={() => convexClient.mutation(api.items.remove, { itemId: item._id })}>
+					Delete
+				</button>
+			{/if}
+		{/if}
+	</div>
+{/each}
+```
+
+**Pattern Benefits**:
+- ✅ No modals - keep context visible
+- ✅ Immediate visual feedback (border highlight on add form)
+- ✅ Hover-based actions reduce visual clutter
+- ✅ Single `$state` object pattern (Svelte 5 best practice)
+- ✅ Inline edit preserves list position
+- ✅ ARIA roles for accessibility
+
+**Polymorphic Assignment Extension** (for items with multiple assignee types):
+
+```svelte
+<script lang="ts">
+	const state = $state({
+		isAdding: false,
+		assigneeType: 'user' as 'user' | 'role',
+		assigneeUserId: null as Id<'users'> | null,
+		assigneeRoleId: null as Id<'circleRoles'> | null
+	});
+
+	// Query options for both types
+	const usersQuery = useQuery(api.organizations.getMembers, () => ({
+		sessionId,
+		organizationId
+	}));
+
+	const rolesQuery = circleId
+		? useQuery(api.circleRoles.listByCircle, () => ({
+				sessionId,
+				circleId
+			}))
+		: null;
+
+	const users = $derived(usersQuery?.data ?? []);
+	const roles = $derived(rolesQuery?.data ?? []);
+</script>
+
+<!-- Assignee Type Toggle (only if roles available) -->
+{#if roles.length > 0}
+	<button onclick={() => (state.assigneeType = state.assigneeType === 'user' ? 'role' : 'user')}>
+		{state.assigneeType === 'user' ? '👤 User' : '🎭 Role'}
+	</button>
+{/if}
+
+<!-- Conditional Dropdown -->
+{#if state.assigneeType === 'user'}
+	<select bind:value={state.assigneeUserId}>
+		<option value={null}>Select user...</option>
+		{#each users as user (user.userId)}
+			<option value={user.userId}>{user.name}</option>
+		{/each}
+	</select>
+{:else}
+	<select bind:value={state.assigneeRoleId}>
+		<option value={null}>Select role...</option>
+		{#each roles as role (role.roleId)}
+			<option value={role.roleId}>{role.name}</option>
+		{/each}
+	</select>
+{/if}
+```
+
+**Use polymorphic assignment when**:
+- Assigning tasks to users OR organizational roles (action items, responsibilities)
+- Supporting future flexibility (circles, teams, etc.)
+- Schema has `assigneeType` + multiple optional ID fields
+
+**Apply when**: Building CRUD interfaces where users need to see context (meetings, notes, decisions, comments, action items)  
+**Related**: #L170 (Edit/view modes), #L220 (Card removal patterns), #L830 (Linear-style compact design), convex-integration.md#L1650 (useConvexClient)
+
+---
+
+## #L3120: Multi-Select Combobox with "Add More" Button [🟡 IMPORTANT]
+
+**Symptom**: Users can't add more items after initial selection - combobox trigger disappears when items are selected  
+**Root Cause**: Combobox trigger button only shown when selection is empty, no way to reopen dropdown  
+**Fix**:
+
+```svelte
+<!-- ✅ CORRECT: Show "Add" button next to selected chips -->
+{#if selectedItems.length > 0}
+	<div class="flex flex-wrap items-center gap-2">
+		{#each selectedItems as item (item.id)}
+			<!-- Selected chip with remove button -->
+			<div class="inline-flex items-center gap-2 rounded-md border border-border-base bg-surface-base px-2 py-1 text-sm">
+				<span>{item.name}</span>
+				<button
+					type="button"
+					onclick={() => removeItem(item)}
+					class="ml-1 rounded p-0.5 text-text-tertiary hover:text-text-primary"
+					aria-label={`Remove ${item.name}`}
+				>
+					<svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					</svg>
+				</button>
+			</div>
+		{/each}
+		<!-- Add more button - always visible when items selected -->
+		<button
+			type="button"
+			onclick={(e) => {
+				e.preventDefault();
+				e.stopPropagation();
+				comboboxOpen = true;
+			}}
+			class="inline-flex items-center gap-1.5 rounded-md border border-border-base bg-surface-base px-2 py-1 text-sm text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary"
+			aria-label="Add more items"
+		>
+			<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+			</svg>
+			<span>Add</span>
+		</button>
+	</div>
+{/if}
+
+<!-- Combobox with anchor for positioning -->
+<Combobox.Root bind:open={comboboxOpen}>
+	{#if selectedItems.length === 0}
+		<!-- Empty state: full trigger button -->
+		<div class="relative" bind:this={inputRef}>
+			<button
+				type="button"
+				onclick={() => (comboboxOpen = true)}
+				class="flex w-full items-center gap-icon rounded-md border border-border-base bg-surface-base px-3 py-2 text-left text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary"
+			>
+				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+				</svg>
+				<span>Add items</span>
+			</button>
+		</div>
+	{:else}
+		<!-- Anchor element when items exist (for dropdown positioning) -->
+		<div class="relative" bind:this={inputRef} aria-hidden="true"></div>
+	{/if}
+
+	<Combobox.Portal>
+		<Combobox.Content customAnchor={inputRef} side="bottom" align="start">
+			<!-- Search input and options -->
+		</Combobox.Content>
+	</Combobox.Portal>
+</Combobox.Root>
+```
+
+**Key Points**:
+
+1. **Selected chips** - Show inline with remove buttons
+2. **"Add" button** - Always visible next to chips when items selected
+3. **Anchor element** - Empty div for dropdown positioning when items exist
+4. **Conditional trigger** - Full button when empty, anchor when items selected
+
+**Why**: Users need to add/remove items after initial selection. "Add" button provides clear affordance.  
+**Apply when**: Building multi-select components (attendees, tags, assignees)  
+**Related**: #L10 (Interactive dropdowns), #L430 (Keyboard priority), TagSelector component pattern
+
+---
+
+**Pattern Count**: 32  
+**Last Updated**: 2025-11-16  
 **Design Token Reference**: `dev-docs/design-tokens.md`

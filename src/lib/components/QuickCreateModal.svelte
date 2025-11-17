@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { useConvexClient, useQuery } from 'convex-svelte';
-	import { api, type Id } from '$lib/convex';
+	import { api } from '$lib/convex';
+	import type { Id } from '$lib/convex';
 	import { Dialog, Command } from 'bits-ui';
 	import TagSelector from '$lib/components/inbox/TagSelector.svelte';
 	import NoteEditorWithDetection from '$lib/components/notes/NoteEditorWithDetection.svelte';
@@ -30,6 +31,7 @@
 		sessionId?: string; // Required for session validation
 		organizationId?: string | null; // Active organization ID (for workspace context)
 		teamId?: string | null; // Active team ID (for workspace context)
+		initialTags?: unknown[]; // Server-side preloaded tags for instant rendering
 	};
 
 	let {
@@ -39,12 +41,13 @@
 		initialType = null,
 		sessionId,
 		organizationId = null,
-		teamId = null
+		teamId = null,
+		initialTags = []
 	}: Props = $props();
 
 	const convexClient = browser ? useConvexClient() : null;
 
-	// Query all available tags
+	// Query all available tags - use server-side initial data immediately, then use query data when available
 	const allTagsQuery =
 		browser && sessionId
 			? useQuery(api.tags.listAllTags, () => {
@@ -52,7 +55,20 @@
 					return { sessionId };
 				})
 			: null;
-	const availableTags = $derived(allTagsQuery?.data ?? []);
+
+	// Type matches TagWithHierarchy from convex/tags.ts and Tag type from TagSelector
+	type Tag = {
+		_id: Id<'tags'>;
+		displayName: string;
+		color: string;
+		parentId?: Id<'tags'>;
+		level?: number;
+		children?: Tag[];
+	};
+
+	const availableTags = $derived(
+		allTagsQuery?.data !== undefined ? (allTagsQuery.data as Tag[]) : ((initialTags ?? []) as Tag[])
+	);
 
 	// Component state
 	let selectedType = $state<ContentType | null>(null);

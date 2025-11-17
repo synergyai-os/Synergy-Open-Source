@@ -168,9 +168,70 @@ await upsertFlag({
 	enabled: true,
 	allowedDomains: ['@yourcompany.com'] // Anyone with this email domain
 });
+
+// Enable for specific organizations (multi-tenancy)
+await upsertFlag({
+	flag: 'meetings-module',
+	enabled: true,
+	allowedOrganizationIds: ['org-id-1', 'org-id-2'] // All members of these orgs
+});
 ```
 
-### Pattern 4: Backend Feature Gating
+### Pattern 4: Organization-Based Access (Multi-Tenancy)
+
+**Use when**: Enabling features for specific organizations/tenants
+
+**Backend**:
+
+```typescript
+// Enable for specific organizations
+await upsertFlag({
+	flag: 'meetings-module',
+	enabled: true,
+	allowedOrganizationIds: [
+		'mx7ecpdw61qbsfj3488xaxtd7x7veq2w' as Id<'organizations'>
+	]
+});
+```
+
+**Frontend** (automatic):
+
+```svelte
+<script lang="ts">
+	import { useQuery } from 'convex-svelte';
+	import { api } from '$lib/convex';
+
+	// Flag automatically checks user's organization membership
+	const canAccessMeetings = useQuery(api.featureFlags.checkFlag, () => ({
+		flag: 'meetings-module',
+		sessionId: getSessionId()
+	}));
+</script>
+
+{#if $canAccessMeetings}
+	<MeetingsModule />
+{:else}
+	<ComingSoonMessage />
+{/if}
+```
+
+**Script Example**:
+
+```bash
+# Create script to enable flag
+npx tsx scripts/enable-meetings-module-flag.ts
+
+# Verify flag configuration
+npx convex run featureFlags:getFlag '{"flag":"meetings-module"}'
+```
+
+**Key Benefits**:
+- ✅ Automatic organization membership check
+- ✅ No need to manually add user IDs as org grows
+- ✅ Perfect for multi-tenant B2B SaaS
+- ✅ Clean separation of tenants
+
+### Pattern 5: Backend Feature Gating
 
 **Use when**: Feature needs server-side gating
 
@@ -666,6 +727,90 @@ const flag2Query = useQuery(api.featureFlags.checkFlag, () => ({ flag: FeatureFl
 
 **Performance**: 3-5x faster (1 network call vs 3, 1x session validation vs 3x)  
 **See**: [convex-integration.md#L1360](../patterns/convex-integration.md#L1360) for complete pattern
+
+---
+
+## #L750: Sidebar Navigation with Feature Flags [🟢 REFERENCE]
+
+**Symptom**: New feature pages exist but not discoverable - users can't navigate to them  
+**Root Cause**: Sidebar navigation not updated to include feature-flagged routes  
+**Fix**: Pass feature flag state to Sidebar component, conditionally render navigation links
+
+**Apply when**: Adding new feature routes that should appear in sidebar navigation when enabled
+
+### Pattern
+
+**1. Load feature flag in layout** (server-side for instant rendering):
+
+```typescript
+// src/routes/(authenticated)/+layout.svelte
+const meetingsEnabled = $derived(data.meetingsEnabled ?? false);
+const dashboardEnabled = $derived(data.meetingsEnabled ?? false); // Reuse same flag
+```
+
+**2. Pass to Sidebar component**:
+
+```svelte
+<Sidebar
+	{circlesEnabled}
+	{meetingsEnabled}
+	{dashboardEnabled}
+/>
+```
+
+**3. Add prop to Sidebar**:
+
+```typescript
+// src/lib/components/Sidebar.svelte
+type Props = {
+	// ... other props
+	dashboardEnabled?: boolean;
+};
+
+let { dashboardEnabled = false }: Props = $props();
+```
+
+**4. Conditional navigation link**:
+
+```svelte
+<!-- Dashboard (Beta - Feature Flag) -->
+{#if dashboardEnabled}
+	<a
+		href={resolveRoute('/dashboard')}
+		class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+		title="Dashboard"
+	>
+		<svg class="h-4 w-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+		</svg>
+		<span class="font-normal">Dashboard</span>
+	</a>
+{/if}
+```
+
+### Benefits
+
+- **Progressive Disclosure**: Users only see features they have access to
+- **Instant Rendering**: Server-side flag loading = no UI flicker
+- **Clean UX**: Navigation appears/disappears based on access
+- **Consistent Pattern**: Same approach for all feature-flagged routes
+
+### Common Mistakes
+
+❌ **Loading flag client-side** → UI flicker on page load  
+✅ Load in layout.server.ts, pass as prop
+
+❌ **Separate flag per nav item** → Flag sprawl  
+✅ Reuse module-level flags (e.g., `meetings-module` for Dashboard + Meetings)
+
+❌ **Forgetting to update sidebar** → Features exist but hidden  
+✅ Add navigation when creating feature routes
+
+### Related
+
+- **#L180**: Organization-based feature flags (multi-tenancy)
+- **[ui-patterns.md#L1870](ui-patterns.md#L1870)**: resolveRoute() for navigation
+- **Pattern 4**: Organization-based access (allowedOrganizationIds)
 
 ---
 

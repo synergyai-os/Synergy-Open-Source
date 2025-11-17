@@ -26,15 +26,15 @@
 		aria-checked={checked}
 		aria-label={label || 'Toggle'}
 		{disabled}
-		class="relative inline-flex h-5 w-9 items-center rounded-full transition-colors {checked
+		class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors {checked
 			? 'bg-accent-primary'
-			: 'bg-base'} {disabled ? 'cursor-not-allowed opacity-50' : ''}"
+			: 'bg-toggle-off'} {disabled ? 'cursor-not-allowed opacity-50' : ''}"
 		onclick={() => !disabled && onChange?.(!checked)}
 	>
 		<span
 			class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform {checked
-				? 'translate-x-5'
-				: 'translate-x-0.5'}"
+				? 'translate-x-6'
+				: 'translate-x-1'}"
 		></span>
 	</button>
 </label>

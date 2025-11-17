@@ -39,6 +39,13 @@ export const FeatureFlags = {
 	 */
 	MEETING_INTEGRATIONS_BETA: 'meeting_integrations_beta',
 
+	/**
+	 * Meetings Module (SYOS-226)
+	 * Status: Enabled for specific organizations
+	 * Controls: Full meetings module access (meetings routes + dashboard)
+	 */
+	MEETINGS_MODULE: 'meetings-module',
+
 	// === Examples (Not Yet Implemented) ===
 	/**
 	 * Example: New ProseMirror-based notes editor
@@ -90,6 +97,8 @@ export interface FeatureFlagRule {
 	rolloutPercentage?: number;
 	/** Specific user IDs that should see this */
 	allowedUserIds?: string[];
+	/** Specific organization IDs that should see this (all members) */
+	allowedOrganizationIds?: string[];
 	/** Email domains that should see this (e.g., "@yourcompany.com") */
 	allowedDomains?: string[];
 	/** Created timestamp */
