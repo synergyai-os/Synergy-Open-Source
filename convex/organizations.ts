@@ -509,11 +509,22 @@ export const removeOrganizationMember = mutation({
 			throw new Error('Not authenticated');
 		}
 
-		// RBAC Permission Check: Only users with "users.remove" permission can remove members
-		// Only Admins can remove users from organizations
-		await requirePermission(ctx, userId, 'users.remove', {
-			organizationId: args.organizationId
-		});
+		// Check if user is an organization owner (owners can always remove members)
+		const userMembership = await ctx.db
+			.query('organizationMembers')
+			.withIndex('by_organization_user', (q) =>
+				q.eq('organizationId', args.organizationId).eq('userId', userId)
+			)
+			.first();
+
+		const isOwner = userMembership?.role === 'owner';
+
+		// RBAC Permission Check: Only owners or users with "users.remove" permission can remove members
+		if (!isOwner) {
+			await requirePermission(ctx, userId, 'users.remove', {
+				organizationId: args.organizationId
+			});
+		}
 
 		if (args.targetUserId === userId) {
 			throw new Error('Cannot remove yourself from organization');

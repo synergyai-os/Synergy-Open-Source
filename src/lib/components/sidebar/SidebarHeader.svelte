@@ -109,7 +109,7 @@
 				{linkedAccounts}
 				{sidebarCollapsed}
 				variant="sidebar"
-				{isLoading}
+				isLoading={isLoading()}
 				onSelectOrganization={(organizationId) =>
 					organizations?.setActiveOrganization(organizationId)}
 				onCreateOrganization={() => organizations?.openModal('createOrganization')}

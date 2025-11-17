@@ -92,7 +92,7 @@
 						if (Array.isArray(orgs)) {
 							linkedAccountOrgsMap[account.userId] = orgs;
 						}
-					} catch (e) {
+					} catch (_e) {
 						// Invalid cache, clear it
 						localStorage.removeItem(cacheKey);
 					}
