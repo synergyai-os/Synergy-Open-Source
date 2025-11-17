@@ -130,7 +130,8 @@
 | Logout in one tab doesn't invalidate other tabs                               | Test multi-tab session invalidation with context.newPage()            | [ci-cd.md#L240](ci-cd.md#L240)                             |
 | CSRF validation tests return 200 instead of 400/403, security not detected   | Use isolated request context (playwright.request.newContext)          | [ci-cd.md#L245](ci-cd.md#L245)                             |
 | Tests fail with 401/500 "Session not found" from prev tests                   | Skip gracefully if session invalid (test.skip())                      | [ci-cd.md#L260](ci-cd.md#L260)                             |
-| E2E tests hit rate limits with "Too many requests" errors from external APIs  | Mock external APIs (email, payment, SMS) with E2E_TEST_MODE flag      | [ci-cd.md#L320](ci-cd.md#L320)                             |
+| E2E tests hit rate limits with "Too many requests" errors from external APIs  | Pass skipEmail parameter from SvelteKit server (don't set E2E_TEST_MODE in Convex env) | [ci-cd.md#L1320](ci-cd.md#L1320)                             |
+| Verification emails not sent in production, E2E_TEST_MODE set in Convex env  | Pass skipEmail parameter from SvelteKit server instead of Convex env var | [ci-cd.md#L1320](ci-cd.md#L1320)                             |
 
 ## 🟢 REFERENCE Patterns (Best Practices)
 

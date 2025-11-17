@@ -67,12 +67,13 @@ test.describe('Registration with Email Verification', () => {
 		const hiddenInput = page.locator('[data-pin-input-input]');
 		await hiddenInput.fill(codeData.code);
 
-		// Step 7: Verification should succeed and redirect to inbox
-		await expect(page).toHaveURL(/\/inbox/, { timeout: 10000 });
-		console.log('✅ Registration and verification complete');
+		// Step 7: Verification should succeed and redirect to onboarding (new users without orgs)
+		// New users are redirected to /onboarding to create their first organization
+		await expect(page).toHaveURL(/\/onboarding/, { timeout: 10000 });
+		console.log('✅ Registration and verification complete - redirected to onboarding');
 
-		// Step 8: Verify we're authenticated
-		await expect(page.locator('body')).toBeVisible();
+		// Step 8: Verify we're authenticated and on onboarding page
+		await expect(page.locator('text=Create Your Organization')).toBeVisible();
 	});
 
 	test('should reject expired verification code', async () => {
