@@ -3,6 +3,7 @@ import { ConvexHttpClient } from 'convex/browser';
 import { api } from '$lib/convex';
 import { PUBLIC_CONVEX_URL } from '$env/static/public';
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
+import { env } from '$env/dynamic/private';
 
 /**
  * Resend verification code endpoint
@@ -29,6 +30,10 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.register, async ({
 
 		console.log('🔍 Resending verification code for:', email);
 
+		// Check if E2E test mode is enabled (from Vite server environment)
+		// This allows E2E tests to skip email sending without setting E2E_TEST_MODE in Convex env
+		const skipEmail = process.env.E2E_TEST_MODE === 'true' || env.E2E_TEST_MODE === 'true';
+
 		// Create new verification code and send email
 		const convex = new ConvexHttpClient(PUBLIC_CONVEX_URL);
 		await convex.action(api.verification.createAndSendVerificationCode, {
@@ -36,7 +41,8 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.register, async ({
 			type,
 			firstName: firstName || undefined,
 			ipAddress: event.getClientAddress(),
-			userAgent: event.request.headers.get('user-agent') ?? undefined
+			userAgent: event.request.headers.get('user-agent') ?? undefined,
+			skipEmail: skipEmail || undefined // Only pass if true, undefined otherwise
 		});
 
 		console.log('✅ Verification code resent');

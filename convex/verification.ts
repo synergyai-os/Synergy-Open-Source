@@ -186,7 +186,8 @@ export const createAndSendVerificationCode = action({
 		type: v.union(v.literal('registration'), v.literal('login'), v.literal('email_change')),
 		firstName: v.optional(v.string()),
 		ipAddress: v.optional(v.string()),
-		userAgent: v.optional(v.string())
+		userAgent: v.optional(v.string()),
+		skipEmail: v.optional(v.boolean()) // Passed from SvelteKit server when E2E_TEST_MODE=true
 	},
 	handler: async (ctx, args) => {
 		// 1. Create verification code
@@ -199,9 +200,10 @@ export const createAndSendVerificationCode = action({
 
 		// 2. Send verification email (skip in E2E test mode for performance)
 		// E2E tests use the test helper endpoint to retrieve codes
-		const isTestMode = process.env.E2E_TEST_MODE === 'true';
+		// Check both skipEmail parameter (from SvelteKit server) and process.env (for backwards compatibility)
+		const shouldSkipEmail = args.skipEmail === true || process.env.E2E_TEST_MODE === 'true';
 
-		if (!isTestMode) {
+		if (!shouldSkipEmail) {
 			await ctx.runAction(internal.email.sendVerificationEmail, {
 				email: args.email,
 				code,

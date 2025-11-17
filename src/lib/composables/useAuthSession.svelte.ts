@@ -207,22 +207,9 @@ export function useAuthSession(): UseAuthSessionReturn {
 							console.warn('⚠️ [useAuthSession] No sessions in response data');
 						}
 
-						// CRITICAL: Clean up localStorage to only keep current user + actually linked accounts
-						// This prevents showing stale accounts from previous login sessions
-						const allSessions = await getAllSessions();
-						const currentUserId = data.user?.userId;
-						const linkedUserIds = linkedSessionsData.sessions?.map((s) => s.userId) ?? [];
-
-						// Remove sessions and cached organizations for accounts that are no longer linked
-						for (const userId of Object.keys(allSessions)) {
-							if (userId !== currentUserId && !linkedUserIds.includes(userId)) {
-								await removeSession(userId);
-								// Also remove cached organizations
-								const LINKED_ACCOUNT_ORGS_KEY_PREFIX = 'linkedAccountOrgs_';
-								const cacheKey = `${LINKED_ACCOUNT_ORGS_KEY_PREFIX}${userId}`;
-								localStorage.removeItem(cacheKey);
-							}
-						}
+						// NOTE: We intentionally DON'T clean up localStorage here
+						// Users can manually logout accounts they don't want via the three-dot menu
+						// Automatic cleanup was too aggressive - it removed all accounts when creating a new user
 					} else {
 						const errorText = await linkedSessionsResponse.text();
 						console.error('❌ [useAuthSession] Linked sessions response not OK:', {

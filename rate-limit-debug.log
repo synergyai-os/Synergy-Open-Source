@@ -7865,3 +7865,192 @@
   "remaining": 0,
   "resetAt": 1763366590992
 }
+[2025-11-17T12:19:16.398Z] 🔒 withRateLimit CALLED for endpoint: token
+[2025-11-17T12:19:16.399Z] Request URL: /auth/token
+[2025-11-17T12:19:16.399Z] === RATE LIMIT: getClientIdentifier START ===
+[2025-11-17T12:19:16.399Z] E2E_TEST_MODE (process.env): true
+[2025-11-17T12:19:16.399Z] E2E_TEST_MODE (env): true
+[2025-11-17T12:19:16.399Z] E2E_TEST_MODE (final): true
+[2025-11-17T12:19:16.399Z] X-Test-ID header: null
+[2025-11-17T12:19:16.399Z] Will use test ID?: false
+[2025-11-17T12:19:16.399Z] ⚠️ Using fallback: unknown
+[2025-11-17T12:19:16.400Z] === RATE LIMIT: getClientIdentifier END ===
+[2025-11-17T12:19:16.400Z] Got identifier from getClientIdentifier: unknown
+[2025-11-17T12:19:16.400Z] === RATE LIMIT: checkRateLimit START ===
+[2025-11-17T12:19:16.400Z] Config: {
+  "keyPrefix": "token",
+  "maxRequests": 60,
+  "windowMs": 60000
+}
+[2025-11-17T12:19:16.400Z] Identifier: unknown
+[2025-11-17T12:19:16.400Z] Key: token:unknown
+[2025-11-17T12:19:16.400Z] 📝 Creating new entry for key: token:unknown
+[2025-11-17T12:19:16.400Z] Current count after filter: 0
+[2025-11-17T12:19:16.400Z] Max requests allowed: 60
+[2025-11-17T12:19:16.400Z] ✅ Request allowed, recorded timestamp
+[2025-11-17T12:19:16.400Z] New count: 1
+[2025-11-17T12:19:16.400Z] Remaining: 59
+[2025-11-17T12:19:16.400Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-11-17T12:19:16.400Z] checkRateLimit result: {
+  "allowed": true,
+  "remaining": 59,
+  "resetAt": 1763382016400
+}
+[2025-11-17T12:19:16.988Z] 🔒 withRateLimit CALLED for endpoint: register
+[2025-11-17T12:19:16.988Z] Request URL: /auth/register
+[2025-11-17T12:19:16.988Z] === RATE LIMIT: getClientIdentifier START ===
+[2025-11-17T12:19:16.988Z] E2E_TEST_MODE (process.env): true
+[2025-11-17T12:19:16.988Z] E2E_TEST_MODE (env): true
+[2025-11-17T12:19:16.988Z] E2E_TEST_MODE (final): true
+[2025-11-17T12:19:16.988Z] X-Test-ID header: null
+[2025-11-17T12:19:16.988Z] Will use test ID?: false
+[2025-11-17T12:19:16.988Z] ⚠️ Using fallback: unknown
+[2025-11-17T12:19:16.989Z] === RATE LIMIT: getClientIdentifier END ===
+[2025-11-17T12:19:16.989Z] Got identifier from getClientIdentifier: unknown
+[2025-11-17T12:19:16.989Z] === RATE LIMIT: checkRateLimit START ===
+[2025-11-17T12:19:16.989Z] Config: {
+  "keyPrefix": "register",
+  "maxRequests": 3,
+  "windowMs": 60000
+}
+[2025-11-17T12:19:16.989Z] Identifier: unknown
+[2025-11-17T12:19:16.989Z] Key: register:unknown
+[2025-11-17T12:19:16.989Z] 📝 Creating new entry for key: register:unknown
+[2025-11-17T12:19:16.989Z] Current count after filter: 0
+[2025-11-17T12:19:16.989Z] Max requests allowed: 3
+[2025-11-17T12:19:16.989Z] ✅ Request allowed, recorded timestamp
+[2025-11-17T12:19:16.989Z] New count: 1
+[2025-11-17T12:19:16.989Z] Remaining: 2
+[2025-11-17T12:19:16.989Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-11-17T12:19:16.989Z] checkRateLimit result: {
+  "allowed": true,
+  "remaining": 2,
+  "resetAt": 1763382016989
+}
+[2025-11-17T12:19:17.143Z] 🔒 withRateLimit CALLED for endpoint: token
+[2025-11-17T12:19:17.143Z] Request URL: /auth/token
+[2025-11-17T12:19:17.143Z] === RATE LIMIT: getClientIdentifier START ===
+[2025-11-17T12:19:17.143Z] E2E_TEST_MODE (process.env): true
+[2025-11-17T12:19:17.143Z] E2E_TEST_MODE (env): true
+[2025-11-17T12:19:17.143Z] E2E_TEST_MODE (final): true
+[2025-11-17T12:19:17.143Z] X-Test-ID header: null
+[2025-11-17T12:19:17.143Z] Will use test ID?: false
+[2025-11-17T12:19:17.143Z] ⚠️ Using fallback: unknown
+[2025-11-17T12:19:17.143Z] === RATE LIMIT: getClientIdentifier END ===
+[2025-11-17T12:19:17.143Z] Got identifier from getClientIdentifier: unknown
+[2025-11-17T12:19:17.144Z] === RATE LIMIT: checkRateLimit START ===
+[2025-11-17T12:19:17.144Z] Config: {
+  "keyPrefix": "token",
+  "maxRequests": 60,
+  "windowMs": 60000
+}
+[2025-11-17T12:19:17.144Z] Identifier: unknown
+[2025-11-17T12:19:17.144Z] Key: token:unknown
+[2025-11-17T12:19:17.144Z] 📖 Found existing entry for key: token:unknown
+[2025-11-17T12:19:17.144Z] Existing timestamps: 1
+[2025-11-17T12:19:17.144Z] Current count after filter: 1
+[2025-11-17T12:19:17.144Z] Max requests allowed: 60
+[2025-11-17T12:19:17.144Z] ✅ Request allowed, recorded timestamp
+[2025-11-17T12:19:17.144Z] New count: 2
+[2025-11-17T12:19:17.144Z] Remaining: 58
+[2025-11-17T12:19:17.144Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-11-17T12:19:17.144Z] checkRateLimit result: {
+  "allowed": true,
+  "remaining": 58,
+  "resetAt": 1763382016400
+}
+[2025-11-17T12:19:17.241Z] 🔒 withRateLimit CALLED for endpoint: login
+[2025-11-17T12:19:17.241Z] Request URL: /auth/forgot-password
+[2025-11-17T12:19:17.241Z] === RATE LIMIT: getClientIdentifier START ===
+[2025-11-17T12:19:17.241Z] E2E_TEST_MODE (process.env): true
+[2025-11-17T12:19:17.241Z] E2E_TEST_MODE (env): true
+[2025-11-17T12:19:17.241Z] E2E_TEST_MODE (final): true
+[2025-11-17T12:19:17.241Z] X-Test-ID header: null
+[2025-11-17T12:19:17.241Z] Will use test ID?: false
+[2025-11-17T12:19:17.242Z] ⚠️ Using fallback: unknown
+[2025-11-17T12:19:17.242Z] === RATE LIMIT: getClientIdentifier END ===
+[2025-11-17T12:19:17.242Z] Got identifier from getClientIdentifier: unknown
+[2025-11-17T12:19:17.242Z] === RATE LIMIT: checkRateLimit START ===
+[2025-11-17T12:19:17.242Z] Config: {
+  "keyPrefix": "login",
+  "maxRequests": 5,
+  "windowMs": 60000
+}
+[2025-11-17T12:19:17.242Z] Identifier: unknown
+[2025-11-17T12:19:17.242Z] Key: login:unknown
+[2025-11-17T12:19:17.242Z] 📝 Creating new entry for key: login:unknown
+[2025-11-17T12:19:17.242Z] Current count after filter: 0
+[2025-11-17T12:19:17.242Z] Max requests allowed: 5
+[2025-11-17T12:19:17.242Z] ✅ Request allowed, recorded timestamp
+[2025-11-17T12:19:17.242Z] New count: 1
+[2025-11-17T12:19:17.242Z] Remaining: 4
+[2025-11-17T12:19:17.242Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-11-17T12:19:17.242Z] checkRateLimit result: {
+  "allowed": true,
+  "remaining": 4,
+  "resetAt": 1763382017242
+}
+[2025-11-17T12:19:17.361Z] 🔒 withRateLimit CALLED for endpoint: login
+[2025-11-17T12:19:17.364Z] Request URL: /auth/reset-password
+[2025-11-17T12:19:17.369Z] === RATE LIMIT: getClientIdentifier START ===
+[2025-11-17T12:19:17.378Z] E2E_TEST_MODE (process.env): true
+[2025-11-17T12:19:17.382Z] E2E_TEST_MODE (env): true
+[2025-11-17T12:19:17.393Z] E2E_TEST_MODE (final): true
+[2025-11-17T12:19:17.394Z] X-Test-ID header: null
+[2025-11-17T12:19:17.407Z] Will use test ID?: false
+[2025-11-17T12:19:17.413Z] ⚠️ Using fallback: unknown
+[2025-11-17T12:19:17.418Z] === RATE LIMIT: getClientIdentifier END ===
+[2025-11-17T12:19:17.421Z] Got identifier from getClientIdentifier: unknown
+[2025-11-17T12:19:17.421Z] === RATE LIMIT: checkRateLimit START ===
+[2025-11-17T12:19:17.421Z] Config: {
+  "keyPrefix": "login",
+  "maxRequests": 5,
+  "windowMs": 60000
+}
+[2025-11-17T12:19:17.422Z] Identifier: unknown
+[2025-11-17T12:19:17.422Z] Key: login:unknown
+[2025-11-17T12:19:17.422Z] 📖 Found existing entry for key: login:unknown
+[2025-11-17T12:19:17.422Z] Existing timestamps: 1
+[2025-11-17T12:19:17.422Z] Current count after filter: 1
+[2025-11-17T12:19:17.422Z] Max requests allowed: 5
+[2025-11-17T12:19:17.423Z] ✅ Request allowed, recorded timestamp
+[2025-11-17T12:19:17.423Z] New count: 2
+[2025-11-17T12:19:17.423Z] Remaining: 3
+[2025-11-17T12:19:17.423Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-11-17T12:19:17.423Z] checkRateLimit result: {
+  "allowed": true,
+  "remaining": 3,
+  "resetAt": 1763382017242
+}
+[2025-11-17T12:19:18.325Z] 🔒 withRateLimit CALLED for endpoint: login
+[2025-11-17T12:19:18.325Z] Request URL: /auth/verify-email
+[2025-11-17T12:19:18.325Z] === RATE LIMIT: getClientIdentifier START ===
+[2025-11-17T12:19:18.325Z] E2E_TEST_MODE (process.env): true
+[2025-11-17T12:19:18.325Z] E2E_TEST_MODE (env): true
+[2025-11-17T12:19:18.325Z] E2E_TEST_MODE (final): true
+[2025-11-17T12:19:18.325Z] X-Test-ID header: null
+[2025-11-17T12:19:18.325Z] Will use test ID?: false
+[2025-11-17T12:19:18.325Z] ⚠️ Using fallback: unknown
+[2025-11-17T12:19:18.325Z] === RATE LIMIT: getClientIdentifier END ===
+[2025-11-17T12:19:18.325Z] Got identifier from getClientIdentifier: unknown
+[2025-11-17T12:19:18.325Z] === RATE LIMIT: checkRateLimit START ===
+[2025-11-17T12:19:18.325Z] Config: {
+  "keyPrefix": "login",
+  "maxRequests": 5,
+  "windowMs": 60000
+}
+[2025-11-17T12:19:18.325Z] Identifier: unknown
+[2025-11-17T12:19:18.325Z] Key: login:unknown
+[2025-11-17T12:19:18.325Z] 📖 Found existing entry for key: login:unknown
+[2025-11-17T12:19:18.325Z] Existing timestamps: 2
+[2025-11-17T12:19:18.325Z] Current count after filter: 2
+[2025-11-17T12:19:18.325Z] Max requests allowed: 5
+[2025-11-17T12:19:18.325Z] ✅ Request allowed, recorded timestamp
+[2025-11-17T12:19:18.325Z] New count: 3
+[2025-11-17T12:19:18.325Z] Remaining: 2
+[2025-11-17T12:19:18.325Z] === RATE LIMIT: checkRateLimit END (ALLOWED) ===
+[2025-11-17T12:19:18.326Z] checkRateLimit result: {
+  "allowed": true,
+  "remaining": 2,
+  "resetAt": 1763382017242
+}
