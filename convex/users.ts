@@ -418,6 +418,60 @@ export const linkAccounts = mutation({
 	}
 });
 
+/**
+ * Unlink two accounts (removes bidirectional link)
+ *
+ * Called when user logs out a linked account - removes the accountLink
+ * record so it won't reappear on page reload.
+ *
+ * SECURITY: Uses sessionId validation to prevent unauthorized unlinking
+ */
+export const unlinkAccounts = mutation({
+	args: {
+		sessionId: v.string(),
+		targetUserId: v.id('users') // The account to unlink
+	},
+	handler: async (ctx, args) => {
+		// Validate session and get current userId
+		const { userId: currentUserId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		if (currentUserId === args.targetUserId) {
+			throw new Error('Cannot unlink your own account');
+		}
+
+		// Ensure target user exists
+		const targetUser = await ctx.db.get(args.targetUserId);
+		if (!targetUser) {
+			throw new Error('Target account no longer exists');
+		}
+
+		// Remove both directions of the link
+		// Direction 1: currentUser → targetUser
+		const link1 = await ctx.db
+			.query('accountLinks')
+			.withIndex('by_primary', (q) => q.eq('primaryUserId', currentUserId))
+			.filter((q) => q.eq(q.field('linkedUserId'), args.targetUserId))
+			.first();
+
+		if (link1) {
+			await ctx.db.delete(link1._id);
+		}
+
+		// Direction 2: targetUser → currentUser
+		const link2 = await ctx.db
+			.query('accountLinks')
+			.withIndex('by_primary', (q) => q.eq('primaryUserId', args.targetUserId))
+			.filter((q) => q.eq(q.field('linkedUserId'), currentUserId))
+			.first();
+
+		if (link2) {
+			await ctx.db.delete(link2._id);
+		}
+
+		return { success: true };
+	}
+});
+
 export const validateAccountLink = query({
 	args: {
 		primaryUserId: v.id('users'),

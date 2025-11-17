@@ -278,13 +278,39 @@ export function useAuthSession(): UseAuthSessionReturn {
 		const currentUserId = state.user?.userId;
 		const isLoggingOutCurrentAccount = targetUserId === currentUserId;
 
-		// For non-current accounts: just remove from localStorage (session isn't active)
+		// For non-current accounts: unlink and remove from localStorage
 		if (!isLoggingOutCurrentAccount) {
 			// Get account info for toast message
 			const allSessions = await getAllSessions();
 			const targetSession = allSessions[targetUserId];
 			const accountName = targetSession?.userName || targetSession?.userEmail || 'Account';
 
+			// Step 1: Unlink the account in Convex (so it won't reappear on reload)
+			const csrfToken = state.csrfToken ?? readCookie('syos_csrf') ?? readCookie('axon_csrf');
+			if (csrfToken) {
+				try {
+					const response = await fetch('/auth/unlink-account', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							'X-CSRF-Token': csrfToken
+						},
+						credentials: 'include',
+						body: JSON.stringify({ targetUserId })
+					});
+
+					if (!response.ok) {
+						const errorData = await response.json().catch(() => ({}));
+						console.error('Failed to unlink account:', errorData);
+						// Continue anyway - will at least remove from localStorage
+					}
+				} catch (error) {
+					console.error('Failed to unlink account:', error);
+					// Continue anyway - will at least remove from localStorage
+				}
+			}
+
+			// Step 2: Remove from localStorage
 			await removeSession(targetUserId);
 			await loadSession(); // Refresh available accounts list
 
