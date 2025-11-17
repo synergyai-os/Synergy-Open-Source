@@ -154,6 +154,10 @@
 		onLogout?.();
 	}
 
+	function handleLogoutAccount(targetUserId: string) {
+		onLogoutAccount?.(targetUserId);
+	}
+
 	// State for nested account menus
 	let accountMenuOpen = $state(false);
 	const linkedAccountMenuOpen = $state<Record<string, boolean>>({});
@@ -418,6 +422,101 @@
 					<p class="truncate text-xs font-semibold tracking-wide text-tertiary uppercase">
 						{account.email ?? account.name ?? 'Linked account'}
 					</p>
+					<!-- Linked Account menu (logout, create workspace) -->
+					<DropdownMenu.Root
+						open={linkedAccountMenuOpen[account.userId] ?? false}
+						onOpenChange={(open) => (linkedAccountMenuOpen[account.userId] = open)}
+					>
+						<DropdownMenu.Trigger
+							type="button"
+							class="flex h-5 w-5 items-center justify-center rounded text-tertiary transition-colors hover:bg-hover-solid hover:text-primary"
+							onclick={(e) => {
+								e.stopPropagation(); // Prevent parent menu from closing
+							}}
+						>
+							<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+								/>
+							</svg>
+						</DropdownMenu.Trigger>
+						<DropdownMenu.Portal>
+							<DropdownMenu.Content
+								class="z-50 min-w-[180px] rounded-md border border-base bg-elevated py-1 shadow-lg"
+								side="right"
+								align="start"
+								sideOffset={4}
+								onInteractOutside={(e) => {
+									e.stopPropagation(); // Prevent parent menu from closing
+								}}
+							>
+								<DropdownMenu.Item
+									class="cursor-pointer px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+									textValue="Create workspace"
+									onSelect={() => {
+										linkedAccountMenuOpen[account.userId] = false;
+										onCreateWorkspaceForAccount?.(account.userId);
+									}}
+								>
+									<div class="flex items-center gap-2">
+										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M12 4v16m8-8H4"
+											/>
+										</svg>
+										<span>Create workspace</span>
+									</div>
+								</DropdownMenu.Item>
+								<DropdownMenu.Item
+									class="cursor-pointer px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+									textValue="Join workspace"
+									onSelect={() => {
+										linkedAccountMenuOpen[account.userId] = false;
+										onJoinWorkspaceForAccount?.(account.userId);
+									}}
+								>
+									<div class="flex items-center gap-2">
+										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+											/>
+										</svg>
+										<span>Join workspace</span>
+									</div>
+								</DropdownMenu.Item>
+								<DropdownMenu.Separator class="my-1 border-t border-base" />
+								<DropdownMenu.Item
+									class="text-destructive cursor-pointer px-menu-item py-1.5 text-sm outline-none hover:bg-hover-solid focus:bg-hover-solid"
+									textValue="Log out"
+									onSelect={() => {
+										linkedAccountMenuOpen[account.userId] = false;
+										handleLogoutAccount(account.userId);
+									}}
+								>
+									<div class="flex items-center gap-2">
+										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+											/>
+										</svg>
+										<span>Log out</span>
+									</div>
+								</DropdownMenu.Item>
+							</DropdownMenu.Content>
+						</DropdownMenu.Portal>
+					</DropdownMenu.Root>
 				</div>
 
 				<!-- Linked Account Organizations -->
