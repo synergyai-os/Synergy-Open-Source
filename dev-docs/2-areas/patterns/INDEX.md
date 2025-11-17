@@ -148,6 +148,7 @@
 | Toast notifications         | svelte-sonner for user feedback                             | [ui-patterns.md#L1660](ui-patterns.md#L1660)             |
 | Rate limit errors           | Red error box + live countdown timer                        | [ui-patterns.md#L2000](ui-patterns.md#L2000)             |
 | Textarea auto-resize        | Remove h-full, use field-sizing                             | [ui-patterns.md#L330](ui-patterns.md#L330)               |
+| Schedule non-blocking emails | Use ctx.scheduler.runAfter(0, ...) for async email sending | [convex-integration.md#L3365](convex-integration.md#L3365) |
 | Command palette drama       | Dark overlay + blur + animation                             | [ui-patterns.md#L480](ui-patterns.md#L480)               |
 | Command input design        | Icon + transparent + shortcuts                              | [ui-patterns.md#L530](ui-patterns.md#L530)               |
 | N vs C keyboard shortcuts   | N=new, C=command center                                     | [ui-patterns.md#L580](ui-patterns.md#L580)               |

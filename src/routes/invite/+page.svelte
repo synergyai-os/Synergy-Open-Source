@@ -40,6 +40,7 @@
 	// State for accepting invite
 	let isAccepting = $state(false);
 	let acceptError = $state<string | null>(null);
+	let hasAutoAccepted = $state(false); // Track if we've already attempted auto-accept
 
 	// Accept invite handler
 	async function handleAcceptInvite() {
@@ -67,6 +68,23 @@
 			isAccepting = false;
 		}
 	}
+
+	// Auto-accept invite when authenticated user lands on page
+	$effect(() => {
+		if (!browser) return;
+		if (hasAutoAccepted) return; // Already attempted
+		if (isAccepting) return; // Already accepting
+		if (!isAuthenticated()) return; // Not authenticated
+		if (!invite) return; // Invite not loaded yet
+		if (isLoading) return; // Still loading
+		if (inviteError) return; // Error loading invite
+		if (!inviteCode) return; // No code
+		if (!convexClient) return; // No client
+
+		// Auto-accept the invite
+		hasAutoAccepted = true;
+		handleAcceptInvite();
+	});
 
 	// Format role for display
 	function formatRole(role: string): string {

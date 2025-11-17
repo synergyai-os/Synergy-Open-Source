@@ -3363,6 +3363,97 @@ export const createOrganizationInvite = mutation({
 
 ---
 
-**Pattern Count**: 38  
+## #L3365: Schedule Non-Blocking Emails After Mutations [🟢 REFERENCE]
+
+**Symptom**: Email sending blocks mutation response, slow user experience  
+**Root Cause**: Synchronous email sending delays mutation completion  
+**Fix**:
+
+```typescript
+// convex/organizations.ts
+export const createOrganizationInvite = mutation({
+	handler: async (ctx, args) => {
+		// ... validation and invite creation ...
+		
+		const inviteId = await ctx.db.insert('organizationInvites', {
+			organizationId: args.organizationId,
+			email: normalizedEmail,
+			code,
+			// ... other fields
+		});
+
+		// Schedule email sending (non-blocking)
+		if (normalizedEmail) {
+			const organization = await ctx.db.get(args.organizationId);
+			const inviter = await ctx.db.get(userId);
+			const inviteLink = `${process.env.PUBLIC_APP_URL || 'http://localhost:5173'}/invite?code=${code}`;
+
+			// Schedule email sending (non-blocking via scheduler)
+			await ctx.scheduler.runAfter(0, internal.email.sendOrganizationInviteEmail, {
+				email: normalizedEmail,
+				inviteLink,
+				organizationName: organization.name,
+				inviterName: inviter.name || inviter.email,
+				role: args.role ?? 'member'
+			});
+		}
+
+		return { inviteId, code };
+	}
+});
+```
+
+**Email Action Pattern**:
+
+```typescript
+// convex/email.ts
+export const sendOrganizationInviteEmail = internalAction({
+	args: {
+		email: v.string(),
+		inviteLink: v.string(),
+		organizationName: v.string(),
+		inviterName: v.string(),
+		role: v.string()
+	},
+	handler: async (ctx, args) => {
+		// E2E test mode - skip actual email sending
+		if (process.env.E2E_TEST_MODE === 'true') {
+			console.log('📧 [E2E Mock] Organization invite email suppressed:', args.email);
+			return { success: true, emailId: `mock-invite-${Date.now()}` };
+		}
+
+		const apiKey = process.env.RESEND_API_KEY;
+		if (!apiKey) throw new Error('RESEND_API_KEY not set');
+
+		const resend = new Resend(apiKey);
+		const result = await resend.emails.send({
+			from: 'SynergyOS <noreply@mail.synergyos.ai>',
+			to: args.email,
+			subject: `You've been invited to join ${args.organizationName}`,
+			html: `<!-- Email template -->`,
+			text: `You've been invited... ${args.inviteLink}`
+		});
+
+		return { success: true, emailId: result.data?.id };
+	}
+});
+```
+
+**Why**: 
+- Non-blocking: Mutation returns immediately, email sent asynchronously
+- Error isolation: Email failures don't break mutation
+- Better UX: User sees success immediately
+
+**Apply when**: 
+- Sending emails after mutations (invites, notifications, confirmations)
+- External API calls that shouldn't block user actions
+
+**Related**: #L1320 in ci-cd.md (E2E test mode for emails)
+
+**Source**: SYOS-232 (Send Email When Invite Created)
+
+---
+
+**Pattern Count**: 39  
 **Last Validated**: 2025-11-17  
 **Context7 Source**: `/get-convex/convex-backend`, `convex-test` NPM docs, TypeScript type system, SvelteKit docs
