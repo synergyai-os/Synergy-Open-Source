@@ -211,6 +211,61 @@ export const listOrganizationInvites = query({
 });
 
 /**
+ * Get invite details by code (public - no auth required)
+ * Used for invite acceptance page to display invite information
+ */
+export const getInviteByCode = query({
+	args: {
+		code: v.string()
+	},
+	handler: async (ctx, args) => {
+		const invite = await ctx.db
+			.query('organizationInvites')
+			.withIndex('by_code', (q) => q.eq('code', args.code))
+			.first();
+
+		if (!invite) {
+			return null;
+		}
+
+		// Check if invite has been revoked
+		if (invite.revokedAt) {
+			return null;
+		}
+
+		// Check if invite has expired
+		if (invite.expiresAt && invite.expiresAt < Date.now()) {
+			return null;
+		}
+
+		// Check if invite has already been accepted
+		if (invite.acceptedAt) {
+			return null;
+		}
+
+		const organization = await ctx.db.get(invite.organizationId);
+		if (!organization) {
+			return null;
+		}
+
+		const inviter = await ctx.db.get(invite.invitedBy);
+		const inviterName =
+			(inviter as unknown as { name?: string; email?: string } | undefined)?.name ??
+			(inviter as unknown as { email?: string } | undefined)?.email ??
+			'Member';
+
+		return {
+			organizationId: invite.organizationId,
+			organizationName: organization.name,
+			inviterName,
+			role: invite.role,
+			email: invite.email ?? undefined,
+			invitedUserId: invite.invitedUserId ?? undefined
+		};
+	}
+});
+
+/**
  * Create a new organization
  *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
@@ -297,14 +352,34 @@ export const createOrganizationInvite = mutation({
 			throw new Error('Not authenticated');
 		}
 
-		// RBAC Permission Check: Only users with "users.invite" permission can invite
+		// Check if user is an organization owner (owners can always invite members)
+		const userMembership = await ctx.db
+			.query('organizationMembers')
+			.withIndex('by_organization_user', (q) =>
+				q.eq('organizationId', args.organizationId).eq('userId', userId)
+			)
+			.first();
+
+		const isOwner = userMembership?.role === 'owner';
+
+		// RBAC Permission Check: Only owners or users with "users.invite" permission can invite
 		// Admins and Managers can invite users to organizations
-		await requirePermission(ctx, userId, 'users.invite', {
-			organizationId: args.organizationId
-		});
+		if (!isOwner) {
+			await requirePermission(ctx, userId, 'users.invite', {
+				organizationId: args.organizationId
+			});
+		}
 
 		if (!args.email && !args.invitedUserId) {
 			throw new Error('Either email or invitedUserId must be provided');
+		}
+
+		// Validate email format (requires valid domain with TLD)
+		if (args.email) {
+			const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z0-9]{2,}$/;
+			if (!emailRegex.test(args.email.trim())) {
+				throw new Error('Invalid email format. Please enter a valid email address.');
+			}
 		}
 
 		const normalizedEmail = args.email?.trim().toLowerCase();
@@ -352,6 +427,32 @@ export const createOrganizationInvite = mutation({
 			code,
 			createdAt: Date.now()
 		});
+
+		// Send email if email was provided (not userId-only invite)
+		if (normalizedEmail) {
+			// Get organization name and inviter name for email
+			const organization = await ctx.db.get(args.organizationId);
+			const inviter = await ctx.db.get(userId);
+			const inviterName =
+				(inviter as unknown as { name?: string; email?: string } | undefined)?.name ??
+				(inviter as unknown as { email?: string } | undefined)?.email ??
+				'Member';
+
+			if (organization) {
+				// Construct invite link
+				const baseUrl = process.env.PUBLIC_APP_URL || 'http://localhost:5173';
+				const inviteLink = `${baseUrl}/invite?code=${code}`;
+
+				// Schedule email sending (non-blocking)
+				await ctx.scheduler.runAfter(0, internal.email.sendOrganizationInviteEmail, {
+					email: normalizedEmail,
+					inviteLink,
+					organizationName: organization.name,
+					inviterName,
+					role: args.role ?? 'member'
+				});
+			}
+		}
 
 		return {
 			inviteId,
@@ -609,6 +710,179 @@ export const getMembers = query({
 		);
 
 		return members.filter((m): m is NonNullable<typeof m> => m !== null);
+	}
+});
+
+/**
+ * Get all invites sent by an organization
+ * Only admins/owners can view invites
+ */
+export const getOrganizationInvites = query({
+	args: {
+		sessionId: v.string(),
+		organizationId: v.id('organizations')
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		// Permission check: Only admins/owners can view invites
+		const membership = await ctx.db
+			.query('organizationMembers')
+			.withIndex('by_organization_user', (q) =>
+				q.eq('organizationId', args.organizationId).eq('userId', userId)
+			)
+			.first();
+
+		if (!membership) {
+			throw new Error('You are not a member of this organization');
+		}
+
+		const isOwner = membership.role === 'owner';
+
+		// RBAC Permission Check: Only owners or users with "users.invite" permission can view invites
+		if (!isOwner) {
+			await requirePermission(ctx, userId, 'users.invite', {
+				organizationId: args.organizationId
+			});
+		}
+
+		// Get all invites for this organization
+		const invites = await ctx.db
+			.query('organizationInvites')
+			.withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId))
+			.collect();
+
+		// Get all members to check if invitees have joined
+		const memberships = await ctx.db
+			.query('organizationMembers')
+			.withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId))
+			.collect();
+
+		// Create sets for quick lookup
+		const memberUserIds = new Set(memberships.map((m) => m.userId));
+		const memberEmails = new Set<string>();
+		for (const membership of memberships) {
+			const user = await ctx.db.get(membership.userId);
+			const email = (user as unknown as { email?: string } | undefined)?.email;
+			if (email) {
+				memberEmails.add(email.toLowerCase());
+			}
+		}
+
+		// Map invites with status
+		const invitesWithStatus = await Promise.all(
+			invites.map(async (invite) => {
+				// Check if user has joined (by userId or email)
+				let hasJoined = false;
+				if (invite.invitedUserId && memberUserIds.has(invite.invitedUserId)) {
+					hasJoined = true;
+				} else if (invite.email && memberEmails.has(invite.email.toLowerCase())) {
+					hasJoined = true;
+				}
+
+				// Get inviter name
+				const inviter = await ctx.db.get(invite.invitedBy);
+				const inviterName =
+					(inviter as unknown as { name?: string; email?: string } | undefined)?.name ??
+					(inviter as unknown as { email?: string } | undefined)?.email ??
+					'Member';
+
+				return {
+					inviteId: invite._id,
+					email: invite.email ?? '',
+					role: invite.role,
+					status: hasJoined ? ('accepted' as const) : ('pending' as const),
+					invitedAt: invite.createdAt,
+					invitedBy: invite.invitedBy,
+					invitedByName: inviterName
+				};
+			})
+		);
+
+		return invitesWithStatus;
+	}
+});
+
+/**
+ * Resend invite email for an existing organization invite
+ * Only admins/owners can resend invites
+ */
+export const resendOrganizationInvite = mutation({
+	args: {
+		sessionId: v.string(),
+		inviteId: v.id('organizationInvites')
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		// Get invite
+		const invite = await ctx.db.get(args.inviteId);
+		if (!invite) {
+			throw new Error('Invite not found');
+		}
+
+		// Permission check: Only admins/owners can resend
+		const membership = await ctx.db
+			.query('organizationMembers')
+			.withIndex('by_organization_user', (q) =>
+				q.eq('organizationId', invite.organizationId).eq('userId', userId)
+			)
+			.first();
+
+		if (!membership) {
+			throw new Error('You are not a member of this organization');
+		}
+
+		const isOwner = membership.role === 'owner';
+
+		// RBAC Permission Check: Only owners or users with "users.invite" permission can resend
+		if (!isOwner) {
+			await requirePermission(ctx, userId, 'users.invite', {
+				organizationId: invite.organizationId
+			});
+		}
+
+		// Only resend if invite has email (not userId-only)
+		if (!invite.email) {
+			throw new Error('Cannot resend invite without email');
+		}
+
+		// Check if invite already accepted
+		if (invite.acceptedAt) {
+			throw new Error('Invite already accepted');
+		}
+
+		// Check if invite has been revoked
+		if (invite.revokedAt) {
+			throw new Error('Invite has been revoked');
+		}
+
+		// Get organization and inviter info
+		const organization = await ctx.db.get(invite.organizationId);
+		if (!organization) {
+			throw new Error('Organization not found');
+		}
+
+		const inviter = await ctx.db.get(invite.invitedBy);
+		const inviterName =
+			(inviter as unknown as { name?: string; email?: string } | undefined)?.name ??
+			(inviter as unknown as { email?: string } | undefined)?.email ??
+			'Member';
+
+		// Construct invite link
+		const baseUrl = process.env.PUBLIC_APP_URL || 'http://localhost:5173';
+		const inviteLink = `${baseUrl}/invite?code=${invite.code}`;
+
+		// Schedule email sending (non-blocking)
+		await ctx.scheduler.runAfter(0, internal.email.sendOrganizationInviteEmail, {
+			email: invite.email,
+			inviteLink,
+			organizationName: organization.name,
+			inviterName,
+			role: invite.role
+		});
+
+		return { success: true };
 	}
 });
 

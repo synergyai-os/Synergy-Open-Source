@@ -7,6 +7,7 @@
 	import { Dialog } from 'bits-ui';
 	import { useOrganizationMembers } from '$lib/composables/useOrganizationMembers.svelte';
 	import { usePermissions } from '$lib/composables/usePermissions.svelte';
+	import InviteMemberModal from '$lib/components/organizations/InviteMemberModal.svelte';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 	import type { OrganizationMember } from '$lib/composables/useOrganizationMembers.svelte';
 	import type { Id } from '$lib/convex';
@@ -45,6 +46,7 @@
 	});
 
 	const membersList = $derived(members.members);
+	const invitesList = $derived(members.invites);
 	const isLoading = $derived(!browser || membersList === null);
 
 	// Check permissions for removing members
@@ -66,6 +68,19 @@
 		// Non-owners need users.remove permission
 		return permissions.can('users.remove');
 	});
+
+	// Check if current user can invite members
+	const canInviteMembers = $derived(() => {
+		// Owners can always invite members
+		if (organizations && organizations.activeOrganization?.role === 'owner') {
+			return true;
+		}
+		// Non-owners need users.invite permission
+		return permissions.can('users.invite');
+	});
+
+	// Invite modal state
+	let showInviteModal = $state(false);
 
 	// Confirmation dialog state
 	let confirmRemoveDialog = $state<{
@@ -124,13 +139,14 @@
 				<h1 class="text-xl font-semibold text-primary">Members</h1>
 				<p class="mt-1 text-sm text-secondary">{organizationName()}</p>
 			</div>
-			<button
-				disabled
-				class="text-on-solid cursor-not-allowed rounded-md bg-accent-primary px-nav-item py-nav-item text-sm font-medium opacity-50"
-				title="Invite member functionality coming soon"
-			>
-				Invite Member
-			</button>
+			{#if canInviteMembers()}
+				<button
+					onclick={() => (showInviteModal = true)}
+					class="text-on-solid rounded-md bg-accent-primary px-nav-item py-nav-item text-sm font-medium transition-colors hover:bg-accent-hover"
+				>
+					Invite Member
+				</button>
+			{/if}
 		</div>
 	</header>
 
@@ -217,6 +233,74 @@
 					</tbody>
 				</table>
 			</div>
+
+			<!-- Invited Table -->
+			{#if canInviteMembers() && invitesList.length > 0}
+				<div class="mt-8">
+					<h2 class="mb-4 text-lg font-semibold text-primary">Invited</h2>
+					<div class="overflow-hidden rounded-lg border border-base bg-surface">
+						<table class="w-full">
+							<thead class="border-b border-base bg-elevated">
+								<tr>
+									<th class="px-nav-item py-nav-item text-left text-sm font-medium text-secondary">
+										Email
+									</th>
+									<th class="px-nav-item py-nav-item text-left text-sm font-medium text-secondary">
+										Role
+									</th>
+									<th class="px-nav-item py-nav-item text-left text-sm font-medium text-secondary">
+										Status
+									</th>
+									<th class="px-nav-item py-nav-item text-left text-sm font-medium text-secondary">
+										Invited
+									</th>
+									<th class="px-nav-item py-nav-item text-left text-sm font-medium text-secondary">
+										Actions
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+								{#each invitesList as invite (invite.inviteId)}
+									<tr class="border-b border-base last:border-b-0 hover:bg-sidebar-hover">
+										<td class="px-nav-item py-nav-item text-sm text-primary">
+											{invite.email}
+										</td>
+										<td class="px-nav-item py-nav-item text-sm text-secondary">
+											{formatRole(invite.role)}
+										</td>
+										<td class="px-nav-item py-nav-item text-sm">
+											<span
+												class={invite.status === 'accepted'
+													? 'text-accent-primary'
+													: 'text-secondary'}
+											>
+												{invite.status === 'accepted' ? 'Accepted' : 'Pending'}
+											</span>
+										</td>
+										<td class="px-nav-item py-nav-item text-sm text-secondary">
+											{formatDate(invite.invitedAt)}
+										</td>
+										<td class="px-nav-item py-nav-item">
+											{#if invite.status === 'pending' && invite.email}
+												<button
+													onclick={() => members.resendInvite(invite.inviteId)}
+													disabled={members.loading.resend}
+													class="text-sm text-secondary transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+													title="Resend invite email"
+												>
+													Resend
+												</button>
+											{:else}
+												<span class="text-sm text-secondary">—</span>
+											{/if}
+										</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+				</div>
+			{/if}
 		{/if}
 	</main>
 </div>
@@ -267,3 +351,10 @@
 		</Dialog.Content>
 	</Dialog.Portal>
 </Dialog.Root>
+
+<!-- Invite Member Modal -->
+<InviteMemberModal
+	{members}
+	open={showInviteModal}
+	onOpenChange={(open) => (showInviteModal = open)}
+/>
