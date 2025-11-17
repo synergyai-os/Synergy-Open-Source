@@ -3467,6 +3467,105 @@ href={resolveRoute(activeOrgId() ? `/org/circles?org=${activeOrgId()}` : '/org/c
 
 ---
 
-**Pattern Count**: 35  
+## #L3500: D3 Pack Layout with Synthetic Nodes for Sibling Packing [🟡 IMPORTANT]
+
+**Symptom**: Roles appear underneath child circles instead of alongside them in nested bubble chart  
+**Root Cause**: Two-level pack layout (main for circles, separate mini-pack for roles) doesn't naturally position roles alongside child circles  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Separate pack layouts (roles don't pack alongside circles)
+const packedCircles = packLayout(circles);
+const packedRoles = packRolesInsideCircle(roles, parentRadius); // Separate pack
+
+// ✅ CORRECT: Include roles as synthetic circle nodes in main hierarchy
+export function transformToHierarchy(circles: CircleNode[]): HierarchyNode<CircleNode> {
+  const childrenMap = new Map<Id<'circles'>, CircleNode[]>();
+  
+  // Add child circles
+  circles.forEach((circle) => {
+    if (circle.parentCircleId) {
+      const parent = circle.parentCircleId;
+      if (!childrenMap.has(parent)) {
+        childrenMap.set(parent, []);
+      }
+      childrenMap.get(parent)!.push(circle);
+    }
+  });
+  
+  // Add roles as synthetic circle nodes (so they pack alongside child circles)
+  circles.forEach((circle) => {
+    if (circle.roles && circle.roles.length > 0) {
+      if (!childrenMap.has(circle.circleId)) {
+        childrenMap.set(circle.circleId, []);
+      }
+      const roleCircles: CircleNode[] = circle.roles.map((role) => ({
+        circleId: `__role__${role.roleId}` as Id<'circles'>, // Synthetic ID
+        organizationId: circle.organizationId,
+        name: role.name,
+        slug: `role-${role.roleId}`,
+        parentCircleId: circle.circleId,
+        memberCount: 0,
+        roleCount: 0,
+        createdAt: circle.createdAt,
+        roles: [{ roleId: role.roleId, name: role.name }]
+      }));
+      childrenMap.get(circle.circleId)!.push(...roleCircles);
+    }
+  });
+  
+  // Build hierarchy with both circles and synthetic role nodes
+  return d3Hierarchy(buildHierarchy(rootCircles[0]));
+}
+
+// After packing, extract role positions relative to parent
+const nodesWithRoles = nodes.map((node) => {
+  if (isSyntheticRole(node.data.circleId) && node.parent) {
+    const parentNode = node.parent as CircleHierarchyNode;
+    const roleData = node.data.roles?.[0];
+    if (roleData && node.r && node.r > 0) {
+      const relativeX = node.x - parentNode.x;
+      const relativeY = node.y - parentNode.y;
+      
+      if (!parentNode.data.packedRoles) {
+        parentNode.data.packedRoles = [];
+      }
+      
+      parentNode.data.packedRoles.push({
+        roleId: roleData.roleId,
+        name: roleData.name,
+        x: relativeX,
+        y: relativeY,
+        r: node.r
+      });
+    }
+  }
+  return node;
+});
+
+// Filter out synthetic roles from visible nodes (render via packedRoles)
+const visibleNodes = packedNodes.filter(
+  (node) => !isSyntheticRoot(node.data.circleId) && !isSyntheticRole(node.data.circleId)
+);
+```
+
+**Why**: 
+- D3 pack layout naturally positions siblings (children + synthetic roles) alongside each other
+- Single pack layout ensures roles and child circles are positioned together within parent bounds
+- Synthetic nodes allow roles to participate in main layout without breaking type system
+- Extract positions after packing, filter out synthetic nodes before rendering
+
+**Apply when**: 
+- Building nested bubble charts (org charts, hierarchical visualizations)
+- Need to pack different entity types (circles + roles) alongside each other
+- Roles should appear next to child circles, not underneath them
+
+**Related**: #L780 (Design tokens), D3.js pack layout documentation
+
+**Source**: SYOS-179 (Org Chart Design)
+
+---
+
+**Pattern Count**: 36  
 **Last Updated**: 2025-11-17  
 **Design Token Reference**: `dev-docs/design-tokens.md`

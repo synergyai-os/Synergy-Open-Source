@@ -1,0 +1,609 @@
+<script lang="ts">
+	import { onMount, onDestroy } from 'svelte';
+	import { pack as d3Pack, type HierarchyNode } from 'd3-hierarchy';
+	import { zoom as d3Zoom, zoomIdentity } from 'd3-zoom';
+	import { select } from 'd3-selection';
+	import { interpolateZoom } from 'd3-interpolate';
+	import { transition } from 'd3-transition';
+	import {
+		transformToHierarchy,
+		calculateCircleValue,
+		getCircleColor,
+		isSyntheticRoot,
+		isSyntheticRole,
+		type CircleNode,
+		type CircleHierarchyNode,
+		type RoleNode
+	} from '$lib/utils/orgChartTransform';
+	import type { UseOrgChart } from '$lib/composables/useOrgChart.svelte';
+
+	let {
+		orgChart,
+		width = 1000,
+		height = 800
+	}: {
+		orgChart: UseOrgChart;
+		width?: number;
+		height?: number;
+	} = $props();
+
+	let svgElement: SVGSVGElement | undefined = $state();
+	let gElement: SVGGElement | undefined = $state();
+
+	// Current zoom state for smooth transitions
+	let currentView: [number, number, number] = $state([0, 0, width]);
+	let focusNode: CircleHierarchyNode | null = $state(null);
+	let currentZoomLevel = $state(1.0); // Track zoom level from D3 transform
+
+	// Reactive calculation of pack layout using $derived (Svelte 5 pattern)
+	const packedNodes = $derived.by(() => {
+		const circles = orgChart.circles;
+		if (circles.length === 0) {
+			return [];
+		}
+
+		// Transform to hierarchy
+		const root = transformToHierarchy(circles);
+
+		// Calculate values for each node (affects circle size)
+		root.sum(function (this: HierarchyNode<CircleNode>, d: CircleNode) {
+			return calculateCircleValue(d, this);
+		});
+
+		// Sort by descending value for better layout
+		root.sort((a, b) => {
+			const aValue = a.value ?? 0;
+			const bValue = b.value ?? 0;
+			return bValue - aValue;
+		});
+
+		// Create pack layout with padding for better nesting visibility
+		const pack = d3Pack<CircleNode>().size([width, height]).padding(3);
+
+		// Calculate positions
+		const packedRoot = pack(root);
+
+		// Extract all nodes (including root and synthetic roles)
+		const nodes = packedRoot.descendants() as CircleHierarchyNode[];
+
+		// Extract role positions from synthetic role nodes and attach to parent circles
+		const nodesWithRoles: CircleHierarchyNode[] = nodes.map((node) => {
+			// If this is a synthetic role node, extract its position relative to parent
+			if (isSyntheticRole(node.data.circleId) && node.parent) {
+				const parentNode = node.parent as CircleHierarchyNode;
+				const roleData = node.data.roles?.[0]; // Get original role data
+				if (roleData && node.r && node.r > 0) {
+					// Calculate position relative to parent center
+					const relativeX = node.x - parentNode.x;
+					const relativeY = node.y - parentNode.y;
+
+					// Initialize packedRoles array if it doesn't exist
+					if (!(parentNode.data as CircleNode).packedRoles) {
+						(parentNode.data as CircleNode).packedRoles = [];
+					}
+
+					// Add role position to parent's packedRoles
+					(parentNode.data as CircleNode).packedRoles!.push({
+						roleId: roleData.roleId,
+						name: roleData.name,
+						x: relativeX,
+						y: relativeY,
+						r: node.r
+					});
+				}
+			}
+			return node;
+		});
+
+		return nodesWithRoles;
+	});
+
+	// Initialize focus node and view when nodes are first available
+	$effect(() => {
+		if (packedNodes.length > 0 && !focusNode) {
+			const rootNode = packedNodes[0];
+			if (rootNode && !isSyntheticRoot(rootNode.data.circleId)) {
+				currentView = [rootNode.x, rootNode.y, rootNode.r * 2];
+				focusNode = rootNode as CircleHierarchyNode;
+				// Initialize zoom level to show labels
+				currentZoomLevel = 1.0;
+			}
+		}
+	});
+
+	// Filter out synthetic root and synthetic roles, sort by depth (parents first, children last)
+	const visibleNodes = $derived(
+		packedNodes
+			.filter(
+				(node) => !isSyntheticRoot(node.data.circleId) && !isSyntheticRole(node.data.circleId)
+			)
+			.sort((a, b) => {
+				// Sort by depth ascending (parents first), then by value descending (larger first)
+				if (a.depth !== b.depth) {
+					return a.depth - b.depth;
+				}
+				const aValue = a.value ?? 0;
+				const bValue = b.value ?? 0;
+				return bValue - aValue;
+			})
+	);
+
+	// Determine if roles should be visible for a circle
+	// Show ALL roles on load, hide when too small
+	function shouldShowRoles(node: CircleHierarchyNode): boolean {
+		// Show roles when:
+		// 1. Circle is large enough to display roles
+		// 2. Roles exist and are packed
+		const isLargeEnough = node.r > 30; // Minimum threshold for role circles
+		const hasPackedRoles = node.data.packedRoles && node.data.packedRoles.length > 0;
+
+		return isLargeEnough && Boolean(hasPackedRoles);
+	}
+
+	// Determine if circle name should be visible
+	// Show labels for all circles that meet size requirements
+	function shouldShowCircleName(node: CircleHierarchyNode): boolean {
+		// Always show root level circles (highest level)
+		const isRootLevel = node.depth === 0;
+		if (isRootLevel) {
+			return true;
+		}
+
+		// Show if circle is large enough to display label
+		// Label font size is Math.max(10, Math.min(node.r / 4, 14))
+		// So we need node.r >= 40 to get readable text (10px minimum)
+		const isLargeEnough = node.r > 40;
+
+		// Show if zoomed in enough (zoom level > 1.1)
+		const isZoomedIn = currentZoomLevel > 1.1;
+
+		// Show if focused (for context when zooming into specific circle)
+		const isFocused = focusNode?.data.circleId === node.data.circleId;
+
+		// Show if parent/child of focused (Observable pattern)
+		const isRelatedToFocused =
+			focusNode &&
+			(node === focusNode ||
+				(focusNode.parent !== null && node === focusNode.parent) ||
+				(focusNode.parent !== null && node.parent === focusNode));
+
+		return isLargeEnough || isZoomedIn || isFocused || Boolean(isRelatedToFocused);
+	}
+
+	// D3 Zoom behavior for trackpad/mouse wheel
+	let zoomBehavior: ReturnType<typeof d3Zoom<SVGSVGElement, unknown>> | null = null;
+
+	// Smooth zoom to a specific node using interpolateZoom
+	function zoomToNode(node: CircleHierarchyNode, duration = 500) {
+		if (!svgElement || !gElement) return;
+
+		const targetView: [number, number, number] = [node.x, node.y, node.r * 2];
+		const interpolator = interpolateZoom(currentView as [number, number, number], targetView);
+		const t = transition()
+			.duration(duration)
+			.ease((t) => t * (2 - t)); // easeOutQuad
+
+		t.tween('zoom', () => {
+			return (t: number) => {
+				const view = interpolator(t);
+				currentView = view;
+				const k = width / view[2];
+
+				// Update zoom level for label visibility
+				currentZoomLevel = k;
+
+				// Update transform
+				if (gElement) {
+					select(gElement).attr(
+						'transform',
+						`translate(${width / 2},${height / 2}) scale(${k}) translate(${-view[0]},${-view[1]})`
+					);
+				}
+			};
+		});
+
+		// Update focus node (triggers reactive label visibility and role visibility)
+		focusNode = node;
+		orgChart.selectCircle(node.data.circleId);
+	}
+
+	onMount(() => {
+		if (!svgElement || !gElement) return;
+
+		// Create D3 zoom behavior
+		zoomBehavior = d3Zoom<SVGSVGElement, unknown>()
+			.scaleExtent([0.5, 4])
+			.on('zoom', (event) => {
+				// Apply transform to group element
+				if (gElement) {
+					const transform = event.transform;
+					select(gElement).attr('transform', transform.toString());
+					// Update zoom level for label visibility
+					currentZoomLevel = transform.k;
+					orgChart.setZoom(transform.k);
+					orgChart.setPan({ x: transform.x, y: transform.y });
+				}
+			});
+
+		// Apply zoom to SVG
+		select(svgElement).call(zoomBehavior);
+
+		// Initial zoom to root (synchronous, no setTimeout)
+		if (packedNodes.length > 0) {
+			const root = packedNodes[0];
+			if (root && !isSyntheticRoot(root.data.circleId)) {
+				// Set initial transform to show root level labels
+				const rootNode = root as CircleHierarchyNode;
+				currentView = [rootNode.x, rootNode.y, rootNode.r * 2];
+				focusNode = rootNode;
+				currentZoomLevel = 1.0;
+
+				// Apply initial transform
+				if (gElement) {
+					const k = width / currentView[2];
+					const initialTransform = zoomIdentity
+						.translate(width / 2, height / 2)
+						.scale(k)
+						.translate(-currentView[0], -currentView[1]);
+
+					select(gElement).attr('transform', initialTransform.toString());
+					// Sync D3 zoom state (use transform method correctly)
+					if (zoomBehavior) {
+						select(svgElement).call(zoomBehavior.transform, initialTransform);
+					}
+				}
+			}
+		}
+
+		// Handle window resize
+		const resizeObserver = new ResizeObserver(() => {
+			if (svgElement) {
+				const rect = svgElement.getBoundingClientRect();
+				width = rect.width;
+				height = rect.height;
+			}
+		});
+		resizeObserver.observe(svgElement);
+
+		onDestroy(() => {
+			resizeObserver.disconnect();
+		});
+	});
+
+	function handleCircleClick(event: MouseEvent, node: CircleHierarchyNode) {
+		event.stopPropagation();
+		if (focusNode?.data.circleId === node.data.circleId) {
+			// If clicking the same circle, zoom out to parent or root
+			if (node.parent && !isSyntheticRoot(node.parent.data.circleId)) {
+				zoomToNode(node.parent as CircleHierarchyNode);
+			} else if (packedNodes.length > 0) {
+				const root = packedNodes[0];
+				if (root && !isSyntheticRoot(root.data.circleId)) {
+					zoomToNode(root);
+				}
+			}
+		} else {
+			// Zoom to clicked circle
+			zoomToNode(node);
+		}
+	}
+
+	function handleCircleMouseEnter(node: CircleHierarchyNode) {
+		orgChart.setHover(node.data.circleId);
+	}
+
+	function handleCircleMouseLeave() {
+		orgChart.setHover(null);
+	}
+
+	function handleRoleClick(event: MouseEvent, role: RoleNode) {
+		event.stopPropagation();
+		orgChart.selectRole(role.roleId, 'chart');
+	}
+
+	// Zoom controls
+	function handleZoomIn() {
+		if (svgElement && zoomBehavior) {
+			const selection = select(svgElement);
+			// Let D3 zoom handle the transform update (will trigger zoom event)
+			selection.call(zoomBehavior.scaleBy, 1.2);
+		}
+	}
+
+	function handleZoomOut() {
+		if (svgElement && zoomBehavior) {
+			const selection = select(svgElement);
+			// Let D3 zoom handle the transform update (will trigger zoom event)
+			selection.call(zoomBehavior.scaleBy, 1 / 1.2);
+		}
+	}
+
+	function handleResetView() {
+		if (packedNodes.length > 0) {
+			const root = packedNodes[0];
+			if (root && !isSyntheticRoot(root.data.circleId)) {
+				zoomToNode(root);
+			}
+		}
+		if (svgElement && zoomBehavior) {
+			select(svgElement).call(zoomBehavior.transform, zoomIdentity);
+		}
+		orgChart.resetView();
+	}
+
+	// Handle background click to zoom out
+	function handleBackgroundClick() {
+		if (packedNodes.length > 0) {
+			const root = packedNodes[0];
+			if (root && !isSyntheticRoot(root.data.circleId)) {
+				zoomToNode(root);
+			}
+		}
+	}
+</script>
+
+<div class="relative h-full w-full overflow-hidden rounded-lg border border-base bg-surface">
+	<!-- Zoom Controls -->
+	<div
+		class="bg-elevated/95 absolute top-4 right-4 z-10 flex flex-col gap-2 rounded-lg p-2 shadow-xl backdrop-blur-sm"
+	>
+		<button
+			class="flex h-9 w-9 items-center justify-center rounded-md text-secondary transition-all hover:scale-110 hover:bg-hover-solid hover:text-primary active:scale-95"
+			onclick={handleZoomIn}
+			aria-label="Zoom in"
+		>
+			<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+				/>
+			</svg>
+		</button>
+		<button
+			class="flex h-9 w-9 items-center justify-center rounded-md text-secondary transition-all hover:scale-110 hover:bg-hover-solid hover:text-primary active:scale-95"
+			onclick={handleZoomOut}
+			aria-label="Zoom out"
+		>
+			<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6" />
+			</svg>
+		</button>
+		<div class="my-1 h-px bg-border-base"></div>
+		<button
+			class="flex h-9 w-9 items-center justify-center rounded-md text-secondary transition-all hover:scale-110 hover:bg-hover-solid hover:text-primary active:scale-95"
+			onclick={handleResetView}
+			aria-label="Reset view"
+		>
+			<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+				/>
+			</svg>
+		</button>
+	</div>
+
+	<!-- SVG Container -->
+	<svg
+		bind:this={svgElement}
+		class="h-full w-full cursor-move"
+		viewBox="0 0 {width} {height}"
+		preserveAspectRatio="xMidYMid meet"
+		role="button"
+		tabindex="0"
+		onclick={handleBackgroundClick}
+		onkeydown={(e) => {
+			if (e.key === 'Enter' || e.key === ' ') {
+				handleBackgroundClick();
+			}
+		}}
+		aria-label="Organizational chart - click to zoom out"
+	>
+		<!-- Background -->
+		<rect {width} {height} fill="transparent" />
+
+		<!-- Transform group for zoom/pan -->
+		<g bind:this={gElement} class="circles">
+			{#each visibleNodes as node (node.data.circleId)}
+				{@const isSelected = orgChart.selectedCircleId === node.data.circleId}
+				{@const isHovered = orgChart.hoveredCircleId === node.data.circleId}
+				{@const hasChildren = node.children && node.children.length > 0}
+				{@const color = getCircleColor(node.depth)}
+				{@const showCircleName = shouldShowCircleName(node)}
+				{@const showRoles = shouldShowRoles(node)}
+
+				<!-- Group positioned at node's x,y (D3 pack layout pattern) -->
+				<g
+					class="circle-group cursor-pointer"
+					role="button"
+					tabindex="0"
+					transform="translate({node.x},{node.y})"
+					onclick={(e) => handleCircleClick(e, node)}
+					onmouseenter={() => handleCircleMouseEnter(node)}
+					onmouseleave={handleCircleMouseLeave}
+					onkeydown={(e) => {
+						if (e.key === 'Enter' || e.key === ' ') {
+							handleCircleClick(e as unknown as MouseEvent, node);
+						}
+					}}
+					style="pointer-events: all;"
+				>
+					<!-- Circle -->
+					<circle
+						cx="0"
+						cy="0"
+						r={node.r}
+						fill={color}
+						fill-opacity={isSelected ? 0.9 : isHovered ? 0.8 : hasChildren ? 0.5 : 0.6}
+						stroke={isSelected
+							? 'var(--color-accent-primary)'
+							: isHovered
+								? color
+								: hasChildren
+									? color
+									: 'none'}
+						stroke-width={isSelected ? 3 : isHovered ? 2 : hasChildren ? 2 : 0}
+						stroke-opacity={isSelected ? 1 : isHovered ? 0.8 : hasChildren ? 0.5 : 0}
+						style="pointer-events: all;"
+					/>
+
+					<!-- Circle name label (show based on size/zoom requirements) -->
+					{#if showCircleName}
+						<text
+							x="0"
+							y={-(node.r > 50 ? 8 : 0)}
+							text-anchor="middle"
+							dominant-baseline="middle"
+							class="circle-name-label pointer-events-none font-medium select-none"
+							fill="white"
+							fill-opacity={isSelected ? 1 : isHovered ? 0.95 : 0.9}
+							style="text-shadow: 0 1px 2px rgba(0,0,0,0.5);"
+							font-size={Math.max(10, Math.min(node.r / 4, 14))}
+						>
+							{node.data.name}
+						</text>
+					{/if}
+
+					<!-- Role circles (packed alongside child circles by D3 pack layout) -->
+					{#if showRoles && node.data.packedRoles}
+						<!-- Define clipPath for this circle (scoped to circle group coordinate system) -->
+						<defs>
+							<clipPath id="clip-{node.data.circleId}">
+								<circle cx="0" cy="0" r={node.r} />
+							</clipPath>
+						</defs>
+						<!-- Group with clipPath to ensure roles stay inside parent circle -->
+						<g clip-path="url(#clip-{node.data.circleId})">
+							{#each node.data.packedRoles as role (role.roleId)}
+								{@const roleLabelVisible = role.r > 8}
+								<g
+									transform="translate({role.x},{role.y})"
+									class="role-circle-group cursor-pointer"
+									role="button"
+									tabindex="0"
+									onclick={(e) => {
+										e.stopPropagation();
+										handleRoleClick(e, role);
+									}}
+									onkeydown={(e) => {
+										if (e.key === 'Enter' || e.key === ' ') {
+											e.stopPropagation();
+											handleRoleClick(e as unknown as MouseEvent, role);
+										}
+									}}
+									style="pointer-events: all;"
+								>
+									<!-- Role circle -->
+									<circle
+										cx="0"
+										cy="0"
+										r={role.r}
+										fill="white"
+										fill-opacity="0.9"
+										stroke={color}
+										stroke-width="1"
+										stroke-opacity="0.6"
+										style="pointer-events: all;"
+									/>
+									<!-- Role name label (only if large enough) -->
+									{#if roleLabelVisible}
+										<text
+											x="0"
+											y="0"
+											text-anchor="middle"
+											dominant-baseline="middle"
+											class="role-label pointer-events-none select-none"
+											fill="black"
+											fill-opacity="0.85"
+											font-size={Math.max(6, Math.min(role.r / 2, 10))}
+											style="text-shadow: 0 0 2px rgba(255,255,255,0.8);"
+										>
+											{role.name}
+										</text>
+									{/if}
+								</g>
+							{/each}
+						</g>
+					{/if}
+				</g>
+			{/each}
+		</g>
+	</svg>
+
+	<!-- Empty State -->
+	{#if visibleNodes.length === 0}
+		<div class="absolute inset-0 flex items-center justify-center">
+			<div class="text-center">
+				<svg
+					class="mx-auto mb-4 h-12 w-12 text-secondary"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+				>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+					/>
+				</svg>
+				<p class="text-sm text-secondary">No circles to display</p>
+				<p class="mt-1 text-xs text-tertiary">Create circles to see the org chart</p>
+			</div>
+		</div>
+	{/if}
+</div>
+
+<style>
+	.circle-group:focus {
+		outline: none;
+	}
+
+	.circle-group:focus-visible circle {
+		stroke: var(--color-accent-primary);
+		stroke-width: 3;
+		outline: 2px solid var(--color-accent-primary);
+		outline-offset: 4px;
+	}
+
+	/* Smooth transitions for all interactions */
+	.circle-group circle {
+		transition:
+			stroke-width 0.2s ease,
+			stroke-opacity 0.2s ease,
+			filter 0.2s ease;
+	}
+
+	.circle-group:hover circle {
+		filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+	}
+
+	.role-circle-group:focus {
+		outline: none;
+	}
+
+	.role-circle-group:focus-visible circle {
+		stroke: var(--color-accent-primary);
+		stroke-width: 2;
+		outline: 2px solid var(--color-accent-primary);
+		outline-offset: 2px;
+	}
+
+	/* Smooth transitions for role interactions */
+	.role-circle-group circle {
+		transition:
+			stroke-width 0.2s ease,
+			stroke-opacity 0.2s ease,
+			filter 0.2s ease;
+	}
+
+	.role-circle-group:hover circle {
+		filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+		stroke-width: 2;
+		stroke-opacity: 0.8;
+	}
+</style>

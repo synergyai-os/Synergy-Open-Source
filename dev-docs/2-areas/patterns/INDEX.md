@@ -245,7 +245,7 @@ correct code
 ---
 
 **Last Updated**: 2025-11-17
-**Pattern Count**: 90
+**Pattern Count**: 91
 **Format Version**: 2.0
 ```
 
@@ -256,3 +256,4 @@ correct code
 || User registers via invite link, verifies email, but redirected to `/invite` showing unauthenticated UI | Accept invite server-side after session establishment, redirect directly to organization | [convex-integration.md#L3500](convex-integration.md#L3500) |
 || User logs in from invite link, redirected back to `/invite` showing "Sign in" screen | Accept invite server-side in login handler before redirect, handle both org and team invites | [convex-integration.md#L3600](convex-integration.md#L3600) |
 || Redirecting to `/org/{organizationId}` results in 404 error                                     | Use query parameter pattern: `/org/circles?org={organizationId}`                        | [ui-patterns.md#L3400](ui-patterns.md#L3400)                |
+|| Roles appear underneath child circles instead of alongside them in nested bubble chart          | Include roles as synthetic circle nodes in D3 hierarchy (pack alongside, not separate) | [ui-patterns.md#L3500](ui-patterns.md#L3500)                |
