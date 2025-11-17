@@ -25,7 +25,7 @@
 	<div class="w-full max-w-md rounded-lg border border-base bg-surface p-6 text-center">
 		<h1 class="text-xl font-semibold text-primary">Organization Required</h1>
 
-		{#if hasOrganizations}
+		{#if hasOrganizations()}
 			<!-- User has orgs but none selected -->
 			<p class="mt-2 text-sm text-secondary">Please select an organization to access Circles.</p>
 

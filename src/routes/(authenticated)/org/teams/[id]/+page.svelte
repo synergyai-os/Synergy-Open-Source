@@ -7,7 +7,6 @@
 	import { useTeams } from '$lib/composables/useTeams.svelte';
 	import InviteMemberModal from '$lib/components/InviteMemberModal.svelte';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
-	import type { Id } from '$lib/convex';
 
 	let {
 		data: _data,

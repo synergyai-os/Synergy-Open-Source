@@ -6,7 +6,6 @@
 	import { api } from '$lib/convex';
 	import { resolveRoute } from '$lib/utils/navigation';
 	import { Button } from '$lib/components/ui';
-	import type { Id } from '$lib/convex';
 
 	// Get invite code from URL
 	const inviteCode = $derived($page.url.searchParams.get('code'));

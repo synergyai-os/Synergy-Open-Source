@@ -327,7 +327,7 @@ describe('Meetings Integration Tests', () => {
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
 		// Create a second user to add as attendee (creator is already auto-added)
-		const { sessionId: sessionId2, userId: userId2 } = await createTestSession(t);
+		const { sessionId: _sessionId2, userId: userId2 } = await createTestSession(t);
 		await createTestOrganizationMember(t, orgId, userId2, 'member');
 
 		cleanupQueue.push({ userId, orgId });
@@ -468,7 +468,7 @@ describe('Meetings Integration Tests', () => {
 		await createTestOrganizationMember(t, orgId, userId, 'member');
 
 		// Create a second user to add as attendee (creator is already auto-added)
-		const { sessionId: sessionId2, userId: userId2 } = await createTestSession(t);
+		const { sessionId: _sessionId2, userId: userId2 } = await createTestSession(t);
 		await createTestOrganizationMember(t, orgId, userId2, 'member');
 
 		cleanupQueue.push({ userId, orgId });
@@ -561,7 +561,7 @@ describe('Meetings Integration Tests', () => {
 		cleanupQueue.push({ userId, orgId });
 
 		// Create private meeting (creator is automatically added as attendee)
-		const meetingResult = await t.mutation(api.meetings.create, {
+		const _meetingResult = await t.mutation(api.meetings.create, {
 			sessionId,
 			organizationId: orgId,
 			title: 'Private Meeting',

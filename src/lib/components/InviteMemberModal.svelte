@@ -10,7 +10,7 @@
 		onOpenChange,
 		type,
 		targetId,
-		targetName,
+		targetName: _targetName,
 		sessionId
 	}: {
 		open: boolean;

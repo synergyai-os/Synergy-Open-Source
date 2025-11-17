@@ -37,10 +37,12 @@
 	});
 
 	// Check feature flag (SYOS-226: organization-based targeting)
+	const getSessionId = () => sessionId();
+	const getOrganizationId = () => organizationId();
 	const flagQuery =
-		browser && sessionId
+		browser && getSessionId()
 			? useQuery(api.featureFlags.checkFlag, () => {
-					const session = sessionId;
+					const session = getSessionId();
 					if (!session) throw new Error('sessionId required');
 					return {
 						flag: FeatureFlags.MEETINGS_MODULE,
@@ -53,10 +55,10 @@
 
 	// Fetch circles for create modal
 	const circlesQuery =
-		browser && organizationId && sessionId
+		browser && getOrganizationId() && getSessionId()
 			? useQuery(api.circles.list, () => {
-					const orgId = organizationId;
-					const session = sessionId;
+					const orgId = getOrganizationId();
+					const session = getSessionId();
 					if (!orgId || !session) throw new Error('organizationId and sessionId required');
 					return {
 						organizationId: orgId as Id<'organizations'>,
@@ -71,19 +73,21 @@
 
 	// Fetch meetings
 	const meetings = useMeetings({
-		organizationId: () => organizationId,
-		sessionId: () => sessionId
+		organizationId: () => organizationId(),
+		sessionId: () => sessionId()
 	});
 
 	// Helper: Log sessionId and organizationId for manual template seeding
 	$effect(() => {
-		if (organizationId && sessionId) {
+		const orgId = organizationId();
+		const session = sessionId();
+		if (orgId && session) {
 			console.log('📋 Meeting Page Debug Info:');
-			console.log('sessionId:', sessionId);
-			console.log('organizationId:', organizationId);
+			console.log('sessionId:', session);
+			console.log('organizationId:', orgId);
 			console.log('\n🌱 To seed default templates, run:');
 			console.log(
-				`npx convex run meetingTemplates:seedDefaultTemplates '{"sessionId": "${sessionId}", "organizationId": "${organizationId}"}'`
+				`npx convex run meetingTemplates:seedDefaultTemplates '{"sessionId": "${session}", "organizationId": "${orgId}"}'`
 			);
 		}
 	});
@@ -125,7 +129,7 @@
 	<div class="bg-surface-base flex min-h-screen items-center justify-center">
 		<div class="text-text-secondary">Loading...</div>
 	</div>
-{:else if !organizationId}
+{:else if !organizationId()}
 	<!-- No organization selected -->
 	<div class="bg-surface-base flex min-h-screen items-center justify-center">
 		<div
@@ -133,7 +137,7 @@
 		>
 			<h1 class="text-xl font-semibold text-text-primary">Organization Required</h1>
 
-			{#if hasOrganizations}
+			{#if hasOrganizations()}
 				<!-- User has orgs but none selected -->
 				<p class="mt-2 text-sm text-text-secondary">
 					Please select an organization to access Meetings.
@@ -330,7 +334,7 @@
 							{#each meetings.thisWeekMeetings as meeting (meeting._id)}
 								<MeetingCard
 									{meeting}
-									organizationName={activeOrganization?.name}
+									organizationName={activeOrganization()?.name}
 									onStart={() => handleStart(meeting.originalMeetingId ?? meeting._id)}
 									onAddAgendaItem={() =>
 										handleAddAgendaItem(meeting.originalMeetingId ?? meeting._id)}
@@ -357,7 +361,7 @@
 							{#each meetings.futureMeetings as meeting (meeting._id)}
 								<MeetingCard
 									{meeting}
-									organizationName={activeOrganization?.name}
+									organizationName={activeOrganization()?.name}
 									onStart={() => handleStart(meeting.originalMeetingId ?? meeting._id)}
 									onAddAgendaItem={() =>
 										handleAddAgendaItem(meeting.originalMeetingId ?? meeting._id)}
@@ -398,7 +402,7 @@
 							{#each meetings.closedMeetings as meeting (meeting._id)}
 								<MeetingCard
 									{meeting}
-									organizationName={activeOrganization?.name}
+									organizationName={activeOrganization()?.name}
 									onStart={() => handleStart(meeting.originalMeetingId ?? meeting._id)}
 									onAddAgendaItem={() =>
 										handleAddAgendaItem(meeting.originalMeetingId ?? meeting._id)}
@@ -412,12 +416,12 @@
 	</div>
 
 	<!-- Create Meeting Modal -->
-	{#if organizationId && sessionId}
+	{#if organizationId() && sessionId()}
 		<CreateMeetingModal
 			bind:open={state.showCreateModal}
 			onClose={() => (state.showCreateModal = false)}
-			{organizationId}
-			{sessionId}
+			organizationId={organizationId()!}
+			sessionId={sessionId()!}
 			{circles}
 		/>
 	{/if}

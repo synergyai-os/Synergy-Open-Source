@@ -365,7 +365,7 @@
 								</svg>
 								<div class="flex-1">
 									<p class="text-sm font-medium text-primary">
-										This email is already registered. Redirecting you to sign in in {redirectCountdown}{' '}
+										This email is already registered. Redirecting you to sign in in {redirectCountdown}
 										seconds...
 									</p>
 								</div>
