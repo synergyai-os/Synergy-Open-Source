@@ -247,3 +247,7 @@ correct code
 **Pattern Count**: 88
 **Format Version**: 2.0
 ```
+
+|| Email validation accepts invalid emails like `asdfasdf@asdfasdf` (no TLD)                        | Use regex `/^[^\s@]+@[^\s@]+\.[a-zA-Z0-9]{2,}$/` for TLD validation (frontend + backend) | [ui-patterns.md#L3300](ui-patterns.md#L3300)            |
+|| Form errors only shown in toast, user doesn't know which field has problem                      | Set inline error state + display below input field (dual feedback: toast + inline)      | [ui-patterns.md#L3350](ui-patterns.md#L3350)            |
+|| Organization owners can't perform actions even though they should have full access                | Check owner role first, bypass RBAC permission check if owner (implicit privileges)    | [convex-integration.md#L3300](convex-integration.md#L3300) |
