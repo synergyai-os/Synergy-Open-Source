@@ -32,6 +32,7 @@ export type CircleNode = {
 	updatedAt?: number;
 	archivedAt?: number;
 	children?: CircleNode[];
+	_parentDepth?: number; // Store parent depth for synthetic role nodes (calculated during hierarchy building)
 };
 
 /**
@@ -125,13 +126,35 @@ export function transformToHierarchy(circles: CircleNode[]): HierarchyNode<Circl
 		}))
 	);
 
+	// Helper function to calculate depth of a circle by traversing parent chain
+	function calculateCircleDepth(circleId: Id<'circles'>): number {
+		const circle = circleMap.get(circleId);
+		if (!circle || !circle.parentCircleId) {
+			return 0; // Root level
+		}
+		// Recursively calculate parent depth + 1
+		return calculateCircleDepth(circle.parentCircleId) + 1;
+	}
+
 	// Recursive function to build hierarchy
-	function buildHierarchy(circle: CircleNode): CircleNode {
+	function buildHierarchy(circle: CircleNode, depth: number = 0): CircleNode {
 		const children = childrenMap.get(circle.circleId);
 		if (children) {
+			// Map children and set parent depth for synthetic role nodes
+			const mappedChildren = children.map((child) => {
+				if (isSyntheticRole(child.circleId)) {
+					// Store parent depth in role node data
+					return {
+						...child,
+						_parentDepth: depth
+					};
+				}
+				// Recursively build hierarchy for regular circles
+				return buildHierarchy(child, depth + 1);
+			});
 			return {
 				...circle,
-				children: children.map(buildHierarchy)
+				children: mappedChildren
 			};
 		}
 		return circle;
@@ -144,6 +167,8 @@ export function transformToHierarchy(circles: CircleNode[]): HierarchyNode<Circl
 	}
 
 	// Multiple roots: create synthetic parent
+	// When building hierarchy for root circles, treat them as depth 0 (not depth 1)
+	// This ensures roles in root circles get correct parent depth
 	const syntheticRoot: CircleNode = {
 		circleId: '__root__' as Id<'circles'>,
 		organizationId: circles[0].organizationId,
@@ -151,7 +176,7 @@ export function transformToHierarchy(circles: CircleNode[]): HierarchyNode<Circl
 		slug: 'root',
 		memberCount: circles.reduce((sum, c) => sum + c.memberCount, 0),
 		createdAt: Date.now(),
-		children: rootCircles.map(buildHierarchy)
+		children: rootCircles.map((rootCircle) => buildHierarchy(rootCircle, 0)) // Pass depth=0 explicitly
 	};
 
 	return d3Hierarchy(syntheticRoot);
@@ -161,15 +186,51 @@ export function transformToHierarchy(circles: CircleNode[]): HierarchyNode<Circl
  * Calculate circle size based on depth, member count, and role count
  * Holaspirit-style: Children are 50% smaller than parents
  * Uses logarithmic scale for better visualization of varying team sizes
- * Synthetic role nodes get a small fixed size
+ * Synthetic role nodes scale with parent circle depth (deeper = smaller)
  */
 export function calculateCircleValue(
 	circle: CircleNode,
 	node?: D3HierarchyNode<CircleNode>
 ): number {
-	// Synthetic role nodes get a small fixed size (smaller than regular circles)
+	// Synthetic role nodes scale with parent circle depth
+	// Roles in top-level circles (depth 0) are largest
+	// Roles in sub-circles (depth 1) are medium
+	// Roles in sub-sub-circles (depth 2+) are smallest
 	if (isSyntheticRole(circle.circleId)) {
-		return 15; // Small fixed size for role circles
+		// Get parent depth from stored _parentDepth (set during hierarchy building)
+		// Fallback to node.depth - 1 if _parentDepth not available
+		let parentDepth = circle._parentDepth ?? Math.max(0, (node?.depth ?? 1) - 1);
+
+		// If there's a synthetic root (multiple root circles), adjust depth:
+		// Synthetic root adds 1 to all depths, so subtract 1 to get actual circle depth
+		// Check if we're under a synthetic root by checking if root is synthetic
+		if (node) {
+			let current = node.parent;
+			while (current) {
+				if (isSyntheticRoot(current.data.circleId)) {
+					// We're under a synthetic root, adjust depth
+					parentDepth = Math.max(0, parentDepth - 1);
+					break;
+				}
+				current = current.parent;
+			}
+		}
+
+		// Base sizes: larger for higher hierarchy levels
+		// D3 pack layout scales circles proportionally - with many siblings, need much larger values
+		// Depth 0: Much bigger (500 → r ~80-100) - big green circle roles (11 roles need large values)
+		// Depth 1: Slightly bigger (140 → r ~35-40) - sub-circle roles (circles inside green circle)
+		// Depth 2: Match previous depth 1 (55 → r ~22-23) - sub-sub-circle roles
+		// Depth 3+: Keep current (35 → r ~17-18) - smallest roles (good as-is)
+		const baseSizes = [500, 140, 55, 35]; // depth 0, 1, 2, 3+
+		const baseSize = baseSizes[Math.min(parentDepth, baseSizes.length - 1)];
+
+		// Debug logging to verify depth calculation
+		console.log(
+			`🎭 Role "${circle.name}": storedParentDepth=${circle._parentDepth ?? 'N/A'}, adjustedParentDepth=${parentDepth}, baseSize=${baseSize}, parent=${node?.parent?.data?.name ?? 'none'}`
+		);
+
+		return baseSize;
 	}
 
 	// Base size for root level circles

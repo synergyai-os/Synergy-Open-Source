@@ -3566,6 +3566,87 @@ const visibleNodes = packedNodes.filter(
 
 ---
 
-**Pattern Count**: 36  
+---
+
+## #L3570: D3 Pack Layout Role Sizing Based on Hierarchy Depth [🟡 IMPORTANT]
+
+**Symptom**: Roles in nested bubble chart all appear same size, despite hierarchy depth  
+**Root Cause**: D3 pack layout scales circles proportionally - with many siblings, need much larger `baseSize` values to achieve desired visual sizes  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Fixed size for all roles (doesn't reflect hierarchy)
+if (isSyntheticRole(circle.circleId)) {
+  return 15; // All roles same size
+}
+
+// ✅ CORRECT: Scale role sizes based on parent circle depth
+if (isSyntheticRole(circle.circleId)) {
+  // Store parent depth during hierarchy building
+  let parentDepth = circle._parentDepth ?? Math.max(0, (node?.depth ?? 1) - 1);
+  
+  // Adjust for synthetic root (multiple root circles)
+  if (node) {
+    let current = node.parent;
+    while (current) {
+      if (isSyntheticRoot(current.data.circleId)) {
+        parentDepth = Math.max(0, parentDepth - 1);
+        break;
+      }
+      current = current.parent;
+    }
+  }
+  
+  // Base sizes: larger for higher hierarchy levels
+  // D3 pack layout scales circles proportionally - with many siblings, need much larger values
+  // Depth 0: Much bigger (500 → r ~80-100) - big green circle roles (11 roles need large values)
+  // Depth 1: Slightly bigger (140 → r ~35-40) - sub-circle roles (circles inside green circle)
+  // Depth 2: Match previous depth 1 (55 → r ~22-23) - sub-sub-circle roles
+  // Depth 3+: Keep current (35 → r ~17-18) - smallest roles (good as-is)
+  const baseSizes = [500, 140, 55, 35]; // depth 0, 1, 2, 3+
+  const baseSize = baseSizes[Math.min(parentDepth, baseSizes.length - 1)];
+  
+  return baseSize;
+}
+
+// Store parent depth during hierarchy building
+function buildHierarchy(circle: CircleNode, depth: number = 0): CircleNode {
+  const children = childrenMap.get(circle.circleId);
+  if (children) {
+    const mappedChildren = children.map((child) => {
+      if (isSyntheticRole(child.circleId)) {
+        // Store parent depth in role node data
+        return {
+          ...child,
+          _parentDepth: depth
+        };
+      }
+      return buildHierarchy(child, depth + 1);
+    });
+    return { ...circle, children: mappedChildren };
+  }
+  return circle;
+}
+```
+
+**Why**: 
+- D3 pack layout calculates radius proportionally based on `value` parameter
+- With many siblings (e.g., 11 roles), D3 scales all circles down to fit parent
+- Need much larger `baseSize` values (500 vs 15) to achieve desired visual sizes
+- Store `_parentDepth` during hierarchy building (not available during `root.sum()` traversal)
+- Adjust for synthetic root when multiple root circles exist
+
+**Apply when**: 
+- Building nested bubble charts with roles at different hierarchy levels
+- Roles should visually reflect their hierarchical position (larger = higher level)
+- D3 pack layout scales circles proportionally, requiring larger values for many siblings
+
+**Related**: #L3500 (D3 Pack Layout with Synthetic Nodes), D3.js pack layout documentation
+
+**Source**: SYOS-179 (Org Chart Design)
+
+---
+
+**Pattern Count**: 37  
 **Last Updated**: 2025-11-17  
 **Design Token Reference**: `dev-docs/design-tokens.md`

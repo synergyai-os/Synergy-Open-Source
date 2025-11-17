@@ -245,7 +245,7 @@ correct code
 ---
 
 **Last Updated**: 2025-11-17
-**Pattern Count**: 91
+**Pattern Count**: 92
 **Format Version**: 2.0
 ```
 
@@ -257,3 +257,4 @@ correct code
 || User logs in from invite link, redirected back to `/invite` showing "Sign in" screen | Accept invite server-side in login handler before redirect, handle both org and team invites | [convex-integration.md#L3600](convex-integration.md#L3600) |
 || Redirecting to `/org/{organizationId}` results in 404 error                                     | Use query parameter pattern: `/org/circles?org={organizationId}`                        | [ui-patterns.md#L3400](ui-patterns.md#L3400)                |
 || Roles appear underneath child circles instead of alongside them in nested bubble chart          | Include roles as synthetic circle nodes in D3 hierarchy (pack alongside, not separate) | [ui-patterns.md#L3500](ui-patterns.md#L3500)                |
+| Roles in nested bubble chart all appear same size, despite hierarchy depth                     | Scale role sizes based on parent depth with large baseSize values (D3 scales proportionally) | [ui-patterns.md#L3570](ui-patterns.md#L3570)                |
