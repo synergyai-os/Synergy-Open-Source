@@ -20,10 +20,13 @@ export const verifyCode = mutation({
 	handler: async (ctx, args) => {
 		const now = Date.now();
 
+		// Normalize email (lowercase + trim) for consistent lookup
+		const normalizedEmail = args.email.trim().toLowerCase();
+
 		// Find the code record by email and type (don't filter by code yet - need to track attempts)
 		const verificationCode = await ctx.db
 			.query('verificationCodes')
-			.withIndex('by_email_type', (q) => q.eq('email', args.email).eq('type', args.type))
+			.withIndex('by_email_type', (q) => q.eq('email', normalizedEmail).eq('type', args.type))
 			.filter((q) => q.eq(q.field('verified'), false))
 			.first();
 
@@ -50,8 +53,11 @@ export const verifyCode = mutation({
 			};
 		}
 
+		// Normalize code (trim whitespace) for comparison
+		const normalizedCode = args.code.trim();
+
 		// Check if code matches
-		if (verificationCode.code !== args.code) {
+		if (verificationCode.code !== normalizedCode) {
 			// Increment attempts FIRST
 			const newAttempts = verificationCode.attempts + 1;
 			await ctx.db.patch(verificationCode._id, {
@@ -121,9 +127,12 @@ export const getCodeStatus = query({
 		type: v.union(v.literal('registration'), v.literal('login'), v.literal('email_change'))
 	},
 	handler: async (ctx, args) => {
+		// Normalize email (lowercase + trim) for consistent lookup
+		const normalizedEmail = args.email.trim().toLowerCase();
+
 		const code = await ctx.db
 			.query('verificationCodes')
-			.withIndex('by_email_type', (q) => q.eq('email', args.email).eq('type', args.type))
+			.withIndex('by_email_type', (q) => q.eq('email', normalizedEmail).eq('type', args.type))
 			.filter((q) => q.eq(q.field('verified'), false))
 			.first();
 
@@ -154,9 +163,12 @@ export const getCodeForTesting = query({
 		type: v.union(v.literal('registration'), v.literal('login'), v.literal('email_change'))
 	},
 	handler: async (ctx, args) => {
+		// Normalize email (lowercase + trim) for consistent lookup
+		const normalizedEmail = args.email.trim().toLowerCase();
+
 		const codeRecord = await ctx.db
 			.query('verificationCodes')
-			.withIndex('by_email_type', (q) => q.eq('email', args.email).eq('type', args.type))
+			.withIndex('by_email_type', (q) => q.eq('email', normalizedEmail).eq('type', args.type))
 			.filter((q) => q.eq(q.field('verified'), false))
 			.first();
 
@@ -186,7 +198,8 @@ export const createAndSendVerificationCode = action({
 		type: v.union(v.literal('registration'), v.literal('login'), v.literal('email_change')),
 		firstName: v.optional(v.string()),
 		ipAddress: v.optional(v.string()),
-		userAgent: v.optional(v.string())
+		userAgent: v.optional(v.string()),
+		skipEmail: v.optional(v.boolean()) // Passed from SvelteKit server when E2E_TEST_MODE=true
 	},
 	handler: async (ctx, args) => {
 		// 1. Create verification code
@@ -199,9 +212,10 @@ export const createAndSendVerificationCode = action({
 
 		// 2. Send verification email (skip in E2E test mode for performance)
 		// E2E tests use the test helper endpoint to retrieve codes
-		const isTestMode = process.env.E2E_TEST_MODE === 'true';
+		// Check both skipEmail parameter (from SvelteKit server) and process.env (for backwards compatibility)
+		const shouldSkipEmail = args.skipEmail === true || process.env.E2E_TEST_MODE === 'true';
 
-		if (!isTestMode) {
+		if (!shouldSkipEmail) {
 			await ctx.runAction(internal.email.sendVerificationEmail, {
 				email: args.email,
 				code,
@@ -230,10 +244,13 @@ export const createVerificationCodeInternal = internalMutation({
 		const now = Date.now();
 		const expiresAt = now + 10 * 60 * 1000; // 10 minutes
 
+		// Normalize email (lowercase + trim) for consistent storage and lookup
+		const normalizedEmail = args.email.trim().toLowerCase();
+
 		// Invalidate any existing unverified codes for this email+type
 		const existingCodes = await ctx.db
 			.query('verificationCodes')
-			.withIndex('by_email_type', (q) => q.eq('email', args.email).eq('type', args.type))
+			.withIndex('by_email_type', (q) => q.eq('email', normalizedEmail).eq('type', args.type))
 			.filter((q) => q.eq(q.field('verified'), false))
 			.collect();
 
@@ -247,7 +264,7 @@ export const createVerificationCodeInternal = internalMutation({
 
 		// Store code in database
 		await ctx.db.insert('verificationCodes', {
-			email: args.email,
+			email: normalizedEmail,
 			code,
 			type: args.type,
 			attempts: 0,

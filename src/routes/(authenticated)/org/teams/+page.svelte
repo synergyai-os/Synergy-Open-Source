@@ -4,8 +4,8 @@
 	import { goto } from '$app/navigation';
 	import { getContext } from 'svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
-	import { useCircles } from '$lib/composables/useCircles.svelte';
-	import CreateCircleModal from '$lib/components/circles/CreateCircleModal.svelte';
+	import { useTeams } from '$lib/composables/useTeams.svelte';
+	import CreateTeamModal from '$lib/components/teams/CreateTeamModal.svelte';
 	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 
 	let { data: _data } = $props();
@@ -35,24 +35,20 @@
 		}
 	});
 
-	// Initialize circles composable
-	const circles = useCircles({
+	// Initialize teams composable
+	const teams = useTeams({
 		sessionId: getSessionId,
 		organizationId: getOrganizationId
 	});
 
-	const circlesList = $derived(circles.circles);
-	const isLoading = $derived(!browser || circlesList === null);
+	const teamsList = $derived(teams.teams);
+	const isLoading = $derived(!browser || teamsList === null);
 
-	// Prepare circles for parent selector (exclude archived)
-	const availableCircles = $derived(
-		circlesList.filter((c) => !c.archivedAt).map((c) => ({ circleId: c.circleId, name: c.name }))
-	);
+	let showCreateModal = $state(false);
 
-	function handleRowClick(circleId: string) {
-		const orgId = organizationId();
+	function handleRowClick(teamId: string, orgId: string | undefined) {
 		if (!orgId) return;
-		goto(resolveRoute(`/org/circles/${circleId}?org=${orgId}`));
+		goto(resolveRoute(`/org/teams/${teamId}?org=${orgId}`));
 	}
 </script>
 
@@ -61,14 +57,14 @@
 	<header class="border-b border-base bg-surface px-inbox-container py-header">
 		<div class="flex items-center justify-between">
 			<div>
-				<h1 class="text-xl font-semibold text-primary">Circles</h1>
-				<p class="mt-1 text-sm text-secondary">{organizationName}</p>
+				<h1 class="text-xl font-semibold text-primary">Teams</h1>
+				<p class="mt-1 text-sm text-secondary">{organizationName()}</p>
 			</div>
 			<button
 				class="text-on-solid rounded-md bg-accent-primary px-nav-item py-nav-item text-sm font-medium hover:bg-accent-hover"
-				onclick={() => circles.openModal('createCircle')}
+				onclick={() => (showCreateModal = true)}
 			>
-				Create Circle
+				Create Team
 			</button>
 		</div>
 	</header>
@@ -77,9 +73,9 @@
 	<main class="flex-1 overflow-y-auto px-inbox-container py-inbox-container">
 		{#if isLoading}
 			<div class="flex h-64 items-center justify-center">
-				<div class="text-secondary">Loading circles...</div>
+				<div class="text-secondary">Loading teams...</div>
 			</div>
-		{:else if circlesList.length === 0}
+		{:else if teamsList.length === 0}
 			<!-- Empty State -->
 			<div class="flex h-64 flex-col items-center justify-center">
 				<svg
@@ -96,17 +92,17 @@
 						d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
 					/>
 				</svg>
-				<h2 class="text-lg font-medium text-primary">No circles yet</h2>
-				<p class="mt-1 text-sm text-secondary">Create your first circle to get started</p>
+				<h2 class="text-lg font-medium text-primary">No teams yet</h2>
+				<p class="mt-1 text-sm text-secondary">Create your first team to get started</p>
 				<button
 					class="text-on-solid mt-4 rounded-md bg-accent-primary px-nav-item py-nav-item text-sm font-medium hover:bg-accent-hover"
-					onclick={() => circles.openModal('createCircle')}
+					onclick={() => (showCreateModal = true)}
 				>
-					Create Circle
+					Create Team
 				</button>
 			</div>
 		{:else}
-			<!-- Circles Table -->
+			<!-- Teams Table -->
 			<div class="overflow-hidden rounded-lg border border-base bg-surface">
 				<table class="w-full">
 					<thead class="border-b border-base bg-elevated">
@@ -115,33 +111,25 @@
 								Name
 							</th>
 							<th class="px-nav-item py-nav-item text-left text-sm font-medium text-secondary">
-								Purpose
-							</th>
-							<th class="px-nav-item py-nav-item text-left text-sm font-medium text-secondary">
-								Parent
-							</th>
-							<th class="px-nav-item py-nav-item text-left text-sm font-medium text-secondary">
 								Members
+							</th>
+							<th class="px-nav-item py-nav-item text-left text-sm font-medium text-secondary">
+								Created
 							</th>
 						</tr>
 					</thead>
 					<tbody>
-						{#each circlesList as circle (circle.circleId)}
+						{#each teamsList as team (team.teamId)}
 							<tr
 								class="cursor-pointer border-b border-base hover:bg-sidebar-hover"
-								onclick={() => handleRowClick(circle.circleId)}
+								onclick={() => handleRowClick(team.teamId, organizationId())}
 							>
-								<td class="px-nav-item py-nav-item text-sm text-primary">
-									{circle.name}
+								<td class="px-nav-item py-nav-item text-sm text-primary">{team.name}</td>
+								<td class="px-nav-item py-nav-item text-sm text-secondary">
+									{team.memberCount}
 								</td>
 								<td class="px-nav-item py-nav-item text-sm text-secondary">
-									{circle.purpose ?? '—'}
-								</td>
-								<td class="px-nav-item py-nav-item text-sm text-secondary">
-									{circle.parentName ?? '—'}
-								</td>
-								<td class="px-nav-item py-nav-item text-sm text-secondary">
-									{circle.memberCount}
+									{new Date(team.createdAt).toLocaleDateString()}
 								</td>
 							</tr>
 						{/each}
@@ -152,5 +140,4 @@
 	</main>
 </div>
 
-<!-- Create Circle Modal -->
-<CreateCircleModal {circles} {availableCircles} />
+<CreateTeamModal {teams} open={showCreateModal} onOpenChange={(open) => (showCreateModal = open)} />

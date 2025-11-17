@@ -45,7 +45,7 @@ export default defineConfig({
 		// Excludes: API key management, incomplete features
 		{
 			name: 'authenticated',
-			testMatch: /.*\/(multi-tab|auth-security).*\.(test|spec)\.ts$/,
+			testMatch: /.*\/(multi-tab|auth-security|member-invite).*\.(test|spec)\.ts$/,
 			use: {
 				...devices['Desktop Chrome']
 				// Storage state provided by custom fixture (e2e/fixtures.ts)

@@ -4,7 +4,13 @@
 
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
 
-	const hasOrganizations = $derived((organizations?.organizations ?? []).length > 0);
+	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
+	// Pattern: Check object existence first, then access getter property directly
+	// See SYOS-228 for full pattern documentation
+	const hasOrganizations = $derived(() => {
+		if (!organizations) return false;
+		return (organizations.organizations ?? []).length > 0;
+	});
 
 	function handleCreateOrg() {
 		organizations?.openModal('createOrganization');
@@ -19,12 +25,12 @@
 	<div class="w-full max-w-md rounded-lg border border-base bg-surface p-6 text-center">
 		<h1 class="text-xl font-semibold text-primary">Organization Required</h1>
 
-		{#if hasOrganizations}
+		{#if hasOrganizations()}
 			<!-- User has orgs but none selected -->
 			<p class="mt-2 text-sm text-secondary">Please select an organization to access Circles.</p>
 
 			<div class="mt-6 space-y-2">
-				{#each organizations?.organizations ?? [] as org (org.organizationId)}
+				{#each organizations ? (organizations.organizations ?? []) : [] as org (org.organizationId)}
 					<button
 						onclick={() => handleSelectOrg(org.organizationId)}
 						class="w-full rounded-md border border-base bg-elevated px-nav-item py-nav-item text-left text-sm text-primary hover:bg-sidebar-hover"

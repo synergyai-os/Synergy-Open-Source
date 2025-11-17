@@ -1281,15 +1281,180 @@ export const sendVerificationEmail = internalAction({
 });
 ```
 
-### Setup: Convex Environment Variable
+### Setup: Pass E2E_TEST_MODE as Parameter (Recommended)
+
+**⚠️ IMPORTANT**: Don't set `E2E_TEST_MODE` in Convex environment variables. It will suppress emails in production/dev.
+
+Instead, pass `skipEmail` parameter from SvelteKit server (which reads Vite's `E2E_TEST_MODE`):
+
+```typescript
+// src/routes/auth/register/+server.ts
+import { env } from '$env/dynamic/private';
+
+export const POST: RequestHandler = async ({ event }) => {
+  // Check E2E_TEST_MODE from Vite server environment (set by npm script)
+  const skipEmail = process.env.E2E_TEST_MODE === 'true' || env.E2E_TEST_MODE === 'true';
+  
+  await convex.action(api.verification.createAndSendVerificationCode, {
+    email,
+    type: 'registration',
+    skipEmail: skipEmail || undefined // Only pass if true
+  });
+};
+```
+
+```typescript
+// convex/verification.ts - Accept skipEmail parameter
+export const createAndSendVerificationCode = action({
+  args: {
+    email: v.string(),
+    type: v.union(...),
+    skipEmail: v.optional(v.boolean()) // ✅ Passed from SvelteKit server
+  },
+  handler: async (ctx, args) => {
+    const { code } = await ctx.runMutation(...);
+    
+    // Check skipEmail parameter (from SvelteKit) OR process.env (backwards compat)
+    const shouldSkipEmail = args.skipEmail === true || process.env.E2E_TEST_MODE === 'true';
+    
+    if (!shouldSkipEmail) {
+      await ctx.runAction(internal.email.sendVerificationEmail, { email, code });
+    }
+  }
+});
+```
+
+**Why this approach**:
+- ✅ E2E tests work (emails skipped during tests)
+- ✅ Production/dev sends emails normally (no Convex env var needed)
+- ✅ No risk of accidentally leaving E2E_TEST_MODE set in Convex
+- ✅ Backwards compatible (still checks process.env as fallback)
+
+### Legacy: Convex Environment Variable (Not Recommended)
 
 ```bash
-# One-time: Set E2E_TEST_MODE in Convex deployment
+# ❌ DON'T DO THIS - Suppresses emails in production/dev
 npx convex env set E2E_TEST_MODE true
-
-# Verify
-npx convex env get E2E_TEST_MODE  # Should return: true
 ```
+
+**Why this approach**:
+
+- ✅ **E2E tests work**: Vite server has `E2E_TEST_MODE=true` (from npm script), passes `skipEmail: true` to Convex
+- ✅ **Production/dev sends emails**: No `E2E_TEST_MODE` in Vite → passes `skipEmail: undefined` → Convex sends emails
+- ✅ **No Convex env var needed**: Don't need to set `E2E_TEST_MODE` in Convex environment
+- ✅ **Backwards compatible**: Still checks `process.env.E2E_TEST_MODE` in Convex as fallback
+- ✅ **Safer**: Can't accidentally leave `E2E_TEST_MODE` set in Convex (affects all deployments)
+
+**Environment Variable Separation**:
+
+- **SvelteKit/Vite**: Reads from `process.env` (set by npm scripts, `.env` files, or Playwright `webServer.env`)
+- **Convex**: Reads from Convex environment variables (set via `npx convex env set`)
+- **These are separate**: Setting `E2E_TEST_MODE` in npm script doesn't affect Convex `process.env`
+
+**Apply when**:
+
+- Setting up E2E tests that need to skip external API calls (email, SMS, payment)
+- Want to avoid setting test flags in Convex environment variables
+- Need to ensure production/dev environments aren't affected by test configuration
+
+**Related**: #L1320 (Pass E2E_TEST_MODE as parameter), #L280 (Vite mode flag), #L310 (WorkOS test config)
+
+---
+
+## #L1320: Pass E2E_TEST_MODE as Parameter, Not Convex Env Var [🔴 CRITICAL]
+
+**Symptom**: Verification emails not sent in production/dev, but password reset emails work. E2E_TEST_MODE was set in Convex environment variables.
+
+**Root Cause**: Convex environment variables (`npx convex env set`) are separate from SvelteKit/Vite environment variables. Setting `E2E_TEST_MODE=true` in Convex suppresses emails globally, affecting production/dev environments.
+
+**Fix**: Pass `skipEmail` parameter from SvelteKit server (which reads Vite's `E2E_TEST_MODE`) instead of checking `process.env.E2E_TEST_MODE` in Convex:
+
+```typescript
+// ✅ CORRECT: SvelteKit server checks E2E_TEST_MODE and passes parameter
+// src/routes/auth/register/+server.ts
+import { env } from '$env/dynamic/private';
+
+export const POST: RequestHandler = async ({ event }) => {
+  // Check E2E_TEST_MODE from Vite server (set by npm script: E2E_TEST_MODE=true playwright test)
+  const skipEmail = process.env.E2E_TEST_MODE === 'true' || env.E2E_TEST_MODE === 'true';
+  
+  await convex.action(api.verification.createAndSendVerificationCode, {
+    email,
+    type: 'registration',
+    skipEmail: skipEmail || undefined // Only pass if true
+  });
+};
+```
+
+```typescript
+// ✅ CORRECT: Convex action accepts skipEmail parameter
+// convex/verification.ts
+export const createAndSendVerificationCode = action({
+  args: {
+    email: v.string(),
+    type: v.union(v.literal('registration'), v.literal('login'), v.literal('email_change')),
+    skipEmail: v.optional(v.boolean()) // ✅ Passed from SvelteKit server
+  },
+  handler: async (ctx, args) => {
+    const { code } = await ctx.runMutation(internal.verification.createVerificationCodeInternal, {
+      email: args.email,
+      type: args.type
+    });
+
+    // Check skipEmail parameter (from SvelteKit) OR process.env (backwards compatibility)
+    const shouldSkipEmail = args.skipEmail === true || process.env.E2E_TEST_MODE === 'true';
+
+    if (!shouldSkipEmail) {
+      await ctx.runAction(internal.email.sendVerificationEmail, {
+        email: args.email,
+        code,
+        firstName: args.firstName
+      });
+    } else {
+      console.log('🧪 E2E_TEST_MODE: Skipping email send, code:', code);
+    }
+
+    return { success: true };
+  }
+});
+```
+
+```typescript
+// ❌ WRONG: Checking process.env.E2E_TEST_MODE in Convex (requires Convex env var)
+export const createAndSendVerificationCode = action({
+  handler: async (ctx, args) => {
+    // This checks Convex environment variables, not Vite/SvelteKit env
+    const isTestMode = process.env.E2E_TEST_MODE === 'true'; // ❌ Requires npx convex env set
+    
+    if (!isTestMode) {
+      await ctx.runAction(internal.email.sendVerificationEmail, { email, code });
+    }
+  }
+});
+```
+
+**Why this approach**:
+
+- ✅ **E2E tests work**: Vite server has `E2E_TEST_MODE=true` (from npm script), passes `skipEmail: true` to Convex
+- ✅ **Production/dev sends emails**: No `E2E_TEST_MODE` in Vite → passes `skipEmail: undefined` → Convex sends emails
+- ✅ **No Convex env var needed**: Don't need to set `E2E_TEST_MODE` in Convex environment
+- ✅ **Backwards compatible**: Still checks `process.env.E2E_TEST_MODE` in Convex as fallback
+- ✅ **Safer**: Can't accidentally leave `E2E_TEST_MODE` set in Convex (affects all deployments)
+
+**Environment Variable Separation**:
+
+- **SvelteKit/Vite**: Reads from `process.env` (set by npm scripts, `.env` files, or Playwright `webServer.env`)
+- **Convex**: Reads from Convex environment variables (set via `npx convex env set`)
+- **These are separate**: Setting `E2E_TEST_MODE` in npm script doesn't affect Convex `process.env`
+
+**Apply when**:
+
+- Setting up E2E tests that need to skip external API calls (email, SMS, payment)
+- Want to avoid setting test flags in Convex environment variables
+- Need to ensure production/dev environments aren't affected by test configuration
+- Verification emails not being sent in production/dev
+
+**Related**: #L320 (Mock external APIs), #L280 (Vite mode flag), #L310 (WorkOS test config)
 
 ### Playwright Configuration
 

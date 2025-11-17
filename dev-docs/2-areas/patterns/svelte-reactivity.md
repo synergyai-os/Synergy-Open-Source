@@ -1329,6 +1329,225 @@ const item = useQuery(api.meetingAgendaItems.get, () => ({
 
 ---
 
-**Pattern Count**: 21  
+---
+
+## #L900: Call $derived Functions When Passing as Props [🔴 CRITICAL]
+
+**Symptom**: `$derived` values don't update in child components, props show as functions instead of values  
+**Root Cause**: `$derived(() => ...)` returns a function. When passed as props without calling, child receives function, not value.  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Passing $derived function directly
+const organizationSummaries = $derived(() => {
+	if (!organizations) return [];
+	return organizations.organizations ?? [];
+});
+
+<ChildComponent organizations={organizationSummaries} /> // ❌ Receives function
+
+// ✅ CORRECT: Call $derived function when passing as prop
+<ChildComponent organizations={organizationSummaries()} /> // ✅ Receives array
+
+// Also fix other $derived props
+<ChildComponent
+	organizations={organizationSummaries()}
+	activeOrganizationId={activeOrganizationId()}
+	activeOrganization={activeOrganization()}
+/>
+```
+
+**In Templates**: Also call explicitly in `{#each}` blocks:
+
+```svelte
+<!-- ❌ WRONG: May not execute -->
+{#each allOrganizations as org (org.id)}
+	{org.name}
+{/each}
+
+<!-- ✅ CORRECT: Explicit call ensures execution -->
+{#each allOrganizations() as org (org.id)}
+	{org.name}
+{/each}
+```
+
+**Why**: `$derived(() => ...)` creates a function that must be called to get the value. Svelte 5 templates should auto-call, but explicit calls ensure reliability.  
+**Apply when**: Passing `$derived(() => ...)` values as props or using in templates  
+**Related**: #L10 (Getter pattern), #L80 (Function parameters), SYOS-228 (Getter reactivity tracking)
+
+---
+
+## #L910: Access Getter Properties from Context Without Optional Chaining [🔴 CRITICAL]
+
+**Symptom**: `$derived` values don't execute, return functions instead of values, reactivity breaks  
+**Root Cause**: Optional chaining (`?.`) in `$derived` expressions prevents Svelte from tracking getter property access from context  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Optional chaining breaks reactivity tracking
+const organizations = getContext<UseOrganizations | undefined>('organizations');
+const organizationSummaries = $derived(() => organizations?.organizations ?? []); // ❌ Not tracked
+
+// ✅ CORRECT: Check object existence first, then access getter directly
+const organizationSummaries = $derived(() => {
+	if (!organizations) return [];
+	return organizations.organizations ?? []; // ✅ Svelte tracks getter access
+});
+
+// Pattern for all getter properties
+const activeOrganizationId = $derived(() => {
+	if (!organizations) return null;
+	return organizations.activeOrganizationId ?? null;
+});
+```
+
+**Why**: Svelte 5 tracks property access for reactivity. Optional chaining (`?.`) can interfere with tracking getter properties from context objects. Checking existence first, then accessing the getter directly ensures proper reactivity.  
+**Apply when**: Accessing getter properties from context composables in `$derived` expressions  
+**Related**: #L10 (Getter pattern), SYOS-228 (Full pattern documentation)
+
+---
+
+## #L920: Extract Primitives from $derived Before Passing to Convex Queries [🔴 CRITICAL]
+
+**Symptom**: `state_snapshot_uncloneable` error: "The following properties cannot be cloned with `$state.snapshot`"  
+**Root Cause**: Passing `$derived` function (not primitive value) to Convex `useQuery`. Convex tries to serialize arguments, Svelte's `$state.snapshot` fails on functions.  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Passing $derived function to Convex
+const organizationId = $derived(() => {
+	if (!organizations) return undefined;
+	return organizations.activeOrganizationId ?? undefined;
+});
+
+const getOrganizationId = () => organizationId; // ❌ Returns function
+
+useQuery(api.circles.list, () => {
+	const orgId = getOrganizationId(); // ❌ Function, not primitive
+	return { sessionId, organizationId: orgId }; // ❌ snapshot fails
+});
+
+// ✅ CORRECT: Call $derived function to get primitive
+const getOrganizationId = () => organizationId(); // ✅ Returns primitive
+
+useQuery(api.circles.list, () => {
+	const orgId = getOrganizationId(); // ✅ Primitive string
+	return { sessionId, organizationId: orgId }; // ✅ Works
+});
+
+// Also fix in $effect checks
+$effect(() => {
+	if (!organizationId()) { // ✅ Call function
+		goto('/onboarding');
+	}
+});
+```
+
+**Why**: Convex queries serialize arguments using `$state.snapshot`. Functions cannot be cloned. Extract primitive values by calling `$derived` functions before passing to Convex.  
+**Apply when**: Passing `$derived` values to Convex queries or mutations  
+**Related**: #L900 (Call $derived functions), #L10 (Convex undefined values)
+
+---
+
+## #L1460: Composite Keys for Shared Resources [🔴 CRITICAL]
+
+**Symptom**: `each_key_duplicate` error when multiple users/accounts have access to same organization  
+**Root Cause**: Using organizationId alone as key when multiple users can belong to same organization creates duplicate keys  
+**Fix**:
+
+```svelte
+<!-- ❌ WRONG: Single ID when multiple users share same resource -->
+{#each linkedAccountsWithOrgs() as account}
+	{#each account.organizations as org (org.organizationId)}
+		<!-- ❌ Error: If account1 and account2 both have orgX, duplicate key -->
+	{/each}
+{/each}
+
+<!-- ✅ CORRECT: Composite key combining resource ID + context (user ID) -->
+{#each linkedAccountsWithOrgs() as account (account.userId)}
+	{#each account.organizations as org (`${org.organizationId}-${account.userId}`)}
+		<!-- ✅ Unique: Each org-user combination has unique key -->
+		<div>{org.name} - {account.email}</div>
+	{/each}
+{/each}
+```
+
+**Why**: When the same resource (organization) appears in multiple contexts (different users), you need a composite key that combines both the resource ID and the context ID to ensure uniqueness.
+
+**Apply when**:
+- Multiple users/accounts can access the same resource (organizations, teams, projects)
+- Resource appears in different sections grouped by user/account
+- Getting `each_key_duplicate` error with IDs that should be unique
+
+**Related**: #L850 (Basic each keys), #L900 (Calling $derived functions)
+
+---
+
+## #L1510: Variable Scope in Try-Catch with Async/Await [🔴 CRITICAL]
+
+**Symptom**: `ReferenceError: [variable] is not defined` when accessing variable from try block in cleanup code  
+**Root Cause**: Variable declared inside try block is not accessible in code that runs after the try-catch (different scope)  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Variable declared inside try, accessed outside
+try {
+	const response = await fetch('/api/data');
+	const data = await response.json();
+	
+	// ... process data ...
+} catch (error) {
+	console.error('Failed:', error);
+}
+
+// ❌ ReferenceError: data is not defined
+if (data.items) {
+	// cleanup code
+}
+
+// ✅ CORRECT: Declare variable before try, assign inside
+let data = null;
+try {
+	const response = await fetch('/api/data');
+	data = await response.json();
+	
+	// ... process data ...
+} catch (error) {
+	console.error('Failed:', error);
+}
+
+// ✅ Now accessible
+if (data?.items) {
+	// cleanup code works
+}
+
+// ✅ BETTER: Move cleanup inside try block
+try {
+	const response = await fetch('/api/data');
+	const data = await response.json();
+	
+	// ... process data ...
+	
+	// Cleanup immediately after processing (same scope)
+	if (data.items) {
+		// cleanup code
+	}
+} catch (error) {
+	console.error('Failed:', error);
+}
+```
+
+**Why**: Variables declared inside a block (try, if, for, etc.) are scoped to that block and not accessible outside.
+
+**Apply when**:
+- Getting "ReferenceError: [variable] is not defined"
+- Need to access data from async operation in cleanup/post-processing
+- Variable declared inside try block but used after catch
+
+**Related**: #L730 (Try-catch with replaceState), #L700 ($effect reactivity loops)
+
+---
+
+**Pattern Count**: 26  
 **Last Validated**: 2025-11-17  
 **Context7 Source**: `/sveltejs/svelte`, `@sveltejs/kit`, `/get-convex/convex-js`

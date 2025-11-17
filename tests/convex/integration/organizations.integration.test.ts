@@ -214,7 +214,7 @@ describe('Organizations Integration Tests', () => {
 		const result = await t.mutation(api.organizations.removeOrganizationMember, {
 			sessionId: adminSessionId,
 			organizationId: orgId,
-			targetUserId: memberUserId
+			userId: memberUserId
 		});
 
 		expect(result.success).toBe(true);
@@ -269,5 +269,65 @@ describe('Organizations Integration Tests', () => {
 				sessionId: 'invalid_session_id'
 			})
 		).rejects.toThrow('Session not found');
+	});
+
+	describe('Email validation for organization invites', () => {
+		it('should accept valid email addresses', async () => {
+			const t = convexTest(schema, modules);
+			const { sessionId, userId } = await createTestSession(t);
+			const orgId = await createTestOrganization(t, 'Test Org');
+			await createTestOrganizationMember(t, orgId, userId, 'owner');
+			cleanupQueue.push({ userId, orgId });
+
+			const validEmails = [
+				'user@example.com',
+				'test.user@domain.co.uk',
+				'user+tag@example.com',
+				'user123@subdomain.example.org'
+			];
+
+			for (const email of validEmails) {
+				const result = await t.mutation(api.organizations.createOrganizationInvite, {
+					sessionId,
+					organizationId: orgId,
+					email,
+					role: 'member'
+				});
+
+				expect(result).toBeDefined();
+				expect(result.inviteId).toBeDefined();
+				expect(result.code).toBeDefined();
+			}
+		});
+
+		it('should reject invalid email addresses', async () => {
+			const t = convexTest(schema, modules);
+			const { sessionId, userId } = await createTestSession(t);
+			const orgId = await createTestOrganization(t, 'Test Org');
+			await createTestOrganizationMember(t, orgId, userId, 'owner');
+			cleanupQueue.push({ userId, orgId });
+
+			const invalidEmails = [
+				'asdfasdf@asdfasdf', // No TLD
+				'invalid@domain', // No TLD
+				'@example.com', // Missing local part
+				'user@', // Missing domain
+				'user@.com', // Invalid domain
+				'user@domain.', // Missing TLD
+				'notanemail', // No @ symbol
+				'user@domain.c' // TLD too short (must be 2+ chars)
+			];
+
+			for (const email of invalidEmails) {
+				await expect(
+					t.mutation(api.organizations.createOrganizationInvite, {
+						sessionId,
+						organizationId: orgId,
+						email,
+						role: 'member'
+					})
+				).rejects.toThrow('Invalid email format');
+			}
+		});
 	});
 });

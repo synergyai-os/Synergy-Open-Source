@@ -1,11 +1,19 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { PinInput, Button } from '$lib/components/ui';
 	import { onMount } from 'svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	const email = $derived($page.url.searchParams.get('email') ?? '');
+
+	// Check if user is already authenticated
+	const getSessionId = () => $page.data.sessionId;
+	const isAuthenticated = $derived(() => {
+		if (!browser) return false;
+		return !!getSessionId();
+	});
 
 	let code = $state('');
 	let isSubmitting = $state(false);
@@ -14,6 +22,9 @@
 	let resendSuccess = $state(false);
 	let timeLeft = $state(600); // 10 minutes in seconds
 	let mounted = $state(false);
+	let redirectCountdown = $state(10); // 10 seconds countdown for auto-redirect
+	let redirectTimer: ReturnType<typeof setInterval> | null = null;
+	let shouldRedirectToLogin = $state(false); // Show redirect UI for "already registered" error
 
 	// Redirect if no email provided
 	$effect(() => {
@@ -21,6 +32,61 @@
 			goto(resolveRoute('/register'));
 		}
 	});
+
+	// Handle redirect if already authenticated (with countdown)
+	$effect(() => {
+		if (!browser || !isAuthenticated()) return;
+
+		// Get redirect target
+		const redirectParam = $page.url.searchParams.get('redirect');
+		const redirectTarget = redirectParam ? resolveRoute(redirectParam) : resolveRoute('/inbox');
+
+		// Start countdown timer
+		redirectCountdown = 10;
+		redirectTimer = setInterval(() => {
+			redirectCountdown--;
+			if (redirectCountdown <= 0) {
+				if (redirectTimer) {
+					clearInterval(redirectTimer);
+					redirectTimer = null;
+				}
+				goto(redirectTarget);
+			}
+		}, 1000);
+
+		// Cleanup on unmount
+		return () => {
+			if (redirectTimer) {
+				clearInterval(redirectTimer);
+				redirectTimer = null;
+			}
+		};
+	});
+
+	// Manual redirect function (for authenticated users)
+	function handleRedirectNow() {
+		if (redirectTimer) {
+			clearInterval(redirectTimer);
+			redirectTimer = null;
+		}
+		const redirectParam = $page.url.searchParams.get('redirect');
+		const redirectTarget = redirectParam ? resolveRoute(redirectParam) : resolveRoute('/inbox');
+		goto(redirectTarget);
+	}
+
+	// Redirect to login function (for "already registered" error)
+	function handleRedirectToLogin() {
+		if (redirectTimer) {
+			clearInterval(redirectTimer);
+			redirectTimer = null;
+		}
+		const redirectParam = $page.url.searchParams.get('redirect') ?? '/inbox';
+		goto(
+			resolveRoute(
+				`/login?email=${encodeURIComponent(email)}&redirectTo=${encodeURIComponent(redirectParam)}`
+			)
+		);
+	}
 
 	// Countdown timer + Auto-paste from clipboard
 	onMount(() => {
@@ -91,13 +157,38 @@
 			const data = await response.json();
 
 			if (!response.ok) {
+				// Handle "email already registered" - show countdown and redirect UI
+				if (data.redirectToLogin && email) {
+					shouldRedirectToLogin = true;
+					errorMessage = null; // Clear error message
+					isSubmitting = false;
+					code = ''; // Clear the code
+
+					// Start countdown timer
+					redirectCountdown = 10;
+					if (redirectTimer) {
+						clearInterval(redirectTimer);
+					}
+					redirectTimer = setInterval(() => {
+						redirectCountdown--;
+						if (redirectCountdown <= 0) {
+							if (redirectTimer) {
+								clearInterval(redirectTimer);
+								redirectTimer = null;
+							}
+							handleRedirectToLogin();
+						}
+					}, 1000);
+					return;
+				}
+
 				errorMessage = data.error ?? 'Invalid verification code';
 				isSubmitting = false;
 				code = ''; // Clear the code to allow retry
 				return;
 			}
 
-			// Success - redirect
+			// Success - redirect (user is now authenticated)
 			await goto(data.redirectTo ?? resolveRoute('/inbox'));
 		} catch (_err) {
 			console.error('Verification error:', _err);
@@ -190,142 +281,210 @@
 				</p>
 			</header>
 
-			<!-- Success message with animation -->
-			{#if resendSuccess}
+			<!-- Already authenticated message with countdown -->
+			{#if isAuthenticated()}
 				<div
 					class="mt-content-section rounded-input border border-green-500 bg-green-50 px-input-x py-input-y shadow-sm"
 					style="animation: slideDown 0.3s ease-out"
 				>
-					<div class="flex items-center gap-2">
-						<svg
-							class="h-5 w-5 text-green-600"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
+					<div class="flex flex-col gap-3">
+						<div class="flex items-start gap-2">
+							<svg
+								class="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+								/>
+							</svg>
+							<div class="flex-1">
+								<p class="text-sm font-medium text-green-700">
+									You're already signed in! Redirecting you in {redirectCountdown} seconds...
+								</p>
+							</div>
+						</div>
+						<Button
+							onclick={handleRedirectNow}
+							class="w-full bg-green-600 text-white hover:bg-green-700"
 						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M5 13l4 4L19 7"
-							/>
-						</svg>
-						<p class="text-sm font-medium text-green-700">New code sent! Check your email.</p>
+							Continue Now
+						</Button>
 					</div>
 				</div>
-			{/if}
-
-			<!-- Error message with animation -->
-			{#if errorMessage}
-				<div
-					class="mt-content-section rounded-input border border-error bg-error px-input-x py-input-y shadow-sm"
-					style="animation: shake 0.5s ease-out"
-				>
-					<div class="flex items-start gap-2">
-						<svg
-							class="mt-0.5 h-5 w-5 flex-shrink-0 text-error-secondary"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-							/>
-						</svg>
-						<p class="text-sm font-medium text-error-secondary">{errorMessage}</p>
-					</div>
-				</div>
-			{/if}
-
-			<div class="mt-8">
-				<PinInput
-					bind:value={code}
-					label="Enter verification code"
-					error={errorMessage}
-					disabled={isSubmitting}
-					onComplete={handleVerification}
-				/>
-
-				<!-- Paste hint -->
-				{#if !code && mounted}
-					<p class="mt-2 text-center text-sm text-tertiary">
-						💡 Tip: Copy the code from your email and it will auto-paste
-					</p>
-				{/if}
-			</div>
-
-			<!-- Timer display with visual feedback -->
-			<div class="mt-6 text-center">
-				{#if timeLeft > 0}
-					<div class="inline-flex items-center gap-2 rounded-full bg-surface px-4 py-2">
-						<svg
-							class="h-4 w-4 text-tertiary"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-							/>
-						</svg>
-						<span class="text-sm font-medium {timeLeft < 60 ? 'text-error' : 'text-tertiary'}">
-							{minutes}:{seconds.toString().padStart(2, '0')}
-						</span>
-					</div>
-				{:else}
-					<p class="text-sm font-medium text-error">Code expired. Please request a new one.</p>
-				{/if}
-			</div>
-
-			<!-- Resend button with better styling -->
-			<div class="mt-6">
-				<Button
-					variant="secondary"
-					onclick={resendCode}
-					disabled={isResending || timeLeft > 540}
-					class="w-full"
-				>
-					{#if isResending}
-						<svg
-							class="mr-2 h-4 w-4 animate-spin"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-							/>
-						</svg>
-						Sending new code...
-					{:else if timeLeft > 540}
-						Request new code in {Math.ceil((timeLeft - 540) / 60)}m
-					{:else}
-						Didn't receive it? Resend code
-					{/if}
-				</Button>
-			</div>
-
-			<!-- Helper text -->
-			<div class="mt-6 border-t border-base pt-6 text-center">
-				<p class="text-sm text-secondary">
-					Wrong email?
-					<a
-						href={resolveRoute('/register')}
-						class="font-medium text-accent-primary transition-colors hover:text-accent-hover"
+			{:else}
+				<!-- Success message with animation -->
+				{#if resendSuccess}
+					<div
+						class="mt-content-section rounded-input border border-green-500 bg-green-50 px-input-x py-input-y shadow-sm"
+						style="animation: slideDown 0.3s ease-out"
 					>
-						Start over
-					</a>
-				</p>
-			</div>
+						<div class="flex items-center gap-2">
+							<svg
+								class="h-5 w-5 text-green-600"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M5 13l4 4L19 7"
+								/>
+							</svg>
+							<p class="text-sm font-medium text-green-700">New code sent! Check your email.</p>
+						</div>
+					</div>
+				{/if}
+
+				<!-- Redirect to login message with countdown (for "already registered" error) -->
+				{#if shouldRedirectToLogin}
+					<div
+						class="mt-content-section rounded-input border border-accent-primary bg-accent-primary/10 px-input-x py-input-y shadow-sm"
+						style="animation: slideDown 0.3s ease-out"
+					>
+						<div class="flex flex-col gap-3">
+							<div class="flex items-start gap-2">
+								<svg
+									class="mt-0.5 h-5 w-5 flex-shrink-0 text-accent-primary"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke="currentColor"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+									/>
+								</svg>
+								<div class="flex-1">
+									<p class="text-sm font-medium text-primary">
+										This email is already registered. Redirecting you to sign in in {redirectCountdown}
+										seconds...
+									</p>
+								</div>
+							</div>
+							<Button onclick={handleRedirectToLogin} class="w-full">Sign In Now</Button>
+						</div>
+					</div>
+				{:else if errorMessage}
+					<!-- Error message with animation -->
+					<div
+						class="mt-content-section rounded-input border border-error bg-error px-input-x py-input-y shadow-sm"
+						style="animation: shake 0.5s ease-out"
+					>
+						<div class="flex items-start gap-2">
+							<svg
+								class="mt-0.5 h-5 w-5 flex-shrink-0 text-error-secondary"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+								/>
+							</svg>
+							<p class="text-sm font-medium text-error-secondary">{errorMessage}</p>
+						</div>
+					</div>
+				{/if}
+
+				<div class="mt-8">
+					<PinInput
+						bind:value={code}
+						label="Enter verification code"
+						error={errorMessage}
+						disabled={isSubmitting}
+						onComplete={handleVerification}
+					/>
+
+					<!-- Paste hint -->
+					{#if !code && mounted}
+						<p class="mt-2 text-center text-sm text-tertiary">
+							💡 Tip: Copy the code from your email and it will auto-paste
+						</p>
+					{/if}
+				</div>
+
+				<!-- Timer display with visual feedback -->
+				<div class="mt-6 text-center">
+					{#if timeLeft > 0}
+						<div class="inline-flex items-center gap-2 rounded-full bg-surface px-4 py-2">
+							<svg
+								class="h-4 w-4 text-tertiary"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+								/>
+							</svg>
+							<span class="text-sm font-medium {timeLeft < 60 ? 'text-error' : 'text-tertiary'}">
+								{minutes}:{seconds.toString().padStart(2, '0')}
+							</span>
+						</div>
+					{:else}
+						<p class="text-sm font-medium text-error">Code expired. Please request a new one.</p>
+					{/if}
+				</div>
+
+				<!-- Resend button with better styling -->
+				<div class="mt-6">
+					<Button
+						variant="secondary"
+						onclick={resendCode}
+						disabled={isResending || timeLeft > 540}
+						class="w-full"
+					>
+						{#if isResending}
+							<svg
+								class="mr-2 h-4 w-4 animate-spin"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+								/>
+							</svg>
+							Sending new code...
+						{:else if timeLeft > 540}
+							Request new code in {timeLeft - 540} sec
+						{:else}
+							Didn't receive it? Resend code
+						{/if}
+					</Button>
+				</div>
+
+				<!-- Helper text -->
+				<div class="mt-6 border-t border-base pt-6 text-center">
+					<p class="text-sm text-secondary">
+						Wrong email?
+						<a
+							href={resolveRoute('/register')}
+							class="font-medium text-accent-primary transition-colors hover:text-accent-hover"
+						>
+							Start over
+						</a>
+					</p>
+				</div>
+			{/if}
 		</div>
 	</div>
 </div>

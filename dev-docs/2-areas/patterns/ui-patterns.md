@@ -3194,6 +3194,279 @@ await page.fill('input[name="lastName"]', 'User'); // Don't forget!
 
 ---
 
-**Pattern Count**: 32  
-**Last Updated**: 2025-11-16  
+---
+
+## #L3200: RBAC Permission-Based UI Visibility [🟡 IMPORTANT]
+
+**Symptom**: UI shows actions users can't perform, confusing UX, security concerns  
+**Root Cause**: No permission checking in frontend, relying only on backend validation  
+**Fix**:
+
+```svelte
+<script lang="ts">
+	import { usePermissions } from '$lib/composables/usePermissions.svelte';
+	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import { getContext } from 'svelte';
+	import type { Id } from '$lib/convex';
+
+	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const getSessionId = () => $page.data.sessionId;
+	const getOrganizationId = () => organizations?.activeOrganizationId ?? null;
+
+	// Check permissions with organization context
+	const permissions = usePermissions({
+		sessionId: () => getSessionId() ?? null,
+		organizationId: () => {
+			const orgId = getOrganizationId();
+			return orgId ? (orgId as Id<'organizations'>) : null;
+		}
+	});
+
+	// Check if user can perform action (owner OR has permission)
+	const canRemoveMembers = $derived(() => {
+		// Owners can always perform action (bypass RBAC)
+		if (organizations && organizations.activeOrganization?.role === 'owner') {
+			return true;
+		}
+		// Non-owners need explicit permission
+		return permissions.can('users.remove');
+	});
+</script>
+
+<!-- Conditional button visibility -->
+{#if member.role === 'owner'}
+	<span class="text-sm text-secondary">—</span>
+{:else if canRemoveMembers()}
+	<button onclick={() => handleRemove(member)}>Remove</button>
+{:else}
+	<span class="text-sm text-secondary">—</span>
+{/if}
+```
+
+**Backend Pattern** (complementary):
+
+```typescript
+// convex/organizations.ts
+export const removeOrganizationMember = mutation({
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx, args.sessionId);
+		
+		// Check if user is owner (owners bypass RBAC)
+		const userMembership = await ctx.db
+			.query('organizationMembers')
+			.withIndex('by_organization_user', (q) =>
+				q.eq('organizationId', args.organizationId).eq('userId', userId)
+			)
+			.first();
+		
+		const isOwner = userMembership?.role === 'owner';
+		
+		// Only check RBAC if not owner
+		if (!isOwner) {
+			await requirePermission(ctx, userId, 'users.remove', {
+				organizationId: args.organizationId
+			});
+		}
+		
+		// ... rest of mutation
+	}
+});
+```
+
+**Key Principles**:
+
+1. **Owner Bypass**: Organization owners can always perform actions (bypass RBAC)
+2. **Permission Context**: Pass `organizationId` or `teamId` to `usePermissions` for scoped permissions
+3. **Reactive Checks**: Use `$derived` for permission checks that update when context changes
+4. **UI + Backend**: Frontend hides buttons, backend validates (defense in depth)
+5. **Graceful Degradation**: Show "—" or hide action when user lacks permission
+
+**Why**: 
+- Better UX (users don't see actions they can't use)
+- Security (defense in depth - UI + backend validation)
+- Extensible (change permissions in RBAC, UI updates automatically)
+
+**Apply when**: Building admin interfaces, member management, resource actions  
+**Related**: #L170 (Edit/view modes), convex-integration.md#L1175 (RBAC test patterns), `src/lib/composables/usePermissions.svelte.ts`  
+**Reference**: `src/routes/(authenticated)/org/members/+page.svelte` (member removal with RBAC)
+
+---
+
+## #L3300: Email Validation with TLD Check [🟡 IMPORTANT]
+
+**Symptom**: HTML5 email validation accepts invalid emails like `asdfasdf@asdfasdf` (no TLD)  
+**Root Cause**: Browser `type="email"` only checks for `@` symbol, not valid domain structure  
+**Fix**:
+
+```svelte
+<script lang="ts">
+	let email = $state('');
+	let emailError = $state<string | null>(null);
+
+	// Email validation: requires valid domain with TLD (at least 2 chars)
+	const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z0-9]{2,}$/;
+
+	function validateEmail(emailValue: string): boolean {
+		if (!emailValue.trim()) {
+			emailError = 'Email is required';
+			return false;
+		}
+		if (!emailRegex.test(emailValue.trim())) {
+			emailError = 'Please enter a valid email address';
+			return false;
+		}
+		emailError = null;
+		return true;
+	}
+</script>
+
+<input
+	type="email"
+	class="w-full rounded-md border px-nav-item py-nav-item text-sm text-primary focus:outline-none"
+	class:border-base={!emailError}
+	class:border-error={!!emailError}
+	class:bg-elevated={!emailError}
+	class:bg-error={!!emailError}
+	class:focus:border-accent-primary={!emailError}
+	class:focus:border-error={!!emailError}
+	bind:value={email}
+	onblur={() => validateEmail(email)}
+	oninput={() => {
+		if (emailError) validateEmail(email);
+	}}
+	required
+/>
+{#if emailError}
+	<span class="text-sm text-error">{emailError}</span>
+{/if}
+```
+
+**Backend Validation** (security layer):
+
+```typescript
+// convex/organizations.ts
+if (args.email) {
+	const emailRegex = /^[^\s@]+@[^\s@]+\.[a-zA-Z0-9]{2,}$/;
+	if (!emailRegex.test(args.email.trim())) {
+		throw new Error('Invalid email format. Please enter a valid email address.');
+	}
+}
+```
+
+**Why**: Frontend validation improves UX (immediate feedback), backend validation prevents security issues.  
+**Apply when**: Email input fields (invites, registration, contact forms)  
+**Related**: #L2000 (Error state design tokens), #L10 in convex-integration.md (Validation patterns)
+
+**Source**: SYOS-211 (Member Invite Modal)
+
+---
+
+## #L3350: Inline Form Error Display Pattern [🟡 IMPORTANT]
+
+**Symptom**: Errors only shown in toast, user doesn't see which field has the problem  
+**Root Cause**: Error handling only at mutation level, not form field level  
+**Fix**:
+
+```svelte
+<script lang="ts">
+	let emailError = $state<string | null>(null);
+
+	async function handleInvite() {
+		const trimmedEmail = email.trim();
+		if (!validateEmail(trimmedEmail)) return;
+
+		try {
+			const code = await members.inviteMember(trimmedEmail);
+			// Success...
+		} catch (error) {
+			// Error already handled by composable toast
+			// Also set inline error for better UX
+			if (error instanceof Error && error.message.includes('already exists')) {
+				emailError = 'This user has already been invited';
+			}
+			console.error('Failed to create invite:', error);
+		}
+	}
+</script>
+
+<!-- Error state styling -->
+<input
+	class:border-error={!!emailError}
+	class:bg-error={!!emailError}
+	class:focus:border-error={!!emailError}
+/>
+{#if emailError}
+	<span class="text-sm text-error">{emailError}</span>
+{/if}
+```
+
+**Why**: Dual feedback (toast + inline) provides better UX - toast for visibility, inline for context.  
+**Apply when**: Form submissions with field-specific errors  
+**Related**: #L2000 (Error state design tokens), #L1660 (Toast notifications)
+
+**Source**: SYOS-211 (Member Invite Modal)
+
+---
+
+## #L3400: Org-Scoped URLs Must Include `?org={id}` Parameter [🟡 IMPORTANT]
+
+**Symptom**: Redirecting to `/org/{organizationId}` results in 404 - route doesn't exist  
+**Root Cause**: Organization routes use query parameter pattern (`/org/circles?org={id}`), not dynamic route segments  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Non-existent route
+await goto(resolveRoute(`/org/${organizationId}`)); // 404 error
+
+// ❌ WRONG: Missing org param (not shareable)
+await goto(resolveRoute(`/org/circles/${circleId}`));
+
+// ✅ CORRECT: Use query parameter pattern for all org-scoped URLs
+await goto(resolveRoute(`/org/circles?org=${organizationId}`));
+await goto(resolveRoute(`/org/circles/${circleId}?org=${organizationId}`));
+await goto(resolveRoute(`/org/teams/${teamId}?org=${organizationId}`));
+```
+
+**Why**: 
+- The authenticated layout reads `org` from URL search params via `orgFromUrl` callback
+- The `useOrganizations` composable automatically sets the active organization from the `org` query parameter
+- URLs with explicit org context are shareable/bookmarkable
+- Prevents race conditions where queries run before org context is set
+
+**Apply when**: 
+- Redirecting users to organizations after invite acceptance, account creation, or organization switching
+- Navigating between org-scoped routes (circles, teams, members)
+- Creating links in navigation components (Sidebar, breadcrumbs)
+
+**Examples**:
+```typescript
+// Navigation from list to detail
+function handleRowClick(circleId: string) {
+  const orgId = organizationId();
+  if (!orgId) return;
+  goto(resolveRoute(`/org/circles/${circleId}?org=${orgId}`));
+}
+
+// Back button navigation
+onclick={() => {
+  const orgId = organizationId();
+  if (orgId) {
+    goto(resolveRoute(`/org/circles?org=${orgId}`));
+  } else {
+    goto(resolveRoute('/org/circles'));
+  }
+}}
+
+// Sidebar links
+href={resolveRoute(activeOrgId() ? `/org/circles?org=${activeOrgId()}` : '/org/circles')}
+```
+
+**Related**: #L1870 (resolveRoute pattern), #L850 in convex-integration.md (Session validation), `dev-docs/2-areas/architecture/url-patterns.md`
+
+**Source**: SYOS-233 (Invite Acceptance Page), SYOS-235 (URL Patterns Validation)
+
+---
+
+**Pattern Count**: 35  
+**Last Updated**: 2025-11-17  
 **Design Token Reference**: `dev-docs/design-tokens.md`

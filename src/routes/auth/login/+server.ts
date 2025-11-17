@@ -211,9 +211,61 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 
 		console.log('✅ Session established successfully');
 
+		// Check if user logged in from invite link - accept invite automatically
+		let redirectTo = redirect ?? '/inbox';
+		const inviteMatch = redirectTo.match(/^\/invite\?code=([^&]+)/);
+
+		if (inviteMatch) {
+			const inviteCode = inviteMatch[1];
+			console.log('🔍 User logged in from invite link, accepting invite:', inviteCode);
+
+			try {
+				// Get invite details to determine type (org vs team)
+				const inviteDetails = await convex.query(api.organizations.getInviteByCode, {
+					code: inviteCode
+				});
+
+				if (!inviteDetails) {
+					console.error('❌ Invite not found:', inviteCode);
+					redirectTo = '/inbox';
+				} else if (inviteDetails.type === 'organization') {
+					// Accept organization invite
+					const acceptResult = await convex.mutation(api.organizations.acceptOrganizationInvite, {
+						sessionId: event.locals.auth.sessionId!,
+						code: inviteCode
+					});
+
+					console.log(
+						'✅ Organization invite accepted, redirecting to organization:',
+						acceptResult.organizationId
+					);
+					redirectTo = `/org/circles?org=${acceptResult.organizationId}`;
+				} else {
+					// Accept team invite
+					const acceptResult = await convex.mutation(api.teams.acceptTeamInvite, {
+						sessionId: event.locals.auth.sessionId!,
+						code: inviteCode
+					});
+
+					console.log(
+						'✅ Team invite accepted, redirecting to team:',
+						acceptResult.teamId,
+						'org:',
+						acceptResult.organizationId
+					);
+					redirectTo = `/org/teams/${acceptResult.teamId}?org=${acceptResult.organizationId}`;
+				}
+			} catch (inviteError) {
+				console.error('❌ Failed to accept invite:', inviteError);
+				// If invite acceptance fails, redirect to inbox instead
+				// User can manually accept invite later if needed
+				redirectTo = '/inbox';
+			}
+		}
+
 		return json({
 			success: true,
-			redirectTo: redirect ?? '/inbox'
+			redirectTo
 		});
 	} catch (err) {
 		console.error('❌ Login error:', err);

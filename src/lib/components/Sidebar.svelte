@@ -57,25 +57,87 @@
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
 	const authSession = useAuthSession();
 
+	// Get active organization ID for org-scoped links
+	const activeOrgId = $derived(() => {
+		if (!organizations) return null;
+		return organizations.activeOrganizationId ?? null;
+	});
+
 	// circlesEnabled is now passed as a prop from the layout (loaded early for instant rendering)
 
 	// Get available accounts from localStorage (not database)
 	// This ensures only accounts with active sessions are shown
-	const linkedAccounts = $derived(authSession.availableAccounts ?? []);
+	const linkedAccounts = $derived(() => {
+		const accounts = authSession.availableAccounts ?? [];
+		return accounts;
+	});
 
-	// TODO: Fetch organizations for each linked account
-	// This requires an internal API that can query orgs by userId (linked account support)
-	// For now, just pass empty organizations for linked accounts
-	const linkedAccountOrganizations = $derived(
-		linkedAccounts.map((account) => ({
+	// Store organizations for each linked account (loaded from localStorage cache)
+	// Organizations are cached in localStorage when accounts are active
+	const LINKED_ACCOUNT_ORGS_KEY_PREFIX = 'linkedAccountOrgs_';
+	const linkedAccountOrgsMap = $state<Record<string, OrganizationSummary[]>>({});
+
+	// Load cached organizations for linked accounts from localStorage
+	$effect(() => {
+		if (!browser) return;
+
+		try {
+			for (const account of linkedAccounts()) {
+				if (!account.userId) continue;
+
+				// Skip if already loaded
+				if (linkedAccountOrgsMap[account.userId]) continue;
+
+				// Try to load from localStorage cache
+				const cacheKey = `${LINKED_ACCOUNT_ORGS_KEY_PREFIX}${account.userId}`;
+				const cached = localStorage.getItem(cacheKey);
+
+				if (cached) {
+					try {
+						const orgs = JSON.parse(cached) as OrganizationSummary[];
+						if (Array.isArray(orgs)) {
+							linkedAccountOrgsMap[account.userId] = orgs;
+						}
+					} catch (_e) {
+						// Invalid cache, clear it
+						localStorage.removeItem(cacheKey);
+					}
+				}
+			}
+		} catch (error) {
+			console.error('Error loading cached organizations for linked accounts:', error);
+		}
+	});
+
+	// Cache current user's organizations when they change (so they're available when switching accounts)
+	$effect(() => {
+		if (!browser || !organizations) return;
+
+		try {
+			const currentUserId = authSession.user?.userId;
+			if (!currentUserId) return;
+
+			const orgs = organizations.organizations ?? [];
+			if (orgs.length > 0) {
+				const cacheKey = `${LINKED_ACCOUNT_ORGS_KEY_PREFIX}${currentUserId}`;
+				localStorage.setItem(cacheKey, JSON.stringify(orgs));
+			}
+		} catch (error) {
+			console.error('Error caching organizations:', error);
+		}
+	});
+
+	// Map linked accounts with their organizations
+	const linkedAccountOrganizations = $derived(() => {
+		return linkedAccounts().map((account) => ({
 			userId: account.userId,
 			email: account.email,
 			name: account.name ?? null,
 			firstName: account.firstName ?? null,
 			lastName: account.lastName ?? null,
-			organizations: [] as OrganizationSummary[]
-		}))
-	);
+			organizations: linkedAccountOrgsMap[account.userId] ?? []
+		}));
+	});
 
 	let isPinned = $state(false);
 	let isHovered = $state(false);
@@ -234,9 +296,21 @@
 		!isMobile && !isCollapsing && (!sidebarCollapsed || (sidebarCollapsed && hoverState))
 	);
 
-	const visibleTeams = $derived(() => organizations?.teams ?? []);
-	const teamInvites = $derived(() => organizations?.teamInvites ?? []);
-	const activeTeamId = $derived(() => organizations?.activeTeamId ?? null);
+	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
+	// Pattern: Check object existence first, then access getter property directly
+	// See SYOS-228 for full pattern documentation
+	const visibleTeams = $derived(() => {
+		if (!organizations) return [];
+		return organizations.teams ?? [];
+	});
+	const teamInvites = $derived(() => {
+		if (!organizations) return [];
+		return organizations.teamInvites ?? [];
+	});
+	const activeTeamId = $derived(() => {
+		if (!organizations) return null;
+		return organizations.activeTeamId ?? null;
+	});
 
 	// Set up document mouse tracking when sidebar is hovered and collapsed
 	$effect(() => {
@@ -357,7 +431,7 @@
 			<SidebarHeader
 				workspaceName={accountName}
 				{accountEmail}
-				linkedAccounts={linkedAccountOrganizations}
+				linkedAccounts={linkedAccountOrganizations()}
 				{sidebarCollapsed}
 				{isMobile}
 				{isHovered}
@@ -368,7 +442,7 @@
 					goto(resolveRoute('/settings'));
 				}}
 				onSwitchWorkspace={() => {
-					console.log('Switch workspace menu selected');
+					// Switch workspace functionality
 				}}
 				onCreateWorkspace={() => {
 					organizations?.openModal('createOrganization');
@@ -394,7 +468,7 @@
 				}}
 				onSwitchAccount={async (targetUserId, redirectTo) => {
 					// Find the account being switched to
-					const targetAccount = linkedAccountOrganizations.find((a) => a.userId === targetUserId);
+					const targetAccount = linkedAccountOrganizations().find((a) => a.userId === targetUserId);
 					const targetName =
 						targetAccount?.firstName || targetAccount?.name || targetAccount?.email || 'account';
 
@@ -557,7 +631,9 @@
 					<!-- Circles (Beta - Feature Flag) -->
 					{#if circlesEnabled}
 						<a
-							href={resolveRoute('/org/circles')}
+							href={resolveRoute(
+								activeOrgId() ? `/org/circles?org=${activeOrgId()}` : '/org/circles'
+							)}
 							class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 							title="Circles"
 						>
@@ -579,6 +655,56 @@
 							<span class="font-normal">Circles</span>
 						</a>
 					{/if}
+
+					<!-- Members -->
+					<a
+						href={resolveRoute(
+							activeOrgId() ? `/org/members?org=${activeOrgId()}` : '/org/members'
+						)}
+						class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+						title="Members"
+					>
+						<!-- Icon: Users -->
+						<svg
+							class="h-4 w-4 flex-shrink-0"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+							/>
+						</svg>
+						<span class="font-normal">Members</span>
+					</a>
+
+					<!-- Teams -->
+					<a
+						href={resolveRoute(activeOrgId() ? `/org/teams?org=${activeOrgId()}` : '/org/teams')}
+						class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+						title="Teams"
+					>
+						<!-- Icon: User Group -->
+						<svg
+							class="h-4 w-4 flex-shrink-0"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+							xmlns="http://www.w3.org/2000/svg"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+							/>
+						</svg>
+						<span class="font-normal">Teams</span>
+					</a>
 
 					<!-- Dashboard (Beta - Feature Flag) -->
 					{#if dashboardEnabled}
@@ -768,7 +894,7 @@
 		<SidebarHeader
 			workspaceName={accountName}
 			{accountEmail}
-			linkedAccounts={linkedAccountOrganizations}
+			linkedAccounts={linkedAccountOrganizations()}
 			{sidebarCollapsed}
 			{isMobile}
 			{isHovered}
@@ -809,7 +935,7 @@
 			}}
 			onSwitchAccount={async (targetUserId, redirectTo) => {
 				// Find the account being switched to
-				const targetAccount = linkedAccountOrganizations.find((a) => a.userId === targetUserId);
+				const targetAccount = linkedAccountOrganizations().find((a) => a.userId === targetUserId);
 				const targetName =
 					targetAccount?.firstName || targetAccount?.name || targetAccount?.email || 'account';
 

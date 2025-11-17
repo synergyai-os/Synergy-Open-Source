@@ -17,10 +17,11 @@
 	const sessionId = $derived($page.data.sessionId);
 
 	// Check feature flag
+	const getSessionId = () => sessionId();
 	const flagQuery =
-		browser && sessionId
+		browser && getSessionId()
 			? useQuery(api.featureFlags.checkFlag, () => {
-					const session = sessionId;
+					const session = getSessionId();
 					if (!session) throw new Error('sessionId required');
 					return {
 						flag: FeatureFlags.MEETINGS_MODULE,

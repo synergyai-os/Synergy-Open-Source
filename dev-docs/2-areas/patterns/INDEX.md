@@ -45,6 +45,7 @@
 | localStorage session data visible in DevTools, fails SOC 2 audit                                  | Use Web Crypto API (AES-256-GCM + PBKDF2)                                    | [auth-deployment.md#L960](auth-deployment.md#L960)                  |
 | `Cannot call replaceState(...) before router is initialized` on page load                         | Try-catch guard around replaceState in $effect                               | [svelte-reactivity.md#L730](svelte-reactivity.md#L730)              |
 | Account switch takes 5+ seconds, query costs spike with many linked accounts                      | Add MAX_LINK_DEPTH=3 and MAX_TOTAL_ACCOUNTS=10 limits                        | [auth-deployment.md#L1010](auth-deployment.md#L1010)                |
+| Logged-out linked accounts reappear after page reload, three-dot menu logout doesn't persist      | Unlink from database FIRST (Convex accountLinks), then localStorage          | [auth-deployment.md#L1050](auth-deployment.md#L1050)                |
 | Database queries fail, userId is an object instead of string                                      | Destructure validateSessionAndGetUserId: const { userId } = await...         | [convex-integration.md#L850](convex-integration.md#L850)            |
 | RBAC permission test fails with "Permission denied" even though permissions assigned              | Reuse same test session: destructure both userId and sessionId from createTestSession | [convex-integration.md#L1175](convex-integration.md#L1175)          |
 | convex-test fails: "(intermediate value).glob is not a function"                                  | Create test.setup.ts with import.meta.glob() modules map                     | [convex-integration.md#L950](convex-integration.md#L950)            |
@@ -74,6 +75,12 @@
 | Feature flag needs organization-based targeting (multi-tenancy)                                    | Add allowedOrganizationIds field + org membership check                    | [feature-flags.md#L180](feature-flags.md#L180)                        |
 | Can't add more items after selecting - combobox trigger disappears                                 | Add "Add" button next to selected chips, use anchor element for positioning | [ui-patterns.md#L3120](ui-patterns.md#L3120)                            |
 | Need polymorphic schema supporting multiple entity types (users/circles/teams)                     | Use union type discriminator + optional ID fields + validation              | [convex-integration.md#L1700](convex-integration.md#L1700)            |
+| `$derived` values don't update in child components, props show as functions                      | Call `$derived` functions when passing as props: `organizations={orgs()}`  | [svelte-reactivity.md#L900](svelte-reactivity.md#L900)                  |
+| `$derived` doesn't execute, returns function instead of value, reactivity breaks                  | Access getter properties without optional chaining: check existence first  | [svelte-reactivity.md#L910](svelte-reactivity.md#L910)                  |
+| `state_snapshot_uncloneable` error when passing values to Convex queries                          | Extract primitives from `$derived` by calling function before passing       | [svelte-reactivity.md#L920](svelte-reactivity.md#L920)                  |
+| `each_key_duplicate` error when multiple users belong to same organization                         | Use composite keys: `(${org.organizationId}-${account.userId})`             | [svelte-reactivity.md#L1460](svelte-reactivity.md#L1460)                |
+| `ReferenceError: [variable] is not defined` accessing variable from try block                      | Declare variable before try block or move cleanup inside try                 | [svelte-reactivity.md#L1510](svelte-reactivity.md#L1510)                |
+| UI shows actions users can't perform, buttons visible but disabled/error on click                 | Use `usePermissions` composable + owner bypass pattern for permission-based visibility | [ui-patterns.md#L3200](ui-patterns.md#L3200)            |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -124,7 +131,8 @@
 | Logout in one tab doesn't invalidate other tabs                               | Test multi-tab session invalidation with context.newPage()            | [ci-cd.md#L240](ci-cd.md#L240)                             |
 | CSRF validation tests return 200 instead of 400/403, security not detected   | Use isolated request context (playwright.request.newContext)          | [ci-cd.md#L245](ci-cd.md#L245)                             |
 | Tests fail with 401/500 "Session not found" from prev tests                   | Skip gracefully if session invalid (test.skip())                      | [ci-cd.md#L260](ci-cd.md#L260)                             |
-| E2E tests hit rate limits with "Too many requests" errors from external APIs  | Mock external APIs (email, payment, SMS) with E2E_TEST_MODE flag      | [ci-cd.md#L320](ci-cd.md#L320)                             |
+| E2E tests hit rate limits with "Too many requests" errors from external APIs  | Pass skipEmail parameter from SvelteKit server (don't set E2E_TEST_MODE in Convex env) | [ci-cd.md#L1320](ci-cd.md#L1320)                             |
+| Verification emails not sent in production, E2E_TEST_MODE set in Convex env  | Pass skipEmail parameter from SvelteKit server instead of Convex env var | [ci-cd.md#L1320](ci-cd.md#L1320)                             |
 
 ## 🟢 REFERENCE Patterns (Best Practices)
 
@@ -140,6 +148,7 @@
 | Toast notifications         | svelte-sonner for user feedback                             | [ui-patterns.md#L1660](ui-patterns.md#L1660)             |
 | Rate limit errors           | Red error box + live countdown timer                        | [ui-patterns.md#L2000](ui-patterns.md#L2000)             |
 | Textarea auto-resize        | Remove h-full, use field-sizing                             | [ui-patterns.md#L330](ui-patterns.md#L330)               |
+| Schedule non-blocking emails | Use ctx.scheduler.runAfter(0, ...) for async email sending | [convex-integration.md#L3365](convex-integration.md#L3365) |
 | Command palette drama       | Dark overlay + blur + animation                             | [ui-patterns.md#L480](ui-patterns.md#L480)               |
 | Command input design        | Icon + transparent + shortcuts                              | [ui-patterns.md#L530](ui-patterns.md#L530)               |
 | N vs C keyboard shortcuts   | N=new, C=command center                                     | [ui-patterns.md#L580](ui-patterns.md#L580)               |
@@ -236,6 +245,14 @@ correct code
 ---
 
 **Last Updated**: 2025-11-17
-**Pattern Count**: 88
+**Pattern Count**: 90
 **Format Version**: 2.0
 ```
+
+|| Email validation accepts invalid emails like `asdfasdf@asdfasdf` (no TLD)                        | Use regex `/^[^\s@]+@[^\s@]+\.[a-zA-Z0-9]{2,}$/` for TLD validation (frontend + backend) | [ui-patterns.md#L3300](ui-patterns.md#L3300)            |
+|| Form errors only shown in toast, user doesn't know which field has problem                      | Set inline error state + display below input field (dual feedback: toast + inline)      | [ui-patterns.md#L3350](ui-patterns.md#L3350)            |
+|| Organization owners can't perform actions even though they should have full access                | Check owner role first, bypass RBAC permission check if owner (implicit privileges)    | [convex-integration.md#L3300](convex-integration.md#L3300) |
+|| Permission denied errors for basic operations like creating teams/circles                          | Use organization membership check instead of RBAC for basic CRUD (match existing patterns) | [convex-integration.md#L3400](convex-integration.md#L3400) |
+|| User registers via invite link, verifies email, but redirected to `/invite` showing unauthenticated UI | Accept invite server-side after session establishment, redirect directly to organization | [convex-integration.md#L3500](convex-integration.md#L3500) |
+|| User logs in from invite link, redirected back to `/invite` showing "Sign in" screen | Accept invite server-side in login handler before redirect, handle both org and team invites | [convex-integration.md#L3600](convex-integration.md#L3600) |
+|| Redirecting to `/org/{organizationId}` results in 404 error                                     | Use query parameter pattern: `/org/circles?org={organizationId}`                        | [ui-patterns.md#L3400](ui-patterns.md#L3400)                |

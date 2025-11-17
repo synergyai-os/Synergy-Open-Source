@@ -230,9 +230,9 @@
 			preventDefault: true
 		});
 
-		// CMD+1/2/3/4/5/6/7/8/9 - Workspace switching shortcuts
-		// Personal workspace is always index 0, organizations follow (1, 2, 3, 4...)
-		// Support up to 9 workspaces total (CMD+1 through CMD+9)
+		// CMD+1/2/3/4/5/6/7/8/9 - Organization switching shortcuts
+		// Organizations only (no personal workspace) - SYOS-209
+		// Support up to 9 organizations (CMD+1 through CMD+9)
 		for (let i = 1; i <= 9; i++) {
 			shortcuts.register({
 				key: i.toString(),
@@ -240,26 +240,19 @@
 				handler: () => {
 					if (!organizations) return;
 
-					// Build workspace list: Personal (index 0) + Organizations (index 1+)
+					// Build organization list: Organizations only (index 0, 1, 2, 3, 4, 5, 6, 7, 8)
 					const workspaceIndex = i - 1; // Convert to 0-based index
 					const orgList = organizations.organizations ?? [];
 
-					if (workspaceIndex === 0) {
-						// CMD+1 → Personal workspace
-						organizations.setActiveOrganization(null);
-						toast.success('Switched to Personal workspace');
-					} else {
-						// CMD+2-9 → Organizations (index 1, 2, 3, 4, 5, 6, 7, 8)
-						const orgIndex = workspaceIndex - 1; // Convert to org array index
-						const targetOrg = orgList[orgIndex];
+					// CMD+1-9 → Organizations (index 0, 1, 2, 3, 4, 5, 6, 7, 8)
+					const targetOrg = orgList[workspaceIndex];
 
-						if (targetOrg) {
-							organizations.setActiveOrganization(targetOrg.organizationId);
-							toast.success(`Switched to ${targetOrg.name}`);
-						} else {
-							// No organization at this index - show info toast
-							toast.info(`No workspace at position ${i}. Create one to use CMD+${i}.`);
-						}
+					if (targetOrg) {
+						organizations.setActiveOrganization(targetOrg.organizationId);
+						toast.success(`Switched to ${targetOrg.name}`);
+					} else {
+						// No organization at this index - show info toast
+						toast.info(`No workspace at position ${i}. Create one to use CMD+${i}.`);
 					}
 				},
 				description: `Switch to workspace ${i}`,

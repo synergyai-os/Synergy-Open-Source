@@ -50,47 +50,63 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 		organizations = orgsResult as unknown[];
 		organizationInvites = invitesResult as unknown[];
 		teamInvites = teamInvitesResult as unknown[];
-
-		// Determine active organization for teams/permissions preload
-		// Priority: URL param > first organization > null (personal workspace)
-		const orgParam = url.searchParams.get('org');
-		const orgsList = organizations as Array<{ organizationId: string }>;
-		const activeOrgId = orgParam || (orgsList.length > 0 ? orgsList[0].organizationId : null);
-
-		// Preload teams for active organization (if available)
-		if (activeOrgId) {
-			try {
-				const teamsResult = await client.query(api.teams.listTeams, {
-					sessionId,
-					organizationId: activeOrgId as Id<'organizations'>
-				});
-				teams = teamsResult as unknown[];
-			} catch (error) {
-				console.warn('Failed to load teams server-side:', error);
-			}
-		}
-
-		// Preload permissions for active organization context (if available)
-		try {
-			const permissionsResult = await client.query(api.rbac.permissions.getUserPermissionsQuery, {
-				sessionId,
-				...(activeOrgId ? { organizationId: activeOrgId as Id<'organizations'> } : {})
-			});
-			permissions = permissionsResult as unknown[];
-		} catch (error) {
-			console.warn('Failed to load permissions server-side:', error);
-		}
-
-		// Preload tags for QuickCreateModal instant rendering
-		try {
-			tags = await client.query(api.tags.listAllTags, { sessionId });
-		} catch (error) {
-			console.warn('Failed to load tags server-side:', error);
-		}
 	} catch (error) {
 		// If queries fail, default to empty arrays (safe fallback)
 		// Log error but don't block page load
 		console.warn('Failed to load organizations/invites server-side:', error);
+	}
+
+	// Determine active organization for teams/permissions preload
+	// Priority: URL param > first organization > null (personal workspace)
+	const orgParam = url.searchParams.get('org');
+	const orgsList = organizations as Array<{ organizationId: string }>;
+
+	// Redirect to onboarding if user has no organizations (SYOS-209)
+	// This check must happen AFTER loading organizations but BEFORE other queries
+	if (orgsList.length === 0 && url.pathname !== '/onboarding') {
+		throw redirect(302, '/onboarding');
+	}
+
+	const activeOrgId = orgParam || (orgsList.length > 0 ? orgsList[0].organizationId : null);
+
+	// Continue with preloading teams/permissions/tags only if we have organizations
+	if (orgsList.length > 0) {
+		try {
+			// Preload teams for active organization (if available)
+			if (activeOrgId) {
+				try {
+					const teamsResult = await client.query(api.teams.listTeams, {
+						sessionId,
+						organizationId: activeOrgId as Id<'organizations'>
+					});
+					teams = teamsResult as unknown[];
+				} catch (error) {
+					console.warn('Failed to load teams server-side:', error);
+				}
+			}
+
+			// Preload permissions for active organization context (if available)
+			try {
+				const permissionsResult = await client.query(api.rbac.permissions.getUserPermissionsQuery, {
+					sessionId,
+					...(activeOrgId ? { organizationId: activeOrgId as Id<'organizations'> } : {})
+				});
+				permissions = permissionsResult as unknown[];
+			} catch (error) {
+				console.warn('Failed to load permissions server-side:', error);
+			}
+
+			// Preload tags for QuickCreateModal instant rendering
+			try {
+				tags = await client.query(api.tags.listAllTags, { sessionId });
+			} catch (error) {
+				console.warn('Failed to load tags server-side:', error);
+			}
+		} catch (error) {
+			// If queries fail, default to empty arrays (safe fallback)
+			// Log error but don't block page load
+			console.warn('Failed to load teams/permissions/tags server-side:', error);
+		}
 	}
 
 	return {

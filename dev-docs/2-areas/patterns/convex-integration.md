@@ -3297,6 +3297,323 @@ $effect(() => {
 
 ---
 
-**Pattern Count**: 38  
+## #L3300: Owner Bypass Pattern for RBAC Permissions [🟡 IMPORTANT]
+
+**Symptom**: Organization owners can't perform actions even though they should have full access  
+**Root Cause**: RBAC permission checks don't account for implicit owner privileges  
+**Fix**:
+
+```typescript
+// convex/organizations.ts
+export const createOrganizationInvite = mutation({
+	args: {
+		sessionId: v.string(),
+		organizationId: v.id('organizations'),
+		email: v.optional(v.string())
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		// Check if user is an organization owner (owners can always invite members)
+		const userMembership = await ctx.db
+			.query('organizationMembers')
+			.withIndex('by_organization_user', (q) =>
+				q.eq('organizationId', args.organizationId).eq('userId', userId)
+			)
+			.first();
+
+		const isOwner = userMembership?.role === 'owner';
+
+		// RBAC Permission Check: Only owners or users with "users.invite" permission can invite
+		if (!isOwner) {
+			await requirePermission(ctx, userId, 'users.invite', {
+				organizationId: args.organizationId
+			});
+		}
+
+		// ... rest of mutation logic
+	}
+});
+```
+
+**Frontend Pattern** (complementary):
+
+```svelte
+<script lang="ts">
+	const canInviteMembers = $derived(() => {
+		// Owners can always invite members
+		if (organizations && organizations.activeOrganization?.role === 'owner') {
+			return true;
+		}
+		// Non-owners need users.invite permission
+		return permissions.can('users.invite');
+	});
+</script>
+
+{#if canInviteMembers()}
+	<button onclick={() => (showInviteModal = true)}>Invite Member</button>
+{/if}
+```
+
+**Why**: Owners should have implicit full access without needing explicit RBAC roles.  
+**Apply when**: Organization/team management actions (invite, remove, modify)  
+**Related**: #L3200 in ui-patterns.md (Permission-based UI visibility)
+
+**Source**: SYOS-211 (Member Invite Modal)
+
+---
+
+## #L3400: RBAC vs Organization Membership Checks [🟡 IMPORTANT]
+
+**Symptom**: Permission denied errors for basic operations like creating teams/circles  
+**Root Cause**: Using RBAC `requirePermission()` when simple organization membership check is sufficient  
+**Fix**:
+
+```typescript
+// ❌ WRONG: RBAC check for basic org member operations
+export const createTeam = mutation({
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+		
+		// ❌ Too restrictive - only Admin/Manager roles have teams.create permission
+		await requirePermission(ctx, userId, 'teams.create', {
+			organizationId: args.organizationId
+		});
+		// ... create team
+	}
+});
+
+// ✅ CORRECT: Organization membership check (same pattern as circles.create)
+async function ensureOrganizationMembership(
+	ctx: MutationCtx,
+	organizationId: Id<'organizations'>,
+	userId: Id<'users'>
+): Promise<void> {
+	const membership = await ctx.db
+		.query('organizationMembers')
+		.withIndex('by_organization_user', (q) =>
+			q.eq('organizationId', organizationId).eq('userId', userId)
+		)
+		.first();
+
+	if (!membership) {
+		throw new Error('You do not have access to this organization');
+	}
+}
+
+export const createTeam = mutation({
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+		
+		// ✅ Any org member can create teams (matches circles pattern)
+		await ensureOrganizationMembership(ctx, args.organizationId, userId);
+		// ... create team
+	}
+});
+```
+
+**When to Use Each**:
+
+- **Organization Membership** (`ensureOrganizationMembership`):
+  - ✅ Basic CRUD operations (create team, create circle)
+  - ✅ Viewing organization data
+  - ✅ Any operation where "member of org" = sufficient permission
+
+- **RBAC** (`requirePermission`):
+  - ✅ Administrative actions (delete team, remove members)
+  - ✅ Sensitive operations (manage billing, change roles)
+  - ✅ Operations requiring specific roles (Team Lead, Manager, Admin)
+
+**Pattern**: Match existing patterns in codebase. If `circles.create` uses org membership, `teams.create` should too.  
+**Why**: Consistency prevents permission errors and matches user expectations (org members can create teams).  
+**Apply when**: Creating new mutations - check similar operations first  
+**Related**: #L3300 (Owner bypass), #L1175 (RBAC test patterns), `convex/circles.ts` (create pattern), `convex/teams.ts` (create pattern)
+
+**Source**: SYOS-216 (Team Management - Create team modal)
+
+---
+
+## #L3365: Schedule Non-Blocking Emails After Mutations [🟢 REFERENCE]
+
+**Symptom**: Email sending blocks mutation response, slow user experience  
+**Root Cause**: Synchronous email sending delays mutation completion  
+**Fix**:
+
+```typescript
+// convex/organizations.ts
+export const createOrganizationInvite = mutation({
+	handler: async (ctx, args) => {
+		// ... validation and invite creation ...
+		
+		const inviteId = await ctx.db.insert('organizationInvites', {
+			organizationId: args.organizationId,
+			email: normalizedEmail,
+			code,
+			// ... other fields
+		});
+
+		// Schedule email sending (non-blocking)
+		if (normalizedEmail) {
+			const organization = await ctx.db.get(args.organizationId);
+			const inviter = await ctx.db.get(userId);
+			const inviteLink = `${process.env.PUBLIC_APP_URL || 'http://localhost:5173'}/invite?code=${code}`;
+
+			// Schedule email sending (non-blocking via scheduler)
+			await ctx.scheduler.runAfter(0, internal.email.sendOrganizationInviteEmail, {
+				email: normalizedEmail,
+				inviteLink,
+				organizationName: organization.name,
+				inviterName: inviter.name || inviter.email,
+				role: args.role ?? 'member'
+			});
+		}
+
+		return { inviteId, code };
+	}
+});
+```
+
+**Email Action Pattern**:
+
+```typescript
+// convex/email.ts
+export const sendOrganizationInviteEmail = internalAction({
+	args: {
+		email: v.string(),
+		inviteLink: v.string(),
+		organizationName: v.string(),
+		inviterName: v.string(),
+		role: v.string()
+	},
+	handler: async (ctx, args) => {
+		// E2E test mode - skip actual email sending
+		if (process.env.E2E_TEST_MODE === 'true') {
+			console.log('📧 [E2E Mock] Organization invite email suppressed:', args.email);
+			return { success: true, emailId: `mock-invite-${Date.now()}` };
+		}
+
+		const apiKey = process.env.RESEND_API_KEY;
+		if (!apiKey) throw new Error('RESEND_API_KEY not set');
+
+		const resend = new Resend(apiKey);
+		const result = await resend.emails.send({
+			from: 'SynergyOS <noreply@mail.synergyos.ai>',
+			to: args.email,
+			subject: `You've been invited to join ${args.organizationName}`,
+			html: `<!-- Email template -->`,
+			text: `You've been invited... ${args.inviteLink}`
+		});
+
+		return { success: true, emailId: result.data?.id };
+	}
+});
+```
+
+**Why**: 
+- Non-blocking: Mutation returns immediately, email sent asynchronously
+- Error isolation: Email failures don't break mutation
+- Better UX: User sees success immediately
+
+**Apply when**: 
+- Sending emails after mutations (invites, notifications, confirmations)
+- External API calls that shouldn't block user actions
+
+**Related**: #L1320 in ci-cd.md (E2E test mode for emails)
+
+**Source**: SYOS-232 (Send Email When Invite Created)
+
+---
+
+## #L3500: Server-Side Invite Acceptance After Registration [🟡 IMPORTANT]
+
+**Symptom**: User registers via invite link, verifies email, but gets redirected to `/invite` page showing unauthenticated UI instead of organization  
+**Root Cause**: Client-side redirect after email verification causes cookie timing race condition - session cookie not yet available to server-side layout on subsequent request  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Client-side invite acceptance after redirect
+// src/routes/auth/verify-email/+server.ts
+return json({ success: true, redirectTo: '/invite?code=...' });
+// Client redirects to /invite, then tries to accept invite
+// Cookie timing issue: session not yet available to server-side layout
+
+// ✅ CORRECT: Server-side invite acceptance before redirect
+// src/routes/auth/verify-email/+server.ts
+const sessionId = await establishSession({ event, ... });
+let redirectTo = registrationData.redirect ?? '/inbox';
+const inviteMatch = redirectTo.match(/^\/invite\?code=([^&]+)/);
+
+if (inviteMatch) {
+	const inviteCode = inviteMatch[1];
+	const acceptResult = await convex.mutation(api.organizations.acceptOrganizationInvite, {
+		sessionId, // ✅ Use newly established session
+		code: inviteCode
+	});
+	redirectTo = `/org/circles?org=${acceptResult.organizationId}`; // ✅ Direct redirect
+}
+
+return json({ success: true, redirectTo });
+```
+
+**Why**: Server-side mutations execute immediately after session establishment, avoiding cookie propagation delays. Direct redirect to organization eliminates client-side race conditions.  
+**Apply when**: Accepting invites, joining teams, or performing organization actions immediately after account creation/authentication  
+**Related**: #L850 (Session validation), #L1200 (SessionId pattern)
+
+**Source**: SYOS-233 (Invite Acceptance Page)
+
+---
+
+## #L3600: Server-Side Invite Acceptance After Login [🟡 IMPORTANT]
+
+**Symptom**: User logs in from invite link, gets redirected back to `/invite` page showing "Sign in or create an account" screen instead of being accepted into organization/team  
+**Root Cause**: Login handler redirects to `/invite?code=...` without accepting invite server-side, causing client-side race condition where session cookie may not be immediately available  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Redirect to invite page after login
+// src/routes/auth/login/+server.ts
+return json({ success: true, redirectTo: redirect ?? '/inbox' });
+// If redirect contains /invite?code=..., client tries to accept invite
+// Race condition: session cookie not yet available, auto-accept fails
+
+// ✅ CORRECT: Accept invite server-side before redirect
+// src/routes/auth/login/+server.ts
+await establishSession({ event, ... });
+let redirectTo = redirect ?? '/inbox';
+const inviteMatch = redirectTo.match(/^\/invite\?code=([^&]+)/);
+
+if (inviteMatch) {
+	const inviteCode = inviteMatch[1];
+	const inviteDetails = await convex.query(api.organizations.getInviteByCode, {
+		code: inviteCode
+	});
+	
+	if (inviteDetails?.type === 'organization') {
+		const result = await convex.mutation(api.organizations.acceptOrganizationInvite, {
+			sessionId: event.locals.auth.sessionId!,
+			code: inviteCode
+		});
+		redirectTo = `/org/circles?org=${result.organizationId}`;
+	} else if (inviteDetails?.type === 'team') {
+		const result = await convex.mutation(api.teams.acceptTeamInvite, {
+			sessionId: event.locals.auth.sessionId!,
+			code: inviteCode
+		});
+		redirectTo = `/org/teams/${result.teamId}?org=${result.organizationId}`;
+	}
+}
+
+return json({ success: true, redirectTo });
+```
+
+**Why**: Server-side mutations execute immediately after session establishment, avoiding cookie propagation delays. Direct redirect to organization/team eliminates client-side race conditions.  
+**Apply when**: Accepting invites immediately after login (same pattern as registration)  
+**Related**: #L3500 (Server-Side Invite Acceptance After Registration), #L1200 (SessionId pattern)
+
+**Source**: SYOS-235 (URL Patterns - Login Redirect Fix)
+
+---
+
+**Pattern Count**: 41  
 **Last Validated**: 2025-11-17  
 **Context7 Source**: `/get-convex/convex-backend`, `convex-test` NPM docs, TypeScript type system, SvelteKit docs

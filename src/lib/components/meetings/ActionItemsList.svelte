@@ -253,8 +253,9 @@
 			<div class="flex items-center gap-4">
 				<!-- Type -->
 				<div class="flex items-center gap-2">
-					<label class="text-sm text-tertiary">Type:</label>
+					<span class="text-sm text-tertiary">Type:</span>
 					<button
+						aria-label="Toggle action item type"
 						onclick={() => (state.type = state.type === 'next-step' ? 'project' : 'next-step')}
 						class="rounded-md border border-border-base bg-elevated px-menu-item py-1 text-sm font-medium text-primary transition-colors hover:bg-hover"
 					>
@@ -265,8 +266,9 @@
 				<!-- Assignee Type Toggle (only if circle has roles) -->
 				{#if circleId && roles.length > 0}
 					<div class="flex items-center gap-2">
-						<label class="text-sm text-tertiary">Assign to:</label>
+						<span class="text-sm text-tertiary">Assign to:</span>
 						<button
+							aria-label="Toggle assignee type"
 							onclick={() => (state.assigneeType = state.assigneeType === 'user' ? 'role' : 'user')}
 							class="rounded-md border border-border-base bg-elevated px-menu-item py-1 text-sm font-medium text-primary transition-colors hover:bg-hover"
 						>

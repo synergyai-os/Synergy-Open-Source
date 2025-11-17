@@ -479,33 +479,41 @@
 
 							<!-- Start Date/Time -->
 							<div>
-								<label class="mb-2 block text-sm font-medium text-text-primary">Start date</label>
-								<div class="grid grid-cols-3 gap-2">
-									<div class="col-span-1">
-										<input
-											type="date"
-											bind:value={state.startDate}
-											class="bg-surface-base w-full rounded-md border border-border-base px-3 py-2 text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
-										/>
+								<fieldset class="mb-2">
+									<legend class="block text-sm font-medium text-text-primary">Start date</legend>
+									<div class="grid grid-cols-3 gap-2">
+										<div class="col-span-1">
+											<label for="meeting-start-date" class="sr-only">Date</label>
+											<input
+												id="meeting-start-date"
+												type="date"
+												bind:value={state.startDate}
+												class="bg-surface-base w-full rounded-md border border-border-base px-3 py-2 text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
+											/>
+										</div>
+										<div class="col-span-1">
+											<label for="meeting-start-time" class="sr-only">Time</label>
+											<input
+												id="meeting-start-time"
+												type="time"
+												bind:value={state.startTime}
+												class="bg-surface-base w-full rounded-md border border-border-base px-3 py-2 text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
+											/>
+										</div>
+										<div class="col-span-1 flex items-center gap-2">
+											<label for="meeting-duration" class="sr-only">Duration (minutes)</label>
+											<input
+												id="meeting-duration"
+												type="number"
+												bind:value={state.duration}
+												min="5"
+												max="480"
+												class="bg-surface-base w-20 rounded-md border border-border-base px-3 py-2 text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
+											/>
+											<span class="text-sm text-text-secondary">minutes</span>
+										</div>
 									</div>
-									<div class="col-span-1">
-										<input
-											type="time"
-											bind:value={state.startTime}
-											class="bg-surface-base w-full rounded-md border border-border-base px-3 py-2 text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
-										/>
-									</div>
-									<div class="col-span-1 flex items-center gap-2">
-										<input
-											type="number"
-											bind:value={state.duration}
-											min="5"
-											max="480"
-											class="bg-surface-base w-20 rounded-md border border-border-base px-3 py-2 text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
-										/>
-										<span class="text-sm text-text-secondary">minutes</span>
-									</div>
-								</div>
+								</fieldset>
 							</div>
 
 							<!-- Recurrence -->
@@ -631,37 +639,39 @@
 						<div class="space-y-4">
 							<!-- Privacy -->
 							<div>
-								<label class="mb-2 block text-sm font-medium text-text-primary">Privacy</label>
-								<div class="space-y-2">
-									<label class="flex items-start gap-3">
-										<input
-											type="radio"
-											bind:group={state.visibility}
-											value="public"
-											class="mt-0.5"
-										/>
-										<div>
-											<div class="text-sm font-medium text-text-primary">Public</div>
-											<div class="text-xs text-text-secondary">
-												All organization members can see this meeting and access to the report
+								<fieldset>
+									<legend class="mb-2 block text-sm font-medium text-text-primary">Privacy</legend>
+									<div class="space-y-2">
+										<label class="flex items-start gap-3">
+											<input
+												type="radio"
+												bind:group={state.visibility}
+												value="public"
+												class="mt-0.5"
+											/>
+											<div>
+												<div class="text-sm font-medium text-text-primary">Public</div>
+												<div class="text-xs text-text-secondary">
+													All organization members can see this meeting and access to the report
+												</div>
 											</div>
-										</div>
-									</label>
-									<label class="flex items-start gap-3">
-										<input
-											type="radio"
-											bind:group={state.visibility}
-											value="private"
-											class="mt-0.5"
-										/>
-										<div>
-											<div class="text-sm font-medium text-text-primary">Private</div>
-											<div class="text-xs text-text-secondary">
-												Only invited attendees can see this meeting
+										</label>
+										<label class="flex items-start gap-3">
+											<input
+												type="radio"
+												bind:group={state.visibility}
+												value="private"
+												class="mt-0.5"
+											/>
+											<div>
+												<div class="text-sm font-medium text-text-primary">Private</div>
+												<div class="text-xs text-text-secondary">
+													Only invited attendees can see this meeting
+												</div>
 											</div>
-										</div>
-									</label>
-								</div>
+										</label>
+									</div>
+								</fieldset>
 							</div>
 						</div>
 					</div>

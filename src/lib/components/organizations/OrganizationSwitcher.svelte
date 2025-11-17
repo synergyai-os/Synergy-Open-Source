@@ -88,27 +88,18 @@
 	// TODO: Re-enable when needed for conditional rendering
 	// const _hasOrganizations = $derived(() => organizations.length > 0);
 	const showLabels = $derived(() => variant === 'topbar' || !sidebarCollapsed);
-	const isPersonalActive = $derived(() => !activeOrganizationId);
 
 	// Show skeleton when loading with no cached data
 	const showSkeleton = $derived(() => isLoading && !activeOrganization && activeOrganizationId);
 
-	const triggerInitials = $derived(() =>
-		isPersonalActive()
-			? (accountName.slice(0, 2) || 'PW').toUpperCase()
-			: (activeOrganization?.initials ?? '—')
-	);
-	const triggerTitle = $derived(() =>
-		isPersonalActive() ? accountName : (activeOrganization?.name ?? 'Select workspace')
-	);
+	const triggerInitials = $derived(() => activeOrganization?.initials ?? '—');
+	const triggerTitle = $derived(() => activeOrganization?.name ?? 'Select workspace');
 	const triggerSubtitle = $derived(() =>
-		isPersonalActive()
-			? accountEmail
-			: activeOrganization?.role === 'owner'
-				? 'Owner'
-				: activeOrganization?.role === 'admin'
-					? 'Admin'
-					: 'Member'
+		activeOrganization?.role === 'owner'
+			? 'Owner'
+			: activeOrganization?.role === 'admin'
+				? 'Admin'
+				: 'Member'
 	);
 
 	function handleSelect(organizationId: string | null) {
@@ -163,9 +154,49 @@
 		onLogout?.();
 	}
 
+	function handleLogoutAccount(targetUserId: string) {
+		onLogoutAccount?.(targetUserId);
+	}
+
 	// State for nested account menus
 	let accountMenuOpen = $state(false);
 	const linkedAccountMenuOpen = $state<Record<string, boolean>>({});
+
+	// Combined list of all organizations (current account + linked accounts)
+	// This allows CMD+1-9 shortcuts to work across all accounts
+	type CombinedOrganization = {
+		organizationId: string;
+		name: string;
+		initials?: string;
+		role: 'owner' | 'admin' | 'member';
+		accountUserId?: string; // If from linked account, this is the userId
+		isFromLinkedAccount: boolean;
+	};
+
+	// Current account's organizations
+	const currentAccountOrganizations = $derived((): CombinedOrganization[] => {
+		const orgsList = Array.isArray(organizations) ? organizations : [];
+		return orgsList
+			.filter((org) => org && org.organizationId)
+			.map((org) => ({
+				organizationId: org.organizationId,
+				name: org.name,
+				initials: org.initials,
+				role: org.role,
+				isFromLinkedAccount: false
+			}));
+	});
+
+	// Linked accounts with their organizations (for grouped display)
+	const linkedAccountsWithOrgs = $derived(() => {
+		const linkedAccountsList = Array.isArray(linkedAccounts) ? linkedAccounts : [];
+		return linkedAccountsList.filter(
+			(account) =>
+				account?.organizations &&
+				Array.isArray(account.organizations) &&
+				account.organizations.length > 0
+		);
+	});
 </script>
 
 <DropdownMenu.Root>
@@ -345,43 +376,8 @@
 				</DropdownMenu.Root>
 			</div>
 
-			<!-- Current Account Workspaces -->
-			<DropdownMenu.Item
-				class={`flex cursor-pointer items-center justify-between px-menu-item py-1.5 text-sm outline-none hover:bg-hover-solid focus:bg-hover-solid ${
-					isPersonalActive() ? '' : 'text-primary'
-				}`}
-				textValue="Personal workspace"
-				onSelect={() => handleSelect(null)}
-			>
-				<div class="flex min-w-0 flex-1 items-center gap-2">
-					<div
-						class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded text-xs font-semibold"
-					>
-						{(accountName.slice(0, 2) || 'PW').toUpperCase()}
-					</div>
-					<div class="flex min-w-0 flex-col">
-						<span class="truncate text-sm">{accountName}</span>
-						<span class="truncate text-xs text-tertiary">Private workspace</span>
-					</div>
-				</div>
-				{#if isPersonalActive()}
-					<svg
-						class="h-4 w-4 flex-shrink-0 text-accent-primary"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M5 13l4 4L19 7"
-						/>
-					</svg>
-				{/if}
-			</DropdownMenu.Item>
-
-			{#each organizations as organization (organization.organizationId)}
+			<!-- Current Account Organizations -->
+			{#each currentAccountOrganizations() as organization (organization.organizationId)}
 				<DropdownMenu.Item
 					class={`flex cursor-pointer items-center justify-between px-menu-item py-1.5 text-sm outline-none hover:bg-hover-solid focus:bg-hover-solid ${
 						organization.organizationId === activeOrganizationId ? '' : 'text-primary'
@@ -393,7 +389,7 @@
 						<div
 							class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded bg-sidebar-hover text-xs font-semibold"
 						>
-							{organization.initials}
+							{organization.initials ?? organization.name.slice(0, 2).toUpperCase()}
 						</div>
 						<div class="flex min-w-0 flex-col">
 							<span class="truncate text-sm font-medium">{organization.name}</span>
@@ -418,7 +414,141 @@
 				</DropdownMenu.Item>
 			{/each}
 
-			<!-- New workspace button for current account -->
+			<!-- Linked Accounts Sections -->
+			{#each linkedAccountsWithOrgs() as account (account.userId)}
+				<DropdownMenu.Separator class="my-1 border-t border-base" />
+
+				<div class="flex items-center justify-between px-3 py-1">
+					<p class="truncate text-xs font-semibold tracking-wide text-tertiary uppercase">
+						{account.email ?? account.name ?? 'Linked account'}
+					</p>
+					<!-- Linked Account menu (logout, create workspace) -->
+					<DropdownMenu.Root
+						open={linkedAccountMenuOpen[account.userId] ?? false}
+						onOpenChange={(open) => (linkedAccountMenuOpen[account.userId] = open)}
+					>
+						<DropdownMenu.Trigger
+							type="button"
+							class="flex h-5 w-5 items-center justify-center rounded text-tertiary transition-colors hover:bg-hover-solid hover:text-primary"
+							onclick={(e) => {
+								e.stopPropagation(); // Prevent parent menu from closing
+							}}
+						>
+							<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+								/>
+							</svg>
+						</DropdownMenu.Trigger>
+						<DropdownMenu.Portal>
+							<DropdownMenu.Content
+								class="z-50 min-w-[180px] rounded-md border border-base bg-elevated py-1 shadow-lg"
+								side="right"
+								align="start"
+								sideOffset={4}
+								onInteractOutside={(e) => {
+									e.stopPropagation(); // Prevent parent menu from closing
+								}}
+							>
+								<DropdownMenu.Item
+									class="cursor-pointer px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+									textValue="Create workspace"
+									onSelect={() => {
+										linkedAccountMenuOpen[account.userId] = false;
+										onCreateWorkspaceForAccount?.(account.userId);
+									}}
+								>
+									<div class="flex items-center gap-2">
+										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M12 4v16m8-8H4"
+											/>
+										</svg>
+										<span>Create workspace</span>
+									</div>
+								</DropdownMenu.Item>
+								<DropdownMenu.Item
+									class="cursor-pointer px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+									textValue="Join workspace"
+									onSelect={() => {
+										linkedAccountMenuOpen[account.userId] = false;
+										onJoinWorkspaceForAccount?.(account.userId);
+									}}
+								>
+									<div class="flex items-center gap-2">
+										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+											/>
+										</svg>
+										<span>Join workspace</span>
+									</div>
+								</DropdownMenu.Item>
+								<DropdownMenu.Separator class="my-1 border-t border-base" />
+								<DropdownMenu.Item
+									class="text-destructive cursor-pointer px-menu-item py-1.5 text-sm outline-none hover:bg-hover-solid focus:bg-hover-solid"
+									textValue="Log out"
+									onSelect={() => {
+										linkedAccountMenuOpen[account.userId] = false;
+										handleLogoutAccount(account.userId);
+									}}
+								>
+									<div class="flex items-center gap-2">
+										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+											/>
+										</svg>
+										<span>Log out</span>
+									</div>
+								</DropdownMenu.Item>
+							</DropdownMenu.Content>
+						</DropdownMenu.Portal>
+					</DropdownMenu.Root>
+				</div>
+
+				<!-- Linked Account Organizations -->
+				{#each account.organizations as organization (`${organization.organizationId}-${account.userId}`)}
+					<DropdownMenu.Item
+						class="flex cursor-pointer items-center justify-between px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+						textValue={organization.name}
+						onSelect={() => {
+							// Switch to linked account and navigate to organization
+							handleSwitchAccount(account.userId, `/inbox?org=${organization.organizationId}`);
+						}}
+					>
+						<div class="flex min-w-0 flex-1 items-center gap-2">
+							<div
+								class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded bg-sidebar-hover text-xs font-semibold"
+							>
+								{organization.initials ?? organization.name.slice(0, 2).toUpperCase()}
+							</div>
+							<div class="flex min-w-0 flex-col">
+								<span class="truncate text-sm font-medium">{organization.name}</span>
+								<span class="truncate text-xs text-tertiary capitalize">{organization.role}</span>
+							</div>
+						</div>
+						<!-- No checkmark for linked account workspaces - clicking switches accounts -->
+					</DropdownMenu.Item>
+				{/each}
+			{/each}
+
+			<!-- Actions Section -->
+			<DropdownMenu.Separator class="my-1 border-t border-base" />
+
+			<!-- New workspace button -->
 			<DropdownMenu.Item
 				class="cursor-pointer px-menu-item py-1.5 text-sm text-accent-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 				textValue="New workspace"
@@ -437,163 +567,110 @@
 				</div>
 			</DropdownMenu.Item>
 
-			<!-- Linked Accounts Section -->
-			{#if linkedAccounts.length > 0}
+			<!-- Account Management Section (for accounts without shown organizations above) -->
+			{#if linkedAccounts.length > linkedAccountsWithOrgs().length}
 				<DropdownMenu.Separator class="my-1 border-t border-base" />
 				{#each linkedAccounts as account (account.userId)}
-					<div class="flex items-center justify-between px-3 py-1">
-						<p class="truncate text-xs font-semibold tracking-wide text-tertiary uppercase">
-							{account.email ?? account.name ?? 'Linked account'}
-						</p>
-						<!-- Account menu (logout, create workspace) -->
-						<DropdownMenu.Root
-							open={linkedAccountMenuOpen[account.userId] ?? false}
-							onOpenChange={(open) => (linkedAccountMenuOpen[account.userId] = open)}
-						>
-							<DropdownMenu.Trigger
-								type="button"
-								class="flex h-5 w-5 items-center justify-center rounded text-tertiary transition-colors hover:bg-hover-solid hover:text-primary"
-								onclick={(e) => {
-									e.stopPropagation(); // Prevent parent menu from closing
-								}}
+					{#if !linkedAccountsWithOrgs().some((a) => a.userId === account.userId)}
+						<div class="flex items-center justify-between px-3 py-1">
+							<p class="truncate text-xs font-semibold tracking-wide text-tertiary uppercase">
+								{account.email ?? account.name ?? 'Linked account'}
+							</p>
+							<!-- Account menu (logout, create workspace) -->
+							<DropdownMenu.Root
+								open={linkedAccountMenuOpen[account.userId] ?? false}
+								onOpenChange={(open) => (linkedAccountMenuOpen[account.userId] = open)}
 							>
-								<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-									/>
-								</svg>
-							</DropdownMenu.Trigger>
-							<DropdownMenu.Portal>
-								<DropdownMenu.Content
-									class="z-50 min-w-[180px] rounded-md border border-base bg-elevated py-1 shadow-lg"
-									side="right"
-									align="start"
-									sideOffset={4}
-									onInteractOutside={(e) => {
+								<DropdownMenu.Trigger
+									type="button"
+									class="flex h-5 w-5 items-center justify-center rounded text-tertiary transition-colors hover:bg-hover-solid hover:text-primary"
+									onclick={(e) => {
 										e.stopPropagation(); // Prevent parent menu from closing
 									}}
 								>
-									<DropdownMenu.Item
-										class="cursor-pointer px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
-										textValue="Create workspace"
-										onSelect={() => {
-											linkedAccountMenuOpen[account.userId] = false;
-											onCreateWorkspaceForAccount?.(account.userId);
+									<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+										/>
+									</svg>
+								</DropdownMenu.Trigger>
+								<DropdownMenu.Portal>
+									<DropdownMenu.Content
+										class="z-50 min-w-[180px] rounded-md border border-base bg-elevated py-1 shadow-lg"
+										side="right"
+										align="start"
+										sideOffset={4}
+										onInteractOutside={(e) => {
+											e.stopPropagation(); // Prevent parent menu from closing
 										}}
 									>
-										<div class="flex items-center gap-2">
-											<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-												<path
-													stroke-linecap="round"
-													stroke-linejoin="round"
-													stroke-width="2"
-													d="M12 4v16m8-8H4"
-												/>
-											</svg>
-											<span>Create workspace</span>
-										</div>
-									</DropdownMenu.Item>
-									<DropdownMenu.Item
-										class="cursor-pointer px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
-										textValue="Join workspace"
-										onSelect={() => {
-											linkedAccountMenuOpen[account.userId] = false;
-											onJoinWorkspaceForAccount?.(account.userId);
-										}}
-									>
-										<div class="flex items-center gap-2">
-											<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-												<path
-													stroke-linecap="round"
-													stroke-linejoin="round"
-													stroke-width="2"
-													d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
-												/>
-											</svg>
-											<span>Join workspace</span>
-										</div>
-									</DropdownMenu.Item>
-									<DropdownMenu.Item
-										class="text-danger cursor-pointer px-menu-item py-1.5 text-sm outline-none hover:bg-hover-solid focus:bg-hover-solid"
-										textValue="Log out"
-										onSelect={() => {
-											linkedAccountMenuOpen[account.userId] = false;
-											onLogoutAccount?.(account.userId);
-										}}
-									>
-										<div class="flex items-center gap-2">
-											<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-												<path
-													stroke-linecap="round"
-													stroke-linejoin="round"
-													stroke-width="2"
-													d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-												/>
-											</svg>
-											<span>Log out</span>
-										</div>
-									</DropdownMenu.Item>
-								</DropdownMenu.Content>
-							</DropdownMenu.Portal>
-						</DropdownMenu.Root>
-					</div>
-
-					<!-- Personal workspace for linked account -->
-					<DropdownMenu.Item
-						class="flex cursor-pointer items-center justify-between px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
-						textValue={`${account.name ?? account.email}'s personal workspace`}
-						onSelect={() => handleSwitchAccount(account.userId)}
-					>
-						<div class="flex min-w-0 flex-1 items-center gap-2">
-							<div
-								class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded text-xs font-semibold"
-							>
-								{account.name
-									? account.name.slice(0, 2).toUpperCase()
-									: account.email
-										? account.email.slice(0, 2).toUpperCase()
-										: 'PW'}
-							</div>
-							<div class="flex min-w-0 flex-col">
-								<span class="truncate text-sm">
-									{account.name
-										? `${account.firstName ?? account.name}`
-										: account.email
-											? account.email.split('@')[0]
-											: 'Personal workspace'}
-								</span>
-								<span class="truncate text-xs text-tertiary">Private workspace</span>
-							</div>
+										<DropdownMenu.Item
+											class="cursor-pointer px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+											textValue="Create workspace"
+											onSelect={() => {
+												linkedAccountMenuOpen[account.userId] = false;
+												onCreateWorkspaceForAccount?.(account.userId);
+											}}
+										>
+											<div class="flex items-center gap-2">
+												<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+													<path
+														stroke-linecap="round"
+														stroke-linejoin="round"
+														stroke-width="2"
+														d="M12 4v16m8-8H4"
+													/>
+												</svg>
+												<span>Create workspace</span>
+											</div>
+										</DropdownMenu.Item>
+										<DropdownMenu.Item
+											class="cursor-pointer px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+											textValue="Join workspace"
+											onSelect={() => {
+												linkedAccountMenuOpen[account.userId] = false;
+												onJoinWorkspaceForAccount?.(account.userId);
+											}}
+										>
+											<div class="flex items-center gap-2">
+												<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+													<path
+														stroke-linecap="round"
+														stroke-linejoin="round"
+														stroke-width="2"
+														d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+													/>
+												</svg>
+												<span>Join workspace</span>
+											</div>
+										</DropdownMenu.Item>
+										<DropdownMenu.Item
+											class="text-danger cursor-pointer px-menu-item py-1.5 text-sm outline-none hover:bg-hover-solid focus:bg-hover-solid"
+											textValue="Log out"
+											onSelect={() => {
+												linkedAccountMenuOpen[account.userId] = false;
+												onLogoutAccount?.(account.userId);
+											}}
+										>
+											<div class="flex items-center gap-2">
+												<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+													<path
+														stroke-linecap="round"
+														stroke-linejoin="round"
+														stroke-width="2"
+														d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+													/>
+												</svg>
+												<span>Log out</span>
+											</div>
+										</DropdownMenu.Item>
+									</DropdownMenu.Content>
+								</DropdownMenu.Portal>
+							</DropdownMenu.Root>
 						</div>
-					</DropdownMenu.Item>
-
-					<!-- Organizations for linked account -->
-					{#if account.organizations && account.organizations.length > 0}
-						{#each account.organizations as org (org.organizationId)}
-							<DropdownMenu.Item
-								class="flex cursor-pointer items-center justify-between px-menu-item py-1.5 text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
-								textValue={org.name}
-								onSelect={() => {
-									// Switch to account and navigate to organization
-									handleSwitchAccount(account.userId, `/inbox?org=${org.organizationId}`);
-								}}
-							>
-								<div class="flex min-w-0 flex-1 items-center gap-2">
-									<div
-										class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded bg-sidebar-hover text-xs font-semibold"
-									>
-										{org.initials ?? org.name.slice(0, 2).toUpperCase()}
-									</div>
-									<div class="flex min-w-0 flex-col">
-										<span class="truncate text-sm font-medium">{org.name}</span>
-										<span class="truncate text-xs text-tertiary capitalize">{org.role}</span>
-									</div>
-								</div>
-							</DropdownMenu.Item>
-						{/each}
 					{/if}
 				{/each}
 			{/if}

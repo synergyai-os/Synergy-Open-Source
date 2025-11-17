@@ -11,6 +11,7 @@ const publicPaths = [
 	'/forgot-password', // Password reset request page
 	'/reset-password', // Password reset completion page
 	'/auth', // Auth callback routes (login, register, verify, resend, etc.)
+	'/invite', // Invite acceptance page (public so users can view invites before signing in)
 	'/test' // Test helper endpoints (secured via E2E_TEST_MODE check)
 ];
 
@@ -50,13 +51,19 @@ const requireAuth: Handle = async ({ event, resolve }) => {
 
 	// Allow public routes
 	if (isPublicPath(event.url.pathname)) {
-		// Special handling: if authenticated user visits /login or /register, redirect them
-		const isAuthPage = event.url.pathname === '/login' || event.url.pathname === '/register';
+		// Special handling: if authenticated user visits auth pages, redirect them
+		const isAuthPage =
+			event.url.pathname === '/login' ||
+			event.url.pathname === '/register' ||
+			event.url.pathname === '/verify-email';
 
 		// Skip redirect during build context
 		if (!isBuildContext && isAuthPage && event.locals.auth.sessionId) {
-			// Authenticated user trying to access login/register page
-			const redirectTo = event.url.searchParams.get('redirectTo') || '/inbox';
+			// Authenticated user trying to access auth page - redirect to app
+			const redirectTo =
+				event.url.searchParams.get('redirect') ||
+				event.url.searchParams.get('redirectTo') ||
+				'/inbox';
 			throw redirect(302, redirectTo);
 		}
 

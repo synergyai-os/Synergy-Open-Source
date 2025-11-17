@@ -75,8 +75,17 @@
 
 	// Get workspace context
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
-	const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
-	const organizationSummaries = $derived(() => organizations?.organizations ?? []);
+	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
+	// Pattern: Check object existence first, then access getter property directly
+	// See SYOS-228 for full pattern documentation
+	const activeOrganizationId = $derived(() => {
+		if (!organizations) return null;
+		return organizations.activeOrganizationId ?? null;
+	});
+	const organizationSummaries = $derived(() => {
+		if (!organizations) return [];
+		return organizations.organizations ?? [];
+	});
 	const currentOrganization = $derived(() => {
 		const orgId = activeOrganizationId();
 		if (!orgId) return null;

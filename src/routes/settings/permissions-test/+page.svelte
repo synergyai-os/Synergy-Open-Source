@@ -16,17 +16,27 @@
 
 	// Get workspace context from Svelte context (set by root layout)
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
-	const activeOrganizationId = $derived(organizations?.activeOrganizationId ?? null);
-	const activeOrganization = $derived(
-		organizations?.organizations.find((org) => org.organizationId === activeOrganizationId)
-	);
+	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
+	// Pattern: Check object existence first, then access getter property directly
+	// See SYOS-228 for full pattern documentation
+	const activeOrganizationId = $derived(() => {
+		if (!organizations) return null;
+		return organizations.activeOrganizationId ?? null;
+	});
+	const activeOrganization = $derived(() => {
+		if (!organizations) return undefined;
+		const orgId = activeOrganizationId();
+		return organizations.organizations.find((org) => org.organizationId === orgId);
+	});
 
 	// Initialize permissions composable with workspace context
 	const permissions = usePermissions({
 		sessionId: () => sessionId ?? null,
 		userId: () => (userId ? (userId as Id<'users'>) : null),
-		organizationId: () =>
-			activeOrganizationId ? (activeOrganizationId as Id<'organizations'>) : null
+		organizationId: () => {
+			const orgId = activeOrganizationId();
+			return orgId ? (orgId as Id<'organizations'>) : null;
+		}
 	});
 
 	// Convex client
@@ -38,7 +48,8 @@
 
 	// Test mutation functions
 	async function testCreateTeam() {
-		if (!convexClient || !activeOrganizationId || !userId) {
+		const orgId = activeOrganizationId();
+		if (!convexClient || !orgId || !userId) {
 			toast.error('Please select an organization first');
 			return;
 		}
@@ -52,7 +63,7 @@
 		try {
 			await convexClient.mutation(api.teams.createTeam, {
 				sessionId,
-				organizationId: activeOrganizationId as Id<'organizations'>,
+				organizationId: orgId as Id<'organizations'>,
 				name: `Test Team ${Math.floor(Math.random() * 1000)}`
 			});
 			if (loadingToastId !== undefined) {
@@ -67,7 +78,8 @@
 	}
 
 	async function testInviteUser() {
-		if (!convexClient || !activeOrganizationId || !userId) {
+		const orgId = activeOrganizationId();
+		if (!convexClient || !orgId || !userId) {
 			toast.error('Please select an organization first');
 			return;
 		}
@@ -81,7 +93,7 @@
 		try {
 			await convexClient.mutation(api.organizations.createOrganizationInvite, {
 				sessionId,
-				organizationId: activeOrganizationId as Id<'organizations'>,
+				organizationId: orgId as Id<'organizations'>,
 				email: `test${Math.floor(Math.random() * 1000)}@example.com`,
 				role: 'member'
 			});
@@ -168,9 +180,9 @@
 			<div>
 				<dt class="text-label text-secondary">Organization</dt>
 				<dd class="text-body text-primary">
-					{activeOrganization?.name ?? 'None selected'}
-					{#if activeOrganizationId}
-						<span class="font-mono text-sm text-secondary">({activeOrganizationId})</span>
+					{activeOrganization()?.name ?? 'None selected'}
+					{#if activeOrganizationId()}
+						<span class="font-mono text-sm text-secondary">({activeOrganizationId()})</span>
 					{/if}
 				</dd>
 			</div>
