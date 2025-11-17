@@ -1266,6 +1266,194 @@ try {
 
 ---
 
+## #L1050: Ghost Accounts from Incomplete Logout [🔴 CRITICAL]
+
+**Symptom**: Logged-out linked accounts reappear after page reload, three-dot menu "Log out" action doesn't persist  
+**Root Cause**: `logoutAccount` only removes session from localStorage, but `accountLinks` record in Convex remains intact. On page reload, server fetches all linked accounts from Convex and re-adds them to localStorage  
+**Fix**:
+
+**Step 1: Create `unlinkAccounts` mutation** (convex/users.ts):
+
+```typescript
+/**
+ * Unlink two accounts (removes bidirectional link)
+ * Called when user logs out a linked account
+ */
+export const unlinkAccounts = mutation({
+	args: {
+		sessionId: v.string(),
+		targetUserId: v.id('users') // The account to unlink
+	},
+	handler: async (ctx, args) => {
+		const { userId: currentUserId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		if (currentUserId === args.targetUserId) {
+			throw new Error('Cannot unlink yourself');
+		}
+
+		// Remove BOTH directions of the link (bidirectional)
+		const linksToRemove = await ctx.db
+			.query('accountLinks')
+			.filter((q) =>
+				q.or(
+					q.and(
+						q.eq(q.field('primaryUserId'), currentUserId),
+						q.eq(q.field('linkedUserId'), args.targetUserId)
+					),
+					q.and(
+						q.eq(q.field('primaryUserId'), args.targetUserId),
+						q.eq(q.field('linkedUserId'), currentUserId)
+					)
+				)
+			)
+			.collect();
+
+		for (const link of linksToRemove) {
+			await ctx.db.delete(link._id);
+		}
+	}
+});
+```
+
+**Step 2: Create server endpoint** (src/routes/auth/unlink-account/+server.ts):
+
+```typescript
+export const POST: RequestHandler = async ({ request, locals }) => {
+	const { auth } = locals;
+	
+	if (!auth?.sessionId || !auth.user) {
+		return json({ error: 'Not authenticated' }, { status: 401 });
+	}
+
+	// Validate CSRF token
+	const csrfHeader = request.headers.get('x-csrf-token');
+	if (!csrfHeader || csrfHeader !== auth.csrfToken) {
+		return json({ error: 'Invalid CSRF token' }, { status: 403 });
+	}
+
+	const { targetUserId } = await request.json();
+	
+	// Call Convex mutation to unlink
+	await convex.mutation(api.users.unlinkAccounts, {
+		sessionId: auth.sessionId,
+		targetUserId: targetUserId as Id<'users'>
+	});
+
+	return json({ success: true });
+};
+```
+
+**Step 3: Update `logoutAccount`** (src/lib/composables/useAuthSession.svelte.ts):
+
+```typescript
+async function logoutAccount(targetUserId: string) {
+	if (!browser) return;
+
+	const currentUserId = state.user?.userId;
+	const isLoggingOutCurrentAccount = targetUserId === currentUserId;
+
+	// For non-current accounts: unlink from database FIRST
+	if (!isLoggingOutCurrentAccount) {
+		const allSessions = await getAllSessions();
+		const targetSession = allSessions[targetUserId];
+		const accountName = targetSession?.userName || targetSession?.userEmail || 'Account';
+
+		const csrfToken = state.csrfToken ?? readCookie('syos_csrf');
+		if (!csrfToken) {
+			state.error = 'Unable to verify session (missing CSRF token).';
+			return;
+		}
+
+		// ✅ STEP 1: Remove accountLinks record in Convex
+		const response = await fetch('/auth/unlink-account', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRF-Token': csrfToken
+			},
+			body: JSON.stringify({ targetUserId })
+		});
+
+		if (!response.ok) {
+			state.error = `Failed to unlink account: ${response.statusText}`;
+			return;
+		}
+
+		// ✅ STEP 2: Remove from localStorage
+		await removeSession(targetUserId);
+		
+		// ✅ STEP 3: Reload session (won't re-add because link is gone)
+		await loadSession();
+
+		toast.success(`${accountName} logged out`);
+		return;
+	}
+
+	// For current account: full logout
+	logout();
+}
+```
+
+**Why This Order Matters**:
+
+```
+❌ OLD FLOW (Broken):
+1. removeSession(localStorage)  ← Session gone temporarily
+2. loadSession()                ← Fetches from Convex accountLinks
+3. accountLinks still exist     ← Re-adds to localStorage ❌
+
+✅ NEW FLOW (Fixed):
+1. unlinkAccounts(Convex)       ← Database link removed FIRST
+2. removeSession(localStorage)  ← Session gone from local
+3. loadSession()                ← Fetches from Convex (no link found)
+4. Account stays gone           ← ✅ Persistent
+```
+
+**Why**:
+
+- **Database is source of truth**: localStorage is a cache, Convex is the authority
+- **Rehydration on reload**: `/auth/linked-sessions` fetches from Convex → re-populates localStorage
+- **Security**: Server validates CSRF token + session before allowing unlink
+- **Bidirectional removal**: Must remove BOTH directions (A→B and B→A)
+
+**Common Mistakes**:
+
+```typescript
+// ❌ WRONG - Only removes one direction
+await ctx.db.delete(linkRecord._id); // Only removes A→B, not B→A
+
+// ❌ WRONG - Only removes from localStorage
+await removeSession(targetUserId); // Page reload re-adds it
+
+// ❌ WRONG - Wrong order (localStorage first)
+await removeSession(targetUserId);
+await unlinkAccounts(targetUserId);
+// loadSession() runs between these → re-adds ghost account
+```
+
+**Testing**:
+
+```typescript
+// 1. Login to Account A
+// 2. Add Account B (creates accountLinks record)
+// 3. Click "Log out" on Account B
+// 4. Reload page
+// ✅ Account B should NOT reappear
+// 5. Check Convex accountLinks table
+// ✅ No records linking A and B
+```
+
+**Apply when**:
+
+- Implementing multi-account logout (Slack/Notion pattern)
+- Account unlinking/disconnection features
+- Any system where localStorage syncs from database on load
+- Two-way relationships that need cleanup (followers, friends, links)
+
+**Related**: #L460 (Account linking pattern), #L910 (BFS transitive links), #L1010 (DoS prevention), localStorage caching patterns
+
+---
+
 ## #L1060: E2E Testing for SessionID-Based Authentication [🟢 REFERENCE]
 
 **Symptom**: Security regressions ship to production (e.g., client-supplied `userId` allows impersonation)  
