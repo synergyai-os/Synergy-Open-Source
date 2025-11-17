@@ -19,6 +19,7 @@ export interface LinkedAccountInfo {
 	name?: string;
 	firstName?: string;
 	lastName?: string;
+	sessionId?: string; // Session ID for querying organizations
 }
 
 export interface UseAuthSessionReturn {
@@ -119,16 +120,151 @@ export function useAuthSession(): UseAuthSessionReturn {
 				});
 			}
 
+			// Fetch and save linked account sessions from server
+			if (data.authenticated && data.user) {
+				console.log('🔍 [useAuthSession] Fetching linked account sessions...', {
+					currentUserId: data.user.userId,
+					currentUserEmail: data.user.email
+				});
+				try {
+					const linkedSessionsResponse = await fetch('/auth/linked-sessions', {
+						headers: {
+							Accept: 'application/json'
+						},
+						credentials: 'include'
+					});
+
+					console.log('📋 [useAuthSession] Linked sessions response:', {
+						ok: linkedSessionsResponse.ok,
+						status: linkedSessionsResponse.status,
+						statusText: linkedSessionsResponse.statusText
+					});
+
+					if (linkedSessionsResponse.ok) {
+						const linkedSessionsData = (await linkedSessionsResponse.json()) as {
+							sessions?: Array<{
+								userId: string;
+								sessionId: string;
+								csrfToken: string;
+								expiresAt: number;
+								userEmail: string;
+								userName?: string;
+								organizations: Array<{
+									organizationId: string;
+									name: string;
+									initials: string | null;
+									slug: string | null;
+									role: string;
+								}>;
+							}>;
+						};
+
+						console.log('📦 [useAuthSession] Linked sessions data received:', {
+							sessionCount: linkedSessionsData.sessions?.length ?? 0,
+							sessions: linkedSessionsData.sessions?.map((s) => ({
+								userId: s.userId,
+								email: s.userEmail,
+								sessionId: s.sessionId,
+								orgCount: s.organizations.length
+							}))
+						});
+
+						// Save each linked account session to localStorage
+						if (linkedSessionsData.sessions) {
+							for (const session of linkedSessionsData.sessions) {
+								console.log('💾 [useAuthSession] Saving session to localStorage:', {
+									userId: session.userId,
+									email: session.userEmail,
+									orgCount: session.organizations.length
+								});
+								await addSession(session.userId, {
+									sessionId: session.sessionId,
+									csrfToken: session.csrfToken,
+									expiresAt: session.expiresAt,
+									userEmail: session.userEmail,
+									userName: session.userName
+								});
+
+								// Cache organizations for this account
+								if (session.organizations.length > 0) {
+									const LINKED_ACCOUNT_ORGS_KEY_PREFIX = 'linkedAccountOrgs_';
+									const cacheKey = `${LINKED_ACCOUNT_ORGS_KEY_PREFIX}${session.userId}`;
+									localStorage.setItem(cacheKey, JSON.stringify(session.organizations));
+									console.log('💾 [useAuthSession] Cached organizations:', {
+										userId: session.userId,
+										email: session.userEmail,
+										orgCount: session.organizations.length,
+										cacheKey
+									});
+								}
+
+								console.log('✅ [useAuthSession] Session saved:', {
+									userId: session.userId,
+									email: session.userEmail
+								});
+							}
+						} else {
+							console.warn('⚠️ [useAuthSession] No sessions in response data');
+						}
+
+						// CRITICAL: Clean up localStorage to only keep current user + actually linked accounts
+						// This prevents showing stale accounts from previous login sessions
+						const allSessions = await getAllSessions();
+						const currentUserId = data.user?.userId;
+						const linkedUserIds = linkedSessionsData.sessions?.map((s) => s.userId) ?? [];
+
+						// Remove sessions and cached organizations for accounts that are no longer linked
+						for (const userId of Object.keys(allSessions)) {
+							if (userId !== currentUserId && !linkedUserIds.includes(userId)) {
+								await removeSession(userId);
+								// Also remove cached organizations
+								const LINKED_ACCOUNT_ORGS_KEY_PREFIX = 'linkedAccountOrgs_';
+								const cacheKey = `${LINKED_ACCOUNT_ORGS_KEY_PREFIX}${userId}`;
+								localStorage.removeItem(cacheKey);
+							}
+						}
+					} else {
+						const errorText = await linkedSessionsResponse.text();
+						console.error('❌ [useAuthSession] Linked sessions response not OK:', {
+							status: linkedSessionsResponse.status,
+							error: errorText
+						});
+					}
+				} catch (error) {
+					console.error('❌ [useAuthSession] Failed to fetch linked account sessions:', error);
+					// Continue - linked accounts will be loaded from localStorage if available
+				}
+			}
+
 			// Load all available accounts (excluding current user)
 			const allSessions = await getAllSessions();
 			const currentUserId = data.user?.userId;
+			console.log('📋 [useAuthSession] All sessions from localStorage:', {
+				totalSessions: Object.keys(allSessions).length,
+				sessions: Object.entries(allSessions).map(([userId, session]) => ({
+					userId,
+					email: session.userEmail,
+					name: session.userName,
+					sessionId: session.sessionId
+				})),
+				currentUserId
+			});
 			state.availableAccounts = Object.entries(allSessions)
 				.filter(([userId]) => userId !== currentUserId)
 				.map(([userId, session]) => ({
 					userId,
 					email: session.userEmail,
-					name: session.userName
+					name: session.userName,
+					sessionId: session.sessionId // Include sessionId for querying organizations
 				}));
+			console.log('✅ [useAuthSession] Available accounts set:', {
+				count: state.availableAccounts.length,
+				accounts: state.availableAccounts.map((a) => ({
+					userId: a.userId,
+					email: a.email,
+					name: a.name
+				}))
+			});
 		} catch (error) {
 			console.error('Failed to load auth session', error);
 			state.isAuthenticated = false;

@@ -77,6 +77,8 @@
 | `$derived` values don't update in child components, props show as functions                      | Call `$derived` functions when passing as props: `organizations={orgs()}`  | [svelte-reactivity.md#L900](svelte-reactivity.md#L900)                  |
 | `$derived` doesn't execute, returns function instead of value, reactivity breaks                  | Access getter properties without optional chaining: check existence first  | [svelte-reactivity.md#L910](svelte-reactivity.md#L910)                  |
 | `state_snapshot_uncloneable` error when passing values to Convex queries                          | Extract primitives from `$derived` by calling function before passing       | [svelte-reactivity.md#L920](svelte-reactivity.md#L920)                  |
+| `each_key_duplicate` error when multiple users belong to same organization                         | Use composite keys: `(${org.organizationId}-${account.userId})`             | [svelte-reactivity.md#L1460](svelte-reactivity.md#L1460)                |
+| `ReferenceError: [variable] is not defined` accessing variable from try block                      | Declare variable before try block or move cleanup inside try                 | [svelte-reactivity.md#L1510](svelte-reactivity.md#L1510)                |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
