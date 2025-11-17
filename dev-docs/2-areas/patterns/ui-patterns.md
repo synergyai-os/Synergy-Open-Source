@@ -3194,6 +3194,104 @@ await page.fill('input[name="lastName"]', 'User'); // Don't forget!
 
 ---
 
-**Pattern Count**: 32  
-**Last Updated**: 2025-11-16  
+---
+
+## #L3200: RBAC Permission-Based UI Visibility [🟡 IMPORTANT]
+
+**Symptom**: UI shows actions users can't perform, confusing UX, security concerns  
+**Root Cause**: No permission checking in frontend, relying only on backend validation  
+**Fix**:
+
+```svelte
+<script lang="ts">
+	import { usePermissions } from '$lib/composables/usePermissions.svelte';
+	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import { getContext } from 'svelte';
+	import type { Id } from '$lib/convex';
+
+	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const getSessionId = () => $page.data.sessionId;
+	const getOrganizationId = () => organizations?.activeOrganizationId ?? null;
+
+	// Check permissions with organization context
+	const permissions = usePermissions({
+		sessionId: () => getSessionId() ?? null,
+		organizationId: () => {
+			const orgId = getOrganizationId();
+			return orgId ? (orgId as Id<'organizations'>) : null;
+		}
+	});
+
+	// Check if user can perform action (owner OR has permission)
+	const canRemoveMembers = $derived(() => {
+		// Owners can always perform action (bypass RBAC)
+		if (organizations && organizations.activeOrganization?.role === 'owner') {
+			return true;
+		}
+		// Non-owners need explicit permission
+		return permissions.can('users.remove');
+	});
+</script>
+
+<!-- Conditional button visibility -->
+{#if member.role === 'owner'}
+	<span class="text-sm text-secondary">—</span>
+{:else if canRemoveMembers()}
+	<button onclick={() => handleRemove(member)}>Remove</button>
+{:else}
+	<span class="text-sm text-secondary">—</span>
+{/if}
+```
+
+**Backend Pattern** (complementary):
+
+```typescript
+// convex/organizations.ts
+export const removeOrganizationMember = mutation({
+	handler: async (ctx, args) => {
+		const userId = await getAuthUserId(ctx, args.sessionId);
+		
+		// Check if user is owner (owners bypass RBAC)
+		const userMembership = await ctx.db
+			.query('organizationMembers')
+			.withIndex('by_organization_user', (q) =>
+				q.eq('organizationId', args.organizationId).eq('userId', userId)
+			)
+			.first();
+		
+		const isOwner = userMembership?.role === 'owner';
+		
+		// Only check RBAC if not owner
+		if (!isOwner) {
+			await requirePermission(ctx, userId, 'users.remove', {
+				organizationId: args.organizationId
+			});
+		}
+		
+		// ... rest of mutation
+	}
+});
+```
+
+**Key Principles**:
+
+1. **Owner Bypass**: Organization owners can always perform actions (bypass RBAC)
+2. **Permission Context**: Pass `organizationId` or `teamId` to `usePermissions` for scoped permissions
+3. **Reactive Checks**: Use `$derived` for permission checks that update when context changes
+4. **UI + Backend**: Frontend hides buttons, backend validates (defense in depth)
+5. **Graceful Degradation**: Show "—" or hide action when user lacks permission
+
+**Why**: 
+- Better UX (users don't see actions they can't use)
+- Security (defense in depth - UI + backend validation)
+- Extensible (change permissions in RBAC, UI updates automatically)
+
+**Apply when**: Building admin interfaces, member management, resource actions  
+**Related**: #L170 (Edit/view modes), convex-integration.md#L1175 (RBAC test patterns), `src/lib/composables/usePermissions.svelte.ts`  
+**Reference**: `src/routes/(authenticated)/org/members/+page.svelte` (member removal with RBAC)
+
+---
+
+**Pattern Count**: 33  
+**Last Updated**: 2025-11-17  
 **Design Token Reference**: `dev-docs/design-tokens.md`
