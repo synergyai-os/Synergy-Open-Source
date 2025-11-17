@@ -85,6 +85,50 @@ export const listByCircle = query({
 });
 
 /**
+ * Get a single role by ID
+ */
+export const get = query({
+	args: {
+		sessionId: v.string(),
+		roleId: v.id('circleRoles')
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		const role = await ctx.db.get(args.roleId);
+		if (!role) {
+			throw new Error('Role not found');
+		}
+
+		const { organizationId } = await ensureCircleExists(ctx, role.circleId);
+		await ensureOrganizationMembership(ctx, organizationId, userId);
+
+		// Get circle name for context
+		const circle = await ctx.db.get(role.circleId);
+		if (!circle) {
+			throw new Error('Circle not found');
+		}
+
+		// Get filler count
+		const assignments = await ctx.db
+			.query('userCircleRoles')
+			.withIndex('by_role', (q) => q.eq('circleRoleId', args.roleId))
+			.collect();
+
+		return {
+			roleId: role._id,
+			name: role.name,
+			purpose: role.purpose,
+			circleId: role.circleId,
+			circleName: circle.name,
+			organizationId,
+			fillerCount: assignments.length,
+			createdAt: role.createdAt
+		};
+	}
+});
+
+/**
  * Get all roles assigned to a user
  */
 export const getUserRoles = query({
