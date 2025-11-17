@@ -76,7 +76,7 @@ export function useOrganizationMembers(options: {
 				await convexClient.mutation(api.organizations.removeOrganizationMember, {
 					sessionId,
 					organizationId: args.organizationId as Id<'organizations'>,
-					targetUserId: args.userId as Id<'users'>
+					userId: args.userId as Id<'users'>
 				});
 
 				toast.success('Member removed');

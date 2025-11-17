@@ -3408,6 +3408,28 @@ if (args.email) {
 
 ---
 
+## #L3400: Redirect to Organization with Query Parameter [🟡 IMPORTANT]
+
+**Symptom**: Redirecting to `/org/{organizationId}` results in 404 - route doesn't exist  
+**Root Cause**: Organization routes use query parameter pattern (`/org/circles?org={id}`), not dynamic route segments  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Non-existent route
+await goto(resolveRoute(`/org/${organizationId}`)); // 404 error
+
+// ✅ CORRECT: Use query parameter pattern
+await goto(resolveRoute(`/org/circles?org=${organizationId}`));
+```
+
+**Why**: The authenticated layout reads `org` from URL search params via `orgFromUrl` callback. The `useOrganizations` composable automatically sets the active organization from the `org` query parameter.  
+**Apply when**: Redirecting users to organizations after invite acceptance, account creation, or organization switching  
+**Related**: #L1870 (resolveRoute pattern), #L850 in convex-integration.md (Session validation)
+
+**Source**: SYOS-233 (Invite Acceptance Page)
+
+---
+
 **Pattern Count**: 35  
 **Last Updated**: 2025-11-17  
 **Design Token Reference**: `dev-docs/design-tokens.md`

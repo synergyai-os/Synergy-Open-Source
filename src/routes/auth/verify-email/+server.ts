@@ -101,7 +101,7 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 
 		// Establish session
 		console.log('🔍 Establishing session...');
-		await establishSession({
+		const sessionId = await establishSession({
 			event,
 			convexUserId,
 			workosUserId: authResponse.user.id,
@@ -127,9 +127,36 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 		// Clear registration cookie
 		event.cookies.delete('registration_pending', { path: '/' });
 
+		// Check if user registered from invite link - accept invite automatically
+		let redirectTo = registrationData.redirect ?? '/inbox';
+		const inviteMatch = redirectTo.match(/^\/invite\?code=([^&]+)/);
+
+		if (inviteMatch) {
+			const inviteCode = inviteMatch[1];
+			console.log('🔍 User registered from invite link, accepting invite:', inviteCode);
+
+			try {
+				const acceptResult = await convex.mutation(api.organizations.acceptOrganizationInvite, {
+					sessionId,
+					code: inviteCode
+				});
+
+				console.log(
+					'✅ Invite accepted, redirecting to organization:',
+					acceptResult.organizationId
+				);
+				redirectTo = `/org/circles?org=${acceptResult.organizationId}`;
+			} catch (inviteError) {
+				console.error('❌ Failed to accept invite:', inviteError);
+				// If invite acceptance fails, redirect to inbox instead
+				// User can manually accept invite later if needed
+				redirectTo = '/inbox';
+			}
+		}
+
 		return json({
 			success: true,
-			redirectTo: registrationData.redirect ?? '/inbox'
+			redirectTo
 		});
 	} catch (err) {
 		console.error('❌ Verification error:', err);

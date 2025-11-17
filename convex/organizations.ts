@@ -533,6 +533,80 @@ export const acceptOrganizationInvite = mutation({
 	}
 });
 
+/**
+ * Internal mutation to accept organization invite (for server-side use)
+ * Used when user registers from invite link - accepts invite automatically after account creation
+ */
+export const acceptOrganizationInviteInternal = internalMutation({
+	args: {
+		userId: v.id('users'),
+		code: v.string()
+	},
+	handler: async (ctx, args) => {
+		const invite = await ctx.db
+			.query('organizationInvites')
+			.withIndex('by_code', (q) => q.eq('code', args.code))
+			.first();
+
+		if (!invite) {
+			throw new Error('Invite not found or already used');
+		}
+
+		// Check if invite has been revoked
+		if (invite.revokedAt) {
+			throw new Error('Invite has been revoked');
+		}
+
+		// Check if invite has expired
+		if (invite.expiresAt && invite.expiresAt < Date.now()) {
+			throw new Error('Invite has expired');
+		}
+
+		// Check if invite has already been accepted
+		if (invite.acceptedAt) {
+			throw new Error('Invite has already been accepted');
+		}
+
+		if (invite.invitedUserId && invite.invitedUserId !== args.userId) {
+			throw new Error('This invite is addressed to a different user');
+		}
+
+		const email = invite.email ? invite.email.toLowerCase() : null;
+		const userEmail = await getUserEmail(ctx, args.userId);
+		if (email && userEmail && email !== userEmail.toLowerCase()) {
+			throw new Error('This invite is addressed to a different email');
+		}
+
+		const existingMembership = await ctx.db
+			.query('organizationMembers')
+			.withIndex('by_organization_user', (q) =>
+				q.eq('organizationId', invite.organizationId).eq('userId', args.userId)
+			)
+			.first();
+
+		if (!existingMembership) {
+			await ctx.db.insert('organizationMembers', {
+				organizationId: invite.organizationId,
+				userId: args.userId,
+				role: invite.role,
+				joinedAt: Date.now()
+			});
+		}
+
+		// Mark invite as accepted
+		await ctx.db.patch(invite._id, {
+			acceptedAt: Date.now()
+		});
+
+		// Delete the invite (cleanup)
+		await ctx.db.delete(invite._id);
+
+		return {
+			organizationId: invite.organizationId
+		};
+	}
+});
+
 export const declineOrganizationInvite = mutation({
 	args: {
 		sessionId: v.string(),
@@ -595,46 +669,37 @@ export const recordOrganizationSwitch = mutation({
 
 /**
  * Remove a member from an organization
- * Requires "users.remove" permission
- * Only Admins can remove users from organizations
+ * Only admins/owners can remove members
+ * Cannot remove the last owner
  */
 export const removeOrganizationMember = mutation({
 	args: {
 		sessionId: v.string(),
 		organizationId: v.id('organizations'),
-		targetUserId: v.id('users')
+		userId: v.id('users')
 	},
 	handler: async (ctx, args) => {
-		const userId = await getAuthUserId(ctx, args.sessionId);
-		if (!userId) {
-			throw new Error('Not authenticated');
-		}
+		// 1. Validate session
+		const { userId: actingUserId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		// Check if user is an organization owner (owners can always remove members)
-		const userMembership = await ctx.db
+		// 2. Get acting user's membership
+		const actingMembership = await ctx.db
 			.query('organizationMembers')
 			.withIndex('by_organization_user', (q) =>
-				q.eq('organizationId', args.organizationId).eq('userId', userId)
+				q.eq('organizationId', args.organizationId).eq('userId', actingUserId)
 			)
 			.first();
 
-		const isOwner = userMembership?.role === 'owner';
-
-		// RBAC Permission Check: Only owners or users with "users.remove" permission can remove members
-		if (!isOwner) {
-			await requirePermission(ctx, userId, 'users.remove', {
-				organizationId: args.organizationId
-			});
+		// 3. Check permission (only admin/owner)
+		if (!actingMembership || actingMembership.role === 'member') {
+			throw new Error('Only admins/owners can remove members');
 		}
 
-		if (args.targetUserId === userId) {
-			throw new Error('Cannot remove yourself from organization');
-		}
-
+		// 4. Find target membership
 		const targetMembership = await ctx.db
 			.query('organizationMembers')
 			.withIndex('by_organization_user', (q) =>
-				q.eq('organizationId', args.organizationId).eq('userId', args.targetUserId)
+				q.eq('organizationId', args.organizationId).eq('userId', args.userId)
 			)
 			.first();
 
@@ -642,16 +707,26 @@ export const removeOrganizationMember = mutation({
 			throw new Error('User is not a member of this organization');
 		}
 
+		// 5. Check if target is owner - if so, verify not last owner
 		if (targetMembership.role === 'owner') {
-			throw new Error('Cannot remove organization owner');
+			const ownerCount = await ctx.db
+				.query('organizationMembers')
+				.withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId))
+				.filter((q) => q.eq(q.field('role'), 'owner'))
+				.collect();
+
+			if (ownerCount.length === 1) {
+				throw new Error('Cannot remove the last owner');
+			}
 		}
 
+		// 6. Delete membership
 		await ctx.db.delete(targetMembership._id);
 
-		// Also remove from all teams in this organization
+		// 7. Also remove from all teams in this organization
 		const teamMemberships = await ctx.db
 			.query('teamMembers')
-			.withIndex('by_user', (q) => q.eq('userId', args.targetUserId))
+			.withIndex('by_user', (q) => q.eq('userId', args.userId))
 			.collect();
 
 		for (const teamMembership of teamMemberships) {

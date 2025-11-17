@@ -3454,6 +3454,45 @@ export const sendOrganizationInviteEmail = internalAction({
 
 ---
 
-**Pattern Count**: 39  
+## #L3500: Server-Side Invite Acceptance After Registration [🟡 IMPORTANT]
+
+**Symptom**: User registers via invite link, verifies email, but gets redirected to `/invite` page showing unauthenticated UI instead of organization  
+**Root Cause**: Client-side redirect after email verification causes cookie timing race condition - session cookie not yet available to server-side layout on subsequent request  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Client-side invite acceptance after redirect
+// src/routes/auth/verify-email/+server.ts
+return json({ success: true, redirectTo: '/invite?code=...' });
+// Client redirects to /invite, then tries to accept invite
+// Cookie timing issue: session not yet available to server-side layout
+
+// ✅ CORRECT: Server-side invite acceptance before redirect
+// src/routes/auth/verify-email/+server.ts
+const sessionId = await establishSession({ event, ... });
+let redirectTo = registrationData.redirect ?? '/inbox';
+const inviteMatch = redirectTo.match(/^\/invite\?code=([^&]+)/);
+
+if (inviteMatch) {
+	const inviteCode = inviteMatch[1];
+	const acceptResult = await convex.mutation(api.organizations.acceptOrganizationInvite, {
+		sessionId, // ✅ Use newly established session
+		code: inviteCode
+	});
+	redirectTo = `/org/circles?org=${acceptResult.organizationId}`; // ✅ Direct redirect
+}
+
+return json({ success: true, redirectTo });
+```
+
+**Why**: Server-side mutations execute immediately after session establishment, avoiding cookie propagation delays. Direct redirect to organization eliminates client-side race conditions.  
+**Apply when**: Accepting invites, joining teams, or performing organization actions immediately after account creation/authentication  
+**Related**: #L850 (Session validation), #L1200 (SessionId pattern)
+
+**Source**: SYOS-233 (Invite Acceptance Page)
+
+---
+
+**Pattern Count**: 40  
 **Last Validated**: 2025-11-17  
 **Context7 Source**: `/get-convex/convex-backend`, `convex-test` NPM docs, TypeScript type system, SvelteKit docs

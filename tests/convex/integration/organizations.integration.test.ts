@@ -214,7 +214,7 @@ describe('Organizations Integration Tests', () => {
 		const result = await t.mutation(api.organizations.removeOrganizationMember, {
 			sessionId: adminSessionId,
 			organizationId: orgId,
-			targetUserId: memberUserId
+			userId: memberUserId
 		});
 
 		expect(result.success).toBe(true);
