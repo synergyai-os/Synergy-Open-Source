@@ -3722,3 +3722,65 @@ function buildHierarchy(circle: CircleNode, depth: number = 0): CircleNode {
 **Pattern Count**: 38  
 **Last Updated**: 2025-01-17  
 **Design Token Reference**: `dev-docs/design-tokens.md`
+
+---
+
+## #L3730: Documentation Maintenance - Verify Against Implementation [🟡 IMPORTANT]
+
+**Symptom**: Documentation shows wrong project name, outdated status, incorrect code references, broken links, or planning language instead of current state  
+**Root Cause**: Documentation written during planning phase, not updated when implementation completes. Common issues:
+- Project name from old context (e.g., "Axon" instead of "SynergyOS")
+- Status says "Ready for Implementation" but feature is already live
+- Permission slugs/API names don't match actual code
+- Links use relative paths that don't resolve correctly
+- Dates are incorrect (e.g., "January 2025" when it's November)
+- Language reflects planning ("What We Built Today", "Questions to Answer") instead of current state
+
+**Fix**:
+
+```markdown
+<!-- ❌ WRONG: Planning language, wrong project name, outdated status -->
+# RBAC System - Executive Summary
+**Created**: November 10, 2025  
+**Status**: ✅ Architecture Complete - Ready for Implementation
+
+We designed a complete **Role-Based Access Control (RBAC)** system for Axon...
+
+**Questions to Answer Before Implementation:**
+1. Should existing organization owners become `admin`?
+```
+
+```markdown
+<!-- ✅ CORRECT: Current state, correct project name, accurate status -->
+# RBAC System - Overview
+**Last Updated**: November 18, 2025  
+**Status**: ✅ **Implemented and Live**
+
+SynergyOS uses a **Role-Based Access Control (RBAC)** system...
+
+### Current Implementation Status
+- ✅ Database Schema: All RBAC tables implemented
+- ✅ Permission Checking: Core functions in `convex/rbac/permissions.ts`
+- ✅ Admin Panel: `/admin/rbac` for managing RBAC system
+```
+
+**Verification Checklist**:
+1. ✅ **Project Name**: Check actual project name (grep codebase, check package.json)
+2. ✅ **Status**: Verify implementation state (check if code exists, if feature is live)
+3. ✅ **Code References**: Match permission slugs, function names, file paths to actual code
+4. ✅ **Links**: Test all links, use absolute paths (`/dev-docs/...`) not relative (`./...`)
+5. ✅ **Dates**: Use current date for "Last Updated"
+6. ✅ **Language**: Remove planning language ("Questions to Answer", "Before Implementation")
+7. ✅ **Examples**: Update examples to match actual implementation
+
+**Apply when**:
+- Fixing broken documentation links
+- Updating documentation after implementation completes
+- Reviewing documentation for accuracy
+- Before committing documentation changes
+
+**Related**: #L1120 (Documentation Link Rendering), #L1100 (Markdown URL Redirects)
+
+---
+
+**Last Updated**: 2025-11-18
