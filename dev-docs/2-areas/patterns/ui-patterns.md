@@ -3719,6 +3719,6 @@ function buildHierarchy(circle: CircleNode, depth: number = 0): CircleNode {
 
 ---
 
-**Pattern Count**: 37  
-**Last Updated**: 2025-11-17  
+**Pattern Count**: 38  
+**Last Updated**: 2025-01-17  
 **Design Token Reference**: `dev-docs/design-tokens.md`
