@@ -1,5 +1,5 @@
 import { browser } from '$app/environment';
-import { useQuery } from 'convex-svelte';
+import { useQuery, useConvexClient } from 'convex-svelte';
 import { api, type Id } from '$lib/convex';
 import type { CircleNode } from '$lib/utils/orgChartTransform';
 
@@ -27,8 +27,32 @@ export function useOrgChart(options: {
 		// Pan offset
 		panOffset: { x: 0, y: 0 },
 		// Hover state
-		hoveredCircleId: null as Id<'circles'> | null
+		hoveredCircleId: null as Id<'circles'> | null,
+		// Query results (loaded via $effect)
+		selectedCircle: null as Awaited<ReturnType<typeof api.circles.get>> | null,
+		selectedCircleMembers: [] as Awaited<ReturnType<typeof api.circles.getMembers>>,
+		selectedRole: null as Awaited<ReturnType<typeof api.circleRoles.get>> | null,
+		selectedRoleFillers: [] as Awaited<ReturnType<typeof api.circleRoles.getRoleFillers>>,
+		// Loading states
+		selectedCircleIsLoading: false,
+		selectedCircleMembersIsLoading: false,
+		selectedRoleIsLoading: false,
+		selectedRoleFillersIsLoading: false,
+		// Error states
+		selectedCircleError: null as unknown | null,
+		selectedCircleMembersError: null as unknown | null,
+		selectedRoleError: null as unknown | null,
+		selectedRoleFillersError: null as unknown | null
 	});
+
+	// Convex client for manual queries
+	const convexClient = browser ? useConvexClient() : null;
+
+	// Query tracking for race condition prevention
+	let currentCircleQueryId: Id<'circles'> | null = null;
+	let currentCircleMembersQueryId: Id<'circles'> | null = null;
+	let currentRoleQueryId: Id<'circleRoles'> | null = null;
+	let currentRoleFillersQueryId: Id<'circleRoles'> | null = null;
 
 	// Query circles list - wait for org context before querying
 	const circlesQuery =
@@ -42,49 +66,233 @@ export function useOrgChart(options: {
 				})
 			: null;
 
-	// Query selected circle details (if selected)
-	const selectedCircleQuery =
-		browser && getSessionId() && state.selectedCircleId
-			? useQuery(api.circles.get, () => {
-					const sessionId = getSessionId();
-					const circleId = state.selectedCircleId;
-					if (!sessionId || !circleId) throw new Error('sessionId and circleId required');
-					return { sessionId, circleId };
-				})
-			: null;
+	// Load selected circle details with $effect pattern (proven pattern from useSelectedItem)
+	$effect(() => {
+		if (!browser || !convexClient || !state.selectedCircleId) {
+			state.selectedCircle = null;
+			state.selectedCircleIsLoading = false;
+			state.selectedCircleError = null;
+			currentCircleQueryId = null;
+			return;
+		}
 
-	// Query members for selected circle
-	const selectedCircleMembersQuery =
-		browser && getSessionId() && state.selectedCircleId
-			? useQuery(api.circles.getMembers, () => {
-					const sessionId = getSessionId();
-					const circleId = state.selectedCircleId;
-					if (!sessionId || !circleId) throw new Error('sessionId and circleId required');
-					return { sessionId, circleId };
-				})
-			: null;
+		const sessionId = getSessionId();
+		if (!sessionId) {
+			state.selectedCircle = null;
+			state.selectedCircleIsLoading = false;
+			state.selectedCircleError = null;
+			currentCircleQueryId = null;
+			return;
+		}
 
-	// Query selected role details (if selected)
-	const selectedRoleQuery =
-		browser && getSessionId() && state.selectedRoleId
-			? useQuery(api.circleRoles.get, () => {
-					const sessionId = getSessionId();
-					const roleId = state.selectedRoleId;
-					if (!sessionId || !roleId) throw new Error('sessionId and roleId required');
-					return { sessionId, roleId };
-				})
-			: null;
+		// Generate unique ID for this query
+		const queryId = state.selectedCircleId;
+		currentCircleQueryId = queryId;
+		state.selectedCircleIsLoading = true;
+		state.selectedCircleError = null;
 
-	// Query fillers for selected role
-	const selectedRoleFillersQuery =
-		browser && getSessionId() && state.selectedRoleId
-			? useQuery(api.circleRoles.getRoleFillers, () => {
-					const sessionId = getSessionId();
-					const circleRoleId = state.selectedRoleId;
-					if (!sessionId || !circleRoleId) throw new Error('sessionId and circleRoleId required');
-					return { sessionId, circleRoleId };
-				})
-			: null;
+		// Load circle details
+		convexClient
+			.query(api.circles.get, {
+				sessionId,
+				circleId: state.selectedCircleId
+			})
+			.then((result) => {
+				// Only update if this is still the current query (prevent race conditions)
+				if (currentCircleQueryId === queryId) {
+					state.selectedCircle = result;
+					state.selectedCircleIsLoading = false;
+					state.selectedCircleError = null;
+				}
+			})
+			.catch((error) => {
+				// Only handle error if this is still the current query
+				if (currentCircleQueryId === queryId) {
+					console.error('[useOrgChart] Failed to load circle:', error);
+					state.selectedCircle = null;
+					state.selectedCircleIsLoading = false;
+					state.selectedCircleError = error;
+				}
+			});
+
+		// Cleanup function: mark query as stale when effect re-runs or component unmounts
+		return () => {
+			if (currentCircleQueryId === queryId) {
+				currentCircleQueryId = null;
+			}
+		};
+	});
+
+	// Load selected circle members with $effect pattern
+	$effect(() => {
+		if (!browser || !convexClient || !state.selectedCircleId) {
+			state.selectedCircleMembers = [];
+			state.selectedCircleMembersIsLoading = false;
+			state.selectedCircleMembersError = null;
+			currentCircleMembersQueryId = null;
+			return;
+		}
+
+		const sessionId = getSessionId();
+		if (!sessionId) {
+			state.selectedCircleMembers = [];
+			state.selectedCircleMembersIsLoading = false;
+			state.selectedCircleMembersError = null;
+			currentCircleMembersQueryId = null;
+			return;
+		}
+
+		// Generate unique ID for this query
+		const queryId = state.selectedCircleId;
+		currentCircleMembersQueryId = queryId;
+		state.selectedCircleMembersIsLoading = true;
+		state.selectedCircleMembersError = null;
+
+		// Load circle members
+		convexClient
+			.query(api.circles.getMembers, {
+				sessionId,
+				circleId: state.selectedCircleId
+			})
+			.then((result) => {
+				// Only update if this is still the current query (prevent race conditions)
+				if (currentCircleMembersQueryId === queryId) {
+					state.selectedCircleMembers = result;
+					state.selectedCircleMembersIsLoading = false;
+					state.selectedCircleMembersError = null;
+				}
+			})
+			.catch((error) => {
+				// Only handle error if this is still the current query
+				if (currentCircleMembersQueryId === queryId) {
+					console.error('[useOrgChart] Failed to load circle members:', error);
+					state.selectedCircleMembers = [];
+					state.selectedCircleMembersIsLoading = false;
+					state.selectedCircleMembersError = error;
+				}
+			});
+
+		// Cleanup function: mark query as stale when effect re-runs or component unmounts
+		return () => {
+			if (currentCircleMembersQueryId === queryId) {
+				currentCircleMembersQueryId = null;
+			}
+		};
+	});
+
+	// Load selected role details with $effect pattern (proven pattern from useSelectedItem)
+	$effect(() => {
+		if (!browser || !convexClient || !state.selectedRoleId) {
+			state.selectedRole = null;
+			state.selectedRoleIsLoading = false;
+			state.selectedRoleError = null;
+			currentRoleQueryId = null;
+			return;
+		}
+
+		const sessionId = getSessionId();
+		if (!sessionId) {
+			state.selectedRole = null;
+			state.selectedRoleIsLoading = false;
+			state.selectedRoleError = null;
+			currentRoleQueryId = null;
+			return;
+		}
+
+		// Generate unique ID for this query
+		const queryId = state.selectedRoleId;
+		currentRoleQueryId = queryId;
+		state.selectedRoleIsLoading = true;
+		state.selectedRoleError = null;
+
+		// Load role details
+		convexClient
+			.query(api.circleRoles.get, {
+				sessionId,
+				roleId: state.selectedRoleId
+			})
+			.then((result) => {
+				// Only update if this is still the current query (prevent race conditions)
+				if (currentRoleQueryId === queryId) {
+					state.selectedRole = result;
+					state.selectedRoleIsLoading = false;
+					state.selectedRoleError = null;
+				}
+			})
+			.catch((error) => {
+				// Only handle error if this is still the current query
+				if (currentRoleQueryId === queryId) {
+					console.error('[useOrgChart] Failed to load role:', error);
+					state.selectedRole = null;
+					state.selectedRoleIsLoading = false;
+					state.selectedRoleError = error;
+				}
+			});
+
+		// Cleanup function: mark query as stale when effect re-runs or component unmounts
+		return () => {
+			if (currentRoleQueryId === queryId) {
+				currentRoleQueryId = null;
+			}
+		};
+	});
+
+	// Load selected role fillers with $effect pattern
+	$effect(() => {
+		if (!browser || !convexClient || !state.selectedRoleId) {
+			state.selectedRoleFillers = [];
+			state.selectedRoleFillersIsLoading = false;
+			state.selectedRoleFillersError = null;
+			currentRoleFillersQueryId = null;
+			return;
+		}
+
+		const sessionId = getSessionId();
+		if (!sessionId) {
+			state.selectedRoleFillers = [];
+			state.selectedRoleFillersIsLoading = false;
+			state.selectedRoleFillersError = null;
+			currentRoleFillersQueryId = null;
+			return;
+		}
+
+		// Generate unique ID for this query
+		const queryId = state.selectedRoleId;
+		currentRoleFillersQueryId = queryId;
+		state.selectedRoleFillersIsLoading = true;
+		state.selectedRoleFillersError = null;
+
+		// Load role fillers
+		convexClient
+			.query(api.circleRoles.getRoleFillers, {
+				sessionId,
+				circleRoleId: state.selectedRoleId
+			})
+			.then((result) => {
+				// Only update if this is still the current query (prevent race conditions)
+				if (currentRoleFillersQueryId === queryId) {
+					state.selectedRoleFillers = result;
+					state.selectedRoleFillersIsLoading = false;
+					state.selectedRoleFillersError = null;
+				}
+			})
+			.catch((error) => {
+				// Only handle error if this is still the current query
+				if (currentRoleFillersQueryId === queryId) {
+					console.error('[useOrgChart] Failed to load role fillers:', error);
+					state.selectedRoleFillers = [];
+					state.selectedRoleFillersIsLoading = false;
+					state.selectedRoleFillersError = error;
+				}
+			});
+
+		// Cleanup function: mark query as stale when effect re-runs or component unmounts
+		return () => {
+			if (currentRoleFillersQueryId === queryId) {
+				currentRoleFillersQueryId = null;
+			}
+		};
+	});
 
 	return {
 		// Getters - reactive access
@@ -92,19 +300,31 @@ export function useOrgChart(options: {
 			return circlesQuery?.data ?? [];
 		},
 		get selectedCircle() {
-			return selectedCircleQuery?.data ?? null;
+			return state.selectedCircle;
+		},
+		get selectedCircleError() {
+			return state.selectedCircleError;
+		},
+		get selectedCircleIsLoading() {
+			return state.selectedCircleIsLoading;
 		},
 		get selectedCircleMembers() {
-			return selectedCircleMembersQuery?.data ?? [];
+			return state.selectedCircleMembers;
 		},
 		get selectedCircleId() {
 			return state.selectedCircleId;
 		},
 		get selectedRole() {
-			return selectedRoleQuery?.data ?? null;
+			return state.selectedRole;
+		},
+		get selectedRoleError() {
+			return state.selectedRoleError;
+		},
+		get selectedRoleIsLoading() {
+			return state.selectedRoleIsLoading;
 		},
 		get selectedRoleFillers() {
-			return selectedRoleFillersQuery?.data ?? [];
+			return state.selectedRoleFillers;
 		},
 		get selectedRoleId() {
 			return state.selectedRoleId;
@@ -132,6 +352,11 @@ export function useOrgChart(options: {
 		selectRole: (roleId: Id<'circleRoles'> | null, source: 'chart' | 'circle-panel' | null) => {
 			state.selectedRoleId = roleId;
 			state.selectionSource = source;
+			// When role opens from chart, hide circle panel
+			// When role opens from circle panel, keep circle panel visible
+			if (source === 'chart' && roleId !== null) {
+				state.selectedCircleId = null;
+			}
 		},
 		setZoom: (level: number) => {
 			state.zoomLevel = Math.max(0.5, Math.min(3, level));

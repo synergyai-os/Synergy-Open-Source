@@ -1,0 +1,559 @@
+<script lang="ts">
+	import type { UseOrgChart } from '$lib/composables/useOrgChart.svelte';
+
+	let { orgChart }: { orgChart: UseOrgChart } = $props();
+
+	const role = $derived(orgChart.selectedRole);
+	const fillers = $derived(orgChart.selectedRoleFillers);
+	const isOpen = $derived(orgChart.selectedRoleId !== null);
+	const selectionSource = $derived(orgChart.selectionSource);
+	const error = $derived(orgChart.selectedRoleError);
+	const isLoading = $derived(orgChart.selectedRoleIsLoading);
+
+	// Tab state with dummy counts
+	let activeTab = $state(
+		'overview' as
+			| 'overview'
+			| 'members'
+			| 'documents'
+			| 'activities'
+			| 'metrics'
+			| 'checklists'
+			| 'projects'
+	);
+	const tabCounts = $state({
+		overview: 0,
+		members: 0,
+		documents: 0,
+		activities: 0,
+		metrics: 0,
+		checklists: 0,
+		projects: 0
+	});
+
+	function handleClose() {
+		// If opened from circle panel, only close role panel
+		// If opened from chart, close both panels
+		if (selectionSource === 'circle-panel') {
+			orgChart.selectRole(null, null);
+		} else {
+			// Close both role and circle panels
+			orgChart.selectRole(null, null);
+			orgChart.selectCircle(null);
+		}
+	}
+
+	function formatDate(timestamp: number): string {
+		return new Date(timestamp).toLocaleDateString('en-US', {
+			year: 'numeric',
+			month: 'short',
+			day: 'numeric'
+		});
+	}
+
+	function getInitials(name: string): string {
+		return name
+			.split(' ')
+			.map((n) => n[0])
+			.join('')
+			.toUpperCase()
+			.slice(0, 2);
+	}
+</script>
+
+<!-- Backdrop -->
+{#if isOpen}
+	<div
+		class="bg-base/50 fixed inset-0 z-[50] backdrop-blur-sm"
+		onclick={handleClose}
+		onkeydown={(e) => {
+			if (e.key === 'Escape') {
+				handleClose();
+			}
+		}}
+		role="button"
+		tabindex="-1"
+	></div>
+{/if}
+
+<!-- Panel -->
+<aside
+	class="fixed top-0 right-0 z-[60] h-full w-[480px] transform border-l border-base bg-elevated shadow-xl transition-transform duration-300 ease-in-out"
+	class:translate-x-0={isOpen}
+	class:translate-x-full={!isOpen}
+>
+	{#if isLoading}
+		<!-- Loading State -->
+		<div class="flex h-full items-center justify-center">
+			<div class="text-center">
+				<svg class="mx-auto h-8 w-8 animate-spin text-tertiary" fill="none" viewBox="0 0 24 24">
+					<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+					></circle>
+					<path
+						class="opacity-75"
+						fill="currentColor"
+						d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+					></path>
+				</svg>
+				<p class="mt-4 text-sm text-secondary">Loading role details...</p>
+				{#if orgChart.selectedRoleId}
+					<p class="mt-2 text-xs text-tertiary">Role ID: {orgChart.selectedRoleId}</p>
+				{/if}
+			</div>
+		</div>
+	{:else if error}
+		<!-- Error State -->
+		<div class="flex h-full items-center justify-center px-inbox-container">
+			<div class="text-center">
+				<p class="text-sm font-medium text-error">Failed to load role</p>
+				<p class="mt-2 text-sm text-secondary">{String(error)}</p>
+				{#if orgChart.selectedRoleId}
+					<p class="mt-2 text-xs text-tertiary">Role ID: {orgChart.selectedRoleId}</p>
+				{/if}
+			</div>
+		</div>
+	{:else if role}
+		<div class="flex h-full flex-col">
+			<!-- Header -->
+			<header
+				class="flex h-system-header flex-shrink-0 items-center justify-between border-b border-base px-inbox-container py-system-header"
+			>
+				<h2 class="text-lg font-semibold text-primary">Role Details</h2>
+				<button
+					class="flex h-8 w-8 items-center justify-center rounded-md text-secondary hover:bg-hover-solid hover:text-primary"
+					onclick={handleClose}
+					aria-label="Close panel"
+				>
+					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M6 18L18 6M6 6l12 12"
+						/>
+					</svg>
+				</button>
+			</header>
+
+			<!-- Content -->
+			<div class="flex-1 overflow-y-auto">
+				<!-- Role Name -->
+				<div class="px-inbox-container py-system-content">
+					<h3 class="text-2xl font-bold text-primary">{role.name}</h3>
+					{#if role.circleName}
+						<p class="mt-1 text-sm text-secondary">
+							Circle: <span class="font-medium">{role.circleName}</span>
+						</p>
+					{/if}
+				</div>
+
+				<!-- Navigation Tabs -->
+				<div class="border-b border-base px-inbox-container">
+					<div class="flex gap-1 overflow-x-auto" role="tablist">
+						<button
+							type="button"
+							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-sm transition-colors"
+							class:border-accent-primary={activeTab === 'overview'}
+							class:border-transparent={activeTab !== 'overview'}
+							class:text-primary={activeTab === 'overview'}
+							class:text-secondary={activeTab !== 'overview'}
+							onclick={() => {
+								activeTab = 'overview';
+							}}
+							role="tab"
+							aria-selected={activeTab === 'overview'}
+						>
+							Overview
+						</button>
+						<button
+							type="button"
+							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-sm transition-colors"
+							class:border-accent-primary={activeTab === 'members'}
+							class:border-transparent={activeTab !== 'members'}
+							class:text-primary={activeTab === 'members'}
+							class:text-secondary={activeTab !== 'members'}
+							onclick={() => {
+								activeTab = 'members';
+							}}
+							role="tab"
+							aria-selected={activeTab === 'members'}
+						>
+							Members
+							{#if tabCounts.members > 0}
+								<span class="ml-1 text-xs text-tertiary">({tabCounts.members})</span>
+							{/if}
+						</button>
+						<button
+							type="button"
+							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-sm transition-colors"
+							class:border-accent-primary={activeTab === 'documents'}
+							class:border-transparent={activeTab !== 'documents'}
+							class:text-primary={activeTab === 'documents'}
+							class:text-secondary={activeTab !== 'documents'}
+							onclick={() => {
+								activeTab = 'documents';
+							}}
+							role="tab"
+							aria-selected={activeTab === 'documents'}
+						>
+							Documents
+							{#if tabCounts.documents > 0}
+								<span class="ml-1 text-xs text-tertiary">({tabCounts.documents})</span>
+							{/if}
+						</button>
+						<button
+							type="button"
+							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-sm transition-colors"
+							class:border-accent-primary={activeTab === 'activities'}
+							class:border-transparent={activeTab !== 'activities'}
+							class:text-primary={activeTab === 'activities'}
+							class:text-secondary={activeTab !== 'activities'}
+							onclick={() => {
+								activeTab = 'activities';
+							}}
+							role="tab"
+							aria-selected={activeTab === 'activities'}
+						>
+							Activities
+							{#if tabCounts.activities > 0}
+								<span class="ml-1 text-xs text-tertiary">({tabCounts.activities})</span>
+							{/if}
+						</button>
+						<button
+							type="button"
+							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-sm transition-colors"
+							class:border-accent-primary={activeTab === 'metrics'}
+							class:border-transparent={activeTab !== 'metrics'}
+							class:text-primary={activeTab === 'metrics'}
+							class:text-secondary={activeTab !== 'metrics'}
+							onclick={() => {
+								activeTab = 'metrics';
+							}}
+							role="tab"
+							aria-selected={activeTab === 'metrics'}
+						>
+							Metrics
+							{#if tabCounts.metrics > 0}
+								<span class="ml-1 text-xs text-tertiary">({tabCounts.metrics})</span>
+							{/if}
+						</button>
+						<button
+							type="button"
+							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-sm transition-colors"
+							class:border-accent-primary={activeTab === 'checklists'}
+							class:border-transparent={activeTab !== 'checklists'}
+							class:text-primary={activeTab === 'checklists'}
+							class:text-secondary={activeTab !== 'checklists'}
+							onclick={() => {
+								activeTab = 'checklists';
+							}}
+							role="tab"
+							aria-selected={activeTab === 'checklists'}
+						>
+							Checklists
+							{#if tabCounts.checklists > 0}
+								<span class="ml-1 text-xs text-tertiary">({tabCounts.checklists})</span>
+							{/if}
+						</button>
+						<button
+							type="button"
+							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-sm transition-colors"
+							class:border-accent-primary={activeTab === 'projects'}
+							class:border-transparent={activeTab !== 'projects'}
+							class:text-primary={activeTab === 'projects'}
+							class:text-secondary={activeTab !== 'projects'}
+							onclick={() => {
+								activeTab = 'projects';
+							}}
+							role="tab"
+							aria-selected={activeTab === 'projects'}
+						>
+							Projects
+							{#if tabCounts.projects > 0}
+								<span class="ml-1 text-xs text-tertiary">({tabCounts.projects})</span>
+							{/if}
+						</button>
+					</div>
+				</div>
+
+				<!-- Tab Content -->
+				<div class="flex-1 overflow-y-auto px-inbox-container py-system-content">
+					{#if activeTab === 'overview'}
+						<!-- Purpose -->
+						{#if role.purpose}
+							<div class="mb-6">
+								<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
+									Purpose
+								</h4>
+								<p class="text-sm text-secondary">{role.purpose}</p>
+							</div>
+						{/if}
+
+						<!-- Stats -->
+						<div class="mb-6 grid grid-cols-2 gap-4">
+							<div class="rounded-lg bg-surface p-4">
+								<p class="text-xs text-tertiary">Fillers</p>
+								<p class="mt-1 text-2xl font-semibold text-primary">{role.fillerCount}</p>
+							</div>
+							<div class="rounded-lg bg-surface p-4">
+								<p class="text-xs text-tertiary">Created</p>
+								<p class="mt-1 text-sm font-medium text-primary">{formatDate(role.createdAt)}</p>
+							</div>
+						</div>
+
+						<!-- Filled By Section -->
+						{#if fillers.length > 0}
+							<div class="mb-6">
+								<h4 class="mb-3 text-sm font-medium tracking-wide text-tertiary uppercase">
+									Filled By ({fillers.length})
+								</h4>
+								<div class="space-y-2">
+									{#each fillers as filler (filler.userId)}
+										<div class="flex items-center gap-3 rounded-lg bg-surface p-3">
+											<!-- Avatar -->
+											<div
+												class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-accent-primary text-sm font-semibold text-white"
+											>
+												{getInitials(filler.name || filler.email)}
+											</div>
+											<!-- Info -->
+											<div class="min-w-0 flex-1">
+												<p class="truncate text-sm font-medium text-primary">
+													{filler.name || filler.email}
+												</p>
+												{#if filler.name}
+													<p class="truncate text-xs text-secondary">{filler.email}</p>
+												{/if}
+											</div>
+										</div>
+									{/each}
+								</div>
+							</div>
+						{:else}
+							<div class="mb-6">
+								<h4 class="mb-3 text-sm font-medium tracking-wide text-tertiary uppercase">
+									Filled By
+								</h4>
+								<p class="text-sm text-secondary">No one is filling this role yet</p>
+							</div>
+						{/if}
+
+						<!-- Mock Empty States Sections -->
+						<div class="space-y-6 border-t border-base pt-6">
+							<!-- Domains -->
+							<div>
+								<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
+									Domains
+								</h4>
+								<p class="text-sm text-secondary">
+									Domains define areas of authority and decision-making for this role. This feature
+									will be available in a future update.
+								</p>
+							</div>
+
+							<!-- Accountabilities -->
+							<div>
+								<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
+									Accountabilities
+								</h4>
+								<p class="text-sm text-secondary">
+									Accountabilities define what this role is responsible for delivering. This feature
+									will be available in a future update.
+								</p>
+							</div>
+
+							<!-- Policies -->
+							<div>
+								<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
+									Policies
+								</h4>
+								<p class="text-sm text-secondary">
+									Policies define constraints and guidelines for this role's decision-making. This
+									feature will be available in a future update.
+								</p>
+							</div>
+
+							<!-- Decision Rights -->
+							<div>
+								<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
+									Decision Rights
+								</h4>
+								<p class="text-sm text-secondary">
+									Decision rights define what decisions this role can make autonomously. This
+									feature will be available in a future update.
+								</p>
+							</div>
+
+							<!-- Notes -->
+							<div>
+								<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
+									Notes
+								</h4>
+								<p class="text-sm text-secondary">
+									Additional notes and context about this role. This feature will be available in a
+									future update.
+								</p>
+							</div>
+						</div>
+
+						<!-- Metadata -->
+						<div class="mt-6 border-t border-base pt-4">
+							<h4 class="mb-3 text-sm font-medium tracking-wide text-tertiary uppercase">
+								Metadata
+							</h4>
+							<dl class="space-y-2 text-sm">
+								<div class="flex justify-between">
+									<dt class="text-secondary">Role ID</dt>
+									<dd class="font-mono text-xs text-tertiary">{role.roleId}</dd>
+								</div>
+								<div class="flex justify-between">
+									<dt class="text-secondary">Created</dt>
+									<dd class="text-tertiary">{formatDate(role.createdAt)}</dd>
+								</div>
+							</dl>
+						</div>
+					{:else if activeTab === 'members'}
+						<!-- Empty State: Members -->
+						<div class="py-8 text-center">
+							<svg
+								class="mx-auto h-12 w-12 text-tertiary"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+								/>
+							</svg>
+							<p class="mt-4 text-sm font-medium text-primary">No members yet</p>
+							<p class="mt-1 text-sm text-secondary">
+								Members assigned to this role will appear here. This feature will be available in a
+								future update.
+							</p>
+						</div>
+					{:else if activeTab === 'documents'}
+						<!-- Empty State: Documents -->
+						<div class="py-8 text-center">
+							<svg
+								class="mx-auto h-12 w-12 text-tertiary"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+								/>
+							</svg>
+							<p class="mt-4 text-sm font-medium text-primary">No documents yet</p>
+							<p class="mt-1 text-sm text-secondary">
+								Documents related to this role will appear here. This feature will be available in a
+								future update.
+							</p>
+						</div>
+					{:else if activeTab === 'activities'}
+						<!-- Empty State: Activities -->
+						<div class="py-8 text-center">
+							<svg
+								class="mx-auto h-12 w-12 text-tertiary"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+								/>
+							</svg>
+							<p class="mt-4 text-sm font-medium text-primary">No activities yet</p>
+							<p class="mt-1 text-sm text-secondary">
+								Recent activities and updates for this role will appear here. This feature will be
+								available in a future update.
+							</p>
+						</div>
+					{:else if activeTab === 'metrics'}
+						<!-- Empty State: Metrics -->
+						<div class="py-8 text-center">
+							<svg
+								class="mx-auto h-12 w-12 text-tertiary"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+								/>
+							</svg>
+							<p class="mt-4 text-sm font-medium text-primary">No metrics yet</p>
+							<p class="mt-1 text-sm text-secondary">
+								Performance metrics and analytics for this role will appear here. This feature will
+								be available in a future update.
+							</p>
+						</div>
+					{:else if activeTab === 'checklists'}
+						<!-- Empty State: Checklists -->
+						<div class="py-8 text-center">
+							<svg
+								class="mx-auto h-12 w-12 text-tertiary"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+								/>
+							</svg>
+							<p class="mt-4 text-sm font-medium text-primary">No checklists yet</p>
+							<p class="mt-1 text-sm text-secondary">
+								Checklists and task lists for this role will appear here. This feature will be
+								available in a future update.
+							</p>
+						</div>
+					{:else if activeTab === 'projects'}
+						<!-- Empty State: Projects -->
+						<div class="py-8 text-center">
+							<svg
+								class="mx-auto h-12 w-12 text-tertiary"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+								/>
+							</svg>
+							<p class="mt-4 text-sm font-medium text-primary">No projects yet</p>
+							<p class="mt-1 text-sm text-secondary">
+								Projects associated with this role will appear here. This feature will be available
+								in a future update.
+							</p>
+						</div>
+					{/if}
+				</div>
+			</div>
+		</div>
+	{:else}
+		<!-- Empty State - Panel open but no role data -->
+		<div class="flex h-full items-center justify-center px-inbox-container">
+			<div class="text-center">
+				<p class="text-sm text-secondary">No role selected</p>
+			</div>
+		</div>
+	{/if}
+</aside>
