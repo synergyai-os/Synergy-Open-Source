@@ -31,6 +31,7 @@
 | Scrollbar positioned at far right (outside padding)                                               | Use scrollable-outer + scrollable-inner utilities                            | [component-architecture.md#L180](../component-architecture.md#L180) |
 | Raw markdown displayed instead of rendered HTML                                                   | Add Vite middleware to redirect .md URLs                                     | [ui-patterns.md#L1100](ui-patterns.md#L1100)                        |
 | Parent directory links (../) return 404 in docs                                                   | Preserve ./ and ../ prefixes in link renderer                                | [ui-patterns.md#L1120](ui-patterns.md#L1120)                        |
+| Documentation 404s from direct URL access or moved files                                         | Add redirect mapping in +page.server.ts for wrong paths                       | [ui-patterns.md#L4700](ui-patterns.md#L4700)                        |
 | Vercel build: "Could not resolve \_generated/dataModel"                                           | Commit \_generated to git, separate deployments                              | [convex-integration.md#L540](convex-integration.md#L540)            |
 | Deployment fails: "Could not resolve \_generated/dataModel" during bundling                       | Use import type for \_generated imports                                      | [convex-integration.md#L590](convex-integration.md#L590)            |
 | Query returns empty, ArgumentValidationError for valid field                                      | Git conflicts block deployment, stale code running                           | [convex-integration.md#L640](convex-integration.md#L640)            |
@@ -55,7 +56,8 @@
 | TypeScript errors "circularly references itself" or "Property does not exist on type '{}'"        | Use FunctionReference type assertions to break circular API refs             | [convex-integration.md#L1300](convex-integration.md#L1300)          |
 | Using `makeFunctionReference()` with `as any` in frontend code                                    | Use `FunctionReference` type assertion instead of `any` for type safety      | [convex-integration.md#L1300](convex-integration.md#L1300)          |
 | Hundreds of `any` types violating coding standards, ESLint no-explicit-any errors                 | Systematic elimination: create type files, narrow unions, use FunctionReference | [convex-integration.md#L1550](convex-integration.md#L1550)          |
-| TypeScript errors "Argument of type '() => {...}                                                  | null' is not assignable" in useQuery                                         | Return valid object or throw, never null (use 'skip' for optional)  | [convex-integration.md#L1350](convex-integration.md#L1350) |
+| TypeScript errors "Argument of type '() => {...}                                                  | null' is not assignable" in useQuery                                         | Use conditional hook creation: `browser && getSessionId() ? useQuery(...) : null` | [convex-integration.md#L1350](convex-integration.md#L1350) |
+| Query stuck in loading, hook never created when ID changes from null to value                   | Use $effect pattern with manual convexClient.query() (proven: useSelectedItem) | [convex-integration.md#L1355](convex-integration.md#L1355)          |
 | Multiple related queries take 3-5 seconds, slow page load                                        | Use batch query to check multiple items at once (1 network call vs N)          | [convex-integration.md#L1360](convex-integration.md#L1360)          |
 | UI elements appear 3-5 seconds after page load, missing data until hard refresh                 | Load critical data server-side in +layout.server.ts using ConvexHttpClient      | [convex-integration.md#L1390](convex-integration.md#L1390)          |
 | TypeScript errors "'X' is possibly 'null'" for nested property access                             | Use optional chaining for nested properties: `obj?.prop?.nested`             | [convex-integration.md#L1400](convex-integration.md#L1400)          |
@@ -74,6 +76,7 @@
 | Feature flags visible to all users when no targeting rules configured                              | Default to false when no targeting rules, require explicit configuration   | [convex-integration.md#L1530](convex-integration.md#L1530)            |
 | Feature flag needs organization-based targeting (multi-tenancy)                                    | Add allowedOrganizationIds field + org membership check                    | [feature-flags.md#L180](feature-flags.md#L180)                        |
 | Can't add more items after selecting - combobox trigger disappears                                 | Add "Add" button next to selected chips, use anchor element for positioning | [ui-patterns.md#L3120](ui-patterns.md#L3120)                            |
+| Combobox doesn't allow multi-select, dropdown closes immediately, search doesn't work with backspace | Replace Combobox with custom dropdown using plain div + manual state management | [ui-patterns.md#L4520](ui-patterns.md#L4520)                            |
 | Need polymorphic schema supporting multiple entity types (users/circles/teams)                     | Use union type discriminator + optional ID fields + validation              | [convex-integration.md#L1700](convex-integration.md#L1700)            |
 | `$derived` values don't update in child components, props show as functions                      | Call `$derived` functions when passing as props: `organizations={orgs()}`  | [svelte-reactivity.md#L900](svelte-reactivity.md#L900)                  |
 | `$derived` doesn't execute, returns function instead of value, reactivity breaks                  | Access getter properties without optional chaining: check existence first  | [svelte-reactivity.md#L910](svelte-reactivity.md#L910)                  |
@@ -81,6 +84,15 @@
 | `each_key_duplicate` error when multiple users belong to same organization                         | Use composite keys: `(${org.organizationId}-${account.userId})`             | [svelte-reactivity.md#L1460](svelte-reactivity.md#L1460)                |
 | `ReferenceError: [variable] is not defined` accessing variable from try block                      | Declare variable before try block or move cleanup inside try                 | [svelte-reactivity.md#L1510](svelte-reactivity.md#L1510)                |
 | UI shows actions users can't perform, buttons visible but disabled/error on click                 | Use `usePermissions` composable + owner bypass pattern for permission-based visibility | [ui-patterns.md#L3200](ui-patterns.md#L3200)            |
+|| Buttons/dropdowns in modal panels don't work, clicks don't register                            | Use z-index stacking: backdrop z-40, panel z-50, dropdowns z-50 (don't use stopPropagation)  | [ui-patterns.md#L3650](ui-patterns.md#L3650)            |
+| SVG text labels covered by child elements, root circle names appear behind sub-circles        | Use two-pass rendering: visual elements first, text labels second (sorted by depth descending) | [ui-patterns.md#L4000](ui-patterns.md#L4000)            |
+| SVG text sizes don't reflect hierarchy, all labels same size regardless of depth            | Use depth-based multiplier: `3 - node.depth * 0.5` for root (3x) scaling down              | [ui-patterns.md#L4000](ui-patterns.md#L4000)            |
+| SVG text backgrounds use hardcoded rgba colors, not theme-aware                             | Use design token colors: `oklch(37.2% 0.044 257.287 / 0.85)` instead of `rgba(0,0,0,0.7)` | [ui-patterns.md#L4000](ui-patterns.md#L4000)            |
+| Modal/panel opens then immediately closes, backdrop click fires on trigger click               | Check if click target is backdrop: `if (e.target === e.currentTarget) handleClose()`          | [ui-patterns.md#L3950](ui-patterns.md#L3950)            |
+| State shows open but element hidden, backdrop visible but panel missing, Tailwind classes ignored | Remove hardcoded properties from @utility - let conditional Tailwind classes control them      | [ui-patterns.md#L4100](ui-patterns.md#L4100)            |
+| Panel positioned incorrectly, stacking panels misaligned, not flush to right edge              | Don't set both `left` and `right` - `left` overrides `right`. Use width calc instead          | [ui-patterns.md#L4150](ui-patterns.md#L4150)            |
+| Content cut off or overlaps with breadcrumb/toolbar, scrollable content partially blocked      | Add padding to content equal to absolute element's width (use design token)                    | [ui-patterns.md#L4200](ui-patterns.md#L4200)            |
+| ESC key goes back two levels instead of one when multiple panels are open                      | Check if current panel is topmost layer before handling ESC (use selectedId not data._id)     | [ui-patterns.md#L4250](ui-patterns.md#L4250)            |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -94,6 +106,7 @@
 | Widget disappears too early                                                   | Polling updates only, not completion                                  | [svelte-reactivity.md#L280](svelte-reactivity.md#L280)     |
 | Duplicate timers / early dismissal                                            | Track timers with SvelteSet (reactive)                                | [svelte-reactivity.md#L340](svelte-reactivity.md#L340)     |
 | Component doesn't update on route change                                      | Use $effect + $page.url.pathname                                      | [svelte-reactivity.md#L650](svelte-reactivity.md#L650)     |
+| SVG text overlaps with packed child elements, roles cover circle names                       | Use SVG masking to exclude text areas from child element rendering    | [ui-patterns.md#L4000](ui-patterns.md#L4000)            |
 | ESLint error: "Found mutable Date class. Use SvelteDate"                     | Use immutable timestamp arithmetic (getTime() + ms)                   | [svelte-reactivity.md#L1150](svelte-reactivity.md#L1150)   |
 | Switch in dropdown broken                                                     | Use plain div wrapper                                                 | [ui-patterns.md#L10](ui-patterns.md#L10)                   |
 | Conflicting keyboard shortcuts                                                | Check priority: dropdowns > inputs > component                        | [ui-patterns.md#L430](ui-patterns.md#L430)                 |
@@ -139,6 +152,8 @@
 | Topic                       | Pattern                                                     | Details                                                  |
 | --------------------------- | ----------------------------------------------------------- | -------------------------------------------------------- |
 | Card design                 | Use generous padding                                        | [ui-patterns.md#L60](ui-patterns.md#L60)                 |
+| Admin pages cluttered, everything in one card, hard to scan | Single-column card layout with each section as its own card, consistent spacing | [ui-patterns.md#L4580](ui-patterns.md#L4580)                 |
+| Feature flag descriptions vague, don't explain impact | Write descriptions with action verbs, specific routes, user impact, behavior details | [ui-patterns.md#L4640](ui-patterns.md#L4640)                 |
 | Header alignment            | Fixed height with tokens                                    | [ui-patterns.md#L120](ui-patterns.md#L120)               |
 | Edit mode toggle            | Separate view/edit states                                   | [ui-patterns.md#L170](ui-patterns.md#L170)               |
 | Card removal (Tinder-like)  | Queue-based removal                                         | [ui-patterns.md#L220](ui-patterns.md#L220)               |
@@ -244,8 +259,8 @@ correct code
 
 ---
 
-**Last Updated**: 2025-11-17
-**Pattern Count**: 90
+**Last Updated**: 2025-11-18
+**Pattern Count**: 93
 **Format Version**: 2.0
 ```
 
@@ -256,3 +271,6 @@ correct code
 || User registers via invite link, verifies email, but redirected to `/invite` showing unauthenticated UI | Accept invite server-side after session establishment, redirect directly to organization | [convex-integration.md#L3500](convex-integration.md#L3500) |
 || User logs in from invite link, redirected back to `/invite` showing "Sign in" screen | Accept invite server-side in login handler before redirect, handle both org and team invites | [convex-integration.md#L3600](convex-integration.md#L3600) |
 || Redirecting to `/org/{organizationId}` results in 404 error                                     | Use query parameter pattern: `/org/circles?org={organizationId}`                        | [ui-patterns.md#L3400](ui-patterns.md#L3400)                |
+|| Roles appear underneath child circles instead of alongside them in nested bubble chart          | Include roles as synthetic circle nodes in D3 hierarchy (pack alongside, not separate) | [ui-patterns.md#L3500](ui-patterns.md#L3500)                |
+| Roles in nested bubble chart all appear same size, despite hierarchy depth                     | Scale role sizes based on parent depth with large baseSize values (D3 scales proportionally) | [ui-patterns.md#L3570](ui-patterns.md#L3570)                |
+| Documentation shows wrong project name, outdated status, incorrect code references, broken links | Verify against implementation: project name, status, permission slugs, links, dates, language | [ui-patterns.md#L3730](ui-patterns.md#L3730)                |

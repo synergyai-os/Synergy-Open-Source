@@ -2,8 +2,9 @@
 	import type { PageData } from './$types';
 	import { marked } from 'marked';
 	import { sanitizeHtml } from '$lib/utils/htmlSanitize';
-	// TODO: Re-enable when browser is needed
-	// import { browser } from '$app/environment';
+	import { browser } from '$app/environment';
+	import { onMount } from 'svelte';
+	import { processMermaidInHtml } from '$lib/utils/mermaidProcessor';
 
 	let { data }: { data: PageData } = $props();
 
@@ -76,15 +77,64 @@
 					// Transform hash to lowercase if it exists (e.g., #L10 → #l10)
 					const cleanHash = hash ? `#${hash.toLowerCase()}` : '';
 
-					// Make relative links explicit for browser resolution
-					// Preserve ./ and ../ prefixes, otherwise prepend ./
-					const finalPath =
-						cleanPath.startsWith('./') || cleanPath.startsWith('../')
-							? cleanPath
-							: './' + cleanPath;
+					// Get current path from data.path to resolve relative links correctly
+					const currentPath = data.path || '';
+					const currentDir = currentPath.substring(
+						0,
+						currentPath.lastIndexOf('/') || currentPath.length
+					);
 
-					// Reconstruct href
-					href = `${finalPath}${cleanHash}`;
+					// Resolve relative paths: same directory or subdirectory
+					let finalPath: string;
+					if (cleanPath.startsWith('../')) {
+						// Parent directory - resolve relative to current file's directory
+						// e.g., currentPath = "/2-areas/architecture/multi-tenancy", cleanPath = "../system-architecture"
+						// We need to go up from "multi-tenancy" to "architecture", then append "system-architecture"
+						// currentDir = "/2-areas/architecture" (parent of file), so we start from currentPath's parent
+						let resolvedPath = currentDir; // Start from parent directory of current file
+						let remainingPath = cleanPath;
+
+						// Count how many ../ segments we have
+						let upLevels = 0;
+						while (remainingPath.startsWith('../')) {
+							upLevels++;
+							remainingPath = remainingPath.substring(3); // Remove '../'
+						}
+
+						// Go up the required number of levels from currentDir
+						// Note: currentDir is already one level up from the file, so we go up (upLevels - 1) more times
+						for (let i = 0; i < upLevels - 1; i++) {
+							const lastSlashIndex = resolvedPath.lastIndexOf('/');
+							if (lastSlashIndex > 0) {
+								resolvedPath = resolvedPath.substring(0, lastSlashIndex);
+							} else {
+								resolvedPath = '';
+								break;
+							}
+						}
+
+						// Append remaining path
+						if (resolvedPath && remainingPath) {
+							finalPath = `${resolvedPath}/${remainingPath}`;
+						} else if (remainingPath) {
+							finalPath = remainingPath;
+						} else {
+							finalPath = resolvedPath;
+						}
+					} else if (cleanPath.startsWith('./')) {
+						// Explicit relative - same directory
+						finalPath = currentDir
+							? `${currentDir}/${cleanPath.substring(2)}`
+							: cleanPath.substring(2);
+					} else {
+						// Same directory - construct full path
+						// e.g., currentPath = "/2-areas/architecture", cleanPath = "system-architecture"
+						// result = "/2-areas/architecture/system-architecture"
+						finalPath = currentDir ? `${currentDir}/${cleanPath}` : cleanPath;
+					}
+
+					// Reconstruct href with absolute path
+					href = `/dev-docs${finalPath}${cleanHash}`;
 				}
 			}
 
@@ -97,7 +147,32 @@
 	}
 
 	// Parse markdown to HTML with IDs and sanitize
-	const htmlContent = $derived(sanitizeHtml(parseMarkdownWithIds(data.content)));
+	const rawHtml = $derived(sanitizeHtml(parseMarkdownWithIds(data.content)));
+
+	// Process Mermaid diagrams client-side
+	let htmlContent = $state('');
+	let lastProcessedHtml = $state('');
+
+	onMount(async () => {
+		if (browser && rawHtml) {
+			htmlContent = await processMermaidInHtml(rawHtml);
+			lastProcessedHtml = rawHtml;
+		} else {
+			htmlContent = rawHtml;
+		}
+	});
+
+	// Update when content changes
+	$effect(() => {
+		if (browser && rawHtml && rawHtml !== lastProcessedHtml) {
+			processMermaidInHtml(rawHtml).then((processed) => {
+				htmlContent = processed;
+				lastProcessedHtml = rawHtml;
+			});
+		} else if (!browser) {
+			htmlContent = rawHtml;
+		}
+	});
 </script>
 
 <svelte:head>
@@ -122,5 +197,33 @@
 	.doc-content :global(h3),
 	.doc-content :global(h4) {
 		scroll-margin-top: 2rem;
+	}
+
+	/* Mermaid diagram styling */
+	.doc-content :global(.mermaid-container) {
+		margin: 1.5rem 0;
+		overflow-x: auto;
+		display: flex;
+		justify-content: center;
+	}
+
+	.doc-content :global(.mermaid-container svg) {
+		max-width: 100%;
+		height: auto;
+	}
+
+	.doc-content :global(.mermaid-error) {
+		margin: 1.5rem 0;
+		padding: 1rem;
+		background: var(--color-surface-error, #fee);
+		border: 1px solid var(--color-border-error, #fcc);
+		border-radius: 0.25rem;
+		color: var(--color-text-error, #c00);
+	}
+
+	.doc-content :global(.mermaid-error pre) {
+		margin: 0;
+		white-space: pre-wrap;
+		font-size: 0.875rem;
 	}
 </style>

@@ -1271,12 +1271,12 @@ export const listTags = query({
 	}
 });
 
-// Frontend usage with 'skip' pattern
+// Frontend usage with conditional hook creation
 const tagsQuery =
 	browser && getSessionId()
 		? useQuery(api.tags.listAllTags, () => {
 				const sessionId = getSessionId();
-				if (!sessionId) return 'skip'; // ✅ Convex 'skip' pattern
+				if (!sessionId) throw new Error('sessionId required'); // ✅ Throw if missing (outer check ensures it exists)
 				return { sessionId };
 			})
 		: null;
@@ -1290,7 +1290,8 @@ const tagsQuery =
    - Destructure: `const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId)`
 2. **Frontend (Svelte)**:
    - Change `const getUserId = () => $page.data.user?.userId` → `const getSessionId = () => $page.data.sessionId`
-   - Use 'skip' pattern: `if (!sessionId) return 'skip';`
+   - Use conditional hook creation: `browser && getSessionId() ? useQuery(...) : null`
+   - Throw in args function if sessionId missing: `if (!sessionId) throw new Error('sessionId required');`
    - Type cast Ids: `organizationId as Id<'organizations'>`
 
 3. **Tests**:
@@ -1308,17 +1309,21 @@ const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
 // ✅ CORRECT: Destructure to extract userId
 const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-// ❌ WRONG: Type mismatch with 'skip'
-useQuery(api.tags.listAllTags, () => {
-	if (!sessionId) return null; // ❌ null not valid
+// ❌ WRONG: Returns null when sessionId missing
+const tagsQuery = useQuery(api.tags.listAllTags, () => {
+	if (!sessionId) return null; // ❌ null not valid - breaks type contract
 	return { sessionId };
 });
 
-// ✅ CORRECT: Use Convex 'skip' pattern
-useQuery(api.tags.listAllTags, () => {
-	if (!sessionId) return 'skip'; // ✅ Convex recognizes 'skip'
-	return { sessionId };
-});
+// ✅ CORRECT: Use conditional hook creation with throw pattern
+const tagsQuery =
+	browser && getSessionId()
+		? useQuery(api.tags.listAllTags, () => {
+				const sessionId = getSessionId();
+				if (!sessionId) throw new Error('sessionId required'); // ✅ Throw if missing (outer check ensures it exists)
+				return { sessionId };
+			})
+		: null;
 ```
 
 **Why**: SessionId pattern prevents impersonation attacks - server validates session instead of trusting client-provided userId.  
@@ -2172,18 +2177,18 @@ export type { Transaction };
 ## #L1350: useQuery Argument Functions Must Return Valid Object or Throw [🟡 IMPORTANT]
 
 **Symptom**: TypeScript errors "Argument of type '() => { sessionId: string; } | null' is not assignable" or "Property 'sessionId' is missing"  
-**Root Cause**: `useQuery` argument function returns `null` when `sessionId` is missing, but Convex expects valid object or `'skip'`  
+**Root Cause**: `useQuery` argument function returns `null` when `sessionId` is missing, but Convex expects valid object. Hooks cannot be conditionally created reactively - must use conditional hook creation pattern.  
 **Fix**:
 
 ```typescript
 // ❌ WRONG: Returns null when sessionId missing
 const organizationsQuery = useQuery(api.organizations.listOrganizations, () => {
 	const sessionId = getSessionId();
-	if (!sessionId) return null; // ❌ null not valid - Convex expects object or 'skip'
+	if (!sessionId) return null; // ❌ null not valid - breaks type contract
 	return { sessionId };
 });
 
-// ✅ CORRECT: Throw error if sessionId required (outer check ensures it exists)
+// ✅ CORRECT: Conditional hook creation with throw pattern (outer check ensures sessionId exists)
 const organizationsQuery =
 	browser && getSessionId()
 		? useQuery(api.organizations.listOrganizations, () => {
@@ -2192,40 +2197,220 @@ const organizationsQuery =
 				return { sessionId };
 			})
 		: null;
-
-// ✅ CORRECT: Use Convex 'skip' pattern for optional queries
-const tagsQuery = useQuery(api.tags.listAllTags, () => {
-	const sessionId = getSessionId();
-	if (!sessionId) return 'skip'; // ✅ Convex recognizes 'skip' as valid
-	return { sessionId };
-});
 ```
 
 **Pattern**:
 
 ```typescript
-// Pattern 1: Required sessionId (throw if missing)
+// Pattern: Conditional hook creation (required sessionId)
+// Hooks cannot be conditionally created reactively - condition must be evaluated at hook creation time
 const query =
 	browser && getSessionId()
 		? useQuery(api.module.function, () => {
 				const sessionId = getSessionId();
-				if (!sessionId) throw new Error('sessionId required');
+				if (!sessionId) throw new Error('sessionId required'); // ✅ Outer check ensures it exists
 				return { sessionId, ...otherArgs };
 			})
 		: null;
+```
 
-// Pattern 2: Optional query (use 'skip')
-const query = useQuery(api.module.function, () => {
+**Why**: 
+- Convex `useQuery` expects argument function to return valid query args object, never `null`
+- Hooks must be created unconditionally at the top level - conditional creation based on reactive values doesn't work
+- When `sessionId` changes from `null` to a value, the hook was already evaluated as `null` at initialization
+- Use conditional hook creation (`browser && getSessionId() ? useQuery(...) : null`) - condition evaluated once at initialization
+- Throw in args function if sessionId missing (defensive check, outer condition ensures it exists)
+
+**Note**: The `'skip'` pattern is NOT supported by convex-svelte. Context7 docs show no support for `'skip'` return value. Always use conditional hook creation pattern.  
+**Apply when**: Writing `useQuery` calls with conditional `sessionId` or when ID might be `null` initially  
+**Related**: #L1200 (SessionId migration), #L220 (useQuery pattern)
+
+---
+
+## #L1355: $effect Pattern for Queries When ID Starts as Null [🔴 CRITICAL]
+
+**Symptom**: Query stuck in loading state, hook never created when ID changes from `null` to a value, hydration errors  
+**Root Cause**: Hooks cannot be conditionally created reactively. When `selectedId` changes from `null` → `'id'`, the hook was already evaluated as `null` at initialization. Conditional hook creation (`browser && getSessionId() && selectedId ? useQuery(...) : null`) doesn't work because the condition is evaluated once at initialization, not reactively.  
+**Fix**: Use `$effect` pattern with manual `convexClient.query()` calls (proven pattern from `useSelectedItem`)
+
+```typescript
+// ❌ WRONG: Conditional hook creation doesn't work reactively
+const selectedRoleQuery =
+	browser && getSessionId() && state.selectedRoleId
+		? useQuery(api.circleRoles.get, () => {
+				const sessionId = getSessionId();
+				const roleId = state.selectedRoleId;
+				if (!sessionId || !roleId) throw new Error('sessionId and roleId required');
+				return { sessionId, roleId };
+			})
+		: null;
+// Problem: When selectedRoleId changes from null → 'id', hook was already null at initialization
+
+// ✅ CORRECT: $effect pattern with manual query (proven pattern from useSelectedItem)
+import { useConvexClient } from 'convex-svelte';
+
+const convexClient = browser ? useConvexClient() : null;
+
+// Query tracking for race condition prevention
+let currentRoleQueryId: Id<'circleRoles'> | null = null;
+
+// Load selected role details with $effect pattern
+$effect(() => {
+	if (!browser || !convexClient || !state.selectedRoleId) {
+		state.selectedRole = null;
+		state.selectedRoleIsLoading = false;
+		state.selectedRoleError = null;
+		currentRoleQueryId = null;
+		return;
+	}
+
 	const sessionId = getSessionId();
-	if (!sessionId) return 'skip';
-	return { sessionId, ...otherArgs };
+	if (!sessionId) {
+		state.selectedRole = null;
+		state.selectedRoleIsLoading = false;
+		state.selectedRoleError = null;
+		currentRoleQueryId = null;
+		return;
+	}
+
+	// Generate unique ID for this query
+	const queryId = state.selectedRoleId;
+	currentRoleQueryId = queryId;
+	state.selectedRoleIsLoading = true;
+	state.selectedRoleError = null;
+
+	// Load role details
+	convexClient
+		.query(api.circleRoles.get, {
+			sessionId,
+			roleId: state.selectedRoleId
+		})
+		.then((result) => {
+			// Only update if this is still the current query (prevent race conditions)
+			if (currentRoleQueryId === queryId) {
+				state.selectedRole = result;
+				state.selectedRoleIsLoading = false;
+				state.selectedRoleError = null;
+			}
+		})
+		.catch((error) => {
+			// Only handle error if this is still the current query
+			if (currentRoleQueryId === queryId) {
+				console.error('[useOrgChart] Failed to load role:', error);
+				state.selectedRole = null;
+				state.selectedRoleIsLoading = false;
+				state.selectedRoleError = error;
+			}
+		});
+
+	// Cleanup function: mark query as stale when effect re-runs or component unmounts
+	return () => {
+		if (currentRoleQueryId === queryId) {
+			currentRoleQueryId = null;
+		}
+	};
 });
 ```
 
-**Why**: Convex `useQuery` expects argument function to return valid query args object or `'skip'`. Returning `null` breaks type contract.  
-**Note**: TypeScript may not accept `'skip'` as return type. Use `throw new Error()` pattern instead when outer check ensures sessionId exists.  
-**Apply when**: Writing `useQuery` calls with conditional `sessionId`  
-**Related**: #L1200 (SessionId migration), #L220 (useQuery pattern)
+**Complete Pattern**:
+
+```typescript
+// State includes query results, loading, and error
+const state = $state({
+	selectedRoleId: null as Id<'circleRoles'> | null,
+	selectedRole: null as Role | null,
+	selectedRoleIsLoading: false,
+	selectedRoleError: null as unknown | null
+});
+
+const convexClient = browser ? useConvexClient() : null;
+let currentRoleQueryId: Id<'circleRoles'> | null = null;
+
+// $effect reacts to selectedRoleId changes
+$effect(() => {
+	// Early return if ID is null or prerequisites missing
+	if (!browser || !convexClient || !state.selectedRoleId) {
+		state.selectedRole = null;
+		state.selectedRoleIsLoading = false;
+		state.selectedRoleError = null;
+		currentRoleQueryId = null;
+		return;
+	}
+
+	const sessionId = getSessionId();
+	if (!sessionId) {
+		state.selectedRole = null;
+		state.selectedRoleIsLoading = false;
+		state.selectedRoleError = null;
+		currentRoleQueryId = null;
+		return;
+	}
+
+	// Track query ID for race condition prevention
+	const queryId = state.selectedRoleId;
+	currentRoleQueryId = queryId;
+	state.selectedRoleIsLoading = true;
+	state.selectedRoleError = null;
+
+	// Manual query call
+	convexClient
+		.query(api.circleRoles.get, {
+			sessionId,
+			roleId: state.selectedRoleId
+		})
+		.then((result) => {
+			// Only update if still current query
+			if (currentRoleQueryId === queryId) {
+				state.selectedRole = result;
+				state.selectedRoleIsLoading = false;
+				state.selectedRoleError = null;
+			}
+		})
+		.catch((error) => {
+			if (currentRoleQueryId === queryId) {
+				state.selectedRole = null;
+				state.selectedRoleIsLoading = false;
+				state.selectedRoleError = error;
+			}
+		});
+
+	// Cleanup on re-run or unmount
+	return () => {
+		if (currentRoleQueryId === queryId) {
+			currentRoleQueryId = null;
+		}
+	};
+});
+```
+
+**Why**: 
+- `$effect` re-runs when `selectedRoleId` changes from `null` → `'id'`
+- Early return clears state when ID is `null`
+- Manual `convexClient.query()` executes when ID becomes non-null
+- Query tracking prevents race conditions (stale results ignored)
+- No hydration errors (hooks not conditionally created)
+
+**Trade-offs**:
+- ✅ Works reactively when ID changes from null to value
+- ✅ No hydration errors
+- ✅ Race condition prevention built-in
+- ❌ One-time fetch (not real-time subscription like `useQuery`)
+- ❌ More code than `useQuery` pattern
+
+**When to Use**:
+- ID starts as `null` and becomes non-null later (user selection, conditional loading)
+- Need reactive loading when ID changes
+- Can accept one-time fetch instead of real-time subscription
+
+**When NOT to Use**:
+- Need real-time subscriptions (use `useQuery` with always-available IDs)
+- ID is always available at initialization (use conditional hook creation pattern)
+
+**Proven Examples**:
+- `useSelectedItem.svelte.ts` - Selected inbox item details
+- `useOrgChart.svelte.ts` - Selected circle/role details
+
+**Related**: #L1350 (Conditional hook creation), #L220 (useQuery pattern), `useSelectedItem.svelte.ts` (reference implementation)
 
 ---
 
@@ -3614,6 +3799,6 @@ return json({ success: true, redirectTo });
 
 ---
 
-**Pattern Count**: 41  
+**Pattern Count**: 42  
 **Last Validated**: 2025-11-17  
 **Context7 Source**: `/get-convex/convex-backend`, `convex-test` NPM docs, TypeScript type system, SvelteKit docs

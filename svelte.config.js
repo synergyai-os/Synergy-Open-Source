@@ -11,6 +11,7 @@ const config = {
 
 	kit: {
 		adapter: adapter({
+			runtime: 'nodejs20.x',
 			includeFiles: ['marketing-docs/**', 'dev-docs/**']
 		}),
 		alias: {

@@ -12,6 +12,7 @@
 import { v } from 'convex/values';
 import { query, mutation } from './_generated/server';
 import { validateSessionAndGetUserId } from './sessionValidation';
+import { requireSystemAdmin } from './rbac/permissions';
 import type { Id } from './_generated/dataModel';
 
 /**
@@ -237,13 +238,249 @@ export const checkFlags = query({
  * List all feature flags (admin only)
  */
 export const listFlags = query({
-	args: {},
-	handler: async (ctx) => {
-		// TODO: Add admin permission check
-		// const identity = await ctx.auth.getUserIdentity();
-		// if (!identity || !isAdmin(identity)) throw new Error('Unauthorized');
+	args: {
+		sessionId: v.string()
+	},
+	handler: async (ctx, args) => {
+		await requireSystemAdmin(ctx, args.sessionId);
 
 		return await ctx.db.query('featureFlags').collect();
+	}
+});
+
+/**
+ * List all organizations (admin only)
+ * Used for organization targeting in feature flags
+ */
+export const listAllOrganizations = query({
+	args: {
+		sessionId: v.string()
+	},
+	handler: async (ctx, args) => {
+		await requireSystemAdmin(ctx, args.sessionId);
+
+		const organizations = await ctx.db.query('organizations').collect();
+
+		return organizations.map((org) => ({
+			_id: org._id,
+			name: org.name,
+			slug: org.slug,
+			createdAt: org.createdAt
+		}));
+	}
+});
+
+/**
+ * Get impact statistics for feature flags (admin only)
+ * Returns estimated user counts by targeting method
+ */
+export const getImpactStats = query({
+	args: {
+		sessionId: v.string()
+	},
+	handler: async (ctx, args) => {
+		await requireSystemAdmin(ctx, args.sessionId);
+
+		// Get total user count
+		const allUsers = await ctx.db.query('users').collect();
+		const totalUsers = allUsers.length;
+
+		// Count users by domain
+		const usersByDomain = new Map<string, number>();
+		for (const user of allUsers) {
+			const email = (user as unknown as { email?: string })?.email;
+			if (email && email.includes('@')) {
+				const domain = '@' + email.split('@')[1];
+				usersByDomain.set(domain, (usersByDomain.get(domain) || 0) + 1);
+			}
+		}
+
+		// Get all flags
+		const flags = await ctx.db.query('featureFlags').collect();
+
+		// Calculate impact for each flag
+		const flagImpacts = flags.map((flag) => {
+			let estimatedAffected = 0;
+			const breakdown: {
+				byDomain: number;
+				byRollout: number;
+				byUserIds: number;
+				byOrgIds: number;
+			} = {
+				byDomain: 0,
+				byRollout: 0,
+				byUserIds: 0,
+				byOrgIds: 0
+			};
+
+			if (!flag.enabled) {
+				return {
+					flag: flag.flag,
+					enabled: false,
+					estimatedAffected: 0,
+					breakdown
+				};
+			}
+
+			// Count by domain
+			if (flag.allowedDomains?.length) {
+				for (const domain of flag.allowedDomains) {
+					breakdown.byDomain += usersByDomain.get(domain) || 0;
+				}
+			}
+
+			// Count by user IDs
+			if (flag.allowedUserIds?.length) {
+				breakdown.byUserIds = flag.allowedUserIds.length;
+			}
+
+			// Count by organization IDs (estimate - would need to query org members)
+			if (flag.allowedOrganizationIds?.length) {
+				// Estimate: assume average 10 users per org (can be improved later)
+				breakdown.byOrgIds = flag.allowedOrganizationIds.length * 10;
+			}
+
+			// Calculate rollout percentage
+			if (flag.rolloutPercentage !== undefined) {
+				// Estimate based on total users minus those already covered by other targeting
+				const alreadyCovered = breakdown.byDomain + breakdown.byUserIds + breakdown.byOrgIds;
+				const remainingUsers = Math.max(0, totalUsers - alreadyCovered);
+				breakdown.byRollout = Math.round((remainingUsers * flag.rolloutPercentage) / 100);
+			}
+
+			// Total affected (union of all targeting methods)
+			estimatedAffected = Math.max(
+				breakdown.byDomain,
+				breakdown.byUserIds,
+				breakdown.byOrgIds,
+				breakdown.byRollout
+			);
+
+			return {
+				flag: flag.flag,
+				enabled: flag.enabled,
+				estimatedAffected,
+				breakdown
+			};
+		});
+
+		return {
+			totalUsers,
+			usersByDomain: Object.fromEntries(usersByDomain),
+			flagImpacts
+		};
+	}
+});
+
+/**
+ * Get flags affecting a specific user (admin only)
+ */
+export const getFlagsForUser = query({
+	args: {
+		sessionId: v.string(),
+		userEmail: v.string()
+	},
+	handler: async (ctx, args) => {
+		await requireSystemAdmin(ctx, args.sessionId);
+
+		// Find user by email
+		const user = await ctx.db
+			.query('users')
+			.withIndex('by_email', (q) => q.eq('email', args.userEmail.toLowerCase()))
+			.first();
+
+		if (!user) {
+			return {
+				userEmail: args.userEmail,
+				userId: null,
+				flags: []
+			};
+		}
+
+		const userId = user._id;
+		const userDomain = '@' + args.userEmail.split('@')[1];
+
+		// Get all flags
+		const allFlags = await ctx.db.query('featureFlags').collect();
+
+		// Evaluate each flag for this user
+		const flags = await Promise.all(
+			allFlags.map(async (flag) => {
+				let result = false;
+				let reason = '';
+
+				if (!flag.enabled) {
+					return {
+						flag: flag.flag,
+						enabled: false,
+						result: false,
+						reason: 'Flag is disabled globally'
+					};
+				}
+
+				// Check user ID targeting
+				if (flag.allowedUserIds?.includes(userId)) {
+					result = true;
+					reason = 'User ID explicitly allowed';
+				}
+				// Check domain targeting
+				else if (flag.allowedDomains?.includes(userDomain)) {
+					result = true;
+					reason = `Domain match (${userDomain})`;
+				}
+				// Check organization targeting
+				else if (flag.allowedOrganizationIds?.length) {
+					const memberships = await ctx.db
+						.query('organizationMembers')
+						.withIndex('by_user', (q) => q.eq('userId', userId))
+						.collect();
+
+					const userOrgIds = memberships.map((m) => m.organizationId);
+					const hasOrgAccess = flag.allowedOrganizationIds.some((orgId) =>
+						userOrgIds.includes(orgId)
+					);
+
+					if (hasOrgAccess) {
+						result = true;
+						reason = 'Organization membership match';
+					}
+				}
+
+				// Check rollout percentage
+				if (!result && flag.rolloutPercentage !== undefined) {
+					const bucket = getUserRolloutBucket(userId, flag.flag);
+					if (bucket < flag.rolloutPercentage) {
+						result = true;
+						reason = `${flag.rolloutPercentage}% rollout (hash match)`;
+					} else {
+						reason = `${flag.rolloutPercentage}% rollout (not in bucket)`;
+					}
+				}
+
+				if (
+					!result &&
+					!flag.allowedUserIds &&
+					!flag.allowedDomains &&
+					!flag.allowedOrganizationIds &&
+					flag.rolloutPercentage === undefined
+				) {
+					reason = 'No targeting rules configured';
+				}
+
+				return {
+					flag: flag.flag,
+					enabled: flag.enabled,
+					result,
+					reason
+				};
+			})
+		);
+
+		return {
+			userEmail: args.userEmail,
+			userId: userId,
+			flags
+		};
 	}
 });
 
@@ -408,11 +645,13 @@ export const debugFlagEvaluation = query({
 });
 
 /**
- * Create or update a feature flag
+ * Create or update a feature flag (admin only)
  */
 export const upsertFlag = mutation({
 	args: {
+		sessionId: v.string(),
 		flag: v.string(),
+		description: v.optional(v.string()),
 		enabled: v.boolean(),
 		rolloutPercentage: v.optional(v.number()),
 		allowedUserIds: v.optional(v.array(v.id('users'))),
@@ -420,9 +659,7 @@ export const upsertFlag = mutation({
 		allowedDomains: v.optional(v.array(v.string()))
 	},
 	handler: async (ctx, args) => {
-		// TODO: Add admin permission check
-		// const identity = await ctx.auth.getUserIdentity();
-		// if (!identity || !isAdmin(identity)) throw new Error('Unauthorized');
+		await requireSystemAdmin(ctx, args.sessionId);
 
 		const existing = await ctx.db
 			.query('featureFlags')
@@ -434,6 +671,7 @@ export const upsertFlag = mutation({
 		if (existing) {
 			// Update existing flag
 			await ctx.db.patch(existing._id, {
+				description: args.description,
 				enabled: args.enabled,
 				rolloutPercentage: args.rolloutPercentage,
 				allowedUserIds: args.allowedUserIds,
@@ -446,6 +684,7 @@ export const upsertFlag = mutation({
 			// Create new flag
 			return await ctx.db.insert('featureFlags', {
 				flag: args.flag,
+				description: args.description,
 				enabled: args.enabled,
 				rolloutPercentage: args.rolloutPercentage,
 				allowedUserIds: args.allowedUserIds,
@@ -459,78 +698,83 @@ export const upsertFlag = mutation({
 });
 
 /**
- * Quick enable/disable a flag
+ * Quick enable/disable a flag (admin only)
  */
 export const toggleFlag = mutation({
 	args: {
+		sessionId: v.string(),
 		flag: v.string(),
 		enabled: v.boolean()
 	},
-	handler: async (ctx, { flag, enabled }) => {
-		// TODO: Add admin permission check
+	handler: async (ctx, args) => {
+		await requireSystemAdmin(ctx, args.sessionId);
 
 		const existing = await ctx.db
 			.query('featureFlags')
-			.withIndex('by_flag', (q) => q.eq('flag', flag))
+			.withIndex('by_flag', (q) => q.eq('flag', args.flag))
 			.first();
 
 		if (!existing) {
-			throw new Error(`Flag ${flag} not found`);
+			throw new Error(`Flag ${args.flag} not found`);
 		}
 
 		await ctx.db.patch(existing._id, {
-			enabled,
+			enabled: args.enabled,
 			updatedAt: Date.now()
 		});
 	}
 });
 
 /**
- * Update rollout percentage
+ * Update rollout percentage (admin only)
  */
 export const updateRollout = mutation({
 	args: {
+		sessionId: v.string(),
 		flag: v.string(),
 		percentage: v.number()
 	},
-	handler: async (ctx, { flag, percentage }) => {
-		// TODO: Add admin permission check
+	handler: async (ctx, args) => {
+		await requireSystemAdmin(ctx, args.sessionId);
 
-		if (percentage < 0 || percentage > 100) {
+		if (args.percentage < 0 || args.percentage > 100) {
 			throw new Error('Percentage must be between 0 and 100');
 		}
 
 		const existing = await ctx.db
 			.query('featureFlags')
-			.withIndex('by_flag', (q) => q.eq('flag', flag))
+			.withIndex('by_flag', (q) => q.eq('flag', args.flag))
 			.first();
 
 		if (!existing) {
-			throw new Error(`Flag ${flag} not found`);
+			throw new Error(`Flag ${args.flag} not found`);
 		}
 
 		await ctx.db.patch(existing._id, {
-			rolloutPercentage: percentage,
+			rolloutPercentage: args.percentage,
 			updatedAt: Date.now()
 		});
 	}
 });
 
 /**
- * Delete a feature flag (use sparingly - usually just disable instead)
+ * Delete a feature flag (admin only, use sparingly - usually just disable instead)
  */
 export const deleteFlag = mutation({
-	args: { flag: v.string() },
-	handler: async (ctx, { flag }) => {
-		// TODO: Add admin permission check
+	args: {
+		sessionId: v.string(),
+		flag: v.string()
+	},
+	handler: async (ctx, args) => {
+		await requireSystemAdmin(ctx, args.sessionId);
 
 		const existing = await ctx.db
 			.query('featureFlags')
-			.withIndex('by_flag', (q) => q.eq('flag', flag))
+			.withIndex('by_flag', (q) => q.eq('flag', args.flag))
 			.first();
 
 		if (!existing) {
-			throw new Error(`Flag ${flag} not found`);
+			throw new Error(`Flag ${args.flag} not found`);
 		}
 
 		await ctx.db.delete(existing._id);

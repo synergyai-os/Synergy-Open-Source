@@ -19,3 +19,5 @@ export { default as AttachmentButton } from './AttachmentButton.svelte';
 export { default as ToggleSwitch } from './ToggleSwitch.svelte';
 export { default as ContextSelector } from './ContextSelector.svelte';
 export { default as RateLimitError } from './RateLimitError.svelte';
+export { default as Badge } from './Badge.svelte';
+export { default as Tabs } from './Tabs.svelte';

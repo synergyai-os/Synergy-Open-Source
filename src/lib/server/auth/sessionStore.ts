@@ -10,11 +10,25 @@ if (!publicEnv.PUBLIC_CONVEX_URL) {
 	throw new Error('PUBLIC_CONVEX_URL must be configured to use headless WorkOS auth.');
 }
 
+// Track if we've logged the Convex URL (one-time startup log)
+let hasLoggedConvexUrl = false;
+
 function createConvexClient() {
 	// Debug logging for E2E tests to verify Convex URL
 	if (process.env.E2E_TEST_MODE === 'true') {
 		console.log('🔍 [E2E Debug] PUBLIC_CONVEX_URL:', publicEnv.PUBLIC_CONVEX_URL);
 	}
+
+	// Log Convex URL once at startup (dev mode only)
+	if (!hasLoggedConvexUrl && process.env.NODE_ENV !== 'production') {
+		console.log('🔍 [Convex] Using deployment:', publicEnv.PUBLIC_CONVEX_URL);
+		hasLoggedConvexUrl = true;
+	}
+
+	if (!publicEnv.PUBLIC_CONVEX_URL) {
+		throw new Error('PUBLIC_CONVEX_URL is not set. Check your .env.local file.');
+	}
+
 	return new ConvexHttpClient(publicEnv.PUBLIC_CONVEX_URL);
 }
 
@@ -158,43 +172,55 @@ export async function createSessionRecord(options: {
 export async function getSessionRecord(sessionId: string): Promise<SessionRecord | null> {
 	const client = createConvexClient();
 	const convexQuery = (client as unknown as ConvexClient).query.bind(client);
-	const result = (await convexQuery('authSessions:getSessionById', { sessionId })) as {
-		sessionId: string;
-		convexUserId: Id<'users'>;
-		workosUserId: string;
-		workosSessionId: string;
-		accessTokenCiphertext: string;
-		refreshTokenCiphertext: string;
-		csrfTokenHash: string;
-		expiresAt: number;
-		createdAt: number;
-		lastRefreshedAt?: number | null;
-		lastSeenAt?: number | null;
-		ipAddress?: string | null;
-		userAgent?: string | null;
-		userSnapshot: SessionSnapshot;
-	} | null;
 
-	if (!result) {
-		return null;
+	try {
+		const result = (await convexQuery('authSessions:getSessionById', { sessionId })) as {
+			sessionId: string;
+			convexUserId: Id<'users'>;
+			workosUserId: string;
+			workosSessionId: string;
+			accessTokenCiphertext: string;
+			refreshTokenCiphertext: string;
+			csrfTokenHash: string;
+			expiresAt: number;
+			createdAt: number;
+			lastRefreshedAt?: number | null;
+			lastSeenAt?: number | null;
+			ipAddress?: string | null;
+			userAgent?: string | null;
+			userSnapshot: SessionSnapshot;
+		} | null;
+
+		if (!result) {
+			return null;
+		}
+
+		return {
+			sessionId: result.sessionId,
+			convexUserId: result.convexUserId,
+			workosUserId: result.workosUserId,
+			workosSessionId: result.workosSessionId,
+			accessToken: decryptSecret(result.accessTokenCiphertext),
+			refreshToken: decryptSecret(result.refreshTokenCiphertext),
+			csrfTokenHash: result.csrfTokenHash,
+			expiresAt: result.expiresAt,
+			createdAt: result.createdAt,
+			lastRefreshedAt: result.lastRefreshedAt ?? undefined,
+			lastSeenAt: result.lastSeenAt ?? undefined,
+			ipAddress: result.ipAddress ?? undefined,
+			userAgent: result.userAgent ?? undefined,
+			userSnapshot: result.userSnapshot
+		};
+	} catch (error) {
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		console.error('❌ [Convex] Failed to get session record:', {
+			sessionId,
+			convexUrl: publicEnv.PUBLIC_CONVEX_URL,
+			error: errorMessage,
+			errorType: error instanceof Error ? error.constructor.name : typeof error
+		});
+		throw error; // Re-throw to let caller handle
 	}
-
-	return {
-		sessionId: result.sessionId,
-		convexUserId: result.convexUserId,
-		workosUserId: result.workosUserId,
-		workosSessionId: result.workosSessionId,
-		accessToken: decryptSecret(result.accessTokenCiphertext),
-		refreshToken: decryptSecret(result.refreshTokenCiphertext),
-		csrfTokenHash: result.csrfTokenHash,
-		expiresAt: result.expiresAt,
-		createdAt: result.createdAt,
-		lastRefreshedAt: result.lastRefreshedAt ?? undefined,
-		lastSeenAt: result.lastSeenAt ?? undefined,
-		ipAddress: result.ipAddress ?? undefined,
-		userAgent: result.userAgent ?? undefined,
-		userSnapshot: result.userSnapshot
-	};
 }
 
 export async function getActiveSessionRecordForUser(

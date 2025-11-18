@@ -19,66 +19,74 @@ export const seedRBAC = mutation({
 		console.log('🌱 Seeding RBAC data...');
 
 		// ========================================================================
-		// Step 1: Create Roles
+		// Step 1: Create Roles (idempotent - check before insert)
 		// ========================================================================
 
 		console.log('Creating roles...');
 
-		const adminRole = await ctx.db.insert('roles', {
-			slug: 'admin',
-			name: 'Admin',
-			description: 'Full system access - can manage all users, teams, and settings',
-			isSystem: true,
-			createdAt: now,
-			updatedAt: now
-		});
+		// Helper function to get or create role
+		const getOrCreateRole = async (
+			slug: string,
+			name: string,
+			description: string
+		): Promise<Id<'roles'>> => {
+			const existing = await ctx.db
+				.query('roles')
+				.withIndex('by_slug', (q) => q.eq('slug', slug))
+				.first();
 
-		const managerRole = await ctx.db.insert('roles', {
-			slug: 'manager',
-			name: 'Manager',
-			description: 'Can manage teams and invite users',
-			isSystem: true,
-			createdAt: now,
-			updatedAt: now
-		});
+			if (existing) {
+				console.log(`  Role "${slug}" already exists, skipping...`);
+				return existing._id;
+			}
 
-		const teamLeadRole = await ctx.db.insert('roles', {
-			slug: 'team-lead',
-			name: 'Team Lead',
-			description: 'Can manage their own teams only',
-			isSystem: true,
-			createdAt: now,
-			updatedAt: now
-		});
+			return await ctx.db.insert('roles', {
+				slug,
+				name,
+				description,
+				isSystem: true,
+				createdAt: now,
+				updatedAt: now
+			});
+		};
 
-		const billingAdminRole = await ctx.db.insert('roles', {
-			slug: 'billing-admin',
-			name: 'Billing Admin',
-			description: 'Can manage billing and subscriptions only',
-			isSystem: true,
-			createdAt: now,
-			updatedAt: now
-		});
+		const adminRole = await getOrCreateRole(
+			'admin',
+			'Admin',
+			'Full system access - can manage all users, teams, and settings'
+		);
 
-		const memberRole = await ctx.db.insert('roles', {
-			slug: 'member',
-			name: 'Member',
-			description: 'Standard user - view access and own profile management',
-			isSystem: true,
-			createdAt: now,
-			updatedAt: now
-		});
+		const managerRole = await getOrCreateRole(
+			'manager',
+			'Manager',
+			'Can manage teams and invite users'
+		);
 
-		const guestRole = await ctx.db.insert('roles', {
-			slug: 'guest',
-			name: 'Guest',
-			description: 'Limited access - specific resources only',
-			isSystem: true,
-			createdAt: now,
-			updatedAt: now
-		});
+		const teamLeadRole = await getOrCreateRole(
+			'team-lead',
+			'Team Lead',
+			'Can manage their own teams only'
+		);
 
-		console.log(`✅ Created 6 roles`);
+		const billingAdminRole = await getOrCreateRole(
+			'billing-admin',
+			'Billing Admin',
+			'Can manage billing and subscriptions only'
+		);
+
+		const memberRole = await getOrCreateRole(
+			'member',
+			'Member',
+			'Standard user - view access and own profile management'
+		);
+
+		const guestRole = await getOrCreateRole(
+			'guest',
+			'Guest',
+			'Limited access - specific resources only'
+		);
+
+		console.log(`✅ Roles ready (created or already existed)`);
 
 		// ========================================================================
 		// Step 2: Create Permissions
@@ -86,178 +94,163 @@ export const seedRBAC = mutation({
 
 		console.log('Creating permissions...');
 
+		// Helper function to get or create permission
+		const getOrCreatePermission = async (
+			slug: string,
+			category: string,
+			action: string,
+			description: string,
+			requiresResource: boolean
+		): Promise<Id<'permissions'>> => {
+			const existing = await ctx.db
+				.query('permissions')
+				.withIndex('by_slug', (q) => q.eq('slug', slug))
+				.first();
+
+			if (existing) {
+				console.log(`  Permission "${slug}" already exists, skipping...`);
+				return existing._id;
+			}
+
+			return await ctx.db.insert('permissions', {
+				slug,
+				category,
+				action,
+				description,
+				requiresResource,
+				isSystem: true,
+				createdAt: now,
+				updatedAt: now
+			});
+		};
+
 		// --- User Management Permissions (5) ---
 
-		const userViewPerm = await ctx.db.insert('permissions', {
-			slug: 'users.view',
-			category: 'users',
-			action: 'view',
-			description: 'View user profiles and details',
-			requiresResource: false,
-			isSystem: true,
-			createdAt: now,
-			updatedAt: now
-		});
+		const userViewPerm = await getOrCreatePermission(
+			'users.view',
+			'users',
+			'view',
+			'View user profiles and details',
+			false
+		);
 
-		const userInvitePerm = await ctx.db.insert('permissions', {
-			slug: 'users.invite',
-			category: 'users',
-			action: 'invite',
-			description: 'Invite new users to organization',
-			requiresResource: false,
-			isSystem: true,
-			createdAt: now,
-			updatedAt: now
-		});
+		const userInvitePerm = await getOrCreatePermission(
+			'users.invite',
+			'users',
+			'invite',
+			'Invite new users to organization',
+			false
+		);
 
-		const userRemovePerm = await ctx.db.insert('permissions', {
-			slug: 'users.remove',
-			category: 'users',
-			action: 'remove',
-			description: 'Remove users from organization',
-			requiresResource: false,
-			isSystem: true,
-			createdAt: now,
-			updatedAt: now
-		});
+		const userRemovePerm = await getOrCreatePermission(
+			'users.remove',
+			'users',
+			'remove',
+			'Remove users from organization',
+			false
+		);
 
-		const userChangeRolesPerm = await ctx.db.insert('permissions', {
-			slug: 'users.change-roles',
-			category: 'users',
-			action: 'change-roles',
-			description: 'Change user roles',
-			requiresResource: false,
-			isSystem: true,
-			createdAt: now,
-			updatedAt: now
-		});
+		const userChangeRolesPerm = await getOrCreatePermission(
+			'users.change-roles',
+			'users',
+			'change-roles',
+			'Change user roles',
+			false
+		);
 
-		const userManageProfilePerm = await ctx.db.insert('permissions', {
-			slug: 'users.manage-profile',
-			category: 'users',
-			action: 'manage-profile',
-			description: 'Edit user profiles (own or others)',
-			requiresResource: false,
-			isSystem: true,
-			createdAt: now,
-			updatedAt: now
-		});
+		const userManageProfilePerm = await getOrCreatePermission(
+			'users.manage-profile',
+			'users',
+			'manage-profile',
+			'Edit user profiles (own or others)',
+			false
+		);
 
 		// --- Team Management Permissions (7) ---
 
-		const teamViewPerm = await ctx.db.insert('permissions', {
-			slug: 'teams.view',
-			category: 'teams',
-			action: 'view',
-			description: 'View team details and members',
-			requiresResource: true,
-			isSystem: true,
-			createdAt: now,
-			updatedAt: now
-		});
+		const teamViewPerm = await getOrCreatePermission(
+			'teams.view',
+			'teams',
+			'view',
+			'View team details and members',
+			true
+		);
 
-		const teamCreatePerm = await ctx.db.insert('permissions', {
-			slug: 'teams.create',
-			category: 'teams',
-			action: 'create',
-			description: 'Create new teams',
-			requiresResource: false,
-			isSystem: true,
-			createdAt: now,
-			updatedAt: now
-		});
+		const teamCreatePerm = await getOrCreatePermission(
+			'teams.create',
+			'teams',
+			'create',
+			'Create new teams',
+			false
+		);
 
-		const teamUpdatePerm = await ctx.db.insert('permissions', {
-			slug: 'teams.update',
-			category: 'teams',
-			action: 'update',
-			description: 'Edit team settings and details',
-			requiresResource: true,
-			isSystem: true,
-			createdAt: now,
-			updatedAt: now
-		});
+		const teamUpdatePerm = await getOrCreatePermission(
+			'teams.update',
+			'teams',
+			'update',
+			'Edit team settings and details',
+			true
+		);
 
-		const teamDeletePerm = await ctx.db.insert('permissions', {
-			slug: 'teams.delete',
-			category: 'teams',
-			action: 'delete',
-			description: 'Delete teams',
-			requiresResource: true,
-			isSystem: true,
-			createdAt: now,
-			updatedAt: now
-		});
+		const teamDeletePerm = await getOrCreatePermission(
+			'teams.delete',
+			'teams',
+			'delete',
+			'Delete teams',
+			true
+		);
 
-		const teamAddMembersPerm = await ctx.db.insert('permissions', {
-			slug: 'teams.add-members',
-			category: 'teams',
-			action: 'add-members',
-			description: 'Add members to teams',
-			requiresResource: true,
-			isSystem: true,
-			createdAt: now,
-			updatedAt: now
-		});
+		const teamAddMembersPerm = await getOrCreatePermission(
+			'teams.add-members',
+			'teams',
+			'add-members',
+			'Add members to teams',
+			true
+		);
 
-		const teamRemoveMembersPerm = await ctx.db.insert('permissions', {
-			slug: 'teams.remove-members',
-			category: 'teams',
-			action: 'remove-members',
-			description: 'Remove members from teams',
-			requiresResource: true,
-			isSystem: true,
-			createdAt: now,
-			updatedAt: now
-		});
+		const teamRemoveMembersPerm = await getOrCreatePermission(
+			'teams.remove-members',
+			'teams',
+			'remove-members',
+			'Remove members from teams',
+			true
+		);
 
-		const teamChangeRolesPerm = await ctx.db.insert('permissions', {
-			slug: 'teams.change-roles',
-			category: 'teams',
-			action: 'change-roles',
-			description: 'Change member roles within teams',
-			requiresResource: true,
-			isSystem: true,
-			createdAt: now,
-			updatedAt: now
-		});
+		const teamChangeRolesPerm = await getOrCreatePermission(
+			'teams.change-roles',
+			'teams',
+			'change-roles',
+			'Change member roles within teams',
+			true
+		);
 
 		// --- Organization Settings Permissions (3) ---
 
-		const orgViewSettingsPerm = await ctx.db.insert('permissions', {
-			slug: 'organizations.view-settings',
-			category: 'organizations',
-			action: 'view-settings',
-			description: 'View organization settings',
-			requiresResource: false,
-			isSystem: true,
-			createdAt: now,
-			updatedAt: now
-		});
+		const orgViewSettingsPerm = await getOrCreatePermission(
+			'organizations.view-settings',
+			'organizations',
+			'view-settings',
+			'View organization settings',
+			false
+		);
 
-		const orgUpdateSettingsPerm = await ctx.db.insert('permissions', {
-			slug: 'organizations.update-settings',
-			category: 'organizations',
-			action: 'update-settings',
-			description: 'Update organization settings',
-			requiresResource: false,
-			isSystem: true,
-			createdAt: now,
-			updatedAt: now
-		});
+		const orgUpdateSettingsPerm = await getOrCreatePermission(
+			'organizations.update-settings',
+			'organizations',
+			'update-settings',
+			'Update organization settings',
+			false
+		);
 
-		const orgManageBillingPerm = await ctx.db.insert('permissions', {
-			slug: 'organizations.manage-billing',
-			category: 'organizations',
-			action: 'manage-billing',
-			description: 'Manage billing and subscriptions',
-			requiresResource: false,
-			isSystem: true,
-			createdAt: now,
-			updatedAt: now
-		});
+		const orgManageBillingPerm = await getOrCreatePermission(
+			'organizations.manage-billing',
+			'organizations',
+			'manage-billing',
+			'Manage billing and subscriptions',
+			false
+		);
 
-		console.log(`✅ Created 15 permissions`);
+		console.log(`✅ Permissions ready (created or already existed)`);
 
 		// ========================================================================
 		// Step 3: Create Role-Permission Mappings
@@ -352,17 +345,34 @@ export const seedRBAC = mutation({
 			mappings.push({ roleId: guestRole, permissionId: perm.id, scope: perm.scope });
 		}
 
-		// Insert all mappings
+		// Insert all mappings (idempotent - check before insert)
+		let mappingsCreated = 0;
+		let mappingsSkipped = 0;
 		for (const mapping of mappings) {
+			const existing = await ctx.db
+				.query('rolePermissions')
+				.withIndex('by_role_permission', (q) =>
+					q.eq('roleId', mapping.roleId).eq('permissionId', mapping.permissionId)
+				)
+				.first();
+
+			if (existing) {
+				mappingsSkipped++;
+				continue;
+			}
+
 			await ctx.db.insert('rolePermissions', {
 				roleId: mapping.roleId,
 				permissionId: mapping.permissionId,
 				scope: mapping.scope,
 				createdAt: now
 			});
+			mappingsCreated++;
 		}
 
-		console.log(`✅ Created ${mappings.length} role-permission mappings`);
+		console.log(
+			`✅ Role-permission mappings ready (${mappingsCreated} created, ${mappingsSkipped} already existed)`
+		);
 
 		console.log('🎉 RBAC seed complete!');
 

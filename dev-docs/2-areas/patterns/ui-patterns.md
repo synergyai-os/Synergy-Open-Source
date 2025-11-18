@@ -4,6 +4,223 @@
 
 ---
 
+## #L5: Hierarchical Panel Stack Navigation [🟡 IMPORTANT]
+
+**Symptom**: Users navigating nested panels (Circle → Sub-Circle → Role) lose context and don't know how to go back  
+**Root Cause**: No visual breadcrumb trail, unclear navigation depth, inconsistent back navigation  
+**Fix**:
+
+### Visual Design
+
+```
+┌─────────────────────────────────────────┐
+│ [Prev] │ Current Panel (Role Detail)    │
+│ [Layer]│                                 │
+│ [Name] │ Content...                      │
+│        │                                 │
+│ [G     │                                 │
+│ [u     │                                 │
+│ [i     │                                 │
+│ [d     │                                 │
+│ [e     │                                 │
+│ [l     │                                 │
+│ [i     │                                 │
+│ [n     │                                 │
+│ [e     │                                 │
+│ [s     │                                 │
+└─────────────────────────────────────────┘
+  ↑ 48px vertical bar (clickable, shows circle name)
+```
+
+### 4-Layer Implementation (Design System Compliant)
+
+**Layer 1: Design Tokens** (`src/app.css`)
+
+```css
+/* Panel Stack Navigation Tokens */
+--spacing-panel-breadcrumb-width: 3rem; /* 48px */
+--spacing-panel-breadcrumb-padding: 0.75rem; /* 12px */
+--z-index-panel-base: 50; /* Base z-index for first panel */
+--z-index-panel-increment: 10; /* Increment per layer (50, 60, 70...) */
+--color-panel-breadcrumb-bg: var(--color-bg-surface);
+--color-panel-breadcrumb-text: var(--color-text-tertiary);
+--color-panel-breadcrumb-hover: var(--color-bg-hover-solid);
+```
+
+**Layer 2: Utilities** (`src/app.css`)
+
+```css
+@utility panel-stack-base {
+	/* Base panel positioning - MUST be used on all stacking panels */
+	position: fixed;
+	top: 0;
+	right: 0;
+	height: 100vh;
+	width: 100%;
+	background: var(--color-bg-elevated);
+	border-left: 1px solid var(--color-border-base);
+	transition: transform 300ms ease-in-out;
+	z-index: var(--z-index-panel-base);
+}
+
+@utility panel-stack-offset {
+	/* Offset for stacked panel - moves right to show breadcrumb beneath */
+	left: var(--spacing-panel-breadcrumb-width);
+	width: calc(100% - var(--spacing-panel-breadcrumb-width));
+}
+
+@utility panel-breadcrumb-bar {
+	/* Vertical bar showing previous layer name */
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: var(--spacing-panel-breadcrumb-width);
+	background: var(--color-panel-breadcrumb-bg);
+	border-right: 1px solid var(--color-border-base);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition: background-color 150ms ease;
+}
+
+@utility panel-breadcrumb-text {
+	/* Vertical text styling for breadcrumb */
+	writing-mode: vertical-rl;
+	transform: rotate(180deg);
+	color: var(--color-panel-breadcrumb-text);
+	font-size: 0.75rem; /* 12px */
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	user-select: none;
+}
+```
+
+**Layer 3: Composable** (`src/lib/composables/useNavigationStack.svelte.ts`)
+
+```typescript
+export function useNavigationStack() {
+	const state = $state({
+		stack: [] as NavigationLayer[],
+		baseZIndex: 50,
+		zIndexIncrement: 10
+	});
+
+	return {
+		get currentLayer() {
+			return state.stack[state.stack.length - 1] || null;
+		},
+		get previousLayer() {
+			return state.stack[state.stack.length - 2] || null;
+		},
+		get depth() {
+			return state.stack.length;
+		},
+		push: (layer: Omit<NavigationLayer, 'zIndex'>) => {
+			const zIndex = state.baseZIndex + state.stack.length * state.zIndexIncrement;
+			state.stack.push({ ...layer, zIndex });
+		},
+		pop: () => {
+			if (state.stack.length > 0) {
+				state.stack.pop();
+			}
+		},
+		jumpTo: (index: number) => {
+			if (index >= 0 && index < state.stack.length) {
+				state.stack = state.stack.slice(0, index + 1);
+			}
+		}
+	};
+}
+```
+
+**Layer 4: Components**
+
+```svelte
+<!-- PanelBreadcrumbBar.svelte -->
+<script lang="ts">
+	import type { NavigationLayer } from '$lib/composables/useNavigationStack.svelte';
+
+	let { layer, onclick }: { layer: NavigationLayer; onclick: () => void } = $props();
+</script>
+
+<button
+	type="button"
+	class="panel-breadcrumb-bar"
+	onclick={onclick}
+	aria-label="Go back to {layer.name}"
+>
+	<span class="panel-breadcrumb-text">{layer.name}</span>
+</button>
+```
+
+### Usage in Panel Components
+
+```svelte
+<script lang="ts">
+	import type { UseOrgChart } from '$lib/composables/useOrgChart.svelte';
+	import PanelBreadcrumbBar from './PanelBreadcrumbBar.svelte';
+
+	let { orgChart }: { orgChart: UseOrgChart } = $props();
+
+	const previousLayer = $derived(orgChart.navigationStack.previousLayer);
+	const currentZIndex = $derived(orgChart.navigationStack.currentLayer?.zIndex ?? 50);
+
+	function handleClose() {
+		orgChart.navigationStack.pop();
+		orgChart.selectRole(null, null);
+	}
+</script>
+
+<!-- Backdrop -->
+{#if isOpen}
+	<div
+		class="fixed inset-0 bg-black/50"
+		style="z-index: {currentZIndex - 5};"
+		onclick={handleClose}
+	/>
+{/if}
+
+<!-- Panel -->
+<aside
+	class="panel-stack-base"
+	class:panel-stack-offset={previousLayer !== null}
+	style="z-index: {currentZIndex};"
+>
+	<!-- Breadcrumb Bar (only if there's a previous layer) -->
+	{#if previousLayer}
+		<PanelBreadcrumbBar layer={previousLayer} onclick={handleClose} />
+	{/if}
+
+	<!-- Panel Content -->
+	<div class="flex h-full flex-col">
+		<!-- ... content ... -->
+	</div>
+</aside>
+```
+
+### Interaction Pattern
+
+**ESC Key**: Go back one step in navigation stack  
+**Click Breadcrumb**: Jump back to that layer  
+**Click Outside**: Go back one step (same as ESC)
+
+### Modularity Benefits
+
+✅ **Independent development**: `useNavigationStack` works standalone  
+✅ **Clear contract**: Simple push/pop/jumpTo API  
+✅ **Reusable**: Can be used by any hierarchical navigation  
+✅ **Testable**: Pure state management, no UI coupling  
+✅ **Design system compliant**: All tokens, auto light/dark mode
+
+**Why**: Hierarchical navigation needs visual context and predictable back navigation. Breadcrumb bar shows depth, ESC key provides consistent "go back" behavior.  
+**Apply when**: Multi-level panel navigation (settings, org charts, file browsers)  
+**Related**: #L60 (Spacing patterns), Component Architecture (4-layer system)
+
+---
+
 ## #L10: Interactive Components in DropdownMenu [🟡 IMPORTANT]
 
 **Symptom**: Switch/toggle in dropdown menu not working  
@@ -3467,6 +3684,1267 @@ href={resolveRoute(activeOrgId() ? `/org/circles?org=${activeOrgId()}` : '/org/c
 
 ---
 
-**Pattern Count**: 35  
-**Last Updated**: 2025-11-17  
+## #L3500: D3 Pack Layout with Synthetic Nodes for Sibling Packing [🟡 IMPORTANT]
+
+**Symptom**: Roles appear underneath child circles instead of alongside them in nested bubble chart  
+**Root Cause**: Two-level pack layout (main for circles, separate mini-pack for roles) doesn't naturally position roles alongside child circles  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Separate pack layouts (roles don't pack alongside circles)
+const packedCircles = packLayout(circles);
+const packedRoles = packRolesInsideCircle(roles, parentRadius); // Separate pack
+
+// ✅ CORRECT: Include roles as synthetic circle nodes in main hierarchy
+export function transformToHierarchy(circles: CircleNode[]): HierarchyNode<CircleNode> {
+  const childrenMap = new Map<Id<'circles'>, CircleNode[]>();
+  
+  // Add child circles
+  circles.forEach((circle) => {
+    if (circle.parentCircleId) {
+      const parent = circle.parentCircleId;
+      if (!childrenMap.has(parent)) {
+        childrenMap.set(parent, []);
+      }
+      childrenMap.get(parent)!.push(circle);
+    }
+  });
+  
+  // Add roles as synthetic circle nodes (so they pack alongside child circles)
+  circles.forEach((circle) => {
+    if (circle.roles && circle.roles.length > 0) {
+      if (!childrenMap.has(circle.circleId)) {
+        childrenMap.set(circle.circleId, []);
+      }
+      const roleCircles: CircleNode[] = circle.roles.map((role) => ({
+        circleId: `__role__${role.roleId}` as Id<'circles'>, // Synthetic ID
+        organizationId: circle.organizationId,
+        name: role.name,
+        slug: `role-${role.roleId}`,
+        parentCircleId: circle.circleId,
+        memberCount: 0,
+        roleCount: 0,
+        createdAt: circle.createdAt,
+        roles: [{ roleId: role.roleId, name: role.name }]
+      }));
+      childrenMap.get(circle.circleId)!.push(...roleCircles);
+    }
+  });
+  
+  // Build hierarchy with both circles and synthetic role nodes
+  return d3Hierarchy(buildHierarchy(rootCircles[0]));
+}
+
+// After packing, extract role positions relative to parent
+const nodesWithRoles = nodes.map((node) => {
+  if (isSyntheticRole(node.data.circleId) && node.parent) {
+    const parentNode = node.parent as CircleHierarchyNode;
+    const roleData = node.data.roles?.[0];
+    if (roleData && node.r && node.r > 0) {
+      const relativeX = node.x - parentNode.x;
+      const relativeY = node.y - parentNode.y;
+      
+      if (!parentNode.data.packedRoles) {
+        parentNode.data.packedRoles = [];
+      }
+      
+      parentNode.data.packedRoles.push({
+        roleId: roleData.roleId,
+        name: roleData.name,
+        x: relativeX,
+        y: relativeY,
+        r: node.r
+      });
+    }
+  }
+  return node;
+});
+
+// Filter out synthetic roles from visible nodes (render via packedRoles)
+const visibleNodes = packedNodes.filter(
+  (node) => !isSyntheticRoot(node.data.circleId) && !isSyntheticRole(node.data.circleId)
+);
+```
+
+**Why**: 
+- D3 pack layout naturally positions siblings (children + synthetic roles) alongside each other
+- Single pack layout ensures roles and child circles are positioned together within parent bounds
+- Synthetic nodes allow roles to participate in main layout without breaking type system
+- Extract positions after packing, filter out synthetic nodes before rendering
+
+**Apply when**: 
+- Building nested bubble charts (org charts, hierarchical visualizations)
+- Need to pack different entity types (circles + roles) alongside each other
+- Roles should appear next to child circles, not underneath them
+
+**Related**: #L780 (Design tokens), D3.js pack layout documentation
+
+**Source**: SYOS-179 (Org Chart Design)
+
+---
+
+---
+
+## #L3570: D3 Pack Layout Role Sizing Based on Hierarchy Depth [🟡 IMPORTANT]
+
+**Symptom**: Roles in nested bubble chart all appear same size, despite hierarchy depth  
+**Root Cause**: D3 pack layout scales circles proportionally - with many siblings, need much larger `baseSize` values to achieve desired visual sizes  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Fixed size for all roles (doesn't reflect hierarchy)
+if (isSyntheticRole(circle.circleId)) {
+  return 15; // All roles same size
+}
+
+// ✅ CORRECT: Scale role sizes based on parent circle depth
+if (isSyntheticRole(circle.circleId)) {
+  // Store parent depth during hierarchy building
+  let parentDepth = circle._parentDepth ?? Math.max(0, (node?.depth ?? 1) - 1);
+  
+  // Adjust for synthetic root (multiple root circles)
+  if (node) {
+    let current = node.parent;
+    while (current) {
+      if (isSyntheticRoot(current.data.circleId)) {
+        parentDepth = Math.max(0, parentDepth - 1);
+        break;
+      }
+      current = current.parent;
+    }
+  }
+  
+  // Base sizes: larger for higher hierarchy levels
+  // D3 pack layout scales circles proportionally - with many siblings, need much larger values
+  // Depth 0: Much bigger (500 → r ~80-100) - big green circle roles (11 roles need large values)
+  // Depth 1: Slightly bigger (140 → r ~35-40) - sub-circle roles (circles inside green circle)
+  // Depth 2: Match previous depth 1 (55 → r ~22-23) - sub-sub-circle roles
+  // Depth 3+: Keep current (35 → r ~17-18) - smallest roles (good as-is)
+  const baseSizes = [500, 140, 55, 35]; // depth 0, 1, 2, 3+
+  const baseSize = baseSizes[Math.min(parentDepth, baseSizes.length - 1)];
+  
+  return baseSize;
+}
+
+// Store parent depth during hierarchy building
+function buildHierarchy(circle: CircleNode, depth: number = 0): CircleNode {
+  const children = childrenMap.get(circle.circleId);
+  if (children) {
+    const mappedChildren = children.map((child) => {
+      if (isSyntheticRole(child.circleId)) {
+        // Store parent depth in role node data
+        return {
+          ...child,
+          _parentDepth: depth
+        };
+      }
+      return buildHierarchy(child, depth + 1);
+    });
+    return { ...circle, children: mappedChildren };
+  }
+  return circle;
+}
+```
+
+**Why**: 
+- D3 pack layout calculates radius proportionally based on `value` parameter
+- With many siblings (e.g., 11 roles), D3 scales all circles down to fit parent
+- Need much larger `baseSize` values (500 vs 15) to achieve desired visual sizes
+- Store `_parentDepth` during hierarchy building (not available during `root.sum()` traversal)
+- Adjust for synthetic root when multiple root circles exist
+
+**Apply when**: 
+- Building nested bubble charts with roles at different hierarchy levels
+- Roles should visually reflect their hierarchical position (larger = higher level)
+- D3 pack layout scales circles proportionally, requiring larger values for many siblings
+
+**Related**: #L3500 (D3 Pack Layout with Synthetic Nodes), D3.js pack layout documentation
+
+**Source**: SYOS-179 (Org Chart Design)
+
+---
+
+## #L3650: Z-Index Conflicts with Bits UI Portal in Modal Panels [🔴 CRITICAL]
+
+**Symptom**: Buttons/dropdowns in modal panels don't work, clicks don't register, menus don't open  
+**Root Cause**: Z-index conflict between backdrop and Bits UI Portal content  
+**Fix**:
+
+```svelte
+<!-- ❌ WRONG: Backdrop z-index conflicts with portalled dropdowns -->
+{#if isOpen}
+	<div class="fixed inset-0 z-[50] bg-black/50" onclick={handleClose}></div>
+{/if}
+<aside class="fixed top-0 right-0 z-[60] ...">
+	<!-- Panel content with DropdownMenu -->
+	<DropdownMenu.Portal>
+		<DropdownMenu.Content class="z-50 ...">
+			<!-- Dropdown content portalled to body -->
+		</DropdownMenu.Content>
+	</DropdownMenu.Portal>
+</aside>
+
+<!-- ✅ CORRECT: Backdrop lower than panel and dropdowns -->
+{#if isOpen}
+	<div class="fixed inset-0 z-40 bg-black/50" onclick={handleClose}></div>
+{/if}
+<aside class="fixed top-0 right-0 z-50 ...">
+	<!-- Panel content with DropdownMenu -->
+	<DropdownMenu.Portal>
+		<DropdownMenu.Content class="z-50 ...">
+			<!-- Dropdown content portalled to body -->
+		</DropdownMenu.Content>
+	</DropdownMenu.Portal>
+</aside>
+```
+
+**Z-Index Stacking Order**:
+1. **Backdrop**: `z-40` (lowest - closes panel on click)
+2. **Panel**: `z-50` (middle - contains interactive elements)
+3. **DropdownMenu.Content**: `z-50` (same level, portalled to body, appears above panel)
+
+**Why**: 
+- Bits UI `DropdownMenu.Portal` renders content to `document.body`, outside panel DOM tree
+- If backdrop has same/higher z-index as dropdowns (`z-[50]` vs `z-50`), backdrop intercepts clicks
+- Backdrop's `onclick={handleClose}` handler captures events intended for dropdowns
+- Standard modal pattern: backdrop `z-40`, content `z-50`, dropdowns `z-50`
+
+**Also Avoid**: Don't use `stopPropagation()` on panel wrapper - it breaks Bits UI event handling
+
+```svelte
+<!-- ❌ WRONG: stopPropagation() blocks Bits UI events -->
+<aside>
+	<div onclick={(e) => e.stopPropagation()}>
+		<!-- Content -->
+	</div>
+</aside>
+
+<!-- ✅ CORRECT: Z-index handles click isolation naturally -->
+<aside class="z-50">
+	<!-- Content - no stopPropagation needed -->
+</aside>
+```
+
+**Apply when**: 
+- Creating modal panels/slide-outs with Bits UI dropdowns inside
+- Buttons/dropdowns don't respond to clicks
+- DropdownMenu content doesn't appear or is blocked
+
+**Related**: #L10 (Interactive Components in DropdownMenu), #L480 (Command Palette Design), #L3950 (Backdrop Click Target Check)
+
+**Source**: SYOS-240 (Role Detail Panel Implementation)
+
+---
+
+## #L3950: Backdrop Click Target Check - Prevent Immediate Panel Close [🔴 CRITICAL]
+
+**Symptom**: Modal/panel opens successfully then immediately closes, backdrop click fires on initial trigger click  
+**Root Cause**: Backdrop `onclick` handler fires on ANY click reaching it, including bubbled events from the trigger that opened the panel  
+**Fix**:
+
+```svelte
+<!-- ❌ WRONG: Closes on any click event, including bubbled events -->
+{#if isOpen}
+	<div class="fixed inset-0" onclick={handleClose}></div>
+{/if}
+
+<!-- ✅ CORRECT: Only close when clicking the backdrop itself -->
+{#if isOpen}
+	<div
+		class="fixed inset-0"
+		onclick={(e) => {
+			// Only close if clicking the backdrop itself, not bubbled events
+			if (e.target === e.currentTarget) {
+				handleClose();
+			}
+		}}
+	></div>
+{/if}
+```
+
+**Why**:
+- `e.target` = the element that was actually clicked (could be any child)
+- `e.currentTarget` = the element with the onclick handler (the backdrop div)
+- Without the check, clicks bubble up from children and trigger close
+- Click events from the trigger element can reach the backdrop if it renders during event propagation
+
+**Console Evidence**:
+```
+[useOrgChart] selectCircle called with: q57c08...  ← OPEN
+[useOrgChart] Circle state updated successfully    ← SUCCESS
+[useOrgChart] selectCircle called with: null       ← IMMEDIATE CLOSE!
+```
+
+**Apply when**: 
+- Creating modal/panel backdrops that close on click
+- Panel opens then immediately closes
+- User must click twice to open panel (once to open, once to dismiss immediate close)
+
+**Related**: #L3650 (Z-Index Stacking for Dropdowns), #L10 (Event Handling Patterns)
+
+**Source**: SYOS-251 (Org Chart Hierarchical Navigation)
+
+---
+
+**Pattern Count**: 42  
+**Last Updated**: 2025-01-18  
 **Design Token Reference**: `dev-docs/design-tokens.md`
+
+---
+
+## #L4200: Absolutely Positioned Element Overlapping Content - Content Needs Offset [🔴 CRITICAL]
+
+**Symptom**: Content gets cut off, hidden, or overlaps with absolutely positioned element (breadcrumb, toolbar, etc.)  
+**Root Cause**: Absolutely positioned elements are removed from normal flow - content doesn't account for their space  
+**Fix**:
+
+```svelte
+<!-- ❌ WRONG: Content overlaps with breadcrumb -->
+<aside class="panel-base">
+  <div class="breadcrumb" style="position: absolute; left: 0; width: 48px;"></div>
+  <div class="content">  <!-- Starts at left: 0, overlaps breadcrumb! -->
+    ...content...
+  </div>
+</aside>
+
+<!-- ✅ CORRECT: Add padding to content to make room for breadcrumb -->
+<aside class="panel-base">
+  <div class="breadcrumb" style="position: absolute; left: 0; width: 48px;"></div>
+  <div class="content panel-content-with-breadcrumb">  <!-- padding-left: 48px -->
+    ...content...
+  </div>
+</aside>
+```
+
+**CSS Utility Pattern:**
+```css
+/* Define breadcrumb width as token */
+--spacing-panel-breadcrumb-width: 3rem; /* 48px */
+
+/* Breadcrumb positioned absolutely */
+@utility panel-breadcrumb-bar {
+  position: absolute;
+  left: 0;
+  width: var(--spacing-panel-breadcrumb-width);
+}
+
+/* Content offset utility */
+@utility panel-content-with-breadcrumb {
+  padding-left: var(--spacing-panel-breadcrumb-width);
+}
+```
+
+**Svelte Conditional Pattern:**
+```svelte
+<aside>
+  {#if hasBreadcrumb}
+    <BreadcrumbBar />
+  {/if}
+  <div class:panel-content-with-breadcrumb={hasBreadcrumb}>
+    ...content...
+  </div>
+</aside>
+```
+
+**Why It Fails:**
+- `position: absolute` removes element from normal document flow
+- Other elements don't "see" it and position as if it doesn't exist
+- Content starts at container's edge, overlapping the absolute element
+- Scrollable content gets hidden behind the absolute element
+
+**The Solution:**
+1. Define a design token for the offset width
+2. Use the same token for both:
+   - Absolute element's `width`
+   - Content container's `padding-left` or `margin-left`
+3. Apply offset conditionally when absolute element is present
+
+**Apply when**: 
+- Using absolutely positioned breadcrumbs, toolbars, or sidebars
+- Content appears cut off or hidden
+- Elements overlap unexpectedly
+- Scrollable content is partially blocked
+
+**Related**: #L4150 (CSS Positioning Conflicts), #L3650 (Z-Index Stacking)
+
+**Source**: SYOS-251 (Org Chart Hierarchical Navigation)
+
+---
+
+## #L4150: CSS Positioning - Setting Both `left` and `right` Creates Conflicts [🔴 CRITICAL]
+
+**Symptom**: Panel/element positioned incorrectly, not flush to intended edge, stacking panels misaligned  
+**Root Cause**: Setting both `left` and `right` properties causes conflicts - `left` takes precedence in LTR layouts  
+**Fix**:
+
+```css
+/* ❌ WRONG: Setting 'left' overrides 'right', panel moves away from right edge */
+.panel-base {
+	position: fixed;
+	right: 0; /* Intended: flush to right */
+}
+.panel-offset {
+	left: 48px; /* ← This OVERRIDES right: 0! */
+	width: calc(100% - 48px);
+}
+
+/* ✅ CORRECT: Only adjust width, keep 'right: 0' for alignment */
+.panel-base {
+	position: fixed;
+	right: 0; /* Always flush to right edge */
+}
+.panel-offset {
+	/* Only shrink width - 'right: 0' keeps it flush right */
+	width: calc(100% - 48px);
+	max-width: calc(100vw - 48px); /* Responsive safety */
+}
+```
+
+**Why It Fails:**
+
+CSS positioning precedence in LTR layouts:
+1. When both `left` and `right` are set, `left` takes precedence
+2. `right: 0` positions element flush to right edge
+3. Adding `left: 48px` overrides `right: 0` → element moves 48px from left edge
+4. Result: Element is no longer flush to right, width calculation is correct but positioning is wrong
+
+**The Solution:**
+- **To position flush right**: Use `right: 0` only, never set `left`
+- **To create offset space**: Adjust `width` using `calc()`, not position properties
+- **For responsive**: Add `max-width: calc(100vw - offset)` to prevent overflow
+
+**Common Use Case: Stacked Panels with Breadcrumb Bar**
+
+```svelte
+<!-- Base panel: flush right, full width -->
+<aside class="fixed top-0 right-0 h-screen w-full max-w-screen"></aside>
+
+<!-- Stacked panel: flush right, reduced width to show 48px breadcrumb -->
+<aside 
+  class="fixed top-0 right-0 h-screen"
+  style="width: calc(100% - 48px); max-width: calc(100vw - 48px);"
+></aside>
+```
+
+**Apply when**: 
+- Creating stacked/layered panels
+- Implementing breadcrumb bars or side indicators
+- Panel should stay flush to edge but make room for other content
+- Responsive layouts where elements must not exceed viewport
+
+**Related**: #L4100 (Utility Classes vs Conditional Classes), #L3650 (Z-Index Stacking)
+
+**Source**: SYOS-251 (Org Chart Hierarchical Navigation)
+
+---
+
+## #L4100: Custom Utility Classes Must Not Override Conditional Tailwind Classes [🔴 CRITICAL]
+
+**Symptom**: Component state shows as open/visible (`isOpen: true`) but element is hidden/positioned wrong, backdrop visible but panel missing  
+**Root Cause**: Custom `@utility` class has hardcoded CSS property that conflicts with conditional Tailwind classes  
+**Fix**:
+
+```css
+/* ❌ WRONG: Hardcoded transform overrides Tailwind classes */
+@utility panel-stack-base {
+	position: fixed;
+	transform: translateX(100%); /* ← This ALWAYS applies, blocks Tailwind! */
+	transition: transform 300ms ease-in-out;
+}
+
+/* ✅ CORRECT: Let Tailwind classes control the property */
+@utility panel-stack-base {
+	position: fixed;
+	/* DO NOT set transform here - Tailwind classes handle it */
+	transition: transform 300ms ease-in-out; /* Only transition, not the value */
+}
+```
+
+**In Component:**
+```svelte
+<aside
+	class="panel-stack-base"
+	class:translate-x-0={isOpen}      <!-- Tailwind: transform: translateX(0) -->
+	class:translate-x-full={!isOpen}  <!-- Tailwind: transform: translateX(100%) -->
+>
+```
+
+**Why It Fails:**
+
+CSS specificity/cascade rules:
+1. Custom utility defines `transform: translateX(100%)`
+2. Tailwind classes also define `transform: translateX(0)` or `translateX(100%)`
+3. **Both have same specificity** → last one in CSS file wins
+4. If utility comes after Tailwind in build, **utility always wins** → blocks conditional classes
+
+**Debug Evidence:**
+```
+Console: isOpen: true, hasCircle: true  ← State says OPEN
+DevTools Computed: transform: translateX(100%)  ← CSS says CLOSED
+DevTools Elements: class="... translate-x-0"  ← Class applied but ignored!
+```
+
+**Properties That Must Not Be Hardcoded in Utilities When Using Conditional Classes:**
+- `transform` (when using `translate-*`, `scale-*`, `rotate-*`)
+- `display` (when using `hidden`, `block`, `flex`)
+- `opacity` (when using `opacity-*`)
+- `visibility` (when using `invisible`, `visible`)
+- Any property controlled by conditional Tailwind classes
+
+**Safe to Include in Utilities:**
+- `transition` properties (transitions don't conflict with final values)
+- `position`, `z-index`, `width`, `height` (if not conditionally changed)
+- Colors, borders, padding, margin (if not conditionally changed)
+
+**Apply when**: 
+- Creating custom utility classes with `@utility`
+- Element state is correct but visual rendering is wrong
+- Tailwind conditional classes don't seem to work
+- Backdrop appears but panel is hidden
+
+**Related**: #L3950 (Backdrop Click Target Check), #L3650 (Z-Index Stacking)
+
+**Source**: SYOS-251 (Org Chart Hierarchical Navigation)
+
+---
+
+**Pattern Count**: 40  
+**Last Updated**: 2025-01-18  
+**Design Token Reference**: `dev-docs/design-tokens.md`
+
+---
+
+## #L3730: Documentation Maintenance - Verify Against Implementation [🟡 IMPORTANT]
+
+**Symptom**: Documentation shows wrong project name, outdated status, incorrect code references, broken links, or planning language instead of current state  
+**Root Cause**: Documentation written during planning phase, not updated when implementation completes. Common issues:
+- Project name from old context (e.g., "Axon" instead of "SynergyOS")
+- Status says "Ready for Implementation" but feature is already live
+- Permission slugs/API names don't match actual code
+- Links use relative paths that don't resolve correctly
+- Dates are incorrect (e.g., "January 2025" when it's November)
+- Language reflects planning ("What We Built Today", "Questions to Answer") instead of current state
+
+**Fix**:
+
+```markdown
+<!-- ❌ WRONG: Planning language, wrong project name, outdated status -->
+# RBAC System - Executive Summary
+**Created**: November 10, 2025  
+**Status**: ✅ Architecture Complete - Ready for Implementation
+
+We designed a complete **Role-Based Access Control (RBAC)** system for Axon...
+
+**Questions to Answer Before Implementation:**
+1. Should existing organization owners become `admin`?
+```
+
+```markdown
+<!-- ✅ CORRECT: Current state, correct project name, accurate status -->
+# RBAC System - Overview
+**Last Updated**: November 18, 2025  
+**Status**: ✅ **Implemented and Live**
+
+SynergyOS uses a **Role-Based Access Control (RBAC)** system...
+
+### Current Implementation Status
+- ✅ Database Schema: All RBAC tables implemented
+- ✅ Permission Checking: Core functions in `convex/rbac/permissions.ts`
+- ✅ Admin Panel: `/admin/rbac` for managing RBAC system
+```
+
+**Verification Checklist**:
+1. ✅ **Project Name**: Check actual project name (grep codebase, check package.json)
+2. ✅ **Status**: Verify implementation state (check if code exists, if feature is live)
+3. ✅ **Code References**: Match permission slugs, function names, file paths to actual code
+4. ✅ **Links**: Test all links, use absolute paths (`/dev-docs/...`) not relative (`./...`)
+5. ✅ **Dates**: Use current date for "Last Updated"
+6. ✅ **Language**: Remove planning language ("Questions to Answer", "Before Implementation")
+7. ✅ **Examples**: Update examples to match actual implementation
+
+**Apply when**:
+- Fixing broken documentation links
+- Updating documentation after implementation completes
+- Reviewing documentation for accuracy
+- Before committing documentation changes
+
+**Related**: #L1120 (Documentation Link Rendering), #L1100 (Markdown URL Redirects)
+
+---
+
+## #L4000: SVG Text Positioning and Layering [🟡 IMPORTANT]
+
+**Symptom**: SVG text labels (circle names, role names) are covered by other elements, root circle names appear behind sub-circles, or text overlaps with visual elements  
+**Root Cause**: SVG renders elements in document order (later elements appear on top), so root circles render first and get covered by child circles. Text positioned at center gets covered by packed child elements.  
+**Fix**:
+
+### Two-Pass Rendering Pattern
+
+**Pass 1**: Render all visual elements (circles, roles, shapes)  
+**Pass 2**: Render all text labels sorted by depth descending (root circles last = appear on top)
+
+```svelte
+<!-- First pass: Render circles and roles (without names) -->
+{#each visibleNodes as node (node.data.circleId)}
+	<g transform="translate({node.x},{node.y})">
+		<!-- Circle -->
+		<circle cx="0" cy="0" r={node.r} fill={color} />
+		
+		<!-- Roles (masked to avoid covering names) -->
+		{#if showRoles && node.data.packedRoles}
+			<g clip-path="url(#clip-{node.data.circleId})" mask="url(#mask-{node.data.circleId})">
+				{#each node.data.packedRoles as role (role.roleId)}
+					<circle cx={role.x} cy={role.y} r={role.r} fill="white" />
+				{/each}
+			</g>
+		{/if}
+	</g>
+{/each}
+
+<!-- Second pass: Render circle names on top (sorted by depth descending) -->
+{#each visibleNodes.slice().sort((a, b) => b.depth - a.depth) as node (node.data.circleId)}
+	{@const showCircleName = shouldShowCircleName(node)}
+	{#if showCircleName}
+		<g transform="translate({node.x},{node.y})">
+			{@const fontSize = Math.max(10, Math.min(node.r / 4, 14))}
+			{@const maxTextWidth = node.r * 1.8}
+			{@const truncatedName = truncateText(node.data.name, maxTextWidth, fontSize)}
+			
+			<!-- Background rectangle for contrast -->
+			<rect
+				x={-maxTextWidth / 2 - 4}
+				y={-fontSize / 2 - 2}
+				width={maxTextWidth + 8}
+				height={fontSize + 4}
+				fill="rgba(0,0,0,0.7)"
+				rx="2"
+				class="pointer-events-none"
+			/>
+			
+			<!-- Centered text -->
+			<text
+				x="0"
+				y="0"
+				text-anchor="middle"
+				dominant-baseline="middle"
+				class="circle-name-label pointer-events-none font-bold select-none"
+				fill="white"
+				fill-opacity="1"
+				style="text-shadow: 0 2px 4px rgba(0,0,0,0.9);"
+				font-size={fontSize}
+			>
+				{truncatedName}
+			</text>
+		</g>
+	{/if}
+{/each}
+```
+
+### SVG Masking to Prevent Overlap
+
+**Use SVG masks to exclude areas where text is positioned**:
+
+```svelte
+{#if showRoles && node.data.packedRoles}
+	{@const fontSize = Math.max(10, Math.min(node.r / 4, 14))}
+	{@const nameAreaHeight = fontSize + 8}
+	{@const nameAreaTop = -fontSize / 2 - 4}
+	
+	<defs>
+		<mask id="mask-{node.data.circleId}">
+			<!-- White = visible, Black = hidden -->
+			<!-- Show entire circle -->
+			<circle cx="0" cy="0" r={node.r} fill="white" />
+			<!-- Hide center area where circle name is -->
+			<rect
+				x={-node.r * 2}
+				y={nameAreaTop}
+				width={node.r * 4}
+				height={nameAreaHeight}
+				fill="black"
+			/>
+		</mask>
+		<!-- Also keep circle clipPath for boundary -->
+		<clipPath id="clip-{node.data.circleId}">
+			<circle cx="0" cy="0" r={node.r} />
+		</clipPath>
+	</defs>
+	
+	<!-- Group with mask and clipPath -->
+	<g clip-path="url(#clip-{node.data.circleId})" mask="url(#mask-{node.data.circleId})">
+		{#each node.data.packedRoles as role (role.roleId)}
+			<!-- Roles rendered here, masked out from center -->
+		{/each}
+	</g>
+{/if}
+```
+
+### Text Truncation for Long Names
+
+**Estimate character width and truncate with ellipsis**:
+
+```typescript
+function truncateText(text: string, maxWidth: number, fontSize: number): string {
+	// Estimate character width (rough: fontSize * 0.6 for average character)
+	const charWidth = fontSize * 0.6;
+	const maxChars = Math.floor(maxWidth / charWidth);
+	
+	if (text.length <= maxChars) return text;
+	return text.slice(0, Math.max(1, maxChars - 3)) + '...';
+}
+```
+
+**Apply when**:
+- Building SVG visualizations with nested elements (org charts, tree diagrams, bubble charts)
+- Text labels need to appear on top of visual elements
+- Root/parent elements should be visible above child elements
+- Text must never be covered by packed child elements
+
+**Key Principles**:
+1. **Two-pass rendering**: Visual elements first, text labels second
+2. **Depth sorting**: Sort by depth descending so root elements render last (appear on top)
+3. **SVG masking**: Use masks to exclude text areas from child element rendering
+4. **Text truncation**: Estimate character width based on font size to prevent overflow
+5. **Background contrast**: Add semi-transparent background rectangles behind text for readability
+6. **Depth-based text sizing**: Scale font size by hierarchy depth (root largest, deeper elements smaller)
+7. **Design token backgrounds**: Use design system colors (oklch) instead of hardcoded rgba values
+
+### Depth-Based Text Sizing
+
+**Scale text size based on hierarchy depth**:
+
+```typescript
+{@const baseFontSize = Math.max(10, Math.min(node.r / 4, 14))}
+{@const depthMultiplier = Math.max(0.5, 3 - node.depth * 0.5)}
+{@const fontSize = Math.max(6, Math.min(baseFontSize * depthMultiplier, 42))}
+```
+
+**Result**:
+- Root (depth 0): 3x multiplier
+- Depth 1: 2.5x multiplier
+- Depth 2: 2x multiplier
+- Depth 3: 1.5x multiplier
+- Depth 4+: Scales down progressively (minimum 0.5x)
+
+### Design Token Backgrounds
+
+**Use design system colors instead of hardcoded values**:
+
+```svelte
+<!-- ❌ WRONG: Hardcoded black -->
+<rect fill="rgba(0,0,0,0.7)" ... />
+
+<!-- ✅ CORRECT: Design token (sidebar-badge-bg) -->
+<rect fill="oklch(37.2% 0.044 257.287 / 0.85)" ... />
+```
+
+**Benefits**:
+- Theme-aware (adapts to light/dark mode)
+- Consistent with design system
+- Better contrast than pure black
+- Uses semantic color tokens
+
+**Related**: #L5 (Hierarchical Panel Stack Navigation), #L3650 (Z-index Stacking)
+
+---
+
+## #L4250: Multiple Global ESC Handlers Fire Simultaneously [🔴 CRITICAL]
+
+**Symptom**: ESC key goes back two (or more) levels instead of one when multiple panels are open (e.g., Circle → SubCircle → Role, pressing ESC skips SubCircle and lands on Circle)  
+**Root Cause**: Multiple panels have global `window.addEventListener('keydown')` handlers. When panels overlay each other, ALL handlers fire simultaneously on ESC press, causing multiple `pop()` operations.  
+**Fix**: Check if current panel is the topmost layer before handling ESC key.
+
+### Topmost Layer Check Pattern
+
+**Problem**: Both `CircleDetailPanel` and `RoleDetailPanel` had global ESC handlers. When role opened from circle panel, both panels were open (role overlays circle), so pressing ESC fired BOTH handlers → double pop.
+
+**Solution**: Compare current panel's ID against navigation stack's `currentLayer`:
+
+```typescript
+// ❌ WRONG: Always handles ESC (causes double-pop)
+$effect(() => {
+	if (isOpen && browser) {
+		const handleKeydown = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') {
+				handleEscapeKey(); // ❌ Always fires
+			}
+		};
+		window.addEventListener('keydown', handleKeydown);
+		return () => window.removeEventListener('keydown', handleKeydown);
+	}
+});
+
+// ✅ CORRECT: Only handle ESC if this is the topmost panel
+$effect(() => {
+	if (isOpen && browser) {
+		const handleKeydown = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') {
+				// Check if this panel is the current (topmost) layer
+				const currentLayer = navigationStack.currentLayer;
+				// Use selectedCircleId/selectedRoleId (not circle._id/role._id)
+				// because query data may not be loaded yet
+				if (currentLayer?.type === 'circle' && currentLayer?.id === selectedCircleId) {
+					handleEscapeKey(); // ✅ Only fires if topmost
+				}
+			}
+		};
+		window.addEventListener('keydown', handleKeydown);
+		return () => window.removeEventListener('keydown', handleKeydown);
+	}
+});
+```
+
+**Key Points**:
+- ✅ Use `selectedCircleId`/`selectedRoleId` (state values) - immediately available
+- ❌ Don't use `circle._id`/`role._id` (query data) - may be `undefined` if query hasn't completed
+- ✅ Check `currentLayer.type` AND `currentLayer.id` to ensure exact match
+- ✅ Each panel independently checks if it's topmost → only topmost handles ESC
+
+**Apply when**: Multiple panels have global event listeners (ESC, keyboard shortcuts) and overlay each other
+
+**Related**: #L5 (Hierarchical Panel Stack Navigation), #L430 (Keyboard Event Priority)
+
+---
+
+## #L4520: Fix Broken Combobox with Custom Dropdown [🟡 IMPORTANT]
+
+**Symptom**: Bits UI Combobox doesn't allow multi-select, dropdown closes immediately, can't select multiple items, search input doesn't work with backspace  
+**Root Cause**: Combobox component's internal state management conflicts with manual multi-select logic, `bind:value` and `onValueChange` handlers interfere with each other  
+**Fix**: Replace Combobox with custom dropdown using plain div + manual state management
+
+```svelte
+<script lang="ts">
+	let orgSelectorOpen = $state(false);
+	let orgSearchQuery = $state('');
+	let selectedOrgIds = $state<string[]>([]);
+	let orgSelectorTriggerRef: HTMLButtonElement | undefined;
+	let orgSelectorDropdownRef: HTMLDivElement | undefined;
+
+	// Filter organizations based on search
+	const filteredOrgs = $derived(() => {
+		if (!orgSearchQuery.trim()) return organizations;
+		const query = orgSearchQuery.toLowerCase();
+		return organizations.filter((org) => 
+			org.name.toLowerCase().includes(query) || 
+			org.slug.toLowerCase().includes(query)
+		);
+	});
+
+	// Click outside to close
+	$effect(() => {
+		if (!browser || !orgSelectorOpen) return;
+		
+		function handleClickOutside(e: MouseEvent) {
+			if (
+				orgSelectorDropdownRef?.contains(e.target as Node) ||
+				orgSelectorTriggerRef?.contains(e.target as Node)
+			) {
+				return;
+			}
+			orgSelectorOpen = false;
+		}
+
+		document.addEventListener('click', handleClickOutside);
+		return () => document.removeEventListener('click', handleClickOutside);
+	});
+
+	function toggleOrganization(orgId: string) {
+		if (selectedOrgIds.includes(orgId)) {
+			selectedOrgIds = selectedOrgIds.filter((id) => id !== orgId);
+		} else {
+			selectedOrgIds = [...selectedOrgIds, orgId];
+		}
+		// Keep dropdown open for multi-select
+	}
+</script>
+
+<!-- Trigger Button -->
+<button
+	type="button"
+	bind:this={orgSelectorTriggerRef}
+	onclick={() => {
+		orgSelectorOpen = !orgSelectorOpen;
+	}}
+	class="flex w-full items-center justify-between rounded-input border border-base bg-input px-input-x py-input-y"
+>
+	<span>
+		{selectedOrgIds.length > 0
+			? `${selectedOrgIds.length} organization${selectedOrgIds.length !== 1 ? 's' : ''} selected`
+			: 'Select organizations...'}
+	</span>
+	<svg class="h-4 w-4 transition-transform {orgSelectorOpen ? 'rotate-180' : ''}">
+		<!-- Chevron icon -->
+	</svg>
+</button>
+
+<!-- Custom Dropdown -->
+{#if orgSelectorOpen}
+	<div
+		bind:this={orgSelectorDropdownRef}
+		class="absolute top-full z-50 mt-1 max-h-[300px] min-w-full overflow-y-auto rounded-md border border-base bg-elevated py-1 shadow-lg"
+		onclick={(e) => e.stopPropagation()}
+	>
+		<!-- Search Input -->
+		<div class="border-b border-base px-menu-item py-menu-item">
+			<input
+				type="text"
+				bind:value={orgSearchQuery}
+				placeholder="Search organizations..."
+				class="w-full bg-transparent text-sm text-primary placeholder:text-tertiary focus:outline-none"
+				onclick={(e) => e.stopPropagation()}
+				onkeydown={(e) => {
+					e.stopPropagation();
+					if (e.key === 'Escape') {
+						orgSelectorOpen = false;
+					}
+				}}
+			/>
+		</div>
+
+		<!-- Organization List -->
+		{#each filteredOrgs() as org (org._id)}
+			{@const isSelected = selectedOrgIds.includes(org._id)}
+			<button
+				type="button"
+				onclick={(e) => {
+					e.stopPropagation();
+					toggleOrganization(org._id);
+				}}
+				class="flex w-full cursor-pointer items-center gap-2 px-menu-item py-menu-item text-left text-sm transition-colors hover:bg-hover-solid focus:bg-hover-solid outline-none {isSelected
+					? 'bg-accent-primary/10 text-accent-primary'
+					: 'text-primary'}"
+			>
+				<svg class="h-4 w-4 flex-shrink-0 {isSelected ? 'opacity-100' : 'opacity-0'}">
+					<!-- Checkmark icon -->
+				</svg>
+				<span class="flex-1">{org.name}</span>
+				<span class="text-xs text-tertiary">{org.slug}</span>
+			</button>
+		{/each}
+	</div>
+{/if}
+```
+
+**Key Differences from Combobox**:
+
+1. **Manual state management** - `orgSelectorOpen` instead of `bind:open`
+2. **Plain buttons** - Regular `<button>` elements instead of `Combobox.Item`
+3. **Manual toggle logic** - `toggleOrganization()` function instead of `onValueChange`
+4. **Click outside detection** - `$effect` with `addEventListener` instead of Combobox's built-in behavior
+5. **Search stays editable** - Input always visible, supports backspace, doesn't clear on selection
+6. **Dropdown stays open** - After selection, dropdown remains open for multi-select
+
+**Why Custom Dropdown**:
+
+- ✅ Full control over state and behavior
+- ✅ No conflicts between `bind:value` and manual updates
+- ✅ Search input works correctly with backspace
+- ✅ Multi-select works smoothly (dropdown stays open)
+- ✅ Easier to debug (no library internals)
+
+**When to Use**:
+
+- Multi-select scenarios (organizations, tags, users)
+- When Combobox's built-in behavior conflicts with requirements
+- When you need custom search/filter behavior
+- When dropdown should stay open after selection
+
+**When NOT to Use**:
+
+- Single-select dropdowns (Combobox works fine)
+- Simple autocomplete (Combobox is better)
+- When library behavior matches requirements
+
+**Related**: #L10 (Interactive dropdowns), #L3120 (Multi-select combobox with "Add More" button), #L3650 (Z-index stacking)
+
+---
+
+## #L4580: Card-Based Layout with Consistent Spacing [🟢 REFERENCE]
+
+**Symptom**: Admin pages have cluttered layout, everything in one big card, analytics stuck in sidebar, hard to scan  
+**Root Cause**: Two-column sticky layout doesn't scale well, single large card lacks visual hierarchy  
+**Fix**: Single-column card layout with each section as its own card, consistent spacing and styling
+
+```svelte
+<main class="flex-1 overflow-y-auto px-inbox-container py-system-content">
+	<div class="mx-auto max-w-4xl">
+		<div class="flex flex-col gap-6">
+			<!-- Overview Card -->
+			<div class="rounded-lg border border-base bg-surface p-content-padding">
+				<h2 class="mb-4 text-lg font-semibold text-primary">Overview</h2>
+				<!-- Content -->
+			</div>
+
+			<!-- Description Card -->
+			<div class="rounded-lg border border-base bg-surface p-content-padding">
+				<h2 class="mb-4 text-lg font-semibold text-primary">Description</h2>
+				<!-- Content -->
+			</div>
+
+			<!-- Configuration Card -->
+			<div class="rounded-lg border border-base bg-surface p-content-padding">
+				<h2 class="mb-4 text-lg font-semibold text-primary">Configuration</h2>
+				<!-- Content -->
+			</div>
+
+			<!-- Analytics Card -->
+			<div class="rounded-lg border border-base bg-surface p-content-padding">
+				<h2 class="mb-2 text-lg font-semibold text-primary">Analytics</h2>
+				<p class="mb-4 text-xs text-secondary">Usage statistics and performance metrics.</p>
+				<!-- Content -->
+			</div>
+		</div>
+	</div>
+</main>
+```
+
+**Card Pattern**:
+
+- **Container**: `flex flex-col gap-6` - Vertical stack with consistent spacing
+- **Card Styling**: `rounded-lg border border-base bg-surface p-content-padding` - Consistent across all cards
+- **Heading**: `mb-4 text-lg font-semibold text-primary` - Consistent heading style
+- **Max Width**: `max-w-4xl` - Narrower than full width for better focus
+- **Spacing**: `gap-6` between cards (24px) - Generous white space
+
+**Benefits**:
+
+- ✅ Clear visual hierarchy - Each section is distinct
+- ✅ Easy to scan - Cards break up content naturally
+- ✅ Consistent styling - Same pattern everywhere
+- ✅ Responsive - Single column works on all screen sizes
+- ✅ No sticky positioning - Analytics flows naturally with content
+
+**Design Principles**:
+
+1. **One concept per card** - Each card represents one logical section
+2. **Consistent spacing** - Same gap between all cards
+3. **Consistent padding** - Same padding inside all cards (`p-content-padding`)
+4. **Consistent headings** - Same heading style and spacing
+5. **Generous white space** - `gap-6` (24px) between cards
+
+**When to Use**:
+
+- Admin interfaces with multiple configuration sections
+- Settings pages with distinct categories
+- Detail pages with overview + configuration + analytics
+- Any page where content needs clear visual separation
+
+**When NOT to Use**:
+
+- Simple forms (single card is fine)
+- List views (cards are for items, not sections)
+- Dashboard widgets (different pattern)
+
+**Related**: #L60 (Spacing patterns), #L380 (Centered card layout), #L780 (Design tokens)
+
+---
+
+## #L4640: Clear Feature Flag Descriptions [🟢 REFERENCE]
+
+**Symptom**: Feature flag descriptions are vague ("Controls X"), don't explain what happens when enabled, admins don't understand impact  
+**Root Cause**: Descriptions focus on what flag "controls" rather than user impact and specific features  
+**Fix**: Write descriptions that explain user impact, list exact routes/features, and follow consistent format
+
+```typescript
+// ❌ VAGUE: Doesn't explain impact
+export const FlagDescriptions = {
+	[FeatureFlags.MEETINGS_MODULE]: 'Meetings Module - Controls meetings'
+};
+
+// ✅ CLEAR: Explains impact, lists routes, describes behavior
+export const FlagDescriptions = {
+	[FeatureFlags.MEETINGS_MODULE]:
+		'Meetings Module - Grants access to the meetings feature set: /meetings page (list, create, edit meetings), /dashboard (upcoming meetings), and meeting-related navigation. Users without this flag are redirected away from meetings pages.'
+};
+```
+
+**Description Format**:
+
+1. **Action verb** - "Enables", "Grants", "Replaces", "Upgrades"
+2. **Specific features** - List exact routes, pages, or functionality
+3. **User impact** - What happens when enabled/disabled
+4. **Behavior details** - Redirects, access control, etc.
+
+**Examples**:
+
+```typescript
+// Good: Specific routes + user impact
+'Meetings Module - Grants access to the meetings feature set: /meetings page (list, create, edit meetings), /dashboard (upcoming meetings), and meeting-related navigation. Users without this flag are redirected away from meetings pages.'
+
+// Good: Lists exact features + benefits
+'ProseMirror Notes Editor - Replaces the current notes editor with a ProseMirror-based rich text editor featuring improved formatting, collaboration, and performance.'
+
+// Good: Explains behavior + improvements
+'Readwise Sync v2 - Upgrades Readwise integration with improved error handling, retry logic, and sync reliability. Automatically handles failed syncs and provides better status reporting.'
+
+// Good: Deprecation note
+'Meeting Module Beta - Legacy flag for meeting features. Note: Replaced by MEETINGS_MODULE flag. Consider removing if no longer needed.'
+```
+
+**Description Checklist**:
+
+- [ ] Uses action verb (Enables/Grants/Replaces)
+- [ ] Lists specific routes or features
+- [ ] Explains user impact (what happens when enabled)
+- [ ] Includes behavior details (redirects, access control)
+- [ ] Notes deprecation if applicable
+- [ ] Consistent format across all flags
+
+**Why This Matters**:
+
+- Admins understand what they're controlling
+- No need to check code to understand impact
+- Clearer decision-making for rollouts
+- Better documentation for team members
+
+**Apply when**: Writing feature flag descriptions, admin tooltips, configuration help text  
+**Related**: feature-flags.md (Feature flag patterns), #L780 (Design tokens)
+
+---
+
+## #L4700: Documentation 404s from Direct URL Access or Moved Files [🟡 IMPORTANT]
+
+**Symptom**: Documentation URLs return 404 with "Direct access" referrer, even though file exists at different path  
+**Root Cause**: Users accessing wrong URL path (typing directly, bookmarks, external links) - file exists but at different location  
+**Fix**: Use intelligent path resolution to automatically try common parent directories, then redirect if found
+
+```typescript
+// ✅ CORRECT: Intelligent path resolution with auto-redirect
+import { redirect } from '@sveltejs/kit';
+import { existsSync } from 'fs';
+
+// Common parent directories to try when path doesn't match
+const COMMON_PARENT_DIRS = ['architecture'];
+
+function generatePossiblePaths(path: string): string[] {
+	const paths: string[] = [];
+	
+	// 1. Try exact path variations
+	paths.push(`dev-docs/${path}.md`);
+	paths.push(`dev-docs/${path}/README.md`);
+	paths.push(`dev-docs/${path}/index.md`);
+	
+	// 2. Try with common parent directories
+	if (path.startsWith('2-areas/') && !path.includes('/architecture/')) {
+		for (const parentDir of COMMON_PARENT_DIRS) {
+			const withParent = path.replace(/^2-areas\//, `2-areas/${parentDir}/`);
+			paths.push(`dev-docs/${withParent}.md`);
+			paths.push(`dev-docs/${withParent}/README.md`);
+			paths.push(`dev-docs/${withParent}/index.md`);
+		}
+	}
+	
+	return paths;
+}
+
+export const load: PageServerLoad = async ({ params }) => {
+	const { path } = params;
+	const possiblePaths = generatePossiblePaths(path);
+
+	for (const filePath of possiblePaths) {
+		if (!existsSync(join(cwd(), filePath))) continue;
+		
+		const content = await readFile(join(cwd(), filePath), 'utf-8');
+		const actualPath = filePath
+			.replace(/^dev-docs\//, '')
+			.replace(/\.md$/, '')
+			.replace(/\/README$/, '')
+			.replace(/\/index$/, '');
+		
+		// Auto-redirect if found with different path
+		if (actualPath !== path && actualPath !== path.replace(/\/$/, '')) {
+			// ✅ SKIP LOGGING: File found, just wrong path - redirect is successful resolution
+			throw redirect(301, `/dev-docs/${actualPath}`);
+		}
+		
+		return { content, title, path: `/${actualPath}` };
+	}
+	
+	// ❌ LOG 404: No file found after trying all variations
+	// ... log 404 error
+};
+```
+
+**Alternative: Manual Redirects** (for specific known cases):
+
+```typescript
+// For specific known redirects (if intelligent resolution doesn't cover it)
+const redirects: Record<string, string> = {
+	'2-areas/system-architecture': '2-areas/architecture/system-architecture'
+};
+
+if (redirects[path]) {
+	throw redirect(301, `/dev-docs/${redirects[path]}`);
+}
+```
+
+**Investigation Steps** (Systematic Root Cause Analysis):
+
+1. ✅ **Verify file location**: Check where file actually exists
+   - `glob_file_search` for `**/system-architecture.md`
+   - Found: `dev-docs/2-areas/architecture/system-architecture.md`
+
+2. ✅ **Check 404 tracking data**: Review referrer and access pattern
+   - Referrer: "Direct access" (not from internal link)
+   - Pattern: Users accessing `/dev-docs/2-areas/system-architecture` (missing `architecture/`)
+
+3. ✅ **Check internal links**: Verify all internal links are correct
+   - `grep` for links to `system-architecture`
+   - Found: Links use correct paths (`architecture/system-architecture.md`)
+
+4. ✅ **Root cause identified**: Users typing/bookmarking wrong URL directly
+   - File correctly located at `/dev-docs/2-areas/architecture/system-architecture`
+   - Users accessing `/dev-docs/2-areas/system-architecture` (missing directory)
+   - Not a broken link issue - direct URL access
+
+5. ✅ **Fix**: Add redirect mapping for common mistakes
+   - Redirect wrong path to correct path
+   - Use 301 (permanent redirect) for SEO/bookmarks
+   - Check redirects BEFORE file loading to avoid 404 logging
+
+**Why This Happens**:
+
+- Users bookmark URLs or type them directly
+- External links pointing to wrong paths
+- Files moved to different directories (old URLs still accessed)
+- Common typos or missing directory segments
+
+**Pattern for Adding Redirects**:
+
+```typescript
+// Add to redirects map in +page.server.ts
+const redirects: Record<string, string> = {
+	// Old path → New path
+	'2-areas/system-architecture': '2-areas/architecture/system-architecture',
+	'another/old-path': 'another/new/path'
+};
+```
+
+**When to Use Intelligent Path Resolution**:
+
+- ✅ Systematic pattern (e.g., all `2-areas/X` should try `2-areas/architecture/X`)
+- ✅ Common parent directories that users frequently omit
+- ✅ Want automatic resolution without manual redirect mapping
+
+**When to Use Manual Redirects**:
+
+- ✅ Specific known cases that don't fit pattern
+- ✅ Files moved to completely different locations
+- ✅ One-off fixes for external links
+
+**When NOT to Use**:
+
+- ❌ Broken internal links (fix the link instead)
+- ❌ Link renderer issues (fix renderer logic)
+- ❌ Temporary/test URLs
+
+**Logging Behavior**:
+
+- ✅ **SKIP logging** when redirecting (file found, just wrong path)
+- ❌ **LOG 404** when file truly not found after trying all variations
+
+**Related**: #L1120 (Directory-Aware Markdown Link Resolution), #L1100 (Markdown URL Redirects), doc-404-tracking.md (404 Tracking System), SYOS-254 (Documentation 404 Tracking)
+
+---
+
+**Last Updated**: 2025-11-18

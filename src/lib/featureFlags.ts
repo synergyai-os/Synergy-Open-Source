@@ -72,6 +72,35 @@ export const FeatureFlags = {
 export type FeatureFlagKey = (typeof FeatureFlags)[keyof typeof FeatureFlags];
 
 /**
+ * Flag descriptions map - extracted from JSDoc comments
+ * Used as fallback when DB doesn't have a description
+ */
+export const FlagDescriptions: Record<FeatureFlagKey, string> = {
+	[FeatureFlags.ORG_MODULE_BETA]:
+		'Organization Module Beta - Enables organization creation, workspace settings, and team management features. Note: May be deprecated in favor of default organization features.',
+	[FeatureFlags.MEETING_MODULE_BETA]:
+		'Meeting Module Beta - Legacy flag for meeting features. Note: Replaced by MEETINGS_MODULE flag. Consider removing if no longer needed.',
+	[FeatureFlags.MEETING_INTEGRATIONS_BETA]:
+		'Meeting Integrations Beta - Enables calendar synchronization (import/export meetings) and video call platform integrations (Zoom, Google Meet, etc.).',
+	[FeatureFlags.MEETINGS_MODULE]:
+		'Meetings Module - Grants access to the meetings feature set: /meetings page (list, create, edit meetings), /dashboard (upcoming meetings), and meeting-related navigation. Users without this flag are redirected away from meetings pages.',
+	[FeatureFlags.NOTES_PROSEMIRROR_BETA]:
+		'ProseMirror Notes Editor - Replaces the current notes editor with a ProseMirror-based rich text editor featuring improved formatting, collaboration, and performance.',
+	[FeatureFlags.INBOX_BATCH_ACTIONS_DEV]:
+		'Inbox Batch Actions - Enables multi-select functionality in the inbox: select multiple items, bulk archive, bulk delete, bulk tag, and bulk move to folders.',
+	[FeatureFlags.SYNC_READWISE_V2_ROLLOUT]:
+		'Readwise Sync v2 - Upgrades Readwise integration with improved error handling, retry logic, and sync reliability. Automatically handles failed syncs and provides better status reporting.'
+};
+
+/**
+ * Get description for a flag (from DB or fallback to constants)
+ */
+export function getFlagDescription(flag: string, dbDescription?: string | null): string {
+	if (dbDescription) return dbDescription;
+	return FlagDescriptions[flag as FeatureFlagKey] || 'No description available';
+}
+
+/**
  * Feature flag configuration
  */
 export interface FeatureFlagConfig {
