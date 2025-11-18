@@ -1,13 +1,11 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import { browser } from '$app/environment';
-	import { useQuery } from 'convex-svelte';
-	import { api, type Id } from '$lib/convex';
+	import type { Id } from '$lib/convex';
 	import type { UseOrgChart } from '$lib/composables/useOrgChart.svelte';
 	import CircleDetailHeader from './CircleDetailHeader.svelte';
 	import CategoryHeader from './CategoryHeader.svelte';
 	import RoleCard from './RoleCard.svelte';
 	import Avatar from '$lib/components/ui/Avatar.svelte';
+	import PanelBreadcrumbBar from './PanelBreadcrumbBar.svelte';
 
 	let { orgChart }: { orgChart: UseOrgChart } = $props();
 
@@ -16,6 +14,17 @@
 	const isOpen = $derived(orgChart.selectedCircleId !== null);
 	const isLoading = $derived(orgChart.selectedCircleIsLoading);
 	const error = $derived(orgChart.selectedCircleError);
+	const previousLayer = $derived(orgChart.navigationStack.previousLayer);
+	const currentZIndex = $derived(orgChart.navigationStack.currentLayer?.zIndex ?? 50);
+
+	// Track when panel opens to prevent immediate close from same click event
+	let openedAt = $state(0);
+
+	$effect(() => {
+		if (isOpen) {
+			openedAt = Date.now();
+		}
+	});
 
 	// Filter child circles from all circles (proven pattern: filter from existing query)
 	const childCircles = $derived(
@@ -71,6 +80,14 @@
 	});
 
 	function handleClose() {
+		// Pop navigation stack
+		orgChart.navigationStack.pop();
+		orgChart.selectCircle(null);
+	}
+
+	function handleBreadcrumbClick() {
+		// Go back one step in navigation
+		orgChart.navigationStack.pop();
 		orgChart.selectCircle(null);
 	}
 
@@ -103,8 +120,20 @@
 <!-- Backdrop -->
 {#if isOpen}
 	<div
-		class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity"
-		onclick={handleClose}
+		class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+		style="z-index: {currentZIndex - 5};"
+		onclick={(e) => {
+			// Ignore clicks within 100ms of opening (prevents same click that opened panel from closing it)
+			const timeSinceOpen = Date.now() - openedAt;
+			if (timeSinceOpen < 100) {
+				return;
+			}
+
+			// Only close if clicking the backdrop itself, not bubbled events
+			if (e.target === e.currentTarget) {
+				handleClose();
+			}
+		}}
 		onkeydown={(e) => {
 			if (e.key === 'Escape') {
 				handleClose();
@@ -117,36 +146,46 @@
 
 <!-- Panel -->
 <aside
-	class="fixed top-0 right-0 z-50 h-full w-full transform border-l border-base bg-elevated shadow-xl transition-transform duration-300 ease-in-out sm:w-[900px] lg:w-[1200px]"
+	class="panel-stack-base shadow-xl sm:w-[900px] lg:w-[1200px]"
+	class:panel-stack-offset={previousLayer !== null}
 	class:translate-x-0={isOpen}
 	class:translate-x-full={!isOpen}
+	style="z-index: {currentZIndex};"
+	data-debug-open={isOpen}
+	data-debug-loading={isLoading}
+	data-debug-has-circle={!!circle}
 >
-	{#if isLoading}
-		<!-- Loading State -->
-		<div class="flex h-full items-center justify-center">
-			<div class="text-center">
-				<svg class="mx-auto h-8 w-8 animate-spin text-tertiary" fill="none" viewBox="0 0 24 24">
-					<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
-					></circle>
-					<path
-						class="opacity-75"
-						fill="currentColor"
-						d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-					></path>
-				</svg>
-				<p class="mt-4 text-sm text-secondary">Loading circle details...</p>
+	<!-- Breadcrumb Bar (only if there's a previous layer) -->
+	{#if previousLayer}
+		<PanelBreadcrumbBar layer={previousLayer} onclick={handleBreadcrumbClick} />
+	{/if}
+	<!-- Panel Content -->
+	<div class="flex h-full flex-col">
+		{#if isLoading}
+			<!-- Loading State -->
+			<div class="flex h-full items-center justify-center">
+				<div class="text-center">
+					<svg class="mx-auto h-8 w-8 animate-spin text-tertiary" fill="none" viewBox="0 0 24 24">
+						<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+						></circle>
+						<path
+							class="opacity-75"
+							fill="currentColor"
+							d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+						></path>
+					</svg>
+					<p class="mt-4 text-sm text-secondary">Loading circle details...</p>
+				</div>
 			</div>
-		</div>
-	{:else if error}
-		<!-- Error State -->
-		<div class="flex h-full items-center justify-center">
-			<div class="text-center">
-				<p class="text-sm font-medium text-error">Failed to load circle</p>
-				<p class="mt-2 text-sm text-secondary">{String(error)}</p>
+		{:else if error}
+			<!-- Error State -->
+			<div class="flex h-full items-center justify-center">
+				<div class="text-center">
+					<p class="text-sm font-medium text-error">Failed to load circle</p>
+					<p class="mt-2 text-sm text-secondary">{String(error)}</p>
+				</div>
 			</div>
-		</div>
-	{:else if circle}
-		<div class="flex h-full flex-col">
+		{:else if circle}
 			<!-- Header -->
 			<CircleDetailHeader
 				circleName={circle.name}
@@ -673,6 +712,6 @@
 					{/if}
 				</div>
 			</div>
-		</div>
-	{/if}
+		{/if}
+	</div>
 </aside>

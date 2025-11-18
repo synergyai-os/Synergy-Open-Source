@@ -249,6 +249,28 @@ export const listFlags = query({
 });
 
 /**
+ * List all organizations (admin only)
+ * Used for organization targeting in feature flags
+ */
+export const listAllOrganizations = query({
+	args: {
+		sessionId: v.string()
+	},
+	handler: async (ctx, args) => {
+		await requireSystemAdmin(ctx, args.sessionId);
+
+		const organizations = await ctx.db.query('organizations').collect();
+
+		return organizations.map((org) => ({
+			_id: org._id,
+			name: org.name,
+			slug: org.slug,
+			createdAt: org.createdAt
+		}));
+	}
+});
+
+/**
  * Get impact statistics for feature flags (admin only)
  * Returns estimated user counts by targeting method
  */
@@ -629,6 +651,7 @@ export const upsertFlag = mutation({
 	args: {
 		sessionId: v.string(),
 		flag: v.string(),
+		description: v.optional(v.string()),
 		enabled: v.boolean(),
 		rolloutPercentage: v.optional(v.number()),
 		allowedUserIds: v.optional(v.array(v.id('users'))),
@@ -648,6 +671,7 @@ export const upsertFlag = mutation({
 		if (existing) {
 			// Update existing flag
 			await ctx.db.patch(existing._id, {
+				description: args.description,
 				enabled: args.enabled,
 				rolloutPercentage: args.rolloutPercentage,
 				allowedUserIds: args.allowedUserIds,
@@ -660,6 +684,7 @@ export const upsertFlag = mutation({
 			// Create new flag
 			return await ctx.db.insert('featureFlags', {
 				flag: args.flag,
+				description: args.description,
 				enabled: args.enabled,
 				rolloutPercentage: args.rolloutPercentage,
 				allowedUserIds: args.allowedUserIds,

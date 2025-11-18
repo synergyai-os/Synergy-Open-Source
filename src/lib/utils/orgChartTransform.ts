@@ -151,13 +151,13 @@ export function transformToHierarchy(circles: CircleNode[]): HierarchyNode<Circl
 	);
 
 	// Helper function to calculate depth of a circle by traversing parent chain
-	function calculateCircleDepth(circleId: Id<'circles'>): number {
+	function _calculateCircleDepth(circleId: Id<'circles'>): number {
 		const circle = circleMap.get(circleId);
 		if (!circle || !circle.parentCircleId) {
 			return 0; // Root level
 		}
 		// Recursively calculate parent depth + 1
-		return calculateCircleDepth(circle.parentCircleId) + 1;
+		return _calculateCircleDepth(circle.parentCircleId) + 1;
 	}
 
 	// Recursive function to build hierarchy

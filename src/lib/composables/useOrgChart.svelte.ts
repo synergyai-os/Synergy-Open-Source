@@ -2,6 +2,7 @@ import { browser } from '$app/environment';
 import { useQuery, useConvexClient } from 'convex-svelte';
 import { api, type Id } from '$lib/convex';
 import type { CircleNode } from '$lib/utils/orgChartTransform';
+import { useNavigationStack } from './useNavigationStack.svelte';
 
 export type UseOrgChart = ReturnType<typeof useOrgChart>;
 
@@ -14,6 +15,9 @@ export function useOrgChart(options: {
 }) {
 	const getSessionId = options.sessionId;
 	const getOrganizationId = options.organizationId;
+
+	// Navigation stack for hierarchical panel navigation
+	const navigationStack = useNavigationStack();
 
 	const state = $state({
 		// Selected circle for detail panel
@@ -29,9 +33,13 @@ export function useOrgChart(options: {
 		// Hover state
 		hoveredCircleId: null as Id<'circles'> | null,
 		// Query results (loaded via $effect)
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		selectedCircle: null as any,
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		selectedCircleMembers: [] as any[],
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		selectedRole: null as any,
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		selectedRoleFillers: [] as any[],
 		// Loading states
 		selectedCircleIsLoading: false,
@@ -345,19 +353,52 @@ export function useOrgChart(options: {
 			return !browser || circlesQuery?.data === undefined;
 		},
 
+		// Navigation stack - hierarchical panel navigation
+		get navigationStack() {
+			return navigationStack;
+		},
+
 		// Actions
 		selectCircle: (circleId: Id<'circles'> | null) => {
 			state.selectedCircleId = circleId;
+
+			// Update navigation stack
+			if (circleId) {
+				// Find circle name for breadcrumb
+				const circle = circlesQuery?.data?.find((c) => c.circleId === circleId);
+				const circleName = circle?.name || 'Unknown';
+
+				// Add to navigation stack
+				navigationStack.push({
+					type: 'circle',
+					id: circleId,
+					name: circleName
+				});
+			}
 		},
+
 		selectRole: (roleId: Id<'circleRoles'> | null, source: 'chart' | 'circle-panel' | null) => {
 			state.selectedRoleId = roleId;
 			state.selectionSource = source;
+
+			// Update navigation stack
+			if (roleId) {
+				// Role name will be loaded asynchronously
+				// For now, use placeholder (will update when role data loads)
+				navigationStack.push({
+					type: 'role',
+					id: roleId,
+					name: 'Loading...'
+				});
+			}
+
 			// When role opens from chart, hide circle panel
 			// When role opens from circle panel, keep circle panel visible
 			if (source === 'chart' && roleId !== null) {
 				state.selectedCircleId = null;
 			}
 		},
+
 		setZoom: (level: number) => {
 			state.zoomLevel = Math.max(0.5, Math.min(3, level));
 		},

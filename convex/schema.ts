@@ -770,6 +770,7 @@ const schema = defineSchema({
 	// Feature Flags - progressive rollout and A/B testing
 	featureFlags: defineTable({
 		flag: v.string(), // Unique flag identifier (e.g., "notes_prosemirror_beta")
+		description: v.optional(v.string()), // Human-readable description of what this flag controls
 		enabled: v.boolean(), // Global enabled/disabled state
 		rolloutPercentage: v.optional(v.number()), // Percentage of users (0-100)
 		allowedUserIds: v.optional(v.array(v.id('users'))), // Specific users who can see this

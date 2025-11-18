@@ -72,6 +72,35 @@ export const FeatureFlags = {
 export type FeatureFlagKey = (typeof FeatureFlags)[keyof typeof FeatureFlags];
 
 /**
+ * Flag descriptions map - extracted from JSDoc comments
+ * Used as fallback when DB doesn't have a description
+ */
+export const FlagDescriptions: Record<FeatureFlagKey, string> = {
+	[FeatureFlags.ORG_MODULE_BETA]:
+		'Organization Module Beta - Controls org creation, org settings, and team management',
+	[FeatureFlags.MEETING_MODULE_BETA]:
+		'Meeting Module Beta - Controls meeting creation, meeting list, and meeting details',
+	[FeatureFlags.MEETING_INTEGRATIONS_BETA]:
+		'Meeting Integrations Beta - Controls calendar sync and video call integration',
+	[FeatureFlags.MEETINGS_MODULE]:
+		'Meetings Module - Full meetings module access including meetings routes and dashboard',
+	[FeatureFlags.NOTES_PROSEMIRROR_BETA]:
+		'New ProseMirror-based notes editor - Modern rich text editing experience',
+	[FeatureFlags.INBOX_BATCH_ACTIONS_DEV]:
+		'Batch actions in inbox - Select multiple items, archive all, etc.',
+	[FeatureFlags.SYNC_READWISE_V2_ROLLOUT]:
+		'Readwise sync v2 - Improved error handling and sync reliability'
+};
+
+/**
+ * Get description for a flag (from DB or fallback to constants)
+ */
+export function getFlagDescription(flag: string, dbDescription?: string | null): string {
+	if (dbDescription) return dbDescription;
+	return FlagDescriptions[flag as FeatureFlagKey] || 'No description available';
+}
+
+/**
  * Feature flag configuration
  */
 export interface FeatureFlagConfig {

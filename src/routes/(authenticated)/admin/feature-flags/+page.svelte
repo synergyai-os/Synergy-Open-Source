@@ -1,11 +1,12 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { Badge, Tabs, Button, FormInput, ToggleSwitch } from '$lib/components/ui';
+	import { Badge, Tabs, Button, FormInput, FormTextarea, ToggleSwitch } from '$lib/components/ui';
 	import { browser } from '$app/environment';
 	import { Dialog } from 'bits-ui';
-	import { FeatureFlags } from '$lib/featureFlags';
+	import { FeatureFlags, getFlagDescription } from '$lib/featureFlags';
 	import { api, type Id } from '$lib/convex';
 	import { useConvexClient } from 'convex-svelte';
+	import { SvelteSet } from 'svelte/reactivity';
 
 	let { data }: { data: PageData } = $props();
 
@@ -19,15 +20,14 @@
 	// Modal state
 	let createModalOpen = $state(false);
 	let editModalOpen = $state(false);
-	let selectedFlag: Flag | null = $state(null);
 
 	// Form state
 	let formFlag = $state('');
+	let formDescription = $state('');
 	let formEnabled = $state(false);
 	let formRolloutPercentage = $state<number | undefined>(undefined);
 	let formAllowedUserIds = $state<string[]>([]);
 	let formAllowedOrgIds = $state<string[]>([]);
-	let formAllowedDomains = $state<string[]>([]);
 	let formDomainInput = $state('');
 
 	// Debug state
@@ -41,7 +41,8 @@
 	let userSearchQuery = $state('');
 	let userSearchResult: UserFlagsResult | null = $state(null);
 	let userSearchLoading = $state(false);
-	let expandedFlags = $state<Set<string>>(new Set());
+	// eslint-disable-next-line svelte/no-unnecessary-state-wrap
+	let expandedFlags = $state(new SvelteSet<string>());
 
 	// Guidance card state
 	let guidanceDismissed = $state(false);
@@ -52,6 +53,7 @@
 	type Flag = {
 		_id: string;
 		flag: string;
+		description?: string | null;
 		enabled: boolean;
 		rolloutPercentage?: number;
 		allowedUserIds?: string[];
@@ -130,7 +132,7 @@
 
 	// Toggle flag expansion
 	function toggleFlagExpansion(flagName: string) {
-		const newSet = new Set(expandedFlags);
+		const newSet = new SvelteSet(expandedFlags);
 		if (newSet.has(flagName)) {
 			newSet.delete(flagName);
 		} else {
@@ -260,24 +262,23 @@
 	// Open create modal
 	function openCreateModal() {
 		formFlag = '';
+		formDescription = '';
 		formEnabled = false;
 		formRolloutPercentage = undefined;
 		formAllowedUserIds = [];
 		formAllowedOrgIds = [];
-		formAllowedDomains = [];
 		formDomainInput = '';
 		createModalOpen = true;
 	}
 
 	// Open edit modal
 	function openEditModal(flag: Flag) {
-		selectedFlag = flag;
 		formFlag = flag.flag;
+		formDescription = flag.description ?? '';
 		formEnabled = flag.enabled;
 		formRolloutPercentage = flag.rolloutPercentage;
 		formAllowedUserIds = flag.allowedUserIds ?? [];
 		formAllowedOrgIds = flag.allowedOrganizationIds ?? [];
-		formAllowedDomains = flag.allowedDomains ?? [];
 		formDomainInput = (flag.allowedDomains ?? []).join(', ');
 		editModalOpen = true;
 	}
@@ -300,16 +301,18 @@
 			await convexClient.mutation(api.featureFlags.upsertFlag, {
 				sessionId,
 				flag: formFlag,
+				description: formDescription.trim() || undefined,
 				enabled: formEnabled,
 				rolloutPercentage: formRolloutPercentage,
-				allowedUserIds: formAllowedUserIds.length > 0 ? formAllowedUserIds : undefined,
-				allowedOrganizationIds: formAllowedOrgIds.length > 0 ? formAllowedOrgIds : undefined,
+				allowedUserIds:
+					formAllowedUserIds.length > 0 ? (formAllowedUserIds as Id<'users'>[]) : undefined,
+				allowedOrganizationIds:
+					formAllowedOrgIds.length > 0 ? (formAllowedOrgIds as Id<'organizations'>[]) : undefined,
 				allowedDomains: domains.length > 0 ? domains : undefined
 			});
 
 			createModalOpen = false;
 			editModalOpen = false;
-			selectedFlag = null;
 
 			// Reload flags
 			if (browser) {
@@ -544,6 +547,11 @@
 											<div class="flex-1">
 												<h3 class="font-semibold text-primary">{flag.flag}</h3>
 												<p class="mt-1 font-mono text-xs text-tertiary">{flag.flag}</p>
+												{#if getFlagDescription(flag.flag, flag.description)}
+													<p class="mt-2 text-sm text-secondary">
+														{getFlagDescription(flag.flag, flag.description)}
+													</p>
+												{/if}
 											</div>
 											<Badge variant={flag.enabled ? 'default' : 'system'}>
 												{flag.enabled ? 'Enabled' : 'Disabled'}
@@ -567,12 +575,18 @@
 												label=""
 											/>
 											<div class="flex items-center gap-2">
+												<a
+													href={`/admin/feature-flags/${flag.flag}`}
+													class="text-xs text-accent-primary hover:underline"
+												>
+													View Details
+												</a>
 												<button
 													type="button"
 													onclick={() => openEditModal(flag)}
 													class="text-xs text-accent-primary hover:underline"
 												>
-													Edit
+													Quick Edit
 												</button>
 												<button
 													type="button"
@@ -684,7 +698,7 @@
 															✅ Enabled Flags ({enabledFlags.length}):
 														</p>
 														<div class="space-y-2">
-															{#each enabledFlags as flagFlag}
+															{#each enabledFlags as flagFlag (flagFlag.flag)}
 																<div
 																	class="rounded-md border border-accent-primary/20 bg-accent-primary/5 p-2"
 																>
@@ -702,7 +716,7 @@
 															❌ Disabled Flags ({disabledFlags.length}):
 														</p>
 														<div class="space-y-2">
-															{#each disabledFlags as flagFlag}
+															{#each disabledFlags as flagFlag (flagFlag.flag)}
 																<div class="rounded-md border border-base bg-elevated p-2">
 																	<p class="text-sm font-medium text-secondary">{flagFlag.flag}</p>
 																	<p class="text-xs text-tertiary">{flagFlag.reason}</p>
@@ -732,6 +746,11 @@
 														{flag.enabled ? 'Enabled' : 'Disabled'}
 													</Badge>
 												</div>
+												{#if getFlagDescription(flag.flag, flag.description)}
+													<p class="mt-1 text-sm text-secondary">
+														{getFlagDescription(flag.flag, flag.description)}
+													</p>
+												{/if}
 												<p class="mt-1 text-sm text-secondary">
 													{getTargetingSummary(flag)}
 												</p>
@@ -838,10 +857,14 @@
 
 							<div class="flex flex-col gap-4">
 								<div>
-									<label class="mb-2 block text-sm font-medium text-primary">
+									<label
+										for="debug-flag-select"
+										class="mb-2 block text-sm font-medium text-primary"
+									>
 										Feature Flag <span class="text-accent-primary">*</span>
 									</label>
 									<select
+										id="debug-flag-select"
 										bind:value={debugFlagSelect}
 										class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-sm text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
 									>
@@ -939,19 +962,21 @@
 				<div class="space-y-6">
 					<!-- Flag Name -->
 					<div>
-						<label class="mb-2 block text-sm font-medium text-primary">
+						<label for="create-flag-select" class="mb-2 block text-sm font-medium text-primary">
 							Flag Name <span class="text-accent-primary">*</span>
 						</label>
 						<select
+							id="create-flag-select"
 							bind:value={formFlag}
 							class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-sm text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
 						>
 							<option value="">Select a predefined flag...</option>
-							{#each availableFlagNames as flagName}
+							{#each availableFlagNames as flagName (flagName)}
 								<option value={flagName}>{flagName}</option>
 							{/each}
 						</select>
 						<input
+							id="create-flag-input"
 							type="text"
 							bind:value={formFlag}
 							placeholder="Or type a custom flag name (e.g., new_feature_beta)"
@@ -961,6 +986,21 @@
 							<strong>What is this?</strong> A unique identifier for your feature flag. Use
 							lowercase with underscores (e.g.,
 							<code class="rounded bg-elevated px-1 py-0.5 text-tertiary">notes_editor_v2</code>).
+						</p>
+					</div>
+
+					<!-- Description -->
+					<div>
+						<FormTextarea
+							label="Description"
+							placeholder="Describe what this flag controls and what it enables (e.g., 'Enables the new ProseMirror editor for notes')"
+							bind:value={formDescription}
+							rows={3}
+						/>
+						<p class="mt-2 text-xs text-secondary">
+							<strong>Why add a description?</strong> Helps team members understand what each flag does
+							without needing to check the code. If left empty, we'll use the default description from
+							code comments.
 						</p>
 					</div>
 
@@ -993,11 +1033,12 @@
 
 						<!-- Rollout Percentage -->
 						<div class="rounded-lg border border-base bg-elevated p-4">
-							<label class="mb-2 block text-sm font-medium text-primary">
+							<label for="create-rollout-range" class="mb-2 block text-sm font-medium text-primary">
 								Percentage Rollout
 							</label>
 							<div class="flex items-center gap-2">
 								<input
+									id="create-rollout-range"
 									type="range"
 									min="0"
 									max="100"
@@ -1005,6 +1046,7 @@
 									class="flex-1"
 								/>
 								<input
+									id="create-rollout-number"
 									type="number"
 									min="0"
 									max="100"
@@ -1026,10 +1068,11 @@
 
 						<!-- Domain Targeting -->
 						<div class="rounded-lg border border-base bg-elevated p-4">
-							<label class="mb-2 block text-sm font-medium text-primary">
+							<label for="create-domain-input" class="mb-2 block text-sm font-medium text-primary">
 								Email Domain Targeting
 							</label>
 							<input
+								id="create-domain-input"
 								type="text"
 								bind:value={formDomainInput}
 								placeholder="@acme.com, @example.com"
@@ -1045,7 +1088,7 @@
 							</p>
 							{#if formDomainInput}
 								<div class="mt-2 flex flex-wrap gap-2">
-									{#each parseDomains(formDomainInput) as domain}
+									{#each parseDomains(formDomainInput) as domain (domain)}
 										<span
 											class="rounded-md bg-accent-primary/10 px-2 py-1 text-xs text-accent-primary"
 										>
@@ -1135,14 +1178,32 @@
 				<div class="space-y-6">
 					<!-- Flag Name (read-only) -->
 					<div>
-						<label class="mb-2 block text-sm font-medium text-primary">Flag Name</label>
+						<label for="edit-flag-name" class="mb-2 block text-sm font-medium text-primary"
+							>Flag Name</label
+						>
 						<input
+							id="edit-flag-name"
 							type="text"
 							bind:value={formFlag}
 							disabled
 							class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-sm text-tertiary opacity-50"
 						/>
 						<p class="mt-1 text-xs text-tertiary">Flag name cannot be changed after creation</p>
+					</div>
+
+					<!-- Description -->
+					<div>
+						<FormTextarea
+							label="Description"
+							placeholder="Describe what this flag controls and what it enables (e.g., 'Enables the new ProseMirror editor for notes')"
+							bind:value={formDescription}
+							rows={3}
+						/>
+						<p class="mt-2 text-xs text-secondary">
+							<strong>Why add a description?</strong> Helps team members understand what each flag does
+							without needing to check the code. If left empty, we'll use the default description from
+							code comments.
+						</p>
 					</div>
 
 					<!-- Global Toggle -->
@@ -1174,11 +1235,12 @@
 
 						<!-- Rollout Percentage -->
 						<div class="rounded-lg border border-base bg-elevated p-4">
-							<label class="mb-2 block text-sm font-medium text-primary">
+							<label for="create-rollout-range" class="mb-2 block text-sm font-medium text-primary">
 								Percentage Rollout
 							</label>
 							<div class="flex items-center gap-2">
 								<input
+									id="create-rollout-range"
 									type="range"
 									min="0"
 									max="100"
@@ -1186,6 +1248,7 @@
 									class="flex-1"
 								/>
 								<input
+									id="create-rollout-number"
 									type="number"
 									min="0"
 									max="100"
@@ -1207,10 +1270,11 @@
 
 						<!-- Domain Targeting -->
 						<div class="rounded-lg border border-base bg-elevated p-4">
-							<label class="mb-2 block text-sm font-medium text-primary">
+							<label for="create-domain-input" class="mb-2 block text-sm font-medium text-primary">
 								Email Domain Targeting
 							</label>
 							<input
+								id="create-domain-input"
 								type="text"
 								bind:value={formDomainInput}
 								placeholder="@acme.com, @example.com"
@@ -1226,7 +1290,7 @@
 							</p>
 							{#if formDomainInput}
 								<div class="mt-2 flex flex-wrap gap-2">
-									{#each parseDomains(formDomainInput) as domain}
+									{#each parseDomains(formDomainInput) as domain (domain)}
 										<span
 											class="rounded-md bg-accent-primary/10 px-2 py-1 text-xs text-accent-primary"
 										>

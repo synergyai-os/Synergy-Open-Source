@@ -21,7 +21,7 @@
 import { mutation, internalMutation } from '../_generated/server';
 import { v } from 'convex/values';
 import { requireSystemAdmin } from '../rbac/permissions';
-import type { Id } from '../_generated/dataModel';
+// Id type not needed - removed unused import
 import type { MutationCtx } from '../_generated/server';
 
 /**

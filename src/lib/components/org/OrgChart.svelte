@@ -223,8 +223,18 @@
 		return isLargeEnough && Boolean(hasPackedRoles);
 	}
 
+	// Truncate text to fit within circle radius
+	function truncateText(text: string, maxWidth: number, fontSize: number): string {
+		// Estimate character width (rough: fontSize * 0.6 for average character)
+		const charWidth = fontSize * 0.6;
+		const maxChars = Math.floor(maxWidth / charWidth);
+
+		if (text.length <= maxChars) return text;
+		return text.slice(0, Math.max(1, maxChars - 3)) + '...';
+	}
+
 	// Determine if circle name should be visible
-	// Show labels for all circles that meet size requirements
+	// Show labels for all circles that meet size requirements (accounting for zoom)
 	function shouldShowCircleName(node: CircleHierarchyNode): boolean {
 		// Always show root level circles (highest level)
 		const isRootLevel = node.depth === 0;
@@ -232,10 +242,12 @@
 			return true;
 		}
 
-		// Show if circle is large enough to display label
-		// Label font size is Math.max(10, Math.min(node.r / 4, 14))
-		// So we need node.r >= 40 to get readable text (10px minimum)
-		const isLargeEnough = node.r > 40;
+		// Calculate rendered size (radius * zoom level)
+		const renderedRadius = node.r * currentZoomLevel;
+
+		// Show if rendered size is large enough to display readable label
+		// Minimum readable size: 40px rendered radius = ~10px font size
+		const isLargeEnough = renderedRadius > 40;
 
 		// Show if zoomed in enough (zoom level > 1.1)
 		const isZoomedIn = currentZoomLevel > 1.1;
@@ -253,11 +265,31 @@
 		return isLargeEnough || isZoomedIn || isFocused || Boolean(isRelatedToFocused);
 	}
 
+	// Determine if role label should be visible (accounting for zoom and circle name priority)
+	function shouldShowRoleLabel(role: RoleNode, circleNode: CircleHierarchyNode): boolean {
+		// Calculate rendered size (radius * zoom level)
+		const renderedRadius = role.r * currentZoomLevel;
+
+		// Hide if rendered size is too small (minimum readable: 12px rendered = ~6px font)
+		if (renderedRadius < 12) {
+			return false;
+		}
+
+		// Hide role labels when circle name is visible (prioritize circle name)
+		// Only show role labels if circle name is NOT visible
+		const circleNameVisible = shouldShowCircleName(circleNode);
+		if (circleNameVisible) {
+			return false;
+		}
+
+		return true;
+	}
+
 	// D3 Zoom behavior for trackpad/mouse wheel
 	let zoomBehavior: ReturnType<typeof d3Zoom<SVGSVGElement, unknown>> | null = null;
 
 	// Smooth zoom to a specific node using interpolateZoom
-	function zoomToNode(node: CircleHierarchyNode, duration = 500) {
+	function _zoomToNode(node: CircleHierarchyNode, duration = 500) {
 		if (!svgElement || !gElement) return;
 
 		const targetView: [number, number, number] = [node.x, node.y, node.r * 2];
@@ -504,12 +536,12 @@
 
 		<!-- Transform group for zoom/pan -->
 		<g bind:this={gElement} class="circles">
+			<!-- First pass: Render circles and roles (without names) -->
 			{#each visibleNodes as node (node.data.circleId)}
 				{@const isSelected = orgChart.selectedCircleId === node.data.circleId}
 				{@const isHovered = orgChart.hoveredCircleId === node.data.circleId}
 				{@const hasChildren = node.children && node.children.length > 0}
 				{@const color = getCircleColor(node.depth)}
-				{@const showCircleName = shouldShowCircleName(node)}
 				{@const showRoles = shouldShowRoles(node)}
 
 				<!-- Group positioned at node's x,y (D3 pack layout pattern) -->
@@ -547,35 +579,35 @@
 						style="pointer-events: all;"
 					/>
 
-					<!-- Circle name label (show based on size/zoom requirements) -->
-					{#if showCircleName}
-						<text
-							x="0"
-							y={-(node.r > 50 ? 8 : 0)}
-							text-anchor="middle"
-							dominant-baseline="middle"
-							class="circle-name-label pointer-events-none font-medium select-none"
-							fill="white"
-							fill-opacity={isSelected ? 1 : isHovered ? 0.95 : 0.9}
-							style="text-shadow: 0 1px 2px rgba(0,0,0,0.5);"
-							font-size={Math.max(10, Math.min(node.r / 4, 14))}
-						>
-							{node.data.name}
-						</text>
-					{/if}
-
 					<!-- Role circles (packed alongside child circles by D3 pack layout) -->
 					{#if showRoles && node.data.packedRoles}
-						<!-- Define clipPath for this circle (scoped to circle group coordinate system) -->
+						{@const fontSize = Math.max(10, Math.min(node.r / 4, 14))}
+						{@const nameAreaHeight = fontSize + 8}
+						{@const nameAreaTop = -fontSize / 2 - 4}
+						<!-- Define mask that excludes the center area where circle name is -->
 						<defs>
+							<mask id="mask-{node.data.circleId}">
+								<!-- White = visible, Black = hidden -->
+								<!-- Show entire circle -->
+								<circle cx="0" cy="0" r={node.r} fill="white" />
+								<!-- Hide center area where circle name is -->
+								<rect
+									x={-node.r * 2}
+									y={nameAreaTop}
+									width={node.r * 4}
+									height={nameAreaHeight}
+									fill="black"
+								/>
+							</mask>
+							<!-- Also keep circle clipPath for boundary -->
 							<clipPath id="clip-{node.data.circleId}">
 								<circle cx="0" cy="0" r={node.r} />
 							</clipPath>
 						</defs>
-						<!-- Group with clipPath to ensure roles stay inside parent circle -->
-						<g clip-path="url(#clip-{node.data.circleId})">
+						<!-- Group with mask and clipPath to ensure roles stay inside circle and never cover name -->
+						<g clip-path="url(#clip-{node.data.circleId})" mask="url(#mask-{node.data.circleId})">
 							{#each node.data.packedRoles as role (role.roleId)}
-								{@const roleLabelVisible = role.r > 8}
+								{@const roleLabelVisible = shouldShowRoleLabel(role, node)}
 								<g
 									transform="translate({role.x},{role.y})"
 									class="role-circle-group cursor-pointer"
@@ -605,8 +637,11 @@
 										stroke-opacity="0.6"
 										style="pointer-events: all;"
 									/>
-									<!-- Role name label (only if large enough) -->
+									<!-- Role name label (only if large enough and circle name not visible) -->
 									{#if roleLabelVisible}
+										{@const fontSize = Math.max(6, Math.min(role.r / 2, 10))}
+										{@const maxTextWidth = role.r * 1.6}
+										{@const truncatedName = truncateText(role.name, maxTextWidth, fontSize)}
 										<text
 											x="0"
 											y="0"
@@ -615,10 +650,10 @@
 											class="role-label pointer-events-none select-none"
 											fill="black"
 											fill-opacity="0.85"
-											font-size={Math.max(6, Math.min(role.r / 2, 10))}
+											font-size={fontSize}
 											style="text-shadow: 0 0 2px rgba(255,255,255,0.8);"
 										>
-											{role.name}
+											{truncatedName}
 										</text>
 									{/if}
 								</g>
@@ -626,6 +661,43 @@
 						</g>
 					{/if}
 				</g>
+			{/each}
+
+			<!-- Second pass: Render circle names on top (sorted by depth descending so root appears on top) -->
+			{#each visibleNodes.slice().sort((a, b) => b.depth - a.depth) as node (node.data.circleId)}
+				{@const showCircleName = shouldShowCircleName(node)}
+				{@const baseFontSize = Math.max(10, Math.min(node.r / 4, 14))}
+				{@const depthMultiplier = Math.max(0.5, 3 - node.depth * 0.5)}
+				{@const fontSize = Math.max(6, Math.min(baseFontSize * depthMultiplier, 42))}
+				{@const maxTextWidth = node.r * 1.8}
+				{@const truncatedName = truncateText(node.data.name, maxTextWidth, fontSize)}
+				{#if showCircleName}
+					<g transform="translate({node.x},{node.y})">
+						<!-- Background rectangle using design token (sidebar-badge-bg with opacity) -->
+						<rect
+							x={-maxTextWidth / 2 - 4}
+							y={-fontSize / 2 - 2}
+							width={maxTextWidth + 8}
+							height={fontSize + 4}
+							fill="oklch(37.2% 0.044 257.287 / 0.85)"
+							rx="2"
+							class="pointer-events-none"
+						/>
+						<text
+							x="0"
+							y="0"
+							text-anchor="middle"
+							dominant-baseline="middle"
+							class="circle-name-label pointer-events-none font-bold select-none"
+							fill="white"
+							fill-opacity="1"
+							style="text-shadow: 0 2px 4px rgba(0,0,0,0.9);"
+							font-size={fontSize}
+						>
+							{truncatedName}
+						</text>
+					</g>
+				{/if}
 			{/each}
 		</g>
 	</svg>

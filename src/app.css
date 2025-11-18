@@ -172,6 +172,15 @@
 	--color-code-tag: oklch(70% 0.16 150); /* Tags - green */
 	--color-code-badge-bg: var(--color-sidebar-badge-bg); /* Language badge bg */
 	--color-code-badge-text: var(--color-sidebar-badge-text); /* Language badge text */
+
+	/* Panel Stack Navigation Tokens - Hierarchical panel navigation */
+	--spacing-panel-breadcrumb-width: 3rem; /* 48px - width of vertical breadcrumb bar */
+	--spacing-panel-breadcrumb-padding: 0.75rem; /* 12px - padding inside breadcrumb */
+	--z-index-panel-base: 50; /* Base z-index for first panel layer */
+	--z-index-panel-increment: 10; /* Increment per panel layer (50, 60, 70...) */
+	--color-panel-breadcrumb-bg: var(--color-bg-surface); /* Breadcrumb bar background */
+	--color-panel-breadcrumb-text: var(--color-text-tertiary); /* Vertical text color */
+	--color-panel-breadcrumb-hover: var(--color-bg-hover-solid); /* Hover state */
 }
 
 /* Light mode overrides for unified brand colors */
@@ -599,6 +608,64 @@ html:not(.dark) {
 }
 @utility text-label-primary {
 	color: var(--color-text-primary);
+}
+
+/* Panel Stack Navigation Utilities - Hierarchical panel navigation */
+@utility panel-stack-base {
+	/* Base panel positioning - MUST be used on all stacking panels */
+	position: fixed;
+	top: 0;
+	right: 0;
+	height: 100vh;
+	width: 100%;
+	background: var(--color-bg-elevated);
+	border-left: 1px solid var(--color-border-base);
+	/* DO NOT set transform here - Tailwind classes (translate-x-0/translate-x-full) handle it */
+	transition: transform 300ms ease-in-out;
+	z-index: var(--z-index-panel-base);
+}
+
+@utility panel-stack-offset {
+	/* Offset for stacked panel - moves right to show breadcrumb beneath */
+	left: var(--spacing-panel-breadcrumb-width);
+	width: calc(100% - var(--spacing-panel-breadcrumb-width));
+}
+
+@utility panel-breadcrumb-bar {
+	/* Vertical bar showing previous layer name */
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: var(--spacing-panel-breadcrumb-width);
+	background: var(--color-panel-breadcrumb-bg);
+	border-right: 1px solid var(--color-border-base);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition: background-color 150ms ease;
+}
+
+@utility panel-breadcrumb-bar-hover {
+	background: var(--color-panel-breadcrumb-hover);
+}
+
+@utility panel-breadcrumb-text {
+	/* Vertical text styling for breadcrumb */
+	writing-mode: vertical-rl;
+	transform: rotate(180deg);
+	color: var(--color-panel-breadcrumb-text);
+	font-size: 0.75rem; /* 12px */
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	user-select: none;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-height: calc(100vh - 2rem);
+	padding: var(--spacing-panel-breadcrumb-padding);
 }
 
 /* Border Radius Utilities */

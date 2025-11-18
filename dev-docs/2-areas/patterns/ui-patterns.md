@@ -4,6 +4,223 @@
 
 ---
 
+## #L5: Hierarchical Panel Stack Navigation [🟡 IMPORTANT]
+
+**Symptom**: Users navigating nested panels (Circle → Sub-Circle → Role) lose context and don't know how to go back  
+**Root Cause**: No visual breadcrumb trail, unclear navigation depth, inconsistent back navigation  
+**Fix**:
+
+### Visual Design
+
+```
+┌─────────────────────────────────────────┐
+│ [Prev] │ Current Panel (Role Detail)    │
+│ [Layer]│                                 │
+│ [Name] │ Content...                      │
+│        │                                 │
+│ [G     │                                 │
+│ [u     │                                 │
+│ [i     │                                 │
+│ [d     │                                 │
+│ [e     │                                 │
+│ [l     │                                 │
+│ [i     │                                 │
+│ [n     │                                 │
+│ [e     │                                 │
+│ [s     │                                 │
+└─────────────────────────────────────────┘
+  ↑ 48px vertical bar (clickable, shows circle name)
+```
+
+### 4-Layer Implementation (Design System Compliant)
+
+**Layer 1: Design Tokens** (`src/app.css`)
+
+```css
+/* Panel Stack Navigation Tokens */
+--spacing-panel-breadcrumb-width: 3rem; /* 48px */
+--spacing-panel-breadcrumb-padding: 0.75rem; /* 12px */
+--z-index-panel-base: 50; /* Base z-index for first panel */
+--z-index-panel-increment: 10; /* Increment per layer (50, 60, 70...) */
+--color-panel-breadcrumb-bg: var(--color-bg-surface);
+--color-panel-breadcrumb-text: var(--color-text-tertiary);
+--color-panel-breadcrumb-hover: var(--color-bg-hover-solid);
+```
+
+**Layer 2: Utilities** (`src/app.css`)
+
+```css
+@utility panel-stack-base {
+	/* Base panel positioning - MUST be used on all stacking panels */
+	position: fixed;
+	top: 0;
+	right: 0;
+	height: 100vh;
+	width: 100%;
+	background: var(--color-bg-elevated);
+	border-left: 1px solid var(--color-border-base);
+	transition: transform 300ms ease-in-out;
+	z-index: var(--z-index-panel-base);
+}
+
+@utility panel-stack-offset {
+	/* Offset for stacked panel - moves right to show breadcrumb beneath */
+	left: var(--spacing-panel-breadcrumb-width);
+	width: calc(100% - var(--spacing-panel-breadcrumb-width));
+}
+
+@utility panel-breadcrumb-bar {
+	/* Vertical bar showing previous layer name */
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: var(--spacing-panel-breadcrumb-width);
+	background: var(--color-panel-breadcrumb-bg);
+	border-right: 1px solid var(--color-border-base);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition: background-color 150ms ease;
+}
+
+@utility panel-breadcrumb-text {
+	/* Vertical text styling for breadcrumb */
+	writing-mode: vertical-rl;
+	transform: rotate(180deg);
+	color: var(--color-panel-breadcrumb-text);
+	font-size: 0.75rem; /* 12px */
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	user-select: none;
+}
+```
+
+**Layer 3: Composable** (`src/lib/composables/useNavigationStack.svelte.ts`)
+
+```typescript
+export function useNavigationStack() {
+	const state = $state({
+		stack: [] as NavigationLayer[],
+		baseZIndex: 50,
+		zIndexIncrement: 10
+	});
+
+	return {
+		get currentLayer() {
+			return state.stack[state.stack.length - 1] || null;
+		},
+		get previousLayer() {
+			return state.stack[state.stack.length - 2] || null;
+		},
+		get depth() {
+			return state.stack.length;
+		},
+		push: (layer: Omit<NavigationLayer, 'zIndex'>) => {
+			const zIndex = state.baseZIndex + state.stack.length * state.zIndexIncrement;
+			state.stack.push({ ...layer, zIndex });
+		},
+		pop: () => {
+			if (state.stack.length > 0) {
+				state.stack.pop();
+			}
+		},
+		jumpTo: (index: number) => {
+			if (index >= 0 && index < state.stack.length) {
+				state.stack = state.stack.slice(0, index + 1);
+			}
+		}
+	};
+}
+```
+
+**Layer 4: Components**
+
+```svelte
+<!-- PanelBreadcrumbBar.svelte -->
+<script lang="ts">
+	import type { NavigationLayer } from '$lib/composables/useNavigationStack.svelte';
+
+	let { layer, onclick }: { layer: NavigationLayer; onclick: () => void } = $props();
+</script>
+
+<button
+	type="button"
+	class="panel-breadcrumb-bar"
+	onclick={onclick}
+	aria-label="Go back to {layer.name}"
+>
+	<span class="panel-breadcrumb-text">{layer.name}</span>
+</button>
+```
+
+### Usage in Panel Components
+
+```svelte
+<script lang="ts">
+	import type { UseOrgChart } from '$lib/composables/useOrgChart.svelte';
+	import PanelBreadcrumbBar from './PanelBreadcrumbBar.svelte';
+
+	let { orgChart }: { orgChart: UseOrgChart } = $props();
+
+	const previousLayer = $derived(orgChart.navigationStack.previousLayer);
+	const currentZIndex = $derived(orgChart.navigationStack.currentLayer?.zIndex ?? 50);
+
+	function handleClose() {
+		orgChart.navigationStack.pop();
+		orgChart.selectRole(null, null);
+	}
+</script>
+
+<!-- Backdrop -->
+{#if isOpen}
+	<div
+		class="fixed inset-0 bg-black/50"
+		style="z-index: {currentZIndex - 5};"
+		onclick={handleClose}
+	/>
+{/if}
+
+<!-- Panel -->
+<aside
+	class="panel-stack-base"
+	class:panel-stack-offset={previousLayer !== null}
+	style="z-index: {currentZIndex};"
+>
+	<!-- Breadcrumb Bar (only if there's a previous layer) -->
+	{#if previousLayer}
+		<PanelBreadcrumbBar layer={previousLayer} onclick={handleClose} />
+	{/if}
+
+	<!-- Panel Content -->
+	<div class="flex h-full flex-col">
+		<!-- ... content ... -->
+	</div>
+</aside>
+```
+
+### Interaction Pattern
+
+**ESC Key**: Go back one step in navigation stack  
+**Click Breadcrumb**: Jump back to that layer  
+**Click Outside**: Go back one step (same as ESC)
+
+### Modularity Benefits
+
+✅ **Independent development**: `useNavigationStack` works standalone  
+✅ **Clear contract**: Simple push/pop/jumpTo API  
+✅ **Reusable**: Can be used by any hierarchical navigation  
+✅ **Testable**: Pure state management, no UI coupling  
+✅ **Design system compliant**: All tokens, auto light/dark mode
+
+**Why**: Hierarchical navigation needs visual context and predictable back navigation. Breadcrumb bar shows depth, ESC key provides consistent "go back" behavior.  
+**Apply when**: Multi-level panel navigation (settings, org charts, file browsers)  
+**Related**: #L60 (Spacing patterns), Component Architecture (4-layer system)
+
+---
+
 ## #L10: Interactive Components in DropdownMenu [🟡 IMPORTANT]
 
 **Symptom**: Switch/toggle in dropdown menu not working  
@@ -3713,14 +3930,140 @@ function buildHierarchy(circle: CircleNode, depth: number = 0): CircleNode {
 - Buttons/dropdowns don't respond to clicks
 - DropdownMenu content doesn't appear or is blocked
 
-**Related**: #L10 (Interactive Components in DropdownMenu), #L480 (Command Palette Design)
+**Related**: #L10 (Interactive Components in DropdownMenu), #L480 (Command Palette Design), #L3950 (Backdrop Click Target Check)
 
 **Source**: SYOS-240 (Role Detail Panel Implementation)
 
 ---
 
-**Pattern Count**: 38  
-**Last Updated**: 2025-01-17  
+## #L3950: Backdrop Click Target Check - Prevent Immediate Panel Close [🔴 CRITICAL]
+
+**Symptom**: Modal/panel opens successfully then immediately closes, backdrop click fires on initial trigger click  
+**Root Cause**: Backdrop `onclick` handler fires on ANY click reaching it, including bubbled events from the trigger that opened the panel  
+**Fix**:
+
+```svelte
+<!-- ❌ WRONG: Closes on any click event, including bubbled events -->
+{#if isOpen}
+	<div class="fixed inset-0" onclick={handleClose}></div>
+{/if}
+
+<!-- ✅ CORRECT: Only close when clicking the backdrop itself -->
+{#if isOpen}
+	<div
+		class="fixed inset-0"
+		onclick={(e) => {
+			// Only close if clicking the backdrop itself, not bubbled events
+			if (e.target === e.currentTarget) {
+				handleClose();
+			}
+		}}
+	></div>
+{/if}
+```
+
+**Why**:
+- `e.target` = the element that was actually clicked (could be any child)
+- `e.currentTarget` = the element with the onclick handler (the backdrop div)
+- Without the check, clicks bubble up from children and trigger close
+- Click events from the trigger element can reach the backdrop if it renders during event propagation
+
+**Console Evidence**:
+```
+[useOrgChart] selectCircle called with: q57c08...  ← OPEN
+[useOrgChart] Circle state updated successfully    ← SUCCESS
+[useOrgChart] selectCircle called with: null       ← IMMEDIATE CLOSE!
+```
+
+**Apply when**: 
+- Creating modal/panel backdrops that close on click
+- Panel opens then immediately closes
+- User must click twice to open panel (once to open, once to dismiss immediate close)
+
+**Related**: #L3650 (Z-Index Stacking for Dropdowns), #L10 (Event Handling Patterns)
+
+**Source**: SYOS-251 (Org Chart Hierarchical Navigation)
+
+---
+
+**Pattern Count**: 40  
+**Last Updated**: 2025-01-18  
+**Design Token Reference**: `dev-docs/design-tokens.md`
+
+---
+
+## #L4100: Custom Utility Classes Must Not Override Conditional Tailwind Classes [🔴 CRITICAL]
+
+**Symptom**: Component state shows as open/visible (`isOpen: true`) but element is hidden/positioned wrong, backdrop visible but panel missing  
+**Root Cause**: Custom `@utility` class has hardcoded CSS property that conflicts with conditional Tailwind classes  
+**Fix**:
+
+```css
+/* ❌ WRONG: Hardcoded transform overrides Tailwind classes */
+@utility panel-stack-base {
+	position: fixed;
+	transform: translateX(100%); /* ← This ALWAYS applies, blocks Tailwind! */
+	transition: transform 300ms ease-in-out;
+}
+
+/* ✅ CORRECT: Let Tailwind classes control the property */
+@utility panel-stack-base {
+	position: fixed;
+	/* DO NOT set transform here - Tailwind classes handle it */
+	transition: transform 300ms ease-in-out; /* Only transition, not the value */
+}
+```
+
+**In Component:**
+```svelte
+<aside
+	class="panel-stack-base"
+	class:translate-x-0={isOpen}      <!-- Tailwind: transform: translateX(0) -->
+	class:translate-x-full={!isOpen}  <!-- Tailwind: transform: translateX(100%) -->
+>
+```
+
+**Why It Fails:**
+
+CSS specificity/cascade rules:
+1. Custom utility defines `transform: translateX(100%)`
+2. Tailwind classes also define `transform: translateX(0)` or `translateX(100%)`
+3. **Both have same specificity** → last one in CSS file wins
+4. If utility comes after Tailwind in build, **utility always wins** → blocks conditional classes
+
+**Debug Evidence:**
+```
+Console: isOpen: true, hasCircle: true  ← State says OPEN
+DevTools Computed: transform: translateX(100%)  ← CSS says CLOSED
+DevTools Elements: class="... translate-x-0"  ← Class applied but ignored!
+```
+
+**Properties That Must Not Be Hardcoded in Utilities When Using Conditional Classes:**
+- `transform` (when using `translate-*`, `scale-*`, `rotate-*`)
+- `display` (when using `hidden`, `block`, `flex`)
+- `opacity` (when using `opacity-*`)
+- `visibility` (when using `invisible`, `visible`)
+- Any property controlled by conditional Tailwind classes
+
+**Safe to Include in Utilities:**
+- `transition` properties (transitions don't conflict with final values)
+- `position`, `z-index`, `width`, `height` (if not conditionally changed)
+- Colors, borders, padding, margin (if not conditionally changed)
+
+**Apply when**: 
+- Creating custom utility classes with `@utility`
+- Element state is correct but visual rendering is wrong
+- Tailwind conditional classes don't seem to work
+- Backdrop appears but panel is hidden
+
+**Related**: #L3950 (Backdrop Click Target Check), #L3650 (Z-Index Stacking)
+
+**Source**: SYOS-251 (Org Chart Hierarchical Navigation)
+
+---
+
+**Pattern Count**: 40  
+**Last Updated**: 2025-01-18  
 **Design Token Reference**: `dev-docs/design-tokens.md`
 
 ---
@@ -3780,6 +4123,145 @@ SynergyOS uses a **Role-Based Access Control (RBAC)** system...
 - Before committing documentation changes
 
 **Related**: #L1120 (Documentation Link Rendering), #L1100 (Markdown URL Redirects)
+
+---
+
+## #L4000: SVG Text Positioning and Layering [🟡 IMPORTANT]
+
+**Symptom**: SVG text labels (circle names, role names) are covered by other elements, root circle names appear behind sub-circles, or text overlaps with visual elements  
+**Root Cause**: SVG renders elements in document order (later elements appear on top), so root circles render first and get covered by child circles. Text positioned at center gets covered by packed child elements.  
+**Fix**:
+
+### Two-Pass Rendering Pattern
+
+**Pass 1**: Render all visual elements (circles, roles, shapes)  
+**Pass 2**: Render all text labels sorted by depth descending (root circles last = appear on top)
+
+```svelte
+<!-- First pass: Render circles and roles (without names) -->
+{#each visibleNodes as node (node.data.circleId)}
+	<g transform="translate({node.x},{node.y})">
+		<!-- Circle -->
+		<circle cx="0" cy="0" r={node.r} fill={color} />
+		
+		<!-- Roles (masked to avoid covering names) -->
+		{#if showRoles && node.data.packedRoles}
+			<g clip-path="url(#clip-{node.data.circleId})" mask="url(#mask-{node.data.circleId})">
+				{#each node.data.packedRoles as role (role.roleId)}
+					<circle cx={role.x} cy={role.y} r={role.r} fill="white" />
+				{/each}
+			</g>
+		{/if}
+	</g>
+{/each}
+
+<!-- Second pass: Render circle names on top (sorted by depth descending) -->
+{#each visibleNodes.slice().sort((a, b) => b.depth - a.depth) as node (node.data.circleId)}
+	{@const showCircleName = shouldShowCircleName(node)}
+	{#if showCircleName}
+		<g transform="translate({node.x},{node.y})">
+			{@const fontSize = Math.max(10, Math.min(node.r / 4, 14))}
+			{@const maxTextWidth = node.r * 1.8}
+			{@const truncatedName = truncateText(node.data.name, maxTextWidth, fontSize)}
+			
+			<!-- Background rectangle for contrast -->
+			<rect
+				x={-maxTextWidth / 2 - 4}
+				y={-fontSize / 2 - 2}
+				width={maxTextWidth + 8}
+				height={fontSize + 4}
+				fill="rgba(0,0,0,0.7)"
+				rx="2"
+				class="pointer-events-none"
+			/>
+			
+			<!-- Centered text -->
+			<text
+				x="0"
+				y="0"
+				text-anchor="middle"
+				dominant-baseline="middle"
+				class="circle-name-label pointer-events-none font-bold select-none"
+				fill="white"
+				fill-opacity="1"
+				style="text-shadow: 0 2px 4px rgba(0,0,0,0.9);"
+				font-size={fontSize}
+			>
+				{truncatedName}
+			</text>
+		</g>
+	{/if}
+{/each}
+```
+
+### SVG Masking to Prevent Overlap
+
+**Use SVG masks to exclude areas where text is positioned**:
+
+```svelte
+{#if showRoles && node.data.packedRoles}
+	{@const fontSize = Math.max(10, Math.min(node.r / 4, 14))}
+	{@const nameAreaHeight = fontSize + 8}
+	{@const nameAreaTop = -fontSize / 2 - 4}
+	
+	<defs>
+		<mask id="mask-{node.data.circleId}">
+			<!-- White = visible, Black = hidden -->
+			<!-- Show entire circle -->
+			<circle cx="0" cy="0" r={node.r} fill="white" />
+			<!-- Hide center area where circle name is -->
+			<rect
+				x={-node.r * 2}
+				y={nameAreaTop}
+				width={node.r * 4}
+				height={nameAreaHeight}
+				fill="black"
+			/>
+		</mask>
+		<!-- Also keep circle clipPath for boundary -->
+		<clipPath id="clip-{node.data.circleId}">
+			<circle cx="0" cy="0" r={node.r} />
+		</clipPath>
+	</defs>
+	
+	<!-- Group with mask and clipPath -->
+	<g clip-path="url(#clip-{node.data.circleId})" mask="url(#mask-{node.data.circleId})">
+		{#each node.data.packedRoles as role (role.roleId)}
+			<!-- Roles rendered here, masked out from center -->
+		{/each}
+	</g>
+{/if}
+```
+
+### Text Truncation for Long Names
+
+**Estimate character width and truncate with ellipsis**:
+
+```typescript
+function truncateText(text: string, maxWidth: number, fontSize: number): string {
+	// Estimate character width (rough: fontSize * 0.6 for average character)
+	const charWidth = fontSize * 0.6;
+	const maxChars = Math.floor(maxWidth / charWidth);
+	
+	if (text.length <= maxChars) return text;
+	return text.slice(0, Math.max(1, maxChars - 3)) + '...';
+}
+```
+
+**Apply when**:
+- Building SVG visualizations with nested elements (org charts, tree diagrams, bubble charts)
+- Text labels need to appear on top of visual elements
+- Root/parent elements should be visible above child elements
+- Text must never be covered by packed child elements
+
+**Key Principles**:
+1. **Two-pass rendering**: Visual elements first, text labels second
+2. **Depth sorting**: Sort by depth descending so root elements render last (appear on top)
+3. **SVG masking**: Use masks to exclude text areas from child element rendering
+4. **Text truncation**: Estimate character width based on font size to prevent overflow
+5. **Background contrast**: Add semi-transparent background rectangles behind text for readability
+
+**Related**: #L5 (Hierarchical Panel Stack Navigation), #L3650 (Z-index Stacking)
 
 ---
 

@@ -83,6 +83,9 @@
 | `ReferenceError: [variable] is not defined` accessing variable from try block                      | Declare variable before try block or move cleanup inside try                 | [svelte-reactivity.md#L1510](svelte-reactivity.md#L1510)                |
 | UI shows actions users can't perform, buttons visible but disabled/error on click                 | Use `usePermissions` composable + owner bypass pattern for permission-based visibility | [ui-patterns.md#L3200](ui-patterns.md#L3200)            |
 || Buttons/dropdowns in modal panels don't work, clicks don't register                            | Use z-index stacking: backdrop z-40, panel z-50, dropdowns z-50 (don't use stopPropagation)  | [ui-patterns.md#L3650](ui-patterns.md#L3650)            |
+| SVG text labels covered by child elements, root circle names appear behind sub-circles        | Use two-pass rendering: visual elements first, text labels second (sorted by depth descending) | [ui-patterns.md#L4000](ui-patterns.md#L4000)            |
+| Modal/panel opens then immediately closes, backdrop click fires on trigger click               | Check if click target is backdrop: `if (e.target === e.currentTarget) handleClose()`          | [ui-patterns.md#L3950](ui-patterns.md#L3950)            |
+| State shows open but element hidden, backdrop visible but panel missing, Tailwind classes ignored | Remove hardcoded properties from @utility - let conditional Tailwind classes control them      | [ui-patterns.md#L4100](ui-patterns.md#L4100)            |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -96,6 +99,7 @@
 | Widget disappears too early                                                   | Polling updates only, not completion                                  | [svelte-reactivity.md#L280](svelte-reactivity.md#L280)     |
 | Duplicate timers / early dismissal                                            | Track timers with SvelteSet (reactive)                                | [svelte-reactivity.md#L340](svelte-reactivity.md#L340)     |
 | Component doesn't update on route change                                      | Use $effect + $page.url.pathname                                      | [svelte-reactivity.md#L650](svelte-reactivity.md#L650)     |
+| SVG text overlaps with packed child elements, roles cover circle names                       | Use SVG masking to exclude text areas from child element rendering    | [ui-patterns.md#L4000](ui-patterns.md#L4000)            |
 | ESLint error: "Found mutable Date class. Use SvelteDate"                     | Use immutable timestamp arithmetic (getTime() + ms)                   | [svelte-reactivity.md#L1150](svelte-reactivity.md#L1150)   |
 | Switch in dropdown broken                                                     | Use plain div wrapper                                                 | [ui-patterns.md#L10](ui-patterns.md#L10)                   |
 | Conflicting keyboard shortcuts                                                | Check priority: dropdowns > inputs > component                        | [ui-patterns.md#L430](ui-patterns.md#L430)                 |

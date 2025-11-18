@@ -19,6 +19,7 @@
 		disabled?: boolean;
 		autocomplete?: FullAutoFill | null | undefined;
 		class?: string; // Allow custom classes for specific cases
+		onkeydown?: ((e: KeyboardEvent) => void) | undefined;
 	};
 
 	let {
@@ -31,7 +32,8 @@
 		required = false,
 		disabled = false,
 		autocomplete,
-		class: customClass = ''
+		class: customClass = '',
+		onkeydown
 	}: Props = $props();
 
 	// Generate ID if not provided
@@ -56,6 +58,7 @@
 		{disabled}
 		autocomplete={autocomplete ?? undefined}
 		bind:value
+		{onkeydown}
 		class="rounded-input border border-base bg-input px-input-x py-input-y text-primary transition-all placeholder:text-tertiary focus:ring-2 focus:ring-accent-primary focus:outline-none {customClass}"
 	/>
 </div>
