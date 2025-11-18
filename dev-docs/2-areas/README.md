@@ -16,7 +16,10 @@
 
 ### Architecture
 
-- [Architecture](architecture/architecture.md) - Tech stack, auth, project structure
+- [System Architecture](architecture/system-architecture.md) ⭐ **START HERE** - Complete architecture overview (executives → auditors)
+- [Architecture Details](architecture/architecture.md) - Tech stack deep dive, quick start guides
+- [Atomic Design + Svelte](architecture/atomic-design-svelte.md) - Component architecture and Atomic Design mapping
+- [Architecture Audits](architecture/audit-reports/) - Monthly architecture health reports
 - [Auth Architecture](architecture/auth/) - Authentication & session management
   - [WorkOS + Convex Auth](architecture/auth/workos-convex-auth-architecture.md) - Complete auth system
   - [Auth Decision](architecture/auth/auth-decision-convex-vs-workos.md) - ADR: Convex vs WorkOS
@@ -24,7 +27,8 @@
 - [Multi-Tenancy](architecture/multi-tenancy/) - Organizations & teams
   - [Migration Plan](architecture/multi-tenancy/multi-tenancy-migration.md) - Implementation roadmap
   - [Analytics](architecture/multi-tenancy/multi-tenancy-analytics.md) - Multi-tenancy metrics
-- [Data Models](architecture/data-models/) - Database schema & models
+- [URL Patterns](architecture/url-patterns.md) - URL design principles
+- [Data Models](architecture/data-models/) - Database schema & models _(Coming Soon)_
 
 ### Design
 

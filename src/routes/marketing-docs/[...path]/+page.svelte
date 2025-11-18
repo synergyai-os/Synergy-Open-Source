@@ -2,6 +2,9 @@
 	import type { PageData } from './$types';
 	import { marked } from 'marked';
 	import { sanitizeHtml } from '$lib/utils/htmlSanitize';
+	import { browser } from '$app/environment';
+	import { onMount } from 'svelte';
+	import { processMermaidInHtml } from '$lib/utils/mermaidProcessor';
 
 	let { data }: { data: PageData } = $props();
 
@@ -35,7 +38,32 @@
 	}
 
 	// Parse markdown to HTML with IDs and sanitize
-	const htmlContent = $derived(sanitizeHtml(parseMarkdownWithIds(data.content)));
+	const rawHtml = $derived(sanitizeHtml(parseMarkdownWithIds(data.content)));
+
+	// Process Mermaid diagrams client-side
+	let htmlContent = $state('');
+	let lastProcessedHtml = $state('');
+
+	onMount(async () => {
+		if (browser && rawHtml) {
+			htmlContent = await processMermaidInHtml(rawHtml);
+			lastProcessedHtml = rawHtml;
+		} else {
+			htmlContent = rawHtml;
+		}
+	});
+
+	// Update when content changes
+	$effect(() => {
+		if (browser && rawHtml && rawHtml !== lastProcessedHtml) {
+			processMermaidInHtml(rawHtml).then((processed) => {
+				htmlContent = processed;
+				lastProcessedHtml = rawHtml;
+			});
+		} else if (!browser) {
+			htmlContent = rawHtml;
+		}
+	});
 </script>
 
 <svelte:head>
@@ -60,5 +88,33 @@
 	.doc-content :global(h3),
 	.doc-content :global(h4) {
 		scroll-margin-top: 2rem;
+	}
+
+	/* Mermaid diagram styling */
+	.doc-content :global(.mermaid-container) {
+		margin: 1.5rem 0;
+		overflow-x: auto;
+		display: flex;
+		justify-content: center;
+	}
+
+	.doc-content :global(.mermaid-container svg) {
+		max-width: 100%;
+		height: auto;
+	}
+
+	.doc-content :global(.mermaid-error) {
+		margin: 1.5rem 0;
+		padding: 1rem;
+		background: var(--color-surface-error, #fee);
+		border: 1px solid var(--color-border-error, #fcc);
+		border-radius: 0.25rem;
+		color: var(--color-text-error, #c00);
+	}
+
+	.doc-content :global(.mermaid-error pre) {
+		margin: 0;
+		white-space: pre-wrap;
+		font-size: 0.875rem;
 	}
 </style>

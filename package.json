@@ -94,6 +94,7 @@
 		"layerchart": "^1.0.12",
 		"lowlight": "^3.3.0",
 		"marked": "^17.0.0",
+		"mermaid": "^11.12.1",
 		"posthog-js": "^1.289.0",
 		"posthog-node": "^5.11.2",
 		"prosemirror-commands": "^1.7.1",

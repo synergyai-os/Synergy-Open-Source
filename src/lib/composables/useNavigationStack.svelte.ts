@@ -44,7 +44,7 @@ export type UseNavigationStack = ReturnType<typeof useNavigationStack>;
 export function useNavigationStack() {
 	const state = $state({
 		stack: [] as NavigationLayer[],
-		baseZIndex: 50, // Matches --z-index-panel-base token
+		baseZIndex: 60, // Matches --z-index-panel-base token (updated to 60)
 		zIndexIncrement: 10 // Matches --z-index-panel-increment token
 	});
 

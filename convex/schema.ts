@@ -921,7 +921,31 @@ const schema = defineSchema({
 	})
 		.index('by_email_type', ['email', 'type']) // Fast lookup by email+type
 		.index('by_code', ['code']) // Fast lookup by code
-		.index('by_expires', ['expiresAt']) // Cleanup expired codes
+		.index('by_expires', ['expiresAt']), // Cleanup expired codes
+
+	// ============================================================================
+	// Documentation 404 Tracking - For maintaining documentation health
+	// ============================================================================
+
+	// 404 Errors - Track broken links in documentation
+	doc404Errors: defineTable({
+		url: v.string(), // The URL that returned 404 (e.g., "/dev-docs/2-areas/system-architecture")
+		referrer: v.optional(v.string()), // Where the link came from (if available)
+		userAgent: v.optional(v.string()), // User agent
+		ipAddress: v.optional(v.string()), // IP address
+		userId: v.optional(v.id('users')), // User who encountered the error (if authenticated)
+		sessionId: v.optional(v.string()), // Session ID
+		count: v.number(), // Number of times this URL has been accessed (for deduplication)
+		firstSeenAt: v.number(), // When this URL was first accessed
+		lastSeenAt: v.number(), // When this URL was last accessed
+		resolved: v.boolean(), // Whether this has been fixed
+		resolvedAt: v.optional(v.number()), // When it was resolved
+		resolvedBy: v.optional(v.id('users')), // Who resolved it
+		resolutionNote: v.optional(v.string()) // Notes about the resolution
+	})
+		.index('by_url', ['url']) // Fast lookup by URL
+		.index('by_resolved', ['resolved']) // Get unresolved errors
+		.index('by_last_seen', ['lastSeenAt']) // Sort by most recent
 });
 
 export default schema;

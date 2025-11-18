@@ -176,8 +176,9 @@
 	/* Panel Stack Navigation Tokens - Hierarchical panel navigation */
 	--spacing-panel-breadcrumb-width: 3rem; /* 48px - width of vertical breadcrumb bar */
 	--spacing-panel-breadcrumb-padding: 0.75rem; /* 12px - padding inside breadcrumb */
-	--z-index-panel-base: 50; /* Base z-index for first panel layer */
-	--z-index-panel-increment: 10; /* Increment per panel layer (50, 60, 70...) */
+	--z-index-panel-backdrop-min: 51; /* Minimum z-index for backdrop (above sidebar z-50) */
+	--z-index-panel-base: 60; /* Base z-index for first panel layer (increased to 60) */
+	--z-index-panel-increment: 10; /* Increment per panel layer (60, 70, 80...) */
 	--color-panel-breadcrumb-bg: var(--color-bg-surface); /* Breadcrumb bar background */
 	--color-panel-breadcrumb-text: var(--color-text-tertiary); /* Vertical text color */
 	--color-panel-breadcrumb-hover: var(--color-bg-hover-solid); /* Hover state */
@@ -623,17 +624,14 @@ html:not(.dark) {
 	border-left: 1px solid var(--color-border-base);
 	/* DO NOT set transform here - Tailwind classes (translate-x-0/translate-x-full) handle it */
 	transition: transform 300ms ease-in-out;
-	z-index: var(--z-index-panel-base);
+	z-index: var(--z-index-panel-base); /* Base z-60, ensures above sidebar z-50 */
 	/* Overflow handled by inner flex layout, not here (prevents nested scroll areas) */
 }
 
 @utility panel-stack-offset {
-	/* Shrink width to make room for breadcrumb bar - stays flush right */
-	/* DO NOT set 'left' - it would override 'right: 0' and misalign panel */
-	width: calc(100% - var(--spacing-panel-breadcrumb-width));
-	max-width: calc(
-		100vw - var(--spacing-panel-breadcrumb-width)
-	); /* Respect breadcrumb on small screens */
+	/* Marker class for panels with breadcrumbs - width set via inline styles */
+	/* This ensures pointer-events work correctly on offset panels */
+	pointer-events: auto;
 }
 
 @utility panel-breadcrumb-bar {

@@ -77,19 +77,19 @@ export type FeatureFlagKey = (typeof FeatureFlags)[keyof typeof FeatureFlags];
  */
 export const FlagDescriptions: Record<FeatureFlagKey, string> = {
 	[FeatureFlags.ORG_MODULE_BETA]:
-		'Organization Module Beta - Controls org creation, org settings, and team management',
+		'Organization Module Beta - Enables organization creation, workspace settings, and team management features. Note: May be deprecated in favor of default organization features.',
 	[FeatureFlags.MEETING_MODULE_BETA]:
-		'Meeting Module Beta - Controls meeting creation, meeting list, and meeting details',
+		'Meeting Module Beta - Legacy flag for meeting features. Note: Replaced by MEETINGS_MODULE flag. Consider removing if no longer needed.',
 	[FeatureFlags.MEETING_INTEGRATIONS_BETA]:
-		'Meeting Integrations Beta - Controls calendar sync and video call integration',
+		'Meeting Integrations Beta - Enables calendar synchronization (import/export meetings) and video call platform integrations (Zoom, Google Meet, etc.).',
 	[FeatureFlags.MEETINGS_MODULE]:
-		'Meetings Module - Full meetings module access including meetings routes and dashboard',
+		'Meetings Module - Grants access to the meetings feature set: /meetings page (list, create, edit meetings), /dashboard (upcoming meetings), and meeting-related navigation. Users without this flag are redirected away from meetings pages.',
 	[FeatureFlags.NOTES_PROSEMIRROR_BETA]:
-		'New ProseMirror-based notes editor - Modern rich text editing experience',
+		'ProseMirror Notes Editor - Replaces the current notes editor with a ProseMirror-based rich text editor featuring improved formatting, collaboration, and performance.',
 	[FeatureFlags.INBOX_BATCH_ACTIONS_DEV]:
-		'Batch actions in inbox - Select multiple items, archive all, etc.',
+		'Inbox Batch Actions - Enables multi-select functionality in the inbox: select multiple items, bulk archive, bulk delete, bulk tag, and bulk move to folders.',
 	[FeatureFlags.SYNC_READWISE_V2_ROLLOUT]:
-		'Readwise sync v2 - Improved error handling and sync reliability'
+		'Readwise Sync v2 - Upgrades Readwise integration with improved error handling, retry logic, and sync reliability. Automatically handles failed syncs and provides better status reporting.'
 };
 
 /**

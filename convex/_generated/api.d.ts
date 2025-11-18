@@ -19,6 +19,7 @@ import type * as blogExport from "../blogExport.js";
 import type * as circleRoles from "../circleRoles.js";
 import type * as circles from "../circles.js";
 import type * as cryptoActions from "../cryptoActions.js";
+import type * as doc404Tracking from "../doc404Tracking.js";
 import type * as email from "../email.js";
 import type * as featureFlags from "../featureFlags.js";
 import type * as flashcards from "../flashcards.js";
@@ -76,6 +77,7 @@ declare const fullApi: ApiFromModules<{
   circleRoles: typeof circleRoles;
   circles: typeof circles;
   cryptoActions: typeof cryptoActions;
+  doc404Tracking: typeof doc404Tracking;
   email: typeof email;
   featureFlags: typeof featureFlags;
   flashcards: typeof flashcards;

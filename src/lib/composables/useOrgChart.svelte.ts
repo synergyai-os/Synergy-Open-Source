@@ -359,11 +359,11 @@ export function useOrgChart(options: {
 		},
 
 		// Actions
-		selectCircle: (circleId: Id<'circles'> | null) => {
+		selectCircle: (circleId: Id<'circles'> | null, options?: { skipStackPush?: boolean }) => {
 			state.selectedCircleId = circleId;
 
-			// Update navigation stack
-			if (circleId) {
+			// Update navigation stack (unless explicitly skipped for breadcrumb navigation)
+			if (circleId && !options?.skipStackPush) {
 				// Find circle name for breadcrumb
 				const circle = circlesQuery?.data?.find((c) => c.circleId === circleId);
 				const circleName = circle?.name || 'Unknown';
@@ -377,12 +377,16 @@ export function useOrgChart(options: {
 			}
 		},
 
-		selectRole: (roleId: Id<'circleRoles'> | null, source: 'chart' | 'circle-panel' | null) => {
+		selectRole: (
+			roleId: Id<'circleRoles'> | null,
+			source: 'chart' | 'circle-panel' | null,
+			options?: { skipStackPush?: boolean }
+		) => {
 			state.selectedRoleId = roleId;
 			state.selectionSource = source;
 
-			// Update navigation stack
-			if (roleId) {
+			// Update navigation stack (unless explicitly skipped for breadcrumb navigation)
+			if (roleId && !options?.skipStackPush) {
 				// Role name will be loaded asynchronously
 				// For now, use placeholder (will update when role data loads)
 				navigationStack.push({

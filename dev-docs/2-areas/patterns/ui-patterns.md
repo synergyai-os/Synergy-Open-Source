@@ -4406,8 +4406,544 @@ function truncateText(text: string, maxWidth: number, fontSize: number): string 
 3. **SVG masking**: Use masks to exclude text areas from child element rendering
 4. **Text truncation**: Estimate character width based on font size to prevent overflow
 5. **Background contrast**: Add semi-transparent background rectangles behind text for readability
+6. **Depth-based text sizing**: Scale font size by hierarchy depth (root largest, deeper elements smaller)
+7. **Design token backgrounds**: Use design system colors (oklch) instead of hardcoded rgba values
+
+### Depth-Based Text Sizing
+
+**Scale text size based on hierarchy depth**:
+
+```typescript
+{@const baseFontSize = Math.max(10, Math.min(node.r / 4, 14))}
+{@const depthMultiplier = Math.max(0.5, 3 - node.depth * 0.5)}
+{@const fontSize = Math.max(6, Math.min(baseFontSize * depthMultiplier, 42))}
+```
+
+**Result**:
+- Root (depth 0): 3x multiplier
+- Depth 1: 2.5x multiplier
+- Depth 2: 2x multiplier
+- Depth 3: 1.5x multiplier
+- Depth 4+: Scales down progressively (minimum 0.5x)
+
+### Design Token Backgrounds
+
+**Use design system colors instead of hardcoded values**:
+
+```svelte
+<!-- ❌ WRONG: Hardcoded black -->
+<rect fill="rgba(0,0,0,0.7)" ... />
+
+<!-- ✅ CORRECT: Design token (sidebar-badge-bg) -->
+<rect fill="oklch(37.2% 0.044 257.287 / 0.85)" ... />
+```
+
+**Benefits**:
+- Theme-aware (adapts to light/dark mode)
+- Consistent with design system
+- Better contrast than pure black
+- Uses semantic color tokens
 
 **Related**: #L5 (Hierarchical Panel Stack Navigation), #L3650 (Z-index Stacking)
+
+---
+
+## #L4250: Multiple Global ESC Handlers Fire Simultaneously [🔴 CRITICAL]
+
+**Symptom**: ESC key goes back two (or more) levels instead of one when multiple panels are open (e.g., Circle → SubCircle → Role, pressing ESC skips SubCircle and lands on Circle)  
+**Root Cause**: Multiple panels have global `window.addEventListener('keydown')` handlers. When panels overlay each other, ALL handlers fire simultaneously on ESC press, causing multiple `pop()` operations.  
+**Fix**: Check if current panel is the topmost layer before handling ESC key.
+
+### Topmost Layer Check Pattern
+
+**Problem**: Both `CircleDetailPanel` and `RoleDetailPanel` had global ESC handlers. When role opened from circle panel, both panels were open (role overlays circle), so pressing ESC fired BOTH handlers → double pop.
+
+**Solution**: Compare current panel's ID against navigation stack's `currentLayer`:
+
+```typescript
+// ❌ WRONG: Always handles ESC (causes double-pop)
+$effect(() => {
+	if (isOpen && browser) {
+		const handleKeydown = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') {
+				handleEscapeKey(); // ❌ Always fires
+			}
+		};
+		window.addEventListener('keydown', handleKeydown);
+		return () => window.removeEventListener('keydown', handleKeydown);
+	}
+});
+
+// ✅ CORRECT: Only handle ESC if this is the topmost panel
+$effect(() => {
+	if (isOpen && browser) {
+		const handleKeydown = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') {
+				// Check if this panel is the current (topmost) layer
+				const currentLayer = navigationStack.currentLayer;
+				// Use selectedCircleId/selectedRoleId (not circle._id/role._id)
+				// because query data may not be loaded yet
+				if (currentLayer?.type === 'circle' && currentLayer?.id === selectedCircleId) {
+					handleEscapeKey(); // ✅ Only fires if topmost
+				}
+			}
+		};
+		window.addEventListener('keydown', handleKeydown);
+		return () => window.removeEventListener('keydown', handleKeydown);
+	}
+});
+```
+
+**Key Points**:
+- ✅ Use `selectedCircleId`/`selectedRoleId` (state values) - immediately available
+- ❌ Don't use `circle._id`/`role._id` (query data) - may be `undefined` if query hasn't completed
+- ✅ Check `currentLayer.type` AND `currentLayer.id` to ensure exact match
+- ✅ Each panel independently checks if it's topmost → only topmost handles ESC
+
+**Apply when**: Multiple panels have global event listeners (ESC, keyboard shortcuts) and overlay each other
+
+**Related**: #L5 (Hierarchical Panel Stack Navigation), #L430 (Keyboard Event Priority)
+
+---
+
+## #L4520: Fix Broken Combobox with Custom Dropdown [🟡 IMPORTANT]
+
+**Symptom**: Bits UI Combobox doesn't allow multi-select, dropdown closes immediately, can't select multiple items, search input doesn't work with backspace  
+**Root Cause**: Combobox component's internal state management conflicts with manual multi-select logic, `bind:value` and `onValueChange` handlers interfere with each other  
+**Fix**: Replace Combobox with custom dropdown using plain div + manual state management
+
+```svelte
+<script lang="ts">
+	let orgSelectorOpen = $state(false);
+	let orgSearchQuery = $state('');
+	let selectedOrgIds = $state<string[]>([]);
+	let orgSelectorTriggerRef: HTMLButtonElement | undefined;
+	let orgSelectorDropdownRef: HTMLDivElement | undefined;
+
+	// Filter organizations based on search
+	const filteredOrgs = $derived(() => {
+		if (!orgSearchQuery.trim()) return organizations;
+		const query = orgSearchQuery.toLowerCase();
+		return organizations.filter((org) => 
+			org.name.toLowerCase().includes(query) || 
+			org.slug.toLowerCase().includes(query)
+		);
+	});
+
+	// Click outside to close
+	$effect(() => {
+		if (!browser || !orgSelectorOpen) return;
+		
+		function handleClickOutside(e: MouseEvent) {
+			if (
+				orgSelectorDropdownRef?.contains(e.target as Node) ||
+				orgSelectorTriggerRef?.contains(e.target as Node)
+			) {
+				return;
+			}
+			orgSelectorOpen = false;
+		}
+
+		document.addEventListener('click', handleClickOutside);
+		return () => document.removeEventListener('click', handleClickOutside);
+	});
+
+	function toggleOrganization(orgId: string) {
+		if (selectedOrgIds.includes(orgId)) {
+			selectedOrgIds = selectedOrgIds.filter((id) => id !== orgId);
+		} else {
+			selectedOrgIds = [...selectedOrgIds, orgId];
+		}
+		// Keep dropdown open for multi-select
+	}
+</script>
+
+<!-- Trigger Button -->
+<button
+	type="button"
+	bind:this={orgSelectorTriggerRef}
+	onclick={() => {
+		orgSelectorOpen = !orgSelectorOpen;
+	}}
+	class="flex w-full items-center justify-between rounded-input border border-base bg-input px-input-x py-input-y"
+>
+	<span>
+		{selectedOrgIds.length > 0
+			? `${selectedOrgIds.length} organization${selectedOrgIds.length !== 1 ? 's' : ''} selected`
+			: 'Select organizations...'}
+	</span>
+	<svg class="h-4 w-4 transition-transform {orgSelectorOpen ? 'rotate-180' : ''}">
+		<!-- Chevron icon -->
+	</svg>
+</button>
+
+<!-- Custom Dropdown -->
+{#if orgSelectorOpen}
+	<div
+		bind:this={orgSelectorDropdownRef}
+		class="absolute top-full z-50 mt-1 max-h-[300px] min-w-full overflow-y-auto rounded-md border border-base bg-elevated py-1 shadow-lg"
+		onclick={(e) => e.stopPropagation()}
+	>
+		<!-- Search Input -->
+		<div class="border-b border-base px-menu-item py-menu-item">
+			<input
+				type="text"
+				bind:value={orgSearchQuery}
+				placeholder="Search organizations..."
+				class="w-full bg-transparent text-sm text-primary placeholder:text-tertiary focus:outline-none"
+				onclick={(e) => e.stopPropagation()}
+				onkeydown={(e) => {
+					e.stopPropagation();
+					if (e.key === 'Escape') {
+						orgSelectorOpen = false;
+					}
+				}}
+			/>
+		</div>
+
+		<!-- Organization List -->
+		{#each filteredOrgs() as org (org._id)}
+			{@const isSelected = selectedOrgIds.includes(org._id)}
+			<button
+				type="button"
+				onclick={(e) => {
+					e.stopPropagation();
+					toggleOrganization(org._id);
+				}}
+				class="flex w-full cursor-pointer items-center gap-2 px-menu-item py-menu-item text-left text-sm transition-colors hover:bg-hover-solid focus:bg-hover-solid outline-none {isSelected
+					? 'bg-accent-primary/10 text-accent-primary'
+					: 'text-primary'}"
+			>
+				<svg class="h-4 w-4 flex-shrink-0 {isSelected ? 'opacity-100' : 'opacity-0'}">
+					<!-- Checkmark icon -->
+				</svg>
+				<span class="flex-1">{org.name}</span>
+				<span class="text-xs text-tertiary">{org.slug}</span>
+			</button>
+		{/each}
+	</div>
+{/if}
+```
+
+**Key Differences from Combobox**:
+
+1. **Manual state management** - `orgSelectorOpen` instead of `bind:open`
+2. **Plain buttons** - Regular `<button>` elements instead of `Combobox.Item`
+3. **Manual toggle logic** - `toggleOrganization()` function instead of `onValueChange`
+4. **Click outside detection** - `$effect` with `addEventListener` instead of Combobox's built-in behavior
+5. **Search stays editable** - Input always visible, supports backspace, doesn't clear on selection
+6. **Dropdown stays open** - After selection, dropdown remains open for multi-select
+
+**Why Custom Dropdown**:
+
+- ✅ Full control over state and behavior
+- ✅ No conflicts between `bind:value` and manual updates
+- ✅ Search input works correctly with backspace
+- ✅ Multi-select works smoothly (dropdown stays open)
+- ✅ Easier to debug (no library internals)
+
+**When to Use**:
+
+- Multi-select scenarios (organizations, tags, users)
+- When Combobox's built-in behavior conflicts with requirements
+- When you need custom search/filter behavior
+- When dropdown should stay open after selection
+
+**When NOT to Use**:
+
+- Single-select dropdowns (Combobox works fine)
+- Simple autocomplete (Combobox is better)
+- When library behavior matches requirements
+
+**Related**: #L10 (Interactive dropdowns), #L3120 (Multi-select combobox with "Add More" button), #L3650 (Z-index stacking)
+
+---
+
+## #L4580: Card-Based Layout with Consistent Spacing [🟢 REFERENCE]
+
+**Symptom**: Admin pages have cluttered layout, everything in one big card, analytics stuck in sidebar, hard to scan  
+**Root Cause**: Two-column sticky layout doesn't scale well, single large card lacks visual hierarchy  
+**Fix**: Single-column card layout with each section as its own card, consistent spacing and styling
+
+```svelte
+<main class="flex-1 overflow-y-auto px-inbox-container py-system-content">
+	<div class="mx-auto max-w-4xl">
+		<div class="flex flex-col gap-6">
+			<!-- Overview Card -->
+			<div class="rounded-lg border border-base bg-surface p-content-padding">
+				<h2 class="mb-4 text-lg font-semibold text-primary">Overview</h2>
+				<!-- Content -->
+			</div>
+
+			<!-- Description Card -->
+			<div class="rounded-lg border border-base bg-surface p-content-padding">
+				<h2 class="mb-4 text-lg font-semibold text-primary">Description</h2>
+				<!-- Content -->
+			</div>
+
+			<!-- Configuration Card -->
+			<div class="rounded-lg border border-base bg-surface p-content-padding">
+				<h2 class="mb-4 text-lg font-semibold text-primary">Configuration</h2>
+				<!-- Content -->
+			</div>
+
+			<!-- Analytics Card -->
+			<div class="rounded-lg border border-base bg-surface p-content-padding">
+				<h2 class="mb-2 text-lg font-semibold text-primary">Analytics</h2>
+				<p class="mb-4 text-xs text-secondary">Usage statistics and performance metrics.</p>
+				<!-- Content -->
+			</div>
+		</div>
+	</div>
+</main>
+```
+
+**Card Pattern**:
+
+- **Container**: `flex flex-col gap-6` - Vertical stack with consistent spacing
+- **Card Styling**: `rounded-lg border border-base bg-surface p-content-padding` - Consistent across all cards
+- **Heading**: `mb-4 text-lg font-semibold text-primary` - Consistent heading style
+- **Max Width**: `max-w-4xl` - Narrower than full width for better focus
+- **Spacing**: `gap-6` between cards (24px) - Generous white space
+
+**Benefits**:
+
+- ✅ Clear visual hierarchy - Each section is distinct
+- ✅ Easy to scan - Cards break up content naturally
+- ✅ Consistent styling - Same pattern everywhere
+- ✅ Responsive - Single column works on all screen sizes
+- ✅ No sticky positioning - Analytics flows naturally with content
+
+**Design Principles**:
+
+1. **One concept per card** - Each card represents one logical section
+2. **Consistent spacing** - Same gap between all cards
+3. **Consistent padding** - Same padding inside all cards (`p-content-padding`)
+4. **Consistent headings** - Same heading style and spacing
+5. **Generous white space** - `gap-6` (24px) between cards
+
+**When to Use**:
+
+- Admin interfaces with multiple configuration sections
+- Settings pages with distinct categories
+- Detail pages with overview + configuration + analytics
+- Any page where content needs clear visual separation
+
+**When NOT to Use**:
+
+- Simple forms (single card is fine)
+- List views (cards are for items, not sections)
+- Dashboard widgets (different pattern)
+
+**Related**: #L60 (Spacing patterns), #L380 (Centered card layout), #L780 (Design tokens)
+
+---
+
+## #L4640: Clear Feature Flag Descriptions [🟢 REFERENCE]
+
+**Symptom**: Feature flag descriptions are vague ("Controls X"), don't explain what happens when enabled, admins don't understand impact  
+**Root Cause**: Descriptions focus on what flag "controls" rather than user impact and specific features  
+**Fix**: Write descriptions that explain user impact, list exact routes/features, and follow consistent format
+
+```typescript
+// ❌ VAGUE: Doesn't explain impact
+export const FlagDescriptions = {
+	[FeatureFlags.MEETINGS_MODULE]: 'Meetings Module - Controls meetings'
+};
+
+// ✅ CLEAR: Explains impact, lists routes, describes behavior
+export const FlagDescriptions = {
+	[FeatureFlags.MEETINGS_MODULE]:
+		'Meetings Module - Grants access to the meetings feature set: /meetings page (list, create, edit meetings), /dashboard (upcoming meetings), and meeting-related navigation. Users without this flag are redirected away from meetings pages.'
+};
+```
+
+**Description Format**:
+
+1. **Action verb** - "Enables", "Grants", "Replaces", "Upgrades"
+2. **Specific features** - List exact routes, pages, or functionality
+3. **User impact** - What happens when enabled/disabled
+4. **Behavior details** - Redirects, access control, etc.
+
+**Examples**:
+
+```typescript
+// Good: Specific routes + user impact
+'Meetings Module - Grants access to the meetings feature set: /meetings page (list, create, edit meetings), /dashboard (upcoming meetings), and meeting-related navigation. Users without this flag are redirected away from meetings pages.'
+
+// Good: Lists exact features + benefits
+'ProseMirror Notes Editor - Replaces the current notes editor with a ProseMirror-based rich text editor featuring improved formatting, collaboration, and performance.'
+
+// Good: Explains behavior + improvements
+'Readwise Sync v2 - Upgrades Readwise integration with improved error handling, retry logic, and sync reliability. Automatically handles failed syncs and provides better status reporting.'
+
+// Good: Deprecation note
+'Meeting Module Beta - Legacy flag for meeting features. Note: Replaced by MEETINGS_MODULE flag. Consider removing if no longer needed.'
+```
+
+**Description Checklist**:
+
+- [ ] Uses action verb (Enables/Grants/Replaces)
+- [ ] Lists specific routes or features
+- [ ] Explains user impact (what happens when enabled)
+- [ ] Includes behavior details (redirects, access control)
+- [ ] Notes deprecation if applicable
+- [ ] Consistent format across all flags
+
+**Why This Matters**:
+
+- Admins understand what they're controlling
+- No need to check code to understand impact
+- Clearer decision-making for rollouts
+- Better documentation for team members
+
+**Apply when**: Writing feature flag descriptions, admin tooltips, configuration help text  
+**Related**: feature-flags.md (Feature flag patterns), #L780 (Design tokens)
+
+---
+
+## #L4700: Documentation 404s from Direct URL Access or Moved Files [🟡 IMPORTANT]
+
+**Symptom**: Documentation URLs return 404 with "Direct access" referrer, even though file exists at different path  
+**Root Cause**: Users accessing wrong URL path (typing directly, bookmarks, external links) - file exists but at different location  
+**Fix**: Use intelligent path resolution to automatically try common parent directories, then redirect if found
+
+```typescript
+// ✅ CORRECT: Intelligent path resolution with auto-redirect
+import { redirect } from '@sveltejs/kit';
+import { existsSync } from 'fs';
+
+// Common parent directories to try when path doesn't match
+const COMMON_PARENT_DIRS = ['architecture'];
+
+function generatePossiblePaths(path: string): string[] {
+	const paths: string[] = [];
+	
+	// 1. Try exact path variations
+	paths.push(`dev-docs/${path}.md`);
+	paths.push(`dev-docs/${path}/README.md`);
+	paths.push(`dev-docs/${path}/index.md`);
+	
+	// 2. Try with common parent directories
+	if (path.startsWith('2-areas/') && !path.includes('/architecture/')) {
+		for (const parentDir of COMMON_PARENT_DIRS) {
+			const withParent = path.replace(/^2-areas\//, `2-areas/${parentDir}/`);
+			paths.push(`dev-docs/${withParent}.md`);
+			paths.push(`dev-docs/${withParent}/README.md`);
+			paths.push(`dev-docs/${withParent}/index.md`);
+		}
+	}
+	
+	return paths;
+}
+
+export const load: PageServerLoad = async ({ params }) => {
+	const { path } = params;
+	const possiblePaths = generatePossiblePaths(path);
+
+	for (const filePath of possiblePaths) {
+		if (!existsSync(join(cwd(), filePath))) continue;
+		
+		const content = await readFile(join(cwd(), filePath), 'utf-8');
+		const actualPath = filePath
+			.replace(/^dev-docs\//, '')
+			.replace(/\.md$/, '')
+			.replace(/\/README$/, '')
+			.replace(/\/index$/, '');
+		
+		// Auto-redirect if found with different path
+		if (actualPath !== path && actualPath !== path.replace(/\/$/, '')) {
+			// ✅ SKIP LOGGING: File found, just wrong path - redirect is successful resolution
+			throw redirect(301, `/dev-docs/${actualPath}`);
+		}
+		
+		return { content, title, path: `/${actualPath}` };
+	}
+	
+	// ❌ LOG 404: No file found after trying all variations
+	// ... log 404 error
+};
+```
+
+**Alternative: Manual Redirects** (for specific known cases):
+
+```typescript
+// For specific known redirects (if intelligent resolution doesn't cover it)
+const redirects: Record<string, string> = {
+	'2-areas/system-architecture': '2-areas/architecture/system-architecture'
+};
+
+if (redirects[path]) {
+	throw redirect(301, `/dev-docs/${redirects[path]}`);
+}
+```
+
+**Investigation Steps** (Systematic Root Cause Analysis):
+
+1. ✅ **Verify file location**: Check where file actually exists
+   - `glob_file_search` for `**/system-architecture.md`
+   - Found: `dev-docs/2-areas/architecture/system-architecture.md`
+
+2. ✅ **Check 404 tracking data**: Review referrer and access pattern
+   - Referrer: "Direct access" (not from internal link)
+   - Pattern: Users accessing `/dev-docs/2-areas/system-architecture` (missing `architecture/`)
+
+3. ✅ **Check internal links**: Verify all internal links are correct
+   - `grep` for links to `system-architecture`
+   - Found: Links use correct paths (`architecture/system-architecture.md`)
+
+4. ✅ **Root cause identified**: Users typing/bookmarking wrong URL directly
+   - File correctly located at `/dev-docs/2-areas/architecture/system-architecture`
+   - Users accessing `/dev-docs/2-areas/system-architecture` (missing directory)
+   - Not a broken link issue - direct URL access
+
+5. ✅ **Fix**: Add redirect mapping for common mistakes
+   - Redirect wrong path to correct path
+   - Use 301 (permanent redirect) for SEO/bookmarks
+   - Check redirects BEFORE file loading to avoid 404 logging
+
+**Why This Happens**:
+
+- Users bookmark URLs or type them directly
+- External links pointing to wrong paths
+- Files moved to different directories (old URLs still accessed)
+- Common typos or missing directory segments
+
+**Pattern for Adding Redirects**:
+
+```typescript
+// Add to redirects map in +page.server.ts
+const redirects: Record<string, string> = {
+	// Old path → New path
+	'2-areas/system-architecture': '2-areas/architecture/system-architecture',
+	'another/old-path': 'another/new/path'
+};
+```
+
+**When to Use Intelligent Path Resolution**:
+
+- ✅ Systematic pattern (e.g., all `2-areas/X` should try `2-areas/architecture/X`)
+- ✅ Common parent directories that users frequently omit
+- ✅ Want automatic resolution without manual redirect mapping
+
+**When to Use Manual Redirects**:
+
+- ✅ Specific known cases that don't fit pattern
+- ✅ Files moved to completely different locations
+- ✅ One-off fixes for external links
+
+**When NOT to Use**:
+
+- ❌ Broken internal links (fix the link instead)
+- ❌ Link renderer issues (fix renderer logic)
+- ❌ Temporary/test URLs
+
+**Logging Behavior**:
+
+- ✅ **SKIP logging** when redirecting (file found, just wrong path)
+- ❌ **LOG 404** when file truly not found after trying all variations
+
+**Related**: #L1120 (Directory-Aware Markdown Link Resolution), #L1100 (Markdown URL Redirects), doc-404-tracking.md (404 Tracking System), SYOS-254 (Documentation 404 Tracking)
 
 ---
 
