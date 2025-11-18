@@ -35,6 +35,14 @@
 	let debugResult: DebugResult | null = $state(null);
 	let debugLoading = $state(false);
 
+	// Impact state
+	let impactStats: ImpactStats | null = $state(null);
+	let impactLoading = $state(false);
+	let userSearchQuery = $state('');
+	let userSearchResult: UserFlagsResult | null = $state(null);
+	let userSearchLoading = $state(false);
+	let expandedFlags = $state<Set<string>>(new Set());
+
 	// Guidance card state
 	let guidanceDismissed = $state(false);
 	if (browser) {
@@ -69,11 +77,92 @@
 		};
 	};
 
+	type ImpactStats = {
+		totalUsers: number;
+		usersByDomain: Record<string, number>;
+		flagImpacts: Array<{
+			flag: string;
+			enabled: boolean;
+			estimatedAffected: number;
+			breakdown: {
+				byDomain: number;
+				byRollout: number;
+				byUserIds: number;
+				byOrgIds: number;
+			};
+		}>;
+	};
+
+	type UserFlagsResult = {
+		userEmail: string;
+		userId: string | null;
+		flags: Array<{
+			flag: string;
+			enabled: boolean;
+			result: boolean;
+			reason: string;
+		}>;
+	};
+
 	const flags = $derived((data.flags || []) as Flag[]);
 	const sessionId = $derived(data.sessionId || '');
 
 	// Convex client setup
 	const convexClient = browser ? useConvexClient() : null;
+
+	// Load impact stats when Impact tab is active
+	$effect(() => {
+		if (browser && activeTab === 'impact' && !impactStats && !impactLoading && sessionId) {
+			impactLoading = true;
+			convexClient
+				?.query(api.featureFlags.getImpactStats, { sessionId })
+				.then((stats) => {
+					impactStats = stats as ImpactStats;
+				})
+				.catch((error) => {
+					console.error('Failed to load impact stats:', error);
+				})
+				.finally(() => {
+					impactLoading = false;
+				});
+		}
+	});
+
+	// Toggle flag expansion
+	function toggleFlagExpansion(flagName: string) {
+		const newSet = new Set(expandedFlags);
+		if (newSet.has(flagName)) {
+			newSet.delete(flagName);
+		} else {
+			newSet.add(flagName);
+		}
+		expandedFlags = newSet;
+	}
+
+	// Search for user flags
+	async function handleUserSearch() {
+		if (!userSearchQuery.trim() || !sessionId) return;
+
+		userSearchLoading = true;
+		try {
+			const result = await convexClient?.query(api.featureFlags.getFlagsForUser, {
+				sessionId,
+				userEmail: userSearchQuery.trim()
+			});
+			userSearchResult = result as UserFlagsResult;
+		} catch (error) {
+			console.error('Failed to search user flags:', error);
+			userSearchResult = null;
+		} finally {
+			userSearchLoading = false;
+		}
+	}
+
+	// Get impact breakdown for a flag
+	function getFlagImpact(flagName: string) {
+		if (!impactStats) return null;
+		return impactStats.flagImpacts.find((impact) => impact.flag === flagName);
+	}
 
 	// Computed stats
 	const totalFlags = $derived(flags.length);
@@ -401,6 +490,7 @@
 		<Tabs
 			tabs={[
 				{ value: 'flags', label: `Flags (${flags.length})` },
+				{ value: 'impact', label: 'Impact' },
 				{ value: 'debug', label: 'Debug' }
 			]}
 			bind:value={activeTab}
@@ -493,6 +583,237 @@
 												</button>
 											</div>
 										</div>
+									</div>
+								{/each}
+							</div>
+						{/if}
+					</div>
+				{:else if tabValue === 'impact'}
+					<!-- Impact Tab -->
+					<div class="flex flex-col gap-6">
+						{#if impactLoading}
+							<div class="flex flex-col items-center justify-center py-12 text-center">
+								<p class="mb-2 text-lg font-medium text-secondary">Loading impact statistics...</p>
+							</div>
+						{:else if !impactStats}
+							<div class="flex flex-col items-center justify-center py-12 text-center">
+								<p class="mb-2 text-lg font-medium text-secondary">No impact data available</p>
+							</div>
+						{:else}
+							<!-- Overview Statistics -->
+							<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+								<div class="rounded-lg border border-base bg-surface p-4">
+									<p class="text-xs text-tertiary">Total Users</p>
+									<p class="mt-1 text-2xl font-semibold text-primary">
+										{impactStats.totalUsers.toLocaleString()}
+									</p>
+									<p class="mt-1 text-xs text-secondary">System-wide user count</p>
+								</div>
+
+								<div class="rounded-lg border border-base bg-surface p-4">
+									<p class="text-xs text-tertiary">Flags with Impact</p>
+									<p class="mt-1 text-2xl font-semibold text-primary">
+										{impactStats.flagImpacts.filter((f) => f.enabled && f.estimatedAffected > 0)
+											.length}
+									</p>
+									<p class="mt-1 text-xs text-secondary">
+										{flags.length} total flags
+									</p>
+								</div>
+
+								<div class="rounded-lg border border-base bg-surface p-4">
+									<p class="text-xs text-tertiary">Total Affected Users</p>
+									<p class="mt-1 text-2xl font-semibold text-primary">
+										{impactStats.flagImpacts
+											.reduce((sum, f) => sum + f.estimatedAffected, 0)
+											.toLocaleString()}
+									</p>
+									<p class="mt-1 text-xs text-secondary">Estimated across all flags</p>
+								</div>
+
+								<div class="rounded-lg border border-base bg-surface p-4">
+									<p class="text-xs text-tertiary">Unique Domains</p>
+									<p class="mt-1 text-2xl font-semibold text-primary">
+										{Object.keys(impactStats.usersByDomain).length}
+									</p>
+									<p class="mt-1 text-xs text-secondary">Email domains in system</p>
+								</div>
+							</div>
+
+							<!-- User Search -->
+							<div class="rounded-lg border border-base bg-surface p-4">
+								<h3 class="mb-4 text-lg font-semibold text-primary">Search User Impact</h3>
+								<p class="mb-4 text-sm text-secondary">
+									Enter a user email to see which flags affect them and why.
+								</p>
+								<div class="flex items-center gap-2">
+									<FormInput
+										placeholder="user@example.com"
+										bind:value={userSearchQuery}
+										class="flex-1"
+										onkeydown={(e) => {
+											if (e.key === 'Enter') {
+												e.preventDefault();
+												handleUserSearch();
+											}
+										}}
+									/>
+									<Button
+										variant="primary"
+										onclick={handleUserSearch}
+										disabled={userSearchLoading || !userSearchQuery.trim()}
+									>
+										{userSearchLoading ? 'Searching...' : 'Search'}
+									</Button>
+								</div>
+
+								{#if userSearchResult}
+									<div class="mt-6 rounded-lg border border-base bg-elevated p-4">
+										<h4 class="mb-3 text-sm font-semibold text-primary">
+											Results for: {userSearchResult.userEmail}
+										</h4>
+										{#if !userSearchResult.userId}
+											<p class="text-sm text-secondary">User not found in system</p>
+										{:else}
+											{@const enabledFlags = userSearchResult.flags.filter((f) => f.result)}
+											{@const disabledFlags = userSearchResult.flags.filter((f) => !f.result)}
+											<div class="space-y-3">
+												{#if enabledFlags.length > 0}
+													<div>
+														<p class="mb-2 text-sm font-medium text-primary">
+															✅ Enabled Flags ({enabledFlags.length}):
+														</p>
+														<div class="space-y-2">
+															{#each enabledFlags as flagFlag}
+																<div
+																	class="rounded-md border border-accent-primary/20 bg-accent-primary/5 p-2"
+																>
+																	<p class="text-sm font-medium text-primary">{flagFlag.flag}</p>
+																	<p class="text-xs text-secondary">{flagFlag.reason}</p>
+																</div>
+															{/each}
+														</div>
+													</div>
+												{/if}
+
+												{#if disabledFlags.length > 0}
+													<div>
+														<p class="mb-2 text-sm font-medium text-primary">
+															❌ Disabled Flags ({disabledFlags.length}):
+														</p>
+														<div class="space-y-2">
+															{#each disabledFlags as flagFlag}
+																<div class="rounded-md border border-base bg-elevated p-2">
+																	<p class="text-sm font-medium text-secondary">{flagFlag.flag}</p>
+																	<p class="text-xs text-tertiary">{flagFlag.reason}</p>
+																</div>
+															{/each}
+														</div>
+													</div>
+												{/if}
+											</div>
+										{/if}
+									</div>
+								{/if}
+							</div>
+
+							<!-- Flag Impact Breakdown -->
+							<div class="space-y-4">
+								<h3 class="text-lg font-semibold text-primary">Flag Impact Breakdown</h3>
+								{#each flags as flag (flag._id)}
+									{@const impact = getFlagImpact(flag.flag)}
+									{@const isExpanded = expandedFlags.has(flag.flag)}
+									<div class="rounded-lg border border-base bg-surface p-4">
+										<div class="flex items-start justify-between">
+											<div class="flex-1">
+												<div class="flex items-center gap-2">
+													<h4 class="font-semibold text-primary">{flag.flag}</h4>
+													<Badge variant={flag.enabled ? 'default' : 'system'}>
+														{flag.enabled ? 'Enabled' : 'Disabled'}
+													</Badge>
+												</div>
+												<p class="mt-1 text-sm text-secondary">
+													{getTargetingSummary(flag)}
+												</p>
+												{#if impact && impact.enabled}
+													<p class="mt-2 text-sm font-medium text-primary">
+														Estimated affected: ~{impact.estimatedAffected.toLocaleString()} users
+													</p>
+												{:else if impact && !impact.enabled}
+													<p class="mt-2 text-sm text-tertiary">
+														Flag is disabled - no users affected
+													</p>
+												{/if}
+											</div>
+											{#if impact && impact.enabled && impact.estimatedAffected > 0}
+												<button
+													type="button"
+													onclick={() => toggleFlagExpansion(flag.flag)}
+													class="flex-shrink-0 rounded-md p-1 text-tertiary transition-colors hover:text-primary"
+													aria-label={isExpanded ? 'Collapse' : 'Expand'}
+												>
+													<svg
+														class="h-5 w-5 transition-transform {isExpanded ? 'rotate-180' : ''}"
+														fill="none"
+														viewBox="0 0 24 24"
+														stroke="currentColor"
+													>
+														<path
+															stroke-linecap="round"
+															stroke-linejoin="round"
+															stroke-width="2"
+															d="M19 9l-7 7-7-7"
+														/>
+													</svg>
+												</button>
+											{/if}
+										</div>
+
+										{#if isExpanded && impact}
+											<div class="mt-4 space-y-3 border-t border-base pt-4">
+												<h5 class="text-sm font-semibold text-primary">Impact Breakdown:</h5>
+												<div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4">
+													{#if impact.breakdown.byDomain > 0}
+														<div class="rounded-md border border-base bg-elevated p-2">
+															<p class="text-xs text-tertiary">Domain Targeting</p>
+															<p class="mt-1 text-lg font-semibold text-primary">
+																{impact.breakdown.byDomain.toLocaleString()}
+															</p>
+														</div>
+													{/if}
+													{#if impact.breakdown.byUserIds > 0}
+														<div class="rounded-md border border-base bg-elevated p-2">
+															<p class="text-xs text-tertiary">User ID Targeting</p>
+															<p class="mt-1 text-lg font-semibold text-primary">
+																{impact.breakdown.byUserIds.toLocaleString()}
+															</p>
+														</div>
+													{/if}
+													{#if impact.breakdown.byOrgIds > 0}
+														<div class="rounded-md border border-base bg-elevated p-2">
+															<p class="text-xs text-tertiary">Organization Targeting</p>
+															<p class="mt-1 text-lg font-semibold text-primary">
+																{impact.breakdown.byOrgIds.toLocaleString()}
+															</p>
+															<p class="mt-1 text-xs text-tertiary">(estimated)</p>
+														</div>
+													{/if}
+													{#if impact.breakdown.byRollout > 0}
+														<div class="rounded-md border border-base bg-elevated p-2">
+															<p class="text-xs text-tertiary">Percentage Rollout</p>
+															<p class="mt-1 text-lg font-semibold text-primary">
+																{impact.breakdown.byRollout.toLocaleString()}
+															</p>
+														</div>
+													{/if}
+												</div>
+												{#if impact.breakdown.byDomain === 0 && impact.breakdown.byUserIds === 0 && impact.breakdown.byOrgIds === 0 && impact.breakdown.byRollout === 0}
+													<p class="text-sm text-tertiary">
+														⚠️ No targeting rules configured - flag will be disabled for all users
+													</p>
+												{/if}
+											</div>
+										{/if}
 									</div>
 								{/each}
 							</div>

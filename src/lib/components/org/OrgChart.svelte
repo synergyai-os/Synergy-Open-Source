@@ -372,14 +372,8 @@
 			return;
 		}
 
-		// Always open circle detail panel when clicking a circle
-		// Zoom to clicked circle if it's different from current focus
-		if (focusNode?.data.circleId !== node.data.circleId) {
-			zoomToNode(node);
-		} else {
-			// Circle is already focused - just open the panel
-			orgChart.selectCircle(node.data.circleId);
-		}
+		// Open circle detail panel - no auto-zoom, user controls zoom manually
+		orgChart.selectCircle(node.data.circleId);
 	}
 
 	function handleCircleMouseEnter(node: CircleHierarchyNode) {
@@ -413,26 +407,34 @@
 	}
 
 	function handleResetView() {
-		if (packedNodes.length > 0) {
-			const root = packedNodes[0];
-			if (root && !isSyntheticRoot(root.data.circleId)) {
-				zoomToNode(root);
+		// Reset zoom and pan to initial view (fit entire chart)
+		if (visibleNodes.length > 0 && svgElement && gElement) {
+			const bounds = calculateBounds(visibleNodes as CircleHierarchyNode[]);
+			currentView = bounds;
+			currentZoomLevel = 1.0;
+
+			const k = width / bounds[2];
+			const resetTransform = zoomIdentity
+				.translate(width / 2, height / 2)
+				.scale(k)
+				.translate(-bounds[0], -bounds[1]);
+
+			select(gElement).attr('transform', resetTransform.toString());
+			if (zoomBehavior) {
+				select(svgElement).call(zoomBehavior.transform, resetTransform);
 			}
-		}
-		if (svgElement && zoomBehavior) {
+		} else if (svgElement && zoomBehavior) {
+			// Fallback: just reset to identity
 			select(svgElement).call(zoomBehavior.transform, zoomIdentity);
 		}
 		orgChart.resetView();
 	}
 
-	// Handle background click to zoom out
+	// Handle background click - close any open panels
 	function handleBackgroundClick() {
-		if (packedNodes.length > 0) {
-			const root = packedNodes[0];
-			if (root && !isSyntheticRoot(root.data.circleId)) {
-				zoomToNode(root);
-			}
-		}
+		// Close circle and role panels
+		orgChart.selectCircle(null);
+		orgChart.selectRole(null, null);
 	}
 </script>
 
