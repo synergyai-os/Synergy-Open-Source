@@ -22,8 +22,10 @@
 | `/root-cause`        | 65 lines  | 239 lines | +174 lines | ✅ Enhanced with "slow = fast" methodology   |
 | `/pr`                | New       | 366 lines | N/A        | ✅ New command - PR creation workflow        |
 | `/pr-close`          | New       | 415 lines | N/A        | ✅ New command - Post-merge cleanup workflow |
+| `/linear`            | 373 lines | 450 lines | +77 lines  | ✅ Enhanced with Label Selection Guide       |
+| `/linear-subtickets` | 1 line    | 180 lines | +179 lines | ✅ Enhanced with complete workflow guide     |
 
-**Net Change**: ~384 lines removed (626 from `/save` - 174 to `/root-cause` - 148 to `/start`)
+**Net Change**: ~384 lines removed (626 from `/save` - 174 to `/root-cause` - 148 to `/start`) + 256 lines added (77 to `/linear` + 179 to `/linear-subtickets`)
 
 ---
 
@@ -160,6 +162,11 @@
 - **`commit-message-format.md`** - Commit message format with examples (406 lines)
 - **`ticket-writing-format.md`** - Linear ticket writing format template
 
+### Linear Workflow Commands
+
+- **`/linear`** - Complete Linear workflow reference (450 lines)
+- **`/linear-subtickets`** - Subtask creation workflow (180 lines)
+
 ---
 
 ## 🔍 Best Practices Applied
@@ -254,6 +261,36 @@
 
 ---
 
-**Last Updated**: 2025-11-15  
+---
+
+## 🔧 Recent Enhancements
+
+### `/linear` Command (2025-11-18)
+
+**Added**: Label Selection Guide section
+
+- Decision tree for choosing Type labels (`feature` vs `tech-debt` vs `bug` vs `risk`)
+- Common mistakes and validation questions
+- Prevents incorrect labeling (e.g., refactoring as `feature`)
+
+**Why**: Prevents analytics errors from incorrect label selection
+
+---
+
+### `/linear-subtickets` Command (2025-11-18)
+
+**Enhanced**: Complete workflow guide (was 1 line, now 180 lines)
+
+- Label selection guidance (inherit type from parent)
+- Parent linking requirements (title, description, `parentId`)
+- Parallel vs sequential analysis methodology
+- Validation checklist
+- Example workflow
+
+**Why**: Prevents mistakes like incorrect labels, missing parent links, unclear dependencies
+
+---
+
+**Last Updated**: 2025-11-18  
 **Purpose**: Document command optimizations and best practices  
-**Latest Change**: Enhanced `/root-cause` with "slow = fast" systematic investigation methodology
+**Latest Change**: Enhanced `/linear` and `/linear-subtickets` with label selection guidance and complete workflow

@@ -52,7 +52,10 @@
 		browser && sessionId
 			? useQuery(api.tags.listAllTags, () => {
 					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
-					return { sessionId };
+					return {
+						sessionId,
+						...(organizationId ? { organizationId: organizationId as Id<'organizations'> } : {})
+					};
 				})
 			: null;
 
@@ -220,11 +223,19 @@
 				throw new Error('Session ID is required');
 			}
 
+			// If organizationId is available, create as organization tag
+			// Otherwise, create as user tag (visible across all orgs)
 			const tagId = await convexClient.mutation(api.tags.createTag, {
 				sessionId,
 				displayName,
 				color,
-				parentId
+				parentId,
+				...(organizationId
+					? {
+							ownership: 'organization' as const,
+							organizationId: organizationId as Id<'organizations'>
+						}
+					: {})
 			});
 
 			// TODO: Implement PostHog tracking

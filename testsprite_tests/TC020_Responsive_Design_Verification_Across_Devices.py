@@ -145,7 +145,7 @@ async def run_test():
         await expect(frame.locator('text=Permission Test').first).to_be_visible(timeout=30000)
         await expect(frame.locator('text=Settings').first).to_be_visible(timeout=30000)
         await expect(frame.locator('text=Personal Settings').first).to_be_visible(timeout=30000)
-        await expect(frame.locator('text=These settings apply to your personal workspace only.').first).to_be_visible(timeout=30000)
+        await expect(frame.locator('text=Personal settings (theme, API keys) are managed within this organization context.').first).to_be_visible(timeout=30000)
         await expect(frame.locator('text=Coming soon: Team-specific settings and advanced organization management.').first).to_be_visible(timeout=30000)
         await expect(frame.locator('text=Interface theme 👤 Personal Only').first).to_be_visible(timeout=30000)
         await expect(frame.locator('text=Select your preferred color scheme').first).to_be_visible(timeout=30000)

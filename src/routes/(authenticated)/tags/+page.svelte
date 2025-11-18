@@ -16,18 +16,6 @@
 	// Get sessionId from page data
 	const getSessionId = () => $page.data.sessionId;
 
-	// Fetch user's tags
-	const tagsQuery =
-		browser && getSessionId()
-			? useQuery(api.tags.listUserTags, () => {
-					const sessionId = getSessionId();
-					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
-					return { sessionId };
-				})
-			: null;
-	const userTags = $derived(tagsQuery?.data ?? []);
-	const isLoading = $derived(tagsQuery?.isLoading ?? false);
-
 	// Get organization data for sharing
 	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
 	// Pattern: Check object existence first, then access getter property directly
@@ -40,6 +28,22 @@
 		if (!organizations) return null;
 		return organizations.activeOrganizationId ?? null;
 	});
+
+	// Fetch user's tags filtered by active organization
+	const tagsQuery =
+		browser && getSessionId()
+			? useQuery(api.tags.listUserTags, () => {
+					const sessionId = getSessionId();
+					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
+					const orgId = activeOrganizationId();
+					return {
+						sessionId,
+						...(orgId ? { organizationId: orgId as Id<'organizations'> } : {})
+					};
+				})
+			: null;
+	const userTags = $derived(tagsQuery?.data ?? []);
+	const isLoading = $derived(tagsQuery?.isLoading ?? false);
 
 	// Modal state
 	let showShareModal = $state(false);
@@ -109,24 +113,20 @@
 		}
 	}
 
-	// Get current context (personal, org, or team)
+	// Get current context (users always have an organization)
 	const currentOrganizationId = $derived(activeOrganizationId());
 
-	// Group tags by ownership and filter by active context
-	const personalTags = $derived(() => {
-		// Personal tags only show in personal workspace (no active org)
-		if (currentOrganizationId) return [];
-		return userTags.filter((t) => !t.ownershipType || t.ownershipType === 'user');
+	// Group tags by ownership - all tags are already filtered by organizationId in the query
+	const organizationTags = $derived(() => {
+		// Tags for the active organization (already filtered by backend query)
+		return userTags.filter(
+			(t) => t.ownershipType === 'organization' && t.organizationId === currentOrganizationId
+		);
 	});
 
-	const sharedTags = $derived(() => {
-		// Shared tags only show when in that org's context
-		if (!currentOrganizationId) return [];
-		return userTags.filter(
-			(t) =>
-				(t.ownershipType === 'organization' || t.ownershipType === 'team') &&
-				t.organizationId === currentOrganizationId
-		);
+	const userTagsList = $derived(() => {
+		// User-owned tags (no organizationId) - shown in all org contexts
+		return userTags.filter((t) => !t.organizationId || t.ownershipType === 'user');
 	});
 </script>
 
@@ -154,7 +154,7 @@
 			<div class="flex items-center justify-center py-12">
 				<p class="text-secondary">Loading tags...</p>
 			</div>
-		{:else if personalTags().length === 0 && sharedTags().length === 0}
+		{:else if userTagsList().length === 0 && organizationTags().length === 0}
 			<div class="flex flex-col items-center justify-center py-12 text-center">
 				<svg
 					class="mb-4 h-16 w-16 text-tertiary"
@@ -169,32 +169,22 @@
 						d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
 					/>
 				</svg>
-				<h3 class="mb-2 text-lg font-semibold text-primary">
-					{#if currentOrganizationId}
-						No shared tags yet
-					{:else}
-						No tags yet
-					{/if}
-				</h3>
+				<h3 class="mb-2 text-lg font-semibold text-primary">No tags yet</h3>
 				<p class="max-w-md text-sm text-secondary">
-					{#if currentOrganizationId}
-						Share a tag from your personal workspace to make it available to your organization.
-					{:else}
-						Tags help you organize your highlights and flashcards. Create your first tag from the
-						inbox or study pages.
-					{/if}
+					Tags help you organize your highlights and flashcards. Create your first tag from the
+					inbox or study pages.
 				</p>
 			</div>
 		{:else}
-			<!-- Personal Tags Section -->
-			{#if personalTags().length > 0}
+			<!-- User Tags Section -->
+			{#if userTagsList().length > 0}
 				<div class="mb-8">
 					<h3 class="mb-4 flex items-center gap-2 text-sm font-semibold text-primary">
-						<span>Personal Tags</span>
-						<span class="text-xs font-normal text-tertiary">({personalTags().length})</span>
+						<span>Your Tags</span>
+						<span class="text-xs font-normal text-tertiary">({userTagsList().length})</span>
 					</h3>
 					<div class="space-y-2">
-						{#each personalTags() as tag (tag._id)}
+						{#each userTagsList() as tag (tag._id)}
 							<div
 								class="rounded-lg border border-base bg-elevated p-inbox-container transition-colors hover:border-accent-primary/50"
 							>
@@ -208,16 +198,17 @@
 											<span class="truncate text-sm font-medium text-primary"
 												>{tag.displayName}</span
 											>
-											<span class="text-label text-tertiary">Personal workspace</span>
 										</div>
 									</div>
-									<button
-										type="button"
-										onclick={() => openShareModal(tag)}
-										class="flex-shrink-0 rounded-md px-3 py-1.5 text-sm font-medium text-accent-primary transition-colors hover:bg-accent-primary/10"
-									>
-										Transfer...
-									</button>
+									{#if currentOrganizationId}
+										<button
+											type="button"
+											onclick={() => openShareModal(tag)}
+											class="flex-shrink-0 rounded-md px-3 py-1.5 text-sm font-medium text-accent-primary transition-colors hover:bg-accent-primary/10"
+										>
+											Share...
+										</button>
+									{/if}
 								</div>
 							</div>
 						{/each}
@@ -225,15 +216,15 @@
 				</div>
 			{/if}
 
-			<!-- Shared Tags Section -->
-			{#if sharedTags().length > 0}
+			<!-- Organization Tags Section -->
+			{#if organizationTags().length > 0}
 				<div>
 					<h3 class="mb-4 flex items-center gap-2 text-sm font-semibold text-primary">
-						<span>Shared Tags</span>
-						<span class="text-xs font-normal text-tertiary">({sharedTags().length})</span>
+						<span>Organization Tags</span>
+						<span class="text-xs font-normal text-tertiary">({organizationTags().length})</span>
 					</h3>
 					<div class="space-y-2">
-						{#each sharedTags() as tag (tag._id)}
+						{#each organizationTags() as tag (tag._id)}
 							<div class="rounded-lg border border-base bg-elevated p-inbox-container">
 								<div class="flex items-center justify-between">
 									<div class="flex min-w-0 flex-1 items-center gap-icon-wide">

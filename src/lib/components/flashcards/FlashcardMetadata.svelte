@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
+	import { getContext } from 'svelte';
 	import { useQuery, useConvexClient } from 'convex-svelte';
 	import { api } from '$lib/convex';
 	import { Button } from 'bits-ui';
 	import TagSelector from '$lib/components/inbox/TagSelector.svelte';
 	import { useTagging } from '$lib/composables/useTagging.svelte';
 	import type { Id } from '../../../../convex/_generated/dataModel';
+	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 
 	type Flashcard = {
 		_id: Id<'flashcards'>;
@@ -32,16 +34,24 @@
 	const getUserId = () => $page.data.user?.userId;
 	const getSessionId = () => $page.data.sessionId;
 
-	// Setup tagging system for flashcards
-	const tagging = useTagging('flashcard', getUserId, getSessionId);
+	// Get workspace context for organization filtering
+	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
 
-	// Load all available tags
+	// Setup tagging system for flashcards
+	const tagging = useTagging('flashcard', getUserId, getSessionId, () => activeOrganizationId());
+
+	// Load all available tags (filtered by active organization)
 	const allTagsQuery =
 		browser && getSessionId()
 			? useQuery(api.tags.listAllTags, () => {
 					const sessionId = getSessionId();
 					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
-					return { sessionId };
+					const orgId = activeOrganizationId();
+					return {
+						sessionId,
+						...(orgId ? { organizationId: orgId as Id<'organizations'> } : {})
+					};
 				})
 			: null;
 	const availableTags = $derived(allTagsQuery?.data ?? []);

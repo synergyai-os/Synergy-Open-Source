@@ -126,7 +126,8 @@ export const listTeams = query({
 		// Validate session and get userId (prevents impersonation)
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		// If no organizationId provided, return empty array (personal workspace mode)
+		// Defensive: If no organizationId provided, return empty array.
+		// This should not happen (users always have orgs), but handle gracefully.
 		if (!args.organizationId) {
 			return [];
 		}

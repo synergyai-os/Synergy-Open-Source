@@ -11,6 +11,8 @@
  * - Support content ownership types
  */
 
+import { internalQuery } from './_generated/server';
+import { v } from 'convex/values';
 import type { QueryCtx, MutationCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
 
@@ -32,6 +34,23 @@ export async function getUserOrganizationIds(
 
 	return memberships.map((membership) => membership.organizationId);
 }
+
+/**
+ * Internal query: Get user's organization IDs (for use in actions)
+ */
+export const getUserOrganizationIdsQuery = internalQuery({
+	args: {
+		userId: v.id('users')
+	},
+	handler: async (ctx, args) => {
+		const memberships = await ctx.db
+			.query('organizationMembers')
+			.withIndex('by_user', (q) => q.eq('userId', args.userId))
+			.collect();
+
+		return memberships.map((membership) => membership.organizationId);
+	}
+});
 
 /**
  * Get user's accessible team IDs

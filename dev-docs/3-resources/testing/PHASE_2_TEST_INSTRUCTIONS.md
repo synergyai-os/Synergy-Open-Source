@@ -37,7 +37,7 @@ await convexClient.mutation(api.tags.createTag, {
 
 - Navigate to tags/collections
 - Create a new tag named "JavaScript Concepts"
-- Ensure it's created in your personal workspace
+- Ensure it's created as personal content (ownershipType='user') within your organization
 
 ### 2. Share the Tag with Organization
 

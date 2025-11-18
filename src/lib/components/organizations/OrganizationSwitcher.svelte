@@ -32,7 +32,7 @@
 		organizationInvites = [] as OrganizationInvite[],
 		teamInvites = [] as TeamInvite[],
 		accountEmail = 'user@example.com',
-		accountName = 'Personal workspace',
+		accountName = 'user@example.com',
 		linkedAccounts = [] as LinkedAccount[],
 		variant = 'sidebar' as Variant,
 		sidebarCollapsed = false,

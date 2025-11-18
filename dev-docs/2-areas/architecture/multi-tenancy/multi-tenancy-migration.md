@@ -2,38 +2,45 @@
 
 This document outlines the architecture for future multi-tenancy support and provides a migration path when organizations and teams are implemented.
 
-## Current State (User-Scoped)
+## Current State (Organization-Required)
 
-**Status**: All content is user-scoped. Each user only sees and can access their own content.
+**Status**: Users are **required** to have at least one organization (enforced server-side). All content is scoped to organizations. Personal content is distinguished by `ownershipType='user'` within an organization context.
 
 **Schema**:
 
 - All content tables have `userId` field
-- All queries filter by `userId` using indexes like `by_user`
-- No organization or team concepts exist in queries
+- All content tables have `organizationId` field (required - users always have orgs)
+- Content tables have optional `teamId` and `ownershipType` fields
+- Queries filter by `organizationId` using indexes like `by_organization`
+- Personal content uses `ownershipType='user'` WITH `organizationId` set (not null)
 
 **Access Control**:
 
-- Simple: `userId` match = access granted
-- No permission checks needed beyond authentication
+- Users must belong to at least one organization (server-side enforcement)
+- Content is always scoped to an organization
+- Personal content (`ownershipType='user'`) is user-owned but org-scoped
 
-## Future State (Multi-Tenant)
+**Key Distinction**:
+- **❌ REMOVED**: "Personal workspace" as a context (null organizationId workspace)
+- **✅ VALID**: Personal content (`ownershipType='user'`) within an organization context
+
+## Future State (Full Multi-Tenancy)
 
 **Vision**: Organizations and teams can share content. Users can be part of multiple organizations and teams. Content can be:
 
-- **User-owned**: Personal content (current state)
-- **Organization-owned**: Shared across organization
-- **Team-owned**: Shared within a team
-- **Purchased**: Content bought by user/org/team
+- **User-owned**: Personal content (`ownershipType='user'`) within organization context
+- **Organization-owned**: Shared across organization (`ownershipType='organization'`)
+- **Team-owned**: Shared within a team (`ownershipType='team'`)
+- **Purchased**: Content bought by user/org/team (future)
 
 **Schema** (Already in place):
 
-- `organizations` table - Organizations
+- `organizations` table - Organizations (users required to have at least one)
 - `teams` table - Teams within organizations
 - `organizationMembers` table - Many-to-many: users ↔ organizations
 - `teamMembers` table - Many-to-many: users ↔ teams
-- Content tables have nullable `organizationId`, `teamId`, `ownershipType` fields
-- Indexes exist for `by_organization` and `by_team` (unused for now)
+- Content tables have required `organizationId`, optional `teamId`, and `ownershipType` fields
+- Indexes exist for `by_organization` and `by_team`
 
 **Access Control** (Stub functions in `convex/permissions.ts`):
 

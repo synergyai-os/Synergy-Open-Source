@@ -35,7 +35,8 @@ function capitalize(str: string): string {
 export function useTagging(
 	entityType: EntityType,
 	getUserId: () => string | undefined,
-	getSessionId: () => string | null | undefined
+	getSessionId: () => string | null | undefined,
+	getOrganizationId?: () => string | null | undefined
 ) {
 	// Svelte 5 pattern: Single $state object with getters
 	const state = $state({
@@ -67,7 +68,15 @@ export function useTagging(
 		? (makeFunctionReference('tags:createTag') as FunctionReference<
 				'mutation',
 				'public',
-				{ sessionId: string; displayName: string; color: string; parentId?: Id<'tags'> },
+				{
+					sessionId: string;
+					displayName: string;
+					color: string;
+					parentId?: Id<'tags'>;
+					ownership?: 'user' | 'organization' | 'team';
+					organizationId?: Id<'organizations'>;
+					teamId?: Id<'teams'>;
+				},
 				Id<'tags'>
 			>)
 		: null;
@@ -117,6 +126,8 @@ export function useTagging(
 
 	/**
 	 * Create a new tag with color and optional parent
+	 * If organizationId is available, creates as organization tag
+	 * Otherwise, creates as user tag (visible across all orgs)
 	 */
 	async function createTag(
 		displayName: string,
@@ -135,11 +146,15 @@ export function useTagging(
 				throw new Error('Session ID is required');
 			}
 
+			const orgId = getOrganizationId?.();
 			const tagId = await convexClient.mutation(createTagMutation, {
 				sessionId,
 				displayName,
 				color,
-				parentId
+				parentId,
+				...(orgId
+					? { ownership: 'organization' as const, organizationId: orgId as Id<'organizations'> }
+					: {})
 			});
 
 			return tagId as Id<'tags'>;

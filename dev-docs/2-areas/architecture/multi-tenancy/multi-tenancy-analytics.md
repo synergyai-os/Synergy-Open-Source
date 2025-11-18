@@ -4,7 +4,7 @@
 >
 > **Last Updated**: 2025-11-07
 >
-> **Purpose**: Define how Axon captures and analyzes user activity across personal workspaces, organizations, and teams using PostHog group analytics.
+> **Purpose**: Define how SynergyOS captures and analyzes user activity across organizations and teams using PostHog group analytics. Personal content is tracked with `scope: 'user'` within organization context.
 
 ---
 
@@ -24,11 +24,11 @@
 
 ### The Challenge
 
-Axon needs to track user behavior across three distinct contexts:
+SynergyOS needs to track user behavior across organizations and teams. Personal content is distinguished by ownership type (`scope: 'user'`) within an organization context:
 
-- **Personal workspace**: Private, user-owned content
-- **Organizations**: Shared context for multiple users
+- **Organizations**: Required context for all users (users always have at least one org)
 - **Teams**: Sub-groups within organizations
+- **Personal content**: User-owned content (`scope: 'user'`) within organization context
 
 Users should be able to:
 
@@ -124,17 +124,19 @@ Tag: "JavaScript Concepts" (created by Alice, shared with Engineering team)
 
 ## Event Patterns
 
-### 1. Personal Workspace Events
+### 1. Personal Content Events (Within Organization)
 
-**[HYPOTHESIS]** Personal events have NO `groups` property and `scope: 'user'`.
+**[HYPOTHESIS]** Personal content events have `groups.organization` set (users always have orgs) and `scope: 'user'`.
 
 ```typescript
-// User creates a private tag
+// User creates a personal tag (within organization context)
 posthog.capture('tag_created', {
 	distinctId: 'user_123',
-	// NO groups property
+	groups: {
+		organization: 'org_456' // Required - users always have orgs
+	},
 	properties: {
-		scope: 'user',
+		scope: 'user', // Personal content
 		tag_id: 'tag_001',
 		tag_name: 'My Personal Notes',
 		tag_type: 'collection',
@@ -142,10 +144,12 @@ posthog.capture('tag_created', {
 	}
 });
 
-// User adds flashcard to private tag
+// User adds flashcard to personal tag
 posthog.capture('flashcard_added_to_tag', {
 	distinctId: 'user_123',
-	// NO groups property
+	groups: {
+		organization: 'org_456' // Required - users always have orgs
+	},
 	properties: {
 		scope: 'user',
 		tag_id: 'tag_001',
@@ -263,7 +267,7 @@ posthog.capture('organization_switched', {
 	},
 	properties: {
 		scope: 'organization',
-		fromOrganizationId: null, // Was in personal workspace
+		fromOrganizationId: 'org_123', // Previous organization
 		toOrganizationId: 'org_456',
 		availableTeamCount: 3
 	}
@@ -526,8 +530,8 @@ if (scope === 'user') {
 
 **View Modes**:
 
-1. **Personal Workspace**:
-   - Shows: Only user-scoped tags
+1. **Personal Content View** (within organization):
+   - Shows: User-owned content (`scope: 'user'`) within current organization
    - Filter: `scope = 'user'`
    - No organization context visible
 
@@ -693,7 +697,7 @@ See `src/lib/analytics/events.ts` for full typed event definitions.
 
 1. When user leaves org, should their flashcards stay or be deleted?
    - **Decision**: Stay (collaborative content), but user can export
-2. Should team tags appear in personal workspace?
+2. Should team tags appear in personal content view?
    - **Decision**: No - context-based view (switch to team to see team tags)
 3. Can a tag be shared with multiple teams simultaneously?
    - **To Decide**: Probably not initially (simplicity)

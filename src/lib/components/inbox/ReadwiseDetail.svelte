@@ -3,11 +3,13 @@
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
+	import { getContext } from 'svelte';
 	import { useConvexClient, useQuery } from 'convex-svelte';
 	import { makeFunctionReference } from 'convex/server';
 	import { api } from '$lib/convex';
 	import TagSelector from './TagSelector.svelte';
 	import type { Id } from '../../../../convex/_generated/dataModel';
+	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 	import { DEFAULT_TAG_COLOR } from '$lib/utils/tagConstants';
 	// TODO: Re-enable when Doc type is needed
 	// import type { Doc } from '../../../../convex/_generated/dataModel';
@@ -85,6 +87,10 @@
 		}
 	}
 
+	// Get workspace context for organization filtering
+	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
+
 	// Query all tags for user (with error handling if API not generated yet)
 	// Note: useQuery returns {data, isLoading, error, isStale} - extract the data property
 	const allTagsQuery =
@@ -95,7 +101,11 @@
 						// Return skip pattern - Convex recognizes this
 						return 'skip' as 'skip' & { sessionId: string };
 					}
-					return { sessionId };
+					const orgId = activeOrganizationId();
+					return {
+						sessionId,
+						...(orgId ? { organizationId: orgId as Id<'organizations'> } : {})
+					};
 				})
 			: null;
 
@@ -305,11 +315,15 @@
 				throw new Error('Session ID is required');
 			}
 
+			const orgId = activeOrganizationId();
 			const tagId = await convexClient.mutation(createTagApi, {
 				sessionId,
 				displayName,
 				color,
-				parentId
+				parentId,
+				...(orgId
+					? { ownership: 'organization' as const, organizationId: orgId as Id<'organizations'> }
+					: {})
 			});
 			return tagId;
 		} catch (error) {

@@ -30,13 +30,23 @@
 	});
 
 	// Initialize permissions composable with workspace context
+	// Server-side preloaded permissions for instant rendering (pattern #L1390)
+	const initialPermissions = $page.data.permissions as
+		| Array<{
+				permissionSlug: string;
+				scope: string;
+				roleSlug: string;
+				roleName: string;
+		  }>
+		| undefined;
 	const permissions = usePermissions({
 		sessionId: () => sessionId ?? null,
 		userId: () => (userId ? (userId as Id<'users'>) : null),
 		organizationId: () => {
 			const orgId = activeOrganizationId();
 			return orgId ? (orgId as Id<'organizations'>) : null;
-		}
+		},
+		initialPermissions // Server-side preloaded for instant button visibility
 	});
 
 	// Convex client

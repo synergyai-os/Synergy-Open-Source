@@ -176,17 +176,35 @@ export async function getTagDescendantsForTags(
  */
 export const listAllTags = query({
 	args: {
-		sessionId: v.string() // Session validation (derives userId securely)
+		sessionId: v.string(), // Session validation (derives userId securely)
+		organizationId: v.optional(v.id('organizations')) // Filter by organization (required - users always have orgs)
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		// Get all user tags
-		const tags = await ctx.db
-			.query('tags')
-			.withIndex('by_user', (q) => q.eq('userId', userId))
-			.collect();
+		// Get user tags filtered by organization
+		// Users are required to have at least one organization (enforced server-side)
+		let tags;
+		if (args.organizationId) {
+			// Filter by organization: tags owned by this org OR user tags (no orgId)
+			tags = await ctx.db
+				.query('tags')
+				.withIndex('by_user', (q) => q.eq('userId', userId))
+				.collect();
+			// Filter client-side: org tags for this org OR user tags (no organizationId)
+			tags = tags.filter(
+				(tag) =>
+					!tag.organizationId || // User tags (no org)
+					tag.organizationId === args.organizationId // Org tags for this org
+			);
+		} else {
+			// Fallback: get all user tags (shouldn't happen due to server-side enforcement)
+			tags = await ctx.db
+				.query('tags')
+				.withIndex('by_user', (q) => q.eq('userId', userId))
+				.collect();
+		}
 
 		// Build hierarchical tree structure
 		return buildTagTree(tags);
@@ -200,17 +218,35 @@ export const listAllTags = query({
  */
 export const listUserTags = query({
 	args: {
-		sessionId: v.string() // Session validation (derives userId securely)
+		sessionId: v.string(), // Session validation (derives userId securely)
+		organizationId: v.optional(v.id('organizations')) // Filter by organization (required - users always have orgs)
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		// Get all user tags (including shared ones)
-		const tags = await ctx.db
-			.query('tags')
-			.withIndex('by_user', (q) => q.eq('userId', userId))
-			.collect();
+		// Get user tags filtered by organization
+		// Users are required to have at least one organization (enforced server-side)
+		let tags;
+		if (args.organizationId) {
+			// Filter by organization: tags owned by this org OR user tags (no orgId)
+			tags = await ctx.db
+				.query('tags')
+				.withIndex('by_user', (q) => q.eq('userId', userId))
+				.collect();
+			// Filter client-side: org tags for this org OR user tags (no organizationId)
+			tags = tags.filter(
+				(tag) =>
+					!tag.organizationId || // User tags (no org)
+					tag.organizationId === args.organizationId // Org tags for this org
+			);
+		} else {
+			// Fallback: get all user tags (shouldn't happen due to server-side enforcement)
+			tags = await ctx.db
+				.query('tags')
+				.withIndex('by_user', (q) => q.eq('userId', userId))
+				.collect();
+		}
 
 		// Return tags with ownership info (no hierarchy for simple list view)
 		return tags.map((tag) => ({
@@ -297,31 +333,42 @@ export const createTag = mutation({
 		color: v.string(), // Hex color code
 		parentId: v.optional(v.id('tags')),
 		ownership: v.optional(v.union(v.literal('user'), v.literal('organization'), v.literal('team'))),
-		organizationId: v.optional(v.id('organizations')),
+		organizationId: v.optional(v.id('organizations')), // Optional but will be required if not provided
 		teamId: v.optional(v.id('teams'))
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		const ownership = args.ownership ?? 'user';
+		const ownership = args.ownership ?? 'organization'; // Default to organization (not user)
 		let organizationId: Id<'organizations'> | undefined = undefined;
 		let teamId: Id<'teams'> | undefined = undefined;
 
 		if (ownership === 'organization') {
+			// If organizationId not provided, get user's first organization
 			if (!args.organizationId) {
-				throw new Error('organizationId is required for organization tags');
+				// Users are required to have at least one organization
+				const memberships = await ctx.db
+					.query('organizationMembers')
+					.withIndex('by_user', (q) => q.eq('userId', userId))
+					.collect();
+				if (memberships.length === 0) {
+					throw new Error('User must belong to at least one organization');
+				}
+				organizationId = memberships[0].organizationId;
+			} else {
+				// Validate membership
+				const membership = await ctx.db
+					.query('organizationMembers')
+					.withIndex('by_organization_user', (q) =>
+						q.eq('organizationId', args.organizationId!).eq('userId', userId)
+					)
+					.first();
+				if (!membership) {
+					throw new Error('You do not have access to this organization');
+				}
+				organizationId = args.organizationId;
 			}
-			const membership = await ctx.db
-				.query('organizationMembers')
-				.withIndex('by_organization_user', (q) =>
-					q.eq('organizationId', args.organizationId!).eq('userId', userId)
-				)
-				.first();
-			if (!membership) {
-				throw new Error('You do not have access to this organization');
-			}
-			organizationId = args.organizationId;
 			teamId = undefined;
 		} else if (ownership === 'team') {
 			if (!args.teamId) {
@@ -339,9 +386,18 @@ export const createTag = mutation({
 				throw new Error('Team not found');
 			}
 			teamId = args.teamId;
-			organizationId = team.organizationId;
+			organizationId = team.organizationId; // Teams always belong to an organization
 		} else {
-			organizationId = undefined;
+			// ownership === 'user' - but user tags must still have organizationId
+			// Get user's first organization (users are required to have at least one)
+			const memberships = await ctx.db
+				.query('organizationMembers')
+				.withIndex('by_user', (q) => q.eq('userId', userId))
+				.collect();
+			if (memberships.length === 0) {
+				throw new Error('User must belong to at least one organization');
+			}
+			organizationId = memberships[0].organizationId;
 			teamId = undefined;
 		}
 
@@ -356,11 +412,16 @@ export const createTag = mutation({
 			throw new Error('Tag name cannot exceed 50 characters');
 		}
 
+		// All tags now require organizationId - check for duplicates by organization
 		let existing: Doc<'tags'> | null = null;
-		if (ownership === 'user') {
+		if (ownership === 'user' && organizationId) {
+			// User tags scoped to organization (check by org + name + ownershipType)
 			existing = await ctx.db
 				.query('tags')
-				.withIndex('by_user_name', (q) => q.eq('userId', userId).eq('name', normalizedName))
+				.withIndex('by_organization_name', (q) =>
+					q.eq('organizationId', organizationId).eq('name', normalizedName)
+				)
+				.filter((q) => q.eq(q.field('ownershipType'), 'user'))
 				.first();
 		} else if (ownership === 'organization' && organizationId) {
 			existing = await ctx.db
@@ -369,7 +430,7 @@ export const createTag = mutation({
 					q.eq('organizationId', organizationId).eq('name', normalizedName)
 				)
 				.first();
-		} else if (ownership === 'team' && teamId) {
+		} else if (ownership === 'team' && teamId && organizationId) {
 			existing = await ctx.db
 				.query('tags')
 				.withIndex('by_team_name', (q) => q.eq('teamId', teamId).eq('name', normalizedName))

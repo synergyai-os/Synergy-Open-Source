@@ -51,12 +51,22 @@
 
 	// Check permissions for removing members
 	// Users can remove members if they are owners OR have users.remove permission
+	// Server-side preloaded permissions for instant rendering (pattern #L1390)
+	const initialPermissions = $page.data.permissions as
+		| Array<{
+				permissionSlug: string;
+				scope: string;
+				roleSlug: string;
+				roleName: string;
+		  }>
+		| undefined;
 	const permissions = usePermissions({
 		sessionId: () => getSessionId() ?? null,
 		organizationId: () => {
 			const orgId = organizationId();
 			return orgId ? (orgId as Id<'organizations'>) : null;
-		}
+		},
+		initialPermissions // Server-side preloaded for instant button visibility
 	});
 
 	// Check if current user can remove members

@@ -72,7 +72,7 @@
 	const accountName = $derived(() =>
 		data.user?.firstName && data.user?.lastName
 			? `${data.user.firstName} ${data.user.lastName}`
-			: (data.user?.email ?? 'Personal workspace')
+			: accountEmail()
 	);
 	const workspaceName = $derived(() => data.activeWorkspace?.name ?? 'Private workspace');
 
@@ -108,7 +108,7 @@
 				const parsed = JSON.parse(switchingData);
 				accountSwitchingState.isSwitching = true;
 				accountSwitchingState.switchingTo = parsed.accountName || 'account';
-				accountSwitchingState.switchingToType = 'personal'; // Account switches are always to personal workspace
+				accountSwitchingState.switchingToType = 'personal'; // Account switches are always to an organization context
 				accountSwitchingState.startTime = parsed.startTime || Date.now();
 
 				// Clear the flag immediately (we've read it)

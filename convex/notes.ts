@@ -315,7 +315,8 @@ export const listNotes = query({
 
 		// Filter by workspace context
 		if (args.organizationId === null) {
-			// Personal workspace
+			// Defensive: Handle null organizationId query (should not happen - users always have orgs).
+			// Filters for items with no organizationId (legacy data or edge cases).
 			items = items.filter((item) => !item.organizationId && !item.teamId);
 		} else if (args.organizationId !== undefined) {
 			// Organization workspace

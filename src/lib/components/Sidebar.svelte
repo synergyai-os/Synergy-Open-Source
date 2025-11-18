@@ -53,7 +53,7 @@
 	const accountEmail = user?.email ?? 'user@example.com';
 	const accountName = user?.firstName
 		? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}`
-		: 'Personal workspace';
+		: accountEmail;
 	const organizations = getContext<UseOrganizations | undefined>('organizations');
 	const authSession = useAuthSession();
 

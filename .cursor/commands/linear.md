@@ -47,6 +47,52 @@ const ESTIMATES = {
 
 ---
 
+## 🏷️ Label Selection Guide
+
+### Type Labels (REQUIRED - Pick ONE)
+
+**When to use each type:**
+
+- **`feature`**: New user-facing functionality or capabilities
+  - Examples: "Add organization switching", "Create team management UI", "Add dark mode toggle"
+  - ❌ NOT for: Refactoring, testing, code quality improvements
+
+- **`tech-debt`**: Code quality, refactoring, testing, maintainability
+  - Examples: "Refactor useOrganizations composable", "Add tests for X", "Fix ESLint errors", "Extract utilities"
+  - ✅ Use for: Refactoring existing code, writing tests, code cleanup, improving maintainability
+
+- **`bug`**: Something is broken or not working as expected
+  - Examples: "Organization switcher doesn't update URL", "Tests failing", "TypeScript errors blocking CI"
+
+- **`risk`**: Security, performance, or stability concerns
+  - Examples: "Fix XSS vulnerability", "Optimize slow query", "Prevent memory leak"
+
+**Decision Tree:**
+
+```
+Is it new user-facing functionality?
+  YES → `feature`
+  NO → Is something broken?
+    YES → `bug`
+    NO → Is it security/performance risk?
+      YES → `risk`
+      NO → `tech-debt` (refactoring, testing, code quality)
+```
+
+**Common Mistakes:**
+
+- ❌ Refactoring labeled as `feature` → ✅ Should be `tech-debt`
+- ❌ Writing tests labeled as `feature` → ✅ Should be `tech-debt`
+- ❌ Code cleanup labeled as `feature` → ✅ Should be `tech-debt`
+- ❌ Extracting utilities labeled as `feature` → ✅ Should be `tech-debt`
+
+**Validation Question**: "Is this adding new functionality users will see/use, or improving existing code?"
+
+- New functionality → `feature`
+- Improving existing code → `tech-debt`
+
+---
+
 ## 🎯 Ticket Creation
 
 ### Required Fields

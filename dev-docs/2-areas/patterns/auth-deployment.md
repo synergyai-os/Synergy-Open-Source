@@ -360,7 +360,9 @@ inboxItems: defineTable({
 
 ---
 
-## #L410: Personal Workspace Pattern (Null = Personal) [🟢 REFERENCE]
+## #L410: Personal Content Ownership Pattern [🟡 UPDATED]
+
+> **⚠️ ARCHITECTURE CHANGE**: This pattern has been updated. "Personal workspace" as a context (null orgId) has been removed. Users are now **required** to have at least one organization (enforced server-side). Personal content is now distinguished by `ownershipType='user'` **within** an organization context.
 
 **Symptom**: Need to distinguish personal content from org/team content in queries  
 **Root Cause**: Creating fake "Personal" organizations adds complexity and confusing queries  
@@ -377,14 +379,14 @@ const personalOrg = await ctx.db.insert('organizations', {
 
 inboxItems.organizationId = personalOrg; // ❌ Messy
 
-// ✅ CORRECT: null = personal content
+// ✅ CORRECT: Personal content uses ownershipType='user' WITH organizationId
 inboxItems: defineTable({
 	userId: v.id('users'),
-	organizationId: v.optional(v.id('organizations')), // null = personal ✅
+	organizationId: v.id('organizations'), // ✅ REQUIRED - users always have orgs
 	teamId: v.optional(v.id('teams')),
 	ownershipType: v.optional(
 		v.union(
-			v.literal('user'), // User owns (personal)
+			v.literal('user'), // User owns (personal, but org-scoped)
 			v.literal('organization'), // Org owns
 			v.literal('team') // Team owns
 		)
@@ -395,11 +397,11 @@ inboxItems: defineTable({
 	.index('by_team', ['teamId']);
 
 // Clean queries
-// Get personal content
+// Get personal content within organization
 const personal = await ctx.db
 	.query('inboxItems')
-	.withIndex('by_user', (q) => q.eq('userId', userId))
-	.filter((q) => q.eq(q.field('organizationId'), null)) // ✅ Clear!
+	.withIndex('by_organization', (q) => q.eq('organizationId', orgId))
+	.filter((q) => q.eq(q.field('ownershipType'), 'user')) // ✅ Personal content
 	.collect();
 
 // Get team content
@@ -412,17 +414,21 @@ const teamContent = await ctx.db
 **Content Ownership Rules**:
 | `ownershipType` | `organizationId` | Stays When User Leaves? |
 |-----------------|------------------|------------------------|
-| `"user"` | `null` | ❌ Moves with user |
+| `"user"` | `"org_123"` (required) | ❌ Moves with user (personal content) |
 | `"organization"` | `"org_123"` | ✅ Stays in org |
 | `"team"` | `"org_123"` + `teamId` | ✅ Stays in team |
 
-**Why**: `null` is semantically correct for "no organization" and keeps queries simple. Creating fake organizations pollutes the data model and complicates permission checks.
+**Key Distinction**:
+- **❌ REMOVED**: "Personal workspace" as a context (null organizationId workspace)
+- **✅ VALID**: Personal content (`ownershipType='user'`) within an organization context
+
+**Why**: Users are required to have at least one organization (enforced server-side). Personal content is distinguished by ownership type, not by null organizationId. This keeps the data model clean and ensures all content is properly scoped to organizations.
 
 **Apply when**:
 
-- Designing multi-tenancy from scratch
-- Supporting both personal and organization content
-- Need clean "my stuff" vs "team stuff" queries
+- Designing multi-tenancy architecture
+- Supporting personal content within organizations
+- Need to distinguish user-owned vs org-owned vs team-owned content
 
 **Related**: #L360 (Dual identity), #L460 (Account linking)
 

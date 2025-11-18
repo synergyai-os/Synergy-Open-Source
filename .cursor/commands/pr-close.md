@@ -295,11 +295,44 @@ See: dev-docs/2-areas/patterns/convex-integration.md#L800
 
 ---
 
+## 🚨 Post-Deployment: Convex Database Alignment
+
+**⚠️ CRITICAL**: After deployment completes, verify Convex database alignment.
+
+**Problem**: Dev and production Convex databases can become misaligned. Functions/tables may exist in dev but not in production.
+
+**When to check**: After GitHub Actions deployment completes (~3-4 minutes after merge)
+
+**Quick Checklist**:
+
+- [ ] **Step 1**: GitHub Actions deployment succeeded ✅
+- [ ] **Step 2**: Deployment targeted production (not dev) ✅
+- [ ] **Step 3**: Functions deployed to production ✅
+- [ ] **Step 4**: Schema aligned (tables match dev) ✅
+- [ ] **Step 5**: Production logs show no errors ✅
+
+**If any step fails**:
+
+1. Check GitHub Secrets (`CONVEX_DEPLOY_KEY` must be production key starting with `prod:`)
+2. Verify `convex/schema.ts` includes all tables
+3. Verify functions are exported (not `internalMutation`)
+4. Redeploy manually if needed: `CONVEX_DEPLOY_KEY="prod:..." npx convex deploy --yes`
+
+**See**: `dev-docs/3-resources/deployment/post-deployment-checklist.md` - Complete post-deployment verification guide
+
+**Common Issue**: "Could not find public function" errors in production logs
+
+- **Cause**: Function deployed to dev instead of prod, or function not deployed
+- **Fix**: Verify `CONVEX_DEPLOY_KEY` in GitHub Secrets is production key, then redeploy
+
+---
+
 ## 🔗 Related Documentation
 
 - **Git Workflow**: `dev-docs/2-areas/development/git-workflow.md` - Complete git workflow guide
 - **Branch Cleanup**: `dev-docs/2-areas/patterns/convex-integration.md#L800` - Branch cleanup pattern
 - **Deployment**: `dev-docs/3-resources/deployment/deployment-procedures.md` - Deployment workflow
+- **Post-Deployment Checklist**: `dev-docs/3-resources/deployment/post-deployment-checklist.md` - Convex DB alignment verification ⭐
 - **Linear Integration**: `dev-docs/3-resources/guides/linear-github-integration.md` - Linear + GitHub integration
 
 ---

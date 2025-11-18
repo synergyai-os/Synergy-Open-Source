@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
+	import { getContext } from 'svelte';
 	import { useQuery, useConvexClient } from 'convex-svelte';
 	import { Button } from 'bits-ui';
 	import TagFilter from '$lib/components/TagFilter.svelte';
@@ -8,6 +9,7 @@
 	import FlashcardDetailModal from '$lib/components/flashcards/FlashcardDetailModal.svelte';
 	import { api } from '$lib/convex';
 	import type { Doc, Id } from '../../../../convex/_generated/dataModel';
+	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	const convexClient = browser ? useConvexClient() : null;
@@ -24,13 +26,21 @@
 	// Get sessionId from page data
 	const getSessionId = () => $page.data.sessionId;
 
-	// Query all tags for filtering
+	// Get workspace context
+	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
+
+	// Query all tags for filtering (filtered by active organization)
 	const allTagsQuery =
 		browser && getSessionId()
 			? useQuery(api.tags.listAllTags, () => {
 					const sessionId = getSessionId();
 					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
-					return { sessionId };
+					const orgId = activeOrganizationId();
+					return {
+						sessionId,
+						...(orgId ? { organizationId: orgId as Id<'organizations'> } : {})
+					};
 				})
 			: null;
 	const allTags = $derived(allTagsQuery?.data ?? []);

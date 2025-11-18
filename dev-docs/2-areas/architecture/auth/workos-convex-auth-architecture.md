@@ -236,16 +236,17 @@ accountLinks: defineTable({
 
 ### Workspace & Content Ownership Model
 
-**Philosophy:** Personal workspace + Organizations + Teams
+**Philosophy:** Organizations + Teams (users always have at least one organization)
+
+> **⚠️ ARCHITECTURE CHANGE**: "Personal workspace" as a context (null organizationId) has been removed. Users are now **required** to have at least one organization (enforced server-side). Personal content is distinguished by `ownershipType='user'` **within** an organization context.
 
 ```
 User: randy@synergyai.nl
-├─ 📁 Personal Workspace (organizationId = null)
-│   ├─ My flashcards (ownershipType = "user")
-│   ├─ My notes (ownershipType = "user")
-│   └─ Always accessible from any context ✅
-│
 ├─ 🏢 Saprolab (Organization)
+│   ├─ Personal content (ownershipType = "user", org-scoped)
+│   │   ├─ My flashcards (ownershipType = "user")
+│   │   ├─ My notes (ownershipType = "user")
+│   │   └─ User-owned but scoped to org ✅
 │   ├─ Org glossary (ownershipType = "organization")
 │   ├─ 👥 Team: ZDHC (Team within org)
 │   │   ├─ Team roadmap (ownershipType = "team")
@@ -259,25 +260,26 @@ User: randy@synergyai.nl
 
 **Content Ownership Rules:**
 
-| Ownership Type   | Stays When User Leaves? | Example             |
-| ---------------- | ----------------------- | ------------------- |
-| `"user"`         | ❌ Moves with user      | Personal flashcards |
-| `"team"`         | ✅ Stays in team        | Team roadmap        |
-| `"organization"` | ✅ Stays in org         | Company glossary    |
+| Ownership Type   | organizationId | Stays When User Leaves? | Example             |
+| ---------------- | -------------- | ----------------------- | ------------------- |
+| `"user"`         | Required       | ❌ Moves with user      | Personal flashcards (org-scoped) |
+| `"team"`         | Required       | ✅ Stays in team        | Team roadmap        |
+| `"organization"` | Required       | ✅ Stays in org         | Company glossary    |
 
 **Query Pattern:**
 
 ```typescript
-// Get user's accessible content (personal + current workspace)
-// Personal content
-.withIndex("by_user", q => q.eq("userId", userId))
-.filter(q => q.eq(q.field("organizationId"), null))  // null = personal ✅
+// Get user's accessible content within organization
+// Personal content (user-owned, org-scoped)
+.withIndex("by_organization", q => q.eq("organizationId", currentOrgId))
+.filter(q => q.eq(q.field("ownershipType"), "user"))  // Personal content ✅
 
 // Team content (user is member)
 .withIndex("by_team", q => q.eq("teamId", currentTeamId))
 
 // Org content (user is member)
 .withIndex("by_organization", q => q.eq("organizationId", currentOrgId))
+.filter(q => q.eq(q.field("ownershipType"), "organization"))
 ```
 
 ### Relationship to Existing Tables
@@ -286,9 +288,9 @@ User: randy@synergyai.nl
 users (new!)
   └─ userId (_id)
       ├─ inboxItems.userId (creator)
-      │   ├─ organizationId = null → Personal workspace
-      │   ├─ organizationId = "org_123" → Org content
-      │   └─ teamId = "team_456" → Team content
+      │   ├─ organizationId = "org_123", ownershipType = "user" → Personal content (org-scoped)
+      │   ├─ organizationId = "org_123", ownershipType = "organization" → Org content
+      │   └─ teamId = "team_456", ownershipType = "team" → Team content
       ├─ highlights.userId
       ├─ flashcards.userId
       ├─ tags.userId
@@ -828,7 +830,7 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
 ├─────────────────────────────────────┤
 │  ● Randy Hereman (Personal)         │  ← CMD+1 (Active)
 │    randy@synergyai.nl               │
-│    📁 Personal workspace             │
+│    🏢 Saprolab (Organization)       │
 │                                     │
 │  ○ Randy @ Saprolab                 │  ← CMD+2
 │    randy@saprolab.com               │

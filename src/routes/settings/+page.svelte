@@ -92,10 +92,14 @@
 		return organizationSummaries().find((org) => org.organizationId === orgId);
 	});
 	const workspaceContext = $derived(() => {
-		if (currentOrganization()) {
-			return { type: 'organization', name: currentOrganization()!.name };
+		// Users always have an organization (enforced server-side)
+		// If no organization found, return fallback (should never happen)
+		const org = currentOrganization();
+		if (org) {
+			return { type: 'organization', name: org.name };
 		}
-		return { type: 'personal', name: 'Personal Workspace' };
+		// Fallback for edge case (should never happen due to server-side enforcement)
+		return { type: 'organization', name: 'Organization' };
 	});
 
 	const settingsApiFunctions = browser
@@ -217,7 +221,7 @@
 					organizationId: orgId as Id<'organizations'>
 				});
 				if (orgSettings) {
-					isOrgAdmin = orgSettings.isAdmin || false;
+					_isOrgAdmin = orgSettings.isAdmin || false;
 					// Track if org has Claude key (Readwise is always personal)
 					// orgClaudeHasKey will be added below if needed
 				}
@@ -274,7 +278,7 @@
 	// State for API keys (initialized from Convex)
 	// CRITICAL: These are for user input ONLY - we NEVER store or display actual saved keys on the client
 
-	// Personal workspace keys
+	// User API keys (personal settings within organization)
 	let claudeApiKey = $state('');
 	let readwiseApiKey = $state('');
 
@@ -282,7 +286,7 @@
 	// TODO: Re-enable when org API keys are needed
 	let _orgClaudeApiKey = $state('');
 	let _orgReadwiseApiKey = $state(''); // User's personal Readwise for org imports
-	let isOrgAdmin = $state(false); // Whether user can edit org settings
+	let _isOrgAdmin = $state(false); // Whether user can edit org settings (currently unused, reserved for future org settings)
 
 	// Settings are loaded directly in onMount above, no separate effect needed
 
@@ -495,19 +499,11 @@
 				</svg>
 				<div class="min-w-0 flex-1">
 					<p class="mb-1 text-sm font-medium text-accent-primary">
-						{#if workspaceContext().type === 'personal'}
-							Personal Settings
-						{:else}
-							Organization Settings: {workspaceContext().name}
-						{/if}
+						Organization Settings: {workspaceContext().name}
 					</p>
 					<p class="text-sm text-secondary">
-						{#if workspaceContext().type === 'personal'}
-							These settings apply to your personal workspace only.
-						{:else}
-							These settings apply to {workspaceContext().name} organization. Switch to personal workspace
-							for your personal settings.
-						{/if}
+						These settings apply to {workspaceContext().name} organization. Personal settings (theme,
+						API keys) are managed within this organization context.
 					</p>
 					<p class="mt-2 text-xs text-tertiary">
 						<strong>Coming soon:</strong> Team-specific settings and advanced organization management.
@@ -536,11 +532,7 @@
 										</span>
 									</label>
 									<p class="text-sm text-secondary">
-										{#if workspaceContext().type === 'organization'}
-											Theme preferences are personal. Switch to your personal workspace to change.
-										{:else}
-											Select your preferred color scheme
-										{/if}
+										Theme preferences are personal and apply across all organizations.
 									</p>
 								</div>
 								<div class="flex items-center gap-icon" role="presentation">
@@ -581,16 +573,12 @@
 									<Switch.Root
 										id="theme-toggle"
 										checked={$isDark}
-										disabled={workspaceContext().type === 'organization'}
 										onCheckedChange={(checked) => {
-											if (workspaceContext().type !== 'organization') {
-												theme.setTheme(checked ? 'dark' : 'light');
-											}
+											theme.setTheme(checked ? 'dark' : 'light');
 										}}
-										class="relative inline-flex h-4 w-8 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none {workspaceContext()
-											.type === 'organization'
-											? 'cursor-not-allowed opacity-50'
-											: 'cursor-pointer'} {$isDark ? 'bg-gray-900' : 'bg-gray-300'}"
+										class="relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none {$isDark
+											? 'bg-gray-900'
+											: 'bg-gray-300'}"
 									>
 										<Switch.Thumb
 											class="pointer-events-none inline-block h-3 w-3 translate-x-0 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out data-[state=checked]:translate-x-4"
@@ -615,38 +603,15 @@
 								<div class="min-w-0 flex-1">
 									<label for="claude-key" class="mb-1 block text-sm font-medium text-primary">
 										Claude API Key
-										{#if workspaceContext().type === 'organization'}
-											<span
-												class="ml-2 inline-flex items-center rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-											>
-												🏢 Organization
-											</span>
-											{#if !isOrgAdmin}
-												<span
-													class="ml-1 inline-flex items-center rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-700 dark:text-gray-300"
-												>
-													🔒 Admin Only
-												</span>
-											{/if}
-										{:else}
-											<span
-												class="ml-2 inline-flex items-center rounded bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-200"
-											>
-												👤 Personal
-											</span>
-										{/if}
+										<span
+											class="ml-2 inline-flex items-center rounded bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+										>
+											👤 Personal
+										</span>
 									</label>
 									<p class="text-sm text-secondary">
-										{#if workspaceContext().type === 'organization'}
-											{#if isOrgAdmin}
-												Organization's Claude API key (admin controlled). Cost attributed to
-												organization.
-											{:else}
-												Contact an admin to configure the organization's Claude API key.
-											{/if}
-										{:else}
-											Used for AI-powered flashcard generation from your content (personal use only)
-										{/if}
+										Used for AI-powered flashcard generation from your content (personal use within
+										organization).
 									</p>
 								</div>
 								<div class="flex flex-shrink-0 flex-col gap-1">
@@ -657,21 +622,15 @@
 											bind:value={claudeApiKey}
 											oninput={(e) => handleClaudeKeyInput(e.currentTarget.value)}
 											onblur={handleClaudeKeyBlur}
-											disabled={claudeValidationState === 'validating' ||
-												(workspaceContext().type === 'organization' && !isOrgAdmin)}
-											placeholder={workspaceContext().type === 'organization' && !isOrgAdmin
-												? 'Contact admin'
-												: claudeHasKey
-													? '••••••••••••••••'
-													: 'sk-...'}
+											disabled={claudeValidationState === 'validating'}
+											placeholder={claudeHasKey ? '••••••••••••••••' : 'sk-...'}
 											class="w-64 border bg-base px-3 py-2 pr-10 text-sm {claudeValidationState ===
 											'valid'
 												? 'border-green-500'
 												: claudeValidationState === 'invalid'
 													? 'border-red-500'
 													: 'border-base'} rounded-md text-primary transition-all placeholder:text-tertiary focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none {claudeValidationState ===
-												'validating' ||
-											(workspaceContext().type === 'organization' && !isOrgAdmin)
+											'validating'
 												? 'cursor-not-allowed opacity-50'
 												: ''}"
 										/>
@@ -785,17 +744,11 @@
 										</span>
 									</label>
 									<p class="text-sm text-secondary">
-										{#if workspaceContext().type === 'organization'}
-											Your personal Readwise account. Imports will be shared with the organization.
-										{:else}
-											Import highlights and notes from your personal Readwise account
-										{/if}
+										Your personal Readwise account. Imports will be shared with the organization.
 									</p>
-									{#if workspaceContext().type === 'organization'}
-										<p class="mt-1 text-xs text-blue-600 dark:text-blue-400">
-											💡 Tip: Use the same key across workspaces to sync content everywhere
-										</p>
-									{/if}
+									<p class="mt-1 text-xs text-blue-600 dark:text-blue-400">
+										💡 Tip: Use the same key across organizations to sync content everywhere
+									</p>
 								</div>
 								<div class="flex flex-shrink-0 flex-col gap-1">
 									<div class="relative inline-block">

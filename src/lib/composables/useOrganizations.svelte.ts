@@ -66,7 +66,6 @@ export type UseOrganizations = ReturnType<typeof useOrganizations>;
 const STORAGE_KEY_PREFIX = 'activeOrganizationId';
 const STORAGE_DETAILS_KEY_PREFIX = 'activeOrganizationDetails';
 const _SENTINEL_ORGANIZATION_ID = '000000000000000000000000';
-const PERSONAL_SENTINEL = '__personal__';
 
 // Module-level tracking for URL param processing (pattern #L700 - plain variable, not $state)
 let lastProcessedOrgParam: string | null = null;
@@ -100,7 +99,9 @@ export function useOrganizations(options?: {
 	const storageDetailsKey = getStorageDetailsKey(currentUserId);
 
 	const storedActiveId = browser ? localStorage.getItem(storageKey) : null;
-	const initialActiveId = storedActiveId === PERSONAL_SENTINEL ? null : storedActiveId;
+	// Filter out old PERSONAL_SENTINEL value from localStorage (migration cleanup)
+	const initialActiveId =
+		storedActiveId && storedActiveId !== '__personal__' ? storedActiveId : null;
 
 	// Load cached organization details for optimistic UI
 	let cachedOrgDetails: OrganizationSummary | null = null;
@@ -122,7 +123,7 @@ export function useOrganizations(options?: {
 		lastUserId: undefined as string | undefined,
 		isSwitching: false,
 		switchingTo: null as string | null,
-		switchingToType: 'personal' as 'personal' | 'organization',
+		switchingToType: 'organization' as const,
 		switchStartTime: null as number | null,
 		modals: {
 			createOrganization: false,
@@ -163,8 +164,8 @@ export function useOrganizations(options?: {
 				})
 			: null;
 
-	// Query teams - pass organizationId if we have one, undefined if in personal workspace mode
-	// The Convex function now accepts optional organizationId and returns [] when undefined
+	// Query teams - pass organizationId if we have one
+	// The Convex function accepts optional organizationId and returns [] when undefined
 	const teamsQuery =
 		browser && getSessionId()
 			? useQuery(api.teams.listTeams, () => {
@@ -319,10 +320,12 @@ export function useOrganizations(options?: {
 		const storageDetailsKey = getStorageDetailsKey(currentUserId);
 
 		const list = organizationsData();
+		// Server-side enforcement redirects users with no organizations to /onboarding
+		// This should never happen, but handle gracefully
 		if (!list || list.length === 0) {
 			state.activeOrganizationId = null;
 			if (browser) {
-				localStorage.setItem(storageKey, PERSONAL_SENTINEL);
+				localStorage.removeItem(storageKey);
 				localStorage.removeItem(storageDetailsKey);
 			}
 			return;
@@ -346,29 +349,25 @@ export function useOrganizations(options?: {
 				return; // Active org is valid and cached
 			}
 
-			// Active org not found in list - fallback to personal workspace (not first org!)
-			state.activeOrganizationId = null;
+			// Active org not found in list - default to first org
+			const firstOrg = list[0];
+			state.activeOrganizationId = firstOrg.organizationId;
+			state.cachedOrganization = firstOrg;
 			if (browser) {
-				localStorage.setItem(storageKey, PERSONAL_SENTINEL);
-				localStorage.removeItem(storageDetailsKey);
-				state.cachedOrganization = null;
+				localStorage.setItem(storageKey, firstOrg.organizationId);
+				localStorage.setItem(storageDetailsKey, JSON.stringify(firstOrg));
 			}
 			return;
 		}
 
-		// No active org - check if user wants personal workspace
+		// No active org - default to first organization
+		// Users are required to have at least one organization (enforced server-side)
+		const firstOrg = list[0];
+		state.activeOrganizationId = firstOrg.organizationId;
+		state.cachedOrganization = firstOrg;
 		if (browser) {
-			const stored = localStorage.getItem(storageKey);
-			if (stored === PERSONAL_SENTINEL) {
-				return;
-			}
-		}
-
-		// Default to personal workspace (not first org!)
-		// This ensures new accounts start on their personal workspace
-		state.activeOrganizationId = null;
-		if (browser) {
-			localStorage.setItem(storageKey, PERSONAL_SENTINEL);
+			localStorage.setItem(storageKey, firstOrg.organizationId);
+			localStorage.setItem(storageDetailsKey, JSON.stringify(firstOrg));
 		}
 	});
 
@@ -427,7 +426,7 @@ export function useOrganizations(options?: {
 				// Clear switching state immediately
 				state.isSwitching = false;
 				state.switchingTo = null;
-				state.switchingToType = 'personal';
+				state.switchingToType = 'organization';
 				state.switchStartTime = null;
 			} else {
 				// Wait for remaining time to reach minimum duration
@@ -435,7 +434,7 @@ export function useOrganizations(options?: {
 				timeoutId = setTimeout(() => {
 					state.isSwitching = false;
 					state.switchingTo = null;
-					state.switchingToType = 'personal';
+					state.switchingToType = 'organization';
 					state.switchStartTime = null;
 				}, remaining);
 			}
@@ -452,49 +451,45 @@ export function useOrganizations(options?: {
 	function setActiveOrganization(organizationId: string | null) {
 		const previousOrganizationId = state.activeOrganizationId;
 
+		// Users are required to have at least one organization (enforced server-side)
+		// If null is passed, default to first organization
+		const list = organizationsData();
+		const targetOrgId = organizationId || (list.length > 0 ? list[0].organizationId : null);
+
+		if (!targetOrgId) {
+			// Should never happen due to server-side enforcement, but handle gracefully
+			console.warn('setActiveOrganization called with null and no organizations available');
+			return;
+		}
+
 		// Set switching state before changing organization
 		state.isSwitching = true;
 		state.switchStartTime = browser ? Date.now() : null;
 
 		// Determine target organization name and type for display
-		if (organizationId) {
-			const targetOrg = organizationsData().find((org) => org.organizationId === organizationId);
-			state.switchingTo = targetOrg?.name ?? 'organization';
-			state.switchingToType = 'organization';
-		} else {
-			state.switchingTo = 'Personal workspace';
-			state.switchingToType = 'personal';
-		}
+		const targetOrg = list.find((org) => org.organizationId === targetOrgId);
+		state.switchingTo = targetOrg?.name ?? 'organization';
+		state.switchingToType = 'organization';
 
-		state.activeOrganizationId = organizationId;
+		state.activeOrganizationId = targetOrgId;
 		state.activeTeamId = null;
 
 		const currentUserId = getUserId();
 		const storageKey = getStorageKey(currentUserId);
 		const storageDetailsKey = getStorageDetailsKey(currentUserId);
 
-		if (!organizationId) {
-			// Switching to personal workspace - clear cached org details
-			state.cachedOrganization = null;
-			if (browser) {
-				localStorage.setItem(storageKey, PERSONAL_SENTINEL);
-				localStorage.removeItem(storageDetailsKey);
-			}
-			return;
-		}
-
 		// Find and cache organization details for optimistic UI
-		const summary = organizationsData().find((org) => org.organizationId === organizationId);
+		const summary = targetOrg;
 		const availableTeamCount = summary?.teamCount ?? 0;
 
 		if (summary) {
 			state.cachedOrganization = summary;
 			if (browser) {
-				localStorage.setItem(storageKey, organizationId);
+				localStorage.setItem(storageKey, targetOrgId);
 				localStorage.setItem(storageDetailsKey, JSON.stringify(summary));
 			}
 		} else if (browser) {
-			localStorage.setItem(storageKey, organizationId);
+			localStorage.setItem(storageKey, targetOrgId);
 		}
 
 		if (convexClient) {
@@ -512,7 +507,7 @@ export function useOrganizations(options?: {
 				toOrganizationId: Id<'organizations'>;
 				availableTeamCount: number;
 			} = {
-				toOrganizationId: organizationId as Id<'organizations'>,
+				toOrganizationId: targetOrgId as Id<'organizations'>,
 				availableTeamCount
 			};
 
@@ -533,7 +528,7 @@ export function useOrganizations(options?: {
 			try {
 				const properties: Record<string, unknown> = {
 					scope: 'organization',
-					toOrganizationId: organizationId,
+					toOrganizationId: targetOrgId,
 					availableTeamCount
 				};
 

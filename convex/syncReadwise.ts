@@ -162,6 +162,20 @@ export const syncReadwiseHighlightsInternal = internalAction({
 	handler: async (ctx, args) => {
 		const { userId, apiKey, updatedAfter: dateFilter, limit } = args;
 
+		// Get user's first organization (users are required to have at least one)
+		const getUserOrgIdsQuery = internal.permissions
+			.getUserOrganizationIdsQuery as FunctionReference<
+			'query',
+			'internal',
+			{ userId: Id<'users'> },
+			string[]
+		>;
+		const organizationIds = await ctx.runQuery(getUserOrgIdsQuery, { userId });
+		if (organizationIds.length === 0) {
+			throw new Error('User must belong to at least one organization');
+		}
+		const organizationId = organizationIds[0] as Id<'organizations'>;
+
 		try {
 			// Get last sync timestamp for incremental sync
 			// BUT: Skip incremental sync if quantity-based (limit provided) or custom date range provided
@@ -487,6 +501,7 @@ export const syncReadwiseHighlightsInternal = internalAction({
 					for (const tag of source.tags || []) {
 						const tagId = await ctx.runMutation(internal.syncReadwiseMutations.findOrCreateTag, {
 							userId,
+							organizationId,
 							tagName: tag.name,
 							externalId: tag.id
 						});

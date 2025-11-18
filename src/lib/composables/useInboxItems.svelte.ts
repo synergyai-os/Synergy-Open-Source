@@ -63,13 +63,14 @@ export function useInboxItems(params?: UseInboxItemsParams): UseInboxItemsReturn
 					};
 
 					// Add workspace context (handle both function and value)
-					// IMPORTANT: Pass null explicitly for personal workspace to filter correctly
+					// Defensive: Handle null organizationId (should not happen - users always have orgs).
+					// This is for backwards compatibility with legacy data or edge cases.
 					const orgId =
 						typeof params?.activeOrganizationId === 'function'
 							? params.activeOrganizationId()
 							: params?.activeOrganizationId;
 					if (orgId !== undefined) {
-						// Pass null explicitly for personal workspace (required for filtering)
+						// Defensive: Pass null explicitly for backwards compatibility (legacy data handling).
 						// Cast to Id type for type safety
 						baseArgs.organizationId = orgId as Id<'organizations'> | null;
 					}

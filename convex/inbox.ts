@@ -13,7 +13,8 @@ import type { ProseMirrorNode } from '../src/lib/types/prosemirror';
 /**
  * List all inbox items for the current user
  * Optionally filter by type (readwise_highlight, photo_note, manual_text, etc.)
- * Filters by workspace context (personal, organization, or team)
+ * Filters by workspace context (organization or team).
+ * Note: null organizationId query is defensive (should not happen - users always have orgs)
  * Returns items with basic display info (title, snippet, tags) for inbox list
  *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
@@ -45,7 +46,8 @@ export const listInboxItems = query({
 
 		// Filter by workspace context
 		if (args.organizationId === null) {
-			// Personal workspace: show only user-owned items (no org/team)
+			// Defensive: Handle null organizationId query (should not happen - users always have orgs).
+			// Filters for items with no organizationId (legacy data or edge cases).
 			items = items.filter((item) => !item.organizationId && !item.teamId);
 		} else if (args.organizationId !== undefined) {
 			// Organization workspace: show org-owned items

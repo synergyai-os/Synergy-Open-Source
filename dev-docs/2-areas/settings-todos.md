@@ -11,13 +11,13 @@
 
 ### API Keys - Workspace Scoping
 
-**Personal Workspace:**
+**Personal Settings (within organization context):**
 
 - [ ] Show Readwise API key input (user-owned)
 - [ ] Show Claude API key input (personal, optional)
 - [ ] Keep existing validation logic
 
-**Organization Workspace:**
+**Organization Settings:**
 
 - [ ] Show Readwise API key input (user's personal key for org imports)
   - [ ] Add "Use my personal key" button (copies from personal settings)
@@ -31,9 +31,9 @@
 
 ### Theme Setting
 
-- [ ] Make theme work in personal workspace (current behavior)
-- [ ] **Disable** theme in org workspace (show as "Coming soon")
-- [ ] Add helpful message: "Theme preferences are personal. Switch to personal workspace to change."
+- [ ] Make theme work for personal settings (current behavior)
+- [ ] **Disable** theme in org settings (show as "Coming soon")
+- [ ] Add helpful message: "Theme preferences are personal and apply across all organizations."
 
 ## 📋 Future Enhancements (Not Now)
 
@@ -114,7 +114,7 @@
 
 ### Manual Testing
 
-- [ ] Personal workspace - all settings work
+- [ ] Personal settings (within org context) - all settings work
 - [ ] Org workspace - admin can edit
 - [ ] Org workspace - non-admin sees read-only/disabled
 - [ ] Switching workspaces updates settings correctly
@@ -212,8 +212,8 @@ organizationSettings: {
    - Each workspace tracks its own sync state
 
 2. **Claude is workspace-scoped**
-   - Personal workspace: optional personal key
-   - Org workspace: org-owned key (admin controlled)
+   - Personal settings: optional personal key (within org context)
+   - Org settings: org-owned key (admin controlled)
    - Clear cost attribution
 
 3. **Theme is personal-only**

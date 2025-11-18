@@ -57,7 +57,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 	}
 
 	// Determine active organization for teams/permissions preload
-	// Priority: URL param > first organization > null (personal workspace)
+	// Priority: URL param > first organization (users always have at least one workspace)
 	const orgParam = url.searchParams.get('org');
 	const orgsList = organizations as Array<{ organizationId: string }>;
 
@@ -96,9 +96,12 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 				console.warn('Failed to load permissions server-side:', error);
 			}
 
-			// Preload tags for QuickCreateModal instant rendering
+			// Preload tags for QuickCreateModal instant rendering (filtered by active organization)
 			try {
-				tags = await client.query(api.tags.listAllTags, { sessionId });
+				tags = await client.query(api.tags.listAllTags, {
+					sessionId,
+					...(activeOrgId ? { organizationId: activeOrgId as Id<'organizations'> } : {})
+				});
 			} catch (error) {
 				console.warn('Failed to load tags server-side:', error);
 			}
