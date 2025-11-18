@@ -11,10 +11,12 @@
 		getCircleColor,
 		isSyntheticRoot,
 		isSyntheticRole,
+		isRolesGroup,
 		type CircleNode,
 		type CircleHierarchyNode,
 		type RoleNode
 	} from '$lib/utils/orgChartTransform';
+	import type { Id } from '$lib/convex';
 	import type { UseOrgChart } from '$lib/composables/useOrgChart.svelte';
 
 	let {
@@ -68,22 +70,36 @@
 
 		// Extract role positions from synthetic role nodes and attach to parent circles
 		const nodesWithRoles: CircleHierarchyNode[] = nodes.map((node) => {
-			// If this is a synthetic role node, extract its position relative to parent
+			// If this is a synthetic role node, extract its position relative to the actual circle
 			if (isSyntheticRole(node.data.circleId) && node.parent) {
 				const parentNode = node.parent as CircleHierarchyNode;
 				const roleData = node.data.roles?.[0]; // Get original role data
 				if (roleData && node.r && node.r > 0) {
-					// Calculate position relative to parent center
-					const relativeX = node.x - parentNode.x;
-					const relativeY = node.y - parentNode.y;
-
-					// Initialize packedRoles array if it doesn't exist
-					if (!(parentNode.data as CircleNode).packedRoles) {
-						(parentNode.data as CircleNode).packedRoles = [];
+					// If parent is a roles group, get the circle (group's parent) for relative positioning
+					// Otherwise, use immediate parent (backward compatibility)
+					let circleNode: CircleHierarchyNode;
+					if (isRolesGroup(parentNode.data.circleId) && parentNode.parent) {
+						circleNode = parentNode.parent as CircleHierarchyNode;
+					} else {
+						circleNode = parentNode;
 					}
 
-					// Add role position to parent's packedRoles
-					(parentNode.data as CircleNode).packedRoles!.push({
+					// Calculate position relative to circle center (not group center)
+					const relativeX = node.x - circleNode.x;
+					const relativeY = node.y - circleNode.y;
+
+					// Debug logging to verify role radius after packing
+					console.log(
+						`📍 Role "${roleData.name}" in "${circleNode.data.name}" (depth ${circleNode.depth}): r=${node.r.toFixed(2)}, value=${node.value?.toFixed(2) ?? 'N/A'}`
+					);
+
+					// Initialize packedRoles array if it doesn't exist
+					if (!(circleNode.data as CircleNode).packedRoles) {
+						(circleNode.data as CircleNode).packedRoles = [];
+					}
+
+					// Add role position to circle's packedRoles
+					(circleNode.data as CircleNode).packedRoles!.push({
 						roleId: roleData.roleId,
 						name: roleData.name,
 						x: relativeX,
@@ -98,24 +114,76 @@
 		return nodesWithRoles;
 	});
 
-	// Initialize focus node and view when nodes are first available
-	$effect(() => {
-		if (packedNodes.length > 0 && !focusNode) {
-			const rootNode = packedNodes[0];
-			if (rootNode && !isSyntheticRoot(rootNode.data.circleId)) {
-				currentView = [rootNode.x, rootNode.y, rootNode.r * 2];
-				focusNode = rootNode as CircleHierarchyNode;
-				// Initialize zoom level to show labels
-				currentZoomLevel = 1.0;
+	// Calculate bounds of all visible nodes to fit entire chart
+	function calculateBounds(nodes: CircleHierarchyNode[]): [number, number, number] {
+		if (nodes.length === 0) {
+			return [0, 0, width];
+		}
+
+		// Find min/max x and y accounting for radius and roles
+		let minX = Infinity;
+		let maxX = -Infinity;
+		let minY = Infinity;
+		let maxY = -Infinity;
+
+		for (const node of nodes) {
+			const r = node.r ?? 0;
+
+			// Account for circle bounds
+			minX = Math.min(minX, node.x - r);
+			maxX = Math.max(maxX, node.x + r);
+			minY = Math.min(minY, node.y - r);
+			maxY = Math.max(maxY, node.y + r);
+
+			// Account for roles packed within this circle
+			if (node.data.packedRoles) {
+				for (const role of node.data.packedRoles) {
+					// Role position is relative to circle center, so add circle position
+					const roleX = node.x + role.x;
+					const roleY = node.y + role.y;
+					const roleR = role.r ?? 0;
+
+					minX = Math.min(minX, roleX - roleR);
+					maxX = Math.max(maxX, roleX + roleR);
+					minY = Math.min(minY, roleY - roleR);
+					maxY = Math.max(maxY, roleY + roleR);
+				}
 			}
 		}
-	});
 
-	// Filter out synthetic root and synthetic roles, sort by depth (parents first, children last)
+		// Add minimal padding: 10px on all sides
+		const padding = 10;
+		const boundsWidth = maxX - minX + padding * 2;
+		const boundsHeight = maxY - minY + padding * 2;
+
+		// Calculate center point
+		const centerX = (minX + maxX) / 2;
+		const centerY = (minY + maxY) / 2;
+
+		// Calculate view width to fit bounds (accounting for aspect ratio)
+		const aspectRatio = width / height;
+		const boundsAspectRatio = boundsWidth / boundsHeight;
+
+		let viewWidth: number;
+		if (boundsAspectRatio > aspectRatio) {
+			// Bounds are wider - fit to width
+			viewWidth = boundsWidth;
+		} else {
+			// Bounds are taller - fit to height (scale width accordingly)
+			viewWidth = boundsHeight * aspectRatio;
+		}
+
+		return [centerX, centerY, viewWidth];
+	}
+
+	// Filter out synthetic root, synthetic roles, and roles group nodes, sort by depth (parents first, children last)
 	const visibleNodes = $derived(
 		packedNodes
 			.filter(
-				(node) => !isSyntheticRoot(node.data.circleId) && !isSyntheticRole(node.data.circleId)
+				(node) =>
+					!isSyntheticRoot(node.data.circleId) &&
+					!isSyntheticRole(node.data.circleId) &&
+					!isRolesGroup(node.data.circleId)
 			)
 			.sort((a, b) => {
 				// Sort by depth ascending (parents first), then by value descending (larger first)
@@ -127,6 +195,21 @@
 				return bValue - aValue;
 			})
 	);
+
+	// Initialize focus node and view when nodes are first available
+	$effect(() => {
+		if (visibleNodes.length > 0 && !focusNode) {
+			const rootNode = packedNodes[0];
+			if (rootNode && !isSyntheticRoot(rootNode.data.circleId)) {
+				// Calculate bounds of all visible nodes to fit entire chart
+				// Use visibleNodes which already filters out synthetic nodes
+				currentView = calculateBounds(visibleNodes as CircleHierarchyNode[]);
+				focusNode = rootNode as CircleHierarchyNode;
+				// Initialize zoom level to show labels
+				currentZoomLevel = 1.0;
+			}
+		}
+	});
 
 	// Determine if roles should be visible for a circle
 	// Show ALL roles on load, hide when too small
@@ -228,15 +311,23 @@
 		// Apply zoom to SVG
 		select(svgElement).call(zoomBehavior);
 
-		// Initial zoom to root (synchronous, no setTimeout)
-		if (packedNodes.length > 0) {
+		// Initial zoom to fit entire chart (synchronous, no setTimeout)
+		// Use visibleNodes which already has roles extracted and filtered
+		if (visibleNodes.length > 0) {
 			const root = packedNodes[0];
 			if (root && !isSyntheticRoot(root.data.circleId)) {
-				// Set initial transform to show root level labels
-				const rootNode = root as CircleHierarchyNode;
-				currentView = [rootNode.x, rootNode.y, rootNode.r * 2];
-				focusNode = rootNode;
-				currentZoomLevel = 1.0;
+				// Calculate bounds of all visible nodes to fit entire chart
+				if (visibleNodes.length > 0) {
+					currentView = calculateBounds(visibleNodes as CircleHierarchyNode[]);
+					focusNode = root as CircleHierarchyNode;
+					currentZoomLevel = 1.0;
+				} else {
+					// Fallback to root node if no visible nodes
+					const rootNode = root as CircleHierarchyNode;
+					currentView = [rootNode.x, rootNode.y, rootNode.r * 2];
+					focusNode = rootNode;
+					currentZoomLevel = 1.0;
+				}
 
 				// Apply initial transform
 				if (gElement) {
@@ -272,19 +363,22 @@
 
 	function handleCircleClick(event: MouseEvent, node: CircleHierarchyNode) {
 		event.stopPropagation();
-		if (focusNode?.data.circleId === node.data.circleId) {
-			// If clicking the same circle, zoom out to parent or root
-			if (node.parent && !isSyntheticRoot(node.parent.data.circleId)) {
-				zoomToNode(node.parent as CircleHierarchyNode);
-			} else if (packedNodes.length > 0) {
-				const root = packedNodes[0];
-				if (root && !isSyntheticRoot(root.data.circleId)) {
-					zoomToNode(root);
-				}
-			}
-		} else {
-			// Zoom to clicked circle
+
+		// Handle synthetic role circles - extract role ID and open role panel
+		if (isSyntheticRole(node.data.circleId)) {
+			const syntheticId = String(node.data.circleId);
+			const roleId = syntheticId.replace('__role__', '') as Id<'circleRoles'>;
+			orgChart.selectRole(roleId, 'chart');
+			return;
+		}
+
+		// Always open circle detail panel when clicking a circle
+		// Zoom to clicked circle if it's different from current focus
+		if (focusNode?.data.circleId !== node.data.circleId) {
 			zoomToNode(node);
+		} else {
+			// Circle is already focused - just open the panel
+			orgChart.selectCircle(node.data.circleId);
 		}
 	}
 

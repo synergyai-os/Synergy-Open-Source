@@ -80,11 +80,17 @@ export const list = query({
 			.withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId))
 			.collect();
 
-		// Get member counts for each circle
+		// Get member counts and roles for each circle
 		const results = await Promise.all(
 			circles.map(async (circle) => {
 				const members = await ctx.db
 					.query('circleMembers')
+					.withIndex('by_circle', (q) => q.eq('circleId', circle._id))
+					.collect();
+
+				// Get roles for this circle
+				const roles = await ctx.db
+					.query('circleRoles')
 					.withIndex('by_circle', (q) => q.eq('circleId', circle._id))
 					.collect();
 
@@ -104,6 +110,11 @@ export const list = query({
 					parentCircleId: circle.parentCircleId,
 					parentName,
 					memberCount: members.length,
+					roleCount: roles.length,
+					roles: roles.map((r) => ({
+						roleId: r._id,
+						name: r.name
+					})),
 					createdAt: circle.createdAt,
 					updatedAt: circle.updatedAt,
 					archivedAt: circle.archivedAt

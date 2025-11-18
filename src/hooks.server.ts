@@ -1,6 +1,9 @@
 import { sequence } from '@sveltejs/kit/hooks';
 import { redirect, type Handle } from '@sveltejs/kit';
 import { resolveRequestSession } from '$lib/server/auth/session';
+import { ConvexHttpClient } from 'convex/browser';
+import { api } from '$lib/convex';
+import { env } from '$env/dynamic/public';
 
 // Define public routes that don't require authentication
 const publicPaths = [
@@ -88,9 +91,60 @@ const requireAuth: Handle = async ({ event, resolve }) => {
 	return resolve(event);
 };
 
+// Require admin role for admin routes
+const requireAdmin: Handle = async ({ event, resolve }) => {
+	// Skip admin checks during build/preview
+	const isBuildContext = event.isDataRequest || event.isSubRequest;
+
+	// Only check admin routes
+	if (!event.url.pathname.startsWith('/admin')) {
+		return resolve(event);
+	}
+
+	// Skip admin check during build context
+	if (isBuildContext) {
+		return resolve(event);
+	}
+
+	// User must be authenticated first (requireAuth already checked)
+	if (!event.locals.auth.sessionId) {
+		// This shouldn't happen since requireAuth runs first, but safety check
+		throw redirect(
+			302,
+			`/login?redirectTo=${encodeURIComponent(event.url.pathname + event.url.search)}`
+		);
+	}
+
+	// Check if user is system admin
+	try {
+		const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
+		const isAdmin = await client.query(api.rbac.permissions.isSystemAdmin, {
+			sessionId: event.locals.auth.sessionId
+		});
+
+		if (!isAdmin) {
+			// Not an admin, redirect to inbox
+			throw redirect(302, '/inbox');
+		}
+
+		// User is admin, proceed
+		return resolve(event);
+	} catch (error) {
+		// If it's a redirect, re-throw it
+		if (error && typeof error === 'object' && 'status' in error) {
+			throw error;
+		}
+
+		// If query fails, deny access (fail closed)
+		console.error('Failed to check admin status:', error);
+		throw redirect(302, '/inbox');
+	}
+};
+
 // Apply hooks in sequence
 export const handle = sequence(
 	redirectMarkdownUrls, // First, redirect any .md URLs to clean URLs
 	sessionHandle, // Resolve server-managed session
-	requireAuth // Finally enforce authentication for protected routes
+	requireAuth, // Enforce authentication for protected routes
+	requireAdmin // Enforce admin role for admin routes
 );

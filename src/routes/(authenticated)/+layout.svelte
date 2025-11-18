@@ -27,6 +27,9 @@
 
 	let { children, data } = $props();
 
+	// Check if we're on an admin route - skip authenticated layout for admin routes
+	const isAdminRoute = $derived(browser ? $page.url.pathname.startsWith('/admin') : false);
+
 	// Initialize organizations composable with sessionId and server-side preloaded data
 	const organizations = useOrganizations({
 		userId: () => data.user?.userId,
@@ -287,7 +290,10 @@
 	});
 </script>
 
-{#if isAuthenticated}
+{#if isAdminRoute}
+	<!-- Admin routes use their own layout - skip authenticated layout -->
+	{@render children()}
+{:else if isAuthenticated}
 	<div class="flex h-screen overflow-hidden">
 		<!-- Shared Sidebar Component -->
 		<Sidebar

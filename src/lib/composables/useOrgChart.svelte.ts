@@ -29,10 +29,10 @@ export function useOrgChart(options: {
 		// Hover state
 		hoveredCircleId: null as Id<'circles'> | null,
 		// Query results (loaded via $effect)
-		selectedCircle: null as Awaited<ReturnType<typeof api.circles.get>> | null,
-		selectedCircleMembers: [] as Awaited<ReturnType<typeof api.circles.getMembers>>,
-		selectedRole: null as Awaited<ReturnType<typeof api.circleRoles.get>> | null,
-		selectedRoleFillers: [] as Awaited<ReturnType<typeof api.circleRoles.getRoleFillers>>,
+		selectedCircle: null as any,
+		selectedCircleMembers: [] as any[],
+		selectedRole: null as any,
+		selectedRoleFillers: [] as any[],
 		// Loading states
 		selectedCircleIsLoading: false,
 		selectedCircleMembersIsLoading: false,

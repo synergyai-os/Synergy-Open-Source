@@ -94,27 +94,51 @@ export function transformToHierarchy(circles: CircleNode[]): HierarchyNode<Circl
 		}
 	});
 
-	// Add roles as synthetic circle nodes (so they pack alongside child circles)
+	// Add roles as synthetic circle nodes grouped together
+	// Create a synthetic "roles group" node that contains all roles as children
+	// This groups roles together instead of scattering them with child circles
 	circles.forEach((circle) => {
 		if (circle.roles && circle.roles.length > 0) {
 			if (!childrenMap.has(circle.circleId)) {
 				childrenMap.set(circle.circleId, []);
 			}
-			// Create synthetic circle nodes for roles
+
+			// Create synthetic circle nodes for individual roles
 			const roleCircles: CircleNode[] = circle.roles.map((role) => ({
 				circleId: `__role__${role.roleId}` as Id<'circles'>, // Synthetic ID
 				organizationId: circle.organizationId,
 				name: role.name,
 				slug: `role-${role.roleId}`,
-				parentCircleId: circle.circleId,
+				parentCircleId: `__roles_group__${circle.circleId}` as Id<'circles'>, // Parent is roles group, not circle
 				memberCount: 0,
 				roleCount: 0,
 				createdAt: circle.createdAt,
 				// Store original role data for later extraction
 				roles: [{ roleId: role.roleId, name: role.name }]
 			}));
-			childrenMap.get(circle.circleId)!.push(...roleCircles);
-			console.log(`🎭 Added ${roleCircles.length} roles as synthetic circles to "${circle.name}"`);
+
+			// Create synthetic "roles group" node that contains all roles
+			const rolesGroupNode: CircleNode = {
+				circleId: `__roles_group__${circle.circleId}` as Id<'circles'>, // Synthetic grouping ID
+				organizationId: circle.organizationId,
+				name: 'Roles',
+				slug: `roles-group-${circle.circleId}`,
+				parentCircleId: circle.circleId, // Parent is the actual circle
+				memberCount: 0,
+				roleCount: circle.roles.length,
+				createdAt: circle.createdAt
+				// Don't set children here - buildHierarchy will get them from childrenMap
+			};
+
+			// Add roles group node to circle's children (alongside child circles)
+			childrenMap.get(circle.circleId)!.push(rolesGroupNode);
+
+			// Add roles group to childrenMap so buildHierarchy can find its children (roles)
+			childrenMap.set(`__roles_group__${circle.circleId}` as Id<'circles'>, roleCircles);
+
+			console.log(
+				`🎭 Added ${roleCircles.length} roles as grouped synthetic circles to "${circle.name}"`
+			);
 		}
 	});
 
@@ -144,10 +168,32 @@ export function transformToHierarchy(circles: CircleNode[]): HierarchyNode<Circl
 			const mappedChildren = children.map((child) => {
 				if (isSyntheticRole(child.circleId)) {
 					// Store parent depth in role node data
+					// For roles in a roles group, use the group's parent depth (the actual circle)
 					return {
 						...child,
 						_parentDepth: depth
 					};
+				}
+				if (isRolesGroup(child.circleId)) {
+					// Roles group node: build its children (roles) with same depth
+					// Roles should have the same depth as the circle that contains the group
+					const groupChildren = childrenMap.get(child.circleId);
+					if (groupChildren) {
+						const mappedGroupChildren = groupChildren.map((roleChild) => {
+							if (isSyntheticRole(roleChild.circleId)) {
+								return {
+									...roleChild,
+									_parentDepth: depth // Use circle's depth, not group's depth
+								};
+							}
+							return roleChild;
+						});
+						return {
+							...child,
+							children: mappedGroupChildren
+						};
+					}
+					return child;
 				}
 				// Recursively build hierarchy for regular circles
 				return buildHierarchy(child, depth + 1);
@@ -192,6 +238,14 @@ export function calculateCircleValue(
 	circle: CircleNode,
 	node?: D3HierarchyNode<CircleNode>
 ): number {
+	// Roles group nodes: sum of all child roles (D3 will sum children automatically, but we need a base value)
+	if (isRolesGroup(circle.circleId)) {
+		// Return sum of children - D3 will calculate this automatically via sum()
+		// But we need a non-zero value so the group gets packed
+		// Use a small base value that will be overridden by children's sum
+		return circle.roleCount ?? 0;
+	}
+
 	// Synthetic role nodes scale with parent circle depth
 	// Roles in top-level circles (depth 0) are largest
 	// Roles in sub-circles (depth 1) are medium
@@ -218,11 +272,12 @@ export function calculateCircleValue(
 
 		// Base sizes: larger for higher hierarchy levels
 		// D3 pack layout scales circles proportionally - with many siblings, need much larger values
-		// Depth 0: Much bigger (500 → r ~80-100) - big green circle roles (11 roles need large values)
+		// Roles are now nested: Circle → Roles Group → Role (extra constraint level)
+		// Depth 0: Much bigger (1000 → r ~100-120) - big green circle roles (compensate for roles group nesting)
 		// Depth 1: Slightly bigger (140 → r ~35-40) - sub-circle roles (circles inside green circle)
 		// Depth 2: Match previous depth 1 (55 → r ~22-23) - sub-sub-circle roles
 		// Depth 3+: Keep current (35 → r ~17-18) - smallest roles (good as-is)
-		const baseSizes = [500, 140, 55, 35]; // depth 0, 1, 2, 3+
+		const baseSizes = [1000, 500, 100, 35]; // depth 0, 1, 2, 3+
 		const baseSize = baseSizes[Math.min(parentDepth, baseSizes.length - 1)];
 
 		// Debug logging to verify depth calculation
@@ -374,4 +429,11 @@ export function isSyntheticRoot(circleId: Id<'circles'>): boolean {
  */
 export function isSyntheticRole(circleId: Id<'circles'>): boolean {
 	return String(circleId).startsWith('__role__');
+}
+
+/**
+ * Check if a node is a synthetic roles group node (contains roles as children)
+ */
+export function isRolesGroup(circleId: Id<'circles'>): boolean {
+	return String(circleId).startsWith('__roles_group__');
 }

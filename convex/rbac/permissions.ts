@@ -177,6 +177,56 @@ export async function requirePermission(
 	}
 }
 
+/**
+ * Require system admin role (throws if not admin)
+ * Use this in admin mutations/queries to enforce admin-only access
+ *
+ * @param ctx Query or Mutation context
+ * @param sessionId Session ID from authenticated SvelteKit session
+ * @returns userId if user is system admin
+ * @throws Error if user is not system admin
+ */
+export async function requireSystemAdmin(
+	ctx: QueryCtx | MutationCtx,
+	sessionId: string
+): Promise<Id<'users'>> {
+	// Validate session and get userId (prevents impersonation)
+	const { userId } = await validateSessionAndGetUserId(ctx, sessionId);
+
+	// Get all user roles
+	const userRoles = await ctx.db
+		.query('userRoles')
+		.withIndex('by_user', (q) => q.eq('userId', userId))
+		.collect();
+
+	// Filter to active roles (not revoked, not expired)
+	const now = Date.now();
+	const activeUserRoles = userRoles.filter((ur) => {
+		if (ur.revokedAt) return false;
+		if (ur.expiresAt && ur.expiresAt < now) return false;
+		return true;
+	});
+
+	// Check if user has admin role with no organizationId (global scope)
+	for (const userRole of activeUserRoles) {
+		// Must have no organizationId (global scope)
+		if (userRole.organizationId !== undefined) {
+			continue;
+		}
+
+		// Get role details
+		const role = await ctx.db.get(userRole.roleId);
+		if (!role) continue;
+
+		// Check if role slug is 'admin'
+		if (role.slug === 'admin') {
+			return userId;
+		}
+	}
+
+	throw new Error('System admin access required');
+}
+
 // ============================================================================
 // Helper Functions
 // ============================================================================
@@ -348,6 +398,56 @@ async function logPermissionCheck(
 // ============================================================================
 // Query - Frontend Permission Checking
 // ============================================================================
+
+/**
+ * Check if user is a system-level admin (global admin role with no organizationId)
+ *
+ * Used by hooks.server.ts to protect admin routes
+ *
+ * @returns true if user has global admin role, false otherwise
+ */
+export const isSystemAdmin = query({
+	args: {
+		sessionId: v.string() // Session validation (derives userId securely)
+	},
+	handler: async (ctx, args) => {
+		// Validate session and get userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		// Get all user roles
+		const userRoles = await ctx.db
+			.query('userRoles')
+			.withIndex('by_user', (q) => q.eq('userId', userId))
+			.collect();
+
+		// Filter to active roles (not revoked, not expired)
+		const now = Date.now();
+		const activeUserRoles = userRoles.filter((ur) => {
+			if (ur.revokedAt) return false;
+			if (ur.expiresAt && ur.expiresAt < now) return false;
+			return true;
+		});
+
+		// Check if user has admin role with no organizationId (global scope)
+		for (const userRole of activeUserRoles) {
+			// Must have no organizationId (global scope)
+			if (userRole.organizationId !== undefined) {
+				continue;
+			}
+
+			// Get role details
+			const role = await ctx.db.get(userRole.roleId);
+			if (!role) continue;
+
+			// Check if role slug is 'admin'
+			if (role.slug === 'admin') {
+				return true;
+			}
+		}
+
+		return false;
+	}
+});
 
 /**
  * Get user permissions for frontend use

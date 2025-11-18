@@ -8,6 +8,11 @@
  * @module
  */
 
+import type * as admin_analytics from "../admin/analytics.js";
+import type * as admin_cleanupDuplicateRoles from "../admin/cleanupDuplicateRoles.js";
+import type * as admin_rbac from "../admin/rbac.js";
+import type * as admin_settings from "../admin/settings.js";
+import type * as admin_users from "../admin/users.js";
 import type * as auth from "../auth.js";
 import type * as authSessions from "../authSessions.js";
 import type * as blogExport from "../blogExport.js";
@@ -40,6 +45,7 @@ import type * as rbac_setupAdmin from "../rbac/setupAdmin.js";
 import type * as readwiseApi from "../readwiseApi.js";
 import type * as readwiseCleanup from "../readwiseCleanup.js";
 import type * as readwiseUtils from "../readwiseUtils.js";
+import type * as seedOrgChart from "../seedOrgChart.js";
 import type * as sessionValidation from "../sessionValidation.js";
 import type * as settings from "../settings.js";
 import type * as syncReadwise from "../syncReadwise.js";
@@ -59,6 +65,11 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "admin/analytics": typeof admin_analytics;
+  "admin/cleanupDuplicateRoles": typeof admin_cleanupDuplicateRoles;
+  "admin/rbac": typeof admin_rbac;
+  "admin/settings": typeof admin_settings;
+  "admin/users": typeof admin_users;
   auth: typeof auth;
   authSessions: typeof authSessions;
   blogExport: typeof blogExport;
@@ -91,6 +102,7 @@ declare const fullApi: ApiFromModules<{
   readwiseApi: typeof readwiseApi;
   readwiseCleanup: typeof readwiseCleanup;
   readwiseUtils: typeof readwiseUtils;
+  seedOrgChart: typeof seedOrgChart;
   sessionValidation: typeof sessionValidation;
   settings: typeof settings;
   syncReadwise: typeof syncReadwise;

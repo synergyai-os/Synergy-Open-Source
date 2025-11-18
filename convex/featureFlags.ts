@@ -12,6 +12,7 @@
 import { v } from 'convex/values';
 import { query, mutation } from './_generated/server';
 import { validateSessionAndGetUserId } from './sessionValidation';
+import { requireSystemAdmin } from './rbac/permissions';
 import type { Id } from './_generated/dataModel';
 
 /**
@@ -237,11 +238,11 @@ export const checkFlags = query({
  * List all feature flags (admin only)
  */
 export const listFlags = query({
-	args: {},
-	handler: async (ctx) => {
-		// TODO: Add admin permission check
-		// const identity = await ctx.auth.getUserIdentity();
-		// if (!identity || !isAdmin(identity)) throw new Error('Unauthorized');
+	args: {
+		sessionId: v.string()
+	},
+	handler: async (ctx, args) => {
+		await requireSystemAdmin(ctx, args.sessionId);
 
 		return await ctx.db.query('featureFlags').collect();
 	}
@@ -408,10 +409,11 @@ export const debugFlagEvaluation = query({
 });
 
 /**
- * Create or update a feature flag
+ * Create or update a feature flag (admin only)
  */
 export const upsertFlag = mutation({
 	args: {
+		sessionId: v.string(),
 		flag: v.string(),
 		enabled: v.boolean(),
 		rolloutPercentage: v.optional(v.number()),
@@ -420,9 +422,7 @@ export const upsertFlag = mutation({
 		allowedDomains: v.optional(v.array(v.string()))
 	},
 	handler: async (ctx, args) => {
-		// TODO: Add admin permission check
-		// const identity = await ctx.auth.getUserIdentity();
-		// if (!identity || !isAdmin(identity)) throw new Error('Unauthorized');
+		await requireSystemAdmin(ctx, args.sessionId);
 
 		const existing = await ctx.db
 			.query('featureFlags')
@@ -459,78 +459,83 @@ export const upsertFlag = mutation({
 });
 
 /**
- * Quick enable/disable a flag
+ * Quick enable/disable a flag (admin only)
  */
 export const toggleFlag = mutation({
 	args: {
+		sessionId: v.string(),
 		flag: v.string(),
 		enabled: v.boolean()
 	},
-	handler: async (ctx, { flag, enabled }) => {
-		// TODO: Add admin permission check
+	handler: async (ctx, args) => {
+		await requireSystemAdmin(ctx, args.sessionId);
 
 		const existing = await ctx.db
 			.query('featureFlags')
-			.withIndex('by_flag', (q) => q.eq('flag', flag))
+			.withIndex('by_flag', (q) => q.eq('flag', args.flag))
 			.first();
 
 		if (!existing) {
-			throw new Error(`Flag ${flag} not found`);
+			throw new Error(`Flag ${args.flag} not found`);
 		}
 
 		await ctx.db.patch(existing._id, {
-			enabled,
+			enabled: args.enabled,
 			updatedAt: Date.now()
 		});
 	}
 });
 
 /**
- * Update rollout percentage
+ * Update rollout percentage (admin only)
  */
 export const updateRollout = mutation({
 	args: {
+		sessionId: v.string(),
 		flag: v.string(),
 		percentage: v.number()
 	},
-	handler: async (ctx, { flag, percentage }) => {
-		// TODO: Add admin permission check
+	handler: async (ctx, args) => {
+		await requireSystemAdmin(ctx, args.sessionId);
 
-		if (percentage < 0 || percentage > 100) {
+		if (args.percentage < 0 || args.percentage > 100) {
 			throw new Error('Percentage must be between 0 and 100');
 		}
 
 		const existing = await ctx.db
 			.query('featureFlags')
-			.withIndex('by_flag', (q) => q.eq('flag', flag))
+			.withIndex('by_flag', (q) => q.eq('flag', args.flag))
 			.first();
 
 		if (!existing) {
-			throw new Error(`Flag ${flag} not found`);
+			throw new Error(`Flag ${args.flag} not found`);
 		}
 
 		await ctx.db.patch(existing._id, {
-			rolloutPercentage: percentage,
+			rolloutPercentage: args.percentage,
 			updatedAt: Date.now()
 		});
 	}
 });
 
 /**
- * Delete a feature flag (use sparingly - usually just disable instead)
+ * Delete a feature flag (admin only, use sparingly - usually just disable instead)
  */
 export const deleteFlag = mutation({
-	args: { flag: v.string() },
-	handler: async (ctx, { flag }) => {
-		// TODO: Add admin permission check
+	args: {
+		sessionId: v.string(),
+		flag: v.string()
+	},
+	handler: async (ctx, args) => {
+		await requireSystemAdmin(ctx, args.sessionId);
 
 		const existing = await ctx.db
 			.query('featureFlags')
-			.withIndex('by_flag', (q) => q.eq('flag', flag))
+			.withIndex('by_flag', (q) => q.eq('flag', args.flag))
 			.first();
 
 		if (!existing) {
-			throw new Error(`Flag ${flag} not found`);
+			throw new Error(`Flag ${args.flag} not found`);
 		}
 
 		await ctx.db.delete(existing._id);
