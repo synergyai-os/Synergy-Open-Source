@@ -82,6 +82,7 @@
 | `each_key_duplicate` error when multiple users belong to same organization                         | Use composite keys: `(${org.organizationId}-${account.userId})`             | [svelte-reactivity.md#L1460](svelte-reactivity.md#L1460)                |
 | `ReferenceError: [variable] is not defined` accessing variable from try block                      | Declare variable before try block or move cleanup inside try                 | [svelte-reactivity.md#L1510](svelte-reactivity.md#L1510)                |
 | UI shows actions users can't perform, buttons visible but disabled/error on click                 | Use `usePermissions` composable + owner bypass pattern for permission-based visibility | [ui-patterns.md#L3200](ui-patterns.md#L3200)            |
+|| Buttons/dropdowns in modal panels don't work, clicks don't register                            | Use z-index stacking: backdrop z-40, panel z-50, dropdowns z-50 (don't use stopPropagation)  | [ui-patterns.md#L3650](ui-patterns.md#L3650)            |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
