@@ -56,6 +56,7 @@
 	// Organization selector state
 	let orgSelectorOpen = $state(false);
 	let orgSearchQuery = $state('');
+	let orgSelectorTriggerRef: HTMLElement | null = $state(null);
 
 	// Loading state
 	let saving = $state(false);
@@ -363,7 +364,6 @@
 									<Combobox.Root
 										type="multiple"
 										bind:value={formAllowedOrgIds}
-										bind:open={orgSelectorOpen}
 										onValueChange={(values) => {
 											console.log('[DEBUG] STEP 1: Combobox onValueChange fired with:', values);
 											console.log('[DEBUG] STEP 2: Current formAllowedOrgIds before update:', formAllowedOrgIds);
@@ -371,90 +371,83 @@
 											console.log('[DEBUG] STEP 3: Updated formAllowedOrgIds:', formAllowedOrgIds);
 										}}
 									>
-											<Combobox.Trigger
-												asChild
+											<button
+												type="button"
+												bind:this={orgSelectorTriggerRef}
+												onclick={() => {
+													console.log('[DEBUG] Trigger clicked, current open:', orgSelectorOpen);
+													orgSelectorOpen = !orgSelectorOpen;
+													console.log('[DEBUG] Trigger clicked, new open:', orgSelectorOpen);
+												}}
 												class="flex w-full items-center justify-between rounded-input border border-base bg-input px-input-x py-input-y text-sm text-primary transition-colors hover:bg-hover-solid"
 											>
-												<button type="button">
-													<span class="text-secondary">
-														{selectedOrgNames.length > 0
-															? `${selectedOrgNames.length} organization${selectedOrgNames.length !== 1 ? 's' : ''} selected`
-															: 'Select organizations...'}
-													</span>
-													<svg
-														class="h-4 w-4 text-tertiary transition-transform {orgSelectorOpen
-															? 'rotate-180'
-															: ''}"
-														fill="none"
-														stroke="currentColor"
-														viewBox="0 0 24 24"
-													>
-														<path
-															stroke-linecap="round"
-															stroke-linejoin="round"
-															stroke-width="2"
-															d="M19 9l-7 7-7-7"
-														/>
-													</svg>
-												</button>
-											</Combobox.Trigger>
-											<Combobox.Portal>
-												<Combobox.Content
-													class="z-50 max-h-[300px] min-w-[300px] overflow-y-auto rounded-md border border-base bg-elevated py-1 shadow-lg"
-													side="bottom"
-													align="start"
-													sideOffset={4}
+												<span class="text-secondary">
+													{selectedOrgNames.length > 0
+														? `${selectedOrgNames.length} organization${selectedOrgNames.length !== 1 ? 's' : ''} selected`
+														: 'Select organizations...'}
+												</span>
+												<svg
+													class="h-4 w-4 text-tertiary transition-transform {orgSelectorOpen
+														? 'rotate-180'
+														: ''}"
+													fill="none"
+													stroke="currentColor"
+													viewBox="0 0 24 24"
 												>
-													<div class="border-b border-base px-menu-item py-menu-item">
-														<Combobox.Input
-															placeholder="Search organizations..."
-															defaultValue={orgSearchQuery}
-															oninput={(e) => {
-																orgSearchQuery = e.currentTarget.value;
-															}}
-															class="w-full bg-transparent text-sm text-primary placeholder:text-tertiary focus:outline-none"
-														/>
+													<path
+														stroke-linecap="round"
+														stroke-linejoin="round"
+														stroke-width="2"
+														d="M19 9l-7 7-7-7"
+													/>
+												</svg>
+											</button>
+											{#if orgSelectorOpen}
+												<div
+													class="fixed z-50 max-h-[300px] min-w-[300px] overflow-y-auto rounded-md border border-base bg-elevated py-1 shadow-lg"
+													style="top: {orgSelectorTriggerRef?.getBoundingClientRect().bottom + 4}px; left: {orgSelectorTriggerRef?.getBoundingClientRect().left}px;"
+												>
+													<div class="px-menu-item py-menu-item text-sm font-semibold text-primary">
+														Select Organizations ({orgsToDisplay.length} available)
 													</div>
-													{#if orgsToDisplay.length === 0}
-														<div class="px-menu-item py-menu-item text-sm text-tertiary">
-															No organizations found
-														</div>
-													{:else}
-														<Combobox.List>
-															{#each orgsToDisplay as org (org._id)}
-																{@const isSelected = formAllowedOrgIds.includes(org._id)}
-																<Combobox.Item
-																	value={org._id}
-																	onclick={() => {
-																		console.log('[DEBUG] STEP 0: Combobox.Item clicked for:', org._id);
-																	}}
-																	class="flex cursor-pointer items-center gap-2 px-menu-item py-menu-item text-sm transition-colors hover:bg-hover-solid focus:bg-hover-solid outline-none {isSelected
-																		? 'bg-accent-primary/10 text-accent-primary'
-																		: 'text-primary'}"
-																>
-																	<svg
-																		class="h-4 w-4 flex-shrink-0 {isSelected
-																			? 'opacity-100'
-																			: 'opacity-0'}"
-																		fill="none"
-																		stroke="currentColor"
-																		viewBox="0 0 24 24"
-																	>
-																		<path
-																			stroke-linecap="round"
-																			stroke-linejoin="round"
-																			stroke-width="2"
-																			d="M5 13l4 4L19 7"
-																		/>
-																	</svg>
-																	<span class="flex-1">{org.name}</span>
-																	<span class="text-xs text-tertiary">{org.slug}</span>
-																</Combobox.Item>
-															{/each}
-														</Combobox.List>
-													{/if}
-												</Combobox.Content>
-											</Combobox.Portal>
+													{#each orgsToDisplay as org (org._id)}
+														{@const isSelected = formAllowedOrgIds.includes(org._id)}
+														<button
+															type="button"
+															onclick={() => {
+																console.log('[DEBUG] STEP 0: Button clicked for:', org._id);
+																if (formAllowedOrgIds.includes(org._id)) {
+																	formAllowedOrgIds = formAllowedOrgIds.filter((id) => id !== org._id);
+																} else {
+																	formAllowedOrgIds = [...formAllowedOrgIds, org._id];
+																}
+																console.log('[DEBUG] STEP 4: Updated formAllowedOrgIds:', formAllowedOrgIds);
+															}}
+															class="flex w-full cursor-pointer items-center gap-2 px-menu-item py-menu-item text-left text-sm transition-colors hover:bg-hover-solid focus:bg-hover-solid outline-none {isSelected
+																? 'bg-accent-primary/10 text-accent-primary'
+																: 'text-primary'}"
+														>
+															<svg
+																class="h-4 w-4 flex-shrink-0 {isSelected
+																	? 'opacity-100'
+																	: 'opacity-0'}"
+																fill="none"
+																stroke="currentColor"
+																viewBox="0 0 24 24"
+															>
+																<path
+																	stroke-linecap="round"
+																	stroke-linejoin="round"
+																	stroke-width="2"
+																	d="M5 13l4 4L19 7"
+																/>
+															</svg>
+															<span class="flex-1">{org.name}</span>
+															<span class="text-xs text-tertiary">{org.slug}</span>
+														</button>
+													{/each}
+												</div>
+											{/if}
 										</Combobox.Root>
 									</div>
 									<p class="mt-3 text-xs text-secondary">

@@ -3986,9 +3986,155 @@ function buildHierarchy(circle: CircleNode, depth: number = 0): CircleNode {
 
 ---
 
-**Pattern Count**: 40  
+**Pattern Count**: 42  
 **Last Updated**: 2025-01-18  
 **Design Token Reference**: `dev-docs/design-tokens.md`
+
+---
+
+## #L4200: Absolutely Positioned Element Overlapping Content - Content Needs Offset [🔴 CRITICAL]
+
+**Symptom**: Content gets cut off, hidden, or overlaps with absolutely positioned element (breadcrumb, toolbar, etc.)  
+**Root Cause**: Absolutely positioned elements are removed from normal flow - content doesn't account for their space  
+**Fix**:
+
+```svelte
+<!-- ❌ WRONG: Content overlaps with breadcrumb -->
+<aside class="panel-base">
+  <div class="breadcrumb" style="position: absolute; left: 0; width: 48px;"></div>
+  <div class="content">  <!-- Starts at left: 0, overlaps breadcrumb! -->
+    ...content...
+  </div>
+</aside>
+
+<!-- ✅ CORRECT: Add padding to content to make room for breadcrumb -->
+<aside class="panel-base">
+  <div class="breadcrumb" style="position: absolute; left: 0; width: 48px;"></div>
+  <div class="content panel-content-with-breadcrumb">  <!-- padding-left: 48px -->
+    ...content...
+  </div>
+</aside>
+```
+
+**CSS Utility Pattern:**
+```css
+/* Define breadcrumb width as token */
+--spacing-panel-breadcrumb-width: 3rem; /* 48px */
+
+/* Breadcrumb positioned absolutely */
+@utility panel-breadcrumb-bar {
+  position: absolute;
+  left: 0;
+  width: var(--spacing-panel-breadcrumb-width);
+}
+
+/* Content offset utility */
+@utility panel-content-with-breadcrumb {
+  padding-left: var(--spacing-panel-breadcrumb-width);
+}
+```
+
+**Svelte Conditional Pattern:**
+```svelte
+<aside>
+  {#if hasBreadcrumb}
+    <BreadcrumbBar />
+  {/if}
+  <div class:panel-content-with-breadcrumb={hasBreadcrumb}>
+    ...content...
+  </div>
+</aside>
+```
+
+**Why It Fails:**
+- `position: absolute` removes element from normal document flow
+- Other elements don't "see" it and position as if it doesn't exist
+- Content starts at container's edge, overlapping the absolute element
+- Scrollable content gets hidden behind the absolute element
+
+**The Solution:**
+1. Define a design token for the offset width
+2. Use the same token for both:
+   - Absolute element's `width`
+   - Content container's `padding-left` or `margin-left`
+3. Apply offset conditionally when absolute element is present
+
+**Apply when**: 
+- Using absolutely positioned breadcrumbs, toolbars, or sidebars
+- Content appears cut off or hidden
+- Elements overlap unexpectedly
+- Scrollable content is partially blocked
+
+**Related**: #L4150 (CSS Positioning Conflicts), #L3650 (Z-Index Stacking)
+
+**Source**: SYOS-251 (Org Chart Hierarchical Navigation)
+
+---
+
+## #L4150: CSS Positioning - Setting Both `left` and `right` Creates Conflicts [🔴 CRITICAL]
+
+**Symptom**: Panel/element positioned incorrectly, not flush to intended edge, stacking panels misaligned  
+**Root Cause**: Setting both `left` and `right` properties causes conflicts - `left` takes precedence in LTR layouts  
+**Fix**:
+
+```css
+/* ❌ WRONG: Setting 'left' overrides 'right', panel moves away from right edge */
+.panel-base {
+	position: fixed;
+	right: 0; /* Intended: flush to right */
+}
+.panel-offset {
+	left: 48px; /* ← This OVERRIDES right: 0! */
+	width: calc(100% - 48px);
+}
+
+/* ✅ CORRECT: Only adjust width, keep 'right: 0' for alignment */
+.panel-base {
+	position: fixed;
+	right: 0; /* Always flush to right edge */
+}
+.panel-offset {
+	/* Only shrink width - 'right: 0' keeps it flush right */
+	width: calc(100% - 48px);
+	max-width: calc(100vw - 48px); /* Responsive safety */
+}
+```
+
+**Why It Fails:**
+
+CSS positioning precedence in LTR layouts:
+1. When both `left` and `right` are set, `left` takes precedence
+2. `right: 0` positions element flush to right edge
+3. Adding `left: 48px` overrides `right: 0` → element moves 48px from left edge
+4. Result: Element is no longer flush to right, width calculation is correct but positioning is wrong
+
+**The Solution:**
+- **To position flush right**: Use `right: 0` only, never set `left`
+- **To create offset space**: Adjust `width` using `calc()`, not position properties
+- **For responsive**: Add `max-width: calc(100vw - offset)` to prevent overflow
+
+**Common Use Case: Stacked Panels with Breadcrumb Bar**
+
+```svelte
+<!-- Base panel: flush right, full width -->
+<aside class="fixed top-0 right-0 h-screen w-full max-w-screen"></aside>
+
+<!-- Stacked panel: flush right, reduced width to show 48px breadcrumb -->
+<aside 
+  class="fixed top-0 right-0 h-screen"
+  style="width: calc(100% - 48px); max-width: calc(100vw - 48px);"
+></aside>
+```
+
+**Apply when**: 
+- Creating stacked/layered panels
+- Implementing breadcrumb bars or side indicators
+- Panel should stay flush to edge but make room for other content
+- Responsive layouts where elements must not exceed viewport
+
+**Related**: #L4100 (Utility Classes vs Conditional Classes), #L3650 (Z-Index Stacking)
+
+**Source**: SYOS-251 (Org Chart Hierarchical Navigation)
 
 ---
 

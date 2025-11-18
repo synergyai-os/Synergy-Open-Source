@@ -127,8 +127,8 @@
 	{#if previousLayer}
 		<PanelBreadcrumbBar layer={previousLayer} onclick={handleBreadcrumbClick} />
 	{/if}
-	<!-- Panel Content -->
-	<div class="flex h-full flex-col">
+	<!-- Panel Content - Add left padding when breadcrumb is present -->
+	<div class="flex h-full flex-col" class:panel-content-with-breadcrumb={previousLayer !== null}>
 		{#if isLoading}
 			<!-- Loading State -->
 			<div class="flex h-full items-center justify-center">

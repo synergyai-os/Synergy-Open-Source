@@ -86,6 +86,8 @@
 | SVG text labels covered by child elements, root circle names appear behind sub-circles        | Use two-pass rendering: visual elements first, text labels second (sorted by depth descending) | [ui-patterns.md#L4000](ui-patterns.md#L4000)            |
 | Modal/panel opens then immediately closes, backdrop click fires on trigger click               | Check if click target is backdrop: `if (e.target === e.currentTarget) handleClose()`          | [ui-patterns.md#L3950](ui-patterns.md#L3950)            |
 | State shows open but element hidden, backdrop visible but panel missing, Tailwind classes ignored | Remove hardcoded properties from @utility - let conditional Tailwind classes control them      | [ui-patterns.md#L4100](ui-patterns.md#L4100)            |
+| Panel positioned incorrectly, stacking panels misaligned, not flush to right edge              | Don't set both `left` and `right` - `left` overrides `right`. Use width calc instead          | [ui-patterns.md#L4150](ui-patterns.md#L4150)            |
+| Content cut off or overlaps with breadcrumb/toolbar, scrollable content partially blocked      | Add padding to content equal to absolute element's width (use design token)                    | [ui-patterns.md#L4200](ui-patterns.md#L4200)            |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
