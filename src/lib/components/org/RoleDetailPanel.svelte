@@ -1,5 +1,8 @@
 <script lang="ts">
 	import type { UseOrgChart } from '$lib/composables/useOrgChart.svelte';
+	import RoleDetailHeader from './RoleDetailHeader.svelte';
+	import CategoryHeader from './CategoryHeader.svelte';
+	import Avatar from '$lib/components/ui/Avatar.svelte';
 
 	let { orgChart }: { orgChart: UseOrgChart } = $props();
 
@@ -59,12 +62,16 @@
 			.toUpperCase()
 			.slice(0, 2);
 	}
+
+	function handleEditRole() {
+		/* TODO: Implement edit role */
+	}
 </script>
 
 <!-- Backdrop -->
 {#if isOpen}
 	<div
-		class="bg-base/50 fixed inset-0 z-[50] backdrop-blur-sm"
+		class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity"
 		onclick={handleClose}
 		onkeydown={(e) => {
 			if (e.key === 'Escape') {
@@ -78,7 +85,7 @@
 
 <!-- Panel -->
 <aside
-	class="fixed top-0 right-0 z-[60] h-full w-[480px] transform border-l border-base bg-elevated shadow-xl transition-transform duration-300 ease-in-out"
+	class="fixed top-0 right-0 z-50 h-full w-full transform border-l border-base bg-elevated shadow-xl transition-transform duration-300 ease-in-out sm:w-[900px] lg:w-[1200px]"
 	class:translate-x-0={isOpen}
 	class:translate-x-full={!isOpen}
 >
@@ -115,25 +122,26 @@
 	{:else if role}
 		<div class="flex h-full flex-col">
 			<!-- Header -->
-			<header
-				class="flex h-system-header flex-shrink-0 items-center justify-between border-b border-base px-inbox-container py-system-header"
-			>
-				<h2 class="text-lg font-semibold text-primary">Role Details</h2>
-				<button
-					class="flex h-8 w-8 items-center justify-center rounded-md text-secondary hover:bg-hover-solid hover:text-primary"
-					onclick={handleClose}
-					aria-label="Close panel"
-				>
-					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M6 18L18 6M6 6l12 12"
-						/>
-					</svg>
-				</button>
-			</header>
+			<RoleDetailHeader
+				roleName={role.name}
+				onClose={handleClose}
+				onEdit={handleEditRole}
+				addMenuItems={[
+					{ label: 'Add filler', onclick: () => {} },
+					{ label: 'Add accountability', onclick: () => {} },
+					{ label: 'Add domain', onclick: () => {} }
+				]}
+				headerMenuItems={[
+					{ label: 'Copy URL', onclick: () => {} },
+					{ label: 'Export to PDF', onclick: () => {} },
+					{ label: 'Export to spreadsheet', onclick: () => {} },
+					{ label: 'Convert role to circle', onclick: () => {} },
+					{ label: 'Move role', onclick: () => {} },
+					{ label: 'Notifications', onclick: () => {} },
+					{ label: 'Settings', onclick: () => {} },
+					{ label: 'Delete role', onclick: () => {}, danger: true }
+				]}
+			/>
 
 			<!-- Content -->
 			<div class="flex-1 overflow-y-auto">
@@ -279,138 +287,166 @@
 				<!-- Tab Content -->
 				<div class="flex-1 overflow-y-auto px-inbox-container py-system-content">
 					{#if activeTab === 'overview'}
-						<!-- Purpose -->
-						{#if role.purpose}
-							<div class="mb-6">
-								<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
-									Purpose
-								</h4>
-								<p class="text-sm text-secondary">{role.purpose}</p>
-							</div>
-						{/if}
+						<!-- Two-Column Layout: Mobile stacks, Desktop side-by-side -->
+						<div class="grid grid-cols-1 gap-6 lg:grid-cols-[40%_60%]">
+							<!-- Left Column: Overview Details -->
+							<div class="flex flex-col space-y-6">
+								<!-- Stats -->
+								<div class="grid grid-cols-2 gap-4">
+									<div class="rounded-lg bg-surface p-4">
+										<p class="text-xs text-tertiary">Fillers</p>
+										<p class="mt-1 text-2xl font-semibold text-primary">{role.fillerCount}</p>
+									</div>
+									<div class="rounded-lg bg-surface p-4">
+										<p class="text-xs text-tertiary">Created</p>
+										<p class="mt-1 text-sm font-medium text-primary">
+											{formatDate(role.createdAt)}
+										</p>
+									</div>
+								</div>
 
-						<!-- Stats -->
-						<div class="mb-6 grid grid-cols-2 gap-4">
-							<div class="rounded-lg bg-surface p-4">
-								<p class="text-xs text-tertiary">Fillers</p>
-								<p class="mt-1 text-2xl font-semibold text-primary">{role.fillerCount}</p>
-							</div>
-							<div class="rounded-lg bg-surface p-4">
-								<p class="text-xs text-tertiary">Created</p>
-								<p class="mt-1 text-sm font-medium text-primary">{formatDate(role.createdAt)}</p>
-							</div>
-						</div>
+								<!-- Purpose -->
+								{#if role.purpose}
+									<div>
+										<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
+											Purpose
+										</h4>
+										<p class="text-sm leading-relaxed text-secondary">{role.purpose}</p>
+									</div>
+								{/if}
 
-						<!-- Filled By Section -->
-						{#if fillers.length > 0}
-							<div class="mb-6">
-								<h4 class="mb-3 text-sm font-medium tracking-wide text-tertiary uppercase">
-									Filled By ({fillers.length})
-								</h4>
-								<div class="space-y-2">
-									{#each fillers as filler (filler.userId)}
-										<div class="flex items-center gap-3 rounded-lg bg-surface p-3">
-											<!-- Avatar -->
-											<div
-												class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-accent-primary text-sm font-semibold text-white"
-											>
-												{getInitials(filler.name || filler.email)}
-											</div>
-											<!-- Info -->
-											<div class="min-w-0 flex-1">
-												<p class="truncate text-sm font-medium text-primary">
-													{filler.name || filler.email}
-												</p>
-												{#if filler.name}
-													<p class="truncate text-xs text-secondary">{filler.email}</p>
-												{/if}
-											</div>
+								<!-- Domains -->
+								<div>
+									<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
+										Domains
+									</h4>
+									<div class="flex items-center gap-2 text-sm text-secondary">
+										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+											/>
+										</svg>
+										<span>Empty field</span>
+									</div>
+								</div>
+
+								<!-- Accountabilities -->
+								<div>
+									<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
+										Accountabilities
+									</h4>
+									<div class="flex items-center gap-2 text-sm text-secondary">
+										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+											/>
+										</svg>
+										<span>Empty field</span>
+									</div>
+								</div>
+
+								<!-- Policies -->
+								<div>
+									<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
+										Policies
+									</h4>
+									<div class="flex items-center gap-2 text-sm text-secondary">
+										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+											/>
+										</svg>
+										<span>Empty field</span>
+									</div>
+								</div>
+
+								<!-- Decision Rights -->
+								<div>
+									<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
+										Decision Rights
+									</h4>
+									<div class="flex items-center gap-2 text-sm text-secondary">
+										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+											/>
+										</svg>
+										<span>Empty field</span>
+									</div>
+								</div>
+
+								<!-- Notes -->
+								<div>
+									<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
+										Notes
+									</h4>
+									<div class="flex items-center gap-2 text-sm text-secondary">
+										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+											/>
+										</svg>
+										<span>Empty field</span>
+									</div>
+								</div>
+
+								<!-- Metadata -->
+								<div class="border-t border-base pt-6">
+									<h4 class="mb-3 text-sm font-medium tracking-wide text-tertiary uppercase">
+										Metadata
+									</h4>
+									<dl class="space-y-2 text-sm">
+										<div class="flex justify-between">
+											<dt class="text-secondary">Role ID</dt>
+											<dd class="font-mono text-xs text-tertiary">{role.roleId}</dd>
 										</div>
-									{/each}
+										<div class="flex justify-between">
+											<dt class="text-secondary">Created</dt>
+											<dd class="text-tertiary">{formatDate(role.createdAt)}</dd>
+										</div>
+									</dl>
 								</div>
 							</div>
-						{:else}
-							<div class="mb-6">
-								<h4 class="mb-3 text-sm font-medium tracking-wide text-tertiary uppercase">
-									Filled By
-								</h4>
-								<p class="text-sm text-secondary">No one is filling this role yet</p>
-							</div>
-						{/if}
 
-						<!-- Mock Empty States Sections -->
-						<div class="space-y-6 border-t border-base pt-6">
-							<!-- Domains -->
-							<div>
-								<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
-									Domains
-								</h4>
-								<p class="text-sm text-secondary">
-									Domains define areas of authority and decision-making for this role. This feature
-									will be available in a future update.
-								</p>
+							<!-- Right Column: Filled By List -->
+							<div class="flex flex-col">
+								<CategoryHeader title="Filled By" count={fillers.length} onAdd={() => {}} />
+								{#if fillers.length > 0}
+									<div class="mt-3 space-y-2">
+										{#each fillers as filler (filler.userId)}
+											<div class="flex items-center gap-3 rounded-lg bg-surface p-3">
+												<Avatar initials={getInitials(filler.name || filler.email)} size="md" />
+												<!-- Info -->
+												<div class="min-w-0 flex-1">
+													<p class="truncate text-sm font-medium text-primary">
+														{filler.name || filler.email}
+													</p>
+													{#if filler.name}
+														<p class="truncate text-xs text-secondary">{filler.email}</p>
+													{/if}
+												</div>
+											</div>
+										{/each}
+									</div>
+								{:else}
+									<p class="mt-3 text-sm text-secondary">No one is filling this role yet</p>
+								{/if}
 							</div>
-
-							<!-- Accountabilities -->
-							<div>
-								<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
-									Accountabilities
-								</h4>
-								<p class="text-sm text-secondary">
-									Accountabilities define what this role is responsible for delivering. This feature
-									will be available in a future update.
-								</p>
-							</div>
-
-							<!-- Policies -->
-							<div>
-								<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
-									Policies
-								</h4>
-								<p class="text-sm text-secondary">
-									Policies define constraints and guidelines for this role's decision-making. This
-									feature will be available in a future update.
-								</p>
-							</div>
-
-							<!-- Decision Rights -->
-							<div>
-								<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
-									Decision Rights
-								</h4>
-								<p class="text-sm text-secondary">
-									Decision rights define what decisions this role can make autonomously. This
-									feature will be available in a future update.
-								</p>
-							</div>
-
-							<!-- Notes -->
-							<div>
-								<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
-									Notes
-								</h4>
-								<p class="text-sm text-secondary">
-									Additional notes and context about this role. This feature will be available in a
-									future update.
-								</p>
-							</div>
-						</div>
-
-						<!-- Metadata -->
-						<div class="mt-6 border-t border-base pt-4">
-							<h4 class="mb-3 text-sm font-medium tracking-wide text-tertiary uppercase">
-								Metadata
-							</h4>
-							<dl class="space-y-2 text-sm">
-								<div class="flex justify-between">
-									<dt class="text-secondary">Role ID</dt>
-									<dd class="font-mono text-xs text-tertiary">{role.roleId}</dd>
-								</div>
-								<div class="flex justify-between">
-									<dt class="text-secondary">Created</dt>
-									<dd class="text-tertiary">{formatDate(role.createdAt)}</dd>
-								</div>
-							</dl>
 						</div>
 					{:else if activeTab === 'members'}
 						<!-- Empty State: Members -->

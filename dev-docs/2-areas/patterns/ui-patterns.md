@@ -3647,6 +3647,78 @@ function buildHierarchy(circle: CircleNode, depth: number = 0): CircleNode {
 
 ---
 
+## #L3650: Z-Index Conflicts with Bits UI Portal in Modal Panels [🔴 CRITICAL]
+
+**Symptom**: Buttons/dropdowns in modal panels don't work, clicks don't register, menus don't open  
+**Root Cause**: Z-index conflict between backdrop and Bits UI Portal content  
+**Fix**:
+
+```svelte
+<!-- ❌ WRONG: Backdrop z-index conflicts with portalled dropdowns -->
+{#if isOpen}
+	<div class="fixed inset-0 z-[50] bg-black/50" onclick={handleClose}></div>
+{/if}
+<aside class="fixed top-0 right-0 z-[60] ...">
+	<!-- Panel content with DropdownMenu -->
+	<DropdownMenu.Portal>
+		<DropdownMenu.Content class="z-50 ...">
+			<!-- Dropdown content portalled to body -->
+		</DropdownMenu.Content>
+	</DropdownMenu.Portal>
+</aside>
+
+<!-- ✅ CORRECT: Backdrop lower than panel and dropdowns -->
+{#if isOpen}
+	<div class="fixed inset-0 z-40 bg-black/50" onclick={handleClose}></div>
+{/if}
+<aside class="fixed top-0 right-0 z-50 ...">
+	<!-- Panel content with DropdownMenu -->
+	<DropdownMenu.Portal>
+		<DropdownMenu.Content class="z-50 ...">
+			<!-- Dropdown content portalled to body -->
+		</DropdownMenu.Content>
+	</DropdownMenu.Portal>
+</aside>
+```
+
+**Z-Index Stacking Order**:
+1. **Backdrop**: `z-40` (lowest - closes panel on click)
+2. **Panel**: `z-50` (middle - contains interactive elements)
+3. **DropdownMenu.Content**: `z-50` (same level, portalled to body, appears above panel)
+
+**Why**: 
+- Bits UI `DropdownMenu.Portal` renders content to `document.body`, outside panel DOM tree
+- If backdrop has same/higher z-index as dropdowns (`z-[50]` vs `z-50`), backdrop intercepts clicks
+- Backdrop's `onclick={handleClose}` handler captures events intended for dropdowns
+- Standard modal pattern: backdrop `z-40`, content `z-50`, dropdowns `z-50`
+
+**Also Avoid**: Don't use `stopPropagation()` on panel wrapper - it breaks Bits UI event handling
+
+```svelte
+<!-- ❌ WRONG: stopPropagation() blocks Bits UI events -->
+<aside>
+	<div onclick={(e) => e.stopPropagation()}>
+		<!-- Content -->
+	</div>
+</aside>
+
+<!-- ✅ CORRECT: Z-index handles click isolation naturally -->
+<aside class="z-50">
+	<!-- Content - no stopPropagation needed -->
+</aside>
+```
+
+**Apply when**: 
+- Creating modal panels/slide-outs with Bits UI dropdowns inside
+- Buttons/dropdowns don't respond to clicks
+- DropdownMenu content doesn't appear or is blocked
+
+**Related**: #L10 (Interactive Components in DropdownMenu), #L480 (Command Palette Design)
+
+**Source**: SYOS-240 (Role Detail Panel Implementation)
+
+---
+
 **Pattern Count**: 37  
 **Last Updated**: 2025-11-17  
 **Design Token Reference**: `dev-docs/design-tokens.md`
