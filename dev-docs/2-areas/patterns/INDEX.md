@@ -45,6 +45,7 @@
 | Tests fail with "can only be called in the browser" or Web Crypto undefined                       | Rename .test.ts → .svelte.test.ts for browser environment                    | [svelte-reactivity.md#L800](svelte-reactivity.md#L800)              |
 | localStorage session data visible in DevTools, fails SOC 2 audit                                  | Use Web Crypto API (AES-256-GCM + PBKDF2)                                    | [auth-deployment.md#L960](auth-deployment.md#L960)                  |
 | `Cannot call replaceState(...) before router is initialized` on page load                         | Try-catch guard around replaceState in $effect                               | [svelte-reactivity.md#L730](svelte-reactivity.md#L730)              |
+| Manual org switches revert to URL param org, causing infinite loops                              | Read from window.location.search instead of $page.url.searchParams            | [svelte-reactivity.md#L740](svelte-reactivity.md#L740)              |
 | Account switch takes 5+ seconds, query costs spike with many linked accounts                      | Add MAX_LINK_DEPTH=3 and MAX_TOTAL_ACCOUNTS=10 limits                        | [auth-deployment.md#L1010](auth-deployment.md#L1010)                |
 | Logged-out linked accounts reappear after page reload, three-dot menu logout doesn't persist      | Unlink from database FIRST (Convex accountLinks), then localStorage          | [auth-deployment.md#L1050](auth-deployment.md#L1050)                |
 | Database queries fail, userId is an object instead of string                                      | Destructure validateSessionAndGetUserId: const { userId } = await...         | [convex-integration.md#L850](convex-integration.md#L850)            |
@@ -75,6 +76,7 @@
 | Tests pass with --workers=1 but fail in parallel with "Expected: 429, Received: 401"               | Remove global beforeEach cleanup, rely on unique testIds for isolation      | [ci-cd.md#L340](ci-cd.md#L340)                                      |
 | Feature flags visible to all users when no targeting rules configured                              | Default to false when no targeting rules, require explicit configuration   | [convex-integration.md#L1530](convex-integration.md#L1530)            |
 | Feature flag needs organization-based targeting (multi-tenancy)                                    | Add allowedOrganizationIds field + org membership check                    | [feature-flags.md#L180](feature-flags.md#L180)                        |
+| Admin sidebar visible to non-admin users, or error page shows sidebar                            | Separate checks: page load throws error, layout load returns boolean for conditional UI       | [ui-patterns.md#L4800](ui-patterns.md#L4800)            |
 | Can't add more items after selecting - combobox trigger disappears                                 | Add "Add" button next to selected chips, use anchor element for positioning | [ui-patterns.md#L3120](ui-patterns.md#L3120)                            |
 | Combobox doesn't allow multi-select, dropdown closes immediately, search doesn't work with backspace | Replace Combobox with custom dropdown using plain div + manual state management | [ui-patterns.md#L4520](ui-patterns.md#L4520)                            |
 | Need polymorphic schema supporting multiple entity types (users/circles/teams)                     | Use union type discriminator + optional ID fields + validation              | [convex-integration.md#L1700](convex-integration.md#L1700)            |
@@ -93,6 +95,8 @@
 | Panel positioned incorrectly, stacking panels misaligned, not flush to right edge              | Don't set both `left` and `right` - `left` overrides `right`. Use width calc instead          | [ui-patterns.md#L4150](ui-patterns.md#L4150)            |
 | Content cut off or overlaps with breadcrumb/toolbar, scrollable content partially blocked      | Add padding to content equal to absolute element's width (use design token)                    | [ui-patterns.md#L4200](ui-patterns.md#L4200)            |
 | ESC key goes back two levels instead of one when multiple panels are open                      | Check if current panel is topmost layer before handling ESC (use selectedId not data._id)     | [ui-patterns.md#L4250](ui-patterns.md#L4250)            |
+| Admin access denied redirects instead of showing error page, custom +error.svelte never renders | Move admin checks from hooks to page loads, throw error() not redirect()                      | [ui-patterns.md#L4750](ui-patterns.md#L4750)            |
+| Account switching shows "GET method not allowed" (405), switch fails                          | Use POST request with CSRF token via useAuthSession composable, not window.location.href     | [auth-deployment.md#L1120](auth-deployment.md#L1120)    |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -195,6 +199,7 @@
 | Ticket writing for AI       | User stories + technical detail for parallel AI execution   | [ticket-writing.md](ticket-writing.md)                   |
 | Split overlapping tickets   | Separate by technical boundary for parallel implementation  | [ticket-writing.md](ticket-writing.md)                   |
 | AI-ready ticket structure   | Clear scope, files, patterns, success criteria              | [ticket-writing.md](ticket-writing.md)                   |
+| Module API contracts        | Create interface for composables to enable loose coupling   | [modularity-refactoring-analysis.md#L84](../architecture/modularity-refactoring-analysis.md#L84) |
 | Incremental CI gates        | Enable lint/build first, defer type check to separate work  | [ci-cd.md#L10](ci-cd.md#L10)                             |
 | Local CI testing            | npm scripts > shell scripts for consistency                 | [ci-cd.md#L110](ci-cd.md#L110)                           |
 | Secret scanning             | TruffleHog with .secretsignore for safe patterns            | [ci-cd.md#L160](ci-cd.md#L160)                           |

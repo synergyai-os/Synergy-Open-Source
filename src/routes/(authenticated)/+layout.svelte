@@ -31,6 +31,7 @@
 	const isAdminRoute = $derived(browser ? $page.url.pathname.startsWith('/admin') : false);
 
 	// Initialize organizations composable with sessionId and server-side preloaded data
+	// Returns OrganizationsModuleAPI interface (enables loose coupling - see SYOS-295)
 	const organizations = useOrganizations({
 		userId: () => data.user?.userId,
 		sessionId: () => data.sessionId,
@@ -56,6 +57,7 @@
 				sessionId: data.sessionId,
 				userId: data.user?.userId,
 				userEmail: data.user?.email,
+				activeOrganizationId: organizations.activeOrganizationId,
 				circlesEnabled,
 				meetingsEnabled,
 				serverData: {
@@ -77,54 +79,365 @@
 	const workspaceName = $derived(() => data.activeWorkspace?.name ?? 'Private workspace');
 
 	// Account switching state (for page reloads)
+	// CRITICAL: Initialize from sessionStorage flag synchronously to prevent overlay from toggling
+	// This ensures shouldShowSwitchingOverlay stays true continuously (no gap)
 	let accountSwitchingState = $state<{
 		isSwitching: boolean;
 		switchingTo: string | null;
 		switchingToType: 'personal' | 'organization';
 		startTime: number | null;
-	}>({
-		isSwitching: false,
-		switchingTo: null,
-		switchingToType: 'personal',
-		startTime: null
+		endTime: number | null; // Track when account switching ended to suppress org switching overlay
+	}>(() => {
+		// Initialize from sessionStorage flag if it exists (synchronous, before any effects)
+		if (browser) {
+			const switchingData = sessionStorage.getItem('switchingAccount');
+			if (switchingData) {
+				try {
+					const parsed = JSON.parse(switchingData);
+					return {
+						isSwitching: true, // Set immediately to prevent overlay toggle
+						switchingTo: parsed.accountName || 'account',
+						switchingToType: 'personal',
+						startTime: parsed.startTime || Date.now(),
+						endTime: null
+					};
+				} catch {
+					// Invalid data, use defaults
+				}
+			}
+		}
+		// Default state
+		return {
+			isSwitching: false,
+			switchingTo: null,
+			switchingToType: 'personal',
+			startTime: null,
+			endTime: null
+		};
+	});
+
+	// Combined switching state: Show single overlay for account + org switching
+	// When account switching is active, extend it to cover org switching (no separate overlay)
+	const isAccountSwitching = $derived(accountSwitchingState.isSwitching);
+	const isOrgSwitching = $derived(organizations?.isSwitching ?? false);
+
+	// Detect if this is an account switch (has switchingAccount flag) vs workspace switch (same account)
+	// Account switch: Show "Switching account" → "Loading workspace"
+	// Workspace switch: Show only "Loading workspace"
+	// Note: Currently unused but kept for potential future use
+	const _isAccountSwitch = $derived(
+		browser && accountSwitchingState.isSwitching && accountSwitchingState.startTime !== null
+	);
+
+	// Track account switching flag from sessionStorage (reactive)
+	// This prevents global overlay from showing "Loading [account name]" during account switch
+	const flagState = $state({
+		hasFlag: browser ? sessionStorage.getItem('switchingAccount') !== null : false
+	});
+
+	// Update flag state reactively when sessionStorage changes
+	$effect(() => {
+		if (!browser) return;
+
+		// Check flag on mount and when account switching state changes
+		const flagExists = sessionStorage.getItem('switchingAccount') !== null;
+		if (flagState.hasFlag !== flagExists) {
+			flagState.hasFlag = flagExists;
+		}
+	});
+
+	const hasSwitchingAccountFlag = $derived(flagState.hasFlag);
+
+	// Show overlay if account switching OR org switching OR switching flag exists
+	// This creates one continuous overlay that transitions from "Switching account" to "Loading workspace"
+	const shouldShowSwitchingOverlay = $derived(
+		isAccountSwitching || isOrgSwitching || hasSwitchingAccountFlag
+	);
+
+	// Determine subtitle: "account" during account switch, "workspace" during org switch
+	// IMPORTANT: Always use 'account' when account switching is active OR flag exists
+	// During org switching, always use 'workspace' (not the org name) for consistent messaging
+	const switchingSubtitle = $derived.by(() => {
+		const result = isAccountSwitching || hasSwitchingAccountFlag ? 'account' : 'workspace';
+		console.log('🔍 [SUBTITLE] Computing switchingSubtitle', {
+			result,
+			isAccountSwitching,
+			hasSwitchingAccountFlag,
+			isOrgSwitching,
+			accountState: accountSwitchingState.isSwitching,
+			orgState: organizations?.isSwitching,
+			switchingTo: organizations?.switchingTo
+		});
+		return result;
+	});
+
+	// Log subtitle changes (separate effect for debugging)
+	$effect(() => {
+		if (!browser) return;
+		console.log('🔄 [OVERLAY] Subtitle changed', {
+			subtitle: switchingSubtitle,
+			isAccountSwitching,
+			isOrgSwitching,
+			accountState: accountSwitchingState.isSwitching,
+			orgState: organizations?.isSwitching,
+			switchingTo: organizations?.switchingTo
+		});
+	});
+
+	// Global overlay show state (for logging)
+	// CRITICAL: Hide global overlay during account/workspace switching to prevent "Loading [account name]" from showing
+	// Also hide if switchingAccount flag exists (even if shouldShowSwitchingOverlay is false due to timing)
+	const globalOverlayShow = $derived(
+		loadingOverlay.show &&
+			!shouldShowSwitchingOverlay &&
+			!hasSwitchingAccountFlag &&
+			!isAccountSwitching &&
+			!isOrgSwitching
+	);
+
+	// Log global overlay state
+	$effect(() => {
+		if (!browser) return;
+		if (globalOverlayShow || loadingOverlay.show) {
+			console.log('🌐 [GLOBAL OVERLAY] State', {
+				show: globalOverlayShow,
+				loadingOverlayShow: loadingOverlay.show,
+				shouldShowSwitchingOverlay,
+				hasSwitchingAccountFlag,
+				isAccountSwitching,
+				isOrgSwitching,
+				flow: loadingOverlay.flow,
+				title: loadingOverlay.title,
+				subtitle: loadingOverlay.subtitle,
+				subtitleType: typeof loadingOverlay.subtitle,
+				subtitleLength: loadingOverlay.subtitle?.length,
+				customStages: loadingOverlay.customStages,
+				// Check if subtitle contains account name (this would cause "Loading [name]")
+				hasAccountName:
+					loadingOverlay.subtitle?.includes('Randy') ||
+					loadingOverlay.subtitle?.includes('Hereman') ||
+					loadingOverlay.subtitle?.includes('Fifth')
+			});
+		}
+	});
+
+	// Log overlay visibility changes
+	$effect(() => {
+		if (!browser) return;
+		console.log('🔄 [OVERLAY] Visibility check', {
+			shouldShow: shouldShowSwitchingOverlay,
+			isAccountSwitching,
+			isOrgSwitching,
+			accountState: accountSwitchingState.isSwitching,
+			orgState: organizations?.isSwitching,
+			subtitle: switchingSubtitle
+		});
+	});
+
+	// Clear account switching state immediately when org switching starts
+	// This ensures subtitle switches from 'account' to 'workspace' smoothly
+	$effect(() => {
+		if (!browser) return;
+
+		if (organizations?.isSwitching && accountSwitchingState.isSwitching) {
+			console.log('🔄 [ACCOUNT SWITCH] Org switching started - clearing account switching state');
+			accountSwitchingState.isSwitching = false;
+			accountSwitchingState.switchingTo = null;
+			accountSwitchingState.switchingToType = 'personal';
+			// Keep startTime for transition monitoring
+			// Ensure flag is cleared
+			flagState.hasFlag = false;
+		}
+	});
+
+	// Monitor account switching completion: Wait for org switching OR data to load
+	// Account switch completes when either:
+	// 1. Organization switching starts (explicit org change)
+	// 2. Data has loaded and minimum duration elapsed (implicit org change or no change)
+	$effect(() => {
+		if (!browser || !accountSwitchingState.isSwitching || !accountSwitchingState.startTime) {
+			if (browser && accountSwitchingState.isSwitching) {
+				console.log('⏸️ [ACCOUNT SWITCH] Effect skipped', {
+					hasStartTime: !!accountSwitchingState.startTime,
+					isSwitching: accountSwitchingState.isSwitching
+				});
+			}
+			return;
+		}
+
+		// Check minimum duration has elapsed (1 second for "Switching account" text)
+		const elapsed = Date.now() - accountSwitchingState.startTime;
+		const minimumAccountSwitchDuration = 1000; // Show "Switching account" for at least 1 second
+		const minimumTotalDuration = 3000; // Total overlay duration (account + workspace loading)
+		const orgSwitching = organizations?.isSwitching ?? false;
+		const dataLoaded = !organizations?.isLoading; // Data has finished loading
+
+		console.log('🔄 [ACCOUNT SWITCH] Monitoring transition', {
+			elapsed,
+			minimumAccountSwitchDuration,
+			minimumTotalDuration,
+			orgSwitching,
+			dataLoaded,
+			canTransition:
+				(orgSwitching || (dataLoaded && elapsed >= minimumTotalDuration)) &&
+				elapsed >= minimumAccountSwitchDuration
+		});
+
+		// Transition when:
+		// 1. Org switching starts AND minimum account switch duration elapsed, OR
+		// 2. Data loaded AND total minimum duration elapsed (ensures smooth transition even without explicit org switch)
+		const shouldTransition =
+			(orgSwitching && elapsed >= minimumAccountSwitchDuration) ||
+			(dataLoaded && elapsed >= minimumTotalDuration);
+
+		if (shouldTransition) {
+			console.log('✅ [ACCOUNT SWITCH] Transitioning', {
+				elapsed,
+				orgSwitching,
+				dataLoaded,
+				orgSwitchingTo: organizations?.switchingTo,
+				reason: orgSwitching ? 'org-switching-started' : 'data-loaded-minimum-duration'
+			});
+
+			// If org switching is already active, just clear account switching state
+			// The org switching overlay will continue showing "Loading workspace"
+			if (orgSwitching) {
+				accountSwitchingState.isSwitching = false;
+				accountSwitchingState.switchingTo = null;
+				accountSwitchingState.switchingToType = 'personal';
+				accountSwitchingState.startTime = null;
+			} else if (dataLoaded && organizations?.setActiveOrganization && browser) {
+				// Data loaded but no org switching - process URL params if they exist
+				// URL sync was suppressed during account switching, now it can process the org param
+				const urlParams = new URLSearchParams(window.location.search);
+				const urlOrgParam = urlParams.get('org');
+
+				if (
+					urlOrgParam &&
+					organizations.organizations?.some((org) => org.organizationId === urlOrgParam)
+				) {
+					// Process URL param - this will trigger org switching with "Loading workspace"
+					console.log('🔄 [ACCOUNT SWITCH] Processing URL param after account switch', {
+						orgId: urlOrgParam
+					});
+					// Trigger org switching - it will handle the overlay transition
+					// Don't clear account switching state here - let the org switching effect handle it
+					// The subtitle will automatically switch from 'account' to 'workspace' when org switching starts
+					organizations.setActiveOrganization(urlOrgParam);
+					// Account switching will be cleared when org switching becomes active (handled by reactive effect)
+				} else {
+					// No URL param and no org switching - just hide overlay
+					// Don't trigger org switching unnecessarily
+					accountSwitchingState.isSwitching = false;
+					accountSwitchingState.switchingTo = null;
+					accountSwitchingState.switchingToType = 'personal';
+					accountSwitchingState.startTime = null;
+					// Ensure flag is cleared
+					flagState.hasFlag = false;
+				}
+			} else {
+				// Fallback: just clear account switching state
+				accountSwitchingState.isSwitching = false;
+				// Ensure flag is cleared
+				flagState.hasFlag = false;
+				accountSwitchingState.switchingTo = null;
+				accountSwitchingState.switchingToType = 'personal';
+				accountSwitchingState.startTime = null;
+			}
+
+			// Clear safety timeout if it exists
+			if (accountSwitchingState.endTime) {
+				clearTimeout(accountSwitchingState.endTime as unknown as ReturnType<typeof setTimeout>);
+				accountSwitchingState.endTime = null;
+			}
+		}
+	});
+
+	// Remove static overlay immediately when Svelte is ready (prevents duplicate overlay)
+	// Hide static overlay as soon as shouldShowSwitchingOverlay becomes true (Svelte is loaded)
+	// This prevents both overlays from being visible at the same time
+	$effect(() => {
+		if (!browser) return;
+
+		// As soon as shouldShowSwitchingOverlay becomes true, hide static overlay immediately
+		// Don't wait for LoadingOverlay to render - hide static overlay right away
+		if (shouldShowSwitchingOverlay && window.__hasStaticOverlay) {
+			const staticOverlay = document.getElementById('__switching-overlay');
+			if (staticOverlay) {
+				console.log(
+					'🧹 [STATIC OVERLAY CLEANUP] Hiding static overlay immediately (Svelte overlay will show)',
+					{
+						staticOverlayFound: !!staticOverlay,
+						shouldShowSwitchingOverlay
+					}
+				);
+				// Remove immediately (no fade) - LoadingOverlay will show immediately after
+				if (staticOverlay.parentNode) {
+					staticOverlay.remove();
+					console.log('✅ [STATIC OVERLAY CLEANUP] Static overlay removed from DOM');
+				}
+				delete window.__hasStaticOverlay;
+			} else {
+				delete window.__hasStaticOverlay;
+			}
+		}
 	});
 
 	// Check for account switching flag on mount
 	onMount(() => {
 		if (!browser) return;
 
-		// Remove static overlay if it exists (from app.html inline script)
-		if (window.__hasStaticOverlay) {
-			const staticOverlay = document.getElementById('__switching-overlay');
-			if (staticOverlay) {
-				staticOverlay.remove();
-			}
-			delete window.__hasStaticOverlay;
-		}
+		// Don't remove static overlay immediately - wait until Svelte overlay is ready
+		// This prevents flicker (blur on → blur off → blur on)
+		// The static overlay will be replaced seamlessly by the Svelte overlay
+		// Use $effect to remove static overlay once Svelte overlay is mounted
 
 		const switchingData = sessionStorage.getItem('switchingAccount');
 		if (switchingData) {
 			try {
 				const parsed = JSON.parse(switchingData);
-				accountSwitchingState.isSwitching = true;
-				accountSwitchingState.switchingTo = parsed.accountName || 'account';
-				accountSwitchingState.switchingToType = 'personal'; // Account switches are always to an organization context
-				accountSwitchingState.startTime = parsed.startTime || Date.now();
+				console.log('🚀 [ACCOUNT SWITCH] Processing account switch flag', {
+					accountName: parsed.accountName,
+					startTime: parsed.startTime,
+					currentTime: Date.now(),
+					stateAlreadySet: accountSwitchingState.isSwitching
+				});
 
-				// Clear the flag immediately (we've read it)
-				sessionStorage.removeItem('switchingAccount');
+				// CRITICAL: Clear global overlay to prevent "Loading [account name]" from showing
+				// The global overlay might have stale data from previous state
+				loadingOverlay.hideOverlay();
 
-				// Ensure minimum 5 second display
-				const elapsed = Date.now() - (accountSwitchingState.startTime ?? Date.now());
-				const minimumDuration = 5000;
-				const remaining = Math.max(0, minimumDuration - elapsed);
-
-				setTimeout(() => {
-					accountSwitchingState.isSwitching = false;
-					accountSwitchingState.switchingTo = null;
+				// State is already initialized synchronously from sessionStorage (see accountSwitchingState initialization)
+				// Just verify it matches and clean up the flag
+				if (!accountSwitchingState.isSwitching) {
+					// Fallback: Set state if somehow not already set (shouldn't happen)
+					accountSwitchingState.isSwitching = true;
+					accountSwitchingState.switchingTo = parsed.accountName || 'account';
 					accountSwitchingState.switchingToType = 'personal';
-					accountSwitchingState.startTime = null;
-				}, remaining);
+					accountSwitchingState.startTime = parsed.startTime || Date.now();
+				}
+
+				// Clear the flag now that state is confirmed set
+				// State was initialized synchronously, so shouldShowSwitchingOverlay should stay true
+				sessionStorage.removeItem('switchingAccount');
+				flagState.hasFlag = false;
+
+				// Account switching overlay: Extend until org switching starts OR data loads
+				// The $effect above will reactively transition when org switching starts or data loads
+				// Safety timeout: If neither happens within 10s, clear account switching anyway
+				const safetyTimeout = setTimeout(() => {
+					console.log('⏰ [ACCOUNT SWITCH] Safety timeout triggered - clearing account switching');
+					if (accountSwitchingState.isSwitching) {
+						accountSwitchingState.isSwitching = false;
+						accountSwitchingState.switchingTo = null;
+						accountSwitchingState.switchingToType = 'personal';
+						accountSwitchingState.startTime = null;
+						accountSwitchingState.endTime = null;
+					}
+				}, 10000); // Increased from 5s to 10s to allow for slower data loading
+
+				// Store timeout ID for cleanup (effect will clear it when org switching starts)
+				accountSwitchingState.endTime = safetyTimeout as unknown as number;
 			} catch (e) {
 				console.warn('Failed to parse account switching data', e);
 				sessionStorage.removeItem('switchingAccount');
@@ -356,19 +669,62 @@
 		{/if}
 
 		<!-- Loading Overlay (workspace switching, account operations, etc.) -->
-		{#if (organizations?.isSwitching ?? false) || accountSwitchingState.isSwitching}
-			<LoadingOverlay
-				show={true}
-				flow="workspace-switching"
-				subtitle={organizations?.isSwitching
-					? (organizations.switchingTo ?? 'workspace')
-					: (accountSwitchingState.switchingTo ?? 'account')}
-			/>
+		<!-- Single continuous overlay that transitions from "Switching account" to "Loading workspace" -->
+		{#if shouldShowSwitchingOverlay}
+			{@const subtitleValue = switchingSubtitle}
+			{@const logRender = () => {
+				// Check for any existing overlays in DOM
+				const allOverlays = Array.from(
+					document.querySelectorAll('[id*="overlay"], [class*="overlay"], [style*="z-index:999"]')
+				);
+				const staticOverlay = document.getElementById('__switching-overlay');
+				const staticOverlayHeading = staticOverlay?.querySelector('h2');
+
+				console.log('🎨 [LOADING OVERLAY] Rendering workspace-switching overlay', {
+					shouldShow: shouldShowSwitchingOverlay,
+					subtitle: subtitleValue,
+					subtitleType: typeof subtitleValue,
+					subtitleLength: subtitleValue?.length,
+					isAccountSwitching,
+					isOrgSwitching,
+					accountState: accountSwitchingState.isSwitching,
+					orgState: organizations?.isSwitching,
+					accountStartTime: accountSwitchingState.startTime,
+					orgSwitchingTo: organizations?.switchingTo,
+					hasSwitchingAccountFlag,
+					flagState: flagState.hasFlag,
+					// DOM state checks
+					staticOverlayExists: !!staticOverlay,
+					staticOverlayHeadingText: staticOverlayHeading?.textContent,
+					staticOverlayFullText: staticOverlay?.textContent?.substring(0, 150),
+					allOverlaysCount: allOverlays.length,
+					allOverlaysInfo: allOverlays.map((el) => ({
+						id: el.id,
+						className: el.className,
+						textContent: el.textContent?.substring(0, 80),
+						zIndex: window.getComputedStyle(el).zIndex
+					}))
+				});
+			}}
+			{@const _log = logRender()}
+			<LoadingOverlay show={true} flow="workspace-switching" subtitle={subtitleValue} />
+		{:else}
+			{@const logNotShowing = () => {
+				console.log('🎨 [LOADING OVERLAY] Overlay NOT showing', {
+					shouldShowSwitchingOverlay,
+					isAccountSwitching,
+					isOrgSwitching,
+					accountState: accountSwitchingState.isSwitching,
+					orgState: organizations?.isSwitching
+				});
+			}}
+			{@const _log = logNotShowing()}
 		{/if}
 
 		<!-- Global Loading Overlay (for account registration, linking, workspace creation) -->
+		<!-- Hide global overlay when account/workspace switching is active (prevents "Loading [account name]" from showing) -->
 		<LoadingOverlay
-			show={loadingOverlay.show}
+			show={globalOverlayShow}
 			flow={loadingOverlay.flow}
 			title={loadingOverlay.title}
 			subtitle={loadingOverlay.subtitle}

@@ -3,33 +3,25 @@
 
 	let {
 		show = false,
-		workspaceName = 'workspace',
-		workspaceType = 'personal' as 'personal' | 'organization'
+		workspaceName = 'workspace'
 	}: {
 		show?: boolean;
 		workspaceName?: string;
-		workspaceType?: 'personal' | 'organization';
 	} = $props();
 
 	// Progress stages with timing
 	let stage = $state(0);
 
 	// Main title showing the action
-	const titleText = $derived(() => {
-		return workspaceType === 'personal'
-			? `Loading ${workspaceName}'s workspace`
-			: `Loading ${workspaceName}`;
-	});
+	const titleText = $derived(() => `Loading ${workspaceName}`);
 
 	// Detailed progress steps - varied, actionable verbs
 	const getStageMessage = (stageNum: number) => {
 		if (stageNum === 0) {
-			return workspaceType === 'personal' ? 'Gathering user data' : 'Gathering organization data';
+			return 'Gathering organization data';
 		}
 		if (stageNum === 1) {
-			return workspaceType === 'personal'
-				? 'Fetching your notes and highlights'
-				: 'Syncing workspace settings';
+			return 'Syncing workspace settings';
 		}
 		return 'Preparing workspace';
 	};
