@@ -3956,6 +3956,104 @@ const organizations = getContext<OrganizationsModuleAPI | undefined>('organizati
 
 ---
 
+## #L3900: Create Module API Contract for New Modules [🟡 IMPORTANT]
+
+**Symptom**: New module needs public API contract to enable loose coupling, but no pattern exists for creating one from scratch  
+**Root Cause**: Module API contracts enable loose coupling between modules, but the pattern for creating them isn't documented  
+**Fix**:
+
+```typescript
+// 1. Create API contract file (src/lib/modules/[module]/api.ts)
+/**
+ * [Module] Module API Contract
+ *
+ * Public interface for the [Module] module. This enables loose coupling
+ * between modules by providing a stable API contract that other modules can
+ * depend on, without coupling to internal implementation details.
+ *
+ * @see dev-docs/2-areas/architecture/modularity-refactoring-analysis.md
+ */
+
+import type { Id } from '$lib/convex';
+
+// Export public types used by the API
+export interface [Module]Data {
+	_id: Id<'[table]'>;
+	// ... public fields only
+}
+
+// Export composable options and return types
+export interface Use[Module]Options {
+	organizationId: () => string | undefined;
+	sessionId: () => string | undefined;
+	// ... other options
+}
+
+export interface Use[Module]Return {
+	get items(): [Module]Data[];
+	get isLoading(): boolean;
+	get error(): unknown;
+	// ... public methods
+}
+
+/**
+ * Public API contract for the [Module] module
+ *
+ * **Usage Pattern:**
+ * ```typescript
+ * import type { [Module]ModuleAPI } from '$lib/modules/[module]/api';
+ *
+ * // In component:
+ * const [module] = getContext<[Module]ModuleAPI>('[module]');
+ * const items = [module].use[Module]({ ... });
+ * ```
+ */
+export interface [Module]ModuleAPI {
+	// Expose public composables
+	use[Module](options: Use[Module]Options): Use[Module]Return;
+	// ... other public methods
+}
+
+// 2. Update manifest (src/lib/modules/[module]/manifest.ts)
+import type { ModuleManifest } from '../registry';
+import { FeatureFlags } from '$lib/featureFlags';
+import type { [Module]ModuleAPI } from './api';
+
+export const [module]Module: ModuleManifest = {
+	name: '[module]',
+	version: '1.0.0',
+	dependencies: ['core'], // List module dependencies
+	featureFlag: FeatureFlags.[MODULE]_MODULE, // Feature flag key
+	api: undefined as [Module]ModuleAPI | undefined // Type reference for API contract
+};
+```
+
+**Key Principles**:
+
+1. **Expose Only Public Surface**: Only expose composables/types used by other modules, hide internal implementation
+2. **Use Interface Types**: Define return types as interfaces (not `ReturnType<typeof composable>`)
+3. **Document Usage Pattern**: Include JSDoc with usage examples and migration path
+4. **Update Manifest**: Reference API type in manifest for type safety
+5. **Follow Existing Pattern**: Use OrganizationsModuleAPI (SYOS-295) or MeetingsModuleAPI (SYOS-305) as template
+
+**Checklist**:
+
+- [ ] API contract file created (`src/lib/modules/[module]/api.ts`)
+- [ ] Public composables exposed via API interface
+- [ ] Public types exported (options, return types, data structures)
+- [ ] Manifest updated with API reference
+- [ ] TypeScript compilation succeeds
+- [ ] Pattern documented with JSDoc comments
+- [ ] No runtime errors
+
+**Why**: Module API contracts enable loose coupling - other modules depend on stable interface, not internal implementation. Internal refactoring becomes safe without breaking dependent modules.  
+**Apply when**: Creating new module API contract (e.g., InboxModuleAPI, CirclesModuleAPI) or adding API to existing module  
+**Related**: #L3650 (Migrate to Public API Interfaces), #L4000 (Module Registry System)
+
+**Source**: SYOS-305 (MeetingsModuleAPI Contract)
+
+---
+
 ## #L3800: Type Interface Migration - Match Return Types Exactly [🔴 CRITICAL]
 
 **Symptom**: TypeScript error "Type 'string | null' is not assignable to type 'string | undefined'" when migrating to interface  

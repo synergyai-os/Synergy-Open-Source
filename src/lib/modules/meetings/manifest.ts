@@ -14,18 +14,19 @@
 
 import type { ModuleManifest } from '../registry';
 import { FeatureFlags } from '$lib/featureFlags';
+import type { MeetingsModuleAPI } from './api';
 
 /**
  * Meetings module manifest
  *
  * **Dependencies**: ['core'] (depends on core module for organizations context)
  * **Feature Flag**: 'meetings-module' (organization-based targeting)
- * **API**: TBD (future - MeetingsModuleAPI)
+ * **API**: MeetingsModuleAPI (public interface for meetings functionality)
  */
 export const meetingsModule: ModuleManifest = {
 	name: 'meetings',
 	version: '1.0.0',
 	dependencies: ['core'],
 	featureFlag: FeatureFlags.MEETINGS_MODULE, // 'meetings-module'
-	api: undefined // Future: MeetingsModuleAPI
+	api: undefined as MeetingsModuleAPI | undefined // Type reference for API contract
 };

@@ -205,6 +205,7 @@
 | AI-ready ticket structure   | Clear scope, files, patterns, success criteria              | [ticket-writing.md](ticket-writing.md)                   |
 | Module API contracts        | Create interface for composables to enable loose coupling   | [modularity-refactoring-analysis.md#L84](../architecture/modularity-refactoring-analysis.md#L84) |
 | Components depend on internal types, refactoring breaks dependent modules | Migrate to public API interfaces instead of ReturnType<typeof composable> | [convex-integration.md#L3650](convex-integration.md#L3650) |
+| Creating new module API contract (InboxModuleAPI, CirclesModuleAPI) | Follow pattern: create api.ts, expose composables/types, update manifest | [convex-integration.md#L3900](convex-integration.md#L3900) |
 | Incremental CI gates        | Enable lint/build first, defer type check to separate work  | [ci-cd.md#L10](ci-cd.md#L10)                             |
 | Local CI testing            | npm scripts > shell scripts for consistency                 | [ci-cd.md#L110](ci-cd.md#L110)                           |
 | Secret scanning             | TruffleHog with .secretsignore for safe patterns            | [ci-cd.md#L160](ci-cd.md#L160)                           |
