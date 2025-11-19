@@ -36,8 +36,19 @@ export const load: PageServerLoad = async ({ locals }) => {
 		allUsers = (usersResult as unknown[]) ?? [];
 	} catch (error) {
 		// Re-throw admin access errors so error page can handle them
+		// Only rethrow genuine authorization failures, not unrelated errors
 		const errorMessage = error instanceof Error ? error.message : String(error);
-		if (errorMessage.includes('System admin access required') || errorMessage.includes('admin')) {
+
+		// Check for exact authorization error message (from Convex)
+		const isAuthError =
+			errorMessage === 'System admin access required' ||
+			// Check for structured SvelteKit error with status 403
+			(typeof error === 'object' &&
+				error !== null &&
+				'status' in error &&
+				(error as { status: unknown }).status === 403);
+
+		if (isAuthError) {
 			throw error;
 		}
 		console.warn('Failed to load RBAC data:', error);

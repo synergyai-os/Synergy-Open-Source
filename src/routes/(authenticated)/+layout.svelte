@@ -3,6 +3,9 @@
 	// TODO: Re-enable when page is needed
 	// import { page } from '$app/stores';
 	import { onMount } from 'svelte';
+
+	// Debug flag for overlay logging (set to false to disable production logs)
+	const DEBUG_OVERLAY_LOGGING = import.meta.env.DEV;
 	import Sidebar from '$lib/components/Sidebar.svelte';
 	import GlobalActivityTracker from '$lib/components/GlobalActivityTracker.svelte';
 	import AppTopBar from '$lib/components/organizations/AppTopBar.svelte';
@@ -676,6 +679,9 @@
 		{#if shouldShowSwitchingOverlay}
 			{@const subtitleValue = switchingSubtitle}
 			{@const logRender = () => {
+				if (!browser) return;
+				if (!DEBUG_OVERLAY_LOGGING) return;
+
 				// Check for any existing overlays in DOM
 				const allOverlays = Array.from(
 					document.querySelectorAll('[id*="overlay"], [class*="overlay"], [style*="z-index:999"]')
@@ -713,6 +719,9 @@
 			<LoadingOverlay show={true} flow="workspace-switching" subtitle={subtitleValue} />
 		{:else}
 			{@const logNotShowing = () => {
+				if (!browser) return;
+				if (!DEBUG_OVERLAY_LOGGING) return;
+
 				console.log('🎨 [LOADING OVERLAY] Overlay NOT showing', {
 					shouldShowSwitchingOverlay,
 					isAccountSwitching,

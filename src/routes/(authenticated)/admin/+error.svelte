@@ -43,7 +43,9 @@
 			isSwitching = true;
 			// Use the same switchAccount function from useAuthSession composable
 			// It handles POST request, CSRF token, and redirect properly
-			await authSession.switchAccount(targetUserId, $page.url.pathname);
+			// Preserve full URL including query parameters and hash
+			const redirectUrl = `${$page.url.pathname}${$page.url.search}${$page.url.hash}`;
+			await authSession.switchAccount(targetUserId, redirectUrl);
 		} catch (err) {
 			console.error('Failed to switch account:', err);
 			isSwitching = false;

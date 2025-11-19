@@ -166,12 +166,29 @@ export async function getEnabledModules(
 	client: { query: (query: unknown, args: unknown) => Promise<unknown> }
 ): Promise<string[]> {
 	const allModules = getAllModules();
+	const orderedNames = resolveDependencies(allModules.map((m) => m.name));
 	const enabledModules: string[] = [];
 
-	// Check each module's feature flag and dependencies
-	for (const module of allModules) {
+	// Check all feature flags in parallel to reduce latency
+	const flagChecks = await Promise.all(
+		allModules.map(async (module) => ({
+			name: module.name,
+			flagEnabled: await checkFeatureFlag(module.featureFlag, sessionId, client)
+		}))
+	);
+
+	// Build a map of module name -> flag enabled status
+	const flagEnabledMap = new Map<string, boolean>();
+	for (const { name, flagEnabled } of flagChecks) {
+		flagEnabledMap.set(name, flagEnabled);
+	}
+
+	// Process modules in dependency order
+	for (const name of orderedNames) {
+		const module = getModule(name)!;
+
 		// Check if feature flag is enabled
-		const flagEnabled = await checkFeatureFlag(module.featureFlag, sessionId, client);
+		const flagEnabled = flagEnabledMap.get(name) ?? false;
 		if (!flagEnabled) {
 			continue;
 		}
