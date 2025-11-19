@@ -1413,6 +1413,96 @@ await ctx.db.insert('users', {
 
 ---
 
+## #L1420: Lazy Module Loading in Layout Server [🟡 IMPORTANT]
+
+**Symptom**: Layout server loads data for all modules upfront, even when modules are disabled via feature flags. This wastes resources and prevents true independent enablement.  
+**Root Cause**: Feature flags checked but module-specific data still loaded unconditionally  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Loads data for all modules regardless of flags
+let meetingsData = await client.query(api.meetings.listUpcoming, { sessionId });
+let circlesData = await client.query(api.circles.list, { sessionId });
+// Data loaded even if meetings-module or circles_ui_beta flags disabled
+
+// ✅ CORRECT: Three-step lazy loading pattern
+// STEP 1: Check feature flags FIRST (before any module-specific data loading)
+let circlesEnabled = false;
+let meetingsEnabled = false;
+try {
+	[circlesEnabled, meetingsEnabled] = await Promise.all([
+		client.query(api.featureFlags.checkFlag, {
+			flag: 'circles_ui_beta',
+			sessionId
+		}),
+		client.query(api.featureFlags.checkFlag, {
+			flag: 'meetings-module',
+			sessionId
+		})
+	]);
+} catch (error) {
+	console.warn('Failed to load feature flags server-side:', error);
+}
+
+// STEP 2: Load CORE data (always needed, regardless of module flags)
+// Organizations, teams, permissions, tags - required for all routes
+const organizations = await client.query(api.organizations.listOrganizations, { sessionId });
+const teams = await client.query(api.teams.listTeams, { sessionId, organizationId: activeOrgId });
+// ... core data always loaded
+
+// STEP 3: Conditionally load MODULE-SPECIFIC data (only if flags enabled)
+const meetingsData: unknown =
+	meetingsEnabled && activeOrgId
+		? (() => {
+				try {
+					// Only load if module enabled
+					return await client.query(api.meetings.listUpcoming, {
+						sessionId,
+						organizationId: activeOrgId as Id<'organizations'>
+					});
+				} catch (error) {
+					console.warn('Failed to load meetings data server-side:', error);
+					return null; // Don't block page load if optional module data fails
+				}
+			})()
+		: null;
+
+const circlesData: unknown =
+	circlesEnabled && activeOrgId
+		? (() => {
+				try {
+					return await client.query(api.circles.list, {
+						sessionId,
+						organizationId: activeOrgId as Id<'organizations'>
+					});
+				} catch (error) {
+					console.warn('Failed to load circles data server-side:', error);
+					return null;
+				}
+			})()
+		: null;
+```
+
+**Pattern Structure**:
+
+1. **STEP 1**: Check feature flags FIRST (before any module-specific data loading)
+2. **STEP 2**: Load core data always (organizations, teams, permissions, tags)
+3. **STEP 3**: Conditionally load module-specific data only if flags enabled
+
+**Key Principles**:
+
+- Feature flags checked BEFORE data loading (enables independent enablement)
+- Core data always loaded (required for all authenticated routes)
+- Module-specific data conditionally loaded (only when flags enabled)
+- Graceful error handling (don't block page load if optional module data fails)
+
+**Why**: Enables true independent module enablement - disabled modules skip unnecessary database queries, improving page load performance. Foundation for independent module deployment.  
+**Apply when**: Refactoring layout server to support modular architecture, adding new module-specific data loading  
+**Related**: #L1390 (Server-side preload), [feature-flags.md](../patterns/feature-flags.md), [modularity-refactoring-analysis.md](../architecture/modularity-refactoring-analysis.md)  
+**See**: `src/routes/(authenticated)/+layout.server.ts` for complete implementation
+
+---
+
 ## #L1050: Cleanup Must Check Document Existence [🟡 IMPORTANT]
 
 **Symptom**: `Error: Delete on non-existent doc` during test cleanup  
@@ -3902,6 +3992,6 @@ useMeetings({
 
 ---
 
-**Pattern Count**: 44  
+**Pattern Count**: 45  
 **Last Validated**: 2025-11-19  
 **Context7 Source**: `/get-convex/convex-backend`, `convex-test` NPM docs, TypeScript type system, SvelteKit docs

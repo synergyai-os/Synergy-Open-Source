@@ -4,6 +4,9 @@ import { api } from '$lib/convex';
 import type { Id } from '$lib/convex';
 import { env } from '$env/dynamic/public';
 import type { LayoutServerLoad } from './$types';
+// Initialize module registry (registers all modules)
+import '$lib/modules';
+import { getEnabledModules, isModuleEnabled } from '$lib/modules/registry';
 
 // Enforce authentication for all routes in this group
 export const load: LayoutServerLoad = async ({ locals, url }) => {
@@ -16,24 +19,52 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 	const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
 	const sessionId = locals.auth.sessionId;
 
-	// Load feature flags
-	let circlesEnabled = false;
+	// ============================================================================
+	// STEP 1: Check feature flags FIRST (before any module-specific data loading)
+	// ============================================================================
+	// CRITICAL: Feature flags must be checked BEFORE loading module-specific data
+	// This enables true independent enablement and prevents unnecessary queries
+	// Pattern: Use module registry to discover enabled modules
+	// See: SYOS-301 (Module Registry), SYOS-303 (Registry Integration)
+	// ============================================================================
+	// Use module registry to determine which modules are enabled
 	let meetingsEnabled = false;
+	let circlesEnabled = false; // Legacy flag check (not yet in registry)
 	try {
-		[circlesEnabled, meetingsEnabled] = await Promise.all([
-			client.query(api.featureFlags.checkFlag, {
-				flag: 'circles_ui_beta',
-				sessionId
-			}),
-			client.query(api.featureFlags.checkFlag, {
-				flag: 'meetings-module', // SYOS-226: organization-based targeting
-				sessionId
-			})
-		]);
+		// Get enabled modules from registry (checks feature flags automatically)
+		// Note: enabledModules list is available for future use (e.g., dynamic module loading)
+		await getEnabledModules(
+			sessionId,
+			client as unknown as { query: (query: unknown, args: unknown) => Promise<unknown> }
+		);
+		meetingsEnabled = await isModuleEnabled(
+			'meetings',
+			sessionId,
+			client as unknown as { query: (query: unknown, args: unknown) => Promise<unknown> }
+		);
+
+		// Legacy: Check circles flag directly (not yet migrated to module registry)
+		circlesEnabled = (await client.query(api.featureFlags.checkFlag, {
+			flag: 'circles_ui_beta',
+			sessionId
+		})) as boolean;
 	} catch (error) {
 		console.warn('Failed to load feature flags server-side:', error);
+		// Default to false (modules disabled) on error
+		meetingsEnabled = false;
+		circlesEnabled = false;
 	}
 
+	// ============================================================================
+	// STEP 2: Load CORE data (always needed, regardless of module flags)
+	// ============================================================================
+	// Core data is required for all authenticated routes:
+	// - Organizations: Workspace menu, organization context
+	// - Teams: Sidebar navigation, team context
+	// - Permissions: RBAC checks, button visibility
+	// - Tags: QuickCreateModal, tagging functionality
+	// This data is NOT module-specific and should always load
+	// ============================================================================
 	// Load organizations and invites for instant workspace menu rendering
 	let organizations: unknown[] = [];
 	let organizationInvites: unknown[] = [];
@@ -57,7 +88,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 	}
 
 	// Determine active organization for teams/permissions preload
-	// Priority: URL param > first organization (users always have at least one workspace)
+	// Priority: URL param (if valid) > first organization (users always have at least one workspace)
 	const orgParam = url.searchParams.get('org');
 	const orgsList = organizations as Array<{ organizationId: string }>;
 
@@ -67,7 +98,20 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 		throw redirect(302, '/onboarding');
 	}
 
-	const activeOrgId = orgParam || (orgsList.length > 0 ? orgsList[0].organizationId : null);
+	// Validate orgParam: Only use it if user actually has access to that organization
+	// This prevents 500 errors when switching accounts (org param from previous account)
+	const validOrgParam =
+		orgParam && orgsList.some((org) => org.organizationId === orgParam) ? orgParam : null;
+	const activeOrgId = validOrgParam || (orgsList.length > 0 ? orgsList[0].organizationId : null);
+
+	// Log if org param was invalid (for debugging)
+	if (orgParam && !validOrgParam) {
+		console.warn('Invalid org parameter in URL (user does not have access):', {
+			orgParam,
+			userOrgs: orgsList.map((org) => org.organizationId),
+			fallbackTo: activeOrgId
+		});
+	}
 
 	// Continue with preloading teams/permissions/tags only if we have organizations
 	if (orgsList.length > 0) {
@@ -112,6 +156,57 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 		}
 	}
 
+	// ============================================================================
+	// STEP 3: Conditionally load MODULE-SPECIFIC data (only if flags enabled)
+	// ============================================================================
+	// Module-specific data should ONLY load when the module is enabled via feature flag
+	// This enables independent enablement and improves performance
+	// Pattern: if (moduleEnabled) { load module data }
+	// ============================================================================
+
+	// Meetings module data (only load if meetings-module flag enabled)
+	const meetingsData: unknown =
+		meetingsEnabled && activeOrgId
+			? (() => {
+					try {
+						// TODO: Add meetings-specific data loading here when needed
+						// Example:
+						// return await client.query(api.meetings.listUpcoming, {
+						//   sessionId,
+						//   organizationId: activeOrgId as Id<'organizations'>
+						// });
+						return null;
+					} catch (error) {
+						console.warn('Failed to load meetings data server-side:', error);
+						// Don't block page load if optional module data fails
+						return null;
+					}
+				})()
+			: null;
+
+	// Circles module data (only load if circles_ui_beta flag enabled)
+	const circlesData: unknown =
+		circlesEnabled && activeOrgId
+			? (() => {
+					try {
+						// TODO: Add circles-specific data loading here when needed
+						// Example:
+						// return await client.query(api.circles.list, {
+						//   sessionId,
+						//   organizationId: activeOrgId as Id<'organizations'>
+						// });
+						return null;
+					} catch (error) {
+						console.warn('Failed to load circles data server-side:', error);
+						// Don't block page load if optional module data fails
+						return null;
+					}
+				})()
+			: null;
+
+	// ============================================================================
+	// Return data to client
+	// ============================================================================
 	return {
 		user: locals.auth.user,
 		isAuthenticated: true,
@@ -122,15 +217,15 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 		// Feature flags loaded server-side for instant rendering
 		circlesEnabled,
 		meetingsEnabled,
-		// Organizations and invites loaded server-side for instant workspace menu
+		// Core data (always loaded)
 		organizations,
 		organizationInvites,
 		teamInvites,
-		// Teams loaded server-side for active organization (instant sidebar rendering)
 		teams,
-		// Permissions loaded server-side for active organization context (instant button visibility)
 		permissions,
-		// Tags loaded server-side for QuickCreateModal (instant tag dropdown)
-		tags
+		tags,
+		// Module-specific data (only loaded if flags enabled)
+		meetingsData,
+		circlesData
 	};
 };
