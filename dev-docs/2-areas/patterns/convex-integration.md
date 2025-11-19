@@ -3992,6 +3992,164 @@ useMeetings({
 
 ---
 
-**Pattern Count**: 45  
+## #L4000: Module Registry & Discovery System [🟡 IMPORTANT]
+
+**Symptom**: Modules loaded statically, no way to discover enabled modules, hardcoded feature flag checks scattered across codebase  
+**Root Cause**: No centralized module registry system for discovery, dependency management, and feature flag integration  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Hardcoded feature flag checks, no module discovery
+let meetingsEnabled = false;
+let circlesEnabled = false;
+try {
+	[meetingsEnabled, circlesEnabled] = await Promise.all([
+		client.query(api.featureFlags.checkFlag, { flag: 'meetings-module', sessionId }),
+		client.query(api.featureFlags.checkFlag, { flag: 'circles_ui_beta', sessionId })
+	]);
+} catch (error) {
+	console.warn('Failed to load feature flags:', error);
+}
+
+// ✅ CORRECT: Module registry with discovery and dependency management
+
+// 1. Create module registry (src/lib/modules/registry.ts)
+export interface ModuleManifest {
+	name: string;
+	version: string;
+	dependencies: string[];
+	featureFlag: FeatureFlagKey | null;
+	api?: unknown;
+}
+
+const moduleRegistry = new Map<string, ModuleManifest>();
+
+export function registerModule(manifest: ModuleManifest): void {
+	if (moduleRegistry.has(manifest.name)) {
+		throw new Error(`Module "${manifest.name}" is already registered`);
+	}
+	moduleRegistry.set(manifest.name, manifest);
+}
+
+export async function getEnabledModules(
+	sessionId: string,
+	client: { query: (query: unknown, args: unknown) => Promise<unknown> }
+): Promise<string[]> {
+	const allModules = getAllModules();
+	const enabledModules: string[] = [];
+
+	for (const module of allModules) {
+		// Check feature flag
+		const flagEnabled = await checkFeatureFlag(module.featureFlag, sessionId, client);
+		if (!flagEnabled) continue;
+
+		// Check dependencies
+		const allDependenciesEnabled = module.dependencies.every((depName) =>
+			enabledModules.includes(depName)
+		);
+
+		if (allDependenciesEnabled) {
+			enabledModules.push(module.name);
+		}
+	}
+
+	return enabledModules;
+}
+
+export async function checkFeatureFlag(
+	flag: FeatureFlagKey | null,
+	sessionId: string,
+	client: { query: (query: unknown, args: unknown) => Promise<unknown> }
+): Promise<boolean> {
+	if (flag === null) return true; // Always enabled
+	
+	try {
+		const result = await client.query(api.featureFlags.checkFlag, { flag, sessionId });
+		return (result as boolean) ?? false;
+	} catch (error) {
+		console.warn(`Failed to check feature flag "${flag}":`, error);
+		return false; // Secure by default
+	}
+}
+
+// 2. Create module manifests (src/lib/modules/core/manifest.ts)
+export const coreModule: ModuleManifest = {
+	name: 'core',
+	version: '1.0.0',
+	dependencies: [],
+	featureFlag: null, // Always enabled
+	api: undefined as OrganizationsModuleAPI | undefined
+};
+
+// src/lib/modules/meetings/manifest.ts
+export const meetingsModule: ModuleManifest = {
+	name: 'meetings',
+	version: '1.0.0',
+	dependencies: ['core'],
+	featureFlag: FeatureFlags.MEETINGS_MODULE, // 'meetings-module'
+	api: undefined
+};
+
+// 3. Initialize registry (src/lib/modules/index.ts)
+import { registerModule } from './registry';
+import { coreModule } from './core/manifest';
+import { meetingsModule } from './meetings/manifest';
+
+registerModule(coreModule);
+registerModule(meetingsModule);
+
+// 4. Use registry in layout server (src/routes/(authenticated)/+layout.server.ts)
+import '$lib/modules'; // Initialize registry
+import { getEnabledModules, isModuleEnabled } from '$lib/modules/registry';
+
+// Use registry instead of hardcoded checks
+let meetingsEnabled = false;
+try {
+	const enabledModules = await getEnabledModules(sessionId, client);
+	meetingsEnabled = await isModuleEnabled('meetings', sessionId, client);
+} catch (error) {
+	console.warn('Failed to load feature flags server-side:', error);
+	meetingsEnabled = false;
+}
+```
+
+**Key Components**:
+
+1. **Module Registry** (`src/lib/modules/registry.ts`):
+   - `registerModule()` - Register modules
+   - `getEnabledModules()` - Discover enabled modules (checks flags + dependencies)
+   - `isModuleEnabled()` - Check if specific module enabled
+   - `resolveDependencies()` - Resolve dependency order
+
+2. **Module Manifests** (`src/lib/modules/[module]/manifest.ts`):
+   - Declare module metadata (name, version, dependencies, feature flag)
+   - Define module API contract (optional)
+
+3. **Registry Initialization** (`src/lib/modules/index.ts`):
+   - Import all manifests
+   - Register all modules on import
+
+4. **Layout Server Integration**:
+   - Import registry initialization
+   - Use `getEnabledModules()` or `isModuleEnabled()` instead of hardcoded checks
+
+**Benefits**:
+
+- ✅ Centralized module discovery
+- ✅ Automatic dependency resolution
+- ✅ Single source of truth for module enablement
+- ✅ Foundation for independent module deployment
+- ✅ Easier to add new modules (just create manifest + register)
+
+**Why**: Enables true modularity - modules can be discovered, enabled/disabled dynamically, and managed independently. Foundation for independent module deployment and versioning.  
+**Apply when**: Building modular architecture, refactoring layout server, adding new modules, or preparing for independent deployment  
+**Related**: #L1420 (Lazy Module Loading), [feature-flags.md](feature-flags.md), [modularity-refactoring-analysis.md](../architecture/modularity-refactoring-analysis.md)  
+**See**: `src/lib/modules/registry.ts`, `src/lib/modules/index.ts`, `src/routes/(authenticated)/+layout.server.ts` for complete implementation
+
+**Source**: SYOS-301, SYOS-302, SYOS-303 (Module Registry & Discovery System)
+
+---
+
+**Pattern Count**: 46  
 **Last Validated**: 2025-11-19  
 **Context7 Source**: `/get-convex/convex-backend`, `convex-test` NPM docs, TypeScript type system, SvelteKit docs
