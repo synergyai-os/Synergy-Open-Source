@@ -3866,6 +3866,42 @@ const organizations = getContext<OrganizationsModuleAPI | undefined>('organizati
 
 ---
 
-**Pattern Count**: 43  
-**Last Validated**: 2025-11-17  
+## #L3800: Type Interface Migration - Match Return Types Exactly [🔴 CRITICAL]
+
+**Symptom**: TypeScript error "Type 'string | null' is not assignable to type 'string | undefined'" when migrating to interface  
+**Root Cause**: Interface contracts specify exact return types. Composables expecting `undefined` fail with `null`.  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Returns null but interface expects undefined
+const organizationId = $derived(() => {
+	const org = activeOrganization();
+	return org?.organizationId ?? null; // ❌ null not assignable to string | undefined
+});
+
+useMeetings({
+	organizationId: () => organizationId(), // ❌ Type error
+	sessionId: getSessionId
+});
+
+// ✅ CORRECT: Match interface contract exactly
+const organizationId = $derived(() => {
+	const org = activeOrganization();
+	return org?.organizationId ?? undefined; // ✅ undefined matches interface
+});
+
+useMeetings({
+	organizationId: () => organizationId(), // ✅ Type matches
+	sessionId: getSessionId
+});
+```
+
+**Why**: When migrating from concrete types to interfaces, the interface contract must be honored exactly. `null` and `undefined` are different types in TypeScript.  
+**Apply when**: Migrating code to use interface contracts (e.g., OrganizationsModuleAPI), ensuring return types match interface definitions  
+**Related**: #L1200 (sessionId migration), #L1250 (Id type assertions), #L3650 (Interface migration pattern)
+
+---
+
+**Pattern Count**: 44  
+**Last Validated**: 2025-11-19  
 **Context7 Source**: `/get-convex/convex-backend`, `convex-test` NPM docs, TypeScript type system, SvelteKit docs
