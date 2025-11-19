@@ -203,6 +203,99 @@ test('should handle error', async () => {
 
 ---
 
+## #L90: Creating Custom ESLint Rules in Flat Config [🟡 IMPORTANT]
+
+**Symptom**: Need to enforce architectural boundaries (e.g., module boundaries) but no existing ESLint rule covers it  
+**Root Cause**: Standard ESLint rules don't understand project-specific architecture patterns  
+**Fix**:
+
+```javascript
+// ✅ CORRECT: Create custom rule in eslint-rules/ directory
+// eslint-rules/no-cross-module-imports.js
+export default {
+	meta: {
+		type: 'problem',
+		docs: {
+			description: 'Prevent cross-module imports to enforce module boundaries',
+			category: 'Architecture',
+			recommended: true
+		},
+		messages: {
+			crossModuleImport:
+				'Cross-module import detected: "{{sourceModule}}" → "{{targetModule}}". ' +
+				'Modules should communicate via API contracts. ' +
+				'Use dependency injection via context (getContext) or import from core module instead.'
+		},
+		schema: []
+	},
+	create(context) {
+		return {
+			ImportDeclaration(node) {
+				const source = node.source.value;
+				const filePath = context.getFilename();
+				
+				// Extract module names from paths
+				const sourceModule = getModuleFromPath(filePath);
+				const targetModule = getModuleFromImport(source);
+				
+				// Check if cross-module import (block if different modules, except core)
+				if (sourceModule && targetModule && 
+				    sourceModule !== targetModule && 
+				    targetModule !== 'core') {
+					context.report({
+						node: node.source,
+						messageId: 'crossModuleImport',
+						data: { sourceModule, targetModule }
+					});
+				}
+			}
+		};
+	}
+};
+
+// eslint.config.js
+import noCrossModuleImports from './eslint-rules/no-cross-module-imports.js';
+
+export default defineConfig([
+	// ... other configs
+	{
+		plugins: {
+			synergyos: {
+				rules: {
+					'no-cross-module-imports': noCrossModuleImports
+				}
+			}
+		},
+		rules: {
+			'synergyos/no-cross-module-imports': 'error'
+		}
+	}
+]);
+```
+
+**Why**:
+- Custom rules catch architectural violations at development time (not production)
+- Prevents accidental tight coupling between modules
+- Enforces architectural patterns automatically (no manual code review needed)
+- Clear error messages guide developers to correct patterns
+
+**Key Points**:
+- Use ES module syntax (`export default`) for flat config compatibility
+- Rule file location: `eslint-rules/` directory (convention)
+- Plugin namespace: Use project name (e.g., `synergyos`) to avoid conflicts
+- Rule name format: `plugin-name/rule-name` (e.g., `synergyos/no-cross-module-imports`)
+- Severity: Use `'error'` to block CI, `'warn'` for non-blocking
+
+**Apply when**:
+- Need to enforce architectural boundaries (module boundaries, layer boundaries)
+- Standard ESLint rules don't cover project-specific patterns
+- Want to catch violations at development time (not production)
+- Architectural violations are common and need automated prevention
+
+**Related**: #L60 (ESLint for tests), #L70 (Disable rules with limitations), dev-docs/2-areas/architecture/module-boundary-enforcement.md
+
+---
+
 ## #L110: Local CI Testing - npm Scripts > Shell Scripts [🟢 REFERENCE]
 
 **Context**: Developers need to run CI checks locally before pushing  

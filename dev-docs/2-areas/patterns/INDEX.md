@@ -145,6 +145,7 @@
 | ESLint errors in test files blocking CI                                       | Relax rules for test files (allow `any` types)                        | [ci-cd.md#L60](ci-cd.md#L60)                               |
 | ESLint rule reports false positives for correct code, 50+ per-line disables   | Disable rule globally with documentation when rule has known limitations | [ci-cd.md#L70](ci-cd.md#L70)                               |
 | ESLint warnings for unused Playwright test parameters (`page`, `request`)     | Use actual parameter names + ESLint disable comment (Playwright validates signatures) | [ci-cd.md#L80](ci-cd.md#L80)                               |
+| Need to enforce architectural boundaries (module boundaries, layer boundaries) | Create custom ESLint rule in eslint-rules/ directory, use ES module syntax for flat config | [ci-cd.md#L90](ci-cd.md#L90)                               |
 | CSS warnings from svelte-check (unused selectors, empty rulesets, @apply)    | Remove unused selectors, empty rulesets; replace @apply with design tokens | [ui-patterns.md#L950](ui-patterns.md#L950)                 |
 | Playwright test fails: "did not expect test.use() here"                       | Move test.use() to describe level, not inside test                    | [ci-cd.md#L210](ci-cd.md#L210)                             |
 | Cookies not cleared/shared in Playwright tests                                | Use page.request instead of request fixture                           | [ci-cd.md#L220](ci-cd.md#L220)                             |
