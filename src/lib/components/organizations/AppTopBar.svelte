@@ -1,6 +1,6 @@
 <script lang="ts">
 	import OrganizationSwitcher from './OrganizationSwitcher.svelte';
-	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
 
 	let {
 		organizations,
@@ -17,7 +17,7 @@
 		onAddAccount,
 		onLogout
 	}: {
-		organizations: UseOrganizations | undefined;
+		organizations: OrganizationsModuleAPI | undefined;
 		isMobile?: boolean;
 		sidebarCollapsed?: boolean;
 		onSidebarToggle?: () => void;

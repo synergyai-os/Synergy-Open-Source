@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getContext } from 'svelte';
 	import OrganizationSwitcher from '../organizations/OrganizationSwitcher.svelte';
-	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
 
 	type OrganizationInfo = {
 		organizationId: string;
@@ -61,7 +61,7 @@
 		sidebarCollapsed = false,
 		isHovered = false
 	}: Props = $props();
-	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
 	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
 	// Pattern: Check object existence first, then access getter property directly
 	// See SYOS-228, svelte-reactivity.md#L910 for full pattern documentation
