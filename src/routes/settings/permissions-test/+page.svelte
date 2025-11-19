@@ -7,7 +7,7 @@
 	import { api } from '$lib/convex';
 	import { toast } from '$lib/utils/toast';
 	import { browser } from '$app/environment';
-	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
 	import type { Id } from '$lib/convex';
 
 	// Get user from page data
@@ -15,7 +15,7 @@
 	const sessionId = $derived($page.data.sessionId);
 
 	// Get workspace context from Svelte context (set by root layout)
-	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
 	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
 	// Pattern: Check object existence first, then access getter property directly
 	// See SYOS-228 for full pattern documentation

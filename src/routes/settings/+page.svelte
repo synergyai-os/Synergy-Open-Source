@@ -6,7 +6,7 @@
 	import { onMount, getContext } from 'svelte';
 	import type { FunctionReference, FunctionReturnType } from 'convex/server';
 	import type { Id } from '../../../convex/_generated/dataModel';
-	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
 
 	// Types for Convex hooks (currently unused but kept for future use)
 	// type UseQueryReturn<Query extends FunctionReference<'query'>> =
@@ -74,7 +74,7 @@
 	import { makeFunctionReference } from 'convex/server';
 
 	// Get workspace context
-	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
 	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
 	// Pattern: Check object existence first, then access getter property directly
 	// See SYOS-228 for full pattern documentation

@@ -3799,6 +3799,73 @@ return json({ success: true, redirectTo });
 
 ---
 
-**Pattern Count**: 42  
+## #L3650: Migrate from Internal Types to Public API Interfaces [🟡 IMPORTANT]
+
+**Symptom**: Components depend on internal composable return types (`UseOrganizations`, `UseCircles`), making refactoring risky and breaking changes when internal implementation changes  
+**Root Cause**: Direct dependency on `ReturnType<typeof useComposable>` couples components to internal implementation details instead of stable public API contract  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Direct dependency on internal type
+import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+const organizations = getContext<UseOrganizations | undefined>('organizations');
+
+// ✅ CORRECT: Depend on public API interface (enables loose coupling)
+import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
+// OR: import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/api';
+const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
+```
+
+**Migration Pattern**:
+
+1. **Create API Contract** (if not exists):
+   ```typescript
+   // src/lib/modules/core/organizations/api.ts
+   export interface OrganizationsModuleAPI {
+     get organizations(): OrganizationSummary[];
+     get activeOrganizationId(): string | null;
+     setActiveOrganization(organizationId: string | null): void;
+     // ... all public properties and methods
+   }
+   ```
+
+2. **Wrap Implementation**:
+   ```typescript
+   // src/lib/composables/useOrganizations.svelte.ts
+   export function useOrganizations(...) {
+     // ... internal implementation ...
+     
+     // Return value implements API contract
+     const api: OrganizationsModuleAPI = {
+       get organizations() { return queries.organizations; },
+       // ... implement all interface members ...
+     };
+     
+     return api; // Backward compatible
+   }
+   
+   // Re-export interface for convenience
+   export type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/api';
+   ```
+
+3. **Migrate Components**:
+   ```typescript
+   // Find all files using internal type
+   // grep -r "UseOrganizations" src/
+   
+   // Replace in each file:
+   // - import type { UseOrganizations } → import type { OrganizationsModuleAPI }
+   // - getContext<UseOrganizations | undefined> → getContext<OrganizationsModuleAPI | undefined>
+   ```
+
+**Why**: Public API contracts enable loose coupling - components depend on stable interface, not internal implementation. Internal refactoring becomes safe without breaking dependent modules.  
+**Apply when**: Migrating composables to module architecture, enabling safe refactoring, or preparing for dependency injection  
+**Related**: #L240 (Shared Type Definitions), #L1300 (Circular API References)
+
+**Source**: SYOS-296, SYOS-299 (Organizations Module API Migration)
+
+---
+
+**Pattern Count**: 43  
 **Last Validated**: 2025-11-17  
 **Context7 Source**: `/get-convex/convex-backend`, `convex-test` NPM docs, TypeScript type system, SvelteKit docs

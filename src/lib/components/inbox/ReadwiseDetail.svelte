@@ -9,7 +9,7 @@
 	import { api } from '$lib/convex';
 	import TagSelector from './TagSelector.svelte';
 	import type { Id } from '../../../../convex/_generated/dataModel';
-	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
 	import { DEFAULT_TAG_COLOR } from '$lib/utils/tagConstants';
 	// TODO: Re-enable when Doc type is needed
 	// import type { Doc } from '../../../../convex/_generated/dataModel';
@@ -88,7 +88,7 @@
 	}
 
 	// Get workspace context for organization filtering
-	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
 	const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
 
 	// Query all tags for user (with error handling if API not generated yet)

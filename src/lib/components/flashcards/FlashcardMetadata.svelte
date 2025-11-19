@@ -8,7 +8,7 @@
 	import TagSelector from '$lib/components/inbox/TagSelector.svelte';
 	import { useTagging } from '$lib/composables/useTagging.svelte';
 	import type { Id } from '../../../../convex/_generated/dataModel';
-	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
 
 	type Flashcard = {
 		_id: Id<'flashcards'>;
@@ -35,7 +35,7 @@
 	const getSessionId = () => $page.data.sessionId;
 
 	// Get workspace context for organization filtering
-	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
 	const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
 
 	// Setup tagging system for flashcards
