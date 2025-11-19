@@ -100,6 +100,7 @@
 | ESC key goes back two levels instead of one when multiple panels are open                      | Check if current panel is topmost layer before handling ESC (use selectedId not data._id)     | [ui-patterns.md#L4250](ui-patterns.md#L4250)            |
 | Admin access denied redirects instead of showing error page, custom +error.svelte never renders | Move admin checks from hooks to page loads, throw error() not redirect()                      | [ui-patterns.md#L4750](ui-patterns.md#L4750)            |
 | Account switching shows "GET method not allowed" (405), switch fails                          | Use POST request with CSRF token via useAuthSession composable, not window.location.href     | [auth-deployment.md#L1120](auth-deployment.md#L1120)    |
+| Modules loaded statically, hardcoded feature flag checks, no module discovery                | Use module registry system: create manifests, register modules, use getEnabledModules()      | [convex-integration.md#L4000](convex-integration.md#L4000)            |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
