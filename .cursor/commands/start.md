@@ -151,7 +151,7 @@ Once I have a ticket ID, I'll proceed with the work.
 
 **Why**: Prevents writing unnecessary code, introducing bugs, creating spaghetti code, and leaving garbage in the codebase. We want simple, clean, maintainable, scalable, reliable, secure code.
 
-## 🔍 Workflow: Linear Ticket Check → Investigate → Scope → Plan → Confirm
+## 🔍 Workflow: Linear Ticket Check → Investigate → Scope → Plan → Validate Architecture → Confirm
 
 **Before doing ANYTHING:**
 
@@ -163,12 +163,70 @@ Once I have a ticket ID, I'll proceed with the work.
 1. **Investigate** - Understand current state, existing patterns
 2. **Scope** - Define what's in/out
 3. **Plan** - Outline approach, steps, issues
-4. **Confirm** - Get user approval
+4. **🔧 Validate Architecture** - Check modularity principles (see below) ⭐ **MANDATORY**
+5. **Confirm** - Get user approval
 
 **Never start ANY work without:**
 
 - ✅ Linear ticket ID (e.g., SYOS-123)
+- ✅ Architecture validation passed
 - ✅ User confirmation
+
+---
+
+## 🔧 Modularity Validation (MANDATORY Before Implementation)
+
+**⚠️ CRITICAL**: All new features/modules MUST follow modularity principles from `system-architecture.md`.
+
+**Reference**: [System Architecture - Modularity Section](dev-docs/2-areas/architecture/system-architecture.md#6-modularity--module-system) ⭐
+
+### Quick Validation Checklist
+
+**Before writing ANY code, validate:**
+
+- [ ] **Is this a new module?** → Create feature flag in `src/lib/featureFlags.ts` and `convex/featureFlags.ts`
+- [ ] **Can this be enabled per org?** → Use `allowedOrganizationIds` targeting (organization-based feature flags)
+- [ ] **Does this follow loose coupling?** → No direct imports from other modules' internals (use shared utilities or APIs)
+- [ ] **Does this have clear contracts?** → Documented API/interface for module communication (if cross-module)
+- [ ] **Can this be deployed independently?** → Verify module boundaries (future goal, but design for it now)
+
+### Modularity Principles (from system-architecture.md)
+
+**Current State** (Verified):
+
+- ✅ **Independent Development** - Teams work without conflicts
+- ✅ **Independent Enablement** - Feature flags per org/tenant (`allowedOrganizationIds`)
+- 🟡 **Independent Deployment** - Planned after refactoring (design for it now)
+- 🟡 **Clear Contracts** - APIs for module communication (in progress - document interfaces)
+- 🟡 **Loose Coupling** - No direct internal dependencies (needs enforcement - validate imports)
+
+**Module Enablement Pattern** (Required for new modules):
+
+```typescript
+// Frontend: src/lib/featureFlags.ts
+export const NEW_MODULE_FLAG = 'new-module-flag';
+
+// Backend: convex/featureFlags.ts
+await upsertFlag({
+	flag: 'new-module-flag',
+	enabled: true,
+	allowedOrganizationIds: ['org-id-1'] // Per-org targeting
+});
+
+// Usage: Check flag before rendering/enabling module
+const isEnabled = useFeatureFlag(NEW_MODULE_FLAG, organizationId);
+```
+
+**Common Violations to Avoid:**
+
+- ❌ **Tight Coupling**: Direct imports from `src/lib/components/[other-module]/` internals
+- ❌ **Missing Feature Flags**: New module without feature flag (can't enable/disable per org)
+- ❌ **Hardcoded Dependencies**: Module assumes another module is always enabled
+- ❌ **No Contracts**: Cross-module communication without documented API
+
+**If violations detected**: STOP and discuss with user before implementing.
+
+**See**: [System Architecture](dev-docs/2-areas/architecture/system-architecture.md#6-modularity--module-system) for complete module system details
 
 ---
 
@@ -288,14 +346,15 @@ Once I have a ticket ID, I'll proceed with the work.
 
 1. **🚨 Linear Required** - **REFUSE to work without Linear project/ticket** ⭐ **CRITICAL**
 2. **Coding Standards** - Read `dev-docs/2-areas/development/coding-standards.md` FIRST ⭐
-3. **Communication** - Short, dense, concise
-4. **No auto-docs** - Never create docs unless asked
-5. **Product Principles** - Read first, outcomes over outputs
-6. **Business Language** - Avoid jargon in project names
-7. **Investigate first** - Understand before acting
-8. **Confirm before building** - Scope, plan, get approval
-9. **Context7 first** - For library docs before web search
-10. **Domain**: Production domain is `www.synergyos.ai` (not synergyos.dev or synergyos.ai)
+3. **🔧 Modularity Validation** - Validate architecture before coding ⭐ **MANDATORY**
+4. **Communication** - Short, dense, concise
+5. **No auto-docs** - Never create docs unless asked
+6. **Product Principles** - Read first, outcomes over outputs
+7. **Business Language** - Avoid jargon in project names
+8. **Investigate first** - Understand before acting
+9. **Confirm before building** - Scope, plan, validate architecture, get approval
+10. **Context7 first** - For library docs before web search
+11. **Domain**: Production domain is `www.synergyos.ai` (not synergyos.dev or synergyos.ai)
 
 ---
 

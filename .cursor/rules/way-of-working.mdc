@@ -142,6 +142,7 @@ Read in order:
 3. Use design tokens (never hardcode)
 4. Follow composables pattern (see `svelte-typescript-patterns.mdc`)
 5. Use Context7 for library docs
+6. **If working with modules/APIs**: Complete Module Architecture Validation checklist (see below) ⭐
 
 **Coding Standards (MANDATORY for AI Agents):**
 - See `svelte-typescript-patterns.mdc` - Complete critical rules and patterns
@@ -163,10 +164,87 @@ Read in order:
 
 ---
 
+## Module Architecture Validation (MANDATORY for Module Work)
+
+**⚠️ CRITICAL**: Before creating/exposing module APIs or moving components, validate module placement and dependencies.
+
+**When working with modules, components, or APIs:**
+
+### 1. **Check Actual Usage Across Modules** (MANDATORY)
+
+**Before exposing a component/composable via module API:**
+
+1. **Search for all imports/usages**:
+   ```bash
+   # Find all files that import/use the component
+   grep -r "TagSelector\|useTagging" src/ --include="*.svelte" --include="*.ts"
+   ```
+
+2. **Identify which modules use it**:
+   - If used by **multiple modules** → Should be in **core module** (shared component)
+   - If used by **single module** → Can stay in that module
+   - If used by **no modules** → Question if it should be exposed
+
+3. **Check for cross-module dependencies**:
+   - ❌ **BAD**: Meetings module imports from Inbox module → Creates dependency
+   - ✅ **GOOD**: Both import from Core module → No cross-module dependency
+
+**Example Validation:**
+```typescript
+// ❌ WRONG: TagSelector in inbox, used by flashcards → Creates Flashcards → Inbox dependency
+// ✅ CORRECT: TagSelector in core, used by both → No cross-module dependencies
+```
+
+### 2. **Verify Module Placement** (MANDATORY)
+
+**Before finalizing module API:**
+
+- **Question current structure**: Don't assume current location is correct
+- **Check module boundaries**: See `dev-docs/2-areas/architecture/modularity-refactoring-analysis.md`
+- **Verify placement logic**:
+  - **Core module**: Shared components, utilities used by multiple modules
+  - **Feature modules**: Module-specific functionality (inbox, meetings, flashcards)
+  - **Rule**: If 2+ modules need it → Core module
+
+### 3. **Validate Cross-Module Dependencies** (MANDATORY)
+
+**Before exposing via API:**
+
+- **Check dependency graph**: Will this create unwanted dependencies?
+- **Verify loose coupling**: Modules should depend on interfaces, not implementations
+- **Test scenario**: "If I disable module X, does module Y break?"
+  - If yes → Tight coupling, needs refactoring
+  - If no → Loose coupling ✅
+
+### 4. **Architectural Checklist** (MANDATORY)
+
+**Before creating module API contract:**
+
+- [ ] Searched for all usages across modules
+- [ ] Identified which modules actually use the component/composable
+- [ ] Verified module placement (core vs feature module)
+- [ ] Checked for cross-module dependencies
+- [ ] Validated no unwanted coupling (e.g., Meetings → Inbox)
+- [ ] Questioned current structure (don't assume it's correct)
+
+**Reference Documentation:**
+- **Modularity Principles**: `dev-docs/2-areas/architecture/system-architecture.md#6-modularity--module-system`
+- **Refactoring Analysis**: `dev-docs/2-areas/architecture/modularity-refactoring-analysis.md`
+- **Module Boundaries**: See Section 3 (Direct Imports Between Modules)
+
+**Common Architectural Mistakes:**
+- ❌ Exposing shared component via feature module API (creates dependencies)
+- ❌ Assuming current module placement is correct (always validate)
+- ❌ Not checking cross-module usage before exposing APIs
+- ❌ Creating cross-module dependencies (Meetings → Inbox, Flashcards → Inbox)
+
+---
+
 ## Starting a Task
 
 1. Read `marketing-docs/strategy/product-vision-2.0.md` - Understand current product vision
 2. Check `dev-docs/patterns/INDEX.md` - See if patterns exist
 3. Review `dev-docs/design-tokens.md` - If building UI
 4. Check `dev-docs/architecture.md` - If working on architecture
-5. Use Context7 - For latest library documentation
+5. **If working with modules/APIs**: Complete Module Architecture Validation checklist ⭐
+6. Use Context7 - For latest library documentation

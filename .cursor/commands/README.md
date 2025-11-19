@@ -14,18 +14,19 @@
 
 ## 📊 Optimization Results
 
-| Command              | Before    | After     | Change     | Status                                       |
-| -------------------- | --------- | --------- | ---------- | -------------------------------------------- |
-| `/start`             | 220 lines | 368 lines | +148 lines | ✅ Linear constants & workflow added         |
-| `/start-new-project` | 755 lines | 594 lines | -21% (161) | ✅ Optimized                                 |
-| `/save`              | 898 lines | 272 lines | -70% (626) | ✅ Optimized                                 |
-| `/root-cause`        | 65 lines  | 239 lines | +174 lines | ✅ Enhanced with "slow = fast" methodology   |
-| `/pr`                | New       | 366 lines | N/A        | ✅ New command - PR creation workflow        |
-| `/pr-close`          | New       | 415 lines | N/A        | ✅ New command - Post-merge cleanup workflow |
-| `/linear`            | 373 lines | 450 lines | +77 lines  | ✅ Enhanced with Label Selection Guide       |
-| `/linear-subtickets` | 1 line    | 180 lines | +179 lines | ✅ Enhanced with complete workflow guide     |
+| Command              | Before    | After      | Change     | Status                                           |
+| -------------------- | --------- | ---------- | ---------- | ------------------------------------------------ |
+| `/start`             | 368 lines | ~450 lines | +82 lines  | ✅ Modularity validation added (mandatory check) |
+| `/start-new-project` | 755 lines | 594 lines  | -21% (161) | ✅ Optimized                                     |
+| `/save`              | 898 lines | 272 lines  | -70% (626) | ✅ Optimized                                     |
+| `/root-cause`        | 65 lines  | 239 lines  | +174 lines | ✅ Enhanced with "slow = fast" methodology       |
+| `/pr`                | New       | 366 lines  | N/A        | ✅ New command - PR creation workflow            |
+| `/pr-close`          | New       | 415 lines  | N/A        | ✅ New command - Post-merge cleanup workflow     |
+| `/linear`            | 373 lines | 450 lines  | +77 lines  | ✅ Enhanced with Label Selection Guide           |
+| `/linear-subtickets` | 1 line    | 180 lines  | +179 lines | ✅ Enhanced with complete workflow guide         |
+| `/branch`            | 1 line    | 205 lines  | +204 lines | ✅ New command - Branch creation workflow        |
 
-**Net Change**: ~384 lines removed (626 from `/save` - 174 to `/root-cause` - 148 to `/start`) + 256 lines added (77 to `/linear` + 179 to `/linear-subtickets`)
+**Net Change**: ~384 lines removed (626 from `/save` - 174 to `/root-cause` - 148 to `/start`) + 460 lines added (77 to `/linear` + 179 to `/linear-subtickets` + 204 to `/branch`)
 
 ---
 
@@ -154,6 +155,7 @@
 
 - **`/start-new-project`** - New project setup (594 lines)
 - **`/save`** - Local knowledge capture, no commit (272 lines)
+- **`/branch`** - Branch creation workflow (205 lines)
 - **`/pr`** - PR creation workflow (366 lines)
 - **`/pr-close`** - Post-merge cleanup workflow (415 lines)
 
@@ -283,14 +285,60 @@
 
 - Label selection guidance (inherit type from parent)
 - Parent linking requirements (title, description, `parentId`)
+- **Project linking requirement** (subtasks don't inherit project from parent)
 - Parallel vs sequential analysis methodology
-- Validation checklist
+- Verification checklist (project linking, parent linking)
 - Example workflow
 
-**Why**: Prevents mistakes like incorrect labels, missing parent links, unclear dependencies
+**Why**: Prevents mistakes like incorrect labels, missing parent links, missing project links, unclear dependencies
+
+**Critical Lesson Learned (2025-01-XX)**: Subtasks **DO NOT** automatically inherit project from parent. Must explicitly link subtasks to project using `mcp_Linear_update_issue()` with `projectId` after creation.
 
 ---
 
-**Last Updated**: 2025-11-18  
+### `/branch` Command (2025-01-XX)
+
+**Created**: Complete branch creation workflow (was 1 line, now 205 lines)
+
+- Linear ticket ID requirement (critical rule)
+- Branch naming convention: `feature/SYOS-XXX-description`
+- Workflow: checkout main → pull → create branch
+- Common mistakes and fixes
+- References to git-workflow.md for complete details
+
+**Why**: Ensures consistent branch creation with Linear integration, prevents missing ticket IDs, enforces naming conventions
+
+---
+
+### `/linear` Command (2025-01-XX)
+
+**Enhanced**: Project linking workflow and verification
+
+- **Explicit project linking**: Always verify tickets are linked to project after creation
+- **Verification step**: Check ticket has `projectId` field set correctly
+- **Update workflow**: Use `mcp_Linear_update_issue()` with `projectId` if ticket not linked during creation
+
+**Why**: Prevents tickets from being created without project link (discovered during Teams → Circles migration project)
+
+**Critical Lesson Learned (2025-01-XX)**: Even when `projectId` is provided in `create_issue()`, tickets may not be linked. Always verify and update if needed.
+
+---
+
+### `/validate` Command (2025-11-19)
+
+**Enhanced**: Added modularity validation checklist (mandatory check)
+
+- **Modularity Validation**: Quick checks for feature flags, loose coupling, module boundaries
+- **Reference**: Links to `system-architecture.md` modularity section (no duplication)
+- **Violation Handling**: Document in ticket, mark as needs work (don't mark as done)
+- **Summary Comment**: Non-technical summary (2-3 sentences) explaining value
+
+**Why**: Ensures modularity principles are followed before marking tickets complete, preventing architectural debt
+
+**Previous Enhancement** (2025-01-XX): Added requirement for brief summary comment (2-3 sentences max)
+
+---
+
+**Last Updated**: 2025-11-19  
 **Purpose**: Document command optimizations and best practices  
-**Latest Change**: Enhanced `/linear` and `/linear-subtickets` with label selection guidance and complete workflow
+**Latest Change**: Enhanced `/validate` with modularity validation checklist (mandatory check)

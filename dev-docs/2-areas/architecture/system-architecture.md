@@ -1,8 +1,8 @@
 # SynergyOS System Architecture
 
 **Status**: 🟢 Active  
-**Last Updated**: 2025-01-XX  
-**Version**: 1.0
+**Last Updated**: 2025-11-18  
+**Version**: 1.1
 
 ---
 
@@ -10,16 +10,40 @@
 
 SynergyOS is an **open-source, modular Product OS** built with **evolutionary architecture** principles. We deploy to production 2-5x per day using **trunk-based development** with **feature flags** for progressive rollout. The system is designed to evolve incrementally, with modules that can be enabled/disabled per organization.
 
-**Key Metrics**:
-- Deploy frequency: 2-5x per day
-- Time to production: < 5 minutes
-- Rollback time: < 1 minute (via feature flags)
-- Architecture health: See [Latest Audit Report](audit-reports/)
+### Current State (Verified)
 
-**Architecture Approach**:
-- **Evolutionary**: Incremental, guided changes over time
-- **Modular**: Independent modules with clear boundaries
-- **Trunk-Based**: Single branch, continuous deployment
+**Deployment Metrics** (as of 2025-11-18):
+- Deploy frequency: 2-5x per day ✅
+- Time to production: < 5 minutes ✅
+- Rollback time: < 1 minute (via feature flags) ✅
+- Architecture health: 75/100 🟡 (See [Latest Audit Report](audit-reports/SYOS-ARCHITECTURE-AUDIT-2025-01.md))
+
+**Current Architecture**:
+- **Evolutionary**: ✅ Incremental, guided changes over time
+- **Modular**: 🟡 Modules exist but boundaries not strictly enforced (see [Section 6](#6-modularity--module-system))
+- **Trunk-Based**: ✅ Single branch, continuous deployment
+- **CI/CD**: 🟡 Quality gates active, but test suite needs improvement (see [Section 7.3](#73-cicd))
+
+**Active Modules** (verified):
+- **Inbox**: Always enabled (no feature flag)
+- **Meetings**: `meetings-module` flag (organization-based)
+- **Org Chart**: `org_module_beta` flag
+- **Flashcards**: Always enabled (no feature flag)
+- **Circles**: Schema exists, no dedicated flag
+
+### Vision / Target State
+
+**Modularity Goals**:
+- ✅ **Independent Development**: Teams can work on modules without conflicts
+- 🟡 **Independent Deployment**: Deploy modules separately (planned after refactoring)
+- ✅ **Independent Enablement**: Turn modules on/off per org/tenant (via feature flags)
+- 🟡 **Clear Contracts**: Modules communicate via defined APIs (in progress)
+- 🟡 **Loose Coupling**: Modules don't directly depend on each other's internals (needs enforcement)
+
+**CI/CD Roadmap**:
+- Module-by-module CI improvements after modularity refactoring
+- Per-module test suites
+- Module boundary enforcement in CI
 
 **For Details**: See sections below or jump to [Technology Stack](#4-technology-stack), [Modularity](#6-modularity--module-system), or [Development Practices](#7-development-practices).
 
@@ -59,6 +83,24 @@ This document covers:
 **Developers**: Read [Section 4: Technology Stack](#4-technology-stack) and [Section 7: Development Practices](#7-development-practices)
 
 **Auditors**: Read entire document, follow links to detailed documentation
+
+### How to Use This Document
+
+**For Coding Decisions**:
+1. **Check Current State** (verified facts) vs **Vision** (target state) - Don't assume vision is reality
+2. **For "How to implement"**: See [Pattern Index](../patterns/INDEX.md) - This doc focuses on "why" and "what"
+3. **For module work**: See [Section 6: Modularity](#6-modularity--module-system) - Verify feature flags match codebase
+4. **For CI/CD**: See [Section 7.3](#73-cicd) - Current state is outdated, improvements planned
+
+**For Audits**:
+- Use "Current State (Verified)" sections as source of truth
+- Cross-reference with [Audit Reports](audit-reports/) for health scores
+- Verify feature flags in `src/lib/featureFlags.ts` and `convex/featureFlags.ts`
+
+**For Architecture Planning**:
+- Use "Vision / Target State" sections for roadmap planning
+- Reference modularity principles in [Section 3.2](#32-modularity-strategy)
+- Check [Risks & Mitigations](#10-risks--mitigations) for known issues
 
 ### Document Structure
 
@@ -212,29 +254,48 @@ graph LR
 
 SynergyOS is designed as a **modular platform** where modules can be developed independently and enabled per organization.
 
-**Current Modules**:
-- **Inbox**: Knowledge collection and organization
-- **Meetings**: Meeting management and facilitation
-- **Flashcards**: AI-powered flashcard generation
-- **Org Chart**: Organizational structure visualization
-- **Circles**: Holacracy-style circles and roles
-
-**Module Characteristics**:
+**Modularity Principles** (Target State):
 
 1. **Independent Development**
-   - Modules can be developed by separate teams
-   - Clear module boundaries
-   - Feature flags per module
+   - Teams can work on modules without conflicts
+   - Clear module boundaries prevent merge conflicts
+   - Feature flags enable parallel development
 
-2. **Per-Organization Enablement**
-   - Modules enabled via feature flags
+2. **Independent Deployment** (Planned)
+   - Deploy modules separately after refactoring
+   - Module-by-module CI improvements
+   - Per-module versioning
+
+3. **Independent Enablement** (Current)
+   - Turn modules on/off per org/tenant via feature flags
    - `allowedOrganizationIds` targeting
    - Progressive rollout per org
 
-3. **Module Boundaries**
+4. **Clear Contracts**
    - Modules communicate via defined APIs
-   - No direct imports between modules
+   - Documented module interfaces
+   - Versioned module contracts
+
+5. **Loose Coupling**
+   - Modules don't directly depend on each other's internals
    - Shared core library for common functionality
+   - Dependency injection for cross-module communication
+
+**Current Modules** (Verified):
+- **Inbox**: Knowledge collection and organization (always enabled, no flag)
+- **Meetings**: Meeting management (`meetings-module` flag)
+- **Flashcards**: AI-powered flashcard generation (always enabled, no flag)
+- **Org Chart**: Organizational structure (`org_module_beta` flag)
+- **Circles**: Holacracy-style circles and roles (schema exists, no dedicated flag)
+
+**Current State** (as of 2025-11-18):
+- ✅ Modules organized by feature area
+- ✅ Feature flags enable per-org enablement
+- 🟡 Module boundaries not strictly enforced (direct imports exist)
+- 🟡 Module registry not yet implemented
+- 🟡 CI/CD improvements planned after modularity refactoring
+
+**See**: [Section 6: Modularity](#6-modularity--module-system) for detailed module information
 
 **Module Enablement Flow**:
 
@@ -486,17 +547,31 @@ src/lib/components/
 
 ## 6. Modularity & Module System
 
-### 6.1 Current Modules
+### 6.1 Current Modules (Verified as of 2025-11-18)
 
-SynergyOS currently has the following modules:
+**Feature Flag Registry** (from `src/lib/featureFlags.ts`):
 
-| Module | Feature Flag | Status | Dependencies |
-|--------|-------------|--------|--------------|
-| **Inbox** | `INBOX_MODULE` | ✅ Active | None |
-| **Meetings** | `MEETINGS_MODULE` | ✅ Active | Org module |
-| **Flashcards** | `FLASHCARDS_MODULE` | ✅ Active | Inbox module |
-| **Org Chart** | `ORG_MODULE_BETA` | ✅ Active | None |
-| **Circles** | `CIRCLES_MODULE` | ✅ Active | Org module |
+| Module | Feature Flag Constant | Flag Value (String) | Status | Notes |
+|--------|---------------------|---------------------|--------|-------|
+| **Inbox** | N/A | N/A | ✅ Always Enabled | No feature flag - core functionality |
+| **Meetings** | `MEETINGS_MODULE` | `'meetings-module'` | ✅ Active | Organization-based targeting |
+| **Meetings (Legacy)** | `MEETING_MODULE_BETA` | `'meeting_module_beta'` | 🟡 Legacy | Replaced by `MEETINGS_MODULE` |
+| **Org Chart** | `ORG_MODULE_BETA` | `'org_module_beta'` | ✅ Active | Organization-based targeting |
+| **Flashcards** | N/A | N/A | ✅ Always Enabled | No feature flag - core functionality |
+| **Circles** | N/A | N/A | 🟡 Schema Exists | No dedicated feature flag yet |
+| **Meeting Integrations** | `MEETING_INTEGRATIONS_BETA` | `'meeting_integrations_beta'` | 🟡 Future | Calendar sync, video integrations |
+
+**Module Dependencies** (Current State):
+
+| Module | Dependencies | Coupling Level |
+|--------|-------------|----------------|
+| **Inbox** | None (core) | Low |
+| **Meetings** | Org module (for organization context) | Medium |
+| **Flashcards** | Inbox module (for source highlights) | Medium |
+| **Org Chart** | Circles (for visualization) | Low |
+| **Circles** | Org module (for organization context) | Medium |
+
+**Note**: Dependencies are architectural (logical) - actual code coupling varies. See [Section 6.2](#62-module-boundaries) for current boundary enforcement status.
 
 **Module Enablement**:
 
@@ -530,16 +605,34 @@ graph LR
 
 ### 6.2 Module Boundaries
 
-**Current State**: Modules are organized by feature area but don't have strict boundaries yet.
+**Current State** (as of 2025-11-18):
 
-**Module Communication**:
-- Modules can import from each other (needs improvement)
-- Shared utilities in `src/lib/utils/`
-- Shared types in `src/lib/types/`
+- ✅ Modules organized by feature area (`src/lib/components/inbox/`, `convex/meetings.ts`, etc.)
+- ✅ Feature flags enable per-organization module access
+- 🟡 **Module boundaries not strictly enforced** - Direct imports between modules exist
+- 🟡 **No module registry** - Module discovery and contracts not formalized
+- ✅ Shared utilities in `src/lib/utils/` and `src/lib/types/`
 
-**Future State**: Module registry with defined contracts
+**Module Communication** (Current):
+- Modules can import from each other directly (needs improvement)
+- Shared core library (`src/lib/utils/`, `src/lib/types/`) used by all modules
+- No formal API contracts between modules
 
-**See**: [Module Registry](#64-module-registry-future)
+**Vision / Target State**:
+
+**Module Registry** (Planned):
+- Module discovery system
+- Versioning per module
+- Dependency management
+- Module contracts (defined APIs)
+
+**Boundary Enforcement** (Planned):
+- CI checks prevent cross-module imports
+- Modules communicate via defined APIs only
+- Dependency injection for cross-module needs
+- Clear module contracts documented
+
+**See**: [Module Registry](#64-module-registry-future) for planned implementation
 
 ### 6.3 Module Enablement
 
@@ -629,31 +722,57 @@ graph LR
 
 ### 7.3 CI/CD
 
-**Quality Gates** (`.github/workflows/quality-gates.yml`):
-- TypeScript check (`npm run check`)
-- Linting (`npm run lint`)
-- Build verification (`npm run build`)
-- Unit tests (`npm run test:unit:server`)
-- Integration tests (`npm run test:integration`)
-- E2E tests (`npm run test:e2e`)
+**Current State** (as of 2025-11-18):
 
-**Deployment Flow**:
+**Active Quality Gates** (`.github/workflows/quality-gates.yml`):
+- ✅ TypeScript check (`npm run check`) - Runs with `continue-on-error: true` (warnings only)
+- ✅ Linting (`npm run lint`) - Runs with `continue-on-error: true` (483 linting errors to fix)
+- ✅ Build verification (`npm run build`) - **Blocks deployment** (quality gate)
+- 🟡 Unit tests (`npm run test:unit:server`) - **Commented out** (not running in CI)
+- 🟡 Integration tests (`npm run test:integration`) - **Commented out** (not running in CI)
+- 🟡 E2E tests (`npm run test:e2e`) - **Commented out** (not running in CI)
+
+**Status**: 🟡 **CI is outdated** - Test suite needs improvement before enabling in CI
+
+**Deployment Flow** (Current):
 
 ```mermaid
 graph TD
     A[Merge to Main] --> B[GitHub Actions]
     B --> C{Quality Gates}
-    C -->|Pass| D[Deploy Convex]
-    C -->|Fail| E[Block Deployment]
-    D --> F[Vercel Deploy]
-    F --> G[Production Live]
+    C -->|TypeScript/Lint| D[Warnings Only]
+    C -->|Build| E{Build Pass?}
+    E -->|Yes| F[Deploy Convex]
+    E -->|No| G[Block Deployment]
+    F --> H[Vercel Deploy]
+    H --> I[Production Live]
     
     style C fill:#ff9,stroke:#333,stroke-width:2px
-    style E fill:#f99,stroke:#333,stroke-width:2px
-    style G fill:#9f9,stroke:#333,stroke-width:2px
+    style D fill:#ff9,stroke:#333,stroke-width:2px
+    style G fill:#f99,stroke:#333,stroke-width:2px
+    style I fill:#9f9,stroke:#333,stroke-width:2px
 ```
 
-**See**: [CI/CD Patterns](../patterns/ci-cd.md)
+**CI/CD Roadmap** (Planned):
+
+**Phase 1: Codebase Refactoring** (Current)
+- Refactor codebase into proper modules
+- Enforce module boundaries
+- Fix linting errors
+
+**Phase 2: Module-by-Module CI** (Planned)
+- Enable tests per module after refactoring
+- Per-module test suites
+- Module boundary enforcement in CI
+- Gradual test coverage improvement
+
+**Phase 3: Full CI Suite** (Future)
+- All tests enabled and passing
+- Comprehensive quality gates
+- Performance benchmarks
+- Security scanning
+
+**See**: [CI/CD Patterns](../patterns/ci-cd.md) for implementation details
 
 ---
 
@@ -756,26 +875,42 @@ Key architectural decisions are documented as Architecture Decision Records (ADR
 ### High Risk Areas
 
 **Risk**: Module boundaries not strictly enforced
-- **Impact**: Modules can become tightly coupled
-- **Likelihood**: Medium
-- **Mitigation**: Implement module registry, enforce boundaries in CI
+- **Impact**: Modules can become tightly coupled, harder to refactor
+- **Likelihood**: Medium (current state)
+- **Current Status**: Direct imports between modules exist
+- **Mitigation**: 
+  - Refactor codebase into proper modules (in progress)
+  - Implement module registry
+  - Enforce boundaries in CI (planned after refactoring)
+
+**Risk**: CI/CD test suite disabled
+- **Impact**: Bugs can reach production, technical debt accumulates
+- **Likelihood**: High (current state - tests commented out)
+- **Current Status**: Only build verification blocks deployments
+- **Mitigation**: 
+  - Module-by-module CI improvements after refactoring
+  - Gradual test re-enablement per module
+  - Feature flags for risky changes (current mitigation)
+
+### Medium Risk Areas
 
 **Risk**: Feature flag sprawl
 - **Impact**: Technical debt, hard to maintain
 - **Likelihood**: Low (we remove flags after rollout)
 - **Mitigation**: Flag removal checklist, automated cleanup
 
-### Medium Risk Areas
-
 **Risk**: Single branch strategy requires discipline
 - **Impact**: Broken main branch blocks all deployments
-- **Likelihood**: Low (quality gates prevent this)
-- **Mitigation**: Comprehensive testing, feature flags for risky changes
+- **Likelihood**: Low (build verification prevents most issues)
+- **Mitigation**: Build verification blocks broken code, feature flags for risky changes
 
 **Risk**: Documentation can drift from code
 - **Impact**: Outdated docs mislead developers
 - **Likelihood**: Medium
-- **Mitigation**: Regular audit reports, link docs to code
+- **Mitigation**: 
+  - Regular audit reports (monthly)
+  - "Current State (Verified)" sections in this doc
+  - Link docs to code (feature flags, CI workflows)
 
 ### Low Risk Areas
 
@@ -800,6 +935,13 @@ Key architectural decisions are documented as Architecture Decision Records (ADR
 
 **Module**: Independent feature area with clear boundaries (e.g., Inbox, Meetings)
 
+**Modularity Principles**: 
+- **Independent Development**: Teams can work on modules without conflicts
+- **Independent Deployment**: Deploy modules separately (planned)
+- **Independent Enablement**: Turn modules on/off per org/tenant (current)
+- **Clear Contracts**: Modules communicate via defined APIs (planned)
+- **Loose Coupling**: Modules don't directly depend on each other's internals (planned)
+
 **Trunk-Based Development**: Development strategy using single main branch with short-lived feature branches
 
 **WorkOS**: Authentication service providing enterprise-grade auth
@@ -809,6 +951,11 @@ Key architectural decisions are documented as Architecture Decision Records (ADR
 ## 12. Appendices
 
 ### 12.1 Related Documentation
+
+**Vision & Strategy**:
+- [Future Vision & Architecture](future-vision.md) - Executive vision document with architecture overview ⭐
+- [Product Vision 2.0](../../../marketing-docs/strategy/product-vision-2.0.md) - Core product vision
+- [Product Strategy](../../../marketing-docs/strategy/product-strategy.md) - Outcome-driven strategy
 
 **Architecture**:
 - [Architecture Details](architecture.md) - Tech stack deep dive
@@ -845,11 +992,21 @@ Audit reports are versioned monthly and analyze:
 
 | Date | Version | Changes |
 |------|---------|---------|
+| 2025-11-18 | 1.1 | Major update: Separated Current State vs Vision, fixed feature flag registry, updated CI/CD status, added modularity principles |
 | 2025-01-XX | 1.0 | Initial architecture document |
+
+**Version 1.1 Changes**:
+- ✅ Added "Current State (Verified)" vs "Vision / Target State" separation throughout
+- ✅ Fixed feature flag registry to match actual codebase (`src/lib/featureFlags.ts`)
+- ✅ Updated CI/CD section to reflect current state (tests commented out, improvements planned)
+- ✅ Added modularity principles (independent development, deployment, enablement, contracts, loose coupling)
+- ✅ Added "How to Use This Document" guidance section
+- ✅ Updated risks section with CI/CD and modularity status
+- ✅ Added verified dates and status indicators (✅ 🟡 🔴)
 
 ---
 
-**Last Updated**: 2025-01-XX  
+**Last Updated**: 2025-11-18  
 **Next Review**: Monthly (see [Audit Reports](audit-reports/))  
 **Owner**: Architecture Team
 

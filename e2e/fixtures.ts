@@ -110,13 +110,59 @@ export const test = baseTest.extend<object, { workerStorageState: string }>({
 					const submitButton = page.locator('button[type="submit"]').first();
 					await submitButton.click();
 
-					// Wait for redirect to authenticated page
-					await page.waitForURL(/\/(inbox|dashboard)/, { timeout: 15000 });
+					// Wait for redirect to authenticated page (may be onboarding for new users)
+					await page.waitForURL(/\/(inbox|dashboard|onboarding)/, { timeout: 15000 });
 					await page.waitForLoadState('networkidle');
 
-					// Verify authentication
-					const inboxHeader = page.locator('h2:has-text("Inbox"), h1:has-text("Inbox")').first();
-					await expect(inboxHeader).toBeVisible({ timeout: 10000 });
+					// Handle onboarding flow if user has no organizations
+					const currentUrl = page.url();
+					if (currentUrl.includes('/onboarding')) {
+						console.log(
+							`📝 [Worker ${workerIndex}] User redirected to onboarding - creating organization...`
+						);
+
+						// Fill organization name input
+						const orgNameInput = page
+							.locator('input[placeholder*="e.g."], input[type="text"]')
+							.first();
+						await expect(orgNameInput).toBeVisible({ timeout: 5000 });
+						const orgName = `Test Org ${workerIndex} ${Date.now()}`;
+						await orgNameInput.fill(orgName);
+
+						// Submit form
+						const createButton = page
+							.locator('button[type="submit"]')
+							.filter({ hasText: /Create/i });
+						await expect(createButton).toBeVisible();
+						await createButton.click();
+
+						// Wait for redirect away from onboarding (to /org/circles or /inbox)
+						await page.waitForURL(/\/(inbox|dashboard|org\/circles)/, { timeout: 10000 });
+						await page.waitForLoadState('networkidle');
+						console.log(
+							`✅ [Worker ${workerIndex}] Organization created, redirected to:`,
+							page.url()
+						);
+					}
+
+					// Verify authentication (check for authenticated page elements)
+					// For inbox: look for inbox header
+					// For other pages: just verify we're not on login/onboarding
+					const isOnboarding = page.url().includes('/onboarding');
+					const isLogin = page.url().includes('/login');
+					if (!isOnboarding && !isLogin) {
+						// Try to find inbox header (if on inbox page)
+						const inboxHeader = page.locator('h2:has-text("Inbox"), h1:has-text("Inbox")').first();
+						const headerVisible = await inboxHeader.isVisible({ timeout: 2000 }).catch(() => false);
+						if (!headerVisible) {
+							// Not on inbox - verify we're on an authenticated page (has sidebar or topbar)
+							const authenticatedIndicator = page
+								.locator('button')
+								.filter({ hasText: /Select workspace|Owner|Admin|Member/i })
+								.first();
+							await expect(authenticatedIndicator).toBeVisible({ timeout: 10000 });
+						}
+					}
 
 					console.log(
 						`✅ [Worker ${workerIndex}] Authentication successful - authenticated elements visible`

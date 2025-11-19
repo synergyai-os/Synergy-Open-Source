@@ -18,11 +18,17 @@
 
 3. **Create Subtasks**
    - Link to parent via `parentId`
+   - Link to project via `projectId` (CRITICAL - subtasks don't inherit project from parent)
    - Use correct labels (validate against parent)
    - Set appropriate estimates
    - Include parent reference in title: `[SYOS-XXX] Subtask Title`
 
-4. **Analyze Dependencies**
+4. **Verify Linking**
+   - Verify `parentId` is set correctly
+   - Verify `projectId` is set correctly (must update explicitly)
+   - Check ticket appears in project view
+
+5. **Analyze Dependencies**
    - Determine parallel vs sequential work
    - Document in each subtask's "Dependencies" section
 
@@ -33,13 +39,22 @@
 **Before creating each subtask:**
 
 - [ ] Parent ticket ID identified and verified
+- [ ] **Project ID identified** (get from parent ticket or project lookup)
 - [ ] Type label determined (usually inherit from parent)
 - [ ] Scope labels determined (based on subtask work)
 - [ ] Estimate set (numeric: 0-5)
 - [ ] Title includes parent reference: `[SYOS-XXX] Subtask Title`
 - [ ] Description includes: `**Parent**: SYOS-XXX - [Parent Title]`
 - [ ] `parentId` set in `mcp_Linear_create_issue()` call
+- [ ] `projectId` set in `mcp_Linear_create_issue()` call
 - [ ] Dependencies analyzed (parallel vs sequential)
+
+**After creating each subtask:**
+
+- [ ] **Verify `parentId` is set** - Check subtask has parent link
+- [ ] **Verify `projectId` is set** - Check subtask has project link (CRITICAL)
+- [ ] **Update project link if missing** - Use `mcp_Linear_update_issue()` with `project`
+- [ ] Subtask appears in project view
 
 ---
 
@@ -94,8 +109,10 @@
 **Verification**: After creating subtask, verify linking:
 
 - Check subtask has `parentId` field set
+- **Check subtask has `projectId` field set** (CRITICAL - doesn't inherit from parent)
 - Check title includes `[SYOS-XXX]` prefix
 - Check description includes parent reference
+- **Update project link if missing** - Use `mcp_Linear_update_issue()` with `project`
 
 ---
 
@@ -170,7 +187,10 @@ const parentLabels = parentTicket.labels;
 const typeLabel = parentLabels.find((l) => l.name === 'tech-debt'); // Inherit from parent
 const scopeLabel = LINEAR_LABELS.frontend; // Based on subtask work
 
-// 3. Create subtask
+// 3. Get project ID (from parent ticket or project lookup)
+const projectId = parentTicket.projectId || (await getProjectId()); // Get from parent or lookup
+
+// 4. Create subtask
 const subtask = await mcp_Linear_create_issue({
 	team: 'SYOS',
 	title: `[SYOS-255] Write Characterization Tests`,
@@ -180,7 +200,7 @@ const subtask = await mcp_Linear_create_issue({
 ## Context
 ...
   `,
-	projectId: projectId,
+	projectId: projectId, // ✅ Set project ID
 	assigneeId: RANDY_USER_ID,
 	state: 'Todo',
 	estimate: ESTIMATES.m,
@@ -188,9 +208,22 @@ const subtask = await mcp_Linear_create_issue({
 	parentId: parentTicket.id // ✅ Link to parent
 });
 
-// 4. Verify linking
+// 5. Verify linking (CRITICAL - subtasks don't inherit project from parent)
 const createdSubtask = await mcp_Linear_get_issue({ id: subtask.id });
-console.log('Parent ID:', createdSubtask.parentId); // Should match parentTicket.id
+
+// Verify parent link
+if (!createdSubtask.parentId || createdSubtask.parentId !== parentTicket.id) {
+	throw new Error('Parent link failed - subtask not linked to parent');
+}
+
+// Verify project link (CRITICAL - must update if missing)
+if (!createdSubtask.projectId || createdSubtask.projectId !== projectId) {
+	await mcp_Linear_update_issue({
+		id: subtask.id,
+		project: projectId // Explicitly link to project
+	});
+	console.log('✅ Project link updated for subtask');
+}
 ```
 
 ---
@@ -201,11 +234,23 @@ console.log('Parent ID:', createdSubtask.parentId); // Should match parentTicket
 
 - [ ] All subtasks have parent reference in title (`[SYOS-XXX]`)
 - [ ] All subtasks have `parentId` set correctly
+- [ ] **All subtasks have `projectId` set correctly** (CRITICAL - verify each one)
+- [ ] **All subtasks appear in project view** (verify in Linear UI)
 - [ ] Type labels match parent (or justified exception)
 - [ ] Scope labels appropriate for each subtask
 - [ ] Dependencies documented (parallel vs sequential)
 - [ ] Estimates set appropriately
 - [ ] All required fields present
+
+**If project link missing:**
+
+```typescript
+// Update each subtask that's missing project link
+await mcp_Linear_update_issue({
+	id: subtaskId,
+	project: projectId
+});
+```
 
 ---
 
@@ -217,5 +262,36 @@ console.log('Parent ID:', createdSubtask.parentId); // Should match parentTicket
 
 ---
 
-**Last Updated**: 2025-11-18  
-**Purpose**: Guide for creating properly linked and labeled subtasks
+## ⚠️ Critical: Project Linking for Subtasks
+
+**IMPORTANT**: Subtasks **DO NOT** automatically inherit project from parent ticket.
+
+**Always verify and update:**
+
+1. **Get project ID** from parent ticket or project lookup
+2. **Set `projectId`** in `create_issue()` call
+3. **Verify after creation** - Check `projectId` field is set
+4. **Update if missing** - Use `mcp_Linear_update_issue()` with `project`
+
+**Why this matters**: Subtasks without project links won't appear in project views, making them impossible to track.
+
+**Example:**
+
+```typescript
+// After creating subtask
+const createdSubtask = await mcp_Linear_get_issue({ id: subtask.id });
+
+// Verify project link (CRITICAL)
+if (!createdSubtask.projectId || createdSubtask.projectId !== projectId) {
+	await mcp_Linear_update_issue({
+		id: subtask.id,
+		project: projectId
+	});
+}
+```
+
+---
+
+**Last Updated**: 2025-01-XX  
+**Purpose**: Guide for creating properly linked and labeled subtasks  
+**Latest Change**: Added critical project linking verification workflow (subtasks don't inherit project from parent)

@@ -1,6 +1,6 @@
 import type { PageServerLoad } from './$types';
 import { error, redirect } from '@sveltejs/kit';
-import { readFile } from 'fs/promises';
+import { readFile, readdir } from 'fs/promises';
 import { join } from 'path';
 import { cwd } from 'process';
 import { ConvexHttpClient } from 'convex/browser';
@@ -13,51 +13,211 @@ function cleanParaName(name: string): string {
 	return name.replace(/^\d+-/, '');
 }
 
-// Common parent directories to try when path doesn't match
-// These are directories that commonly contain files accessed without the parent directory
-const COMMON_PARENT_DIRS = ['architecture'];
+/**
+ * Dynamic file discovery system - builds index of all markdown files
+ * This replaces hardcoded parent directories with dynamic discovery
+ */
+let fileIndex: Map<string, string> | null = null;
+let indexBuildTime: number = 0;
 
 /**
- * Intelligently resolve file path by trying variations:
- * 1. Exact path (as provided)
- * 2. With common parent directories (e.g., architecture/)
- * 3. As directory with README.md
+ * Build file index by scanning dev-docs directory recursively
+ * Cached for performance - only rebuilds if files change
  */
-function generatePossiblePaths(path: string): string[] {
-	const paths: string[] = [];
+async function buildFileIndex(): Promise<Map<string, string>> {
+	const docsDir = join(cwd(), 'dev-docs');
+	const index = new Map<string, string>();
 
-	// 1. Try exact path variations
-	paths.push(`dev-docs/${path}.md`);
-	paths.push(`dev-docs/${path}/README.md`);
-	paths.push(`dev-docs/${path}/index.md`);
+	async function scanDir(dir: string, relativePath = ''): Promise<void> {
+		try {
+			const entries = await readdir(dir, { withFileTypes: true });
 
-	// 2. Try with common parent directories
-	// Only if path starts with "2-areas/" and doesn't already include the parent dir
-	if (path.startsWith('2-areas/') && !path.includes('/architecture/')) {
-		for (const parentDir of COMMON_PARENT_DIRS) {
-			// Insert parent directory after "2-areas"
-			const withParent = path.replace(/^2-areas\//, `2-areas/${parentDir}/`);
-			paths.push(`dev-docs/${withParent}.md`);
-			paths.push(`dev-docs/${withParent}/README.md`);
-			paths.push(`dev-docs/${withParent}/index.md`);
+			for (const entry of entries) {
+				const fullPath = join(dir, entry.name);
+				const relPath = relativePath ? `${relativePath}/${entry.name}` : entry.name;
+
+				if (entry.isDirectory()) {
+					await scanDir(fullPath, relPath);
+				} else if (entry.isFile() && entry.name.endsWith('.md')) {
+					// Store key without .md extension (for matching)
+					// Key is relative to dev-docs/ (e.g., "2-areas/architecture/system-architecture")
+					const key = relPath.replace(/\.md$/, '');
+					// Store full relative path (with .md) for file reading
+					// Value includes .md extension (e.g., "2-areas/architecture/system-architecture.md")
+					index.set(key, relPath);
+				}
+			}
+		} catch (err) {
+			// Silently skip directories we can't read
+			console.error(`Failed to scan directory ${dir}:`, err);
 		}
 	}
 
-	// 3. Try directory access (for trailing slash cases)
-	if (path.endsWith('/')) {
-		const withoutSlash = path.slice(0, -1);
-		paths.push(`dev-docs/${withoutSlash}/README.md`);
-		paths.push(`dev-docs/${withoutSlash}/index.md`);
-	}
-
-	return paths;
+	await scanDir(docsDir);
+	return index;
 }
 
-export const load: PageServerLoad = async ({ params }) => {
+/**
+ * Get file index (builds if needed or cache is stale)
+ */
+async function getFileIndex(): Promise<Map<string, string>> {
+	const now = Date.now();
+	// Rebuild index if it doesn't exist or is older than 5 minutes
+	if (!fileIndex || now - indexBuildTime > 5 * 60 * 1000) {
+		fileIndex = await buildFileIndex();
+		indexBuildTime = now;
+	}
+	return fileIndex;
+}
+
+/**
+ * Generate path variations for dynamic resolution:
+ * 1. Exact path (as provided)
+ * 2. Remove parent directories one by one
+ * 3. Add common parent directories (discovered dynamically)
+ * 4. Try with/without segments
+ */
+function generatePathVariations(path: string, fileIndex: Map<string, string>): string[] {
+	const variations = new Set<string>();
+	const segments = path.split('/');
+
+	// 1. Exact path variations
+	variations.add(path);
+	variations.add(`${path}.md`);
+	variations.add(`${path}/README`);
+	variations.add(`${path}/index`);
+
+	// 2. Try removing parent directories one by one
+	// e.g., '2-areas/architecture/product/principles' ->
+	//   '2-areas/product/principles', 'product/principles', 'principles'
+	for (let i = 1; i < segments.length; i++) {
+		const variant = segments.slice(i).join('/');
+		variations.add(variant);
+		variations.add(`${variant}.md`);
+		variations.add(`${variant}/README`);
+		variations.add(`${variant}/index`);
+	}
+
+	// 3. Try removing architecture/ if present (bidirectional resolution)
+	if (path.includes('/architecture/')) {
+		const withoutArch = path.replace('/architecture/', '/');
+		variations.add(withoutArch);
+		variations.add(`${withoutArch}.md`);
+		variations.add(`${withoutArch}/README`);
+		variations.add(`${withoutArch}/index`);
+	}
+
+	// 4. Try adding common parent directories (only for 2-areas/ paths)
+	if (segments.length >= 2 && segments[0] === '2-areas') {
+		// Discover parent directories dynamically from file index
+		const parentDirs = new Set<string>();
+		for (const key of fileIndex.keys()) {
+			if (key.startsWith('2-areas/')) {
+				const parts = key.split('/');
+				if (parts.length >= 3 && parts[0] === '2-areas') {
+					parentDirs.add(parts[1]); // Second segment is parent dir
+				}
+			}
+		}
+
+		// If path doesn't already have a parent dir, try adding discovered ones
+		if (segments.length === 2 && !path.includes('/architecture/')) {
+			for (const parentDir of parentDirs) {
+				const withParent = `2-areas/${parentDir}/${segments[1]}`;
+				variations.add(withParent);
+				variations.add(`${withParent}.md`);
+				variations.add(`${withParent}/README`);
+				variations.add(`${withParent}/index`);
+			}
+		}
+	}
+
+	// 5. Try directory access (for trailing slash cases)
+	if (path.endsWith('/')) {
+		const withoutSlash = path.slice(0, -1);
+		variations.add(withoutSlash);
+		variations.add(`${withoutSlash}/README`);
+		variations.add(`${withoutSlash}/index`);
+	}
+
+	return Array.from(variations);
+}
+
+/**
+ * Intelligently resolve file path using dynamic file discovery
+ * Tries variations and matches against actual file index
+ */
+async function generatePossiblePaths(path: string): Promise<string[]> {
+	const index = await getFileIndex();
+	const variations = generatePathVariations(path, index);
+	const possiblePaths: string[] = [];
+
+	// Convert variations to actual file paths and check if they exist in index
+	for (const variant of variations) {
+		// Check exact match (index keys are stored without .md)
+		if (index.has(variant)) {
+			const filePath = index.get(variant);
+			if (filePath) {
+				possiblePaths.push(`dev-docs/${filePath}`);
+			}
+			continue;
+		}
+
+		// Check as directory with README.md
+		if (index.has(`${variant}/README`)) {
+			const filePath = index.get(`${variant}/README`);
+			if (filePath) {
+				possiblePaths.push(`dev-docs/${filePath}`);
+			}
+			continue;
+		}
+
+		// Check as directory with index.md
+		if (index.has(`${variant}/index`)) {
+			const filePath = index.get(`${variant}/index`);
+			if (filePath) {
+				possiblePaths.push(`dev-docs/${filePath}`);
+			}
+			continue;
+		}
+
+		// Fallback: try direct file system check (for edge cases)
+		const directPath = `dev-docs/${variant}.md`;
+		if (existsSync(join(cwd(), directPath))) {
+			possiblePaths.push(directPath);
+		}
+	}
+
+	// Also try exact path variations as fallback
+	possiblePaths.push(`dev-docs/${path}.md`);
+	possiblePaths.push(`dev-docs/${path}/README.md`);
+	possiblePaths.push(`dev-docs/${path}/index.md`);
+
+	// Remove duplicates
+	return Array.from(new Set(possiblePaths));
+}
+
+export const load: PageServerLoad = async ({ params, locals }) => {
+	// Check permission: require docs.view permission
+	const sessionId = locals.auth.sessionId;
+	if (!sessionId) {
+		throw error(403, 'Authentication required to view documentation');
+	}
+
+	const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
+	const userPermissions = await client.query(api.rbac.permissions.getUserPermissionsQuery, {
+		sessionId
+	});
+
+	const hasDocsPermission = userPermissions.some((p) => p.permissionSlug === 'docs.view');
+	if (!hasDocsPermission) {
+		throw error(403, 'Permission denied: docs.view permission required');
+	}
+
 	const { path } = params;
 
-	// Generate all possible paths to try
-	const possiblePaths = generatePossiblePaths(path);
+	// Generate all possible paths to try using dynamic file discovery
+	const possiblePaths = await generatePossiblePaths(path);
 
 	for (const filePath of possiblePaths) {
 		try {
@@ -120,16 +280,14 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	// Log 404 asynchronously (don't block error response)
 	// Use fire-and-forget pattern to avoid blocking error page
-	const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
-	const sessionId = undefined; // Could extract from event.locals.auth.sessionId if available
-
+	// Reuse existing client and sessionId from above
 	client
 		.mutation(api.doc404Tracking.log404, {
 			url,
 			referrer: undefined, // Could extract from event.request.headers.get('referer') if needed
 			userAgent: undefined, // Could extract from event.request.headers.get('user-agent') if needed
 			ipAddress: undefined, // Could extract from event.getClientAddress() if needed
-			sessionId
+			sessionId: sessionId ?? undefined
 		})
 		.catch((err) => {
 			// Silently fail - don't break error page if logging fails

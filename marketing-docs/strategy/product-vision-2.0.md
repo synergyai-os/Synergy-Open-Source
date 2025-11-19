@@ -97,6 +97,8 @@ An **open-source, modular platform** that integrates:
 - **Open standards**: Extend, customize, integrate
 - **Passionate community**: Product people building better tools together
 - **No vendor lock-in**: Export your data anytime
+- **Network effects**: More users → More contributors → Better product → More users (compounding growth)
+- **See**: [Community Strategy](../go-to-market/community-strategy.md) - Complete open source community building strategy ⭐
 
 #### 5. Outcome-Driven Frameworks
 
@@ -166,6 +168,11 @@ An **open-source, modular platform** that integrates:
 
 ## Business Model
 
+**Revenue Strategy**: Open-core SaaS model (60% cloud hosting, 20% pattern library, 15% enterprise, 5% services)
+
+**See**: [Monetization Strategy](./monetization-strategy.md) - Complete revenue model, pricing tiers, and 3-year projections ⭐  
+**See**: [Outcome Pattern Library Strategy](../../dev-docs/2-areas/architecture/outcome-pattern-library-strategy.md) - IP building strategy and Pattern Library revenue stream ⭐
+
 ### Phase 1: Validate with Saprolab
 
 - **Cost**: $60/month (Cursor AI)
@@ -175,14 +182,15 @@ An **open-source, modular platform** that integrates:
 ### Phase 2: Scale with Open Source
 
 - **Community Edition**: Free, self-hosted, core features
-- **Managed Service**: Paid hosting with SLAs, support, backups
-- **Enterprise**: Custom deployments, dedicated support, training
-- **Marketplace**: Revenue share with builders who create apps
+- **Managed Service**: Paid hosting with SLAs, support, backups ($10-25/user/month)
+- **Enterprise**: Custom deployments, dedicated support, training ($5K-50K/year)
+- **Pattern Library**: Premium insights, benchmarks, predictions ($50-200/month)
+- **Marketplace**: Revenue share with builders who create apps (80/20 split)
 
 ### Phase 3: Ecosystem
 
 - **Integrations**: Connect with existing tools (Jira, Notion, Slack, etc.)
-- **Consulting**: Help teams adopt product frameworks
+- **Consulting**: Help teams adopt product frameworks ($3K-10K/month retainer)
 - **Training**: Workshops, courses, certifications
 - **Community**: Events, meetups, conferences
 
@@ -382,5 +390,10 @@ We'll know we're succeeding when:
 **Ready to dive deeper?**
 
 - **Strategy**: Read [Product Strategy](./product-strategy.md) for outcome-driven roadmap
+- **Roadmap**: Review [Product Roadmap](./roadmap.md) for outcome-driven themes (Now, Next, Later)
+- **Roadmap Operations**: See [Roadmap Operations](./roadmap-operations.md) for tracking progress, measuring success signals, and quarterly reviews ⭐
 - **Personas**: Check [Target Personas](../audience/target-personas.md) for buyer/user profiles
 - **Launch**: Review [1-Day Community Launch](../launch-plans/1-day-community-launch.md) to start building momentum
+
+**See Also**:
+- [Future Vision & Architecture](../../dev-docs/2-areas/architecture/future-vision.md) - Executive vision document for investors and strategic partners ⭐

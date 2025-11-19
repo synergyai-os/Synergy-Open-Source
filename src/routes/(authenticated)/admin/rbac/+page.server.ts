@@ -2,6 +2,7 @@ import { redirect } from '@sveltejs/kit';
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '$lib/convex';
 import { env } from '$env/dynamic/public';
+import { requireSystemAdmin } from '$lib/server/auth/admin';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -9,24 +10,36 @@ export const load: PageServerLoad = async ({ locals }) => {
 		throw redirect(302, '/login');
 	}
 
-	const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
 	const sessionId = locals.auth.sessionId;
+
+	// Check if user is system admin (throws error(403) if not)
+	await requireSystemAdmin(sessionId);
+
+	const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
 
 	// Load RBAC data
 	let roles: unknown[] = [];
 	let permissions: unknown = {};
 	let analytics: unknown = null;
+	let allUsers: unknown[] = [];
 
 	try {
-		const [rolesResult, permissionsResult, analyticsResult] = await Promise.all([
+		const [rolesResult, permissionsResult, analyticsResult, usersResult] = await Promise.all([
 			client.query(api.admin.rbac.listRoles, { sessionId }),
 			client.query(api.admin.rbac.listPermissions, { sessionId }),
-			client.query(api.admin.rbac.getRBACAnalytics, { sessionId })
+			client.query(api.admin.rbac.getRBACAnalytics, { sessionId }),
+			client.query(api.admin.users.listAllUsers, { sessionId }).catch(() => [])
 		]);
 		roles = (rolesResult as unknown[]) ?? [];
 		permissions = permissionsResult as unknown;
 		analytics = analyticsResult as unknown;
+		allUsers = (usersResult as unknown[]) ?? [];
 	} catch (error) {
+		// Re-throw admin access errors so error page can handle them
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		if (errorMessage.includes('System admin access required') || errorMessage.includes('admin')) {
+			throw error;
+		}
 		console.warn('Failed to load RBAC data:', error);
 	}
 
@@ -35,6 +48,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		sessionId,
 		roles,
 		permissions,
-		analytics
+		analytics,
+		allUsers
 	};
 };
