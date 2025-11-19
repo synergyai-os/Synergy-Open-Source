@@ -11,7 +11,7 @@
 	import TeamList from './organizations/TeamList.svelte';
 	import LoadingOverlay from './ui/LoadingOverlay.svelte';
 	import type {
-		UseOrganizations,
+		OrganizationsModuleAPI,
 		OrganizationSummary
 	} from '$lib/composables/useOrganizations.svelte';
 	import { useAuthSession } from '$lib/composables/useAuthSession.svelte';
@@ -54,7 +54,9 @@
 	const accountName = user?.firstName
 		? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}`
 		: accountEmail;
-	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	// PROOF OF CONCEPT: Using OrganizationsModuleAPI interface instead of UseOrganizations type
+	// This demonstrates loose coupling - component depends on interface, not internal implementation
+	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
 	const authSession = useAuthSession();
 
 	// Get active organization ID for org-scoped links
@@ -1218,12 +1220,9 @@
 {/if}
 
 <!-- Immediate overlay for account switching (before page reload) -->
+<!-- CRITICAL: Use 'account' or 'workspace' subtitle, never account name (prevents "Loading [name]") -->
 {#if accountSwitchOverlay.show}
-	<LoadingOverlay
-		show={true}
-		flow="workspace-switching"
-		subtitle={accountSwitchOverlay.targetName ?? 'account'}
-	/>
+	<LoadingOverlay show={true} flow="workspace-switching" subtitle="account" />
 {/if}
 
 <style>

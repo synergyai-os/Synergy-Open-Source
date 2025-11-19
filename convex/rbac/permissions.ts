@@ -29,7 +29,8 @@ export type PermissionSlug =
 	| 'teams.change-roles'
 	| 'organizations.view-settings'
 	| 'organizations.update-settings'
-	| 'organizations.manage-billing';
+	| 'organizations.manage-billing'
+	| 'docs.view';
 
 export interface PermissionContext {
 	organizationId?: Id<'organizations'>;

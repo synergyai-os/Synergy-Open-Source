@@ -8,14 +8,14 @@
 	import TagFilter from '$lib/components/TagFilter.svelte';
 	import { Button } from 'bits-ui';
 	import { api } from '$lib/convex';
-	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
 	import type { Id } from '$lib/convex';
 
 	const getSessionId = () => $page.data.sessionId;
 	const study = useStudySession(getSessionId);
 
 	// Get workspace context
-	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
 	const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
 
 	// Query all tags for filtering (filtered by active organization)

@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { Dialog } from 'bits-ui';
-	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
 
 	let {
 		organizations,
 		activeOrganizationName
 	}: {
 		organizations: Pick<
-			UseOrganizations,
+			OrganizationsModuleAPI,
 			| 'modals'
 			| 'loading'
 			| 'closeModal'

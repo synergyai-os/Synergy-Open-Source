@@ -1,10 +1,15 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { Badge, Tabs, Button, FormInput } from '$lib/components/ui';
+	import { Badge, Tabs, Button, FormInput, FormTextarea, ToggleSwitch } from '$lib/components/ui';
 	import { browser } from '$app/environment';
 	import { Dialog } from 'bits-ui';
+	import { useConvexClient } from 'convex-svelte';
+	import { api, type Id } from '$lib/convex';
 
 	let { data }: { data: PageData } = $props();
+
+	const convexClient = useConvexClient();
+	const sessionId = $derived(data.sessionId);
 
 	// Tab state
 	let activeTab = $state('roles');
@@ -24,6 +29,275 @@
 	let guidanceDismissed = $state(false);
 	if (browser) {
 		guidanceDismissed = localStorage.getItem('rbac-guidance-dismissed') === 'true';
+	}
+
+	// Modal state
+	let createPermissionModalOpen = $state(false);
+	let createRoleModalOpen = $state(false);
+	let assignRoleModalOpen = $state(false);
+	let assignPermissionModalOpen = $state(false);
+
+	// Create Permission form state
+	let permSlug = $state('');
+	let permCategory = $state('');
+	let permAction = $state('');
+	let permDescription = $state('');
+	let permRequiresResource = $state(false);
+	let createPermissionLoading = $state(false);
+	let createPermissionError = $state<string | null>(null);
+
+	// Create Role form state
+	let roleSlug = $state('');
+	let roleName = $state('');
+	let roleDescription = $state('');
+	let createRoleLoading = $state(false);
+	let createRoleError = $state<string | null>(null);
+
+	// Assign Role form state
+	let assignUserId = $state<string>('');
+	let assignRoleId = $state<string>('');
+	let assignRoleLoading = $state(false);
+	let assignRoleError = $state<string | null>(null);
+
+	// Assign Permission form state
+	let assignPermRoleId = $state<string>('');
+	let assignPermPermissionId = $state<string>('');
+	let assignPermScope = $state<'all' | 'own' | 'none'>('all');
+	let assignPermissionLoading = $state(false);
+	let assignPermissionError = $state<string | null>(null);
+
+	// Role detail state
+	let rolePermissions: Array<{
+		permissionId: string;
+		slug: string;
+		category: string;
+		action: string;
+		description: string;
+		scope: 'all' | 'own' | 'none';
+	}> = $state([]);
+	let loadingRolePermissions = $state(false);
+
+	const allUsers = $derived(
+		(data.allUsers || []) as Array<{ _id: string; email: string; name: string | null }>
+	);
+
+	// Flatten permissions for easier access
+	const allPermissionsFlat = $derived.by(() => {
+		if (!data.permissions) return [];
+		const perms = data.permissions as Record<string, unknown[]>;
+		const flat: Array<{
+			_id: string;
+			slug: string;
+			category: string;
+			action: string;
+			description: string;
+		}> = [];
+		for (const categoryPerms of Object.values(perms)) {
+			for (const perm of categoryPerms) {
+				flat.push(perm as (typeof flat)[number]);
+			}
+		}
+		return flat;
+	});
+
+	async function loadRolePermissions(roleId: string) {
+		if (!convexClient || !sessionId) return;
+		loadingRolePermissions = true;
+		try {
+			const result = await convexClient.query(api.admin.rbac.getRolePermissions, {
+				sessionId,
+				roleId: roleId as Id<'roles'>
+			});
+			rolePermissions = (result || []) as typeof rolePermissions;
+		} catch (error) {
+			console.error('Failed to load role permissions:', error);
+		} finally {
+			loadingRolePermissions = false;
+		}
+	}
+
+	async function createPermission() {
+		if (!convexClient || !sessionId) {
+			createPermissionError = 'Not authenticated';
+			return;
+		}
+
+		if (!permSlug.trim() || !permCategory.trim() || !permAction.trim() || !permDescription.trim()) {
+			createPermissionError = 'All fields are required';
+			return;
+		}
+
+		createPermissionLoading = true;
+		createPermissionError = null;
+
+		try {
+			await convexClient.mutation(api.admin.rbac.createPermission, {
+				sessionId,
+				slug: permSlug.trim(),
+				category: permCategory.trim(),
+				action: permAction.trim(),
+				description: permDescription.trim(),
+				requiresResource: permRequiresResource
+			});
+
+			// Reset form
+			permSlug = '';
+			permCategory = '';
+			permAction = '';
+			permDescription = '';
+			permRequiresResource = false;
+			createPermissionModalOpen = false;
+
+			// Reload page
+			window.location.reload();
+		} catch (error) {
+			createPermissionError =
+				error instanceof Error ? error.message : 'Failed to create permission';
+		} finally {
+			createPermissionLoading = false;
+		}
+	}
+
+	async function createRole() {
+		if (!convexClient || !sessionId) {
+			createRoleError = 'Not authenticated';
+			return;
+		}
+
+		if (!roleSlug.trim() || !roleName.trim() || !roleDescription.trim()) {
+			createRoleError = 'All fields are required';
+			return;
+		}
+
+		createRoleLoading = true;
+		createRoleError = null;
+
+		try {
+			await convexClient.mutation(api.admin.rbac.createRole, {
+				sessionId,
+				slug: roleSlug.trim(),
+				name: roleName.trim(),
+				description: roleDescription.trim()
+			});
+
+			// Reset form
+			roleSlug = '';
+			roleName = '';
+			roleDescription = '';
+			createRoleModalOpen = false;
+
+			// Reload page
+			window.location.reload();
+		} catch (error) {
+			createRoleError = error instanceof Error ? error.message : 'Failed to create role';
+		} finally {
+			createRoleLoading = false;
+		}
+	}
+
+	async function assignRoleToUser() {
+		if (!convexClient || !sessionId) {
+			assignRoleError = 'Not authenticated';
+			return;
+		}
+
+		if (!assignUserId || !assignRoleId) {
+			assignRoleError = 'Please select a user and role';
+			return;
+		}
+
+		assignRoleLoading = true;
+		assignRoleError = null;
+
+		try {
+			await convexClient.mutation(api.admin.rbac.assignRoleToUser, {
+				sessionId,
+				userId: assignUserId as Id<'users'>,
+				roleId: assignRoleId as Id<'roles'>
+			});
+
+			// Reset form
+			assignUserId = '';
+			assignRoleId = '';
+			assignRoleModalOpen = false;
+
+			// Reload page
+			window.location.reload();
+		} catch (error) {
+			assignRoleError = error instanceof Error ? error.message : 'Failed to assign role';
+		} finally {
+			assignRoleLoading = false;
+		}
+	}
+
+	async function assignPermissionToRole() {
+		if (!convexClient || !sessionId) {
+			assignPermissionError = 'Not authenticated';
+			return;
+		}
+
+		if (!assignPermRoleId || !assignPermPermissionId) {
+			assignPermissionError = 'Please select a role and permission';
+			return;
+		}
+
+		assignPermissionLoading = true;
+		assignPermissionError = null;
+
+		try {
+			await convexClient.mutation(api.admin.rbac.assignPermissionToRole, {
+				sessionId,
+				roleId: assignPermRoleId as Id<'roles'>,
+				permissionId: assignPermPermissionId as Id<'permissions'>,
+				scope: assignPermScope
+			});
+
+			// Reload role permissions if viewing that role
+			if (selectedRole && selectedRole._id === assignPermRoleId) {
+				await loadRolePermissions(assignPermRoleId);
+			}
+
+			// Reset form
+			assignPermRoleId = '';
+			assignPermPermissionId = '';
+			assignPermScope = 'all';
+			assignPermissionModalOpen = false;
+		} catch (error) {
+			assignPermissionError =
+				error instanceof Error ? error.message : 'Failed to assign permission';
+		} finally {
+			assignPermissionLoading = false;
+		}
+	}
+
+	async function removePermissionFromRole(roleId: string, permissionId: string) {
+		if (!convexClient || !sessionId) return;
+
+		if (!confirm('Remove this permission from the role?')) return;
+
+		try {
+			await convexClient.mutation(api.admin.rbac.removePermissionFromRole, {
+				sessionId,
+				roleId: roleId as Id<'roles'>,
+				permissionId: permissionId as Id<'permissions'>
+			});
+
+			// Reload role permissions if viewing that role
+			if (selectedRole && selectedRole._id === roleId) {
+				await loadRolePermissions(roleId);
+			}
+
+			// Reload page to update permission counts
+			window.location.reload();
+		} catch (error) {
+			alert(error instanceof Error ? error.message : 'Failed to remove permission');
+		}
+	}
+
+	function showRoleDetails(role: (typeof roles)[number]) {
+		selectedRole = role;
+		roleDetailModalOpen = true;
+		loadRolePermissions(role._id);
 	}
 
 	// Derived data
@@ -145,11 +419,6 @@
 	const customRolesCount = $derived(roles.filter((r) => !r.isSystem).length);
 	const activeAssignments = $derived(analytics?.overview.activeAssignments ?? 0);
 
-	function showRoleDetails(role: (typeof roles)[number]) {
-		selectedRole = role;
-		roleDetailModalOpen = true;
-	}
-
 	function dismissGuidance() {
 		guidanceDismissed = true;
 		if (browser) {
@@ -228,14 +497,17 @@
 		<div
 			class="mb-6 flex flex-wrap items-center gap-2 rounded-lg border border-base bg-surface p-4"
 		>
-			<Button variant="primary" onclick={() => console.log('Create Role')}>Create Role</Button>
-			<Button variant="secondary" onclick={() => console.log('Assign Role')}>
+			<Button variant="primary" onclick={() => (createRoleModalOpen = true)}>Create Role</Button>
+			<Button variant="secondary" onclick={() => (createPermissionModalOpen = true)}>
+				Create Permission
+			</Button>
+			<Button variant="secondary" onclick={() => (assignRoleModalOpen = true)}>
 				Assign Role to User
 			</Button>
 			<a
 				href="/dev-docs/2-areas/rbac/RBAC-SUMMARY"
 				target="_blank"
-				class="text-sm text-secondary hover:text-primary hover:underline"
+				class="ml-auto text-sm text-secondary hover:text-primary hover:underline"
 			>
 				View Documentation →
 			</a>
@@ -662,13 +934,58 @@
 				</div>
 
 				<div>
-					<h4 class="mb-2 text-sm font-semibold text-primary">Permissions</h4>
-					<p class="text-sm text-secondary">
-						This role has {selectedRole.permissionCount} permission{selectedRole.permissionCount !==
-						1
-							? 's'
-							: ''}. Permission details coming soon.
-					</p>
+					<div class="mb-4 flex items-center justify-between">
+						<h4 class="text-sm font-semibold text-primary">Permissions</h4>
+						<Button
+							variant="secondary"
+							onclick={() => {
+								if (!selectedRole) return;
+								assignPermRoleId = selectedRole._id;
+								assignPermissionModalOpen = true;
+							}}
+						>
+							Add Permission
+						</Button>
+					</div>
+					{#if loadingRolePermissions}
+						<p class="text-sm text-secondary">Loading permissions...</p>
+					{:else if rolePermissions.length === 0}
+						<p class="text-sm text-secondary">No permissions assigned</p>
+					{:else}
+						<div class="space-y-2">
+							{#each rolePermissions as perm (perm.permissionId)}
+								<div
+									class="flex items-center justify-between rounded-md border border-base bg-elevated p-3"
+								>
+									<div class="flex-1">
+										<p class="font-mono text-xs text-tertiary">{perm.slug}</p>
+										<p class="mt-1 text-sm text-secondary">{perm.description}</p>
+									</div>
+									<div class="flex items-center gap-2">
+										<Badge
+											variant={perm.scope === 'all'
+												? 'default'
+												: perm.scope === 'own'
+													? 'custom'
+													: 'system'}
+										>
+											{perm.scope}
+										</Badge>
+										<button
+											type="button"
+											onclick={() => {
+												if (!selectedRole) return;
+												removePermissionFromRole(selectedRole._id, perm.permissionId);
+											}}
+											class="text-xs text-red-600 hover:text-red-800 hover:underline"
+										>
+											Remove
+										</button>
+									</div>
+								</div>
+							{/each}
+						</div>
+					{/if}
 				</div>
 
 				<div class="flex items-center justify-end gap-2 pt-2">
@@ -693,5 +1010,298 @@
 				</div>
 			</div>
 		{/if}
+	</Dialog.Content>
+</Dialog.Root>
+
+<!-- Create Permission Modal -->
+<Dialog.Root bind:open={createPermissionModalOpen}>
+	<Dialog.Content
+		class="w-[min(600px,90vw)] rounded-lg border border-base bg-surface text-primary shadow-xl"
+	>
+		<div class="space-y-6 px-inbox-container py-inbox-container">
+			<div>
+				<Dialog.Title class="text-lg font-semibold text-primary">Create Permission</Dialog.Title>
+				<Dialog.Description class="mt-1 text-sm text-secondary">
+					Create a new permission that can be assigned to roles
+				</Dialog.Description>
+			</div>
+
+			<div class="space-y-4">
+				<div>
+					<FormInput label="Slug" placeholder="docs.view" bind:value={permSlug} required />
+					<p class="mt-1 text-xs text-tertiary">Format: category.action (e.g., docs.view)</p>
+				</div>
+
+				<div class="grid grid-cols-2 gap-4">
+					<div>
+						<FormInput label="Category" placeholder="docs" bind:value={permCategory} required />
+					</div>
+					<div>
+						<FormInput label="Action" placeholder="view" bind:value={permAction} required />
+					</div>
+				</div>
+
+				<div>
+					<FormTextarea
+						label="Description"
+						placeholder="View documentation pages"
+						bind:value={permDescription}
+						required
+					/>
+				</div>
+
+				<div class="flex items-center gap-2">
+					<ToggleSwitch
+						checked={permRequiresResource}
+						onChange={(checked) => {
+							permRequiresResource = checked;
+						}}
+						label="Requires Resource"
+					/>
+				</div>
+
+				{#if createPermissionError}
+					<div class="rounded-md border border-red-500/20 bg-red-500/5 p-3">
+						<p class="text-sm text-red-600">{createPermissionError}</p>
+					</div>
+				{/if}
+			</div>
+
+			<div class="flex items-center justify-end gap-2 pt-2">
+				<Dialog.Close
+					type="button"
+					class="rounded-md border border-base px-3 py-1.5 text-sm font-medium text-secondary hover:text-primary"
+				>
+					Cancel
+				</Dialog.Close>
+				<Button variant="primary" onclick={createPermission} disabled={createPermissionLoading}>
+					{createPermissionLoading ? 'Creating...' : 'Create Permission'}
+				</Button>
+			</div>
+		</div>
+	</Dialog.Content>
+</Dialog.Root>
+
+<!-- Create Role Modal -->
+<Dialog.Root bind:open={createRoleModalOpen}>
+	<Dialog.Content
+		class="w-[min(600px,90vw)] rounded-lg border border-base bg-surface text-primary shadow-xl"
+	>
+		<div class="space-y-6 px-inbox-container py-inbox-container">
+			<div>
+				<Dialog.Title class="text-lg font-semibold text-primary">Create Role</Dialog.Title>
+				<Dialog.Description class="mt-1 text-sm text-secondary">
+					Create a new role that can be assigned to users
+				</Dialog.Description>
+			</div>
+
+			<div class="space-y-4">
+				<div>
+					<FormInput label="Slug" placeholder="docs-viewer" bind:value={roleSlug} required />
+					<p class="mt-1 text-xs text-tertiary">URL-friendly identifier (e.g., docs-viewer)</p>
+				</div>
+
+				<div>
+					<FormInput
+						label="Name"
+						placeholder="Documentation Viewer"
+						bind:value={roleName}
+						required
+					/>
+				</div>
+
+				<div>
+					<FormTextarea
+						label="Description"
+						placeholder="Can view documentation pages"
+						bind:value={roleDescription}
+						required
+					/>
+				</div>
+
+				{#if createRoleError}
+					<div class="rounded-md border border-red-500/20 bg-red-500/5 p-3">
+						<p class="text-sm text-red-600">{createRoleError}</p>
+					</div>
+				{/if}
+			</div>
+
+			<div class="flex items-center justify-end gap-2 pt-2">
+				<Dialog.Close
+					type="button"
+					class="rounded-md border border-base px-3 py-1.5 text-sm font-medium text-secondary hover:text-primary"
+				>
+					Cancel
+				</Dialog.Close>
+				<Button variant="primary" onclick={createRole} disabled={createRoleLoading}>
+					{createRoleLoading ? 'Creating...' : 'Create Role'}
+				</Button>
+			</div>
+		</div>
+	</Dialog.Content>
+</Dialog.Root>
+
+<!-- Assign Role to User Modal -->
+<Dialog.Root bind:open={assignRoleModalOpen}>
+	<Dialog.Content
+		class="w-[min(600px,90vw)] rounded-lg border border-base bg-surface text-primary shadow-xl"
+	>
+		<div class="space-y-6 px-inbox-container py-inbox-container">
+			<div>
+				<Dialog.Title class="text-lg font-semibold text-primary">Assign Role to User</Dialog.Title>
+				<Dialog.Description class="mt-1 text-sm text-secondary">
+					Assign a role to a user to grant them permissions
+				</Dialog.Description>
+			</div>
+
+			<div class="space-y-4">
+				<div>
+					<label for="assign-user-select" class="mb-2 block text-sm font-medium text-primary"
+						>User</label
+					>
+					<select
+						id="assign-user-select"
+						bind:value={assignUserId}
+						class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-sm text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+					>
+						<option value="">Select a user...</option>
+						{#each allUsers as user (user._id)}
+							<option value={user._id}>
+								{user.name || user.email} ({user.email})
+							</option>
+						{/each}
+					</select>
+				</div>
+
+				<div>
+					<label for="assign-role-select" class="mb-2 block text-sm font-medium text-primary"
+						>Role</label
+					>
+					<select
+						id="assign-role-select"
+						bind:value={assignRoleId}
+						class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-sm text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+					>
+						<option value="">Select a role...</option>
+						{#each roles as role (role._id)}
+							<option value={role._id}>{role.name} ({role.slug})</option>
+						{/each}
+					</select>
+				</div>
+
+				{#if assignRoleError}
+					<div class="rounded-md border border-red-500/20 bg-red-500/5 p-3">
+						<p class="text-sm text-red-600">{assignRoleError}</p>
+					</div>
+				{/if}
+			</div>
+
+			<div class="flex items-center justify-end gap-2 pt-2">
+				<Dialog.Close
+					type="button"
+					class="rounded-md border border-base px-3 py-1.5 text-sm font-medium text-secondary hover:text-primary"
+				>
+					Cancel
+				</Dialog.Close>
+				<Button variant="primary" onclick={assignRoleToUser} disabled={assignRoleLoading}>
+					{assignRoleLoading ? 'Assigning...' : 'Assign Role'}
+				</Button>
+			</div>
+		</div>
+	</Dialog.Content>
+</Dialog.Root>
+
+<!-- Assign Permission to Role Modal -->
+<Dialog.Root bind:open={assignPermissionModalOpen}>
+	<Dialog.Content
+		class="w-[min(600px,90vw)] rounded-lg border border-base bg-surface text-primary shadow-xl"
+	>
+		<div class="space-y-6 px-inbox-container py-inbox-container">
+			<div>
+				<Dialog.Title class="text-lg font-semibold text-primary"
+					>Assign Permission to Role</Dialog.Title
+				>
+				<Dialog.Description class="mt-1 text-sm text-secondary">
+					Grant a permission to a role with a specific scope
+				</Dialog.Description>
+			</div>
+
+			<div class="space-y-4">
+				<div>
+					<label for="assign-perm-role-select" class="mb-2 block text-sm font-medium text-primary"
+						>Role</label
+					>
+					<select
+						id="assign-perm-role-select"
+						bind:value={assignPermRoleId}
+						class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-sm text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+					>
+						<option value="">Select a role...</option>
+						{#each roles as role (role._id)}
+							<option value={role._id}>{role.name} ({role.slug})</option>
+						{/each}
+					</select>
+				</div>
+
+				<div>
+					<label
+						for="assign-perm-permission-select"
+						class="mb-2 block text-sm font-medium text-primary">Permission</label
+					>
+					<select
+						id="assign-perm-permission-select"
+						bind:value={assignPermPermissionId}
+						class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-sm text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+					>
+						<option value="">Select a permission...</option>
+						{#each allPermissionsFlat as perm (perm._id)}
+							<option value={perm._id}>
+								{perm.slug} - {perm.description}
+							</option>
+						{/each}
+					</select>
+				</div>
+
+				<div>
+					<label for="assign-perm-scope-select" class="mb-2 block text-sm font-medium text-primary"
+						>Scope</label
+					>
+					<select
+						id="assign-perm-scope-select"
+						bind:value={assignPermScope}
+						class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-sm text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+					>
+						<option value="all">All - Access all resources</option>
+						<option value="own">Own - Access only own resources</option>
+						<option value="none">None - Explicitly denied</option>
+					</select>
+					<p class="mt-1 text-xs text-tertiary">
+						Scope determines what resources the permission applies to
+					</p>
+				</div>
+
+				{#if assignPermissionError}
+					<div class="rounded-md border border-red-500/20 bg-red-500/5 p-3">
+						<p class="text-sm text-red-600">{assignPermissionError}</p>
+					</div>
+				{/if}
+			</div>
+
+			<div class="flex items-center justify-end gap-2 pt-2">
+				<Dialog.Close
+					type="button"
+					class="rounded-md border border-base px-3 py-1.5 text-sm font-medium text-secondary hover:text-primary"
+				>
+					Cancel
+				</Dialog.Close>
+				<Button
+					variant="primary"
+					onclick={assignPermissionToRole}
+					disabled={assignPermissionLoading}
+				>
+					{assignPermissionLoading ? 'Assigning...' : 'Assign Permission'}
+				</Button>
+			</div>
+		</div>
 	</Dialog.Content>
 </Dialog.Root>

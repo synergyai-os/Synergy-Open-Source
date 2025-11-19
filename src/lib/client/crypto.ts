@@ -25,18 +25,21 @@ const SALT = 'syos-session-v1'; // Fixed salt (acceptable for localStorage encry
  * Browser fingerprint for key derivation
  * Note: This is NOT security-by-obscurity; it's for key uniqueness per browser.
  * Real security comes from AES-256 and the fact that keys never leave the browser.
+ *
+ * IMPORTANT: Only includes STABLE values that don't change during browser session.
+ * Excludes screen dimensions and timezone offset which can change and cause
+ * decryption failures for previously encrypted data.
  */
 function getBrowserFingerprint(): string {
 	if (!browser) return 'server-side-key';
 
 	return [
 		navigator.userAgent,
-		screen.width,
-		screen.height,
-		screen.colorDepth,
-		new Date().getTimezoneOffset(),
-		navigator.language,
-		navigator.hardwareConcurrency || 4
+		screen.colorDepth, // Stable display capability
+		navigator.language, // Usually stable (user preference)
+		navigator.hardwareConcurrency || 4 // Stable CPU count
+		// Excluded: screen.width, screen.height (can change with window resize)
+		// Excluded: timezone offset (can change with DST or travel)
 	].join('|');
 }
 

@@ -6,11 +6,11 @@
 	import { resolveRoute } from '$lib/utils/navigation';
 	import { useTeams } from '$lib/composables/useTeams.svelte';
 	import CreateTeamModal from '$lib/components/teams/CreateTeamModal.svelte';
-	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
 
 	let { data: _data } = $props();
 
-	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
 	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
 	// Pattern: Check object existence first, then access getter property directly
 	// See SYOS-228 for full pattern documentation

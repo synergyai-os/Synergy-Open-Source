@@ -400,6 +400,47 @@ export const getRBACAnalytics = query({
 // ============================================================================
 
 /**
+ * Create new permission
+ */
+export const createPermission = mutation({
+	args: {
+		sessionId: v.string(),
+		slug: v.string(),
+		category: v.string(),
+		action: v.string(),
+		description: v.string(),
+		requiresResource: v.boolean()
+	},
+	handler: async (ctx, args) => {
+		await requireSystemAdmin(ctx, args.sessionId);
+
+		// Check if permission with slug already exists
+		const existing = await ctx.db
+			.query('permissions')
+			.withIndex('by_slug', (q) => q.eq('slug', args.slug))
+			.first();
+
+		if (existing) {
+			throw new Error('Permission with this slug already exists');
+		}
+
+		const now = Date.now();
+		const permissionId = await ctx.db.insert('permissions', {
+			slug: args.slug,
+			category: args.category,
+			action: args.action,
+			description: args.description,
+			requiresResource: args.requiresResource,
+			isSystem: false,
+			createdAt: now,
+			updatedAt: now
+		});
+
+		return permissionId;
+	}
+});
+
+/**
  * Create new role
  */
 export const createRole = mutation({
@@ -717,5 +758,100 @@ export const updateUserRole = mutation({
 		await ctx.db.patch(args.userRoleId, updates);
 
 		return { success: true };
+	}
+});
+
+/**
+ * Setup docs.view permission and assign to admin role
+ * Helper function to quickly restrict documentation access
+ */
+export const setupDocsPermission = mutation({
+	args: {
+		sessionId: v.string()
+	},
+	handler: async (ctx, args) => {
+		const adminUserId = await requireSystemAdmin(ctx, args.sessionId);
+		const now = Date.now();
+
+		// Step 1: Create docs.view permission if it doesn't exist
+		let docsViewPerm = await ctx.db
+			.query('permissions')
+			.withIndex('by_slug', (q) => q.eq('slug', 'docs.view'))
+			.first();
+
+		if (!docsViewPerm) {
+			const permissionId = await ctx.db.insert('permissions', {
+				slug: 'docs.view',
+				category: 'docs',
+				action: 'view',
+				description: 'View documentation pages',
+				requiresResource: false,
+				isSystem: true,
+				createdAt: now,
+				updatedAt: now
+			});
+			docsViewPerm = await ctx.db.get(permissionId);
+			if (!docsViewPerm) {
+				throw new Error('Failed to create docs.view permission');
+			}
+		}
+
+		// Step 2: Get admin role
+		const adminRole = await ctx.db
+			.query('roles')
+			.withIndex('by_slug', (q) => q.eq('slug', 'admin'))
+			.first();
+
+		if (!adminRole) {
+			throw new Error('Admin role not found. Please run seedRBAC first.');
+		}
+
+		// Step 3: Assign docs.view permission to admin role (scope: "all")
+		const existingRolePerm = await ctx.db
+			.query('rolePermissions')
+			.withIndex('by_role_permission', (q) =>
+				q.eq('roleId', adminRole._id).eq('permissionId', docsViewPerm._id)
+			)
+			.first();
+
+		if (!existingRolePerm) {
+			await ctx.db.insert('rolePermissions', {
+				roleId: adminRole._id,
+				permissionId: docsViewPerm._id,
+				scope: 'all',
+				createdAt: now
+			});
+		}
+
+		// Step 4: Ensure admin role is assigned to current user (global scope)
+		const existingUserRole = await ctx.db
+			.query('userRoles')
+			.withIndex('by_user_role', (q) => q.eq('userId', adminUserId).eq('roleId', adminRole._id))
+			.filter((q) => {
+				return q.and(
+					q.eq(q.field('organizationId'), undefined),
+					q.eq(q.field('teamId'), undefined),
+					q.eq(q.field('revokedAt'), undefined)
+				);
+			})
+			.first();
+
+		if (!existingUserRole) {
+			await ctx.db.insert('userRoles', {
+				userId: adminUserId,
+				roleId: adminRole._id,
+				assignedBy: adminUserId,
+				assignedAt: now
+			});
+		}
+
+		return {
+			success: true,
+			permissionId: docsViewPerm._id,
+			roleId: adminRole._id,
+			userId: adminUserId,
+			message:
+				'docs.view permission created and assigned to admin role. Admin role assigned to you.'
+		};
 	}
 });

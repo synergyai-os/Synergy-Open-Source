@@ -7,6 +7,7 @@ import { defineConfig } from 'eslint/config';
 import globals from 'globals';
 import ts from 'typescript-eslint';
 import svelteConfig from './svelte.config.js';
+import noCrossModuleImports from './eslint-rules/no-cross-module-imports.js';
 
 const gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));
 
@@ -33,6 +34,13 @@ export default defineConfig(
 		languageOptions: {
 			globals: { ...globals.browser, ...globals.node }
 		},
+		plugins: {
+			synergyos: {
+				rules: {
+					'no-cross-module-imports': noCrossModuleImports
+				}
+			}
+		},
 		rules: {
 			// typescript-eslint strongly recommend that you do not use the no-undef lint rule on TypeScript projects.
 			// see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors
@@ -47,7 +55,11 @@ export default defineConfig(
 					varsIgnorePattern: '^_',
 					caughtErrorsIgnorePattern: '^_'
 				}
-			]
+			],
+			// Enforce module boundaries - prevent cross-module imports
+			// Modules should communicate via API contracts, not direct imports
+			// See: dev-docs/2-areas/architecture/modularity-refactoring-analysis.md
+			'synergyos/no-cross-module-imports': 'error'
 		}
 	},
 	{

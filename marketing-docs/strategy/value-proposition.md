@@ -363,3 +363,9 @@
 - **Personas**: Read [Target Personas](../audience/target-personas.md) for buyer/user profiles
 - **Strategy**: Check [Product Strategy](./product-strategy.md) for outcome-driven roadmap
 - **Launch**: Review [1-Day Community Launch](../launch-plans/1-day-community-launch.md) to start
+
+**See Also**:
+- [Future Vision & Architecture](../../dev-docs/2-areas/architecture/future-vision.md) - Executive vision document with competitive positioning ⭐
+- [Product Vision 2.0](./product-vision-2.0.md) - Core product vision this value proposition supports
+- [Monetization Strategy](./monetization-strategy.md) - Pricing strategy and revenue model
+- [Community Strategy](../go-to-market/community-strategy.md) - Open source community building (key differentiator)

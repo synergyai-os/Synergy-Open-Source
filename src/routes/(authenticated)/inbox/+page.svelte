@@ -23,7 +23,7 @@
 	import { useSelectedItem } from '$lib/composables/useSelectedItem.svelte';
 	import { useKeyboardNavigation } from '$lib/composables/useKeyboardNavigation.svelte';
 	import { useInboxLayout } from '$lib/composables/useInboxLayout.svelte';
-	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
 	import type { FunctionReference } from 'convex/server';
 	import type { Id } from '$lib/convex';
 	import type { InboxItemWithDetails } from '$lib/types/convex';
@@ -32,7 +32,7 @@
 	const getSessionId = () => $page.data.sessionId;
 
 	// Get workspace context (functions for reactivity)
-	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
 	const activeOrganizationId = () => organizations?.activeOrganizationId ?? null;
 	const activeTeamId = () => organizations?.activeTeamId ?? null;
 

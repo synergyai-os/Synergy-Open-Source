@@ -1683,7 +1683,78 @@ describe('Password Validation', () => {
 
 ---
 
-**Last Updated**: 2025-11-13  
-**Pattern Count**: 22  
+## #L1120: Account Switching Must Use POST with CSRF Token [🔴 CRITICAL]
+
+**Symptom**: Clicking account name shows "GET method not allowed" error (405), account switching fails  
+**Root Cause**: Using `window.location.href` or `<a href>` triggers GET request, but `/auth/switch` endpoint only accepts POST with CSRF token  
+**Fix**:
+
+```typescript
+// ❌ WRONG - GET request via window.location.href
+function switchAccount(targetUserId: string) {
+	window.location.href = `/auth/switch?userId=${targetUserId}&redirectTo=${encodeURIComponent('/admin')}`;
+	// ❌ Results in: GET /auth/switch?userId=... → 405 Method Not Allowed
+}
+
+// ✅ CORRECT - POST request with CSRF token
+import { useAuthSession } from '$lib/composables/useAuthSession.svelte';
+
+const authSession = useAuthSession();
+
+async function switchAccount(targetUserId: string, redirectTo: string) {
+	// ✅ POST request with JSON body + CSRF token
+	await authSession.switchAccount(targetUserId, redirectTo);
+}
+```
+
+**Why POST?**:
+
+- Security: CSRF protection requires POST + token
+- State mutation: Account switching changes server state (active session)
+- RESTful: State-changing operations should use POST, not GET
+
+**CSRF Token Handling**:
+
+```typescript
+// useAuthSession composable handles CSRF token automatically:
+async function switchAccount(targetUserId: string, redirectTo: string) {
+	const response = await fetch('/auth/switch', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+			'X-CSRF-Token': getCsrfToken() // ✅ Automatically included
+		},
+		body: JSON.stringify({ userId: targetUserId, redirectTo })
+	});
+	
+	if (!response.ok) {
+		throw new Error('Account switch failed');
+	}
+	
+	// Server redirects after successful switch
+	window.location.href = redirectTo;
+}
+```
+
+**Apply when**:
+
+- Account switching from error pages
+- Multi-account session management
+- Any endpoint that requires POST + CSRF token
+- State-changing operations (not just data fetching)
+
+**Common Mistakes**:
+
+- ❌ Using `<a href="/auth/switch?userId=...">` → GET request
+- ❌ Using `window.location.href` → GET request
+- ❌ Missing CSRF token → 403 Forbidden
+- ❌ Using GET for state mutations → Security risk
+
+**Related**: #L810 (Silent parameter dropping), #L860 (Account-specific localStorage), SYOS-293 (RBAC Management UI)
+
+---
+
+**Last Updated**: 2025-11-19  
+**Pattern Count**: 23  
 **Validated**: WorkOS AuthKit, SvelteKit, Vite, Convex, Svelte 5, Web Crypto API, Playwright  
 **Format Version**: 2.0

@@ -370,6 +370,15 @@ const ticket = await mcp_Linear_create_issue({
 	labels: [LINEAR_LABELS.feature, LINEAR_LABELS.backend, LINEAR_LABELS.workspace]
 });
 
+// 2a. Verify project linking (CRITICAL - tickets may not link during creation)
+const createdTicket = await mcp_Linear_get_issue({ id: ticket.id });
+if (!createdTicket.projectId || createdTicket.projectId !== projectId) {
+	await mcp_Linear_update_issue({
+		id: ticket.id,
+		project: projectId // Explicitly link to project
+	});
+}
+
 // 3. Update status when starting
 await mcp_Linear_update_issue({
 	id: ticket.id,
@@ -403,6 +412,12 @@ await mcp_Linear_update_issue({
 - [ ] Parallel work clearly stated (if applicable)
 - [ ] Dependencies filled (Requires/Blocks/Parallel)
 
+**After creating tickets:**
+
+- [ ] **Verify project linking** - Check ticket has `projectId` field set
+- [ ] **Update if needed** - Use `mcp_Linear_update_issue()` with `project` if not linked
+- [ ] Ticket appears in project view
+
 ---
 
 ## 📚 References
@@ -414,5 +429,30 @@ await mcp_Linear_update_issue({
 
 ---
 
-**Last Updated**: 2025-11-13  
-**Purpose**: Complete Linear workflow reference for AI agents
+## ⚠️ Critical: Project Linking Verification
+
+**IMPORTANT**: Even when `projectId` is provided in `create_issue()`, tickets may not be linked to the project.
+
+**Always verify and update:**
+
+```typescript
+// After creating ticket
+const createdTicket = await mcp_Linear_get_issue({ id: ticket.id });
+
+// Verify project linking
+if (!createdTicket.projectId || createdTicket.projectId !== projectId) {
+	// Explicitly link to project
+	await mcp_Linear_update_issue({
+		id: ticket.id,
+		project: projectId
+	});
+}
+```
+
+**Why this matters**: Tickets without project links won't appear in project views, making them hard to track and manage.
+
+---
+
+**Last Updated**: 2025-01-XX  
+**Purpose**: Complete Linear workflow reference for AI agents  
+**Latest Change**: Added project linking verification workflow (critical lesson learned)

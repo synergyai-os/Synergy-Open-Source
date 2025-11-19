@@ -1413,6 +1413,96 @@ await ctx.db.insert('users', {
 
 ---
 
+## #L1420: Lazy Module Loading in Layout Server [🟡 IMPORTANT]
+
+**Symptom**: Layout server loads data for all modules upfront, even when modules are disabled via feature flags. This wastes resources and prevents true independent enablement.  
+**Root Cause**: Feature flags checked but module-specific data still loaded unconditionally  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Loads data for all modules regardless of flags
+let meetingsData = await client.query(api.meetings.listUpcoming, { sessionId });
+let circlesData = await client.query(api.circles.list, { sessionId });
+// Data loaded even if meetings-module or circles_ui_beta flags disabled
+
+// ✅ CORRECT: Three-step lazy loading pattern
+// STEP 1: Check feature flags FIRST (before any module-specific data loading)
+let circlesEnabled = false;
+let meetingsEnabled = false;
+try {
+	[circlesEnabled, meetingsEnabled] = await Promise.all([
+		client.query(api.featureFlags.checkFlag, {
+			flag: 'circles_ui_beta',
+			sessionId
+		}),
+		client.query(api.featureFlags.checkFlag, {
+			flag: 'meetings-module',
+			sessionId
+		})
+	]);
+} catch (error) {
+	console.warn('Failed to load feature flags server-side:', error);
+}
+
+// STEP 2: Load CORE data (always needed, regardless of module flags)
+// Organizations, teams, permissions, tags - required for all routes
+const organizations = await client.query(api.organizations.listOrganizations, { sessionId });
+const teams = await client.query(api.teams.listTeams, { sessionId, organizationId: activeOrgId });
+// ... core data always loaded
+
+// STEP 3: Conditionally load MODULE-SPECIFIC data (only if flags enabled)
+const meetingsData: unknown =
+	meetingsEnabled && activeOrgId
+		? (() => {
+				try {
+					// Only load if module enabled
+					return await client.query(api.meetings.listUpcoming, {
+						sessionId,
+						organizationId: activeOrgId as Id<'organizations'>
+					});
+				} catch (error) {
+					console.warn('Failed to load meetings data server-side:', error);
+					return null; // Don't block page load if optional module data fails
+				}
+			})()
+		: null;
+
+const circlesData: unknown =
+	circlesEnabled && activeOrgId
+		? (() => {
+				try {
+					return await client.query(api.circles.list, {
+						sessionId,
+						organizationId: activeOrgId as Id<'organizations'>
+					});
+				} catch (error) {
+					console.warn('Failed to load circles data server-side:', error);
+					return null;
+				}
+			})()
+		: null;
+```
+
+**Pattern Structure**:
+
+1. **STEP 1**: Check feature flags FIRST (before any module-specific data loading)
+2. **STEP 2**: Load core data always (organizations, teams, permissions, tags)
+3. **STEP 3**: Conditionally load module-specific data only if flags enabled
+
+**Key Principles**:
+
+- Feature flags checked BEFORE data loading (enables independent enablement)
+- Core data always loaded (required for all authenticated routes)
+- Module-specific data conditionally loaded (only when flags enabled)
+- Graceful error handling (don't block page load if optional module data fails)
+
+**Why**: Enables true independent module enablement - disabled modules skip unnecessary database queries, improving page load performance. Foundation for independent module deployment.  
+**Apply when**: Refactoring layout server to support modular architecture, adding new module-specific data loading  
+**Related**: #L1390 (Server-side preload), [feature-flags.md](../patterns/feature-flags.md), [modularity-refactoring-analysis.md](../architecture/modularity-refactoring-analysis.md)  
+**See**: `src/routes/(authenticated)/+layout.server.ts` for complete implementation
+
+---
+
 ## #L1050: Cleanup Must Check Document Existence [🟡 IMPORTANT]
 
 **Symptom**: `Error: Delete on non-existent doc` during test cleanup  
@@ -3799,6 +3889,506 @@ return json({ success: true, redirectTo });
 
 ---
 
-**Pattern Count**: 42  
-**Last Validated**: 2025-11-17  
+## #L3650: Migrate from Internal Types to Public API Interfaces [🟡 IMPORTANT]
+
+**Symptom**: Components depend on internal composable return types (`UseOrganizations`, `UseCircles`), making refactoring risky and breaking changes when internal implementation changes  
+**Root Cause**: Direct dependency on `ReturnType<typeof useComposable>` couples components to internal implementation details instead of stable public API contract  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Direct dependency on internal type
+import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+const organizations = getContext<UseOrganizations | undefined>('organizations');
+
+// ✅ CORRECT: Depend on public API interface (enables loose coupling)
+import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
+// OR: import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/api';
+const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
+```
+
+**Migration Pattern**:
+
+1. **Create API Contract** (if not exists):
+   ```typescript
+   // src/lib/modules/core/organizations/api.ts
+   export interface OrganizationsModuleAPI {
+     get organizations(): OrganizationSummary[];
+     get activeOrganizationId(): string | null;
+     setActiveOrganization(organizationId: string | null): void;
+     // ... all public properties and methods
+   }
+   ```
+
+2. **Wrap Implementation**:
+   ```typescript
+   // src/lib/composables/useOrganizations.svelte.ts
+   export function useOrganizations(...) {
+     // ... internal implementation ...
+     
+     // Return value implements API contract
+     const api: OrganizationsModuleAPI = {
+       get organizations() { return queries.organizations; },
+       // ... implement all interface members ...
+     };
+     
+     return api; // Backward compatible
+   }
+   
+   // Re-export interface for convenience
+   export type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/api';
+   ```
+
+3. **Migrate Components**:
+   ```typescript
+   // Find all files using internal type
+   // grep -r "UseOrganizations" src/
+   
+   // Replace in each file:
+   // - import type { UseOrganizations } → import type { OrganizationsModuleAPI }
+   // - getContext<UseOrganizations | undefined> → getContext<OrganizationsModuleAPI | undefined>
+   ```
+
+**Why**: Public API contracts enable loose coupling - components depend on stable interface, not internal implementation. Internal refactoring becomes safe without breaking dependent modules.  
+**Apply when**: Migrating composables to module architecture, enabling safe refactoring, or preparing for dependency injection  
+**Related**: #L240 (Shared Type Definitions), #L1300 (Circular API References)
+
+**Source**: SYOS-296, SYOS-299 (Organizations Module API Migration)
+
+---
+
+## #L3900: Create Module API Contract for New Modules [🟡 IMPORTANT]
+
+**Symptom**: New module needs public API contract to enable loose coupling, but no pattern exists for creating one from scratch  
+**Root Cause**: Module API contracts enable loose coupling between modules, but the pattern for creating them isn't documented  
+**Fix**:
+
+```typescript
+// 1. Create API contract file (src/lib/modules/[module]/api.ts)
+/**
+ * [Module] Module API Contract
+ *
+ * Public interface for the [Module] module. This enables loose coupling
+ * between modules by providing a stable API contract that other modules can
+ * depend on, without coupling to internal implementation details.
+ *
+ * @see dev-docs/2-areas/architecture/modularity-refactoring-analysis.md
+ */
+
+import type { Id } from '$lib/convex';
+
+// Export public types used by the API
+export interface [Module]Data {
+	_id: Id<'[table]'>;
+	// ... public fields only
+}
+
+// Export composable options and return types
+export interface Use[Module]Options {
+	organizationId: () => string | undefined;
+	sessionId: () => string | undefined;
+	// ... other options
+}
+
+export interface Use[Module]Return {
+	get items(): [Module]Data[];
+	get isLoading(): boolean;
+	get error(): unknown;
+	// ... public methods
+}
+
+/**
+ * Public API contract for the [Module] module
+ *
+ * **Usage Pattern:**
+ * ```typescript
+ * import type { [Module]ModuleAPI } from '$lib/modules/[module]/api';
+ *
+ * // In component:
+ * const [module] = getContext<[Module]ModuleAPI>('[module]');
+ * const items = [module].use[Module]({ ... });
+ * ```
+ */
+export interface [Module]ModuleAPI {
+	// Expose public composables
+	use[Module](options: Use[Module]Options): Use[Module]Return;
+	// ... other public methods
+}
+
+// 2. Update manifest (src/lib/modules/[module]/manifest.ts)
+import type { ModuleManifest } from '../registry';
+import { FeatureFlags } from '$lib/featureFlags';
+import type { [Module]ModuleAPI } from './api';
+
+export const [module]Module: ModuleManifest = {
+	name: '[module]',
+	version: '1.0.0',
+	dependencies: ['core'], // List module dependencies
+	featureFlag: FeatureFlags.[MODULE]_MODULE, // Feature flag key
+	api: undefined as [Module]ModuleAPI | undefined // Type reference for API contract
+};
+```
+
+**Key Principles**:
+
+1. **Expose Only Public Surface**: Only expose composables/types used by other modules, hide internal implementation
+2. **Use Interface Types**: Define return types as interfaces (not `ReturnType<typeof composable>`)
+3. **Document Usage Pattern**: Include JSDoc with usage examples and migration path
+4. **Update Manifest**: Reference API type in manifest for type safety
+5. **Follow Existing Pattern**: Use OrganizationsModuleAPI (SYOS-295) or MeetingsModuleAPI (SYOS-305) as template
+
+**Checklist**:
+
+- [ ] API contract file created (`src/lib/modules/[module]/api.ts`)
+- [ ] Public composables exposed via API interface
+- [ ] Public types exported (options, return types, data structures)
+- [ ] Manifest updated with API reference
+- [ ] TypeScript compilation succeeds
+- [ ] Pattern documented with JSDoc comments
+- [ ] No runtime errors
+
+**Why**: Module API contracts enable loose coupling - other modules depend on stable interface, not internal implementation. Internal refactoring becomes safe without breaking dependent modules.  
+**Apply when**: Creating new module API contract (e.g., InboxModuleAPI, CirclesModuleAPI) or adding API to existing module  
+**Related**: #L3650 (Migrate to Public API Interfaces), #L4000 (Module Registry System)
+
+**Source**: SYOS-305 (MeetingsModuleAPI Contract)
+
+---
+
+## #L4100: Move Shared Components to Core Module [🟡 IMPORTANT]
+
+**Symptom**: Component used by multiple modules creates cross-module dependencies (e.g., Flashcards → Inbox, Meetings → Inbox), violating modularity principles  
+**Root Cause**: Shared UI components placed in feature modules instead of core module, creating unwanted coupling between modules  
+**Fix**:
+
+```typescript
+// ❌ WRONG: TagSelector in inbox module, used by flashcards
+// Creates dependency: Flashcards → Inbox
+import type { InboxModuleAPI } from '$lib/modules/inbox/api';
+const inboxAPI = getContext<InboxModuleAPI | undefined>('inbox-api');
+const TagSelector = inboxAPI?.TagSelector;
+
+// ✅ CORRECT: TagSelector in core module, used via CoreModuleAPI
+// No cross-module dependencies
+import type { CoreModuleAPI } from '$lib/modules/core/api';
+const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
+const TagSelector = coreAPI?.TagSelector;
+```
+
+**Migration Steps**:
+
+1. **Move Component to Core Module**:
+   ```bash
+   # Move component file
+   mv src/lib/components/[feature]/Component.svelte \
+      src/lib/modules/core/components/Component.svelte
+   ```
+
+2. **Create/Update CoreModuleAPI**:
+   ```typescript
+   // src/lib/modules/core/api.ts
+   import Component from '$lib/modules/core/components/Component.svelte';
+   
+   export interface CoreModuleAPI {
+     Component: typeof Component;
+   }
+   
+   export function createCoreModuleAPI(): CoreModuleAPI {
+     return {
+       Component: Component
+     };
+   }
+   ```
+
+3. **Remove from Feature Module API**:
+   ```typescript
+   // src/lib/modules/[feature]/api.ts
+   // Remove Component from interface and factory
+   export interface [Feature]ModuleAPI {
+     // Component removed - now in CoreModuleAPI
+   }
+   ```
+
+4. **Update All Consumers**:
+   ```typescript
+   // Update imports and context keys
+   // FROM: 'feature-api' → TO: 'core-api'
+   const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
+   const Component = coreAPI?.Component;
+   ```
+
+5. **Update Layout Context Provider**:
+   ```typescript
+   // src/routes/(authenticated)/+layout.svelte
+   import { createCoreModuleAPI } from '$lib/modules/core/api';
+   const coreAPI = createCoreModuleAPI();
+   setContext('core-api', coreAPI);
+   ```
+
+6. **Update Core Manifest**:
+   ```typescript
+   // src/lib/modules/core/manifest.ts
+   import type { CoreModuleAPI } from './api';
+   export const coreModule: ModuleManifest = {
+     api: undefined as CoreModuleAPI | undefined
+   };
+   ```
+
+**Key Principles**:
+
+1. **Core Module = Shared Components**: Components used by 2+ modules belong in core
+2. **Feature Modules = Domain-Specific**: Components used only by one module stay in that module
+3. **API Contracts**: Always expose via module API, never direct imports
+4. **Update All Consumers**: Don't leave any consumers using old API
+5. **Update Documentation**: Update manifest comments and API docs
+
+**Checklist**:
+
+- [ ] Component moved to `src/lib/modules/core/components/`
+- [ ] CoreModuleAPI created/updated with component exposed
+- [ ] Feature module API updated (component removed)
+- [ ] All consumers updated to use `core-api` context
+- [ ] Layout provides CoreModuleAPI via context
+- [ ] Core manifest updated with API reference
+- [ ] TypeScript compilation succeeds
+- [ ] No cross-module dependencies remain
+
+**Why**: Shared components in core module eliminate cross-module dependencies and enable proper module boundaries. Feature modules can use shared components without coupling to other feature modules.  
+**Apply when**: Component used by multiple modules, creating unwanted dependencies (e.g., Flashcards → Inbox, Meetings → Inbox)  
+**Related**: #L3900 (Create Module API Contract), #L3650 (Migrate to Public API Interfaces)
+
+**Source**: SYOS-308 (Move TagSelector to Core Module)
+
+---
+
+## #L3800: Type Interface Migration - Match Return Types Exactly [🔴 CRITICAL]
+
+**Symptom**: TypeScript error "Type 'string | null' is not assignable to type 'string | undefined'" when migrating to interface  
+**Root Cause**: Interface contracts specify exact return types. Composables expecting `undefined` fail with `null`.  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Returns null but interface expects undefined
+const organizationId = $derived(() => {
+	const org = activeOrganization();
+	return org?.organizationId ?? null; // ❌ null not assignable to string | undefined
+});
+
+useMeetings({
+	organizationId: () => organizationId(), // ❌ Type error
+	sessionId: getSessionId
+});
+
+// ✅ CORRECT: Match interface contract exactly
+const organizationId = $derived(() => {
+	const org = activeOrganization();
+	return org?.organizationId ?? undefined; // ✅ undefined matches interface
+});
+
+useMeetings({
+	organizationId: () => organizationId(), // ✅ Type matches
+	sessionId: getSessionId
+});
+```
+
+**Why**: When migrating from concrete types to interfaces, the interface contract must be honored exactly. `null` and `undefined` are different types in TypeScript.  
+**Apply when**: Migrating code to use interface contracts (e.g., OrganizationsModuleAPI), ensuring return types match interface definitions  
+**Related**: #L1200 (sessionId migration), #L1250 (Id type assertions), #L3650 (Interface migration pattern)
+
+---
+
+## #L4000: Module Registry & Discovery System [🟡 IMPORTANT]
+
+**Symptom**: Modules loaded statically, no way to discover enabled modules, hardcoded feature flag checks scattered across codebase  
+**Root Cause**: No centralized module registry system for discovery, dependency management, and feature flag integration  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Hardcoded feature flag checks, no module discovery
+let meetingsEnabled = false;
+let circlesEnabled = false;
+try {
+	[meetingsEnabled, circlesEnabled] = await Promise.all([
+		client.query(api.featureFlags.checkFlag, { flag: 'meetings-module', sessionId }),
+		client.query(api.featureFlags.checkFlag, { flag: 'circles_ui_beta', sessionId })
+	]);
+} catch (error) {
+	console.warn('Failed to load feature flags:', error);
+}
+
+// ✅ CORRECT: Module registry with discovery and dependency management
+
+// 1. Create module registry (src/lib/modules/registry.ts)
+export interface ModuleManifest {
+	name: string;
+	version: string;
+	dependencies: string[];
+	featureFlag: FeatureFlagKey | null;
+	api?: unknown;
+}
+
+const moduleRegistry = new Map<string, ModuleManifest>();
+
+export function registerModule(manifest: ModuleManifest): void {
+	if (moduleRegistry.has(manifest.name)) {
+		throw new Error(`Module "${manifest.name}" is already registered`);
+	}
+	moduleRegistry.set(manifest.name, manifest);
+}
+
+export async function getEnabledModules(
+	sessionId: string,
+	client: { query: (query: unknown, args: unknown) => Promise<unknown> }
+): Promise<string[]> {
+	const allModules = getAllModules();
+	const enabledModules: string[] = [];
+
+	for (const module of allModules) {
+		// Check feature flag
+		const flagEnabled = await checkFeatureFlag(module.featureFlag, sessionId, client);
+		if (!flagEnabled) continue;
+
+		// Check dependencies
+		const allDependenciesEnabled = module.dependencies.every((depName) =>
+			enabledModules.includes(depName)
+		);
+
+		if (allDependenciesEnabled) {
+			enabledModules.push(module.name);
+		}
+	}
+
+	return enabledModules;
+}
+
+export async function checkFeatureFlag(
+	flag: FeatureFlagKey | null,
+	sessionId: string,
+	client: { query: (query: unknown, args: unknown) => Promise<unknown> }
+): Promise<boolean> {
+	if (flag === null) return true; // Always enabled
+	
+	try {
+		const result = await client.query(api.featureFlags.checkFlag, { flag, sessionId });
+		return (result as boolean) ?? false;
+	} catch (error) {
+		console.warn(`Failed to check feature flag "${flag}":`, error);
+		return false; // Secure by default
+	}
+}
+
+// 2. Create module manifests (src/lib/modules/core/manifest.ts)
+export const coreModule: ModuleManifest = {
+	name: 'core',
+	version: '1.0.0',
+	dependencies: [],
+	featureFlag: null, // Always enabled
+	api: undefined as OrganizationsModuleAPI | undefined
+};
+
+// src/lib/modules/meetings/manifest.ts
+export const meetingsModule: ModuleManifest = {
+	name: 'meetings',
+	version: '1.0.0',
+	dependencies: ['core'],
+	featureFlag: FeatureFlags.MEETINGS_MODULE, // 'meetings-module'
+	api: undefined
+};
+
+// 3. Initialize registry (src/lib/modules/index.ts)
+import { registerModule } from './registry';
+import { coreModule } from './core/manifest';
+import { meetingsModule } from './meetings/manifest';
+
+registerModule(coreModule);
+registerModule(meetingsModule);
+
+// 4. Use registry in layout server (src/routes/(authenticated)/+layout.server.ts)
+import '$lib/modules'; // Initialize registry
+import { getEnabledModules, isModuleEnabled } from '$lib/modules/registry';
+
+// Use registry instead of hardcoded checks
+let meetingsEnabled = false;
+try {
+	const enabledModules = await getEnabledModules(sessionId, client);
+	meetingsEnabled = await isModuleEnabled('meetings', sessionId, client);
+} catch (error) {
+	console.warn('Failed to load feature flags server-side:', error);
+	meetingsEnabled = false;
+}
+```
+
+**Key Components**:
+
+1. **Module Registry** (`src/lib/modules/registry.ts`):
+   - `registerModule()` - Register modules
+   - `getEnabledModules()` - Discover enabled modules (checks flags + dependencies)
+   - `isModuleEnabled()` - Check if specific module enabled
+   - `resolveDependencies()` - Resolve dependency order
+
+2. **Module Manifests** (`src/lib/modules/[module]/manifest.ts`):
+   - Declare module metadata (name, version, dependencies, feature flag)
+   - Define module API contract (optional)
+
+3. **Registry Initialization** (`src/lib/modules/index.ts`):
+   - Import all manifests
+   - Register all modules on import
+
+4. **Layout Server Integration**:
+   - Import registry initialization
+   - Use `getEnabledModules()` or `isModuleEnabled()` instead of hardcoded checks
+
+**Benefits**:
+
+- ✅ Centralized module discovery
+- ✅ Automatic dependency resolution
+- ✅ Single source of truth for module enablement
+- ✅ Foundation for independent module deployment
+- ✅ Easier to add new modules (just create manifest + register)
+
+**Why**: Enables true modularity - modules can be discovered, enabled/disabled dynamically, and managed independently. Foundation for independent module deployment and versioning.  
+**Apply when**: Building modular architecture, refactoring layout server, adding new modules, or preparing for independent deployment  
+**Related**: #L1420 (Lazy Module Loading), [feature-flags.md](feature-flags.md), [modularity-refactoring-analysis.md](../architecture/modularity-refactoring-analysis.md)  
+**See**: `src/lib/modules/registry.ts`, `src/lib/modules/index.ts`, `src/routes/(authenticated)/+layout.server.ts` for complete implementation
+
+**Source**: SYOS-301, SYOS-302, SYOS-303 (Module Registry & Discovery System)
+
+---
+
+## #L4200: Idempotent Module Registration for SSR [🔴 CRITICAL]
+
+**Symptom**: Server 500 error "Module 'core' is already registered" during SSR, especially during HMR updates or module re-evaluation  
+**Root Cause**: Vite's SSR module runner re-evaluates modules during HMR or request handling, causing `registerModule()` to be called multiple times. The registry throws an error on duplicate registration, breaking SSR.  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Throws error on duplicate registration
+export function registerModule(manifest: ModuleManifest): void {
+	if (moduleRegistry.has(manifest.name)) {
+		throw new Error(`Module "${manifest.name}" is already registered`);
+	}
+	moduleRegistry.set(manifest.name, manifest);
+}
+
+// ✅ CORRECT: Idempotent registration (skip if already registered)
+export function registerModule(manifest: ModuleManifest): void {
+	// Idempotent: if module is already registered, skip silently
+	// This handles SSR module re-evaluation and HMR updates
+	if (moduleRegistry.has(manifest.name)) {
+		return;
+	}
+	moduleRegistry.set(manifest.name, manifest);
+}
+```
+
+**Why**: In SSR environments, Vite's module runner can re-evaluate modules multiple times (during HMR, request handling, or module reloads). The module registry Map persists across re-evaluations, so attempting to register the same module again causes errors. Making registration idempotent allows safe re-registration without breaking SSR.  
+**Apply when**: Using module registry system in SSR context (SvelteKit, Next.js, etc.), especially when modules are imported in layout server files  
+**Related**: #L4000 (Module Registry System)  
+**See**: `src/lib/modules/registry.ts` for complete implementation
+
+**Source**: Fixed SSR 500 error on `/inbox` route (2025-12-17)
+
+---
+
+**Pattern Count**: 48  
+**Last Validated**: 2025-11-19  
 **Context7 Source**: `/get-convex/convex-backend`, `convex-test` NPM docs, TypeScript type system, SvelteKit docs

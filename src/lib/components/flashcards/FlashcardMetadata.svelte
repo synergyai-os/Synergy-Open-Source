@@ -5,10 +5,10 @@
 	import { useQuery, useConvexClient } from 'convex-svelte';
 	import { api } from '$lib/convex';
 	import { Button } from 'bits-ui';
-	import TagSelector from '$lib/components/inbox/TagSelector.svelte';
-	import { useTagging } from '$lib/composables/useTagging.svelte';
 	import type { Id } from '../../../../convex/_generated/dataModel';
-	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
+	import type { InboxModuleAPI } from '$lib/modules/inbox/api';
+	import type { CoreModuleAPI } from '$lib/modules/core/api';
 
 	type Flashcard = {
 		_id: Id<'flashcards'>;
@@ -35,11 +35,19 @@
 	const getSessionId = () => $page.data.sessionId;
 
 	// Get workspace context for organization filtering
-	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
 	const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
 
-	// Setup tagging system for flashcards
-	const tagging = useTagging('flashcard', getUserId, getSessionId, () => activeOrganizationId());
+	// Get core module API from context for TagSelector (enables loose coupling - see SYOS-308)
+	const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
+	const TagSelector = coreAPI?.TagSelector;
+
+	// Get inbox module API from context for tagging composable (enables loose coupling - see SYOS-306)
+	const inboxAPI = getContext<InboxModuleAPI | undefined>('inbox-api');
+	// Setup tagging system for flashcards using inbox API
+	const tagging = inboxAPI?.useTagging('flashcard', getUserId, getSessionId, () =>
+		activeOrganizationId()
+	);
 
 	// Load all available tags (filtered by active organization)
 	const allTagsQuery =
@@ -87,6 +95,10 @@
 
 	// Handle tag changes
 	async function handleTagsChange(newTagIds: Id<'tags'>[]) {
+		if (!tagging) {
+			console.error('Tagging API not available');
+			return;
+		}
 		try {
 			await tagging.assignTags(flashcard._id, newTagIds);
 		} catch (error) {
@@ -100,6 +112,9 @@
 		color: string,
 		parentId?: Id<'tags'>
 	): Promise<Id<'tags'>> {
+		if (!tagging) {
+			throw new Error('Tagging API not available');
+		}
 		try {
 			return await tagging.createTag(displayName, color, parentId);
 		} catch (error) {
@@ -171,15 +186,17 @@
 
 <div class="flex h-full flex-col gap-settings-section">
 	<!-- Tags Section - Now Interactive! -->
-	<div class="gap-section pb-settings-row flex flex-col border-b border-base">
-		<TagSelector
-			bind:comboboxOpen={tagComboboxOpen}
-			bind:selectedTagIds
-			{availableTags}
-			onTagsChange={handleTagsChange}
-			onCreateTagWithColor={handleCreateTag}
-		/>
-	</div>
+	{#if TagSelector}
+		<div class="gap-section pb-settings-row flex flex-col border-b border-base">
+			<TagSelector
+				bind:comboboxOpen={tagComboboxOpen}
+				bind:selectedTagIds
+				{availableTags}
+				onTagsChange={handleTagsChange}
+				onCreateTagWithColor={handleCreateTag}
+			/>
+		</div>
+	{/if}
 
 	<!-- FSRS Stats Section -->
 	<div class="gap-section pb-settings-row flex flex-col border-b border-base">

@@ -9,7 +9,7 @@
 
 ## Latest Audit
 
-- **[2025-01 Audit](SYOS-ARCHITECTURE-AUDIT-2025-01.md)** - Current
+- **[2025-02 Audit](SYOS-ARCHITECTURE-AUDIT-2025-02.md)** - Current
 
 ---
 
@@ -24,6 +24,7 @@ Audits are archived chronologically. Each audit includes:
 - Metrics and trends
 
 **Archive**:
+- [2025-01 Audit](SYOS-ARCHITECTURE-AUDIT-2025-01.md) - Baseline audit
 - [2024-12 Audit](SYOS-ARCHITECTURE-AUDIT-2024-12.md) _(when available)_
 - [2024-11 Audit](SYOS-ARCHITECTURE-AUDIT-2024-11.md) _(when available)_
 

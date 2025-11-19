@@ -9,7 +9,72 @@
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 		<meta name="theme-color" content="#000000" />
+		<style>
+			/* CRITICAL: Hide any stale overlays immediately (before JavaScript runs) */
+			/* This prevents "Loading Randy Hereman" from cached HTML from showing */
+			#__switching-overlay:not([data-valid='true']) {
+				display: none !important;
+				visibility: hidden !important;
+				opacity: 0 !important;
+			}
+		</style>
 		<script>
+			// CRITICAL: Remove any stale overlays IMMEDIATELY (before anything else renders)
+			// This must run synchronously before any other scripts to catch cached HTML overlays
+			(function removeStaleOverlays() {
+				try {
+					function checkAndRemove() {
+						if (!document.body) return;
+
+						// ONLY remove the specific overlay element by ID (don't scan all elements - too aggressive)
+						const overlayById = document.getElementById('__switching-overlay');
+						if (overlayById) {
+							const headingText = overlayById.querySelector('h1, h2, h3')?.textContent || '';
+							const text = overlayById.textContent || '';
+							const hasValidAttr = overlayById.getAttribute('data-valid') === 'true';
+
+							// Remove if it has wrong text AND doesn't have valid attribute
+							if (
+								!hasValidAttr &&
+								headingText.includes('Loading') &&
+								(headingText.includes('Randy') ||
+									headingText.includes('Hereman') ||
+									(headingText !== 'Switching account' && headingText !== 'Loading workspace'))
+							) {
+								console.warn('⚠️ [EARLY CLEANUP] Found stale overlay with wrong text - removing', {
+									headingText: headingText,
+									textContent: text.substring(0, 100),
+									hasValidAttr: hasValidAttr
+								});
+								overlayById.remove();
+							} else if (!hasValidAttr) {
+								// Remove any overlay without valid attribute (CSS will hide it, but remove it too)
+								console.warn(
+									'⚠️ [EARLY CLEANUP] Found overlay without valid attribute - removing',
+									{
+										headingText: headingText,
+										hasValidAttr: hasValidAttr
+									}
+								);
+								overlayById.remove();
+							}
+						}
+					}
+
+					// Check immediately if body exists
+					if (document.body) {
+						checkAndRemove();
+					} else {
+						// Wait for DOMContentLoaded if body doesn't exist yet
+						if (document.readyState === 'loading') {
+							document.addEventListener('DOMContentLoaded', checkAndRemove, { once: true });
+						}
+					}
+				} catch (e) {
+					console.error('❌ [EARLY CLEANUP] Error removing stale overlays', e);
+				}
+			})();
+
 			// Prevent FOUC (Flash of Unstyled Content) by applying theme immediately
 			(function () {
 				try {
@@ -33,9 +98,171 @@
 			// Prevent overlay flash during account/workspace switching
 			(function () {
 				try {
+					// CRITICAL: Remove any existing overlays IMMEDIATELY (before DOMContentLoaded)
+					// This handles browser-cached HTML with old overlay content
+					// Run synchronously before any async operations
+					(function removeExistingOverlays() {
+						function checkAndRemoveOverlays() {
+							// Check for overlay in document
+							const existingOverlay = document.getElementById('__switching-overlay');
+							if (existingOverlay) {
+								const headingText = existingOverlay.querySelector('h2')?.textContent || '';
+								const overlayText = existingOverlay.textContent || '';
+								console.warn(
+									'⚠️ [STATIC OVERLAY] Found existing overlay in DOM - removing immediately',
+									{
+										overlayText: overlayText.substring(0, 100),
+										headingText: headingText,
+										overlayHTML: existingOverlay.innerHTML?.substring(0, 200),
+										hasRandyHereman:
+											overlayText.includes('Randy') || overlayText.includes('Hereman'),
+										hasLoadingAccountName:
+											headingText.includes('Loading') &&
+											(headingText.includes('Randy') ||
+												headingText.includes('Hereman') ||
+												headingText.includes('Account'))
+									}
+								);
+								existingOverlay.remove();
+							}
+
+							// Also check for any elements with overlay-like content
+							// This catches old overlays that might have different IDs
+							const allOverlays = Array.from(
+								document.querySelectorAll('[id*="overlay"], [class*="overlay"]')
+							);
+							const suspiciousOverlays = allOverlays.filter((el) => {
+								const text = el.textContent || '';
+								const heading = el.querySelector('h2')?.textContent || '';
+								// Check for "Loading [Name]" pattern with account names
+								return (
+									(text.includes('Loading') || heading.includes('Loading')) &&
+									(text.includes('Randy') ||
+										text.includes('Hereman') ||
+										heading.includes('Randy') ||
+										heading.includes('Hereman') ||
+										(heading.includes('Loading') &&
+											heading !== 'Switching account' &&
+											heading !== 'Loading workspace'))
+								);
+							});
+
+							if (suspiciousOverlays.length > 0) {
+								console.warn(
+									'⚠️ [STATIC OVERLAY] Found suspicious overlays with account name - removing',
+									{
+										count: suspiciousOverlays.length,
+										overlays: suspiciousOverlays.map((el) => ({
+											id: el.id,
+											className: el.className,
+											textContent: el.textContent?.substring(0, 100),
+											headingText: el.querySelector('h2')?.textContent
+										}))
+									}
+								);
+								suspiciousOverlays.forEach((el) => el.remove());
+							}
+						}
+
+						// Check immediately if DOM is ready
+						if (document.body) {
+							checkAndRemoveOverlays();
+						}
+
+						// Also check when DOM becomes ready (if script runs before DOMContentLoaded)
+						if (document.readyState === 'loading') {
+							document.addEventListener('DOMContentLoaded', checkAndRemoveOverlays, { once: true });
+						}
+
+						// Watch for any overlays added after script runs (catches late additions)
+						// Only observe if document.body exists and is a valid Node
+						if (
+							document.body &&
+							document.body.nodeType === 1 &&
+							typeof MutationObserver !== 'undefined'
+						) {
+							try {
+								const observer = new MutationObserver(function (mutations) {
+									mutations.forEach(function (mutation) {
+										mutation.addedNodes.forEach(function (node) {
+											if (node.nodeType === 1) {
+												// Element node
+												const el = node;
+												// ONLY check the specific overlay ID (don't check all overlays - too aggressive)
+												if (el.id === '__switching-overlay') {
+													const headingText = el.querySelector('h1, h2, h3')?.textContent || '';
+													const text = el.textContent || '';
+													const hasValidAttr = el.getAttribute('data-valid') === 'true';
+
+													if (
+														!hasValidAttr &&
+														headingText.includes('Loading') &&
+														(headingText.includes('Randy') ||
+															headingText.includes('Hereman') ||
+															(headingText !== 'Switching account' &&
+																headingText !== 'Loading workspace'))
+													) {
+														console.warn(
+															'⚠️ [STATIC OVERLAY] MutationObserver detected suspicious overlay added - removing',
+															{
+																headingText: headingText,
+																textContent: text.substring(0, 100),
+																hasValidAttr: hasValidAttr
+															}
+														);
+														el.remove();
+														observer.disconnect();
+													}
+												}
+											}
+										});
+									});
+								});
+
+								observer.observe(document.body, {
+									childList: true,
+									subtree: true
+								});
+
+								// Disconnect after 5 seconds (overlays should be created within this time)
+								setTimeout(() => {
+									try {
+										observer.disconnect();
+									} catch (e) {
+										// Ignore errors when disconnecting
+									}
+								}, 5000);
+							} catch (e) {
+								console.error('❌ [STATIC OVERLAY] Error setting up MutationObserver', e);
+							}
+						}
+					})();
+
+					console.log('🔍 [STATIC OVERLAY] Checking for switchingAccount flag...');
 					const switchingData = sessionStorage.getItem('switchingAccount');
+					console.log('🔍 [STATIC OVERLAY] sessionStorage.getItem result:', {
+						hasData: !!switchingData,
+						dataLength: switchingData?.length,
+						dataPreview: switchingData?.substring(0, 100)
+					});
+
 					if (switchingData) {
 						const data = JSON.parse(switchingData);
+						console.log(
+							'🔍 [STATIC OVERLAY] Parsed switchingAccount data (STATIC OVERLAY DISABLED FOR TESTING):',
+							{
+								accountName: data.accountName,
+								accountNameType: typeof data.accountName,
+								accountNameLength: data.accountName?.length,
+								startTime: data.startTime,
+								rawData: data
+							}
+						);
+
+						// EXPERIMENT: Commented out static overlay to test if it eliminates duplicate "Switching account" message
+						// If Svelte loads fast enough, we don't need the static overlay
+						// If there's a noticeable blank/flash during reload, we'll need to keep it but fix the timing
+						/*
 						// Sanitize accountName to prevent XSS
 						const rawAccountName = data.accountName || 'workspace';
 						const accountName = String(rawAccountName).replace(/[<>"'&]/g, function (char) {
@@ -55,8 +282,30 @@
 							}
 						});
 
+						console.log('🔍 [STATIC OVERLAY] Sanitized accountName:', {
+							rawAccountName,
+							sanitizedAccountName: accountName
+						});
+
 						// Inject overlay HTML immediately (before Svelte loads)
 						document.addEventListener('DOMContentLoaded', function () {
+							console.log('🔍 [STATIC OVERLAY] DOMContentLoaded - Creating static overlay', {
+								accountName,
+								rawAccountName,
+								bodyChildren: document.body?.children?.length,
+								existingOverlay: document.getElementById('__switching-overlay')
+							});
+
+							// Check for existing overlay first
+							const existingOverlay = document.getElementById('__switching-overlay');
+							if (existingOverlay) {
+								console.warn('⚠️ [STATIC OVERLAY] Existing overlay found! Removing it first.', {
+									overlayText: existingOverlay.textContent,
+									overlayHTML: existingOverlay.innerHTML.substring(0, 200)
+								});
+								existingOverlay.remove();
+							}
+
 							const overlay = document.createElement('div');
 							overlay.id = '__switching-overlay';
 
@@ -82,7 +331,15 @@
 							const heading = document.createElement('h2');
 							heading.style.cssText =
 								'font-size:1.5rem;font-weight:600;color:var(--color-text-primary,rgb(17,24,39))';
-							heading.textContent = 'Loading ' + accountName + "'s workspace"; // Safe: uses textContent
+							const headingText = 'Switching account'; // Safe: uses textContent
+							heading.textContent = headingText;
+
+							console.log('🔍 [STATIC OVERLAY] Setting heading text:', {
+								headingText,
+								accountName,
+								headingTextContent: heading.textContent,
+								headingInnerHTML: heading.innerHTML
+							});
 
 							const subTextWrapper = document.createElement('div');
 							subTextWrapper.style.cssText = 'text-align:center';
@@ -104,15 +361,34 @@
 							container.appendChild(innerDiv);
 							overlay.appendChild(container);
 							overlay.appendChild(style);
+							// Mark as valid so CSS doesn't hide it (prevents CSS from hiding our correct overlay)
+							overlay.setAttribute('data-valid', 'true');
 							document.body.appendChild(overlay);
+
+							console.log('✅ [STATIC OVERLAY] Static overlay created and appended', {
+								overlayId: overlay.id,
+								headingText: heading.textContent,
+								headingInnerHTML: heading.innerHTML,
+								overlayTextContent: overlay.textContent?.substring(0, 100),
+								bodyChildren: document.body?.children?.length,
+								hasValidAttribute: overlay.getAttribute('data-valid')
+							});
 
 							// Set a marker so Svelte knows to clean this up
 							window.__hasStaticOverlay = true;
 						});
+						*/
+						console.log(
+							'⚠️ [STATIC OVERLAY] Static overlay DISABLED for testing - Svelte overlay will show directly'
+						);
+					} else {
+						console.log(
+							'🔍 [STATIC OVERLAY] No switchingAccount flag found - skipping static overlay'
+						);
 					}
 				} catch (e) {
 					// Silently fail if sessionStorage isn't available
-					console.warn('Could not check switching state', e);
+					console.error('❌ [STATIC OVERLAY] Error checking switching state', e);
 				}
 			})();
 		</script>

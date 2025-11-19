@@ -9,7 +9,7 @@
 	import FlashcardDetailModal from '$lib/components/flashcards/FlashcardDetailModal.svelte';
 	import { api } from '$lib/convex';
 	import type { Doc, Id } from '../../../../convex/_generated/dataModel';
-	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	const convexClient = browser ? useConvexClient() : null;
@@ -27,7 +27,7 @@
 	const getSessionId = () => $page.data.sessionId;
 
 	// Get workspace context
-	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
 	const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
 
 	// Query all tags for filtering (filtered by active organization)

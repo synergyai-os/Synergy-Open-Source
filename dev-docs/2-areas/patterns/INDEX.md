@@ -45,6 +45,7 @@
 | Tests fail with "can only be called in the browser" or Web Crypto undefined                       | Rename .test.ts → .svelte.test.ts for browser environment                    | [svelte-reactivity.md#L800](svelte-reactivity.md#L800)              |
 | localStorage session data visible in DevTools, fails SOC 2 audit                                  | Use Web Crypto API (AES-256-GCM + PBKDF2)                                    | [auth-deployment.md#L960](auth-deployment.md#L960)                  |
 | `Cannot call replaceState(...) before router is initialized` on page load                         | Try-catch guard around replaceState in $effect                               | [svelte-reactivity.md#L730](svelte-reactivity.md#L730)              |
+| Manual org switches revert to URL param org, causing infinite loops                              | Read from window.location.search instead of $page.url.searchParams            | [svelte-reactivity.md#L740](svelte-reactivity.md#L740)              |
 | Account switch takes 5+ seconds, query costs spike with many linked accounts                      | Add MAX_LINK_DEPTH=3 and MAX_TOTAL_ACCOUNTS=10 limits                        | [auth-deployment.md#L1010](auth-deployment.md#L1010)                |
 | Logged-out linked accounts reappear after page reload, three-dot menu logout doesn't persist      | Unlink from database FIRST (Convex accountLinks), then localStorage          | [auth-deployment.md#L1050](auth-deployment.md#L1050)                |
 | Database queries fail, userId is an object instead of string                                      | Destructure validateSessionAndGetUserId: const { userId } = await...         | [convex-integration.md#L850](convex-integration.md#L850)            |
@@ -55,11 +56,13 @@
 | TypeScript errors "Type 'string' is not assignable to type 'Id<\"tableName\">'" or using `as any` | Use proper `Id<>` type assertions instead of `any`                           | [convex-integration.md#L1250](convex-integration.md#L1250)          |
 | TypeScript errors "circularly references itself" or "Property does not exist on type '{}'"        | Use FunctionReference type assertions to break circular API refs             | [convex-integration.md#L1300](convex-integration.md#L1300)          |
 | Using `makeFunctionReference()` with `as any` in frontend code                                    | Use `FunctionReference` type assertion instead of `any` for type safety      | [convex-integration.md#L1300](convex-integration.md#L1300)          |
+| TypeScript error "Type 'string | null' is not assignable to 'string | undefined'" in interface migration | Match interface contract exactly: use `undefined` not `null` when interface expects undefined | [convex-integration.md#L3800](convex-integration.md#L3800)          |
 | Hundreds of `any` types violating coding standards, ESLint no-explicit-any errors                 | Systematic elimination: create type files, narrow unions, use FunctionReference | [convex-integration.md#L1550](convex-integration.md#L1550)          |
 | TypeScript errors "Argument of type '() => {...}                                                  | null' is not assignable" in useQuery                                         | Use conditional hook creation: `browser && getSessionId() ? useQuery(...) : null` | [convex-integration.md#L1350](convex-integration.md#L1350) |
 | Query stuck in loading, hook never created when ID changes from null to value                   | Use $effect pattern with manual convexClient.query() (proven: useSelectedItem) | [convex-integration.md#L1355](convex-integration.md#L1355)          |
 | Multiple related queries take 3-5 seconds, slow page load                                        | Use batch query to check multiple items at once (1 network call vs N)          | [convex-integration.md#L1360](convex-integration.md#L1360)          |
 | UI elements appear 3-5 seconds after page load, missing data until hard refresh                 | Load critical data server-side in +layout.server.ts using ConvexHttpClient      | [convex-integration.md#L1390](convex-integration.md#L1390)          |
+| Layout server loads data for disabled modules, wastes resources, prevents independent enablement | Check feature flags FIRST, conditionally load module-specific data only if enabled | [convex-integration.md#L1420](convex-integration.md#L1420)          |
 | TypeScript errors "'X' is possibly 'null'" for nested property access                             | Use optional chaining for nested properties: `obj?.prop?.nested`             | [convex-integration.md#L1400](convex-integration.md#L1400)          |
 | TypeScript errors "Property 'X' does not exist on type 'Y                                         | Z'" on union types                                                           | Use type assertion or type guard to narrow union type               | [convex-integration.md#L1450](convex-integration.md#L1450) |
 | TypeScript error "',' expected" in RequestHandler export                                          | Use function syntax `};` not object literal `});` for direct assignment      | [convex-integration.md#L1500](convex-integration.md#L1500)          |
@@ -75,12 +78,14 @@
 | Tests pass with --workers=1 but fail in parallel with "Expected: 429, Received: 401"               | Remove global beforeEach cleanup, rely on unique testIds for isolation      | [ci-cd.md#L340](ci-cd.md#L340)                                      |
 | Feature flags visible to all users when no targeting rules configured                              | Default to false when no targeting rules, require explicit configuration   | [convex-integration.md#L1530](convex-integration.md#L1530)            |
 | Feature flag needs organization-based targeting (multi-tenancy)                                    | Add allowedOrganizationIds field + org membership check                    | [feature-flags.md#L180](feature-flags.md#L180)                        |
+| Admin sidebar visible to non-admin users, or error page shows sidebar                            | Separate checks: page load throws error, layout load returns boolean for conditional UI       | [ui-patterns.md#L4800](ui-patterns.md#L4800)            |
 | Can't add more items after selecting - combobox trigger disappears                                 | Add "Add" button next to selected chips, use anchor element for positioning | [ui-patterns.md#L3120](ui-patterns.md#L3120)                            |
 | Combobox doesn't allow multi-select, dropdown closes immediately, search doesn't work with backspace | Replace Combobox with custom dropdown using plain div + manual state management | [ui-patterns.md#L4520](ui-patterns.md#L4520)                            |
 | Need polymorphic schema supporting multiple entity types (users/circles/teams)                     | Use union type discriminator + optional ID fields + validation              | [convex-integration.md#L1700](convex-integration.md#L1700)            |
 | `$derived` values don't update in child components, props show as functions                      | Call `$derived` functions when passing as props: `organizations={orgs()}`  | [svelte-reactivity.md#L900](svelte-reactivity.md#L900)                  |
 | `$derived` doesn't execute, returns function instead of value, reactivity breaks                  | Access getter properties without optional chaining: check existence first  | [svelte-reactivity.md#L910](svelte-reactivity.md#L910)                  |
 | `state_snapshot_uncloneable` error when passing values to Convex queries                          | Extract primitives from `$derived` by calling function before passing       | [svelte-reactivity.md#L920](svelte-reactivity.md#L920)                  |
+| Hydration error `$.get(...) is not a function` when accessing page data                          | Use function pattern `() => $page.data.sessionId` not `$derived($page.data.sessionId)` | [svelte-reactivity.md#L1600](svelte-reactivity.md#L1600)                  |
 | `each_key_duplicate` error when multiple users belong to same organization                         | Use composite keys: `(${org.organizationId}-${account.userId})`             | [svelte-reactivity.md#L1460](svelte-reactivity.md#L1460)                |
 | `ReferenceError: [variable] is not defined` accessing variable from try block                      | Declare variable before try block or move cleanup inside try                 | [svelte-reactivity.md#L1510](svelte-reactivity.md#L1510)                |
 | UI shows actions users can't perform, buttons visible but disabled/error on click                 | Use `usePermissions` composable + owner bypass pattern for permission-based visibility | [ui-patterns.md#L3200](ui-patterns.md#L3200)            |
@@ -93,6 +98,10 @@
 | Panel positioned incorrectly, stacking panels misaligned, not flush to right edge              | Don't set both `left` and `right` - `left` overrides `right`. Use width calc instead          | [ui-patterns.md#L4150](ui-patterns.md#L4150)            |
 | Content cut off or overlaps with breadcrumb/toolbar, scrollable content partially blocked      | Add padding to content equal to absolute element's width (use design token)                    | [ui-patterns.md#L4200](ui-patterns.md#L4200)            |
 | ESC key goes back two levels instead of one when multiple panels are open                      | Check if current panel is topmost layer before handling ESC (use selectedId not data._id)     | [ui-patterns.md#L4250](ui-patterns.md#L4250)            |
+| Admin access denied redirects instead of showing error page, custom +error.svelte never renders | Move admin checks from hooks to page loads, throw error() not redirect()                      | [ui-patterns.md#L4750](ui-patterns.md#L4750)            |
+| Account switching shows "GET method not allowed" (405), switch fails                          | Use POST request with CSRF token via useAuthSession composable, not window.location.href     | [auth-deployment.md#L1120](auth-deployment.md#L1120)    |
+| Modules loaded statically, hardcoded feature flag checks, no module discovery                | Use module registry system: create manifests, register modules, use getEnabledModules()      | [convex-integration.md#L4000](convex-integration.md#L4000)            |
+|| Server 500 error "Module 'core' is already registered" during SSR or HMR updates            | Make registerModule() idempotent: skip silently if module already registered                  | [convex-integration.md#L4200](convex-integration.md#L4200)            |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -137,6 +146,7 @@
 | ESLint errors in test files blocking CI                                       | Relax rules for test files (allow `any` types)                        | [ci-cd.md#L60](ci-cd.md#L60)                               |
 | ESLint rule reports false positives for correct code, 50+ per-line disables   | Disable rule globally with documentation when rule has known limitations | [ci-cd.md#L70](ci-cd.md#L70)                               |
 | ESLint warnings for unused Playwright test parameters (`page`, `request`)     | Use actual parameter names + ESLint disable comment (Playwright validates signatures) | [ci-cd.md#L80](ci-cd.md#L80)                               |
+| Need to enforce architectural boundaries (module boundaries, layer boundaries) | Create custom ESLint rule in eslint-rules/ directory, use ES module syntax for flat config | [ci-cd.md#L90](ci-cd.md#L90)                               |
 | CSS warnings from svelte-check (unused selectors, empty rulesets, @apply)    | Remove unused selectors, empty rulesets; replace @apply with design tokens | [ui-patterns.md#L950](ui-patterns.md#L950)                 |
 | Playwright test fails: "did not expect test.use() here"                       | Move test.use() to describe level, not inside test                    | [ci-cd.md#L210](ci-cd.md#L210)                             |
 | Cookies not cleared/shared in Playwright tests                                | Use page.request instead of request fixture                           | [ci-cd.md#L220](ci-cd.md#L220)                             |
@@ -195,6 +205,10 @@
 | Ticket writing for AI       | User stories + technical detail for parallel AI execution   | [ticket-writing.md](ticket-writing.md)                   |
 | Split overlapping tickets   | Separate by technical boundary for parallel implementation  | [ticket-writing.md](ticket-writing.md)                   |
 | AI-ready ticket structure   | Clear scope, files, patterns, success criteria              | [ticket-writing.md](ticket-writing.md)                   |
+| Module API contracts        | Create interface for composables to enable loose coupling   | [modularity-refactoring-analysis.md#L84](../architecture/modularity-refactoring-analysis.md#L84) |
+| Components depend on internal types, refactoring breaks dependent modules | Migrate to public API interfaces instead of ReturnType<typeof composable> | [convex-integration.md#L3650](convex-integration.md#L3650) |
+| Creating new module API contract (InboxModuleAPI, CirclesModuleAPI) | Follow pattern: create api.ts, expose composables/types, update manifest | [convex-integration.md#L3900](convex-integration.md#L3900) |
+| Component used by multiple modules creates cross-module dependencies (Flashcards → Inbox) | Move shared component to core module, expose via CoreModuleAPI, update all consumers | [convex-integration.md#L4100](convex-integration.md#L4100) |
 | Incremental CI gates        | Enable lint/build first, defer type check to separate work  | [ci-cd.md#L10](ci-cd.md#L10)                             |
 | Local CI testing            | npm scripts > shell scripts for consistency                 | [ci-cd.md#L110](ci-cd.md#L110)                           |
 | Secret scanning             | TruffleHog with .secretsignore for safe patterns            | [ci-cd.md#L160](ci-cd.md#L160)                           |
@@ -259,8 +273,8 @@ correct code
 
 ---
 
-**Last Updated**: 2025-11-18
-**Pattern Count**: 93
+**Last Updated**: 2025-11-19
+**Pattern Count**: 97
 **Format Version**: 2.0
 ```
 

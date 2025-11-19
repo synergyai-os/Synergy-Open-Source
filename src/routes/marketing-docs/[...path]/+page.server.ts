@@ -3,8 +3,27 @@ import { error } from '@sveltejs/kit';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { cwd } from 'process';
+import { ConvexHttpClient } from 'convex/browser';
+import { api } from '$convex/_generated/api';
+import { env } from '$env/dynamic/public';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, locals }) => {
+	// Check permission: require docs.view permission
+	const sessionId = locals.auth.sessionId;
+	if (!sessionId) {
+		throw error(403, 'Authentication required to view documentation');
+	}
+
+	const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
+	const userPermissions = await client.query(api.rbac.permissions.getUserPermissionsQuery, {
+		sessionId
+	});
+
+	const hasDocsPermission = userPermissions.some((p) => p.permissionSlug === 'docs.view');
+	if (!hasDocsPermission) {
+		throw error(403, 'Permission denied: docs.view permission required');
+	}
+
 	const { path } = params;
 
 	// Try common variations: exact path, with .md, as README

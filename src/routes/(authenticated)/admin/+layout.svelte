@@ -2,9 +2,15 @@
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
 
-	let { children }: { children: import('svelte').Snippet } = $props();
+	let { children, data }: { children: import('svelte').Snippet; data: { isAdmin?: boolean } } =
+		$props();
 
 	const currentPath = $derived(browser ? $page.url.pathname : '');
+	const isAdmin = $derived(data?.isAdmin ?? false);
+	const isErrorPage = $derived(browser ? $page.status >= 400 : false);
+
+	// Only show sidebar if user is admin AND not showing error page
+	const showSidebar = $derived(isAdmin && !isErrorPage);
 
 	const navItems = [
 		{ href: '/admin', label: 'Dashboard', icon: 'bar-chart' },
@@ -31,41 +37,43 @@
 </script>
 
 <div class="flex h-screen overflow-hidden">
-	<!-- Sidebar -->
-	<aside class="w-64 border-r border-sidebar bg-sidebar">
-		<nav class="p-4">
-			<h2 class="mb-4 text-lg font-semibold text-sidebar-primary">Admin</h2>
-			<ul class="space-y-1">
-				{#each navItems as item (item.href)}
-					<li>
-						<a
-							href={item.href}
-							class="flex items-center gap-icon rounded px-nav-item py-menu-item text-sm transition-colors {currentPath ===
-							item.href
-								? 'bg-hover-solid text-sidebar-primary'
-								: 'text-sidebar-secondary hover:bg-hover-solid hover:text-sidebar-primary'}"
-						>
-							<svg
-								class="h-4 w-4 flex-shrink-0"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-								xmlns="http://www.w3.org/2000/svg"
+	<!-- Sidebar - Only show if user is admin and not showing error page -->
+	{#if showSidebar}
+		<aside class="w-64 border-r border-sidebar bg-sidebar">
+			<nav class="p-4">
+				<h2 class="mb-4 text-lg font-semibold text-sidebar-primary">Admin</h2>
+				<ul class="space-y-1">
+					{#each navItems as item (item.href)}
+						<li>
+							<a
+								href={item.href}
+								class="flex items-center gap-icon rounded px-nav-item py-menu-item text-sm transition-colors {currentPath ===
+								item.href
+									? 'bg-hover-solid text-sidebar-primary'
+									: 'text-sidebar-secondary hover:bg-hover-solid hover:text-sidebar-primary'}"
 							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d={iconPaths[item.icon]}
-								/>
-							</svg>
-							<span>{item.label}</span>
-						</a>
-					</li>
-				{/each}
-			</ul>
-		</nav>
-	</aside>
+								<svg
+									class="h-4 w-4 flex-shrink-0"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+									xmlns="http://www.w3.org/2000/svg"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d={iconPaths[item.icon]}
+									/>
+								</svg>
+								<span>{item.label}</span>
+							</a>
+						</li>
+					{/each}
+				</ul>
+			</nav>
+		</aside>
+	{/if}
 
 	<!-- Main Content -->
 	<main class="flex-1 overflow-y-auto">

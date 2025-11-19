@@ -134,7 +134,12 @@
 					}
 
 					// Reconstruct href with absolute path
-					href = `/dev-docs${finalPath}${cleanHash}`;
+					// Check if path goes outside dev-docs (e.g., to marketing-docs)
+					if (finalPath.startsWith('marketing-docs/')) {
+						href = `/${finalPath}${cleanHash}`;
+					} else {
+						href = `/dev-docs${finalPath}${cleanHash}`;
+					}
 				}
 			}
 

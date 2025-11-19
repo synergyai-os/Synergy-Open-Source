@@ -2,9 +2,9 @@
 	import { getContext } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolveRoute } from '$lib/utils/navigation';
-	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
 
-	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
 
 	let orgName = $state('');
 	let isCreating = $state(false);

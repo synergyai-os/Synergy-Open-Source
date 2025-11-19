@@ -16,13 +16,13 @@
 	import CreateMeetingModal from '$lib/components/meetings/CreateMeetingModal.svelte';
 	import { FeatureFlags } from '$lib/featureFlags';
 	import { resolveRoute } from '$lib/utils/navigation';
-	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
 
-	// Get session from page data
-	const sessionId = $derived($page.data.sessionId);
+	// Get sessionId from page data (provided by authenticated layout)
+	const getSessionId = () => $page.data.sessionId;
 
 	// Get organizations context (manages active organization)
-	const organizationsContext = getContext<UseOrganizations | undefined>('organizations');
+	const organizationsContext = getContext<OrganizationsModuleAPI | undefined>('organizations');
 	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
 	// Pattern: Check object existence first, then access getter property directly
 	// See SYOS-228 for full pattern documentation
@@ -30,14 +30,16 @@
 		if (!organizationsContext) return null;
 		return organizationsContext.activeOrganization ?? null;
 	});
-	const organizationId = $derived(() => activeOrganization()?.organizationId);
+	const organizationId = $derived(() => {
+		const org = activeOrganization();
+		return org?.organizationId ?? undefined;
+	});
 	const hasOrganizations = $derived(() => {
 		if (!organizationsContext) return false;
 		return (organizationsContext.organizations ?? []).length > 0;
 	});
 
 	// Check feature flag (SYOS-226: organization-based targeting)
-	const getSessionId = () => sessionId();
 	const getOrganizationId = () => organizationId();
 	const flagQuery =
 		browser && getSessionId()
@@ -74,13 +76,13 @@
 	// Fetch meetings
 	const meetings = useMeetings({
 		organizationId: () => organizationId(),
-		sessionId: () => sessionId()
+		sessionId: getSessionId
 	});
 
 	// Helper: Log sessionId and organizationId for manual template seeding
 	$effect(() => {
 		const orgId = organizationId();
-		const session = sessionId();
+		const session = getSessionId();
 		if (orgId && session) {
 			console.log('📋 Meeting Page Debug Info:');
 			console.log('sessionId:', session);
@@ -416,12 +418,12 @@
 	</div>
 
 	<!-- Create Meeting Modal -->
-	{#if organizationId() && sessionId()}
+	{#if organizationId() && getSessionId()}
 		<CreateMeetingModal
 			bind:open={state.showCreateModal}
 			onClose={() => (state.showCreateModal = false)}
 			organizationId={organizationId()!}
-			sessionId={sessionId()!}
+			sessionId={getSessionId()!}
 			{circles}
 		/>
 	{/if}

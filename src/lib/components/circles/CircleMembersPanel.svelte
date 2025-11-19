@@ -5,7 +5,7 @@
 	import { useQuery } from 'convex-svelte';
 	import { api, type Id } from '$lib/convex';
 	import type { UseCircles, CircleMember } from '$lib/composables/useCircles.svelte';
-	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
 
 	let {
 		circles,
@@ -20,7 +20,7 @@
 	const getSessionId = () => $page.data.sessionId;
 
 	// Get organizationId from context (passed from parent page)
-	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
 	const getOrganizationId = () => organizations?.activeOrganizationId ?? undefined;
 
 	// Query organization members to show in dropdown

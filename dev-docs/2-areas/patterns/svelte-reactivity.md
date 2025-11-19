@@ -954,6 +954,110 @@ afterNavigate(() => {
 
 ---
 
+## #L740: Race Condition Between replaceState() and $page.url Reactivity [🔴 CRITICAL]
+
+**Symptom**: Manual organization switches revert back to URL param org, causing infinite loops. URL param persists even after `replaceState()` cleanup.  
+**Root Cause**: `replaceState()` updates `window.location` synchronously, but `$page.url` store updates asynchronously. Reading from `$page.url.searchParams` after `replaceState()` returns stale values, causing the effect to reprocess the URL param.  
+**Fix**:
+
+```typescript
+// ❌ WRONG - Reading from $page.url after replaceState() causes race condition
+import { page } from '$app/stores';
+
+$effect(() => {
+	const urlOrgParam = $page.url.searchParams.get('org'); // ← Reads from reactive store
+	
+	if (urlOrgParam && urlOrgParam !== currentOrgId) {
+		setActiveOrganization(urlOrgParam);
+		
+		// Clean up URL param
+		const url = new URL(window.location.href);
+		url.searchParams.delete('org');
+		replaceState(url.pathname + url.search, {}); // ← Updates window.location synchronously
+		
+		// Problem: $page.url hasn't updated yet!
+		// Next effect run still sees old URL param → infinite loop
+	}
+});
+
+// ✅ CORRECT - Read directly from window.location.search (synchronous)
+import { SvelteURLSearchParams } from 'svelte/reactivity';
+import { replaceState } from '$app/navigation';
+
+$effect(() => {
+	if (!browser) return;
+	
+	// Read directly from window.location.search (updates synchronously with replaceState)
+	const urlParams = new SvelteURLSearchParams(window.location.search);
+	const urlOrgParam = urlParams.get('org');
+	const currentOrgId = activeOrganizationId();
+	
+	// Check if org was changed manually (not from URL)
+	if (
+		urlOrgParam &&
+		lastProcessedOrgParam &&
+		urlOrgParam === lastProcessedOrgParam &&
+		currentOrgId !== urlOrgParam
+	) {
+		// Manual switch detected - clean up URL param and reset tracking
+		urlParams.delete('org');
+		const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+		try {
+			replaceState(newUrl, {});
+		} catch (_e) {
+			console.debug('Router not ready, deferring URL cleanup');
+		}
+		untrack(() => {
+			lastProcessedOrgParam = null;
+		});
+		return; // Don't process URL param - manual switch takes precedence
+	}
+	
+	if (urlOrgParam && urlOrgParam !== currentOrgId) {
+		untrack(() => {
+			lastProcessedOrgParam = urlOrgParam;
+		});
+		setActiveOrganization(urlOrgParam);
+		
+		// Clean up URL param
+		urlParams.delete('org');
+		const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+		try {
+			replaceState(newUrl, {});
+		} catch (_e) {
+			console.debug('Router not ready, deferring URL cleanup');
+		}
+	}
+});
+```
+
+**Why it works**: `window.location.search` updates synchronously with `replaceState()`, eliminating the race condition. Manual switch detection prevents URL params from overriding user actions.
+
+**Apply when**:
+
+- Using `replaceState()` to clean up URL params in `$effect`
+- Reading URL params from `$page.url.searchParams` after navigation
+- Manual state changes are being overridden by URL params
+- Infinite loops occur when switching organizations/workspaces manually
+
+**Why it breaks**:
+
+- `replaceState()` updates `window.location` immediately (synchronous)
+- `$page.url` is a SvelteKit reactive store that updates asynchronously
+- Reading from `$page.url.searchParams` after `replaceState()` returns stale values
+- Effect re-runs with stale URL param → processes it again → infinite loop
+
+**Correct Pattern**:
+
+1. Read URL params directly from `window.location.search` using `SvelteURLSearchParams`
+2. Detect manual switches by comparing URL param with current state
+3. Clean up URL param immediately when manual switch detected
+4. Use `untrack()` for tracking variables to prevent reactive dependencies
+
+**Related**: #L730 (Router initialization guard), #L700 (URL param infinite loops), #L650 (onMount vs $effect)
+
+---
+
 ## #L750: Use untrack() in Cleanup Handlers to Prevent State Mutation Errors [🔴 CRITICAL]
 
 **Symptom**: `state_unsafe_mutation` error: "Updating state inside `$derived(...)`, `$inspect(...)` or a template expression is forbidden"  
@@ -1548,6 +1652,46 @@ try {
 
 ---
 
-**Pattern Count**: 26  
-**Last Validated**: 2025-11-17  
+---
+
+## #L1600: Page Data Access for Composable Functions [🔴 CRITICAL]
+
+**Symptom**: Hydration error `$.get(...) is not a function` or `TypeError: Cannot call undefined`  
+**Root Cause**: Using `$derived($page.data.sessionId)` creates a reactive value, not a function. Composables expecting functions receive a value instead.  
+**Fix**:
+
+```typescript
+// ❌ WRONG: $derived creates reactive value, not function
+const sessionId = $derived($page.data.sessionId);
+const getSessionId = () => sessionId(); // ❌ sessionId is value, not function
+
+useMeetings({
+	sessionId: getSessionId // ❌ Passes function that calls non-function
+});
+
+// ✅ CORRECT: Direct function access pattern (Context7 validated)
+const getSessionId = () => $page.data.sessionId;
+
+useMeetings({
+	sessionId: getSessionId // ✅ Function that returns reactive value
+});
+
+// Usage in useQuery
+const query = browser && getSessionId()
+	? useQuery(api.featureFlags.checkFlag, () => {
+			const session = getSessionId();
+			if (!session) throw new Error('sessionId required');
+			return { sessionId: session };
+		})
+	: null;
+```
+
+**Why**: Composables expect function parameters `() => value` for reactivity. `$derived` creates a reactive value that must be called, but when wrapped incorrectly it breaks. Direct function access ensures proper reactivity tracking.  
+**Apply when**: Passing page data to composables or useQuery that expect function parameters  
+**Related**: #L80 (Function parameters), #L920 (Extract primitives), #L1350 (Conditional hooks)
+
+---
+
+**Pattern Count**: 27  
+**Last Validated**: 2025-11-19  
 **Context7 Source**: `/sveltejs/svelte`, `@sveltejs/kit`, `/get-convex/convex-js`
