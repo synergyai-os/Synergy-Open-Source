@@ -13,18 +13,19 @@
  */
 
 import type { ModuleManifest } from '../registry';
+import type { InboxModuleAPI } from './api';
 
 /**
  * Inbox module manifest
  *
  * **Dependencies**: ['core'] (depends on core module for organizations context)
  * **Feature Flag**: null (always enabled)
- * **API**: TBD (future - InboxModuleAPI)
+ * **API**: InboxModuleAPI (tagging functionality and TagSelector component)
  */
 export const inboxModule: ModuleManifest = {
 	name: 'inbox',
 	version: '1.0.0',
 	dependencies: ['core'],
 	featureFlag: null, // Always enabled
-	api: undefined // Future: InboxModuleAPI
+	api: undefined as InboxModuleAPI | undefined // Type reference for API contract
 };

@@ -9,7 +9,6 @@
  */
 
 import type { FeatureFlagKey } from '$lib/featureFlags';
-import { FeatureFlags } from '$lib/featureFlags';
 import { api } from '$lib/convex';
 
 /**
