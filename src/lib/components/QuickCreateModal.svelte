@@ -4,7 +4,8 @@
 	import { api } from '$lib/convex';
 	import type { Id } from '$lib/convex';
 	import { Dialog, Command } from 'bits-ui';
-	import TagSelector from '$lib/components/inbox/TagSelector.svelte';
+	import { getContext } from 'svelte';
+	import type { CoreModuleAPI } from '$lib/modules/core/api';
 	import NoteEditorWithDetection from '$lib/components/notes/NoteEditorWithDetection.svelte';
 	import {
 		KeyboardShortcut,
@@ -46,6 +47,10 @@
 	}: Props = $props();
 
 	const convexClient = browser ? useConvexClient() : null;
+
+	// Get core module API from context for TagSelector (enables loose coupling - see SYOS-308)
+	const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
+	const TagSelector = coreAPI?.TagSelector;
 
 	// Query all available tags - use server-side initial data immediately, then use query data when available
 	const allTagsQuery =
@@ -766,32 +771,40 @@
 
 							{#if selectedType === 'note'}
 								<!-- Row 1: Metadata Pills + Tags (Linear-style) -->
-								<div
-									class="flex items-center gap-2 overflow-x-auto border-b border-base px-inbox-container py-1.5"
-								>
-									<AttachmentButton
-										count={attachmentCount}
-										onClick={() => {
-											// TODO: Implement attachment logic
-											console.log('Attach file clicked');
-										}}
-									/>
-									<StatusPill status={noteStatus} onChange={(s) => (noteStatus = s)} />
-									<PrioritySelector priority={notePriority} onChange={(p) => (notePriority = p)} />
-									<AssigneeSelector assignee={noteAssignee} onChange={(a) => (noteAssignee = a)} />
-									<ProjectSelector
-										project={noteProject}
-										onChange={(proj) => (noteProject = proj)}
-									/>
-									<TagSelector
-										bind:comboboxOpen={tagComboboxOpen}
-										bind:selectedTagIds
-										{availableTags}
-										onTagsChange={handleTagsChange}
-										onCreateTagWithColor={handleCreateTag}
-										showLabel={false}
-									/>
-								</div>
+								{#if TagSelector}
+									<div
+										class="flex items-center gap-2 overflow-x-auto border-b border-base px-inbox-container py-1.5"
+									>
+										<AttachmentButton
+											count={attachmentCount}
+											onClick={() => {
+												// TODO: Implement attachment logic
+												console.log('Attach file clicked');
+											}}
+										/>
+										<StatusPill status={noteStatus} onChange={(s) => (noteStatus = s)} />
+										<PrioritySelector
+											priority={notePriority}
+											onChange={(p) => (notePriority = p)}
+										/>
+										<AssigneeSelector
+											assignee={noteAssignee}
+											onChange={(a) => (noteAssignee = a)}
+										/>
+										<ProjectSelector
+											project={noteProject}
+											onChange={(proj) => (noteProject = proj)}
+										/>
+										<TagSelector
+											bind:comboboxOpen={tagComboboxOpen}
+											bind:selectedTagIds
+											{availableTags}
+											onTagsChange={handleTagsChange}
+											onCreateTagWithColor={handleCreateTag}
+											showLabel={false}
+										/>
+									</div>
+								{/if}
 							{/if}
 
 							<!-- Row 2: Actions Only (Linear-style footer) -->

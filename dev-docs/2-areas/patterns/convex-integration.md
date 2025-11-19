@@ -4054,6 +4054,112 @@ export const [module]Module: ModuleManifest = {
 
 ---
 
+## #L4100: Move Shared Components to Core Module [🟡 IMPORTANT]
+
+**Symptom**: Component used by multiple modules creates cross-module dependencies (e.g., Flashcards → Inbox, Meetings → Inbox), violating modularity principles  
+**Root Cause**: Shared UI components placed in feature modules instead of core module, creating unwanted coupling between modules  
+**Fix**:
+
+```typescript
+// ❌ WRONG: TagSelector in inbox module, used by flashcards
+// Creates dependency: Flashcards → Inbox
+import type { InboxModuleAPI } from '$lib/modules/inbox/api';
+const inboxAPI = getContext<InboxModuleAPI | undefined>('inbox-api');
+const TagSelector = inboxAPI?.TagSelector;
+
+// ✅ CORRECT: TagSelector in core module, used via CoreModuleAPI
+// No cross-module dependencies
+import type { CoreModuleAPI } from '$lib/modules/core/api';
+const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
+const TagSelector = coreAPI?.TagSelector;
+```
+
+**Migration Steps**:
+
+1. **Move Component to Core Module**:
+   ```bash
+   # Move component file
+   mv src/lib/components/[feature]/Component.svelte \
+      src/lib/modules/core/components/Component.svelte
+   ```
+
+2. **Create/Update CoreModuleAPI**:
+   ```typescript
+   // src/lib/modules/core/api.ts
+   import Component from '$lib/modules/core/components/Component.svelte';
+   
+   export interface CoreModuleAPI {
+     Component: typeof Component;
+   }
+   
+   export function createCoreModuleAPI(): CoreModuleAPI {
+     return {
+       Component: Component
+     };
+   }
+   ```
+
+3. **Remove from Feature Module API**:
+   ```typescript
+   // src/lib/modules/[feature]/api.ts
+   // Remove Component from interface and factory
+   export interface [Feature]ModuleAPI {
+     // Component removed - now in CoreModuleAPI
+   }
+   ```
+
+4. **Update All Consumers**:
+   ```typescript
+   // Update imports and context keys
+   // FROM: 'feature-api' → TO: 'core-api'
+   const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
+   const Component = coreAPI?.Component;
+   ```
+
+5. **Update Layout Context Provider**:
+   ```typescript
+   // src/routes/(authenticated)/+layout.svelte
+   import { createCoreModuleAPI } from '$lib/modules/core/api';
+   const coreAPI = createCoreModuleAPI();
+   setContext('core-api', coreAPI);
+   ```
+
+6. **Update Core Manifest**:
+   ```typescript
+   // src/lib/modules/core/manifest.ts
+   import type { CoreModuleAPI } from './api';
+   export const coreModule: ModuleManifest = {
+     api: undefined as CoreModuleAPI | undefined
+   };
+   ```
+
+**Key Principles**:
+
+1. **Core Module = Shared Components**: Components used by 2+ modules belong in core
+2. **Feature Modules = Domain-Specific**: Components used only by one module stay in that module
+3. **API Contracts**: Always expose via module API, never direct imports
+4. **Update All Consumers**: Don't leave any consumers using old API
+5. **Update Documentation**: Update manifest comments and API docs
+
+**Checklist**:
+
+- [ ] Component moved to `src/lib/modules/core/components/`
+- [ ] CoreModuleAPI created/updated with component exposed
+- [ ] Feature module API updated (component removed)
+- [ ] All consumers updated to use `core-api` context
+- [ ] Layout provides CoreModuleAPI via context
+- [ ] Core manifest updated with API reference
+- [ ] TypeScript compilation succeeds
+- [ ] No cross-module dependencies remain
+
+**Why**: Shared components in core module eliminate cross-module dependencies and enable proper module boundaries. Feature modules can use shared components without coupling to other feature modules.  
+**Apply when**: Component used by multiple modules, creating unwanted dependencies (e.g., Flashcards → Inbox, Meetings → Inbox)  
+**Related**: #L3900 (Create Module API Contract), #L3650 (Migrate to Public API Interfaces)
+
+**Source**: SYOS-308 (Move TagSelector to Core Module)
+
+---
+
 ## #L3800: Type Interface Migration - Match Return Types Exactly [🔴 CRITICAL]
 
 **Symptom**: TypeScript error "Type 'string | null' is not assignable to type 'string | undefined'" when migrating to interface  
@@ -4248,6 +4354,6 @@ try {
 
 ---
 
-**Pattern Count**: 46  
+**Pattern Count**: 47  
 **Last Validated**: 2025-11-19  
 **Context7 Source**: `/get-convex/convex-backend`, `convex-test` NPM docs, TypeScript type system, SvelteKit docs

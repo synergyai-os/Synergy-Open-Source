@@ -12,19 +12,19 @@
  */
 
 import type { ModuleManifest } from '../registry';
-import type { OrganizationsModuleAPI } from './organizations/api';
+import type { CoreModuleAPI } from './api';
 
 /**
  * Core module manifest
  *
  * **Dependencies**: None (core module has no dependencies)
  * **Feature Flag**: null (always enabled)
- * **API**: OrganizationsModuleAPI (organizations functionality)
+ * **API**: CoreModuleAPI (shared components like TagSelector)
  */
 export const coreModule: ModuleManifest = {
 	name: 'core',
 	version: '1.0.0',
 	dependencies: [],
 	featureFlag: null, // Always enabled
-	api: undefined as OrganizationsModuleAPI | undefined // Type reference for API contract
+	api: undefined as CoreModuleAPI | undefined // Type reference for API contract
 };

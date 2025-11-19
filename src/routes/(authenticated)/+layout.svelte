@@ -12,6 +12,8 @@
 	import { resolveRoute } from '$lib/utils/navigation';
 	import { setContext } from 'svelte';
 	import { useOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import { createInboxModuleAPI } from '$lib/modules/inbox/api';
+	import { createCoreModuleAPI } from '$lib/modules/core/api';
 	import type {
 		OrganizationSummary,
 		OrganizationInvite,
@@ -44,6 +46,16 @@
 		initialTeams: data.teams as unknown as TeamSummary[] // Server-side preloaded teams for active organization
 	});
 	setContext('organizations', organizations);
+
+	// Initialize core module API and provide via context
+	// Enables loose coupling - other modules can use TagSelector without direct imports (see SYOS-308)
+	const coreAPI = createCoreModuleAPI();
+	setContext('core-api', coreAPI);
+
+	// Initialize inbox module API and provide via context
+	// Enables loose coupling - other modules can use tagging composable without direct imports (see SYOS-306)
+	const inboxAPI = createInboxModuleAPI();
+	setContext('inbox-api', inboxAPI);
 
 	// Feature flags loaded server-side for instant rendering (no client-side query delay)
 	const circlesEnabled = $derived(data.circlesEnabled ?? false);
@@ -79,41 +91,21 @@
 	const workspaceName = $derived(() => data.activeWorkspace?.name ?? 'Private workspace');
 
 	// Account switching state (for page reloads)
-	// CRITICAL: Initialize from sessionStorage flag synchronously to prevent overlay from toggling
-	// This ensures shouldShowSwitchingOverlay stays true continuously (no gap)
+	// CRITICAL: ALWAYS initialize as false - NEVER read from sessionStorage during initialization
+	// Reading sessionStorage during initialization causes overlay to show BEFORE page reload
+	// Only check sessionStorage in onMount (after component is mounted)
 	let accountSwitchingState = $state<{
 		isSwitching: boolean;
 		switchingTo: string | null;
 		switchingToType: 'personal' | 'organization';
 		startTime: number | null;
 		endTime: number | null; // Track when account switching ended to suppress org switching overlay
-	}>(() => {
-		// Initialize from sessionStorage flag if it exists (synchronous, before any effects)
-		if (browser) {
-			const switchingData = sessionStorage.getItem('switchingAccount');
-			if (switchingData) {
-				try {
-					const parsed = JSON.parse(switchingData);
-					return {
-						isSwitching: true, // Set immediately to prevent overlay toggle
-						switchingTo: parsed.accountName || 'account',
-						switchingToType: 'personal',
-						startTime: parsed.startTime || Date.now(),
-						endTime: null
-					};
-				} catch {
-					// Invalid data, use defaults
-				}
-			}
-		}
-		// Default state
-		return {
-			isSwitching: false,
-			switchingTo: null,
-			switchingToType: 'personal',
-			startTime: null,
-			endTime: null
-		};
+	}>({
+		isSwitching: false,
+		switchingTo: null,
+		switchingToType: 'personal',
+		startTime: null,
+		endTime: null
 	});
 
 	// Combined switching state: Show single overlay for account + org switching
@@ -129,36 +121,31 @@
 		browser && accountSwitchingState.isSwitching && accountSwitchingState.startTime !== null
 	);
 
-	// Track account switching flag from sessionStorage (reactive)
-	// This prevents global overlay from showing "Loading [account name]" during account switch
+	// Track account switching flag from sessionStorage (NON-reactive - only checked on mount)
+	// CRITICAL: Do NOT reactively track sessionStorage changes - this causes overlay to show BEFORE page reload
+	// The overlay should ONLY show AFTER page reload, not before
+	// We check the flag once on mount, then rely on accountSwitchingState.isSwitching for reactivity
 	const flagState = $state({
 		hasFlag: browser ? sessionStorage.getItem('switchingAccount') !== null : false
 	});
 
-	// Update flag state reactively when sessionStorage changes
-	$effect(() => {
-		if (!browser) return;
-
-		// Check flag on mount and when account switching state changes
-		const flagExists = sessionStorage.getItem('switchingAccount') !== null;
-		if (flagState.hasFlag !== flagExists) {
-			flagState.hasFlag = flagExists;
-		}
-	});
+	// DO NOT reactively track sessionStorage - only check on mount
+	// Removing the $effect prevents overlay from showing before page reload
+	// The flag is only used for initial state setup, then accountSwitchingState takes over
 
 	const hasSwitchingAccountFlag = $derived(flagState.hasFlag);
 
-	// Show overlay if account switching OR org switching OR switching flag exists
+	// Show overlay if account switching OR org switching
+	// CRITICAL: Do NOT include hasSwitchingAccountFlag here - it causes overlay to show BEFORE page reload
+	// After page reload, accountSwitchingState.isSwitching will be true (initialized from sessionStorage)
 	// This creates one continuous overlay that transitions from "Switching account" to "Loading workspace"
-	const shouldShowSwitchingOverlay = $derived(
-		isAccountSwitching || isOrgSwitching || hasSwitchingAccountFlag
-	);
+	const shouldShowSwitchingOverlay = $derived(isAccountSwitching || isOrgSwitching);
 
 	// Determine subtitle: "account" during account switch, "workspace" during org switch
-	// IMPORTANT: Always use 'account' when account switching is active OR flag exists
+	// IMPORTANT: Only use 'account' when account switching is active (not the flag - prevents pre-reload overlay)
 	// During org switching, always use 'workspace' (not the org name) for consistent messaging
 	const switchingSubtitle = $derived.by(() => {
-		const result = isAccountSwitching || hasSwitchingAccountFlag ? 'account' : 'workspace';
+		const result = isAccountSwitching ? 'account' : 'workspace';
 		console.log('🔍 [SUBTITLE] Computing switchingSubtitle', {
 			result,
 			isAccountSwitching,
@@ -383,9 +370,16 @@
 		}
 	});
 
+	// Track if component has been mounted for at least 100ms
+	// This prevents overlay from showing during client-side navigation before page reload
+	let mountedAt = $state<number | null>(null);
+
 	// Check for account switching flag on mount
 	onMount(() => {
 		if (!browser) return;
+
+		// Record mount time
+		mountedAt = Date.now();
 
 		// Don't remove static overlay immediately - wait until Svelte overlay is ready
 		// This prevents flicker (blur on → blur off → blur on)
@@ -396,29 +390,38 @@
 		if (switchingData) {
 			try {
 				const parsed = JSON.parse(switchingData);
-				console.log('🚀 [ACCOUNT SWITCH] Processing account switch flag', {
+				const flagAge = Date.now() - (parsed.startTime || 0);
+
+				console.log('🚀 [ACCOUNT SWITCH] Processing account switch flag (AFTER page reload)', {
 					accountName: parsed.accountName,
 					startTime: parsed.startTime,
 					currentTime: Date.now(),
-					stateAlreadySet: accountSwitchingState.isSwitching
+					flagAge,
+					mountedAt,
+					timeSinceMount: mountedAt ? Date.now() - mountedAt : null
 				});
+
+				// CRITICAL: Only process flag if it was set BEFORE this component mounted
+				// If flag was set very recently (< 100ms), it's from current click - ignore it
+				// This prevents overlay from showing during client-side navigation before page reload
+				if (flagAge < 100) {
+					console.log('⏸️ [ACCOUNT SWITCH] Ignoring flag - too recent (from current click)');
+					sessionStorage.removeItem('switchingAccount');
+					return;
+				}
 
 				// CRITICAL: Clear global overlay to prevent "Loading [account name]" from showing
 				// The global overlay might have stale data from previous state
 				loadingOverlay.hideOverlay();
 
-				// State is already initialized synchronously from sessionStorage (see accountSwitchingState initialization)
-				// Just verify it matches and clean up the flag
-				if (!accountSwitchingState.isSwitching) {
-					// Fallback: Set state if somehow not already set (shouldn't happen)
-					accountSwitchingState.isSwitching = true;
-					accountSwitchingState.switchingTo = parsed.accountName || 'account';
-					accountSwitchingState.switchingToType = 'personal';
-					accountSwitchingState.startTime = parsed.startTime || Date.now();
-				}
+				// Set state from flag (this only happens AFTER page reload)
+				// State was initialized as false, so this is the first time it's set to true
+				accountSwitchingState.isSwitching = true;
+				accountSwitchingState.switchingTo = parsed.accountName || 'account';
+				accountSwitchingState.switchingToType = 'personal';
+				accountSwitchingState.startTime = parsed.startTime || Date.now();
 
-				// Clear the flag now that state is confirmed set
-				// State was initialized synchronously, so shouldShowSwitchingOverlay should stay true
+				// Clear the flag now that state is set
 				sessionStorage.removeItem('switchingAccount');
 				flagState.hasFlag = false;
 

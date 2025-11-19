@@ -2,7 +2,7 @@
 	import { Combobox } from 'bits-ui';
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 	import { TAG_COLORS, DEFAULT_TAG_COLOR } from '$lib/utils/tagConstants';
-	import type { Id } from '../../../../convex/_generated/dataModel';
+	import type { Id } from '$lib/convex';
 
 	type Tag = {
 		_id: Id<'tags'>;

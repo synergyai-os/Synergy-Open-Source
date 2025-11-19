@@ -7,9 +7,9 @@
 	import { useConvexClient, useQuery } from 'convex-svelte';
 	import { makeFunctionReference } from 'convex/server';
 	import { api } from '$lib/convex';
-	import TagSelector from './TagSelector.svelte';
 	import type { Id } from '../../../../convex/_generated/dataModel';
 	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
+	import type { CoreModuleAPI } from '$lib/modules/core/api';
 	import { DEFAULT_TAG_COLOR } from '$lib/utils/tagConstants';
 	// TODO: Re-enable when Doc type is needed
 	// import type { Doc } from '../../../../convex/_generated/dataModel';
@@ -44,6 +44,11 @@
 
 	const convexClient = browser ? useConvexClient() : null;
 	const getSessionId = () => $page.data.sessionId;
+
+	// Get core module API from context for TagSelector (enables loose coupling - see SYOS-308)
+	const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
+	const TagSelector = coreAPI?.TagSelector;
+
 	const markProcessedApi = browser
 		? (makeFunctionReference('inbox:markProcessed') as FunctionReference<
 				'mutation',
@@ -595,7 +600,7 @@
 
 				<!-- Tags -->
 				{#if highlightId}
-					{#if api.tags?.listAllTags}
+					{#if api.tags?.listAllTags && TagSelector}
 						<TagSelector
 							bind:selectedTagIds
 							availableTags={availableTags()}

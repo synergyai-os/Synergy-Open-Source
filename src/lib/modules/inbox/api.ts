@@ -9,36 +9,7 @@
  */
 
 import type { Id } from '$lib/convex';
-
-/**
- * Tag type used by TagSelector component
- */
-export type Tag = {
-	_id: Id<'tags'>;
-	displayName: string;
-	color: string;
-	parentId?: Id<'tags'>;
-	level?: number;
-};
-
-/**
- * TagSelector component props
- */
-export type TagSelectorProps = {
-	selectedTagIds: Id<'tags'>[];
-	availableTags: Tag[];
-	onTagsChange: (tagIds: Id<'tags'>[]) => void;
-	onCreateTag?: (displayName: string, color: string) => Promise<Id<'tags'>>;
-	onCreateTagWithColor?: (
-		displayName: string,
-		color: string,
-		parentId?: Id<'tags'>
-	) => Promise<Id<'tags'>>;
-	tagInputRef?: HTMLElement | null;
-	comboboxOpen?: boolean;
-	showLabel?: boolean;
-	inline?: boolean;
-};
+import { useTagging as useTaggingComposable } from '$lib/composables/useTagging.svelte';
 
 /**
  * Tagging API interface (return type of useTagging composable)
@@ -83,37 +54,26 @@ export interface TaggingAPI {
  * Internal implementation details are hidden behind this contract, enabling
  * safe refactoring without breaking dependent modules.
  *
- * **Public Components:**
- * - `TagSelector` - Component for selecting and managing tags
- *   - Import: `import TagSelector from '$lib/components/inbox/TagSelector.svelte';`
- *   - Props: See `TagSelectorProps` type
- *
  * **Public Composables:**
  * - `useTagging` - Factory function for tagging API
- *   - Import: `import { useTagging } from '$lib/composables/useTagging.svelte';`
  *   - Returns: `TaggingAPI` interface
  *
- * **Usage Pattern:**
+ * **Usage Pattern (Dependency Injection):**
  * ```typescript
- * import type { InboxModuleAPI, TaggingAPI, TagSelectorProps } from '$lib/modules/inbox/api';
- * import TagSelector from '$lib/components/inbox/TagSelector.svelte';
- * import { useTagging } from '$lib/composables/useTagging.svelte';
+ * import type { InboxModuleAPI } from '$lib/modules/inbox/api';
+ * import { getContext } from 'svelte';
  *
- * // Component usage (backward compatible - direct import still works):
- * <TagSelector
- *   selectedTagIds={selectedIds}
- *   availableTags={tags}
- *   onTagsChange={handleChange}
- * />
+ * // Get inbox API from context
+ * const inboxAPI = getContext<InboxModuleAPI | undefined>('inbox-api');
  *
  * // Composable usage:
- * const tagging = useTagging('flashcard', getUserId, getSessionId, getOrgId);
- * await tagging.assignTags(flashcardId, [tag1Id, tag2Id]);
+ * const tagging = inboxAPI?.useTagging('flashcard', getUserId, getSessionId, getOrgId);
+ * await tagging?.assignTags(flashcardId, [tag1Id, tag2Id]);
  * ```
  *
  * **Migration Path:**
  * - Phase 1 (Current): Direct import still works (backward compatible)
- * - Phase 2 (Future): Use dependency injection via context
+ * - Phase 2 (Current): Use dependency injection via context ✅
  * - Phase 3 (Future): Module registry provides APIs
  */
 export interface InboxModuleAPI {
@@ -137,4 +97,28 @@ export interface InboxModuleAPI {
 		getSessionId: () => string | null | undefined,
 		getOrganizationId?: () => string | null | undefined
 	) => TaggingAPI;
+}
+
+/**
+ * Factory function to create InboxModuleAPI implementation
+ *
+ * This function creates and returns the InboxModuleAPI implementation,
+ * which can be provided via context to other modules.
+ *
+ * @returns InboxModuleAPI implementation
+ *
+ * @example
+ * ```typescript
+ * import { createInboxModuleAPI } from '$lib/modules/inbox/api';
+ * import { setContext } from 'svelte';
+ *
+ * const inboxAPI = createInboxModuleAPI();
+ * setContext('inbox-api', inboxAPI);
+ * ```
+ */
+export function createInboxModuleAPI(): InboxModuleAPI {
+	return {
+		// Expose useTagging composable
+		useTagging: useTaggingComposable
+	};
 }
