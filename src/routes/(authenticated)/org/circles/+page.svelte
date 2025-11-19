@@ -6,11 +6,11 @@
 	import { resolveRoute } from '$lib/utils/navigation';
 	import { useCircles } from '$lib/composables/useCircles.svelte';
 	import CreateCircleModal from '$lib/components/circles/CreateCircleModal.svelte';
-	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
 
 	let { data: _data } = $props();
 
-	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
 	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
 	// Pattern: Check object existence first, then access getter property directly
 	// See SYOS-228 for full pattern documentation

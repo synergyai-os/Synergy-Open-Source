@@ -8,13 +8,13 @@
 	import { useOrganizationMembers } from '$lib/composables/useOrganizationMembers.svelte';
 	import { usePermissions } from '$lib/composables/usePermissions.svelte';
 	import InviteMemberModal from '$lib/components/InviteMemberModal.svelte';
-	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
 	import type { OrganizationMember } from '$lib/composables/useOrganizationMembers.svelte';
 	import type { Id } from '$lib/convex';
 
 	let { data: _data } = $props();
 
-	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
 	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
 	// Pattern: Check object existence first, then access getter property directly
 	// See SYOS-228 for full pattern documentation

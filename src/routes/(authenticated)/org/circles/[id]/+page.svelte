@@ -7,11 +7,11 @@
 	import { useCircles } from '$lib/composables/useCircles.svelte';
 	import CircleMembersPanel from '$lib/components/circles/CircleMembersPanel.svelte';
 	import CircleRolesPanel from '$lib/components/circles/CircleRolesPanel.svelte';
-	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
 
 	let { data: _data } = $props();
 
-	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
 	const circleId = $derived($page.params['id'] as string);
 	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
 	// Pattern: Check object existence first, then access getter property directly

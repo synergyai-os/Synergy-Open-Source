@@ -3,14 +3,14 @@
 	import { api } from '$lib/convex';
 	import { getContext } from 'svelte';
 	import { page } from '$app/stores';
-	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
 	import ShareTagModal from '$lib/components/tags/ShareTagModal.svelte';
 	import posthog from 'posthog-js';
 	import { browser } from '$app/environment';
 	import { AnalyticsEventName } from '$lib/analytics/events';
 	import type { Id } from '$lib/convex';
 
-	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
 	const convexClient = useConvexClient();
 
 	// Get sessionId from page data

@@ -6,7 +6,7 @@
 	import { resolveRoute } from '$lib/utils/navigation';
 	import { useTeams } from '$lib/composables/useTeams.svelte';
 	import InviteMemberModal from '$lib/components/InviteMemberModal.svelte';
-	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
 
 	let {
 		data: _data,
@@ -16,7 +16,7 @@
 		params: { id: string };
 	} = $props();
 
-	const organizations = getContext<UseOrganizations | undefined>('organizations');
+	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
 	const organizationId = $derived(() => {
 		if (!organizations) return undefined;
 		return organizations.activeOrganizationId ?? undefined;

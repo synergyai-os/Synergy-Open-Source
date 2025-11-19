@@ -4947,4 +4947,183 @@ const redirects: Record<string, string> = {
 
 ---
 
+## #L4750: SvelteKit Error Pages Require Page Load Checks, Not Hooks [🔴 CRITICAL]
+
+**Symptom**: Admin access denied redirects to `/inbox` instead of showing error page, custom `+error.svelte` never renders  
+**Root Cause**: Hooks (`hooks.server.ts`) execute before page loads and can redirect, preventing error pages from catching errors thrown in `+page.server.ts`  
+**Fix**:
+
+```typescript
+// ❌ WRONG - Hook redirects before error page can catch
+// src/hooks.server.ts
+const requireAdmin: Handle = async ({ event, resolve }) => {
+	if (!isAdmin(event.locals.auth.userId)) {
+		throw redirect(302, '/inbox'); // ❌ Redirect happens, error page never shows
+	}
+	return resolve(event);
+};
+
+// ✅ CORRECT - Check in page load, let error page catch
+// src/routes/(authenticated)/admin/+page.server.ts
+export const load: PageServerLoad = async ({ locals }) => {
+	if (!locals.auth.sessionId) {
+		throw redirect(302, '/login');
+	}
+
+	// ✅ Check admin status and throw error (not redirect)
+	await requireSystemAdmin(locals.auth.sessionId);
+	// This throws error(403), which triggers +error.svelte
+};
+
+// src/lib/server/auth/admin.ts
+export async function requireSystemAdmin(sessionId: string): Promise<void> {
+	const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
+	const isAdmin = await client.query(api.rbac.permissions.isSystemAdmin, {
+		sessionId
+	});
+
+	if (!isAdmin) {
+		throw error(403, 'System admin access required'); // ✅ Error page catches this
+	}
+}
+```
+
+**Why This Matters**:
+
+- **Error pages need errors**: `+error.svelte` only renders when `error()` is thrown in page/layout loads
+- **Hooks redirect first**: Hooks execute before page loads, so redirects happen before errors can be thrown
+- **User experience**: Error pages provide helpful messages, redirects just send users away
+
+**Layout Server Loads** (for conditional UI):
+
+```typescript
+// ✅ CORRECT - Check without throwing (allows conditional rendering)
+// src/routes/(authenticated)/admin/+layout.server.ts
+export const load: LayoutServerLoad = async ({ locals }) => {
+	if (!locals.auth.sessionId) {
+		throw redirect(302, '/login');
+	}
+
+	// ✅ Check admin status WITHOUT throwing (allows layout to conditionally render)
+	let isAdmin = false;
+	try {
+		const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
+		isAdmin = await client.query(api.rbac.permissions.isSystemAdmin, {
+			sessionId: locals.auth.sessionId
+		});
+	} catch (err) {
+		isAdmin = false; // Fail closed
+	}
+
+	return { isAdmin }; // ✅ Layout can use this to hide/show sidebar
+};
+```
+
+**Conditional Sidebar Rendering**:
+
+```svelte
+<!-- ✅ CORRECT - Hide sidebar when not admin or showing error -->
+<script lang="ts">
+	let { data }: { data: { isAdmin?: boolean } } = $props();
+	const isAdmin = $derived(data?.isAdmin ?? false);
+	const isErrorPage = $derived(browser ? $page.status >= 400 : false);
+	const showSidebar = $derived(isAdmin && !isErrorPage);
+</script>
+
+{#if showSidebar}
+	<aside>Admin Sidebar</aside>
+{/if}
+```
+
+**Apply when**:
+
+- Admin access checks
+- Permission-based route protection
+- Custom error pages (`+error.svelte`)
+- Conditional UI based on user permissions
+
+**Common Mistakes**:
+
+- ❌ Checking admin in hooks → Redirects before error page can render
+- ❌ Throwing errors in hooks → Error page can't catch them
+- ❌ Using redirects for access denied → Users don't see helpful error messages
+
+**Related**: #L3200 (RBAC Permission-Based UI Visibility), SYOS-293 (RBAC Management UI)
+
+---
+
+## #L4800: Admin Access Checks in Layout vs Page Loads [🟡 IMPORTANT]
+
+**Symptom**: Admin sidebar visible to non-admin users, or error page shows sidebar  
+**Root Cause**: Admin checks in wrong place - need separate checks for page access (throw error) vs UI rendering (return boolean)  
+**Fix**:
+
+```typescript
+// ✅ CORRECT - Two separate checks for different purposes
+
+// 1. Page Load Check (throws error for access denied)
+// src/routes/(authenticated)/admin/+page.server.ts
+export const load: PageServerLoad = async ({ locals }) => {
+	await requireSystemAdmin(locals.auth.sessionId); // ✅ Throws error(403)
+	// Error page catches this and shows helpful message
+};
+
+// 2. Layout Load Check (returns boolean for conditional UI)
+// src/routes/(authenticated)/admin/+layout.server.ts
+export const load: LayoutServerLoad = async ({ locals }) => {
+	let isAdmin = false;
+	try {
+		const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
+		isAdmin = await client.query(api.rbac.permissions.isSystemAdmin, {
+			sessionId: locals.auth.sessionId
+		});
+	} catch (err) {
+		isAdmin = false; // ✅ Fail closed, don't throw
+	}
+
+	return { isAdmin }; // ✅ Layout uses this to conditionally render sidebar
+};
+```
+
+**Why Two Checks?**:
+
+- **Page load**: Must throw error to trigger error page
+- **Layout load**: Must return boolean to conditionally render UI
+- **Different purposes**: Access control vs UI visibility
+
+**Conditional Rendering Pattern**:
+
+```svelte
+<!-- ✅ CORRECT - Hide sidebar when not admin OR showing error page -->
+<script lang="ts">
+	let { data }: { data: { isAdmin?: boolean } } = $props();
+	const isAdmin = $derived(data?.isAdmin ?? false);
+	const isErrorPage = $derived(browser ? $page.status >= 400 : false);
+	const showSidebar = $derived(isAdmin && !isErrorPage);
+</script>
+
+{#if showSidebar}
+	<aside class="admin-sidebar">
+		<!-- Admin navigation -->
+	</aside>
+{/if}
+```
+
+**Apply when**:
+
+- Admin interfaces with conditional UI
+- Permission-based sidebar visibility
+- Error pages that should hide navigation
+- Multi-level access control (admin vs user)
+
+**Common Mistakes**:
+
+- ❌ Single check in hooks → Can't differentiate between access and UI
+- ❌ Throwing errors in layout → Prevents conditional rendering
+- ❌ Not checking error page status → Sidebar shows on error pages
+
+**Related**: #L4750 (SvelteKit Error Pages), #L3200 (RBAC Permission-Based UI Visibility), SYOS-293 (RBAC Management UI)
+
+---
+
 **Last Updated**: 2025-11-18
