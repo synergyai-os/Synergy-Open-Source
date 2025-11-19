@@ -4354,6 +4354,41 @@ try {
 
 ---
 
-**Pattern Count**: 47  
+## #L4200: Idempotent Module Registration for SSR [🔴 CRITICAL]
+
+**Symptom**: Server 500 error "Module 'core' is already registered" during SSR, especially during HMR updates or module re-evaluation  
+**Root Cause**: Vite's SSR module runner re-evaluates modules during HMR or request handling, causing `registerModule()` to be called multiple times. The registry throws an error on duplicate registration, breaking SSR.  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Throws error on duplicate registration
+export function registerModule(manifest: ModuleManifest): void {
+	if (moduleRegistry.has(manifest.name)) {
+		throw new Error(`Module "${manifest.name}" is already registered`);
+	}
+	moduleRegistry.set(manifest.name, manifest);
+}
+
+// ✅ CORRECT: Idempotent registration (skip if already registered)
+export function registerModule(manifest: ModuleManifest): void {
+	// Idempotent: if module is already registered, skip silently
+	// This handles SSR module re-evaluation and HMR updates
+	if (moduleRegistry.has(manifest.name)) {
+		return;
+	}
+	moduleRegistry.set(manifest.name, manifest);
+}
+```
+
+**Why**: In SSR environments, Vite's module runner can re-evaluate modules multiple times (during HMR, request handling, or module reloads). The module registry Map persists across re-evaluations, so attempting to register the same module again causes errors. Making registration idempotent allows safe re-registration without breaking SSR.  
+**Apply when**: Using module registry system in SSR context (SvelteKit, Next.js, etc.), especially when modules are imported in layout server files  
+**Related**: #L4000 (Module Registry System)  
+**See**: `src/lib/modules/registry.ts` for complete implementation
+
+**Source**: Fixed SSR 500 error on `/inbox` route (2025-12-17)
+
+---
+
+**Pattern Count**: 48  
 **Last Validated**: 2025-11-19  
 **Context7 Source**: `/get-convex/convex-backend`, `convex-test` NPM docs, TypeScript type system, SvelteKit docs

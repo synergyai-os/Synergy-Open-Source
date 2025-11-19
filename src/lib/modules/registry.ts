@@ -53,7 +53,8 @@ const moduleRegistry = new Map<string, ModuleManifest>();
  * Register a module in the registry
  *
  * @param manifest - Module manifest with metadata
- * @throws Error if module name is already registered
+ * @note Idempotent: calling this multiple times with the same module name is safe
+ *       (handles SSR module re-evaluation and HMR updates)
  *
  * @example
  * ```typescript
@@ -64,8 +65,10 @@ const moduleRegistry = new Map<string, ModuleManifest>();
  * ```
  */
 export function registerModule(manifest: ModuleManifest): void {
+	// Idempotent: if module is already registered, skip silently
+	// This handles SSR module re-evaluation and HMR updates
 	if (moduleRegistry.has(manifest.name)) {
-		throw new Error(`Module "${manifest.name}" is already registered`);
+		return;
 	}
 
 	moduleRegistry.set(manifest.name, manifest);
