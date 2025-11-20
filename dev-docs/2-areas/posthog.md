@@ -82,7 +82,7 @@ We treat analytics names as immutable contracts. Consistent naming prevents dupl
 - **Scoping prefixes**: prepend the owning domain when ambiguous (`organization_switched`, `team_tag_assigned`).
 - **No spaces or special characters**: stick to `[a-z0-9_]`. Reserved PostHog events keep their `$` prefix (e.g. `$pageview`).
 - **Display names**: if we want UI-friendly casing, edit the event definition inside PostHog to “Organization Created”. The raw key in code always stays `snake_case`.
-- **Single source**: declare all event keys in `src/lib/analytics/events.ts` (enum); never hardcode strings in callsites.
+- **Single source**: declare all event keys in `src/lib/infrastructure/analytics/events.ts` (enum); never hardcode strings in callsites.
 
 ### Event Properties
 
@@ -107,7 +107,7 @@ We treat analytics names as immutable contracts. Consistent naming prevents dupl
 
 ## AARRR Pirate Metrics (Business Validation)
 
-The AARRR framework (Acquisition, Activation, Retention, Referral, Revenue) provides a structured approach to track the user journey and validate product-market fit. All AARRR events should be defined in `src/lib/analytics/events.ts` and tracked via the server-side endpoint for reliability.
+The AARRR framework (Acquisition, Activation, Retention, Referral, Revenue) provides a structured approach to track the user journey and validate product-market fit. All AARRR events should be defined in `src/lib/infrastructure/analytics/events.ts` and tracked via the server-side endpoint for reliability.
 
 ### Acquisition Events
 
@@ -215,7 +215,7 @@ The AARRR framework (Acquisition, Activation, Retention, Referral, Revenue) prov
 
 **Phase 1: Foundation (Now)**
 
-- [ ] Add all AARRR events to `src/lib/analytics/events.ts` enum
+- [ ] Add all AARRR events to `src/lib/infrastructure/analytics/events.ts` enum
 - [ ] Update server endpoint `/api/posthog/track` to validate AARRR events
 - [ ] Instrument registration and onboarding flows
 - [ ] Add session tracking to layout
@@ -282,10 +282,10 @@ The workspace success criteria introduce organization and team lifecycles that m
 
 ### Typed Event Schema
 
-Create a shared analytics helper (e.g. `src/lib/analytics/events.ts`) that defines the allowed event names, payloads, and ownership scope. All capture calls (browser or server) must route through this helper to maintain parity with `groups` metadata.
+Create a shared analytics helper (e.g. `src/lib/infrastructure/analytics/events.ts`) that defines the allowed event names, payloads, and ownership scope. All capture calls (browser or server) must route through this helper to maintain parity with `groups` metadata.
 
 ```typescript
-// src/lib/analytics/events.ts
+// src/lib/infrastructure/analytics/events.ts
 export const enum AnalyticsEventName {
 	ORGANIZATION_CREATED = 'organization_created',
 	ORGANIZATION_JOINED = 'organization_joined',
@@ -368,7 +368,7 @@ Add narrow helper functions (e.g. `captureOrganizationCreated(ctx, params)`) tha
 
 ### Implementation Checklist
 
-- `src/lib/analytics/events.ts` (new): implement the typed event definitions and shared capture helper wrapping `/api/posthog/track` and Convex server usage.
+- `src/lib/infrastructure/analytics/events.ts` (new): implement the typed event definitions and shared capture helper wrapping `/api/posthog/track` and Convex server usage.
 - `src/lib/server/posthog.ts`: expose a `captureAnalyticsEvent()` utility that validates payloads against `AnalyticsEventPayloads` before invoking the PostHog client.
 - `convex/organizations.ts` (new): create mutations for organization create/join/switch flows, enforce permission helpers, and emit organization lifecycle events.
 - `convex/teams.ts` (new): handle team creation, membership, and invitations; ensure team ↔ organization validation before capturing team events.
@@ -645,7 +645,7 @@ quick_create_opened
 
 #### Phase 1: Core Tracking (Now)
 
-- [ ] Add events to `src/lib/analytics/events.ts` enum
+- [ ] Add events to `src/lib/infrastructure/analytics/events.ts` enum
 - [ ] Create tracking helper: `trackQuickCreateEvent()`
 - [ ] Instrument "New Item" menu open (header + footer buttons)
 - [ ] Track keyboard shortcut usage (N key, C key)
@@ -741,10 +741,10 @@ test('Quick Create tracks full funnel', async ({ page }) => {
 
 ## TODO
 
-- [x] Implement typed analytics helpers covering event names, ownership level (user/team/org/internal), and shared property schemas. (`src/lib/analytics/events.ts` - created)
+- [x] Implement typed analytics helpers covering event names, ownership level (user/team/org/internal), and shared property schemas. (`src/lib/infrastructure/analytics/events.ts` - created)
 - [x] Extend Convex permission helpers to expose organization/team metadata needed for analytics payloads. (`convex/organizations.ts`, `convex/teams.ts` - implemented but analytics calls disabled)
 - [ ] **Re-enable Convex analytics**: Implement HTTP action bridge pattern to allow mutations to emit analytics without violating Node.js runtime restrictions
 - [ ] Add automated tests ensuring group metadata (org/team IDs) is present when shared content events are emitted.
 - [ ] Create PostHog dashboards or notebooks that slice key CODE workflow events by organization/team once multi-tenancy ships.
-- [ ] **Quick Create tracking**: Implement Phase 1 tracking (core events) in `src/lib/analytics/events.ts`
+- [ ] **Quick Create tracking**: Implement Phase 1 tracking (core events) in `src/lib/infrastructure/analytics/events.ts`
 - [ ] **Quick Create tracking**: Create PostHog dashboard for adoption funnel and speed metrics

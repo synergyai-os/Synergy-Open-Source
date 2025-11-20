@@ -13,7 +13,7 @@ import type {
 	OrganizationInvite,
 	TeamInvite,
 	TeamSummary
-} from '$lib/composables/useOrganizations.svelte';
+} from './composables/useOrganizations.svelte';
 
 /**
  * Modal keys for organization and team modals

@@ -7,14 +7,14 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { setupConvex } from 'convex-svelte';
-	import { useOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import { useOrganizations } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
 	import type {
 		UseOrganizations,
 		OrganizationSummary,
 		OrganizationInvite,
 		TeamInvite,
 		TeamSummary
-	} from '$lib/composables/useOrganizations.svelte';
+	} from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
 
 	// Setup Convex client for testing (required by convex-svelte)
 	if (browser) {

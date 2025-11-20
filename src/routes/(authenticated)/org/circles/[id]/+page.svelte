@@ -4,10 +4,10 @@
 	import { goto } from '$app/navigation';
 	import { getContext } from 'svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
-	import { useCircles } from '$lib/composables/useCircles.svelte';
-	import CircleMembersPanel from '$lib/components/circles/CircleMembersPanel.svelte';
-	import CircleRolesPanel from '$lib/components/circles/CircleRolesPanel.svelte';
-	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
+	import { useCircles } from '$lib/modules/org-chart/composables/useCircles.svelte';
+	import CircleMembersPanel from '$lib/modules/org-chart/components/circles/CircleMembersPanel.svelte';
+	import CircleRolesPanel from '$lib/modules/org-chart/components/circles/CircleRolesPanel.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
 
 	let { data: _data } = $props();
 

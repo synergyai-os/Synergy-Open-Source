@@ -10,13 +10,13 @@
 	import { getContext } from 'svelte';
 	import { useQuery } from 'convex-svelte';
 	import { api, type Id } from '$lib/convex';
-	import { useMeetings } from '$lib/composables/useMeetings.svelte';
-	import MeetingCard from '$lib/components/meetings/MeetingCard.svelte';
-	import TodayMeetingCard from '$lib/components/meetings/TodayMeetingCard.svelte';
-	import CreateMeetingModal from '$lib/components/meetings/CreateMeetingModal.svelte';
-	import { FeatureFlags } from '$lib/featureFlags';
+	import { useMeetings } from '$lib/modules/meetings/composables/useMeetings.svelte';
+	import MeetingCard from '$lib/modules/meetings/components/MeetingCard.svelte';
+	import TodayMeetingCard from '$lib/modules/meetings/components/TodayMeetingCard.svelte';
+	import CreateMeetingModal from '$lib/modules/meetings/components/CreateMeetingModal.svelte';
+	import { FeatureFlags } from '$lib/infrastructure/feature-flags';
 	import { resolveRoute } from '$lib/utils/navigation';
-	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
 
 	// Get sessionId from page data (provided by authenticated layout)
 	const getSessionId = () => $page.data.sessionId;

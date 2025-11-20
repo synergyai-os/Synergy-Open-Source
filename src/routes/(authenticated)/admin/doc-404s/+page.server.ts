@@ -22,8 +22,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 	let errors: unknown[] = [];
 
 	try {
-		stats = await client.query(api.doc404Tracking.getStats, {});
-		errors = await client.query(api.doc404Tracking.listUnresolved, {});
+		stats = await client.query(api.docs.doc404Tracking.getStats, {});
+		errors = await client.query(api.docs.doc404Tracking.listUnresolved, {});
 	} catch (error) {
 		console.warn('Failed to load 404 tracking data:', error);
 	}

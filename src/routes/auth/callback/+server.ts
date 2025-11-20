@@ -3,9 +3,9 @@ import type { RequestHandler } from './$types';
 import { env as publicEnv } from '$env/dynamic/public';
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '$convex/_generated/api';
-import { consumeLoginState } from '$lib/server/auth/sessionStore';
-import { exchangeAuthorizationCode } from '$lib/server/auth/workos';
-import { establishSession } from '$lib/server/auth/session';
+import { consumeLoginState } from '$lib/infrastructure/auth/server/sessionStore';
+import { exchangeAuthorizationCode } from '$lib/infrastructure/auth/server/workos';
+import { establishSession } from '$lib/infrastructure/auth/server/session';
 
 export const GET: RequestHandler = async (event) => {
 	const code = event.url.searchParams.get('code');
@@ -78,8 +78,10 @@ export const GET: RequestHandler = async (event) => {
 				});
 
 				// Create session record for linked account (so they can switch to it later)
-				const { createSessionRecord } = await import('$lib/server/auth/sessionStore');
-				const { generateRandomToken } = await import('$lib/server/auth/crypto');
+				const { createSessionRecord } = await import(
+					'$lib/infrastructure/auth/server/sessionStore'
+				);
+				const { generateRandomToken } = await import('$lib/infrastructure/auth/server/crypto');
 
 				await createSessionRecord({
 					convexUserId,

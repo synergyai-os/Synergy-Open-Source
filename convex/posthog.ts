@@ -3,7 +3,10 @@
 import { internalAction } from './_generated/server';
 import { v } from 'convex/values';
 import { PostHog } from 'posthog-node';
-import type { AnalyticsEvent, AnalyticsEventName } from '../src/lib/analytics/events';
+import type {
+	AnalyticsEvent,
+	AnalyticsEventName
+} from '../src/lib/infrastructure/analytics/events';
 
 let cachedClient: PostHog | null = null;
 

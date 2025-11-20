@@ -4,8 +4,8 @@ import { env as publicEnv } from '$env/dynamic/public';
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '$convex/_generated/api';
 import type { Id } from '$lib/convex';
-import { getActiveSessionRecordForUser } from '$lib/server/auth/sessionStore';
-import { establishSession } from '$lib/server/auth/session';
+import { getActiveSessionRecordForUser } from '$lib/infrastructure/auth/server/sessionStore';
+import { establishSession } from '$lib/infrastructure/auth/server/session';
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
 
 function sanitizeRedirect(target: unknown, origin: string): string | undefined {

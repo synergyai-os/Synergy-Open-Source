@@ -64,7 +64,7 @@ posthog.capture('team_invite_sent', { team_id: team.id });
 posthog.capture('Team Invite Sent', { teamID: team.id });
 
 // ✅ CORRECT: Enum + snake_case + past tense
-// src/lib/analytics/events.ts
+// src/lib/infrastructure/analytics/events.ts
 export enum AnalyticsEventName {
 	USER_SIGNED_IN = 'user_signed_in',
 	USER_SIGNED_UP = 'user_signed_up',

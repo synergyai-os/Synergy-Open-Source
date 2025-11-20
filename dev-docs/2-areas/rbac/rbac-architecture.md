@@ -889,7 +889,7 @@ export const updateTeamSettings = mutation({
 ### Pattern 3: Frontend Permission Gates (Composable)
 
 ```typescript
-// src/lib/composables/usePermissions.svelte.ts
+// src/lib/infrastructure/rbac/composables/usePermissions.svelte.ts
 import { useQuery } from 'convex-svelte';
 import { api } from '$convex/_generated/api';
 import type { Id } from '$convex/_generated/dataModel';
@@ -936,7 +936,7 @@ export function usePermissions(
 
 ```svelte
 <script lang="ts">
-	import { usePermissions } from '$lib/composables/usePermissions.svelte';
+	import { usePermissions } from '$lib/infrastructure/rbac/composables/usePermissions.svelte';
 
 	const permissions = usePermissions(
 		() => userId,
@@ -1159,7 +1159,7 @@ Update existing Convex functions:
 #### Step 6: Frontend Composable (2 hours)
 
 ```typescript
-// src/lib/composables/usePermissions.svelte.ts
+// src/lib/infrastructure/rbac/composables/usePermissions.svelte.ts
 // Implement permission checking composable
 ```
 

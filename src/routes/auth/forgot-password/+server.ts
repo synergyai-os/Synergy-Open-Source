@@ -3,7 +3,7 @@ import { json, type RequestHandler } from '@sveltejs/kit';
 // import { ConvexHttpClient } from 'convex/browser';
 // import { api, internal } from '$lib/convex';
 // import { PUBLIC_CONVEX_URL } from '$env/static/public';
-import { createPasswordReset } from '$lib/server/auth/workos';
+import { createPasswordReset } from '$lib/infrastructure/auth/server/workos';
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
 
 /**

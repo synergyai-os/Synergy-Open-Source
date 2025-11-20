@@ -672,7 +672,7 @@ For each test phase:
 
 ## Appendix: Event Schema Reference
 
-See `src/lib/analytics/events.ts` for full typed event definitions.
+See `src/lib/infrastructure/analytics/events.ts` for full typed event definitions.
 
 **Key Events**:
 

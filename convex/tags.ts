@@ -14,7 +14,7 @@ import { canAccessContent } from './permissions';
 import type { QueryCtx, MutationCtx } from './_generated/server';
 // TODO: Re-enable server-side analytics via HTTP action bridge
 // import { captureAnalyticsEvent } from "./posthog";
-// import { AnalyticsEventName } from "../src/lib/analytics/events";
+// import { AnalyticsEventName } from "../src/lib/infrastructure/analytics/events";
 
 export interface TagWithHierarchy {
 	_id: Id<'tags'>;

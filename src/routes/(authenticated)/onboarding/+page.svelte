@@ -2,7 +2,7 @@
 	import { getContext } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolveRoute } from '$lib/utils/navigation';
-	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
 
 	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
 

@@ -329,7 +329,7 @@ await trackEvent('inbox_synced', userId, { itemCount: 42 });
 **Basic Editor Setup:**
 
 ```typescript
-// See: src/lib/components/notes/NoteEditor.svelte
+// See: src/lib/modules/inbox/components/NoteDetail.svelte
 import { EditorView } from 'prosemirror-view';
 import { EditorState } from 'prosemirror-state';
 import { createEditorState } from '$lib/utils/prosemirror-setup';
@@ -409,10 +409,10 @@ const markdown = exportMarkdown(editorView.state);
 
 **Key Files:**
 
-- `src/lib/components/notes/NoteEditor.svelte` - Main editor component
+- `src/lib/modules/inbox/components/NoteDetail.svelte` - Main editor component
 - `src/lib/utils/prosemirror-setup.ts` - Editor state creation and export
 - `src/lib/utils/prosemirror-mentions.ts` - Mention plugin
-- `src/lib/components/notes/prosemirror/emoji-plugin.ts` - Emoji plugin
+- `src/lib/utils/prosemirror/emoji-plugin.ts` - Emoji plugin (if exists)
 - `src/lib/utils/prosemirror-codeblock.ts` - Code block syntax highlighting
 
 **See Also:**
@@ -879,13 +879,14 @@ Axon uses **Svelte 5 composables** to extract reusable logic from components. Al
 All composables:
 
 - Use `.svelte.ts` extension (required for Svelte 5 runes)
-- Located in `src/lib/composables/`
+- Located in `src/lib/modules/{module}/composables/` or `src/lib/infrastructure/{area}/composables/`
 - Use single `$state` object pattern for reactivity
 - Return getters for reactive state properties
 - Have explicit TypeScript return types
 
 ### Available Composables
 
+**Inbox Module** (`src/lib/modules/inbox/composables/`):
 1. **`useInboxItems`** - Manages inbox item queries and filtering
    - Uses `useQuery()` from `convex-svelte` for reactive subscriptions
    - Handles filtering by type and processed status
@@ -909,6 +910,14 @@ All composables:
 5. **`useInboxLayout`** - Manages inbox layout state
    - Persists layout preferences to localStorage
    - Handles responsive layout changes
+
+**Core Module** (`src/lib/modules/core/composables/`):
+- **`useGlobalShortcuts`** - Global keyboard shortcuts
+- **`useLoadingOverlay`** - Loading overlay state management
+
+**Infrastructure** (`src/lib/infrastructure/`):
+- **`useAuthSession`** (`auth/composables/`) - Authentication session management
+- **`usePermissions`** (`rbac/composables/`) - RBAC permission checks
 
 ### Composable Patterns
 
@@ -974,15 +983,23 @@ Axon/
 │   │   ├── login/                # Login page
 │   │   └── register/             # Registration page
 │   └── lib/
-│       ├── composables/          # Reusable logic (Svelte 5 composables)
-│       │   ├── useInboxItems.svelte.ts
-│       │   ├── useSelectedItem.svelte.ts
-│       │   ├── useInboxSync.svelte.ts
-│       │   ├── useKeyboardNavigation.svelte.ts
-│       │   └── useInboxLayout.svelte.ts
+│       ├── modules/              # Feature modules
+│       │   ├── core/             # Core module (global components)
+│       │   │   ├── components/   # QuickCreateModal, Sidebar, etc.
+│       │   │   └── composables/  # useGlobalShortcuts, etc.
+│       │   ├── inbox/            # Inbox module
+│       │   │   ├── components/   # InboxCard, InboxHeader, etc.
+│       │   │   └── composables/  # useInboxItems, useInboxSync, etc.
+│       │   ├── meetings/          # Meetings module
+│       │   └── org-chart/        # Org chart module
+│       ├── infrastructure/       # Cross-cutting infrastructure
+│       │   ├── analytics/        # Analytics (events.ts)
+│       │   ├── auth/             # Auth (useAuthSession)
+│       │   ├── feature-flags/    # Feature flags (constants.ts)
+│       │   └── rbac/             # RBAC (usePermissions)
 │       ├── types/                # Shared TypeScript types
 │       │   └── convex.ts         # Convex client and API types
-│       └── components/           # Reusable UI components
+│       └── utils/                # Shared utilities
 ├── ios/                 # Capacitor iOS project
 └── dev-docs/            # Documentation
 ```

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
-	import type { Id } from '../../../convex/_generated/dataModel';
+	import type { Id } from '$convex/_generated/dataModel';
 
 	type Tag = {
 		_id: Id<'tags'>;

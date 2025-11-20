@@ -117,6 +117,20 @@ it('should list user tags without type errors', async () => {
 
 **Test structure:**
 
+**Colocated Module Tests** (✅ New Pattern):
+```
+src/lib/modules/
+├── core/organizations/__tests__/
+│   └── organizations.integration.test.ts
+├── meetings/__tests__/
+│   ├── meetings.integration.test.ts
+│   ├── meetingActionItems.integration.test.ts
+│   └── meetingDecisions.integration.test.ts
+└── flashcards/__tests__/
+    └── flashcards.integration.test.ts
+```
+
+**Centralized Cross-Module Tests**:
 ```
 tests/convex/integration/
 ├── README.md           - Documentation
@@ -152,13 +166,53 @@ npm run test:e2e:settings      # Settings
 ### Before You Code
 
 ```bash
-# Optional: Run tests in watch mode
+# Optional: Run tests in watch mode (all tests)
 npm run test:integration:watch
+
+# Run module-specific tests in watch mode (faster feedback)
+npm run test:unit:server -- src/lib/modules/my-module --watch
+
+# Run specific module integration test
+npm run test:integration -- src/lib/modules/my-module/__tests__/my-module.integration.test.ts
 ```
 
 ### While Coding
 
 Write code → Save file → Tests auto-run (if in watch mode)
+
+### Running Module-Specific Tests
+
+**✅ Colocated Module Tests** - Run tests for a specific module:
+
+```bash
+# Run all tests for a specific module (component, composable, and integration tests)
+npm run test:unit:server -- src/lib/modules/meetings
+
+# Run only module integration tests
+npm run test:unit:server -- src/lib/modules/core/organizations/__tests__/
+
+# Run specific test file
+npm run test:unit:server -- src/lib/modules/meetings/__tests__/meetings.integration.test.ts
+
+# Run in watch mode for development (fast feedback)
+npm run test:unit:server -- src/lib/modules/meetings --watch
+```
+
+**Example Output**:
+```
+✓ src/lib/modules/meetings/__tests__/meetings.integration.test.ts (15 tests)
+✓ src/lib/modules/meetings/__tests__/meetingActionItems.integration.test.ts (18 tests)
+✓ src/lib/modules/meetings/__tests__/meetingDecisions.integration.test.ts (20 tests)
+```
+
+**Benefits**:
+- ✅ Fast feedback - Only run tests for your module
+- ✅ Clear ownership - Tests colocated with code
+- ✅ Independent development - Teams don't block each other
+
+**Test Discovery**: Vitest automatically discovers all tests matching patterns in `vite.config.ts`. Module tests are discovered via `src/**/__tests__/**/*.{test,spec}.{js,ts}` pattern.
+
+**See**: [Test Organization Strategy](./2-areas/development/test-organization-strategy.md) for complete test organization patterns.
 
 ### Before Committing
 
@@ -192,6 +246,111 @@ GitHub Actions automatically runs:
 
 ### Integration Tests (Recommended for New Features)
 
+**✅ Colocated Module Tests** (Preferred for module-specific tests):
+
+**Location**: `src/lib/modules/{module}/__tests__/{module}.integration.test.ts`
+
+**Real Example** - Organizations Module:
+
+```typescript
+// src/lib/modules/core/organizations/__tests__/organizations.integration.test.ts
+import { describe, it, expect, afterEach } from 'vitest';
+import { convexTest } from 'convex-test';
+import { api } from '../../../../../../convex/_generated/api';
+import schema from '../../../../../../convex/schema';
+import { modules } from '../../../../../../tests/convex/integration/test.setup';
+import {
+	createTestSession,
+	createTestOrganization,
+	createTestOrganizationMember,
+	cleanupTestData,
+	cleanupTestOrganization
+} from '../../../../../../tests/convex/integration/setup';
+
+describe('Organizations Integration Tests', () => {
+	const cleanupQueue: Array<{ userId?: any; orgId?: any }> = [];
+
+	afterEach(async () => {
+		const t = convexTest(schema, modules);
+		for (const item of cleanupQueue) {
+			if (item.userId) {
+				await cleanupTestData(t, item.userId);
+			}
+			if (item.orgId) {
+				await cleanupTestOrganization(t, item.orgId);
+			}
+		}
+		cleanupQueue.length = 0;
+	});
+
+	it('should list user organizations with sessionId validation', async () => {
+		const t = convexTest(schema, modules);
+		const { sessionId, userId } = await createTestSession(t);
+		const orgId = await createTestOrganization(t, 'Test Org');
+		await createTestOrganizationMember(t, orgId, userId, 'owner');
+		cleanupQueue.push({ userId, orgId });
+
+		// This would fail if userId is an object (destructuring bug)
+		const orgs = await t.query(api.organizations.listOrganizations, { sessionId });
+
+		expect(orgs).toBeDefined();
+		expect(Array.isArray(orgs)).toBe(true);
+		expect(orgs.length).toBe(1);
+		expect(orgs[0].name).toBe('Test Org');
+		expect(orgs[0].role).toBe('owner');
+	});
+});
+```
+
+**Key Patterns**:
+- ✅ Import from `tests/convex/integration/setup` for shared test helpers
+- ✅ Use `convexTest(schema, modules)` for test instance
+- ✅ Cleanup queue pattern for test data cleanup
+- ✅ Tests actual Convex functions (not mocks)
+- ✅ Import paths use relative paths from module location
+
+**Template for New Module Tests**:
+
+```typescript
+// src/lib/modules/my-module/__tests__/my-module.integration.test.ts
+import { describe, it, expect, afterEach } from 'vitest';
+import { convexTest } from 'convex-test';
+import { api } from '../../../../../convex/_generated/api';
+import schema from '../../../../../convex/schema';
+import { modules } from '../../../../../tests/convex/integration/test.setup';
+import { createTestSession, cleanupTestData } from '../../../../../tests/convex/integration/setup';
+
+describe('My Module Integration Tests', () => {
+	const cleanupQueue: Array<{ userId?: any }> = [];
+
+	afterEach(async () => {
+		const t = convexTest(schema, modules);
+		for (const item of cleanupQueue) {
+			if (item.userId) {
+				await cleanupTestData(t, item.userId);
+			}
+		}
+		cleanupQueue.length = 0;
+	});
+
+	it('should do something', async () => {
+		const t = convexTest(schema, modules);
+		const { sessionId, userId } = await createTestSession(t);
+		cleanupQueue.push({ userId });
+
+		// Test your Convex function
+		const result = await t.query(api.myModule.myFunction, {
+			sessionId
+			// ... other args
+		});
+
+		expect(result).toBeDefined();
+	});
+});
+```
+
+**Centralized Cross-Module Tests** (For tests spanning multiple modules):
+
 ```typescript
 // tests/convex/integration/mymodule.integration.test.ts
 import { describe, it, expect, afterEach } from 'vitest';
@@ -199,7 +358,7 @@ import { convexTest } from 'convex-test';
 import { api } from '../../../convex/_generated/api';
 import { createTestSession, cleanupTestData } from './setup';
 
-describe('My Module Integration Tests', () => {
+describe('Cross-Module Integration Tests', () => {
 	let userId: any;
 
 	afterEach(async () => {
@@ -209,15 +368,14 @@ describe('My Module Integration Tests', () => {
 		}
 	});
 
-	it('should do something', async () => {
+	it('should test cross-module interaction', async () => {
 		const t = convexTest();
 		const { sessionId, userId: testUserId } = await createTestSession(t);
 		userId = testUserId;
 
-		// Test your Convex function
+		// Test interaction between modules
 		const result = await t.query(api.myModule.myFunction, {
 			sessionId
-			// ... other args
 		});
 
 		expect(result).toBeDefined();
@@ -232,6 +390,24 @@ describe('My Module Integration Tests', () => {
 - `createTestNote(t, userId, title)` - Create test note
 - `createTestOrganization(t, name)` - Create test org
 - `cleanupTestData(t, userId)` - Cleanup after test
+
+**Running Module-Specific Tests:**
+
+```bash
+# Run all tests for a specific module
+npm run test:unit:server -- src/lib/modules/meetings
+
+# Run only integration tests for a module
+npm run test:integration -- src/lib/modules/core/organizations/__tests__/
+
+# Run specific test file
+npm run test:unit:server -- src/lib/modules/meetings/__tests__/meetings.integration.test.ts
+```
+
+**Benefits of Colocated Tests:**
+- ✅ Fast feedback - Only run tests for your module
+- ✅ Clear ownership - Tests next to code
+- ✅ Independent development - Teams don't block each other
 
 ### Unit Tests (For Utility Functions)
 

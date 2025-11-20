@@ -20,7 +20,7 @@ import type { InboxModuleAPI } from './api';
  *
  * **Dependencies**: ['core'] (depends on core module for organizations context)
  * **Feature Flag**: null (always enabled)
- * **API**: InboxModuleAPI (tagging functionality via useTagging composable)
+ * **API**: InboxModuleAPI (currently minimal, ready for future expansion)
  */
 export const inboxModule: ModuleManifest = {
 	name: 'inbox',

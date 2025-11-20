@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { UseNavigationStack } from '$lib/composables/useNavigationStack.svelte';
+	import type { UseNavigationStack } from '$lib/modules/core/composables/useNavigationStack.svelte';
 
 	let {
 		navigationStack,

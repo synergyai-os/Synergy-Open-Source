@@ -8,7 +8,7 @@
  * @see dev-docs/2-areas/architecture/system-architecture.md#6-modularity--module-system
  */
 
-import type { FeatureFlagKey } from '$lib/featureFlags';
+import type { FeatureFlagKey } from '$lib/infrastructure/feature-flags';
 import { api } from '$lib/convex';
 
 /**

@@ -5,7 +5,7 @@
 	import { Button, FormInput } from '$lib/components/ui';
 	import RateLimitError from '$lib/components/ui/RateLimitError.svelte';
 	import LoadingOverlay from '$lib/components/ui/LoadingOverlay.svelte';
-	import type { UseLoadingOverlayReturn } from '$lib/composables/useLoadingOverlay.svelte';
+	import type { UseLoadingOverlayReturn } from '$lib/modules/core/composables/useLoadingOverlay.svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	const redirectTarget = $derived(

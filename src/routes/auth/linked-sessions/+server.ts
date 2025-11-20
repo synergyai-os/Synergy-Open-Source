@@ -3,8 +3,8 @@ import type { RequestHandler } from './$types';
 import { ConvexHttpClient } from 'convex/browser';
 import { env as publicEnv } from '$env/dynamic/public';
 import { api } from '$convex/_generated/api';
-import { getActiveSessionRecordForUser } from '$lib/server/auth/sessionStore';
-import { generateRandomToken } from '$lib/server/auth/crypto';
+import { getActiveSessionRecordForUser } from '$lib/infrastructure/auth/server/sessionStore';
+import { generateRandomToken } from '$lib/infrastructure/auth/server/crypto';
 
 export const GET: RequestHandler = async ({ locals }) => {
 	const { auth } = locals;

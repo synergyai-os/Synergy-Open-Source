@@ -1,5 +1,5 @@
 import { json, error } from '@sveltejs/kit';
-import { getPostHogClient } from '$lib/server/posthog';
+import { getPostHogClient } from '$lib/infrastructure/analytics/server';
 import { PUBLIC_POSTHOG_KEY } from '$env/static/public';
 
 type TrackRequestBody = {

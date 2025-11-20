@@ -2,7 +2,7 @@
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import SettingsSidebarHeader from './sidebar/SettingsSidebarHeader.svelte';
+	import SettingsSidebarHeader from '$lib/modules/core/components/SettingsSidebarHeader.svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	type Props = {

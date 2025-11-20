@@ -10,7 +10,7 @@
 	import { useQuery } from 'convex-svelte';
 	import { api } from '$lib/convex';
 	import ActionItemsList from '$lib/components/dashboard/ActionItemsList.svelte';
-	import { FeatureFlags } from '$lib/featureFlags';
+	import { FeatureFlags } from '$lib/infrastructure/feature-flags';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	// Get session from page data

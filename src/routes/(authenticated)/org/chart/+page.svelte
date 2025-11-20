@@ -4,15 +4,16 @@
 	import { goto } from '$app/navigation';
 	import { getContext } from 'svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
-	import { useOrgChart } from '$lib/composables/useOrgChart.svelte';
-	import OrgChart from '$lib/components/org/OrgChart.svelte';
-	import CircleDetailPanel from '$lib/components/org/CircleDetailPanel.svelte';
-	import RoleDetailPanel from '$lib/components/org/RoleDetailPanel.svelte';
-	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
+	import OrgChart from '$lib/modules/org-chart/components/OrgChart.svelte';
+	import CircleDetailPanel from '$lib/modules/org-chart/components/CircleDetailPanel.svelte';
+	import RoleDetailPanel from '$lib/modules/org-chart/components/RoleDetailPanel.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import type { OrgChartModuleAPI } from '$lib/modules/org-chart/api';
 
 	let { data: _data } = $props();
 
 	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
+	const orgChartAPI = getContext<OrgChartModuleAPI | undefined>('org-chart-api');
 
 	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
 	// Pattern: Check object existence first, then access getter property directly
@@ -36,8 +37,11 @@
 		}
 	});
 
-	// Initialize org chart composable
-	const orgChart = useOrgChart({
+	// Initialize org chart composable via API (enables loose coupling - see SYOS-314)
+	if (!orgChartAPI) {
+		throw new Error('OrgChartModuleAPI not available in context');
+	}
+	const orgChart = orgChartAPI.useOrgChart({
 		sessionId: getSessionId,
 		organizationId: getOrganizationId
 	});

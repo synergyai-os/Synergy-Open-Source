@@ -5,8 +5,8 @@ import type { RequestHandler } from './$types';
 // import { api } from '$convex/_generated/api';
 import { env as publicEnv } from '$env/dynamic/public';
 import type { Id } from '$lib/convex';
-import { getActiveSessionRecordForUser } from '$lib/server/auth/sessionStore';
-import { establishSession } from '$lib/server/auth/session';
+import { getActiveSessionRecordForUser } from '$lib/infrastructure/auth/server/sessionStore';
+import { establishSession } from '$lib/infrastructure/auth/server/session';
 
 /**
  * Restore session for a user from their active session record

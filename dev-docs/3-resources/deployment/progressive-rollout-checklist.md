@@ -10,7 +10,7 @@
 
 - [ ] Feature code complete
 - [ ] Feature wrapped in flag check
-- [ ] Flag constant added to `src/lib/featureFlags.ts`
+- [ ] Flag constant added to `src/lib/infrastructure/feature-flags/constants.ts`
 - [ ] Flag defaults to `false`
 - [ ] Error boundary wraps component
 - [ ] PostHog events added for key actions

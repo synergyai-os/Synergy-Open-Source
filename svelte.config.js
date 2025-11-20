@@ -15,7 +15,8 @@ const config = {
 			includeFiles: ['marketing-docs/**', 'dev-docs/**']
 		}),
 		alias: {
-			$convex: './convex'
+			$convex: './convex',
+			$tests: './tests'
 		},
 		paths: {
 			relative: false // Required for PostHog session replay to work correctly

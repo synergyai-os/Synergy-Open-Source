@@ -2,7 +2,7 @@
 	import type { PageData } from './$types';
 	import { Badge, Button, FormTextarea, ToggleSwitch } from '$lib/components/ui';
 	import { browser } from '$app/environment';
-	import { getFlagDescription } from '$lib/featureFlags';
+	import { getFlagDescription } from '$lib/infrastructure/feature-flags';
 	import { api, type Id } from '$lib/convex';
 	import { useConvexClient } from 'convex-svelte';
 

@@ -1,6 +1,10 @@
 import { defineConfig } from 'vitest/config';
 import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
 	plugins: [
@@ -33,9 +37,9 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			// Allow importing from convex _generated folder
-			'../convex/_generated/api': '../convex/_generated/api',
-			'../../convex/_generated/api': '../../convex/_generated/api'
+			// SvelteKit aliases for Vitest support
+			$convex: path.resolve(__dirname, './convex'),
+			$tests: path.resolve(__dirname, './tests')
 		}
 	},
 	test: {
@@ -61,7 +65,12 @@ export default defineConfig({
 				test: {
 					name: 'server',
 					environment: 'node',
-					include: ['src/**/*.{test,spec}.{js,ts}', 'tests/**/*.{test,spec}.{js,ts}'],
+					include: [
+						'src/**/*.{test,spec}.{js,ts}', // ✅ Colocated composable tests
+						'src/**/__tests__/**/*.{test,spec}.{js,ts}', // ✅ Module test suites
+						'tests/**/*.{test,spec}.{js,ts}', // ✅ Centralized tests
+						'convex/**/*.test.ts' // ✅ Convex unit tests
+					],
 					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}', 'tests/**/*.svelte.{test,spec}.{js,ts}'],
 					setupFiles: ['./vitest-setup-server.ts']
 				}

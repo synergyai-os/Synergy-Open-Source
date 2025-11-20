@@ -4,9 +4,9 @@
 	import { goto } from '$app/navigation';
 	import { getContext } from 'svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
-	import { useTeams } from '$lib/composables/useTeams.svelte';
+	import { useTeams } from '$lib/modules/core/organizations/composables/useTeams.svelte';
 	import InviteMemberModal from '$lib/components/InviteMemberModal.svelte';
-	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
 
 	let {
 		data: _data,

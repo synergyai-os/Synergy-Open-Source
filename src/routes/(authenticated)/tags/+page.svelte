@@ -3,11 +3,11 @@
 	import { api } from '$lib/convex';
 	import { getContext } from 'svelte';
 	import { page } from '$app/stores';
-	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
-	import ShareTagModal from '$lib/components/tags/ShareTagModal.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import ShareTagModal from '$lib/modules/core/components/ShareTagModal.svelte';
 	import posthog from 'posthog-js';
 	import { browser } from '$app/environment';
-	import { AnalyticsEventName } from '$lib/analytics/events';
+	import { AnalyticsEventName } from '$lib/infrastructure/analytics/events';
 	import type { Id } from '$lib/convex';
 
 	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
