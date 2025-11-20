@@ -282,7 +282,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 	// Use fire-and-forget pattern to avoid blocking error page
 	// Reuse existing client and sessionId from above
 	client
-		.mutation(api.doc404Tracking.log404, {
+		.mutation(api.docs.doc404Tracking.log404, {
 			url,
 			referrer: undefined, // Could extract from event.request.headers.get('referer') if needed
 			userAgent: undefined, // Could extract from event.request.headers.get('user-agent') if needed

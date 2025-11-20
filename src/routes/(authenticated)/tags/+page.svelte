@@ -4,7 +4,7 @@
 	import { getContext } from 'svelte';
 	import { page } from '$app/stores';
 	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
-	import ShareTagModal from '$lib/components/tags/ShareTagModal.svelte';
+	import ShareTagModal from '$lib/modules/core/components/ShareTagModal.svelte';
 	import posthog from 'posthog-js';
 	import { browser } from '$app/environment';
 	import { AnalyticsEventName } from '$lib/infrastructure/analytics/events';

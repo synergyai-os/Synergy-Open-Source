@@ -16,7 +16,7 @@
  */
 
 import type { Id } from '$lib/convex';
-import { useTagging as useTaggingComposable } from '$lib/composables/useTagging.svelte';
+import { useTagging as useTaggingComposable } from './composables/useTagging.svelte';
 import { useGlobalShortcuts as useGlobalShortcutsComposable } from './composables/useGlobalShortcuts.svelte';
 
 /**

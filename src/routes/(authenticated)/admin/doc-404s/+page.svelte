@@ -16,10 +16,12 @@
 	const convexClient = browser ? useConvexClient() : null;
 
 	// Queries (client-side only)
-	const statsQuery = browser ? useQuery(api.doc404Tracking.getStats, () => ({})) : null;
-	const unresolvedQuery = browser ? useQuery(api.doc404Tracking.listUnresolved, () => ({})) : null;
+	const statsQuery = browser ? useQuery(api.docs.doc404Tracking.getStats, () => ({})) : null;
+	const unresolvedQuery = browser
+		? useQuery(api.docs.doc404Tracking.listUnresolved, () => ({}))
+		: null;
 	const allErrorsQuery = browser
-		? useQuery(api.doc404Tracking.listAll, () => ({ limit: 500 }))
+		? useQuery(api.docs.doc404Tracking.listAll, () => ({ limit: 500 }))
 		: null;
 
 	// Derived data
@@ -175,7 +177,7 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 
 		resolving = true;
 		try {
-			await convexClient.mutation(api.doc404Tracking.resolve404, {
+			await convexClient.mutation(api.docs.doc404Tracking.resolve404, {
 				sessionId,
 				id: error._id as Id<'doc404Errors'>,
 				note: resolveNote || undefined

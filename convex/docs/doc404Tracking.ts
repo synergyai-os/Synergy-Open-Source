@@ -5,9 +5,9 @@
  * Logs 404 errors and provides queries/mutations for viewing and resolving them.
  */
 
-import { mutation, query } from './_generated/server';
+import { mutation, query } from '../_generated/server';
 import { v } from 'convex/values';
-import type { Id } from './_generated/dataModel';
+import type { Id } from '../_generated/dataModel';
 
 /**
  * Log a 404 error for a documentation URL
@@ -29,7 +29,7 @@ export const log404 = mutation({
 		let userId: Id<'users'> | undefined = undefined;
 		if (args.sessionId) {
 			try {
-				const { validateSessionAndGetUserId } = await import('./sessionValidation');
+				const { validateSessionAndGetUserId } = await import('../sessionValidation');
 				const result = await validateSessionAndGetUserId(ctx, args.sessionId);
 				userId = result.userId;
 			} catch {
@@ -123,7 +123,7 @@ export const resolve404 = mutation({
 		note: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
-		const { validateSessionAndGetUserId } = await import('./sessionValidation');
+		const { validateSessionAndGetUserId } = await import('../sessionValidation');
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		await ctx.db.patch(args.id, {

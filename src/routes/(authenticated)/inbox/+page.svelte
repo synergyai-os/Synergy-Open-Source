@@ -16,7 +16,7 @@
 	import SyncProgressTracker from '$lib/modules/inbox/components/SyncProgressTracker.svelte';
 	import ResizableSplitter from '$lib/components/ResizableSplitter.svelte';
 	import Loading from '$lib/components/Loading.svelte';
-	import FlashcardFAB from '$lib/components/FlashcardFAB.svelte';
+	import FlashcardFAB from '$lib/modules/flashcards/components/FlashcardFAB.svelte';
 	import FlashcardReviewModal from '$lib/modules/inbox/components/FlashcardReviewModal.svelte';
 	import { useInboxSync } from '$lib/modules/inbox/composables/useInboxSync.svelte';
 	import { useInboxItems } from '$lib/modules/inbox/composables/useInboxItems.svelte';

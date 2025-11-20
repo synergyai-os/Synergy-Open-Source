@@ -1,5 +1,5 @@
 <script lang="ts">
-	import FlashcardComponent from '$lib/components/Flashcard.svelte';
+	import FlashcardComponent from '$lib/modules/core/components/Flashcard.svelte';
 	import { Button } from 'bits-ui';
 	import type { StudyFlashcard } from '$lib/modules/flashcards/composables/useStudySession.svelte';
 	import type { FlashcardRating } from '$lib/modules/flashcards/composables/useStudySession.svelte';

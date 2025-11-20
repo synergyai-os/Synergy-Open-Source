@@ -10,17 +10,17 @@
 
 import { describe, it, expect, afterEach } from 'vitest';
 import { convexTest } from 'convex-test';
-import { api } from '../../../convex/_generated/api';
-import schema from '../../../convex/schema';
-import { modules } from './test.setup';
+import { api } from '$convex/_generated/api';
+import schema from '$convex/schema';
+import { modules } from '$tests/convex/integration/test.setup';
 import {
 	createTestSession,
 	createTestOrganization,
 	createTestOrganizationMember,
 	cleanupTestData,
 	cleanupTestOrganization
-} from './setup';
-import type { Id } from '../../../convex/_generated/dataModel';
+} from '$tests/convex/integration/setup';
+import type { Id } from '$convex/_generated/dataModel';
 
 describe('meetingAgendaItems: updateNotes', () => {
 	const cleanupQueue: Array<{ userId?: Id<'users'>; orgId?: Id<'organizations'> }> = [];

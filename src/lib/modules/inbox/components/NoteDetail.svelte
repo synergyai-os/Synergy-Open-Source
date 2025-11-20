@@ -2,11 +2,11 @@
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 	import { useConvexClient } from 'convex-svelte';
-	import NoteEditorWithDetection from '$lib/components/notes/NoteEditorWithDetection.svelte';
+	import NoteEditorWithDetection from '$lib/modules/core/components/notes/NoteEditorWithDetection.svelte';
 	import { useNote } from '$lib/modules/inbox/composables/useNote.svelte';
 	import { api } from '$lib/convex';
 	import type { InboxItemWithDetails } from '$lib/types/convex';
-	import type NoteEditorWithDetectionComponent from '$lib/components/notes/NoteEditorWithDetection.svelte';
+	import type NoteEditorWithDetectionComponent from '$lib/modules/core/components/notes/NoteEditorWithDetection.svelte';
 	import type { Id } from '$lib/convex';
 
 	type Props = {

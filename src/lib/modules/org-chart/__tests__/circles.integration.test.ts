@@ -6,9 +6,9 @@
 
 import { describe, it, expect, afterEach } from 'vitest';
 import { convexTest } from 'convex-test';
-import { api } from '../../../convex/_generated/api';
-import schema from '../../../convex/schema';
-import { modules } from './test.setup';
+import { api } from '$convex/_generated/api';
+import schema from '$convex/schema';
+import { modules } from '$tests/convex/integration/test.setup';
 import {
 	createTestSession,
 	createTestOrganization,
@@ -17,7 +17,7 @@ import {
 	createTestCircleMember,
 	cleanupTestData,
 	cleanupTestOrganization
-} from './setup';
+} from '$tests/convex/integration/setup';
 
 describe('Circles Integration Tests', () => {
 	const cleanupQueue: Array<{ userId?: any; orgId?: any }> = [];

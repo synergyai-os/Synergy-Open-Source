@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { Id } from '../../../../convex/_generated/dataModel';
+	import type { Id } from '$convex/_generated/dataModel';
 	import { onMount } from 'svelte';
 	import { useQuery } from 'convex-svelte';
 	import { api } from '$lib/convex';

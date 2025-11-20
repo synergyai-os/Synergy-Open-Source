@@ -34,7 +34,7 @@ Conditionally renders children based on permissions.
 
 ```svelte
 <script lang="ts">
-	import { PermissionGate } from '$lib/components/permissions';
+	import { PermissionGate } from '$lib/infrastructure/rbac/components';
 	import { usePermissions } from '$lib/infrastructure/rbac/composables/usePermissions.svelte';
 
 	const permissions = usePermissions({
@@ -58,7 +58,7 @@ Conditionally renders children based on permissions.
 
 <!-- With custom fallback snippet -->
 <script lang="ts">
-	import { PermissionGate } from '$lib/components/permissions';
+	import { PermissionGate } from '$lib/infrastructure/rbac/components';
 	import { usePermissions } from '$lib/infrastructure/rbac/composables/usePermissions.svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
 
@@ -85,7 +85,7 @@ Button that automatically disables based on permissions.
 
 ```svelte
 <script lang="ts">
-	import { PermissionButton } from '$lib/components/permissions';
+	import { PermissionButton } from '$lib/infrastructure/rbac/components';
 	import { usePermissions } from '$lib/infrastructure/rbac/composables/usePermissions.svelte';
 
 	const permissions = usePermissions({
@@ -190,7 +190,7 @@ Permissions update reactively when roles change:
 
 ## Architecture
 
-See [dev-docs/2-areas/rbac/rbac-architecture.md](../../../../dev-docs/2-areas/rbac/rbac-architecture.md) for complete system architecture.
+See [dev-docs/2-areas/rbac/rbac-architecture.md](../../../../../dev-docs/2-areas/rbac/rbac-architecture.md) for complete system architecture.
 
 ## Testing
 

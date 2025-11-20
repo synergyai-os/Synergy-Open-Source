@@ -6,8 +6,8 @@
 	import { fade } from 'svelte/transition';
 	import { getContext } from 'svelte';
 	import ResizableSplitter from '$lib/components/ResizableSplitter.svelte';
-	import SidebarHeader from '$lib/components/sidebar/SidebarHeader.svelte';
-	import CleanReadwiseButton from '$lib/components/sidebar/CleanReadwiseButton.svelte';
+	import SidebarHeader from '$lib/modules/core/components/SidebarHeader.svelte';
+	import CleanReadwiseButton from '$lib/modules/core/components/CleanReadwiseButton.svelte';
 	import TeamList from '$lib/modules/core/organizations/components/TeamList.svelte';
 	import LoadingOverlay from '$lib/components/ui/LoadingOverlay.svelte';
 	import type {

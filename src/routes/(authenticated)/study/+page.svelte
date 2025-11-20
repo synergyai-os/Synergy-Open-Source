@@ -3,7 +3,7 @@
 	import { page } from '$app/stores';
 	import { getContext } from 'svelte';
 	import { useQuery } from 'convex-svelte';
-	import StudyCard from '$lib/components/study/StudyCard.svelte';
+	import StudyCard from '$lib/modules/flashcards/components/StudyCard.svelte';
 	import TagFilter from '$lib/components/TagFilter.svelte';
 	import { Button } from 'bits-ui';
 	import { api } from '$lib/convex';

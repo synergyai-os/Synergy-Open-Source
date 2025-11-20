@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { TeamInvite, TeamSummary } from '../composables/useOrganizations.svelte';
+	import type { TeamInvite, TeamSummary } from '../composables/useOrganizations.svelte.ts';
 
 	let {
 		teams = [] as TeamSummary[],

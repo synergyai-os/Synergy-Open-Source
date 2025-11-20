@@ -8,7 +8,7 @@
 	import FlashcardCollectionCard from '$lib/modules/flashcards/components/FlashcardCollectionCard.svelte';
 	import FlashcardDetailModal from '$lib/modules/flashcards/components/FlashcardDetailModal.svelte';
 	import { api } from '$lib/convex';
-	import type { Doc, Id } from '../../../../convex/_generated/dataModel';
+	import type { Doc, Id } from '$convex/_generated/dataModel';
 	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
 

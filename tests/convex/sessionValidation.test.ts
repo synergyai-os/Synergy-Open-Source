@@ -8,8 +8,8 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import type { QueryCtx } from '../../convex/_generated/server';
-import type { Id } from '../../convex/_generated/dataModel';
+import type { QueryCtx } from '$convex/_generated/server';
+import type { Id } from '$convex/_generated/dataModel';
 import {
 	validateSessionAndGetUserId,
 	getUserIdFromSession,

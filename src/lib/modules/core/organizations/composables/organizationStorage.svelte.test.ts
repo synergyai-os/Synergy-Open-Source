@@ -13,8 +13,8 @@ import {
 	loadCachedOrg,
 	saveCachedOrg,
 	removeCachedOrg
-} from '$lib/modules/core/organizations/composables/organizationStorage';
-import type { OrganizationSummary } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+} from './organizationStorage';
+import type { OrganizationSummary } from './useOrganizations.svelte';
 
 // Mock localStorage
 function createMockLocalStorage(): Storage {

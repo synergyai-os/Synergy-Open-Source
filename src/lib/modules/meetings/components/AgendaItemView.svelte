@@ -12,7 +12,7 @@
 
 	import { browser } from '$app/environment';
 	import { onDestroy } from 'svelte';
-	import NoteEditor from '$lib/components/notes/NoteEditor.svelte';
+	import NoteEditor from '$lib/modules/core/components/notes/NoteEditor.svelte';
 	import DecisionsList from './DecisionsList.svelte';
 	import ActionItemsList from './ActionItemsList.svelte';
 	import { useAgendaNotes } from '../composables/useAgendaNotes.svelte';

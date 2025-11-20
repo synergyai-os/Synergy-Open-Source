@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Dialog } from 'bits-ui';
 	import { browser } from '$app/environment';
-	import FlashcardComponent from '$lib/components/Flashcard.svelte';
+	import FlashcardComponent from '$lib/modules/core/components/Flashcard.svelte';
 
 	interface Flashcard {
 		question: string;

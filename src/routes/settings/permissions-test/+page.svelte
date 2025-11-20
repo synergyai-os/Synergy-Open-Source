@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import { getContext } from 'svelte';
 	import { usePermissions } from '$lib/infrastructure/rbac/composables/usePermissions.svelte';
-	import { PermissionGate, PermissionButton } from '$lib/components/permissions';
+	import { PermissionGate, PermissionButton } from '$lib/infrastructure/rbac/components';
 	import { useConvexClient } from 'convex-svelte';
 	import { api } from '$lib/convex';
 	import { toast } from '$lib/utils/toast';

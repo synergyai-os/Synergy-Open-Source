@@ -10,24 +10,24 @@
  */
 
 // Import mocks first (must be before other imports)
-import './test-utils/setupMocks.svelte';
+import '$tests/composables/test-utils/setupMocks.svelte';
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
-import TestComponent from './fixtures/TestComponent.svelte';
+import TestComponent from '$tests/composables/fixtures/TestComponent.svelte';
 import {
 	setupConvexMocks,
 	createMockConvexClient,
 	createMockOrganizations,
 	createMockQueryResult
-} from './test-utils/mockConvex.svelte';
-import { setupBrowserMocks } from './test-utils/mockBrowser.svelte';
-import { setupPostHogMock } from './test-utils/mockPostHog.svelte';
-import { setupContextMocks, createMockLoadingOverlay } from './test-utils/mockContext.svelte';
-import type {
-	UseOrganizations,
-	OrganizationSummary
-} from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+} from '$tests/composables/test-utils/mockConvex.svelte';
+import { setupBrowserMocks } from '$tests/composables/test-utils/mockBrowser.svelte';
+import { setupPostHogMock } from '$tests/composables/test-utils/mockPostHog.svelte';
+import {
+	setupContextMocks,
+	createMockLoadingOverlay
+} from '$tests/composables/test-utils/mockContext.svelte';
+import type { UseOrganizations, OrganizationSummary } from './useOrganizations.svelte';
 
 // Helper type to access exported functions from Svelte component
 type TestComponentInstance = {

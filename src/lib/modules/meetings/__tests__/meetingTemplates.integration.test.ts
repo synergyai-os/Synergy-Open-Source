@@ -6,17 +6,17 @@
 
 import { describe, it, expect, afterEach } from 'vitest';
 import { convexTest } from 'convex-test';
-import { api } from '../../../convex/_generated/api';
-import schema from '../../../convex/schema';
-import { modules } from './test.setup';
-import type { Id } from '../../../convex/_generated/dataModel';
+import { api } from '$convex/_generated/api';
+import schema from '$convex/schema';
+import { modules } from '$tests/convex/integration/test.setup';
+import type { Id } from '$convex/_generated/dataModel';
 import {
 	createTestSession,
 	createTestOrganization,
 	createTestOrganizationMember,
 	cleanupTestData,
 	cleanupTestOrganization
-} from './setup';
+} from '$tests/convex/integration/setup';
 
 describe('Meeting Templates Integration Tests', () => {
 	const cleanupQueue: Array<{ userId?: Id<'users'>; orgId?: Id<'organizations'> }> = [];

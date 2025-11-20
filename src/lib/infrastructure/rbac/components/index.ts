@@ -5,7 +5,7 @@
  *
  * @example
  * ```typescript
- * import { PermissionGate, PermissionButton } from '$lib/components/permissions';
+ * import { PermissionGate, PermissionButton } from '$lib/infrastructure/rbac/components';
  * ```
  */
 

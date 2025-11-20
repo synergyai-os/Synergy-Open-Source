@@ -20,6 +20,7 @@ import { inboxModule } from './inbox/manifest';
 import { meetingsModule } from './meetings/manifest';
 import { flashcardsModule } from './flashcards/manifest';
 import { orgChartModule } from './org-chart/manifest';
+import { docsModule } from './docs/manifest';
 
 // Register all modules
 registerModule(coreModule);
@@ -27,3 +28,4 @@ registerModule(inboxModule);
 registerModule(meetingsModule);
 registerModule(flashcardsModule);
 registerModule(orgChartModule);
+registerModule(docsModule);

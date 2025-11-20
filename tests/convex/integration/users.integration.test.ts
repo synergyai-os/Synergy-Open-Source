@@ -6,8 +6,8 @@
 
 import { describe, it, expect, afterEach } from 'vitest';
 import { convexTest } from 'convex-test';
-import { api } from '../../../convex/_generated/api';
-import schema from '../../../convex/schema';
+import { api } from '$convex/_generated/api';
+import schema from '$convex/schema';
 import { modules } from './test.setup';
 import {
 	createTestSession,

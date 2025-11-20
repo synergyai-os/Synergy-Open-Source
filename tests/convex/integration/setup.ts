@@ -5,7 +5,7 @@
  */
 
 import type { TestConvex } from 'convex-test';
-import type { Id } from '../../../convex/_generated/dataModel';
+import type { Id } from '$convex/_generated/dataModel';
 
 // Counter to ensure unique sessions even within the same millisecond
 let sessionCounter = 0;

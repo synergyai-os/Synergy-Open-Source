@@ -6,10 +6,10 @@
 
 import { describe, it, expect, afterEach } from 'vitest';
 import { convexTest } from 'convex-test';
-import { api } from '../../../convex/_generated/api';
-import schema from '../../../convex/schema';
-import { modules } from './test.setup';
-import { createTestSession, cleanupTestData } from './setup';
+import { api } from '$convex/_generated/api';
+import schema from '$convex/schema';
+import { modules } from '$tests/convex/integration/test.setup';
+import { createTestSession, cleanupTestData } from '$tests/convex/integration/setup';
 
 describe('Flashcards Integration Tests', () => {
 	let userId: any;

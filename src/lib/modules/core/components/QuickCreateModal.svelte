@@ -6,7 +6,7 @@
 	import { Dialog, Command } from 'bits-ui';
 	import { getContext } from 'svelte';
 	import type { CoreModuleAPI } from '$lib/modules/core/api';
-	import NoteEditorWithDetection from '$lib/components/notes/NoteEditorWithDetection.svelte';
+	import NoteEditorWithDetection from '$lib/modules/core/components/notes/NoteEditorWithDetection.svelte';
 	import {
 		KeyboardShortcut,
 		FormInput,

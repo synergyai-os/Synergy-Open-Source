@@ -3,7 +3,7 @@
 	import { page } from '$app/stores';
 	import { Dialog } from 'bits-ui';
 	import { useConvexClient } from 'convex-svelte';
-	import FlashcardComponent from '$lib/components/Flashcard.svelte';
+	import FlashcardComponent from '$lib/modules/core/components/Flashcard.svelte';
 	import FlashcardMetadata from './FlashcardMetadata.svelte';
 	import { api } from '$lib/convex';
 	import { Button } from 'bits-ui';

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Dialog } from 'bits-ui';
-	import type { UseTeams } from '$lib/composables/useTeams.svelte';
+	import type { UseTeams } from '$lib/modules/core/organizations/composables/useTeams.svelte';
 
 	let {
 		teams,
