@@ -1,6 +1,6 @@
 <script lang="ts">
 	import StackedPanel from '$lib/components/ui/StackedPanel.svelte';
-	import { useNavigationStack } from '$lib/composables/useNavigationStack.svelte';
+	import { useNavigationStack } from '$lib/modules/core/composables/useNavigationStack.svelte';
 
 	// Mock folder hierarchy
 	type Folder = {

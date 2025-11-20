@@ -5,7 +5,7 @@
  */
 
 import { vi } from 'vitest';
-import type { UseLoadingOverlayReturn } from '$lib/composables/useLoadingOverlay.svelte';
+import type { UseLoadingOverlayReturn } from '$lib/modules/core/composables/useLoadingOverlay.svelte';
 
 /**
  * Create a mock loading overlay context

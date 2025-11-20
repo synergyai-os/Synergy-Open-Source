@@ -44,7 +44,7 @@
 - Displays: Vertical bars showing previous layers
 
 **3. `useNavigationStack.svelte.ts`** - Navigation state management
-- Location: `src/lib/composables/useNavigationStack.svelte.ts`
+- Location: `src/lib/modules/core/composables/useNavigationStack.svelte.ts`
 - Manages: Layer stack, z-index calculation, breadcrumb state
 
 ### API Reference
@@ -90,7 +90,7 @@ navStack.stack;           // Full stack array
 ### Step 1: Create Navigation Stack
 
 ```typescript
-import { useNavigationStack } from '$lib/composables/useNavigationStack.svelte';
+import { useNavigationStack } from '$lib/modules/core/composables/useNavigationStack.svelte';
 
 const navigationStack = useNavigationStack();
 ```
@@ -241,7 +241,7 @@ All spacing and colors use semantic tokens (see `src/app.css`):
 - **Components**: 
   - `src/lib/components/ui/StackedPanel.svelte`
   - `src/lib/components/ui/PanelBreadcrumbs.svelte`
-- **Composable**: `src/lib/composables/useNavigationStack.svelte.ts`
+- **Composable**: `src/lib/modules/core/composables/useNavigationStack.svelte.ts`
 - **Design Tokens**: `src/app.css` (Panel Stack Navigation Tokens)
 
 ---

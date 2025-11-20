@@ -10,7 +10,7 @@ Reactive permission checking hook.
 
 ```svelte
 <script lang="ts">
-	import { usePermissions } from '$lib/composables/usePermissions.svelte';
+	import { usePermissions } from '$lib/infrastructure/rbac/composables/usePermissions.svelte';
 	import { currentUserId, activeOrganizationId } from '$lib/stores';
 
 	const permissions = usePermissions({
@@ -35,7 +35,7 @@ Conditionally renders children based on permissions.
 ```svelte
 <script lang="ts">
 	import { PermissionGate } from '$lib/components/permissions';
-	import { usePermissions } from '$lib/composables/usePermissions.svelte';
+	import { usePermissions } from '$lib/infrastructure/rbac/composables/usePermissions.svelte';
 
 	const permissions = usePermissions({
 		userId: () => $currentUserId
@@ -59,7 +59,7 @@ Conditionally renders children based on permissions.
 <!-- With custom fallback snippet -->
 <script lang="ts">
 	import { PermissionGate } from '$lib/components/permissions';
-	import { usePermissions } from '$lib/composables/usePermissions.svelte';
+	import { usePermissions } from '$lib/infrastructure/rbac/composables/usePermissions.svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	const permissions = usePermissions({
@@ -86,7 +86,7 @@ Button that automatically disables based on permissions.
 ```svelte
 <script lang="ts">
 	import { PermissionButton } from '$lib/components/permissions';
-	import { usePermissions } from '$lib/composables/usePermissions.svelte';
+	import { usePermissions } from '$lib/infrastructure/rbac/composables/usePermissions.svelte';
 
 	const permissions = usePermissions({
 		userId: () => $currentUserId

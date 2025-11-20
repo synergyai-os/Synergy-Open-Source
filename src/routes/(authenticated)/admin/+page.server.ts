@@ -2,7 +2,7 @@ import { redirect, error } from '@sveltejs/kit';
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '$lib/convex';
 import { env } from '$env/dynamic/public';
-import { requireSystemAdmin } from '$lib/server/auth/admin';
+import { requireSystemAdmin } from '$lib/infrastructure/auth/server/admin';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ locals }) => {

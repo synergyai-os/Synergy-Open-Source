@@ -108,7 +108,7 @@ export default defineConfig(
 	},
 	{
 		// Relax rules for usePermissions (Convex API types are complex)
-		files: ['src/lib/composables/usePermissions.svelte.ts'],
+		files: ['src/lib/infrastructure/rbac/composables/usePermissions.svelte.ts'],
 		rules: {
 			'@typescript-eslint/no-explicit-any': 'off'
 		}

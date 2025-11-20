@@ -1,5 +1,5 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
-import { resetPassword, WorkOSError } from '$lib/server/auth/workos';
+import { resetPassword, WorkOSError } from '$lib/infrastructure/auth/server/workos';
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
 
 /**

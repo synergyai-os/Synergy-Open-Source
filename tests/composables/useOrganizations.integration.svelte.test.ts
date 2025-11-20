@@ -27,7 +27,7 @@ import { setupContextMocks, createMockLoadingOverlay } from './test-utils/mockCo
 import type {
 	UseOrganizations,
 	OrganizationSummary
-} from '$lib/composables/useOrganizations.svelte';
+} from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
 
 // Helper type to access exported functions from Svelte component
 type TestComponentInstance = {

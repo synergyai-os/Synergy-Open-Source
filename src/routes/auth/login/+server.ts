@@ -2,14 +2,14 @@ import { json, type RequestHandler } from '@sveltejs/kit';
 import { ConvexHttpClient } from 'convex/browser';
 import { api, type Id } from '$lib/convex';
 import { PUBLIC_CONVEX_URL } from '$env/static/public';
-import { authenticateWithPassword } from '$lib/server/auth/workos';
-import { establishSession } from '$lib/server/auth/session';
+import { authenticateWithPassword } from '$lib/infrastructure/auth/server/workos';
+import { establishSession } from '$lib/infrastructure/auth/server/session';
 import {
 	generateSessionId,
 	generateRandomToken,
 	hashValue,
 	encryptSecret
-} from '$lib/server/auth/crypto';
+} from '$lib/infrastructure/auth/server/crypto';
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
 
 /**

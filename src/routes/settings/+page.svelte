@@ -6,7 +6,7 @@
 	import { onMount, getContext } from 'svelte';
 	import type { FunctionReference, FunctionReturnType } from 'convex/server';
 	import type { Id } from '../../../convex/_generated/dataModel';
-	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
 
 	// Types for Convex hooks (currently unused but kept for future use)
 	// type UseQueryReturn<Query extends FunctionReference<'query'>> =

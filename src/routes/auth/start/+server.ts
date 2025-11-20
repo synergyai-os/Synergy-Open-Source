@@ -2,8 +2,8 @@ import { redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { env } from '$env/dynamic/private';
 import { env as publicEnv } from '$env/dynamic/public';
-import { createLoginState, type AuthFlowMode } from '$lib/server/auth/sessionStore';
-import { generateRandomToken } from '$lib/server/auth/crypto';
+import { createLoginState, type AuthFlowMode } from '$lib/infrastructure/auth/server/sessionStore';
+import { generateRandomToken } from '$lib/infrastructure/auth/server/crypto';
 import { createHash } from 'node:crypto';
 import type { Id } from '$lib/convex';
 

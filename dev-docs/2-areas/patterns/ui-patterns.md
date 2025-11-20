@@ -98,7 +98,7 @@
 }
 ```
 
-**Layer 3: Composable** (`src/lib/composables/useNavigationStack.svelte.ts`)
+**Layer 3: Composable** (`src/lib/modules/core/composables/useNavigationStack.svelte.ts`)
 
 ```typescript
 export function useNavigationStack() {
@@ -141,7 +141,7 @@ export function useNavigationStack() {
 ```svelte
 <!-- PanelBreadcrumbBar.svelte -->
 <script lang="ts">
-	import type { NavigationLayer } from '$lib/composables/useNavigationStack.svelte';
+	import type { NavigationLayer } from '$lib/modules/core/composables/useNavigationStack.svelte';
 
 	let { layer, onclick }: { layer: NavigationLayer; onclick: () => void } = $props();
 </script>
@@ -160,7 +160,7 @@ export function useNavigationStack() {
 
 ```svelte
 <script lang="ts">
-	import type { UseOrgChart } from '$lib/composables/useOrgChart.svelte';
+	import type { UseOrgChart } from '$lib/modules/org-chart/composables/useOrgChart.svelte';
 	import PanelBreadcrumbBar from './PanelBreadcrumbBar.svelte';
 
 	let { orgChart }: { orgChart: UseOrgChart } = $props();
@@ -1195,8 +1195,8 @@ npm install prosemirror-highlight lowlight
 
 **Reference Implementation**:
 
-- `src/lib/components/inbox/InboxHeader.svelte` (perfect example)
-- `src/lib/components/sidebar/SidebarHeader.svelte`
+- `src/lib/modules/inbox/components/InboxHeader.svelte` (perfect example)
+- `src/lib/modules/core/components/Sidebar.svelte` (header example)
 
 **Why Critical**:
 
@@ -3421,8 +3421,8 @@ await page.fill('input[name="lastName"]', 'User'); // Don't forget!
 
 ```svelte
 <script lang="ts">
-	import { usePermissions } from '$lib/composables/usePermissions.svelte';
-	import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import { usePermissions } from '$lib/infrastructure/rbac/composables/usePermissions.svelte';
+	import type { UseOrganizations } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
 	import { getContext } from 'svelte';
 	import type { Id } from '$lib/convex';
 
@@ -3504,7 +3504,7 @@ export const removeOrganizationMember = mutation({
 - Extensible (change permissions in RBAC, UI updates automatically)
 
 **Apply when**: Building admin interfaces, member management, resource actions  
-**Related**: #L170 (Edit/view modes), convex-integration.md#L1175 (RBAC test patterns), `src/lib/composables/usePermissions.svelte.ts`  
+**Related**: #L170 (Edit/view modes), convex-integration.md#L1175 (RBAC test patterns), `src/lib/infrastructure/rbac/composables/usePermissions.svelte.ts`  
 **Reference**: `src/routes/(authenticated)/org/members/+page.svelte` (member removal with RBAC)
 
 ---

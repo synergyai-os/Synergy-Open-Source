@@ -10,15 +10,15 @@
 
 	import { page } from '$app/state';
 	import { untrack } from 'svelte';
-	import { useMeetingSession } from '$lib/composables/useMeetingSession.svelte';
-	import { useMeetingPresence } from '$lib/composables/useMeetingPresence.svelte';
+	import { useMeetingSession } from '$lib/modules/meetings/composables/useMeetingSession.svelte';
+	import { useMeetingPresence } from '$lib/modules/meetings/composables/useMeetingPresence.svelte';
 	import { api, type Id } from '$lib/convex';
 	import { toast } from 'svelte-sonner';
 	import { useConvexClient, useQuery } from 'convex-svelte';
 	import { browser } from '$app/environment';
-	import AgendaItemView from '$lib/components/meetings/AgendaItemView.svelte';
-	import SecretarySelector from '$lib/components/meetings/SecretarySelector.svelte';
-	import SecretaryConfirmationDialog from '$lib/components/meetings/SecretaryConfirmationDialog.svelte';
+	import AgendaItemView from '$lib/modules/meetings/components/AgendaItemView.svelte';
+	import SecretarySelector from '$lib/modules/meetings/components/SecretarySelector.svelte';
+	import SecretaryConfirmationDialog from '$lib/modules/meetings/components/SecretaryConfirmationDialog.svelte';
 
 	interface Props {
 		data: {

@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { getContext } from 'svelte';
-	import { usePermissions } from '$lib/composables/usePermissions.svelte';
+	import { usePermissions } from '$lib/infrastructure/rbac/composables/usePermissions.svelte';
 	import { PermissionGate, PermissionButton } from '$lib/components/permissions';
 	import { useConvexClient } from 'convex-svelte';
 	import { api } from '$lib/convex';
 	import { toast } from '$lib/utils/toast';
 	import { browser } from '$app/environment';
-	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
 	import type { Id } from '$lib/convex';
 
 	// Get user from page data

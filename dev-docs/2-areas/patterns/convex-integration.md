@@ -492,7 +492,7 @@ export const assignTagsToFlashcard = mutation({
 **Frontend Composable** (Svelte 5 pattern):
 
 ```typescript
-// src/lib/composables/useTagging.svelte.ts
+// src/lib/modules/core/composables/useTagging.svelte.ts (or appropriate module)
 export function useTagging(entityType: 'highlight' | 'flashcard') {
 	const state = $state({ isAssigning: false, error: null });
 	const convexClient = browser ? useConvexClient() : null;
@@ -2579,7 +2579,7 @@ export const checkFlags = query({
 
 ```typescript
 // ❌ WRONG: Client-side query (slow, inconsistent)
-// src/lib/components/Sidebar.svelte
+// src/lib/modules/core/components/Sidebar.svelte
 const circlesEnabledQuery = browser && sessionId
 	? useQuery(api.featureFlags.checkFlag, () => {
 			if (!sessionId) throw new Error('sessionId required');
@@ -2614,7 +2614,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 // src/routes/(authenticated)/+layout.svelte
 const circlesEnabled = $derived(data.circlesEnabled ?? false);
 
-// src/lib/components/Sidebar.svelte
+// src/lib/modules/core/components/Sidebar.svelte
 // Receive as prop - no client-side query needed
 let { circlesEnabled = false }: Props = $props();
 // Result: Menu item appears instantly with page load
@@ -2634,7 +2634,7 @@ const [organizations, invites] = await Promise.all([
 return { organizations, invites };
 
 // Client-side composable uses initial data immediately, updates when queries complete
-// src/lib/composables/useOrganizations.svelte.ts
+// src/lib/modules/core/organizations/composables/useOrganizations.svelte.ts
 export function useOrganizations(options?: {
 	initialOrganizations?: OrganizationSummary[]; // Server-side preloaded
 	// ...
@@ -3430,7 +3430,7 @@ export const getActivePresence = query({
 });
 ```
 
-### Frontend Composable (src/lib/composables/useMeetingPresence.svelte.ts)
+### Frontend Composable (src/lib/modules/meetings/composables/useMeetingPresence.svelte.ts)
 
 ```typescript
 import { useQuery, useConvexClient } from 'convex-svelte';
@@ -3514,7 +3514,7 @@ export function useMeetingPresence(
 ```typescript
 import { untrack } from 'svelte';
 import { browser } from '$app/environment';
-import { useMeetingPresence } from '$lib/composables/useMeetingPresence.svelte';
+import { useMeetingPresence } from '$lib/modules/meetings/composables/useMeetingPresence.svelte';
 
 const presence = useMeetingPresence(
   () => meeting._id,
@@ -3897,12 +3897,11 @@ return json({ success: true, redirectTo });
 
 ```typescript
 // ❌ WRONG: Direct dependency on internal type
-import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+import type { UseOrganizations } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
 const organizations = getContext<UseOrganizations | undefined>('organizations');
 
 // ✅ CORRECT: Depend on public API interface (enables loose coupling)
-import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
-// OR: import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/api';
+import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/api';
 const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
 ```
 
@@ -3921,7 +3920,7 @@ const organizations = getContext<OrganizationsModuleAPI | undefined>('organizati
 
 2. **Wrap Implementation**:
    ```typescript
-   // src/lib/composables/useOrganizations.svelte.ts
+   // src/lib/modules/core/organizations/composables/useOrganizations.svelte.ts
    export function useOrganizations(...) {
      // ... internal implementation ...
      

@@ -277,7 +277,7 @@ export const deleteTeam = mutation({
 ### Checking Permissions in Svelte
 
 ```typescript
-import { usePermissions } from '$lib/composables/usePermissions.svelte';
+import { usePermissions } from '$lib/infrastructure/rbac/composables/usePermissions.svelte';
 
 const permissions = usePermissions({
 	sessionId: () => data.sessionId,

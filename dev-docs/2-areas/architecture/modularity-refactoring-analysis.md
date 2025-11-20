@@ -293,7 +293,7 @@ let meetingsEnabled = false;
 **Problem**: Feature flags exist but aren't integrated with module registry/discovery.
 
 **Current State**:
-- Feature flags in `convex/featureFlags.ts` and `src/lib/featureFlags.ts`
+- Feature flags in `convex/featureFlags.ts` and `src/lib/infrastructure/feature-flags/constants.ts`
 - Flags checked manually in components
 - No automatic module enablement/discovery
 

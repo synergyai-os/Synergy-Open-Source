@@ -5,11 +5,11 @@
 	import { getContext } from 'svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
 	import { Dialog } from 'bits-ui';
-	import { useOrganizationMembers } from '$lib/composables/useOrganizationMembers.svelte';
-	import { usePermissions } from '$lib/composables/usePermissions.svelte';
+	import { useOrganizationMembers } from '$lib/modules/core/organizations/composables/useOrganizationMembers.svelte';
+	import { usePermissions } from '$lib/infrastructure/rbac/composables/usePermissions.svelte';
 	import InviteMemberModal from '$lib/components/InviteMemberModal.svelte';
-	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
-	import type { OrganizationMember } from '$lib/composables/useOrganizationMembers.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import type { OrganizationMember } from '$lib/modules/core/organizations/composables/useOrganizationMembers.svelte';
 	import type { Id } from '$lib/convex';
 
 	let { data: _data } = $props();

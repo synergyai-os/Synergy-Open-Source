@@ -3,7 +3,7 @@
 	import { Badge, Tabs, Button, FormInput, FormTextarea, ToggleSwitch } from '$lib/components/ui';
 	import { browser } from '$app/environment';
 	import { Dialog } from 'bits-ui';
-	import { FeatureFlags, getFlagDescription } from '$lib/featureFlags';
+	import { FeatureFlags, getFlagDescription } from '$lib/infrastructure/feature-flags';
 	import { api, type Id } from '$lib/convex';
 	import { useConvexClient } from 'convex-svelte';
 	import { SvelteSet } from 'svelte/reactivity';

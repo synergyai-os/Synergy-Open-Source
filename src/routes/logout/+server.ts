@@ -6,10 +6,10 @@ import {
 	SESSION_COOKIE_NAME,
 	clearSessionCookies,
 	decodeSessionCookie
-} from '$lib/server/auth/session';
-import { getSessionRecord, invalidateSession } from '$lib/server/auth/sessionStore';
-import { hashValue } from '$lib/server/auth/crypto';
-import { revokeWorkOSSession } from '$lib/server/auth/workos';
+} from '$lib/infrastructure/auth/server/session';
+import { getSessionRecord, invalidateSession } from '$lib/infrastructure/auth/server/sessionStore';
+import { hashValue } from '$lib/infrastructure/auth/server/crypto';
+import { revokeWorkOSSession } from '$lib/infrastructure/auth/server/workos';
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
 
 const ALLOWED_METHODS = 'POST';

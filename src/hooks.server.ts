@@ -1,6 +1,6 @@
 import { sequence } from '@sveltejs/kit/hooks';
 import { redirect, type Handle } from '@sveltejs/kit';
-import { resolveRequestSession } from '$lib/server/auth/session';
+import { resolveRequestSession } from '$lib/infrastructure/auth/server/session';
 
 // Define public routes that don't require authentication
 const publicPaths = [

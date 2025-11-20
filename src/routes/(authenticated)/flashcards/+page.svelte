@@ -5,11 +5,11 @@
 	import { useQuery, useConvexClient } from 'convex-svelte';
 	import { Button } from 'bits-ui';
 	import TagFilter from '$lib/components/TagFilter.svelte';
-	import FlashcardCollectionCard from '$lib/components/flashcards/FlashcardCollectionCard.svelte';
-	import FlashcardDetailModal from '$lib/components/flashcards/FlashcardDetailModal.svelte';
+	import FlashcardCollectionCard from '$lib/modules/flashcards/components/FlashcardCollectionCard.svelte';
+	import FlashcardDetailModal from '$lib/modules/flashcards/components/FlashcardDetailModal.svelte';
 	import { api } from '$lib/convex';
 	import type { Doc, Id } from '../../../../convex/_generated/dataModel';
-	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	const convexClient = browser ? useConvexClient() : null;

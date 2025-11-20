@@ -6,25 +6,23 @@
 
 	// Debug flag for overlay logging (set to false to disable production logs)
 	const DEBUG_OVERLAY_LOGGING = import.meta.env.DEV;
-	import Sidebar from '$lib/components/Sidebar.svelte';
-	import GlobalActivityTracker from '$lib/components/GlobalActivityTracker.svelte';
-	import AppTopBar from '$lib/components/organizations/AppTopBar.svelte';
-	import QuickCreateModal from '$lib/components/QuickCreateModal.svelte';
-	import OrganizationModals from '$lib/components/organizations/OrganizationModals.svelte';
+	import OrganizationModals from '$lib/modules/core/organizations/components/OrganizationModals.svelte';
 	import LoadingOverlay from '$lib/components/ui/LoadingOverlay.svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
 	import { setContext } from 'svelte';
-	import { useOrganizations } from '$lib/composables/useOrganizations.svelte';
+	import { useOrganizations } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
 	import { createInboxModuleAPI } from '$lib/modules/inbox/api';
 	import { createCoreModuleAPI } from '$lib/modules/core/api';
+	import { createFlashcardsModuleAPI } from '$lib/modules/flashcards/api';
+	import { createOrgChartModuleAPI } from '$lib/modules/org-chart/api';
 	import type {
 		OrganizationSummary,
 		OrganizationInvite,
 		TeamInvite,
 		TeamSummary
-	} from '$lib/composables/useOrganizations.svelte';
-	import { useGlobalShortcuts, SHORTCUTS } from '$lib/composables/useGlobalShortcuts.svelte';
-	import { useLoadingOverlay } from '$lib/composables/useLoadingOverlay.svelte';
+	} from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import { SHORTCUTS } from '$lib/modules/core/composables/useGlobalShortcuts.svelte';
+	import { useLoadingOverlay } from '$lib/modules/core/composables/useLoadingOverlay.svelte';
 	import { toast } from '$lib/utils/toast';
 	import { page } from '$app/stores';
 	// TODO: Re-enable when Id type is needed
@@ -51,14 +49,31 @@
 	setContext('organizations', organizations);
 
 	// Initialize core module API and provide via context
-	// Enables loose coupling - other modules can use TagSelector without direct imports (see SYOS-308)
+	// Enables loose coupling - other modules can use global components and composables without direct imports (see SYOS-308, SYOS-322)
 	const coreAPI = createCoreModuleAPI();
 	setContext('core-api', coreAPI);
+
+	// Extract global components and composables from CoreModuleAPI
+	const Sidebar = coreAPI.Sidebar;
+	const GlobalActivityTracker = coreAPI.GlobalActivityTracker;
+	const AppTopBar = coreAPI.AppTopBar;
+	const QuickCreateModal = coreAPI.QuickCreateModal;
+	const useGlobalShortcuts = coreAPI.useGlobalShortcuts;
 
 	// Initialize inbox module API and provide via context
 	// Enables loose coupling - other modules can use tagging composable without direct imports (see SYOS-306)
 	const inboxAPI = createInboxModuleAPI();
 	setContext('inbox-api', inboxAPI);
+
+	// Initialize flashcards module API and provide via context
+	// Enables loose coupling - other modules can use flashcards functionality without direct imports (see SYOS-314)
+	const flashcardsAPI = createFlashcardsModuleAPI();
+	setContext('flashcards-api', flashcardsAPI);
+
+	// Initialize org chart module API and provide via context
+	// Enables loose coupling - other modules can use org chart composable without direct imports (see SYOS-314)
+	const orgChartAPI = createOrgChartModuleAPI();
+	setContext('org-chart-api', orgChartAPI);
 
 	// Feature flags loaded server-side for instant rendering (no client-side query delay)
 	const circlesEnabled = $derived(data.circlesEnabled ?? false);

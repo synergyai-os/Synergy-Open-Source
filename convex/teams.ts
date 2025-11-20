@@ -8,7 +8,7 @@ import type { MutationCtx, QueryCtx } from './_generated/server';
 import { internal } from './_generated/api';
 // TODO: Re-enable server-side analytics via HTTP action bridge
 // import { captureAnalyticsEvent } from "./posthog";
-// import { AnalyticsEventName, type AnalyticsEventPayloads } from "../src/lib/analytics/events";
+// import { AnalyticsEventName, type AnalyticsEventPayloads } from "../src/lib/infrastructure/analytics/events";
 
 // TODO: Re-enable when needed
 // type TeamRole = 'admin' | 'member';

@@ -21,7 +21,7 @@ import {
 import { setupBrowserMocks } from './test-utils/mockBrowser.svelte';
 import { setupPostHogMock } from './test-utils/mockPostHog.svelte';
 import { setupContextMocks } from './test-utils/mockContext.svelte';
-import type { UseOrganizations } from '$lib/composables/useOrganizations.svelte';
+import type { UseOrganizations } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
 
 // Helper type to access exported functions from Svelte component
 type TestComponentInstance = {

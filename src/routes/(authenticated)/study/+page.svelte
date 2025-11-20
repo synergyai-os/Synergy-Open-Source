@@ -3,16 +3,26 @@
 	import { page } from '$app/stores';
 	import { getContext } from 'svelte';
 	import { useQuery } from 'convex-svelte';
-	import { useStudySession } from '$lib/composables/useStudySession.svelte';
 	import StudyCard from '$lib/components/study/StudyCard.svelte';
 	import TagFilter from '$lib/components/TagFilter.svelte';
 	import { Button } from 'bits-ui';
 	import { api } from '$lib/convex';
-	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import type { FlashcardsModuleAPI } from '$lib/modules/flashcards/api';
 	import type { Id } from '$lib/convex';
 
 	const getSessionId = () => $page.data.sessionId;
-	const study = useStudySession(getSessionId);
+
+	// Get flashcards API from context (enables loose coupling - see SYOS-315)
+	const flashcardsAPI = getContext<FlashcardsModuleAPI | undefined>('flashcards-api');
+
+	// Initialize study session composable via API
+	if (!flashcardsAPI) {
+		throw new Error('FlashcardsModuleAPI not available in context');
+	}
+	const study = flashcardsAPI.useStudySession({
+		sessionId: getSessionId
+	});
 
 	// Get workspace context
 	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');

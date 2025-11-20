@@ -12,7 +12,7 @@ import type {
 	OrganizationInvite,
 	TeamInvite,
 	TeamSummary
-} from '$lib/composables/useOrganizations.svelte';
+} from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
 
 /**
  * Mock Convex client with configurable mutation responses

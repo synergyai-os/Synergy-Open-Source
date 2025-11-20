@@ -29,7 +29,7 @@
 
 **Created**:
 
-- `src/lib/featureFlags.ts` - Feature flag constants and utilities
+- `src/lib/infrastructure/feature-flags/constants.ts` - Feature flag constants and utilities
 - `convex/featureFlags.ts` - Backend flag evaluation logic
 - `convex/schema.ts` - Added `featureFlags` table
 - `dev-docs/2-areas/patterns/feature-flags.md` - Complete flag patterns doc
@@ -165,7 +165,7 @@ Without this, GitHub Actions cannot deploy Convex backend.
 **Test the system**:
 
 ```typescript
-// 1. Add to src/lib/featureFlags.ts
+// 1. Add to src/lib/infrastructure/feature-flags/constants.ts
 export const FeatureFlags = {
 	TEST_FLAG: 'test_flag'
 };

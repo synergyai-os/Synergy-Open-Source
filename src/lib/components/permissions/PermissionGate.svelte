@@ -20,7 +20,7 @@
 	 * ```
 	 */
 
-	import type { UsePermissionsReturn } from '$lib/composables/usePermissions.svelte';
+	import type { UsePermissionsReturn } from '$lib/infrastructure/rbac/composables/usePermissions.svelte';
 	import type { Snippet } from 'svelte';
 
 	interface Props {

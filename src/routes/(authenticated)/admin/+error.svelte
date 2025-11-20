@@ -5,7 +5,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
-	import { useAuthSession } from '$lib/composables/useAuthSession.svelte';
+	import { useAuthSession } from '$lib/infrastructure/auth/composables/useAuthSession.svelte';
 
 	const error = $derived($page.error);
 	let linkedAccounts = $state<Array<{ userId: string; email: string; name: string }>>([]);

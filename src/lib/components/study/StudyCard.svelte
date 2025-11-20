@@ -1,8 +1,8 @@
 <script lang="ts">
 	import FlashcardComponent from '$lib/components/Flashcard.svelte';
 	import { Button } from 'bits-ui';
-	import type { StudyFlashcard } from '$lib/composables/useStudySession.svelte';
-	import type { FlashcardRating } from '$lib/composables/useStudySession.svelte';
+	import type { StudyFlashcard } from '$lib/modules/flashcards/composables/useStudySession.svelte';
+	import type { FlashcardRating } from '$lib/modules/flashcards/composables/useStudySession.svelte';
 
 	interface Props {
 		flashcard: StudyFlashcard;

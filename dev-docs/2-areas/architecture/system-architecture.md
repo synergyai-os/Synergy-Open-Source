@@ -95,7 +95,7 @@ This document covers:
 **For Audits**:
 - Use "Current State (Verified)" sections as source of truth
 - Cross-reference with [Audit Reports](audit-reports/) for health scores
-- Verify feature flags in `src/lib/featureFlags.ts` and `convex/featureFlags.ts`
+- Verify feature flags in `src/lib/infrastructure/feature-flags/constants.ts` and `convex/featureFlags.ts`
 
 **For Architecture Planning**:
 - Use "Vision / Target State" sections for roadmap planning
@@ -453,9 +453,9 @@ graph TD
     end
     
     subgraph "ORGANISMS"
-        Atomic[Atomic Components<br/>src/lib/components/ui/]
-        Feature[Feature Components<br/>src/lib/components/inbox/]
-        Layout[Layout Components<br/>src/lib/components/docs/]
+        Atomic[Atomic Components<br/>src/lib/modules/core/components/]
+        Feature[Feature Components<br/>src/lib/modules/inbox/components/]
+        Layout[Layout Components<br/>src/lib/modules/core/components/]
     end
     
     subgraph "TEMPLATES"
@@ -484,7 +484,7 @@ graph TD
 | **Atoms** | Tokens | `src/app.css` `@theme` | `--spacing-nav-item` |
 | **Atoms** | Utilities | `src/app.css` `@utility` | `.scrollable-outer` |
 | **Molecules** | Patterns | `dev-docs/2-areas/patterns/` | Scrollable Container |
-| **Organisms** | Components | `src/lib/components/` | `InboxCard`, `Sidebar` |
+| **Organisms** | Components | `src/lib/modules/{module}/components/` | `InboxCard`, `Sidebar` |
 | **Templates** | Page Layouts | `src/routes/` `+layout.svelte` | `DocLayout` |
 | **Pages** | Routes | `src/routes/` `+page.svelte` | `/inbox`, `/meetings` |
 
@@ -495,19 +495,41 @@ graph TD
 **File Organization**:
 
 ```
-src/lib/components/
-├── ui/                    # Atomic components (atoms)
-│   ├── Button.svelte
-│   ├── StatusPill.svelte
-│   └── FormInput.svelte
-├── inbox/                 # Feature components (organisms)
-│   ├── InboxCard.svelte
-│   └── TagSelector.svelte
-├── docs/                  # Layout components (organisms)
-│   ├── DocLayout.svelte
-│   └── TableOfContents.svelte
-└── org/                   # Feature components
-    └── OrgChart.svelte
+src/lib/modules/
+├── core/
+│   ├── components/        # Global components (organisms)
+│   │   ├── QuickCreateModal.svelte
+│   │   ├── Sidebar.svelte
+│   │   ├── AppTopBar.svelte
+│   │   └── TagSelector.svelte
+│   └── composables/      # Global composables
+│       ├── useGlobalShortcuts.svelte.ts
+│       └── useLoadingOverlay.svelte.ts
+├── inbox/
+│   ├── components/        # Inbox feature components
+│   │   ├── InboxCard.svelte
+│   │   └── InboxHeader.svelte
+│   └── composables/       # Inbox composables
+│       ├── useInboxItems.svelte.ts
+│       └── useInboxSync.svelte.ts
+├── meetings/
+│   ├── components/        # Meetings feature components
+│   └── composables/       # Meetings composables
+└── org-chart/
+    ├── components/        # Org chart feature components
+    └── composables/       # Org chart composables
+
+src/lib/infrastructure/
+├── analytics/             # Analytics infrastructure
+│   └── events.ts
+├── auth/                  # Auth infrastructure
+│   └── composables/
+│       └── useAuthSession.svelte.ts
+├── feature-flags/         # Feature flags infrastructure
+│   └── constants.ts
+└── rbac/                  # RBAC infrastructure
+    └── composables/
+        └── usePermissions.svelte.ts
 ```
 
 **Component Patterns**:
@@ -536,9 +558,10 @@ src/lib/components/
 - Pattern index for quick lookup
 - Link: [Pattern Index](../patterns/INDEX.md)
 
-**4. Components Layer** (`src/lib/components/`):
+**4. Components Layer** (`src/lib/modules/{module}/components/`):
 - Composable UI building blocks
 - Use tokens, utilities, and patterns
+- Organized by module (core, inbox, meetings, etc.)
 - Link: [Component Architecture](../design/component-architecture.md)
 
 **See**: [Component Architecture Details](../design/component-architecture.md)
@@ -549,7 +572,7 @@ src/lib/components/
 
 ### 6.1 Current Modules (Verified as of 2025-11-18)
 
-**Feature Flag Registry** (from `src/lib/featureFlags.ts`):
+**Feature Flag Registry** (from `src/lib/infrastructure/feature-flags/constants.ts`):
 
 | Module | Feature Flag Constant | Flag Value (String) | Status | Notes |
 |--------|---------------------|---------------------|--------|-------|
@@ -607,10 +630,12 @@ graph LR
 
 **Current State** (as of 2025-11-18):
 
-- ✅ Modules organized by feature area (`src/lib/components/inbox/`, `convex/meetings.ts`, etc.)
+- ✅ Modules organized by feature area (`src/lib/modules/inbox/`, `src/lib/modules/meetings/`, etc.)
 - ✅ Feature flags enable per-organization module access
-- 🟡 **Module boundaries not strictly enforced** - Direct imports between modules exist
-- 🟡 **No module registry** - Module discovery and contracts not formalized
+- ✅ **Module registry implemented** - Module discovery and contracts formalized (`src/lib/modules/registry.ts`)
+- ✅ **Infrastructure consolidated** - Analytics, auth, RBAC, feature flags in `src/lib/infrastructure/`
+- ✅ **Global components in core module** - QuickCreateModal, Sidebar, AppTopBar in `src/lib/modules/core/components/`
+- 🟡 **Module boundaries partially enforced** - Direct imports between modules still exist (needs CI enforcement)
 - ✅ Shared utilities in `src/lib/utils/` and `src/lib/types/`
 
 **Module Communication** (Current):
@@ -997,7 +1022,7 @@ Audit reports are versioned monthly and analyze:
 
 **Version 1.1 Changes**:
 - ✅ Added "Current State (Verified)" vs "Vision / Target State" separation throughout
-- ✅ Fixed feature flag registry to match actual codebase (`src/lib/featureFlags.ts`)
+- ✅ Fixed feature flag registry to match actual codebase (`src/lib/infrastructure/feature-flags/constants.ts`)
 - ✅ Updated CI/CD section to reflect current state (tests commented out, improvements planned)
 - ✅ Added modularity principles (independent development, deployment, enablement, contracts, loose coupling)
 - ✅ Added "How to Use This Document" guidance section

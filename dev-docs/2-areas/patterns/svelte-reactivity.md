@@ -115,10 +115,10 @@ const keyboard = useKeyboard(
 
 ```
 // ❌ WRONG: Regular .ts file
-src/lib/composables/useInboxSync.ts       // ❌ Runes don't work
+src/lib/modules/inbox/composables/useInboxSync.ts       // ❌ Runes don't work
 
 // ✅ CORRECT: .svelte.ts extension (Context7 validated)
-src/lib/composables/useInboxSync.svelte.ts  // ✅ Svelte compiler processes
+src/lib/modules/inbox/composables/useInboxSync.svelte.ts  // ✅ Svelte compiler processes
 ```
 
 **Why**: `.svelte.ts` files processed by Svelte compiler, enabling rune transformations.  

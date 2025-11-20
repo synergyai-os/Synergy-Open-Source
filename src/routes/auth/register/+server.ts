@@ -5,7 +5,7 @@ import { api } from '$lib/convex';
 // import { internal } from '$lib/convex';
 import { PUBLIC_CONVEX_URL } from '$env/static/public';
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
-import { encryptSecret } from '$lib/server/auth/crypto';
+import { encryptSecret } from '$lib/infrastructure/auth/server/crypto';
 import { env } from '$env/dynamic/private';
 
 /**
@@ -55,7 +55,7 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.register, async ({
 		}
 
 		// Check if user already exists in WorkOS
-		const { getUserByEmail } = await import('$lib/server/auth/workos');
+		const { getUserByEmail } = await import('$lib/infrastructure/auth/server/workos');
 		const existingUser = await getUserByEmail(email);
 		if (existingUser) {
 			console.error('❌ Email already registered:', email);

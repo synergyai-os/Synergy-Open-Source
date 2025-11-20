@@ -27,11 +27,11 @@
 
 ### Architecture
 
-**Frontend** (`src/lib/featureFlags.ts`):
+**Frontend** (`src/lib/infrastructure/feature-flags/constants.ts`):
 
 - TypeScript constants for all flags
 - Helper functions for percentage rollout
-- Svelte composable for reactive flag checks
+- Svelte composable for reactive flag checks (`src/lib/infrastructure/feature-flags/composables/useFeatureFlag.svelte.ts`)
 
 **Backend** (`convex/featureFlags.ts`):
 
@@ -433,7 +433,7 @@ git checkout -b chore/SYN-124-remove-editor-flag
 **1. Add to constants**:
 
 ```typescript
-// src/lib/featureFlags.ts
+// src/lib/infrastructure/feature-flags/constants.ts
 export const FeatureFlags = {
 	NEW_FEATURE_BETA: 'new_feature_beta'
 } as const;
@@ -663,7 +663,7 @@ console.log('Flag result:', result);
 
 ```bash
 # 1. Add to constants
-# src/lib/featureFlags.ts
+# src/lib/infrastructure/feature-flags/constants.ts
 export const FeatureFlags = {
   MY_FEATURE: 'my_feature',
 };

@@ -2,7 +2,7 @@ import { json, type RequestHandler } from '@sveltejs/kit';
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '$lib/convex';
 import { PUBLIC_CONVEX_URL } from '$env/static/public';
-import { decryptSecret } from '$lib/server/auth/crypto';
+import { decryptSecret } from '$lib/infrastructure/auth/server/crypto';
 import { withRateLimit, RATE_LIMITS } from '$lib/server/middleware/rateLimit';
 
 /**

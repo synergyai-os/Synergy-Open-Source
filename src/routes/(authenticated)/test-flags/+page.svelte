@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { useQuery } from 'convex-svelte';
 	import { api } from '$lib/convex';
-	import { FeatureFlags } from '$lib/featureFlags';
+	import { FeatureFlags } from '$lib/infrastructure/feature-flags';
 	import { reportFeatureFlagCheck } from '$lib/utils/errorReporting';
 	import { browser } from '$app/environment';
 

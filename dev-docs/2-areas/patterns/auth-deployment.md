@@ -1349,7 +1349,7 @@ export const POST: RequestHandler = async ({ request, locals }) => {
 };
 ```
 
-**Step 3: Update `logoutAccount`** (src/lib/composables/useAuthSession.svelte.ts):
+**Step 3: Update `logoutAccount`** (src/lib/infrastructure/auth/composables/useAuthSession.svelte.ts):
 
 ```typescript
 async function logoutAccount(targetUserId: string) {
@@ -1697,7 +1697,7 @@ function switchAccount(targetUserId: string) {
 }
 
 // ✅ CORRECT - POST request with CSRF token
-import { useAuthSession } from '$lib/composables/useAuthSession.svelte';
+import { useAuthSession } from '$lib/infrastructure/auth/composables/useAuthSession.svelte';
 
 const authSession = useAuthSession();
 

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getContext } from 'svelte';
-	import OrganizationSwitcher from '../organizations/OrganizationSwitcher.svelte';
-	import type { OrganizationsModuleAPI } from '$lib/composables/useOrganizations.svelte';
+	import OrganizationSwitcher from '$lib/modules/core/organizations/components/OrganizationSwitcher.svelte';
+	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
 
 	type OrganizationInfo = {
 		organizationId: string;

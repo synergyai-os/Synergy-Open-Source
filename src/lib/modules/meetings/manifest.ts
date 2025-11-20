@@ -13,7 +13,7 @@
  */
 
 import type { ModuleManifest } from '../registry';
-import { FeatureFlags } from '$lib/featureFlags';
+import { MeetingsFeatureFlags } from './feature-flags';
 import type { MeetingsModuleAPI } from './api';
 
 /**
@@ -27,6 +27,6 @@ export const meetingsModule: ModuleManifest = {
 	name: 'meetings',
 	version: '1.0.0',
 	dependencies: ['core'],
-	featureFlag: FeatureFlags.MEETINGS_MODULE, // 'meetings-module'
+	featureFlag: MeetingsFeatureFlags.MEETINGS_MODULE, // 'meetings-module'
 	api: undefined as MeetingsModuleAPI | undefined // Type reference for API contract
 };
