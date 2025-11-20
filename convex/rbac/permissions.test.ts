@@ -12,10 +12,13 @@ import { convexTest } from 'convex-test';
 import { expect, test, describe } from 'vitest';
 import schema from '../schema';
 import { api } from '../_generated/api';
+// Import modules from integration test setup (same pattern used by working tests)
+// From convex/rbac/, ../../ goes to root, then tests/convex/integration/test.setup
+import { modules } from '../../tests/convex/integration/test.setup';
 
 describe('RBAC Permission System', () => {
 	test("Admin has all permissions with 'all' scope", async () => {
-		const t = convexTest(schema);
+		const t = convexTest(schema, modules);
 
 		// Create test user
 		const userId = await t.run(async (ctx) => {
@@ -29,7 +32,7 @@ describe('RBAC Permission System', () => {
 		});
 
 		// Seed RBAC data
-		await t.mutation(api.seed.rbac.seedRBAC, {});
+		await t.mutation(api['rbac/seedRBAC'].seedRBAC, {});
 
 		// Assign Admin role
 		const roleId = await t.run(async (ctx) => {
@@ -77,7 +80,7 @@ describe('RBAC Permission System', () => {
 	});
 
 	test('Team Lead can only manage own teams', async () => {
-		const t = convexTest(schema);
+		const t = convexTest(schema, modules);
 
 		// Create team lead user
 		const teamLeadId = await t.run(async (ctx) => {
@@ -102,7 +105,7 @@ describe('RBAC Permission System', () => {
 		});
 
 		// Seed RBAC data
-		await t.mutation(api.seed.rbac.seedRBAC, {});
+		await t.mutation(api['rbac/seedRBAC'].seedRBAC, {});
 
 		// Assign Team Lead role
 		const roleId = await t.run(async (ctx) => {
@@ -152,7 +155,7 @@ describe('RBAC Permission System', () => {
 	});
 
 	test('Multi-role user has permissions from all roles', async () => {
-		const t = convexTest(schema);
+		const t = convexTest(schema, modules);
 
 		// Create user with multiple roles
 		const userId = await t.run(async (ctx) => {
@@ -166,7 +169,7 @@ describe('RBAC Permission System', () => {
 		});
 
 		// Seed RBAC data
-		await t.mutation(api.seed.rbac.seedRBAC, {});
+		await t.mutation(api['rbac/seedRBAC'].seedRBAC, {});
 
 		// Assign Team Lead AND Billing Admin roles
 		const teamLeadRoleId = await t.run(async (ctx) => {
@@ -221,7 +224,7 @@ describe('RBAC Permission System', () => {
 	});
 
 	test('requirePermission throws error when permission denied', async () => {
-		const t = convexTest(schema);
+		const t = convexTest(schema, modules);
 
 		// Create member user
 		const userId = await t.run(async (ctx) => {
@@ -235,7 +238,7 @@ describe('RBAC Permission System', () => {
 		});
 
 		// Seed RBAC data
-		await t.mutation(api.seed.rbac.seedRBAC, {});
+		await t.mutation(api['rbac/seedRBAC'].seedRBAC, {});
 
 		// Assign Member role (cannot create teams)
 		const roleId = await t.run(async (ctx) => {
@@ -265,7 +268,7 @@ describe('RBAC Permission System', () => {
 	});
 
 	test('Permission checks are logged to audit log', async () => {
-		const t = convexTest(schema);
+		const t = convexTest(schema, modules);
 
 		// Create user
 		const userId = await t.run(async (ctx) => {
@@ -279,7 +282,7 @@ describe('RBAC Permission System', () => {
 		});
 
 		// Seed RBAC data
-		await t.mutation(api.seed.rbac.seedRBAC, {});
+		await t.mutation(api['rbac/seedRBAC'].seedRBAC, {});
 
 		// Assign Admin role
 		const roleId = await t.run(async (ctx) => {
