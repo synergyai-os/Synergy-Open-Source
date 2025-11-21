@@ -62,10 +62,10 @@ export const seedRBAC = mutation({
 			'Can manage teams and invite users'
 		);
 
-		const teamLeadRole = await getOrCreateRole(
-			'team-lead',
-			'Team Lead',
-			'Can manage their own teams only'
+		const circleLeadRole = await getOrCreateRole(
+			'circle-lead',
+			'Circle Lead',
+			'Can manage their own circles only'
 		);
 
 		const billingAdminRole = await getOrCreateRole(
@@ -166,61 +166,61 @@ export const seedRBAC = mutation({
 			false
 		);
 
-		// --- Team Management Permissions (7) ---
+		// --- Circle Management Permissions (7) ---
 
 		const teamViewPerm = await getOrCreatePermission(
-			'teams.view',
-			'teams',
+			'circles.view',
+			'circles',
 			'view',
-			'View team details and members',
+			'View circle details and members',
 			true
 		);
 
 		const teamCreatePerm = await getOrCreatePermission(
-			'teams.create',
-			'teams',
+			'circles.create',
+			'circles',
 			'create',
-			'Create new teams',
+			'Create new circles',
 			false
 		);
 
 		const teamUpdatePerm = await getOrCreatePermission(
-			'teams.update',
-			'teams',
+			'circles.update',
+			'circles',
 			'update',
-			'Edit team settings and details',
+			'Edit circle settings and details',
 			true
 		);
 
 		const teamDeletePerm = await getOrCreatePermission(
-			'teams.delete',
-			'teams',
+			'circles.delete',
+			'circles',
 			'delete',
-			'Delete teams',
+			'Delete circles',
 			true
 		);
 
 		const teamAddMembersPerm = await getOrCreatePermission(
-			'teams.add-members',
-			'teams',
+			'circles.add-members',
+			'circles',
 			'add-members',
-			'Add members to teams',
+			'Add members to circles',
 			true
 		);
 
 		const teamRemoveMembersPerm = await getOrCreatePermission(
-			'teams.remove-members',
-			'teams',
+			'circles.remove-members',
+			'circles',
 			'remove-members',
-			'Remove members from teams',
+			'Remove members from circles',
 			true
 		);
 
 		const teamChangeRolesPerm = await getOrCreatePermission(
-			'teams.change-roles',
-			'teams',
+			'circles.change-roles',
+			'circles',
 			'change-roles',
-			'Change member roles within teams',
+			'Change member roles within circles',
 			true
 		);
 
@@ -286,7 +286,7 @@ export const seedRBAC = mutation({
 			mappings.push({ roleId: adminRole, permissionId: permId, scope: 'all' });
 		}
 
-		// --- Manager Role: Team management + user invites (scope: "all" for most) ---
+		// --- Manager Role: Circle management + user invites (scope: "all" for most) ---
 		const managerPermissions = [
 			{ id: userViewPerm, scope: 'all' as const },
 			{ id: userInvitePerm, scope: 'all' as const },
@@ -303,8 +303,8 @@ export const seedRBAC = mutation({
 			mappings.push({ roleId: managerRole, permissionId: perm.id, scope: perm.scope });
 		}
 
-		// --- Team Lead Role: Manage their own teams only (scope: "own") ---
-		const teamLeadPermissions = [
+		// --- Circle Lead Role: Manage their own circles only (scope: "own") ---
+		const circleLeadPermissions = [
 			{ id: userViewPerm, scope: 'all' as const },
 			{ id: userManageProfilePerm, scope: 'own' as const },
 			{ id: teamViewPerm, scope: 'own' as const },
@@ -313,8 +313,8 @@ export const seedRBAC = mutation({
 			{ id: teamRemoveMembersPerm, scope: 'own' as const },
 			{ id: orgViewSettingsPerm, scope: 'all' as const }
 		];
-		for (const perm of teamLeadPermissions) {
-			mappings.push({ roleId: teamLeadRole, permissionId: perm.id, scope: perm.scope });
+		for (const perm of circleLeadPermissions) {
+			mappings.push({ roleId: circleLeadRole, permissionId: perm.id, scope: perm.scope });
 		}
 
 		// --- Billing Admin Role: Billing only ---

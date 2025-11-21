@@ -4,10 +4,12 @@
 # Profile: Chill - Focuses on important issues, less noise
 profile: chill
 
+# Review language/locale (for review output language)
+language: en-US
+
 # Path-specific instructions
-language:
-  - name: typescript
-    path_patterns:
+paths:
+  - path_patterns:
       - 'src/lib/composables/**/*.svelte.ts'
       - 'src/lib/composables/**/*.ts'
     instructions:
@@ -18,8 +20,7 @@ language:
       - 'For reactive values, use function parameters: items: () => Item[]'
       - 'See: dev-docs/2-areas/patterns/svelte-reactivity.md'
 
-  - name: svelte
-    path_patterns:
+  - path_patterns:
       - 'src/lib/components/**/*.svelte'
       - 'src/routes/**/*.svelte'
     instructions:
@@ -31,8 +32,7 @@ language:
       - 'Follow component architecture: Tokens → Utilities → Patterns → Components'
       - 'See: dev-docs/2-areas/component-architecture.md'
 
-  - name: typescript
-    path_patterns:
+  - path_patterns:
       - 'convex/**/*.ts'
     instructions:
       - 'Follow Convex patterns: useQuery, useMutation, useAction'
@@ -78,3 +78,14 @@ review:
   auto_approve:
     enabled: true
     min_approvals: 1
+  # Exclude documentation directories from reviews
+  path_filters:
+    - '!dev-docs/**'
+    - '!marketing-docs/**'
+    - '!ai-content-blog/**'
+    # Exclude root-level documentation files
+    - '!README.md'
+    - '!CONTRIBUTING.md'
+    - '!CODE_OF_CONDUCT.md'
+    - '!LICENSE'
+    - '!*.md' # Exclude any other markdown files in root

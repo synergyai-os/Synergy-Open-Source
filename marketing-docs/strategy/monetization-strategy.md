@@ -393,7 +393,7 @@ SynergyOS follows the **open-core SaaS model** proven by PostHog, Supabase, and 
 - 5% Services (consultants, developers)
 
 **The Path**:
-- Year 1: $45K ARR (validate with Saprolab)
+- Year 1: $45K ARR (validate with Agency Partner)
 - Year 2: $421K ARR (scale to 100 orgs)
 - Year 3: $3.5M ARR (1,000 orgs, industry standard)
 
@@ -409,7 +409,7 @@ SynergyOS follows the **open-core SaaS model** proven by PostHog, Supabase, and 
 - ✅ Cloud hosting infrastructure built
 - ✅ Free tier launched (up to 5 users)
 - ✅ Starter tier launched ($10/user/month)
-- ✅ First paying customer (Saprolab)
+- ✅ First paying customer (Agency Partner)
 - ✅ 10+ organizations using cloud
 
 **Success Metrics**:
@@ -546,7 +546,7 @@ SynergyOS follows the **open-core SaaS model** proven by PostHog, Supabase, and 
 1. Build cloud hosting infrastructure
 2. Launch free tier (up to 5 users)
 3. Launch Starter tier ($10/user/month)
-4. Get first paying customer (Saprolab)
+4. Get first paying customer (Agency Partner)
 5. Scale to 100 organizations
 
 ---

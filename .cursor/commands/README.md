@@ -14,19 +14,23 @@
 
 ## 📊 Optimization Results
 
-| Command              | Before    | After      | Change     | Status                                           |
-| -------------------- | --------- | ---------- | ---------- | ------------------------------------------------ |
-| `/start`             | 368 lines | ~450 lines | +82 lines  | ✅ Modularity validation added (mandatory check) |
-| `/start-new-project` | 755 lines | 594 lines  | -21% (161) | ✅ Optimized                                     |
-| `/save`              | 898 lines | 272 lines  | -70% (626) | ✅ Optimized                                     |
-| `/root-cause`        | 65 lines  | 239 lines  | +174 lines | ✅ Enhanced with "slow = fast" methodology       |
-| `/pr`                | New       | 366 lines  | N/A        | ✅ New command - PR creation workflow            |
-| `/pr-close`          | New       | 415 lines  | N/A        | ✅ New command - Post-merge cleanup workflow     |
-| `/linear`            | 373 lines | 450 lines  | +77 lines  | ✅ Enhanced with Label Selection Guide           |
-| `/linear-subtickets` | 1 line    | 180 lines  | +179 lines | ✅ Enhanced with complete workflow guide         |
-| `/branch`            | 1 line    | 205 lines  | +204 lines | ✅ New command - Branch creation workflow        |
+| Command              | Before    | After      | Change     | Status                                                            |
+| -------------------- | --------- | ---------- | ---------- | ----------------------------------------------------------------- |
+| `/start`             | 368 lines | ~490 lines | +122 lines | ✅ Reference code check added (SYOS-409)                          |
+| `/go`                | New       | ~280 lines | N/A        | ✅ New command - Pattern-first implementation workflow (SYOS-409) |
+| `/start-new-project` | 755 lines | 594 lines  | -21% (161) | ✅ Optimized                                                      |
+| `/save`              | 898 lines | 272 lines  | -70% (626) | ✅ Optimized                                                      |
+| `/root-cause`        | 65 lines  | 239 lines  | +174 lines | ✅ Enhanced with "slow = fast" methodology                        |
+| `/pr`                | New       | 366 lines  | N/A        | ✅ New command - PR creation workflow                             |
+| `/pr-close`          | New       | 415 lines  | N/A        | ✅ New command - Post-merge cleanup workflow                      |
+| `/linear`            | 373 lines | 450 lines  | +77 lines  | ✅ Enhanced with Label Selection Guide                            |
+| `/linear-subtickets` | 1 line    | 180 lines  | +179 lines | ✅ Enhanced with complete workflow guide                          |
+| `/branch`            | 1 line    | 205 lines  | +204 lines | ✅ New command - Branch creation workflow                         |
+| `/manager`           | New       | 450 lines  | N/A        | ✅ New command - Manager/mentor role guide                        |
+| `/test-manual`       | 1 line    | 45 lines   | +44 lines  | ✅ Enhanced - Concise manual test instructions                    |
+| `/task-template`     | New       | 382 lines  | N/A        | ✅ New command - Pre-coding analysis workflow                     |
 
-**Net Change**: ~384 lines removed (626 from `/save` - 174 to `/root-cause` - 148 to `/start`) + 460 lines added (77 to `/linear` + 179 to `/linear-subtickets` + 204 to `/branch`)
+**Net Change**: ~384 lines removed (626 from `/save` - 174 to `/root-cause` - 148 to `/start`) + 954 lines added (77 to `/linear` + 179 to `/linear-subtickets` + 204 to `/branch` + 450 to `/manager` + 44 to `/test-manual`)
 
 ---
 
@@ -148,12 +152,16 @@
 
 ### Universal Commands (Always Available)
 
-- **`/start`** - Onboarding + ticket creation (288 lines)
-- **`/root-cause`** - Debug workflow (65 lines)
+- **`/start`** - Onboarding + ticket creation + reference code loading (~490 lines)
+- **`/go`** - Pattern-first implementation workflow (~280 lines)
+- **`/root-cause`** - Debug workflow (239 lines)
+- **`/manager`** - Manager/mentor role guide (450 lines)
+- **`/test-manual`** - Generate concise manual test instructions (45 lines)
 
 ### Project Workflow Commands
 
 - **`/start-new-project`** - New project setup (594 lines)
+- **`/task-template`** - Generate pre-coding analysis documents (382 lines)
 - **`/save`** - Local knowledge capture, no commit (272 lines)
 - **`/branch`** - Branch creation workflow (205 lines)
 - **`/pr`** - PR creation workflow (366 lines)
@@ -339,6 +347,148 @@
 
 ---
 
-**Last Updated**: 2025-11-19  
+---
+
+### `/manager` Command (2025-02-13)
+
+**Created**: Manager/mentor role guide (new, 450 lines)
+
+- **Role Separation**: Manager guides, user executes - clear boundaries
+- **Manager Responsibilities**: Check state, analyze dependencies, update tickets, provide recommendations
+- **Workflow Patterns**: How to handle "done", "what's next", "check X", ticket updates
+- **Analysis Patterns**: Parallel vs sequential, gap identification, state checking
+- **Communication Style**: Concise, dense, actionable
+- **Project-Agnostic**: Works with any ticket system (references `/start` for ticket system details)
+- **Example Scenarios**: Generic examples applicable to any project
+
+**Why**: Captures successful collaboration pattern where AI acts as manager/mentor (not executor), enabling efficient parallel work and clear progress tracking
+
+**Key Principle**: Manager guides, user executes - clear role separation prevents confusion and enables efficient collaboration
+
+**Optimization** (2025-02-13):
+
+- Made project-agnostic (removed project-specific ticket IDs)
+- References `/start` for ticket system details (no duplication)
+- Generic examples that work for any project
+- Follows best practices: references over duplication, focused scope
+
+---
+
+---
+
+### `/test-manual` Command (2025-02-13)
+
+**Enhanced**: Concise manual test instruction generator (was 1 line, now 45 lines)
+
+- **Format**: Concrete steps with localhost links (`http://127.0.0.1:5173/path`)
+- **Structure**: Title → URL → Numbered steps → Expected results
+- **Guidelines**: Maximum 10 steps, critical paths only, no fluff
+- **Example**: Card clickable variant test (6 steps, direct links)
+
+**Why**: Provides actionable test instructions without verbose explanations, saves time during manual validation
+
+---
+
+### `/go` Command (2025-11-20)
+
+**Created**: Pattern-first implementation workflow (new, ~280 lines)
+
+- **Pattern-First Principle**: Always check patterns (`dev-docs/2-areas/patterns/INDEX.md`) before implementing ⭐
+- **Reference Code Integration**: Uses reference projects loaded during `/start` session
+- **Context7 Integration**: Uses Context7 when <95% confident about approach
+- **Workflow**: Check patterns → Check reference code → Use Context7 (if needed) → Implement
+- **Adaptation Guidance**: Adapt reference code to our codebase (don't copy verbatim)
+- **Documentation**: Documents what patterns/references were used
+
+**Why**: Ensures AI uses existing patterns and working examples instead of reinventing solutions, improves code quality and consistency
+
+**Integration**: Works with `/start` command - Reference code loaded in `/start` is available during `/go` implementation
+
+---
+
+### `/start` Command (2025-11-20)
+
+**Enhanced**: Reference code check added (368 → ~490 lines, +122 lines)
+
+- **Reference Code Check**: Checks `ai-docs/reference/` for relevant projects after ticket status update
+- **Matching Logic**: Matches ticket keywords to project READMEs
+- **Documentation**: Documents reference projects found in investigation findings
+- **Integration**: Reference code available for `/go` command during implementation
+
+**Why**: Enables AI to reference working code examples, reducing "AI code slop" and improving implementation quality
+
+**See**: SYOS-409 - Integrate Reference Code System into `/start` and `/go` commands
+
+---
+
+### `/task-template` Command (2025-11-20)
+
+**Created**: Pre-coding analysis document generator (new, 382 lines)
+
+- **Purpose**: Generate detailed technical analysis before implementation
+- **Structure**: 8-section template (Title, Problem, Approaches, Recommendation, Current State, Requirements, Success Criteria, Checklist)
+- **Key Feature**: Forces AI to consider 2-3 approaches before recommending one
+- **Integration**: Works with `/start` → `/task-template` → `/go` workflow
+- **File Output**: Saves to `ai-docs/tasks/[ticket-id]-[slug].md`
+
+**Why**: Prevents rushing to first solution, documents decision process, improves code quality by forcing pre-coding analysis
+
+---
+
+## 🔀 Manual Multitasking
+
+**Purpose**: Document manual multitasking workflow (Brandon's approach) to complement `/manager` command.
+
+**When to Use Manual Multitasking**:
+
+- ✅ **Quick tasks** (< 30 min) - Faster to open new chat than coordinate via `/manager`
+- ✅ **Independent work** - No dependencies, can work in parallel without coordination
+- ✅ **Exploratory work** - Testing approaches, investigating options
+- ✅ **Simple fixes** - One-file changes, straightforward implementations
+
+**When to Use `/manager` Command**:
+
+- ✅ **Complex coordination** - Multiple tickets with dependencies
+- ✅ **Sequential work** - One ticket blocks another
+- ✅ **Parallel execution** - Need to coordinate multiple agents
+- ✅ **State checking** - Need to verify what's done, what's next
+- ✅ **Gap identification** - Need to find missing tickets or uncovered work
+
+**Manual Multitasking Workflow**:
+
+1. **Open new chat** (`Cmd+T` or `Cmd+N`)
+2. **Start work** with `/start SYOS-XXX` (each chat has its own ticket)
+3. **Work independently** - No coordination needed
+4. **Complete work** - Each chat handles its own ticket
+
+**Keyboard Shortcuts**:
+
+- `Cmd+T` - New chat tab (macOS)
+- `Cmd+N` - New chat window (macOS)
+- `Ctrl+T` - New chat tab (Windows/Linux)
+- `Ctrl+N` - New chat window (Windows/Linux)
+
+**Example Workflow**:
+
+```
+Chat 1: /start SYOS-123 → Working on feature A
+Chat 2: /start SYOS-124 → Working on feature B (independent)
+Chat 3: /start SYOS-125 → Investigating bug C
+
+All three chats work independently, no coordination needed.
+```
+
+**Benefits**:
+
+- ✅ Faster for quick tasks (no coordination overhead)
+- ✅ More flexibility (choose right approach per task)
+- ✅ Less overhead (no manager coordination needed)
+- ✅ Better for exploratory work (test approaches independently)
+
+**See**: `/manager` command for automated coordination workflow
+
+---
+
+**Last Updated**: 2025-11-20  
 **Purpose**: Document command optimizations and best practices  
-**Latest Change**: Enhanced `/validate` with modularity validation checklist (mandatory check)
+**Latest Change**: Added Manual Multitasking documentation (SYOS-412)

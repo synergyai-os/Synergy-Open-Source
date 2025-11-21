@@ -128,13 +128,13 @@ async function performCleanup(ctx: MutationCtx) {
 				// Find matching assignment based on scoping
 				const existing = allKeptRoleAssignments.find((ur) => {
 					if (assignment.organizationId) {
-						return ur.organizationId === assignment.organizationId && !ur.teamId;
+						return ur.organizationId === assignment.organizationId && !ur.circleId;
 					}
-					if (assignment.teamId) {
-						return ur.teamId === assignment.teamId;
+					if (assignment.circleId) {
+						return ur.circleId === assignment.circleId;
 					}
-					// Global role - no org/team
-					return !ur.organizationId && !ur.teamId;
+					// Global role - no org/circle
+					return !ur.organizationId && !ur.circleId;
 				});
 
 				if (existing) {

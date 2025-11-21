@@ -1,0 +1,29 @@
+@import 'tailwindcss';
+
+/* Modular CSS Architecture
+ * 
+ * This file imports all design tokens and utilities from domain-specific files.
+ * 
+ * Structure:
+ * - tokens/ - Design tokens (@theme blocks)
+ * - utilities/ - Utility classes (@utility blocks)
+ * - base.css - Base HTML styles
+ * 
+ * See: SYOS-373 - Split app.css into Modular Architecture
+ */
+
+/* Design Tokens */
+@import './tokens/colors.css';
+@import './tokens/spacing.css';
+@import './tokens/typography.css';
+@import './tokens/sizes.css';
+@import './tokens/effects.css';
+
+/* Utilities */
+@import './utilities/spacing-utils.css';
+@import './utilities/color-utils.css';
+@import './utilities/component-utils.css';
+@import './utilities/typography-utils.css';
+
+/* Base Styles */
+@import './base.css';

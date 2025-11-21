@@ -15,13 +15,13 @@ We organize personas by **role** in the buying and usage cycle:
 
 ---
 
-## Primary Target: Saprolab (Buyer + User)
+## Primary Target: Agency Partner (Buyer + User)
 
 ### Organization Profile
 
 - **Industry**: IT management supplier
 - **Size**: Small-to-medium team (10-50 people)
-- **Clients**: Large non-profits (ZDHC, others)
+- **Clients**: Large non-profits (Client, others)
 - **Business Model**: Build technology and products for clients
 - **Tech Maturity**: High (developers in-house, comfortable with open source)
 
@@ -45,7 +45,7 @@ We organize personas by **role** in the buying and usage cycle:
 - ✅ Replace Holaspirit with something affordable and customizable
 - ✅ Save 70%+ on costs
 - ✅ Customize workflows for our needs
-- ✅ Use internally AND offer to clients (ZDHC)
+- ✅ Use internally AND offer to clients (Client)
 - ✅ Control our data (self-host option)
 
 ### Buying Process
@@ -55,12 +55,12 @@ We organize personas by **role** in the buying and usage cycle:
 3. **Evaluation**: Test with small team internally
 4. **Decision**: Compare cost, customization, risk
 5. **Purchase**: Start with self-hosted or managed service
-6. **Expansion**: Roll out to ZDHC if successful
+6. **Expansion**: Roll out to Client if successful
 
 ### Objections & Concerns
 
 - ❓ "Is this stable enough for production use?"
-- ❓ "Can we customize it for ZDHC's needs?"
+- ❓ "Can we customize it for Client's needs?"
 - ❓ "What happens if the project is abandoned?"
 - ❓ "Can we migrate our data from Holaspirit?"
 - ❓ "Do we have resources to self-host?"
@@ -75,13 +75,13 @@ We organize personas by **role** in the buying and usage cycle:
 
 ---
 
-## Secondary Target: ZDHC (End User)
+## Secondary Target: Client (End User)
 
 ### Organization Profile
 
 - **Industry**: Non-profit (environmental standards for fashion/textiles)
 - **Size**: Large organization, multiple product teams
-- **Tech Maturity**: Medium (IT supplier manages tech for them—Saprolab)
+- **Tech Maturity**: Medium (IT supplier manages tech for them—Agency Partner)
 - **Product Teams**: 1+ teams responsible for multiple products
 - **Pain**: Too many products, unclear roadmaps, misaligned teams
 
@@ -109,7 +109,7 @@ We organize personas by **role** in the buying and usage cycle:
 - ✅ Onboarding new members in days, not weeks
 - ✅ Decisions backed by data and rationale
 
-### User Roles Within ZDHC
+### User Roles Within Client
 
 **Product Manager**:
 
@@ -131,14 +131,14 @@ We organize personas by **role** in the buying and usage cycle:
 - ❓ "Another tool to learn?"
 - ❓ "Will this replace Jira/Notion or add to them?"
 - ❓ "Is our data secure?"
-- ❓ "What if Saprolab stops supporting this?"
+- ❓ "What if Agency Partner stops supporting this?"
 
 ### How We Address
 
 - ✅ Unified platform = replaces 3-5 tools, less to learn
 - ✅ Integrates with existing tools (Jira, Slack) if needed
 - ✅ Privacy-first architecture (self-hosted, encrypted)
-- ✅ Open source = not dependent on Saprolab
+- ✅ Open source = not dependent on Agency Partner
 
 ---
 
@@ -148,7 +148,7 @@ We organize personas by **role** in the buying and usage cycle:
 
 - **Age**: 30-45
 - **Experience**: 5-10 years in product management
-- **Company**: ZDHC or Saprolab
+- **Company**: Client or Agency Partner
 - **Reports to**: Head of Product or CPO
 - **Team size**: Manages 1-2 product teams (5-10 people each)
 
@@ -205,7 +205,7 @@ We organize personas by **role** in the buying and usage cycle:
 - **Age**: 25-40
 - **Role**: Designer, Engineer, or Researcher
 - **Experience**: 3-7 years
-- **Company**: ZDHC or Saprolab
+- **Company**: Client or Agency Partner
 - **Reports to**: Product Manager or Team Lead
 
 ### Day in the Life
@@ -261,7 +261,7 @@ We organize personas by **role** in the buying and usage cycle:
 - **Age**: 35-55
 - **Role**: Head of Product, CTO, or VP Engineering
 - **Experience**: 10+ years
-- **Company**: ZDHC or Saprolab
+- **Company**: Client or Agency Partner
 - **Reports to**: CEO or Board
 
 ### Day in the Life
@@ -349,7 +349,7 @@ We organize personas by **role** in the buying and usage cycle:
 - ✅ **Quick onboarding**: Value in < 1 hour
 - ✅ **Clear differentiation**: Not another Notion, focused on product workflows
 - ✅ **Low risk**: Self-hosted, export data anytime, open source
-- ✅ **Testimonials**: Case studies from Saprolab, ZDHC
+- ✅ **Testimonials**: Case studies from Agency Partner, Client
 
 ---
 
@@ -359,7 +359,7 @@ We organize personas by **role** in the buying and usage cycle:
 
 - **Role**: DevOps, IT, or Engineering Lead
 - **Responsibility**: Deploy, maintain, and customize the platform
-- **Company**: Saprolab (managing for ZDHC)
+- **Company**: Agency Partner (managing for Client)
 
 ### Pain Points
 
@@ -426,13 +426,13 @@ We organize personas by **role** in the buying and usage cycle:
 
 | Persona      | Role            | Company     | Primary Need                     | Success Signal                             |
 | ------------ | --------------- | ----------- | -------------------------------- | ------------------------------------------ |
-| **Saprolab** | Buyer           | IT Supplier | Replace Holaspirit, save costs   | Paying, expanding to ZDHC                  |
-| **ZDHC**     | End User        | Non-profit  | Align teams, ship outcomes       | Daily usage, positive feedback             |
-| **Sarah**    | Product Manager | ZDHC        | Roadmap clarity, research access | 10+ hours/week saved                       |
-| **Alex**     | Team Member     | ZDHC        | Clarity, glossary, onboarding    | 5+ hours/week saved                        |
-| **Jordan**   | Leadership      | ZDHC        | Visibility, alignment, outcomes  | Data-driven decisions                      |
+| **Agency Partner** | Buyer           | IT Supplier | Replace Holaspirit, save costs   | Paying, expanding to Client                  |
+| **Client**     | End User        | Non-profit  | Align teams, ship outcomes       | Daily usage, positive feedback             |
+| **Sarah**    | Product Manager | Client        | Roadmap clarity, research access | 10+ hours/week saved                       |
+| **Alex**     | Team Member     | Client        | Clarity, glossary, onboarding    | 5+ hours/week saved                        |
+| **Jordan**   | Leadership      | Client        | Visibility, alignment, outcomes  | Data-driven decisions                      |
 | **Taylor**   | Champion        | Any         | Advocate for adoption            | Pilot success, budget approved             |
-| **Morgan**   | System Admin    | Saprolab    | Deploy, customize, maintain      | <1 hour deploy, <5 hours/month maintenance |
+| **Morgan**   | System Admin    | Agency Partner    | Deploy, customize, maintain      | <1 hour deploy, <5 hours/month maintenance |
 
 ---
 
@@ -444,7 +444,7 @@ Ask: "Does this serve Sarah, Alex, Jordan, or Taylor's needs?"
 
 ### In Marketing
 
-Speak to **Saprolab** (buyer) and **Taylor** (champion) first. They unlock access to Sarah, Alex, Jordan.
+Speak to **Agency Partner** (buyer) and **Taylor** (champion) first. They unlock access to Sarah, Alex, Jordan.
 
 ### In Design
 
@@ -452,7 +452,7 @@ Optimize for **Alex** (daily user) and **Sarah** (power user). Jordan uses dashb
 
 ### In Pricing
 
-Price for **Saprolab** (buyer), not per-user. Flat rate or self-hosted aligns with their needs.
+Price for **Agency Partner** (buyer), not per-user. Flat rate or self-hosted aligns with their needs.
 
 ---
 

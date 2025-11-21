@@ -2,7 +2,7 @@
  * Organization Mutations Composable
  *
  * Extracted from useOrganizations for testability and maintainability.
- * Handles all CRUD operations for organizations and teams.
+ * Handles all CRUD operations for organizations.
  *
  * Part of SYOS-255 refactoring effort.
  */
@@ -17,7 +17,7 @@ import type { UseLoadingOverlayReturn } from '$lib/modules/core/composables/useL
 import type { Id } from '$lib/convex';
 import type { ConvexClient } from 'convex/browser';
 
-export type ModalKey = 'createOrganization' | 'joinOrganization' | 'createTeam' | 'joinTeam';
+export type ModalKey = 'createOrganization' | 'joinOrganization';
 
 export interface UseOrganizationMutationsOptions {
 	convexClient: ConvexClient | null;
@@ -25,24 +25,17 @@ export interface UseOrganizationMutationsOptions {
 	getUserId: () => string | undefined;
 	activeOrganizationId: () => string | null; // Reactive function to get active org ID
 	setActiveOrganization: (organizationId: string | null) => void;
-	setActiveTeam: (teamId: string | null) => void;
 	closeModal: (key: ModalKey) => void;
 }
 
 export interface UseOrganizationMutationsReturn {
 	createOrganization: (payload: { name: string }) => Promise<void>;
 	joinOrganization: (payload: { code: string }) => Promise<void>;
-	createTeam: (payload: { name: string }) => Promise<void>;
-	joinTeam: (payload: { code: string }) => Promise<void>;
 	acceptOrganizationInvite: (code: string) => Promise<void>;
 	declineOrganizationInvite: (inviteId: string) => Promise<void>;
-	acceptTeamInvite: (code: string) => Promise<void>;
-	declineTeamInvite: (inviteId: string) => Promise<void>;
 	get loading(): {
 		createOrganization: boolean;
 		joinOrganization: boolean;
-		createTeam: boolean;
-		joinTeam: boolean;
 	};
 }
 
@@ -53,18 +46,15 @@ export function useOrganizationMutations(
 		convexClient,
 		getSessionId,
 		getUserId,
-		activeOrganizationId,
+		activeOrganizationId: _activeOrganizationId,
 		setActiveOrganization,
-		setActiveTeam,
 		closeModal
 	} = options;
 
 	// Loading state for each mutation
 	const loadingState = $state({
 		createOrganization: false,
-		joinOrganization: false,
-		createTeam: false,
-		joinTeam: false
+		joinOrganization: false
 	});
 
 	async function createOrganization(payload: { name: string }) {
@@ -171,52 +161,6 @@ export function useOrganizationMutations(
 		}
 	}
 
-	async function createTeam(payload: { name: string }) {
-		if (!convexClient) return;
-		const orgId = activeOrganizationId();
-		if (!orgId) return;
-		const sessionId = getSessionId();
-		if (!sessionId) return;
-		const trimmed = payload.name.trim();
-		if (!trimmed) return;
-
-		try {
-			const result = await convexClient.mutation(api.teams.createTeam, {
-				sessionId,
-				organizationId: orgId as Id<'organizations'>,
-				name: trimmed
-			});
-			if (result?.teamId) {
-				setActiveTeam(result.teamId);
-			}
-		} finally {
-			closeModal('createTeam');
-		}
-	}
-
-	async function joinTeam(payload: { code: string }) {
-		if (!convexClient) return;
-		const sessionId = getSessionId();
-		if (!sessionId) return;
-		const trimmed = payload.code.trim();
-		if (!trimmed) return;
-
-		try {
-			const result = await convexClient.mutation(api.teams.acceptTeamInvite, {
-				sessionId,
-				code: trimmed
-			});
-			if (result?.organizationId) {
-				setActiveOrganization(result.organizationId);
-			}
-			if (result?.teamId) {
-				setActiveTeam(result.teamId);
-			}
-		} finally {
-			closeModal('joinTeam');
-		}
-	}
-
 	async function acceptOrganizationInvite(code: string) {
 		if (!convexClient) return;
 		const sessionId = getSessionId();
@@ -243,50 +187,15 @@ export function useOrganizationMutations(
 		});
 	}
 
-	async function acceptTeamInvite(code: string) {
-		if (!convexClient) return;
-		const sessionId = getSessionId();
-		if (!sessionId) return;
-		const trimmed = code.trim();
-		if (!trimmed) return;
-
-		const result = await convexClient.mutation(api.teams.acceptTeamInvite, {
-			sessionId,
-			code: trimmed
-		});
-		if (result?.organizationId) {
-			setActiveOrganization(result.organizationId);
-		}
-		if (result?.teamId) {
-			setActiveTeam(result.teamId);
-		}
-	}
-
-	async function declineTeamInvite(inviteId: string) {
-		if (!convexClient) return;
-		const sessionId = getSessionId();
-		if (!sessionId) return;
-		await convexClient.mutation(api.teams.declineTeamInvite, {
-			sessionId,
-			inviteId: inviteId as Id<'teamInvites'>
-		});
-	}
-
 	return {
 		createOrganization,
 		joinOrganization,
-		createTeam,
-		joinTeam,
 		acceptOrganizationInvite,
 		declineOrganizationInvite,
-		acceptTeamInvite,
-		declineTeamInvite,
 		get loading() {
 			return {
 				createOrganization: loadingState.createOrganization,
-				joinOrganization: loadingState.joinOrganization,
-				createTeam: loadingState.createTeam,
-				joinTeam: loadingState.joinTeam
+				joinOrganization: loadingState.joinOrganization
 			};
 		}
 	};

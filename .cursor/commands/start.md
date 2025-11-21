@@ -120,6 +120,54 @@ Once I have a ticket ID, I'll proceed with the work.
 
 ## ✅ If Ticket ID Present - Continue Onboarding
 
+**Update ticket status to "In Progress":**
+
+```typescript
+await mcp_Linear_update_issue({
+	id: 'SYOS-XXX', // Use the ticket ID from conversation
+	state: 'In Progress'
+});
+```
+
+**Then continue with onboarding below...**
+
+---
+
+## 📚 Reference Code Check (After Ticket Status Update)
+
+**Purpose**: Check for relevant reference code projects that AI can use when implementing features.
+
+**When**: After updating ticket status to "In Progress", before investigation.
+
+**Workflow**:
+
+1. **List reference projects**:
+
+   ```typescript
+   // List directories in ai-docs/reference/
+   const referenceProjects = list_dir('ai-docs/reference');
+   // Filter out README.md, get project folders
+   ```
+
+2. **Match ticket to reference projects**:
+   - Read ticket title and description
+   - Check each project's README.md for keywords/topics
+   - Match ticket keywords to project descriptions
+   - Example: Ticket about "chat" → Check for `vercel-ai-sdk-chat/` project
+
+3. **If match found**:
+   - Load reference project README.md
+   - Document in investigation findings: "Found reference project: [project-name] - [what it demonstrates]"
+   - Note: Reference code will be used during `/go` implementation
+
+4. **If no match**:
+   - Continue normally (no reference code available)
+   - Document: "No relevant reference projects found"
+
+**Reference Code System**: See `ai-docs/reference/README.md` for structure and usage
+
+**Integration**: Reference code loaded here will be available during `/go` implementation phase
+
 ---
 
 ## ⚠️ CRITICAL: Communication Style
@@ -347,14 +395,15 @@ const isEnabled = useFeatureFlag(NEW_MODULE_FLAG, organizationId);
 1. **🚨 Linear Required** - **REFUSE to work without Linear project/ticket** ⭐ **CRITICAL**
 2. **Coding Standards** - Read `dev-docs/2-areas/development/coding-standards.md` FIRST ⭐
 3. **🔧 Modularity Validation** - Validate architecture before coding ⭐ **MANDATORY**
-4. **Communication** - Short, dense, concise
-5. **No auto-docs** - Never create docs unless asked
-6. **Product Principles** - Read first, outcomes over outputs
-7. **Business Language** - Avoid jargon in project names
-8. **Investigate first** - Understand before acting
-9. **Confirm before building** - Scope, plan, validate architecture, get approval
-10. **Context7 first** - For library docs before web search
-11. **Domain**: Production domain is `www.synergyos.ai` (not synergyos.dev or synergyos.ai)
+4. **Design System** - Use design tokens, atomic components, follow governance docs ⭐
+5. **Communication** - Short, dense, concise
+6. **No auto-docs** - Never create docs unless asked
+7. **Product Principles** - Read first, outcomes over outputs
+8. **Business Language** - Avoid jargon in project names
+9. **Investigate first** - Understand before acting
+10. **Confirm before building** - Scope, plan, validate architecture, get approval
+11. **Context7 first** - For library docs before web search
+12. **Domain**: Production domain is `www.synergyos.ai` (not synergyos.dev or synergyos.ai)
 
 ---
 
@@ -369,6 +418,14 @@ const isEnabled = useFeatureFlag(NEW_MODULE_FLAG, organizationId);
 3. **`dev-docs/2-areas/product/product-principles.md`** ⭐ - How we make decisions (Outcomes Over Outputs, Privacy First, etc.)
 4. **`.cursor/rules/way-of-working.mdc`** - Project overview, tech stack, conventions
 5. **`dev-docs/2-areas/patterns/INDEX.md`** - Existing solutions, don't reinvent
+
+**Design System Governance** (when working with UI/components):
+
+- **`dev-docs/2-areas/design/quick-start.md`** ⭐ - 5-minute setup guide for new developers
+- **`dev-docs/2-areas/design/component-architecture.md`** - Component structure and anti-patterns
+- **`dev-docs/2-areas/design/design-tokens.md`** - Complete token reference
+- **`dev-docs/2-areas/design/migration-guide.md`** - Step-by-step migration instructions
+- **`dev-docs/2-areas/design/deprecation-policy.md`** - Token/component deprecation process
 
 **Key principles:**
 

@@ -224,7 +224,7 @@ accountLinks: defineTable({
 3. **Account Linking**:
    - Support multiple emails (personal + work accounts)
    - Enable account switcher UI (CMD+1, CMD+2, CMD+3 like Slack)
-   - `randy@personal.com`, `randy@saprolab.com`, `randy@synergyai.nl`
+   - `randy@personal.com`, `randy@Agency Partner.com`, `randy@synergyai.nl`
 
 ### Index Strategy
 
@@ -242,13 +242,13 @@ accountLinks: defineTable({
 
 ```
 User: randy@synergyai.nl
-├─ 🏢 Saprolab (Organization)
+├─ 🏢 Agency Partner (Organization)
 │   ├─ Personal content (ownershipType = "user", org-scoped)
 │   │   ├─ My flashcards (ownershipType = "user")
 │   │   ├─ My notes (ownershipType = "user")
 │   │   └─ User-owned but scoped to org ✅
 │   ├─ Org glossary (ownershipType = "organization")
-│   ├─ 👥 Team: ZDHC (Team within org)
+│   ├─ 👥 Team: Client (Team within org)
 │   │   ├─ Team roadmap (ownershipType = "team")
 │   │   └─ User research (stays if user leaves) ✅
 │   └─ 👥 Team: Internal Ops
@@ -830,11 +830,11 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
 ├─────────────────────────────────────┤
 │  ● Randy Hereman (Personal)         │  ← CMD+1 (Active)
 │    randy@synergyai.nl               │
-│    🏢 Saprolab (Organization)       │
+│    🏢 Agency Partner (Organization)       │
 │                                     │
-│  ○ Randy @ Saprolab                 │  ← CMD+2
-│    randy@saprolab.com               │
-│    🏢 ZDHC Team • Internal Ops      │
+│  ○ Randy @ Agency Partner                 │  ← CMD+2
+│    randy@Agency Partner.com               │
+│    🏢 Client Team • Internal Ops      │
 │                                     │
 │  ○ Randy @ SynergyAI                │  ← CMD+3
 │    randy@synergyai.com              │
@@ -849,7 +849,7 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
 1. **Multiple Emails = Multiple Accounts**
    - Each email creates separate user record
    - `randy@personal.com` → `user_123`
-   - `randy@saprolab.com` → `user_456`
+   - `randy@Agency Partner.com` → `user_456`
    - `randy@synergyai.nl` → `user_789`
 
 2. **Account Linking**
@@ -872,7 +872,7 @@ export const GET: RequestHandler = async ({ cookies, url }) => {
      "wos-user": {
        "userId": "user_123",  // Active account
        "linkedAccounts": [
-         { "userId": "user_456", "email": "randy@saprolab.com" },
+         { "userId": "user_456", "email": "randy@Agency Partner.com" },
          { "userId": "user_789", "email": "randy@synergyai.nl" }
        ]
      }

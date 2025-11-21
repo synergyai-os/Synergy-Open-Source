@@ -177,6 +177,30 @@ PUBLIC_POSTHOG_KEY=your-posthog-key
 PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 ```
 
+### For CodeRabbit CLI (Code Reviews)
+
+**Optional but recommended** - Review code locally before committing:
+
+```bash
+# Install CodeRabbit CLI
+./scripts/install-coderabbit-cli.sh
+
+# Or install manually
+curl -fsSL https://cli.coderabbit.ai/install.sh | sh
+```
+
+**Usage:**
+
+```bash
+# Review uncommitted changes before committing
+npm run review:staged
+
+# Review all changes
+npm run review
+```
+
+**See:** [CodeRabbit Integration Guide](tools/coderabbit-integration.md) for full documentation.
+
 ---
 
 ## 🆘 Still Stuck?

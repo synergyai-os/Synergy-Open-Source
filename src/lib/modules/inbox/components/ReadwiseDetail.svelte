@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Button, DropdownMenu, Tooltip } from 'bits-ui';
+	import { DropdownMenu, Tooltip } from 'bits-ui';
+	import { Button } from '$lib/components/ui';
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
@@ -390,13 +391,8 @@
 	>
 		<!-- Left: Back Button + Title -->
 		<div class="flex items-center gap-icon">
-			<button
-				type="button"
-				class="flex items-center gap-icon rounded-md px-nav-item py-nav-item text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
-				onclick={onClose}
-				aria-label="Back to inbox"
-			>
-				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<Button variant="outline" size="sm" onclick={onClose} ariaLabel="Back to inbox">
+				<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -404,9 +400,9 @@
 						d="M15 19l-7-7 7-7"
 					/>
 				</svg>
-				<span class="text-sm">Back</span>
-			</button>
-			<h2 class="text-sm font-normal text-secondary">Readwise Highlight</h2>
+				<span class="text-small">Back</span>
+			</Button>
+			<h2 class="text-small font-normal text-secondary">Readwise Highlight</h2>
 		</div>
 
 		<!-- Right: Pagination + Actions Menu -->
@@ -414,27 +410,27 @@
 			<!-- Pagination Control -->
 			{#if totalItems > 0 && (onNext || onPrevious)}
 				<Tooltip.Provider delayDuration={300}>
-					<div class="flex items-center gap-2">
+					<div class="flex items-center gap-icon">
 						<!-- Page Counter: Current in primary, slash/total in secondary -->
-						<div class="flex items-center gap-0.5">
-							<span class="text-sm font-normal text-primary">{currentPosition}</span>
-							<span class="text-sm font-normal text-secondary">/</span>
-							<span class="text-sm font-normal text-secondary">{totalItems}</span>
+						<div class="flex items-center gap-control-item-gap">
+							<span class="text-small font-normal text-primary">{currentPosition}</span>
+							<span class="text-small font-normal text-secondary">/</span>
+							<span class="text-small font-normal text-secondary">{totalItems}</span>
 						</div>
 
 						<!-- Chevron Down (Next) - Primary color when enabled -->
 						<Tooltip.Root>
 							<Tooltip.Trigger>
 								{#snippet child({ props })}
-									<button
+									<Button
 										{...props}
-										type="button"
-										class="flex h-6 w-6 items-center justify-center rounded-md text-primary transition-colors hover:bg-hover-solid disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+										variant="outline"
+										iconOnly
+										ariaLabel="Next item (J)"
 										onclick={() => onNext?.()}
 										disabled={!canNavigateNext}
-										aria-label="Next item (J)"
 									>
-										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -442,18 +438,18 @@
 												d="M19 9l-7 7-7-7"
 											/>
 										</svg>
-									</button>
+									</Button>
 								{/snippet}
 							</Tooltip.Trigger>
 							<Tooltip.Portal>
 								<Tooltip.Content
-									class="z-50 flex items-center gap-2 rounded-md border border-base bg-elevated px-3 py-1.5 shadow-lg"
+									class="z-50 flex items-center gap-icon rounded-button border border-base bg-elevated px-inbox-card py-nav-item shadow-card"
 									side="bottom"
 									sideOffset={6}
 								>
-									<span class="text-sm text-primary">Navigate down</span>
+									<span class="text-small text-primary">Navigate down</span>
 									<span
-										class="min-w-[1.25rem] rounded border border-base bg-base px-1.5 py-0.5 text-center text-sm font-medium text-primary"
+										class="min-w-badge rounded border border-base bg-base px-badge py-badge text-center text-small font-medium text-primary"
 									>
 										J
 									</span>
@@ -465,15 +461,15 @@
 						<Tooltip.Root>
 							<Tooltip.Trigger>
 								{#snippet child({ props })}
-									<button
+									<Button
 										{...props}
-										type="button"
-										class="flex h-6 w-6 items-center justify-center rounded-md text-secondary transition-colors hover:bg-hover-solid disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+										variant="outline"
+										iconOnly
+										ariaLabel="Previous item (K)"
 										onclick={() => onPrevious?.()}
 										disabled={!canNavigatePrevious}
-										aria-label="Previous item (K)"
 									>
-										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -481,18 +477,18 @@
 												d="M5 15l7-7 7 7"
 											/>
 										</svg>
-									</button>
+									</Button>
 								{/snippet}
 							</Tooltip.Trigger>
 							<Tooltip.Portal>
 								<Tooltip.Content
-									class="z-50 flex items-center gap-2 rounded-md border border-base bg-elevated px-3 py-1.5 shadow-lg"
+									class="z-50 flex items-center gap-icon rounded-button border border-base bg-elevated px-inbox-card py-nav-item shadow-card"
 									side="bottom"
 									sideOffset={6}
 								>
-									<span class="text-sm text-primary">Navigate up</span>
+									<span class="text-small text-primary">Navigate up</span>
 									<span
-										class="min-w-[1.25rem] rounded border border-base bg-base px-1.5 py-0.5 text-center text-sm font-medium text-primary"
+										class="min-w-badge rounded border border-base bg-base px-badge py-badge text-center text-small font-medium text-primary"
 									>
 										K
 									</span>
@@ -506,10 +502,10 @@
 			<DropdownMenu.Root bind:open={headerMenuOpen}>
 				<DropdownMenu.Trigger
 					type="button"
-					class="flex h-8 w-8 items-center justify-center rounded-md text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
+					class="flex icon-xl items-center justify-center rounded-button text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
 					aria-label="More options"
 				>
-					<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -521,13 +517,13 @@
 
 				<DropdownMenu.Portal>
 					<DropdownMenu.Content
-						class="z-50 min-w-[180px] rounded-md border border-base bg-elevated py-1 shadow-lg"
+						class="z-50 min-w-dropdown rounded-button border border-base bg-elevated py-badge shadow-card"
 						side="bottom"
 						align="end"
 						sideOffset={4}
 					>
 						<DropdownMenu.Item
-							class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+							class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-small text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 							textValue="Skip"
 							onSelect={() => {
 								handleSkip();
@@ -550,14 +546,14 @@
 			<div class="mx-auto max-w-readable px-inbox-container py-inbox-container">
 				<!-- Hero Highlight Text - Always Visible, Top Priority -->
 				{#if item?.highlight}
-					<div class="mt-8 mb-16">
+					<div class="mt-content-section mb-marketing-content">
 						<!-- Quote-style container with subtle background and left accent -->
 						<div
-							class="relative rounded-lg border-l-4 border-accent-primary bg-surface py-readable-quote pr-inbox-container pl-inbox-container"
+							class="relative rounded-card border-l-4 border-accent-primary bg-surface py-readable-quote pr-inbox-container pl-inbox-container"
 						>
 							<!-- Quote mark (decorative, subtle) -->
 							<div class="absolute top-6 left-6 text-accent-primary opacity-10">
-								<svg class="h-20 w-20" fill="currentColor" viewBox="0 0 24 24">
+								<svg class="size-quote-decoration" fill="currentColor" viewBox="0 0 24 24">
 									<path
 										d="M14.017 21v-7.391c0-5.522-4.477-10-10-10v-2.609c0-5.522 4.477-10 10-10h7.017v21h-7.017zm-10 0v-7.391c0-5.522-4.477-10-10-10v-2.609c0-5.522 4.477-10 10-10h7.017v21h-7.017z"
 									/>
@@ -565,7 +561,7 @@
 							</div>
 							<!-- Highlight Text - Hero size, reading optimized for ADHD/focus-challenged -->
 							<p
-								class="relative z-10 max-w-none text-2xl leading-readable font-normal tracking-readable text-primary sm:text-3xl"
+								class="relative z-10 max-w-none text-h1 leading-readable font-normal tracking-readable text-primary sm:text-h1"
 							>
 								{item.highlight.text}
 							</p>
@@ -576,18 +572,22 @@
 		</div>
 
 		<!-- Right Sidebar - Metadata & Actions -->
-		<div class="w-64 flex-shrink-0 overflow-y-auto border-l border-base bg-surface">
-			<div class="space-y-6 p-inbox-container">
+		<div class="w-sidebar-detail flex-shrink-0 overflow-y-auto border-l border-base bg-surface">
+			<div class="flex flex-col gap-settings-section px-inbox-container py-inbox-container">
 				<!-- Source Info -->
 				{#if item?.source}
 					<div>
-						<p class="mb-2 text-xs font-medium tracking-wider text-secondary uppercase">Source</p>
-						<div class="space-y-1">
-							<h3 class="text-sm font-semibold text-primary">{item.source.title}</h3>
+						<p
+							class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
+						>
+							Source
+						</p>
+						<div class="flex flex-col gap-control-item-gap">
+							<h3 class="text-small font-semibold text-primary">{item.source.title}</h3>
 							{#if item.author}
-								<p class="text-xs text-secondary">by {item.author.displayName}</p>
+								<p class="text-label text-secondary">by {item.author.displayName}</p>
 							{:else if item.authors && item.authors.length > 0}
-								<p class="text-xs text-secondary">
+								<p class="text-label text-secondary">
 									by {item.authors
 										.map((a) => a?.displayName)
 										.filter(Boolean)
@@ -611,52 +611,67 @@
 						/>
 					{:else}
 						<div>
-							<p class="mb-2 text-xs font-medium tracking-wider text-secondary uppercase">Tags</p>
-							<p class="text-sm text-tertiary">
+							<p
+								class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
+							>
+								Tags
+							</p>
+							<p class="text-small text-tertiary">
 								Tags API not available yet. Restart Convex dev server to regenerate API.
 							</p>
 						</div>
 					{/if}
 				{:else}
 					<div>
-						<p class="mb-2 text-xs font-medium tracking-wider text-secondary uppercase">Tags</p>
-						<p class="text-sm text-tertiary">No highlight ID available</p>
+						<p
+							class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
+						>
+							Tags
+						</p>
+						<p class="text-small text-tertiary">No highlight ID available</p>
 					</div>
 				{/if}
 
 				<!-- Actions (Sidebar) -->
 				<div>
-					<p class="mb-2 text-xs font-medium tracking-wider text-secondary uppercase">Actions</p>
-					<div class="space-y-2">
-						<Button.Root
-							onclick={handleSkip}
-							class="w-full rounded-lg bg-hover-solid px-3 py-2 text-sm font-medium text-secondary transition-all duration-150 hover:bg-hover"
-						>
-							⏭️ Skip
-						</Button.Root>
+					<p
+						class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
+					>
+						Actions
+					</p>
+					<div class="flex flex-col gap-icon">
+						<Button variant="outline" onclick={handleSkip}>⏭️ Skip</Button>
 					</div>
 				</div>
 
 				<!-- Note -->
 				{#if item?.highlight?.note}
 					<div>
-						<p class="mb-2 text-xs font-medium tracking-wider text-secondary uppercase">Note</p>
-						<p class="text-xs leading-relaxed text-secondary">{item.highlight.note}</p>
+						<p
+							class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
+						>
+							Note
+						</p>
+						<p class="text-label leading-relaxed text-secondary">{item.highlight.note}</p>
 					</div>
 				{/if}
 
 				<!-- External Link -->
 				{#if item?.highlight?.externalUrl}
 					<div>
-						<p class="mb-2 text-xs font-medium tracking-wider text-secondary uppercase">Links</p>
+						<p
+							class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
+						>
+							Links
+						</p>
 						<a
 							href={item.highlight.externalUrl}
 							target="_blank"
 							rel="noopener noreferrer"
-							class="flex items-center gap-icon text-xs text-primary transition-colors hover:text-secondary"
+							class="flex items-center gap-icon text-label text-primary transition-colors hover:text-secondary"
 						>
 							<span>View in Readwise</span>
-							<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -670,13 +685,13 @@
 
 				<!-- Metadata (Collapsed by default, subtle) -->
 				{#if item?.createdAt}
-					<div class="border-t border-base pt-6">
-						<div class="flex flex-col gap-1">
-							<span class="text-xs text-tertiary"
+					<div class="border-t border-base pt-content-section">
+						<div class="flex flex-col gap-control-item-gap">
+							<span class="text-label text-tertiary"
 								>Added {new Date(item.createdAt).toLocaleDateString()}</span
 							>
 							{#if item?._id}
-								<span class="font-mono text-xs text-tertiary">ID: {item._id}</span>
+								<span class="font-mono text-label text-tertiary">ID: {item._id}</span>
 							{/if}
 						</div>
 					</div>

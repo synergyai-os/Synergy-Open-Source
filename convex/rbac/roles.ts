@@ -20,7 +20,7 @@ export const assignRole = mutation({
 		userId: v.id('users'),
 		roleSlug: v.string(),
 		organizationId: v.optional(v.id('organizations')),
-		teamId: v.optional(v.id('teams')),
+		circleId: v.optional(v.id('circles')),
 		resourceType: v.optional(v.string()),
 		resourceId: v.optional(v.string()),
 		expiresAt: v.optional(v.number())
@@ -34,7 +34,7 @@ export const assignRole = mutation({
 		// Check permission
 		await requirePermission(ctx, actingUserId, 'users.change-roles', {
 			organizationId: args.organizationId,
-			teamId: args.teamId
+			circleId: args.circleId
 		});
 
 		// Get role by slug
@@ -58,8 +58,8 @@ export const assignRole = mutation({
 					filter = q.and(filter, q.eq(q.field('organizationId'), args.organizationId));
 				}
 
-				if (args.teamId) {
-					filter = q.and(filter, q.eq(q.field('teamId'), args.teamId));
+				if (args.circleId) {
+					filter = q.and(filter, q.eq(q.field('circleId'), args.circleId));
 				}
 
 				return filter;
@@ -75,7 +75,7 @@ export const assignRole = mutation({
 			userId: args.userId,
 			roleId: role._id,
 			organizationId: args.organizationId,
-			teamId: args.teamId,
+			circleId: args.circleId,
 			resourceType: args.resourceType,
 			resourceId: args.resourceId,
 			assignedBy: actingUserId,
@@ -111,7 +111,7 @@ export const revokeRole = mutation({
 		// Check permission
 		await requirePermission(ctx, actingUserId, 'users.change-roles', {
 			organizationId: userRole.organizationId,
-			teamId: userRole.teamId
+			circleId: userRole.circleId
 		});
 
 		// Mark as revoked
@@ -130,7 +130,7 @@ export const getUserRoles = query({
 	args: {
 		sessionId: v.string(), // Session validation (derives userId securely)
 		organizationId: v.optional(v.id('organizations')),
-		teamId: v.optional(v.id('teams'))
+		circleId: v.optional(v.id('circles'))
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
@@ -150,7 +150,7 @@ export const getUserRoles = query({
 				return false;
 			}
 
-			if (args.teamId && ur.teamId && ur.teamId !== args.teamId) {
+			if (args.circleId && ur.circleId && ur.circleId !== args.circleId) {
 				return false;
 			}
 
@@ -166,7 +166,7 @@ export const getUserRoles = query({
 					roleSlug: role?.slug,
 					roleName: role?.name,
 					organizationId: ur.organizationId,
-					teamId: ur.teamId,
+					circleId: ur.circleId,
 					assignedAt: ur.assignedAt,
 					expiresAt: ur.expiresAt
 				};

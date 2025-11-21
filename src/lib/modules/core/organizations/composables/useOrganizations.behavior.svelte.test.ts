@@ -373,15 +373,11 @@ describe('useOrganizations - Behavior Tests', () => {
 			// Wait for initial setup
 			await new Promise((resolve) => setTimeout(resolve, 100));
 
-			// Set active team
-			composable.setActiveTeam('team-1');
-			expect(composable.activeTeamId).toBe('team-1');
-
 			// Switch organization
 			composable.setActiveOrganization('org-2');
 
-			// Team should be cleared
-			expect(composable.activeTeamId).toBe(null);
+			// Organization should be switched
+			expect(composable.activeOrganizationId).toBe('org-2');
 		});
 	});
 });

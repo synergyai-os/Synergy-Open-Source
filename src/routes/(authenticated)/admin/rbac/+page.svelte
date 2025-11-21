@@ -437,12 +437,12 @@
 		class="flex h-system-header flex-shrink-0 items-center justify-between border-b border-base px-inbox-container py-system-header"
 	>
 		<div>
-			<h1 class="text-2xl font-bold text-primary">RBAC Management</h1>
-			<p class="mt-1 text-sm text-secondary">
+			<h1 class="text-h2 font-bold text-primary">RBAC Management</h1>
+			<p class="mt-form-field-gap text-small text-secondary">
 				Manage roles, permissions, and user-role assignments
 			</p>
 		</div>
-		<div class="flex items-center gap-2">
+		<div class="flex items-center gap-icon">
 			<Button variant="primary" onclick={() => console.log('Create Role')}>Create Role</Button>
 		</div>
 	</header>
@@ -450,18 +450,18 @@
 	<!-- Main Content -->
 	<main class="flex-1 overflow-y-auto px-inbox-container py-system-content">
 		<!-- Overview Cards -->
-		<div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+		<div class="mb-content-padding grid grid-cols-1 gap-content-section md:grid-cols-3">
 			<button
 				type="button"
 				onclick={() => {
 					activeTab = 'roles';
 					roleTypeFilter = 'all';
 				}}
-				class="rounded-lg border border-base bg-surface p-4 text-left transition-colors hover:bg-hover-solid"
+				class="rounded-card border border-base bg-surface px-card py-card text-left transition-colors hover:bg-hover-solid"
 			>
-				<p class="text-xs text-tertiary">Total Roles</p>
-				<p class="mt-1 text-2xl font-semibold text-primary">{totalRoles}</p>
-				<p class="mt-1 text-xs text-secondary">
+				<p class="text-label text-tertiary">Total Roles</p>
+				<p class="mt-form-field-gap text-h2 font-semibold text-primary">{totalRoles}</p>
+				<p class="mt-form-field-gap text-label text-secondary">
 					{systemRolesCount} system, {customRolesCount} custom
 				</p>
 			</button>
@@ -471,11 +471,11 @@
 				onclick={() => {
 					activeTab = 'permissions';
 				}}
-				class="rounded-lg border border-base bg-surface p-4 text-left transition-colors hover:bg-hover-solid"
+				class="rounded-card border border-base bg-surface px-card py-card text-left transition-colors hover:bg-hover-solid"
 			>
-				<p class="text-xs text-tertiary">Total Permissions</p>
-				<p class="mt-1 text-2xl font-semibold text-primary">{totalPermissions}</p>
-				<p class="mt-1 text-xs text-secondary">
+				<p class="text-label text-tertiary">Total Permissions</p>
+				<p class="mt-form-field-gap text-h2 font-semibold text-primary">{totalPermissions}</p>
+				<p class="mt-form-field-gap text-label text-secondary">
 					{permissionCategories} categories
 				</p>
 			</button>
@@ -485,17 +485,17 @@
 				onclick={() => {
 					activeTab = 'assignments';
 				}}
-				class="rounded-lg border border-base bg-surface p-4 text-left transition-colors hover:bg-hover-solid"
+				class="rounded-card border border-base bg-surface px-card py-card text-left transition-colors hover:bg-hover-solid"
 			>
-				<p class="text-xs text-tertiary">Active Assignments</p>
-				<p class="mt-1 text-2xl font-semibold text-primary">{activeAssignments}</p>
-				<p class="mt-1 text-xs text-secondary">User-role assignments</p>
+				<p class="text-label text-tertiary">Active Assignments</p>
+				<p class="mt-form-field-gap text-h2 font-semibold text-primary">{activeAssignments}</p>
+				<p class="mt-form-field-gap text-label text-secondary">User-role assignments</p>
 			</button>
 		</div>
 
 		<!-- Quick Actions Bar -->
 		<div
-			class="mb-6 flex flex-wrap items-center gap-2 rounded-lg border border-base bg-surface p-4"
+			class="mb-content-padding flex flex-wrap items-center gap-icon rounded-card border border-base bg-surface px-card py-card"
 		>
 			<Button variant="primary" onclick={() => (createRoleModalOpen = true)}>Create Role</Button>
 			<Button variant="secondary" onclick={() => (createPermissionModalOpen = true)}>
@@ -507,7 +507,7 @@
 			<a
 				href="/dev-docs/2-areas/rbac/RBAC-SUMMARY"
 				target="_blank"
-				class="ml-auto text-sm text-secondary hover:text-primary hover:underline"
+				class="ml-auto text-small text-secondary hover:text-primary hover:underline"
 			>
 				View Documentation →
 			</a>
@@ -515,17 +515,19 @@
 
 		<!-- Guidance Card -->
 		{#if !guidanceDismissed}
-			<div class="mb-6 rounded-lg border border-accent-primary/20 bg-accent-primary/5 p-4">
-				<div class="flex items-start justify-between gap-4">
+			<div
+				class="mb-content-padding rounded-card border border-accent-primary/20 bg-accent-primary/5 px-card py-card"
+			>
+				<div class="flex items-start justify-between gap-content-section">
 					<div class="flex-1">
-						<h3 class="mb-2 text-sm font-semibold text-primary">What is RBAC?</h3>
-						<p class="mb-2 text-sm text-secondary">
+						<h3 class="mb-content-section text-small font-semibold text-primary">What is RBAC?</h3>
+						<p class="mb-content-section text-small text-secondary">
 							Roles define what users can do in SynergyOS. Each role has permissions that grant
 							access to specific features.
 						</p>
-						<div class="text-sm text-secondary">
-							<p class="mb-1 font-medium">Common Tasks:</p>
-							<ul class="ml-4 list-disc space-y-1">
+						<div class="text-small text-secondary">
+							<p class="mb-form-field-gap font-medium">Common Tasks:</p>
+							<ul class="ml-content-section list-disc space-y-form-field-gap">
 								<li>Create custom roles for your organization</li>
 								<li>Assign roles to users to grant permissions</li>
 								<li>View permissions to understand what each role can do</li>
@@ -538,7 +540,7 @@
 						class="flex-shrink-0 text-tertiary hover:text-primary"
 						aria-label="Dismiss guidance"
 					>
-						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -552,377 +554,408 @@
 		{/if}
 
 		<!-- Tabs -->
-		<Tabs
-			tabs={[
-				{ value: 'roles', label: `Roles (${roles.length})` },
-				{ value: 'permissions', label: `Permissions (${totalPermissions})` },
-				{ value: 'analytics', label: 'Analytics' }
-			]}
-			bind:value={activeTab}
-		>
-			{#snippet children(tabValue)}
-				{#if tabValue === 'roles'}
-					<!-- Roles Tab -->
-					<div class="flex flex-col gap-6">
-						<!-- Search and Filter Bar -->
-						<div class="flex items-center gap-2">
-							<div class="flex-1">
-								<FormInput
-									placeholder="Search roles by name, slug, or description..."
-									bind:value={rolesSearch}
-									class="w-full"
-								/>
-							</div>
-							<select
-								bind:value={roleTypeFilter}
-								class="rounded-input border border-base bg-input px-input-x py-input-y text-sm text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
-							>
-								<option value="all">All Types</option>
-								<option value="system">System</option>
-								<option value="custom">Custom</option>
-							</select>
-						</div>
+		<Tabs.Root bind:value={activeTab}>
+			<Tabs.List class="flex size-tab rounded-tab-container border-b border-border-base">
+				<Tabs.Trigger
+					value="roles"
+					class="border-b-2 border-transparent px-form-section py-header text-button font-medium text-text-secondary transition-colors hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+				>
+					Roles ({roles.length})
+				</Tabs.Trigger>
+				<Tabs.Trigger
+					value="permissions"
+					class="border-b-2 border-transparent px-form-section py-header text-button font-medium text-text-secondary transition-colors hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+				>
+					Permissions ({totalPermissions})
+				</Tabs.Trigger>
+				<Tabs.Trigger
+					value="analytics"
+					class="border-b-2 border-transparent px-form-section py-header text-button font-medium text-text-secondary transition-colors hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+				>
+					Analytics
+				</Tabs.Trigger>
+			</Tabs.List>
 
-						<!-- Roles Display -->
-						{#if filteredRoles.length === 0}
-							<div class="flex flex-col items-center justify-center py-12 text-center">
-								<p class="mb-2 text-lg font-medium text-secondary">
-									{rolesSearch.trim() || roleTypeFilter !== 'all'
-										? 'No roles match your filters'
-										: 'No roles yet'}
-								</p>
-								<p class="text-sm text-tertiary">
-									{rolesSearch.trim() || roleTypeFilter !== 'all'
-										? 'Try adjusting your search or filter criteria'
-										: 'Create your first role to get started'}
-								</p>
-							</div>
-						{:else}
-							<!-- System Roles -->
-							{#if systemRoles.length > 0 && (roleTypeFilter === 'all' || roleTypeFilter === 'system')}
-								<div class="flex flex-col gap-4">
-									<div class="flex items-center justify-between">
-										<h2 class="text-lg font-semibold text-primary">
-											System Roles ({systemRoles.length})
-										</h2>
-										<p class="text-sm text-secondary">Built-in roles that cannot be modified</p>
-									</div>
-									<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-										{#each systemRoles as role (role._id)}
-											<div
-												class="group flex flex-col gap-3 rounded-lg border border-base bg-surface p-4 transition-colors hover:border-accent-primary hover:bg-hover-solid"
-											>
-												<div class="flex items-start justify-between">
-													<div class="flex-1">
-														<h3 class="font-semibold text-primary">{role.name}</h3>
-														<p class="mt-1 font-mono text-xs text-tertiary">{role.slug}</p>
-													</div>
-													<Badge variant="system">System</Badge>
-												</div>
-												<p class="line-clamp-2 text-sm text-secondary">{role.description}</p>
-												<div class="flex items-center justify-between">
-													<span class="text-xs text-tertiary">
-														{role.permissionCount} permission{role.permissionCount !== 1 ? 's' : ''}
-													</span>
-													<button
-														type="button"
-														onclick={() => showRoleDetails(role)}
-														class="text-xs text-accent-primary hover:underline"
-													>
-														View Details
-													</button>
-												</div>
-											</div>
-										{/each}
-									</div>
-								</div>
-							{/if}
-
-							<!-- Custom Roles -->
-							{#if customRoles.length > 0 && (roleTypeFilter === 'all' || roleTypeFilter === 'custom')}
-								<div class="flex flex-col gap-4">
-									<div class="flex items-center justify-between">
-										<h2 class="text-lg font-semibold text-primary">
-											Custom Roles ({customRoles.length})
-										</h2>
-										<p class="text-sm text-secondary">Roles created for your organization</p>
-									</div>
-									<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-										{#each customRoles as role (role._id)}
-											<div
-												class="group flex flex-col gap-3 rounded-lg border border-base bg-surface p-4 transition-colors hover:border-accent-primary hover:bg-hover-solid"
-											>
-												<div class="flex items-start justify-between">
-													<div class="flex-1">
-														<h3 class="font-semibold text-primary">{role.name}</h3>
-														<p class="mt-1 font-mono text-xs text-tertiary">{role.slug}</p>
-													</div>
-													<Badge variant="custom">Custom</Badge>
-												</div>
-												<p class="line-clamp-2 text-sm text-secondary">{role.description}</p>
-												<div class="flex items-center justify-between">
-													<span class="text-xs text-tertiary">
-														{role.permissionCount} permission{role.permissionCount !== 1 ? 's' : ''}
-													</span>
-													<div class="flex items-center gap-2">
-														<button
-															type="button"
-															onclick={() => showRoleDetails(role)}
-															class="text-xs text-accent-primary hover:underline"
-														>
-															View
-														</button>
-														<button
-															type="button"
-															onclick={() => console.log('Edit', role)}
-															class="text-xs text-secondary hover:text-primary hover:underline"
-														>
-															Edit
-														</button>
-													</div>
-												</div>
-											</div>
-										{/each}
-									</div>
-								</div>
-							{/if}
-						{/if}
-					</div>
-				{:else if tabValue === 'permissions'}
-					<!-- Permissions Tab -->
-					<div class="flex flex-col gap-4">
-						<!-- Search Bar -->
-						<div>
+			<!-- Roles Tab -->
+			<Tabs.Content value="roles">
+				<div class="flex flex-col gap-settings-section">
+					<!-- Search and Filter Bar -->
+					<div class="flex items-center gap-icon">
+						<div class="flex-1">
 							<FormInput
-								placeholder="Search permissions by slug or description..."
-								bind:value={permissionsSearch}
+								placeholder="Search roles by name, slug, or description..."
+								bind:value={rolesSearch}
 								class="w-full"
 							/>
 						</div>
+						<select
+							bind:value={roleTypeFilter}
+							class="rounded-input border border-base bg-input px-input-x py-input-y text-small text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+						>
+							<option value="all">All Types</option>
+							<option value="system">System</option>
+							<option value="custom">Custom</option>
+						</select>
+					</div>
 
-						<!-- Permissions by Category -->
-						{#if permissionCategories === 0}
-							<div class="flex flex-col items-center justify-center py-12 text-center">
-								<p class="mb-2 text-lg font-medium text-secondary">
-									No permissions match your search
-								</p>
-								<p class="text-sm text-tertiary">Try adjusting your search criteria</p>
-							</div>
-						{:else}
-							<div class="flex flex-col gap-6">
-								{#each Object.entries(filteredPermissions) as [category, perms] (category)}
-									<div class="rounded-lg border border-base bg-surface p-4">
-										<div class="mb-3 flex items-center justify-between">
-											<h3 class="text-lg font-semibold text-primary">{category}</h3>
-											<Badge variant="default">{perms.length}</Badge>
-										</div>
-										<div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
-											{#each perms as perm, index (index)}
-												<div
-													class="rounded-md border border-base bg-elevated p-3 transition-colors hover:bg-hover-solid"
-												>
-													<p class="font-mono text-xs text-tertiary">
-														{(perm as { slug: string }).slug}
-													</p>
-													<p class="mt-1 text-sm text-secondary">
-														{(perm as { description: string }).description}
+					<!-- Roles Display -->
+					{#if filteredRoles.length === 0}
+						<div class="flex flex-col items-center justify-center py-readable-quote text-center">
+							<p class="mb-content-section text-h3 font-medium text-secondary">
+								{rolesSearch.trim() || roleTypeFilter !== 'all'
+									? 'No roles match your filters'
+									: 'No roles yet'}
+							</p>
+							<p class="text-small text-tertiary">
+								{rolesSearch.trim() || roleTypeFilter !== 'all'
+									? 'Try adjusting your search or filter criteria'
+									: 'Create your first role to get started'}
+							</p>
+						</div>
+					{:else}
+						<!-- System Roles -->
+						{#if systemRoles.length > 0 && (roleTypeFilter === 'all' || roleTypeFilter === 'system')}
+							<div class="flex flex-col gap-content-section">
+								<div class="flex items-center justify-between">
+									<h2 class="text-h3 font-semibold text-primary">
+										System Roles ({systemRoles.length})
+									</h2>
+									<p class="text-small text-secondary">Built-in roles that cannot be modified</p>
+								</div>
+								<div class="grid grid-cols-1 gap-content-section md:grid-cols-2 lg:grid-cols-3">
+									{#each systemRoles as role (role._id)}
+										<div
+											class="group flex flex-col gap-content-section rounded-card border border-base bg-surface px-card py-card transition-colors hover:border-accent-primary hover:bg-hover-solid"
+										>
+											<div class="flex items-start justify-between">
+												<div class="flex-1">
+													<h3 class="font-semibold text-primary">{role.name}</h3>
+													<p class="mt-form-field-gap font-mono text-label text-tertiary">
+														{role.slug}
 													</p>
 												</div>
-											{/each}
+												<Badge variant="system">System</Badge>
+											</div>
+											<p class="line-clamp-2 text-small text-secondary">{role.description}</p>
+											<div class="flex items-center justify-between">
+												<span class="text-label text-tertiary">
+													{role.permissionCount} permission{role.permissionCount !== 1 ? 's' : ''}
+												</span>
+												<button
+													type="button"
+													onclick={() => showRoleDetails(role)}
+													class="text-label text-accent-primary hover:underline"
+												>
+													View Details
+												</button>
+											</div>
 										</div>
-									</div>
-								{/each}
+									{/each}
+								</div>
 							</div>
 						{/if}
-					</div>
-				{:else if tabValue === 'analytics'}
-					<!-- RBAC Analytics Tab -->
-					<div class="flex flex-col gap-6">
-						{#if !analytics}
-							<div class="flex flex-col items-center justify-center py-12 text-center">
-								<p class="mb-2 text-lg font-medium text-secondary">Loading analytics...</p>
-							</div>
-						{:else}
-							<!-- Overview Stats -->
-							<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-								<div class="rounded-lg border border-base bg-surface p-4">
-									<p class="text-xs text-tertiary">Active Assignments</p>
-									<p class="mt-1 text-2xl font-semibold text-primary">
-										{analytics.overview.activeAssignments}
-									</p>
-									<p class="mt-1 text-xs text-secondary">
-										{analytics.overview.revokedAssignments} revoked
-									</p>
-								</div>
-								<div class="rounded-lg border border-base bg-surface p-4">
-									<p class="text-xs text-tertiary">System-Level Assignments</p>
-									<p class="mt-1 text-2xl font-semibold text-primary">
-										{analytics.systemLevel.assignments}
-									</p>
-									<p class="mt-1 text-xs text-secondary">
-										{analytics.systemLevel.users} unique users
-									</p>
-								</div>
-								<div class="rounded-lg border border-base bg-surface p-4">
-									<p class="text-xs text-tertiary">Unused Roles</p>
-									<p class="mt-1 text-2xl font-semibold text-primary">
-										{analytics.health.rolesWithNoAssignments}
-									</p>
-									<p class="mt-1 text-xs text-secondary">
-										{analytics.health.rolesWithNoPermissions} without permissions
-									</p>
-								</div>
-								<div class="rounded-lg border border-base bg-surface p-4">
-									<p class="text-xs text-tertiary">Total Roles</p>
-									<p class="mt-1 text-2xl font-semibold text-primary">
-										{analytics.overview.totalRoles}
-									</p>
-									<p class="mt-1 text-xs text-secondary">
-										{analytics.overview.totalPermissions} permissions
-									</p>
-								</div>
-							</div>
 
-							<!-- Scope Breakdown -->
-							<div class="rounded-lg border border-base bg-surface p-4">
-								<h3 class="mb-4 text-lg font-semibold text-primary">Assignment Scope Breakdown</h3>
-								<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-									<div class="rounded-md border border-base bg-elevated p-3">
-										<p class="text-xs text-tertiary">Global (System-Level)</p>
-										<p class="mt-1 text-xl font-semibold text-primary">
-											{analytics.scopeBreakdown.global}
-										</p>
-										<p class="mt-1 text-xs text-secondary">
-											{analytics.scopeBreakdown.global > 0
-												? Math.round(
-														(analytics.scopeBreakdown.global /
-															analytics.overview.activeAssignments) *
-															100
-													)
-												: 0}% of all assignments
-										</p>
-									</div>
-									<div class="rounded-md border border-base bg-elevated p-3">
-										<p class="text-xs text-tertiary">Organization-Scoped</p>
-										<p class="mt-1 text-xl font-semibold text-primary">
-											{analytics.scopeBreakdown.organization}
-										</p>
-										<p class="mt-1 text-xs text-secondary">
-											{analytics.scopeBreakdown.organization > 0
-												? Math.round(
-														(analytics.scopeBreakdown.organization /
-															analytics.overview.activeAssignments) *
-															100
-													)
-												: 0}% of all assignments
-										</p>
-									</div>
-									<div class="rounded-md border border-base bg-elevated p-3">
-										<p class="text-xs text-tertiary">Team-Scoped</p>
-										<p class="mt-1 text-xl font-semibold text-primary">
-											{analytics.scopeBreakdown.team}
-										</p>
-										<p class="mt-1 text-xs text-secondary">
-											{analytics.scopeBreakdown.team > 0
-												? Math.round(
-														(analytics.scopeBreakdown.team / analytics.overview.activeAssignments) *
-															100
-													)
-												: 0}% of all assignments
-										</p>
-									</div>
+						<!-- Custom Roles -->
+						{#if customRoles.length > 0 && (roleTypeFilter === 'all' || roleTypeFilter === 'custom')}
+							<div class="flex flex-col gap-content-section">
+								<div class="flex items-center justify-between">
+									<h2 class="text-h3 font-semibold text-primary">
+										Custom Roles ({customRoles.length})
+									</h2>
+									<p class="text-small text-secondary">Roles created for your organization</p>
 								</div>
-							</div>
-
-							<!-- Most Assigned Roles -->
-							<div class="rounded-lg border border-base bg-surface p-4">
-								<h3 class="mb-4 text-lg font-semibold text-primary">Most Assigned Roles</h3>
-								{#if analytics.mostAssignedRoles.length === 0}
-									<p class="text-sm text-secondary">No role assignments yet</p>
-								{:else}
-									<div class="space-y-2">
-										{#each analytics.mostAssignedRoles as role (role.slug)}
-											<div
-												class="flex items-center justify-between rounded-md border border-base bg-elevated p-3"
-											>
+								<div class="grid grid-cols-1 gap-content-section md:grid-cols-2 lg:grid-cols-3">
+									{#each customRoles as role (role._id)}
+										<div
+											class="group flex flex-col gap-content-section rounded-card border border-base bg-surface px-card py-card transition-colors hover:border-accent-primary hover:bg-hover-solid"
+										>
+											<div class="flex items-start justify-between">
 												<div class="flex-1">
-													<p class="font-medium text-primary">{role.roleName}</p>
-													<p class="mt-1 text-xs text-tertiary">
-														{role.scopes.global} global, {role.scopes.org} org, {role.scopes.team} team
+													<h3 class="font-semibold text-primary">{role.name}</h3>
+													<p class="mt-form-field-gap font-mono text-label text-tertiary">
+														{role.slug}
 													</p>
 												</div>
-												<div class="text-right">
-													<p class="text-lg font-semibold text-primary">{role.count}</p>
-													<p class="text-xs text-tertiary">assignments</p>
+												<Badge variant="custom">Custom</Badge>
+											</div>
+											<p class="line-clamp-2 text-small text-secondary">{role.description}</p>
+											<div class="flex items-center justify-between">
+												<span class="text-label text-tertiary">
+													{role.permissionCount} permission{role.permissionCount !== 1 ? 's' : ''}
+												</span>
+												<div class="flex items-center gap-icon">
+													<button
+														type="button"
+														onclick={() => showRoleDetails(role)}
+														class="text-label text-accent-primary hover:underline"
+													>
+														View
+													</button>
+													<button
+														type="button"
+														onclick={() => console.log('Edit', role)}
+														class="text-label text-secondary hover:text-primary hover:underline"
+													>
+														Edit
+													</button>
 												</div>
 											</div>
-										{/each}
-									</div>
-								{/if}
+										</div>
+									{/each}
+								</div>
 							</div>
+						{/if}
+					{/if}
+				</div>
+			</Tabs.Content>
 
-							<!-- Most Used Permissions -->
-							<div class="rounded-lg border border-base bg-surface p-4">
-								<h3 class="mb-4 text-lg font-semibold text-primary">Most Used Permissions</h3>
-								{#if analytics.mostUsedPermissions.length === 0}
-									<p class="text-sm text-secondary">No permission usage data</p>
-								{:else}
-									<div class="space-y-2">
-										{#each analytics.mostUsedPermissions as perm (perm.slug)}
+			<!-- Permissions Tab -->
+			<Tabs.Content value="permissions">
+				<div class="flex flex-col gap-content-section">
+					<!-- Search Bar -->
+					<div>
+						<FormInput
+							placeholder="Search permissions by slug or description..."
+							bind:value={permissionsSearch}
+							class="w-full"
+						/>
+					</div>
+
+					<!-- Permissions by Category -->
+					{#if permissionCategories === 0}
+						<div class="flex flex-col items-center justify-center py-readable-quote text-center">
+							<p class="mb-content-section text-h3 font-medium text-secondary">
+								No permissions match your search
+							</p>
+							<p class="text-small text-tertiary">Try adjusting your search criteria</p>
+						</div>
+					{:else}
+						<div class="flex flex-col gap-settings-section">
+							{#each Object.entries(filteredPermissions) as [category, perms] (category)}
+								<div class="rounded-card border border-base bg-surface px-card py-card">
+									<div class="mb-content-section flex items-center justify-between">
+										<h3 class="text-h3 font-semibold text-primary">{category}</h3>
+										<Badge variant="default">{perms.length}</Badge>
+									</div>
+									<div class="grid grid-cols-1 gap-icon md:grid-cols-2 lg:grid-cols-3">
+										{#each perms as perm, index (index)}
 											<div
-												class="flex items-center justify-between rounded-md border border-base bg-elevated p-3"
+												class="rounded-button border border-base bg-elevated px-card py-card transition-colors hover:bg-hover-solid"
 											>
-												<div class="flex-1">
-													<p class="font-mono text-sm text-primary">{perm.slug}</p>
-												</div>
-												<div class="text-right">
-													<p class="text-lg font-semibold text-primary">{perm.count}</p>
-													<p class="text-xs text-tertiary">roles</p>
-												</div>
+												<p class="font-mono text-label text-tertiary">
+													{(perm as { slug: string }).slug}
+												</p>
+												<p class="mt-form-field-gap text-small text-secondary">
+													{(perm as { description: string }).description}
+												</p>
 											</div>
 										{/each}
 									</div>
-								{/if}
-							</div>
+								</div>
+							{/each}
+						</div>
+					{/if}
+				</div>
+			</Tabs.Content>
 
-							<!-- Health Warnings -->
-							{#if analytics.health.unusedRoles.length > 0}
-								<div class="rounded-lg border border-yellow-500/20 bg-yellow-500/5 p-4">
-									<h3 class="mb-2 text-lg font-semibold text-primary">⚠️ Unused Roles</h3>
-									<p class="mb-3 text-sm text-secondary">
-										The following roles have no active assignments:
+			<!-- RBAC Analytics Tab -->
+			<Tabs.Content value="analytics">
+				<div class="flex flex-col gap-settings-section">
+					{#if !analytics}
+						<div class="flex flex-col items-center justify-center py-readable-quote text-center">
+							<p class="mb-content-section text-h3 font-medium text-secondary">
+								Loading analytics...
+							</p>
+						</div>
+					{:else}
+						<!-- Overview Stats -->
+						<div class="grid grid-cols-1 gap-content-section md:grid-cols-2 lg:grid-cols-4">
+							<div class="rounded-card border border-base bg-surface px-card py-card">
+								<p class="text-label text-tertiary">Active Assignments</p>
+								<p class="mt-form-field-gap text-h2 font-semibold text-primary">
+									{analytics.overview.activeAssignments}
+								</p>
+								<p class="mt-form-field-gap text-label text-secondary">
+									{analytics.overview.revokedAssignments} revoked
+								</p>
+							</div>
+							<div class="rounded-card border border-base bg-surface px-card py-card">
+								<p class="text-label text-tertiary">System-Level Assignments</p>
+								<p class="mt-form-field-gap text-h2 font-semibold text-primary">
+									{analytics.systemLevel.assignments}
+								</p>
+								<p class="mt-form-field-gap text-label text-secondary">
+									{analytics.systemLevel.users} unique users
+								</p>
+							</div>
+							<div class="rounded-card border border-base bg-surface px-card py-card">
+								<p class="text-label text-tertiary">Unused Roles</p>
+								<p class="mt-form-field-gap text-h2 font-semibold text-primary">
+									{analytics.health.rolesWithNoAssignments}
+								</p>
+								<p class="mt-form-field-gap text-label text-secondary">
+									{analytics.health.rolesWithNoPermissions} without permissions
+								</p>
+							</div>
+							<div class="rounded-card border border-base bg-surface px-card py-card">
+								<p class="text-label text-tertiary">Total Roles</p>
+								<p class="mt-form-field-gap text-h2 font-semibold text-primary">
+									{analytics.overview.totalRoles}
+								</p>
+								<p class="mt-form-field-gap text-label text-secondary">
+									{analytics.overview.totalPermissions} permissions
+								</p>
+							</div>
+						</div>
+
+						<!-- Scope Breakdown -->
+						<div class="rounded-card border border-base bg-surface px-card py-card">
+							<h3 class="mb-content-section text-h3 font-semibold text-primary">
+								Assignment Scope Breakdown
+							</h3>
+							<div class="grid grid-cols-1 gap-content-section md:grid-cols-3">
+								<div class="rounded-button border border-base bg-elevated px-card py-card">
+									<p class="text-label text-tertiary">Global (System-Level)</p>
+									<p class="mt-form-field-gap text-h3 font-semibold text-primary">
+										{analytics.scopeBreakdown.global}
 									</p>
-									<div class="flex flex-wrap gap-2">
-										{#each analytics.health.unusedRoles as role (role._id)}
-											<span class="rounded-md bg-elevated px-2 py-1 text-xs text-secondary">
-												{role.name} ({role.slug})
-											</span>
-										{/each}
-									</div>
+									<p class="mt-form-field-gap text-label text-secondary">
+										{analytics.scopeBreakdown.global > 0
+											? Math.round(
+													(analytics.scopeBreakdown.global / analytics.overview.activeAssignments) *
+														100
+												)
+											: 0}% of all assignments
+									</p>
+								</div>
+								<div class="rounded-button border border-base bg-elevated px-card py-card">
+									<p class="text-label text-tertiary">Organization-Scoped</p>
+									<p class="mt-form-field-gap text-h3 font-semibold text-primary">
+										{analytics.scopeBreakdown.organization}
+									</p>
+									<p class="mt-form-field-gap text-label text-secondary">
+										{analytics.scopeBreakdown.organization > 0
+											? Math.round(
+													(analytics.scopeBreakdown.organization /
+														analytics.overview.activeAssignments) *
+														100
+												)
+											: 0}% of all assignments
+									</p>
+								</div>
+								<div class="rounded-button border border-base bg-elevated px-card py-card">
+									<p class="text-label text-tertiary">Team-Scoped</p>
+									<p class="mt-form-field-gap text-h3 font-semibold text-primary">
+										{analytics.scopeBreakdown.team}
+									</p>
+									<p class="mt-form-field-gap text-label text-secondary">
+										{analytics.scopeBreakdown.team > 0
+											? Math.round(
+													(analytics.scopeBreakdown.team / analytics.overview.activeAssignments) *
+														100
+												)
+											: 0}% of all assignments
+									</p>
+								</div>
+							</div>
+						</div>
+
+						<!-- Most Assigned Roles -->
+						<div class="rounded-card border border-base bg-surface px-card py-card">
+							<h3 class="mb-content-section text-h3 font-semibold text-primary">
+								Most Assigned Roles
+							</h3>
+							{#if analytics.mostAssignedRoles.length === 0}
+								<p class="text-small text-secondary">No role assignments yet</p>
+							{:else}
+								<div class="space-y-icon">
+									{#each analytics.mostAssignedRoles as role (role.slug)}
+										<div
+											class="flex items-center justify-between rounded-button border border-base bg-elevated px-card py-card"
+										>
+											<div class="flex-1">
+												<p class="font-medium text-primary">{role.roleName}</p>
+												<p class="mt-form-field-gap text-label text-tertiary">
+													{role.scopes.global} global, {role.scopes.org} org, {role.scopes.team} team
+												</p>
+											</div>
+											<div class="text-right">
+												<p class="text-h3 font-semibold text-primary">{role.count}</p>
+												<p class="text-label text-tertiary">assignments</p>
+											</div>
+										</div>
+									{/each}
 								</div>
 							{/if}
+						</div>
+
+						<!-- Most Used Permissions -->
+						<div class="rounded-card border border-base bg-surface px-card py-card">
+							<h3 class="mb-content-section text-h3 font-semibold text-primary">
+								Most Used Permissions
+							</h3>
+							{#if analytics.mostUsedPermissions.length === 0}
+								<p class="text-small text-secondary">No permission usage data</p>
+							{:else}
+								<div class="space-y-icon">
+									{#each analytics.mostUsedPermissions as perm (perm.slug)}
+										<div
+											class="flex items-center justify-between rounded-button border border-base bg-elevated px-card py-card"
+										>
+											<div class="flex-1">
+												<p class="font-mono text-small text-primary">{perm.slug}</p>
+											</div>
+											<div class="text-right">
+												<p class="text-h3 font-semibold text-primary">{perm.count}</p>
+												<p class="text-label text-tertiary">roles</p>
+											</div>
+										</div>
+									{/each}
+								</div>
+							{/if}
+						</div>
+
+						<!-- Health Warnings -->
+						{#if analytics.health.unusedRoles.length > 0}
+							<div class="rounded-card border border-yellow-500/20 bg-yellow-500/5 px-card py-card">
+								<h3 class="mb-content-section text-h3 font-semibold text-primary">
+									⚠️ Unused Roles
+								</h3>
+								<p class="mb-content-section text-small text-secondary">
+									The following roles have no active assignments:
+								</p>
+								<div class="flex flex-wrap gap-icon">
+									{#each analytics.health.unusedRoles as role (role._id)}
+										<span
+											class="rounded-button bg-elevated px-badge py-badge text-label text-secondary"
+										>
+											{role.name} ({role.slug})
+										</span>
+									{/each}
+								</div>
+							</div>
 						{/if}
-					</div>
-				{/if}
-			{/snippet}
-		</Tabs>
+					{/if}
+				</div>
+			</Tabs.Content>
+		</Tabs.Root>
 	</main>
 </div>
 
 <!-- Role Detail Modal -->
 <Dialog.Root bind:open={roleDetailModalOpen}>
 	<Dialog.Content
-		class="w-[min(600px,90vw)] rounded-lg border border-base bg-surface text-primary shadow-xl"
+		class="w-[min(600px,90vw)] rounded-card border border-base bg-surface text-primary shadow-card-hover"
 	>
 		{#if selectedRole}
-			<div class="space-y-6 px-inbox-container py-inbox-container">
+			<div class="space-y-settings-section px-inbox-container py-inbox-container">
 				<div>
 					<div class="flex items-start justify-between">
 						<div class="flex-1">
-							<Dialog.Title class="text-lg font-semibold text-primary">
+							<Dialog.Title class="text-h3 font-semibold text-primary">
 								{selectedRole.name}
 							</Dialog.Title>
-							<Dialog.Description class="mt-1 text-sm text-secondary">
+							<Dialog.Description class="mt-form-field-gap text-small text-secondary">
 								{selectedRole.description}
 							</Dialog.Description>
 						</div>
@@ -930,12 +963,12 @@
 							{selectedRole.isSystem ? 'System' : 'Custom'}
 						</Badge>
 					</div>
-					<p class="mt-2 font-mono text-xs text-tertiary">{selectedRole.slug}</p>
+					<p class="mt-content-section font-mono text-label text-tertiary">{selectedRole.slug}</p>
 				</div>
 
 				<div>
-					<div class="mb-4 flex items-center justify-between">
-						<h4 class="text-sm font-semibold text-primary">Permissions</h4>
+					<div class="mb-content-section flex items-center justify-between">
+						<h4 class="text-small font-semibold text-primary">Permissions</h4>
 						<Button
 							variant="secondary"
 							onclick={() => {
@@ -948,20 +981,20 @@
 						</Button>
 					</div>
 					{#if loadingRolePermissions}
-						<p class="text-sm text-secondary">Loading permissions...</p>
+						<p class="text-small text-secondary">Loading permissions...</p>
 					{:else if rolePermissions.length === 0}
-						<p class="text-sm text-secondary">No permissions assigned</p>
+						<p class="text-small text-secondary">No permissions assigned</p>
 					{:else}
-						<div class="space-y-2">
+						<div class="space-y-icon">
 							{#each rolePermissions as perm (perm.permissionId)}
 								<div
-									class="flex items-center justify-between rounded-md border border-base bg-elevated p-3"
+									class="flex items-center justify-between rounded-button border border-base bg-elevated px-card py-card"
 								>
 									<div class="flex-1">
-										<p class="font-mono text-xs text-tertiary">{perm.slug}</p>
-										<p class="mt-1 text-sm text-secondary">{perm.description}</p>
+										<p class="font-mono text-label text-tertiary">{perm.slug}</p>
+										<p class="mt-form-field-gap text-small text-secondary">{perm.description}</p>
 									</div>
-									<div class="flex items-center gap-2">
+									<div class="flex items-center gap-icon">
 										<Badge
 											variant={perm.scope === 'all'
 												? 'default'
@@ -977,7 +1010,7 @@
 												if (!selectedRole) return;
 												removePermissionFromRole(selectedRole._id, perm.permissionId);
 											}}
-											class="text-xs text-red-600 hover:text-red-800 hover:underline"
+											class="text-label text-error hover:text-error-secondary hover:underline"
 										>
 											Remove
 										</button>
@@ -988,10 +1021,10 @@
 					{/if}
 				</div>
 
-				<div class="flex items-center justify-end gap-2 pt-2">
+				<div class="flex items-center justify-end gap-icon pt-content-section">
 					<Dialog.Close
 						type="button"
-						class="rounded-md border border-base px-3 py-1.5 text-sm font-medium text-secondary hover:text-primary"
+						class="rounded-button border border-base px-button-x py-button-y text-small font-medium text-secondary hover:text-primary"
 					>
 						Close
 					</Dialog.Close>
@@ -1002,7 +1035,7 @@
 								console.log('Edit', selectedRole);
 								roleDetailModalOpen = false;
 							}}
-							class="rounded-md bg-accent-primary px-3 py-1.5 text-sm font-medium text-white"
+							class="rounded-button bg-accent-primary px-button-x py-button-y text-small font-medium text-primary"
 						>
 							Edit Role
 						</button>
@@ -1016,7 +1049,7 @@
 <!-- Create Permission Modal -->
 <Dialog.Root bind:open={createPermissionModalOpen}>
 	<Dialog.Content
-		class="w-[min(600px,90vw)] rounded-lg border border-base bg-surface text-primary shadow-xl"
+		class="w-[min(600px,90vw)] rounded-card border border-base bg-surface text-primary shadow-card-hover"
 	>
 		<div class="space-y-6 px-inbox-container py-inbox-container">
 			<div>
@@ -1026,13 +1059,15 @@
 				</Dialog.Description>
 			</div>
 
-			<div class="space-y-4">
+			<div class="space-y-content-section">
 				<div>
 					<FormInput label="Slug" placeholder="docs.view" bind:value={permSlug} required />
-					<p class="mt-1 text-xs text-tertiary">Format: category.action (e.g., docs.view)</p>
+					<p class="mt-form-field-gap text-label text-tertiary">
+						Format: category.action (e.g., docs.view)
+					</p>
 				</div>
 
-				<div class="grid grid-cols-2 gap-4">
+				<div class="grid grid-cols-2 gap-content-section">
 					<div>
 						<FormInput label="Category" placeholder="docs" bind:value={permCategory} required />
 					</div>
@@ -1050,7 +1085,7 @@
 					/>
 				</div>
 
-				<div class="flex items-center gap-2">
+				<div class="flex items-center gap-icon">
 					<ToggleSwitch
 						checked={permRequiresResource}
 						onChange={(checked) => {
@@ -1061,16 +1096,16 @@
 				</div>
 
 				{#if createPermissionError}
-					<div class="rounded-md border border-red-500/20 bg-red-500/5 p-3">
-						<p class="text-sm text-red-600">{createPermissionError}</p>
+					<div class="border-error/20 bg-error/5 rounded-button border px-card py-card">
+						<p class="text-small text-error">{createPermissionError}</p>
 					</div>
 				{/if}
 			</div>
 
-			<div class="flex items-center justify-end gap-2 pt-2">
+			<div class="flex items-center justify-end gap-icon pt-content-section">
 				<Dialog.Close
 					type="button"
-					class="rounded-md border border-base px-3 py-1.5 text-sm font-medium text-secondary hover:text-primary"
+					class="rounded-button border border-base px-button-x py-button-y text-small font-medium text-secondary hover:text-primary"
 				>
 					Cancel
 				</Dialog.Close>
@@ -1085,20 +1120,22 @@
 <!-- Create Role Modal -->
 <Dialog.Root bind:open={createRoleModalOpen}>
 	<Dialog.Content
-		class="w-[min(600px,90vw)] rounded-lg border border-base bg-surface text-primary shadow-xl"
+		class="w-[min(600px,90vw)] rounded-card border border-base bg-surface text-primary shadow-card-hover"
 	>
-		<div class="space-y-6 px-inbox-container py-inbox-container">
+		<div class="space-y-settings-section px-inbox-container py-inbox-container">
 			<div>
-				<Dialog.Title class="text-lg font-semibold text-primary">Create Role</Dialog.Title>
-				<Dialog.Description class="mt-1 text-sm text-secondary">
+				<Dialog.Title class="text-h3 font-semibold text-primary">Create Role</Dialog.Title>
+				<Dialog.Description class="mt-form-field-gap text-small text-secondary">
 					Create a new role that can be assigned to users
 				</Dialog.Description>
 			</div>
 
-			<div class="space-y-4">
+			<div class="space-y-content-section">
 				<div>
 					<FormInput label="Slug" placeholder="docs-viewer" bind:value={roleSlug} required />
-					<p class="mt-1 text-xs text-tertiary">URL-friendly identifier (e.g., docs-viewer)</p>
+					<p class="mt-form-field-gap text-label text-tertiary">
+						URL-friendly identifier (e.g., docs-viewer)
+					</p>
 				</div>
 
 				<div>
@@ -1120,16 +1157,16 @@
 				</div>
 
 				{#if createRoleError}
-					<div class="rounded-md border border-red-500/20 bg-red-500/5 p-3">
-						<p class="text-sm text-red-600">{createRoleError}</p>
+					<div class="border-error/20 bg-error/5 rounded-button border px-card py-card">
+						<p class="text-small text-error">{createRoleError}</p>
 					</div>
 				{/if}
 			</div>
 
-			<div class="flex items-center justify-end gap-2 pt-2">
+			<div class="flex items-center justify-end gap-icon pt-content-section">
 				<Dialog.Close
 					type="button"
-					class="rounded-md border border-base px-3 py-1.5 text-sm font-medium text-secondary hover:text-primary"
+					class="rounded-button border border-base px-button-x py-button-y text-small font-medium text-secondary hover:text-primary"
 				>
 					Cancel
 				</Dialog.Close>
@@ -1144,25 +1181,26 @@
 <!-- Assign Role to User Modal -->
 <Dialog.Root bind:open={assignRoleModalOpen}>
 	<Dialog.Content
-		class="w-[min(600px,90vw)] rounded-lg border border-base bg-surface text-primary shadow-xl"
+		class="w-[min(600px,90vw)] rounded-card border border-base bg-surface text-primary shadow-card-hover"
 	>
-		<div class="space-y-6 px-inbox-container py-inbox-container">
+		<div class="space-y-settings-section px-inbox-container py-inbox-container">
 			<div>
-				<Dialog.Title class="text-lg font-semibold text-primary">Assign Role to User</Dialog.Title>
-				<Dialog.Description class="mt-1 text-sm text-secondary">
+				<Dialog.Title class="text-h3 font-semibold text-primary">Assign Role to User</Dialog.Title>
+				<Dialog.Description class="mt-form-field-gap text-small text-secondary">
 					Assign a role to a user to grant them permissions
 				</Dialog.Description>
 			</div>
 
-			<div class="space-y-4">
+			<div class="space-y-content-section">
 				<div>
-					<label for="assign-user-select" class="mb-2 block text-sm font-medium text-primary"
-						>User</label
+					<label
+						for="assign-user-select"
+						class="mb-content-section block text-small font-medium text-primary">User</label
 					>
 					<select
 						id="assign-user-select"
 						bind:value={assignUserId}
-						class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-sm text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+						class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-small text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
 					>
 						<option value="">Select a user...</option>
 						{#each allUsers as user (user._id)}
@@ -1174,13 +1212,14 @@
 				</div>
 
 				<div>
-					<label for="assign-role-select" class="mb-2 block text-sm font-medium text-primary"
-						>Role</label
+					<label
+						for="assign-role-select"
+						class="mb-content-section block text-small font-medium text-primary">Role</label
 					>
 					<select
 						id="assign-role-select"
 						bind:value={assignRoleId}
-						class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-sm text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+						class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-small text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
 					>
 						<option value="">Select a role...</option>
 						{#each roles as role (role._id)}
@@ -1190,16 +1229,16 @@
 				</div>
 
 				{#if assignRoleError}
-					<div class="rounded-md border border-red-500/20 bg-red-500/5 p-3">
-						<p class="text-sm text-red-600">{assignRoleError}</p>
+					<div class="border-error/20 bg-error/5 rounded-button border px-card py-card">
+						<p class="text-small text-error">{assignRoleError}</p>
 					</div>
 				{/if}
 			</div>
 
-			<div class="flex items-center justify-end gap-2 pt-2">
+			<div class="flex items-center justify-end gap-icon pt-content-section">
 				<Dialog.Close
 					type="button"
-					class="rounded-md border border-base px-3 py-1.5 text-sm font-medium text-secondary hover:text-primary"
+					class="rounded-button border border-base px-button-x py-button-y text-small font-medium text-secondary hover:text-primary"
 				>
 					Cancel
 				</Dialog.Close>
@@ -1214,27 +1253,28 @@
 <!-- Assign Permission to Role Modal -->
 <Dialog.Root bind:open={assignPermissionModalOpen}>
 	<Dialog.Content
-		class="w-[min(600px,90vw)] rounded-lg border border-base bg-surface text-primary shadow-xl"
+		class="w-[min(600px,90vw)] rounded-card border border-base bg-surface text-primary shadow-card-hover"
 	>
-		<div class="space-y-6 px-inbox-container py-inbox-container">
+		<div class="space-y-settings-section px-inbox-container py-inbox-container">
 			<div>
-				<Dialog.Title class="text-lg font-semibold text-primary"
+				<Dialog.Title class="text-h3 font-semibold text-primary"
 					>Assign Permission to Role</Dialog.Title
 				>
-				<Dialog.Description class="mt-1 text-sm text-secondary">
+				<Dialog.Description class="mt-form-field-gap text-small text-secondary">
 					Grant a permission to a role with a specific scope
 				</Dialog.Description>
 			</div>
 
-			<div class="space-y-4">
+			<div class="space-y-content-section">
 				<div>
-					<label for="assign-perm-role-select" class="mb-2 block text-sm font-medium text-primary"
-						>Role</label
+					<label
+						for="assign-perm-role-select"
+						class="mb-content-section block text-small font-medium text-primary">Role</label
 					>
 					<select
 						id="assign-perm-role-select"
 						bind:value={assignPermRoleId}
-						class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-sm text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+						class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-small text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
 					>
 						<option value="">Select a role...</option>
 						{#each roles as role (role._id)}
@@ -1246,12 +1286,12 @@
 				<div>
 					<label
 						for="assign-perm-permission-select"
-						class="mb-2 block text-sm font-medium text-primary">Permission</label
+						class="mb-content-section block text-small font-medium text-primary">Permission</label
 					>
 					<select
 						id="assign-perm-permission-select"
 						bind:value={assignPermPermissionId}
-						class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-sm text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+						class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-small text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
 					>
 						<option value="">Select a permission...</option>
 						{#each allPermissionsFlat as perm (perm._id)}
@@ -1263,34 +1303,35 @@
 				</div>
 
 				<div>
-					<label for="assign-perm-scope-select" class="mb-2 block text-sm font-medium text-primary"
-						>Scope</label
+					<label
+						for="assign-perm-scope-select"
+						class="mb-content-section block text-small font-medium text-primary">Scope</label
 					>
 					<select
 						id="assign-perm-scope-select"
 						bind:value={assignPermScope}
-						class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-sm text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+						class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-small text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
 					>
 						<option value="all">All - Access all resources</option>
 						<option value="own">Own - Access only own resources</option>
 						<option value="none">None - Explicitly denied</option>
 					</select>
-					<p class="mt-1 text-xs text-tertiary">
+					<p class="mt-form-field-gap text-label text-tertiary">
 						Scope determines what resources the permission applies to
 					</p>
 				</div>
 
 				{#if assignPermissionError}
-					<div class="rounded-md border border-red-500/20 bg-red-500/5 p-3">
-						<p class="text-sm text-red-600">{assignPermissionError}</p>
+					<div class="border-error/20 bg-error/5 rounded-button border px-card py-card">
+						<p class="text-small text-error">{assignPermissionError}</p>
 					</div>
 				{/if}
 			</div>
 
-			<div class="flex items-center justify-end gap-2 pt-2">
+			<div class="flex items-center justify-end gap-icon pt-content-section">
 				<Dialog.Close
 					type="button"
-					class="rounded-md border border-base px-3 py-1.5 text-sm font-medium text-secondary hover:text-primary"
+					class="rounded-button border border-base px-button-x py-button-y text-small font-medium text-secondary hover:text-primary"
 				>
 					Cancel
 				</Dialog.Close>

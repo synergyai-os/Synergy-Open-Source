@@ -1,0 +1,46 @@
+/* Typography Tokens
+ * 
+ * All typography tokens (font sizes, weights, line heights).
+ * Includes readability tokens optimized for ADHD/focus-challenged users.
+ * 
+ * Extracted from src/app.css @theme block (lines 41-50, 114-115, 204-216)
+ */
+
+@theme {
+	/* Custom text sizes */
+	--text-label: 0.625rem; /* 10px - for badges, labels, small text */
+	/* Usage: class="text-label" */
+
+	/* Typography - Readability Tokens */
+	/* Optimized for ADHD/focus-challenged users and general readability */
+	--line-height-readable: 1.75; /* Optimal line-height for comfortable reading (prevents visual crowding) */
+	--letter-spacing-readable: 0; /* Normal letter spacing (tracking-normal) - not too tight */
+	--max-width-readable: 42rem; /* 672px - Optimal reading width (65-75 characters per line) */
+	/* Usage: leading-readable, tracking-readable, max-w-readable */
+
+	/* Typography Scale Tokens */
+	--font-size-h1: 2.25rem; /* 36px - text-h1 equivalent */
+	--font-size-h2: 1.75rem; /* 28px - text-h2 equivalent */
+	--font-size-h3: 1.25rem; /* 20px - text-h3 equivalent */
+	--font-weight-h1: 700;
+	--font-weight-h2: 600;
+	--font-weight-h3: 600;
+
+	/* Flashcard Typography Tokens - Large display text for flashcard content */
+	--font-size-flashcard-question: 1.5rem; /* 24px - text-2xl equivalent - flashcard question text (mobile) */
+	--font-size-flashcard-question-lg: 1.875rem; /* 30px - text-3xl equivalent - flashcard question text (desktop) */
+	--font-size-flashcard-answer: 1.25rem; /* 20px - text-xl equivalent - flashcard answer text (mobile) */
+	--font-size-flashcard-answer-lg: 1.5rem; /* 24px - text-2xl equivalent - flashcard answer text (desktop) */
+
+	/* Button Component Typography Tokens */
+	--font-size-button: 0.875rem; /* 14px - text-button equivalent - button font size */
+	--font-weight-button: 600; /* Button font weight */
+
+	/* Badge Component Typography Tokens */
+	--font-size-badge: 0.75rem; /* 12px - text-badge equivalent - badge font size */
+	--font-weight-badge: 500; /* Badge font weight */
+
+	/* Chip Component Typography Tokens */
+	--font-size-chip: 0.75rem; /* 12px - text-chip equivalent - compact font size (text-xs) */
+	--font-weight-chip: 400; /* Chip font weight (lighter, less prominent) */
+}

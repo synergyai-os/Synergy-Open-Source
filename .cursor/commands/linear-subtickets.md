@@ -18,7 +18,7 @@
 
 3. **Create Subtasks**
    - Link to parent via `parentId`
-   - Link to project via `projectId` (CRITICAL - subtasks don't inherit project from parent)
+   - Link to project via `project` (CRITICAL - subtasks don't inherit project from parent)
    - Use correct labels (validate against parent)
    - Set appropriate estimates
    - Include parent reference in title: `[SYOS-XXX] Subtask Title`
@@ -46,7 +46,7 @@
 - [ ] Title includes parent reference: `[SYOS-XXX] Subtask Title`
 - [ ] Description includes: `**Parent**: SYOS-XXX - [Parent Title]`
 - [ ] `parentId` set in `mcp_Linear_create_issue()` call
-- [ ] `projectId` set in `mcp_Linear_create_issue()` call
+- [ ] `project` set in `mcp_Linear_create_issue()` call
 - [ ] Dependencies analyzed (parallel vs sequential)
 
 **After creating each subtask:**
@@ -200,8 +200,8 @@ const subtask = await mcp_Linear_create_issue({
 ## Context
 ...
   `,
-	projectId: projectId, // ✅ Set project ID
-	assigneeId: RANDY_USER_ID,
+	project: projectId, // ✅ Set project ID
+	assignee: RANDY_USER_ID,
 	state: 'Todo',
 	estimate: ESTIMATES.m,
 	labels: [typeLabel.id, scopeLabel], // Inherit type, add scope
@@ -269,7 +269,7 @@ await mcp_Linear_update_issue({
 **Always verify and update:**
 
 1. **Get project ID** from parent ticket or project lookup
-2. **Set `projectId`** in `create_issue()` call
+2. **Set `project`** in `create_issue()` call
 3. **Verify after creation** - Check `projectId` field is set
 4. **Update if missing** - Use `mcp_Linear_update_issue()` with `project`
 
@@ -292,6 +292,6 @@ if (!createdSubtask.projectId || createdSubtask.projectId !== projectId) {
 
 ---
 
-**Last Updated**: 2025-01-XX  
+**Last Updated**: 2025-11-21  
 **Purpose**: Guide for creating properly linked and labeled subtasks  
 **Latest Change**: Added critical project linking verification workflow (subtasks don't inherit project from parent)

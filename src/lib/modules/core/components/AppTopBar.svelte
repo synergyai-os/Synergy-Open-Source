@@ -39,10 +39,6 @@
 		if (!organizations) return [];
 		return organizations.organizationInvites ?? [];
 	});
-	const teamInvites = $derived(() => {
-		if (!organizations) return [];
-		return organizations.teamInvites ?? [];
-	});
 	const organizationSummaries = $derived(() => {
 		if (!organizations) return [];
 		return organizations.organizations ?? [];
@@ -82,7 +78,6 @@
 				organizations={organizationSummaries()}
 				activeOrganizationId={activeOrganizationId()}
 				organizationInvites={organizationInvites()}
-				teamInvites={teamInvites()}
 				{accountName}
 				{accountEmail}
 				onSelectOrganization={(organizationId) =>
@@ -92,8 +87,6 @@
 				onAcceptOrganizationInvite={(code) => organizations?.acceptOrganizationInvite(code)}
 				onDeclineOrganizationInvite={(inviteId) =>
 					organizations?.declineOrganizationInvite(inviteId)}
-				onAcceptTeamInvite={(code) => organizations?.acceptTeamInvite(code)}
-				onDeclineTeamInvite={(inviteId) => organizations?.declineTeamInvite(inviteId)}
 				onSettings={() => onSettings?.()}
 				onInviteMembers={() => onInviteMembers?.()}
 				onSwitchWorkspace={() => onSwitchWorkspace?.()}

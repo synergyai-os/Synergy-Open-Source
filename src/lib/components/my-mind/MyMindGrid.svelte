@@ -28,14 +28,17 @@
 	}
 </script>
 
-<div class="p-6">
+<div class="px-card py-card">
 	{#if items.length === 0}
-		<div class="py-12 text-center">
-			<p class="mb-2 text-lg text-secondary">No items found</p>
-			<p class="text-sm text-tertiary">Try adjusting your search or filters</p>
+		<div class="py-readable-quote text-center">
+			<p class="mb-form-field-gap text-h3 text-secondary">No items found</p>
+			<p class="text-small text-tertiary">Try adjusting your search or filters</p>
 		</div>
 	{:else}
-		<div class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+		<div
+			class="grid gap-content-section"
+			style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));"
+		>
 			{#each items as item (item._id)}
 				{@const CardComponent = getCardComponent(item)}
 				<CardComponent {item} onClick={() => onItemClick(item)} />

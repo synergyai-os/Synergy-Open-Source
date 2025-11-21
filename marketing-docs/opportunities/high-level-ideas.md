@@ -17,7 +17,7 @@
 For each opportunity, ask:
 
 1. **Does it achieve an outcome?** (not just a feature)
-2. **Does it validate with Saprolab/ZDHC?** (real customer need)
+2. **Does it validate with Agency Partner/Client?** (real customer need)
 3. **Does it enable community?** (platform, not one-off)
 4. **Does it compound?** (value increases over time)
 5. **Can we validate quickly?** (1-2 weeks)
@@ -201,14 +201,14 @@ Create a clear product strategy with outcome-driven roadmap and success signals.
 
 ### Success Signals
 
-- ✅ Saprolab validated (daily usage, paying)
-- ✅ ZDHC onboarded (expansion)
+- ✅ Agency Partner validated (daily usage, paying)
+- ✅ Client onboarded (expansion)
 - ✅ 3+ paying customers (market validation)
 
 ### Dependencies
 
 - Clear vision (Product Vision 2.0)
-- First partner (Saprolab) to validate with
+- First partner (Agency Partner) to validate with
 
 ### Related
 
@@ -217,34 +217,34 @@ Create a clear product strategy with outcome-driven roadmap and success signals.
 
 ---
 
-## Opportunity 6: Outcome Document (ZDHC/Saprolab)
+## Opportunity 6: Outcome Document (Client/Agency Partner)
 
 ### What
 
-Create an outcome document focused on ZDHC and Saprolab—what success looks like, how we know we're winning.
+Create an outcome document focused on Client and Agency Partner—what success looks like, how we know we're winning.
 
 ### Why
 
 - **Focus**: Keep first partner as north star
 - **Validation**: Measure progress against real outcomes
-- **Communication**: Align with Saprolab on goals
+- **Communication**: Align with Agency Partner on goals
 
 ### How (High-Level)
 
 - Define success signals (daily usage, time saved, expansion)
 - Track leading indicators (engagement, feature adoption)
-- Review monthly with Saprolab (feedback loop)
+- Review monthly with Agency Partner (feedback loop)
 
 ### Success Signals
 
-- ✅ Saprolab using daily (5+ active users)
-- ✅ ZDHC onboarded via Saprolab (expansion)
+- ✅ Agency Partner using daily (5+ active users)
+- ✅ Client onboarded via Agency Partner (expansion)
 - ✅ 10+ hours/week saved per user (self-reported)
 - ✅ Positive feedback (4/5 stars, testimonials)
 
 ### Dependencies
 
-- Close relationship with Saprolab (feedback loop)
+- Close relationship with Agency Partner (feedback loop)
 - Metrics tracking (analytics, surveys)
 
 ### Related
@@ -491,18 +491,18 @@ Build with privacy as default—offline-first, self-hostable, bring-your-own AI.
 
 ---
 
-## Opportunity 12: Holaspirit Replacement (for ZDHC)
+## Opportunity 12: Holaspirit Replacement (for Client)
 
 ### What
 
-Build a system to replace Holaspirit for ZDHC—team organization, role clarity, meeting workflows.
+Build a system to replace Holaspirit for Client—team organization, role clarity, meeting workflows.
 
 ### Why
 
 - **Cost savings**: Holaspirit is expensive ($15-30/user/month)
 - **Customization**: Holaspirit is rigid, we're flexible
 - **Product focus**: Holaspirit is generic, we're product-focused
-- **Validation**: ZDHC is our target user via Saprolab
+- **Validation**: Client is our target user via Agency Partner
 
 ### How (High-Level)
 
@@ -513,7 +513,7 @@ Build a system to replace Holaspirit for ZDHC—team organization, role clarity,
 
 ### Success Signals
 
-- ✅ ZDHC migrates from Holaspirit
+- ✅ Client migrates from Holaspirit
 - ✅ Saves $5K+/year on costs
 - ✅ 10+ hours/week saved on manual updates
 - ✅ Positive feedback ("Better than Holaspirit")
@@ -527,7 +527,7 @@ Build a system to replace Holaspirit for ZDHC—team organization, role clarity,
 ### Related
 
 - [Value Proposition](../strategy/value-proposition.md) - vs. Holaspirit
-- [Target Personas](../audience/target-personas.md) - ZDHC
+- [Target Personas](../audience/target-personas.md) - Client
 
 ---
 
@@ -701,4 +701,4 @@ Use AI agents to automate content creation—journey blog post → tweets, Linke
 
 - **Review with user**: Which opportunities resonate?
 - **Prioritize**: Pick 2-3 to explore in detail
-- **Validate**: Test with Saprolab, ZDHC, community
+- **Validate**: Test with Agency Partner, Client, community

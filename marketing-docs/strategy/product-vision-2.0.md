@@ -42,7 +42,7 @@ Product teams today struggle with:
    - **Jira**: Engineering-centric, not discovery-friendly
    - **Custom builds**: Expensive, time-consuming, hard to maintain
 
-### For Organizations (Saprolab, ZDHC)
+### For Organizations (Agency Partner, Client)
 
 Software companies (even those who don't think they are) need:
 
@@ -140,15 +140,15 @@ An **open-source, modular platform** that integrates:
 
 ## Target Audience
 
-### Primary: Saprolab (First Partner)
+### Primary: Agency Partner (First Partner)
 
 - **Who**: IT management supplier building products for large non-profits
 - **Problem**: Need to replace Holaspirit with something customizable, open, and affordable
 - **Use Case**:
   - Internal operations (team alignment, knowledge sharing)
-  - Client work (ZDHC project management)
+  - Client work (Client project management)
 
-### Secondary: ZDHC (End User via Saprolab)
+### Secondary: Client (End User via Agency Partner)
 
 - **Who**: Large non-profit running multiple product teams
 - **Problem**: Too many products, unclear roadmaps, misaligned teams, knowledge silos
@@ -173,10 +173,10 @@ An **open-source, modular platform** that integrates:
 **See**: [Monetization Strategy](./monetization-strategy.md) - Complete revenue model, pricing tiers, and 3-year projections ⭐  
 **See**: [Outcome Pattern Library Strategy](../../dev-docs/2-areas/architecture/outcome-pattern-library-strategy.md) - IP building strategy and Pattern Library revenue stream ⭐
 
-### Phase 1: Validate with Saprolab
+### Phase 1: Validate with Agency Partner
 
 - **Cost**: $60/month (Cursor AI)
-- **Revenue**: $X/month from Saprolab (first partner)
+- **Revenue**: $X/month from Agency Partner (first partner)
 - **Goal**: Reach profitability (Revenue > Costs)
 
 ### Phase 2: Scale with Open Source
@@ -205,10 +205,10 @@ An **open-source, modular platform** that integrates:
    - Rapid iterations, no bureaucracy
    - Lean, focused, outcome-driven
 
-2. **Saprolab needs this now**
+2. **Agency Partner needs this now**
    - Real customer pain
    - Willing to pay
-   - Large potential (ZDHC is just one client)
+   - Large potential (Client is just one client)
 
 3. **Open source wins**
    - Trust: Teams can audit the code
@@ -236,8 +236,8 @@ We'll know we're succeeding when:
 
 ### Adoption
 
-- ✅ Saprolab using it daily for internal ops
-- ✅ ZDHC onboarded and running product teams on it
+- ✅ Agency Partner using it daily for internal ops
+- ✅ Client onboarded and running product teams on it
 - ✅ 5+ organizations self-hosting within 6 months
 - ✅ 100+ teams using managed service within 12 months
 
@@ -257,7 +257,7 @@ We'll know we're succeeding when:
 
 ### Revenue
 
-- ✅ Saprolab paying covers costs
+- ✅ Agency Partner paying covers costs
 - ✅ 3+ paying customers within 6 months
 - ✅ Profitability within 12 months
 - ✅ Sustainable without VC funding
@@ -275,7 +275,7 @@ We'll know we're succeeding when:
 
 ### Year 1: Foundation
 
-- Saprolab & ZDHC validated
+- Agency Partner & Client validated
 - Core product discovery & delivery tools shipped
 - Community growing (100+ contributors)
 - Profitability reached
@@ -326,11 +326,11 @@ We'll know we're succeeding when:
 
 "We're building the open-source Product OS—a platform that embeds learning, AI coaching, and product discovery at the core. Think Holaspirit meets Notion meets ChatGPT, but privacy-first, community-driven, and built for product teams."
 
-### For Saprolab (1 minute)
+### For Agency Partner (1 minute)
 
 "You need to replace Holaspirit with something that's customizable, affordable, and open. We built a platform that handles team alignment, knowledge sharing, and product management—with AI coaching trained on your data, not generic advice. You can self-host it, customize workflows, and it costs a fraction of existing tools. Plus, it's open source, so you're never locked in."
 
-### For ZDHC (1 minute)
+### For Client (1 minute)
 
 "Running multiple product teams is hard—unclear roadmaps, misaligned goals, knowledge silos. We built a platform that brings everything together: product discovery, roadmap tracking, automated status reports, and built-in glossaries. Your teams stay aligned, meetings are more effective, and onboarding new members is painless. It's like having an AI coach that knows your organization."
 
@@ -344,7 +344,7 @@ We'll know we're succeeding when:
 
 ### Risk: "Too ambitious"
 
-- **Mitigation**: Start small (Saprolab validation), expand incrementally
+- **Mitigation**: Start small (Agency Partner validation), expand incrementally
 - **Proof**: Already built working foundation with $60/month
 
 ### Risk: "Open source = no revenue"
@@ -371,7 +371,7 @@ We'll know we're succeeding when:
 
 ## Next Steps
 
-1. **Validate with Saprolab**: Get first paying customer
+1. **Validate with Agency Partner**: Get first paying customer
 2. **Build Multi-Tenancy**: Enable teams and organizations
 3. **Launch Community**: GitHub, Discord, journey blog
 4. **Ship Core Features**: Product discovery & delivery tools

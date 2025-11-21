@@ -25,7 +25,7 @@ export const listInboxItems = query({
 		filterType: v.optional(v.string()), // Optional type filter
 		processed: v.optional(v.boolean()), // Optional processed filter
 		organizationId: v.optional(v.union(v.id('organizations'), v.null())), // Workspace context
-		teamId: v.optional(v.id('teams')) // Team context
+		circleId: v.optional(v.id('circles')) // Circle context
 	},
 	handler: async (ctx, args) => {
 		// Validate session and derive userId (prevents impersonation)
@@ -48,15 +48,17 @@ export const listInboxItems = query({
 		if (args.organizationId === null) {
 			// Defensive: Handle null organizationId query (should not happen - users always have orgs).
 			// Filters for items with no organizationId (legacy data or edge cases).
-			items = items.filter((item) => !item.organizationId && !item.teamId);
+			items = items.filter((item) => !item.organizationId && !item.circleId);
 		} else if (args.organizationId !== undefined) {
 			// Organization workspace: show org-owned items
-			if (args.teamId) {
-				// Team context: show only team items
-				items = items.filter((item) => item.teamId === args.teamId);
+			if (args.circleId) {
+				// Circle context: show only circle items
+				items = items.filter((item) => item.circleId === args.circleId);
 			} else {
-				// Org context: show org items (not team-specific)
-				items = items.filter((item) => item.organizationId === args.organizationId && !item.teamId);
+				// Org context: show org items (not circle-specific)
+				items = items.filter(
+					(item) => item.organizationId === args.organizationId && !item.circleId
+				);
 			}
 		}
 		// If no workspace filter provided, show all (backwards compatibility)

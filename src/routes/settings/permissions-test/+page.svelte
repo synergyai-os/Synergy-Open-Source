@@ -64,20 +64,20 @@
 			return;
 		}
 
-		const loadingToastId = toast.loading('Creating team...');
+		const loadingToastId = toast.loading('Creating circle...');
 		const sessionId = $page.data.sessionId;
 		if (!sessionId) {
 			toast.error('Session ID required');
 			return;
 		}
 		try {
-			await convexClient.mutation(api.teams.createTeam, {
+			await convexClient.mutation(api.circles.create, {
 				sessionId,
 				organizationId: orgId as Id<'organizations'>,
-				name: `Test Team ${Math.floor(Math.random() * 1000)}`
+				name: `Test Circle ${Math.floor(Math.random() * 1000)}`
 			});
 			if (loadingToastId !== undefined) {
-				toast.success('✅ Team created successfully', { id: loadingToastId });
+				toast.success('✅ Circle created successfully', { id: loadingToastId });
 			}
 		} catch (error) {
 			const message = error instanceof Error ? error.message : 'Unknown error';
@@ -166,13 +166,15 @@
 				<span class="text-danger text-sm"> ⚠️ No organization selected </span>
 			{/if}
 		</div>
-		<p class="text-body max-w-prose text-secondary">
+		<p class="max-w-prose text-body text-secondary">
 			Test and verify the RBAC permission system with your current user account
 		</p>
 	</header>
 
 	<!-- Status Overview Card (Collapsible) -->
-	<div class="card p-card mb-section-normal bg-surface-secondary">
+	<div
+		class="mb-content-section rounded-card border border-base bg-surface px-card py-card shadow-card"
+	>
 		<div class="mb-4 flex items-center justify-between">
 			<h2 class="text-display-sm font-semibold text-primary">Current Status</h2>
 			<button
@@ -185,7 +187,7 @@
 		<dl class="space-y-3">
 			<div>
 				<dt class="text-label text-secondary">User ID</dt>
-				<dd class="text-body font-mono text-primary">{userId ?? 'Not logged in'}</dd>
+				<dd class="font-mono text-body text-primary">{userId ?? 'Not logged in'}</dd>
 			</div>
 			<div>
 				<dt class="text-label text-secondary">Organization</dt>
@@ -210,7 +212,7 @@
 			</div>
 		</dl>
 		{#if showPermissionDetails && permissions.permissions.length > 0}
-			<div class="border-subtle mt-4 rounded-md border bg-surface p-3">
+			<div class="border-subtle p-card mt-4 rounded-card border bg-surface">
 				<h3 class="mb-2 text-label font-semibold text-secondary">Your Permissions:</h3>
 				<ul class="space-y-1">
 					{#each permissions.permissions as permission (permission)}
@@ -222,7 +224,7 @@
 	</div>
 
 	<!-- Quick Test Actions -->
-	<div class="card p-card mb-section-normal">
+	<div class="p-card mb-section-normal rounded-card border border-base shadow-card">
 		<h2 class="text-display-sm mb-4 font-semibold text-primary">Quick Test Actions</h2>
 		<div class="flex flex-wrap gap-3">
 			<PermissionButton
@@ -231,7 +233,7 @@
 				variant="primary"
 				onclick={testCreateTeam}
 			>
-				Create Team
+				Create Circle
 			</PermissionButton>
 			<PermissionButton
 				requires="users.invite"
@@ -250,7 +252,7 @@
 				Update Profile
 			</PermissionButton>
 			<PermissionButton requires="teams.delete" {permissions} variant="secondary">
-				Delete Team (No action)
+				Delete Circle (No action)
 			</PermissionButton>
 		</div>
 		<p class="mt-4 text-sm text-secondary">
@@ -259,17 +261,17 @@
 	</div>
 
 	<!-- Permission Gates (Conditional Content) -->
-	<div class="card p-card mb-section-normal">
+	<div class="p-card mb-section-normal rounded-card border border-base shadow-card">
 		<h2 class="text-display-sm mb-4 font-semibold text-primary">PermissionGate Component Test</h2>
 		<div class="space-y-4">
 			<div>
 				<h3 class="mb-2 text-label font-semibold text-secondary">Can create teams?</h3>
 				<PermissionGate can="teams.create" {permissions}>
-					<div class="bg-success-subtle text-success rounded-md p-3">
+					<div class="bg-success-subtle p-card rounded-card text-success">
 						✅ You have permission to create teams
 					</div>
 					{#snippet fallbackSnippet()}
-						<div class="bg-warning-subtle text-warning rounded-md p-3">
+						<div class="bg-warning-subtle text-warning p-card rounded-card">
 							❌ You don't have permission to create teams
 						</div>
 					{/snippet}
@@ -279,11 +281,11 @@
 			<div>
 				<h3 class="mb-2 text-label font-semibold text-secondary">Can delete teams?</h3>
 				<PermissionGate can="teams.delete" {permissions}>
-					<div class="bg-success-subtle text-success rounded-md p-3">
+					<div class="bg-success-subtle p-card rounded-card text-success">
 						✅ You have permission to delete teams
 					</div>
 					{#snippet fallbackSnippet()}
-						<div class="bg-warning-subtle text-warning rounded-md p-3">
+						<div class="bg-warning-subtle text-warning p-card rounded-card">
 							❌ You don't have permission to delete teams
 						</div>
 					{/snippet}
@@ -293,11 +295,11 @@
 			<div>
 				<h3 class="mb-2 text-label font-semibold text-secondary">Can invite users?</h3>
 				<PermissionGate can="users.invite" {permissions}>
-					<div class="bg-success-subtle text-success rounded-md p-3">
+					<div class="bg-success-subtle p-card rounded-card text-success">
 						✅ You have permission to invite users
 					</div>
 					{#snippet fallbackSnippet()}
-						<div class="bg-warning-subtle text-warning rounded-md p-3">
+						<div class="bg-warning-subtle text-warning p-card rounded-card">
 							❌ You don't have permission to invite users
 						</div>
 					{/snippet}
@@ -307,7 +309,9 @@
 	</div>
 
 	<!-- Setup Instructions (Collapsible) -->
-	<div class="card p-card bg-surface-secondary space-y-4">
+	<div
+		class="space-y-content-section rounded-card border border-base bg-surface px-card py-card shadow-card"
+	>
 		<div class="flex items-center justify-between">
 			<h2 class="text-display-sm font-semibold text-primary">Setup Instructions</h2>
 			<button onclick={() => (showSetup = !showSetup)} class="text-link text-sm hover:underline">
@@ -319,12 +323,13 @@
 				<h3 class="text-label font-semibold text-secondary">To test permissions:</h3>
 				<ol class="list-inside list-decimal space-y-2 text-sm text-secondary">
 					<li>
-						Ensure RBAC data is seeded: <code class="rounded bg-surface px-1 py-0.5 text-xs"
+						Ensure RBAC data is seeded: <code class="rounded-card bg-surface px-1 py-0.5 text-xs"
 							>npx convex run rbac/seedRBAC:seedAllRBAC</code
 						>
 					</li>
 					<li>
-						Assign yourself the admin role: <code class="rounded bg-surface px-1 py-0.5 text-xs"
+						Assign yourself the admin role: <code
+							class="rounded-card bg-surface px-1 py-0.5 text-xs"
 							>npx convex run rbac/setupAdmin:setupAdmin '{'{'}userId:"YOUR_USER_ID"}'</code
 						>
 					</li>
@@ -333,8 +338,8 @@
 				</ol>
 				<p class="mt-4 text-sm text-secondary">
 					<strong>Note:</strong> Replace
-					<code class="rounded bg-surface px-1 py-0.5 text-xs">YOUR_USER_ID</code> with your actual user
-					ID shown in "Current Status" above.
+					<code class="rounded-card bg-surface px-1 py-0.5 text-xs">YOUR_USER_ID</code> with your actual
+					user ID shown in "Current Status" above.
 				</p>
 			</div>
 		{/if}

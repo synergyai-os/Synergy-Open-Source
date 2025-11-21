@@ -234,7 +234,7 @@ This is the workflow we've codified in `/start`:
 
 ## Try It Yourself
 
-**The Component**: [`src/lib/components/ThemeToggle.svelte`](https://github.com/synergyai-os/Synergy-Open-Source/blob/main/src/lib/components/ThemeToggle.svelte)
+**The Component**: [`src/lib/components/ui/ThemeToggle.svelte`](https://github.com/synergyai-os/Synergy-Open-Source/blob/main/src/lib/components/ui/ThemeToggle.svelte)
 
 **Usage**:
 

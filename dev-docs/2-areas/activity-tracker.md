@@ -309,7 +309,7 @@ The tracker is designed to be extensible:
 
 - **Store**: `src/lib/stores/activityTracker.svelte.ts`
 - **Main Component**: `src/lib/components/GlobalActivityTracker.svelte`
-- **Card Component**: `src/lib/components/ActivityCard.svelte`
+- **Card Component**: `src/lib/modules/core/components/ActivityCard.svelte`
 - **Layout Integration**: `src/routes/(authenticated)/+layout.svelte`
 - **Example Usage**: `src/routes/(authenticated)/inbox/+page.svelte`
 

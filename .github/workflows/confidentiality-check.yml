@@ -1,0 +1,35 @@
+name: Confidentiality Check
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+jobs:
+  check-confidentiality:
+    name: Check for Confidential Information
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for confidential client names
+        run: |
+          chmod +x scripts/check-confidentiality.sh
+          ./scripts/check-confidentiality.sh
+
+      - name: Report violations
+        if: failure()
+        run: |
+          echo "## ❌ Confidentiality Check Failed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Confidential client names were found in documentation files." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**To fix:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. Run: \`npm run sanitize:docs:apply\`" >> $GITHUB_STEP_SUMMARY
+          echo "2. Review changes" >> $GITHUB_STEP_SUMMARY
+          echo "3. Commit sanitized files" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "See: [Confidentiality Guidelines](dev-docs/2-areas/confidentiality-guidelines.md)" >> $GITHUB_STEP_SUMMARY

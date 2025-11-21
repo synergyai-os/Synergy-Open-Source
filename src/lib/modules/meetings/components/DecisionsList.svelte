@@ -193,16 +193,16 @@
 </script>
 
 {#if browser && sessionId}
-	<div class="space-y-4">
+	<div class="flex flex-col gap-content-section">
 		<!-- Section Header -->
 		<div class="flex items-center justify-between">
-			<h4 class="text-sm font-medium text-primary">Decisions</h4>
+			<h4 class="text-body-sm font-medium text-primary">Decisions</h4>
 			{#if !readonly && !isAdding && !editingId}
 				<button
 					onclick={startAdding}
-					class="flex items-center gap-icon rounded-md bg-elevated px-nav-item py-nav-item text-sm text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
+					class="text-body-sm flex items-center gap-icon rounded-button bg-elevated px-nav-item py-nav-item text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
 				>
-					<svg class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<svg class="icon-sm flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -217,18 +217,21 @@
 
 		<!-- Error Message -->
 		{#if error}
-			<div class="rounded-md bg-red-50 px-4 py-3 text-sm text-red-800">
+			<div class="text-body-sm rounded-button bg-error-bg px-card py-header text-error-text">
 				{error}
 			</div>
 		{/if}
 
 		<!-- Add Decision Form -->
 		{#if isAdding}
-			<div class="rounded-md border-2 border-accent-primary bg-elevated p-4">
-				<div class="space-y-3">
+			<div class="p-card rounded-button border-2 border-accent-primary bg-elevated">
+				<div class="flex flex-col gap-icon">
 					<!-- Title Input -->
 					<div>
-						<label for="new-decision-title" class="mb-1 block text-sm font-medium text-primary">
+						<label
+							for="new-decision-title"
+							class="text-body-sm mb-form-field-gap block font-medium text-primary"
+						>
 							Title
 						</label>
 						<input
@@ -236,7 +239,7 @@
 							type="text"
 							bind:value={state.newTitle}
 							placeholder="Decision title..."
-							class="w-full rounded-md border border-base bg-surface px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
+							class="text-body-sm w-full rounded-input border border-base bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
 						/>
 					</div>
 
@@ -244,7 +247,7 @@
 					<div>
 						<label
 							for="new-decision-description"
-							class="mb-1 block text-sm font-medium text-primary"
+							class="text-body-sm mb-form-field-gap block font-medium text-primary"
 						>
 							Description (optional)
 						</label>
@@ -253,23 +256,23 @@
 							bind:value={state.newDescription}
 							placeholder="Add context or details..."
 							rows="4"
-							class="w-full rounded-md border border-base bg-surface px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
+							class="text-body-sm w-full rounded-input border border-base bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
 						></textarea>
 					</div>
 
 					<!-- Form Actions -->
-					<div class="flex justify-end gap-2">
+					<div class="flex justify-end gap-icon">
 						<button
 							onclick={cancelAdding}
 							disabled={isSaving}
-							class="rounded-md px-4 py-2 text-sm text-secondary transition-colors hover:bg-hover-solid hover:text-primary disabled:opacity-50"
+							class="rounded-button px-button-x py-button-y text-button text-secondary transition-colors hover:bg-hover-solid hover:text-primary disabled:opacity-50"
 						>
 							Cancel
 						</button>
 						<button
 							onclick={handleCreate}
 							disabled={isSaving || !newTitle.trim()}
-							class="rounded-md bg-accent-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+							class="rounded-button bg-accent-primary px-button-x py-button-y text-button font-medium text-primary transition-colors hover:bg-accent-hover disabled:opacity-50"
 						>
 							{isSaving ? 'Creating...' : 'Create Decision'}
 						</button>
@@ -280,12 +283,12 @@
 
 		<!-- Decisions List -->
 		{#if sortedDecisions.length > 0}
-			<div class="space-y-3">
+			<div class="flex flex-col gap-icon">
 				{#each sortedDecisions as decision (decision._id)}
 					<div
 						role="region"
 						aria-label="Decision card"
-						class="rounded-md border border-base bg-elevated transition-all hover:border-elevated"
+						class="rounded-card border border-base bg-elevated transition-all hover:border-elevated"
 						onmouseenter={() => {
 							state.hoveredId = decision._id;
 						}}
@@ -295,13 +298,13 @@
 					>
 						{#if editingId === decision._id}
 							<!-- Edit Mode -->
-							<div class="p-4">
-								<div class="space-y-3">
+							<div class="p-card">
+								<div class="flex flex-col gap-icon">
 									<!-- Title Input -->
 									<div>
 										<label
 											for="edit-decision-title-{decision._id}"
-											class="mb-1 block text-sm font-medium text-primary"
+											class="text-body-sm mb-form-field-gap block font-medium text-primary"
 										>
 											Title
 										</label>
@@ -310,7 +313,7 @@
 											type="text"
 											bind:value={state.editTitle}
 											placeholder="Decision title..."
-											class="w-full rounded-md border border-base bg-surface px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
+											class="text-body-sm w-full rounded-input border border-base bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
 										/>
 									</div>
 
@@ -318,7 +321,7 @@
 									<div>
 										<label
 											for="edit-decision-description-{decision._id}"
-											class="mb-1 block text-sm font-medium text-primary"
+											class="text-body-sm mb-form-field-gap block font-medium text-primary"
 										>
 											Description (optional)
 										</label>
@@ -327,23 +330,23 @@
 											bind:value={state.editDescription}
 											placeholder="Add context or details..."
 											rows="4"
-											class="w-full rounded-md border border-base bg-surface px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
+											class="text-body-sm w-full rounded-input border border-base bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
 										></textarea>
 									</div>
 
 									<!-- Form Actions -->
-									<div class="flex justify-end gap-2">
+									<div class="flex justify-end gap-icon">
 										<button
 											onclick={cancelEditing}
 											disabled={isSaving}
-											class="rounded-md px-4 py-2 text-sm text-secondary transition-colors hover:bg-hover-solid hover:text-primary disabled:opacity-50"
+											class="rounded-button px-button-x py-button-y text-button text-secondary transition-colors hover:bg-hover-solid hover:text-primary disabled:opacity-50"
 										>
 											Cancel
 										</button>
 										<button
 											onclick={() => handleUpdate(decision._id)}
 											disabled={isSaving || !editTitle.trim()}
-											class="rounded-md bg-accent-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+											class="rounded-button bg-accent-primary px-button-x py-button-y text-button font-medium text-primary transition-colors hover:bg-accent-hover disabled:opacity-50"
 										>
 											{isSaving ? 'Saving...' : 'Save Changes'}
 										</button>
@@ -352,23 +355,23 @@
 							</div>
 						{:else}
 							<!-- View Mode -->
-							<div class="p-4">
-								<div class="flex items-start justify-between gap-4">
-									<div class="flex-1 space-y-2">
+							<div class="p-card">
+								<div class="flex items-start justify-between gap-content-section">
+									<div class="flex flex-1 flex-col gap-icon">
 										<!-- Title -->
 										<h5 class="font-medium text-primary">{decision.title}</h5>
 
 										<!-- Description -->
 										{#if decision.description}
-											<div class="text-sm whitespace-pre-wrap text-secondary">
+											<div class="text-body-sm whitespace-pre-wrap text-secondary">
 												{decision.description}
 											</div>
 										{/if}
 
 										<!-- Timestamp -->
-										<div class="flex items-center gap-2 text-xs text-tertiary">
+										<div class="flex items-center gap-icon text-label text-tertiary">
 											<svg
-												class="h-3.5 w-3.5 flex-shrink-0"
+												class="icon-xs flex-shrink-0"
 												fill="none"
 												viewBox="0 0 24 24"
 												stroke="currentColor"
@@ -386,14 +389,14 @@
 
 									<!-- Hover Actions -->
 									{#if !readonly && hoveredId === decision._id}
-										<div class="flex gap-1">
+										<div class="gap-icon-sm flex">
 											<button
 												onclick={() => startEditing(decision)}
-												class="rounded-md p-2 text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
+												class="rounded-button p-control-button-padding text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
 												aria-label="Edit decision"
 											>
 												<svg
-													class="h-4 w-4 flex-shrink-0"
+													class="icon-sm flex-shrink-0"
 													fill="none"
 													viewBox="0 0 24 24"
 													stroke="currentColor"
@@ -408,11 +411,11 @@
 											</button>
 											<button
 												onclick={() => handleDelete(decision._id)}
-												class="rounded-md p-2 text-secondary transition-colors hover:bg-red-50 hover:text-red-600"
+												class="rounded-button p-control-button-padding text-secondary transition-colors hover:bg-destructive-hover hover:text-error-text"
 												aria-label="Delete decision"
 											>
 												<svg
-													class="h-4 w-4 flex-shrink-0"
+													class="icon-sm flex-shrink-0"
 													fill="none"
 													viewBox="0 0 24 24"
 													stroke="currentColor"
@@ -435,9 +438,11 @@
 			</div>
 		{:else if !isAdding}
 			<!-- Empty State -->
-			<div class="rounded-md border border-dashed border-base bg-surface px-4 py-8 text-center">
+			<div
+				class="py-section-spacing-small rounded-card border border-dashed border-base bg-surface px-card text-center"
+			>
 				<svg
-					class="mx-auto h-8 w-8 text-tertiary"
+					class="mx-auto icon-lg text-tertiary"
 					fill="none"
 					viewBox="0 0 24 24"
 					stroke="currentColor"
@@ -449,9 +454,12 @@
 						d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
 					/>
 				</svg>
-				<p class="mt-2 text-sm text-secondary">No decisions recorded yet</p>
+				<p class="mt-spacing-text-gap text-body-sm text-secondary">No decisions recorded yet</p>
 				{#if !readonly}
-					<button onclick={startAdding} class="mt-3 text-sm text-accent-primary hover:underline">
+					<button
+						onclick={startAdding}
+						class="mt-icon text-body-sm text-accent-primary hover:underline"
+					>
 						Add the first decision
 					</button>
 				{/if}
@@ -460,5 +468,5 @@
 	</div>
 {:else if !browser}
 	<!-- SSR placeholder -->
-	<div class="text-sm text-tertiary italic">Loading decisions...</div>
+	<div class="text-body-sm text-tertiary italic">Loading decisions...</div>
 {/if}

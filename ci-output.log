@@ -1,0 +1,70 @@
+
+> synergyos@0.1.0 ci:quick
+> npm run check && npm run check:confidentiality && npm run lint && npm run build
+
+
+> synergyos@0.1.0 check
+> svelte-kit sync && svelte-check --tsconfig ./tsconfig.json
+
+Loading svelte-check in workspace: /Users/randyhereman/Coding/SynergyOS
+Getting Svelte diagnostics...
+
+svelte-check found 0 errors and 0 warnings
+
+> synergyos@0.1.0 check:confidentiality
+> ./scripts/check-confidentiality.sh
+
+🔒 Checking for confidential client information...
+
+📋 Scanning 209 markdown files...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[0;32m✅ No confidential information detected![0m
+
+All documentation files are clean.
+
+
+> synergyos@0.1.0 lint
+> prettier --check . && eslint .
+
+Checking formatting...
+[warn] .cursor/commands/go.md
+[warn] .cursor/commands/manager.md
+[warn] .cursor/commands/README.md
+[warn] .cursor/commands/save.md
+[warn] .cursor/commands/start.md
+[warn] .cursor/commands/task-template.md
+[warn] .cursor/rules/BUILDING-RULES.md
+[warn] .cursor/rules/README.md
+[warn] .cursor/SHORTCUTS.md
+[warn] ai-docs/tasks/README.md
+[warn] audit-report.json
+[warn] AUDIT-REPORT.md
+[warn] design-system-audit-template.md
+[warn] design-system-daily-work-cheatsheet.md
+[warn] scripts/audit-design-system.js
+[warn] src/lib/components/atoms/Avatar.svelte
+[warn] src/lib/components/atoms/Card.svelte
+[warn] src/lib/components/atoms/Chip.svelte
+[warn] src/lib/components/atoms/LoadingOverlay.svelte
+[warn] src/lib/components/atoms/PinInput.svelte
+[warn] src/lib/components/atoms/Text.svelte
+[warn] src/lib/components/dashboard/ActionItemsList.svelte
+[warn] src/lib/components/molecules/index.ts
+[warn] src/lib/components/my-mind/MyMindHeader.svelte
+[warn] src/lib/components/my-mind/MyMindItemDetail.svelte
+[warn] src/lib/components/organisms/index.ts
+[warn] src/lib/modules/core/components/notes/AIContentDetector.svelte
+[warn] src/lib/modules/core/organizations/components/OrganizationSwitcher.svelte
+[warn] src/lib/modules/flashcards/components/FlashcardDetailModal.svelte
+[warn] src/lib/modules/inbox/components/FlashcardReviewModal.svelte
+[warn] src/lib/modules/inbox/components/SyncReadwiseConfig.svelte
+[warn] src/lib/modules/meetings/components/AttendeeSelector.svelte
+[warn] src/lib/modules/meetings/components/MeetingCard.svelte
+[warn] src/routes/(authenticated)/admin/feature-flags/+page.svelte
+[warn] src/routes/(authenticated)/admin/rbac/+page.svelte
+[warn] src/routes/(authenticated)/inbox/+page.svelte
+[warn] src/routes/(authenticated)/test/readwise/+page.svelte
+[warn] src/styles/app.css
+[warn] SYOS-403-VALIDATION.md
+[warn] Code style issues found in 39 files. Run Prettier with --write to fix.

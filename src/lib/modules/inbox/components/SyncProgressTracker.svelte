@@ -19,12 +19,12 @@
 	<div
 		class="flex h-system-header flex-shrink-0 items-center justify-between border-b border-base px-inbox-container py-system-header"
 	>
-		<h3 class="text-sm font-normal text-primary">Importing...</h3>
+		<h3 class="text-small font-normal text-primary">Importing...</h3>
 		{#if onCancel}
 			<button
 				type="button"
 				onclick={onCancel}
-				class="text-xs text-tertiary transition-colors hover:text-secondary"
+				class="text-label text-tertiary transition-colors hover:text-secondary"
 			>
 				Cancel
 			</button>
@@ -35,11 +35,11 @@
 	<div
 		class="flex flex-1 items-center justify-center overflow-y-auto px-inbox-container py-inbox-container"
 	>
-		<div class="flex w-full max-w-md flex-col gap-6">
+		<div class="flex w-full max-w-md flex-col gap-settings-section">
 			<!-- Progress Bar -->
-			<div class="flex flex-col gap-3">
-				<div class="flex flex-col gap-2">
-					<div class="flex items-center justify-between text-xs">
+			<div class="flex flex-col gap-form-section">
+				<div class="flex flex-col gap-icon">
+					<div class="flex items-center justify-between text-label">
 						<span class="font-medium text-secondary">{step}</span>
 						{#if total}
 							<span class="text-tertiary">{current} of {total}</span>
@@ -48,14 +48,14 @@
 						{/if}
 					</div>
 
-					<div class="h-2.5 w-full overflow-hidden rounded-full bg-base">
+					<div class="h-2.5 w-full overflow-hidden rounded-chip bg-base">
 						<div
 							class="bg-primary h-full transition-all duration-300 ease-out"
 							style="width: {progressPercentage}%"
 						></div>
 					</div>
 					{#if total}
-						<p class="text-center text-xs text-tertiary">
+						<p class="text-center text-label text-tertiary">
 							Processing {current} of {total} highlights...
 						</p>
 					{/if}
@@ -64,13 +64,13 @@
 
 			<!-- Message -->
 			{#if message}
-				<p class="text-center text-sm text-secondary">{message}</p>
+				<p class="text-center text-small text-secondary">{message}</p>
 			{/if}
 
 			<!-- Loading Indicator -->
 			<div class="flex justify-center">
 				<svg
-					class="h-6 w-6 animate-spin text-primary"
+					class="icon-md animate-spin text-primary"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"

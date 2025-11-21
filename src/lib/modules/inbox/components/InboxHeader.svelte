@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { DropdownMenu } from 'bits-ui';
 	import InboxFilterMenu from './InboxFilterMenu.svelte';
-	import SidebarToggle from '$lib/components/SidebarToggle.svelte';
+	import { SidebarToggle } from '\$lib/components/organisms';
 
 	type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 
@@ -49,11 +49,11 @@
 			<SidebarToggle {sidebarCollapsed} onToggle={onSidebarToggle} {isMobile} />
 		{/if}
 
-		<h2 class="flex items-center gap-2 text-sm font-normal text-secondary">
+		<h2 class="flex items-center gap-icon text-small font-normal text-secondary">
 			Inbox
 			{#if inboxCount > 0}
 				<span
-					class="flex min-w-[20px] items-center justify-center rounded-full bg-accent-primary px-badge py-badge text-center text-label leading-none font-medium text-white"
+					class="flex min-w-badge items-center justify-center rounded-chip bg-accent-primary px-badge py-badge text-center text-label leading-none font-medium text-primary"
 				>
 					{inboxCount}
 				</span>
@@ -64,10 +64,10 @@
 		<DropdownMenu.Root bind:open={menuOpen}>
 			<DropdownMenu.Trigger
 				type="button"
-				class="flex h-8 w-8 items-center justify-center rounded-md text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
+				class="flex icon-xl items-center justify-center rounded-button text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
 			>
 				<svg
-					class="h-4 w-4"
+					class="icon-sm"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -84,14 +84,14 @@
 
 			<DropdownMenu.Portal>
 				<DropdownMenu.Content
-					class="z-50 min-w-[180px] rounded-md border border-base bg-elevated py-1 shadow-lg"
+					class="z-50 min-w-dropdown rounded-button border border-base bg-elevated py-badge shadow-card"
 					side="bottom"
 					align="start"
 					sideOffset={4}
 				>
 					{#if onSync}
 						<DropdownMenu.Item
-							class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid disabled:cursor-not-allowed disabled:opacity-50"
+							class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-small text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid disabled:cursor-not-allowed disabled:opacity-50"
 							textValue="Sync Readwise Highlights"
 							disabled={isSyncing}
 							onSelect={() => {
@@ -106,7 +106,7 @@
 							>
 							{#if isSyncing}
 								<svg
-									class="h-4 w-4 animate-spin"
+									class="icon-sm animate-spin"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -121,11 +121,11 @@
 							{/if}
 						</DropdownMenu.Item>
 
-						<DropdownMenu.Separator class="my-1 h-px bg-base" />
+						<DropdownMenu.Separator class="my-badge h-px bg-base" />
 					{/if}
 
 					<DropdownMenu.Item
-						class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+						class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-small text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 						textValue="Delete all"
 						onSelect={() => {
 							onDeleteAll?.();
@@ -136,7 +136,7 @@
 					</DropdownMenu.Item>
 
 					<DropdownMenu.Item
-						class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+						class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-small text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 						textValue="Delete all read"
 						onSelect={() => {
 							onDeleteAllRead?.();
@@ -147,7 +147,7 @@
 					</DropdownMenu.Item>
 
 					<DropdownMenu.Item
-						class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+						class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-small text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 						textValue="Delete all for completed issues and reviews"
 						onSelect={() => {
 							onDeleteAllCompleted?.();
@@ -169,11 +169,11 @@
 		<!-- Sort Icon -->
 		<button
 			type="button"
-			class="flex h-8 w-8 items-center justify-center rounded-md text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
+			class="flex icon-xl items-center justify-center rounded-button text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
 			onclick={() => onSortClick?.()}
 			aria-label="Sort inbox items"
 		>
-			<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path
 					stroke-linecap="round"
 					stroke-linejoin="round"

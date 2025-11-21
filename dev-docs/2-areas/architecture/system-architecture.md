@@ -192,7 +192,7 @@ graph TB
 ### User Types
 
 1. **Individual Users**: Personal knowledge management
-2. **Organizations**: Multi-tenant organizations (Saprolab, ZDHC)
+2. **Organizations**: Multi-tenant organizations (Agency Partner, Client)
 3. **Teams**: Teams within organizations
 
 **Access Control**: See [RBAC Architecture](../rbac/rbac-architecture.md)

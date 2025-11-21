@@ -20,6 +20,7 @@
 	import { api, type Id } from '$lib/convex';
 	import { toast } from 'svelte-sonner';
 	import { resolveRoute } from '$lib/utils/navigation';
+	import { Tabs, Badge } from '$lib/components/ui';
 
 	interface Props {
 		sessionId: string;
@@ -29,10 +30,8 @@
 
 	const convexClient = browser ? useConvexClient() : null;
 
-	// State
-	const state = $state({
-		activeFilter: 'all' as 'all' | 'todo' | 'in-progress' | 'done'
-	});
+	// State - use filter as tab value
+	let activeFilter = $state<'all' | 'todo' | 'in-progress' | 'done'>('all');
 
 	// Query user's action items (defaults to current user)
 	const actionItemsQuery =
@@ -45,10 +44,18 @@
 
 	const actionItems = $derived(actionItemsQuery?.data ?? []);
 
+	// Computed counts
+	const allCount = $derived(actionItems.length);
+	const todoCount = $derived(actionItems.filter((item) => item.status === 'todo').length);
+	const inProgressCount = $derived(
+		actionItems.filter((item) => item.status === 'in-progress').length
+	);
+	const doneCount = $derived(actionItems.filter((item) => item.status === 'done').length);
+
 	// Filter action items by status
 	const filteredItems = $derived(() => {
-		if (state.activeFilter === 'all') return actionItems;
-		return actionItems.filter((item) => item.status === state.activeFilter);
+		if (activeFilter === 'all') return actionItems;
+		return actionItems.filter((item) => item.status === activeFilter);
 	});
 
 	// Handle toggle status
@@ -100,165 +107,161 @@
 
 	// Get status color
 	function getStatusColor(status: 'todo' | 'in-progress' | 'done') {
-		if (status === 'done') return 'text-green-600';
+		if (status === 'done') return 'text-success';
 		if (status === 'in-progress') return 'text-accent-primary';
 		return 'text-text-tertiary';
 	}
 </script>
 
 <!-- Filter Tabs -->
-<div class="mb-content-section flex gap-2 border-b border-border-base">
-	<button
-		onclick={() => (state.activeFilter = 'all')}
-		class="border-b-2 px-nav-item py-nav-item text-sm font-medium transition-colors {state.activeFilter ===
-		'all'
-			? 'border-accent-primary text-accent-primary'
-			: 'border-transparent text-text-secondary hover:text-text-primary'}"
+<Tabs.Root bind:value={activeFilter}>
+	<Tabs.List
+		class="mb-content-section flex size-tab gap-icon rounded-tab-container border-b border-border-base"
 	>
-		All ({actionItems.length})
-	</button>
-	<button
-		onclick={() => (state.activeFilter = 'todo')}
-		class="border-b-2 px-nav-item py-nav-item text-sm font-medium transition-colors {state.activeFilter ===
-		'todo'
-			? 'border-accent-primary text-accent-primary'
-			: 'border-transparent text-text-secondary hover:text-text-primary'}"
-	>
-		To Do ({actionItems.filter((item) => item.status === 'todo').length})
-	</button>
-	<button
-		onclick={() => (state.activeFilter = 'in-progress')}
-		class="border-b-2 px-nav-item py-nav-item text-sm font-medium transition-colors {state.activeFilter ===
-		'in-progress'
-			? 'border-accent-primary text-accent-primary'
-			: 'border-transparent text-text-secondary hover:text-text-primary'}"
-	>
-		In Progress ({actionItems.filter((item) => item.status === 'in-progress').length})
-	</button>
-	<button
-		onclick={() => (state.activeFilter = 'done')}
-		class="border-b-2 px-nav-item py-nav-item text-sm font-medium transition-colors {state.activeFilter ===
-		'done'
-			? 'border-accent-primary text-accent-primary'
-			: 'border-transparent text-text-secondary hover:text-text-primary'}"
-	>
-		Done ({actionItems.filter((item) => item.status === 'done').length})
-	</button>
-</div>
-
-<!-- Action Items List -->
-{#if actionItemsQuery?.isLoading}
-	<div class="py-12 text-center text-text-secondary">Loading action items...</div>
-{:else if filteredItems().length === 0}
-	<!-- Empty State -->
-	<div
-		class="bg-surface-secondary rounded-lg border border-dashed border-border-base py-12 text-center"
-	>
-		<svg
-			class="mx-auto h-12 w-12 text-text-tertiary"
-			fill="none"
-			viewBox="0 0 24 24"
-			stroke="currentColor"
+		<Tabs.Trigger
+			value="all"
+			class="border-b-2 border-transparent px-nav-item py-nav-item text-small font-medium text-text-secondary transition-colors hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
 		>
-			<path
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				stroke-width="2"
-				d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-			/>
-		</svg>
-		<p class="mt-4 text-sm font-medium text-text-primary">
-			{#if state.activeFilter === 'all'}
-				No action items yet
-			{:else if state.activeFilter === 'todo'}
-				No action items to do
-			{:else if state.activeFilter === 'in-progress'}
-				No action items in progress
-			{:else}
-				No completed action items
-			{/if}
-		</p>
-		<p class="mt-1 text-sm text-text-tertiary">
-			Action items are created during meetings and appear here.
-		</p>
-	</div>
-{:else}
-	<!-- List of action items -->
-	<div class="divide-border-subtle bg-surface-base divide-y rounded-lg border border-border-base">
-		{#each filteredItems() as item (item._id)}
+			All <Badge>{allCount}</Badge>
+		</Tabs.Trigger>
+		<Tabs.Trigger
+			value="todo"
+			class="border-b-2 border-transparent px-nav-item py-nav-item text-small font-medium text-text-secondary transition-colors hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+		>
+			To Do <Badge>{todoCount}</Badge>
+		</Tabs.Trigger>
+		<Tabs.Trigger
+			value="in-progress"
+			class="border-b-2 border-transparent px-nav-item py-nav-item text-small font-medium text-text-secondary transition-colors hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+		>
+			In Progress <Badge>{inProgressCount}</Badge>
+		</Tabs.Trigger>
+		<Tabs.Trigger
+			value="done"
+			class="border-b-2 border-transparent px-nav-item py-nav-item text-small font-medium text-text-secondary transition-colors hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+		>
+			Done <Badge>{doneCount}</Badge>
+		</Tabs.Trigger>
+	</Tabs.List>
+
+	<!-- Action Items List -->
+	<Tabs.Content value={activeFilter}>
+		{#if actionItemsQuery?.isLoading}
+			<div class="py-readable-quote text-center text-text-secondary">Loading action items...</div>
+		{:else if filteredItems().length === 0}
+			<!-- Empty State -->
 			<div
-				class="group p-inbox-card hover:bg-surface-hover flex items-start gap-icon-gap transition-colors"
+				class="rounded-card border border-dashed border-border-base bg-surface py-readable-quote text-center"
 			>
-				<!-- Status Checkbox -->
-				<button
-					onclick={() => handleToggleStatus(item._id, item.status)}
-					class="mt-0.5 flex-shrink-0"
-					aria-label="Toggle status"
+				<svg
+					class="mx-auto icon-xl text-text-tertiary"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
 				>
-					<div
-						class="flex h-5 w-5 items-center justify-center rounded-full {getStatusColor(
-							item.status
-						)} transition-colors hover:scale-110"
-					>
-						<span class="text-base font-medium">
-							{getStatusIcon(item.status)}
-						</span>
-					</div>
-				</button>
-
-				<!-- Content -->
-				<div class="min-w-0 flex-1">
-					<p
-						class="text-sm text-text-primary {item.status === 'done'
-							? 'line-through opacity-60'
-							: ''}"
-					>
-						{item.description}
-					</p>
-
-					<!-- Metadata -->
-					<div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-text-tertiary">
-						<!-- Type Badge -->
-						<span
-							class="bg-surface-secondary inline-flex items-center gap-1 rounded border border-border-base px-badge py-badge"
-						>
-							{item.type === 'next-step' ? '⚡' : '📦'}
-							{item.type === 'next-step' ? 'Next Step' : 'Project'}
-						</span>
-
-						<!-- Due Date -->
-						{#if item.dueDate}
-							<span class="inline-flex items-center gap-1">
-								<svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-									/>
-								</svg>
-								{formatDate(item.dueDate)}
-							</span>
-						{/if}
-
-						<!-- Meeting Link -->
-						<button
-							onclick={() => handleNavigateToMeeting(item.meetingId)}
-							class="inline-flex items-center gap-1 text-accent-primary transition-colors hover:text-accent-hover"
-						>
-							<svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-								/>
-							</svg>
-							View meeting
-						</button>
-					</div>
-				</div>
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+					/>
+				</svg>
+				<p class="mt-content-section text-small font-medium text-text-primary">
+					{#if activeFilter === 'all'}
+						No action items yet
+					{:else if activeFilter === 'todo'}
+						No action items to do
+					{:else if activeFilter === 'in-progress'}
+						No action items in progress
+					{:else}
+						No completed action items
+					{/if}
+				</p>
+				<p class="mt-form-section text-small text-text-tertiary">
+					Action items are created during meetings and appear here.
+				</p>
 			</div>
-		{/each}
-	</div>
-{/if}
+		{:else}
+			<!-- List of action items -->
+			<div class="divide-y divide-border-base rounded-card border border-border-base bg-surface">
+				{#each filteredItems() as item (item._id)}
+					<div
+						class="group p-inbox-card hover:bg-surface-hover flex items-start gap-icon-gap transition-colors"
+					>
+						<!-- Status Checkbox -->
+						<button
+							onclick={() => handleToggleStatus(item._id, item.status)}
+							class="flex-shrink-0"
+							aria-label="Toggle status"
+						>
+							<div
+								class="flex h-5 w-5 items-center justify-center rounded-avatar {getStatusColor(
+									item.status
+								)} transition-colors hover:scale-110"
+							>
+								<span class="text-body font-medium">
+									{getStatusIcon(item.status)}
+								</span>
+							</div>
+						</button>
+
+						<!-- Content -->
+						<div class="min-w-0 flex-1">
+							<p
+								class="text-small text-text-primary {item.status === 'done'
+									? 'line-through opacity-60'
+									: ''}"
+							>
+								{item.description}
+							</p>
+
+							<!-- Metadata -->
+							<div
+								class="mt-content-section flex flex-wrap items-center gap-content-section text-label text-text-tertiary"
+							>
+								<!-- Type Badge -->
+								<span
+									class="inline-flex items-center gap-control-item-gap rounded-chip border border-border-base bg-surface px-badge py-badge"
+								>
+									{item.type === 'next-step' ? '⚡' : '📦'}
+									{item.type === 'next-step' ? 'Next Step' : 'Project'}
+								</span>
+
+								<!-- Due Date -->
+								{#if item.dueDate}
+									<span class="inline-flex items-center gap-control-item-gap">
+										<svg class="icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+											/>
+										</svg>
+										{formatDate(item.dueDate)}
+									</span>
+								{/if}
+
+								<!-- Meeting Link -->
+								<button
+									onclick={() => handleNavigateToMeeting(item.meetingId)}
+									class="inline-flex items-center gap-control-item-gap text-accent-primary transition-colors hover:text-accent-hover"
+								>
+									<svg class="icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+										/>
+									</svg>
+									View meeting
+								</button>
+							</div>
+						</div>
+					</div>
+				{/each}
+			</div>
+		{/if}
+	</Tabs.Content>
+</Tabs.Root>

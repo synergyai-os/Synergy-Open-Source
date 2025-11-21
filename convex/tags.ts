@@ -255,7 +255,7 @@ export const listUserTags = query({
 			color: tag.color,
 			ownershipType: tag.ownershipType ?? undefined,
 			organizationId: tag.organizationId ?? undefined,
-			teamId: tag.teamId ?? undefined,
+			circleId: tag.circleId ?? undefined,
 			userId: tag.userId,
 			createdAt: tag.createdAt
 		}));
@@ -332,9 +332,11 @@ export const createTag = mutation({
 		displayName: v.string(),
 		color: v.string(), // Hex color code
 		parentId: v.optional(v.id('tags')),
-		ownership: v.optional(v.union(v.literal('user'), v.literal('organization'), v.literal('team'))),
+		ownership: v.optional(
+			v.union(v.literal('user'), v.literal('organization'), v.literal('circle'))
+		),
 		organizationId: v.optional(v.id('organizations')), // Optional but will be required if not provided
-		teamId: v.optional(v.id('teams'))
+		circleId: v.optional(v.id('circles'))
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
@@ -342,7 +344,7 @@ export const createTag = mutation({
 
 		const ownership = args.ownership ?? 'organization'; // Default to organization (not user)
 		let organizationId: Id<'organizations'> | undefined = undefined;
-		let teamId: Id<'teams'> | undefined = undefined;
+		let circleId: Id<'circles'> | undefined = undefined;
 
 		if (ownership === 'organization') {
 			// If organizationId not provided, get user's first organization
@@ -369,24 +371,24 @@ export const createTag = mutation({
 				}
 				organizationId = args.organizationId;
 			}
-			teamId = undefined;
-		} else if (ownership === 'team') {
-			if (!args.teamId) {
-				throw new Error('teamId is required for team tags');
+			circleId = undefined;
+		} else if (ownership === 'circle') {
+			if (!args.circleId) {
+				throw new Error('circleId is required for circle tags');
 			}
-			const teamMembership = await ctx.db
-				.query('teamMembers')
-				.withIndex('by_team_user', (q) => q.eq('teamId', args.teamId!).eq('userId', userId))
+			const circleMembership = await ctx.db
+				.query('circleMembers')
+				.withIndex('by_circle_user', (q) => q.eq('circleId', args.circleId!).eq('userId', userId))
 				.first();
-			if (!teamMembership) {
-				throw new Error('You do not have access to this team');
+			if (!circleMembership) {
+				throw new Error('You do not have access to this circle');
 			}
-			const team = await ctx.db.get(args.teamId);
-			if (!team) {
-				throw new Error('Team not found');
+			const circle = await ctx.db.get(args.circleId);
+			if (!circle) {
+				throw new Error('Circle not found');
 			}
-			teamId = args.teamId;
-			organizationId = team.organizationId; // Teams always belong to an organization
+			circleId = args.circleId;
+			organizationId = circle.organizationId; // Circles always belong to an organization
 		} else {
 			// ownership === 'user' - but user tags must still have organizationId
 			// Get user's first organization (users are required to have at least one)
@@ -398,7 +400,7 @@ export const createTag = mutation({
 				throw new Error('User must belong to at least one organization');
 			}
 			organizationId = memberships[0].organizationId;
-			teamId = undefined;
+			circleId = undefined;
 		}
 
 		// Validate tag name
@@ -430,10 +432,10 @@ export const createTag = mutation({
 					q.eq('organizationId', organizationId).eq('name', normalizedName)
 				)
 				.first();
-		} else if (ownership === 'team' && teamId && organizationId) {
+		} else if (ownership === 'circle' && circleId && organizationId) {
 			existing = await ctx.db
 				.query('tags')
-				.withIndex('by_team_name', (q) => q.eq('teamId', teamId).eq('name', normalizedName))
+				.withIndex('by_circle_name', (q) => q.eq('circleId', circleId).eq('name', normalizedName))
 				.first();
 		}
 
@@ -462,7 +464,7 @@ export const createTag = mutation({
 					const hasAccess = await canAccessContent(ctx, userId, {
 						userId: parentTag.userId,
 						organizationId: parentTag.organizationId ?? undefined,
-						teamId: parentTag.teamId ?? undefined
+						circleId: parentTag.circleId ?? undefined
 					});
 					if (!hasAccess) {
 						throw new Error('Parent tag does not belong to current user scope');
@@ -471,8 +473,8 @@ export const createTag = mutation({
 				if (parentTag.organizationId !== organizationId) {
 					throw new Error('Parent tag must belong to the same organization');
 				}
-				if (parentTag.teamId !== teamId) {
-					throw new Error('Parent tag must belong to the same team');
+				if (parentTag.circleId !== circleId) {
+					throw new Error('Parent tag must belong to the same circle');
 				}
 				currentParentId = parentTag.parentId;
 			}
@@ -487,7 +489,7 @@ export const createTag = mutation({
 			parentId: args.parentId,
 			createdAt: Date.now(),
 			organizationId,
-			teamId,
+			circleId,
 			ownershipType: ownership
 		});
 
@@ -512,21 +514,21 @@ export const createTag = mutation({
 			// 		tagsAssignedCount: tagCount.length,
 			// 	},
 			// });
-		} else if (ownership === 'team' && teamId) {
+		} else if (ownership === 'circle' && circleId) {
 			// TODO: Re-enable server-side analytics via HTTP action bridge
 			// const tagCount = await ctx.db
 			// 	.query('tags')
-			// 	.withIndex('by_team', (q) => q.eq('teamId', teamId))
+			// 	.withIndex('by_circle', (q) => q.eq('circleId', circleId))
 			// 	.collect();
 			// TODO: Re-enable server-side analytics via HTTP action bridge
 			// await captureAnalyticsEvent({
-			// 	name: AnalyticsEventName.TEAM_TAG_ASSIGNED,
+			// 	name: AnalyticsEventName.CIRCLE_TAG_ASSIGNED,
 			// 	distinctId,
-			// 	groups: { organization: organizationId!, team: teamId },
+			// 	groups: { organization: organizationId!, circle: circleId },
 			// 	properties: {
-			// 		scope: "team",
+			// 		scope: "circle",
 			// 		organizationId: organizationId!,
-			// 		teamId,
+			// 		circleId,
 			// 		tagId,
 			// 		tagName: args.displayName,
 			// 		tagsAssignedCount: tagCount.length,
@@ -571,8 +573,8 @@ export const countTagItems = query({
 });
 
 /**
- * Mutation: Share a personal tag with an organization or team
- * Converts a user-owned tag to organization or team ownership
+ * Mutation: Share a personal tag with an organization or circle
+ * Converts a user-owned tag to organization or circle ownership
  *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
@@ -581,9 +583,9 @@ export const shareTag = mutation({
 	args: {
 		sessionId: v.string(), // Session validation (derives userId securely)
 		tagId: v.id('tags'),
-		shareWith: v.union(v.literal('organization'), v.literal('team')),
+		shareWith: v.union(v.literal('organization'), v.literal('circle')),
 		organizationId: v.optional(v.id('organizations')),
-		teamId: v.optional(v.id('teams'))
+		circleId: v.optional(v.id('circles'))
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
@@ -607,7 +609,7 @@ export const shareTag = mutation({
 
 		// Validate sharing parameters
 		let organizationId: Id<'organizations'> | undefined = undefined;
-		let teamId: Id<'teams'> | undefined = undefined;
+		let circleId: Id<'circles'> | undefined = undefined;
 
 		if (args.shareWith === 'organization') {
 			if (!args.organizationId) {
@@ -626,29 +628,29 @@ export const shareTag = mutation({
 			}
 
 			organizationId = args.organizationId;
-			teamId = undefined;
-		} else if (args.shareWith === 'team') {
-			if (!args.teamId) {
-				throw new Error('teamId is required when sharing with team');
+			circleId = undefined;
+		} else if (args.shareWith === 'circle') {
+			if (!args.circleId) {
+				throw new Error('circleId is required when sharing with circle');
 			}
 
-			// Verify user is member of the team
-			const teamMembership = await ctx.db
-				.query('teamMembers')
-				.withIndex('by_team_user', (q) => q.eq('teamId', args.teamId!).eq('userId', userId))
+			// Verify user is member of the circle
+			const circleMembership = await ctx.db
+				.query('circleMembers')
+				.withIndex('by_circle_user', (q) => q.eq('circleId', args.circleId!).eq('userId', userId))
 				.first();
-			if (!teamMembership) {
-				throw new Error('You are not a member of this team');
+			if (!circleMembership) {
+				throw new Error('You are not a member of this circle');
 			}
 
-			// Get team to verify it exists and get organization
-			const team = await ctx.db.get(args.teamId);
-			if (!team) {
-				throw new Error('Team not found');
+			// Get circle to verify it exists and get organization
+			const circle = await ctx.db.get(args.circleId);
+			if (!circle) {
+				throw new Error('Circle not found');
 			}
 
-			teamId = args.teamId;
-			organizationId = team.organizationId;
+			circleId = args.circleId;
+			organizationId = circle.organizationId;
 		}
 
 		// Check for naming conflicts in target scope
@@ -662,10 +664,10 @@ export const shareTag = mutation({
 					q.eq('organizationId', organizationId).eq('name', normalizedName)
 				)
 				.first();
-		} else if (args.shareWith === 'team' && teamId) {
+		} else if (args.shareWith === 'circle' && circleId) {
 			existing = await ctx.db
 				.query('tags')
-				.withIndex('by_team_name', (q) => q.eq('teamId', teamId).eq('name', normalizedName))
+				.withIndex('by_circle_name', (q) => q.eq('circleId', circleId).eq('name', normalizedName))
 				.first();
 		}
 
@@ -677,7 +679,7 @@ export const shareTag = mutation({
 		await ctx.db.patch(args.tagId, {
 			ownershipType: args.shareWith,
 			organizationId,
-			teamId
+			circleId
 		});
 
 		// Find all highlights linked to this tag
@@ -694,15 +696,15 @@ export const shareTag = mutation({
 				await ctx.db.patch(assignment.highlightId, {
 					ownershipType: args.shareWith,
 					organizationId,
-					teamId
+					circleId
 				});
 				highlightsTransferred++;
 			}
 		}
 
-		// Get organization/team details for analytics
+		// Get organization/circle details for analytics
 		const organization = organizationId ? await ctx.db.get(organizationId) : null;
-		const teamDoc = teamId ? await ctx.db.get(teamId) : null;
+		const circleDoc = circleId ? await ctx.db.get(circleId) : null;
 
 		// TODO: Capture analytics event
 		// For now, log to console for testing
@@ -713,8 +715,8 @@ export const shareTag = mutation({
 			transferTo: args.shareWith,
 			organizationId,
 			organizationName: organization?.name,
-			teamId,
-			teamName: teamDoc?.name,
+			circleId,
+			circleName: circleDoc?.name,
 			highlightsTransferred
 		});
 
@@ -723,7 +725,7 @@ export const shareTag = mutation({
 			tagId: args.tagId,
 			scope: args.shareWith,
 			organizationId,
-			teamId,
+			circleId,
 			itemsTransferred: highlightsTransferred
 		};
 	}
@@ -764,7 +766,7 @@ async function assignTagsToEntity(
 			const hasAccess = await canAccessContent(ctx, userId, {
 				userId: tag.userId,
 				organizationId: tag.organizationId ?? undefined,
-				teamId: tag.teamId ?? undefined
+				circleId: tag.circleId ?? undefined
 			});
 			if (!hasAccess) {
 				throw new Error('One or more tags are not accessible');

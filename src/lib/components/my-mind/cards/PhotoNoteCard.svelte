@@ -26,12 +26,12 @@
 <button
 	type="button"
 	onclick={onClick}
-	class="w-full cursor-pointer overflow-hidden rounded-md border border-base bg-elevated text-left transition-all duration-150 hover:border-elevated hover:shadow-md"
+	class="w-full cursor-pointer overflow-hidden rounded-card border border-base bg-elevated text-left transition-all duration-150 hover:border-elevated hover:shadow-md"
 >
 	<!-- Image Placeholder -->
 	<div class="flex aspect-square w-full items-center justify-center bg-surface">
 		<svg
-			class="h-16 w-16 text-tertiary opacity-50"
+			class="icon-xl text-tertiary opacity-50"
 			fill="none"
 			stroke="currentColor"
 			viewBox="0 0 24 24"
@@ -45,29 +45,29 @@
 		</svg>
 	</div>
 
-	<div class="p-4">
+	<div class="px-card py-card">
 		<!-- Title -->
-		<h3 class="mb-2 line-clamp-1 text-sm font-semibold text-primary">
+		<h3 class="mb-form-field-gap line-clamp-1 text-small font-semibold text-primary">
 			{item.title}
 		</h3>
 
 		<!-- OCR Text or Caption -->
 		{#if item.transcribedText}
-			<p class="mb-2 line-clamp-2 text-xs text-secondary">
+			<p class="mb-form-field-gap line-clamp-2 text-label text-secondary">
 				{item.transcribedText}
 			</p>
 		{:else if item.snippet}
-			<p class="mb-2 line-clamp-2 text-xs text-secondary">
+			<p class="mb-form-field-gap line-clamp-2 text-label text-secondary">
 				{item.snippet}
 			</p>
 		{/if}
 
 		<!-- Source indicator -->
 		{#if item.source}
-			<p class="mb-2 text-xs text-tertiary">{item.source}</p>
+			<p class="mb-form-field-gap text-label text-tertiary">{item.source}</p>
 		{/if}
 
 		<!-- Timestamp -->
-		<p class="text-xs text-tertiary">{formatDate(item.createdAt)}</p>
+		<p class="text-label text-tertiary">{formatDate(item.createdAt)}</p>
 	</div>
 </button>

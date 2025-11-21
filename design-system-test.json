@@ -1,0 +1,430 @@
+{
+	"designSystem": {
+		"name": "SynergyOS - The Open-Source Product OS",
+		"overview": "Open-source, modular platform that integrates product discovery, delivery, team collaboration, knowledge management, AI coaching, and automated workflows for product teams",
+
+		"colorPalette": {
+			"primary": {
+				"purple": ["#6B5BFF", "#8B7BFF", "#AB9BFF"],
+				"description": "Primary brand color used for interactive elements, headers, and key UI components"
+			},
+			"secondary": {
+				"coral": ["#FF9B8A", "#FFB5A8", "#FFCFC6"],
+				"mint": ["#7BFFCC", "#9BFFDD", "#BBFFEE"],
+				"yellow": ["#FFD97B", "#FFE49B", "#FFEFBB"],
+				"description": "Used for data visualization, charts, and accent elements"
+			},
+			"gradients": {
+				"background": "linear-gradient(135deg, #F5E6FF 0%, #E6D5FF 25%, #D5C4FF 50%, #C4B3FF 75%, #B3A2FF 100%)",
+				"card": "soft gradient overlays on white backgrounds with subtle purple-to-pink-to-blue transitions",
+				"description": "Soft, multi-stop gradients used extensively in backgrounds and container elements"
+			},
+			"neutral": {
+				"white": "#FFFFFF",
+				"lightGray": ["#F8F9FA", "#F3F4F6", "#E5E7EB"],
+				"mediumGray": ["#9CA3AF", "#6B7280"],
+				"darkGray": ["#374151", "#1F2937"],
+				"black": "#111827"
+			},
+			"semantic": {
+				"success": "#10B981",
+				"warning": "#F59E0B",
+				"error": "#EF4444",
+				"info": "#3B82F6"
+			}
+		},
+
+		"typography": {
+			"fontFamilies": {
+				"primary": "Inter, system-ui, -apple-system, sans-serif",
+				"headings": "Inter, sans-serif",
+				"body": "Inter, sans-serif",
+				"monospace": "JetBrains Mono, Consolas, monospace"
+			},
+			"scale": {
+				"hero": {
+					"size": "48-72px",
+					"weight": "700-800",
+					"lineHeight": "1.1",
+					"usage": "Landing page primary headlines"
+				},
+				"h1": {
+					"size": "36-48px",
+					"weight": "700",
+					"lineHeight": "1.2",
+					"usage": "Page titles, major section headers"
+				},
+				"h2": {
+					"size": "28-36px",
+					"weight": "600-700",
+					"lineHeight": "1.3",
+					"usage": "Section headers, card titles"
+				},
+				"h3": {
+					"size": "20-24px",
+					"weight": "600",
+					"lineHeight": "1.4",
+					"usage": "Subsection headers, component titles"
+				},
+				"body": {
+					"size": "16px",
+					"weight": "400",
+					"lineHeight": "1.6",
+					"usage": "Default body text"
+				},
+				"small": {
+					"size": "14px",
+					"weight": "400-500",
+					"lineHeight": "1.5",
+					"usage": "Metadata, captions, labels"
+				},
+				"tiny": {
+					"size": "12px",
+					"weight": "400-500",
+					"lineHeight": "1.4",
+					"usage": "Tags, badges, micro-copy"
+				}
+			},
+			"characteristics": {
+				"letterSpacing": "tight to normal (-0.02em to 0)",
+				"textRendering": "optimizeLegibility",
+				"antialiasing": "smooth"
+			}
+		},
+
+		"spacing": {
+			"scale": "8px base unit (0.5rem)",
+			"values": {
+				"xs": "4px",
+				"sm": "8px",
+				"md": "16px",
+				"lg": "24px",
+				"xl": "32px",
+				"2xl": "48px",
+				"3xl": "64px",
+				"4xl": "96px",
+				"5xl": "128px"
+			},
+			"containerPadding": {
+				"mobile": "16px",
+				"tablet": "24px",
+				"desktop": "32px",
+				"wide": "48px"
+			},
+			"sectionSpacing": {
+				"small": "48px",
+				"medium": "80px",
+				"large": "120px"
+			}
+		},
+
+		"components": {
+			"cards": {
+				"structure": {
+					"background": "white with subtle shadow",
+					"borderRadius": "12-16px",
+					"padding": "20-32px",
+					"shadow": "0 2px 8px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)",
+					"hover": "subtle lift with increased shadow"
+				},
+				"variants": {
+					"metric": {
+						"layout": "vertical stack",
+						"elements": ["icon/label", "large number", "trend line chart", "period comparison"],
+						"accentBorder": "2-3px colored top border or left border"
+					},
+					"feature": {
+						"layout": "horizontal or vertical based on viewport",
+						"elements": ["icon", "title", "description", "optional CTA"],
+						"background": "white or subtle gradient overlay"
+					},
+					"content": {
+						"layout": "vertical",
+						"elements": ["category badge", "title", "description", "CTA link"],
+						"imageRatio": "16:9 or 4:3 for thumbnails"
+					}
+				}
+			},
+
+			"buttons": {
+				"primary": {
+					"background": "solid dark (#111827 or brand purple)",
+					"color": "white",
+					"borderRadius": "8px",
+					"padding": "12px 24px",
+					"fontSize": "14-16px",
+					"fontWeight": "500-600",
+					"transition": "all 0.2s ease",
+					"hover": "slight scale (1.02) and opacity change"
+				},
+				"secondary": {
+					"background": "transparent",
+					"color": "dark gray or brand color",
+					"border": "1-2px solid currentColor",
+					"borderRadius": "8px",
+					"padding": "12px 24px"
+				},
+				"text": {
+					"background": "transparent",
+					"color": "brand or dark gray",
+					"padding": "8px 16px",
+					"hover": "underline or slight opacity change"
+				}
+			},
+
+			"navigation": {
+				"header": {
+					"height": "64-72px",
+					"background": "white or transparent with backdrop blur",
+					"position": "fixed or sticky",
+					"shadow": "subtle on scroll",
+					"layout": "logo left, nav center/right, CTA buttons right"
+				},
+				"menu": {
+					"dropdown": {
+						"background": "white",
+						"borderRadius": "12px",
+						"shadow": "0 4px 16px rgba(0,0,0,0.12)",
+						"padding": "16px",
+						"minWidth": "240px"
+					},
+					"items": {
+						"padding": "8-12px 16px",
+						"borderRadius": "6px",
+						"hover": "light purple/gray background"
+					}
+				}
+			},
+
+			"dataVisualization": {
+				"charts": {
+					"lineCharts": {
+						"strokeWidth": "2-3px",
+						"smoothing": "natural curves",
+						"colors": "brand purple, coral, mint from palette",
+						"gridLines": "subtle gray dotted lines",
+						"axes": "minimal, light gray"
+					},
+					"areaCharts": {
+						"fill": "gradient from color to transparent",
+						"opacity": "0.2-0.4",
+						"stacking": "common for multiple series"
+					},
+					"barCharts": {
+						"borderRadius": "4-6px top corners",
+						"spacing": "8-12px between bars",
+						"colors": "semantic or categorical from palette"
+					}
+				},
+				"metrics": {
+					"largeNumbers": {
+						"size": "32-48px",
+						"weight": "600-700",
+						"color": "dark gray or black"
+					},
+					"trends": {
+						"size": "14-16px",
+						"display": "inline with arrow/icon",
+						"colors": "green for positive, red for negative"
+					},
+					"sparklines": {
+						"height": "32-48px",
+						"width": "60-120px",
+						"minimal": "no axes or labels"
+					}
+				},
+				"metricTree": {
+					"structure": "hierarchical node layout",
+					"nodes": "cards with metrics connected by lines",
+					"connections": "dashed lines with optional labels",
+					"levels": "clear visual hierarchy through size and position",
+					"interactivity": "expandable/collapsible nodes"
+				}
+			},
+
+			"badges": {
+				"structure": {
+					"borderRadius": "4-6px",
+					"padding": "4px 8px",
+					"fontSize": "12px",
+					"fontWeight": "500",
+					"textTransform": "uppercase or normal"
+				},
+				"variants": {
+					"category": "light background with dark text",
+					"status": "semantic colors (green, yellow, red)",
+					"count": "dark background with white text"
+				}
+			},
+
+			"icons": {
+				"style": "outline or filled, consistent stroke width",
+				"sizes": ["16px", "20px", "24px", "32px"],
+				"usage": "paired with text, standalone in navigation, decorative in sections",
+				"color": "inherit from parent or brand colors"
+			},
+
+			"avatars": {
+				"structure": {
+					"shape": "circular",
+					"fallback": "initials or icon on colored background",
+					"image": "cover fit with border-radius"
+				},
+				"sizes": {
+					"sm": "32px (h-8 w-8)",
+					"md": "40px (h-10 w-10)",
+					"lg": "48px (h-12 w-12)"
+				},
+				"variants": {
+					"user": "user photo or initials",
+					"group": "overlapping avatars for groups",
+					"placeholder": "generic icon when no user data"
+				}
+			},
+
+			"tabs": {
+				"structure": {
+					"container": {
+						"height": "40px",
+						"background": "surface color",
+						"borderRadius": "8px",
+						"padding": "4px"
+					},
+					"tab": {
+						"padding": "8px 16px",
+						"borderRadius": "6px",
+						"fontSize": "14px",
+						"fontWeight": "500"
+					}
+				},
+				"states": {
+					"default": "text secondary color",
+					"active": "background white/elevated, text primary color, subtle shadow",
+					"hover": "text primary color, slight opacity change"
+				}
+			}
+		},
+
+		"layout": {
+			"grid": {
+				"columns": {
+					"mobile": "4 columns",
+					"tablet": "8 columns",
+					"desktop": "12 columns"
+				},
+				"gutter": "24px",
+				"maxWidth": "1280px"
+			},
+			"sections": {
+				"hero": {
+					"layout": "centered text with large heading and subheading",
+					"ctas": "primary and secondary buttons in horizontal row",
+					"background": "gradient or solid with decorative elements"
+				},
+				"features": {
+					"layout": "grid of 2-4 columns on desktop, 1-2 on tablet, 1 on mobile",
+					"cardAlignment": "top aligned with consistent heights",
+					"spacing": "generous whitespace between items"
+				},
+				"showcase": {
+					"layout": "alternating image-text or centered with large visuals",
+					"images": "high-quality screenshots with subtle shadows or device frames",
+					"aspect": "maintain visual rhythm with consistent image sizes"
+				}
+			},
+			"containers": {
+				"maxWidth": "1280px",
+				"padding": "responsive based on viewport",
+				"centering": "horizontal centering with margin auto"
+			}
+		},
+
+		"effects": {
+			"shadows": {
+				"small": "0 1px 3px rgba(0,0,0,0.08)",
+				"medium": "0 4px 12px rgba(0,0,0,0.1)",
+				"large": "0 8px 24px rgba(0,0,0,0.12)",
+				"xlarge": "0 16px 48px rgba(0,0,0,0.15)"
+			},
+			"blur": {
+				"backdrop": "blur(12px) for glassmorphism effects",
+				"usage": "navigation bars, overlays, modals"
+			},
+			"transitions": {
+				"default": "all 0.2s ease",
+				"slow": "all 0.3s ease-in-out",
+				"fast": "all 0.15s ease"
+			},
+			"animations": {
+				"hover": "subtle scale (0.98-1.02) or opacity changes",
+				"loading": "skeleton screens or pulse animations",
+				"entrance": "fade-in with slight upward movement"
+			}
+		},
+
+		"patterns": {
+			"dashboards": {
+				"layout": "sidebar navigation + main content area",
+				"sidebar": {
+					"width": "240-280px",
+					"background": "white or light gray",
+					"items": "icon + label, grouped by category"
+				},
+				"mainArea": {
+					"header": "breadcrumbs, title, actions",
+					"content": "grid of metric cards and visualizations",
+					"filtering": "top bar with date range, filters, search"
+				}
+			},
+
+			"contentHierarchy": {
+				"principle": "clear visual hierarchy through size, weight, and color",
+				"emphasis": "important elements are larger, bolder, darker",
+				"deemphasis": "supporting text is smaller, lighter weight, gray"
+			},
+
+			"whitespace": {
+				"principle": "generous whitespace for breathing room",
+				"sections": "clearly separated with padding/margin",
+				"density": "comfortable, not cramped, especially around interactive elements"
+			},
+
+			"responsiveness": {
+				"mobile": "single column, stacked elements, collapsible navigation",
+				"tablet": "2 columns for some sections, expanded navigation",
+				"desktop": "full multi-column layouts, persistent sidebars",
+				"breakpoints": ["640px", "768px", "1024px", "1280px", "1536px"]
+			}
+		},
+
+		"designPrinciples": {
+			"clarity": "Information is easy to scan and understand",
+			"consistency": "Repeated patterns for similar functions",
+			"hierarchy": "Clear visual priority through size, color, and position",
+			"feedback": "Interactive elements provide clear hover and active states",
+			"accessibility": "Sufficient contrast ratios, keyboard navigation support",
+			"performance": "Optimized for fast loading and smooth interactions"
+		},
+
+		"specificElements": {
+			"metricCards": {
+				"structure": "white card, metric icon/name top, large value, mini chart, comparison data bottom",
+				"sizing": "consistent heights when in grid, typically 240-320px tall",
+				"states": "neutral, positive (green accent), negative (red accent), warning (orange accent)"
+			},
+
+			"contextPanels": {
+				"placement": "right sidebar, 320-400px wide",
+				"content": "tabs for different views (Context, Query, Time Ranges)",
+				"sections": "clearly separated with headers",
+				"searchable": "search functionality for large lists"
+			},
+
+			"experimentIndicators": {
+				"display": "inline badges or colored dots",
+				"text": "clear labels like 'Running', 'Completed (Stat Sig)'",
+				"colors": "purple for active, green for successful, orange for in-progress"
+			}
+		}
+	}
+}

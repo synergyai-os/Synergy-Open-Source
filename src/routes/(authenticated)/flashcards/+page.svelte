@@ -4,7 +4,7 @@
 	import { getContext } from 'svelte';
 	import { useQuery, useConvexClient } from 'convex-svelte';
 	import { Button } from 'bits-ui';
-	import TagFilter from '$lib/components/TagFilter.svelte';
+	import TagFilter from '$lib/modules/core/components/TagFilter.svelte';
 	import FlashcardCollectionCard from '$lib/modules/flashcards/components/FlashcardCollectionCard.svelte';
 	import FlashcardDetailModal from '$lib/modules/flashcards/components/FlashcardDetailModal.svelte';
 	import { api } from '$lib/convex';
@@ -178,7 +178,7 @@
 	>
 		<div class="flex items-center gap-icon">
 			<svg
-				class="h-5 w-5 flex-shrink-0 text-accent-primary"
+				class="size-icon-md flex-shrink-0 text-accent-primary"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -192,9 +192,9 @@
 				/>
 			</svg>
 			<div class="flex items-center gap-icon">
-				<h2 class="text-sm font-normal text-secondary">Flashcards</h2>
+				<h2 class="text-small font-normal text-secondary">Flashcards</h2>
 				{#if allFlashcards.length > 0}
-					<span class="text-sm text-secondary">
+					<span class="text-small text-secondary">
 						({allFlashcards.length} card{allFlashcards.length !== 1 ? 's' : ''}
 						• {allFlashcards.filter(
 							(f: { fsrsDue?: number }) => f.fsrsDue && f.fsrsDue <= Date.now()
@@ -206,9 +206,9 @@
 		{#if allFlashcards.length > 0}
 			<Button.Root
 				href={resolveRoute('/study')}
-				class="flex items-center gap-icon rounded-md bg-accent-primary px-nav-item py-nav-item text-sm font-medium text-white transition-opacity hover:opacity-90"
+				class="flex items-center gap-icon rounded-button bg-accent-primary px-nav-item py-nav-item text-small font-medium text-primary transition-opacity hover:opacity-90"
 			>
-				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -221,7 +221,7 @@
 		{/if}
 	</div>
 
-	<div class="p-inbox-container">
+	<div class="px-inbox-container py-inbox-container">
 		<!-- Tag Filter -->
 		{#if allTags.length > 0}
 			<div class="mb-inbox-title">
@@ -235,7 +235,7 @@
 			</div>
 		{:else if error}
 			<div class="py-readable-quote text-center">
-				<p class="mb-2 font-medium text-primary">Error</p>
+				<p class="mb-form-section font-medium text-primary">Error</p>
 				<p class="text-secondary">{error}</p>
 			</div>
 		{:else if displayCollections.length === 0}

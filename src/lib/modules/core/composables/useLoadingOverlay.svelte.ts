@@ -1,5 +1,5 @@
 import { browser } from '$app/environment';
-import type { LoadingFlow } from '$lib/components/ui/LoadingOverlay.svelte';
+import type { LoadingFlow } from '$lib/components/atoms/LoadingOverlay.svelte';
 
 export type UseLoadingOverlayReturn = ReturnType<typeof useLoadingOverlay>;
 

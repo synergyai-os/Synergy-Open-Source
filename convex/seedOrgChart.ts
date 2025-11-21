@@ -165,7 +165,7 @@ export const seedTestData = mutation({
 		console.log('Creating root circle...');
 		const rootCircleId = await createCircle(
 			'Active Platforms',
-			'Run ZDHCs tech platforms and coordinate cross-platform initiatives'
+			'Run Clients tech platforms and coordinate cross-platform initiatives'
 		);
 		await createRolesForCircle(rootCircleId, 'Active Platforms');
 
@@ -349,7 +349,7 @@ export const seedTestDataInternal = internalMutation({
 		console.log('Creating root circle...');
 		const rootCircleId = await createCircle(
 			'Active Platforms',
-			'Run ZDHCs tech platforms and coordinate cross-platform initiatives'
+			'Run Clients tech platforms and coordinate cross-platform initiatives'
 		);
 		await createRolesForCircle(rootCircleId, 'Active Platforms');
 

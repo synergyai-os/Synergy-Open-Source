@@ -494,13 +494,13 @@ export const sendOrganizationInviteEmail = internalAction({
 });
 
 /**
- * Send team invite email
+ * Send circle invite email
  */
-export const sendTeamInviteEmail = internalAction({
+export const sendCircleInviteEmail = internalAction({
 	args: {
 		email: v.string(),
 		inviteLink: v.string(),
-		teamName: v.string(),
+		circleName: v.string(),
 		organizationName: v.string(),
 		inviterName: v.string(),
 		role: v.string()
@@ -508,10 +508,10 @@ export const sendTeamInviteEmail = internalAction({
 	handler: async (ctx, args) => {
 		// E2E test mode - skip actual email sending
 		if (process.env.E2E_TEST_MODE === 'true') {
-			console.log('📧 [E2E Mock] Team invite email suppressed:', {
+			console.log('📧 [E2E Mock] Circle invite email suppressed:', {
 				to: args.email,
 				inviteLink: args.inviteLink,
-				teamName: args.teamName,
+				circleName: args.circleName,
 				organizationName: args.organizationName,
 				inviterName: args.inviterName,
 				role: args.role
@@ -519,7 +519,7 @@ export const sendTeamInviteEmail = internalAction({
 
 			return {
 				success: true,
-				emailId: `mock-team-invite-${args.email}-${Date.now()}`
+				emailId: `mock-circle-invite-${args.email}-${Date.now()}`
 			};
 		}
 
@@ -537,14 +537,14 @@ export const sendTeamInviteEmail = internalAction({
 			const result = await resend.emails.send({
 				from: 'SynergyOS <noreply@mail.synergyos.ai>',
 				to: args.email,
-				subject: `Join ${args.teamName} team on SynergyOS`,
+				subject: `Join ${args.circleName} circle on SynergyOS`,
 				html: `
 					<!DOCTYPE html>
 					<html>
 					<head>
 						<meta charset="utf-8">
 						<meta name="viewport" content="width=device-width, initial-scale=1.0">
-						<title>Team Invitation</title>
+						<title>Circle Invitation</title>
 					</head>
 					<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
 						<table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 40px 20px;">
@@ -555,7 +555,7 @@ export const sendTeamInviteEmail = internalAction({
 										<tr>
 											<td style="padding: 40px 40px 24px 40px;">
 												<h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #111827; line-height: 1.3;">
-													You've been invited to ${args.teamName}
+													You've been invited to ${args.circleName}
 												</h1>
 											</td>
 										</tr>
@@ -567,7 +567,7 @@ export const sendTeamInviteEmail = internalAction({
 													Hi,
 												</p>
 												<p style="margin: 0 0 24px 0; font-size: 16px; line-height: 1.5; color: #374151;">
-													<strong>${args.inviterName}</strong> invited you to join the <strong>${args.teamName}</strong> team in <strong>${args.organizationName}</strong> as a <strong>${roleDisplay}</strong>.
+													<strong>${args.inviterName}</strong> invited you to join the <strong>${args.circleName}</strong> circle in <strong>${args.organizationName}</strong> as a <strong>${roleDisplay}</strong>.
 												</p>
 												
 												<!-- Button -->
@@ -616,10 +616,10 @@ export const sendTeamInviteEmail = internalAction({
 					</body>
 					</html>
 				`,
-				text: `Hi,\n\n${args.inviterName} invited you to join the ${args.teamName} team in ${args.organizationName} as a ${roleDisplay}.\n\nAccept your invite: ${args.inviteLink}\n\nIf you don't have an account, you'll be prompted to create one when you accept the invite.\n\n© ${new Date().getFullYear()} SynergyOS. All rights reserved.`
+				text: `Hi,\n\n${args.inviterName} invited you to join the ${args.circleName} circle in ${args.organizationName} as a ${roleDisplay}.\n\nAccept your invite: ${args.inviteLink}\n\nIf you don't have an account, you'll be prompted to create one when you accept the invite.\n\n© ${new Date().getFullYear()} SynergyOS. All rights reserved.`
 			});
 
-			console.log('Team invite email sent:', JSON.stringify(result, null, 2));
+			console.log('Circle invite email sent:', JSON.stringify(result, null, 2));
 
 			if (result.error) {
 				throw new Error(`Resend API error: ${JSON.stringify(result.error)}`);
@@ -630,9 +630,9 @@ export const sendTeamInviteEmail = internalAction({
 				emailId: result.data?.id
 			};
 		} catch (error) {
-			console.error('Error sending team invite email:', error);
+			console.error('Error sending circle invite email:', error);
 			throw new Error(
-				`Failed to send team invite email: ${error instanceof Error ? error.message : String(error)}`
+				`Failed to send circle invite email: ${error instanceof Error ? error.message : String(error)}`
 			);
 		}
 	}

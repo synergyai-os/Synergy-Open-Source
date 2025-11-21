@@ -100,12 +100,27 @@ This documentation follows the [PARA system](https://fortelabs.com/blog/para/):
 - **[3-resources/](3-resources/)** - Reference material (checklists, testing, mobile)
 - **[4-archive/](4-archive/)** - Completed or deprecated content
 
+### CORE vs ARCHIVE Documentation
+
+**CORE Documentation** - Actively used and maintained:
+- Currently referenced in commands, rules, or workflows
+- Current/active (not superseded by newer versions)
+- Essential for development (patterns, standards, architecture)
+- See **[CORE-DOCS.md](CORE-DOCS.md)** for complete list
+
+**ARCHIVE Documentation** - Historical/outdated:
+- Historical docs (old vision, completed assessments)
+- Completed work (ticket docs, old audit reports)
+- Redundant meta-docs
+- Hidden from AI agents via `.cursorignore` (still accessible to humans)
+
+**Why**: AI agents only load CORE docs, preventing confusion from outdated docs and reducing token waste.
+
 ### Key Areas
 
 **Product & Strategy:**
 
 - **[Product Vision 2.0](../marketing-docs/strategy/product-vision-2.0.md)** ⭐ **Current Vision**
-- **[Product Vision (Original)](2-areas/product/product-vision-and-plan.md)** - Historical (CODE framework)
 - **[Architecture](2-areas/architecture/architecture.md)** - Tech stack, auth, composables
 - **[Multi-Tenancy](2-areas/architecture/multi-tenancy/multi-tenancy-migration.md)** - Org/team architecture
 

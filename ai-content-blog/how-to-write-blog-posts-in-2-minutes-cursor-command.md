@@ -450,7 +450,7 @@ This is what building with AI looks like when you stop prompting and start syste
 ---
 
 **Want to see the command that wrote this post?**  
-→ [`.cursor/commands/blog-session-recap.md`](https://github.com/synergyai-os/Synergy-Open-Source/blob/main/.cursor/commands/blog-session-recap.md)
+→ [`.cursor/commands/blog-session-recap.md`](https://github.com/synergyai-os/Synergy-Open-Source/blob/main/.cursor/commands/blog-session-recap.md) *(Archived - see `dev-docs/4-archive/cursor/commands/blog-session-recap.md`)*
 
 **Want to read the first post that inspired it?**  
 → [Dark Mode Toggle Journey](https://github.com/synergyai-os/Synergy-Open-Source/blob/main/ai-content-blog/dark-mode-toggle-design-system-journey.md)

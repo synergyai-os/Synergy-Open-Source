@@ -39,28 +39,28 @@
 			<Button.Root
 				onclick={() => handleRate('again')}
 				disabled={isReviewing}
-				class="rounded-md bg-red-600 px-menu-item py-menu-item text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+				class="rounded-button bg-rating-again px-menu-item py-menu-item text-small font-medium text-primary transition-colors hover:bg-rating-again-hover disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				Again (1)
 			</Button.Root>
 			<Button.Root
 				onclick={() => handleRate('hard')}
 				disabled={isReviewing}
-				class="rounded-md bg-orange-600 px-menu-item py-menu-item text-sm font-medium text-white transition-colors hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
+				class="rounded-button bg-rating-hard px-menu-item py-menu-item text-small font-medium text-primary transition-colors hover:bg-rating-hard-hover disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				Hard (2)
 			</Button.Root>
 			<Button.Root
 				onclick={() => handleRate('good')}
 				disabled={isReviewing}
-				class="rounded-md bg-blue-600 px-menu-item py-menu-item text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+				class="rounded-button bg-rating-good px-menu-item py-menu-item text-small font-medium text-primary transition-colors hover:bg-rating-good-hover disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				Good (3)
 			</Button.Root>
 			<Button.Root
 				onclick={() => handleRate('easy')}
 				disabled={isReviewing}
-				class="rounded-md bg-green-600 px-menu-item py-menu-item text-sm font-medium text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+				class="rounded-button bg-rating-easy px-menu-item py-menu-item text-small font-medium text-primary transition-colors hover:bg-rating-easy-hover disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				Easy (4)
 			</Button.Root>

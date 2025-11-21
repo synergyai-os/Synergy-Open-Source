@@ -102,8 +102,8 @@ await mcp_Linear_create_issue({
 	team: 'SYOS',
 	title: '[Slice N] Descriptive Title',
 	description: '...', // See ticket writing format below
-	projectId: projectId, // ✅ Required (get/create first)
-	assigneeId: RANDY_USER_ID, // ✅ Required
+	project: projectId, // ✅ Required (get/create first)
+	assignee: RANDY_USER_ID, // ✅ Required
 	state: 'Todo',
 	estimate: ESTIMATES.s, // ✅ Required (numeric: 0-5)
 	labels: [
@@ -329,8 +329,8 @@ await mcp_Linear_create_issue({
 - [ ] Lint gate enabled
 - [ ] Build gate enabled
   `,
-	projectId: projectId,
-	assigneeId: RANDY_USER_ID,
+	project: projectId,
+	assignee: RANDY_USER_ID,
 	state: 'Todo',
 	estimate: ESTIMATES.s,
 	labels: [LINEAR_LABELS['tech-debt'], LINEAR_LABELS.devops]
@@ -363,8 +363,8 @@ const ticket = await mcp_Linear_create_issue({
 	team: 'SYOS',
 	title: '[Slice 1] Workspace Context & Indicator',
 	description: '...', // Use ticket writing format above
-	projectId: projectId,
-	assigneeId: RANDY_USER_ID,
+	project: projectId,
+	assignee: RANDY_USER_ID,
 	state: 'Todo',
 	estimate: ESTIMATES.s,
 	labels: [LINEAR_LABELS.feature, LINEAR_LABELS.backend, LINEAR_LABELS.workspace]
@@ -405,7 +405,7 @@ await mcp_Linear_update_issue({
 **Before creating tickets:**
 
 - [ ] Project ID exists (check with `list_projects`, create if missing)
-- [ ] User assigned (`assigneeId: RANDY_USER_ID`)
+- [ ] User assigned (`assignee: RANDY_USER_ID`)
 - [ ] Estimate set (numeric: 0-5)
 - [ ] Labels correct (Type: one + Scope: one or more)
 - [ ] Ticket structure (Context, Problem, Goals, Technical Scope)
@@ -431,7 +431,7 @@ await mcp_Linear_update_issue({
 
 ## ⚠️ Critical: Project Linking Verification
 
-**IMPORTANT**: Even when `projectId` is provided in `create_issue()`, tickets may not be linked to the project.
+**IMPORTANT**: Even when `project` is provided in `create_issue()`, tickets may not be linked to the project.
 
 **Always verify and update:**
 
@@ -453,6 +453,6 @@ if (!createdTicket.projectId || createdTicket.projectId !== projectId) {
 
 ---
 
-**Last Updated**: 2025-01-XX  
+**Last Updated**: 2025-11-21  
 **Purpose**: Complete Linear workflow reference for AI agents  
 **Latest Change**: Added project linking verification workflow (critical lesson learned)

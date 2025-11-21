@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { DropdownMenu } from 'bits-ui';
+	import { Chip } from '$lib/components/ui';
 	import type { InputSourceType } from '../../../../dev-docs/4-archive/mock-data-brain-inputs';
 
 	type SortOption = 'newest' | 'oldest' | 'alphabetical';
@@ -61,23 +62,23 @@
 	class="sticky top-0 z-10 flex flex-shrink-0 flex-col border-b border-base bg-surface px-inbox-header py-system-header"
 >
 	<!-- Search Bar -->
-	<div class="mb-2 flex items-center gap-icon">
+	<div class="mb-content-section flex items-center gap-icon">
 		<div class="relative flex-1">
 			<input
 				type="text"
 				placeholder="Search your mind..."
 				value={searchQuery}
 				oninput={(e) => onSearchChange(e.currentTarget.value)}
-				class="w-full rounded-md border border-base bg-elevated px-4 py-2 text-primary transition-all placeholder:text-tertiary focus:border-transparent focus:ring-2 focus:ring-accent-primary focus:outline-none"
+				class="w-full rounded-input border border-base bg-elevated px-input-x py-input-y text-primary transition-all placeholder:text-tertiary focus:border-transparent focus:ring-2 focus:ring-accent-primary focus:outline-none"
 			/>
 			{#if searchQuery}
 				<button
 					type="button"
 					onclick={() => onSearchChange('')}
-					class="absolute top-1/2 right-3 -translate-y-1/2 text-tertiary transition-colors hover:text-primary"
+					class="absolute top-1/2 right-content-section -translate-y-1/2 text-tertiary transition-colors hover:text-primary"
 					aria-label="Clear search"
 				>
-					<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -93,10 +94,10 @@
 		<DropdownMenu.Root bind:open={filterMenuOpen}>
 			<DropdownMenu.Trigger
 				type="button"
-				class="flex items-center gap-icon rounded-md border border-base bg-elevated px-4 py-2 text-sm text-primary transition-colors hover:bg-hover-solid"
+				class="flex items-center gap-icon rounded-button border border-base bg-elevated px-input-x py-input-y text-small text-primary transition-colors hover:bg-hover-solid"
 			>
 				<span>{sourceTypeLabels[selectedType]}</span>
-				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -108,14 +109,14 @@
 
 			<DropdownMenu.Portal>
 				<DropdownMenu.Content
-					class="z-50 max-h-[400px] min-w-[180px] overflow-y-auto rounded-md border border-base bg-elevated py-1 shadow-lg"
+					class="z-50 max-h-[400px] min-w-[180px] overflow-y-auto rounded-button border border-base bg-elevated py-badge shadow-card"
 					side="bottom"
 					align="end"
 					sideOffset={4}
 				>
 					{#each Object.entries(sourceTypeLabels) as [type, label] (type)}
 						<DropdownMenu.Item
-							class="flex cursor-pointer items-center justify-between gap-icon px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+							class="flex cursor-pointer items-center justify-between gap-icon px-menu-item py-menu-item text-small text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 							textValue={label}
 							onSelect={() => {
 								onTypeFilterChange(type as InputSourceType | 'all');
@@ -125,7 +126,7 @@
 							<span>{label}</span>
 							{#if selectedType === type}
 								<svg
-									class="h-4 w-4 flex-shrink-0 text-secondary"
+									class="icon-sm flex-shrink-0 text-secondary"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -148,10 +149,10 @@
 		<DropdownMenu.Root bind:open={sortMenuOpen}>
 			<DropdownMenu.Trigger
 				type="button"
-				class="flex items-center gap-icon rounded-md border border-base bg-elevated px-4 py-2 text-sm text-primary transition-colors hover:bg-hover-solid"
+				class="flex items-center gap-icon rounded-button border border-base bg-elevated px-input-x py-input-y text-small text-primary transition-colors hover:bg-hover-solid"
 			>
 				<span>{sortLabels[sortOption]}</span>
-				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -163,14 +164,14 @@
 
 			<DropdownMenu.Portal>
 				<DropdownMenu.Content
-					class="z-50 min-w-[180px] rounded-md border border-base bg-elevated py-1 shadow-lg"
+					class="z-50 min-w-[180px] rounded-button border border-base bg-elevated py-badge shadow-card"
 					side="bottom"
 					align="end"
 					sideOffset={4}
 				>
 					{#each Object.entries(sortLabels) as [option, label] (option)}
 						<DropdownMenu.Item
-							class="flex cursor-pointer items-center justify-between gap-icon px-menu-item py-menu-item text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+							class="flex cursor-pointer items-center justify-between gap-icon px-menu-item py-menu-item text-small text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 							textValue={label}
 							onSelect={() => {
 								onSortChange(option as SortOption);
@@ -180,7 +181,7 @@
 							<span>{label}</span>
 							{#if sortOption === option}
 								<svg
-									class="h-4 w-4 flex-shrink-0 text-secondary"
+									class="icon-sm flex-shrink-0 text-secondary"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -202,46 +203,16 @@
 
 	<!-- Active Filters Pills -->
 	{#if searchQuery || selectedType !== 'all'}
-		<div class="flex flex-wrap items-center gap-2">
+		<div class="flex flex-wrap items-center gap-icon">
 			{#if searchQuery}
-				<span class="inline-flex items-center gap-1 rounded-full bg-tag px-3 py-1 text-sm text-tag">
-					Search: "{searchQuery}"
-					<button
-						type="button"
-						onclick={() => onSearchChange('')}
-						class="transition-colors hover:text-primary"
-						aria-label="Remove search filter"
-					>
-						<svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M6 18L18 6M6 6l12 12"
-							/>
-						</svg>
-					</button>
-				</span>
+				<Chip label="Search: {searchQuery}" variant="default" onDelete={() => onSearchChange('')} />
 			{/if}
 			{#if selectedType !== 'all'}
-				<span class="inline-flex items-center gap-1 rounded-full bg-tag px-3 py-1 text-sm text-tag">
-					{sourceTypeLabels[selectedType]}
-					<button
-						type="button"
-						onclick={() => onTypeFilterChange('all')}
-						class="transition-colors hover:text-primary"
-						aria-label="Remove type filter"
-					>
-						<svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M6 18L18 6M6 6l12 12"
-							/>
-						</svg>
-					</button>
-				</span>
+				<Chip
+					label={sourceTypeLabels[selectedType]}
+					variant="default"
+					onDelete={() => onTypeFilterChange('all')}
+				/>
 			{/if}
 		</div>
 	{/if}

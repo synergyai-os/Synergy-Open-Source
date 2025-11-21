@@ -7,7 +7,7 @@
 	// Debug flag for overlay logging (set to false to disable production logs)
 	const DEBUG_OVERLAY_LOGGING = import.meta.env.DEV;
 	import OrganizationModals from '$lib/modules/core/organizations/components/OrganizationModals.svelte';
-	import LoadingOverlay from '$lib/components/ui/LoadingOverlay.svelte';
+	import { LoadingOverlay } from '\$lib/components/atoms';
 	import { resolveRoute } from '$lib/utils/navigation';
 	import { setContext } from 'svelte';
 	import { useOrganizations } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
@@ -17,9 +17,7 @@
 	import { createOrgChartModuleAPI } from '$lib/modules/org-chart/api';
 	import type {
 		OrganizationSummary,
-		OrganizationInvite,
-		TeamInvite,
-		TeamSummary
+		OrganizationInvite
 	} from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
 	import { SHORTCUTS } from '$lib/modules/core/composables/useGlobalShortcuts.svelte';
 	import { useLoadingOverlay } from '$lib/modules/core/composables/useLoadingOverlay.svelte';
@@ -42,9 +40,7 @@
 		// Server-side preloaded data for instant workspace menu rendering
 		// Cast unknown[] to proper types (server-side data is typed as unknown[] for safety)
 		initialOrganizations: data.organizations as unknown as OrganizationSummary[],
-		initialOrganizationInvites: data.organizationInvites as unknown as OrganizationInvite[],
-		initialTeamInvites: data.teamInvites as unknown as TeamInvite[],
-		initialTeams: data.teams as unknown as TeamSummary[] // Server-side preloaded teams for active organization
+		initialOrganizationInvites: data.organizationInvites as unknown as OrganizationInvite[]
 	});
 	setContext('organizations', organizations);
 
@@ -677,7 +673,6 @@
 			initialType={quickCreateInitialType}
 			sessionId={data.sessionId}
 			organizationId={organizations?.activeOrganizationId ?? null}
-			teamId={organizations?.activeTeamId ?? null}
 			initialTags={data.tags}
 		/>
 

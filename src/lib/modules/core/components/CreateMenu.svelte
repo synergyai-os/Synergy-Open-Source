@@ -29,10 +29,10 @@
 
 <DropdownMenuPrimitive.Root {open} {onOpenChange}>
 	<DropdownMenuPrimitive.Trigger
-		class="flex w-full items-center justify-center gap-icon rounded-md bg-sidebar-hover px-header py-nav-item text-sm font-normal text-sidebar-primary transition-all duration-150 hover:bg-sidebar-hover-solid"
+		class="flex w-full items-center justify-center gap-icon rounded-button bg-sidebar-hover px-header py-nav-item text-small font-normal text-sidebar-primary transition-all duration-150 hover:bg-sidebar-hover-solid"
 	>
 		<svg
-			class="h-4 w-4"
+			class="icon-sm"
 			fill="none"
 			stroke="currentColor"
 			viewBox="0 0 24 24"
@@ -44,16 +44,16 @@
 	</DropdownMenuPrimitive.Trigger>
 
 	<DropdownMenuPrimitive.Content
-		class="px-menu-container py-menu-container z-50 min-w-[12rem] rounded-md border border-sidebar bg-sidebar shadow-lg"
+		class="px-menu-container py-menu-container z-50 min-w-[12rem] rounded-button border border-sidebar bg-sidebar shadow-card"
 		sideOffset={4}
 	>
 		<!-- Note Option -->
 		<DropdownMenuPrimitive.Item
-			class="group relative flex cursor-pointer items-center gap-icon rounded-md px-menu-item py-menu-item text-sm text-sidebar-secondary transition-colors outline-none hover:bg-sidebar-hover hover:text-sidebar-primary"
+			class="group relative flex cursor-pointer items-center gap-icon rounded-button px-menu-item py-menu-item text-small text-sidebar-secondary transition-colors outline-none hover:bg-sidebar-hover hover:text-sidebar-primary"
 			onSelect={handleSelect(onCreateNote)}
 		>
 			<svg
-				class="h-4 w-4 flex-shrink-0"
+				class="icon-sm flex-shrink-0"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -70,15 +70,15 @@
 			<span class="text-label text-sidebar-tertiary">C</span>
 		</DropdownMenuPrimitive.Item>
 
-		<DropdownMenuPrimitive.Separator class="bg-sidebar-divider my-1 h-px" />
+		<DropdownMenuPrimitive.Separator class="bg-sidebar-divider my-form-field-gap h-px" />
 
 		<!-- Flashcard Option -->
 		<DropdownMenuPrimitive.Item
-			class="group relative flex cursor-pointer items-center gap-icon rounded-md px-menu-item py-menu-item text-sm text-sidebar-secondary transition-colors outline-none hover:bg-sidebar-hover hover:text-sidebar-primary"
+			class="group relative flex cursor-pointer items-center gap-icon rounded-button px-menu-item py-menu-item text-small text-sidebar-secondary transition-colors outline-none hover:bg-sidebar-hover hover:text-sidebar-primary"
 			onSelect={handleSelect(onCreateFlashcard)}
 		>
 			<svg
-				class="h-4 w-4 flex-shrink-0"
+				class="icon-sm flex-shrink-0"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -96,11 +96,11 @@
 
 		<!-- Highlight Option -->
 		<DropdownMenuPrimitive.Item
-			class="group relative flex cursor-pointer items-center gap-icon rounded-md px-menu-item py-menu-item text-sm text-sidebar-secondary transition-colors outline-none hover:bg-sidebar-hover hover:text-sidebar-primary"
+			class="group relative flex cursor-pointer items-center gap-icon rounded-button px-menu-item py-menu-item text-small text-sidebar-secondary transition-colors outline-none hover:bg-sidebar-hover hover:text-sidebar-primary"
 			onSelect={handleSelect(onCreateHighlight)}
 		>
 			<svg
-				class="h-4 w-4 flex-shrink-0"
+				class="icon-sm flex-shrink-0"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"

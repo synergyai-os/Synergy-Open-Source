@@ -101,15 +101,6 @@ const schema = defineSchema({
 		plan: v.string()
 	}).index('by_slug', ['slug']),
 
-	// Teams table - ready for future multi-tenancy
-	teams: defineTable({
-		organizationId: v.id('organizations'),
-		name: v.string(),
-		slug: v.string(),
-		createdAt: v.number(),
-		updatedAt: v.number()
-	}).index('by_organization', ['organizationId']),
-
 	// Organization members (many-to-many)
 	organizationMembers: defineTable({
 		organizationId: v.id('organizations'),
@@ -120,17 +111,6 @@ const schema = defineSchema({
 		.index('by_organization', ['organizationId'])
 		.index('by_user', ['userId'])
 		.index('by_organization_user', ['organizationId', 'userId']),
-
-	// Team members (many-to-many)
-	teamMembers: defineTable({
-		teamId: v.id('teams'),
-		userId: v.id('users'),
-		role: v.union(v.literal('admin'), v.literal('member')),
-		joinedAt: v.number()
-	})
-		.index('by_team', ['teamId'])
-		.index('by_user', ['userId'])
-		.index('by_team_user', ['teamId', 'userId']),
 
 	// Circles - work organization units (not people grouping)
 	// Represents value streams, functions, or coordination contexts
@@ -227,13 +207,11 @@ const schema = defineSchema({
 		attendeeType: v.union(
 			v.literal('user'), // Specific user
 			v.literal('role'), // Anyone filling this role
-			v.literal('circle'), // All circle members
-			v.literal('team') // All team members
+			v.literal('circle') // All circle members
 		),
 		userId: v.optional(v.id('users')),
 		circleRoleId: v.optional(v.id('circleRoles')),
 		circleId: v.optional(v.id('circles')),
-		teamId: v.optional(v.id('teams')),
 
 		addedAt: v.number()
 	})
@@ -371,25 +349,6 @@ const schema = defineSchema({
 		.index('by_user', ['invitedUserId'])
 		.index('by_email', ['email']),
 
-	// Team invites (pending team membership)
-	teamInvites: defineTable({
-		teamId: v.id('teams'),
-		organizationId: v.id('organizations'),
-		invitedUserId: v.optional(v.id('users')),
-		email: v.optional(v.string()),
-		role: v.union(v.literal('admin'), v.literal('member')),
-		invitedBy: v.id('users'),
-		code: v.string(),
-		createdAt: v.number(),
-		expiresAt: v.optional(v.number()),
-		acceptedAt: v.optional(v.number()),
-		revokedAt: v.optional(v.number())
-	})
-		.index('by_code', ['code'])
-		.index('by_team', ['teamId'])
-		.index('by_user', ['invitedUserId'])
-		.index('by_email', ['email']),
-
 	// User settings - one per user
 	userSettings: defineTable({
 		userId: v.id('users'), // Reference to the authenticated user
@@ -442,12 +401,12 @@ const schema = defineSchema({
 		createdAt: v.number(), // When first added to Axon
 		// Multi-tenancy fields (future)
 		organizationId: v.optional(v.id('organizations')), // Future: org-owned content
-		teamId: v.optional(v.id('teams')), // Future: team-owned content
+		circleId: v.optional(v.id('circles')), // Future: circle-owned content
 		ownershipType: v.optional(
 			v.union(
 				v.literal('user'), // User-owned (default)
 				v.literal('organization'), // Org-owned
-				v.literal('team'), // Team-owned
+				v.literal('circle'), // Circle-owned
 				v.literal('purchased') // Purchased content
 			)
 		)
@@ -458,7 +417,7 @@ const schema = defineSchema({
 		.index('by_user_category', ['userId', 'category'])
 		.index('by_user_source_type', ['userId', 'sourceType'])
 		.index('by_organization', ['organizationId']) // Future index
-		.index('by_team', ['teamId']), // Future index
+		.index('by_circle', ['circleId']), // Future index
 
 	// Multiple authors per source (many-to-many relationship)
 	// Some sources have comma-separated authors, we store them separately
@@ -488,12 +447,12 @@ const schema = defineSchema({
 		lastSyncedAt: v.optional(v.number()), // Last time synced from Readwise
 		// Multi-tenancy fields (future)
 		organizationId: v.optional(v.id('organizations')), // Future: org-owned content
-		teamId: v.optional(v.id('teams')), // Future: team-owned content
+		circleId: v.optional(v.id('circles')), // Future: circle-owned content
 		ownershipType: v.optional(
 			v.union(
 				v.literal('user'), // User-owned (default)
 				v.literal('organization'), // Org-owned
-				v.literal('team'), // Team-owned
+				v.literal('circle'), // Circle-owned
 				v.literal('purchased') // Purchased content
 			)
 		)
@@ -503,7 +462,7 @@ const schema = defineSchema({
 		.index('by_external_id', ['externalId']) // Prevent duplicates
 		.index('by_user_source', ['userId', 'sourceId'])
 		.index('by_organization', ['organizationId']) // Future index
-		.index('by_team', ['teamId']), // Future index
+		.index('by_circle', ['circleId']), // Future index
 
 	// Universal Inbox Items table - polymorphic table for all inbox content
 	// Uses discriminated unions to support different source types
@@ -519,12 +478,12 @@ const schema = defineSchema({
 				highlightId: v.id('highlights'), // Link to highlights table
 				// Multi-tenancy fields (future)
 				organizationId: v.optional(v.id('organizations')), // Future: org-owned content
-				teamId: v.optional(v.id('teams')), // Future: team-owned content
+				circleId: v.optional(v.id('circles')), // Future: circle-owned content
 				ownershipType: v.optional(
 					v.union(
 						v.literal('user'), // User-owned (default)
 						v.literal('organization'), // Org-owned
-						v.literal('team'), // Team-owned
+						v.literal('circle'), // Circle-owned
 						v.literal('purchased') // Purchased content
 					)
 				)
@@ -544,12 +503,12 @@ const schema = defineSchema({
 				),
 				// Multi-tenancy fields (future)
 				organizationId: v.optional(v.id('organizations')), // Future: org-owned content
-				teamId: v.optional(v.id('teams')), // Future: team-owned content
+				circleId: v.optional(v.id('circles')), // Future: circle-owned content
 				ownershipType: v.optional(
 					v.union(
 						v.literal('user'), // User-owned (default)
 						v.literal('organization'), // Org-owned
-						v.literal('team'), // Team-owned
+						v.literal('circle'), // Circle-owned
 						v.literal('purchased') // Purchased content
 					)
 				)
@@ -566,12 +525,12 @@ const schema = defineSchema({
 				pageNumber: v.optional(v.number()),
 				// Multi-tenancy fields (future)
 				organizationId: v.optional(v.id('organizations')), // Future: org-owned content
-				teamId: v.optional(v.id('teams')), // Future: team-owned content
+				circleId: v.optional(v.id('circles')), // Future: circle-owned content
 				ownershipType: v.optional(
 					v.union(
 						v.literal('user'), // User-owned (default)
 						v.literal('organization'), // Org-owned
-						v.literal('team'), // Team-owned
+						v.literal('circle'), // Circle-owned
 						v.literal('purchased') // Purchased content
 					)
 				)
@@ -603,12 +562,12 @@ const schema = defineSchema({
 				slug: v.optional(v.string()), // URL-friendly slug for blog posts
 				// Multi-tenancy fields (future)
 				organizationId: v.optional(v.id('organizations')),
-				teamId: v.optional(v.id('teams')),
+				circleId: v.optional(v.id('circles')),
 				ownershipType: v.optional(
 					v.union(
 						v.literal('user'),
 						v.literal('organization'),
-						v.literal('team'),
+						v.literal('circle'),
 						v.literal('purchased')
 					)
 				)
@@ -619,7 +578,7 @@ const schema = defineSchema({
 		.index('by_user_type', ['userId', 'type'])
 		.index('by_user_processed', ['userId', 'processed'])
 		.index('by_organization', ['organizationId']) // Future index
-		.index('by_team', ['teamId']), // Future index
+		.index('by_circle', ['circleId']), // Future index
 
 	// Tags table - proper relational table for filtering with hierarchical support
 	tags: defineTable({
@@ -631,9 +590,9 @@ const schema = defineSchema({
 		parentId: v.optional(v.id('tags')), // Parent tag for hierarchical relationships
 		createdAt: v.number(),
 		organizationId: v.optional(v.id('organizations')),
-		teamId: v.optional(v.id('teams')),
+		circleId: v.optional(v.id('circles')),
 		ownershipType: v.optional(
-			v.union(v.literal('user'), v.literal('organization'), v.literal('team'))
+			v.union(v.literal('user'), v.literal('organization'), v.literal('circle'))
 		)
 	})
 		.index('by_user', ['userId'])
@@ -641,8 +600,8 @@ const schema = defineSchema({
 		.index('by_user_parent', ['userId', 'parentId']) // Efficient hierarchical queries
 		.index('by_organization', ['organizationId'])
 		.index('by_organization_name', ['organizationId', 'name'])
-		.index('by_team', ['teamId'])
-		.index('by_team_name', ['teamId', 'name']),
+		.index('by_circle', ['circleId'])
+		.index('by_circle_name', ['circleId', 'name']),
 
 	// Many-to-many: Sources ↔ Tags
 	// Tags are attached to sources in Readwise
@@ -685,12 +644,12 @@ const schema = defineSchema({
 		sourceType: v.optional(v.string()), // "readwise_highlight", "photo_note", "manual_text"
 		// Multi-tenancy fields (future)
 		organizationId: v.optional(v.id('organizations')), // Future: org-owned content
-		teamId: v.optional(v.id('teams')), // Future: team-owned content
+		circleId: v.optional(v.id('circles')), // Future: circle-owned content
 		ownershipType: v.optional(
 			v.union(
 				v.literal('user'), // User-owned (default)
 				v.literal('organization'), // Org-owned
-				v.literal('team'), // Team-owned
+				v.literal('circle'), // Circle-owned
 				v.literal('purchased') // Purchased content
 			)
 		),
@@ -713,7 +672,7 @@ const schema = defineSchema({
 		.index('by_user_due', ['userId', 'algorithm', 'fsrsDue']) // For querying due cards
 		.index('by_source', ['sourceInboxItemId'])
 		.index('by_organization', ['organizationId']) // Future index
-		.index('by_team', ['teamId']), // Future index
+		.index('by_circle', ['circleId']), // Future index
 
 	// Flashcard Reviews - history of all reviews for analytics and algorithm improvement
 	flashcardReviews: defineTable({
@@ -802,8 +761,8 @@ const schema = defineSchema({
 
 	// Roles - Define available roles in the system
 	roles: defineTable({
-		slug: v.string(), // Unique identifier (e.g., "admin", "team-lead")
-		name: v.string(), // Display name (e.g., "Admin", "Team Lead")
+		slug: v.string(), // Unique identifier (e.g., "admin", "circle-lead")
+		name: v.string(), // Display name (e.g., "Admin", "Circle Lead")
 		description: v.string(), // Role description
 		isSystem: v.boolean(), // System role (can't be deleted)
 		createdAt: v.number(),
@@ -812,7 +771,7 @@ const schema = defineSchema({
 
 	// Permissions - Define available permissions in the system
 	permissions: defineTable({
-		slug: v.string(), // Unique identifier (e.g., "teams.create")
+		slug: v.string(), // Unique identifier (e.g., "circles.create")
 		category: v.string(), // Category: "users", "teams", "organizations"
 		action: v.string(), // Action: "create", "update", "delete", etc.
 		description: v.string(), // Permission description
@@ -844,8 +803,8 @@ const schema = defineSchema({
 		userId: v.id('users'),
 		roleId: v.id('roles'),
 		organizationId: v.optional(v.id('organizations')), // Role scoped to org
-		teamId: v.optional(v.id('teams')), // Role scoped to specific team
-		resourceType: v.optional(v.string()), // "team", "organization", etc.
+		circleId: v.optional(v.id('circles')), // Role scoped to specific circle
+		resourceType: v.optional(v.string()), // "circle", "organization", etc.
 		resourceId: v.optional(v.string()), // ID of the resource
 		assignedBy: v.id('users'), // Who assigned this role
 		assignedAt: v.number(),
@@ -856,13 +815,13 @@ const schema = defineSchema({
 		.index('by_role', ['roleId'])
 		.index('by_user_role', ['userId', 'roleId'])
 		.index('by_user_organization', ['userId', 'organizationId'])
-		.index('by_user_team', ['userId', 'teamId'])
+		.index('by_user_circle', ['userId', 'circleId'])
 		.index('by_user_resource', ['userId', 'resourceType', 'resourceId']),
 
 	// Resource Guests - Guest access to specific resources (like Notion/Google Docs)
 	resourceGuests: defineTable({
 		userId: v.id('users'), // Guest user
-		resourceType: v.string(), // "team", "project", "document", etc.
+		resourceType: v.string(), // "circle", "project", "document", etc.
 		resourceId: v.string(), // ID of the resource
 		permissionIds: v.array(v.id('permissions')), // Specific permissions granted
 		invitedBy: v.id('users'), // Who invited this guest
@@ -884,7 +843,7 @@ const schema = defineSchema({
 		resourceType: v.optional(v.string()), // Type of resource
 		resourceId: v.optional(v.string()), // ID of resource
 		organizationId: v.optional(v.id('organizations')), // Context: organization
-		teamId: v.optional(v.id('teams')), // Context: team
+		circleId: v.optional(v.id('circles')), // Context: circle
 		result: v.union(v.literal('allowed'), v.literal('denied')), // Check result
 		reason: v.optional(v.string()), // Why denied (if applicable)
 		metadata: v.optional(v.any()), // Additional context
@@ -894,7 +853,7 @@ const schema = defineSchema({
 		.index('by_timestamp', ['timestamp'])
 		.index('by_user_timestamp', ['userId', 'timestamp'])
 		.index('by_organization', ['organizationId'])
-		.index('by_team', ['teamId'])
+		.index('by_circle', ['circleId'])
 		.index('by_action', ['action'])
 		.index('by_permission', ['permissionSlug']),
 

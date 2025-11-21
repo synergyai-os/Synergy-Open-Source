@@ -24,7 +24,7 @@ export const createNote = mutation({
 		contentMarkdown: v.optional(v.string()),
 		isAIGenerated: v.optional(v.boolean()),
 		organizationId: v.optional(v.union(v.id('organizations'), v.null())),
-		teamId: v.optional(v.id('teams'))
+		circleId: v.optional(v.id('circles'))
 	},
 	handler: async (ctx, args) => {
 		// Validate session and derive userId (prevents impersonation)
@@ -44,8 +44,8 @@ export const createNote = mutation({
 			isAIGenerated: args.isAIGenerated,
 			aiGeneratedAt: args.isAIGenerated ? now : undefined,
 			organizationId: args.organizationId === null ? undefined : args.organizationId,
-			teamId: args.teamId,
-			ownershipType: args.organizationId ? 'organization' : args.teamId ? 'team' : 'user'
+			circleId: args.circleId,
+			ownershipType: args.organizationId ? 'organization' : args.circleId ? 'circle' : 'user'
 		});
 
 		return noteId;
@@ -301,7 +301,7 @@ export const listNotes = query({
 		processed: v.optional(v.boolean()),
 		blogOnly: v.optional(v.boolean()),
 		organizationId: v.optional(v.union(v.id('organizations'), v.null())),
-		teamId: v.optional(v.id('teams'))
+		circleId: v.optional(v.id('circles'))
 	},
 	handler: async (ctx, args) => {
 		// Validate session and derive userId (prevents impersonation)
@@ -317,13 +317,15 @@ export const listNotes = query({
 		if (args.organizationId === null) {
 			// Defensive: Handle null organizationId query (should not happen - users always have orgs).
 			// Filters for items with no organizationId (legacy data or edge cases).
-			items = items.filter((item) => !item.organizationId && !item.teamId);
+			items = items.filter((item) => !item.organizationId && !item.circleId);
 		} else if (args.organizationId !== undefined) {
 			// Organization workspace
-			if (args.teamId) {
-				items = items.filter((item) => item.teamId === args.teamId);
+			if (args.circleId) {
+				items = items.filter((item) => item.circleId === args.circleId);
 			} else {
-				items = items.filter((item) => item.organizationId === args.organizationId && !item.teamId);
+				items = items.filter(
+					(item) => item.organizationId === args.organizationId && !item.circleId
+				);
 			}
 		}
 

@@ -9,13 +9,12 @@
 
 import { browser } from '$app/environment';
 import { untrack } from 'svelte';
-import type { OrganizationSummary, TeamSummary } from './useOrganizations.svelte';
+import type { OrganizationSummary } from './useOrganizations.svelte';
 import { getStorageKey, getStorageDetailsKey, saveCachedOrg } from './organizationStorage';
 
 export interface UseOrganizationStateOptions {
 	userId?: () => string | undefined;
 	organizationsData: () => OrganizationSummary[]; // Reactive function to get organizations list
-	teamsData: () => TeamSummary[]; // Reactive function to get teams list
 	organizationsQuery?: { data: OrganizationSummary[] | undefined } | null; // Query for loading state
 	initialActiveId?: string | null; // Initial active org ID from localStorage
 	initialCachedOrg?: OrganizationSummary | null; // Initial cached org from localStorage
@@ -23,13 +22,11 @@ export interface UseOrganizationStateOptions {
 
 export interface UseOrganizationStateReturn {
 	get activeOrganizationId(): string | null;
-	get activeTeamId(): string | null;
 	get cachedOrganization(): OrganizationSummary | null;
 	get isSwitching(): boolean;
 	get switchingTo(): string | null;
 	get switchingToType(): 'organization';
 	setActiveOrganization: (organizationId: string | null) => void;
-	setActiveTeam: (teamId: string | null) => void;
 }
 
 export function useOrganizationState(
@@ -37,13 +34,11 @@ export function useOrganizationState(
 ): UseOrganizationStateReturn {
 	const getUserId = options.userId || (() => undefined);
 	const organizationsData = options.organizationsData;
-	const teamsData = options.teamsData;
 	const organizationsQuery = options.organizationsQuery;
 
 	// Initialize state
 	const state = $state({
 		activeOrganizationId: options.initialActiveId ?? null,
-		activeTeamId: null as string | null,
 		cachedOrganization: options.initialCachedOrg ?? null,
 		lastUserId: undefined as string | undefined,
 		isSwitching: false,
@@ -114,14 +109,6 @@ export function useOrganizationState(
 		state.cachedOrganization = firstOrg;
 		if (browser) {
 			saveCachedOrg(storageKey, storageDetailsKey, firstOrg.organizationId, firstOrg);
-		}
-	});
-
-	// Team validation effect
-	$effect(() => {
-		const list = teamsData();
-		if (state.activeTeamId && list.every((team) => team.teamId !== state.activeTeamId)) {
-			state.activeTeamId = null;
 		}
 	});
 
@@ -254,7 +241,6 @@ export function useOrganizationState(
 		});
 
 		state.activeOrganizationId = targetOrgId;
-		state.activeTeamId = null;
 
 		const currentUserId = getUserId();
 		const storageKey = getStorageKey(currentUserId);
@@ -273,16 +259,9 @@ export function useOrganizationState(
 		}
 	}
 
-	function setActiveTeam(teamId: string | null) {
-		state.activeTeamId = teamId;
-	}
-
 	return {
 		get activeOrganizationId() {
 			return state.activeOrganizationId;
-		},
-		get activeTeamId() {
-			return state.activeTeamId;
 		},
 		get cachedOrganization() {
 			return state.cachedOrganization;
@@ -296,7 +275,6 @@ export function useOrganizationState(
 		get switchingToType() {
 			return state.switchingToType;
 		},
-		setActiveOrganization,
-		setActiveTeam
+		setActiveOrganization
 	};
 }

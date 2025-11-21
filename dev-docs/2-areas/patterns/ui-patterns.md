@@ -869,6 +869,214 @@ shortcuts.register({
 
 ---
 
+## #L710: Systematic Design Token Cleanup - Atomic-First Strategy [🟢 REFERENCE]
+
+**Symptom**: Large codebase with many hardcoded Tailwind values blocking design token cascade  
+**Root Cause**: Need systematic approach to replace thousands of hardcoded values without breaking functionality  
+**Fix**:
+
+---
+
+## #L720: Adding New Design Tokens Systematically [🟡 IMPORTANT]
+
+**Symptom**: Audit finds violations (e.g., `rounded-full`, `text-green-600`) but semantic token doesn't exist in `app.css`  
+**Root Cause**: Design token not yet added to design system, can't fix violations without creating token first  
+**Fix**:
+
+**4-Step Process:**
+
+```typescript
+// Step 1: Check if token exists
+grep "rounded-avatar\|text-success" src/app.css
+// → Not found → Need to add
+
+// Step 2: Add to @theme block in app.css
+@theme {
+  --border-radius-avatar: 9999px; /* rounded-full - perfect circle for avatars */
+  --color-success-text: oklch(40% 0.15 150); /* green-700 - success states */
+}
+
+// Step 3: Create @utility class
+@utility rounded-avatar {
+  border-radius: var(--border-radius-avatar);
+}
+@utility text-success {
+  color: var(--color-success-text);
+}
+
+// Step 4: Document in design-tokens.md
+| Token | Utility | Value | Usage |
+| --border-radius-avatar | rounded-avatar | 9999px | Avatar circles |
+```
+
+**Replace hardcoded values:**
+
+```svelte
+<!-- ❌ WRONG - Hardcoded value -->
+<div class="rounded-full bg-green-600">
+  Avatar
+</div>
+
+<!-- ✅ CORRECT - Semantic token -->
+<div class="rounded-avatar text-success">
+  Avatar
+</div>
+```
+
+**Edge Case: Dynamic Values (Inline Styles)**
+
+When values come from database or user input, inline styles are valid:
+
+```svelte
+<!-- ✅ CORRECT - Dynamic user color (can't use token) -->
+<div
+  class="rounded-avatar"
+  style="background-color: {user.color}"
+>
+  {user.initials}
+</div>
+
+<!-- ❌ WRONG - Trying to use token for dynamic value -->
+<div class="rounded-avatar bg-[{user.color}]">
+  <!-- Tailwind can't generate dynamic classes -->
+</div>
+```
+
+**Valid Inline Style Scenarios:**
+
+- User-defined colors (avatar backgrounds, category colors)
+- Dynamic positioning (D3 charts, draggable elements)
+- Animation progress (percentages, transforms)
+
+**Apply when**:
+
+- Audit finds violations for non-existent tokens
+- Multiple components need same semantic value
+- Value should adapt to light/dark mode
+- Need centralized control over design decision
+
+**Validation**:
+
+```bash
+# Verify token added correctly
+grep "rounded-avatar" src/app.css
+# → Should find: @theme definition + @utility class
+
+# Verify violations fixed
+npm run audit:design-system | grep "rounded-full"
+# → Should return 0 results (or only dynamic inline styles)
+```
+
+**Why Important**:
+
+- Prevents blocking design system migration (can't fix violations without tokens)
+- Ensures consistent semantic naming (`rounded-avatar` not `rounded-circle`)
+- Enables theme adaptation (light/dark mode automatic)
+- Centralized design decisions (change once, updates everywhere)
+
+**Related**: #L780 (Use existing tokens), #L710 (Cleanup strategy), design-tokens.md (Token reference)
+
+---
+
+**Phase 1: Audit & Prioritize**
+
+```bash
+# Run design system audit to identify violations
+npm run audit:design-system
+
+# Output shows violations by module:
+# - Atomic: 24 violations (HIGH PRIORITY)
+# - Meetings: 28 violations
+# - Inbox: 120 violations
+# - Other: 2,411 violations
+```
+
+**Phase 2: Fix Atomic Components FIRST**
+
+```svelte
+// ❌ WRONG - Hardcoded values in atomic components
+// src/lib/components/atoms/Button.svelte
+<button class="px-3 py-1 text-sm rounded-md">Click</button>
+
+// ✅ CORRECT - Design tokens in atomic components
+<button class="px-button-x py-button-y text-small rounded-button">Click</button>
+```
+
+**Why atomic-first?**
+- Atomic components (Button, Avatar, Chip) are reused everywhere
+- Fixes cascade automatically to all modules (Meetings, Inbox, Flashcards, etc.)
+- Maximum impact for minimum effort
+
+**Phase 3: Create Utility Classes for Inline Styles**
+
+```css
+/* ❌ WRONG - Inline styles in component */
+<div style="font-size: var(--size-pin-cell-text);" />
+
+/* ✅ CORRECT - Create utility class in app.css */
+@utility text-pin-cell {
+  font-size: var(--size-pin-cell-text);
+}
+
+/* Then use in component */
+<div class="text-pin-cell" />
+```
+
+**Phase 4: Validate with Cascade Test**
+
+```css
+/* 1. Change token in app.css */
+--spacing-button-x: 2rem; /* was 1rem */
+
+/* 2. Verify buttons get wider across entire app */
+/* 3. Revert change */
+--spacing-button-x: 1rem;
+```
+
+**Workflow:**
+
+1. **Audit**: `npm run audit:design-system` → Identify violations by module
+2. **Prioritize**: Fix atomic components first (highest cascade impact)
+3. **Replace**: Hardcoded values → Design tokens
+4. **Create utilities**: For inline styles that need token references
+5. **Validate**: Run audit again → Verify violations reduced
+6. **CI check**: `npm run ci:quick` → Ensure no regressions
+7. **Cascade test**: Change token → Verify → Revert
+
+**Common Replacements:**
+
+```svelte
+// Typography
+text-sm → text-small
+text-base → text-body
+text-lg → text-h4
+
+// Border Radius
+rounded-full → rounded-avatar (for avatars)
+rounded-full → rounded-chip (for chips/pills)
+rounded-md → rounded-button or rounded-card
+
+// Colors
+text-gray-500 → text-tertiary
+text-blue-500 → text-accent-primary
+text-green-500 → text-success
+```
+
+**Success Metrics:**
+
+- **Before**: Atomic violations: 24, Token coverage: 80%
+- **After**: Atomic violations: 0, Token coverage: 100%
+- **Impact**: Fixes propagate to all modules automatically
+
+**Apply when**: 
+- Large-scale design token migration
+- Cleaning up legacy hardcoded values
+- Improving design system consistency
+
+**Related**: #L680 (Atomic Components), #L780 (Use Design Tokens), design-tokens.md (Token Reference)
+
+---
+
 ## #L730: ProseMirror Rich Text Integration [🟢 REFERENCE]
 
 **Symptom**: Need rich text editing with Notion-like feel and AI detection  
@@ -2742,7 +2950,7 @@ onMount(() => {
 
 **Key Principles**:
 
-1. **Contextual Title**: Action-oriented ("Loading Saprolab" not "Saprolab")
+1. **Contextual Title**: Action-oriented ("Loading Agency Partner" not "Agency Partner")
 2. **Progressive Stages**: Varied verbs (Gathering → Syncing → Preparing)
 3. **Instant Feedback**: Show before async action, not after
 4. **Zero Flash on Reload**: Inline script injects overlay before Svelte loads

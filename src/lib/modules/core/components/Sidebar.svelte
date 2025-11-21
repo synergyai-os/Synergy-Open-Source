@@ -5,11 +5,10 @@
 	import { cubicOut } from 'svelte/easing';
 	import { fade } from 'svelte/transition';
 	import { getContext } from 'svelte';
-	import ResizableSplitter from '$lib/components/ResizableSplitter.svelte';
+	import ResizableSplitter from '$lib/components/organisms/ResizableSplitter.svelte';
 	import SidebarHeader from '$lib/modules/core/components/SidebarHeader.svelte';
 	import CleanReadwiseButton from '$lib/modules/core/components/CleanReadwiseButton.svelte';
-	import TeamList from '$lib/modules/core/organizations/components/TeamList.svelte';
-	import LoadingOverlay from '$lib/components/ui/LoadingOverlay.svelte';
+	import { LoadingOverlay } from '\$lib/components/atoms';
 	import type {
 		OrganizationsModuleAPI,
 		OrganizationSummary
@@ -80,35 +79,70 @@
 	const linkedAccountOrgsMap = $state<Record<string, OrganizationSummary[]>>({});
 
 	// Load cached organizations for linked accounts from localStorage
+	// CRITICAL: This effect must run reactively when linkedAccounts() changes
+	// Also checks cache periodically to catch async updates from useAuthSession
 	$effect(() => {
 		if (!browser) return;
 
-		try {
-			for (const account of linkedAccounts()) {
-				if (!account.userId) continue;
+		const loadCacheForAccounts = () => {
+			try {
+				const accounts = linkedAccounts();
 
-				// Skip if already loaded
-				if (linkedAccountOrgsMap[account.userId]) continue;
+				for (const account of accounts) {
+					if (!account.userId) continue;
 
-				// Try to load from localStorage cache
-				const cacheKey = `${LINKED_ACCOUNT_ORGS_KEY_PREFIX}${account.userId}`;
-				const cached = localStorage.getItem(cacheKey);
+					// Always check cache (don't skip) - cache might be updated by useAuthSession
+					const cacheKey = `${LINKED_ACCOUNT_ORGS_KEY_PREFIX}${account.userId}`;
+					const cached = localStorage.getItem(cacheKey);
 
-				if (cached) {
-					try {
-						const orgs = JSON.parse(cached) as OrganizationSummary[];
-						if (Array.isArray(orgs)) {
-							linkedAccountOrgsMap[account.userId] = orgs;
+					if (cached) {
+						try {
+							const orgs = JSON.parse(cached) as OrganizationSummary[];
+							if (Array.isArray(orgs)) {
+								// Only update if different to avoid unnecessary reactivity triggers
+								const currentOrgs = linkedAccountOrgsMap[account.userId];
+								if (!currentOrgs || JSON.stringify(currentOrgs) !== JSON.stringify(orgs)) {
+									linkedAccountOrgsMap[account.userId] = orgs;
+								}
+							}
+						} catch (_e) {
+							// Invalid cache, clear it
+							localStorage.removeItem(cacheKey);
 						}
-					} catch (_e) {
-						// Invalid cache, clear it
-						localStorage.removeItem(cacheKey);
+					} else {
+						// Cache was removed, clear from map
+						if (linkedAccountOrgsMap[account.userId]) {
+							delete linkedAccountOrgsMap[account.userId];
+						}
 					}
 				}
+			} catch (error) {
+				console.error('Error loading cached organizations for linked accounts:', error);
 			}
-		} catch (error) {
-			console.error('Error loading cached organizations for linked accounts:', error);
-		}
+		};
+
+		// Load cache initially and when linkedAccounts changes
+		loadCacheForAccounts();
+
+		// Also check cache after a short delay to catch async updates from useAuthSession
+		// This ensures we pick up organizations cached by /auth/linked-sessions endpoint
+		const timeoutId = setTimeout(() => {
+			loadCacheForAccounts();
+		}, 500);
+
+		// Listen for storage events (for cross-tab updates)
+		const handleStorageChange = (e: StorageEvent) => {
+			if (e.key && e.key.startsWith(LINKED_ACCOUNT_ORGS_KEY_PREFIX)) {
+				loadCacheForAccounts();
+			}
+		};
+
+		window.addEventListener('storage', handleStorageChange);
+
+		return () => {
+			clearTimeout(timeoutId);
+			window.removeEventListener('storage', handleStorageChange);
+		};
 	});
 
 	// Cache current user's organizations when they change (so they're available when switching accounts)
@@ -130,15 +164,33 @@
 	});
 
 	// Map linked accounts with their organizations
+	// CRITICAL: Access linkedAccountOrgsMap reactively to ensure updates trigger re-render
 	const linkedAccountOrganizations = $derived(() => {
-		return linkedAccounts().map((account) => ({
+		// Access the map to ensure reactivity tracking
+		const map = linkedAccountOrgsMap;
+		const accounts = linkedAccounts();
+		const mapped = accounts.map((account) => ({
 			userId: account.userId,
 			email: account.email,
 			name: account.name ?? null,
 			firstName: account.firstName ?? null,
 			lastName: account.lastName ?? null,
-			organizations: linkedAccountOrgsMap[account.userId] ?? []
+			organizations: map[account.userId] ?? []
 		}));
+
+		console.log('🔍 [Sidebar] Linked account organizations mapped:', {
+			accountsLength: accounts.length,
+			mappedLength: mapped.length,
+			mapKeys: Object.keys(map),
+			mapped: mapped.map((a) => ({
+				userId: a.userId,
+				email: a.email,
+				orgCount: a.organizations.length,
+				cachedOrgs: map[a.userId]?.length ?? 0
+			}))
+		});
+
+		return mapped;
 	});
 
 	let isPinned = $state(false);
@@ -297,22 +349,6 @@
 	const useResizable = $derived(
 		!isMobile && !isCollapsing && (!sidebarCollapsed || (sidebarCollapsed && hoverState))
 	);
-
-	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
-	// Pattern: Check object existence first, then access getter property directly
-	// See SYOS-228 for full pattern documentation
-	const visibleTeams = $derived(() => {
-		if (!organizations) return [];
-		return organizations.teams ?? [];
-	});
-	const teamInvites = $derived(() => {
-		if (!organizations) return [];
-		return organizations.teamInvites ?? [];
-	});
-	const activeTeamId = $derived(() => {
-		if (!organizations) return null;
-		return organizations.activeTeamId ?? null;
-	});
 
 	// Set up document mouse tracking when sidebar is hovered and collapsed
 	$effect(() => {
@@ -506,12 +542,12 @@
 					<!-- My Mind -->
 					<a
 						href={resolveRoute('/my-mind')}
-						class="group relative flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+						class="group relative flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 						title="My Mind"
 					>
 						<!-- Icon -->
 						<svg
-							class="h-4 w-4 flex-shrink-0"
+							class="icon-sm flex-shrink-0"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -530,12 +566,12 @@
 					<!-- Inbox -->
 					<a
 						href={resolveRoute('/inbox')}
-						class="group relative flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+						class="group relative flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 						title="Inbox"
 					>
 						<!-- Icon -->
 						<svg
-							class="h-4 w-4 flex-shrink-0"
+							class="icon-sm flex-shrink-0"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -561,12 +597,12 @@
 					<!-- Flashcards -->
 					<a
 						href={resolveRoute('/flashcards')}
-						class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+						class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 						title="Flashcards"
 					>
 						<!-- Icon -->
 						<svg
-							class="h-4 w-4 flex-shrink-0"
+							class="icon-sm flex-shrink-0"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -585,12 +621,12 @@
 					<!-- Study -->
 					<a
 						href={resolveRoute('/study')}
-						class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+						class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 						title="Study Session"
 					>
 						<!-- Icon -->
 						<svg
-							class="h-4 w-4 flex-shrink-0"
+							class="icon-sm flex-shrink-0"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -609,12 +645,12 @@
 					<!-- Tags -->
 					<a
 						href={resolveRoute('/tags')}
-						class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+						class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 						title="Tags"
 					>
 						<!-- Icon -->
 						<svg
-							class="h-4 w-4 flex-shrink-0"
+							class="icon-sm flex-shrink-0"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -636,12 +672,12 @@
 							href={resolveRoute(
 								activeOrgId() ? `/org/circles?org=${activeOrgId()}` : '/org/circles'
 							)}
-							class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+							class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 							title="Circles"
 						>
 							<!-- Icon: Organization/Circles -->
 							<svg
-								class="h-4 w-4 flex-shrink-0"
+								class="icon-sm flex-shrink-0"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -663,12 +699,12 @@
 						href={resolveRoute(
 							activeOrgId() ? `/org/members?org=${activeOrgId()}` : '/org/members'
 						)}
-						class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+						class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 						title="Members"
 					>
 						<!-- Icon: Users -->
 						<svg
-							class="h-4 w-4 flex-shrink-0"
+							class="icon-sm flex-shrink-0"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -684,40 +720,16 @@
 						<span class="font-normal">Members</span>
 					</a>
 
-					<!-- Teams -->
-					<a
-						href={resolveRoute(activeOrgId() ? `/org/teams?org=${activeOrgId()}` : '/org/teams')}
-						class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-						title="Teams"
-					>
-						<!-- Icon: User Group -->
-						<svg
-							class="h-4 w-4 flex-shrink-0"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-							/>
-						</svg>
-						<span class="font-normal">Teams</span>
-					</a>
-
 					<!-- Dashboard (Beta - Feature Flag) -->
 					{#if dashboardEnabled}
 						<a
 							href={resolveRoute('/dashboard')}
-							class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+							class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 							title="Dashboard"
 						>
 							<!-- Icon: Clipboard List -->
 							<svg
-								class="h-4 w-4 flex-shrink-0"
+								class="icon-sm flex-shrink-0"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -738,12 +750,12 @@
 					{#if meetingsEnabled}
 						<a
 							href={resolveRoute('/meetings')}
-							class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+							class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 							title="Meetings"
 						>
 							<!-- Icon: Calendar -->
 							<svg
-								class="h-4 w-4 flex-shrink-0"
+								class="icon-sm flex-shrink-0"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -760,20 +772,29 @@
 						</a>
 					{/if}
 
-					{#if organizations}
-						<TeamList
-							teams={visibleTeams()}
-							teamInvites={teamInvites()}
-							activeTeamId={activeTeamId()}
-							{sidebarCollapsed}
-							{isMobile}
-							onSelectTeam={(teamId) => organizations.setActiveTeam(teamId)}
-							onCreateTeam={() => organizations.openModal('createTeam')}
-							onJoinTeam={() => organizations.openModal('joinTeam')}
-							onAcceptInvite={(inviteId) => organizations.acceptTeamInvite(inviteId)}
-							onDeclineInvite={(inviteId) => organizations.declineTeamInvite(inviteId)}
-						/>
-					{/if}
+					<!-- Favorites Section -->
+					<section class="mt-content-section">
+						{#if !sidebarCollapsed || isMobile}
+							<div class="flex items-center justify-between px-section py-section">
+								<p class="text-label font-medium tracking-wider text-sidebar-tertiary uppercase">
+									Favorites
+								</p>
+								<div class="flex items-center gap-icon-wide">
+									<!-- Placeholder for future action buttons -->
+								</div>
+							</div>
+						{/if}
+
+						<div class="space-y-form-field-gap">
+							<!-- Empty state - content will be added later -->
+						</div>
+
+						{#if !sidebarCollapsed || isMobile}
+							<p class="px-section py-section text-label text-sidebar-tertiary">
+								No favorites yet.
+							</p>
+						{/if}
+					</section>
 				</nav>
 			{/if}
 
@@ -784,16 +805,18 @@
 					transition:fade={{ duration: 200 }}
 				>
 					<div class="px-section py-section">
-						<p class="mb-1.5 text-label font-medium tracking-wider text-sidebar-tertiary uppercase">
+						<p
+							class="mb-form-field-gap text-label font-medium tracking-wider text-sidebar-tertiary uppercase"
+						>
 							🧪 Development
 						</p>
-						<div class="space-y-0.5">
+						<div class="space-y-form-field-gap">
 							<a
 								href={resolveRoute('/test/claude')}
-								class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+								class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 							>
 								<svg
-									class="h-4 w-4 flex-shrink-0"
+									class="icon-sm flex-shrink-0"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -810,10 +833,10 @@
 							</a>
 							<a
 								href={resolveRoute('/test/readwise')}
-								class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+								class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 							>
 								<svg
-									class="h-4 w-4 flex-shrink-0"
+									class="icon-sm flex-shrink-0"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -832,10 +855,10 @@
 								href={resolveRoute('/dev-docs')}
 								target="_blank"
 								rel="noopener noreferrer"
-								class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+								class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 							>
 								<svg
-									class="h-4 w-4 flex-shrink-0"
+									class="icon-sm flex-shrink-0"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -970,12 +993,12 @@
 				<!-- My Mind -->
 				<a
 					href={resolveRoute('/my-mind')}
-					class="group relative flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+					class="group relative flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:justify-center={isMobile && sidebarCollapsed}
 					title={isMobile && sidebarCollapsed ? 'My Mind' : ''}
 				>
 					<svg
-						class="h-4 w-4 flex-shrink-0"
+						class="icon-sm flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -996,12 +1019,12 @@
 				<!-- Inbox -->
 				<a
 					href={resolveRoute('/inbox')}
-					class="group relative flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+					class="group relative flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:justify-center={isMobile && sidebarCollapsed}
 					title={isMobile && sidebarCollapsed ? 'Inbox' : ''}
 				>
 					<svg
-						class="h-4 w-4 flex-shrink-0"
+						class="icon-sm flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -1026,7 +1049,7 @@
 					{:else if isMobile && sidebarCollapsed}
 						{#if inboxCount > 0}
 							<span
-								class="absolute top-0 right-0 rounded bg-sidebar-badge px-1 py-0.5 text-label leading-none font-medium text-sidebar-badge"
+								class="absolute top-0 right-0 rounded bg-sidebar-badge px-badge py-badge text-label leading-none font-medium text-sidebar-badge"
 							>
 								{inboxCount}
 							</span>
@@ -1046,12 +1069,12 @@
 				<!-- Flashcards -->
 				<a
 					href={resolveRoute('/flashcards')}
-					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:justify-center={isMobile && sidebarCollapsed}
 					title={isMobile && sidebarCollapsed ? 'Flashcards' : ''}
 				>
 					<svg
-						class="h-4 w-4 flex-shrink-0"
+						class="icon-sm flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -1072,12 +1095,12 @@
 				<!-- Study -->
 				<a
 					href={resolveRoute('/study')}
-					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:justify-center={isMobile && sidebarCollapsed}
 					title={isMobile && sidebarCollapsed ? 'Study' : ''}
 				>
 					<svg
-						class="h-4 w-4 flex-shrink-0"
+						class="icon-sm flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -1098,12 +1121,12 @@
 				<!-- Tags -->
 				<a
 					href={resolveRoute('/tags')}
-					class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:justify-center={isMobile && sidebarCollapsed}
 					title={isMobile && sidebarCollapsed ? 'Tags' : ''}
 				>
 					<svg
-						class="h-4 w-4 flex-shrink-0"
+						class="icon-sm flex-shrink-0"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -1121,20 +1144,27 @@
 					{/if}
 				</a>
 
-				{#if organizations}
-					<TeamList
-						teams={visibleTeams()}
-						teamInvites={teamInvites()}
-						activeTeamId={activeTeamId()}
-						{sidebarCollapsed}
-						{isMobile}
-						onSelectTeam={(teamId) => organizations.setActiveTeam(teamId)}
-						onCreateTeam={() => organizations.openModal('createTeam')}
-						onJoinTeam={() => organizations.openModal('joinTeam')}
-						onAcceptInvite={(inviteId) => organizations.acceptTeamInvite(inviteId)}
-						onDeclineInvite={(inviteId) => organizations.declineTeamInvite(inviteId)}
-					/>
-				{/if}
+				<!-- Favorites Section -->
+				<section class="mt-content-section">
+					{#if !sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)}
+						<div class="flex items-center justify-between px-section py-section">
+							<p class="text-label font-medium tracking-wider text-sidebar-tertiary uppercase">
+								Favorites
+							</p>
+							<div class="flex items-center gap-form-field-gap">
+								<!-- Placeholder for future action buttons -->
+							</div>
+						</div>
+					{/if}
+
+					<div class="space-y-form-field-gap">
+						<!-- Empty state - content will be added later -->
+					</div>
+
+					{#if !sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)}
+						<p class="px-section py-section text-label text-sidebar-tertiary">No favorites yet.</p>
+					{/if}
+				</section>
 			</nav>
 		{/if}
 
@@ -1145,16 +1175,18 @@
 				transition:fade={{ duration: 200 }}
 			>
 				<div class="px-section py-section">
-					<p class="mb-1.5 text-label font-medium tracking-wider text-sidebar-tertiary uppercase">
+					<p
+						class="mb-form-field-gap text-label font-medium tracking-wider text-sidebar-tertiary uppercase"
+					>
 						🧪 Development
 					</p>
-					<div class="space-y-0.5">
+					<div class="space-y-form-field-gap">
 						<a
 							href={resolveRoute('/test/claude')}
-							class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+							class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 						>
 							<svg
-								class="h-4 w-4 flex-shrink-0"
+								class="icon-sm flex-shrink-0"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -1171,10 +1203,10 @@
 						</a>
 						<a
 							href={resolveRoute('/test/readwise')}
-							class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+							class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 						>
 							<svg
-								class="h-4 w-4 flex-shrink-0"
+								class="icon-sm flex-shrink-0"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -1193,10 +1225,10 @@
 							href={resolveRoute('/dev-docs')}
 							target="_blank"
 							rel="noopener noreferrer"
-							class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+							class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 						>
 							<svg
-								class="h-4 w-4 flex-shrink-0"
+								class="icon-sm flex-shrink-0"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"

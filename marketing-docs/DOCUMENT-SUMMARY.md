@@ -38,7 +38,7 @@
 ### Audience Documents (2)
 
 5. **[Target Personas](./audience/target-personas.md)**
-   - Buyer (Saprolab), Users (ZDHC), Champion, System Admin
+   - Buyer (Agency Partner), Users (Client), Champion, System Admin
    - Pain points, jobs-to-be-done, success criteria
    - Detailed profiles (Sarah, Alex, Jordan, Taylor, Morgan)
    - **Use**: Marketing, feature prioritization, messaging
@@ -188,7 +188,7 @@
 
 ---
 
-### For Saprolab (First Partner)
+### For Agency Partner (First Partner)
 
 **Share With Them**:
 
@@ -291,13 +291,13 @@
 
 ### Business (Validation)
 
-- ✅ Saprolab paying (covers $60/month)
-- ✅ ZDHC onboarded (expansion)
+- ✅ Agency Partner paying (covers $60/month)
+- ✅ Client onboarded (expansion)
 - ✅ 3+ paying customers in 6 months
 
 ### Product (Adoption)
 
-- ✅ Saprolab using daily (5+ active users)
+- ✅ Agency Partner using daily (5+ active users)
 - ✅ 10+ hours/week saved per user
 - ✅ Positive feedback (4/5 stars)
 
@@ -320,9 +320,9 @@
 4. ⏳ Engage with community (Discord, GitHub issues)
 5. ⏳ Share on social (Twitter, LinkedIn, Reddit)
 
-### Week 3 (Saprolab Validation)
+### Week 3 (Agency Partner Validation)
 
-6. ⏳ Share [Product Vision 2.0](./strategy/product-vision-2.0.md) with Saprolab
+6. ⏳ Share [Product Vision 2.0](./strategy/product-vision-2.0.md) with Agency Partner
 7. ⏳ Discuss [Value Proposition](./strategy/value-proposition.md) (why choose us)
 8. ⏳ Review [Success Signals](./audience/success-signals.md) (what success looks like)
 
@@ -381,7 +381,7 @@
 
 - Know what you're building (Product OS for teams)
 - Know why (solve fragmentation, learning, alignment problems)
-- Know who (Saprolab, ZDHC, product teams)
+- Know who (Agency Partner, Client, product teams)
 
 ### ✅ Strategic Roadmap
 
@@ -426,7 +426,7 @@
 3. Execute:
    - Once confirmed, launch community (1 day)
    - Start journey blog (weekly posts)
-   - Validate with Saprolab (outcome-driven)
+   - Validate with Agency Partner (outcome-driven)
 
 ---
 

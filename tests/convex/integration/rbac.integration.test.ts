@@ -163,39 +163,39 @@ describe('RBAC Integration Tests', () => {
 		const { userId: teamLeadUserId } = await createTestSession(t);
 		const orgId = await createTestOrganization(t, 'Test Org');
 
-		// Create a team
-		const teamId = await t.run(async (ctx) => {
+		// Create a circle
+		const circleId = await t.run(async (ctx) => {
 			const now = Date.now();
-			return await ctx.db.insert('teams', {
+			return await ctx.db.insert('circles', {
 				organizationId: orgId,
-				name: 'Test Team',
-				slug: 'test-team',
+				name: 'Test Circle',
+				slug: 'test-circle',
 				createdAt: now,
 				updatedAt: now
 			});
 		});
 
-		// Set up Team Lead role with teams.update permission (scope: "own")
-		const teamLeadRole = await createTestRole(t, 'team-lead', 'Team Lead');
-		const updatePermission = await createTestPermission(t, 'teams.update', 'Update Team');
-		await assignPermissionToRole(t, teamLeadRole, updatePermission, 'own');
-		await assignRoleToUser(t, teamLeadUserId, teamLeadRole, {
+		// Set up Circle Lead role with circles.update permission (scope: "own")
+		const circleLeadRole = await createTestRole(t, 'circle-lead', 'Circle Lead');
+		const updatePermission = await createTestPermission(t, 'circles.update', 'Update Circle');
+		await assignPermissionToRole(t, circleLeadRole, updatePermission, 'own');
+		await assignRoleToUser(t, teamLeadUserId, circleLeadRole, {
 			organizationId: orgId,
-			teamId
+			circleId
 		});
 
 		cleanupQueue.push({ userId: teamLeadUserId, orgId });
 
-		// Team Lead can update their team
+		// Circle Lead can update their circle
 		const result = await t.run(async (ctx) => {
-			return await hasPermission(ctx, teamLeadUserId, 'teams.update', { teamId });
+			return await hasPermission(ctx, teamLeadUserId, 'circles.update', { circleId });
 		});
 
 		expect(result).toBe(true);
 
-		// Cleanup team
+		// Cleanup circle
 		await t.run(async (ctx) => {
-			await ctx.db.delete(teamId);
+			await ctx.db.delete(circleId);
 		});
 	});
 

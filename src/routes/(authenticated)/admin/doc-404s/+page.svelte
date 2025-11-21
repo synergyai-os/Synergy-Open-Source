@@ -214,8 +214,10 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 	<header class="border-b border-sidebar px-inbox-container py-system-content">
 		<div class="flex items-center justify-between">
 			<div>
-				<h1 class="text-2xl font-bold text-primary">Documentation 404 Tracking</h1>
-				<p class="mt-1 text-sm text-secondary">Track and resolve broken links in documentation</p>
+				<h1 class="text-h2 font-bold text-primary">Documentation 404 Tracking</h1>
+				<p class="mt-form-field-gap text-small text-secondary">
+					Track and resolve broken links in documentation
+				</p>
 			</div>
 			{#if filteredErrors().length > 0}
 				<Button onclick={copyAllErrors} variant="secondary">Copy All Errors</Button>
@@ -226,41 +228,41 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 	<!-- Stats -->
 	{#if stats}
 		<div class="border-b border-sidebar px-inbox-container py-system-content">
-			<div class="grid grid-cols-1 gap-4 md:grid-cols-5">
-				<div class="rounded-lg border border-sidebar bg-surface p-4">
-					<p class="text-xs text-tertiary">Total Errors</p>
-					<p class="mt-1 text-2xl font-semibold text-primary">
+			<div class="grid grid-cols-1 gap-content-section md:grid-cols-5">
+				<div class="rounded-card border border-sidebar bg-surface px-card py-card">
+					<p class="text-label text-tertiary">Total Errors</p>
+					<p class="mt-form-field-gap text-h2 font-semibold text-primary">
 						{stats.total || 0}
 					</p>
 				</div>
-				<div class="rounded-lg border border-sidebar bg-surface p-4">
-					<p class="text-xs text-tertiary">Unresolved</p>
+				<div class="rounded-card border border-sidebar bg-surface px-card py-card">
+					<p class="text-label text-tertiary">Unresolved</p>
 					<p
-						class="mt-1 text-2xl font-semibold text-primary"
+						class="mt-form-field-gap text-h2 font-semibold text-primary"
 						style="color: var(--color-error, #ef4444);"
 					>
 						{stats.unresolved || 0}
 					</p>
 				</div>
-				<div class="rounded-lg border border-sidebar bg-surface p-4">
-					<p class="text-xs text-tertiary">Resolved</p>
+				<div class="rounded-card border border-sidebar bg-surface px-card py-card">
+					<p class="text-label text-tertiary">Resolved</p>
 					<p
-						class="mt-1 text-2xl font-semibold text-primary"
+						class="mt-form-field-gap text-h2 font-semibold text-primary"
 						style="color: var(--color-success, #10b981);"
 					>
 						{stats.resolved || 0}
 					</p>
 				</div>
-				<div class="rounded-lg border border-sidebar bg-surface p-4">
-					<p class="text-xs text-tertiary">Total Hits</p>
-					<p class="mt-1 text-2xl font-semibold text-primary">
+				<div class="rounded-card border border-sidebar bg-surface px-card py-card">
+					<p class="text-label text-tertiary">Total Hits</p>
+					<p class="mt-form-field-gap text-h2 font-semibold text-primary">
 						{stats.totalHits || 0}
 					</p>
 				</div>
-				<div class="rounded-lg border border-sidebar bg-surface p-4">
-					<p class="text-xs text-tertiary">Unresolved Hits</p>
+				<div class="rounded-card border border-sidebar bg-surface px-card py-card">
+					<p class="text-label text-tertiary">Unresolved Hits</p>
 					<p
-						class="mt-1 text-2xl font-semibold text-primary"
+						class="mt-form-field-gap text-h2 font-semibold text-primary"
 						style="color: var(--color-error, #ef4444);"
 					>
 						{stats.unresolvedHits || 0}
@@ -273,21 +275,21 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 	<!-- Patterns Section -->
 	{#if errorPatterns().length > 0}
 		<div class="border-b border-sidebar px-inbox-container py-system-content">
-			<h2 class="mb-4 text-lg font-semibold text-primary">Error Patterns</h2>
-			<div class="space-y-2">
+			<h2 class="mb-content-section text-h3 font-semibold text-primary">Error Patterns</h2>
+			<div class="space-y-form-field-gap">
 				{#each errorPatterns().slice(0, 5) as pattern (pattern.pattern)}
 					<div
-						class="flex items-center justify-between rounded-lg border border-sidebar bg-surface p-3"
+						class="flex items-center justify-between rounded-card border border-sidebar bg-surface px-card py-card"
 					>
 						<div>
-							<code class="text-sm text-primary">{pattern.pattern}</code>
-							<p class="mt-1 text-xs text-secondary">
+							<code class="text-small text-primary">{pattern.pattern}</code>
+							<p class="mt-form-field-gap text-label text-secondary">
 								{pattern.errors.length} unique {pattern.errors.length === 1 ? 'error' : 'errors'}, {pattern.count}
 								total hits
 							</p>
 						</div>
 						<span
-							class="bg-error/10 inline-flex items-center rounded border border-error px-2 py-0.5 text-xs font-medium text-error"
+							class="bg-error/10 inline-flex items-center rounded border border-error px-badge py-badge text-label font-medium text-error"
 						>
 							{pattern.count} hits
 						</span>
@@ -299,36 +301,39 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 
 	<!-- Filters -->
 	<div class="border-b border-sidebar px-inbox-container py-system-content">
-		<div class="flex items-center gap-4">
+		<div class="flex items-center gap-content-section">
 			<div class="flex-1">
 				<input
 					type="text"
 					placeholder="Search URLs or referrers..."
 					bind:value={searchQuery}
-					class="w-full rounded-lg border border-sidebar bg-surface px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
+					class="w-full rounded-input border border-sidebar bg-surface px-input-x py-input-y text-small text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
 				/>
 			</div>
-			<div class="flex gap-2">
+			<div class="flex gap-icon">
 				<button
 					onclick={() => (filterResolved = 'all')}
-					class="rounded-lg px-3 py-2 text-sm transition-colors {filterResolved === 'all'
-						? 'bg-accent-primary text-white'
+					class="rounded-button px-button-x py-button-y text-small transition-colors {filterResolved ===
+					'all'
+						? 'bg-accent-primary text-primary'
 						: 'bg-surface text-secondary hover:bg-hover-solid'}"
 				>
 					All
 				</button>
 				<button
 					onclick={() => (filterResolved = 'unresolved')}
-					class="rounded-lg px-3 py-2 text-sm transition-colors {filterResolved === 'unresolved'
-						? 'bg-accent-primary text-white'
+					class="rounded-button px-button-x py-button-y text-small transition-colors {filterResolved ===
+					'unresolved'
+						? 'bg-accent-primary text-primary'
 						: 'bg-surface text-secondary hover:bg-hover-solid'}"
 				>
 					Unresolved
 				</button>
 				<button
 					onclick={() => (filterResolved = 'resolved')}
-					class="rounded-lg px-3 py-2 text-sm transition-colors {filterResolved === 'resolved'
-						? 'bg-accent-primary text-white'
+					class="rounded-button px-button-x py-button-y text-small transition-colors {filterResolved ===
+					'resolved'
+						? 'bg-accent-primary text-primary'
 						: 'bg-surface text-secondary hover:bg-hover-solid'}"
 				>
 					Resolved
@@ -344,9 +349,9 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 				<p class="text-secondary">Loading...</p>
 			</div>
 		{:else if filteredErrors().length === 0}
-			<div class="flex flex-col items-center justify-center py-12">
-				<p class="text-lg text-secondary">No errors found</p>
-				<p class="mt-2 text-sm text-tertiary">
+			<div class="flex flex-col items-center justify-center py-readable-quote">
+				<p class="text-h3 text-secondary">No errors found</p>
+				<p class="mt-form-field-gap text-small text-tertiary">
 					{#if filterResolved === 'unresolved'}
 						All documentation links are working! 🎉
 					{:else}
@@ -355,24 +360,24 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 				</p>
 			</div>
 		{:else}
-			<div class="space-y-2">
+			<div class="space-y-form-field-gap">
 				{#each filteredErrors() as error (error._id)}
 					<div
-						class="rounded-lg border border-sidebar bg-surface p-4 transition-colors hover:bg-hover-solid"
+						class="rounded-card border border-sidebar bg-surface px-card py-card transition-colors hover:bg-hover-solid"
 					>
 						<div class="flex items-start justify-between">
 							<div class="flex-1">
-								<div class="flex items-center gap-2">
-									<code class="text-sm font-medium text-primary">{error.url}</code>
+								<div class="flex items-center gap-icon">
+									<code class="text-small font-medium text-primary">{error.url}</code>
 									{#if !error.resolved}
 										<span
-											class="bg-error/10 inline-flex items-center rounded border border-error px-2 py-0.5 text-xs font-medium text-error"
+											class="bg-error/10 inline-flex items-center rounded border border-error px-badge py-badge text-label font-medium text-error"
 										>
 											Unresolved
 										</span>
 									{:else}
 										<span
-											class="border-success bg-success/10 text-success inline-flex items-center rounded border px-2 py-0.5 text-xs font-medium"
+											class="bg-success/10 inline-flex items-center rounded border border-success px-badge py-badge text-label font-medium text-success"
 										>
 											Resolved
 										</span>
@@ -381,12 +386,14 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 								</div>
 
 								{#if error.referrer}
-									<p class="mt-2 text-xs text-secondary">
+									<p class="mt-form-field-gap text-label text-secondary">
 										From: <code class="text-tertiary">{error.referrer}</code>
 									</p>
 								{/if}
 
-								<div class="mt-2 flex items-center gap-4 text-xs text-tertiary">
+								<div
+									class="mt-form-field-gap flex items-center gap-content-section text-label text-tertiary"
+								>
 									<span>First: {formatRelativeTime(error.firstSeenAt)}</span>
 									<span>Last: {formatRelativeTime(error.lastSeenAt)}</span>
 									{#if error.resolved && error.resolvedAt}
@@ -397,16 +404,16 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 								</div>
 
 								{#if error.resolutionNote}
-									<p class="mt-2 text-xs text-secondary">
+									<p class="mt-form-field-gap text-label text-secondary">
 										Note: {error.resolutionNote}
 									</p>
 								{/if}
 							</div>
 
-							<div class="ml-4 flex items-center gap-2">
+							<div class="ml-content-section flex items-center gap-icon">
 								<button
 									onclick={() => copyError(error)}
-									class="rounded-lg px-3 py-1.5 text-sm text-secondary hover:bg-hover-solid hover:text-primary"
+									class="rounded-button px-button-x py-button-y text-small text-secondary hover:bg-hover-solid hover:text-primary"
 								>
 									Copy
 								</button>
@@ -436,7 +443,7 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 		}}
 	>
 		<div
-			class="w-full max-w-md rounded-lg border border-sidebar bg-surface p-6"
+			class="w-full max-w-md rounded-card border border-sidebar bg-surface px-card py-card"
 			role="dialog"
 			aria-modal="true"
 			aria-labelledby="resolve-error-title"
@@ -444,25 +451,25 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}
 		>
-			<h2 id="resolve-error-title" class="text-lg font-semibold text-primary">Resolve Error</h2>
-			<p class="mt-2 text-sm text-secondary">
+			<h2 id="resolve-error-title" class="text-h3 font-semibold text-primary">Resolve Error</h2>
+			<p class="mt-form-field-gap text-small text-secondary">
 				<code>{selectedError.url}</code>
 			</p>
 
-			<div class="mt-4">
-				<label for="resolve-note" class="block text-sm font-medium text-primary"
+			<div class="mt-content-section">
+				<label for="resolve-note" class="block text-small font-medium text-primary"
 					>Resolution Note</label
 				>
 				<textarea
 					id="resolve-note"
 					bind:value={resolveNote}
 					placeholder="How was this fixed? (optional)"
-					class="mt-1 w-full rounded-lg border border-sidebar bg-surface px-3 py-2 text-sm text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
+					class="mt-form-field-gap w-full rounded-input border border-sidebar bg-surface px-input-x py-input-y text-small text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
 					rows="3"
 				></textarea>
 			</div>
 
-			<div class="mt-6 flex justify-end gap-2">
+			<div class="mt-settings-section flex justify-end gap-icon">
 				<Button variant="secondary" onclick={() => (selectedError = null)}>Cancel</Button>
 				<button
 					onclick={() => {
@@ -471,7 +478,7 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 						}
 					}}
 					disabled={resolving || !selectedError}
-					class="inline-flex items-center justify-center gap-icon rounded-button bg-accent-primary px-button-x py-button-y text-sm font-semibold text-white transition-all duration-150 hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+					class="inline-flex items-center justify-center gap-icon rounded-button bg-accent-primary px-button-x py-button-y text-small font-semibold text-primary transition-all duration-150 hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{resolving ? 'Resolving...' : 'Mark as Resolved'}
 				</button>

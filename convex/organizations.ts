@@ -108,25 +108,34 @@ export const listOrganizations = query({
 		// Validate session and get userId (prevents impersonation)
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
+		console.log('🔍 [listOrganizations] Query started:', {
+			sessionId: args.sessionId,
+			userId
+		});
+
 		const memberships = await ctx.db
 			.query('organizationMembers')
 			.withIndex('by_user', (q) => q.eq('userId', userId))
 			.collect();
 
+		console.log('🔍 [listOrganizations] Memberships found:', {
+			membershipCount: memberships.length,
+			memberships: memberships.map((m) => ({
+				organizationId: m.organizationId,
+				role: m.role
+			}))
+		});
+
 		const organizations = await Promise.all(
 			memberships.map(async (membership) => {
 				const organization = await ctx.db.get(membership.organizationId);
 				if (!organization) {
+					console.warn('⚠️ [listOrganizations] Organization not found:', membership.organizationId);
 					return null;
 				}
 
 				const memberCount = await ctx.db
 					.query('organizationMembers')
-					.withIndex('by_organization', (q) => q.eq('organizationId', membership.organizationId))
-					.collect();
-
-				const teamCount = await ctx.db
-					.query('teams')
 					.withIndex('by_organization', (q) => q.eq('organizationId', membership.organizationId))
 					.collect();
 
@@ -140,13 +149,20 @@ export const listOrganizations = query({
 					updatedAt: organization.updatedAt,
 					role: membership.role,
 					joinedAt: membership.joinedAt,
-					memberCount: memberCount.length,
-					teamCount: teamCount.length
+					memberCount: memberCount.length
 				};
 			})
 		);
 
-		return organizations.filter((item): item is NonNullable<typeof item> => item !== null);
+		const filtered = organizations.filter(
+			(item): item is NonNullable<typeof item> => item !== null
+		);
+		console.log('✅ [listOrganizations] Returning organizations:', {
+			count: filtered.length,
+			orgs: filtered.map((o) => ({ id: o.organizationId, name: o.name }))
+		});
+
+		return filtered;
 	}
 });
 
@@ -260,54 +276,6 @@ export const getInviteByCode = query({
 				role: orgInvite.role,
 				email: orgInvite.email ?? undefined,
 				invitedUserId: orgInvite.invitedUserId ?? undefined
-			};
-		}
-
-		// Try team invite
-		const teamInvite = await ctx.db
-			.query('teamInvites')
-			.withIndex('by_code', (q) => q.eq('code', args.code))
-			.first();
-
-		if (teamInvite) {
-			// Check if invite has been revoked
-			if (teamInvite.revokedAt) {
-				return null;
-			}
-
-			// Check if invite has expired
-			if (teamInvite.expiresAt && teamInvite.expiresAt < Date.now()) {
-				return null;
-			}
-
-			// Check if invite has already been accepted
-			if (teamInvite.acceptedAt) {
-				return null;
-			}
-
-			const team = await ctx.db.get(teamInvite.teamId);
-			const organization = await ctx.db.get(teamInvite.organizationId);
-			if (!team || !organization) {
-				return null;
-			}
-
-			const inviter = await ctx.db.get(teamInvite.invitedBy);
-			const inviterName =
-				(inviter as unknown as { name?: string; email?: string } | undefined)?.name ??
-				(inviter as unknown as { email?: string } | undefined)?.email ??
-				'Member';
-
-			return {
-				type: 'team' as const,
-				teamId: teamInvite.teamId,
-				teamName: team.name,
-				teamSlug: team.slug,
-				organizationId: teamInvite.organizationId,
-				organizationName: organization.name,
-				inviterName,
-				role: teamInvite.role,
-				email: teamInvite.email ?? undefined,
-				invitedUserId: teamInvite.invitedUserId ?? undefined
 			};
 		}
 
@@ -773,19 +741,6 @@ export const removeOrganizationMember = mutation({
 
 		// 6. Delete membership
 		await ctx.db.delete(targetMembership._id);
-
-		// 7. Also remove from all teams in this organization
-		const teamMemberships = await ctx.db
-			.query('teamMembers')
-			.withIndex('by_user', (q) => q.eq('userId', args.userId))
-			.collect();
-
-		for (const teamMembership of teamMemberships) {
-			const team = await ctx.db.get(teamMembership.teamId);
-			if (team && team.organizationId === args.organizationId) {
-				await ctx.db.delete(teamMembership._id);
-			}
-		}
 
 		return { success: true };
 	}

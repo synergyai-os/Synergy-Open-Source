@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { resolveRoute } from '$lib/utils/navigation';
-	import Button from '$lib/components/ui/Button.svelte';
+	import { Button } from '$lib/components/atoms';
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
 	import { useAuthSession } from '$lib/infrastructure/auth/composables/useAuthSession.svelte';

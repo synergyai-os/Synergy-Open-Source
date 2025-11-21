@@ -44,6 +44,10 @@ jobs:
         run: npm run lint
         continue-on-error: true # TODO: Enable after fixing 483 linting errors (separate effort)
 
+      - name: Design System Audit
+        run: npm run audit:ci
+        continue-on-error: true # Non-blocking initially (SYOS-406)
+
       - name: Build verification
         run: npm run build
         env:

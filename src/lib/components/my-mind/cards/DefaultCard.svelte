@@ -83,31 +83,33 @@
 <button
 	type="button"
 	onclick={onClick}
-	class="w-full cursor-pointer overflow-hidden rounded-md border border-base bg-elevated text-left transition-all duration-150 hover:border-elevated hover:shadow-md"
+	class="w-full cursor-pointer overflow-hidden rounded-card border border-base bg-elevated text-left transition-all duration-150 hover:border-elevated hover:shadow-md"
 >
-	<div class="p-6">
+	<div class="px-card py-card">
 		<div class="flex items-start gap-icon">
 			<!-- Type Icon -->
-			<div class="flex-shrink-0 text-2xl leading-none">{getTypeIcon(item.type)}</div>
+			<div class="flex-shrink-0 text-h2 leading-none">{getTypeIcon(item.type)}</div>
 
 			<!-- Content -->
 			<div class="min-w-0 flex-1">
 				<!-- Title -->
-				<h3 class="mb-1 line-clamp-2 text-base leading-tight font-semibold text-primary">
+				<h3
+					class="mb-form-field-gap line-clamp-2 text-body leading-tight font-semibold text-primary"
+				>
 					{item.title}
 				</h3>
 
 				<!-- Snippet -->
-				<p class="mb-2 line-clamp-2 text-sm leading-relaxed text-secondary">
+				<p class="mb-form-field-gap line-clamp-2 text-small leading-relaxed text-secondary">
 					{item.snippet}
 				</p>
 
 				<!-- Type Label -->
-				<p class="mb-2 text-xs text-tertiary">{getTypeLabel(item.type)}</p>
+				<p class="mb-form-field-gap text-label text-tertiary">{getTypeLabel(item.type)}</p>
 
 				<!-- Tags -->
 				{#if item.tags && item.tags.length > 0}
-					<div class="mb-2 flex flex-wrap gap-1">
+					<div class="mb-form-field-gap flex flex-wrap gap-icon">
 						{#each item.tags.slice(0, 2) as tag (tag)}
 							<span class="rounded bg-tag px-badge py-badge text-label text-tag">
 								{tag}
@@ -117,7 +119,7 @@
 				{/if}
 
 				<!-- Timestamp -->
-				<p class="text-xs text-tertiary">{formatDate(item.createdAt)}</p>
+				<p class="text-label text-tertiary">{formatDate(item.createdAt)}</p>
 			</div>
 		</div>
 	</div>

@@ -58,19 +58,19 @@
 	}
 </script>
 
-<div class="flex h-full flex-col rounded-lg border border-base bg-surface">
+<div class="flex h-full flex-col rounded-card border border-base bg-surface">
 	<!-- Panel Header -->
 	<div class="border-b border-base px-nav-item py-nav-item">
-		<h2 class="text-sm font-semibold text-primary">Members</h2>
-		<p class="mt-1 text-xs text-secondary">{members.length} members</p>
+		<h2 class="text-button font-semibold text-primary">Members</h2>
+		<p class="mt-1 text-label text-secondary">{members.length} members</p>
 	</div>
 
 	<!-- Add Member Form -->
 	<div class="border-b border-base px-nav-item py-nav-item">
-		<div class="flex gap-2">
+		<div class="flex gap-icon">
 			<select
 				bind:value={selectedUserId}
-				class="flex-1 rounded-md border border-base bg-elevated px-2 py-1.5 text-sm text-primary focus:border-accent-primary focus:outline-none"
+				class="flex-1 rounded-button border border-base bg-elevated px-input-x py-input-y text-button text-primary focus:border-accent-primary focus:outline-none"
 				disabled={circles.loading.addMember || availableUsers.length === 0}
 			>
 				<option value="">
@@ -85,7 +85,7 @@
 			<button
 				onclick={handleAddMember}
 				disabled={!selectedUserId || circles.loading.addMember}
-				class="text-on-solid rounded-md bg-accent-primary px-3 py-1.5 text-sm font-medium hover:bg-accent-hover disabled:opacity-50"
+				class="text-on-solid rounded-button bg-accent-primary px-card py-input-y text-button font-medium hover:bg-accent-hover disabled:opacity-50"
 			>
 				{circles.loading.addMember ? 'Adding...' : 'Add'}
 			</button>
@@ -96,29 +96,29 @@
 	<div class="flex-1 overflow-y-auto px-nav-item py-nav-item">
 		{#if members.length === 0}
 			<div class="flex h-32 items-center justify-center text-center">
-				<p class="text-sm text-secondary">No members yet</p>
+				<p class="text-button text-secondary">No members yet</p>
 			</div>
 		{:else}
 			<div class="space-y-2">
 				{#each members as member (member.userId)}
 					<div
-						class="flex items-center justify-between rounded-md border border-base bg-elevated px-3 py-2"
+						class="flex items-center justify-between rounded-button border border-base bg-elevated px-card py-nav-item"
 					>
 						<div class="min-w-0 flex-1">
-							<p class="truncate text-sm font-medium text-primary">
+							<p class="truncate text-button font-medium text-primary">
 								{member.name || member.email}
 							</p>
 							{#if member.name}
-								<p class="truncate text-xs text-secondary">{member.email}</p>
+								<p class="truncate text-label text-secondary">{member.email}</p>
 							{/if}
 						</div>
 						<button
 							onclick={() => handleRemoveMember(member.userId)}
 							disabled={circles.loading.removeMember}
-							class="ml-2 rounded p-1 text-secondary hover:bg-sidebar-hover hover:text-primary disabled:opacity-50"
+							class="ml-2 rounded-button p-control-button-padding text-secondary hover:bg-sidebar-hover hover:text-primary disabled:opacity-50"
 							title="Remove member"
 						>
-							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"

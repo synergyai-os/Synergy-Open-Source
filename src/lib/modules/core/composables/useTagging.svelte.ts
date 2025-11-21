@@ -73,9 +73,9 @@ export function useTagging(
 					displayName: string;
 					color: string;
 					parentId?: Id<'tags'>;
-					ownership?: 'user' | 'organization' | 'team';
+					ownership?: 'user' | 'organization' | 'circle';
 					organizationId?: Id<'organizations'>;
-					teamId?: Id<'teams'>;
+					circleId?: Id<'circles'>;
 				},
 				Id<'tags'>
 			>)

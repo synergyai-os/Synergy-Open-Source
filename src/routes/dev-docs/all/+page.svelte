@@ -1,5 +1,5 @@
 <script lang="ts">
-	import HubCard from '$lib/components/HubCard.svelte';
+	import HubCard from '$lib/modules/core/components/HubCard.svelte';
 	import { fade, fly } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import { onMount } from 'svelte';

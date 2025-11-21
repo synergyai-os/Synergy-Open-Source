@@ -155,7 +155,7 @@
 ### Partner-Funded Validation
 
 - No VC funding, no external pressure
-- First partner (Saprolab) funds development
+- First partner (Agency Partner) funds development
 - Profitability unlocks investment in growth
 - Community contributions accelerate progress
 

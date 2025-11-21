@@ -477,15 +477,17 @@
 </script>
 
 <div class="h-screen overflow-y-auto bg-base">
-	<div class="mx-auto max-w-4xl p-inbox-container">
+	<div class="mx-auto max-w-4xl px-inbox-container py-inbox-container">
 		<!-- Page Title -->
-		<h1 class="mb-4 text-2xl font-bold text-primary">Settings</h1>
+		<h1 class="mb-content-section text-h1 font-bold text-primary">Settings</h1>
 
 		<!-- Workspace Context Banner -->
-		<div class="mb-8 rounded-md border border-accent-primary/20 bg-accent-primary/10 p-4">
-			<div class="flex items-start gap-3">
+		<div
+			class="p-card mb-content-padding rounded-card border border-accent-primary/20 bg-accent-primary/10"
+		>
+			<div class="flex items-start gap-icon">
 				<svg
-					class="mt-0.5 h-5 w-5 flex-shrink-0 text-accent-primary"
+					class="icon-md flex-shrink-0 text-accent-primary"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -498,14 +500,14 @@
 					/>
 				</svg>
 				<div class="min-w-0 flex-1">
-					<p class="mb-1 text-sm font-medium text-accent-primary">
+					<p class="mb-form-field-gap text-small font-medium text-accent-primary">
 						Organization Settings: {workspaceContext().name}
 					</p>
-					<p class="text-sm text-secondary">
+					<p class="text-small text-secondary">
 						These settings apply to {workspaceContext().name} organization. Personal settings (theme,
 						API keys) are managed within this organization context.
 					</p>
-					<p class="mt-2 text-xs text-tertiary">
+					<p class="mt-form-section text-label text-tertiary">
 						<strong>Coming soon:</strong> Team-specific settings and advanced organization management.
 					</p>
 				</div>
@@ -514,34 +516,37 @@
 
 		<div class="flex flex-col gap-settings-section">
 			<!-- General Section -->
-			<section class="rounded-md border border-base bg-elevated">
+			<section class="rounded-card border border-base bg-elevated">
 				<div class="px-inbox-card py-inbox-card">
-					<h2 class="mb-6 text-base font-bold text-primary">General</h2>
+					<h2 class="mb-content-padding text-body font-bold text-primary">General</h2>
 
 					<div class="flex flex-col gap-settings-row">
 						<!-- Theme Preference -->
 						<div class="border-b border-base px-settings-row py-settings-row last:border-b-0">
-							<div class="flex items-start justify-between gap-4">
+							<div class="flex items-start justify-between gap-settings-row">
 								<div class="min-w-0 flex-1">
-									<label for="theme-toggle" class="mb-1 block text-sm font-medium text-primary">
+									<label
+										for="theme-toggle"
+										class="mb-form-field-gap block text-small font-medium text-primary"
+									>
 										Interface theme
 										<span
-											class="ml-2 inline-flex items-center rounded bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+											class="ml-2 inline-flex items-center rounded-badge bg-tag px-badge py-badge text-label font-medium text-tag"
 										>
 											👤 Personal Only
 										</span>
 									</label>
-									<p class="text-sm text-secondary">
+									<p class="text-small text-secondary">
 										Theme preferences are personal and apply across all organizations.
 									</p>
 								</div>
 								<div class="flex items-center gap-icon" role="presentation">
-									<span class="text-sm text-secondary">
+									<span class="text-small text-secondary">
 										{$isDark ? 'Dark mode' : 'Light mode'}
 									</span>
 									{#if $isDark}
 										<svg
-											class="h-4 w-4 flex-shrink-0 text-secondary"
+											class="icon-sm flex-shrink-0 text-secondary"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24"
@@ -556,7 +561,7 @@
 										</svg>
 									{:else}
 										<svg
-											class="h-4 w-4 flex-shrink-0 text-secondary"
+											class="icon-sm flex-shrink-0 text-secondary"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24"
@@ -576,12 +581,12 @@
 										onCheckedChange={(checked) => {
 											theme.setTheme(checked ? 'dark' : 'light');
 										}}
-										class="relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none {$isDark
-											? 'bg-gray-900'
-											: 'bg-gray-300'}"
+										class="relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-accent-primary focus:ring-offset-2 focus:outline-none {$isDark
+											? 'bg-accent-primary'
+											: 'bg-toggle-off'}"
 									>
 										<Switch.Thumb
-											class="pointer-events-none inline-block h-3 w-3 translate-x-0 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out data-[state=checked]:translate-x-4"
+											class="pointer-events-none inline-block h-3 w-3 translate-x-0 transform rounded-full bg-elevated shadow ring-0 transition duration-200 ease-in-out data-[state=checked]:translate-x-4"
 										/>
 									</Switch.Root>
 								</div>
@@ -592,29 +597,32 @@
 			</section>
 
 			<!-- AI Section -->
-			<section class="rounded-md border border-base bg-elevated">
+			<section class="rounded-card border border-base bg-elevated">
 				<div class="px-inbox-card py-inbox-card">
-					<h2 class="mb-6 text-base font-bold text-primary">AI</h2>
+					<h2 class="mb-content-padding text-body font-bold text-primary">AI</h2>
 
 					<div class="flex flex-col gap-settings-row">
 						<!-- Claude API Key -->
 						<div class="border-b border-base px-settings-row py-settings-row last:border-b-0">
-							<div class="flex items-start justify-between gap-4">
+							<div class="flex items-start justify-between gap-settings-row">
 								<div class="min-w-0 flex-1">
-									<label for="claude-key" class="mb-1 block text-sm font-medium text-primary">
+									<label
+										for="claude-key"
+										class="mb-form-field-gap block text-small font-medium text-primary"
+									>
 										Claude API Key
 										<span
-											class="ml-2 inline-flex items-center rounded bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+											class="ml-2 inline-flex items-center rounded-badge bg-tag px-badge py-badge text-label font-medium text-tag"
 										>
 											👤 Personal
 										</span>
 									</label>
-									<p class="text-sm text-secondary">
+									<p class="text-small text-secondary">
 										Used for AI-powered flashcard generation from your content (personal use within
 										organization).
 									</p>
 								</div>
-								<div class="flex flex-shrink-0 flex-col gap-1">
+								<div class="flex flex-shrink-0 flex-col gap-control-item-gap">
 									<div class="relative inline-block">
 										<input
 											id="claude-key"
@@ -624,12 +632,12 @@
 											onblur={handleClaudeKeyBlur}
 											disabled={claudeValidationState === 'validating'}
 											placeholder={claudeHasKey ? '••••••••••••••••' : 'sk-...'}
-											class="w-64 border bg-base px-3 py-2 pr-10 text-sm {claudeValidationState ===
+											class="px-input py-input w-64 border bg-base pr-10 text-small {claudeValidationState ===
 											'valid'
-												? 'border-green-500'
+												? 'border-success'
 												: claudeValidationState === 'invalid'
-													? 'border-red-500'
-													: 'border-base'} rounded-md text-primary transition-all placeholder:text-tertiary focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none {claudeValidationState ===
+													? 'border-error'
+													: 'border-base'} rounded-card text-primary transition-all placeholder:text-tertiary focus:border-transparent focus:ring-2 focus:ring-accent-primary focus:outline-none {claudeValidationState ===
 											'validating'
 												? 'cursor-not-allowed opacity-50'
 												: ''}"
@@ -638,7 +646,7 @@
 										{#if claudeValidationState === 'validating'}
 											<div class="absolute top-1/2 right-2 -translate-y-1/2">
 												<svg
-													class="h-4 w-4 animate-spin text-tertiary"
+													class="icon-sm animate-spin text-tertiary"
 													fill="none"
 													viewBox="0 0 24 24"
 												>
@@ -660,7 +668,7 @@
 										{:else if claudeShowCheckmark}
 											<!-- Temporary checkmark (shows for 3 seconds after validation) -->
 											<div class="absolute top-1/2 right-2 -translate-y-1/2">
-												<svg class="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+												<svg class="icon-md text-success" fill="currentColor" viewBox="0 0 20 20">
 													<path
 														fill-rule="evenodd"
 														d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -673,10 +681,10 @@
 											<button
 												type="button"
 												onclick={handleDeleteClaudeKey}
-												class="absolute top-1/2 right-2 z-10 -translate-y-1/2 text-secondary transition-colors hover:text-red-500"
+												class="absolute top-1/2 right-2 z-10 -translate-y-1/2 text-secondary transition-colors hover:text-error"
 												title="Remove API key"
 											>
-												<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path
 														stroke-linecap="round"
 														stroke-linejoin="round"
@@ -688,7 +696,7 @@
 										{:else if claudeValidationState === 'invalid'}
 											<div class="absolute top-1/2 right-2 -translate-y-1/2">
 												<svg
-													class="h-4 w-4 text-red-500"
+													class="icon-sm text-error"
 													fill="none"
 													stroke="currentColor"
 													viewBox="0 0 24 24"
@@ -705,15 +713,17 @@
 									</div>
 									<!-- Success/Error message or Get API key link below input -->
 									{#if claudeShowCheckmark}
-										<p class="mt-1 max-w-64 text-xs text-green-500">API key is valid and saved</p>
+										<p class="mt-form-field-gap max-w-64 text-label text-success">
+											API key is valid and saved
+										</p>
 									{:else if claudeValidationState === 'invalid' && claudeError}
-										<p class="mt-1 max-w-64 text-xs text-red-500">{claudeError}</p>
+										<p class="mt-form-field-gap max-w-64 text-label text-error">{claudeError}</p>
 									{:else if !claudeHasKey && claudeValidationState !== 'validating'}
 										<a
 											href="https://console.anthropic.com/settings/keys"
 											target="_blank"
 											rel="noopener noreferrer"
-											class="mt-1 max-w-64 text-xs text-blue-500 underline transition-colors hover:text-blue-600"
+											class="mt-form-field-gap max-w-64 text-label text-accent-primary underline transition-colors hover:text-accent-hover"
 										>
 											Get API key
 										</a>
@@ -726,31 +736,34 @@
 			</section>
 
 			<!-- Sources Section -->
-			<section class="rounded-md border border-base bg-elevated">
+			<section class="rounded-card border border-base bg-elevated">
 				<div class="px-inbox-card py-inbox-card">
-					<h2 class="mb-6 text-base font-bold text-primary">Sources</h2>
+					<h2 class="mb-content-padding text-body font-bold text-primary">Sources</h2>
 
 					<div class="flex flex-col gap-settings-row">
 						<!-- Readwise API Key -->
 						<div class="border-b border-base px-settings-row py-settings-row last:border-b-0">
-							<div class="flex items-start justify-between gap-4">
+							<div class="flex items-start justify-between gap-settings-row">
 								<div class="min-w-0 flex-1">
-									<label for="readwise-key" class="mb-1 block text-sm font-medium text-primary">
+									<label
+										for="readwise-key"
+										class="mb-form-field-gap block text-small font-medium text-primary"
+									>
 										Readwise API Key
 										<span
-											class="ml-2 inline-flex items-center rounded bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+											class="ml-2 inline-flex items-center rounded-badge bg-tag px-badge py-badge text-label font-medium text-tag"
 										>
 											👤 Personal (User-owned)
 										</span>
 									</label>
-									<p class="text-sm text-secondary">
+									<p class="text-small text-secondary">
 										Your personal Readwise account. Imports will be shared with the organization.
 									</p>
-									<p class="mt-1 text-xs text-blue-600 dark:text-blue-400">
+									<p class="mt-form-field-gap text-label text-accent-primary">
 										💡 Tip: Use the same key across organizations to sync content everywhere
 									</p>
 								</div>
-								<div class="flex flex-shrink-0 flex-col gap-1">
+								<div class="flex flex-shrink-0 flex-col gap-control-item-gap">
 									<div class="relative inline-block">
 										<input
 											id="readwise-key"
@@ -760,12 +773,12 @@
 											onblur={handleReadwiseKeyBlur}
 											disabled={readwiseValidationState === 'validating'}
 											placeholder={readwiseHasKey ? '••••••••••••••••' : 'token_...'}
-											class="w-64 border bg-base px-3 py-2 pr-10 text-sm {readwiseValidationState ===
+											class="px-input py-input w-64 border bg-base pr-10 text-small {readwiseValidationState ===
 											'valid'
-												? 'border-green-500'
+												? 'border-success'
 												: readwiseValidationState === 'invalid'
-													? 'border-red-500'
-													: 'border-base'} rounded-md text-primary transition-all placeholder:text-tertiary focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none {readwiseValidationState ===
+													? 'border-error'
+													: 'border-base'} rounded-card text-primary transition-all placeholder:text-tertiary focus:border-transparent focus:ring-2 focus:ring-accent-primary focus:outline-none {readwiseValidationState ===
 											'validating'
 												? 'cursor-not-allowed opacity-50'
 												: ''}"
@@ -774,7 +787,7 @@
 										{#if readwiseValidationState === 'validating'}
 											<div class="absolute top-1/2 right-2 -translate-y-1/2">
 												<svg
-													class="h-4 w-4 animate-spin text-tertiary"
+													class="icon-sm animate-spin text-tertiary"
 													fill="none"
 													viewBox="0 0 24 24"
 												>
@@ -796,7 +809,7 @@
 										{:else if readwiseShowCheckmark}
 											<!-- Temporary checkmark (shows for 3 seconds after validation) -->
 											<div class="absolute top-1/2 right-2 -translate-y-1/2">
-												<svg class="h-5 w-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+												<svg class="icon-md text-success" fill="currentColor" viewBox="0 0 20 20">
 													<path
 														fill-rule="evenodd"
 														d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -809,10 +822,10 @@
 											<button
 												type="button"
 												onclick={handleDeleteReadwiseKey}
-												class="absolute top-1/2 right-2 z-10 -translate-y-1/2 text-secondary transition-colors hover:text-red-500"
+												class="absolute top-1/2 right-2 z-10 -translate-y-1/2 text-secondary transition-colors hover:text-error"
 												title="Remove API key"
 											>
-												<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path
 														stroke-linecap="round"
 														stroke-linejoin="round"
@@ -824,7 +837,7 @@
 										{:else if readwiseValidationState === 'invalid'}
 											<div class="absolute top-1/2 right-2 -translate-y-1/2">
 												<svg
-													class="h-4 w-4 text-red-500"
+													class="icon-sm text-error"
 													fill="none"
 													stroke="currentColor"
 													viewBox="0 0 24 24"
@@ -841,15 +854,17 @@
 									</div>
 									<!-- Success/Error message or Get API key link below input -->
 									{#if readwiseShowCheckmark}
-										<p class="mt-1 max-w-64 text-xs text-green-500">API key is valid and saved</p>
+										<p class="mt-form-field-gap max-w-64 text-label text-success">
+											API key is valid and saved
+										</p>
 									{:else if readwiseValidationState === 'invalid' && readwiseError}
-										<p class="mt-1 max-w-64 text-xs text-red-500">{readwiseError}</p>
+										<p class="mt-form-field-gap max-w-64 text-label text-error">{readwiseError}</p>
 									{:else if !readwiseHasKey && readwiseValidationState !== 'validating'}
 										<a
 											href="https://readwise.io/access_token"
 											target="_blank"
 											rel="noopener noreferrer"
-											class="mt-1 max-w-64 text-xs text-blue-500 underline transition-colors hover:text-blue-600"
+											class="mt-form-field-gap max-w-64 text-label text-accent-primary underline transition-colors hover:text-accent-hover"
 										>
 											Get API key
 										</a>

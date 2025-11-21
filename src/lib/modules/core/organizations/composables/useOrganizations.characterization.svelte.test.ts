@@ -67,30 +67,15 @@ describe('useOrganizations - Public API Characterization', () => {
 		expect(composable.organizationInvites).toBeDefined();
 		expect(Array.isArray(composable.organizationInvites)).toBe(true);
 
-		expect(composable.teamInvites).toBeDefined();
-		expect(Array.isArray(composable.teamInvites)).toBe(true);
-
-		expect(composable.teams).toBeDefined();
-		expect(Array.isArray(composable.teams)).toBe(true);
-
-		expect(composable.activeTeamId).toBeDefined();
-		expect(typeof composable.activeTeamId === 'string' || composable.activeTeamId === null).toBe(
-			true
-		);
-
 		expect(composable.modals).toBeDefined();
 		expect(typeof composable.modals).toBe('object');
 		expect(composable.modals.createOrganization).toBeDefined();
 		expect(composable.modals.joinOrganization).toBeDefined();
-		expect(composable.modals.createTeam).toBeDefined();
-		expect(composable.modals.joinTeam).toBeDefined();
 
 		expect(composable.loading).toBeDefined();
 		expect(typeof composable.loading).toBe('object');
 		expect(composable.loading.createOrganization).toBeDefined();
 		expect(composable.loading.joinOrganization).toBeDefined();
-		expect(composable.loading.createTeam).toBeDefined();
-		expect(composable.loading.joinTeam).toBeDefined();
 
 		expect(composable.isLoading).toBeDefined();
 		expect(typeof composable.isLoading === 'boolean').toBe(true);
@@ -119,17 +104,12 @@ describe('useOrganizations - Public API Characterization', () => {
 
 		// Verify all methods exist and are callable
 		expect(typeof composable.setActiveOrganization).toBe('function');
-		expect(typeof composable.setActiveTeam).toBe('function');
 		expect(typeof composable.openModal).toBe('function');
 		expect(typeof composable.closeModal).toBe('function');
 		expect(typeof composable.createOrganization).toBe('function');
 		expect(typeof composable.joinOrganization).toBe('function');
-		expect(typeof composable.createTeam).toBe('function');
-		expect(typeof composable.joinTeam).toBe('function');
 		expect(typeof composable.acceptOrganizationInvite).toBe('function');
 		expect(typeof composable.declineOrganizationInvite).toBe('function');
-		expect(typeof composable.acceptTeamInvite).toBe('function');
-		expect(typeof composable.declineTeamInvite).toBe('function');
 	});
 
 	it('should match UseOrganizations type structure', async () => {
@@ -148,9 +128,6 @@ describe('useOrganizations - Public API Characterization', () => {
 			'activeOrganizationId',
 			'activeOrganization',
 			'organizationInvites',
-			'teamInvites',
-			'teams',
-			'activeTeamId',
 			'modals',
 			'loading',
 			'isLoading',
@@ -158,17 +135,12 @@ describe('useOrganizations - Public API Characterization', () => {
 			'switchingTo',
 			'switchingToType',
 			'setActiveOrganization',
-			'setActiveTeam',
 			'openModal',
 			'closeModal',
 			'createOrganization',
 			'joinOrganization',
-			'createTeam',
-			'joinTeam',
 			'acceptOrganizationInvite',
-			'declineOrganizationInvite',
-			'acceptTeamInvite',
-			'declineTeamInvite'
+			'declineOrganizationInvite'
 		];
 
 		const actualKeys = Object.keys(composable);
@@ -196,13 +168,9 @@ describe('useOrganizations - Public API Characterization', () => {
 		// Verify initial state
 		expect(composable.modals.createOrganization).toBe(false);
 		expect(composable.modals.joinOrganization).toBe(false);
-		expect(composable.modals.createTeam).toBe(false);
-		expect(composable.modals.joinTeam).toBe(false);
 
 		expect(composable.loading.createOrganization).toBe(false);
 		expect(composable.loading.joinOrganization).toBe(false);
-		expect(composable.loading.createTeam).toBe(false);
-		expect(composable.loading.joinTeam).toBe(false);
 
 		expect(composable.isSwitching).toBe(false);
 		expect(composable.switchingTo).toBe(null);

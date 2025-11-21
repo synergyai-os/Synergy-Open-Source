@@ -34,12 +34,12 @@
 <button
 	type="button"
 	onclick={onClick}
-	class="w-full cursor-pointer overflow-hidden rounded-md border border-base bg-elevated text-left transition-all duration-150 hover:border-elevated hover:shadow-md"
+	class="w-full cursor-pointer overflow-hidden rounded-card border border-base bg-elevated text-left transition-all duration-150 hover:border-elevated hover:shadow-md"
 >
-	<div class="p-6">
+	<div class="px-card py-card">
 		<!-- Quote Icon (Optional, subtle) -->
-		<div class="mb-4">
-			<svg class="h-8 w-8 text-tertiary opacity-30" fill="currentColor" viewBox="0 0 24 24">
+		<div class="mb-content-section">
+			<svg class="icon-lg text-tertiary opacity-30" fill="currentColor" viewBox="0 0 24 24">
 				<path
 					d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.996 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.984zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"
 				/>
@@ -47,18 +47,18 @@
 		</div>
 
 		<!-- Highlight Text -->
-		<p class="mb-4 text-lg leading-readable tracking-readable text-primary">
+		<p class="mb-content-section text-h3 leading-readable tracking-readable text-primary">
 			{item.snippet || item.title}
 		</p>
 
 		<!-- Source Attribution -->
 		{#if sourceInfo}
-			<p class="mb-3 text-sm text-secondary">{sourceInfo}</p>
+			<p class="mb-content-section text-small text-secondary">{sourceInfo}</p>
 		{/if}
 
 		<!-- Tags -->
 		{#if item.tags && item.tags.length > 0}
-			<div class="mb-3 flex flex-wrap gap-1">
+			<div class="mb-content-section flex flex-wrap gap-icon">
 				{#each item.tags.slice(0, 3) as tag (tag)}
 					<span class="rounded bg-tag px-badge py-badge text-label text-tag">
 						{tag}
@@ -68,6 +68,6 @@
 		{/if}
 
 		<!-- Timestamp -->
-		<p class="text-xs text-tertiary">{formatDate(item.createdAt)}</p>
+		<p class="text-label text-tertiary">{formatDate(item.createdAt)}</p>
 	</div>
 </button>

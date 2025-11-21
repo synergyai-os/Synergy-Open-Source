@@ -21,8 +21,8 @@
 <div class="flex h-full flex-col">
 	<!-- Header -->
 	<header class="border-b border-sidebar px-inbox-container py-system-content">
-		<h1 class="text-2xl font-bold text-primary">User Management</h1>
-		<p class="mt-1 text-sm text-secondary">View and manage all users</p>
+		<h1 class="text-h2 font-bold text-primary">User Management</h1>
+		<p class="mt-form-field-gap text-small text-secondary">View and manage all users</p>
 	</header>
 
 	<!-- Main Content -->
@@ -31,26 +31,40 @@
 			<table class="w-full border-collapse">
 				<thead>
 					<tr class="border-b border-sidebar">
-						<th class="px-4 py-2 text-left text-sm font-semibold text-secondary">Email</th>
-						<th class="px-4 py-2 text-left text-sm font-semibold text-secondary">Name</th>
-						<th class="px-4 py-2 text-left text-sm font-semibold text-secondary">Created</th>
-						<th class="px-4 py-2 text-left text-sm font-semibold text-secondary">Last Login</th>
-						<th class="px-4 py-2 text-left text-sm font-semibold text-secondary">Actions</th>
+						<th class="px-card py-form-field-gap text-left text-small font-semibold text-secondary"
+							>Email</th
+						>
+						<th class="px-card py-form-field-gap text-left text-small font-semibold text-secondary"
+							>Name</th
+						>
+						<th class="px-card py-form-field-gap text-left text-small font-semibold text-secondary"
+							>Created</th
+						>
+						<th class="px-card py-form-field-gap text-left text-small font-semibold text-secondary"
+							>Last Login</th
+						>
+						<th class="px-card py-form-field-gap text-left text-small font-semibold text-secondary"
+							>Actions</th
+						>
 					</tr>
 				</thead>
 				<tbody>
 					{#each users as user (user._id)}
 						<tr class="border-b border-sidebar hover:bg-hover-solid">
-							<td class="px-4 py-2 text-sm text-primary">{user.email}</td>
-							<td class="px-4 py-2 text-sm text-secondary">{user.name || '-'}</td>
-							<td class="px-4 py-2 text-xs text-tertiary">
+							<td class="px-card py-form-field-gap text-small text-primary">{user.email}</td>
+							<td class="px-card py-form-field-gap text-small text-secondary">{user.name || '-'}</td
+							>
+							<td class="px-card py-form-field-gap text-label text-tertiary">
 								{new Date(user.createdAt).toLocaleDateString()}
 							</td>
-							<td class="px-4 py-2 text-xs text-tertiary">
+							<td class="px-card py-form-field-gap text-label text-tertiary">
 								{user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never'}
 							</td>
-							<td class="px-4 py-2">
-								<a href="/admin/rbac/users/{user._id}" class="text-sm text-primary hover:underline">
+							<td class="px-card py-form-field-gap">
+								<a
+									href="/admin/rbac/users/{user._id}"
+									class="text-small text-primary hover:underline"
+								>
 									Manage Roles
 								</a>
 							</td>

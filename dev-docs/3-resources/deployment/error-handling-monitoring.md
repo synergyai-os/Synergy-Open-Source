@@ -19,7 +19,7 @@ Error boundaries catch JavaScript errors in child components, preventing full ap
 
 ```svelte
 <script>
-	import ErrorBoundary from '$lib/components/ErrorBoundary.svelte';
+	import ErrorBoundary from '$lib/components/ui/ErrorBoundary.svelte';
 	import RiskyNewFeature from './RiskyNewFeature.svelte';
 </script>
 

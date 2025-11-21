@@ -248,3 +248,9 @@ Read in order:
 4. Check `dev-docs/architecture.md` - If working on architecture
 5. **If working with modules/APIs**: Complete Module Architecture Validation checklist ⭐
 6. Use Context7 - For latest library documentation
+
+---
+
+## Quick Reference
+
+- **Keyboard Shortcuts**: `.cursor/SHORTCUTS.md` - Essential shortcuts for faster development

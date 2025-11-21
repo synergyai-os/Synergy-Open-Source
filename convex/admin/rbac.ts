@@ -213,7 +213,7 @@ export const getUserRoles = query({
 					roleSlug: role.slug,
 					roleName: role.name,
 					organizationId: ur.organizationId,
-					teamId: ur.teamId,
+					circleId: ur.circleId,
 					assignedAt: ur.assignedAt,
 					expiresAt: ur.expiresAt,
 					revokedAt: ur.revokedAt
@@ -252,7 +252,7 @@ export const listUserRoles = query({
 					roleSlug: role.slug,
 					roleName: role.name,
 					organizationId: ur.organizationId,
-					teamId: ur.teamId,
+					circleId: ur.circleId,
 					assignedAt: ur.assignedAt,
 					expiresAt: ur.expiresAt,
 					revokedAt: ur.revokedAt
@@ -292,7 +292,7 @@ export const getRBACAnalytics = query({
 		// Role distribution (how many users per role)
 		const roleDistribution = new Map<
 			string,
-			{ roleName: string; count: number; scopes: { global: number; org: number; team: number } }
+			{ roleName: string; count: number; scopes: { global: number; org: number; circle: number } }
 		>();
 
 		for (const assignment of activeAssignments) {
@@ -302,12 +302,12 @@ export const getRBACAnalytics = query({
 			const existing = roleDistribution.get(role.slug) || {
 				roleName: role.name,
 				count: 0,
-				scopes: { global: 0, org: 0, team: 0 }
+				scopes: { global: 0, org: 0, circle: 0 }
 			};
 
 			existing.count++;
-			if (assignment.teamId) {
-				existing.scopes.team++;
+			if (assignment.circleId) {
+				existing.scopes.circle++;
 			} else if (assignment.organizationId) {
 				existing.scopes.org++;
 			} else {
@@ -325,9 +325,9 @@ export const getRBACAnalytics = query({
 
 		// Assignment scope breakdown
 		const scopeBreakdown = {
-			global: activeAssignments.filter((ur) => !ur.organizationId && !ur.teamId).length,
-			organization: activeAssignments.filter((ur) => ur.organizationId && !ur.teamId).length,
-			team: activeAssignments.filter((ur) => ur.teamId).length
+			global: activeAssignments.filter((ur) => !ur.organizationId && !ur.circleId).length,
+			organization: activeAssignments.filter((ur) => ur.organizationId && !ur.circleId).length,
+			circle: activeAssignments.filter((ur) => ur.circleId).length
 		};
 
 		// Permission usage stats
@@ -348,7 +348,7 @@ export const getRBACAnalytics = query({
 
 		// System-level assignments only (for system admin visibility)
 		const systemLevelAssignments = activeAssignments.filter(
-			(ur) => !ur.organizationId && !ur.teamId
+			(ur) => !ur.organizationId && !ur.circleId
 		);
 		const systemLevelUsers = new Set(systemLevelAssignments.map((ur) => ur.userId.toString()));
 
@@ -645,7 +645,7 @@ export const assignRoleToUser = mutation({
 		userId: v.id('users'),
 		roleId: v.id('roles'),
 		organizationId: v.optional(v.id('organizations')),
-		teamId: v.optional(v.id('teams')),
+		circleId: v.optional(v.id('circles')),
 		expiresAt: v.optional(v.number())
 	},
 	handler: async (ctx, args) => {
@@ -661,13 +661,13 @@ export const assignRoleToUser = mutation({
 		// Find matching assignment based on scoping
 		const existing = allAssignments.find((ur) => {
 			if (args.organizationId) {
-				return ur.organizationId === args.organizationId && !ur.teamId;
+				return ur.organizationId === args.organizationId && !ur.circleId;
 			}
-			if (args.teamId) {
-				return ur.teamId === args.teamId;
+			if (args.circleId) {
+				return ur.circleId === args.circleId;
 			}
-			// Global role - no org/team
-			return !ur.organizationId && !ur.teamId;
+			// Global role - no org/circle
+			return !ur.organizationId && !ur.circleId;
 		});
 
 		if (existing) {
@@ -684,7 +684,7 @@ export const assignRoleToUser = mutation({
 			userId: args.userId,
 			roleId: args.roleId,
 			organizationId: args.organizationId,
-			teamId: args.teamId,
+			circleId: args.circleId,
 			assignedBy: adminUserId,
 			assignedAt: Date.now(),
 			expiresAt: args.expiresAt
@@ -726,7 +726,7 @@ export const updateUserRole = mutation({
 		sessionId: v.string(),
 		userRoleId: v.id('userRoles'),
 		organizationId: v.optional(v.id('organizations')),
-		teamId: v.optional(v.id('teams')),
+		circleId: v.optional(v.id('circles')),
 		expiresAt: v.optional(v.number())
 	},
 	handler: async (ctx, args) => {
@@ -739,7 +739,7 @@ export const updateUserRole = mutation({
 
 		const updates: {
 			organizationId?: Id<'organizations'> | undefined;
-			teamId?: Id<'teams'> | undefined;
+			circleId?: Id<'circles'> | undefined;
 			expiresAt?: number;
 		} = {};
 
@@ -747,8 +747,8 @@ export const updateUserRole = mutation({
 			updates.organizationId = args.organizationId;
 		}
 
-		if (args.teamId !== undefined) {
-			updates.teamId = args.teamId;
+		if (args.circleId !== undefined) {
+			updates.circleId = args.circleId;
 		}
 
 		if (args.expiresAt !== undefined) {
@@ -830,7 +830,7 @@ export const setupDocsPermission = mutation({
 			.filter((q) => {
 				return q.and(
 					q.eq(q.field('organizationId'), undefined),
-					q.eq(q.field('teamId'), undefined),
+					q.eq(q.field('circleId'), undefined),
 					q.eq(q.field('revokedAt'), undefined)
 				);
 			})

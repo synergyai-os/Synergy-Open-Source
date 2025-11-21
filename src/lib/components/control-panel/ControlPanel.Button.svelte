@@ -15,7 +15,7 @@
 	{disabled}
 	{title}
 	{onclick}
-	class="rounded-md p-control-button-padding transition-colors
+	class="rounded-button p-control-button-padding transition-colors
     {active
 		? 'bg-control-button-active text-primary'
 		: 'text-secondary hover:bg-control-button-hover'}

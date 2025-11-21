@@ -1,5 +1,5 @@
 <script lang="ts">
-	import StackedPanel from '$lib/components/ui/StackedPanel.svelte';
+	import StackedPanel from '$lib/components/organisms/StackedPanel.svelte';
 	import { useNavigationStack } from '$lib/modules/core/composables/useNavigationStack.svelte';
 
 	// Mock folder hierarchy
@@ -81,9 +81,9 @@
 	});
 </script>
 
-<div class="p-4">
-	<h2 class="mb-4 text-lg font-semibold text-primary">Folder Browser Example</h2>
-	<p class="mb-4 text-sm text-secondary">
+<div class="px-card py-card">
+	<h2 class="mb-content-section text-h3 font-semibold text-primary">Folder Browser Example</h2>
+	<p class="mb-content-section text-small text-secondary">
 		This demonstrates hierarchical panel navigation outside the org chart context.
 	</p>
 
@@ -97,9 +97,9 @@
 		<div class="flex h-full flex-col">
 			<!-- Header -->
 			<div class="border-b border-base px-inbox-container py-system-content">
-				<h3 class="text-xl font-bold text-primary">{currentFolder.name}</h3>
+				<h3 class="text-h3 font-bold text-primary">{currentFolder.name}</h3>
 				{#if currentFolder.parentId}
-					<p class="mt-1 text-sm text-secondary">
+					<p class="mt-form-field-gap text-small text-secondary">
 						Parent: <span class="font-medium"
 							>{folders.find((f) => f.id === currentFolder.parentId)?.name}</span
 						>
@@ -110,16 +110,16 @@
 			<!-- Content -->
 			<div class="flex-1 overflow-y-auto px-inbox-container py-system-content">
 				{#if children.length > 0}
-					<div class="space-y-2">
+					<div class="space-y-icon">
 						{#each children as child (child.id)}
 							<button
 								type="button"
-								class="flex w-full items-center gap-3 rounded-lg bg-surface p-3 text-left transition-colors hover:bg-hover-solid"
+								class="flex w-full items-center gap-content-section rounded-card bg-surface px-card py-card text-left transition-colors hover:bg-hover-solid"
 								onclick={() => handleOpenFolder(child.id)}
 							>
 								{#if child.id.startsWith('file')}
 									<svg
-										class="h-5 w-5 text-tertiary"
+										class="icon-sm text-tertiary"
 										fill="none"
 										stroke="currentColor"
 										viewBox="0 0 24 24"
@@ -133,7 +133,7 @@
 									</svg>
 								{:else}
 									<svg
-										class="h-5 w-5 text-tertiary"
+										class="icon-sm text-tertiary"
 										fill="none"
 										stroke="currentColor"
 										viewBox="0 0 24 24"
@@ -146,13 +146,13 @@
 										/>
 									</svg>
 								{/if}
-								<span class="text-sm font-medium text-primary">{child.name}</span>
+								<span class="text-small font-medium text-primary">{child.name}</span>
 							</button>
 						{/each}
 					</div>
 				{:else}
-					<div class="py-8 text-center">
-						<p class="text-sm text-secondary">This folder is empty</p>
+					<div class="py-readable-quote text-center">
+						<p class="text-small text-secondary">This folder is empty</p>
 					</div>
 				{/if}
 			</div>

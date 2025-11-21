@@ -20,7 +20,7 @@ export interface UsePermissionsParams {
 	sessionId: () => string | null;
 	userId?: () => Id<'users'> | null;
 	organizationId?: () => Id<'organizations'> | null;
-	teamId?: () => Id<'teams'> | null;
+	circleId?: () => Id<'circles'> | null;
 	initialPermissions?: Array<{
 		permissionSlug: string;
 		scope: string;
@@ -67,18 +67,18 @@ export function usePermissions(params: UsePermissionsParams): UsePermissionsRetu
 					const args: {
 						sessionId: string;
 						organizationId?: Id<'organizations'>;
-						teamId?: Id<'teams'>;
+						circleId?: Id<'circles'>;
 					} = { sessionId };
 
 					// Add context filters
 					const orgId = params.organizationId?.();
-					const teamId = params.teamId?.();
+					const circleId = params.circleId?.();
 
 					if (orgId !== undefined && orgId !== null) {
 						args.organizationId = orgId;
 					}
-					if (teamId !== undefined && teamId !== null) {
-						args.teamId = teamId;
+					if (circleId !== undefined && circleId !== null) {
+						args.circleId = circleId;
 					}
 
 					return args;

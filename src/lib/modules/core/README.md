@@ -35,7 +35,6 @@ core/
 │   │   ├── CreateTeamModal.svelte
 │   │   ├── OrganizationModals.svelte
 │   │   ├── OrganizationSwitcher.svelte
-│   │   ├── TeamList.svelte
 │   │   └── WorkspaceSwitchOverlay.svelte
 │   └── composables/
 │       ├── useOrganizations.svelte.ts

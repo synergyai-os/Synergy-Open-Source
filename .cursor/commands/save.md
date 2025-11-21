@@ -167,7 +167,102 @@ Once I have a ticket ID, I'll proceed with saving.
 
 ---
 
-### 4. Save Locally ✅
+### 4. Consider Rule Building ⭐ NEW
+
+**⚠️ CRITICAL**: After updating patterns, consider if a **rule** should be created to prevent the mistake proactively.
+
+**When to create a rule** (vs pattern):
+
+- ✅ Mistake happened **2+ times** OR is **critical** (breaks functionality, security, CI)
+- ✅ Mistake can be **prevented proactively** (constraint/validation)
+- ✅ Rule can be **< 100 lines** (keep rules short)
+
+**Decision Tree**:
+
+```
+Mistake occurred during session
+├─ Is it critical? (breaks functionality, security, CI)
+│  ├─ Yes → Create rule (proactive prevention)
+│  └─ No → Continue below
+├─ Has it happened 2+ times?
+│  ├─ Yes → Create rule (prevent repetition)
+│  └─ No → Continue below
+├─ Can it be prevented proactively? (constraint/validation)
+│  ├─ Yes → Create rule
+│  └─ No → Pattern is sufficient (reactive solution)
+```
+
+**If decision = Rule**:
+
+1. **Check existing rules**:
+   - Search `.cursor/rules/*.mdc` for related rule
+   - If exists → Enhance existing rule (add edge case, strengthen language)
+   - If not exists → Create new rule
+
+2. **Create/update rule**:
+   - **Location**: `.cursor/rules/[topic].mdc`
+   - **Format**: See `.cursor/rules/BUILDING-RULES.md` for complete format
+   - **Frontmatter**: `alwaysApply: true` OR `globs` for scoping
+   - **Structure**: Purpose → Context → Problem → Bad Example → Good Example → Rules → Validation
+
+3. **Document in session**:
+   - "Created rule `.cursor/rules/[topic].mdc` to prevent [mistake]"
+   - OR "Enhanced rule `.cursor/rules/[topic].mdc` with edge case [description]"
+   - Decision: "Chose rule over pattern because [reason]"
+
+**Rule Format Example**:
+
+````markdown
+---
+alwaysApply: true
+---
+
+# Rule Title
+
+**Purpose**: One-line description
+
+**Context**: Mistake that triggered this rule
+
+## Problem
+
+**What happens**: Description of mistake
+**Why it happens**: Root cause
+**Impact**: What breaks
+
+## ❌ Bad Example
+
+```typescript
+const bad = any; // ❌ Wrong
+```
+````
+
+## ✅ Good Example
+
+```typescript
+const good: string = 'value'; // ✅ Correct
+```
+
+## Rules
+
+**NEVER do X** → Use Y instead
+**ALWAYS do Z** → Validation step
+
+**Validation**: How to check before implementing
+
+```
+
+**Reference**: `.cursor/rules/BUILDING-RULES.md` - Complete rule building process and examples
+
+**When to use Rules vs Patterns**:
+
+- **Rules**: Proactive constraints (always enforced, prevent mistakes)
+- **Patterns**: Reactive solutions (lookup when problems occur)
+
+**See**: `.cursor/rules/BUILDING-RULES.md` for complete decision tree and examples
+
+---
+
+### 5. Save Locally ✅
 
 **Files are saved locally** - No commit step (saves time/tokens).
 
@@ -192,6 +287,7 @@ Once I have a ticket ID, I'll proceed with saving.
 - [ ] Updated domain file with pattern/enhancement (search_replace)
 - [ ] Updated `dev-docs/2-areas/patterns/INDEX.md` symptom table with line number reference
 - [ ] Chose correct severity (🔴 Critical | 🟡 Important | 🟢 Reference)
+- [ ] **Considered rule building** → Decided rule vs pattern, created/enhanced rule if needed
 
 **After Saving:**
 
@@ -203,6 +299,7 @@ Once I have a ticket ID, I'll proceed with saving.
 ## Quick AI Workflow
 
 ```
+
 0. 🚨 Check for Linear ticket ID (STOP if missing)
    → If missing and user says "create new ticket" → Refer to /start
 
@@ -224,12 +321,19 @@ Once I have a ticket ID, I'll proceed with saving.
    - Update INDEX.md symptom table
    - Use line numbers for references (#L810)
 
-5. Save locally (NO COMMIT):
+5. Consider rule building:
+   - Decision: Rule vs pattern (use decision tree)
+   - If rule → Create/update `.cursor/rules/[topic].mdc`
+   - Document: "Created/enhanced rule [name] to prevent [mistake]"
+   - See: `.cursor/rules/BUILDING-RULES.md` for complete process
+
+6. Save locally (NO COMMIT):
    → Files saved in working directory
    → Ready for review and commit when you're ready
 
-6. Report status:
+7. Report status:
    → Confirm: "✅ Patterns updated locally. Files saved. Ready for review."
+
 ```
 
 ---
@@ -238,9 +342,12 @@ Once I have a ticket ID, I'll proceed with saving.
 
 - **Linear Workflow**: `/start` command - Complete Linear constants and workflow
 - **Patterns**: `dev-docs/2-areas/patterns/INDEX.md` - Pattern lookup
+- **Rule Building**: `.cursor/rules/BUILDING-RULES.md` - Complete rule building process
+- **Rules Best Practices**: `.cursor/rules/README.md` - Rule optimization and format
 - **Ticket Creation**: `/start` command - Handles ticket creation workflow
 
 ---
 
-**Last Updated**: 2025-11-13  
+**Last Updated**: 2025-11-20
 **Purpose**: Local knowledge capture (no commit) - saves time/tokens
+```

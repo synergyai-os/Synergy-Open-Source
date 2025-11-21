@@ -1,1 +1,46 @@
+#!/bin/sh
+# Design System Governance - Pre-Commit Validation
+
+echo "🔍 Validating design system compliance..."
+
+# Run ESLint (blocks hardcoded values)
+npm run lint || {
+	echo ""
+	echo "❌ ESLint violations detected!"
+	echo "Fix design system violations before committing."
+	echo "See: dev-docs/2-areas/design/design-tokens.md"
+	exit 1
+}
+
+# Additional check: Grep for hardcoded Tailwind in changed files
+git diff --cached --name-only | grep -E '\.(svelte|ts)$' | while read file; do
+	# Check for [XXpx], [XXrem], [XX%], etc. in class attributes
+	if git diff --cached "$file" | grep -E 'class="[^"]*\[([0-9]+(px|rem|%|vh|vw|em|ch))' > /dev/null; then
+		echo ""
+		echo "❌ Hardcoded Tailwind value detected in: $file"
+		echo "   Pattern: class=\"...[value]\""
+		echo ""
+		echo "Replace with design token utility:"
+		echo "   - min-h-[2.75rem] → min-h-button (add to app.css)"
+		echo "   - p-[12px] → p-button-icon (already exists)"
+		echo ""
+		echo "See: dev-docs/2-areas/design/design-tokens.md"
+		exit 1
+	fi
+done
+
+echo "✅ Design system validation passed!"
+
+# Run quick design system audit (changed files only)
+echo ""
+echo "🔍 Running quick design system audit..."
+npm run audit:quick || {
+	echo ""
+	echo "⚠️  Design system violations detected in changed files!"
+	echo "Fix violations or run 'npm run audit:design-system' for full report."
+	echo "See: AUDIT-REPORT.md for details"
+	# Don't block commit, just warn (can be made blocking later)
+}
+
+# Run lint-staged (formatting)
 npx lint-staged

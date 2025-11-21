@@ -20,6 +20,7 @@
 	import { useConvexClient, useQuery } from 'convex-svelte';
 	import { api, type Id } from '$lib/convex';
 	import { toast } from 'svelte-sonner';
+	import { Button } from '$lib/components/ui';
 
 	interface Props {
 		agendaItemId: Id<'meetingAgendaItems'>;
@@ -224,56 +225,55 @@
 	}
 </script>
 
-<div class="space-y-4">
+<div class="space-y-form-section">
 	<!-- Header -->
 	<div class="flex items-center justify-between">
-		<h3 class="text-sm font-semibold text-text-primary">Action Items</h3>
+		<h3 class="text-body-sm font-semibold text-text-primary">Action Items</h3>
 		{#if !readonly && !state.isAdding}
-			<button
-				onclick={() => (state.isAdding = true)}
-				class="text-sm font-medium text-accent-primary transition-colors hover:text-accent-hover"
-			>
+			<Button variant="outline" size="sm" onclick={() => (state.isAdding = true)}>
 				+ Add Action
-			</button>
+			</Button>
 		{/if}
 	</div>
 
 	<!-- Add Action Form (Inline) -->
 	{#if state.isAdding}
-		<div class="space-y-3 rounded-md border border-border-base bg-surface p-4">
+		<div class="space-y-header rounded-button border border-border-base bg-surface p-form-section">
 			<!-- Description -->
 			<textarea
 				bind:value={state.description}
 				placeholder="What needs to be done?"
 				rows="2"
-				class="w-full rounded-md border border-border-base bg-elevated px-menu-item py-menu-item text-sm text-primary placeholder-text-tertiary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
+				class="text-body-sm w-full rounded-input border border-border-base bg-elevated px-menu-item py-menu-item text-primary placeholder-text-tertiary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
 			></textarea>
 
 			<!-- Type Toggle + Assignee Type Toggle -->
-			<div class="flex items-center gap-4">
+			<div class="flex items-center gap-form-section">
 				<!-- Type -->
-				<div class="flex items-center gap-2">
-					<span class="text-sm text-tertiary">Type:</span>
-					<button
-						aria-label="Toggle action item type"
+				<div class="flex items-center gap-meeting-card">
+					<span class="text-body-sm text-tertiary">Type:</span>
+					<Button
+						variant="outline"
+						size="sm"
+						ariaLabel="Toggle action item type"
 						onclick={() => (state.type = state.type === 'next-step' ? 'project' : 'next-step')}
-						class="rounded-md border border-border-base bg-elevated px-menu-item py-1 text-sm font-medium text-primary transition-colors hover:bg-hover"
 					>
 						{state.type === 'next-step' ? '⚡ Next Step' : '📦 Project'}
-					</button>
+					</Button>
 				</div>
 
 				<!-- Assignee Type Toggle (only if circle has roles) -->
 				{#if circleId && roles.length > 0}
-					<div class="flex items-center gap-2">
-						<span class="text-sm text-tertiary">Assign to:</span>
-						<button
-							aria-label="Toggle assignee type"
+					<div class="flex items-center gap-meeting-card">
+						<span class="text-body-sm text-tertiary">Assign to:</span>
+						<Button
+							variant="outline"
+							size="sm"
+							ariaLabel="Toggle assignee type"
 							onclick={() => (state.assigneeType = state.assigneeType === 'user' ? 'role' : 'user')}
-							class="rounded-md border border-border-base bg-elevated px-menu-item py-1 text-sm font-medium text-primary transition-colors hover:bg-hover"
 						>
 							{state.assigneeType === 'user' ? '👤 User' : '🎭 Role'}
-						</button>
+						</Button>
 					</div>
 				{/if}
 			</div>
@@ -283,7 +283,7 @@
 				{#if state.assigneeType === 'user'}
 					<select
 						bind:value={state.assigneeUserId}
-						class="w-full rounded-md border border-border-base bg-elevated px-menu-item py-menu-item text-sm text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
+						class="text-body-sm w-full rounded-input border border-border-base bg-elevated px-menu-item py-menu-item text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
 					>
 						<option value={null}>Select user...</option>
 						{#each members as member (member.userId)}
@@ -293,7 +293,7 @@
 				{:else if state.assigneeType === 'role'}
 					<select
 						bind:value={state.assigneeRoleId}
-						class="w-full rounded-md border border-border-base bg-elevated px-menu-item py-menu-item text-sm text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
+						class="text-body-sm w-full rounded-input border border-border-base bg-elevated px-menu-item py-menu-item text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
 					>
 						<option value={null}>Select role...</option>
 						{#each roles as role (role.roleId)}
@@ -304,31 +304,21 @@
 			</div>
 
 			<!-- Due Date (Optional) -->
-			<div class="flex items-center gap-2">
-				<label for="due-date" class="text-sm text-tertiary">Due date (optional):</label>
+			<div class="flex items-center gap-meeting-card">
+				<label for="due-date" class="text-body-sm text-tertiary">Due date (optional):</label>
 				<input
 					id="due-date"
 					type="date"
 					value={timestampToDateInput(state.dueDate)}
 					onchange={handleDueDateChange}
-					class="rounded-md border border-border-base bg-elevated px-menu-item py-menu-item text-sm text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
+					class="text-body-sm rounded-button border border-border-base bg-elevated px-menu-item py-menu-item text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
 				/>
 			</div>
 
 			<!-- Actions -->
-			<div class="flex items-center gap-2 pt-2">
-				<button
-					onclick={handleCreate}
-					class="rounded-md bg-accent-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
-				>
-					Add Action
-				</button>
-				<button
-					onclick={resetForm}
-					class="rounded-md border border-border-base px-4 py-2 text-sm font-medium text-secondary transition-colors hover:bg-hover"
-				>
-					Cancel
-				</button>
+			<div class="flex items-center gap-meeting-card pt-meeting-card">
+				<Button variant="primary" onclick={handleCreate}>Add Action</Button>
+				<Button variant="outline" onclick={resetForm}>Cancel</Button>
 			</div>
 		</div>
 	{/if}
@@ -336,9 +326,9 @@
 	<!-- Action Items List -->
 	{#if actionItems.length === 0}
 		<!-- Empty State -->
-		<div class="py-8 text-center">
+		<div class="py-meeting-section text-center">
 			<svg
-				class="mx-auto h-12 w-12 text-text-tertiary"
+				class="mx-auto size-icon-xl text-text-tertiary"
 				fill="none"
 				viewBox="0 0 24 24"
 				stroke="currentColor"
@@ -350,33 +340,30 @@
 					d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
 				/>
 			</svg>
-			<p class="mt-4 text-sm text-text-tertiary">No action items yet</p>
+			<p class="text-body-sm mt-form-section text-text-tertiary">No action items yet</p>
 			{#if !readonly && !state.isAdding}
-				<button
-					onclick={() => (state.isAdding = true)}
-					class="mt-2 text-sm font-medium text-accent-primary hover:text-accent-hover"
-				>
+				<Button variant="outline" size="sm" onclick={() => (state.isAdding = true)}>
 					Add your first action
-				</button>
+				</Button>
 			{/if}
 		</div>
 	{:else}
 		<!-- List of action items -->
-		<div class="space-y-2">
+		<div class="space-y-meeting-card">
 			{#each actionItems as item (item._id)}
 				<div
-					class="group flex items-start gap-3 rounded-md border border-border-base bg-surface p-3 transition-colors hover:bg-elevated"
+					class="group gap-header p-header flex items-start rounded-button border border-border-base bg-surface transition-colors hover:bg-elevated"
 				>
 					<!-- Status Checkbox -->
 					<button
 						onclick={() => !readonly && handleToggleStatus(item._id, item.status)}
 						disabled={readonly}
-						class="mt-0.5 flex-shrink-0"
+						class="mt-spacing-icon-gap-sm flex-shrink-0"
 						aria-label="Toggle status"
 					>
 						{#if item.status === 'done'}
 							<svg
-								class="h-5 w-5 text-green-600"
+								class="icon-md text-success"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -390,7 +377,7 @@
 							</svg>
 						{:else}
 							<svg
-								class="h-5 w-5 text-text-tertiary transition-colors hover:text-accent-primary"
+								class="icon-md text-text-tertiary transition-colors hover:text-accent-primary"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -403,25 +390,27 @@
 					<!-- Content -->
 					<div class="min-w-0 flex-1">
 						<p
-							class="text-sm text-primary {item.status === 'done' ? 'line-through opacity-60' : ''}"
+							class="text-body-sm text-primary {item.status === 'done'
+								? 'line-through opacity-60'
+								: ''}"
 						>
 							{item.description}
 						</p>
 
 						<!-- Metadata -->
-						<div class="mt-2 flex items-center gap-3 text-xs text-tertiary">
+						<div class="gap-header mt-meeting-card flex items-center text-label text-tertiary">
 							<!-- Type Badge -->
 							<span
-								class="inline-flex items-center gap-1 rounded border border-border-base bg-elevated px-badge py-badge"
+								class="gap-icon-sm inline-flex items-center rounded border border-border-base bg-elevated px-badge py-badge"
 							>
 								{item.type === 'next-step' ? '⚡' : '📦'}
 								{item.type === 'next-step' ? 'Next Step' : 'Project'}
 							</span>
 
 							<!-- Assignee -->
-							<span class="inline-flex items-center gap-1">
+							<span class="inline-flex items-center gap-meeting-avatar">
 								<div
-									class="flex h-4 w-4 items-center justify-center rounded-full bg-accent-primary text-[8px] font-medium text-white"
+									class="flex size-icon-sm items-center justify-center rounded-avatar bg-accent-primary text-label font-medium text-primary"
 								>
 									{getInitials(getAssigneeName(item))}
 								</div>
@@ -430,8 +419,8 @@
 
 							<!-- Due Date -->
 							{#if item.dueDate}
-								<span class="inline-flex items-center gap-1">
-									<svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<span class="inline-flex items-center gap-meeting-avatar">
+									<svg class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -448,12 +437,15 @@
 					<!-- Actions (visible on hover) -->
 					{#if !readonly}
 						<div class="flex-shrink-0 opacity-0 transition-opacity group-hover:opacity-100">
-							<button
+							<Button
+								variant="outline"
+								size="sm"
+								iconOnly
+								ariaLabel="Delete action"
 								onclick={() => handleDelete(item._id)}
-								class="rounded p-1 text-red-600 transition-colors hover:bg-red-50 dark:hover:bg-red-900/20"
-								aria-label="Delete action"
+								class="text-error hover:bg-error hover:bg-error-hover"
 							>
-								<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<svg class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 									<path
 										stroke-linecap="round"
 										stroke-linejoin="round"
@@ -461,7 +453,7 @@
 										d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
 									/>
 								</svg>
-							</button>
+							</Button>
 						</div>
 					{/if}
 				</div>

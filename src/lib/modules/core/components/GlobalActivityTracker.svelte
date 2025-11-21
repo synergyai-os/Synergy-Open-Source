@@ -13,7 +13,7 @@
 		setupAutoDismiss,
 		type Activity
 	} from '$lib/stores/activityTracker.svelte';
-	import ActivityCard from '$lib/components/ActivityCard.svelte';
+	import ActivityCard from '$lib/modules/core/components/ActivityCard.svelte';
 
 	// Convex client setup
 	const convexClient = browser ? useConvexClient() : null;

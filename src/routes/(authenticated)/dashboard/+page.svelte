@@ -46,24 +46,26 @@
 
 {#if !featureEnabled && !flagQuery?.isLoading}
 	<!-- Feature not enabled - will redirect -->
-	<div class="bg-surface-base flex min-h-screen items-center justify-center">
+	<div class="flex min-h-screen items-center justify-center bg-base">
 		<div class="text-text-secondary">Redirecting...</div>
 	</div>
 {:else if flagQuery?.isLoading}
 	<!-- Loading -->
-	<div class="bg-surface-base flex min-h-screen items-center justify-center">
+	<div class="flex min-h-screen items-center justify-center bg-base">
 		<div class="text-text-secondary">Loading...</div>
 	</div>
 {:else}
 	<!-- Dashboard Page -->
-	<div class="bg-surface-base h-full overflow-y-auto">
+	<div class="h-full overflow-y-auto bg-base">
 		<!-- Header -->
-		<div class="border-border-subtle bg-surface-base border-b">
+		<div class="border-b border-border-base bg-base">
 			<div class="mx-auto max-w-6xl px-content-padding py-content-padding">
-				<div class="flex items-center gap-icon-gap">
+				<div class="flex items-center gap-icon">
 					<!-- Icon -->
-					<div class="flex h-12 w-12 items-center justify-center rounded-full bg-accent-primary">
-						<svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<div
+						class="flex size-avatar-lg items-center justify-center rounded-avatar bg-accent-primary"
+					>
+						<svg class="icon-lg text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -73,8 +75,8 @@
 						</svg>
 					</div>
 					<div class="flex-1">
-						<h1 class="text-2xl font-semibold text-text-primary">Dashboard</h1>
-						<p class="mt-1 text-sm text-text-secondary">
+						<h1 class="text-h2 font-semibold text-text-primary">Dashboard</h1>
+						<p class="mt-form-section text-small text-text-secondary">
 							Track your action items and stay on top of what needs to get done.
 						</p>
 					</div>
@@ -85,15 +87,15 @@
 		<!-- Content -->
 		<div class="mx-auto max-w-6xl px-content-padding py-content-padding">
 			<!-- My Action Items Section -->
-			<section class="mb-8">
-				<h2 class="mb-4 text-lg font-semibold text-text-primary">My Action Items</h2>
+			<section class="mb-content-padding">
+				<h2 class="mb-content-section text-h3 font-semibold text-text-primary">My Action Items</h2>
 				<ActionItemsList {sessionId} />
 			</section>
 
 			<!-- Future: Decisions to Review -->
 			<!-- <section class="mb-8">
 				<h2 class="mb-4 text-lg font-semibold text-text-primary">Decisions to Review</h2>
-				<div class="bg-surface-secondary rounded-lg border border-dashed border-border-base py-8 text-center text-text-tertiary">
+				<div class="bg-surface rounded-card border border-dashed border-border-base py-readable-quote text-center text-text-tertiary">
 					Coming soon
 				</div>
 			</section> -->
@@ -101,7 +103,7 @@
 			<!-- Future: Upcoming Meetings -->
 			<!-- <section>
 				<h2 class="mb-4 text-lg font-semibold text-text-primary">Upcoming Meetings</h2>
-				<div class="bg-surface-secondary rounded-lg border border-dashed border-border-base py-8 text-center text-text-tertiary">
+				<div class="bg-surface rounded-card border border-dashed border-border-base py-readable-quote text-center text-text-tertiary">
 					Coming soon
 				</div>
 			</section> -->

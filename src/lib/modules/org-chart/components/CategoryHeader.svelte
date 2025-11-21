@@ -1,6 +1,6 @@
 <script lang="ts">
-	import IconButton from '$lib/components/ui/IconButton.svelte';
-	import ActionMenu from '$lib/components/ui/ActionMenu.svelte';
+	import { IconButton } from '$lib/components/atoms';
+	import { ActionMenu } from '$lib/components/molecules';
 
 	type Props = {
 		title: string;
@@ -13,17 +13,17 @@
 	let { title, count, onEdit, onAdd, menuItems = [] }: Props = $props();
 </script>
 
-<div class="flex items-center justify-between rounded-lg bg-surface px-3 py-2">
-	<h4 class="text-sm font-semibold text-primary">
+<div class="flex items-center justify-between rounded-card bg-surface px-card py-nav-item">
+	<h4 class="text-button font-semibold text-primary">
 		{title}
 		{#if count !== undefined}
-			<span class="ml-1 text-xs font-normal text-tertiary">({count})</span>
+			<span class="ml-form-field-gap text-label font-normal text-tertiary">({count})</span>
 		{/if}
 	</h4>
-	<div class="flex items-center gap-1">
+	<div class="gap-control-item flex items-center">
 		{#if onEdit}
 			{#snippet editIcon()}
-				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -36,7 +36,7 @@
 		{/if}
 		{#if onAdd}
 			{#snippet addIcon()}
-				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"

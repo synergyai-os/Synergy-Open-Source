@@ -453,7 +453,7 @@ What's your experience building with AI? 👇
 **Example**:
 
 ```
-1/ Saprolab saved 70% on team alignment costs by switching from Holaspirit to our platform.
+1/ Agency Partner saved 70% on team alignment costs by switching from Holaspirit to our platform.
 
 Here's how: 🧵
 

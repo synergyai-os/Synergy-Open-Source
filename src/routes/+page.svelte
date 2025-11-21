@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Header from '$lib/components/Header.svelte';
-	import WaitlistForm from '$lib/components/WaitlistForm.svelte';
+	import Header from '$lib/modules/core/components/Header.svelte';
+	import WaitlistForm from '$lib/modules/core/components/WaitlistForm.svelte';
 	import { fly } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import { onMount } from 'svelte';
