@@ -2,149 +2,270 @@
 
 **Purpose**: Create a new git branch following SynergyOS conventions and workflow.
 
+**Critical Requirements:**
+
+- ✅ **Always verify** nothing is left behind on `main` (or other branch)
+- ✅ **Always ensure** new branch is up-to-date with `origin/main`
+- ✅ **Always check** `main` is clean before and after branch creation
+- ✅ **Always verify** branch is ready for work after creation
+
 ---
 
-# 🚨🚨🚨 CRITICAL: Linear Ticket Required 🚨🚨🚨
+## Branch Naming Modes
 
-## ⛔ **DO NOT CREATE BRANCH WITHOUT LINEAR TICKET ID**
+**Two modes supported:**
 
-**BEFORE creating branch:**
+1. **Ticket-Based** (preferred for single-ticket work)
+   - Format: `feature/SYOS-XXX-description`
+   - Use when: Working on a specific Linear ticket
+   - Example: `feature/SYOS-123-add-user-auth`
 
-### Step 1: Check for Linear Ticket ID
+2. **Project-Based** (for multi-ticket projects)
+   - Format: `feature/descriptive-name` (4 words max)
+   - Use when: Working on a project with multiple tickets
+   - Example: `feature/design-system-v1-completed`
 
-**Look in the conversation for:**
+**Key Principles:**
 
-- "SYOS-123" or "SYOS-XXX" format
-- "ticket SYOS-123"
-- "Linear ticket"
-- Any mention of a Linear issue ID
-
-### Step 2: Decision
-
-**IF NO TICKET ID FOUND:**
-
-```
-❌ STOP - I cannot create a branch without a Linear ticket ID.
-
-Please provide:
-- Linear ticket ID (e.g., SYOS-123)
-- OR say "create new ticket" and I'll help you create one using /start
-
-Once I have a ticket ID, I'll create the branch with the correct naming convention.
-```
-
-**IF TICKET ID FOUND:**
-
-1. **Get ticket details** (optional - to verify ticket exists)
-2. **Create branch** with correct naming convention
-3. **Verify branch created** successfully
+- **Short & Clear**: Maximum 4 words, describe action/result
+- **Kebab-case**: Use hyphens, lowercase
+- **Action-focused**: Name describes what you're accomplishing
+- **Prefix required**: `feature/`, `fix/`, or `docs/`
 
 ---
 
 ## Branch Creation Workflow
 
-### Step 0: Check Current State (IMPORTANT)
+### Step 0: Determine Branch Type
 
-**Before creating branch, check if you have uncommitted changes:**
+**Check conversation context:**
 
-```bash
-# Check current branch and status
-git branch
-git status
+- **Ticket ID found** (SYOS-123, SYOS-XXX) → Use ticket-based naming
+- **Project mentioned** (e.g., "Design System", "multi-workspace auth") → Use project-based naming
+- **User specifies name** → Use provided name (validate format)
+
+**If unclear, ask user:**
+
+```
+Which branch naming approach should I use?
+
+1. Ticket-based: feature/SYOS-XXX-description (if working on specific ticket)
+2. Project-based: feature/descriptive-name (if working on project with multiple tickets)
+
+Or provide a specific branch name (must follow naming conventions).
 ```
 
-**If you have uncommitted changes on `main`:**
+### Step 1: Check Current State (MANDATORY)
+
+**ALWAYS check these before creating branch:**
+
+```bash
+# 1. Check current branch
+git branch
+# Note: * shows current branch
+
+# 2. Check for uncommitted changes
+git status
+# Look for: "Changes not staged", "Untracked files", "Changes to be committed"
+
+# 3. Check if main is up-to-date with origin
+git fetch origin
+git log HEAD..origin/main --oneline
+# If output shows commits → main is behind origin/main
+
+# 4. Check for committed changes on main (if currently on main)
+git log origin/main..HEAD --oneline
+# If output shows commits → you've committed to main directly
+```
+
+**Decision Tree:**
+
+#### Scenario A: Uncommitted Changes on `main`
 
 ⚠️ **You've been working on `main` directly** - This violates trunk-based development.
 
 **Option A: Move uncommitted changes to new branch** (Recommended)
 
 ```bash
-# Create branch from current state (changes come with you)
-git checkout -b feature/SYOS-XXX-description
+# 1. Create branch from current state (changes come with you)
+git checkout -b feature/branch-name
 
-# Now commit your changes
+# 2. Verify changes moved with you
+git status
+# Should show your uncommitted changes
+
+# 3. Commit your changes
 git add .
 git commit -m "feat: description"
+
+# 4. Verify main is clean (switch back to check)
+git checkout main
+git status
+# Should show "working tree clean"
+
+# 5. Switch back to your branch
+git checkout feature/branch-name
 ```
 
 **Option B: Stash changes, create branch, then apply**
 
 ```bash
-# Save changes temporarily
+# 1. Save changes temporarily
 git stash
 
-# Create branch from clean main
+# 2. Verify main is clean
+git status
+# Should show "working tree clean"
+
+# 3. Ensure main is up-to-date
 git checkout main
 git pull origin main
-git checkout -b feature/SYOS-XXX-description
 
-# Apply your changes
+# 4. Create branch from clean, up-to-date main
+git checkout -b feature/branch-name
+
+# 5. Apply your changes
 git stash pop
 
-# Now commit
+# 6. Commit your changes
 git add .
 git commit -m "feat: description"
 ```
 
-**If you have committed changes on `main`:**
+#### Scenario B: Committed Changes on `main`
 
 ⚠️ **You've committed to `main` directly** - Need to move commits to branch.
 
 ```bash
-# Create branch from current state (includes your commits)
-git checkout -b feature/SYOS-XXX-description
+# 1. Note the commit hash(es) you want to move
+git log origin/main..HEAD --oneline
 
-# Reset main to before your commits (get commit hash first!)
+# 2. Create branch from current state (includes your commits)
+git checkout -b feature/branch-name
+
+# 3. Verify commits are on new branch
+git log origin/main..HEAD --oneline
+# Should show your commits
+
+# 4. Reset main to match origin/main (removes your commits from main)
 git checkout main
-git reset --hard origin/main  # ⚠️ This removes your commits from main
+git reset --hard origin/main
 
-# Switch back to your branch (commits are safe here)
-git checkout feature/SYOS-XXX-description
+# 5. Verify main is clean and matches origin
+git status
+# Should show "working tree clean"
+git log HEAD..origin/main --oneline
+# Should show no output (main matches origin/main)
+
+# 6. Switch back to your branch (commits are safe here)
+git checkout feature/branch-name
+
+# 7. Verify commits are still on your branch
+git log origin/main..HEAD --oneline
+# Should show your commits
 ```
 
-**If `main` is clean:**
+#### Scenario C: On `main`, Clean, But Behind Origin
 
-Proceed to Step 1 below.
-
----
-
-### Step 1: Ensure You're on Main (If Starting Fresh)
-
-**Only if you don't have existing changes:**
+⚠️ **Local main is behind origin/main** - Need to update before creating branch.
 
 ```bash
-# Check current branch
-git branch
-
-# Switch to main if needed
-git checkout main
-
-# Pull latest changes
+# 1. Pull latest changes
 git pull origin main
+
+# 2. Verify main is up-to-date
+git log HEAD..origin/main --oneline
+# Should show no output (main matches origin/main)
+
+# Proceed to Step 2
 ```
 
-**Why**: Ensures branch is created from latest `main` code.
+#### Scenario D: On `main`, Clean, Up-to-Date
+
+✅ **Main is clean and up-to-date** - Ready to create branch.
+
+Proceed to Step 2 below.
+
+#### Scenario E: On Another Branch
+
+⚠️ **You're on a feature branch** - Need to switch to main first.
+
+```bash
+# 1. Check if you have uncommitted changes
+git status
+
+# 2. If you have changes, commit or stash them first
+git add .
+git commit -m "feat: work in progress"
+# OR
+git stash
+
+# 3. Switch to main
+git checkout main
+
+# 4. Ensure main is up-to-date
+git pull origin main
+
+# Proceed to Step 2
+```
 
 ---
 
-### Step 2: Create Branch with Correct Naming
+### Step 2: Ensure You're on Main and Up-to-Date (MANDATORY)
 
-**Branch Naming Convention**: `feature/SYOS-XXX-description`
+**ALWAYS verify before creating branch:**
 
-**Format**:
+```bash
+# 1. Verify you're on main
+git branch
+# * should be on main
 
-- Prefix: `feature/`, `fix/`, or `docs/`
-- Linear ticket ID: `SYOS-123`
-- Description: Short, kebab-case description
+# 2. Fetch latest from origin
+git fetch origin
+
+# 3. Check if main is behind origin/main
+git log HEAD..origin/main --oneline
+# If output shows commits → main is behind, need to pull
+
+# 4. Pull latest changes (if behind)
+git pull origin main
+
+# 5. Verify main matches origin/main exactly
+git log HEAD..origin/main --oneline
+# Should show no output (main matches origin/main)
+
+git log origin/main..HEAD --oneline
+# Should show no output (no local commits ahead)
+
+# 6. Verify main is clean (no uncommitted changes)
+git status
+# Should show "working tree clean"
+```
+
+**Why**: Ensures branch is created from latest `main` code, preventing merge conflicts and ensuring consistency.
+
+---
+
+### Step 3: Create Branch with Correct Naming
+
+**Branch Naming Rules:**
+
+- **Prefix required**: `feature/`, `fix/`, or `docs/`
+- **Short & descriptive**: Maximum 4 words
+- **Kebab-case**: Use hyphens, lowercase
+- **Action-focused**: Describe what you're accomplishing
+
+#### Mode 1: Ticket-Based Naming
+
+**Format**: `feature/SYOS-XXX-description`
+
+**When to use**: Working on a specific Linear ticket
 
 **Examples**:
 
 - ✅ `feature/SYOS-123-add-user-auth`
 - ✅ `fix/SYOS-456-sidebar-navigation-bug`
 - ✅ `docs/SYOS-789-update-readme`
-- ❌ `feature/my-feature` (missing ticket ID)
-- ❌ `SYOS-123-feature` (wrong prefix order)
 
 **Create branch**:
 
@@ -161,30 +282,100 @@ git checkout -b feature/SYOS-XXX-description
 git checkout -b feature/SYOS-123-add-user-auth
 ```
 
----
+#### Mode 2: Project-Based Naming
 
-### Step 3: Verify Branch Created
+**Format**: `feature/descriptive-name` (4 words max)
+
+**When to use**: Working on a project with multiple tickets
+
+**Examples**:
+
+- ✅ `feature/design-system-v1-completed`
+- ✅ `feature/multi-workspace-auth`
+- ✅ `feature/team-access-permissions`
+- ✅ `feature/ai-docs-system`
+- ❌ `feature/design-system-version-one-completed` (too long, 5 words)
+- ❌ `feature/Design System V1` (spaces, uppercase)
+
+**Create branch**:
 
 ```bash
-# Confirm you're on the new branch
+# Use descriptive name (4 words max, kebab-case)
+git checkout -b feature/descriptive-name
+```
+
+**Example**:
+
+```bash
+# For Design System project completion
+git checkout -b feature/design-system-v1-completed
+```
+
+**Best Practices** (from Git community):
+
+- **Be specific**: `design-system-v1-completed` better than `design-system`
+- **Use verbs**: `add-user-auth` better than `user-auth`
+- **Keep it short**: 4 words maximum for readability
+- **Avoid dates**: Don't include dates (e.g., `design-system-2025`)
+
+---
+
+### Step 4: Verify Branch Created and Up-to-Date (MANDATORY)
+
+**ALWAYS verify after creating branch:**
+
+```bash
+# 1. Confirm you're on the new branch
 git branch
 # * should show your new branch
 
-# Verify branch name matches convention
+# 2. Verify branch name matches convention
 git branch --show-current
+
+# 3. Verify branch is based on latest main
+git log origin/main..HEAD --oneline
+# Should show no output (branch matches main, no commits yet)
+
+# 4. Verify main is still clean (nothing left behind)
+git checkout main
+git status
+# Should show "working tree clean"
+
+git log HEAD..origin/main --oneline
+# Should show no output (main matches origin/main)
+
+git log origin/main..HEAD --oneline
+# Should show no output (no commits on main)
+
+# 5. Switch back to your new branch
+git checkout feature/branch-name
+
+# 6. Verify branch is ready for work
+git status
+# Should show "working tree clean" (ready for new changes)
 ```
+
+**Critical Checks:**
+
+- ✅ **New branch exists** and is checked out
+- ✅ **Branch is up-to-date** with origin/main (no commits yet)
+- ✅ **Main is clean** (no uncommitted changes left behind)
+- ✅ **Main matches origin/main** (no local commits on main)
+- ✅ **New branch is ready** for work (clean working tree)
 
 ---
 
 ## Why This Matters
 
-### Linear Integration
+### Linear Integration (Ticket-Based Branches)
 
 **Branch names with ticket IDs auto-link to Linear issues:**
 
 - GitHub integration detects `SYOS-123` in branch name
 - PRs automatically link to Linear ticket
 - Workflow states update automatically
+
+**Note**: Project-based branches don't auto-link to tickets, but can reference project in PR description.
 
 **See**: `dev-docs/3-resources/guides/linear-github-integration.md` for complete integration details
 
@@ -202,16 +393,49 @@ git branch --show-current
 
 ## Common Mistakes
 
-### ❌ Missing Ticket ID
+### ❌ Too Long Branch Name
 
 ```bash
-# WRONG: No ticket ID
-git checkout -b feature/add-user-auth
+# WRONG: More than 4 words
+git checkout -b feature/design-system-version-one-completed-implementation
 ```
 
-**Fix**: Always include ticket ID: `feature/SYOS-123-add-user-auth`
+**Fix**: Keep it short (4 words max): `feature/design-system-v1-completed`
 
 ---
+
+### ❌ Wrong Format (Spaces, Uppercase)
+
+```bash
+# WRONG: Spaces and uppercase
+git checkout -b feature/Design System V1 Completed
+```
+
+**Fix**: Use kebab-case: `feature/design-system-v1-completed`
+
+---
+
+### ❌ Missing Prefix
+
+```bash
+# WRONG: No prefix
+git checkout -b design-system-v1-completed
+```
+
+**Fix**: Always include prefix: `feature/design-system-v1-completed`
+
+---
+
+### ❌ Ticket ID Required When Not Needed
+
+```bash
+# WRONG: Adding ticket ID to project-based branch
+git checkout -b feature/SYOS-123-design-system-v1-completed
+```
+
+**Fix**: For project-based branches, use descriptive name: `feature/design-system-v1-completed`
+
+**Note**: Only use ticket ID format when working on a single ticket.
 
 ### ❌ Wrong Prefix Order
 
@@ -235,9 +459,26 @@ git checkout -b feature/SYOS-123-new-feature
 **Fix**: Always create from `main`:
 
 ```bash
+# 1. Switch to main
 git checkout main
+
+# 2. Ensure main is up-to-date
 git pull origin main
+
+# 3. Verify main is clean and up-to-date
+git status
+# Should show "working tree clean"
+git log HEAD..origin/main --oneline
+# Should show no output (main matches origin/main)
+
+# 4. Create branch from clean, up-to-date main
 git checkout -b feature/SYOS-123-new-feature
+
+# 5. Verify branch created and main is still clean
+git checkout main
+git status
+# Should show "working tree clean"
+git checkout feature/SYOS-123-new-feature
 ```
 
 ---
@@ -258,24 +499,55 @@ git commit -m "feat: my feature"
 **If uncommitted:**
 
 ```bash
-# Create branch from current state (changes come with you)
-git checkout -b feature/SYOS-123-my-feature
+# 1. Create branch from current state (changes come with you)
+git checkout -b feature/branch-name
+
+# 2. Verify changes moved with you
+git status
+# Should show your uncommitted changes
+
+# 3. Commit your changes
 git add .
-git commit -m "feat: my feature"
+git commit -m "feat: description"
+
+# 4. Verify main is clean (nothing left behind)
+git checkout main
+git status
+# Should show "working tree clean"
+
+# 5. Switch back to your branch
+git checkout feature/branch-name
 ```
 
 **If already committed:**
 
 ```bash
-# Create branch from current state (includes commits)
-git checkout -b feature/SYOS-123-my-feature
+# 1. Note commit hash(es) to move
+git log origin/main..HEAD --oneline
 
-# Reset main to clean state
+# 2. Create branch from current state (includes commits)
+git checkout -b feature/branch-name
+
+# 3. Verify commits are on new branch
+git log origin/main..HEAD --oneline
+# Should show your commits
+
+# 4. Reset main to clean state (matches origin/main)
 git checkout main
 git reset --hard origin/main
 
-# Switch back to your branch (commits are safe)
-git checkout feature/SYOS-123-my-feature
+# 5. Verify main is clean and matches origin
+git status
+# Should show "working tree clean"
+git log HEAD..origin/main --oneline
+# Should show no output (main matches origin/main)
+
+# 6. Switch back to your branch (commits are safe)
+git checkout feature/branch-name
+
+# 7. Verify commits are still on your branch
+git log origin/main..HEAD --oneline
+# Should show your commits
 ```
 
 **Prevention**: Always create branch BEFORE making changes.
@@ -286,7 +558,10 @@ git checkout feature/SYOS-123-my-feature
 
 **Complete Git Workflow**: `dev-docs/2-areas/development/git-workflow.md`
 
-**Branch Naming Pattern**: `{prefix}/{SYOS-XXX}-{description}`
+**Branch Naming Patterns**:
+
+- **Ticket-based**: `{prefix}/{SYOS-XXX}-{description}`
+- **Project-based**: `{prefix}/{descriptive-name}` (4 words max)
 
 **Prefixes**:
 
@@ -294,7 +569,12 @@ git checkout feature/SYOS-123-my-feature
 - `fix/` - Bug fixes
 - `docs/` - Documentation updates
 
-**Required**: Linear ticket ID (`SYOS-XXX`)
+**Rules**:
+
+- Maximum 4 words
+- Kebab-case (lowercase, hyphens)
+- Action-focused (describe what you're accomplishing)
+- Ticket ID optional (use for single-ticket work, omit for projects)
 
 ---
 
@@ -304,13 +584,15 @@ After creating branch:
 
 1. **Make changes** - Edit files, test locally
 2. **Commit changes** - `git add . && git commit -m "feat: description"`
-3. **Push branch** - `git push origin feature/SYOS-XXX-description`
+3. **Push branch** - `git push origin feature/branch-name`
 4. **Create PR** - Use `/pr` command for PR creation workflow
+   - For project-based branches: Reference project in PR description
+   - For ticket-based branches: PR will auto-link to Linear ticket
 
 **See**: `dev-docs/2-areas/development/git-workflow.md` for complete workflow
 
 ---
 
 **Last Updated**: 2025-01-XX  
-**Purpose**: Ensure consistent branch creation with Linear integration  
+**Purpose**: Flexible branch creation supporting both ticket-based and project-based workflows  
 **Related**: `/start` (ticket creation), `/pr` (PR workflow), `git-workflow.md` (complete guide)
