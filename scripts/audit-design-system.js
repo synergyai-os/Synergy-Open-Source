@@ -114,7 +114,7 @@ function getChangedFiles() {
 		return [...new Set([...staged, ...unstaged])].filter((file) =>
 			FILE_EXTENSIONS.some((ext) => file.endsWith(ext))
 		);
-	} catch (error) {
+	} catch (_error) {
 		return [];
 	}
 }
@@ -183,7 +183,7 @@ function isException(violation) {
 /**
  * Detect violation type
  */
-function detectViolationType(match, line) {
+function detectViolationType(match, _line) {
 	const violation = match[0];
 
 	if (isException(violation)) {
@@ -287,7 +287,7 @@ function scanFile(filePath) {
 		const line = lines[i];
 
 		// Check all patterns
-		for (const [patternName, pattern] of Object.entries(PATTERNS)) {
+		for (const [_patternName, pattern] of Object.entries(PATTERNS)) {
 			const matches = [...line.matchAll(pattern)];
 
 			for (const match of matches) {
@@ -485,7 +485,7 @@ function main() {
 	};
 
 	// Generate reports
-	const jsonPath = generateJSONReport(report);
+	const _jsonPath = generateJSONReport(report);
 	const mdPath = generateMarkdownReport(report);
 
 	// Output summary

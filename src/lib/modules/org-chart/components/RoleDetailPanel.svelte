@@ -3,7 +3,7 @@
 	import type { UseOrgChart } from '../composables/useOrgChart.svelte';
 	import RoleDetailHeader from './RoleDetailHeader.svelte';
 	import CategoryHeader from './CategoryHeader.svelte';
-	import { Avatar } from '\$lib/components/atoms';
+	import { Avatar } from '$lib/components/atoms';
 	import StackedPanel from '$lib/components/organisms/StackedPanel.svelte';
 
 	let { orgChart }: { orgChart: UseOrgChart } = $props();

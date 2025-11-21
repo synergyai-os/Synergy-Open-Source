@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { DropdownMenu } from 'bits-ui';
 	import InboxFilterMenu from './InboxFilterMenu.svelte';
-	import { SidebarToggle } from '\$lib/components/organisms';
+	import { SidebarToggle } from '$lib/components/organisms';
 
 	type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 

@@ -10,7 +10,6 @@
 		type: InboxItemType;
 		title: string; // Enriched from query
 		snippet: string; // Enriched from query
-		tags: string[]; // Enriched from query
 		createdAt?: number; // Timestamp for date display
 	};
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button } from '\$lib/components/atoms';
+	import { Button } from '$lib/components/atoms';
 	import { resolve } from '$app/paths';
 
 	let {

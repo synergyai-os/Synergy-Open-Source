@@ -7,7 +7,7 @@
 	// Debug flag for overlay logging (set to false to disable production logs)
 	const DEBUG_OVERLAY_LOGGING = import.meta.env.DEV;
 	import OrganizationModals from '$lib/modules/core/organizations/components/OrganizationModals.svelte';
-	import { LoadingOverlay } from '\$lib/components/atoms';
+	import { LoadingOverlay } from '$lib/components/atoms';
 	import { resolveRoute } from '$lib/utils/navigation';
 	import { setContext } from 'svelte';
 	import { useOrganizations } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';

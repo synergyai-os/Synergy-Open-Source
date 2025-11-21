@@ -8,7 +8,7 @@
 	import ResizableSplitter from '$lib/components/organisms/ResizableSplitter.svelte';
 	import SidebarHeader from '$lib/modules/core/components/SidebarHeader.svelte';
 	import CleanReadwiseButton from '$lib/modules/core/components/CleanReadwiseButton.svelte';
-	import { LoadingOverlay } from '\$lib/components/atoms';
+	import { LoadingOverlay } from '$lib/components/atoms';
 	import type {
 		OrganizationsModuleAPI,
 		OrganizationSummary

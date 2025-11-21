@@ -27,6 +27,7 @@
 | `/linear-subtickets` | 1 line    | 180 lines  | +179 lines | ✅ Enhanced with complete workflow guide                          |
 | `/branch`            | 1 line    | 205 lines  | +204 lines | ✅ New command - Branch creation workflow                         |
 | `/manager`           | New       | 450 lines  | N/A        | ✅ New command - Manager/mentor role guide                        |
+| `/design-manager`    | New       | ~670 lines | N/A        | ✅ New command - Design system manager (inherits /manager)        |
 | `/test-manual`       | 1 line    | 45 lines   | +44 lines  | ✅ Enhanced - Concise manual test instructions                    |
 | `/task-template`     | New       | 382 lines  | N/A        | ✅ New command - Pre-coding analysis workflow                     |
 
@@ -159,6 +160,7 @@
 - **`/go`** - Pattern-first implementation workflow (~280 lines)
 - **`/root-cause`** - Debug workflow (239 lines)
 - **`/manager`** - Manager/mentor role guide (450 lines)
+- **`/design-manager`** - Design system manager (inherits /manager, ~670 lines)
 - **`/test-manual`** - Generate concise manual test instructions (45 lines)
 
 ### Project Workflow Commands
@@ -492,6 +494,87 @@ All three chats work independently, no coordination needed.
 
 ---
 
-**Last Updated**: 2025-11-20  
+## 🎨 Design Manager Command
+
+**Purpose**: Specialized manager for design system work - Product Design expertise with deep Design Systems knowledge.
+
+**Created**: 2025-11-21 (New, ~670 lines)
+
+**Inherits from**: `/manager` - Core workflow patterns (role boundaries, coordination, state checking)
+
+**Adds**: Design-specific expertise:
+
+- **Design System Context** - Auto-loads SynergyOS design docs (design-tokens.md, component-architecture.md, design-principles.md)
+- **4-Layer Architecture** - Tokens → Utilities → Atoms → Molecules/Organisms
+- **Atomic Design Structure** - Component classification (atoms/molecules/organisms)
+- **Component Classification Decision Tree** - Where to place components
+- **Design Decision Framework** - Token usage, composition patterns, accessibility
+- **Context7 Integration** - Validate against Material UI, Chakra UI, Radix UI, Bits UI
+- **Design Quality Checklist** - Token usage, accessibility (WCAG 2.1 AA), cascade testing
+- **Design-Specific Workflows** - Component classification, token validation, cascade testing, accessibility audit
+
+**When to Use**:
+
+- ✅ **Design System Work** - Tokens, components, utilities
+- ✅ **UI/UX Decisions** - Layout, spacing, colors, typography
+- ✅ **Component Architecture** - Atoms, molecules, organisms
+- ✅ **Accessibility** - WCAG, ARIA, keyboard nav, focus states
+- ✅ **Design Token Audits** - Hardcoded values → tokens migration
+- ✅ **Component Refactoring** - Button misuse → specialized components
+- ✅ **Cascade Validation** - Token changes propagate automatically?
+- ✅ **Dark Mode** - Automatic light/dark mode switching
+- ✅ **Mobile Responsive** - Breakpoints, container padding
+
+**When NOT to Use** (use `/manager` instead):
+
+- ❌ Backend work (Convex functions, database schema)
+- ❌ DevOps (CI/CD, deployment, testing)
+- ❌ General project coordination
+- ❌ Non-design technical work
+
+**Key Features**:
+
+- **Design-Specific Language** - Tokens, atoms, molecules, accessibility (not variables, files, modules)
+- **Context7 Validation** - Industry standards from Material UI, Chakra UI, Radix UI
+- **Accessibility First** - WCAG 2.1 AA compliance mandatory
+- **Cascade Testing** - Token changes must propagate automatically
+- **Quality Gates** - Token usage, accessibility, cascade, documentation
+
+**Why This Command**:
+
+- Design decisions affect entire app (one wrong token creates cascading issues)
+- Fresh context problem - Generic `/manager` lacks design expertise
+- Quality insurance - Catches design mistakes before they ship
+- Specialized domain - Tokens, atomic design, Bits UI, accessibility require expertise
+
+**Integration with Existing Commands**:
+
+- **Inherits** - `/manager` core patterns (workflow coordination, state checking)
+- **References** - Design docs (design-tokens.md, component-architecture.md)
+- **Uses** - Context7 for design library validation
+- **Outputs** - Design-specific recommendations and quality checks
+
+**Example Workflow**:
+
+```
+User: "Done with SYOS-422 (Extract Design System Patterns)"
+
+Design Manager:
+1. Check component classification (TagSelector → Atom)
+2. Validate token usage (semantic tokens ✅)
+3. Check accessibility (ARIA labels ✅)
+4. Run cascade test (token changes propagate ✅)
+5. Validate with Context7 (Material UI patterns ✅)
+
+✅ SYOS-422 acknowledged
+
+Next: Run cascade test, then start SYOS-423
+```
+
+**See**: SYOS-422 - First ticket managed by `/design-manager`
+
+---
+
+**Last Updated**: 2025-11-21  
 **Purpose**: Document command optimizations and best practices  
-**Latest Change**: Added Manual Multitasking documentation (SYOS-412)
+**Latest Change**: Added `/design-manager` command for design system work (SYOS-422)

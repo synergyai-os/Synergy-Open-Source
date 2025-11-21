@@ -11,7 +11,7 @@
 	import { toast } from 'svelte-sonner';
 	import type { Id } from '$lib/convex';
 	import { Button, ToggleGroup } from '$lib/components/ui';
-	import { ToggleSwitch } from '\$lib/components/molecules';
+	import { ToggleSwitch } from '$lib/components/molecules';
 	import AttendeeSelector from './AttendeeSelector.svelte';
 
 	type Attendee = {
@@ -156,7 +156,7 @@
 	});
 
 	// Helper: Convert daysOfWeek string[] to number[] for calculations
-	const daysOfWeekNumbers = $derived(state.recurrence.daysOfWeek.map((day) => parseInt(day, 10)));
+	const _daysOfWeekNumbers = $derived(state.recurrence.daysOfWeek.map((day) => parseInt(day, 10)));
 
 	// Helper message for weekly recurrence
 	const weeklyScheduleMessage = $derived.by(() => {

@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { SplitButton } from '\$lib/components/atoms';
-	import { IconButton } from '\$lib/components/atoms';
-	import { ActionMenu } from '\$lib/components/molecules';
+	import { SplitButton } from '$lib/components/atoms';
+	import { IconButton } from '$lib/components/atoms';
+	import { ActionMenu } from '$lib/components/molecules';
 
 	type Props = {
 		circleName: string;

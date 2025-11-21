@@ -4,7 +4,7 @@
 	import MetricsForecast from '$lib/components/ai-tools/MetricsForecast.svelte';
 	import ToolComparisonTable from '$lib/components/ai-tools/ToolComparisonTable.svelte';
 	import { verifiedTools } from '$lib/services/metricsService';
-	import { ThemeToggle } from '\$lib/components/organisms';
+	import { ThemeToggle } from '$lib/components/organisms';
 	import { fade, fly, scale, slide } from 'svelte/transition';
 	import { quintOut, elasticOut } from 'svelte/easing';
 	import { onMount } from 'svelte';

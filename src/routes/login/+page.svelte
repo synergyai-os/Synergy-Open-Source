@@ -3,8 +3,8 @@
 	import { goto } from '$app/navigation';
 	import { getContext } from 'svelte';
 	import { Button, FormInput } from '$lib/components/ui';
-	import { RateLimitError } from '\$lib/components/organisms';
-	import { LoadingOverlay } from '\$lib/components/atoms';
+	import { RateLimitError } from '$lib/components/organisms';
+	import { LoadingOverlay } from '$lib/components/atoms';
 	import type { UseLoadingOverlayReturn } from '$lib/modules/core/composables/useLoadingOverlay.svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
 

@@ -25,8 +25,10 @@ npm run lint || {
 }
 
 # Additional check: Grep for hardcoded Tailwind in changed files
-# Use process substitution to run while loop in main shell (avoids subshell issue)
+# Use a temporary file to avoid process substitution (works in /bin/sh)
 validation_error=0
+temp_file=$(mktemp)
+git diff --cached --name-only | grep -E '\.(svelte|ts)$' > "$temp_file"
 while IFS= read -r file; do
 	# Check for [XXpx], [XXrem], [XX%], etc. in class attributes
 	if git diff --cached "$file" | grep -E 'class="[^"]*\[([0-9]+(px|rem|%|vh|vw|em|ch))' > /dev/null; then
@@ -41,7 +43,8 @@ while IFS= read -r file; do
 		echo "See: dev-docs/2-areas/design/design-tokens.md"
 		validation_error=1
 	fi
-done < <(git diff --cached --name-only | grep -E '\.(svelte|ts)$')
+done < "$temp_file"
+rm -f "$temp_file"
 
 # Exit with error code if validation failed
 if [ "$validation_error" -eq 1 ]; then
