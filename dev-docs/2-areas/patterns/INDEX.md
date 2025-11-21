@@ -19,12 +19,14 @@
 | Composable receives stale values                                                                  | Pass functions `() => value`                                                 | [svelte-reactivity.md#L80](svelte-reactivity.md#L80)                |
 | Component shows stale/old data                                                                    | Key on data, not ID                                                          | [svelte-reactivity.md#L140](svelte-reactivity.md#L140)              |
 | `.ts` file: "Cannot assign to constant"                                                           | Rename to `.svelte.ts`                                                       | [svelte-reactivity.md#L180](svelte-reactivity.md#L180)              |
+| Component classes don't update when prop changes (selected state, conditional styling)          | Use `$derived` for class string concatenation                                | [svelte-reactivity.md#L700](svelte-reactivity.md#L700)              |
 | 500 error with ProseMirror/Monaco                                                                 | Guard with `{#if browser}`                                                   | [svelte-reactivity.md#L400](svelte-reactivity.md#L400)              |
 | Event listeners don't fire (no errors)                                                            | Browser check inside $effect                                                 | [svelte-reactivity.md#L500](svelte-reactivity.md#L500)              |
 | Build fails: ENOENT file not found                                                                | Remove phantom dependencies                                                  | [svelte-reactivity.md#L550](svelte-reactivity.md#L550)              |
 | Server crashes on startup / 500 on all routes                                                     | Remove top-level await in config                                             | [svelte-reactivity.md#L600](svelte-reactivity.md#L600)              |
 | Page freezes, effect_update_depth_exceeded error                                                  | Use untrack() or plain vars in $effect                                       | [svelte-reactivity.md#L700](svelte-reactivity.md#L700)              |
 | Component has custom CSS/hardcoded values                                                         | Use design tokens (app UI: px-inbox-header, marketing: py-marketing-section) | [ui-patterns.md#L780](ui-patterns.md#L780)                          |
+| Audit finds violations but semantic token doesn't exist (rounded-avatar, text-success missing) | Add token systematically: @theme → @utility → document | [ui-patterns.md#L720](ui-patterns.md#L720) |
 | Navigation breaks in production with base path, ESLint no-navigation-without-resolve errors      | Use resolveRoute() for all goto() and href (except external/static files)    | [ui-patterns.md#L1870](ui-patterns.md#L1870)                        |
 | TypeScript errors "Argument of type '[\"/settings/account\"]' is not assignable" with resolveRoute | Use wrapper function with type assertion for routes not in strict type manifest | [ui-patterns.md#L1920](ui-patterns.md#L1920)                        |
 | Navbar/header stays white in dark mode                                                            | Remove non-existent CSS vars (--color-bg-base-rgb)                           | [ui-patterns.md#L828](ui-patterns.md#L828)                          |
@@ -156,6 +158,8 @@
 | Tests fail with 401/500 "Session not found" from prev tests                   | Skip gracefully if session invalid (test.skip())                      | [ci-cd.md#L260](ci-cd.md#L260)                             |
 | E2E tests hit rate limits with "Too many requests" errors from external APIs  | Pass skipEmail parameter from SvelteKit server (don't set E2E_TEST_MODE in Convex env) | [ci-cd.md#L1320](ci-cd.md#L1320)                             |
 | Verification emails not sent in production, E2E_TEST_MODE set in Convex env  | Pass skipEmail parameter from SvelteKit server instead of Convex env var | [ci-cd.md#L1320](ci-cd.md#L1320)                             |
+| AI creates sloppy code, doesn't follow systematic workflows, reinvents solutions | Use task-specific templates (/bug-fix, /code-cleanup, /code-review) with systematic workflows | [ai-development.md#L10](ai-development.md#L10)              |
+| AI agents waste tokens loading outdated docs, reference outdated features, root directory cluttered with 20+ markdown files | Organize docs into CORE (active) vs ARCHIVE (historical), hide archive from AI via .cursorignore | [ai-development.md#L200](ai-development.md#L200)            |
 
 ## 🟢 REFERENCE Patterns (Best Practices)
 
@@ -179,6 +183,7 @@
 | N vs C keyboard shortcuts   | N=new, C=command center                                     | [ui-patterns.md#L580](ui-patterns.md#L580)               |
 | Control panel system        | Toolbar/popover/embedded controls                           | [ui-patterns.md#L620](ui-patterns.md#L620)               |
 | Atomic components           | Reusable KeyboardShortcut, FormInput                        | [ui-patterns.md#L680](ui-patterns.md#L680)               |
+| Design token cleanup        | Atomic-first strategy + audit + utility creation            | [ui-patterns.md#L710](ui-patterns.md#L710)               |
 | ProseMirror integration     | Rich text with AI detection                                 | [ui-patterns.md#L730](ui-patterns.md#L730)               |
 | Compact modal design        | Linear-style tight spacing, input-sized fields              | [ui-patterns.md#L830](ui-patterns.md#L830)               |
 | Inline CRUD forms               | Add/edit/delete in list + hover actions + single $state | [ui-patterns.md#L2800](ui-patterns.md#L2800)             |
@@ -205,6 +210,7 @@
 | Ticket writing for AI       | User stories + technical detail for parallel AI execution   | [ticket-writing.md](ticket-writing.md)                   |
 | Split overlapping tickets   | Separate by technical boundary for parallel implementation  | [ticket-writing.md](ticket-writing.md)                   |
 | AI-ready ticket structure   | Clear scope, files, patterns, success criteria              | [ticket-writing.md](ticket-writing.md)                   |
+| Cursor commands lack structure, inconsistent format, hard to follow | Use standard command structure pattern (Purpose → When to Use → Workflow → Critical Rules) | [ai-development.md#L50](ai-development.md#L50)              |
 | Module API contracts        | Create interface for composables to enable loose coupling   | [modularity-refactoring-analysis.md#L84](../architecture/modularity-refactoring-analysis.md#L84) |
 | Components depend on internal types, refactoring breaks dependent modules | Migrate to public API interfaces instead of ReturnType<typeof composable> | [convex-integration.md#L3650](convex-integration.md#L3650) |
 | Creating new module API contract (InboxModuleAPI, CirclesModuleAPI) | Follow pattern: create api.ts, expose composables/types, update manifest | [convex-integration.md#L3900](convex-integration.md#L3900) |
@@ -224,6 +230,7 @@
 - **Analytics (PostHog)** → [analytics.md](analytics.md)
 - **CI/CD & Tooling** → [ci-cd.md](ci-cd.md)
 - **Ticket Writing** → [ticket-writing.md](ticket-writing.md)
+- **AI Development Workflow** → [ai-development.md](ai-development.md)
 
 ---
 
