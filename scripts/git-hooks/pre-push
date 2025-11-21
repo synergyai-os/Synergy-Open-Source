@@ -1,0 +1,54 @@
+#!/bin/sh
+# Pre-push hook - Validate branch naming conventions
+#
+# This hook validates branch names follow SynergyOS conventions:
+# - Feature branches: feature/SYOS-XXX-description or feature/descriptive-name
+# - Fix branches: fix/SYOS-XXX-description
+# - Docs branches: docs/SYOS-XXX-description
+#
+# Main/master branches skip validation.
+
+branch_name=$(git rev-parse --abbrev-ref HEAD)
+
+# Skip validation for main branches
+if [ "$branch_name" = "main" ] || [ "$branch_name" = "master" ]; then
+  exit 0
+fi
+
+# Check for conventional prefix
+if ! echo "$branch_name" | grep -qE '^(feature|fix|docs|chore)/'; then
+  echo ""
+  echo "❌ Invalid branch name: $branch_name"
+  echo ""
+  echo "Branch must start with one of:"
+  echo "  - feature/ (new features)"
+  echo "  - fix/ (bug fixes)"
+  echo "  - docs/ (documentation)"
+  echo "  - chore/ (maintenance)"
+  echo ""
+  echo "Examples:"
+  echo "  ✅ feature/SYOS-123-add-user-auth"
+  echo "  ✅ feature/design-system-v1-completed"
+  echo "  ✅ fix/SYOS-456-sidebar-navigation-bug"
+  echo ""
+  exit 1
+fi
+
+# Check for ticket ID (SYOS-XXX) - warn but allow override
+if ! echo "$branch_name" | grep -qE 'SYOS-[0-9]+'; then
+  echo ""
+  echo "⚠️  WARNING: Branch name missing ticket ID (SYOS-XXX)"
+  echo "Branch: $branch_name"
+  echo ""
+  echo "For project-based branches, this is acceptable."
+  echo "For ticket-based work, include ticket ID: feature/SYOS-XXX-description"
+  echo ""
+  read -p "Continue push anyway? (yes/no): " confirm
+  if [ "$confirm" != "yes" ]; then
+    echo "❌ Push aborted. Include ticket ID in branch name if working on a specific ticket."
+    exit 1
+  fi
+fi
+
+exit 0
+

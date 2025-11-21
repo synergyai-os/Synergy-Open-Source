@@ -192,7 +192,51 @@ fi
 
 ---
 
+### Step 6.5: Confirm Branch Deletion (MANDATORY) ⚠️ **CRITICAL**
+
+**⚠️ BEFORE deleting branch, show summary and require explicit confirmation.**
+
+**Show Summary:**
+
+```
+📋 Branch Deletion Summary:
+   - Branch to delete: [branch-name]
+   - PR status: Merged ✅
+   - Extra commits: [count] (if any)
+   - Extra commits in PR: [yes/no] (if any)
+
+   What will happen:
+   1. Local branch [branch-name] will be deleted
+   2. Remote branch already deleted (verified in Step 5)
+   3. Work is safe (merged to main)
+
+   ⚠️ This action cannot be undone (though branch can be recreated from main if needed)
+```
+
+**Require Explicit Confirmation:**
+
+```
+Delete local branch [branch-name]? (yes/no)
+```
+
+**⚠️ CRITICAL RULES:**
+
+- ❌ **NEVER proceed** without showing summary
+- ❌ **NEVER proceed** without explicit user confirmation
+- ❌ **NEVER assume** user wants to delete ("yes" is implicit)
+- ✅ **ALWAYS wait** for user response before deleting branch
+- ✅ **ALWAYS show** what will be deleted before doing it
+
+**If user confirms "yes"** → Proceed to Step 7  
+**If user says "no"** → Abort deletion, keep branch
+
+**Why**: Prevents accidental branch deletion, ensures user understands what will happen, builds trust.
+
+---
+
 ### Step 7: Delete Local Branch
+
+**After user confirms deletion (Step 6.5):**
 
 **Safely delete local branch:**
 

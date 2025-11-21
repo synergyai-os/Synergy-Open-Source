@@ -44,14 +44,65 @@ Once I have a ticket ID, I'll proceed with implementation.
 
 ---
 
+## 🌿 Branch Verification (Before Implementation)
+
+**Purpose**: Verify you're on the correct branch before starting implementation to prevent work loss.
+
+**When**: After Linear ticket check, before checking patterns.
+
+**Workflow**:
+
+1. **Check current branch**:
+
+   ```bash
+   git branch --show-current
+   ```
+
+2. **Extract ticket ID from branch name** (if ticket-based branch):
+   - Pattern: `feature/SYOS-XXX-description` or `fix/SYOS-XXX-description`
+   - Extract: `SYOS-XXX` from branch name
+
+3. **Compare ticket ID**:
+   - If branch contains ticket ID → Compare with current ticket ID
+   - If match → ✅ Continue with implementation
+   - If mismatch → ⚠️ Warn user
+
+4. **If branch doesn't match ticket**:
+
+   ```
+   ⚠️ Warning: You're on branch [branch-name] but implementing ticket SYOS-XXX
+
+   Current branch: [branch-name]
+   Ticket ID: SYOS-XXX
+
+   This could cause work to be committed to the wrong branch.
+
+   Options:
+   1. Switch to correct branch: Use /branch command to create feature/SYOS-XXX-description
+   2. Continue anyway: If this is intentional (e.g., project-based branch)
+
+   Proceed? (yes/no)
+   ```
+
+5. **If branch matches or user confirms**:
+   - Continue with implementation workflow
+   - Note: Branch verification passed
+
+**Why**: Prevents committing work to wrong branch, ensures work stays organized, reduces merge conflicts.
+
+**See**: `/branch` command for branch creation workflow
+
+---
+
 ## ✅ Implementation Workflow (MANDATORY)
 
 **Order of operations** (MUST follow this sequence):
 
-1. **Check Patterns First** ⭐ **CRITICAL**
-2. **Check Reference Code** (if available from `/start`)
-3. **Use Context7** (if <95% confident)
-4. **Implement Solution**
+1. **Branch Verification** ⭐ **CRITICAL** (see above)
+2. **Check Patterns First** ⭐ **CRITICAL**
+3. **Check Reference Code** (if available from `/start`)
+4. **Use Context7** (if <95% confident)
+5. **Implement Solution**
 
 ---
 

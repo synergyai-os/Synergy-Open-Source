@@ -8,6 +8,10 @@
 - ✅ **Always ensure** new branch is up-to-date with `origin/main`
 - ✅ **Always check** `main` is clean before and after branch creation
 - ✅ **Always verify** branch is ready for work after creation
+- ✅ **Always show summary** before any branch operation (current branch, changes, what will happen)
+- ✅ **Always present options** when uncommitted changes exist (commit to branch, stash, abort)
+- ✅ **Always require explicit confirmation** before proceeding (never assume "yes")
+- ✅ **Always wait** for user response before executing branch operations
 
 ---
 
@@ -84,7 +88,11 @@ git log origin/main..HEAD --oneline
 
 ⚠️ **You've been working on `main` directly** - This violates trunk-based development.
 
+**⚠️ BEFORE proceeding, show summary and require confirmation (see Step 1.5)**
+
 **Option A: Move uncommitted changes to new branch** (Recommended)
+
+**After user confirms "yes" or "A":**
 
 ```bash
 # 1. Create branch from current state (changes come with you)
@@ -109,6 +117,8 @@ git checkout feature/branch-name
 
 **Option B: Stash changes, create branch, then apply**
 
+**After user confirms "B":**
+
 ```bash
 # 1. Save changes temporarily
 git stash
@@ -132,9 +142,27 @@ git add .
 git commit -m "feat: description"
 ```
 
+**Option C: Abort**
+
+**After user confirms "C" or "no":**
+
+```
+Branch creation aborted. Resolve uncommitted changes first, or choose a different option.
+```
+
 #### Scenario B: Committed Changes on `main`
 
 ⚠️ **You've committed to `main` directly** - Need to move commits to branch.
+
+**⚠️ BEFORE proceeding, show summary and require confirmation (see Step 1.5)**
+
+**Summary should include:**
+
+- List of commits that will be moved
+- Warning that main will be reset (destructive operation)
+- What will happen step-by-step
+
+**After user confirms "yes":**
 
 ```bash
 # 1. Note the commit hash(es) you want to move
@@ -169,6 +197,17 @@ git log origin/main..HEAD --oneline
 
 ⚠️ **Local main is behind origin/main** - Need to update before creating branch.
 
+**⚠️ BEFORE proceeding, show summary and require confirmation (see Step 1.5)**
+
+**Summary should include:**
+
+- Current branch: main
+- Status: Clean (no uncommitted changes)
+- Issue: Local main is behind origin/main
+- What will happen: Pull latest changes, then create branch
+
+**After user confirms "yes":**
+
 ```bash
 # 1. Pull latest changes
 git pull origin main
@@ -184,11 +223,33 @@ git log HEAD..origin/main --oneline
 
 ✅ **Main is clean and up-to-date** - Ready to create branch.
 
+**⚠️ BEFORE proceeding, show summary and require confirmation (see Step 1.5)**
+
+**Summary should include:**
+
+- Current branch: main
+- Status: Clean and up-to-date
+- Action: Create new branch
+- Branch name: [proposed name]
+
+**After user confirms "yes":**
+
 Proceed to Step 2 below.
 
 #### Scenario E: On Another Branch
 
 ⚠️ **You're on a feature branch** - Need to switch to main first.
+
+**⚠️ BEFORE proceeding, show summary and require confirmation (see Step 1.5)**
+
+**Summary should include:**
+
+- Current branch: [feature branch name]
+- Uncommitted changes: [list if any]
+- Action: Switch to main, then create new branch
+- What will happen: Commit/stash changes, switch to main, pull latest, create branch
+
+**After user confirms "yes":**
 
 ```bash
 # 1. Check if you have uncommitted changes
@@ -208,6 +269,65 @@ git pull origin main
 
 # Proceed to Step 2
 ```
+
+---
+
+### Step 1.5: Show Summary and Require Explicit Confirmation (MANDATORY) ⚠️ **CRITICAL**
+
+**⚠️ NEVER proceed with branch operations without explicit user confirmation.**
+
+**After checking current state (Step 1), ALWAYS:**
+
+1. **Show Summary** (MANDATORY):
+   - Current branch name
+   - List of uncommitted changes (files modified/added/deleted)
+   - What will happen (step-by-step)
+   - Which option will be used (if multiple options exist)
+
+2. **Present Options** (if uncommitted changes exist):
+   - **Option A**: Move changes to new branch, then commit (recommended)
+   - **Option B**: Stash changes, create clean branch, then apply
+   - **Option C**: Abort branch creation
+
+3. **Require Explicit Confirmation** (MANDATORY):
+   - Show: "Proceed with Option A? (yes/no)"
+   - **WAIT for user response**
+   - **NEVER proceed without explicit "yes"**
+   - **NEVER assume user wants to proceed**
+
+**Example Summary Format:**
+
+```
+📋 Summary:
+   - Current branch: main
+   - Uncommitted changes: 2 files
+     • Modified: .cursor/commands/branch.md
+     • Untracked: ai-docs/tasks/SYOS-430-branch-safety-gates.md
+   - Action: Create feature/design-system-v1-completed
+   - What will happen:
+     1. Create branch from current state (changes come with you)
+     2. Switch to new branch
+     3. Commit changes on new branch
+     4. Verify main is clean
+
+Options:
+   A) Move changes to new branch, then commit (recommended)
+   B) Stash changes, create clean branch, then apply
+   C) Abort branch creation
+
+Which option? (A/B/C or yes/no for Option A)
+```
+
+**⚠️ CRITICAL RULES:**
+
+- ❌ **NEVER proceed** without showing summary
+- ❌ **NEVER proceed** without presenting options (if changes exist)
+- ❌ **NEVER proceed** without explicit user confirmation
+- ❌ **NEVER assume** user wants to proceed ("yes" is implicit)
+- ✅ **ALWAYS wait** for user response before executing any branch operations
+- ✅ **ALWAYS show** what will happen before doing it
+
+**Why**: Prevents work loss, builds trust, ensures user understands what will happen before AI acts.
 
 ---
 
