@@ -176,11 +176,11 @@ Bits UI provides headless primitives (behavior without styling). We wrap them wi
 ### Implementation Pattern
 
 ```svelte
-<!-- src/lib/components/ui/Button.svelte -->
+<!-- src/lib/components/atoms/Button.svelte -->
 <script lang="ts">
   import { Button as BitsButton } from 'bits-ui';
   import type { Snippet } from 'svelte';
-  import type { ButtonVariant, ButtonSize } from './types';
+  import type { ButtonVariant, ButtonSize } from '../types';
   
   type Props = {
     variant?: ButtonVariant;
@@ -234,7 +234,7 @@ Bits UI provides headless primitives (behavior without styling). We wrap them wi
 
 ### TypeScript Types
 
-All shared types live in `src/lib/components/ui/types.ts`:
+All shared types live in `src/lib/components/types.ts`:
 
 ```typescript
 import type { Snippet } from 'svelte';
@@ -251,7 +251,7 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
 export type WithChildren<T = {}> = T & { children: Snippet };
 ```
 
-Exported via `src/lib/components/ui/index.ts`:
+Exported via `src/lib/components/atoms/index.ts`:
 
 ```typescript
 export type * from './types';
@@ -358,15 +358,14 @@ When wrapping a Bits UI primitive:
 
 ### Reference Implementation
 
-**See**: `src/lib/components/ui/Button.svelte` - Complete example with variants, sizes, and design tokens
+**See**: `src/lib/components/atoms/Button.svelte` - Complete example with variants, sizes, and design tokens
 
 ### Related Components
 
-Future wrappers following this pattern:
-- Card (Dialog/Panel primitives)
-- Dropdown (DropdownMenu primitive)
-- Modal (Dialog primitive)
-- Select (Combobox primitive)
+Wrappers following this pattern are organized by complexity:
+- **Atoms**: Button, Badge, Icon, StatusPill, Checkbox, Switch, etc.
+- **Molecules**: Dropdown, Select, DatePicker, Combobox, etc.
+- **Organisms**: Dialog, Modal, Calendar, Command, etc.
 
 ---
 

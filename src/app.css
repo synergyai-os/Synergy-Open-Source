@@ -29,9 +29,18 @@
 	--spacing-4: 1rem; /* 16px = md */
 	--spacing-5: 1.25rem; /* 20px */
 	--spacing-6: 1.5rem; /* 24px = lg */
+	--spacing-chart-container: 1.5rem; /* 24px - mt-6 equivalent - margin-top for chart containers */
+	--spacing-chart-height: 5rem; /* 80px - h-20 equivalent - fixed height for chart containers */
+	--spacing-chart-bar-gap: 0.25rem; /* 4px - gap-1 equivalent - gap between chart bars */
+	--spacing-chart-item-gap: 0.375rem; /* 6px - gap-1.5 equivalent - gap between chart legend items */
 	--spacing-8: 2rem; /* 32px = xl */
 	--spacing-10: 2.5rem; /* 40px */
 	--spacing-12: 3rem; /* 48px = 2xl */
+
+	/* Error Page Spacing Tokens */
+	--spacing-error-page-y: 3rem; /* 48px - py-12 equivalent - vertical padding for error pages */
+	--spacing-error-page-gap: 1.5rem; /* 24px - space-y-6 equivalent - gap between error page sections */
+	--spacing-card-compact: 0.75rem; /* 12px - p-3 equivalent - compact card padding */
 	--spacing-16: 4rem; /* 64px = 3xl */
 	--spacing-20: 5rem; /* 80px */
 	--spacing-24: 6rem; /* 96px = 4xl */
@@ -189,6 +198,7 @@
 	--border-radius-dialog: var(
 		--border-radius-card
 	); /* 14px - dialog border radius (same as cards) */
+	--border-radius-dialog-fullscreen: 0; /* 0px - fullscreen dialog border radius (no rounding) */
 	--min-width-dropdown: 11.25rem; /* 180px - min-w-dropdown equivalent - minimum width for dropdown menus */
 
 	/* Accordion Component Tokens */
@@ -207,6 +217,7 @@
 	--font-size-h3: 1.25rem; /* 20px - text-h3 equivalent */
 	--font-size-body: 1rem; /* 16px - text-body equivalent - base text size */
 	--font-size-small: 0.875rem; /* 14px - text-small equivalent - small text (text-sm) */
+	--font-size-error-status: 7.5rem; /* 120px - text-[120px] equivalent - large error status code display */
 	--font-weight-h1: 700;
 	--font-weight-h2: 600;
 	--font-weight-h3: 600;
@@ -281,6 +292,10 @@
 	--color-success-text: oklch(40% 0.15 150); /* green-700 - success text */
 	--color-success-bg: oklch(95% 0.05 150); /* green-50 - success background */
 
+	/* Warning Color Tokens */
+	--color-warning-text: oklch(70% 0.15 60); /* yellow-500 - warning text */
+	--color-warning-text-high: oklch(60% 0.15 30); /* orange-500 - high warning text */
+
 	/* Semantic Color Tokens - Sidebar Colors */
 	/* These change automatically based on .dark class on <html> */
 	--color-sidebar-bg: oklch(20% 0.002 247.839); /* gray-900 dark */
@@ -317,6 +332,11 @@
 	/* Panel Stack Navigation Tokens - Hierarchical panel navigation */
 	--spacing-panel-breadcrumb-width: 3rem; /* 48px - width of vertical breadcrumb bar */
 	--spacing-panel-breadcrumb-padding: 0.75rem; /* 12px - padding inside breadcrumb */
+	--spacing-sidebar-hover-zone: 0.5rem; /* 8px - width of sidebar hover zone when collapsed */
+	--width-settings-sidebar: 17.875rem; /* 286px - fixed width for settings sidebar */
+	--spacing-section-label-gap: 0.375rem; /* 6px - mb-1.5 equivalent - gap below section labels */
+	--spacing-nav-item-y-compact: 0.125rem; /* 2px - space-y-0.5 equivalent - compact vertical spacing between nav items */
+	--z-index-sidebar: 50; /* Sidebar z-index */
 	--z-index-panel-backdrop-min: 51; /* Minimum z-index for backdrop (above sidebar z-50) */
 	--z-index-panel-base: 60; /* Base z-index for first panel layer (increased to 60) */
 	--z-index-panel-increment: 10; /* Increment per panel layer (60, 70, 80...) */
@@ -605,6 +625,27 @@ html:not(.dark) {
 	margin-block-start: calc(var(--spacing-meeting-avatar-gap) * calc(1 - var(--tw-space-y-reverse)));
 	margin-block-end: calc(var(--spacing-meeting-avatar-gap) * var(--tw-space-y-reverse));
 }
+.space-y-section-y {
+	--tw-space-y-reverse: 0;
+}
+.space-y-section-y > :not(:last-child) {
+	margin-block-start: calc(var(--spacing-section-y) * calc(1 - var(--tw-space-y-reverse)));
+	margin-block-end: calc(var(--spacing-section-y) * var(--tw-space-y-reverse));
+}
+.space-y-error-page {
+	--tw-space-y-reverse: 0;
+}
+.space-y-error-page > :not(:last-child) {
+	margin-block-start: calc(var(--spacing-error-page-gap) * calc(1 - var(--tw-space-y-reverse)));
+	margin-block-end: calc(var(--spacing-error-page-gap) * var(--tw-space-y-reverse));
+}
+.space-y-form-field-gap {
+	--tw-space-y-reverse: 0;
+}
+.space-y-form-field-gap > :not(:last-child) {
+	margin-block-start: calc(var(--spacing-form-field-gap) * calc(1 - var(--tw-space-y-reverse)));
+	margin-block-end: calc(var(--spacing-form-field-gap) * var(--tw-space-y-reverse));
+}
 
 /* Modal & Form Spacing Utilities */
 @utility p-modal {
@@ -633,6 +674,30 @@ html:not(.dark) {
 }
 @utility mb-form-field-gap {
 	margin-bottom: var(--spacing-form-field-gap);
+}
+@utility mt-form-field-gap {
+	margin-top: var(--spacing-form-field-gap);
+}
+@utility mt-chart-container {
+	margin-top: var(--spacing-chart-container);
+}
+@utility h-chart-container {
+	height: var(--spacing-chart-height);
+}
+@utility gap-chart-bar {
+	gap: var(--spacing-chart-bar-gap);
+}
+@utility gap-chart-item {
+	gap: var(--spacing-chart-item-gap);
+}
+@utility gap-0 {
+	gap: 0;
+}
+@utility mt-section-y {
+	margin-top: var(--spacing-section-y);
+}
+@utility mt-badge-y {
+	margin-top: var(--spacing-badge-y);
 }
 @utility p-form-section {
 	padding: var(--spacing-form-section-gap);
@@ -858,6 +923,15 @@ html:not(.dark) {
 @utility border-success {
 	border-color: var(--color-success-text);
 }
+@utility text-warning {
+	color: var(--color-warning-text);
+}
+@utility text-warning-high {
+	color: var(--color-warning-text-high);
+}
+@utility rounded-none {
+	border-radius: 0;
+}
 
 /* Semantic Color Utilities - Sidebar Colors */
 @utility bg-sidebar {
@@ -1061,6 +1135,15 @@ html:not(.dark) {
 @utility py-card {
 	padding-block: var(--spacing-card-padding-y);
 }
+@utility p-card-compact {
+	padding: var(--spacing-card-compact);
+}
+@utility p-0 {
+	padding: var(--spacing-0);
+}
+@utility py-error-page {
+	padding-block: var(--spacing-error-page-y);
+}
 
 /* Dialog Component Utilities */
 @utility max-w-dialog-default {
@@ -1071,6 +1154,9 @@ html:not(.dark) {
 }
 @utility rounded-dialog {
 	border-radius: var(--border-radius-dialog);
+}
+@utility rounded-dialog-fullscreen {
+	border-radius: var(--border-radius-dialog-fullscreen);
 }
 @utility min-w-dropdown {
 	min-width: var(--min-width-dropdown);
@@ -1211,6 +1297,9 @@ html:not(.dark) {
 @utility text-label {
 	font-size: var(--text-label);
 }
+@utility text-error-status {
+	font-size: var(--font-size-error-status);
+}
 
 /* Flashcard Typography Utilities - Large display text */
 @utility text-flashcard-question {
@@ -1270,6 +1359,21 @@ html:not(.dark) {
 }
 @utility w-sidebar-detail {
 	width: var(--width-sidebar-detail);
+}
+@utility w-sidebar-hover-zone {
+	width: var(--spacing-sidebar-hover-zone);
+}
+@utility w-settings-sidebar {
+	width: var(--width-settings-sidebar);
+}
+@utility mb-section-label {
+	margin-bottom: var(--spacing-section-label-gap);
+}
+@utility space-y-nav-item-compact {
+	gap: var(--spacing-nav-item-y-compact);
+}
+@utility z-sidebar {
+	z-index: var(--z-index-sidebar);
 }
 
 /* Avatar Size Utilities */

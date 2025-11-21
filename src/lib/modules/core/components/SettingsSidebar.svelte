@@ -23,8 +23,7 @@
 
 <!-- Settings Sidebar - Fixed width, no collapse/resize functionality -->
 <aside
-	class="flex h-full flex-col overflow-hidden border-r border-sidebar bg-sidebar text-sidebar-primary"
-	style="width: 286px; flex-shrink: 0;"
+	class="flex h-full w-settings-sidebar flex-shrink-0 flex-col overflow-hidden border-r border-sidebar bg-sidebar text-sidebar-primary"
 >
 	<!-- Header with Back Button -->
 	<SettingsSidebarHeader
@@ -37,13 +36,15 @@
 	<nav class="flex-1 overflow-y-auto px-nav-container py-nav-container">
 		<!-- Settings Section -->
 		<div class="px-section py-section">
-			<p class="mb-1.5 text-label font-medium tracking-wider text-sidebar-tertiary uppercase">
+			<p
+				class="mb-section-label text-label font-medium tracking-wider text-sidebar-tertiary uppercase"
+			>
 				Settings
 			</p>
-			<div class="space-y-0.5">
+			<div class="space-y-nav-item-compact">
 				<a
 					href={resolveRoute('/settings')}
-					class="group flex items-center gap-icon rounded-card px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-card px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings')}
 				>
 					<svg
@@ -71,7 +72,7 @@
 
 				<a
 					href={resolveRoute('/settings/account')}
-					class="group flex items-center gap-icon rounded-card px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-card px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/account')}
 				>
 					<svg
@@ -93,7 +94,7 @@
 
 				<a
 					href={resolveRoute('/settings/integrations')}
-					class="group flex items-center gap-icon rounded-card px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-card px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/integrations')}
 				>
 					<svg
@@ -115,7 +116,7 @@
 
 				<a
 					href={resolveRoute('/settings/notifications')}
-					class="group flex items-center gap-icon rounded-card px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-card px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/notifications')}
 				>
 					<svg
@@ -137,7 +138,7 @@
 
 				<a
 					href={resolveRoute('/settings/privacy')}
-					class="group flex items-center gap-icon rounded-card px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-card px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/privacy')}
 				>
 					<svg
@@ -160,15 +161,17 @@
 		</div>
 
 		<!-- Preferences Section -->
-		<div class="my-2 border-t border-sidebar"></div>
+		<div class="my-section-divider border-t border-sidebar"></div>
 		<div class="px-section py-section">
-			<p class="mb-1.5 text-label font-medium tracking-wider text-sidebar-tertiary uppercase">
+			<p
+				class="mb-section-label text-label font-medium tracking-wider text-sidebar-tertiary uppercase"
+			>
 				Preferences
 			</p>
-			<div class="space-y-0.5">
+			<div class="space-y-nav-item-compact">
 				<a
 					href={resolveRoute('/settings/appearance')}
-					class="group flex items-center gap-icon rounded-card px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-card px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/appearance')}
 				>
 					<svg
@@ -190,7 +193,7 @@
 
 				<a
 					href={resolveRoute('/settings/keyboard')}
-					class="group flex items-center gap-icon rounded-card px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-card px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/keyboard')}
 				>
 					<svg
@@ -212,7 +215,7 @@
 
 				<a
 					href={resolveRoute('/settings/data')}
-					class="group flex items-center gap-icon rounded-card px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-card px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/data')}
 				>
 					<svg
@@ -235,15 +238,17 @@
 		</div>
 
 		<!-- Advanced Section -->
-		<div class="my-2 border-t border-sidebar"></div>
+		<div class="my-section-divider border-t border-sidebar"></div>
 		<div class="px-section py-section">
-			<p class="mb-1.5 text-label font-medium tracking-wider text-sidebar-tertiary uppercase">
+			<p
+				class="mb-section-label text-label font-medium tracking-wider text-sidebar-tertiary uppercase"
+			>
 				Advanced
 			</p>
-			<div class="space-y-0.5">
+			<div class="space-y-nav-item-compact">
 				<a
 					href={resolveRoute('/settings/billing')}
-					class="group flex items-center gap-icon rounded-card px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-card px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/billing')}
 				>
 					<svg
@@ -265,7 +270,7 @@
 
 				<a
 					href={resolveRoute('/settings/api')}
-					class="group flex items-center gap-icon rounded-card px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-card px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/api')}
 				>
 					<svg
@@ -287,7 +292,7 @@
 
 				<a
 					href={resolveRoute('/settings/permissions-test')}
-					class="group flex items-center gap-icon rounded-card px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+					class="group flex items-center gap-icon rounded-card px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 					class:bg-sidebar-hover={isActive('/settings/permissions-test')}
 				>
 					<svg

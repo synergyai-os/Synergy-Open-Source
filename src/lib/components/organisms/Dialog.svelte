@@ -13,7 +13,7 @@
 
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import type { DialogVariant } from '../ui/types';
+	import type { DialogVariant } from '../types';
 	import { browser } from '$app/environment';
 
 	type Props = {
@@ -55,7 +55,7 @@
 	// Fix: Use function to avoid state reference warning
 	const getDialogClasses = () => {
 		const variantClass = isFullscreen
-			? 'fixed inset-0 w-full h-full rounded-none overflow-y-auto'
+			? 'fixed inset-0 w-full h-full rounded-dialog-fullscreen overflow-y-auto'
 			: variant === 'wide'
 				? 'max-w-dialog-wide rounded-dialog'
 				: 'max-w-dialog-default rounded-dialog';

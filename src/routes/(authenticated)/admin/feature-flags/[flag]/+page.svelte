@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { Badge, Button, FormTextarea, ToggleSwitch } from '$lib/components/ui';
+	import { Badge, Button, FormTextarea } from '$lib/components/atoms';
+	import { ToggleSwitch } from '$lib/components/molecules';
 	import { browser } from '$app/environment';
 	import { getFlagDescription } from '$lib/infrastructure/feature-flags';
 	import { api, type Id } from '$lib/convex';
@@ -199,8 +200,8 @@
 
 {#if !flag}
 	<div class="flex h-full flex-col items-center justify-center">
-		<p class="mb-2 text-lg font-medium text-secondary">Flag not found</p>
-		<a href="/admin/feature-flags" class="text-sm text-accent-primary hover:underline">
+		<p class="mb-form-field-gap text-h3 font-medium text-secondary">Flag not found</p>
+		<a href="/admin/feature-flags" class="text-small text-accent-primary hover:underline">
 			← Back to Feature Flags
 		</a>
 	</div>
@@ -210,7 +211,7 @@
 		<header
 			class="flex h-system-header flex-shrink-0 items-center justify-between border-b border-base px-inbox-container py-system-header"
 		>
-			<div class="flex items-center gap-4">
+			<div class="flex items-center gap-content-section">
 				<a
 					href="/admin/feature-flags"
 					class="flex items-center text-secondary transition-colors hover:text-primary"
@@ -226,15 +227,15 @@
 					</svg>
 				</a>
 				<div>
-					<h1 class="text-2xl font-bold text-primary">{flag.flag}</h1>
+					<h1 class="text-h2 font-bold text-primary">{flag.flag}</h1>
 					{#if getFlagDescription(flag.flag, flag.description)}
-						<p class="mt-1 text-sm text-secondary">
+						<p class="mt-section-y text-small text-secondary">
 							{getFlagDescription(flag.flag, flag.description)}
 						</p>
 					{/if}
 				</div>
 			</div>
-			<div class="flex items-center gap-2">
+			<div class="flex items-center gap-icon">
 				<Badge variant={flag.enabled ? 'default' : 'system'}>
 					{flag.enabled ? 'Enabled' : 'Disabled'}
 				</Badge>
@@ -245,33 +246,35 @@
 		<main class="flex-1 overflow-y-auto px-inbox-container py-system-content">
 			<div class="mx-auto max-w-4xl">
 				<!-- Card Grid Layout -->
-				<div class="flex flex-col gap-6">
+				<div class="flex flex-col gap-content-section">
 					<!-- Overview Stats Card -->
-					<div class="rounded-lg border border-base bg-surface p-content-padding">
-						<h2 class="mb-4 text-lg font-semibold text-primary">Overview</h2>
-						<div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+					<div class="rounded-card border border-base bg-surface p-content-padding">
+						<h2 class="mb-content-section text-h3 font-semibold text-primary">Overview</h2>
+						<div class="grid grid-cols-2 gap-content-section md:grid-cols-4">
 							<div>
-								<p class="text-xs text-tertiary">Current Targeting</p>
-								<p class="mt-1 text-lg font-semibold text-primary">{getTargetingSummary(flag)}</p>
+								<p class="text-label text-tertiary">Current Targeting</p>
+								<p class="mt-section-y text-h3 font-semibold text-primary">
+									{getTargetingSummary(flag)}
+								</p>
 							</div>
 							{#if impactStats}
 								{@const impact = impactStats as { estimatedAffected: number; breakdown: unknown }}
 								<div>
-									<p class="text-xs text-tertiary">Estimated Affected</p>
-									<p class="mt-1 text-lg font-semibold text-primary">
+									<p class="text-label text-tertiary">Estimated Affected</p>
+									<p class="mt-section-y text-h3 font-semibold text-primary">
 										~{impact.estimatedAffected.toLocaleString()} users
 									</p>
 								</div>
 							{/if}
 							<div>
-								<p class="text-xs text-tertiary">Created</p>
-								<p class="mt-1 text-sm font-medium text-primary">
+								<p class="text-label text-tertiary">Created</p>
+								<p class="mt-section-y text-small font-medium text-primary">
 									{new Date(flag.createdAt).toLocaleDateString()}
 								</p>
 							</div>
 							<div>
-								<p class="text-xs text-tertiary">Last Updated</p>
-								<p class="mt-1 text-sm font-medium text-primary">
+								<p class="text-label text-tertiary">Last Updated</p>
+								<p class="mt-section-y text-small font-medium text-primary">
 									{new Date(flag.updatedAt).toLocaleDateString()}
 								</p>
 							</div>
@@ -279,8 +282,8 @@
 					</div>
 
 					<!-- Description Card -->
-					<div class="rounded-lg border border-base bg-surface p-content-padding">
-						<h2 class="mb-4 text-lg font-semibold text-primary">Description</h2>
+					<div class="rounded-card border border-base bg-surface p-content-padding">
+						<h2 class="mb-content-section text-h3 font-semibold text-primary">Description</h2>
 						<FormTextarea
 							label="Description"
 							placeholder="Describe what this flag controls..."
@@ -290,8 +293,8 @@
 					</div>
 
 					<!-- Global Toggle Card -->
-					<div class="rounded-lg border border-base bg-surface p-content-padding">
-						<h2 class="mb-4 text-lg font-semibold text-primary">Status</h2>
+					<div class="rounded-card border border-base bg-surface p-content-padding">
+						<h2 class="mb-content-section text-h3 font-semibold text-primary">Status</h2>
 						<ToggleSwitch
 							checked={formEnabled}
 							onChange={(checked) => {
@@ -299,25 +302,27 @@
 							}}
 							label="Globally Enabled"
 						/>
-						<p class="mt-2 text-xs text-secondary">
+						<p class="mt-form-field-gap text-label text-secondary">
 							When enabled, the flag is active. Configure targeting rules below to control who sees
 							it.
 						</p>
 					</div>
 
 					<!-- Organization Targeting Card -->
-					<div class="rounded-lg border border-base bg-surface p-content-padding">
-						<h2 class="mb-2 text-lg font-semibold text-primary">Organization Targeting</h2>
-						<p class="mb-4 text-xs text-secondary">
+					<div class="rounded-card border border-base bg-surface p-content-padding">
+						<h2 class="mb-form-field-gap text-h3 font-semibold text-primary">
+							Organization Targeting
+						</h2>
+						<p class="mb-content-section text-label text-secondary">
 							Select which organizations (workspaces) can access this feature flag.
 						</p>
 
 						<!-- Selected Organizations Display -->
 						{#if selectedOrgNames.length > 0}
-							<div class="mb-4 flex flex-wrap gap-2">
+							<div class="mb-content-section flex flex-wrap gap-icon">
 								{#each selectedOrgNames as orgName (orgName)}
 									<span
-										class="inline-flex items-center gap-1 rounded-md bg-accent-primary/10 px-2 py-1 text-xs text-accent-primary"
+										class="inline-flex items-center gap-chip rounded-button bg-accent-primary/10 px-badge py-badge text-label text-accent-primary"
 									>
 										{orgName}
 										<button
@@ -351,7 +356,7 @@
 								onclick={() => {
 									orgSelectorOpen = !orgSelectorOpen;
 								}}
-								class="flex w-full items-center justify-between rounded-input border border-base bg-input px-input-x py-input-y text-sm text-primary transition-colors hover:bg-hover-solid"
+								class="flex w-full items-center justify-between rounded-input border border-base bg-input px-input-x py-input-y text-small text-primary transition-colors hover:bg-hover-solid"
 							>
 								<span class="text-secondary">
 									{selectedOrgNames.length > 0
@@ -377,7 +382,7 @@
 							{#if orgSelectorOpen}
 								<div
 									bind:this={orgSelectorDropdownRef}
-									class="absolute top-full z-50 mt-1 max-h-[300px] min-w-full overflow-y-auto rounded-md border border-base bg-elevated py-1 shadow-lg"
+									class="absolute top-full z-50 mt-section-y max-h-96 min-w-full overflow-y-auto rounded-button border border-base bg-elevated py-badge shadow-lg"
 									role="menu"
 									tabindex="-1"
 									onclick={(e) => e.stopPropagation()}
@@ -388,7 +393,7 @@
 											type="text"
 											bind:value={orgSearchQuery}
 											placeholder="Search organizations..."
-											class="w-full bg-transparent text-sm text-primary placeholder:text-tertiary focus:outline-none"
+											class="w-full bg-transparent text-small text-primary placeholder:text-tertiary focus:outline-none"
 											onclick={(e) => e.stopPropagation()}
 											onkeydown={(e) => {
 												e.stopPropagation();
@@ -399,7 +404,7 @@
 											}}
 										/>
 									</div>
-									<div class="px-menu-item py-menu-item text-sm font-semibold text-primary">
+									<div class="px-menu-item py-menu-item text-small font-semibold text-primary">
 										Select Organizations ({orgsToDisplay.length} available)
 									</div>
 									{#each orgsToDisplay as org (org._id)}
@@ -415,7 +420,7 @@
 												}
 												// Keep dropdown open after selection
 											}}
-											class="flex w-full cursor-pointer items-center gap-2 px-menu-item py-menu-item text-left text-sm transition-colors outline-none hover:bg-hover-solid focus:bg-hover-solid {isSelected
+											class="flex w-full cursor-pointer items-center gap-icon px-menu-item py-menu-item text-left text-small transition-colors outline-none hover:bg-hover-solid focus:bg-hover-solid {isSelected
 												? 'bg-accent-primary/10 text-accent-primary'
 												: 'text-primary'}"
 										>
@@ -433,22 +438,24 @@
 												/>
 											</svg>
 											<span class="flex-1">{org.name}</span>
-											<span class="text-xs text-tertiary">{org.slug}</span>
+											<span class="text-label text-tertiary">{org.slug}</span>
 										</button>
 									{/each}
 								</div>
 							{/if}
 						</div>
-						<p class="mt-3 text-xs text-secondary">
+						<p class="mt-form-section text-label text-secondary">
 							💡 <strong>Tip:</strong> All members of selected organizations will have access to this
 							feature flag.
 						</p>
 					</div>
 
 					<!-- Email Domain Targeting Card -->
-					<div class="rounded-lg border border-base bg-surface p-content-padding">
-						<h2 class="mb-2 text-lg font-semibold text-primary">Email Domain Targeting</h2>
-						<p class="mb-4 text-xs text-secondary">
+					<div class="rounded-card border border-base bg-surface p-content-padding">
+						<h2 class="mb-form-field-gap text-h3 font-semibold text-primary">
+							Email Domain Targeting
+						</h2>
+						<p class="mb-content-section text-label text-secondary">
 							Users with email addresses matching these domains will see the feature.
 						</p>
 						<input
@@ -456,17 +463,17 @@
 							type="text"
 							bind:value={formDomainInput}
 							placeholder="@acme.com, @example.com"
-							class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-sm text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+							class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-small text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
 						/>
 					</div>
 
 					<!-- Percentage Rollout Card -->
-					<div class="rounded-lg border border-base bg-surface p-content-padding">
-						<h2 class="mb-2 text-lg font-semibold text-primary">Percentage Rollout</h2>
-						<p class="mb-4 text-xs text-secondary">
+					<div class="rounded-card border border-base bg-surface p-content-padding">
+						<h2 class="mb-form-field-gap text-h3 font-semibold text-primary">Percentage Rollout</h2>
+						<p class="mb-content-section text-label text-secondary">
 							Shows the feature to a percentage of users based on a consistent hash.
 						</p>
-						<div class="flex items-center gap-2">
+						<div class="flex items-center gap-icon">
 							<input
 								id="rollout-range"
 								type="range"
@@ -482,69 +489,71 @@
 								max="100"
 								bind:value={formRolloutPercentage}
 								placeholder="0"
-								class="w-20 rounded-input border border-base bg-input px-input-x py-input-y text-sm text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+								class="w-20 rounded-input border border-base bg-input px-input-x py-input-y text-small text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
 							/>
-							<span class="text-sm text-secondary">%</span>
+							<span class="text-smallall text-secondary">%</span>
 						</div>
 					</div>
 
 					<!-- Analytics Card -->
-					<div class="rounded-lg border border-base bg-surface p-content-padding">
-						<h2 class="mb-2 text-lg font-semibold text-primary">Analytics</h2>
-						<p class="mb-4 text-xs text-secondary">Usage statistics and performance metrics.</p>
+					<div class="rounded-card border border-base bg-surface p-content-padding">
+						<h2 class="mb-form-field-gap text-h3 font-semibold text-primary">Analytics</h2>
+						<p class="mb-content-section text-label text-secondary">
+							Usage statistics and performance metrics.
+						</p>
 
-						<div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+						<div class="grid grid-cols-2 gap-content-section md:grid-cols-4">
 							<div>
-								<p class="text-xs text-tertiary">Total Checks</p>
-								<p class="mt-1 text-lg font-semibold text-primary">
+								<p class="text-label text-tertiary">Total Checks</p>
+								<p class="mt-section-y text-h3 font-semibold text-primary">
 									{mockAnalytics.totalChecks.toLocaleString()}
 								</p>
-								<p class="mt-1 text-xs text-tertiary">Last 7 days</p>
+								<p class="mt-section-y text-label text-tertiary">Last 7 days</p>
 							</div>
 							<div>
-								<p class="text-xs text-tertiary">Enabled Rate</p>
-								<p class="mt-1 text-lg font-semibold text-primary">
+								<p class="text-label text-tertiary">Enabled Rate</p>
+								<p class="mt-section-y text-h3 font-semibold text-primary">
 									{Math.round((mockAnalytics.enabledChecks / mockAnalytics.totalChecks) * 100)}%
 								</p>
-								<p class="mt-1 text-xs text-tertiary">
+								<p class="mt-section-y text-label text-tertiary">
 									{mockAnalytics.enabledChecks.toLocaleString()} enabled
 								</p>
 							</div>
 							<div>
-								<p class="text-xs text-tertiary">Unique Users</p>
-								<p class="mt-1 text-lg font-semibold text-primary">
+								<p class="text-label text-tertiary">Unique Users</p>
+								<p class="mt-section-y text-h3 font-semibold text-primary">
 									{mockAnalytics.uniqueUsers.toLocaleString()}
 								</p>
-								<p class="mt-1 text-xs text-tertiary">With access</p>
+								<p class="mt-section-y text-label text-tertiary">With access</p>
 							</div>
 							<div>
-								<p class="text-xs text-tertiary">Avg Response Time</p>
-								<p class="mt-1 text-lg font-semibold text-primary">
+								<p class="text-label text-tertiary">Avg Response Time</p>
+								<p class="mt-section-y text-h3 font-semibold text-primary">
 									{mockAnalytics.avgResponseTime}ms
 								</p>
-								<p class="mt-1 text-xs text-tertiary">Evaluation time</p>
+								<p class="mt-section-y text-label text-tertiary">Evaluation time</p>
 							</div>
 						</div>
 
 						<!-- Mock Trend Chart -->
-						<div class="mt-6 rounded-md border border-base bg-elevated p-4">
-							<p class="mb-3 text-sm font-medium text-primary">Usage Trend</p>
-							<div class="flex h-24 items-end justify-between gap-1">
+						<div class="p-card mt-chart-container rounded-button border border-base bg-elevated">
+							<p class="mb-form-section text-small font-medium text-primary">Usage Trend</p>
+							<div class="flex h-chart-container items-end justify-between gap-chart-bar">
 								{#each mockAnalytics.trend as day (day.date)}
 									{@const maxValue = Math.max(
 										...mockAnalytics.trend.map((d) => d.enabled + d.disabled)
 									)}
 									{@const enabledHeight = (day.enabled / maxValue) * 100}
 									{@const disabledHeight = (day.disabled / maxValue) * 100}
-									<div class="flex flex-1 flex-col items-center gap-1">
-										<div class="flex w-full items-end gap-0.5" style="height: 80px;">
+									<div class="flex flex-1 flex-col items-center gap-chart-bar">
+										<div class="flex h-chart-container w-full items-end gap-chip">
 											<div
 												class="w-full rounded-t bg-accent-primary/60"
 												style="height: {enabledHeight}%"
 											></div>
 											<div class="w-full rounded-t bg-base" style="height: {disabledHeight}%"></div>
 										</div>
-										<p class="text-[10px] text-tertiary">
+										<p class="text-label text-tertiary">
 											{new Date(day.date).toLocaleDateString('en-US', {
 												month: 'short',
 												day: 'numeric'
@@ -553,12 +562,14 @@
 									</div>
 								{/each}
 							</div>
-							<div class="mt-3 flex items-center gap-3 text-xs text-secondary">
-								<div class="flex items-center gap-1.5">
+							<div
+								class="mt-form-section flex items-center gap-form-section text-label text-secondary"
+							>
+								<div class="flex items-center gap-chart-item">
 									<div class="h-2 w-2 rounded bg-accent-primary/60"></div>
 									<span>Enabled</span>
 								</div>
-								<div class="flex items-center gap-1.5">
+								<div class="flex items-center gap-chart-item">
 									<div class="h-2 w-2 rounded bg-base"></div>
 									<span>Disabled</span>
 								</div>
@@ -567,8 +578,8 @@
 					</div>
 
 					<!-- Save Button Card -->
-					<div class="rounded-lg border border-base bg-surface p-content-padding">
-						<div class="flex items-center justify-end gap-2">
+					<div class="rounded-card border border-base bg-surface p-content-padding">
+						<div class="flex items-center justify-end gap-icon">
 							<Button variant="primary" onclick={handleSave} disabled={saving}>
 								{saving ? 'Saving...' : 'Save Changes'}
 							</Button>

@@ -32,9 +32,9 @@ graph TD
     end
     
     subgraph "ORGANISMS - Components"
-        Atomic[Atomic Components<br/>Single Responsibility<br/>src/lib/components/ui/]
-        Feature[Feature Components<br/>Domain Logic<br/>src/lib/components/inbox/]
-        Layout[Layout Components<br/>Structure<br/>src/lib/components/docs/]
+        Atomic[Atomic Components<br/>Single Responsibility<br/>src/lib/components/atoms/]
+        Feature[Feature Components<br/>Domain Logic<br/>src/lib/modules/inbox/components/]
+        Layout[Layout Components<br/>Structure<br/>src/lib/modules/core/components/]
     end
     
     subgraph "TEMPLATES - Page Layouts"
@@ -72,9 +72,11 @@ graph TD
 | **Atoms** | Tokens | `src/app.css` `@theme` | `--spacing-nav-item` | Design system values |
 | **Atoms** | Utilities | `src/app.css` `@utility` | `.scrollable-outer` | Pattern repeats 3+ times |
 | **Molecules** | Patterns | `dev-docs/2-areas/patterns/` | Scrollable Container | Problem solved, reusable |
-| **Organisms** | Atomic Components | `src/lib/components/ui/` | `Button`, `StatusPill` | Single responsibility |
-| **Organisms** | Feature Components | `src/lib/components/inbox/` | `InboxCard`, `TagSelector` | Domain-specific logic |
-| **Organisms** | Layout Components | `src/lib/components/docs/` | `DocLayout`, `Sidebar` | Structure and composition |
+| **Organisms** | Atomic Components | `src/lib/components/atoms/` | `Button`, `Badge`, `Icon` | Single responsibility |
+| **Organisms** | Atomic Components | `src/lib/components/molecules/` | `DatePicker`, `Combobox` | Composed atoms |
+| **Organisms** | Atomic Components | `src/lib/components/organisms/` | `Dialog`, `Calendar` | Complex interactions |
+| **Organisms** | Feature Components | `src/lib/modules/inbox/components/` | `InboxCard` | Domain-specific logic |
+| **Organisms** | Layout Components | `src/lib/modules/core/components/` | `Sidebar`, `AppTopBar` | Structure and composition |
 | **Templates** | Page Layouts | `src/routes/` `+layout.svelte` | `DocLayout` wrapper | Page structure |
 | **Pages** | Routes | `src/routes/` `+page.svelte` | `/inbox`, `/meetings` | Complete pages |
 
@@ -227,15 +229,25 @@ graph TD
 
 ### Component Types
 
-#### 1. Atomic Components (`src/lib/components/ui/`)
+#### 1. Atomic Components (`src/lib/components/atoms/`, `/molecules/`, `/organisms/`)
 
 **Single responsibility, no domain logic**
 
-Examples:
+**Atoms** (Simple, single-purpose):
 - `Button.svelte` - Button with variants
-- `StatusPill.svelte` - Status display with icon
+- `Badge.svelte` - Status badges
+- `Icon.svelte` - Icon wrapper
 - `FormInput.svelte` - Text input with label
-- `KeyboardShortcut.svelte` - Keyboard shortcut display
+
+**Molecules** (Composed atoms):
+- `DatePicker.svelte` - Date selection
+- `Combobox.svelte` - Searchable dropdown
+- `MetadataBar.svelte` - Horizontal metadata container
+
+**Organisms** (Complex interactions):
+- `Dialog.svelte` - Modal dialogs
+- `Calendar.svelte` - Calendar component
+- `Command.svelte` - Command palette
 
 **Structure**:
 ```svelte
@@ -255,15 +267,15 @@ Examples:
 
 **See**: [UI Components](../design/component-library/) _(coming soon)_
 
-#### 2. Feature Components (`src/lib/components/inbox/`, `src/lib/components/meetings/`, etc.)
+#### 2. Feature Components (`src/lib/modules/{module}/components/`)
 
 **Domain-specific logic + composed atoms**
 
 Examples:
-- `InboxCard.svelte` - Inbox item display
-- `TagSelector.svelte` - Tag selection with hierarchy
-- `MeetingCard.svelte` - Meeting display
-- `OrgChart.svelte` - Organizational structure
+- `InboxCard.svelte` - Inbox item display (inbox module)
+- `FlashcardView.svelte` - Flashcard display (flashcards module)
+- `MeetingCard.svelte` - Meeting display (meetings module)
+- `OrgChart.svelte` - Organizational structure (org-chart module)
 
 **Structure**:
 ```svelte
@@ -282,14 +294,14 @@ Examples:
 
 **See**: [Composables Analysis](../development/composables-analysis.md)
 
-#### 3. Layout Components (`src/lib/components/docs/`, `src/lib/components/`)
+#### 3. Layout Components (`src/lib/modules/core/components/`)
 
 **Structure and composition**
 
 Examples:
-- `DocLayout.svelte` - Documentation page layout
 - `Sidebar.svelte` - Navigation sidebar
-- `TableOfContents.svelte` - TOC with scrollable container
+- `AppTopBar.svelte` - Application header
+- `QuickCreateModal.svelte` - Global creation modal
 
 **Structure**:
 ```svelte
@@ -327,25 +339,40 @@ Examples:
 
 ```
 src/lib/components/
-├── ui/                    # Atomic components (atoms)
+├── atoms/                 # Simple, single-purpose
 │   ├── Button.svelte
-│   ├── StatusPill.svelte
+│   ├── Badge.svelte
+│   ├── Icon.svelte
 │   ├── FormInput.svelte
 │   └── index.ts           # Barrel exports
-├── inbox/                 # Feature components (organisms)
-│   ├── InboxCard.svelte
-│   ├── TagSelector.svelte
-│   └── SyncProgressTracker.svelte
-├── meetings/              # Feature components
-│   ├── MeetingCard.svelte
-│   └── AgendaItemView.svelte
-├── docs/                  # Layout components
-│   ├── DocLayout.svelte
-│   ├── TableOfContents.svelte
-│   └── Breadcrumb.svelte
-└── org/                   # Feature components
-    ├── OrgChart.svelte
-    └── CircleDetailPanel.svelte
+├── molecules/             # Composed atoms
+│   ├── DatePicker.svelte
+│   ├── Combobox.svelte
+│   ├── MetadataBar.svelte
+│   └── index.ts
+├── organisms/             # Complex interactions
+│   ├── Dialog.svelte
+│   ├── Calendar.svelte
+│   ├── Command.svelte
+│   └── index.ts
+└── types.ts               # Shared component types
+
+src/lib/modules/
+├── core/
+│   └── components/        # Global layout components
+│       ├── Sidebar.svelte
+│       ├── AppTopBar.svelte
+│       └── QuickCreateModal.svelte
+├── inbox/
+│   └── components/        # Inbox feature components
+│       ├── InboxCard.svelte
+│       └── InboxHeader.svelte
+├── meetings/
+│   └── components/        # Meetings feature components
+│       └── MeetingCard.svelte
+└── flashcards/
+    └── components/        # Flashcards feature components
+        └── FlashcardView.svelte
 ```
 
 ### Component Patterns
@@ -442,29 +469,42 @@ Double-nested `overflow-y: auto` (both panel AND list had overflow).
 
 ### Current Components Inventory
 
-**Atomic Components** (`src/lib/components/ui/`):
+**Atomic Components** (`src/lib/components/`):
+
+**Atoms**:
 - `Button` - Button with variants
-- `StatusPill` - Status display
+- `Badge` - Status badges
+- `Icon` - Icon wrapper
 - `FormInput` - Text input
 - `FormTextarea` - Textarea
+- `StatusPill` - Status display
 - `KeyboardShortcut` - Keyboard shortcut display
+
+**Molecules**:
+- `DatePicker` - Date selection
+- `Combobox` - Searchable dropdown
 - `PrioritySelector` - Priority levels
 - `AssigneeSelector` - User assignment
 - `ProjectSelector` - Project selection
 - `MetadataBar` - Horizontal container for metadata
 
-**Feature Components**:
+**Organisms**:
+- `Dialog` - Modal dialogs
+- `Calendar` - Calendar component
+- `Command` - Command palette
+- `ErrorBoundary` - Error handling
+
+**Feature Components** (`src/lib/modules/{module}/components/`):
 - `InboxCard` - Inbox item display
-- `TagSelector` - Tag selection
+- `TagSelector` - Tag selection (core module)
 - `MeetingCard` - Meeting display
 - `OrgChart` - Organizational structure
-- `Flashcard` - Flashcard display
+- `FlashcardView` - Flashcard display
 
-**Layout Components**:
-- `DocLayout` - Documentation layout
+**Layout Components** (`src/lib/modules/core/components/`):
 - `Sidebar` - Navigation sidebar
-- `TableOfContents` - TOC with scrollable container
-- `Breadcrumb` - Breadcrumb navigation
+- `AppTopBar` - Application header
+- `QuickCreateModal` - Global creation modal
 
 **See**: [Component Library](../design/component-library/) _(coming soon)_
 

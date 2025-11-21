@@ -948,12 +948,36 @@ When values come from database or user input, inline styles are valid:
 - Dynamic positioning (D3 charts, draggable elements)
 - Animation progress (percentages, transforms)
 
+**Edge Case: Special Values (e.g., border-radius: 0)**
+
+Even when the value is 0 or a special case, create a semantic token:
+
+```css
+/* ✅ CORRECT - Semantic token for edge case */
+--border-radius-dialog-fullscreen: 0; /* 0px - fullscreen dialog (no rounding) */
+
+@utility rounded-dialog-fullscreen {
+  border-radius: var(--border-radius-dialog-fullscreen);
+}
+```
+
+```svelte
+<!-- ❌ WRONG - Hardcoded rounded-none -->
+<div class="rounded-none">Fullscreen dialog</div>
+
+<!-- ✅ CORRECT - Semantic token -->
+<div class="rounded-dialog-fullscreen">Fullscreen dialog</div>
+```
+
+**Why**: Even edge cases benefit from semantic naming and centralized control. If design changes (e.g., fullscreen dialogs get subtle rounding), update one token.
+
 **Apply when**:
 
 - Audit finds violations for non-existent tokens
 - Multiple components need same semantic value
 - Value should adapt to light/dark mode
 - Need centralized control over design decision
+- Edge cases with special values (0, transparent, etc.)
 
 **Validation**:
 
