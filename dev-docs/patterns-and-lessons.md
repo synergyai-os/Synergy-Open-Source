@@ -301,3 +301,146 @@ if (!createdTicket.projectId || createdTicket.projectId !== projectId) {
 - ✅ **Scalable** - Can add new specialized commands without bloat
 
 **See**: `.cursor/commands/README.md` - Complete optimization guide
+
+---
+
+## 🔒 Branch Safety Gates Pattern
+
+**Date**: 2025-01-XX  
+**Pattern**: Explicit user confirmation required before any branch operations (never assume "yes")
+
+### What We Learned
+
+**Problem**: AI commands can have comprehensive verification steps but still proceed without explicit user confirmation, violating safety gate principles.
+
+**Real-World Example**:
+- `/branch` command enhanced with verification (checks state, preserves work, verifies after)
+- **Gap identified**: AI proceeded with branch creation without showing summary or asking confirmation
+- User had no control over which option was chosen (commit to branch vs stash vs abort)
+
+### Solution
+
+**Always follow this sequence**:
+
+1. **Check Current State** (MANDATORY):
+   - Current branch: `git branch --show-current`
+   - Uncommitted changes: `git status --short`
+   - Unpushed commits: `git log origin/branch..HEAD`
+
+2. **Show Summary** (MANDATORY):
+   - What branch you're on
+   - What changes exist (list files)
+   - What will happen (step-by-step)
+   - Example: "You're on main with uncommitted changes to branch.md. I'll create feature/design-system-v1-completed and move these changes there."
+
+3. **Present Options** (if uncommitted changes exist):
+   - Option A: Commit changes to new branch (recommended)
+   - Option B: Stash changes, create clean branch, then apply
+   - Option C: Abort operation
+
+4. **Require Explicit Confirmation** (MANDATORY):
+   - Show: "Proceed with Option A? (yes/no)"
+   - Wait for user response
+   - Never proceed without explicit "yes"
+   - Never assume user wants to proceed
+
+### Key Principles
+
+1. **Never assume "yes"** - Always wait for explicit user confirmation
+2. **Show before doing** - User must understand what will happen
+3. **Present options** - User chooses, not AI
+4. **Multiple safety layers** - Git hooks + AI gates + explicit confirmation
+
+### Why This Matters
+
+- **Trust**: User maintains control over destructive operations
+- **Safety**: Prevents accidental work loss
+- **Transparency**: User understands what's happening
+- **Compliance**: Follows safety gate principles
+
+### Real-World Example (What Should Happen)
+
+```
+AI: Checking current state...
+AI: Found uncommitted changes on main:
+    - Modified: .cursor/commands/branch.md
+    - Untracked: ai-docs/tasks/SYOS-XXX-branch-safety-gates.md
+
+AI: Summary:
+    - Current branch: main
+    - Uncommitted changes: 2 files
+    - Action: Create feature/design-system-v1-completed
+    - What will happen: Changes will move to new branch, then committed
+
+AI: Options:
+    A) Create branch with changes, commit them (recommended)
+    B) Stash changes, create clean branch, then apply
+    C) Abort branch creation
+
+AI: Which option? (A/B/C or yes/no for Option A)
+User: [Must respond before AI proceeds]
+```
+
+### When to Apply
+
+**Apply to all branch operations**:
+- Branch creation
+- Branch switching
+- Branch deletion
+- Force operations (reset, push --force)
+- Any destructive git operation
+
+### Documentation Updates
+
+- ✅ Added to `ai-docs/tasks/SYOS-XXX-branch-safety-gates.md` - Complete safety gates plan
+- ✅ Updated `/branch` command - Enhanced with verification (confirmation still needed)
+- ✅ Pattern documented - Explicit confirmation requirement
+
+**See**: `ai-docs/tasks/SYOS-XXX-branch-safety-gates.md` - Complete safety gates implementation plan
+
+---
+
+## 🧪 Real-World Testing Pattern
+
+**Date**: 2025-01-XX  
+**Pattern**: Test commands in real scenarios to identify gaps between design and implementation
+
+### What We Learned
+
+**Problem**: Commands can be well-designed on paper but still miss critical safety gates when used in real scenarios.
+
+**Example**:
+- `/branch` command had comprehensive verification steps designed
+- Real-world test revealed missing explicit confirmation step
+- Gap identified: AI proceeded without user confirmation
+
+### Solution
+
+**Always test commands in real scenarios**:
+
+1. **Use command in real situation** - Don't just review design
+2. **Document what happened** - Capture actual behavior
+3. **Identify gaps** - Compare actual vs intended behavior
+4. **Update task plan** - Prioritize fixes based on real-world experience
+5. **Update patterns** - Document lessons learned
+
+### Key Principles
+
+1. **Test before considering complete** - Real usage reveals gaps
+2. **Document actual behavior** - What happened vs what should happen
+3. **Prioritize based on experience** - Real-world gaps > theoretical improvements
+4. **Update patterns** - Share lessons learned
+
+### Why This Matters
+
+- **Quality**: Real-world testing catches design gaps
+- **Safety**: Identifies missing safety gates
+- **Trust**: Commands work as intended in practice
+- **Learning**: Patterns improve based on experience
+
+### Documentation Updates
+
+- ✅ Added to `ai-docs/tasks/SYOS-XXX-branch-safety-gates.md` - Real-world experience section
+- ✅ Pattern documented - Testing reveals gaps
+
+**See**: `ai-docs/tasks/SYOS-XXX-branch-safety-gates.md` - Real-world test results and gap analysis

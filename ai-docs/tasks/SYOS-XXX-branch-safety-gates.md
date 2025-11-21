@@ -1,6 +1,12 @@
 # Prevent Accidental Branch Switching & Work Loss
 
+**Linear Ticket**: [SYOS-430](https://linear.app/younghumanclub/issue/SYOS-430)
+
 **Goal**: Implement safety gates to prevent accidental branch switching, ensure work stays on correct branch, and require explicit user confirmation before any destructive operations.
+
+**Status**: ⚠️ **Gap Identified** - `/branch` command enhanced with verification but missing explicit user confirmation
+
+**Key Finding (2025-01-XX)**: Real-world test revealed `/branch` command checks state and preserves work, but **does not require explicit user confirmation** before proceeding. This violates safety gate principle: "Never assume yes - always wait for user choice."
 
 ---
 
@@ -38,6 +44,37 @@
 - ✅ Reviewed Context7 conventional branch patterns (validation hooks available)
 - ✅ Checked pre-commit hook (validates code, not branch state)
 - ✅ Reviewed workflow doc (no branch safety gates mentioned)
+
+**Real-World Experience (2025-01-XX):**
+
+**What Happened:**
+
+- User requested branch creation: `feature/design-system-v1-completed`
+- AI checked current state (found uncommitted changes on `main`)
+- AI proceeded with Option A (move changes to new branch)
+- AI committed changes on new branch
+- AI verified `main` was clean after
+
+**What Worked:**
+
+- ✅ State checking (git branch, git status, fetch origin)
+- ✅ Work preservation (changes moved to new branch)
+- ✅ Verification after (main clean, branch up-to-date)
+
+**What Was Missing:**
+
+- ❌ **No summary shown** before proceeding
+- ❌ **No explicit confirmation** requested from user
+- ❌ **No options presented** (AI chose Option A automatically)
+- ❌ **No explanation** of what would happen before doing it
+
+**Key Gap Identified:**
+The `/branch` command has comprehensive verification steps but lacks the **explicit user confirmation** step required by safety gates. AI should:
+
+1. Show summary (current branch, uncommitted changes, what will happen)
+2. Present options (commit to new branch, stash, abort)
+3. **REQUIRE explicit user confirmation** before proceeding
+4. Never assume "yes" - always wait for user choice
 
 ---
 
@@ -193,10 +230,17 @@
 
 **Existing Code**:
 
-- `.cursor/commands/branch.md` - Branch creation command (no safety gates)
+- `.cursor/commands/branch.md` - Branch creation command ✅ **ENHANCED** (verification steps added, but missing explicit confirmation)
 - `.cursor/commands/start.md` - Onboarding command (no branch checks)
 - `.husky/pre-commit` - Pre-commit hook (validates code, not branch)
 - No git hooks in `.git/hooks/` (need to create)
+
+**Recent Changes (2025-01-XX)**:
+
+- ✅ `/branch` command enhanced with comprehensive verification steps
+- ✅ Added checks for uncommitted changes, main cleanliness, branch up-to-date status
+- ✅ Added workflow for handling uncommitted changes (move to branch, stash, etc.)
+- ❌ **Gap Identified**: Missing explicit user confirmation before proceeding with branch operations
 
 **Dependencies**:
 
@@ -333,15 +377,22 @@ exit 0
    - Uncommitted changes: `git status --short`
    - Unpushed commits: `git log origin/branch..HEAD`
 
-2. **Show Summary**:
+2. **Show Summary** (MANDATORY):
    - What branch you're on
-   - What changes exist
-   - What will happen
+   - What changes exist (list files)
+   - What will happen (step-by-step)
+   - Example: "You're on main with uncommitted changes to branch.md. I'll create feature/design-system-v1-completed and move these changes there."
 
-3. **Require Confirmation**:
-   - Show options (commit, stash, abort)
-   - Wait for explicit user choice
-   - Never proceed without "yes"
+3. **Present Options** (if uncommitted changes exist):
+   - Option A: Commit changes to new branch (recommended)
+   - Option B: Stash changes, create clean branch, then apply
+   - Option C: Abort branch creation
+
+4. **Require Explicit Confirmation** (MANDATORY):
+   - Show: "Proceed with Option A? (yes/no)"
+   - Wait for user response
+   - Never proceed without explicit "yes"
+   - Never assume user wants to proceed
 
 ## Before Destructive Operations
 
@@ -350,7 +401,30 @@ exit 0
 - Hard reset
 - Branch switching with uncommitted changes
 
-**ALWAYS**: Show summary → Require confirmation → Never assume
+**ALWAYS**: Check state → Show summary → Present options → Require confirmation → Never assume
+```
+
+**Real-World Example (What Should Have Happened):**
+
+```
+AI: Checking current state...
+AI: Found uncommitted changes on main:
+    - Modified: .cursor/commands/branch.md
+    - Untracked: ai-docs/tasks/SYOS-XXX-branch-safety-gates.md
+
+AI: Summary:
+    - Current branch: main
+    - Uncommitted changes: 2 files
+    - Action: Create feature/design-system-v1-completed
+    - What will happen: Changes will move to new branch, then committed
+
+AI: Options:
+    A) Create branch with changes, commit them (recommended)
+    B) Stash changes, create clean branch, then apply
+    C) Abort branch creation
+
+AI: Which option? (A/B/C or yes/no for Option A)
+User: [Must respond before AI proceeds]
 ```
 
 ---
@@ -444,10 +518,16 @@ echo "✅ Git safety hooks installed"
 - [ ] Test hooks locally (try switching with uncommitted changes)
 - [ ] Document hook behavior
 
-### Phase 2: AI Safety Gates (Command Modifications)
+### Phase 2: AI Safety Gates (Command Modifications) ⚠️ **PRIORITY**
 
+**Status**: `/branch` command partially enhanced (verification added, confirmation missing)
+
+- [ ] **CRITICAL**: Add explicit user confirmation to `/branch` command
+  - [ ] Show summary before branch creation (current branch, changes, what will happen)
+  - [ ] Present options when uncommitted changes exist (commit to new branch, stash, abort)
+  - [ ] **REQUIRE explicit user confirmation** before proceeding (never assume "yes")
+  - [ ] Wait for user choice before executing branch operations
 - [ ] Modify `/start` command - Add branch check before onboarding
-- [ ] Modify `/branch` command - Add safety gates before branch operations
 - [ ] Modify `/go` command - Add branch verification before starting work
 - [ ] Modify `/pr-close` command - Add confirmation before branch deletion
 - [ ] Create branch safety pattern document
@@ -513,14 +593,26 @@ echo "✅ Git safety hooks installed"
 2. Try to switch to branch B
 3. **Expected**: Hook blocks, shows warning, requires confirmation
 
-### Scenario 2: AI Branch Operation
+### Scenario 2: AI Branch Operation (Real-World Test ✅)
 
-**Test**:
+**What Actually Happened**:
 
-1. AI tries to switch branches
-2. AI checks for uncommitted changes
-3. AI shows summary and requires confirmation
-4. **Expected**: User must confirm before proceeding
+1. ✅ AI checked current state (found uncommitted changes)
+2. ✅ AI identified scenario (uncommitted changes on main)
+3. ❌ AI proceeded without showing summary or asking confirmation
+4. ✅ AI preserved work (moved changes to new branch)
+5. ✅ AI verified main was clean after
+
+**Gap Identified**: Missing explicit confirmation step
+
+**Updated Test**:
+
+1. AI checks for uncommitted changes
+2. **AI shows summary**: Current branch, uncommitted files, what will happen
+3. **AI presents options**: Commit to new branch, stash, abort
+4. **AI requires confirmation**: "Proceed with Option A? (yes/no)"
+5. **AI waits for user choice**: Never proceeds without explicit "yes"
+6. **Expected**: User must confirm before proceeding
 
 ### Scenario 3: Invalid Branch Name
 
@@ -542,12 +634,28 @@ echo "✅ Git safety hooks installed"
 
 ## Next Steps
 
-1. **Create Linear ticket** for this work
-2. **Review this task document** - Confirm approach
-3. **Implement Phase 1** (Git hooks) - Foundation
-4. **Test hooks** - Verify they work
-5. **Implement Phase 2** (AI gates) - Command modifications
+**Priority Order (Based on Real-World Experience):**
+
+1. **CRITICAL**: Add explicit confirmation to `/branch` command ⚠️ **DO FIRST**
+   - Show summary before operations
+   - Present options when changes exist
+   - Require explicit user confirmation
+   - Test with real scenario (uncommitted changes)
+
+2. **Create Linear ticket** for remaining work
+
+3. **Review this task document** - Confirm approach
+
+4. **Implement Phase 2** (AI gates) - Complete command modifications
+   - Add confirmation to `/branch` (highest priority)
+   - Add branch checks to `/start`, `/go`, `/pr-close`
+
+5. **Implement Phase 1** (Git hooks) - Foundation
+   - Pre-checkout hook for manual operations
+   - Pre-push hook for branch naming validation
+
 6. **Test safety gates** - Verify user confirmation works
+
 7. **Document** - Update workflow docs with safety gates
 
 ---
