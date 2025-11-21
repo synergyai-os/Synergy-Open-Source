@@ -1,7 +1,7 @@
 <script lang="ts">
-	import Avatar from '$lib/components/ui/Avatar.svelte';
-	import IconButton from '$lib/components/ui/IconButton.svelte';
-	import ActionMenu from '$lib/components/ui/ActionMenu.svelte';
+	import { Avatar } from '$lib/components/atoms';
+	import { IconButton } from '$lib/components/atoms';
+	import { ActionMenu } from '$lib/components/molecules';
 
 	type Props = {
 		name: string;
@@ -26,25 +26,25 @@
 
 <button
 	type="button"
-	class="flex w-full items-center gap-3 rounded-lg bg-surface p-3 text-left transition-colors hover:bg-hover-solid"
+	class="p-card flex w-full items-center gap-icon rounded-card bg-surface text-left transition-colors hover:bg-hover-solid"
 	onclick={onClick}
 >
 	<Avatar initials={getInitials(name)} size="md" />
 	<div class="min-w-0 flex-1">
-		<p class="truncate text-sm font-medium text-primary">{name}</p>
+		<p class="truncate text-button font-medium text-primary">{name}</p>
 		{#if purpose}
-			<p class="truncate text-xs text-secondary">{purpose}</p>
+			<p class="truncate text-label text-secondary">{purpose}</p>
 		{:else}
-			<p class="text-xs text-tertiary">
+			<p class="text-label text-tertiary">
 				{fillerCount} filler{fillerCount !== 1 ? 's' : ''}
 			</p>
 		{/if}
 	</div>
 	{#if onEdit || menuItems.length > 0}
-		<div class="flex items-center gap-1" role="group">
+		<div class="gap-control-item flex items-center" role="group">
 			{#if onEdit}
 				{#snippet editIcon()}
-					<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"

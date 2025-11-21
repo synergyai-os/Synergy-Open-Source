@@ -98,7 +98,7 @@
 	}
 </script>
 
-<div class="h-full overflow-y-auto p-inbox-container">
+<div class="h-full overflow-y-auto px-inbox-container py-inbox-container">
 	<div class="mx-auto max-w-4xl">
 		<h1 class="mb-2 text-2xl font-bold text-primary">Readwise API Test</h1>
 		<p class="mb-6 text-secondary">

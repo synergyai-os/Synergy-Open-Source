@@ -60,7 +60,7 @@ This value stream delivers an **AI-native documentation system** that integrates
 **Owner**: Randy Hereman (Founder)  
 **Contributors**: Open source community  
 **AI Partner**: Claude (Cursor AI)  
-**Stakeholders**: All SynergyOS contributors, early adopters (Saprolab, ZDHC)
+**Stakeholders**: All SynergyOS contributors, early adopters (Agency Partner, Client)
 
 ---
 

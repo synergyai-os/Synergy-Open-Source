@@ -26,8 +26,8 @@ export const getSystemStats = query({
 		// Get organization count
 		const organizations = await ctx.db.query('organizations').collect();
 
-		// Get team count
-		const teams = await ctx.db.query('teams').collect();
+		// Get circle count
+		const circles = await ctx.db.query('circles').collect();
 
 		// Get role assignments count
 		const userRoles = await ctx.db.query('userRoles').collect();
@@ -48,8 +48,8 @@ export const getSystemStats = query({
 			organizations: {
 				total: organizations.length
 			},
-			teams: {
-				total: teams.length
+			circles: {
+				total: circles.length
 			},
 			roles: {
 				total: roles.length,

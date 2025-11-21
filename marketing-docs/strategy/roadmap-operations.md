@@ -49,7 +49,7 @@ This document provides **operational tools** to:
 | Date | Theme | Movement | Reason | Validated Learning |
 |------|-------|----------|--------|-------------------|
 | [Date] | Community Launch | Later → Next | Unexpected validation from early adopters | Community demand higher than expected |
-| [Date] | Partner Validation | Next → Now | Dependencies met (Saprolab committed) | First partner secured |
+| [Date] | Partner Validation | Next → Now | Dependencies met (Agency Partner committed) | First partner secured |
 
 **How to Use**:
 - Document every theme movement (Now ↔ Next ↔ Later)
@@ -63,12 +63,12 @@ This document provides **operational tools** to:
 #### Theme: Partner Validation
 
 **Success Signals**:
-- ✅ **Saprolab team logs in daily (5+ active users)** - **ACHIEVED** ([Date])
+- ✅ **Agency Partner team logs in daily (5+ active users)** - **ACHIEVED** ([Date])
   - Measurement: Convex analytics dashboard
   - Current: 7 active users/day average
   - Status: ✅ Exceeded target
   
-- ⏳ **Saprolab recommends to ZDHC** - **IN PROGRESS**
+- ⏳ **Agency Partner recommends to Client** - **IN PROGRESS**
   - Measurement: Unsolicited recommendation (tracked via conversations)
   - Current: Mentioned in 2 conversations, not yet formal recommendation
   - Status: ⏳ On track, expected [Date]
@@ -88,7 +88,7 @@ This document provides **operational tools** to:
 #### Theme: Multi-Tenant Foundation
 
 **Success Signals**:
-- ✅ **Saprolab + ZDHC on same infrastructure** - **ACHIEVED** ([Date])
+- ✅ **Agency Partner + Client on same infrastructure** - **ACHIEVED** ([Date])
   - Measurement: Infrastructure deployment logs
   - Current: Both orgs deployed successfully
   - Status: ✅ Complete
@@ -146,7 +146,7 @@ This document provides **operational tools** to:
 **What We Learned**:
 
 **✅ Validated Assumptions**:
-- ✅ Saprolab values customization over features (validated)
+- ✅ Agency Partner values customization over features (validated)
   - Evidence: Requested workflow customization, not new features
   - Impact: Prioritize customization tools over feature expansion
   
@@ -156,7 +156,7 @@ This document provides **operational tools** to:
 
 **❌ Invalidated Assumptions**:
 - ❌ Initial pricing too high → adjusted to $10/user/month (pivoted)
-  - Evidence: Saprolab hesitated at $25/user/month, accepted $10/user/month
+  - Evidence: Agency Partner hesitated at $25/user/month, accepted $10/user/month
   - Impact: Revised pricing model across all tiers
 
 **🔄 Changed Approaches**:
@@ -182,12 +182,12 @@ This document provides **operational tools** to:
 
 **✅ Validated Assumptions**:
 - ✅ Organizations want data isolation (validated)
-  - Evidence: Both Saprolab and ZDHC requested strict data boundaries
+  - Evidence: Both Agency Partner and Client requested strict data boundaries
   - Impact: Confirmed security-first approach
 
 **⏳ Assumptions Being Tested**:
 - ⏳ Self-service org creation is critical (testing)
-  - Evidence: Saprolab wants to create ZDHC org themselves
+  - Evidence: Agency Partner wants to create Client org themselves
   - Impact: Prioritizing self-service flow
 
 **Impact on Roadmap**:
@@ -240,22 +240,22 @@ This document provides **operational tools** to:
 
 #### Theme: Partner Validation
 
-**Success Signal**: Saprolab team logs in daily (5+ active users)
+**Success Signal**: Agency Partner team logs in daily (5+ active users)
 
 **Measurement**:
 - **Data Source**: Convex analytics (user login events)
-- **Metric**: Daily active users (DAU) for Saprolab organization
+- **Metric**: Daily active users (DAU) for Agency Partner organization
 - **Target**: 5+ unique users per day (averaged over 7 days)
 - **Frequency**: Weekly review (every Monday)
 - **Tool**: Convex dashboard query: `analytics/dau-by-org`
 - **Owner**: [Name] (Product Manager)
 
-**Success Signal**: Saprolab recommends to ZDHC (unsolicited)
+**Success Signal**: Agency Partner recommends to Client (unsolicited)
 
 **Measurement**:
 - **Data Source**: Conversations, email threads, meeting notes
 - **Metric**: Unsolicited recommendation (not prompted by us)
-- **Target**: Saprolab mentions platform to ZDHC without us asking
+- **Target**: Agency Partner mentions platform to Client without us asking
 - **Frequency**: Real-time (track as it happens)
 - **Tool**: CRM notes, conversation logs
 - **Owner**: [Name] (Account Manager)
@@ -284,7 +284,7 @@ This document provides **operational tools** to:
 
 #### Theme: Multi-Tenant Foundation
 
-**Success Signal**: Saprolab + ZDHC on same infrastructure
+**Success Signal**: Agency Partner + Client on same infrastructure
 
 **Measurement**:
 - **Data Source**: Infrastructure deployment logs, Convex dashboard
@@ -444,7 +444,7 @@ This document provides **operational tools** to:
 
 **Validated Assumptions**:
 - ✅ **Assumption**: "Teams want outcome-driven tools"
-  - **Evidence**: Saprolab data shows 80% adoption of OKR tracking
+  - **Evidence**: Agency Partner data shows 80% adoption of OKR tracking
   - **Impact**: Continue investing in outcome-driven features
   
 - ✅ **Assumption**: "AI guidance accelerates adoption"

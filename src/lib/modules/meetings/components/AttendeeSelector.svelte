@@ -6,8 +6,8 @@
 	import type { Id } from '$lib/convex';
 
 	type Attendee = {
-		type: 'user' | 'circle' | 'team';
-		id: Id<'users'> | Id<'circles'> | Id<'teams'>;
+		type: 'user' | 'circle';
+		id: Id<'users'> | Id<'circles'>;
 		name: string;
 		email?: string; // For users
 	};
@@ -26,7 +26,7 @@
 		sessionId
 	}: Props = $props();
 
-	// Queries for users, circles, and teams
+	// Queries for users and circles
 	const usersQuery =
 		browser && organizationId && sessionId
 			? useQuery(api.organizations.getMembers, () => ({
@@ -38,14 +38,6 @@
 	const circlesQuery =
 		browser && organizationId && sessionId
 			? useQuery(api.circles.list, () => ({
-					organizationId,
-					sessionId
-				}))
-			: null;
-
-	const teamsQuery =
-		browser && organizationId && sessionId
-			? useQuery(api.teams.listTeams, () => ({
 					organizationId,
 					sessionId
 				}))
@@ -73,16 +65,6 @@
 				type: 'circle',
 				id: circle.circleId as Id<'circles'>,
 				name: circle.name
-			});
-		}
-
-		// Add teams
-		const teams = teamsQuery?.data ?? [];
-		for (const team of teams) {
-			attendees.push({
-				type: 'team',
-				id: team.teamId as Id<'teams'>,
-				name: team.name
 			});
 		}
 
@@ -137,56 +119,50 @@
 	}
 
 	// Get type badge label
-	function getTypeLabel(type: 'user' | 'circle' | 'team'): string {
+	function getTypeLabel(type: 'user' | 'circle'): string {
 		switch (type) {
 			case 'user':
 				return 'User';
 			case 'circle':
 				return 'Circle';
-			case 'team':
-				return 'Team';
 		}
 	}
 
 	// Get type badge color class
-	function getTypeBadgeClass(type: 'user' | 'circle' | 'team'): string {
+	function getTypeBadgeClass(type: 'user' | 'circle'): string {
 		switch (type) {
 			case 'user':
 				return 'bg-accent-primary/10 text-accent-primary';
 			case 'circle':
-				return 'bg-blue-500/10 text-blue-500';
-			case 'team':
-				return 'bg-purple-500/10 text-purple-500';
+				return 'bg-accent-primary/10 text-accent-primary';
 		}
 	}
 
 	// Get icon for type
-	function getTypeIcon(type: 'user' | 'circle' | 'team'): string {
+	function getTypeIcon(type: 'user' | 'circle'): string {
 		switch (type) {
 			case 'user':
 				return 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z';
 			case 'circle':
 				return 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z';
-			case 'team':
-				return 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z';
 		}
 	}
 
 	let inputRef: HTMLElement | null = $state(null);
 </script>
 
-<div class="space-y-2">
-	<div class="block text-sm font-medium text-text-primary">Attendees (optional)</div>
+<div class="flex flex-col gap-icon">
+	<div class="text-body-sm block font-medium text-text-primary">Attendees (optional)</div>
 
 	<!-- Selected attendees chips -->
 	{#if selectedAttendees.length > 0}
-		<div class="flex flex-wrap items-center gap-2">
+		<div class="flex flex-wrap items-center gap-icon">
 			{#each selectedAttendees as attendee (attendee.type + attendee.id)}
 				<div
-					class="bg-surface-base inline-flex items-center gap-2 rounded-md border border-border-base px-2 py-1 text-sm"
+					class="text-body-sm inline-flex items-center gap-icon rounded-button border border-border-base bg-surface px-badge py-badge"
 				>
 					<svg
-						class="h-4 w-4 text-text-secondary"
+						class="icon-sm text-text-secondary"
 						fill="none"
 						viewBox="0 0 24 24"
 						stroke="currentColor"
@@ -199,16 +175,20 @@
 						/>
 					</svg>
 					<span class="text-text-primary">{attendee.name}</span>
-					<span class="rounded px-1.5 py-0.5 text-xs {getTypeBadgeClass(attendee.type)}">
+					<span
+						class="px-badge-sm py-badge-sm rounded-badge text-label {getTypeBadgeClass(
+							attendee.type
+						)}"
+					>
 						{getTypeLabel(attendee.type)}
 					</span>
 					<button
 						type="button"
 						onclick={() => removeAttendee(attendee)}
-						class="ml-1 rounded p-0.5 text-text-tertiary transition-colors hover:text-text-primary"
+						class="ml-spacing-icon-gap-sm p-control-button-padding-sm rounded-button text-text-tertiary transition-colors hover:text-text-primary"
 						aria-label={`Remove ${attendee.name}`}
 					>
-						<svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<svg class="icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -227,10 +207,10 @@
 					e.stopPropagation();
 					comboboxOpen = true;
 				}}
-				class="bg-surface-base hover:bg-surface-hover inline-flex items-center gap-1.5 rounded-md border border-border-base px-2 py-1 text-sm text-text-secondary transition-colors hover:text-text-primary"
+				class="text-body-sm hover:bg-surface-hover inline-flex items-center gap-icon rounded-button border border-border-base bg-surface px-badge py-badge text-text-secondary transition-colors hover:text-text-primary"
 				aria-label="Add more attendees"
 			>
-				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -258,11 +238,11 @@
 					<button
 						type="button"
 						onclick={() => (comboboxOpen = true)}
-						class="bg-surface-base hover:bg-surface-hover flex w-full items-center gap-icon rounded-md border border-border-base px-3 py-2 text-left text-sm text-text-secondary transition-colors hover:text-text-primary"
+						class="text-body-sm hover:bg-surface-hover flex w-full items-center gap-icon rounded-input border border-border-base bg-surface px-input-x py-input-y text-left text-text-secondary transition-colors hover:text-text-primary"
 						aria-label="Add attendees"
 					>
 						<svg
-							class="h-4 w-4 flex-shrink-0"
+							class="icon-sm flex-shrink-0"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -284,42 +264,44 @@
 
 			<Combobox.Portal>
 				<Combobox.Content
-					class="z-50 max-h-[320px] min-w-[280px] overflow-y-auto rounded-md border border-base bg-elevated py-1 shadow-lg"
+					class="max-h-combobox-lg min-w-combobox-md py-menu-item-sm z-50 overflow-y-auto rounded-button border border-base bg-elevated shadow-card"
 					side="bottom"
 					align="start"
 					sideOffset={4}
 					customAnchor={inputRef}
 				>
 					<!-- Search input -->
-					<div class="relative mb-1 border-b border-base px-menu-item py-menu-item">
+					<div class="mb-spacing-text-gap relative border-b border-base px-menu-item py-menu-item">
 						<Combobox.Input
 							defaultValue={searchValue}
 							oninput={(e) => {
 								searchValue = e.currentTarget.value;
 								comboboxOpen = true;
 							}}
-							placeholder="Search users, circles, or teams..."
-							class="w-full rounded-md border border-base bg-base px-menu-item py-menu-item text-sm text-primary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+							placeholder="Search users or circles..."
+							class="text-body-sm w-full rounded-input border border-base bg-base px-menu-item py-menu-item text-primary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
 							aria-label="Attendee search"
 						/>
 					</div>
 
 					<!-- Selected attendees section -->
 					{#if selectedAttendees.length > 0}
-						<div class="px-menu-item py-menu-item">
-							<p class="mb-1 text-label font-medium tracking-wider text-tertiary uppercase">
+						<div class="py-menu-item-sm px-menu-item">
+							<p
+								class="mb-spacing-text-gap text-label font-medium tracking-wider text-tertiary uppercase"
+							>
 								Selected
 							</p>
-							<div class="space-y-0.5">
+							<div class="gap-menu-item-sm flex flex-col">
 								{#each selectedAttendees as attendee (attendee.type + attendee.id)}
 									<button
 										type="button"
-										class="flex w-full cursor-pointer items-center gap-icon px-menu-item py-menu-item text-left text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+										class="py-menu-item-sm text-body-sm flex w-full cursor-pointer items-center gap-icon px-menu-item text-left text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 										onclick={() => toggleAttendee(attendee)}
 										aria-label={`Toggle ${attendee.name}`}
 									>
 										<svg
-											class="h-4 w-4 flex-shrink-0 text-accent-primary"
+											class="icon-sm flex-shrink-0 text-accent-primary"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24"
@@ -332,7 +314,7 @@
 											/>
 										</svg>
 										<svg
-											class="h-4 w-4 text-text-secondary"
+											class="icon-sm text-text-secondary"
 											fill="none"
 											viewBox="0 0 24 24"
 											stroke="currentColor"
@@ -345,7 +327,11 @@
 											/>
 										</svg>
 										<span class="flex-1">{attendee.name}</span>
-										<span class="rounded px-1.5 py-0.5 text-xs {getTypeBadgeClass(attendee.type)}">
+										<span
+											class="px-badge-sm py-badge-sm rounded-badge text-label {getTypeBadgeClass(
+												attendee.type
+											)}"
+										>
 											{getTypeLabel(attendee.type)}
 										</span>
 									</button>
@@ -353,28 +339,30 @@
 							</div>
 						</div>
 						{#if filteredAttendees().some((a) => !isSelected(a))}
-							<div class="my-1 h-px bg-base"></div>
+							<div class="my-menu-item-sm h-px bg-base"></div>
 						{/if}
 					{/if}
 
 					<!-- Available attendees -->
 					{@const unselectedAttendees = filteredAttendees().filter((a) => !isSelected(a))}
 					{#if unselectedAttendees.length > 0}
-						<div class="px-menu-item py-menu-item">
-							<p class="mb-1 text-label font-medium tracking-wider text-tertiary uppercase">
+						<div class="py-menu-item-sm px-menu-item">
+							<p
+								class="mb-spacing-text-gap text-label font-medium tracking-wider text-tertiary uppercase"
+							>
 								Available
 							</p>
-							<div class="space-y-0.5">
+							<div class="gap-menu-item-sm flex flex-col">
 								{#each unselectedAttendees as attendee (attendee.type + attendee.id)}
 									<button
 										type="button"
-										class="flex w-full cursor-pointer items-center gap-icon px-menu-item py-menu-item text-left text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+										class="py-menu-item-sm text-body-sm flex w-full cursor-pointer items-center gap-icon px-menu-item text-left text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 										onclick={() => toggleAttendee(attendee)}
 										aria-label={`Select ${attendee.name}`}
 									>
-										<div class="h-4 w-4 flex-shrink-0"></div>
+										<div class="icon-sm flex-shrink-0"></div>
 										<svg
-											class="h-4 w-4 text-text-secondary"
+											class="icon-sm text-text-secondary"
 											fill="none"
 											viewBox="0 0 24 24"
 											stroke="currentColor"
@@ -388,9 +376,13 @@
 										</svg>
 										<span class="flex-1">{attendee.name}</span>
 										{#if attendee.email}
-											<span class="text-xs text-text-tertiary">{attendee.email}</span>
+											<span class="text-label text-text-tertiary">{attendee.email}</span>
 										{/if}
-										<span class="rounded px-1.5 py-0.5 text-xs {getTypeBadgeClass(attendee.type)}">
+										<span
+											class="px-badge-sm py-badge-sm rounded-badge text-label {getTypeBadgeClass(
+												attendee.type
+											)}"
+										>
 											{getTypeLabel(attendee.type)}
 										</span>
 									</button>
@@ -398,7 +390,9 @@
 							</div>
 						</div>
 					{:else if searchValue.trim().length > 0}
-						<div class="px-menu-item py-menu-item text-sm text-text-tertiary">No results found</div>
+						<div class="py-menu-item-sm text-body-sm px-menu-item text-text-tertiary">
+							No results found
+						</div>
 					{/if}
 				</Combobox.Content>
 			</Combobox.Portal>
@@ -406,6 +400,6 @@
 	</div>
 
 	{#if selectedAttendees.length === 0}
-		<p class="text-xs text-text-tertiary">No attendees selected - add users, circles, or teams</p>
+		<p class="text-label text-text-tertiary">No attendees selected - add users or circles</p>
 	{/if}
 </div>

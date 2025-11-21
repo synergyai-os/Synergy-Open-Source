@@ -60,7 +60,6 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 	// ============================================================================
 	// Core data is required for all authenticated routes:
 	// - Organizations: Workspace menu, organization context
-	// - Teams: Sidebar navigation, team context
 	// - Permissions: RBAC checks, button visibility
 	// - Tags: QuickCreateModal, tagging functionality
 	// This data is NOT module-specific and should always load
@@ -68,26 +67,31 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 	// Load organizations and invites for instant workspace menu rendering
 	let organizations: unknown[] = [];
 	let organizationInvites: unknown[] = [];
-	let teamInvites: unknown[] = [];
-	let teams: unknown[] = [];
 	let permissions: unknown[] = [];
 	let tags: unknown[] = [];
 	try {
-		const [orgsResult, invitesResult, teamInvitesResult] = await Promise.all([
+		console.log('🔍 [layout.server] Loading organizations for sessionId:', sessionId);
+		const [orgsResult, invitesResult] = await Promise.all([
 			client.query(api.organizations.listOrganizations, { sessionId }),
-			client.query(api.organizations.listOrganizationInvites, { sessionId }),
-			client.query(api.teams.listTeamInvites, { sessionId })
+			client.query(api.organizations.listOrganizationInvites, { sessionId })
 		]);
 		organizations = orgsResult as unknown[];
 		organizationInvites = invitesResult as unknown[];
-		teamInvites = teamInvitesResult as unknown[];
+		console.log('✅ [layout.server] Organizations loaded:', {
+			orgsCount: organizations.length,
+			invitesCount: organizationInvites.length,
+			orgs: (organizations as Array<{ organizationId?: string; name?: string }>).map((o) => ({
+				id: o?.organizationId,
+				name: o?.name
+			}))
+		});
 	} catch (error) {
 		// If queries fail, default to empty arrays (safe fallback)
 		// Log error but don't block page load
-		console.warn('Failed to load organizations/invites server-side:', error);
+		console.error('❌ [layout.server] Failed to load organizations/invites server-side:', error);
 	}
 
-	// Determine active organization for teams/permissions preload
+	// Determine active organization for permissions/tags preload
 	// Priority: URL param (if valid) > first organization (users always have at least one workspace)
 	const orgParam = url.searchParams.get('org');
 	const orgsList = organizations as Array<{ organizationId: string }>;
@@ -113,22 +117,9 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 		});
 	}
 
-	// Continue with preloading teams/permissions/tags only if we have organizations
+	// Continue with preloading permissions/tags only if we have organizations
 	if (orgsList.length > 0) {
 		try {
-			// Preload teams for active organization (if available)
-			if (activeOrgId) {
-				try {
-					const teamsResult = await client.query(api.teams.listTeams, {
-						sessionId,
-						organizationId: activeOrgId as Id<'organizations'>
-					});
-					teams = teamsResult as unknown[];
-				} catch (error) {
-					console.warn('Failed to load teams server-side:', error);
-				}
-			}
-
 			// Preload permissions for active organization context (if available)
 			try {
 				const permissionsResult = await client.query(api.rbac.permissions.getUserPermissionsQuery, {
@@ -152,7 +143,7 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 		} catch (error) {
 			// If queries fail, default to empty arrays (safe fallback)
 			// Log error but don't block page load
-			console.warn('Failed to load teams/permissions/tags server-side:', error);
+			console.warn('Failed to load permissions/tags server-side:', error);
 		}
 	}
 
@@ -220,8 +211,6 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 		// Core data (always loaded)
 		organizations,
 		organizationInvites,
-		teamInvites,
-		teams,
 		permissions,
 		tags,
 		// Module-specific data (only loaded if flags enabled)

@@ -70,13 +70,13 @@ grep -r "test\|demo" src/lib/components/Sidebar.svelte src/lib/components/Header
 **Layout Components:**
 
 - `Sidebar.svelte` - Used in layout
-- `Header.svelte` - Used in layout
-- `Loading.svelte` - Used in multiple places
-- `ErrorBoundary.svelte` - Used for error handling
+- `Header.svelte` - Used in layout (`src/lib/modules/core/components/Header.svelte`)
+- `Loading.svelte` - Used in multiple places (`src/lib/components/ui/Loading.svelte`)
+- `ErrorBoundary.svelte` - Used for error handling (`src/lib/components/ui/ErrorBoundary.svelte`)
 - `GlobalActivityTracker.svelte` - Used in layout
-- `ActivityCard.svelte` - Used by GlobalActivityTracker
-- `HubCard.svelte` - Used in `/dev-docs/all` page
-- `WaitlistForm.svelte` - Used in homepage (`/`)
+- `ActivityCard.svelte` - Used by GlobalActivityTracker (`src/lib/modules/core/components/ActivityCard.svelte`)
+- `HubCard.svelte` - Used in `/dev-docs/all` page (`src/lib/modules/core/components/HubCard.svelte`)
+- `WaitlistForm.svelte` - Used in homepage (`/`) (`src/lib/modules/core/components/WaitlistForm.svelte`)
 
 ---
 

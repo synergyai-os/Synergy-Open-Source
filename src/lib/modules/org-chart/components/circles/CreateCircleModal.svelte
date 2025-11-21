@@ -34,27 +34,27 @@
 	onOpenChange={(value) => !value && circles.closeModal('createCircle')}
 >
 	<Dialog.Content
-		class="w-[min(500px,90vw)] max-w-lg rounded-lg border border-base bg-surface text-primary shadow-xl"
+		class="w-[min(500px,90vw)] max-w-lg rounded-card border border-base bg-surface text-primary shadow-card-hover"
 	>
 		<div class="space-y-6 px-inbox-container py-inbox-container">
 			<div>
-				<Dialog.Title class="text-lg font-semibold text-primary">Create circle</Dialog.Title>
-				<Dialog.Description class="mt-1 text-sm text-secondary">
+				<Dialog.Title class="text-h3 font-semibold text-primary">Create circle</Dialog.Title>
+				<Dialog.Description class="mt-1 text-button text-secondary">
 					Circles represent work organization units like value streams or coordination contexts.
 				</Dialog.Description>
 			</div>
 
 			<form
-				class="space-y-4"
+				class="space-y-form-section"
 				onsubmit={(event) => {
 					event.preventDefault();
 					submitCreateCircle();
 				}}
 			>
-				<label class="flex flex-col gap-1">
-					<span class="text-sm font-medium text-primary">Circle name *</span>
+				<label class="flex flex-col gap-form-field">
+					<span class="text-button font-medium text-primary">Circle name *</span>
 					<input
-						class="w-full rounded-md border border-base bg-elevated px-nav-item py-nav-item text-sm text-primary focus:border-accent-primary focus:outline-none"
+						class="w-full rounded-button border border-base bg-elevated px-nav-item py-nav-item text-button text-primary focus:border-accent-primary focus:outline-none"
 						placeholder="e.g. Active Platforms"
 						bind:value={name}
 						required
@@ -62,10 +62,10 @@
 					/>
 				</label>
 
-				<label class="flex flex-col gap-1">
-					<span class="text-sm font-medium text-primary">Purpose (optional)</span>
+				<label class="flex flex-col gap-form-field">
+					<span class="text-button font-medium text-primary">Purpose (optional)</span>
 					<textarea
-						class="w-full rounded-md border border-base bg-elevated px-nav-item py-nav-item text-sm text-primary focus:border-accent-primary focus:outline-none"
+						class="w-full rounded-button border border-base bg-elevated px-nav-item py-nav-item text-button text-primary focus:border-accent-primary focus:outline-none"
 						placeholder="Why this work exists..."
 						bind:value={purpose}
 						rows={3}
@@ -73,10 +73,10 @@
 				</label>
 
 				{#if availableCircles.length > 0}
-					<label class="flex flex-col gap-1">
-						<span class="text-sm font-medium text-primary">Parent circle (optional)</span>
+					<label class="flex flex-col gap-form-field">
+						<span class="text-button font-medium text-primary">Parent circle (optional)</span>
 						<select
-							class="w-full rounded-md border border-base bg-elevated px-nav-item py-nav-item text-sm text-primary focus:border-accent-primary focus:outline-none"
+							class="w-full rounded-button border border-base bg-elevated px-nav-item py-nav-item text-button text-primary focus:border-accent-primary focus:outline-none"
 							bind:value={parentCircleId}
 						>
 							<option value="">None (top-level circle)</option>
@@ -87,10 +87,10 @@
 					</label>
 				{/if}
 
-				<div class="flex items-center justify-end gap-2 pt-2">
+				<div class="flex items-center justify-end gap-button-group pt-2">
 					<button
 						type="button"
-						class="rounded-md border border-base px-3 py-1.5 text-sm font-medium text-secondary hover:text-primary disabled:opacity-50"
+						class="rounded-button border border-base px-card py-input-y text-button font-medium text-secondary hover:text-primary disabled:opacity-50"
 						onclick={() => circles.closeModal('createCircle')}
 						disabled={circles.loading.createCircle}
 					>
@@ -98,7 +98,7 @@
 					</button>
 					<button
 						type="submit"
-						class="text-on-solid rounded-md bg-accent-primary px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+						class="text-on-solid rounded-button bg-accent-primary px-card py-input-y text-button font-medium disabled:opacity-50"
 						disabled={circles.loading.createCircle}
 					>
 						{circles.loading.createCircle ? 'Creating...' : 'Create'}

@@ -59,17 +59,19 @@
 {#if visible}
 	<div
 		data-ai-detector-menu
-		class="border-divider p-section fixed z-50 rounded-md border bg-surface shadow-lg"
+		class="border-divider fixed z-50 rounded-button border bg-surface px-section py-section shadow-card"
 		style="left: {adjustedX()}px; top: {adjustedY()}px; width: {menuWidth}px;"
 		transition:fade={{ duration: 150 }}
 	>
-		<p class="text-surface-secondary mb-section text-sm">Did you paste AI-generated content?</p>
+		<p class="text-surface-secondary mb-content-section text-small">
+			Did you paste AI-generated content?
+		</p>
 
-		<div class="gap-toolbar-item flex">
+		<div class="flex gap-icon">
 			<button
 				type="button"
 				onclick={onConfirm}
-				class="px-button py-button-small bg-primary hover:bg-primary-hover flex-1 rounded-md text-sm font-medium text-white transition-colors"
+				class="bg-primary hover:bg-primary-hover flex-1 rounded-button px-button-x py-button-y text-small font-medium text-primary transition-colors"
 			>
 				AI Generated
 			</button>
@@ -77,7 +79,7 @@
 			<button
 				type="button"
 				onclick={onDismiss}
-				class="px-button py-button-small bg-surface-hover text-surface-primary hover:bg-surface-hover-solid flex-1 rounded-md text-sm transition-colors"
+				class="bg-surface-hover text-surface-primary hover:bg-surface-hover-solid flex-1 rounded-button px-button-x py-button-y text-small transition-colors"
 			>
 				Close
 			</button>
@@ -85,7 +87,7 @@
 
 		<!-- Arrow pointer -->
 		<div
-			class="border-divider absolute h-3 w-3 rotate-45 transform border-t border-l bg-surface"
+			class="border-divider absolute icon-xs rotate-45 transform border-t border-l bg-surface"
 			style="top: -7px; left: 20px;"
 		></div>
 	</div>

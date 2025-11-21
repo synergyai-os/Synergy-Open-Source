@@ -56,25 +56,20 @@
 		acceptError = null;
 
 		try {
-			let redirectUrl: string;
-
-			if (invite.type === 'organization') {
-				const result = await convexClient.mutation(api.organizations.acceptOrganizationInvite, {
-					sessionId,
-					code: inviteCode
-				});
-
-				// Redirect to organization page
-				redirectUrl = resolveRoute(`/org/circles?org=${result.organizationId}`);
-			} else {
-				const result = await convexClient.mutation(api.teams.acceptTeamInvite, {
-					sessionId,
-					code: inviteCode
-				});
-
-				// Redirect to team detail page using ID from mutation result + org param
-				redirectUrl = resolveRoute(`/org/teams/${result.teamId}?org=${result.organizationId}`);
+			// Only organization invites are supported (circle invites not yet implemented)
+			if (invite.type !== 'organization') {
+				acceptError = 'Circle invites are not yet implemented';
+				isAccepting = false;
+				return;
 			}
+
+			const result = await convexClient.mutation(api.organizations.acceptOrganizationInvite, {
+				sessionId,
+				code: inviteCode
+			});
+
+			// Redirect to organization page
+			const redirectUrl = resolveRoute(`/org/circles?org=${result.organizationId}`);
 
 			// Use window.location for hard redirect (prevents any page state issues)
 			if (browser) {
@@ -148,20 +143,12 @@
 							{#if inviteData.type === 'organization'}
 								You've been invited to join an organization on SynergyOS
 							{:else}
-								You've been invited to join a team on SynergyOS
+								You've been invited to join a circle on SynergyOS
 							{/if}
 						</p>
 					</div>
 
 					<div class="mb-6 space-y-4">
-						{#if inviteData.type === 'team'}
-							<!-- Team name -->
-							<div>
-								<div class="mb-1 text-xs font-medium text-secondary">Team</div>
-								<div class="text-lg font-semibold text-primary">{inviteData.teamName}</div>
-							</div>
-						{/if}
-
 						<!-- Organization name -->
 						<div>
 							<div class="mb-1 text-xs font-medium text-secondary">Organization</div>

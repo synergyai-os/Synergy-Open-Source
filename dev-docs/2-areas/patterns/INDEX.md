@@ -19,12 +19,14 @@
 | Composable receives stale values                                                                  | Pass functions `() => value`                                                 | [svelte-reactivity.md#L80](svelte-reactivity.md#L80)                |
 | Component shows stale/old data                                                                    | Key on data, not ID                                                          | [svelte-reactivity.md#L140](svelte-reactivity.md#L140)              |
 | `.ts` file: "Cannot assign to constant"                                                           | Rename to `.svelte.ts`                                                       | [svelte-reactivity.md#L180](svelte-reactivity.md#L180)              |
+| Component classes don't update when prop changes (selected state, conditional styling)          | Use `$derived` for class string concatenation                                | [svelte-reactivity.md#L700](svelte-reactivity.md#L700)              |
 | 500 error with ProseMirror/Monaco                                                                 | Guard with `{#if browser}`                                                   | [svelte-reactivity.md#L400](svelte-reactivity.md#L400)              |
 | Event listeners don't fire (no errors)                                                            | Browser check inside $effect                                                 | [svelte-reactivity.md#L500](svelte-reactivity.md#L500)              |
 | Build fails: ENOENT file not found                                                                | Remove phantom dependencies                                                  | [svelte-reactivity.md#L550](svelte-reactivity.md#L550)              |
 | Server crashes on startup / 500 on all routes                                                     | Remove top-level await in config                                             | [svelte-reactivity.md#L600](svelte-reactivity.md#L600)              |
 | Page freezes, effect_update_depth_exceeded error                                                  | Use untrack() or plain vars in $effect                                       | [svelte-reactivity.md#L700](svelte-reactivity.md#L700)              |
 | Component has custom CSS/hardcoded values                                                         | Use design tokens (app UI: px-inbox-header, marketing: py-marketing-section) | [ui-patterns.md#L780](ui-patterns.md#L780)                          |
+| Audit finds violations but semantic token doesn't exist (rounded-avatar, text-success missing) | Add token systematically: @theme → @utility → document | [ui-patterns.md#L720](ui-patterns.md#L720) |
 | Navigation breaks in production with base path, ESLint no-navigation-without-resolve errors      | Use resolveRoute() for all goto() and href (except external/static files)    | [ui-patterns.md#L1870](ui-patterns.md#L1870)                        |
 | TypeScript errors "Argument of type '[\"/settings/account\"]' is not assignable" with resolveRoute | Use wrapper function with type assertion for routes not in strict type manifest | [ui-patterns.md#L1920](ui-patterns.md#L1920)                        |
 | Navbar/header stays white in dark mode                                                            | Remove non-existent CSS vars (--color-bg-base-rgb)                           | [ui-patterns.md#L828](ui-patterns.md#L828)                          |
@@ -76,6 +78,7 @@
 | E2E test times out filling Bits UI PinInput (verification codes)                                  | Target hidden input [data-pin-input-input] not visual cells                  | [ui-patterns.md#L2750](ui-patterns.md#L2750)                        |
 | E2E tests fail with 429, rate limit tests only register 1-2 attempts instead of 5                 | Use X-Test-ID header for isolated rate limit buckets                         | [ci-cd.md#L330](ci-cd.md#L330)                                      |
 | Tests pass with --workers=1 but fail in parallel with "Expected: 429, Received: 401"               | Remove global beforeEach cleanup, rely on unique testIds for isolation      | [ci-cd.md#L340](ci-cd.md#L340)                                      |
+| Pre-commit hook reports errors but doesn't block commits, exit 1 inside while loop doesn't work   | Use process substitution with flag variable, exit in main shell after loop | [ci-cd.md#L1850](ci-cd.md#L1850)                                    |
 | Feature flags visible to all users when no targeting rules configured                              | Default to false when no targeting rules, require explicit configuration   | [convex-integration.md#L1530](convex-integration.md#L1530)            |
 | Feature flag needs organization-based targeting (multi-tenancy)                                    | Add allowedOrganizationIds field + org membership check                    | [feature-flags.md#L180](feature-flags.md#L180)                        |
 | Admin sidebar visible to non-admin users, or error page shows sidebar                            | Separate checks: page load throws error, layout load returns boolean for conditional UI       | [ui-patterns.md#L4800](ui-patterns.md#L4800)            |
@@ -156,6 +159,8 @@
 | Tests fail with 401/500 "Session not found" from prev tests                   | Skip gracefully if session invalid (test.skip())                      | [ci-cd.md#L260](ci-cd.md#L260)                             |
 | E2E tests hit rate limits with "Too many requests" errors from external APIs  | Pass skipEmail parameter from SvelteKit server (don't set E2E_TEST_MODE in Convex env) | [ci-cd.md#L1320](ci-cd.md#L1320)                             |
 | Verification emails not sent in production, E2E_TEST_MODE set in Convex env  | Pass skipEmail parameter from SvelteKit server instead of Convex env var | [ci-cd.md#L1320](ci-cd.md#L1320)                             |
+| AI creates sloppy code, doesn't follow systematic workflows, reinvents solutions | Use task-specific templates (/bug-fix, /code-cleanup, /code-review) with systematic workflows | [ai-development.md#L10](ai-development.md#L10)              |
+| AI agents waste tokens loading outdated docs, reference outdated features, root directory cluttered with 20+ markdown files | Organize docs into CORE (active) vs ARCHIVE (historical), hide archive from AI via .cursorignore | [ai-development.md#L200](ai-development.md#L200)            |
 
 ## 🟢 REFERENCE Patterns (Best Practices)
 
@@ -179,6 +184,7 @@
 | N vs C keyboard shortcuts   | N=new, C=command center                                     | [ui-patterns.md#L580](ui-patterns.md#L580)               |
 | Control panel system        | Toolbar/popover/embedded controls                           | [ui-patterns.md#L620](ui-patterns.md#L620)               |
 | Atomic components           | Reusable KeyboardShortcut, FormInput                        | [ui-patterns.md#L680](ui-patterns.md#L680)               |
+| Design token cleanup        | Atomic-first strategy + audit + utility creation            | [ui-patterns.md#L710](ui-patterns.md#L710)               |
 | ProseMirror integration     | Rich text with AI detection                                 | [ui-patterns.md#L730](ui-patterns.md#L730)               |
 | Compact modal design        | Linear-style tight spacing, input-sized fields              | [ui-patterns.md#L830](ui-patterns.md#L830)               |
 | Inline CRUD forms               | Add/edit/delete in list + hover actions + single $state | [ui-patterns.md#L2800](ui-patterns.md#L2800)             |
@@ -205,13 +211,17 @@
 | Ticket writing for AI       | User stories + technical detail for parallel AI execution   | [ticket-writing.md](ticket-writing.md)                   |
 | Split overlapping tickets   | Separate by technical boundary for parallel implementation  | [ticket-writing.md](ticket-writing.md)                   |
 | AI-ready ticket structure   | Clear scope, files, patterns, success criteria              | [ticket-writing.md](ticket-writing.md)                   |
+| Cursor commands lack structure, inconsistent format, hard to follow | Use standard command structure pattern (Purpose → When to Use → Workflow → Critical Rules) | [ai-development.md#L50](ai-development.md#L50)              |
 | Module API contracts        | Create interface for composables to enable loose coupling   | [modularity-refactoring-analysis.md#L84](../architecture/modularity-refactoring-analysis.md#L84) |
 | Components depend on internal types, refactoring breaks dependent modules | Migrate to public API interfaces instead of ReturnType<typeof composable> | [convex-integration.md#L3650](convex-integration.md#L3650) |
 | Creating new module API contract (InboxModuleAPI, CirclesModuleAPI) | Follow pattern: create api.ts, expose composables/types, update manifest | [convex-integration.md#L3900](convex-integration.md#L3900) |
 | Component used by multiple modules creates cross-module dependencies (Flashcards → Inbox) | Move shared component to core module, expose via CoreModuleAPI, update all consumers | [convex-integration.md#L4100](convex-integration.md#L4100) |
 | Incremental CI gates        | Enable lint/build first, defer type check to separate work  | [ci-cd.md#L10](ci-cd.md#L10)                             |
 | Local CI testing            | npm scripts > shell scripts for consistency                 | [ci-cd.md#L110](ci-cd.md#L110)                           |
-| Secret scanning             | TruffleHog with .secretsignore for safe patterns            | [ci-cd.md#L160](ci-cd.md#L160)                           |
+| Secret scanning             | TruffleHog with .secretsignore for safe patterns            | [ci-cd.md#L160](ci-cd.md#L160)                           |        
+| TypeScript interface declared multiple times in same file (duplicate definitions) | Remove duplicate interface, keep single definition with clear comment | [convex-integration.md#L4250](convex-integration.md#L4250) |
+| Mutation silently ignores mismatched parameter combinations (e.g., circleId when ownership !== 'circle') | Add early defensive validation to reject mismatched combinations with clear error | [convex-integration.md#L4300](convex-integration.md#L4300) |
+| Mutation fetches same data twice (performance issue, unnecessary database queries) | Hoist variable before conditional branch, reuse fetched data instead of fetching again | [convex-integration.md#L4350](convex-integration.md#L4350) |
 
 ---
 
@@ -224,6 +234,7 @@
 - **Analytics (PostHog)** → [analytics.md](analytics.md)
 - **CI/CD & Tooling** → [ci-cd.md](ci-cd.md)
 - **Ticket Writing** → [ticket-writing.md](ticket-writing.md)
+- **AI Development Workflow** → [ai-development.md](ai-development.md)
 
 ---
 
@@ -273,8 +284,8 @@ correct code
 
 ---
 
-**Last Updated**: 2025-11-19
-**Pattern Count**: 97
+**Last Updated**: 2025-11-21
+**Pattern Count**: 100
 **Format Version**: 2.0
 ```
 

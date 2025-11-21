@@ -4,6 +4,8 @@
 	 * Matches Holaspirit design with large layout and orange Start button
 	 */
 
+	import { Button } from '$lib/components/ui';
+
 	interface Meeting {
 		title: string;
 		startTime: number;
@@ -59,10 +61,10 @@
 </script>
 
 <div
-	class="bg-surface-base group flex w-full max-w-[300px] flex-col gap-inbox-list rounded-lg border border-border-base px-inbox-card py-inbox-card shadow-sm transition-shadow hover:shadow-md"
+	class="group flex w-full max-w-meeting-today-card flex-col gap-inbox-list rounded-card border border-border-base bg-surface px-card py-card shadow-card transition-default hover:shadow-card-hover"
 >
 	<!-- Date Badge (Top) -->
-	<div class="flex items-center gap-icon text-sm">
+	<div class="text-body-sm flex items-center gap-icon">
 		<div class="font-medium text-text-tertiary">{month}. {dayOfMonth}</div>
 		<div class="text-text-secondary">{dayOfWeek}</div>
 	</div>
@@ -71,7 +73,7 @@
 	<div class="flex items-center gap-icon">
 		{#if isPrivate}
 			<svg
-				class="h-4 w-4 flex-shrink-0 text-text-tertiary"
+				class="icon-sm flex-shrink-0 text-text-tertiary"
 				fill="none"
 				viewBox="0 0 24 24"
 				stroke="currentColor"
@@ -88,19 +90,19 @@
 	</div>
 
 	<!-- Time -->
-	<div class="text-sm font-medium text-text-secondary">
+	<div class="text-body-sm font-medium text-text-secondary">
 		{startTimeStr} - {endTimeStr}
 	</div>
 
 	<!-- Circle Badge (if exists) -->
 	{#if circleName}
 		<div class="flex items-center gap-icon">
-			<svg class="h-4 w-4 flex-shrink-0 text-text-tertiary" fill="currentColor" viewBox="0 0 20 20">
+			<svg class="icon-sm flex-shrink-0 text-text-tertiary" fill="currentColor" viewBox="0 0 20 20">
 				<path
 					d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"
 				/>
 			</svg>
-			<span class="text-sm text-text-secondary">{circleName}</span>
+			<span class="text-body-sm text-text-secondary">{circleName}</span>
 		</div>
 	{/if}
 
@@ -109,7 +111,7 @@
 		<div class="flex items-center gap-inbox-icon">
 			{#each attendeeAvatars.slice(0, 6) as attendee (attendee.name)}
 				<div
-					class="flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium text-white"
+					class="flex size-meeting-avatar-md items-center justify-center rounded-avatar text-label font-medium text-primary"
 					style="background-color: {attendee.color}"
 					title={attendee.name}
 				>
@@ -118,7 +120,7 @@
 			{/each}
 			{#if attendeeAvatars.length > 6}
 				<div
-					class="bg-surface-tertiary flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium text-text-secondary"
+					class="bg-surface-tertiary flex size-meeting-avatar-md items-center justify-center rounded-avatar text-label font-medium text-text-secondary"
 					title="{attendeeAvatars.length - 6} more"
 				>
 					+{attendeeAvatars.length - 6}
@@ -128,14 +130,11 @@
 	{/if}
 
 	<!-- Actions -->
-	<div class="mt-4 flex flex-col gap-button-group">
+	<div class="mt-content-section flex flex-col gap-button-group">
 		<!-- Add Agenda Item Button -->
 		{#if onAddAgendaItem}
-			<button
-				onclick={onAddAgendaItem}
-				class="hover:bg-surface-hover flex items-center justify-center gap-icon rounded-md border border-border-base px-button-x py-button-y text-sm text-text-secondary transition-colors"
-			>
-				<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+			<Button variant="outline" onclick={onAddAgendaItem}>
+				<svg class="icon-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -144,17 +143,14 @@
 					/>
 				</svg>
 				Add agenda item
-			</button>
+			</Button>
 		{/if}
 
 		<!-- Start/Join Button (Prominent Primary) -->
 		{#if onStart}
-			<button
-				onclick={onStart}
-				class="rounded-md bg-accent-primary px-button-x py-button-y text-base font-medium text-white shadow-sm transition-colors hover:bg-accent-hover"
-			>
+			<Button variant="primary" onclick={onStart} class="shadow-card">
 				{buttonLabel}
-			</button>
+			</Button>
 		{/if}
 	</div>
 </div>

@@ -55,12 +55,12 @@
 		class="flex h-system-header flex-shrink-0 items-center justify-between border-b border-base bg-surface px-inbox-container py-system-header"
 	>
 		<div>
-			<h1 class="text-sm font-normal text-secondary">Org Chart</h1>
-			<p class="text-xs text-tertiary">{organizationName}</p>
+			<h1 class="text-button font-normal text-secondary">Org Chart</h1>
+			<p class="text-label text-tertiary">{organizationName}</p>
 		</div>
-		<div class="flex items-center gap-2">
+		<div class="flex items-center gap-icon">
 			<button
-				class="rounded-md px-nav-item py-nav-item text-sm text-secondary hover:bg-hover-solid hover:text-primary"
+				class="rounded-button px-nav-item py-nav-item text-button text-secondary hover:bg-hover-solid hover:text-primary"
 				onclick={() => goto(resolveRoute('/org/circles'))}
 			>
 				← Back to Circles

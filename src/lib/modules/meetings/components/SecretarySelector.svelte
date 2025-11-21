@@ -13,6 +13,7 @@
 	import { useConvexClient } from 'convex-svelte';
 	import { api, type Id } from '$lib/convex';
 	import { toast } from 'svelte-sonner';
+	import { Button } from '$lib/components/ui';
 
 	interface Attendee {
 		_id: Id<'meetingAttendees'>;
@@ -96,33 +97,36 @@
 
 <div class="relative" data-secretary-selector>
 	<!-- Trigger Button -->
-	<button
+	<Button
+		variant="primary"
+		size="sm"
 		onclick={toggleDropdown}
-		class="flex items-center gap-2 rounded-md bg-accent-primary px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
 		title="Click to view or change secretary"
 	>
 		<span>{currentSecretaryName}</span>
 		<svg
-			class="h-4 w-4 transition-transform {isOpen ? 'rotate-180' : ''}"
+			class="icon-sm transition-transform {isOpen ? 'rotate-180' : ''}"
 			fill="none"
 			viewBox="0 0 24 24"
 			stroke="currentColor"
 		>
 			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
 		</svg>
-	</button>
+	</Button>
 
 	<!-- Dropdown Menu -->
 	{#if isOpen}
 		<div
-			class="absolute top-full right-0 z-50 mt-2 w-64 rounded-lg border border-border-base bg-elevated shadow-lg"
+			class="absolute top-full right-0 z-50 mt-meeting-card w-meeting-dropdown rounded-card border border-border-base bg-elevated shadow-card"
 		>
-			<div class="p-2">
-				<div class="mb-2 px-3 py-2 text-xs font-medium text-text-tertiary">
+			<div class="p-meeting-card">
+				<div
+					class="mb-meeting-card px-header py-meeting-card text-label font-medium text-text-tertiary"
+				>
 					Request Secretary Change
 				</div>
 
-				<div class="space-y-1">
+				<div class="space-y-meeting-avatar-gap">
 					{#each userAttendees as attendee (attendee._id)}
 						{@const isCurrentSecretary = attendee.userId === currentSecretaryId}
 						{@const isSelf = attendee.userId === currentUserId}
@@ -130,15 +134,15 @@
 						<button
 							onclick={() => handleSelectSecretary(attendee.userId, attendee.userName || 'Unknown')}
 							disabled={isCurrentSecretary}
-							class="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors {isCurrentSecretary
+							class="text-body-sm flex w-full items-center justify-between rounded-button px-header py-meeting-card text-left transition-colors {isCurrentSecretary
 								? 'cursor-default bg-accent-primary/10 text-accent-primary'
 								: 'hover:bg-surface-hover cursor-pointer text-text-primary'}"
 						>
-							<span class="flex items-center gap-2">
+							<span class="flex items-center gap-meeting-card">
 								<!-- Avatar placeholder -->
 								<div
-									class="flex h-6 w-6 items-center justify-center rounded-full {isCurrentSecretary
-										? 'bg-accent-primary text-white'
+									class="flex size-meeting-avatar-sm items-center justify-center rounded-avatar {isCurrentSecretary
+										? 'bg-accent-primary text-primary'
 										: 'bg-surface-hover text-text-secondary'}"
 								>
 									{(attendee.userName || 'U')[0].toUpperCase()}
@@ -152,7 +156,7 @@
 							</span>
 
 							{#if isCurrentSecretary}
-								<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+								<svg class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 									<path
 										stroke-linecap="round"
 										stroke-linejoin="round"
@@ -165,8 +169,8 @@
 					{/each}
 				</div>
 
-				<div class="mt-2 border-t border-border-base pt-2">
-					<p class="px-3 text-xs text-text-tertiary">
+				<div class="mt-meeting-card border-t border-border-base pt-meeting-card">
+					<p class="px-header text-label text-text-tertiary">
 						Click any attendee to request a secretary change. Current secretary will confirm.
 					</p>
 				</div>

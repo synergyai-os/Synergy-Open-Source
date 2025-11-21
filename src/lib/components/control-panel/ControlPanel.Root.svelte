@@ -28,7 +28,7 @@
 			</Popover.Trigger>
 		{/if}
 		<Popover.Content
-			class="z-50 rounded-md border border-control-border bg-control p-control-panel-padding shadow-lg"
+			class="z-50 rounded-button border border-control-border bg-control p-control-panel-padding shadow-card"
 			side="bottom"
 			align="start"
 			sideOffset={8}

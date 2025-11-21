@@ -45,7 +45,7 @@ Each value stream has its own folder with:
 **Outcome**: Organizations can safely share knowledge with their teams  
 **Team**: Core (Randy + AI)  
 **Status**: Foundation complete, multi-tenancy next  
-**Success Signal**: Saprolab onboards ZDHC with zero security concerns
+**Success Signal**: Agency Partner onboards Client with zero security concerns
 
 ### 3. [Inbox & Knowledge Collection](./inbox-collection/)
 

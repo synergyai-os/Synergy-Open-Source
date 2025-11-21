@@ -61,8 +61,7 @@ export const setupAdmin = mutation({
 			roleId: adminRole._id,
 			assignedAt: now,
 			assignedBy: args.userId, // Self-assigned
-			organizationId: args.organizationId ?? undefined,
-			teamId: undefined
+			organizationId: args.organizationId ?? undefined
 		});
 
 		console.log(`✅ Admin role assigned to user ${args.userId}`);
@@ -102,7 +101,7 @@ export const verifyAdminSetup = query({
 							roleId: role._id,
 							slug: role.slug,
 							name: role.name,
-							scope: ur.organizationId ? 'organization' : ur.teamId ? 'team' : 'global'
+							scope: ur.organizationId ? 'organization' : ur.circleId ? 'circle' : 'global'
 						}
 					: null;
 			})

@@ -381,7 +381,7 @@ src/lib/components/
 
 ```svelte
 <script lang="ts">
-  import ErrorBoundary from '$lib/components/ErrorBoundary.svelte';
+  import ErrorBoundary from '$lib/components/organisms/ErrorBoundary.svelte';
 </script>
 
 <ErrorBoundary fallback={ErrorFallback}>

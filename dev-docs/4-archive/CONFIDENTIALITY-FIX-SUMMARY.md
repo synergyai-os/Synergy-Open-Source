@@ -10,7 +10,7 @@
 
 ## 🔒 What Happened
 
-**Problem**: The metrics dashboard (`dev-docs/2-areas/metrics.md`) mentioned specific client names ("Saprolab", "ZDHC") in public-facing documentation without written approval.
+**Problem**: The metrics dashboard (`dev-docs/2-areas/metrics.md`) mentioned specific client names ("Agency Partner", "Client") in public-facing documentation without written approval.
 
 **Why This Matters**:
 
@@ -27,10 +27,10 @@
 
 **Changes**:
 
-- ❌ "Saprolab" → ✅ "Design agency pilot"
-- ❌ "ZDHC" → ✅ "Second customer"
-- ❌ "Saprolab ($80/month)" → ✅ "Pilot customers ($60-100/month)"
-- ❌ "Saprolab validation" → ✅ "First customer validation"
+- ❌ "Agency Partner" → ✅ "Design agency pilot"
+- ❌ "Client" → ✅ "Second customer"
+- ❌ "Agency Partner ($80/month)" → ✅ "Pilot customers ($60-100/month)"
+- ❌ "Agency Partner validation" → ✅ "First customer validation"
 
 **All client-specific references anonymized.**
 
@@ -107,7 +107,7 @@
 
 ```bash
 # Scan for client names before committing
-grep -r "Saprolab\|ZDHC\|[Client Name]" dev-docs/ marketing-docs/
+grep -r "Agency Partner\|Client\|[Client Name]" dev-docs/ marketing-docs/
 # Fail if found in public docs
 ```
 

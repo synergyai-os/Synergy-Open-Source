@@ -223,7 +223,7 @@ export async function assignRoleToUser(
 	roleId: Id<'roles'>,
 	context?: {
 		organizationId?: Id<'organizations'>;
-		teamId?: Id<'teams'>;
+		circleId?: Id<'circles'>;
 		assignedBy?: Id<'users'>;
 	}
 ): Promise<Id<'userRoles'>> {
@@ -232,7 +232,7 @@ export async function assignRoleToUser(
 			userId,
 			roleId,
 			organizationId: context?.organizationId,
-			teamId: context?.teamId,
+			circleId: context?.circleId,
 			assignedBy: context?.assignedBy ?? userId, // Default to self-assignment for tests
 			assignedAt: Date.now()
 		});

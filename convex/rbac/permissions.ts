@@ -20,13 +20,13 @@ export type PermissionSlug =
 	| 'users.remove'
 	| 'users.change-roles'
 	| 'users.manage-profile'
-	| 'teams.view'
-	| 'teams.create'
-	| 'teams.update'
-	| 'teams.delete'
-	| 'teams.add-members'
-	| 'teams.remove-members'
-	| 'teams.change-roles'
+	| 'circles.view'
+	| 'circles.create'
+	| 'circles.update'
+	| 'circles.delete'
+	| 'circles.add-members'
+	| 'circles.remove-members'
+	| 'circles.change-roles'
 	| 'organizations.view-settings'
 	| 'organizations.update-settings'
 	| 'organizations.manage-billing'
@@ -34,7 +34,7 @@ export type PermissionSlug =
 
 export interface PermissionContext {
 	organizationId?: Id<'organizations'>;
-	teamId?: Id<'teams'>;
+	circleId?: Id<'circles'>;
 	resourceType?: string;
 	resourceId?: string;
 	resourceOwnerId?: Id<'users'>; // User who "owns" the resource (for scope: "own")
@@ -83,19 +83,19 @@ export async function hasPermission(
 					return true;
 				}
 
-				// Handle "own" scope: user must own the resource OR have team-scoped role
+				// Handle "own" scope: user must own the resource OR have circle-scoped role
 				if (perm.scope === 'own') {
-					// CASE 1: Team-scoped permission (e.g., Team Lead managing their team)
-					// If context has teamId, and this permission exists, it means getUserPermissions
-					// already filtered to roles with matching teamId - user has permission!
-					if (context?.teamId && !context.resourceOwnerId) {
+					// CASE 1: Circle-scoped permission (e.g., Circle Lead managing their circle)
+					// If context has circleId, and this permission exists, it means getUserPermissions
+					// already filtered to roles with matching circleId - user has permission!
+					if (context?.circleId && !context.resourceOwnerId) {
 						await logPermissionCheck(ctx, {
 							userId,
 							action: 'check',
 							permissionSlug,
 							roleSlug: perm.roleSlug,
 							result: 'allowed',
-							reason: 'User has team-scoped role for this team',
+							reason: 'User has circle-scoped role for this circle',
 							context
 						});
 						return true;
@@ -123,7 +123,7 @@ export async function hasPermission(
 						permissionSlug,
 						roleSlug: perm.roleSlug,
 						result: 'denied',
-						reason: "Scope is 'own' but neither teamId nor resourceOwnerId provided",
+						reason: "Scope is 'own' but neither circleId nor resourceOwnerId provided",
 						context
 					});
 					return false;
@@ -261,8 +261,8 @@ async function getUserPermissions(
 			}
 		}
 
-		if (context?.teamId) {
-			if (ur.teamId && ur.teamId !== context.teamId) {
+		if (context?.circleId) {
+			if (ur.circleId && ur.circleId !== context.circleId) {
 				return false;
 			}
 		}
@@ -378,7 +378,7 @@ async function logPermissionCheck(
 				resourceType: entry.context?.resourceType,
 				resourceId: entry.context?.resourceId,
 				organizationId: entry.context?.organizationId,
-				teamId: entry.context?.teamId,
+				circleId: entry.context?.circleId,
 				result: entry.result,
 				reason: entry.reason,
 				metadata: entry.context
@@ -460,7 +460,7 @@ export const getUserPermissionsQuery = query({
 	args: {
 		sessionId: v.string(), // Session validation (derives userId securely)
 		organizationId: v.optional(v.id('organizations')),
-		teamId: v.optional(v.id('teams'))
+		circleId: v.optional(v.id('circles'))
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
@@ -472,8 +472,8 @@ export const getUserPermissionsQuery = query({
 			context.organizationId = args.organizationId;
 		}
 
-		if (args.teamId) {
-			context.teamId = args.teamId;
+		if (args.circleId) {
+			context.circleId = args.circleId;
 		}
 
 		// Get all permissions for user

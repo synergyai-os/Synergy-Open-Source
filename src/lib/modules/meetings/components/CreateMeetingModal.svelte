@@ -10,12 +10,13 @@
 	import { browser } from '$app/environment';
 	import { toast } from 'svelte-sonner';
 	import type { Id } from '$lib/convex';
-	import ToggleSwitch from '$lib/components/ui/ToggleSwitch.svelte';
+	import { Button, ToggleGroup } from '$lib/components/ui';
+	import { ToggleSwitch } from '$lib/components/molecules';
 	import AttendeeSelector from './AttendeeSelector.svelte';
 
 	type Attendee = {
-		type: 'user' | 'circle' | 'team';
-		id: Id<'users'> | Id<'circles'> | Id<'teams'>;
+		type: 'user' | 'circle';
+		id: Id<'users'> | Id<'circles'>;
 		name: string;
 		email?: string;
 	};
@@ -43,7 +44,7 @@
 		recurrence: {
 			frequency: 'weekly' as 'daily' | 'weekly' | 'monthly',
 			interval: 1,
-			daysOfWeek: [] as number[],
+			daysOfWeek: [] as string[], // For ToggleGroup: string[] for multiple, single string for single mode
 			endDate: '' as string
 		},
 		selectedAttendees: [] as Attendee[]
@@ -78,7 +79,7 @@
 		const maxMeetings = 7; // Show 7 meetings to see full weekly pattern
 
 		if (state.recurrence.frequency === 'weekly' && state.recurrence.daysOfWeek.length > 0) {
-			const selectedDay = state.recurrence.daysOfWeek[0];
+			const selectedDay = parseInt(state.recurrence.daysOfWeek[0], 10);
 			const startDayOfWeek = startDate.getDay();
 
 			// Always include start date as first meeting
@@ -122,7 +123,7 @@
 				while (count < maxMeetings) {
 					const currentDate = new Date(currentTime);
 					const dayOfWeek = currentDate.getDay();
-					if (state.recurrence.daysOfWeek.includes(dayOfWeek)) {
+					if (state.recurrence.daysOfWeek.includes(dayOfWeek.toString())) {
 						upcoming.push(new Date(currentTime));
 						count++;
 					}
@@ -154,21 +155,8 @@
 		return upcoming;
 	});
 
-	// Toggle day selection for recurrence
-	function toggleDay(day: number) {
-		if (state.recurrence.frequency === 'weekly') {
-			// Weekly: single-select only (replace current selection)
-			state.recurrence.daysOfWeek = [day];
-		} else {
-			// Daily: multi-select (toggle on/off)
-			const index = state.recurrence.daysOfWeek.indexOf(day);
-			if (index > -1) {
-				state.recurrence.daysOfWeek.splice(index, 1);
-			} else {
-				state.recurrence.daysOfWeek.push(day);
-			}
-		}
-	}
+	// Helper: Convert daysOfWeek string[] to number[] for calculations
+	const _daysOfWeekNumbers = $derived(state.recurrence.daysOfWeek.map((day) => parseInt(day, 10)));
 
 	// Helper message for weekly recurrence
 	const weeklyScheduleMessage = $derived.by(() => {
@@ -182,7 +170,7 @@
 
 		const startDate = new Date(state.startDate);
 		const startDayOfWeek = startDate.getDay();
-		const selectedDay = state.recurrence.daysOfWeek[0];
+		const selectedDay = parseInt(state.recurrence.daysOfWeek[0], 10);
 
 		const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 		const startDayName = dayNames[startDayOfWeek];
@@ -240,6 +228,7 @@
 
 		// Get selected day names (create copy before sorting to avoid mutation)
 		const selectedDayNames = [...state.recurrence.daysOfWeek]
+			.map((day) => parseInt(day, 10))
 			.sort((a, b) => a - b)
 			.map((day) => dayNames[day]);
 
@@ -256,7 +245,7 @@
 		}
 
 		// Check if start date is in the selected pattern
-		const startDayInPattern = state.recurrence.daysOfWeek.includes(startDayOfWeek);
+		const startDayInPattern = state.recurrence.daysOfWeek.includes(startDayOfWeek.toString());
 
 		if (startDayInPattern) {
 			// Start date IS in selected pattern
@@ -280,10 +269,10 @@
 			// Weekly: Pre-select day based on start date
 			const startDate = new Date(state.startDate);
 			const dayOfWeek = startDate.getDay();
-			state.recurrence.daysOfWeek = [dayOfWeek];
+			state.recurrence.daysOfWeek = [dayOfWeek.toString()];
 		} else if (state.recurrence.frequency === 'daily') {
 			// Daily: Pre-select weekdays (Mon-Fri = 1-5)
-			state.recurrence.daysOfWeek = [1, 2, 3, 4, 5];
+			state.recurrence.daysOfWeek = ['1', '2', '3', '4', '5'];
 		}
 	});
 
@@ -309,7 +298,7 @@
 						daysOfWeek:
 							state.recurrence.frequency === 'weekly' || state.recurrence.frequency === 'daily'
 								? state.recurrence.daysOfWeek.length > 0
-									? state.recurrence.daysOfWeek
+									? state.recurrence.daysOfWeek.map((day) => parseInt(day, 10))
 									: undefined
 								: undefined,
 						endDate: state.recurrence.endDate
@@ -340,8 +329,7 @@
 							meetingId: meetingId as Id<'meetings'>,
 							attendeeType: attendee.type,
 							userId: attendee.type === 'user' ? (attendee.id as Id<'users'>) : undefined,
-							circleId: attendee.type === 'circle' ? (attendee.id as Id<'circles'>) : undefined,
-							teamId: attendee.type === 'team' ? (attendee.id as Id<'teams'>) : undefined
+							circleId: attendee.type === 'circle' ? (attendee.id as Id<'circles'>) : undefined
 						});
 					} catch (error) {
 						console.error(`Failed to add attendee ${attendee.name}:`, error);
@@ -372,7 +360,7 @@
 		state.recurrence = {
 			frequency: 'weekly',
 			interval: 1,
-			daysOfWeek: [],
+			daysOfWeek: [] as string[],
 			endDate: ''
 		};
 		state.selectedAttendees = [];
@@ -396,18 +384,20 @@
 			class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/65 backdrop-blur-sm"
 		/>
 		<Dialog.Content
-			class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] fixed top-[50%] left-[50%] z-50 max-h-[90vh] w-[min(800px,90vw)] translate-x-[-50%] translate-y-[-50%] overflow-y-auto rounded-lg border border-base bg-elevated text-text-primary shadow-xl"
+			class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] fixed top-[50%] left-[50%] z-50 max-h-[90vh] w-[min(800px,90vw)] translate-x-[-50%] translate-y-[-50%] overflow-y-auto rounded-dialog border border-base bg-elevated text-text-primary shadow-card-hover"
 		>
-			<div class="space-y-6 p-6">
+			<div class="flex flex-col gap-content-section p-modal-padding">
 				<!-- Header -->
 				<div class="flex items-center justify-between">
-					<Dialog.Title class="text-xl font-semibold">Add meeting</Dialog.Title>
-					<button
+					<Dialog.Title class="text-h2 font-semibold">Add meeting</Dialog.Title>
+					<Button
+						variant="outline"
+						iconOnly
+						ariaLabel="Close"
 						onclick={onClose}
-						class="rounded-md p-1 text-text-tertiary transition-colors hover:text-text-primary"
-						aria-label="Close"
+						class="!border-0 text-text-tertiary hover:text-text-primary"
 					>
-						<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<svg class="icon-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -415,37 +405,45 @@
 								d="M6 18L18 6M6 6l12 12"
 							/>
 						</svg>
-					</button>
+					</Button>
 				</div>
 
 				<!-- Form -->
-				<form onsubmit={(e) => (e.preventDefault(), handleSubmit())} class="space-y-6">
-					<div class="grid grid-cols-3 gap-6">
+				<form
+					onsubmit={(e) => (e.preventDefault(), handleSubmit())}
+					class="flex flex-col gap-content-section"
+				>
+					<div class="grid grid-cols-3 gap-content-section">
 						<!-- Left Column (2/3) -->
-						<div class="col-span-2 space-y-4">
+						<div class="col-span-2 flex flex-col gap-form-section">
 							<!-- Title -->
 							<div>
-								<label for="title" class="mb-2 block text-sm font-medium text-text-primary"
+								<label
+									for="title"
+									class="text-body-sm mb-form-field-gap block font-medium text-text-primary"
 									>Title</label
 								>
 								<input
 									id="title"
 									type="text"
 									bind:value={state.title}
-									class="bg-surface-base w-full rounded-md border border-border-base px-3 py-2 text-text-primary placeholder-text-tertiary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
+									class="w-full rounded-input border border-border-base bg-surface px-input-x py-input-y text-text-primary placeholder-text-tertiary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
 									placeholder="Meeting title"
 								/>
 							</div>
 
 							<!-- Template (Optional) -->
 							<div>
-								<label for="template" class="mb-2 block text-sm font-medium text-text-primary">
+								<label
+									for="template"
+									class="text-body-sm mb-form-field-gap block font-medium text-text-primary"
+								>
 									Template <span class="text-text-tertiary">(optional)</span>
 								</label>
 								<select
 									id="template"
 									bind:value={state.selectedTemplateId}
-									class="bg-surface-base w-full rounded-md border border-border-base px-3 py-2 text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
+									class="w-full rounded-input border border-border-base bg-surface px-input-x py-input-y text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
 								>
 									<option value="">
 										{templates.length === 0
@@ -461,13 +459,15 @@
 							<!-- Circle (Optional) -->
 							{#if circles.length > 0}
 								<div>
-									<label for="circle" class="mb-2 block text-sm font-medium text-text-primary"
+									<label
+										for="circle"
+										class="text-body-sm mb-form-field-gap block font-medium text-text-primary"
 										>Circle (optional)</label
 									>
 									<select
 										id="circle"
 										bind:value={state.circleId}
-										class="bg-surface-base w-full rounded-md border border-border-base px-3 py-2 text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
+										class="w-full rounded-input border border-border-base bg-surface px-input-x py-input-y text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
 									>
 										<option value="">Ad-hoc meeting (no circle)</option>
 										{#each circles as circle (circle._id)}
@@ -479,16 +479,18 @@
 
 							<!-- Start Date/Time -->
 							<div>
-								<fieldset class="mb-2">
-									<legend class="block text-sm font-medium text-text-primary">Start date</legend>
-									<div class="grid grid-cols-3 gap-2">
+								<fieldset class="mb-form-field-gap">
+									<legend class="text-body-sm block font-medium text-text-primary"
+										>Start date</legend
+									>
+									<div class="grid grid-cols-3 gap-icon">
 										<div class="col-span-1">
 											<label for="meeting-start-date" class="sr-only">Date</label>
 											<input
 												id="meeting-start-date"
 												type="date"
 												bind:value={state.startDate}
-												class="bg-surface-base w-full rounded-md border border-border-base px-3 py-2 text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
+												class="w-full rounded-input border border-border-base bg-surface px-input-x py-input-y text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
 											/>
 										</div>
 										<div class="col-span-1">
@@ -497,10 +499,10 @@
 												id="meeting-start-time"
 												type="time"
 												bind:value={state.startTime}
-												class="bg-surface-base w-full rounded-md border border-border-base px-3 py-2 text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
+												class="w-full rounded-input border border-border-base bg-surface px-input-x py-input-y text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
 											/>
 										</div>
-										<div class="col-span-1 flex items-center gap-2">
+										<div class="col-span-1 flex items-center gap-icon">
 											<label for="meeting-duration" class="sr-only">Duration (minutes)</label>
 											<input
 												id="meeting-duration"
@@ -508,39 +510,42 @@
 												bind:value={state.duration}
 												min="5"
 												max="480"
-												class="bg-surface-base w-20 rounded-md border border-border-base px-3 py-2 text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
+												class="w-input-sm rounded-input border border-border-base bg-surface px-input-x py-input-y text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
 											/>
-											<span class="text-sm text-text-secondary">minutes</span>
+											<span class="text-body-sm text-text-secondary">minutes</span>
 										</div>
 									</div>
 								</fieldset>
 							</div>
 
 							<!-- Recurrence -->
-							<div class="space-y-4">
-								<div class="flex items-center gap-3">
+							<div class="flex flex-col gap-form-section">
+								<div class="flex items-center gap-icon">
 									<ToggleSwitch
 										checked={state.recurrenceEnabled}
 										onChange={(checked) => (state.recurrenceEnabled = checked)}
 									/>
-									<span class="text-sm font-medium text-text-primary">Repeat this meeting</span>
+									<span class="text-body-sm font-medium text-text-primary">Repeat this meeting</span
+									>
 								</div>
 
 								{#if state.recurrenceEnabled}
-									<div class="space-y-4 border-l-2 border-accent-primary pl-4">
+									<div
+										class="flex flex-col gap-form-section border-l-2 border-accent-primary pl-form-section-gap"
+									>
 										<!-- Frequency -->
-										<div class="flex items-center gap-2">
-											<span class="text-sm text-text-secondary">Every</span>
+										<div class="flex items-center gap-icon">
+											<span class="text-body-sm text-text-secondary">Every</span>
 											<input
 												type="number"
 												bind:value={state.recurrence.interval}
 												min="1"
 												max="99"
-												class="bg-surface-base w-16 rounded-md border border-border-base px-2 py-1 text-sm text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
+												class="w-input-xs px-input-x-sm py-input-y-sm text-body-sm rounded-input border border-border-base bg-surface text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
 											/>
 											<select
 												bind:value={state.recurrence.frequency}
-												class="bg-surface-base rounded-md border border-border-base px-3 py-1 text-sm text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
+												class="py-input-y-sm text-body-sm rounded-input border border-border-base bg-surface px-input-x text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
 											>
 												<option value="daily">Day(s)</option>
 												<option value="weekly">Week(s)</option>
@@ -551,35 +556,62 @@
 										<!-- Days of Week (for weekly and daily) -->
 										{#if state.recurrence.frequency === 'weekly' || state.recurrence.frequency === 'daily'}
 											<div>
-												<span class="mb-2 block text-sm text-text-secondary">On</span>
-												<div class="flex gap-2">
-													{#each dayNames as day, index (index)}
-														{@const isSelected = state.recurrence.daysOfWeek.includes(index)}
-														<button
-															type="button"
-															onclick={() => toggleDay(index)}
-															class="flex h-10 w-10 items-center justify-center rounded-md border text-sm transition-colors {isSelected
-																? 'border-accent-primary bg-accent-primary text-white'
-																: 'bg-surface-base hover:bg-surface-hover border-border-base text-text-secondary'}"
+												<span class="text-body-sm mb-form-field-gap block text-text-secondary"
+													>On</span
+												>
+												<div class="inline-flex flex-nowrap items-center gap-icon">
+													{#if state.recurrence.frequency === 'weekly'}
+														{@const selectedDay = state.recurrence.daysOfWeek[0] || ''}
+														<ToggleGroup.Root
+															type="single"
+															value={selectedDay}
+															onValueChange={(value) => {
+																if (value !== null && value !== undefined) {
+																	state.recurrence.daysOfWeek = [value];
+																}
+															}}
+															class="inline-flex flex-nowrap gap-icon"
 														>
-															{day}
-														</button>
-													{/each}
+															{#each dayNames as day, index (index)}
+																<ToggleGroup.Item
+																	value={index.toString()}
+																	class="toggle-group-day data-[state=on]:border-accent-primary data-[state=on]:bg-accent-primary data-[state=on]:text-primary"
+																>
+																	{day}
+																</ToggleGroup.Item>
+															{/each}
+														</ToggleGroup.Root>
+													{:else}
+														<ToggleGroup.Root
+															type="multiple"
+															bind:value={state.recurrence.daysOfWeek}
+															class="inline-flex flex-nowrap gap-icon"
+														>
+															{#each dayNames as day, index (index)}
+																<ToggleGroup.Item
+																	value={index.toString()}
+																	class="toggle-group-day data-[state=on]:border-accent-primary data-[state=on]:bg-accent-primary data-[state=on]:text-primary"
+																>
+																	{day}
+																</ToggleGroup.Item>
+															{/each}
+														</ToggleGroup.Root>
+													{/if}
 												</div>
 
 												<!-- Schedule Helper Messages -->
 												{#if weeklyScheduleMessage}
 													<div
-														class="mt-2 flex items-start gap-2 rounded-md border border-base bg-surface p-3 text-xs text-secondary"
+														class="mt-form-field-gap flex items-start gap-icon rounded-card border border-base bg-elevated px-card py-card text-button text-secondary"
 													>
-														<span class="text-base">💡</span>
+														<span class="text-button">💡</span>
 														<span>{weeklyScheduleMessage}</span>
 													</div>
 												{:else if dailyScheduleMessage}
 													<div
-														class="mt-2 flex items-start gap-2 rounded-md border border-base bg-surface p-3 text-xs text-secondary"
+														class="mt-form-field-gap flex items-start gap-icon rounded-card border border-base bg-elevated px-card py-card text-button text-secondary"
 													>
-														<span class="text-base">💡</span>
+														<span class="text-button">💡</span>
 														<span>{dailyScheduleMessage}</span>
 													</div>
 												{/if}
@@ -589,19 +621,21 @@
 										<!-- Upcoming Meetings Preview -->
 										{#if upcomingMeetings.length > 0}
 											<div>
-												<span class="mb-2 block text-sm text-text-secondary"
+												<span class="text-body-sm mb-form-field-gap block text-text-secondary"
 													>Upcoming {upcomingMeetings.length} Meetings</span
 												>
-												<div class="flex gap-2">
+												<div class="flex gap-icon">
 													{#each upcomingMeetings as date (date.getTime())}
-														<div class="bg-surface-tertiary rounded-md px-3 py-2 text-center">
-															<div class="text-xs font-medium text-accent-primary">
+														<div
+															class="bg-surface-tertiary rounded-card px-input-x py-input-y text-center"
+														>
+															<div class="text-label font-medium text-accent-primary">
 																{date.toLocaleDateString('en-US', { month: 'short' })}
 															</div>
-															<div class="text-sm font-medium text-text-primary">
+															<div class="text-body-sm font-medium text-text-primary">
 																{date.getDate()}
 															</div>
-															<div class="text-xs text-text-secondary">
+															<div class="text-label text-text-secondary">
 																{date.getFullYear()}
 															</div>
 														</div>
@@ -612,9 +646,9 @@
 
 										<!-- Info message -->
 										<div
-											class="flex items-start gap-2 rounded-md border border-base bg-surface p-3 text-xs text-secondary"
+											class="flex items-start gap-icon rounded-card border border-base bg-elevated px-card py-card text-button text-secondary"
 										>
-											<span class="text-base">ℹ️</span>
+											<span class="text-button">ℹ️</span>
 											<span
 												>The recurrence has no end: the next {upcomingMeetings.length} meetings are shown
 												to preview the pattern. Additional ones will appear as they occur.</span
@@ -636,36 +670,38 @@
 						</div>
 
 						<!-- Right Column (1/3) -->
-						<div class="space-y-4">
+						<div class="flex flex-col gap-form-section">
 							<!-- Privacy -->
 							<div>
 								<fieldset>
-									<legend class="mb-2 block text-sm font-medium text-text-primary">Privacy</legend>
-									<div class="space-y-2">
-										<label class="flex items-start gap-3">
+									<legend class="text-body-sm mb-form-field-gap block font-medium text-text-primary"
+										>Privacy</legend
+									>
+									<div class="flex flex-col gap-icon">
+										<label class="flex items-start gap-icon">
 											<input
 												type="radio"
 												bind:group={state.visibility}
 												value="public"
-												class="mt-0.5"
+												class="mt-spacing-icon-gap-sm"
 											/>
 											<div>
-												<div class="text-sm font-medium text-text-primary">Public</div>
-												<div class="text-xs text-text-secondary">
+												<div class="text-body-sm font-medium text-text-primary">Public</div>
+												<div class="text-label text-text-secondary">
 													All organization members can see this meeting and access to the report
 												</div>
 											</div>
 										</label>
-										<label class="flex items-start gap-3">
+										<label class="flex items-start gap-icon">
 											<input
 												type="radio"
 												bind:group={state.visibility}
 												value="private"
-												class="mt-0.5"
+												class="mt-spacing-icon-gap-sm"
 											/>
 											<div>
-												<div class="text-sm font-medium text-text-primary">Private</div>
-												<div class="text-xs text-text-secondary">
+												<div class="text-body-sm font-medium text-text-primary">Private</div>
+												<div class="text-label text-text-secondary">
 													Only invited attendees can see this meeting
 												</div>
 											</div>
@@ -677,20 +713,11 @@
 					</div>
 
 					<!-- Actions -->
-					<div class="border-border-subtle flex justify-end gap-3 border-t pt-4">
-						<button
-							type="button"
-							onclick={onClose}
-							class="hover:bg-surface-hover rounded-md border border-border-base px-4 py-2 text-sm font-medium text-text-secondary transition-colors"
-						>
-							Close
-						</button>
-						<button
-							type="submit"
-							class="rounded-md bg-accent-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
-						>
-							Schedule
-						</button>
+					<div
+						class="flex justify-end gap-button-group border-t border-border-base pt-content-section"
+					>
+						<Button variant="outline" type="button" onclick={onClose}>Close</Button>
+						<Button variant="primary" type="submit">Schedule</Button>
 					</div>
 				</form>
 			</div>

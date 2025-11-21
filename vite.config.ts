@@ -35,6 +35,9 @@ export default defineConfig({
 			allow: ['..']
 		}
 	},
+	// Configure error overlay to stay visible longer
+	// Note: Error overlay is controlled by SvelteKit, but we can configure Vite's error handling
+	clearScreen: false, // Keep error messages visible in terminal
 	resolve: {
 		alias: {
 			// SvelteKit aliases for Vitest support

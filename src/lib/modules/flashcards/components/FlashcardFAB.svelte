@@ -18,11 +18,11 @@
 		<Button.Root
 			onclick={onClick}
 			disabled={isGenerating}
-			class="flex items-center gap-icon rounded-md bg-accent-primary px-menu-item py-menu-item font-medium text-white shadow-lg transition-all duration-150 hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+			class="flex items-center gap-icon rounded-button bg-accent-primary px-menu-item py-menu-item font-medium text-primary shadow-card transition-all duration-150 hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
 		>
 			{#if isGenerating}
 				<!-- Loading spinner -->
-				<svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
+				<svg class="size-icon-md animate-spin" fill="none" viewBox="0 0 24 24">
 					<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
 					></circle>
 					<path
@@ -34,7 +34,7 @@
 				<span>Generating...</span>
 			{:else}
 				<!-- Flashcard icon -->
-				<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<svg class="size-icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"

@@ -1,6 +1,6 @@
 # Product Strategy: Outcome-Driven Roadmap
 
-> **Strategy**: Validate with first partner (Saprolab), build multi-tenant foundation, launch community, ship core product tools, enable marketplace—all outcome-driven, no deadlines.
+> **Strategy**: Validate with first partner (Agency Partner), build multi-tenant foundation, launch community, ship core product tools, enable marketplace—all outcome-driven, no deadlines.
 
 > **See Also**: [Product Principles](../../dev-docs/2-areas/product-principles.md) - Single source of truth for decision-making ⭐
 
@@ -21,7 +21,7 @@ We don't ship features—we achieve outcomes. Every decision is guided by:
 ### 2. Partner-Funded Validation
 
 - No VC funding, no external pressure
-- First partner (Saprolab) funds development
+- First partner (Agency Partner) funds development
 - Profitability unlocks investment in growth
 - Community contributions accelerate progress
 
@@ -47,8 +47,8 @@ Before defining outcomes, we need to agree on **what success looks like**. These
 
 ### Leading Indicators (Early Signals)
 
-- ✅ **They're using it**: Saprolab team logs in daily
-- ✅ **They're saying yes**: Feature requests from Saprolab
+- ✅ **They're using it**: Agency Partner team logs in daily
+- ✅ **They're saying yes**: Feature requests from Agency Partner
 - ✅ **They're coming back**: DAU/MAU ratio > 50%
 - ✅ **Positive feedback**: "This changed how we work" testimonials
 - ✅ **Community contributing**: Bjorn and others submitting PRs
@@ -56,9 +56,9 @@ Before defining outcomes, we need to agree on **what success looks like**. These
 
 ### Lagging Indicators (Outcome Signals)
 
-- ✅ **Revenue**: Saprolab paying covers costs
+- ✅ **Revenue**: Agency Partner paying covers costs
 - ✅ **Retention**: < 5% monthly churn
-- ✅ **Expansion**: ZDHC onboarded via Saprolab
+- ✅ **Expansion**: Client onboarded via Agency Partner
 - ✅ **Community size**: 1,000+ GitHub stars, 100+ contributors
 - ✅ **Marketplace**: 10+ builder-created apps
 
@@ -81,16 +81,16 @@ These are **themes**, not features. Each theme has clear outcomes and success si
 
 ### Theme 1: Partner Validation
 
-**Outcome**: Saprolab uses our platform daily and pays to sustain development.
+**Outcome**: Agency Partner uses our platform daily and pays to sustain development.
 
-**Why This Matters**: Without validation, we're building in a vacuum. Saprolab proves there's a market need and willingness to pay.
+**Why This Matters**: Without validation, we're building in a vacuum. Agency Partner proves there's a market need and willingness to pay.
 
 **Success Signals**:
 
-- ✅ Saprolab team uses it for internal operations
-- ✅ Saprolab recommends it to ZDHC
-- ✅ Revenue from Saprolab covers costs ($60/month minimum)
-- ✅ Positive feedback from Saprolab team
+- ✅ Agency Partner team uses it for internal operations
+- ✅ Agency Partner recommends it to Client
+- ✅ Revenue from Agency Partner covers costs ($60/month minimum)
+- ✅ Positive feedback from Agency Partner team
 
 **Key Capabilities Needed**:
 
@@ -111,7 +111,7 @@ These are **themes**, not features. Each theme has clear outcomes and success si
 
 **Success Signals**:
 
-- ✅ Saprolab and ZDHC on same infrastructure, separate data
+- ✅ Agency Partner and Client on same infrastructure, separate data
 - ✅ Permissions enforce data boundaries (no leaks)
 - ✅ Performance doesn't degrade with multiple orgs
 - ✅ Self-service org creation (no manual setup)
@@ -277,17 +277,17 @@ These are **themes**, not features. Each theme has clear outcomes and success si
 
 ### Phase 1: Foundation (Current)
 
-**Goal**: Prove the concept with Saprolab
+**Goal**: Prove the concept with Agency Partner
 
 ```
 Multi-Tenancy → Partner Validation → Community Launch
      ↓                  ↓                    ↓
-  (Teams & Orgs)   (Saprolab Daily Use)  (GitHub, Blog)
+  (Teams & Orgs)   (Agency Partner Daily Use)  (GitHub, Blog)
 ```
 
 **Why This Order**:
 
-- Multi-tenancy enables Saprolab + ZDHC to use simultaneously
+- Multi-tenancy enables Agency Partner + Client to use simultaneously
 - Validation proves market need before scaling
 - Community launch creates momentum and contributions
 
@@ -333,12 +333,12 @@ Automated Workflows → Builder Marketplace
 
 - **Budget**: $60/month (Cursor AI)
 - **Team**: 1 developer + AI
-- **Focus**: Validate with Saprolab
+- **Focus**: Validate with Agency Partner
 - **Timeline**: Until first paying customer
 
 ### Partner-Funded Phase (Next)
 
-- **Budget**: Saprolab revenue (covers costs + modest growth)
+- **Budget**: Agency Partner revenue (covers costs + modest growth)
 - **Team**: 1-2 developers (hire if needed)
 - **Focus**: Multi-tenancy, core features, community
 - **Timeline**: Until 3+ paying customers or profitability
@@ -426,7 +426,7 @@ Our competitive advantage compounds over time:
 
 ## Risks & Mitigations
 
-### Risk: Saprolab doesn't validate
+### Risk: Agency Partner doesn't validate
 
 - **Impact**: Lose first customer, need to find others
 - **Mitigation**: Close feedback loop, rapid iterations
@@ -461,7 +461,7 @@ When prioritizing what to build, we ask:
 - ❌ No: Deprioritize
 - ✅ Yes: Continue
 
-### 2. Does it validate with Saprolab?
+### 2. Does it validate with Agency Partner?
 
 - ❌ No: Defer until validated
 - ✅ Yes: Prioritize
@@ -493,7 +493,7 @@ We review outcomes regularly to ensure we're on track:
 - Any blockers?
 - What did we learn?
 
-### Monthly (with Saprolab)
+### Monthly (with Agency Partner)
 
 - Are outcomes being achieved?
 - What's working / not working?
@@ -512,10 +512,10 @@ We review outcomes regularly to ensure we're on track:
 **Immediate**:
 
 1. ✅ Finish multi-tenancy implementation
-2. ✅ Validate with Saprolab (daily usage)
+2. ✅ Validate with Agency Partner (daily usage)
 3. ✅ Launch community (GitHub, Discord, blog)
 
-**Near-Term**: 4. ⏳ Ship core product discovery tools 5. ⏳ Ship core product delivery tools 6. ⏳ Expand to ZDHC via Saprolab
+**Near-Term**: 4. ⏳ Ship core product discovery tools 5. ⏳ Ship core product delivery tools 6. ⏳ Expand to Client via Agency Partner
 
 **Long-Term**: 7. ⏳ Add AI coaching with company data 8. ⏳ Build automated workflows 9. ⏳ Launch builder marketplace
 

@@ -237,7 +237,7 @@
 **Topics**:
 
 - Feature announcements
-- Case studies (Saprolab, ZDHC)
+- Case studies (Agency Partner, Client)
 - Product management best practices
 - Integration guides
 - Community spotlights

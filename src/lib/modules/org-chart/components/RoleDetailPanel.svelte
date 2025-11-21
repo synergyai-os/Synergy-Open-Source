@@ -3,8 +3,8 @@
 	import type { UseOrgChart } from '../composables/useOrgChart.svelte';
 	import RoleDetailHeader from './RoleDetailHeader.svelte';
 	import CategoryHeader from './CategoryHeader.svelte';
-	import Avatar from '$lib/components/ui/Avatar.svelte';
-	import StackedPanel from '$lib/components/ui/StackedPanel.svelte';
+	import { Avatar } from '$lib/components/atoms';
+	import StackedPanel from '$lib/components/organisms/StackedPanel.svelte';
 
 	let { orgChart }: { orgChart: UseOrgChart } = $props();
 
@@ -125,7 +125,11 @@
 		<!-- Loading State -->
 		<div class="flex h-full items-center justify-center">
 			<div class="text-center">
-				<svg class="mx-auto h-8 w-8 animate-spin text-tertiary" fill="none" viewBox="0 0 24 24">
+				<svg
+					class="mx-auto size-icon-xl animate-spin text-tertiary"
+					fill="none"
+					viewBox="0 0 24 24"
+				>
 					<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
 					></circle>
 					<path
@@ -134,9 +138,9 @@
 						d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
 					></path>
 				</svg>
-				<p class="mt-4 text-sm text-secondary">Loading role details...</p>
+				<p class="mt-4 text-button text-secondary">Loading role details...</p>
 				{#if orgChart.selectedRoleId}
-					<p class="mt-2 text-xs text-tertiary">Role ID: {orgChart.selectedRoleId}</p>
+					<p class="mt-2 text-label text-tertiary">Role ID: {orgChart.selectedRoleId}</p>
 				{/if}
 			</div>
 		</div>
@@ -144,10 +148,10 @@
 		<!-- Error State -->
 		<div class="flex h-full items-center justify-center px-inbox-container">
 			<div class="text-center">
-				<p class="text-sm font-medium text-error">Failed to load role</p>
-				<p class="mt-2 text-sm text-secondary">{String(error)}</p>
+				<p class="text-button font-medium text-error">Failed to load role</p>
+				<p class="mt-2 text-button text-secondary">{String(error)}</p>
 				{#if orgChart.selectedRoleId}
-					<p class="mt-2 text-xs text-tertiary">Role ID: {orgChart.selectedRoleId}</p>
+					<p class="mt-2 text-label text-tertiary">Role ID: {orgChart.selectedRoleId}</p>
 				{/if}
 			</div>
 		</div>
@@ -179,9 +183,9 @@
 			<div class="flex-1 overflow-y-auto">
 				<!-- Role Name -->
 				<div class="px-inbox-container py-system-content">
-					<h3 class="text-2xl font-bold text-primary">{role.name}</h3>
+					<h3 class="text-h2 font-bold text-primary">{role.name}</h3>
 					{#if role.circleName}
-						<p class="mt-1 text-sm text-secondary">
+						<p class="mt-1 text-button text-secondary">
 							Circle: <span class="font-medium">{role.circleName}</span>
 						</p>
 					{/if}
@@ -189,10 +193,10 @@
 
 				<!-- Navigation Tabs -->
 				<div class="border-b border-base px-inbox-container">
-					<div class="flex gap-1 overflow-x-auto" role="tablist">
+					<div class="gap-control-item flex overflow-x-auto" role="tablist">
 						<button
 							type="button"
-							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-sm transition-colors"
+							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-button transition-colors"
 							class:border-accent-primary={activeTab === 'overview'}
 							class:border-transparent={activeTab !== 'overview'}
 							class:text-primary={activeTab === 'overview'}
@@ -207,7 +211,7 @@
 						</button>
 						<button
 							type="button"
-							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-sm transition-colors"
+							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-button transition-colors"
 							class:border-accent-primary={activeTab === 'members'}
 							class:border-transparent={activeTab !== 'members'}
 							class:text-primary={activeTab === 'members'}
@@ -220,12 +224,12 @@
 						>
 							Members
 							{#if tabCounts.members > 0}
-								<span class="ml-1 text-xs text-tertiary">({tabCounts.members})</span>
+								<span class="ml-1 text-label text-tertiary">({tabCounts.members})</span>
 							{/if}
 						</button>
 						<button
 							type="button"
-							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-sm transition-colors"
+							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-button transition-colors"
 							class:border-accent-primary={activeTab === 'documents'}
 							class:border-transparent={activeTab !== 'documents'}
 							class:text-primary={activeTab === 'documents'}
@@ -238,12 +242,12 @@
 						>
 							Documents
 							{#if tabCounts.documents > 0}
-								<span class="ml-1 text-xs text-tertiary">({tabCounts.documents})</span>
+								<span class="ml-1 text-label text-tertiary">({tabCounts.documents})</span>
 							{/if}
 						</button>
 						<button
 							type="button"
-							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-sm transition-colors"
+							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-button transition-colors"
 							class:border-accent-primary={activeTab === 'activities'}
 							class:border-transparent={activeTab !== 'activities'}
 							class:text-primary={activeTab === 'activities'}
@@ -256,12 +260,12 @@
 						>
 							Activities
 							{#if tabCounts.activities > 0}
-								<span class="ml-1 text-xs text-tertiary">({tabCounts.activities})</span>
+								<span class="ml-1 text-label text-tertiary">({tabCounts.activities})</span>
 							{/if}
 						</button>
 						<button
 							type="button"
-							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-sm transition-colors"
+							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-button transition-colors"
 							class:border-accent-primary={activeTab === 'metrics'}
 							class:border-transparent={activeTab !== 'metrics'}
 							class:text-primary={activeTab === 'metrics'}
@@ -274,12 +278,12 @@
 						>
 							Metrics
 							{#if tabCounts.metrics > 0}
-								<span class="ml-1 text-xs text-tertiary">({tabCounts.metrics})</span>
+								<span class="ml-1 text-label text-tertiary">({tabCounts.metrics})</span>
 							{/if}
 						</button>
 						<button
 							type="button"
-							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-sm transition-colors"
+							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-button transition-colors"
 							class:border-accent-primary={activeTab === 'checklists'}
 							class:border-transparent={activeTab !== 'checklists'}
 							class:text-primary={activeTab === 'checklists'}
@@ -292,12 +296,12 @@
 						>
 							Checklists
 							{#if tabCounts.checklists > 0}
-								<span class="ml-1 text-xs text-tertiary">({tabCounts.checklists})</span>
+								<span class="ml-1 text-label text-tertiary">({tabCounts.checklists})</span>
 							{/if}
 						</button>
 						<button
 							type="button"
-							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-sm transition-colors"
+							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-button transition-colors"
 							class:border-accent-primary={activeTab === 'projects'}
 							class:border-transparent={activeTab !== 'projects'}
 							class:text-primary={activeTab === 'projects'}
@@ -310,7 +314,7 @@
 						>
 							Projects
 							{#if tabCounts.projects > 0}
-								<span class="ml-1 text-xs text-tertiary">({tabCounts.projects})</span>
+								<span class="ml-1 text-label text-tertiary">({tabCounts.projects})</span>
 							{/if}
 						</button>
 					</div>
@@ -320,18 +324,18 @@
 				<div class="flex-1 overflow-y-auto px-inbox-container py-system-content">
 					{#if activeTab === 'overview'}
 						<!-- Two-Column Layout: Mobile stacks, Desktop side-by-side -->
-						<div class="grid grid-cols-1 gap-6 lg:grid-cols-[40%_60%]">
+						<div class="grid grid-cols-1 gap-settings-section lg:grid-cols-[40%_60%]">
 							<!-- Left Column: Overview Details -->
-							<div class="flex flex-col space-y-6">
+							<div class="space-y-settings-section flex flex-col">
 								<!-- Stats -->
-								<div class="grid grid-cols-2 gap-4">
-									<div class="rounded-lg bg-surface p-4">
-										<p class="text-xs text-tertiary">Fillers</p>
-										<p class="mt-1 text-2xl font-semibold text-primary">{role.fillerCount}</p>
+								<div class="grid grid-cols-2 gap-form-section">
+									<div class="p-card rounded-card bg-surface">
+										<p class="text-label text-tertiary">Fillers</p>
+										<p class="mt-1 text-h2 font-semibold text-primary">{role.fillerCount}</p>
 									</div>
-									<div class="rounded-lg bg-surface p-4">
-										<p class="text-xs text-tertiary">Created</p>
-										<p class="mt-1 text-sm font-medium text-primary">
+									<div class="p-card rounded-card bg-surface">
+										<p class="text-label text-tertiary">Created</p>
+										<p class="mt-1 text-button font-medium text-primary">
 											{formatDate(role.createdAt)}
 										</p>
 									</div>
@@ -340,20 +344,20 @@
 								<!-- Purpose -->
 								{#if role.purpose}
 									<div>
-										<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
+										<h4 class="mb-2 text-button font-medium tracking-wide text-tertiary uppercase">
 											Purpose
 										</h4>
-										<p class="text-sm leading-relaxed text-secondary">{role.purpose}</p>
+										<p class="text-button leading-relaxed text-secondary">{role.purpose}</p>
 									</div>
 								{/if}
 
 								<!-- Domains -->
 								<div>
-									<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
+									<h4 class="mb-2 text-button font-medium tracking-wide text-tertiary uppercase">
 										Domains
 									</h4>
-									<div class="flex items-center gap-2 text-sm text-secondary">
-										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<div class="flex items-center gap-icon text-button text-secondary">
+										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -367,11 +371,11 @@
 
 								<!-- Accountabilities -->
 								<div>
-									<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
+									<h4 class="mb-2 text-button font-medium tracking-wide text-tertiary uppercase">
 										Accountabilities
 									</h4>
-									<div class="flex items-center gap-2 text-sm text-secondary">
-										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<div class="flex items-center gap-icon text-button text-secondary">
+										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -385,11 +389,11 @@
 
 								<!-- Policies -->
 								<div>
-									<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
+									<h4 class="mb-2 text-button font-medium tracking-wide text-tertiary uppercase">
 										Policies
 									</h4>
-									<div class="flex items-center gap-2 text-sm text-secondary">
-										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<div class="flex items-center gap-icon text-button text-secondary">
+										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -403,11 +407,11 @@
 
 								<!-- Decision Rights -->
 								<div>
-									<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
+									<h4 class="mb-2 text-button font-medium tracking-wide text-tertiary uppercase">
 										Decision Rights
 									</h4>
-									<div class="flex items-center gap-2 text-sm text-secondary">
-										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<div class="flex items-center gap-icon text-button text-secondary">
+										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -421,11 +425,11 @@
 
 								<!-- Notes -->
 								<div>
-									<h4 class="mb-2 text-sm font-medium tracking-wide text-tertiary uppercase">
+									<h4 class="mb-2 text-button font-medium tracking-wide text-tertiary uppercase">
 										Notes
 									</h4>
-									<div class="flex items-center gap-2 text-sm text-secondary">
-										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<div class="flex items-center gap-icon text-button text-secondary">
+										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -439,13 +443,13 @@
 
 								<!-- Metadata -->
 								<div class="border-t border-base pt-6">
-									<h4 class="mb-3 text-sm font-medium tracking-wide text-tertiary uppercase">
+									<h4 class="mb-3 text-button font-medium tracking-wide text-tertiary uppercase">
 										Metadata
 									</h4>
-									<dl class="space-y-2 text-sm">
+									<dl class="space-y-inbox-list-gap text-button">
 										<div class="flex justify-between">
 											<dt class="text-secondary">Role ID</dt>
-											<dd class="font-mono text-xs text-tertiary">{role.roleId}</dd>
+											<dd class="font-mono text-label text-tertiary">{role.roleId}</dd>
 										</div>
 										<div class="flex justify-between">
 											<dt class="text-secondary">Created</dt>
@@ -459,32 +463,32 @@
 							<div class="flex flex-col">
 								<CategoryHeader title="Filled By" count={fillers.length} onAdd={() => {}} />
 								{#if fillers.length > 0}
-									<div class="mt-3 space-y-2">
+									<div class="mt-3 space-y-inbox-list-gap">
 										{#each fillers as filler (filler.userId)}
-											<div class="flex items-center gap-3 rounded-lg bg-surface p-3">
+											<div class="p-card flex items-center gap-icon rounded-card bg-surface">
 												<Avatar initials={getInitials(filler.name || filler.email)} size="md" />
 												<!-- Info -->
 												<div class="min-w-0 flex-1">
-													<p class="truncate text-sm font-medium text-primary">
+													<p class="truncate text-button font-medium text-primary">
 														{filler.name || filler.email}
 													</p>
 													{#if filler.name}
-														<p class="truncate text-xs text-secondary">{filler.email}</p>
+														<p class="truncate text-label text-secondary">{filler.email}</p>
 													{/if}
 												</div>
 											</div>
 										{/each}
 									</div>
 								{:else}
-									<p class="mt-3 text-sm text-secondary">No one is filling this role yet</p>
+									<p class="mt-3 text-button text-secondary">No one is filling this role yet</p>
 								{/if}
 							</div>
 						</div>
 					{:else if activeTab === 'members'}
 						<!-- Empty State: Members -->
-						<div class="py-8 text-center">
+						<div class="py-readable-quote text-center">
 							<svg
-								class="mx-auto h-12 w-12 text-tertiary"
+								class="mx-auto size-icon-xl text-tertiary"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -496,17 +500,17 @@
 									d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
 								/>
 							</svg>
-							<p class="mt-4 text-sm font-medium text-primary">No members yet</p>
-							<p class="mt-1 text-sm text-secondary">
+							<p class="mt-4 text-button font-medium text-primary">No members yet</p>
+							<p class="mt-1 text-button text-secondary">
 								Members assigned to this role will appear here. This feature will be available in a
 								future update.
 							</p>
 						</div>
 					{:else if activeTab === 'documents'}
 						<!-- Empty State: Documents -->
-						<div class="py-8 text-center">
+						<div class="py-readable-quote text-center">
 							<svg
-								class="mx-auto h-12 w-12 text-tertiary"
+								class="mx-auto size-icon-xl text-tertiary"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -518,17 +522,17 @@
 									d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
 								/>
 							</svg>
-							<p class="mt-4 text-sm font-medium text-primary">No documents yet</p>
-							<p class="mt-1 text-sm text-secondary">
+							<p class="mt-4 text-button font-medium text-primary">No documents yet</p>
+							<p class="mt-1 text-button text-secondary">
 								Documents related to this role will appear here. This feature will be available in a
 								future update.
 							</p>
 						</div>
 					{:else if activeTab === 'activities'}
 						<!-- Empty State: Activities -->
-						<div class="py-8 text-center">
+						<div class="py-readable-quote text-center">
 							<svg
-								class="mx-auto h-12 w-12 text-tertiary"
+								class="mx-auto size-icon-xl text-tertiary"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -540,17 +544,17 @@
 									d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
 								/>
 							</svg>
-							<p class="mt-4 text-sm font-medium text-primary">No activities yet</p>
-							<p class="mt-1 text-sm text-secondary">
+							<p class="mt-4 text-button font-medium text-primary">No activities yet</p>
+							<p class="mt-1 text-button text-secondary">
 								Recent activities and updates for this role will appear here. This feature will be
 								available in a future update.
 							</p>
 						</div>
 					{:else if activeTab === 'metrics'}
 						<!-- Empty State: Metrics -->
-						<div class="py-8 text-center">
+						<div class="py-readable-quote text-center">
 							<svg
-								class="mx-auto h-12 w-12 text-tertiary"
+								class="mx-auto size-icon-xl text-tertiary"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -562,17 +566,17 @@
 									d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
 								/>
 							</svg>
-							<p class="mt-4 text-sm font-medium text-primary">No metrics yet</p>
-							<p class="mt-1 text-sm text-secondary">
+							<p class="mt-4 text-button font-medium text-primary">No metrics yet</p>
+							<p class="mt-1 text-button text-secondary">
 								Performance metrics and analytics for this role will appear here. This feature will
 								be available in a future update.
 							</p>
 						</div>
 					{:else if activeTab === 'checklists'}
 						<!-- Empty State: Checklists -->
-						<div class="py-8 text-center">
+						<div class="py-readable-quote text-center">
 							<svg
-								class="mx-auto h-12 w-12 text-tertiary"
+								class="mx-auto size-icon-xl text-tertiary"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -584,17 +588,17 @@
 									d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
 								/>
 							</svg>
-							<p class="mt-4 text-sm font-medium text-primary">No checklists yet</p>
-							<p class="mt-1 text-sm text-secondary">
+							<p class="mt-4 text-button font-medium text-primary">No checklists yet</p>
+							<p class="mt-1 text-button text-secondary">
 								Checklists and task lists for this role will appear here. This feature will be
 								available in a future update.
 							</p>
 						</div>
 					{:else if activeTab === 'projects'}
 						<!-- Empty State: Projects -->
-						<div class="py-8 text-center">
+						<div class="py-readable-quote text-center">
 							<svg
-								class="mx-auto h-12 w-12 text-tertiary"
+								class="mx-auto size-icon-xl text-tertiary"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -606,8 +610,8 @@
 									d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
 								/>
 							</svg>
-							<p class="mt-4 text-sm font-medium text-primary">No projects yet</p>
-							<p class="mt-1 text-sm text-secondary">
+							<p class="mt-4 text-button font-medium text-primary">No projects yet</p>
+							<p class="mt-1 text-button text-secondary">
 								Projects associated with this role will appear here. This feature will be available
 								in a future update.
 							</p>
@@ -620,7 +624,7 @@
 		<!-- Empty State - Panel open but no role data -->
 		<div class="flex h-full items-center justify-center px-inbox-container">
 			<div class="text-center">
-				<p class="text-sm text-secondary">No role selected</p>
+				<p class="text-button text-secondary">No role selected</p>
 			</div>
 		</div>
 	{/if}

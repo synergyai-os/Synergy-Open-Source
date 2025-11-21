@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import SettingsSidebar from '$lib/components/SettingsSidebar.svelte';
+	import SettingsSidebar from '$lib/modules/core/components/SettingsSidebar.svelte';
 
 	let { children, data } = $props();
 

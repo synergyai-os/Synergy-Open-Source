@@ -1,0 +1,108 @@
+/* Typography Utilities
+ * 
+ * All typography utility classes (text-h1, text-h2, etc.).
+ * 
+ * Extracted from src/app.css @utility blocks (lines 680-689, 1157-1183, 1262-1274)
+ */
+
+/* Readability Typography Utilities */
+@utility leading-readable {
+	line-height: var(--line-height-readable);
+}
+@utility tracking-readable {
+	letter-spacing: var(--letter-spacing-readable);
+}
+@utility max-w-readable {
+	max-width: var(--max-width-readable);
+}
+
+/* Typography Scale Utilities */
+@utility text-h1 {
+	font-size: var(--font-size-h1);
+	font-weight: var(--font-weight-h1);
+}
+@utility text-h2 {
+	font-size: var(--font-size-h2);
+	font-weight: var(--font-weight-h2);
+}
+@utility text-h3 {
+	font-size: var(--font-size-h3);
+	font-weight: var(--font-weight-h3);
+}
+
+/* Flashcard Typography Utilities - Large display text */
+@utility text-flashcard-question {
+	font-size: var(--font-size-flashcard-question);
+}
+@utility text-flashcard-question-lg {
+	font-size: var(--font-size-flashcard-question-lg);
+}
+@utility text-flashcard-answer {
+	font-size: var(--font-size-flashcard-answer);
+}
+@utility text-flashcard-answer-lg {
+	font-size: var(--font-size-flashcard-answer-lg);
+}
+
+/* Transition Utilities */
+@utility transition-default {
+	transition: var(--transition-default);
+}
+@utility transition-slow {
+	transition: var(--transition-slow);
+}
+@utility transition-fast {
+	transition: var(--transition-fast);
+}
+@utility transition-colors-token {
+	transition: var(--transition-colors);
+}
+
+/* Icon Size Utilities */
+@utility icon-xs {
+	width: var(--size-icon-xs);
+	height: var(--size-icon-xs);
+}
+@utility icon-sm {
+	width: var(--size-icon-sm);
+	height: var(--size-icon-sm);
+}
+@utility icon-md {
+	width: var(--size-icon-md);
+	height: var(--size-icon-md);
+}
+@utility icon-lg {
+	width: var(--size-icon-lg);
+	height: var(--size-icon-lg);
+}
+@utility icon-xl {
+	width: var(--size-icon-xl);
+	height: var(--size-icon-xl);
+}
+@utility size-quote-decoration {
+	width: var(--size-quote-decoration);
+	height: var(--size-quote-decoration);
+}
+@utility size-keyboard-key {
+	width: var(--size-keyboard-key);
+	height: var(--size-keyboard-key);
+}
+
+/* Avatar Size Utilities */
+@utility size-avatar-sm {
+	width: var(--size-avatar-sm);
+	height: var(--size-avatar-sm);
+}
+@utility size-avatar-md {
+	width: var(--size-avatar-md);
+	height: var(--size-avatar-md);
+}
+@utility size-avatar-lg {
+	width: var(--size-avatar-lg);
+	height: var(--size-avatar-lg);
+}
+
+/* Tabs Component Utilities */
+@utility size-tab {
+	height: var(--size-tab-height);
+}

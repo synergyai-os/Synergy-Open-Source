@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { Button, FormInput } from '$lib/components/ui';
-	import RateLimitError from '$lib/components/ui/RateLimitError.svelte';
+	import { RateLimitError } from '$lib/components/organisms';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	const token = $derived($page.url.searchParams.get('token') ?? '');

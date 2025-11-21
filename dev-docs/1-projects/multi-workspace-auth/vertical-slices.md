@@ -182,7 +182,7 @@ Each slice delivers **working functionality** that Randy can test right away.
 
 ## 🥖 Slice 5: Multiple Organizations
 
-**Goal**: Add 3 more orgs (Saprolab, ZDHC, PurposePilot)
+**Goal**: Add 3 more orgs (Agency Partner, Client, PurposePilot)
 
 **Value**: Full multi-org experience
 
@@ -200,14 +200,14 @@ Each slice delivers **working functionality** that Randy can test right away.
 
 ### Acceptance Criteria
 
-- [ ] Create Saprolab org
-- [ ] Create ZDHC org
+- [ ] Create Agency Partner org
+- [ ] Create Client org
 - [ ] Create PurposePilot org
 - [ ] Workspace switcher shows all 5 options:
   - CMD+1: Personal
   - CMD+2: SynergyAI
-  - CMD+3: Saprolab
-  - CMD+4: ZDHC
+  - CMD+3: Agency Partner
+  - CMD+4: Client
   - CMD+5: PurposePilot
 - [ ] All keyboard shortcuts work
 
@@ -237,13 +237,13 @@ Each slice delivers **working functionality** that Randy can test right away.
 
 - Integrate workspace switching into existing CMD+K
 - Type "switch" or "workspace" → Shows all workspaces
-- Type partial name "Sapr" → Filters to Saprolab
+- Type partial name "Sapr" → Filters to Agency Partner
 - Select to switch
 
 ### Acceptance Criteria
 
 - [ ] CMD+K → Type "switch" → Shows workspace actions
-- [ ] CMD+K → Type "Saprolab" → Filters to Saprolab
+- [ ] CMD+K → Type "Agency Partner" → Filters to Agency Partner
 - [ ] Press Enter → Switches to workspace
 - [ ] Fuzzy search works
 - [ ] Shows current workspace indicator
@@ -257,9 +257,9 @@ Each slice delivers **working functionality** that Randy can test right away.
 
 1. Press CMD+K
 2. Type "switch" → See all workspaces
-3. Type "Sapr" → Filtered to Saprolab only
-4. Press Enter → Switches to Saprolab
-5. CMD+K → Type "ZDHC" → Switches to ZDHC
+3. Type "Sapr" → Filtered to Agency Partner only
+4. Press Enter → Switches to Agency Partner
+5. CMD+K → Type "Client" → Switches to Client
 
 ---
 

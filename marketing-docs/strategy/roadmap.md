@@ -90,23 +90,23 @@ Each theme includes:
 
 ### 🔄 Theme 1: Partner Validation
 
-**Outcome**: Saprolab uses our platform daily and pays to sustain development.
+**Outcome**: Agency Partner uses our platform daily and pays to sustain development.
 
-**Why This Matters**: Without validation, we're building in a vacuum. Saprolab proves market need and willingness to pay.
+**Why This Matters**: Without validation, we're building in a vacuum. Agency Partner proves market need and willingness to pay.
 
 **Success Signals**:
-- ✅ Saprolab team logs in daily (5+ active users)
-- ✅ Saprolab recommends it to ZDHC (unsolicited)
+- ✅ Agency Partner team logs in daily (5+ active users)
+- ✅ Agency Partner recommends it to Client (unsolicited)
 - ✅ Revenue covers costs ($60/month minimum)
 - ✅ Positive feedback ("This changed how we work")
 
 **Assumptions** (Validating):
-- Saprolab needs customizable org design tool (validating)
+- Agency Partner needs customizable org design tool (validating)
 - Teams will adopt new workflows (validating)
 - Willingness to pay for open source (validating)
 
 **Risks & Mitigations**:
-- ⚠️ **Risk**: Saprolab doesn't validate → **Mitigation**: Find 2-3 other potential customers in parallel
+- ⚠️ **Risk**: Agency Partner doesn't validate → **Mitigation**: Find 2-3 other potential customers in parallel
 - ⚠️ **Risk**: Teams don't adopt → **Mitigation**: Close feedback loop, rapid iterations
 
 **Key Capabilities**:
@@ -126,7 +126,7 @@ Each theme includes:
 **Why This Matters**: Without multi-tenancy, we can only serve one customer. This unlocks scalability.
 
 **Success Signals**:
-- ✅ Saprolab + ZDHC on same infrastructure, separate data
+- ✅ Agency Partner + Client on same infrastructure, separate data
 - ✅ Permissions enforce boundaries (no data leaks)
 - ✅ Performance doesn't degrade with multiple orgs
 - ✅ Self-service org creation (no manual setup)
@@ -450,7 +450,7 @@ Themes are prioritized based on:
 ### Success Signals by Time Horizon
 
 **NOW Themes** (Active):
-- ✅ Partner Validation: Saprolab uses daily, pays, recommends to ZDHC
+- ✅ Partner Validation: Agency Partner uses daily, pays, recommends to Client
 - ✅ Multi-Tenant Foundation: Multiple orgs, clear data boundaries, self-service
 
 **NEXT Themes** (Upcoming):
@@ -560,7 +560,7 @@ For every theme, we ask:
 ### Key Assumptions We're Validating
 
 **Strategic Assumptions**:
-- ✅ Product teams want outcome-driven tools (validating with Saprolab)
+- ✅ Product teams want outcome-driven tools (validating with Agency Partner)
 - ✅ Open source builds trust and community (validating)
 - ✅ AI coaching with company data provides unique value (to validate)
 - ✅ Marketplace model works for builders (to validate)
@@ -677,7 +677,7 @@ For every theme, we ask:
 
 **Monthly** (with Stakeholders):
 - Review success signals for "Now" themes
-- Gather feedback from Saprolab/ZDHC
+- Gather feedback from Agency Partner/Client
 - Assess if themes should move (Next → Now, Now → Complete)
 - Adjust priorities if needed
 - Communicate changes
@@ -696,7 +696,7 @@ For every theme, we ask:
 - Monthly reviews: Success signals, blockers, learnings
 - Quarterly planning: Roadmap updates, prioritization
 
-**Stakeholders** (Saprolab, ZDHC):
+**Stakeholders** (Agency Partner, Client):
 - Monthly reviews: Progress, feedback, adjustments
 - Quarterly roadmap: Updated themes, sequencing
 - Transparent communication: Risks, assumptions, changes
@@ -748,7 +748,7 @@ This roadmap supports our **Product Vision 2.0**:
 ### Business Objectives Alignment
 
 **Year 1 Objectives** (Foundation):
-- ✅ Validate with Saprolab (paying customer)
+- ✅ Validate with Agency Partner (paying customer)
 - ✅ Multi-tenancy working (scalability)
 - ✅ Community launched (1,000+ stars)
 - ✅ Profitability reached (sustainable)
@@ -774,7 +774,7 @@ This roadmap supports our **Product Vision 2.0**:
 ### Year 1: Foundation & Validation
 
 **Outcomes**:
-- ✅ Saprolab & ZDHC validated (paying customers)
+- ✅ Agency Partner & Client validated (paying customers)
 - ✅ Multi-tenancy working (scalable infrastructure)
 - ✅ Community launched (1,000+ GitHub stars)
 - ✅ Core discovery & delivery tools shipped
@@ -813,7 +813,7 @@ As we build, we're learning:
 
 ### Phase 1 Questions
 
-- What workflows matter most to Saprolab?
+- What workflows matter most to Agency Partner?
 - How do we make multi-tenancy simple and secure?
 - What pricing model works for small teams vs. enterprises?
 

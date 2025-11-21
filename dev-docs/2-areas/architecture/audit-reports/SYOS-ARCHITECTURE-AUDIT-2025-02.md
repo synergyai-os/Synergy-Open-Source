@@ -834,7 +834,7 @@ graph LR
 
 1. **NOW Themes** (Active):
    - ✅ **Multi-Tenant Foundation**: Module system enables per-org enablement
-   - ✅ **Partner Validation**: Modularity supports rapid customization for Saprolab
+   - ✅ **Partner Validation**: Modularity supports rapid customization for Agency Partner
 
 2. **NEXT Themes** (Upcoming):
    - ✅ **Community Launch**: Workflow enforcement ensures quality for community contributions

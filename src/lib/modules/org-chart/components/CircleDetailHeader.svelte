@@ -1,7 +1,7 @@
 <script lang="ts">
-	import SplitButton from '$lib/components/ui/SplitButton.svelte';
-	import IconButton from '$lib/components/ui/IconButton.svelte';
-	import ActionMenu from '$lib/components/ui/ActionMenu.svelte';
+	import { SplitButton } from '$lib/components/atoms';
+	import { IconButton } from '$lib/components/atoms';
+	import { ActionMenu } from '$lib/components/molecules';
 
 	type Props = {
 		circleName: string;
@@ -17,7 +17,7 @@
 <header
 	class="flex h-system-header flex-shrink-0 items-center justify-between border-b border-base px-inbox-container py-system-header"
 >
-	<h2 class="text-lg font-semibold text-primary">{circleName}</h2>
+	<h2 class="text-h3 font-semibold text-primary">{circleName}</h2>
 	<div class="flex items-center gap-icon">
 		{#if addMenuItems.length > 0}
 			<SplitButton
@@ -34,7 +34,7 @@
 		{#if onEdit}
 			<button
 				type="button"
-				class="rounded-md border border-accent-primary bg-white px-4 py-2 text-sm font-medium text-accent-primary transition-colors hover:bg-hover-solid"
+				class="rounded-button border border-accent-primary bg-white px-card py-input-y text-button font-medium text-accent-primary transition-colors hover:bg-hover-solid"
 				onclick={onEdit}
 			>
 				Edit circle
@@ -44,7 +44,7 @@
 			<ActionMenu items={headerMenuItems} />
 		{/if}
 		{#snippet closeIcon()}
-			<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<svg class="size-icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path
 					stroke-linecap="round"
 					stroke-linejoin="round"

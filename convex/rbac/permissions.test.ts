@@ -52,15 +52,15 @@ describe('RBAC Permission System', () => {
 			});
 		});
 
-		// Test: Admin can create teams
+		// Test: Admin can create circles
 		const canCreate = await t.run(async (ctx) => {
 			const { hasPermission } = await import('./permissions');
-			return await hasPermission(ctx, userId, 'teams.create');
+			return await hasPermission(ctx, userId, 'circles.create');
 		});
 
 		expect(canCreate).toBe(true);
 
-		// Test: Admin can update any team (scope: all)
+		// Test: Admin can update any circle (scope: all)
 		const canUpdate = await t.run(async (ctx) => {
 			const { hasPermission } = await import('./permissions');
 			const otherUserId = await ctx.db.insert('users', {
@@ -71,7 +71,7 @@ describe('RBAC Permission System', () => {
 				updatedAt: Date.now()
 			});
 
-			return await hasPermission(ctx, userId, 'teams.update', {
+			return await hasPermission(ctx, userId, 'circles.update', {
 				resourceOwnerId: otherUserId // Different owner
 			});
 		});
@@ -79,13 +79,13 @@ describe('RBAC Permission System', () => {
 		expect(canUpdate).toBe(true);
 	});
 
-	test('Team Lead can only manage own teams', async () => {
+	test('Circle Lead can only manage own circles', async () => {
 		const t = convexTest(schema, modules);
 
-		// Create team lead user
-		const teamLeadId = await t.run(async (ctx) => {
+		// Create circle lead user
+		const circleLeadId = await t.run(async (ctx) => {
 			return await ctx.db.insert('users', {
-				workosId: 'team-lead-1',
+				workosId: 'circle-lead-1',
 				email: 'lead@test.com',
 				emailVerified: true,
 				createdAt: Date.now(),
@@ -107,51 +107,92 @@ describe('RBAC Permission System', () => {
 		// Seed RBAC data
 		await t.mutation(api['rbac/seedRBAC'].seedRBAC, {});
 
-		// Assign Team Lead role
+		// Assign Circle Lead role
 		const roleId = await t.run(async (ctx) => {
 			const role = await ctx.db
 				.query('roles')
-				.withIndex('by_slug', (q) => q.eq('slug', 'team-lead'))
+				.withIndex('by_slug', (q) => q.eq('slug', 'circle-lead'))
 				.first();
 			return role!._id;
 		});
 
 		await t.run(async (ctx) => {
 			await ctx.db.insert('userRoles', {
-				userId: teamLeadId,
+				userId: circleLeadId,
 				roleId,
-				assignedBy: teamLeadId,
+				assignedBy: circleLeadId,
 				assignedAt: Date.now()
 			});
 		});
 
-		// Test: Team Lead CAN update their own team
+		// Test: Circle Lead CAN update their own circle
 		const canUpdateOwn = await t.run(async (ctx) => {
 			const { hasPermission } = await import('./permissions');
-			return await hasPermission(ctx, teamLeadId, 'teams.update', {
-				resourceOwnerId: teamLeadId // Same as user
+			return await hasPermission(ctx, circleLeadId, 'circles.update', {
+				resourceOwnerId: circleLeadId // Same as user
 			});
 		});
 
 		expect(canUpdateOwn).toBe(true);
 
-		// Test: Team Lead CANNOT update another team
+		// Test: Circle Lead CANNOT update another circle
 		const canUpdateOther = await t.run(async (ctx) => {
 			const { hasPermission } = await import('./permissions');
-			return await hasPermission(ctx, teamLeadId, 'teams.update', {
+			return await hasPermission(ctx, circleLeadId, 'circles.update', {
 				resourceOwnerId: otherUserId // Different owner
 			});
 		});
 
 		expect(canUpdateOther).toBe(false);
 
-		// Test: Team Lead CANNOT create teams
+		// Test: Circle Lead CANNOT create circles
 		const canCreate = await t.run(async (ctx) => {
 			const { hasPermission } = await import('./permissions');
-			return await hasPermission(ctx, teamLeadId, 'teams.create');
+			return await hasPermission(ctx, circleLeadId, 'circles.create');
 		});
 
 		expect(canCreate).toBe(false);
+
+		// Test: Circle-scoped permission using circleId (not resourceOwnerId)
+		// Create organization and circle for circle-scoped role test
+		const orgId = await t.run(async (ctx) => {
+			return await ctx.db.insert('organizations', {
+				name: 'Test Org',
+				slug: `test-org-${Date.now()}`,
+				createdAt: Date.now(),
+				updatedAt: Date.now(),
+				plan: 'starter'
+			});
+		});
+
+		const circleId = await t.run(async (ctx) => {
+			return await ctx.db.insert('circles', {
+				organizationId: orgId,
+				name: 'Test Circle',
+				slug: `test-circle-${Date.now()}`,
+				createdAt: Date.now(),
+				updatedAt: Date.now()
+			});
+		});
+
+		// Assign Circle Lead role scoped to the circle
+		await t.run(async (ctx) => {
+			await ctx.db.insert('userRoles', {
+				userId: circleLeadId,
+				roleId,
+				circleId, // Circle-scoped role
+				assignedBy: circleLeadId,
+				assignedAt: Date.now()
+			});
+		});
+
+		// Test: Circle Lead CAN update circle when using circleId context
+		const canUpdateWithCircleId = await t.run(async (ctx) => {
+			const { hasPermission } = await import('./permissions');
+			return await hasPermission(ctx, circleLeadId, 'circles.update', { circleId });
+		});
+
+		expect(canUpdateWithCircleId).toBe(true);
 	});
 
 	test('Multi-role user has permissions from all roles', async () => {
@@ -171,11 +212,11 @@ describe('RBAC Permission System', () => {
 		// Seed RBAC data
 		await t.mutation(api['rbac/seedRBAC'].seedRBAC, {});
 
-		// Assign Team Lead AND Billing Admin roles
-		const teamLeadRoleId = await t.run(async (ctx) => {
+		// Assign Circle Lead AND Billing Admin roles
+		const circleLeadRoleId = await t.run(async (ctx) => {
 			const role = await ctx.db
 				.query('roles')
-				.withIndex('by_slug', (q) => q.eq('slug', 'team-lead'))
+				.withIndex('by_slug', (q) => q.eq('slug', 'circle-lead'))
 				.first();
 			return role!._id;
 		});
@@ -191,7 +232,7 @@ describe('RBAC Permission System', () => {
 		await t.run(async (ctx) => {
 			await ctx.db.insert('userRoles', {
 				userId,
-				roleId: teamLeadRoleId,
+				roleId: circleLeadRoleId,
 				assignedBy: userId,
 				assignedAt: Date.now()
 			});
@@ -204,15 +245,15 @@ describe('RBAC Permission System', () => {
 			});
 		});
 
-		// Test: Has team management permissions (from Team Lead role)
-		const canManageTeam = await t.run(async (ctx) => {
+		// Test: Has circle management permissions (from Circle Lead role)
+		const canManageCircle = await t.run(async (ctx) => {
 			const { hasPermission } = await import('./permissions');
-			return await hasPermission(ctx, userId, 'teams.update', {
+			return await hasPermission(ctx, userId, 'circles.update', {
 				resourceOwnerId: userId
 			});
 		});
 
-		expect(canManageTeam).toBe(true);
+		expect(canManageCircle).toBe(true);
 
 		// Test: Has billing permissions (from Billing Admin role)
 		const canManageBilling = await t.run(async (ctx) => {
@@ -240,7 +281,7 @@ describe('RBAC Permission System', () => {
 		// Seed RBAC data
 		await t.mutation(api['rbac/seedRBAC'].seedRBAC, {});
 
-		// Assign Member role (cannot create teams)
+		// Assign Member role (cannot create circles)
 		const roleId = await t.run(async (ctx) => {
 			const role = await ctx.db
 				.query('roles')
@@ -262,7 +303,7 @@ describe('RBAC Permission System', () => {
 		await expect(async () => {
 			await t.run(async (ctx) => {
 				const { requirePermission } = await import('./permissions');
-				await requirePermission(ctx, userId, 'teams.create');
+				await requirePermission(ctx, userId, 'circles.create');
 			});
 		}).rejects.toThrow('Permission denied');
 	});
@@ -305,7 +346,7 @@ describe('RBAC Permission System', () => {
 		// Perform permission check
 		await t.run(async (ctx) => {
 			const { hasPermission } = await import('./permissions');
-			await hasPermission(ctx, userId, 'teams.create');
+			await hasPermission(ctx, userId, 'circles.create');
 		});
 
 		// Verify audit log entry exists
@@ -320,7 +361,7 @@ describe('RBAC Permission System', () => {
 
 		const log = auditLogs[0];
 		expect(log.action).toBe('check');
-		expect(log.permissionSlug).toBe('teams.create');
+		expect(log.permissionSlug).toBe('circles.create');
 		expect(log.result).toBe('allowed');
 	});
 });

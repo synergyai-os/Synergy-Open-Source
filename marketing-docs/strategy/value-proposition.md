@@ -4,7 +4,7 @@
 
 ---
 
-## For Saprolab (IT Supplier Building Products)
+## For Agency Partner (IT Supplier Building Products)
 
 ### The Problem
 
@@ -30,7 +30,7 @@
 
 ---
 
-## For ZDHC (Non-Profit Running Product Teams)
+## For Client (Non-Profit Running Product Teams)
 
 ### The Problem
 
@@ -344,11 +344,11 @@
 
 "We're building the open-source Product OS for teams. Think Holaspirit meets Notion meets ChatGPT, but privacy-first, outcome-driven, and built by a community of product people. One tool for discovery, delivery, and alignment—customizable, affordable, and AI-powered."
 
-### 30-Second (for Saprolab)
+### 30-Second (for Agency Partner)
 
 "You need to replace Holaspirit with something customizable and affordable. We built an open-source platform that handles team alignment, product workflows, and AI coaching—at 1/10th the cost. You can self-host it, extend it, and never be locked in."
 
-### 30-Second (for ZDHC)
+### 30-Second (for Client)
 
 "Running multiple product teams is hard. We built a platform that aligns teams with outcome-driven roadmaps, makes meetings effective with built-in workflows, and captures knowledge with AI coaching. It's like having a coach who knows your organization."
 

@@ -39,3 +39,15 @@ Example format:
 ```
 **Summary:** [What we did in 1 sentence]. [Why it matters in 1-2 sentences - focus on impact/value, not technical details].
 ```
+
+### 3. Archive Task Document (if applicable)
+
+**If validation passes and ticket is marked complete:**
+
+- [ ] **Check for task document**: Look for `ai-docs/tasks/[ticket-id]-*.md` or `ai-docs/tasks/*.md` related to this ticket
+- [ ] **Move to archive**: Move task document → `dev-docs/4-archive/tasks/[ticket-id]-*.md`
+- [ ] **Preserve history**: Task documents are archived (not deleted) for reference
+
+**Why**: Task documents are pre-coding analysis. Once work is complete and validated, they become historical reference material and should be archived to keep `ai-docs/tasks/` clean and focused on active work.
+
+**Note**: Only archive if validation passes and ticket is marked complete. If validation fails, keep task document in `ai-docs/tasks/` for continued reference.

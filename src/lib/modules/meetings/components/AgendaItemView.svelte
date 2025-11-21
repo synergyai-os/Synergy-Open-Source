@@ -68,7 +68,7 @@
 	<div class="flex h-full items-center justify-center">
 		<div class="text-center">
 			<svg
-				class="mx-auto h-12 w-12 text-text-tertiary"
+				class="mx-auto icon-xl text-text-tertiary"
 				fill="none"
 				viewBox="0 0 24 24"
 				stroke="currentColor"
@@ -81,8 +81,10 @@
 					d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
 				/>
 			</svg>
-			<h3 class="mt-4 text-lg font-semibold text-text-primary">No Agenda Item Selected</h3>
-			<p class="mt-2 text-text-secondary">
+			<h3 class="mt-content-section text-h3 font-semibold text-text-primary">
+				No Agenda Item Selected
+			</h3>
+			<p class="mt-spacing-text-gap text-text-secondary">
 				Click an agenda item from the sidebar to start processing
 			</p>
 		</div>
@@ -94,12 +96,14 @@
 		<div class="border-b border-border-base bg-elevated px-inbox-container py-system-header">
 			<div class="flex items-start justify-between">
 				<div class="flex-1">
-					<h2 class="text-2xl font-bold text-text-primary">{item.title}</h2>
-					<div class="mt-2 flex items-center gap-icon text-sm text-text-tertiary">
+					<h2 class="text-h1 font-bold text-text-primary">{item.title}</h2>
+					<div
+						class="mt-spacing-text-gap text-body-sm flex items-center gap-icon text-text-tertiary"
+					>
 						<span>Added by {item.creatorName}</span>
 						{#if item.isProcessed}
-							<span class="flex items-center gap-1 text-green-600">
-								<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<span class="gap-icon-sm flex items-center text-success-text">
+								<svg class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 									<path
 										stroke-linecap="round"
 										stroke-linejoin="round"
@@ -117,7 +121,7 @@
 				{#if !item.isProcessed && !isClosed && isSecretary}
 					<button
 						onclick={() => onMarkProcessed(item._id)}
-						class="rounded-md bg-accent-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
+						class="rounded-button bg-accent-primary px-button-x py-button-y text-button font-medium text-primary transition-colors hover:bg-accent-hover"
 					>
 						Mark as Processed
 					</button>
@@ -128,17 +132,17 @@
 		<!-- Notes Editor (SYOS-222) -->
 		<div class="flex-1 overflow-y-auto px-inbox-container py-system-content">
 			{#if browser && item}
-				<div class="space-y-6">
+				<div class="gap-section-gap flex flex-col">
 					{#if isSecretary}
 						<!-- SECRETARY MODE: Local state with auto-save -->
 						<!-- Save State Indicator -->
 						{#if notes && notes.saveState !== 'idle'}
-							<div class="flex items-center gap-2 text-sm">
+							<div class="text-body-sm flex items-center gap-icon">
 								{#if notes.saveState === 'saving'}
 									<span class="text-text-tertiary">Saving...</span>
 								{:else if notes.saveState === 'saved'}
-									<span class="flex items-center gap-1 text-green-600">
-										<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+									<span class="gap-icon-sm flex items-center text-success-text">
+										<svg class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -149,7 +153,7 @@
 										Saved
 									</span>
 								{:else if notes.saveState === 'error'}
-									<span class="text-red-600">{notes.saveError || 'Failed to save'}</span>
+									<span class="text-error-text">{notes.saveError || 'Failed to save'}</span>
 								{/if}
 							</div>
 						{/if}
@@ -199,9 +203,9 @@
 				</div>
 			{:else if !browser}
 				<!-- SSR placeholder -->
-				<div class="text-sm text-text-tertiary italic">Loading editor...</div>
+				<div class="text-body-sm text-text-tertiary italic">Loading editor...</div>
 			{:else}
-				<p class="text-sm text-text-tertiary italic">No notes yet for this agenda item</p>
+				<p class="text-body-sm text-text-tertiary italic">No notes yet for this agenda item</p>
 			{/if}
 		</div>
 	</div>

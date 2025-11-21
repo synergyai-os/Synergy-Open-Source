@@ -139,7 +139,7 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 			console.log('🔍 User registered from invite link, accepting invite:', inviteCode);
 
 			try {
-				// Get invite details to determine type (org vs team)
+				// Get invite details (organization invites only)
 				const inviteDetails = await convex.query(api.organizations.getInviteByCode, {
 					code: inviteCode
 				});
@@ -160,19 +160,9 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 					);
 					redirectTo = `/org/circles?org=${acceptResult.organizationId}`;
 				} else {
-					// Accept team invite
-					const acceptResult = await convex.mutation(api.teams.acceptTeamInvite, {
-						sessionId,
-						code: inviteCode
-					});
-
-					console.log(
-						'✅ Team invite accepted, redirecting to team:',
-						acceptResult.teamId,
-						'org:',
-						acceptResult.organizationId
-					);
-					redirectTo = `/org/teams/${acceptResult.teamId}?org=${acceptResult.organizationId}`;
+					// Unknown invite type, redirect to inbox
+					console.error('❌ Unknown invite type:', inviteDetails.type);
+					redirectTo = '/inbox';
 				}
 			} catch (inviteError) {
 				console.error('❌ Failed to accept invite:', inviteError);

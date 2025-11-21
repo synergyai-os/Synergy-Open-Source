@@ -81,7 +81,7 @@
 			onclick={() => toggleMarkSafe('strong')}
 			title="Bold (Cmd+B)"
 		>
-			<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path
 					stroke-linecap="round"
 					stroke-linejoin="round"
@@ -102,7 +102,7 @@
 			onclick={() => toggleMarkSafe('em')}
 			title="Italic (Cmd+I)"
 		>
-			<svg class="h-4 w-4 italic" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<svg class="icon-sm italic" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<line x1="19" y1="4" x2="10" y2="4" stroke-width="2" />
 				<line x1="14" y1="20" x2="5" y2="20" stroke-width="2" />
 				<line x1="15" y1="4" x2="9" y2="20" stroke-width="2" />
@@ -114,7 +114,7 @@
 			onclick={() => toggleMarkSafe('code')}
 			title="Code (Cmd+`)"
 		>
-			<svg class="h-4 w-4 font-mono" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<svg class="icon-sm font-mono" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path
 					stroke-linecap="round"
 					stroke-linejoin="round"
@@ -134,7 +134,7 @@
 			onclick={() => setBlockTypeSafe('heading', { level: 1 })}
 			title="Heading 1 (Cmd+Shift+1)"
 		>
-			<span class="text-sm font-semibold">H1</span>
+			<span class="text-small font-semibold">H1</span>
 		</ControlPanel.Button>
 
 		<ControlPanel.Button
@@ -142,7 +142,7 @@
 			onclick={() => setBlockTypeSafe('heading', { level: 2 })}
 			title="Heading 2 (Cmd+Shift+2)"
 		>
-			<span class="text-sm font-semibold">H2</span>
+			<span class="text-small font-semibold">H2</span>
 		</ControlPanel.Button>
 
 		<ControlPanel.Button
@@ -150,7 +150,7 @@
 			onclick={() => setBlockTypeSafe('heading', { level: 3 })}
 			title="Heading 3 (Cmd+Shift+3)"
 		>
-			<span class="text-sm font-semibold">H3</span>
+			<span class="text-small font-semibold">H3</span>
 		</ControlPanel.Button>
 	</ControlPanel.Group>
 
@@ -159,7 +159,7 @@
 	<!-- History Group -->
 	<ControlPanel.Group>
 		<ControlPanel.Button onclick={() => runCommand(undo)} title="Undo (Cmd+Z)">
-			<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path
 					stroke-linecap="round"
 					stroke-linejoin="round"
@@ -170,7 +170,7 @@
 		</ControlPanel.Button>
 
 		<ControlPanel.Button onclick={() => runCommand(redo)} title="Redo (Cmd+Shift+Z)">
-			<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path
 					stroke-linecap="round"
 					stroke-linejoin="round"

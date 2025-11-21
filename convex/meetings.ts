@@ -466,16 +466,10 @@ export const addAttendee = mutation({
 	args: {
 		sessionId: v.string(),
 		meetingId: v.id('meetings'),
-		attendeeType: v.union(
-			v.literal('user'),
-			v.literal('role'),
-			v.literal('circle'),
-			v.literal('team')
-		),
+		attendeeType: v.union(v.literal('user'), v.literal('role'), v.literal('circle')),
 		userId: v.optional(v.id('users')),
 		circleRoleId: v.optional(v.id('circleRoles')),
-		circleId: v.optional(v.id('circles')),
-		teamId: v.optional(v.id('teams'))
+		circleId: v.optional(v.id('circles'))
 	},
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
@@ -490,11 +484,11 @@ export const addAttendee = mutation({
 		await ensureOrganizationMembership(ctx, meeting.organizationId, userId);
 
 		// Validate exactly one attendee ID is provided
-		const providedIds = [args.userId, args.circleRoleId, args.circleId, args.teamId].filter(
+		const providedIds = [args.userId, args.circleRoleId, args.circleId].filter(
 			(id) => id !== undefined
 		);
 		if (providedIds.length !== 1) {
-			throw new Error('Exactly one of userId, circleRoleId, circleId, or teamId must be provided');
+			throw new Error('Exactly one of userId, circleRoleId, or circleId must be provided');
 		}
 
 		// Check if attendee already exists
@@ -509,14 +503,12 @@ export const addAttendee = mutation({
 						q.eq(q.field('attendeeType'), 'role'),
 						q.eq(q.field('circleRoleId'), args.circleRoleId)
 					);
-				} else if (args.attendeeType === 'circle') {
+				} else {
+					// circle
 					return q.and(
 						q.eq(q.field('attendeeType'), 'circle'),
 						q.eq(q.field('circleId'), args.circleId)
 					);
-				} else {
-					// team
-					return q.and(q.eq(q.field('attendeeType'), 'team'), q.eq(q.field('teamId'), args.teamId));
 				}
 			})
 			.first();
@@ -532,7 +524,6 @@ export const addAttendee = mutation({
 			userId: args.userId,
 			circleRoleId: args.circleRoleId,
 			circleId: args.circleId,
-			teamId: args.teamId,
 			addedAt: Date.now()
 		});
 

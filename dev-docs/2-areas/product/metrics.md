@@ -78,7 +78,7 @@
 - ✅ **KR4**: AI coaching (context-aware Q&A) [IN PROGRESS: 30% - Foundation ready, needs training pipeline]
 
 **Owner**: Randy (Founder)  
-**Health**: 🔴 Not started (focusing on Saprolab validation first)
+**Health**: 🔴 Not started (focusing on Agency Partner validation first)
 
 ---
 
@@ -373,7 +373,7 @@
 
 ### Product
 
-- ✅ Saprolab validated
+- ✅ Agency Partner validated
 - 🎯 10 paying customers
 - 🚀 100 organizations using it
 

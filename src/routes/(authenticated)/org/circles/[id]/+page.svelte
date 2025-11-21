@@ -79,11 +79,11 @@
 	<!-- Header -->
 	<header class="border-b border-base bg-surface px-inbox-container py-header">
 		{#if isLoading}
-			<div class="h-8 w-48 animate-pulse rounded bg-elevated"></div>
+			<div class="h-8 w-48 animate-pulse rounded-button bg-elevated"></div>
 		{:else if circle}
 			<div class="space-y-2">
 				<!-- Circle Name (Editable) -->
-				<div class="flex items-center gap-2">
+				<div class="flex items-center gap-icon">
 					{#if editingName}
 						<input
 							type="text"
@@ -96,16 +96,16 @@
 									nameValue = circle.name;
 								}
 							}}
-							class="rounded border border-base bg-elevated px-2 py-1 text-xl font-semibold text-primary focus:border-accent-primary focus:outline-none"
+							class="rounded-button border border-base bg-elevated px-input-x py-input-y text-h3 font-semibold text-primary focus:border-accent-primary focus:outline-none"
 						/>
 					{:else}
-						<h1 class="text-xl font-semibold text-primary">{circle.name}</h1>
+						<h1 class="text-h3 font-semibold text-primary">{circle.name}</h1>
 						<button
 							onclick={() => (editingName = true)}
-							class="rounded p-1 text-secondary hover:bg-sidebar-hover hover:text-primary"
+							class="rounded-button p-control-button-padding text-secondary hover:bg-sidebar-hover hover:text-primary"
 							title="Edit name"
 						>
-							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -118,7 +118,7 @@
 				</div>
 
 				<!-- Circle Purpose (Editable) -->
-				<div class="flex items-start gap-2">
+				<div class="flex items-start gap-icon">
 					{#if editingPurpose}
 						<textarea
 							bind:value={purposeValue}
@@ -129,19 +129,19 @@
 									purposeValue = circle.purpose ?? '';
 								}
 							}}
-							class="flex-1 rounded border border-base bg-elevated px-2 py-1 text-sm text-secondary focus:border-accent-primary focus:outline-none"
+							class="flex-1 rounded-button border border-base bg-elevated px-input-x py-input-y text-button text-secondary focus:border-accent-primary focus:outline-none"
 							rows={2}
 						></textarea>
 					{:else}
-						<p class="flex-1 text-sm text-secondary">
+						<p class="flex-1 text-button text-secondary">
 							{circle.purpose || 'No purpose defined'}
 						</p>
 						<button
 							onclick={() => (editingPurpose = true)}
-							class="rounded p-1 text-secondary hover:bg-sidebar-hover hover:text-primary"
+							class="rounded-button p-control-button-padding text-secondary hover:bg-sidebar-hover hover:text-primary"
 							title="Edit purpose"
 						>
-							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -154,7 +154,7 @@
 				</div>
 
 				<!-- Meta Info -->
-				<div class="flex items-center gap-4 text-sm text-secondary">
+				<div class="flex items-center gap-4 text-button text-secondary">
 					<span>{members.length} members</span>
 					<span>{roles.length} roles</span>
 					{#if circle.parentName}
@@ -166,7 +166,7 @@
 	</header>
 
 	<!-- Content -->
-	<main class="flex flex-1 gap-4 overflow-hidden px-inbox-container py-inbox-container">
+	<main class="flex flex-1 gap-form-section overflow-hidden px-inbox-container py-inbox-container">
 		{#if isLoading}
 			<div class="flex flex-1 items-center justify-center">
 				<div class="text-secondary">Loading circle...</div>
@@ -194,7 +194,7 @@
 								goto(resolveRoute('/org/circles'));
 							}
 						}}
-						class="text-on-solid mt-4 rounded-md bg-accent-primary px-nav-item py-nav-item text-sm font-medium hover:bg-accent-hover"
+						class="text-on-solid mt-4 rounded-button bg-accent-primary px-nav-item py-nav-item text-button font-medium hover:bg-accent-hover"
 					>
 						Back to Circles
 					</button>

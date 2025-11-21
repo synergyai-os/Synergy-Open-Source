@@ -1,4 +1,7 @@
 <script lang="ts">
+	import { Card, Text } from '$lib/components/ui';
+	import { formatRelativeDate } from '$lib/utils/date';
+
 	type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text' | 'note';
 
 	// Inbox item from Convex (with enriched display info)
@@ -7,7 +10,7 @@
 		type: InboxItemType;
 		title: string; // Enriched from query
 		snippet: string; // Enriched from query
-		tags: string[]; // Enriched from query
+		createdAt?: number; // Timestamp for date display
 	};
 
 	interface Props {
@@ -32,52 +35,54 @@
 				return '📋';
 		}
 	}
+
+	// InboxCard-specific styling: selected state, hover background
+	// Use noPadding variant to control padding ourselves, then add border conditionally
+	const baseClasses = 'w-full text-left transition-all duration-150';
+	// Selected: blue border (border-2 border-selected), unselected: subtle border with hover
+	// Use $derived to ensure reactivity when selected prop changes
+	const borderClasses = $derived(
+		selected
+			? 'border-2 border-selected bg-selected/10'
+			: 'border border-base hover:bg-hover-solid hover:border-elevated'
+	);
+	const inboxCardClasses = $derived(`${baseClasses} ${borderClasses}`);
 </script>
 
-<button
-	type="button"
+<Card
+	variant="noPadding"
+	clickable
 	data-inbox-item-id={item._id}
-	class="w-full rounded-md border bg-elevated text-left transition-all duration-150 outline-none"
-	class:border-2={selected}
-	class:border-selected={selected}
-	class:border-base={!selected}
-	class:hover:bg-hover-solid={!selected}
-	class:hover:border-elevated={!selected}
-	class:focus-visible:ring-2={!selected}
-	class:focus-visible:ring-accent-primary={!selected}
-	class:focus-visible:ring-offset-2={!selected}
+	class={inboxCardClasses}
 	onclick={(e) => {
 		// Clear hover state by blurring
 		(e.currentTarget as HTMLElement)?.blur();
 		onClick();
 	}}
 >
-	<div class="px-inbox-card py-inbox-card">
+	<div class="px-inbox-card py-inbox-card-compact">
 		<div class="flex items-start gap-inbox-icon">
-			<!-- Icon -->
-			<div class="flex-shrink-0 text-xl leading-none">{getTypeIcon(item.type)}</div>
+			<!-- Icon (emoji) - smaller size -->
+			<div class="flex-shrink-0 text-body leading-none">{getTypeIcon(item.type)}</div>
 
-			<!-- Content -->
+			<!-- Content - flex-1 to take available space -->
 			<div class="min-w-0 flex-1">
-				<h3 class="truncate text-sm leading-tight font-semibold text-primary">
-					{item.title || 'Untitled'}
-				</h3>
-				<p class="mt-0.5 line-clamp-2 text-xs leading-relaxed text-secondary">
+				<!-- Title and Date Row -->
+				<div class="flex items-center justify-between gap-inbox-icon">
+					<Text variant="body" size="sm" as="h3" class="truncate leading-tight font-semibold">
+						{item.title || 'Untitled'}
+					</Text>
+					{#if item.createdAt}
+						<Text variant="caption" size="sm" as="span" class="flex-shrink-0 text-tertiary">
+							{formatRelativeDate(item.createdAt)}
+						</Text>
+					{/if}
+				</div>
+				<!-- Snippet - single line, tighter spacing -->
+				<Text variant="body" size="sm" class="truncate leading-tight text-secondary">
 					{item.snippet || 'No preview available'}
-				</p>
-				{#if item.tags && item.tags.length > 0}
-					<div class="mt-1.5 flex items-center gap-1">
-						<!-- Tags -->
-						<div class="flex flex-wrap gap-1">
-							{#each item.tags.slice(0, 2) as tag (tag)}
-								<span class="rounded bg-tag px-badge py-badge text-label text-tag">
-									{tag}
-								</span>
-							{/each}
-						</div>
-					</div>
-				{/if}
+				</Text>
 			</div>
 		</div>
 	</div>
-</button>
+</Card>

@@ -53,22 +53,21 @@ export const getUserOrganizationIdsQuery = internalQuery({
 });
 
 /**
- * Get user's accessible team IDs
- * FUTURE: Query teamMembers table
- * CURRENT: Returns empty array (user-scoped only)
+ * Get user's accessible circle IDs
+ * Query circleMembers table
  */
-export async function getUserTeamIds(
+export async function getUserCircleIds(
 	ctx: QueryCtx | MutationCtx,
 	userId: string
 ): Promise<string[]> {
 	const normalizedUserId = userId as Id<'users'>;
 
 	const memberships = await ctx.db
-		.query('teamMembers')
+		.query('circleMembers')
 		.withIndex('by_user', (q) => q.eq('userId', normalizedUserId))
 		.collect();
 
-	return memberships.map((membership) => membership.teamId);
+	return memberships.map((membership) => membership.circleId);
 }
 
 /**
@@ -79,22 +78,22 @@ export async function getUserTeamIds(
 export async function canAccessContent(
 	ctx: QueryCtx | MutationCtx,
 	userId: string,
-	content: { userId: string; organizationId?: string; teamId?: string; ownershipType?: string }
+	content: { userId: string; organizationId?: string; circleId?: string; ownershipType?: string }
 ): Promise<boolean> {
 	if (content.userId === userId) {
 		return true;
 	}
 
-	const [organizationIds, teamIds] = await Promise.all([
+	const [organizationIds, circleIds] = await Promise.all([
 		getUserOrganizationIds(ctx, userId),
-		getUserTeamIds(ctx, userId)
+		getUserCircleIds(ctx, userId)
 	]);
 
 	if (content.organizationId && organizationIds.includes(content.organizationId)) {
 		return true;
 	}
 
-	if (content.teamId && teamIds.includes(content.teamId)) {
+	if (content.circleId && circleIds.includes(content.circleId)) {
 		return true;
 	}
 
@@ -116,16 +115,16 @@ export async function getContentAccessFilter(
 ): Promise<{
 	userId: string;
 	organizationIds: string[];
-	teamIds: string[];
+	circleIds: string[];
 }> {
-	const [organizationIds, teamIds] = await Promise.all([
+	const [organizationIds, circleIds] = await Promise.all([
 		getUserOrganizationIds(ctx, userId),
-		getUserTeamIds(ctx, userId)
+		getUserCircleIds(ctx, userId)
 	]);
 
 	return {
 		userId,
 		organizationIds,
-		teamIds
+		circleIds
 	};
 }

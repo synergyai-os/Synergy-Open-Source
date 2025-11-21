@@ -28,7 +28,7 @@
 
 ## Success Signals by Stakeholder
 
-### For Saprolab (Buyer + First Partner)
+### For Agency Partner (Buyer + First Partner)
 
 #### Leading Indicators
 
@@ -36,13 +36,13 @@
 - ✅ **They're saying yes**: Actively requesting features
 - ✅ **They're coming back**: DAU/MAU ratio > 50%
 - ✅ **Positive feedback**: 4/5 stars or "This changed how we work"
-- ✅ **Word of mouth**: Recommending to ZDHC unprompted
+- ✅ **Word of mouth**: Recommending to Client unprompted
 
 #### Lagging Indicators
 
 - ✅ **Revenue**: Paying covers costs ($60/month minimum)
 - ✅ **Retention**: < 5% monthly churn
-- ✅ **Expansion**: ZDHC onboarded via Saprolab
+- ✅ **Expansion**: Client onboarded via Agency Partner
 - ✅ **Time saved**: Self-report 10+ hours/week saved
 - ✅ **Replaced Holaspirit**: Fully migrated off
 
@@ -55,7 +55,7 @@
 
 ---
 
-### For ZDHC (End User via Saprolab)
+### For Client (End User via Agency Partner)
 
 #### Leading Indicators
 
@@ -77,7 +77,7 @@
 
 - ✅ **Better decisions**: Product outcomes improve (validated post-launch)
 - ✅ **Team satisfaction**: NPS score > 40 ("Would recommend")
-- ✅ **Expansion**: More teams at ZDHC onboarded
+- ✅ **Expansion**: More teams at Client onboarded
 - ✅ **Advocate**: Leadership recommending to other non-profits
 
 ---
@@ -268,7 +268,7 @@
 
 **Phases**:
 
-- **Phase 1**: $60/month (cover costs with Saprolab)
+- **Phase 1**: $60/month (cover costs with Agency Partner)
 - **Phase 2**: $500/month (3+ customers, profitable)
 - **Phase 3**: $5K/month (50+ customers, scale)
 
@@ -455,7 +455,7 @@
 - ✅ Support tickets (pain points, bugs)
 - ✅ GitHub issues/PRs (community engagement)
 
-### Monthly Review (with Saprolab)
+### Monthly Review (with Agency Partner)
 
 - ✅ Retention (are they staying?)
 - ✅ Qualitative feedback (testimonials, concerns)
@@ -497,7 +497,7 @@
 
 ### Business Red Flags
 
-- ❌ Saprolab churns (first customer lost)
+- ❌ Agency Partner churns (first customer lost)
 - ❌ No additional customers in 6 months (no market validation)
 - ❌ Revenue < costs after 12 months (not profitable)
 - ❌ LTV:CAC < 1:1 (unit economics broken)
@@ -508,7 +508,7 @@
 
 ## How We Use Signals to Decide
 
-### Scenario 1: Feature Request from Saprolab
+### Scenario 1: Feature Request from Agency Partner
 
 **Signal Check**:
 
@@ -546,7 +546,7 @@
 
 ## Success Milestones
 
-### Milestone 1: First Paying Customer (Saprolab)
+### Milestone 1: First Paying Customer (Agency Partner)
 
 **Signals**:
 
@@ -558,15 +558,15 @@
 
 ---
 
-### Milestone 2: ZDHC Onboarded
+### Milestone 2: Client Onboarded
 
 **Signals**:
 
 - ✅ Team using daily
-- ✅ Expansion from Saprolab
+- ✅ Expansion from Agency Partner
 - ✅ Multi-tenancy working
 
-**Outcome**: Validated scalability, Saprolab expansion
+**Outcome**: Validated scalability, Agency Partner expansion
 
 ---
 

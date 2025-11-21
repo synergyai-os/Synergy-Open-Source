@@ -7,6 +7,164 @@ This document defines our design system tokens used consistently throughout the 
 > - [Design Principles](design-principles.md) - Visual philosophy and UX principles (why we design this way)
 > - [Component Architecture](component-architecture.md) - How tokens → utilities → patterns → components work together (how we implement)
 
+---
+
+## 🛡️ Design System Governance
+
+**⚠️ CRITICAL: Hardcoded Tailwind values are BLOCKED**
+
+As of November 2025 (SYOS-385, SYOS-386), the design system enforces token usage automatically:
+
+### **Automated Enforcement**
+
+- ✅ **ESLint Plugin**: `eslint-plugin-better-tailwindcss` blocks arbitrary values like `min-h-[2.75rem]`, `p-[12px]`, `w-[44px]`
+- ✅ **Pre-commit Hook**: Git hook prevents committing hardcoded Tailwind values (blocks before commit)
+- ✅ **CI Validation**: GitHub Actions runs `npm run lint` - PRs blocked if violations detected
+- ✅ **Test Files Exempted**: `*.test.*` and `*.spec.*` files allowed to use hardcoded values for mocking
+
+**Example Error Message:**
+
+```bash
+❌ Hardcoded Tailwind value detected in: Button.svelte
+   Pattern: class="...[value]"
+
+Replace with design token utility:
+   - min-h-[2.75rem] → min-h-button (add to app.css)
+   - p-[12px] → p-button-icon (already exists)
+
+See: dev-docs/2-areas/design/design-tokens.md
+```
+
+### **How to Add New Tokens**
+
+**Step 1: Check if token exists**
+
+```bash
+# Search app.css for existing token
+grep -r "spacing-my-component" src/app.css
+```
+
+**Step 2: Add to `app.css` @theme block**
+
+```css
+/* src/app.css */
+@theme {
+  /* ... existing tokens ... */
+  
+  /* My Component Tokens */
+  --spacing-my-component-x: 1rem; /* 16px - horizontal padding */
+  --spacing-my-component-y: 0.75rem; /* 12px - vertical padding */
+}
+```
+
+**Step 3: Create utility class**
+
+```css
+/* src/app.css */
+@utility px-my-component {
+  padding-inline: var(--spacing-my-component-x);
+}
+
+@utility py-my-component {
+  padding-block: var(--spacing-my-component-y);
+}
+```
+
+**Step 4: Document in this file**
+
+Add token to appropriate section below with description and usage examples.
+
+**Step 5: Update `design-system-test.json`**
+
+Our design system spec file (`design-system-test.json`) is the **source of truth** for token values, descriptions, and design decisions. Always update it when adding new tokens.
+
+### **Source of Truth Hierarchy**
+
+1. **design-system-test.json**: Token specifications, values, descriptions (WHAT and WHY)
+2. **src/app.css**: Token implementation - CSS variables + utility classes (HOW)
+3. **This file (design-tokens.md)**: Token documentation and usage examples (WHEN and WHERE)
+
+### **Token Validation Tools**
+
+- **ESLint**: Immediate feedback in editor (red squiggles)
+- **Pre-commit Hook**: Blocks git commit if violations detected
+- **CI Pipeline**: Final validation before merge (`npm run lint`)
+- **Style Dictionary** (Phase 3): Validates token → utility mapping
+
+### **Common Violations**
+
+❌ **BLOCKED - Will fail lint:**
+
+```html
+<!-- Hardcoded sizes -->
+<button class="min-h-[2.75rem]">Click</button>
+<div class="p-[12px]">Content</div>
+<span class="w-[44px] h-[44px]">Icon</span>
+
+<!-- Hardcoded spacing -->
+<div class="mt-[24px] mb-[16px]">Content</div>
+```
+
+✅ **CORRECT - Uses tokens:**
+
+```html
+<!-- Token-based sizes -->
+<button class="min-h-button">Click</button>
+<div class="p-button-icon">Content</div>
+<span class="icon-xl">Icon</span>
+
+<!-- Token-based spacing -->
+<div class="mt-content-padding mb-marketing-text">Content</div>
+```
+
+### **Acceptable Exceptions**
+
+Some patterns are **intentionally allowed** and do not violate design system principles:
+
+✅ **1. Functional CSS Properties** (behavior, not design):
+
+```svelte
+<!-- ✅ ACCEPTABLE - Semantic CSS properties -->
+<div style="word-break: break-word; overflow-wrap: anywhere;">
+  {longUserGeneratedText}
+</div>
+
+<!-- Other acceptable functional properties: -->
+<!-- display, position, z-index, cursor, pointer-events, user-select -->
+```
+
+**Rationale**: These control **behavior** (text wrapping, layout), not **visual design** (colors, spacing). Design tokens are for visual design values only.
+
+✅ **2. Dynamic Values from API/Database** (runtime user-provided):
+
+```svelte
+<!-- ✅ ACCEPTABLE - Dynamic color from user/API -->
+<Avatar color={user.avatarColor} />
+<div style="background-color: {project.color}">
+  {project.name}
+</div>
+
+<!-- Found in: Avatar.svelte, ProjectSelector.svelte, AssigneeSelector.svelte -->
+```
+
+**Rationale**: Runtime/user-provided values **cannot reference design tokens** - they are dynamic and user-controlled. This is standard in all design systems (Material UI, Chakra UI, etc.).
+
+✅ **3. Animation/Transform Properties** (state-driven calculations):
+
+```svelte
+<!-- ✅ ACCEPTABLE - Calculated transform -->
+<div style="transform: translateX({offset}px)">
+  Animated element
+</div>
+
+<!-- Other acceptable animation properties: -->
+<!-- animation-delay, transition-delay, transform (when calculated) -->
+```
+
+**Rationale**: State-driven or calculated values that change based on props/state cannot use static tokens.
+
+---
+
 ## Typography
 
 - **Nav Item Text**: `text-sm` (0.875rem / 14px)
@@ -179,27 +337,398 @@ Our spacing scale is based on a 4px base unit (0.25rem):
 - ✅ Easier to maintain (change once in `app.css`)
 - ✅ Better for code review (spacing visible in markup)
 
-### Button Spacing Tokens
+### Button Component Tokens
 
-| Token                    | Utility Class    | Value           | Usage                     |
-| ------------------------ | ---------------- | --------------- | ------------------------- |
-| `--spacing-button-x`     | `px-button-x`    | 1rem (16px)     | Button horizontal padding |
-| `--spacing-button-y`     | `py-button-y`    | 0.625rem (10px) | Button vertical padding   |
-| `--border-radius-button` | `rounded-button` | 0.375rem (6px)  | Button border radius      |
+| Token                    | Utility Class    | Value          | Usage                            |
+| ------------------------ | ---------------- | -------------- | -------------------------------- |
+| `--spacing-button-x`     | `px-button-x`    | 1.5rem (24px)  | Button horizontal padding        |
+| `--spacing-button-y`     | `py-button-y`    | 0.75rem (12px) | Button vertical padding          |
+| `--spacing-button-icon`  | `p-button-icon`  | 0.75rem (12px) | Icon-only button padding (square)|
+| `--size-button-height`   | `min-h-button`   | 2.75rem (44px) | Minimum button height (all types)|
+| `--border-radius-button` | `rounded-button` | 0.5rem (8px)   | Button border radius             |
+| `--font-size-button`     | `text-button`    | 0.875rem (14px)| Button font size                 |
+| `--font-weight-button`   | `text-button`    | 600            | Button font weight               |
+
+**Why `--size-button-height`:** Ensures icon-only buttons match text button height (consistent alignment in flex containers).
 
 **Example Usage:**
 
 ```html
-<!-- Primary button with design tokens -->
-<button class="rounded-button bg-accent-primary px-button-x py-button-y text-white">
-	Click me
+<!-- Text button with design tokens -->
+<button class="rounded-button bg-accent-primary px-button-x py-button-y text-button text-white min-h-button">
+  Click me
+</button>
+
+<!-- Icon-only button (square padding, same height) -->
+<button class="rounded-button bg-elevated p-button-icon min-h-button">
+  <svg class="icon-md">...</svg>
 </button>
 
 <!-- Using the Button component (recommended) -->
-<button variant="primary" href="/login">Login</button>
+<Button variant="primary" href="/login">Login</Button>
+<Button variant="secondary" iconOnly ariaLabel="Download">
+  <svg class="icon-md">...</svg>
+</Button>
 ```
 
-**See**: Button component (`src/lib/components/ui/Button.svelte`) for standardized button implementation.
+**See**: Button component (`src/lib/components/atoms/Button.svelte`) for standardized button implementation.
+
+---
+
+## Component Tokens (SYOS-353 - Nov 2025)
+
+### ✨ NEW TOKENS FOR ATOMIC COMPONENTS
+
+These tokens were added as part of the Design System Foundation (SYOS-353, SYOS-355, SYOS-356) to align with `design-system-test.json` specifications.
+
+### Card Component Tokens
+
+| Token                       | Utility Class       | Value                         | Usage                         |
+| --------------------------- | ------------------- | ----------------------------- | ----------------------------- |
+| `--border-radius-card`      | `rounded-card`      | 0.875rem (14px)               | Card border radius            |
+| `--shadow-card`             | `shadow-card`       | Multiple layers (2px, 8px)    | Card shadow (default)         |
+| `--shadow-card-hover`       | `shadow-card-hover` | Multiple layers (4px, 16px)   | Card shadow (hover state)     |
+| `--spacing-card-padding-x`  | `px-card`           | 1.25rem (20px)                | Card horizontal padding       |
+| `--spacing-card-padding-y`  | `py-card`           | 1.25rem (20px)                | Card vertical padding         |
+
+**Example Usage:**
+
+```html
+<div class="rounded-card shadow-card hover:shadow-card-hover px-card py-card bg-elevated">
+  Card content here
+</div>
+```
+
+### Badge Component Tokens
+
+| Token                  | Utility Class  | Value           | Usage              |
+| ---------------------- | -------------- | --------------- | ------------------ |
+| `--border-radius-badge`| `rounded-badge`| 0.25rem (4px)   | Badge border radius|
+| `--font-size-badge`    | `text-badge`   | 0.75rem (12px)  | Badge font size    |
+| `--font-weight-badge`  | `text-badge`   | 500             | Badge font weight  |
+
+**Example Usage:**
+
+```html
+<span class="rounded-badge text-badge bg-tag text-tag px-badge py-badge">
+  New
+</span>
+```
+
+### Chip Component Tokens
+
+**⚠️ Important: Chip vs Badge Distinction**
+
+| Component | Purpose | Interaction | Padding |
+|-----------|---------|-------------|---------|
+| **Badge** | Static status indicator | Non-interactive | 6px horizontal (compact) |
+| **Chip** | Removable filter pill | Interactive (close button) | 12px horizontal (larger touch target) |
+
+**When to use:**
+- **Badge**: Status labels, system indicators, non-removable tags
+- **Chip**: Filter pills, removable tags, interactive labels with delete functionality
+
+**Context 7 validation**: Material UI, Chakra UI, and Shadcn UI all distinguish between Badge (static) and Chip/Tag (interactive removable).
+
+| Token                  | Utility Class  | Value           | Usage              |
+| ---------------------- | -------------- | --------------- | ------------------ |
+| `--spacing-chip-x`     | `px-chip`      | 0.75rem (12px)  | Chip horizontal padding (2x Badge) |
+| `--spacing-chip-y`     | `py-chip`       | 0.25rem (4px)   | Chip vertical padding |
+| `--border-radius-chip` | `rounded-chip` | 9999px (full)    | Chip border radius (pill shape) |
+| `--font-size-chip`     | `text-chip`     | 0.875rem (14px) | Chip font size (text-sm) |
+| `--font-weight-chip`   | `text-chip`     | 500             | Chip font weight |
+
+**Example Usage:**
+
+```svelte
+<!-- Removable filter pill -->
+<Chip
+	label="Active"
+	variant="default"
+	onDelete={() => removeFilter('active')}
+/>
+
+<!-- Read-only chip (no onDelete) -->
+<Chip label="Read-only" variant="primary" />
+```
+
+**Key Differences from Badge:**
+- **Larger padding**: Chip uses 12px horizontal (vs Badge 6px) for better touch targets
+- **Pill shape**: Chip uses `rounded-chip` (full radius) vs Badge `rounded-badge` (4px)
+- **Interactive**: Chip supports `onDelete` prop for removable functionality
+- **Accessibility**: Remove button uses `p-button-icon` (44x44px minimum) for WCAG compliance
+
+### Dialog Component Tokens
+
+| Token                      | Utility Class      | Value          | Usage                        |
+| -------------------------- | ------------------ | -------------- | ---------------------------- |
+| `--max-width-dialog-default`| `max-w-dialog`    | 32rem (512px)  | Default dialog width         |
+| `--max-width-dialog-wide`  | `max-w-dialog-wide`| 56rem (896px)  | Wide dialog width            |
+| `--border-radius-dialog`   | `rounded-dialog`   | 0.875rem (14px)| Dialog border radius (=card) |
+
+**Example Usage:**
+
+```html
+<Dialog.Content class="max-w-dialog rounded-dialog bg-elevated shadow-xl">
+	Dialog content
+</Dialog.Content>
+```
+
+### Dialog Close Button Utility
+
+**Utility Class**: `dialog-close-button`
+
+**Purpose**: Standardized styling for icon close buttons in dialog headers (top-right corner). Use this for primary dismiss actions that are always visible.
+
+**Usage:**
+
+```svelte
+<Dialog.Close
+	type="button"
+	onclick={onClose}
+	class="dialog-close-button"
+>
+	<svg class="icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+		<path
+			stroke-linecap="round"
+			stroke-linejoin="round"
+			stroke-width="2"
+			d="M6 18L18 6M6 6l12 12"
+		/>
+	</svg>
+</Dialog.Close>
+```
+
+**Tokens Used**:
+- `--spacing-button-icon`: Padding (0.75rem / 12px)
+- `--size-button-height`: Min height/width (2.75rem / 44px) - accessibility minimum
+- `--border-radius-button`: Border radius (0.5rem / 8px)
+- `--transition-colors`: Smooth color transitions
+- `--color-text-secondary`: Default text color
+- `--color-text-primary`: Hover text color
+- `--color-bg-hover-solid`: Hover background color
+
+**Patterns**:
+
+**Pattern A: Icon Close Button (Header)** - Use `dialog-close-button` utility
+- Location: Top-right corner of dialog header
+- Purpose: Primary/only dismiss action, always visible
+- Visual: X icon, minimal visual weight
+
+**Pattern B: Text Close Button (Footer)** - Use regular button styling
+- Location: Dialog footer with other action buttons
+- Purpose: Secondary dismiss action alongside primary button ("Cancel" | "Save")
+- Visual: Text label ("Cancel", "Close"), styled like regular button
+- Example: RBAC dialogs use `rounded-md border border-base px-3 py-1.5 text-sm`
+
+### Accordion Component Tokens
+
+| Token                         | Utility Class      | Value          | Usage                       |
+| ----------------------------- | ------------------ | -------------- | --------------------------- |
+| `--spacing-accordion-padding-x`| `px-accordion`    | 1rem (16px)    | Accordion horizontal padding|
+| `--spacing-accordion-padding-y`| `py-accordion`    | 0.75rem (12px) | Accordion vertical padding  |
+| `--spacing-accordion-gap`     | `gap-accordion`    | 0.5rem (8px)   | Gap between accordion items |
+
+### Avatar Component Tokens
+
+| Token              | Utility Class    | Value          | Usage                |
+| ------------------ | ---------------- | -------------- | -------------------- |
+| `--size-avatar-sm` | `size-avatar-sm` | 2rem (32px)    | Small avatar (32px)  |
+| `--size-avatar-md` | `size-avatar-md` | 2.5rem (40px)  | Medium avatar (40px) |
+| `--size-avatar-lg` | `size-avatar-lg` | 3rem (48px)    | Large avatar (48px)  |
+
+**Example Usage:**
+
+```html
+<img src="/avatar.jpg" class="size-avatar-md rounded-full" alt="User" />
+```
+
+### Tabs Component Tokens
+
+| Token                       | Utility Class           | Value          | Usage                       |
+| --------------------------- | ----------------------- | -------------- | --------------------------- |
+| `--size-tab-height`         | `size-tab`              | 2.5rem (40px)  | Tab container height        |
+| `--spacing-tab-padding-x`   | `px-tab`                | 0.75rem (12px) | Tab item horizontal padding |
+| `--spacing-tab-padding-y`   | `py-tab`                | 0.375rem (6px) | Tab item vertical padding   |
+| `--border-radius-tab-container`| `rounded-tab-container`| 0.5rem (8px)  | Tab container border radius |
+| `--border-radius-tab-item`  | `rounded-tab-item`      | 0.125rem (2px) | Tab item border radius      |
+
+---
+
+## Typography Scale Tokens (SYOS-353)
+
+**✨ SEMANTIC TYPOGRAPHY TOKENS**
+
+Use these instead of arbitrary `text-[XXpx]` values.
+
+| Token             | Utility Class | Value           | Usage                          |
+| ----------------- | ------------- | --------------- | ------------------------------ |
+| `--font-size-h1`  | `text-h1`     | 2.25rem (36px)  | H1 headings + font-weight-h1   |
+| `--font-size-h2`  | `text-h2`     | 1.75rem (28px)  | H2 headings + font-weight-h2   |
+| `--font-size-h3`  | `text-h3`     | 1.25rem (20px)  | H3 headings + font-weight-h3   |
+| `--font-size-body`| `text-body`   | 1rem (16px)     | Body text                      |
+| `--font-size-small`|`text-small`  | 0.875rem (14px) | Small text                     |
+| `--font-weight-h1`| `text-h1`     | 700             | H1 font weight (bold)          |
+| `--font-weight-h2`| `text-h2`     | 600             | H2 font weight (semibold)      |
+| `--font-weight-h3`| `text-h3`     | 600             | H3 font weight (semibold)      |
+
+**Example Usage:**
+
+```html
+<h1 class="text-h1 text-primary">Page Title</h1>
+<h2 class="text-h2 text-primary">Section Title</h2>
+<p class="text-body text-secondary">Body text content here</p>
+<span class="text-small text-tertiary">Small helper text</span>
+```
+
+**Benefits:**
+- ✅ Change font sizes globally by updating one token
+- ✅ Consistent typography scale across entire app
+- ✅ Self-documenting (semantic names explain hierarchy)
+
+---
+
+## Icon Size Tokens (SYOS-353)
+
+**✨ SEMANTIC ICON SIZES**
+
+Use these instead of `w-X h-X` hardcoded values.
+
+| Token            | Utility Class | Value          | Usage                    |
+| ---------------- | ------------- | -------------- | ------------------------ |
+| `--size-icon-sm` | `icon-sm`     | 1rem (16px)    | Small icons              |
+| `--size-icon-md` | `icon-md`     | 1.25rem (20px) | Medium icons (standard)  |
+| `--size-icon-lg` | `icon-lg`     | 1.5rem (24px)  | Large icons              |
+| `--size-icon-xl` | `icon-xl`     | 2rem (32px)    | Extra large icons        |
+
+**Example Usage:**
+
+```html
+<!-- Icon in button -->
+<button class="flex items-center gap-icon">
+	<svg class="icon-md">...</svg>
+	<span>Click me</span>
+</button>
+
+<!-- Icon-only button -->
+<button class="p-button-icon">
+	<svg class="icon-md">...</svg>
+</button>
+
+<!-- Large header icon -->
+<div class="flex items-center gap-icon-wide">
+	<svg class="icon-xl text-accent-primary">...</svg>
+	<h1 class="text-h1">Title</h1>
+</div>
+```
+
+**Benefits:**
+- ✅ Change icon sizes globally
+- ✅ Consistent icon sizing across entire app
+- ✅ No more `w-4 h-4`, `w-5 h-5` guessing
+
+---
+
+## Transition Tokens (SYOS-353)
+
+**✨ SEMANTIC TRANSITION DURATIONS**
+
+Use these instead of `transition-all duration-XXX` hardcoded values.
+
+| Token                      | Utility Class           | Value                     | Usage                          |
+| -------------------------- | ----------------------- | ------------------------- | ------------------------------ |
+| `--transition-default`     | `transition-default`    | all 0.2s ease             | Default transition (all props) |
+| `--transition-slow`        | `transition-slow`       | all 0.3s ease-in-out      | Slow transition (animations)   |
+| `--transition-fast`        | `transition-fast`       | all 0.15s ease            | Fast transition (micro-interactions)|
+| `--transition-colors-token`| `transition-colors-token`| background, border, color, etc. | Color transitions only (optimized)|
+
+**Example Usage:**
+
+```html
+<!-- Button with color transition -->
+<button class="bg-accent-primary hover:bg-accent-hover transition-colors-token">
+	Hover me
+</button>
+
+<!-- Card with default transition (shadow, transform) -->
+<div class="shadow-card hover:shadow-card-hover transition-default">
+	Card content
+</div>
+
+<!-- Slow transition for animations -->
+<div class="transform scale-100 hover:scale-105 transition-slow">
+	Animated content
+</div>
+```
+
+**Benefits:**
+- ✅ Consistent transition timings across app
+- ✅ Optimized performance (`transition-colors-token` only animates colors)
+- ✅ Change timings globally by updating one token
+
+---
+
+## Token Migration Guide (Nov 2025)
+
+### Button Token Consolidation
+
+**What Changed:**
+- Button tokens updated to match `design-system-test.json` specification (8px radius, 12px×24px padding)
+- Conflicting `button-primary-*` tokens removed
+- Single naming convention: `button-*` (not `button-primary-*`)
+
+**Old naming → New consolidated naming:**
+
+| Old Token Name                  | New Token Name           | Old Value      | New Value      |
+| ------------------------------- | ------------------------ | -------------- | -------------- |
+| `--spacing-button-primary-x`    | `--spacing-button-x`     | 1.5rem (24px)  | 1.5rem (24px)  |
+| `--spacing-button-primary-y`    | `--spacing-button-y`     | 0.75rem (12px) | 0.75rem (12px) |
+| `--border-radius-button-primary`| `--border-radius-button` | 0.5rem (8px)   | 0.5rem (8px)   |
+
+**Value Updates (for existing `button-*` tokens):**
+
+| Token                    | Old Value       | New Value      | Reason                            |
+| ------------------------ | --------------- | -------------- | --------------------------------- |
+| `--spacing-button-x`     | 1rem (16px)     | 1.5rem (24px)  | Match design system specification |
+| `--spacing-button-y`     | 0.625rem (10px) | 0.75rem (12px) | Match design system specification |
+| `--border-radius-button` | 0.375rem (6px)  | 0.5rem (8px)   | Match design system specification |
+
+**Backward compatibility:**
+- ✅ Old token **names** (`button-primary-*`) → Use `button-*` instead
+- ✅ Old token **values** available as `-legacy` tokens until **Dec 2025**:
+  - `--spacing-button-x-legacy: 1rem` (16px)
+  - `--spacing-button-y-legacy: 0.625rem` (10px)
+  - `--border-radius-button-legacy: 0.375rem` (6px)
+
+**Migration Steps:**
+
+1. **Update token names in components:**
+   ```diff
+   - class="px-button-primary py-button-primary rounded-button-primary"
+   + class="px-button-x py-button-y rounded-button"
+   ```
+
+2. **Update CSS variable references:**
+   ```diff
+   - padding: var(--spacing-button-primary-x) var(--spacing-button-primary-y);
+   + padding: var(--spacing-button-x) var(--spacing-button-y);
+   ```
+
+3. **If you need old values temporarily:**
+   ```css
+   /* Use legacy tokens until you update component */
+   padding: var(--spacing-button-x-legacy) var(--spacing-button-y-legacy);
+   ```
+
+4. **Component updates:**
+   - Subtask 3-6 (SYOS-356-359) will update components to use new consolidated tokens
+   - No immediate action required - changes will cascade automatically
+
+**Timeline:**
+- **Now (Nov 2025)**: Token consolidation complete, backward compatibility available
+- **Dec 2025**: Remove `-legacy` tokens (1 sprint)
+
+**Questions?** See parent ticket SYOS-354 or contact @randy
 
 ### Migration Guide
 

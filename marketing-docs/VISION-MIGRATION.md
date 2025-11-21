@@ -34,7 +34,7 @@
 - **Privacy-first**: offline, self-hosted, or cloud
 - **Open source**: community-driven, customizable
 
-**Target User**: Product teams, software companies, non-profit tech teams (Saprolab, ZDHC)
+**Target User**: Product teams, software companies, non-profit tech teams (Agency Partner, Client)
 
 **Tech Stack**: Same foundation, expanded scope
 
@@ -53,14 +53,14 @@ The original app proved:
 
 ### The Opportunity
 
-- **Saprolab** (IT supplier building products for non-profits) needs this internally
-- **ZDHC** (Saprolab's client) struggles with alignment, knowledge sharing, and product roadmaps
+- **Agency Partner** (IT supplier building products for non-profits) needs this internally
+- **Client** (Agency Partner's client) struggles with alignment, knowledge sharing, and product roadmaps
 - **Product teams everywhere** face the same problems: too much created, not enough consumed, no glossary, unclear plans, disconnected tools
 
 ### The Constraint
 
 - **Budget**: $60/month until we validate with partners
-- **First partner**: Saprolab pays X, we reach profitability
+- **First partner**: Agency Partner pays X, we reach profitability
 - **Open source**: Community contributes, making it sustainable
 
 ---
@@ -181,7 +181,7 @@ The original app proved:
 
 ### Externally
 
-**For Saprolab/ZDHC**:
+**For Agency Partner/Client**:
 
 - "An open-source platform to replace Holaspirit with learning, product discovery, and AI coaching built in"
 - "Built for product teams who want to align, collaborate, and build better products—without fragmented tools"
@@ -197,7 +197,7 @@ The original app proved:
 
 - One developer, AI, and a keyboard
 - $60/month budget proves it's possible
-- Saprolab validates the vision → we invest
+- Agency Partner validates the vision → we invest
 - Open source ensures sustainability
 - Community makes it unstoppable
 
@@ -243,10 +243,10 @@ Still relevant, but **applied to teams**:
 
 ### New Signals
 
-- **Adoption**: Saprolab using it daily, ZDHC onboarded
+- **Adoption**: Agency Partner using it daily, Client onboarded
 - **Engagement**: Teams coming back, positive feedback
 - **Community**: Developers contributing (Bjorn helping)
-- **Revenue**: Saprolab paying, costs covered
+- **Revenue**: Agency Partner paying, costs covered
 - **Impact**: Better product decisions, clearer alignment
 
 ---
@@ -262,7 +262,7 @@ Still relevant, but **applied to teams**:
 
 ### Why not just build for ourselves?
 
-- **Validation**: Saprolab/ZDHC validate the market need
+- **Validation**: Agency Partner/Client validate the market need
 - **Scale**: Open source = exponential reach
 - **Impact**: Help more teams build better products
 

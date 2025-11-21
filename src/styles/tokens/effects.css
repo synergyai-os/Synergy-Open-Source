@@ -1,0 +1,59 @@
+/* Effects Tokens
+ * 
+ * All effect tokens (shadows, transitions, z-index).
+ * 
+ * Extracted from src/app.css @theme block (lines 137, 158-160, 239-243, 312-314)
+ */
+
+@theme {
+	/* Shadow Tokens */
+	--shadow-pin-glow: 0 0 0 3px var(--color-accent-primary) / 0.15; /* Glow effect for focused PIN cells */
+	--shadow-card: 0 2px 8px rgb(0 0 0 / 0.08), 0 1px 2px rgb(0 0 0 / 0.04); /* Card shadow */
+	--shadow-card-hover:
+		0 4px 16px rgb(0 0 0 / 0.12), 0 2px 4px rgb(0 0 0 / 0.06); /* Card hover shadow */
+
+	/* Border Radius Tokens */
+	/* Card Component Tokens */
+	--border-radius-card: 0.875rem; /* 14px - rounded-card equivalent - card border radius (12-16px range) */
+
+	/* Badge Component Tokens */
+	--border-radius-badge: 0.25rem; /* 4px - rounded-badge equivalent - badge border radius */
+
+	/* Chip Component Tokens */
+	--border-radius-chip: 9999px; /* full - rounded-chip equivalent - pill shape for chips */
+
+	/* Input Component Tokens */
+	--border-radius-input: 0.125rem; /* 2px - rounded-sm equivalent - input border radius (subtle rounding) */
+
+	/* Dialog Component Tokens */
+	--border-radius-dialog: var(
+		--border-radius-card
+	); /* 14px - dialog border radius (same as cards) */
+
+	/* Button Component Tokens */
+	--border-radius-button: 0.5rem; /* 8px - rounded-button equivalent - button border radius */
+
+	/* Tabs Component Tokens */
+	--border-radius-tab-container: 0.5rem; /* 8px - tab container border radius (rounded-md) */
+	--border-radius-tab-item: 0.125rem; /* 2px - tab item border radius (rounded-sm) */
+
+	/* Transition Tokens */
+	--transition-default: all 0.2s ease;
+	--transition-slow: all 0.3s ease-in-out;
+	--transition-fast: all 0.15s ease;
+	--transition-colors: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+
+	/* Z-Index Tokens - Panel Stack Navigation */
+	--z-index-panel-backdrop-min: 51; /* Minimum z-index for backdrop (above sidebar z-50) */
+	--z-index-panel-base: 60; /* Base z-index for first panel layer (increased to 60) */
+	--z-index-panel-increment: 10; /* Increment per panel layer (60, 70, 80...) */
+}
+
+/* Responsive Dialog - Mobile (<640px) - Fullscreen */
+@media (max-width: 640px) {
+	:root {
+		--max-width-dialog-default: 100vw; /* Fullscreen on mobile */
+		--max-width-dialog-wide: 100vw; /* Fullscreen on mobile */
+		--border-radius-dialog: 0; /* No border radius for fullscreen */
+	}
+}

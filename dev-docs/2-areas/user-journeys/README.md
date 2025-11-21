@@ -141,7 +141,7 @@ How user knows they've succeeded.
 
 User journeys will be built from:
 
-1. **Saprolab needs** - First partner requirements (ZDHC use cases)
+1. **Agency Partner needs** - First partner requirements (Client use cases)
 2. **Competitive analysis** - Holaspirit, Notion, Jira workflows
 3. **Product frameworks** - Teresa Torres (continuous discovery), John Cutler (OKRs)
 4. **User interviews** - Real team pain points

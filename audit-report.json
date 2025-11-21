@@ -1,0 +1,637 @@
+{
+	"date": "2025-11-21",
+	"summary": {
+		"tokenCoverage": "100%",
+		"totalViolations": 77,
+		"filesScanned": 16,
+		"componentsCovered": "16/16",
+		"arbitraryValues": 0,
+		"rawScaleValues": 39,
+		"inlineStyles": 2,
+		"atomicComponentsCovered": 0,
+		"atomicComponentsTotal": 0,
+		"modulePagesCovered": 16,
+		"modulePagesTotal": 16
+	},
+	"violations": [
+		{
+			"file": "src/lib/modules/core/components/Sidebar.svelte",
+			"line": 371,
+			"violation": "style=\"width: 8px; z-index: 50;\"",
+			"type": "inline-style",
+			"suggestion": "Move to Tailwind utility classes using design tokens",
+			"content": "style=\"width: 8px; z-index: 50;\""
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/CircleDetailPanel.svelte",
+			"line": 286,
+			"violation": "ml-1",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<span class=\"ml-1 text-label text-tertiary\">({tabCounts.activities})</span>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/CircleDetailPanel.svelte",
+			"line": 304,
+			"violation": "ml-1",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<span class=\"ml-1 text-label text-tertiary\">({tabCounts.metrics})</span>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/CircleDetailPanel.svelte",
+			"line": 322,
+			"violation": "ml-1",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<span class=\"ml-1 text-label text-tertiary\">({tabCounts.checklists})</span>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/CircleDetailPanel.svelte",
+			"line": 340,
+			"violation": "ml-1",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<span class=\"ml-1 text-label text-tertiary\">({tabCounts.projects})</span>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/CircleDetailPanel.svelte",
+			"line": 497,
+			"violation": "mt-3",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<div class=\"mt-3 space-y-inbox-list-gap\">"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/CircleDetailPanel.svelte",
+			"line": 515,
+			"violation": "mt-3",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-3 text-button text-secondary\">No roles in this circle yet</p>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/CircleDetailPanel.svelte",
+			"line": 529,
+			"violation": "mt-3",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<div class=\"mt-3 space-y-inbox-list-gap\">"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/CircleDetailPanel.svelte",
+			"line": 555,
+			"violation": "mt-3",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-3 text-button text-secondary\">No child circles in this circle yet</p>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/CircleDetailPanel.svelte",
+			"line": 569,
+			"violation": "mt-3",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<div class=\"mt-3 space-y-inbox-list-gap\">"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/CircleDetailPanel.svelte",
+			"line": 581,
+			"violation": "mt-3",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-3 text-button text-secondary\">No members in this circle yet</p>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/CircleDetailPanel.svelte",
+			"line": 624,
+			"violation": "mt-4",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-4 text-button font-medium text-primary\">No documents yet</p>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/CircleDetailPanel.svelte",
+			"line": 646,
+			"violation": "mt-4",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-4 text-button font-medium text-primary\">No activities yet</p>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/CircleDetailPanel.svelte",
+			"line": 668,
+			"violation": "mt-4",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-4 text-button font-medium text-primary\">No metrics yet</p>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/CircleDetailPanel.svelte",
+			"line": 690,
+			"violation": "mt-4",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-4 text-button font-medium text-primary\">No checklists yet</p>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/CircleDetailPanel.svelte",
+			"line": 712,
+			"violation": "mt-4",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-4 text-button font-medium text-primary\">No projects yet</p>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 141,
+			"violation": "mt-4",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-4 text-button text-secondary\">Loading role details...</p>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 143,
+			"violation": "mt-2",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-2 text-label text-tertiary\">Role ID: {orgChart.selectedRoleId}</p>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 152,
+			"violation": "mt-2",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-2 text-button text-secondary\">{String(error)}</p>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 154,
+			"violation": "mt-2",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-2 text-label text-tertiary\">Role ID: {orgChart.selectedRoleId}</p>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 188,
+			"violation": "mt-1",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-1 text-button text-secondary\">"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 227,
+			"violation": "ml-1",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<span class=\"ml-1 text-label text-tertiary\">({tabCounts.members})</span>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 245,
+			"violation": "ml-1",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<span class=\"ml-1 text-label text-tertiary\">({tabCounts.documents})</span>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 263,
+			"violation": "ml-1",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<span class=\"ml-1 text-label text-tertiary\">({tabCounts.activities})</span>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 281,
+			"violation": "ml-1",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<span class=\"ml-1 text-label text-tertiary\">({tabCounts.metrics})</span>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 299,
+			"violation": "ml-1",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<span class=\"ml-1 text-label text-tertiary\">({tabCounts.checklists})</span>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 317,
+			"violation": "ml-1",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<span class=\"ml-1 text-label text-tertiary\">({tabCounts.projects})</span>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 334,
+			"violation": "mt-1",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-1 text-h2 font-semibold text-primary\">{role.fillerCount}</p>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 338,
+			"violation": "mt-1",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-1 text-button font-medium text-primary\">"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 347,
+			"violation": "mb-2",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<h4 class=\"mb-2 text-button font-medium tracking-wide text-tertiary uppercase\">"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 356,
+			"violation": "mb-2",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<h4 class=\"mb-2 text-button font-medium tracking-wide text-tertiary uppercase\">"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 374,
+			"violation": "mb-2",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<h4 class=\"mb-2 text-button font-medium tracking-wide text-tertiary uppercase\">"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 392,
+			"violation": "mb-2",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<h4 class=\"mb-2 text-button font-medium tracking-wide text-tertiary uppercase\">"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 410,
+			"violation": "mb-2",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<h4 class=\"mb-2 text-button font-medium tracking-wide text-tertiary uppercase\">"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 428,
+			"violation": "mb-2",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<h4 class=\"mb-2 text-button font-medium tracking-wide text-tertiary uppercase\">"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 445,
+			"violation": "pt-6",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<div class=\"border-t border-base pt-6\">"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 446,
+			"violation": "mb-3",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<h4 class=\"mb-3 text-button font-medium tracking-wide text-tertiary uppercase\">"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 466,
+			"violation": "mt-3",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<div class=\"mt-3 space-y-inbox-list-gap\">"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 483,
+			"violation": "mt-3",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-3 text-button text-secondary\">No one is filling this role yet</p>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 503,
+			"violation": "mt-4",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-4 text-button font-medium text-primary\">No members yet</p>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 504,
+			"violation": "mt-1",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-1 text-button text-secondary\">"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 525,
+			"violation": "mt-4",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-4 text-button font-medium text-primary\">No documents yet</p>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 526,
+			"violation": "mt-1",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-1 text-button text-secondary\">"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 547,
+			"violation": "mt-4",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-4 text-button font-medium text-primary\">No activities yet</p>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 548,
+			"violation": "mt-1",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-1 text-button text-secondary\">"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 569,
+			"violation": "mt-4",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-4 text-button font-medium text-primary\">No metrics yet</p>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 570,
+			"violation": "mt-1",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-1 text-button text-secondary\">"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 591,
+			"violation": "mt-4",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-4 text-button font-medium text-primary\">No checklists yet</p>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 592,
+			"violation": "mt-1",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-1 text-button text-secondary\">"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 613,
+			"violation": "mt-4",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-4 text-button font-medium text-primary\">No projects yet</p>"
+		},
+		{
+			"file": "src/lib/modules/org-chart/components/RoleDetailPanel.svelte",
+			"line": 614,
+			"violation": "mt-1",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-1 text-button text-secondary\">"
+		},
+		{
+			"file": "src/routes/(authenticated)/+layout.svelte",
+			"line": 760,
+			"violation": "mb-4",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mb-4 text-primary\">Please log in to continue</p>"
+		},
+		{
+			"file": "src/routes/dev-docs/+page.svelte",
+			"line": 416,
+			"violation": "style=\"background: {group.color || '",
+			"type": "inline-style",
+			"suggestion": "Move to Tailwind utility classes using design tokens",
+			"content": "style=\"background: {group.color || 'rgba(59, 130, 246, 0.1)'}\""
+		},
+		{
+			"file": "src/routes/forgot-password/+page.svelte",
+			"line": 76,
+			"violation": "text-2xl",
+			"type": "raw-font-size",
+			"suggestion": "Use text-h1 or text-h2",
+			"content": "<h1 class=\"text-2xl font-semibold tracking-tight text-primary\">Reset your password</h1>"
+		},
+		{
+			"file": "src/routes/forgot-password/+page.svelte",
+			"line": 77,
+			"violation": "text-sm",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"text-sm text-secondary\">"
+		},
+		{
+			"file": "src/routes/forgot-password/+page.svelte",
+			"line": 90,
+			"violation": "text-sm",
+			"type": "raw-font-size",
+			"suggestion": "Use text-small",
+			"content": "<p class=\"text-sm font-medium text-primary\">{successMessage}</p>"
+		},
+		{
+			"file": "src/routes/forgot-password/+page.svelte",
+			"line": 93,
+			"violation": "text-sm",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"text-sm text-secondary\">"
+		},
+		{
+			"file": "src/routes/forgot-password/+page.svelte",
+			"line": 101,
+			"violation": "text-sm",
+			"type": "raw-font-size",
+			"suggestion": "Use text-small",
+			"content": "<p class=\"text-sm font-medium text-error-secondary\">{errorMessage}</p>"
+		},
+		{
+			"file": "src/routes/forgot-password/+page.svelte",
+			"line": 127,
+			"violation": "text-sm",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"text-sm text-secondary\">"
+		},
+		{
+			"file": "src/routes/login/+page.svelte",
+			"line": 158,
+			"violation": "text-2xl",
+			"type": "raw-font-size",
+			"suggestion": "Use text-h1 or text-h2",
+			"content": "<h1 class=\"text-2xl font-semibold tracking-tight text-primary\">Welcome back</h1>"
+		},
+		{
+			"file": "src/routes/login/+page.svelte",
+			"line": 159,
+			"violation": "text-sm",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"text-sm text-secondary\">"
+		},
+		{
+			"file": "src/routes/login/+page.svelte",
+			"line": 178,
+			"violation": "text-sm",
+			"type": "raw-font-size",
+			"suggestion": "Use text-small",
+			"content": "<p class=\"text-sm font-medium text-error-secondary\">{errorMessage}</p>"
+		},
+		{
+			"file": "src/routes/login/+page.svelte",
+			"line": 180,
+			"violation": "mt-2",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-2 text-sm text-error\">"
+		},
+		{
+			"file": "src/routes/login/+page.svelte",
+			"line": 180,
+			"violation": "text-sm",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-2 text-sm text-error\">"
+		},
+		{
+			"file": "src/routes/login/+page.svelte",
+			"line": 194,
+			"violation": "text-sm",
+			"type": "raw-font-size",
+			"suggestion": "Use text-small",
+			"content": "class=\"bg-hover-subtle mt-content-section flex items-center gap-icon rounded-input border border-base px-input-x py-input-y text-sm text-secondary\""
+		},
+		{
+			"file": "src/routes/login/+page.svelte",
+			"line": 241,
+			"violation": "text-sm",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "class=\"text-sm text-accent-primary hover:text-accent-hover\""
+		},
+		{
+			"file": "src/routes/register/+page.svelte",
+			"line": 161,
+			"violation": "text-2xl",
+			"type": "raw-font-size",
+			"suggestion": "Use text-h1 or text-h2",
+			"content": "<h1 class=\"text-2xl font-semibold tracking-tight text-primary\">Create your account</h1>"
+		},
+		{
+			"file": "src/routes/register/+page.svelte",
+			"line": 162,
+			"violation": "text-sm",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"text-sm text-secondary\">"
+		},
+		{
+			"file": "src/routes/register/+page.svelte",
+			"line": 178,
+			"violation": "text-sm",
+			"type": "raw-font-size",
+			"suggestion": "Use text-small",
+			"content": "<p class=\"text-sm font-medium text-error-secondary\">{errorMessage}</p>"
+		},
+		{
+			"file": "src/routes/register/+page.svelte",
+			"line": 224,
+			"violation": "mt-1",
+			"type": "raw-spacing",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-1 text-xs text-tertiary\">"
+		},
+		{
+			"file": "src/routes/register/+page.svelte",
+			"line": 224,
+			"violation": "text-xs",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"mt-1 text-xs text-tertiary\">"
+		},
+		{
+			"file": "src/routes/reset-password/+page.svelte",
+			"line": 100,
+			"violation": "text-2xl",
+			"type": "raw-font-size",
+			"suggestion": "Use text-h1 or text-h2",
+			"content": "<h1 class=\"text-2xl font-semibold tracking-tight text-primary\">Set new password</h1>"
+		},
+		{
+			"file": "src/routes/reset-password/+page.svelte",
+			"line": 101,
+			"violation": "text-sm",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"text-sm text-secondary\">Enter your new password below.</p>"
+		},
+		{
+			"file": "src/routes/reset-password/+page.svelte",
+			"line": 112,
+			"violation": "text-sm",
+			"type": "raw-font-size",
+			"suggestion": "Use text-small",
+			"content": "<p class=\"text-sm font-medium text-primary\">{successMessage}</p>"
+		},
+		{
+			"file": "src/routes/reset-password/+page.svelte",
+			"line": 115,
+			"violation": "text-sm",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"text-sm text-secondary\">Redirecting to login...</p>"
+		},
+		{
+			"file": "src/routes/reset-password/+page.svelte",
+			"line": 121,
+			"violation": "text-sm",
+			"type": "raw-font-size",
+			"suggestion": "Use text-small",
+			"content": "<p class=\"text-sm font-medium text-error-secondary\">{errorMessage}</p>"
+		},
+		{
+			"file": "src/routes/reset-password/+page.svelte",
+			"line": 158,
+			"violation": "text-sm",
+			"type": "unknown",
+			"suggestion": "Replace with design token utility class",
+			"content": "<p class=\"text-sm text-secondary\">"
+		}
+	],
+	"violationsByModule": {
+		"other": 77
+	}
+}

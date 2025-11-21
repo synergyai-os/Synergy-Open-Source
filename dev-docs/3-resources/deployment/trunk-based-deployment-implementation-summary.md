@@ -62,7 +62,7 @@ const enabled = useQuery(api.featureFlags.checkFlag, () => ({
 
 **Created**:
 
-- `src/lib/components/ErrorBoundary.svelte` - Svelte 5 error boundary
+- `src/lib/components/ui/ErrorBoundary.svelte` - Svelte 5 error boundary
 - `src/lib/utils/errorReporting.ts` - Error reporting utilities
 - `dev-docs/3-resources/error-handling-monitoring.md` - Monitoring guide
 

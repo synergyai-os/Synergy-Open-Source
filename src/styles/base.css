@@ -1,0 +1,53 @@
+/* Base Styles
+ * 
+ * HTML base styles and accessibility utilities.
+ * Includes .sr-only utility and mobile optimizations.
+ * 
+ * Extracted from src/app.css (lines 3-14, 1292-1323)
+ */
+
+/* Screen reader only utility - for accessibility */
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border-width: 0;
+}
+
+/* Mobile optimizations */
+html {
+	-webkit-text-size-adjust: 100%;
+	-webkit-tap-highlight-color: transparent;
+	background: var(--color-bg-base);
+	color: var(--color-text-primary);
+}
+
+body {
+	margin: 0;
+	padding: 0;
+	/* Safe area insets for iOS notch and home indicator */
+	padding-top: env(safe-area-inset-top);
+	padding-bottom: env(safe-area-inset-bottom);
+	background: var(--color-bg-base);
+	color: var(--color-text-primary);
+	padding-left: env(safe-area-inset-left);
+	padding-right: env(safe-area-inset-right);
+}
+
+/* Prevent zoom on input focus (iOS) */
+input,
+textarea,
+select {
+	font-size: 16px;
+}
+
+/* Better touch targets for mobile */
+button,
+a {
+	touch-action: manipulation;
+}

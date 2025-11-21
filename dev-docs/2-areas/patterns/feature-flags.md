@@ -265,7 +265,7 @@ export const processInboxItem = mutation({
 
 ```svelte
 <script lang="ts">
-	import ErrorBoundary from '$lib/components/ErrorBoundary.svelte';
+	import ErrorBoundary from '$lib/components/ui/ErrorBoundary.svelte';
 	import { FeatureFlags } from '$lib/featureFlags';
 
 	const showNewFeature = useQuery(api.featureFlags.checkFlag, () => ({

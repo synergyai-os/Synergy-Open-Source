@@ -18,7 +18,7 @@
 
 - **Primary**: Product managers, product team leads
 - **Secondary**: Designers, engineers who care about product
-- **Tertiary**: IT buyers (Saprolab), leadership (ZDHC)
+- **Tertiary**: IT buyers (Agency Partner), leadership (Client)
 
 ### Content Principles
 
@@ -61,7 +61,7 @@
 - We create more than we consume (knowledge overload)
 - Project plans are inaccessible (alignment problem)
 - Nobody sticks to the glossary (adoption problem)
-- Running product teams at scale (ZDHC experience)
+- Running product teams at scale (Client experience)
 
 **C. Open Source Journey** (20%)
 
@@ -100,7 +100,7 @@
 
 - Educate users on product management best practices
 - Announce features and updates
-- Share case studies (Saprolab, ZDHC)
+- Share case studies (Agency Partner, Client)
 - SEO (rank for "product discovery tools", "outcome-driven roadmap")
 
 #### Frequency
@@ -123,8 +123,8 @@
 
 **C. Case Studies** (20%)
 
-- "How Saprolab Replaced Holaspirit and Saved 70%"
-- "ZDHC's Product Team: From Chaos to Clarity"
+- "How Agency Partner Replaced Holaspirit and Saved 70%"
+- "Client's Product Team: From Chaos to Clarity"
 - "5 Teams Using [Product Name] to Ship Better Outcomes"
 
 **D. Thought Leadership** (20%)
@@ -188,7 +188,7 @@
 **Content Mix**:
 
 - 50%: Long-form posts (product problems, frameworks, lessons)
-- 30%: Case studies (Saprolab, ZDHC, community stories)
+- 30%: Case studies (Agency Partner, Client, community stories)
 - 20%: Product updates (features, milestones)
 
 **Tactics**:
@@ -301,7 +301,7 @@
 ### Week 2
 
 - **Monday**: Tweet (product update: new feature launched)
-- **Tuesday**: LinkedIn post (case study: Saprolab saves 70%)
+- **Tuesday**: LinkedIn post (case study: Agency Partner saves 70%)
 - **Wednesday**: Tweet (behind-the-scenes: $60/month budget)
 - **Thursday**: Blog post (product blog: how to set up OKRs)
 - **Friday**: Tweet thread (summarize blog post)
@@ -321,7 +321,7 @@
 - **Monday**: Tweet (product update: roadmap milestone)
 - **Tuesday**: LinkedIn post (founder story: from learning problems to Product OS)
 - **Wednesday**: Tweet (behind-the-scenes: coding with AI)
-- **Thursday**: Blog post (product blog: case study - ZDHC alignment)
+- **Thursday**: Blog post (product blog: case study - Client alignment)
 - **Friday**: Tweet thread (summarize blog post)
 - **Weekend**: Community call (monthly call with community)
 
@@ -414,7 +414,7 @@
 
 - **Guest blog posts**: Invite power users to write
 - **Video tutorials**: Builders create tutorials for marketplace apps
-- **Case studies**: Interview Saprolab, ZDHC for stories
+- **Case studies**: Interview Agency Partner, Client for stories
 
 ---
 

@@ -73,12 +73,12 @@ When discussing real situations without exposing clients:
 
 ### Technique 1: Generic Descriptors
 
-**Instead of:** "Saprolab is testing our OKR feature"  
+**Instead of:** "Agency Partner is testing our OKR feature"  
 **Use:** "A product agency in Belgium is piloting our OKR tracking system"
 
 ### Technique 2: Categories
 
-**Instead of:** "ZDHC (chemical certification body) needs compliance tracking"  
+**Instead of:** "Client (chemical certification body) needs compliance tracking"  
 **Use:** "Certification bodies require audit trail features"
 
 ### Technique 3: Aggregate Data
@@ -97,17 +97,34 @@ When discussing real situations without exposing clients:
 
 Before publishing ANY public content (docs, blog, social media, GitHub):
 
-### Step 1: Scan for Client Names
+### Step 1: Automated Check (Recommended)
+
+**Run automated confidentiality check:**
+
+```bash
+# Check for violations (blocks commit if found)
+npm run check:confidentiality
+
+# Preview sanitization changes (dry-run)
+npm run sanitize:docs
+
+# Apply sanitization (replaces client names)
+npm run sanitize:docs:apply
+```
+
+**Note**: Pre-commit hook automatically runs `check:confidentiality` before commits. CI workflow also checks on PR/push.
+
+### Step 2: Manual Scan (If Needed)
 
 ```bash
 # Search for potential client mentions
-grep -r "Saprolab\|ZDHC\|[Client Name]" .
+grep -r "Agency Partner\|Client\|[Client Name]" .
 
 # Check all public docs
 grep -r "client\|customer\|company" dev-docs/ marketing-docs/
 ```
 
-### Step 2: Review Sensitive Keywords
+### Step 3: Review Sensitive Keywords
 
 - [ ] No company names (unless approved testimonial)
 - [ ] No pricing details (unless public pricing page)
@@ -115,13 +132,13 @@ grep -r "client\|customer\|company" dev-docs/ marketing-docs/
 - [ ] No specific contract terms
 - [ ] No personal data (names, emails)
 
-### Step 3: Anonymize Examples
+### Step 4: Anonymize Examples
 
 - [ ] Replace specific names with generic descriptors
 - [ ] Use hypothetical scenarios instead of real cases
 - [ ] Aggregate data (no individual client metrics)
 
-### Step 4: Get Approval (if needed)
+### Step 5: Get Approval (if needed)
 
 - [ ] Client testimonials → Written approval + legal review
 - [ ] Case studies → NDA review + client sign-off
@@ -218,6 +235,68 @@ Thanks!
 
 ---
 
+## 🤖 Automated Checks
+
+**Automated safeguards prevent confidential information from reaching GitHub:**
+
+### Pre-Commit Hook
+
+**Runs automatically before every commit:**
+
+- Scans staged files for client names
+- Blocks commit if violations found
+- Shows helpful error message with file locations
+
+**To bypass** (emergency only, document reason):
+
+```bash
+git commit --no-verify
+```
+
+### CI Workflow
+
+**Runs on every PR/push:**
+
+- Scans all documentation files (`dev-docs/`, `marketing-docs/`)
+- Fails build if violations detected
+- Reports violations in PR comments
+
+**Location**: `.github/workflows/confidentiality-check.yml`
+
+### Sanitization Script
+
+**One-time cleanup or manual sanitization:**
+
+```bash
+# Preview changes (dry-run)
+npm run sanitize:docs
+
+# Apply sanitization
+npm run sanitize:docs:apply
+
+# Apply with backup
+npx tsx scripts/sanitize-docs.ts --apply --backup
+```
+
+**Location**: `scripts/sanitize-docs.ts`
+
+**What it does:**
+- Replaces client names with generic placeholders
+- Creates backups (optional)
+- Logs all replacements
+
+**Mapping** (configurable in `scripts/confidentiality-config.ts`):
+- `Agency Partner` → `Agency Partner`
+- `Client` → `Client`
+
+**To add more client names:**
+1. Edit `scripts/confidentiality-config.ts`
+2. Add to `CONFIDENTIAL_NAMES` array
+3. Add to `SANITIZATION_MAP` (confidential → sanitized)
+4. Update `scripts/check-confidentiality.sh` array (keep in sync)
+
+---
+
 ## 🔄 Regular Audits
 
 ### Monthly Review
@@ -251,7 +330,7 @@ Thanks!
 
 ```markdown
 | **Paying Customers** | 1 | 3 |
-| **Current Clients** | Saprolab ($80/month) | - |
+| **Current Clients** | Agency Partner ($80/month) | - |
 ```
 
 **✅ GOOD:**
@@ -268,7 +347,7 @@ Thanks!
 **❌ BAD:**
 
 ```markdown
-Saprolab, a product design agency in Belgium, uses SynergyOS to track OKRs
+Agency Partner, a product design agency in Belgium, uses SynergyOS to track OKRs
 across 3 teams. They previously used Notion but found it too generic.
 ```
 
@@ -278,7 +357,7 @@ across 3 teams. They previously used Notion but found it too generic.
 "SynergyOS helped us move from generic tools to a purpose-built Product OS.
 Our teams now track OKRs, roadmaps, and decisions in one place."
 
-- [Name], [Title], Saprolab (with written approval on file)
+- [Name], [Title], Agency Partner (with written approval on file)
 ```
 
 **✅ ALSO GOOD (anonymized):**
@@ -296,8 +375,8 @@ multiple teams. They migrated from a generic documentation tool and report
 **❌ BAD:**
 
 ```markdown
-GitHub Issue #123: "ZDHC needs compliance audit trails"
-ZDHC requested a feature to track chemical certifications with audit logs
+GitHub Issue #123: "Client needs compliance audit trails"
+Client requested a feature to track chemical certifications with audit logs
 for regulatory compliance.
 ```
 
@@ -357,8 +436,8 @@ critical documents with timestamps and user attribution.
 
 ### Anonymization Cheat Sheet:
 
-- "Saprolab" → "A product design agency"
-- "ZDHC" → "A certification body in Belgium"
+- "Agency Partner" → "A product design agency"
+- "Client" → "A certification body in Belgium"
 - "Client X has 5 users" → "Pilot customers have 5-15 users"
 - "They pay $80/month" → "Initial customers pay $60-100/month"
 

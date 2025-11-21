@@ -1,0 +1,142 @@
+/* Color Utilities
+ * 
+ * All color utility classes (bg-*, text-*, border-*).
+ * 
+ * Extracted from src/app.css @utility blocks (lines 760-945)
+ */
+
+/* Unified Brand Color Utilities - Used throughout the app */
+@utility text-primary {
+	color: var(--color-text-primary);
+}
+@utility text-secondary {
+	color: var(--color-text-secondary);
+}
+@utility text-tertiary {
+	color: var(--color-text-tertiary);
+}
+@utility bg-base {
+	background-color: var(--color-bg-base);
+}
+@utility bg-surface {
+	background-color: var(--color-bg-surface);
+}
+@utility bg-elevated {
+	background-color: var(--color-bg-elevated);
+}
+@utility bg-toggle-off {
+	background-color: var(--color-toggle-off);
+}
+@utility border-base {
+	border-color: var(--color-border-base);
+}
+@utility border-elevated {
+	border-color: var(--color-border-elevated);
+}
+@utility border-accent-primary {
+	border-color: var(--color-accent-primary);
+}
+@utility bg-accent-primary {
+	background-color: var(--color-accent-primary);
+}
+@utility bg-accent-hover {
+	background-color: var(--color-accent-hover);
+}
+@utility bg-hover {
+	background-color: var(--color-bg-hover);
+}
+@utility bg-hover-solid {
+	background-color: var(--color-bg-hover-solid);
+}
+@utility bg-selected {
+	background-color: var(--color-bg-selected);
+}
+@utility border-selected {
+	border-color: var(--color-accent-primary);
+}
+@utility bg-tag {
+	background-color: var(--color-tag-bg);
+}
+@utility text-tag {
+	color: var(--color-tag-text);
+}
+
+/* Error/Destructive Color Utilities */
+@utility bg-error {
+	background-color: var(--color-error-bg);
+}
+@utility border-error {
+	border-color: var(--color-error-border);
+}
+@utility text-error {
+	color: var(--color-error-text);
+}
+@utility text-error-secondary {
+	color: var(--color-error-text-secondary);
+}
+
+/* Semantic Color Utilities - Sidebar Colors */
+@utility bg-sidebar {
+	background-color: var(--color-sidebar-bg);
+}
+@utility text-sidebar-primary {
+	color: var(--color-sidebar-text-primary);
+}
+@utility text-sidebar-secondary {
+	color: var(--color-sidebar-text-secondary);
+}
+@utility text-sidebar-tertiary {
+	color: var(--color-sidebar-text-tertiary);
+}
+@utility border-sidebar {
+	border-color: var(--color-sidebar-border);
+}
+@utility bg-sidebar-hover {
+	background-color: var(--color-sidebar-hover);
+}
+@utility bg-sidebar-hover-solid {
+	background-color: var(--color-sidebar-hover-solid);
+}
+@utility bg-sidebar-active {
+	background-color: var(--color-sidebar-active);
+}
+@utility bg-sidebar-badge {
+	background-color: var(--color-sidebar-badge-bg);
+}
+@utility text-sidebar-badge {
+	color: var(--color-sidebar-badge-text);
+}
+
+/* Form & Input Color Utilities */
+@utility bg-input {
+	background-color: var(--color-bg-elevated);
+}
+@utility text-label-primary {
+	color: var(--color-text-primary);
+}
+
+/* Flashcard Rating Color Utilities - FSRS spaced repetition buttons */
+@utility bg-rating-again {
+	background-color: var(--color-rating-again);
+}
+@utility bg-rating-again-hover {
+	background-color: var(--color-rating-again-hover);
+}
+@utility bg-rating-hard {
+	background-color: var(--color-rating-hard);
+}
+@utility bg-rating-hard-hover {
+	background-color: var(--color-rating-hard-hover);
+}
+@utility bg-rating-good {
+	background-color: var(--color-rating-good);
+}
+@utility bg-rating-good-hover {
+	background-color: var(--color-rating-good-hover);
+}
+@utility bg-rating-easy {
+	background-color: var(--color-rating-easy);
+}
+@utility bg-rating-easy-hover {
+	background-color: var(--color-rating-easy-hover);
+}

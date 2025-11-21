@@ -10,7 +10,7 @@
 
 - [ ] Product name finalized (or use "Axon" for now)
 - [ ] Elevator pitch ready (30 seconds)
-- [ ] Target audience clear (Saprolab, ZDHC, product teams)
+- [ ] Target audience clear (Agency Partner, Client, product teams)
 - [ ] Value proposition clear (see [Value Proposition](../strategy/value-proposition.md))
 
 ### ✅ Foundation Ready
@@ -125,7 +125,7 @@
 
    **Current Focus**:
    - Multi-tenancy foundation
-   - Partner validation (Saprolab)
+   - Partner validation (Agency Partner)
    - Community launch
 
    ## 🙏 Acknowledgments
@@ -389,7 +389,7 @@
    - Built on a $60/month budget with AI
 
 4. **What's Next** (2-3 paragraphs)
-   - Validating with first partner (Saprolab)
+   - Validating with first partner (Agency Partner)
    - Building multi-tenancy
    - Launching community
    - Inviting contributors

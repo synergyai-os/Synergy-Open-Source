@@ -38,30 +38,30 @@
 <button
 	type="button"
 	onclick={onClick}
-	class="w-full cursor-pointer overflow-hidden rounded-md border border-base bg-elevated text-left transition-all duration-150 hover:border-elevated hover:shadow-md"
+	class="w-full cursor-pointer overflow-hidden rounded-card border border-base bg-elevated text-left transition-all duration-150 hover:border-elevated hover:shadow-md"
 >
 	<!-- Optional Image Placeholder (for future) -->
 	<!-- Could add imageUrl here if available -->
 
-	<div class="p-6">
+	<div class="px-card py-card">
 		<!-- Title -->
-		<h3 class="mb-2 line-clamp-2 text-lg leading-tight font-semibold text-primary">
+		<h3 class="mb-form-field-gap line-clamp-2 text-h3 leading-tight font-semibold text-primary">
 			{item.title}
 		</h3>
 
 		<!-- Snippet/Excerpt -->
-		<p class="mb-3 line-clamp-3 text-sm leading-relaxed text-secondary">
+		<p class="mb-content-section line-clamp-3 text-small leading-relaxed text-secondary">
 			{item.snippet}
 		</p>
 
 		<!-- Source/Domain -->
 		{#if domain}
-			<p class="mb-3 text-xs text-tertiary">{domain}</p>
+			<p class="mb-content-section text-label text-tertiary">{domain}</p>
 		{/if}
 
 		<!-- Tags -->
 		{#if item.tags && item.tags.length > 0}
-			<div class="mb-3 flex flex-wrap gap-1">
+			<div class="mb-content-section flex flex-wrap gap-icon">
 				{#each item.tags.slice(0, 3) as tag (tag)}
 					<span class="rounded bg-tag px-badge py-badge text-label text-tag">
 						{tag}
@@ -71,6 +71,6 @@
 		{/if}
 
 		<!-- Timestamp -->
-		<p class="text-xs text-tertiary">{formatDate(item.createdAt)}</p>
+		<p class="text-label text-tertiary">{formatDate(item.createdAt)}</p>
 	</div>
 </button>

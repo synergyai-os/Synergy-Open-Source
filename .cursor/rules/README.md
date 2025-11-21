@@ -221,6 +221,31 @@ alwaysApply: true
 
 ---
 
+## 🎨 Design System Resources
+
+**Quick Reference** (for daily work):
+
+- `dev-docs/2-areas/design/design-tokens.md` - Complete token reference + governance rules
+
+**Comprehensive Guides** (for deep understanding):
+
+- `./design-system-checklist.json` - Machine-readable current state checklist (repo root)
+- `dev-docs/2-areas/design/audit-guide.md` - Systematic audit guide
+
+**Atomic Design Structure** (SYOS-405 - in progress):
+
+```
+src/lib/components/
+├── primitives/     # Layer 1: Bits UI wrappers (Dialog, Accordion, etc.)
+├── atoms/          # Layer 2: Styled components (Button, Input, Card, Badge)
+├── molecules/      # Layer 3: Composites (FormField, SearchBar)
+└── organisms/      # Layer 4: Complex sections (Header, Sidebar)
+```
+
+**Note**: During migration (SYOS-405), both `$lib/components/ui` and `$lib/components/atoms` imports work. Gradually move to atomic structure.
+
+---
+
 ## 📖 References
 
 - **Cursor Docs**: [Rules for AI](https://docs.cursor.com/context/rules-for-ai)

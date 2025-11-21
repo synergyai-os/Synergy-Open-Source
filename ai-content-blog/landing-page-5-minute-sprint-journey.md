@@ -400,7 +400,7 @@ dev-docs/2-areas/patterns/ui-patterns.md
 
 **The Landing Page**: [src/routes/+page.svelte](https://github.com/synergyai-os/Synergy-Open-Source/blob/main/src/routes/%2Bpage.svelte)
 
-**The Waitlist Form**: [src/lib/components/WaitlistForm.svelte](https://github.com/synergyai-os/Synergy-Open-Source/blob/main/src/lib/components/WaitlistForm.svelte)
+**The Waitlist Form**: [src/lib/modules/core/components/WaitlistForm.svelte](https://github.com/synergyai-os/Synergy-Open-Source/blob/main/src/lib/modules/core/components/WaitlistForm.svelte)
 
 **The Convex Backend**: [convex/waitlist.ts](https://github.com/synergyai-os/Synergy-Open-Source/blob/main/convex/waitlist.ts)
 

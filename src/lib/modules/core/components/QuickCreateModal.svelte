@@ -17,7 +17,8 @@
 		ProjectSelector,
 		AttachmentButton,
 		ToggleSwitch,
-		ContextSelector
+		ContextSelector,
+		Button
 	} from '$lib/components/ui';
 	// TODO: Uncomment when implementing PostHog tracking
 	// import { AnalyticsEventName } from '$lib/infrastructure/analytics/events';
@@ -31,7 +32,6 @@
 		initialType?: ContentType | null;
 		sessionId?: string; // Required for session validation
 		organizationId?: string | null; // Active organization ID (for workspace context)
-		teamId?: string | null; // Active team ID (for workspace context)
 		initialTags?: unknown[]; // Server-side preloaded tags for instant rendering
 	};
 
@@ -42,7 +42,6 @@
 		initialType = null,
 		sessionId,
 		organizationId = null,
-		teamId = null,
 		initialTags = []
 	}: Props = $props();
 
@@ -108,10 +107,12 @@
 		undefined
 	);
 	let noteContext = $state<
-		{ id: string; name: string; icon: string; type: 'team' | 'template' | 'workspace' } | undefined
-	>({ id: 'pai', name: 'PAI', icon: '🔥', type: 'team' });
+		| { id: string; name: string; icon: string; type: 'circle' | 'template' | 'workspace' }
+		| undefined
+	>({ id: 'pai', name: 'PAI', icon: '🔥', type: 'circle' });
 	let noteTemplate = $state<
-		{ id: string; name: string; icon: string; type: 'team' | 'template' | 'workspace' } | undefined
+		| { id: string; name: string; icon: string; type: 'circle' | 'template' | 'workspace' }
+		| undefined
 	>(undefined);
 	let createMore = $state(false);
 	let attachmentCount = $state(0);
@@ -297,8 +298,7 @@
 					content: typeof noteContent === 'string' ? noteContent : JSON.stringify(noteContent),
 					contentMarkdown: noteContentMarkdown || undefined,
 					isAIGenerated: noteIsAIGenerated || undefined,
-					organizationId: (organizationId as Id<'organizations'>) || undefined, // Pass active organization context
-					teamId: (teamId as Id<'teams'>) || undefined // Pass active team context
+					organizationId: (organizationId as Id<'organizations'>) || undefined // Pass active organization context
 				});
 
 				// If there are tags, we need to link them after creation
@@ -639,21 +639,21 @@
 
 								<!-- Top Right Actions -->
 								<div class="flex items-center gap-form-field">
-									<button
-										type="button"
-										class="px-inbox-card py-input-y text-sm text-secondary transition-colors hover:text-primary"
+									<Button
+										variant="outline"
+										size="sm"
 										onclick={() => {
 											// TODO: Implement draft save logic
 											console.log('Save as draft clicked');
 										}}
 									>
 										Save as draft
-									</button>
-									<button
-										type="button"
-										class="p-1.5 text-tertiary transition-colors hover:text-secondary"
+									</Button>
+									<Button
+										variant="outline"
+										iconOnly
+										ariaLabel={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
 										onclick={() => (isFullscreen = !isFullscreen)}
-										aria-label={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
 									>
 										{#if isFullscreen}
 											<!-- Exit Fullscreen Icon -->
@@ -676,12 +676,12 @@
 												/>
 											</svg>
 										{/if}
-									</button>
-									<button
-										type="button"
-										class="p-1.5 text-tertiary transition-colors hover:text-secondary"
+									</Button>
+									<Button
+										variant="outline"
+										iconOnly
+										ariaLabel="Close"
 										onclick={() => handleOpenChange(false)}
-										aria-label="Close"
 									>
 										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
@@ -691,7 +691,7 @@
 												d="M6 18L18 6M6 6l12 12"
 											/>
 										</svg>
-									</button>
+									</Button>
 								</div>
 							</div>
 						{:else}
@@ -820,20 +820,11 @@
 										label="Create more"
 									/>
 								{/if}
-								<button
-									onclick={() => handleOpenChange(false)}
-									class="px-inbox-card py-input-y text-sm text-secondary transition-colors hover:text-primary"
-								>
-									Cancel
-								</button>
-								<button
-									onclick={handleCreate}
-									disabled={isCreating}
-									class="flex items-center gap-form-field rounded-md bg-accent-primary px-inbox-card py-input-y text-sm font-medium text-white transition-all hover:opacity-90 disabled:opacity-50"
-								>
+								<Button variant="outline" onclick={() => handleOpenChange(false)}>Cancel</Button>
+								<Button variant="primary" onclick={handleCreate} disabled={isCreating}>
 									{isCreating ? 'Creating...' : selectedType === 'note' ? 'Create issue' : 'Create'}
 									<KeyboardShortcut keys={['Cmd', 'Enter']} />
-								</button>
+								</Button>
 							</div>
 						</div>
 					</div>

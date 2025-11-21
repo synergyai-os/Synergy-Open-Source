@@ -1,0 +1,46 @@
+/* Size Tokens
+ * 
+ * All size tokens (icons, avatars, tabs, etc.).
+ * 
+ * Extracted from src/app.css @theme block (lines 117, 135-136, 218-237, 324-325)
+ */
+
+@theme {
+	/* Button Component Size Tokens */
+	--size-button-height: 2.75rem; /* 44px - min-h-button equivalent - minimum button height (accessibility requirement) */
+
+	/* PIN Input Size Tokens */
+	--size-pin-cell: 4rem; /* 64px - square size for PIN input cells */
+	--size-pin-cell-text: 2rem; /* 32px - text size inside PIN cells */
+
+	/* Icon Size Tokens */
+	--size-icon-xs: 0.75rem; /* 12px - icon-xs equivalent - h-3 w-3 - for compact chips/close buttons */
+	--size-icon-sm: 1rem; /* 16px - icon-sm equivalent - h-4 w-4 */
+	--size-icon-md: 1.25rem; /* 20px - icon-md equivalent - h-5 w-5 */
+	--size-icon-lg: 1.5rem; /* 24px - icon-lg equivalent - h-6 w-6 */
+	--size-icon-xl: 2rem; /* 32px - icon-xl equivalent - h-8 w-8 */
+	--size-quote-decoration: 5rem; /* 80px - size-quote-decoration equivalent - decorative quote mark size (h-20 w-20) */
+	--size-keyboard-key: 3rem; /* 48px - size-keyboard-key equivalent - keyboard key container size (h-12 w-12) */
+
+	/* Avatar Component Tokens (from design-system-test.json) */
+	--size-avatar-sm: 2rem; /* 32px - h-8 w-8 equivalent */
+	--size-avatar-md: 2.5rem; /* 40px - h-10 w-10 equivalent */
+	--size-avatar-lg: 3rem; /* 48px - h-12 w-12 equivalent */
+
+	/* Tabs Component Tokens (from design-system-test.json) */
+	--size-tab-height: 2.5rem; /* 40px - tab container height */
+
+	/* Meeting Component Size Tokens (from design-system-test.json) */
+	--size-meeting-avatar-sm: 1.5rem; /* 24px - h-6 w-6 equivalent - small avatar in meetings */
+	--size-meeting-avatar-md: 1.75rem; /* 28px - h-7 w-7 equivalent - medium avatar in meetings */
+
+	/* Badge Component Size Tokens */
+	--min-width-badge: var(
+		--size-icon-md
+	); /* 1.25rem - min-w-badge equivalent - minimum width for keyboard shortcut badges */
+
+	/* Dialog Component Size Tokens */
+	--max-width-dialog-default: 32rem; /* 512px - default dialog width */
+	--max-width-dialog-wide: 56rem; /* 896px - wide dialog width (matches QuickCreateModal) */
+	--min-width-dropdown: 11.25rem; /* 180px - min-w-dropdown equivalent - minimum width for dropdown menus */
+}

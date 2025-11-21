@@ -30,16 +30,6 @@ export type OrganizationSummary = {
 	teamCount: number;
 };
 
-export type TeamSummary = {
-	teamId: string;
-	organizationId: string;
-	name: string;
-	slug: string;
-	memberCount: number;
-	role: 'admin' | 'member' | null;
-	joinedAt: number | null;
-};
-
 export type OrganizationInvite = {
 	inviteId: string;
 	organizationId: string;
@@ -51,20 +41,7 @@ export type OrganizationInvite = {
 	createdAt: number;
 };
 
-export type TeamInvite = {
-	inviteId: string;
-	teamId: string;
-	teamName: string;
-	organizationId: string;
-	organizationName: string;
-	role: 'admin' | 'member';
-	invitedBy: string;
-	invitedByName: string;
-	code: string;
-	createdAt: number;
-};
-
-type ModalKey = 'createOrganization' | 'joinOrganization' | 'createTeam' | 'joinTeam';
+type ModalKey = 'createOrganization' | 'joinOrganization';
 
 export type UseOrganizations = ReturnType<typeof useOrganizations>;
 
@@ -76,8 +53,6 @@ export function useOrganizations(options?: {
 	orgFromUrl?: () => string | null; // Reactive URL parameter (deprecated - handled by URL sync)
 	initialOrganizations?: OrganizationSummary[]; // Server-side preloaded data for instant rendering
 	initialOrganizationInvites?: OrganizationInvite[]; // Server-side preloaded data
-	initialTeamInvites?: TeamInvite[]; // Server-side preloaded data
-	initialTeams?: TeamSummary[]; // Server-side preloaded teams for active organization
 }) {
 	const convexClient = browser ? useConvexClient() : null;
 	const getUserId = options?.userId || (() => undefined);
@@ -96,9 +71,7 @@ export function useOrganizations(options?: {
 	const state = $state({
 		modals: {
 			createOrganization: false,
-			joinOrganization: false,
-			createTeam: false,
-			joinTeam: false
+			joinOrganization: false
 		}
 	});
 
@@ -110,21 +83,18 @@ export function useOrganizations(options?: {
 	orgState = useOrganizationState({
 		userId: getUserId,
 		organizationsData: () => options?.initialOrganizations ?? [], // Use initial data
-		teamsData: () => options?.initialTeams ?? [], // Use initial data
 		organizationsQuery: null, // Will be set after queries initialize (only used for loading check)
 		initialActiveId,
 		initialCachedOrg: cachedOrgDetails
 	});
 
-	// Initialize queries composable (teams query needs activeOrganizationId from orgState)
+	// Initialize queries composable
 	// useQuery is reactive, so it will update when orgState.activeOrganizationId changes
 	const queries = useOrganizationQueries({
 		getSessionId,
 		activeOrganizationId: () => orgState.activeOrganizationId, // Reactive function
 		initialOrganizations: options?.initialOrganizations,
-		initialOrganizationInvites: options?.initialOrganizationInvites,
-		initialTeamInvites: options?.initialTeamInvites,
-		initialTeams: options?.initialTeams
+		initialOrganizationInvites: options?.initialOrganizationInvites
 	});
 
 	// Recreate orgState with queries reference (needed for loading state check)
@@ -132,7 +102,6 @@ export function useOrganizations(options?: {
 	const orgStateWithQueries = useOrganizationState({
 		userId: getUserId,
 		organizationsData: () => queries.organizations, // Reactive getter
-		teamsData: () => queries.teams, // Reactive getter
 		organizationsQuery: queries.organizationsQuery,
 		initialActiveId,
 		initialCachedOrg: cachedOrgDetails
@@ -163,10 +132,6 @@ export function useOrganizations(options?: {
 		analytics.setActiveOrganization(organizationId);
 	}
 
-	function setActiveTeam(teamId: string | null) {
-		orgState.setActiveTeam(teamId);
-	}
-
 	function openModal(key: ModalKey) {
 		state.modals[key] = true;
 	}
@@ -182,7 +147,6 @@ export function useOrganizations(options?: {
 		getUserId,
 		activeOrganizationId: () => orgState.activeOrganizationId,
 		setActiveOrganization,
-		setActiveTeam,
 		closeModal
 	});
 
@@ -214,15 +178,6 @@ export function useOrganizations(options?: {
 		get organizationInvites() {
 			return queries.organizationInvites;
 		},
-		get teamInvites() {
-			return queries.teamInvites;
-		},
-		get teams() {
-			return queries.teams;
-		},
-		get activeTeamId() {
-			return orgState.activeTeamId;
-		},
 		get modals() {
 			return state.modals;
 		},
@@ -242,17 +197,12 @@ export function useOrganizations(options?: {
 			return orgState.switchingToType;
 		},
 		setActiveOrganization,
-		setActiveTeam,
 		openModal,
 		closeModal,
 		createOrganization: mutations.createOrganization,
 		joinOrganization: mutations.joinOrganization,
-		createTeam: mutations.createTeam,
-		joinTeam: mutations.joinTeam,
 		acceptOrganizationInvite: mutations.acceptOrganizationInvite,
-		declineOrganizationInvite: mutations.declineOrganizationInvite,
-		acceptTeamInvite: mutations.acceptTeamInvite,
-		declineTeamInvite: mutations.declineTeamInvite
+		declineOrganizationInvite: mutations.declineOrganizationInvite
 	};
 
 	return api;

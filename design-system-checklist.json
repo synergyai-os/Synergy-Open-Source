@@ -1,0 +1,525 @@
+{
+	"design_system_checklist": {
+		"project_name": "SynergyOS",
+		"version": "1.0.0",
+		"last_updated": "2024-11-20",
+		"maturity_level": "production_optimization",
+		"tech_stack": {
+			"framework": "Svelte 5",
+			"styling": "Tailwind CSS 4",
+			"language": "TypeScript",
+			"token_source": "design-system-test.json",
+			"token_implementation": "src/app.css (@theme directive)"
+		},
+
+		"current_state": {
+			"components": {
+				"total": "50+",
+				"primitives": "Layer 1 - Unstyled foundations",
+				"styled_components": "Layer 2 - Design system atoms",
+				"composites": "Layer 3 - Complex combinations",
+				"feature_components": "Layer 4 - Domain-specific"
+			},
+			"governance": {
+				"eslint": "Active - blocks hardcoded values",
+				"pre_commit_hooks": "Active - validates before commit",
+				"ci_cd": "Active - blocks PRs with violations"
+			},
+			"documentation": {
+				"token_reference": "design-tokens.md",
+				"component_architecture": "component-architecture.md",
+				"source_of_truth": "design-system-test.json"
+			},
+			"phases_complete": [
+				"Phase 1: Token consolidation",
+				"Phase 2: ESLint governance + module separation"
+			],
+			"phases_in_progress": [
+				"Phase 3: SYOS-403 (base spacing), SYOS-390 (specialized components), SYOS-373 (modular CSS), SYOS-389 (Storybook)"
+			]
+		},
+
+		"optimization_priorities": {
+			"critical": {
+				"priority": 1,
+				"tasks": [
+					{
+						"id": "SYOS-403",
+						"name": "Add Base Spacing Scale Foundation",
+						"status": "in_progress",
+						"description": "Implement comprehensive base scale (0-96) with semantic aliases",
+						"impact": "Enables consistent spacing across all components",
+						"checklist": [
+							"Add base scale tokens (0, 1, 2, 4, 8, 12, 16, 24, 32, 48, 64, 96) to src/app.css",
+							"Create semantic aliases (button-padding-sm/md/lg, card-padding, input-padding)",
+							"Document in design-tokens.md",
+							"Test cascade by changing token and verifying visual updates",
+							"Update 5 key components to use new spacing tokens",
+							"Run ESLint to verify no violations"
+						]
+					}
+				]
+			},
+			"high": {
+				"priority": 2,
+				"tasks": [
+					{
+						"id": "SYOS-390",
+						"name": "Add Specialized Components",
+						"status": "planned",
+						"description": "Create Avatar, EmptyState, and other missing styled components",
+						"dependencies": ["SYOS-403"],
+						"checklist": [
+							"Identify gaps in component library (Avatar, EmptyState, Skeleton, etc.)",
+							"Create components following existing Button.svelte pattern",
+							"Implement variant system for each component",
+							"Add TypeScript Props interfaces",
+							"Create barrel exports (index.ts)",
+							"Test in isolation and with existing pages",
+							"Document usage patterns"
+						]
+					},
+					{
+						"id": "SYOS-373",
+						"name": "Split app.css into 11 Modular Files",
+						"status": "planned",
+						"description": "Break monolithic app.css into domain-specific files",
+						"dependencies": ["SYOS-403", "SYOS-390"],
+						"target_structure": [
+							"src/styles/00-tokens/colors.css",
+							"src/styles/00-tokens/spacing.css",
+							"src/styles/00-tokens/typography.css",
+							"src/styles/00-tokens/borders.css",
+							"src/styles/00-tokens/shadows.css",
+							"src/styles/01-base/reset.css",
+							"src/styles/01-base/typography.css",
+							"src/styles/02-utilities/custom-utilities.css",
+							"src/styles/03-components/component-overrides.css",
+							"src/styles/04-layouts/grid.css",
+							"src/styles/app.css (imports all)"
+						],
+						"checklist": [
+							"Create src/styles/ directory structure",
+							"Extract color tokens to colors.css",
+							"Extract spacing tokens to spacing.css",
+							"Extract typography to typography.css",
+							"Extract border/shadow tokens to respective files",
+							"Move base styles to 01-base/",
+							"Move custom utilities to 02-utilities/",
+							"Update app.css to import all files",
+							"Test full cascade - verify no visual regressions",
+							"Update documentation to reflect new structure",
+							"Run ESLint to verify compliance"
+						]
+					}
+				]
+			},
+			"medium": {
+				"priority": 3,
+				"tasks": [
+					{
+						"id": "SYOS-389",
+						"name": "Integrate Storybook + Visual Testing",
+						"status": "planned",
+						"description": "Add visual component playground and regression testing",
+						"dependencies": ["SYOS-373"],
+						"checklist": [
+							"Install Storybook 8+ for Svelte",
+							"Configure Storybook to use src/app.css tokens",
+							"Create .storybook/preview.ts with token imports",
+							"Write stories for all Layer 2 components (Button, Input, Card, etc.)",
+							"Document variants, sizes, states in stories",
+							"Set up Chromatic or Percy for visual regression",
+							"Integrate visual testing into CI/CD pipeline",
+							"Train team on writing stories for new components"
+						]
+					},
+					{
+						"id": "TOKEN-AUDIT",
+						"name": "Comprehensive Token Audit",
+						"status": "ongoing",
+						"description": "Verify 95%+ token coverage across all components",
+						"checklist": [
+							"Run audit script to find arbitrary values",
+							"Run audit script to find raw Tailwind scale usage",
+							"Identify components using hardcoded spacing",
+							"Create migration plan for non-compliant components",
+							"Fix violations module by module (Inbox → Meetings → Flashcards)",
+							"Re-run audit after each module migration",
+							"Target: 95%+ semantic token coverage"
+						]
+					}
+				]
+			},
+			"ongoing": {
+				"priority": 4,
+				"tasks": [
+					{
+						"id": "COMPONENT-DOCUMENTATION",
+						"name": "Maintain Component Documentation",
+						"status": "continuous",
+						"checklist": [
+							"Ensure every Layer 2 component has JSDoc comments",
+							"Document all props with type and default values",
+							"Add usage examples in component comments",
+							"Update design-tokens.md when tokens change",
+							"Keep component-architecture.md current with layer changes"
+						]
+					},
+					{
+						"id": "DEPRECATION-MANAGEMENT",
+						"name": "Handle Deprecated Patterns",
+						"status": "continuous",
+						"process": [
+							"Mark deprecated tokens/components with @deprecated JSDoc",
+							"Add console.warn() for deprecated usage",
+							"Find all usages with grep -r",
+							"Migrate incrementally (module by module)",
+							"Keep deprecated items for 2 version releases",
+							"Remove in third release with clear migration guide"
+						]
+					}
+				]
+			}
+		},
+
+		"ai_tool_compliance": {
+			"context_files": {
+				"primary": ".cursorrules-synergy",
+				"documentation": [
+					"dev-docs/2-areas/design/design-tokens.md",
+					"dev-docs/2-areas/design/component-architecture.md",
+					"design-system-test.json"
+				],
+				"implementation": [
+					"src/app.css",
+					"src/lib/components/ui/button/Button.svelte (reference pattern)"
+				]
+			},
+			"automated_enforcement": {
+				"eslint": {
+					"plugin": "eslint-plugin-better-tailwindcss",
+					"blocks": [
+						"Arbitrary Tailwind values (bg-[#abc])",
+						"Raw spacing values (p-[16px])",
+						"Inline styles (style attribute)",
+						"Direct color hex codes"
+					]
+				},
+				"pre_commit_hook": {
+					"location": ".husky/pre-commit",
+					"commands": ["npm run lint", "npm run type-check"]
+				},
+				"ci_cd": {
+					"command": "npm run ci:quick",
+					"blocks_merge": "if violations found"
+				}
+			},
+			"ai_generation_rules": {
+				"before_generating": [
+					"Read .cursorrules-synergy for context",
+					"Check if component already exists in src/lib/components/ui/",
+					"Review existing component patterns (Button.svelte)",
+					"Classify component into 4-layer architecture",
+					"Verify token availability in src/app.css"
+				],
+				"while_generating": [
+					"Use ONLY token-based Tailwind utilities",
+					"Follow variant + size + class prop pattern",
+					"Use Svelte 5 $props() syntax",
+					"Add TypeScript Props interface",
+					"Include JSDoc comments"
+				],
+				"after_generating": [
+					"Run npm run lint to validate",
+					"Test visually in npm run dev",
+					"Create barrel export (index.ts)",
+					"Document in component comments"
+				]
+			},
+			"modification_safety": {
+				"critical_rules": [
+					"NEVER rename existing variants (breaks production)",
+					"ALWAYS add new variants, don't replace",
+					"CHECK usages with grep before changing props",
+					"TEST visually on affected pages",
+					"USE @deprecated for old patterns"
+				]
+			}
+		},
+
+		"token_architecture": {
+			"3_tier_system": {
+				"tier_1_raw_tokens": {
+					"location": "src/app.css @theme",
+					"purpose": "Immutable primitives",
+					"examples": ["--spacing-0: 0", "--spacing-4: 1rem", "--color-blue-500: oklch(...)"],
+					"rule": "Only referenced by Tier 2"
+				},
+				"tier_2_semantic_tokens": {
+					"location": "src/app.css @theme",
+					"purpose": "Intent-based aliases",
+					"examples": [
+						"--color-primary: var(--color-blue-500)",
+						"--spacing-button-padding-md: var(--spacing-4)",
+						"--spacing-card-padding: var(--spacing-6)"
+					],
+					"rule": "Used by components"
+				},
+				"tier_3_component_tokens": {
+					"location": "Component files or CSS",
+					"purpose": "Component-specific overrides",
+					"examples": [
+						"button-primary-bg: var(--color-primary)",
+						"input-focus-ring: var(--color-primary)"
+					],
+					"rule": "Used internally by atoms"
+				}
+			},
+			"token_evolution": {
+				"adding_new_token": [
+					"Update design-system-test.json (source of truth)",
+					"Add to src/app.css (@theme)",
+					"Test cascade: change → verify → revert",
+					"Document in design-tokens.md",
+					"Update components to use new token"
+				],
+				"deprecating_token": [
+					"Mark @deprecated in design-system-test.json",
+					"Add console.warn in src/app.css",
+					"Find all usages: grep -r 'old-token' src/",
+					"Migrate module by module",
+					"Remove after 2 releases"
+				]
+			}
+		},
+
+		"component_patterns": {
+			"layer_1_primitive": {
+				"purpose": "Unstyled, accessible foundation",
+				"location": "src/lib/components/ui/primitives/",
+				"characteristics": [
+					"NO styling (no Tailwind classes)",
+					"ARIA attributes only",
+					"Behavior + accessibility logic",
+					"Wraps Radix UI or similar"
+				],
+				"example": "DialogPrimitive, DropdownPrimitive"
+			},
+			"layer_2_styled_component": {
+				"purpose": "Design system atoms",
+				"location": "src/lib/components/ui/",
+				"characteristics": [
+					"SynergyOS styling applied",
+					"Variant system (primary/secondary/etc.)",
+					"Size system (sm/md/lg)",
+					"Escape hatch (class prop)",
+					"Self-contained, reusable"
+				],
+				"required_props": [
+					"variant?: string",
+					"size?: string",
+					"disabled?: boolean",
+					"class?: string"
+				],
+				"example": "Button, Input, Card, Badge"
+			},
+			"layer_3_composite": {
+				"purpose": "Combinations of Layer 2",
+				"location": "src/lib/components/ui/composites/",
+				"characteristics": [
+					"Composes 2-3 styled components",
+					"Adds layout logic",
+					"Still reusable across features",
+					"Minimal business logic"
+				],
+				"example": "FormField (Label + Input + Error), SearchBar"
+			},
+			"layer_4_feature_component": {
+				"purpose": "Domain-specific implementations",
+				"location": "src/lib/[feature]/components/",
+				"characteristics": [
+					"Feature-specific (Inbox, Meetings, etc.)",
+					"Contains business logic",
+					"Uses Layer 2/3 for UI",
+					"Not reusable outside feature"
+				],
+				"example": "InboxMessage, MeetingCard, FlashcardView"
+			}
+		},
+
+		"validation_checklists": {
+			"new_component_checklist": [
+				"Component classified into correct layer (1-4)",
+				"Uses ONLY token-based utilities",
+				"No arbitrary Tailwind values",
+				"No inline styles",
+				"Follows variant + size + class prop pattern",
+				"TypeScript Props interface defined",
+				"Svelte 5 syntax ($props, $derived)",
+				"JSDoc comments on component and props",
+				"Barrel export (index.ts) created",
+				"PascalCase naming convention",
+				"ESLint passes (npm run lint)",
+				"Visually tested in dev mode",
+				"No console errors"
+			],
+			"modify_existing_component_checklist": [
+				"Read component first to understand API",
+				"Check usages with grep before changing props",
+				"Add new variants, don't rename existing",
+				"Use @deprecated for old patterns",
+				"Test cascade on affected pages",
+				"Verify ESLint still passes",
+				"No breaking changes to public API"
+			],
+			"token_update_checklist": [
+				"Update design-system-test.json first",
+				"Implement in src/app.css",
+				"Test cascade: change token → verify visual → revert",
+				"Update design-tokens.md documentation",
+				"Find components using old pattern",
+				"Migrate incrementally (module by module)",
+				"Run ESLint validation"
+			]
+		},
+
+		"common_patterns": {
+			"button_usage": {
+				"correct": "<Button variant=\"primary\" size=\"md\" onclick={handleClick}>Click</Button>",
+				"incorrect": "<button class=\"bg-blue-500 text-white px-4 py-2\">Click</button>"
+			},
+			"input_usage": {
+				"correct": "<Input type=\"email\" bind:value={email} error={emailError} />",
+				"incorrect": "<input type=\"email\" class=\"border p-2\" bind:value={email} />"
+			},
+			"spacing_usage": {
+				"correct": "<div class=\"p-card-padding space-y-md\">",
+				"incorrect": "<div class=\"p-6 space-y-4\">"
+			},
+			"color_usage": {
+				"correct": "<div class=\"bg-primary text-primary-foreground\">",
+				"incorrect": "<div class=\"bg-blue-500 text-white\">"
+			},
+			"typography_usage": {
+				"correct": "<h1 class=\"text-heading-xl font-heading\">",
+				"incorrect": "<h1 class=\"text-4xl font-bold\">"
+			}
+		},
+
+		"metrics_tracking": {
+			"target_metrics": {
+				"semantic_token_coverage": {
+					"current": "~85%",
+					"target": "95%+",
+					"measurement": "Audit script counts token usage vs. arbitrary values"
+				},
+				"component_compliance": {
+					"current": "~90%",
+					"target": "98%+",
+					"measurement": "ESLint violations per 100 components"
+				},
+				"documentation_coverage": {
+					"current": "~75%",
+					"target": "100%",
+					"measurement": "Components with JSDoc comments + usage examples"
+				},
+				"ai_generated_compliance": {
+					"current": "unknown",
+					"target": "90%+",
+					"measurement": "AI-generated code passing ESLint on first try"
+				}
+			},
+			"audit_schedule": {
+				"token_audit": "Monthly",
+				"component_audit": "Quarterly",
+				"documentation_audit": "Quarterly",
+				"deprecation_review": "Every release"
+			}
+		},
+
+		"phase_3_roadmap": {
+			"week_1_2": {
+				"focus": "SYOS-403 - Base Spacing Scale",
+				"deliverables": [
+					"Comprehensive base scale (0-96) in src/app.css",
+					"Semantic spacing aliases",
+					"Documentation updates",
+					"5 key components migrated"
+				]
+			},
+			"week_3_4": {
+				"focus": "SYOS-390 - Specialized Components",
+				"deliverables": [
+					"Avatar component",
+					"EmptyState component",
+					"Skeleton component",
+					"Other identified gaps",
+					"Full documentation for each"
+				]
+			},
+			"week_5_6": {
+				"focus": "SYOS-373 - Modular CSS",
+				"deliverables": [
+					"11 domain-specific CSS files",
+					"Updated app.css with imports",
+					"No visual regressions",
+					"Updated documentation"
+				]
+			},
+			"week_7_8": {
+				"focus": "SYOS-389 - Storybook Integration",
+				"deliverables": [
+					"Storybook configured",
+					"Stories for all Layer 2 components",
+					"Visual regression testing setup",
+					"Team training on writing stories"
+				]
+			}
+		},
+
+		"troubleshooting": {
+			"ai_generating_non_compliant_code": {
+				"check": "Is .cursorrules-synergy in project root?",
+				"fix": "Explicitly reference design system in prompts",
+				"example": "Create a button using our Button component from $lib/components/ui"
+			},
+			"tailwind_classes_not_working": {
+				"check": "Is src/app.css correctly imported?",
+				"fix": "Restart dev server after token changes",
+				"verify": "Run npm run dev and check console for errors"
+			},
+			"eslint_blocking_build": {
+				"expected": "This is correct behavior!",
+				"fix": "Replace arbitrary values with semantic tokens",
+				"example": "bg-[#3b82f6] → bg-primary"
+			},
+			"component_not_showing_styles": {
+				"check": "Using semantic tokens (bg-primary) not raw (bg-blue-500)?",
+				"fix": "Check src/app.css for token definitions",
+				"verify": "Inspect element in browser DevTools"
+			}
+		},
+
+		"resources": {
+			"key_files": [
+				"design-system-test.json - Source of truth",
+				"src/app.css - Token implementation",
+				"dev-docs/2-areas/design/design-tokens.md - Token reference",
+				"dev-docs/2-areas/design/component-architecture.md - Layer system",
+				".cursorrules-synergy - AI generation rules"
+			],
+			"reference_components": [
+				"src/lib/components/ui/button/Button.svelte - Variant pattern",
+				"src/lib/components/ui/input/Input.svelte - Form element pattern",
+				"src/lib/components/ui/card/Card.svelte - Container pattern"
+			],
+			"validation_commands": [
+				"npm run dev - Start dev server",
+				"npm run lint - ESLint validation",
+				"npm run type-check - TypeScript validation",
+				"npm run ci:quick - Full CI validation"
+			]
+		}
+	}
+}

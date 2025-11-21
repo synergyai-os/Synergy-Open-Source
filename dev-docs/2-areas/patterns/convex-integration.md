@@ -4388,6 +4388,162 @@ export function registerModule(manifest: ModuleManifest): void {
 
 ---
 
-**Pattern Count**: 48  
-**Last Validated**: 2025-11-19  
+## #L4250: Remove Duplicate Interface Definitions [🟡 IMPORTANT]
+
+**Symptom**: TypeScript interface declared multiple times in same file (e.g., `TagWithHierarchy` defined twice)  
+**Root Cause**: Code duplication from refactoring, copy-paste errors, or merge conflicts  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Duplicate interface definitions
+export interface TagWithHierarchy {
+	_id: Id<'tags'>;
+	name: string;
+	// ...
+}
+
+// ... other code ...
+
+export interface TagWithHierarchy { // ❌ Duplicate
+	_id: Id<'tags'>;
+	name: string;
+	// ...
+}
+
+// ✅ CORRECT: Single interface definition with clear comment
+export interface TagWithHierarchy {
+	_id: Id<'tags'>;
+	name: string;
+	displayName: string;
+	color: string;
+	parentId: Id<'tags'> | undefined;
+	level: number; // Depth in hierarchy (0 = root level)
+	children?: TagWithHierarchy[];
+}
+
+/**
+ * Helper: Build hierarchical tag tree structure
+ * Groups tags by parent and returns a flat list with hierarchy level
+ */
+function buildTagTree(tags: Doc<'tags'>[]): TagWithHierarchy[] {
+	// Uses TagWithHierarchy interface
+}
+```
+
+**Why**: While TypeScript interfaces merge harmlessly, duplicate definitions create noise, reduce maintainability, and confuse developers. Removing duplicates improves code clarity.  
+**Apply when**: Code review finds duplicate interface definitions, refactoring introduces duplicates, or merge conflicts create duplicates  
+**Related**: #L1550 (TypeScript type safety), #L1700 (Polymorphic schemas)
+
+---
+
+## #L4300: Defensive Validation for Mismatched Parameters [🟡 IMPORTANT]
+
+**Symptom**: Mutation silently ignores mismatched parameter combinations (e.g., `circleId` provided when `ownership !== 'circle'`)  
+**Root Cause**: Missing early validation, parameters silently ignored instead of failing fast  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Silently ignores mismatched parameters
+export const createTag = mutation({
+	args: {
+		ownership: v.optional(v.union(v.literal('user'), v.literal('organization'), v.literal('circle'))),
+		circleId: v.optional(v.id('circles'))
+	},
+	handler: async (ctx, args) => {
+		const ownership = args.ownership ?? 'organization';
+		let circleId: Id<'circles'> | undefined = undefined;
+
+		if (ownership === 'organization') {
+			// ... logic ...
+			circleId = undefined; // ❌ Silently ignores args.circleId if provided
+		}
+		// No validation - mismatched combinations silently ignored
+	}
+});
+
+// ✅ CORRECT: Early defensive validation (fail-fast pattern)
+export const createTag = mutation({
+	args: {
+		ownership: v.optional(v.union(v.literal('user'), v.literal('organization'), v.literal('circle'))),
+		circleId: v.optional(v.id('circles'))
+	},
+	handler: async (ctx, args) => {
+		const ownership = args.ownership ?? 'organization';
+
+		// Defensive validation: reject mismatched ownership/circleId combinations
+		if (ownership !== 'circle' && args.circleId) {
+			throw new Error('circleId is only allowed when ownership is "circle"');
+		}
+
+		let circleId: Id<'circles'> | undefined = undefined;
+		// ... rest of logic ...
+	}
+});
+```
+
+**Why**: Silent failures make debugging harder and allow API misuse. Early validation with clear error messages catches mistakes immediately and provides better developer experience.  
+**Apply when**: Mutations accept multiple optional parameters with dependencies, parameters have mutual exclusivity rules, or API misuse should fail fast  
+**Related**: #L10 (Convex validation), #L2312 (Defensive checks)
+
+---
+
+## #L4350: Reuse Fetched Data to Avoid Duplicate Queries [🟡 IMPORTANT]
+
+**Symptom**: Mutation fetches same data twice (e.g., circle fetched for validation, then fetched again for logging)  
+**Root Cause**: Data fetched in one branch, then fetched again later without reusing first result  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Fetches circle twice
+export const shareTag = mutation({
+	handler: async (ctx, args) => {
+		let circleId: Id<'circles'> | undefined = undefined;
+
+		if (args.shareWith === 'circle') {
+			// ... validation ...
+			const circle = await ctx.db.get(args.circleId); // First fetch
+			if (!circle) throw new Error('Circle not found');
+			circleId = args.circleId;
+			organizationId = circle.organizationId;
+		}
+
+		// ... other logic ...
+
+		// Get circle details for analytics
+		const circleDoc = circleId ? await ctx.db.get(circleId) : null; // ❌ Second fetch (duplicate)
+		console.log({ circleName: circleDoc?.name });
+	}
+});
+
+// ✅ CORRECT: Hoist variable and reuse fetched data
+export const shareTag = mutation({
+	handler: async (ctx, args) => {
+		let organizationId: Id<'organizations'> | undefined = undefined;
+		let circleId: Id<'circles'> | undefined = undefined;
+		let circleDoc: Doc<'circles'> | null = null; // Hoisted for reuse
+
+		if (args.shareWith === 'circle') {
+			// ... validation ...
+			circleDoc = await ctx.db.get(args.circleId); // Single fetch
+			if (!circleDoc) throw new Error('Circle not found');
+			circleId = args.circleId;
+			organizationId = circleDoc.organizationId;
+		}
+
+		// ... other logic ...
+
+		// Reuse fetched circle (no duplicate query)
+		console.log({ circleName: circleDoc?.name }); // ✅ Uses already-fetched data
+	}
+});
+```
+
+**Why**: Duplicate database queries waste resources and slow down mutations. Reusing fetched data reduces database load and improves performance.  
+**Apply when**: Data is fetched in conditional branch but needed later, same entity fetched multiple times in same mutation, or performance optimization needed  
+**Related**: #L1175 (Reuse test sessions), #L1360 (Batch queries)
+
+---
+
+**Pattern Count**: 51  
+**Last Validated**: 2025-11-21  
 **Context7 Source**: `/get-convex/convex-backend`, `convex-test` NPM docs, TypeScript type system, SvelteKit docs

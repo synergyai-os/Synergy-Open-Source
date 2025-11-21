@@ -8,6 +8,7 @@
 	import type { InboxItemWithDetails } from '$lib/types/convex';
 	import type NoteEditorWithDetectionComponent from '$lib/modules/core/components/notes/NoteEditorWithDetection.svelte';
 	import type { Id } from '$lib/convex';
+	import { Button } from '$lib/components/ui';
 
 	type Props = {
 		inboxItem: InboxItemWithDetails & { type: 'note' }; // Note inbox item
@@ -166,13 +167,8 @@
 	>
 		<!-- Left: Title + Save Status -->
 		<div class="flex items-center gap-icon">
-			<button
-				type="button"
-				class="flex items-center gap-icon rounded-md px-nav-item py-nav-item text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
-				onclick={onClose}
-				aria-label="Back to inbox"
-			>
-				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<Button variant="outline" size="sm" onclick={onClose} ariaLabel="Back to inbox">
+				<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -180,9 +176,9 @@
 						d="M15 19l-7-7 7-7"
 					/>
 				</svg>
-				<span class="text-sm">Back</span>
-			</button>
-			<h2 class="text-sm font-normal text-secondary">
+				<span class="text-small">Back</span>
+			</Button>
+			<h2 class="text-small font-normal text-secondary">
 				{inboxItem.title || 'Untitled Note'}
 			</h2>
 			<span class="text-label text-tertiary">
@@ -193,22 +189,10 @@
 		<!-- Right: Actions -->
 		<div class="flex items-center gap-icon">
 			<!-- Export to Docs Button -->
-			<button
-				type="button"
-				onclick={handleExportToDocs}
-				class="bg-primary rounded-md border border-base px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-hover-solid"
-			>
-				Export to Docs
-			</button>
+			<Button variant="outline" onclick={handleExportToDocs}>Export to Docs</Button>
 
 			<!-- Export to Blog Button -->
-			<button
-				type="button"
-				onclick={handleExportToBlog}
-				class="rounded-md bg-accent-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
-			>
-				Export to Blog
-			</button>
+			<Button variant="primary" onclick={handleExportToBlog}>Export to Blog</Button>
 		</div>
 	</div>
 
@@ -230,7 +214,7 @@
 	<!-- Footer with metadata -->
 	<div class="border-t border-base px-inbox-container py-system-header">
 		<div class="flex items-center justify-between text-label text-tertiary">
-			<div class="flex items-center gap-2">
+			<div class="flex items-center gap-icon">
 				<span>
 					Created {new Date(inboxItem.createdAt).toLocaleDateString()}
 				</span>
@@ -242,7 +226,9 @@
 			</div>
 
 			{#if inboxItem.blogCategory === 'BLOG'}
-				<span class="rounded bg-accent-primary px-badge py-badge text-label font-medium text-white">
+				<span
+					class="rounded-chip bg-accent-primary px-badge py-badge text-label font-medium text-primary"
+				>
 					BLOG
 				</span>
 			{/if}

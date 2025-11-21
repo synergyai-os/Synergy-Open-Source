@@ -27,7 +27,7 @@
 
 **Leading Indicators** (Early signals):
 
-- [ ] Randy actively uses all 4 workspaces daily (SynergyAI, Saprolab, ZDHC, PurposePilot)
+- [ ] Randy actively uses all 4 workspaces daily (SynergyAI, Agency Partner, Client, PurposePilot)
 - [ ] Workspace switching happens 10+ times per day (shows value)
 - [ ] Content stays isolated (no accidental cross-posting)
 - [ ] Randy reports "feels organized, not overwhelming"
@@ -55,7 +55,7 @@
 This project adds multi-workspace support to SynergyOS, enabling:
 
 - **Personal workspaces** (private content)
-- **Organizations** (SynergyAI, Saprolab, ZDHC, PurposePilot)
+- **Organizations** (SynergyAI, Agency Partner, Client, PurposePilot)
 - **Teams** within organizations (future)
 - **Fast workspace switching** (CMD+1/2/3, CMD+K)
 - **Multi-account linking** (use different emails)
@@ -87,10 +87,10 @@ User: randyhereman@gmail.com
 │   ├─ Org glossary (ownershipType = "organization")
 │   └─ 👥 Team: Product (future)
 │
-├─ 🏢 Saprolab (Organization)
-│   └─ ZDHC project docs
+├─ 🏢 Agency Partner (Organization)
+│   └─ Client project docs
 │
-└─ 🏢 ZDHC (Organization)
+└─ 🏢 Client (Organization)
     └─ Regulatory compliance notes
 ```
 
@@ -191,7 +191,7 @@ All work is tracked in Linear:
 ### Definition of Done (DoD)
 
 - [ ] All 7 vertical slices complete
-- [ ] Randy can create 4 orgs (SynergyAI, Saprolab, ZDHC, PurposePilot)
+- [ ] Randy can create 4 orgs (SynergyAI, Agency Partner, Client, PurposePilot)
 - [ ] Workspace switching works (CMD+1/2/3/4/5)
 - [ ] CMD+K workspace search works
 - [ ] Content stays isolated per workspace

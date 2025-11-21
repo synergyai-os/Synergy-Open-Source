@@ -357,6 +357,40 @@ const filtered = $derived(items); // ✅ No redundant check
 
 ---
 
+## #L700: Component Class Prop Not Reactive - Use $derived [🔴 CRITICAL]
+
+**Symptom**: Component classes don't update when prop changes (e.g., selected state, conditional styling)  
+**Root Cause**: Class string concatenation using template literals isn't reactive. When `className` prop changes, the concatenated class string doesn't recompute.  
+**Fix**:
+
+```svelte
+<!-- ❌ WRONG: Template literal not reactive -->
+<script>
+  let { className = '' }: Props = $props();
+  const cardClasses = `rounded-card bg-elevated ${className}`; // ❌ Doesn't update when className changes
+</script>
+
+<div class={cardClasses}>...</div>
+
+<!-- ✅ CORRECT: Use $derived for reactive class computation -->
+<script>
+  let { className = '' }: Props = $props();
+  const cardClasses = $derived(`rounded-card bg-elevated ${className}`); // ✅ Updates when className changes
+</script>
+
+<div class={cardClasses}>...</div>
+```
+
+**Why**: `$derived` tracks dependencies (like `className` prop) and recomputes when they change. Regular template literals are computed once at initialization.  
+**Apply when**: 
+- Component receives `className` prop that should update classes reactively
+- Conditional styling based on props (selected state, variants, etc.)
+- Any class string that depends on reactive values
+
+**Related**: #L10 (Reactive state patterns), #L440 ($derived vs $effect)
+
+---
+
 ## #L400: SSR-Unsafe Browser Libraries (ProseMirror, Monaco, etc.) [🔴 CRITICAL]
 
 **Symptom**: 500 Server Error, "ReferenceError: window is not defined" during SSR  

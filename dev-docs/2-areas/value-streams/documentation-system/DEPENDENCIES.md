@@ -232,7 +232,7 @@ const results = fuse.search(query);
 
 ---
 
-### 2. Partner Onboarding (Saprolab, ZDHC)
+### 2. Partner Onboarding (Agency Partner, Client)
 
 **Who**: First paying customers
 

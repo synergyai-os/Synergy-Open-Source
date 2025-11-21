@@ -69,13 +69,18 @@
 		if (!organizations) return [];
 		return organizations.organizationInvites ?? [];
 	});
-	const teamInvites = $derived(() => {
-		if (!organizations) return [];
-		return organizations.teamInvites ?? [];
-	});
 	const organizationSummaries = $derived(() => {
-		if (!organizations) return [];
-		return organizations.organizations ?? [];
+		if (!organizations) {
+			console.log('🔍 [SidebarHeader] No organizations context');
+			return [];
+		}
+		const orgs = organizations.organizations ?? [];
+		console.log('🔍 [SidebarHeader] Organization summaries:', {
+			hasOrganizations: !!organizations,
+			orgsLength: orgs.length,
+			orgs: orgs.map((o) => ({ id: o?.organizationId, name: o?.name }))
+		});
+		return orgs;
 	});
 	const activeOrganizationId = $derived(() => {
 		if (!organizations) return null;
@@ -103,7 +108,6 @@
 				activeOrganizationId={activeOrganizationId()}
 				activeOrganization={activeOrganization()}
 				organizationInvites={organizationInvites()}
-				teamInvites={teamInvites()}
 				{accountEmail}
 				accountName={workspaceName}
 				{linkedAccounts}
@@ -117,8 +121,6 @@
 				onAcceptOrganizationInvite={(code) => organizations?.acceptOrganizationInvite(code)}
 				onDeclineOrganizationInvite={(inviteId) =>
 					organizations?.declineOrganizationInvite(inviteId)}
-				onAcceptTeamInvite={(code) => organizations?.acceptTeamInvite(code)}
-				onDeclineTeamInvite={(inviteId) => organizations?.declineTeamInvite(inviteId)}
 				onSettings={() => onSettings?.()}
 				onInviteMembers={() => onInviteMembers?.()}
 				onSwitchWorkspace={() => onSwitchWorkspace?.()}

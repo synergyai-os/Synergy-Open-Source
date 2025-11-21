@@ -19,7 +19,7 @@ Core product vision, strategy, and positioning documents that define what we're 
 
 Who we're building for, their problems, and how we solve them.
 
-- **[Target Personas](./audience/target-personas.md)** - Buyer (Saprolab), Users (Saprolab + ZDHC), System personas
+- **[Target Personas](./audience/target-personas.md)** - Buyer (Agency Partner), Users (Agency Partner + Client), System personas
 - **[Success Signals](./audience/success-signals.md)** - How we know we're winning (usage, feedback, contributions)
 
 ### Go-to-Market
@@ -79,7 +79,7 @@ See **[VISION-MIGRATION.md](./VISION-MIGRATION.md)** for details on what changed
 ## 🧭 Philosophy
 
 **Built by one developer, AI, and a keyboard**  
-No VC funding. No deadlines. Just rapid iterations, outcome-driven development, and a commitment to open source. When partners like Saprolab validate the vision, we invest more.
+No VC funding. No deadlines. Just rapid iterations, outcome-driven development, and a commitment to open source. When partners like Agency Partner validate the vision, we invest more.
 
 **Community-first, privacy-first**  
 Open source. Offline-capable. Self-hostable. Your data, your AI, your privacy.
@@ -103,4 +103,4 @@ These documents are living artifacts. As we learn, we update them. If you're con
 **Last Updated**: November 7, 2025  
 **Status**: Active Development  
 **Budget**: $60/month (Cursor AI)  
-**First Partner**: Saprolab (targeting ZDHC team)
+**First Partner**: Agency Partner (targeting Client team)

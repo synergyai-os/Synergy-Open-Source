@@ -832,7 +832,7 @@ function handleSwitchAccount(targetUserId: string) {
 }
 
 // Called elsewhere:
-handleSwitchAccount(userId, '/inbox?org=saprolab-id');
+handleSwitchAccount(userId, '/inbox?org=Agency Partner-id');
 //                           ^^^^^^^^^^^^^^^^^^^^^^^^
 //                           This parameter is silently LOST!
 

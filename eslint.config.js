@@ -6,8 +6,10 @@ import svelte from 'eslint-plugin-svelte';
 import { defineConfig } from 'eslint/config';
 import globals from 'globals';
 import ts from 'typescript-eslint';
+import eslintPluginBetterTailwindcss from 'eslint-plugin-better-tailwindcss';
 import svelteConfig from './svelte.config.js';
 import noCrossModuleImports from './eslint-rules/no-cross-module-imports.js';
+import noFeatureComponentsInComponents from './eslint-rules/no-feature-components-in-components.js';
 
 const gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));
 
@@ -37,8 +39,16 @@ export default defineConfig(
 		plugins: {
 			synergyos: {
 				rules: {
-					'no-cross-module-imports': noCrossModuleImports
+					'no-cross-module-imports': noCrossModuleImports,
+					'no-feature-components-in-components': noFeatureComponentsInComponents
 				}
+			},
+			'better-tailwindcss': eslintPluginBetterTailwindcss
+		},
+		settings: {
+			'better-tailwindcss': {
+				// Tailwind CSS 4: path to the entry file of the CSS-based Tailwind config
+				entryPoint: 'src/app.css'
 			}
 		},
 		rules: {
@@ -59,7 +69,31 @@ export default defineConfig(
 			// Enforce module boundaries - prevent cross-module imports
 			// Modules should communicate via API contracts, not direct imports
 			// See: dev-docs/2-areas/architecture/modularity-refactoring-analysis.md
-			'synergyos/no-cross-module-imports': 'error'
+			'synergyos/no-cross-module-imports': 'error',
+			// Enforce component organization - prevent feature components in @components
+			// Only atomic building blocks (atoms, molecules, organisms) belong in @components
+			// Feature components belong in modules
+			// See: dev-docs/2-areas/design/component-architecture.md
+			'synergyos/no-feature-components-in-components': 'error',
+			// Design System Governance: Block hardcoded Tailwind values (e.g., min-h-[2.75rem])
+			// Use design tokens instead (e.g., min-h-button)
+			// See: dev-docs/2-areas/design/design-tokens.md
+			'better-tailwindcss/no-restricted-classes': [
+				'error',
+				{
+					restrict: [
+						{
+							// Block arbitrary values like [2.75rem], [12px], [#fff]
+							// Pattern matches [value] but NOT variants like hover:[value]
+							pattern: '^\\[([^\\[\\]]*?)\\](?!:)',
+							message:
+								'Hardcoded Tailwind value detected. Use design tokens instead (e.g., min-h-[2.75rem] → min-h-button). See: dev-docs/2-areas/design/design-tokens.md'
+						}
+					]
+				}
+			],
+			// Enforce consistent class order (readability)
+			'better-tailwindcss/sort-classes': 'warn'
 		}
 	},
 	{
@@ -95,7 +129,9 @@ export default defineConfig(
 		files: ['**/*.test.ts', '**/*.spec.ts', 'tests/**/*.ts', 'e2e/**/*.ts'],
 		rules: {
 			'@typescript-eslint/no-explicit-any': 'off',
-			'@typescript-eslint/no-unused-vars': 'warn'
+			'@typescript-eslint/no-unused-vars': 'warn',
+			// Allow hardcoded values in test files (ESLint allows it for test mocks)
+			'better-tailwindcss/no-restricted-classes': 'off'
 		}
 	},
 	{

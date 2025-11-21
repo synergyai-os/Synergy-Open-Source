@@ -15,7 +15,7 @@ type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 export interface UseInboxItemsParams {
 	sessionId: () => string | undefined; // Required: Function returning sessionId from authenticated session
 	activeOrganizationId?: (() => string | null) | string | null; // Function or value for reactivity
-	activeTeamId?: (() => string | null) | string | null; // Function or value for reactivity
+	activeCircleId?: (() => string | null) | string | null; // Function or value for reactivity
 }
 
 export interface UseInboxItemsReturn {
@@ -47,7 +47,7 @@ export function useInboxItems(params?: UseInboxItemsParams): UseInboxItemsReturn
 							processed: boolean;
 							filterType?: string;
 							organizationId?: Id<'organizations'> | null;
-							teamId?: Id<'teams'>;
+							circleId?: Id<'circles'>;
 						};
 					}
 
@@ -56,7 +56,7 @@ export function useInboxItems(params?: UseInboxItemsParams): UseInboxItemsReturn
 						processed: boolean;
 						filterType?: string;
 						organizationId?: Id<'organizations'> | null;
-						teamId?: Id<'teams'>;
+						circleId?: Id<'circles'>;
 					} = {
 						sessionId, // Required for session validation
 						processed: false
@@ -75,13 +75,13 @@ export function useInboxItems(params?: UseInboxItemsParams): UseInboxItemsReturn
 						baseArgs.organizationId = orgId as Id<'organizations'> | null;
 					}
 
-					const teamId =
-						typeof params?.activeTeamId === 'function'
-							? params.activeTeamId()
-							: params?.activeTeamId;
-					if (teamId) {
+					const circleId =
+						typeof params?.activeCircleId === 'function'
+							? params.activeCircleId()
+							: params?.activeCircleId;
+					if (circleId) {
 						// Cast to Id type for type safety
-						baseArgs.teamId = teamId as Id<'teams'>;
+						baseArgs.circleId = circleId as Id<'circles'>;
 					}
 
 					// Add type filter if not 'all'

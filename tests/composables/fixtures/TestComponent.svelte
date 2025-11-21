@@ -11,9 +11,7 @@
 	import type {
 		UseOrganizations,
 		OrganizationSummary,
-		OrganizationInvite,
-		TeamInvite,
-		TeamSummary
+		OrganizationInvite
 	} from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
 
 	// Setup Convex client for testing (required by convex-svelte)
@@ -26,17 +24,13 @@
 		sessionId: sessionIdProp = () => undefined,
 		orgFromUrl: orgFromUrlProp = () => null,
 		initialOrganizations = [],
-		initialOrganizationInvites = [],
-		initialTeamInvites = [],
-		initialTeams = []
+		initialOrganizationInvites = []
 	}: {
 		userId?: () => string | undefined;
 		sessionId?: () => string | undefined;
 		orgFromUrl?: () => string | null;
 		initialOrganizations?: OrganizationSummary[];
 		initialOrganizationInvites?: OrganizationInvite[];
-		initialTeamInvites?: TeamInvite[];
-		initialTeams?: TeamSummary[];
 	} = $props();
 
 	// Create reactive wrappers that call the prop functions
@@ -50,9 +44,7 @@
 		sessionId,
 		orgFromUrl,
 		initialOrganizations,
-		initialOrganizationInvites,
-		initialTeamInvites,
-		initialTeams
+		initialOrganizationInvites
 	});
 
 	// Expose composable instance for testing via getter

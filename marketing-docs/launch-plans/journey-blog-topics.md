@@ -311,7 +311,7 @@
 - The choice: VC funding vs. open source + first partner
 - Why open source: Trust, customization, community, no pressure
 - The trade-off: Slower growth, but sustainable
-- The outcome: Saprolab validates, funds development, no strings attached
+- The outcome: Agency Partner validates, funds development, no strings attached
 - Key lesson: Open source is a business model, not just a philosophy
 
 **Target Persona**: Founders, Community
@@ -362,7 +362,7 @@
 
 **Outline**:
 
-- Milestone 1: First paying customer (Saprolab)
+- Milestone 1: First paying customer (Agency Partner)
 - Milestone 2: Profitability ($X/month)
 - Milestone 3: 3+ customers
 - What I learned: Open source + managed service = viable business model
@@ -520,7 +520,7 @@
 - Topic 9: Onboarding new members is painful
 - Topic 25: Why outcomes > outputs
 
-### For IT Buyers (Saprolab)
+### For IT Buyers (Agency Partner)
 
 - Topic 16: Why I chose open source over VC funding
 - Topic 19: Revenue milestones and what I learned

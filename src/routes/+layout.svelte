@@ -1,5 +1,5 @@
 <script lang="ts">
-	import '../app.css';
+	import '../styles/app.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { PUBLIC_CONVEX_URL, PUBLIC_POSTHOG_HOST, PUBLIC_POSTHOG_KEY } from '$env/static/public';
 	import { browser } from '$app/environment';
@@ -7,8 +7,13 @@
 	import { beforeNavigate, afterNavigate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { setupConvex, useConvexClient } from 'convex-svelte';
+	import { BitsConfig } from 'bits-ui';
 
 	let { children, data } = $props();
+
+	// Detect browser locale for date formatting (defaults to en-GB for European format)
+	// Future: Add user preference toggle like theme, store in localStorage/Convex
+	const detectedLocale = $derived(browser && navigator.language ? navigator.language : 'en-GB');
 
 	// Set up Convex client
 	setupConvex(PUBLIC_CONVEX_URL);
@@ -113,7 +118,9 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-{@render children()}
+<BitsConfig defaultPortalTo="body" defaultLocale={detectedLocale}>
+	{@render children()}
+</BitsConfig>
 
 <!-- Toast notifications - positioned top-right, styled with design tokens -->
 <!-- Loaded client-side only to avoid SSR issues with svelte-sonner -->

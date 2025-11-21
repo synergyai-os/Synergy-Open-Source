@@ -25,8 +25,8 @@ Use **CMD+1/2/3/4/5** for direct workspace switching.
 ```
 CMD+1 → Personal workspace (always)
 CMD+2 → First organization (e.g., SynergyAI)
-CMD+3 → Second organization (e.g., Saprolab)
-CMD+4 → Third organization (e.g., ZDHC)
+CMD+3 → Second organization (e.g., Agency Partner)
+CMD+4 → Third organization (e.g., Client)
 CMD+5 → Fourth organization (e.g., PurposePilot)
 ...and so on
 ```
@@ -183,8 +183,8 @@ Show shortcuts in workspace switcher:
 ┌─────────────────────────────────────┐
 │  ● Private workspace         CMD+1  │
 │  ○ SynergyAI                 CMD+2  │
-│  ○ Saprolab                  CMD+3  │
-│  ○ ZDHC                      CMD+4  │
+│  ○ Agency Partner                  CMD+3  │
+│  ○ Client                      CMD+4  │
 │  ○ PurposePilot              CMD+5  │
 └─────────────────────────────────────┘
 ```

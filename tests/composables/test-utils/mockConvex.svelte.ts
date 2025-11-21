@@ -9,9 +9,7 @@ import { vi } from 'vitest';
 import type { ConvexClient } from '$lib/types/convex';
 import type {
 	OrganizationSummary,
-	OrganizationInvite,
-	TeamInvite,
-	TeamSummary
+	OrganizationInvite
 } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
 
 /**
@@ -129,52 +127,6 @@ export function createMockOrganizationInvites(): OrganizationInvite[] {
 }
 
 /**
- * Mock team invites data for tests
- */
-export function createMockTeamInvites(): TeamInvite[] {
-	return [
-		{
-			inviteId: 'team-invite-1',
-			teamId: 'team-1',
-			teamName: 'Test Team',
-			organizationId: 'org-1',
-			organizationName: 'Test Organization 1',
-			role: 'member',
-			invitedBy: 'user-1',
-			invitedByName: 'Test User',
-			code: 'TEAM-INVITE-CODE-1',
-			createdAt: Date.now()
-		}
-	];
-}
-
-/**
- * Mock teams data for tests
- */
-export function createMockTeams(): TeamSummary[] {
-	return [
-		{
-			teamId: 'team-1',
-			organizationId: 'org-1',
-			name: 'Test Team 1',
-			slug: 'test-team-1',
-			memberCount: 3,
-			role: 'admin',
-			joinedAt: Date.now()
-		},
-		{
-			teamId: 'team-2',
-			organizationId: 'org-1',
-			name: 'Test Team 2',
-			slug: 'test-team-2',
-			memberCount: 2,
-			role: 'member',
-			joinedAt: Date.now()
-		}
-	];
-}
-
-/**
  * Global mock state for convex-svelte hooks
  * Used by test files to configure mocks before importing composables
  */
@@ -182,8 +134,6 @@ let globalMockClient: ConvexClient | null = null;
 let globalQueryResults: {
 	organizations?: MockQueryResult<OrganizationSummary[]>;
 	organizationInvites?: MockQueryResult<OrganizationInvite[]>;
-	teamInvites?: MockQueryResult<TeamInvite[]>;
-	teams?: MockQueryResult<TeamSummary[]>;
 } = {};
 
 /**
@@ -195,8 +145,6 @@ export function setupConvexMocks(
 	queryResults: {
 		organizations?: MockQueryResult<OrganizationSummary[]>;
 		organizationInvites?: MockQueryResult<OrganizationInvite[]>;
-		teamInvites?: MockQueryResult<TeamInvite[]>;
-		teams?: MockQueryResult<TeamSummary[]>;
 	} = {}
 ) {
 	globalMockClient = mockClient;
@@ -231,12 +179,6 @@ export function __getMockQueryResult(queryFn: unknown): MockQueryResult<unknown>
 			globalQueryResults.organizationInvites ??
 			createMockQueryResult(createMockOrganizationInvites())
 		);
-	}
-	if (queryName.includes('listTeamInvites')) {
-		return globalQueryResults.teamInvites ?? createMockQueryResult(createMockTeamInvites());
-	}
-	if (queryName.includes('listTeams')) {
-		return globalQueryResults.teams ?? createMockQueryResult(createMockTeams());
 	}
 
 	// Default: return loading state

@@ -45,7 +45,7 @@ export type AnalyticsEventPayloads = {
 		scope: 'organization';
 		fromOrganizationId?: string;
 		toOrganizationId: string;
-		availableTeamCount: number;
+		availableCircleCount: number;
 	};
 	[AnalyticsEventName.TEAM_CREATED]: {
 		scope: 'team';

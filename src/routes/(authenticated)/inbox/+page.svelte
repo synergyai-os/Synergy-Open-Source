@@ -14,8 +14,8 @@
 	import InboxHeader from '$lib/modules/inbox/components/InboxHeader.svelte';
 	import SyncReadwiseConfig from '$lib/modules/inbox/components/SyncReadwiseConfig.svelte';
 	import SyncProgressTracker from '$lib/modules/inbox/components/SyncProgressTracker.svelte';
-	import ResizableSplitter from '$lib/components/ResizableSplitter.svelte';
-	import Loading from '$lib/components/Loading.svelte';
+	import ResizableSplitter from '$lib/components/organisms/ResizableSplitter.svelte';
+	import Loading from '$lib/components/atoms/Loading.svelte';
 	import FlashcardFAB from '$lib/modules/flashcards/components/FlashcardFAB.svelte';
 	import FlashcardReviewModal from '$lib/modules/inbox/components/FlashcardReviewModal.svelte';
 	import { useInboxSync } from '$lib/modules/inbox/composables/useInboxSync.svelte';
@@ -34,7 +34,8 @@
 	// Get workspace context (functions for reactivity)
 	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
 	const activeOrganizationId = () => organizations?.activeOrganizationId ?? null;
-	const activeTeamId = () => organizations?.activeTeamId ?? null;
+	// Circle context not yet implemented in organizations module
+	const activeCircleId = () => null;
 
 	// Convex client setup
 	const convexClient = browser ? useConvexClient() : null;
@@ -85,7 +86,7 @@
 	const items = useInboxItems({
 		sessionId: getSessionId, // Required for session validation - function ensures reactivity
 		activeOrganizationId: activeOrganizationId, // Pass function for reactivity
-		activeTeamId: activeTeamId // Pass function for reactivity
+		activeCircleId: activeCircleId // Pass function for reactivity
 	});
 
 	// Initialize selected item composable
@@ -153,31 +154,55 @@
 		() => clearSelection()
 	);
 
+	// Create local $derived values to ensure proper dependency tracking
+	// Accessing getters that return $derived values in $effect can miss dependency tracking
+	// Creating local $derived values ensures Svelte tracks the underlying reactive dependencies
+	const itemsLoading = $derived(items.isLoading);
+	const itemsList = $derived(items.filteredItems);
+	const syncConfigVisible = $derived(sync.showSyncConfig);
+	const syncProgressState = $derived(sync.syncProgress);
+	const syncInProgress = $derived(sync.isSyncing);
+
+	// Derived values for selected item to ensure template reactivity
+	const selectedItemId = $derived(selected.selectedItemId);
+	const selectedItem = $derived(selected.selectedItem);
+	const hasSelectedItem = $derived(selectedItem && selectedItemId);
+
 	// Automatically select the first inbox item when none is active
 	$effect(() => {
 		if (!browser || !autoSelectState.enabled) {
 			return;
 		}
 
-		if (sync.showSyncConfig || sync.syncProgress || sync.isSyncing) {
+		// Access local $derived values to ensure dependency tracking
+		// These $derived values track the getters, which track the underlying reactive state
+		const isLoading = itemsLoading;
+		const currentItems = itemsList;
+		const showSyncConfig = syncConfigVisible;
+		const syncProgress = syncProgressState;
+		const isSyncing = syncInProgress;
+
+		// Don't auto-select if sync UI is showing or syncing
+		if (showSyncConfig || syncProgress || isSyncing) {
 			return;
 		}
 
-		const currentItems = items.filteredItems;
+		// Wait for items to finish loading
+		if (isLoading) {
+			return;
+		}
+
 		if (currentItems.length === 0) {
 			return;
 		}
 
-		const selectedId = selected.selectedItemId;
-		const hasSelectedInList = selectedId
-			? currentItems.some((item) => item._id === selectedId)
-			: false;
+		// Access derived value to ensure reactivity
+		const currentSelectedId = selectedItemId;
 
-		if (hasSelectedInList) {
-			return;
+		// If no item selected, or selected item not in current list, select first item
+		if (!currentSelectedId || !currentItems.some((item) => item._id === currentSelectedId)) {
+			selectItem(currentItems[0]._id);
 		}
-
-		selectItem(currentItems[0]._id);
 	});
 
 	// Derive sidebar state from context
@@ -393,10 +418,10 @@
 	<!-- Success message for linked account -->
 	{#if showLinkedSuccess}
 		<div
-			class="fixed top-4 right-4 z-50 flex items-center gap-icon rounded-lg border border-accent-primary bg-elevated px-4 py-3 shadow-lg"
+			class="fixed top-content-section right-content-section z-50 flex items-center gap-icon rounded-card border border-accent-primary bg-elevated px-button-x py-inbox-card shadow-card"
 		>
 			<svg
-				class="h-5 w-5 flex-shrink-0 text-accent-primary"
+				class="icon-md flex-shrink-0 text-accent-primary"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -408,7 +433,7 @@
 					d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
 				/>
 			</svg>
-			<span class="text-sm font-medium text-primary"
+			<span class="text-small font-medium text-primary"
 				>Account linked successfully! You can now switch between your accounts.</span
 			>
 			<button
@@ -417,10 +442,10 @@
 					url.searchParams.delete('linked');
 					replaceState(url.pathname + url.search, {});
 				}}
-				class="ml-2 text-secondary transition-colors hover:text-primary"
+				class="ml-icon text-secondary transition-colors hover:text-primary"
 				aria-label="Dismiss"
 			>
-				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -462,20 +487,20 @@
 
 				<!-- Inbox Items List - Scrollable -->
 				<div class="flex-1 overflow-y-auto">
-					<div class="p-inbox-container">
+					<div class="px-inbox-container py-inbox-container">
 						{#if items.isLoading}
 							<!-- Loading State -->
 							<Loading message="Loading inbox items..." />
 						{:else if items.queryError}
 							<!-- Error State -->
 							<div class="py-readable-quote text-center">
-								<p class="mb-4 text-error">
+								<p class="mb-content-section text-error">
 									Failed to load inbox items: {items.queryError.toString()}
 								</p>
 								<button
 									type="button"
 									onclick={() => window.location.reload()}
-									class="rounded-md bg-accent-primary px-4 py-2 text-white transition-colors hover:bg-accent-hover"
+									class="rounded-button bg-accent-primary px-button-x py-button-y text-primary transition-colors hover:bg-accent-hover"
 								>
 									Reload Page
 								</button>
@@ -483,20 +508,22 @@
 						{:else if items.filteredItems.length === 0}
 							<!-- Empty State -->
 							<div class="py-readable-quote text-center">
-								<p class="mb-4 text-secondary">No items in inbox.</p>
+								<p class="mb-content-section text-secondary">No items in inbox.</p>
 								<button
 									type="button"
 									onclick={sync.handleSyncClick}
 									disabled={sync.isSyncing}
-									class="rounded-md bg-accent-primary px-4 py-2 text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+									class="rounded-button bg-accent-primary px-button-x py-button-y text-primary transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
 								>
 									{sync.isSyncing ? 'Syncing...' : 'Sync Readwise Highlights'}
 								</button>
 								{#if sync.syncError}
-									<p class="mt-2 text-sm text-error">{sync.syncError}</p>
+									<p class="mt-marketing-text text-small text-error">{sync.syncError}</p>
 								{/if}
 								{#if sync.syncSuccess}
-									<p class="text-success mt-2 text-sm">Sync completed successfully!</p>
+									<p class="mt-marketing-text text-small text-success">
+										Sync completed successfully!
+									</p>
 								{/if}
 							</div>
 						{:else}
@@ -505,7 +532,7 @@
 								{#each items.filteredItems as item (item._id)}
 									<InboxCard
 										{item}
-										selected={selected.selectedItemId === item._id}
+										selected={selectedItemId === item._id}
 										onClick={() => selectItem(item._id)}
 									/>
 								{/each}
@@ -518,39 +545,35 @@
 
 		<!-- Right Panel - Detail View -->
 		<div class="relative flex-1 overflow-y-auto bg-elevated">
-			{#if selected.selectedItem && selected.selectedItemId}
+			{#if hasSelectedItem}
 				<!-- Dynamic detail view based on type -->
 				<!-- Key on selectedItem._id ensures remount only when actual data changes (prevents stale data) -->
-				{#key selected.selectedItem._id}
-					{#if selected.selectedItem.type === 'readwise_highlight'}
+				{#key selectedItem._id}
+					{#if selectedItem.type === 'readwise_highlight'}
 						<ReadwiseDetail
-							inboxItemId={selected.selectedItemId}
-							item={selected.selectedItem}
+							inboxItemId={selectedItemId}
+							item={selectedItem}
 							onClose={() => clearSelection()}
 							currentIndex={keyboard.getCurrentItemIndex()}
 							totalItems={items.filteredItems.length}
 							onNext={keyboard.handleNextItem}
 							onPrevious={keyboard.handlePreviousItem}
 						/>
-					{:else if selected.selectedItem.type === 'note'}
-						<NoteDetail inboxItem={selected.selectedItem} onClose={() => clearSelection()} />
-					{:else if selected.selectedItem.type === 'photo_note'}
-						<PhotoDetail item={selected.selectedItem} onClose={() => clearSelection()} />
-					{:else if selected.selectedItem.type === 'manual_text'}
-						<ManualDetail item={selected.selectedItem} onClose={() => clearSelection()} />
+					{:else if selectedItem.type === 'note'}
+						<NoteDetail inboxItem={selectedItem} onClose={() => clearSelection()} />
+					{:else if selectedItem.type === 'photo_note'}
+						<PhotoDetail item={selectedItem} onClose={() => clearSelection()} />
+					{:else if selectedItem.type === 'manual_text'}
+						<ManualDetail item={selectedItem} onClose={() => clearSelection()} />
 					{/if}
 				{/key}
 
 				<!-- Flashcard FAB - Only show for Readwise-synced highlights (not manual highlights) -->
-				{#if browser && selected.selectedItem?.type === 'readwise_highlight' && selected.selectedItem?.highlight?.lastSyncedAt}
-					<FlashcardFAB
-						selectedItemId={selected.selectedItemId}
-						{isGenerating}
-						onClick={handleGenerateFlashcards}
-					/>
+				{#if browser && selectedItem?.type === 'readwise_highlight' && selectedItem?.highlight?.lastSyncedAt}
+					<FlashcardFAB {selectedItemId} {isGenerating} onClick={handleGenerateFlashcards} />
 					{#if generationError}
 						<div
-							class="absolute bottom-24 left-1/2 z-50 max-w-md -translate-x-1/2 rounded-md bg-red-600 px-menu-item py-menu-item text-center text-sm text-white shadow-lg"
+							class="absolute bottom-content-padding left-1/2 z-50 max-w-md -translate-x-1/2 rounded-button bg-error px-menu-item py-menu-item text-center text-small text-primary shadow-card"
 						>
 							{generationError}
 						</div>
@@ -570,41 +593,37 @@
 				/>
 			{:else}
 				<!-- Empty state -->
-				<div class="p-inbox-container py-12 text-center">
-					<div class="mb-4 text-6xl">📮</div>
+				<div class="px-inbox-container py-readable-quote text-center">
+					<div class="mb-content-section text-h1">📮</div>
 					<p class="text-secondary">Select an item to view details</p>
 				</div>
 			{/if}
 		</div>
 	{:else}
 		<!-- Mobile: List OR Detail (not both) -->
-		{#if selected.selectedItemId}
+		{#if selectedItemId}
 			<!-- Mobile Detail View - Full Screen -->
 			<div class="relative h-full w-full flex-1 overflow-y-auto bg-elevated">
-				{#if selected.selectedItem}
+				{#if selectedItem}
 					<!-- Key on selectedItem._id ensures remount only when actual data changes (prevents stale data) -->
-					{#key selected.selectedItem._id}
-						{#if selected.selectedItem.type === 'readwise_highlight'}
-							<ReadwiseDetail item={selected.selectedItem} onClose={() => clearSelection()} />
-						{:else if selected.selectedItem.type === 'note'}
-							<NoteDetail inboxItem={selected.selectedItem} onClose={() => clearSelection()} />
-						{:else if selected.selectedItem.type === 'photo_note'}
-							<PhotoDetail item={selected.selectedItem} onClose={() => clearSelection()} />
-						{:else if selected.selectedItem.type === 'manual_text'}
-							<ManualDetail item={selected.selectedItem} onClose={() => clearSelection()} />
+					{#key selectedItem._id}
+						{#if selectedItem.type === 'readwise_highlight'}
+							<ReadwiseDetail item={selectedItem} onClose={() => clearSelection()} />
+						{:else if selectedItem.type === 'note'}
+							<NoteDetail inboxItem={selectedItem} onClose={() => clearSelection()} />
+						{:else if selectedItem.type === 'photo_note'}
+							<PhotoDetail item={selectedItem} onClose={() => clearSelection()} />
+						{:else if selectedItem.type === 'manual_text'}
+							<ManualDetail item={selectedItem} onClose={() => clearSelection()} />
 						{/if}
 					{/key}
 
 					<!-- Flashcard FAB - Only show for Readwise-synced highlights (not manual highlights) -->
-					{#if browser && selected.selectedItem?.type === 'readwise_highlight' && selected.selectedItem?.highlight?.lastSyncedAt}
-						<FlashcardFAB
-							selectedItemId={selected.selectedItemId}
-							{isGenerating}
-							onClick={handleGenerateFlashcards}
-						/>
+					{#if browser && selectedItem?.type === 'readwise_highlight' && selectedItem?.highlight?.lastSyncedAt}
+						<FlashcardFAB {selectedItemId} {isGenerating} onClick={handleGenerateFlashcards} />
 						{#if generationError}
 							<div
-								class="absolute bottom-24 left-1/2 z-50 max-w-md -translate-x-1/2 rounded-md bg-red-600 px-menu-item py-menu-item text-center text-sm text-white shadow-lg"
+								class="absolute bottom-content-padding left-1/2 z-50 max-w-md -translate-x-1/2 rounded-button bg-error px-menu-item py-menu-item text-center text-small text-primary shadow-card"
 							>
 								{generationError}
 							</div>
@@ -634,20 +653,20 @@
 
 				<!-- Inbox Items List - Scrollable -->
 				<div class="flex-1 overflow-y-auto">
-					<div class="p-inbox-container">
+					<div class="px-inbox-container py-inbox-container">
 						{#if items.isLoading}
 							<!-- Loading State -->
 							<Loading message="Loading inbox items..." />
 						{:else if items.queryError}
 							<!-- Error State -->
 							<div class="py-readable-quote text-center">
-								<p class="mb-4 text-error">
+								<p class="mb-content-section text-error">
 									Failed to load inbox items: {items.queryError.toString()}
 								</p>
 								<button
 									type="button"
 									onclick={() => window.location.reload()}
-									class="rounded-md bg-accent-primary px-4 py-2 text-white transition-colors hover:bg-accent-hover"
+									class="rounded-button bg-accent-primary px-button-x py-button-y text-primary transition-colors hover:bg-accent-hover"
 								>
 									Reload Page
 								</button>
@@ -655,20 +674,22 @@
 						{:else if items.filteredItems.length === 0}
 							<!-- Empty State -->
 							<div class="py-readable-quote text-center">
-								<p class="mb-4 text-secondary">No items in inbox.</p>
+								<p class="mb-content-section text-secondary">No items in inbox.</p>
 								<button
 									type="button"
 									onclick={sync.handleSyncClick}
 									disabled={sync.isSyncing}
-									class="rounded-md bg-accent-primary px-4 py-2 text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+									class="rounded-button bg-accent-primary px-button-x py-button-y text-primary transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
 								>
 									{sync.isSyncing ? 'Syncing...' : 'Sync Readwise Highlights'}
 								</button>
 								{#if sync.syncError}
-									<p class="mt-2 text-sm text-error">{sync.syncError}</p>
+									<p class="mt-marketing-text text-small text-error">{sync.syncError}</p>
 								{/if}
 								{#if sync.syncSuccess}
-									<p class="text-success mt-2 text-sm">Sync completed successfully!</p>
+									<p class="mt-marketing-text text-small text-success">
+										Sync completed successfully!
+									</p>
 								{/if}
 							</div>
 						{:else}

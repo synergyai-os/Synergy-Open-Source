@@ -82,22 +82,22 @@
 
 	<!-- Modal -->
 	<div
-		class="fixed inset-0 z-50 flex items-center justify-center p-4"
+		class="p-card fixed inset-0 z-50 flex items-center justify-center"
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="dialog-title"
 	>
 		<div
-			class="bg-surface-base w-full max-w-md rounded-lg border border-border-base p-6 shadow-lg"
+			class="max-w-dialog-md w-full rounded-dialog border border-border-base bg-surface p-modal-padding shadow-card"
 			role="document"
 		>
 			<!-- Header -->
-			<h2 id="dialog-title" class="text-xl font-semibold text-text-primary">
+			<h2 id="dialog-title" class="text-h2 font-semibold text-text-primary">
 				Secretary Change Request
 			</h2>
 
 			<!-- Content -->
-			<div class="mt-4 text-sm text-text-secondary">
+			<div class="text-body-sm mt-content-section text-text-secondary">
 				<span class="text-text-primary">{request.requestedByName}</span>
 				requests to change the secretary to
 				<span class="text-text-primary">{request.requestedForName}</span>.
@@ -106,12 +106,12 @@
 			</div>
 
 			<!-- Actions -->
-			<div class="mt-6 flex justify-end gap-3">
+			<div class="mt-section-gap flex justify-end gap-button-group">
 				<button
 					type="button"
 					onclick={handleDeny}
 					disabled={isProcessing}
-					class="hover:bg-surface-hover rounded-md border border-border-base px-4 py-2 text-sm font-medium text-text-secondary transition-colors disabled:opacity-50"
+					class="hover:bg-surface-hover rounded-button border border-border-base px-button-x py-button-y text-button font-medium text-text-secondary transition-colors disabled:opacity-50"
 				>
 					Deny
 				</button>
@@ -119,7 +119,7 @@
 					type="button"
 					onclick={handleApprove}
 					disabled={isProcessing}
-					class="rounded-md bg-accent-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
+					class="rounded-button bg-accent-primary px-button-x py-button-y text-button font-medium text-primary transition-colors hover:bg-accent-hover disabled:opacity-50"
 				>
 					{isProcessing ? 'Processing...' : 'Approve'}
 				</button>

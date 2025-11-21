@@ -10,15 +10,13 @@
 
 import type {
 	OrganizationSummary,
-	OrganizationInvite,
-	TeamInvite,
-	TeamSummary
+	OrganizationInvite
 } from './composables/useOrganizations.svelte';
 
 /**
- * Modal keys for organization and team modals
+ * Modal keys for organization modals
  */
-export type ModalKey = 'createOrganization' | 'joinOrganization' | 'createTeam' | 'joinTeam';
+export type ModalKey = 'createOrganization' | 'joinOrganization';
 
 /**
  * Modal state object
@@ -26,8 +24,6 @@ export type ModalKey = 'createOrganization' | 'joinOrganization' | 'createTeam' 
 export type ModalState = {
 	createOrganization: boolean;
 	joinOrganization: boolean;
-	createTeam: boolean;
-	joinTeam: boolean;
 };
 
 /**
@@ -76,21 +72,6 @@ export interface OrganizationsModuleAPI {
 	get organizationInvites(): OrganizationInvite[];
 
 	/**
-	 * List of pending team invites for the user
-	 */
-	get teamInvites(): TeamInvite[];
-
-	/**
-	 * List of teams in the active organization
-	 */
-	get teams(): TeamSummary[];
-
-	/**
-	 * Currently active team ID (null if no team selected)
-	 */
-	get activeTeamId(): string | null;
-
-	/**
 	 * Modal state (which modals are open)
 	 */
 	get modals(): ModalState;
@@ -101,8 +82,6 @@ export interface OrganizationsModuleAPI {
 	get loading(): {
 		createOrganization: boolean;
 		joinOrganization: boolean;
-		createTeam: boolean;
-		joinTeam: boolean;
 	};
 
 	/**
@@ -145,12 +124,6 @@ export interface OrganizationsModuleAPI {
 	setActiveOrganization(organizationId: string | null): void;
 
 	/**
-	 * Switch to a different team within the active organization
-	 * @param teamId - Team ID to switch to, or null to clear team selection
-	 */
-	setActiveTeam(teamId: string | null): void;
-
-	/**
 	 * Open a modal dialog
 	 * @param key - Modal key to open
 	 */
@@ -177,20 +150,6 @@ export interface OrganizationsModuleAPI {
 	joinOrganization(payload: { code: string }): Promise<void>;
 
 	/**
-	 * Create a new team in the active organization
-	 * @param payload - Team creation payload
-	 * @param payload.name - Team name
-	 */
-	createTeam(payload: { name: string }): Promise<void>;
-
-	/**
-	 * Join a team by invite code
-	 * @param payload - Join team payload
-	 * @param payload.code - Invite code
-	 */
-	joinTeam(payload: { code: string }): Promise<void>;
-
-	/**
 	 * Accept an organization invite
 	 * @param inviteId - Invite ID
 	 */
@@ -201,16 +160,4 @@ export interface OrganizationsModuleAPI {
 	 * @param inviteId - Invite ID
 	 */
 	declineOrganizationInvite(inviteId: string): Promise<void>;
-
-	/**
-	 * Accept a team invite
-	 * @param inviteId - Invite ID
-	 */
-	acceptTeamInvite(inviteId: string): Promise<void>;
-
-	/**
-	 * Decline a team invite
-	 * @param inviteId - Invite ID
-	 */
-	declineTeamInvite(inviteId: string): Promise<void>;
 }

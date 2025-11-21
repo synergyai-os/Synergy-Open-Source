@@ -18,7 +18,7 @@
 		>
 			<!-- Back Arrow Icon -->
 			<svg
-				class="h-4 w-4 flex-shrink-0"
+				class="icon-sm flex-shrink-0"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
