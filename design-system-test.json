@@ -93,7 +93,7 @@
 		},
 
 		"spacing": {
-			"scale": "8px base unit (0.5rem)",
+			"scale": "4px base unit (0.25rem)",
 			"values": {
 				"xs": "4px",
 				"sm": "8px",

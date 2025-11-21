@@ -19,7 +19,7 @@
 
 ## Command Usage
 
-```
+```text
 /task-template [SYOS-XXX] or [description]
 ```
 
@@ -165,7 +165,9 @@ For each approach:
 - [ ] Step 3: [Description]
 - ...
 
-**Order matters**: Dependencies first, then build.
+### Order Matters
+
+Dependencies first, then build.
 
 ---
 

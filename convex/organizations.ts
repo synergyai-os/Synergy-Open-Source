@@ -661,7 +661,7 @@ export const recordOrganizationSwitch = mutation({
 	args: {
 		fromOrganizationId: v.optional(v.id('organizations')),
 		toOrganizationId: v.id('organizations'),
-		availableTeamCount: v.number()
+		availableCircleCount: v.number()
 	},
 	handler: async () => {
 		// Silently skip analytics tracking if session not available - non-critical, shouldn't break UX
@@ -680,7 +680,7 @@ export const recordOrganizationSwitch = mutation({
 		//     scope: "organization",
 		//     fromOrganizationId: args.fromOrganizationId ?? undefined,
 		//     toOrganizationId: args.toOrganizationId,
-		//     availableTeamCount: args.availableTeamCount,
+		//     availableCircleCount: args.availableCircleCount,
 		//   },
 		// });
 	}

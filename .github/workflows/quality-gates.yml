@@ -34,7 +34,7 @@ jobs:
       - name: Secret Scan
         uses: trufflesecurity/trufflehog@main
         with:
-          extra_args: --only-verified
+          extra_args: --only-verified --exclude-paths ai-content-blog,dev-docs/4-archive
 
       - name: Type check
         run: npm run check

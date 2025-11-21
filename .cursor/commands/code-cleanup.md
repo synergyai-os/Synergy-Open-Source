@@ -19,7 +19,7 @@
 
 ## Command Usage
 
-```
+```shell
 /code-cleanup [SYOS-XXX] or [description]
 ```
 
@@ -72,20 +72,20 @@
 
 1. **Search for unused imports**:
 
-   ```typescript
+   ```shell
    // Use grep to find imports
    // Check if imported symbols are used
    ```
 
 2. **Search for unused functions**:
 
-   ```typescript
+   ```shell
    // Use grep to find function definitions
    // Check if functions are called anywhere
    ```
 
 3. **Search for unused files**:
-   ```typescript
+   ```shell
    // List files in directory
    // Check if files are imported anywhere
    ```
@@ -98,7 +98,7 @@
 
 **Example**:
 
-```
+```text
 Found dead code:
 - src/lib/utils/oldHelper.ts - Not imported anywhere
 - src/lib/components/OldButton.svelte - Not used in any component
@@ -130,7 +130,7 @@ Found dead code:
 
 **Example**:
 
-```
+```text
 Function: oldHelper()
 - Searched codebase: No direct imports ✅
 - Searched tests: Not used ✅
@@ -162,7 +162,7 @@ Function: oldHelper()
 
 **Example**:
 
-```
+```text
 File: src/lib/utils/oldHelper.ts
 - Exported from: src/lib/utils/index.ts
 - Check: Is index.ts export used? No ✅
@@ -196,7 +196,7 @@ File: src/lib/utils/oldHelper.ts
 
 **Example**:
 
-```
+```text
 Step 1: Remove unused imports from FileA.svelte
 → Test: No errors ✅
 Step 2: Remove unused function from FileB.ts
@@ -231,7 +231,7 @@ Step 3: Remove unused file oldHelper.ts
 
 **Example**:
 
-```
+```text
 After cleanup:
 - ✅ TypeScript check passes
 - ✅ Tests pass
@@ -270,7 +270,7 @@ After cleanup:
 
 **Step 1: Identify**
 
-```
+```text
 AI: Searches for unused imports
 AI: Finds: 5 files with unused useState, useEffect imports
 AI: Finds: oldHelper.ts file not imported anywhere
@@ -279,7 +279,7 @@ AI: Documents: "Found 5 unused imports + 1 unused file"
 
 **Step 2: Verify**
 
-```
+```text
 AI: Checks if oldHelper.ts is used anywhere
 AI: Searches codebase: No imports ✅
 AI: Searches tests: Not used ✅
@@ -288,7 +288,7 @@ AI: Verified: Safe to remove ✅
 
 **Step 3: Check Dependencies**
 
-```
+```text
 AI: Checks if oldHelper.ts is exported
 AI: Checks if exports are used: No ✅
 AI: Safe to remove file ✅
@@ -296,7 +296,7 @@ AI: Safe to remove file ✅
 
 **Step 4: Remove**
 
-```
+```text
 AI: Removes unused imports from FileA.svelte
 AI: Tests: No errors ✅
 AI: Removes unused imports from FileB.svelte
@@ -307,7 +307,7 @@ AI: Tests: No errors ✅
 
 **Step 5: Verify**
 
-```
+```text
 AI: Runs TypeScript check: Passes ✅
 AI: Runs tests: Pass ✅
 AI: Manual test: Feature works ✅
@@ -315,7 +315,7 @@ AI: Manual test: Feature works ✅
 
 **Step 6: Document**
 
-```
+```text
 AI: Documents cleanup in ticket
 AI: "Removed 5 unused imports (Svelte 5 migration) + 1 unused file"
 AI: Marks ticket ready for validation

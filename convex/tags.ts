@@ -43,19 +43,6 @@ export interface TagWithHierarchy {
  * Helper: Build hierarchical tag tree structure
  * Groups tags by parent and returns a flat list with hierarchy level
  */
-export interface TagWithHierarchy {
-	_id: Id<'tags'>;
-	userId: Id<'users'>;
-	name: string;
-	displayName: string;
-	color: string;
-	parentId: Id<'tags'> | undefined;
-	externalId: number | undefined;
-	createdAt: number;
-	level: number; // Depth in hierarchy (0 = root level)
-	children?: TagWithHierarchy[];
-}
-
 function buildTagTree(tags: Doc<'tags'>[]): TagWithHierarchy[] {
 	const tagMap = new Map<Id<'tags'>, TagWithHierarchy>();
 	const rootTags: TagWithHierarchy[] = [];
@@ -343,6 +330,12 @@ export const createTag = mutation({
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const ownership = args.ownership ?? 'organization'; // Default to organization (not user)
+
+		// Defensive validation: reject mismatched ownership/circleId combinations
+		if (ownership !== 'circle' && args.circleId) {
+			throw new Error('circleId is only allowed when ownership is "circle"');
+		}
+
 		let organizationId: Id<'organizations'> | undefined = undefined;
 		let circleId: Id<'circles'> | undefined = undefined;
 
@@ -470,6 +463,9 @@ export const createTag = mutation({
 						throw new Error('Parent tag does not belong to current user scope');
 					}
 				}
+				// NOTE: Parent tags must match organizationId and circleId exactly
+				// This strict validation may reject legacy data with mismatched parent-child relationships
+				// If legacy data issues arise, consider adding migration logic or relaxing these checks
 				if (parentTag.organizationId !== organizationId) {
 					throw new Error('Parent tag must belong to the same organization');
 				}
@@ -610,6 +606,7 @@ export const shareTag = mutation({
 		// Validate sharing parameters
 		let organizationId: Id<'organizations'> | undefined = undefined;
 		let circleId: Id<'circles'> | undefined = undefined;
+		let circleDoc: Doc<'circles'> | null = null; // Hoisted for reuse in logging
 
 		if (args.shareWith === 'organization') {
 			if (!args.organizationId) {
@@ -644,13 +641,15 @@ export const shareTag = mutation({
 			}
 
 			// Get circle to verify it exists and get organization
-			const circle = await ctx.db.get(args.circleId);
-			if (!circle) {
+			circleDoc = await ctx.db.get(args.circleId);
+			if (!circleDoc) {
 				throw new Error('Circle not found');
 			}
 
 			circleId = args.circleId;
-			organizationId = circle.organizationId;
+			// NOTE: This may move tags across organizations if user is member of circle in different org
+			// Cross-organization transfers are allowed as long as user has access to both organizations
+			organizationId = circleDoc.organizationId;
 		}
 
 		// Check for naming conflicts in target scope
@@ -702,9 +701,8 @@ export const shareTag = mutation({
 			}
 		}
 
-		// Get organization/circle details for analytics
+		// Get organization details for analytics (circleDoc already fetched above if needed)
 		const organization = organizationId ? await ctx.db.get(organizationId) : null;
-		const circleDoc = circleId ? await ctx.db.get(circleId) : null;
 
 		// TODO: Capture analytics event
 		// For now, log to console for testing

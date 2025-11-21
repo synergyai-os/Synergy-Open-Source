@@ -152,6 +152,47 @@ describe('RBAC Permission System', () => {
 		});
 
 		expect(canCreate).toBe(false);
+
+		// Test: Circle-scoped permission using circleId (not resourceOwnerId)
+		// Create organization and circle for circle-scoped role test
+		const orgId = await t.run(async (ctx) => {
+			return await ctx.db.insert('organizations', {
+				name: 'Test Org',
+				slug: `test-org-${Date.now()}`,
+				createdAt: Date.now(),
+				updatedAt: Date.now(),
+				plan: 'starter'
+			});
+		});
+
+		const circleId = await t.run(async (ctx) => {
+			return await ctx.db.insert('circles', {
+				organizationId: orgId,
+				name: 'Test Circle',
+				slug: `test-circle-${Date.now()}`,
+				createdAt: Date.now(),
+				updatedAt: Date.now()
+			});
+		});
+
+		// Assign Circle Lead role scoped to the circle
+		await t.run(async (ctx) => {
+			await ctx.db.insert('userRoles', {
+				userId: circleLeadId,
+				roleId,
+				circleId, // Circle-scoped role
+				assignedBy: circleLeadId,
+				assignedAt: Date.now()
+			});
+		});
+
+		// Test: Circle Lead CAN update circle when using circleId context
+		const canUpdateWithCircleId = await t.run(async (ctx) => {
+			const { hasPermission } = await import('./permissions');
+			return await hasPermission(ctx, circleLeadId, 'circles.update', { circleId });
+		});
+
+		expect(canUpdateWithCircleId).toBe(true);
 	});
 
 	test('Multi-role user has permissions from all roles', async () => {
@@ -240,7 +281,7 @@ describe('RBAC Permission System', () => {
 		// Seed RBAC data
 		await t.mutation(api['rbac/seedRBAC'].seedRBAC, {});
 
-		// Assign Member role (cannot create teams)
+		// Assign Member role (cannot create circles)
 		const roleId = await t.run(async (ctx) => {
 			const role = await ctx.db
 				.query('roles')

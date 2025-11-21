@@ -1,6 +1,6 @@
 # Cost Analysis: Task Templates vs Linear MCP
 
-> **Question**: What's more cost-effective - using MCP with Linear or writing markdown doc templates for tasks?
+> **Question**: What's more cost-effective - using MCP with Linear or writing Markdown doc templates for tasks?
 
 ---
 
@@ -28,12 +28,12 @@
 
 **Costs**:
 - **File System**: ✅ **FREE** (just writing files)
-- **Token Cost**: ~2000-5000 tokens to generate markdown document
+- **Token Cost**: ~2000-5000 tokens to generate Markdown document
 
 **Total Token Cost per Task Doc**: ~2,000-5,000 tokens
 
 **Workflow**:
-1. Generate markdown task document (AI)
+1. Generate Markdown task document (AI)
 2. Save to `ai-docs/tasks/` folder
 3. ❌ **Manual step**: Create Linear ticket separately (or skip tracking)
 

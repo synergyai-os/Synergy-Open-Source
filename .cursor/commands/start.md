@@ -120,13 +120,26 @@ Once I have a ticket ID, I'll proceed with the work.
 
 ## ✅ If Ticket ID Present - Continue Onboarding
 
-**Update ticket status to "In Progress":**
+**Update ticket status to "In Progress" (only if still in pre-start state):**
 
 ```typescript
-await mcp_Linear_update_issue({
-	id: 'SYOS-XXX', // Use the ticket ID from conversation
-	state: 'In Progress'
-});
+// Get current ticket to check state
+const ticket = await mcp_Linear_get_issue({ id: 'SYOS-XXX' }); // Use the ticket ID from conversation
+
+// Only update to "In Progress" if ticket is still in a pre-start state
+// Pre-start states: Todo, Backlog (or similar initial states)
+// Skip update if: Done/Cancelled (terminal) or In Review/In Progress (already progressed)
+const preStartStates = ['Todo', 'Backlog']; // Add other initial states as needed
+const currentState = ticket.state?.name || ticket.state;
+
+if (preStartStates.includes(currentState)) {
+	// Only update if still in pre-start state (avoids regressing Done/Cancelled/In Review tickets)
+	await mcp_Linear_update_issue({
+		id: 'SYOS-XXX',
+		state: 'In Progress'
+	});
+}
+// If ticket is already Done/Cancelled/In Review/In Progress, skip status update and continue onboarding
 ```
 
 **Then continue with onboarding below...**

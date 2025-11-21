@@ -225,14 +225,12 @@ alwaysApply: true
 
 **Quick Reference** (for daily work):
 
-- `dev-docs/2-areas/design/design-system-daily-work-cheatsheet.md` - Daily development cheat sheet
 - `dev-docs/2-areas/design/design-tokens.md` - Complete token reference + governance rules
 
 **Comprehensive Guides** (for deep understanding):
 
-- `dev-docs/2-areas/design/design-system-master-readme.md` - Complete artifact package overview
-- `dev-docs/2-areas/design/design-system-checklist.json` - Machine-readable current state checklist
-- `dev-docs/2-areas/design/design-system-audit-template.md` - Systematic audit guide
+- `./design-system-checklist.json` - Machine-readable current state checklist (repo root)
+- `dev-docs/2-areas/design/audit-guide.md` - Systematic audit guide
 
 **Atomic Design Structure** (SYOS-405 - in progress):
 

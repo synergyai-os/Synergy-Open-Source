@@ -30,7 +30,10 @@
 | `/test-manual`       | 1 line    | 45 lines   | +44 lines  | ✅ Enhanced - Concise manual test instructions                    |
 | `/task-template`     | New       | 382 lines  | N/A        | ✅ New command - Pre-coding analysis workflow                     |
 
-**Net Change**: ~384 lines removed (626 from `/save` - 174 to `/root-cause` - 148 to `/start`) + 954 lines added (77 to `/linear` + 179 to `/linear-subtickets` + 204 to `/branch` + 450 to `/manager` + 44 to `/test-manual`)
+**Net Change**: +570 lines total
+
+- Removed: 384 lines (626 from `/save` - 174 to `/root-cause` - 122 to `/start`)
+- Added: 954 lines (77 to `/linear` + 179 to `/linear-subtickets` + 204 to `/branch` + 450 to `/manager` + 44 to `/test-manual`)
 
 ---
 

@@ -57,7 +57,7 @@ export function useOrganizationAnalytics(
 		if (!targetOrgId) return;
 
 		const targetOrg = list.find((org) => org.organizationId === targetOrgId);
-		const availableTeamCount = targetOrg?.teamCount ?? 0;
+		const availableCircleCount = targetOrg?.teamCount ?? 0; // TODO: Replace teamCount with circleCount when available
 
 		// Analytics tracking (non-critical, skip if not ready)
 		if (convexClient) {
@@ -70,10 +70,10 @@ export function useOrganizationAnalytics(
 			const mutationArgs: {
 				fromOrganizationId?: Id<'organizations'>;
 				toOrganizationId: Id<'organizations'>;
-				availableTeamCount: number;
+				availableCircleCount: number;
 			} = {
 				toOrganizationId: targetOrgId as Id<'organizations'>,
-				availableTeamCount
+				availableCircleCount
 			};
 
 			if (previousOrganizationId) {
@@ -94,7 +94,7 @@ export function useOrganizationAnalytics(
 				const properties: Record<string, unknown> = {
 					scope: 'organization',
 					toOrganizationId: targetOrgId,
-					availableTeamCount
+					availableCircleCount
 				};
 
 				if (previousOrganizationId) {

@@ -19,7 +19,7 @@
 
 ## Command Usage
 
-```
+```text
 /code-review [SYOS-XXX] or [file paths]
 ```
 
@@ -66,7 +66,9 @@
    - What's the user impact?
    - What dependencies exist?
 
-**Why**: Can't review code without understanding the goal.
+### Why
+
+Can't review code without understanding the goal.
 
 **Example**:
 
@@ -181,7 +183,7 @@ Architecture Check:
 
 **Example**:
 
-```
+```text
 Code Quality Check:
 - ✅ No `any` types
 - ✅ All `{#each}` blocks have keys
@@ -252,7 +254,7 @@ Issues Found:
 
 **Example**:
 
-```
+```text
 Suggestions:
 1. Use existing FileUpload utility (src/lib/utils/fileUpload.ts) instead of custom component
 2. Add error handling for upload failures (show user-friendly error)
@@ -319,7 +321,7 @@ Suggestions:
 
 **Step 1: Understand**
 
-```
+```text
 AI: Reads ticket SYOS-123
 AI: Understands: Adding image uploads to chat
 AI: Reviews: ImageUpload.svelte, ChatWindow.svelte changes

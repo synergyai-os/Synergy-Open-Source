@@ -127,11 +127,15 @@ async function performCleanup(ctx: MutationCtx) {
 
 				// Find matching assignment based on scoping
 				const existing = allKeptRoleAssignments.find((ur) => {
-					if (assignment.organizationId) {
-						return ur.organizationId === assignment.organizationId && !ur.circleId;
-					}
+					// Circle-scoped: match on both org and circle when present
 					if (assignment.circleId) {
-						return ur.circleId === assignment.circleId;
+						return (
+							ur.circleId === assignment.circleId && ur.organizationId === assignment.organizationId
+						);
+					}
+					// Org-only scoped: org set, no circle
+					if (assignment.organizationId && !assignment.circleId) {
+						return ur.organizationId === assignment.organizationId && !ur.circleId;
 					}
 					// Global role - no org/circle
 					return !ur.organizationId && !ur.circleId;

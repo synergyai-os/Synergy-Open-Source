@@ -73,7 +73,7 @@ Use `sessionId: v.string()` + destructure `{ userId }`
 ```
 
 **ai-docs/reference/** contains:
-```
+```text
 /vercel-ai-sdk-chat/
   /src/
     /components/
@@ -93,7 +93,7 @@ Use `sessionId: v.string()` + destructure `{ userId }`
 
 **Implementation**:
 
-```
+```text
 /ai-docs/
   /reference/
     /vercel-ai-sdk-chat/        # Complete working chat project
@@ -104,7 +104,7 @@ Use `sessionId: v.string()` + destructure `{ userId }`
 ```
 
 **Usage Pattern**:
-```
+```text
 User: "Add image uploads to chat using Vercel AI SDK"
 AI: [Loads reference project from ai-docs/reference/vercel-ai-sdk-chat/]
     → Analyzes complete implementation
@@ -169,7 +169,7 @@ Create `.cursor/commands/task-template.md`:
 
 ## Usage
 
-```
+```text
 @task-template.md Create a new feature: [description]
 ```
 
@@ -272,13 +272,14 @@ globs: ['**/*.ts', '**/*.tsx']
 
 Create `.cursor/rules/BUILDING-RULES.md`:
 
-**File Structure**:
-```
+### File Structure
+
+```markdown
 # Building Cursor Rules Iteratively
 
 ## Process (Different from /save)
 
-**When AI makes a mistake:**
+### When AI makes a mistake
 
 1. **AI makes mistake** → Identify the error
 2. **Ask AI**: "Create/update a cursor rule to prevent this"
@@ -286,20 +287,23 @@ Create `.cursor/rules/BUILDING-RULES.md`:
 4. **Test**: AI should follow rule in next attempt
 5. **Iterate**: Update rule if needed
 
-**Difference from /save**:
+### Difference from /save
+
 - `/save` = Document solution AFTER problem (reactive)
 - Rule building = Prevent mistake BEFORE coding (proactive)
 
 ## Rule Format
 
-**YAML Frontmatter**:
+### YAML Frontmatter
+
 ```yaml
 ---
 globs: ['**/*.ts', '**/*.tsx']  # Which files apply
 ---
 ```
 
-**Rule Content**:
+### Rule Content
+
 - **Problem**: What mistake are we preventing?
 - **Bad Example**: What NOT to do
 - **Good Example**: What TO do instead
@@ -313,18 +317,22 @@ globs: ['**/*.ts', '**/*.tsx']  # Which files apply
 - **Globs**: `['**/*.ts', '**/*.tsx']`
 - **Result**: Rule automatically prevents `any` in future code generation
 
-**Integration with `/save`**:
+### Integration with `/save`
 
-**When to use `/save`** (Reactive):
+#### When to use `/save` (Reactive)
+
 - Problem solved → Document solution → Lookup later
 
-**When to use Rule Building** (Proactive):
+#### When to use Rule Building (Proactive)
+
 - AI makes mistake → Create rule → Prevent future mistakes
 
-**Both can happen**:
+#### Both can happen
+
 1. AI makes mistake → Create rule (preventive)
 2. Problem occurs → Document pattern with `/save` (reactive)
 3. Rule prevents future mistakes, pattern documents solution
+```
 
 **Action Items**:
 - [ ] Create `.cursor/rules/BUILDING-RULES.md`
@@ -385,16 +393,18 @@ globs: ['**/*.ts', '**/*.tsx']  # Which files apply
 - Need validation and gap identification
 - Structured workflow coordination
 
-**Proposed Implementation**:
+### Proposed Implementation
 
 Add to `.cursor/commands/README.md`:
 
-**Manual Multitasking** (Brandon's approach):
+#### Manual Multitasking (Brandon's approach)
+
 - One task per chat window (`Cmd+T`)
 - User manages windows manually
 - Review code as it comes in
 
-**Automated Coordination** (`/manager`):
+#### Automated Coordination (`/manager`)
+
 - Manager analyzes dependencies
 - Manager recommends parallel work
 - Manager validates completion
@@ -589,12 +599,14 @@ Create `.cursor/SHORTCUTS.md`:
 
 ### How They Work Together
 
-**Option 1: Separate Workflows**
+#### Option 1: Separate Workflows
+
 1. Generate task document (deep analysis)
 2. Use task document to implement code
 3. Create Linear ticket separately for tracking
 
-**Option 2: Integrated Workflow**
+#### Option 2: Integrated Workflow
+
 1. Generate task document (deep analysis)
 2. Convert task document to Linear ticket format
 3. Create Linear ticket with full analysis included

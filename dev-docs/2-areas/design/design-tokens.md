@@ -356,28 +356,28 @@ Our spacing scale is based on a 4px base unit (0.25rem):
 ```html
 <!-- Text button with design tokens -->
 <button class="rounded-button bg-accent-primary px-button-x py-button-y text-button text-white min-h-button">
-	Click me
+  Click me
 </button>
 
 <!-- Icon-only button (square padding, same height) -->
 <button class="rounded-button bg-elevated p-button-icon min-h-button">
-	<svg class="icon-md">...</svg>
+  <svg class="icon-md">...</svg>
 </button>
 
 <!-- Using the Button component (recommended) -->
 <Button variant="primary" href="/login">Login</Button>
 <Button variant="secondary" iconOnly ariaLabel="Download">
-	<svg class="icon-md">...</svg>
+  <svg class="icon-md">...</svg>
 </Button>
 ```
 
-**See**: Button component (`src/lib/components/ui/Button.svelte`) for standardized button implementation.
+**See**: Button component (`src/lib/components/atoms/Button.svelte`) for standardized button implementation.
 
 ---
 
 ## Component Tokens (SYOS-353 - Nov 2025)
 
-**✨ NEW TOKENS FOR ATOMIC COMPONENTS**
+### ✨ NEW TOKENS FOR ATOMIC COMPONENTS
 
 These tokens were added as part of the Design System Foundation (SYOS-353, SYOS-355, SYOS-356) to align with `design-system-test.json` specifications.
 
@@ -395,7 +395,7 @@ These tokens were added as part of the Design System Foundation (SYOS-353, SYOS-
 
 ```html
 <div class="rounded-card shadow-card hover:shadow-card-hover px-card py-card bg-elevated">
-	Card content here
+  Card content here
 </div>
 ```
 
@@ -411,7 +411,7 @@ These tokens were added as part of the Design System Foundation (SYOS-353, SYOS-
 
 ```html
 <span class="rounded-badge text-badge bg-tag text-tag px-badge py-badge">
-	New
+  New
 </span>
 ```
 
@@ -428,7 +428,7 @@ These tokens were added as part of the Design System Foundation (SYOS-353, SYOS-
 - **Badge**: Status labels, system indicators, non-removable tags
 - **Chip**: Filter pills, removable tags, interactive labels with delete functionality
 
-**Context7 Validation**: Material UI, Chakra UI, and Shadcn UI all distinguish between Badge (static) and Chip/Tag (interactive removable).
+**Context 7 validation**: Material UI, Chakra UI, and Shadcn UI all distinguish between Badge (static) and Chip/Tag (interactive removable).
 
 | Token                  | Utility Class  | Value           | Usage              |
 | ---------------------- | -------------- | --------------- | ------------------ |

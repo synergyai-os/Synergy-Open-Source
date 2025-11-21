@@ -280,6 +280,10 @@ export const getRBACAnalytics = query({
 		const allPermissions = await ctx.db.query('permissions').collect();
 		const allRolePermissions = await ctx.db.query('rolePermissions').collect();
 
+		// Build lookup maps to avoid N+1 queries
+		const rolesById = new Map(allRoles.map((r) => [r._id, r]));
+		const permsById = new Map(allPermissions.map((p) => [p._id, p]));
+
 		const now = Date.now();
 
 		// Filter active assignments (not revoked, not expired)
@@ -296,7 +300,7 @@ export const getRBACAnalytics = query({
 		>();
 
 		for (const assignment of activeAssignments) {
-			const role = await ctx.db.get(assignment.roleId);
+			const role = rolesById.get(assignment.roleId);
 			if (!role) continue;
 
 			const existing = roleDistribution.get(role.slug) || {
@@ -333,7 +337,7 @@ export const getRBACAnalytics = query({
 		// Permission usage stats
 		const permissionUsage = new Map<string, number>();
 		for (const rp of allRolePermissions) {
-			const permission = await ctx.db.get(rp.permissionId);
+			const permission = permsById.get(rp.permissionId);
 			if (!permission) continue;
 
 			const existing = permissionUsage.get(permission.slug) || 0;

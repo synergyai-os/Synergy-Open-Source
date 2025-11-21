@@ -78,6 +78,7 @@
 | E2E test times out filling Bits UI PinInput (verification codes)                                  | Target hidden input [data-pin-input-input] not visual cells                  | [ui-patterns.md#L2750](ui-patterns.md#L2750)                        |
 | E2E tests fail with 429, rate limit tests only register 1-2 attempts instead of 5                 | Use X-Test-ID header for isolated rate limit buckets                         | [ci-cd.md#L330](ci-cd.md#L330)                                      |
 | Tests pass with --workers=1 but fail in parallel with "Expected: 429, Received: 401"               | Remove global beforeEach cleanup, rely on unique testIds for isolation      | [ci-cd.md#L340](ci-cd.md#L340)                                      |
+| Pre-commit hook reports errors but doesn't block commits, exit 1 inside while loop doesn't work   | Use process substitution with flag variable, exit in main shell after loop | [ci-cd.md#L1850](ci-cd.md#L1850)                                    |
 | Feature flags visible to all users when no targeting rules configured                              | Default to false when no targeting rules, require explicit configuration   | [convex-integration.md#L1530](convex-integration.md#L1530)            |
 | Feature flag needs organization-based targeting (multi-tenancy)                                    | Add allowedOrganizationIds field + org membership check                    | [feature-flags.md#L180](feature-flags.md#L180)                        |
 | Admin sidebar visible to non-admin users, or error page shows sidebar                            | Separate checks: page load throws error, layout load returns boolean for conditional UI       | [ui-patterns.md#L4800](ui-patterns.md#L4800)            |
@@ -217,7 +218,10 @@
 | Component used by multiple modules creates cross-module dependencies (Flashcards → Inbox) | Move shared component to core module, expose via CoreModuleAPI, update all consumers | [convex-integration.md#L4100](convex-integration.md#L4100) |
 | Incremental CI gates        | Enable lint/build first, defer type check to separate work  | [ci-cd.md#L10](ci-cd.md#L10)                             |
 | Local CI testing            | npm scripts > shell scripts for consistency                 | [ci-cd.md#L110](ci-cd.md#L110)                           |
-| Secret scanning             | TruffleHog with .secretsignore for safe patterns            | [ci-cd.md#L160](ci-cd.md#L160)                           |
+| Secret scanning             | TruffleHog with .secretsignore for safe patterns            | [ci-cd.md#L160](ci-cd.md#L160)                           |        
+| TypeScript interface declared multiple times in same file (duplicate definitions) | Remove duplicate interface, keep single definition with clear comment | [convex-integration.md#L4250](convex-integration.md#L4250) |
+| Mutation silently ignores mismatched parameter combinations (e.g., circleId when ownership !== 'circle') | Add early defensive validation to reject mismatched combinations with clear error | [convex-integration.md#L4300](convex-integration.md#L4300) |
+| Mutation fetches same data twice (performance issue, unnecessary database queries) | Hoist variable before conditional branch, reuse fetched data instead of fetching again | [convex-integration.md#L4350](convex-integration.md#L4350) |
 
 ---
 
@@ -280,8 +284,8 @@ correct code
 
 ---
 
-**Last Updated**: 2025-11-19
-**Pattern Count**: 97
+**Last Updated**: 2025-11-21
+**Pattern Count**: 100
 **Format Version**: 2.0
 ```
 

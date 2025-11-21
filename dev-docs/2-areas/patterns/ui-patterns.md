@@ -12,7 +12,7 @@
 
 ### Visual Design
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │ [Prev] │ Current Panel (Role Detail)    │
 │ [Layer]│                                 │
@@ -51,50 +51,50 @@
 
 ```css
 @utility panel-stack-base {
-	/* Base panel positioning - MUST be used on all stacking panels */
-	position: fixed;
-	top: 0;
-	right: 0;
-	height: 100vh;
-	width: 100%;
-	background: var(--color-bg-elevated);
-	border-left: 1px solid var(--color-border-base);
-	transition: transform 300ms ease-in-out;
-	z-index: var(--z-index-panel-base);
+  /* Base panel positioning - MUST be used on all stacking panels */
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 100%;
+  background: var(--color-bg-elevated);
+  border-left: 1px solid var(--color-border-base);
+  transition: transform 300ms ease-in-out;
+  z-index: var(--z-index-panel-base);
 }
 
 @utility panel-stack-offset {
-	/* Offset for stacked panel - moves right to show breadcrumb beneath */
-	left: var(--spacing-panel-breadcrumb-width);
-	width: calc(100% - var(--spacing-panel-breadcrumb-width));
+  /* Offset for stacked panel - moves right to show breadcrumb beneath */
+  left: var(--spacing-panel-breadcrumb-width);
+  width: calc(100% - var(--spacing-panel-breadcrumb-width));
 }
 
 @utility panel-breadcrumb-bar {
-	/* Vertical bar showing previous layer name */
-	position: absolute;
-	left: 0;
-	top: 0;
-	bottom: 0;
-	width: var(--spacing-panel-breadcrumb-width);
-	background: var(--color-panel-breadcrumb-bg);
-	border-right: 1px solid var(--color-border-base);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-	transition: background-color 150ms ease;
+  /* Vertical bar showing previous layer name */
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--spacing-panel-breadcrumb-width);
+  background: var(--color-panel-breadcrumb-bg);
+  border-right: 1px solid var(--color-border-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 150ms ease;
 }
 
 @utility panel-breadcrumb-text {
-	/* Vertical text styling for breadcrumb */
-	writing-mode: vertical-rl;
-	transform: rotate(180deg);
-	color: var(--color-panel-breadcrumb-text);
-	font-size: 0.75rem; /* 12px */
-	font-weight: 500;
-	text-transform: uppercase;
-	letter-spacing: 0.05em;
-	user-select: none;
+  /* Vertical text styling for breadcrumb */
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  color: var(--color-panel-breadcrumb-text);
+  font-size: 0.75rem; /* 12px */
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  user-select: none;
 }
 ```
 
@@ -1825,7 +1825,7 @@ keys['Escape'] = (state, dispatch, view: EditorView) => {
 
 **User Flow**:
 
-```
+```text
 C → Modal opens, title focused
 Type → User enters text
 ESC #1 → Title blurs, modal refocuses, tooltip: "Press ESC again to close"
@@ -2903,48 +2903,48 @@ onSwitchAccount={(targetUserId, redirectTo) => {
 ```html
 <!-- app.html - Inject overlay BEFORE Svelte loads -->
 <script>
-	// Similar to theme FOUC prevention
-	(function () {
-		try {
-			const switchingData = sessionStorage.getItem('switchingAccount');
-			if (switchingData) {
-				const data = JSON.parse(switchingData);
-				const accountName = data.accountName || 'workspace';
+  // Similar to theme FOUC prevention
+  (function () {
+    try {
+      const switchingData = sessionStorage.getItem('switchingAccount');
+      if (switchingData) {
+        const data = JSON.parse(switchingData);
+        const accountName = data.accountName || 'workspace';
 
-				// Inject static overlay on DOMContentLoaded
-				document.addEventListener('DOMContentLoaded', function () {
-					const overlay = document.createElement('div');
-					overlay.id = '__switching-overlay';
-					overlay.innerHTML = `
-						<div style="position: fixed; inset: 0; z-index: 9999; 
-						            display: flex; align-items: center; justify-content: center;
-						            background: linear-gradient(...); backdrop-filter: blur(24px);">
-							<!-- Static spinner and text -->
-							<h2>Loading ${accountName}'s workspace</h2>
-						</div>
-					`;
-					document.body.appendChild(overlay);
-					window.__hasStaticOverlay = true;
-				});
-			}
-		} catch (e) {
-			console.warn('Could not check switching state', e);
-		}
-	})();
+        // Inject static overlay on DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', function () {
+          const overlay = document.createElement('div');
+          overlay.id = '__switching-overlay';
+          overlay.innerHTML = `
+            <div style="position: fixed; inset: 0; z-index: 9999; 
+                        display: flex; align-items: center; justify-content: center;
+                        background: linear-gradient(...); backdrop-filter: blur(24px);">
+              <!-- Static spinner and text -->
+              <h2>Loading ${accountName}'s workspace</h2>
+            </div>
+          `;
+          document.body.appendChild(overlay);
+          window.__hasStaticOverlay = true;
+        });
+      }
+    } catch (e) {
+      console.warn('Could not check switching state', e);
+    }
+  })();
 </script>
 ```
 
 ```typescript
 // +layout.svelte - Clean up static overlay when Svelte takes over
 onMount(() => {
-	if (window.__hasStaticOverlay) {
-		const staticOverlay = document.getElementById('__switching-overlay');
-		if (staticOverlay) {
-			staticOverlay.remove();
-		}
-		delete window.__hasStaticOverlay;
-	}
-	// ... rest of onMount logic
+  if (window.__hasStaticOverlay) {
+    const staticOverlay = document.getElementById('__switching-overlay');
+    if (staticOverlay) {
+      staticOverlay.remove();
+    }
+    delete window.__hasStaticOverlay;
+  }
+  // ... rest of onMount logic
 });
 ```
 

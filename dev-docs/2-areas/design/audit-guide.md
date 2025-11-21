@@ -312,7 +312,7 @@ src/lib/components/ui/composites/user-registration-form/
 ```svelte
 <!-- ✅ After: Use design system Button -->
 <script>
-	import { Button } from '$lib/components/ui';
+    import { Button } from '$lib/components/ui';
 </script>
 
 <!-- ❌ Before: Raw HTML in page -->
@@ -383,42 +383,42 @@ Add comprehensive base spacing scale (0-96) + semantic aliases.
 ```css
 /* src/app.css - Add to @theme */
 @theme {
-	/* Base spacing scale (Tailwind-compatible) */
-	--spacing-0: 0;
-	--spacing-px: 1px;
-	--spacing-0.5: 0.125rem; /* 2px */
-	--spacing-1: 0.25rem; /* 4px */
-	--spacing-1.5: 0.375rem; /* 6px */
-	--spacing-2: 0.5rem; /* 8px */
-	--spacing-2.5: 0.625rem; /* 10px */
-	--spacing-3: 0.75rem; /* 12px */
-	--spacing-3.5: 0.875rem; /* 14px */
-	--spacing-4: 1rem; /* 16px */
-	--spacing-5: 1.25rem; /* 20px */
-	--spacing-6: 1.5rem; /* 24px */
-	--spacing-7: 1.75rem; /* 28px */
-	--spacing-8: 2rem; /* 32px */
-	--spacing-9: 2.25rem; /* 36px */
-	--spacing-10: 2.5rem; /* 40px */
-	--spacing-11: 2.75rem; /* 44px */
-	--spacing-12: 3rem; /* 48px */
-	--spacing-14: 3.5rem; /* 56px */
-	--spacing-16: 4rem; /* 64px */
-	--spacing-20: 5rem; /* 80px */
-	--spacing-24: 6rem; /* 96px */
-	--spacing-28: 7rem; /* 112px */
-	--spacing-32: 8rem; /* 128px */
-	--spacing-36: 9rem; /* 144px */
-	--spacing-40: 10rem; /* 160px */
-	--spacing-44: 11rem; /* 176px */
-	--spacing-48: 12rem; /* 192px */
-	--spacing-52: 13rem; /* 208px */
-	--spacing-56: 14rem; /* 224px */
-	--spacing-60: 15rem; /* 240px */
-	--spacing-64: 16rem; /* 256px */
-	--spacing-72: 18rem; /* 288px */
-	--spacing-80: 20rem; /* 320px */
-	--spacing-96: 24rem; /* 384px */
+    /* Base spacing scale (Tailwind-compatible) */
+    --spacing-0: 0;
+    --spacing-px: 1px;
+    --spacing-0.5: 0.125rem; /* 2px */
+    --spacing-1: 0.25rem; /* 4px */
+    --spacing-1.5: 0.375rem; /* 6px */
+    --spacing-2: 0.5rem; /* 8px */
+    --spacing-2.5: 0.625rem; /* 10px */
+    --spacing-3: 0.75rem; /* 12px */
+    --spacing-3.5: 0.875rem; /* 14px */
+    --spacing-4: 1rem; /* 16px */
+    --spacing-5: 1.25rem; /* 20px */
+    --spacing-6: 1.5rem; /* 24px */
+    --spacing-7: 1.75rem; /* 28px */
+    --spacing-8: 2rem; /* 32px */
+    --spacing-9: 2.25rem; /* 36px */
+    --spacing-10: 2.5rem; /* 40px */
+    --spacing-11: 2.75rem; /* 44px */
+    --spacing-12: 3rem; /* 48px */
+    --spacing-14: 3.5rem; /* 56px */
+    --spacing-16: 4rem; /* 64px */
+    --spacing-20: 5rem; /* 80px */
+    --spacing-24: 6rem; /* 96px */
+    --spacing-28: 7rem; /* 112px */
+    --spacing-32: 8rem; /* 128px */
+    --spacing-36: 9rem; /* 144px */
+    --spacing-40: 10rem; /* 160px */
+    --spacing-44: 11rem; /* 176px */
+    --spacing-48: 12rem; /* 192px */
+    --spacing-52: 13rem; /* 208px */
+    --spacing-56: 14rem; /* 224px */
+    --spacing-60: 15rem; /* 240px */
+    --spacing-64: 16rem; /* 256px */
+    --spacing-72: 18rem; /* 288px */
+    --spacing-80: 20rem; /* 320px */
+    --spacing-96: 24rem; /* 384px */
 }
 ```
 
@@ -426,34 +426,36 @@ Add comprehensive base spacing scale (0-96) + semantic aliases.
 
 ```css
 @theme {
-	/* Semantic spacing aliases (component-specific) */
+    /* Semantic spacing aliases (component-specific) */
 
-	/* Button spacing */
-	--spacing-button-padding-sm: var(--spacing-2) var(--spacing-3); /* 8px 12px */
-	--spacing-button-padding-md: var(--spacing-3) var(--spacing-4); /* 12px 16px */
-	--spacing-button-padding-lg: var(--spacing-4) var(--spacing-6); /* 16px 24px */
+    /* Button spacing */
+    --spacing-button-padding-sm: var(--spacing-2) var(--spacing-3); /* 8px 12px */
+    --spacing-button-padding-md: var(--spacing-3) var(--spacing-4); /* 12px 16px */
+    --spacing-button-padding-lg: var(--spacing-4) var(--spacing-6); /* 16px 24px */
 
-	/* Input spacing */
-	--spacing-input-padding: var(--spacing-3); /* 12px */
-	--spacing-input-padding-sm: var(--spacing-2); /* 8px */
-	--spacing-input-padding-lg: var(--spacing-4); /* 16px */
+    /* Input spacing */
+    --spacing-input-padding: var(--spacing-3); /* 12px */
+    --spacing-input-padding-sm: var(--spacing-2); /* 8px */
+    --spacing-input-padding-lg: var(--spacing-4); /* 16px */
 
-	/* Card spacing */
-	--spacing-card-padding: var(--spacing-6); /* 24px */
-	--spacing-card-padding-sm: var(--spacing-4); /* 16px */
-	--spacing-card-padding-lg: var(--spacing-8); /* 32px */
+    /* Card spacing */
+    --spacing-card-padding: var(--spacing-6); /* 24px */
+    --spacing-card-padding-sm: var(--spacing-4); /* 16px */
+    --spacing-card-padding-lg: var(--spacing-8); /* 32px */
 
-	/* Layout spacing */
-	--spacing-section: var(--spacing-16); /* 64px */
-	--spacing-content: var(--spacing-8); /* 32px */
-	--spacing-element: var(--spacing-4); /* 16px */
+    /* Layout spacing */
+    --spacing-section: var(--spacing-16); /* 64px */
+    --spacing-content: var(--spacing-8); /* 32px */
+    --spacing-element: var(--spacing-4); /* 16px */
 
-	/* Component gaps */
-	--spacing-gap-sm: var(--spacing-2); /* 8px */
-	--spacing-gap-md: var(--spacing-4); /* 16px */
-	--spacing-gap-lg: var(--spacing-6); /* 24px */
+    /* Component gaps */
+    --spacing-gap-sm: var(--spacing-2); /* 8px */
+    --spacing-gap-md: var(--spacing-4); /* 16px */
+    --spacing-gap-lg: var(--spacing-6); /* 24px */
 }
 ```
+
+> **⚠️ Important**: Once Phase 4 (Modular CSS Split) is adopted, these spacing tokens should live **only** in `src/styles/00-tokens/spacing.css` and be **removed** from `src/app.css` to avoid duplicate definitions.
 
 #### 3.3 Test Cascade
 
@@ -553,7 +555,7 @@ Split monolithic `src/app.css` into 11 domain-specific files for better maintain
 
 ### Target Structure
 
-```
+```text
 src/styles/
 ├── 00-tokens/
 │   ├── colors.css          # Color token definitions
@@ -590,40 +592,42 @@ mkdir -p src/styles/04-layouts
 ```css
 /* src/styles/00-tokens/colors.css */
 @theme {
-	/* Base colors */
-	--color-primary: oklch(0.5 0.2 250);
-	--color-secondary: oklch(0.6 0.15 200);
-	--color-accent: oklch(0.7 0.18 150);
+    /* Base colors */
+    --color-primary: oklch(0.5 0.2 250);
+    --color-secondary: oklch(0.6 0.15 200);
+    --color-accent: oklch(0.7 0.18 150);
 
-	/* UI colors */
-	--color-background: oklch(1 0 0);
-	--color-surface: oklch(0.98 0 0);
-	--color-foreground: oklch(0.15 0 0);
+    /* UI colors */
+    --color-background: oklch(1 0 0);
+    --color-surface: oklch(0.98 0 0);
+    --color-foreground: oklch(0.15 0 0);
 
-	/* State colors */
-	--color-primary-hover: oklch(0.45 0.22 250);
-	--color-primary-active: oklch(0.4 0.24 250);
-	--color-primary-disabled: oklch(0.7 0.1 250);
+    /* State colors */
+    --color-primary-hover: oklch(0.45 0.22 250);
+    --color-primary-active: oklch(0.4 0.24 250);
+    --color-primary-disabled: oklch(0.7 0.1 250);
 
-	/* etc. */
+    /* etc. */
 }
 ```
 
 #### Step 3: Extract Spacing Tokens
 
+> **⚠️ Migration Note**: When extracting spacing tokens from `src/app.css` (Phase 3) to `src/styles/00-tokens/spacing.css` (Phase 4), ensure you **remove** the spacing scale definitions from `src/app.css` to avoid duplicate definitions. The spacing tokens should live **only** in `00-tokens/spacing.css` once Phase 4 is complete.
+
 ```css
 /* src/styles/00-tokens/spacing.css */
 @theme {
-	/* Base spacing scale (from SYOS-403) */
-	--spacing-0: 0;
-	--spacing-1: 0.25rem;
-	/* ... full scale ... */
-	--spacing-96: 24rem;
+    /* Base spacing scale (from SYOS-403) */
+    --spacing-0: 0;
+    --spacing-1: 0.25rem;
+    /* ... full scale ... */
+    --spacing-96: 24rem;
 
-	/* Semantic aliases */
-	--spacing-button-padding-md: var(--spacing-3) var(--spacing-4);
-	--spacing-card-padding: var(--spacing-6);
-	/* etc. */
+    /* Semantic aliases */
+    --spacing-button-padding-md: var(--spacing-3) var(--spacing-4);
+    --spacing-card-padding: var(--spacing-6);
+    /* etc. */
 }
 ```
 
@@ -632,21 +636,21 @@ mkdir -p src/styles/04-layouts
 ```css
 /* src/styles/00-tokens/typography.css */
 @theme {
-	/* Font families */
-	--font-sans: 'Inter', sans-serif;
-	--font-mono: 'JetBrains Mono', monospace;
+    /* Font families */
+    --font-sans: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
 
-	/* Font sizes */
-	--font-size-xs: 0.75rem;
-	--font-size-sm: 0.875rem;
-	--font-size-base: 1rem;
-	--font-size-lg: 1.125rem;
-	/* etc. */
+    /* Font sizes */
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    /* etc. */
 
-	/* Semantic typography */
-	--font-heading-xl: var(--font-size-5xl) var(--font-sans) 700;
-	--font-body-md: var(--font-size-base) var(--font-sans) 400;
-	/* etc. */
+    /* Semantic typography */
+    --font-heading-xl: var(--font-size-5xl) var(--font-sans) 700;
+    --font-body-md: var(--font-size-base) var(--font-sans) 400;
+    /* etc. */
 }
 ```
 
@@ -680,13 +684,13 @@ import adapter from '@sveltejs/adapter-auto';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 export default {
-	preprocess: vitePreprocess(),
-	kit: {
-		adapter: adapter(),
-		alias: {
-			'@styles': 'src/styles'
-		}
-	}
+    preprocess: vitePreprocess(),
+    kit: {
+        adapter: adapter(),
+        alias: {
+            '@styles': 'src/styles'
+        }
+    }
 };
 ```
 
@@ -736,8 +740,8 @@ npm run dev
 ✅ **Full cascade test passed** (no visual regressions)
 
 ### File Structure
-```
 
+```text
 src/styles/
 ├── 00-tokens/ ✅ 5 files
 ├── 01-base/ ✅ 2 files
@@ -745,7 +749,6 @@ src/styles/
 ├── 03-components/ ✅ 1 file
 ├── 04-layouts/ ✅ 1 file
 └── app.css ✅ Main import
-
 ```
 
 ### Visual Regression Test
@@ -799,22 +802,22 @@ import type { Preview } from '@storybook/svelte';
 import '../src/styles/app.css'; // Import token system
 
 const preview: Preview = {
-	parameters: {
-		backgrounds: {
-			default: 'light',
-			values: [
-				{ name: 'light', value: '#ffffff' },
-				{ name: 'dark', value: '#111827' }
-			]
-		},
-		actions: { argTypesRegex: '^on[A-Z].*' },
-		controls: {
-			matchers: {
-				color: /(background|color)$/i,
-				date: /Date$/
-			}
-		}
-	}
+    parameters: {
+        backgrounds: {
+            default: 'light',
+            values: [
+                { name: 'light', value: '#ffffff' },
+                { name: 'dark', value: '#111827' }
+            ]
+        },
+        actions: { argTypesRegex: '^on[A-Z].*' },
+        controls: {
+            matchers: {
+                color: /(background|color)$/i,
+                date: /Date$/
+            }
+        }
+    }
 };
 
 export default preview;
@@ -828,32 +831,32 @@ import type { Meta, StoryObj } from '@storybook/svelte';
 import Button from './Button.svelte';
 
 const meta = {
-	title: 'UI/Button',
-	component: Button,
-	tags: ['autodocs'],
-	argTypes: {
-		variant: {
-			control: 'select',
-			options: ['primary', 'secondary', 'ghost', 'destructive'],
-			description: 'Visual style of the button'
-		},
-		size: {
-			control: 'select',
-			options: ['sm', 'md', 'lg'],
-			description: 'Size of the button'
-		},
-		disabled: {
-			control: 'boolean',
-			description: 'Whether button is disabled'
-		}
-	},
-	parameters: {
-		docs: {
-			description: {
-				component: 'Primary button component with multiple variants and sizes.'
-			}
-		}
-	}
+    title: 'UI/Button',
+    component: Button,
+    tags: ['autodocs'],
+    argTypes: {
+        variant: {
+            control: 'select',
+            options: ['primary', 'secondary', 'ghost', 'destructive'],
+            description: 'Visual style of the button'
+        },
+        size: {
+            control: 'select',
+            options: ['sm', 'md', 'lg'],
+            description: 'Size of the button'
+        },
+        disabled: {
+            control: 'boolean',
+            description: 'Whether button is disabled'
+        }
+    },
+    parameters: {
+        docs: {
+            description: {
+                component: 'Primary button component with multiple variants and sizes.'
+            }
+        }
+    }
 } satisfies Meta<Button>;
 
 export default meta;
@@ -861,57 +864,57 @@ type Story = StoryObj<typeof meta>;
 
 // Default story
 export const Primary: Story = {
-	args: {
-		children: 'Button'
-	}
+    args: {
+        children: 'Button'
+    }
 };
 
 // Variant stories
 export const Secondary: Story = {
-	args: {
-		variant: 'secondary',
-		children: 'Secondary Button'
-	}
+    args: {
+        variant: 'secondary',
+        children: 'Secondary Button'
+    }
 };
 
 export const Destructive: Story = {
-	args: {
-		variant: 'destructive',
-		children: 'Delete'
-	}
+    args: {
+        variant: 'destructive',
+        children: 'Delete'
+    }
 };
 
 // Size stories
 export const Small: Story = {
-	args: {
-		size: 'sm',
-		children: 'Small Button'
-	}
+    args: {
+        size: 'sm',
+        children: 'Small Button'
+    }
 };
 
 export const Large: Story = {
-	args: {
-		size: 'lg',
-		children: 'Large Button'
-	}
+    args: {
+        size: 'lg',
+        children: 'Large Button'
+    }
 };
 
 // State stories
 export const Disabled: Story = {
-	args: {
-		disabled: true,
-		children: 'Disabled Button'
-	}
+    args: {
+        disabled: true,
+        children: 'Disabled Button'
+    }
 };
 
 // Playground story
 export const Playground: Story = {
-	args: {
-		variant: 'primary',
-		size: 'md',
-		disabled: false,
-		children: 'Playground'
-	}
+    args: {
+        variant: 'primary',
+        size: 'md',
+        disabled: false,
+        children: 'Playground'
+    }
 };
 ```
 

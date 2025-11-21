@@ -3,6 +3,18 @@
 
 echo "🔍 Validating design system compliance..."
 
+# Run confidentiality check (blocks confidential information)
+echo ""
+echo "🔒 Checking for confidential information..."
+npm run check:confidentiality || {
+	echo ""
+	echo "❌ Confidential information detected!"
+	echo "Fix confidentiality violations before committing."
+	echo "Run: npm run sanitize:docs:apply"
+	echo "See: dev-docs/2-areas/confidentiality-guidelines.md"
+	exit 1
+}
+
 # Run ESLint (blocks hardcoded values)
 npm run lint || {
 	echo ""
@@ -13,7 +25,9 @@ npm run lint || {
 }
 
 # Additional check: Grep for hardcoded Tailwind in changed files
-git diff --cached --name-only | grep -E '\.(svelte|ts)$' | while read file; do
+# Use process substitution to run while loop in main shell (avoids subshell issue)
+validation_error=0
+while IFS= read -r file; do
 	# Check for [XXpx], [XXrem], [XX%], etc. in class attributes
 	if git diff --cached "$file" | grep -E 'class="[^"]*\[([0-9]+(px|rem|%|vh|vw|em|ch))' > /dev/null; then
 		echo ""
@@ -25,9 +39,14 @@ git diff --cached --name-only | grep -E '\.(svelte|ts)$' | while read file; do
 		echo "   - p-[12px] → p-button-icon (already exists)"
 		echo ""
 		echo "See: dev-docs/2-areas/design/design-tokens.md"
-		exit 1
+		validation_error=1
 	fi
-done
+done < <(git diff --cached --name-only | grep -E '\.(svelte|ts)$')
+
+# Exit with error code if validation failed
+if [ "$validation_error" -eq 1 ]; then
+	exit 1
+fi
 
 echo "✅ Design system validation passed!"
 

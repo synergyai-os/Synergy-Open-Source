@@ -1827,4 +1827,80 @@ npm run test:e2e -- rate-limiting.test.ts --workers=5
 
 ---
 
+## #L1850: Pre-Commit Hook Subshell Exit Bug [🔴 CRITICAL]
+
+**Symptom**: Pre-commit hook reports errors but doesn't block commits. `exit 1` inside a `while` loop doesn't stop the commit.  
+**Root Cause**: Piping output into `while read` creates a subshell. `exit 1` inside the subshell only exits that subshell, not the main script.  
+**Fix**:
+
+```bash
+# ❌ WRONG: exit 1 inside pipe subshell doesn't block commit
+git diff --cached --name-only | grep -E '\.(svelte|ts)$' | while read file; do
+	if git diff --cached "$file" | grep -E 'pattern' > /dev/null; then
+		echo "Error detected in: $file"
+		exit 1  # ❌ Only exits subshell, commit proceeds!
+	fi
+done
+
+# ✅ CORRECT: Use process substitution to run loop in main shell
+VIOLATION_FOUND=0
+while IFS= read -r file; do
+	if git diff --cached "$file" | grep -E 'pattern' > /dev/null; then
+		echo "Error detected in: $file"
+		VIOLATION_FOUND=1  # ✅ Set flag in main shell
+	fi
+done < <(git diff --cached --name-only | grep -E '\.(svelte|ts)$')
+
+# Check flag and exit in main shell
+if [ "$VIOLATION_FOUND" -eq 1 ]; then
+	exit 1  # ✅ Blocks commit correctly
+fi
+```
+
+**Key Changes**:
+
+1. **Process substitution**: `< <(...)` runs command in subshell but feeds output to `while` loop in main shell
+2. **Flag variable**: Set `VIOLATION_FOUND=1` instead of `exit 1` inside loop
+3. **Exit after loop**: Check flag and `exit 1` in main shell after loop completes
+4. **`read -r`**: Prevents backslash interpretation
+5. **`IFS=`**: Handles filenames with spaces correctly
+6. **Quote variables**: `"$file"` prevents word-splitting
+
+**Why**:
+
+- ✅ Loop runs in main shell (not subshell) → flag variable persists
+- ✅ `exit 1` in main shell → actually blocks commit
+- ✅ Processes all files before exiting → comprehensive error report
+- ✅ POSIX-compliant (works in `#!/bin/sh`)
+
+**Alternative Pattern** (if process substitution not available):
+
+```bash
+# ✅ ALTERNATIVE: Use for loop with command substitution (less robust)
+VIOLATION_FOUND=0
+for file in $(git diff --cached --name-only | grep -E '\.(svelte|ts)$'); do
+	if git diff --cached "$file" | grep -E 'pattern' > /dev/null; then
+		echo "Error detected in: $file"
+		VIOLATION_FOUND=1
+	fi
+done
+
+if [ "$VIOLATION_FOUND" -eq 1 ]; then
+	exit 1
+fi
+```
+
+**Note**: `for` loop with command substitution has word-splitting issues with filenames containing spaces. Process substitution (`while read -r`) is preferred.
+
+**Apply when**:
+
+- Writing pre-commit hooks that check staged files
+- Using `while read` loops with piped input
+- Need to exit script based on loop results
+- Shell scripts that validate code before commit
+
+**Related**: #L110 (Local CI testing), shell scripting best practices
+
+---
+
 ## Format Version: 1.0

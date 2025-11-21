@@ -215,6 +215,8 @@ Mistake occurred during session
 ````markdown
 ---
 alwaysApply: true
+# OR use globs for scoped rules:
+# globs: ["**/*.svelte", "**/*.ts"]
 ---
 
 # Rule Title
