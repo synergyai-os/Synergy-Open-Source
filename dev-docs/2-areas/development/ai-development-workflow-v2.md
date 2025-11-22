@@ -115,7 +115,7 @@ AI: [Identifies dead code → Verifies unused → Removes safely → Tests]
 
 **Old Way:**
 ```
-You: Scope in chat → Create /linear ticket → "/go"
+You: Scope in chat → Create /create-tasks ticket → "/go"
 AI: [Picks first approach, implements]
 You: "Actually, that's not the best way..."
 AI: [Refactors]
@@ -123,7 +123,7 @@ AI: [Refactors]
 
 **New Way (NEW - Use Task Template):**
 ```
-You: Scope in chat → Create /linear ticket → "/task-template SYOS-123"
+You: Scope in chat → Create /create-tasks ticket → "/task-template SYOS-123"
 AI: [Generates task doc with 3 approaches → Recommends best one]
 You: Review → Confirm approach → "/go"
 AI: [Implements using chosen approach]
@@ -244,7 +244,7 @@ You: [Clarifies scope]
 
 **No change needed:**
 ```
-You: "Create /linear ticket"
+You: "Create /create-tasks ticket"
 AI: [Creates ticket with proper format]
 ```
 
@@ -302,7 +302,7 @@ AI: [Implements using Vercel Blob]
 ```
 AI: "Found 25 violations, 7 need new tokens"
 You: "Break into subtasks: SYOS-420 (tokens), SYOS-421 (fixes)"
-You: "/linear-subtickets SYOS-414"
+You: "/create-tasks SYOS-414" (create subtasks)
 AI: [Creates subtasks]
 ```
 
@@ -411,6 +411,66 @@ AI: [Creates rule "Never use `any` type"]
 
 ---
 
+### 5. Svelte MCP Validation (Automatic) ⭐ **NEW**
+
+**What it does:** Automatically validates Svelte code during `/go`, `/bug-fix`, and `/code-review` workflows using Svelte MCP autofixer
+
+**What you need to do:** Nothing - it's automatic (runs during all workflows for `.svelte` files)
+
+**Benefit:** Catches Svelte 5 anti-patterns in real-time, ensures code follows latest best practices across all development workflows
+
+**How It Works:**
+
+1. **During `/go` workflow** (step 3):
+   - AI detects when writing `.svelte` or `.svelte.ts` files
+   - Automatically invokes `mcp_svelte_svelte-autofixer` ⭐ **MANDATORY**
+   - Iterates until clean (fixes issues → re-runs autofixer → repeats)
+
+2. **During `/bug-fix` workflow** (step 5a after standard fix, step 11 after production fix):
+   - AI detects when bug fix modified `.svelte` or `.svelte.ts` files
+   - Automatically invokes `mcp_svelte_svelte-autofixer` ⭐ **MANDATORY**
+   - Iterates until clean (fixes issues → re-runs autofixer → repeats)
+   - Documents findings in bug fix notes
+
+3. **During `/code-review` workflow** (step 5):
+   - AI detects when reviewed code includes `.svelte` or `.svelte.ts` files
+   - Automatically invokes `mcp_svelte_svelte-autofixer` ⭐ **MANDATORY**
+   - Iterates until clean (fixes issues → re-runs autofixer → repeats)
+   - Includes findings in review report
+
+2. **What it catches:**
+   - `$effect` vs `$derived` misuse (Svelte 5 anti-pattern)
+   - Reactivity anti-patterns (Map/Set mutations, stale values)
+   - Component structure issues (missing keys, wrong patterns)
+   - Svelte 5 best practice violations
+
+3. **Integration with existing tools:**
+   - Runs alongside `svelte-check` (type checking)
+   - Runs alongside ESLint (syntax rules)
+   - Catches issues that svelte-check and ESLint don't catch
+
+**Example:**
+```
+You: "/go" (writing Component.svelte)
+AI: [Writes component code]
+AI: [Detects .svelte file → Invokes autofixer]
+AI: [Finds issue: "Using $effect for computed value, should use $derived"]
+AI: [Fixes: Changes $effect to $derived]
+AI: [Re-runs autofixer → No issues found]
+→ Result: Code follows Svelte 5 best practices automatically
+```
+
+**Why mandatory:** Catches Svelte-specific issues that svelte-check and ESLint don't catch (e.g., `$effect` vs `$derived` misuse, reactivity anti-patterns). Ensures code quality during generation, bug fixes, and code reviews - not after.
+
+**Complete Integration:** Svelte MCP validation is now integrated across all development workflows:
+- ✅ `/go` - Validates during implementation (step 3)
+- ✅ `/bug-fix` - Validates after bug fixes (step 5a and step 11)
+- ✅ `/code-review` - Validates during code review (step 5)
+
+**Reference**: `dev-docs/2-areas/patterns/ai-development.md#L100` - Complete Svelte MCP validation workflow
+
+---
+
 ## 🎬 Real-World Examples
 
 ### Example 1: Simple Bug Fix
@@ -418,7 +478,7 @@ AI: [Creates rule "Never use `any` type"]
 **Your Workflow:**
 ```
 1. Scope in chat: "Fix typo in error message"
-2. Create /linear ticket: SYOS-123
+2. Create /create-tasks ticket: SYOS-123
 3. "/go"
 4. "/validate"
 5. "/save"
@@ -428,8 +488,11 @@ AI: [Creates rule "Never use `any` type"]
 - Checks patterns (finds "error message" pattern)
 - Uses existing error handling pattern
 - Implements fix
+- **Svelte MCP validation** ⭐ **AUTOMATIC** (if `.svelte` files modified):
+  - Detects `.svelte` file → Invokes autofixer
+  - Fixes issues → Re-runs autofixer → Clean
 
-**Result:** Consistent fix, no sloppy code
+**Result:** Consistent fix, no sloppy code, Svelte 5 best practices enforced
 
 ---
 
@@ -438,7 +501,7 @@ AI: [Creates rule "Never use `any` type"]
 **Your Workflow:**
 ```
 1. Scope in chat: "Remove unused imports after Svelte 5 migration"
-2. Create /linear ticket: SYOS-124
+2. Create /create-tasks ticket: SYOS-124
 3. "/code-cleanup SYOS-124"  ← NEW: Use code-cleanup template
 4. "/validate"
 5. "/save"
@@ -459,7 +522,7 @@ AI: [Creates rule "Never use `any` type"]
 **Your Workflow:**
 ```
 1. Scope in chat: "Add image uploads to chat"
-2. Create /linear ticket: SYOS-125
+2. Create /create-tasks ticket: SYOS-125
 3. "/task-template SYOS-125"  ← Use task-template for complex features
 4. Review task doc → Confirm Approach B
 5. "/go"
@@ -474,11 +537,19 @@ AI: [Creates rule "Never use `any` type"]
   - Approach B: Vercel Blob Storage (recommended)
   - Approach C: Base64 Inline
 - You review and confirm Approach B
-- AI implements using Approach B
+- AI implements using Approach B:
+  - Checks patterns (finds "file upload" pattern)
+  - Writes ImageUpload.svelte component
+  - **Svelte MCP validation** ⭐ **AUTOMATIC**:
+    - Detects .svelte file → Invokes autofixer
+    - Finds issue: "Using $effect for computed value, should use $derived"
+    - Fixes: Changes $effect to $derived
+    - Re-runs autofixer → No issues found
+  - Adapts from reference code (if available)
 - AI reviews code (patterns, architecture, quality)
 - AI suggests improvements (if any)
 
-**Result:** Best approach chosen upfront, code reviewed, less refactoring
+**Result:** Best approach chosen upfront, code follows Svelte 5 best practices automatically, code reviewed, less refactoring
 
 ---
 
@@ -545,7 +616,7 @@ AI: [Creates tokens → Continues fixing]
 **If blocker is too complex:**
 ```
 You: "Option C - Stop here. Let's break this into subtasks"
-You: "/linear-subtickets SYOS-414"
+You: "/create-tasks SYOS-414" (create subtasks)
 AI: [Creates subtasks for token creation vs component fixes]
 ```
 
@@ -608,7 +679,8 @@ ai-docs/reference/
 - ✅ Something is broken
 - ✅ Need systematic investigation
 - ✅ Want to ensure fix follows patterns
-- **Workflow**: `/bug-fix SYOS-XXX` → Reproduce → Trace → Fix → Test
+- **Workflow**: `/bug-fix SYOS-XXX` → Reproduce → Trace → Fix → **Svelte MCP Validation** → Test
+- **Svelte MCP Validation**: Automatically validates `.svelte` files after bug fixes (step 5a and step 11)
 
 #### `/code-cleanup` - Use for Code Cleanup
 - ✅ Tried multiple approaches, some code unused
@@ -620,7 +692,8 @@ ai-docs/reference/
 - ✅ Code ready for review (before merge)
 - ✅ Want senior engineer perspective
 - ✅ Need architecture validation
-- **Workflow**: `/code-review SYOS-XXX` → Review → Report → Suggest Improvements
+- **Workflow**: `/code-review SYOS-XXX` → Review → **Svelte MCP Validation** → Report → Suggest Improvements
+- **Svelte MCP Validation**: Automatically validates `.svelte` files during review (step 5)
 
 #### `/task-template` - Use for Complex Features
 - ✅ Multiple approaches possible
@@ -632,6 +705,13 @@ ai-docs/reference/
 - ✅ After scoping in chat
 - ✅ After task template (if used)
 - ✅ Ready to implement
+
+### `/svelte-validate` - Use for Manual Svelte Validation ⭐ **NEW**
+- ✅ Validating `.svelte` files before commit
+- ✅ Checking code quality after implementation
+- ✅ Reviewing Svelte components for best practices
+- ✅ Debugging Svelte-specific issues (reactivity, runes, etc.)
+- **Note**: Svelte MCP validation runs automatically during `/go`, `/bug-fix`, and `/code-review` - use `/svelte-validate` for standalone validation
 
 ### `/validate` - Use After Implementation
 - ✅ Verify functionality
@@ -708,7 +788,8 @@ Create task-specific templates that provide tailored instructions for each commo
 
 1. **Pattern-First** - Automatic (AI checks patterns first)
 2. **Reference Code** - Automatic (AI finds and uses references)
-3. **Rule Building** - Automatic (happens during `/save`)
+3. **Svelte MCP Validation** - Automatic (runs during `/go`, `/bug-fix`, and `/code-review` for `.svelte` files) ⭐ **NEW**
+4. **Rule Building** - Automatic (happens during `/save`)
 
 **Only New Step:**
 - Use `/task-template` for complex features (optional)
@@ -719,11 +800,13 @@ Create task-specific templates that provide tailored instructions for each commo
 - AI uses existing patterns (consistent)
 - AI adapts proven examples (reliable)
 - AI thinks through approaches (better decisions)
+- AI validates Svelte code automatically across all workflows (follows Svelte 5 best practices) ⭐ **NEW**
 
 **Less "AI Code Slop":**
 - AI researches first (patterns + references)
 - AI adapts instead of creating new
 - AI follows established patterns
+- AI catches Svelte anti-patterns during generation, bug fixes, and code reviews (not after) ⭐ **NEW**
 
 **Faster Development:**
 - Less refactoring (better decisions upfront)
@@ -736,27 +819,28 @@ Create task-specific templates that provide tailored instructions for each commo
 
 ### Bug Fix Workflow
 ```
-Scope → /linear → /bug-fix → /validate → /save
+Scope → /create-tasks → /bug-fix → /validate → /save
 ```
 
 ### Code Cleanup Workflow
 ```
-Scope → /linear → /code-cleanup → /validate → /save
+Scope → /create-tasks → /code-cleanup → /validate → /save
 ```
 
 ### Simple Feature Workflow
 ```
-Scope → /linear → /go → /code-review → /validate → /save
+Scope → /create-tasks → /go → /code-review → /validate → /save
 ```
 
 ### Complex Feature Workflow
 ```
-Scope → /linear → /task-template → Review → /go → /code-review → /validate → /save
+Scope → /create-tasks → /task-template → Review → /go → /code-review → /validate → /save
 ```
 
 ### What's Automatic
 - ✅ Pattern checking (before implementation)
 - ✅ Reference code loading (if relevant)
+- ✅ Svelte MCP validation (during `/go`, `/bug-fix`, and `/code-review` for `.svelte` files) ⭐ **NEW**
 - ✅ Task-specific workflows (bug-fix, cleanup, review)
 - ✅ Rule building (during /save)
 
@@ -785,14 +869,18 @@ Scope → /linear → /task-template → Review → /go → /code-review → /va
 
 ### Q: How does this prevent "AI code slop"?
 
-**A:** AI researches first (patterns + references), thinks through approaches (task templates), and adapts existing patterns instead of creating new code.
+**A:** AI researches first (patterns + references), thinks through approaches (task templates), adapts existing patterns instead of creating new code, and validates Svelte code automatically (catches anti-patterns during generation).
+
+### Q: Do I need to manually run Svelte validation?
+
+**A:** No! Svelte MCP validation runs automatically during `/go`, `/bug-fix`, and `/code-review` workflows for `.svelte` files. AI invokes autofixer, fixes issues, and iterates until clean - you don't need to do anything.
 
 ### Q: What do I do when AI hits blockers?
 
 **A:** AI will report progress and ask for decisions. Provide guidance:
 - **If you know the answer**: Tell AI what to do
 - **If you need to think**: Review relevant docs, then decide
-- **If too complex**: Break into subtasks with `/linear-subtickets`
+- **If too complex**: Break into subtasks with `/create-tasks` (create subtasks)
 
 ### Q: Should I validate after AI fixes blockers?
 
@@ -805,12 +893,15 @@ Scope → /linear → /task-template → Review → /go → /code-review → /va
 - **Task Templates**: `.cursor/commands/task-template.md` - Task template command
 - **Reference Code**: `ai-docs/reference/README.md` - Reference code system
 - **Patterns**: `dev-docs/2-areas/patterns/INDEX.md` - Pattern lookup
-- **Linear Workflow**: `.cursor/commands/linear.md` - Ticket creation
+- **Svelte MCP Validation**: `dev-docs/2-areas/patterns/ai-development.md#L100` - Complete Svelte MCP validation workflow
+- **Svelte Validate Command**: `.cursor/commands/svelte-validate.md` - Standalone Svelte validation command
+- **MCP Setup**: `dev-docs/2-areas/patterns/ci-cd.md#L2350` - Configuring MCP servers in Cursor
+- **Linear Workflow**: `.cursor/commands/create-tasks.md` - Unified ticket/subtask creation
 - **Historical**: `dev-docs/4-archive/old-workflows/ai-development-workflow.md` - Previous version (archived)
 
 ---
 
-**Last Updated**: November 20th, 2025  
+**Last Updated**: November 21st, 2025  
 **Purpose**: User guide for improved AI development workflow  
-**Key Change**: Pattern-first, reference code, task templates prevent "AI code slop"
+**Key Changes**: Pattern-first, reference code, task templates, Svelte MCP validation (automatic + manual `/svelte-validate` command), and `/bug-fix` integration prevent "AI code slop"
 

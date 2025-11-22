@@ -457,6 +457,6 @@ await mcp_Linear_create_issue({
 **Last Updated**: 2025-11-13  
 **Related**:
 
-- **Command**: `/linear` - Complete Linear workflow reference (constants, ticket creation, examples)
+- **Command**: `/create-tasks` - Unified Linear ticket/subtask creation (constants, ticket creation, examples)
 - **Rule**: `.cursor/rules/working-with-linear.mdc` - Critical rules (Project ID required, Assign user)
 - **Docs**: [Flow Metrics](./flow-metrics.md), [Ticket Writing](../patterns/ticket-writing.md)

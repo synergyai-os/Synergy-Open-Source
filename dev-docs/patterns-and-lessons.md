@@ -251,10 +251,10 @@ if (!createdTicket.projectId || createdTicket.projectId !== projectId) {
 
 ### Documentation Updates
 
-- ✅ Added to `.cursor/commands/linear.md` - Project linking verification workflow
-- ✅ Added to `.cursor/commands/linear-subtickets.md` - Subtask project linking (critical)
+- ✅ Added to `.cursor/commands/create-tasks.md` - Unified ticket/subtask creation with project linking verification workflow
+- ✅ Project linking verification (subtasks don't inherit project from parent - critical)
 
-**See**: `.cursor/commands/linear.md` - Complete Linear workflow with verification
+**See**: `.cursor/commands/create-tasks.md` - Unified Linear workflow with verification
 
 ---
 

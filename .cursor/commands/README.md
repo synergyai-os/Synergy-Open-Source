@@ -14,27 +14,30 @@
 
 ## 📊 Optimization Results
 
-| Command              | Before    | After      | Change     | Status                                                            |
-| -------------------- | --------- | ---------- | ---------- | ----------------------------------------------------------------- |
-| `/start`             | 368 lines | ~490 lines | +122 lines | ✅ Reference code check added (SYOS-409)                          |
-| `/go`                | New       | ~280 lines | N/A        | ✅ New command - Pattern-first implementation workflow (SYOS-409) |
-| `/start-new-project` | 755 lines | 594 lines  | -21% (161) | ✅ Optimized                                                      |
-| `/save`              | 898 lines | 272 lines  | -70% (626) | ✅ Optimized                                                      |
-| `/root-cause`        | 65 lines  | 239 lines  | +174 lines | ✅ Enhanced with "slow = fast" methodology                        |
-| `/pr`                | New       | 366 lines  | N/A        | ✅ New command - PR creation workflow                             |
-| `/pr-close`          | New       | 415 lines  | N/A        | ✅ New command - Post-merge cleanup workflow                      |
-| `/linear`            | 373 lines | 450 lines  | +77 lines  | ✅ Enhanced with Label Selection Guide                            |
-| `/linear-subtickets` | 1 line    | 180 lines  | +179 lines | ✅ Enhanced with complete workflow guide                          |
-| `/branch`            | 1 line    | 205 lines  | +204 lines | ✅ New command - Branch creation workflow                         |
-| `/manager`           | New       | 450 lines  | N/A        | ✅ New command - Manager/mentor role guide                        |
-| `/design-manager`    | New       | ~670 lines | N/A        | ✅ New command - Design system manager (inherits /manager)        |
-| `/test-manual`       | 1 line    | 45 lines   | +44 lines  | ✅ Enhanced - Concise manual test instructions                    |
-| `/task-template`     | New       | 382 lines  | N/A        | ✅ New command - Pre-coding analysis workflow                     |
+| Command            | Before    | After      | Change     | Status                                                            |
+| ------------------ | --------- | ---------- | ---------- | ----------------------------------------------------------------- |
+| `/start`           | 368 lines | ~490 lines | +122 lines | ✅ Reference code check added (SYOS-409)                          |
+| `/go`              | New       | ~280 lines | N/A        | ✅ New command - Pattern-first implementation workflow (SYOS-409) |
+| `/save`            | 898 lines | 272 lines  | -70% (626) | ✅ Optimized                                                      |
+| `/root-cause`      | 65 lines  | 239 lines  | +174 lines | ✅ Enhanced with "slow = fast" methodology                        |
+| `/pr`              | New       | 366 lines  | N/A        | ✅ New command - PR creation workflow                             |
+| `/pr-close`        | New       | 415 lines  | N/A        | ✅ New command - Post-merge cleanup workflow                      |
+| `/branch`          | 1 line    | 205 lines  | +204 lines | ✅ New command - Branch creation workflow                         |
+| `/manager`         | New       | 450 lines  | N/A        | ✅ New command - Manager/mentor role guide                        |
+| `/design-manager`  | New       | ~670 lines | N/A        | ✅ New command - Design system manager (inherits /manager)        |
+| `/test-manual`     | 1 line    | 45 lines   | +44 lines  | ✅ Enhanced - Concise manual test instructions                    |
+| `/task-template`   | New       | 382 lines  | N/A        | ✅ New command - Pre-coding analysis workflow                     |
+| `/create-tasks`    | New       | 675 lines  | N/A        | ✅ New command - Unified Linear ticket/subtask creation           |
+| `/bug-fix`         | New       | 945 lines  | N/A        | ✅ New command - Systematic bug fix workflow                      |
+| `/code-cleanup`    | New       | 387 lines  | N/A        | ✅ New command - Code cleanup workflow                            |
+| `/code-review`     | New       | 571 lines  | N/A        | ✅ New command - Senior engineer review workflow                  |
+| `/validate`        | New       | 53 lines   | N/A        | ✅ New command - Validation checklist                             |
+| `/svelte-validate` | New       | 514 lines  | N/A        | ✅ New command - Svelte code quality validation                   |
 
-**Net Change**: +570 lines total
+**Net Change**: +3,247 lines total (after removing obsolete commands)
 
-- Removed: 384 lines (626 from `/save` - 174 to `/root-cause` - 122 to `/start`)
-- Added: 954 lines (77 to `/linear` + 179 to `/linear-subtickets` + 204 to `/branch` + 450 to `/manager` + 44 to `/test-manual`)
+- Removed: 1,425 lines (3 obsolete commands: `/linear`, `/linear-subtickets`, `/start-new-project`)
+- Added: 4,672 lines (17 active commands)
 
 ---
 
@@ -51,6 +54,7 @@
 **After:**
 
 - Single source of truth: `/start` command (Linear constants & workflow)
+- Unified ticket creation: `/create-tasks` command (replaces `/linear`, `/linear-subtickets`, `/start-new-project`)
 - Commands reference `/start` instead of duplicating
 - Easier to maintain (update once in `/start`)
 - Ticket writing format extracted to `ticket-writing-format.md` (referenced, not duplicated)
@@ -73,24 +77,20 @@
 
 ---
 
-### `/start-new-project` Command
+### `/create-tasks` Command
 
-**Removed:**
+**Created**: Unified command replacing `/linear`, `/linear-subtickets`, `/start-new-project` (675 lines)
 
-- Hardcoded Linear constants block (~48 lines)
-- Detailed ticket management rules (~113 lines)
-  - AI responsibilities
-  - User responsibilities
-  - Update workflow examples
-  - Labeling rules
+**Purpose**: Intelligently creates Linear tickets or subtasks based on user intent
 
-**Added:**
+**Features:**
 
-- Quick reference (team ID, user ID, estimate mapping)
-- References to `/linear` command for complete details
-- Prerequisites updated to include `/linear` command
+- Decision tree: New ticket vs subtasks
+- References `/start` for Linear constants (single source of truth)
+- Complete workflow for ticket/subtask creation
+- Project linking verification
 
-**Result:** 21% reduction, focused on project workflow
+**Result:** Single unified command replaces 3 obsolete commands (1,425 lines → 675 lines, 53% reduction)
 
 ---
 
@@ -165,22 +165,28 @@
 
 ### Project Workflow Commands
 
-- **`/start-new-project`** - New project setup (594 lines)
 - **`/task-template`** - Generate pre-coding analysis documents (382 lines)
 - **`/save`** - Local knowledge capture, no commit (272 lines)
 - **`/branch`** - Branch creation workflow (205 lines)
 - **`/pr`** - PR creation workflow (366 lines)
 - **`/pr-close`** - Post-merge cleanup workflow (415 lines)
 
+### Task-Specific Workflow Commands
+
+- **`/bug-fix`** - Systematic bug fix workflow (945 lines)
+- **`/code-cleanup`** - Code cleanup workflow (387 lines)
+- **`/code-review`** - Senior engineer review workflow (571 lines)
+- **`/validate`** - Validation checklist (53 lines)
+- **`/svelte-validate`** - Svelte code quality validation (514 lines)
+
+### Linear Workflow Commands
+
+- **`/create-tasks`** - Unified Linear ticket/subtask creation (675 lines)
+
 ### Documentation (Referenced by Commands)
 
 - **`commit-message-format.md`** - Commit message format with examples (406 lines)
 - **`ticket-writing-format.md`** - Linear ticket writing format template
-
-### Linear Workflow Commands
-
-- **`/linear`** - Complete Linear workflow reference (450 lines)
-- **`/linear-subtickets`** - Subtask creation workflow (180 lines)
 
 ---
 
@@ -280,32 +286,18 @@
 
 ## 🔧 Recent Enhancements
 
-### `/linear` Command (2025-11-18)
+### `/create-tasks` Command (2025-11-22)
 
-**Added**: Label Selection Guide section
+**Created**: Unified command replacing `/linear`, `/linear-subtickets`, `/start-new-project`
 
-- Decision tree for choosing Type labels (`feature` vs `tech-debt` vs `bug` vs `risk`)
-- Common mistakes and validation questions
-- Prevents incorrect labeling (e.g., refactoring as `feature`)
+- Decision tree: New ticket vs subtasks based on user intent
+- References `/start` for Linear constants (single source of truth)
+- Complete workflow for ticket/subtask creation
+- Project linking verification
 
-**Why**: Prevents analytics errors from incorrect label selection
+**Why**: Eliminates duplication (827 lines of Linear logic), single source of truth, easier maintenance
 
----
-
-### `/linear-subtickets` Command (2025-11-18)
-
-**Enhanced**: Complete workflow guide (was 1 line, now 180 lines)
-
-- Label selection guidance (inherit type from parent)
-- Parent linking requirements (title, description, `parentId`)
-- **Project linking requirement** (subtasks don't inherit project from parent)
-- Parallel vs sequential analysis methodology
-- Verification checklist (project linking, parent linking)
-- Example workflow
-
-**Why**: Prevents mistakes like incorrect labels, missing parent links, missing project links, unclear dependencies
-
-**Critical Lesson Learned (2025-01-XX)**: Subtasks **DO NOT** automatically inherit project from parent. Must explicitly link subtasks to project using `mcp_Linear_update_issue()` with `projectId` after creation.
+**See**: SYOS-448 - Command System Cleanup & Documentation Update
 
 ---
 
@@ -320,20 +312,6 @@
 - References to git-workflow.md for complete details
 
 **Why**: Ensures consistent branch creation with Linear integration, prevents missing ticket IDs, enforces naming conventions
-
----
-
-### `/linear` Command (2025-01-XX)
-
-**Enhanced**: Project linking workflow and verification
-
-- **Explicit project linking**: Always verify tickets are linked to project after creation
-- **Verification step**: Check ticket has `projectId` field set correctly
-- **Update workflow**: Use `mcp_Linear_update_issue()` with `projectId` if ticket not linked during creation
-
-**Why**: Prevents tickets from being created without project link (discovered during Teams → Circles migration project)
-
-**Critical Lesson Learned (2025-01-XX)**: Even when `projectId` is provided in `create_issue()`, tickets may not be linked. Always verify and update if needed.
 
 ---
 
@@ -575,6 +553,6 @@ Next: Run cascade test, then start SYOS-423
 
 ---
 
-**Last Updated**: 2025-11-21  
+**Last Updated**: 2025-11-22  
 **Purpose**: Document command optimizations and best practices  
-**Latest Change**: Added `/design-manager` command for design system work (SYOS-422)
+**Latest Change**: Removed 3 obsolete commands (`/linear`, `/linear-subtickets`, `/start-new-project`), added 5 missing commands to documentation (SYOS-448)
