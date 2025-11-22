@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { Badge, Tabs, Button, FormInput, FormTextarea, ToggleSwitch } from '$lib/components/ui';
+	import { Badge, Tabs, Button, FormInput, FormTextarea } from '$lib/components/atoms';
+	import { ToggleSwitch } from '$lib/components/molecules';
 	import { browser } from '$app/environment';
 	import { Dialog } from 'bits-ui';
 	import { useConvexClient } from 'convex-svelte';

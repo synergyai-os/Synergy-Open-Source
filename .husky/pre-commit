@@ -53,6 +53,61 @@ fi
 
 echo "✅ Design system validation passed!"
 
+# Token build and validation (SYOS-477)
+echo ""
+echo "🔨 Building tokens from DTCG..."
+npm run tokens:build || {
+	echo ""
+	echo "❌ Token build failed!"
+	echo "Fix token build errors before committing."
+	exit 1
+}
+
+# Stage regenerated CSS files (if they changed)
+echo ""
+echo "📦 Staging regenerated CSS files..."
+GENERATED_FILES="src/styles/tokens/*.css src/styles/utilities/*.css"
+git add $GENERATED_FILES 2>/dev/null || true
+
+# Validate semantic token references
+echo ""
+echo "🔍 Validating semantic token references..."
+npm run tokens:validate-semantic || {
+	echo ""
+	echo "❌ Semantic token validation failed!"
+	echo "Semantic tokens must reference base tokens using {category.token} format."
+	echo "Example: \"0.5rem\" → \"{spacing.2}\""
+	echo "See: dev-docs/2-areas/patterns/ci-cd.md#L2550"
+	exit 1
+}
+
+# Check if generated CSS files were manually edited (still have unstaged changes after staging)
+echo ""
+echo "🔍 Checking for manual edits to generated files..."
+validation_error=0
+
+# Check if any generated files have unstaged changes (indicates manual edit)
+for file in $GENERATED_FILES; do
+	if [ -f "$file" ]; then
+		# Check if file has unstaged changes after build
+		if ! git diff --quiet "$file"; then
+			echo ""
+			echo "❌ Generated file manually edited: $file"
+			echo "   Generated CSS files must not be edited manually."
+			echo "   Edit design-system.json instead, then run: npm run tokens:build"
+			echo ""
+			validation_error=1
+		fi
+	fi
+done
+
+# Exit with error code if validation failed
+if [ "$validation_error" -eq 1 ]; then
+	exit 1
+fi
+
+echo "✅ Token validation passed!"
+
 # Run quick design system audit (changed files only)
 echo ""
 echo "🔍 Running quick design system audit..."

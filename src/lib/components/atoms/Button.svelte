@@ -2,7 +2,7 @@
 	import { Button as BitsButton } from 'bits-ui';
 	import type { WithElementRef } from 'bits-ui';
 	import type { Snippet } from 'svelte';
-	import type { ButtonVariant, ButtonSize } from '../ui/types';
+	import type { ButtonVariant, ButtonSize } from '../types';
 
 	type Props = WithElementRef<
 		{

@@ -146,6 +146,54 @@ if (preStartStates.includes(currentState)) {
 
 ---
 
+## 🌿 Branch Verification (After Ticket Status Update)
+
+**Purpose**: Verify you're on the correct branch before starting work to prevent work loss.
+
+**When**: After updating ticket status to "In Progress", before reference code check.
+
+**Workflow**:
+
+1. **Check current branch**:
+
+   ```bash
+   git branch --show-current
+   ```
+
+2. **Extract ticket ID from branch name** (if ticket-based branch):
+   - Pattern: `feature/SYOS-XXX-description` or `fix/SYOS-XXX-description`
+   - Extract: `SYOS-XXX` from branch name
+
+3. **Compare ticket ID**:
+   - If branch contains ticket ID → Compare with current ticket ID
+   - If match → ✅ Continue onboarding
+   - If mismatch → ⚠️ Warn user
+
+4. **If branch doesn't match ticket**:
+
+   ```
+   ⚠️ Warning: You're on branch [branch-name] but working on ticket SYOS-XXX
+
+   Current branch: [branch-name]
+   Ticket ID: SYOS-XXX
+
+   Options:
+   1. Switch to correct branch: Use /branch command to create feature/SYOS-XXX-description
+   2. Continue anyway: If this is intentional (e.g., project-based branch)
+
+   Proceed? (yes/no)
+   ```
+
+5. **If branch matches or user confirms**:
+   - Continue with onboarding
+   - Note: Branch verification passed
+
+**Why**: Prevents working on wrong branch, ensures work stays organized, reduces merge conflicts.
+
+**See**: `/branch` command for branch creation workflow
+
+---
+
 ## 📚 Reference Code Check (After Ticket Status Update)
 
 **Purpose**: Check for relevant reference code projects that AI can use when implementing features.

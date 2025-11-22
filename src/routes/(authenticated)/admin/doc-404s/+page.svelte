@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { Badge, Button } from '$lib/components/ui';
+	import { Badge, Button } from '$lib/components/atoms';
 	import { api, type Id } from '$lib/convex';
 	import { useQuery, useConvexClient } from 'convex-svelte';
 	import { browser } from '$app/environment';
@@ -237,19 +237,13 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 				</div>
 				<div class="rounded-card border border-sidebar bg-surface px-card py-card">
 					<p class="text-label text-tertiary">Unresolved</p>
-					<p
-						class="mt-form-field-gap text-h2 font-semibold text-primary"
-						style="color: var(--color-error, #ef4444);"
-					>
+					<p class="mt-form-field-gap text-h2 font-semibold text-error-text">
 						{stats.unresolved || 0}
 					</p>
 				</div>
 				<div class="rounded-card border border-sidebar bg-surface px-card py-card">
 					<p class="text-label text-tertiary">Resolved</p>
-					<p
-						class="mt-form-field-gap text-h2 font-semibold text-primary"
-						style="color: var(--color-success, #10b981);"
-					>
+					<p class="mt-form-field-gap text-h2 font-semibold text-success">
 						{stats.resolved || 0}
 					</p>
 				</div>
@@ -261,10 +255,7 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 				</div>
 				<div class="rounded-card border border-sidebar bg-surface px-card py-card">
 					<p class="text-label text-tertiary">Unresolved Hits</p>
-					<p
-						class="mt-form-field-gap text-h2 font-semibold text-primary"
-						style="color: var(--color-error, #ef4444);"
-					>
+					<p class="mt-form-field-gap text-h2 font-semibold text-error-text">
 						{stats.unresolvedHits || 0}
 					</p>
 				</div>
@@ -345,7 +336,7 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 	<!-- Errors List -->
 	<main class="flex-1 overflow-y-auto px-inbox-container py-system-content">
 		{#if !browser || unresolvedQuery?.isLoading}
-			<div class="flex items-center justify-center py-12">
+			<div class="flex items-center justify-center py-error-page">
 				<p class="text-secondary">Loading...</p>
 			</div>
 		{:else if filteredErrors().length === 0}
@@ -397,7 +388,7 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 									<span>First: {formatRelativeTime(error.firstSeenAt)}</span>
 									<span>Last: {formatRelativeTime(error.lastSeenAt)}</span>
 									{#if error.resolved && error.resolvedAt}
-										<span style="color: var(--color-success, #10b981);"
+										<span class="text-success"
 											>Resolved: {formatRelativeTime(error.resolvedAt)}</span
 										>
 									{/if}

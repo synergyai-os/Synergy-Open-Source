@@ -1,0 +1,2283 @@
+{
+	"v": 5,
+	"entries": {
+		"docs-introduction--docs": {
+			"id": "docs-introduction--docs",
+			"title": "Docs/Introduction",
+			"name": "Docs",
+			"importPath": "./src/stories/Introduction.mdx",
+			"storiesImports": [],
+			"type": "docs",
+			"tags": ["dev", "test", "unattached-mdx"]
+		},
+		"docs-token-reference--docs": {
+			"id": "docs-token-reference--docs",
+			"title": "Docs/Token Reference",
+			"name": "Docs",
+			"importPath": "./src/stories/TokenReference.mdx",
+			"storiesImports": [],
+			"type": "docs",
+			"tags": ["dev", "test", "unattached-mdx"]
+		},
+		"design-system-atoms-aspectratio--docs": {
+			"id": "design-system-atoms-aspectratio--docs",
+			"title": "Design System/Atoms/AspectRatio",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/AspectRatio.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-aspectratio--ratio-16-x-9": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-aspectratio--ratio-16-x-9",
+			"name": "Ratio16x9",
+			"title": "Design System/Atoms/AspectRatio",
+			"importPath": "./src/lib/components/atoms/AspectRatio.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Ratio16x9"
+		},
+		"design-system-atoms-aspectratio--ratio-4-x-3": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-aspectratio--ratio-4-x-3",
+			"name": "Ratio4x3",
+			"title": "Design System/Atoms/AspectRatio",
+			"importPath": "./src/lib/components/atoms/AspectRatio.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Ratio4x3"
+		},
+		"design-system-atoms-aspectratio--ratio-1-x-1": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-aspectratio--ratio-1-x-1",
+			"name": "Ratio1x1",
+			"title": "Design System/Atoms/AspectRatio",
+			"importPath": "./src/lib/components/atoms/AspectRatio.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Ratio1x1"
+		},
+		"design-system-atoms-aspectratio--ratio-21-x-9": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-aspectratio--ratio-21-x-9",
+			"name": "Ratio21x9",
+			"title": "Design System/Atoms/AspectRatio",
+			"importPath": "./src/lib/components/atoms/AspectRatio.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Ratio21x9"
+		},
+		"design-system-atoms-avatar--docs": {
+			"id": "design-system-atoms-avatar--docs",
+			"title": "Design System/Atoms/Avatar",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/Avatar.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-avatar--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-avatar--default",
+			"name": "Default",
+			"title": "Design System/Atoms/Avatar",
+			"importPath": "./src/lib/components/atoms/Avatar.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"design-system-atoms-avatar--small": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-avatar--small",
+			"name": "Small",
+			"title": "Design System/Atoms/Avatar",
+			"importPath": "./src/lib/components/atoms/Avatar.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Small"
+		},
+		"design-system-atoms-avatar--large": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-avatar--large",
+			"name": "Large",
+			"title": "Design System/Atoms/Avatar",
+			"importPath": "./src/lib/components/atoms/Avatar.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Large"
+		},
+		"design-system-atoms-avatar--single-initial": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-avatar--single-initial",
+			"name": "Single Initial",
+			"title": "Design System/Atoms/Avatar",
+			"importPath": "./src/lib/components/atoms/Avatar.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "SingleInitial"
+		},
+		"design-system-atoms-avatar--custom-color": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-avatar--custom-color",
+			"name": "Custom Color",
+			"title": "Design System/Atoms/Avatar",
+			"importPath": "./src/lib/components/atoms/Avatar.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "CustomColor"
+		},
+		"design-system-atoms-avatar--group": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-avatar--group",
+			"name": "Group",
+			"title": "Design System/Atoms/Avatar",
+			"importPath": "./src/lib/components/atoms/Avatar.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Group"
+		},
+		"design-system-atoms-badge--docs": {
+			"id": "design-system-atoms-badge--docs",
+			"title": "Design System/Atoms/Badge",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/Badge.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-badge--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-badge--default",
+			"name": "Default",
+			"title": "Design System/Atoms/Badge",
+			"importPath": "./src/lib/components/atoms/Badge.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"design-system-atoms-badge--system": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-badge--system",
+			"name": "System",
+			"title": "Design System/Atoms/Badge",
+			"importPath": "./src/lib/components/atoms/Badge.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "System"
+		},
+		"design-system-atoms-badge--custom": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-badge--custom",
+			"name": "Custom",
+			"title": "Design System/Atoms/Badge",
+			"importPath": "./src/lib/components/atoms/Badge.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Custom"
+		},
+		"design-system-atoms-button--docs": {
+			"id": "design-system-atoms-button--docs",
+			"title": "Design System/Atoms/Button",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/Button.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-button--primary": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-button--primary",
+			"name": "Primary",
+			"title": "Design System/Atoms/Button",
+			"importPath": "./src/lib/components/atoms/Button.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Primary"
+		},
+		"design-system-atoms-button--secondary": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-button--secondary",
+			"name": "Secondary",
+			"title": "Design System/Atoms/Button",
+			"importPath": "./src/lib/components/atoms/Button.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Secondary"
+		},
+		"design-system-atoms-button--outline": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-button--outline",
+			"name": "Outline",
+			"title": "Design System/Atoms/Button",
+			"importPath": "./src/lib/components/atoms/Button.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Outline"
+		},
+		"design-system-atoms-button--small": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-button--small",
+			"name": "Small",
+			"title": "Design System/Atoms/Button",
+			"importPath": "./src/lib/components/atoms/Button.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Small"
+		},
+		"design-system-atoms-button--large": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-button--large",
+			"name": "Large",
+			"title": "Design System/Atoms/Button",
+			"importPath": "./src/lib/components/atoms/Button.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Large"
+		},
+		"design-system-atoms-button--disabled": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-button--disabled",
+			"name": "Disabled",
+			"title": "Design System/Atoms/Button",
+			"importPath": "./src/lib/components/atoms/Button.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Disabled"
+		},
+		"design-system-atoms-card--docs": {
+			"id": "design-system-atoms-card--docs",
+			"title": "Design System/Atoms/Card",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/Card.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-card--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-card--default",
+			"name": "Default",
+			"title": "Design System/Atoms/Card",
+			"importPath": "./src/lib/components/atoms/Card.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"design-system-atoms-card--elevated": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-card--elevated",
+			"name": "Elevated",
+			"title": "Design System/Atoms/Card",
+			"importPath": "./src/lib/components/atoms/Card.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Elevated"
+		},
+		"design-system-atoms-card--outlined": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-card--outlined",
+			"name": "Outlined",
+			"title": "Design System/Atoms/Card",
+			"importPath": "./src/lib/components/atoms/Card.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Outlined"
+		},
+		"design-system-atoms-card--clickable": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-card--clickable",
+			"name": "Clickable",
+			"title": "Design System/Atoms/Card",
+			"importPath": "./src/lib/components/atoms/Card.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Clickable"
+		},
+		"design-system-atoms-card--no-padding": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-card--no-padding",
+			"name": "NoPadding",
+			"title": "Design System/Atoms/Card",
+			"importPath": "./src/lib/components/atoms/Card.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "NoPadding"
+		},
+		"design-system-atoms-checkbox--docs": {
+			"id": "design-system-atoms-checkbox--docs",
+			"title": "Design System/Atoms/Checkbox",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/Checkbox.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-checkbox--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-checkbox--default",
+			"name": "Default",
+			"title": "Design System/Atoms/Checkbox",
+			"importPath": "./src/lib/components/atoms/Checkbox.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"design-system-atoms-checkbox--checked": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-checkbox--checked",
+			"name": "Checked",
+			"title": "Design System/Atoms/Checkbox",
+			"importPath": "./src/lib/components/atoms/Checkbox.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Checked"
+		},
+		"design-system-atoms-checkbox--with-label": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-checkbox--with-label",
+			"name": "With Label",
+			"title": "Design System/Atoms/Checkbox",
+			"importPath": "./src/lib/components/atoms/Checkbox.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithLabel"
+		},
+		"design-system-atoms-checkbox--disabled": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-checkbox--disabled",
+			"name": "Disabled",
+			"title": "Design System/Atoms/Checkbox",
+			"importPath": "./src/lib/components/atoms/Checkbox.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Disabled"
+		},
+		"design-system-atoms-checkbox--disabled-checked": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-checkbox--disabled-checked",
+			"name": "Disabled Checked",
+			"title": "Design System/Atoms/Checkbox",
+			"importPath": "./src/lib/components/atoms/Checkbox.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "DisabledChecked"
+		},
+		"design-system-atoms-chip--docs": {
+			"id": "design-system-atoms-chip--docs",
+			"title": "Design System/Atoms/Chip",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/Chip.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-chip--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-chip--default",
+			"name": "Default",
+			"title": "Design System/Atoms/Chip",
+			"importPath": "./src/lib/components/atoms/Chip.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"design-system-atoms-chip--primary": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-chip--primary",
+			"name": "Primary",
+			"title": "Design System/Atoms/Chip",
+			"importPath": "./src/lib/components/atoms/Chip.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Primary"
+		},
+		"design-system-atoms-chip--with-delete": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-chip--with-delete",
+			"name": "WithDelete",
+			"title": "Design System/Atoms/Chip",
+			"importPath": "./src/lib/components/atoms/Chip.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithDelete"
+		},
+		"design-system-atoms-forminput--docs": {
+			"id": "design-system-atoms-forminput--docs",
+			"title": "Design System/Atoms/FormInput",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/FormInput.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-forminput--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-forminput--default",
+			"name": "Default",
+			"title": "Design System/Atoms/FormInput",
+			"importPath": "./src/lib/components/atoms/FormInput.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"design-system-atoms-forminput--required": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-forminput--required",
+			"name": "Required",
+			"title": "Design System/Atoms/FormInput",
+			"importPath": "./src/lib/components/atoms/FormInput.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Required"
+		},
+		"design-system-atoms-forminput--disabled": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-forminput--disabled",
+			"name": "Disabled",
+			"title": "Design System/Atoms/FormInput",
+			"importPath": "./src/lib/components/atoms/FormInput.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Disabled"
+		},
+		"design-system-atoms-forminput--email": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-forminput--email",
+			"name": "Email",
+			"title": "Design System/Atoms/FormInput",
+			"importPath": "./src/lib/components/atoms/FormInput.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Email"
+		},
+		"design-system-atoms-forminput--password": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-forminput--password",
+			"name": "Password",
+			"title": "Design System/Atoms/FormInput",
+			"importPath": "./src/lib/components/atoms/FormInput.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Password"
+		},
+		"design-system-atoms-forminput--without-label": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-forminput--without-label",
+			"name": "WithoutLabel",
+			"title": "Design System/Atoms/FormInput",
+			"importPath": "./src/lib/components/atoms/FormInput.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithoutLabel"
+		},
+		"design-system-atoms-formtextarea--docs": {
+			"id": "design-system-atoms-formtextarea--docs",
+			"title": "Design System/Atoms/FormTextarea",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/FormTextarea.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-formtextarea--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-formtextarea--default",
+			"name": "Default",
+			"title": "Design System/Atoms/FormTextarea",
+			"importPath": "./src/lib/components/atoms/FormTextarea.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"design-system-atoms-formtextarea--with-label": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-formtextarea--with-label",
+			"name": "With Label",
+			"title": "Design System/Atoms/FormTextarea",
+			"importPath": "./src/lib/components/atoms/FormTextarea.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithLabel"
+		},
+		"design-system-atoms-formtextarea--required": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-formtextarea--required",
+			"name": "Required",
+			"title": "Design System/Atoms/FormTextarea",
+			"importPath": "./src/lib/components/atoms/FormTextarea.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Required"
+		},
+		"design-system-atoms-formtextarea--disabled": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-formtextarea--disabled",
+			"name": "Disabled",
+			"title": "Design System/Atoms/FormTextarea",
+			"importPath": "./src/lib/components/atoms/FormTextarea.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Disabled"
+		},
+		"design-system-atoms-formtextarea--without-label": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-formtextarea--without-label",
+			"name": "Without Label",
+			"title": "Design System/Atoms/FormTextarea",
+			"importPath": "./src/lib/components/atoms/FormTextarea.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithoutLabel"
+		},
+		"design-system-atoms-heading--docs": {
+			"id": "design-system-atoms-heading--docs",
+			"title": "Design System/Atoms/Heading",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/Heading.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-heading--level-1": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-heading--level-1",
+			"name": "Level 1",
+			"title": "Design System/Atoms/Heading",
+			"importPath": "./src/lib/components/atoms/Heading.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Level1"
+		},
+		"design-system-atoms-heading--level-2": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-heading--level-2",
+			"name": "Level 2",
+			"title": "Design System/Atoms/Heading",
+			"importPath": "./src/lib/components/atoms/Heading.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Level2"
+		},
+		"design-system-atoms-heading--level-3": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-heading--level-3",
+			"name": "Level 3",
+			"title": "Design System/Atoms/Heading",
+			"importPath": "./src/lib/components/atoms/Heading.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Level3"
+		},
+		"design-system-atoms-heading--level-4": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-heading--level-4",
+			"name": "Level 4",
+			"title": "Design System/Atoms/Heading",
+			"importPath": "./src/lib/components/atoms/Heading.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Level4"
+		},
+		"design-system-atoms-heading--level-5": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-heading--level-5",
+			"name": "Level 5",
+			"title": "Design System/Atoms/Heading",
+			"importPath": "./src/lib/components/atoms/Heading.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Level5"
+		},
+		"design-system-atoms-heading--level-6": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-heading--level-6",
+			"name": "Level 6",
+			"title": "Design System/Atoms/Heading",
+			"importPath": "./src/lib/components/atoms/Heading.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Level6"
+		},
+		"design-system-atoms-icon--docs": {
+			"id": "design-system-atoms-icon--docs",
+			"title": "Design System/Atoms/Icon",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/Icon.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-icon--small": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-icon--small",
+			"name": "Small",
+			"title": "Design System/Atoms/Icon",
+			"importPath": "./src/lib/components/atoms/Icon.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Small"
+		},
+		"design-system-atoms-icon--medium": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-icon--medium",
+			"name": "Medium",
+			"title": "Design System/Atoms/Icon",
+			"importPath": "./src/lib/components/atoms/Icon.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Medium"
+		},
+		"design-system-atoms-icon--large": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-icon--large",
+			"name": "Large",
+			"title": "Design System/Atoms/Icon",
+			"importPath": "./src/lib/components/atoms/Icon.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Large"
+		},
+		"design-system-atoms-icon--extra-large": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-icon--extra-large",
+			"name": "Extra Large",
+			"title": "Design System/Atoms/Icon",
+			"importPath": "./src/lib/components/atoms/Icon.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "ExtraLarge"
+		},
+		"design-system-atoms-icon--different-icons": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-icon--different-icons",
+			"name": "Different Icons",
+			"title": "Design System/Atoms/Icon",
+			"importPath": "./src/lib/components/atoms/Icon.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "DifferentIcons"
+		},
+		"design-system-atoms-icon--common-icons": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-icon--common-icons",
+			"name": "Common Icons",
+			"title": "Design System/Atoms/Icon",
+			"importPath": "./src/lib/components/atoms/Icon.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "CommonIcons"
+		},
+		"design-system-atoms-iconbutton--docs": {
+			"id": "design-system-atoms-iconbutton--docs",
+			"title": "Design System/Atoms/IconButton",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/IconButton.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-iconbutton--ghost": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-iconbutton--ghost",
+			"name": "Ghost",
+			"title": "Design System/Atoms/IconButton",
+			"importPath": "./src/lib/components/atoms/IconButton.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Ghost"
+		},
+		"design-system-atoms-iconbutton--solid": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-iconbutton--solid",
+			"name": "Solid",
+			"title": "Design System/Atoms/IconButton",
+			"importPath": "./src/lib/components/atoms/IconButton.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Solid"
+		},
+		"design-system-atoms-iconbutton--disabled": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-iconbutton--disabled",
+			"name": "Disabled",
+			"title": "Design System/Atoms/IconButton",
+			"importPath": "./src/lib/components/atoms/IconButton.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Disabled"
+		},
+		"design-system-atoms-iconbutton--group": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-iconbutton--group",
+			"name": "Group",
+			"title": "Design System/Atoms/IconButton",
+			"importPath": "./src/lib/components/atoms/IconButton.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Group"
+		},
+		"design-system-atoms-keyboardshortcut--docs": {
+			"id": "design-system-atoms-keyboardshortcut--docs",
+			"title": "Design System/Atoms/KeyboardShortcut",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/KeyboardShortcut.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-keyboardshortcut--single-key": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-keyboardshortcut--single-key",
+			"name": "SingleKey",
+			"title": "Design System/Atoms/KeyboardShortcut",
+			"importPath": "./src/lib/components/atoms/KeyboardShortcut.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "SingleKey"
+		},
+		"design-system-atoms-keyboardshortcut--command-k": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-keyboardshortcut--command-k",
+			"name": "CommandK",
+			"title": "Design System/Atoms/KeyboardShortcut",
+			"importPath": "./src/lib/components/atoms/KeyboardShortcut.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "CommandK"
+		},
+		"design-system-atoms-keyboardshortcut--shift-enter": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-keyboardshortcut--shift-enter",
+			"name": "ShiftEnter",
+			"title": "Design System/Atoms/KeyboardShortcut",
+			"importPath": "./src/lib/components/atoms/KeyboardShortcut.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "ShiftEnter"
+		},
+		"design-system-atoms-keyboardshortcut--command-shift-n": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-keyboardshortcut--command-shift-n",
+			"name": "CommandShiftN",
+			"title": "Design System/Atoms/KeyboardShortcut",
+			"importPath": "./src/lib/components/atoms/KeyboardShortcut.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "CommandShiftN"
+		},
+		"design-system-atoms-keyboardshortcut--medium-size": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-keyboardshortcut--medium-size",
+			"name": "MediumSize",
+			"title": "Design System/Atoms/KeyboardShortcut",
+			"importPath": "./src/lib/components/atoms/KeyboardShortcut.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "MediumSize"
+		},
+		"design-system-atoms-label--docs": {
+			"id": "design-system-atoms-label--docs",
+			"title": "Design System/Atoms/Label",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/Label.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-label--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-label--default",
+			"name": "Default",
+			"title": "Design System/Atoms/Label",
+			"importPath": "./src/lib/components/atoms/Label.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"design-system-atoms-label--with-input": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-label--with-input",
+			"name": "With Input",
+			"title": "Design System/Atoms/Label",
+			"importPath": "./src/lib/components/atoms/Label.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithInput"
+		},
+		"design-system-atoms-label--required": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-label--required",
+			"name": "Required",
+			"title": "Design System/Atoms/Label",
+			"importPath": "./src/lib/components/atoms/Label.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Required"
+		},
+		"design-system-atoms-loading--docs": {
+			"id": "design-system-atoms-loading--docs",
+			"title": "Design System/Atoms/Loading",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/Loading.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-loading--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-loading--default",
+			"name": "Default",
+			"title": "Design System/Atoms/Loading",
+			"importPath": "./src/lib/components/atoms/Loading.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"design-system-atoms-loading--small": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-loading--small",
+			"name": "Small",
+			"title": "Design System/Atoms/Loading",
+			"importPath": "./src/lib/components/atoms/Loading.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Small"
+		},
+		"design-system-atoms-loading--large": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-loading--large",
+			"name": "Large",
+			"title": "Design System/Atoms/Loading",
+			"importPath": "./src/lib/components/atoms/Loading.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Large"
+		},
+		"design-system-atoms-loading--custom-message": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-loading--custom-message",
+			"name": "Custom Message",
+			"title": "Design System/Atoms/Loading",
+			"importPath": "./src/lib/components/atoms/Loading.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "CustomMessage"
+		},
+		"design-system-atoms-loading--full-height": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-loading--full-height",
+			"name": "Full Height",
+			"title": "Design System/Atoms/Loading",
+			"importPath": "./src/lib/components/atoms/Loading.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "FullHeight"
+		},
+		"design-system-atoms-loading--no-message": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-loading--no-message",
+			"name": "No Message",
+			"title": "Design System/Atoms/Loading",
+			"importPath": "./src/lib/components/atoms/Loading.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "NoMessage"
+		},
+		"design-system-atoms-loadingoverlay--docs": {
+			"id": "design-system-atoms-loadingoverlay--docs",
+			"title": "Design System/Atoms/LoadingOverlay",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/LoadingOverlay.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-loadingoverlay--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-loadingoverlay--default",
+			"name": "Default",
+			"title": "Design System/Atoms/LoadingOverlay",
+			"importPath": "./src/lib/components/atoms/LoadingOverlay.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"design-system-atoms-loadingoverlay--account-registration": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-loadingoverlay--account-registration",
+			"name": "Account Registration",
+			"title": "Design System/Atoms/LoadingOverlay",
+			"importPath": "./src/lib/components/atoms/LoadingOverlay.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "AccountRegistration"
+		},
+		"design-system-atoms-loadingoverlay--workspace-creation": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-loadingoverlay--workspace-creation",
+			"name": "Workspace Creation",
+			"title": "Design System/Atoms/LoadingOverlay",
+			"importPath": "./src/lib/components/atoms/LoadingOverlay.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WorkspaceCreation"
+		},
+		"design-system-atoms-loadingoverlay--workspace-switching": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-loadingoverlay--workspace-switching",
+			"name": "Workspace Switching",
+			"title": "Design System/Atoms/LoadingOverlay",
+			"importPath": "./src/lib/components/atoms/LoadingOverlay.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WorkspaceSwitching"
+		},
+		"design-system-atoms-loadingoverlay--custom-flow": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-loadingoverlay--custom-flow",
+			"name": "Custom Flow",
+			"title": "Design System/Atoms/LoadingOverlay",
+			"importPath": "./src/lib/components/atoms/LoadingOverlay.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "CustomFlow"
+		},
+		"design-system-atoms-loadingoverlay--hidden": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-loadingoverlay--hidden",
+			"name": "Hidden",
+			"title": "Design System/Atoms/LoadingOverlay",
+			"importPath": "./src/lib/components/atoms/LoadingOverlay.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Hidden"
+		},
+		"design-system-atoms-meter--docs": {
+			"id": "design-system-atoms-meter--docs",
+			"title": "Design System/Atoms/Meter",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/Meter.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-meter--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-meter--default",
+			"name": "Default",
+			"title": "Design System/Atoms/Meter",
+			"importPath": "./src/lib/components/atoms/Meter.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"design-system-atoms-meter--low": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-meter--low",
+			"name": "Low",
+			"title": "Design System/Atoms/Meter",
+			"importPath": "./src/lib/components/atoms/Meter.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Low"
+		},
+		"design-system-atoms-meter--high": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-meter--high",
+			"name": "High",
+			"title": "Design System/Atoms/Meter",
+			"importPath": "./src/lib/components/atoms/Meter.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "High"
+		},
+		"design-system-atoms-meter--full": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-meter--full",
+			"name": "Full",
+			"title": "Design System/Atoms/Meter",
+			"importPath": "./src/lib/components/atoms/Meter.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Full"
+		},
+		"design-system-atoms-pininput--docs": {
+			"id": "design-system-atoms-pininput--docs",
+			"title": "Design System/Atoms/PinInput",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/PinInput.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-pininput--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-pininput--default",
+			"name": "Default",
+			"title": "Design System/Atoms/PinInput",
+			"importPath": "./src/lib/components/atoms/PinInput.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"design-system-atoms-pininput--with-label": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-pininput--with-label",
+			"name": "With Label",
+			"title": "Design System/Atoms/PinInput",
+			"importPath": "./src/lib/components/atoms/PinInput.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithLabel"
+		},
+		"design-system-atoms-pininput--with-error": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-pininput--with-error",
+			"name": "With Error",
+			"title": "Design System/Atoms/PinInput",
+			"importPath": "./src/lib/components/atoms/PinInput.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithError"
+		},
+		"design-system-atoms-pininput--disabled": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-pininput--disabled",
+			"name": "Disabled",
+			"title": "Design System/Atoms/PinInput",
+			"importPath": "./src/lib/components/atoms/PinInput.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Disabled"
+		},
+		"design-system-atoms-pininput--without-label": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-pininput--without-label",
+			"name": "Without Label",
+			"title": "Design System/Atoms/PinInput",
+			"importPath": "./src/lib/components/atoms/PinInput.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithoutLabel"
+		},
+		"design-system-atoms-progress--docs": {
+			"id": "design-system-atoms-progress--docs",
+			"title": "Design System/Atoms/Progress",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/Progress.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-progress--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-progress--default",
+			"name": "Default",
+			"title": "Design System/Atoms/Progress",
+			"importPath": "./src/lib/components/atoms/Progress.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"design-system-atoms-progress--low": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-progress--low",
+			"name": "Low",
+			"title": "Design System/Atoms/Progress",
+			"importPath": "./src/lib/components/atoms/Progress.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Low"
+		},
+		"design-system-atoms-progress--high": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-progress--high",
+			"name": "High",
+			"title": "Design System/Atoms/Progress",
+			"importPath": "./src/lib/components/atoms/Progress.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "High"
+		},
+		"design-system-atoms-progress--complete": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-progress--complete",
+			"name": "Complete",
+			"title": "Design System/Atoms/Progress",
+			"importPath": "./src/lib/components/atoms/Progress.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Complete"
+		},
+		"design-system-atoms-progress--indeterminate": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-progress--indeterminate",
+			"name": "Indeterminate",
+			"title": "Design System/Atoms/Progress",
+			"importPath": "./src/lib/components/atoms/Progress.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Indeterminate"
+		},
+		"design-system-atoms-radiogroup--docs": {
+			"id": "design-system-atoms-radiogroup--docs",
+			"title": "Design System/Atoms/RadioGroup",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/RadioGroup.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-radiogroup--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-radiogroup--default",
+			"name": "Default",
+			"title": "Design System/Atoms/RadioGroup",
+			"importPath": "./src/lib/components/atoms/RadioGroup.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"design-system-atoms-radiogroup--selected": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-radiogroup--selected",
+			"name": "Selected",
+			"title": "Design System/Atoms/RadioGroup",
+			"importPath": "./src/lib/components/atoms/RadioGroup.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Selected"
+		},
+		"design-system-atoms-radiogroup--disabled": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-radiogroup--disabled",
+			"name": "Disabled",
+			"title": "Design System/Atoms/RadioGroup",
+			"importPath": "./src/lib/components/atoms/RadioGroup.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Disabled"
+		},
+		"design-system-atoms-scrollarea--docs": {
+			"id": "design-system-atoms-scrollarea--docs",
+			"title": "Design System/Atoms/ScrollArea",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/ScrollArea.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-scrollarea--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-scrollarea--default",
+			"name": "Default",
+			"title": "Design System/Atoms/ScrollArea",
+			"importPath": "./src/lib/components/atoms/ScrollArea.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"design-system-atoms-scrollarea--horizontal": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-scrollarea--horizontal",
+			"name": "Horizontal",
+			"title": "Design System/Atoms/ScrollArea",
+			"importPath": "./src/lib/components/atoms/ScrollArea.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Horizontal"
+		},
+		"design-system-atoms-scrollarea--both-directions": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-scrollarea--both-directions",
+			"name": "Both Directions",
+			"title": "Design System/Atoms/ScrollArea",
+			"importPath": "./src/lib/components/atoms/ScrollArea.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "BothDirections"
+		},
+		"design-system-atoms-separator--docs": {
+			"id": "design-system-atoms-separator--docs",
+			"title": "Design System/Atoms/Separator",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/Separator.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-separator--horizontal": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-separator--horizontal",
+			"name": "Horizontal",
+			"title": "Design System/Atoms/Separator",
+			"importPath": "./src/lib/components/atoms/Separator.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Horizontal"
+		},
+		"design-system-atoms-separator--vertical": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-separator--vertical",
+			"name": "Vertical",
+			"title": "Design System/Atoms/Separator",
+			"importPath": "./src/lib/components/atoms/Separator.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Vertical"
+		},
+		"design-system-atoms-separator--in-menu": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-separator--in-menu",
+			"name": "In Menu",
+			"title": "Design System/Atoms/Separator",
+			"importPath": "./src/lib/components/atoms/Separator.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "InMenu"
+		},
+		"design-system-atoms-separator--between-sections": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-separator--between-sections",
+			"name": "Between Sections",
+			"title": "Design System/Atoms/Separator",
+			"importPath": "./src/lib/components/atoms/Separator.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "BetweenSections"
+		},
+		"design-system-atoms-slider--docs": {
+			"id": "design-system-atoms-slider--docs",
+			"title": "Design System/Atoms/Slider",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/Slider.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-slider--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-slider--default",
+			"name": "Default",
+			"title": "Design System/Atoms/Slider",
+			"importPath": "./src/lib/components/atoms/Slider.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"design-system-atoms-slider--range": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-slider--range",
+			"name": "Range",
+			"title": "Design System/Atoms/Slider",
+			"importPath": "./src/lib/components/atoms/Slider.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Range"
+		},
+		"design-system-atoms-slider--with-ticks": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-slider--with-ticks",
+			"name": "With Ticks",
+			"title": "Design System/Atoms/Slider",
+			"importPath": "./src/lib/components/atoms/Slider.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithTicks"
+		},
+		"design-system-atoms-splitbutton--docs": {
+			"id": "design-system-atoms-splitbutton--docs",
+			"title": "Design System/Atoms/SplitButton",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/SplitButton.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-splitbutton--primary": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-splitbutton--primary",
+			"name": "Primary",
+			"title": "Design System/Atoms/SplitButton",
+			"importPath": "./src/lib/components/atoms/SplitButton.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Primary"
+		},
+		"design-system-atoms-splitbutton--secondary": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-splitbutton--secondary",
+			"name": "Secondary",
+			"title": "Design System/Atoms/SplitButton",
+			"importPath": "./src/lib/components/atoms/SplitButton.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Secondary"
+		},
+		"design-system-atoms-splitbutton--single-option": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-splitbutton--single-option",
+			"name": "Single Option",
+			"title": "Design System/Atoms/SplitButton",
+			"importPath": "./src/lib/components/atoms/SplitButton.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "SingleOption"
+		},
+		"design-system-atoms-statuspill--docs": {
+			"id": "design-system-atoms-statuspill--docs",
+			"title": "Design System/Atoms/StatusPill",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/StatusPill.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-statuspill--backlog": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-statuspill--backlog",
+			"name": "Backlog",
+			"title": "Design System/Atoms/StatusPill",
+			"importPath": "./src/lib/components/atoms/StatusPill.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Backlog"
+		},
+		"design-system-atoms-statuspill--todo": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-statuspill--todo",
+			"name": "Todo",
+			"title": "Design System/Atoms/StatusPill",
+			"importPath": "./src/lib/components/atoms/StatusPill.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Todo"
+		},
+		"design-system-atoms-statuspill--in-progress": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-statuspill--in-progress",
+			"name": "InProgress",
+			"title": "Design System/Atoms/StatusPill",
+			"importPath": "./src/lib/components/atoms/StatusPill.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "InProgress"
+		},
+		"design-system-atoms-statuspill--done": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-statuspill--done",
+			"name": "Done",
+			"title": "Design System/Atoms/StatusPill",
+			"importPath": "./src/lib/components/atoms/StatusPill.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Done"
+		},
+		"design-system-atoms-statuspill--cancelled": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-statuspill--cancelled",
+			"name": "Cancelled",
+			"title": "Design System/Atoms/StatusPill",
+			"importPath": "./src/lib/components/atoms/StatusPill.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Cancelled"
+		},
+		"design-system-atoms-statuspill--readonly": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-statuspill--readonly",
+			"name": "Readonly",
+			"title": "Design System/Atoms/StatusPill",
+			"importPath": "./src/lib/components/atoms/StatusPill.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Readonly"
+		},
+		"design-system-atoms-statuspill--all-statuses": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-statuspill--all-statuses",
+			"name": "AllStatuses",
+			"title": "Design System/Atoms/StatusPill",
+			"importPath": "./src/lib/components/atoms/StatusPill.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "AllStatuses"
+		},
+		"design-system-atoms-switch--docs": {
+			"id": "design-system-atoms-switch--docs",
+			"title": "Design System/Atoms/Switch",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/Switch.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-switch--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-switch--default",
+			"name": "Default",
+			"title": "Design System/Atoms/Switch",
+			"importPath": "./src/lib/components/atoms/Switch.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"design-system-atoms-switch--checked": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-switch--checked",
+			"name": "Checked",
+			"title": "Design System/Atoms/Switch",
+			"importPath": "./src/lib/components/atoms/Switch.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Checked"
+		},
+		"design-system-atoms-switch--with-label": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-switch--with-label",
+			"name": "With Label",
+			"title": "Design System/Atoms/Switch",
+			"importPath": "./src/lib/components/atoms/Switch.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithLabel"
+		},
+		"design-system-atoms-switch--disabled": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-switch--disabled",
+			"name": "Disabled",
+			"title": "Design System/Atoms/Switch",
+			"importPath": "./src/lib/components/atoms/Switch.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Disabled"
+		},
+		"design-system-atoms-switch--disabled-checked": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-switch--disabled-checked",
+			"name": "Disabled Checked",
+			"title": "Design System/Atoms/Switch",
+			"importPath": "./src/lib/components/atoms/Switch.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "DisabledChecked"
+		},
+		"design-system-atoms-text--docs": {
+			"id": "design-system-atoms-text--docs",
+			"title": "Design System/Atoms/Text",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/Text.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-text--body": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-text--body",
+			"name": "Body",
+			"title": "Design System/Atoms/Text",
+			"importPath": "./src/lib/components/atoms/Text.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Body"
+		},
+		"design-system-atoms-text--label": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-text--label",
+			"name": "Label",
+			"title": "Design System/Atoms/Text",
+			"importPath": "./src/lib/components/atoms/Text.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Label"
+		},
+		"design-system-atoms-text--caption": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-text--caption",
+			"name": "Caption",
+			"title": "Design System/Atoms/Text",
+			"importPath": "./src/lib/components/atoms/Text.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Caption"
+		},
+		"design-system-atoms-text--small": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-text--small",
+			"name": "Small",
+			"title": "Design System/Atoms/Text",
+			"importPath": "./src/lib/components/atoms/Text.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Small"
+		},
+		"design-system-atoms-text--large": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-text--large",
+			"name": "Large",
+			"title": "Design System/Atoms/Text",
+			"importPath": "./src/lib/components/atoms/Text.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Large"
+		},
+		"design-system-atoms-text--as-span": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-text--as-span",
+			"name": "As Span",
+			"title": "Design System/Atoms/Text",
+			"importPath": "./src/lib/components/atoms/Text.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "AsSpan"
+		},
+		"design-system-atoms-text--as-div": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-text--as-div",
+			"name": "As Div",
+			"title": "Design System/Atoms/Text",
+			"importPath": "./src/lib/components/atoms/Text.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "AsDiv"
+		},
+		"design-system-atoms-toggle--docs": {
+			"id": "design-system-atoms-toggle--docs",
+			"title": "Design System/Atoms/Toggle",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/Toggle.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-toggle--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-toggle--default",
+			"name": "Default",
+			"title": "Design System/Atoms/Toggle",
+			"importPath": "./src/lib/components/atoms/Toggle.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"design-system-atoms-toggle--pressed": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-toggle--pressed",
+			"name": "Pressed",
+			"title": "Design System/Atoms/Toggle",
+			"importPath": "./src/lib/components/atoms/Toggle.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Pressed"
+		},
+		"design-system-atoms-toggle--with-icon": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-toggle--with-icon",
+			"name": "With Icon",
+			"title": "Design System/Atoms/Toggle",
+			"importPath": "./src/lib/components/atoms/Toggle.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithIcon"
+		},
+		"design-system-atoms-toggle--disabled": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-toggle--disabled",
+			"name": "Disabled",
+			"title": "Design System/Atoms/Toggle",
+			"importPath": "./src/lib/components/atoms/Toggle.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Disabled"
+		},
+		"design-system-atoms-togglegroup--docs": {
+			"id": "design-system-atoms-togglegroup--docs",
+			"title": "Design System/Atoms/ToggleGroup",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/ToggleGroup.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-togglegroup--single": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-togglegroup--single",
+			"name": "Single",
+			"title": "Design System/Atoms/ToggleGroup",
+			"importPath": "./src/lib/components/atoms/ToggleGroup.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Single"
+		},
+		"design-system-atoms-togglegroup--multiple": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-togglegroup--multiple",
+			"name": "Multiple",
+			"title": "Design System/Atoms/ToggleGroup",
+			"importPath": "./src/lib/components/atoms/ToggleGroup.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Multiple"
+		},
+		"design-system-atoms-togglegroup--size-options": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-togglegroup--size-options",
+			"name": "SizeOptions",
+			"title": "Design System/Atoms/ToggleGroup",
+			"importPath": "./src/lib/components/atoms/ToggleGroup.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "SizeOptions"
+		},
+		"design-system-atoms-togglegroup--view-options": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-togglegroup--view-options",
+			"name": "ViewOptions",
+			"title": "Design System/Atoms/ToggleGroup",
+			"importPath": "./src/lib/components/atoms/ToggleGroup.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "ViewOptions"
+		},
+		"design-system-atoms-tooltip--docs": {
+			"id": "design-system-atoms-tooltip--docs",
+			"title": "Design System/Atoms/Tooltip",
+			"name": "Docs",
+			"importPath": "./src/lib/components/atoms/Tooltip.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-atoms-tooltip--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-tooltip--default",
+			"name": "Default",
+			"title": "Design System/Atoms/Tooltip",
+			"importPath": "./src/lib/components/atoms/Tooltip.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"design-system-atoms-tooltip--top": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-tooltip--top",
+			"name": "Top",
+			"title": "Design System/Atoms/Tooltip",
+			"importPath": "./src/lib/components/atoms/Tooltip.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Top"
+		},
+		"design-system-atoms-tooltip--right": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-tooltip--right",
+			"name": "Right",
+			"title": "Design System/Atoms/Tooltip",
+			"importPath": "./src/lib/components/atoms/Tooltip.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Right"
+		},
+		"design-system-atoms-tooltip--bottom": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-tooltip--bottom",
+			"name": "Bottom",
+			"title": "Design System/Atoms/Tooltip",
+			"importPath": "./src/lib/components/atoms/Tooltip.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Bottom"
+		},
+		"design-system-atoms-tooltip--left": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-tooltip--left",
+			"name": "Left",
+			"title": "Design System/Atoms/Tooltip",
+			"importPath": "./src/lib/components/atoms/Tooltip.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Left"
+		},
+		"design-system-atoms-tooltip--long-content": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-atoms-tooltip--long-content",
+			"name": "LongContent",
+			"title": "Design System/Atoms/Tooltip",
+			"importPath": "./src/lib/components/atoms/Tooltip.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "LongContent"
+		},
+		"design-system-organisms-dialog--docs": {
+			"id": "design-system-organisms-dialog--docs",
+			"title": "Design System/Organisms/Dialog",
+			"name": "Docs",
+			"importPath": "./src/lib/components/organisms/Dialog.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"design-system-organisms-dialog--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-organisms-dialog--default",
+			"name": "Default",
+			"title": "Design System/Organisms/Dialog",
+			"importPath": "./src/lib/components/organisms/Dialog.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"design-system-organisms-dialog--wide": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-organisms-dialog--wide",
+			"name": "Wide",
+			"title": "Design System/Organisms/Dialog",
+			"importPath": "./src/lib/components/organisms/Dialog.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Wide"
+		},
+		"design-system-organisms-dialog--fullscreen": {
+			"type": "story",
+			"subtype": "story",
+			"id": "design-system-organisms-dialog--fullscreen",
+			"name": "Fullscreen",
+			"title": "Design System/Organisms/Dialog",
+			"importPath": "./src/lib/components/organisms/Dialog.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Fullscreen"
+		},
+		"modules-inbox-inboxcard--docs": {
+			"id": "modules-inbox-inboxcard--docs",
+			"title": "Modules/Inbox/InboxCard",
+			"name": "Docs",
+			"importPath": "./src/lib/modules/inbox/components/InboxCard.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"modules-inbox-inboxcard--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-inbox-inboxcard--default",
+			"name": "Default",
+			"title": "Modules/Inbox/InboxCard",
+			"importPath": "./src/lib/modules/inbox/components/InboxCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"modules-inbox-inboxcard--selected": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-inbox-inboxcard--selected",
+			"name": "Selected",
+			"title": "Modules/Inbox/InboxCard",
+			"importPath": "./src/lib/modules/inbox/components/InboxCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Selected"
+		},
+		"modules-inbox-inboxcard--photo-note": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-inbox-inboxcard--photo-note",
+			"name": "Photo Note",
+			"title": "Modules/Inbox/InboxCard",
+			"importPath": "./src/lib/modules/inbox/components/InboxCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "PhotoNote"
+		},
+		"modules-inbox-inboxcard--manual-text": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-inbox-inboxcard--manual-text",
+			"name": "Manual Text",
+			"title": "Modules/Inbox/InboxCard",
+			"importPath": "./src/lib/modules/inbox/components/InboxCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "ManualText"
+		},
+		"modules-inbox-inboxcard--note": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-inbox-inboxcard--note",
+			"name": "Note",
+			"title": "Modules/Inbox/InboxCard",
+			"importPath": "./src/lib/modules/inbox/components/InboxCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Note"
+		},
+		"modules-inbox-inboxcard--no-date": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-inbox-inboxcard--no-date",
+			"name": "No Date",
+			"title": "Modules/Inbox/InboxCard",
+			"importPath": "./src/lib/modules/inbox/components/InboxCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "NoDate"
+		},
+		"modules-meetings-meetingcard--docs": {
+			"id": "modules-meetings-meetingcard--docs",
+			"title": "Modules/Meetings/MeetingCard",
+			"name": "Docs",
+			"importPath": "./src/lib/modules/meetings/components/MeetingCard.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"modules-meetings-meetingcard--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-meetings-meetingcard--default",
+			"name": "Default",
+			"title": "Modules/Meetings/MeetingCard",
+			"importPath": "./src/lib/modules/meetings/components/MeetingCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"modules-meetings-meetingcard--with-many-attendees": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-meetings-meetingcard--with-many-attendees",
+			"name": "WithManyAttendees",
+			"title": "Modules/Meetings/MeetingCard",
+			"importPath": "./src/lib/modules/meetings/components/MeetingCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithManyAttendees"
+		},
+		"modules-meetings-meetingcard--private": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-meetings-meetingcard--private",
+			"name": "Private",
+			"title": "Modules/Meetings/MeetingCard",
+			"importPath": "./src/lib/modules/meetings/components/MeetingCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Private"
+		},
+		"modules-meetings-meetingcard--recurring": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-meetings-meetingcard--recurring",
+			"name": "Recurring",
+			"title": "Modules/Meetings/MeetingCard",
+			"importPath": "./src/lib/modules/meetings/components/MeetingCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Recurring"
+		},
+		"modules-meetings-meetingcard--with-actions": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-meetings-meetingcard--with-actions",
+			"name": "WithActions",
+			"title": "Modules/Meetings/MeetingCard",
+			"importPath": "./src/lib/modules/meetings/components/MeetingCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithActions"
+		},
+		"modules-meetings-meetingcard--no-circle": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-meetings-meetingcard--no-circle",
+			"name": "NoCircle",
+			"title": "Modules/Meetings/MeetingCard",
+			"importPath": "./src/lib/modules/meetings/components/MeetingCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "NoCircle"
+		},
+		"modules-meetings-todaymeetingcard--docs": {
+			"id": "modules-meetings-todaymeetingcard--docs",
+			"title": "Modules/Meetings/TodayMeetingCard",
+			"name": "Docs",
+			"importPath": "./src/lib/modules/meetings/components/TodayMeetingCard.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"modules-meetings-todaymeetingcard--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-meetings-todaymeetingcard--default",
+			"name": "Default",
+			"title": "Modules/Meetings/TodayMeetingCard",
+			"importPath": "./src/lib/modules/meetings/components/TodayMeetingCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"modules-meetings-todaymeetingcard--in-progress": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-meetings-todaymeetingcard--in-progress",
+			"name": "InProgress",
+			"title": "Modules/Meetings/TodayMeetingCard",
+			"importPath": "./src/lib/modules/meetings/components/TodayMeetingCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "InProgress"
+		},
+		"modules-meetings-todaymeetingcard--private": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-meetings-todaymeetingcard--private",
+			"name": "Private",
+			"title": "Modules/Meetings/TodayMeetingCard",
+			"importPath": "./src/lib/modules/meetings/components/TodayMeetingCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Private"
+		},
+		"modules-meetings-todaymeetingcard--with-many-attendees": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-meetings-todaymeetingcard--with-many-attendees",
+			"name": "WithManyAttendees",
+			"title": "Modules/Meetings/TodayMeetingCard",
+			"importPath": "./src/lib/modules/meetings/components/TodayMeetingCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithManyAttendees"
+		},
+		"modules-meetings-todaymeetingcard--with-actions": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-meetings-todaymeetingcard--with-actions",
+			"name": "WithActions",
+			"title": "Modules/Meetings/TodayMeetingCard",
+			"importPath": "./src/lib/modules/meetings/components/TodayMeetingCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithActions"
+		},
+		"modules-meetings-todaymeetingcard--no-circle": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-meetings-todaymeetingcard--no-circle",
+			"name": "NoCircle",
+			"title": "Modules/Meetings/TodayMeetingCard",
+			"importPath": "./src/lib/modules/meetings/components/TodayMeetingCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "NoCircle"
+		},
+		"modules-orgchart-categoryheader--docs": {
+			"id": "modules-orgchart-categoryheader--docs",
+			"title": "Modules/OrgChart/CategoryHeader",
+			"name": "Docs",
+			"importPath": "./src/lib/modules/org-chart/components/CategoryHeader.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"modules-orgchart-categoryheader--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-categoryheader--default",
+			"name": "Default",
+			"title": "Modules/OrgChart/CategoryHeader",
+			"importPath": "./src/lib/modules/org-chart/components/CategoryHeader.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"modules-orgchart-categoryheader--with-count": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-categoryheader--with-count",
+			"name": "WithCount",
+			"title": "Modules/OrgChart/CategoryHeader",
+			"importPath": "./src/lib/modules/org-chart/components/CategoryHeader.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithCount"
+		},
+		"modules-orgchart-categoryheader--with-edit": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-categoryheader--with-edit",
+			"name": "WithEdit",
+			"title": "Modules/OrgChart/CategoryHeader",
+			"importPath": "./src/lib/modules/org-chart/components/CategoryHeader.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithEdit"
+		},
+		"modules-orgchart-categoryheader--with-add": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-categoryheader--with-add",
+			"name": "WithAdd",
+			"title": "Modules/OrgChart/CategoryHeader",
+			"importPath": "./src/lib/modules/org-chart/components/CategoryHeader.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithAdd"
+		},
+		"modules-orgchart-categoryheader--with-menu": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-categoryheader--with-menu",
+			"name": "WithMenu",
+			"title": "Modules/OrgChart/CategoryHeader",
+			"importPath": "./src/lib/modules/org-chart/components/CategoryHeader.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithMenu"
+		},
+		"modules-orgchart-categoryheader--with-all-actions": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-categoryheader--with-all-actions",
+			"name": "WithAllActions",
+			"title": "Modules/OrgChart/CategoryHeader",
+			"importPath": "./src/lib/modules/org-chart/components/CategoryHeader.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithAllActions"
+		},
+		"modules-orgchart-circledetailheader--docs": {
+			"id": "modules-orgchart-circledetailheader--docs",
+			"title": "Modules/OrgChart/CircleDetailHeader",
+			"name": "Docs",
+			"importPath": "./src/lib/modules/org-chart/components/CircleDetailHeader.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"modules-orgchart-circledetailheader--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-circledetailheader--default",
+			"name": "Default",
+			"title": "Modules/OrgChart/CircleDetailHeader",
+			"importPath": "./src/lib/modules/org-chart/components/CircleDetailHeader.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"modules-orgchart-circledetailheader--with-add-menu": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-circledetailheader--with-add-menu",
+			"name": "WithAddMenu",
+			"title": "Modules/OrgChart/CircleDetailHeader",
+			"importPath": "./src/lib/modules/org-chart/components/CircleDetailHeader.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithAddMenu"
+		},
+		"modules-orgchart-circledetailheader--with-edit": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-circledetailheader--with-edit",
+			"name": "WithEdit",
+			"title": "Modules/OrgChart/CircleDetailHeader",
+			"importPath": "./src/lib/modules/org-chart/components/CircleDetailHeader.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithEdit"
+		},
+		"modules-orgchart-circledetailheader--with-header-menu": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-circledetailheader--with-header-menu",
+			"name": "WithHeaderMenu",
+			"title": "Modules/OrgChart/CircleDetailHeader",
+			"importPath": "./src/lib/modules/org-chart/components/CircleDetailHeader.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithHeaderMenu"
+		},
+		"modules-orgchart-circledetailheader--with-all-actions": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-circledetailheader--with-all-actions",
+			"name": "WithAllActions",
+			"title": "Modules/OrgChart/CircleDetailHeader",
+			"importPath": "./src/lib/modules/org-chart/components/CircleDetailHeader.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithAllActions"
+		},
+		"modules-orgchart-createcirclemodal--docs": {
+			"id": "modules-orgchart-createcirclemodal--docs",
+			"title": "Modules/OrgChart/CreateCircleModal",
+			"name": "Docs",
+			"importPath": "./src/lib/modules/org-chart/components/CreateCircleModal.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"modules-orgchart-createcirclemodal--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-createcirclemodal--default",
+			"name": "Default",
+			"title": "Modules/OrgChart/CreateCircleModal",
+			"importPath": "./src/lib/modules/org-chart/components/CreateCircleModal.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"modules-orgchart-createcirclemodal--with-parent-circles": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-createcirclemodal--with-parent-circles",
+			"name": "WithParentCircles",
+			"title": "Modules/OrgChart/CreateCircleModal",
+			"importPath": "./src/lib/modules/org-chart/components/CreateCircleModal.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithParentCircles"
+		},
+		"modules-orgchart-panelbreadcrumbbar--docs": {
+			"id": "modules-orgchart-panelbreadcrumbbar--docs",
+			"title": "Modules/OrgChart/PanelBreadcrumbBar",
+			"name": "Docs",
+			"importPath": "./src/lib/modules/org-chart/components/PanelBreadcrumbBar.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"modules-orgchart-panelbreadcrumbbar--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-panelbreadcrumbbar--default",
+			"name": "Default",
+			"title": "Modules/OrgChart/PanelBreadcrumbBar",
+			"importPath": "./src/lib/modules/org-chart/components/PanelBreadcrumbBar.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"modules-orgchart-panelbreadcrumbbar--long-name": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-panelbreadcrumbbar--long-name",
+			"name": "LongName",
+			"title": "Modules/OrgChart/PanelBreadcrumbBar",
+			"importPath": "./src/lib/modules/org-chart/components/PanelBreadcrumbBar.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "LongName"
+		},
+		"modules-orgchart-panelbreadcrumbbar--short-name": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-panelbreadcrumbbar--short-name",
+			"name": "ShortName",
+			"title": "Modules/OrgChart/PanelBreadcrumbBar",
+			"importPath": "./src/lib/modules/org-chart/components/PanelBreadcrumbBar.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "ShortName"
+		},
+		"modules-orgchart-rolecard--docs": {
+			"id": "modules-orgchart-rolecard--docs",
+			"title": "Modules/OrgChart/RoleCard",
+			"name": "Docs",
+			"importPath": "./src/lib/modules/org-chart/components/RoleCard.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"modules-orgchart-rolecard--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-rolecard--default",
+			"name": "Default",
+			"title": "Modules/OrgChart/RoleCard",
+			"importPath": "./src/lib/modules/org-chart/components/RoleCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"modules-orgchart-rolecard--with-purpose": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-rolecard--with-purpose",
+			"name": "WithPurpose",
+			"title": "Modules/OrgChart/RoleCard",
+			"importPath": "./src/lib/modules/org-chart/components/RoleCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithPurpose"
+		},
+		"modules-orgchart-rolecard--with-fillers": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-rolecard--with-fillers",
+			"name": "WithFillers",
+			"title": "Modules/OrgChart/RoleCard",
+			"importPath": "./src/lib/modules/org-chart/components/RoleCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithFillers"
+		},
+		"modules-orgchart-rolecard--with-edit": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-rolecard--with-edit",
+			"name": "WithEdit",
+			"title": "Modules/OrgChart/RoleCard",
+			"importPath": "./src/lib/modules/org-chart/components/RoleCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithEdit"
+		},
+		"modules-orgchart-rolecard--with-menu": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-rolecard--with-menu",
+			"name": "WithMenu",
+			"title": "Modules/OrgChart/RoleCard",
+			"importPath": "./src/lib/modules/org-chart/components/RoleCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithMenu"
+		},
+		"modules-orgchart-rolecard--with-all-actions": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-rolecard--with-all-actions",
+			"name": "WithAllActions",
+			"title": "Modules/OrgChart/RoleCard",
+			"importPath": "./src/lib/modules/org-chart/components/RoleCard.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithAllActions"
+		},
+		"modules-orgchart-roledetailheader--docs": {
+			"id": "modules-orgchart-roledetailheader--docs",
+			"title": "Modules/OrgChart/RoleDetailHeader",
+			"name": "Docs",
+			"importPath": "./src/lib/modules/org-chart/components/RoleDetailHeader.stories.svelte",
+			"type": "docs",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"storiesImports": []
+		},
+		"modules-orgchart-roledetailheader--default": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-roledetailheader--default",
+			"name": "Default",
+			"title": "Modules/OrgChart/RoleDetailHeader",
+			"importPath": "./src/lib/modules/org-chart/components/RoleDetailHeader.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "Default"
+		},
+		"modules-orgchart-roledetailheader--with-add-menu": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-roledetailheader--with-add-menu",
+			"name": "WithAddMenu",
+			"title": "Modules/OrgChart/RoleDetailHeader",
+			"importPath": "./src/lib/modules/org-chart/components/RoleDetailHeader.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithAddMenu"
+		},
+		"modules-orgchart-roledetailheader--with-edit": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-roledetailheader--with-edit",
+			"name": "WithEdit",
+			"title": "Modules/OrgChart/RoleDetailHeader",
+			"importPath": "./src/lib/modules/org-chart/components/RoleDetailHeader.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithEdit"
+		},
+		"modules-orgchart-roledetailheader--with-header-menu": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-roledetailheader--with-header-menu",
+			"name": "WithHeaderMenu",
+			"title": "Modules/OrgChart/RoleDetailHeader",
+			"importPath": "./src/lib/modules/org-chart/components/RoleDetailHeader.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithHeaderMenu"
+		},
+		"modules-orgchart-roledetailheader--with-all-actions": {
+			"type": "story",
+			"subtype": "story",
+			"id": "modules-orgchart-roledetailheader--with-all-actions",
+			"name": "WithAllActions",
+			"title": "Modules/OrgChart/RoleDetailHeader",
+			"importPath": "./src/lib/modules/org-chart/components/RoleDetailHeader.stories.svelte",
+			"tags": ["dev", "test", "autodocs", "svelte-csf-v5"],
+			"exportName": "WithAllActions"
+		}
+	}
+}

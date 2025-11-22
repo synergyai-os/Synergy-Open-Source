@@ -8,7 +8,7 @@
 	import type { InboxItemWithDetails } from '$lib/types/convex';
 	import type NoteEditorWithDetectionComponent from '$lib/modules/core/components/notes/NoteEditorWithDetection.svelte';
 	import type { Id } from '$lib/convex';
-	import { Button } from '$lib/components/ui';
+	import { Button } from '$lib/components/atoms';
 
 	type Props = {
 		inboxItem: InboxItemWithDetails & { type: 'note' }; // Note inbox item

@@ -2,16 +2,58 @@ validate if its resolved correctly (within ticket scope/criteria). If yes. updat
 
 - NEVER update our ticket after finding a problem and making edits in our code. This requires a new round of validation by me and you.
 - NEVER create an MD document. Keep everything inside the relevant ticket. if no ticket exists, return your feedback as a chat comment.
+- 🚨 **CRITICAL**: If user testing is required, DO NOT mark ticket as done until user confirms tests passed. Wait for explicit confirmation before updating ticket status.
 
 ## Validation Checklist
 
-### 1. Functional Validation
+### 1. Testing Strategy (AI vs User)
+
+**Before functional validation, determine testing approach:**
+
+- [ ] **Can AI test this?** → Perform automated testing (code review, linting, type checking, unit tests)
+- [ ] **Does this require USER testing?** → Only if AI cannot validate (visual/UX checks, subjective quality, real device testing)
+- [ ] **If user testing required** → Run `/test-manual` to generate concise test instructions
+- [ ] **Include test instructions** in validation comment (for user to execute)
+- [ ] **🚨 DO NOT mark ticket as done** - Wait for user to execute tests and confirm results
+- [ ] **Only after user confirmation** → Proceed with marking ticket as complete
+
+**AI can test (perform automatically):**
+
+- ✅ Code correctness (TypeScript, linting, type checking)
+- ✅ Logic validation (unit tests, integration tests)
+- ✅ API responses (Convex functions, data flows)
+- ✅ Code structure (modularity, patterns, architecture)
+- ✅ Backend functionality (database queries, mutations)
+
+**User testing required (AI cannot validate):**
+
+- ❌ Visual appearance (spacing, colors, typography - subjective)
+- ❌ UX flow (does it feel right, intuitive interactions)
+- ❌ Real device testing (mobile, tablet, different browsers)
+- ❌ Performance perception (does it feel fast/slow)
+- ❌ Accessibility (screen reader, keyboard navigation - requires human testing)
+
+**Decision rule**: If AI can validate → do it automatically. Only generate `/test-manual` instructions when user testing is actually required.
+
+**See**: `/test-manual` command for test instruction format and guidelines
+
+### 2. Functional Validation
+
+**Perform automated validation (AI can do this):**
 
 - ✅ Code works as specified (within ticket scope/criteria)
 - ✅ No regressions introduced
 - ✅ Edge cases handled appropriately
+- ✅ TypeScript compilation passes
+- ✅ Linting passes
+- ✅ Tests pass (if applicable)
 
-### 2. Modularity Validation ⭐ **MANDATORY**
+**If user testing was required (from step 1):**
+
+- ✅ **User testing passed** - Wait for explicit user confirmation before proceeding
+- 🚨 **DO NOT mark ticket as done** until user confirms all tests passed
+
+### 3. Modularity Validation ⭐ **MANDATORY**
 
 **Reference**: [System Architecture - Modularity](dev-docs/2-areas/architecture/system-architecture.md#6-modularity--module-system)
 
@@ -40,7 +82,21 @@ Example format:
 **Summary:** [What we did in 1 sentence]. [Why it matters in 1-2 sentences - focus on impact/value, not technical details].
 ```
 
-### 3. Archive Task Document (if applicable)
+### 4. Update Ticket Status
+
+**⚠️ CRITICAL RULES:**
+
+- **If user testing was required**: DO NOT mark ticket as done until user explicitly confirms tests passed
+- **If only AI testing was required**: Can mark ticket as done after automated validation passes
+- **If validation fails**: Mark ticket as needs work, document issues in comment
+
+**Only mark ticket as complete when:**
+
+- ✅ All automated validation passed (TypeScript, linting, tests)
+- ✅ Modularity validation passed (if applicable)
+- ✅ User testing confirmed passed (if user testing was required)
+
+### 5. Archive Task Document (if applicable)
 
 **If validation passes and ticket is marked complete:**
 

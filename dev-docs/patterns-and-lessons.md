@@ -251,10 +251,10 @@ if (!createdTicket.projectId || createdTicket.projectId !== projectId) {
 
 ### Documentation Updates
 
-- ✅ Added to `.cursor/commands/linear.md` - Project linking verification workflow
-- ✅ Added to `.cursor/commands/linear-subtickets.md` - Subtask project linking (critical)
+- ✅ Added to `.cursor/commands/create-tasks.md` - Unified ticket/subtask creation with project linking verification workflow
+- ✅ Project linking verification (subtasks don't inherit project from parent - critical)
 
-**See**: `.cursor/commands/linear.md` - Complete Linear workflow with verification
+**See**: `.cursor/commands/create-tasks.md` - Unified Linear workflow with verification
 
 ---
 
@@ -301,3 +301,125 @@ if (!createdTicket.projectId || createdTicket.projectId !== projectId) {
 - ✅ **Scalable** - Can add new specialized commands without bloat
 
 **See**: `.cursor/commands/README.md` - Complete optimization guide
+
+---
+
+## 🔒 Branch Safety Gates Pattern ✅ **IMPLEMENTED**
+
+**Date**: 2025-01-21  
+**Status**: Fully implemented in SYOS-430  
+**Pattern**: Explicit user confirmation required before any branch operations (never assume "yes")
+
+### What We Learned
+
+**Problem**: AI commands can have comprehensive verification steps but still proceed without explicit user confirmation, violating safety gate principles.
+
+**Real-World Example**:
+- `/branch` command enhanced with verification (checks state, preserves work, verifies after)
+- **Gap identified**: AI proceeded with branch creation without showing summary or asking confirmation
+- User had no control over which option was chosen (commit to branch vs stash vs abort)
+
+### Solution ✅ **IMPLEMENTED**
+
+**Always follow this sequence**:
+
+1. **Check Current State** (MANDATORY):
+   - Current branch: `git branch --show-current`
+   - Uncommitted changes: `git status --short`
+   - Unpushed commits: `git log origin/branch..HEAD`
+
+2. **Show Summary** (MANDATORY):
+   - What branch you're on
+   - What changes exist (list files)
+   - What will happen (step-by-step)
+   - Example: "You're on main with uncommitted changes to branch.md. I'll create feature/design-system-v1-completed and move these changes there."
+
+3. **Present Options** (if uncommitted changes exist):
+   - Option A: Commit changes to new branch (recommended)
+   - Option B: Stash changes, create clean branch, then apply
+   - Option C: Abort operation
+
+4. **Require Explicit Confirmation** (MANDATORY):
+   - Show: "Proceed with Option A? (yes/no)"
+   - Wait for user response
+   - Never proceed without explicit "yes"
+   - Never assume user wants to proceed
+
+### Key Principles
+
+1. **Never assume "yes"** - Always wait for explicit user confirmation
+2. **Show before doing** - User must understand what will happen
+3. **Present options** - User chooses, not AI
+4. **Multiple safety layers** - Git hooks + AI gates + explicit confirmation
+
+### Why This Matters
+
+- **Trust**: User maintains control over destructive operations
+- **Safety**: Prevents accidental work loss
+- **Transparency**: User understands what's happening
+- **Compliance**: Follows safety gate principles
+
+### Implementation ✅ **COMPLETE**
+
+**Files Modified**:
+- ✅ `.cursor/commands/branch.md` - Added Step 1.5: Show Summary and Require Explicit Confirmation
+- ✅ `.cursor/commands/start.md` - Added branch verification before onboarding
+- ✅ `.cursor/commands/go.md` - Added branch verification before implementation
+- ✅ `.cursor/commands/pr-close.md` - Added confirmation before branch deletion
+
+**Files Created**:
+- ✅ `dev-docs/2-areas/patterns/branch-safety.md` - Complete pattern document
+- ✅ `scripts/git-hooks/pre-checkout` - Blocks branch switch with uncommitted changes
+- ✅ `scripts/git-hooks/pre-push` - Validates branch naming conventions
+- ✅ `scripts/install-git-hooks.sh` - Hook installation script
+
+**Pattern Document**: See `dev-docs/2-areas/patterns/branch-safety.md` for complete implementation details
+
+**Ticket**: SYOS-430 - Prevent Accidental Branch Switching & Work Loss - Safety Gates (Status: In Review)
+
+---
+
+## 🧪 Real-World Testing Pattern
+
+**Date**: 2025-01-XX  
+**Pattern**: Test commands in real scenarios to identify gaps between design and implementation
+
+### What We Learned
+
+**Problem**: Commands can be well-designed on paper but still miss critical safety gates when used in real scenarios.
+
+**Example**:
+- `/branch` command had comprehensive verification steps designed
+- Real-world test revealed missing explicit confirmation step
+- Gap identified: AI proceeded without user confirmation
+
+### Solution
+
+**Always test commands in real scenarios**:
+
+1. **Use command in real situation** - Don't just review design
+2. **Document what happened** - Capture actual behavior
+3. **Identify gaps** - Compare actual vs intended behavior
+4. **Update task plan** - Prioritize fixes based on real-world experience
+5. **Update patterns** - Document lessons learned
+
+### Key Principles
+
+1. **Test before considering complete** - Real usage reveals gaps
+2. **Document actual behavior** - What happened vs what should happen
+3. **Prioritize based on experience** - Real-world gaps > theoretical improvements
+4. **Update patterns** - Share lessons learned
+
+### Why This Matters
+
+- **Quality**: Real-world testing catches design gaps
+- **Safety**: Identifies missing safety gates
+- **Trust**: Commands work as intended in practice
+- **Learning**: Patterns improve based on experience
+
+### Documentation Updates
+
+- ✅ Added to `ai-docs/tasks/SYOS-XXX-branch-safety-gates.md` - Real-world experience section
+- ✅ Pattern documented - Testing reveals gaps
+
+**See**: `ai-docs/tasks/SYOS-XXX-branch-safety-gates.md` - Real-world test results and gap analysis

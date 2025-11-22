@@ -4,7 +4,7 @@
 	 * Matches Holaspirit design with large layout and orange Start button
 	 */
 
-	import { Button } from '$lib/components/ui';
+	import { Button } from '$lib/components/atoms';
 
 	interface Meeting {
 		title: string;

@@ -5,7 +5,7 @@
 	import { useQuery, useConvexClient } from 'convex-svelte';
 	import { api } from '$lib/convex';
 	import { resolveRoute } from '$lib/utils/navigation';
-	import { Button } from '$lib/components/ui';
+	import { Button } from '$lib/components/atoms';
 
 	// Get invite code from URL
 	const inviteCode = $derived($page.url.searchParams.get('code'));

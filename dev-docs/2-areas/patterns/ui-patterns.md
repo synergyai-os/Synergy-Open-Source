@@ -948,12 +948,36 @@ When values come from database or user input, inline styles are valid:
 - Dynamic positioning (D3 charts, draggable elements)
 - Animation progress (percentages, transforms)
 
+**Edge Case: Special Values (e.g., border-radius: 0)**
+
+Even when the value is 0 or a special case, create a semantic token:
+
+```css
+/* ✅ CORRECT - Semantic token for edge case */
+--border-radius-dialog-fullscreen: 0; /* 0px - fullscreen dialog (no rounding) */
+
+@utility rounded-dialog-fullscreen {
+  border-radius: var(--border-radius-dialog-fullscreen);
+}
+```
+
+```svelte
+<!-- ❌ WRONG - Hardcoded rounded-none -->
+<div class="rounded-none">Fullscreen dialog</div>
+
+<!-- ✅ CORRECT - Semantic token -->
+<div class="rounded-dialog-fullscreen">Fullscreen dialog</div>
+```
+
+**Why**: Even edge cases benefit from semantic naming and centralized control. If design changes (e.g., fullscreen dialogs get subtle rounding), update one token.
+
 **Apply when**:
 
 - Audit finds violations for non-existent tokens
 - Multiple components need same semantic value
 - Value should adapt to light/dark mode
 - Need centralized control over design decision
+- Edge cases with special values (0, transparent, etc.)
 
 **Validation**:
 
@@ -5334,4 +5358,939 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 
 ---
 
-**Last Updated**: 2025-11-18
+---
+
+## #L4850: Storybook Stories Don't Render Correctly with Svelte 5 Snippets [🔴 CRITICAL]
+
+**Symptom**: Storybook stories show loading screen, components render without text, styling doesn't apply, or `invalid_snippet` errors  
+**Root Cause**: TypeScript story files (`.stories.ts`) cannot properly pass Svelte 5 snippets to components. Functions like `children: () => 'Button'` are not valid snippets, and Storybook's render function doesn't convert them correctly.  
+**Fix**:
+
+### Use `.svelte` Story Files for Native Snippet Support
+
+```svelte
+<!-- ✅ CORRECT: Button.stories.svelte -->
+<script module>
+	import { defineMeta } from '@storybook/addon-svelte-csf';
+	import Button from './Button.svelte';
+
+	const { Story } = defineMeta({
+		component: Button,
+		title: 'Atoms/Button',
+		tags: ['autodocs'],
+		argTypes: {
+			variant: {
+				control: { type: 'select' },
+				options: ['primary', 'secondary', 'outline']
+			}
+		}
+	});
+</script>
+
+<Story name="Primary" args={{ variant: 'primary', size: 'md' }}>
+	{#snippet template(args)}
+		<Button {...args}>Button</Button>
+	{/snippet}
+</Story>
+```
+
+```typescript
+// ❌ WRONG: Button.stories.ts - Snippets don't work
+export const Primary: Story = {
+	args: {
+		variant: 'primary',
+		children: () => 'Button' // ❌ Function, not snippet
+	},
+	render: (args) => ({
+		Component: Button,
+		props: args,
+		slots: { default: () => 'Button' } // ❌ Still doesn't work
+	})
+};
+```
+
+**Why**: Storybook 10 + SvelteKit requires native Svelte snippet syntax (`{#snippet template(args)}`) which is only available in `.svelte` files. TypeScript stories cannot create proper snippets, causing rendering failures.
+
+**Apply when**:
+- Creating Storybook stories for Svelte 5 components
+- Components require snippets/children (Button, Badge, Card, etc.)
+- Stories don't render correctly or show `invalid_snippet` errors
+
+**Migration Steps**:
+1. Convert `.stories.ts` → `.stories.svelte`
+2. Use `defineMeta` from `@storybook/addon-svelte-csf`
+3. Wrap component in `{#snippet template(args)}` block
+4. Pass children directly in template (not as function)
+
+**Related**: #L4920 (Storybook parser TypeScript syntax restrictions), #L4930 (Story name validation), Storybook 10 + SvelteKit documentation, Svelte 5 snippets
+
+---
+
+## #L4900: Storybook Custom Theme Configuration for SvelteKit [🟡 IMPORTANT]
+
+**Symptom**: Storybook uses default theme (doesn't match brand), colors don't match design system, logo doesn't render, blank page errors  
+**Root Cause**: Storybook's `polished` library doesn't support `oklch` color format, missing static file configuration, docs rendering issues with SvelteKit  
+**Fix**:
+
+### 1. Create Theme Configuration (`.storybook/manager.ts`)
+
+```typescript
+import { addons } from 'storybook/manager-api';
+import { create } from 'storybook/theming/create';
+
+// Convert oklch colors to hex (polished library doesn't support oklch)
+const synergyOSTheme = create({
+	base: 'dark', // Match SynergyOS default dark mode
+
+	// Brand
+	brandTitle: 'SynergyOS Design System',
+	brandUrl: 'https://synergyos.ai',
+	brandImage: '/logo-placeholder.svg', // Served via staticDirs
+	brandTarget: '_self' as const,
+
+	// Colors (converted from design-system.json oklch to hex)
+	colorPrimary: '#2563eb', // oklch(55.4% 0.218 251.813) --color-accent-primary
+	colorSecondary: '#1d4ed8', // oklch(49.2% 0.218 251.813) --color-accent-hover
+
+	// UI (dark mode values from design-system.json)
+	appBg: '#111827', // oklch(20% 0.002 247.839) --color-bg-base
+	appContentBg: '#374151', // oklch(31.4% 0.044 257.287) --color-bg-elevated
+	appPreviewBg: '#374151',
+	appBorderColor: '#1f2937', // Solid hex format (not rgba)
+	appBorderRadius: 14,
+
+	// Typography
+	fontBase: '"Inter", system-ui, sans-serif', // --font-sans
+	fontCode: '"JetBrains Mono", monospace', // --font-mono
+
+	// Text colors
+	textColor: '#ffffff', // --color-text-primary
+	textInverseColor: '#111827',
+	textMutedColor: '#9ca3af',
+
+	// Bar colors (toolbar, sidebar)
+	barTextColor: '#d1d5db', // --color-text-secondary
+	barSelectedColor: '#2563eb', // --color-accent-primary
+	barHoverColor: '#1d4ed8',
+	barBg: '#1f2937', // --color-bg-surface
+
+	// Form colors
+	inputBg: '#374151',
+	inputBorder: '#4b5563',
+	inputTextColor: '#ffffff',
+	inputBorderRadius: 2
+});
+
+addons.setConfig({
+	theme: synergyOSTheme,
+	panelPosition: 'bottom',
+	enableShortcuts: true,
+	showToolbar: true,
+	sidebar: {
+		showRoots: true // Show category roots (Atoms, Molecules, Organisms)
+	}
+});
+```
+
+### 2. Configure Static Files (`.storybook/main.ts`)
+
+```typescript
+import type { StorybookConfig } from '@storybook/sveltekit';
+
+const config: StorybookConfig = {
+	stories: ['../src/**/*.stories.@(js|jsx|ts|tsx|svelte)'],
+	addons: [
+		'@storybook/addon-svelte-csf',
+		'@storybook/addon-docs', // Docs rendering
+	],
+	framework: {
+		name: '@storybook/sveltekit',
+		options: {}
+	},
+	docs: {
+		autodocs: 'tag'
+	},
+	staticDirs: ['../static'] // Serve static files (logo, etc.)
+};
+
+export default config;
+```
+
+### 3. Configure Preview (`.storybook/preview.ts`)
+
+```typescript
+import type { Preview } from '@storybook/svelte';
+
+// Import global styles (includes design tokens)
+import '../src/app.css';
+
+const preview: Preview = {
+	parameters: {
+		controls: {
+			matchers: {
+				color: /(background|color)$/i,
+				date: /Date$/
+			}
+		},
+		docs: {
+			toc: true, // Table of contents in docs
+			story: {
+				inline: false // Disable inline rendering for SvelteKit compatibility
+			}
+		}
+	}
+};
+
+export default preview;
+```
+
+### 4. Add CSS Constraints for Component Sizing (`src/app.css`)
+
+```css
+/* Storybook Preview Constraints - Ensure components fit in viewport */
+:global([data-test-id="storybook-preview-wrapper"]) {
+	max-width: 100% !important;
+	max-height: calc(100vh - 200px) !important;
+	overflow: auto !important;
+	display: flex !important;
+	justify-content: center !important;
+	align-items: flex-start !important;
+	padding: 1rem !important;
+}
+
+:global([data-test-id="storybook-preview-wrapper"] > *) {
+	max-width: 100% !important;
+	max-height: calc(100vh - 250px) !important;
+}
+```
+
+### Key Points
+
+1. **Color Format**: Convert `oklch` to hex (polished library limitation)
+2. **Theme Creation**: Use `create()` directly, don't spread `themes.dark` (avoids color manipulation issues)
+3. **Static Files**: Add `staticDirs: ['../static']` to serve logo/images
+4. **Docs Rendering**: Set `inline: false` for SvelteKit compatibility
+5. **Component Sizing**: Add CSS constraints to prevent overflow
+
+**Why**: Storybook's theming system uses `polished` library which doesn't support modern `oklch` color format. Converting to hex ensures theme works correctly. SvelteKit requires `inline: false` for docs rendering.
+
+**Apply when**:
+- Setting up Storybook for SvelteKit projects
+- Creating custom theme matching design system
+- Components require scrolling to view fully
+- Logo/images don't render in Storybook
+
+**Common Issues**:
+- ❌ `PolishedError2` blank page → Use hex colors, not oklch
+- ❌ Logo 404 error → Add `staticDirs` configuration
+- ❌ Docs renderer error → Set `inline: false` in preview
+- ❌ Components overflow viewport → Add CSS constraints
+
+**Related**: #L4850 (Storybook stories with Svelte 5 snippets)
+
+---
+
+## #L4920: Storybook Parser Doesn't Support TypeScript Syntax in `<script module>` Blocks [🔴 CRITICAL]
+
+**Symptom**: Storybook indexer throws `InvalidStoryExportNameError` or `IndexerParseError` when parsing `.stories.svelte` files, stories fail to load  
+**Root Cause**: Storybook's `addon-svelte-csf` parser expects plain JavaScript in `<script module>` blocks. TypeScript syntax (`as const`, type annotations, `import type`) causes parsing failures.  
+**Fix**:
+
+### Remove TypeScript Syntax from `<script module>` Blocks
+
+```svelte
+<!-- ✅ CORRECT: Plain JavaScript in <script module> -->
+<script module>
+	import { defineMeta } from '@storybook/addon-svelte-csf';
+	import Component from './Component.svelte';
+
+	const { Story } = defineMeta({
+		component: Component,
+		title: 'Modules/Component',
+		tags: ['autodocs']
+	});
+
+	// Plain JavaScript - no TypeScript syntax
+	const mockData = {
+		visibility: 'public', // ✅ No 'as const'
+		items: [
+			{ id: '1', name: 'Item 1' }
+		]
+	};
+
+	// Plain functions - no type annotations
+	const handleClick = (id) => {
+		console.log('Click:', id);
+	};
+</script>
+```
+
+```svelte
+<!-- ❌ WRONG: TypeScript syntax breaks parser -->
+<script module>
+	import { defineMeta } from '@storybook/addon-svelte-csf';
+	import type { ComponentProps } from './Component.svelte'; // ❌ import type
+	import Component from './Component.svelte';
+
+	const mockData = {
+		visibility: 'public' as const, // ❌ as const
+		items: [] as ComponentProps[] // ❌ type annotation
+	};
+
+	const handleClick = (id: string) => { // ❌ type annotation
+		console.log('Click:', id);
+	};
+</script>
+```
+
+**Why**: Storybook's parser (`addon-svelte-csf`) uses a JavaScript parser that doesn't understand TypeScript syntax. The `<script module>` block must contain plain JavaScript only.
+
+**Apply when**:
+- Creating Storybook stories with `.svelte` files
+- Parser throws errors about invalid syntax
+- Using `as const`, type annotations, or `import type` in story files
+
+**Common TypeScript Syntax to Remove**:
+- `as const` assertions → Remove, use plain strings/values
+- Type annotations in function parameters → Remove `: Type`
+- `import type` statements → Use regular `import` or remove
+- Type assertions → Remove `as Type`
+
+**Example Fixes**:
+```javascript
+// Before (TypeScript)
+const data = { status: 'active' as const };
+const handler = (id: string) => console.log(id);
+import type { Props } from './Component.svelte';
+
+// After (Plain JavaScript)
+const data = { status: 'active' };
+const handler = (id) => console.log(id);
+// Remove import type - not needed in stories
+```
+
+**Related**: #L4850 (Storybook stories format), #L4930 (Story name validation)
+
+---
+
+## #L4930: Storybook Story Names Must Be Valid JavaScript Identifiers [🟡 IMPORTANT]
+
+**Symptom**: Storybook throws `InvalidStoryExportNameError` with message like "Invalid attribute 'exportName' value '169' found in '<Story />' component"  
+**Root Cause**: Storybook's parser converts story `name` attributes to JavaScript export names. Invalid identifiers (colons, spaces, special characters) cause parsing failures.  
+**Fix**:
+
+### Use Valid JavaScript Identifiers for Story Names
+
+```svelte
+<!-- ✅ CORRECT: Valid JavaScript identifiers -->
+<Story name="Default" args={{ ratio: 16 / 9 }}>
+	{#snippet template(args)}
+		<AspectRatio {...args} />
+	{/snippet}
+</Story>
+
+<Story name="Ratio16x9" args={{ ratio: 16 / 9 }}>
+	{#snippet template(args)}
+		<AspectRatio {...args} />
+	{/snippet}
+</Story>
+
+<Story name="CommandK" args={{ keys: ['Meta', 'K'] }}>
+	{#snippet template(args)}
+		<KeyboardShortcut {...args} />
+	{/snippet}
+</Story>
+
+<Story name="InProgress" args={{ status: 'in-progress' }}>
+	{#snippet template(args)}
+		<StatusPill {...args} />
+	{/snippet}
+</Story>
+```
+
+```svelte
+<!-- ❌ WRONG: Invalid identifiers -->
+<Story name="16:9" args={{ ratio: 16 / 9 }}> <!-- ❌ Colon -->
+	{#snippet template(args)}
+		<AspectRatio {...args} />
+	{/snippet}
+</Story>
+
+<Story name="Command K" args={{ keys: ['Meta', 'K'] }}> <!-- ❌ Space -->
+	{#snippet template(args)}
+		<KeyboardShortcut {...args} />
+	{/snippet}
+</Story>
+
+<Story name="In Progress" args={{ status: 'in-progress' }}> <!-- ❌ Space -->
+	{#snippet template(args)}
+		<StatusPill {...args} />
+	{/snippet}
+</Story>
+```
+
+**Why**: Storybook's parser converts story names to JavaScript export identifiers. Identifiers must follow JavaScript naming rules: start with letter/underscore, contain only letters/numbers/underscores, no spaces or special characters.
+
+**Apply when**:
+- Creating Storybook stories with descriptive names
+- Story names contain colons, spaces, or special characters
+- Parser throws `InvalidStoryExportNameError`
+
+**Naming Patterns**:
+- **Ratios**: `"16:9"` → `"Ratio16x9"` or `"Aspect16x9"`
+- **Keyboard shortcuts**: `"Command K"` → `"CommandK"` or `"CmdK"`
+- **Statuses**: `"In Progress"` → `"InProgress"` or `"InProgressStatus"`
+- **Descriptions**: `"With Many Items"` → `"WithManyItems"` or `"ManyItems"`
+
+**Related**: #L4850 (Storybook stories format), #L4920 (TypeScript syntax restrictions)
+
+---
+
+## #L4940: Storybook Story Organization - File Location and Title Hierarchy [🟡 IMPORTANT]
+
+**Symptom**: Don't know where to put story files, what title hierarchy to use, flat Storybook navigation, agents reinvent organization  
+**Root Cause**: No documented pattern for story file placement and title structure  
+**Fix**:
+
+### File Location
+
+**Co-locate with component** (same folder as `.svelte` file)
+
+- ✅ `ActionItemsList.svelte` → `ActionItemsList.stories.svelte`
+- ✅ `Button.svelte` → `Button.stories.svelte`
+- ❌ NOT in separate `stories/` folder (breaks module ownership)
+
+**Why**: Teams own their story files, aligns with Svelte philosophy (components own their docs)
+
+### Title Hierarchy
+
+**Design System (shared UI - used by multiple modules):**
+
+```typescript
+'Design System/Atoms/ComponentName'      // Single elements (Button, Card, Badge)
+'Design System/Molecules/ComponentName'  // 2-3 atoms composed (FormField, SearchBar)
+'Design System/Organisms/ComponentName'  // Complex sections (Dialog, Header, Sidebar)
+```
+
+**Modules (feature-specific - single module only):**
+
+```typescript
+'Modules/ModuleName/ComponentName'
+// Examples:
+'Modules/Meetings/ActionItemsList'
+'Modules/Meetings/MeetingCard'
+'Modules/OrgChart/CircleDetailPanel'
+'Modules/Inbox/InboxCard'
+```
+
+### Classification Decision Tree
+
+**Question**: Is component used by multiple modules?
+
+→ **Yes**: Design System (classify as Atom/Molecule/Organism)
+→ **No**: Module-specific (`'Modules/ModuleName/ComponentName'`)
+
+**Examples:**
+
+* Button (used everywhere) → `'Design System/Atoms/Button'`
+* ActionItemsList (only Meetings) → `'Modules/Meetings/ActionItemsList'`
+* MeetingCard (only Meetings) → `'Modules/Meetings/MeetingCard'`
+* TagSelector (used by Inbox + Flashcards) → `'Design System/Atoms/TagSelector'` or `'Design System/Molecules/TagSelector'`
+
+### Why This Approach
+
+* ✅ **Co-location**: Teams own their story files (modular ownership preserved)
+* ✅ **Hierarchical navigation**: Organized folders in Storybook UI (not flat chaos)
+* ✅ **Atomic design alignment**: Matches our component architecture (atoms/molecules/organisms)
+* ✅ **Modular architecture**: Clear boundaries (Design System vs Modules)
+* ✅ **Scalable**: Add new modules without navigation pollution
+
+### File Structure Alternatives Considered
+
+**Context7/Community research shows 3 common approaches:**
+
+**1. Co-Located (Current - CHOSEN):**
+```
+src/lib/modules/meetings/components/
+├── ActionItemsList.svelte
+├── ActionItemsList.stories.svelte  ← Co-located
+├── MeetingCard.svelte
+└── MeetingCard.stories.svelte
+```
+
+**Pros:** 
+- ✅ Locality (story next to component, easy to find/update)
+- ✅ Git diffs show component + story together
+- ✅ Module ownership (teams own both)
+- ✅ Svelte philosophy (components own their docs)
+
+**Cons:**
+- ❌ Visual clutter in file tree (doubled file count)
+
+**2. Nested Stories Folder:**
+```
+src/lib/modules/meetings/components/
+├── stories/
+│   ├── ActionItemsList.stories.svelte
+│   └── MeetingCard.stories.svelte
+├── ActionItemsList.svelte
+└── MeetingCard.svelte
+```
+
+**Pros:** 
+- ✅ Cleaner component folder
+- ✅ Still somewhat co-located
+
+**Cons:**
+- ⚠️ Import paths change (`../Component.svelte`)
+- ⚠️ Disconnects pairing (not obvious which story → component)
+- ⚠️ Extra folder nesting
+
+**3. Module-Level Stories Folder:**
+```
+src/lib/modules/meetings/
+├── components/
+│   ├── ActionItemsList.svelte
+│   └── MeetingCard.svelte
+└── stories/
+    ├── ActionItemsList.stories.svelte
+    └── MeetingCard.stories.svelte
+```
+
+**Pros:**
+- ✅ Complete separation (pristine component folder)
+- ✅ Scales well for large projects (50+ components)
+
+**Cons:**
+- ❌ Breaks co-location (harder maintenance)
+- ❌ Git diffs separated across folders
+- ❌ Against Svelte philosophy
+
+**Decision: Co-location (Approach 1)**
+
+**Why:**
+1. **UX problem solved differently** - Title hierarchy organizes Storybook UI (not file structure)
+2. **Co-location benefits > visual clutter** - Easier maintenance, better git history
+3. **Industry standard for modular projects** - Context7/community research validates this
+4. **IDE features mitigate clutter** - File nesting patterns (e.g., VS Code `explorer.fileNesting.patterns`)
+
+**IDE File Nesting Example (VS Code/Cursor):**
+```json
+"explorer.fileNesting.patterns": {
+  "*.svelte": "${capture}.stories.svelte, ${capture}.test.ts"
+}
+```
+This nests `ActionItemsList.stories.svelte` under `ActionItemsList.svelte` in the file tree, solving visual clutter without sacrificing co-location benefits.
+
+**When to reconsider:** Large design systems (50+ components) may benefit from Approach 3 (separate folder), but still use title hierarchy for navigation.
+
+### Implementation Example
+
+**Before:**
+
+```typescript
+// Button.stories.svelte
+export default {
+  title: 'Button',  // Flat, no hierarchy
+  component: Button
+};
+```
+
+**After:**
+
+```typescript
+// Button.stories.svelte
+export default {
+  title: 'Design System/Atoms/Button',  // Hierarchical
+  component: Button
+};
+```
+
+### Storybook UI Result
+
+```
+📁 Design System
+  📁 Atoms
+    📄 Button
+    📄 Card
+    📄 Badge
+  📁 Molecules
+    📄 FormField
+  📁 Organisms
+    📄 Dialog
+📁 Modules
+  📁 Meetings
+    📄 ActionItemsList
+    📄 MeetingCard
+  📁 OrgChart
+    📄 CircleDetailPanel
+  📁 Inbox
+    📄 InboxCard
+```
+
+**Why**: Context7 validated - standard Storybook pattern for hierarchical component organization
+
+### MDX Overview Pages
+
+**Purpose**: Create category introduction pages that appear in Storybook navigation hierarchy
+
+**Location**: `src/stories/[Category].mdx` or `src/stories/[Category][Subcategory].mdx`
+
+**Title Pattern**: Match the category hierarchy
+
+```mdx
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Design System/Overview" />
+<!-- or -->
+<Meta title="Design System/Atoms" />
+<!-- or -->
+<Meta title="Modules/Meetings" />
+```
+
+**Examples**:
+- `DesignSystem.mdx` → `Design System/Overview`
+- `DesignSystemAtoms.mdx` → `Design System/Atoms`
+- `Modules.mdx` → `Modules`
+- `ModulesMeetings.mdx` → `Modules/Meetings`
+- `ModulesOrgChart.mdx` → `Modules/OrgChart`
+
+**Content Structure**:
+- Overview of the category
+- List of available components
+- Usage patterns
+- Links to related documentation
+
+**Why**: Provides context and navigation structure in Storybook, helps users understand component organization
+
+**Storybook Sorting Limitation**:
+
+Storybook 10 groups MDX pages separately from story folders and may sort them alphabetically, not respecting `storySort` order arrays. For example, "Design System/Overview" may appear after "Organisms" folder instead of before "Atoms".
+
+**Workaround**: This is a Storybook limitation - MDX pages are functional and appear in navigation, but exact ordering within categories may not match `storySort` configuration. Accept this behavior or use numeric prefixes (e.g., "0-Overview") if strict ordering is required (note: prefix will appear in UI).
+
+**Apply when**:
+- Creating new Storybook categories
+- Adding module overview pages
+- Reorganizing Storybook navigation hierarchy
+
+**Related**: #L4850 (Storybook stories format), #L4920 (TypeScript syntax restrictions), #L4930 (Story name validation), #L5000 (Mock composables for Convex dependencies), SYOS-459 (Complete Storybook hierarchy reorganization), SYOS-466 (MDX overview pages)
+
+---
+
+## #L5000: Mock Composables for Storybook Stories with Convex Dependencies [🟡 IMPORTANT]
+
+**Symptom**: Component can't render in Storybook - "Failed to fetch dynamically imported module", 403 errors for `/convex/_generated/api.js`, "outside Vite serving allow list"  
+**Root Cause**: Component imports composables that use Convex (`useQuery`, `useConvexClient`), Storybook's Vite bundler tries to resolve real Convex files which don't exist in Storybook environment  
+**Fix**:
+
+### Strategy: Mock at Composable Level (Highest Abstraction)
+
+**Don't mock**: Low-level Convex imports (`$convex/_generated/api`)  
+**Do mock**: Composables that components actually import
+
+**Why**: Composables are the highest abstraction layer. Mocking here bypasses entire Convex dependency chain and matches component's actual import path.
+
+### Implementation
+
+**Step 1: Create Mock Composables**
+
+```typescript
+// .storybook/mocks/useActionItems.svelte.ts
+import type { Id } from './convex';
+
+interface UseActionItemsProps {
+	agendaItemId: () => Id<'meetingAgendaItems'>;
+	sessionId: () => string;
+	organizationId: () => Id<'organizations'>;
+	circleId?: () => Id<'circles'> | undefined;
+}
+
+export function useActionItems(_props: UseActionItemsProps) {
+	// Return mock data structure matching real composable
+	return {
+		actionItems: [], // Empty array for "Empty" story
+		members: [
+			{ _id: 'member-1' as Id<'circleMembers'>, userId: 'user-1' as Id<'users'>, name: 'John Doe' }
+		],
+		roles: [
+			{ _id: 'role-1' as Id<'roles'>, name: 'Product Lead' }
+		],
+		isLoading: false,
+		error: undefined
+	};
+}
+```
+
+```typescript
+// .storybook/mocks/useActionItemsForm.svelte.ts
+export function useActionItemsForm(_props: UseActionItemsFormProps) {
+	return {
+		newActionItem: {
+			description: '',
+			assigneeType: 'member' as const,
+			assigneeId: undefined,
+			dueDate: ''
+		},
+		// No-op handlers for Storybook
+		handleDescriptionChange: (value: string) => console.log('Mock:', value),
+		handleSubmit: async () => console.log('Mock: Form submitted'),
+		canSubmit: false,
+		isSubmitting: false
+	};
+}
+```
+
+**Step 2: Configure Vite Aliases in `.storybook/main.ts`**
+
+```typescript
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const config: StorybookConfig = {
+	// ... other config
+	async viteFinal(config) {
+		const mockUseActionItemsPath = path.resolve(__dirname, './mocks/useActionItems.svelte.ts');
+		const mockUseActionItemsFormPath = path.resolve(__dirname, './mocks/useActionItemsForm.svelte.ts');
+
+		if (config.resolve) {
+			// Convert array aliases to object format
+			const existingAliases = Array.isArray(config.resolve.alias)
+				? config.resolve.alias.reduce((acc, { find, replacement }) => ({
+						...acc,
+						[typeof find === 'string' ? find : find.toString()]: replacement
+					}), {} as Record<string, string>)
+				: config.resolve.alias || {};
+
+			// Place mocks LAST to override SvelteKit defaults
+			config.resolve.alias = {
+				...existingAliases,
+				// Mock composables - components import these directly
+				'$lib/modules/meetings/composables/useActionItems.svelte': mockUseActionItemsPath,
+				'$lib/modules/meetings/composables/useActionItemsForm.svelte': mockUseActionItemsFormPath,
+				// Also mock Convex + SvelteKit environment
+				'$lib/convex': path.resolve(__dirname, './mocks/convex.ts'),
+				'convex-svelte': path.resolve(__dirname, './mocks/convex-svelte.ts'),
+				'$app/environment': path.resolve(__dirname, './mocks/app-environment.ts')
+			};
+
+			// Debug: Log aliases to verify
+			console.log('[Storybook] Final Vite aliases:', Object.keys(config.resolve.alias));
+		}
+
+		// Add convex directory to fs.allow to prevent "outside allow list" errors
+		if (config.server) {
+			config.server.fs = config.server.fs || {};
+			config.server.fs.allow = [
+				...(config.server.fs.allow || []),
+				path.resolve(__dirname, '../convex')
+			];
+		}
+
+		return config;
+	}
+};
+```
+
+**Step 3: Create Story File**
+
+```svelte
+<!-- ActionItemsList.stories.svelte -->
+<script module>
+	import { defineMeta } from '@storybook/addon-svelte-csf';
+	import ActionItemsList from './ActionItemsList.svelte';
+
+	const { Story } = defineMeta({
+		component: ActionItemsList,
+		title: 'Modules/Meetings/ActionItemsList',
+		tags: ['autodocs']
+	});
+
+	// Mock IDs
+	const mockAgendaItemId = 'agenda-item-1';
+	const mockMeetingId = 'meeting-1';
+	const mockSessionId = 'session-1';
+	const mockOrganizationId = 'org-1';
+</script>
+
+<Story
+	name="Empty"
+	args={{
+		agendaItemId: mockAgendaItemId,
+		meetingId: mockMeetingId,
+		sessionId: mockSessionId,
+		organizationId: mockOrganizationId,
+		readonly: false
+	}}
+>
+	{#snippet template(args)}
+		<ActionItemsList {...args} />
+	{/snippet}
+</Story>
+```
+
+### Why This Works
+
+**Import Chain**:
+
+```
+❌ Before (failed):
+ActionItemsList → useActionItems → $lib/convex → $convex/_generated/api → 403
+
+✅ After (works):
+ActionItemsList → useActionItems (aliased to mock) ✅
+```
+
+**Key Insights**:
+
+1. **Object format overrides array format** - Vite aliases work better with object spread (mocks placed last override earlier aliases)
+2. **Mock at highest level** - Composables are what components import, not low-level Convex files
+3. **`server.fs.allow` prevents "outside allow list" errors** - Adds convex directory to Vite's allowed paths
+4. **Debug logging confirms aliases applied** - Console.log shows final alias configuration
+
+### Alternative: Populate Mock Data Per Story
+
+```typescript
+// .storybook/mocks/useActionItems.svelte.ts
+// Add optional data parameter for customization
+export function useActionItems(_props: UseActionItemsProps, mockData?: { actionItems?: any[] }) {
+	return {
+		actionItems: mockData?.actionItems || [],
+		// ... rest
+	};
+}
+```
+
+```svelte
+<!-- Story with populated items -->
+<Story name="WithItems" args={{ /* ... */ }}>
+	{#snippet template(args)}
+		<!-- Would need decorator or wrapper to inject mockData -->
+		<ActionItemsList {...args} />
+	{/snippet}
+</Story>
+```
+
+### Common Pitfalls
+
+**❌ Wrong: Mocking low-level imports**
+
+```typescript
+// Don't mock these directly - too deep in chain
+'$convex/_generated/api': mockConvexPath  // SvelteKit might not use object aliases
+```
+
+**❌ Wrong: Array format with mocks first**
+
+```typescript
+config.resolve.alias = [
+	{ find: '$lib/convex', replacement: mockPath },  // Gets overridden by SvelteKit
+	...existingAliases
+];
+```
+
+**❌ CRITICAL: Interface Mismatch - Plain Properties vs Svelte 5 Getters**
+
+**Symptom**: Component renders empty state in Storybook despite mock data populated and aliases configured correctly. No console errors.
+
+**Root Cause**: Real composable uses Svelte 5 reactivity pattern with **getters**, but mock uses **plain properties**. When component accesses `data.actionItems`, it expects a getter but gets `undefined`.
+
+```typescript
+// ❌ WRONG: Mock with plain properties
+export function useActionItems(_props: UseActionItemsProps) {
+	return {
+		actionItems: [...],  // Plain array - not reactive
+		members: [...],
+		roles: [...]
+	};
+}
+
+// Real composable uses getters (Svelte 5 pattern)
+return {
+	get actionItems() { return actionItems; },  // Getter - reactive
+	get members() { return members; }
+};
+```
+
+**Fix**: Mock must match real composable's **exact interface** including getters:
+
+```typescript
+// ✅ CORRECT: Mock with getters matching real interface
+export function useActionItems(_props: UseActionItemsProps): UseActionItemsReturn {
+	const mockData = {
+		actionItems: [...],
+		members: [...],
+		roles: [...],
+		isLoading: false
+	};
+
+	// Return with getters to match real composable interface
+	return {
+		get actionItems() { return mockData.actionItems; },
+		get members() { return mockData.members; },
+		get roles() { return mockData.roles; },
+		get isLoading() { return mockData.isLoading; }
+	};
+}
+
+// Define return type interface matching real composable
+interface UseActionItemsReturn {
+	get actionItems(): unknown[];
+	get members(): unknown[];
+	get roles(): unknown[];
+	get isLoading(): boolean;
+}
+```
+
+**Why this happens**: Svelte 5's reactivity system uses getters for composables to enable reactive state. Non-reactive environments like Storybook still need the getter interface for property access to work correctly.
+
+**Detection**: If Storybook component shows empty state but:
+- ✅ Aliases configured correctly (visible in console logs)
+- ✅ Mock data populated (verified in mock file)
+- ❌ No errors in console (no crash, just empty state)
+
+→ **Check interface match**: Compare mock's return structure with real composable's return type
+
+**Related**: SYOS-473 (ActionItemsList interface mismatch), Svelte 5 reactivity patterns (#L810)
+
+**✅ Correct: Mock composables + object format**
+
+```typescript
+config.resolve.alias = {
+	...existingAliases,  // SvelteKit's aliases first
+	'$lib/modules/meetings/composables/useActionItems.svelte': mockPath  // Override last
+};
+```
+
+### Reusable Pattern
+
+**For any component with Convex dependencies:**
+
+1. Identify composables component imports
+2. Create mock composables in `.storybook/mocks/[composableName].svelte.ts`
+3. Add Vite alias: `'$lib/path/to/composable.svelte': mockPath`
+4. Mock matches real composable's return interface
+5. Use no-op handlers (console.log for debugging)
+
+**Files Created** (ActionItemsList example):
+- `.storybook/mocks/useActionItems.svelte.ts`
+- `.storybook/mocks/useActionItemsForm.svelte.ts`
+- `ActionItemsList.stories.svelte` (co-located with component)
+
+**Apply when**:
+- Component uses Convex composables (`useQuery`, mutations)
+- Story fails with "Failed to fetch dynamically imported module"
+- 403 errors for `/convex/_generated/api.js`
+- "Outside Vite serving allow list" errors
+
+**Don't apply when**:
+- Component has no Convex dependencies (use real composables)
+- Simple components with only props (no mocking needed)
+
+**Related**: #L4850 (Storybook story format), #L4940 (Story organization), component-architecture.md#L377 (Separation of concerns), SYOS-472 (ActionItemsList Storybook implementation)
+
+---
+
+**Last Updated**: 2025-11-22

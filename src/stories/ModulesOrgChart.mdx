@@ -1,0 +1,89 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Modules/OrgChart" />
+
+# Org Chart Module
+
+Organizational structure visualization and management components for circles, roles, and members.
+
+---
+
+## 🎯 Overview
+
+The Org Chart module provides a complete organizational structure system:
+
+- ✅ Visualize organizational hierarchy (nested bubble chart)
+- ✅ Manage circles (teams, departments)
+- ✅ Assign roles and members
+- ✅ View circle and role details
+- ✅ Create and edit organizational structure
+
+---
+
+## 📦 Components
+
+### Visualization
+
+- **OrgChart**: Interactive nested bubble chart showing organizational hierarchy
+- **CategoryHeader**: Header for circle/role categories
+
+### Detail Panels
+
+- **CircleDetailPanel**: Panel showing circle details, members, roles
+- **RoleDetailPanel**: Panel showing role details, responsibilities
+- **CircleMembersPanel**: List of circle members with management
+- **CircleRolesPanel**: List of roles in a circle
+
+### Headers & Navigation
+
+- **CircleDetailHeader**: Header for circle detail view
+- **RoleDetailHeader**: Header for role detail view
+- **PanelBreadcrumbBar**: Breadcrumb navigation for panel hierarchy
+
+### Management
+
+- **CreateCircleModal**: Modal for creating new circles
+- **RoleCard**: Card displaying role information
+
+---
+
+## 🎨 Usage Pattern
+
+```svelte
+<script>
+	import { OrgChart } from '$lib/modules/org-chart/components';
+	import { useOrgChart } from '$lib/modules/org-chart/composables/useOrgChart.svelte';
+
+	const orgChart = useOrgChart({ sessionId, organizationId });
+</script>
+
+<OrgChart
+	data={orgChart.hierarchy}
+	onCircleSelect={orgChart.handleCircleSelect}
+	onRoleSelect={orgChart.handleRoleSelect}
+/>
+```
+
+---
+
+## 🔄 Design System Integration
+
+Org Chart components use Design System atoms:
+
+- **Card**: Circle and role detail panels
+- **Button**: Create circle, add member actions
+- **Badge**: Role indicators, member status
+- **Dialog**: Create circle modal
+- **Avatar**: Member avatars in lists
+
+---
+
+## 📚 Related Documentation
+
+- **Modules Overview**: `Modules`
+- **Design System**: `Design System/Overview`
+- **Component Architecture**: `dev-docs/2-areas/design/component-architecture.md`
+
+---
+
+**Last Updated**: November 2025

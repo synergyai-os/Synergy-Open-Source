@@ -23,7 +23,7 @@
 function isFeatureFolder(folderName) {
 	// ai-tools excluded temporarily - will become its own module (future work)
 	// See: ai-docs/tasks/SYOS-XXX-component-reorganization.md
-	const featureFolders = ['control-panel', 'dashboard', 'my-mind'];
+	const featureFolders = ['control-panel', 'dashboard'];
 	return featureFolders.includes(folderName);
 }
 

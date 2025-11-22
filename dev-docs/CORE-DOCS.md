@@ -84,7 +84,7 @@
 - `ai-docs/tasks/README.md` - Task system
 
 **Root Files:**
-- `design-system-test.json` - Source of truth (token specs) ⭐
+- `design-system.json` - Source of truth (token specs) ⭐
 
 ---
 

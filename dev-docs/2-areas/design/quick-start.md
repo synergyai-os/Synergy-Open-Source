@@ -242,6 +242,109 @@ import { MyButton } from '$lib/components/atoms';
 
 ---
 
+## 🎯 Synergy-Specific Pattern Examples
+
+> **Purpose**: Quick copy-paste reference for common SynergyOS patterns.
+
+### Color Usage Patterns
+
+**Primary actions** (main CTAs, submit buttons):
+```svelte
+<button class="bg-primary text-primary-foreground hover:bg-primary-hover">
+  Submit
+</button>
+```
+
+**Secondary actions** (cancel, alternative actions):
+```svelte
+<button class="bg-secondary text-secondary-foreground hover:bg-secondary-hover">
+  Cancel
+</button>
+```
+
+**Accent highlights** (notifications, badges, important UI elements):
+```svelte
+<div class="bg-accent text-accent-foreground">
+  New feature available!
+</div>
+```
+
+**Surface containers** (cards, panels, elevated sections):
+```svelte
+<div class="bg-surface text-on-surface border border-base">
+  Card content
+</div>
+```
+
+### Spacing Patterns
+
+**Card spacing** (internal card padding):
+```svelte
+<div class="p-card-padding rounded-card">
+  Card content with consistent padding
+</div>
+```
+
+**Button padding** (horizontal and vertical button spacing):
+```svelte
+<button class="px-button-padding-md py-button-padding-sm rounded-button">
+  Button text
+</button>
+```
+
+**Section spacing** (vertical spacing between sections):
+```svelte
+<section class="space-y-section-spacing">
+  <div>Section 1</div>
+  <div>Section 2</div>
+</section>
+```
+
+### Typography Hierarchy
+
+**Headings** (page titles, section headers, card titles):
+```svelte
+<!-- Page title -->
+<h1 class="text-heading-xl font-heading">Main Page Title</h1>
+
+<!-- Section header -->
+<h2 class="text-heading-lg font-heading">Section Header</h2>
+
+<!-- Card title -->
+<h3 class="text-heading-md font-heading">Card Title</h3>
+```
+
+**Body text** (paragraphs, descriptions, content):
+```svelte
+<!-- Primary body text -->
+<p class="text-body-md font-body">
+  This is standard body text for reading content.
+</p>
+
+<!-- Secondary/muted text -->
+<p class="text-body-sm text-muted-foreground">
+  This is smaller, less prominent text for additional details.
+</p>
+```
+
+**Captions** (labels, metadata, timestamps):
+```svelte
+<span class="text-caption text-muted-foreground">
+  Last updated: 2 hours ago
+</span>
+```
+
+**Why These Patterns?**
+
+- ✅ **Consistent**: Same problem, same solution across app
+- ✅ **Theme-aware**: Automatically adapt to light/dark mode
+- ✅ **Maintainable**: Change token once, updates everywhere
+- ✅ **Copy-paste ready**: No thinking, just use
+
+**See**: [Design Tokens](design-tokens.md) for complete token reference.
+
+---
+
 ## 🔍 Common Debugging Tips
 
 ### Issue: ESLint blocks hardcoded values

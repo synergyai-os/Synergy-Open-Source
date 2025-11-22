@@ -40,14 +40,14 @@
 	<!-- Sidebar - Only show if user is admin and not showing error page -->
 	{#if showSidebar}
 		<aside class="w-64 border-r border-sidebar bg-sidebar">
-			<nav class="p-4">
-				<h2 class="mb-4 text-lg font-semibold text-sidebar-primary">Admin</h2>
-				<ul class="space-y-1">
+			<nav class="p-card">
+				<h2 class="mb-content-section text-h3 font-semibold text-sidebar-primary">Admin</h2>
+				<ul class="space-y-section-y">
 					{#each navItems as item (item.href)}
 						<li>
 							<a
 								href={item.href}
-								class="flex items-center gap-icon rounded px-nav-item py-menu-item text-sm transition-colors {currentPath ===
+								class="flex items-center gap-icon rounded px-nav-item py-menu-item text-small transition-colors {currentPath ===
 								item.href
 									? 'bg-hover-solid text-sidebar-primary'
 									: 'text-sidebar-secondary hover:bg-hover-solid hover:text-sidebar-primary'}"

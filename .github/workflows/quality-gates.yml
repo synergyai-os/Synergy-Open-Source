@@ -44,9 +44,70 @@ jobs:
         run: npm run lint
         continue-on-error: true # TODO: Enable after fixing 483 linting errors (separate effort)
 
+      - name: Svelte Validation
+        run: npm run validate:svelte
+        continue-on-error: true # Non-blocking initially (SYOS-445)
+
       - name: Design System Audit
         run: npm run audit:ci
         continue-on-error: true # Non-blocking initially (SYOS-406)
+
+      - name: Token Usage Report
+        run: npm run tokens:report -- --ci
+        continue-on-error: true # Non-blocking initially (SYOS-436)
+
+      - name: DTCG Format Validation
+        run: npm run tokens:validate-dtcg
+        continue-on-error: true # Non-blocking initially (SYOS-434)
+
+      - name: Build Tokens
+        run: npm run tokens:build
+
+      - name: Semantic Token Validation
+        run: npm run tokens:validate-semantic
+
+      - name: Check Generated Files
+        run: |
+          # Check if generated CSS files were manually edited
+          GENERATED_FILES="src/styles/tokens/*.css src/styles/utilities/*.css"
+          MANUAL_EDIT_DETECTED=0
+
+          for file in $GENERATED_FILES; do
+            if [ -f "$file" ]; then
+              # Check if file has unstaged changes after build (indicates manual edit)
+              if ! git diff --quiet "$file"; then
+                echo "❌ Generated file manually edited: $file"
+                echo "   Generated CSS files must not be edited manually."
+                echo "   Edit design-system.json instead, then run: npm run tokens:build"
+                MANUAL_EDIT_DETECTED=1
+              fi
+            fi
+          done
+
+          if [ "$MANUAL_EDIT_DETECTED" -eq 1 ]; then
+            echo ""
+            echo "❌ Manual edits detected in generated CSS files!"
+            echo "   Generated files must be auto-generated from design-system.json."
+            echo "   See: dev-docs/2-areas/patterns/ci-cd.md#L2550"
+            exit 1
+          fi
+
+          echo "✅ No manual edits detected in generated files"
+
+      - name: Token Validation
+        run: npm run tokens:validate
+
+      - name: Build Storybook
+        run: npm run build-storybook
+        continue-on-error: true # Non-blocking initially (SYOS-433)
+
+      - name: Storybook Visual Regression Tests
+        run: |
+          npx serve storybook-static -p 6006 -s &
+          sleep 5
+          npm run test:visual -- --ci || true
+          pkill -f "serve storybook-static" || true
+        continue-on-error: true # Non-blocking initially (SYOS-433)
 
       - name: Build verification
         run: npm run build

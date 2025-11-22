@@ -1,0 +1,86 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Modules/Meetings" />
+
+# Meetings Module
+
+Meeting management components for creating, editing, and managing meetings with agenda items, action items, and decisions.
+
+---
+
+## 🎯 Overview
+
+The Meetings module provides a complete meeting management system:
+
+- ✅ Create and edit meetings
+- ✅ Manage agenda items
+- ✅ Track action items and decisions
+- ✅ Assign attendees and secretary
+- ✅ Real-time collaboration
+
+---
+
+## 📦 Components
+
+### Meeting Cards
+
+- **MeetingCard**: Full meeting card with details, agenda, attendees
+- **TodayMeetingCard**: Compact card for today's meetings (dashboard)
+
+### Agenda Management
+
+- **AgendaItemView**: View and edit individual agenda items
+- **AgendaItemEditor**: Rich text editor for agenda notes
+
+### Action Items & Decisions
+
+- **ActionItemsList**: List of action items with create/edit/delete
+- **DecisionsList**: List of decisions made during meeting
+
+### Meeting Creation
+
+- **CreateMeetingModal**: Modal for creating new meetings
+- **AttendeeSelector**: Multi-select for choosing attendees
+- **SecretarySelector**: Select meeting secretary
+- **SecretaryConfirmationDialog**: Confirm secretary assignment
+
+---
+
+## 🎨 Usage Pattern
+
+```svelte
+<script>
+	import { MeetingCard } from '$lib/modules/meetings/components';
+	import { useMeetings } from '$lib/modules/meetings/composables/useMeetings.svelte';
+
+	const meetings = useMeetings({ sessionId, organizationId });
+</script>
+
+{#each meetings.list as meeting (meeting._id)}
+	<MeetingCard {meeting} />
+{/each}
+```
+
+---
+
+## 🔄 Design System Integration
+
+Meetings components use Design System atoms:
+
+- **Button**: Primary actions (Start Meeting, Save)
+- **Card**: Meeting containers, agenda items
+- **FormInput**: Meeting title, date, time
+- **Badge**: Status indicators (Upcoming, In Progress, Completed)
+- **Dialog**: Create meeting modal, confirmation dialogs
+
+---
+
+## 📚 Related Documentation
+
+- **Modules Overview**: `Modules`
+- **Design System**: `Design System/Overview`
+- **Component Architecture**: `dev-docs/2-areas/design/component-architecture.md`
+
+---
+
+**Last Updated**: November 2025

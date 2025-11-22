@@ -1,0 +1,378 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Docs/Token Reference" />
+
+# Token Reference
+
+Complete reference for all design tokens in the SynergyOS design system.
+
+---
+
+## 🎯 Token Usage Rules
+
+**ALWAYS use tokens, NEVER hardcode values:**
+
+❌ **WRONG**: `class="px-4 py-2 bg-blue-600"`  
+✅ **CORRECT**: `class="px-button-x py-button-y bg-accent-primary"`
+
+**Why?** Tokens cascade automatically. Change once, updates everywhere.
+
+**Automated Enforcement:**
+
+- ✅ **ESLint Plugin**: Blocks arbitrary values like `min-h-[2.75rem]`, `p-[12px]`
+- ✅ **Pre-commit Hook**: Prevents committing hardcoded Tailwind values
+- ✅ **CI Validation**: GitHub Actions runs `npm run lint` - PRs blocked if violations detected
+
+---
+
+## 📏 Spacing Tokens
+
+### Base Scale (4px unit)
+
+All spacing tokens reference this base scale:
+
+| Token          | Value   | Pixels | Usage                |
+| -------------- | ------- | ------ | -------------------- |
+| `--spacing-0`  | 0       | 0px    | No spacing           |
+| `--spacing-1`  | 0.25rem | 4px    | Extra small spacing  |
+| `--spacing-2`  | 0.5rem  | 8px    | Small spacing        |
+| `--spacing-3`  | 0.75rem | 12px   | Medium-small spacing |
+| `--spacing-4`  | 1rem    | 16px   | Medium spacing       |
+| `--spacing-5`  | 1.25rem | 20px   | Medium-large spacing |
+| `--spacing-6`  | 1.5rem  | 24px   | Large spacing        |
+| `--spacing-8`  | 2rem    | 32px   | Extra large spacing  |
+| `--spacing-12` | 3rem    | 48px   | 2XL spacing          |
+| `--spacing-16` | 4rem    | 64px   | 3XL spacing          |
+
+### Semantic Spacing Tokens
+
+Component-specific spacing tokens (reference base scale):
+
+#### Application UI Tokens
+
+| Token                       | Utility Class      | Value           | Usage                                 |
+| --------------------------- | ------------------ | --------------- | ------------------------------------- |
+| `--spacing-nav-container-x` | `px-nav-container` | 0.5rem (8px)    | Nav container horizontal padding      |
+| `--spacing-nav-container-y` | `py-nav-container` | 0.5rem (8px)    | Nav container vertical padding        |
+| `--spacing-nav-item-x`      | `px-nav-item`      | 0.5rem (8px)    | Nav item horizontal padding           |
+| `--spacing-nav-item-y`      | `py-nav-item`      | 0.375rem (6px)  | Nav item vertical padding             |
+| `--spacing-menu-item-x`     | `px-menu-item`     | 0.625rem (10px) | Menu/dropdown item horizontal padding |
+| `--spacing-menu-item-y`     | `py-menu-item`     | 0.375rem (6px)  | Menu/dropdown item vertical padding   |
+| `--spacing-badge-x`         | `px-badge`         | 0.375rem (6px)  | Badge horizontal padding              |
+| `--spacing-badge-y`         | `py-badge`         | 0.125rem (2px)  | Badge vertical padding                |
+| `--spacing-icon-gap`        | `gap-icon`         | 0.5rem (8px)    | Standard icon-text gap                |
+| `--spacing-icon-gap-wide`   | `gap-icon-wide`    | 0.625rem (10px) | Wider icon-text gap                   |
+
+#### Button Component Tokens
+
+| Token                    | Utility Class      | Value          | Usage                               |
+| ------------------------ | ------------------ | -------------- | ----------------------------------- |
+| `--spacing-button-x`     | `px-button-x`      | 1.5rem (24px)  | Button horizontal padding           |
+| `--spacing-button-y`     | `py-button-y`      | 0.75rem (12px) | Button vertical padding             |
+| `--spacing-button-icon`  | `p-button-icon`    | 0.75rem (12px) | Icon-only button padding (square)   |
+| `--size-button-height`   | `min-h-button`     | 2.75rem (44px) | Minimum button height (all types)   |
+| `--spacing-button-group` | `gap-button-group` | 0.5rem (8px)   | Gap between buttons in action group |
+
+#### Card Component Tokens
+
+| Token                      | Utility Class | Value          | Usage                   |
+| -------------------------- | ------------- | -------------- | ----------------------- |
+| `--spacing-card-padding-x` | `px-card`     | 1.25rem (20px) | Card horizontal padding |
+| `--spacing-card-padding-y` | `py-card`     | 1.25rem (20px) | Card vertical padding   |
+
+#### Marketing Page Tokens
+
+| Token                              | Utility Class            | Value         | Usage                                     |
+| ---------------------------------- | ------------------------ | ------------- | ----------------------------------------- |
+| `--spacing-marketing-section-y`    | `py-marketing-section`   | 7rem (112px)  | Section vertical padding (top and bottom) |
+| `--spacing-marketing-container-x`  | `px-marketing-container` | 1.5rem (24px) | Page horizontal padding (mobile/desktop)  |
+| `--spacing-marketing-card-padding` | `p-marketing-card`       | 2.5rem (40px) | Card internal padding                     |
+| `--spacing-marketing-card-gap`     | `gap-marketing-card`     | 2rem (32px)   | Gap between cards in grid                 |
+
+### Utility Classes
+
+**Use utility classes in components:**
+
+```svelte
+<!-- Button -->
+<button class="min-h-button rounded-button px-button-x py-button-y"> Click me </button>
+
+<!-- Card -->
+<div class="rounded-card bg-elevated px-card py-card">Card content</div>
+
+<!-- Nav Item -->
+<a class="flex items-center gap-icon px-nav-item py-nav-item">
+	<Icon class="icon-md" />
+	<span>Nav Item</span>
+</a>
+```
+
+---
+
+## 🎨 Color Tokens
+
+### Semantic Colors (Auto Dark Mode)
+
+All color tokens adapt automatically to light/dark mode:
+
+#### Surface Colors
+
+<div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)' }}>
+	<div
+		style={{
+			background: 'var(--color-bg-base)',
+			padding: 'var(--spacing-4)',
+			borderRadius: '8px',
+			border: '1px solid var(--color-border-base)'
+		}}
+	>
+		<code>bg-base</code> - Base background (page background)
+	</div>
+	<div
+		style={{
+			background: 'var(--color-bg-surface)',
+			padding: 'var(--spacing-4)',
+			borderRadius: '8px',
+			border: '1px solid var(--color-border-base)'
+		}}
+	>
+		<code>bg-surface</code> - Surface background (panels, lists)
+	</div>
+	<div
+		style={{
+			background: 'var(--color-bg-elevated)',
+			padding: 'var(--spacing-4)',
+			borderRadius: '8px',
+			border: '1px solid var(--color-border-elevated)'
+		}}
+	>
+		<code>bg-elevated</code> - Elevated surfaces (cards, modals)
+	</div>
+</div>
+
+#### Text Colors
+
+<div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
+	<div style={{ color: 'var(--color-text-primary)' }}>
+		<code>text-primary</code> - Primary text (headings, important content)
+	</div>
+	<div style={{ color: 'var(--color-text-secondary)' }}>
+		<code>text-secondary</code> - Secondary text (descriptions, subtitles)
+	</div>
+	<div style={{ color: 'var(--color-text-tertiary)' }}>
+		<code>text-tertiary</code> - Tertiary text (labels, hints)
+	</div>
+</div>
+
+#### Accent Colors
+
+<div style={{ display: 'flex', gap: 'var(--spacing-4)', flexWrap: 'wrap' }}>
+	<div
+		style={{
+			background: 'var(--color-accent-primary)',
+			padding: 'var(--spacing-4)',
+			borderRadius: '8px',
+			color: 'white'
+		}}
+	>
+		<code>bg-accent-primary</code>
+	</div>
+	<div
+		style={{
+			background: 'var(--color-bg-selected)',
+			padding: 'var(--spacing-4)',
+			borderRadius: '8px',
+			color: 'white'
+		}}
+	>
+		<code>bg-selected</code>
+	</div>
+</div>
+
+#### Interactive States
+
+<div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
+	<div
+		style={{
+			background: 'var(--color-bg-hover)',
+			padding: 'var(--spacing-4)',
+			borderRadius: '8px'
+		}}
+	>
+		<code>bg-hover</code> - Hover background (subtle, 50% opacity)
+	</div>
+	<div
+		style={{
+			background: 'var(--color-bg-hover-solid)',
+			padding: 'var(--spacing-4)',
+			borderRadius: '8px'
+		}}
+	>
+		<code>bg-hover-solid</code> - Hover background (solid)
+	</div>
+</div>
+
+#### Complete Color Reference
+
+| Token                     | Utility Class          | Dark Mode   | Light Mode  | Usage                                      |
+| ------------------------- | ---------------------- | ----------- | ----------- | ------------------------------------------ |
+| `--color-text-primary`    | `text-primary`         | white       | gray-900    | Primary text (headings, important content) |
+| `--color-text-secondary`  | `text-secondary`       | gray-300    | gray-600    | Secondary text (descriptions, subtitles)   |
+| `--color-text-tertiary`   | `text-tertiary`        | gray-500    | gray-500    | Tertiary text (labels, hints)              |
+| `--color-bg-base`         | `bg-base`              | gray-900    | white       | Base background (page background)          |
+| `--color-bg-surface`      | `bg-surface`           | gray-800    | gray-50     | Surface background (panels, lists)         |
+| `--color-bg-elevated`     | `bg-elevated`          | gray-750    | white       | Elevated surfaces (cards, modals)          |
+| `--color-border-base`     | `border-base`          | gray-800    | gray-200    | Base borders                               |
+| `--color-border-elevated` | `border-elevated`      | gray-700    | gray-300    | Elevated borders (cards)                   |
+| `--color-accent-primary`  | `bg-accent-primary`    | blue-600    | blue-600    | Primary accent (selected states, links)    |
+| `--color-bg-hover`        | `hover:bg-hover`       | gray-800/50 | gray-100/50 | Hover background (subtle)                  |
+| `--color-bg-hover-solid`  | `hover:bg-hover-solid` | gray-800    | gray-100    | Hover background (solid)                   |
+| `--color-bg-selected`     | `bg-selected`          | blue-600    | blue-600    | Selected state background                  |
+| `--color-tag-bg`          | `bg-tag`               | gray-700    | gray-100    | Tag/chip background                        |
+| `--color-tag-text`        | `text-tag`             | gray-300    | gray-600    | Tag/chip text                              |
+
+---
+
+## ✍️ Typography Tokens
+
+### Font Families
+
+```css
+font-sans /* Inter, system-ui */
+font-mono /* JetBrains Mono, monospace */
+```
+
+### Text Sizes
+
+| Token               | Utility Class | Size            | Line Height | Usage               |
+| ------------------- | ------------- | --------------- | ----------- | ------------------- |
+| `--font-size-h1`    | `text-h1`     | 2.25rem (36px)  | 700         | Page titles         |
+| `--font-size-h2`    | `text-h2`     | 1.75rem (28px)  | 600         | Section headings    |
+| `--font-size-h3`    | `text-h3`     | 1.25rem (20px)  | 600         | Subsection headings |
+| `--font-size-body`  | `text-body`   | 1rem (16px)     | 1.5rem      | Body text           |
+| `--font-size-small` | `text-small`  | 0.875rem (14px) | 1.25rem     | Captions, labels    |
+| `--text-label`      | `text-label`  | 0.625rem (10px) | 1rem        | Form labels, badges |
+
+**Example:**
+
+```svelte
+<h1 class="font-sans text-h1 text-primary">Page Title</h1>
+<h2 class="font-sans text-h2 text-primary">Section Title</h2>
+<p class="text-body text-secondary">Body text content</p>
+<span class="text-small text-tertiary">Caption text</span>
+<span class="bg-tag px-badge py-badge text-label text-tag">Badge</span>
+```
+
+### Readability Tokens (Optimized for ADHD/Focus-Challenged Users)
+
+| Token                        | Utility Class       | Value         | Usage                                             |
+| ---------------------------- | ------------------- | ------------- | ------------------------------------------------- |
+| `--line-height-readable`     | `leading-readable`  | 1.75          | Optimal line-height for comfortable reading       |
+| `--letter-spacing-readable`  | `tracking-readable` | 0 (normal)    | Normal letter spacing                             |
+| `--max-width-readable`       | `max-w-readable`    | 42rem (672px) | Optimal reading width (65-75 characters per line) |
+| `--spacing-readable-quote-y` | `py-readable-quote` | 2rem (32px)   | Vertical padding for quote/highlight containers   |
+
+---
+
+## 📐 Border Radius Tokens
+
+| Token                    | Utility Class    | Value           | Usage              |
+| ------------------------ | ---------------- | --------------- | ------------------ |
+| `--border-radius-button` | `rounded-button` | 0.5rem (8px)    | Buttons            |
+| `--border-radius-card`   | `rounded-card`   | 0.875rem (14px) | Cards              |
+| `--border-radius-dialog` | `rounded-dialog` | 0.875rem (14px) | Dialogs, modals    |
+| `--border-radius-input`  | `rounded-input`  | 0.125rem (2px)  | Form inputs        |
+| `--border-radius-badge`  | `rounded-badge`  | 0.25rem (4px)   | Badges             |
+| `--border-radius-chip`   | `rounded-chip`   | 9999px (full)   | Chips (pill shape) |
+
+**Example:**
+
+```svelte
+<button class="rounded-button bg-accent-primary px-button-x py-button-y">Button</button>
+<div class="rounded-card bg-elevated px-card py-card">Card</div>
+<input class="rounded-input border border-base px-input-x py-input-y" />
+<span class="rounded-badge bg-tag px-badge py-badge text-tag">Badge</span>
+```
+
+---
+
+## 🔤 Icon Size Tokens
+
+| Token            | Utility Class | Value          | Usage                   |
+| ---------------- | ------------- | -------------- | ----------------------- |
+| `--size-icon-xs` | `icon-xs`     | 0.75rem (12px) | Extra small icons       |
+| `--size-icon-sm` | `icon-sm`     | 1rem (16px)    | Small icons             |
+| `--size-icon-md` | `icon-md`     | 1.25rem (20px) | Medium icons (standard) |
+| `--size-icon-lg` | `icon-lg`     | 1.5rem (24px)  | Large icons             |
+| `--size-icon-xl` | `icon-xl`     | 2rem (32px)    | Extra large icons       |
+
+**Example:**
+
+```svelte
+<button class="flex items-center gap-icon">
+	<svg class="icon-md">...</svg>
+	<span>Click me</span>
+</button>
+```
+
+---
+
+## 🎭 Transition Tokens
+
+| Token                  | Utility Class             | Value                                           | Usage                                |
+| ---------------------- | ------------------------- | ----------------------------------------------- | ------------------------------------ |
+| `--transition-default` | `transition-default`      | all 0.2s ease                                   | Default transition (all props)       |
+| `--transition-slow`    | `transition-slow`         | all 0.3s ease-in-out                            | Slow transition (animations)         |
+| `--transition-fast`    | `transition-fast`         | all 0.15s ease                                  | Fast transition (micro-interactions) |
+| `--transition-colors`  | `transition-colors-token` | color, background-color, border-color 0.2s ease | Color transitions only (optimized)   |
+
+**Example:**
+
+```svelte
+<button class="bg-accent-primary transition-colors-token hover:bg-accent-hover"> Hover me </button>
+```
+
+---
+
+## 📚 Reference Documentation
+
+**Complete token list**: `dev-docs/2-areas/design/design-tokens.md` - Full documentation with usage patterns and examples  
+**Source of truth**: `design-system.json` - Token specifications and values  
+**Implementation**: `src/app.css` - CSS variable definitions and utility classes
+
+---
+
+## 🚫 Common Violations
+
+**❌ BLOCKED - Will fail lint:**
+
+```svelte
+<!-- Hardcoded sizes -->
+<button class="min-h-[2.75rem]">Click</button>
+<div class="p-[12px]">Content</div>
+
+<!-- Hardcoded spacing -->
+<div class="mt-[24px] mb-[16px]">Content</div>
+
+<!-- Hardcoded colors -->
+<div class="bg-gray-900 text-white">Content</div>
+```
+
+**✅ CORRECT - Uses tokens:**
+
+```svelte
+<!-- Token-based sizes -->
+<button class="min-h-button">Click</button>
+<div class="p-button-icon">Content</div>
+
+<!-- Token-based spacing -->
+<div class="mt-content-section mb-marketing-text">Content</div>
+
+<!-- Token-based colors -->
+<div class="bg-base text-primary">Content</div>
+```
+
+---
+
+**Last Updated**: November 2025  
+**Total Tokens**: 100+ (spacing, colors, typography, borders, transitions, icons)

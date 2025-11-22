@@ -90,6 +90,6 @@
 	{/if}
 
 	{#if showLabel}
-		<span class="ml-2 text-button">{isDark ? 'Light mode' : 'Dark mode'}</span>
+		<span class="ml-icon-gap text-button">{isDark ? 'Light mode' : 'Dark mode'}</span>
 	{/if}
 </button>

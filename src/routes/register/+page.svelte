@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { getContext } from 'svelte';
-	import { Button, FormInput } from '$lib/components/ui';
+	import { Button, FormInput } from '$lib/components/atoms';
 	import { RateLimitError } from '$lib/components/organisms';
 	import { LoadingOverlay } from '$lib/components/atoms';
 	import type { UseLoadingOverlayReturn } from '$lib/modules/core/composables/useLoadingOverlay.svelte';
@@ -158,8 +158,8 @@
 			class="w-full max-w-md rounded-modal border border-base bg-elevated p-content-padding shadow-sm"
 		>
 			<header class="flex flex-col gap-form-section text-center">
-				<h1 class="text-2xl font-semibold tracking-tight text-primary">Create your account</h1>
-				<p class="text-sm text-secondary">
+				<h1 class="text-h2 font-semibold tracking-tight text-primary">Create your account</h1>
+				<p class="text-small text-secondary">
 					Already using SynergyOS?
 					<a href={resolveRoute('/login')} class="text-accent-primary hover:text-accent-hover"
 						>Sign in instead</a
@@ -175,7 +175,7 @@
 				<div
 					class="mt-content-section rounded-input border border-error bg-error px-input-x py-input-y"
 				>
-					<p class="text-sm font-medium text-error-secondary">{errorMessage}</p>
+					<p class="text-small font-medium text-error-secondary">{errorMessage}</p>
 				</div>
 			{/if}
 
@@ -221,7 +221,7 @@
 						required={true}
 						autocomplete="new-password"
 					/>
-					<p class="mt-1 text-xs text-tertiary">
+					<p class="mt-section-y text-label text-tertiary">
 						Must be at least 8 characters and not contain parts of your email (e.g., "randyhereman")
 					</p>
 				</div>

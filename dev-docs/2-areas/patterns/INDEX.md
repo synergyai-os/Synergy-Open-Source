@@ -20,6 +20,10 @@
 | Component shows stale/old data                                                                    | Key on data, not ID                                                          | [svelte-reactivity.md#L140](svelte-reactivity.md#L140)              |
 | `.ts` file: "Cannot assign to constant"                                                           | Rename to `.svelte.ts`                                                       | [svelte-reactivity.md#L180](svelte-reactivity.md#L180)              |
 | Component classes don't update when prop changes (selected state, conditional styling)          | Use `$derived` for class string concatenation                                | [svelte-reactivity.md#L700](svelte-reactivity.md#L700)              |
+| Storybook stories show loading screen, components render without text, invalid_snippet errors    | Use `.svelte` story files with native snippet syntax, not `.ts` files       | [ui-patterns.md#L4850](ui-patterns.md#L4850)                        |
+| Storybook parser throws InvalidStoryExportNameError or IndexerParseError for story files        | Remove TypeScript syntax from `<script module>` blocks (no as const, type annotations, import type) | [ui-patterns.md#L4920](ui-patterns.md#L4920)                        |
+| Storybook throws InvalidStoryExportNameError for story names with colons, spaces, special chars  | Use valid JavaScript identifiers for story names (e.g., "16:9" → "Ratio16x9", "Command K" → "CommandK") | [ui-patterns.md#L4930](ui-patterns.md#L4930)                        |
+| Storybook uses default theme, colors don't match design system, logo 404, blank page errors      | Convert oklch to hex, configure staticDirs, set inline: false for docs       | [ui-patterns.md#L4900](ui-patterns.md#L4900)                        |
 | 500 error with ProseMirror/Monaco                                                                 | Guard with `{#if browser}`                                                   | [svelte-reactivity.md#L400](svelte-reactivity.md#L400)              |
 | Event listeners don't fire (no errors)                                                            | Browser check inside $effect                                                 | [svelte-reactivity.md#L500](svelte-reactivity.md#L500)              |
 | Build fails: ENOENT file not found                                                                | Remove phantom dependencies                                                  | [svelte-reactivity.md#L550](svelte-reactivity.md#L550)              |
@@ -79,6 +83,7 @@
 | E2E tests fail with 429, rate limit tests only register 1-2 attempts instead of 5                 | Use X-Test-ID header for isolated rate limit buckets                         | [ci-cd.md#L330](ci-cd.md#L330)                                      |
 | Tests pass with --workers=1 but fail in parallel with "Expected: 429, Received: 401"               | Remove global beforeEach cleanup, rely on unique testIds for isolation      | [ci-cd.md#L340](ci-cd.md#L340)                                      |
 | Pre-commit hook reports errors but doesn't block commits, exit 1 inside while loop doesn't work   | Use process substitution with flag variable, exit in main shell after loop | [ci-cd.md#L1850](ci-cd.md#L1850)                                    |
+| Pre-commit hook conflicts or doesn't run, manual hook installation overwrites Husky hooks        | Use Husky exclusively, update install scripts to skip pre-commit if Husky manages it | [ci-cd.md#L1905](ci-cd.md#L1905)                                    |
 | Feature flags visible to all users when no targeting rules configured                              | Default to false when no targeting rules, require explicit configuration   | [convex-integration.md#L1530](convex-integration.md#L1530)            |
 | Feature flag needs organization-based targeting (multi-tenancy)                                    | Add allowedOrganizationIds field + org membership check                    | [feature-flags.md#L180](feature-flags.md#L180)                        |
 | Admin sidebar visible to non-admin users, or error page shows sidebar                            | Separate checks: page load throws error, layout load returns boolean for conditional UI       | [ui-patterns.md#L4800](ui-patterns.md#L4800)            |
@@ -88,11 +93,14 @@
 | `$derived` values don't update in child components, props show as functions                      | Call `$derived` functions when passing as props: `organizations={orgs()}`  | [svelte-reactivity.md#L900](svelte-reactivity.md#L900)                  |
 | `$derived` doesn't execute, returns function instead of value, reactivity breaks                  | Access getter properties without optional chaining: check existence first  | [svelte-reactivity.md#L910](svelte-reactivity.md#L910)                  |
 | `state_snapshot_uncloneable` error when passing values to Convex queries                          | Extract primitives from `$derived` by calling function before passing       | [svelte-reactivity.md#L920](svelte-reactivity.md#L920)                  |
+| Component contains useQuery calls, business logic, validation (separation of concerns violation) | Extract to composables: data → useData.svelte.ts, form → useForm.svelte.ts, component → UI only | [component-architecture.md#L377](../design/component-architecture.md#L377) |
 | Hydration error `$.get(...) is not a function` when accessing page data                          | Use function pattern `() => $page.data.sessionId` not `$derived($page.data.sessionId)` | [svelte-reactivity.md#L1600](svelte-reactivity.md#L1600)                  |
 | `each_key_duplicate` error when multiple users belong to same organization                         | Use composite keys: `(${org.organizationId}-${account.userId})`             | [svelte-reactivity.md#L1460](svelte-reactivity.md#L1460)                |
 | `ReferenceError: [variable] is not defined` accessing variable from try block                      | Declare variable before try block or move cleanup inside try                 | [svelte-reactivity.md#L1510](svelte-reactivity.md#L1510)                |
 | UI shows actions users can't perform, buttons visible but disabled/error on click                 | Use `usePermissions` composable + owner bypass pattern for permission-based visibility | [ui-patterns.md#L3200](ui-patterns.md#L3200)            |
 || Buttons/dropdowns in modal panels don't work, clicks don't register                            | Use z-index stacking: backdrop z-40, panel z-50, dropdowns z-50 (don't use stopPropagation)  | [ui-patterns.md#L3650](ui-patterns.md#L3650)            |
+| Component can't render in Storybook: "Failed to fetch module", 403 for `/convex/_generated/api.js`, "outside allow list" | Mock composables (not Convex), configure Vite aliases, add server.fs.allow | [ui-patterns.md#L5000](ui-patterns.md#L5000) |
+| Storybook component shows empty state despite mock data populated, aliases configured, no console errors | Mock must match real composable's exact interface including Svelte 5 getters (not plain properties) | [ui-patterns.md#L5000](ui-patterns.md#L5000) |
 | SVG text labels covered by child elements, root circle names appear behind sub-circles        | Use two-pass rendering: visual elements first, text labels second (sorted by depth descending) | [ui-patterns.md#L4000](ui-patterns.md#L4000)            |
 | SVG text sizes don't reflect hierarchy, all labels same size regardless of depth            | Use depth-based multiplier: `3 - node.depth * 0.5` for root (3x) scaling down              | [ui-patterns.md#L4000](ui-patterns.md#L4000)            |
 | SVG text backgrounds use hardcoded rgba colors, not theme-aware                             | Use design token colors: `oklch(37.2% 0.044 257.287 / 0.85)` instead of `rgba(0,0,0,0.7)` | [ui-patterns.md#L4000](ui-patterns.md#L4000)            |
@@ -151,6 +159,12 @@
 | ESLint warnings for unused Playwright test parameters (`page`, `request`)     | Use actual parameter names + ESLint disable comment (Playwright validates signatures) | [ci-cd.md#L80](ci-cd.md#L80)                               |
 | Need to enforce architectural boundaries (module boundaries, layer boundaries) | Create custom ESLint rule in eslint-rules/ directory, use ES module syntax for flat config | [ci-cd.md#L90](ci-cd.md#L90)                               |
 | CSS warnings from svelte-check (unused selectors, empty rulesets, @apply)    | Remove unused selectors, empty rulesets; replace @apply with design tokens | [ui-patterns.md#L950](ui-patterns.md#L950)                 |
+| Need automated token coverage audit and hardcoded value detection             | Create token usage report script: extract tokens, scan usage, detect violations, CI integration | [ci-cd.md#L1900](ci-cd.md#L1900)                            |
+| Orphaned design tokens accumulate (tokens without utility classes)             | Validate token→utility mapping: extract tokens, check utility references, block CI if orphaned | [ci-cd.md#L2050](ci-cd.md#L2050)                            |
+| Semantic tokens have hardcoded values instead of referencing base tokens        | Validate semantic tokens use DTCG reference syntax ({spacing.2}) not hardcoded (0.5rem), allow documented exceptions | [ci-cd.md#L2550](ci-cd.md#L2550)                            |
+| Need to convert CSS tokens to DTCG format for tooling interoperability         | Extract CSS tokens, map to DTCG types ($type, $value, $description), validate schema, add conversion script | [ci-cd.md#L2100](ci-cd.md#L2100)                            |
+| DTCG validation warns "Token missing $description (optional but recommended)"  | Add inline CSS comments to tokens, conversion script extracts → $description | [ci-cd.md#L2310](ci-cd.md#L2310)                            |
+| Need automated CSS generation from DTCG format, manual CSS maintenance error-prone | Set up Style Dictionary pipeline: DTCG parser → custom transforms → modular CSS output | [ci-cd.md#L2400](ci-cd.md#L2400)                            |
 | Playwright test fails: "did not expect test.use() here"                       | Move test.use() to describe level, not inside test                    | [ci-cd.md#L210](ci-cd.md#L210)                             |
 | Cookies not cleared/shared in Playwright tests                                | Use page.request instead of request fixture                           | [ci-cd.md#L220](ci-cd.md#L220)                             |
 | E2E test fails with "element not found" on empty data                         | Handle empty state gracefully, use .count() + conditional checks      | [ci-cd.md#L230](ci-cd.md#L230)                             |
@@ -160,7 +174,12 @@
 | E2E tests hit rate limits with "Too many requests" errors from external APIs  | Pass skipEmail parameter from SvelteKit server (don't set E2E_TEST_MODE in Convex env) | [ci-cd.md#L1320](ci-cd.md#L1320)                             |
 | Verification emails not sent in production, E2E_TEST_MODE set in Convex env  | Pass skipEmail parameter from SvelteKit server instead of Convex env var | [ci-cd.md#L1320](ci-cd.md#L1320)                             |
 | AI creates sloppy code, doesn't follow systematic workflows, reinvents solutions | Use task-specific templates (/bug-fix, /code-cleanup, /code-review) with systematic workflows | [ai-development.md#L10](ai-development.md#L10)              |
+| Svelte code quality issues discovered late, AI writes outdated Svelte 5 patterns, no real-time validation | Use Svelte MCP autofixer workflow: svelte-check → ESLint → autofixer (mandatory, iterate until clean) | [ai-development.md#L100](ai-development.md#L100)            |
+| Need to integrate Svelte MCP validation into CI/CD pipeline, but MCP tools require MCP client (not available in CI) | Add validate:svelte script (svelte-check + ESLint), add CI step (optional, non-blocking), defer MCP autofixer to future | [ci-cd.md#L2500](ci-cd.md#L2500)                            |
 | AI agents waste tokens loading outdated docs, reference outdated features, root directory cluttered with 20+ markdown files | Organize docs into CORE (active) vs ARCHIVE (historical), hide archive from AI via .cursorignore | [ai-development.md#L200](ai-development.md#L200)            |
+| Test instructions vague, missing specific values, file locations, or DevTools steps | Use "change X see Y change" format with exact values, file paths, line numbers, DevTools tab names | [ai-development.md#L250](ai-development.md#L250)            |
+| Command integrations not tested, MCP tool integrations break silently, regression testing missing after adding validation tools | Test command standalone + workflow integration + error handling + regressions + real-world scenarios | [ai-development.md#L300](ai-development.md#L300)            |
+| Don't know where to put story files, flat Storybook navigation, no title hierarchy pattern | Co-locate with component + hierarchical titles (Design System/Atoms vs Modules/ModuleName) | [ui-patterns.md#L4940](ui-patterns.md#L4940)                 |
 
 ## 🟢 REFERENCE Patterns (Best Practices)
 
@@ -218,7 +237,8 @@
 | Component used by multiple modules creates cross-module dependencies (Flashcards → Inbox) | Move shared component to core module, expose via CoreModuleAPI, update all consumers | [convex-integration.md#L4100](convex-integration.md#L4100) |
 | Incremental CI gates        | Enable lint/build first, defer type check to separate work  | [ci-cd.md#L10](ci-cd.md#L10)                             |
 | Local CI testing            | npm scripts > shell scripts for consistency                 | [ci-cd.md#L110](ci-cd.md#L110)                           |
-| Secret scanning             | TruffleHog with .secretsignore for safe patterns            | [ci-cd.md#L160](ci-cd.md#L160)                           |        
+| Secret scanning             | TruffleHog with .secretsignore for safe patterns            | [ci-cd.md#L160](ci-cd.md#L160)                           |
+| Configuring MCP servers in Cursor | Add MCP server to ~/.cursor/mcp.json (local or remote setup) | [ci-cd.md#L2350](ci-cd.md#L2350)                        |
 | TypeScript interface declared multiple times in same file (duplicate definitions) | Remove duplicate interface, keep single definition with clear comment | [convex-integration.md#L4250](convex-integration.md#L4250) |
 | Mutation silently ignores mismatched parameter combinations (e.g., circleId when ownership !== 'circle') | Add early defensive validation to reject mismatched combinations with clear error | [convex-integration.md#L4300](convex-integration.md#L4300) |
 | Mutation fetches same data twice (performance issue, unnecessary database queries) | Hoist variable before conditional branch, reuse fetched data instead of fetching again | [convex-integration.md#L4350](convex-integration.md#L4350) |
@@ -253,16 +273,32 @@ When using `/save` command:
 
 1. **Add pattern to appropriate domain file** (svelte-reactivity.md, etc.)
 2. **Use sequential line numbers** (L10, L50, L80, etc. - leave gaps for future inserts)
-3. **Update this INDEX.md** with symptom → line number mapping
-4. **Choose severity**: 🔴 Critical, 🟡 Important, 🟢 Reference
-5. **Validate with Context7** if touching external library patterns
+3. **Determine lifecycle action** (if updating existing pattern):
+   - **Enhance** - Add edge case, improve example (keep ACCEPTED status)
+   - **Deprecate** - Pattern still works but discouraged (provide migration path)
+   - **Supersede** - Pattern replaced by another (link to replacement #LXXX)
+   - **Reject** - Anti-pattern documentation (explain why not to use)
+   - **Propose** - Experimental pattern (document validation needed)
+4. **Update this INDEX.md** with symptom → line number mapping
+5. **Choose severity**: 🔴 Critical, 🟡 Important, 🟢 Reference
+6. **Include STATUS field** if not ACCEPTED (default - omit STATUS field for accepted patterns)
+7. **Validate with Context7** if touching external library patterns
+
+**Lifecycle States** (ADR Standard):
+- **ACCEPTED** - Current best practice (default, omit STATUS field)
+- **DEPRECATED** - Discouraged but still works (include migration path)
+- **SUPERSEDED** - Replaced by another pattern (include #LXXX link)
+- **REJECTED** - Anti-pattern (include reasoning)
+- **PROPOSED** - Experimental pattern (include validation needed)
+
+**See**: `.cursor/commands/save.md` Section 2.5 - Complete lifecycle management workflow and templates
 
 ---
 
 ## Pattern Template (In Domain Files)
 
 ````markdown
-## #L[NUMBER]: [Pattern Name] [🔴/🟡/🟢 SEVERITY]
+## #L[NUMBER]: [Pattern Name] [🔴/🟡/🟢 SEVERITY] [STATUS: ACCEPTED|DEPRECATED|SUPERSEDED|REJECTED|PROPOSED]
 
 **Symptom**: Brief one-line description  
 **Root Cause**: Why it happens  
@@ -276,6 +312,13 @@ wrong code
 correct code
 ```
 ````
+
+**STATUS Field** (optional, defaults to ACCEPTED):
+- **ACCEPTED** - Current best practice (default, omit STATUS field)
+- **DEPRECATED** - Discouraged but still works (include migration path)
+- **SUPERSEDED** - Replaced by another pattern (include #LXXX link)
+- **REJECTED** - Anti-pattern (include reasoning)
+- **PROPOSED** - Experimental pattern (include validation needed)
 
 **Apply when**: When to use this pattern  
 **Related**: #L[OTHER] (Description)

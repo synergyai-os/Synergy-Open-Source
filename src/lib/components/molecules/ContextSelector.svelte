@@ -31,7 +31,7 @@
 	tabindex={tabIndex}
 >
 	{#if context}
-		<span class="text-base leading-none">{context.icon}</span>
+		<span class="text-body leading-none">{context.icon}</span>
 		<span>{context.name}</span>
 	{:else}
 		<span class="text-tertiary">Select context</span>

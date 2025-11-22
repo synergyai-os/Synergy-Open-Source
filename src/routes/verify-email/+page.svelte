@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
-	import { PinInput, Button } from '$lib/components/ui';
+	import { PinInput, Button } from '$lib/components/atoms';
 	import { onMount } from 'svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
 

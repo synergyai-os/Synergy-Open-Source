@@ -1,0 +1,88 @@
+try {
+	(() => {
+		var u = __STORYBOOK_API__,
+			{
+				ActiveTabs: p,
+				Consumer: d,
+				ManagerContext: E,
+				Provider: T,
+				RequestResponseError: c,
+				addons: o,
+				combineParameters: m,
+				controlOrMetaKey: R,
+				controlOrMetaSymbol: b,
+				eventMatchesShortcut: h,
+				eventToShortcut: f,
+				experimental_MockUniversalStore: C,
+				experimental_UniversalStore: I,
+				experimental_getStatusStore: y,
+				experimental_getTestProviderStore: P,
+				experimental_requestResponse: B,
+				experimental_useStatusStore: g,
+				experimental_useTestProviderStore: x,
+				experimental_useUniversalStore: K,
+				internal_fullStatusStore: M,
+				internal_fullTestProviderStore: N,
+				internal_universalStatusStore: v,
+				internal_universalTestProviderStore: D,
+				isMacLike: U,
+				isShortcutTaken: A,
+				keyToSymbol: L,
+				merge: H,
+				mockChannel: V,
+				optionOrAltSymbol: Y,
+				shortcutMatchesShortcut: k,
+				shortcutToHumanString: Q,
+				types: Z,
+				useAddonState: G,
+				useArgTypes: W,
+				useArgs: X,
+				useChannel: j,
+				useGlobalTypes: w,
+				useGlobals: z,
+				useParameter: F,
+				useSharedState: J,
+				useStoryPrepared: q,
+				useStorybookApi: $,
+				useStorybookState: ee
+			} = __STORYBOOK_API__;
+		var ae = __STORYBOOK_THEMING_CREATE__,
+			{ create: s, themes: ne } = __STORYBOOK_THEMING_CREATE__;
+		var a = s({
+			base: 'dark',
+			brandTitle: 'SynergyOS Design System',
+			brandUrl: 'https://synergyos.ai',
+			brandImage: '/logo-placeholder.svg',
+			brandTarget: '_self',
+			colorPrimary: '#2563eb',
+			colorSecondary: '#1d4ed8',
+			appBg: '#111827',
+			appContentBg: '#374151',
+			appPreviewBg: '#374151',
+			appBorderColor: '#1f2937',
+			appBorderRadius: 14,
+			fontBase: '"Inter", system-ui, sans-serif',
+			fontCode: '"JetBrains Mono", monospace',
+			textColor: '#ffffff',
+			textInverseColor: '#111827',
+			textMutedColor: '#9ca3af',
+			barTextColor: '#d1d5db',
+			barSelectedColor: '#2563eb',
+			barHoverColor: '#1d4ed8',
+			barBg: '#1f2937',
+			inputBg: '#374151',
+			inputBorder: '#4b5563',
+			inputTextColor: '#ffffff',
+			inputBorderRadius: 2
+		});
+		o.setConfig({
+			theme: a,
+			panelPosition: 'bottom',
+			enableShortcuts: !0,
+			showToolbar: !0,
+			sidebar: { showRoots: !0 }
+		});
+	})();
+} catch (e) {
+	console.error('[Storybook] One of your manager-entries failed: ' + import.meta.url, e);
+}

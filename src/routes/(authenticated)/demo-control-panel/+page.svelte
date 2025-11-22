@@ -1,5 +1,5 @@
 <script lang="ts">
-	import * as ControlPanel from '$lib/components/control-panel';
+	import * as ControlPanel from '$lib/modules/core/components/control-panel';
 
 	// Demo state
 	let toolbarBold = $state(false);

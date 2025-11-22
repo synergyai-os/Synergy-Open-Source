@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { WithElementRef } from 'bits-ui';
 	import type { Snippet } from 'svelte';
-	import type { CardVariant } from '../ui/types';
+	import type { CardVariant } from '../types';
 
 	type Props = WithElementRef<
 		{

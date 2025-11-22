@@ -13,7 +13,7 @@
 	import { useConvexClient } from 'convex-svelte';
 	import { api, type Id } from '$lib/convex';
 	import { toast } from 'svelte-sonner';
-	import { Button } from '$lib/components/ui';
+	import { Button } from '$lib/components/atoms';
 
 	interface Attendee {
 		_id: Id<'meetingAttendees'>;

@@ -271,7 +271,7 @@
 						✅ You have permission to create teams
 					</div>
 					{#snippet fallbackSnippet()}
-						<div class="bg-warning-subtle text-warning p-card rounded-card">
+						<div class="bg-warning-subtle p-card rounded-card text-warning">
 							❌ You don't have permission to create teams
 						</div>
 					{/snippet}
@@ -285,7 +285,7 @@
 						✅ You have permission to delete teams
 					</div>
 					{#snippet fallbackSnippet()}
-						<div class="bg-warning-subtle text-warning p-card rounded-card">
+						<div class="bg-warning-subtle p-card rounded-card text-warning">
 							❌ You don't have permission to delete teams
 						</div>
 					{/snippet}
@@ -299,7 +299,7 @@
 						✅ You have permission to invite users
 					</div>
 					{#snippet fallbackSnippet()}
-						<div class="bg-warning-subtle text-warning p-card rounded-card">
+						<div class="bg-warning-subtle p-card rounded-card text-warning">
 							❌ You don't have permission to invite users
 						</div>
 					{/snippet}

@@ -127,6 +127,137 @@ Once I have a ticket ID, I'll proceed with saving.
 
 ---
 
+### 2.5. Determine Pattern Action ⭐ NEW - Pattern Lifecycle Management
+
+**⚠️ CRITICAL**: After finding existing patterns, determine the appropriate lifecycle action before updating.
+
+**Purpose**: Patterns evolve over time (Svelte 4→5, library updates, architectural changes). Use ADR-inspired lifecycle states to communicate pattern status clearly.
+
+**Lifecycle States** (ADR Standard):
+
+- **ACCEPTED** - Current best practice (default for existing patterns)
+- **DEPRECATED** - Discouraged but still works (migration path provided)
+- **SUPERSEDED** - Replaced by another pattern (link to replacement #LXXX)
+- **REJECTED** - Decided against using this pattern (anti-pattern documentation)
+- **PROPOSED** - Pattern under consideration (experimental, not yet proven)
+
+**Decision Tree**:
+
+```
+Found existing pattern
+├─ Pattern still valid + enhancement needed?
+│  └─ Yes → Enhance existing pattern (keep ACCEPTED status)
+│
+├─ Pattern fundamentally changed (new approach)?
+│  ├─ Old pattern still works but discouraged?
+│  │  └─ Yes → Deprecate old pattern + Create new pattern (ACCEPTED)
+│  │
+│  └─ Old pattern replaced completely?
+│     └─ Yes → Mark old as SUPERSEDED (#LXXX link) + Create new pattern (ACCEPTED)
+│
+├─ Pattern no longer valid (library changed, anti-pattern)?
+│  ├─ Still works but shouldn't be used?
+│  │  └─ Yes → Mark as DEPRECATED (with migration path)
+│  │
+│  └─ Completely invalid (doesn't work)?
+│     └─ Yes → Mark as REJECTED (with reasoning)
+│
+└─ New experimental pattern (testing approach)?
+   └─ Yes → Mark as PROPOSED (document experimental status)
+```
+
+**Lifecycle Action Templates**:
+
+#### Deprecate Pattern Template
+
+```markdown
+## #L[NUMBER]: Pattern Name [🔴/🟡/🟢 SEVERITY] [STATUS: DEPRECATED]
+
+**Symptom**: One-line description  
+**Root Cause**: One-line cause  
+**Fix**: [code example]
+
+**⚠️ DEPRECATED**: This pattern is discouraged. Use #L[REPLACEMENT] instead.
+
+**Migration Path**:
+
+- Old approach: [brief description]
+- New approach: [brief description]
+- Why changed: [reason - e.g., "Svelte 5 runes require different pattern"]
+
+**Apply when**: Only if migrating legacy code (not for new code)  
+**Related**: #L[REPLACEMENT] (Replacement pattern)
+```
+
+#### Supersede Pattern Template
+
+```markdown
+## #L[NUMBER]: Pattern Name [🔴/🟡/🟢 SEVERITY] [STATUS: SUPERSEDED]
+
+**Symptom**: One-line description  
+**Root Cause**: One-line cause  
+**Fix**: [code example]
+
+**⚠️ SUPERSEDED**: This pattern has been replaced by #L[REPLACEMENT].
+
+**Replacement**: See #L[REPLACEMENT] for current best practice.
+
+**Apply when**: Historical reference only (do not use for new code)  
+**Related**: #L[REPLACEMENT] (Replacement pattern)
+```
+
+#### Reject Pattern Template
+
+```markdown
+## #L[NUMBER]: Pattern Name [🔴/🟡/🟢 SEVERITY] [STATUS: REJECTED]
+
+**Symptom**: One-line description  
+**Root Cause**: Why this approach was considered  
+**Fix**: [code example]
+
+**⚠️ REJECTED**: This pattern was decided against.
+
+**Reasoning**:
+
+- Why rejected: [reason - e.g., "Causes performance issues", "Breaks reactivity"]
+- Alternative: Use #L[ALTERNATIVE] instead
+
+**Apply when**: Never (anti-pattern documentation)  
+**Related**: #L[ALTERNATIVE] (Alternative pattern)
+```
+
+#### Proposed Pattern Template
+
+```markdown
+## #L[NUMBER]: Pattern Name [🔴/🟡/🟢 SEVERITY] [STATUS: PROPOSED]
+
+**Symptom**: One-line description  
+**Root Cause**: One-line cause  
+**Fix**: [code example]
+
+**⚠️ PROPOSED**: This pattern is experimental and under consideration.
+
+**Status**: Testing in [context - e.g., "SYOS-XXX ticket", "feature branch"]
+**Validation**: [what needs to be validated - e.g., "Performance impact", "Edge cases"]
+
+**Apply when**: Experimental use only (not for production code)  
+**Related**: #L[RELATED] (Related patterns)
+```
+
+**Default Status**: If no STATUS field specified, pattern defaults to **ACCEPTED** (backward compatible).
+
+**When to Use Each State**:
+
+- **ACCEPTED**: Current best practice (default, no STATUS field needed)
+- **DEPRECATED**: Pattern still works but discouraged (provide migration path)
+- **SUPERSEDED**: Pattern replaced by another (link to replacement)
+- **REJECTED**: Anti-pattern documentation (explain why not to use)
+- **PROPOSED**: Experimental pattern (document validation needed)
+
+**See**: ADR (Architecture Decision Records) standard - Industry-standard lifecycle management
+
+---
+
 ### 3. Update Patterns ⭐ DO THIS FIRST
 
 **⚠️ CRITICAL**: Always update patterns to capture knowledge!
@@ -149,7 +280,7 @@ Once I have a ticket ID, I'll proceed with saving.
 2. Add pattern with **next line number** (gaps of 30-50):
 
    ```markdown
-   ## #L[NUMBER]: Pattern Name [🔴/🟡/🟢 SEVERITY]
+   ## #L[NUMBER]: Pattern Name [🔴/🟡/🟢 SEVERITY] [STATUS: ACCEPTED|DEPRECATED|SUPERSEDED|REJECTED|PROPOSED]
 
    **Symptom**: One-line description
    **Root Cause**: One-line cause
@@ -158,6 +289,13 @@ Once I have a ticket ID, I'll proceed with saving.
    **Apply when**: When to use
    **Related**: #L[OTHER] (Description)
    ```
+
+   **STATUS Field** (optional, defaults to ACCEPTED):
+   - **ACCEPTED** - Current best practice (default, omit STATUS field)
+   - **DEPRECATED** - Discouraged but still works (include migration path)
+   - **SUPERSEDED** - Replaced by another pattern (include #LXXX link)
+   - **REJECTED** - Anti-pattern (include reasoning)
+   - **PROPOSED** - Experimental pattern (include validation needed)
 
 3. **Validate with Context7** (if library-specific)
 
@@ -286,7 +424,9 @@ const good: string = 'value'; // ✅ Correct
 - [ ] **Got ticket details** → Validated project ID, assignee (Randy), numeric estimate
 - [ ] Searched `dev-docs/2-areas/patterns/INDEX.md` for existing patterns (grep tool)
 - [ ] Searched domain files in parallel
+- [ ] **Determined pattern action** → Enhanced vs Deprecated vs Superseded vs Rejected (lifecycle management)
 - [ ] Updated domain file with pattern/enhancement (search_replace)
+- [ ] Included STATUS field if not ACCEPTED (default)
 - [ ] Updated `dev-docs/2-areas/patterns/INDEX.md` symptom table with line number reference
 - [ ] Chose correct severity (🔴 Critical | 🟡 Important | 🟢 Reference)
 - [ ] **Considered rule building** → Decided rule vs pattern, created/enhanced rule if needed
@@ -318,8 +458,15 @@ const good: string = 'value'; // ✅ Correct
    - Domain files: svelte-reactivity.md, convex-integration.md, etc.
    - ⚠️ DON'T read patterns-and-lessons.md (redirect)
 
+3.5. Determine pattern action (lifecycle management):
+
+- Decision tree: Enhance vs Deprecate vs Supersede vs Reject
+- Choose appropriate lifecycle state (ACCEPTED, DEPRECATED, SUPERSEDED, REJECTED, PROPOSED)
+- Use templates for deprecation/superseding (include migration paths)
+
 4. Update patterns:
    - Add/update domain file with search_replace
+   - Include STATUS field if not ACCEPTED (default)
    - Update INDEX.md symptom table
    - Use line numbers for references (#L810)
 

@@ -12,7 +12,7 @@ Guide AI tools and developers in systematically auditing and optimizing SynergyO
 
 - **50+ atomic components** in `src/lib/components/ui/`
 - **CSS-first token system** via Tailwind 4 `@theme`
-- **Source of truth**: `design-system-test.json`
+- **Source of truth**: `design-system.json`
 - **ESLint governance** blocking hardcoded values
 - **Pre-commit hooks** + CI/CD validation
 - **4-layer component architecture** documented

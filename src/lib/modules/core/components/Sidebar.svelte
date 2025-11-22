@@ -367,8 +367,7 @@
 <!-- Keep width stable at 8px to prevent flickering from width changes -->
 {#if !isMobile && sidebarCollapsed}
 	<div
-		class="pointer-events-auto fixed top-0 bottom-0 left-0 hover:bg-transparent"
-		style="width: 8px; z-index: 50;"
+		class="pointer-events-auto fixed top-0 bottom-0 left-0 z-sidebar w-sidebar-hover-zone hover:bg-transparent"
 		onmouseenter={() => {
 			// Clear any pending hide timeout
 			if (hoverZoneTimeoutId) {
@@ -429,8 +428,7 @@
 		}}
 	>
 		<aside
-			class="flex h-full flex-col overflow-hidden border-r border-sidebar bg-sidebar text-sidebar-primary"
-			style="pointer-events: auto; z-index: 50;"
+			class="pointer-events-auto z-sidebar flex h-full flex-col overflow-hidden border-r border-sidebar bg-sidebar text-sidebar-primary"
 			onmouseenter={() => {
 				// Clear any pending hide timeout
 				if (hoverZoneTimeoutId) {
@@ -539,30 +537,6 @@
 					class="flex-1 overflow-y-auto px-nav-container py-nav-container"
 					transition:fade={{ duration: 200 }}
 				>
-					<!-- My Mind -->
-					<a
-						href={resolveRoute('/my-mind')}
-						class="group relative flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-						title="My Mind"
-					>
-						<!-- Icon -->
-						<svg
-							class="icon-sm flex-shrink-0"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-							/>
-						</svg>
-						<span class="min-w-0 flex-1 font-normal">My Mind</span>
-					</a>
-
 					<!-- Inbox -->
 					<a
 						href={resolveRoute('/inbox')}
@@ -990,32 +964,6 @@
 		<!-- Navigation -->
 		{#if !sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)}
 			<nav class="flex-1 overflow-y-auto px-nav-container py-nav-container">
-				<!-- My Mind -->
-				<a
-					href={resolveRoute('/my-mind')}
-					class="group relative flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-					class:justify-center={isMobile && sidebarCollapsed}
-					title={isMobile && sidebarCollapsed ? 'My Mind' : ''}
-				>
-					<svg
-						class="icon-sm flex-shrink-0"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-						xmlns="http://www.w3.org/2000/svg"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-						/>
-					</svg>
-					{#if !isMobile || !sidebarCollapsed}
-						<span class="font-normal">My Mind</span>
-					{/if}
-				</a>
-
 				<!-- Inbox -->
 				<a
 					href={resolveRoute('/inbox')}

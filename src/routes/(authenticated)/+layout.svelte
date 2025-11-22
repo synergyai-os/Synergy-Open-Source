@@ -492,7 +492,6 @@
 		const path = window.location.pathname;
 		if (path.includes('/flashcards')) return 'flashcards';
 		if (path.includes('/tags')) return 'tags';
-		if (path.includes('/my-mind')) return 'my_mind';
 		if (path.includes('/study')) return 'study';
 		return 'inbox';
 	};
@@ -757,7 +756,7 @@
 	<!-- Not authenticated - shouldn't reach here due to redirect, but show login prompt -->
 	<div class="flex h-screen items-center justify-center bg-base">
 		<div class="text-center">
-			<p class="mb-4 text-primary">Please log in to continue</p>
+			<p class="mb-content-section text-primary">Please log in to continue</p>
 			<a href={resolveRoute('/login')} class="text-accent-primary">Go to Login</a>
 		</div>
 	</div>

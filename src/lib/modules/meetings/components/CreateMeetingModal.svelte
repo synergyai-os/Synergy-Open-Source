@@ -10,7 +10,7 @@
 	import { browser } from '$app/environment';
 	import { toast } from 'svelte-sonner';
 	import type { Id } from '$lib/convex';
-	import { Button, ToggleGroup } from '$lib/components/ui';
+	import { Button, ToggleGroup } from '$lib/components/atoms';
 	import { ToggleSwitch } from '$lib/components/molecules';
 	import AttendeeSelector from './AttendeeSelector.svelte';
 

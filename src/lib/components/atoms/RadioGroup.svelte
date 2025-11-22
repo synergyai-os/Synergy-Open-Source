@@ -3,7 +3,13 @@
 
 	// Re-export all RadioGroup sub-components
 	// Usage: import * as RadioGroup from '$lib/components/ui/RadioGroup.svelte'
-	// Then: <RadioGroup.Root> <RadioGroup.Item> <RadioGroup.Input> ...
+	// Then: <RadioGroup.Root> <RadioGroup.Item> with children snippet pattern
+	// Example:
+	// <RadioGroup.Item value="option1">
+	//   {#snippet children({ checked })}
+	//     <!-- Custom radio button UI -->
+	//   {/snippet}
+	// </RadioGroup.Item>
 
 	export const Root = BitsRadioGroup.Root;
 	export const Item = BitsRadioGroup.Item;

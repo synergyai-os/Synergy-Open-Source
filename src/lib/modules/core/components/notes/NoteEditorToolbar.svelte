@@ -1,5 +1,5 @@
 <script lang="ts">
-	import * as ControlPanel from '$lib/components/control-panel';
+	import * as ControlPanel from '$lib/modules/core/components/control-panel';
 	import { EditorView } from 'prosemirror-view';
 	import { EditorState } from 'prosemirror-state';
 	import { toggleMark, setBlockType } from 'prosemirror-commands';

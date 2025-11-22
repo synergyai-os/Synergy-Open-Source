@@ -54,4 +54,4 @@ export { default as LoadingOverlay } from './LoadingOverlay.svelte';
 export { default as SplitButton } from './SplitButton.svelte';
 
 // Export types
-export type * from '../ui/types';
+export type * from '../types';

@@ -3,8 +3,10 @@
 
 	// Re-export all Tooltip sub-components
 	// Usage: import * as Tooltip from '$lib/components/ui/Tooltip.svelte'
-	// Then: <Tooltip.Root> <Tooltip.Trigger> <Tooltip.Content> ...
+	// Then: <Tooltip.Provider> <Tooltip.Root> <Tooltip.Trigger> <Tooltip.Content> ...
+	// NOTE: Tooltip.Root MUST be a descendant of Tooltip.Provider
 
+	export const Provider = BitsTooltip.Provider;
 	export const Root = BitsTooltip.Root;
 	export const Trigger = BitsTooltip.Trigger;
 	export const Portal = BitsTooltip.Portal;

@@ -453,7 +453,7 @@ graph TD
     end
     
     subgraph "ORGANISMS"
-        Atomic[Atomic Components<br/>src/lib/modules/core/components/]
+        Atomic[Atomic Components<br/>src/lib/components/atoms/molecules/organisms/]
         Feature[Feature Components<br/>src/lib/modules/inbox/components/]
         Layout[Layout Components<br/>src/lib/modules/core/components/]
     end

@@ -14,7 +14,7 @@
 	import MeetingCard from '$lib/modules/meetings/components/MeetingCard.svelte';
 	import TodayMeetingCard from '$lib/modules/meetings/components/TodayMeetingCard.svelte';
 	import CreateMeetingModal from '$lib/modules/meetings/components/CreateMeetingModal.svelte';
-	import { Button, Tabs } from '$lib/components/ui';
+	import { Button, Tabs } from '$lib/components/atoms';
 	import { FeatureFlags } from '$lib/infrastructure/feature-flags';
 	import { resolveRoute } from '$lib/utils/navigation';
 	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
@@ -234,11 +234,11 @@
 					<div class="flex items-center justify-end">
 						<div class="gap-header flex items-center">
 							<!-- Group By (optional - can be implemented later) -->
-							<!-- <div class="flex items-center gap-2">
-							<span class="text-text-secondary text-sm">Group by:</span>
+							<!-- <div class="flex items-center gap-icon">
+							<span class="text-text-secondary text-small">Group by:</span>
 							<select
 								bind:value={state.groupBy}
-								class="border-border-base bg-surface-base text-text-primary text-sm border rounded-md px-3 py-1.5 focus:border-accent-orange focus:outline-none"
+								class="border-border-base bg-surface-base text-text-primary text-small border rounded-button px-form-section py-button-y focus:border-accent-orange focus:outline-none"
 							>
 								<option value="none">None</option>
 								<option value="circle">Circle</option>
@@ -248,7 +248,7 @@
 
 							<!-- Synchronize Calendar (Phase 3) -->
 							<!-- <button
-							class="border-border-base text-text-secondary hover:bg-surface-hover flex items-center gap-2 border rounded-md px-3 py-1.5 text-sm transition-colors"
+							class="border-border-base text-text-secondary hover:bg-surface-hover flex items-center gap-icon border rounded-button px-form-section py-button-y text-small transition-colors"
 						>
 							<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<path

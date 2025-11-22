@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { Badge, Tabs, Button, FormInput, FormTextarea, ToggleSwitch } from '$lib/components/ui';
+	import { Badge, Tabs, Button, FormInput, FormTextarea } from '$lib/components/atoms';
+	import { ToggleSwitch } from '$lib/components/molecules';
 	import { browser } from '$app/environment';
 	import { Dialog } from 'bits-ui';
 	import { FeatureFlags, getFlagDescription } from '$lib/infrastructure/feature-flags';
@@ -1040,7 +1041,9 @@
 						<p class="mt-form-field-gap text-label text-secondary">
 							<strong>What is this?</strong> A unique identifier for your feature flag. Use
 							lowercase with underscores (e.g.,
-							<code class="rounded bg-elevated px-1 py-0.5 text-tertiary">notes_editor_v2</code>).
+							<code class="rounded bg-elevated px-badge py-badge text-tertiary"
+								>notes_editor_v2</code
+							>).
 						</p>
 					</div>
 

@@ -9,7 +9,7 @@
 	import { goto } from '$app/navigation';
 	import { useQuery } from 'convex-svelte';
 	import { api } from '$lib/convex';
-	import ActionItemsList from '$lib/components/dashboard/ActionItemsList.svelte';
+	import ActionItemsList from '$lib/modules/core/components/dashboard/ActionItemsList.svelte';
 	import { FeatureFlags } from '$lib/infrastructure/feature-flags';
 	import { resolveRoute } from '$lib/utils/navigation';
 
@@ -93,8 +93,8 @@
 			</section>
 
 			<!-- Future: Decisions to Review -->
-			<!-- <section class="mb-8">
-				<h2 class="mb-4 text-lg font-semibold text-text-primary">Decisions to Review</h2>
+			<!-- <section class="mb-content-padding">
+				<h2 class="mb-content-section text-h3 font-semibold text-text-primary">Decisions to Review</h2>
 				<div class="bg-surface rounded-card border border-dashed border-border-base py-readable-quote text-center text-text-tertiary">
 					Coming soon
 				</div>
@@ -102,7 +102,7 @@
 
 			<!-- Future: Upcoming Meetings -->
 			<!-- <section>
-				<h2 class="mb-4 text-lg font-semibold text-text-primary">Upcoming Meetings</h2>
+				<h2 class="mb-content-section text-h3 font-semibold text-text-primary">Upcoming Meetings</h2>
 				<div class="bg-surface rounded-card border border-dashed border-border-base py-readable-quote text-center text-text-tertiary">
 					Coming soon
 				</div>

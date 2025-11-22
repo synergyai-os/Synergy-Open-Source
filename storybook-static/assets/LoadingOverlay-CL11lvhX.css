@@ -1,0 +1,8 @@
+@keyframes svelte-17ssqbh-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+.animate-spin.svelte-17ssqbh {
+	animation: svelte-17ssqbh-spin 1s linear infinite;
+}
