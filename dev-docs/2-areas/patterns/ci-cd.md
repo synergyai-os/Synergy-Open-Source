@@ -2993,7 +2993,156 @@ function validateSemanticReferences() {
 - ❌ **Base token validation**: Validating base tokens (they're allowed to have hardcoded values)
 - ❌ **Missing exceptions**: Not checking for documented exceptions before flagging violations
 
-**Related**: #L2050 (Token→utility mapping), #L2100 (DTCG format conversion), #L2400 (Style Dictionary pipeline)
+**Related**: #L2050 (Token→utility mapping), #L2100 (DTCG format conversion), #L2400 (Style Dictionary pipeline), #L2600 (Fixing semantic token violations)
+
+---
+
+## #L2600: Fixing Semantic Token Violations - Converting Hardcoded Values to DTCG References [🟡 IMPORTANT]
+
+**Symptom**: `npm run tokens:validate-semantic` reports violations - semantic tokens have hardcoded values (e.g., `"0.5rem"`) instead of DTCG references (e.g., `"{spacing.2}"`)  
+**Root Cause**: Semantic tokens were created with hardcoded values before validation was enforced, or values don't have exact base token matches  
+**Fix**:
+
+**Step 1: Map Hardcoded Values to Base Tokens**
+
+Create a mapping of common `rem` values to base spacing tokens:
+
+```javascript
+// Common mappings (from base tokens in design-system.json)
+const spacingMap = {
+	'0': '0',
+	'0.25rem': '{spacing.1}',    // 4px
+	'0.5rem': '{spacing.2}',     // 8px
+	'0.75rem': '{spacing.3}',    // 12px
+	'1rem': '{spacing.4}',       // 16px
+	'1.25rem': '{spacing.5}',    // 20px
+	'1.5rem': '{spacing.6}',     // 24px
+	'2rem': '{spacing.8}',       // 32px
+	'2.5rem': '{spacing.10}',    // 40px
+	'3rem': '{spacing.12}',      // 48px
+	'4rem': '{spacing.16}',      // 64px
+	'5rem': '{spacing.20}',      // 80px
+	'7rem': '{spacing.28}',      // 112px
+	'8rem': '{spacing.32}'       // 128px
+};
+```
+
+**Step 2: Convert Exact Matches**
+
+For values that match base tokens exactly, replace hardcoded value with DTCG reference:
+
+```json
+// ❌ WRONG: Hardcoded value
+{
+	"spacing": {
+		"chart": {
+			"container": {
+				"$value": "1.5rem",
+				"$description": "24px - margin-top for chart containers"
+			}
+		}
+	}
+}
+
+// ✅ CORRECT: DTCG reference
+{
+	"spacing": {
+		"chart": {
+			"container": {
+				"$value": "{spacing.6}",
+				"$description": "24px - margin-top for chart containers"
+			}
+		}
+	}
+}
+```
+
+**Step 3: Document Exceptions for Non-Matching Values**
+
+For values without exact base token matches (e.g., `0.375rem`, `0.625rem`, `0.875rem`), add documented exception:
+
+```json
+// ✅ CORRECT: Documented exception
+{
+	"spacing": {
+		"chip": {
+			"y": {
+				"$value": "0.125rem",
+				"$description": "2px - INTENTIONAL EXCEPTION: Not multiple of 4px, optimal for chip padding"
+			}
+		},
+		"menu": {
+			"item": {
+				"x": {
+					"$value": "0.625rem",
+					"$description": "10px - INTENTIONAL EXCEPTION: No exact base token match (closest: spacing.1=4px, spacing.2=8px)"
+				}
+			}
+		}
+	}
+}
+```
+
+**Step 4: Typography Tokens - Use Exceptions**
+
+Typography font sizes typically don't map to spacing tokens (they have their own scale):
+
+```json
+// ✅ CORRECT: Typography exceptions
+{
+	"typography": {
+		"fontSize": {
+			"label": {
+				"$value": "0.625rem",
+				"$description": "10px - INTENTIONAL EXCEPTION: Typography scale independent from spacing scale"
+			},
+			"button": {
+				"$value": "0.875rem",
+				"$description": "14px - INTENTIONAL EXCEPTION: Typography scale independent from spacing scale"
+			}
+		}
+	}
+}
+```
+
+**Exception Format Requirements**:
+
+- Must include `"INTENTIONAL EXCEPTION"` in `$description` (case-insensitive)
+- Should explain why exception is needed (e.g., "No exact base token match", "Typography scale independent")
+- Validation script checks for this keyword before flagging violations
+
+**Systematic Fix Process**:
+
+1. **Run validation**: `npm run tokens:validate-semantic` to get list of violations
+2. **Group by value**: Group violations by hardcoded value (e.g., all `"1.5rem"` tokens)
+3. **Check base tokens**: Verify if value matches a base token exactly
+4. **Convert or document**: 
+   - If exact match → Convert to `{spacing.X}` reference
+   - If no match → Add exception with rationale
+5. **Rebuild and revalidate**: `npm run tokens:build && npm run tokens:validate-semantic`
+
+**Common Exception Scenarios**:
+
+- **Typography**: Font sizes have their own scale (10px, 14px, 30px, 36px, 120px)
+- **Border radius**: Some values don't match spacing (2px, 14px)
+- **Special values**: Non-standard dimensions (0.125rem, 0.375rem, 0.625rem, 0.875rem)
+- **Large display sizes**: Error status codes, hero text (120px, etc.)
+
+**Why This Matters**:
+
+- ✅ **Design system consistency**: Semantic tokens reference base tokens, creating single source of truth
+- ✅ **Easier maintenance**: Change base token once, all semantic tokens update automatically
+- ✅ **CI enforcement**: Validation blocks merges until violations are fixed
+- ✅ **Documented exceptions**: Clear rationale for values that don't fit standard scale
+
+**Apply when**:
+
+- Fixing semantic token validation violations
+- Converting hardcoded values to DTCG references
+- Adding new semantic tokens that need base token references
+- Handling values without exact base token matches
+
+**Related**: #L2550 (Semantic token validation), #L2100 (DTCG format conversion), #L2400 (Style Dictionary pipeline)
 
 ---
 
