@@ -1,6 +1,7 @@
 <script lang="ts">
 	/**
 	 * Decisions List Component (SYOS-224)
+	 * Refactored (SYOS-470): Separation of concerns - UI only
 	 *
 	 * Inline UI for logging decisions linked to agenda items.
 	 * Features:
@@ -12,9 +13,9 @@
 	 */
 
 	import { browser } from '$app/environment';
-	import { useQuery, useConvexClient } from 'convex-svelte';
-	import { api } from '$lib/convex';
 	import type { Id } from '$lib/convex';
+	import { useDecisions } from '../composables/useDecisions.svelte';
+	import { useDecisionsForm } from '../composables/useDecisionsForm.svelte';
 
 	interface Props {
 		agendaItemId: Id<'meetingAgendaItems'>;
@@ -25,171 +26,26 @@
 
 	const { agendaItemId, meetingId, sessionId, readonly = false }: Props = $props();
 
-	// Convex client for mutations
-	const convexClient = browser ? useConvexClient() : null;
-
-	// Reactive query for decisions
-	const decisionsQuery = useQuery(api.meetingDecisions.listByAgendaItem, () => {
-		if (!sessionId) throw new Error('sessionId required');
-		return { sessionId, agendaItemId };
+	// Data composable
+	const decisionsData = useDecisions({
+		agendaItemId: () => agendaItemId,
+		sessionId: () => sessionId
 	});
 
-	const decisions = $derived(decisionsQuery?.data ?? []);
-
-	// Form state (single $state object with getters)
-	const state = $state({
-		isAdding: false,
-		editingId: null as Id<'meetingDecisions'> | null,
-		newTitle: '',
-		newDescription: '',
-		editTitle: '',
-		editDescription: '',
-		hoveredId: null as Id<'meetingDecisions'> | null,
-		error: null as string | null,
-		isSaving: false
+	// Form composable
+	const decisionsForm = useDecisionsForm({
+		sessionId: () => sessionId ?? '',
+		meetingId: () => meetingId,
+		agendaItemId: () => agendaItemId,
+		readonly: () => readonly
 	});
 
-	// Getters (only for values used in template)
-	const isAdding = $derived(state.isAdding);
-	const editingId = $derived(state.editingId);
-	const newTitle = $derived(state.newTitle);
-	const editTitle = $derived(state.editTitle);
-	const hoveredId = $derived(state.hoveredId);
-	const error = $derived(state.error);
-	const isSaving = $derived(state.isSaving);
-
-	// Sort decisions by decidedAt (newest first)
-	const sortedDecisions = $derived([...decisions].sort((a, b) => b.decidedAt - a.decidedAt));
-
-	// Actions
-	function startAdding() {
-		state.isAdding = true;
-		state.editingId = null;
-		state.newTitle = '';
-		state.newDescription = '';
-		state.error = null;
-	}
-
-	function cancelAdding() {
-		state.isAdding = false;
-		state.newTitle = '';
-		state.newDescription = '';
-		state.error = null;
-	}
-
-	async function handleCreate() {
-		if (!sessionId || !convexClient) return;
-		if (!state.newTitle.trim()) {
-			state.error = 'Title is required';
-			return;
-		}
-
-		state.isSaving = true;
-		state.error = null;
-
-		try {
-			await convexClient.mutation(api.meetingDecisions.create, {
-				sessionId,
-				meetingId,
-				agendaItemId,
-				title: state.newTitle.trim(),
-				description: state.newDescription.trim()
-			});
-
-			// Reset form
-			state.isAdding = false;
-			state.newTitle = '';
-			state.newDescription = '';
-		} catch (err) {
-			state.error = err instanceof Error ? err.message : 'Failed to create decision';
-		} finally {
-			state.isSaving = false;
-		}
-	}
-
-	function startEditing(decision: {
-		_id: Id<'meetingDecisions'>;
-		title: string;
-		description: string;
-	}) {
-		state.editingId = decision._id;
-		state.editTitle = decision.title;
-		state.editDescription = decision.description;
-		state.isAdding = false;
-		state.error = null;
-	}
-
-	function cancelEditing() {
-		state.editingId = null;
-		state.editTitle = '';
-		state.editDescription = '';
-		state.error = null;
-	}
-
-	async function handleUpdate(decisionId: Id<'meetingDecisions'>) {
-		if (!sessionId || !convexClient) return;
-		if (!state.editTitle.trim()) {
-			state.error = 'Title is required';
-			return;
-		}
-
-		state.isSaving = true;
-		state.error = null;
-
-		try {
-			await convexClient.mutation(api.meetingDecisions.update, {
-				sessionId,
-				decisionId,
-				title: state.editTitle.trim(),
-				description: state.editDescription.trim()
-			});
-
-			// Reset editing state
-			state.editingId = null;
-			state.editTitle = '';
-			state.editDescription = '';
-		} catch (err) {
-			state.error = err instanceof Error ? err.message : 'Failed to update decision';
-		} finally {
-			state.isSaving = false;
-		}
-	}
-
-	async function handleDelete(decisionId: Id<'meetingDecisions'>) {
-		if (!sessionId || !convexClient) return;
-
-		state.error = null;
-
-		try {
-			await convexClient.mutation(api.meetingDecisions.remove, {
-				sessionId,
-				decisionId
-			});
-		} catch (err) {
-			state.error = err instanceof Error ? err.message : 'Failed to delete decision';
-		}
-	}
-
-	// Format timestamp
-	function formatTimestamp(timestamp: number): string {
-		const date = new Date(timestamp);
-		const now = new Date();
-		const diffMs = now.getTime() - date.getTime();
-		const diffMins = Math.floor(diffMs / 60000);
-		const diffHours = Math.floor(diffMs / 3600000);
-		const diffDays = Math.floor(diffMs / 86400000);
-
-		if (diffMins < 1) return 'Just now';
-		if (diffMins < 60) return `${diffMins}m ago`;
-		if (diffHours < 24) return `${diffHours}h ago`;
-		if (diffDays < 7) return `${diffDays}d ago`;
-
-		return date.toLocaleDateString('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
-		});
-	}
+	// Derived getters for template
+	const decisions = $derived(decisionsData.decisions);
+	const isAdding = $derived(decisionsForm.isAdding);
+	const editingId = $derived(decisionsForm.editingId);
+	const error = $derived(decisionsForm.error);
+	const isSaving = $derived(decisionsForm.isSaving);
 </script>
 
 {#if browser && sessionId}
@@ -199,7 +55,7 @@
 			<h4 class="text-body-sm font-medium text-primary">Decisions</h4>
 			{#if !readonly && !isAdding && !editingId}
 				<button
-					onclick={startAdding}
+					onclick={decisionsForm.startAdding}
 					class="text-body-sm flex items-center gap-icon rounded-button bg-elevated px-nav-item py-nav-item text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
 				>
 					<svg class="icon-sm flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -237,7 +93,7 @@
 						<input
 							id="new-decision-title"
 							type="text"
-							bind:value={state.newTitle}
+							bind:value={decisionsForm.newTitle}
 							placeholder="Decision title..."
 							class="text-body-sm w-full rounded-input border border-base bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
 						/>
@@ -253,7 +109,7 @@
 						</label>
 						<textarea
 							id="new-decision-description"
-							bind:value={state.newDescription}
+							bind:value={decisionsForm.newDescription}
 							placeholder="Add context or details..."
 							rows="4"
 							class="text-body-sm w-full rounded-input border border-base bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
@@ -263,15 +119,15 @@
 					<!-- Form Actions -->
 					<div class="flex justify-end gap-icon">
 						<button
-							onclick={cancelAdding}
+							onclick={decisionsForm.cancelAdding}
 							disabled={isSaving}
 							class="rounded-button px-button-x py-button-y text-button text-secondary transition-colors hover:bg-hover-solid hover:text-primary disabled:opacity-50"
 						>
 							Cancel
 						</button>
 						<button
-							onclick={handleCreate}
-							disabled={isSaving || !newTitle.trim()}
+							onclick={decisionsForm.handleCreate}
+							disabled={isSaving || !decisionsForm.newTitle.trim()}
 							class="rounded-button bg-accent-primary px-button-x py-button-y text-button font-medium text-primary transition-colors hover:bg-accent-hover disabled:opacity-50"
 						>
 							{isSaving ? 'Creating...' : 'Create Decision'}
@@ -282,18 +138,18 @@
 		{/if}
 
 		<!-- Decisions List -->
-		{#if sortedDecisions.length > 0}
+		{#if decisions.length > 0}
 			<div class="flex flex-col gap-icon">
-				{#each sortedDecisions as decision (decision._id)}
+				{#each decisions as decision (decision._id)}
 					<div
 						role="region"
 						aria-label="Decision card"
 						class="rounded-card border border-base bg-elevated transition-all hover:border-elevated"
 						onmouseenter={() => {
-							state.hoveredId = decision._id;
+							decisionsForm.hoveredId = decision._id;
 						}}
 						onmouseleave={() => {
-							state.hoveredId = null;
+							decisionsForm.hoveredId = null;
 						}}
 					>
 						{#if editingId === decision._id}
@@ -311,7 +167,7 @@
 										<input
 											id="edit-decision-title-{decision._id}"
 											type="text"
-											bind:value={state.editTitle}
+											bind:value={decisionsForm.editTitle}
 											placeholder="Decision title..."
 											class="text-body-sm w-full rounded-input border border-base bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
 										/>
@@ -327,7 +183,7 @@
 										</label>
 										<textarea
 											id="edit-decision-description-{decision._id}"
-											bind:value={state.editDescription}
+											bind:value={decisionsForm.editDescription}
 											placeholder="Add context or details..."
 											rows="4"
 											class="text-body-sm w-full rounded-input border border-base bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
@@ -337,15 +193,15 @@
 									<!-- Form Actions -->
 									<div class="flex justify-end gap-icon">
 										<button
-											onclick={cancelEditing}
+											onclick={decisionsForm.cancelEditing}
 											disabled={isSaving}
 											class="rounded-button px-button-x py-button-y text-button text-secondary transition-colors hover:bg-hover-solid hover:text-primary disabled:opacity-50"
 										>
 											Cancel
 										</button>
 										<button
-											onclick={() => handleUpdate(decision._id)}
-											disabled={isSaving || !editTitle.trim()}
+											onclick={() => decisionsForm.handleUpdate(decision._id)}
+											disabled={isSaving || !decisionsForm.editTitle.trim()}
 											class="rounded-button bg-accent-primary px-button-x py-button-y text-button font-medium text-primary transition-colors hover:bg-accent-hover disabled:opacity-50"
 										>
 											{isSaving ? 'Saving...' : 'Save Changes'}
@@ -383,15 +239,15 @@
 													d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
 												/>
 											</svg>
-											<span>{formatTimestamp(decision.decidedAt)}</span>
+											<span>{decisionsForm.formatTimestamp(decision.decidedAt)}</span>
 										</div>
 									</div>
 
 									<!-- Hover Actions -->
-									{#if !readonly && hoveredId === decision._id}
+									{#if !readonly && decisionsForm.hoveredId === decision._id}
 										<div class="gap-icon-sm flex">
 											<button
-												onclick={() => startEditing(decision)}
+												onclick={() => decisionsForm.startEditing(decision)}
 												class="rounded-button p-control-button-padding text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
 												aria-label="Edit decision"
 											>
@@ -410,7 +266,7 @@
 												</svg>
 											</button>
 											<button
-												onclick={() => handleDelete(decision._id)}
+												onclick={() => decisionsForm.handleDelete(decision._id)}
 												class="rounded-button p-control-button-padding text-secondary transition-colors hover:bg-destructive-hover hover:text-error-text"
 												aria-label="Delete decision"
 											>
@@ -457,7 +313,7 @@
 				<p class="mt-spacing-text-gap text-body-sm text-secondary">No decisions recorded yet</p>
 				{#if !readonly}
 					<button
-						onclick={startAdding}
+						onclick={decisionsForm.startAdding}
 						class="mt-icon text-body-sm text-accent-primary hover:underline"
 					>
 						Add the first decision

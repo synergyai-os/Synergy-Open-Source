@@ -1,0 +1,5 @@
+# Mark generated token files as generated
+# This helps GitHub and other tools recognize these files as auto-generated
+src/styles/tokens/*.css linguist-generated=true
+src/styles/utilities/*.css linguist-generated=true
+

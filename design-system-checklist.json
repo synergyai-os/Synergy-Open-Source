@@ -8,7 +8,7 @@
 			"framework": "Svelte 5",
 			"styling": "Tailwind CSS 4",
 			"language": "TypeScript",
-			"token_source": "design-system-test.json",
+			"token_source": "design-system.json",
 			"token_implementation": "src/app.css (@theme directive)"
 		},
 
@@ -28,7 +28,7 @@
 			"documentation": {
 				"token_reference": "design-tokens.md",
 				"component_architecture": "component-architecture.md",
-				"source_of_truth": "design-system-test.json"
+				"source_of_truth": "design-system.json"
 			},
 			"phases_complete": [
 				"Phase 1: Token consolidation",
@@ -189,7 +189,7 @@
 				"documentation": [
 					"dev-docs/2-areas/design/design-tokens.md",
 					"dev-docs/2-areas/design/component-architecture.md",
-					"design-system-test.json"
+					"design-system.json"
 				],
 				"implementation": [
 					"src/app.css",
@@ -278,14 +278,14 @@
 			},
 			"token_evolution": {
 				"adding_new_token": [
-					"Update design-system-test.json (source of truth)",
+					"Update design-system.json (source of truth)",
 					"Add to src/app.css (@theme)",
 					"Test cascade: change → verify → revert",
 					"Document in design-tokens.md",
 					"Update components to use new token"
 				],
 				"deprecating_token": [
-					"Mark @deprecated in design-system-test.json",
+					"Mark @deprecated in design-system.json",
 					"Add console.warn in src/app.css",
 					"Find all usages: grep -r 'old-token' src/",
 					"Migrate module by module",
@@ -374,7 +374,7 @@
 				"No breaking changes to public API"
 			],
 			"token_update_checklist": [
-				"Update design-system-test.json first",
+				"Update design-system.json first",
 				"Implement in src/app.css",
 				"Test cascade: change token → verify visual → revert",
 				"Update design-tokens.md documentation",
@@ -503,7 +503,7 @@
 
 		"resources": {
 			"key_files": [
-				"design-system-test.json - Source of truth",
+				"design-system.json - Source of truth",
 				"src/app.css - Token implementation",
 				"dev-docs/2-areas/design/design-tokens.md - Token reference",
 				"dev-docs/2-areas/design/component-architecture.md - Layer system",

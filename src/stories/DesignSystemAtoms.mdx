@@ -1,0 +1,115 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Design System/Atoms" />
+
+# Atoms
+
+Single interactive elements with design tokens applied. Atoms are the foundation of the design system—reusable, self-contained components with no business logic.
+
+---
+
+## 🎯 What Are Atoms?
+
+Atoms are the smallest building blocks:
+
+- ✅ Single responsibility (one element, one purpose)
+- ✅ No internal state (or minimal UI state only)
+- ✅ Design tokens applied automatically
+- ✅ Fully accessible (WCAG compliant)
+- ✅ Type-safe (TypeScript props)
+
+---
+
+## 📦 Available Atoms
+
+### Buttons & Actions
+
+- **Button**: Primary, Secondary, Outline variants with sizes
+- **IconButton**: Icon-only button for toolbars
+- **SplitButton**: Button with dropdown menu
+- **Toggle**: Toggle button for on/off states
+- **ToggleGroup**: Group of toggle buttons
+
+### Form Inputs
+
+- **FormInput**: Text input with label and error states
+- **FormTextarea**: Multi-line text input
+- **Checkbox**: Checkbox input with label
+- **Switch**: Toggle switch for settings
+- **RadioGroup**: Radio button group
+- **PinInput**: Multi-digit PIN input (verification codes)
+- **Slider**: Range slider input
+
+### Display Components
+
+- **Badge**: Status badge with variants
+- **Chip**: Removable chip/tag component
+- **Card**: Container card with variants (default, elevated, outlined)
+- **Avatar**: User avatar with fallback
+- **Icon**: SVG icon component
+- **Text**: Typography component with semantic sizes
+- **Heading**: Heading component (h1-h6)
+- **Label**: Form label component
+- **Separator**: Visual divider
+
+### Feedback & Status
+
+- **Loading**: Spinner loading indicator
+- **LoadingOverlay**: Full-page loading overlay
+- **Progress**: Progress bar
+- **Meter**: Meter/gauge component
+- **StatusPill**: Status indicator pill
+- **Tooltip**: Hover tooltip
+
+### Layout & Structure
+
+- **AspectRatio**: Maintain aspect ratio container
+- **ScrollArea**: Scrollable container with custom scrollbar
+
+---
+
+## 🎨 Usage Pattern
+
+```svelte
+<script>
+	import { Button } from '$lib/components/atoms';
+</script>
+
+<!-- Primary button -->
+<Button variant="primary" size="md" onclick={handleClick}>Click me</Button>
+
+<!-- Secondary button -->
+<Button variant="secondary" size="sm">Cancel</Button>
+
+<!-- With icon -->
+<Button variant="primary">
+	<Icon name="plus" class="icon-md" />
+	Add Item
+</Button>
+```
+
+---
+
+## 🔄 Token Cascade
+
+All atoms use design tokens automatically:
+
+- **Spacing**: `px-button-x`, `py-button-y`, `gap-icon`
+- **Colors**: `bg-accent-primary`, `text-primary`, `border-base`
+- **Typography**: `text-button`, `text-h1`, `text-body`
+- **Borders**: `rounded-button`, `rounded-card`, `rounded-input`
+
+**Change tokens → Atoms update automatically** ✅
+
+---
+
+## 📚 Related Documentation
+
+- **Design System Overview**: `Design System/Overview`
+- **Token Reference**: `Docs/Token Reference`
+- **Component Architecture**: `dev-docs/2-areas/design/component-architecture.md`
+- **Design Principles**: `dev-docs/2-areas/design/design-principles.md`
+
+---
+
+**Last Updated**: November 2025

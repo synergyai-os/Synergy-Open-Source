@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { ToggleGroup, RadioGroup } from 'bits-ui';
-	import { Button } from '$lib/components/ui';
+	import { Button } from '$lib/components/atoms';
 	type DateRange = '7d' | '30d' | '90d' | '180d' | '365d' | 'all';
 	type ImportType = 'time' | 'quantity' | 'custom';
 	type Quantity = 5 | 10 | 25 | 50 | 100 | 250 | 500 | 1000;

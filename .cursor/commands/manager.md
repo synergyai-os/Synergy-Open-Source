@@ -128,29 +128,50 @@ Next tickets:
 ✅ SYOS-XXX acknowledged
 ```
 
-**Step 2: Check What's Next**
+**Step 2: Check What's Next** (MANDATORY - Use actual ticket IDs)
 
-1. **Get ticket details** - Understand dependencies
-2. **Check dependent tickets** - What's blocked/unblocked
-3. **Analyze parallelization** - Can multiple tickets run in parallel?
-4. **Identify blockers** - Any dependencies that must complete first?
+1. **Get ticket details** - Use `mcp_Linear_get_issue()` to check ticket
+2. **Check dependent tickets** - Use `mcp_Linear_list_issues()` to find blocked tickets
+3. **Analyze conflicts** - Check if tickets modify same files (MUST be sequential)
+4. **Analyze parallelization** - Only recommend parallel if NO conflicts
+5. **Identify blockers** - Any dependencies that must complete first?
 
-**Step 3: Provide Next Steps**
+**Step 3: Provide Next Steps** (ALWAYS with SYOS-XXX IDs)
 
-- List next tickets (with dependencies)
-- Indicate what can be parallelized
-- Recommend starting point
-- Keep it concise and actionable
+- **List actual ticket IDs** - Never say "Phase 1" or "next ticket" - use SYOS-XXX
+- **Be explicit about conflicts** - State clearly when things CANNOT run in parallel
+- **Indicate what can be parallelized** - Only if verified no conflicts
+- **Recommend starting point** - Which ticket to start with
+- **Keep it concise and actionable**
 
-**Example:**
+**Example (correct - with conflict analysis):**
 
 ```
 ✅ SYOS-356 acknowledged
 
-Run SYOS-357, SYOS-358, and SYOS-359 in parallel (different files)
+❌ CANNOT run in parallel:
+   - SYOS-357 and SYOS-358 both modify `.cursor/commands/go.md` → Sequential
 
-Then once all complete, run SYOS-360
+✅ CAN run in parallel:
+   - SYOS-359 and SYOS-360 (different modules) → Parallel
+
+Recommendation:
+First do SYOS-357
+
+Then once complete, run SYOS-358 (same file, must be sequential)
+
+Then once complete, run SYOS-359 and SYOS-360 in parallel (different modules)
 ```
+
+**Example (wrong - missing ticket IDs):**
+
+```
+✅ SYOS-356 acknowledged
+
+Next: Phase 1 setup, then Phase 2 implementation
+```
+
+**Why wrong**: No actual ticket IDs, no conflict analysis
 
 **Note**: Executing agent marks ticket as Done. Manager only provides next steps.
 
@@ -158,24 +179,57 @@ Then once all complete, run SYOS-360
 
 ## When User Asks "What's Next?"
 
-**Step 1: Check Current State**
+**Step 1: Check Current State** (MANDATORY - Use Linear API)
 
-- What tickets are in progress?
-- What tickets are done?
-- What's the current phase/milestone?
+- Use `mcp_Linear_list_issues()` to check ticket status
+- Filter by status: `state: 'In Progress'`, `state: 'Todo'`
+- Check project/ticket context to understand scope
+- **Get actual ticket IDs** - Never use "Phase 1", "Phase 2" without IDs
 
-**Step 2: Analyze Dependencies**
+**Step 2: Analyze Dependencies** (MANDATORY - Check conflicts)
 
-- Which tickets can run in parallel?
-- Which tickets must be sequential?
-- What's blocking what?
+- Use `mcp_Linear_get_issue()` to get ticket details
+- Check ticket descriptions for file modifications
+- **Identify conflicts** - Same files? Same tables? Same commands?
+- **Be explicit** - State clearly when things CANNOT run in parallel
+- Only recommend parallel if verified NO conflicts
 
-**Step 3: Provide Clear Recommendation**
+**Step 3: Provide Clear Recommendation** (ALWAYS with SYOS-XXX IDs)
 
-- List next tickets
-- Indicate parallelization opportunities
-- Recommend starting point
-- Explain dependencies if needed
+- **List actual ticket IDs** - Never generic placeholders
+- **Indicate conflicts** - State explicitly when sequential required
+- **Indicate parallelization** - Only if verified no conflicts
+- **Recommend starting point** - Which ticket to start with
+- **Explain dependencies** - Why sequential vs parallel
+
+**Example (correct):**
+
+```
+Current: SYOS-438 in progress (Phase 1 complete)
+
+❌ CANNOT run in parallel:
+   - SYOS-439 and SYOS-440 both modify `.cursor/commands/go.md` → Sequential
+
+✅ CAN run in parallel:
+   - SYOS-441 and SYOS-442 (different files) → Parallel
+
+Recommendation:
+First do SYOS-439
+
+Then once complete, run SYOS-440 (same file, must be sequential)
+
+Then once complete, run SYOS-441 and SYOS-442 in parallel
+```
+
+**Example (wrong - no ticket IDs):**
+
+```
+Current: Phase 1 complete
+
+Next: Continue with Phase 2, then Phase 3
+```
+
+**Why wrong**: No actual ticket IDs, no conflict analysis
 
 ---
 
@@ -269,27 +323,59 @@ Run SYOS-357, SYOS-358, and SYOS-359 in parallel (different files)
 
 # 🔍 Analysis Patterns
 
-## Parallel vs Sequential Analysis
+## Parallel vs Sequential Analysis (CRITICAL)
+
+**MANDATORY: Always analyze dependencies before recommending parallel work.**
 
 **When analyzing dependencies:**
 
-1. **Check ticket dependencies** - What does each ticket require?
-2. **Identify conflicts** - Do tickets modify same files?
-3. **Check phase/milestone boundaries** - Can phases overlap?
-4. **Recommend parallelization** - If no conflicts, recommend parallel work
+1. **Get actual ticket IDs** - Use `mcp_Linear_get_issue()` to check ticket details
+2. **Check ticket dependencies** - What does each ticket require? What blocks what?
+3. **Identify conflicts** - Do tickets modify same files? Same database tables?
+4. **Check phase/milestone boundaries** - Can phases overlap?
+5. **Be explicit** - State clearly when things CANNOT run in parallel
 
-**Example Analysis:**
+**Conflict Detection (MUST be sequential):**
+
+- ❌ **Same files** → Sequential (one after another) - Git conflicts
+- ❌ **Same database tables** → Sequential (schema changes conflict)
+- ❌ **Same command files** → Sequential (`.cursor/commands/*.md` modifications)
+- ❌ **Dependencies** → Sequential (SYOS-124 requires SYOS-123)
+- ❌ **Shared infrastructure** → Sequential (MCP setup blocks all other work)
+
+**Can run in parallel:**
+
+- ✅ **Different files** → Parallel (can work simultaneously)
+- ✅ **Different modules** → Parallel (independent work)
+- ✅ **Different database tables** → Parallel (no schema conflicts)
+- ✅ **No dependencies** → Parallel (independent tickets)
+
+**Example Analysis (with explicit reasoning):**
 
 ```
-Run SYOS-124, SYOS-125, and SYOS-126 in parallel (different tables)
+✅ SYOS-123 acknowledged
+
+❌ CANNOT run in parallel:
+   - SYOS-124 and SYOS-125 both modify `.cursor/commands/go.md` → Sequential
+
+✅ CAN run in parallel:
+   - SYOS-126 and SYOS-127 (different modules) → Parallel
+
+Recommendation:
+First do SYOS-124
+
+Then once complete, run SYOS-125 (same file, must be sequential)
+
+Then once complete, run SYOS-126 and SYOS-127 in parallel (different modules)
 ```
 
-**Conflict Detection:**
+**Example (wrong - missing conflict analysis):**
 
-- **Same files** → Sequential (one after another)
-- **Different files** → Parallel (can work simultaneously)
-- **Same database tables** → Sequential (schema changes)
-- **Different modules** → Parallel (independent work)
+```
+Run SYOS-124, SYOS-125, and SYOS-126 in parallel
+```
+
+**Why wrong**: Didn't check if SYOS-124 and SYOS-125 modify same files (they do - both modify `go.md`)
 
 ---
 
@@ -433,8 +519,12 @@ Recommendation: Update SYOS-124 to include dead code cleanup.
 
 - **User executes, manager guides** - Clear role separation
 - **Executing agent updates tickets** - Manager only validates and guides
-- **Check before recommending** - Always verify state first
-- **Analyze dependencies** - Help with parallelization
+- **ALWAYS use SYOS-XXX ticket IDs** - Never "Phase 1", "next ticket", or placeholders
+- **Check conflicts before parallelization** - Same files/tables = sequential, not parallel
+- **Be explicit about sequential work** - State clearly when things CANNOT run in parallel
+- **Use Linear API** - `mcp_Linear_get_issue()`, `mcp_Linear_list_issues()` to get actual ticket IDs
+- **Check before recommending** - Always verify state and conflicts first
+- **Analyze dependencies** - Help with parallelization, but only if verified no conflicts
 - **Keep it concise** - Dense, actionable information
 - **Be proactive** - Identify gaps and issues before they block
 - **No automatic ticket updates** - Only when explicitly requested
@@ -460,18 +550,34 @@ Recommendation: Update SYOS-124 to include dead code cleanup.
 **Manager:**
 
 1. Acknowledge completion (no ticket update)
-2. Check what SYOS-123 unblocked
-3. Analyze next tickets (dependencies, parallelization)
-4. Provide recommendation
+2. Use `mcp_Linear_list_issues()` to find dependent tickets
+3. Use `mcp_Linear_get_issue()` to check each ticket's scope
+4. Analyze conflicts (same files? same tables?)
+5. Provide recommendation with actual ticket IDs
 
 **Response:**
 
 ```
 ✅ SYOS-123 acknowledged
 
-Run SYOS-124, SYOS-125, and SYOS-126 in parallel (different tables)
+Checked dependencies:
+- SYOS-124: Modifies `convex/schema.ts` (users table)
+- SYOS-125: Modifies `convex/schema.ts` (teams table)
+- SYOS-126: Modifies `src/lib/components/Button.svelte`
+- SYOS-127: Requires SYOS-124 and SYOS-125
 
-Then once all complete, run SYOS-127
+❌ CANNOT run in parallel:
+   - SYOS-124 and SYOS-125 both modify `convex/schema.ts` → Sequential
+
+✅ CAN run in parallel:
+   - SYOS-126 (different file) → Can run alongside schema work
+
+Recommendation:
+First do SYOS-124
+
+Then once complete, run SYOS-125 (same schema file, must be sequential)
+
+Then once complete, run SYOS-126 and SYOS-127 in parallel (different files, no conflicts)
 ```
 
 ---
@@ -482,19 +588,36 @@ Then once all complete, run SYOS-127
 
 **Manager:**
 
-1. Check current ticket status
-2. Analyze dependencies
-3. Identify parallelization opportunities
-4. Provide clear recommendation
+1. Use `mcp_Linear_list_issues()` to check current ticket status
+2. Use `mcp_Linear_get_issue()` to analyze each ticket's scope
+3. Check conflicts (same files? same tables?)
+4. Identify parallelization opportunities (only if no conflicts)
+5. Provide clear recommendation with actual ticket IDs
 
 **Response:**
 
 ```
-Current: Phase 3 complete, Phase 4 ready
+Current: SYOS-438 in progress (Phase 1 complete)
 
-Run SYOS-128, SYOS-129, and SYOS-130 in parallel (different modules)
+Checked next tickets:
+- SYOS-439: Creates `.cursor/commands/svelte-validate.md` (new file)
+- SYOS-440: Modifies `.cursor/commands/go.md` (existing file)
+- SYOS-441: Modifies `dev-docs/2-areas/patterns/ci-cd.md` (docs)
+- SYOS-442: Requires SYOS-439 (depends on command file)
 
-Then once all complete, run SYOS-131
+❌ CANNOT run in parallel:
+   - SYOS-440 and SYOS-442 both modify `.cursor/commands/go.md` → Sequential
+   - SYOS-442 requires SYOS-439 → Sequential dependency
+
+✅ CAN run in parallel:
+   - SYOS-441 (different file, docs only) → Can run alongside command work
+
+Recommendation:
+First do SYOS-439 (creates command file)
+
+Then once complete, run SYOS-440 (modifies go.md)
+
+Then once complete, run SYOS-441 and SYOS-442 in parallel (different files, no conflicts)
 ```
 
 ---
@@ -608,8 +731,9 @@ Following `.cursor/commands/README.md` best practices:
 
 ---
 
-**Last Updated**: 2025-11-20  
+**Last Updated**: 2025-11-21  
 **Purpose**: Guide for AI agents acting as manager/mentor/support for SynergyOS  
 **Key Principle**: Manager guides, user executes - clear role separation  
 **Ticket System**: Linear with SYOS team prefix - ALWAYS use SYOS-XXX format  
 **Workflow Format**: Sequential → parallel pattern (Airflow-inspired)
+**CRITICAL**: Always use actual ticket IDs (SYOS-XXX), never "Phase 1" or placeholders. Check conflicts before recommending parallel work.

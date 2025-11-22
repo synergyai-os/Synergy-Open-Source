@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { Button, Card, Heading, Icon } from '$lib/components/ui';
+	import { Button, Card, Heading, Icon } from '$lib/components/atoms';
 
 	// Refs for each component
 	let buttonRef = $state<HTMLButtonElement | null>(null);

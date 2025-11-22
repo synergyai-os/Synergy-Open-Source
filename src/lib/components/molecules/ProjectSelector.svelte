@@ -30,7 +30,7 @@
 >
 	{#if project}
 		{#if project.icon}
-			<span class="text-base leading-none">{project.icon}</span>
+			<span class="text-body leading-none">{project.icon}</span>
 		{:else}
 			<div class="icon-xs rounded-input" style="background-color: {project.color}"></div>
 		{/if}

@@ -209,7 +209,7 @@
 	<div class="flex h-screen items-center justify-center">
 		<div class="text-center">
 			<div
-				class="inline-block size-icon-lg animate-spin rounded-full border-4 border-solid border-accent-primary border-r-transparent"
+				class="inline-block size-icon-lg animate-spin rounded-avatar border-4 border-solid border-accent-primary border-r-transparent"
 			></div>
 			<p class="mt-content-section text-text-secondary">Loading meeting...</p>
 		</div>
@@ -555,7 +555,7 @@
 
 												<!-- User Avatar -->
 												<div
-													class="flex size-icon-lg items-center justify-center rounded-full text-button font-medium {attendee.isActive
+													class="flex size-icon-lg items-center justify-center rounded-avatar text-button font-medium {attendee.isActive
 														? 'bg-accent-primary text-primary'
 														: 'bg-surface-tertiary text-text-tertiary'}"
 												>

@@ -4,7 +4,7 @@
 
 	const { Story } = defineMeta({
 		component: AspectRatio.Root,
-		title: 'Atoms/AspectRatio',
+		title: 'Design System/Atoms/AspectRatio',
 		tags: ['autodocs'],
 		argTypes: {
 			ratio: {

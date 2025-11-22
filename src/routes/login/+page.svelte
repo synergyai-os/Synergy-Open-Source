@@ -2,7 +2,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { getContext } from 'svelte';
-	import { Button, FormInput } from '$lib/components/ui';
+	import { Button, FormInput } from '$lib/components/atoms';
 	import { RateLimitError } from '$lib/components/organisms';
 	import { LoadingOverlay } from '$lib/components/atoms';
 	import type { UseLoadingOverlayReturn } from '$lib/modules/core/composables/useLoadingOverlay.svelte';
@@ -155,8 +155,8 @@
 			class="w-full max-w-md rounded-modal border border-base bg-elevated p-content-padding shadow-sm"
 		>
 			<header class="flex flex-col gap-form-section text-center">
-				<h1 class="text-2xl font-semibold tracking-tight text-primary">Welcome back</h1>
-				<p class="text-sm text-secondary">
+				<h1 class="text-h2 font-semibold tracking-tight text-primary">Welcome back</h1>
+				<p class="text-small text-secondary">
 					Sign in to continue where you left off. Don't have an account?
 					<a
 						href={linkingFlow()
@@ -175,9 +175,9 @@
 				<div
 					class="mt-content-section rounded-input border border-error bg-error px-input-x py-input-y"
 				>
-					<p class="text-sm font-medium text-error-secondary">{errorMessage}</p>
+					<p class="text-small font-medium text-error-secondary">{errorMessage}</p>
 					{#if showCreateAccountLink}
-						<p class="mt-2 text-sm text-error">
+						<p class="mt-form-field-gap text-small text-error">
 							Don't have an account?
 							<a
 								href={`${resolveRoute('/register')}?email=${encodeURIComponent(email)}`}
@@ -191,7 +191,7 @@
 			{/if}
 			{#if linkingFlow()}
 				<div
-					class="bg-hover-subtle mt-content-section flex items-center gap-icon rounded-input border border-base px-input-x py-input-y text-sm text-secondary"
+					class="bg-hover-subtle mt-content-section flex items-center gap-icon rounded-input border border-base px-input-x py-input-y text-small text-secondary"
 				>
 					<svg
 						class="h-4 w-4 flex-shrink-0 text-accent-primary"
@@ -238,7 +238,7 @@
 					<div class="text-right">
 						<a
 							href={resolveRoute('/forgot-password')}
-							class="text-sm text-accent-primary hover:text-accent-hover"
+							class="text-small text-accent-primary hover:text-accent-hover"
 						>
 							Forgot password?
 						</a>

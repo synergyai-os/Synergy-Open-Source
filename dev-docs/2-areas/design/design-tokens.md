@@ -74,13 +74,13 @@ grep -r "spacing-my-component" src/app.css
 
 Add token to appropriate section below with description and usage examples.
 
-**Step 5: Update `design-system-test.json`**
+**Step 5: Update `design-system.json`**
 
-Our design system spec file (`design-system-test.json`) is the **source of truth** for token values, descriptions, and design decisions. Always update it when adding new tokens.
+Our design system spec file (`design-system.json`) is the **source of truth** for token values, descriptions, and design decisions. Always update it when adding new tokens.
 
 ### **Source of Truth Hierarchy**
 
-1. **design-system-test.json**: Token specifications, values, descriptions (WHAT and WHY)
+1. **design-system.json**: Token specifications, values, descriptions (WHAT and WHY)
 2. **src/app.css**: Token implementation - CSS variables + utility classes (HOW)
 3. **This file (design-tokens.md)**: Token documentation and usage examples (WHEN and WHERE)
 
@@ -165,6 +165,479 @@ Some patterns are **intentionally allowed** and do not violate design system pri
 
 ---
 
+## Token Build Workflow
+
+**Purpose**: Understand how design tokens are built from DTCG format to CSS files.
+
+### Architecture Overview
+
+Our design system uses a **3-tier architecture**:
+
+1. **Source of Truth**: `design-system.json` (DTCG format) - Human-readable token definitions
+2. **Build Process**: Style Dictionary converts DTCG → CSS files
+3. **Generated Artifacts**: CSS files in `src/styles/tokens/` and `src/styles/utilities/`
+
+**Why This Architecture:**
+
+- ✅ **Single source of truth**: All tokens defined in one JSON file
+- ✅ **Automated generation**: CSS files generated automatically (no manual editing)
+- ✅ **Tooling interoperability**: DTCG format works with design tools (Figma, etc.)
+- ✅ **Validation**: Automated checks ensure semantic tokens reference base tokens
+
+### Build Commands
+
+**Build tokens once:**
+
+```bash
+npm run tokens:build
+```
+
+**Output:**
+
+- `src/styles/tokens/spacing.css` - Spacing tokens (@theme block)
+- `src/styles/tokens/colors.css` - Color tokens (@theme block)
+- `src/styles/tokens/typography.css` - Typography tokens (@theme block)
+- `src/styles/tokens/effects.css` - Shadows, borders, transitions (@theme block)
+- `src/styles/tokens/sizes.css` - Size tokens (@theme block)
+- `src/styles/utilities/spacing-utils.css` - Spacing utility classes
+- `src/styles/utilities/color-utils.css` - Color utility classes
+- `src/styles/utilities/typography-utils.css` - Typography utility classes
+- `src/styles/utilities/component-utils.css` - Component-specific utilities
+
+**Watch mode (auto-rebuild on changes):**
+
+```bash
+npm run tokens:watch
+```
+
+**Note**: Watch mode automatically rebuilds CSS when `design-system.json` changes. Use during development for instant feedback.
+
+### Build Process Steps
+
+1. **Pre-process DTCG**: Convert `design-system.json` (DTCG) → `tokens.json` (Style Dictionary format)
+2. **Transform tokens**: Apply custom transforms (Tailwind theme, utility generation)
+3. **Validate references**: Check semantic tokens reference base tokens correctly
+4. **Generate CSS**: Output CSS files with @theme blocks and utility classes
+
+**See**: `style-dictionary.config.js` for complete configuration
+
+### When to Run Build
+
+**Required before:**
+- Starting development (after pulling latest changes)
+- Committing token changes (ensure CSS is up-to-date)
+- Deploying to production (CI runs build automatically)
+
+**Automatic triggers:**
+- Pre-commit hook validates tokens (if configured)
+- CI pipeline runs `npm run tokens:build` before deployment
+
+---
+
+## Semantic Token Reference Rules
+
+**Purpose**: Ensure semantic tokens reference base tokens for cascade behavior.
+
+### Rule: Semantic Tokens MUST Reference Base Tokens
+
+**✅ CORRECT - Semantic token references base token:**
+
+```json
+{
+  "spacing": {
+    "2": {
+      "$value": "0.5rem",
+      "$description": "8px = sm"
+    },
+    "nav": {
+      "item": {
+        "x": {
+          "$value": "{spacing.2}",
+          "$description": "Nav item horizontal padding - references base scale"
+        }
+      }
+    }
+  }
+}
+```
+
+**❌ WRONG - Semantic token has hardcoded value:**
+
+```json
+{
+  "spacing": {
+    "nav": {
+      "item": {
+        "x": {
+          "$value": "0.5rem",  // ❌ Hardcoded - breaks cascade
+          "$description": "Nav item horizontal padding"
+        }
+      }
+    }
+  }
+}
+```
+
+### Why This Rule Exists
+
+**Cascade behavior:**
+
+- Changing `spacing.2` from `0.5rem` → `0.75rem` automatically updates all semantic tokens using `{spacing.2}`
+- Hardcoded values break this cascade (require manual updates)
+
+**Example cascade:**
+
+```json
+// Base token
+"spacing.2": "0.5rem"
+
+// Semantic tokens (all reference base)
+"spacing.nav.item.x": "{spacing.2}"      // → 0.5rem
+"spacing.menu.item.x": "{spacing.2}"     // → 0.5rem
+"spacing.badge.x": "{spacing.2}"         // → 0.5rem
+
+// Change base token once:
+"spacing.2": "0.75rem"
+
+// All semantic tokens update automatically:
+"spacing.nav.item.x": "{spacing.2}"      // → 0.75rem ✅
+"spacing.menu.item.x": "{spacing.2}"     // → 0.75rem ✅
+"spacing.badge.x": "{spacing.2}"         // → 0.75rem ✅
+```
+
+### Base Tokens vs Semantic Tokens
+
+**Base tokens** (can have hardcoded values):
+
+- Direct children of category (e.g., `spacing.0`, `spacing.1`, `spacing.2`)
+- Foundation values for the design system
+- Examples: `spacing.2 = 0.5rem`, `color.primary = oklch(...)`
+
+**Semantic tokens** (must reference base tokens):
+
+- Nested deeper than base tokens (e.g., `spacing.nav.item.x`)
+- Component-specific or context-specific values
+- Examples: `spacing.nav.item.x = {spacing.2}`, `color.text.primary = {color.primary}`
+
+### Validation
+
+**Automated validation:**
+
+```bash
+npm run tokens:validate-semantic
+```
+
+**What it checks:**
+
+- ✅ Semantic tokens use DTCG reference syntax `{spacing.X}`
+- ✅ Base tokens can have hardcoded values
+- ✅ Exceptions are documented (see Exception Documentation below)
+
+**Error example:**
+
+```
+❌ Semantic token 'spacing.nav.item.x' has hardcoded value '0.5rem'
+   Expected: '{spacing.2}' (reference to base token)
+   
+   Fix: Change $value from "0.5rem" to "{spacing.2}"
+```
+
+---
+
+## Exception Token Documentation
+
+**Purpose**: Document when semantic tokens intentionally don't reference base tokens.
+
+### When Exceptions Are Allowed
+
+Some values intentionally don't map to base scale (optimized for specific components):
+
+- `0.125rem` (2px) - Chip padding, badge padding (compact design)
+- `0.375rem` (6px) - Nav items, menu items, tabs (optimal touch target)
+- `0.625rem` (10px) - Headers, inputs, menu items (visual balance)
+- `0.875rem` (14px) - Marketing list spacing (readability)
+
+### How to Document Exceptions
+
+**Required format:**
+
+```json
+{
+  "spacing": {
+    "nav": {
+      "item": {
+        "y": {
+          "$value": "0.375rem",
+          "$description": "6px - INTENTIONAL EXCEPTION: Optimal touch target size for nav items. Not in base scale (0.25rem increments). Rationale: 6px provides better touch target than 4px (spacing.1) or 8px (spacing.2) for mobile navigation."
+        }
+      }
+    }
+  }
+}
+```
+
+**Key requirements:**
+
+1. **Include "INTENTIONAL EXCEPTION"** in `$description` (validation script checks for this)
+2. **Include "Rationale"** explaining why exception is needed
+3. **Specify which base tokens were considered** and why they don't work
+
+**Validation script behavior:**
+
+- ✅ Tokens with "INTENTIONAL EXCEPTION" in description are allowed
+- ✅ Tokens with "EXCEPTION" or "RATIONALE" keywords are also allowed
+- ❌ Semantic tokens without exception documentation will fail validation
+
+### Exception Examples
+
+**Example 1: Optimal touch target**
+
+```json
+{
+  "spacing": {
+    "nav": {
+      "item": {
+        "y": {
+          "$value": "0.375rem",
+          "$description": "6px - INTENTIONAL EXCEPTION: Optimal touch target size. spacing.1 (4px) too small, spacing.2 (8px) too large for mobile nav items."
+        }
+      }
+    }
+  }
+}
+```
+
+**Example 2: Visual balance**
+
+```json
+{
+  "spacing": {
+    "header": {
+      "y": {
+        "$value": "0.625rem",
+        "$description": "10px - INTENTIONAL EXCEPTION: Visual balance for headers. spacing.2 (8px) too tight, spacing.3 (12px) too loose. Rationale: 10px creates optimal visual rhythm with header content."
+      }
+    }
+  }
+}
+```
+
+---
+
+## Troubleshooting Guide
+
+**Common errors and solutions when working with design tokens.**
+
+### Error: "Semantic token has hardcoded value"
+
+**Symptom:**
+
+```
+❌ Semantic token 'spacing.nav.item.x' has hardcoded value '0.5rem'
+   Expected: '{spacing.2}' (reference to base token)
+```
+
+**Solution:**
+
+1. **Check if base token exists:**
+
+   ```bash
+   # Search design-system.json for base token
+   grep -A 2 '"2":' design-system.json
+   ```
+
+2. **Update semantic token to reference base:**
+
+   ```json
+   // Before
+   "$value": "0.5rem"
+
+   // After
+   "$value": "{spacing.2}"
+   ```
+
+3. **If exception needed**, document it:
+
+   ```json
+   "$value": "0.5rem",
+   "$description": "INTENTIONAL EXCEPTION: [rationale]"
+   ```
+
+### Error: "Token missing $description"
+
+**Symptom:**
+
+```
+⚠️ Token 'spacing.nav.item.x' missing $description (optional but recommended)
+```
+
+**Solution:**
+
+Add `$description` field:
+
+```json
+{
+  "$value": "{spacing.2}",
+  "$description": "Nav item horizontal padding - references base scale"
+}
+```
+
+### Error: Build fails with "Could not resolve reference"
+
+**Symptom:**
+
+```
+Error: Could not resolve reference '{spacing.99}' in token 'spacing.nav.item.x'
+```
+
+**Solution:**
+
+1. **Check if referenced token exists:**
+
+   ```bash
+   # Search for spacing.99
+   grep -A 2 '"99":' design-system.json
+   ```
+
+2. **Fix reference** (use correct base token):
+
+   ```json
+   // Wrong
+   "$value": "{spacing.99}"
+
+   // Correct (if spacing.2 exists)
+   "$value": "{spacing.2}"
+   ```
+
+### Error: CSS files not updating after build
+
+**Symptom:**
+
+Changes to `design-system.json` don't appear in CSS files after `npm run tokens:build`.
+
+**Solution:**
+
+1. **Check build output:**
+
+   ```bash
+   npm run tokens:build
+   # Look for "✅ Tokens built successfully!"
+   ```
+
+2. **Verify CSS files exist:**
+
+   ```bash
+   ls -la src/styles/tokens/
+   # Should see: spacing.css, colors.css, typography.css, etc.
+   ```
+
+3. **Check for build errors:**
+
+   ```bash
+   npm run tokens:build 2>&1 | grep -i error
+   ```
+
+4. **Clear cache and rebuild:**
+
+   ```bash
+   rm -rf tokens.json
+   npm run tokens:build
+   ```
+
+### Error: Validation passes but tokens don't work in UI
+
+**Symptom:**
+
+Tokens build successfully, but CSS classes don't apply in components.
+
+**Solution:**
+
+1. **Check if CSS files are imported:**
+
+   ```typescript
+   // src/app.css should import generated files
+   @import './styles/tokens/spacing.css';
+   @import './styles/tokens/colors.css';
+   // etc.
+   ```
+
+2. **Verify utility classes exist:**
+
+   ```bash
+   # Check if utility was generated
+   grep "px-nav-item" src/styles/utilities/spacing-utils.css
+   ```
+
+3. **Check Tailwind config:**
+
+   ```typescript
+   // vite.config.ts or tailwind.config.js
+   // Should include generated CSS files in content
+   ```
+
+### Error: "Circular reference detected"
+
+**Symptom:**
+
+```
+Error: Circular reference detected: spacing.nav.item.x → spacing.nav.item.x
+```
+
+**Solution:**
+
+1. **Check token references:**
+
+   ```bash
+   # Find circular reference
+   grep -r "spacing.nav.item.x" design-system.json
+   ```
+
+2. **Fix circular reference:**
+
+   ```json
+   // Wrong (circular)
+   "spacing.nav.item.x": {
+     "$value": "{spacing.nav.item.x}"  // ❌ References itself
+   }
+
+   // Correct
+   "spacing.nav.item.x": {
+     "$value": "{spacing.2}"  // ✅ References base token
+   }
+   ```
+
+### Getting Help
+
+**Still stuck?**
+
+1. **Check validation output:**
+
+   ```bash
+   npm run tokens:validate-semantic
+   npm run tokens:validate-dtcg
+   ```
+
+2. **Review Style Dictionary config:**
+
+   ```bash
+   cat style-dictionary.config.js
+   ```
+
+3. **Check build logs:**
+
+   ```bash
+   npm run tokens:build --verbose
+   ```
+
+4. **Search existing patterns:**
+
+   ```bash
+   # Find similar tokens
+   grep -r "INTENTIONAL EXCEPTION" design-system.json
+   ```
+
+---
+
 ## Typography
 
 - **Nav Item Text**: `text-sm` (0.875rem / 14px)
@@ -225,6 +698,59 @@ Our spacing scale is based on a 4px base unit (0.25rem):
 - **4** = 16px (1rem)
 - **5** = 20px (1.25rem)
 - **6** = 24px (1.5rem)
+
+### Base Scale Reference Pattern
+
+**✨ CRITICAL: All semantic tokens reference the base scale for cascade behavior**
+
+Our design system uses a **3-tier token architecture**:
+
+1. **Base Scale (Tier 1)**: `--spacing-0` through `--spacing-32` - The foundation values
+2. **Semantic Tokens (Tier 2)**: Component-specific tokens (e.g., `--spacing-nav-item-x`) - Reference base scale
+3. **Utility Classes (Tier 3)**: CSS utilities (e.g., `px-nav-item`) - Reference semantic tokens
+
+**Why This Matters:**
+
+- **Single source of truth**: Changing `--spacing-2` cascades to all semantic tokens using it
+- **Automatic updates**: Design system changes propagate automatically (no manual updates)
+- **Visible relationships**: Can see which semantic tokens share the same base value
+- **Consistent pattern**: New components follow the same cascade pattern
+
+**Pattern:**
+
+```css
+/* ✅ CORRECT - Semantic token references base scale */
+--spacing-nav-item-x: var(--spacing-2); /* 8px - references base scale */
+
+/* ❌ WRONG - Hardcoded value bypasses cascade */
+--spacing-nav-item-x: 0.5rem; /* 8px - breaks cascade pattern */
+```
+
+**Intentional Exceptions:**
+
+Some values intentionally don't map to base scale (optimized for specific components):
+
+- `0.125rem` (2px) - Chip padding, badge padding (compact design)
+- `0.375rem` (6px) - Nav items, menu items, tabs (optimal touch target)
+- `0.625rem` (10px) - Headers, inputs, menu items (visual balance)
+- `0.875rem` (14px) - Marketing list spacing (readability)
+
+**Exception Pattern:**
+
+```css
+/* INTENTIONAL EXCEPTION: 6px not in base scale, optimal for nav items */
+--spacing-nav-item-y: 0.375rem; /* 6px - py-1.5 equivalent */
+```
+
+**Cascade Test:**
+
+To verify cascade behavior works:
+
+1. Modify base scale value: `--spacing-2: 1rem;` (from `0.5rem`)
+2. Verify all semantic tokens using `var(--spacing-2)` update automatically
+3. Revert change: `--spacing-2: 0.5rem;`
+
+**See**: `src/styles/tokens/spacing.css` for complete implementation
 
 ### Semantic Spacing Tokens
 
@@ -379,7 +905,7 @@ Our spacing scale is based on a 4px base unit (0.25rem):
 
 ### ✨ NEW TOKENS FOR ATOMIC COMPONENTS
 
-These tokens were added as part of the Design System Foundation (SYOS-353, SYOS-355, SYOS-356) to align with `design-system-test.json` specifications.
+These tokens were added as part of the Design System Foundation (SYOS-353, SYOS-355, SYOS-356) to align with `design-system.json` specifications.
 
 ### Card Component Tokens
 
@@ -673,7 +1199,7 @@ Use these instead of `transition-all duration-XXX` hardcoded values.
 ### Button Token Consolidation
 
 **What Changed:**
-- Button tokens updated to match `design-system-test.json` specification (8px radius, 12px×24px padding)
+- Button tokens updated to match `design-system.json` specification (8px radius, 12px×24px padding)
 - Conflicting `button-primary-*` tokens removed
 - Single naming convention: `button-*` (not `button-primary-*`)
 

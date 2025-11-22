@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { DropdownMenu, Tooltip } from 'bits-ui';
-	import { Button } from '$lib/components/ui';
+	import { Button } from '$lib/components/atoms';
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity';
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';

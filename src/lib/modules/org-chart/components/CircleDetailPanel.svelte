@@ -283,7 +283,7 @@
 					>
 						Activities
 						{#if tabCounts.activities > 0}
-							<span class="ml-1 text-label text-tertiary">({tabCounts.activities})</span>
+							<span class="ml-icon-gap text-label text-tertiary">({tabCounts.activities})</span>
 						{/if}
 					</button>
 					<button
@@ -301,7 +301,7 @@
 					>
 						Metrics
 						{#if tabCounts.metrics > 0}
-							<span class="ml-1 text-label text-tertiary">({tabCounts.metrics})</span>
+							<span class="ml-icon-gap text-label text-tertiary">({tabCounts.metrics})</span>
 						{/if}
 					</button>
 					<button
@@ -319,7 +319,7 @@
 					>
 						Checklists
 						{#if tabCounts.checklists > 0}
-							<span class="ml-1 text-label text-tertiary">({tabCounts.checklists})</span>
+							<span class="ml-icon-gap text-label text-tertiary">({tabCounts.checklists})</span>
 						{/if}
 					</button>
 					<button
@@ -337,7 +337,7 @@
 					>
 						Projects
 						{#if tabCounts.projects > 0}
-							<span class="ml-1 text-label text-tertiary">({tabCounts.projects})</span>
+							<span class="ml-icon-gap text-label text-tertiary">({tabCounts.projects})</span>
 						{/if}
 					</button>
 				</div>
@@ -494,7 +494,7 @@
 									}}
 								/>
 								{#if roles.length > 0}
-									<div class="mt-3 space-y-inbox-list-gap">
+									<div class="mt-form-section space-y-inbox-list-gap">
 										{#each roles as role (role.roleId)}
 											<RoleCard
 												name={role.name}
@@ -512,7 +512,9 @@
 										{/each}
 									</div>
 								{:else}
-									<p class="mt-3 text-button text-secondary">No roles in this circle yet</p>
+									<p class="mt-form-section text-button text-secondary">
+										No roles in this circle yet
+									</p>
 								{/if}
 							</div>
 
@@ -526,7 +528,7 @@
 									}}
 								/>
 								{#if childCircles.length > 0}
-									<div class="mt-3 space-y-inbox-list-gap">
+									<div class="mt-form-section space-y-inbox-list-gap">
 										{#each childCircles as childCircle (childCircle.circleId)}
 											<button
 												type="button"
@@ -552,7 +554,9 @@
 										{/each}
 									</div>
 								{:else}
-									<p class="mt-3 text-button text-secondary">No child circles in this circle yet</p>
+									<p class="mt-form-section text-button text-secondary">
+										No child circles in this circle yet
+									</p>
 								{/if}
 							</div>
 
@@ -566,7 +570,7 @@
 									}}
 								/>
 								{#if members.length > 0}
-									<div class="mt-3 space-y-inbox-list-gap">
+									<div class="mt-form-section space-y-inbox-list-gap">
 										{#each members as member (member.userId)}
 											<div class="p-card flex items-center gap-icon rounded-card bg-surface">
 												<Avatar initials={getInitials(member.name)} size="md" />
@@ -578,7 +582,9 @@
 										{/each}
 									</div>
 								{:else}
-									<p class="mt-3 text-button text-secondary">No members in this circle yet</p>
+									<p class="mt-form-section text-button text-secondary">
+										No members in this circle yet
+									</p>
 								{/if}
 							</div>
 						</div>
@@ -621,7 +627,7 @@
 								d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
 							/>
 						</svg>
-						<p class="mt-4 text-button font-medium text-primary">No documents yet</p>
+						<p class="mt-content-section text-button font-medium text-primary">No documents yet</p>
 						<p class="mt-form-field-gap text-button text-secondary">
 							Documents related to this circle will appear here. This feature will be available in a
 							future update.
@@ -643,7 +649,7 @@
 								d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
 							/>
 						</svg>
-						<p class="mt-4 text-button font-medium text-primary">No activities yet</p>
+						<p class="mt-content-section text-button font-medium text-primary">No activities yet</p>
 						<p class="mt-form-field-gap text-button text-secondary">
 							Recent activities and updates for this circle will appear here. This feature will be
 							available in a future update.
@@ -665,7 +671,7 @@
 								d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
 							/>
 						</svg>
-						<p class="mt-4 text-button font-medium text-primary">No metrics yet</p>
+						<p class="mt-content-section text-button font-medium text-primary">No metrics yet</p>
 						<p class="mt-form-field-gap text-button text-secondary">
 							Performance metrics and analytics for this circle will appear here. This feature will
 							be available in a future update.
@@ -687,7 +693,7 @@
 								d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
 							/>
 						</svg>
-						<p class="mt-4 text-button font-medium text-primary">No checklists yet</p>
+						<p class="mt-content-section text-button font-medium text-primary">No checklists yet</p>
 						<p class="mt-form-field-gap text-button text-secondary">
 							Checklists and task lists for this circle will appear here. This feature will be
 							available in a future update.
@@ -709,7 +715,7 @@
 								d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
 							/>
 						</svg>
-						<p class="mt-4 text-button font-medium text-primary">No projects yet</p>
+						<p class="mt-content-section text-button font-medium text-primary">No projects yet</p>
 						<p class="mt-form-field-gap text-button text-secondary">
 							Projects associated with this circle will appear here. This feature will be available
 							in a future update.

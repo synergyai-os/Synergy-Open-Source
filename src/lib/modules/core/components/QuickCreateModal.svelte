@@ -12,14 +12,16 @@
 		FormInput,
 		FormTextarea,
 		StatusPill,
+		Button
+	} from '$lib/components/atoms';
+	import {
 		PrioritySelector,
 		AssigneeSelector,
 		ProjectSelector,
 		AttachmentButton,
 		ToggleSwitch,
-		ContextSelector,
-		Button
-	} from '$lib/components/ui';
+		ContextSelector
+	} from '$lib/components/molecules';
 	// TODO: Uncomment when implementing PostHog tracking
 	// import { AnalyticsEventName } from '$lib/infrastructure/analytics/events';
 

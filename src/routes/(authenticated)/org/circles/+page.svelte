@@ -7,7 +7,7 @@
 	import { useCircles } from '$lib/modules/org-chart/composables/useCircles.svelte';
 	import CreateCircleModal from '$lib/modules/org-chart/components/circles/CreateCircleModal.svelte';
 	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
-	import { Button } from '$lib/components/ui';
+	import { Button } from '$lib/components/atoms';
 
 	let { data: _data } = $props();
 

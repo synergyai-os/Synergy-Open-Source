@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Card, Text } from '$lib/components/ui';
+	import { Card, Text } from '$lib/components/atoms';
 	import { formatRelativeDate } from '$lib/utils/date';
 
 	type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text' | 'note';

@@ -13,6 +13,16 @@
 - Open `dev-docs/2-areas/patterns/INDEX.md`
 - Scan symptom tables (🔴 Critical, 🟡 Important, 🟢 Reference)
 
+**Pattern Lifecycle Notes** ⭐ **NEW**
+
+When finding patterns:
+
+- ✅ **Prefer ACCEPTED patterns** (current best practice)
+- ✅ **Skip SUPERSEDED patterns** (use replacement #LXXX instead)
+- ⚠️ **If DEPRECATED found** → note status, show migration path
+- ❌ **Never use REJECTED patterns** (anti-patterns)
+- ⚠️ **PROPOSED patterns** → document experimental status
+
 **If exact match found** → Follow **Path A: Known Pattern**  
 **If no match found** → Follow **Path B: Systematic Investigation**
 
@@ -25,16 +35,23 @@
 - Click line number link (e.g., `dev-docs/2-areas/patterns/svelte-reactivity.md#L10`)
 - Read compressed pattern: Symptom → Root Cause → Fix
 
-### 2. Assess Confidence
+### 2. Assess Confidence and Lifecycle Status
 
-- **95%+ confident**: Apply fix immediately
+- **Check pattern lifecycle status**:
+  - ✅ **ACCEPTED** → Use pattern (current best practice)
+  - ✅ **SUPERSEDED** → Use replacement pattern (#LXXX)
+  - ⚠️ **DEPRECATED** → Note status, show migration path, use if necessary
+  - ❌ **REJECTED** → Never use (anti-pattern)
+  - ⚠️ **PROPOSED** → Document experimental status
+
+- **95%+ confident**: Apply fix immediately (using correct lifecycle pattern)
 - **<95% confident**: Research + report findings
   - State confidence % and what's unclear
   - Use Context7 for latest docs if pattern involves libraries
 
 ### 3. Apply or Report
 
-- **Confident**: Implement fix as documented
+- **Confident**: Implement fix as documented (respecting lifecycle status)
 - **Uncertain**: Document what you found, ask for guidance
 
 ---

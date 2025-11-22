@@ -100,9 +100,10 @@ Once I have a ticket ID, I'll proceed with implementation.
 
 1. **Branch Verification** ⭐ **CRITICAL** (see above)
 2. **Check Patterns First** ⭐ **CRITICAL**
-3. **Check Reference Code** (if available from `/start`)
-4. **Use Context7** (if <95% confident)
-5. **Implement Solution**
+3. **Validate Svelte Code (MCP)** ⭐ **MANDATORY** (for `.svelte` files only)
+4. **Check Reference Code** (if available from `/start`)
+5. **Use Context7** (if <95% confident)
+6. **Implement Solution**
 
 ---
 
@@ -124,18 +125,86 @@ Once I have a ticket ID, I'll proceed with implementation.
    - Check if existing solution exists
    - Example: "Svelte reactivity issue" → Check `svelte-reactivity.md` patterns
 
-3. **If pattern found**:
-   - Read pattern file (jump to line number from INDEX.md)
-   - Use existing solution (don't reinvent)
-   - Document: "Using pattern from [file]:[line]"
+3. **Pattern Lifecycle Awareness** ⭐ **NEW**
 
-4. **If no pattern found**:
+   When checking patterns:
+   - ✅ **Prefer ACCEPTED patterns** (current best practice)
+   - ✅ **Skip SUPERSEDED patterns** (use replacement #LXXX instead)
+   - ⚠️ **If only DEPRECATED found** → warn user, suggest migration path
+   - ❌ **Never use REJECTED patterns** (anti-patterns)
+   - ⚠️ **PROPOSED patterns** → document experimental status
+
+   **Example**:
+
+   ```
+   Found #L10 [STATUS: SUPERSEDED] → Use #L50 instead
+   Found #L20 [STATUS: DEPRECATED] → Warn user, show migration path
+   Found #L30 [STATUS: ACCEPTED] → Use this ✅
+   ```
+
+4. **If pattern found**:
+   - Read pattern file (jump to line number from INDEX.md)
+   - Check lifecycle status (ACCEPTED/DEPRECATED/SUPERSEDED/REJECTED/PROPOSED)
+   - If ACCEPTED → Use existing solution (don't reinvent)
+   - If SUPERSEDED → Use replacement pattern (#LXXX)
+   - If DEPRECATED → Warn user, show migration path, use if necessary
+   - If REJECTED → Never use (anti-pattern)
+   - If PROPOSED → Document experimental status
+   - Document: "Using pattern from [file]:[line] [STATUS: X]"
+
+5. **If no pattern found**:
    - Continue to reference code check
    - Note: New pattern may be created during `/save` phase
 
-**Why**: Prevents reinventing solutions, ensures consistency, leverages existing knowledge
+**Why**: Prevents reinventing solutions, ensures consistency, leverages existing knowledge, guides to current patterns
 
-**Reference**: `dev-docs/2-areas/patterns/INDEX.md` - Pattern lookup table
+**Reference**: `dev-docs/2-areas/patterns/INDEX.md` - Pattern lookup table with lifecycle states
+
+---
+
+### 📖 Quick Reference: Storybook Story Organization
+
+**If task involves creating Storybook stories:**
+
+**File Location:**
+
+- Co-locate with component (same folder)
+- Example: `ActionItemsList.svelte` → `ActionItemsList.stories.svelte`
+
+**Title Hierarchy:**
+
+```typescript
+// Design System (shared UI - used by multiple modules)
+'Design System/Atoms/ComponentName'; // Single elements
+'Design System/Molecules/ComponentName'; // 2-3 atoms composed
+'Design System/Organisms/ComponentName'; // Complex sections
+
+// Modules (feature-specific - single module only)
+'Modules/ModuleName/ComponentName'; // e.g., 'Modules/Meetings/ActionItemsList'
+```
+
+**Classification Decision Tree:**
+
+```
+Q: Is component used by multiple modules?
+→ Yes: Design System (classify as Atom/Molecule/Organism)
+→ No: Module-specific (`'Modules/ModuleName/ComponentName'`)
+
+Examples:
+- Button (used everywhere) → `'Design System/Atoms/Button'`
+- ActionItemsList (only Meetings) → `'Modules/Meetings/ActionItemsList'`
+- MeetingCard (only Meetings) → `'Modules/Meetings/MeetingCard'`
+- InboxCard (only Inbox) → `'Modules/Inbox/InboxCard'`
+```
+
+**Why this approach:**
+
+- ✅ Co-location preserves module ownership
+- ✅ Hierarchical titles organize Storybook nav
+- ✅ Aligns with atomic design + modular architecture
+- ✅ Scalable (add modules without navigation chaos)
+
+**Context7 Validated:** Standard Storybook pattern for component organization
 
 ---
 
@@ -184,11 +253,82 @@ Once I have a ticket ID, I'll proceed with implementation.
 
 ---
 
-## 3. Use Context7 (If <95% Confident)
+## 3. Validate Svelte Code (MCP) - For .svelte Files Only ⭐ **MANDATORY**
+
+**Purpose**: Ensure Svelte code follows latest Svelte 5 best practices automatically.
+
+**When**: After pattern check, before/during implementation (for `.svelte` and `.svelte.ts` files only).
+
+**Workflow**:
+
+1. **Check if files being written are Svelte files**:
+   - If writing `.svelte` or `.svelte.ts` files → Continue to step 2
+   - If not writing Svelte files → Skip this step, proceed to reference code check
+
+2. **Invoke Svelte MCP autofixer** ⭐ **MANDATORY**:
+
+   ```typescript
+   // ✅ CORRECT: Always invoke autofixer when writing Svelte code
+   const result =
+   	(await mcp_svelte_svelte) -
+   	autofixer({
+   		code: fileContent,
+   		filename: 'Component.svelte', // or 'composable.svelte.ts'
+   		desired_svelte_version: 5,
+   		async: false // Set true if component uses top-level await
+   	});
+   ```
+
+3. **Iterate until clean** ⭐ **MANDATORY**:
+
+   ```typescript
+   // MUST iterate until clean (some fixes require multiple passes)
+   while (result.issues.length > 0 || result.suggestions.length > 0) {
+   	// Fix all issues based on result.issues and result.suggestions
+   	// Apply fixes to code
+
+   	// Re-run autofixer to verify fixes
+   	result =
+   		(await mcp_svelte_svelte) -
+   		autofixer({
+   			code: fixedCode,
+   			filename: 'Component.svelte',
+   			desired_svelte_version: 5,
+   			async: false
+   		});
+   }
+   ```
+
+4. **Document findings**:
+   - What issues were found
+   - What fixes were applied
+   - Any patterns discovered
+   - Note in implementation notes: "Svelte MCP validation: [summary]"
+
+**What it catches**:
+
+- `$effect` vs `$derived` misuse (Svelte 5 anti-pattern)
+- Reactivity anti-patterns (Map/Set mutations, stale values)
+- Component structure issues (missing keys, wrong patterns)
+- Svelte 5 best practice violations
+
+**Why mandatory**: Catches Svelte-specific issues that svelte-check and ESLint don't catch (e.g., `$effect` vs `$derived` misuse, reactivity anti-patterns).
+
+**Common Mistakes**:
+
+- ❌ **Run autofixer once**: Must iterate until clean (some fixes require multiple passes)
+- ❌ **Skip autofixer**: Only running svelte-check + ESLint misses Svelte-specific issues
+- ❌ **Return code with issues**: Must fix all issues before returning code to user
+
+**Reference**: `dev-docs/2-areas/patterns/ai-development.md#L100` - Svelte Validation Workflow with MCP Autofixer
+
+---
+
+## 4. Use Context7 (If <95% Confident)
 
 **Purpose**: Get up-to-date library documentation when confidence is low.
 
-**When**: After pattern check and reference code check, if still <95% confident about approach.
+**When**: After pattern check, Svelte validation (if applicable), and reference code check, if still <95% confident about approach.
 
 **Workflow**:
 
@@ -231,7 +371,7 @@ Once I have a ticket ID, I'll proceed with implementation.
 
 ---
 
-## 4. Implement Solution
+## 5. Implement Solution
 
 **Purpose**: Write code following our standards and patterns.
 
@@ -246,24 +386,31 @@ Once I have a ticket ID, I'll proceed with implementation.
    - Use `.svelte.ts` for composables
    - Use `useQuery()` for Convex data
 
-2. **Follow patterns** (if found):
+2. **For Svelte files** (`.svelte`, `.svelte.ts`):
+   - **MUST** run Svelte MCP validation (step 3) before finalizing code
+   - Fix all issues found by autofixer
+   - Iterate until autofixer returns no issues
+   - Document validation findings
+
+3. **Follow patterns** (if found):
    - Use pattern solution from step 1
    - Don't deviate unless necessary
 
-3. **Adapt reference code** (if available):
+4. **Adapt reference code** (if available):
    - Use reference patterns as inspiration
    - Adapt to our codebase structure
    - Document adaptations
 
-4. **Validate architecture**:
+5. **Validate architecture**:
    - Check modularity principles (if new module)
    - Verify feature flags (if new module)
    - Check loose coupling (no cross-module dependencies)
 
-5. **Document changes**:
+6. **Document changes**:
    - What was implemented
    - What patterns were used
    - What reference code was adapted (if any)
+   - Svelte MCP validation findings (if applicable)
    - Any deviations from patterns and why
 
 **Reference**: `/start` command - Coding Standards and Modularity Validation sections
@@ -283,7 +430,18 @@ AI: Checks dev-docs/2-areas/patterns/INDEX.md
     → Documents: "Using file upload pattern from ui-patterns.md:45"
 ```
 
-**Step 2: Check Reference Code**
+**Step 2: Validate Svelte Code (MCP)**
+
+```
+AI: Detects writing ImageUpload.svelte file
+    → Invokes mcp_svelte_svelte-autofixer
+    → Finds issue: "Using $effect for computed value, should use $derived"
+    → Fixes: Changes $effect to $derived
+    → Re-runs autofixer → No issues found
+    → Documents: "Svelte MCP validation: Fixed $effect vs $derived misuse"
+```
+
+**Step 3: Check Reference Code**
 
 ```
 AI: Checks conversation history
@@ -295,7 +453,7 @@ AI: Checks conversation history
     → Documents: "Adapting image upload pattern from vercel-ai-sdk-chat"
 ```
 
-**Step 3: Use Context7 (if needed)**
+**Step 4: Use Context7 (if needed)**
 
 ```
 AI: Confidence check → 90% (not sure about Vercel AI SDK API)
@@ -305,7 +463,7 @@ AI: Confidence check → 90% (not sure about Vercel AI SDK API)
     → Proceeds to implementation
 ```
 
-**Step 4: Implement**
+**Step 5: Implement**
 
 ```
 AI: Implements using:
@@ -316,7 +474,8 @@ AI: Implements using:
        - Uses our design tokens (not hardcoded styles)
        - Uses our composables pattern (.svelte.ts)
        - Uses our Convex backend (not Vercel's)
-    → Documents: "Adapted image upload from reference, using our design tokens and Convex backend"
+    → Svelte MCP validation already completed (step 2)
+    → Documents: "Adapted image upload from reference, using our design tokens and Convex backend. Svelte MCP validation: Fixed $effect vs $derived misuse"
 ```
 
 ---
@@ -355,6 +514,7 @@ AI: Implements using:
 ## 📚 Related Documentation
 
 - **Patterns**: `dev-docs/2-areas/patterns/INDEX.md` - Pattern lookup
+- **Svelte MCP Validation**: `dev-docs/2-areas/patterns/ai-development.md#L100` - Svelte Validation Workflow with MCP Autofixer
 - **Reference Code**: `ai-docs/reference/README.md` - Reference code system
 - **Coding Standards**: `dev-docs/2-areas/development/coding-standards.md` - Critical rules
 - **Start Command**: `.cursor/commands/start.md` - Onboarding and reference code loading
@@ -365,14 +525,15 @@ AI: Implements using:
 ## 🎯 Key Principles
 
 1. **Pattern-First** - Always check patterns before implementing ⭐
-2. **Reference Code** - Use working examples, adapt to our codebase
-3. **Context7** - Use when <95% confident about approach
-4. **Coding Standards** - Follow all rules from coding-standards.md
-5. **Adapt, Don't Copy** - Reference code is inspiration, not template
-6. **Document Changes** - What patterns/references were used
+2. **Svelte MCP Validation** - Always validate `.svelte` files with autofixer ⭐ **MANDATORY**
+3. **Reference Code** - Use working examples, adapt to our codebase
+4. **Context7** - Use when <95% confident about approach
+5. **Coding Standards** - Follow all rules from coding-standards.md
+6. **Adapt, Don't Copy** - Reference code is inspiration, not template
+7. **Document Changes** - What patterns/references were used
 
 ---
 
-**Last Updated**: 2025-11-20  
-**Purpose**: Execute implementation with pattern-first approach and reference code integration  
+**Last Updated**: 2025-11-21  
+**Purpose**: Execute implementation with pattern-first approach, Svelte MCP validation, and reference code integration  
 **Status**: Active workflow

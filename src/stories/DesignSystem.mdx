@@ -1,0 +1,107 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Design System/Overview" />
+
+# Design System
+
+SynergyOS Design System is a **4-layer architecture** that cascades automatically:
+
+**Tokens** → **Utilities** → **Patterns** → **Components**
+
+Change a token once → Updates entire app automatically.
+
+---
+
+## 🎨 Component Layers
+
+### Atoms
+
+Single interactive elements with design tokens applied.
+
+**Examples**: Button, Input, Badge, Card, Icon
+
+**Location**: `src/lib/components/atoms/`
+
+**Storybook**: `Design System/Atoms/ComponentName`
+
+### Molecules
+
+2-3 atoms composed together with layout logic.
+
+**Examples**: FormField (Label + Input + Error), Dropdown (Button + Menu)
+
+**Location**: `src/lib/components/molecules/` (when created)
+
+**Storybook**: `Design System/Molecules/ComponentName`
+
+### Organisms
+
+Complex sections combining multiple atoms and molecules.
+
+**Examples**: Dialog, Modal, Command Palette
+
+**Location**: `src/lib/components/organisms/`
+
+**Storybook**: `Design System/Organisms/ComponentName`
+
+---
+
+## 🔄 The Cascade
+
+When you change `--spacing-button-x` in tokens:
+
+1. Updates `px-button-x` utility
+2. Updates Button component
+3. Updates all pages using Button
+
+**No manual updates needed!**
+
+---
+
+## 📚 Available Components
+
+### Atoms
+
+- **Buttons**: Primary, Secondary, Outline variants
+- **Form Inputs**: Text, Textarea, Checkbox, Switch, Radio
+- **Display**: Badge, Chip, Card, Avatar, Icon
+- **Feedback**: Loading, Progress, Meter, Tooltip
+- **Navigation**: KeyboardShortcut, StatusPill
+
+### Organisms
+
+- **Dialogs**: Modal dialogs with backdrop and keyboard navigation
+- **Overlays**: Loading overlays, tooltips
+
+---
+
+## 🎯 Design Principles
+
+1. **Tokens First**: Always use design tokens, never hardcode values
+2. **Atomic Design**: Build from atoms → molecules → organisms
+3. **Accessibility**: All components follow WCAG guidelines
+4. **Dark Mode**: Automatic via semantic color tokens
+5. **Type Safety**: Full TypeScript support with proper types
+
+---
+
+## 📖 Documentation
+
+- **Token Reference**: See `Docs/Token Reference` for all available tokens
+- **Component Architecture**: `dev-docs/2-areas/design/component-architecture.md`
+- **Design Principles**: `dev-docs/2-areas/design/design-principles.md`
+- **Patterns**: `dev-docs/2-areas/patterns/ui-patterns.md`
+
+---
+
+## 🚀 Getting Started
+
+1. **Browse Components**: Explore Atoms → Organisms in Storybook
+2. **See Variants**: Use Controls panel to test different variants
+3. **Copy Code**: Use code snippets in your components
+4. **Follow Patterns**: Check documentation for usage patterns
+
+---
+
+**Last Updated**: November 2025  
+**Design System Version**: 1.0

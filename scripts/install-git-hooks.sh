@@ -3,6 +3,9 @@
 #
 # This script installs pre-checkout and pre-push hooks to prevent
 # accidental branch switching and validate branch naming conventions.
+#
+# Note: Pre-commit hook is managed by Husky (see .husky/pre-commit)
+# Husky hooks install automatically via npm install (package.json "prepare" script)
 
 set -e
 
@@ -42,7 +45,11 @@ echo "Hooks installed:"
 echo "  - pre-checkout: Blocks branch switch with uncommitted changes"
 echo "  - pre-push: Validates branch naming conventions"
 echo ""
+echo "Note: Pre-commit hook is managed by Husky (see .husky/pre-commit)"
+echo "      Husky hooks install automatically via npm install"
+echo ""
 echo "To bypass hooks (not recommended):"
 echo "  - Checkout: git checkout --no-verify branch-name"
+echo "  - Commit: git commit --no-verify"
 echo "  - Push: git push --no-verify"
 

@@ -6,7 +6,7 @@
 
 	import type { Id } from '$lib/convex';
 	import { downloadICS } from '$lib/utils/calendar';
-	import { Button } from '$lib/components/ui';
+	import { Button } from '$lib/components/atoms';
 
 	interface Meeting {
 		_id: Id<'meetings'> | string; // Allow string for generated recurring instances

@@ -6,6 +6,7 @@
 
 - `.cursor/commands/start.md` - Linear constants (single source of truth)
 - `dev-docs/2-areas/development/ticket-writing-format.md` - Ticket format template
+- `dev-docs/2-areas/development/approach-option-detection.md` - Approach option detection & confirmation logic
 
 ---
 
@@ -46,6 +47,45 @@ ELSE IF no ticket ID and no explicit intent:
 ---
 
 ## 📋 Workflow: Create New Ticket
+
+### Step 0: Detect and Confirm Approach Options (If Applicable)
+
+**CRITICAL**: If working from a task template document (e.g., `ai-docs/tasks/SYOS-XXX-*.md`) that contains multiple approach options, MUST confirm selection before proceeding.
+
+**Workflow:**
+
+1. **Detect approach options** in task document (check for `## Approach Options` or `### Approach A:` patterns)
+2. **Parse options** from document (title, pros, cons for each option)
+3. **Check user intent** (explicit selection like "option A" vs. none)
+4. **If user specified** → Use selected option, continue to Step 1
+5. **If user didn't specify** → Recommend best option with 2-sentence reasoning, ask for confirmation
+6. **Confirm selection** before proceeding to ticket creation
+
+**See**: `dev-docs/2-areas/development/approach-option-detection.md` - Complete implementation guide (parsing logic, recommendation algorithm, confirmation format)
+
+**Why this matters**: Prevents AI from silently picking an option without user awareness, reduces anxiety, ensures user understands the decision before ticket creation.
+
+**Example:**
+
+```
+User: "/create-tasks - Working from meetings-separation-of-concerns-refactoring.md"
+
+AI: [Detects 3 approach options]
+AI: "📋 Found 3 approach options in task document:
+**Approach A**: Incremental Refactoring
+**Approach B**: Batch Refactoring
+**Approach C**: Pattern Extraction + Incremental Application
+
+💡 **Recommendation**: A - Incremental Refactoring
+Low risk: Each PR is small, easy to review. Fast feedback: Can validate approach early.
+
+Proceed with A? (yes/no, or specify A/B/C)"
+
+User: "yes"
+AI: [Uses Approach A → Continues to Step 1]
+```
+
+---
 
 ### Step 1: Gather Requirements
 
@@ -506,6 +546,7 @@ Is it new user-facing functionality?
 
 ### After Creating New Ticket
 
+- [ ] **Approach option confirmed** (if task document contains multiple options) - User explicitly selected or confirmed recommendation
 - [ ] Project ID set correctly (or "no project" confirmed)
 - [ ] Assignee set to Randy (`RANDY_USER_ID`)
 - [ ] Estimate set (numeric: 0-5)
@@ -592,7 +633,51 @@ AI: [Creates ticket → Verifies project linking → Checks for subtasks]
 AI: "✅ Created SYOS-430 - Add image uploads to chat"
 ```
 
-### Example 2: Create New Ticket (Wrong Project Detected)
+### Example 2: Create New Ticket (With Approach Option Confirmation)
+
+```
+User: "/create-tasks - Working from ai-docs/tasks/meetings-separation-of-concerns-refactoring.md"
+
+AI: [Detects 3 approach options in document]
+AI: "📋 Found 3 approach options in task document:
+
+**Approach A**: Incremental Refactoring (One Component at a Time)
+**Approach B**: Batch Refactoring (All Components at Once)
+**Approach C**: Pattern Extraction + Incremental Application
+
+💡 **Recommendation**: A - Incremental Refactoring
+
+Low risk: Each PR is small (~200-500 line changes), easy to review, easy to rollback. Fast feedback: Can validate approach with ActionItemsList first, adjust if needed.
+
+Proceed with A? (yes/no, or specify A/B/C)"
+
+User: "yes"
+
+AI: [Uses Approach A → Continues to project selection]
+AI: "Which project should this ticket belong to?"
+User: "Meetings Module"
+
+AI: [Creates ticket with Approach A details → Verifies project linking]
+AI: "✅ Created SYOS-450 - Refactor Meetings Module Components: Separation of Concerns (Approach A)"
+```
+
+### Example 3: Create New Ticket (User Specifies Different Option)
+
+```
+User: "/create-tasks - Working from ai-docs/tasks/meetings-separation-of-concerns-refactoring.md - use option B"
+
+AI: [Detects 3 approach options, user specified "option B"]
+AI: "✅ Using B: Batch Refactoring (All Components at Once)"
+
+AI: [Uses Approach B → Continues to project selection]
+AI: "Which project should this ticket belong to?"
+User: "Meetings Module"
+
+AI: [Creates ticket with Approach B details → Verifies project linking]
+AI: "✅ Created SYOS-451 - Refactor Meetings Module Components: Separation of Concerns (Approach B)"
+```
+
+### Example 4: Create New Ticket (Wrong Project Detected)
 
 ```
 User: "/create-tasks - I want to add image uploads to chat"
@@ -617,7 +702,7 @@ AI: [Creates ticket → Verifies project linking]
 AI: "✅ Created SYOS-430 - Add image uploads to chat"
 ```
 
-### Example 3: Create Subtasks (From Parent Description)
+### Example 5: Create Subtasks (From Parent Description)
 
 ```
 User: "/create-tasks - Create ticket SYOS-438"
@@ -640,7 +725,7 @@ AI: "✅ Created 3 subtasks:
 - SYOS-441: [SYOS-438] Phase 3: Image preview component"
 ```
 
-### Example 4: Create Subtasks (Manual Request)
+### Example 6: Create Subtasks (Manual Request)
 
 ```
 User: "/create-tasks - Break down SYOS-430 into subtasks"
@@ -658,7 +743,7 @@ AI: "✅ Created 3 subtasks:
 - SYOS-433: [SYOS-430] Image preview component"
 ```
 
-### Example 5: Task Template Filename Update
+### Example 7: Task Template Filename Update
 
 ```
 User: "/create-tasks - Working from ai-docs/tasks/SYOS-XXX-integrate-svelte-mcp-validation.md"
@@ -670,11 +755,12 @@ AI: "✅ Created SYOS-442 - Integrate Svelte MCP Validation
 
 ---
 
-**Last Updated**: 2025-11-21  
+**Last Updated**: 2025-11-22  
 **Purpose**: Unified command for creating Linear tickets or subtasks  
 **Key Features**:
 
 - Intelligently decides new ticket vs subtasks, then executes creation
+- **Approach option confirmation** (if task document has multiple options) - Recommends and confirms before proceeding
 - **Project confirmation** before proceeding (prevents wrong project selection)
 - **Auto-detects subtasks** from ticket description (creates subtasks automatically)
 - **Task template filename update** (mandatory when working from task template)

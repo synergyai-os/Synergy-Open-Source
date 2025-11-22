@@ -375,6 +375,273 @@ Wrappers following this pattern are organized by complexity:
 **Where**: `src/lib/components/`  
 **When**: Complex behavior + reusable UI
 
+### Separation of Concerns (MANDATORY)
+
+> **Svelte 5 Best Practice**: "When extracting logic, it's better to take advantage of runes' universal reactivity: You can use runes outside the top level of components and even place them into JavaScript or TypeScript files (using a `.svelte.js` or `.svelte.ts` file ending)" — [Svelte 5 Documentation](https://svelte.dev/docs/svelte/svelte-js-files)
+
+**Pattern Validated**: Successfully applied to ActionItemsList (SYOS-467) and DecisionsList (SYOS-470) - proven repeatable across multiple Meeting module components.
+
+**Components should ONLY handle UI rendering:**
+
+- ❌ **No `useQuery` calls directly** — Extract to composables
+- ❌ **No business logic or validation** — Extract to composables
+- ❌ **No complex state management** — Extract to composables
+- ❌ **No form state + mutations + UI in one file** — Separate concerns
+- ✅ **Focus on markup and presentation** — Components render UI
+- ✅ **Use composables for data/logic** — Composables handle everything else
+
+**Composables handle everything else:**
+
+- ✅ **Data fetching** (`useQuery`, mutations, actions)
+- ✅ **Business logic** (validation, transformations, calculations)
+- ✅ **State management** (`$state`, `$derived`, getters)
+- ✅ **Side effects** (`$effect`, cleanup, subscriptions)
+
+**Example:**
+
+```typescript
+// ❌ WRONG: Component does everything (464 lines)
+// ActionItemsList.svelte
+<script>
+  // Data fetching (directly in component)
+  const actionItemsQuery = useQuery(api.meetingActionItems.listByAgendaItem, ...);
+  const membersQuery = useQuery(api.organizations.getMembers, ...);
+  const rolesQuery = useQuery(api.circleRoles.listByCircle, ...);
+  
+  // Form state (directly in component)
+  const state = $state({
+    isAdding: false,
+    description: '',
+    type: 'next-step',
+    // ... 10+ form fields
+  });
+  
+  // Business logic (directly in component)
+  async function handleCreate() {
+    if (!state.description.trim()) { /* validation */ }
+    if (state.assigneeType === 'user' && !state.assigneeUserId) { /* validation */ }
+    await convexClient.mutation(...); // mutation
+  }
+  
+  // + 400 lines of UI markup
+</script>
+
+// ✅ CORRECT: Separation of concerns (3 files, ~500 lines total)
+// src/lib/modules/meetings/composables/useActionItems.svelte.ts (~150 lines)
+interface UseActionItemsParams {
+  agendaItemId: () => Id<'meetingAgendaItems'>;
+  sessionId: () => string | undefined;
+  organizationId: () => Id<'organizations'>;
+  circleId?: () => Id<'circles'> | undefined;
+}
+
+export interface UseActionItemsReturn {
+  get actionItems(): ActionItem[];
+  get members(): Member[];
+  get roles(): Role[];
+  get isLoading(): boolean;
+}
+
+export function useActionItems(params: UseActionItemsParams): UseActionItemsReturn {
+  // Data fetching (in composable)
+  const actionItemsQuery = browser && params.sessionId()
+    ? useQuery(api.meetingActionItems.listByAgendaItem, () => {
+        const sessionId = params.sessionId();
+        if (!sessionId) throw new Error('sessionId required');
+        return { sessionId, agendaItemId: params.agendaItemId() };
+      })
+    : null;
+  
+  // Derived data
+  const actionItems = $derived(actionItemsQuery?.data ?? []);
+  const members = $derived(membersQuery?.data ?? []);
+  const roles = $derived(rolesQuery?.data ?? []);
+  
+  // Single $state object pattern (Svelte 5 best practice)
+  return {
+    get actionItems() { return actionItems; },
+    get members() { return members; },
+    get roles() { return roles; },
+    get isLoading() { 
+      return (actionItemsQuery?.isLoading ?? false) || 
+             (membersQuery?.isLoading ?? false) || 
+             (rolesQuery?.isLoading ?? false);
+    }
+  };
+}
+
+// src/lib/modules/meetings/composables/useActionItemsForm.svelte.ts (~200 lines)
+interface UseActionItemsFormParams {
+  sessionId: () => string;
+  meetingId: () => Id<'meetings'>;
+  agendaItemId: () => Id<'meetingAgendaItems'>;
+  members: () => Member[];
+  roles: () => Role[];
+}
+
+export function useActionItemsForm(params: UseActionItemsFormParams): UseActionItemsFormReturn {
+  const convexClient = browser ? useConvexClient() : null;
+  
+  // Single $state object (Svelte 5 pattern)
+  const state = $state({
+    isAdding: false,
+    description: '',
+    type: 'next-step' as 'next-step' | 'project',
+    // ... form fields
+  });
+  
+  // Business logic (in composable)
+  async function handleCreate() {
+    // Validation logic
+    if (!state.description.trim()) {
+      toast.error('Description is required');
+      return;
+    }
+    // Mutation logic
+    await convexClient?.mutation(api.meetingActionItems.create, {
+      sessionId: params.sessionId(),
+      meetingId: params.meetingId(),
+      // ...
+    });
+  }
+  
+  return {
+    get isAdding() { return state.isAdding; },
+    set isAdding(value: boolean) { state.isAdding = value; },
+    get description() { return state.description; },
+    set description(value: string) { state.description = value; },
+    // ... getters for all form fields
+    startAdding: () => { state.isAdding = true; },
+    resetForm: () => { /* reset all fields */ },
+    handleCreate,
+    handleToggleStatus,
+    handleDelete,
+    // Utility functions
+    formatDate: (timestamp: number) => string,
+    getAssigneeName: (item: ActionItem) => string
+  };
+}
+
+// ActionItemsList.svelte (component - UI only, ~150 lines)
+<script lang="ts">
+  import { useActionItems } from '../composables/useActionItems.svelte';
+  import { useActionItemsForm } from '../composables/useActionItemsForm.svelte';
+  
+  const { agendaItemId, meetingId, sessionId, organizationId, circleId, readonly }: Props = $props();
+  
+  // Use composables for data/logic (pass functions for reactivity)
+  const data = useActionItems({
+    agendaItemId: () => agendaItemId,
+    sessionId: () => sessionId,
+    organizationId: () => organizationId,
+    circleId: () => circleId
+  });
+  
+  const form = useActionItemsForm({
+    sessionId: () => sessionId,
+    meetingId: () => meetingId,
+    agendaItemId: () => agendaItemId,
+    members: () => data.members,
+    roles: () => data.roles,
+    readonly: () => readonly
+  });
+</script>
+
+<!-- Just markup - no logic! -->
+{#if !readonly && !form.isAdding}
+  <Button onclick={() => form.startAdding()}>+ Add Action</Button>
+{/if}
+
+{#if form.isAdding}
+  <textarea bind:value={form.description} />
+  <Button onclick={form.handleCreate}>Add</Button>
+  <Button onclick={form.resetForm}>Cancel</Button>
+{/if}
+
+{#each data.actionItems as item (item._id)}
+  <div>
+    <button onclick={() => form.handleToggleStatus(item._id, item.status)}>
+      {item.status === 'done' ? '✓' : '○'}
+    </button>
+    <p>{item.description}</p>
+    <span>{form.getAssigneeName(item)}</span>
+    {#if item.dueDate}
+      <span>{form.formatDate(item.dueDate)}</span>
+    {/if}
+    <Button onclick={() => form.handleDelete(item._id)}>Delete</Button>
+  </div>
+{/each}
+```
+
+**Pattern Validated - DecisionsList Example (SYOS-470):**
+
+Same pattern successfully applied to DecisionsList component:
+
+```typescript
+// Before: DecisionsList.svelte (473 lines - all mixed together)
+// After: 3 focused files
+
+// 1. useDecisions.svelte.ts (~55 lines) - Data fetching
+export function useDecisions(params: UseDecisionsParams) {
+  const decisionsQuery = useQuery(api.meetingDecisions.listByAgendaItem, ...);
+  const sortedDecisions = $derived([...decisions].sort((a, b) => b.decidedAt - a.decidedAt));
+  
+  return {
+    get decisions() { return sortedDecisions; },
+    get isLoading() { return decisionsQuery?.isLoading ?? false; }
+  };
+}
+
+// 2. useDecisionsForm.svelte.ts (~274 lines) - Form logic + business logic
+export function useDecisionsForm(params: UseDecisionsFormParams) {
+  const state = $state({
+    isAdding: false,
+    editingId: null,
+    newTitle: '',
+    newDescription: '',
+    // ... form state
+  });
+  
+  return {
+    get isAdding() { return state.isAdding; },
+    set newTitle(value: string) { state.newTitle = value; },
+    startAdding: () => { /* ... */ },
+    handleCreate: async () => { /* validation + mutation */ },
+    handleUpdate: async (id) => { /* ... */ },
+    handleDelete: async (id) => { /* ... */ },
+    formatTimestamp: (timestamp) => { /* utility */ }
+  };
+}
+
+// 3. DecisionsList.svelte (~324 lines) - UI only
+<script lang="ts">
+  const decisionsData = useDecisions({ agendaItemId: () => agendaItemId, ... });
+  const decisionsForm = useDecisionsForm({ sessionId: () => sessionId, ... });
+</script>
+
+<!-- Just markup - composables handle all logic -->
+```
+
+**Result**: Pattern works consistently across ActionItemsList (464→~500 lines, 3 files) and DecisionsList (473→653 lines, 3 files). Line count increases but benefits (testability, maintainability, isolation) outweigh cost.
+
+**Why Separation Matters:**
+
+1. **Testability** — Composables can be unit tested independently (no Convex mocks needed)
+2. **Reusability** — Form logic can be reused in other components
+3. **Maintainability** — Clear boundaries, easier to understand (component ~150 lines vs 464 lines)
+4. **Storybook** — Components work in Storybook with mocked composables (not Convex)
+5. **Consistency** — Matches existing patterns (`useAgendaNotes`, `useMeetings`)
+6. **Type Safety** — TypeScript interfaces exported for composables enable loose coupling
+
+**Key Patterns:**
+
+- **Function parameters for reactivity**: `sessionId: () => string` (not `sessionId: string`) ensures reactivity
+- **Single $state object**: Use one `$state({})` object with getters (Svelte 5 best practice)
+- **Getter returns**: Return `{ get property() { return state.property; } }` for reactive access
+- **TypeScript interfaces**: Export `UseActionItemsReturn` interface for type safety
+
+**See**: `dev-docs/2-areas/patterns/svelte-reactivity.md` for composable patterns
+
 ### Component Types
 
 #### 1. **Atomic Components** (Single responsibility)
@@ -410,6 +677,9 @@ Wrappers following this pattern are organized by complexity:
 - [ ] Use utility classes (don't reinvent patterns)
 - [ ] Follow documented patterns
 - [ ] Extract state to composables (`.svelte.ts`)
+- [ ] **No `useQuery` in components** — Use composables for data fetching
+- [ ] **No business logic in components** — Use composables for validation/mutations
+- [ ] **Component focuses on UI only** — Render markup, use composables for everything else
 - [ ] Add TypeScript types
 
 **See**: [Component Library](component-library/README.md) _(coming soon)_
@@ -559,6 +829,80 @@ Double-nested `overflow-y: auto` (both panel AND list had overflow).
 ## Anti-Pattern Gallery
 
 > **Purpose**: Common mistakes to avoid with clear examples. These patterns are enforced by ESLint and will block PRs.
+
+### Layer Classification Decision Tree
+
+> **Purpose**: Clear decision flowchart for determining correct component layer placement.
+
+**Use this checklist when creating or refactoring components:**
+
+#### Is it a Primitive (Layer 1)?
+
+**Checklist**:
+- ✅ Provides ONLY accessibility + behavior (no styling)
+- ✅ Wraps Radix UI or similar headless library
+- ✅ Has ARIA attributes but no visual classes
+
+**Example**: `<DialogPrimitive>` with keyboard nav, focus management, but zero styling
+
+**Location**: `src/lib/components/ui/primitives/`
+
+---
+
+#### Is it a Styled Component (Layer 2)?
+
+**Checklist**:
+- ✅ Single interactive element with SynergyOS design
+- ✅ Has variants (primary/secondary/danger, sm/md/lg)
+- ✅ Fully self-contained (no business logic)
+- ✅ Uses design tokens exclusively
+
+**Example**: `<Button variant="primary" size="md">` - Complete button with styling, variants, sizes
+
+**Location**: `src/lib/components/ui/`
+
+---
+
+#### Is it a Composite (Layer 3)?
+
+**Checklist**:
+- ✅ Combines 2-3 styled components (Layer 2)
+- ✅ Adds layout logic or composition pattern
+- ✅ Still reusable across features (not feature-specific)
+- ✅ No domain/business logic
+
+**Example**: `<FormField>` = Label + Input + ErrorMessage with layout
+
+**Location**: `src/lib/components/ui/composites/` or feature-specific if tightly coupled
+
+---
+
+#### Is it a Feature Component (Layer 4)?
+
+**Checklist**:
+- ✅ Specific to one module (Inbox, Meetings, Flashcards, etc.)
+- ✅ Contains business logic or domain-specific behavior
+- ✅ Uses styled components (Layer 2) for UI
+- ✅ Connects to backend data or composables
+
+**Example**: `<InboxMessage>` with email-specific logic, sync status, tagging
+
+**Location**: `src/lib/[feature]/components/`
+
+---
+
+**Decision Summary Table**:
+
+| Layer | Has Styling? | Has Variants? | Has Business Logic? | Reusable? | Example |
+|-------|--------------|---------------|---------------------|-----------|---------|
+| **Primitive** | ❌ | ❌ | ❌ | ✅ | DialogPrimitive |
+| **Styled** | ✅ | ✅ | ❌ | ✅ | Button |
+| **Composite** | ✅ | ❌ | ❌ | ✅ | FormField |
+| **Feature** | ✅ | ❌ | ✅ | ❌ | InboxMessage |
+
+**When in doubt**: Start with Layer 2 (Styled Component). Refactor up to Layer 3 (Composite) if pattern repeats 3+ times. Refactor down to Layer 4 (Feature) if business logic emerges.
+
+---
 
 ### Priority 1: Hardcoded Values (CRITICAL)
 
@@ -865,6 +1209,34 @@ $effect(() => {
 
 ---
 
+## Storybook Integration
+
+**Purpose**: Interactive component documentation and testing environment
+
+**Location**: `.storybook/` (config), `src/stories/` (MDX overview pages), co-located `.stories.svelte` files
+
+### Story Organization
+
+**Title Hierarchy**:
+- **Design System**: `'Design System/Atoms/ComponentName'`, `'Design System/Organisms/ComponentName'`
+- **Modules**: `'Modules/ModuleName/ComponentName'` (e.g., `'Modules/Meetings/ActionItemsList'`)
+
+**File Location**: Co-locate with component (same folder as `.svelte` file)
+- ✅ `Button.svelte` → `Button.stories.svelte`
+- ✅ `ActionItemsList.svelte` → `ActionItemsList.stories.svelte`
+
+**MDX Overview Pages**: Category introduction pages in `src/stories/`
+- `DesignSystem.mdx` → `Design System/Overview`
+- `DesignSystemAtoms.mdx` → `Design System/Atoms`
+- `Modules.mdx` → `Modules`
+- `ModulesMeetings.mdx` → `Modules/Meetings`
+
+**Why**: Provides interactive component documentation, isolated testing, and design system reference
+
+**See**: [UI Patterns > Storybook Organization](../patterns/ui-patterns.md#L4940) for complete pattern
+
+---
+
 ## Related
 
 - **[Design Principles](design-principles.md)** - Visual philosophy and UX principles ⭐
@@ -899,7 +1271,7 @@ Cascade validation proves that changing a token in `app.css` automatically propa
 
 ### Token Coverage Analysis
 
-**Implemented from design-system-test.json**: 90% coverage ✅
+**Implemented from design-system.json**: 90% coverage ✅
 
 **Fully Implemented**:
 - ✅ Typography tokens (h1, h2, h3, button, badge font sizes)
@@ -1044,7 +1416,7 @@ app.css                          Card/Root.svelte                MeetingCard.sve
 
 1. ✅ **Design system cascade fully operational**: Tokens propagate automatically through all layers
 2. ✅ **Zero manual updates required**: Change token once, updates everywhere
-3. ✅ **Token coverage excellent**: 90% of design-system-test.json spec implemented
+3. ✅ **Token coverage excellent**: 90% of design-system.json spec implemented
 4. ✅ **Foundation validated**: Ready for Phase 2 (page refactoring)
 5. ⚠️ **Hardcoded values exist**: Expected for molecules, addressed in Phase 2
 

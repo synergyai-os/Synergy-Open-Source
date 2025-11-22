@@ -39,9 +39,10 @@
 2. **Check Patterns** (follows existing patterns?)
 3. **Validate Architecture** (modularity, coupling, boundaries)
 4. **Check Code Quality** (standards, best practices)
-5. **Identify Issues** (bugs, regressions, improvements)
-6. **Suggest Improvements** (better approaches, optimizations)
-7. **Provide Summary** (overall assessment)
+5. **Validate Svelte Code (MCP)** ⭐ **MANDATORY** (for `.svelte` files only)
+6. **Identify Issues** (bugs, regressions, improvements)
+7. **Suggest Improvements** (better approaches, optimizations)
+8. **Provide Summary** (overall assessment)
 
 ---
 
@@ -99,14 +100,45 @@ Approach: Vercel Blob Storage (from task template)
    - State management patterns
    - API integration patterns
 
-3. **Verify compliance**:
+3. **Pattern Lifecycle Violations** ⭐ **NEW** ⭐ **CRITICAL**
+
+   Check for lifecycle violations:
+   - ❌ **DEPRECATED pattern usage** → Suggest migration to ACCEPTED
+   - ❌ **SUPERSEDED pattern usage** → Point to replacement #LXXX
+   - ❌ **REJECTED pattern usage** → Explain why it's an anti-pattern
+   - ⚠️ **PROPOSED pattern usage** → Document experimental status
+
+   **Example**:
+
+   ```
+   Code uses #L10 [STATUS: DEPRECATED] → Suggest migrating to #L50 [STATUS: ACCEPTED]
+   Code uses #L20 [STATUS: SUPERSEDED] → Point to replacement #L30
+   Code uses #L40 [STATUS: REJECTED] → Explain why it's an anti-pattern
+   ```
+
+   **Report Format**:
+
+   ```
+   ## Pattern Lifecycle Violations
+
+   **DEPRECATED Patterns Found**:
+   - #L10: State Management [STATUS: DEPRECATED]
+     - Location: src/lib/composables/useState.svelte.ts
+     - Replacement: #L50 [STATUS: ACCEPTED]
+     - Migration: Use $state() runes instead of let state = 0
+
+   **Action**: Recommend migration before merge
+   ```
+
+4. **Verify compliance**:
    - Does code follow patterns?
    - Are patterns used correctly?
+   - Any lifecycle violations? (document in report)
    - Any deviations? (document why)
 
-**Why**: Consistency with existing codebase prevents "AI code slop".
+**Why**: Consistency with existing codebase prevents "AI code slop". Lifecycle awareness ensures current patterns are used, deprecated patterns are migrated, and anti-patterns are avoided.
 
-**Reference**: `dev-docs/2-areas/patterns/INDEX.md` - Pattern lookup table
+**Reference**: `dev-docs/2-areas/patterns/INDEX.md` - Pattern lookup table with lifecycle states
 
 **Example**:
 
@@ -116,6 +148,9 @@ Pattern Check:
 - ✅ Uses composables pattern (.svelte.ts extension)
 - ✅ Uses Convex patterns (sessionId parameter)
 - ⚠️ Deviation: Uses inline styles for dynamic colors (documented why)
+
+Pattern Lifecycle Violations:
+- ❌ DEPRECATED: #L10 used in useState.svelte.ts → Recommend migrating to #L50
 ```
 
 ---
@@ -151,6 +186,86 @@ Architecture Check:
 - ✅ Uses shared utilities (no direct imports)
 - ✅ Loose coupling (no cross-module dependencies)
 - ✅ Module boundaries respected
+```
+
+---
+
+## 3.5. Check Separation of Concerns (Components) ⭐ **CRITICAL**
+
+**Purpose**: Ensure components follow single responsibility principle (UI rendering only).
+
+**Svelte 5 Guidance**: "When extracting logic, it's better to take advantage of runes' universal reactivity: You can use runes outside the top level of components and even place them into JavaScript or TypeScript files (using a `.svelte.js` or `.svelte.ts` file ending)" — [Svelte 5 Docs](https://svelte.dev/docs/svelte/svelte-js-files)
+
+**Workflow**:
+
+1. **Check component responsibilities**:
+   - ❌ Component calls `useQuery` directly? → Should use composable
+   - ❌ Component contains business logic/validation? → Should use composable
+   - ❌ Component has form state + mutations? → Should use composable
+   - ✅ Component focuses on UI rendering? → Good
+
+2. **Verify composables exist**:
+   - Data fetching logic → `useData.svelte.ts` composable
+   - Form state/logic → `useForm.svelte.ts` composable
+   - Business logic → Composable or utility function
+
+3. **Check existing patterns**:
+   - Does code follow `useMeetings`, `useAgendaNotes` patterns?
+   - Are composables in correct location? (`src/lib/modules/{module}/composables/`)
+   - Do composables use `.svelte.ts` extension?
+
+**Why Critical**:
+
+- Enables unit testing (composables testable independently)
+- Enables Storybook (components work with mocked composables)
+- Improves maintainability (clear boundaries)
+- Follows Svelte 5 best practices (extract logic to .svelte.ts)
+
+**Reference**: `dev-docs/2-areas/design/component-architecture.md#separation-of-concerns-mandatory`
+
+**Example**:
+
+```
+Separation of Concerns Check:
+- ❌ VIOLATION: Component calls useQuery directly (3 queries in ActionItemsList.svelte)
+  → Should extract to useActionItems.svelte.ts composable
+- ❌ VIOLATION: Component contains form state + validation + mutations (150 lines)
+  → Should extract to useActionItemsForm.svelte.ts composable
+- ✅ Component InboxCard.svelte uses useInboxItems composable (good pattern)
+
+Recommendation: Extract data fetching and form logic to composables before merge
+```
+
+**Common Violations**:
+
+```typescript
+// ❌ WRONG: Component does everything
+<script>
+  // Data fetching (directly in component)
+  const query = useQuery(api.items.list, ...);
+
+  // Form state (directly in component)
+  const state = $state({ name: '', email: '' });
+
+  // Business logic (directly in component)
+  async function handleSubmit() {
+    if (!state.name) return; // validation
+    await convexClient.mutation(...); // mutation
+  }
+</script>
+
+// ✅ CORRECT: Component uses composables
+<script>
+  import { useItems } from './composables/useItems.svelte';
+  import { useItemForm } from './composables/useItemForm.svelte';
+
+  const data = useItems();
+  const form = useItemForm();
+</script>
+
+{#each data.items as item}
+  <ItemCard {item} />
+{/each}
 ```
 
 ---
@@ -194,7 +309,125 @@ Code Quality Check:
 
 ---
 
-## 5. Identify Issues
+## 5. Validate Svelte Code (MCP) ⭐ **MANDATORY**
+
+**Purpose**: Ensure Svelte code follows latest Svelte 5 best practices automatically.
+
+**When**: After code quality check, for all changed `.svelte` and `.svelte.ts` files.
+
+**Workflow**:
+
+1. **Get changed `.svelte` files**:
+   - If reviewing ticket → Get files from git diff or ticket context
+   - If reviewing specific files → Filter for `.svelte` and `.svelte.ts` files
+   - If no `.svelte` files changed → Skip this step, proceed to step 6
+
+2. **Run svelte-check** (type checking):
+
+   ```bash
+   npm run check
+   # OR
+   svelte-check --tsconfig ./tsconfig.json
+   ```
+
+   - Fix TypeScript errors first (blocks other validation)
+   - Document: "svelte-check: [error count] errors found → fixed"
+
+3. **Run ESLint** (syntax rules):
+
+   ```bash
+   npm run lint
+   # OR
+   eslint . --ext .svelte,.ts
+   ```
+
+   - Fix ESLint errors (coding standards violations)
+   - Document: "ESLint: [error count] errors found → fixed"
+
+4. **Run Svelte MCP autofixer** ⭐ **MANDATORY**:
+
+   ```typescript
+   // ✅ CORRECT: Always invoke autofixer for Svelte files
+   const result =
+   	(await mcp_svelte_svelte) -
+   	autofixer({
+   		code: fileContent,
+   		filename: 'Component.svelte', // or 'composable.svelte.ts'
+   		desired_svelte_version: 5, // From package.json
+   		async: false // Check svelte.config.js for async component support
+   	});
+   ```
+
+5. **Iterate until clean** ⭐ **MANDATORY**:
+
+   ```typescript
+   // MUST iterate until clean (some fixes require multiple passes)
+   while (result.issues.length > 0 || result.suggestions.length > 0) {
+   	// Fix all issues based on result.issues and result.suggestions
+   	// Apply fixes to code
+
+   	// Re-run autofixer to verify fixes
+   	result =
+   		(await mcp_svelte_svelte) -
+   		autofixer({
+   			code: fixedCode,
+   			filename: 'Component.svelte',
+   			desired_svelte_version: 5,
+   			async: false
+   		});
+   }
+   ```
+
+6. **Document findings**:
+   - What issues were found
+   - What fixes were applied
+   - Any patterns discovered
+   - Include in review report: "Svelte MCP validation: [summary]"
+
+**What it catches**:
+
+- `$effect` vs `$derived` misuse (Svelte 5 anti-pattern)
+- Reactivity anti-patterns (Map/Set mutations, stale values)
+- Component structure issues (missing keys, wrong patterns)
+- Svelte 5 best practice violations
+
+**Why mandatory**: Catches Svelte-specific issues that svelte-check and ESLint don't catch (e.g., `$effect` vs `$derived` misuse, reactivity anti-patterns).
+
+**Common Mistakes**:
+
+- ❌ **Run autofixer once**: Must iterate until clean (some fixes require multiple passes)
+- ❌ **Skip autofixer**: Only running svelte-check + ESLint misses Svelte-specific issues
+- ❌ **Return code with issues**: Must fix all issues before approving
+
+**Report Format**:
+
+```
+Svelte MCP Validation (3 files):
+- Button.svelte: ✅ Clean (no issues)
+- Card.svelte: ⚠️ 2 issues found → fixed
+  - Line 12: Use $derived instead of $effect for computed values
+  - Line 25: Missing key in {#each} block (use item._id)
+- Input.svelte: ✅ Clean (no issues)
+```
+
+**Reference**: `.cursor/commands/svelte-validate.md` - Complete Svelte validation workflow
+
+**Example**:
+
+```
+Svelte MCP Validation:
+- Running svelte-check on 3 changed .svelte files... ✅ No errors
+- Running ESLint on 3 files... ✅ No errors
+- Running Svelte MCP autofixer on 3 files...
+  - Button.svelte: Iteration 1 → clean ✅
+  - Card.svelte: Iteration 1: 2 issues → fixed, Iteration 2 → clean ✅
+  - Input.svelte: Iteration 1 → clean ✅
+- Findings: Fixed $effect vs $derived misuse in Card.svelte
+```
+
+---
+
+## 6. Identify Issues
 
 **Purpose**: Find bugs, regressions, and potential problems.
 
@@ -229,7 +462,7 @@ Issues Found:
 
 ---
 
-## 6. Suggest Improvements
+## 7. Suggest Improvements
 
 **Purpose**: Provide actionable suggestions for better code.
 
@@ -265,7 +498,7 @@ Suggestions:
 
 ---
 
-## 7. Provide Summary
+## 8. Provide Summary
 
 **Purpose**: Give overall assessment and next steps.
 
@@ -344,6 +577,15 @@ AI: Checks coupling: Uses shared utilities ✅
 AI: Checks boundaries: No cross-module dependencies ✅
 ```
 
+**Step 3.5: Check Separation of Concerns**
+
+```
+AI: Checks component responsibilities: Component calls useQuery ❌
+AI: Finds violation: 3 useQuery calls + form state + validation in component
+AI: Recommendation: Extract to useActionItems + useActionItemsForm composables
+AI: References existing patterns: useMeetings, useAgendaNotes ✅
+```
+
 **Step 4: Check Quality**
 
 ```
@@ -352,7 +594,19 @@ AI: Checks best practices: Missing error handling ⚠️
 AI: Checks common issues: No memory leaks ✅
 ```
 
-**Step 5: Identify Issues**
+**Step 5: Validate Svelte Code (MCP)**
+
+```
+AI: Detects 2 changed .svelte files (ImageUpload.svelte, ChatWindow.svelte)
+AI: Running svelte-check... ✅ No errors
+AI: Running ESLint... ✅ No errors
+AI: Running Svelte MCP autofixer...
+  - ImageUpload.svelte: Iteration 1 → clean ✅
+  - ChatWindow.svelte: Iteration 1: 1 issue → fixed, Iteration 2 → clean ✅
+AI: Findings: Fixed $effect vs $derived misuse in ChatWindow.svelte
+```
+
+**Step 6: Identify Issues**
 
 ```
 AI: Finds: File size validation missing 🐛
@@ -360,7 +614,7 @@ AI: Finds: No loading state ⚠️
 AI: Finds: Can use existing utility 💡
 ```
 
-**Step 6: Suggest Improvements**
+**Step 7: Suggest Improvements**
 
 ```
 AI: Suggests: Use FileUpload utility
@@ -368,7 +622,7 @@ AI: Suggests: Add error handling
 AI: Suggests: Add loading state
 ```
 
-**Step 7: Summary**
+**Step 8: Summary**
 
 ```
 AI: Overall: Good ✅
@@ -423,6 +677,8 @@ AI: Recommendation: Fix critical issue, then approve
 - **Patterns**: `dev-docs/2-areas/patterns/INDEX.md` - Pattern lookup
 - **Architecture**: `dev-docs/2-areas/architecture/system-architecture.md` - Modularity principles
 - **Coding Standards**: `dev-docs/2-areas/development/coding-standards.md` - Critical rules
+- **Svelte Validation**: `.cursor/commands/svelte-validate.md` - Complete Svelte validation workflow
+- **Svelte MCP Pattern**: `dev-docs/2-areas/patterns/ai-development.md#L100` - Svelte Validation Workflow with MCP Autofixer
 - **Validate**: `.cursor/commands/validate.md` - Validation workflow
 
 ---
@@ -432,13 +688,19 @@ AI: Recommendation: Fix critical issue, then approve
 1. **Understand First** - Read ticket, understand goal ⭐
 2. **Check Patterns** - Verify compliance with existing patterns
 3. **Validate Architecture** - Ensure architectural compliance
-4. **Check Quality** - Verify code meets standards
-5. **Identify Issues** - Find bugs and improvements
-6. **Suggest Improvements** - Provide actionable feedback
-7. **Be Constructive** - Help improve, don't just criticize
+4. **Check Separation of Concerns** - Components render UI only, composables handle data/logic ⭐ **CRITICAL**
+5. **Check Quality** - Verify code meets standards
+6. **Validate Svelte Code (MCP)** - Run autofixer on `.svelte` files ⭐ **MANDATORY**
+7. **Identify Issues** - Find bugs and improvements
+8. **Suggest Improvements** - Provide actionable feedback
+9. **Be Constructive** - Help improve, don't just criticize
 
 ---
 
-**Last Updated**: 2025-11-20  
-**Purpose**: Senior engineer code review workflow following Brandon's template approach  
-**Status**: Active workflow
+**Last Updated**: 2025-11-22  
+**Purpose**: Senior engineer code review workflow with separation of concerns validation  
+**Status**: Active workflow  
+**Dependencies**:
+
+- SYOS-440 ✅ (Svelte validation command complete)
+- SYOS-223 ✅ (Separation of concerns pattern documented)

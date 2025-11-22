@@ -4,7 +4,7 @@
 	import { toast } from '$lib/utils/toast';
 	import { useConvexClient } from 'convex-svelte';
 	import { api, type Id } from '$lib/convex';
-	import { Button } from '$lib/components/ui';
+	import { Button } from '$lib/components/atoms';
 
 	let {
 		open,

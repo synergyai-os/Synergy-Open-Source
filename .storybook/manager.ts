@@ -54,6 +54,6 @@ addons.setConfig({
 	enableShortcuts: true,
 	showToolbar: true,
 	sidebar: {
-		showRoots: true // Show category roots (Atoms, Molecules, Organisms)
+		showRoots: true // Show category roots (Docs, Atoms, Molecules, Organisms)
 	}
 });

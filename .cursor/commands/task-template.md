@@ -126,6 +126,7 @@ For each approach:
 - [ ] Reviewed reference code (if applicable)
 - [ ] Identified dependencies
 - [ ] Understood constraints
+- [ ] **Validated design system source of truth** (`design-system.json`) - verify values match implementation
 
 ---
 
@@ -156,7 +157,34 @@ For each approach:
 
 ---
 
-### 8. Implementation Checklist
+### 8. Code Quality & Validation Strategy
+
+**How will we ensure code quality?**
+
+- **Svelte-specific validation** (if implementing `.svelte` files):
+  - Run `svelte-check` (type checking)
+  - Run ESLint (syntax rules)
+  - Run `svelte-autofixer` via Svelte MCP (best practices) ⭐
+  - Check Context7 for latest Svelte 5 patterns (if <95% confident)
+  - Match against INDEX.md patterns
+
+- **Validation timing**:
+  - During `/go` implementation: Run after each component/file
+  - Before commit: Run `/svelte-validate` on changed files
+  - During `/code-review`: Include validation findings
+
+- **Quality gates**:
+  - Critical issues: Must fix before merge
+  - Best practice suggestions: Should fix (non-blocking)
+  - Pattern matches: Document existing solutions used
+
+**Why this matters**: Ensures code follows latest Svelte 5 best practices, catches anti-patterns early, maintains consistency.
+
+**Reference**: `.cursor/commands/svelte-validate.md` - Complete validation workflow (when created)
+
+---
+
+### 9. Implementation Checklist
 
 **Step-by-step implementation plan**
 
@@ -165,9 +193,7 @@ For each approach:
 - [ ] Step 3: [Description]
 - ...
 
-### Order Matters
-
-Dependencies first, then build.
+**Order matters**: Dependencies first, then build.
 
 ---
 
@@ -201,12 +227,18 @@ Dependencies first, then build.
    - Check patterns (`dev-docs/2-areas/patterns/INDEX.md`)
    - Check reference code (`ai-docs/reference/`) if relevant
    - Understand dependencies and constraints
+   - **CRITICAL**: Validate design system source of truth (`design-system.json`)
+     - Verify token values match implementation (`src/styles/tokens/*.css`)
+     - Check for inconsistencies between spec and code
+     - Flag mismatches for correction (spec OR code may be wrong)
 
 3. **Generate task document**:
-   - Follow structure above (all 8 sections)
+   - Follow structure above (all 9 sections)
    - **CRITICAL**: Include 2-3 approach options (don't skip this)
    - Be thorough in analysis
    - Be specific in requirements
+   - Include design system validation results if UI/styling work
+   - Include validation strategy if implementing Svelte components
 
 4. **Save file**:
    - Create `ai-docs/tasks/` folder if needed
@@ -216,7 +248,63 @@ Dependencies first, then build.
 5. **Present to user**:
    - Show generated document
    - Highlight key decisions (recommended approach)
+   - **Flag design system mismatches** (if found)
    - Wait for confirmation before proceeding
+
+---
+
+## Design System Validation (MANDATORY for UI/Styling Tasks)
+
+**⚠️ CRITICAL**: Design system spec may contain errors. Always validate against implementation.
+
+**Source of Truth**: `design-system.json` (formerly `design-system-test.json`)
+
+**Validation Steps**:
+
+1. **Load spec**: Read `design-system.json`
+2. **Load implementation**: Read relevant `src/styles/tokens/*.css` files
+3. **Compare values**:
+   - Spacing scale (spec vs `tokens/spacing.css`)
+   - Color palette (spec vs `tokens/colors.css`)
+   - Typography (spec vs `tokens/typography.css`)
+   - Component tokens (spec vs implementation)
+
+4. **Flag mismatches**:
+   - If spec says `8px` but code uses `0.5rem` → ✅ Equivalent (pass)
+   - If spec says `12px` but code uses `16px` → ❌ Mismatch (investigate)
+   - If spec missing token that code uses → ⚠️ Spec incomplete
+   - If spec has token not in code → ⚠️ Code incomplete
+
+5. **Report findings**:
+   - List all mismatches in task document
+   - Recommend: Fix spec OR fix code (investigate which is correct)
+   - Document decision in task analysis
+
+**Why this matters**:
+
+- Prevents propagating incorrect values from spec to code
+- Ensures single source of truth accuracy
+- Catches documentation drift early
+
+**Example validation output**:
+
+```markdown
+## Design System Validation
+
+**Source**: `design-system.json`
+**Implementation**: `src/styles/tokens/spacing.css`
+
+### Findings:
+
+✅ **Spacing scale**: Matches spec (4px base unit)
+❌ **Button padding**: Spec says `12px 24px`, code uses `0.75rem 3rem` (12px vs 48px mismatch)
+⚠️ **Card border-radius**: Spec says `12-16px` (range), code uses `0.875rem` (14px) - within range but not explicit
+
+### Recommendation:
+
+- Fix `--spacing-button-x` in `spacing.css` from `3rem` (48px) to `1.5rem` (24px)
+- Update spec to be explicit: `"borderRadius": "14px"` instead of `"12-16px"`
+```
 
 ---
 
@@ -361,6 +449,28 @@ Dependencies first, then build.
 - ✅ Error boundaries
 - ✅ Accessibility (alt text)
 
+## Code Quality & Validation Strategy
+
+**Svelte-specific validation** (implementing `.svelte` files):
+
+- Run `svelte-check` (type checking)
+- Run ESLint (syntax rules)
+- Run `svelte-autofixer` via Svelte MCP (best practices) ⭐
+- Check Context7 for latest Svelte 5 patterns
+- Match against INDEX.md patterns
+
+**Validation timing**:
+
+- During `/go`: Run after each component/file
+- Before commit: Run `/svelte-validate` on changed files
+- During `/code-review`: Include validation findings
+
+**Quality gates**:
+
+- Critical issues: Must fix before merge
+- Best practice suggestions: Should fix (non-blocking)
+- Pattern matches: Document existing solutions used
+
 ## Implementation Checklist
 
 - [ ] Install `@vercel/blob` package
@@ -404,10 +514,12 @@ Dependencies first, then build.
 1. **Think First**: Don't jump to implementation - analyze approaches
 2. **Document Decisions**: Why this approach over others
 3. **Investigate Thoroughly**: Check patterns, reference code, existing implementations
-4. **Be Specific**: Clear requirements, file paths, function names
-5. **Measure Success**: Clear pass/fail criteria
+4. **Validate Design System**: Spec may be wrong - verify against implementation
+5. **Plan Validation**: Define code quality strategy before coding (Svelte validation, testing approach)
+6. **Be Specific**: Clear requirements, file paths, function names
+7. **Measure Success**: Clear pass/fail criteria
 
 ---
 
-**Last Updated**: 2025-11-20  
+**Last Updated**: 2025-11-21  
 **Purpose**: Force pre-coding analysis to improve code quality and reduce rewrites

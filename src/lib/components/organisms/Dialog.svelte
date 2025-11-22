@@ -9,6 +9,7 @@
 	export const Description = BitsDialog.Description;
 	export const Portal = BitsDialog.Portal;
 	export const Overlay = BitsDialog.Overlay;
+	export const Content = BitsDialog.Content; // Export raw Content for direct use
 </script>
 
 <script lang="ts">
@@ -54,13 +55,14 @@
 
 	// Fix: Use function to avoid state reference warning
 	const getDialogClasses = () => {
-		const variantClass = isFullscreen
-			? 'fixed inset-0 w-full h-full rounded-dialog-fullscreen overflow-y-auto'
-			: variant === 'wide'
-				? 'max-w-dialog-wide rounded-dialog'
-				: 'max-w-dialog-default rounded-dialog';
+		if (isFullscreen) {
+			return `fixed inset-0 z-50 w-full h-full rounded-dialog-fullscreen overflow-y-auto bg-elevated border border-base shadow-card-hover p-modal ${className}`;
+		}
 
-		return `bg-elevated border border-base shadow-card-hover p-modal ${variantClass} ${className}`;
+		const variantClass = variant === 'wide' ? 'max-w-dialog-wide' : 'max-w-dialog-default';
+
+		// BitsDialog.Content needs positioning for centered dialogs
+		return `fixed top-[50%] left-[50%] z-50 max-h-[90vh] w-[min(100%,90vw)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-dialog ${variantClass} bg-elevated border border-base shadow-card-hover p-modal ${className}`;
 	};
 </script>
 

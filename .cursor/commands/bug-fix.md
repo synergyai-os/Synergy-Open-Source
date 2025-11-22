@@ -38,6 +38,7 @@
 3. **Identify Root Cause**
 4. **Check Patterns** (for similar fixes)
 5. **Fix the Bug** (try standard fix first)
+   5a. **Validate Svelte Code (MCP)** ⭐ **MANDATORY** (for `.svelte` files only) - After standard fix
 
 **If standard fix fails or root cause is unclear:**
 
@@ -45,11 +46,12 @@
 7. **Validate Root Cause** ⭐ **CRITICAL** - Check Context7 and/or existing patterns
 8. **Validate Fix with Tiny Experiment** ⭐ **CRITICAL** - Make minimal change to confirm fix works
 9. **Implement Production Fix** - Only after validation succeeds
+10. **Validate Svelte Code (MCP)** ⭐ **MANDATORY** (for `.svelte` files only) - After production fix
 
 **Final steps:**
 
-10. **Test the Fix**
-11. **Document the Fix**
+11. **Test the Fix**
+12. **Document the Fix**
 
 **⚠️ CRITICAL RULE**: If standard fix (steps 1-5) doesn't work, never continue making changes. Stop and investigate with logs, validate root cause, and test with tiny experiment before implementing production fix.
 
@@ -176,18 +178,39 @@ Impact: URL doesn't reflect current organization, breaks deep linking
    - Match bug symptoms to pattern symptoms
    - Example: "URL not updating" → Check routing patterns
 
-3. **If pattern found**:
-   - Read pattern file (jump to line number)
-   - Use existing solution
-   - Document: "Using pattern from [file]:[line]"
+3. **Pattern Lifecycle Awareness** ⭐ **NEW**
 
-4. **If no pattern found**:
+   When checking patterns:
+   - ✅ **Prefer ACCEPTED patterns** for fixes (current best practice)
+   - ✅ **Skip SUPERSEDED patterns** (use replacement #LXXX instead)
+   - ⚠️ **If bug caused by deprecated pattern** → recommend migration
+   - ❌ **Never use REJECTED patterns** (anti-patterns)
+   - ⚠️ **PROPOSED patterns** → document experimental status
+
+   **Example**:
+
+   ```
+   Bug caused by #L10 [STATUS: DEPRECATED] → Recommend migrating to #L50 [STATUS: ACCEPTED]
+   Found #L20 [STATUS: ACCEPTED] → Use this for fix ✅
+   ```
+
+4. **If pattern found**:
+   - Read pattern file (jump to line number)
+   - Check lifecycle status (ACCEPTED/DEPRECATED/SUPERSEDED/REJECTED/PROPOSED)
+   - If ACCEPTED → Use existing solution
+   - If SUPERSEDED → Use replacement pattern (#LXXX)
+   - If DEPRECATED → Recommend migration, document if fix involves updating from deprecated to current
+   - If REJECTED → Never use (anti-pattern)
+   - If PROPOSED → Document experimental status
+   - Document: "Using pattern from [file]:[line] [STATUS: X]"
+
+5. **If no pattern found**:
    - Continue with fix
    - Note: New pattern may be created during `/save` phase
 
-**Why**: Prevents reinventing solutions, ensures consistency.
+**Why**: Prevents reinventing solutions, ensures consistency, guides to current patterns, detects deprecated pattern usage.
 
-**Reference**: `dev-docs/2-areas/patterns/INDEX.md` - Pattern lookup table
+**Reference**: `dev-docs/2-areas/patterns/INDEX.md` - Pattern lookup table with lifecycle states
 
 ---
 
@@ -218,7 +241,7 @@ Impact: URL doesn't reflect current organization, breaks deep linking
 5. **Test the fix**:
    - Reproduce original bug
    - Verify fix works
-   - If fix works → Proceed to step 10 (Test the Fix)
+   - If fix works → Proceed to step 5a (Validate Svelte Code), then step 11 (Test the Fix)
    - If fix fails → Proceed to step 6 (Investigate with Logs)
 
 **Why**: Standard approach works for most bugs. Only investigate deeper if needed.
@@ -238,7 +261,89 @@ Code:
 
 ---
 
-## 6. Investigate with Logs (IF Standard Fix Fails)
+## 5a. Validate Svelte Code (MCP) - For .svelte Files Only ⭐ **MANDATORY**
+
+**Purpose**: Ensure bug fixes in `.svelte` files follow latest Svelte 5 best practices automatically.
+
+**When**: After fixing the bug in step 5, if fix modified `.svelte` or `.svelte.ts` files.
+
+**Workflow**:
+
+1. **Check if fix modified Svelte files**:
+   - If fix modified `.svelte` or `.svelte.ts` files → Continue to step 2
+   - If not writing Svelte files → Skip this step, proceed to step 11 (Test the Fix)
+
+2. **Invoke Svelte MCP autofixer** ⭐ **MANDATORY**:
+
+   ```typescript
+   // ✅ CORRECT: Always invoke autofixer when fixing Svelte code
+   const result =
+   	(await mcp_svelte_svelte) -
+   	autofixer({
+   		code: fileContent,
+   		filename: 'Component.svelte', // or 'composable.svelte.ts'
+   		desired_svelte_version: 5,
+   		async: false // Set true if component uses top-level await
+   	});
+   ```
+
+3. **Iterate until clean** ⭐ **MANDATORY**:
+
+   ```typescript
+   // MUST iterate until clean (some fixes require multiple passes)
+   while (result.issues.length > 0 || result.suggestions.length > 0) {
+   	// Fix all issues based on result.issues and result.suggestions
+   	// Apply fixes to code
+
+   	// Re-run autofixer to verify fixes
+   	result =
+   		(await mcp_svelte_svelte) -
+   		autofixer({
+   			code: fixedCode,
+   			filename: 'Component.svelte',
+   			desired_svelte_version: 5,
+   			async: false
+   		});
+   }
+   ```
+
+4. **Document findings**:
+   - What issues were found
+   - What fixes were applied
+   - Any patterns discovered
+   - Note in bug fix notes: "Svelte MCP validation: [summary]"
+
+**What it catches**:
+
+- `$effect` vs `$derived` misuse (Svelte 5 anti-pattern)
+- Reactivity anti-patterns (Map/Set mutations, stale values)
+- Component structure issues (missing keys, wrong patterns)
+- Svelte 5 best practice violations
+
+**Why mandatory**: Catches Svelte-specific issues that svelte-check and ESLint don't catch (e.g., `$effect` vs `$derived` misuse, reactivity anti-patterns). Ensures bug fixes don't introduce new code quality issues.
+
+**Common Mistakes**:
+
+- ❌ **Run autofixer once**: Must iterate until clean (some fixes require multiple passes)
+- ❌ **Skip autofixer**: Only running svelte-check + ESLint misses Svelte-specific issues
+- ❌ **Return code with issues**: Must fix all issues before proceeding to test
+
+**Reference**: `.cursor/commands/go.md` - See Step 3 (Svelte MCP validation pattern), `.cursor/commands/code-review.md` - See Step 5 (Svelte MCP validation pattern), `.cursor/commands/svelte-validate.md` - Complete Svelte validation workflow
+
+**Example**:
+
+```
+Svelte MCP Validation (after bug fix):
+- Component.svelte: ⚠️ 2 issues found → fixed
+  - Line 12: Use $derived instead of $effect for computed values
+  - Line 25: Missing key in {#each} block (use item._id)
+- Iteration 1: 2 issues → fixed
+- Iteration 2: 0 issues → clean ✅
+```
+
+---
+
+## 7. Investigate with Logs (IF Standard Fix Fails)
 
 **Purpose**: Add strategic logging to understand what's actually happening, not what we think is happening.
 
@@ -283,7 +388,7 @@ $effect(() => {
 
 ---
 
-## 7. Validate Root Cause (IF Standard Fix Fails)
+## 8. Validate Root Cause (IF Standard Fix Fails)
 
 **Purpose**: Confirm the root cause using Context7 and/or existing patterns before fixing.
 
@@ -322,7 +427,7 @@ Validation:
 
 ---
 
-## 8. Validate Fix with Tiny Experiment (IF Standard Fix Fails)
+## 9. Validate Fix with Tiny Experiment (IF Standard Fix Fails)
 
 **Purpose**: Make a minimal change to confirm the fix works before implementing production-ready code.
 
@@ -362,7 +467,7 @@ console.log('[Experiment] testItems length:', testItems.length);
 
 ---
 
-## 9. Implement Production Fix (After Validation)
+## 10. Implement Production Fix (After Validation)
 
 **Purpose**: Apply the validated fix following existing patterns and coding standards.
 
@@ -399,7 +504,88 @@ Impact: URL doesn't reflect current organization, breaks deep linking
 
 ---
 
-## 10. Test the Fix
+## 11. Validate Svelte Code (MCP) - For .svelte Files Only ⭐ **MANDATORY**
+
+**Purpose**: Ensure production fixes in `.svelte` files follow latest Svelte 5 best practices automatically.
+
+**When**: After implementing production fix in step 10, if fix modified `.svelte` or `.svelte.ts` files.
+
+**Workflow**:
+
+1. **Check if production fix modified Svelte files**:
+   - If fix modified `.svelte` or `.svelte.ts` files → Continue to step 2
+   - If not writing Svelte files → Skip this step, proceed to step 12 (Test the Fix)
+
+2. **Invoke Svelte MCP autofixer** ⭐ **MANDATORY**:
+
+   ```typescript
+   // ✅ CORRECT: Always invoke autofixer when fixing Svelte code
+   const result =
+   	(await mcp_svelte_svelte) -
+   	autofixer({
+   		code: fileContent,
+   		filename: 'Component.svelte', // or 'composable.svelte.ts'
+   		desired_svelte_version: 5,
+   		async: false // Set true if component uses top-level await
+   	});
+   ```
+
+3. **Iterate until clean** ⭐ **MANDATORY**:
+
+   ```typescript
+   // MUST iterate until clean (some fixes require multiple passes)
+   while (result.issues.length > 0 || result.suggestions.length > 0) {
+   	// Fix all issues based on result.issues and result.suggestions
+   	// Apply fixes to code
+
+   	// Re-run autofixer to verify fixes
+   	result =
+   		(await mcp_svelte_svelte) -
+   		autofixer({
+   			code: fixedCode,
+   			filename: 'Component.svelte',
+   			desired_svelte_version: 5,
+   			async: false
+   		});
+   }
+   ```
+
+4. **Document findings**:
+   - What issues were found
+   - What fixes were applied
+   - Any patterns discovered
+   - Note in bug fix notes: "Svelte MCP validation: [summary]"
+
+**What it catches**:
+
+- `$effect` vs `$derived` misuse (Svelte 5 anti-pattern)
+- Reactivity anti-patterns (Map/Set mutations, stale values)
+- Component structure issues (missing keys, wrong patterns)
+- Svelte 5 best practice violations
+
+**Why mandatory**: Catches Svelte-specific issues that svelte-check and ESLint don't catch (e.g., `$effect` vs `$derived` misuse, reactivity anti-patterns). Ensures production fixes don't introduce new code quality issues.
+
+**Common Mistakes**:
+
+- ❌ **Run autofixer once**: Must iterate until clean (some fixes require multiple passes)
+- ❌ **Skip autofixer**: Only running svelte-check + ESLint misses Svelte-specific issues
+- ❌ **Return code with issues**: Must fix all issues before proceeding to test
+
+**Reference**: `.cursor/commands/go.md` - See Step 3 (Svelte MCP validation pattern), `.cursor/commands/code-review.md` - See Step 5 (Svelte MCP validation pattern), `.cursor/commands/svelte-validate.md` - Complete Svelte validation workflow
+
+**Example**:
+
+```
+Svelte MCP Validation (after production fix):
+- Component.svelte: ⚠️ 1 issue found → fixed
+  - Line 12: Use $derived instead of $effect for computed values
+- Iteration 1: 1 issue → fixed
+- Iteration 2: 0 issues → clean ✅
+```
+
+---
+
+## 12. Test the Fix
 
 **Purpose**: Verify fix works and doesn't break anything else.
 
@@ -439,7 +625,7 @@ Test Steps:
 
 ---
 
-## 11. Document the Fix
+## 13. Document the Fix
 
 **Purpose**: Capture knowledge for future similar bugs.
 
@@ -529,10 +715,20 @@ AI: Uses: Existing router.push() pattern
 AI: Adds router.push() call after organization switch
 AI: Uses existing routing pattern
 AI: Tests: URL updates ✅
-AI: Fix works! Proceeds to step 10
+AI: Fix works! Proceeds to step 5a
 ```
 
-**Step 10: Test**
+**Step 5a: Validate Svelte Code (MCP)**
+
+```
+AI: Checks if fix modified .svelte files
+AI: OrganizationSwitcher.svelte modified → Run autofixer
+AI: Autofixer: 0 issues → clean ✅
+AI: Documents: "Svelte MCP validation: No issues found"
+AI: Proceeds to step 12
+```
+
+**Step 12: Test**
 
 ```
 AI: Reproduces original bug → Fixed ✅
@@ -540,7 +736,7 @@ AI: Tests organization switching → Works ✅
 AI: Tests URL updates → Works ✅
 ```
 
-**Step 11: Document**
+**Step 13: Document**
 
 ```
 AI: Documents fix in ticket comment
@@ -558,7 +754,7 @@ AI: Tests: Still doesn't work ❌
 AI: Proceeds to investigation steps
 ```
 
-**Step 6: Investigate with Logs**
+**Step 7: Investigate with Logs**
 
 ```
 AI: Adds console.log to switchOrganization()
@@ -566,7 +762,7 @@ AI: Logs: state before/after, router calls, URL changes
 AI: Discovers: router.push() called but URL not updating
 ```
 
-**Step 7: Validate Root Cause**
+**Step 8: Validate Root Cause**
 
 ```
 AI: Checks patterns/INDEX.md
@@ -576,7 +772,7 @@ AI: Realizes: Need to check if router is initialized
 AI: Confidence: 95% - Router not ready on first call
 ```
 
-**Step 8: Validate Fix with Tiny Experiment**
+**Step 9: Validate Fix with Tiny Experiment**
 
 ```
 AI: Adds guard: if (router.ready) router.push(...)
@@ -584,7 +780,7 @@ AI: Tests: URL updates ✅
 AI: Confirms: Root cause validated, fix works
 ```
 
-**Step 9: Implement Production Fix**
+**Step 10: Implement Production Fix**
 
 ```
 AI: Adds router readiness check before push
@@ -593,7 +789,17 @@ AI: Minimal change (only adds guard)
 AI: Removes debug logs
 ```
 
-**Step 10: Test**
+**Step 11: Validate Svelte Code (MCP)**
+
+```
+AI: Checks if production fix modified .svelte files
+AI: OrganizationSwitcher.svelte modified → Run autofixer
+AI: Autofixer: 0 issues → clean ✅
+AI: Documents: "Svelte MCP validation: No issues found"
+AI: Proceeds to step 12
+```
+
+**Step 12: Test**
 
 ```
 AI: Reproduces original bug → Fixed ✅
@@ -601,7 +807,7 @@ AI: Tests organization switching → Works ✅
 AI: Tests URL updates → Works ✅
 ```
 
-**Step 11: Document**
+**Step 13: Document**
 
 ```
 AI: Documents fix in ticket comment
@@ -675,6 +881,8 @@ AI: Marks ticket ready for validation
 - **Root Cause**: `.cursor/commands/root-cause.md` - Systematic investigation
 - **Coding Standards**: `dev-docs/2-areas/development/coding-standards.md` - Critical rules
 - **Save**: `.cursor/commands/save.md` - Pattern creation workflow
+- **Svelte Validation**: `.cursor/commands/svelte-validate.md` - Complete Svelte validation workflow
+- **Svelte MCP Pattern**: `.cursor/commands/go.md` - See Step 3 (Svelte MCP validation), `.cursor/commands/code-review.md` - See Step 5 (Svelte MCP validation)
 
 ---
 
@@ -760,6 +968,7 @@ AI: *Removes experiment code*
 
 ---
 
-**Last Updated**: 2025-11-20  
+**Last Updated**: 2025-11-21  
 **Purpose**: Systematic bug fix workflow following Brandon's template approach  
-**Status**: Active workflow
+**Status**: Active workflow  
+**Changes**: Added Svelte MCP validation to Step 5a (after standard fix) and Step 11 (after production fix) - SYOS-446

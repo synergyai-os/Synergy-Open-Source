@@ -287,6 +287,21 @@
 
 ## 🔧 Recent Enhancements
 
+### Workflow Commands (2025-11-22)
+
+**Enhanced**: Integrated pattern lifecycle awareness (SYOS-482)
+
+- **`/go`**: Prefers ACCEPTED patterns, skips SUPERSEDED, warns on DEPRECATED
+- **`/bug-fix`**: Detects deprecated pattern usage, suggests migration
+- **`/code-review`**: Flags lifecycle violations (CRITICAL - catches deprecated usage)
+- **`/root-cause`**: Notes pattern lifecycle status in search results
+
+**Why**: Ensures commands guide developers to current patterns, flag deprecated usage in reviews, and provide migration paths automatically.
+
+**See**: SYOS-482 - Integrate Pattern Lifecycle Awareness in Workflow Commands
+
+---
+
 ### `/create-tasks` Command (2025-11-22)
 
 **Created**: Unified command replacing `/linear`, `/linear-subtickets`, `/start-new-project` (675 lines)

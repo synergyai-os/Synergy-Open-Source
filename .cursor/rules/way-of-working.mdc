@@ -164,6 +164,80 @@ Read in order:
 
 ---
 
+## AI Code Generation Workflow
+
+**Purpose**: Systematic 5-step workflow for AI agents before generating any component code.
+
+### When Generating New Components
+
+**Step 1: Classify the component**
+- Is it a primitive (Layer 1)? → Unstyled, accessibility + behavior only
+- Is it a styled component (Layer 2)? → Design system atom with variants
+- Is it a composite (Layer 3)? → Combines 2-3 styled components
+- Is it feature-specific (Layer 4)? → Domain logic + module-specific
+
+**Step 2: Check existing patterns**
+- Read similar component for patterns (e.g., `src/lib/components/ui/button/Button.svelte`)
+- Copy patterns: variant system, props interface, utility classes
+- **Never reinvent** - reuse established patterns
+
+**Step 3: Use ONLY token-based utilities**
+- ✅ `bg-primary text-primary-foreground p-md rounded-md`
+- ❌ `bg-[#3b82f6] text-white p-4 rounded-md` (ESLint will block)
+
+**Step 4: Follow existing file structure**
+```
+src/lib/components/ui/[component]/
+├── [Component].svelte
+└── index.ts
+```
+
+**Step 5: Validate with ESLint**
+- Run `npm run lint` - MUST pass before committing
+- Fix any violations immediately
+
+**See**: `dev-docs/2-areas/design/component-architecture.md` for layer classification decision tree
+
+---
+
+## Component Generation Checklist
+
+**Purpose**: Pre-flight validation before generating/modifying any component.
+
+**Before generating/modifying ANY component:**
+
+### Token Usage ✅
+- [ ] Uses ONLY utilities from `src/app.css` token system
+- [ ] No arbitrary values (ESLint will block)
+- [ ] No raw Tailwind scale values (bg-blue-500)
+- [ ] No inline styles
+
+### Component Structure ✅
+- [ ] Correct layer classification (1-4) - use decision tree
+- [ ] Follows existing patterns (variant + size + class)
+- [ ] TypeScript Props interface defined
+- [ ] Svelte 5 syntax ($props, $derived, $effect)
+
+### File Organization ✅
+- [ ] Component in correct folder (/ui/, /ui/primitives/, /[feature]/)
+- [ ] Barrel export (index.ts) created
+- [ ] PascalCase naming convention
+
+### Testing ✅
+- [ ] Runs in dev mode (npm run dev)
+- [ ] ESLint passes (npm run lint)
+- [ ] Visual test on relevant pages
+- [ ] No console errors
+
+### Documentation ✅
+- [ ] JSDoc comments on component
+- [ ] Props documented
+- [ ] Usage example in comments
+
+**See**: `dev-docs/2-areas/design/design-tokens.md` for complete token reference
+
+---
+
 ## Module Architecture Validation (MANDATORY for Module Work)
 
 **⚠️ CRITICAL**: Before creating/exposing module APIs or moving components, validate module placement and dependencies.

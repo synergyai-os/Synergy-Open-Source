@@ -138,7 +138,7 @@
 						d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
 					></path>
 				</svg>
-				<p class="mt-4 text-button text-secondary">Loading role details...</p>
+				<p class="mt-content-section text-button text-secondary">Loading role details...</p>
 				{#if orgChart.selectedRoleId}
 					<p class="mt-2 text-label text-tertiary">Role ID: {orgChart.selectedRoleId}</p>
 				{/if}
@@ -224,7 +224,7 @@
 						>
 							Members
 							{#if tabCounts.members > 0}
-								<span class="ml-1 text-label text-tertiary">({tabCounts.members})</span>
+								<span class="ml-icon-gap text-label text-tertiary">({tabCounts.members})</span>
 							{/if}
 						</button>
 						<button
@@ -242,7 +242,7 @@
 						>
 							Documents
 							{#if tabCounts.documents > 0}
-								<span class="ml-1 text-label text-tertiary">({tabCounts.documents})</span>
+								<span class="ml-icon-gap text-label text-tertiary">({tabCounts.documents})</span>
 							{/if}
 						</button>
 						<button
@@ -260,7 +260,7 @@
 						>
 							Activities
 							{#if tabCounts.activities > 0}
-								<span class="ml-1 text-label text-tertiary">({tabCounts.activities})</span>
+								<span class="ml-icon-gap text-label text-tertiary">({tabCounts.activities})</span>
 							{/if}
 						</button>
 						<button
@@ -278,7 +278,7 @@
 						>
 							Metrics
 							{#if tabCounts.metrics > 0}
-								<span class="ml-1 text-label text-tertiary">({tabCounts.metrics})</span>
+								<span class="ml-icon-gap text-label text-tertiary">({tabCounts.metrics})</span>
 							{/if}
 						</button>
 						<button
@@ -296,7 +296,7 @@
 						>
 							Checklists
 							{#if tabCounts.checklists > 0}
-								<span class="ml-1 text-label text-tertiary">({tabCounts.checklists})</span>
+								<span class="ml-icon-gap text-label text-tertiary">({tabCounts.checklists})</span>
 							{/if}
 						</button>
 						<button
@@ -314,7 +314,7 @@
 						>
 							Projects
 							{#if tabCounts.projects > 0}
-								<span class="ml-1 text-label text-tertiary">({tabCounts.projects})</span>
+								<span class="ml-icon-gap text-label text-tertiary">({tabCounts.projects})</span>
 							{/if}
 						</button>
 					</div>
@@ -463,7 +463,7 @@
 							<div class="flex flex-col">
 								<CategoryHeader title="Filled By" count={fillers.length} onAdd={() => {}} />
 								{#if fillers.length > 0}
-									<div class="mt-3 space-y-inbox-list-gap">
+									<div class="mt-form-section space-y-inbox-list-gap">
 										{#each fillers as filler (filler.userId)}
 											<div class="p-card flex items-center gap-icon rounded-card bg-surface">
 												<Avatar initials={getInitials(filler.name || filler.email)} size="md" />
@@ -480,7 +480,9 @@
 										{/each}
 									</div>
 								{:else}
-									<p class="mt-3 text-button text-secondary">No one is filling this role yet</p>
+									<p class="mt-form-section text-button text-secondary">
+										No one is filling this role yet
+									</p>
 								{/if}
 							</div>
 						</div>
@@ -500,7 +502,7 @@
 									d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
 								/>
 							</svg>
-							<p class="mt-4 text-button font-medium text-primary">No members yet</p>
+							<p class="mt-content-section text-button font-medium text-primary">No members yet</p>
 							<p class="mt-1 text-button text-secondary">
 								Members assigned to this role will appear here. This feature will be available in a
 								future update.
@@ -522,7 +524,9 @@
 									d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
 								/>
 							</svg>
-							<p class="mt-4 text-button font-medium text-primary">No documents yet</p>
+							<p class="mt-content-section text-button font-medium text-primary">
+								No documents yet
+							</p>
 							<p class="mt-1 text-button text-secondary">
 								Documents related to this role will appear here. This feature will be available in a
 								future update.
@@ -544,7 +548,9 @@
 									d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
 								/>
 							</svg>
-							<p class="mt-4 text-button font-medium text-primary">No activities yet</p>
+							<p class="mt-content-section text-button font-medium text-primary">
+								No activities yet
+							</p>
 							<p class="mt-1 text-button text-secondary">
 								Recent activities and updates for this role will appear here. This feature will be
 								available in a future update.
@@ -566,7 +572,7 @@
 									d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
 								/>
 							</svg>
-							<p class="mt-4 text-button font-medium text-primary">No metrics yet</p>
+							<p class="mt-content-section text-button font-medium text-primary">No metrics yet</p>
 							<p class="mt-1 text-button text-secondary">
 								Performance metrics and analytics for this role will appear here. This feature will
 								be available in a future update.
@@ -588,7 +594,9 @@
 									d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
 								/>
 							</svg>
-							<p class="mt-4 text-button font-medium text-primary">No checklists yet</p>
+							<p class="mt-content-section text-button font-medium text-primary">
+								No checklists yet
+							</p>
 							<p class="mt-1 text-button text-secondary">
 								Checklists and task lists for this role will appear here. This feature will be
 								available in a future update.
@@ -610,7 +618,7 @@
 									d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
 								/>
 							</svg>
-							<p class="mt-4 text-button font-medium text-primary">No projects yet</p>
+							<p class="mt-content-section text-button font-medium text-primary">No projects yet</p>
 							<p class="mt-1 text-button text-secondary">
 								Projects associated with this role will appear here. This feature will be available
 								in a future update.

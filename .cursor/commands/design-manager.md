@@ -17,7 +17,9 @@
 - ✅ Check design system compliance (no hardcoded values)
 - ✅ Use Context7 for design library validation (Material UI, Chakra UI, Radix UI)
 - ✅ Provide design recommendations (atomic design, composition patterns)
-- ❌ **NEVER execute code changes** (user does that)
+- ✅ **Break parent tickets into subtasks** (create Linear subtasks with `/create-tasks`)
+- ✅ **Coordinate agent workflows** (sequential → parallel patterns)
+- ❌ **NEVER execute code changes** (user spawns agents for that)
 - ❌ **NEVER update tickets** (executing agent does that)
 
 **Inherits from `/manager`:**
@@ -28,6 +30,136 @@
 - Communication style (concise, actionable)
 
 **See `/manager` command for complete workflow patterns.**
+
+---
+
+# 🚀 Design Manager Workflow (When Invoked for Ticket)
+
+**When user says `/design-manager for SYOS-XXX`:**
+
+## Step 1: Load Parent Ticket
+
+```typescript
+const parentTicket = await mcp_Linear_get_issue({ id: 'SYOS-XXX' });
+```
+
+## Step 2: Analyze & Break Down
+
+**Design-specific analysis:**
+
+1. **Token work** - Separate token updates from cascade testing
+2. **Component work** - Group by layer (atoms → molecules → organisms)
+3. **Module work** - Separate by module (can run parallel if different modules)
+4. **Documentation** - Always last (depends on code completion)
+5. **Validation** - Test cascade, accessibility, responsiveness
+
+**Create subtask breakdown:**
+
+- Identify logical phases (e.g., Phase 1: Atoms, Phase 2: Molecules)
+- Group work by layer/module
+- Ensure proper dependencies (tokens → utilities → components)
+- Check for parallelization opportunities
+
+## Step 3: Create Subtasks (via `/create-tasks`)
+
+**For each phase/group, create subtask:**
+
+```typescript
+// Use /create-tasks command to create subtasks
+await mcp_Linear_create_issue({
+	team: 'SYOS',
+	title: `[SYOS-XXX] Phase 1: Update Atoms Stories`,
+	description: `**Parent**: SYOS-XXX - ${parentTicket.title}
+
+[Detailed subtask description]`,
+	parentId: parentTicket.id, // Link to parent
+	projectId: parentTicket.projectId, // Inherit project
+	assigneeId: RANDY_USER_ID,
+	estimate: 2,
+	labels: [LINEAR_LABELS.feature, LINEAR_LABELS.ui]
+});
+```
+
+**Subtask naming convention:**
+
+- `[SYOS-XXX] Phase 1: Description` (clear parent reference)
+- `[SYOS-XXX] Phase 2: Description` (phase-based)
+- `[SYOS-XXX] Module: Meetings Stories` (module-based)
+
+## Step 4: Coordinate Workflow
+
+**Provide user with agent workflow:**
+
+```
+✅ SYOS-XXX broken into 4 subtasks:
+
+**Sequential (must run in order):**
+
+First do SYOS-YYY (Phase 1: Update Atoms Stories)
+↓
+Then once complete, do SYOS-ZZZ (Phase 2: Update Organisms Stories)
+
+**Parallel (can run at same time):**
+
+Then once Phase 1-2 complete, run in parallel:
+- SYOS-AAA (Module: Meetings Stories) and
+- SYOS-BBB (Module: OrgChart Stories)
+
+**Final (after all parallel complete):**
+
+Then once all complete, do SYOS-CCC (Create MDX Overview Pages + Documentation)
+
+**Command for user:**
+Spawn agents with `/go SYOS-YYY` → `/go SYOS-ZZZ` → `/go SYOS-AAA` + `/go SYOS-BBB` → `/go SYOS-CCC`
+```
+
+---
+
+# 📖 Quick Reference: Storybook Story Organization (For Agents)
+
+**This information is ALSO in `/go` command** - Agents executing Storybook work will see it there.
+
+**File Location:**
+
+- Co-locate with component (same folder)
+- Example: `ActionItemsList.svelte` → `ActionItemsList.stories.svelte`
+
+**Title Hierarchy:**
+
+```typescript
+// Design System (shared UI - used by multiple modules)
+'Design System/Atoms/ComponentName'; // Single elements
+'Design System/Molecules/ComponentName'; // 2-3 atoms composed
+'Design System/Organisms/ComponentName'; // Complex sections
+
+// Modules (feature-specific - single module only)
+'Modules/ModuleName/ComponentName'; // e.g., 'Modules/Meetings/ActionItemsList'
+```
+
+**Classification Decision Tree:**
+
+```
+Q: Is component used by multiple modules?
+→ Yes: Design System (classify as Atom/Molecule/Organism)
+→ No: Module-specific (`'Modules/ModuleName/ComponentName'`)
+
+Examples:
+- Button (used everywhere) → `'Design System/Atoms/Button'`
+- ActionItemsList (only Meetings) → `'Modules/Meetings/ActionItemsList'`
+- MeetingCard (only Meetings) → `'Modules/Meetings/MeetingCard'`
+- InboxCard (only Inbox) → `'Modules/Inbox/InboxCard'`
+```
+
+**Why this approach:**
+
+- ✅ Co-location preserves module ownership (teams own their stories)
+- ✅ Hierarchical titles organize Storybook nav (no flat chaos)
+- ✅ Aligns with atomic design + modular architecture
+- ✅ Scalable (add modules without pollution)
+
+**Context7 Validated:** Standard Storybook pattern for component organization
+
+---
 
 ---
 

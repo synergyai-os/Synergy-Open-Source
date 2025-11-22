@@ -16,6 +16,24 @@ const preview: Preview = {
 			story: {
 				inline: false // Disable inline rendering for SvelteKit compatibility
 			}
+		},
+		options: {
+			storySort: {
+				order: [
+					'Docs',
+					['Docs', ['Introduction', 'Token Reference']],
+					'Design System',
+					['Design System', ['Overview', 'Atoms', 'Organisms']],
+					['Design System/Atoms', ['*']],
+					['Design System/Organisms', ['*']],
+					'Modules',
+					['Modules', ['*']],
+					['Modules/Meetings', ['*']],
+					['Modules/OrgChart', ['*']],
+					['Modules/Inbox', ['*']],
+					'*'
+				]
+			}
 		}
 	}
 };
