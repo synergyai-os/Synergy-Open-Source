@@ -5358,4 +5358,236 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 
 ---
 
-**Last Updated**: 2025-11-18
+---
+
+## #L4850: Storybook Stories Don't Render Correctly with Svelte 5 Snippets [🔴 CRITICAL]
+
+**Symptom**: Storybook stories show loading screen, components render without text, styling doesn't apply, or `invalid_snippet` errors  
+**Root Cause**: TypeScript story files (`.stories.ts`) cannot properly pass Svelte 5 snippets to components. Functions like `children: () => 'Button'` are not valid snippets, and Storybook's render function doesn't convert them correctly.  
+**Fix**:
+
+### Use `.svelte` Story Files for Native Snippet Support
+
+```svelte
+<!-- ✅ CORRECT: Button.stories.svelte -->
+<script module>
+	import { defineMeta } from '@storybook/addon-svelte-csf';
+	import Button from './Button.svelte';
+
+	const { Story } = defineMeta({
+		component: Button,
+		title: 'Atoms/Button',
+		tags: ['autodocs'],
+		argTypes: {
+			variant: {
+				control: { type: 'select' },
+				options: ['primary', 'secondary', 'outline']
+			}
+		}
+	});
+</script>
+
+<Story name="Primary" args={{ variant: 'primary', size: 'md' }}>
+	{#snippet template(args)}
+		<Button {...args}>Button</Button>
+	{/snippet}
+</Story>
+```
+
+```typescript
+// ❌ WRONG: Button.stories.ts - Snippets don't work
+export const Primary: Story = {
+	args: {
+		variant: 'primary',
+		children: () => 'Button' // ❌ Function, not snippet
+	},
+	render: (args) => ({
+		Component: Button,
+		props: args,
+		slots: { default: () => 'Button' } // ❌ Still doesn't work
+	})
+};
+```
+
+**Why**: Storybook 10 + SvelteKit requires native Svelte snippet syntax (`{#snippet template(args)}`) which is only available in `.svelte` files. TypeScript stories cannot create proper snippets, causing rendering failures.
+
+**Apply when**:
+- Creating Storybook stories for Svelte 5 components
+- Components require snippets/children (Button, Badge, Card, etc.)
+- Stories don't render correctly or show `invalid_snippet` errors
+
+**Migration Steps**:
+1. Convert `.stories.ts` → `.stories.svelte`
+2. Use `defineMeta` from `@storybook/addon-svelte-csf`
+3. Wrap component in `{#snippet template(args)}` block
+4. Pass children directly in template (not as function)
+
+**Related**: Storybook 10 + SvelteKit documentation, Svelte 5 snippets
+
+---
+
+## #L4900: Storybook Custom Theme Configuration for SvelteKit [🟡 IMPORTANT]
+
+**Symptom**: Storybook uses default theme (doesn't match brand), colors don't match design system, logo doesn't render, blank page errors  
+**Root Cause**: Storybook's `polished` library doesn't support `oklch` color format, missing static file configuration, docs rendering issues with SvelteKit  
+**Fix**:
+
+### 1. Create Theme Configuration (`.storybook/manager.ts`)
+
+```typescript
+import { addons } from 'storybook/manager-api';
+import { create } from 'storybook/theming/create';
+
+// Convert oklch colors to hex (polished library doesn't support oklch)
+const synergyOSTheme = create({
+	base: 'dark', // Match SynergyOS default dark mode
+
+	// Brand
+	brandTitle: 'SynergyOS Design System',
+	brandUrl: 'https://synergyos.ai',
+	brandImage: '/logo-placeholder.svg', // Served via staticDirs
+	brandTarget: '_self' as const,
+
+	// Colors (converted from design-system.json oklch to hex)
+	colorPrimary: '#2563eb', // oklch(55.4% 0.218 251.813) --color-accent-primary
+	colorSecondary: '#1d4ed8', // oklch(49.2% 0.218 251.813) --color-accent-hover
+
+	// UI (dark mode values from design-system.json)
+	appBg: '#111827', // oklch(20% 0.002 247.839) --color-bg-base
+	appContentBg: '#374151', // oklch(31.4% 0.044 257.287) --color-bg-elevated
+	appPreviewBg: '#374151',
+	appBorderColor: '#1f2937', // Solid hex format (not rgba)
+	appBorderRadius: 14,
+
+	// Typography
+	fontBase: '"Inter", system-ui, sans-serif', // --font-sans
+	fontCode: '"JetBrains Mono", monospace', // --font-mono
+
+	// Text colors
+	textColor: '#ffffff', // --color-text-primary
+	textInverseColor: '#111827',
+	textMutedColor: '#9ca3af',
+
+	// Bar colors (toolbar, sidebar)
+	barTextColor: '#d1d5db', // --color-text-secondary
+	barSelectedColor: '#2563eb', // --color-accent-primary
+	barHoverColor: '#1d4ed8',
+	barBg: '#1f2937', // --color-bg-surface
+
+	// Form colors
+	inputBg: '#374151',
+	inputBorder: '#4b5563',
+	inputTextColor: '#ffffff',
+	inputBorderRadius: 2
+});
+
+addons.setConfig({
+	theme: synergyOSTheme,
+	panelPosition: 'bottom',
+	enableShortcuts: true,
+	showToolbar: true,
+	sidebar: {
+		showRoots: true // Show category roots (Atoms, Molecules, Organisms)
+	}
+});
+```
+
+### 2. Configure Static Files (`.storybook/main.ts`)
+
+```typescript
+import type { StorybookConfig } from '@storybook/sveltekit';
+
+const config: StorybookConfig = {
+	stories: ['../src/**/*.stories.@(js|jsx|ts|tsx|svelte)'],
+	addons: [
+		'@storybook/addon-svelte-csf',
+		'@storybook/addon-docs', // Docs rendering
+	],
+	framework: {
+		name: '@storybook/sveltekit',
+		options: {}
+	},
+	docs: {
+		autodocs: 'tag'
+	},
+	staticDirs: ['../static'] // Serve static files (logo, etc.)
+};
+
+export default config;
+```
+
+### 3. Configure Preview (`.storybook/preview.ts`)
+
+```typescript
+import type { Preview } from '@storybook/svelte';
+
+// Import global styles (includes design tokens)
+import '../src/app.css';
+
+const preview: Preview = {
+	parameters: {
+		controls: {
+			matchers: {
+				color: /(background|color)$/i,
+				date: /Date$/
+			}
+		},
+		docs: {
+			toc: true, // Table of contents in docs
+			story: {
+				inline: false // Disable inline rendering for SvelteKit compatibility
+			}
+		}
+	}
+};
+
+export default preview;
+```
+
+### 4. Add CSS Constraints for Component Sizing (`src/app.css`)
+
+```css
+/* Storybook Preview Constraints - Ensure components fit in viewport */
+:global([data-test-id="storybook-preview-wrapper"]) {
+	max-width: 100% !important;
+	max-height: calc(100vh - 200px) !important;
+	overflow: auto !important;
+	display: flex !important;
+	justify-content: center !important;
+	align-items: flex-start !important;
+	padding: 1rem !important;
+}
+
+:global([data-test-id="storybook-preview-wrapper"] > *) {
+	max-width: 100% !important;
+	max-height: calc(100vh - 250px) !important;
+}
+```
+
+### Key Points
+
+1. **Color Format**: Convert `oklch` to hex (polished library limitation)
+2. **Theme Creation**: Use `create()` directly, don't spread `themes.dark` (avoids color manipulation issues)
+3. **Static Files**: Add `staticDirs: ['../static']` to serve logo/images
+4. **Docs Rendering**: Set `inline: false` for SvelteKit compatibility
+5. **Component Sizing**: Add CSS constraints to prevent overflow
+
+**Why**: Storybook's theming system uses `polished` library which doesn't support modern `oklch` color format. Converting to hex ensures theme works correctly. SvelteKit requires `inline: false` for docs rendering.
+
+**Apply when**:
+- Setting up Storybook for SvelteKit projects
+- Creating custom theme matching design system
+- Components require scrolling to view fully
+- Logo/images don't render in Storybook
+
+**Common Issues**:
+- ❌ `PolishedError2` blank page → Use hex colors, not oklch
+- ❌ Logo 404 error → Add `staticDirs` configuration
+- ❌ Docs renderer error → Set `inline: false` in preview
+- ❌ Components overflow viewport → Add CSS constraints
+
+**Related**: #L4850 (Storybook stories with Svelte 5 snippets)
+
+---
+
+**Last Updated**: 2025-11-22

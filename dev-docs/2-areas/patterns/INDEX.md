@@ -20,6 +20,8 @@
 | Component shows stale/old data                                                                    | Key on data, not ID                                                          | [svelte-reactivity.md#L140](svelte-reactivity.md#L140)              |
 | `.ts` file: "Cannot assign to constant"                                                           | Rename to `.svelte.ts`                                                       | [svelte-reactivity.md#L180](svelte-reactivity.md#L180)              |
 | Component classes don't update when prop changes (selected state, conditional styling)          | Use `$derived` for class string concatenation                                | [svelte-reactivity.md#L700](svelte-reactivity.md#L700)              |
+| Storybook stories show loading screen, components render without text, invalid_snippet errors    | Use `.svelte` story files with native snippet syntax, not `.ts` files       | [ui-patterns.md#L4850](ui-patterns.md#L4850)                        |
+| Storybook uses default theme, colors don't match design system, logo 404, blank page errors      | Convert oklch to hex, configure staticDirs, set inline: false for docs       | [ui-patterns.md#L4900](ui-patterns.md#L4900)                        |
 | 500 error with ProseMirror/Monaco                                                                 | Guard with `{#if browser}`                                                   | [svelte-reactivity.md#L400](svelte-reactivity.md#L400)              |
 | Event listeners don't fire (no errors)                                                            | Browser check inside $effect                                                 | [svelte-reactivity.md#L500](svelte-reactivity.md#L500)              |
 | Build fails: ENOENT file not found                                                                | Remove phantom dependencies                                                  | [svelte-reactivity.md#L550](svelte-reactivity.md#L550)              |
@@ -151,6 +153,10 @@
 | ESLint warnings for unused Playwright test parameters (`page`, `request`)     | Use actual parameter names + ESLint disable comment (Playwright validates signatures) | [ci-cd.md#L80](ci-cd.md#L80)                               |
 | Need to enforce architectural boundaries (module boundaries, layer boundaries) | Create custom ESLint rule in eslint-rules/ directory, use ES module syntax for flat config | [ci-cd.md#L90](ci-cd.md#L90)                               |
 | CSS warnings from svelte-check (unused selectors, empty rulesets, @apply)    | Remove unused selectors, empty rulesets; replace @apply with design tokens | [ui-patterns.md#L950](ui-patterns.md#L950)                 |
+| Need automated token coverage audit and hardcoded value detection             | Create token usage report script: extract tokens, scan usage, detect violations, CI integration | [ci-cd.md#L1900](ci-cd.md#L1900)                            |
+| Orphaned design tokens accumulate (tokens without utility classes)             | Validate token→utility mapping: extract tokens, check utility references, block CI if orphaned | [ci-cd.md#L2050](ci-cd.md#L2050)                            |
+| Need to convert CSS tokens to DTCG format for tooling interoperability         | Extract CSS tokens, map to DTCG types ($type, $value, $description), validate schema, add conversion script | [ci-cd.md#L2100](ci-cd.md#L2100)                            |
+| DTCG validation warns "Token missing $description (optional but recommended)"  | Add inline CSS comments to tokens, conversion script extracts → $description | [ci-cd.md#L2310](ci-cd.md#L2310)                            |
 | Playwright test fails: "did not expect test.use() here"                       | Move test.use() to describe level, not inside test                    | [ci-cd.md#L210](ci-cd.md#L210)                             |
 | Cookies not cleared/shared in Playwright tests                                | Use page.request instead of request fixture                           | [ci-cd.md#L220](ci-cd.md#L220)                             |
 | E2E test fails with "element not found" on empty data                         | Handle empty state gracefully, use .count() + conditional checks      | [ci-cd.md#L230](ci-cd.md#L230)                             |
@@ -160,7 +166,11 @@
 | E2E tests hit rate limits with "Too many requests" errors from external APIs  | Pass skipEmail parameter from SvelteKit server (don't set E2E_TEST_MODE in Convex env) | [ci-cd.md#L1320](ci-cd.md#L1320)                             |
 | Verification emails not sent in production, E2E_TEST_MODE set in Convex env  | Pass skipEmail parameter from SvelteKit server instead of Convex env var | [ci-cd.md#L1320](ci-cd.md#L1320)                             |
 | AI creates sloppy code, doesn't follow systematic workflows, reinvents solutions | Use task-specific templates (/bug-fix, /code-cleanup, /code-review) with systematic workflows | [ai-development.md#L10](ai-development.md#L10)              |
+| Svelte code quality issues discovered late, AI writes outdated Svelte 5 patterns, no real-time validation | Use Svelte MCP autofixer workflow: svelte-check → ESLint → autofixer (mandatory, iterate until clean) | [ai-development.md#L100](ai-development.md#L100)            |
+| Need to integrate Svelte MCP validation into CI/CD pipeline, but MCP tools require MCP client (not available in CI) | Add validate:svelte script (svelte-check + ESLint), add CI step (optional, non-blocking), defer MCP autofixer to future | [ci-cd.md#L2500](ci-cd.md#L2500)                            |
 | AI agents waste tokens loading outdated docs, reference outdated features, root directory cluttered with 20+ markdown files | Organize docs into CORE (active) vs ARCHIVE (historical), hide archive from AI via .cursorignore | [ai-development.md#L200](ai-development.md#L200)            |
+| Test instructions vague, missing specific values, file locations, or DevTools steps | Use "change X see Y change" format with exact values, file paths, line numbers, DevTools tab names | [ai-development.md#L250](ai-development.md#L250)            |
+| Command integrations not tested, MCP tool integrations break silently, regression testing missing after adding validation tools | Test command standalone + workflow integration + error handling + regressions + real-world scenarios | [ai-development.md#L300](ai-development.md#L300)            |
 
 ## 🟢 REFERENCE Patterns (Best Practices)
 
@@ -218,7 +228,8 @@
 | Component used by multiple modules creates cross-module dependencies (Flashcards → Inbox) | Move shared component to core module, expose via CoreModuleAPI, update all consumers | [convex-integration.md#L4100](convex-integration.md#L4100) |
 | Incremental CI gates        | Enable lint/build first, defer type check to separate work  | [ci-cd.md#L10](ci-cd.md#L10)                             |
 | Local CI testing            | npm scripts > shell scripts for consistency                 | [ci-cd.md#L110](ci-cd.md#L110)                           |
-| Secret scanning             | TruffleHog with .secretsignore for safe patterns            | [ci-cd.md#L160](ci-cd.md#L160)                           |        
+| Secret scanning             | TruffleHog with .secretsignore for safe patterns            | [ci-cd.md#L160](ci-cd.md#L160)                           |
+| Configuring MCP servers in Cursor | Add MCP server to ~/.cursor/mcp.json (local or remote setup) | [ci-cd.md#L2350](ci-cd.md#L2350)                        |
 | TypeScript interface declared multiple times in same file (duplicate definitions) | Remove duplicate interface, keep single definition with clear comment | [convex-integration.md#L4250](convex-integration.md#L4250) |
 | Mutation silently ignores mismatched parameter combinations (e.g., circleId when ownership !== 'circle') | Add early defensive validation to reject mismatched combinations with clear error | [convex-integration.md#L4300](convex-integration.md#L4300) |
 | Mutation fetches same data twice (performance issue, unnecessary database queries) | Hoist variable before conditional branch, reuse fetched data instead of fetching again | [convex-integration.md#L4350](convex-integration.md#L4350) |

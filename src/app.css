@@ -17,7 +17,7 @@
 @theme {
 	/* ============================================
 	   BASE SPACING SCALE - 4px base unit
-	   Source: design-system-test.json line 96-107
+	   Source: design-system.json line 96-107
 	   ============================================ */
 
 	/* These are the ONLY hardcoded spacing values */
@@ -113,11 +113,11 @@
 	--spacing-input-x: 0.75rem; /* 12px - px-3 equivalent - horizontal padding for inputs */
 	--spacing-input-y: 0.625rem; /* 10px - py-2.5 equivalent - vertical padding for inputs */
 	/* Button Component Tokens - Consolidated (Nov 2025) */
-	/* Updated to match design-system-test.json specification (8px radius, 12px×24px padding) */
+	/* Updated to match design-system.json specification (8px radius, 12px×24px padding) */
 	--spacing-button-group: 0.5rem; /* 8px - gap-2 equivalent - gap between buttons in action group */
 	--spacing-button-x: var(
 		--spacing-6
-	); /* 24px - FIXED: Was 48px (3rem bug), now correct per design-system-test.json line 154 */
+	); /* 24px - FIXED: Was 48px (3rem bug), now correct per design-system.json line 154 */
 	--spacing-button-y: 0.75rem; /* 12px - py-button-y equivalent - vertical padding for buttons */
 	--border-radius-button: 0.5rem; /* 8px - rounded-button equivalent - button border radius */
 	--font-size-button: 0.875rem; /* 14px - text-button equivalent - button font size */
@@ -218,9 +218,9 @@
 	--font-size-body: 1rem; /* 16px - text-body equivalent - base text size */
 	--font-size-small: 0.875rem; /* 14px - text-small equivalent - small text (text-sm) */
 	--font-size-error-status: 7.5rem; /* 120px - text-[120px] equivalent - large error status code display */
-	--font-weight-h1: 700;
-	--font-weight-h2: 600;
-	--font-weight-h3: 600;
+	--font-weight-h1: 700; /* Bold - Heading 1 font weight */
+	--font-weight-h2: 600; /* Semibold - Heading 2 font weight */
+	--font-weight-h3: 600; /* Semibold - Heading 3 font weight */
 
 	/* Flashcard Typography Tokens - Large display text for flashcard content */
 	--font-size-flashcard-question: 1.5rem; /* 24px - text-2xl equivalent - flashcard question text (mobile) */
@@ -237,13 +237,13 @@
 	--size-quote-decoration: 5rem; /* 80px - size-quote-decoration equivalent - decorative quote mark size (h-20 w-20) */
 	--size-keyboard-key: 3rem; /* 48px - size-keyboard-key equivalent - keyboard key container size (h-12 w-12) */
 
-	/* Avatar Component Tokens (from design-system-test.json) */
+	/* Avatar Component Tokens (from design-system.json) */
 	--size-avatar-sm: 2rem; /* 32px - h-8 w-8 equivalent */
 	--size-avatar-md: 2.5rem; /* 40px - h-10 w-10 equivalent */
 	--size-avatar-lg: 3rem; /* 48px - h-12 w-12 equivalent */
 	--border-radius-avatar: 9999px; /* rounded-full - avatar border radius (perfect circle) */
 
-	/* Tabs Component Tokens (from design-system-test.json) */
+	/* Tabs Component Tokens (from design-system.json) */
 	--size-tab-height: 2.5rem; /* 40px - tab container height */
 	--spacing-tab-padding-x: 0.75rem; /* 12px - tab item horizontal padding (px-3) */
 	--spacing-tab-padding-y: 0.375rem; /* 6px - tab item vertical padding (py-1.5) */
@@ -251,10 +251,11 @@
 	--border-radius-tab-item: 0.125rem; /* 2px - tab item border radius (rounded-sm) */
 
 	/* Transition Tokens */
-	--transition-default: all 0.2s ease;
-	--transition-slow: all 0.3s ease-in-out;
-	--transition-fast: all 0.15s ease;
-	--transition-colors: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+	--transition-default: all 0.2s ease; /* Standard transition for interactive elements */
+	--transition-slow: all 0.3s ease-in-out; /* Slower transition for complex animations */
+	--transition-fast: all 0.15s ease; /* Quick transition for hover states */
+	--transition-colors:
+		color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease; /* Color-only transitions */
 
 	/* Unified Brand Color Tokens - Used throughout the app */
 	/* These change automatically based on .dark class on <html> */
@@ -344,7 +345,7 @@
 	--color-panel-breadcrumb-text: var(--color-text-tertiary); /* Vertical text color */
 	--color-panel-breadcrumb-hover: var(--color-bg-hover-solid); /* Hover state */
 
-	/* Meeting Component Tokens (from design-system-test.json) */
+	/* Meeting Component Tokens (from design-system.json) */
 	--spacing-meeting-date-badge-width: 5rem; /* 80px - w-20 equivalent - date badge width in meeting cards */
 	--spacing-meeting-card-gap: 0.5rem; /* 8px - gap-2 equivalent - gap between meeting card elements */
 	--spacing-meeting-avatar-gap: 0.25rem; /* 4px - gap-1 equivalent - gap between avatar chips */
@@ -354,7 +355,7 @@
 	--spacing-meeting-dropdown-width: 16rem; /* 256px - w-64 equivalent - dropdown menu width */
 	--max-width-meeting-today-card: 18.75rem; /* 300px - max-w-[300px] equivalent - today meeting card max width */
 
-	/* Flashcard Rating Color Tokens - FSRS spaced repetition buttons (from design-system-test.json) */
+	/* Flashcard Rating Color Tokens - FSRS spaced repetition buttons (from design-system.json) */
 	--color-rating-again: oklch(64.8% 0.294 27.325); /* red-600 - Again button */
 	--color-rating-again-hover: oklch(50% 0.227 27.325); /* red-700 - Again hover */
 	--color-rating-hard: oklch(75% 0.15 60); /* orange-600 - Hard button */
@@ -1477,4 +1478,22 @@ select {
 button,
 a {
 	touch-action: manipulation;
+}
+
+/* Storybook Preview Constraints - Ensure components fit in viewport */
+/* Target Storybook's preview wrapper containers */
+:global([data-test-id='storybook-preview-wrapper']) {
+	max-width: 100% !important;
+	max-height: calc(100vh - 200px) !important;
+	overflow: auto !important;
+	display: flex !important;
+	justify-content: center !important;
+	align-items: flex-start !important;
+	padding: 1rem !important;
+}
+
+/* Constrain story content to fit viewport */
+:global([data-test-id='storybook-preview-wrapper'] > *) {
+	max-width: 100% !important;
+	max-height: calc(100vh - 250px) !important;
 }
