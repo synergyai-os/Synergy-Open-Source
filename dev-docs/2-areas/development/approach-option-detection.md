@@ -28,47 +28,47 @@ When creating tickets from task template documents (e.g., `ai-docs/tasks/SYOS-XX
 // Check for approach options in task document
 const taskDocument = findTaskDocument(); // From context or file system
 const hasApproachOptions =
-	taskDocument &&
-	(taskDocument.includes('## Approach Options') ||
-		taskDocument.includes('### Approach A:') ||
-		taskDocument.includes('### Approach B:') ||
-		taskDocument.includes('### Approach C:'));
+  taskDocument &&
+  (taskDocument.includes('## Approach Options') ||
+    taskDocument.includes('### Approach A:') ||
+    taskDocument.includes('### Approach B:') ||
+    taskDocument.includes('### Approach C:'));
 
 if (hasApproachOptions) {
-	// Parse options from document
-	const options = parseApproachOptions(taskDocument);
-	// Options format: { A: { title, pros, cons }, B: { ... }, C: { ... } }
+  // Parse options from document
+  const options = parseApproachOptions(taskDocument);
+  // Options format: { A: { title, pros, cons }, B: { ... }, C: { ... } }
 
-	// Check user intent
-	const userSpecifiedOption = detectUserOptionSelection(); // "option A", "approach B", etc.
+  // Check user intent
+  const userSpecifiedOption = detectUserOptionSelection(); // "option A", "approach B", etc.
 
-	if (userSpecifiedOption) {
-		// User explicitly selected option → Use it
-		const selectedOption = options[userSpecifiedOption];
-		console.log(`✅ Using ${userSpecifiedOption}: ${selectedOption.title}`);
-		// Continue to Step 1
-	} else {
-		// User didn't specify → Recommend and confirm
-		const recommendedOption = analyzeAndRecommendOption(options);
-		// Recommendation based on: risk level, complexity, dependencies, existing patterns
+  if (userSpecifiedOption) {
+    // User explicitly selected option → Use it
+    const selectedOption = options[userSpecifiedOption];
+    console.log(`✅ Using ${userSpecifiedOption}: ${selectedOption.title}`);
+    // Continue to Step 1
+  } else {
+    // User didn't specify → Recommend and confirm
+    const recommendedOption = analyzeAndRecommendOption(options);
+    // Recommendation based on: risk level, complexity, dependencies, existing patterns
 
-		// ASK USER FOR CONFIRMATION:
-		// "📋 Found ${options.length} approach options in task document:
-		//
-		// **Approach A**: [Title] - [Brief summary]
-		// **Approach B**: [Title] - [Brief summary]
-		// **Approach C**: [Title] - [Brief summary]
-		//
-		// 💡 **Recommendation**: ${recommendedOption.letter} - ${recommendedOption.title}
-		//
-		// ${recommendedOption.reasoning} (2 sentences max)
-		//
-		// Proceed with ${recommendedOption.letter}? (yes/no, or specify A/B/C)"
-		//
-		// If yes → Use recommended option, continue to Step 1
-		// If no → Ask user to specify which option (A/B/C)
-		// If user specifies different option → Use that option, continue to Step 1
-	}
+    // ASK USER FOR CONFIRMATION:
+    // "📋 Found ${options.length} approach options in task document:
+    //
+    // **Approach A**: [Title] - [Brief summary]
+    // **Approach B**: [Title] - [Brief summary]
+    // **Approach C**: [Title] - [Brief summary]
+    //
+    // 💡 **Recommendation**: ${recommendedOption.letter} - ${recommendedOption.title}
+    //
+    // ${recommendedOption.reasoning} (2 sentences max)
+    //
+    // Proceed with ${recommendedOption.letter}? (yes/no, or specify A/B/C)"
+    //
+    // If yes → Use recommended option, continue to Step 1
+    // If no → Ask user to specify which option (A/B/C)
+    // If user specifies different option → Use that option, continue to Step 1
+  }
 }
 ```
 
@@ -80,35 +80,35 @@ if (hasApproachOptions) {
 
 ```typescript
 function parseApproachOptions(document: string): Record<string, OptionData> {
-	const options: Record<string, OptionData> = {};
+  const options: Record<string, OptionData> = {};
 
-	// Pattern: ### Approach A: [Title]
-	// Followed by pros/cons, complexity, dependencies
-	const optionPattern = /### Approach ([A-C]):\s*(.+?)\n\n\*\*How it works\*\*:\s*(.+?)(?=\n\n### Approach|$)/gs;
+  // Pattern: ### Approach A: [Title]
+  // Followed by pros/cons, complexity, dependencies
+  const optionPattern = /### Approach ([A-C]):\s*(.+?)\n\n\*\*How it works\*\*:\s*(.+?)(?=\n\n### Approach|$)/gs;
 
-	let match;
-	while ((match = optionPattern.exec(document)) !== null) {
-		const letter = match[1];
-		const title = match[2].trim();
-		const description = match[3].trim();
+  let match;
+  while ((match = optionPattern.exec(document)) !== null) {
+    const letter = match[1];
+    const title = match[2].trim();
+    const description = match[3].trim();
 
-		// Extract pros/cons
-		const prosMatch = document.match(
-			new RegExp(`### Approach ${letter}:.*?\\*\\*Pros\\*\\*:([\\s\\S]*?)\\*\\*Cons\\*\\*:`, 'm')
-		);
-		const consMatch = document.match(
-			new RegExp(`### Approach ${letter}:.*?\\*\\*Cons\\*\\*:([\\s\\S]*?)(?:\\*\\*Complexity\\*\\*|$)`, 'm')
-		);
+    // Extract pros/cons
+    const prosMatch = document.match(
+      new RegExp(`### Approach ${letter}:.*?\\*\\*Pros\\*\\*:([\\s\\S]*?)\\*\\*Cons\\*\\*:`, 'm')
+    );
+    const consMatch = document.match(
+      new RegExp(`### Approach ${letter}:.*?\\*\\*Cons\\*\\*:([\\s\\S]*?)(?:\\*\\*Complexity\\*\\*|$)`, 'm')
+    );
 
-		options[letter] = {
-			title,
-			description,
-			pros: prosMatch ? prosMatch[1].trim() : '',
-			cons: consMatch ? consMatch[1].trim() : ''
-		};
-	}
+    options[letter] = {
+      title,
+      description,
+      pros: prosMatch ? prosMatch[1].trim() : '',
+      cons: consMatch ? consMatch[1].trim() : ''
+    };
+  }
 
-	return options;
+  return options;
 }
 ```
 
@@ -144,57 +144,57 @@ function parseApproachOptions(document: string): Record<string, OptionData> {
 
 ```typescript
 function analyzeAndRecommendOption(
-	options: Record<string, OptionData>
+  options: Record<string, OptionData>
 ): { letter: string; title: string; reasoning: string } {
-	// Check for "## Recommendation" section in document
-	const recommendationMatch = document.match(/## Recommendation\s+\*\*Selected\*\*:\s*Approach ([A-C])/);
+  // Check for "## Recommendation" section in document
+  const recommendationMatch = document.match(/## Recommendation\s+\*\*Selected\*\*:\s*Approach ([A-C])/);
 
-	if (recommendationMatch) {
-		const recommendedLetter = recommendationMatch[1];
-		const option = options[recommendedLetter];
+  if (recommendationMatch) {
+    const recommendedLetter = recommendationMatch[1];
+    const option = options[recommendedLetter];
 
-		// Extract reasoning (2-3 sentences from "Reasoning:" section)
-		const reasoningMatch = document.match(
-			new RegExp(
-				`## Recommendation[\\s\\S]*?\\*\\*Reasoning\\*\\*:([\\s\\S]*?)(?:\\*\\*Trade-offs|$)`,
-				'm'
-			)
-		);
-		const reasoning = reasoningMatch
-			? reasoningMatch[1]
-					.trim()
-					.split('\n')
-					.slice(0, 2)
-					.join(' ')
-					.replace(/^\d+\.\s*/, '')
-					.substring(0, 300) // Max 2 sentences
-			: `Lower risk and faster feedback. ${option.title} allows incremental validation.`;
+    // Extract reasoning (2-3 sentences from "Reasoning:" section)
+    const reasoningMatch = document.match(
+      new RegExp(
+        `## Recommendation[\\s\\S]*?\\*\\*Reasoning\\*\\*:([\\s\\S]*?)(?:\\*\\*Trade-offs|$)`,
+        'm'
+      )
+    );
+    const reasoning = reasoningMatch
+      ? reasoningMatch[1]
+          .trim()
+          .split('\n')
+          .slice(0, 2)
+          .join(' ')
+          .replace(/^\d+\.\s*/, '')
+          .substring(0, 300) // Max 2 sentences
+      : `Lower risk and faster feedback. ${option.title} allows incremental validation.`;
 
-		return {
-			letter: recommendedLetter,
-			title: option.title,
-			reasoning
-		};
-	}
+    return {
+      letter: recommendedLetter,
+      title: option.title,
+      reasoning
+    };
+  }
 
-	// Fallback: Analyze pros/cons to recommend
-	// Prefer: Low risk, incremental, matches existing patterns
-	const scores = Object.entries(options).map(([letter, option]) => {
-		let score = 0;
-		if (option.pros.toLowerCase().includes('low risk')) score += 3;
-		if (option.pros.toLowerCase().includes('incremental')) score += 2;
-		if (option.pros.toLowerCase().includes('fast feedback')) score += 2;
-		if (option.cons.toLowerCase().includes('high risk')) score -= 3;
-		if (option.cons.toLowerCase().includes('all-or-nothing')) score -= 2;
-		return { letter, score };
-	});
+  // Fallback: Analyze pros/cons to recommend
+  // Prefer: Low risk, incremental, matches existing patterns
+  const scores = Object.entries(options).map(([letter, option]) => {
+    let score = 0;
+    if (option.pros.toLowerCase().includes('low risk')) score += 3;
+    if (option.pros.toLowerCase().includes('incremental')) score += 2;
+    if (option.pros.toLowerCase().includes('fast feedback')) score += 2;
+    if (option.cons.toLowerCase().includes('high risk')) score -= 3;
+    if (option.cons.toLowerCase().includes('all-or-nothing')) score -= 2;
+    return { letter, score };
+  });
 
-	const recommended = scores.sort((a, b) => b.score - a.score)[0];
-	return {
-		letter: recommended.letter,
-		title: options[recommended.letter].title,
-		reasoning: `Lower risk and incremental approach. ${options[recommended.letter].title} allows validation before full commitment.`
-	};
+  const recommended = scores.sort((a, b) => b.score - a.score)[0];
+  return {
+    letter: recommended.letter,
+    title: options[recommended.letter].title,
+    reasoning: `Lower risk and incremental approach. ${options[recommended.letter].title} allows validation before full commitment.`
+  };
 }
 ```
 
@@ -216,25 +216,25 @@ function analyzeAndRecommendOption(
 
 ```typescript
 function detectUserOptionSelection(): string | null {
-	// Check user message for explicit option selection
-	const userMessage = getUserMessage(); // From conversation context
+  // Check user message for explicit option selection
+  const userMessage = getUserMessage(); // From conversation context
 
-	const optionPatterns = [
-		/option\s+([A-C])/i,
-		/approach\s+([A-C])/i,
-		/use\s+([A-C])/i,
-		/go\s+with\s+([A-C])/i,
-		/choose\s+([A-C])/i
-	];
+  const optionPatterns = [
+    /option\s+([A-C])/i,
+    /approach\s+([A-C])/i,
+    /use\s+([A-C])/i,
+    /go\s+with\s+([A-C])/i,
+    /choose\s+([A-C])/i
+  ];
 
-	for (const pattern of optionPatterns) {
-		const match = userMessage.match(pattern);
-		if (match) {
-			return match[1].toUpperCase();
-		}
-	}
+  for (const pattern of optionPatterns) {
+    const match = userMessage.match(pattern);
+    if (match) {
+      return match[1].toUpperCase();
+    }
+  }
 
-	return null;
+  return null;
 }
 ```
 
@@ -303,16 +303,16 @@ AI: [Uses Approach A → Continues to ticket creation]
 
 ```typescript
 interface OptionData {
-	title: string;
-	description: string;
-	pros: string;
-	cons: string;
+  title: string;
+  description: string;
+  pros: string;
+  cons: string;
 }
 
 interface Recommendation {
-	letter: string;
-	title: string;
-	reasoning: string; // Max 2 sentences, ~300 chars
+  letter: string;
+  title: string;
+  reasoning: string; // Max 2 sentences, ~300 chars
 }
 ```
 
