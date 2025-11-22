@@ -1897,9 +1897,1176 @@ fi
 - Writing pre-commit hooks that check staged files
 - Using `while read` loops with piped input
 - Need to exit script based on loop results
+
+**Related**: #L10 (Incremental CI gates), #L110 (Local CI testing)
+
+---
+
+## #L1900: Pre-Commit Hook (Husky) - Token Build & Validation [🟡 IMPORTANT]
+
+**Context**: Design tokens must be built and validated before commits to prevent invalid token references and manual CSS edits  
+**Location**: `.husky/pre-commit`  
+**Runs automatically**: Via Husky on every `git commit` (installed via `npm install`)
+
+**Validation Steps** (in order):
+
+1. **Confidentiality check** (`npm run check:confidentiality`) - Blocks confidential information
+2. **ESLint** (`npm run lint`) - Blocks hardcoded values
+3. **Token build** (`npm run tokens:build`) - Auto-generates CSS from `design-system.json`
+4. **Auto-stage CSS** (`git add src/styles/tokens/*.css src/styles/utilities/*.css`) - Stages regenerated files
+5. **Semantic validation** (`npm run tokens:validate-semantic`) - Blocks commits with hardcoded semantic tokens
+6. **Manual edit detection** (`git diff --quiet`) - Blocks commits with manually edited CSS files
+7. **Design system audit** (`npm run audit:quick`) - Warns on violations (non-blocking)
+8. **Code formatting** (`npx lint-staged`) - Auto-formats staged files
+
+**Bypass** (use sparingly):
+
+```bash
+git commit --no-verify
+```
+
+**Why**:
+
+- ✅ Catches token violations before CI (faster feedback)
+- ✅ Prevents manual CSS edits (enforces single source of truth)
+- ✅ Auto-stages regenerated files (no manual git add needed)
+- ✅ Runs automatically (no manual installation required)
+
+**Avoiding Redundant Hooks**:
+
+- ❌ **WRONG**: Create `scripts/git-hooks/pre-commit` AND use Husky (conflicts)
+- ✅ **CORRECT**: Use Husky exclusively (`.husky/pre-commit`)
+- ✅ **CORRECT**: Update `scripts/install-git-hooks.sh` to skip pre-commit if Husky manages it
+- ✅ **CORRECT**: Husky hooks install automatically via `npm install` (see `package.json` "prepare" script)
+
+**Current Status**:
+
+- ⚠️ Semantic validation will fail until Phase 5 completes (98 violations expected)
+- ✅ Hook blocks commits correctly when violations exist
+- ✅ Manual edit detection working correctly
+
+**See**: SYOS-477 (Phase 3: CI Integration), `dev-docs/2-areas/design/design-tokens.md`
+
+**Related**: #L1850 (Pre-commit hook subshell exit bug), #L1950 (Token usage reports), #L1905 (Avoiding redundant git hooks)
+
+---
+
+## #L1905: Avoiding Redundant Git Hooks [🟡 IMPORTANT]
+
+**Symptom**: Pre-commit hook conflicts or doesn't run, manual hook installation overwrites Husky hooks  
+**Root Cause**: Creating both Husky hooks (`.husky/pre-commit`) and custom hooks (`scripts/git-hooks/pre-commit`) causes conflicts. Manual installation scripts overwrite Husky-managed hooks.
+
+**Fix**:
+
+```bash
+# ❌ WRONG: Create both Husky and custom hooks
+.husky/pre-commit              # Husky-managed
+scripts/git-hooks/pre-commit   # Custom hook (conflicts!)
+
+# ❌ WRONG: Install script overwrites Husky hook
+cp scripts/git-hooks/pre-commit .git/hooks/pre-commit  # Overwrites Husky!
+
+# ✅ CORRECT: Use Husky exclusively
+.husky/pre-commit              # Single source of truth
+
+# ✅ CORRECT: Update install script to skip pre-commit
+if [ -f "$SCRIPTS_DIR/pre-commit" ]; then
+  echo "⚠️  Note: Pre-commit hook managed by Husky (see .husky/pre-commit)"
+  echo "   Skipping installation - Husky hooks install via npm install"
+fi
+```
+
+**Why**:
+
+- ✅ Husky hooks install automatically via `npm install` (see `package.json` "prepare" script)
+- ✅ Single source of truth prevents conflicts
+- ✅ No manual installation needed
+- ✅ Consistent behavior across team
+
+**Apply when**:
+
+- Setting up git hooks in project using Husky
+- Creating custom hook installation scripts
+- Avoiding conflicts between Husky and manual hooks
+
+**Related**: #L1900 (Pre-commit hook token validation), #L1850 (Pre-commit hook subshell exit bug)
+
+---
+
+## #L1950: Creating Token Usage Report Scripts [🟡 IMPORTANT]
+
+**Symptom**: Need automated audit of design token coverage and hardcoded value detection  
+**Root Cause**: Manual token audits are time-consuming, violations slip through without automated checks  
+**Fix**:
+
+```javascript
+// scripts/token-usage-report.js
+import * as fs from 'fs';
+import * as path from 'path';
+
+// 1. Extract tokens from app.css @theme block
+function extractTokens() {
+  const content = fs.readFileSync('src/app.css', 'utf-8');
+  const tokens = new Set();
+  const utilities = new Set();
+  
+  // Extract CSS custom properties
+  const themeMatch = content.match(/@theme\s*\{([^}]+)\}/s);
+  if (themeMatch) {
+    const tokenRegex = /--([a-z0-9-]+):/g;
+    let match;
+    while ((match = tokenRegex.exec(themeMatch[1])) !== null) {
+      if (!match[1].includes('-legacy')) {
+        tokens.add(match[1]);
+      }
+    }
+  }
+  
+  // Extract utility classes from @utility blocks
+  const utilityRegex = /@utility\s+([a-z0-9-]+)\s*\{/g;
+  while ((match = utilityRegex.exec(content)) !== null) {
+    utilities.add(match[1]);
+  }
+  
+  return { tokens: Array.from(tokens), utilities: Array.from(utilities) };
+}
+
+// 2. Scan codebase for utility usage
+function scanFile(filePath, utilities) {
+  const content = fs.readFileSync(filePath, 'utf-8');
+  const usedUtilities = new Set();
+  
+  for (const utility of utilities) {
+    const escapedUtility = utility.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const utilityRegex = new RegExp(
+      `(class|className)=["'][^"']*\\b${escapedUtility}\\b[^"']*["']|\\b${escapedUtility}\\b`,
+      'g'
+    );
+    if (utilityRegex.test(content)) {
+      usedUtilities.add(utility);
+    }
+  }
+  
+  return { usedUtilities };
+}
+
+// 3. Detect hardcoded values (reuse patterns from existing audit)
+const PATTERNS = {
+  arbitraryValue: /class=["'][^"']*\[[#0-9]/g,
+  rawColor: /\b(bg|text|border)-(blue|gray|red|green|yellow|purple|pink|indigo|orange|teal|cyan|emerald|lime|amber|violet|fuchsia|rose|sky|slate|zinc|neutral|stone)-[0-9]{2,3}\b/g,
+  rawSpacing: /\b(p|m|gap|px|py|pt|pb|pl|pr|mx|my|mt|mb|ml|mr|space-[xy])-[0-9]{1,2}\b/g,
+  rawFontSize: /\btext-(xs|sm|base|lg|xl|2xl|3xl|4xl|5xl|6xl|7xl|8xl|9xl)\b/g,
+  rawBorderRadius: /\brounded-(none|sm|md|lg|xl|2xl|3xl|full)\b/g,
+  inlineStyle: /style=["'][^"']+["']/g
+};
+
+// 4. Calculate coverage and output report
+function main() {
+  const { tokens, utilities } = extractTokens();
+  const files = findSourceFiles();
+  const allUsedUtilities = new Set();
+  const allViolations = [];
+  
+  for (const file of files) {
+    const { usedUtilities, violations } = scanFile(file, utilities);
+    usedUtilities.forEach(util => allUsedUtilities.add(util));
+    allViolations.push(...violations);
+  }
+  
+  const coveragePercent = Math.round((allUsedUtilities.size / utilities.length) * 100);
+  
+  console.log(`📊 Token Usage Report\n`);
+  console.log(`Total Tokens: ${tokens.length}`);
+  console.log(`Used Tokens: ${allUsedUtilities.size} (${coveragePercent}%)`);
+  console.log(`Unused Tokens: ${utilities.length - allUsedUtilities.size}\n`);
+  
+  if (allViolations.length > 0) {
+    console.log(`❌ Hardcoded Values Found: ${Object.keys(violationsByFile).length} files`);
+    for (const [file, fileViolations] of Object.entries(violationsByFile)) {
+      for (const violation of fileViolations) {
+        console.log(`  - ${file}:${violation.line} (${violation.violation})`);
+      }
+    }
+  }
+  
+  // CI mode: exit 1 if violations found
+  if (process.argv.includes('--ci') && allViolations.length > 0) {
+    process.exit(1);
+  }
+}
+```
+
+**Key Components**:
+
+1. **Token Extraction**: Parse `@theme` block for CSS custom properties, `@utility` blocks for utility classes
+2. **Usage Detection**: Scan codebase for utility class usage (match in `class` attributes)
+3. **Violation Detection**: Reuse hardcoded value patterns from existing audit scripts
+4. **Coverage Calculation**: `used / total * 100` percentage
+5. **CI Integration**: `--ci` flag exits with code 1 if violations found
+
+**NPM Script**:
+
+```json
+{
+  "scripts": {
+    "tokens:report": "node scripts/token-usage-report.js"
+  }
+}
+```
+
+**CI Integration**:
+
+```yaml
+# .github/workflows/quality-gates.yml
+- name: Token Usage Report
+  run: npm run tokens:report -- --ci
+  continue-on-error: true # Non-blocking initially
+```
+
+**Why**:
+
+- ✅ Automated compliance monitoring (prevents violations from entering codebase)
+- ✅ Token coverage visibility (identifies unused tokens for cleanup)
+- ✅ Actionable error messages (file:line format for quick fixes)
+- ✅ CI integration (fails builds if violations found)
+- ✅ Fast execution (<1 second for 300+ files)
+
+**Apply when**:
+
+- Creating design system audit scripts
+- Need token coverage reporting
+- Enforcing design token compliance
+- Integrating audits into CI/CD pipeline
+
+**Related**: #L10 (Incremental CI gates), #L720 (Adding design tokens), ui-patterns.md#L780 (Using design tokens)
 - Shell scripts that validate code before commit
 
 **Related**: #L110 (Local CI testing), shell scripting best practices
+
+---
+
+## #L2050: Validating Token→Utility Mapping [🟡 IMPORTANT]
+
+**Symptom**: Orphaned design tokens accumulate (tokens without corresponding utility classes), design system becomes inconsistent  
+**Root Cause**: No automated validation to ensure every token has a utility class, manual checks miss violations  
+**Fix**:
+
+```javascript
+// scripts/validate-tokens.js
+import * as fs from 'fs';
+import * as path from 'path';
+import { execSync } from 'child_process';
+
+const CSS_FILE = 'src/app.css';
+
+// 1. Extract tokens from @theme block
+function extractTokens(cssContent) {
+	const tokens = new Set();
+	const themeMatch = cssContent.match(/@theme\s*\{([^}]+)\}/s);
+	if (!themeMatch) throw new Error('No @theme block found');
+	
+	const tokenPattern = /--([a-z0-9-]+):/g;
+	let match;
+	while ((match = tokenPattern.exec(themeMatch[1])) !== null) {
+		tokens.add(match[1]);
+	}
+	return tokens;
+}
+
+// 2. Extract utilities and find referenced tokens
+function extractUtilitiesAndTokens(cssContent) {
+	const referencedTokens = new Set();
+	const utilityPattern = /@utility\s+[^{]+\{([^}]+)\}/g;
+	let match;
+	
+	while ((match = utilityPattern.exec(cssContent)) !== null) {
+		const varPattern = /var\(--([a-z0-9-]+)\)/g;
+		let varMatch;
+		while ((varMatch = varPattern.exec(match[1])) !== null) {
+			referencedTokens.add(varMatch[1]);
+		}
+	}
+	return referencedTokens;
+}
+
+// 3. Check direct usage in CSS and components
+function findDirectUsage(cssContent, tokens) {
+	const referencedTokens = new Set();
+	const withoutUtilities = cssContent.replace(/@utility\s+[^{]+\{[^}]+\}/g, '');
+	const varPattern = /var\(--([a-z0-9-]+)\)/g;
+	let match;
+	
+	while ((match = varPattern.exec(withoutUtilities)) !== null) {
+		if (tokens.has(match[1])) {
+			referencedTokens.add(match[1]);
+		}
+	}
+	return referencedTokens;
+}
+
+// 4. Find orphaned tokens (exclude base/legacy tokens)
+function validateTokens() {
+	const cssContent = fs.readFileSync(CSS_FILE, 'utf-8');
+	const allTokens = extractTokens(cssContent);
+	const referencedByUtilities = extractUtilitiesAndTokens(cssContent);
+	const directUsage = findDirectUsage(cssContent, allTokens);
+	
+	const orphanedTokens = [];
+	for (const token of allTokens) {
+		// Skip base tokens (spacing-0, spacing-1, etc.)
+		if (/^spacing-[0-9]+$/.test(token)) continue;
+		// Skip legacy tokens
+		if (token.includes('-legacy')) continue;
+		// Skip if referenced
+		if (referencedByUtilities.has(token)) continue;
+		if (directUsage.has(token)) continue;
+		
+		orphanedTokens.push(token);
+	}
+	
+	if (orphanedTokens.length > 0) {
+		console.log(`❌ Found ${orphanedTokens.length} orphaned tokens:`);
+		orphanedTokens.forEach(t => console.log(`  - --${t}`));
+		process.exit(1); // Block CI
+	}
+}
+```
+
+**Key Components**:
+
+1. **Token Extraction**: Parse `@theme` block for CSS custom properties (`--token-name`)
+2. **Utility Analysis**: Extract `@utility` blocks and find `var(--token-name)` references
+3. **Direct Usage Check**: Scan CSS and components for direct `var(--token-name)` usage
+4. **Orphan Detection**: Find tokens not referenced by utilities or direct usage
+5. **Exclusions**: Skip base tokens (`spacing-0`, etc.) and legacy tokens (`-legacy` suffix)
+6. **CI Blocking**: Exit code 1 if orphaned tokens found
+
+**NPM Script**:
+
+```json
+{
+  "scripts": {
+    "tokens:validate": "node scripts/validate-tokens.js"
+  }
+}
+```
+
+**CI Integration**:
+
+```yaml
+# .github/workflows/quality-gates.yml
+- name: Token Validation
+  run: npm run tokens:validate
+  # Blocks build if orphaned tokens found
+```
+
+**Why**:
+
+- ✅ Prevents orphaned tokens (ensures every token has a utility or is intentionally unused)
+- ✅ Maintains design system consistency (token→utility mapping enforced)
+- ✅ Fast execution (<1 second for 241 tokens, 253 utilities)
+- ✅ CI blocking (fails builds if violations found)
+- ✅ Clear error messages (lists orphaned tokens for quick fixes)
+
+**Apply when**:
+
+- Implementing design system governance
+- Need automated token→utility validation
+- Preventing orphaned tokens from accumulating
+- Integrating token validation into CI/CD pipeline
+
+**Related**: #L1900 (Token usage reports), #L10 (Incremental CI gates), ui-patterns.md#L720 (Adding design tokens)
+
+---
+
+## #L2100: Converting Design Tokens to DTCG Format [🟢 REFERENCE]
+
+**Symptom**: Need to convert CSS custom properties to DTCG (Design Tokens Community Group) standard format for tooling interoperability  
+**Root Cause**: Design tokens in CSS format aren't compatible with design tools (Figma, Style Dictionary), need industry-standard format  
+**Fix**:
+
+```typescript
+// scripts/convert-css-to-dtcg.ts
+// Extract tokens from CSS and convert to DTCG format
+
+interface Token {
+	name: string;
+	value: string;
+	description?: string;
+	category: 'spacing' | 'color' | 'typography' | 'shadow' | 'borderRadius' | 'transition' | 'zIndex' | 'size';
+}
+
+// Map CSS token names to DTCG types
+function categorizeToken(name: string): { category: Token['category']; dtcgType: string } {
+	if (name.startsWith('--spacing-')) return { category: 'spacing', dtcgType: 'dimension' };
+	if (name.startsWith('--color-')) return { category: 'color', dtcgType: 'color' };
+	if (name.startsWith('--font-size-') || name.startsWith('--text-')) return { category: 'typography', dtcgType: 'dimension' };
+	if (name.startsWith('--font-weight-')) return { category: 'typography', dtcgType: 'fontWeight' };
+	if (name.startsWith('--shadow-')) return { category: 'shadow', dtcgType: 'shadow' };
+	if (name.startsWith('--border-radius-')) return { category: 'borderRadius', dtcgType: 'dimension' };
+	// ... more mappings
+}
+
+// Convert to DTCG structure
+function convertToDTCG(tokens: Token[]): DTCGStructure {
+	const dtcg: DTCGStructure = {
+		$schema: 'https://design-tokens.github.io/community-group/format/1.0.0/schema.json'
+	};
+	
+	// Group tokens by category and build nested structure
+	// Each group has $type at root, tokens have $value and $description
+	dtcg.spacing = { $type: 'dimension', ...tokensObj };
+	dtcg.color = { $type: 'color', ...tokensObj };
+	// ...
+	
+	return dtcg;
+}
+```
+
+**DTCG Format Requirements**:
+
+- ✅ `$schema` reference (DTCG 1.0.0)
+- ✅ `$type` at group level (dimension, color, fontWeight, shadow, etc.)
+- ✅ `$value` for each token (required)
+- ✅ `$description` for each token (optional but recommended)
+- ✅ Flattened structure (no wrapper objects)
+
+**Type Mapping**:
+
+- `--spacing-*` → `$type: "dimension"`
+- `--color-*` → `$type: "color"`
+- `--font-size-*` → `$type: "dimension"`
+- `--font-weight-*` → `$type: "fontWeight"`
+- `--border-radius-*` → `$type: "dimension"`
+- `--shadow-*` → `$type: "shadow"`
+
+**Architecture Decision**:
+
+- **Phase 3 (Current)**: CSS is source of truth, DTCG is export/docs
+  - Style Dictionary reads CSS for validation
+  - DTCG format (`design-system.json`) serves as documentation/export
+  - Conversion script: `npm run tokens:convert` (CSS → DTCG)
+- **Phase 4 (Future)**: DTCG becomes source of truth
+  - Style Dictionary reads `design-system.json` and generates CSS
+  - CSS becomes generated artifact
+
+**Validation Script**:
+
+```typescript
+// scripts/validate-dtcg.ts
+// Validates DTCG format against schema
+
+function validateDTCG(filePath: string): ValidationResult {
+	// Check $schema reference
+	// Verify all groups have $type
+	// Ensure all tokens have $value
+	// Warn on missing $description
+}
+```
+
+**NPM Scripts**:
+
+```json
+{
+	"tokens:convert": "npx tsx scripts/convert-css-to-dtcg.ts",
+	"tokens:validate-dtcg": "npx tsx scripts/validate-dtcg.ts"
+}
+```
+
+**CI Integration**:
+
+```yaml
+# .github/workflows/quality-gates.yml
+- name: DTCG Format Validation
+  run: npm run tokens:validate-dtcg
+  continue-on-error: true # Non-blocking initially
+```
+
+**Apply when**:
+
+- Converting design tokens to industry-standard format
+- Enabling tooling interoperability (Figma, Style Dictionary)
+- Migrating from CSS-first to DTCG-first architecture
+- Setting up design system governance
+
+**Related**: #L2050 (Token→utility validation), #L1900 (Token usage reports), #L2310 (Adding token descriptions), ui-patterns.md#L720 (Adding design tokens)
+
+---
+
+## #L2310: Adding Descriptions to Design Tokens [🟢 REFERENCE]
+
+**Symptom**: DTCG validation warns "Token 'X' missing $description (optional but recommended)"  
+**Root Cause**: Design tokens defined in CSS without inline comments, conversion script extracts `$value` but no `$description`  
+**Fix**:
+
+```css
+/* ❌ WRONG - No description */
+--font-weight-h1: 700;
+--transition-default: all 0.2s ease;
+
+/* ✅ CORRECT - Inline comment provides description */
+--font-weight-h1: 700; /* Bold - Heading 1 font weight */
+--transition-default: all 0.2s ease; /* Standard transition for interactive elements */
+```
+
+**Workflow**:
+
+1. **Add inline comments to CSS tokens** in source files (`src/app.css`, `src/styles/tokens/*.css`)
+2. **Run conversion**: `npm run tokens:convert` (extracts comments → `$description` in DTCG)
+3. **Verify validation**: `npm run tokens:validate-dtcg` (expect 0 warnings)
+
+**Description Extraction Logic**:
+
+```typescript
+// scripts/convert-css-to-dtcg.ts
+// Extracts inline comment as $description
+
+const tokenMatch = line.match(/^\s*--([a-z0-9-]+):\s*(.+?);/);
+if (tokenMatch) {
+	const [, name, value] = tokenMatch;
+	
+	// Extract description from inline comment /* ... */
+	const inlineCommentMatch = line.match(/\/\*\s*(.+?)\s*\*\//);
+	const description = inlineCommentMatch ? inlineCommentMatch[1] : undefined;
+	
+	tokens.push({
+		name: `--${name}`,
+		value: value.split('/*')[0].trim(), // Strip inline comment from value
+		description, // Optional, extracted from comment
+		category
+	});
+}
+```
+
+**DTCG Output**:
+
+```json
+{
+	"typography": {
+		"fontWeight": {
+			"$type": "fontWeight",
+			"h1": {
+				"$value": "700",
+				"$description": "Bold - Heading 1 font weight"
+			}
+		}
+	},
+	"transition": {
+		"$type": "other",
+		"default": {
+			"$value": "all 0.2s ease",
+			"$description": "Standard transition for interactive elements"
+		}
+	}
+}
+```
+
+**Why**:
+
+- ✅ Self-documenting design system (descriptions visible in DTCG export)
+- ✅ Better team collaboration (non-developers understand token purpose)
+- ✅ Tooling interoperability (Figma, Style Dictionary read descriptions)
+- ✅ Zero-cost documentation (inline comments don't affect CSS output)
+
+**Apply when**:
+
+- DTCG validation shows missing `$description` warnings
+- Adding new design tokens (always include descriptions for clarity)
+- Improving design system documentation for team
+- Preparing for design tool integration (Figma, Style Dictionary)
+
+**Best Practices**:
+
+- **Concise**: 5-10 words max (e.g., "Bold - Heading 1 font weight")
+- **Purpose-focused**: Explain what/when to use (not just value repetition)
+- **Consistent format**: "[Style] - [Purpose]" or "[Purpose] for [context]"
+
+**Related**: #L2100 (DTCG conversion), #L2050 (Token validation), ui-patterns.md#L720 (Adding design tokens)
+
+---
+
+## #L2400: Setting Up Style Dictionary Pipeline for DTCG → CSS Generation [🟡 IMPORTANT]
+
+**Symptom**: Need automated CSS generation from DTCG format design tokens, manual CSS maintenance is error-prone and time-consuming  
+**Root Cause**: Design tokens in DTCG format (design-system.json) need to be converted to Tailwind CSS 4 compatible CSS (`@theme` and `@utility` blocks), manual conversion is tedious and error-prone  
+**Fix**:
+
+**1. Install Style Dictionary**:
+
+```json
+// package.json
+{
+  "devDependencies": {
+    "style-dictionary": "^5.1.1"
+  }
+}
+```
+
+**2. Create DTCG Parser** (`scripts/style-dictionary/parse-dtcg.js`):
+
+```javascript
+// Recursively flatten DTCG nested structure into Style Dictionary tokens
+function flattenDTCG(obj, pathParts = [], type = null, tokens = []) {
+	if (!obj || typeof obj !== 'object') return tokens;
+	if (obj.$schema) return tokens;
+	
+	// Leaf node: token with $value
+	if (obj.$value !== undefined) {
+		tokens.push({
+			name: pathParts.join('.'),
+			path: pathParts,
+			value: obj.$value,
+			type: type || inferType(pathParts),
+			description: obj.$description || '',
+			original: obj
+		});
+		return tokens;
+	}
+	
+	// Group node: has $type for child tokens
+	if (obj.$type !== undefined) {
+		type = obj.$type;
+	}
+	
+	// Recursively process nested objects
+	for (const [key, value] of Object.entries(obj)) {
+		if (key.startsWith('$')) continue;
+		if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+			flattenDTCG(value, [...pathParts, key], type, tokens);
+		}
+	}
+	
+	return tokens;
+}
+
+// Parse DTCG JSON file
+function parseDTCG(filePath) {
+	const dtcg = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+	const tokens = [];
+	
+	// Process each category (spacing, color, typography, etc.)
+	for (const [category, categoryObj] of Object.entries(dtcg)) {
+		if (category === '$schema') continue;
+		flattenDTCG(categoryObj, [category], null, tokens);
+	}
+	
+	return tokens;
+}
+```
+
+**3. Create Custom Transforms** (`scripts/style-dictionary/transforms.js`):
+
+```javascript
+// Transform: Output @theme { } blocks for Tailwind CSS 4
+function transformTailwindTheme(token) {
+	const pathParts = token.path || token.name.split('.');
+	const path = pathParts.join('-');
+	const name = `--${path}`;
+	const value = String(token.value);
+	const description = token.description || 
+		(token.original && token.original.$description) || '';
+	const comment = description ? ` /* ${description} */` : '';
+	
+	return `\t${name}: ${value};${comment}`;
+}
+
+// Transform: Output @utility { } blocks
+function transformTailwindUtility(token) {
+	const pathParts = token.path || token.name.split('.');
+	const path = pathParts.join('-');
+	const cssValue = `var(--${path})`;
+	
+	// Determine utility name and CSS property based on path patterns
+	let utilityName = '';
+	let cssProperty = '';
+	
+	if (path.startsWith('spacing-')) {
+		const spacingName = path.replace('spacing-', '');
+		if (spacingName.includes('-x')) {
+			utilityName = `px-${spacingName.replace('-x', '')}`;
+			cssProperty = 'padding-inline';
+		} else if (spacingName.includes('-y')) {
+			utilityName = `py-${spacingName.replace('-y', '')}`;
+			cssProperty = 'padding-block';
+		} else if (spacingName.includes('gap')) {
+			utilityName = `gap-${spacingName.replace('-gap', '')}`;
+			cssProperty = 'gap';
+		}
+		// ... more patterns
+	}
+	
+	if (!utilityName || !cssProperty) return null;
+	
+	return `@utility ${utilityName} {\n\t${cssProperty}: ${cssValue};\n}`;
+}
+```
+
+**4. Configure Style Dictionary** (`style-dictionary.config.js`):
+
+```javascript
+import StyleDictionary from 'style-dictionary';
+import { convertDTCGToSD } from './scripts/style-dictionary/prepare-tokens.js';
+
+// Pre-process DTCG to Style Dictionary format
+convertDTCGToSD('design-system.json', 'tokens.json');
+
+// Register custom transforms
+StyleDictionary.registerTransform({
+	name: 'tailwind/theme',
+	type: 'value',
+	transform: transformTailwindTheme
+});
+
+StyleDictionary.registerTransform({
+	name: 'tailwind/utility',
+	type: 'value',
+	transform: transformTailwindUtility
+});
+
+// Register custom formats
+StyleDictionary.registerFormat({
+	name: 'tailwind/theme',
+	format: ({ dictionary }) => {
+		const tokens = dictionary.allTokens
+			.map(token => transformTailwindTheme(token))
+			.filter(Boolean)
+			.join('\n');
+		return `@theme {\n${tokens}\n}`;
+	}
+});
+
+export default {
+	source: ['tokens.json'], // Pre-processed from DTCG
+	platforms: {
+		css: {
+			buildPath: 'src/styles/tokens/',
+			files: [
+				{
+					destination: 'spacing.css',
+					format: 'tailwind/theme',
+					filter: (token) => token.path[0] === 'spacing'
+				},
+				{
+					destination: 'colors.css',
+					format: 'tailwind/theme',
+					filter: (token) => token.path[0] === 'color'
+				}
+				// ... more token categories
+			]
+		},
+		utilities: {
+			buildPath: 'src/styles/utilities/',
+			files: [
+				{
+					destination: 'spacing-utils.css',
+					format: 'tailwind/utility',
+					filter: (token) => token.path[0] === 'spacing'
+				}
+				// ... more utility files
+			]
+		}
+	}
+};
+```
+
+**5. Add Build Script** (`package.json`):
+
+```json
+{
+  "scripts": {
+    "tokens:build": "node scripts/build-tokens.js"
+  }
+}
+```
+
+**Build Script** (`scripts/build-tokens.js`):
+
+```javascript
+import StyleDictionary from 'style-dictionary';
+import config from '../style-dictionary.config.js';
+
+const sd = new StyleDictionary(config);
+sd.buildAllPlatforms();
+```
+
+**Gotchas & Edge Cases**:
+
+1. **tokens.json is intermediate file**: `tokens.json` is generated from `design-system.json` (DTCG) before Style Dictionary runs. It's committed to git because Style Dictionary needs it as source. Don't edit manually - edit `design-system.json` instead.
+
+2. **Pre-processing step required**: Style Dictionary doesn't natively support DTCG format, so we convert DTCG → Style Dictionary format (`tokens.json`) before running Style Dictionary. This happens automatically in `style-dictionary.config.js`.
+
+3. **Generated CSS files must not be edited**: CI checks for manual edits to generated CSS files (`src/styles/tokens/*.css`, `src/styles/utilities/*.css`). Always edit `design-system.json` and run `npm run tokens:build`.
+
+4. **Semantic token validation is blocking**: Semantic tokens must reference base tokens using DTCG reference syntax (`{spacing.2}`) not hardcoded values (`0.5rem`). CI blocks merges if violations found.
+
+5. **Transform order matters**: Custom transforms (`tailwind/theme`, `tailwind/utility`) must be registered before Style Dictionary processes tokens. Order: register transforms → register formats → build platforms.
+
+6. **Filter functions use path array**: Style Dictionary filters use `token.path[0]` to match categories (e.g., `token.path[0] === 'spacing'`). Path is array from DTCG structure, not dot-notation string.
+
+**Apply when**: Setting up Style Dictionary pipeline for DTCG → CSS generation, troubleshooting build failures, understanding token generation workflow
+
+**Related**: #L2100 (DTCG conversion), #L2310 (DTCG validation), #L2550 (Semantic token validation)
+```
+
+**Why**:
+
+- ✅ **Automated CSS generation**: DTCG tokens → CSS automatically, no manual conversion
+- ✅ **Single source of truth**: Update `design-system.json`, CSS regenerates automatically
+- ✅ **Modular output**: Separate files per token category (spacing.css, colors.css, etc.)
+- ✅ **Tailwind CSS 4 compatible**: Generates `@theme` and `@utility` blocks correctly
+- ✅ **Error reduction**: Eliminates manual CSS editing mistakes
+- ✅ **Scalable**: Handles 200+ tokens automatically
+
+**Apply when**:
+
+- Migrating from CSS-first to DTCG-first design token architecture
+- Need automated CSS generation from DTCG format
+- Want to eliminate manual CSS maintenance for design tokens
+- Setting up design system build pipeline
+
+**Architecture Decision**:
+
+- **Phase 3 (Previous)**: CSS is source of truth, DTCG is export/docs
+- **Phase 4 (Current)**: DTCG is source of truth, CSS is generated artifact
+
+**Related**: #L2100 (Converting to DTCG), #L2310 (Adding token descriptions), #L2050 (Token validation), ui-patterns.md#L720 (Adding design tokens)
+
+---
+
+## #L2350: Configuring MCP Servers in Cursor [🟢 REFERENCE]
+
+**Symptom**: Need to add MCP (Model Context Protocol) server to Cursor for enhanced AI tooling (e.g., Svelte MCP for code validation)  
+**Root Cause**: MCP servers must be configured in Cursor's configuration file to enable tools in chat  
+**Fix**:
+
+**Configuration File Location**:
+- **macOS**: `~/.cursor/mcp.json` (home directory, NOT `~/Library/Application Support/Cursor/User/`)
+- **Format**: JSON with `mcpServers` object
+
+**Local Setup** (recommended for performance/offline):
+
+```json
+{
+  "mcpServers": {
+    "svelte": {
+      "command": "npx",
+      "args": ["-y", "@sveltejs/mcp"]
+    }
+  }
+}
+```
+
+**Remote Setup** (alternative):
+
+```json
+{
+  "mcpServers": {
+    "svelte": {
+      "url": "https://mcp.svelte.dev/mcp"
+    }
+  }
+}
+```
+
+**Adding to Existing Config**:
+
+```json
+{
+  "mcpServers": {
+    "context7": { /* existing */ },
+    "convex": { /* existing */ },
+    "svelte": {
+      "command": "npx",
+      "args": ["-y", "@sveltejs/mcp"]
+    }
+  }
+}
+```
+
+**Verification**:
+
+1. **Restart Cursor** (MCP servers load on startup)
+2. **Test tools** in Cursor chat:
+   - `svelte-autofixer` - Analyzes Svelte code
+   - `get-documentation` - Retrieves Svelte docs
+   - `list-sections` - Lists available documentation
+
+**Why**:
+
+- ✅ **Local setup**: Better performance (no network latency), works offline, no external dependency
+- ✅ **Remote setup**: No local installation, always up-to-date, managed by service provider
+- ✅ **Configuration pattern**: Matches existing MCP servers (Convex, Linear, Context7, etc.)
+
+**Tradeoffs**:
+
+**Local Setup**:
+- ✅ No internet dependency, lower latency, works offline, customizable
+- ❌ Requires Node.js/npm, uses local resources, manual updates
+
+**Remote Setup**:
+- ✅ No local installation, always up-to-date, no local resources
+- ❌ Requires internet, network latency, external dependency
+
+**Apply when**:
+
+- Adding new MCP server to Cursor (Svelte, Context7, Convex, Linear, etc.)
+- Setting up dev tooling for AI-assisted development
+- Configuring code quality validation tools
+
+**Common Mistakes**:
+
+- ❌ **Wrong file location**: Using `~/Library/Application Support/Cursor/User/mcp.json` instead of `~/.cursor/mcp.json`
+- ❌ **Missing restart**: MCP servers only load on Cursor startup
+- ❌ **Wrong format**: Using `mcpServers` array instead of object
+
+**Related**: #L10 (CI gate enablement), #L110 (Local CI testing)
+
+---
+
+## #L2550: Validating Semantic Token References in DTCG Format [🟡 IMPORTANT]
+
+**Symptom**: Semantic tokens in `design-system.json` have hardcoded values (e.g., `0.5rem`) instead of referencing base tokens (e.g., `{spacing.2}`), causing design system inconsistency  
+**Root Cause**: No automated validation to ensure semantic tokens reference base tokens using DTCG reference syntax (`{category.token}`), manual checks miss violations  
+**Fix**:
+
+```javascript
+// scripts/validate-semantic-references.js
+import * as fs from 'fs';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+const DESIGN_SYSTEM_JSON = 'design-system.json';
+
+/**
+ * Check if token path represents a base token
+ * Base tokens: spacing.0, spacing.2, color.primary (exactly 2 parts)
+ */
+function isBaseToken(pathParts) {
+	return pathParts.length === 2;
+}
+
+/**
+ * Check if token path represents a semantic token
+ * Semantic tokens: spacing.chart.container, spacing.error.page.y (more than 2 parts)
+ */
+function isSemanticToken(pathParts) {
+	return pathParts.length > 2;
+}
+
+/**
+ * Check if value is DTCG reference format: {spacing.2}
+ */
+function isDTCGReference(value) {
+	if (typeof value !== 'string') return false;
+	return /^\{[a-z0-9]+\.[a-z0-9]+(?:\.[a-z0-9]+)*\}$/.test(value.trim());
+}
+
+/**
+ * Check if value is hardcoded dimension: 0.5rem, 1px, etc.
+ */
+function isHardcodedDimension(value) {
+	if (typeof value !== 'string') return false;
+	return /^\d+(\.\d+)?(rem|px|em|%|pt|pc|in|cm|mm|ex|ch|vw|vh|vmin|vmax)$/.test(value.trim());
+}
+
+/**
+ * Check if token has documented exception
+ */
+function hasDocumentedException(token) {
+	const description = token.$description || '';
+	const upper = description.toUpperCase();
+	return upper.includes('INTENTIONAL EXCEPTION') || 
+	       upper.includes('EXCEPTION') || 
+	       upper.includes('RATIONALE');
+}
+
+/**
+ * Recursively extract all tokens from DTCG structure
+ */
+function extractTokens(obj, pathParts = [], category = null, tokens = []) {
+	if (!obj || typeof obj !== 'object') return tokens;
+	
+	// Leaf node: token with $value
+	if (obj.$value !== undefined) {
+		tokens.push({
+			path: pathParts,
+			pathString: pathParts.join('.'),
+			value: obj.$value,
+			$description: obj.$description || '',
+			category: category || pathParts[0]
+		});
+		return tokens;
+	}
+	
+	// Set category from $type at category level
+	if (obj.$type !== undefined && pathParts.length === 1) {
+		category = pathParts[0];
+	}
+	
+	// Recursively process nested objects
+	for (const [key, value] of Object.entries(obj)) {
+		if (key === '$schema') continue;
+		if (key === '$type' && pathParts.length === 1) continue;
+		
+		if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+			const newCategory = category || (pathParts.length === 0 ? key : pathParts[0]);
+			extractTokens(value, [...pathParts, key], newCategory, tokens);
+		}
+	}
+	
+	return tokens;
+}
+
+/**
+ * Main validation
+ */
+function validateSemanticReferences() {
+	const designSystem = JSON.parse(fs.readFileSync(DESIGN_SYSTEM_JSON, 'utf-8'));
+	const allTokens = extractTokens(designSystem);
+	
+	const baseTokens = allTokens.filter(t => isBaseToken(t.path));
+	const semanticTokens = allTokens.filter(t => isSemanticToken(t.path));
+	
+	const violations = [];
+	const exceptions = [];
+	
+	for (const token of semanticTokens) {
+		// Skip documented exceptions
+		if (hasDocumentedException(token)) {
+			exceptions.push(token);
+			continue;
+		}
+		
+		// ✅ Valid: References base token
+		if (isDTCGReference(token.value)) {
+			continue;
+		}
+		
+		// ❌ Violation: Hardcoded dimension
+		if (isHardcodedDimension(token.value)) {
+			violations.push({
+				token,
+				reason: `Semantic token "${token.pathString}" has hardcoded dimension "${token.value}" but should reference base token using {category.token} format (e.g., {spacing.2})`
+			});
+		}
+	}
+	
+	if (violations.length > 0) {
+		console.log(`❌ Found ${violations.length} violations:`);
+		violations.forEach(v => {
+			console.log(`   ${v.reason}`);
+			console.log(`   Path: ${v.token.pathString}`);
+			console.log(`   Value: ${v.token.value}\n`);
+		});
+		process.exit(1); // Block CI
+	}
+	
+	console.log('✅ All semantic tokens reference base tokens correctly!');
+}
+```
+
+**Key Components**:
+
+1. **Token Extraction**: Recursively parse DTCG JSON structure, extract tokens with `$value` property
+2. **Base vs Semantic**: Identify base tokens (2-part path) vs semantic tokens (3+ part path)
+3. **DTCG Reference Validation**: Check if semantic token value uses `{spacing.2}` format
+4. **Hardcoded Detection**: Flag semantic tokens with hardcoded dimensions (`0.5rem`, `1px`, etc.)
+5. **Exception Handling**: Allow documented exceptions with "INTENTIONAL EXCEPTION" in `$description`
+
+**Rules**:
+
+- ✅ **Base tokens** (`spacing.0`, `spacing.2`) can have hardcoded values (they're the source)
+- ✅ **Semantic tokens** (`spacing.chart.container`) must reference base tokens using `{spacing.X}` format
+- ✅ **Exceptions** allowed if documented with "INTENTIONAL EXCEPTION: [rationale]" in `$description`
+- ❌ **Block CI** if violations found (exit code 1)
+
+**Apply when**:
+
+- Creating validation scripts for DTCG format design tokens
+- Ensuring semantic tokens reference base tokens (not hardcoded values)
+- Enforcing design system consistency in token definitions
+- Preparing for CI integration (Phase 3 of design token automation)
+
+**Common Mistakes**:
+
+- ❌ **Wrong format**: Checking for `var(--spacing-2)` instead of `{spacing.2}` (DTCG uses `{}` syntax, not CSS `var()`)
+- ❌ **Base token validation**: Validating base tokens (they're allowed to have hardcoded values)
+- ❌ **Missing exceptions**: Not checking for documented exceptions before flagging violations
+
+**Related**: #L2050 (Token→utility mapping), #L2100 (DTCG format conversion), #L2400 (Style Dictionary pipeline)
+
+---
+
+## #L2500: Svelte MCP CI/CD Integration [🟡 IMPORTANT]
+
+**Symptom**: Need to integrate Svelte MCP validation into CI/CD pipeline, but MCP tools require MCP client (not available in CI)  
+**Root Cause**: Svelte MCP autofixer is an MCP tool that requires MCP client/server communication (stdio transport), which isn't available in CI environments  
+**Fix**:
+
+**Current Approach** (Phase 7 - Optional, Non-Blocking):
+
+```json
+// package.json
+{
+  "scripts": {
+    "validate:svelte": "npm run check && npm run lint"
+  }
+}
+```
+
+```yaml
+# .github/workflows/quality-gates.yml
+- name: Svelte Validation
+  run: npm run validate:svelte
+  continue-on-error: true # Non-blocking initially (SYOS-445)
+```
+
+**What it does**:
+- ✅ Runs `svelte-check` (type checking)
+- ✅ Runs `ESLint` (syntax rules)
+- ❌ **Does NOT run MCP autofixer** (requires MCP client - future enhancement)
+
+**Why MCP autofixer isn't included**:
+- MCP tools require MCP client/server communication (stdio transport)
+- CI environments don't have Cursor/MCP infrastructure
+- Would require custom Node.js script using `@modelcontextprotocol/sdk` client
+
+**Future Enhancement** (MCP autofixer in CI):
+
+To add MCP autofixer to CI, create a Node.js script that:
+1. Uses `@modelcontextprotocol/sdk` client library
+2. Connects to Svelte MCP server via `StdioClientTransport`
+3. Calls `svelte-autofixer` tool for each `.svelte` file
+4. Reports issues/suggestions
+
+**Example Future Script** (not implemented yet):
+
+```typescript
+// scripts/validate-svelte-mcp.ts
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+
+const client = new Client({ name: 'ci-client', version: '1.0.0' });
+const transport = new StdioClientTransport({
+  command: 'npx',
+  args: ['-y', '@sveltejs/mcp']
+});
+
+await client.connect(transport);
+// Call svelte-autofixer tool...
+```
+
+**Current Status**:
+- ✅ `validate:svelte` script added (svelte-check + ESLint)
+- ✅ CI step added (optional, non-blocking)
+- ⏳ MCP autofixer integration deferred (requires MCP client script)
+
+**Apply when**:
+- Adding Svelte validation to CI/CD pipeline
+- Integrating code quality checks
+- Setting up automated validation workflows
+
+**Related**: #L100 (Svelte Validation Workflow), #L2399 (MCP Setup), ai-development.md#L100 (Svelte MCP validation)
 
 ---
 
