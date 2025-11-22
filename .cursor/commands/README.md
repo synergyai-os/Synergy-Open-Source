@@ -14,25 +14,25 @@
 
 ## 📊 Optimization Results
 
-| Command            | Before    | After      | Change     | Status                                                            |
-| ------------------ | --------- | ---------- | ---------- | ----------------------------------------------------------------- |
-| `/start`           | 368 lines | ~490 lines | +122 lines | ✅ Reference code check added (SYOS-409)                          |
-| `/go`              | New       | ~280 lines | N/A        | ✅ New command - Pattern-first implementation workflow (SYOS-409) |
-| `/save`            | 898 lines | 272 lines  | -70% (626) | ✅ Optimized                                                      |
-| `/root-cause`      | 65 lines  | 239 lines  | +174 lines | ✅ Enhanced with "slow = fast" methodology                        |
-| `/pr`              | New       | 366 lines  | N/A        | ✅ New command - PR creation workflow                             |
-| `/pr-close`        | New       | 415 lines  | N/A        | ✅ New command - Post-merge cleanup workflow                      |
-| `/branch`          | 1 line    | 205 lines  | +204 lines | ✅ New command - Branch creation workflow                         |
-| `/manager`         | New       | 450 lines  | N/A        | ✅ New command - Manager/mentor role guide                        |
-| `/design-manager`  | New       | ~670 lines | N/A        | ✅ New command - Design system manager (inherits /manager)        |
-| `/test-manual`     | 1 line    | 45 lines   | +44 lines  | ✅ Enhanced - Concise manual test instructions                    |
-| `/task-template`   | New       | 382 lines  | N/A        | ✅ New command - Pre-coding analysis workflow                     |
-| `/create-tasks`    | New       | 675 lines  | N/A        | ✅ New command - Unified Linear ticket/subtask creation           |
-| `/bug-fix`         | New       | 945 lines  | N/A        | ✅ New command - Systematic bug fix workflow                      |
-| `/code-cleanup`    | New       | 387 lines  | N/A        | ✅ New command - Code cleanup workflow                            |
-| `/code-review`     | New       | 571 lines  | N/A        | ✅ New command - Senior engineer review workflow                  |
-| `/validate`        | New       | 53 lines   | N/A        | ✅ New command - Validation checklist                             |
-| `/svelte-validate` | New       | 514 lines  | N/A        | ✅ New command - Svelte code quality validation                   |
+| Command            | Before    | After      | Change     | Status                                                              |
+| ------------------ | --------- | ---------- | ---------- | ------------------------------------------------------------------- |
+| `/start`           | 368 lines | ~490 lines | +122 lines | ✅ Reference code check added (SYOS-409)                            |
+| `/go`              | New       | ~280 lines | N/A        | ✅ New command - Pattern-first implementation workflow (SYOS-409)   |
+| `/save`            | 898 lines | 272 lines  | -70% (626) | ✅ Optimized                                                        |
+| `/root-cause`      | 65 lines  | 239 lines  | +174 lines | ✅ Enhanced with "slow = fast" methodology                          |
+| `/pr`              | New       | 366 lines  | N/A        | ✅ New command - PR creation workflow                               |
+| `/pr-close`        | New       | 415 lines  | N/A        | ✅ New command - Post-merge cleanup workflow                        |
+| `/branch`          | 1 line    | 205 lines  | +204 lines | ✅ New command - Branch creation workflow                           |
+| `/manager`         | New       | 450 lines  | N/A        | ✅ New command - Manager/mentor role guide                          |
+| `/design-manager`  | New       | ~670 lines | N/A        | ✅ New command - Design system manager (inherits /manager)          |
+| `/test-manual`     | 1 line    | 45 lines   | +44 lines  | ✅ Enhanced - Concise manual test instructions                      |
+| `/task-template`   | New       | 382 lines  | N/A        | ✅ New command - Pre-coding analysis workflow                       |
+| `/create-tasks`    | New       | ~750 lines | N/A        | ✅ New command - Unified Linear ticket/subtask creation (optimized) |
+| `/bug-fix`         | New       | 945 lines  | N/A        | ✅ New command - Systematic bug fix workflow                        |
+| `/code-cleanup`    | New       | 387 lines  | N/A        | ✅ New command - Code cleanup workflow                              |
+| `/code-review`     | New       | 571 lines  | N/A        | ✅ New command - Senior engineer review workflow                    |
+| `/validate`        | New       | 109 lines  | N/A        | ✅ New command - Validation checklist                               |
+| `/svelte-validate` | New       | 514 lines  | N/A        | ✅ New command - Svelte code quality validation                     |
 
 **Net Change**: +3,247 lines total (after removing obsolete commands)
 
@@ -176,7 +176,7 @@
 - **`/bug-fix`** - Systematic bug fix workflow (945 lines)
 - **`/code-cleanup`** - Code cleanup workflow (387 lines)
 - **`/code-review`** - Senior engineer review workflow (571 lines)
-- **`/validate`** - Validation checklist (53 lines)
+- **`/validate`** - Validation checklist (109 lines)
 - **`/svelte-validate`** - Svelte code quality validation (514 lines)
 
 ### Linear Workflow Commands
@@ -187,6 +187,7 @@
 
 - **`commit-message-format.md`** - Commit message format with examples (406 lines)
 - **`ticket-writing-format.md`** - Linear ticket writing format template
+- **`approach-option-detection.md`** - Approach option detection & confirmation logic (detailed parsing, recommendation algorithm)
 
 ---
 
@@ -288,16 +289,47 @@
 
 ### `/create-tasks` Command (2025-11-22)
 
-**Created**: Unified command replacing `/linear`, `/linear-subtickets`, `/start-new-project`
+**Created**: Unified command replacing `/linear`, `/linear-subtickets`, `/start-new-project` (675 lines)
 
-- Decision tree: New ticket vs subtasks based on user intent
-- References `/start` for Linear constants (single source of truth)
-- Complete workflow for ticket/subtask creation
-- Project linking verification
+**Enhanced** (2025-11-22): Added approach option confirmation
+
+- **Approach Option Detection**: Automatically detects multiple approach options (A/B/C) in task documents
+- **Recommendation & Confirmation**: If user doesn't specify option, recommends one with 2-sentence reasoning and asks for confirmation
+- **User Intent Detection**: Recognizes explicit option selection ("option A", "use B", etc.)
+
+**Optimized** (2025-11-22): Extracted detailed parsing logic
+
+- **Extracted**: Approach option parsing logic (~200 lines) → `dev-docs/2-areas/development/approach-option-detection.md`
+- **Result**: Command reduced from 927 → ~750 lines (19% reduction)
+- **Pattern**: Follows optimization strategy - detailed workflows extracted, command references doc
+- **Why**: Reduces command size, improves maintainability, follows established pattern
 
 **Why**: Eliminates duplication (827 lines of Linear logic), single source of truth, easier maintenance
 
 **See**: SYOS-448 - Command System Cleanup & Documentation Update
+
+---
+
+### `/save` Command (2025-11-22)
+
+**Enhanced**: Added ADR-inspired pattern lifecycle management (272 → ~370 lines, +98 lines)
+
+- **Pattern Lifecycle States**: Full ADR standard (Proposed, Accepted, Deprecated, Superseded, Rejected)
+- **Decision Tree**: Guides AI to choose correct lifecycle action (Enhance vs Deprecate vs Supersede vs Reject)
+- **Lifecycle Templates**: Complete templates for deprecation, superseding, rejection, and proposal
+- **STATUS Field**: Optional field in pattern template (defaults to ACCEPTED for backward compatibility)
+- **Migration Paths**: Templates include migration guidance when deprecating/superseding patterns
+
+**Why**: Patterns evolve over time (Svelte 4→5, library updates, architectural changes). Clear lifecycle states communicate pattern status, enabling better decision-making for developers and AI agents. Follows industry-standard ADR terminology (leverages pre-trained AI knowledge).
+
+**Key Features**:
+
+- Backward compatible (existing patterns default to ACCEPTED)
+- Industry standard (ADR lifecycle states)
+- Clear migration paths (deprecation/superseding templates)
+- Better AI comprehension (standard terminology from pre-training)
+
+**See**: SYOS-481 - Enhance /save Command with ADR-Inspired Pattern Lifecycle States
 
 ---
 
@@ -317,7 +349,17 @@
 
 ### `/validate` Command (2025-11-19)
 
-**Enhanced**: Added modularity validation checklist (mandatory check)
+**Enhanced** (2025-01-XX): Added testing strategy and `/test-manual` integration
+
+- **Testing Strategy**: AI vs User testing decision - AI tests when possible, user testing only when required
+- **`/test-manual` Integration**: Automatically runs `/test-manual` when user testing is required
+- **Critical Rule**: DO NOT mark ticket as done until user confirms tests passed (if user testing required)
+- **Decision Logic**: Clear guidance on when AI can test vs when user testing is needed
+- **Workflow**: AI performs automated validation first, then waits for user confirmation if manual testing required
+
+**Why**: Ensures proper testing coverage while preventing premature ticket completion. AI handles automated checks, user handles subjective/visual validation.
+
+**Previous Enhancement** (2025-11-19): Added modularity validation checklist (mandatory check)
 
 - **Modularity Validation**: Quick checks for feature flags, loose coupling, module boundaries
 - **Reference**: Links to `system-architecture.md` modularity section (no duplication)
@@ -325,8 +367,6 @@
 - **Summary Comment**: Non-technical summary (2-3 sentences) explaining value
 
 **Why**: Ensures modularity principles are followed before marking tickets complete, preventing architectural debt
-
-**Previous Enhancement** (2025-01-XX): Added requirement for brief summary comment (2-3 sentences max)
 
 ---
 

@@ -322,13 +322,65 @@ AI: [Validates implementation]
 
 ---
 
-### Step 6: Save Patterns (Same as Before)
+### Step 6: Save Patterns (Enhanced with Lifecycle Management) ⭐ **NEW**
 
-**No change needed:**
+**What's new:** Pattern lifecycle management (ADR-inspired)
+
 ```
 You: "/save"
-AI: [Updates patterns, considers rule building]
+AI: [Determines pattern action → Updates patterns with lifecycle state → Considers rule building]
 ```
+
+**Pattern Lifecycle States** (ADR Standard):
+
+- **ACCEPTED** - Current best practice (default for existing patterns)
+- **DEPRECATED** - Discouraged but still works (migration path provided)
+- **SUPERSEDED** - Replaced by another pattern (link to replacement #LXXX)
+- **REJECTED** - Anti-pattern documentation (explain why not to use)
+- **PROPOSED** - Experimental pattern (under consideration)
+
+**How It Works:**
+
+1. **AI finds existing pattern** → Determines lifecycle action:
+   - Pattern still valid + enhancement needed? → Enhance (keep ACCEPTED)
+   - Pattern fundamentally changed? → Deprecate old + Create new (SUPERSEDED)
+   - Pattern no longer valid? → Mark as DEPRECATED or REJECTED
+   - Experimental pattern? → Mark as PROPOSED
+
+2. **AI uses templates** for lifecycle actions:
+   - Deprecation template (includes migration path)
+   - Superseded template (includes #LXXX link to replacement)
+   - Rejected template (includes reasoning)
+   - Proposed template (includes validation needed)
+
+3. **STATUS field** added to pattern (if not ACCEPTED):
+   - `[STATUS: DEPRECATED]` - With migration path
+   - `[STATUS: SUPERSEDED]` - With replacement link
+   - `[STATUS: REJECTED]` - With reasoning
+   - `[STATUS: PROPOSED]` - With validation needed
+
+**Example - Pattern Evolution:**
+
+```
+Old Pattern (Svelte 4):
+## #L10: State Management [STATUS: SUPERSEDED]
+⚠️ SUPERSEDED: This pattern has been replaced by #L50.
+Replacement: See #L50 for current best practice (Svelte 5 runes).
+
+New Pattern (Svelte 5):
+## #L50: State Management with Runes [STATUS: ACCEPTED]
+Current best practice using Svelte 5 runes ($state, $derived).
+```
+
+**Why This Matters:**
+
+- ✅ **Clear guidance** - Developers know immediately if pattern is current
+- ✅ **Migration paths** - Deprecated patterns include migration guidance
+- ✅ **Better AI decisions** - AI knows when to use deprecated vs new patterns
+- ✅ **Structured evolution** - Patterns evolve systematically (not ad-hoc)
+- ✅ **Industry standard** - ADR terminology (leverages pre-trained AI knowledge)
+
+**See**: `.cursor/commands/save.md` Section 2.5 - Complete lifecycle management workflow and templates
 
 ---
 
@@ -789,7 +841,8 @@ Create task-specific templates that provide tailored instructions for each commo
 1. **Pattern-First** - Automatic (AI checks patterns first)
 2. **Reference Code** - Automatic (AI finds and uses references)
 3. **Svelte MCP Validation** - Automatic (runs during `/go`, `/bug-fix`, and `/code-review` for `.svelte` files) ⭐ **NEW**
-4. **Rule Building** - Automatic (happens during `/save`)
+4. **Pattern Lifecycle Management** - Automatic (AI determines lifecycle action during `/save`) ⭐ **NEW**
+5. **Rule Building** - Automatic (happens during `/save`)
 
 **Only New Step:**
 - Use `/task-template` for complex features (optional)
@@ -841,6 +894,7 @@ Scope → /create-tasks → /task-template → Review → /go → /code-review �
 - ✅ Pattern checking (before implementation)
 - ✅ Reference code loading (if relevant)
 - ✅ Svelte MCP validation (during `/go`, `/bug-fix`, and `/code-review` for `.svelte` files) ⭐ **NEW**
+- ✅ Pattern lifecycle management (during `/save` - determines lifecycle action) ⭐ **NEW**
 - ✅ Task-specific workflows (bug-fix, cleanup, review)
 - ✅ Rule building (during /save)
 
@@ -875,6 +929,19 @@ Scope → /create-tasks → /task-template → Review → /go → /code-review �
 
 **A:** No! Svelte MCP validation runs automatically during `/go`, `/bug-fix`, and `/code-review` workflows for `.svelte` files. AI invokes autofixer, fixes issues, and iterates until clean - you don't need to do anything.
 
+### Q: How does pattern lifecycle management work?
+
+**A:** When you run `/save`, AI automatically determines the appropriate lifecycle action for patterns:
+- **Enhance** - Pattern still valid, add edge case (keeps ACCEPTED status)
+- **Deprecate** - Pattern still works but discouraged (provides migration path)
+- **Supersede** - Pattern replaced by another (links to replacement #LXXX)
+- **Reject** - Anti-pattern (explains why not to use)
+- **Propose** - Experimental pattern (documents validation needed)
+
+AI uses ADR-inspired lifecycle states (Proposed, Accepted, Deprecated, Superseded, Rejected) to communicate pattern status clearly. Existing patterns default to ACCEPTED (backward compatible).
+
+**See**: `.cursor/commands/save.md` Section 2.5 - Complete lifecycle management workflow and templates
+
 ### Q: What do I do when AI hits blockers?
 
 **A:** AI will report progress and ask for decisions. Provide guidance:
@@ -893,6 +960,7 @@ Scope → /create-tasks → /task-template → Review → /go → /code-review �
 - **Task Templates**: `.cursor/commands/task-template.md` - Task template command
 - **Reference Code**: `ai-docs/reference/README.md` - Reference code system
 - **Patterns**: `dev-docs/2-areas/patterns/INDEX.md` - Pattern lookup
+- **Pattern Lifecycle Management**: `.cursor/commands/save.md` Section 2.5 - ADR-inspired pattern lifecycle workflow ⭐ **NEW**
 - **Svelte MCP Validation**: `dev-docs/2-areas/patterns/ai-development.md#L100` - Complete Svelte MCP validation workflow
 - **Svelte Validate Command**: `.cursor/commands/svelte-validate.md` - Standalone Svelte validation command
 - **MCP Setup**: `dev-docs/2-areas/patterns/ci-cd.md#L2350` - Configuring MCP servers in Cursor
@@ -901,7 +969,7 @@ Scope → /create-tasks → /task-template → Review → /go → /code-review �
 
 ---
 
-**Last Updated**: November 21st, 2025  
+**Last Updated**: November 22nd, 2025  
 **Purpose**: User guide for improved AI development workflow  
-**Key Changes**: Pattern-first, reference code, task templates, Svelte MCP validation (automatic + manual `/svelte-validate` command), and `/bug-fix` integration prevent "AI code slop"
+**Key Changes**: Pattern-first, reference code, task templates, Svelte MCP validation (automatic + manual `/svelte-validate` command), pattern lifecycle management (ADR-inspired), and `/bug-fix` integration prevent "AI code slop"
 
