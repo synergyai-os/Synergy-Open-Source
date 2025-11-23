@@ -341,7 +341,9 @@ function validateTokens() {
 	// Extract deprecated tokens from design-system.json
 	const deprecatedTokens = extractDeprecatedTokens();
 	if (Object.keys(deprecatedTokens).length > 0) {
-		console.log(`⚠️  Found ${Object.keys(deprecatedTokens).length} deprecated token${Object.keys(deprecatedTokens).length !== 1 ? 's' : ''} in design-system.json`);
+		console.log(
+			`⚠️  Found ${Object.keys(deprecatedTokens).length} deprecated token${Object.keys(deprecatedTokens).length !== 1 ? 's' : ''} in design-system.json`
+		);
 	}
 
 	// Find orphaned tokens (not referenced by utilities, other tokens, or direct CSS usage, and not base/legacy tokens)
@@ -387,8 +389,7 @@ function validateTokens() {
 		const usedViaUtilities = referencedTokens.has(tokenKey);
 
 		// Check if deprecated token is used directly
-		const usedDirectly =
-			referencedByTokens.has(tokenKey) || directUsage.has(tokenKey);
+		const usedDirectly = referencedByTokens.has(tokenKey) || directUsage.has(tokenKey);
 
 		// Find files using this token
 		const files = usageMap[tokenKey] || [];
@@ -472,7 +473,9 @@ function validateTokens() {
 					console.log(`      - ${file}`);
 				}
 				if (files.length > 5) {
-					console.log(`      ... and ${files.length - 5} more file${files.length - 5 !== 1 ? 's' : ''}`);
+					console.log(
+						`      ... and ${files.length - 5} more file${files.length - 5 !== 1 ? 's' : ''}`
+					);
 				}
 			}
 			console.log('');
@@ -499,7 +502,9 @@ function validateTokens() {
 		if (deprecatedUsage.length === 0) {
 			console.log('\n✅ All tokens have corresponding utilities or are base tokens!\n');
 		} else {
-			console.log('\n✅ No orphaned tokens found (but deprecated tokens are in use - see warnings above).\n');
+			console.log(
+				'\n✅ No orphaned tokens found (but deprecated tokens are in use - see warnings above).\n'
+			);
 		}
 		process.exit(0);
 	}
