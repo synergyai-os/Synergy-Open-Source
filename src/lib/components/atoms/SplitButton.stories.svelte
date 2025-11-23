@@ -18,7 +18,8 @@
 <Story name="Primary" args={{ primaryLabel: 'Save', variant: 'primary' }}>
 	{#snippet template(args)}
 		<SplitButton
-			{...args}
+			primaryLabel={args.primaryLabel}
+			variant={args.variant}
 			primaryOnclick={() => console.log('Primary clicked')}
 			dropdownItems={[
 				{ label: 'Save as Draft', onclick: () => console.log('Save as Draft') },
@@ -32,7 +33,8 @@
 <Story name="Secondary" args={{ primaryLabel: 'Export', variant: 'secondary' }}>
 	{#snippet template(args)}
 		<SplitButton
-			{...args}
+			primaryLabel={args.primaryLabel}
+			variant={args.variant}
 			primaryOnclick={() => console.log('Export clicked')}
 			dropdownItems={[
 				{ label: 'Export as PDF', onclick: () => console.log('Export as PDF') },
@@ -46,7 +48,8 @@
 <Story name="Single Option" args={{ primaryLabel: 'Create', variant: 'primary' }}>
 	{#snippet template(args)}
 		<SplitButton
-			{...args}
+			primaryLabel={args.primaryLabel}
+			variant={args.variant}
 			primaryOnclick={() => console.log('Create clicked')}
 			dropdownItems={[
 				{ label: 'Create from Template', onclick: () => console.log('Create from Template') }

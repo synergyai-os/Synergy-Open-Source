@@ -25,42 +25,42 @@
 
 <Story name="Body" args={{ variant: 'body', size: 'base' }}>
 	{#snippet template(args)}
-		<Text {...args}>Regular body text</Text>
+		<Text variant={args.variant} size={args.size}>Regular body text</Text>
 	{/snippet}
 </Story>
 
 <Story name="Label" args={{ variant: 'label', size: 'sm' }}>
 	{#snippet template(args)}
-		<Text {...args}>Label text</Text>
+		<Text variant={args.variant} size={args.size}>Label text</Text>
 	{/snippet}
 </Story>
 
 <Story name="Caption" args={{ variant: 'caption', size: 'sm' }}>
 	{#snippet template(args)}
-		<Text {...args}>Caption text</Text>
+		<Text variant={args.variant} size={args.size}>Caption text</Text>
 	{/snippet}
 </Story>
 
 <Story name="Small" args={{ variant: 'body', size: 'sm' }}>
 	{#snippet template(args)}
-		<Text {...args}>Small text</Text>
+		<Text variant={args.variant} size={args.size}>Small text</Text>
 	{/snippet}
 </Story>
 
 <Story name="Large" args={{ variant: 'body', size: 'lg' }}>
 	{#snippet template(args)}
-		<Text {...args}>Large text</Text>
+		<Text variant={args.variant} size={args.size}>Large text</Text>
 	{/snippet}
 </Story>
 
 <Story name="As Span" args={{ variant: 'body', size: 'base', as: 'span' }}>
 	{#snippet template(args)}
-		<Text {...args}>Text as span element</Text>
+		<Text variant={args.variant} size={args.size} as={args.as}>Text as span element</Text>
 	{/snippet}
 </Story>
 
 <Story name="As Div" args={{ variant: 'body', size: 'base', as: 'div' }}>
 	{#snippet template(args)}
-		<Text {...args}>Text as div element</Text>
+		<Text variant={args.variant} size={args.size} as={args.as}>Text as div element</Text>
 	{/snippet}
 </Story>

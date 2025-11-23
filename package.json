@@ -14,7 +14,7 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"format": "prettier --write .",
-		"lint": "prettier --check . && eslint .",
+		"lint": "prettier --check . && eslint --cache --cache-location .eslintcache src/lib/ src/routes/ convex/ scripts/",
 		"validate:svelte": "npm run check && npm run lint",
 		"test:unit": "vitest",
 		"test:unit:server": "vitest --run --project=server",

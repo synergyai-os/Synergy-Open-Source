@@ -25,6 +25,170 @@ Complete reference for all design tokens in the SynergyOS design system.
 
 ---
 
+## 🔄 Token Cascade System
+
+**Understanding how tokens flow from base → semantic → utility:**
+
+### Three-Layer Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  BASE TOKENS (Foundation)                                   │
+│  Hardcoded values: 0.5rem, 1rem, 1.5rem                    │
+│  Example: spacing.2 = "0.5rem"                             │
+└──────────────────────┬──────────────────────────────────────┘
+                       │ References
+                       ▼
+┌─────────────────────────────────────────────────────────────┐
+│  SEMANTIC TOKENS (Component-specific)                      │
+│  Reference base tokens: {spacing.2}                        │
+│  Example: spacing.nav.item.x = "{spacing.2}"               │
+└──────────────────────┬──────────────────────────────────────┘
+                       │ Generates
+                       ▼
+┌─────────────────────────────────────────────────────────────┐
+│  UTILITY CLASSES (CSS classes)                              │
+│  Generated from semantic tokens                             │
+│  Example: px-nav-item → var(--spacing-nav-item-x)          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### How Cascade Works
+
+**Base tokens** are the foundation - they contain hardcoded values:
+
+```json
+{
+	"spacing": {
+		"2": {
+			"$value": "0.5rem",
+			"$description": "8px = sm"
+		}
+	}
+}
+```
+
+**Semantic tokens** reference base tokens using `{spacing.X}` format:
+
+```json
+{
+	"spacing": {
+		"nav": {
+			"item": {
+				"x": {
+					"$value": "{spacing.2}",
+					"$description": "Nav item horizontal padding"
+				}
+			}
+		}
+	}
+}
+```
+
+**Utility classes** are automatically generated from semantic tokens:
+
+```css
+/* Generated CSS */
+.px-nav-item {
+	padding-left: var(--spacing-nav-item-x);
+	padding-right: var(--spacing-nav-item-x);
+}
+```
+
+### Cascade Benefits
+
+**Change once, update everywhere:**
+
+1. Update base token: `spacing.2 = "0.75rem"` (was `0.5rem`)
+2. All semantic tokens update automatically: `spacing.nav.item.x` → `0.75rem`
+3. All components using `px-nav-item` update automatically
+4. **No component code changes needed** ✅
+
+**Example cascade:**
+
+```json
+// Base token change
+"spacing.2": "0.75rem"  // Changed from 0.5rem
+
+// Semantic tokens automatically update
+"spacing.nav.item.x": "{spacing.2}"      // → 0.75rem ✅
+"spacing.menu.item.x": "{spacing.2}"      // → 0.75rem ✅
+"spacing.badge.x": "{spacing.2}"          // → 0.75rem ✅
+```
+
+---
+
+## 📝 Reference Format
+
+**Understanding the `{spacing.X}` syntax:**
+
+### What Does `{spacing.2}` Mean?
+
+The `{spacing.2}` format is **DTCG (Design Tokens Community Group) reference syntax**. It tells the token system to:
+
+1. Look up the base token `spacing.2`
+2. Use its value (`0.5rem`)
+3. Create a reference relationship (cascade)
+
+### Reference Format Rules
+
+**✅ CORRECT - References base token:**
+
+```json
+{
+	"spacing": {
+		"nav": {
+			"item": {
+				"x": {
+					"$value": "{spacing.2}", // ✅ References base token
+					"$description": "Nav item horizontal padding"
+				}
+			}
+		}
+	}
+}
+```
+
+**❌ WRONG - Hardcoded value (breaks cascade):**
+
+```json
+{
+	"spacing": {
+		"nav": {
+			"item": {
+				"x": {
+					"$value": "0.5rem", // ❌ Hardcoded - won't cascade
+					"$description": "Nav item horizontal padding"
+				}
+			}
+		}
+	}
+}
+```
+
+### Exception Tokens
+
+Some tokens intentionally don't reference base tokens (optimized for specific components). These must be documented:
+
+```json
+{
+	"spacing": {
+		"nav": {
+			"item": {
+				"y": {
+					"$value": "0.375rem", // Exception: 6px (not in base scale)
+					"$description": "6px - INTENTIONAL EXCEPTION: Optimal touch target size. spacing.1 (4px) too small, spacing.2 (8px) too large."
+				}
+			}
+		}
+	}
+}
+```
+
+**Validation**: Run `npm run tokens:validate-semantic` to check all semantic tokens reference base tokens correctly.
+
+---
+
 ## 📏 Spacing Tokens
 
 ### Base Scale (4px unit)
@@ -50,44 +214,92 @@ Component-specific spacing tokens (reference base scale):
 
 #### Application UI Tokens
 
-| Token                       | Utility Class      | Value           | Usage                                 |
-| --------------------------- | ------------------ | --------------- | ------------------------------------- |
-| `--spacing-nav-container-x` | `px-nav-container` | 0.5rem (8px)    | Nav container horizontal padding      |
-| `--spacing-nav-container-y` | `py-nav-container` | 0.5rem (8px)    | Nav container vertical padding        |
-| `--spacing-nav-item-x`      | `px-nav-item`      | 0.5rem (8px)    | Nav item horizontal padding           |
-| `--spacing-nav-item-y`      | `py-nav-item`      | 0.375rem (6px)  | Nav item vertical padding             |
-| `--spacing-menu-item-x`     | `px-menu-item`     | 0.625rem (10px) | Menu/dropdown item horizontal padding |
-| `--spacing-menu-item-y`     | `py-menu-item`     | 0.375rem (6px)  | Menu/dropdown item vertical padding   |
-| `--spacing-badge-x`         | `px-badge`         | 0.375rem (6px)  | Badge horizontal padding              |
-| `--spacing-badge-y`         | `py-badge`         | 0.125rem (2px)  | Badge vertical padding                |
-| `--spacing-icon-gap`        | `gap-icon`         | 0.5rem (8px)    | Standard icon-text gap                |
-| `--spacing-icon-gap-wide`   | `gap-icon-wide`    | 0.625rem (10px) | Wider icon-text gap                   |
+| Token                       | Utility Class      | Value           | References    | Usage                                 |
+| --------------------------- | ------------------ | --------------- | ------------- | ------------------------------------- |
+| `--spacing-nav-container-x` | `px-nav-container` | 0.5rem (8px)    | `{spacing.2}` | Nav container horizontal padding      |
+| `--spacing-nav-container-y` | `py-nav-container` | 0.5rem (8px)    | `{spacing.2}` | Nav container vertical padding        |
+| `--spacing-nav-item-x`      | `px-nav-item`      | 0.5rem (8px)    | `{spacing.2}` | Nav item horizontal padding           |
+| `--spacing-nav-item-y`      | `py-nav-item`      | 0.375rem (6px)  | Exception\*   | Nav item vertical padding             |
+| `--spacing-menu-item-x`     | `px-menu-item`     | 0.625rem (10px) | Exception\*   | Menu/dropdown item horizontal padding |
+| `--spacing-menu-item-y`     | `py-menu-item`     | 0.375rem (6px)  | Exception\*   | Menu/dropdown item vertical padding   |
+| `--spacing-badge-x`         | `px-badge`         | 0.375rem (6px)  | Exception\*   | Badge horizontal padding              |
+| `--spacing-badge-y`         | `py-badge`         | 0.125rem (2px)  | Exception\*   | Badge vertical padding                |
+| `--spacing-icon-gap`        | `gap-icon`         | 0.5rem (8px)    | `{spacing.2}` | Standard icon-text gap                |
+| `--spacing-icon-gap-wide`   | `gap-icon-wide`    | 0.625rem (10px) | Exception\*   | Wider icon-text gap                   |
+
+\* **Exception tokens**: These values don't map to base scale (optimized for specific components). See `design-system.json` for exception documentation.
 
 #### Button Component Tokens
 
-| Token                    | Utility Class      | Value          | Usage                               |
-| ------------------------ | ------------------ | -------------- | ----------------------------------- |
-| `--spacing-button-x`     | `px-button-x`      | 1.5rem (24px)  | Button horizontal padding           |
-| `--spacing-button-y`     | `py-button-y`      | 0.75rem (12px) | Button vertical padding             |
-| `--spacing-button-icon`  | `p-button-icon`    | 0.75rem (12px) | Icon-only button padding (square)   |
-| `--size-button-height`   | `min-h-button`     | 2.75rem (44px) | Minimum button height (all types)   |
-| `--spacing-button-group` | `gap-button-group` | 0.5rem (8px)   | Gap between buttons in action group |
+| Token                    | Utility Class      | Value          | References    | Usage                               |
+| ------------------------ | ------------------ | -------------- | ------------- | ----------------------------------- |
+| `--spacing-button-x`     | `px-button-x`      | 1.5rem (24px)  | `{spacing.6}` | Button horizontal padding           |
+| `--spacing-button-y`     | `py-button-y`      | 0.75rem (12px) | `{spacing.3}` | Button vertical padding             |
+| `--spacing-button-icon`  | `p-button-icon`    | 0.75rem (12px) | `{spacing.3}` | Icon-only button padding (square)   |
+| `--size-button-height`   | `min-h-button`     | 2.75rem (44px) | Exception\*   | Minimum button height (all types)   |
+| `--spacing-button-group` | `gap-button-group` | 0.5rem (8px)   | `{spacing.2}` | Gap between buttons in action group |
+
+\* **Exception tokens**: See `design-system.json` for exception documentation.
 
 #### Card Component Tokens
 
-| Token                      | Utility Class | Value          | Usage                   |
-| -------------------------- | ------------- | -------------- | ----------------------- |
-| `--spacing-card-padding-x` | `px-card`     | 1.25rem (20px) | Card horizontal padding |
-| `--spacing-card-padding-y` | `py-card`     | 1.25rem (20px) | Card vertical padding   |
+| Token                      | Utility Class | Value          | References    | Usage                   |
+| -------------------------- | ------------- | -------------- | ------------- | ----------------------- |
+| `--spacing-card-padding-x` | `px-card`     | 1.25rem (20px) | `{spacing.5}` | Card horizontal padding |
+| `--spacing-card-padding-y` | `py-card`     | 1.25rem (20px) | `{spacing.5}` | Card vertical padding   |
 
 #### Marketing Page Tokens
 
-| Token                              | Utility Class            | Value         | Usage                                     |
-| ---------------------------------- | ------------------------ | ------------- | ----------------------------------------- |
-| `--spacing-marketing-section-y`    | `py-marketing-section`   | 7rem (112px)  | Section vertical padding (top and bottom) |
-| `--spacing-marketing-container-x`  | `px-marketing-container` | 1.5rem (24px) | Page horizontal padding (mobile/desktop)  |
-| `--spacing-marketing-card-padding` | `p-marketing-card`       | 2.5rem (40px) | Card internal padding                     |
-| `--spacing-marketing-card-gap`     | `gap-marketing-card`     | 2rem (32px)   | Gap between cards in grid                 |
+| Token                              | Utility Class            | Value         | References     | Usage                                     |
+| ---------------------------------- | ------------------------ | ------------- | -------------- | ----------------------------------------- |
+| `--spacing-marketing-section-y`    | `py-marketing-section`   | 7rem (112px)  | `{spacing.28}` | Section vertical padding (top and bottom) |
+| `--spacing-marketing-container-x`  | `px-marketing-container` | 1.5rem (24px) | `{spacing.6}`  | Page horizontal padding (mobile/desktop)  |
+| `--spacing-marketing-card-padding` | `p-marketing-card`       | 2.5rem (40px) | `{spacing.10}` | Card internal padding                     |
+| `--spacing-marketing-card-gap`     | `gap-marketing-card`     | 2rem (32px)   | `{spacing.8}`  | Gap between cards in grid                 |
+
+### Cascade Example: How Changes Propagate
+
+**Visual example showing how updating a base token cascades through the system:**
+
+#### Before Change
+
+```json
+// Base token
+"spacing.2": "0.5rem"  // 8px
+
+// Semantic tokens (all reference base)
+"spacing.nav.item.x": "{spacing.2}"      // → 0.5rem (8px)
+"spacing.menu.item.x": "{spacing.2}"     // → 0.5rem (8px)
+"spacing.badge.x": "{spacing.2}"         // → 0.5rem (8px)
+"spacing.button.group": "{spacing.2}"    // → 0.5rem (8px)
+
+// Components using utilities
+<group → px-nav-item → 0.5rem (8px)
+px-menu-item → 0.5rem (8px)
+px-badge → 0.5rem (8px)
+gap-button-group → 0.5rem (8px)
+```
+
+#### After Base Token Change
+
+```json
+// Update base token once
+"spacing.2": "0.75rem"  // Changed from 0.5rem to 0.75rem (12px)
+
+// Semantic tokens automatically update (no changes needed)
+"spacing.nav.item.x": "{spacing.2}"      // → 0.75rem (12px) ✅
+"spacing.menu.item.x": "{spacing.2}"     // → 0.75rem (12px) ✅
+"spacing.badge.x": "{spacing.2}"         // → 0.75rem (12px) ✅
+"spacing.button.group": "{spacing.2}"    // → 0.75rem (12px) ✅
+
+// Components automatically update (no code changes needed)
+px-nav-item → 0.75rem (12px) ✅
+px-menu-item → 0.75rem (12px) ✅
+px-badge → 0.75rem (12px) ✅
+gap-button-group → 0.75rem (12px) ✅
+```
+
+**Result**: Change one base token, update 4+ semantic tokens and all components automatically. **No component code changes needed.**
 
 ### Utility Classes
 
@@ -237,10 +449,24 @@ All color tokens adapt automatically to light/dark mode:
 
 ### Font Families
 
+**Base Fonts:**
+
 ```css
-font-sans /* Inter, system-ui */
-font-mono /* JetBrains Mono, monospace */
+font-sans /* Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif */
+font-mono /* JetBrains Mono, Menlo, Monaco, 'Courier New', monospace */
+font-serif /* Georgia, Cambria, 'Times New Roman', serif */
 ```
+
+**Semantic Fonts (Reference Base Fonts):**
+
+```css
+font-heading /* var(--fonts-sans) - For all headings (h1-h6, Heading component) */
+font-body /* var(--fonts-sans) - For body text, paragraphs, UI components (Button, Badge, Text) */
+font-code /* var(--fonts-mono) - For code blocks, inline code, KeyboardShortcut component */
+```
+
+**Cascade Example:**
+Change `--fonts-sans` in `design-system.json` → All headings + body text update automatically (no code changes needed).
 
 ### Text Sizes
 
@@ -256,11 +482,12 @@ font-mono /* JetBrains Mono, monospace */
 **Example:**
 
 ```svelte
-<h1 class="font-sans text-h1 text-primary">Page Title</h1>
-<h2 class="font-sans text-h2 text-primary">Section Title</h2>
-<p class="text-body text-secondary">Body text content</p>
-<span class="text-small text-tertiary">Caption text</span>
-<span class="bg-tag px-badge py-badge text-label text-tag">Badge</span>
+<h1 class="font-heading text-h1 text-primary">Page Title</h1>
+<h2 class="font-heading text-h2 text-primary">Section Title</h2>
+<p class="font-body text-body text-secondary">Body text content</p>
+<span class="font-body text-small text-tertiary">Caption text</span>
+<span class="bg-tag px-badge py-badge font-body text-label text-tag">Badge</span>
+<code class="font-code text-small">const example = 'code';</code>
 ```
 
 ### Readability Tokens (Optimized for ADHD/Focus-Challenged Users)
@@ -293,6 +520,185 @@ font-mono /* JetBrains Mono, monospace */
 <input class="rounded-input border border-base px-input-x py-input-y" />
 <span class="rounded-badge bg-tag px-badge py-badge text-tag">Badge</span>
 ```
+
+---
+
+## 🎨 Shadow Tokens
+
+Shadow tokens provide consistent elevation and depth for UI elements:
+
+| Token              | Utility Class    | Value                                                    | Usage                |
+| ------------------ | ---------------- | -------------------------------------------------------- | -------------------- |
+| `--shadow-card`    | `shadow-card`    | 0 2px 8px rgb(0 0 0 / 0.08), 0 1px 2px rgb(0 0 0 / 0.04) | Card elevation       |
+| `--shadow-pinglow` | `shadow-pinglow` | 0 0 0 3px var(--color-accent-primary) / 0.15             | PIN input focus glow |
+
+**Example:**
+
+```svelte
+<div class="rounded-card bg-elevated px-card py-card shadow-card">Elevated card with shadow</div>
+
+<!-- PIN input with focus glow -->
+<input class="shadow-pinglow" />
+```
+
+**Cascade Example:**
+
+Change shadow color in `design-system.json`:
+
+```json
+{
+	"shadow": {
+		"pinglow": {
+			"$value": "0 0 0 4px var(--color-accent-primary) / 0.2" // Changed size and opacity
+		}
+	}
+}
+```
+
+After running `npm run tokens:build`:
+
+- ✅ CSS variable updates: `--shadow-pinglow: 0 0 0 4px var(--color-accent-primary) / 0.2`
+- ✅ All PIN inputs use new shadow automatically
+- ✅ No code changes needed
+
+---
+
+## 📏 Size Tokens
+
+Size tokens define fixed dimensions for consistent UI element sizing:
+
+### Component Sizes
+
+| Token                  | Utility Class    | Value          | Usage                                 |
+| ---------------------- | ---------------- | -------------- | ------------------------------------- |
+| `--size-button-height` | `min-h-button`   | 2.75rem (44px) | Minimum button height (accessibility) |
+| `--size-icon-xs`       | `icon-xs`        | 0.75rem (12px) | Extra small icons                     |
+| `--size-icon-sm`       | `icon-sm`        | 1rem (16px)    | Small icons                           |
+| `--size-icon-md`       | `icon-md`        | 1.25rem (20px) | Medium icons (standard)               |
+| `--size-icon-lg`       | `icon-lg`        | 1.5rem (24px)  | Large icons                           |
+| `--size-icon-xl`       | `icon-xl`        | 2rem (32px)    | Extra large icons                     |
+| `--size-avatar-sm`     | `size-avatar-sm` | 2rem (32px)    | Small avatar                          |
+| `--size-avatar-md`     | `size-avatar-md` | 2.5rem (40px)  | Medium avatar                         |
+| `--size-avatar-lg`     | `size-avatar-lg` | 3rem (48px)    | Large avatar                          |
+
+### Container Sizes
+
+| Token                             | Utility Class          | Value            | Usage                                    |
+| --------------------------------- | ---------------------- | ---------------- | ---------------------------------------- |
+| `--size-max-width-readable`       | `max-w-readable`       | 42rem (672px)    | Optimal reading width (65-75 characters) |
+| `--size-max-width-container`      | `max-w-container`      | 72rem (1152px)   | Max container width                      |
+| `--size-min-width-dropdown`       | `min-w-dropdown`       | 11.25rem (180px) | Minimum dropdown width                   |
+| `--size-max-width-dialog-default` | `max-w-dialog-default` | 100vw            | Default dialog width (mobile)            |
+
+### Specialized Sizes
+
+| Token                     | Utility Class           | Value         | Usage                      |
+| ------------------------- | ----------------------- | ------------- | -------------------------- |
+| `--size-pin-cell`         | `size-pin-cell`         | 4rem (64px)   | Square PIN input cell      |
+| `--size-pin-cell-text`    | `size-pin-cell-text`    | 2rem (32px)   | Text size inside PIN cells |
+| `--size-tab-height`       | `size-tab-height`       | 2.5rem (40px) | Tab container height       |
+| `--size-keyboard-key`     | `size-keyboard-key`     | 3rem (48px)   | Keyboard shortcut display  |
+| `--size-quote-decoration` | `size-quote-decoration` | 5rem (80px)   | Decorative quote mark size |
+
+**Example:**
+
+```svelte
+<!-- Button with standard height -->
+<button class="min-h-button px-button-x py-button-y">Click me</button>
+
+<!-- Avatar sizes -->
+<img class="size-avatar-sm rounded-avatar" src="..." alt="User" />
+<img class="size-avatar-md rounded-avatar" src="..." alt="User" />
+<img class="size-avatar-lg rounded-avatar" src="..." alt="User" />
+
+<!-- Icon sizes -->
+<svg class="icon-sm">...</svg>
+<svg class="icon-md">...</svg>
+<svg class="icon-lg">...</svg>
+
+<!-- Readable content -->
+<article class="max-w-readable">
+	<p>Long-form content optimized for readability...</p>
+</article>
+```
+
+**Cascade Example:**
+
+Change button height in `design-system.json`:
+
+```json
+{
+	"size": {
+		"buttonheight": {
+			"$value": "3rem" // Changed from 2.75rem (44px) to 3rem (48px)
+		}
+	}
+}
+```
+
+After running `npm run tokens:build`:
+
+- ✅ CSS variable updates: `--size-button-height: 3rem`
+- ✅ All buttons use new height automatically
+- ✅ No code changes needed
+
+---
+
+## 🔢 Z-Index Tokens
+
+Z-index tokens provide consistent layering for overlapping UI elements:
+
+| Token                          | Utility Class          | Value | Usage                               |
+| ------------------------------ | ---------------------- | ----- | ----------------------------------- |
+| `--z-index-sidebar`            | `z-sidebar`            | 50    | Sidebar layer                       |
+| `--z-index-panel-backdrop-min` | `z-panel-backdrop-min` | 51    | Panel backdrop (above sidebar)      |
+| `--z-index-panel-base`         | `z-panel-base`         | 60    | First panel layer                   |
+| `--z-index-panel-increment`    | N/A                    | 10    | Increment per panel (60, 70, 80...) |
+
+**Usage Pattern:**
+
+```svelte
+<!-- Sidebar -->
+<aside class="z-sidebar">Sidebar content</aside>
+
+<!-- Panel backdrop -->
+<div class="z-panel-backdrop-min bg-black opacity-backdrop">Backdrop</div>
+
+<!-- Panel layers (stacking) -->
+<div class="z-panel-base">First panel (z-60)</div>
+<div style="z-index: 70">Second panel (z-70)</div>
+<div style="z-index: 80">Third panel (z-80)</div>
+```
+
+**Cascade Example:**
+
+Change sidebar z-index in `design-system.json`:
+
+```json
+{
+	"zIndex": {
+		"sidebar": {
+			"$value": "40" // Changed from 50 to 40
+		}
+	}
+}
+```
+
+After running `npm run tokens:build`:
+
+- ✅ CSS variable updates: `--z-index-sidebar: 40`
+- ✅ All sidebar layers update automatically
+- ✅ Panel backdrop remains above sidebar (z-51 > z-40)
+- ✅ No code changes needed
+
+**Why Layering Matters:**
+
+Consistent z-index values prevent:
+
+- ❌ Modal backdrops appearing above modal content
+- ❌ Dropdowns hidden behind sidebars
+- ❌ Tooltips buried under panels
+- ❌ Random z-index values (999, 9999, 99999)
 
 ---
 
@@ -334,11 +740,221 @@ font-mono /* JetBrains Mono, monospace */
 
 ---
 
+## 📱 Breakpoint Tokens
+
+Breakpoint tokens define responsive design breakpoints following the Tailwind CSS pattern (mobile-first approach):
+
+| Token              | Value    | Description                                                |
+| ------------------ | -------- | ---------------------------------------------------------- |
+| `--breakpoint-sm`  | `640px`  | Small devices (mobile landscape) - min-width breakpoint    |
+| `--breakpoint-md`  | `768px`  | Medium devices (tablets) - min-width breakpoint            |
+| `--breakpoint-lg`  | `1024px` | Large devices (desktop) - min-width breakpoint             |
+| `--breakpoint-xl`  | `1280px` | Extra large devices (large desktop) - min-width breakpoint |
+| `--breakpoint-2xl` | `1536px` | 2X large devices (ultra-wide) - min-width breakpoint       |
+
+**Usage in JavaScript:**
+
+```typescript
+// Read breakpoint from CSS variable
+const breakpointSm = getComputedStyle(document.documentElement)
+	.getPropertyValue('--breakpoint-sm')
+	.trim();
+const breakpointValue = breakpointSm ? parseInt(breakpointSm, 10) : 640;
+const isMobile = window.innerWidth < breakpointValue;
+```
+
+**Usage in CSS:**
+
+```css
+/* Note: CSS doesn't support CSS variables in @media queries */
+/* Use token value directly with comment reference */
+/* Token: --breakpoint-md (768px) from design-system.json */
+@media (max-width: 768px) {
+	.responsive-element {
+		/* Mobile styles */
+	}
+}
+```
+
+**Cascade Example:**
+
+Change breakpoint value in `design-system.json`:
+
+```json
+{
+	"breakpoints": {
+		"sm": {
+			"$value": "768px" // Changed from 640px
+		}
+	}
+}
+```
+
+After running `npm run tokens:build`:
+
+- CSS variable updates: `--breakpoint-sm: 768px`
+- JavaScript code automatically uses new value (no code changes needed)
+- CSS `@media` queries need manual update (CSS limitation)
+
+**Context7 Validated:** ✅ Follows Tailwind CSS pattern (industry standard)
+
+---
+
+## 👁️ Opacity Tokens
+
+Opacity tokens provide consistent transparency values for UI states (disabled, hover, loading, backdrops):
+
+### Base Opacity Scale (0-100)
+
+Tailwind-compatible opacity scale from transparent (0) to opaque (100):
+
+| Token           | Value  | Description                    |
+| --------------- | ------ | ------------------------------ |
+| `--opacity-0`   | `0`    | Fully transparent (invisible)  |
+| `--opacity-50`  | `0.5`  | 50% opacity                    |
+| `--opacity-75`  | `0.75` | 75% opacity                    |
+| `--opacity-80`  | `0.8`  | 80% opacity                    |
+| `--opacity-100` | `1`    | Fully opaque (no transparency) |
+
+### Semantic Opacity Tokens
+
+Use these semantic tokens for consistent UI states:
+
+| Token                | Utility Class      | References          | Value  | Usage                        |
+| -------------------- | ------------------ | ------------------- | ------ | ---------------------------- |
+| `--opacity-disabled` | `opacity-disabled` | `var(--opacity-50)` | `0.5`  | Disabled button/input states |
+| `--opacity-hover`    | `opacity-hover`    | `var(--opacity-80)` | `0.8`  | Hover overlay effects        |
+| `--opacity-backdrop` | `opacity-backdrop` | `var(--opacity-75)` | `0.75` | Modal/dialog backdrops       |
+| `--opacity-loading`  | `opacity-loading`  | `var(--opacity-60)` | `0.6`  | Loading state indicators     |
+
+### Usage Examples
+
+```svelte
+<!-- ❌ WRONG: Hardcoded opacity -->
+<button style="opacity: 0.5" disabled>Save</button>
+<div class="bg-black" style="opacity: 0.75">Backdrop</div>
+
+<!-- ✅ CORRECT: Semantic opacity tokens -->
+<button class="opacity-disabled" disabled>Save</button>
+<div class="bg-black opacity-backdrop">Backdrop</div>
+```
+
+### Cascade Example
+
+Change disabled opacity value in `design-system.json`:
+
+```json
+{
+	"opacity": {
+		"disabled": {
+			"$value": "{opacity.40}" // Changed from {opacity.50}
+		}
+	}
+}
+```
+
+After running `npm run tokens:build`:
+
+- ✅ CSS variable updates: `--opacity-disabled: var(--opacity-40)`
+- ✅ All disabled elements automatically use 40% opacity
+- ✅ No code changes needed
+
+**Context7 Validated:** ✅ Follows Tailwind CSS pattern (industry standard)
+
+---
+
 ## 📚 Reference Documentation
 
-**Complete token list**: `dev-docs/2-areas/design/design-tokens.md` - Full documentation with usage patterns and examples  
-**Source of truth**: `design-system.json` - Token specifications and values  
-**Implementation**: `src/app.css` - CSS variable definitions and utility classes
+### Source of Truth
+
+**`design-system.json`** (root of project) is the **single source of truth** for all design tokens.
+
+- ✅ **DTCG Format**: Uses Design Tokens Community Group format (`$value`, `$description`)
+- ✅ **Base Tokens**: Foundation values (e.g., `spacing.2 = "0.5rem"`)
+- ✅ **Semantic Tokens**: Component-specific tokens referencing base tokens (e.g., `spacing.nav.item.x = "{spacing.2}"`)
+- ✅ **Exception Documentation**: Tokens that don't reference base tokens must include "INTENTIONAL EXCEPTION" in description
+
+**File location**: `design-system.json` (project root)
+
+**Example structure:**
+
+```json
+{
+	"spacing": {
+		"2": {
+			"$value": "0.5rem",
+			"$description": "8px = sm"
+		},
+		"nav": {
+			"item": {
+				"x": {
+					"$value": "{spacing.2}",
+					"$description": "Nav item horizontal padding - references base scale"
+				}
+			}
+		}
+	}
+}
+```
+
+### Workflow Commands
+
+**Essential commands for working with design tokens:**
+
+#### Build Tokens
+
+**Generate CSS files from `design-system.json`:**
+
+```bash
+npm run tokens:build
+```
+
+**When to run:**
+
+- After pulling changes from git
+- After editing `design-system.json`
+- Before committing token changes
+
+**Output:**
+
+- `src/styles/tokens/*.css` - CSS variable definitions
+- `src/styles/utilities/*.css` - Utility class definitions
+
+#### Validate Semantic Tokens
+
+**Check that all semantic tokens reference base tokens correctly:**
+
+```bash
+npm run tokens:validate-semantic
+```
+
+**What it checks:**
+
+- ✅ Semantic tokens use `{spacing.X}` format (not hardcoded values)
+- ✅ Exception tokens include "INTENTIONAL EXCEPTION" in description
+- ❌ Blocks semantic tokens with hardcoded values (unless documented exception)
+
+**When to run:**
+
+- Before committing token changes
+- After adding new semantic tokens
+- CI/CD pipeline (automated validation)
+
+#### Watch Mode (Development)
+
+**Auto-rebuild tokens when `design-system.json` changes:**
+
+```bash
+npm run tokens:watch
+```
+
+**Use during development** to see token changes immediately.
+
+### Additional Documentation
+
+- **Complete token list**: `dev-docs/2-areas/design/design-tokens.md` - Full documentation with usage patterns and examples
+- **Workflow guide**: `DESIGN-TOKENS-WORKFLOW.md` - Step-by-step guide for adding tokens, migration, exceptions
+- **Implementation**: `src/app.css` - CSS variable definitions and utility classes
 
 ---
 
@@ -374,5 +990,23 @@ font-mono /* JetBrains Mono, monospace */
 
 ---
 
-**Last Updated**: November 2025  
-**Total Tokens**: 100+ (spacing, colors, typography, borders, transitions, icons)
+## 📊 Token Categories Summary
+
+**Total Categories**: 14
+
+1. **Spacing** - Component padding, margins, gaps (80+ tokens)
+2. **Colors** - Semantic colors for light/dark mode (40+ tokens)
+3. **Typography** - Font sizes, weights, line heights (20+ tokens)
+4. **Fonts** - Font families for headings, body, code (6 tokens)
+5. **Border Radius** - Rounded corners for components (7+ tokens)
+6. **Shadow** - Elevation and depth effects (2 tokens)
+7. **Size** - Fixed dimensions for components (25+ tokens)
+8. **Transition** - Animation timing and easing (4 tokens)
+9. **Breakpoints** - Responsive design breakpoints (5 tokens)
+10. **Opacity** - Transparency values for UI states (16 tokens)
+11. **Z-Index** - Layering for overlapping elements (4 tokens)
+
+**Plus 3 sub-categories within Typography:** 12. Font Weight (6 tokens) 13. Line Height (1 token) 14. Letter Spacing (1 token)
+
+**Last Updated**: November 22, 2025  
+**Total Tokens**: 200+ across 14 categories

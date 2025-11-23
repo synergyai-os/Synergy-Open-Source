@@ -100,10 +100,26 @@ Once I have a ticket ID, I'll proceed with implementation.
 
 1. **Branch Verification** ⭐ **CRITICAL** (see above)
 2. **Check Patterns First** ⭐ **CRITICAL**
-3. **Validate Svelte Code (MCP)** ⭐ **MANDATORY** (for `.svelte` files only)
-4. **Check Reference Code** (if available from `/start`)
-5. **Use Context7** (if <95% confident)
-6. **Implement Solution**
+3. **Design Token Validation** ⭐ **MANDATORY** (for UI/component work - BEFORE writing code)
+4. **Validate Svelte Code (MCP)** ⭐ **MANDATORY** (for `.svelte` files only)
+5. **Check Reference Code** (if available from `/start`)
+6. **Use Context7** (if <95% confident)
+7. **Implement Solution**
+8. **IMMEDIATE ESLint Validation** ⭐ **MANDATORY** (run `npx eslint [file]` RIGHT after writing code, READ the output)
+
+**⚠️ CRITICAL: Step 8 is NON-NEGOTIABLE**
+
+- You CANNOT see red squiggles in real-time
+- You MUST run ESLint explicitly after writing code
+- You MUST READ the full error output (not just check exit code)
+- You CANNOT claim "validation passed" without actually running ESLint
+- You CANNOT proceed if ESLint shows errors
+
+**Layered Enforcement (3 layers):**
+
+- **Layer 1**: Cursor rule (auto-loads for .svelte files - guidance + examples)
+- **Layer 2**: IMMEDIATE ESLint validation (Step 8 - catches violations during implementation) ⭐ **YOU MUST RUN THIS**
+- **Layer 3**: Pre-commit hook (final safety net - blocks commits)
 
 ---
 
@@ -269,14 +285,12 @@ Examples:
 
    ```typescript
    // ✅ CORRECT: Always invoke autofixer when writing Svelte code
-   const result =
-   	(await mcp_svelte_svelte) -
-   	autofixer({
-   		code: fileContent,
-   		filename: 'Component.svelte', // or 'composable.svelte.ts'
-   		desired_svelte_version: 5,
-   		async: false // Set true if component uses top-level await
-   	});
+   const result = await mcp_svelte_svelte_autofixer({
+   	code: fileContent,
+   	filename: 'Component.svelte', // or 'composable.svelte.ts'
+   	desired_svelte_version: 5,
+   	async: false // Set true if component uses top-level await
+   });
    ```
 
 3. **Iterate until clean** ⭐ **MANDATORY**:
@@ -288,14 +302,12 @@ Examples:
    	// Apply fixes to code
 
    	// Re-run autofixer to verify fixes
-   	result =
-   		(await mcp_svelte_svelte) -
-   		autofixer({
-   			code: fixedCode,
-   			filename: 'Component.svelte',
-   			desired_svelte_version: 5,
-   			async: false
-   		});
+   	result = await mcp_svelte_svelte_autofixer({
+   		code: fixedCode,
+   		filename: 'Component.svelte',
+   		desired_svelte_version: 5,
+   		async: false
+   	});
    }
    ```
 
@@ -305,13 +317,6 @@ Examples:
    - Any patterns discovered
    - Note in implementation notes: "Svelte MCP validation: [summary]"
 
-**What it catches**:
-
-- `$effect` vs `$derived` misuse (Svelte 5 anti-pattern)
-- Reactivity anti-patterns (Map/Set mutations, stale values)
-- Component structure issues (missing keys, wrong patterns)
-- Svelte 5 best practice violations
-
 **Why mandatory**: Catches Svelte-specific issues that svelte-check and ESLint don't catch (e.g., `$effect` vs `$derived` misuse, reactivity anti-patterns).
 
 **Common Mistakes**:
@@ -320,7 +325,7 @@ Examples:
 - ❌ **Skip autofixer**: Only running svelte-check + ESLint misses Svelte-specific issues
 - ❌ **Return code with issues**: Must fix all issues before returning code to user
 
-**Reference**: `dev-docs/2-areas/patterns/ai-development.md#L100` - Svelte Validation Workflow with MCP Autofixer
+**See**: `.cursor/commands/svelte-validate.md` for the full validation workflow (svelte-check, ESLint, MCP autofixer, iteration patterns, troubleshooting).
 
 ---
 
@@ -417,6 +422,115 @@ Examples:
 
 ---
 
+## 5.5. IMMEDIATE ESLint Validation (MANDATORY - Layer 2 Enforcement)
+
+**⚠️ CRITICAL: Run ESLint validation IMMEDIATELY after implementation, BEFORE showing user**
+
+**⚠️ YOU CANNOT SEE RED SQUIGGLES IN REAL-TIME - You MUST run ESLint explicitly to see violations**
+
+**Purpose**: Catch design token violations DURING implementation (early quality control)
+
+**When**: RIGHT after writing code, BEFORE user reviews
+
+**Workflow**:
+
+1. **Run ESLint on the file you just edited**:
+
+   ```bash
+   npx eslint src/lib/components/atoms/YourComponent.svelte
+   ```
+
+   **OR run full lint check**:
+
+   ```bash
+   npm run lint
+   ```
+
+2. **READ THE FULL OUTPUT** (don't just check exit code):
+   - ⚠️ **CRITICAL**: You must READ the actual error messages, not just "passed/failed"
+   - ⚠️ Look for: `synergyos/no-hardcoded-design-values` errors
+   - ⚠️ Each error shows: file, line, column, and violation type
+
+3. **Check results**:
+   - ✅ **If clean** (0 errors, "✨ Congratulations!") → Continue to document changes
+   - ❌ **If violations found** → STOP, READ THE ERRORS, fix immediately, re-run
+
+4. **If violations found** (you WILL see them in output):
+
+   ```
+   /path/to/Component.svelte
+     22:46  error  Hardcoded pixel value 16 detected in "dimensions" ...
+     22:67  error  Hardcoded pixel value 48 detected in "dimensions" ...
+     22:72  error  Hardcoded pixel value 32 detected in "dimensions" ...
+
+   ✖ 3 problems (3 errors, 0 warnings)
+   ```
+
+   - **READ each error line carefully**
+   - Identify ALL hardcoded values (pixel numbers, rem strings, hex colors, etc.)
+   - Fix ALL violations (no "I'll fix later", no "it matches tokens so it's fine")
+   - Re-run ESLint on the file
+   - Repeat until you see: "✨ Congratulations! Your files look great."
+
+5. **Common violations caught**:
+   - Hardcoded pixel numbers: `16`, `48`, `32` (even if they "match" token values!)
+   - Hardcoded rem/px strings: `'1rem'`, `'32px'`, `'2rem'`
+   - Raw Tailwind utilities: `px-4`, `py-2`, `gap-2`
+   - Hex colors: `'#3b82f6'`, `bg-blue-600`
+   - Decimal opacity: `0.5`, `opacity-50`
+
+**Example workflow:**
+
+```bash
+# After writing Loading.svelte
+npx eslint src/lib/components/atoms/Loading.svelte
+
+# Output shows violations:
+/Users/.../Loading.svelte
+  22:46  error  Hardcoded pixel value 16 detected in "dimensions"
+  22:67  error  Hardcoded pixel value 48 detected in "dimensions"
+  22:72  error  Hardcoded pixel value 32 detected in "dimensions"
+
+✖ 3 problems (3 errors, 0 warnings)
+
+# READ THE ERRORS - They're telling you exactly what's wrong!
+# Fix: Replace const dimensions = $derived(size === 'sm' ? 16 : 48 : 32)
+# With: const sizeClasses = $derived(size === 'sm' ? 'w-icon-sm h-icon-sm' : ...)
+
+# Re-run ESLint
+npx eslint src/lib/components/atoms/Loading.svelte
+
+# Output:
+✨ Congratulations! Your files look great.
+```
+
+**Why MANDATORY**:
+
+- **You can't see red squiggles** - ESLint errors aren't visible to you in real-time
+- Catches violations DURING implementation (not at commit time)
+- Forces fix IMMEDIATELY while context is fresh
+- Prevents "I'll refactor later" (later never happens)
+- Quality built-in early (not tacked on at end)
+
+**NO EXCEPTIONS**:
+
+- ❌ Can't skip ("I'll fix in next commit")
+- ❌ Can't bypass ("This is a special case")
+- ❌ Can't claim "validation passed" without running ESLint
+- ❌ Can't rationalize ("values match tokens so it's fine")
+- ✅ Must be clean before showing user
+- ✅ Must READ the actual error output (not just check exit code)
+
+**⚠️ CRITICAL REMINDER:**
+
+- "Matching token values" = STILL HARDCODING
+- `const size = 16` (matches --size-icon-sm) = HARDCODED (ESLint will catch it)
+- `class="w-icon-sm"` (references --size-icon-sm) = CORRECT
+
+**This is Layer 2 of 3-layer enforcement - quality control at the RIGHT time.**
+
+---
+
 ## 📋 Complete Workflow Example
 
 ### Scenario: Implement Chat Feature with Image Uploads
@@ -434,7 +548,7 @@ AI: Checks dev-docs/2-areas/patterns/INDEX.md
 
 ```
 AI: Detects writing ImageUpload.svelte file
-    → Invokes mcp_svelte_svelte-autofixer
+    → Invokes mcp_svelte_svelte_autofixer
     → Finds issue: "Using $effect for computed value, should use $derived"
     → Fixes: Changes $effect to $derived
     → Re-runs autofixer → No issues found
@@ -525,15 +639,27 @@ AI: Implements using:
 ## 🎯 Key Principles
 
 1. **Pattern-First** - Always check patterns before implementing ⭐
-2. **Svelte MCP Validation** - Always validate `.svelte` files with autofixer ⭐ **MANDATORY**
-3. **Reference Code** - Use working examples, adapt to our codebase
-4. **Context7** - Use when <95% confident about approach
-5. **Coding Standards** - Follow all rules from coding-standards.md
-6. **Adapt, Don't Copy** - Reference code is inspiration, not template
-7. **Document Changes** - What patterns/references were used
+2. **Layered Enforcement** - 3-layer design token enforcement (cursor rule + IMMEDIATE ESLint + pre-commit) ⭐ **NEW**
+3. **Token Validation BEFORE Code** - Validate plan uses design tokens BEFORE writing (Step 3) ⭐ **NEW**
+4. **IMMEDIATE ESLint AFTER Code** - Run `npx eslint [file]` RIGHT after writing, READ output (Step 8) ⭐ **NEW** **MANDATORY**
+5. **You Can't See Red Squiggles** - ESLint errors aren't visible in real-time; you MUST run command ⭐ **CRITICAL**
+6. **Svelte MCP Validation** - Always validate `.svelte` files with autofixer ⭐ **MANDATORY**
+7. **Reference Code** - Use working examples, adapt to our codebase
+8. **Context7** - Use when <95% confident about approach
+9. **Coding Standards** - Follow all rules from coding-standards.md
+10. **Adapt, Don't Copy** - Reference code is inspiration, not template
+11. **Document Changes** - What patterns/references were used
+
+**Quality control at THREE enforcement points**:
+
+- **Cursor rule** (guidance + examples)
+- **IMMEDIATE ESLint** (during work - YOU MUST RUN THIS EXPLICITLY)
+- **Pre-commit hook** (final safety net)
+
+**= Zero violations IF you follow Step 8**
 
 ---
 
-**Last Updated**: 2025-11-21  
-**Purpose**: Execute implementation with pattern-first approach, Svelte MCP validation, and reference code integration  
-**Status**: Active workflow
+**Last Updated**: 2025-11-22 (Strengthened Step 8: MUST run ESLint explicitly after writing code - AI can't see red squiggles in real-time)
+**Purpose**: Execute implementation with pattern-first approach, design token enforcement (3 layers with EXPLICIT ESLint validation), Svelte MCP validation, and reference code integration  
+**Status**: Active workflow - **Step 8 is MANDATORY and NON-NEGOTIABLE**

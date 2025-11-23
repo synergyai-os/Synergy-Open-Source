@@ -257,6 +257,25 @@
 	--transition-colors:
 		color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease; /* Color-only transitions */
 
+	/* Font Family Tokens - Base fonts */
+	--fonts-sans:
+		Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; /* Primary sans-serif font stack */
+	--fonts-mono:
+		'JetBrains Mono', Menlo, Monaco, 'Courier New', monospace; /* Monospace font stack for code */
+	--fonts-serif:
+		Georgia, Cambria, 'Times New Roman', serif; /* Serif font stack (optional, for long-form content) */
+
+	/* Font Family Tokens - Semantic fonts (reference base fonts) */
+	--fonts-heading: var(
+		--fonts-sans
+	); /* Font for all headings (h1-h6, Heading component) - references base font */
+	--fonts-body: var(
+		--fonts-sans
+	); /* Font for body text, paragraphs, UI components (Button, Badge, Text) - references base font */
+	--fonts-code: var(
+		--fonts-mono
+	); /* Font for code blocks, inline code, KeyboardShortcut component - references base font */
+
 	/* Unified Brand Color Tokens - Used throughout the app */
 	/* These change automatically based on .dark class on <html> */
 	--color-text-primary: oklch(20.8% 0.042 265.755); /* gray-900 light, white dark */
@@ -364,6 +383,44 @@
 	--color-rating-good-hover: oklch(49.2% 0.218 251.813); /* blue-700 - Good hover */
 	--color-rating-easy: oklch(60% 0.16 150); /* green-600 - Easy button */
 	--color-rating-easy-hover: oklch(50% 0.15 150); /* green-700 - Easy hover */
+
+	/* Breakpoint Tokens - Tailwind CSS 4 responsive utilities */
+	/* These configure Tailwind's sm:, md:, lg:, xl:, 2xl: variants to use our token values */
+	/* Source: design-system.json breakpoints (sm: 640px, md: 768px, lg: 1024px, xl: 1280px, 2xl: 1536px) */
+	/* Note: These values must match design-system.json - single source of truth for breakpoints */
+	--breakpoint-sm: 640px; /* Small devices (mobile landscape) - min-width breakpoint */
+	--breakpoint-md: 768px; /* Medium devices (tablets) - min-width breakpoint */
+	--breakpoint-lg: 1024px; /* Large devices (desktop) - min-width breakpoint */
+	--breakpoint-xl: 1280px; /* Extra large devices (large desktop) - min-width breakpoint */
+	--breakpoint-2xl: 1536px; /* 2X large devices (ultra-wide) - min-width breakpoint */
+
+	/* ============================================
+	   OPACITY TOKENS - Base scale + semantic tokens
+	   Source: design-system.json opacity
+	   ============================================ */
+
+	/* Base Opacity Scale - 0-100 (Tailwind pattern) */
+	--opacity-0: 0; /* Fully transparent (invisible) */
+	--opacity-5: 0.05; /* 5% opacity */
+	--opacity-10: 0.1; /* 10% opacity */
+	--opacity-20: 0.2; /* 20% opacity */
+	--opacity-25: 0.25; /* 25% opacity */
+	--opacity-30: 0.3; /* 30% opacity */
+	--opacity-40: 0.4; /* 40% opacity */
+	--opacity-50: 0.5; /* 50% opacity */
+	--opacity-60: 0.6; /* 60% opacity */
+	--opacity-70: 0.7; /* 70% opacity */
+	--opacity-75: 0.75; /* 75% opacity */
+	--opacity-80: 0.8; /* 80% opacity */
+	--opacity-90: 0.9; /* 90% opacity */
+	--opacity-95: 0.95; /* 95% opacity */
+	--opacity-100: 1; /* Fully opaque (no transparency) */
+
+	/* Semantic Opacity Tokens - Reference base scale for cascade */
+	--opacity-disabled: var(--opacity-50); /* Disabled states - 50% opacity */
+	--opacity-hover: var(--opacity-80); /* Hover overlay effects - 80% opacity */
+	--opacity-backdrop: var(--opacity-75); /* Backdrop/modal overlays - 75% opacity */
+	--opacity-loading: var(--opacity-60); /* Loading states - 60% opacity */
 }
 
 /* Light mode overrides for unified brand colors */
@@ -436,7 +493,9 @@ html:not(.dark) {
 	--color-sidebar-active: oklch(96.7% 0.003 264.542); /* gray-100 light - active state */
 }
 
-/* Responsive Dialog - Mobile (<640px) - Fullscreen */
+/* Responsive Dialog - Mobile (<sm breakpoint) - Fullscreen */
+/* Note: CSS doesn't support CSS variables in @media queries, so we use the token value directly */
+/* Token: --breakpoint-sm (640px) from design-system.json */
 @media (max-width: 640px) {
 	:root {
 		--max-width-dialog-default: 100vw; /* Fullscreen on mobile */
@@ -446,6 +505,7 @@ html:not(.dark) {
 }
 
 /* Responsive Container Spacing - Tablet */
+/* Token: --breakpoint-md (768px) from design-system.json */
 @media (min-width: 768px) {
 	:root {
 		--spacing-container-x: 1.5rem; /* 24px tablet */
@@ -454,6 +514,7 @@ html:not(.dark) {
 }
 
 /* Responsive Container Spacing - Desktop */
+/* Token: --breakpoint-lg (1024px) from design-system.json */
 @media (min-width: 1024px) {
 	:root {
 		--spacing-container-x: 2rem; /* 32px desktop */
@@ -1166,6 +1227,20 @@ html:not(.dark) {
 	min-width: var(--min-width-dropdown);
 }
 
+/* Opacity Utilities - Semantic opacity tokens for consistent disabled/hover/loading states */
+@utility opacity-disabled {
+	opacity: var(--opacity-disabled);
+}
+@utility opacity-hover {
+	opacity: var(--opacity-hover);
+}
+@utility opacity-backdrop {
+	opacity: var(--opacity-backdrop);
+}
+@utility opacity-loading {
+	opacity: var(--opacity-loading);
+}
+
 /* Dialog Close Button Utility - Standardized styling for icon close buttons */
 @utility dialog-close-button {
 	/* Sizing - ensure proper touch targets */
@@ -1204,7 +1279,7 @@ html:not(.dark) {
 	}
 
 	&:disabled {
-		opacity: 0.5;
+		opacity: var(--opacity-disabled);
 		cursor: not-allowed;
 	}
 }
@@ -1300,6 +1375,26 @@ html:not(.dark) {
 }
 @utility text-error-status {
 	font-size: var(--font-size-error-status);
+}
+
+/* Font Family Utilities */
+@utility font-sans {
+	font-family: var(--fonts-sans);
+}
+@utility font-mono {
+	font-family: var(--fonts-mono);
+}
+@utility font-serif {
+	font-family: var(--fonts-serif);
+}
+@utility font-heading {
+	font-family: var(--fonts-heading);
+}
+@utility font-body {
+	font-family: var(--fonts-body);
+}
+@utility font-code {
+	font-family: var(--fonts-code);
 }
 
 /* Flashcard Typography Utilities - Large display text */

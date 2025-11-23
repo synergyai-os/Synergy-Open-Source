@@ -6,7 +6,6 @@
  */
 
 import fs from 'fs';
-import path from 'path';
 
 /**
  * Recursively flatten DTCG nested structure into Style Dictionary tokens
@@ -79,6 +78,7 @@ function inferType(pathParts) {
 		if (pathParts.includes('letterSpacing')) return 'dimension';
 		return 'dimension';
 	}
+	if (firstPart === 'fonts') return 'fontFamily';
 	if (firstPart === 'shadow') return 'shadow';
 	if (firstPart === 'borderRadius') return 'dimension';
 	if (firstPart === 'size') return 'dimension';

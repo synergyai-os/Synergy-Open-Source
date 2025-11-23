@@ -58,7 +58,7 @@ function validateDTCG(filePath: string): ValidationResult {
 			}
 
 			// Recursively validate tokens
-			function validateToken(obj: any, path: string): void {
+			function validateToken(obj: Record<string, unknown>, path: string): void {
 				if (obj.$value !== undefined) {
 					// This is a token
 					if (!obj.$value) {

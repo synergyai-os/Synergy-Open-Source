@@ -16,14 +16,17 @@
 @import './tokens/colors.css';
 @import './tokens/spacing.css';
 @import './tokens/typography.css';
+@import './tokens/fonts.css';
 @import './tokens/sizes.css';
 @import './tokens/effects.css';
+@import './tokens/breakpoints.css';
 
 /* Utilities */
 @import './utilities/spacing-utils.css';
 @import './utilities/color-utils.css';
 @import './utilities/component-utils.css';
 @import './utilities/typography-utils.css';
+@import './utilities/fonts-utils.css';
 
 /* Base Styles */
 @import './base.css';

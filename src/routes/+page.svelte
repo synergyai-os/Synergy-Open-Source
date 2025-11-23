@@ -962,6 +962,7 @@
 		margin: 0;
 	}
 
+	/* Token: --breakpoint-md (768px) from design-system.json */
 	@media (max-width: 768px) {
 		.hero-title {
 			font-size: 2.25rem;
@@ -1483,6 +1484,7 @@
 		padding-left: 0.25rem;
 	}
 
+	/* Token: --breakpoint-md (768px) from design-system.json */
 	@media (max-width: 768px) {
 		.status-grid {
 			grid-template-columns: 1fr;
@@ -1881,6 +1883,7 @@
 	}
 
 	/* Responsive */
+	/* Token: --breakpoint-md (768px) from design-system.json */
 	@media (max-width: 768px) {
 		.waitlist-title {
 			font-size: 1.875rem;
@@ -2043,6 +2046,7 @@
 	}
 
 	/* Responsive */
+	/* Token: --breakpoint-md (768px) from design-system.json */
 	@media (max-width: 768px) {
 		.hero-section {
 			padding: var(--spacing-marketing-lead-to-content) 0 var(--spacing-marketing-hero-y) 0;

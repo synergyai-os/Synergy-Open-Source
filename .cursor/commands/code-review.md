@@ -322,84 +322,11 @@ Code Quality Check:
    - If reviewing specific files → Filter for `.svelte` and `.svelte.ts` files
    - If no `.svelte` files changed → Skip this step, proceed to step 6
 
-2. **Run svelte-check** (type checking):
+2. **Run full validation workflow**:
+   - Follow the complete Svelte validation workflow (svelte-check → ESLint → MCP autofixer → iterate until clean)
+   - Document findings in review report: "Svelte MCP validation: [summary]"
 
-   ```bash
-   npm run check
-   # OR
-   svelte-check --tsconfig ./tsconfig.json
-   ```
-
-   - Fix TypeScript errors first (blocks other validation)
-   - Document: "svelte-check: [error count] errors found → fixed"
-
-3. **Run ESLint** (syntax rules):
-
-   ```bash
-   npm run lint
-   # OR
-   eslint . --ext .svelte,.ts
-   ```
-
-   - Fix ESLint errors (coding standards violations)
-   - Document: "ESLint: [error count] errors found → fixed"
-
-4. **Run Svelte MCP autofixer** ⭐ **MANDATORY**:
-
-   ```typescript
-   // ✅ CORRECT: Always invoke autofixer for Svelte files
-   const result =
-   	(await mcp_svelte_svelte) -
-   	autofixer({
-   		code: fileContent,
-   		filename: 'Component.svelte', // or 'composable.svelte.ts'
-   		desired_svelte_version: 5, // From package.json
-   		async: false // Check svelte.config.js for async component support
-   	});
-   ```
-
-5. **Iterate until clean** ⭐ **MANDATORY**:
-
-   ```typescript
-   // MUST iterate until clean (some fixes require multiple passes)
-   while (result.issues.length > 0 || result.suggestions.length > 0) {
-   	// Fix all issues based on result.issues and result.suggestions
-   	// Apply fixes to code
-
-   	// Re-run autofixer to verify fixes
-   	result =
-   		(await mcp_svelte_svelte) -
-   		autofixer({
-   			code: fixedCode,
-   			filename: 'Component.svelte',
-   			desired_svelte_version: 5,
-   			async: false
-   		});
-   }
-   ```
-
-6. **Document findings**:
-   - What issues were found
-   - What fixes were applied
-   - Any patterns discovered
-   - Include in review report: "Svelte MCP validation: [summary]"
-
-**What it catches**:
-
-- `$effect` vs `$derived` misuse (Svelte 5 anti-pattern)
-- Reactivity anti-patterns (Map/Set mutations, stale values)
-- Component structure issues (missing keys, wrong patterns)
-- Svelte 5 best practice violations
-
-**Why mandatory**: Catches Svelte-specific issues that svelte-check and ESLint don't catch (e.g., `$effect` vs `$derived` misuse, reactivity anti-patterns).
-
-**Common Mistakes**:
-
-- ❌ **Run autofixer once**: Must iterate until clean (some fixes require multiple passes)
-- ❌ **Skip autofixer**: Only running svelte-check + ESLint misses Svelte-specific issues
-- ❌ **Return code with issues**: Must fix all issues before approving
-
-**Report Format**:
+**Report Format** (for review context):
 
 ```
 Svelte MCP Validation (3 files):
@@ -410,20 +337,7 @@ Svelte MCP Validation (3 files):
 - Input.svelte: ✅ Clean (no issues)
 ```
 
-**Reference**: `.cursor/commands/svelte-validate.md` - Complete Svelte validation workflow
-
-**Example**:
-
-```
-Svelte MCP Validation:
-- Running svelte-check on 3 changed .svelte files... ✅ No errors
-- Running ESLint on 3 files... ✅ No errors
-- Running Svelte MCP autofixer on 3 files...
-  - Button.svelte: Iteration 1 → clean ✅
-  - Card.svelte: Iteration 1: 2 issues → fixed, Iteration 2 → clean ✅
-  - Input.svelte: Iteration 1 → clean ✅
-- Findings: Fixed $effect vs $derived misuse in Card.svelte
-```
+**See**: `.cursor/commands/svelte-validate.md` for the full validation workflow (svelte-check, ESLint, MCP autofixer, iteration patterns, troubleshooting).
 
 ---
 

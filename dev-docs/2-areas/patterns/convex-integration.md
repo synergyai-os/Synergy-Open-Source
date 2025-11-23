@@ -1309,6 +1309,17 @@ const userId = await validateSessionAndGetUserId(ctx, args.sessionId);
 // ✅ CORRECT: Destructure to extract userId
 const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
+// ❌ WRONG: [DEPRECATED] 'skip' pattern (still works but outdated - DO NOT USE)
+const tagsQuery = useQuery(api.tags.listAllTags, () => {
+	const sessionId = getSessionId();
+	if (!sessionId) {
+		return 'skip' as 'skip' & { sessionId: string }; // ❌ DEPRECATED - awkward type casting, use throw instead
+	}
+	return { sessionId };
+});
+// DEPRECATED REASON: Type casting is unclear, modern pattern is more explicit
+// MIGRATION: Use conditional hook creation (browser && getSessionId() ? useQuery(...) : null) + throw Error pattern (see ✅ CORRECT below)
+
 // ❌ WRONG: Returns null when sessionId missing
 const tagsQuery = useQuery(api.tags.listAllTags, () => {
 	if (!sessionId) return null; // ❌ null not valid - breaks type contract

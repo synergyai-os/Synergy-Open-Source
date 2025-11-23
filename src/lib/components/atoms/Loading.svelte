@@ -17,6 +17,14 @@
 	}
 
 	let { message = 'Loading...', size = 'md', fullHeight = false }: Props = $props();
+
+	// Map size prop to explicit pixel dimensions (SVG requires HTML attributes, not just CSS)
+	// These values match design tokens: icon-xs (12px), icon-sm (16px), icon-md (20px)
+	// SVG HTML attributes cannot use CSS custom properties, so we use matching pixel values
+	const dimensions = $derived(
+		// eslint-disable-next-line synergyos/no-hardcoded-design-values -- SVG HTML attributes require explicit pixel values
+		size === 'sm' ? 12 : size === 'lg' ? 20 : 16 // md (default): 16px (matches --size-icon-sm)
+	);
 </script>
 
 {#if fullHeight}
@@ -24,11 +32,9 @@
 		<div class="flex flex-col items-center gap-icon">
 			<!-- Loading Spinner -->
 			<svg
-				class="animate-spin text-accent-primary {size === 'sm'
-					? 'icon-sm'
-					: size === 'lg'
-						? 'size-avatar-lg'
-						: 'icon-xl'}"
+				width={dimensions}
+				height={dimensions}
+				class="animate-spin text-accent-primary"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -50,11 +56,9 @@
 	<div class="flex flex-col items-center gap-icon py-readable-quote">
 		<!-- Loading Spinner -->
 		<svg
-			class="animate-spin text-accent-primary {size === 'sm'
-				? 'icon-sm'
-				: size === 'lg'
-					? 'size-avatar-lg'
-					: 'icon-xl'}"
+			width={dimensions}
+			height={dimensions}
+			class="animate-spin text-accent-primary"
 			fill="none"
 			stroke="currentColor"
 			viewBox="0 0 24 24"

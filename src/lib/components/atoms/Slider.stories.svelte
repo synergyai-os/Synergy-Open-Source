@@ -8,7 +8,7 @@
 		tags: ['autodocs'],
 		argTypes: {
 			value: {
-				control: { type: 'array' },
+				control: { type: 'object' },
 				description: 'Slider value(s)'
 			},
 			min: {
@@ -30,8 +30,11 @@
 <Story name="Default" args={{ value: [50], min: 0, max: 100, step: 1 }}>
 	{#snippet template(args)}
 		<Slider.Root
-			{...args}
 			type="single"
+			value={Array.isArray(args.value) ? args.value[0] : args.value}
+			min={args.min}
+			max={args.max}
+			step={args.step}
 			class="relative flex w-full touch-none items-center select-none"
 		>
 			{#snippet children({ thumbItems })}
@@ -52,8 +55,11 @@
 <Story name="Range" args={{ value: [25, 75], min: 0, max: 100, step: 1 }}>
 	{#snippet template(args)}
 		<Slider.Root
-			{...args}
 			type="multiple"
+			value={args.value}
+			min={args.min}
+			max={args.max}
+			step={args.step}
 			class="relative flex w-full touch-none items-center select-none"
 		>
 			{#snippet children({ thumbItems })}
@@ -74,8 +80,11 @@
 <Story name="With Ticks" args={{ value: [50], min: 0, max: 100, step: 10 }}>
 	{#snippet template(args)}
 		<Slider.Root
-			{...args}
 			type="single"
+			value={Array.isArray(args.value) ? args.value[0] : args.value}
+			min={args.min}
+			max={args.max}
+			step={args.step}
 			class="relative flex w-full touch-none items-center select-none"
 		>
 			{#snippet children({ thumbItems, tickItems })}

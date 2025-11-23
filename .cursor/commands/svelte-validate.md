@@ -130,14 +130,12 @@ ESLint found 3 errors:
 1. **Invoke `svelte-autofixer`**:
 
    ```typescript
-   const result =
-   	(await mcp_svelte_svelte) -
-   	autofixer({
-   		code: fileContent,
-   		filename: 'Component.svelte',
-   		desired_svelte_version: 5, // From package.json
-   		async: false // Check svelte.config.js for async component support
-   	});
+   const result = await mcp_svelte_svelte_autofixer({
+   	code: fileContent,
+   	filename: 'Component.svelte',
+   	desired_svelte_version: 5, // From package.json
+   	async: false // Check svelte.config.js for async component support
+   });
    ```
 
 2. **Check for issues**:
@@ -163,7 +161,7 @@ ESLint found 3 errors:
 
 **Example output**:
 
-```
+```typescript
 Svelte MCP autofixer found 2 issues:
 - Line 12: Use $derived instead of $effect for computed values
 - Line 25: Missing key in {#each} block (use item._id)
@@ -315,7 +313,7 @@ AI:
 
 ### Example 2: Validate Multiple Files
 
-```
+```typescript
 User: /svelte-validate src/lib/components/atoms/*.svelte
 
 AI:

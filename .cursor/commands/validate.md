@@ -4,7 +4,28 @@ validate if its resolved correctly (within ticket scope/criteria). If yes. updat
 - NEVER create an MD document. Keep everything inside the relevant ticket. if no ticket exists, return your feedback as a chat comment.
 - 🚨 **CRITICAL**: If user testing is required, DO NOT mark ticket as done until user confirms tests passed. Wait for explicit confirmation before updating ticket status.
 
+## 🎯 Output Format (CRITICAL)
+
+**ONLY output a brief summary (2-3 sentences max). Do NOT list all checks performed.**
+
+**Summary Format:**
+
+```
+**Summary:** [What we did in 1 sentence]. [Why it matters in 1-2 sentences - focus on impact/value, not technical details].
+```
+
+**Examples:**
+
+- ✅ **Good**: "**Summary:** Added image upload to chat. Users can now share screenshots and photos directly in conversations, making collaboration faster."
+- ❌ **Bad**: "Validated TypeScript compilation passes ✅, linting passes ✅, modularity checks passed ✅, no regressions ✅..."
+
+**Why**: The checklist below is for internal validation steps. Perform all checks internally, but only output the summary to the ticket. This keeps feedback concise and actionable.
+
+---
+
 ## Validation Checklist
+
+**Note**: Perform these checks internally. Do NOT list them in the ticket comment. Only output the summary above.
 
 ### 1. Testing Strategy (AI vs User)
 
@@ -65,7 +86,7 @@ validate if its resolved correctly (within ticket scope/criteria). If yes. updat
 - [ ] **Module Boundaries?** → Uses shared utilities (`src/lib/utils/`, `src/lib/types/`) or documented APIs
 - [ ] **Hardcoded Dependencies?** → Module doesn't assume another module is always enabled
 
-**If violations found**: Document in ticket comment, mark ticket as needs work (don't mark as done).
+**If violations found**: Document in ticket comment (briefly), mark ticket as needs work (don't mark as done).
 
 **Common Violations**:
 
@@ -74,13 +95,7 @@ validate if its resolved correctly (within ticket scope/criteria). If yes. updat
 - ❌ Missing per-org targeting for org-specific modules
 - ❌ Module assumes another module exists without checking flag
 
-**After validation, add a brief summary comment (2-3 sentences max) that explains what was done and why it matters in simple, non-technical terms.** This helps non-developers understand the value quickly.
-
-Example format:
-
-```
-**Summary:** [What we did in 1 sentence]. [Why it matters in 1-2 sentences - focus on impact/value, not technical details].
-```
+**Note**: See "Output Format" section above for summary format. Only output summary (not checklist items).
 
 ### 4. Update Ticket Status
 

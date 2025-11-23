@@ -36,7 +36,7 @@
 </Story>
 
 <Story name="In Menu">
-	{#snippet template(args)}
+	{#snippet template(_args)}
 		<div class="flex w-64 flex-col gap-2 rounded-md border border-base bg-surface p-2">
 			<button class="px-2 py-1 text-left text-primary hover:bg-hover-solid">Profile</button>
 			<button class="px-2 py-1 text-left text-primary hover:bg-hover-solid">Settings</button>
@@ -47,7 +47,7 @@
 </Story>
 
 <Story name="Between Sections">
-	{#snippet template(args)}
+	{#snippet template(_args)}
 		<div class="flex flex-col gap-4">
 			<div>
 				<h3 class="mb-2 text-lg font-semibold text-primary">Section 1</h3>

@@ -9,12 +9,13 @@
 	});
 
 	// Mock meeting data for today
-	const today = new Date();
-	today.setHours(14, 0, 0, 0); // 2 PM today
+	// Use Date.now() and manual calculation instead of mutable Date object
+	const today = Date.now();
+	const todayAt2PM = today - (today % (24 * 60 * 60 * 1000)) + 14 * 60 * 60 * 1000; // 2 PM today
 
 	const mockMeeting = {
 		title: 'Engineering Standup',
-		startTime: today.getTime(),
+		startTime: todayAt2PM,
 		duration: 30,
 		visibility: 'public'
 	};
@@ -22,7 +23,7 @@
 	const mockMeetingInProgress = {
 		...mockMeeting,
 		title: 'Active Team Sync',
-		startedAt: today.getTime() - 15 * 60 * 1000 // Started 15 minutes ago
+		startedAt: todayAt2PM - 15 * 60 * 1000 // Started 15 minutes ago
 	};
 
 	const mockMeetingPrivate = {
@@ -50,7 +51,13 @@
 	}}
 >
 	{#snippet template(args)}
-		<TodayMeetingCard {...args} />
+		<TodayMeetingCard
+			meeting={args.meeting}
+			circleName={args.circleName}
+			attendeeAvatars={args.attendeeAvatars}
+			onStart={args.onStart}
+			onAddAgendaItem={args.onAddAgendaItem}
+		/>
 	{/snippet}
 </Story>
 
@@ -64,7 +71,13 @@
 	}}
 >
 	{#snippet template(args)}
-		<TodayMeetingCard {...args} />
+		<TodayMeetingCard
+			meeting={args.meeting}
+			circleName={args.circleName}
+			attendeeAvatars={args.attendeeAvatars}
+			onStart={args.onStart}
+			onAddAgendaItem={args.onAddAgendaItem}
+		/>
 	{/snippet}
 </Story>
 
@@ -77,7 +90,13 @@
 	}}
 >
 	{#snippet template(args)}
-		<TodayMeetingCard {...args} />
+		<TodayMeetingCard
+			meeting={args.meeting}
+			circleName={args.circleName}
+			attendeeAvatars={args.attendeeAvatars}
+			onStart={args.onStart}
+			onAddAgendaItem={args.onAddAgendaItem}
+		/>
 	{/snippet}
 </Story>
 
@@ -90,7 +109,13 @@
 	}}
 >
 	{#snippet template(args)}
-		<TodayMeetingCard {...args} />
+		<TodayMeetingCard
+			meeting={args.meeting}
+			circleName={args.circleName}
+			attendeeAvatars={args.attendeeAvatars}
+			onStart={args.onStart}
+			onAddAgendaItem={args.onAddAgendaItem}
+		/>
 	{/snippet}
 </Story>
 
@@ -105,7 +130,13 @@
 	}}
 >
 	{#snippet template(args)}
-		<TodayMeetingCard {...args} />
+		<TodayMeetingCard
+			meeting={args.meeting}
+			circleName={args.circleName}
+			attendeeAvatars={args.attendeeAvatars}
+			onStart={args.onStart}
+			onAddAgendaItem={args.onAddAgendaItem}
+		/>
 	{/snippet}
 </Story>
 
@@ -114,6 +145,12 @@
 	args={{ meeting: mockMeeting, attendeeAvatars: mockAttendeeAvatars.slice(0, 2) }}
 >
 	{#snippet template(args)}
-		<TodayMeetingCard {...args} />
+		<TodayMeetingCard
+			meeting={args.meeting}
+			circleName={args.circleName}
+			attendeeAvatars={args.attendeeAvatars}
+			onStart={args.onStart}
+			onAddAgendaItem={args.onAddAgendaItem}
+		/>
 	{/snippet}
 </Story>

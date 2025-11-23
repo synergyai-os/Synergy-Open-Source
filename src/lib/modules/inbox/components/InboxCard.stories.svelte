@@ -20,13 +20,13 @@
 
 <Story name="Default" args={{ item: mockItem, selected: false, onClick: () => {} }}>
 	{#snippet template(args)}
-		<InboxCard {...args} />
+		<InboxCard item={args.item} selected={args.selected} onClick={args.onClick} />
 	{/snippet}
 </Story>
 
 <Story name="Selected" args={{ item: mockItem, selected: true, onClick: () => {} }}>
 	{#snippet template(args)}
-		<InboxCard {...args} />
+		<InboxCard item={args.item} selected={args.selected} onClick={args.onClick} />
 	{/snippet}
 </Story>
 
@@ -39,7 +39,7 @@
 	}}
 >
 	{#snippet template(args)}
-		<InboxCard {...args} />
+		<InboxCard item={args.item} selected={args.selected} onClick={args.onClick} />
 	{/snippet}
 </Story>
 
@@ -52,7 +52,7 @@
 	}}
 >
 	{#snippet template(args)}
-		<InboxCard {...args} />
+		<InboxCard item={args.item} selected={args.selected} onClick={args.onClick} />
 	{/snippet}
 </Story>
 
@@ -65,7 +65,7 @@
 	}}
 >
 	{#snippet template(args)}
-		<InboxCard {...args} />
+		<InboxCard item={args.item} selected={args.selected} onClick={args.onClick} />
 	{/snippet}
 </Story>
 
@@ -74,6 +74,6 @@
 	args={{ item: { ...mockItem, createdAt: undefined }, selected: false, onClick: () => {} }}
 >
 	{#snippet template(args)}
-		<InboxCard {...args} />
+		<InboxCard item={args.item} selected={args.selected} onClick={args.onClick} />
 	{/snippet}
 </Story>

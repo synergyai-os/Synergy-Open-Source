@@ -449,7 +449,7 @@
 									<dl class="space-y-inbox-list-gap text-button">
 										<div class="flex justify-between">
 											<dt class="text-secondary">Role ID</dt>
-											<dd class="font-mono text-label text-tertiary">{role.roleId}</dd>
+											<dd class="font-code text-label text-tertiary">{role.roleId}</dd>
 										</div>
 										<div class="flex justify-between">
 											<dt class="text-secondary">Created</dt>

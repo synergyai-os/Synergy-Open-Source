@@ -188,7 +188,7 @@ function findDirectUsageInComponents(tokens) {
 				}
 			}
 		}
-	} catch (error) {
+	} catch (_error) {
 		// If find command fails (e.g., Windows), fall back to scanning common directories
 		const commonDirs = ['src/lib/components', 'src/lib/modules', 'src/routes', 'src/styles'];
 

@@ -277,14 +277,12 @@ Code:
 
    ```typescript
    // ✅ CORRECT: Always invoke autofixer when fixing Svelte code
-   const result =
-   	(await mcp_svelte_svelte) -
-   	autofixer({
-   		code: fileContent,
-   		filename: 'Component.svelte', // or 'composable.svelte.ts'
-   		desired_svelte_version: 5,
-   		async: false // Set true if component uses top-level await
-   	});
+   const result = await mcp_svelte_svelte_autofixer({
+   	code: fileContent,
+   	filename: 'Component.svelte', // or 'composable.svelte.ts'
+   	desired_svelte_version: 5,
+   	async: false // Set true if component uses top-level await
+   });
    ```
 
 3. **Iterate until clean** ⭐ **MANDATORY**:
@@ -296,14 +294,12 @@ Code:
    	// Apply fixes to code
 
    	// Re-run autofixer to verify fixes
-   	result =
-   		(await mcp_svelte_svelte) -
-   		autofixer({
-   			code: fixedCode,
-   			filename: 'Component.svelte',
-   			desired_svelte_version: 5,
-   			async: false
-   		});
+   	result = await mcp_svelte_svelte_autofixer({
+   		code: fixedCode,
+   		filename: 'Component.svelte',
+   		desired_svelte_version: 5,
+   		async: false
+   	});
    }
    ```
 
@@ -520,14 +516,12 @@ Impact: URL doesn't reflect current organization, breaks deep linking
 
    ```typescript
    // ✅ CORRECT: Always invoke autofixer when fixing Svelte code
-   const result =
-   	(await mcp_svelte_svelte) -
-   	autofixer({
-   		code: fileContent,
-   		filename: 'Component.svelte', // or 'composable.svelte.ts'
-   		desired_svelte_version: 5,
-   		async: false // Set true if component uses top-level await
-   	});
+   const result = await mcp_svelte_svelte_autofixer({
+   	code: fileContent,
+   	filename: 'Component.svelte', // or 'composable.svelte.ts'
+   	desired_svelte_version: 5,
+   	async: false // Set true if component uses top-level await
+   });
    ```
 
 3. **Iterate until clean** ⭐ **MANDATORY**:
@@ -539,14 +533,12 @@ Impact: URL doesn't reflect current organization, breaks deep linking
    	// Apply fixes to code
 
    	// Re-run autofixer to verify fixes
-   	result =
-   		(await mcp_svelte_svelte) -
-   		autofixer({
-   			code: fixedCode,
-   			filename: 'Component.svelte',
-   			desired_svelte_version: 5,
-   			async: false
-   		});
+   	result = await mcp_svelte_svelte_autofixer({
+   		code: fixedCode,
+   		filename: 'Component.svelte',
+   		desired_svelte_version: 5,
+   		async: false
+   	});
    }
    ```
 

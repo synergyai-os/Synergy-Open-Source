@@ -545,13 +545,13 @@
 
 		<!-- Right Panel - Detail View -->
 		<div class="relative flex-1 overflow-y-auto bg-elevated">
-			{#if hasSelectedItem}
+			{#if hasSelectedItem && selectedItem}
 				<!-- Dynamic detail view based on type -->
 				<!-- Key on selectedItem._id ensures remount only when actual data changes (prevents stale data) -->
 				{#key selectedItem._id}
 					{#if selectedItem.type === 'readwise_highlight'}
 						<ReadwiseDetail
-							inboxItemId={selectedItemId}
+							inboxItemId={selectedItemId ?? undefined}
 							item={selectedItem}
 							onClose={() => clearSelection()}
 							currentIndex={keyboard.getCurrentItemIndex()}

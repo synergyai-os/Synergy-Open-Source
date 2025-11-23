@@ -2233,6 +2233,7 @@
 	}
 
 	/* Responsive */
+	/* Token: --breakpoint-md (768px) from design-system.json */
 	@media (max-width: 768px) {
 		/* Hide desktop nav, show mobile hamburger */
 		.navbar-desktop {

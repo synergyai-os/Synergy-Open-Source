@@ -4,7 +4,7 @@
 	// which are not available in Storybook. Skipping stories for this component.
 	// import SecretarySelector from './SecretarySelector.svelte';
 
-	const { Story } = defineMeta({
+	const { Story: _Story } = defineMeta({
 		// component: SecretarySelector,
 		title: 'Modules/Meetings/SecretarySelector',
 		tags: ['autodocs']

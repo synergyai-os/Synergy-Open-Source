@@ -42,7 +42,12 @@
 				</svg>
 			</Icon>
 		{/snippet}
-		<IconButton {...args} icon={addIcon} />
+		<IconButton
+			variant={args.variant}
+			ariaLabel={args.ariaLabel}
+			disabled={args.disabled}
+			icon={addIcon}
+		/>
 	{/snippet}
 </Story>
 
@@ -66,7 +71,12 @@
 				</svg>
 			</Icon>
 		{/snippet}
-		<IconButton {...args} icon={deleteIcon} />
+		<IconButton
+			variant={args.variant}
+			ariaLabel={args.ariaLabel}
+			disabled={args.disabled}
+			icon={deleteIcon}
+		/>
 	{/snippet}
 </Story>
 
@@ -90,12 +100,17 @@
 				</svg>
 			</Icon>
 		{/snippet}
-		<IconButton {...args} icon={disabledIcon} />
+		<IconButton
+			variant={args.variant}
+			ariaLabel={args.ariaLabel}
+			disabled={args.disabled}
+			icon={disabledIcon}
+		/>
 	{/snippet}
 </Story>
 
 <Story name="Group" args={{ variant: 'ghost', ariaLabel: 'Actions' }}>
-	{#snippet template(args)}
+	{#snippet template(_args)}
 		{#snippet editIcon()}
 			<Icon size="md">
 				<svg

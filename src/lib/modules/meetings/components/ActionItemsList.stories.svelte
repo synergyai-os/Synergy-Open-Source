@@ -28,7 +28,14 @@
 	}}
 >
 	{#snippet template(args)}
-		<ActionItemsList {...args} />
+		<ActionItemsList
+			agendaItemId={args.agendaItemId}
+			meetingId={args.meetingId}
+			sessionId={args.sessionId}
+			organizationId={args.organizationId}
+			circleId={args.circleId}
+			readonly={args.readonly}
+		/>
 	{/snippet}
 </Story>
 
@@ -44,7 +51,14 @@
 	}}
 >
 	{#snippet template(args)}
-		<ActionItemsList {...args} />
+		<ActionItemsList
+			agendaItemId={args.agendaItemId}
+			meetingId={args.meetingId}
+			sessionId={args.sessionId}
+			organizationId={args.organizationId}
+			circleId={args.circleId}
+			readonly={args.readonly}
+		/>
 	{/snippet}
 </Story>
 
@@ -59,7 +73,14 @@
 	}}
 >
 	{#snippet template(args)}
-		<ActionItemsList {...args} />
+		<ActionItemsList
+			agendaItemId={args.agendaItemId}
+			meetingId={args.meetingId}
+			sessionId={args.sessionId}
+			organizationId={args.organizationId}
+			circleId={args.circleId}
+			readonly={args.readonly}
+		/>
 	{/snippet}
 </Story>
 

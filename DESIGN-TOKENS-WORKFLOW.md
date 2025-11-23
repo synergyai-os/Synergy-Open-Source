@@ -247,6 +247,7 @@ npm run tokens:validate-semantic
 **When to add:**
 
 - Component-specific spacing (e.g., nav item padding)
+- Semantic font families (e.g., `fonts.heading`, `fonts.body`, `fonts.code`)
 - Context-specific colors (e.g., sidebar text color)
 - Feature-specific values (e.g., marketing section padding)
 
@@ -273,7 +274,7 @@ npm run tokens:validate-semantic
 
 **Example cascade:**
 
-```json
+````json
 // Base token
 "spacing.2": "0.5rem"
 
@@ -287,15 +288,85 @@ npm run tokens:validate-semantic
 
 // All semantic tokens update automatically:
 "spacing.nav.item.x": "{spacing.2}"      // → 0.75rem ✅
-"spacing.menu.item.x": "{spacing.2}"     // → 0.75rem ✅
-"spacing.badge.x": "{spacing.2}"         // → 0.75rem ✅
-```
+
+**Font Family Cascade Example:**
+
+```json
+// Base font token
+"fonts.sans": ["Inter", "system-ui", "sans-serif"]
+
+// Semantic fonts (reference base)
+"fonts.heading": "{fonts.sans}"  // → Inter, system-ui, sans-serif
+"fonts.body": "{fonts.sans}"     // → Inter, system-ui, sans-serif
+
+// Change base font once:
+"fonts.sans": ["Comic Sans MS", "cursive", "sans-serif"]
+
+// All semantic fonts update automatically:
+"fonts.heading": "{fonts.sans}"  // → Comic Sans MS, cursive, sans-serif ✅
+"fonts.body": "{fonts.sans}"     // → Comic Sans MS, cursive, sans-serif ✅
+
+// Components using font-heading/font-body update automatically (no code changes)
+````
+
+"spacing.menu.item.x": "{spacing.2}" // → 0.75rem ✅
+"spacing.badge.x": "{spacing.2}" // → 0.75rem ✅
+
+````
 
 **Benefits:**
 
 - ✅ Single source of truth (change once, updates everywhere)
 - ✅ Consistent design system (related tokens stay aligned)
 - ✅ Easy refactoring (update base token, all semantic tokens update)
+
+**Font Family Cascade Example:**
+
+```json
+// Base font token
+"fonts.sans": ["Inter", "system-ui", "sans-serif"]
+
+// Semantic fonts (reference base)
+"fonts.heading": "{fonts.sans}"  // → Inter, system-ui, sans-serif
+"fonts.body": "{fonts.sans}"     // → Inter, system-ui, sans-serif
+
+// Change base font once:
+"fonts.sans": ["Comic Sans MS", "cursive", "sans-serif"]
+
+// All semantic fonts update automatically:
+"fonts.heading": "{fonts.sans}"  // → Comic Sans MS, cursive, sans-serif ✅
+"fonts.body": "{fonts.sans}"     // → Comic Sans MS, cursive, sans-serif ✅
+
+// Components using font-heading/font-body update automatically (no code changes)
+````
+
+**How to Add Custom Fonts:**
+
+1. **Add base font to `design-system.json`:**
+
+   ```json
+   "fonts": {
+     "custom": {
+       "$value": ["Your Font", "fallback", "sans-serif"],
+       "$description": "Custom font stack"
+     }
+   }
+   ```
+
+2. **Create semantic font (optional):**
+
+   ```json
+   "fonts": {
+     "display": {
+       "$value": "{fonts.custom}",
+       "$description": "Display font for hero sections"
+     }
+   }
+   ```
+
+3. **Build tokens:** `npm run tokens:build`
+
+4. **Use in components:** `class="font-custom"` or `class="font-display"`
 
 ---
 
@@ -674,6 +745,154 @@ npm run tokens:validate-semantic
 ```svelte
 <a class="py-nav-item">Nav Item</a>
 ```
+
+### Pattern 6: Breakpoint Tokens
+
+**Scenario**: Need responsive breakpoints for mobile/tablet/desktop layouts.
+
+**Breakpoint token approach:**
+
+```json
+{
+	"breakpoints": {
+		"$type": "dimension",
+		"sm": {
+			"$value": "640px",
+			"$description": "Small devices (mobile landscape) - min-width breakpoint"
+		},
+		"md": {
+			"$value": "768px",
+			"$description": "Medium devices (tablets) - min-width breakpoint"
+		},
+		"lg": {
+			"$value": "1024px",
+			"$description": "Large devices (desktop) - min-width breakpoint"
+		}
+	}
+}
+```
+
+**Usage in JavaScript:**
+
+```typescript
+// Read breakpoint from CSS variable
+const breakpointSm = getComputedStyle(document.documentElement)
+	.getPropertyValue('--breakpoint-sm')
+	.trim();
+const breakpointValue = breakpointSm ? parseInt(breakpointSm, 10) : 640;
+const isMobile = window.innerWidth < breakpointValue;
+```
+
+**Usage in CSS:**
+
+```css
+/* Note: CSS doesn't support CSS variables in @media queries */
+/* Use token value directly with comment reference */
+/* Token: --breakpoint-md (768px) from design-system.json */
+@media (max-width: 768px) {
+	.responsive-element {
+		/* Mobile styles */
+	}
+}
+```
+
+**Changing breakpoints:**
+
+1. Update `design-system.json`:
+
+   ```json
+   {
+   	"breakpoints": {
+   		"sm": {
+   			"$value": "768px" // Changed from 640px
+   		}
+   	}
+   }
+   ```
+
+2. Run `npm run tokens:build`:
+   - ✅ CSS variable updates: `--breakpoint-sm: 768px`
+   - ✅ JavaScript code automatically uses new value
+   - ⚠️ CSS `@media` queries need manual update (CSS limitation)
+
+**Why this pattern:**
+
+- ✅ Single source of truth for breakpoints
+- ✅ JavaScript automatically uses updated values
+- ✅ Consistent with Tailwind CSS pattern (industry standard)
+- ⚠️ CSS limitation: Cannot use CSS variables in `@media` queries
+
+---
+
+### Pattern 5: Opacity Tokens
+
+**Scenario**: Need consistent opacity for disabled states, hover overlays, backdrops, and loading indicators.
+
+**Token structure:**
+
+```json
+{
+	"opacity": {
+		"$type": "number",
+		"50": {
+			"$value": "0.5",
+			"$description": "50% opacity"
+		},
+		"80": {
+			"$value": "0.8",
+			"$description": "80% opacity"
+		},
+		"disabled": {
+			"$value": "{opacity.50}",
+			"$description": "Opacity for disabled states - references base opacity"
+		},
+		"hover": {
+			"$value": "{opacity.80}",
+			"$description": "Opacity for hover overlay effects - references base opacity"
+		}
+	}
+}
+```
+
+**Usage in components:**
+
+```svelte
+<!-- ❌ WRONG: Hardcoded opacity -->
+<button style="opacity: 0.5" disabled>Save</button>
+<div class="bg-black" style="opacity: 0.75">Backdrop</div>
+
+<!-- ✅ CORRECT: Semantic opacity -->
+<button class="opacity-disabled" disabled>Save</button>
+<div class="bg-black opacity-backdrop">Backdrop</div>
+```
+
+**Cascade example:**
+
+1. **Change disabled opacity** in `design-system.json`:
+
+   ```json
+   {
+   	"opacity": {
+   		"disabled": {
+   			"$value": "{opacity.40}" // Changed from {opacity.50}
+   		}
+   	}
+   }
+   ```
+
+2. **Run**: `npm run tokens:build`
+
+3. **Result**:
+   - ✅ All disabled elements automatically use 40% opacity
+   - ✅ No code changes needed
+   - ✅ Base `--opacity-50` remains unchanged
+
+**Why this pattern:**
+
+- ✅ Semantic meaning (disabled vs arbitrary transparency)
+- ✅ Cascade updates automatically
+- ✅ Consistent with Tailwind CSS pattern
+- ✅ Works for buttons, inputs, loading states, backdrops
 
 ---
 

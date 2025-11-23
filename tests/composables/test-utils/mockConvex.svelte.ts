@@ -127,6 +127,118 @@ export function createMockOrganizationInvites(): OrganizationInvite[] {
 }
 
 /**
+ * Mock inbox items data for tests
+ */
+export function createMockInboxItems(): Array<{
+	_id: string;
+	type: 'readwise_highlight' | 'photo_note' | 'manual_text';
+	userId: string;
+	processed: boolean;
+	createdAt: number;
+	title: string;
+	snippet: string;
+	tags: string[];
+}> {
+	return [
+		{
+			_id: 'item-1',
+			type: 'readwise_highlight',
+			userId: 'user-1',
+			processed: false,
+			createdAt: Date.now() - 3600000,
+			title: 'Test Highlight 1',
+			snippet: 'This is a test highlight snippet',
+			tags: ['test', 'highlight']
+		},
+		{
+			_id: 'item-2',
+			type: 'photo_note',
+			userId: 'user-1',
+			processed: false,
+			createdAt: Date.now() - 7200000,
+			title: 'Test Photo Note',
+			snippet: 'This is a test photo note',
+			tags: ['photo']
+		},
+		{
+			_id: 'item-3',
+			type: 'manual_text',
+			userId: 'user-1',
+			processed: false,
+			createdAt: Date.now() - 10800000,
+			title: 'Test Manual Text',
+			snippet: 'This is a test manual text entry',
+			tags: ['manual']
+		}
+	];
+}
+
+/**
+ * Mock inbox item with details for tests
+ */
+export function createMockInboxItemWithDetails() {
+	return {
+		_id: 'item-1',
+		type: 'readwise_highlight' as const,
+		userId: 'user-1',
+		processed: false,
+		createdAt: Date.now() - 3600000,
+		title: 'Test Highlight 1',
+		snippet: 'This is a test highlight snippet',
+		highlightId: 'highlight-1',
+		highlight: {
+			_id: 'highlight-1',
+			userId: 'user-1',
+			sourceId: 'source-1',
+			text: 'This is the highlight text',
+			externalId: 'rw-123',
+			externalUrl: 'https://readwise.io/highlight/123',
+			highlightedAt: Date.now() - 3600000,
+			updatedAt: Date.now() - 3600000,
+			createdAt: Date.now() - 3600000
+		},
+		source: {
+			_id: 'source-1',
+			userId: 'user-1',
+			authorId: 'author-1',
+			title: 'Test Book',
+			category: 'books',
+			sourceType: 'book',
+			externalId: 'rw-book-123',
+			numHighlights: 10,
+			updatedAt: Date.now() - 3600000,
+			createdAt: Date.now() - 3600000
+		},
+		author: {
+			_id: 'author-1',
+			userId: 'user-1',
+			name: 'Test Author',
+			createdAt: Date.now() - 3600000
+		},
+		tags: [
+			{
+				_id: 'tag-1',
+				userId: 'user-1',
+				name: 'test',
+				createdAt: Date.now() - 3600000
+			}
+		]
+	};
+}
+
+/**
+ * Mock sync progress for tests
+ */
+export function createMockSyncProgress() {
+	return {
+		step: 'Importing highlights...',
+		current: 5,
+		total: 10,
+		message: 'Importing highlight 5 of 10...'
+	};
+}
+
+/**
  * Global mock state for convex-svelte hooks
  * Used by test files to configure mocks before importing composables
  */
@@ -134,6 +246,9 @@ let globalMockClient: ConvexClient | null = null;
 let globalQueryResults: {
 	organizations?: MockQueryResult<OrganizationSummary[]>;
 	organizationInvites?: MockQueryResult<OrganizationInvite[]>;
+	inboxItems?: MockQueryResult<unknown[]>;
+	inboxItemWithDetails?: MockQueryResult<unknown>;
+	syncProgress?: MockQueryResult<unknown>;
 } = {};
 
 /**
@@ -145,6 +260,9 @@ export function setupConvexMocks(
 	queryResults: {
 		organizations?: MockQueryResult<OrganizationSummary[]>;
 		organizationInvites?: MockQueryResult<OrganizationInvite[]>;
+		inboxItems?: MockQueryResult<unknown[]>;
+		inboxItemWithDetails?: MockQueryResult<unknown>;
+		syncProgress?: MockQueryResult<unknown>;
 	} = {}
 ) {
 	globalMockClient = mockClient;
@@ -179,6 +297,18 @@ export function __getMockQueryResult(queryFn: unknown): MockQueryResult<unknown>
 			globalQueryResults.organizationInvites ??
 			createMockQueryResult(createMockOrganizationInvites())
 		);
+	}
+	if (queryName.includes('listInboxItems')) {
+		return globalQueryResults.inboxItems ?? createMockQueryResult(createMockInboxItems());
+	}
+	if (queryName.includes('getInboxItemWithDetails')) {
+		return (
+			globalQueryResults.inboxItemWithDetails ??
+			createMockQueryResult(createMockInboxItemWithDetails())
+		);
+	}
+	if (queryName.includes('getSyncProgress')) {
+		return globalQueryResults.syncProgress ?? createMockQueryResult(createMockSyncProgress());
 	}
 
 	// Default: return loading state

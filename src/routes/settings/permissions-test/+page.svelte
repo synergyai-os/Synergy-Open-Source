@@ -187,14 +187,14 @@
 		<dl class="space-y-3">
 			<div>
 				<dt class="text-label text-secondary">User ID</dt>
-				<dd class="font-mono text-body text-primary">{userId ?? 'Not logged in'}</dd>
+				<dd class="font-code text-body text-primary">{userId ?? 'Not logged in'}</dd>
 			</div>
 			<div>
 				<dt class="text-label text-secondary">Organization</dt>
 				<dd class="text-body text-primary">
 					{activeOrganization()?.name ?? 'None selected'}
 					{#if activeOrganizationId()}
-						<span class="font-mono text-sm text-secondary">({activeOrganizationId()})</span>
+						<span class="font-code text-sm text-secondary">({activeOrganizationId()})</span>
 					{/if}
 				</dd>
 			</div>
@@ -216,7 +216,7 @@
 				<h3 class="mb-2 text-label font-semibold text-secondary">Your Permissions:</h3>
 				<ul class="space-y-1">
 					{#each permissions.permissions as permission (permission)}
-						<li class="font-mono text-sm text-primary">✓ {permission}</li>
+						<li class="font-code text-sm text-primary">✓ {permission}</li>
 					{/each}
 				</ul>
 			</div>

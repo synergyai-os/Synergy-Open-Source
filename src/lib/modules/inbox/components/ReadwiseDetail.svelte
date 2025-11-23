@@ -5,13 +5,14 @@
 	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 	import { getContext } from 'svelte';
-	import { useConvexClient, useQuery } from 'convex-svelte';
+	import { useConvexClient } from 'convex-svelte';
 	import { makeFunctionReference } from 'convex/server';
 	import { api } from '$lib/convex';
 	import type { Id } from '$lib/convex';
 	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
 	import type { CoreModuleAPI } from '$lib/modules/core/api';
 	import { DEFAULT_TAG_COLOR } from '$lib/utils/tagConstants';
+	import { useTagging } from '../composables/useTagging.svelte';
 	// TODO: Re-enable when Doc type is needed
 	// import type { Doc } from '$lib/convex';
 	import type { FunctionReference } from 'convex/server';
@@ -59,68 +60,14 @@
 			>)
 		: null;
 
-	// Tag APIs (only if tags module exists in API)
-	// Note: These will be null if Convex hasn't regenerated the API yet
-	let createTagApi: FunctionReference<
-		'mutation',
-		'public',
-		{ sessionId: string; displayName: string; color?: string; parentId?: Id<'tags'> },
-		Id<'tags'>
-	> | null = null;
-	let assignTagsApi: FunctionReference<
-		'mutation',
-		'public',
-		{ sessionId: string; highlightId: Id<'highlights'>; tagIds: Id<'tags'>[] },
-		void
-	> | null = null;
-	if (browser && api.tags?.createTag && api.tags?.assignTagsToHighlight) {
-		try {
-			createTagApi = makeFunctionReference('tags:createTag') as FunctionReference<
-				'mutation',
-				'public',
-				{ sessionId: string; displayName: string; color?: string; parentId?: Id<'tags'> },
-				Id<'tags'>
-			>;
-			assignTagsApi = makeFunctionReference('tags:assignTagsToHighlight') as FunctionReference<
-				'mutation',
-				'public',
-				{ sessionId: string; highlightId: Id<'highlights'>; tagIds: Id<'tags'>[] },
-				void
-			>;
-		} catch (e) {
-			// Tags API not available yet - component will work without tags feature
-			console.warn('Tags API not available:', e);
-		}
-	}
-
 	// Get workspace context for organization filtering
 	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
 	const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
 
-	// Query all tags for user (with error handling if API not generated yet)
-	// Note: useQuery returns {data, isLoading, error, isStale} - extract the data property
-	const allTagsQuery =
-		browser && api.tags?.listAllTags && getSessionId()
-			? useQuery(api.tags.listAllTags, () => {
-					const sessionId = getSessionId();
-					if (!sessionId) {
-						// Return skip pattern - Convex recognizes this
-						return 'skip' as 'skip' & { sessionId: string };
-					}
-					const orgId = activeOrganizationId();
-					return {
-						sessionId,
-						...(orgId ? { organizationId: orgId as Id<'organizations'> } : {})
-					};
-				})
-			: null;
-
-	// Extract data from useQuery result (which returns {data, isLoading, error, isStale})
-	const allTags = $derived(() => {
-		if (allTagsQuery && typeof allTagsQuery === 'object' && 'data' in allTagsQuery) {
-			return allTagsQuery.data;
-		}
-		return undefined;
+	// Initialize tagging composable (handles data fetching and tag operations)
+	const tagging = useTagging({
+		sessionId: getSessionId,
+		activeOrganizationId: activeOrganizationId
 	});
 
 	let headerMenuOpen = $state(false);
@@ -216,16 +163,8 @@
 	// Available tags from query (with color) - includes tags from item if available
 	// CRITICAL: This must always include ALL user tags from allTags query for global availability
 	// Note: listAllTags returns TagWithHierarchy[] (flattened hierarchical structure)
-	type TagWithHierarchy = {
-		_id: Id<'tags'>;
-		displayName: string;
-		color: string;
-		parentId?: Id<'tags'>;
-		level: number;
-		children?: TagWithHierarchy[];
-	};
 	const availableTags = $derived(() => {
-		const tagsData = allTags(); // Call the derived function to get the actual tags data
+		const tagsData = tagging.allTags; // Get tags from composable
 		const tagsMap = new SvelteMap<
 			string,
 			{ _id: Id<'tags'>; displayName: string; color: string; parentId?: Id<'tags'>; level?: number }
@@ -237,7 +176,7 @@
 			// tagsData can be undefined (loading), null (error), or an array
 			if (Array.isArray(tagsData)) {
 				// Always process tagsData if it's an array (even if empty - that's fine)
-				tagsData.forEach((tag: TagWithHierarchy) => {
+				tagsData.forEach((tag) => {
 					if (tag?._id) {
 						tagsMap.set(tag._id, {
 							_id: tag._id,
@@ -272,23 +211,14 @@
 	});
 
 	async function handleTagsChange(tagIds: Id<'tags'>[]) {
-		if (!highlightId || !convexClient || !assignTagsApi) return;
+		if (!highlightId) return;
 
 		// Mark that we're updating tags (prevents $effect from overwriting optimistic updates)
 		isUpdatingTags = true;
 		selectedTagIds = tagIds;
 
 		try {
-			const sessionId = $page.data.sessionId;
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
-
-			await convexClient.mutation(assignTagsApi, {
-				sessionId,
-				highlightId: highlightId! as Id<'highlights'>,
-				tagIds: tagIds
-			});
+			await tagging.assignTags(highlightId as Id<'highlights'>, tagIds);
 
 			// Reset flag after a short delay to allow query to refresh
 			setTimeout(() => {
@@ -311,31 +241,7 @@
 		color: string,
 		parentId?: Id<'tags'>
 	): Promise<Id<'tags'>> {
-		if (!convexClient || !createTagApi) {
-			throw new Error('Convex client not available');
-		}
-
-		try {
-			const sessionId = $page.data.sessionId;
-			if (!sessionId) {
-				throw new Error('Session ID is required');
-			}
-
-			const orgId = activeOrganizationId();
-			const tagId = await convexClient.mutation(createTagApi, {
-				sessionId,
-				displayName,
-				color,
-				parentId,
-				...(orgId
-					? { ownership: 'organization' as const, organizationId: orgId as Id<'organizations'> }
-					: {})
-			});
-			return tagId;
-		} catch (error) {
-			console.error('Failed to create tag:', error);
-			throw error;
-		}
+		return await tagging.createTag(displayName, color, parentId);
 	}
 
 	// Keyboard shortcut: 'T' to focus tag selector
@@ -691,7 +597,7 @@
 								>Added {new Date(item.createdAt).toLocaleDateString()}</span
 							>
 							{#if item?._id}
-								<span class="font-mono text-label text-tertiary">ID: {item._id}</span>
+								<span class="font-code text-label text-tertiary">ID: {item._id}</span>
 							{/if}
 						</div>
 					</div>

@@ -37,7 +37,7 @@
 		lg: 'text-h4'
 	};
 
-	const textClasses = `${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
+	const textClasses = `font-body ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
 </script>
 
 {#if as === 'p'}

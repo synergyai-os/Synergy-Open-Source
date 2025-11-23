@@ -19,7 +19,7 @@
 
 	type Props = {
 		variant?: DialogVariant;
-		responsive?: boolean; // Auto-fullscreen on mobile (<640px)
+		responsive?: boolean; // Auto-fullscreen on mobile (<sm breakpoint)
 		children: Snippet;
 		class?: string;
 	};
@@ -32,14 +32,20 @@
 		...rest
 	}: Props = $props();
 
-	// Check if mobile (<640px) for responsive behavior
+	// Check if mobile (<sm breakpoint) for responsive behavior
+	// Uses CSS variable --breakpoint-sm from design-system.json
 	let isMobile = $state(false);
 
 	$effect(() => {
 		if (!browser) return;
 
 		const checkMobile = () => {
-			isMobile = window.innerWidth < 640;
+			// Read breakpoint from CSS variable (--breakpoint-sm: 640px)
+			const breakpointSm = getComputedStyle(document.documentElement)
+				.getPropertyValue('--breakpoint-sm')
+				.trim();
+			const breakpointValue = breakpointSm ? parseInt(breakpointSm, 10) : 640; // Fallback to 640px
+			isMobile = window.innerWidth < breakpointValue;
 		};
 
 		checkMobile();

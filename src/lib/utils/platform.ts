@@ -17,13 +17,20 @@ let platformCached: Platform | null = null;
 
 /**
  * Check if running on mobile device (based on viewport width)
+ * Uses breakpoint token from design-system.json
  */
 export function isMobileDevice(): boolean {
 	if (!browser) return false;
 
 	if (isMobileCached !== null) return isMobileCached;
 
-	isMobileCached = window.innerWidth < 768;
+	// Read breakpoint from CSS variable (--breakpoint-md: 768px)
+	const breakpointMd = getComputedStyle(document.documentElement)
+		.getPropertyValue('--breakpoint-md')
+		.trim();
+	const breakpointValue = breakpointMd ? parseInt(breakpointMd, 10) : 768; // Fallback to 768px
+
+	isMobileCached = window.innerWidth < breakpointValue;
 	return isMobileCached;
 }
 

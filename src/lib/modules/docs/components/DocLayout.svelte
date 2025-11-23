@@ -334,6 +334,7 @@
 	}
 
 	/* Responsive design */
+	/* Token: --breakpoint-md (768px) from design-system.json */
 	@media (max-width: 768px) {
 		.docs-content {
 			padding: 1.5rem 1rem;

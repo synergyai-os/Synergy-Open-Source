@@ -498,10 +498,16 @@
 
 	// Initialize client-only state from browser APIs
 	if (browser) {
-		// Mobile detection
-		isMobile = window.innerWidth < 768;
+		// Mobile detection - uses breakpoint token from design-system.json
+		const getBreakpointMd = () => {
+			const breakpointMd = getComputedStyle(document.documentElement)
+				.getPropertyValue('--breakpoint-md')
+				.trim();
+			return breakpointMd ? parseInt(breakpointMd, 10) : 768; // Fallback to 768px
+		};
+		isMobile = window.innerWidth < getBreakpointMd();
 		window.addEventListener('resize', () => {
-			isMobile = window.innerWidth < 768;
+			isMobile = window.innerWidth < getBreakpointMd();
 		});
 
 		// Load sidebar width from localStorage

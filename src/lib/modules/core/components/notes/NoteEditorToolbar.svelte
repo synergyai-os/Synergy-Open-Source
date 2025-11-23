@@ -114,7 +114,7 @@
 			onclick={() => toggleMarkSafe('code')}
 			title="Code (Cmd+`)"
 		>
-			<svg class="icon-sm font-mono" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<svg class="icon-sm font-code" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path
 					stroke-linecap="round"
 					stroke-linejoin="round"

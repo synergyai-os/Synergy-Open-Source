@@ -4,7 +4,7 @@
 	// which are not available in Storybook. Skipping stories for this component.
 	// import DecisionsList from './DecisionsList.svelte';
 
-	const { Story } = defineMeta({
+	const { Story: _Story } = defineMeta({
 		// component: DecisionsList,
 		title: 'Modules/Meetings/DecisionsList',
 		tags: ['autodocs']

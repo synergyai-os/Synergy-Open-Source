@@ -133,6 +133,11 @@ export default {
 					filter: (token) => token.path[0] === 'typography'
 				},
 				{
+					destination: 'fonts.css',
+					format: 'tailwind/theme',
+					filter: (token) => token.path[0] === 'fonts'
+				},
+				{
 					destination: 'effects.css',
 					format: 'tailwind/theme',
 					filter: (token) =>
@@ -145,6 +150,16 @@ export default {
 					destination: 'sizes.css',
 					format: 'tailwind/theme',
 					filter: (token) => token.path[0] === 'size'
+				},
+				{
+					destination: 'breakpoints.css',
+					format: 'tailwind/theme',
+					filter: (token) => token.path[0] === 'breakpoints'
+				},
+				{
+					destination: 'opacity.css',
+					format: 'tailwind/theme',
+					filter: (token) => token.path[0] === 'opacity'
 				}
 			]
 		},
@@ -168,12 +183,22 @@ export default {
 					filter: (token) => token.path[0] === 'typography'
 				},
 				{
+					destination: 'fonts-utils.css',
+					format: 'tailwind/utility',
+					filter: (token) => token.path[0] === 'fonts'
+				},
+				{
 					destination: 'component-utils.css',
 					format: 'tailwind/utility',
 					filter: (token) =>
 						token.path[0] === 'shadow' ||
 						token.path[0] === 'borderRadius' ||
 						token.path[0] === 'size'
+				},
+				{
+					destination: 'opacity-utils.css',
+					format: 'tailwind/utility',
+					filter: (token) => token.path[0] === 'opacity'
 				}
 			]
 		}

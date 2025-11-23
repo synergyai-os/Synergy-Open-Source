@@ -3,11 +3,13 @@ import tailwindcss from '@tailwindcss/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { viteBreakpointReplace } from './scripts/vite-breakpoint-replace.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
 	plugins: [
+		viteBreakpointReplace(), // Replace hardcoded breakpoints in @media queries with token values
 		tailwindcss(),
 		{
 			name: 'redirect-markdown',

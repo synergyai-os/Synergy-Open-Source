@@ -631,7 +631,7 @@
 											<div class="flex items-start justify-between">
 												<div class="flex-1">
 													<h3 class="font-semibold text-primary">{role.name}</h3>
-													<p class="mt-form-field-gap font-mono text-label text-tertiary">
+													<p class="mt-form-field-gap font-code text-label text-tertiary">
 														{role.slug}
 													</p>
 												</div>
@@ -673,7 +673,7 @@
 											<div class="flex items-start justify-between">
 												<div class="flex-1">
 													<h3 class="font-semibold text-primary">{role.name}</h3>
-													<p class="mt-form-field-gap font-mono text-label text-tertiary">
+													<p class="mt-form-field-gap font-code text-label text-tertiary">
 														{role.slug}
 													</p>
 												</div>
@@ -743,7 +743,7 @@
 											<div
 												class="rounded-button border border-base bg-elevated px-card py-card transition-colors hover:bg-hover-solid"
 											>
-												<p class="font-mono text-label text-tertiary">
+												<p class="font-code text-label text-tertiary">
 													{(perm as { slug: string }).slug}
 												</p>
 												<p class="mt-form-field-gap text-small text-secondary">
@@ -904,7 +904,7 @@
 											class="flex items-center justify-between rounded-button border border-base bg-elevated px-card py-card"
 										>
 											<div class="flex-1">
-												<p class="font-mono text-small text-primary">{perm.slug}</p>
+												<p class="font-code text-small text-primary">{perm.slug}</p>
 											</div>
 											<div class="text-right">
 												<p class="text-h3 font-semibold text-primary">{perm.count}</p>
@@ -964,7 +964,7 @@
 							{selectedRole.isSystem ? 'System' : 'Custom'}
 						</Badge>
 					</div>
-					<p class="mt-content-section font-mono text-label text-tertiary">{selectedRole.slug}</p>
+					<p class="mt-content-section font-code text-label text-tertiary">{selectedRole.slug}</p>
 				</div>
 
 				<div>
@@ -992,7 +992,7 @@
 									class="flex items-center justify-between rounded-button border border-base bg-elevated px-card py-card"
 								>
 									<div class="flex-1">
-										<p class="font-mono text-label text-tertiary">{perm.slug}</p>
+										<p class="font-code text-label text-tertiary">{perm.slug}</p>
 										<p class="mt-form-field-gap text-small text-secondary">{perm.description}</p>
 									</div>
 									<div class="flex items-center gap-icon">

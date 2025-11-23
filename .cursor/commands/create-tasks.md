@@ -33,7 +33,7 @@
 
 ### Step 2: Decision Logic
 
-```
+```javascript
 IF user provides parent ticket ID (SYOS-XXX):
   → Create subtasks (unless user explicitly says "new ticket")
 
@@ -67,7 +67,7 @@ ELSE IF no ticket ID and no explicit intent:
 
 **Example:**
 
-```
+```javascript
 User: "/create-tasks - Working from meetings-separation-of-concerns-refactoring.md"
 
 AI: [Detects 3 approach options]
@@ -93,7 +93,7 @@ AI: [Uses Approach A → Continues to Step 1]
 
 1. **Project** (REQUIRED unless user says "no project"):
 
-   ```
+   ```bash
    Which project should this ticket belong to?
    (Say "no project" to skip, or provide project name)
    ```
@@ -417,7 +417,7 @@ for (const subtaskData of subtasks) {
 **Parent**: SYOS-XXX - ${parentTicket.title}
 
 ${subtaskData.description}
-		`,
+    `,
 		project: projectId, // ✅ CRITICAL - Set explicitly
 		assignee: RANDY_USER_ID, // ✅ ALWAYS Randy
 		state: 'Todo',
@@ -474,7 +474,7 @@ ${subtaskData.description}
 
 **Decision Tree:**
 
-```
+```bash
 Is it new user-facing functionality?
   YES → `feature`
   NO → Is something broken?
@@ -617,7 +617,7 @@ Is it new user-facing functionality?
 
 ### Example 1: Create New Ticket (With Project Confirmation)
 
-```
+```bash
 User: "/create-tasks - I want to add image uploads to chat"
 
 AI: "Which project should this ticket belong to?"
@@ -635,7 +635,7 @@ AI: "✅ Created SYOS-430 - Add image uploads to chat"
 
 ### Example 2: Create New Ticket (With Approach Option Confirmation)
 
-```
+```bash
 User: "/create-tasks - Working from ai-docs/tasks/meetings-separation-of-concerns-refactoring.md"
 
 AI: [Detects 3 approach options in document]
@@ -663,7 +663,7 @@ AI: "✅ Created SYOS-450 - Refactor Meetings Module Components: Separation of C
 
 ### Example 3: Create New Ticket (User Specifies Different Option)
 
-```
+```bash
 User: "/create-tasks - Working from ai-docs/tasks/meetings-separation-of-concerns-refactoring.md - use option B"
 
 AI: [Detects 3 approach options, user specified "option B"]
@@ -679,7 +679,7 @@ AI: "✅ Created SYOS-451 - Refactor Meetings Module Components: Separation of C
 
 ### Example 4: Create New Ticket (Wrong Project Detected)
 
-```
+```bash
 User: "/create-tasks - I want to add image uploads to chat"
 
 AI: "Which project should this ticket belong to?"
@@ -704,7 +704,7 @@ AI: "✅ Created SYOS-430 - Add image uploads to chat"
 
 ### Example 5: Create Subtasks (From Parent Description)
 
-```
+```bash
 User: "/create-tasks - Create ticket SYOS-438"
 
 AI: [Creates ticket SYOS-438 with description containing "Subtasks (Priority Order)" section]

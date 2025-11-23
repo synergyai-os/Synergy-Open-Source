@@ -82,6 +82,65 @@ git log origin/main..HEAD --oneline
 # If output shows commits → you've committed to main directly
 ```
 
+### Step 1.5: Show Summary and Require Explicit Confirmation (MANDATORY) ⚠️ **CRITICAL**
+
+**⚠️ NEVER proceed with branch operations without explicit user confirmation.**
+
+**After checking current state (Step 1), ALWAYS:**
+
+1. **Show Summary** (MANDATORY):
+   - Current branch name
+   - List of uncommitted changes (files modified/added/deleted)
+   - What will happen (step-by-step)
+   - Which option will be used (if multiple options exist)
+
+2. **Present Options** (if uncommitted changes exist):
+   - **Option A**: Move changes to new branch, then commit (recommended)
+   - **Option B**: Stash changes, create clean branch, then apply
+   - **Option C**: Abort branch creation
+
+3. **Require Explicit Confirmation** (MANDATORY):
+   - Show: "Proceed with Option A? (yes/no)"
+   - **WAIT for user response**
+   - **NEVER proceed without explicit "yes"**
+   - **NEVER assume user wants to proceed**
+
+**Example Summary Format:**
+
+```
+📋 Summary:
+   - Current branch: main
+   - Uncommitted changes: 2 files
+     • Modified: .cursor/commands/branch.md
+     • Untracked: ai-docs/tasks/SYOS-430-branch-safety-gates.md
+   - Action: Create feature/design-system-v1-completed
+   - What will happen:
+     1. Create branch from current state (changes come with you)
+     2. Switch to new branch
+     3. Commit changes on new branch
+     4. Verify main is clean
+
+Options:
+   A) Move changes to new branch, then commit (recommended)
+   B) Stash changes, create clean branch, then apply
+   C) Abort branch creation
+
+Which option? (A/B/C or yes/no for Option A)
+```
+
+**⚠️ CRITICAL RULES:**
+
+- ❌ **NEVER proceed** without showing summary
+- ❌ **NEVER proceed** without presenting options (if changes exist)
+- ❌ **NEVER proceed** without explicit user confirmation
+- ❌ **NEVER assume** user wants to proceed ("yes" is implicit)
+- ✅ **ALWAYS wait** for user response before executing any branch operations
+- ✅ **ALWAYS show** what will happen before doing it
+
+**Why**: Prevents work loss, builds trust, ensures user understands what will happen before AI acts.
+
+---
+
 **Decision Tree:**
 
 #### Scenario A: Uncommitted Changes on `main`
@@ -269,65 +328,6 @@ git pull origin main
 
 # Proceed to Step 2
 ```
-
----
-
-### Step 1.5: Show Summary and Require Explicit Confirmation (MANDATORY) ⚠️ **CRITICAL**
-
-**⚠️ NEVER proceed with branch operations without explicit user confirmation.**
-
-**After checking current state (Step 1), ALWAYS:**
-
-1. **Show Summary** (MANDATORY):
-   - Current branch name
-   - List of uncommitted changes (files modified/added/deleted)
-   - What will happen (step-by-step)
-   - Which option will be used (if multiple options exist)
-
-2. **Present Options** (if uncommitted changes exist):
-   - **Option A**: Move changes to new branch, then commit (recommended)
-   - **Option B**: Stash changes, create clean branch, then apply
-   - **Option C**: Abort branch creation
-
-3. **Require Explicit Confirmation** (MANDATORY):
-   - Show: "Proceed with Option A? (yes/no)"
-   - **WAIT for user response**
-   - **NEVER proceed without explicit "yes"**
-   - **NEVER assume user wants to proceed**
-
-**Example Summary Format:**
-
-```
-📋 Summary:
-   - Current branch: main
-   - Uncommitted changes: 2 files
-     • Modified: .cursor/commands/branch.md
-     • Untracked: ai-docs/tasks/SYOS-430-branch-safety-gates.md
-   - Action: Create feature/design-system-v1-completed
-   - What will happen:
-     1. Create branch from current state (changes come with you)
-     2. Switch to new branch
-     3. Commit changes on new branch
-     4. Verify main is clean
-
-Options:
-   A) Move changes to new branch, then commit (recommended)
-   B) Stash changes, create clean branch, then apply
-   C) Abort branch creation
-
-Which option? (A/B/C or yes/no for Option A)
-```
-
-**⚠️ CRITICAL RULES:**
-
-- ❌ **NEVER proceed** without showing summary
-- ❌ **NEVER proceed** without presenting options (if changes exist)
-- ❌ **NEVER proceed** without explicit user confirmation
-- ❌ **NEVER assume** user wants to proceed ("yes" is implicit)
-- ✅ **ALWAYS wait** for user response before executing any branch operations
-- ✅ **ALWAYS show** what will happen before doing it
-
-**Why**: Prevents work loss, builds trust, ensures user understands what will happen before AI acts.
 
 ---
 

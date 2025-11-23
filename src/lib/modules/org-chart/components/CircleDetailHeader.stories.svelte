@@ -19,7 +19,13 @@
 	args={{ circleName: 'Engineering Circle', onClose: () => console.log('Close clicked') }}
 >
 	{#snippet template(args)}
-		<CircleDetailHeader {...args} />
+		<CircleDetailHeader
+			circleName={args.circleName}
+			onClose={args.onClose}
+			onEdit={args.onEdit}
+			addMenuItems={args.addMenuItems}
+			headerMenuItems={args.headerMenuItems}
+		/>
 	{/snippet}
 </Story>
 
@@ -35,7 +41,13 @@
 	}}
 >
 	{#snippet template(args)}
-		<CircleDetailHeader {...args} />
+		<CircleDetailHeader
+			circleName={args.circleName}
+			onClose={args.onClose}
+			onEdit={args.onEdit}
+			addMenuItems={args.addMenuItems}
+			headerMenuItems={args.headerMenuItems}
+		/>
 	{/snippet}
 </Story>
 
@@ -48,7 +60,13 @@
 	}}
 >
 	{#snippet template(args)}
-		<CircleDetailHeader {...args} />
+		<CircleDetailHeader
+			circleName={args.circleName}
+			onClose={args.onClose}
+			onEdit={args.onEdit}
+			addMenuItems={args.addMenuItems}
+			headerMenuItems={args.headerMenuItems}
+		/>
 	{/snippet}
 </Story>
 
@@ -64,7 +82,13 @@
 	}}
 >
 	{#snippet template(args)}
-		<CircleDetailHeader {...args} />
+		<CircleDetailHeader
+			circleName={args.circleName}
+			onClose={args.onClose}
+			onEdit={args.onEdit}
+			addMenuItems={args.addMenuItems}
+			headerMenuItems={args.headerMenuItems}
+		/>
 	{/snippet}
 </Story>
 
@@ -79,6 +103,12 @@
 	}}
 >
 	{#snippet template(args)}
-		<CircleDetailHeader {...args} />
+		<CircleDetailHeader
+			circleName={args.circleName}
+			onClose={args.onClose}
+			onEdit={args.onEdit}
+			addMenuItems={args.addMenuItems}
+			headerMenuItems={args.headerMenuItems}
+		/>
 	{/snippet}
 </Story>

@@ -1191,7 +1191,38 @@ test: {
 
 **Performance**: Browser tests slower (~100-500ms startup) than Node tests (~1-5ms). Use Node for pure logic, browser for APIs.
 
-**Related**: #L400 (SSR-unsafe libraries), #L500 ($effect browser checks)
+**Test Fixture Pattern**: For composable tests, wrap composables in a Svelte component fixture:
+
+```svelte
+<!-- tests/composables/fixtures/InboxTestComponent.svelte -->
+<script lang="ts">
+	import { browser } from '$app/environment';
+	import { setupConvex } from 'convex-svelte';
+	import { useInboxItems } from '$lib/modules/inbox/composables/useInboxItems.svelte';
+	
+	// Setup Convex client for testing (required by convex-svelte)
+	if (browser) {
+		setupConvex('https://mock-convex-url.convex.cloud');
+	}
+	
+	let { sessionId: sessionIdProp = () => undefined } = $props();
+	const sessionId = () => sessionIdProp();
+	
+	// Create composable instance
+	const inboxItems = useInboxItems({ sessionId });
+	
+	// Expose composable instance for testing via getter
+	export function getInboxItemsInstance() {
+		return inboxItems;
+	}
+</script>
+
+<div data-testid="inbox-test-component">Inbox Test Component</div>
+```
+
+**Why**: Composables use Svelte 5 runes (`$state`, `$derived`, `$effect`) which require a component context. Wrapping in a component provides the necessary reactivity context for testing.
+
+**Related**: #L400 (SSR-unsafe libraries), #L500 ($effect browser checks), ci-cd.md#L2650 (Mock Convex queries in composable tests)
 
 ---
 

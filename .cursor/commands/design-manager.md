@@ -37,6 +37,30 @@
 
 **When user says `/design-manager for SYOS-XXX`:**
 
+---
+
+## 🚨🚨🚨 MANDATORY TOKEN VALIDATION CHECKPOINT 🚨🚨🚨
+
+**BEFORE instructing executor to write ANY UI/component code:**
+
+1. ⛔ **STOP** - Do not skip this step
+2. 📋 **Review implementation plan** - What values will be used?
+3. ✅ **Run token validation checklist** - See Section 5 below
+4. ❌ **If violations found** → STOP, fix plan first, then instruct
+
+**⚠️ NO EXCEPTIONS:**
+
+- Not for SVG ("attributes need actual values")
+- Not for "special cases"
+- Not for "just this once"
+- Not for "values that match tokens"
+
+**If you skip this step, executor WILL write hardcoded values.**
+
+**Continue to Section 5 for complete token validation checklist...**
+
+---
+
 ## Step 1: Load Parent Ticket
 
 ```typescript
@@ -837,6 +861,273 @@ Define cascade test → Agent executes → Validate results
 
 ---
 
+## 5. Pre-Implementation Token Check (MANDATORY)
+
+**⚠️ NO EXCEPTIONS - This step is MANDATORY before instructing executor to write ANY UI/component code.**
+
+**Before ANY code is written:**
+
+1. **Review implementation plan**: What spacing/colors/sizes/fonts/opacity will be used?
+2. **Check design-tokens.md**: Find semantic tokens for each value
+3. **Validate plan**: No hardcoded values (see checklist below)
+4. **Instruct executor**: Provide specific token utility names to use
+
+---
+
+### 🚨 Token Validation Checklist
+
+**Before instructing executor, verify plan has NO:**
+
+- [ ] Direct values: `16px`, `32px`, `1rem`, `2rem`, `#3b82f6`, `0.5`
+- [ ] String values that match tokens: `'1rem'` (even if it matches `--size-icon-sm`) ⭐ **CRITICAL**
+- [ ] Raw Tailwind: `px-4`, `py-2`, `gap-2`, `text-xl`, `rounded-lg`
+- [ ] Base tokens: `font-sans`, `font-mono` (use semantic: `font-heading`, `font-body`)
+
+**Plan MUST use:**
+
+- [x] Semantic utility classes: `w-icon-sm`, `px-button-x`, `bg-accent-primary`
+- [x] CSS custom properties: `var(--size-icon-sm)`, `var(--spacing-button-x)`
+
+---
+
+### 🚨🚨🚨 CRITICAL: "Matching Values" ≠ "Using Tokens" 🚨🚨🚨
+
+**This is the #1 mistake agents make. Read carefully.**
+
+**❌ WRONG THINKING:**
+
+```
+Token: --size-icon-sm = 1rem
+Agent plan: "I'll use 1rem - it matches the token!"
+Result: CASCADE BROKEN (hardcoded value doesn't update when token changes)
+```
+
+**✅ CORRECT THINKING:**
+
+```
+Token: --size-icon-sm = 1rem
+Agent plan: "I'll use w-icon-sm utility - it REFERENCES the token"
+Result: CASCADE WORKS (updates automatically when token changes)
+```
+
+**⚠️ IF PLAN CONTAINS LITERAL VALUES, IT'S HARDCODING:**
+
+- `'1rem'` → ❌ Hardcoded (even if matches `--size-icon-sm`)
+- `'32px'` → ❌ Hardcoded (even if matches `--size-icon-md`)
+- `'#3b82f6'` → ❌ Hardcoded (even if matches `--color-accent-primary`)
+- `w-icon-sm` → ✅ Token reference (uses `var(--size-icon-sm)`)
+- `var(--size-icon-sm)` → ✅ Token reference (direct CSS custom property)
+
+**Rule**: If you're typing a number/color/size as a STRING, you're doing it wrong.
+
+---
+
+### ⚠️ Special Case: SVG Dimensions
+
+**Agent's common rationalization:**
+
+> "SVG attributes need actual values, so I'll hardcode `1rem`, `2rem`"
+
+**Why this is COMPLETELY WRONG:**
+
+- Hardcoded `width="1rem"` → Breaks token cascade
+- If `--size-icon-sm` changes to `1.5rem`, hardcoded SVG still uses `1rem`
+- You've duplicated token values instead of referencing them
+
+**CORRECT approach for SVG sizing:**
+
+```svelte
+<!-- ❌ WRONG: Hardcoded SVG attributes (even with "matching" rem values) -->
+<svg width="1rem" height="1rem">
+	<!-- Hardcoded! Doesn't update when token changes -->
+</svg>
+
+<!-- ✅ CORRECT: CSS classes that REFERENCE tokens -->
+<svg class="w-icon-sm h-icon-sm animate-spin">
+	<!-- Uses var(--size-icon-sm) - updates when token changes ✅ -->
+</svg>
+```
+
+**Why CSS classes work with SVG:**
+
+- CSS `width`/`height` properties apply to `<svg>` elements
+- Classes like `w-icon-sm` use `var(--size-icon-sm)` internally
+- Token cascade maintained - change token, all SVGs update automatically
+
+**If CSS conflicts with SVG attributes:**
+
+- Use CSS classes only, remove `width`/`height` attributes
+- OR adjust CSS to not conflict
+- **NEVER** hardcode values as a "workaround"
+
+**There are NO special cases. NO exceptions. Not for SVG, not for anything.**
+
+---
+
+### 🎯 The Cascade Test (Use This to Validate)
+
+**Ask yourself**: "If I change `--size-icon-sm` from `1rem` to `1.5rem` in `design-system.json`, will this code update automatically?"
+
+- **YES** → Using tokens correctly ✅
+- **NO** → Hardcoding, cascade broken ❌
+
+**Examples:**
+
+```svelte
+<!-- Cascade Test: Change --size-icon-sm from 1rem to 1.5rem -->
+
+<!-- ❌ FAILS: Hardcoded value stays 1rem -->
+<svg width="1rem" height="1rem">
+
+<!-- ✅ PASSES: Automatically updates to 1.5rem -->
+<svg class="w-icon-sm h-icon-sm">
+```
+
+**Apply this test to EVERY value in the implementation plan.**
+
+**No special cases. No exceptions. No "but this is different..."**
+
+---
+
+### 🧠 Mental Model: What "Using Tokens" Actually Means
+
+**❌ NOT Using Tokens (even if values match):**
+
+```svelte
+<!-- All hardcoded, cascade broken -->
+<div style="width: 1rem">           <!-- Matches --size-icon-sm but hardcoded -->
+<svg width="32px" height="32px">    <!-- Matches --size-icon-md but hardcoded -->
+const size = '1rem';                <!-- Matches token but hardcoded -->
+```
+
+**Why wrong**: Changing the token in `design-system.json` doesn't update these values.
+
+---
+
+**✅ Using Tokens (references that update automatically):**
+
+```svelte
+<!-- All reference tokens, cascade works -->
+<div class="w-icon-sm">                       <!-- Uses var(--size-icon-sm) ✅ -->
+<svg class="w-icon-md h-icon-md">            <!-- Uses var(--size-icon-md) ✅ -->
+<div style="width: var(--size-icon-sm)">     <!-- Direct token reference ✅ -->
+```
+
+**Why right**: Changing the token automatically updates all references.
+
+---
+
+### Token Categories Checklist:
+
+When reviewing implementation plans, check for:
+
+- [ ] **Spacing** → `px-button-x`, `py-nav-item`, `gap-icon` (NOT `px-4`, `py-2`)
+- [ ] **Colors** → `bg-elevated`, `text-primary`, `border-base` (NOT `bg-gray-900`)
+- [ ] **Typography** → `text-h1`, `text-body`, `text-label` (NOT `text-2xl`, `text-sm`)
+- [ ] **Fonts** → `font-heading`, `font-body`, `font-code` (NOT `font-sans`, `font-mono`)
+- [ ] **Opacity** → `opacity-disabled`, `opacity-hover` (NOT `opacity-50`, `0.5`)
+- [ ] **Sizes** → `w-icon-sm`, `h-button-md` (NOT `width="1rem"`, `32px`)
+- [ ] **Border Radius** → `rounded-button`, `rounded-card` (NOT `rounded-md`)
+- [ ] **Breakpoints** → `md:`, `lg:`, `xl:` responsive utilities (NOT `640px`, `768px`)
+
+**Rule**: If plan contains literal px/rem/hex values, STOP and fix before instructing executor.
+
+---
+
+### Example Workflow:
+
+```
+Task: Create loading spinner component with size variants
+
+❌ WRONG PLAN:
+"Use 1rem, 2rem, 3rem for small/medium/large sizes"
+→ STOP! Hardcoded rem values (even though they match tokens)
+
+✅ CORRECT WORKFLOW:
+1. Check design-tokens.md → Found --size-icon-sm/md/lg
+2. Validate plan: Will use w-icon-sm/md/lg utilities ✅
+3. Instruct executor: "Use CSS classes w-icon-sm, w-icon-md, w-icon-lg (NOT hardcoded rem values)"
+4. Expected code: class="w-icon-sm h-icon-sm" (references token)
+5. Cascade test passes: Changing token updates all components ✅
+```
+
+---
+
+**Reference**: `dev-docs/2-areas/design/design-tokens.md` - Complete token catalog
+
+**Why mandatory**:
+
+- Design manager validates token usage BEFORE code is written
+- Prevents hardcoded values from ever being created
+- Saves refactoring time and maintains design system integrity
+- No exceptions - even for SVG, "special cases", or "values that match tokens"
+
+---
+
+## ⚠️ When Uncertain About Token Mapping → ASK THE USER
+
+**CRITICAL: Don't Guess, Don't Disable ESLint**
+
+**Scenario**: You're implementing a component with size variants and don't know which design token to use.
+
+**❌ WRONG Approach:**
+
+1. Guess which token to use
+2. Use hardcoded values
+3. Disable ESLint with `eslint-disable-next-line`
+4. Use "matching values" rationalization
+
+**✅ CORRECT Approach:**
+
+1. ⛔ **STOP implementation**
+2. 📋 **Check `dev-docs/2-areas/design/token-mapping-guide.md`** first
+3. 🤔 **If still uncertain** → Ask user with specific options:
+
+**Example question format:**
+
+> "I'm implementing a Loading spinner component with `size='md'` prop.
+>
+> Available icon size tokens:
+>
+> - `--size-iconxs` (12px)
+> - `--size-iconsm` (16px)
+> - `--size-iconmd` (20px)
+> - `--size-iconlg` (24px)
+> - `--size-iconxl` (32px)
+>
+> Which token should I use for the default `md` size?
+> (I assume `--size-iconsm` (16px) but want to confirm before proceeding.)"
+
+**Why this matters:**
+
+- ✅ Gets correct token mapping from the start
+- ✅ Prevents ESLint workarounds
+- ✅ Maintains design system integrity
+- ✅ Creates opportunity to document mapping (update token-mapping-guide.md)
+- ✅ Shows respect for design system governance
+
+**Common situations to ask:**
+
+- New component with size variants
+- Ambiguous mapping (e.g., "md" could be 16px or 20px?)
+- Multiple tokens seem suitable
+- Component has unique requirements
+
+**After user clarifies:**
+
+1. Use the specified token
+2. Document the mapping in `token-mapping-guide.md` (if not already there)
+3. Proceed with implementation
+4. Verify with ESLint
+
+**Remember**: Asking for clarification is ALWAYS better than:
+
+- Disabling ESLint
+- Using hardcoded values
+- Guessing and potentially choosing the wrong token
+
+---
+
 # 🎨 Design Manager Role Summary
 
 **Core Responsibilities:**
@@ -845,11 +1136,14 @@ Define cascade test → Agent executes → Validate results
 2. **Validate quality** (cascade, WCAG, dark mode)
 3. **Use Context7** (validate against industry standards)
 4. **Check compliance** (no hardcoded values, proper classification)
-5. **Provide recommendations** (composition patterns, token usage)
+5. **Pre-implementation token validation** (catch hardcoded values BEFORE code is written) ⭐ **NEW**
+6. **Provide recommendations** (composition patterns, token usage)
 
 **Key Principles:**
 
 - **Design Manager guides, user executes** - Clear role separation
+- **Token validation BEFORE code** - NO exceptions, catch hardcoded values in planning phase ⭐ **CRITICAL**
+- **"Matching ≠ Using"** - Hardcoded `1rem` is NOT using `--size-icon-sm`, even if values match
 - **Context7 for validation** - Industry standards, not guesses
 - **Accessibility first** - WCAG 2.1 AA minimum
 - **Cascade testing** - Token changes must propagate
@@ -864,7 +1158,7 @@ Define cascade test → Agent executes → Validate results
 
 ---
 
-**Last Updated**: 2025-11-21  
+**Last Updated**: 2025-11-22 (Strengthened token validation based on agent feedback)
 **Purpose**: Design system manager/mentor for SynergyOS - Product Design + Deep Design Systems expertise  
 **Inherits From**: `/manager` - Core workflow patterns  
-**Key Difference**: Design-specific expertise, Context7 validation, accessibility focus
+**Key Difference**: Design-specific expertise, Context7 validation, accessibility focus, **MANDATORY pre-implementation token validation with NO exceptions**

@@ -168,6 +168,8 @@ export function useActionItemsForm(params: UseActionItemsFormParams): UseActionI
 
 	// Format date
 	function formatDate(timestamp: number): string {
+		// Use Date constructor for formatting (not mutated, only used for display)
+		// eslint-disable-next-line svelte/prefer-svelte-reactivity
 		return new Date(timestamp).toLocaleDateString('en-US', {
 			month: 'short',
 			day: 'numeric',
@@ -207,6 +209,8 @@ export function useActionItemsForm(params: UseActionItemsFormParams): UseActionI
 	function handleDueDateChange(e: Event) {
 		const input = e.target as HTMLInputElement;
 		if (input.value) {
+			// Use Date constructor to parse input value (not mutated, immediately converted to timestamp)
+			// eslint-disable-next-line svelte/prefer-svelte-reactivity
 			state.dueDate = new Date(input.value).getTime();
 		} else {
 			state.dueDate = null;
@@ -216,6 +220,8 @@ export function useActionItemsForm(params: UseActionItemsFormParams): UseActionI
 	// Convert timestamp to date input value (YYYY-MM-DD)
 	function timestampToDateInput(timestamp: number | null): string {
 		if (!timestamp) return '';
+		// Use Date constructor for formatting (not mutated, only used for display)
+		// eslint-disable-next-line svelte/prefer-svelte-reactivity
 		return new Date(timestamp).toISOString().split('T')[0];
 	}
 

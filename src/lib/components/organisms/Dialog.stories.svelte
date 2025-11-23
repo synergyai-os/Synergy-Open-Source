@@ -19,13 +19,18 @@
 
 <Story name="Default" args={{ open: false, variant: 'default' }}>
 	{#snippet template(args)}
+		{@const variantValue = 'variant' in args ? args.variant : 'default'}
+		{@const variant =
+			variantValue === 'default' || variantValue === 'wide' || variantValue === 'fullscreen'
+				? variantValue
+				: 'default'}
 		<Dialog.Root open={args.open}>
 			<Dialog.Trigger>
 				<Button>Open Dialog</Button>
 			</Dialog.Trigger>
 			<Dialog.Portal>
 				<Dialog.Overlay class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" />
-				<DialogContent variant={args.variant}>
+				<DialogContent {variant}>
 					<Dialog.Title>Dialog Title</Dialog.Title>
 					<Dialog.Description>Dialog description goes here.</Dialog.Description>
 					<p class="text-primary">Dialog content</p>
@@ -45,13 +50,18 @@
 
 <Story name="Wide" args={{ open: false, variant: 'wide' }}>
 	{#snippet template(args)}
+		{@const variantValue = 'variant' in args ? args.variant : 'default'}
+		{@const variant =
+			variantValue === 'default' || variantValue === 'wide' || variantValue === 'fullscreen'
+				? variantValue
+				: 'default'}
 		<Dialog.Root open={args.open}>
 			<Dialog.Trigger>
 				<Button>Open Wide Dialog</Button>
 			</Dialog.Trigger>
 			<Dialog.Portal>
 				<Dialog.Overlay class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" />
-				<DialogContent variant={args.variant}>
+				<DialogContent {variant}>
 					<Dialog.Title>Wide Dialog</Dialog.Title>
 					<Dialog.Description>This is a wide dialog variant.</Dialog.Description>
 					<p class="text-primary">More content here...</p>
@@ -68,13 +78,18 @@
 
 <Story name="Fullscreen" args={{ open: false, variant: 'fullscreen' }}>
 	{#snippet template(args)}
+		{@const variantValue = 'variant' in args ? args.variant : 'default'}
+		{@const variant =
+			variantValue === 'default' || variantValue === 'wide' || variantValue === 'fullscreen'
+				? variantValue
+				: 'default'}
 		<Dialog.Root open={args.open}>
 			<Dialog.Trigger>
 				<Button>Open Fullscreen Dialog</Button>
 			</Dialog.Trigger>
 			<Dialog.Portal>
 				<Dialog.Overlay class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" />
-				<DialogContent variant={args.variant}>
+				<DialogContent {variant}>
 					<Dialog.Title>Fullscreen Dialog</Dialog.Title>
 					<Dialog.Description>This is a fullscreen dialog variant.</Dialog.Description>
 					<p class="text-primary">Fullscreen content...</p>

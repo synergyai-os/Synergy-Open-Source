@@ -32,7 +32,7 @@ interface DTCGToken {
 
 type DTCGStructure = {
 	$schema: string;
-	[key: string]: any;
+	[key: string]: unknown;
 };
 
 // Map CSS token names to DTCG types and categories
@@ -106,7 +106,7 @@ function extractTokens(cssContent: string): Token[] {
 			const fullName = `--${name}`;
 
 			// Clean value (remove inline comments, handle var() references, trim)
-			let cleanValue = value.split('/*')[0].trim();
+			const cleanValue = value.split('/*')[0].trim();
 
 			// Extract description from inline comment or previous comment
 			const inlineCommentMatch = line.match(/\/\*\s*(.+?)\s*\*\//);
@@ -142,7 +142,7 @@ function extractTokens(cssContent: string): Token[] {
 }
 
 // Build nested object structure from token path
-function setNestedValue(obj: any, path: string[], value: DTCGToken) {
+function setNestedValue(obj: Record<string, unknown>, path: string[], value: DTCGToken) {
 	let current = obj;
 	for (let i = 0; i < path.length - 1; i++) {
 		if (!current[path[i]]) {
@@ -154,9 +154,13 @@ function setNestedValue(obj: any, path: string[], value: DTCGToken) {
 }
 
 // Build object with $type first (ensures proper key order)
-function buildGroupWithType(type: string, tokens: Token[], namePrefix: string): any {
+function buildGroupWithType(
+	type: string,
+	tokens: Token[],
+	namePrefix: string
+): Record<string, unknown> {
 	// Build tokens first
-	const tokensObj: any = {};
+	const tokensObj: Record<string, unknown> = {};
 	tokens.forEach((token) => {
 		const path = token.name.replace(namePrefix, '').split('-');
 		const tokenObj: DTCGToken = {

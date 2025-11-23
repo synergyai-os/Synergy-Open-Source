@@ -4971,6 +4971,209 @@ $effect(() => {
 
 ---
 
+## #L5030: Breakpoint Tokenization (Responsive Design Consistency) [🟡 IMPORTANT]
+
+**Symptom**: Breakpoints hardcoded throughout codebase (`640px`, `768px`, `1024px`, `1280px`, `1536px`), inconsistent responsive behavior, can't change breakpoints in one place  
+**Root Cause**: No single source of truth for breakpoints, CSS variables not used for responsive design, Tailwind utilities not configured to use tokens  
+**Fix**: Add breakpoints to design token system, configure Tailwind CSS 4, use CSS variables for JavaScript breakpoint checks
+
+### Design Token System (Single Source of Truth)
+
+**Add to `design-system.json`:**
+
+```json
+{
+  "breakpoints": {
+    "$type": "dimension",
+    "sm": {
+      "$value": "640px",
+      "$description": "Small devices (mobile landscape) - min-width breakpoint"
+    },
+    "md": {
+      "$value": "768px",
+      "$description": "Medium devices (tablets) - min-width breakpoint"
+    },
+    "lg": {
+      "$value": "1024px",
+      "$description": "Large devices (desktop) - min-width breakpoint"
+    },
+    "xl": {
+      "$value": "1280px",
+      "$description": "Extra large devices (large desktop) - min-width breakpoint"
+    },
+    "2xl": {
+      "$value": "1536px",
+      "$description": "2X large devices (ultra-wide) - min-width breakpoint"
+    }
+  }
+}
+```
+
+**Why this structure:**
+
+- ✅ Matches Tailwind CSS pattern (industry standard)
+- ✅ Mobile-first approach (`min-width` breakpoints)
+- ✅ Uses `dimension` type (DTCG format)
+- ✅ Simple: 5 base breakpoints (no semantic breakpoints needed)
+
+### Style Dictionary Configuration
+
+**Update `scripts/style-dictionary/transforms.js`:**
+
+```javascript
+function transformTailwindTheme(token) {
+    const pathParts = token.path || token.name.split('.');
+    let path = pathParts.join('-');
+    // Special handling for breakpoints to remove the 's'
+    if (pathParts[0] === 'breakpoints') {
+        path = `breakpoint-${pathParts.slice(1).join('-')}`;
+    }
+    const name = `--${path}`;
+    return `  ${name}: ${token.value};`;
+}
+```
+
+**Generates CSS variables:**
+
+```css
+/* src/styles/tokens/breakpoints.css */
+@theme {
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+}
+```
+
+### Tailwind CSS 4 Configuration
+
+**Add to `src/app.css` @theme block:**
+
+```css
+@theme {
+  /* Breakpoint Tokens - Tailwind CSS 4 responsive utilities */
+  /* These configure Tailwind's sm:, md:, lg:, xl:, 2xl: variants */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+}
+```
+
+**Result**: All Tailwind responsive utilities (`sm:`, `md:`, `lg:`, etc.) now use token values automatically.
+
+### JavaScript Breakpoint Checks
+
+**❌ WRONG: Hardcoded breakpoint values**
+
+```typescript
+// Hardcoded - breaks when token changes
+const isMobile = window.innerWidth < 768;
+```
+
+**✅ CORRECT: Read from CSS variables**
+
+```typescript
+// Read breakpoint from CSS variable (--breakpoint-md: 768px)
+const breakpointMd = getComputedStyle(document.documentElement)
+    .getPropertyValue('--breakpoint-md')
+    .trim();
+const breakpointValue = breakpointMd ? parseInt(breakpointMd, 10) : 768; // Fallback
+const isMobile = window.innerWidth < breakpointValue;
+```
+
+**Svelte component pattern:**
+
+```svelte
+<script>
+import { browser } from '$app/environment';
+
+// Mobile detection - uses breakpoint token from design-system.json
+let isMobile = $state(false);
+$effect(() => {
+    if (!browser) return;
+
+    const checkMobile = () => {
+        // Read breakpoint from CSS variable (--breakpoint-sm: 640px)
+        const breakpointSm = getComputedStyle(document.documentElement)
+            .getPropertyValue('--breakpoint-sm')
+            .trim();
+        const breakpointValue = breakpointSm ? parseInt(breakpointSm, 10) : 640;
+        isMobile = window.innerWidth < breakpointValue;
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+});
+</script>
+```
+
+### CSS @media Queries (CSS Limitation)
+
+**⚠️ CSS Limitation**: CSS variables cannot be used directly in `@media` queries. Use pixel values with token comments:
+
+```css
+/* Responsive Dialog - Mobile (<sm breakpoint) - Fullscreen */
+/* Note: CSS doesn't support CSS variables in @media queries, so we use the token value directly */
+/* Token: --breakpoint-sm (640px) from design-system.json */
+@media (max-width: 640px) {
+    :root {
+        --max-width-dialog-default: 100vw; /* Fullscreen on mobile */
+    }
+}
+```
+
+**Why**: CSS spec doesn't support CSS variables in media queries. Comments document token reference for maintainability.
+
+### Cascade Validation
+
+**Test cascade:**
+
+1. Change base breakpoint: `"sm": "768px"` (was 640px) in `design-system.json`
+2. Run `npm run tokens:build`
+3. JavaScript breakpoint checks automatically use new value (via CSS variables)
+4. Tailwind utilities (`sm:`, `md:`, etc.) automatically use new value
+5. CSS `@media` queries require manual update (CSS limitation) - but comments document token reference
+
+**Cascade flow:**
+
+```
+design-system.json (sm: 768px)
+        ↓
+CSS variables (--breakpoint-sm: 768px)
+        ↓
+JavaScript: getComputedStyle() → 768px ✅
+Tailwind: sm: utilities → 768px ✅
+CSS: @media (max-width: 640px) → Manual update required (CSS limitation)
+```
+
+### Context7 Validation
+
+**Validated against industry standards:**
+
+- ✅ **Tailwind CSS**: Uses `sm`, `md`, `lg`, `xl`, `2xl` with exact values (640px, 768px, 1024px, 1280px, 1536px)
+- ✅ **Material UI**: Similar breakpoint structure (`xs`, `sm`, `md`, `lg`, `xl`)
+- ✅ **Chakra UI**: Breakpoints in theme tokens, mobile-first approach
+
+**Our structure follows Tailwind CSS** (most common pattern for utility-first CSS).
+
+### Success Criteria
+
+- ✅ Breakpoints added to `design-system.json` (DTCG format)
+- ✅ CSS variables generated (`--breakpoint-*`)
+- ✅ Tailwind CSS 4 configured (`@theme` block)
+- ✅ JavaScript breakpoint checks use CSS variables (`getComputedStyle()`)
+- ✅ CSS `@media` queries documented with token comments
+- ✅ Cascade validated (change base → JavaScript/Tailwind auto-update)
+
+**Apply when**: Implementing responsive design, adding breakpoints to design token system, configuring Tailwind CSS 4 breakpoints  
+**Related**: #L780 (Design tokens), #L720 (Token audit workflow), #L828 (CSS variable usage)
+
+---
+
 ## #L4640: Clear Feature Flag Descriptions [🟢 REFERENCE]
 
 **Symptom**: Feature flag descriptions are vague ("Controls X"), don't explain what happens when enabled, admins don't understand impact  

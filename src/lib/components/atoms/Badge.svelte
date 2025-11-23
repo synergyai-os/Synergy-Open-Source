@@ -24,7 +24,7 @@
 </script>
 
 <span
-	class="inline-flex items-center rounded-badge border px-badge py-badge text-badge font-medium {variantClasses[
+	class="inline-flex items-center rounded-badge border px-badge py-badge font-body text-badge font-medium {variantClasses[
 		variant
 	]} {customClass}"
 >

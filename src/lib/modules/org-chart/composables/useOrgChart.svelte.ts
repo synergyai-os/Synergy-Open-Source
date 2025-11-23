@@ -3,8 +3,21 @@ import { useQuery, useConvexClient } from 'convex-svelte';
 import { api, type Id } from '$lib/convex';
 import type { CircleNode } from '$lib/utils/orgChartTransform';
 import { useNavigationStack } from '$lib/modules/core/composables/useNavigationStack.svelte';
+import type { CircleSummary, CircleMember, RoleFiller } from './useCircles.svelte';
 
 export type UseOrgChart = ReturnType<typeof useOrgChart>;
+
+// Type for role returned by api.circleRoles.get
+type CircleRoleDetail = {
+	roleId: Id<'circleRoles'>;
+	name: string;
+	purpose?: string;
+	circleId: Id<'circles'>;
+	circleName: string;
+	organizationId: Id<'organizations'>;
+	fillerCount: number;
+	createdAt: number;
+};
 
 /**
  * Composable for managing org chart state and interactions
@@ -33,14 +46,10 @@ export function useOrgChart(options: {
 		// Hover state
 		hoveredCircleId: null as Id<'circles'> | null,
 		// Query results (loaded via $effect)
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		selectedCircle: null as any,
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		selectedCircleMembers: [] as any[],
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		selectedRole: null as any,
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		selectedRoleFillers: [] as any[],
+		selectedCircle: null as CircleSummary | null,
+		selectedCircleMembers: [] as CircleMember[],
+		selectedRole: null as CircleRoleDetail | null,
+		selectedRoleFillers: [] as RoleFiller[],
 		// Loading states
 		selectedCircleIsLoading: false,
 		selectedCircleMembersIsLoading: false,

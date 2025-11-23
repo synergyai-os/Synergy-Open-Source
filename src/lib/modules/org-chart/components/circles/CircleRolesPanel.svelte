@@ -1,8 +1,6 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
-	import { useQuery } from 'convex-svelte';
-	import { api, type Id } from '$lib/convex';
+	import { useCircleRoles } from '../../composables/useCircleRoles.svelte';
 	import type { UseCircles, CircleRole, CircleMember } from '../../composables/useCircles.svelte';
 
 	let {
@@ -35,19 +33,14 @@
 	// State for expanding role details
 	let expandedRoleId = $state<string | null>(null);
 
-	// Query role fillers when a role is expanded
-	// We use $derived to make the query reactive to expandedRoleId changes
-	const fillersQuery = $derived.by(() => {
-		if (!browser || !getSessionId() || !expandedRoleId) return null;
-
-		return useQuery(api.circleRoles.getRoleFillers, () => {
-			const sessionId = getSessionId();
-			if (!sessionId || !expandedRoleId) throw new Error('sessionId and roleId required');
-			return { sessionId, circleRoleId: expandedRoleId as Id<'circleRoles'> };
-		});
+	// Use composable for circle roles queries
+	const circleRoles = useCircleRoles({
+		sessionId: getSessionId,
+		expandedRoleId: () => expandedRoleId,
+		members: () => members
 	});
 
-	const roleFillers = $derived(fillersQuery?.data ?? []);
+	const roleFillers = $derived(circleRoles.roleFillers);
 
 	// State for assigning users
 	let assignUserId = $state<Record<string, string>>({});
@@ -98,7 +91,7 @@
 	// Filter out users who are already assigned to this role
 	function getAvailableUsersForRole(_roleId: string): CircleMember[] {
 		// Note: roleFillers already filtered by expandedRoleId via query
-		return members.filter((member) => !roleFillers.some((f) => f.userId === member.userId));
+		return circleRoles.availableUsers;
 	}
 </script>
 

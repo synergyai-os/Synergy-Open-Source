@@ -58,7 +58,14 @@
 	}}
 >
 	{#snippet template(args)}
-		<MeetingCard {...args} />
+		<MeetingCard
+			meeting={args.meeting}
+			circleName={args.circleName}
+			organizationName={args.organizationName}
+			attendeeAvatars={args.attendeeAvatars}
+			onStart={args.onStart}
+			onAddAgendaItem={args.onAddAgendaItem}
+		/>
 	{/snippet}
 </Story>
 
@@ -72,7 +79,14 @@
 	}}
 >
 	{#snippet template(args)}
-		<MeetingCard {...args} />
+		<MeetingCard
+			meeting={args.meeting}
+			circleName={args.circleName}
+			organizationName={args.organizationName}
+			attendeeAvatars={args.attendeeAvatars}
+			onStart={args.onStart}
+			onAddAgendaItem={args.onAddAgendaItem}
+		/>
 	{/snippet}
 </Story>
 
@@ -86,7 +100,14 @@
 	}}
 >
 	{#snippet template(args)}
-		<MeetingCard {...args} />
+		<MeetingCard
+			meeting={args.meeting}
+			circleName={args.circleName}
+			organizationName={args.organizationName}
+			attendeeAvatars={args.attendeeAvatars}
+			onStart={args.onStart}
+			onAddAgendaItem={args.onAddAgendaItem}
+		/>
 	{/snippet}
 </Story>
 
@@ -100,7 +121,14 @@
 	}}
 >
 	{#snippet template(args)}
-		<MeetingCard {...args} />
+		<MeetingCard
+			meeting={args.meeting}
+			circleName={args.circleName}
+			organizationName={args.organizationName}
+			attendeeAvatars={args.attendeeAvatars}
+			onStart={args.onStart}
+			onAddAgendaItem={args.onAddAgendaItem}
+		/>
 	{/snippet}
 </Story>
 
@@ -116,7 +144,14 @@
 	}}
 >
 	{#snippet template(args)}
-		<MeetingCard {...args} />
+		<MeetingCard
+			meeting={args.meeting}
+			circleName={args.circleName}
+			organizationName={args.organizationName}
+			attendeeAvatars={args.attendeeAvatars}
+			onStart={args.onStart}
+			onAddAgendaItem={args.onAddAgendaItem}
+		/>
 	{/snippet}
 </Story>
 
@@ -129,6 +164,13 @@
 	}}
 >
 	{#snippet template(args)}
-		<MeetingCard {...args} />
+		<MeetingCard
+			meeting={args.meeting}
+			circleName={args.circleName}
+			organizationName={args.organizationName}
+			attendeeAvatars={args.attendeeAvatars}
+			onStart={args.onStart}
+			onAddAgendaItem={args.onAddAgendaItem}
+		/>
 	{/snippet}
 </Story>

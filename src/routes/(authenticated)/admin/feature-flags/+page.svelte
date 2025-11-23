@@ -564,7 +564,7 @@
 									<div class="flex items-start justify-between">
 										<div class="flex-1">
 											<h3 class="font-semibold text-primary">{flag.flag}</h3>
-											<p class="mt-form-field-gap font-mono text-label text-tertiary">
+											<p class="mt-form-field-gap font-code text-label text-tertiary">
 												{flag.flag}
 											</p>
 											{#if getFlagDescription(flag.flag, flag.description)}

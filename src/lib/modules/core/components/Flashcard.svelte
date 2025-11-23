@@ -272,6 +272,7 @@
 		font-size: 1.5rem;
 	}
 
+	/* Token: --breakpoint-sm (640px) from design-system.json */
 	@media (min-width: 640px) {
 		.flashcard-edit-question {
 			font-size: 1.875rem;
@@ -282,6 +283,7 @@
 		font-size: 1.25rem;
 	}
 
+	/* Token: --breakpoint-sm (640px) from design-system.json */
 	@media (min-width: 640px) {
 		.flashcard-edit-answer {
 			font-size: 1.5rem;

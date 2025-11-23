@@ -6,10 +6,12 @@ import svelte from 'eslint-plugin-svelte';
 import { defineConfig } from 'eslint/config';
 import globals from 'globals';
 import ts from 'typescript-eslint';
-import eslintPluginBetterTailwindcss from 'eslint-plugin-better-tailwindcss';
+// TEMPORARILY DISABLED: Plugin causes ESLint to hang - investigating performance issue
+// import eslintPluginBetterTailwindcss from 'eslint-plugin-better-tailwindcss';
 import svelteConfig from './svelte.config.js';
 import noCrossModuleImports from './eslint-rules/no-cross-module-imports.js';
 import noFeatureComponentsInComponents from './eslint-rules/no-feature-components-in-components.js';
+import noHardcodedDesignValues from './eslint-rules/no-hardcoded-design-values.js';
 
 const gitignorePath = fileURLToPath(new URL('./.gitignore', import.meta.url));
 
@@ -29,7 +31,9 @@ export default defineConfig(
 			'node_modules/**',
 			'dev-docs/**',
 			'marketing-docs/**',
-			'ai-content-blog/**'
+			'ai-content-blog/**',
+			'storybook-static/**',
+			'.storybook/**'
 		]
 	},
 	{
@@ -40,17 +44,20 @@ export default defineConfig(
 			synergyos: {
 				rules: {
 					'no-cross-module-imports': noCrossModuleImports,
-					'no-feature-components-in-components': noFeatureComponentsInComponents
+					'no-feature-components-in-components': noFeatureComponentsInComponents,
+					'no-hardcoded-design-values': noHardcodedDesignValues
 				}
-			},
-			'better-tailwindcss': eslintPluginBetterTailwindcss
-		},
-		settings: {
-			'better-tailwindcss': {
-				// Tailwind CSS 4: path to the entry file of the CSS-based Tailwind config
-				entryPoint: 'src/app.css'
 			}
+			// TEMPORARILY DISABLED: Plugin causes ESLint to hang - investigating performance issue
+			// ,'better-tailwindcss': eslintPluginBetterTailwindcss
 		},
+		// TEMPORARILY DISABLED: Plugin causes ESLint to hang
+		// settings: {
+		// 	'better-tailwindcss': {
+		// 		// Tailwind CSS 4: path to the entry file of the CSS-based Tailwind config
+		// 		entryPoint: 'src/app.css'
+		// 	}
+		// },
 		rules: {
 			// typescript-eslint strongly recommend that you do not use the no-undef lint rule on TypeScript projects.
 			// see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors
@@ -75,32 +82,40 @@ export default defineConfig(
 			// Feature components belong in modules
 			// See: dev-docs/2-areas/design/component-architecture.md
 			'synergyos/no-feature-components-in-components': 'error',
+			// Design System Governance: Block hardcoded design values
+			// Enforces design token usage for dimensions, colors, opacity, spacing, typography
+			// See: dev-docs/2-areas/design/design-tokens.md
+			// See: .cursor/rules/design-tokens-enforcement.mdc
+			'synergyos/no-hardcoded-design-values': 'error'
 			// Design System Governance: Block hardcoded Tailwind values (e.g., min-h-[2.75rem])
 			// Use design tokens instead (e.g., min-h-button)
 			// See: dev-docs/2-areas/design/design-tokens.md
-			'better-tailwindcss/no-restricted-classes': [
-				'error',
-				{
-					restrict: [
-						{
-							// Block arbitrary values like [2.75rem], [12px], [#fff]
-							// Pattern matches [value] but NOT variants like hover:[value]
-							pattern: '^\\[([^\\[\\]]*?)\\](?!:)',
-							message:
-								'Hardcoded Tailwind value detected. Use design tokens instead (e.g., min-h-[2.75rem] → min-h-button). See: dev-docs/2-areas/design/design-tokens.md'
-						}
-					]
-				}
-			],
+			// TEMPORARILY DISABLED: Plugin causes ESLint to hang - investigating performance issue
+			// 'better-tailwindcss/no-restricted-classes': [
+			// 	'error',
+			// 	{
+			// 		restrict: [
+			// 			{
+			// 				// Block arbitrary values like [2.75rem], [12px], [#fff]
+			// 				// Pattern matches [value] but NOT variants like hover:[value]
+			// 				pattern: '^\\[([^\\[\\]]*?)\\](?!:)',
+			// 				message:
+			// 					'Hardcoded Tailwind value detected. Use design tokens instead (e.g., min-h-[2.75rem] → min-h-button). See: dev-docs/2-areas/design/design-tokens.md'
+			// 			}
+			// 		]
+			// 	}
+			// ],
 			// Enforce consistent class order (readability)
-			'better-tailwindcss/sort-classes': 'warn'
+			// TEMPORARILY DISABLED: Plugin causes ESLint to hang
+			// 'better-tailwindcss/sort-classes': 'warn'
 		}
 	},
 	{
 		files: ['**/*.svelte', '**/*.svelte.ts', '**/*.svelte.js'],
 		languageOptions: {
 			parserOptions: {
-				projectService: true,
+				// TEMPORARILY DISABLED: projectService causes ESLint to hang - investigating performance issue
+				// projectService: true,
 				extraFileExtensions: ['.svelte'],
 				parser: ts.parser,
 				svelteConfig
@@ -131,7 +146,8 @@ export default defineConfig(
 			'@typescript-eslint/no-explicit-any': 'off',
 			'@typescript-eslint/no-unused-vars': 'warn',
 			// Allow hardcoded values in test files (ESLint allows it for test mocks)
-			'better-tailwindcss/no-restricted-classes': 'off'
+			'better-tailwindcss/no-restricted-classes': 'off',
+			'synergyos/no-hardcoded-design-values': 'off'
 		}
 	},
 	{

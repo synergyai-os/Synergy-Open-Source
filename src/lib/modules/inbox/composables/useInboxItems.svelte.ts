@@ -39,17 +39,7 @@ export function useInboxItems(params?: UseInboxItemsParams): UseInboxItemsReturn
 		browser && params?.sessionId
 			? useQuery(api.inbox.listInboxItems, () => {
 					const sessionId = params.sessionId(); // Get current sessionId (reactive)
-					if (!sessionId) {
-						// Return a sentinel value instead of null to satisfy type checker
-						// The query will be skipped when sessionId is not available
-						return { sessionId: '', processed: false } as {
-							sessionId: string;
-							processed: boolean;
-							filterType?: string;
-							organizationId?: Id<'organizations'> | null;
-							circleId?: Id<'circles'>;
-						};
-					}
+					if (!sessionId) throw new Error('sessionId required'); // ✅ Modern Convex pattern (outer check ensures it exists)
 
 					const baseArgs: {
 						sessionId: string;

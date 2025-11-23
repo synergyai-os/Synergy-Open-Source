@@ -4,7 +4,7 @@
 	// which are not available in Storybook. Skipping stories for this component.
 	// import OrgChart from './OrgChart.svelte';
 
-	const { Story } = defineMeta({
+	const { Story: _Story } = defineMeta({
 		// component: OrgChart,
 		title: 'Modules/OrgChart/OrgChart',
 		tags: ['autodocs']

@@ -80,7 +80,7 @@
 </Story>
 
 <Story name="Different Icons">
-	{#snippet template(args)}
+	{#snippet template(_args)}
 		<div class="flex items-center gap-4">
 			<Icon size="md">
 				<svg
@@ -135,7 +135,7 @@
 </Story>
 
 <Story name="Common Icons">
-	{#snippet template(args)}
+	{#snippet template(_args)}
 		<div class="flex flex-wrap items-center gap-6">
 			<div class="flex flex-col items-center gap-2">
 				<Icon size="md">

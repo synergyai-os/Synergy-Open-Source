@@ -19,13 +19,13 @@
 
 <Story name="Default" args={{ title: 'Roles' }}>
 	{#snippet template(args)}
-		<CategoryHeader {...args} />
+		<CategoryHeader title={args.title} />
 	{/snippet}
 </Story>
 
 <Story name="WithCount" args={{ title: 'Roles', count: 5 }}>
 	{#snippet template(args)}
-		<CategoryHeader {...args} />
+		<CategoryHeader title={args.title} count={args.count} />
 	{/snippet}
 </Story>
 
@@ -34,7 +34,7 @@
 	args={{ title: 'Circles', count: 3, onEdit: () => console.log('Edit clicked') }}
 >
 	{#snippet template(args)}
-		<CategoryHeader {...args} />
+		<CategoryHeader title={args.title} count={args.count} onEdit={args.onEdit} />
 	{/snippet}
 </Story>
 
@@ -43,7 +43,7 @@
 	args={{ title: 'Members', count: 12, onAdd: () => console.log('Add clicked') }}
 >
 	{#snippet template(args)}
-		<CategoryHeader {...args} />
+		<CategoryHeader title={args.title} count={args.count} onAdd={args.onAdd} />
 	{/snippet}
 </Story>
 
@@ -59,7 +59,7 @@
 	}}
 >
 	{#snippet template(args)}
-		<CategoryHeader {...args} />
+		<CategoryHeader title={args.title} count={args.count} menuItems={args.menuItems} />
 	{/snippet}
 </Story>
 
@@ -74,6 +74,12 @@
 	}}
 >
 	{#snippet template(args)}
-		<CategoryHeader {...args} />
+		<CategoryHeader
+			title={args.title}
+			count={args.count}
+			onEdit={args.onEdit}
+			onAdd={args.onAdd}
+			menuItems={args.menuItems}
+		/>
 	{/snippet}
 </Story>

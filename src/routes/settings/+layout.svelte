@@ -4,12 +4,18 @@
 
 	let { children, data } = $props();
 
-	// Mobile detection
+	// Mobile detection - uses breakpoint token from design-system.json
 	let isMobile = $state(false);
 	if (browser) {
-		isMobile = window.innerWidth < 768;
+		const getBreakpointMd = () => {
+			const breakpointMd = getComputedStyle(document.documentElement)
+				.getPropertyValue('--breakpoint-md')
+				.trim();
+			return breakpointMd ? parseInt(breakpointMd, 10) : 768; // Fallback to 768px
+		};
+		isMobile = window.innerWidth < getBreakpointMd();
 		const handleResize = () => {
-			isMobile = window.innerWidth < 768;
+			isMobile = window.innerWidth < getBreakpointMd();
 		};
 		window.addEventListener('resize', handleResize);
 		// Cleanup is handled automatically by Svelte

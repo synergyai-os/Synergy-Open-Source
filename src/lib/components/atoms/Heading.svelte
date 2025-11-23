@@ -30,7 +30,7 @@
 		6: 'text-small font-medium'
 	};
 
-	const headingClasses = `${levelClasses[level]} text-primary ${className}`;
+	const headingClasses = `font-heading ${levelClasses[level]} text-primary ${className}`;
 </script>
 
 {#if level === 1}

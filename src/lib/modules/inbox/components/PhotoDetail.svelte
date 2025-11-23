@@ -53,7 +53,7 @@
 		<p class="mb-marketing-text text-small font-medium text-secondary">Transcribed Text</p>
 		<textarea
 			bind:value={editedText}
-			class="w-full resize-none rounded-card border border-base bg-base px-input-x py-input-y font-mono text-small text-primary"
+			class="w-full resize-none rounded-card border border-base bg-base px-input-x py-input-y font-code text-small text-primary"
 			rows="8"
 		></textarea>
 		<p class="text-label text-tertiary">You can edit the transcribed text</p>

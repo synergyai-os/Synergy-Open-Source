@@ -21,7 +21,7 @@
 <Story name="Default" args={{ checked: false }}>
 	{#snippet template(args)}
 		<Checkbox.Root {...args}>
-			{#snippet children({ checked, indeterminate })}
+			{#snippet children({ checked, indeterminate: _indeterminate })}
 				<div
 					class="flex h-4 w-4 items-center justify-center rounded-input border-2 border-base bg-input transition-colors {checked
 						? 'border-accent-primary bg-accent-primary'
@@ -50,7 +50,7 @@
 <Story name="Checked" args={{ checked: true }}>
 	{#snippet template(args)}
 		<Checkbox.Root {...args}>
-			{#snippet children({ checked, indeterminate })}
+			{#snippet children({ checked, indeterminate: _indeterminate })}
 				<div
 					class="flex h-4 w-4 items-center justify-center rounded-input border-2 border-base bg-input transition-colors {checked
 						? 'border-accent-primary bg-accent-primary'
@@ -80,7 +80,7 @@
 	{#snippet template(args)}
 		<div class="flex items-center gap-2">
 			<Checkbox.Root {...args}>
-				{#snippet children({ checked, indeterminate })}
+				{#snippet children({ checked, indeterminate: _indeterminate })}
 					<div
 						class="flex h-4 w-4 items-center justify-center rounded-input border-2 border-base bg-input transition-colors {checked
 							? 'border-accent-primary bg-accent-primary'
@@ -112,7 +112,7 @@
 	{#snippet template(args)}
 		<div class="flex items-center gap-2">
 			<Checkbox.Root {...args}>
-				{#snippet children({ checked, indeterminate })}
+				{#snippet children({ checked, indeterminate: _indeterminate })}
 					<div
 						class="flex h-4 w-4 items-center justify-center rounded-input border-2 border-base bg-input transition-colors {checked
 							? 'border-accent-primary bg-accent-primary'
@@ -144,7 +144,7 @@
 	{#snippet template(args)}
 		<div class="flex items-center gap-2">
 			<Checkbox.Root {...args}>
-				{#snippet children({ checked, indeterminate })}
+				{#snippet children({ checked, indeterminate: _indeterminate })}
 					<div
 						class="flex h-4 w-4 items-center justify-center rounded-input border-2 border-base bg-input transition-colors {checked
 							? 'border-accent-primary bg-accent-primary'

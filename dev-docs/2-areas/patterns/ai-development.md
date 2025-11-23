@@ -179,15 +179,24 @@ AI: [Result]
 
 ```typescript
 // ✅ CORRECT: Always invoke autofixer when writing Svelte code
-const result = await mcp_svelte_svelte-autofixer({
+let result = await mcp_svelte_svelte-autofixer({
   code: fileContent,
   filename: 'Component.svelte',
   desired_svelte_version: 5,
   async: false
 });
 
-// MUST iterate until clean
+// MUST iterate until clean (with max iterations to prevent infinite loops)
+let iterations = 0;
+const maxIterations = 10;
 while (result.issues.length > 0 || result.suggestions.length > 0) {
+  iterations++;
+  
+  // Clear failure path if max iterations reached
+  if (iterations >= maxIterations) {
+    throw new Error(`Autofixer failed to resolve all issues after ${maxIterations} iterations. Remaining issues: ${result.issues.length}, suggestions: ${result.suggestions.length}`);
+  }
+  
   // Fix all issues
   // Call autofixer again
   result = await mcp_svelte_svelte-autofixer({ ... });

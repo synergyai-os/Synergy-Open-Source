@@ -4,7 +4,7 @@
 	// which are not available in Storybook. Skipping stories for this component.
 	// import CircleRolesPanel from './circles/CircleRolesPanel.svelte';
 
-	const { Story } = defineMeta({
+	const { Story: _Story } = defineMeta({
 		// component: CircleRolesPanel,
 		title: 'Modules/OrgChart/CircleRolesPanel',
 		tags: ['autodocs']

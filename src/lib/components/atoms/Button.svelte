@@ -43,7 +43,7 @@
 
 	// Base classes using design tokens
 	const baseClasses =
-		'inline-flex items-center justify-center rounded-button transition-colors-token';
+		'font-body inline-flex items-center justify-center rounded-button transition-colors-token';
 
 	// Variant-specific classes using design tokens
 	const variantClasses = {

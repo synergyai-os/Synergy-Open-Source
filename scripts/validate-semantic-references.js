@@ -172,7 +172,7 @@ function validateSemanticReferences() {
 	const exceptions = [];
 
 	for (const token of semanticTokens) {
-		const { pathString, value, $description } = token;
+		const { pathString, value } = token;
 
 		// Skip if has documented exception
 		if (hasDocumentedException(token)) {

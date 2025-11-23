@@ -2,11 +2,15 @@ import type { TestRunnerConfig } from '@storybook/test-runner';
 import { waitForPageReady } from '@storybook/test-runner';
 import { toMatchImageSnapshot } from 'jest-image-snapshot';
 
+// Jest globals are available in Storybook test runner context
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const expect: any;
+
 const config: TestRunnerConfig = {
 	setup() {
 		expect.extend({ toMatchImageSnapshot });
 	},
-	async preVisit(page, context) {
+	async preVisit(page, _context) {
 		// Extract theme from URL globals parameter if present
 		const url = new URL(page.url());
 		const globalsParam = url.searchParams.get('globals');

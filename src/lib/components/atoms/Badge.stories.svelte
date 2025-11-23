@@ -17,18 +17,18 @@
 
 <Story name="Default" args={{ variant: 'default' }}>
 	{#snippet template(args)}
-		<Badge {...args}>Badge</Badge>
+		<Badge variant={args.variant}>Badge</Badge>
 	{/snippet}
 </Story>
 
 <Story name="System" args={{ variant: 'system' }}>
 	{#snippet template(args)}
-		<Badge {...args}>System Badge</Badge>
+		<Badge variant={args.variant}>System Badge</Badge>
 	{/snippet}
 </Story>
 
 <Story name="Custom" args={{ variant: 'custom' }}>
 	{#snippet template(args)}
-		<Badge {...args}>Custom Badge</Badge>
+		<Badge variant={args.variant}>Custom Badge</Badge>
 	{/snippet}
 </Story>

@@ -51,7 +51,7 @@
 
 <div class="inline-flex items-center gap-icon">
 	{#each normalizedKeys as key, i (`${i}-${key}`)}
-		<kbd class="bg-base/50 rounded-badge font-mono text-tertiary {sizeClasses}">
+		<kbd class="bg-base/50 rounded-badge font-code text-tertiary {sizeClasses}">
 			{key}
 		</kbd>
 		{#if i < normalizedKeys.length - 1}

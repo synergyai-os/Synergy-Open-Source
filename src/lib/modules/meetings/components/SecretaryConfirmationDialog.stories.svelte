@@ -4,7 +4,7 @@
 	// which are not available in Storybook. Skipping stories for this component.
 	// import SecretaryConfirmationDialog from './SecretaryConfirmationDialog.svelte';
 
-	const { Story } = defineMeta({
+	const { Story: _Story } = defineMeta({
 		// component: SecretaryConfirmationDialog,
 		title: 'Modules/Meetings/SecretaryConfirmationDialog',
 		tags: ['autodocs']

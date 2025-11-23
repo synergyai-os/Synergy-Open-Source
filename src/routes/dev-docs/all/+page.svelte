@@ -589,6 +589,7 @@
 		color: var(--color-accent-hover);
 	}
 
+	/* Token: --breakpoint-md (768px) from design-system.json */
 	@media (max-width: 768px) {
 		.hub-page {
 			padding: 2rem 1.5rem;

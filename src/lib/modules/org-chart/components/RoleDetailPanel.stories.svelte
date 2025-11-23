@@ -4,7 +4,7 @@
 	// which are not available in Storybook. Skipping stories for this component.
 	// import RoleDetailPanel from './RoleDetailPanel.svelte';
 
-	const { Story } = defineMeta({
+	const { Story: _Story } = defineMeta({
 		// component: RoleDetailPanel,
 		title: 'Modules/OrgChart/RoleDetailPanel',
 		tags: ['autodocs']

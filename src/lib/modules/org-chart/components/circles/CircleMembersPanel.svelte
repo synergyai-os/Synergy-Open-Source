@@ -1,9 +1,7 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
 	import { page } from '$app/stores';
 	import { getContext } from 'svelte';
-	import { useQuery } from 'convex-svelte';
-	import { api, type Id } from '$lib/convex';
+	import { useCircleMembers } from '../../composables/useCircleMembers.svelte';
 	import type { UseCircles, CircleMember } from '../../composables/useCircles.svelte';
 	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
 
@@ -23,24 +21,14 @@
 	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
 	const getOrganizationId = () => organizations?.activeOrganizationId ?? undefined;
 
-	// Query organization members to show in dropdown
-	const orgMembersQuery =
-		browser && getSessionId() && getOrganizationId()
-			? useQuery(api.organizations.getMembers, () => {
-					const sessionId = getSessionId();
-					const organizationId = getOrganizationId();
-					if (!sessionId || !organizationId)
-						throw new Error('sessionId and organizationId required');
-					return { sessionId, organizationId: organizationId as Id<'organizations'> };
-				})
-			: null;
+	// Use composable for circle members queries
+	const circleMembers = useCircleMembers({
+		sessionId: getSessionId,
+		organizationId: getOrganizationId,
+		members: () => members
+	});
 
-	const orgMembers = $derived(orgMembersQuery?.data ?? []);
-
-	// Filter out users who are already members
-	const availableUsers = $derived(
-		orgMembers.filter((user) => !members.some((m) => m.userId === user.userId))
-	);
+	const availableUsers = $derived(circleMembers.availableUsers);
 
 	let selectedUserId = $state('');
 

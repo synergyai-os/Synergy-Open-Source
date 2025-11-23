@@ -22,7 +22,14 @@
 
 <Story name="Default" args={{ name: 'Product Manager', onClick: () => console.log('Clicked') }}>
 	{#snippet template(args)}
-		<RoleCard {...args} />
+		<RoleCard
+			name={args.name}
+			purpose={args.purpose}
+			fillerCount={args.fillerCount}
+			onClick={args.onClick}
+			onEdit={args.onEdit}
+			menuItems={args.menuItems}
+		/>
 	{/snippet}
 </Story>
 
@@ -35,7 +42,14 @@
 	}}
 >
 	{#snippet template(args)}
-		<RoleCard {...args} />
+		<RoleCard
+			name={args.name}
+			purpose={args.purpose}
+			fillerCount={args.fillerCount}
+			onClick={args.onClick}
+			onEdit={args.onEdit}
+			menuItems={args.menuItems}
+		/>
 	{/snippet}
 </Story>
 
@@ -44,7 +58,14 @@
 	args={{ name: 'Designer', fillerCount: 3, onClick: () => console.log('Clicked') }}
 >
 	{#snippet template(args)}
-		<RoleCard {...args} />
+		<RoleCard
+			name={args.name}
+			purpose={args.purpose}
+			fillerCount={args.fillerCount}
+			onClick={args.onClick}
+			onEdit={args.onEdit}
+			menuItems={args.menuItems}
+		/>
 	{/snippet}
 </Story>
 
@@ -58,7 +79,14 @@
 	}}
 >
 	{#snippet template(args)}
-		<RoleCard {...args} />
+		<RoleCard
+			name={args.name}
+			purpose={args.purpose}
+			fillerCount={args.fillerCount}
+			onClick={args.onClick}
+			onEdit={args.onEdit}
+			menuItems={args.menuItems}
+		/>
 	{/snippet}
 </Story>
 
@@ -75,7 +103,14 @@
 	}}
 >
 	{#snippet template(args)}
-		<RoleCard {...args} />
+		<RoleCard
+			name={args.name}
+			purpose={args.purpose}
+			fillerCount={args.fillerCount}
+			onClick={args.onClick}
+			onEdit={args.onEdit}
+			menuItems={args.menuItems}
+		/>
 	{/snippet}
 </Story>
 
@@ -90,6 +125,13 @@
 	}}
 >
 	{#snippet template(args)}
-		<RoleCard {...args} />
+		<RoleCard
+			name={args.name}
+			purpose={args.purpose}
+			fillerCount={args.fillerCount}
+			onClick={args.onClick}
+			onEdit={args.onEdit}
+			menuItems={args.menuItems}
+		/>
 	{/snippet}
 </Story>

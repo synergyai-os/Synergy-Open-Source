@@ -19,7 +19,13 @@
 	args={{ roleName: 'Product Manager', onClose: () => console.log('Close clicked') }}
 >
 	{#snippet template(args)}
-		<RoleDetailHeader {...args} />
+		<RoleDetailHeader
+			roleName={args.roleName}
+			onClose={args.onClose}
+			onEdit={args.onEdit}
+			addMenuItems={args.addMenuItems}
+			headerMenuItems={args.headerMenuItems}
+		/>
 	{/snippet}
 </Story>
 
@@ -35,7 +41,13 @@
 	}}
 >
 	{#snippet template(args)}
-		<RoleDetailHeader {...args} />
+		<RoleDetailHeader
+			roleName={args.roleName}
+			onClose={args.onClose}
+			onEdit={args.onEdit}
+			addMenuItems={args.addMenuItems}
+			headerMenuItems={args.headerMenuItems}
+		/>
 	{/snippet}
 </Story>
 
@@ -48,7 +60,13 @@
 	}}
 >
 	{#snippet template(args)}
-		<RoleDetailHeader {...args} />
+		<RoleDetailHeader
+			roleName={args.roleName}
+			onClose={args.onClose}
+			onEdit={args.onEdit}
+			addMenuItems={args.addMenuItems}
+			headerMenuItems={args.headerMenuItems}
+		/>
 	{/snippet}
 </Story>
 
@@ -64,7 +82,13 @@
 	}}
 >
 	{#snippet template(args)}
-		<RoleDetailHeader {...args} />
+		<RoleDetailHeader
+			roleName={args.roleName}
+			onClose={args.onClose}
+			onEdit={args.onEdit}
+			addMenuItems={args.addMenuItems}
+			headerMenuItems={args.headerMenuItems}
+		/>
 	{/snippet}
 </Story>
 
@@ -81,6 +105,12 @@
 	}}
 >
 	{#snippet template(args)}
-		<RoleDetailHeader {...args} />
+		<RoleDetailHeader
+			roleName={args.roleName}
+			onClose={args.onClose}
+			onEdit={args.onEdit}
+			addMenuItems={args.addMenuItems}
+			headerMenuItems={args.headerMenuItems}
+		/>
 	{/snippet}
 </Story>

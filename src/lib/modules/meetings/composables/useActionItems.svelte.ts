@@ -22,7 +22,8 @@ interface UseActionItemsParams {
 	circleId?: () => Id<'circles'> | undefined;
 }
 
-export interface ActionItem extends Doc<'meetingActionItems'> {}
+// Type alias for clarity - ActionItem is just a Doc with no additional fields
+export type ActionItem = Doc<'meetingActionItems'>;
 
 export interface Member {
 	userId: Id<'users'>;

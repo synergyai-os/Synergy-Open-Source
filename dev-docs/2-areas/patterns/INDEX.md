@@ -31,6 +31,7 @@
 | Page freezes, effect_update_depth_exceeded error                                                  | Use untrack() or plain vars in $effect                                       | [svelte-reactivity.md#L700](svelte-reactivity.md#L700)              |
 | Component has custom CSS/hardcoded values                                                         | Use design tokens (app UI: px-inbox-header, marketing: py-marketing-section) | [ui-patterns.md#L780](ui-patterns.md#L780)                          |
 | Audit finds violations but semantic token doesn't exist (rounded-avatar, text-success missing) | Add token systematically: @theme → @utility → document | [ui-patterns.md#L720](ui-patterns.md#L720) |
+| Breakpoints hardcoded (640px, 768px, 1024px), inconsistent responsive behavior, can't change in one place | Add breakpoints to design token system, configure Tailwind CSS 4, use CSS variables for JavaScript checks | [ui-patterns.md#L5030](ui-patterns.md#L5030) |
 | Navigation breaks in production with base path, ESLint no-navigation-without-resolve errors      | Use resolveRoute() for all goto() and href (except external/static files)    | [ui-patterns.md#L1870](ui-patterns.md#L1870)                        |
 | TypeScript errors "Argument of type '[\"/settings/account\"]' is not assignable" with resolveRoute | Use wrapper function with type assertion for routes not in strict type manifest | [ui-patterns.md#L1920](ui-patterns.md#L1920)                        |
 | Navbar/header stays white in dark mode                                                            | Remove non-existent CSS vars (--color-bg-base-rgb)                           | [ui-patterns.md#L828](ui-patterns.md#L828)                          |
@@ -59,6 +60,7 @@
 | convex-test fails: "(intermediate value).glob is not a function"                                  | Create test.setup.ts with import.meta.glob() modules map                     | [convex-integration.md#L950](convex-integration.md#L950)            |
 | Test insert fails: "Validator error: Missing required field X in object"                          | Include ALL schema fields in test helpers (firstName, updatedAt...)          | [convex-integration.md#L1000](convex-integration.md#L1000)          |
 | TypeScript errors "Expected 2 arguments" or "Property 'sessionId' is missing"                     | Migrate from userId to sessionId parameter + destructure response            | [convex-integration.md#L1200](convex-integration.md#L1200)          |
+| Using deprecated `return 'skip'` pattern in conditional queries (awkward type casting, outdated) [DEPRECATED] | Use modern `throw new Error('sessionId required')` pattern with conditional hook creation        | [convex-integration.md#L1200](convex-integration.md#L1200)          |
 | TypeScript errors "Type 'string' is not assignable to type 'Id<\"tableName\">'" or using `as any` | Use proper `Id<>` type assertions instead of `any`                           | [convex-integration.md#L1250](convex-integration.md#L1250)          |
 | TypeScript errors "circularly references itself" or "Property does not exist on type '{}'"        | Use FunctionReference type assertions to break circular API refs             | [convex-integration.md#L1300](convex-integration.md#L1300)          |
 | Using `makeFunctionReference()` with `as any` in frontend code                                    | Use `FunctionReference` type assertion instead of `any` for type safety      | [convex-integration.md#L1300](convex-integration.md#L1300)          |
@@ -197,6 +199,8 @@
 | Overlay below toasts        | Reusable overlay with z-[9999] + flow-based messages        | [ui-patterns.md#L2200](ui-patterns.md#L2200)             |
 | Toast notifications         | svelte-sonner for user feedback                             | [ui-patterns.md#L1660](ui-patterns.md#L1660)             |
 | Rate limit errors           | Red error box + live countdown timer                        | [ui-patterns.md#L2000](ui-patterns.md#L2000)             |
+| Composable tests fail with "[unknown query]", query mocks don't match Convex function references | Add query-specific matching + fallback logic for unknown queries | [ci-cd.md#L2650](ci-cd.md#L2650) |
+| Composable tests timeout waiting for async operations, fake timers block async completion | Use real timers (`vi.useRealTimers()`) for async operations in composable tests | [ci-cd.md#L2700](ci-cd.md#L2700) |
 | Textarea auto-resize        | Remove h-full, use field-sizing                             | [ui-patterns.md#L330](ui-patterns.md#L330)               |
 | Schedule non-blocking emails | Use ctx.scheduler.runAfter(0, ...) for async email sending | [convex-integration.md#L3365](convex-integration.md#L3365) |
 | Command palette drama       | Dark overlay + blur + animation                             | [ui-patterns.md#L480](ui-patterns.md#L480)               |

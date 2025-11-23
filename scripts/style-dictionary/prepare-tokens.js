@@ -45,6 +45,16 @@ function convertDTCGToSD(dtcgPath, outputPath) {
 				if (token.description) {
 					current[part].description = token.description;
 				}
+				// Preserve original DTCG reference for transforms (use custom property to avoid SD resolution)
+				// This allows transforms to detect DTCG references like {opacity.50} before Style Dictionary resolves them
+				if (
+					token.original &&
+					token.original.$value &&
+					typeof token.original.$value === 'string' &&
+					token.original.$value.startsWith('{')
+				) {
+					current[part].dtcgRef = token.original.$value;
+				}
 			} else {
 				// Intermediate part - create nested object if it doesn't exist
 				if (!current[part]) {

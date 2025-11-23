@@ -463,6 +463,7 @@
 	}
 
 	/* Hide on small screens */
+	/* Token: --breakpoint-xl (1280px) from design-system.json */
 	@media (max-width: 1280px) {
 		.toc-panel {
 			display: none;

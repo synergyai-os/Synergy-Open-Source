@@ -19,7 +19,8 @@ interface UseDecisionsParams {
 	sessionId: () => string | undefined;
 }
 
-export interface Decision extends Doc<'meetingDecisions'> {}
+// Type alias for clarity - Decision is just a Doc with no additional fields
+export type Decision = Doc<'meetingDecisions'>;
 
 export interface UseDecisionsReturn {
 	get decisions(): Decision[];

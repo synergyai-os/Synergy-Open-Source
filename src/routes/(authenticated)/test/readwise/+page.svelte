@@ -167,7 +167,7 @@
 			<div class="rounded-lg border border-border-elevated bg-base p-6">
 				<p class="mb-3 font-medium text-primary">Response</p>
 				<pre
-					class="border-border overflow-x-auto rounded border bg-base p-4 font-mono text-sm whitespace-pre-wrap text-secondary">{testResponse}</pre>
+					class="border-border overflow-x-auto rounded border bg-base p-4 font-code text-sm whitespace-pre-wrap text-secondary">{testResponse}</pre>
 			</div>
 		{/if}
 

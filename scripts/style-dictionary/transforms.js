@@ -25,17 +25,60 @@ function transformTailwindTheme(token) {
 	// Convert token path to CSS custom property name
 	// Example: spacing.chart.container → --spacing-chart-container
 	const pathParts = token.path || token.name.split('.');
+	// Special handling for breakpoints: remove 's' from "breakpoints" → "breakpoint"
+	// breakpoints.sm → --breakpoint-sm (not --breakpoints-sm)
+	if (pathParts[0] === 'breakpoints') {
+		pathParts[0] = 'breakpoint';
+	}
 	const path = pathParts.join('-');
 	const name = `--${path}`;
 
-	// Get token value (handle var() references)
+	// Get token value (handle var() references, arrays, DTCG references, etc.)
+	// Check original $value first to detect DTCG references before Style Dictionary resolves them
+	const originalValue = token.original?.$value;
+	const tokenPath = pathParts.join('.');
 	let value = token.value;
-	if (typeof value === 'string' && value.startsWith('var(')) {
-		// Keep var() references as-is
-		value = value;
-	} else if (typeof value === 'string' && value.startsWith('oklch')) {
-		// Keep oklch colors as-is
-		value = value;
+
+	// Handle semantic font tokens that should reference base fonts
+	// fonts.heading → var(--fonts-sans), fonts.body → var(--fonts-sans), fonts.code → var(--fonts-mono)
+	if (tokenPath === 'fonts.heading' || tokenPath === 'fonts.body') {
+		value = 'var(--fonts-sans)';
+	} else if (tokenPath === 'fonts.code') {
+		value = 'var(--fonts-mono)';
+	}
+	// Handle opacity semantic tokens that should reference base opacity
+	// opacity.disabled → var(--opacity-50), opacity.hover → var(--opacity-80), etc.
+	else if (tokenPath === 'opacity.disabled') {
+		value = 'var(--opacity-50)';
+	} else if (tokenPath === 'opacity.hover') {
+		value = 'var(--opacity-80)';
+	} else if (tokenPath === 'opacity.backdrop') {
+		value = 'var(--opacity-75)';
+	} else if (tokenPath === 'opacity.loading') {
+		value = 'var(--opacity-60)';
+	} else if (
+		typeof originalValue === 'string' &&
+		originalValue.startsWith('{') &&
+		originalValue.endsWith('}')
+	) {
+		// Handle DTCG reference syntax: {fonts.sans} → var(--fonts-sans)
+		// Style Dictionary may have resolved the reference, but we want to keep it as var() for cascade
+		const refPath = originalValue.slice(1, -1); // Remove { }
+		const refParts = refPath.split('.');
+		const refName = refParts.join('-');
+		value = `var(--${refName})`;
+	} else if (typeof value === 'string' && (value.startsWith('var(') || value.startsWith('oklch'))) {
+		// Keep var() references and oklch colors as-is
+		// value is already correct, no change needed
+	} else if (typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
+		// Handle DTCG reference syntax: {fonts.sans} → var(--fonts-sans)
+		const refPath = value.slice(1, -1); // Remove { }
+		const refParts = refPath.split('.');
+		const refName = refParts.join('-');
+		value = `var(--${refName})`;
+	} else if (Array.isArray(value)) {
+		// Handle font family arrays: ["Inter", "sans-serif"] → "Inter, sans-serif"
+		value = value.join(', ');
 	} else {
 		// Ensure value is a string
 		value = String(value);
@@ -61,7 +104,7 @@ function transformTailwindTheme(token) {
 function transformTailwindUtility(token) {
 	const pathParts = token.path || token.name.split('.');
 	const path = pathParts.join('-');
-	const name = path.replace(/^spacing-/, ''); // Remove spacing- prefix for utilities
+	const _name = path.replace(/^spacing-/, ''); // Remove spacing- prefix for utilities
 
 	// Determine utility class name and CSS property based on token path
 	let utilityName = '';
@@ -71,6 +114,13 @@ function transformTailwindUtility(token) {
 	// Spacing utilities
 	if (path.startsWith('spacing-')) {
 		const spacingName = path.replace('spacing-', '');
+
+		// Skip base spacing tokens (0, 1, 2, etc.) - they're base scale, not utilities
+		// Only generate utilities for semantic spacing tokens
+		if (/^\d+$/.test(spacingName)) {
+			// Base spacing token (e.g., spacing-0, spacing-1) - skip utility generation
+			return null;
+		}
 
 		// Pattern matching for utility generation
 		if (spacingName.includes('-x')) {
@@ -90,8 +140,13 @@ function transformTailwindUtility(token) {
 			utilityName = spacingName.replace('spacing-', '');
 			cssProperty = 'margin-top'; // Default, can be refined
 		} else {
-			// Generic spacing utility
-			utilityName = spacingName;
+			// Generic spacing utility - ensure valid name (starts with letter)
+			// Prefix with 'p-' if it starts with a number or special character
+			if (/^[0-9]/.test(spacingName)) {
+				utilityName = `p-${spacingName}`;
+			} else {
+				utilityName = spacingName;
+			}
 			cssProperty = 'padding';
 		}
 	}
@@ -112,6 +167,13 @@ function transformTailwindUtility(token) {
 			utilityName = colorName;
 			cssProperty = 'color';
 		}
+	}
+	// Font family utilities
+	else if (path.startsWith('fonts-')) {
+		const fontName = path.replace('fonts-', '');
+		// Generate semantic font utilities: font-heading, font-body, font-code
+		utilityName = `font-${fontName}`;
+		cssProperty = 'font-family';
 	}
 	// Typography utilities
 	else if (path.startsWith('typography-') || path.startsWith('font-')) {
@@ -146,6 +208,21 @@ function transformTailwindUtility(token) {
 		utilityName = `size-${sizeName}`;
 		cssProperty = 'width: var(--size-...); height: var(--size-...);';
 	}
+	// Opacity utilities
+	else if (path.startsWith('opacity-')) {
+		const opacityName = path.replace('opacity-', '');
+
+		// Skip base opacity tokens (0, 5, 10, etc.) - they're base scale, not utilities
+		// Only generate utilities for semantic opacity tokens
+		if (/^\d+$/.test(opacityName)) {
+			// Base opacity token (e.g., opacity-0, opacity-50) - skip utility generation
+			return null;
+		}
+
+		// Generate semantic opacity utilities: opacity-disabled, opacity-hover, etc.
+		utilityName = path; // Keep full 'opacity-disabled' (not just 'disabled')
+		cssProperty = 'opacity';
+	}
 
 	// Skip if we couldn't determine utility
 	if (!utilityName || !cssProperty) {
@@ -165,7 +242,7 @@ function transformValidateSemanticReference(token) {
 	const pathParts = token.path || token.name.split('.');
 
 	// Only validate semantic tokens (not base tokens)
-	const isBaseToken = pathParts.length === 2; // e.g., spacing.0, color.primary
+	const _isBaseToken = pathParts.length === 2; // e.g., spacing.0, color.primary
 	const isSemanticToken = pathParts.length > 2; // e.g., spacing.chart.container
 
 	if (!isSemanticToken) {

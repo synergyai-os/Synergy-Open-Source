@@ -3219,4 +3219,158 @@ await client.connect(transport);
 
 ---
 
+## #L2650: Mock Convex Queries in Composable Tests with Fallback Logic [🟡 IMPORTANT]
+
+**Symptom**: Composable tests fail with "[unknown query]" errors, query mocks don't match Convex function references  
+**Root Cause**: Convex function references don't always convert to string properly, query name matching fails  
+**Fix**:
+
+**Step 1: Add Query-Specific Matching**
+
+```typescript
+// tests/composables/test-utils/setupMocks.svelte.ts
+
+// Check for specific query patterns
+if (
+	queryName.includes('listInboxItems') ||
+	queryName.includes('InboxItems') ||
+	queryName.includes('inbox:listInboxItems')
+) {
+	if ('inboxItems' in results) {
+		return Object.freeze({
+			data: results.inboxItems.data,
+			isLoading: results.inboxItems.isLoading ?? false,
+			error: results.inboxItems.error ?? null
+		});
+	}
+}
+```
+
+**Step 2: Add Fallback for Unknown Queries**
+
+```typescript
+// CRITICAL FALLBACK: When query name is unknown, check configured results
+if (queryName === '[unknown query]' || queryName.includes('[unknown')) {
+	// If only one result is configured, use it (common in focused tests)
+	const configuredKeys = Object.keys(results);
+	if (configuredKeys.length === 1) {
+		const key = configuredKeys[0];
+		return Object.freeze({
+			data: results[key].data,
+			isLoading: results[key].isLoading ?? false,
+			error: results[key].error ?? null
+		});
+	}
+}
+```
+
+**Step 3: Prevent False Positives**
+
+```typescript
+// Prevent organizations fallback from matching inbox queries
+const isInboxQuery =
+	queryName.includes('Inbox') ||
+	queryName.includes('inbox') ||
+	queryName.includes('SyncProgress') ||
+	queryName.includes('syncProgress');
+
+if ('organizations' in results && !isInboxQuery && !isInvitesQuery) {
+	// Safe to use organizations fallback
+	return results.organizations;
+}
+```
+
+**Why**:
+
+- Convex function references (`api.inbox.listInboxItems`) don't always serialize to predictable strings
+- Tests configure specific mock results but query name matching fails
+- Fallback logic ensures tests pass when only one result is configured (common pattern)
+- Module-specific checks prevent false positives (e.g., inbox queries matching organizations fallback)
+
+**Apply when**:
+
+- Writing composable tests with Convex queries
+- Query name matching fails with "[unknown query]"
+- Tests configure single mock result but query doesn't match patterns
+- Need robust fallback for test reliability
+
+**Related**: svelte-reactivity.md#L800 (Browser-only tests), #L2700 (Fake timers in composable tests)
+
+---
+
+## #L2700: Use Real Timers for Async Operations in Composable Tests [🟡 IMPORTANT]
+
+**Symptom**: Composable tests timeout waiting for async operations (polling, setTimeout, setInterval), `vi.useFakeTimers()` blocks async completion  
+**Root Cause**: Fake timers (`vi.useFakeTimers()`) interfere with async operations. `setTimeout`/`setInterval` don't resolve properly when mocked.  
+**Fix**:
+
+```typescript
+// ❌ WRONG: Fake timers block async operations
+it('should show sync success when new items imported', async () => {
+	vi.useFakeTimers(); // ❌ Blocks async operations
+	
+	await composable.handleImport({ quantity: 10 });
+	await new Promise((resolve) => setTimeout(resolve, 200)); // ❌ Never resolves
+	
+	expect(composable.syncSuccess).toBe(true);
+});
+
+// ✅ CORRECT: Use real timers for async operations
+it('should show sync success when new items imported', async () => {
+	vi.useRealTimers(); // ✅ Allow async operations to complete
+	
+	await composable.handleImport({ quantity: 10 });
+	
+	// Wait for reactive updates to propagate
+	await new Promise((resolve) => setTimeout(resolve, 300));
+	
+	expect(composable.syncSuccess).toBe(true);
+	
+	// Restore fake timers if needed for other tests
+	vi.useFakeTimers();
+});
+```
+
+**When to Use Each**:
+
+- **Real timers** (`vi.useRealTimers()`): Async operations (polling, setTimeout, setInterval), composable tests with async state updates
+- **Fake timers** (`vi.useFakeTimers()`): Synchronous logic tests, controlling time-dependent behavior, testing timeouts without waiting
+
+**Pattern for Tests with Both**:
+
+```typescript
+it('should handle timeout correctly', async () => {
+	vi.useRealTimers(); // ✅ For async operations
+	
+	await composable.startPolling();
+	await new Promise((resolve) => setTimeout(resolve, 100));
+	
+	// Switch to fake timers for timeout testing
+	vi.useFakeTimers();
+	vi.advanceTimersByTime(5000);
+	
+	expect(composable.hasTimedOut).toBe(true);
+	
+	vi.useRealTimers(); // Restore for cleanup
+});
+```
+
+**Why**:
+
+- Fake timers mock `setTimeout`/`setInterval` but don't resolve promises properly
+- Composables use async operations (Convex queries, polling) that need real timers
+- Real timers allow async operations to complete naturally
+- Can switch between real/fake timers within same test if needed
+
+**Apply when**:
+
+- Testing composables with async operations (polling, setTimeout, setInterval)
+- Tests timeout waiting for async completion
+- Using `vi.useFakeTimers()` blocks async operations
+- Need to test both async behavior and time-dependent logic
+
+**Related**: #L2650 (Mock Convex queries), svelte-reactivity.md#L800 (Browser-only tests)
+
+---
+
 ## Format Version: 1.0

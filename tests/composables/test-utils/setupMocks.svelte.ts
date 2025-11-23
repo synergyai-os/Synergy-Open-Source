@@ -193,7 +193,90 @@ vi.mock('convex-svelte', () => {
 				return Object.freeze({ data: undefined, isLoading: true, error: null });
 			}
 
-			// CRITICAL FALLBACK: If organizations is configured, return it unless query is clearly invites/teams
+			// Check for inbox items query
+			if (
+				queryName.includes('listInboxItems') ||
+				queryName.includes('InboxItems') ||
+				queryName.includes('inbox:listInboxItems')
+			) {
+				if ('inboxItems' in results) {
+					const result = results.inboxItems as {
+						data?: unknown;
+						isLoading?: boolean;
+						error?: unknown;
+					};
+					return Object.freeze({
+						data: result.data,
+						isLoading: result.isLoading ?? false,
+						error: result.error ?? null
+					});
+				}
+				return Object.freeze({ data: undefined, isLoading: true, error: null });
+			}
+
+			// Check for inbox item with details
+			if (
+				queryName.includes('getInboxItemWithDetails') ||
+				queryName.includes('InboxItemWithDetails') ||
+				queryName.includes('inbox:getInboxItemWithDetails')
+			) {
+				if ('inboxItemWithDetails' in results) {
+					const result = results.inboxItemWithDetails as {
+						data?: unknown;
+						isLoading?: boolean;
+						error?: unknown;
+					};
+					return Object.freeze({
+						data: result.data,
+						isLoading: result.isLoading ?? false,
+						error: result.error ?? null
+					});
+				}
+				return Object.freeze({ data: undefined, isLoading: true, error: null });
+			}
+
+			// Check for sync progress
+			if (
+				queryName.includes('getSyncProgress') ||
+				queryName.includes('SyncProgress') ||
+				queryName.includes('inbox:getSyncProgress')
+			) {
+				if ('syncProgress' in results) {
+					const result = results.syncProgress as {
+						data?: unknown;
+						isLoading?: boolean;
+						error?: unknown;
+					};
+					return Object.freeze({
+						data: result.data,
+						isLoading: result.isLoading ?? false,
+						error: result.error ?? null
+					});
+				}
+				return Object.freeze({ data: undefined, isLoading: true, error: null });
+			}
+
+			// CRITICAL FALLBACK: When query name is unknown, check configured results
+			// This handles cases where Convex function references don't convert to string properly
+			if (queryName === '[unknown query]' || queryName.includes('[unknown')) {
+				// If only one result is configured, use it (common in focused tests)
+				const configuredKeys = Object.keys(results);
+				if (configuredKeys.length === 1) {
+					const key = configuredKeys[0];
+					const result = results[key] as {
+						data?: unknown;
+						isLoading?: boolean;
+						error?: unknown;
+					};
+					return Object.freeze({
+						data: result.data,
+						isLoading: result.isLoading ?? false,
+						error: result.error ?? null
+					});
+				}
+			}
+
+			// CRITICAL FALLBACK: If organizations is configured, return it unless query is clearly invites/teams/inbox
 			// This ensures validation tests pass even if query name doesn't match our patterns
 			const isInvitesQuery = queryName.includes('Invites') || queryName.includes('invites');
 			const isTeamsQuery =
@@ -201,10 +284,21 @@ vi.mock('convex-svelte', () => {
 				queryName.includes('teams') ||
 				queryName.includes('listTeams');
 			const isMembersQuery = queryName.includes('Members') || queryName.includes('members');
+			const isInboxQuery =
+				queryName.includes('Inbox') ||
+				queryName.includes('inbox') ||
+				queryName.includes('SyncProgress') ||
+				queryName.includes('syncProgress');
 
-			// If organizations is configured and query doesn't clearly indicate invites/teams/members, return it
+			// If organizations is configured and query doesn't clearly indicate other modules, return it
 			// This is safe because our failing tests only configure organizations
-			if ('organizations' in results && !isInvitesQuery && !isTeamsQuery && !isMembersQuery) {
+			if (
+				'organizations' in results &&
+				!isInvitesQuery &&
+				!isTeamsQuery &&
+				!isMembersQuery &&
+				!isInboxQuery
+			) {
 				console.error(
 					'[TEST MOCK] ✅ Using organizations fallback. Query:',
 					queryName.substring(0, 100)

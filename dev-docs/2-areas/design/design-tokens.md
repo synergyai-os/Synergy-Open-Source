@@ -2,10 +2,53 @@
 
 This document defines our design system tokens used consistently throughout the application. All tokens support automatic light/dark mode adaptation.
 
+**Token System:** 255 design tokens (82 base tokens, 173 semantic tokens) across 14 categories.
+
 > **See Also**:
 >
 > - [Design Principles](design-principles.md) - Visual philosophy and UX principles (why we design this way)
 > - [Component Architecture](component-architecture.md) - How tokens → utilities → patterns → components work together (how we implement)
+> - [DESIGN-TOKENS-WORKFLOW.md](../../../DESIGN-TOKENS-WORKFLOW.md) - Complete workflow guide for adding tokens, migrations, and common patterns
+> - **Storybook Token Reference**: Run `npm run storybook` → Navigate to "Design System/Tokens" for interactive token browser
+
+---
+
+## 📊 Token System Overview
+
+**Total Tokens:** 255 design tokens (82 base tokens, 173 semantic tokens)
+
+**Format:** DTCG (Design Tokens Community Group) JSON format - industry-standard token specification
+
+**Source of Truth:** `design-system.json` - All tokens defined in DTCG format, built to CSS via Style Dictionary
+
+### Token Categories (14 Total)
+
+Our design system includes 14 token categories covering all design primitives:
+
+1. **Spacing** - Layout spacing, padding, margins (base scale + semantic tokens)
+2. **Colors** - Brand colors, semantic colors, light/dark mode support
+3. **Typography** - Font sizes, weights, line heights, letter spacing
+4. **Fonts** _(added SYOS-502)_ - Font families (sans, mono, serif) + semantic fonts (heading, body, code)
+5. **Shadow** - Elevation shadows for cards, modals, dropdowns
+6. **Size** - Component dimensions (buttons, avatars, icons, dialogs)
+7. **Transition** - Animation durations and easing functions
+8. **Border Radius** - Corner radii for buttons, cards, inputs
+9. **Z-Index** - Layering system for modals, dropdowns, overlays
+10. **Breakpoints** _(added SYOS-505)_ - Responsive design breakpoints (sm, md, lg, xl, 2xl)
+11. **Opacity** _(added SYOS-506)_ - Transparency scale + semantic opacity (disabled, hover, backdrop, loading)
+12. **Line Height** - Text line spacing for readability
+13. **Letter Spacing** - Text tracking for hierarchy
+14. **Max Width** - Content width constraints (readable text, dialogs)
+
+**Recent Additions:**
+- **SYOS-502**: Font families (6 tokens) - Semantic font system (heading, body, code)
+- **SYOS-505**: Breakpoints (5 tokens) - Tailwind-compatible responsive breakpoints
+- **SYOS-506**: Opacity (15 base + 4 semantic) - Consistent transparency system
+
+**Documentation:**
+- **This file**: Token reference and usage examples
+- **[DESIGN-TOKENS-WORKFLOW.md](../../../DESIGN-TOKENS-WORKFLOW.md)**: Step-by-step workflow for adding/migrating tokens
+- **Storybook**: Interactive token browser - Run `npm run storybook` → "Design System/Tokens"
 
 ---
 
@@ -432,7 +475,7 @@ Some values intentionally don't map to base scale (optimized for specific compon
 
 **Symptom:**
 
-```
+```text
 ❌ Semantic token 'spacing.nav.item.x' has hardcoded value '0.5rem'
    Expected: '{spacing.2}' (reference to base token)
 ```
@@ -467,7 +510,7 @@ Some values intentionally don't map to base scale (optimized for specific compon
 
 **Symptom:**
 
-```
+```text
 ⚠️ Token 'spacing.nav.item.x' missing $description (optional but recommended)
 ```
 
@@ -486,7 +529,7 @@ Add `$description` field:
 
 **Symptom:**
 
-```
+```text
 Error: Could not resolve reference '{spacing.99}' in token 'spacing.nav.item.x'
 ```
 
@@ -579,7 +622,7 @@ Tokens build successfully, but CSS classes don't apply in components.
 
 **Symptom:**
 
-```
+```text
 Error: Circular reference detected: spacing.nav.item.x → spacing.nav.item.x
 ```
 
@@ -608,7 +651,7 @@ Error: Circular reference detected: spacing.nav.item.x → spacing.nav.item.x
 
 ### Getting Help
 
-**Still stuck?**
+#### Still stuck?
 
 1. **Check validation output:**
 
@@ -639,6 +682,50 @@ Error: Circular reference detected: spacing.nav.item.x → spacing.nav.item.x
 ---
 
 ## Typography
+
+### Font Families
+
+**✨ USE SEMANTIC FONTS FOR CONSISTENT TYPOGRAPHY**
+
+All font families use semantic tokens that cascade from base fonts. Change `--fonts-sans` once, and all headings + body text update automatically.
+
+**Base Fonts:**
+
+| Token           | Utility Class | Font Stack                                                                 | Usage                          |
+| --------------- | ------------- | -------------------------------------------------------------------------- | ------------------------------ |
+| `--fonts-sans`  | `font-sans`   | Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif | Primary sans-serif font stack  |
+| `--fonts-mono`  | `font-mono`   | JetBrains Mono, Menlo, Monaco, 'Courier New', monospace                    | Monospace font stack for code  |
+| `--fonts-serif` | `font-serif`  | Georgia, Cambria, 'Times New Roman', serif                                | Serif font stack (optional)   |
+
+**Semantic Fonts (Reference Base Fonts):**
+
+| Token            | Utility Class | References      | Usage                                                      |
+| ---------------- | ------------- | --------------- | ---------------------------------------------------------- |
+| `--fonts-heading` | `font-heading` | `var(--fonts-sans)` | Font for all headings (h1-h6, Heading component)           |
+| `--fonts-body`   | `font-body`   | `var(--fonts-sans)` | Font for body text, paragraphs, UI components (Button, Badge, Text) |
+| `--fonts-code`   | `font-code`   | `var(--fonts-mono)` | Font for code blocks, inline code, KeyboardShortcut component |
+
+**Cascade Example:**
+
+Change `--fonts-sans` in `design-system.json` → All headings + body text update automatically (no code changes needed).
+
+**Why Semantic Fonts:**
+
+- ✅ **Single source of truth**: Change base font once, updates everywhere
+- ✅ **Design flexibility**: Can use serif for headings, sans for body (change semantic reference)
+- ✅ **Brand consistency**: Font changes cascade automatically
+- ✅ **Follows Chakra UI pattern**: Industry-standard semantic font system
+
+**Example Usage:**
+
+```svelte
+<Heading level={1}>Page Title</Heading> <!-- Uses font-heading -->
+<Text variant="body">Body text</Text> <!-- Uses font-body -->
+<Button>Click me</Button> <!-- Uses font-body -->
+<KeyboardShortcut keys="K" /> <!-- Uses font-code -->
+```
+
+### Font Sizes
 
 - **Nav Item Text**: `text-sm` (0.875rem / 14px)
 - **Label/Badge Text**: `text-label` (0.625rem / 10px) - _custom token_
@@ -1078,6 +1165,219 @@ These tokens were added as part of the Design System Foundation (SYOS-353, SYOS-
 | `--spacing-tab-padding-y`   | `py-tab`                | 0.375rem (6px) | Tab item vertical padding   |
 | `--border-radius-tab-container`| `rounded-tab-container`| 0.5rem (8px)  | Tab container border radius |
 | `--border-radius-tab-item`  | `rounded-tab-item`      | 0.125rem (2px) | Tab item border radius      |
+
+---
+
+## 📱 Breakpoint Tokens
+
+Breakpoint tokens define responsive design breakpoints following the Tailwind CSS pattern (mobile-first approach). These tokens enable consistent responsive design across the application.
+
+### Breakpoint Values
+
+| Token              | Value   | Description                                    |
+| ------------------ | ------- | ---------------------------------------------- |
+| `--breakpoint-sm`  | `640px` | Small devices (mobile landscape) - min-width breakpoint |
+| `--breakpoint-md`  | `768px` | Medium devices (tablets) - min-width breakpoint |
+| `--breakpoint-lg`  | `1024px` | Large devices (desktop) - min-width breakpoint |
+| `--breakpoint-xl`  | `1280px` | Extra large devices (large desktop) - min-width breakpoint |
+| `--breakpoint-2xl` | `1536px` | 2X large devices (ultra-wide) - min-width breakpoint |
+
+### Usage in JavaScript
+
+Breakpoints are primarily used in JavaScript for responsive behavior checks:
+
+```typescript
+// Read breakpoint from CSS variable
+const breakpointSm = getComputedStyle(document.documentElement)
+  .getPropertyValue('--breakpoint-sm')
+  .trim();
+const breakpointValue = breakpointSm ? parseInt(breakpointSm, 10) : 640;
+const isMobile = window.innerWidth < breakpointValue;
+```
+
+**Example:** Dialog component uses breakpoint tokens for responsive fullscreen behavior:
+
+```typescript
+// src/lib/components/organisms/Dialog.svelte
+const checkMobile = () => {
+  const breakpointSm = getComputedStyle(document.documentElement)
+    .getPropertyValue('--breakpoint-sm')
+    .trim();
+  const breakpointValue = breakpointSm ? parseInt(breakpointSm, 10) : 640;
+  isMobile = window.innerWidth < breakpointValue;
+};
+```
+
+### Usage in CSS
+
+**Important:** CSS doesn't support CSS variables in `@media` queries. Use the token value directly with a comment reference:
+
+```css
+/* Token: --breakpoint-md (768px) from design-system.json */
+@media (max-width: 768px) {
+  .responsive-element {
+    /* Mobile styles */
+  }
+}
+```
+
+### Cascade Behavior
+
+When you change a breakpoint value in `design-system.json`:
+
+1. **CSS Variables**: Automatically update after running `npm run tokens:build`
+2. **JavaScript Code**: Automatically uses new value (no code changes needed)
+3. **CSS Media Queries**: Require manual update (CSS limitation - cannot use CSS variables in `@media`)
+
+**Example Cascade:**
+
+```json
+// design-system.json
+{
+  "breakpoints": {
+    "sm": {
+      "$value": "768px"  // Changed from 640px
+    }
+  }
+}
+```
+
+After `npm run tokens:build`:
+- ✅ CSS variable: `--breakpoint-sm: 768px` (auto-updated)
+- ✅ JavaScript: `getComputedStyle(...)` returns `768px` (auto-updated)
+- ⚠️ CSS `@media`: Need to manually update `@media (max-width: 768px)` (CSS limitation)
+
+### Context7 Validation
+
+✅ **Validated against industry standards:**
+- **Tailwind CSS**: Uses same breakpoint values (640px, 768px, 1024px, 1280px, 1536px)
+- **Material UI**: Similar breakpoint pattern (xs, sm, md, lg, xl)
+- **Chakra UI**: Breakpoints in theme tokens, mobile-first approach
+
+**Our structure follows Tailwind CSS** (most common pattern for utility-first CSS).
+
+---
+
+## 👁️ Opacity Tokens
+
+**✨ SEMANTIC OPACITY TOKENS** - Consistent transparency for disabled, hover, loading states.
+
+### Base Opacity Scale (0-100)
+
+Tailwind-compatible opacity scale from 0 (transparent) to 100 (opaque):
+
+| Token | Value | Description |
+| ----- | ----- | ----------- |
+| `--opacity-0` | `0` | Fully transparent (invisible) |
+| `--opacity-5` | `0.05` | 5% opacity |
+| `--opacity-10` | `0.1` | 10% opacity |
+| `--opacity-20` | `0.2` | 20% opacity |
+| `--opacity-25` | `0.25` | 25% opacity |
+| `--opacity-30` | `0.3` | 30% opacity |
+| `--opacity-40` | `0.4` | 40% opacity |
+| `--opacity-50` | `0.5` | 50% opacity |
+| `--opacity-60` | `0.6` | 60% opacity |
+| `--opacity-70` | `0.7` | 70% opacity |
+| `--opacity-75` | `0.75` | 75% opacity |
+| `--opacity-80` | `0.8` | 80% opacity |
+| `--opacity-90` | `0.9` | 90% opacity |
+| `--opacity-95` | `0.95` | 95% opacity |
+| `--opacity-100` | `1` | Fully opaque (no transparency) |
+
+### Semantic Opacity Tokens
+
+Use these semantic tokens instead of hardcoded opacity values for consistency:
+
+| Token | Utility Class | References | Value | Usage |
+| ----- | ------------- | ---------- | ----- | ----- |
+| `--opacity-disabled` | `opacity-disabled` | `var(--opacity-50)` | `0.5` | Disabled button/input states |
+| `--opacity-hover` | `opacity-hover` | `var(--opacity-80)` | `0.8` | Hover overlay effects |
+| `--opacity-backdrop` | `opacity-backdrop` | `var(--opacity-75)` | `0.75` | Modal/dialog backdrops |
+| `--opacity-loading` | `opacity-loading` | `var(--opacity-60)` | `0.6` | Loading state indicators |
+
+### Usage
+
+```svelte
+<!-- ❌ WRONG: Hardcoded opacity -->
+<button style="opacity: 0.5" disabled>Save</button>
+<div class="bg-black" style="opacity: 0.75">Backdrop</div>
+
+<!-- ✅ CORRECT: Semantic opacity tokens -->
+<button class="opacity-disabled" disabled>Save</button>
+<div class="bg-black opacity-backdrop">Backdrop</div>
+
+<!-- ✅ CORRECT: Direct CSS variable -->
+<button style="opacity: var(--opacity-disabled)" disabled>Save</button>
+```
+
+### Cascade Behavior
+
+When you change a semantic opacity reference in `design-system.json`:
+
+1. **Semantic tokens automatically update** - No code changes needed
+2. **All components using semantic tokens inherit the change**
+3. **Base scale remains stable** - Semantic tokens reference base
+
+**Example Cascade:**
+
+```json
+// design-system.json - Change disabled opacity from 50% to 40%
+{
+  "opacity": {
+    "disabled": {
+      "$value": "{opacity.40}"  // Changed from {opacity.50}
+    }
+  }
+}
+```
+
+After `npm run tokens:build`:
+- ✅ `--opacity-disabled: var(--opacity-40)` (auto-updated)
+- ✅ All disabled elements use 40% opacity (no code changes)
+- ✅ Base `--opacity-50` unchanged (stable foundation)
+
+### Context7 Validation
+
+✅ **Validated against industry standards:**
+- **Tailwind CSS**: Uses same base scale (0, 5, 10, 20, 25, 30, 40, 50, 60, 70, 75, 80, 90, 95, 100)
+- **Material UI**: Uses opacity in theme configuration (common values: 0.12, 0.38, 0.54, 0.87)
+- **Chakra UI**: Opacity scale in theme (0-100 pattern)
+
+**Our structure follows Tailwind CSS** (industry standard for utility-first CSS).
+
+### When to Use Base vs Semantic
+
+**Use semantic tokens** (disabled, hover, backdrop, loading) for:
+- ✅ UI states that should be consistent across the app
+- ✅ Values that might change based on design decisions
+- ✅ Contexts where meaning matters (disabled vs arbitrary transparency)
+
+**Use base scale** (0-100) for:
+- ✅ One-off opacity needs that don't fit semantic categories
+- ✅ Component-specific transparency requirements
+- ✅ Direct opacity values in inline styles
+
+### Migration Guide
+
+If you have hardcoded opacity values:
+
+```diff
+<!-- Disabled states -->
+-<button style="opacity: 0.5" disabled>Save</button>
++<button class="opacity-disabled" disabled>Save</button>
+
+<!-- Hover overlays -->
+-<div style="opacity: 0.8">Hover overlay</div>
++<div class="opacity-hover">Hover overlay</div>
+
+<!-- Modal backdrops -->
+-<div class="bg-black" style="opacity: 0.75">Backdrop</div>
++<div class="bg-black opacity-backdrop">Backdrop</div>
+
+<!-- Loading states -->
+-<div style="opacity: 0.6">Loading...</div>
++<div class="opacity-loading">Loading...</div>
+```
 
 ---
 

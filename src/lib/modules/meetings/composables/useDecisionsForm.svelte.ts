@@ -187,9 +187,12 @@ export function useDecisionsForm(params: UseDecisionsFormParams): UseDecisionsFo
 
 	// Format timestamp
 	function formatTimestamp(timestamp: number): string {
+		// Use Date constructor for formatting (not mutated, only used for display)
+		// eslint-disable-next-line svelte/prefer-svelte-reactivity
 		const date = new Date(timestamp);
-		const now = new Date();
-		const diffMs = now.getTime() - date.getTime();
+		// Use Date.now() for current time comparison (immutable timestamp arithmetic)
+		const now = Date.now();
+		const diffMs = now - date.getTime();
 		const diffMins = Math.floor(diffMs / 60000);
 		const diffHours = Math.floor(diffMs / 3600000);
 		const diffDays = Math.floor(diffMs / 86400000);

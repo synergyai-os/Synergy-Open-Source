@@ -132,6 +132,7 @@
 	}
 
 	/* Mobile responsiveness */
+	/* Token: --breakpoint-md (768px) from design-system.json */
 	@media (max-width: 768px) {
 		.para-quick-nav {
 			padding: 0.5rem 1rem;

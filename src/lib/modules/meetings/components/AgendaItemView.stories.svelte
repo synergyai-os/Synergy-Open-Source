@@ -5,7 +5,7 @@
 	// Skipping stories for this component.
 	// import AgendaItemView from './AgendaItemView.svelte';
 
-	const { Story } = defineMeta({
+	const { Story: _Story } = defineMeta({
 		// component: AgendaItemView,
 		title: 'Modules/Meetings/AgendaItemView',
 		tags: ['autodocs']

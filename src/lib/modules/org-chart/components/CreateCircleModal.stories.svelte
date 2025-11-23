@@ -35,7 +35,7 @@
 
 <Story name="Default" args={{ circles: mockCircles }}>
 	{#snippet template(args)}
-		<CreateCircleModal {...args} />
+		<CreateCircleModal circles={args.circles} />
 	{/snippet}
 </Story>
 
@@ -50,6 +50,6 @@
 	}}
 >
 	{#snippet template(args)}
-		<CreateCircleModal {...args} />
+		<CreateCircleModal circles={args.circles} availableCircles={args.availableCircles} />
 	{/snippet}
 </Story>

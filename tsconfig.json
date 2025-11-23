@@ -11,7 +11,8 @@
 		"strict": true,
 		"noImplicitAny": false, // TODO: Re-enable after fixing remaining type errors (SYOS-26)
 		"moduleResolution": "bundler"
-	}
+	},
+	"include": [".storybook/**/*"]
 	// Path aliases are handled by https://svelte.dev/docs/kit/configuration#alias
 	// except $lib which is handled by https://svelte.dev/docs/kit/configuration#files
 	//

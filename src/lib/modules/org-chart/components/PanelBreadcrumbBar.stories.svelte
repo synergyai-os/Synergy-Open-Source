@@ -17,7 +17,7 @@
 	}}
 >
 	{#snippet template(args)}
-		<PanelBreadcrumbBar {...args} />
+		<PanelBreadcrumbBar layer={args.layer} onclick={args.onclick} />
 	{/snippet}
 </Story>
 
@@ -29,7 +29,7 @@
 	}}
 >
 	{#snippet template(args)}
-		<PanelBreadcrumbBar {...args} />
+		<PanelBreadcrumbBar layer={args.layer} onclick={args.onclick} />
 	{/snippet}
 </Story>
 
@@ -38,6 +38,6 @@
 	args={{ layer: { name: 'Sales', id: 'circle-3' }, onclick: () => console.log('Back clicked') }}
 >
 	{#snippet template(args)}
-		<PanelBreadcrumbBar {...args} />
+		<PanelBreadcrumbBar layer={args.layer} onclick={args.onclick} />
 	{/snippet}
 </Story>

@@ -1,6 +1,9 @@
 test-results
 node_modules
 
+# ESLint
+.eslintcache
+
 # Output
 .output
 .vercel
@@ -34,7 +37,8 @@ test-results
 playwright-report
 e2e/.auth/*.json
 
-# Storybook Visual Regression
+# Storybook
+storybook-static/
 __design-system-snapshots__/*-diff.png
 __design-system-snapshots__/*-diff.png.snap
 

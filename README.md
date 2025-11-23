@@ -85,6 +85,47 @@ Preview production build:
 npm run preview
 ```
 
+## Design Tokens
+
+Complete design system with **255 design tokens** across 14 categories:
+
+### Core Design
+
+- **Spacing** - Padding, margins, gaps (base scale + semantic tokens)
+- **Colors** - Brand colors, semantic colors (light/dark mode support)
+- **Typography** - Font sizes, weights, line-heights, letter-spacing
+- **Fonts** - Font families (sans, mono, serif + semantic mappings)
+- **Breakpoints** - Responsive breakpoints (sm, md, lg, xl, 2xl)
+- **Opacity** - Transparency scale (0-100 + semantic opacity values)
+
+### Visual Design
+
+- **Shadows** - Box shadows for elevation and depth
+- **Sizes** - Component sizing scale
+- **Transitions** - Animation timing and easing
+- **Border Radius** - Corner rounding scale
+- **Z-Index** - Layer stacking order
+
+### Commands
+
+Build CSS from design tokens:
+
+```bash
+npm run tokens:build              # Build CSS from design-system.json
+npm run tokens:watch              # Watch for changes and rebuild
+npm run tokens:validate-semantic  # Validate semantic token references
+```
+
+### Documentation
+
+- 📖 [Storybook Token Reference](http://127.0.0.1:6006/?path=/docs/docs-token-reference--docs) - Browse all tokens with examples
+- 📝 [Design Token Workflow](DESIGN-TOKENS-WORKFLOW.md) - How to add and maintain tokens
+- 🔧 [Dev Docs](dev-docs/2-areas/design/design-tokens.md) - Technical reference
+
+### Why Design Tokens?
+
+Design tokens provide a single source of truth for design decisions. Change a token once in `design-system.json`, and it updates everywhere automatically. Tokens adapt to light/dark mode automatically and ensure visual consistency across the entire application.
+
 ## Project Structure
 
 ```

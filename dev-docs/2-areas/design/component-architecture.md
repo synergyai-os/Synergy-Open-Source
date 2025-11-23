@@ -379,7 +379,7 @@ Wrappers following this pattern are organized by complexity:
 
 > **Svelte 5 Best Practice**: "When extracting logic, it's better to take advantage of runes' universal reactivity: You can use runes outside the top level of components and even place them into JavaScript or TypeScript files (using a `.svelte.js` or `.svelte.ts` file ending)" — [Svelte 5 Documentation](https://svelte.dev/docs/svelte/svelte-js-files)
 
-**Pattern Validated**: Successfully applied to ActionItemsList (SYOS-467) and DecisionsList (SYOS-470) - proven repeatable across multiple Meeting module components.
+**Pattern Validated**: Successfully applied to ActionItemsList (SYOS-467), DecisionsList (SYOS-470), CircleMembersPanel (SYOS-484), and CircleRolesPanel (SYOS-484) - proven repeatable across multiple modules.
 
 **Components should ONLY handle UI rendering:**
 
@@ -591,6 +591,99 @@ export function useDecisions(params: UseDecisionsParams) {
     get isLoading() { return decisionsQuery?.isLoading ?? false; }
   };
 }
+```
+
+**Pattern Validated - Simple Query Extraction Example (SYOS-484):**
+
+For simpler cases where you only need to extract queries (no forms), the pattern is even more straightforward:
+
+```typescript
+// ❌ WRONG: Component contains useQuery calls
+// CircleMembersPanel.svelte
+<script lang="ts">
+  import { useQuery } from 'convex-svelte';
+  import { api } from '$lib/convex';
+  
+  // Query directly in component (separation of concerns violation)
+  const orgMembersQuery = browser && getSessionId() && getOrganizationId()
+    ? useQuery(api.organizations.getMembers, () => {
+        const sessionId = getSessionId();
+        const organizationId = getOrganizationId();
+        if (!sessionId || !organizationId) throw new Error('sessionId and organizationId required');
+        return { sessionId, organizationId: organizationId as Id<'organizations'> };
+      })
+    : null;
+  
+  const orgMembers = $derived(orgMembersQuery?.data ?? []);
+  const availableUsers = $derived(
+    orgMembers.filter((user) => !members.some((m) => m.userId === user.userId))
+  );
+</script>
+
+// ✅ CORRECT: Extract queries to composable
+// src/lib/modules/org-chart/composables/useCircleMembers.svelte.ts
+export function useCircleMembers(options: {
+  sessionId: () => string | undefined;
+  organizationId: () => string | undefined;
+  members: () => CircleMember[];
+}) {
+  const getSessionId = options.sessionId;
+  const getOrganizationId = options.organizationId;
+  const getMembers = options.members;
+
+  // Query in composable (separation of concerns)
+  const orgMembersQuery =
+    browser && getSessionId() && getOrganizationId()
+      ? useQuery(api.organizations.getMembers, () => {
+          const sessionId = getSessionId();
+          const organizationId = getOrganizationId();
+          if (!sessionId || !organizationId)
+            throw new Error('sessionId and organizationId required');
+          return { sessionId, organizationId: organizationId as Id<'organizations'> };
+        })
+      : null;
+
+  const orgMembers = $derived(orgMembersQuery?.data ?? []);
+  
+  // Business logic (filtering) in composable
+  const availableUsers = $derived(
+    orgMembers.filter((user) => !getMembers().some((m) => m.userId === user.userId))
+  );
+
+  return {
+    get orgMembers() { return orgMembers; },
+    get members() { return getMembers(); },
+    get availableUsers() { return availableUsers; }
+  };
+}
+
+// CircleMembersPanel.svelte (component - UI only)
+<script lang="ts">
+  import { useCircleMembers } from '../../composables/useCircleMembers.svelte';
+  
+  // Use composable for queries
+  const circleMembers = useCircleMembers({
+    sessionId: getSessionId,
+    organizationId: getOrganizationId,
+    members: () => members
+  });
+  
+  const availableUsers = $derived(circleMembers.availableUsers);
+</script>
+
+<!-- Just markup - no queries! -->
+<select bind:value={selectedUserId}>
+  {#each availableUsers as user (user.userId)}
+    <option value={user.userId}>{user.name || user.email}</option>
+  {/each}
+</select>
+```
+
+**Benefits of extraction:**
+- ✅ Component can be mocked in Storybook (no Convex dependencies)
+- ✅ Query logic reusable across components
+- ✅ Easier to test composable independently
+- ✅ Component focuses only on UI rendering
 
 // 2. useDecisionsForm.svelte.ts (~274 lines) - Form logic + business logic
 export function useDecisionsForm(params: UseDecisionsFormParams) {
@@ -622,7 +715,7 @@ export function useDecisionsForm(params: UseDecisionsFormParams) {
 <!-- Just markup - composables handle all logic -->
 ```
 
-**Result**: Pattern works consistently across ActionItemsList (464→~500 lines, 3 files) and DecisionsList (473→653 lines, 3 files). Line count increases but benefits (testability, maintainability, isolation) outweigh cost.
+**Result**: Pattern works consistently across ActionItemsList.svelte: 296 lines (3 files) and DecisionsList.svelte: 328 lines (3 files). Line count increases but benefits (testability, maintainability, isolation) outweigh cost.
 
 **Why Separation Matters:**
 
