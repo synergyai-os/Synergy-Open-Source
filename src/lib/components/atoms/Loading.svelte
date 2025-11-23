@@ -1,16 +1,17 @@
 <script lang="ts">
-	import { loadingRecipe } from '$lib/design-system/recipes/loading.recipe';
-
 	/**
 	 * Loading Component
 	 *
-	 * Unified loading state component that uses design tokens via CVA recipe.
+	 * Unified loading state component with size variants.
 	 * Use this component throughout the app for consistent loading states.
 	 *
 	 * Props:
 	 * - message: Optional custom loading message (default: "Loading...")
 	 * - size: Spinner size - 'sm' | 'md' | 'lg' (default: 'md')
 	 * - fullHeight: Whether to take full height of container (default: false)
+	 *
+	 * Note: Uses manual style mapping for SVG sizing due to browser CSS limitations.
+	 * CVA recipe system doesn't work reliably for SVG elements.
 	 */
 	interface Props {
 		message?: string;
@@ -20,8 +21,16 @@
 
 	let { message = 'Loading...', size = 'md', fullHeight = false }: Props = $props();
 
-	// Generate classes from CVA recipe
-	const spinnerClasses = $derived(loadingRecipe({ size }));
+	// Map size to CSS custom properties for SVG dimensions
+	// SVG elements need explicit width/height via style attribute for reliable cross-browser sizing
+	// sm: 12px (icon-xs), md: 16px (icon-sm - default), lg: 20px (icon-md)
+	const sizeStyle = $derived(
+		size === 'sm'
+			? 'width: var(--size-icon-xs); height: var(--size-icon-xs);' // 12px
+			: size === 'lg'
+				? 'width: var(--size-icon-md); height: var(--size-icon-md);' // 20px
+				: 'width: var(--size-icon-sm); height: var(--size-icon-sm);' // 16px (md - default)
+	);
 </script>
 
 {#if fullHeight}
@@ -29,7 +38,8 @@
 		<div class="flex flex-col items-center gap-icon">
 			<!-- Loading Spinner -->
 			<svg
-				class={spinnerClasses}
+				class="animate-spin text-accent-primary"
+				style={sizeStyle}
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -51,7 +61,8 @@
 	<div class="flex flex-col items-center gap-icon py-readable-quote">
 		<!-- Loading Spinner -->
 		<svg
-			class={spinnerClasses}
+			class="animate-spin text-accent-primary"
+			style={sizeStyle}
 			fill="none"
 			stroke="currentColor"
 			viewBox="0 0 24 24"

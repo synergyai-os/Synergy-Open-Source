@@ -35,15 +35,20 @@ const colors = {
  */
 function extractUtilityClasses() {
 	const utilityClasses = new Set();
+	// Check both src/styles/**/*.css and src/app.css
 	const cssFiles = [
 		...glob.sync('src/styles/**/*.css', { cwd: ROOT_DIR }),
-		...glob.sync('src/app.css', { cwd: ROOT_DIR })
+		'src/app.css'
 	];
 
 	const utilityRegex = /@utility\s+([\w-]+)\s*{/g;
 
 	for (const file of cssFiles) {
 		const filePath = path.join(ROOT_DIR, file);
+		// Skip if file doesn't exist
+		if (!fs.existsSync(filePath)) {
+			continue;
+		}
 		const content = fs.readFileSync(filePath, 'utf-8');
 
 		let match;
@@ -65,6 +70,7 @@ function extractRecipeClasses(recipeContent) {
 	const lines = recipeContent.split('\n');
 
 	// Match class strings in variants (e.g., 'icon-sm', 'size-iconsm', 'animate-spin text-accent')
+	// But skip variant keys/values in defaultVariants (e.g., 'md' in defaultVariants: { size: 'md' })
 	const classRegex = /['"`]([\w\s-]+)['"`]/g;
 
 	lines.forEach((line, index) => {
@@ -73,9 +79,22 @@ function extractRecipeClasses(recipeContent) {
 			return;
 		}
 
+		// Skip defaultVariants lines (they contain variant keys, not class names)
+		// e.g., "size: 'md'" - 'md' is a variant key, not a class
+		if (line.includes('defaultVariants:') || line.match(/^\s*(size|variant|fullHeight|disabled|etc):\s*['"`]/)) {
+			return;
+		}
+
 		let match;
 		while ((match = classRegex.exec(line)) !== null) {
 			const classString = match[1].trim();
+
+			// Skip single-word variant keys (e.g., 'sm', 'md', 'lg' when they appear as variant keys)
+			// These are variant values, not class names
+			// Class names typically have hyphens or multiple words (e.g., 'icon-sm', 'animate-spin text-accent')
+			if (classString.match(/^(sm|md|lg|xl|xs|true|false)$/) && !line.includes(':')) {
+				continue;
+			}
 
 			// Split multiple classes (e.g., 'animate-spin text-accent' -> ['animate-spin', 'text-accent'])
 			const individualClasses = classString.split(/\s+/).filter(Boolean);

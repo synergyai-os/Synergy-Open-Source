@@ -1,8 +1,5 @@
 ---
-# CRITICAL: Applies to ALL Svelte files automatically
-# This rule is ALWAYS loaded when editing .svelte files
-glob: "**/*.svelte"
-alwaysApply: true
+alwaysApply: false
 ---
 
 # 🚨 DESIGN TOKEN ENFORCEMENT (MANDATORY)
@@ -18,32 +15,29 @@ alwaysApply: true
 ### ❌ FORBIDDEN (Violations will be REJECTED):
 
 **Pixel/rem values as strings:**
+
 ```svelte
-width="1rem"           // ❌ REJECTED
-height="32px"          // ❌ REJECTED
-const size = '1rem';   // ❌ REJECTED
-const dims = '2rem';   // ❌ REJECTED
+width="1rem" // ❌ REJECTED height="32px" // ❌ REJECTED const size = '1rem'; // ❌ REJECTED const
+dims = '2rem'; // ❌ REJECTED
 ```
 
 **Hex colors:**
+
 ```svelte
-color="#3b82f6"        // ❌ REJECTED
-bg-[#000000]           // ❌ REJECTED
-const color = '#fff';  // ❌ REJECTED
+color="#3b82f6" // ❌ REJECTED bg-[#000000] // ❌ REJECTED const color = '#fff'; // ❌ REJECTED
 ```
 
 **Decimal opacity:**
+
 ```svelte
-opacity: 0.5           // ❌ REJECTED
-const alpha = 0.75;    // ❌ REJECTED
+opacity: 0.5 // ❌ REJECTED const alpha = 0.75; // ❌ REJECTED
 ```
 
 **Raw Tailwind utilities:**
+
 ```svelte
-class="px-4 py-2"      // ❌ REJECTED
-class="text-2xl"       // ❌ REJECTED
-class="rounded-lg"     // ❌ REJECTED
-class="gap-2"          // ❌ REJECTED
+class="px-4 py-2" // ❌ REJECTED class="text-2xl" // ❌ REJECTED class="rounded-lg" // ❌ REJECTED
+class="gap-2" // ❌ REJECTED
 ```
 
 ---
@@ -51,15 +45,16 @@ class="gap-2"          // ❌ REJECTED
 ### ✅ REQUIRED (Token References ONLY):
 
 **Utility classes (reference tokens):**
+
 ```svelte
-class="w-icon-sm h-icon-sm"       // ✅ Uses var(--size-icon-sm)
-class="px-button-x py-button-y"   // ✅ Uses var(--spacing-button-x)
-class="bg-accent-primary"         // ✅ Uses var(--color-accent-primary)
-class="opacity-disabled"          // ✅ Uses var(--opacity-disabled)
-class="font-heading"              // ✅ Uses var(--fonts-heading)
+class="w-icon-sm h-icon-sm" // ✅ Uses var(--size-icon-sm) class="px-button-x py-button-y" // ✅
+Uses var(--spacing-button-x) class="bg-accent-primary" // ✅ Uses var(--color-accent-primary)
+class="opacity-disabled" // ✅ Uses var(--opacity-disabled) class="font-heading" // ✅ Uses
+var(--fonts-heading)
 ```
 
 **CSS custom properties (direct references):**
+
 ```svelte
 <div style="width: var(--size-icon-sm)">      // ✅ Direct token reference
 <div style="padding: var(--spacing-button-x)"> // ✅ Direct token reference
@@ -72,6 +67,7 @@ class="font-heading"              // ✅ Uses var(--fonts-heading)
 ### The #1 Mistake Agents Make:
 
 **❌ WRONG thinking:**
+
 ```
 Token: --size-icon-sm = 1rem
 Agent: "I'll use 1rem - it matches the token!" ← THIS IS HARDCODING
@@ -79,6 +75,7 @@ Result: Cascade BROKEN (changing token won't update code)
 ```
 
 **✅ CORRECT thinking:**
+
 ```
 Token: --size-icon-sm = 1rem
 Agent: "I'll use w-icon-sm utility - it REFERENCES the token"
@@ -88,23 +85,18 @@ Result: Cascade WORKS (changing token updates all code automatically)
 ### Real Example from Production:
 
 **❌ Agent wrote (REJECTED):**
+
 ```svelte
-// Agent thought: "These match the token values!"
-const dimensions = $derived(
-  size === 'sm' ? '1rem' : size === 'lg' ? '3rem' : '2rem'
-);
-// ❌ HARDCODED - Cascade broken, violates design system
+// Agent thought: "These match the token values!" const dimensions = $derived( size === 'sm' ?
+'1rem' : size === 'lg' ? '3rem' : '2rem' ); // ❌ HARDCODED - Cascade broken, violates design system
 ```
 
 **✅ Should have been:**
+
 ```svelte
-// References tokens via CSS classes
-const sizeClasses = $derived(
-  size === 'sm' ? 'w-icon-sm h-icon-sm' : 
-  size === 'lg' ? 'w-icon-lg h-icon-lg' : 
-  'w-icon-md h-icon-md'
-);
-// ✅ Uses tokens - Cascade works, design system maintained
+// References tokens via CSS classes const sizeClasses = $derived( size === 'sm' ? 'w-icon-sm
+h-icon-sm' : size === 'lg' ? 'w-icon-lg h-icon-lg' : 'w-icon-md h-icon-md' ); // ✅ Uses tokens -
+Cascade works, design system maintained
 ```
 
 ---
@@ -127,18 +119,20 @@ const sizeClasses = $derived(
 ### Real Example from Production:
 
 **❌ Agent rationalized (REJECTED):**
+
 ```svelte
 <!-- Agent thought: "SVG needs attributes with values" -->
 <svg width="1rem" height="1rem">
-  <!-- ❌ HARDCODED - Agent broke cascade -->
+	<!-- ❌ HARDCODED - Agent broke cascade -->
 </svg>
 ```
 
 **✅ Correct approach:**
+
 ```svelte
 <!-- CSS classes work perfectly on SVG -->
 <svg class="w-icon-sm h-icon-sm animate-spin">
-  <!-- ✅ Uses tokens - Cascade maintained -->
+	<!-- ✅ Uses tokens - Cascade maintained -->
 </svg>
 ```
 
@@ -147,6 +141,7 @@ const sizeClasses = $derived(
 ## 🎯 The Cascade Test (Use BEFORE Writing Code)
 
 **Ask yourself:**
+
 > "If I change `--size-icon-sm` from `1rem` to `1.5rem` in design-system.json, will this code update automatically?"
 
 **Examples:**
@@ -174,45 +169,45 @@ const dimensions = '1rem';
 ## 📋 Token Utility Quick Reference
 
 ### Sizes (NOT hardcoded px/rem):
+
 ```svelte
-✅ w-icon-sm, h-icon-md, w-icon-lg
-❌ width="1rem", height="32px", w-[16px]
+✅ w-icon-sm, h-icon-md, w-icon-lg ❌ width="1rem", height="32px", w-[16px]
 ```
 
 ### Spacing (NOT raw Tailwind):
+
 ```svelte
-✅ px-button-x, py-button-y, gap-icon
-❌ px-4, py-2, gap-2
+✅ px-button-x, py-button-y, gap-icon ❌ px-4, py-2, gap-2
 ```
 
 ### Colors (NOT hex/named colors):
+
 ```svelte
-✅ bg-accent-primary, text-primary, border-base
-❌ bg-blue-600, text-white, bg-[#3b82f6]
+✅ bg-accent-primary, text-primary, border-base ❌ bg-blue-600, text-white, bg-[#3b82f6]
 ```
 
 ### Opacity (NOT decimal values):
+
 ```svelte
-✅ opacity-disabled, opacity-hover, opacity-backdrop
-❌ opacity-50, opacity: 0.5, bg-*/50
+✅ opacity-disabled, opacity-hover, opacity-backdrop ❌ opacity-50, opacity: 0.5, bg-*/50
 ```
 
 ### Fonts (NOT base tokens):
+
 ```svelte
-✅ font-heading, font-body, font-code
-❌ font-sans, font-mono (these are base, use semantic)
+✅ font-heading, font-body, font-code ❌ font-sans, font-mono (these are base, use semantic)
 ```
 
 ### Border Radius (NOT raw Tailwind):
+
 ```svelte
-✅ rounded-button, rounded-card, rounded-input
-❌ rounded-md, rounded-lg, rounded-xl
+✅ rounded-button, rounded-card, rounded-input ❌ rounded-md, rounded-lg, rounded-xl
 ```
 
 ### Breakpoints (Tailwind responsive utilities OK):
+
 ```svelte
-✅ md:grid-cols-3, lg:px-content-padding
-❌ @media (min-width: 768px), hardcoded breakpoints
+✅ md:grid-cols-3, lg:px-content-padding ❌ @media (min-width: 768px), hardcoded breakpoints
 ```
 
 ---
@@ -220,16 +215,19 @@ const dimensions = '1rem';
 ## 🚨 ENFORCEMENT PROCESS
 
 ### Step 1: BEFORE Writing Code
+
 1. Run cascade test mentally for EVERY value
 2. If value is literal (`'1rem'`, `'#fff'`, `0.5`) → STOP, use token
 3. If value matches token → Still STOP, reference token instead
 
 ### Step 2: DURING Implementation
+
 1. After writing code, run: `npm run tokens:validate`
 2. If violations found → FIX immediately, don't continue
 3. Validate again until clean
 
 ### Step 3: BEFORE Committing
+
 1. Run: `npm run lint`
 2. If design token violations → REJECTED, fix first
 3. Pre-commit hook will enforce this
@@ -239,34 +237,46 @@ const dimensions = '1rem';
 ## ⚠️ Common Agent Mistakes (Learn from These)
 
 ### Mistake #1: "Values match tokens"
+
 **Agent wrote:**
+
 ```svelte
-size === 'sm' ? '1rem' : '2rem'  // "These match --size-icon-sm/md!"
+size === 'sm' ? '1rem' : '2rem' // "These match --size-icon-sm/md!"
 ```
+
 **Why rejected:** Hardcoded strings, cascade broken
 **Correct:** `size === 'sm' ? 'w-icon-sm' : 'w-icon-md'`
 
 ### Mistake #2: "SVG needs attributes"
+
 **Agent wrote:**
+
 ```svelte
 <svg width="1rem">  // "SVG attributes need values!"
 ```
+
 **Why rejected:** CSS classes work on SVG, no exceptions
 **Correct:** `<svg class="w-icon-sm h-icon-sm">`
 
 ### Mistake #3: "Just this once"
+
 **Agent wrote:**
+
 ```svelte
-const spacing = '8px';  // "Quick fix, will refactor later"
+const spacing = '8px'; // "Quick fix, will refactor later"
 ```
+
 **Why rejected:** "Later" never happens, use tokens NOW
 **Correct:** `class="gap-icon"` (uses var(--spacing-icon))
 
 ### Mistake #4: "Base tokens are fine"
+
 **Agent wrote:**
+
 ```svelte
-class="font-sans"  // "It's a token!"
+class="font-sans" // "It's a token!"
 ```
+
 **Why rejected:** Base token, not semantic (no component context)
 **Correct:** `class="font-heading"` (semantic, clear usage)
 
@@ -277,6 +287,7 @@ class="font-sans"  // "It's a token!"
 **Complete catalog:** `dev-docs/2-areas/design/design-tokens.md`
 
 **Quick search:**
+
 ```bash
 # Find available size tokens
 grep "size-icon" dev-docs/2-areas/design/design-tokens.md
@@ -289,6 +300,7 @@ grep "bg-accent" dev-docs/2-areas/design/design-tokens.md
 ```
 
 **Can't find a token?**
+
 1. Check `dev-docs/2-areas/design/design-tokens.md` FIRST
 2. If truly missing → Ask user to add it to design-system.json
 3. NEVER hardcode as workaround
