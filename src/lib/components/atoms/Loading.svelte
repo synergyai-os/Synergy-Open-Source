@@ -21,15 +21,16 @@
 
 	let { message = 'Loading...', size = 'md', fullHeight = false }: Props = $props();
 
-	// Map size to CSS custom properties for SVG dimensions
-	// SVG elements need explicit width/height via style attribute for reliable cross-browser sizing
-	// sm: 12px (icon-xs), md: 16px (icon-sm - default), lg: 20px (icon-md)
+	// Map size to explicit pixel dimensions for SVG (doubled from design tokens for visibility)
+	// SVG elements require explicit pixel values - CSS custom properties don't work reliably
+	// Exception: Hardcoded values allowed for SVG sizing
+	// Base sizes: xs=12px, sm=16px, md=20px → Doubled: sm=24px, md=32px, lg=40px
 	const sizeStyle = $derived(
 		size === 'sm'
-			? 'width: var(--size-icon-xs); height: var(--size-icon-xs);' // 12px
+			? 'width: 24px; height: 24px;' // 2x --size-icon-xs (12px)
 			: size === 'lg'
-				? 'width: var(--size-icon-md); height: var(--size-icon-md);' // 20px
-				: 'width: var(--size-icon-sm); height: var(--size-icon-sm);' // 16px (md - default)
+				? 'width: 40px; height: 40px;' // 2x --size-icon-md (20px)
+				: 'width: 32px; height: 32px;' // 2x --size-icon-sm (16px) - md default
 	);
 </script>
 

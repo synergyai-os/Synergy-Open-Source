@@ -206,6 +206,58 @@ Some patterns are **intentionally allowed** and do not violate design system pri
 
 **Rationale**: State-driven or calculated values that change based on props/state cannot use static tokens.
 
+✅ **4. SVG/D3 Visualizations** (SVG rendering requires precise pixel values):
+
+```svelte
+<!-- ✅ ACCEPTABLE: SVG font sizing -->
+<text font-size="14">Label</text>
+
+<!-- ✅ ACCEPTABLE: SVG dimensions -->
+<svg width="800" height="600">
+  <!-- SVG content -->
+</svg>
+
+<!-- ✅ ACCEPTABLE: D3 scale calculations -->
+<script>
+  const xScale = d3.scaleLinear()
+    .domain([0, 100])
+    .range([0, 800]); // Pixels for SVG coordinate space
+</script>
+```
+
+**Rationale**: 
+- SVG rendering requires precise pixel values for text positioning and layout calculations
+- CSS variables can be used, but explicit pixels are acceptable for SVG-specific use cases
+- D3 scale transformations often require numeric pixel values for coordinate space calculations
+- Browser CSS `width`/`height` properties don't reliably size SVG elements (see SYOS-514)
+
+**Acceptable Components**:
+- `OrgChart.svelte` - D3 hierarchy visualization with SVG text rendering (SYOS-522)
+- `Loading.svelte` - SVG spinner with explicit dimensions (SYOS-509, SYOS-514)
+- Future D3/SVG visualizations (charts, graphs, diagrams)
+
+**NOT Acceptable**:
+
+```svelte
+<!-- ❌ WRONG: CSS-based component using hardcoded values -->
+<div style="width: 256px; height: 100px;"> ← Use design tokens instead
+
+<!-- ❌ WRONG: Non-SVG hardcoded values -->
+<script>
+  const sidebarWidth = 256; ← Use design tokens
+</script>
+```
+
+**Key Principle**: **SVG = Exception, CSS = Tokens**
+
+| Component Type | Use Tokens? | Example |
+| -- | -- | -- |
+| CSS-based (Button, Card, Layout) | ✅ YES (required) | `class="px-button-x py-button-y"` |
+| SVG text/dimensions | ⚠️ EXCEPTION (acceptable) | `<svg width="800"><text font-size="14">` |
+| D3 calculations | ⚠️ EXCEPTION (acceptable) | `d3.scaleLinear().range([0, 800])` |
+
+**Related Tickets**: SYOS-520 (Component Audit), SYOS-514 (Recipe System POC), SYOS-509 (Loading Spinner), SYOS-522 (Document SVG Exception)
+
 ---
 
 ## Token Build Workflow

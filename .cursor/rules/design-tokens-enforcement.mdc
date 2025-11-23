@@ -1,12 +1,13 @@
 ---
-alwaysApply: false
+alwaysApply: true
 ---
 
 # 🚨 DESIGN TOKEN ENFORCEMENT (MANDATORY)
 
 **This rule is AUTOMATICALLY loaded for EVERY .svelte file you edit.**
 
-**NO EXCEPTIONS. NO SPECIAL CASES. NO "BUT THIS TIME..."**
+**CSS Components**: Use Recipe System (CVA) - NO exceptions
+**SVG Components**: Documented exception allowed (SYOS-522) - Requires comment
 
 ---
 
@@ -101,39 +102,144 @@ Cascade works, design system maintained
 
 ---
 
-## ⛔ HARD RULE #3: SVG Has NO Special Exception
+## ⛔ HARD RULE #3: CSS Components MUST Use Recipe System
 
-### Agent Rationalizations (ALL REJECTED):
+### ⚠️ **UPDATED (SYOS-513)**: Recipe System is Primary Approach
 
-❌ "SVG attributes need actual values"
-❌ "CSS custom properties don't work in SVG"
-❌ "This is a special case"
-❌ "I'll hardcode just this once"
+**For CSS-based components** (Button, Badge, Card, Input, etc.):
 
-### The Truth:
+✅ **REQUIRED**: Use CVA Recipe System (type-safe, foolproof, AI-scalable)
+✅ Recipes return CSS class names (token-based utilities)
+✅ Component props map to recipe variants automatically
 
-✅ CSS `width`/`height` properties work on `<svg>` elements
-✅ Utility classes apply to SVG just like any other element
-✅ There are ZERO special cases - use tokens ALWAYS
+**❌ REJECTED**: Manual token mapping for CSS components (not scalable, AI agents fail)
 
-### Real Example from Production:
+### Recipe System Pattern (CSS Components):
 
-**❌ Agent rationalized (REJECTED):**
+**✅ CORRECT (Recipe System):**
 
 ```svelte
-<!-- Agent thought: "SVG needs attributes with values" -->
-<svg width="1rem" height="1rem">
-	<!-- ❌ HARDCODED - Agent broke cascade -->
+<script lang="ts">
+	import { buttonRecipe } from '$lib/design-system/recipes/button.recipe';
+
+	type Props = {
+		variant?: 'solid' | 'outline';
+		size?: 'sm' | 'md' | 'lg';
+	};
+
+	let { variant = 'solid', size = 'md' }: Props = $props();
+
+	const classes = $derived(buttonRecipe({ variant, size }));
+</script>
+
+<button class={classes}>
+	<slot />
+</button>
+```
+
+**❌ WRONG (Manual token mapping):**
+
+```svelte
+<script lang="ts">
+	// ❌ REJECTED: Manual mapping (AI agents fail, not scalable)
+	const classes = $derived(
+		size === 'sm' ? 'h-button-sm px-button-x-sm' : 'h-button-md px-button-x'
+	);
+</script>
+```
+
+---
+
+## ⛔ HARD RULE #4: SVG Components ARE Acceptable Exception
+
+### ⚠️ **UPDATED (SYOS-522)**: SVG Exception Documented
+
+**Discovery**: CSS-based sizing (recipes/utility classes) is **unreliable for SVG** in some browsers.
+
+**For SVG-based components** (Loading, Icon, OrgChart, D3 visualizations):
+
+✅ **ACCEPTABLE EXCEPTION**: Hardcoded pixel dimensions in HTML attributes or inline styles
+✅ **REQUIRED**: Exception comment at top of `<script>` block referencing SYOS-522
+✅ **REASON**: CSS `width`/`height` unreliable for SVG; requires explicit HTML attributes
+
+### SVG Exception Pattern:
+
+**✅ CORRECT (SVG Exception with Documentation):**
+
+```svelte
+<script lang="ts">
+	/**
+	 * DESIGN SYSTEM EXCEPTION: SVG/D3 Visualization (SYOS-522)
+	 *
+	 * This component uses SVG with hardcoded pixel dimensions because:
+	 * 1. CSS-based sizing (recipes/utility classes) unreliable for SVG in some browsers
+	 * 2. Requires explicit HTML width/height attributes
+	 * 3. Token mapping via JavaScript computed styles (where dynamic needed)
+	 *
+	 * Approved exception - see dev-docs/2-areas/design/design-tokens.md
+	 */
+
+	type Props = {
+		size?: 'sm' | 'md' | 'lg';
+	};
+
+	let { size = 'md' }: Props = $props();
+</script>
+
+<svg width={size === 'sm' ? '12px' : '16px'} height={size === 'sm' ? '12px' : '16px'}>
+	<!-- ✅ ACCEPTABLE: Documented SVG exception -->
+	<circle cx="8" cy="8" r="6" />
 </svg>
 ```
 
-**✅ Correct approach:**
+**❌ WRONG (No exception comment):**
 
 ```svelte
-<!-- CSS classes work perfectly on SVG -->
-<svg class="w-icon-sm h-icon-sm animate-spin">
-	<!-- ✅ Uses tokens - Cascade maintained -->
+<script lang="ts">
+	// ❌ REJECTED: Missing exception documentation
+	type Props = { size?: 'sm' | 'md' };
+	let { size = 'md' }: Props = $props();
+</script>
+
+<svg width="16" height="16">
+	<!-- ❌ REJECTED: No SYOS-522 reference -->
 </svg>
+```
+
+**❌ WRONG (CSS component using SVG exception):**
+
+```svelte
+<script lang="ts">
+	// ❌ REJECTED: Button is CSS component, must use recipe system
+</script>
+
+<button style="width: 32px; height: 32px;">
+	<!-- ❌ REJECTED: Not SVG, no exception allowed -->
+</button>
+```
+
+---
+
+### Decision Tree: Recipe vs SVG Exception
+
+**Ask yourself:**
+
+> "Is this a CSS-based component or SVG-based component?"
+
+**Decision:**
+
+```
+├─ CSS Component (Button, Card, Badge, Input, Alert, etc.)
+│  └─ ✅ USE RECIPE SYSTEM (CVA)
+│     - No exceptions allowed
+│     - Type-safe variant props
+│     - Scalable for AI agents
+│
+└─ SVG Component (Loading, Icon, OrgChart, D3 visualizations)
+   └─ ✅ ACCEPTABLE EXCEPTION
+      - Document with SYOS-522 comment
+      - Use HTML attributes or inline styles
+      - Only for SVG elements
 ```
 
 ---
@@ -142,27 +248,36 @@ Cascade works, design system maintained
 
 **Ask yourself:**
 
-> "If I change `--size-icon-sm` from `1rem` to `1.5rem` in design-system.json, will this code update automatically?"
+> "If I change a design token value in design-system.json, will this code update automatically?"
 
 **Examples:**
 
 ```svelte
-<!-- TEST: Change --size-icon-sm from 1rem to 1.5rem -->
+<!-- TEST 1: CSS Component (Button) - Change --size-button-md from 2.5rem to 3rem -->
 
-<!-- ❌ FAILS: Hardcoded value stays 1rem -->
-<svg width="1rem" height="1rem">
+<!-- ❌ FAILS: Hardcoded value stays 2.5rem -->
+<button style="height: 2.5rem">
 
-<!-- ❌ FAILS: String value stays 1rem -->
-const dimensions = '1rem';
+<!-- ❌ FAILS: Manual token mapping (not scalable) -->
+const classes = $derived(size === 'md' ? 'h-button-md' : 'h-button-sm');
 
-<!-- ✅ PASSES: Automatically updates to 1.5rem -->
-<svg class="w-icon-sm h-icon-sm">
+<!-- ✅ PASSES: Recipe system automatically updates to 3rem -->
+const classes = $derived(buttonRecipe({ size: 'md' }));
 
-<!-- ✅ PASSES: Automatically updates to 1.5rem -->
-<div style="width: var(--size-icon-sm)">
+<!-- TEST 2: SVG Component (Loading) - Documented Exception -->
+
+<!-- ✅ PASSES: SVG exception documented with SYOS-522 comment -->
+/**
+ * DESIGN SYSTEM EXCEPTION: SVG/D3 Visualization (SYOS-522)
+ * ...
+ */
+<svg width="16" height="16">
+
+<!-- ❌ FAILS: SVG exception without documentation -->
+<svg width="16" height="16">  // Missing SYOS-522 comment
 ```
 
-**If cascade test FAILS → You're hardcoding → FIX IT before writing code**
+**If cascade test FAILS → You're hardcoding OR missing documentation → FIX IT before writing code**
 
 ---
 
@@ -247,16 +362,16 @@ size === 'sm' ? '1rem' : '2rem' // "These match --size-icon-sm/md!"
 **Why rejected:** Hardcoded strings, cascade broken
 **Correct:** `size === 'sm' ? 'w-icon-sm' : 'w-icon-md'`
 
-### Mistake #2: "SVG needs attributes"
+### Mistake #2: "Using manual tokens for CSS components"
 
 **Agent wrote:**
 
 ```svelte
-<svg width="1rem">  // "SVG attributes need values!"
+const classes = $derived(size === 'sm' ? 'h-button-sm' : 'h-button-md'); // "Manual mapping!"
 ```
 
-**Why rejected:** CSS classes work on SVG, no exceptions
-**Correct:** `<svg class="w-icon-sm h-icon-sm">`
+**Why rejected:** Manual token mapping doesn't scale, AI agents fail
+**Correct:** Use recipe system - `const classes = $derived(buttonRecipe({ size }))`
 
 ### Mistake #3: "Just this once"
 
@@ -311,17 +426,25 @@ grep "bg-accent" dev-docs/2-areas/design/design-tokens.md
 
 **This is NOT guidance - this is ENFORCEMENT.**
 
+**For CSS Components (Button, Card, Badge, etc.):**
+
 - ❌ Writing literal values → Code will be REJECTED
-- ❌ Rationalizing "special cases" → REJECTED
-- ❌ "Matching" token values → Still REJECTED (must reference)
-- ✅ Using token utilities/references → APPROVED
+- ❌ Manual token mapping → REJECTED (not scalable)
+- ❌ "Matching" token values → Still REJECTED (must use recipe)
+- ✅ Using Recipe System (CVA) → APPROVED
 
-**NO exceptions. NO special cases. NO "but this time..."**
+**For SVG Components (Loading, Icon, OrgChart, etc.):**
 
-**Use tokens or don't commit. Period.**
+- ❌ Hardcoded values without documentation → REJECTED
+- ✅ Documented exception with SYOS-522 comment → APPROVED
+- ✅ Explicit HTML attributes or inline styles → APPROVED
+
+**CSS Components: Use recipes or don't commit.**
+**SVG Components: Document exception or don't commit.**
 
 ---
 
-**Last Updated**: 2025-11-22
+**Last Updated**: 2025-11-23
 **Purpose**: Automatic enforcement of design token usage in ALL Svelte files
 **Severity**: CRITICAL - Violations block commits
+**Updated**: Recipe System (SYOS-513) + SVG Exception (SYOS-522)

@@ -33,12 +33,12 @@
 	};
 
 	const mockAttendeeAvatars = [
-		{ name: 'John Doe', color: '#3b82f6' },
-		{ name: 'Jane Smith', color: '#10b981' },
-		{ name: 'Bob Johnson', color: '#f59e0b' },
-		{ name: 'Alice Brown', color: '#ef4444' },
-		{ name: 'Charlie Wilson', color: '#8b5cf6' },
-		{ name: 'Diana Davis', color: '#ec4899' }
+		{ name: 'John Doe', color: 'var(--color-accent-primary)' },
+		{ name: 'Jane Smith', color: 'var(--color-success-text)' },
+		{ name: 'Bob Johnson', color: 'var(--color-warning-text)' },
+		{ name: 'Alice Brown', color: 'var(--color-error-text)' },
+		{ name: 'Charlie Wilson', color: 'var(--color-code-function)' },
+		{ name: 'Diana Davis', color: 'var(--color-accent-primary)' }
 	];
 </script>
 

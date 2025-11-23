@@ -3,6 +3,7 @@
 	import type { WithElementRef } from 'bits-ui';
 	import type { Snippet } from 'svelte';
 	import type { ButtonVariant, ButtonSize } from '../types';
+	import { buttonRecipe } from '$lib/design-system/recipes';
 
 	type Props = WithElementRef<
 		{
@@ -41,33 +42,27 @@
 		console.warn('Button: ariaLabel required when iconOnly=true for accessibility');
 	}
 
-	// Base classes using design tokens
-	const baseClasses =
-		'font-body inline-flex items-center justify-center rounded-button transition-colors-token';
+	// Use recipe system for variant and size
+	// Note: When iconOnly=true, recipe still applies default size='md' padding,
+	// but iconOnly padding classes will override due to CSS specificity
+	const recipeClasses = $derived(buttonRecipe({ variant, size }));
 
-	// Variant-specific classes using design tokens
-	const variantClasses = {
-		primary: 'bg-accent-primary text-primary hover:bg-accent-hover disabled:opacity-50',
-		secondary:
-			'bg-elevated border border-base text-primary hover:border-accent-primary disabled:opacity-50',
-		outline:
-			'border border-base text-primary hover:bg-hover-solid disabled:opacity-50 disabled:hover:bg-elevated'
-	};
+	// Handle iconOnly: override padding when iconOnly is true
+	// Icon-only buttons use square padding instead of x/y padding
+	const iconOnlySizeClasses = $derived(
+		iconOnly
+			? {
+					sm: 'p-nav-item',
+					md: 'p-button-icon',
+					lg: 'p-button-icon'
+				}[size]
+			: ''
+	);
 
-	// Size-specific classes using design tokens (conditional based on iconOnly)
-	const sizeClasses = iconOnly
-		? {
-				sm: 'p-nav-item',
-				md: 'p-button-icon',
-				lg: 'p-button-icon'
-			}
-		: {
-				sm: 'px-nav-item py-nav-item gap-icon text-small',
-				md: 'px-button-x py-button-y gap-icon text-button',
-				lg: 'px-button-x py-button-y gap-icon text-body'
-			};
-
-	const buttonClasses = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
+	// Combine recipe classes with iconOnly size override and custom className
+	const buttonClasses = $derived(
+		`${recipeClasses} ${iconOnlySizeClasses} ${className}`.trim()
+	);
 </script>
 
 {#if href}

@@ -115,6 +115,7 @@
 | Account switching shows "GET method not allowed" (405), switch fails                          | Use POST request with CSRF token via useAuthSession composable, not window.location.href     | [auth-deployment.md#L1120](auth-deployment.md#L1120)    |
 | Modules loaded statically, hardcoded feature flag checks, no module discovery                | Use module registry system: create manifests, register modules, use getEnabledModules()      | [convex-integration.md#L4000](convex-integration.md#L4000)            |
 || Server 500 error "Module 'core' is already registered" during SSR or HMR updates            | Make registerModule() idempotent: skip silently if module already registered                  | [convex-integration.md#L4200](convex-integration.md#L4200)            |
+|| SVG icons render 10x too large (250px instead of 16px), CSS classes don't control size      | Use explicit style attributes with pixel values (exception to design token rule)             | [ui-patterns.md#L5100](ui-patterns.md#L5100)                          |
 
 ## 🟡 IMPORTANT Patterns (Common Issues)
 
@@ -183,6 +184,9 @@
 | Test instructions vague, missing specific values, file locations, or DevTools steps | Use "change X see Y change" format with exact values, file paths, line numbers, DevTools tab names | [ai-development.md#L250](ai-development.md#L250)            |
 | Command integrations not tested, MCP tool integrations break silently, regression testing missing after adding validation tools | Test command standalone + workflow integration + error handling + regressions + real-world scenarios | [ai-development.md#L300](ai-development.md#L300)            |
 | Don't know where to put story files, flat Storybook navigation, no title hierarchy pattern | Co-locate with component + hierarchical titles (Design System/Atoms vs Modules/ModuleName) | [ui-patterns.md#L4940](ui-patterns.md#L4940)                 |
+| Chromatic CLI doesn't read .env.local automatically, requires manual export or dotenv-cli | Create custom script that parses .env.local and sets env vars before running CLI (Vite-compatible) | [ci-cd.md#L2800](ci-cd.md#L2800)                            |
+| Storybook tests fail for dropdown menus - portal content not found in canvasElement | Check document.body for portal content, wait for portal render, use userEvent for interactions | [ui-patterns.md#L6600](ui-patterns.md#L6600)                 |
+| Storybook tests fail - expected full text but truncation shows partial text | Accept truncated text variants (startsWith, includes) when truncation logic exists | [ui-patterns.md#L6600](ui-patterns.md#L6600)                 |
 
 ## 🟢 REFERENCE Patterns (Best Practices)
 
@@ -191,6 +195,7 @@
 | Card design                 | Use generous padding                                        | [ui-patterns.md#L60](ui-patterns.md#L60)                 |
 | Admin pages cluttered, everything in one card, hard to scan | Single-column card layout with each section as its own card, consistent spacing | [ui-patterns.md#L4580](ui-patterns.md#L4580)                 |
 | Feature flag descriptions vague, don't explain impact | Write descriptions with action verbs, specific routes, user impact, behavior details | [ui-patterns.md#L4640](ui-patterns.md#L4640)                 |
+| Visual regression testing workflow - how to change UI/components | Change → Push → Review → Accept → Merge (Chromatic workflow) | [ci-cd.md#L2900](ci-cd.md#L2900)                            |
 | Header alignment            | Fixed height with tokens                                    | [ui-patterns.md#L120](ui-patterns.md#L120)               |
 | Edit mode toggle            | Separate view/edit states                                   | [ui-patterns.md#L170](ui-patterns.md#L170)               |
 | Card removal (Tinder-like)  | Queue-based removal                                         | [ui-patterns.md#L220](ui-patterns.md#L220)               |

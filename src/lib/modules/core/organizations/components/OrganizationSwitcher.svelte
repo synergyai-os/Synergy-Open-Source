@@ -250,6 +250,7 @@
 				class={`ml-auto icon-sm flex-shrink-0 text-sidebar-secondary transition-transform duration-200 ${
 					showLabels() ? 'group-hover:text-sidebar-primary' : ''
 				}`}
+				style="width: 16px; height: 16px;"
 				aria-hidden="true"
 				fill="none"
 				stroke="currentColor"
@@ -306,7 +307,7 @@
 							e.stopPropagation(); // Prevent parent menu from closing
 						}}
 					>
-						<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<svg class="icon-sm" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -334,7 +335,7 @@
 								}}
 							>
 								<div class="flex items-center gap-icon">
-									<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<svg class="icon-sm" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -354,7 +355,7 @@
 								}}
 							>
 								<div class="flex items-center gap-icon">
-									<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<svg class="icon-sm" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -374,7 +375,7 @@
 								}}
 							>
 								<div class="flex items-center gap-icon">
-									<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<svg class="icon-sm" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -413,6 +414,7 @@
 					{#if organization.organizationId === activeOrganizationId}
 						<svg
 							class="icon-sm flex-shrink-0 text-accent-primary"
+							style="width: 16px; height: 16px;"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -448,7 +450,7 @@
 								e.stopPropagation(); // Prevent parent menu from closing
 							}}
 						>
-							<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="icon-sm" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -476,7 +478,7 @@
 									}}
 								>
 									<div class="flex items-center gap-icon">
-										<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<svg class="icon-sm" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -496,7 +498,7 @@
 									}}
 								>
 									<div class="flex items-center gap-icon">
-										<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<svg class="icon-sm" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -517,7 +519,7 @@
 									}}
 								>
 									<div class="flex items-center gap-icon">
-										<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<svg class="icon-sm" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -570,7 +572,7 @@
 				onSelect={handleCreateWorkspace}
 			>
 				<div class="flex items-center gap-icon">
-					<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<svg class="icon-sm" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
 							stroke-linecap="round"
 							stroke-linejoin="round"
@@ -603,7 +605,7 @@
 										e.stopPropagation(); // Prevent parent menu from closing
 									}}
 								>
-									<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<svg class="icon-sm" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -631,7 +633,7 @@
 											}}
 										>
 											<div class="flex items-center gap-icon">
-												<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<svg class="icon-sm" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path
 														stroke-linecap="round"
 														stroke-linejoin="round"
@@ -651,7 +653,7 @@
 											}}
 										>
 											<div class="flex items-center gap-icon">
-												<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<svg class="icon-sm" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path
 														stroke-linecap="round"
 														stroke-linejoin="round"
@@ -671,7 +673,7 @@
 											}}
 										>
 											<div class="flex items-center gap-icon">
-												<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<svg class="icon-sm" style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 													<path
 														stroke-linecap="round"
 														stroke-linejoin="round"

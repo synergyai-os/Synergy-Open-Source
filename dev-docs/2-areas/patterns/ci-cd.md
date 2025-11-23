@@ -3373,4 +3373,151 @@ it('should handle timeout correctly', async () => {
 
 ---
 
+## #L2800: Chromatic CLI Environment Variable Handling [🟡 IMPORTANT]
+
+**Symptom**: Chromatic CLI doesn't read `.env.local` automatically (unlike Vite), requires manual `export` or `dotenv-cli` dependency  
+**Root Cause**: Chromatic CLI is a Node.js script, not a Vite process. Vite automatically loads `.env.local`, but Node.js scripts don't.  
+**Fix**:
+
+**Option 1: Custom Script (Recommended - Vite-compatible)**
+
+Create `scripts/run-chromatic.js` that reads `.env.local`:
+
+```javascript
+#!/usr/bin/env node
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
+import { spawnSync } from 'child_process';
+
+// Parse .env.local (same format Vite uses)
+function parseEnvFile(filePath) {
+	const env = {};
+	try {
+		const content = readFileSync(filePath, 'utf-8');
+		content.split('\n').forEach(line => {
+			const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+			if (match) {
+				const key = match[1];
+				let value = match[2] || '';
+				// Remove quotes if present
+				if (value.length > 0 && (value.startsWith('"') && value.endsWith('"') || value.startsWith("'") && value.endsWith("'"))) {
+					value = value.slice(1, -1);
+				}
+				env[key] = value;
+			}
+		});
+	} catch (error) {
+		// File doesn't exist - ignore
+	}
+	return env;
+}
+
+// Load .env.local
+const envFilePath = resolve(process.cwd(), '.env.local');
+const localEnv = parseEnvFile(envFilePath);
+
+// Set environment variables
+for (const key in localEnv) {
+	if (Object.prototype.hasOwnProperty.call(localEnv, key)) {
+		process.env[key] = localEnv[key];
+	}
+}
+
+// Execute Chromatic CLI
+const result = spawnSync('npx', ['chromatic', ...process.argv.slice(2)], {
+	stdio: 'inherit',
+	env: process.env
+});
+
+process.exit(result.status || 0);
+```
+
+**Update `package.json`**:
+
+```json
+{
+	"scripts": {
+		"chromatic": "node scripts/run-chromatic.js"
+	}
+}
+```
+
+**Usage**: `npm run chromatic` (automatically reads `CHROMATIC_PROJECT_TOKEN` from `.env.local`)
+
+**Why this approach**:
+
+- ✅ Consistent with Vite's `.env.local` handling (no new dependencies)
+- ✅ No `dotenv-cli` required (keeps dependencies minimal)
+- ✅ Works for any Node.js CLI tool (reusable pattern)
+- ✅ Same environment variable format as Vite
+
+**Option 2: Manual Export (Quick Test)**
+
+```bash
+export CHROMATIC_PROJECT_TOKEN="chpt_..."
+npm run chromatic
+```
+
+**Option 3: dotenv-cli (Alternative)**
+
+```bash
+npm install --save-dev dotenv-cli
+# package.json
+"chromatic": "dotenv -e .env.local -- npx chromatic"
+```
+
+**Apply when**:
+
+- Using Chromatic CLI locally
+- Want consistent `.env.local` handling (same as Vite)
+- Don't want to add `dotenv-cli` dependency
+- Need reusable pattern for other Node.js CLI tools
+
+**Related**: #L110 (Local CI testing), `dev-docs/2-areas/development/chromatic-workflow.md`
+
+---
+
+## #L2900: Visual Regression Testing Workflow [🟢 REFERENCE]
+
+**Context**: Chromatic visual regression testing workflow for UI/component changes  
+**Pattern**: Change → Push → Review → Accept → Merge
+
+**Workflow Steps**:
+
+1. **Make UI Changes** → Edit component files, use design tokens
+2. **Test Locally (Optional)** → `npm run storybook` (visual check), `npm run chromatic` (see diffs)
+3. **Push to PR** → GitHub Actions runs Chromatic automatically
+4. **Review Visual Diffs** → Click Chromatic link in PR comment, review side-by-side
+5. **Accept Changes** → Accept expected changes, reject regressions
+6. **Merge PR** → New baseline established, future builds compare against it
+
+**Key Principles**:
+
+- ✅ **Accept expected changes** - If you intended the visual change, accept it
+- ✅ **Review carefully** - Look at each diff before accepting
+- ✅ **Test locally first** - Run `npm run chromatic` before pushing (optional)
+- ✅ **Use design tokens** - Changes should cascade from token updates
+
+**Common Scenarios**:
+
+- **Intentional UI Change**: Update Button padding → Accept change → New baseline
+- **Accidental Regression**: Button color changed unintentionally → Reject → Fix code → Push again
+- **Multiple Components Changed**: Update design token → Review all diffs → Accept all if expected
+
+**Configuration**:
+
+- `chromatic.config.json` - Project ID, build settings
+- `.github/workflows/chromatic.yml` - CI integration
+- `scripts/run-chromatic.js` - Local testing script
+
+**Apply when**:
+
+- Setting up Chromatic visual regression testing
+- Making UI/component changes
+- Need to catch visual regressions before merge
+
+**Related**: `dev-docs/2-areas/development/chromatic-workflow.md`, #L2800 (Chromatic CLI env vars)
+
+---
+
 ## Format Version: 1.0

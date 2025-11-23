@@ -202,11 +202,14 @@ function transformTailwindUtility(token) {
 		utilityName = `shadow-${shadowName}`;
 		cssProperty = 'box-shadow';
 	}
-	// Size utilities
+	// Size utilities - generate width utilities (w- prefix)
+	// For size tokens, generate both width and height utilities
+	// Note: This function returns one utility per call, so we generate width utilities
+	// Height utilities can be generated separately if needed
 	else if (path.startsWith('size-')) {
 		const sizeName = path.replace('size-', '');
-		utilityName = `size-${sizeName}`;
-		cssProperty = 'width: var(--size-...); height: var(--size-...);';
+		utilityName = `w-${sizeName}`;
+		cssProperty = 'width';
 	}
 	// Opacity utilities
 	else if (path.startsWith('opacity-')) {

@@ -484,7 +484,8 @@
 	let quickCreateInitialType = $state<'note' | 'flashcard' | 'highlight' | null>(null);
 	let isMobile = $state(false);
 	let sidebarCollapsed = $state(false);
-	let sidebarWidth = $state(286);
+	// Initial state will be set from token in browser initialization below
+	let sidebarWidth = $state(0); // Will be set from token in browser block
 
 	// Get current view from page URL
 	const getCurrentView = () => {
@@ -510,10 +511,36 @@
 			isMobile = window.innerWidth < getBreakpointMd();
 		});
 
-		// Load sidebar width from localStorage
-		const savedSidebarWidth = parseInt(localStorage.getItem('sidebarWidth') || '286');
-		// Ensure width is at least the minimum (192px) to prevent sidebar from being invisible
-		sidebarWidth = Math.max(192, savedSidebarWidth);
+		// Technical constants (not design values): rem-to-px conversion factor
+		const REM_TO_PX_FACTOR = 16; // Standard browser rem base (not a design token)
+		// Fallback values matching token defaults (used only if token read fails)
+		const SIDEBAR_EXPANDED_FALLBACK_PX = 286; // Matches --size-sidebar-expanded token
+		const SIDEBAR_COLLAPSED_FALLBACK_PX = 192; // Matches --size-sidebar-collapsed token
+
+		// Helper to read sidebar width token and convert rem to pixels
+		const getSidebarWidthToken = (tokenName: string, fallbackPx: number): number => {
+			const tokenValue = getComputedStyle(document.documentElement)
+				.getPropertyValue(tokenName)
+				.trim();
+			if (!tokenValue) return fallbackPx;
+			const remValue = parseFloat(tokenValue);
+			return remValue * REM_TO_PX_FACTOR; // Convert rem to pixels using standard browser rem base
+		};
+
+		// Load sidebar width from localStorage, fallback to expanded token (286px)
+		const expandedWidth = getSidebarWidthToken(
+			'--size-sidebar-expanded',
+			SIDEBAR_EXPANDED_FALLBACK_PX
+		);
+		const collapsedWidth = getSidebarWidthToken(
+			'--size-sidebar-collapsed',
+			SIDEBAR_COLLAPSED_FALLBACK_PX
+		);
+		const savedSidebarWidth = parseInt(
+			localStorage.getItem('sidebarWidth') || expandedWidth.toString()
+		);
+		// Ensure width is at least the minimum (collapsed width) to prevent sidebar from being invisible
+		sidebarWidth = Math.max(collapsedWidth, savedSidebarWidth);
 	}
 
 	function handleSidebarWidthChange(width: number) {

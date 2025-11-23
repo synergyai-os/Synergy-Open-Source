@@ -100,9 +100,9 @@ Once I have a ticket ID, I'll proceed with implementation.
 
 1. **Branch Verification** ⭐ **CRITICAL** (see above)
 2. **Check Patterns First** ⭐ **CRITICAL**
-3. **Design Token Validation** ⭐ **MANDATORY** (for UI/component work - BEFORE writing code)
-4. **Validate Svelte Code (MCP)** ⭐ **MANDATORY** (for `.svelte` files only)
-5. **Check Reference Code** (if available from `/start`)
+3. **Design Token & Recipe System Patterns** ⭐ **MANDATORY** (for UI/component work - BEFORE writing code)
+4. **Check Reference Code** (if available from `/start`)
+5. **Validate Svelte Code (MCP)** ⭐ **MANDATORY** (for `.svelte` files only)
 6. **Use Context7** (if <95% confident)
 7. **Implement Solution**
 8. **IMMEDIATE ESLint Validation** ⭐ **MANDATORY** (run `npx eslint [file]` RIGHT after writing code, READ the output)
@@ -224,11 +224,174 @@ Examples:
 
 ---
 
-## 2. Check Reference Code (If Available)
+## 2. Design Token & Recipe System Patterns ⭐ **MANDATORY** (Before Writing UI Code)
+
+**Purpose**: Ensure component sizing/styling uses the correct approach (Recipe System or manual tokens).
+
+**When**: BEFORE writing any UI/component code that involves sizing, spacing, or colors.
+
+---
+
+### 🎯 **Decision Tree: Recipe vs Manual Tokens**
+
+**Ask yourself:**
+
+> "Is this a CSS-based component (Button, Card, Badge) or SVG-based component (Loading, Icon, D3 visualization)?"
+
+**Decision:**
+
+```
+├─ CSS Component (Button, Card, Badge, Input, etc.)
+│  └─ ✅ USE RECIPE SYSTEM (CVA)
+│     - Create recipe in `src/lib/design-system/recipes/[component].recipe.ts`
+│     - Use CVA for type-safe variant + size props
+│     - Recipe returns CSS class names
+│
+└─ SVG Component (Loading, Icon, OrgChart, D3 visualizations)
+   └─ ✅ ACCEPTABLE EXCEPTION - Manual Token Approach
+      - Use explicit width/height HTML attributes or inline styles
+      - CSS sizing unreliable for SVG in some browsers
+      - Document exception with comment (see SYOS-522)
+```
+
+---
+
+### ✅ **Pattern A: Recipe System (CSS Components)** ⭐ **PRIMARY APPROACH**
+
+**When**: Button, Badge, Card, Input, Alert, etc. (CSS-based components)
+
+**Why**: Type-safe, foolproof, AI-friendly, prevents hardcoded values
+
+**Implementation Steps:**
+
+1. **Check if recipe exists**: `src/lib/design-system/recipes/[component].recipe.ts`
+
+2. **If recipe exists** → Use it:
+
+   ```svelte
+   <script lang="ts">
+     import { buttonRecipe } from '$lib/design-system/recipes/button.recipe';
+     
+     type Props = {
+       variant?: 'solid' | 'outline' | 'ghost';
+       size?: 'sm' | 'md' | 'lg';
+     };
+     
+     let { variant = 'solid', size = 'md' }: Props = $props();
+     
+     const classes = $derived(buttonRecipe({ variant, size }));
+   </script>
+   
+   <button class={classes}>
+     <slot />
+   </button>
+   ```
+
+3. **If recipe doesn't exist** → Create it:
+
+   ```typescript
+   // src/lib/design-system/recipes/button.recipe.ts
+   import { cva, type VariantProps } from 'class-variance-authority';
+   
+   export const buttonRecipe = cva('px-button-x py-button-y rounded-button', {
+     variants: {
+       variant: {
+         solid: 'bg-accent-primary text-primary-foreground',
+         outline: 'border border-base bg-transparent',
+         ghost: 'bg-transparent hover:bg-accent-muted'
+       },
+       size: {
+         sm: 'text-sm h-button-sm',
+         md: 'text-base h-button-md',
+         lg: 'text-lg h-button-lg'
+       }
+     },
+     defaultVariants: {
+       variant: 'solid',
+       size: 'md'
+     }
+   });
+   
+   export type ButtonVariantProps = VariantProps<typeof buttonRecipe>;
+   ```
+
+4. **Validate recipe**: Run `npm run recipes:validate` (checks all classes exist in design system)
+
+---
+
+### ✅ **Pattern B: Manual Tokens (SVG Components)** ⭐ **EXCEPTION ONLY**
+
+**When**: Loading, Icon, OrgChart, D3 visualizations (SVG-based components)
+
+**Why**: CSS `width`/`height` unreliable for SVG in some browsers
+
+**Implementation Steps:**
+
+1. **Add exception comment** (top of `<script>`):
+
+   ```svelte
+   <script lang="ts">
+   	/**
+   	 * DESIGN SYSTEM EXCEPTION: SVG/D3 Visualization (SYOS-522)
+   	 *
+   	 * This component uses SVG with hardcoded pixel dimensions because:
+   	 * 1. CSS-based sizing (recipes/utility classes) unreliable for SVG in some browsers
+   	 * 2. Requires explicit HTML width/height attributes
+   	 * 3. Token mapping via JavaScript computed styles (where dynamic needed)
+   	 *
+   	 * Approved exception - see dev-docs/2-areas/design/design-tokens.md
+   	 */
+   </script>
+   ```
+
+2. **Use explicit dimensions**:
+
+   ```svelte
+   <svg width="16" height="16">
+     <!-- SVG content -->
+   </svg>
+   
+   <!-- OR for dynamic sizing -->
+   <svg width="{size === 'sm' ? '12px' : '16px'}" height="{size === 'sm' ? '12px' : '16px'}">
+     <!-- SVG content -->
+   </svg>
+   ```
+
+3. **Document exception**: Ensures other developers understand why hardcoded values are acceptable here
+
+---
+
+### ⚠️ **Common Mistakes**
+
+1. ❌ **Using recipe for SVG components** → Won't work (CSS classes unreliable for SVG)
+2. ❌ **Using manual tokens for CSS components** → Not scalable (AI agents fail)
+3. ❌ **Hardcoding without exception comment** → Violates design system
+4. ❌ **Creating recipe but not validating** → Might reference non-existent classes
+
+---
+
+### 📋 **Pre-Implementation Checklist**
+
+**Before writing UI/component code:**
+
+- [ ] Determined component type (CSS vs SVG)
+- [ ] Chose correct approach (Recipe vs Manual Token)
+- [ ] If Recipe: Checked if recipe exists, created if needed
+- [ ] If SVG: Added exception comment with SYOS-522 reference
+- [ ] Ready to implement with correct pattern
+
+**Reference Documentation:**
+- Recipe System: `dev-docs/2-areas/patterns/recipe-system.md`
+- SVG Exception: `dev-docs/2-areas/design/design-tokens.md` (Acceptable Exceptions)
+- Design Tokens: `dev-docs/2-areas/design/design-tokens.md`
+
+---
+
+## 3. Check Reference Code (If Available)
 
 **Purpose**: Use working code examples from reference projects (loaded during `/start`).
 
-**When**: After pattern check, if reference code was loaded during `/start` session.
+**When**: After pattern check and recipe/token decision, if reference code was loaded during `/start` session.
 
 **Workflow**:
 
@@ -269,7 +432,7 @@ Examples:
 
 ---
 
-## 3. Validate Svelte Code (MCP) - For .svelte Files Only ⭐ **MANDATORY**
+## 4. Validate Svelte Code (MCP) - For .svelte Files Only ⭐ **MANDATORY**
 
 **Purpose**: Ensure Svelte code follows latest Svelte 5 best practices automatically.
 
@@ -329,11 +492,11 @@ Examples:
 
 ---
 
-## 4. Use Context7 (If <95% Confident)
+## 5. Use Context7 (If <95% Confident)
 
 **Purpose**: Get up-to-date library documentation when confidence is low.
 
-**When**: After pattern check, Svelte validation (if applicable), and reference code check, if still <95% confident about approach.
+**When**: After pattern check, recipe/token decision, Svelte validation (if applicable), and reference code check, if still <95% confident about approach.
 
 **Workflow**:
 
@@ -376,7 +539,7 @@ Examples:
 
 ---
 
-## 5. Implement Solution
+## 6. Implement Solution
 
 **Purpose**: Write code following our standards and patterns.
 
@@ -422,7 +585,7 @@ Examples:
 
 ---
 
-## 5.4. Recipe Validation (If Creating/Modifying Recipes)
+## 6.4. Recipe Validation (If Creating/Modifying Recipes)
 
 **Purpose**: Validate CVA recipe classes exist in design system utilities
 
@@ -465,7 +628,7 @@ Examples:
 
 ---
 
-## 5.5. IMMEDIATE ESLint Validation (MANDATORY - Layer 2 Enforcement)
+## 6.5. IMMEDIATE ESLint Validation (MANDATORY - Layer 2 Enforcement)
 
 **⚠️ CRITICAL: Run ESLint validation IMMEDIATELY after implementation, BEFORE showing user**
 

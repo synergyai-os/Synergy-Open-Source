@@ -595,6 +595,19 @@
 				"$description": "gray-500 - same in both modes"
 			}
 		},
+		"legacy": {
+			"blue": {
+				"$value": "oklch(55.4% 0.218 251.813)",
+				"$type": "color",
+				"$description": "Legacy blue color - DEPRECATED",
+				"$deprecated": {
+					"since": "1.2.0",
+					"removed": "2.0.0",
+					"replacement": "{color.brand.primary}",
+					"reason": "Replaced by palette architecture"
+				}
+			}
+		},
 		"bg": {
 			"base": {
 				"$value": "oklch(20% 0.002 247.839)",
@@ -866,6 +879,18 @@
 					"$description": "green-700 - Easy hover"
 				}
 			}
+		},
+		"orgChart": {
+			"label": {
+				"text": {
+					"$value": "oklch(98.5% 0.002 247.839)",
+					"$description": "white - high contrast text for labels over colored circles"
+				},
+				"stroke": {
+					"$value": "oklch(20% 0.002 247.839)",
+					"$description": "gray-900 - text stroke/outline for readability on light circles"
+				}
+			}
 		}
 	},
 	"typography": {
@@ -1090,6 +1115,14 @@
 			"$value": "11.25rem",
 			"$description": "180px - min-w-dropdown equivalent - minimum width for dropdown menus"
 		},
+		"menuwidth": {
+			"$value": "12.5rem",
+			"$description": "200px - width for AI content detector menu and similar popover menus"
+		},
+		"menuheight": {
+			"$value": "6.25rem",
+			"$description": "100px - height for AI content detector menu and similar popover menus"
+		},
 		"maxWidthcontainer": {
 			"$value": "72rem",
 			"$description": "1152px - max-w-container equivalent - max-w-6xl"
@@ -1137,6 +1170,20 @@
 		"tabheight": {
 			"$value": "2.5rem",
 			"$description": "40px - tab container height"
+		},
+		"sidebar": {
+			"default": {
+				"$value": "16rem",
+				"$description": "256px - default sidebar width (desktop only, >= 768px). Mobile uses full viewport overlay."
+			},
+			"expanded": {
+				"$value": "17.875rem",
+				"$description": "286px - expanded sidebar width (desktop only, >= 768px)"
+			},
+			"collapsed": {
+				"$value": "12rem",
+				"$description": "192px - collapsed sidebar width (desktop only, >= 768px). Mobile uses 0px (hidden)."
+			}
 		},
 		"widthsettingssidebar": {
 			"$value": "17.875rem",

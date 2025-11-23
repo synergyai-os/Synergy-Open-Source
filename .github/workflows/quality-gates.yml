@@ -56,6 +56,10 @@ jobs:
         run: npm run tokens:report -- --ci
         continue-on-error: true # Non-blocking initially (SYOS-436)
 
+      - name: Token Audit (Orphaned Tokens)
+        run: npm run tokens:audit -- --ci
+        continue-on-error: true # Non-blocking initially (SYOS-538)
+
       - name: DTCG Format Validation
         run: npm run tokens:validate-dtcg
         continue-on-error: true # Non-blocking initially (SYOS-434)

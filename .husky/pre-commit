@@ -92,6 +92,17 @@ npm run tokens:validate-semantic || {
 	exit 1
 }
 
+# Check for deprecated token usage (SYOS-538)
+echo ""
+echo "🔍 Checking for deprecated token usage..."
+node scripts/validate-tokens.js --fail-on-deprecated || {
+	echo ""
+	echo "❌ Deprecated tokens detected in codebase!"
+	echo "Migrate to replacement tokens before committing."
+	echo "See: dev-docs/master-docs/design-system.md Section 12.4"
+	exit 1
+}
+
 # Check if generated CSS files were manually edited (still have unstaged changes after staging)
 echo ""
 echo "🔍 Checking for manual edits to generated files..."

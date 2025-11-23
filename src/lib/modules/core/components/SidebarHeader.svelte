@@ -144,6 +144,7 @@
 			>
 				<svg
 					class="h-4 w-4"
+					style="width: 16px; height: 16px;"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -165,6 +166,7 @@
 			>
 				<svg
 					class="h-4 w-4"
+					style="width: 16px; height: 16px;"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"

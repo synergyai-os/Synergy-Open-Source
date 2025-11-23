@@ -26,7 +26,43 @@
 	// Breadcrumb calculations
 	const breadcrumbCount = $derived(Math.max(0, navigationStack.depth - 1));
 	const hasBreadcrumbs = $derived(breadcrumbCount > 0);
-	const breadcrumbWidth = 48; // px - matches --spacing-panel-breadcrumb-width
+	// Read breadcrumb width from design token (48px = 3rem)
+	// Technical constant (not design value): rem-to-px conversion factor
+	const REM_TO_PX_FACTOR = 16; // Standard browser rem base (not a design token)
+	// Initialize breadcrumb width from token (read once when component mounts)
+	let breadcrumbWidthPx = $state(0);
+	$effect(() => {
+		if (!browser) return;
+		const tokenValue = getComputedStyle(document.documentElement)
+			.getPropertyValue('--spacing-panel-breadcrumb-width')
+			.trim();
+		if (tokenValue) {
+			// Convert rem to pixels using standard browser rem base
+			const remValue = parseFloat(tokenValue);
+			breadcrumbWidthPx = remValue * REM_TO_PX_FACTOR;
+		} else {
+			// Fallback: read from base spacing token (spacing.12 = 3rem = 48px)
+			const spacing12Value = getComputedStyle(document.documentElement)
+				.getPropertyValue('--spacing-12')
+				.trim();
+			if (spacing12Value) {
+				const remValue = parseFloat(spacing12Value);
+				breadcrumbWidthPx = remValue * REM_TO_PX_FACTOR;
+			}
+		}
+	});
+	// Use token value, or calculate from spacing-12 token as fallback
+	const breadcrumbWidth = $derived(
+		breadcrumbWidthPx ||
+			(browser
+				? (() => {
+						const spacing12 = getComputedStyle(document.documentElement)
+							.getPropertyValue('--spacing-12')
+							.trim();
+						return spacing12 ? parseFloat(spacing12) * REM_TO_PX_FACTOR : 0;
+					})()
+				: 0)
+	);
 	const totalBreadcrumbWidth = $derived(breadcrumbCount * breadcrumbWidth);
 
 	// Track when panel opens to prevent immediate close from same click event

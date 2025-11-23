@@ -37,6 +37,9 @@
 	// Convex client setup
 	const convexClient = browser ? useConvexClient() : null;
 
+	// Percentage multiplier for chart height calculations (not a pixel value)
+	const PERCENTAGE_MULTIPLIER = 100;
+
 	// Form state - initialize reactively from flag
 	let formDescription = $state('');
 	let formEnabled = $state(false);
@@ -543,8 +546,8 @@
 									{@const maxValue = Math.max(
 										...mockAnalytics.trend.map((d) => d.enabled + d.disabled)
 									)}
-									{@const enabledHeight = (day.enabled / maxValue) * 100}
-									{@const disabledHeight = (day.disabled / maxValue) * 100}
+									{@const enabledHeight = (day.enabled / maxValue) * PERCENTAGE_MULTIPLIER}
+									{@const disabledHeight = (day.disabled / maxValue) * PERCENTAGE_MULTIPLIER}
 									<div class="flex flex-1 flex-col items-center gap-chart-bar">
 										<div class="flex h-chart-container w-full items-end gap-chip">
 											<div

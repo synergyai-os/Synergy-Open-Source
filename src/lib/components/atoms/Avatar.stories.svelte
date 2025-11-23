@@ -45,7 +45,7 @@
 	{/snippet}
 </Story>
 
-<Story name="Custom Color" args={{ initials: 'JD', size: 'md', color: '#3b82f6' }}>
+<Story name="Custom Color" args={{ initials: 'JD', size: 'md', color: 'var(--color-accent-primary)' }}>
 	{#snippet template(args)}
 		<Avatar initials={args.initials} size={args.size} color={args.color} />
 	{/snippet}

@@ -18,8 +18,10 @@ const config: StorybookConfig = {
 		'!../src/lib/modules/meetings/components/SecretaryConfirmationDialog.stories.svelte'
 	],
 	addons: [
-		'@storybook/addon-svelte-csf',
-		{
+        '@storybook/addon-svelte-csf',
+        // Note: @storybook/addon-essentials and @storybook/addon-a11y not available for Storybook 10.0.8 yet
+        // Will add back when packages are available or use alternative approach
+        {
 			name: '@storybook/addon-docs',
 			options: {
 				mdxPluginOptions: {
@@ -28,10 +30,9 @@ const config: StorybookConfig = {
 					}
 				}
 			}
-		}
-		// Note: @storybook/addon-essentials and @storybook/addon-a11y not available for Storybook 10.0.8 yet
-		// Will add back when packages are available or use alternative approach
-	],
+		},
+        '@chromatic-com/storybook'
+    ],
 	framework: {
 		name: '@storybook/sveltekit',
 		options: {}

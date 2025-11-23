@@ -20,7 +20,12 @@
 - Loading (SVG spinner)
 - Icon (SVG icons)
 
-**Why incompatible**: CVA recipes return CSS class names. SVG elements ignore CSS `width`/`height` properties set via classes due to browser limitations. SVG requires explicit HTML attributes or inline `style` for sizing.
+**Why incompatible**: 
+- CVA recipes return CSS class names (strings like `'icon-sm'`)
+- SVG elements ignore CSS `width`/`height` properties set via classes AND CSS custom properties
+- SVG requires explicit pixel values in HTML attributes or inline `style` attribute
+- Recipes cannot generate HTML attributes or inline styles with pixel values
+- See pattern #L5100 for complete SVG sizing documentation
 
 ---
 
@@ -126,17 +131,23 @@ export const loadingRecipe = cva({
 **Correct** (Manual approach for SVG):
 ```svelte
 <script>
+  // ⚠️ EXCEPTION: Hardcoded pixel values allowed for SVG sizing
+  // CSS custom properties don't work reliably for SVG dimensions
   const sizeStyle = $derived(
-    size === 'sm' ? 'width: var(--size-icon-sm); height: var(--size-icon-sm);'
-    : size === 'lg' ? 'width: var(--size-icon-lg); height: var(--size-icon-lg);'
-    : 'width: var(--size-icon-md); height: var(--size-icon-md);'
+    size === 'sm' ? 'width: 16px; height: 16px;'  // icon-sm
+    : size === 'lg' ? 'width: 32px; height: 32px;'  // icon-xl
+    : 'width: 24px; height: 24px;'  // icon-md (default)
   );
 </script>
 
 <svg class="animate-spin text-accent-primary" style={sizeStyle}>
 ```
 
-**Why**: Browsers ignore CSS `width`/`height` on SVG. SVG needs explicit dimensions via `style` attribute or HTML attributes.
+**Why**: 
+- Browsers ignore CSS `width`/`height` on SVG elements (both classes AND CSS custom properties)
+- SVG requires explicit pixel values in `style` attribute or HTML attributes
+- **Exception to design token rule**: Hardcoded pixel values in SVG `style` attributes are explicitly allowed
+- See pattern #L5100 for complete SVG sizing documentation
 
 ---
 
@@ -185,6 +196,9 @@ export const buttonRecipe = cva({
    *
    * Note: Uses manual style mapping for SVG sizing due to browser CSS limitations.
    * CVA recipe system doesn't work reliably for SVG elements.
+   * 
+   * ⚠️ EXCEPTION: Hardcoded pixel values allowed for SVG sizing (exception to design token rule).
+   * CSS custom properties (var(--size-icon-sm)) also don't work reliably for SVG dimensions.
    */
   interface Props {
     size?: 'sm' | 'md' | 'lg';
@@ -192,11 +206,12 @@ export const buttonRecipe = cva({
   
   let { size = 'md' }: Props = $props();
   
-  // Map size to CSS custom properties for SVG dimensions
+  // Map size to pixel values (matches design tokens but hardcoded for SVG)
+  // Size mapping: icon-xs (12px), icon-sm (16px), icon-md (20px), icon-lg (24px), icon-xl (32px)
   const sizeStyle = $derived(
-    size === 'sm' ? 'width: var(--size-icon-sm); height: var(--size-icon-sm);'
-    : size === 'lg' ? 'width: var(--size-icon-lg); height: var(--size-icon-lg);'
-    : 'width: var(--size-icon-md); height: var(--size-icon-md);'
+    size === 'sm' ? 'width: 16px; height: 16px;'  // icon-sm
+    : size === 'lg' ? 'width: 32px; height: 32px;'  // icon-xl
+    : 'width: 24px; height: 24px;'  // icon-md (default)
   );
 </script>
 
@@ -206,11 +221,20 @@ export const buttonRecipe = cva({
 ```
 
 **Why this works**:
-- ✅ Uses design tokens via CSS custom properties
-- ✅ ESLint clean (no hardcoded values)
-- ✅ Browser gets explicit dimensions via `style` attribute
-- ✅ Cross-browser compatible
-- ✅ Industry standard (Chakra UI, Material UI use similar pattern)
+- ✅ Browser gets explicit pixel dimensions via `style` attribute (required for SVG)
+- ✅ Cross-browser compatible (all browsers respect inline styles)
+- ✅ Industry standard (Material UI, Heroicons, Lucide Icons all use explicit pixel values)
+- ⚠️ **Exception to design token rule**: Hardcoded pixel values in SVG `style` attributes are explicitly allowed
+- ❌ CSS custom properties (`var(--size-icon-sm)`) don't work reliably for SVG dimensions
+
+**Size Mapping** (matches design tokens):
+- `icon-xs` → `12px`
+- `icon-sm` → `16px` (default for icons)
+- `icon-md` → `20px`
+- `icon-lg` → `24px`
+- `icon-xl` → `32px`
+
+**Related**: See pattern #L5100 (SVG Sizing Requires Explicit Dimensions) for complete documentation
 
 ---
 
@@ -260,6 +284,7 @@ npm run recipes:validate
 - **Design Tokens** (`design-tokens.md`) - Token system recipes reference
 - **Svelte Reactivity** (`svelte-reactivity.md`) - `$derived` usage with recipes
 - **Component Architecture** (`ui-patterns.md`) - Component variant patterns
+- **SVG Sizing** (`ui-patterns.md#L5100`) - SVG sizing pattern with explicit dimensions (exception to design token rule)
 
 ---
 

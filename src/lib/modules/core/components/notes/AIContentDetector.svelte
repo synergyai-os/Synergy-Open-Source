@@ -13,17 +13,36 @@
 	let { visible = false, position = { x: 0, y: 0 }, onConfirm, onDismiss }: Props = $props();
 
 	// Calculate position to keep menu in viewport
-	const menuWidth = 200;
-	const menuHeight = 100;
+	// Read menu dimensions from design tokens
+	const menuWidth = $derived(() => {
+		if (typeof window === 'undefined') {
+			// eslint-disable-next-line synergyos/no-hardcoded-design-values
+			return 200; // SSR fallback - token not available during SSR
+		}
+		const root = document.documentElement;
+		const width = getComputedStyle(root).getPropertyValue('--size-menuwidth').trim();
+		// eslint-disable-next-line synergyos/no-hardcoded-design-values
+		return width ? parseFloat(width) : 200; // Fallback if token not found (should not happen)
+	});
+	const menuHeight = $derived(() => {
+		if (typeof window === 'undefined') {
+			// eslint-disable-next-line synergyos/no-hardcoded-design-values
+			return 100; // SSR fallback - token not available during SSR
+		}
+		const root = document.documentElement;
+		const height = getComputedStyle(root).getPropertyValue('--size-menuheight').trim();
+		// eslint-disable-next-line synergyos/no-hardcoded-design-values
+		return height ? parseFloat(height) : 100; // Fallback if token not found (should not happen)
+	});
 	const adjustedX = $derived(() => {
 		if (!position) return 0;
-		const maxX = window.innerWidth - menuWidth - 20;
+		const maxX = window.innerWidth - menuWidth() - 20;
 		return Math.min(position.x, maxX);
 	});
 
 	const adjustedY = $derived(() => {
 		if (!position) return 0;
-		const maxY = window.innerHeight - menuHeight - 20;
+		const maxY = window.innerHeight - menuHeight() - 20;
 		return Math.min(position.y, maxY);
 	});
 
@@ -60,7 +79,7 @@
 	<div
 		data-ai-detector-menu
 		class="border-divider fixed z-50 rounded-button border bg-surface px-section py-section shadow-card"
-		style="left: {adjustedX()}px; top: {adjustedY()}px; width: {menuWidth}px;"
+		style="left: {adjustedX()}px; top: {adjustedY()}px; width: {menuWidth()}px;"
 		transition:fade={{ duration: 150 }}
 	>
 		<p class="text-surface-secondary mb-content-section text-small">

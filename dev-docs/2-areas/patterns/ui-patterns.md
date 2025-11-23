@@ -6496,4 +6496,151 @@ config.resolve.alias = {
 
 ---
 
-**Last Updated**: 2025-11-22
+## #L5100: SVG Sizing Requires Explicit Dimensions [🔴 CRITICAL]
+
+**Symptom**: SVG icons render 10x too large (250-300px instead of 16px), CSS classes (`icon-sm`, `h-4 w-4`) don't control size  
+**Root Cause**: SVG elements don't reliably respect CSS `width`/`height` properties from classes. Browsers ignore CSS sizing on SVG elements without explicit HTML attributes in some contexts.  
+**Fix**:
+
+```svelte
+<!-- ❌ WRONG: CSS classes alone don't work reliably for SVG -->
+<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <path ... />
+</svg>
+
+<!-- ✅ CORRECT: Explicit style attribute with pixel values -->
+<svg 
+  class="icon-sm" 
+  style="width: 16px; height: 16px;"
+  fill="none" 
+  stroke="currentColor" 
+  viewBox="0 0 24 24"
+>
+  <path ... />
+</svg>
+```
+
+**Exception to Design Token Rule**: Hardcoded pixel values in SVG `style` attributes are **explicitly allowed** as an exception to the design token enforcement rule. This is necessary because:
+
+1. SVG HTML attributes cannot use CSS custom properties directly
+2. CSS classes don't reliably control SVG dimensions across browsers
+3. Explicit dimensions are the industry standard (Material UI, Heroicons, Lucide Icons all use this approach)
+
+**Recipe System Limitation**: CVA (Class Variance Authority) recipes **cannot** be used for SVG sizing because:
+- Recipes return CSS class names (strings like `'icon-sm'`)
+- SVG requires explicit HTML attributes or style attributes with pixel values
+- Recipes cannot generate HTML attributes or inline styles
+
+**Size Mapping** (matches design tokens):
+- `icon-xs` → `12px` (`--size-icon-xs`)
+- `icon-sm` → `16px` (`--size-icon-sm`) - **default for icons**
+- `icon-md` → `20px` (`--size-icon-md`)
+- `icon-lg` → `24px` (`--size-icon-lg`)
+- `icon-xl` → `32px` (`--size-icon-xl`)
+
+**Apply when**:
+- Any SVG element that needs reliable sizing
+- SVG icons in navigation, buttons, headers
+- SVG spinners, loading indicators
+- Any SVG that uses CSS classes for sizing
+
+**Don't apply when**:
+- SVG is used as background image (CSS handles sizing)
+- SVG is in `<img>` tag (HTML attributes work)
+- SVG uses `width`/`height` HTML attributes directly (alternative approach)
+
+**Related**: SYOS-509 (Loading spinner sizing), SYOS-508 (Design system SVG audit), #L780 (Design token usage)
+
+---
+
+## #L6600: Storybook Test Fixes - Dropdown Portals and Text Truncation [🟡 IMPORTANT]
+
+**Symptom**: Storybook tests fail because dropdown menu content is rendered in a portal (outside `canvasElement`), or text truncation logic causes expected text to be partially visible  
+**Root Cause**: 
+- Dropdown menus (Bits UI `DropdownMenu.Portal`) render content in `document.body`, not within the component's DOM tree
+- Text truncation logic may show partial text (e.g., "Engineering" → "Eng...") based on available space
+
+**Fix Pattern 1: Dropdown Portal Content**
+
+```svelte
+<!-- ❌ WRONG: Checking canvasElement for portal content -->
+<Story
+	name="Syncing"
+	play={async ({ canvasElement }) => {
+		const syncItem = canvasElement.querySelector('[textValue="Sync"]');
+		// ❌ syncItem is null - portal content not in canvasElement
+	}}
+>
+
+<!-- ✅ CORRECT: Check document.body for portal content -->
+<Story
+	name="Syncing"
+	play={async ({ canvasElement, userEvent }) => {
+		// 1. Click button to open dropdown
+		const kebabButton = canvasElement.querySelector('button[type="button"]');
+		await userEvent.click(kebabButton);
+		
+		// 2. Wait for portal to render
+		await new Promise(resolve => setTimeout(resolve, 100));
+		
+		// 3. Check document.body for portal content
+		const hasSyncingText = document.body.textContent?.includes('Syncing');
+		const syncItem = document.body.querySelector('[textValue="Sync Readwise Highlights"]');
+		const isDisabled = syncItem?.hasAttribute('disabled') || syncItem?.getAttribute('aria-disabled') === 'true';
+		
+		if (!hasSyncingText && !isDisabled) {
+			throw new Error('Syncing state not displayed');
+		}
+	}}
+>
+```
+
+**Fix Pattern 2: Text Truncation**
+
+```svelte
+<!-- ❌ WRONG: Expecting full text when truncation may occur -->
+<Story
+	name="Zoomed In (Label Visible)"
+	play={async ({ canvasElement }) => {
+		const text = canvasElement.querySelector('text');
+		if (!text.textContent.includes('Engineering')) {
+			// ❌ Fails if text is truncated to "Eng..."
+			throw new Error('Expected "Engineering"');
+		}
+	}}
+>
+
+<!-- ✅ CORRECT: Accept truncated text variants -->
+<Story
+	name="Zoomed In (Label Visible)"
+	play={async ({ canvasElement, args }) => {
+		const text = canvasElement.querySelector('text');
+		if (!text) throw new Error('Text label element not found');
+		
+		const textContent = text.textContent || '';
+		// ✅ Accept full text OR truncated variants
+		if (!textContent.includes('Engineering') && !textContent.startsWith('Eng')) {
+			throw new Error(`Expected text to contain 'Engineering' or start with 'Eng', got ${textContent}`);
+		}
+	}}
+>
+```
+
+**Key Principles**:
+
+1. **Portal Content**: Always check `document.body` for portal-rendered content (dropdowns, modals, tooltips)
+2. **Wait for Portal**: Add short delay (`setTimeout`) after opening dropdown to allow portal to render
+3. **Text Truncation**: Accept partial text matches (startsWith, includes) when truncation logic exists
+4. **User Interaction**: Use `userEvent` to trigger interactions (clicks, hovers) before checking portal content
+
+**Apply when**:
+
+- Storybook tests fail for dropdown menus (Bits UI `DropdownMenu.Portal`)
+- Text truncation logic causes expected text to be partially visible
+- Portal-rendered content (modals, tooltips) not found in `canvasElement`
+
+**Related**: #L4850 (Storybook story file format), #L4920 (Storybook parser errors), SYOS-531 (Chromatic setup)
+
+---
+
+**Last Updated**: 2025-11-23

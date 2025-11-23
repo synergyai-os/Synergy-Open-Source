@@ -1,4 +1,18 @@
 <script lang="ts">
+	/**
+	 * OrgChart Component - D3 Hierarchy Visualization
+	 *
+	 * ⚠️ DESIGN SYSTEM EXCEPTION:
+	 * This component uses explicit pixel values for SVG text rendering and D3 calculations.
+	 * This is an acceptable exception per design system guidelines (see design-tokens.md).
+	 *
+	 * Rationale:
+	 * - SVG text positioning requires precise pixel values
+	 * - D3 scale transformations use pixel values for coordinate space
+	 * - CSS variables don't reliably size SVG text elements
+	 *
+	 * Related: SYOS-520 (Component Audit), SYOS-514 (Recipe System POC), SYOS-522 (Document SVG Exception)
+	 */
 	import { onMount, onDestroy } from 'svelte';
 	import { pack as d3Pack, type HierarchyNode } from 'd3-hierarchy';
 	import { zoom as d3Zoom, zoomIdentity } from 'd3-zoom';
@@ -673,24 +687,17 @@
 				{@const truncatedName = truncateText(node.data.name, maxTextWidth, fontSize)}
 				{#if showCircleName}
 					<g transform="translate({node.x},{node.y})">
-						<!-- Background rectangle using design token (sidebar-badge-bg with opacity) -->
-						<rect
-							x={-maxTextWidth / 2 - 4}
-							y={-fontSize / 2 - 2}
-							width={maxTextWidth + 8}
-							height={fontSize + 4}
-							fill="oklch(37.2% 0.044 257.287 / 0.85)"
-							rx="2"
-							class="pointer-events-none"
-						/>
 						<text
 							x="0"
 							y="0"
 							text-anchor="middle"
 							dominant-baseline="middle"
 							class="circle-name-label pointer-events-none font-bold select-none"
-							fill="white"
+							fill="var(--color-orgChart-label-text)"
 							fill-opacity="1"
+							stroke="var(--color-orgChart-label-stroke)"
+							stroke-width="0.5"
+							stroke-opacity="0.8"
 							style="text-shadow: 0 2px 4px rgba(0,0,0,0.9);"
 							font-size={fontSize}
 						>

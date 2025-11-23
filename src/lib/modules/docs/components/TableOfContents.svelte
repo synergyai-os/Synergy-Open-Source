@@ -16,16 +16,27 @@
 
 	// Spring physics for smooth, organic animations
 	let panelScale = spring(1, { stiffness: 0.3, damping: 0.8 });
-	let panelOpacity = spring(1, { stiffness: 0.2, damping: 0.9 });
+	// Read opacity-full token (1.0) for fully opaque state
+	const opacityFull = $derived(() => {
+		if (typeof window === 'undefined') {
+			// eslint-disable-next-line synergyos/no-hardcoded-design-values
+			return 1; // SSR fallback - token not available during SSR
+		}
+		const root = document.documentElement;
+		const opacity = getComputedStyle(root).getPropertyValue('--opacity-100').trim();
+		// eslint-disable-next-line synergyos/no-hardcoded-design-values
+		return opacity ? parseFloat(opacity) : 1; // Fallback if token not found (should not happen)
+	});
+	let panelOpacity = spring(opacityFull(), { stiffness: 0.2, damping: 0.9 });
 
 	// React to hover state with spring physics
 	$effect(() => {
 		if (isHovering && !isOpen) {
 			panelScale.set(1.02);
-			panelOpacity.set(1);
+			panelOpacity.set(opacityFull());
 		} else {
 			panelScale.set(1);
-			panelOpacity.set(isOpen ? 1 : 0.95);
+			panelOpacity.set(isOpen ? opacityFull() : 0.95);
 		}
 	});
 
@@ -464,7 +475,7 @@
 
 	/* Hide on small screens */
 	/* Token: --breakpoint-xl (1280px) from design-system.json */
-	@media (max-width: 1280px) {
+	@media (max-width: var(--breakpoint-xl)) {
 		.toc-panel {
 			display: none;
 		}

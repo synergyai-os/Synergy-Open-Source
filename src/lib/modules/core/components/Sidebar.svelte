@@ -37,7 +37,7 @@
 		isMobile,
 		sidebarCollapsed,
 		onToggleCollapse,
-		sidebarWidth = 256,
+		sidebarWidth: sidebarWidthProp,
 		onSidebarWidthChange,
 		createMenuOpen: _createMenuOpen = false,
 		onCreateMenuChange: _onCreateMenuChange,
@@ -47,6 +47,26 @@
 		meetingsEnabled = false,
 		dashboardEnabled = false
 	}: Props = $props();
+
+	// Initialize sidebarWidth from prop or token
+	// Technical constant (not design value): rem-to-px conversion factor
+	const REM_TO_PX_FACTOR = 16; // Standard browser rem base (not a design token)
+	let sidebarWidth = $state(sidebarWidthProp ?? 0); // Will be set from token if prop not provided
+	$effect(() => {
+		if (sidebarWidthProp !== undefined) {
+			sidebarWidth = sidebarWidthProp;
+			return;
+		}
+		// Fallback: read from token if prop not provided (shouldn't happen in practice)
+		if (!browser) return;
+		const tokenValue = getComputedStyle(document.documentElement)
+			.getPropertyValue('--size-sidebar-default')
+			.trim();
+		if (tokenValue) {
+			const remValue = parseFloat(tokenValue);
+			sidebarWidth = remValue * REM_TO_PX_FACTOR;
+		}
+	});
 
 	// Get user info from props (passed from layout)
 	const accountEmail = user?.email ?? 'user@example.com';
@@ -546,6 +566,7 @@
 						<!-- Icon -->
 						<svg
 							class="icon-sm flex-shrink-0"
+							style="width: 16px; height: 16px;"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -577,6 +598,7 @@
 						<!-- Icon -->
 						<svg
 							class="icon-sm flex-shrink-0"
+							style="width: 16px; height: 16px;"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -601,6 +623,7 @@
 						<!-- Icon -->
 						<svg
 							class="icon-sm flex-shrink-0"
+							style="width: 16px; height: 16px;"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -625,6 +648,7 @@
 						<!-- Icon -->
 						<svg
 							class="icon-sm flex-shrink-0"
+							style="width: 16px; height: 16px;"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -652,6 +676,7 @@
 							<!-- Icon: Organization/Circles -->
 							<svg
 								class="icon-sm flex-shrink-0"
+								style="width: 16px; height: 16px;"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -679,6 +704,7 @@
 						<!-- Icon: Users -->
 						<svg
 							class="icon-sm flex-shrink-0"
+							style="width: 16px; height: 16px;"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -704,6 +730,7 @@
 							<!-- Icon: Clipboard List -->
 							<svg
 								class="icon-sm flex-shrink-0"
+								style="width: 16px; height: 16px;"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -730,6 +757,7 @@
 							<!-- Icon: Calendar -->
 							<svg
 								class="icon-sm flex-shrink-0"
+								style="width: 16px; height: 16px;"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -791,6 +819,7 @@
 							>
 								<svg
 									class="icon-sm flex-shrink-0"
+									style="width: 16px; height: 16px;"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -811,6 +840,7 @@
 							>
 								<svg
 									class="icon-sm flex-shrink-0"
+									style="width: 16px; height: 16px;"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -833,6 +863,7 @@
 							>
 								<svg
 									class="icon-sm flex-shrink-0"
+									style="width: 16px; height: 16px;"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -973,6 +1004,7 @@
 				>
 					<svg
 						class="icon-sm flex-shrink-0"
+						style="width: 16px; height: 16px;"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -1023,6 +1055,7 @@
 				>
 					<svg
 						class="icon-sm flex-shrink-0"
+						style="width: 16px; height: 16px;"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -1049,6 +1082,7 @@
 				>
 					<svg
 						class="icon-sm flex-shrink-0"
+						style="width: 16px; height: 16px;"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -1075,6 +1109,7 @@
 				>
 					<svg
 						class="icon-sm flex-shrink-0"
+						style="width: 16px; height: 16px;"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -1135,6 +1170,7 @@
 						>
 							<svg
 								class="icon-sm flex-shrink-0"
+								style="width: 16px; height: 16px;"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -1155,6 +1191,7 @@
 						>
 							<svg
 								class="icon-sm flex-shrink-0"
+								style="width: 16px; height: 16px;"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -1177,6 +1214,7 @@
 						>
 							<svg
 								class="icon-sm flex-shrink-0"
+								style="width: 16px; height: 16px;"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
