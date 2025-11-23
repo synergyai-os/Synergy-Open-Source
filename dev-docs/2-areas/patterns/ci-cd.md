@@ -1915,9 +1915,10 @@ fi
 3. **Token build** (`npm run tokens:build`) - Auto-generates CSS from `design-system.json`
 4. **Auto-stage CSS** (`git add src/styles/tokens/*.css src/styles/utilities/*.css`) - Stages regenerated files
 5. **Semantic validation** (`npm run tokens:validate-semantic`) - Blocks commits with hardcoded semantic tokens
-6. **Manual edit detection** (`git diff --quiet`) - Blocks commits with manually edited CSS files
-7. **Design system audit** (`npm run audit:quick`) - Warns on violations (non-blocking)
-8. **Code formatting** (`npx lint-staged`) - Auto-formats staged files
+6. **Deprecated token check** (`node scripts/validate-tokens.js --fail-on-deprecated`) - Blocks commits if deprecated tokens are used (SYOS-538)
+7. **Manual edit detection** (`git diff --quiet`) - Blocks commits with manually edited CSS files
+8. **Design system audit** (`npm run audit:quick`) - Warns on violations (non-blocking)
+9. **Code formatting** (`npx lint-staged`) - Auto-formats staged files
 
 **Bypass** (use sparingly):
 
@@ -1947,7 +1948,7 @@ git commit --no-verify
 
 **See**: SYOS-477 (Phase 3: CI Integration), `dev-docs/2-areas/design/design-tokens.md`
 
-**Related**: #L1850 (Pre-commit hook subshell exit bug), #L1950 (Token usage reports), #L1905 (Avoiding redundant git hooks)
+**Related**: #L1850 (Pre-commit hook subshell exit bug), #L1950 (Token usage reports), #L1905 (Avoiding redundant git hooks), #L2750 (Deprecated token pre-commit check)
 
 ---
 
@@ -2275,7 +2276,290 @@ function validateTokens() {
 - Preventing orphaned tokens from accumulating
 - Integrating token validation into CI/CD pipeline
 
-**Related**: #L1900 (Token usage reports), #L10 (Incremental CI gates), ui-patterns.md#L720 (Adding design tokens)
+**Related**: #L1900 (Token usage reports), #L10 (Incremental CI gates), ui-patterns.md#L720 (Adding design tokens), #L2750 (Deprecated token pre-commit check)
+
+---
+
+## #L2750: Pre-Commit Hook - Deprecated Token Check [🟡 IMPORTANT]
+
+**Symptom**: Deprecated tokens still used in codebase, migration not enforced, deprecated tokens accumulate  
+**Root Cause**: No automated check prevents deprecated token usage, developers unaware of deprecations  
+**Fix**:
+
+```bash
+# .husky/pre-commit
+# Check for deprecated token usage (SYOS-538)
+echo ""
+echo "🔍 Checking for deprecated token usage..."
+node scripts/validate-tokens.js --fail-on-deprecated || {
+	echo ""
+	echo "❌ Deprecated tokens detected in codebase!"
+	echo "Migrate to replacement tokens before committing."
+	echo "See: dev-docs/master-docs/design-system.md Section 12.4"
+	exit 1
+}
+```
+
+**Script Support** (`scripts/validate-tokens.js`):
+
+```javascript
+// Add --fail-on-deprecated flag support
+function validateTokens() {
+	const args = process.argv.slice(2);
+	const failOnDeprecated = args.includes('--fail-on-deprecated');
+	
+	// ... existing validation logic ...
+	
+	// Report deprecated token usage
+	if (deprecatedUsage.length > 0) {
+		// ... show migration path ...
+		
+		// Exit with error code if deprecated tokens found and flag is set
+		if (failOnDeprecated) {
+			console.log('❌ Deprecated token usage detected. Commit blocked.\n');
+			process.exit(1);
+		}
+	}
+}
+```
+
+**CI Integration** (`.github/workflows/quality-gates.yml`):
+
+```yaml
+- name: Token Audit (Orphaned Tokens)
+  run: npm run tokens:audit -- --ci
+  continue-on-error: true # Non-blocking initially (SYOS-538)
+```
+
+**Why**:
+
+- ✅ Prevents deprecated token usage from entering codebase
+- ✅ Enforces migration before removal version
+- ✅ Shows clear migration path (replacement token, reason, removal date)
+- ✅ Catches violations early (pre-commit vs CI)
+
+**Apply when**:
+
+- Implementing token deprecation workflow
+- Need to enforce token migration before removal
+- Preventing deprecated tokens from accumulating
+
+**Related**: #L1900 (Pre-commit hook token validation), #L2050 (Orphaned token validation), #L2270 (Token usage analysis)
+
+**See**: SYOS-538 (Phase 3: CI Integration), `dev-docs/master-docs/design-system.md` Section 12.4
+
+---
+
+## #L2270: Analyzing Token Usage for Safe Deprecation [🟡 IMPORTANT]
+
+**Symptom**: Need to identify orphaned tokens (0 usages) before deprecating them, manual analysis is time-consuming and error-prone  
+**Root Cause**: No automated way to map tokens to files, can't safely deprecate tokens without knowing usage  
+**Fix**:
+
+```javascript
+// scripts/analyze-token-usage.js
+// Analyzes token usage across codebase, outputs JSON mapping tokens to files
+
+/**
+ * Extract tokens from design-system.json (DTCG format)
+ * Flattens nested structure: { spacing: { nav: { item: { x: {...} } } } }
+ * To: ['spacing-nav-item-x']
+ */
+function flattenTokens(obj, prefix = '', tokens = []) {
+	for (const [key, value] of Object.entries(obj)) {
+		if (key.startsWith('$')) continue; // Skip metadata
+		
+		const tokenName = prefix ? `${prefix}-${key}` : key;
+		
+		if (value && typeof value === 'object' && '$value' in value) {
+			tokens.push(tokenName); // Token definition found
+		} else if (value && typeof value === 'object') {
+			flattenTokens(value, tokenName, tokens); // Recurse
+		}
+	}
+	return tokens;
+}
+
+/**
+ * Extract utility class → token mappings from app.css
+ * Returns: { 'px-nav-item': ['--spacing-nav-item-x'], ... }
+ */
+function extractUtilityMappings() {
+	const content = fs.readFileSync('src/app.css', 'utf-8');
+	const mappings = {};
+	
+	const utilityRegex = /@utility\s+([a-z0-9-]+)\s*\{([^}]+)\}/g;
+	let match;
+	
+	while ((match = utilityRegex.exec(content)) !== null) {
+		const utilityName = match[1];
+		const utilityBody = match[2];
+		
+		// Find var(--token-name) references
+		const varRegex = /var\(--([a-z0-9-]+)\)/g;
+		let varMatch;
+		while ((varMatch = varRegex.exec(utilityBody)) !== null) {
+			const tokenName = `--${varMatch[1]}`;
+			if (!mappings[utilityName]) mappings[utilityName] = [];
+			if (!mappings[utilityName].includes(tokenName)) {
+				mappings[utilityName].push(tokenName);
+			}
+		}
+	}
+	
+	return mappings;
+}
+
+/**
+ * Scan file for token usage (utility classes + CSS variables)
+ */
+function scanFile(filePath, utilityMappings, allTokens) {
+	const content = fs.readFileSync(filePath, 'utf-8');
+	const usedTokens = new Set();
+	
+	// 1. Scan for utility class usage
+	for (const [utilityName, tokens] of Object.entries(utilityMappings)) {
+		const escapedUtility = utilityName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+		const utilityRegex = new RegExp(
+			`(class|className)=["'][^"']*\\b${escapedUtility}\\b[^"']*["']|\\b${escapedUtility}\\b`,
+			'g'
+		);
+		
+		if (utilityRegex.test(content)) {
+			tokens.forEach(token => usedTokens.add(token));
+		}
+	}
+	
+	// 2. Scan for direct CSS variable usage
+	const varRegex = /var\(--([a-z0-9-]+)\)/g;
+	let varMatch;
+	while ((varMatch = varRegex.exec(content)) !== null) {
+		const tokenName = `--${varMatch[1]}`;
+		if (allTokens.has(tokenName)) {
+			usedTokens.add(tokenName);
+		}
+	}
+	
+	return { usedTokens };
+}
+
+/**
+ * Main analysis
+ */
+function main() {
+	// Extract tokens from design-system.json and app.css
+	const designSystemTokens = extractTokensFromDesignSystem();
+	const appCssTokens = extractTokensFromAppCss();
+	const allTokens = new Set([...designSystemTokens, ...appCssTokens]);
+	
+	// Extract utility mappings
+	const utilityMappings = extractUtilityMappings();
+	
+	// Scan files
+	const files = findSourceFiles(['src'], ['.svelte', '.css', '.ts']);
+	const tokenUsage = {}; // { '--token-name': ['file1', 'file2'], ... }
+	
+	for (const token of allTokens) {
+		tokenUsage[token] = [];
+	}
+	
+	for (const file of files) {
+		const relativePath = path.relative(PROJECT_ROOT, file);
+		const { usedTokens } = scanFile(file, utilityMappings, allTokens);
+		
+		for (const token of usedTokens) {
+			if (!tokenUsage[token]) tokenUsage[token] = [];
+			if (!tokenUsage[token].includes(relativePath)) {
+				tokenUsage[token].push(relativePath);
+			}
+		}
+	}
+	
+	// Find orphaned tokens (0 usages)
+	const orphanedTokens = Object.entries(tokenUsage)
+		.filter(([_, files]) => files.length === 0)
+		.map(([token]) => token);
+	
+	// Output JSON
+	const output = {
+		summary: {
+			totalTokens: allTokens.size,
+			usedTokens: Object.values(tokenUsage).filter(f => f.length > 0).length,
+			orphanedTokens: orphanedTokens.length
+		},
+		tokenUsage,
+		orphanedTokens: orphanedTokens.sort()
+	};
+	
+	console.log(JSON.stringify(output, null, 2));
+}
+```
+
+**Key Components**:
+
+1. **Token Extraction**: Parse `design-system.json` (DTCG format) and `app.css` @theme block to get complete token set
+2. **Utility Mapping**: Extract `@utility` blocks and map utility classes to referenced tokens
+3. **Usage Detection**: Scan `.svelte`, `.css`, `.ts` files for:
+   - Utility class usage (e.g., `class="px-nav-item"` → `--spacing-nav-item-x`)
+   - Direct CSS variable usage (e.g., `var(--spacing-button-x)`)
+4. **File Mapping**: Track which files use which tokens
+5. **Orphan Detection**: Identify tokens with 0 usages (safe to deprecate)
+
+**Output Format**:
+
+```json
+{
+  "summary": {
+    "totalTokens": 340,
+    "usedTokens": 263,
+    "orphanedTokens": 78
+  },
+  "tokenUsage": {
+    "--spacing-nav-item-x": ["src/lib/components/Sidebar.svelte", "src/routes/+layout.svelte"],
+    "--spacing-button-x": [],
+    ...
+  },
+  "orphanedTokens": ["--spacing-button-x", "--opacity-0", ...]
+}
+```
+
+**NPM Script**:
+
+```json
+{
+  "scripts": {
+    "tokens:usage": "node scripts/analyze-token-usage.js",
+    "tokens:usage:summary": "node scripts/analyze-token-usage.js --summary"
+  }
+}
+```
+
+**Usage**:
+
+```bash
+# Full JSON output (for programmatic analysis)
+npm run tokens:usage > token-usage.json
+
+# Summary only (quick overview)
+npm run tokens:usage:summary
+```
+
+**Why**:
+
+- ✅ **Safe deprecation**: Identify orphaned tokens before removing them
+- ✅ **Usage visibility**: See which files use which tokens (refactoring guidance)
+- ✅ **Programmatic analysis**: JSON output enables automated workflows
+- ✅ **Complete coverage**: Scans both utility classes and direct CSS variable usage
+- ✅ **Fast execution**: Scans 300+ files in <2 seconds
+
+**Apply when**:
+
+- Identifying tokens safe to deprecate
+- Analyzing token usage before refactoring
+- Building token governance workflows
+- Creating automated deprecation pipelines
+
+**Related**: #L1900 (Token usage reports), #L2050 (Token→utility validation), #L2550 (Semantic token validation)
 
 ---
 
