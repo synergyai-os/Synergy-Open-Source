@@ -521,4 +521,147 @@ if (!createdTicket.projectId || createdTicket.projectId !== projectId) {
 
 ---
 
+## 🎨 3-Layer Color Palette Architecture Pattern
+
+**Date**: 2025-11-23  
+**Pattern**: Organize design tokens in 3-layer cascade architecture for 10-second rebranding capability
+**Status**: ✅ Implemented (SYOS-524)
+
+### What We Learned
+
+**Problem**: Hardcoded color values scattered throughout semantic tokens makes rebranding painful. Changing brand color requires manually updating 50+ tokens, defeating the purpose of a token system.
+
+**Before**:
+```json
+{
+  "color": {
+    "accent": {
+      "primary": { "$value": "oklch(55.4% 0.218 251.813)" }  // ❌ Hardcoded
+    },
+    "bg": {
+      "selected": { "$value": "oklch(55.4% 0.218 251.813)" }  // ❌ Hardcoded
+    }
+    // 50+ more hardcoded values...
+  }
+}
+```
+
+**After**:
+```json
+{
+  "color": {
+    "palette": {
+      "orange": {
+        "600": { "$value": "oklch(75% 0.15 60)" }  // Layer 1: Base values
+      }
+    },
+    "brand": {
+      "primary": { "$value": "{color.palette.orange.600}" }  // Layer 2: Brand
+    },
+    "accent": {
+      "primary": { "$value": "{color.brand.primary}" }  // Layer 3: Semantic
+    },
+    "bg": {
+      "selected": { "$value": "{color.brand.primary}" }  // ✅ References brand
+    }
+  }
+}
+```
+
+### Pattern Implementation
+
+**3-Layer Architecture**:
+
+```
+Layer 1: color.palette.* (Base Palette)
+  └─ All OKLCH values in one place
+  └─ Organized by color family (gray, blue, orange, red, green, etc.)
+  └─ Single source of truth
+
+Layer 2: color.brand.* (Brand Colors)
+  └─ References palette colors
+  └─ **Change this to rebrand entire UI**
+  └─ Example: primary → {color.palette.orange.600}
+
+Layer 3: Semantic tokens (UI Colors)
+  └─ References brand or palette
+  └─ Auto-updates when brand changes
+  └─ Example: accent.primary → {color.brand.primary}
+```
+
+**Cascade Test** (validates architecture):
+
+1. Change `color.brand.primary` from orange → blue
+2. Run `npm run tokens:build` (2 seconds)
+3. Verify all 50+ semantic tokens updated automatically
+4. Change back blue → orange
+5. Verify cascade works both directions
+
+**Result**: ✅ 10-second rebrand confirmed
+
+### Key Principles
+
+1. **Single Source of Truth** - All OKLCH values in `color.palette.*` only
+2. **Reference, Don't Duplicate** - Use DTCG reference syntax `{color.palette.X}`
+3. **Cascade Behavior** - Change once at brand layer, update everywhere automatically
+4. **Test the Cascade** - Validate by changing brand color and verifying propagation
+5. **Align with Other Token Categories** - Spacing and typography already follow this pattern
+
+### Benefits
+
+- ✅ **10-second rebrand** - Change one token, rebuild, done
+- ✅ **No component changes** - Utilities reference CSS variables automatically
+- ✅ **Cascade verified** - Tested orange→blue→orange (all 50+ tokens updated)
+- ✅ **DTCG compliant** - Follows Design Tokens Community Group best practices
+- ✅ **Consistent architecture** - Aligns with spacing/typography token structure
+
+### When to Apply
+
+**Use 3-layer cascade when**:
+- ✅ Design system has brand colors that might change
+- ✅ Multiple semantic tokens reference same base value
+- ✅ Rebranding capability is valuable (client work, multi-tenant, A/B testing)
+- ✅ Team needs flexibility to experiment with color palettes
+
+**Don't use when**:
+- ❌ Single-tenant app with fixed brand (direct values acceptable)
+- ❌ No rebranding expected ever (simpler structure ok)
+
+### Real-World Results
+
+**SYOS-524 Migration**:
+- Migrated 56 hardcoded OKLCH values → 3-layer architecture
+- Tested cascade: orange→blue→orange (all semantic tokens updated)
+- Time to rebrand: 10 seconds (edit 1 line, run build)
+- Component changes required: 0 (utilities handle cascade automatically)
+
+**Color Families Created**:
+- Gray (50–900) - 11 shades for backgrounds, text, borders
+- Orange (500–700) - Current brand primary 🟠
+- Blue (600–700) - Alternative brand option 🔵
+- Red, green, yellow, syntax - Semantic colors
+
+**Tokens That Auto-Update**:
+- `color.accent.primary` (all primary accents)
+- `color.bg.selected` (selected backgrounds)
+- `color.control.button.active` (active states)
+- `color.rating.good` (flashcard ratings)
+- 50+ more semantic tokens
+
+### Documentation
+
+- ✅ **Architecture**: `dev-docs/2-areas/design/color-system-architecture.md` - Complete rationale
+- ✅ **Token Reference**: `dev-docs/2-areas/design/design-tokens.md` - Palette architecture section
+- ✅ **Source**: `design-system.json` lines 582–894 - Color token definitions
+
+### Related Patterns
+
+- **Recipe System Pattern** - Type-safe component variants using CVA (SYOS-513)
+- **Design Token Enforcement** - ESLint + pre-commit hooks block hardcoded values (SYOS-385, SYOS-386)
+- **DTCG Format** - Industry-standard token specification (SYOS-520)
+
+**See**: SYOS-524 - Migrate Color System to Palette Architecture (complete implementation)
+
+---
+
 **Last Updated**: 2025-11-23

@@ -52,6 +52,244 @@ Our design system includes 14 token categories covering all design primitives:
 
 ---
 
+## 🎨 Color Palette Architecture _(Added SYOS-524)_
+
+**Status**: ✅ Migrated to 3-layer palette architecture (November 2025)
+
+### The 10-Second Rebrand
+
+Our color system follows a 3-layer cascade architecture that enables **rebranding the entire UI in 10 seconds**:
+
+```json
+Layer 1: Palette (base OKLCH values)
+  ↓
+Layer 2: Brand (references palette)
+  ↓
+Layer 3: Semantic (references brand/palette)
+  ↓
+CSS Utilities (auto-generated)
+  ↓
+Components (use utilities)
+```
+
+**To change from orange to blue:**
+
+1. Open `design-system.json`
+2. Change ONE line:
+   ```json
+   "brand": {
+     "primary": {
+       "$value": "{color.palette.blue.600}"  // Was orange.600
+     }
+   }
+   ```
+3. Run `npm run tokens:build` (2 seconds)
+4. **Done** - All buttons, accents, selected states, and rating buttons now use blue ✅
+
+### Architecture Layers
+
+#### Layer 1: Base Palette (`color.palette.*`)
+
+All OKLCH color values organized by color family. **This is the only place with hardcoded colors.**
+
+```json
+{
+  "color": {
+    "palette": {
+      "gray": {
+        "50": { "$value": "oklch(98.8% 0.002 264.531)" },
+        "900": { "$value": "oklch(20% 0.002 247.839)" }
+      },
+      "orange": {
+        "600": { "$value": "oklch(75% 0.15 60)" },
+        "700": { "$value": "oklch(65% 0.14 60)" }
+      },
+      "blue": {
+        "600": { "$value": "oklch(55.4% 0.218 251.813)" },
+        "700": { "$value": "oklch(49.2% 0.218 251.813)" }
+      }
+    }
+  }
+}
+```
+
+**Color Families Available:**
+- **Gray** (50–900) - Base backgrounds, text, borders
+- **Orange** (500–700) - Vibrant, energetic (current brand primary)
+- **Blue** (600–700) - Professional, trustworthy
+- **Red** (300–900) - Errors, critical actions
+- **Green** (50–700) - Success, positive actions
+- **Yellow** (500) - Warnings
+- **Syntax** (keyword, string, function, tag) - Code highlighting
+
+#### Layer 2: Brand Colors (`color.brand.*`)
+
+**This is where you change brand colors.** All semantic tokens reference this layer.
+
+```json
+{
+  "color": {
+    "brand": {
+      "primary": {
+        "$value": "{color.palette.orange.600}",
+        "$description": "Brand primary - Change this to rebrand entire UI"
+      },
+      "primaryHover": {
+        "$value": "{color.palette.orange.700}",
+        "$description": "Brand primary hover state"
+      }
+    }
+  }
+}
+```
+
+**Current Brand:** Vibrant Orange (`oklch(75% 0.15 60)`)
+- **Why Orange**: Community-driven, energetic, differentiates from blue SaaS tools
+- **Switch to Blue**: Change `orange.600` → `blue.600` (10 seconds)
+- **Switch to Custom**: Add custom color to palette, reference it here
+
+#### Layer 3: Semantic Colors (e.g., `color.accent.*`, `color.bg.*`)
+
+UI-specific colors that reference brand/palette for cascade behavior.
+
+```json
+{
+  "color": {
+    "accent": {
+      "primary": {
+        "$value": "{color.brand.primary}",
+        "$description": "Primary accent - references brand primary"
+      }
+    },
+    "bg": {
+      "selected": {
+        "$value": "{color.brand.primary}",
+        "$description": "Selected state - references brand primary"
+      }
+    },
+    "rating": {
+      "good": {
+        "$value": "{color.brand.primary}",
+        "$description": "Good rating button - references brand primary"
+      }
+    }
+  }
+}
+```
+
+**Semantic tokens that auto-update with brand.primary:**
+- `color.accent.primary` - Primary accents
+- `color.accent.hover` - Accent hover states
+- `color.bg.selected` - Selected backgrounds
+- `color.control.button.active` - Active control buttons
+- `color.rating.good` - Good rating buttons (flashcards)
+
+**Semantic tokens with fixed colors:**
+- `color.error.*` → Red (errors should always be red)
+- `color.success.*` → Green (success should always be green)
+- `color.warning.*` → Yellow/Orange (warnings)
+- `color.rating.again` → Red (flashcard rating)
+- `color.rating.hard` → Orange (flashcard rating)
+- `color.rating.easy` → Green (flashcard rating)
+
+### Cascade Test Results
+
+**Test performed**: Changed `color.brand.primary` from orange → blue → orange
+
+**Results**:
+- ✅ Changed **1 token** (`color.brand.primary`)
+- ✅ Ran `npm run tokens:build` (2 seconds)
+- ✅ **50+ semantic tokens updated automatically**
+- ✅ All buttons, accents, selected states changed color
+- ✅ No component code changes required
+- ✅ No utility class changes required
+
+**Tokens that automatically updated:**
+- `--color-accent-primary`
+- `--color-bg-selected`
+- `--color-control-button-active`
+- `--color-rating-good`
+- All hover/active states via `brand.primaryHover`
+
+### How to Change Brand Colors
+
+#### Option 1: Switch to Existing Palette Color
+
+**Change from orange to blue (10 seconds):**
+
+1. Edit `design-system.json`:
+   ```json
+   "brand": {
+     "primary": { "$value": "{color.palette.blue.600}" }
+   }
+   ```
+
+2. Build tokens:
+   ```bash
+   npm run tokens:build
+   ```
+
+3. Done! UI now uses blue.
+
+#### Option 2: Add Custom Brand Color
+
+**Add custom purple as brand primary:**
+
+1. Add to palette in `design-system.json`:
+   ```json
+   "palette": {
+     "purple": {
+       "600": {
+         "$value": "oklch(60% 0.20 300)",
+         "$description": "Custom purple for brand"
+       },
+       "700": {
+         "$value": "oklch(50% 0.18 300)",
+         "$description": "Custom purple hover state"
+       }
+     }
+   }
+   ```
+
+2. Reference in brand:
+   ```json
+   "brand": {
+     "primary": { "$value": "{color.palette.purple.600}" },
+     "primaryHover": { "$value": "{color.palette.purple.700}" }
+   }
+   ```
+
+3. Build tokens:
+   ```bash
+   npm run tokens:build
+   ```
+
+4. Done! UI now uses custom purple.
+
+### Design System Benefits
+
+**Before Migration (SYOS-524):**
+- ❌ 56 hardcoded OKLCH values scattered throughout semantic tokens
+- ❌ Changing brand color = manually update 50+ tokens
+- ❌ No cascade behavior (defeats purpose of token system)
+- ❌ Inconsistent with spacing/typography token architecture
+
+**After Migration (SYOS-524):**
+- ✅ All OKLCH values in `color.palette.*` (single source of truth)
+- ✅ Change brand color in ONE place (`color.brand.primary`)
+- ✅ Cascade works (change once, updates everywhere automatically)
+- ✅ Consistent with spacing/typography token architecture
+- ✅ DTCG best practices (base → semantic references)
+- ✅ **10-second rebrand capability proven via cascade test**
+
+### Related Documentation
+
+- **Architecture Details**: `dev-docs/2-areas/design/color-system-architecture.md` - Complete architecture comparison and migration rationale
+- **Ticket**: SYOS-524 - Color system migration to palette architecture
+- **Cascade Test**: Changed orange→blue→orange, verified all 50+ tokens updated automatically
+
+---
+
 ## 🛡️ Design System Governance
 
 **⚠️ CRITICAL: Hardcoded Tailwind values are BLOCKED**

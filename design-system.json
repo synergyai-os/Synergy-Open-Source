@@ -581,23 +581,182 @@
 	},
 	"color": {
 		"$type": "color",
-		"text": {
+		"palette": {
+			"$type": "color",
+			"$description": "Layer 1: Base color palette - All OKLCH values in one place for easy theming",
+			"white": {
+				"$value": "oklch(100% 0 0)",
+				"$description": "Pure white - sidebar light mode"
+			},
+			"gray": {
+				"50": {
+					"$value": "oklch(98.8% 0.002 264.531)",
+					"$description": "Gray 50 - lightest gray for backgrounds"
+				},
+				"100": {
+					"$value": "oklch(96.7% 0.003 264.542)",
+					"$description": "Gray 100 - very light gray for subtle backgrounds"
+				},
+				"200": {
+					"$value": "oklch(92.8% 0.006 264.531)",
+					"$description": "Gray 200 - light gray for borders"
+				},
+				"300": {
+					"$value": "oklch(70.4% 0.04 256.788)",
+					"$description": "Gray 300 - medium-light gray for secondary text"
+				},
+				"300light": {
+					"$value": "oklch(86.9% 0.022 252.894)",
+					"$description": "Gray 300 (light mode variant) - badge backgrounds"
+				},
+				"500": {
+					"$value": "oklch(55.4% 0.046 257.417)",
+					"$description": "Gray 500 - medium gray for tertiary text"
+				},
+				"600": {
+					"$value": "oklch(44.6% 0.043 257.281)",
+					"$description": "Gray 600 - dark gray for secondary elements"
+				},
+				"700": {
+					"$value": "oklch(37.2% 0.044 257.287)",
+					"$description": "Gray 700 - darker gray for borders and backgrounds"
+				},
+				"750": {
+					"$value": "oklch(31.4% 0.044 257.287)",
+					"$description": "Gray 750 - between 700 and 800 for elevated surfaces"
+				},
+				"800": {
+					"$value": "oklch(27.9% 0.041 260.031)",
+					"$description": "Gray 800 - very dark gray for surfaces"
+				},
+				"900": {
+					"$value": "oklch(20% 0.002 247.839)",
+					"$description": "Gray 900 - darkest gray for base backgrounds"
+				},
+				"900light": {
+					"$value": "oklch(20.8% 0.042 265.755)",
+					"$description": "Gray 900 (light mode variant) - dark text on light backgrounds"
+				}
+			},
+			"blue": {
+				"600": {
+					"$value": "oklch(55.4% 0.218 251.813)",
+					"$description": "Blue 600 - primary blue for accents"
+				},
+				"700": {
+					"$value": "oklch(49.2% 0.218 251.813)",
+					"$description": "Blue 700 - darker blue for hover states"
+				}
+			},
+			"orange": {
+				"500": {
+					"$value": "oklch(60% 0.15 30)",
+					"$description": "Orange 500 - vibrant orange for high warnings and ratings"
+				},
+				"600": {
+					"$value": "oklch(75% 0.15 60)",
+					"$description": "Orange 600 - primary orange for ratings"
+				},
+				"700": {
+					"$value": "oklch(65% 0.14 60)",
+					"$description": "Orange 700 - darker orange for hover states"
+				}
+			},
+			"red": {
+				"300": {
+					"$value": "oklch(87.2% 0.204 27.271)",
+					"$description": "Red 300 - light red for error text"
+				},
+				"500": {
+					"$value": "oklch(64.8% 0.294 27.325)",
+					"$description": "Red 500 - medium red for error borders"
+				},
+				"600": {
+					"$value": "oklch(64.8% 0.294 27.325)",
+					"$description": "Red 600 - primary red for error states and ratings"
+				},
+				"700": {
+					"$value": "oklch(50% 0.227 27.325)",
+					"$description": "Red 700 - darker red for hover states"
+				},
+				"900": {
+					"$value": "oklch(25% 0.05 27.325)",
+					"$description": "Red 900 - very dark red for error backgrounds"
+				}
+			},
+			"green": {
+				"50": {
+					"$value": "oklch(95% 0.05 150)",
+					"$description": "Green 50 - very light green for success backgrounds"
+				},
+				"600": {
+					"$value": "oklch(60% 0.16 150)",
+					"$description": "Green 600 - primary green for success states and ratings"
+				},
+				"700": {
+					"$value": "oklch(40% 0.15 150)",
+					"$description": "Green 700 - darker green for success text and hover"
+				},
+				"700alt": {
+					"$value": "oklch(50% 0.15 150)",
+					"$description": "Green 700 (alternate) - alternative darker green for hover states"
+				}
+			},
+			"yellow": {
+				"500": {
+					"$value": "oklch(70% 0.15 60)",
+					"$description": "Yellow 500 - yellow for warning text"
+				}
+			},
+			"syntax": {
+				"keyword": {
+					"$value": "oklch(40% 0.17 10)",
+					"$description": "Red hue for code keywords"
+				},
+				"string": {
+					"$value": "oklch(45% 0.14 220)",
+					"$description": "Blue hue for code strings and numbers"
+				},
+				"function": {
+					"$value": "oklch(45% 0.15 290)",
+					"$description": "Purple hue for code functions"
+				},
+				"tag": {
+					"$value": "oklch(40% 0.16 150)",
+					"$description": "Green hue for code tags"
+				}
+			}
+		},
+		"brand": {
+			"$type": "color",
+			"$description": "Layer 2: Brand colors - Switch primary brand color here to rebrand in seconds",
 			"primary": {
-				"$value": "oklch(98.5% 0.002 247.839)",
-				"$description": "white"
+				"$value": "{color.palette.orange.600}",
+				"$description": "Brand primary color (vibrant orange) - Change this to rebrand entire UI"
+			},
+			"primaryHover": {
+				"$value": "{color.palette.orange.700}",
+				"$description": "Brand primary hover state (darker orange)"
+			}
+		},
+		"text": {
+			"$description": "Layer 3: Semantic text colors - Reference brand/palette for cascade behavior",
+			"primary": {
+				"$value": "{color.palette.white}",
+				"$description": "Primary text color - references palette white"
 			},
 			"secondary": {
-				"$value": "oklch(70.4% 0.04 256.788)",
-				"$description": "gray-300"
+				"$value": "{color.palette.gray.300}",
+				"$description": "Secondary text color - references gray-300"
 			},
 			"tertiary": {
-				"$value": "oklch(55.4% 0.046 257.417)",
-				"$description": "gray-500 - same in both modes"
+				"$value": "{color.palette.gray.500}",
+				"$description": "Tertiary text color - references gray-500"
 			}
 		},
 		"legacy": {
 			"blue": {
-				"$value": "oklch(55.4% 0.218 251.813)",
+				"$value": "{color.palette.blue.600}",
 				"$type": "color",
 				"$description": "Legacy blue color - DEPRECATED",
 				"$deprecated": {
@@ -609,286 +768,286 @@
 			}
 		},
 		"bg": {
+			"$description": "Semantic background colors - Reference brand/palette for cascade behavior",
 			"base": {
-				"$value": "oklch(20% 0.002 247.839)",
-				"$description": "gray-900"
+				"$value": "{color.palette.gray.900}",
+				"$description": "Base background - references gray-900"
 			},
 			"surface": {
-				"$value": "oklch(27.9% 0.041 260.031)",
-				"$description": "gray-800"
+				"$value": "{color.palette.gray.800}",
+				"$description": "Surface background - references gray-800"
 			},
 			"elevated": {
-				"$value": "oklch(31.4% 0.044 257.287)",
-				"$description": "gray-750/slightly lighter"
+				"$value": "{color.palette.gray.750}",
+				"$description": "Elevated surface background - references gray-750"
 			},
 			"hover": {
 				"$value": "oklch(27.9% 0.041 260.031 / 0.5)",
-				"$description": "gray-800/50",
-				"solid": {
-					"$value": "oklch(27.9% 0.041 260.031)",
-					"$description": "gray-800"
-				}
+				"$description": "Hover background (semi-transparent gray-800) - INTENTIONAL EXCEPTION: Opacity variant, references palette gray.800 with alpha"
 			},
 			"selected": {
-				"$value": "oklch(55.4% 0.218 251.813)",
-				"$description": "blue-600 - selected state"
+				"$value": "{color.brand.primary}",
+				"$description": "Selected state background - references brand primary"
 			}
 		},
 		"border": {
+			"$description": "Semantic border colors - Reference brand/palette for cascade behavior",
 			"base": {
-				"$value": "oklch(27.9% 0.041 260.031)",
-				"$description": "gray-800"
+				"$value": "{color.palette.gray.800}",
+				"$description": "Base border color - references gray-800"
 			},
 			"elevated": {
-				"$value": "oklch(37.2% 0.044 257.287)",
-				"$description": "gray-700"
+				"$value": "{color.palette.gray.700}",
+				"$description": "Elevated border color - references gray-700"
 			}
 		},
 		"accent": {
+			"$description": "Semantic accent colors - Reference brand for cascade behavior",
 			"primary": {
-				"$value": "oklch(55.4% 0.218 251.813)",
-				"$description": "blue-600 - for selected states"
+				"$value": "{color.brand.primary}",
+				"$description": "Primary accent - references brand primary"
 			},
 			"hover": {
-				"$value": "oklch(49.2% 0.218 251.813)",
-				"$description": "blue-700 - hover state"
+				"$value": "{color.brand.primaryHover}",
+				"$description": "Accent hover state - references brand primary hover"
 			}
 		},
 		"toggle": {
 			"off": {
-				"$value": "oklch(37.2% 0.044 257.287)",
-				"$description": "gray-700"
+				"$value": "{color.palette.gray.700}",
+				"$description": "Toggle off state - references gray-700"
 			}
 		},
 		"tag": {
 			"bg": {
-				"$value": "oklch(37.2% 0.044 257.287)",
-				"$description": "gray-700"
+				"$value": "{color.palette.gray.700}",
+				"$description": "Tag background - references gray-700"
 			},
 			"text": {
-				"$value": "oklch(70.4% 0.04 256.788)",
-				"$description": "gray-300"
+				"$value": "{color.palette.gray.300}",
+				"$description": "Tag text - references gray-300"
 			}
 		},
 		"error": {
+			"$description": "Semantic error colors - Reference palette for cascade behavior",
 			"bg": {
 				"$value": "oklch(25% 0.05 27.325 / 0.3)",
-				"$description": "red-900/30"
+				"$description": "Error background (semi-transparent red-900) - INTENTIONAL EXCEPTION: Opacity variant, references palette red.900 with alpha"
 			},
 			"border": {
-				"$value": "oklch(64.8% 0.294 27.325)",
-				"$description": "red-500"
+				"$value": "{color.palette.red.500}",
+				"$description": "Error border - references red-500"
 			},
 			"text": {
-				"$value": "oklch(87.2% 0.204 27.271)",
-				"$description": "red-300",
+				"$value": "{color.palette.red.300}",
+				"$description": "Error text - references red-300",
 				"secondary": {
-					"$value": "oklch(87.2% 0.204 27.271)",
-					"$description": "red-300"
+					"$value": "{color.palette.red.300}",
+					"$description": "Secondary error text - references red-300"
 				}
 			},
 			"hover": {
 				"$value": "oklch(25% 0.05 27.325 / 0.2)",
-				"$description": "red-900/20 - error hover background"
+				"$description": "Error hover background (semi-transparent red-900) - INTENTIONAL EXCEPTION: Opacity variant, references palette red.900 with lighter alpha"
 			}
 		},
 		"success": {
+			"$description": "Semantic success colors - Reference palette for cascade behavior",
 			"text": {
-				"$value": "oklch(40% 0.15 150)",
-				"$description": "green-700 - success text"
+				"$value": "{color.palette.green.700}",
+				"$description": "Success text - references green-700"
 			},
 			"bg": {
-				"$value": "oklch(95% 0.05 150)",
-				"$description": "green-50 - success background"
+				"$value": "{color.palette.green.50}",
+				"$description": "Success background - references green-50"
 			}
 		},
 		"warning": {
+			"$description": "Semantic warning colors - Reference palette for cascade behavior",
 			"text": {
-				"$value": "oklch(70% 0.15 60)",
-				"$description": "yellow-500 - warning text",
+				"$value": "{color.palette.yellow.500}",
+				"$description": "Warning text - references yellow-500",
 				"high": {
-					"$value": "oklch(60% 0.15 30)",
-					"$description": "orange-500 - high warning text"
+					"$value": "{color.palette.orange.500}",
+					"$description": "High priority warning text - references orange-500"
 				}
 			}
 		},
 		"sidebar": {
+			"$description": "Sidebar colors (light mode) - Reference palette for cascade behavior",
 			"bg": {
-				"$value": "oklch(100% 0 0)",
-				"$description": "white"
+				"$value": "{color.palette.white}",
+				"$description": "Sidebar background (light mode) - references palette white"
 			},
 			"border": {
-				"$value": "oklch(92.8% 0.006 264.531)",
-				"$description": "gray-200 light"
+				"$value": "{color.palette.gray.200}",
+				"$description": "Sidebar border (light mode) - references gray-200"
 			},
 			"text": {
 				"primary": {
-					"$value": "oklch(20.8% 0.042 265.755)",
-					"$description": "gray-900 light"
+					"$value": "{color.palette.gray.900light}",
+					"$description": "Sidebar primary text (light mode) - references gray-900light"
 				},
 				"secondary": {
-					"$value": "oklch(44.6% 0.043 257.281)",
-					"$description": "gray-600 light"
+					"$value": "{color.palette.gray.600}",
+					"$description": "Sidebar secondary text (light mode) - references gray-600"
 				},
 				"tertiary": {
-					"$value": "oklch(55.4% 0.046 257.417)",
-					"$description": "gray-500 light"
+					"$value": "{color.palette.gray.500}",
+					"$description": "Sidebar tertiary text (light mode) - references gray-500"
 				}
 			},
 			"hover": {
 				"$value": "oklch(96.7% 0.003 264.542 / 0.5)",
-				"$description": "gray-100/50 light",
-				"solid": {
-					"$value": "oklch(96.7% 0.003 264.542)",
-					"$description": "gray-100 light"
-				}
+				"$description": "Sidebar hover (light mode, semi-transparent gray-100) - INTENTIONAL EXCEPTION: Opacity variant, references palette gray.100 with alpha"
 			},
 			"badge": {
 				"bg": {
-					"$value": "oklch(86.9% 0.022 252.894)",
-					"$description": "gray-300 light"
+					"$value": "{color.palette.gray.300light}",
+					"$description": "Sidebar badge background (light mode) - references gray-300light"
 				},
 				"text": {
-					"$value": "oklch(44.6% 0.043 257.281)",
-					"$description": "gray-600 light"
+					"$value": "{color.palette.gray.600}",
+					"$description": "Sidebar badge text (light mode) - references gray-600"
 				}
 			},
 			"active": {
-				"$value": "oklch(96.7% 0.003 264.542)",
-				"$description": "gray-100 light - active state"
+				"$value": "{color.palette.gray.100}",
+				"$description": "Sidebar active state (light mode) - references gray-100"
 			}
 		},
 		"control": {
+			"$description": "Control panel colors - Reference semantic colors",
 			"bg": {
 				"$value": "var(--color-bg-elevated)",
-				"$description": "Control panel background"
+				"$description": "Control panel background - references bg.elevated"
 			},
 			"border": {
 				"$value": "var(--color-border-base)",
-				"$description": "Control panel border"
+				"$description": "Control panel border - references border.base"
 			},
 			"button": {
 				"hover": {
-					"$value": "var(--color-bg-hover-solid)",
-					"$description": "Button hover"
+					"$value": "{color.palette.gray.800}",
+					"$description": "Control button hover - references gray-800"
 				},
 				"active": {
-					"$value": "var(--color-bg-selected)",
-					"$description": "Active button"
+					"$value": "{color.brand.primary}",
+					"$description": "Control button active - references brand primary"
 				}
 			},
 			"divider": {
 				"$value": "var(--color-border-base)",
-				"$description": "Divider color"
+				"$description": "Control divider - references border.base"
 			}
 		},
 		"code": {
+			"$description": "Code syntax colors - Reference palette for cascade behavior",
 			"bg": {
-				"$value": "oklch(98.8% 0.002 264.531)",
-				"$description": "gray-50 - light background"
+				"$value": "{color.palette.gray.50}",
+				"$description": "Code background (light mode) - references gray-50"
 			},
 			"text": {
-				"$value": "oklch(20.8% 0.042 265.755)",
-				"$description": "gray-900 - dark text"
+				"$value": "{color.palette.gray.900light}",
+				"$description": "Code text (light mode) - references gray-900light"
 			},
 			"keyword": {
-				"$value": "oklch(40% 0.17 10)",
-				"$description": "Darker red for keywords"
+				"$value": "{color.palette.syntax.keyword}",
+				"$description": "Code keyword color - references syntax.keyword"
 			},
 			"string": {
-				"$value": "oklch(45% 0.14 220)",
-				"$description": "Darker blue for strings"
+				"$value": "{color.palette.syntax.string}",
+				"$description": "Code string color - references syntax.string"
 			},
 			"number": {
-				"$value": "oklch(45% 0.14 220)",
-				"$description": "Darker blue for numbers"
+				"$value": "{color.palette.syntax.string}",
+				"$description": "Code number color - references syntax.string"
 			},
 			"comment": {
 				"$value": "var(--color-text-tertiary)",
-				"$description": "Comments - muted"
+				"$description": "Code comment color - references text.tertiary"
 			},
 			"function": {
-				"$value": "oklch(45% 0.15 290)",
-				"$description": "Darker purple for functions"
+				"$value": "{color.palette.syntax.function}",
+				"$description": "Code function color - references syntax.function"
 			},
 			"variable": {
-				"$value": "oklch(45% 0.14 220)",
-				"$description": "Darker blue for variables"
+				"$value": "{color.palette.syntax.string}",
+				"$description": "Code variable color - references syntax.string"
 			},
 			"tag": {
-				"$value": "oklch(40% 0.16 150)",
-				"$description": "Darker green for tags"
+				"$value": "{color.palette.syntax.tag}",
+				"$description": "Code tag color - references syntax.tag"
 			},
 			"badge": {
 				"bg": {
-					"$value": "oklch(96.7% 0.003 264.542)",
-					"$description": "gray-100"
+					"$value": "{color.palette.gray.100}",
+					"$description": "Code badge background - references gray-100"
 				},
 				"text": {
-					"$value": "oklch(44.6% 0.043 257.281)",
-					"$description": "gray-600"
+					"$value": "{color.palette.gray.600}",
+					"$description": "Code badge text - references gray-600"
 				}
 			}
 		},
 		"panel": {
+			"$description": "Panel colors - Reference semantic colors",
 			"breadcrumb": {
 				"bg": {
 					"$value": "var(--color-bg-surface)",
-					"$description": "Breadcrumb bar background"
+					"$description": "Breadcrumb bar background - references bg.surface"
 				},
 				"text": {
 					"$value": "var(--color-text-tertiary)",
-					"$description": "Vertical text color"
+					"$description": "Breadcrumb text - references text.tertiary"
 				},
 				"hover": {
-					"$value": "var(--color-bg-hover-solid)",
-					"$description": "Hover state"
+					"$value": "{color.palette.gray.800}",
+					"$description": "Breadcrumb hover - references gray-800"
 				}
 			}
 		},
 		"rating": {
+			"$description": "Flashcard rating button colors - Reference palette for cascade behavior",
 			"again": {
-				"$value": "oklch(64.8% 0.294 27.325)",
-				"$description": "red-600 - Again button",
+				"$value": "{color.palette.red.600}",
+				"$description": "Again button (red) - references red-600",
 				"hover": {
-					"$value": "oklch(50% 0.227 27.325)",
-					"$description": "red-700 - Again hover"
+					"$value": "{color.palette.red.700}",
+					"$description": "Again button hover - references red-700"
 				}
 			},
 			"hard": {
-				"$value": "oklch(75% 0.15 60)",
-				"$description": "orange-600 - Hard button",
+				"$value": "{color.palette.orange.600}",
+				"$description": "Hard button (orange) - references orange-600",
 				"hover": {
-					"$value": "oklch(65% 0.14 60)",
-					"$description": "orange-700 - Hard hover"
+					"$value": "{color.palette.orange.700}",
+					"$description": "Hard button hover - references orange-700"
 				}
 			},
 			"good": {
-				"$value": "oklch(55.4% 0.218 251.813)",
-				"$description": "blue-600 - Good button",
-				"hover": {
-					"$value": "oklch(49.2% 0.218 251.813)",
-					"$description": "blue-700 - Good hover"
-				}
+				"$value": "{color.brand.primary}",
+				"$description": "Good button - references brand primary (cascade: changes with brand)"
 			},
 			"easy": {
-				"$value": "oklch(60% 0.16 150)",
-				"$description": "green-600 - Easy button",
+				"$value": "{color.palette.green.600}",
+				"$description": "Easy button (green) - references green-600",
 				"hover": {
-					"$value": "oklch(50% 0.15 150)",
-					"$description": "green-700 - Easy hover"
+					"$value": "{color.palette.green.700alt}",
+					"$description": "Easy button hover - references green-700alt"
 				}
 			}
 		},
 		"orgChart": {
+			"$description": "Org chart visualization colors - Reference palette for cascade behavior",
 			"label": {
 				"text": {
-					"$value": "oklch(98.5% 0.002 247.839)",
-					"$description": "white - high contrast text for labels over colored circles"
+					"$value": "{color.palette.white}",
+					"$description": "Org chart label text - references palette white"
 				},
 				"stroke": {
-					"$value": "oklch(20% 0.002 247.839)",
-					"$description": "gray-900 - text stroke/outline for readability on light circles"
+					"$value": "{color.palette.gray.900}",
+					"$description": "Org chart label stroke - references gray-900"
 				}
 			}
 		}
