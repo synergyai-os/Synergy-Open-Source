@@ -423,3 +423,102 @@ if (!createdTicket.projectId || createdTicket.projectId !== projectId) {
 - ✅ Pattern documented - Testing reveals gaps
 
 **See**: `ai-docs/tasks/SYOS-XXX-branch-safety-gates.md` - Real-world test results and gap analysis
+
+---
+
+## 🔄 Temporarily Disable CI Tools During Active Migrations Pattern
+
+**Date**: 2025-11-23  
+**Pattern**: Strategically disable CI tools that consume limited resources (review credits, API quotas) during active migrations with many expected changes
+
+### What We Learned
+
+**Problem**: CI tools like Chromatic (visual regression testing) consume review credits for every visual change detected. During active design system migrations, many visual changes are intentional and expected, wasting credits on reviewing intentional updates rather than catching regressions.
+
+**Example**:
+- Chromatic visual regression testing setup complete (SYOS-531)
+- Design system migration in progress (95% complete, many visual changes expected)
+- Running Chromatic on every PR would consume review credits on intentional design system updates
+- Credits are limited (open-source tier: 5000 snapshots/month)
+
+**Solution**: Temporarily disable CI workflow, keep local testing available, create reminder ticket to re-enable
+
+### Pattern Implementation
+
+**1. Disable CI Workflow** (comment out, don't delete):
+
+```yaml
+# ⏸️ TEMPORARILY DISABLED: Chromatic Visual Testing
+# 
+# Reason: Design system migration in progress - many expected visual changes
+# Would waste review credits on intentional design system updates
+# 
+# Re-enable when:
+# - Design system migration complete
+# - Baseline established (all components using new tokens)
+# - Ready to catch regressions going forward
+# 
+# See: SYOS-539 (Re-enable Chromatic Visual Regression Testing)
+#
+# Local testing still available: npm run chromatic
+
+# name: Chromatic Visual Testing
+# on:
+#   pull_request:
+#     branches: [main]
+# ...
+```
+
+**2. Keep Local Testing Available**:
+
+- Don't remove configuration files (`chromatic.config.json`, scripts)
+- Keep local testing command working (`npm run chromatic`)
+- Allows manual testing when needed
+
+**3. Create Reminder Ticket**:
+
+- HIGH PRIORITY ticket to re-enable when migration complete
+- Include checklist: verify stability, review baseline, re-enable workflow
+- Reference ticket ID in commented workflow file
+
+### Key Principles
+
+1. **Preserve resources** - Don't waste limited credits/quota on expected changes
+2. **Keep tooling ready** - Configuration files remain, local testing works
+3. **Document clearly** - Comment explains why disabled, when to re-enable, ticket reference
+3. **Create reminder** - HIGH PRIORITY ticket ensures re-enablement isn't forgotten
+4. **Strategic timing** - Disable during active migration, re-enable when stable
+
+### When to Apply
+
+**Disable when**:
+- ✅ Active migration with many expected changes (design system, refactoring, etc.)
+- ✅ CI tool consumes limited resources (review credits, API quotas, build minutes)
+- ✅ Expected changes would waste resources (intentional updates, not regressions)
+- ✅ Local testing still available for manual verification
+
+**Re-enable when**:
+- ✅ Migration complete (baseline established)
+- ✅ No major visual changes expected
+- ✅ Ready to catch regressions going forward
+- ✅ Resources available for ongoing testing
+
+### Why This Matters
+
+- **Resource efficiency**: Preserves limited credits/quota for actual regressions
+- **Strategic timing**: Disable during noise, enable when signal matters
+- **Tooling continuity**: Configuration remains, easy to re-enable
+- **Documentation**: Clear reason and reminder ticket prevent forgetting
+
+### Documentation Updates
+
+- ✅ Added to `.github/workflows/chromatic.yml` - Commented workflow with ticket reference
+- ✅ Created SYOS-539 - HIGH PRIORITY reminder ticket with re-enablement checklist
+- ✅ Pattern documented - Strategic CI tool management during migrations
+
+**See**: `.github/workflows/chromatic.yml` - Disabled workflow with clear documentation  
+**See**: SYOS-539 - Re-enable Chromatic Visual Regression Testing (reminder ticket)
+
+---
+
+**Last Updated**: 2025-11-23
