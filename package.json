@@ -48,13 +48,14 @@
 		"tokens:validate-dtcg": "npx tsx scripts/validate-dtcg.ts",
 		"tokens:build": "node scripts/build-tokens.js",
 		"tokens:watch": "node scripts/watch-tokens.js",
+		"recipes:validate": "node scripts/validate-recipes.js",
 		"migrate-ui-imports": "npx tsx scripts/migrate-ui-imports.ts",
 		"precommit": "npm run check && npm run test:sessionid && npm run check:confidentiality && npm run lint && npm run test:unit:server && npm run test:integration",
 		"review": "coderabbit review",
 		"review:staged": "coderabbit review --staged",
 		"review:plain": "coderabbit review --plain",
-		"ci:quick": "npm run check && npm run check:confidentiality && npm run lint && npm run build",
-		"ci:local": "npm run check && npm run lint && npm run test:unit:server && npm run test:integration && npm run test:e2e && npm run build"
+		"ci:quick": "npm run check && npm run check:confidentiality && npm run recipes:validate && npm run lint && npm run build",
+		"ci:local": "npm run check && npm run recipes:validate && npm run lint && npm run test:unit:server && npm run test:integration && npm run test:e2e && npm run build"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.4.0",
@@ -81,6 +82,7 @@
 		"eslint-config-prettier": "^10.1.8",
 		"eslint-plugin-better-tailwindcss": "^3.7.11",
 		"eslint-plugin-svelte": "^3.12.4",
+		"glob": "^13.0.0",
 		"globals": "^16.4.0",
 		"husky": "^9.1.7",
 		"jest-image-snapshot": "^6.5.1",
@@ -117,6 +119,7 @@
 		"@workos-inc/authkit-js": "^0.14.0",
 		"@workos/authkit-sveltekit": "^0.0.1-alpha.0",
 		"bits-ui": "^2.14.1",
+		"class-variance-authority": "^0.7.1",
 		"convex": "^1.28.0",
 		"convex-svelte": "^0.0.11",
 		"d3-hierarchy": "^3.1.2",

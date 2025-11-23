@@ -53,6 +53,17 @@ fi
 
 echo "✅ Design system validation passed!"
 
+# Recipe validation (SYOS-514)
+echo ""
+echo "🔍 Validating CVA recipes..."
+npm run recipes:validate || {
+	echo ""
+	echo "❌ Recipe validation failed!"
+	echo "Recipe classes must exist in design system utilities."
+	echo "See suggestions above and fix recipe files."
+	exit 1
+}
+
 # Token build and validation (SYOS-477)
 echo ""
 echo "🔨 Building tokens from DTCG..."

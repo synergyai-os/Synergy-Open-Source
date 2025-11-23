@@ -1,8 +1,10 @@
 <script lang="ts">
+	import { loadingRecipe } from '$lib/design-system/recipes/loading.recipe';
+
 	/**
 	 * Loading Component
 	 *
-	 * Unified loading state component that uses design tokens.
+	 * Unified loading state component that uses design tokens via CVA recipe.
 	 * Use this component throughout the app for consistent loading states.
 	 *
 	 * Props:
@@ -18,13 +20,8 @@
 
 	let { message = 'Loading...', size = 'md', fullHeight = false }: Props = $props();
 
-	// Map size prop to explicit pixel dimensions (SVG requires HTML attributes, not just CSS)
-	// These values match design tokens: icon-xs (12px), icon-sm (16px), icon-md (20px)
-	// SVG HTML attributes cannot use CSS custom properties, so we use matching pixel values
-	const dimensions = $derived(
-		// eslint-disable-next-line synergyos/no-hardcoded-design-values -- SVG HTML attributes require explicit pixel values
-		size === 'sm' ? 12 : size === 'lg' ? 20 : 16 // md (default): 16px (matches --size-icon-sm)
-	);
+	// Generate classes from CVA recipe
+	const spinnerClasses = $derived(loadingRecipe({ size }));
 </script>
 
 {#if fullHeight}
@@ -32,9 +29,7 @@
 		<div class="flex flex-col items-center gap-icon">
 			<!-- Loading Spinner -->
 			<svg
-				width={dimensions}
-				height={dimensions}
-				class="animate-spin text-accent-primary"
+				class={spinnerClasses}
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -56,9 +51,7 @@
 	<div class="flex flex-col items-center gap-icon py-readable-quote">
 		<!-- Loading Spinner -->
 		<svg
-			width={dimensions}
-			height={dimensions}
-			class="animate-spin text-accent-primary"
+			class={spinnerClasses}
 			fill="none"
 			stroke="currentColor"
 			viewBox="0 0 24 24"

@@ -422,6 +422,49 @@ Examples:
 
 ---
 
+## 5.4. Recipe Validation (If Creating/Modifying Recipes)
+
+**Purpose**: Validate CVA recipe classes exist in design system utilities
+
+**When**: If you created or modified a `.recipe.ts` file
+
+**Workflow**:
+
+1. **Run recipe validation**:
+
+   ```bash
+   npm run recipes:validate
+   ```
+
+2. **Check results**:
+   - ✅ **If clean** → Continue to ESLint validation
+   - ❌ **If violations found** → READ suggestions, fix immediately
+
+3. **If violations found**:
+
+   ```
+   ✗ src/lib/design-system/recipes/loading.recipe.ts
+     Line 17: Class 'icon-sm' not found
+     → Did you mean: 'size-iconsm'
+
+     Line 18: Class 'icon-md' not found
+     → Did you mean: 'size-iconmd'
+   ```
+
+   - READ the suggestions carefully
+   - Update recipe to use correct utility class names
+   - Re-run `npm run recipes:validate`
+   - Repeat until all recipes pass
+
+4. **Common mistakes caught**:
+   - Wrong utility names: `icon-sm` → `size-iconsm`
+   - Typos: `size-icon-sm` → `size-iconsm`
+   - Non-existent classes: `custom-size` → (doesn't exist in CSS)
+
+**Why mandatory**: Prevents recipes from referencing classes that don't exist, which would fail silently at runtime.
+
+---
+
 ## 5.5. IMMEDIATE ESLint Validation (MANDATORY - Layer 2 Enforcement)
 
 **⚠️ CRITICAL: Run ESLint validation IMMEDIATELY after implementation, BEFORE showing user**

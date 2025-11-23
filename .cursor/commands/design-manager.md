@@ -1064,60 +1064,61 @@ Task: Create loading spinner component with size variants
 
 ---
 
-## ⚠️ When Uncertain About Token Mapping → ASK THE USER
+## ⚠️ When Creating New Component Recipes → Use Recipe Validation
 
-**CRITICAL: Don't Guess, Don't Disable ESLint**
+**CRITICAL: Let Recipe Validation Guide You**
 
-**Scenario**: You're implementing a component with size variants and don't know which design token to use.
+**Scenario**: Creating a new component with size/variant props.
 
-**❌ WRONG Approach:**
+**✅ CORRECT Approach (Recipe System):**
 
-1. Guess which token to use
-2. Use hardcoded values
-3. Disable ESLint with `eslint-disable-next-line`
-4. Use "matching values" rationalization
+1. Create recipe file: `src/lib/design-system/recipes/[component].recipe.ts`
+2. Define variants with utility classes
+3. Run `npm run recipes:validate` immediately
+4. If validation fails → Follow suggestions to fix class names
+5. Re-run validation until clean
 
-**✅ CORRECT Approach:**
+**Example:**
 
-1. ⛔ **STOP implementation**
-2. 📋 **Check `dev-docs/2-areas/design/token-mapping-guide.md`** first
-3. 🤔 **If still uncertain** → Ask user with specific options:
+```typescript
+// button.recipe.ts
+export const buttonRecipe = cva('rounded font-semibold', {
+	variants: {
+		size: {
+			sm: 'size-iconsm', // Validation ensures these exist
+			md: 'size-iconmd',
+			lg: 'size-iconlg'
+		}
+	}
+});
+```
 
-**Example question format:**
+**Run validation:**
 
-> "I'm implementing a Loading spinner component with `size='md'` prop.
->
-> Available icon size tokens:
->
-> - `--size-iconxs` (12px)
-> - `--size-iconsm` (16px)
-> - `--size-iconmd` (20px)
-> - `--size-iconlg` (24px)
-> - `--size-iconxl` (32px)
->
-> Which token should I use for the default `md` size?
-> (I assume `--size-iconsm` (16px) but want to confirm before proceeding.)"
+```bash
+npm run recipes:validate
 
-**Why this matters:**
+# If errors:
+✗ Line 17: Class 'icon-sm' not found
+→ Did you mean: 'size-iconsm'
 
-- ✅ Gets correct token mapping from the start
-- ✅ Prevents ESLint workarounds
-- ✅ Maintains design system integrity
-- ✅ Creates opportunity to document mapping (update token-mapping-guide.md)
-- ✅ Shows respect for design system governance
+# Fix and re-run until:
+✓ All recipes validated successfully
+```
 
-**Common situations to ask:**
+**Why this works:**
 
-- New component with size variants
-- Ambiguous mapping (e.g., "md" could be 16px or 20px?)
-- Multiple tokens seem suitable
-- Component has unique requirements
+- ✅ Recipe validation catches wrong class names automatically
+- ✅ Suggestions guide to correct utilities
+- ✅ No need to manually map props to tokens
+- ✅ Single source of truth (recipe file)
 
-**After user clarifies:**
+**When to ask user:**
 
-1. Use the specified token
-2. Document the mapping in `token-mapping-guide.md` (if not already there)
-3. Proceed with implementation
+- Creating entirely new utility class (not in CSS yet)
+- Unsure if utility exists or needs to be created
+- Component has unique requirements outside standard variants
+
 4. Verify with ESLint
 
 **Remember**: Asking for clarification is ALWAYS better than:
