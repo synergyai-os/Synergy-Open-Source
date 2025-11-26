@@ -196,3 +196,13 @@ Add a new validation step that:
 - **Current Workaround**: Using `rounded-full` (9999px) for avatar images
 - **Note**: This is a documented design system exception (SYOS-585). Avatar components use `rounded-full` for perfect circle shape. See `src/lib/components/atoms/Avatar.svelte` for reference.
 
+## Scroll Area Utilities
+
+### Scrollbar Width (No Semantic Token)
+- **Location**: `src/lib/modules/core/organizations/components/OrganizationSwitcher.svelte` (line 241)
+- **Usage**: Scrollbar width for bits-ui ScrollArea component
+- **Status**: No semantic token exists for scrollbar-specific widths
+- **Current Workaround**: Using inline style `style="width: 0.5rem;"` (8px)
+- **Proposed Solution**: Could add `spacing.scrollbar.width` to semantic tokens if this pattern is reused
+- **Note**: Scrollbar widths are component-specific and may vary. Using inline style is acceptable for one-off cases.
+

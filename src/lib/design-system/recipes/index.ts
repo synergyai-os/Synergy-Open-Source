@@ -25,3 +25,7 @@ export {
 } from './workspaceSelector.recipe';
 export { avatarRecipe, type AvatarVariantProps } from './avatar.recipe';
 export { sidebarRecipe, type SidebarVariantProps } from './sidebar.recipe';
+export {
+	organizationItemRecipe,
+	type OrganizationItemVariantProps
+} from './organizationItem.recipe';

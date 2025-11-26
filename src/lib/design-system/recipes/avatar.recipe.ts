@@ -7,8 +7,8 @@ import { cva, type VariantProps } from 'class-variance-authority';
  * Uses design tokens for all styling (no hardcoded values).
  *
  * Variants: default, brand
- * - default: Uses accent color (fallback to interactive-primary if accent doesn't exist)
- * - brand: Uses brand/interactive-primary color with inverse text for high contrast
+ * - default: Neutral gray for workspace/organization avatars - professional, understated
+ * - brand: Brand teal for primary CTAs and brand elements - matches login button
  *
  * Sizes: sm, md, lg
  *
@@ -27,18 +27,21 @@ export const avatarRecipe = cva(
 	{
 		variants: {
 			variant: {
-				// Default: Uses interactive-primary (brand color) for consistency
-				// Note: bg-accent-primary doesn't exist, so using bg-interactive-primary
-				default: 'bg-interactive-primary text-inverse',
-				// Brand: Explicitly uses brand color with inverse text for high contrast
+				// Default: Neutral gray for workspace/organization avatars
+				// Uses interactive-tertiary (neutral-700 in light, appropriate in dark)
+				default: 'bg-interactive-tertiary text-inverse',
+				// Brand: Uses brand teal color with inverse text for high contrast
+				// Use for primary CTAs, main user avatar, or brand emphasis
 				brand: 'bg-interactive-primary text-inverse'
 			},
 			size: {
 				// WORKAROUND: size-avatar-* utilities don't exist - using CSS variables via inline styles
 				// See Avatar.svelte for inline style implementation
-				sm: 'text-label',
-				md: 'text-button',
-				lg: 'text-body'
+				xxs: 'text-2xs', // 10px - Extra tiny for compact sidebar headers
+				xs: 'text-xs', // 12px - Tiny
+				sm: 'text-label', // 10px
+				md: 'text-button', // 14px
+				lg: 'text-body' // 16px
 			}
 		},
 		defaultVariants: {
@@ -49,4 +52,3 @@ export const avatarRecipe = cva(
 );
 
 export type AvatarVariantProps = VariantProps<typeof avatarRecipe>;
-

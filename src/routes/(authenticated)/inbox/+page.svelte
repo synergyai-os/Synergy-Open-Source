@@ -418,11 +418,11 @@
 	<!-- Success message for linked account -->
 	{#if showLinkedSuccess}
 		<div
-			class="fixed top-content-section right-content-section z-50 flex items-center gap-2 rounded-card border border-accent-primary bg-elevated px-button-x shadow-card"
+			class="top-content-section right-content-section border-accent-primary fixed z-50 flex items-center gap-2 rounded-card border bg-elevated px-button-x shadow-card"
 			style="padding-block: var(--spacing-3);"
 		>
 			<svg
-				class="icon-md flex-shrink-0 text-accent-primary"
+				class="icon-md text-accent-primary flex-shrink-0"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -468,7 +468,7 @@
 			onWidthChange={layout.handleInboxWidthChange}
 			onClose={layout.handleClose}
 		>
-			<div class="flex h-full flex-col overflow-hidden border-r border-base bg-surface">
+			<div class="flex h-full flex-col overflow-hidden border-r border-subtle bg-surface">
 				<!-- Sticky Header -->
 				<InboxHeader
 					currentFilter={items.filterType}
@@ -501,7 +501,7 @@
 								<button
 									type="button"
 									onclick={() => window.location.reload()}
-									class="rounded-button bg-accent-primary px-button-x py-button-y text-primary transition-colors hover:bg-accent-hover"
+									class="bg-accent-primary hover:bg-accent-hover rounded-button px-button-x py-button-y text-primary transition-colors"
 								>
 									Reload Page
 								</button>
@@ -514,7 +514,7 @@
 									type="button"
 									onclick={sync.handleSyncClick}
 									disabled={sync.isSyncing}
-									class="rounded-button bg-accent-primary px-button-x py-button-y text-primary transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+									class="bg-accent-primary hover:bg-accent-hover rounded-button px-button-x py-button-y text-primary transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 								>
 									{sync.isSyncing ? 'Syncing...' : 'Sync Readwise Highlights'}
 								</button>
@@ -574,7 +574,7 @@
 					<FlashcardFAB {selectedItemId} {isGenerating} onClick={handleGenerateFlashcards} />
 					{#if generationError}
 						<div
-							class="absolute bottom-content-padding left-1/2 z-50 max-w-md -translate-x-1/2 rounded-button bg-error px-menu-item py-menu-item text-center text-small text-primary shadow-card"
+							class="bottom-content-padding bg-error px-menu-item py-menu-item text-small absolute left-1/2 z-50 max-w-md -translate-x-1/2 rounded-button text-center text-primary shadow-card"
 						>
 							{generationError}
 						</div>
@@ -594,7 +594,10 @@
 				/>
 			{:else}
 				<!-- Empty state -->
-        <div class="text-center" style="padding-block: var(--spacing-8); padding-inline: var(--spacing-4);">
+				<div
+					class="text-center"
+					style="padding-block: var(--spacing-8); padding-inline: var(--spacing-4);"
+				>
 					<div class="mb-content-section text-h1">📮</div>
 					<p class="text-secondary">Select an item to view details</p>
 				</div>
@@ -624,7 +627,7 @@
 						<FlashcardFAB {selectedItemId} {isGenerating} onClick={handleGenerateFlashcards} />
 						{#if generationError}
 							<div
-								class="absolute bottom-content-padding left-1/2 z-50 max-w-md -translate-x-1/2 rounded-button bg-error px-menu-item py-menu-item text-center text-small text-primary shadow-card"
+								class="bottom-content-padding bg-error px-menu-item py-menu-item text-small absolute left-1/2 z-50 max-w-md -translate-x-1/2 rounded-button text-center text-primary shadow-card"
 							>
 								{generationError}
 							</div>
@@ -667,7 +670,7 @@
 								<button
 									type="button"
 									onclick={() => window.location.reload()}
-									class="rounded-button bg-accent-primary px-button-x py-button-y text-primary transition-colors hover:bg-accent-hover"
+									class="bg-accent-primary hover:bg-accent-hover rounded-button px-button-x py-button-y text-primary transition-colors"
 								>
 									Reload Page
 								</button>
@@ -680,7 +683,7 @@
 									type="button"
 									onclick={sync.handleSyncClick}
 									disabled={sync.isSyncing}
-									class="rounded-button bg-accent-primary px-button-x py-button-y text-primary transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+									class="bg-accent-primary hover:bg-accent-hover rounded-button px-button-x py-button-y text-primary transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 								>
 									{sync.isSyncing ? 'Syncing...' : 'Sync Readwise Highlights'}
 								</button>

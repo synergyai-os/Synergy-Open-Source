@@ -451,7 +451,7 @@
 {#if useResizable && onSidebarWidthChange}
 	<ResizableSplitter
 		initialWidth={sidebarWidth}
-		minWidth={192}
+		minWidth={208}
 		maxWidth={384}
 		onWidthChange={(w) => onSidebarWidthChange?.(w)}
 		showHandle={sidebarCollapsed ? isHoveringRightEdge : true}
@@ -699,8 +699,7 @@
 			<!-- Development Test Menu (only in dev mode) -->
 			{#if dev && (!sidebarCollapsed || isPinned || (hoverState && !isMobile)) && !isMobile}
 				<div
-					class="border-t"
-					style="border-color: var(--color-component-sidebar-border); padding-inline: var(--spacing-2); padding-block: var(--spacing-2);"
+					style="padding-inline: var(--spacing-2); padding-block: var(--spacing-2);"
 					transition:fade={{ duration: 200 }}
 				>
 					<div style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);">
@@ -968,8 +967,7 @@
 		<!-- Development Test Menu (only in dev mode) -->
 		{#if dev && (!sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)) && !isMobile}
 			<div
-				class="border-t"
-				style="border-color: var(--color-component-sidebar-border); padding-inline: var(--spacing-2); padding-block: var(--spacing-2);"
+				style="padding-inline: var(--spacing-2); padding-block: var(--spacing-2);"
 				transition:fade={{ duration: 200 }}
 			>
 				<div style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);">

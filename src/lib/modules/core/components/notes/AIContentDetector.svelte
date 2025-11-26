@@ -70,19 +70,17 @@
 {#if visible}
 	<div
 		data-ai-detector-menu
-		class="border-divider bg-surface fixed z-50 rounded-button border px-2 py-1 shadow-card"
+		class="border-base fixed z-50 rounded-button border bg-surface px-2 py-1 shadow-card"
 		transition:fade={{ duration: 150 }}
 		style="left: {adjustedX()}px; top: {adjustedY()}px; width: {menuWidth()}px;"
 	>
-		<p class="text-surface-secondary text-small mb-content-section">
-			Did you paste AI-generated content?
-		</p>
+		<p class="text-small mb-content-section text-secondary">Did you paste AI-generated content?</p>
 
 		<div class="flex gap-2">
 			<button
 				type="button"
 				onclick={onConfirm}
-				class="bg-primary hover:bg-primary-hover text-small text-primary flex-1 rounded-button px-button-x py-button-y font-medium transition-colors"
+				class="text-small flex-1 rounded-button bg-interactive-primary px-button-x py-button-y font-medium text-inverse transition-colors hover:bg-interactive-primaryHover"
 			>
 				AI Generated
 			</button>
@@ -90,7 +88,7 @@
 			<button
 				type="button"
 				onclick={onDismiss}
-				class="bg-surface-hover text-surface-primary hover:bg-surface-hover-solid text-small flex-1 rounded-button px-button-x py-button-y transition-colors"
+				class="text-small flex-1 rounded-button bg-hover px-button-x py-button-y text-primary transition-colors hover:bg-active"
 			>
 				Close
 			</button>
@@ -98,48 +96,8 @@
 
 		<!-- Arrow pointer -->
 		<div
-			class="border-divider icon-xs bg-surface absolute rotate-45 transform border-t border-l"
+			class="icon-xs border-base absolute rotate-45 transform border-t border-l bg-surface"
 			style="top: -7px; left: 20px;"
 		></div>
 	</div>
 {/if}
-
-<style>
-	.gap-toolbar-item {
-		gap: 0.5rem;
-	}
-
-	.px-button {
-		padding-left: 1rem;
-		padding-right: 1rem;
-	}
-
-	.py-button-small {
-		padding-top: 0.5rem;
-		padding-bottom: 0.5rem;
-	}
-
-	.bg-surface {
-		background-color: var(--color-bg-surface);
-	}
-
-	.border-divider {
-		border-color: var(--color-border-divider);
-	}
-
-	.text-surface-primary {
-		color: var(--color-text-surface-primary);
-	}
-
-	.text-surface-secondary {
-		color: var(--color-text-surface-secondary);
-	}
-
-	.bg-surface-hover {
-		background-color: var(--color-bg-surface-hover);
-	}
-
-	.bg-primary {
-		background-color: var(--color-bg-primary);
-	}
-</style>

@@ -96,9 +96,10 @@
 	});
 </script>
 
-<!-- Sticky Header -->
+<!-- Sticky Header - Compact, no border, aligned with nav items -->
 <div
-	class="sticky top-0 z-10 flex h-system-header flex-shrink-0 items-center justify-between gap-2 border-b border-sidebar bg-sidebar px-header py-system-header"
+	class="bg-sidebar sticky top-0 z-10 flex flex-shrink-0 items-center justify-between gap-2"
+	style="padding-inline: var(--spacing-2); padding-block: var(--spacing-2);"
 >
 	{#if !sidebarCollapsed || (isMobile && !sidebarCollapsed) || (isHovered && !isMobile)}
 		<!-- Workspace Menu with Logo and Name - Takes remaining space -->
@@ -139,12 +140,11 @@
 			<button
 				type="button"
 				onclick={() => onSearch?.()}
-				class="rounded p-1.5 text-sidebar-secondary transition-colors hover:bg-sidebar-hover-solid hover:text-sidebar-primary"
+				class="rounded-button p-1.5 text-secondary transition-all duration-200 hover:bg-subtle hover:text-primary"
 				aria-label="Search"
 			>
 				<svg
-					class="h-4 w-4"
-					style="width: 16px; height: 16px;"
+					class="size-icon-sm"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -161,12 +161,11 @@
 			<button
 				type="button"
 				onclick={() => onEdit?.()}
-				class="rounded p-1.5 text-sidebar-secondary transition-colors hover:bg-sidebar-hover-solid hover:text-sidebar-primary"
+				class="rounded-button p-1.5 text-secondary transition-all duration-200 hover:bg-subtle hover:text-primary"
 				aria-label="Edit"
 			>
 				<svg
-					class="h-4 w-4"
-					style="width: 16px; height: 16px;"
+					class="size-icon-sm"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"

@@ -241,6 +241,12 @@ npm run check
 3. Do NOT proceed until all validations pass OR workarounds are documented
 
 ### 6. Document Workarounds (REQUIRED when hardcoding)
+
+**🚨 FIRST**: Before documenting a workaround, confirm the utility truly can't be generated:
+1. Can you add a token to `design-tokens-semantic.json`? → Add token, run `npm run tokens:build`
+2. Is the naming pattern not supported? → Update `scripts/style-dictionary/transforms.js`, run build
+3. **NEVER manually edit `src/styles/utilities/*.css`** - always use the build system
+
 **If you MUST use a hardcoded value because the design system lacks a token:**
 
 1. **STOP and document in `ai-docs/tasks/missing-styles.md`** using this format:
@@ -396,6 +402,7 @@ Before marking complete, verify ALL of these:
 - **Use inline styles for skeleton dimensions**: Skeleton loading states use inline styles (no semantic tokens)
 
 ❌ **DON'T:**
+- **🚨 NEVER EDIT AUTO-GENERATED CSS FILES** - See "Auto-Generated Files" edge case below
 - **NEVER use Tailwind numeric spacing** (`gap-2`, `mb-4`, `p-3`, etc.) - use semantic tokens
 - **NEVER use Tailwind color scales** (`text-gray-500`, `bg-blue-100`, etc.) - use semantic tokens
 - **NEVER use hardcoded sizes** (`h-5`, `w-5`, etc.) - use semantic tokens (`size-icon-md`)
@@ -520,12 +527,75 @@ NavItem.svelte → navItemRecipe.ts
 
 ## Edge Cases
 
+### 🚨 Auto-Generated Files (CRITICAL - NON-NEGOTIABLE)
+
+**Problem**: Manually editing auto-generated CSS files breaks the design system cascade.
+
+**AUTO-GENERATED FILES - NEVER EDIT DIRECTLY:**
+```
+src/styles/utilities/spacing-utils.css    ← AUTO-GENERATED
+src/styles/utilities/color-utils.css      ← AUTO-GENERATED
+src/styles/utilities/typography-utils.css ← AUTO-GENERATED
+src/styles/utilities/component-utils.css  ← AUTO-GENERATED
+src/styles/utilities/opacity-utils.css    ← AUTO-GENERATED
+```
+
+**How to identify**: These files have a header comment `AUTO-GENERATED - DO NOT EDIT`
+
+**Why this breaks things**:
+1. Manual edits are overwritten on `npm run tokens:build`
+2. Breaks the cascade: `tokens → build → utilities`
+3. Creates inconsistency between tokens and utilities
+4. Next developer running build will lose your changes
+
+**The Correct Process for Adding New Utilities**:
+1. **Add token to `design-tokens-semantic.json`** with correct naming pattern
+2. **If build script doesn't support pattern**, update `scripts/style-dictionary/transforms.js`
+3. **Run `npm run tokens:build`** to regenerate utilities
+4. **Verify utility was generated**: `grep "^@utility my-utility-name" src/styles/utilities/*.css`
+
+**Token Naming → Utility Generation Patterns** (in `transforms.js`):
+| Token Path | Generated Utility | CSS Property |
+|------------|-------------------|--------------|
+| `spacing.foo.x` | `px-foo` | `padding-inline` |
+| `spacing.foo.y` | `py-foo` | `padding-block` |
+| `spacing.foo.my` | `my-foo` | `margin-block` |
+| `spacing.foo.mb` | `mb-foo` | `margin-block-end` |
+| `spacing.foo.mt` | `mt-foo` | `margin-block-start` |
+| `spacing.foo.gap` | `gap-foo` | `gap` |
+| `spacing.foo` | `foo` | `padding` (default) |
+
+**Example - Adding `my-stack-divider`**:
+```json
+// design-tokens-semantic.json
+"spacing": {
+  "stack": {
+    "divider": {
+      "my": { "$value": "{spacing.2}", "$description": "Divider vertical margin" }
+    }
+  }
+}
+```
+Then run `npm run tokens:build` → generates `@utility my-stack-divider { margin-block: var(--spacing-stack-divider-my); }`
+
+**If the pattern doesn't exist in `transforms.js`**:
+1. Edit `scripts/style-dictionary/transforms.js`
+2. Add the pattern to the spacing utilities section
+3. Run `npm run tokens:build`
+4. Test that utility generates correctly
+
+**Detection**: If you see yourself typing CSS rules into files under `src/styles/utilities/`, STOP. You're doing it wrong.
+
+---
+
 ### Missing Utility
 - **Problem**: Recipe references utility that doesn't exist
 - **Solution**: 
   1. **First check `design-tokens-semantic.json`** - does semantic token exist? (e.g., `spacing.button.gap`)
-  2. If semantic token exists but utility missing, document in `missing-styles.md` and note token needs to be added
-  3. If neither exists, document in `missing-styles.md`, add exception comment in recipe, use workaround temporarily
+  2. **If semantic token exists but utility missing**: Check if `transforms.js` supports the naming pattern (see table above)
+  3. **If pattern not supported**: Add pattern to `scripts/style-dictionary/transforms.js`, then run `npm run tokens:build`
+  4. **If token doesn't exist**: Add to `design-tokens-semantic.json` with correct naming, run `npm run tokens:build`
+  5. **NEVER manually add utilities** - always use the build system
 
 ### Recipe Not Using Semantic Tokens
 - **Problem**: Recipe uses hardcoded Tailwind (`gap-2`) when semantic token exists (`spacing.button.gap` → `gap-button`)
@@ -535,8 +605,9 @@ NavItem.svelte → navItemRecipe.ts
   2. Check `design-tokens-semantic.json` for component-specific tokens (e.g., `spacing.button.*`, `color.interactive.*`)
   3. Replace hardcoded values with semantic token utilities
   4. Verify utility exists: `grep "^@utility gap-button" src/styles/utilities/*.css`
-  5. If utility doesn't exist, add token to semantic file and run `npm run tokens:build`
-  6. Re-run `npm run validate:tokens` to confirm fixes
+  5. **If utility doesn't exist**: See "Auto-Generated Files" edge case above - add token with correct naming, run `npm run tokens:build`
+  6. **NEVER manually edit CSS** - always use the token → build → utility cascade
+  7. Re-run `npm run validate:tokens` to confirm fixes
 
 ### Mixed Layout + Styling Classes
 - **Problem**: Component has both layout (`mt-*`, `gap-*`) and styling classes
@@ -602,6 +673,65 @@ NavItem.svelte → navItemRecipe.ts
   <div class="bg-radial-[at_50%_35%] from-[oklch(55%_0.12_195_/_0.08)] ...">
   ```
 - Keep opacity low (5-10%) to avoid "cheap" look
+
+### Dropdown Menu Gradients
+- **Problem**: Dropdown menus look flat and boring compared to premium pages (login)
+- **Solution**: Add subtle radial gradient to dropdown content:
+  ```svelte
+  <DropdownMenu.Content class="relative overflow-hidden rounded-modal border border-base bg-surface shadow-md">
+    <!-- Gradient overlay - brand hue (195) at 5% opacity -->
+    <div class="pointer-events-none absolute inset-0 bg-radial-[at_50%_0%] from-[oklch(55%_0.12_195_/_0.05)] via-[oklch(55%_0.06_195_/_0.02)] to-transparent" aria-hidden="true"></div>
+    <div class="relative"><!-- Content here --></div>
+  </DropdownMenu.Content>
+  ```
+- **Key changes**: `bg-surface` (not `bg-elevated`), `rounded-modal`, `shadow-md`, gradient overlay
+- **Why**: Matches login page aesthetic, creates visual consistency
+
+### Non-Existent Hover Utilities
+- **Problem**: Components use `hover:bg-hover-solid` which doesn't exist as a utility
+- **Detection**: Hover effects don't work, no visual feedback on menu items
+- **Solution**: Use `hover:bg-subtle` or `hover:bg-active` instead:
+  ```svelte
+  <!-- ❌ WRONG: Non-existent utility -->
+  <DropdownMenu.Item class="hover:bg-hover-solid focus:bg-hover-solid ...">
+  
+  <!-- ✅ CORRECT: Use existing utilities -->
+  <DropdownMenu.Item class="hover:bg-subtle focus:bg-subtle ...">
+  ```
+- **Why**: `bg-hover-solid` was never added to semantic tokens - `bg-subtle` provides visible feedback
+- **Bonus**: Add `rounded-button mx-1 transition-all duration-200` for polished look
+
+### Inline Style Overrides on Atoms
+- **Problem**: Parent components override atom styling with inline styles, breaking the recipe system
+- **Example**: `<Avatar style="background-color: var(--color-component-sidebar-itemHover);" />`
+- **Detection**: Avatar/Button/etc. looks different than expected, inconsistent styling
+- **Solution**: 
+  1. Remove inline style override
+  2. Use atom's variant props instead
+  3. If needed variant doesn't exist, add it to the recipe
+  ```svelte
+  <!-- ❌ WRONG: Inline override -->
+  <Avatar variant="default" style="background-color: var(--color-component-sidebar-itemHover);" />
+  
+  <!-- ✅ CORRECT: Use variant prop -->
+  <Avatar variant="default" />
+  ```
+- **Why**: Inline styles bypass the recipe system, can't be updated via tokens, creates inconsistencies
+
+### Avatar Variant Differentiation
+- **Problem**: Both avatar variants (`default` and `brand`) use same color - no way to distinguish use cases
+- **Solution**: Differentiate variants for different contexts:
+  - `default`: Neutral gray (`bg-interactive-tertiary`) - workspace/organization avatars
+  - `brand`: Brand teal (`bg-interactive-primary`) - primary CTAs, user profile, brand emphasis
+  ```typescript
+  // In avatar.recipe.ts
+  variant: {
+    default: 'bg-interactive-tertiary text-inverse',  // Gray - professional
+    brand: 'bg-interactive-primary text-inverse'      // Teal - brand color
+  }
+  ```
+- **Pattern**: Workspace avatars = gray (professional), Primary CTAs = brand color (teal)
+- **Why**: Creates visual hierarchy, workspace avatars don't compete with brand CTAs
 
 ### Opacity Handling
 - **Problem**: Need opacity values (e.g., loading states, disabled states)
@@ -741,12 +871,18 @@ NavItem.svelte → navItemRecipe.ts
 
 ## Exception Rule
 
+**🚨 NON-NEGOTIABLE - NO EXCEPTIONS:**
+- **NEVER manually edit files in `src/styles/utilities/`** - These are auto-generated
+- **NEVER add CSS utilities by hand** - Always use `design-tokens-semantic.json` → `npm run tokens:build`
+- If the build doesn't generate what you need, fix `scripts/style-dictionary/transforms.js`
+
 **If you MUST use a non-design-token utility:**
 1. **STOP** - Run `npm run validate:design-system` first to confirm it's actually missing
-2. **Document** in `ai-docs/tasks/missing-styles.md` (see Step 6 format)
-3. **Add inline comment** in code: `// WORKAROUND: [utility] missing - see missing-styles.md`
-4. **Create follow-up task** in `missing-styles.md` to add the token
-5. **Proceed** with hardcoded workaround only after documentation is complete
+2. **Check if utility can be generated** - See "Auto-Generated Files" edge case for token naming patterns
+3. **If pattern not supported**, update `scripts/style-dictionary/transforms.js` first
+4. **If truly can't be tokenized**, document in `ai-docs/tasks/missing-styles.md` (see Step 6 format)
+5. **Add inline comment** in code: `// WORKAROUND: [utility] missing - see missing-styles.md`
+6. **Proceed** with hardcoded workaround only after documentation is complete
 
 **Approval required for:**
 - Using Tailwind color scales (e.g., `text-gray-500`) - must document why semantic token can't work
@@ -771,6 +907,14 @@ npm run validate:design-system
 ## Key Principle
 
 **Move styling from hardcoded classes → recipe props → design tokens**
+
+**🚨 The Sacred Cascade (NEVER break this):**
+```
+design-tokens-semantic.json → npm run tokens:build → src/styles/utilities/*.css
+```
+- **Tokens are source of truth** - All utilities come from tokens
+- **Build generates utilities** - `transforms.js` controls how tokens become CSS
+- **Never edit generated files** - Changes must go through tokens
 
 **100% design token utilities only** - This centralizes styling and enables token-driven updates across the system.
 

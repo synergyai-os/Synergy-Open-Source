@@ -53,3 +53,14 @@ export { default as LinkPreview } from './LinkPreview.svelte';
 export * as RatingGroup from './RatingGroup.svelte';
 export { default as NavItem } from './NavItem.svelte';
 export { default as SplitButton } from './SplitButton.svelte';
+
+// Organization Switcher Molecules
+export { default as AccountInfo } from './AccountInfo.svelte';
+export { default as AccountActions } from './AccountActions.svelte';
+export { default as OrganizationItem } from './OrganizationItem.svelte';
+export { default as OrganizationList } from './OrganizationList.svelte';
+export { default as WorkspaceActions } from './WorkspaceActions.svelte';
+export { default as AccountMenu } from './AccountMenu.svelte';
+export { default as LinkedAccountGroup } from './LinkedAccountGroup.svelte';
+export { default as InviteItem } from './InviteItem.svelte';
+export { default as InvitesList } from './InvitesList.svelte';

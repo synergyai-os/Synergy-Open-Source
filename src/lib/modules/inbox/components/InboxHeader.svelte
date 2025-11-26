@@ -41,8 +41,8 @@
 </script>
 
 <div
-	class="h-system-header border-base bg-surface sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b py-system-header"
-	style="padding-inline: var(--spacing-4);"
+	class="sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b border-subtle bg-surface"
+	style="height: 2.5rem; padding-inline: var(--spacing-4); padding-block: var(--spacing-2);"
 >
 	<!-- Left: Title + Sidebar Toggle + Kebab Menu -->
 	<div class="flex items-center gap-2">
@@ -50,11 +50,11 @@
 			<SidebarToggle {sidebarCollapsed} onToggle={onSidebarToggle} {isMobile} />
 		{/if}
 
-		<h2 class="text-small text-secondary flex items-center gap-2 font-normal">
+		<h2 class="text-small flex items-center gap-2 font-normal text-secondary">
 			Inbox
 			{#if inboxCount > 0}
 				<span
-					class="min-w-badge text-label text-primary flex items-center justify-center rounded-chip bg-accent-primary px-badge py-badge text-center leading-none font-medium"
+					class="min-w-badge rounded-chip bg-accent-primary px-badge py-badge flex items-center justify-center text-center text-label leading-none font-medium text-primary"
 				>
 					{inboxCount}
 				</span>
@@ -65,7 +65,7 @@
 		<DropdownMenu.Root bind:open={menuOpen}>
 			<DropdownMenu.Trigger
 				type="button"
-				class="icon-xl text-secondary hover:bg-hover-solid hover:text-primary flex items-center justify-center rounded-button transition-colors"
+				class="icon-xl hover:bg-hover-solid flex items-center justify-center rounded-button text-secondary transition-colors hover:text-primary"
 			>
 				<svg
 					class="icon-sm"
@@ -85,14 +85,14 @@
 
 			<DropdownMenu.Portal>
 				<DropdownMenu.Content
-					class="border-base bg-elevated z-50 min-w-dropdown rounded-button border py-badge shadow-card"
+					class="border-base min-w-dropdown py-badge z-50 rounded-button border bg-elevated shadow-card"
 					side="bottom"
 					align="start"
 					sideOffset={4}
 				>
 					{#if onSync}
 						<DropdownMenu.Item
-							class="text-small text-primary hover:bg-hover-solid focus:bg-hover-solid flex cursor-pointer items-center justify-between px-menu-item py-menu-item outline-none disabled:cursor-not-allowed disabled:opacity-50"
+							class="text-small hover:bg-hover-solid focus:bg-hover-solid px-menu-item py-menu-item flex cursor-pointer items-center justify-between text-primary outline-none disabled:cursor-not-allowed disabled:opacity-50"
 							textValue="Sync Readwise Highlights"
 							disabled={isSyncing}
 							onSelect={() => {
@@ -122,11 +122,11 @@
 							{/if}
 						</DropdownMenu.Item>
 
-						<DropdownMenu.Separator class="my-badge bg-base h-px" />
+						<DropdownMenu.Separator class="my-badge h-px bg-base" />
 					{/if}
 
 					<DropdownMenu.Item
-						class="text-small text-primary hover:bg-hover-solid focus:bg-hover-solid flex cursor-pointer items-center justify-between px-menu-item py-menu-item outline-none"
+						class="text-small hover:bg-hover-solid focus:bg-hover-solid px-menu-item py-menu-item flex cursor-pointer items-center justify-between text-primary outline-none"
 						textValue="Delete all"
 						onSelect={() => {
 							onDeleteAll?.();
@@ -137,7 +137,7 @@
 					</DropdownMenu.Item>
 
 					<DropdownMenu.Item
-						class="text-small text-primary hover:bg-hover-solid focus:bg-hover-solid flex cursor-pointer items-center justify-between px-menu-item py-menu-item outline-none"
+						class="text-small hover:bg-hover-solid focus:bg-hover-solid px-menu-item py-menu-item flex cursor-pointer items-center justify-between text-primary outline-none"
 						textValue="Delete all read"
 						onSelect={() => {
 							onDeleteAllRead?.();
@@ -148,7 +148,7 @@
 					</DropdownMenu.Item>
 
 					<DropdownMenu.Item
-						class="text-small text-primary hover:bg-hover-solid focus:bg-hover-solid flex cursor-pointer items-center justify-between px-menu-item py-menu-item outline-none"
+						class="text-small hover:bg-hover-solid focus:bg-hover-solid px-menu-item py-menu-item flex cursor-pointer items-center justify-between text-primary outline-none"
 						textValue="Delete all for completed issues and reviews"
 						onSelect={() => {
 							onDeleteAllCompleted?.();
@@ -170,7 +170,7 @@
 		<!-- Sort Icon -->
 		<button
 			type="button"
-			class="icon-xl text-secondary hover:bg-hover-solid hover:text-primary flex items-center justify-center rounded-button transition-colors"
+			class="icon-xl hover:bg-hover-solid flex items-center justify-center rounded-button text-secondary transition-colors hover:text-primary"
 			onclick={() => onSortClick?.()}
 			aria-label="Sort inbox items"
 		>

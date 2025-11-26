@@ -5,7 +5,6 @@
 	type Props = {
 		avatarImage?: string;
 		initials: string;
-		username: string;
 		orgName: string;
 		showLabels?: boolean;
 		isLoading?: boolean;
@@ -16,7 +15,6 @@
 	let {
 		avatarImage,
 		initials,
-		username,
 		orgName,
 		showLabels = true,
 		isLoading = false,
@@ -44,32 +42,29 @@
 	style="opacity: {isLoading ? 'var(--opacity-60)' : 'var(--opacity-100)'}"
 >
 	{#if avatarImage}
-		<img src={avatarImage} alt={username} class="size-avatar-sm flex-shrink-0 rounded-avatar" />
+		<!-- Tiny avatar image for sidebar header (20px) -->
+		<img
+			src={avatarImage}
+			alt={orgName}
+			class="flex-shrink-0 rounded-full"
+			style="width: 1.25rem; height: 1.25rem;"
+		/>
 	{:else}
-		<Avatar {initials} size="sm" variant="brand" />
+		<!-- Workspace avatars use neutral gray (default) for professional appearance - xxs (20px) for compact sidebar -->
+		<Avatar {initials} size="xxs" variant="default" />
 	{/if}
 
 	{#if showLabels}
-		<!-- Text group wrapper: flex-1 to take available space, left-aligned -->
-		<!-- Tight spacing (2px) between username and orgName for compact display -->
-		<div class="flex min-w-0 flex-1 flex-col text-left" style="gap: var(--spacing-0-5);">
+		<!-- Org name display - single line, takes available space -->
+		<div class="flex min-w-0 flex-1 items-center text-left">
 			{#if isLoading}
-				<!-- Skeleton loading state - exact match to text sizes including line-height -->
-				<!-- Username: text-sm (14px) with line-height 1.5 = 21px (1.3125rem) -->
+				<!-- Skeleton loading state - matches text-xs (12px) with line-height 1.5 = 18px -->
 				<div
 					class="animate-pulse rounded"
-					style="height: 1.3125rem; width: 7rem; background-color: var(--color-component-sidebar-itemHover);"
-				></div>
-				<!-- OrgName: text-[0.625rem] (10px) with line-height 1.5 = 15px (0.9375rem) -->
-				<div
-					class="animate-pulse rounded"
-					style="height: 0.9375rem; width: 4rem; background-color: var(--color-component-sidebar-itemHover);"
+					style="height: 1.125rem; width: 5rem; background-color: var(--color-component-sidebar-itemHover);"
 				></div>
 			{:else}
-				<Text variant="body" size="sm" color="default" as="span" class="truncate font-medium">
-					{username}
-				</Text>
-				<Text variant="label" size="sm" color="tertiary" as="span" class="truncate">
+				<Text variant="body" size="sm" color="default" as="span" class="truncate font-semibold">
 					{orgName}
 				</Text>
 			{/if}

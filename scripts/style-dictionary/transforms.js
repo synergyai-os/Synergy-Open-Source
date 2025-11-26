@@ -144,11 +144,12 @@ function transformTailwindUtility(token) {
 		}
 
 		// Pattern matching for utility generation
-		if (spacingName.includes('-x')) {
-			utilityName = `px-${spacingName.replace('-x', '')}`;
+		// Use regex to match -x or -y only when followed by end or dash (not xs, xl, etc.)
+		if (/-x(?=$|-)/.test(spacingName)) {
+			utilityName = `px-${spacingName.replace(/-x(?=$|-)/, '')}`;
 			cssProperty = 'padding-inline';
-		} else if (spacingName.includes('-y')) {
-			utilityName = `py-${spacingName.replace('-y', '')}`;
+		} else if (/-y(?=$|-)/.test(spacingName)) {
+			utilityName = `py-${spacingName.replace(/-y(?=$|-)/, '')}`;
 			cssProperty = 'padding-block';
 		} else if (spacingName.includes('gap')) {
 			utilityName = `gap-${spacingName.replace('-gap', '')}`;
@@ -161,6 +162,10 @@ function transformTailwindUtility(token) {
 			// Margin-top utility: fieldGroup-mt → mt-fieldGroup
 			utilityName = `mt-${spacingName.replace('-mt', '')}`;
 			cssProperty = 'margin-block-start';
+		} else if (spacingName.includes('-my') || spacingName.endsWith('-my')) {
+			// Margin-block utility (top + bottom): stack-divider-my → my-stack-divider
+			utilityName = `my-${spacingName.replace('-my', '')}`;
+			cssProperty = 'margin-block';
 		} else if (spacingName.startsWith('icon-')) {
 			// Icon size utility: icon-sm, icon-md, icon-lg → size-icon-sm
 			utilityName = `size-${spacingName}`;

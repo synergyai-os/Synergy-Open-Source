@@ -50,7 +50,7 @@
 
 					<div class="h-2.5 w-full overflow-hidden rounded-chip bg-base">
 						<div
-							class="bg-primary h-full transition-all duration-300 ease-out"
+							class="bg-interactive-primary h-full transition-all duration-300 ease-out"
 							style="width: {progressPercentage}%"
 						></div>
 					</div>

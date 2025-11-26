@@ -150,13 +150,13 @@
 			{#if !activity.progress?.indeterminate && progressPercentage() > 0}
 				<div class="h-2 w-full overflow-hidden rounded-full bg-base">
 					<div
-						class="bg-primary h-full transition-all duration-300 ease-out"
+						class="bg-interactive-primary h-full transition-all duration-300 ease-out"
 						style="width: {progressPercentage()}%"
 					></div>
 				</div>
 			{:else if activity.progress?.indeterminate}
 				<div class="h-2 w-full overflow-hidden rounded-full bg-base">
-					<div class="bg-primary h-full animate-pulse" style="width: 60%"></div>
+					<div class="bg-interactive-primary h-full animate-pulse" style="width: 60%"></div>
 				</div>
 			{/if}
 

@@ -55,11 +55,12 @@
 
 {#if isMobile}
 	<header
-		class="flex h-system-header items-center justify-between gap-2 border-b border-base bg-surface px-inbox-container py-system-header"
+		class="flex items-center justify-between gap-2 border-b border-subtle bg-surface"
+		style="height: 2.5rem; padding-inline: var(--spacing-4); padding-block: var(--spacing-2);"
 	>
 		<button
 			type="button"
-			class="flex h-9 w-9 items-center justify-center rounded-md bg-sidebar text-sidebar-primary hover:bg-sidebar-hover"
+			class="bg-sidebar text-sidebar-primary hover:bg-sidebar-hover flex h-9 w-9 items-center justify-center rounded-md"
 			onclick={() => onSidebarToggle?.()}
 			aria-label={sidebarCollapsed ? 'Open navigation' : 'Close navigation'}
 		>
@@ -100,12 +101,13 @@
 		<div class="h-9 w-9" aria-hidden="true"></div>
 	</header>
 {:else}
-	<!-- Desktop: Show workspace indicator -->
+	<!-- Desktop: Show workspace indicator - compact header with subtle styling -->
 	<header
-		class="flex h-system-header items-center justify-between gap-2 border-b border-base bg-surface px-inbox-container py-system-header"
+		class="flex items-center justify-between gap-2 border-b border-subtle bg-surface"
+		style="height: 2.5rem; padding-inline: var(--spacing-4); padding-block: var(--spacing-2);"
 	>
 		<div class="flex items-center gap-2">
-			<span class="text-label text-secondary">
+			<span class="text-label text-tertiary">
 				📁 {workspaceName}
 			</span>
 		</div>

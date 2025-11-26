@@ -535,6 +535,7 @@
 
 		"avatar": {
 			"$description": "Avatar sizes",
+			"xxs": { "$value": "1.25rem", "$description": "20px - Extra tiny avatar (sidebar headers)" },
 			"xs": { "$value": "1.5rem", "$description": "24px - Tiny avatar" },
 			"sm": { "$value": "2rem", "$description": "32px - Small avatar" },
 			"md": { "$value": "2.5rem", "$description": "40px - Default avatar" },
@@ -567,11 +568,16 @@
 		"sidebar": {
 			"collapsed": { "$value": "4rem", "$description": "64px - Collapsed sidebar" },
 			"default": { "$value": "16rem", "$description": "256px - Default sidebar" },
-			"expanded": { "$value": "20rem", "$description": "320px - Expanded sidebar" }
+			"expanded": { "$value": "20rem", "$description": "320px - Expanded sidebar" },
+			"minWidth": { "$value": "13rem", "$description": "208px - Minimum sidebar width" }
 		},
 
 		"header": {
-			"height": { "$value": "4rem", "$description": "64px - Header height" }
+			"height": { "$value": "2.5rem", "$description": "40px - Header height" }
+		},
+
+		"sidebarHeader": {
+			"height": { "$value": "1.25rem", "$description": "20px - Sidebar header height (compact)" }
 		},
 
 		"container": {

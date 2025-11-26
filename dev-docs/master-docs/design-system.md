@@ -524,6 +524,21 @@ npm run lint
 - Never multi-color rainbows
 - Page-level effects documented inline (not design tokens)
 
+#### Dropdown Menu Premium Styling
+- **Background**: Use `bg-surface` (not `bg-elevated`) for cleaner look
+- **Gradient overlay**: Add subtle radial gradient with brand hue (195) at 5% opacity:
+  ```svelte
+  <DropdownMenu.Content class="relative overflow-hidden rounded-modal border border-base bg-surface shadow-md">
+    <!-- Gradient overlay -->
+    <div class="pointer-events-none absolute inset-0 bg-radial-[at_50%_0%] from-[oklch(55%_0.12_195_/_0.05)] via-[oklch(55%_0.06_195_/_0.02)] to-transparent" aria-hidden="true"></div>
+    <!-- Content with relative positioning -->
+    <div class="relative">...</div>
+  </DropdownMenu.Content>
+  ```
+- **Hover states**: Use `hover:bg-subtle` (NOT `hover:bg-hover-solid` which doesn't exist)
+- **Menu items**: Add `mx-1 rounded-button` for inset, polished look
+- **Transitions**: Use `transition-all duration-200` for smooth feedback
+
 ### 9.2 Semantic Spacing Tokens
 
 #### Available Spacing Utilities
@@ -559,7 +574,42 @@ rounded-input            /* Input border radius */
 rounded-button           /* Button border radius */
 rounded-card             /* Card border radius */
 rounded-modal            /* Modal border radius */
+
+/* Stack - Universal vertical rhythm for internal structure */
+py-stack-item            /* Item vertical padding (8px) - menu items, card rows, settings */
+py-stack-header          /* Section header vertical padding (10px) - labels, titles */
+my-stack-divider         /* Divider vertical margin (8px above + below) */
+
+/* Inset - Container edge padding */
+inset-xs                 /* Extra small all-sides (4px) - compact containers */
+inset-sm                 /* Small all-sides (8px) - default dropdowns */
+inset-md                 /* Medium all-sides (12px) - cards, panels */
+inset-lg                 /* Large all-sides (16px) - modals */
+py-inset-xs              /* Extra small vertical (4px) - compact menu containers */
+py-inset-sm              /* Small vertical (8px) - default dropdown containers */
 ```
+
+### 9.3 Stack & Inset Pattern
+
+Universal spacing pattern for any component with headers, items, and dividers:
+
+```
+┌─────────────────────────────────────┐  ← py-inset-xs (container top)
+│  SECTION LABEL                      │  ← py-stack-header
+│  ┌─────────────────────────────────┐│
+│  │ Item 1                          ││  ← py-stack-item
+│  │ Item 2                          ││  ← py-stack-item
+│  │ Item 3                          ││  ← py-stack-item
+│  └─────────────────────────────────┘│
+│  ───────────────────────────────────│  ← my-stack-divider
+│  ANOTHER SECTION                    │  ← py-stack-header
+│  ┌─────────────────────────────────┐│
+│  │ Item A                          ││  ← py-stack-item
+│  └─────────────────────────────────┘│
+└─────────────────────────────────────┘  ← py-inset-xs (container bottom)
+```
+
+**Applies to**: Dropdown menus, sidebars, cards with sections, settings panels, modals with lists, accordions, tables
 
 #### When to Add New Tokens
 

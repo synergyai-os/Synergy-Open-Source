@@ -606,7 +606,7 @@
 		const REM_TO_PX_FACTOR = 16; // Standard browser rem base (not a design token)
 		// Fallback values matching token defaults (used only if token read fails)
 		const SIDEBAR_EXPANDED_FALLBACK_PX = 286; // Matches --size-sidebar-expanded token
-		const SIDEBAR_COLLAPSED_FALLBACK_PX = 192; // Matches --size-sidebar-collapsed token
+		const SIDEBAR_COLLAPSED_FALLBACK_PX = 208; // Matches --size-sidebar-minWidth token
 
 		// Helper to read sidebar width token and convert rem to pixels
 		const getSidebarWidthToken = (tokenName: string, fallbackPx: number): number => {
@@ -754,7 +754,22 @@
 	<!-- Admin routes use their own layout - skip authenticated layout -->
 	{@render children()}
 {:else if isAuthenticated}
-	<div class="flex h-screen overflow-hidden">
+	<!--
+		Shell Layout Pattern (Linear/Notion inspired)
+		- Outer shell: sidebar background with subtle brand gradient
+		- Inner content: floating white card with rounded corners, border, shadow
+	-->
+	<div class="bg-sidebar relative flex h-screen overflow-hidden">
+		<!--
+			Shell Background Gradient
+			- Uses brand hue (195) at 3% opacity for subtle depth
+			- Radial gradient from top-left for natural light feel
+		-->
+		<div
+			class="pointer-events-none absolute inset-0 bg-radial-[at_0%_0%] from-[oklch(55%_0.12_195_/_0.03)] via-transparent to-transparent"
+			aria-hidden="true"
+		></div>
+
 		<!-- Shared Sidebar Component -->
 		<Sidebar
 			{inboxCount}
@@ -776,19 +791,36 @@
 			{dashboardEnabled}
 		/>
 
-		<!-- Main Content Area -->
-		<div class="flex flex-1 flex-col overflow-hidden">
-			<AppTopBar
-				{organizations}
-				{isMobile}
-				{sidebarCollapsed}
-				onSidebarToggle={() => (sidebarCollapsed = !sidebarCollapsed)}
-				accountName={accountName()}
-				accountEmail={accountEmail()}
-				workspaceName={workspaceName()}
-			/>
-			<div class="flex-1 overflow-hidden">
-				{@render children()}
+		<!-- Main Content Area - Floating Card -->
+		<div
+			class="relative flex flex-1 flex-col overflow-hidden"
+			style="padding: var(--spacing-2); padding-left: 0;"
+		>
+			<!--
+				Content Card Container
+				- Rounded corners (rounded-xl = 16px)
+				- Subtle border for soft definition (not harsh)
+				- Soft shadow for depth
+				- White/surface background
+			-->
+			<div
+				class="flex flex-1 flex-col overflow-hidden rounded-xl border border-subtle bg-surface shadow-sm"
+			>
+				<!-- Top Bar with matching rounded corners -->
+				<div class="rounded-t-xl bg-surface">
+					<AppTopBar
+						{organizations}
+						{isMobile}
+						{sidebarCollapsed}
+						onSidebarToggle={() => (sidebarCollapsed = !sidebarCollapsed)}
+						accountName={accountName()}
+						accountEmail={accountEmail()}
+						workspaceName={workspaceName()}
+					/>
+				</div>
+				<div class="flex-1 overflow-hidden">
+					{@render children()}
+				</div>
 			</div>
 		</div>
 
@@ -885,9 +917,9 @@
 	</div>
 {:else}
 	<!-- Not authenticated - shouldn't reach here due to redirect, but show login prompt -->
-	<div class="bg-base flex h-screen items-center justify-center">
+	<div class="flex h-screen items-center justify-center bg-base">
 		<div class="text-center">
-			<p class="text-primary mb-content-section">Please log in to continue</p>
+			<p class="mb-content-section text-primary">Please log in to continue</p>
 			<a href={resolveRoute('/login')} class="text-accent-primary">Go to Login</a>
 		</div>
 	</div>
