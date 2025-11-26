@@ -29,7 +29,7 @@
 
 <DropdownMenuPrimitive.Root {open} {onOpenChange}>
 	<DropdownMenuPrimitive.Trigger
-		class="flex w-full items-center justify-center gap-icon rounded-button bg-sidebar-hover px-header py-nav-item text-small font-normal text-sidebar-primary transition-all duration-150 hover:bg-sidebar-hover-solid"
+		class="flex w-full items-center justify-center gap-2 rounded-button bg-sidebar-hover px-header py-nav-item text-small font-normal text-sidebar-primary transition-all duration-150 hover:bg-sidebar-hover-solid"
 	>
 		<svg
 			class="icon-sm"
@@ -49,7 +49,7 @@
 	>
 		<!-- Note Option -->
 		<DropdownMenuPrimitive.Item
-			class="group relative flex cursor-pointer items-center gap-icon rounded-button px-menu-item py-menu-item text-small text-sidebar-secondary transition-colors outline-none hover:bg-sidebar-hover hover:text-sidebar-primary"
+			class="group relative flex cursor-pointer items-center gap-2 rounded-button px-menu-item py-menu-item text-small text-sidebar-secondary transition-colors outline-none hover:bg-sidebar-hover hover:text-sidebar-primary"
 			onSelect={handleSelect(onCreateNote)}
 		>
 			<svg
@@ -74,7 +74,7 @@
 
 		<!-- Flashcard Option -->
 		<DropdownMenuPrimitive.Item
-			class="group relative flex cursor-pointer items-center gap-icon rounded-button px-menu-item py-menu-item text-small text-sidebar-secondary transition-colors outline-none hover:bg-sidebar-hover hover:text-sidebar-primary"
+			class="group relative flex cursor-pointer items-center gap-2 rounded-button px-menu-item py-menu-item text-small text-sidebar-secondary transition-colors outline-none hover:bg-sidebar-hover hover:text-sidebar-primary"
 			onSelect={handleSelect(onCreateFlashcard)}
 		>
 			<svg
@@ -96,7 +96,7 @@
 
 		<!-- Highlight Option -->
 		<DropdownMenuPrimitive.Item
-			class="group relative flex cursor-pointer items-center gap-icon rounded-button px-menu-item py-menu-item text-small text-sidebar-secondary transition-colors outline-none hover:bg-sidebar-hover hover:text-sidebar-primary"
+			class="group relative flex cursor-pointer items-center gap-2 rounded-button px-menu-item py-menu-item text-small text-sidebar-secondary transition-colors outline-none hover:bg-sidebar-hover hover:text-sidebar-primary"
 			onSelect={handleSelect(onCreateHighlight)}
 		>
 			<svg

@@ -10,11 +10,11 @@
 <div
 	class="sticky top-0 z-10 flex h-system-header flex-shrink-0 items-center justify-between border-b border-sidebar bg-sidebar px-header py-system-header"
 >
-	<div class="flex items-center gap-icon">
+	<div class="flex items-center gap-2">
 		<button
 			type="button"
 			onclick={() => onBack?.()}
-			class="group flex items-center gap-icon text-sidebar-secondary transition-colors hover:text-sidebar-primary"
+			class="group flex items-center gap-2 text-sidebar-secondary transition-colors hover:text-sidebar-primary"
 		>
 			<!-- Back Arrow Icon -->
 			<svg

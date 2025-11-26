@@ -34,7 +34,7 @@
 	<!-- Rating Buttons (shown when flipped) -->
 	{#if isFlipped}
 		<div
-			class="absolute right-0 bottom-0 left-0 flex flex-wrap items-center justify-center gap-icon border-t border-base bg-elevated px-inbox-container py-system-header"
+			class="absolute right-0 bottom-0 left-0 flex flex-wrap items-center justify-center gap-2 border-t border-base bg-elevated px-inbox-container py-system-header"
 		>
 			<Button.Root
 				onclick={() => handleRate('again')}

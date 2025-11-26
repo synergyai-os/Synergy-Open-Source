@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { Avatar } from '$lib/components/atoms';
-	import { IconButton } from '$lib/components/atoms';
+	import { Avatar, Button, Icon } from '$lib/components/atoms';
 	import { ActionMenu } from '$lib/components/molecules';
 
 	type Props = {
@@ -26,7 +25,7 @@
 
 <button
 	type="button"
-	class="p-card flex w-full items-center gap-icon rounded-card bg-surface text-left transition-colors hover:bg-hover-solid"
+	class="p-card flex w-full items-center gap-2 rounded-card bg-surface text-left transition-colors hover:bg-hover-solid"
 	onclick={onClick}
 >
 	<Avatar initials={getInitials(name)} size="md" />
@@ -41,26 +40,22 @@
 		{/if}
 	</div>
 	{#if onEdit || menuItems.length > 0}
-		<div class="gap-control-item flex items-center" role="group">
+		<div class="flex items-center" style="gap: var(--spacing-1);" role="group">
 			{#if onEdit}
-				{#snippet editIcon()}
-					<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-						/>
-					</svg>
-				{/snippet}
-				<IconButton
-					icon={editIcon}
+				<Button
+					variant="ghost"
+					size="sm"
+					iconOnly
 					onclick={(e) => {
 						e?.stopPropagation();
 						onEdit();
 					}}
 					ariaLabel="Edit {name}"
-				/>
+				>
+					{#snippet children()}
+						<Icon type="edit" size="sm" />
+					{/snippet}
+				</Button>
 			{/if}
 			{#if menuItems.length > 0}
 				<ActionMenu items={menuItems} />

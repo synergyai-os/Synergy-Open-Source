@@ -90,7 +90,7 @@
 		<div class="grid grid-cols-1 gap-content-section md:grid-cols-2 lg:grid-cols-3">
 			<a
 				href="/admin/rbac"
-				class="flex flex-col gap-icon rounded-card border border-sidebar bg-surface px-card py-card transition-colors hover:bg-hover-solid"
+				class="flex flex-col gap-2 rounded-card border border-sidebar bg-surface px-card py-card transition-colors hover:bg-hover-solid"
 			>
 				<h3 class="font-semibold text-primary">RBAC Management</h3>
 				<p class="text-small text-secondary">
@@ -100,7 +100,7 @@
 
 			<a
 				href="/admin/users"
-				class="flex flex-col gap-icon rounded-card border border-sidebar bg-surface px-card py-card transition-colors hover:bg-hover-solid"
+				class="flex flex-col gap-2 rounded-card border border-sidebar bg-surface px-card py-card transition-colors hover:bg-hover-solid"
 			>
 				<h3 class="font-semibold text-primary">User Management</h3>
 				<p class="text-small text-secondary">View and manage all users</p>
@@ -108,7 +108,7 @@
 
 			<a
 				href="/admin/feature-flags"
-				class="flex flex-col gap-icon rounded-card border border-sidebar bg-surface px-card py-card transition-colors hover:bg-hover-solid"
+				class="flex flex-col gap-2 rounded-card border border-sidebar bg-surface px-card py-card transition-colors hover:bg-hover-solid"
 			>
 				<h3 class="font-semibold text-primary">Feature Flags</h3>
 				<p class="text-small text-secondary">
@@ -118,7 +118,7 @@
 
 			<a
 				href="/admin/settings"
-				class="flex flex-col gap-icon rounded-card border border-sidebar bg-surface px-card py-card transition-colors hover:bg-hover-solid"
+				class="flex flex-col gap-2 rounded-card border border-sidebar bg-surface px-card py-card transition-colors hover:bg-hover-solid"
 			>
 				<h3 class="font-semibold text-primary">System Settings</h3>
 				<p class="text-small text-secondary">Configure system-wide settings</p>

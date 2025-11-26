@@ -247,7 +247,7 @@
 	{/if}
 
 	<div
-		class="relative mx-auto flex min-h-screen max-w-2xl items-center justify-center px-section py-system-content"
+		class="relative mx-auto flex min-h-screen max-w-2xl items-center justify-center px-2 py-system-content"
 	>
 		<div
 			class="w-full max-w-md rounded-modal border border-base bg-elevated p-content-padding shadow-lg transition-all duration-300 hover:shadow-xl"

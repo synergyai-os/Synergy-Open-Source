@@ -41,19 +41,20 @@
 </script>
 
 <div
-	class="sticky top-0 z-10 flex h-system-header flex-shrink-0 items-center justify-between border-b border-base bg-surface px-inbox-header py-system-header"
+	class="h-system-header border-base bg-surface sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b py-system-header"
+	style="padding-inline: var(--spacing-4);"
 >
 	<!-- Left: Title + Sidebar Toggle + Kebab Menu -->
-	<div class="flex items-center gap-icon">
+	<div class="flex items-center gap-2">
 		{#if onSidebarToggle && sidebarCollapsed}
 			<SidebarToggle {sidebarCollapsed} onToggle={onSidebarToggle} {isMobile} />
 		{/if}
 
-		<h2 class="flex items-center gap-icon text-small font-normal text-secondary">
+		<h2 class="text-small text-secondary flex items-center gap-2 font-normal">
 			Inbox
 			{#if inboxCount > 0}
 				<span
-					class="flex min-w-badge items-center justify-center rounded-chip bg-accent-primary px-badge py-badge text-center text-label leading-none font-medium text-primary"
+					class="min-w-badge text-label text-primary flex items-center justify-center rounded-chip bg-accent-primary px-badge py-badge text-center leading-none font-medium"
 				>
 					{inboxCount}
 				</span>
@@ -64,7 +65,7 @@
 		<DropdownMenu.Root bind:open={menuOpen}>
 			<DropdownMenu.Trigger
 				type="button"
-				class="flex icon-xl items-center justify-center rounded-button text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
+				class="icon-xl text-secondary hover:bg-hover-solid hover:text-primary flex items-center justify-center rounded-button transition-colors"
 			>
 				<svg
 					class="icon-sm"
@@ -84,14 +85,14 @@
 
 			<DropdownMenu.Portal>
 				<DropdownMenu.Content
-					class="z-50 min-w-dropdown rounded-button border border-base bg-elevated py-badge shadow-card"
+					class="border-base bg-elevated z-50 min-w-dropdown rounded-button border py-badge shadow-card"
 					side="bottom"
 					align="start"
 					sideOffset={4}
 				>
 					{#if onSync}
 						<DropdownMenu.Item
-							class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-small text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid disabled:cursor-not-allowed disabled:opacity-50"
+							class="text-small text-primary hover:bg-hover-solid focus:bg-hover-solid flex cursor-pointer items-center justify-between px-menu-item py-menu-item outline-none disabled:cursor-not-allowed disabled:opacity-50"
 							textValue="Sync Readwise Highlights"
 							disabled={isSyncing}
 							onSelect={() => {
@@ -121,11 +122,11 @@
 							{/if}
 						</DropdownMenu.Item>
 
-						<DropdownMenu.Separator class="my-badge h-px bg-base" />
+						<DropdownMenu.Separator class="my-badge bg-base h-px" />
 					{/if}
 
 					<DropdownMenu.Item
-						class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-small text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+						class="text-small text-primary hover:bg-hover-solid focus:bg-hover-solid flex cursor-pointer items-center justify-between px-menu-item py-menu-item outline-none"
 						textValue="Delete all"
 						onSelect={() => {
 							onDeleteAll?.();
@@ -136,7 +137,7 @@
 					</DropdownMenu.Item>
 
 					<DropdownMenu.Item
-						class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-small text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+						class="text-small text-primary hover:bg-hover-solid focus:bg-hover-solid flex cursor-pointer items-center justify-between px-menu-item py-menu-item outline-none"
 						textValue="Delete all read"
 						onSelect={() => {
 							onDeleteAllRead?.();
@@ -147,7 +148,7 @@
 					</DropdownMenu.Item>
 
 					<DropdownMenu.Item
-						class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-small text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+						class="text-small text-primary hover:bg-hover-solid focus:bg-hover-solid flex cursor-pointer items-center justify-between px-menu-item py-menu-item outline-none"
 						textValue="Delete all for completed issues and reviews"
 						onSelect={() => {
 							onDeleteAllCompleted?.();
@@ -162,14 +163,14 @@
 	</div>
 
 	<!-- Right: Filter + Sort Icons -->
-	<div class="flex items-center gap-icon">
+	<div class="flex items-center gap-2">
 		<!-- Filter Menu -->
 		<InboxFilterMenu {currentFilter} {onFilterChange} />
 
 		<!-- Sort Icon -->
 		<button
 			type="button"
-			class="flex icon-xl items-center justify-center rounded-button text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
+			class="icon-xl text-secondary hover:bg-hover-solid hover:text-primary flex items-center justify-center rounded-button transition-colors"
 			onclick={() => onSortClick?.()}
 			aria-label="Sort inbox items"
 		>

@@ -388,7 +388,7 @@
 			{#each selectedTags() as tag (tag._id)}
 				<button
 					type="button"
-					class="inline-flex items-center gap-icon rounded bg-tag px-badge py-badge text-label text-tag transition-opacity hover:opacity-80"
+					class="inline-flex items-center gap-2 rounded bg-tag px-badge py-badge text-label text-tag transition-opacity hover:opacity-80"
 					onclick={() => handleTagToggle(tag._id)}
 					aria-label={`Remove tag ${tag.displayName}`}
 				>
@@ -447,7 +447,7 @@
 						type="button"
 						class={useInlineStyle
 							? 'inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-secondary transition-colors hover:bg-hover-solid'
-							: 'flex w-full items-center gap-icon rounded-md border border-base bg-base px-menu-item py-menu-item text-left text-sm text-secondary transition-colors hover:bg-hover-solid hover:text-primary'}
+							: 'flex w-full items-center gap-2 rounded-md border border-base bg-base px-menu-item py-menu-item text-left text-sm text-secondary transition-colors hover:bg-hover-solid hover:text-primary'}
 						onclick={(e) => {
 							e.preventDefault();
 							e.stopPropagation();
@@ -519,7 +519,7 @@
 								{#each selectedTags() as tag (tag._id)}
 									<button
 										type="button"
-										class="flex w-full cursor-pointer items-center gap-icon px-menu-item py-menu-item text-left text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+										class="flex w-full cursor-pointer items-center gap-2 px-menu-item py-menu-item text-left text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 										onclick={() => handleTagToggle(tag._id)}
 										aria-label={`Toggle tag ${tag.displayName}`}
 									>
@@ -565,7 +565,7 @@
 								{#each groupedTags().rootTags as tag (tag._id)}
 									<button
 										type="button"
-										class="flex w-full cursor-pointer items-center gap-icon px-menu-item py-menu-item text-left text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+										class="flex w-full cursor-pointer items-center gap-2 px-menu-item py-menu-item text-left text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 										onclick={() => handleTagToggle(tag._id)}
 										aria-label={`Select tag ${tag.displayName}`}
 									>
@@ -591,7 +591,7 @@
 											{#each tags as tag (tag._id)}
 												<button
 													type="button"
-													class="flex w-full cursor-pointer items-center gap-icon px-menu-item py-menu-item text-left text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+													class="flex w-full cursor-pointer items-center gap-2 px-menu-item py-menu-item text-left text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 													onclick={() => handleTagToggle(tag._id)}
 													aria-label={`Select tag ${tag.displayName}`}
 												>
@@ -653,7 +653,7 @@
 									{#each TAG_COLORS as color, index (index)}
 										<button
 											type="button"
-											class="flex w-full cursor-pointer items-center gap-icon px-menu-item py-menu-item text-left text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+											class="flex w-full cursor-pointer items-center gap-2 px-menu-item py-menu-item text-left text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 											class:bg-hover-solid={focusedColorIndex === index}
 											onclick={() => handleColorSelect(color.hex)}
 											onfocus={() => {
@@ -675,7 +675,7 @@
 							<div class="mt-1 border-t border-base pt-1">
 								<button
 									type="button"
-									class="flex w-full cursor-pointer items-center gap-icon px-menu-item py-menu-item text-left text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+									class="flex w-full cursor-pointer items-center gap-2 px-menu-item py-menu-item text-left text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 									onclick={handleCreateTagClick}
 									onkeydown={(e) => {
 										if (e.key === 'Enter' || e.key === 'Return') {

@@ -61,16 +61,17 @@
 </script>
 
 <div
-	class="group flex w-full max-w-meeting-today-card flex-col gap-inbox-list rounded-card border border-border-base bg-surface px-card py-card shadow-card transition-default hover:shadow-card-hover"
+	class="group gap-inbox-list bg-surface px-card py-card transition-default hover:shadow-card-hover flex w-full flex-col rounded-card border border-border-base shadow-card"
+	style="max-width: 18.75rem;"
 >
 	<!-- Date Badge (Top) -->
-	<div class="text-body-sm flex items-center gap-icon">
+	<div class="text-body-sm flex items-center gap-2">
 		<div class="font-medium text-text-tertiary">{month}. {dayOfMonth}</div>
 		<div class="text-text-secondary">{dayOfWeek}</div>
 	</div>
 
 	<!-- Title + Privacy Icon -->
-	<div class="flex items-center gap-icon">
+	<div class="flex items-center gap-2">
 		{#if isPrivate}
 			<svg
 				class="icon-sm flex-shrink-0 text-text-tertiary"
@@ -96,7 +97,7 @@
 
 	<!-- Circle Badge (if exists) -->
 	{#if circleName}
-		<div class="flex items-center gap-icon">
+		<div class="flex items-center gap-2">
 			<svg class="icon-sm flex-shrink-0 text-text-tertiary" fill="currentColor" viewBox="0 0 20 20">
 				<path
 					d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"
@@ -108,11 +109,11 @@
 
 	<!-- Attendee Avatars -->
 	{#if attendeeAvatars.length > 0}
-		<div class="flex items-center gap-inbox-icon">
+		<div class="gap-inbox-icon flex items-center">
 			{#each attendeeAvatars.slice(0, 6) as attendee (attendee.name)}
 				<div
-					class="flex size-meeting-avatar-md items-center justify-center rounded-avatar text-label font-medium text-primary"
-					style="background-color: {attendee.color}"
+					class="text-label text-primary flex items-center justify-center rounded-avatar font-medium"
+					style="background-color: {attendee.color}; width: 1.75rem; height: 1.75rem;"
 					title={attendee.name}
 				>
 					{getInitials(attendee.name)}
@@ -120,7 +121,8 @@
 			{/each}
 			{#if attendeeAvatars.length > 6}
 				<div
-					class="bg-surface-tertiary flex size-meeting-avatar-md items-center justify-center rounded-avatar text-label font-medium text-text-secondary"
+					class="bg-surface-tertiary text-label flex items-center justify-center rounded-avatar font-medium text-text-secondary"
+					style="width: 1.75rem; height: 1.75rem;"
 					title="{attendeeAvatars.length - 6} more"
 				>
 					+{attendeeAvatars.length - 6}
@@ -130,7 +132,7 @@
 	{/if}
 
 	<!-- Actions -->
-	<div class="mt-content-section flex flex-col gap-button-group">
+	<div class="mt-content-section flex flex-col gap-2">
 		<!-- Add Agenda Item Button -->
 		{#if onAddAgendaItem}
 			<Button variant="outline" onclick={onAddAgendaItem}>

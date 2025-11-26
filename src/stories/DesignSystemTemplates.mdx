@@ -1,0 +1,192 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Design System/Templates" />
+
+<style>
+  {`
+    .template-diagram {
+      background: oklch(20% 0.02 264);
+      border: 2px dashed oklch(37% 0.03 264);
+      border-radius: 12px;
+      padding: 16px;
+      margin: 24px 0;
+    }
+    
+    .template-header {
+      background: oklch(27% 0.025 264);
+      border: 1px solid oklch(37% 0.03 264);
+      height: 48px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+    }
+    
+    .template-header-placeholder {
+      width: 80px;
+      height: 16px;
+      background: oklch(37% 0.03 264);
+      border-radius: 4px;
+    }
+    
+    .template-body {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .template-sidebar {
+      width: 180px;
+      background: oklch(27% 0.025 264);
+      border: 1px solid oklch(37% 0.03 264);
+      border-radius: 6px;
+      padding: 12px;
+    }
+    
+    .template-sidebar-item {
+      height: 12px;
+      background: oklch(37% 0.03 264);
+      border-radius: 3px;
+      margin-bottom: 8px;
+    }
+    
+    .template-content {
+      flex: 1;
+      background: oklch(27% 0.025 264);
+      border: 1px solid oklch(37% 0.03 264);
+      border-radius: 6px;
+      padding: 16px;
+      min-height: 200px;
+    }
+    
+    .template-content-block {
+      height: 24px;
+      background: oklch(37% 0.03 264);
+      border-radius: 4px;
+      margin-bottom: 12px;
+    }
+    
+    .template-content-block.short {
+      width: 60%;
+    }
+    
+    .coming-soon {
+      background: oklch(60% 0.18 250 / 0.15);
+      border: 1px solid oklch(60% 0.18 250 / 0.3);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      margin: 24px 0;
+    }
+    
+    .coming-soon-title {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: oklch(60% 0.18 250);
+      margin: 0 0 8px 0;
+    }
+    
+    .coming-soon-desc {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 0.875rem;
+      color: oklch(70% 0.015 264);
+      margin: 0;
+    }
+  `}
+</style>
+
+# Templates
+
+Page-level object that places components into a layout. Templates focus on **content structure** rather than final content.
+
+<div className="template-diagram">
+  <div className="template-header">
+    <div className="template-header-placeholder" />
+  </div>
+  <div className="template-body">
+    <div className="template-sidebar">
+      <div className="template-sidebar-item" />
+      <div className="template-sidebar-item" />
+      <div className="template-sidebar-item" />
+      <div className="template-sidebar-item" />
+    </div>
+    <div className="template-content">
+      <div className="template-content-block" />
+      <div className="template-content-block short" />
+      <div className="template-content-block" />
+    </div>
+  </div>
+</div>
+
+---
+
+## 🎯 What Are Templates?
+
+Templates are the **fourth level** of atomic design:
+
+- ✅ Define page-level layout structure
+- ✅ Placeholder content (lorem ipsum, wireframe boxes)
+- ✅ Focus on content structure, not real data
+- ✅ Show how organisms fit together
+- ✅ Reusable layout patterns
+
+---
+
+## 📋 Planned Templates
+
+| Template | Organisms Used | Purpose |
+|----------|----------------|---------|
+| **AuthLayout** | Header, Footer | Login, Register, Reset password |
+| **DashboardLayout** | Header, Sidebar, Main | Dashboard with navigation |
+| **SettingsLayout** | Header, SettingsSidebar, Form | Settings pages |
+| **FullWidthLayout** | Header, Footer | Landing pages |
+| **CenteredLayout** | Header | Centered content (error pages) |
+
+<div className="coming-soon">
+  <h3 className="coming-soon-title">📐 Coming Soon</h3>
+  <p className="coming-soon-desc">Templates will be extracted from existing pages as layout patterns emerge.</p>
+</div>
+
+---
+
+## 🏗️ Template Structure
+
+```svelte
+<!-- DashboardLayout.svelte -->
+<script lang="ts">
+  import { Header, Sidebar } from '$lib/components/organisms';
+  
+  let { children } = $props();
+</script>
+
+<div class="min-h-screen bg-base">
+  <Header />
+  <div class="flex">
+    <Sidebar />
+    <main class="flex-1 px-page-x py-page-y">
+      {@render children()}
+    </main>
+  </div>
+</div>
+```
+
+---
+
+## 📍 Location
+
+When templates are created, they will live in:
+
+```
+src/lib/components/templates/
+├── AuthLayout.svelte
+├── DashboardLayout.svelte
+├── SettingsLayout.svelte
+└── index.ts
+```
+
+---
+
+**Status**: Planned  
+**Priority**: Extract from existing pages when patterns stabilize
+

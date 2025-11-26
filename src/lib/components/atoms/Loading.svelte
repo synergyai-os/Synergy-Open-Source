@@ -10,8 +10,14 @@
 	 * - size: Spinner size - 'sm' | 'md' | 'lg' (default: 'md')
 	 * - fullHeight: Whether to take full height of container (default: false)
 	 *
-	 * Note: Uses manual style mapping for SVG sizing due to browser CSS limitations.
-	 * CVA recipe system doesn't work reliably for SVG elements.
+	 * DESIGN SYSTEM EXCEPTION: SVG/D3 Visualization (SYOS-522)
+	 *
+	 * This component uses SVG with hardcoded pixel dimensions because:
+	 * 1. CSS-based sizing (recipes/utility classes) unreliable for SVG in some browsers
+	 * 2. Requires explicit HTML width/height attributes
+	 * 3. Token mapping via JavaScript computed styles (where dynamic needed)
+	 *
+	 * Approved exception - see dev-docs/2-areas/patterns/recipe-system.md (SVG Exception Pattern)
 	 */
 	interface Props {
 		message?: string;
@@ -36,10 +42,10 @@
 
 {#if fullHeight}
 	<div class="flex h-full w-full items-center justify-center">
-		<div class="flex flex-col items-center gap-icon">
+		<div class="flex flex-col items-center gap-2">
 			<!-- Loading Spinner -->
 			<svg
-				class="animate-spin text-accent-primary"
+				class="text-accent-primary animate-spin"
 				style={sizeStyle}
 				fill="none"
 				stroke="currentColor"
@@ -54,15 +60,15 @@
 			</svg>
 			<!-- Loading Message -->
 			{#if message}
-				<p class="text-button font-medium text-secondary">{message}</p>
+				<p class="text-button text-secondary font-medium">{message}</p>
 			{/if}
 		</div>
 	</div>
 {:else}
-	<div class="flex flex-col items-center gap-icon py-readable-quote">
+	<div class="flex flex-col items-center gap-2" style="padding-block: var(--spacing-8);">
 		<!-- Loading Spinner -->
 		<svg
-			class="animate-spin text-accent-primary"
+			class="text-accent-primary animate-spin"
 			style={sizeStyle}
 			fill="none"
 			stroke="currentColor"
@@ -77,7 +83,7 @@
 		</svg>
 		<!-- Loading Message -->
 		{#if message}
-			<p class="text-button font-medium text-secondary">{message}</p>
+			<p class="text-button text-secondary font-medium">{message}</p>
 		{/if}
 	</div>
 {/if}

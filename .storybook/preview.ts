@@ -1,7 +1,11 @@
 import type { Preview } from '@storybook/svelte';
 
 // Import global styles (includes design tokens)
-import '../src/app.css';
+// Updated to use modular architecture (SYOS-553)
+import '../src/styles/app.css';
+
+// Import Storybook-specific CSS overrides (fixes code block readability)
+import './storybook-overrides.css';
 
 const preview: Preview = {
 	parameters: {

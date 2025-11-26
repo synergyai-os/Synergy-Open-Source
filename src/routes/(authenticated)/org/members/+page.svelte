@@ -152,7 +152,7 @@
 			{#if canInviteMembers()}
 				<button
 					onclick={() => (showInviteModal = true)}
-					class="text-on-solid rounded-button bg-accent-primary px-nav-item py-nav-item text-button font-medium transition-colors hover:bg-accent-hover"
+					class="text-on-solid rounded-button bg-accent-primary px-2 py-nav-item text-button font-medium transition-colors hover:bg-accent-hover"
 				>
 					Invite Member
 				</button>
@@ -192,19 +192,19 @@
 				<table class="w-full">
 					<thead class="border-b border-base bg-elevated">
 						<tr>
-							<th class="px-nav-item py-nav-item text-left text-button font-medium text-secondary">
+							<th class="px-2 py-nav-item text-left text-button font-medium text-secondary">
 								Name
 							</th>
-							<th class="px-nav-item py-nav-item text-left text-button font-medium text-secondary">
+							<th class="px-2 py-nav-item text-left text-button font-medium text-secondary">
 								Email
 							</th>
-							<th class="px-nav-item py-nav-item text-left text-button font-medium text-secondary">
+							<th class="px-2 py-nav-item text-left text-button font-medium text-secondary">
 								Role
 							</th>
-							<th class="px-nav-item py-nav-item text-left text-button font-medium text-secondary">
+							<th class="px-2 py-nav-item text-left text-button font-medium text-secondary">
 								Joined
 							</th>
-							<th class="px-nav-item py-nav-item text-left text-button font-medium text-secondary">
+							<th class="px-2 py-nav-item text-left text-button font-medium text-secondary">
 								Actions
 							</th>
 						</tr>
@@ -212,17 +212,17 @@
 					<tbody>
 						{#each membersList as member (member.userId)}
 							<tr class="border-b border-base last:border-b-0 hover:bg-sidebar-hover">
-								<td class="px-nav-item py-nav-item text-button text-primary">
+								<td class="px-2 py-nav-item text-button text-primary">
 									{member.name || '—'}
 								</td>
-								<td class="px-nav-item py-nav-item text-button text-secondary">{member.email}</td>
-								<td class="px-nav-item py-nav-item text-button text-secondary">
+								<td class="px-2 py-nav-item text-button text-secondary">{member.email}</td>
+								<td class="px-2 py-nav-item text-button text-secondary">
 									{formatRole(member.role)}
 								</td>
-								<td class="px-nav-item py-nav-item text-button text-secondary">
+								<td class="px-2 py-nav-item text-button text-secondary">
 									{formatDate(member.joinedAt)}
 								</td>
-								<td class="px-nav-item py-nav-item">
+								<td class="px-2 py-nav-item">
 									{#if member.role === 'owner'}
 										<span class="text-button text-secondary">—</span>
 									{:else if canRemoveMembers()}
@@ -253,27 +253,27 @@
 							<thead class="border-b border-base bg-elevated">
 								<tr>
 									<th
-										class="px-nav-item py-nav-item text-left text-button font-medium text-secondary"
+										class="px-2 py-nav-item text-left text-button font-medium text-secondary"
 									>
 										Email
 									</th>
 									<th
-										class="px-nav-item py-nav-item text-left text-button font-medium text-secondary"
+										class="px-2 py-nav-item text-left text-button font-medium text-secondary"
 									>
 										Role
 									</th>
 									<th
-										class="px-nav-item py-nav-item text-left text-button font-medium text-secondary"
+										class="px-2 py-nav-item text-left text-button font-medium text-secondary"
 									>
 										Status
 									</th>
 									<th
-										class="px-nav-item py-nav-item text-left text-button font-medium text-secondary"
+										class="px-2 py-nav-item text-left text-button font-medium text-secondary"
 									>
 										Invited
 									</th>
 									<th
-										class="px-nav-item py-nav-item text-left text-button font-medium text-secondary"
+										class="px-2 py-nav-item text-left text-button font-medium text-secondary"
 									>
 										Actions
 									</th>
@@ -282,13 +282,13 @@
 							<tbody>
 								{#each invitesList as invite (invite.inviteId)}
 									<tr class="border-b border-base last:border-b-0 hover:bg-sidebar-hover">
-										<td class="px-nav-item py-nav-item text-button text-primary">
+										<td class="px-2 py-nav-item text-button text-primary">
 											{invite.email}
 										</td>
-										<td class="px-nav-item py-nav-item text-button text-secondary">
+										<td class="px-2 py-nav-item text-button text-secondary">
 											{formatRole(invite.role)}
 										</td>
-										<td class="px-nav-item py-nav-item text-button">
+										<td class="px-2 py-nav-item text-button">
 											<span
 												class={invite.status === 'accepted'
 													? 'text-accent-primary'
@@ -297,10 +297,10 @@
 												{invite.status === 'accepted' ? 'Accepted' : 'Pending'}
 											</span>
 										</td>
-										<td class="px-nav-item py-nav-item text-button text-secondary">
+										<td class="px-2 py-nav-item text-button text-secondary">
 											{formatDate(invite.invitedAt)}
 										</td>
-										<td class="px-nav-item py-nav-item">
+										<td class="px-2 py-nav-item">
 											{#if invite.status === 'pending' && invite.email}
 												<button
 													onclick={() => members.resendInvite(invite.inviteId)}
@@ -349,12 +349,12 @@
 					</Dialog.Description>
 				</div>
 
-				<div class="flex justify-end gap-button-group">
+				<div class="flex justify-end gap-2">
 					<button
 						type="button"
 						onclick={closeRemoveDialog}
 						disabled={members.loading.remove}
-						class="rounded-button border border-base bg-elevated px-nav-item py-nav-item text-button font-medium text-secondary transition-colors hover:bg-sidebar-hover disabled:cursor-not-allowed disabled:opacity-50"
+						class="rounded-button border border-base bg-elevated px-2 py-nav-item text-button font-medium text-secondary transition-colors hover:bg-sidebar-hover disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						Cancel
 					</button>
@@ -362,7 +362,7 @@
 						type="button"
 						onclick={handleRemoveMember}
 						disabled={members.loading.remove}
-						class="text-on-solid rounded-button bg-accent-primary px-nav-item py-nav-item text-button font-medium transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+						class="text-on-solid rounded-button bg-accent-primary px-2 py-nav-item text-button font-medium transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						{members.loading.remove ? 'Removing...' : 'Remove Member'}
 					</button>

@@ -12,7 +12,7 @@
 			iconOnly?: boolean;
 			ariaLabel?: string;
 			href?: string;
-			onclick?: () => void;
+			onclick?: (e?: MouseEvent) => void;
 			children: Snippet;
 			class?: string;
 			type?: 'button' | 'submit' | 'reset';
@@ -43,8 +43,8 @@
 	}
 
 	// Use recipe system for variant and size
-	// Note: When iconOnly=true, recipe still applies default size='md' padding,
-	// but iconOnly padding classes will override due to CSS specificity
+	// Note: When iconOnly=true with ghost/solid variants, recipe applies simplified styles
+	// (no typography, shadows, or lift effects - optimized for icon-only buttons)
 	const recipeClasses = $derived(buttonRecipe({ variant, size }));
 
 	// Handle iconOnly: override padding when iconOnly is true
@@ -56,13 +56,12 @@
 					md: 'p-button-icon',
 					lg: 'p-button-icon'
 				}[size]
-			: ''
+			: undefined
 	);
 
 	// Combine recipe classes with iconOnly size override and custom className
-	const buttonClasses = $derived(
-		`${recipeClasses} ${iconOnlySizeClasses} ${className}`.trim()
-	);
+	// Array syntax handles empty strings/undefined automatically
+	const buttonClasses = $derived([recipeClasses, iconOnlySizeClasses, className]);
 </script>
 
 {#if href}

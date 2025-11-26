@@ -1,16 +1,20 @@
 <script module>
 	import { defineMeta } from '@storybook/addon-svelte-csf';
-	import IconButton from './IconButton.svelte';
+	import Button from './Button.svelte';
 	import Icon from './Icon.svelte';
 
 	const { Story } = defineMeta({
-		component: IconButton,
+		component: Button,
 		title: 'Design System/Atoms/IconButton',
 		tags: ['autodocs'],
 		argTypes: {
 			variant: {
 				control: { type: 'select' },
-				options: ['ghost', 'solid']
+				options: ['ghost', 'solid', 'primary', 'secondary', 'outline']
+			},
+			size: {
+				control: { type: 'select' },
+				options: ['sm', 'md', 'lg']
 			},
 			disabled: {
 				control: { type: 'boolean' }
@@ -22,153 +26,126 @@
 	});
 </script>
 
-<Story name="Ghost" args={{ variant: 'ghost', ariaLabel: 'Add item' }}>
+<Story name="Ghost" args={{ variant: 'ghost', ariaLabel: 'Add item', size: 'md' }}>
 	{#snippet template(args)}
-		{#snippet addIcon()}
-			<Icon size="md">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					class="h-full w-full"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M12 4v16m8-8H4"
-					/>
-				</svg>
-			</Icon>
-		{/snippet}
-		<IconButton
+		<Button
 			variant={args.variant}
+			size={args.size}
+			iconOnly
 			ariaLabel={args.ariaLabel}
 			disabled={args.disabled}
-			icon={addIcon}
-		/>
+		>
+			{#snippet children()}
+				<Icon type="add" size={args.size} />
+			{/snippet}
+		</Button>
 	{/snippet}
 </Story>
 
-<Story name="Solid" args={{ variant: 'solid', ariaLabel: 'Delete item' }}>
+<Story name="Solid" args={{ variant: 'solid', ariaLabel: 'Delete item', size: 'md' }}>
 	{#snippet template(args)}
-		{#snippet deleteIcon()}
-			<Icon size="md">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					class="h-full w-full"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M6 18L18 6M6 6l12 12"
-					/>
-				</svg>
-			</Icon>
-		{/snippet}
-		<IconButton
+		<Button
 			variant={args.variant}
+			size={args.size}
+			iconOnly
 			ariaLabel={args.ariaLabel}
 			disabled={args.disabled}
-			icon={deleteIcon}
-		/>
+		>
+			{#snippet children()}
+				<Icon type="close" size={args.size} />
+			{/snippet}
+		</Button>
 	{/snippet}
 </Story>
 
-<Story name="Disabled" args={{ variant: 'ghost', disabled: true, ariaLabel: 'Disabled button' }}>
+<Story name="Disabled" args={{ variant: 'ghost', disabled: true, ariaLabel: 'Disabled button', size: 'md' }}>
 	{#snippet template(args)}
-		{#snippet disabledIcon()}
-			<Icon size="md">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					class="h-full w-full"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M12 4v16m8-8H4"
-					/>
-				</svg>
-			</Icon>
-		{/snippet}
-		<IconButton
+		<Button
 			variant={args.variant}
+			size={args.size}
+			iconOnly
 			ariaLabel={args.ariaLabel}
 			disabled={args.disabled}
-			icon={disabledIcon}
-		/>
+		>
+			{#snippet children()}
+				<Icon type="add" size={args.size} />
+			{/snippet}
+		</Button>
 	{/snippet}
 </Story>
 
-<Story name="Group" args={{ variant: 'ghost', ariaLabel: 'Actions' }}>
+<Story name="Group" args={{ variant: 'ghost', ariaLabel: 'Actions', size: 'md' }}>
 	{#snippet template(_args)}
-		{#snippet editIcon()}
-			<Icon size="md">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					class="h-full w-full"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-					/>
-				</svg>
-			</Icon>
-		{/snippet}
-		{#snippet deleteIcon()}
-			<Icon size="md">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					class="h-full w-full"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-					/>
-				</svg>
-			</Icon>
-		{/snippet}
-		{#snippet shareIcon()}
-			<Icon size="md">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					class="h-full w-full"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-					/>
-				</svg>
-			</Icon>
-		{/snippet}
 		<div class="flex gap-2">
-			<IconButton variant="ghost" ariaLabel="Edit" icon={editIcon} />
-			<IconButton variant="ghost" ariaLabel="Delete" icon={deleteIcon} />
-			<IconButton variant="ghost" ariaLabel="Share" icon={shareIcon} />
+			<Button variant="ghost" iconOnly ariaLabel="Edit" size="md">
+				{#snippet children()}
+					<Icon type="edit" size="md" />
+				{/snippet}
+			</Button>
+			<Button variant="ghost" iconOnly ariaLabel="Delete" size="md">
+				{#snippet children()}
+					<Icon type="delete" size="md" />
+				{/snippet}
+			</Button>
+			<Button variant="ghost" iconOnly ariaLabel="Share" size="md">
+				{#snippet children()}
+					<Icon type="share" size="md" />
+				{/snippet}
+			</Button>
+		</div>
+	{/snippet}
+</Story>
+
+<Story name="All Variants" args={{ size: 'md', ariaLabel: 'Action' }}>
+	{#snippet template(_args)}
+		<div class="flex items-center gap-4">
+			<Button variant="ghost" iconOnly ariaLabel="Ghost" size="md">
+				{#snippet children()}
+					<Icon type="add" size="md" />
+				{/snippet}
+			</Button>
+			<Button variant="solid" iconOnly ariaLabel="Solid" size="md">
+				{#snippet children()}
+					<Icon type="add" size="md" />
+				{/snippet}
+			</Button>
+			<Button variant="primary" iconOnly ariaLabel="Primary" size="md">
+				{#snippet children()}
+					<Icon type="add" size="md" />
+				{/snippet}
+			</Button>
+			<Button variant="secondary" iconOnly ariaLabel="Secondary" size="md">
+				{#snippet children()}
+					<Icon type="add" size="md" />
+				{/snippet}
+			</Button>
+			<Button variant="outline" iconOnly ariaLabel="Outline" size="md">
+				{#snippet children()}
+					<Icon type="add" size="md" />
+				{/snippet}
+			</Button>
+		</div>
+	{/snippet}
+</Story>
+
+<Story name="Sizes" args={{ variant: 'ghost', ariaLabel: 'Action' }}>
+	{#snippet template(_args)}
+		<div class="flex items-center gap-4">
+			<Button variant={_args.variant} iconOnly ariaLabel="Small" size="sm">
+				{#snippet children()}
+					<Icon type="add" size="sm" />
+				{/snippet}
+			</Button>
+			<Button variant={_args.variant} iconOnly ariaLabel="Medium" size="md">
+				{#snippet children()}
+					<Icon type="add" size="md" />
+				{/snippet}
+			</Button>
+			<Button variant={_args.variant} iconOnly ariaLabel="Large" size="lg">
+				{#snippet children()}
+					<Icon type="add" size="lg" />
+				{/snippet}
+			</Button>
 		</div>
 	{/snippet}
 </Story>

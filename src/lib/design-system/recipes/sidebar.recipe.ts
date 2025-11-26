@@ -1,0 +1,33 @@
+import { cva, type VariantProps } from 'class-variance-authority';
+
+/**
+ * Sidebar Recipe (CVA)
+ *
+ * Type-safe variant system for Sidebar organism component.
+ * Uses design tokens for all styling (no hardcoded values).
+ *
+ * Design Notes:
+ * - Uses CSS variables directly for sidebar bg/border (workaround for utility bug)
+ * - Generic text tokens (text-primary, text-tertiary) for text colors
+ * - Border-right for visual separation from main content
+ *
+ * Variants: default (only variant for now, keeping it simple)
+ */
+export const sidebarRecipe = cva(
+	// Base classes - applied to all sidebars
+	// WORKAROUND: component-sidebar-bg/border utilities use wrong CSS property (color: instead of background-color:/border-color:)
+	// Using CSS variables directly via inline styles in component
+	'flex h-full flex-col overflow-hidden border-r text-primary',
+	{
+		variants: {
+			variant: {
+				default: ''
+			}
+		},
+		defaultVariants: {
+			variant: 'default'
+		}
+	}
+);
+
+export type SidebarVariantProps = VariantProps<typeof sidebarRecipe>;

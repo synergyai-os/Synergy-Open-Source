@@ -228,7 +228,7 @@
 	.toc-panel.collapsed {
 		width: 48px;
 		height: auto;
-		padding: var(--spacing-control-panel-padding) calc(var(--spacing-control-panel-padding) * 0.5);
+		padding: var(--spacing-3) calc(var(--spacing-3) * 0.5);
 		background: transparent;
 		border: none;
 		box-shadow: none;

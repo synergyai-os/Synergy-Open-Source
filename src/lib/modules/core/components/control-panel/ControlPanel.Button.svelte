@@ -15,12 +15,10 @@
 	{disabled}
 	{title}
 	{onclick}
-	class="rounded-button p-control-button-padding transition-colors
-    {active
+	class="rounded-button transition-colors {active
 		? 'bg-control-button-active text-primary'
-		: 'text-secondary hover:bg-control-button-hover'}
-    {disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
-  "
+		: 'text-secondary hover:bg-control-button-hover'} {disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
+	style="padding: var(--spacing-2);"
 >
 	{@render children()}
 </button>

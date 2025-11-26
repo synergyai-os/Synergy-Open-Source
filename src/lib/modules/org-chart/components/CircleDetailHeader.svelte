@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { SplitButton } from '$lib/components/atoms';
-	import { IconButton } from '$lib/components/atoms';
+	import { Button, Icon } from '$lib/components/atoms';
+	import { SplitButton } from '$lib/components/molecules';
 	import { ActionMenu } from '$lib/components/molecules';
 
 	type Props = {
@@ -18,7 +18,7 @@
 	class="flex h-system-header flex-shrink-0 items-center justify-between border-b border-base px-inbox-container py-system-header"
 >
 	<h2 class="text-h3 font-semibold text-primary">{circleName}</h2>
-	<div class="flex items-center gap-icon">
+	<div class="flex items-center gap-2">
 		{#if addMenuItems.length > 0}
 			<SplitButton
 				primaryLabel="Add"
@@ -43,16 +43,10 @@
 		{#if headerMenuItems.length > 0}
 			<ActionMenu items={headerMenuItems} />
 		{/if}
-		{#snippet closeIcon()}
-			<svg class="size-icon-md" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M6 18L18 6M6 6l12 12"
-				/>
-			</svg>
-		{/snippet}
-		<IconButton icon={closeIcon} onclick={onClose} ariaLabel="Close panel" />
+		<Button variant="ghost" size="md" iconOnly onclick={onClose} ariaLabel="Close panel">
+			{#snippet children()}
+				<Icon type="close" size="md" />
+			{/snippet}
+		</Button>
 	</div>
 </header>

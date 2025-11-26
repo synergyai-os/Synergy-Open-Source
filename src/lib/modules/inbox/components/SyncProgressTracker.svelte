@@ -38,7 +38,7 @@
 		<div class="flex w-full max-w-md flex-col gap-settings-section">
 			<!-- Progress Bar -->
 			<div class="flex flex-col gap-form-section">
-				<div class="flex flex-col gap-icon">
+				<div class="flex flex-col gap-2">
 					<div class="flex items-center justify-between text-label">
 						<span class="font-medium text-secondary">{step}</span>
 						{#if total}

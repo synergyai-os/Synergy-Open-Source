@@ -56,7 +56,7 @@
 			{#if !readonly && !isAdding && !editingId}
 				<button
 					onclick={decisionsForm.startAdding}
-					class="text-body-sm flex items-center gap-icon rounded-button bg-elevated px-nav-item py-nav-item text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
+					class="text-body-sm flex items-center gap-2 rounded-button bg-elevated px-2 py-nav-item text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
 				>
 					<svg class="icon-sm flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 						<path
@@ -81,7 +81,7 @@
 		<!-- Add Decision Form -->
 		{#if isAdding}
 			<div class="p-card rounded-button border-2 border-accent-primary bg-elevated">
-				<div class="flex flex-col gap-icon">
+				<div class="flex flex-col gap-2">
 					<!-- Title Input -->
 					<div>
 						<label
@@ -117,7 +117,7 @@
 					</div>
 
 					<!-- Form Actions -->
-					<div class="flex justify-end gap-icon">
+					<div class="flex justify-end gap-2">
 						<button
 							onclick={decisionsForm.cancelAdding}
 							disabled={isSaving}
@@ -139,7 +139,7 @@
 
 		<!-- Decisions List -->
 		{#if decisions.length > 0}
-			<div class="flex flex-col gap-icon">
+			<div class="flex flex-col gap-2">
 				{#each decisions as decision (decision._id)}
 					<div
 						role="region"
@@ -155,7 +155,7 @@
 						{#if editingId === decision._id}
 							<!-- Edit Mode -->
 							<div class="p-card">
-								<div class="flex flex-col gap-icon">
+								<div class="flex flex-col gap-2">
 									<!-- Title Input -->
 									<div>
 										<label
@@ -191,7 +191,7 @@
 									</div>
 
 									<!-- Form Actions -->
-									<div class="flex justify-end gap-icon">
+									<div class="flex justify-end gap-2">
 										<button
 											onclick={decisionsForm.cancelEditing}
 											disabled={isSaving}
@@ -213,7 +213,7 @@
 							<!-- View Mode -->
 							<div class="p-card">
 								<div class="flex items-start justify-between gap-content-section">
-									<div class="flex flex-1 flex-col gap-icon">
+									<div class="flex flex-1 flex-col gap-2">
 										<!-- Title -->
 										<h5 class="font-medium text-primary">{decision.title}</h5>
 
@@ -225,7 +225,7 @@
 										{/if}
 
 										<!-- Timestamp -->
-										<div class="flex items-center gap-icon text-label text-tertiary">
+										<div class="flex items-center gap-2 text-label text-tertiary">
 											<svg
 												class="icon-xs flex-shrink-0"
 												fill="none"
@@ -245,10 +245,10 @@
 
 									<!-- Hover Actions -->
 									{#if !readonly && decisionsForm.hoveredId === decision._id}
-										<div class="gap-icon-sm flex">
+										<div class="gap-2-sm flex">
 											<button
 												onclick={() => decisionsForm.startEditing(decision)}
-												class="rounded-button p-control-button-padding text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
+												class="rounded-button text-secondary transition-colors hover:bg-hover-solid hover:text-primary" style="padding: var(--spacing-2);"
 												aria-label="Edit decision"
 											>
 												<svg
@@ -267,7 +267,7 @@
 											</button>
 											<button
 												onclick={() => decisionsForm.handleDelete(decision._id)}
-												class="rounded-button p-control-button-padding text-secondary transition-colors hover:bg-destructive-hover hover:text-error-text"
+												class="rounded-button text-secondary transition-colors hover:bg-destructive-hover hover:text-error-text" style="padding: var(--spacing-2);"
 												aria-label="Delete decision"
 											>
 												<svg
@@ -295,7 +295,7 @@
 		{:else if !isAdding}
 			<!-- Empty State -->
 			<div
-				class="py-section-spacing-small rounded-card border border-dashed border-base bg-surface px-card text-center"
+				class="py-1-spacing-small rounded-card border border-dashed border-base bg-surface px-card text-center"
 			>
 				<svg
 					class="mx-auto icon-lg text-tertiary"

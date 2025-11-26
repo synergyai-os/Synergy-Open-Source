@@ -47,7 +47,7 @@
 						<li>
 							<a
 								href={item.href}
-								class="flex items-center gap-icon rounded px-nav-item py-menu-item text-small transition-colors {currentPath ===
+								class="flex items-center gap-2 rounded px-2 py-menu-item text-small transition-colors {currentPath ===
 								item.href
 									? 'bg-hover-solid text-sidebar-primary'
 									: 'text-sidebar-secondary hover:bg-hover-solid hover:text-sidebar-primary'}"

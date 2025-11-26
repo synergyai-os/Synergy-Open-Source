@@ -1,0 +1,622 @@
+{
+	"$schema": "https://design-tokens.github.io/community-group/format/1.0.0/schema.json",
+	"$description": "SynergyOS Base Tokens - DESIGNER FILE. Edit freely to rebrand. All values cascade to semantic tokens automatically.",
+
+	"color": {
+		"$description": "All color primitives. Change these to rebrand the entire system.",
+
+		"brand": {
+			"$description": "Brand colors - THE identity of SynergyOS. Direct OKLCH values, not references.",
+			"primary": {
+				"$value": "oklch(55% 0.15 195)",
+				"$description": "Deep Teal - Primary brand color. Intelligence, innovation, trust."
+			},
+			"primaryLight": {
+				"$value": "oklch(65% 0.12 195)",
+				"$description": "Lighter teal for hover states and highlights"
+			},
+			"primaryDark": {
+				"$value": "oklch(45% 0.15 195)",
+				"$description": "Darker teal for pressed states and emphasis"
+			},
+			"secondary": {
+				"$value": "oklch(75% 0.14 65)",
+				"$description": "Warm Amber - Secondary brand. Energy, community, warmth."
+			},
+			"secondaryLight": {
+				"$value": "oklch(82% 0.12 65)",
+				"$description": "Lighter amber for hover states"
+			},
+			"secondaryDark": {
+				"$value": "oklch(65% 0.14 65)",
+				"$description": "Darker amber for pressed states"
+			}
+		},
+
+		"neutral": {
+			"$description": "Neutral gray scale with subtle cool undertone. 50=lightest, 950=darkest.",
+			"0": {
+				"$value": "oklch(100% 0 0)",
+				"$description": "Pure white"
+			},
+			"50": {
+				"$value": "oklch(98% 0.002 264)",
+				"$description": "Barely gray - subtle backgrounds"
+			},
+			"100": {
+				"$value": "oklch(96% 0.004 264)",
+				"$description": "Very light gray - elevated surfaces (light mode)"
+			},
+			"200": {
+				"$value": "oklch(92% 0.006 264)",
+				"$description": "Light gray - borders, dividers (light mode)"
+			},
+			"300": {
+				"$value": "oklch(85% 0.01 264)",
+				"$description": "Medium-light gray - disabled states"
+			},
+			"400": {
+				"$value": "oklch(70% 0.015 264)",
+				"$description": "Medium gray - placeholder text"
+			},
+			"500": {
+				"$value": "oklch(55% 0.02 264)",
+				"$description": "True medium gray - tertiary text"
+			},
+			"600": {
+				"$value": "oklch(45% 0.025 264)",
+				"$description": "Medium-dark gray - secondary text"
+			},
+			"700": {
+				"$value": "oklch(37% 0.03 264)",
+				"$description": "Dark gray - borders (dark mode)"
+			},
+			"800": {
+				"$value": "oklch(27% 0.025 264)",
+				"$description": "Very dark gray - elevated surfaces (dark mode)"
+			},
+			"900": {
+				"$value": "oklch(20% 0.02 264)",
+				"$description": "Near black - base background (dark mode)"
+			},
+			"950": {
+				"$value": "oklch(13% 0.015 264)",
+				"$description": "Deepest gray - true dark backgrounds"
+			},
+			"1000": {
+				"$value": "oklch(0% 0 0)",
+				"$description": "Pure black"
+			}
+		},
+
+		"status": {
+			"$description": "Status/feedback colors. Semantic meaning, not brand.",
+			"error": {
+				"$value": "oklch(60% 0.25 25)",
+				"$description": "Red - Errors, destructive actions, failures"
+			},
+			"errorLight": {
+				"$value": "oklch(85% 0.08 25)",
+				"$description": "Light red - Error backgrounds"
+			},
+			"errorDark": {
+				"$value": "oklch(50% 0.22 25)",
+				"$description": "Dark red - Error hover/pressed"
+			},
+			"warning": {
+				"$value": "oklch(75% 0.15 70)",
+				"$description": "Orange/Yellow - Warnings, caution"
+			},
+			"warningLight": {
+				"$value": "oklch(92% 0.06 70)",
+				"$description": "Light yellow - Warning backgrounds"
+			},
+			"warningDark": {
+				"$value": "oklch(65% 0.14 70)",
+				"$description": "Dark orange - Warning hover/pressed"
+			},
+			"success": {
+				"$value": "oklch(60% 0.17 145)",
+				"$description": "Green - Success, positive outcomes"
+			},
+			"successLight": {
+				"$value": "oklch(92% 0.06 145)",
+				"$description": "Light green - Success backgrounds"
+			},
+			"successDark": {
+				"$value": "oklch(50% 0.15 145)",
+				"$description": "Dark green - Success hover/pressed"
+			},
+			"info": {
+				"$value": "oklch(60% 0.18 250)",
+				"$description": "Blue - Information, neutral feedback"
+			},
+			"infoLight": {
+				"$value": "oklch(92% 0.05 250)",
+				"$description": "Light blue - Info backgrounds"
+			},
+			"infoDark": {
+				"$value": "oklch(50% 0.16 250)",
+				"$description": "Dark blue - Info hover/pressed"
+			}
+		},
+
+		"accent": {
+			"$description": "Decorative accent palette for creative freedom. Use for tags, categories, highlights.",
+			"coral": {
+				"$value": "oklch(65% 0.2 15)",
+				"$description": "Warm coral - Creative, playful"
+			},
+			"purple": {
+				"$value": "oklch(55% 0.2 300)",
+				"$description": "Rich purple - Premium, AI-related"
+			},
+			"blue": {
+				"$value": "oklch(60% 0.18 250)",
+				"$description": "Classic blue - Trust, stability"
+			},
+			"teal": {
+				"$value": "oklch(60% 0.14 180)",
+				"$description": "Vibrant teal - Fresh, modern"
+			},
+			"lime": {
+				"$value": "oklch(75% 0.18 130)",
+				"$description": "Energetic lime - Growth, progress"
+			},
+			"gold": {
+				"$value": "oklch(78% 0.14 85)",
+				"$description": "Warm gold - Premium, achievement"
+			}
+		},
+
+		"syntax": {
+			"$description": "Code syntax highlighting colors",
+			"keyword": {
+				"$value": "oklch(60% 0.2 350)",
+				"$description": "Pink/magenta for keywords"
+			},
+			"string": {
+				"$value": "oklch(65% 0.15 145)",
+				"$description": "Green for strings"
+			},
+			"number": {
+				"$value": "oklch(70% 0.15 65)",
+				"$description": "Orange for numbers"
+			},
+			"function": {
+				"$value": "oklch(65% 0.18 250)",
+				"$description": "Blue for functions"
+			},
+			"comment": {
+				"$value": "oklch(55% 0.02 264)",
+				"$description": "Gray for comments"
+			},
+			"variable": {
+				"$value": "oklch(70% 0.12 195)",
+				"$description": "Teal for variables"
+			},
+			"tag": {
+				"$value": "oklch(60% 0.2 25)",
+				"$description": "Red for tags"
+			}
+		}
+	},
+
+	"typography": {
+		"$description": "Typography system - fonts, sizes, weights, spacing",
+
+		"fontFamily": {
+			"$description": "Font stacks for different purposes. Plus Jakarta Sans = modern, friendly, professional.",
+			"sans": {
+				"$value": "'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+				"$description": "Primary sans-serif - Plus Jakarta Sans: modern, geometric, friendly yet professional"
+			},
+			"heading": {
+				"$value": "'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+				"$description": "Headings - Same font, use heavier weights (600-700) for hierarchy"
+			},
+			"mono": {
+				"$value": "'JetBrains Mono', 'SF Mono', Consolas, Monaco, 'Courier New', monospace",
+				"$description": "Monospace - JetBrains Mono: excellent coding font with ligatures"
+			},
+			"serif": {
+				"$value": "Merriweather, Georgia, Cambria, 'Times New Roman', serif",
+				"$description": "Serif - Merriweather: elegant, readable long-form content"
+			}
+		},
+
+		"fontSize": {
+			"$description": "Type scale - 2xs to 7xl. Base is 1rem (16px).",
+			"2xs": {
+				"$value": "0.625rem",
+				"$description": "10px - Tiny labels, legal text"
+			},
+			"xs": {
+				"$value": "0.75rem",
+				"$description": "12px - Small labels, badges"
+			},
+			"sm": {
+				"$value": "0.875rem",
+				"$description": "14px - Secondary text, buttons"
+			},
+			"base": {
+				"$value": "1rem",
+				"$description": "16px - Body text, default"
+			},
+			"lg": {
+				"$value": "1.125rem",
+				"$description": "18px - Large body, emphasis"
+			},
+			"xl": {
+				"$value": "1.25rem",
+				"$description": "20px - Small headings"
+			},
+			"2xl": {
+				"$value": "1.5rem",
+				"$description": "24px - Section headings"
+			},
+			"3xl": {
+				"$value": "1.875rem",
+				"$description": "30px - Page headings"
+			},
+			"4xl": {
+				"$value": "2.25rem",
+				"$description": "36px - Large headings"
+			},
+			"5xl": {
+				"$value": "3rem",
+				"$description": "48px - Hero headings"
+			},
+			"6xl": {
+				"$value": "3.75rem",
+				"$description": "60px - Display headings"
+			},
+			"7xl": {
+				"$value": "4.5rem",
+				"$description": "72px - Giant display text"
+			}
+		},
+
+		"fontWeight": {
+			"$description": "Weight scale - thin to black",
+			"thin": {
+				"$value": "100",
+				"$description": "Thin - Decorative only"
+			},
+			"extralight": {
+				"$value": "200",
+				"$description": "Extra light - Large display text"
+			},
+			"light": {
+				"$value": "300",
+				"$description": "Light - Elegant body text"
+			},
+			"regular": {
+				"$value": "400",
+				"$description": "Regular - Default body text"
+			},
+			"medium": {
+				"$value": "500",
+				"$description": "Medium - Emphasis, buttons"
+			},
+			"semibold": {
+				"$value": "600",
+				"$description": "Semibold - Subheadings, strong emphasis"
+			},
+			"bold": {
+				"$value": "700",
+				"$description": "Bold - Headings"
+			},
+			"extrabold": {
+				"$value": "800",
+				"$description": "Extra bold - Strong headings"
+			},
+			"black": {
+				"$value": "900",
+				"$description": "Black - Display, impact"
+			}
+		},
+
+		"lineHeight": {
+			"$description": "Line height scale for different contexts",
+			"none": {
+				"$value": "1",
+				"$description": "1.0 - Single line, icons"
+			},
+			"tight": {
+				"$value": "1.25",
+				"$description": "1.25 - Headings, compact"
+			},
+			"snug": {
+				"$value": "1.375",
+				"$description": "1.375 - Tight body text"
+			},
+			"normal": {
+				"$value": "1.5",
+				"$description": "1.5 - Default body text"
+			},
+			"relaxed": {
+				"$value": "1.625",
+				"$description": "1.625 - Comfortable reading"
+			},
+			"loose": {
+				"$value": "1.75",
+				"$description": "1.75 - Spacious, long-form"
+			},
+			"extra": {
+				"$value": "2",
+				"$description": "2.0 - Very spacious"
+			}
+		},
+
+		"letterSpacing": {
+			"$description": "Letter spacing (tracking) scale",
+			"tighter": {
+				"$value": "-0.05em",
+				"$description": "Very tight - Display headings"
+			},
+			"tight": {
+				"$value": "-0.025em",
+				"$description": "Tight - Headings"
+			},
+			"normal": {
+				"$value": "0",
+				"$description": "Normal - Body text"
+			},
+			"wide": {
+				"$value": "0.025em",
+				"$description": "Wide - Small caps, labels"
+			},
+			"wider": {
+				"$value": "0.05em",
+				"$description": "Wider - Uppercase labels"
+			},
+			"widest": {
+				"$value": "0.1em",
+				"$description": "Widest - All caps headings"
+			}
+		}
+	},
+
+	"spacing": {
+		"$description": "Spacing scale - 0.25rem increments (4px base). Use for margin, padding, gap.",
+		"0": { "$value": "0", "$description": "0px" },
+		"px": { "$value": "1px", "$description": "1px - Hairline" },
+		"0.5": { "$value": "0.125rem", "$description": "2px" },
+		"1": { "$value": "0.25rem", "$description": "4px - Tight" },
+		"1.5": { "$value": "0.375rem", "$description": "6px" },
+		"2": { "$value": "0.5rem", "$description": "8px - Compact" },
+		"2.5": { "$value": "0.625rem", "$description": "10px" },
+		"3": { "$value": "0.75rem", "$description": "12px - Default small" },
+		"3.5": { "$value": "0.875rem", "$description": "14px" },
+		"4": { "$value": "1rem", "$description": "16px - Default medium" },
+		"5": { "$value": "1.25rem", "$description": "20px" },
+		"6": { "$value": "1.5rem", "$description": "24px - Default large" },
+		"7": { "$value": "1.75rem", "$description": "28px" },
+		"8": { "$value": "2rem", "$description": "32px - Section spacing" },
+		"9": { "$value": "2.25rem", "$description": "36px" },
+		"10": { "$value": "2.5rem", "$description": "40px" },
+		"11": { "$value": "2.75rem", "$description": "44px" },
+		"12": { "$value": "3rem", "$description": "48px - Large section" },
+		"14": { "$value": "3.5rem", "$description": "56px" },
+		"16": { "$value": "4rem", "$description": "64px" },
+		"20": { "$value": "5rem", "$description": "80px - Page sections" },
+		"24": { "$value": "6rem", "$description": "96px" },
+		"28": { "$value": "7rem", "$description": "112px" },
+		"32": { "$value": "8rem", "$description": "128px - Hero spacing" },
+		"36": { "$value": "9rem", "$description": "144px" },
+		"40": { "$value": "10rem", "$description": "160px" },
+		"44": { "$value": "11rem", "$description": "176px" },
+		"48": { "$value": "12rem", "$description": "192px" },
+		"52": { "$value": "13rem", "$description": "208px" },
+		"56": { "$value": "14rem", "$description": "224px" },
+		"60": { "$value": "15rem", "$description": "240px" },
+		"64": { "$value": "16rem", "$description": "256px" },
+		"72": { "$value": "18rem", "$description": "288px" },
+		"80": { "$value": "20rem", "$description": "320px" },
+		"96": { "$value": "24rem", "$description": "384px" }
+	},
+
+	"borderRadius": {
+		"$description": "Border radius scale for rounded corners. Modern, generous curves inspired by Linear/Notion.",
+		"none": { "$value": "0", "$description": "Square corners" },
+		"sm": { "$value": "0.25rem", "$description": "4px - Subtle rounding" },
+		"default": { "$value": "0.375rem", "$description": "6px - Default rounding" },
+		"md": { "$value": "0.5rem", "$description": "8px - Buttons, inputs" },
+		"lg": { "$value": "0.75rem", "$description": "12px - Cards, small panels" },
+		"xl": { "$value": "1rem", "$description": "16px - Modals, larger panels" },
+		"2xl": { "$value": "1.25rem", "$description": "20px - Large cards, modals" },
+		"3xl": { "$value": "1.5rem", "$description": "24px - Hero cards" },
+		"full": { "$value": "9999px", "$description": "Pill shape, circles" }
+	},
+
+	"shadow": {
+		"$description": "Box shadow scale for elevation. Linear/Notion-inspired: softer, more diffused, multi-layered for depth.",
+		"none": { "$value": "none", "$description": "No shadow" },
+		"xs": {
+			"$value": "0 1px 2px 0 rgb(0 0 0 / 0.03)",
+			"$description": "Barely visible lift - subtle hints"
+		},
+		"sm": {
+			"$value": "0 2px 8px -2px rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.04)",
+			"$description": "Soft card elevation - buttons, small cards"
+		},
+		"default": {
+			"$value": "0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.04)",
+			"$description": "Standard elevation - cards, dropdowns"
+		},
+		"md": {
+			"$value": "0 8px 24px -4px rgb(0 0 0 / 0.1), 0 4px 8px -4px rgb(0 0 0 / 0.05)",
+			"$description": "Medium elevation - hover cards, popovers"
+		},
+		"lg": {
+			"$value": "0 16px 48px -8px rgb(0 0 0 / 0.12), 0 8px 16px -4px rgb(0 0 0 / 0.06)",
+			"$description": "Large elevation - modals, dialogs"
+		},
+		"xl": {
+			"$value": "0 24px 64px -12px rgb(0 0 0 / 0.16), 0 12px 24px -6px rgb(0 0 0 / 0.08)",
+			"$description": "Extra large - full modals, command palettes"
+		},
+		"2xl": {
+			"$value": "0 32px 80px -16px rgb(0 0 0 / 0.2), 0 16px 32px -8px rgb(0 0 0 / 0.1)",
+			"$description": "Dramatic - hero overlays, immersive modals"
+		},
+		"inner": {
+			"$value": "inset 0 1px 2px 0 rgb(0 0 0 / 0.04)",
+			"$description": "Subtle inset shadow - pressed states, inputs"
+		},
+		"glow": {
+			"$value": "0 0 24px -4px rgb(0 0 0 / 0.1)",
+			"$description": "Soft glow effect - focus states, highlights"
+		}
+	},
+
+	"zIndex": {
+		"$description": "Z-index scale for layering",
+		"behind": { "$value": "-1", "$description": "Behind content" },
+		"base": { "$value": "0", "$description": "Default layer" },
+		"raised": { "$value": "1", "$description": "Slightly raised" },
+		"dropdown": { "$value": "10", "$description": "Dropdowns, popovers" },
+		"sticky": { "$value": "20", "$description": "Sticky headers" },
+		"banner": { "$value": "30", "$description": "Banners, announcements" },
+		"overlay": { "$value": "40", "$description": "Overlay backgrounds" },
+		"modal": { "$value": "50", "$description": "Modals, dialogs" },
+		"popover": { "$value": "60", "$description": "Popovers on modals" },
+		"toast": { "$value": "70", "$description": "Toast notifications" },
+		"tooltip": { "$value": "80", "$description": "Tooltips" },
+		"max": { "$value": "9999", "$description": "Maximum - Critical overlays" }
+	},
+
+	"animation": {
+		"$description": "Animation timing and easing",
+
+		"duration": {
+			"$description": "Animation durations",
+			"instant": { "$value": "0ms", "$description": "No animation" },
+			"fastest": { "$value": "50ms", "$description": "Imperceptible" },
+			"faster": { "$value": "100ms", "$description": "Very quick" },
+			"fast": { "$value": "150ms", "$description": "Quick - Hovers" },
+			"normal": { "$value": "200ms", "$description": "Default - Most transitions" },
+			"slow": { "$value": "300ms", "$description": "Noticeable - Modals opening" },
+			"slower": { "$value": "400ms", "$description": "Deliberate - Page transitions" },
+			"slowest": { "$value": "500ms", "$description": "Slow - Hero animations" }
+		},
+
+		"easing": {
+			"$description": "Easing curves",
+			"linear": { "$value": "linear", "$description": "Constant speed" },
+			"in": { "$value": "cubic-bezier(0.4, 0, 1, 1)", "$description": "Accelerate - Exits" },
+			"out": { "$value": "cubic-bezier(0, 0, 0.2, 1)", "$description": "Decelerate - Entrances" },
+			"inOut": { "$value": "cubic-bezier(0.4, 0, 0.2, 1)", "$description": "Smooth - Default" },
+			"bounce": {
+				"$value": "cubic-bezier(0.34, 1.56, 0.64, 1)",
+				"$description": "Overshoot - Playful"
+			},
+			"spring": {
+				"$value": "cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+				"$description": "Spring - Elastic"
+			}
+		}
+	},
+
+	"sizing": {
+		"$description": "Fixed sizes for common elements",
+
+		"icon": {
+			"$description": "Icon sizes",
+			"xs": { "$value": "0.75rem", "$description": "12px - Tiny icons" },
+			"sm": { "$value": "1rem", "$description": "16px - Small icons" },
+			"md": { "$value": "1.25rem", "$description": "20px - Default icons" },
+			"lg": { "$value": "1.5rem", "$description": "24px - Large icons" },
+			"xl": { "$value": "2rem", "$description": "32px - Extra large" },
+			"2xl": { "$value": "2.5rem", "$description": "40px - Hero icons" },
+			"3xl": { "$value": "3rem", "$description": "48px - Feature icons" }
+		},
+
+		"avatar": {
+			"$description": "Avatar sizes",
+			"xs": { "$value": "1.5rem", "$description": "24px - Tiny avatar" },
+			"sm": { "$value": "2rem", "$description": "32px - Small avatar" },
+			"md": { "$value": "2.5rem", "$description": "40px - Default avatar" },
+			"lg": { "$value": "3rem", "$description": "48px - Large avatar" },
+			"xl": { "$value": "4rem", "$description": "64px - Profile avatar" },
+			"2xl": { "$value": "6rem", "$description": "96px - Hero avatar" },
+			"3xl": { "$value": "8rem", "$description": "128px - Feature avatar" }
+		},
+
+		"button": {
+			"$description": "Button heights",
+			"xs": { "$value": "1.5rem", "$description": "24px - Tiny button" },
+			"sm": { "$value": "2rem", "$description": "32px - Small button" },
+			"md": { "$value": "2.5rem", "$description": "40px - Default button" },
+			"lg": { "$value": "2.75rem", "$description": "44px - Large button (touch target)" },
+			"xl": { "$value": "3rem", "$description": "48px - Extra large button" }
+		},
+
+		"input": {
+			"$description": "Input heights",
+			"sm": { "$value": "2rem", "$description": "32px - Compact input" },
+			"md": { "$value": "2.5rem", "$description": "40px - Default input" },
+			"lg": { "$value": "2.75rem", "$description": "44px - Large input (touch target)" }
+		}
+	},
+
+	"layout": {
+		"$description": "Fixed layout dimensions",
+
+		"sidebar": {
+			"collapsed": { "$value": "4rem", "$description": "64px - Collapsed sidebar" },
+			"default": { "$value": "16rem", "$description": "256px - Default sidebar" },
+			"expanded": { "$value": "20rem", "$description": "320px - Expanded sidebar" }
+		},
+
+		"header": {
+			"height": { "$value": "4rem", "$description": "64px - Header height" }
+		},
+
+		"container": {
+			"xs": { "$value": "20rem", "$description": "320px" },
+			"sm": { "$value": "24rem", "$description": "384px" },
+			"md": { "$value": "28rem", "$description": "448px" },
+			"lg": { "$value": "32rem", "$description": "512px" },
+			"xl": { "$value": "36rem", "$description": "576px" },
+			"2xl": { "$value": "42rem", "$description": "672px" },
+			"3xl": { "$value": "48rem", "$description": "768px" },
+			"4xl": { "$value": "56rem", "$description": "896px" },
+			"5xl": { "$value": "64rem", "$description": "1024px" },
+			"6xl": { "$value": "72rem", "$description": "1152px" },
+			"7xl": { "$value": "80rem", "$description": "1280px" },
+			"full": { "$value": "100%", "$description": "Full width" }
+		}
+	},
+
+	"breakpoints": {
+		"$description": "Responsive breakpoints (min-width)",
+		"xs": { "$value": "475px", "$description": "Extra small - Large phones" },
+		"sm": { "$value": "640px", "$description": "Small - Phones landscape" },
+		"md": { "$value": "768px", "$description": "Medium - Tablets" },
+		"lg": { "$value": "1024px", "$description": "Large - Small laptops" },
+		"xl": { "$value": "1280px", "$description": "Extra large - Desktops" },
+		"2xl": { "$value": "1536px", "$description": "2X large - Large desktops" }
+	},
+
+	"opacity": {
+		"$description": "Opacity scale",
+		"0": { "$value": "0", "$description": "Invisible" },
+		"5": { "$value": "0.05", "$description": "5%" },
+		"10": { "$value": "0.1", "$description": "10%" },
+		"15": { "$value": "0.15", "$description": "15%" },
+		"20": { "$value": "0.2", "$description": "20%" },
+		"25": { "$value": "0.25", "$description": "25%" },
+		"30": { "$value": "0.3", "$description": "30%" },
+		"40": { "$value": "0.4", "$description": "40%" },
+		"50": { "$value": "0.5", "$description": "50% - Disabled states" },
+		"60": { "$value": "0.6", "$description": "60%" },
+		"70": { "$value": "0.7", "$description": "70%" },
+		"75": { "$value": "0.75", "$description": "75% - Backdrop" },
+		"80": { "$value": "0.8", "$description": "80%" },
+		"90": { "$value": "0.9", "$description": "90%" },
+		"95": { "$value": "0.95", "$description": "95%" },
+		"100": { "$value": "1", "$description": "Fully opaque" }
+	}
+}

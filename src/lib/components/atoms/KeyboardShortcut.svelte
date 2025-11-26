@@ -46,10 +46,10 @@
 	});
 
 	const sizeClasses =
-		size === 'sm' ? 'text-label px-badge py-badge' : 'text-button px-section py-section';
+		size === 'sm' ? 'text-label px-badge py-badge' : 'text-button px-2 py-1';
 </script>
 
-<div class="inline-flex items-center gap-icon">
+<div class="inline-flex items-center gap-2">
 	{#each normalizedKeys as key, i (`${i}-${key}`)}
 		<kbd class="bg-base/50 rounded-badge font-code text-tertiary {sizeClasses}">
 			{key}

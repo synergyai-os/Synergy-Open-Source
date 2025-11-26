@@ -30,7 +30,7 @@
 </script>
 
 <div class="rounded-input border border-error bg-error px-input-x py-input-y">
-	<div class="flex items-start gap-icon">
+	<div class="flex items-start gap-2">
 		<!-- Error Icon -->
 		<svg
 			class="icon-md flex-shrink-0 text-error"
@@ -53,12 +53,12 @@
 			</p>
 
 			{#if timeRemaining > 0}
-				<p class="gap-form-field text-button text-error">
+				<p class="gap-2 text-button text-error">
 					Please wait <span class="font-semibold tabular-nums">{timeRemaining}</span>
 					{timeRemaining === 1 ? 'second' : 'seconds'} before trying again.
 				</p>
 			{:else}
-				<p class="gap-form-field text-button text-error">You can try again now!</p>
+				<p class="gap-2 text-button text-error">You can try again now!</p>
 			{/if}
 		</div>
 	</div>

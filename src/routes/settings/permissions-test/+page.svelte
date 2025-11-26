@@ -150,13 +150,13 @@
 </script>
 
 <svelte:head>
-	<title>Permission System Test | Axon</title>
+	<title>Permission System Test | SynergyOS</title>
 </svelte:head>
 
-<div class="container-constrained py-section">
+<div class="container-constrained py-1">
 	<!-- Page Header with Workspace Context -->
 	<header class="mb-section-tight">
-		<div class="mb-2 flex items-baseline gap-icon">
+		<div class="mb-2 flex items-baseline gap-2">
 			<h1 class="text-display-lg font-semibold text-primary">Permission System Test</h1>
 			{#if activeOrganization}
 				<span class="text-sm text-secondary">

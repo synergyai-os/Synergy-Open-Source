@@ -301,7 +301,7 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 					class="w-full rounded-input border border-sidebar bg-surface px-input-x py-input-y text-small text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
 				/>
 			</div>
-			<div class="flex gap-icon">
+			<div class="flex gap-2">
 				<button
 					onclick={() => (filterResolved = 'all')}
 					class="rounded-button px-button-x py-button-y text-small transition-colors {filterResolved ===
@@ -336,11 +336,11 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 	<!-- Errors List -->
 	<main class="flex-1 overflow-y-auto px-inbox-container py-system-content">
 		{#if !browser || unresolvedQuery?.isLoading}
-			<div class="flex items-center justify-center py-error-page">
+			<div class="flex items-center justify-center" style="padding-block: var(--spacing-12);">
 				<p class="text-secondary">Loading...</p>
 			</div>
 		{:else if filteredErrors().length === 0}
-			<div class="flex flex-col items-center justify-center py-readable-quote">
+			<div class="flex flex-col items-center justify-center" style="padding-block: var(--spacing-8);">
 				<p class="text-h3 text-secondary">No errors found</p>
 				<p class="mt-form-field-gap text-small text-tertiary">
 					{#if filterResolved === 'unresolved'}
@@ -358,7 +358,7 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 					>
 						<div class="flex items-start justify-between">
 							<div class="flex-1">
-								<div class="flex items-center gap-icon">
+								<div class="flex items-center gap-2">
 									<code class="text-small font-medium text-primary">{error.url}</code>
 									{#if !error.resolved}
 										<span
@@ -401,7 +401,7 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 								{/if}
 							</div>
 
-							<div class="ml-content-section flex items-center gap-icon">
+							<div class="ml-content-section flex items-center gap-2">
 								<button
 									onclick={() => copyError(error)}
 									class="rounded-button px-button-x py-button-y text-small text-secondary hover:bg-hover-solid hover:text-primary"
@@ -460,7 +460,7 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 				></textarea>
 			</div>
 
-			<div class="mt-settings-section flex justify-end gap-icon">
+			<div class="mt-settings-section flex justify-end gap-2">
 				<Button variant="secondary" onclick={() => (selectedError = null)}>Cancel</Button>
 				<button
 					onclick={() => {
@@ -469,7 +469,7 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 						}
 					}}
 					disabled={resolving || !selectedError}
-					class="inline-flex items-center justify-center gap-icon rounded-button bg-accent-primary px-button-x py-button-y text-small font-semibold text-primary transition-all duration-150 hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+					class="inline-flex items-center justify-center gap-2 rounded-button bg-accent-primary px-button-x py-button-y text-small font-semibold text-primary transition-all duration-150 hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{resolving ? 'Resolving...' : 'Mark as Resolved'}
 				</button>

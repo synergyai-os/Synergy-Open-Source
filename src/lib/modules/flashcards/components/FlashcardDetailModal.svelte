@@ -268,7 +268,7 @@
 		<Dialog.Content class="fixed inset-0 z-50 flex flex-col overflow-hidden bg-base">
 			<!-- Header -->
 			<div
-				class="flex h-system-header flex-shrink-0 items-center justify-between gap-icon border-b border-base px-inbox-container py-system-header"
+				class="flex h-system-header flex-shrink-0 items-center justify-between gap-2 border-b border-base px-inbox-container py-system-header"
 			>
 				<div class="min-w-0 flex-1">
 					<h2 class="text-h3 font-semibold text-primary">
@@ -332,19 +332,19 @@
 										</div>
 									</div>
 									<div
-										class="flex items-center justify-end gap-icon border-t border-base px-inbox-container py-system-header"
+										class="flex items-center justify-end gap-2 border-t border-base px-inbox-container py-system-header"
 									>
 										<Button.Root
 											onclick={handleCancel}
 											disabled={isSaving}
-											class="rounded-button border border-base bg-base px-nav-item py-nav-item text-small font-medium transition-colors hover:bg-hover-solid disabled:opacity-50"
+											class="rounded-button border border-base bg-base px-2 py-nav-item text-small font-medium transition-colors hover:bg-hover-solid disabled:opacity-50"
 										>
 											Cancel
 										</Button.Root>
 										<Button.Root
 											onclick={handleSave}
 											disabled={isSaving}
-											class="rounded-button bg-accent-primary px-nav-item py-nav-item text-small font-medium text-primary transition-opacity hover:opacity-90 disabled:opacity-50"
+											class="rounded-button bg-accent-primary px-2 py-nav-item text-small font-medium text-primary transition-opacity hover:opacity-90 disabled:opacity-50"
 										>
 											{isSaving ? 'Saving...' : 'Save'}
 										</Button.Root>
@@ -364,7 +364,7 @@
 							{/if}
 						</div>
 					{:else}
-						<div class="py-readable-quote text-center">
+						<div class="text-center" style="padding-block: var(--spacing-8);">
 							<p class="text-secondary">No cards in this collection</p>
 						</div>
 					{/if}
@@ -389,12 +389,12 @@
 			<!-- Footer: Navigation -->
 			{#if currentCard && !isEditing}
 				<div
-					class="flex h-system-header flex-shrink-0 items-center justify-between gap-icon border-t border-base bg-surface px-inbox-container py-system-header"
+					class="flex h-system-header flex-shrink-0 items-center justify-between gap-2 border-t border-base bg-surface px-inbox-container py-system-header"
 				>
 					<Button.Root
 						onclick={previousCard}
 						disabled={currentIndex === 0}
-						class="flex items-center gap-icon rounded-button border border-base bg-elevated px-nav-item py-nav-item text-small font-medium text-secondary transition-colors hover:bg-hover-solid disabled:cursor-not-allowed disabled:text-tertiary disabled:opacity-40 disabled:hover:bg-elevated"
+						class="flex items-center gap-2 rounded-button border border-base bg-elevated px-2 py-nav-item text-small font-medium text-secondary transition-colors hover:bg-hover-solid disabled:cursor-not-allowed disabled:text-tertiary disabled:opacity-40 disabled:hover:bg-elevated"
 					>
 						<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
@@ -407,14 +407,14 @@
 						Previous
 					</Button.Root>
 
-					<div class="flex items-center gap-icon text-small text-secondary">
+					<div class="flex items-center gap-2 text-small text-secondary">
 						<span class="text-label">Press ↑/↓ or Space to flip</span>
 					</div>
 
 					<Button.Root
 						onclick={nextCard}
 						disabled={currentIndex === flashcards.length - 1}
-						class="flex items-center gap-icon rounded-button border border-base bg-elevated px-nav-item py-nav-item text-small font-medium text-secondary transition-colors hover:bg-hover-solid disabled:cursor-not-allowed disabled:text-tertiary disabled:opacity-40 disabled:hover:bg-elevated"
+						class="flex items-center gap-2 rounded-button border border-base bg-elevated px-2 py-nav-item text-small font-medium text-secondary transition-colors hover:bg-hover-solid disabled:cursor-not-allowed disabled:text-tertiary disabled:opacity-40 disabled:hover:bg-elevated"
 					>
 						Next
 						<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -55,7 +55,7 @@
 
 {#if isMobile}
 	<header
-		class="flex h-system-header items-center justify-between gap-icon border-b border-base bg-surface px-inbox-container py-system-header"
+		class="flex h-system-header items-center justify-between gap-2 border-b border-base bg-surface px-inbox-container py-system-header"
 	>
 		<button
 			type="button"
@@ -102,9 +102,9 @@
 {:else}
 	<!-- Desktop: Show workspace indicator -->
 	<header
-		class="flex h-system-header items-center justify-between gap-icon border-b border-base bg-surface px-inbox-container py-system-header"
+		class="flex h-system-header items-center justify-between gap-2 border-b border-base bg-surface px-inbox-container py-system-header"
 	>
-		<div class="flex items-center gap-icon">
+		<div class="flex items-center gap-2">
 			<span class="text-label text-secondary">
 				📁 {workspaceName}
 			</span>

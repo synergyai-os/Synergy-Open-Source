@@ -117,11 +117,13 @@
 	<!-- Dropdown Menu -->
 	{#if isOpen}
 		<div
-			class="absolute top-full right-0 z-50 mt-meeting-card w-meeting-dropdown rounded-card border border-border-base bg-elevated shadow-card"
+			class="absolute top-full right-0 z-50 rounded-card border border-border-base bg-elevated shadow-card"
+			style="margin-top: var(--spacing-2); width: 16rem;"
 		>
-			<div class="p-meeting-card">
+			<div style="padding: var(--spacing-3);">
 				<div
-					class="mb-meeting-card px-header py-meeting-card text-label font-medium text-text-tertiary"
+					class="px-header text-label font-medium text-text-tertiary"
+					style="margin-bottom: var(--spacing-2); padding-block: var(--spacing-2);"
 				>
 					Request Secretary Change
 				</div>
@@ -134,16 +136,18 @@
 						<button
 							onclick={() => handleSelectSecretary(attendee.userId, attendee.userName || 'Unknown')}
 							disabled={isCurrentSecretary}
-							class="text-body-sm flex w-full items-center justify-between rounded-button px-header py-meeting-card text-left transition-colors {isCurrentSecretary
+							class="text-body-sm flex w-full items-center justify-between rounded-button px-header text-left transition-colors {isCurrentSecretary
 								? 'cursor-default bg-accent-primary/10 text-accent-primary'
 								: 'hover:bg-surface-hover cursor-pointer text-text-primary'}"
+							style="padding-block: var(--spacing-2);"
 						>
-							<span class="flex items-center gap-meeting-card">
+							<span class="flex items-center gap-2" style="padding: var(--spacing-3);">
 								<!-- Avatar placeholder -->
 								<div
-									class="flex size-meeting-avatar-sm items-center justify-center rounded-avatar {isCurrentSecretary
+									class="flex items-center justify-center rounded-avatar {isCurrentSecretary
 										? 'bg-accent-primary text-primary'
 										: 'bg-surface-hover text-text-secondary'}"
+									style="width: 1.5rem; height: 1.5rem;"
 								>
 									{(attendee.userName || 'U')[0].toUpperCase()}
 								</div>

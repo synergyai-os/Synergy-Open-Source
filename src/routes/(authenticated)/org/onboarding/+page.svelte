@@ -35,7 +35,7 @@
 				{#each organizations ? (organizations.organizations ?? []) : [] as org (org.organizationId)}
 					<button
 						onclick={() => handleSelectOrg(org.organizationId)}
-						class="w-full rounded-button border border-base bg-elevated px-nav-item py-nav-item text-left text-button text-primary hover:bg-sidebar-hover"
+						class="w-full rounded-button border border-base bg-elevated px-2 py-nav-item text-left text-button text-primary hover:bg-sidebar-hover"
 					>
 						{org.name}
 					</button>
@@ -49,7 +49,7 @@
 
 			<button
 				onclick={handleCreateOrg}
-				class="text-on-solid mt-6 rounded-button bg-accent-primary px-nav-item py-nav-item text-button font-medium hover:bg-accent-hover"
+				class="text-on-solid mt-6 rounded-button bg-accent-primary px-2 py-nav-item text-button font-medium hover:bg-accent-hover"
 			>
 				Create Organization
 			</button>

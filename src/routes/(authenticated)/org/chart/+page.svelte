@@ -58,9 +58,9 @@
 			<h1 class="text-button font-normal text-secondary">Org Chart</h1>
 			<p class="text-label text-tertiary">{organizationName}</p>
 		</div>
-		<div class="flex items-center gap-icon">
+		<div class="flex items-center gap-2">
 			<button
-				class="rounded-button px-nav-item py-nav-item text-button text-secondary hover:bg-hover-solid hover:text-primary"
+				class="rounded-button px-2 py-nav-item text-button text-secondary hover:bg-hover-solid hover:text-primary"
 				onclick={() => goto(resolveRoute('/org/circles'))}
 			>
 				← Back to Circles

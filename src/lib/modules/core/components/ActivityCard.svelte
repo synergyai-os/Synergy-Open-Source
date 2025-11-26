@@ -45,9 +45,9 @@
 >
 	<!-- Header -->
 	<div
-		class="flex items-center justify-between gap-icon border-b border-base px-menu-item py-menu-item"
+		class="flex items-center justify-between gap-2 border-b border-base px-menu-item py-menu-item"
 	>
-		<div class="flex min-w-0 flex-1 items-center gap-icon">
+		<div class="flex min-w-0 flex-1 items-center gap-2">
 			{#if activity.icon}
 				<span class="flex-shrink-0 text-base">{activity.icon}</span>
 			{:else if activity.status === 'running'}
@@ -172,7 +172,7 @@
 			{#each activity.quickActions as action, index (action.label || index)}
 				<Button.Root
 					onclick={() => handleQuickAction(action.action)}
-					class="flex items-center gap-icon rounded-md px-menu-item py-menu-item text-xs text-primary transition-colors hover:bg-hover-solid"
+					class="flex items-center gap-2 rounded-md px-menu-item py-menu-item text-xs text-primary transition-colors hover:bg-hover-solid"
 				>
 					{#if action.icon}
 						<span>{action.icon}</span>

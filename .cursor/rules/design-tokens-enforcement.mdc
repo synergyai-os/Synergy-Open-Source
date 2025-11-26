@@ -1,7 +1,6 @@
 ---
-alwaysApply: true
+alwaysApply: false
 ---
-
 # 🚨 DESIGN TOKEN ENFORCEMENT (MANDATORY)
 
 **This rule is AUTOMATICALLY loaded for EVERY .svelte file you edit.**
@@ -147,6 +146,11 @@ Cascade works, design system maintained
 	);
 </script>
 ```
+
+**📖 Reference Examples:**
+- Complete template: `ai-docs/reference/recipe-template.md` (Button recipe example)
+- Working example: `ai-docs/reference/cva-svelte-example/` (Button component with recipe)
+- Pattern documentation: `dev-docs/2-areas/patterns/recipe-system.md`
 
 ---
 

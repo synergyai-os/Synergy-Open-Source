@@ -28,7 +28,8 @@
 			</Popover.Trigger>
 		{/if}
 		<Popover.Content
-			class="z-50 rounded-button border border-control-border bg-control p-control-panel-padding shadow-card"
+			class="border-control-border z-50 rounded-button border bg-control shadow-card"
+			style="padding: var(--spacing-3);"
 			side="bottom"
 			align="start"
 			sideOffset={8}
@@ -38,12 +39,13 @@
 	</Popover.Root>
 {:else if variant === 'toolbar'}
 	<div
-		class="flex items-center gap-control-group border-b border-control-border bg-control p-control-panel-padding"
+		class="border-control-border flex items-center border-b bg-control"
+		style="gap: var(--spacing-2); padding: var(--spacing-3);"
 	>
 		{@render children()}
 	</div>
 {:else}
-	<div class="flex items-center gap-control-group p-control-panel-padding">
+	<div class="flex items-center" style="gap: var(--spacing-2); padding: var(--spacing-3);">
 		{@render children()}
 	</div>
 {/if}

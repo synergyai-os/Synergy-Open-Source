@@ -42,7 +42,7 @@
 	};
 
 	let {
-		workspaceName = 'Axon',
+		workspaceName = 'SynergyOS',
 		accountEmail = 'user@example.com',
 		linkedAccounts = [],
 		onSettings,
@@ -98,7 +98,7 @@
 
 <!-- Sticky Header -->
 <div
-	class="sticky top-0 z-10 flex h-system-header flex-shrink-0 items-center justify-between gap-icon border-b border-sidebar bg-sidebar px-header py-system-header"
+	class="sticky top-0 z-10 flex h-system-header flex-shrink-0 items-center justify-between gap-2 border-b border-sidebar bg-sidebar px-header py-system-header"
 >
 	{#if !sidebarCollapsed || (isMobile && !sidebarCollapsed) || (isHovered && !isMobile)}
 		<!-- Workspace Menu with Logo and Name - Takes remaining space -->

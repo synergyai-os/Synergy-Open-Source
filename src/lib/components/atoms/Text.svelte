@@ -2,11 +2,13 @@
 	import type { WithElementRef } from 'bits-ui';
 	import type { Snippet } from 'svelte';
 	import type { TextVariant, TextSize } from '../types';
+	import { textRecipe } from '$lib/design-system/recipes';
 
 	type Props = WithElementRef<
 		{
 			variant?: TextVariant;
 			size?: TextSize;
+			color?: 'default' | 'secondary' | 'tertiary' | 'error' | 'warning' | 'success' | 'info';
 			as?: 'p' | 'span' | 'div' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
 			children: Snippet;
 			class?: string;
@@ -17,6 +19,7 @@
 	let {
 		variant = 'body',
 		size = 'base',
+		color = 'default',
 		as = 'p',
 		children,
 		class: className = '',
@@ -24,20 +27,10 @@
 		...rest
 	}: Props = $props();
 
-	// Apply design tokens based on variant and size
-	const variantClasses: Record<TextVariant, string> = {
-		body: 'text-primary',
-		label: 'text-label text-secondary',
-		caption: 'text-label text-tertiary'
-	};
-
-	const sizeClasses: Record<TextSize, string> = {
-		sm: 'text-small',
-		base: 'text-body',
-		lg: 'text-h4'
-	};
-
-	const textClasses = `font-body ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
+	// Apply design tokens using recipe system
+	const textClasses = $derived(
+		textRecipe({ variant, size, color }) + (className ? ` ${className}` : '')
+	);
 </script>
 
 {#if as === 'p'}
@@ -63,17 +56,20 @@
 <!--
 	Text Component - Typography with Design Tokens
 	
+	Uses Recipe System (CVA) for type-safe variant management.
+	See: src/lib/design-system/recipes/text.recipe.ts
+	
 	Usage:
 	<Text variant="body" size="base">Regular body text</Text>
 	<Text variant="label" size="sm">Small label text</Text>
 	<Text variant="caption" size="sm" as="span">Caption text</Text>
 	
-	Design Tokens:
+	Design Tokens (via Recipe):
 	- Variant body: text-primary (main text color)
-	- Variant label: text-label + text-secondary (label styling)
-	- Variant caption: text-label + text-tertiary (muted text)
-	- Size sm: text-small (14px)
-	- Size base: text-body (16px)
-	- Size lg: text-h4 (18px)
+	- Variant label: text-[0.625rem] text-secondary (10px label styling)
+	- Variant caption: text-[0.625rem] text-tertiary (10px muted text)
+	- Size sm: text-sm (14px)
+	- Size base: text-base (16px)
+	- Size lg: text-lg (18px)
 	- Colors adapt to light/dark mode automatically
 -->

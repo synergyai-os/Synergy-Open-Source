@@ -67,7 +67,7 @@ function flattenTokens(obj, prefix = '', tokens = []) {
  * Extract all tokens from design-system.json
  */
 function extractTokensFromDesignSystem() {
-	const designSystemPath = path.join(PROJECT_ROOT, 'design-system.json');
+	const designSystemPath = path.join(PROJECT_ROOT, 'design-tokens-base.json');
 	const content = JSON.parse(fs.readFileSync(designSystemPath, 'utf-8'));
 
 	const tokens = flattenTokens(content);

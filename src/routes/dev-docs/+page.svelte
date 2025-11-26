@@ -4,11 +4,11 @@
 	import MetricsForecast from '$lib/components/ai-tools/MetricsForecast.svelte';
 	import ToolComparisonTable from '$lib/components/ai-tools/ToolComparisonTable.svelte';
 	import { verifiedTools } from '$lib/services/metricsService';
-	import { ThemeToggle } from '$lib/components/organisms';
 	import { fade, fly, scale, slide } from 'svelte/transition';
 	import { quintOut, elasticOut } from 'svelte/easing';
 	import { onMount } from 'svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
+	import { toggleTheme, isDark } from '$lib/stores/theme.svelte';
 
 	// Animation state
 	let heroVisible = false;
@@ -348,7 +348,47 @@
 				<span class="hamburger-icon">≡</span>
 			</button>
 
-			<ThemeToggle />
+			<button
+				type="button"
+				class="navbar-link-icon"
+				aria-label="Toggle theme"
+				title={isDark() ? 'Switch to light mode' : 'Switch to dark mode'}
+				onclick={toggleTheme}
+			>
+				{#if isDark()}
+					<!-- Sun icon (show in dark mode - clicking switches to light) -->
+					<svg
+						width="20"
+						height="20"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+						/>
+					</svg>
+				{:else}
+					<!-- Moon icon (show in light mode - clicking switches to dark) -->
+					<svg
+						width="20"
+						height="20"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+						/>
+					</svg>
+				{/if}
+			</button>
 			<a
 				href="https://github.com/synergyai-os/Synergy-Open-Source"
 				target="_blank"

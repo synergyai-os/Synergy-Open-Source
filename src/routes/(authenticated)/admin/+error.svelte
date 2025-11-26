@@ -57,10 +57,13 @@
 	}
 </script>
 
-<div class="flex min-h-screen items-center justify-center px-container py-error-page">
+<div
+	class="flex min-h-screen items-center justify-center px-container"
+	style="padding-block: var(--spacing-12);"
+>
 	<div class="space-y-error-page w-full max-w-md text-center">
 		<!-- Icon -->
-		<div class="mx-auto flex size-avatar-sm items-center justify-center rounded-avatar bg-error-bg">
+		<div class="size-avatar-sm bg-error-bg mx-auto flex items-center justify-center rounded-avatar">
 			<svg
 				class="icon-lg text-error-text"
 				fill="none"
@@ -78,17 +81,17 @@
 
 		<!-- Title -->
 		<div>
-			<h1 class="text-h2 font-semibold text-primary">Admin Access Required</h1>
-			<p class="mt-form-field-gap text-small text-secondary">
+			<h1 class="text-h2 text-primary font-semibold">Admin Access Required</h1>
+			<p class="text-small text-secondary mt-form-field-gap">
 				You need system administrator privileges to access this page.
 			</p>
 		</div>
 
 		<!-- Error Details (if available) -->
 		{#if error}
-			<div class="p-card rounded-card border border-base bg-elevated text-left">
-				<p class="text-label font-medium text-tertiary">Error Details</p>
-				<p class="mt-section-y text-small text-secondary">
+			<div class="p-card border-base bg-elevated rounded-card border text-left">
+				<p class="text-label text-tertiary font-medium">Error Details</p>
+				<p class="text-small text-secondary mt-section-y">
 					{error instanceof Error
 						? error.message
 						: typeof error === 'string'
@@ -100,22 +103,22 @@
 
 		<!-- Account Switching -->
 		{#if isLoadingAccounts}
-			<div class="rounded-card border border-base bg-elevated p-card-compact">
+			<div class="border-base bg-elevated rounded-card border p-card-compact">
 				<p class="text-small text-secondary">Loading accounts...</p>
 			</div>
 		{:else if linkedAccounts.length > 0}
 			<div class="space-y-form-section">
-				<p class="text-small font-medium text-primary">Switch to an account with admin access:</p>
+				<p class="text-small text-primary font-medium">Switch to an account with admin access:</p>
 				<div class="space-y-form-field-gap">
 					{#each linkedAccounts as account (account.userId)}
 						<button
 							type="button"
 							onclick={() => switchAccount(account.userId)}
 							disabled={isSwitching}
-							class="hover:bg-elevated-hover w-full rounded-card border border-base bg-elevated p-card-compact text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+							class="hover:bg-elevated-hover border-base bg-elevated w-full rounded-card border p-card-compact text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 						>
-							<p class="text-small font-medium text-primary">{account.name || account.email}</p>
-							<p class="mt-badge-y text-label text-secondary">{account.email}</p>
+							<p class="text-small text-primary font-medium">{account.name || account.email}</p>
+							<p class="text-label text-secondary mt-badge-y">{account.email}</p>
 						</button>
 					{/each}
 				</div>

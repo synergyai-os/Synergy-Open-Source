@@ -193,10 +193,10 @@
 
 				<!-- Navigation Tabs -->
 				<div class="border-b border-base px-inbox-container">
-					<div class="gap-control-item flex overflow-x-auto" role="tablist">
+					<div class="flex overflow-x-auto" style="gap: var(--spacing-1);" role="tablist">
 						<button
 							type="button"
-							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-button transition-colors"
+							class="flex-shrink-0 border-b-2 px-2 py-nav-item text-button transition-colors"
 							class:border-accent-primary={activeTab === 'overview'}
 							class:border-transparent={activeTab !== 'overview'}
 							class:text-primary={activeTab === 'overview'}
@@ -211,7 +211,7 @@
 						</button>
 						<button
 							type="button"
-							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-button transition-colors"
+							class="flex-shrink-0 border-b-2 px-2 py-nav-item text-button transition-colors"
 							class:border-accent-primary={activeTab === 'members'}
 							class:border-transparent={activeTab !== 'members'}
 							class:text-primary={activeTab === 'members'}
@@ -229,7 +229,7 @@
 						</button>
 						<button
 							type="button"
-							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-button transition-colors"
+							class="flex-shrink-0 border-b-2 px-2 py-nav-item text-button transition-colors"
 							class:border-accent-primary={activeTab === 'documents'}
 							class:border-transparent={activeTab !== 'documents'}
 							class:text-primary={activeTab === 'documents'}
@@ -247,7 +247,7 @@
 						</button>
 						<button
 							type="button"
-							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-button transition-colors"
+							class="flex-shrink-0 border-b-2 px-2 py-nav-item text-button transition-colors"
 							class:border-accent-primary={activeTab === 'activities'}
 							class:border-transparent={activeTab !== 'activities'}
 							class:text-primary={activeTab === 'activities'}
@@ -265,7 +265,7 @@
 						</button>
 						<button
 							type="button"
-							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-button transition-colors"
+							class="flex-shrink-0 border-b-2 px-2 py-nav-item text-button transition-colors"
 							class:border-accent-primary={activeTab === 'metrics'}
 							class:border-transparent={activeTab !== 'metrics'}
 							class:text-primary={activeTab === 'metrics'}
@@ -283,7 +283,7 @@
 						</button>
 						<button
 							type="button"
-							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-button transition-colors"
+							class="flex-shrink-0 border-b-2 px-2 py-nav-item text-button transition-colors"
 							class:border-accent-primary={activeTab === 'checklists'}
 							class:border-transparent={activeTab !== 'checklists'}
 							class:text-primary={activeTab === 'checklists'}
@@ -301,7 +301,7 @@
 						</button>
 						<button
 							type="button"
-							class="flex-shrink-0 border-b-2 px-nav-item py-nav-item text-button transition-colors"
+							class="flex-shrink-0 border-b-2 px-2 py-nav-item text-button transition-colors"
 							class:border-accent-primary={activeTab === 'projects'}
 							class:border-transparent={activeTab !== 'projects'}
 							class:text-primary={activeTab === 'projects'}
@@ -356,7 +356,7 @@
 									<h4 class="mb-2 text-button font-medium tracking-wide text-tertiary uppercase">
 										Domains
 									</h4>
-									<div class="flex items-center gap-icon text-button text-secondary">
+									<div class="flex items-center gap-2 text-button text-secondary">
 										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
@@ -374,7 +374,7 @@
 									<h4 class="mb-2 text-button font-medium tracking-wide text-tertiary uppercase">
 										Accountabilities
 									</h4>
-									<div class="flex items-center gap-icon text-button text-secondary">
+									<div class="flex items-center gap-2 text-button text-secondary">
 										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
@@ -392,7 +392,7 @@
 									<h4 class="mb-2 text-button font-medium tracking-wide text-tertiary uppercase">
 										Policies
 									</h4>
-									<div class="flex items-center gap-icon text-button text-secondary">
+									<div class="flex items-center gap-2 text-button text-secondary">
 										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
@@ -410,7 +410,7 @@
 									<h4 class="mb-2 text-button font-medium tracking-wide text-tertiary uppercase">
 										Decision Rights
 									</h4>
-									<div class="flex items-center gap-icon text-button text-secondary">
+									<div class="flex items-center gap-2 text-button text-secondary">
 										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
@@ -428,7 +428,7 @@
 									<h4 class="mb-2 text-button font-medium tracking-wide text-tertiary uppercase">
 										Notes
 									</h4>
-									<div class="flex items-center gap-icon text-button text-secondary">
+									<div class="flex items-center gap-2 text-button text-secondary">
 										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
@@ -465,7 +465,7 @@
 								{#if fillers.length > 0}
 									<div class="mt-form-section space-y-inbox-list-gap">
 										{#each fillers as filler (filler.userId)}
-											<div class="p-card flex items-center gap-icon rounded-card bg-surface">
+											<div class="p-card flex items-center gap-2 rounded-card bg-surface">
 												<Avatar initials={getInitials(filler.name || filler.email)} size="md" />
 												<!-- Info -->
 												<div class="min-w-0 flex-1">
@@ -488,7 +488,7 @@
 						</div>
 					{:else if activeTab === 'members'}
 						<!-- Empty State: Members -->
-						<div class="py-readable-quote text-center">
+						<div class="text-center" style="padding-block: var(--spacing-8);">
 							<svg
 								class="mx-auto size-icon-xl text-tertiary"
 								fill="none"
@@ -510,7 +510,7 @@
 						</div>
 					{:else if activeTab === 'documents'}
 						<!-- Empty State: Documents -->
-						<div class="py-readable-quote text-center">
+						<div class="text-center" style="padding-block: var(--spacing-8);">
 							<svg
 								class="mx-auto size-icon-xl text-tertiary"
 								fill="none"
@@ -534,7 +534,7 @@
 						</div>
 					{:else if activeTab === 'activities'}
 						<!-- Empty State: Activities -->
-						<div class="py-readable-quote text-center">
+						<div class="text-center" style="padding-block: var(--spacing-8);">
 							<svg
 								class="mx-auto size-icon-xl text-tertiary"
 								fill="none"
@@ -558,7 +558,7 @@
 						</div>
 					{:else if activeTab === 'metrics'}
 						<!-- Empty State: Metrics -->
-						<div class="py-readable-quote text-center">
+						<div class="text-center" style="padding-block: var(--spacing-8);">
 							<svg
 								class="mx-auto size-icon-xl text-tertiary"
 								fill="none"
@@ -580,7 +580,7 @@
 						</div>
 					{:else if activeTab === 'checklists'}
 						<!-- Empty State: Checklists -->
-						<div class="py-readable-quote text-center">
+						<div class="text-center" style="padding-block: var(--spacing-8);">
 							<svg
 								class="mx-auto size-icon-xl text-tertiary"
 								fill="none"
@@ -604,7 +604,7 @@
 						</div>
 					{:else if activeTab === 'projects'}
 						<!-- Empty State: Projects -->
-						<div class="py-readable-quote text-center">
+						<div class="text-center" style="padding-block: var(--spacing-8);">
 							<svg
 								class="mx-auto size-icon-xl text-tertiary"
 								fill="none"

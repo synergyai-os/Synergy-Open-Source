@@ -153,7 +153,7 @@
 				{/if}
 			</div>
 			<div
-				class="flex flex-shrink-0 items-center justify-center gap-icon border-t border-base px-inbox-container py-system-header transition-colors {isEditingQuestion
+				class="flex flex-shrink-0 items-center justify-center gap-2 border-t border-base px-inbox-container py-system-header transition-colors {isEditingQuestion
 					? 'bg-accent-primary/20'
 					: 'bg-base/10'}"
 			>
@@ -222,7 +222,7 @@
 				{/if}
 			</div>
 			<div
-				class="flex flex-shrink-0 items-center justify-center gap-icon border-t border-accent-primary px-inbox-container py-system-header transition-colors {isEditingAnswer
+				class="flex flex-shrink-0 items-center justify-center gap-2 border-t border-accent-primary px-inbox-container py-system-header transition-colors {isEditingAnswer
 					? 'bg-accent-primary/30'
 					: 'bg-accent-primary/10'}"
 			>

@@ -154,7 +154,7 @@
 							<span class="text-sm font-medium text-primary">Email address *</span>
 							<input
 								type="email"
-								class="w-full rounded-md border px-nav-item py-nav-item text-sm text-primary focus:outline-none disabled:opacity-50"
+								class="w-full rounded-md border px-2 py-nav-item text-sm text-primary focus:outline-none disabled:opacity-50"
 								class:border-base={!emailError}
 								class:border-error={!!emailError}
 								class:bg-elevated={!emailError}
@@ -196,7 +196,7 @@
 								<input
 									type="text"
 									readonly
-									class="flex-1 rounded-md border border-base bg-elevated px-nav-item py-nav-item text-sm text-primary focus:border-accent-primary focus:outline-none"
+									class="flex-1 rounded-md border border-base bg-elevated px-2 py-nav-item text-sm text-primary focus:border-accent-primary focus:outline-none"
 									value={inviteLink}
 									onclick={(e) => (e.target as HTMLInputElement).select()}
 								/>

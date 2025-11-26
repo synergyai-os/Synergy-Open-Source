@@ -116,11 +116,11 @@
 		class="sticky top-0 z-10 flex h-system-header flex-shrink-0 items-center justify-between border-b border-base bg-surface px-inbox-container py-system-header"
 	>
 		<h2 class="text-sm font-normal text-secondary">Study Session</h2>
-		<div class="flex items-center gap-icon">
+		<div class="flex items-center gap-2">
 			{#if study.sessionStartTime}
 				<Button.Root
 					onclick={() => study.resetSession()}
-					class="rounded-md px-nav-item py-nav-item text-sm text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
+					class="rounded-md px-2 py-nav-item text-sm text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
 				>
 					Reset
 				</Button.Root>
@@ -142,24 +142,24 @@
 		{/if}
 
 		{#if study.isLoading}
-			<div class="py-readable-quote text-center">
+			<div class="text-center" style="padding-block: var(--spacing-8);">
 				<p class="text-secondary">Loading flashcards...</p>
 			</div>
 		{:else if study.error}
-			<div class="py-readable-quote text-center">
+			<div class="text-center" style="padding-block: var(--spacing-8);">
 				<p class="mb-2 font-medium text-primary">Error</p>
 				<p class="text-secondary">{study.error}</p>
 			</div>
 		{:else if study.reviewQueue.length === 0 && study.cardsReviewed === 0}
 			<!-- Empty State -->
-			<div class="mx-auto max-w-readable py-readable-quote text-center">
+			<div class="mx-auto max-w-readable text-center" style="padding-block: var(--spacing-8);">
 				<div class="mb-4 text-6xl">📚</div>
 				<p class="mb-2 text-lg font-semibold text-primary">No cards due for review</p>
 				<p class="text-secondary">All caught up! Check back later for more cards to study.</p>
 			</div>
 		{:else if study.reviewQueue.length === 0 && study.cardsReviewed > 0}
 			<!-- Session Complete -->
-			<div class="mx-auto max-w-readable py-readable-quote text-center">
+			<div class="mx-auto max-w-readable text-center" style="padding-block: var(--spacing-8);">
 				<div class="mb-4 text-6xl">✅</div>
 				<p class="mb-2 text-lg font-semibold text-primary">Session Complete!</p>
 				<p class="mb-4 text-secondary">

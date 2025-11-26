@@ -2,10 +2,12 @@
 	import type { WithElementRef } from 'bits-ui';
 	import type { Snippet } from 'svelte';
 	import type { CardVariant } from '../types';
+	import { cardRecipe, type CardVariantProps } from '$lib/design-system/recipes';
 
 	type Props = WithElementRef<
 		{
 			variant?: CardVariant;
+			padding?: CardVariantProps['padding'];
 			clickable?: boolean;
 			onclick?: ((e: MouseEvent) => void) | (() => void);
 			children: Snippet;
@@ -17,6 +19,7 @@
 
 	let {
 		variant = 'default',
+		padding = 'md',
 		clickable = false,
 		onclick = undefined,
 		children,
@@ -25,23 +28,21 @@
 		...rest
 	}: Props = $props();
 
-	const variantClasses = {
-		default: 'bg-elevated border border-base',
-		elevated: 'bg-elevated shadow-card hover:shadow-card-hover transition-shadow',
-		outlined: 'bg-elevated border-2 border-elevated',
-		noPadding: 'bg-elevated' // No padding, no border - for composition
-	};
+	// Use recipe for default/elevated/outlined variants
+	// Handle 'noPadding' separately (legacy support)
+	const recipeClasses = $derived(
+		variant === 'noPadding'
+			? 'rounded-card bg-elevated'
+			: cardRecipe({ variant: variant as 'default' | 'elevated' | 'outlined', padding })
+	);
 
 	// Clickable styles: cursor, hover, transitions
 	// Focus ring handled via CSS (focus-visible) for keyboard navigation only
 	const clickableClasses = clickable ? 'cursor-pointer transition-all hover:shadow-card-hover' : '';
 
-	// Only apply default padding if not noPadding variant
-	const paddingClasses = variant === 'noPadding' ? '' : 'px-card py-card';
-
 	// Use $derived to ensure cardClasses updates when className prop changes
 	const cardClasses = $derived(
-		`rounded-card ${paddingClasses} ${variantClasses[variant]} ${clickableClasses} ${clickable ? 'clickable-card' : ''} ${className}`
+		`${recipeClasses} ${clickableClasses} ${clickable ? 'clickable-card' : ''} ${className}`
 	);
 
 	// Handle keyboard events for clickable cards

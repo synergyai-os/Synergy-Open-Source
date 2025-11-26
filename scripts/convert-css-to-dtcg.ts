@@ -342,7 +342,7 @@ console.log(`Found ${tokens.length} tokens`);
 console.log('Converting to DTCG format...');
 const dtcg = convertToDTCG(tokens);
 
-const outputPath = join(process.cwd(), 'design-system.json');
+const outputPath = join(process.cwd(), 'design-tokens-base.json');
 writeFileSync(outputPath, JSON.stringify(dtcg, null, '\t'));
 
 console.log(`✅ DTCG format written to ${outputPath}`);

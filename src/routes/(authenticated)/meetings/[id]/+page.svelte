@@ -232,7 +232,7 @@
 
 				<!-- Secretary Selector - visible to everyone -->
 				{#if session.meeting}
-					<div class="flex items-center gap-icon">
+					<div class="flex items-center gap-2">
 						<span class="text-button text-text-tertiary">Secretary:</span>
 						<SecretarySelector
 							meetingId={session.meeting._id}
@@ -247,7 +247,7 @@
 
 				<!-- Active Users Indicator (SYOS-227) -->
 				{#if session.isStarted && !session.isClosed}
-					<div class="gap-icon-sm flex items-center">
+					<div class="gap-2-sm flex items-center">
 						<span class="text-label text-text-secondary">Active:</span>
 						<span class="text-label font-medium text-text-primary">
 							{presence.activeCount}/{presence.expectedCount}
@@ -259,7 +259,7 @@
 			<div class="flex items-center gap-content-section">
 				<!-- Timer -->
 				{#if session.isStarted && !session.isClosed}
-					<div class="flex items-center gap-icon text-text-secondary">
+					<div class="flex items-center gap-2 text-text-secondary">
 						<svg
 							class="icon-md"
 							fill="none"
@@ -343,7 +343,7 @@
 									}
 								}}
 							/>
-							<div class="mt-spacing-text-gap flex gap-icon">
+							<div class="mt-spacing-text-gap flex gap-2">
 								<button
 									onclick={handleAddAgendaItem}
 									class="py-button-y-sm rounded-button bg-accent-primary px-button-x text-label font-medium text-primary"
@@ -375,12 +375,12 @@
 								>
 									To Process ({unprocessedItems.length})
 								</h3>
-								<div class="flex flex-col gap-icon">
+								<div class="flex flex-col gap-2">
 									{#each unprocessedItems as item (item._id)}
 										<button
 											onclick={() => session.isSecretary && (state.activeItemId = item._id)}
 											disabled={!session.isSecretary}
-											class="w-full rounded-button border px-nav-item py-nav-item text-left transition-colors {state.activeItemId ===
+											class="w-full rounded-button border px-2 py-nav-item text-left transition-colors {state.activeItemId ===
 											item._id
 												? 'border-accent-primary bg-accent-primary/10'
 												: 'border-border-base bg-surface hover:border-accent-primary'} {!session.isSecretary
@@ -404,7 +404,7 @@
 						{#if processedItems.length > 0}
 							<div>
 								<h3
-									class="mb-spacing-text-gap flex items-center gap-icon text-label font-semibold tracking-wider text-text-tertiary uppercase"
+									class="mb-spacing-text-gap flex items-center gap-2 text-label font-semibold tracking-wider text-text-tertiary uppercase"
 								>
 									<svg
 										class="icon-sm"
@@ -422,12 +422,12 @@
 									</svg>
 									Processed ({processedItems.length})
 								</h3>
-								<div class="flex flex-col gap-icon">
+								<div class="flex flex-col gap-2">
 									{#each processedItems as item (item._id)}
 										<button
 											onclick={() => session.isSecretary && (state.activeItemId = item._id)}
 											disabled={!session.isSecretary}
-											class="w-full rounded-button border border-border-base bg-surface px-nav-item py-nav-item text-left opacity-60 transition-colors hover:opacity-100 {!session.isSecretary
+											class="w-full rounded-button border border-border-base bg-surface px-2 py-nav-item text-left opacity-60 transition-colors hover:opacity-100 {!session.isSecretary
 												? 'cursor-not-allowed'
 												: 'cursor-pointer'}"
 											title={!session.isSecretary
@@ -536,10 +536,10 @@
 								</h3>
 
 								{#if presence.combinedAttendance.length > 0}
-									<div class="mt-content-section flex flex-col gap-icon">
+									<div class="mt-content-section flex flex-col gap-2">
 										{#each presence.combinedAttendance as attendee (attendee.userId)}
 											<label
-												class="flex items-center gap-icon rounded-button border border-border-base bg-surface px-card py-card transition-colors {attendee.isActive
+												class="flex items-center gap-2 rounded-button border border-border-base bg-surface px-card py-card transition-colors {attendee.isActive
 													? 'border-accent-primary/30 bg-accent-primary/5'
 													: ''}"
 											>
@@ -684,7 +684,7 @@
 								>
 									<h3 class="font-semibold text-text-primary">Meeting Summary</h3>
 									<div
-										class="text-body-sm mt-content-section flex flex-col gap-icon text-text-secondary"
+										class="text-body-sm mt-content-section flex flex-col gap-2 text-text-secondary"
 									>
 										<p>Duration: {session.elapsedTimeFormatted}</p>
 										<p>Agenda items discussed: {session.agendaItems.length}</p>

@@ -21,7 +21,7 @@
 	{#snippet template(args)}
 		<Toggle.Root
 			{...args}
-			class="focus-visible:ring-ring inline-flex h-10 items-center justify-center rounded-button border border-base bg-elevated px-section text-button font-medium text-primary transition-colors hover:bg-hover-solid focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent-primary data-[state=on]:text-primary"
+			class="focus-visible:ring-ring inline-flex h-10 items-center justify-center rounded-button border border-base bg-elevated px-2 text-button font-medium text-primary transition-colors hover:bg-hover-solid focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent-primary data-[state=on]:text-primary"
 		>
 			Toggle
 		</Toggle.Root>
@@ -32,7 +32,7 @@
 	{#snippet template(args)}
 		<Toggle.Root
 			{...args}
-			class="focus-visible:ring-ring inline-flex h-10 items-center justify-center rounded-button border border-base bg-elevated px-section text-button font-medium text-primary transition-colors hover:bg-hover-solid focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent-primary data-[state=on]:text-primary"
+			class="focus-visible:ring-ring inline-flex h-10 items-center justify-center rounded-button border border-base bg-elevated px-2 text-button font-medium text-primary transition-colors hover:bg-hover-solid focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent-primary data-[state=on]:text-primary"
 		>
 			Toggle
 		</Toggle.Root>
@@ -67,7 +67,7 @@
 	{#snippet template(args)}
 		<Toggle.Root
 			{...args}
-			class="focus-visible:ring-ring inline-flex h-10 items-center justify-center rounded-button border border-base bg-elevated px-section text-button font-medium text-primary transition-colors hover:bg-hover-solid focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent-primary data-[state=on]:text-primary"
+			class="focus-visible:ring-ring inline-flex h-10 items-center justify-center rounded-button border border-base bg-elevated px-2 text-button font-medium text-primary transition-colors hover:bg-hover-solid focus-visible:ring-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=on]:bg-accent-primary data-[state=on]:text-primary"
 		>
 			Toggle
 		</Toggle.Root>

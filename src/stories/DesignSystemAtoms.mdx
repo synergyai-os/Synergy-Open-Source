@@ -2,9 +2,82 @@ import { Meta } from '@storybook/addon-docs/blocks';
 
 <Meta title="Design System/Atoms" />
 
-# Atoms
+<style>
+  {`
+    .atom-header {
+      background: linear-gradient(135deg, oklch(55% 0.15 195 / 0.15) 0%, oklch(55% 0.15 195 / 0.05) 100%);
+      border: 1px solid oklch(55% 0.15 195 / 0.3);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .atom-icon {
+      width: 64px;
+      height: 64px;
+      background: oklch(55% 0.15 195);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      flex-shrink: 0;
+    }
+    
+    .atom-icon-inner {
+      width: 32px;
+      height: 32px;
+      background: oklch(75% 0.14 65);
+      border-radius: 50%;
+    }
+    
+    .atom-content h1 {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: oklch(100% 0 0);
+      margin: 0 0 4px 0;
+    }
+    
+    .atom-content p {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 0.875rem;
+      color: oklch(70% 0.015 264);
+      margin: 0;
+    }
+    
+    .level-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: oklch(55% 0.15 195 / 0.2);
+      color: oklch(65% 0.12 195);
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      margin-bottom: 16px;
+    }
+  `}
+</style>
 
-Single interactive elements with design tokens applied. Atoms are the foundation of the design system—reusable, self-contained components with no business logic.
+<div className="atom-header">
+  <div className="atom-icon">
+    <div className="atom-icon-inner" />
+  </div>
+  <div className="atom-content">
+    <h1>Atoms</h1>
+    <p>Single interactive elements with design tokens applied. The foundation of the design system.</p>
+  </div>
+</div>
+
+<span className="level-badge">⚛️ Level 1 of 5 in Atomic Design</span>
+
+Atoms are the smallest building blocks—reusable, self-contained components with no business logic.
 
 ---
 

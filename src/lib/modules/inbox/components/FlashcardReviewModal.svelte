@@ -212,11 +212,11 @@
 		>
 			<!-- Header -->
 			<div
-				class="flex h-system-header flex-shrink-0 items-center justify-between gap-icon border-b border-base px-inbox-container py-system-header"
+				class="flex h-system-header flex-shrink-0 items-center justify-between gap-2 border-b border-base px-inbox-container py-system-header"
 			>
 				<div class="min-w-0 flex-1">
 					<h2 class="mb-marketing-text text-h3 font-semibold text-primary">Review Flashcards</h2>
-					<div class="flex flex-col gap-icon text-small sm:flex-row sm:items-center sm:gap-icon">
+					<div class="flex flex-col gap-2 text-small sm:flex-row sm:items-center sm:gap-2">
 						{#if sourceContext}
 							<p class="text-secondary">From: {sourceContext}</p>
 						{/if}
@@ -243,7 +243,7 @@
 				class="relative flex flex-1 items-center justify-center overflow-auto px-inbox-container py-inbox-container"
 			>
 				{#if reviewQueue.length === 0}
-					<div class="py-readable-quote text-center">
+					<div class="text-center" style="padding-block: var(--spacing-8);">
 						<div class="mb-content-section text-h1">✅</div>
 						<p class="mb-marketing-text text-h3 font-semibold text-primary">Review Complete!</p>
 						<p class="text-secondary">
@@ -253,12 +253,13 @@
 				{:else if currentCard}
 					<!-- Hotkey Hint: Decline (Left) -->
 					<div
-						class="absolute left-inbox-container z-20 flex flex-col items-center gap-icon opacity-60"
+						class="absolute left-inbox-container z-20 flex flex-col items-center gap-2 opacity-60"
 					>
-						<div class="flex flex-col items-center gap-control-item-gap">
+						<div class="flex flex-col items-center" style="gap: var(--spacing-1);">
 							<!-- Keyboard key -->
 							<div
-								class="flex size-keyboard-key items-center justify-center rounded-card border-2 border-base bg-elevated shadow-sm"
+								class="flex items-center justify-center rounded-card border-2 border-base bg-elevated shadow-sm"
+								style="width: 3rem; height: 3rem;"
 							>
 								<svg
 									class="size-icon-md text-secondary"
@@ -296,9 +297,10 @@
 									: 'bg-error/20'}"
 							>
 								<svg
-									class="size-quote-decoration {showFeedback === 'approved'
+									class="{showFeedback === 'approved'
 										? 'text-success'
 										: 'text-error'}"
+									style="width: 5rem; height: 5rem;"
 									fill="none"
 									stroke="currentColor"
 									viewBox="0 0 24 24"
@@ -337,12 +339,13 @@
 
 					<!-- Hotkey Hint: Accept (Right) -->
 					<div
-						class="absolute right-inbox-container z-20 flex flex-col items-center gap-icon opacity-60"
+						class="absolute right-inbox-container z-20 flex flex-col items-center gap-2 opacity-60"
 					>
-						<div class="flex flex-col items-center gap-control-item-gap">
+						<div class="flex flex-col items-center" style="gap: var(--spacing-1);">
 							<!-- Keyboard key -->
 							<div
-								class="flex size-keyboard-key items-center justify-center rounded-card border-2 border-base bg-elevated shadow-sm"
+								class="flex items-center justify-center rounded-card border-2 border-base bg-elevated shadow-sm"
+								style="width: 3rem; height: 3rem;"
 							>
 								<svg
 									class="size-icon-md text-secondary"

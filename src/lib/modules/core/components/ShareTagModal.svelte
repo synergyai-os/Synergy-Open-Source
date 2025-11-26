@@ -89,7 +89,7 @@
 	>
 		<!-- Modal Header -->
 		<div class="border-b border-base px-card py-card">
-			<h2 id="modal-title" class="flex items-center gap-icon text-h3 font-semibold text-primary">
+			<h2 id="modal-title" class="flex items-center gap-2 text-h3 font-semibold text-primary">
 				<div class="icon-xs flex-shrink-0 rounded-full" style="background-color: {tag.color}"></div>
 				Transfer "{tag.displayName}"
 			</h2>
@@ -143,7 +143,7 @@
 				<div
 					class="rounded-card border border-accent-primary/20 bg-accent-primary/10 px-card py-card"
 				>
-					<div class="flex gap-icon">
+					<div class="flex gap-2">
 						<svg
 							class="mt-form-field-gap size-icon-md flex-shrink-0 text-accent-primary"
 							fill="none"
@@ -188,7 +188,7 @@
 					type="button"
 					onclick={handleSubmit}
 					disabled={isSharing || !selectedOrganization}
-					class="flex items-center gap-icon rounded-button bg-accent-primary px-button-x py-button-y text-small font-medium text-primary transition-colors hover:bg-accent-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+					class="flex items-center gap-2 rounded-button bg-accent-primary px-button-x py-button-y text-small font-medium text-primary transition-colors hover:bg-accent-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{#if isSharing}
 						<svg class="icon-sm animate-spin" fill="none" viewBox="0 0 24 24">

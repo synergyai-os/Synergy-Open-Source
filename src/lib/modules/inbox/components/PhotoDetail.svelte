@@ -19,7 +19,7 @@
 
 <div class="px-inbox-container py-inbox-container">
 	<!-- Header -->
-	<div class="mb-content-padding flex items-center gap-icon">
+	<div class="mb-content-padding flex items-center gap-2">
 		<Button variant="outline" size="sm" onclick={onClose} ariaLabel="Back to inbox">
 			<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />

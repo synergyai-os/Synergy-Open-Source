@@ -1,0 +1,263 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Design System/Pages" />
+
+<style>
+  {`
+    .page-diagram {
+      background: oklch(20% 0.02 264);
+      border: 2px solid oklch(55% 0.15 195);
+      border-radius: 12px;
+      padding: 16px;
+      margin: 24px 0;
+    }
+    
+    .page-header {
+      background: oklch(27% 0.025 264);
+      border: 1px solid oklch(37% 0.03 264);
+      height: 48px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+    }
+    
+    .page-logo {
+      width: 32px;
+      height: 32px;
+      background: oklch(55% 0.15 195);
+      border-radius: 6px;
+    }
+    
+    .page-avatar {
+      width: 32px;
+      height: 32px;
+      background: oklch(75% 0.14 65);
+      border-radius: 50%;
+    }
+    
+    .page-body {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .page-sidebar {
+      width: 180px;
+      background: oklch(27% 0.025 264);
+      border: 1px solid oklch(37% 0.03 264);
+      border-radius: 6px;
+      padding: 12px;
+    }
+    
+    .page-nav-item {
+      height: 32px;
+      background: oklch(37% 0.03 264);
+      border-radius: 6px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+    }
+    
+    .page-nav-item.active {
+      background: oklch(55% 0.15 195 / 0.2);
+      border: 1px solid oklch(55% 0.15 195);
+    }
+    
+    .page-nav-text {
+      width: 60px;
+      height: 10px;
+      background: oklch(55% 0.02 264);
+      border-radius: 3px;
+    }
+    
+    .page-nav-item.active .page-nav-text {
+      background: oklch(55% 0.15 195);
+    }
+    
+    .page-content {
+      flex: 1;
+      background: oklch(27% 0.025 264);
+      border: 1px solid oklch(37% 0.03 264);
+      border-radius: 6px;
+      padding: 16px;
+      min-height: 200px;
+    }
+    
+    .page-title {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: oklch(100% 0 0);
+      margin: 0 0 16px 0;
+    }
+    
+    .page-card {
+      background: oklch(20% 0.02 264);
+      border: 1px solid oklch(37% 0.03 264);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    
+    .page-card-title {
+      height: 14px;
+      width: 120px;
+      background: oklch(70% 0.015 264);
+      border-radius: 3px;
+      margin-bottom: 8px;
+    }
+    
+    .page-card-text {
+      height: 10px;
+      background: oklch(55% 0.02 264);
+      border-radius: 3px;
+    }
+    
+    .coming-soon {
+      background: oklch(65% 0.2 15 / 0.15);
+      border: 1px solid oklch(65% 0.2 15 / 0.3);
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      margin: 24px 0;
+    }
+    
+    .coming-soon-title {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: oklch(65% 0.2 15);
+      margin: 0 0 8px 0;
+    }
+    
+    .coming-soon-desc {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 0.875rem;
+      color: oklch(70% 0.015 264);
+      margin: 0;
+    }
+  `}
+</style>
+
+# Pages
+
+Specific instances of templates with **real content**. Pages are what users actually see and interact with.
+
+<div className="page-diagram">
+  <div className="page-header">
+    <div className="page-logo" />
+    <div className="page-avatar" />
+  </div>
+  <div className="page-body">
+    <div className="page-sidebar">
+      <div className="page-nav-item active">
+        <div className="page-nav-text" />
+      </div>
+      <div className="page-nav-item">
+        <div className="page-nav-text" />
+      </div>
+      <div className="page-nav-item">
+        <div className="page-nav-text" />
+      </div>
+    </div>
+    <div className="page-content">
+      <h3 className="page-title">Dashboard</h3>
+      <div className="page-card">
+        <div className="page-card-title" />
+        <div className="page-card-text" />
+      </div>
+      <div className="page-card">
+        <div className="page-card-title" />
+        <div className="page-card-text" />
+      </div>
+    </div>
+  </div>
+</div>
+
+---
+
+## 🎯 What Are Pages?
+
+Pages are the **fifth and final level** of atomic design:
+
+- ✅ Templates filled with real content
+- ✅ Connected to real data (Convex queries)
+- ✅ Full interactivity and state
+- ✅ What end users actually see
+- ✅ Test with real-world content variations
+
+---
+
+## 📋 Existing Pages
+
+| Page | Template | Location |
+|------|----------|----------|
+| **Login** | AuthLayout | `src/routes/login/` |
+| **Register** | AuthLayout | `src/routes/register/` |
+| **Dashboard** | DashboardLayout | `src/routes/(app)/` |
+| **Settings** | SettingsLayout | `src/routes/(app)/settings/` |
+| **Inbox** | DashboardLayout | `src/routes/(app)/inbox/` |
+| **Meetings** | DashboardLayout | `src/routes/(app)/meetings/` |
+| **Org Chart** | DashboardLayout | `src/routes/(app)/org-chart/` |
+
+<div className="coming-soon">
+  <h3 className="coming-soon-title">📄 Page Stories Coming</h3>
+  <p className="coming-soon-desc">Page-level stories with mocked data will be added for visual testing and documentation.</p>
+</div>
+
+---
+
+## 🔄 Relationship to Routes
+
+In SvelteKit, pages live in `src/routes/`:
+
+```
+src/routes/
+├── login/
+│   └── +page.svelte      ← Login Page
+├── register/
+│   └── +page.svelte      ← Register Page
+└── (app)/
+    ├── +layout.svelte    ← DashboardLayout (Template)
+    ├── +page.svelte      ← Dashboard Page
+    ├── inbox/
+    │   └── +page.svelte  ← Inbox Page
+    └── settings/
+        └── +page.svelte  ← Settings Page
+```
+
+---
+
+## 🏗️ Page Structure
+
+```svelte
+<!-- src/routes/(app)/dashboard/+page.svelte -->
+<script lang="ts">
+  import { useQuery } from 'convex-svelte';
+  import { api } from '$convex/_generated/api';
+  import { DashboardCard, StatsGrid } from '$lib/modules/dashboard/components';
+  
+  // Real data from Convex
+  const stats = useQuery(api.dashboard.getStats, {});
+  const recentItems = useQuery(api.dashboard.getRecent, {});
+</script>
+
+<div class="space-y-section-gap">
+  <h1 class="text-h1 text-primary">Dashboard</h1>
+  
+  <StatsGrid stats={$stats} />
+  
+  {#each $recentItems ?? [] as item}
+    <DashboardCard {item} />
+  {/each}
+</div>
+```
+
+---
+
+**Status**: Existing in routes  
+**Next Step**: Add page-level stories with mocked data
+

@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(design-tokens-base.json)",
+      "Read(design-tokens-semantic.json)",
+      "Read(tokens.json)"
+    ],
+    "deny": [
+      "Write(design-tokens-base.json)",
+      "Write(design-tokens-semantic.json)",
+      "Write(tokens.json)"
+    ]
+  }
+}
+

@@ -13,26 +13,18 @@
 	let { visible = false, position = { x: 0, y: 0 }, onConfirm, onDismiss }: Props = $props();
 
 	// Calculate position to keep menu in viewport
-	// Read menu dimensions from design tokens
+	// Menu dimensions: 12.5rem (200px) width, 6.25rem (100px) height
 	const menuWidth = $derived(() => {
 		if (typeof window === 'undefined') {
-			// eslint-disable-next-line synergyos/no-hardcoded-design-values
-			return 200; // SSR fallback - token not available during SSR
+			return 200; // SSR fallback
 		}
-		const root = document.documentElement;
-		const width = getComputedStyle(root).getPropertyValue('--size-menuwidth').trim();
-		// eslint-disable-next-line synergyos/no-hardcoded-design-values
-		return width ? parseFloat(width) : 200; // Fallback if token not found (should not happen)
+		return 200; // 12.5rem = 200px
 	});
 	const menuHeight = $derived(() => {
 		if (typeof window === 'undefined') {
-			// eslint-disable-next-line synergyos/no-hardcoded-design-values
-			return 100; // SSR fallback - token not available during SSR
+			return 100; // SSR fallback
 		}
-		const root = document.documentElement;
-		const height = getComputedStyle(root).getPropertyValue('--size-menuheight').trim();
-		// eslint-disable-next-line synergyos/no-hardcoded-design-values
-		return height ? parseFloat(height) : 100; // Fallback if token not found (should not happen)
+		return 100; // 6.25rem = 100px
 	});
 	const adjustedX = $derived(() => {
 		if (!position) return 0;
@@ -78,19 +70,19 @@
 {#if visible}
 	<div
 		data-ai-detector-menu
-		class="border-divider fixed z-50 rounded-button border bg-surface px-section py-section shadow-card"
-		style="left: {adjustedX()}px; top: {adjustedY()}px; width: {menuWidth()}px;"
+		class="border-divider bg-surface fixed z-50 rounded-button border px-2 py-1 shadow-card"
 		transition:fade={{ duration: 150 }}
+		style="left: {adjustedX()}px; top: {adjustedY()}px; width: {menuWidth()}px;"
 	>
-		<p class="text-surface-secondary mb-content-section text-small">
+		<p class="text-surface-secondary text-small mb-content-section">
 			Did you paste AI-generated content?
 		</p>
 
-		<div class="flex gap-icon">
+		<div class="flex gap-2">
 			<button
 				type="button"
 				onclick={onConfirm}
-				class="bg-primary hover:bg-primary-hover flex-1 rounded-button px-button-x py-button-y text-small font-medium text-primary transition-colors"
+				class="bg-primary hover:bg-primary-hover text-small text-primary flex-1 rounded-button px-button-x py-button-y font-medium transition-colors"
 			>
 				AI Generated
 			</button>
@@ -98,7 +90,7 @@
 			<button
 				type="button"
 				onclick={onDismiss}
-				class="bg-surface-hover text-surface-primary hover:bg-surface-hover-solid flex-1 rounded-button px-button-x py-button-y text-small transition-colors"
+				class="bg-surface-hover text-surface-primary hover:bg-surface-hover-solid text-small flex-1 rounded-button px-button-x py-button-y transition-colors"
 			>
 				Close
 			</button>
@@ -106,7 +98,7 @@
 
 		<!-- Arrow pointer -->
 		<div
-			class="border-divider absolute icon-xs rotate-45 transform border-t border-l bg-surface"
+			class="border-divider icon-xs bg-surface absolute rotate-45 transform border-t border-l"
 			style="top: -7px; left: 20px;"
 		></div>
 	</div>

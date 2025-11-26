@@ -16,6 +16,6 @@
 	let { children, class: className = '' }: Props = $props();
 </script>
 
-<div class="flex flex-wrap items-center gap-icon {className}">
+<div class="flex flex-wrap items-center gap-2 {className}">
 	{@render children()}
 </div>

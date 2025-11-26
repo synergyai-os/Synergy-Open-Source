@@ -106,7 +106,7 @@
 			</div>
 
 			<!-- Actions -->
-			<div class="mt-section-gap flex justify-end gap-button-group">
+			<div class="mt-section-gap flex justify-end gap-2">
 				<button
 					type="button"
 					onclick={handleDeny}

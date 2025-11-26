@@ -1,61 +1,32 @@
 <script lang="ts">
 	/**
-	 * Theme Toggle Component
+	 * Theme Toggle Component (Svelte 5 Runes)
 	 *
 	 * Reusable component for switching between light/dark modes
-	 * Syncs with localStorage and applies theme to document.documentElement
+	 * Uses Svelte 5 theme store with runes
 	 *
 	 * Usage:
 	 *   <ThemeToggle /> - Icon only (for navbar)
 	 *   <ThemeToggle showLabel={true} /> - With label (for settings)
 	 */
 
-	import { browser } from '$app/environment';
-	import { onMount } from 'svelte';
+	import { getTheme, toggleTheme, isDark } from '$lib/stores/theme.svelte';
 
 	interface Props {
 		showLabel?: boolean;
 	}
 
 	let { showLabel = false }: Props = $props();
-
-	let isDark = $state(false);
-
-	// Initialize theme from current DOM state
-	onMount(() => {
-		if (browser) {
-			isDark = document.documentElement.classList.contains('dark');
-		}
-	});
-
-	function toggleTheme() {
-		if (!browser) return;
-
-		const newTheme = isDark ? 'light' : 'dark';
-		isDark = !isDark;
-
-		// Update DOM
-		if (newTheme === 'dark') {
-			document.documentElement.classList.add('dark');
-			document.documentElement.classList.remove('light');
-		} else {
-			document.documentElement.classList.add('light');
-			document.documentElement.classList.remove('dark');
-		}
-
-		// Persist to localStorage
-		localStorage.setItem('axon-theme', newTheme);
-	}
 </script>
 
 <button
 	type="button"
-	class="flex icon-xl items-center justify-center rounded-button text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
+	class="icon-xl text-secondary hover:bg-hover-solid hover:text-primary flex items-center justify-center rounded-button transition-colors"
 	aria-label="Toggle theme"
-	title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+	title={isDark() ? 'Switch to light mode' : 'Switch to dark mode'}
 	onclick={toggleTheme}
 >
-	{#if isDark}
+	{#if isDark()}
 		<!-- Sun icon (show in dark mode - clicking switches to light) -->
 		<svg
 			class="icon-md"
@@ -90,6 +61,6 @@
 	{/if}
 
 	{#if showLabel}
-		<span class="ml-icon-gap text-button">{isDark ? 'Light mode' : 'Dark mode'}</span>
+		<span class="text-button ml-icon-gap">{isDark() ? 'Light mode' : 'Dark mode'}</span>
 	{/if}
 </button>

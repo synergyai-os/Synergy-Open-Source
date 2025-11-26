@@ -2,8 +2,7 @@
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { getContext } from 'svelte';
-	import { Button, FormInput } from '$lib/components/atoms';
-	import { RateLimitError } from '$lib/components/organisms';
+	import { LoginBox } from '$lib/components/organisms';
 	import { LoadingOverlay } from '$lib/components/atoms';
 	import type { UseLoadingOverlayReturn } from '$lib/modules/core/composables/useLoadingOverlay.svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
@@ -60,21 +59,13 @@
 		}
 	});
 
-	async function handleSubmit(event: SubmitEvent) {
-		event.preventDefault();
-		if (isSubmitting) return;
-
-		errorMessage = null;
-		isRateLimited = false;
-		showCreateAccountLink = false;
-		isSubmitting = true;
-
+	async function handleSubmit(event: { email: string; password: string }) {
 		// Show loading overlay for account linking
 		if (linkingFlow()) {
 			if (loadingOverlay) {
 				loadingOverlay.showOverlay({
 					flow: 'account-linking',
-					subtitle: email.trim() || 'account'
+					subtitle: event.email.trim() || 'account'
 				});
 			} else {
 				showLoadingOverlay = true;
@@ -87,8 +78,8 @@
 				headers: { 'Content-Type': 'application/json' },
 				credentials: 'include', // Include cookies so session can be resolved for account linking
 				body: JSON.stringify({
-					email: email.trim(),
-					password,
+					email: event.email.trim(),
+					password: event.password,
 					redirect: redirectTarget,
 					linkAccount: linkingFlow() // Pass the linkAccount flag
 				})
@@ -147,113 +138,33 @@
 	}
 </script>
 
-<div class="min-h-screen bg-base">
+<!--
+  Page Background
+  - Uses semantic token bg-subtle
+  - Radial gradient uses brand hue (195) at 8% opacity for subtle depth
+  - This is a page-level effect, not a design token (intentional)
+-->
+<div class="relative min-h-screen overflow-hidden bg-subtle">
+	<!-- Radial glow: brand hue at 8% opacity - visible but subtle -->
 	<div
-		class="mx-auto flex min-h-screen max-w-2xl items-center justify-center px-section py-system-content"
+		class="pointer-events-none absolute inset-0 bg-radial-[at_50%_35%] from-[oklch(55%_0.12_195_/_0.08)] via-[oklch(55%_0.06_195_/_0.03)] to-transparent"
+		aria-hidden="true"
+	></div>
+	<div
+		class="relative mx-auto flex min-h-screen max-w-md items-center justify-center px-page py-page"
 	>
-		<div
-			class="w-full max-w-md rounded-modal border border-base bg-elevated p-content-padding shadow-sm"
-		>
-			<header class="flex flex-col gap-form-section text-center">
-				<h1 class="text-h2 font-semibold tracking-tight text-primary">Welcome back</h1>
-				<p class="text-small text-secondary">
-					Sign in to continue where you left off. Don't have an account?
-					<a
-						href={linkingFlow()
-							? `${resolveRoute('/register')}?linkAccount=1&redirect=${encodeURIComponent(redirectTarget)}&email=${encodeURIComponent(email)}`
-							: `${resolveRoute('/register')}?redirect=${encodeURIComponent(redirectTarget)}${email ? `&email=${encodeURIComponent(email)}` : ''}`}
-						class="text-accent-primary hover:text-accent-hover">Create one</a
-					>.
-				</p>
-			</header>
-
-			{#if isRateLimited}
-				<div class="mt-content-section">
-					<RateLimitError retryAfter={rateLimitRetryAfter} actionLabel="logging in" />
-				</div>
-			{:else if errorMessage}
-				<div
-					class="mt-content-section rounded-input border border-error bg-error px-input-x py-input-y"
-				>
-					<p class="text-small font-medium text-error-secondary">{errorMessage}</p>
-					{#if showCreateAccountLink}
-						<p class="mt-form-field-gap text-small text-error">
-							Don't have an account?
-							<a
-								href={`${resolveRoute('/register')}?email=${encodeURIComponent(email)}`}
-								class="font-semibold text-error-secondary underline hover:text-error"
-							>
-								Create one here
-							</a>
-						</p>
-					{/if}
-				</div>
-			{/if}
-			{#if linkingFlow()}
-				<div
-					class="bg-hover-subtle mt-content-section flex items-center gap-icon rounded-input border border-base px-input-x py-input-y text-small text-secondary"
-				>
-					<svg
-						class="h-4 w-4 flex-shrink-0 text-accent-primary"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M13.828 10.172a4 4 0 010 5.656l-2 2a4 4 0 01-5.656-5.656l1-1"
-						/>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M10.172 13.828a4 4 0 010-5.656l2-2a4 4 0 015.656 5.656l-1 1"
-						/>
-					</svg>
-					<span>Link another email to your SynergyOS account.</span>
-				</div>
-			{/if}
-
-			<form class="mt-content-section flex flex-col gap-form-section" onsubmit={handleSubmit}>
-				<FormInput
-					type="email"
-					label="Email"
-					placeholder="you@example.com"
-					bind:value={email}
-					required={true}
-					autocomplete="email"
-				/>
-
-				<div class="flex flex-col gap-form-field">
-					<FormInput
-						type="password"
-						label="Password"
-						placeholder="Enter your password"
-						bind:value={password}
-						required={true}
-						autocomplete="current-password"
-					/>
-					<div class="text-right">
-						<a
-							href={resolveRoute('/forgot-password')}
-							class="text-small text-accent-primary hover:text-accent-hover"
-						>
-							Forgot password?
-						</a>
-					</div>
-				</div>
-
-				<Button variant="primary" type="submit" disabled={isSubmitting}>
-					{#if isSubmitting}
-						Signing in…
-					{:else}
-						Sign in
-					{/if}
-				</Button>
-			</form>
-		</div>
+		<LoginBox
+			bind:email
+			bind:password
+			bind:isSubmitting
+			bind:errorMessage
+			bind:showCreateAccountLink
+			bind:isRateLimited
+			bind:rateLimitRetryAfter
+			linkingFlow={linkingFlow()}
+			{redirectTarget}
+			onSubmit={handleSubmit}
+		/>
 	</div>
 </div>
 

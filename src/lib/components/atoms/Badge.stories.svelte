@@ -9,7 +9,11 @@
 		argTypes: {
 			variant: {
 				control: { type: 'select' },
-				options: ['system', 'custom', 'default']
+				options: ['default', 'primary', 'success', 'warning', 'error']
+			},
+			size: {
+				control: { type: 'select' },
+				options: ['sm', 'md', 'lg']
 			}
 		}
 	});
@@ -17,18 +21,42 @@
 
 <Story name="Default" args={{ variant: 'default' }}>
 	{#snippet template(args)}
-		<Badge variant={args.variant}>Badge</Badge>
+		<Badge variant={args.variant}>Default</Badge>
 	{/snippet}
 </Story>
 
-<Story name="System" args={{ variant: 'system' }}>
+<Story name="Primary" args={{ variant: 'primary' }}>
 	{#snippet template(args)}
-		<Badge variant={args.variant}>System Badge</Badge>
+		<Badge variant={args.variant}>Primary</Badge>
 	{/snippet}
 </Story>
 
-<Story name="Custom" args={{ variant: 'custom' }}>
+<Story name="Success" args={{ variant: 'success' }}>
 	{#snippet template(args)}
-		<Badge variant={args.variant}>Custom Badge</Badge>
+		<Badge variant={args.variant}>Success</Badge>
+	{/snippet}
+</Story>
+
+<Story name="Warning" args={{ variant: 'warning' }}>
+	{#snippet template(args)}
+		<Badge variant={args.variant}>Warning</Badge>
+	{/snippet}
+</Story>
+
+<Story name="Error" args={{ variant: 'error' }}>
+	{#snippet template(args)}
+		<Badge variant={args.variant}>Error</Badge>
+	{/snippet}
+</Story>
+
+<Story name="Small" args={{ variant: 'default', size: 'sm' }}>
+	{#snippet template(args)}
+		<Badge variant={args.variant} size={args.size}>Small</Badge>
+	{/snippet}
+</Story>
+
+<Story name="Large" args={{ variant: 'default', size: 'lg' }}>
+	{#snippet template(args)}
+		<Badge variant={args.variant} size={args.size}>Large</Badge>
 	{/snippet}
 </Story>

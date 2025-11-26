@@ -2,106 +2,289 @@ import { Meta } from '@storybook/addon-docs/blocks';
 
 <Meta title="Design System/Overview" />
 
-# Design System
+<style>
+  {`
+    .overview-header {
+      background: linear-gradient(135deg, oklch(55% 0.15 195 / 0.15) 0%, oklch(55% 0.15 195 / 0.05) 100%);
+      border: 1px solid oklch(55% 0.15 195 / 0.3);
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 32px;
+    }
+    
+    .overview-title {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: oklch(100% 0 0);
+      margin: 0 0 8px 0;
+    }
+    
+    .overview-subtitle {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 1rem;
+      color: oklch(70% 0.015 264);
+      margin: 0;
+    }
+    
+    .layer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+    
+    .layer-card {
+      background: oklch(20% 0.02 264);
+      border: 1px solid oklch(37% 0.03 264);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    
+    .layer-card-number {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: oklch(55% 0.15 195);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin: 0 0 8px 0;
+    }
+    
+    .layer-card-title {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: oklch(100% 0 0);
+      margin: 0 0 8px 0;
+    }
+    
+    .layer-card-desc {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 0.875rem;
+      color: oklch(70% 0.015 264);
+      margin: 0;
+      line-height: 1.5;
+    }
+    
+    .principle-list {
+      display: grid;
+      gap: 12px;
+      margin: 16px 0;
+    }
+    
+    .principle-item {
+      background: oklch(20% 0.02 264);
+      border: 1px solid oklch(37% 0.03 264);
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    
+    .principle-icon {
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+    
+    .principle-content {
+      flex: 1;
+    }
+    
+    .principle-title {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: oklch(100% 0 0);
+      margin: 0 0 4px 0;
+    }
+    
+    .principle-desc {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 0.8125rem;
+      color: oklch(70% 0.015 264);
+      margin: 0;
+    }
+  `}
+</style>
 
-SynergyOS Design System is a **4-layer architecture** that cascades automatically:
+<div className="overview-header">
+  <h1 className="overview-title">Design System Architecture</h1>
+  <p className="overview-subtitle">A 4-layer cascade system: Tokens → Utilities → Patterns → Components</p>
+</div>
 
-**Tokens** → **Utilities** → **Patterns** → **Components**
+## 🏗️ Architecture Layers
 
-Change a token once → Updates entire app automatically.
+<div className="layer-grid">
+  <div className="layer-card">
+    <p className="layer-card-number">Layer 1</p>
+    <h3 className="layer-card-title">Base Tokens</h3>
+    <p className="layer-card-desc">OKLCH colors, rem spacing, font stacks. The foundation.</p>
+  </div>
+  <div className="layer-card">
+    <p className="layer-card-number">Layer 2</p>
+    <h3 className="layer-card-title">Semantic Tokens</h3>
+    <p className="layer-card-desc">Context-aware tokens with light/dark variants.</p>
+  </div>
+  <div className="layer-card">
+    <p className="layer-card-number">Layer 3</p>
+    <h3 className="layer-card-title">CSS Utilities</h3>
+    <p className="layer-card-desc">Generated classes: bg-*, text-*, px-*, rounded-*</p>
+  </div>
+  <div className="layer-card">
+    <p className="layer-card-number">Layer 4</p>
+    <h3 className="layer-card-title">Components</h3>
+    <p className="layer-card-desc">Atoms, Molecules, Organisms using utilities.</p>
+  </div>
+</div>
 
 ---
 
-## 🎨 Component Layers
+## ⚛️ Atomic Design Methodology
 
-### Atoms
+We follow **Brad Frost's Atomic Design** with 5 hierarchical levels:
+
+<div className="layer-grid" style={{gridTemplateColumns: 'repeat(5, 1fr)'}}>
+  <div className="layer-card">
+    <p className="layer-card-number">Level 1</p>
+    <h3 className="layer-card-title">⚛️ Atoms</h3>
+    <p className="layer-card-desc">Basic building blocks</p>
+  </div>
+  <div className="layer-card">
+    <p className="layer-card-number">Level 2</p>
+    <h3 className="layer-card-title">🔗 Molecules</h3>
+    <p className="layer-card-desc">Simple atom groups</p>
+  </div>
+  <div className="layer-card">
+    <p className="layer-card-number">Level 3</p>
+    <h3 className="layer-card-title">🧬 Organisms</h3>
+    <p className="layer-card-desc">Complex sections</p>
+  </div>
+  <div className="layer-card">
+    <p className="layer-card-number">Level 4</p>
+    <h3 className="layer-card-title">📐 Templates</h3>
+    <p className="layer-card-desc">Page layouts</p>
+  </div>
+  <div className="layer-card">
+    <p className="layer-card-number">Level 5</p>
+    <h3 className="layer-card-title">📄 Pages</h3>
+    <p className="layer-card-desc">Real content</p>
+  </div>
+</div>
+
+### [Atoms](?path=/docs/design-system-atoms--docs)
 
 Single interactive elements with design tokens applied.
 
-**Examples**: Button, Input, Badge, Card, Icon
-
+**Examples**: Button, Input, Badge, Card, Icon, Avatar  
 **Location**: `src/lib/components/atoms/`
 
-**Storybook**: `Design System/Atoms/ComponentName`
-
-### Molecules
+### [Molecules](?path=/docs/design-system-molecules--docs)
 
 2-3 atoms composed together with layout logic.
 
-**Examples**: FormField (Label + Input + Error), Dropdown (Button + Menu)
+**Examples**: FormField (Label + Input + Error), SearchBar  
+**Location**: `src/lib/components/molecules/`
 
-**Location**: `src/lib/components/molecules/` (when created)
-
-**Storybook**: `Design System/Molecules/ComponentName`
-
-### Organisms
+### [Organisms](?path=/docs/design-system-organisms--docs)
 
 Complex sections combining multiple atoms and molecules.
 
-**Examples**: Dialog, Modal, Command Palette
-
+**Examples**: Dialog, Modal, Command Palette  
 **Location**: `src/lib/components/organisms/`
 
-**Storybook**: `Design System/Organisms/ComponentName`
+### [Templates](?path=/docs/design-system-templates--docs)
 
----
+Page-level layouts with placeholder content.
 
-## 🔄 The Cascade
+**Examples**: AuthLayout, DashboardLayout, SettingsLayout  
+**Location**: `src/lib/components/templates/`
 
-When you change `--spacing-button-x` in tokens:
+### [Pages](?path=/docs/design-system-pages--docs)
 
-1. Updates `px-button-x` utility
-2. Updates Button component
-3. Updates all pages using Button
+Templates filled with real content and data.
 
-**No manual updates needed!**
-
----
-
-## 📚 Available Components
-
-### Atoms
-
-- **Buttons**: Primary, Secondary, Outline variants
-- **Form Inputs**: Text, Textarea, Checkbox, Switch, Radio
-- **Display**: Badge, Chip, Card, Avatar, Icon
-- **Feedback**: Loading, Progress, Meter, Tooltip
-- **Navigation**: KeyboardShortcut, StatusPill
-
-### Organisms
-
-- **Dialogs**: Modal dialogs with backdrop and keyboard navigation
-- **Overlays**: Loading overlays, tooltips
+**Examples**: LoginPage, DashboardPage, SettingsPage  
+**Location**: `src/routes/`
 
 ---
 
 ## 🎯 Design Principles
 
-1. **Tokens First**: Always use design tokens, never hardcode values
-2. **Atomic Design**: Build from atoms → molecules → organisms
-3. **Accessibility**: All components follow WCAG guidelines
-4. **Dark Mode**: Automatic via semantic color tokens
-5. **Type Safety**: Full TypeScript support with proper types
+<div className="principle-list">
+  <div className="principle-item">
+    <span className="principle-icon">🎨</span>
+    <div className="principle-content">
+      <h4 className="principle-title">Tokens First</h4>
+      <p className="principle-desc">Always use design tokens, never hardcode values. ESLint enforces this.</p>
+    </div>
+  </div>
+  <div className="principle-item">
+    <span className="principle-icon">🔄</span>
+    <div className="principle-content">
+      <h4 className="principle-title">Cascade Automatically</h4>
+      <p className="principle-desc">Change a base token → semantic tokens update → components update. No manual work.</p>
+    </div>
+  </div>
+  <div className="principle-item">
+    <span className="principle-icon">🌙</span>
+    <div className="principle-content">
+      <h4 className="principle-title">Dark Mode Built-In</h4>
+      <p className="principle-desc">Semantic tokens define light/dark variants. Themes switch automatically.</p>
+    </div>
+  </div>
+  <div className="principle-item">
+    <span className="principle-icon">♿</span>
+    <div className="principle-content">
+      <h4 className="principle-title">Accessible by Default</h4>
+      <p className="principle-desc">WCAG compliant contrast ratios, keyboard navigation, ARIA attributes.</p>
+    </div>
+  </div>
+  <div className="principle-item">
+    <span className="principle-icon">📝</span>
+    <div className="principle-content">
+      <h4 className="principle-title">Type-Safe</h4>
+      <p className="principle-desc">Full TypeScript support with proper props, events, and slot types.</p>
+    </div>
+  </div>
+</div>
 
 ---
 
-## 📖 Documentation
+## 📚 Available Components
 
-- **Token Reference**: See `Docs/Token Reference` for all available tokens
-- **Component Architecture**: `dev-docs/2-areas/design/component-architecture.md`
-- **Design Principles**: `dev-docs/2-areas/design/design-principles.md`
-- **Patterns**: `dev-docs/2-areas/patterns/ui-patterns.md`
+### Atoms (25+)
+
+- **Buttons**: Button, IconButton, SplitButton, Toggle, ToggleGroup
+- **Inputs**: FormInput, FormTextarea, Checkbox, Switch, RadioGroup, PinInput, Slider
+- **Display**: Badge, Chip, Card, Avatar, Icon, Text, Heading, Label, Separator
+- **Feedback**: Loading, LoadingOverlay, Progress, Meter, StatusPill, Tooltip
+- **Layout**: AspectRatio, ScrollArea
+
+### Organisms
+
+- **Dialog**: Modal dialogs with backdrop and keyboard navigation
+- **Accordion**: Expandable content sections
+
+### Modules
+
+- **Meetings**: MeetingCard, ActionItemsList, AttendeeSelector
+- **Org Chart**: CircleNode, RoleNode, OrgChart visualization
+- **Inbox**: InboxCard, InboxHeader
 
 ---
 
-## 🚀 Getting Started
+## 🔗 Quick Links
 
-1. **Browse Components**: Explore Atoms → Organisms in Storybook
-2. **See Variants**: Use Controls panel to test different variants
-3. **Copy Code**: Use code snippets in your components
-4. **Follow Patterns**: Check documentation for usage patterns
+| Resource | Description |
+|----------|-------------|
+| [Token Reference](?path=/docs/docs-token-reference--docs) | Complete token tables |
+| [Colors](?path=/docs/design-system-tokens-colors--docs) | Color palette visualization |
+| [Typography](?path=/docs/design-system-tokens-typography--docs) | Font families and sizes |
+| [Spacing](?path=/docs/design-system-tokens-spacing--docs) | Spacing scale |
+| [Color Cascade](?path=/docs/design-system-tokens-color-cascade--docs) | Interactive cascade demo |
 
 ---
 
-**Last Updated**: November 2025  
-**Design System Version**: 1.0
+**Built with**: Svelte 5 + TailwindCSS 4 + Style Dictionary + CVA (Class Variance Authority)

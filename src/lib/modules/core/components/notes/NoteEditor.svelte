@@ -195,8 +195,8 @@
 >
 	<!-- AI Generated Badge -->
 	{#if isAIGenerated}
-		<div class="bg-warning-subtle border-divider border-b px-content-padding py-section">
-			<div class="text-warning-primary flex items-center gap-icon text-small">
+		<div class="bg-warning-subtle border-divider border-b px-content-padding py-1">
+			<div class="text-warning-primary flex items-center gap-2 text-small">
 				<svg
 					class="icon-sm"
 					fill="none"

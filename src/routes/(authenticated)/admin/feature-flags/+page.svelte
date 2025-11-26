@@ -395,7 +395,7 @@
 				Manage feature flags for progressive rollouts and A/B testing
 			</p>
 		</div>
-		<div class="flex items-center gap-icon">
+		<div class="flex items-center gap-2">
 			<Button variant="primary" onclick={openCreateModal}>Create Flag</Button>
 		</div>
 	</header>
@@ -521,7 +521,7 @@
 			<Tabs.Content value="flags">
 				<div class="flex flex-col gap-settings-section">
 					<!-- Search and Filter Bar -->
-					<div class="flex items-center gap-icon">
+					<div class="flex items-center gap-2">
 						<div class="flex-1">
 							<FormInput
 								placeholder="Search flags by name..."
@@ -543,7 +543,7 @@
 
 					<!-- Flags Display -->
 					{#if filteredFlags.length === 0}
-						<div class="flex flex-col items-center justify-center py-readable-quote text-center">
+						<div class="flex flex-col items-center justify-center text-center" style="padding-block: var(--spacing-8);">
 							<p class="mb-form-field-gap text-h3 font-medium text-secondary">
 								{searchQuery.trim() || statusFilter !== 'all'
 									? 'No flags match your filters'
@@ -594,7 +594,7 @@
 											onChange={(checked) => handleToggleFlag(flag, checked)}
 											label=""
 										/>
-										<div class="flex items-center gap-icon">
+										<div class="flex items-center gap-2">
 											<a
 												href={`/admin/feature-flags/${flag.flag}`}
 												class="text-label text-accent-primary hover:underline"
@@ -628,13 +628,13 @@
 			<Tabs.Content value="impact">
 				<div class="flex flex-col gap-settings-section">
 					{#if impactLoading}
-						<div class="flex flex-col items-center justify-center py-readable-quote text-center">
+						<div class="flex flex-col items-center justify-center text-center" style="padding-block: var(--spacing-8);">
 							<p class="mb-form-field-gap text-h3 font-medium text-secondary">
 								Loading impact statistics...
 							</p>
 						</div>
 					{:else if !impactStats}
-						<div class="flex flex-col items-center justify-center py-readable-quote text-center">
+						<div class="flex flex-col items-center justify-center text-center" style="padding-block: var(--spacing-8);">
 							<p class="mb-form-field-gap text-h3 font-medium text-secondary">
 								No impact data available
 							</p>
@@ -690,7 +690,7 @@
 							<p class="mb-content-section text-small text-secondary">
 								Enter a user email to see which flags affect them and why.
 							</p>
-							<div class="flex items-center gap-icon">
+							<div class="flex items-center gap-2">
 								<FormInput
 									placeholder="user@example.com"
 									bind:value={userSearchQuery}
@@ -774,7 +774,7 @@
 								<div class="rounded-card border border-base bg-surface px-card py-card">
 									<div class="flex items-start justify-between">
 										<div class="flex-1">
-											<div class="flex items-center gap-icon">
+											<div class="flex items-center gap-2">
 												<h4 class="font-semibold text-primary">{flag.flag}</h4>
 												<Badge variant={flag.enabled ? 'default' : 'system'}>
 													{flag.enabled ? 'Enabled' : 'Disabled'}
@@ -827,7 +827,7 @@
 											class="mt-content-section space-y-content-section border-t border-base pt-content-section"
 										>
 											<h5 class="text-small font-semibold text-primary">Impact Breakdown:</h5>
-											<div class="grid grid-cols-1 gap-icon md:grid-cols-2 lg:grid-cols-4">
+											<div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4">
 												{#if impact.breakdown.byDomain > 0}
 													<div
 														class="rounded-button border border-base bg-elevated px-card py-card"
@@ -947,7 +947,7 @@
 									Evaluation Result
 								</h4>
 								<div class="space-y-form-field-gap">
-									<div class="flex items-center gap-icon">
+									<div class="flex items-center gap-2">
 										<span class="text-small text-secondary">Result:</span>
 										<Badge variant={debugResult.result ? 'default' : 'system'}>
 											{debugResult.result ? 'Enabled' : 'Disabled'}
@@ -1080,7 +1080,7 @@
 
 					<!-- Targeting Section -->
 					<div class="space-y-content-section">
-						<div class="flex items-center gap-icon border-b border-base pb-form-field-gap">
+						<div class="flex items-center gap-2 border-b border-base pb-form-field-gap">
 							<h4 class="text-small font-semibold text-primary">Targeting Rules</h4>
 							<span class="text-label text-tertiary">(Optional - choose one or more)</span>
 						</div>
@@ -1097,7 +1097,7 @@
 							>
 								Percentage Rollout
 							</label>
-							<div class="flex items-center gap-icon">
+							<div class="flex items-center gap-2">
 								<input
 									id="create-rollout-range"
 									type="range"
@@ -1151,7 +1151,7 @@
 								see beta features)
 							</p>
 							{#if formDomainInput}
-								<div class="mt-form-field-gap flex flex-wrap gap-icon">
+								<div class="mt-form-field-gap flex flex-wrap gap-2">
 									{#each parseDomains(formDomainInput) as domain (domain)}
 										<span
 											class="rounded-button bg-accent-primary/10 px-badge py-badge text-label text-accent-primary"
@@ -1187,7 +1187,7 @@
 					</div>
 				</div>
 
-				<div class="flex items-center justify-end gap-icon border-t border-base pt-content-section">
+				<div class="flex items-center justify-end gap-2 border-t border-base pt-content-section">
 					<button
 						type="button"
 						onclick={() => (createModalOpen = false)}
@@ -1295,7 +1295,7 @@
 
 					<!-- Targeting Section -->
 					<div class="space-y-content-section">
-						<div class="flex items-center gap-icon border-b border-base pb-form-field-gap">
+						<div class="flex items-center gap-2 border-b border-base pb-form-field-gap">
 							<h4 class="text-small font-semibold text-primary">Targeting Rules</h4>
 							<span class="text-label text-tertiary">(Optional - choose one or more)</span>
 						</div>
@@ -1312,7 +1312,7 @@
 							>
 								Percentage Rollout
 							</label>
-							<div class="flex items-center gap-icon">
+							<div class="flex items-center gap-2">
 								<input
 									id="create-rollout-range"
 									type="range"
@@ -1366,7 +1366,7 @@
 								see beta features)
 							</p>
 							{#if formDomainInput}
-								<div class="mt-form-field-gap flex flex-wrap gap-icon">
+								<div class="mt-form-field-gap flex flex-wrap gap-2">
 									{#each parseDomains(formDomainInput) as domain (domain)}
 										<span
 											class="rounded-button bg-accent-primary/10 px-badge py-badge text-label text-accent-primary"
@@ -1402,7 +1402,7 @@
 					</div>
 				</div>
 
-				<div class="flex items-center justify-end gap-icon border-t border-base pt-content-section">
+				<div class="flex items-center justify-end gap-2 border-t border-base pt-content-section">
 					<button
 						type="button"
 						onclick={() => (editModalOpen = false)}

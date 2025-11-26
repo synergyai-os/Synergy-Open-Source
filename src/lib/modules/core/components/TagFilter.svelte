@@ -71,16 +71,16 @@
 	}
 </script>
 
-<div class="flex flex-col gap-icon">
+<div class="flex flex-col gap-2">
 	<!-- Selected Tags (Badges) -->
 	{#if selectedTags().length > 0}
-		<div class="flex flex-wrap items-center gap-icon">
+		<div class="flex flex-wrap items-center gap-2">
 			<span class="text-label tracking-wider text-secondary uppercase">Filtered by:</span>
 			{#each selectedTags() as tag (tag._id)}
 				<button
 					type="button"
 					onclick={() => toggleTag(tag._id)}
-					class="inline-flex items-center gap-icon rounded-md px-badge py-badge text-label font-medium transition-colors hover:opacity-80"
+					class="inline-flex items-center gap-2 rounded-md px-badge py-badge text-label font-medium transition-colors hover:opacity-80"
 					style="background-color: {tag.color}20; color: {tag.color}; border: 1px solid {tag.color}40;"
 					title="Click to remove filter"
 				>
@@ -120,7 +120,7 @@
 
 			<!-- Root Tags -->
 			{#if groupedTags().rootTags.length > 0}
-				<div class="flex flex-wrap gap-icon">
+				<div class="flex flex-wrap gap-2">
 					{#each groupedTags().rootTags as tag (tag._id)}
 						<button
 							type="button"
@@ -141,7 +141,7 @@
 				{#if parent}
 					<div class="gap-section flex flex-col pl-indent">
 						<span class="text-label text-secondary">{parent.displayName}:</span>
-						<div class="flex flex-wrap gap-icon">
+						<div class="flex flex-wrap gap-2">
 							{#each children as tag (tag._id)}
 								<button
 									type="button"

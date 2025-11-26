@@ -70,7 +70,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 
 			state.isAuthenticated = data.authenticated;
 			state.user = data.authenticated && data.user ? data.user : null;
-			const cookieToken = readCookie('syos_csrf') ?? readCookie('axon_csrf');
+			const cookieToken = readCookie('syos_csrf');
 			state.csrfToken = data.csrfToken ?? cookieToken;
 
 			// Cache the active account ID synchronously
@@ -253,7 +253,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 			const accountName = targetSession?.userName || targetSession?.userEmail || 'Account';
 
 			// Step 1: Unlink the account in Convex (so it won't reappear on reload)
-			const csrfToken = state.csrfToken ?? readCookie('syos_csrf') ?? readCookie('axon_csrf');
+			const csrfToken = state.csrfToken ?? readCookie('syos_csrf');
 			if (csrfToken) {
 				try {
 					const response = await fetch('/auth/unlink-account', {
@@ -286,7 +286,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 		}
 
 		// For current account: call server to invalidate active session
-		const csrfToken = state.csrfToken ?? readCookie('syos_csrf') ?? readCookie('axon_csrf');
+		const csrfToken = state.csrfToken ?? readCookie('syos_csrf');
 		if (!csrfToken) {
 			state.error = 'Unable to verify session (missing CSRF token).';
 			return;
@@ -383,10 +383,10 @@ export function useAuthSession(): UseAuthSessionReturn {
 		const targetSession = allSessions[targetUserId];
 		const targetAccountName = targetSession.userName || targetSession.userEmail || 'account';
 
-		// CRITICAL: Use CURRENT user's CSRF token, not target user's
-		// The CSRF token protects the switch action itself, not the target account
-		// Target session tokens are placeholders and will be invalid
-		const csrfToken = state.csrfToken ?? readCookie('syos_csrf') ?? readCookie('axon_csrf');
+			// CRITICAL: Use CURRENT user's CSRF token, not target user's
+			// The CSRF token protects the switch action itself, not the target account
+			// Target session tokens are placeholders and will be invalid
+			const csrfToken = state.csrfToken ?? readCookie('syos_csrf');
 
 		if (!csrfToken) {
 			state.error = 'Unable to verify session (missing CSRF token).';

@@ -1,0 +1,164 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Design System/Organisms" />
+
+<style>
+  {`
+    .organism-diagram {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 24px;
+      background: oklch(20% 0.02 264);
+      border: 2px solid oklch(60% 0.17 145);
+      border-radius: 12px;
+      margin: 24px 0;
+    }
+    
+    .organism-row {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .organism-molecule {
+      display: flex;
+      gap: 4px;
+      padding: 8px;
+      background: oklch(75% 0.14 65 / 0.2);
+      border: 1px solid oklch(75% 0.14 65);
+      border-radius: 6px;
+    }
+    
+    .organism-atom {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: oklch(55% 0.15 195);
+    }
+    
+    .organism-atom-rect {
+      width: 48px;
+      height: 24px;
+      border-radius: 4px;
+      background: oklch(55% 0.15 195);
+    }
+    
+    .available-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: oklch(60% 0.17 145 / 0.2);
+      color: oklch(60% 0.17 145);
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    }
+  `}
+</style>
+
+# Organisms
+
+Complex UI components composed of **molecules and atoms** that form distinct sections of an interface.
+
+<div className="organism-diagram">
+  <div className="organism-row">
+    <div className="organism-molecule">
+      <div className="organism-atom" />
+      <div className="organism-atom-rect" />
+    </div>
+    <div className="organism-molecule">
+      <div className="organism-atom" />
+      <div className="organism-atom" />
+    </div>
+  </div>
+  <div className="organism-row">
+    <div className="organism-molecule">
+      <div className="organism-atom-rect" />
+      <div className="organism-atom" />
+      <div className="organism-atom" />
+    </div>
+  </div>
+</div>
+
+---
+
+## 🎯 What Are Organisms?
+
+Organisms are the **third level** of atomic design:
+
+- ✅ Combine multiple atoms and molecules
+- ✅ Form distinct, standalone sections
+- ✅ Can have internal state and logic
+- ✅ Often represent complete UI features
+- ✅ Reusable across pages
+
+---
+
+## 📦 Available Organisms
+
+<span className="available-badge">✓ Available Now</span>
+
+### Dialog
+
+Modal dialogs with backdrop, keyboard navigation, and accessibility.
+
+**Stories**: `Design System/Organisms/Dialog`
+
+```svelte
+<script>
+  import { Dialog } from '$lib/components/organisms';
+</script>
+
+<Dialog open={showModal} onClose={() => showModal = false}>
+  <Dialog.Title>Confirm Action</Dialog.Title>
+  <Dialog.Description>Are you sure?</Dialog.Description>
+  <Dialog.Actions>
+    <Button variant="secondary">Cancel</Button>
+    <Button variant="primary">Confirm</Button>
+  </Dialog.Actions>
+</Dialog>
+```
+
+---
+
+### Accordion
+
+Expandable content sections with keyboard navigation.
+
+**Stories**: `Design System/Organisms/Accordion`
+
+---
+
+## 📋 Planned Organisms
+
+| Component | Composition | Purpose |
+|-----------|-------------|---------|
+| **Header** | Logo + Nav + Avatar + Menu | App header |
+| **Sidebar** | NavGroup + NavItem + Divider | Navigation sidebar |
+| **CommandPalette** | Input + List + Keyboard | Command menu (⌘K) |
+| **DataTable** | Table + Sort + Filter + Pagination | Data display |
+| **Form** | FormField[] + Actions | Complete form |
+
+---
+
+## 📍 Location
+
+```
+src/lib/components/organisms/
+├── Dialog/
+│   ├── Dialog.svelte
+│   ├── DialogTitle.svelte
+│   ├── DialogDescription.svelte
+│   └── index.ts
+├── Accordion/
+│   └── Accordion.svelte
+└── index.ts
+```
+
+---
+
+**Status**: In Progress  
+**Available**: Dialog, Accordion
+

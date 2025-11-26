@@ -1017,3 +1017,110 @@ export const addMemberDirect = internalMutation({
 		return membershipId;
 	}
 });
+
+/**
+ * Update organization branding (primary/secondary colors, logo)
+ * Requires org admin/owner role
+ */
+export const updateBranding = mutation({
+	args: {
+		sessionId: v.string(),
+		organizationId: v.id('organizations'),
+		primaryColor: v.string(), // OKLCH format: "oklch(55% 0.2 250)"
+		secondaryColor: v.string(), // OKLCH format
+		logo: v.optional(v.string()) // Convex Storage ID or URL
+	},
+	handler: async (ctx, args) => {
+		// Auth: Validate session + require org admin
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		// Check user is org admin/owner
+		const membership = await ctx.db
+			.query('organizationMembers')
+			.withIndex('by_organization_user', (q) =>
+				q.eq('organizationId', args.organizationId).eq('userId', userId)
+			)
+			.first();
+
+		if (!membership || membership.role === 'member') {
+			throw new Error('Must be org admin or owner to update branding');
+		}
+
+		// Validate color formats (OKLCH only)
+		if (!args.primaryColor.startsWith('oklch(')) {
+			throw new Error('primaryColor must be OKLCH format (e.g., "oklch(55% 0.2 250)")');
+		}
+
+		if (!args.secondaryColor.startsWith('oklch(')) {
+			throw new Error('secondaryColor must be OKLCH format (e.g., "oklch(55% 0.2 250)")');
+		}
+
+		// Update organization
+		await ctx.db.patch(args.organizationId, {
+			branding: {
+				primaryColor: args.primaryColor,
+				secondaryColor: args.secondaryColor,
+				logo: args.logo,
+				updatedAt: Date.now(),
+				updatedBy: userId
+			}
+		});
+
+		return { success: true };
+	}
+});
+
+/**
+ * Get organization branding (primary/secondary colors, logo)
+ * Returns null if no branding configured
+ */
+export const getBranding = query({
+	args: {
+		organizationId: v.id('organizations')
+	},
+	handler: async (ctx, args) => {
+		const org = await ctx.db.get(args.organizationId);
+
+		if (!org) return null;
+
+		return org.branding || null; // Return null if no branding set
+	}
+});
+
+/**
+ * Get branding for all organizations the user has access to
+ * Returns map of orgId -> branding (only orgs with branding set)
+ * Used to generate CSS for all orgs at once (prevents CSS loss on workspace switch)
+ */
+export const getAllOrgBranding = query({
+	args: {
+		sessionId: v.string()
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		// Get all orgs user is member of
+		const memberships = await ctx.db
+			.query('organizationMembers')
+			.withIndex('by_user', (q) => q.eq('userId', userId))
+			.collect();
+
+		// Get branding for each org (only if branding exists)
+		const brandingMap: Record<string, { primaryColor: string; secondaryColor: string; logo?: string }> = {};
+
+		await Promise.all(
+			memberships.map(async (membership) => {
+				const org = await ctx.db.get(membership.organizationId);
+				if (org?.branding) {
+					brandingMap[membership.organizationId] = {
+						primaryColor: org.branding.primaryColor,
+						secondaryColor: org.branding.secondaryColor,
+						logo: org.branding.logo
+					};
+				}
+			})
+		);
+
+		return brandingMap;
+	}
+});

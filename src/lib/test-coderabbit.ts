@@ -10,6 +10,6 @@ export function testFunction(param: string) {
 
 // Hardcoded value (should use design token)
 export const testStyle = {
-	padding: '8px', // Should use px-nav-item token
+	padding: '8px', // Should use px-2 token
 	backgroundColor: '#1a1a1a' // Should use bg-sidebar token
 };

@@ -116,29 +116,29 @@
 <!-- Filter Tabs -->
 <Tabs.Root bind:value={activeFilter}>
 	<Tabs.List
-		class="mb-content-section flex size-tab gap-icon rounded-tab-container border-b border-border-base"
+		class="mb-content-section flex size-tab gap-2 rounded-tab-container border-b border-border-base"
 	>
 		<Tabs.Trigger
 			value="all"
-			class="border-b-2 border-transparent px-nav-item py-nav-item text-small font-medium text-text-secondary transition-colors hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+			class="border-b-2 border-transparent px-2 py-nav-item text-small font-medium text-text-secondary transition-colors hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
 		>
 			All <Badge>{allCount}</Badge>
 		</Tabs.Trigger>
 		<Tabs.Trigger
 			value="todo"
-			class="border-b-2 border-transparent px-nav-item py-nav-item text-small font-medium text-text-secondary transition-colors hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+			class="border-b-2 border-transparent px-2 py-nav-item text-small font-medium text-text-secondary transition-colors hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
 		>
 			To Do <Badge>{todoCount}</Badge>
 		</Tabs.Trigger>
 		<Tabs.Trigger
 			value="in-progress"
-			class="border-b-2 border-transparent px-nav-item py-nav-item text-small font-medium text-text-secondary transition-colors hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+			class="border-b-2 border-transparent px-2 py-nav-item text-small font-medium text-text-secondary transition-colors hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
 		>
 			In Progress <Badge>{inProgressCount}</Badge>
 		</Tabs.Trigger>
 		<Tabs.Trigger
 			value="done"
-			class="border-b-2 border-transparent px-nav-item py-nav-item text-small font-medium text-text-secondary transition-colors hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+			class="border-b-2 border-transparent px-2 py-nav-item text-small font-medium text-text-secondary transition-colors hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
 		>
 			Done <Badge>{doneCount}</Badge>
 		</Tabs.Trigger>
@@ -147,11 +147,11 @@
 	<!-- Action Items List -->
 	<Tabs.Content value={activeFilter}>
 		{#if actionItemsQuery?.isLoading}
-			<div class="py-readable-quote text-center text-text-secondary">Loading action items...</div>
+			<div class="text-center text-text-secondary" style="padding-block: var(--spacing-8);">Loading action items...</div>
 		{:else if filteredItems().length === 0}
 			<!-- Empty State -->
 			<div
-				class="rounded-card border border-dashed border-border-base bg-surface py-readable-quote text-center"
+				class="rounded-card border border-dashed border-border-base bg-surface text-center" style="padding-block: var(--spacing-8);"
 			>
 				<svg
 					class="mx-auto icon-xl text-text-tertiary"
@@ -186,7 +186,7 @@
 			<div class="divide-y divide-border-base rounded-card border border-border-base bg-surface">
 				{#each filteredItems() as item (item._id)}
 					<div
-						class="group p-inbox-card hover:bg-surface-hover flex items-start gap-icon-gap transition-colors"
+						class="group p-inbox-card hover:bg-surface-hover flex items-start gap-2-gap transition-colors"
 					>
 						<!-- Status Checkbox -->
 						<button
@@ -221,7 +221,7 @@
 							>
 								<!-- Type Badge -->
 								<span
-									class="inline-flex items-center gap-control-item-gap rounded-chip border border-border-base bg-surface px-badge py-badge"
+									class="inline-flex items-center rounded-chip border border-border-base bg-surface px-badge py-badge" style="gap: var(--spacing-1);"
 								>
 									{item.type === 'next-step' ? '⚡' : '📦'}
 									{item.type === 'next-step' ? 'Next Step' : 'Project'}
@@ -229,7 +229,7 @@
 
 								<!-- Due Date -->
 								{#if item.dueDate}
-									<span class="inline-flex items-center gap-control-item-gap">
+									<span class="inline-flex items-center" style="gap: var(--spacing-1);">
 										<svg class="icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 											<path
 												stroke-linecap="round"
@@ -245,7 +245,7 @@
 								<!-- Meeting Link -->
 								<button
 									onclick={() => handleNavigateToMeeting(item.meetingId)}
-									class="inline-flex items-center gap-control-item-gap text-accent-primary transition-colors hover:text-accent-hover"
+									class="inline-flex items-center text-accent-primary transition-colors hover:text-accent-hover" style="gap: var(--spacing-1);"
 								>
 									<svg class="icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 										<path

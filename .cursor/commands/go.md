@@ -382,6 +382,8 @@ Examples:
 
 **Reference Documentation:**
 - Recipe System: `dev-docs/2-areas/patterns/recipe-system.md`
+- Recipe Template: `ai-docs/reference/recipe-template.md` (complete example with Button recipe)
+- CVA Svelte Example: `ai-docs/reference/cva-svelte-example/` (working Button component example)
 - SVG Exception: `dev-docs/2-areas/design/design-tokens.md` (Acceptable Exceptions)
 - Design Tokens: `dev-docs/2-areas/design/design-tokens.md`
 
@@ -585,22 +587,22 @@ Examples:
 
 ---
 
-## 6.4. Recipe Validation (If Creating/Modifying Recipes)
+## 6.4. Recipe Validation (If Creating/Modifying Recipes) ⭐ **ENHANCED**
 
-**Purpose**: Validate CVA recipe classes exist in design system utilities
+**Purpose**: Validate CVA recipe classes exist AND follow recipe-specific rules
 
 **When**: If you created or modified a `.recipe.ts` file
 
 **Workflow**:
 
-1. **Run recipe validation**:
+1. **Run basic recipe validation**:
 
    ```bash
    npm run recipes:validate
    ```
 
 2. **Check results**:
-   - ✅ **If clean** → Continue to ESLint validation
+   - ✅ **If clean** → Continue to Step 3 (enhanced checks)
    - ❌ **If violations found** → READ suggestions, fix immediately
 
 3. **If violations found**:
@@ -624,7 +626,128 @@ Examples:
    - Typos: `size-icon-sm` → `size-iconsm`
    - Non-existent classes: `custom-size` → (doesn't exist in CSS)
 
-**Why mandatory**: Prevents recipes from referencing classes that don't exist, which would fail silently at runtime.
+---
+
+### 6.4.5. Enhanced Recipe Checks ⭐ **NEW** (Recipe-Specific Rules)
+
+**Purpose**: Catch recipe-specific violations discovered during badge recipe debugging (SYOS-540)
+
+**When**: After basic `recipes:validate` passes
+
+**Manual Checklist** (until automated script is ready):
+
+#### Check #1: NO Opacity Modifiers on Custom Utilities
+
+```bash
+# Search for opacity modifiers in recipe file
+grep -E '(bg-|text-|border-)[a-z-]+/[0-9]+' src/lib/design-system/recipes/*.recipe.ts
+```
+
+**Expected**: No matches (empty output)
+
+**If found**:
+```
+badge.recipe.ts:19:   primary: 'bg-accent-primary/10 text-accent-primary'
+badge.recipe.ts:21:   warning: 'bg-accent-primary/10 text-warning'
+```
+
+**Fix**:
+- ❌ Remove `/10`, `/20` opacity modifiers on custom utilities
+- ✅ Use Tailwind built-in opacity: `disabled:opacity-disabled`, `opacity-50`
+- ✅ Use solid background tokens: `bg-accent-primary`, `bg-warning`
+
+**Why**: Opacity modifiers (`/10`, `/20`) unreliable with custom `@utility` definitions in Tailwind CSS 4
+
+---
+
+#### Check #2: Verify Background Tokens Exist
+
+```bash
+# For each bg-* class in recipe, verify utility exists
+grep -o 'bg-[a-z-]*' src/lib/design-system/recipes/badge.recipe.ts | sort -u
+
+# Then check each one exists in src/app.css
+grep "^@utility bg-warning" src/app.css
+grep "^@utility bg-error" src/app.css
+grep "^@utility bg-success" src/app.css
+```
+
+**Expected**: Each `@utility` found
+
+**If NOT found**:
+1. Add missing token to `design-system.json`:
+   ```json
+   "warning": {
+     "bg": { "$value": "{color.palette.yellow.50}" }
+   }
+   ```
+2. Run `npm run tokens:build`
+3. Re-verify utility exists
+
+**Why**: Prevents recipes from using workarounds (e.g., `bg-accent-primary/10` instead of `bg-warning`)
+
+---
+
+#### Check #3: Visual Distinction Check
+
+```typescript
+// Extract all background classes from variants
+const backgrounds = {
+  primary: 'bg-accent-primary',
+  warning: 'bg-warning',      // ✅ Different
+  error: 'bg-error'            // ✅ Different
+};
+
+// ❌ WRONG: Same background for different variants
+const backgrounds = {
+  primary: 'bg-accent-primary/10',
+  warning: 'bg-accent-primary/10'  // ❌ Identical to primary
+};
+```
+
+**Check manually**:
+- Read variant definitions
+- Verify each variant has DISTINCT background
+- No two variants should use identical background classes
+
+**Why**: Variants must be visually distinct for good UX
+
+---
+
+#### Check #4: Button Recipe Pattern Compliance
+
+```bash
+# Check if recipe follows button recipe pattern
+cat src/lib/design-system/recipes/button.recipe.ts
+
+# Compare variant structure:
+# ✅ Solid backgrounds (bg-accent-primary, bg-elevated)
+# ✅ Tailwind modifiers (disabled:opacity-disabled)
+# ❌ NO opacity modifiers (/10, /20)
+```
+
+**Reference**: `src/lib/design-system/recipes/button.recipe.ts` - Use as pattern
+
+---
+
+### Enhanced Validation Summary
+
+**Before marking recipe as "validated":**
+
+- [ ] `npm run recipes:validate` passes (basic checks)
+- [ ] NO opacity modifiers found (`grep` check #1)
+- [ ] All background tokens exist (check #2)
+- [ ] Variants visually distinct (check #3)
+- [ ] Follows button recipe pattern (check #4)
+
+**If ANY check fails**:
+- ❌ STOP - Fix issue immediately
+- ✅ Re-run ALL checks
+- ✅ Only proceed when ALL checks pass
+
+**Future**: These manual checks will be automated in `scripts/validate-recipes-enhanced.js` (planned - SYOS-541)
+
+**Why mandatory**: Prevents recipe-specific violations that basic validation misses (opacity modifiers, missing tokens, identical variants)
 
 ---
 
@@ -866,6 +989,6 @@ AI: Implements using:
 
 ---
 
-**Last Updated**: 2025-11-22 (Strengthened Step 8: MUST run ESLint explicitly after writing code - AI can't see red squiggles in real-time)
+**Last Updated**: 2025-11-23 (Added recipe template references - SYOS-516)
 **Purpose**: Execute implementation with pattern-first approach, design token enforcement (3 layers with EXPLICIT ESLint validation), Svelte MCP validation, and reference code integration  
 **Status**: Active workflow - **Step 8 is MANDATORY and NON-NEGOTIABLE**

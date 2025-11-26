@@ -72,12 +72,12 @@
 
 {#if showConfirm}
 	<div class="space-y-0.5">
-		<p class="mb-1 px-nav-item py-1 text-label text-sidebar-tertiary">Are you sure?</p>
+		<p class="mb-1 px-2 py-1 text-label text-sidebar-tertiary">Are you sure?</p>
 		<button
 			type="button"
 			onclick={handleClean}
 			disabled={isCleaning}
-			class="group flex w-full items-center gap-icon rounded-md bg-red-600 px-nav-item py-nav-item text-sm font-normal text-white transition-all duration-150 hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+			class="group flex w-full items-center gap-2 rounded-md bg-red-600 px-2 py-nav-item text-sm font-normal text-white transition-all duration-150 hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
 		>
 			<svg
 				class="h-4 w-4 flex-shrink-0"
@@ -99,22 +99,22 @@
 			type="button"
 			onclick={handleCancel}
 			disabled={isCleaning}
-			class="group flex w-full items-center gap-icon rounded-md px-nav-item py-nav-item text-sm font-normal text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+			class="group flex w-full items-center gap-2 rounded-md px-2 py-nav-item text-sm font-normal text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 		>
 			<span>Cancel</span>
 		</button>
 		{#if error}
-			<p class="px-nav-item text-label text-red-500">{error}</p>
+			<p class="px-2 text-label text-red-500">{error}</p>
 		{/if}
 		{#if success}
-			<p class="px-nav-item text-label text-green-500">Cleaned! Reloading...</p>
+			<p class="px-2 text-label text-green-500">Cleaned! Reloading...</p>
 		{/if}
 	</div>
 {:else}
 	<button
 		type="button"
 		onclick={handleClean}
-		class="group flex items-center gap-icon rounded-md px-nav-item py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+		class="group flex items-center gap-2 rounded-md px-2 py-nav-item text-sm text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
 	>
 		<svg
 			class="h-4 w-4 flex-shrink-0"

@@ -176,7 +176,7 @@
 	<div
 		class="sticky top-0 z-10 flex h-system-header flex-shrink-0 items-center justify-between border-b border-base bg-base px-inbox-container py-system-header"
 	>
-		<div class="flex items-center gap-icon">
+		<div class="flex items-center gap-2">
 			<svg
 				class="size-icon-md flex-shrink-0 text-accent-primary"
 				fill="none"
@@ -191,7 +191,7 @@
 					d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
 				/>
 			</svg>
-			<div class="flex items-center gap-icon">
+			<div class="flex items-center gap-2">
 				<h2 class="text-small font-normal text-secondary">Flashcards</h2>
 				{#if allFlashcards.length > 0}
 					<span class="text-small text-secondary">
@@ -206,7 +206,7 @@
 		{#if allFlashcards.length > 0}
 			<Button.Root
 				href={resolveRoute('/study')}
-				class="flex items-center gap-icon rounded-button bg-accent-primary px-nav-item py-nav-item text-small font-medium text-primary transition-opacity hover:opacity-90"
+				class="flex items-center gap-2 rounded-button bg-accent-primary px-2 py-nav-item text-small font-medium text-primary transition-opacity hover:opacity-90"
 			>
 				<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
@@ -230,16 +230,16 @@
 		{/if}
 
 		{#if isLoading}
-			<div class="py-readable-quote text-center">
+			<div class="text-center" style="padding-block: var(--spacing-8);">
 				<p class="text-secondary">Loading flashcards...</p>
 			</div>
 		{:else if error}
-			<div class="py-readable-quote text-center">
+			<div class="text-center" style="padding-block: var(--spacing-8);">
 				<p class="mb-form-section font-medium text-primary">Error</p>
 				<p class="text-secondary">{error}</p>
 			</div>
 		{:else if displayCollections.length === 0}
-			<div class="py-readable-quote text-center">
+			<div class="text-center" style="padding-block: var(--spacing-8);">
 				<p class="text-secondary">
 					{selectedTagIds.length > 0
 						? 'No collections found with selected tags.'

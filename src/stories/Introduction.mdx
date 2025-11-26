@@ -1,92 +1,393 @@
-import { Meta } from '@storybook/addon-docs/blocks';
+import { Meta, ColorPalette, ColorItem } from '@storybook/addon-docs/blocks';
 
 <Meta title="Docs/Introduction" />
 
-# Welcome to SynergyOS Design System
+<style>
+	{`
+    .hero {
+      background: linear-gradient(135deg, oklch(20% 0.02 264) 0%, oklch(13% 0.015 264) 100%);
+      border-radius: 16px;
+      padding: 48px;
+      margin-bottom: 32px;
+      border: 1px solid oklch(37% 0.03 264);
+    }
+    
+    .hero-title {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: oklch(100% 0 0);
+      margin: 0 0 8px 0;
+      letter-spacing: -0.025em;
+    }
+    
+    .hero-subtitle {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 1.125rem;
+      color: oklch(70% 0.015 264);
+      margin: 0 0 24px 0;
+    }
+    
+    .brand-colors {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    
+    .brand-swatch {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      border: 2px solid oklch(37% 0.03 264);
+    }
+    
+    .brand-primary {
+      background: oklch(55% 0.15 195);
+    }
+    
+    .brand-secondary {
+      background: oklch(75% 0.14 65);
+    }
+    
+    .cascade-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: oklch(55% 0.15 195 / 0.15);
+      color: oklch(65% 0.12 195);
+      padding: 8px 16px;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    }
+    
+    .nav-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+    
+    .nav-card {
+      background: oklch(20% 0.02 264);
+      border: 1px solid oklch(37% 0.03 264);
+      border-radius: 12px;
+      padding: 24px;
+      transition: all 0.2s ease;
+    }
+    
+    .nav-card:hover {
+      border-color: oklch(55% 0.15 195);
+      background: oklch(27% 0.025 264);
+    }
+    
+    .nav-card-title {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: oklch(100% 0 0);
+      margin: 0 0 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .nav-card-desc {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 0.875rem;
+      color: oklch(70% 0.015 264);
+      margin: 0;
+      line-height: 1.5;
+    }
+    
+    .cascade-diagram {
+      background: oklch(13% 0.015 264);
+      border: 1px solid oklch(37% 0.03 264);
+      border-radius: 12px;
+      padding: 24px;
+      margin: 24px 0;
+    }
+    
+    .cascade-flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    
+    .cascade-step {
+      background: oklch(27% 0.025 264);
+      border: 1px solid oklch(37% 0.03 264);
+      border-radius: 8px;
+      padding: 12px 20px;
+      text-align: center;
+    }
+    
+    .cascade-step-title {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: oklch(55% 0.15 195);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin: 0 0 4px 0;
+    }
+    
+    .cascade-step-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: oklch(70% 0.015 264);
+      margin: 0;
+    }
+    
+    .cascade-arrow {
+      color: oklch(55% 0.02 264);
+      font-size: 1.25rem;
+    }
+    
+    .quick-start {
+      background: oklch(55% 0.15 195 / 0.1);
+      border: 1px solid oklch(55% 0.15 195 / 0.3);
+      border-radius: 12px;
+      padding: 24px;
+      margin: 24px 0;
+    }
+    
+    .quick-start-title {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: oklch(65% 0.12 195);
+      margin: 0 0 16px 0;
+    }
+    
+    .quick-start-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    
+    .quick-start-list li {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 0.875rem;
+      color: oklch(85% 0.01 264);
+      padding: 8px 0;
+      border-bottom: 1px solid oklch(55% 0.15 195 / 0.2);
+    }
+    
+    .quick-start-list li:last-child {
+      border-bottom: none;
+    }
+    
+    .quick-start-list code {
+      background: oklch(20% 0.02 264);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8125rem;
+    }
 
-## What is this?
+    .footer {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid oklch(37% 0.03 264);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      font-size: 0.75rem;
+      color: oklch(55% 0.02 264);
+    }
+  `}
+</style>
 
-SynergyOS Design System is a **4-layer architecture** that cascades automatically:
+<div className="hero">
+	<div className="brand-colors">
+		<div className="brand-swatch brand-primary" title="Deep Teal - Primary" />
+		<div className="brand-swatch brand-secondary" title="Warm Amber - Secondary" />
+	</div>
+	<h1 className="hero-title">SynergyOS Design System</h1>
+	<p className="hero-subtitle">
+		A token-driven design system with automatic cascade. Change once, update everywhere.
+	</p>
+	<span className="cascade-badge">✨ 339 Design Tokens • Dark Mode Ready • Type-Safe</span>
+</div>
 
-**Tokens** → **Utilities** → **Patterns** → **Components**
+## 🔄 The Cascade Architecture
 
-**Change a token once → Updates entire app automatically**
+<div className="cascade-diagram">
+	<div className="cascade-flow">
+		<div className="cascade-step">
+			<p className="cascade-step-title">Base Token</p>
+			<p className="cascade-step-value">oklch(55% 0.15 195)</p>
+		</div>
+		<span className="cascade-arrow">→</span>
+		<div className="cascade-step">
+			<p className="cascade-step-title">Semantic Token</p>
+			<p className="cascade-step-value">color.brand.primary</p>
+		</div>
+		<span className="cascade-arrow">→</span>
+		<div className="cascade-step">
+			<p className="cascade-step-title">CSS Variable</p>
+			<p className="cascade-step-value">--color-interactive-primary</p>
+		</div>
+		<span className="cascade-arrow">→</span>
+		<div className="cascade-step">
+			<p className="cascade-step-title">Utility Class</p>
+			<p className="cascade-step-value">bg-accent-primary</p>
+		</div>
+	</div>
+</div>
+
+**Change a base token → All downstream values update automatically → No component changes needed**
 
 ---
 
-## 🎨 Key Concepts
+## 📚 Documentation
 
-### Design Tokens
-
-Semantic variables that adapt to light/dark mode automatically.
-
-**Example:**
-
-- `--spacing-button-x` (not hardcoded `24px`)
-- `--color-accent-primary` (not hardcoded `#3b82f6`)
-
-**Why?** Change once in `app.css`, updates everywhere. Dark mode automatic.
-
-**⚠️ CRITICAL**: Hardcoded Tailwind values are blocked by ESLint. Always use semantic tokens.
-
-### ⚛️ Atomic Design
-
-We organize components using atomic design methodology:
-
-- **Atoms**: Single elements (Button, Input, Card, Badge)
-- **Molecules**: 2-3 atoms composed (FormField = Label + Input + Error)
-- **Organisms**: Complex sections (Header, Sidebar, Dialog)
-
-**Why?** Clear hierarchy, reusability, composition over complexity.
-
-### 🔄 The Cascade
-
-When you change `--spacing-button-x` in tokens:
-
-1. Updates `px-button-x` utility
-2. Updates Button component
-3. Updates all pages using Button
-
-**No manual updates needed!**
-
----
-
-## 🚀 Getting Started
-
-1. **Browse Components**:
-   - Explore Atoms → Molecules → Organisms
-   - See all variants, sizes, states
-
-2. **Try Interactive Examples**:
-   - Change controls in the Controls panel
-   - See live updates
-
-3. **Copy Code**:
-   - Use code snippets in your components
-   - Follow token usage patterns
-
-4. **Read Documentation**:
-   - Token Reference: See all design tokens
-   - Composition Patterns: Learn how to combine components
-   - Migration Guide: Convert hardcoded values to tokens
+<div className="nav-grid">
+	<a
+		href="?path=/docs/design-system-tokens-overview--docs"
+		className="nav-card"
+		style={{ textDecoration: 'none' }}
+	>
+		<h3 className="nav-card-title">🎨 Design Tokens</h3>
+		<p className="nav-card-desc">
+			Colors, typography, spacing, shadows, and more. Visual reference with OKLCH values.
+		</p>
+	</a>
+	<a
+		href="?path=/docs/docs-token-reference--docs"
+		className="nav-card"
+		style={{ textDecoration: 'none' }}
+	>
+		<h3 className="nav-card-title">📋 Token Reference</h3>
+		<p className="nav-card-desc">
+			Complete reference tables for all 339 tokens with CSS variable names and values.
+		</p>
+	</a>
+	<a
+		href="?path=/docs/design-system-overview--docs"
+		className="nav-card"
+		style={{ textDecoration: 'none' }}
+	>
+		<h3 className="nav-card-title">🏗️ Architecture</h3>
+		<p className="nav-card-desc">
+			Atomic design methodology, component layers, and cascade system explained.
+		</p>
+	</a>
+	<a
+		href="?path=/docs/design-system-tokens-color-cascade--docs"
+		className="nav-card"
+		style={{ textDecoration: 'none' }}
+	>
+		<h3 className="nav-card-title">🔄 Color Cascade</h3>
+		<p className="nav-card-desc">
+			Interactive demo showing how the 3-layer cascade works in practice.
+		</p>
+	</a>
+</div>
 
 ---
 
-## ❓ Questions?
+## ⚛️ Atomic Design
 
-- 📖 **Documentation**: See Token Reference and Composition Patterns pages
-- 🐛 **Found a bug?**: Create Linear ticket in Design System project
-- 💡 **Need help?**: Check component composition examples or ask in #design-system
+We follow Brad Frost's **Atomic Design** methodology with 5 levels:
+
+<div className="nav-grid">
+	<a
+		href="?path=/docs/design-system-atoms--docs"
+		className="nav-card"
+		style={{ textDecoration: 'none' }}
+	>
+		<h3 className="nav-card-title">⚛️ Atoms</h3>
+		<p className="nav-card-desc">
+			Basic building blocks: Button, Input, Badge, Card, Icon, Label. 25+ components.
+		</p>
+	</a>
+	<a
+		href="?path=/docs/design-system-molecules--docs"
+		className="nav-card"
+		style={{ textDecoration: 'none' }}
+	>
+		<h3 className="nav-card-title">🔗 Molecules</h3>
+		<p className="nav-card-desc">Simple atom combinations: FormField, SearchBar, DropdownMenu.</p>
+	</a>
+	<a
+		href="?path=/docs/design-system-organisms--docs"
+		className="nav-card"
+		style={{ textDecoration: 'none' }}
+	>
+		<h3 className="nav-card-title">🧬 Organisms</h3>
+		<p className="nav-card-desc">Complex sections: Dialog, Header, Sidebar, CommandPalette.</p>
+	</a>
+	<a
+		href="?path=/docs/design-system-templates--docs"
+		className="nav-card"
+		style={{ textDecoration: 'none' }}
+	>
+		<h3 className="nav-card-title">📐 Templates</h3>
+		<p className="nav-card-desc">
+			Page-level layouts: AuthLayout, DashboardLayout, SettingsLayout.
+		</p>
+	</a>
+	<a
+		href="?path=/docs/design-system-pages--docs"
+		className="nav-card"
+		style={{ textDecoration: 'none' }}
+	>
+		<h3 className="nav-card-title">📄 Pages</h3>
+		<p className="nav-card-desc">
+			Templates with real content: LoginPage, DashboardPage, SettingsPage.
+		</p>
+	</a>
+</div>
 
 ---
 
-## 📚 Key Resources
+## 📦 Feature Modules
 
-- **Design Tokens**: `dev-docs/2-areas/design/design-tokens.md`
-- **Component Architecture**: `dev-docs/2-areas/design/component-architecture.md`
-- **Design Principles**: `dev-docs/2-areas/design/design-principles.md`
+<div className="nav-grid">
+	<a href="?path=/docs/modules--docs" className="nav-card" style={{ textDecoration: 'none' }}>
+		<h3 className="nav-card-title">📦 Modules Overview</h3>
+		<p className="nav-card-desc">Feature-specific components: Meetings, Org Chart, Inbox.</p>
+	</a>
+</div>
 
 ---
 
-**Last Updated**: November 2025  
-**Design System Version**: 1.0 (Phase 3 - 95% Complete)
+<div className="quick-start">
+	<h3 className="quick-start-title">⚡ Quick Start</h3>
+	<ul className="quick-start-list">
+		<li>
+			<strong>Browse components</strong> → Use sidebar to explore Atoms, Organisms, Modules
+		</li>
+		<li>
+			<strong>View tokens</strong> → Design System → Tokens → Colors, Typography, Spacing
+		</li>
+		<li>
+			<strong>Try controls</strong> → Select a component story, use Controls panel to test variants
+		</li>
+		<li>
+			<strong>Change brand</strong> → Edit <code>design-tokens-base.json</code>, run{' '}
+			<code>npm run tokens:build</code>
+		</li>
+	</ul>
+</div>
+
+---
+
+## 📖 Key Files
+
+| File                                    | Purpose                               |
+| --------------------------------------- | ------------------------------------- |
+| `design-tokens-base.json`               | **Edit this** to change design values |
+| `design-tokens-semantic.json`           | System file (references base tokens)  |
+| `src/styles/tokens/*.css`               | Generated CSS variables               |
+| `src/lib/components/atoms/`             | Atom components                       |
+| `dev-docs/master-docs/design-system.md` | Full documentation                    |
+
+---
+
+<div className="footer">
+	<strong>SynergyOS Design System</strong> • Built with Svelte 5 + TailwindCSS 4 + Style Dictionary
+</div>

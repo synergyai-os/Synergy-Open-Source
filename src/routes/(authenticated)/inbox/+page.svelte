@@ -418,7 +418,8 @@
 	<!-- Success message for linked account -->
 	{#if showLinkedSuccess}
 		<div
-			class="fixed top-content-section right-content-section z-50 flex items-center gap-icon rounded-card border border-accent-primary bg-elevated px-button-x py-inbox-card shadow-card"
+			class="fixed top-content-section right-content-section z-50 flex items-center gap-2 rounded-card border border-accent-primary bg-elevated px-button-x shadow-card"
+			style="padding-block: var(--spacing-3);"
 		>
 			<svg
 				class="icon-md flex-shrink-0 text-accent-primary"
@@ -487,13 +488,13 @@
 
 				<!-- Inbox Items List - Scrollable -->
 				<div class="flex-1 overflow-y-auto">
-					<div class="px-inbox-container py-inbox-container">
+					<div class="" style="padding: var(--spacing-4);">
 						{#if items.isLoading}
 							<!-- Loading State -->
 							<Loading message="Loading inbox items..." />
 						{:else if items.queryError}
 							<!-- Error State -->
-							<div class="py-readable-quote text-center">
+							<div class="text-center" style="padding-block: var(--spacing-8);">
 								<p class="mb-content-section text-error">
 									Failed to load inbox items: {items.queryError.toString()}
 								</p>
@@ -507,7 +508,7 @@
 							</div>
 						{:else if items.filteredItems.length === 0}
 							<!-- Empty State -->
-							<div class="py-readable-quote text-center">
+							<div class="text-center" style="padding-block: var(--spacing-8);">
 								<p class="mb-content-section text-secondary">No items in inbox.</p>
 								<button
 									type="button"
@@ -528,7 +529,7 @@
 							</div>
 						{:else}
 							<!-- Items List -->
-							<div class="flex flex-col gap-inbox-list">
+							<div class="flex flex-col gap-2">
 								{#each items.filteredItems as item (item._id)}
 									<InboxCard
 										{item}
@@ -593,7 +594,7 @@
 				/>
 			{:else}
 				<!-- Empty state -->
-				<div class="px-inbox-container py-readable-quote text-center">
+        <div class="text-center" style="padding-block: var(--spacing-8); padding-inline: var(--spacing-4);">
 					<div class="mb-content-section text-h1">📮</div>
 					<p class="text-secondary">Select an item to view details</p>
 				</div>
@@ -653,13 +654,13 @@
 
 				<!-- Inbox Items List - Scrollable -->
 				<div class="flex-1 overflow-y-auto">
-					<div class="px-inbox-container py-inbox-container">
+					<div class="" style="padding: var(--spacing-4);">
 						{#if items.isLoading}
 							<!-- Loading State -->
 							<Loading message="Loading inbox items..." />
 						{:else if items.queryError}
 							<!-- Error State -->
-							<div class="py-readable-quote text-center">
+							<div class="text-center" style="padding-block: var(--spacing-8);">
 								<p class="mb-content-section text-error">
 									Failed to load inbox items: {items.queryError.toString()}
 								</p>
@@ -673,7 +674,7 @@
 							</div>
 						{:else if items.filteredItems.length === 0}
 							<!-- Empty State -->
-							<div class="py-readable-quote text-center">
+							<div class="text-center" style="padding-block: var(--spacing-8);">
 								<p class="mb-content-section text-secondary">No items in inbox.</p>
 								<button
 									type="button"
@@ -694,7 +695,7 @@
 							</div>
 						{:else}
 							<!-- Items List -->
-							<div class="flex flex-col gap-inbox-list">
+							<div class="flex flex-col gap-2">
 								{#each items.filteredItems as item (item._id)}
 									<InboxCard {item} selected={false} onClick={() => selectItem(item._id)} />
 								{/each}

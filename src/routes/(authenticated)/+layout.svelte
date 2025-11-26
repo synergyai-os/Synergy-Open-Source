@@ -23,8 +23,10 @@
 	import { useLoadingOverlay } from '$lib/modules/core/composables/useLoadingOverlay.svelte';
 	import { toast } from '$lib/utils/toast';
 	import { page } from '$app/stores';
-	// TODO: Re-enable when Id type is needed
-	// import type { Id } from '$lib/convex';
+	import { useQuery, useConvexClient } from 'convex-svelte';
+	import { api } from '$lib/convex';
+	import type { Id } from '$lib/convex';
+	import { generateHoverColor } from '$lib/utils/color-conversion';
 
 	let { children, data } = $props();
 
@@ -43,6 +45,95 @@
 		initialOrganizationInvites: data.organizationInvites as unknown as OrganizationInvite[]
 	});
 	setContext('organizations', organizations);
+
+	// Phase 2C: Load org branding reactively (updates on workspace switch)
+	// Use organizations.activeOrganizationId for reactive updates (not data.organizationId)
+	const getSessionId = () => data.sessionId;
+	const convexClient = browser ? useConvexClient() : null;
+
+	// Reactive activeOrganizationId (Svelte 5 pattern - matches tags/+page.svelte)
+	// Returns a function that can be called reactively inside useQuery
+	const activeOrganizationId = $derived(() => {
+		if (!organizations) return null;
+		return organizations.activeOrganizationId ?? null;
+	});
+
+	// Load branding for active org (for current org class application)
+	const orgBrandingQuery =
+		browser && getSessionId()
+			? useQuery(api.organizations.getBranding, () => {
+					const sessionId = getSessionId();
+					if (!sessionId) throw new Error('sessionId required');
+					const orgId = activeOrganizationId();
+					if (!orgId) throw new Error('orgId required');
+					return { organizationId: orgId as Id<'organizations'> };
+				})
+			: null;
+
+	// Load branding for ALL orgs (to generate CSS for all orgs at once)
+	// This prevents CSS loss when switching workspaces
+	const allOrgBrandingQuery =
+		browser && getSessionId()
+			? useQuery(api.organizations.getAllOrgBranding, () => {
+					const sessionId = getSessionId();
+					if (!sessionId) throw new Error('sessionId required');
+					return { sessionId };
+				})
+			: null;
+
+	// Org branding state (Phase 2: Org Branding)
+	// Use reactive query result, fallback to SSR data for initial render
+	const organizationId = $derived(activeOrganizationId() ?? data.organizationId ?? null);
+	const orgBranding = $derived(
+		(orgBrandingQuery?.data as
+			| { primaryColor: string; secondaryColor: string; logo?: string }
+			| null
+			| undefined) ??
+			data.orgBranding ??
+			null
+	);
+	let previousOrgId = $state<string | null>(null);
+
+	// Generate org branding CSS for ALL orgs (prevents CSS loss on workspace switch)
+	const orgBrandingCSS = $derived.by(() => {
+		// Get all org branding from query (fallback to empty object)
+		const allBranding =
+			(allOrgBrandingQuery?.data as
+				| Record<string, { primaryColor: string; secondaryColor: string; logo?: string }>
+				| null
+				| undefined) ?? {};
+
+		// Generate CSS for each org with branding
+		// Use :root.org-{id} for higher specificity than :root alone
+		const cssRules: string[] = [];
+		for (const [orgId, branding] of Object.entries(allBranding)) {
+			if (branding?.primaryColor) {
+				const hoverColor = generateHoverColor(branding.primaryColor);
+				cssRules.push(
+					`:root.org-${orgId} { --color-brand-primary: ${branding.primaryColor}; --color-brand-secondary: ${branding.secondaryColor}; --color-brand-primaryHover: ${hoverColor}; }`
+				);
+			}
+		}
+
+		return cssRules.join('\n');
+	});
+
+	// Apply org class on client (idempotent - same as SSR, reactive to workspace switches)
+	$effect(() => {
+		if (browser && organizationId) {
+			const currentOrgId = organizationId;
+			// Remove previous org class
+			if (previousOrgId && previousOrgId !== currentOrgId) {
+				document.documentElement.classList.remove(`org-${previousOrgId}`);
+			}
+
+			// Add new org class
+			document.documentElement.classList.add(`org-${currentOrgId}`);
+
+			// Track for next switch
+			previousOrgId = currentOrgId;
+		}
+	});
 
 	// Initialize core module API and provide via context
 	// Enables loose coupling - other modules can use global components and composables without direct imports (see SYOS-308, SYOS-322)
@@ -652,6 +743,13 @@
 	});
 </script>
 
+<!-- Inject org branding CSS (SSR-rendered, no FOUC) -->
+<svelte:head>
+	{#if orgBrandingCSS}
+		{@html `<style>${orgBrandingCSS}</style>`}
+	{/if}
+</svelte:head>
+
 {#if isAdminRoute}
 	<!-- Admin routes use their own layout - skip authenticated layout -->
 	{@render children()}
@@ -787,9 +885,9 @@
 	</div>
 {:else}
 	<!-- Not authenticated - shouldn't reach here due to redirect, but show login prompt -->
-	<div class="flex h-screen items-center justify-center bg-base">
+	<div class="bg-base flex h-screen items-center justify-center">
 		<div class="text-center">
-			<p class="mb-content-section text-primary">Please log in to continue</p>
+			<p class="text-primary mb-content-section">Please log in to continue</p>
 			<a href={resolveRoute('/login')} class="text-accent-primary">Go to Login</a>
 		</div>
 	</div>

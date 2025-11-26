@@ -293,10 +293,11 @@
 <div class="flex h-full flex-col">
 	<!-- Sticky Header - Linear Style -->
 	<div
-		class="sticky top-0 z-10 flex h-system-header flex-shrink-0 items-center justify-between border-b border-base bg-surface px-inbox-header py-system-header"
+		class="h-system-header border-base bg-surface sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b py-system-header"
+		style="padding-inline: var(--spacing-4);"
 	>
 		<!-- Left: Back Button + Title -->
-		<div class="flex items-center gap-icon">
+		<div class="flex items-center gap-2">
 			<Button variant="outline" size="sm" onclick={onClose} ariaLabel="Back to inbox">
 				<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
@@ -308,20 +309,20 @@
 				</svg>
 				<span class="text-small">Back</span>
 			</Button>
-			<h2 class="text-small font-normal text-secondary">Readwise Highlight</h2>
+			<h2 class="text-small text-secondary font-normal">Readwise Highlight</h2>
 		</div>
 
 		<!-- Right: Pagination + Actions Menu -->
-		<div class="flex items-center gap-icon">
+		<div class="flex items-center gap-2">
 			<!-- Pagination Control -->
 			{#if totalItems > 0 && (onNext || onPrevious)}
 				<Tooltip.Provider delayDuration={300}>
-					<div class="flex items-center gap-icon">
+					<div class="flex items-center gap-2">
 						<!-- Page Counter: Current in primary, slash/total in secondary -->
-						<div class="flex items-center gap-control-item-gap">
-							<span class="text-small font-normal text-primary">{currentPosition}</span>
-							<span class="text-small font-normal text-secondary">/</span>
-							<span class="text-small font-normal text-secondary">{totalItems}</span>
+						<div class="flex items-center" style="gap: var(--spacing-1);">
+							<span class="text-small text-primary font-normal">{currentPosition}</span>
+							<span class="text-small text-secondary font-normal">/</span>
+							<span class="text-small text-secondary font-normal">{totalItems}</span>
 						</div>
 
 						<!-- Chevron Down (Next) - Primary color when enabled -->
@@ -349,13 +350,13 @@
 							</Tooltip.Trigger>
 							<Tooltip.Portal>
 								<Tooltip.Content
-									class="z-50 flex items-center gap-icon rounded-button border border-base bg-elevated px-inbox-card py-nav-item shadow-card"
+									class="border-base bg-elevated px-inbox-card z-50 flex items-center gap-2 rounded-button border py-nav-item shadow-card"
 									side="bottom"
 									sideOffset={6}
 								>
 									<span class="text-small text-primary">Navigate down</span>
 									<span
-										class="min-w-badge rounded border border-base bg-base px-badge py-badge text-center text-small font-medium text-primary"
+										class="min-w-badge border-base bg-base text-small text-primary rounded border px-badge py-badge text-center font-medium"
 									>
 										J
 									</span>
@@ -388,13 +389,13 @@
 							</Tooltip.Trigger>
 							<Tooltip.Portal>
 								<Tooltip.Content
-									class="z-50 flex items-center gap-icon rounded-button border border-base bg-elevated px-inbox-card py-nav-item shadow-card"
+									class="border-base bg-elevated px-inbox-card z-50 flex items-center gap-2 rounded-button border py-nav-item shadow-card"
 									side="bottom"
 									sideOffset={6}
 								>
 									<span class="text-small text-primary">Navigate up</span>
 									<span
-										class="min-w-badge rounded border border-base bg-base px-badge py-badge text-center text-small font-medium text-primary"
+										class="min-w-badge border-base bg-base text-small text-primary rounded border px-badge py-badge text-center font-medium"
 									>
 										K
 									</span>
@@ -408,7 +409,7 @@
 			<DropdownMenu.Root bind:open={headerMenuOpen}>
 				<DropdownMenu.Trigger
 					type="button"
-					class="flex icon-xl items-center justify-center rounded-button text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
+					class="icon-xl text-secondary hover:bg-hover-solid hover:text-primary flex items-center justify-center rounded-button transition-colors"
 					aria-label="More options"
 				>
 					<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -423,13 +424,13 @@
 
 				<DropdownMenu.Portal>
 					<DropdownMenu.Content
-						class="z-50 min-w-dropdown rounded-button border border-base bg-elevated py-badge shadow-card"
+						class="border-base bg-elevated z-50 min-w-dropdown rounded-button border py-badge shadow-card"
 						side="bottom"
 						align="end"
 						sideOffset={4}
 					>
 						<DropdownMenu.Item
-							class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-small text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+							class="text-small text-primary hover:bg-hover-solid focus:bg-hover-solid flex cursor-pointer items-center justify-between px-menu-item py-menu-item outline-none"
 							textValue="Skip"
 							onSelect={() => {
 								handleSkip();
@@ -449,17 +450,18 @@
 		<!-- Main Content Area - Hero Highlight Text -->
 		<div class="flex-1 overflow-y-auto">
 			<!-- Optimal reading width: 65-75 characters per line for ADHD-friendly reading -->
-			<div class="mx-auto max-w-readable px-inbox-container py-inbox-container">
+			<div class="px-inbox-container py-inbox-container mx-auto max-w-readable">
 				<!-- Hero Highlight Text - Always Visible, Top Priority -->
 				{#if item?.highlight}
-					<div class="mt-content-section mb-marketing-content">
+					<div class="mb-marketing-content mt-content-section">
 						<!-- Quote-style container with subtle background and left accent -->
 						<div
-							class="relative rounded-card border-l-4 border-accent-primary bg-surface py-readable-quote pr-inbox-container pl-inbox-container"
+							class="border-accent-primary bg-surface pr-inbox-container pl-inbox-container relative rounded-card border-l-4"
+							style="padding-block: var(--spacing-8);"
 						>
 							<!-- Quote mark (decorative, subtle) -->
-							<div class="absolute top-6 left-6 text-accent-primary opacity-10">
-								<svg class="size-quote-decoration" fill="currentColor" viewBox="0 0 24 24">
+							<div class="text-accent-primary absolute top-6 left-6 opacity-10">
+								<svg style="width: 5rem; height: 5rem;" fill="currentColor" viewBox="0 0 24 24">
 									<path
 										d="M14.017 21v-7.391c0-5.522-4.477-10-10-10v-2.609c0-5.522 4.477-10 10-10h7.017v21h-7.017zm-10 0v-7.391c0-5.522-4.477-10-10-10v-2.609c0-5.522 4.477-10 10-10h7.017v21h-7.017z"
 									/>
@@ -467,7 +469,7 @@
 							</div>
 							<!-- Highlight Text - Hero size, reading optimized for ADHD/focus-challenged -->
 							<p
-								class="relative z-10 max-w-none text-h1 leading-readable font-normal tracking-readable text-primary sm:text-h1"
+								class="text-h1 leading-readable tracking-readable text-primary sm:text-h1 relative z-10 max-w-none font-normal"
 							>
 								{item.highlight.text}
 							</p>
@@ -478,18 +480,18 @@
 		</div>
 
 		<!-- Right Sidebar - Metadata & Actions -->
-		<div class="w-sidebar-detail flex-shrink-0 overflow-y-auto border-l border-base bg-surface">
-			<div class="flex flex-col gap-settings-section px-inbox-container py-inbox-container">
+		<div class="w-sidebar-detail border-base bg-surface flex-shrink-0 overflow-y-auto border-l">
+			<div class="px-inbox-container py-inbox-container flex flex-col gap-settings-section">
 				<!-- Source Info -->
 				{#if item?.source}
 					<div>
 						<p
-							class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
+							class="mb-marketing-text text-label text-secondary font-medium tracking-wider uppercase"
 						>
 							Source
 						</p>
-						<div class="flex flex-col gap-control-item-gap">
-							<h3 class="text-small font-semibold text-primary">{item.source.title}</h3>
+						<div class="flex flex-col" style="gap: var(--spacing-1);">
+							<h3 class="text-small text-primary font-semibold">{item.source.title}</h3>
 							{#if item.author}
 								<p class="text-label text-secondary">by {item.author.displayName}</p>
 							{:else if item.authors && item.authors.length > 0}
@@ -518,7 +520,7 @@
 					{:else}
 						<div>
 							<p
-								class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
+								class="mb-marketing-text text-label text-secondary font-medium tracking-wider uppercase"
 							>
 								Tags
 							</p>
@@ -530,7 +532,7 @@
 				{:else}
 					<div>
 						<p
-							class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
+							class="mb-marketing-text text-label text-secondary font-medium tracking-wider uppercase"
 						>
 							Tags
 						</p>
@@ -541,11 +543,11 @@
 				<!-- Actions (Sidebar) -->
 				<div>
 					<p
-						class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
+						class="mb-marketing-text text-label text-secondary font-medium tracking-wider uppercase"
 					>
 						Actions
 					</p>
-					<div class="flex flex-col gap-icon">
+					<div class="flex flex-col gap-2">
 						<Button variant="outline" onclick={handleSkip}>⏭️ Skip</Button>
 					</div>
 				</div>
@@ -554,11 +556,11 @@
 				{#if item?.highlight?.note}
 					<div>
 						<p
-							class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
+							class="mb-marketing-text text-label text-secondary font-medium tracking-wider uppercase"
 						>
 							Note
 						</p>
-						<p class="text-label leading-relaxed text-secondary">{item.highlight.note}</p>
+						<p class="text-label text-secondary leading-relaxed">{item.highlight.note}</p>
 					</div>
 				{/if}
 
@@ -566,7 +568,7 @@
 				{#if item?.highlight?.externalUrl}
 					<div>
 						<p
-							class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
+							class="mb-marketing-text text-label text-secondary font-medium tracking-wider uppercase"
 						>
 							Links
 						</p>
@@ -574,7 +576,7 @@
 							href={item.highlight.externalUrl}
 							target="_blank"
 							rel="noopener noreferrer"
-							class="flex items-center gap-icon text-label text-primary transition-colors hover:text-secondary"
+							class="text-label text-primary hover:text-secondary flex items-center gap-2 transition-colors"
 						>
 							<span>View in Readwise</span>
 							<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -591,13 +593,13 @@
 
 				<!-- Metadata (Collapsed by default, subtle) -->
 				{#if item?.createdAt}
-					<div class="border-t border-base pt-content-section">
-						<div class="flex flex-col gap-control-item-gap">
+					<div class="border-base border-t pt-content-section">
+						<div class="flex flex-col" style="gap: var(--spacing-1);">
 							<span class="text-label text-tertiary"
 								>Added {new Date(item.createdAt).toLocaleDateString()}</span
 							>
 							{#if item?._id}
-								<span class="font-code text-label text-tertiary">ID: {item._id}</span>
+								<span class="text-label text-tertiary font-code">ID: {item._id}</span>
 							{/if}
 						</div>
 					</div>

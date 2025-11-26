@@ -17,7 +17,7 @@
 
 <Story name="Single" args={{ type: 'single', value: 'mon' }}>
 	{#snippet template(args)}
-		<ToggleGroup.Root type={args.type} value={args.value} class="inline-flex gap-icon">
+		<ToggleGroup.Root type={args.type} value={args.value} class="inline-flex gap-2">
 			<ToggleGroup.Item value="mon" class="toggle-group-day">Mon</ToggleGroup.Item>
 			<ToggleGroup.Item value="tue" class="toggle-group-day">Tue</ToggleGroup.Item>
 			<ToggleGroup.Item value="wed" class="toggle-group-day">Wed</ToggleGroup.Item>
@@ -31,7 +31,7 @@
 
 <Story name="Multiple" args={{ type: 'multiple', value: ['mon', 'wed', 'fri'] }}>
 	{#snippet template(args)}
-		<ToggleGroup.Root type={args.type} value={args.value} class="inline-flex gap-icon">
+		<ToggleGroup.Root type={args.type} value={args.value} class="inline-flex gap-2">
 			<ToggleGroup.Item value="mon" class="toggle-group-day">Mon</ToggleGroup.Item>
 			<ToggleGroup.Item value="tue" class="toggle-group-day">Tue</ToggleGroup.Item>
 			<ToggleGroup.Item value="wed" class="toggle-group-day">Wed</ToggleGroup.Item>
@@ -45,7 +45,7 @@
 
 <Story name="SizeOptions" args={{ type: 'single', value: 'sm' }}>
 	{#snippet template(args)}
-		<ToggleGroup.Root type={args.type} value={args.value} class="inline-flex gap-icon">
+		<ToggleGroup.Root type={args.type} value={args.value} class="inline-flex gap-2">
 			<ToggleGroup.Item value="sm" class="toggle-group-day">SM</ToggleGroup.Item>
 			<ToggleGroup.Item value="md" class="toggle-group-day">MD</ToggleGroup.Item>
 			<ToggleGroup.Item value="lg" class="toggle-group-day">LG</ToggleGroup.Item>
@@ -56,7 +56,7 @@
 
 <Story name="ViewOptions" args={{ type: 'single', value: 'grid' }}>
 	{#snippet template(args)}
-		<ToggleGroup.Root type={args.type} value={args.value} class="inline-flex gap-icon">
+		<ToggleGroup.Root type={args.type} value={args.value} class="inline-flex gap-2">
 			<ToggleGroup.Item value="grid" class="toggle-group-day">
 				<svg
 					xmlns="http://www.w3.org/2000/svg"

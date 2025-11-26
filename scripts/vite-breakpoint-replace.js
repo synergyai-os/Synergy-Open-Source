@@ -20,7 +20,7 @@ export function viteBreakpointReplace() {
 
 	// Read breakpoint values from design-system.json
 	try {
-		const designSystemPath = join(__dirname, '../design-system.json');
+		const designSystemPath = join(__dirname, '../design-tokens-base.json');
 		const designSystem = JSON.parse(readFileSync(designSystemPath, 'utf-8'));
 
 		if (designSystem.breakpoints) {

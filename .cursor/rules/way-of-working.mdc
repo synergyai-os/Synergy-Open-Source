@@ -1,7 +1,6 @@
 ---
-alwaysApply: true
+alwaysApply: false
 ---
-
 ## Project: SynergyOS
 
 **The Open-Source Product OS** - An open-source, modular platform that integrates product discovery, delivery, and team collaboration with AI coaching trained on company data.

@@ -1,0 +1,806 @@
+{
+	"$schema": "https://design-tokens.github.io/community-group/format/1.0.0/schema.json",
+	"$description": "SynergyOS Semantic Tokens - SYSTEM FILE. DO NOT EDIT without approval. References base tokens and handles light/dark mode.",
+
+	"color": {
+		"$description": "Semantic color tokens - reference base tokens, define light/dark variants",
+
+		"text": {
+			"$description": "Text colors for different emphasis levels",
+			"primary": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.neutral.900}",
+					"dark": "{color.neutral.0}"
+				},
+				"$description": "Primary text - highest contrast"
+			},
+			"secondary": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.neutral.600}",
+					"dark": "{color.neutral.400}"
+				},
+				"$description": "Secondary text - medium emphasis"
+			},
+			"tertiary": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.neutral.500}",
+					"dark": "{color.neutral.500}"
+				},
+				"$description": "Tertiary text - low emphasis"
+			},
+			"muted": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.neutral.400}",
+					"dark": "{color.neutral.600}"
+				},
+				"$description": "Muted text - placeholder, hints"
+			},
+			"disabled": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.neutral.300}",
+					"dark": "{color.neutral.700}"
+				},
+				"$description": "Disabled text"
+			},
+			"inverse": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.neutral.0}",
+					"dark": "{color.neutral.900}"
+				},
+				"$description": "Inverse text - on colored backgrounds"
+			},
+			"brand": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.brand.primary}",
+					"dark": "{color.brand.primary}"
+				},
+				"$description": "Brand-colored text"
+			},
+			"link": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.brand.primary}",
+					"dark": "{color.brand.primaryLight}"
+				},
+				"$description": "Link text"
+			},
+			"success": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.status.successDark}",
+					"dark": "{color.status.success}"
+				},
+				"$description": "Success text"
+			},
+			"warning": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.status.warningDark}",
+					"dark": "{color.status.warning}"
+				},
+				"$description": "Warning text"
+			},
+			"error": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.status.error}",
+					"dark": "{color.status.errorLight}"
+				},
+				"$description": "Error text"
+			}
+		},
+
+		"bg": {
+			"$description": "Background colors for different elevation levels",
+			"base": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.neutral.0}",
+					"dark": "{color.neutral.950}"
+				},
+				"$description": "Base background - app canvas"
+			},
+			"subtle": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.neutral.50}",
+					"dark": "{color.neutral.900}"
+				},
+				"$description": "Subtle background - sidebars, cards"
+			},
+			"surface": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.neutral.0}",
+					"dark": "{color.neutral.900}"
+				},
+				"$description": "Surface background - cards on base"
+			},
+			"elevated": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.neutral.100}",
+					"dark": "{color.neutral.800}"
+				},
+				"$description": "Elevated surface - dropdowns, modals"
+			},
+			"muted": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.neutral.100}",
+					"dark": "{color.neutral.800}"
+				},
+				"$description": "Muted background - disabled areas"
+			},
+			"hover": {
+				"$type": "color",
+				"$value": {
+					"light": "oklch(0% 0 0 / 0.04)",
+					"dark": "oklch(100% 0 0 / 0.06)"
+				},
+				"$description": "Hover state overlay"
+			},
+			"active": {
+				"$type": "color",
+				"$value": {
+					"light": "oklch(0% 0 0 / 0.08)",
+					"dark": "oklch(100% 0 0 / 0.1)"
+				},
+				"$description": "Active/pressed state overlay"
+			},
+			"selected": {
+				"$type": "color",
+				"$value": {
+					"light": "oklch(55% 0.15 195 / 0.1)",
+					"dark": "oklch(55% 0.15 195 / 0.2)"
+				},
+				"$description": "Selected state background - uses brand primary with alpha"
+			},
+			"inverse": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.neutral.900}",
+					"dark": "{color.neutral.100}"
+				},
+				"$description": "Inverse background - tooltips"
+			}
+		},
+
+		"border": {
+			"$description": "Border colors",
+			"default": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.neutral.200}",
+					"dark": "{color.neutral.800}"
+				},
+				"$description": "Default border"
+			},
+			"subtle": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.neutral.100}",
+					"dark": "{color.neutral.900}"
+				},
+				"$description": "Subtle border - dividers"
+			},
+			"strong": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.neutral.300}",
+					"dark": "{color.neutral.700}"
+				},
+				"$description": "Strong border - emphasis"
+			},
+			"focus": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.brand.primary}",
+					"dark": "{color.brand.primaryLight}"
+				},
+				"$description": "Focus ring"
+			},
+			"error": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.status.error}",
+					"dark": "{color.status.error}"
+				},
+				"$description": "Error border"
+			}
+		},
+
+		"interactive": {
+			"$description": "Interactive element colors (buttons, links)",
+			"primary": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.brand.primary}",
+					"dark": "{color.brand.primary}"
+				},
+				"$description": "Primary interactive - main CTA"
+			},
+			"primaryHover": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.brand.primaryDark}",
+					"dark": "{color.brand.primaryLight}"
+				},
+				"$description": "Primary hover state"
+			},
+			"primaryActive": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.brand.primaryDark}",
+					"dark": "{color.brand.primaryDark}"
+				},
+				"$description": "Primary pressed state"
+			},
+			"secondary": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.brand.secondary}",
+					"dark": "{color.brand.secondary}"
+				},
+				"$description": "Secondary interactive"
+			},
+			"secondaryHover": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.brand.secondaryDark}",
+					"dark": "{color.brand.secondaryLight}"
+				},
+				"$description": "Secondary hover"
+			},
+			"tertiary": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.neutral.700}",
+					"dark": "{color.neutral.300}"
+				},
+				"$description": "Tertiary interactive - subtle actions"
+			},
+			"tertiaryHover": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.neutral.900}",
+					"dark": "{color.neutral.100}"
+				},
+				"$description": "Tertiary hover"
+			},
+			"destructive": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.status.error}",
+					"dark": "{color.status.error}"
+				},
+				"$description": "Destructive actions"
+			},
+			"destructiveHover": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.status.errorDark}",
+					"dark": "{color.status.errorLight}"
+				},
+				"$description": "Destructive hover"
+			}
+		},
+
+		"status": {
+			"$description": "Status/feedback colors",
+			"success": {
+				"bg": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.status.successLight}",
+						"dark": "oklch(60% 0.17 145 / 0.15)"
+					},
+					"$description": "Success background"
+				},
+				"text": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.status.successDark}",
+						"dark": "{color.status.success}"
+					},
+					"$description": "Success text"
+				},
+				"border": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.status.success}",
+						"dark": "{color.status.success}"
+					},
+					"$description": "Success border"
+				}
+			},
+			"warning": {
+				"bg": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.status.warningLight}",
+						"dark": "oklch(75% 0.15 70 / 0.15)"
+					},
+					"$description": "Warning background"
+				},
+				"text": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.status.warningDark}",
+						"dark": "{color.status.warning}"
+					},
+					"$description": "Warning text"
+				},
+				"border": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.status.warning}",
+						"dark": "{color.status.warning}"
+					},
+					"$description": "Warning border"
+				}
+			},
+			"error": {
+				"bg": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.status.errorLight}",
+						"dark": "oklch(60% 0.25 25 / 0.15)"
+					},
+					"$description": "Error background"
+				},
+				"text": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.status.error}",
+						"dark": "{color.status.errorLight}"
+					},
+					"$description": "Error text"
+				},
+				"border": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.status.error}",
+						"dark": "{color.status.error}"
+					},
+					"$description": "Error border"
+				}
+			},
+			"info": {
+				"bg": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.status.infoLight}",
+						"dark": "oklch(60% 0.18 250 / 0.15)"
+					},
+					"$description": "Info background"
+				},
+				"text": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.status.infoDark}",
+						"dark": "{color.status.info}"
+					},
+					"$description": "Info text"
+				},
+				"border": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.status.info}",
+						"dark": "{color.status.info}"
+					},
+					"$description": "Info border"
+				}
+			}
+		},
+
+		"component": {
+			"$description": "Component-specific semantic colors",
+
+			"sidebar": {
+				"bg": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.neutral.50}",
+						"dark": "{color.neutral.900}"
+					},
+					"$description": "Sidebar background"
+				},
+				"border": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.neutral.200}",
+						"dark": "{color.neutral.800}"
+					},
+					"$description": "Sidebar border"
+				},
+				"itemHover": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.neutral.100}",
+						"dark": "{color.neutral.800}"
+					},
+					"$description": "Sidebar item hover"
+				},
+				"itemActive": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.neutral.200}",
+						"dark": "{color.neutral.700}"
+					},
+					"$description": "Sidebar active item"
+				}
+			},
+
+			"card": {
+				"bg": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.neutral.0}",
+						"dark": "{color.neutral.900}"
+					},
+					"$description": "Card background"
+				},
+				"border": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.neutral.200}",
+						"dark": "{color.neutral.800}"
+					},
+					"$description": "Card border"
+				}
+			},
+
+			"input": {
+				"bg": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.neutral.0}",
+						"dark": "{color.neutral.900}"
+					},
+					"$description": "Input background"
+				},
+				"border": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.neutral.300}",
+						"dark": "{color.neutral.700}"
+					},
+					"$description": "Input border"
+				},
+				"borderHover": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.neutral.400}",
+						"dark": "{color.neutral.600}"
+					},
+					"$description": "Input border on hover"
+				},
+				"borderFocus": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.brand.primary}",
+						"dark": "{color.brand.primary}"
+					},
+					"$description": "Input border on focus"
+				},
+				"placeholder": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.neutral.400}",
+						"dark": "{color.neutral.600}"
+					},
+					"$description": "Input placeholder text"
+				}
+			},
+
+			"toggle": {
+				"off": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.neutral.300}",
+						"dark": "{color.neutral.700}"
+					},
+					"$description": "Toggle off state"
+				},
+				"on": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.brand.primary}",
+						"dark": "{color.brand.primary}"
+					},
+					"$description": "Toggle on state"
+				}
+			},
+
+			"badge": {
+				"neutral": {
+					"bg": {
+						"$type": "color",
+						"$value": {
+							"light": "{color.neutral.100}",
+							"dark": "{color.neutral.800}"
+						},
+						"$description": "Neutral badge background"
+					},
+					"text": {
+						"$type": "color",
+						"$value": {
+							"light": "{color.neutral.700}",
+							"dark": "{color.neutral.300}"
+						},
+						"$description": "Neutral badge text"
+					}
+				},
+				"brand": {
+					"bg": {
+						"$type": "color",
+						"$value": {
+							"light": "oklch(55% 0.15 195 / 0.15)",
+							"dark": "oklch(55% 0.15 195 / 0.25)"
+						},
+						"$description": "Brand badge background"
+					},
+					"text": {
+						"$type": "color",
+						"$value": {
+							"light": "{color.brand.primaryDark}",
+							"dark": "{color.brand.primaryLight}"
+						},
+						"$description": "Brand badge text"
+					}
+				}
+			},
+
+			"code": {
+				"bg": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.neutral.100}",
+						"dark": "{color.neutral.900}"
+					},
+					"$description": "Code block background"
+				},
+				"text": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.neutral.800}",
+						"dark": "{color.neutral.200}"
+					},
+					"$description": "Code text"
+				}
+			},
+
+			"overlay": {
+				"backdrop": {
+					"$type": "color",
+					"$value": {
+						"light": "oklch(0% 0 0 / 0.5)",
+						"dark": "oklch(0% 0 0 / 0.7)"
+					},
+					"$description": "Modal/overlay backdrop"
+				}
+			}
+		}
+	},
+
+	"shadow": {
+		"$description": "Semantic shadows - adjusted for dark mode",
+		"card": {
+			"$type": "shadow",
+			"$value": {
+				"light": "{shadow.sm}",
+				"dark": "0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3)"
+			},
+			"$description": "Card shadow"
+		},
+		"dropdown": {
+			"$type": "shadow",
+			"$value": {
+				"light": "{shadow.md}",
+				"dark": "0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4)"
+			},
+			"$description": "Dropdown shadow"
+		},
+		"modal": {
+			"$type": "shadow",
+			"$value": {
+				"light": "{shadow.xl}",
+				"dark": "0 25px 50px -12px rgb(0 0 0 / 0.5)"
+			},
+			"$description": "Modal shadow"
+		},
+		"focusRing": {
+			"$type": "shadow",
+			"$value": {
+				"light": "0 0 0 3px oklch(55% 0.15 195 / 0.12)",
+				"dark": "0 0 0 3px oklch(65% 0.15 195 / 0.20)"
+			},
+			"$description": "Focus ring glow - uses brand teal at low opacity for subtle, accessible focus indication"
+		}
+	},
+
+	"spacing": {
+		"$description": "Semantic spacing - component-specific. Premium spacing inspired by Linear/Notion for generous breathing room.",
+		"button": {
+			"x": {
+				"$value": "{spacing.5}",
+				"$description": "Button horizontal padding (20px - generous for premium feel)"
+			},
+			"y": {
+				"$value": "{spacing.2.5}",
+				"$description": "Button vertical padding (10px - comfortable touch target)"
+			},
+			"gap": {
+				"$value": "{spacing.2}",
+				"$description": "Gap between button icon and text"
+			}
+		},
+		"input": {
+			"x": {
+				"$value": "{spacing.4}",
+				"$description": "Input horizontal padding (16px - roomy feel)"
+			},
+			"y": {
+				"$value": "{spacing.3}",
+				"$description": "Input vertical padding (12px - comfortable height)"
+			}
+		},
+		"card": {
+			"padding": {
+				"$value": "{spacing.8}",
+				"$description": "Card padding (32px - generous like Linear/Notion)"
+			},
+			"gap": {
+				"$value": "{spacing.5}",
+				"$description": "Gap between card elements (20px)"
+			}
+		},
+		"section": {
+			"gap": {
+				"$value": "{spacing.8}",
+				"$description": "Gap between major sections (32px)"
+			}
+		},
+		"form": {
+			"gap": {
+				"$value": "{spacing.5}",
+				"$description": "Gap between form fields (20px)"
+			},
+			"sectionGap": {
+				"$value": "{spacing.6}",
+				"$description": "Gap between form sections (24px)"
+			}
+		},
+		"content": {
+			"gap": {
+				"$value": "{spacing.4}",
+				"$description": "Gap between content elements (16px)"
+			},
+			"sectionGap": {
+				"$value": "{spacing.8}",
+				"$description": "Gap between content sections (32px)"
+			}
+		},
+		"header": {
+			"gap": {
+				"$value": "{spacing.3}",
+				"$description": "Gap between header elements (12px)"
+			},
+			"mb": {
+				"$value": "{spacing.8}",
+				"$description": "Margin below header sections (32px)"
+			}
+		},
+		"alert": {
+			"mb": {
+				"$value": "{spacing.6}",
+				"$description": "Margin below alerts/messages (24px)"
+			}
+		},
+		"fieldGroup": {
+			"gap": {
+				"$value": "{spacing.2}",
+				"$description": "Gap between tightly related elements (8px)"
+			},
+			"mt": {
+				"$value": "{spacing.2}",
+				"$description": "Margin top for field groups (8px)"
+			}
+		},
+		"icon": {
+			"sm": {
+				"$value": "{spacing.4}",
+				"$description": "Small icon size (16px)"
+			},
+			"md": {
+				"$value": "{spacing.5}",
+				"$description": "Medium icon size (20px)"
+			},
+			"lg": {
+				"$value": "{spacing.6}",
+				"$description": "Large icon size (24px)"
+			}
+		},
+		"page": {
+			"x": {
+				"$value": "{spacing.8}",
+				"$description": "Page horizontal padding (32px)"
+			},
+			"y": {
+				"$value": "{spacing.12}",
+				"$description": "Page vertical padding (48px - hero-level breathing room)"
+			}
+		}
+	},
+
+	"typography": {
+		"$description": "Semantic typography - component-specific",
+		"body": {
+			"fontFamily": { "$value": "{typography.fontFamily.sans}" },
+			"fontSize": { "$value": "{typography.fontSize.base}" },
+			"fontWeight": { "$value": "{typography.fontWeight.regular}" },
+			"lineHeight": { "$value": "{typography.lineHeight.normal}" }
+		},
+		"heading1": {
+			"fontFamily": { "$value": "{typography.fontFamily.heading}" },
+			"fontSize": { "$value": "{typography.fontSize.4xl}" },
+			"fontWeight": { "$value": "{typography.fontWeight.bold}" },
+			"lineHeight": { "$value": "{typography.lineHeight.tight}" },
+			"letterSpacing": { "$value": "{typography.letterSpacing.tight}" }
+		},
+		"heading2": {
+			"fontFamily": { "$value": "{typography.fontFamily.heading}" },
+			"fontSize": { "$value": "{typography.fontSize.3xl}" },
+			"fontWeight": { "$value": "{typography.fontWeight.semibold}" },
+			"lineHeight": { "$value": "{typography.lineHeight.tight}" }
+		},
+		"heading3": {
+			"fontFamily": { "$value": "{typography.fontFamily.heading}" },
+			"fontSize": { "$value": "{typography.fontSize.2xl}" },
+			"fontWeight": { "$value": "{typography.fontWeight.semibold}" },
+			"lineHeight": { "$value": "{typography.lineHeight.snug}" }
+		},
+		"heading4": {
+			"fontFamily": { "$value": "{typography.fontFamily.heading}" },
+			"fontSize": { "$value": "{typography.fontSize.xl}" },
+			"fontWeight": { "$value": "{typography.fontWeight.medium}" },
+			"lineHeight": { "$value": "{typography.lineHeight.snug}" }
+		},
+		"label": {
+			"fontFamily": { "$value": "{typography.fontFamily.sans}" },
+			"fontSize": { "$value": "{typography.fontSize.sm}" },
+			"fontWeight": { "$value": "{typography.fontWeight.medium}" },
+			"lineHeight": { "$value": "{typography.lineHeight.none}" }
+		},
+		"caption": {
+			"fontFamily": { "$value": "{typography.fontFamily.sans}" },
+			"fontSize": { "$value": "{typography.fontSize.xs}" },
+			"fontWeight": { "$value": "{typography.fontWeight.regular}" },
+			"lineHeight": { "$value": "{typography.lineHeight.normal}" }
+		},
+		"code": {
+			"fontFamily": { "$value": "{typography.fontFamily.mono}" },
+			"fontSize": { "$value": "{typography.fontSize.sm}" },
+			"fontWeight": { "$value": "{typography.fontWeight.regular}" },
+			"lineHeight": { "$value": "{typography.lineHeight.relaxed}" }
+		}
+	},
+
+	"borderRadius": {
+		"$description": "Semantic border radius - component-specific",
+		"button": { "$value": "{borderRadius.md}" },
+		"input": { "$value": "{borderRadius.md}" },
+		"card": { "$value": "{borderRadius.lg}" },
+		"badge": { "$value": "{borderRadius.full}" },
+		"avatar": { "$value": "{borderRadius.full}" },
+		"modal": { "$value": "{borderRadius.xl}" }
+	}
+}

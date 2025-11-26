@@ -1,0 +1,65 @@
+/* Storybook Code Block Readability Fix
+ * 
+ * Fixes code blocks in Storybook documentation that have black backgrounds
+ * but lack proper text color contrast, making them unreadable.
+ */
+
+/* Comprehensive Storybook code block selectors */
+/* Target all common Storybook documentation containers */
+.sbdocs pre,
+.sbdocs code,
+.sbdocs-snippet pre,
+.sbdocs-snippet code,
+.sb-docs pre,
+.sb-docs code,
+.docs-story pre,
+.docs-story code,
+.sb-anchor pre,
+.sb-anchor code,
+[class*="sbdocs"] pre,
+[class*="sbdocs"] code,
+[class*="docs-story"] pre,
+[class*="docs-story"] code {
+	background-color: var(--color-bg-surface, #1f2937) !important;
+	color: var(--color-text-primary, #ffffff) !important;
+}
+
+/* Ensure nested code elements have proper contrast */
+.sbdocs pre code,
+.sbdocs-snippet pre code,
+.sb-docs pre code,
+.docs-story pre code,
+.sb-anchor pre code,
+[class*="sbdocs"] pre code,
+[class*="docs-story"] pre code {
+	color: var(--color-text-primary, #ffffff) !important;
+}
+
+/* Fix inline code elements (not inside pre blocks) */
+.sbdocs code:not(pre code),
+.sb-docs code:not(pre code),
+.docs-story code:not(pre code),
+[class*="sbdocs"] code:not(pre code),
+[class*="docs-story"] code:not(pre code) {
+	background-color: var(--color-bg-surface, #1f2937) !important;
+	color: var(--color-text-primary, #ffffff) !important;
+	padding: 0.125rem 0.25rem;
+	border-radius: 0.25rem;
+}
+
+/* Target Storybook's markdown code blocks */
+.sbdocs pre[class*="language"],
+.sbdocs pre[class*="hljs"],
+.sbdocs-snippet pre[class*="language"],
+.sbdocs-snippet pre[class*="hljs"] {
+	background-color: var(--color-bg-surface, #1f2937) !important;
+	color: var(--color-text-primary, #ffffff) !important;
+}
+
+/* Ensure syntax highlighting tokens are visible */
+.sbdocs pre code span,
+.sbdocs-snippet pre code span,
+.sb-docs pre code span {
+	color: var(--color-text-primary, #ffffff) !important;
+}
+

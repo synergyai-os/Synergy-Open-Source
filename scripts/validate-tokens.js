@@ -17,21 +17,30 @@ import { execSync } from 'child_process';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.join(__dirname, '..');
-const CSS_FILE = path.join(PROJECT_ROOT, 'src/app.css');
-const DESIGN_SYSTEM_FILE = path.join(PROJECT_ROOT, 'design-system.json');
+const TOKENS_DIR = path.join(PROJECT_ROOT, 'src/styles/tokens');
+const UTILITIES_DIR = path.join(PROJECT_ROOT, 'src/styles/utilities');
+const DESIGN_SYSTEM_FILE = path.join(PROJECT_ROOT, 'design-tokens-base.json');
 
 /**
- * Extract all tokens from @theme block
+ * Read all token CSS files and extract tokens from @theme blocks
  */
-function extractTokens(cssContent) {
+function extractTokens() {
 	const tokens = new Set();
 
-	// Find @theme block
-	const themeMatch = cssContent.match(/@theme\s*\{([^}]+)\}/s);
-	if (!themeMatch) {
-		throw new Error('No @theme block found in app.css');
+	if (!fs.existsSync(TOKENS_DIR)) {
+		throw new Error(`Tokens directory not found: ${TOKENS_DIR}`);
 	}
 
+	// Read all CSS files in tokens directory
+	const tokenFiles = fs.readdirSync(TOKENS_DIR).filter((file) => file.endsWith('.css'));
+
+	for (const file of tokenFiles) {
+		const filePath = path.join(TOKENS_DIR, file);
+		const cssContent = fs.readFileSync(filePath, 'utf-8');
+
+		// Find @theme block
+	const themeMatch = cssContent.match(/@theme\s*\{([^}]+)\}/s);
+		if (themeMatch) {
 	const themeContent = themeMatch[1];
 
 	// Extract all CSS custom properties (--token-name: value)
@@ -40,9 +49,33 @@ function extractTokens(cssContent) {
 	while ((match = tokenPattern.exec(themeContent)) !== null) {
 		const tokenName = match[1];
 		tokens.add(tokenName);
+			}
+		}
 	}
 
 	return tokens;
+}
+
+/**
+ * Read all utility CSS files and extract utilities
+ */
+function readAllUtilityFiles() {
+	let combinedContent = '';
+
+	if (!fs.existsSync(UTILITIES_DIR)) {
+		throw new Error(`Utilities directory not found: ${UTILITIES_DIR}`);
+	}
+
+	// Read all CSS files in utilities directory
+	const utilityFiles = fs.readdirSync(UTILITIES_DIR).filter((file) => file.endsWith('.css'));
+
+	for (const file of utilityFiles) {
+		const filePath = path.join(UTILITIES_DIR, file);
+		const cssContent = fs.readFileSync(filePath, 'utf-8');
+		combinedContent += cssContent + '\n';
+	}
+
+	return combinedContent;
 }
 
 /**
@@ -292,15 +325,15 @@ function extractDeprecatedTokens() {
 function validateTokens() {
 	console.log('🔍 Validating token→utility mapping...\n');
 
-	// Read CSS file
-	const cssContent = fs.readFileSync(CSS_FILE, 'utf-8');
-
-	// Extract tokens
-	const allTokens = extractTokens(cssContent);
+	// Extract tokens from all token CSS files
+	const allTokens = extractTokens();
 	console.log(`📦 Found ${allTokens.size} design tokens`);
 
+	// Read all utility files
+	const utilitiesContent = readAllUtilityFiles();
+
 	// Extract utilities and referenced tokens
-	const { utilities, referencedTokens } = extractUtilitiesAndTokens(cssContent);
+	const { utilities, referencedTokens } = extractUtilitiesAndTokens(utilitiesContent);
 	console.log(`🔧 Found ${utilities.length} utility classes`);
 	console.log(`✅ ${referencedTokens.size} tokens referenced by utilities`);
 
@@ -308,7 +341,7 @@ function validateTokens() {
 	const utilityToTokenMap = {};
 	const utilityRegex = /@utility\s+([a-z0-9-]+)\s*\{([^}]+)\}/g;
 	let utilityMatch;
-	while ((utilityMatch = utilityRegex.exec(cssContent)) !== null) {
+	while ((utilityMatch = utilityRegex.exec(utilitiesContent)) !== null) {
 		const utilityName = utilityMatch[1];
 		const utilityBody = utilityMatch[2];
 		const varPattern = /var\(--([a-z0-9-]+)\)/g;
@@ -324,11 +357,19 @@ function validateTokens() {
 		}
 	}
 
+	// Read all token files to find token references
+	let allTokenFilesContent = '';
+	const tokenFiles = fs.readdirSync(TOKENS_DIR).filter((file) => file.endsWith('.css'));
+	for (const file of tokenFiles) {
+		const filePath = path.join(TOKENS_DIR, file);
+		allTokenFilesContent += fs.readFileSync(filePath, 'utf-8') + '\n';
+	}
+
 	// Find tokens referenced by other tokens
-	const referencedByTokens = findTokenReferences(cssContent, allTokens);
+	const referencedByTokens = findTokenReferences(allTokenFilesContent, allTokens);
 
 	// Find tokens used directly in CSS (not just utilities)
-	const directUsageCSS = findDirectUsageInCSS(cssContent, allTokens);
+	const directUsageCSS = findDirectUsageInCSS(allTokenFilesContent + utilitiesContent, allTokens);
 	console.log(`📝 ${directUsageCSS.size} tokens used directly in CSS`);
 
 	// Find tokens used directly in components

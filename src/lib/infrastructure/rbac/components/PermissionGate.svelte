@@ -52,10 +52,10 @@
 
 {#if permissions.isLoading && showLoading}
 	<!-- Loading state with design tokens -->
-	<div class="px-nav-item py-nav-item text-sm text-secondary">Loading permissions...</div>
+	<div class="px-2 py-nav-item text-sm text-secondary">Loading permissions...</div>
 {:else if permissions.error}
 	<!-- Error state with design tokens -->
-	<div class="px-nav-item py-nav-item text-sm text-error">Error loading permissions</div>
+	<div class="px-2 py-nav-item text-sm text-error">Error loading permissions</div>
 {:else if hasPermission}
 	<!-- Render children if user has permission -->
 	{@render children()}
@@ -64,7 +64,7 @@
 	{@render fallbackSnippet()}
 {:else if fallback}
 	<!-- Render fallback message with design tokens -->
-	<div class="px-nav-item py-nav-item text-sm text-secondary">
+	<div class="px-2 py-nav-item text-sm text-secondary">
 		{fallback}
 	</div>
 {/if}

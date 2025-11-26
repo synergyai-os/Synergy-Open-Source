@@ -98,7 +98,16 @@ const schema = defineSchema({
 		slug: v.string(), // URL-friendly identifier
 		createdAt: v.number(),
 		updatedAt: v.number(),
-		plan: v.string()
+		plan: v.string(),
+		branding: v.optional(
+			v.object({
+				primaryColor: v.string(), // OKLCH format: "oklch(55% 0.2 250)"
+				secondaryColor: v.string(), // OKLCH format
+				logo: v.optional(v.string()), // Convex Storage ID or URL
+				updatedAt: v.number(),
+				updatedBy: v.id('users')
+			})
+		)
 	}).index('by_slug', ['slug']),
 
 	// Organization members (many-to-many)

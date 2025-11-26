@@ -33,9 +33,9 @@
 	const inputId = `pin-input-${Math.random().toString(36).substring(7)}`;
 </script>
 
-<div class="flex flex-col gap-form-field">
+<div class="flex flex-col gap-2">
 	{#if label}
-		<label for={inputId} class="text-small font-medium text-label-primary">
+		<label for={inputId} class="text-small text-label-primary font-medium">
 			{label}
 		</label>
 	{/if}
@@ -65,9 +65,10 @@
 				<PinInputPrimitive.Cell
 					{cell}
 					data-testid="pin-input-cell-{index}"
-					class="size-pin-cell rounded-input border-2 border-base bg-input text-center text-pin-cell leading-pin-cell font-bold text-primary caret-accent-primary transition-all duration-200 placeholder:text-tertiary focus:border-accent-primary focus:shadow-pin-glow focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 {error
+					class="border-base bg-input text-pin-cell leading-pin-cell text-primary caret-accent-primary placeholder:text-tertiary focus:border-accent-primary focus:shadow-pin-glow rounded-input border-2 text-center font-bold transition-all duration-200 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 {error
 						? 'border-error'
 						: ''}"
+					style="width: 4rem; height: 4rem; font-size: 2rem;"
 				>
 					<!-- Display the character in the cell -->
 					{#if cell.char !== null}

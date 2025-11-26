@@ -27,7 +27,7 @@
 
 <button
 	type="button"
-	class="inline-flex items-center gap-icon-wide rounded-button bg-transparent px-section py-section text-button font-normal transition-colors hover:bg-hover-solid {config.color}"
+	class="inline-flex items-center gap-2-wide rounded-button bg-transparent px-2 py-1 text-button font-normal transition-colors hover:bg-hover-solid {config.color}"
 	disabled={readonly}
 	onclick={() => !readonly && onChange?.(priority)}
 >

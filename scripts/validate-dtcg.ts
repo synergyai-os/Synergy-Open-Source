@@ -96,7 +96,7 @@ function validateDTCG(filePath: string): ValidationResult {
 }
 
 // Main execution
-const dtcgPath = join(process.cwd(), 'design-system.json');
+const dtcgPath = join(process.cwd(), 'design-tokens-base.json');
 const result = validateDTCG(dtcgPath);
 
 console.log('=== DTCG Format Validation ===\n');

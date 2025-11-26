@@ -1,0 +1,90 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Design System/Tokens/Overview" />
+
+# Design Tokens
+
+Visual reference for all design tokens in SynergyOS.
+
+**Token System**: 353 design tokens (222 base tokens, 131 semantic tokens) across 11 categories.
+
+---
+
+## 🔄 Token Cascade
+
+Understanding how tokens flow from base → semantic → utility:
+
+### Three-Layer Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  BASE TOKENS (Foundation)                                   │
+│  Hardcoded values: oklch(...), 0.5rem, 1rem                │
+│  Example: color.brand.primary = "oklch(55% 0.15 195)"      │
+└──────────────────────┬──────────────────────────────────────┘
+                       │ References
+                       ▼
+┌─────────────────────────────────────────────────────────────┐
+│  SEMANTIC TOKENS (Component-specific)                       │
+│  Reference base tokens: {color.brand.primary}              │
+│  Example: color.interactive.primary = "{color.brand...}"   │
+└──────────────────────┬──────────────────────────────────────┘
+                       │ Generates
+                       ▼
+┌─────────────────────────────────────────────────────────────┐
+│  UTILITY CLASSES (CSS classes)                              │
+│  Generated from semantic tokens                             │
+│  Example: bg-accent-primary → var(--color-interactive...)  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Cascade Benefits
+
+**Change once, update everywhere:**
+
+1. Update base token: `color.brand.primary = "oklch(60% 0.18 250)"` (blue)
+2. All semantic tokens update automatically
+3. All components using semantic tokens update
+4. **No component code changes needed** ✅
+
+---
+
+## 📚 Token Categories
+
+| Category | Base Tokens | Description |
+|----------|-------------|-------------|
+| **[Colors](./Colors)** | 44 | Brand, neutral, status, accent colors |
+| **[Typography](./Typography)** | 38 | Font families, sizes, weights, line heights |
+| **[Spacing](./Spacing)** | 35 | Margin, padding, gap values |
+| **[Shadows](./Shadows)** | 10 | Elevation and depth |
+| **[Border Radius](./BorderRadius)** | 9 | Corner rounding |
+| **[Animation](./Animation)** | 14 | Duration and easing |
+
+---
+
+## 🎯 Usage Rules
+
+**ALWAYS use tokens, NEVER hardcoded values:**
+
+❌ **WRONG**: `class="px-4 py-2 bg-blue-600"`  
+✅ **CORRECT**: `class="px-button-x py-button-y bg-accent-primary"`
+
+**Why?** Tokens cascade automatically. Change once, updates everywhere.
+
+### Automated Enforcement
+
+- ✅ **ESLint Rule**: Blocks arbitrary values like `min-h-[2.75rem]`, `p-[12px]`
+- ✅ **Pre-commit Hook**: Prevents committing hardcoded Tailwind values
+- ✅ **CI Validation**: GitHub Actions runs `npm run lint` - PRs blocked if violations detected
+
+---
+
+## 📖 Documentation
+
+- **Design Principles**: `dev-docs/master-docs/design-system.md`
+- **Complete Token Reference**: See [Token Reference](../TokenReference)
+
+---
+
+**Source**: `design-tokens-base.json`, `design-tokens-semantic.json`  
+**Last Generated**: 2025-11-26T19:59:25.934Z

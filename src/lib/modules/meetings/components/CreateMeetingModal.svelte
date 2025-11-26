@@ -146,7 +146,7 @@
 									<legend class="text-body-sm block font-medium text-text-primary"
 										>Start date</legend
 									>
-									<div class="grid grid-cols-3 gap-icon">
+									<div class="grid grid-cols-3 gap-2">
 										<div class="col-span-1">
 											<label for="meeting-start-date" class="sr-only">Date</label>
 											<input
@@ -165,7 +165,7 @@
 												class="w-full rounded-input border border-border-base bg-surface px-input-x py-input-y text-text-primary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
 											/>
 										</div>
-										<div class="col-span-1 flex items-center gap-icon">
+										<div class="col-span-1 flex items-center gap-2">
 											<label for="meeting-duration" class="sr-only">Duration (minutes)</label>
 											<input
 												id="meeting-duration"
@@ -183,7 +183,7 @@
 
 							<!-- Recurrence -->
 							<div class="flex flex-col gap-form-section">
-								<div class="flex items-center gap-icon">
+								<div class="flex items-center gap-2">
 									<ToggleSwitch
 										checked={form.recurrenceEnabled}
 										onChange={(checked) => (form.recurrenceEnabled = checked)}
@@ -197,7 +197,7 @@
 										class="flex flex-col gap-form-section border-l-2 border-accent-primary pl-form-section-gap"
 									>
 										<!-- Frequency -->
-										<div class="flex items-center gap-icon">
+										<div class="flex items-center gap-2">
 											<span class="text-body-sm text-text-secondary">Every</span>
 											<input
 												type="number"
@@ -222,7 +222,7 @@
 												<span class="text-body-sm mb-form-field-gap block text-text-secondary"
 													>On</span
 												>
-												<div class="inline-flex flex-nowrap items-center gap-icon">
+												<div class="inline-flex flex-nowrap items-center gap-2">
 													{#if form.recurrenceFrequency === 'weekly'}
 														{@const selectedDay = form.recurrenceDaysOfWeek[0] || ''}
 														<ToggleGroup.Root
@@ -233,7 +233,7 @@
 																	form.recurrenceDaysOfWeek = [value];
 																}
 															}}
-															class="inline-flex flex-nowrap gap-icon"
+															class="inline-flex flex-nowrap gap-2"
 														>
 															{#each dayNames as day, index (index)}
 																<ToggleGroup.Item
@@ -248,7 +248,7 @@
 														<ToggleGroup.Root
 															type="multiple"
 															bind:value={form.recurrenceDaysOfWeek}
-															class="inline-flex flex-nowrap gap-icon"
+															class="inline-flex flex-nowrap gap-2"
 														>
 															{#each dayNames as day, index (index)}
 																<ToggleGroup.Item
@@ -265,14 +265,14 @@
 												<!-- Schedule Helper Messages -->
 												{#if form.weeklyScheduleMessage}
 													<div
-														class="mt-form-field-gap flex items-start gap-icon rounded-card border border-base bg-elevated px-card py-card text-button text-secondary"
+														class="mt-form-field-gap flex items-start gap-2 rounded-card border border-base bg-elevated px-card py-card text-button text-secondary"
 													>
 														<span class="text-button">💡</span>
 														<span>{form.weeklyScheduleMessage}</span>
 													</div>
 												{:else if form.dailyScheduleMessage}
 													<div
-														class="mt-form-field-gap flex items-start gap-icon rounded-card border border-base bg-elevated px-card py-card text-button text-secondary"
+														class="mt-form-field-gap flex items-start gap-2 rounded-card border border-base bg-elevated px-card py-card text-button text-secondary"
 													>
 														<span class="text-button">💡</span>
 														<span>{form.dailyScheduleMessage}</span>
@@ -287,7 +287,7 @@
 												<span class="text-body-sm mb-form-field-gap block text-text-secondary"
 													>Upcoming {form.upcomingMeetings.length} Meetings</span
 												>
-												<div class="flex gap-icon">
+												<div class="flex gap-2">
 													{#each form.upcomingMeetings as date (date.getTime())}
 														<div
 															class="bg-surface-tertiary rounded-card px-input-x py-input-y text-center"
@@ -309,7 +309,7 @@
 
 										<!-- Info message -->
 										<div
-											class="flex items-start gap-icon rounded-card border border-base bg-elevated px-card py-card text-button text-secondary"
+											class="flex items-start gap-2 rounded-card border border-base bg-elevated px-card py-card text-button text-secondary"
 										>
 											<span class="text-button">ℹ️</span>
 											<span
@@ -340,8 +340,8 @@
 									<legend class="text-body-sm mb-form-field-gap block font-medium text-text-primary"
 										>Privacy</legend
 									>
-									<div class="flex flex-col gap-icon">
-										<label class="flex items-start gap-icon">
+									<div class="flex flex-col gap-2">
+										<label class="flex items-start gap-2">
 											<input
 												type="radio"
 												bind:group={form.visibility}
@@ -355,7 +355,7 @@
 												</div>
 											</div>
 										</label>
-										<label class="flex items-start gap-icon">
+										<label class="flex items-start gap-2">
 											<input
 												type="radio"
 												bind:group={form.visibility}
@@ -377,7 +377,7 @@
 
 					<!-- Actions -->
 					<div
-						class="flex justify-end gap-button-group border-t border-border-base pt-content-section"
+						class="flex justify-end gap-2 border-t border-border-base pt-content-section"
 					>
 						<Button variant="outline" type="button" onclick={onClose}>Close</Button>
 						<Button variant="primary" type="submit">Schedule</Button>

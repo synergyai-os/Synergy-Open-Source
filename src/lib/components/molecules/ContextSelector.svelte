@@ -4,6 +4,15 @@
 	 *
 	 * Atomic component for selecting context/template/circle
 	 * Follows pattern: ui-patterns.md#L680 (Atomic Design)
+	 *
+	 * DESIGN SYSTEM EXCEPTION: Menu item spacing and typography (SYOS-585)
+	 *
+	 * Menu items use non-standard spacing and typography values:
+	 * - spacing.menu.item.x = 0.625rem (10px) - optimal for menu item padding
+	 * - typography.fontSize.button = 0.875rem (14px) - button text size
+	 *
+	 * These values are hardcoded because they don't reference base tokens.
+	 * See: dev-docs/2-areas/design/token-file-split-exception-mapping.md
 	 */
 
 	type Context = {
@@ -25,7 +34,7 @@
 
 <button
 	type="button"
-	class="inline-flex items-center gap-icon-wide rounded-button border border-base bg-transparent px-menu-item py-section text-button font-medium text-secondary transition-colors hover:bg-hover"
+	class="inline-flex items-center gap-2-wide rounded-button border border-base bg-transparent px-[0.625rem] py-1 text-[0.875rem] font-medium text-secondary transition-colors hover:bg-hover"
 	disabled={readonly}
 	onclick={() => !readonly && onChange?.(context)}
 	tabindex={tabIndex}

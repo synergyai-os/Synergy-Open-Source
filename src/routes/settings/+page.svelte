@@ -485,7 +485,7 @@
 		<div
 			class="p-card mb-content-padding rounded-card border border-accent-primary/20 bg-accent-primary/10"
 		>
-			<div class="flex items-start gap-icon">
+			<div class="flex items-start gap-2">
 				<svg
 					class="icon-md flex-shrink-0 text-accent-primary"
 					fill="none"
@@ -540,7 +540,7 @@
 										Theme preferences are personal and apply across all organizations.
 									</p>
 								</div>
-								<div class="flex items-center gap-icon" role="presentation">
+								<div class="flex items-center gap-2" role="presentation">
 									<span class="text-small text-secondary">
 										{$isDark ? 'Dark mode' : 'Light mode'}
 									</span>
@@ -622,7 +622,7 @@
 										organization).
 									</p>
 								</div>
-								<div class="flex flex-shrink-0 flex-col gap-control-item-gap">
+								<div class="flex flex-shrink-0 flex-col" style="gap: var(--spacing-1);">
 									<div class="relative inline-block">
 										<input
 											id="claude-key"
@@ -763,7 +763,7 @@
 										💡 Tip: Use the same key across organizations to sync content everywhere
 									</p>
 								</div>
-								<div class="flex flex-shrink-0 flex-col gap-control-item-gap">
+								<div class="flex flex-shrink-0 flex-col" style="gap: var(--spacing-1);">
 									<div class="relative inline-block">
 										<input
 											id="readwise-key"

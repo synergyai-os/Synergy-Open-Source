@@ -13,7 +13,7 @@ export type Size = 'sm' | 'md' | 'lg' | 'xl';
 export type Variant = 'primary' | 'secondary' | 'outline' | 'ghost';
 
 // Component-Specific Types
-export type ButtonVariant = 'primary' | 'secondary' | 'outline';
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'solid';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export type CardVariant = 'default' | 'elevated' | 'outlined' | 'noPadding';

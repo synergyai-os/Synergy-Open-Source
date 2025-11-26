@@ -83,7 +83,7 @@
 		{:else if circle}
 			<div class="space-y-2">
 				<!-- Circle Name (Editable) -->
-				<div class="flex items-center gap-icon">
+				<div class="flex items-center gap-2">
 					{#if editingName}
 						<input
 							type="text"
@@ -102,7 +102,7 @@
 						<h1 class="text-h3 font-semibold text-primary">{circle.name}</h1>
 						<button
 							onclick={() => (editingName = true)}
-							class="rounded-button p-control-button-padding text-secondary hover:bg-sidebar-hover hover:text-primary"
+							class="rounded-button text-secondary hover:bg-sidebar-hover hover:text-primary" style="padding: var(--spacing-2);"
 							title="Edit name"
 						>
 							<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -118,7 +118,7 @@
 				</div>
 
 				<!-- Circle Purpose (Editable) -->
-				<div class="flex items-start gap-icon">
+				<div class="flex items-start gap-2">
 					{#if editingPurpose}
 						<textarea
 							bind:value={purposeValue}
@@ -138,7 +138,7 @@
 						</p>
 						<button
 							onclick={() => (editingPurpose = true)}
-							class="rounded-button p-control-button-padding text-secondary hover:bg-sidebar-hover hover:text-primary"
+							class="rounded-button text-secondary hover:bg-sidebar-hover hover:text-primary" style="padding: var(--spacing-2);"
 							title="Edit purpose"
 						>
 							<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -194,7 +194,7 @@
 								goto(resolveRoute('/org/circles'));
 							}
 						}}
-						class="text-on-solid mt-4 rounded-button bg-accent-primary px-nav-item py-nav-item text-button font-medium hover:bg-accent-hover"
+						class="text-on-solid mt-4 rounded-button bg-accent-primary px-2 py-nav-item text-button font-medium hover:bg-accent-hover"
 					>
 						Back to Circles
 					</button>

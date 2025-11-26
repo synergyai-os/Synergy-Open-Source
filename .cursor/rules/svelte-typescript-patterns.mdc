@@ -1,7 +1,6 @@
 ---
-alwaysApply: true
+alwaysApply: false
 ---
-
 # Svelte 5 + TypeScript + Convex Development Standards
 
 You are an expert senior software engineer specializing in TypeScript, Svelte 5 (Runes), SvelteKit 5, Convex, Tailwind CSS 4, and Bits UI. Focus on high-quality, maintainable solutions that follow established patterns.

@@ -46,24 +46,24 @@
 
 {#if !featureEnabled && !flagQuery?.isLoading}
 	<!-- Feature not enabled - will redirect -->
-	<div class="flex min-h-screen items-center justify-center bg-base">
+	<div class="bg-base flex min-h-screen items-center justify-center">
 		<div class="text-text-secondary">Redirecting...</div>
 	</div>
 {:else if flagQuery?.isLoading}
 	<!-- Loading -->
-	<div class="flex min-h-screen items-center justify-center bg-base">
+	<div class="bg-base flex min-h-screen items-center justify-center">
 		<div class="text-text-secondary">Loading...</div>
 	</div>
 {:else}
 	<!-- Dashboard Page -->
-	<div class="h-full overflow-y-auto bg-base">
+	<div class="bg-base h-full overflow-y-auto">
 		<!-- Header -->
-		<div class="border-b border-border-base bg-base">
+		<div class="bg-base border-b border-border-base">
 			<div class="mx-auto max-w-6xl px-content-padding py-content-padding">
-				<div class="flex items-center gap-icon">
+				<div class="flex items-center gap-2">
 					<!-- Icon -->
 					<div
-						class="flex size-avatar-lg items-center justify-center rounded-avatar bg-accent-primary"
+						class="size-avatar-lg flex items-center justify-center rounded-avatar bg-accent-primary"
 					>
 						<svg class="icon-lg text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 							<path
@@ -88,14 +88,14 @@
 		<div class="mx-auto max-w-6xl px-content-padding py-content-padding">
 			<!-- My Action Items Section -->
 			<section class="mb-content-padding">
-				<h2 class="mb-content-section text-h3 font-semibold text-text-primary">My Action Items</h2>
+				<h2 class="text-h3 mb-content-section font-semibold text-text-primary">My Action Items</h2>
 				<ActionItemsList {sessionId} />
 			</section>
 
 			<!-- Future: Decisions to Review -->
 			<!-- <section class="mb-content-padding">
 				<h2 class="mb-content-section text-h3 font-semibold text-text-primary">Decisions to Review</h2>
-				<div class="bg-surface rounded-card border border-dashed border-border-base py-readable-quote text-center text-text-tertiary">
+				<div class="bg-surface rounded-card border border-dashed border-border-base text-center text-text-tertiary" style="padding-block: var(--spacing-8);">
 					Coming soon
 				</div>
 			</section> -->
@@ -103,7 +103,7 @@
 			<!-- Future: Upcoming Meetings -->
 			<!-- <section>
 				<h2 class="mb-content-section text-h3 font-semibold text-text-primary">Upcoming Meetings</h2>
-				<div class="bg-surface rounded-card border border-dashed border-border-base py-readable-quote text-center text-text-tertiary">
+				<div class="bg-surface rounded-card border border-dashed border-border-base text-center text-text-tertiary" style="padding-block: var(--spacing-8);">
 					Coming soon
 				</div>
 			</section> -->

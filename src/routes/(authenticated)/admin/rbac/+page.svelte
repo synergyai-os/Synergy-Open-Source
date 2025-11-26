@@ -443,7 +443,7 @@
 				Manage roles, permissions, and user-role assignments
 			</p>
 		</div>
-		<div class="flex items-center gap-icon">
+		<div class="flex items-center gap-2">
 			<Button variant="primary" onclick={() => console.log('Create Role')}>Create Role</Button>
 		</div>
 	</header>
@@ -496,7 +496,7 @@
 
 		<!-- Quick Actions Bar -->
 		<div
-			class="mb-content-padding flex flex-wrap items-center gap-icon rounded-card border border-base bg-surface px-card py-card"
+			class="mb-content-padding flex flex-wrap items-center gap-2 rounded-card border border-base bg-surface px-card py-card"
 		>
 			<Button variant="primary" onclick={() => (createRoleModalOpen = true)}>Create Role</Button>
 			<Button variant="secondary" onclick={() => (createPermissionModalOpen = true)}>
@@ -581,7 +581,7 @@
 			<Tabs.Content value="roles">
 				<div class="flex flex-col gap-settings-section">
 					<!-- Search and Filter Bar -->
-					<div class="flex items-center gap-icon">
+					<div class="flex items-center gap-2">
 						<div class="flex-1">
 							<FormInput
 								placeholder="Search roles by name, slug, or description..."
@@ -601,7 +601,7 @@
 
 					<!-- Roles Display -->
 					{#if filteredRoles.length === 0}
-						<div class="flex flex-col items-center justify-center py-readable-quote text-center">
+						<div class="flex flex-col items-center justify-center text-center" style="padding-block: var(--spacing-8);">
 							<p class="mb-content-section text-h3 font-medium text-secondary">
 								{rolesSearch.trim() || roleTypeFilter !== 'all'
 									? 'No roles match your filters'
@@ -684,7 +684,7 @@
 												<span class="text-label text-tertiary">
 													{role.permissionCount} permission{role.permissionCount !== 1 ? 's' : ''}
 												</span>
-												<div class="flex items-center gap-icon">
+												<div class="flex items-center gap-2">
 													<button
 														type="button"
 														onclick={() => showRoleDetails(role)}
@@ -724,7 +724,7 @@
 
 					<!-- Permissions by Category -->
 					{#if permissionCategories === 0}
-						<div class="flex flex-col items-center justify-center py-readable-quote text-center">
+						<div class="flex flex-col items-center justify-center text-center" style="padding-block: var(--spacing-8);">
 							<p class="mb-content-section text-h3 font-medium text-secondary">
 								No permissions match your search
 							</p>
@@ -738,7 +738,7 @@
 										<h3 class="text-h3 font-semibold text-primary">{category}</h3>
 										<Badge variant="default">{perms.length}</Badge>
 									</div>
-									<div class="grid grid-cols-1 gap-icon md:grid-cols-2 lg:grid-cols-3">
+									<div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
 										{#each perms as perm, index (index)}
 											<div
 												class="rounded-button border border-base bg-elevated px-card py-card transition-colors hover:bg-hover-solid"
@@ -763,7 +763,7 @@
 			<Tabs.Content value="analytics">
 				<div class="flex flex-col gap-settings-section">
 					{#if !analytics}
-						<div class="flex flex-col items-center justify-center py-readable-quote text-center">
+						<div class="flex flex-col items-center justify-center text-center" style="padding-block: var(--spacing-8);">
 							<p class="mb-content-section text-h3 font-medium text-secondary">
 								Loading analytics...
 							</p>
@@ -925,7 +925,7 @@
 								<p class="mb-content-section text-small text-secondary">
 									The following roles have no active assignments:
 								</p>
-								<div class="flex flex-wrap gap-icon">
+								<div class="flex flex-wrap gap-2">
 									{#each analytics.health.unusedRoles as role (role._id)}
 										<span
 											class="rounded-button bg-elevated px-badge py-badge text-label text-secondary"
@@ -995,7 +995,7 @@
 										<p class="font-code text-label text-tertiary">{perm.slug}</p>
 										<p class="mt-form-field-gap text-small text-secondary">{perm.description}</p>
 									</div>
-									<div class="flex items-center gap-icon">
+									<div class="flex items-center gap-2">
 										<Badge
 											variant={perm.scope === 'all'
 												? 'default'
@@ -1022,7 +1022,7 @@
 					{/if}
 				</div>
 
-				<div class="flex items-center justify-end gap-icon pt-content-section">
+				<div class="flex items-center justify-end gap-2 pt-content-section">
 					<Dialog.Close
 						type="button"
 						class="rounded-button border border-base px-button-x py-button-y text-small font-medium text-secondary hover:text-primary"
@@ -1086,7 +1086,7 @@
 					/>
 				</div>
 
-				<div class="flex items-center gap-icon">
+				<div class="flex items-center gap-2">
 					<ToggleSwitch
 						checked={permRequiresResource}
 						onChange={(checked) => {
@@ -1103,7 +1103,7 @@
 				{/if}
 			</div>
 
-			<div class="flex items-center justify-end gap-icon pt-content-section">
+			<div class="flex items-center justify-end gap-2 pt-content-section">
 				<Dialog.Close
 					type="button"
 					class="rounded-button border border-base px-button-x py-button-y text-small font-medium text-secondary hover:text-primary"
@@ -1164,7 +1164,7 @@
 				{/if}
 			</div>
 
-			<div class="flex items-center justify-end gap-icon pt-content-section">
+			<div class="flex items-center justify-end gap-2 pt-content-section">
 				<Dialog.Close
 					type="button"
 					class="rounded-button border border-base px-button-x py-button-y text-small font-medium text-secondary hover:text-primary"
@@ -1236,7 +1236,7 @@
 				{/if}
 			</div>
 
-			<div class="flex items-center justify-end gap-icon pt-content-section">
+			<div class="flex items-center justify-end gap-2 pt-content-section">
 				<Dialog.Close
 					type="button"
 					class="rounded-button border border-base px-button-x py-button-y text-small font-medium text-secondary hover:text-primary"
@@ -1329,7 +1329,7 @@
 				{/if}
 			</div>
 
-			<div class="flex items-center justify-end gap-icon pt-content-section">
+			<div class="flex items-center justify-end gap-2 pt-content-section">
 				<Dialog.Close
 					type="button"
 					class="rounded-button border border-base px-button-x py-button-y text-small font-medium text-secondary hover:text-primary"

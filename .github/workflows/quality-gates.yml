@@ -40,6 +40,18 @@ jobs:
         run: npm run check
         continue-on-error: true # TODO: Enable after fixing integration test errors (SYOS-72)
 
+      - name: Build tokens
+        run: npm run tokens:build
+
+      - name: Validate transforms
+        run: npm run test:transforms
+
+      - name: Validate documentation
+        run: npm run validate:docs
+
+      - name: Validate recipes
+        run: npm run recipes:validate
+
       - name: Lint
         run: npm run lint
         continue-on-error: true # TODO: Enable after fixing 483 linting errors (separate effort)

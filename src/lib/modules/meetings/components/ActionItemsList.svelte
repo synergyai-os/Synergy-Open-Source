@@ -83,7 +83,7 @@
 			<!-- Type Toggle + Assignee Type Toggle -->
 			<div class="flex items-center gap-form-section">
 				<!-- Type -->
-				<div class="flex items-center gap-meeting-card">
+				<div class="flex items-center gap-2">
 					<span class="text-body-sm text-tertiary">Type:</span>
 					<Button
 						variant="outline"
@@ -97,7 +97,7 @@
 
 				<!-- Assignee Type Toggle (only if circle has roles) -->
 				{#if circleId && data.roles.length > 0}
-					<div class="flex items-center gap-meeting-card">
+					<div class="flex items-center gap-2">
 						<span class="text-body-sm text-tertiary">Assign to:</span>
 						<Button
 							variant="outline"
@@ -137,7 +137,7 @@
 			</div>
 
 			<!-- Due Date (Optional) -->
-			<div class="flex items-center gap-meeting-card">
+			<div class="flex items-center gap-2">
 				<label for="due-date" class="text-body-sm text-tertiary">Due date (optional):</label>
 				<input
 					id="due-date"
@@ -149,7 +149,7 @@
 			</div>
 
 			<!-- Actions -->
-			<div class="flex items-center gap-meeting-card pt-meeting-card">
+			<div class="flex items-center gap-2" style="padding-top: var(--spacing-3);">
 				<Button variant="primary" onclick={form.handleCreate}>Add Action</Button>
 				<Button variant="outline" onclick={form.resetForm}>Cancel</Button>
 			</div>
@@ -159,7 +159,7 @@
 	<!-- Action Items List -->
 	{#if data.actionItems.length === 0}
 		<!-- Empty State -->
-		<div class="py-meeting-section text-center">
+		<div class="text-center" style="padding-block: var(--spacing-8);">
 			<svg
 				class="mx-auto size-icon-xl text-text-tertiary"
 				fill="none"
@@ -182,7 +182,7 @@
 		</div>
 	{:else}
 		<!-- List of action items -->
-		<div class="space-y-meeting-card">
+		<div style="display: flex; flex-direction: column; gap: var(--spacing-2);">
 			{#each data.actionItems as item (item._id)}
 				<div
 					class="group gap-header p-header flex items-start rounded-button border border-border-base bg-surface transition-colors hover:bg-elevated"
@@ -231,17 +231,17 @@
 						</p>
 
 						<!-- Metadata -->
-						<div class="gap-header mt-meeting-card flex items-center text-label text-tertiary">
+						<div class="gap-header flex items-center text-label text-tertiary" style="margin-top: var(--spacing-2);">
 							<!-- Type Badge -->
 							<span
-								class="gap-icon-sm inline-flex items-center rounded border border-border-base bg-elevated px-badge py-badge"
+								class="gap-2-sm inline-flex items-center rounded border border-border-base bg-elevated px-badge py-badge"
 							>
 								{item.type === 'next-step' ? '⚡' : '📦'}
 								{item.type === 'next-step' ? 'Next Step' : 'Project'}
 							</span>
 
 							<!-- Assignee -->
-							<span class="inline-flex items-center gap-meeting-avatar">
+							<span class="inline-flex items-center" style="gap: var(--spacing-1);">
 								<div
 									class="flex size-icon-sm items-center justify-center rounded-avatar bg-accent-primary text-label font-medium text-primary"
 								>
@@ -252,7 +252,7 @@
 
 							<!-- Due Date -->
 							{#if item.dueDate}
-								<span class="inline-flex items-center gap-meeting-avatar">
+								<span class="inline-flex items-center" style="gap: var(--spacing-1);">
 									<svg class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 										<path
 											stroke-linecap="round"

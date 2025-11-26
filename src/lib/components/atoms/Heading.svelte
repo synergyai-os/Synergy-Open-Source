@@ -2,6 +2,7 @@
 	import type { WithElementRef } from 'bits-ui';
 	import type { Snippet } from 'svelte';
 	import type { HeadingLevel } from '../types';
+	import { headingRecipe } from '$lib/design-system/recipes';
 
 	type Props = WithElementRef<
 		{
@@ -20,17 +21,7 @@
 		...rest
 	}: Props = $props();
 
-	// Apply design tokens based on level
-	const levelClasses: Record<HeadingLevel, string> = {
-		1: 'text-h1',
-		2: 'text-h2',
-		3: 'text-h3',
-		4: 'text-body font-semibold',
-		5: 'text-small font-semibold',
-		6: 'text-small font-medium'
-	};
-
-	const headingClasses = `font-heading ${levelClasses[level]} text-primary ${className}`;
+	const headingClasses = $derived(headingRecipe({ level }) + (className ? ` ${className}` : ''));
 </script>
 
 {#if level === 1}

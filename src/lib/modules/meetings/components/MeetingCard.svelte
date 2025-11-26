@@ -79,18 +79,25 @@
 </script>
 
 <div
-	class="group hover:bg-surface-hover flex gap-meeting-card border-b border-border-base py-card transition-colors-token"
+	class="group hover:bg-surface-hover py-card transition-colors-token flex border-b border-border-base"
+	style="gap: var(--spacing-2);"
 >
 	<!-- Date Badge (Left) -->
-	<div class="flex w-meeting-date-badge flex-col items-center justify-start pt-meeting-card">
+	<div
+		class="flex flex-col items-center justify-start"
+		style="width: var(--spacing-20); padding-top: var(--spacing-3);"
+	>
 		<div class="text-body-sm text-text-tertiary">{dayOfWeek}</div>
 		<div class="text-h2 font-medium text-text-primary">{dayOfMonth}</div>
 	</div>
 
 	<!-- Meeting Info (Center) -->
-	<div class="space-y-meeting-card flex-1 py-card">
+	<div
+		class="py-card flex-1"
+		style="--tw-space-y-reverse: 0; margin-top: calc(var(--spacing-2) * calc(1 - var(--tw-space-y-reverse))); margin-bottom: calc(var(--spacing-2) * var(--tw-space-y-reverse));"
+	>
 		<!-- Title + Privacy Icon + Recurrence -->
-		<div class="flex items-center gap-icon">
+		<div class="flex items-center gap-2">
 			{#if isPrivate}
 				<svg
 					class="icon-sm text-text-tertiary"
@@ -131,7 +138,7 @@
 
 		<!-- Circle Badge (if exists) -->
 		{#if circleName}
-			<div class="flex items-center gap-icon">
+			<div class="flex items-center gap-2">
 				<svg class="icon-sm text-text-tertiary" fill="currentColor" viewBox="0 0 20 20">
 					<path
 						d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"
@@ -143,10 +150,10 @@
 
 		<!-- Attendee Avatars -->
 		{#if attendeeAvatars.length > 0}
-			<div class="flex items-center gap-icon">
+			<div class="flex items-center gap-2">
 				{#each attendeeAvatars.slice(0, 6) as attendee (attendee.name)}
 					<div
-						class="flex size-avatar-sm items-center justify-center rounded-avatar text-label font-medium text-primary"
+						class="size-avatar-sm text-label text-primary flex items-center justify-center rounded-avatar font-medium"
 						style="background-color: {attendee.color}"
 						title={attendee.name}
 					>
@@ -155,7 +162,7 @@
 				{/each}
 				{#if attendeeAvatars.length > 6}
 					<div
-						class="bg-surface-tertiary flex size-avatar-sm items-center justify-center rounded-avatar text-label font-medium text-text-secondary"
+						class="bg-surface-tertiary size-avatar-sm text-label flex items-center justify-center rounded-avatar font-medium text-text-secondary"
 						title="{attendeeAvatars.length - 6} more"
 					>
 						+{attendeeAvatars.length - 6}
@@ -166,7 +173,7 @@
 	</div>
 
 	<!-- Actions (Right) -->
-	<div class="flex items-center gap-icon py-card">
+	<div class="py-card flex items-center gap-2">
 		<!-- Download Calendar -->
 		<Button
 			variant="outline"

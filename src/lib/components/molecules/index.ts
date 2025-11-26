@@ -24,6 +24,7 @@ export { default as PrioritySelector } from './PrioritySelector.svelte';
 export { default as AssigneeSelector } from './AssigneeSelector.svelte';
 export { default as ProjectSelector } from './ProjectSelector.svelte';
 export { default as ContextSelector } from './ContextSelector.svelte';
+export { default as WorkspaceSelector } from './WorkspaceSelector.svelte';
 
 // Action Molecules
 export { default as AttachmentButton } from './AttachmentButton.svelte';
@@ -50,3 +51,5 @@ export * as Pagination from './Pagination.svelte';
 export { default as PanelBreadcrumbs } from './PanelBreadcrumbs.svelte';
 export { default as LinkPreview } from './LinkPreview.svelte';
 export * as RatingGroup from './RatingGroup.svelte';
+export { default as NavItem } from './NavItem.svelte';
+export { default as SplitButton } from './SplitButton.svelte';

@@ -1,6 +1,9 @@
 import { sequence } from '@sveltejs/kit/hooks';
 import { redirect, type Handle } from '@sveltejs/kit';
 import { resolveRequestSession } from '$lib/infrastructure/auth/server/session';
+import { ConvexHttpClient } from 'convex/browser';
+import { api } from '$lib/convex';
+import { env } from '$env/dynamic/public';
 
 // Define public routes that don't require authentication
 const publicPaths = [
@@ -85,7 +88,58 @@ const requireAuth: Handle = async ({ event, resolve }) => {
 	}
 
 	// User is authenticated, proceed
-	return resolve(event);
+	// Phase 2C: Load active organization for SSR class injection
+	let activeOrgId: string | null = null;
+	try {
+		const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
+		const sessionId = event.locals.auth.sessionId;
+
+		// Load organizations to determine active org
+		const organizations = (await client.query(api.organizations.listOrganizations, {
+			sessionId
+		})) as Array<{ organizationId: string }>;
+
+		if (organizations.length > 0) {
+			// Determine active org: URL param (if valid) > first org
+			const orgParam = event.url.searchParams.get('org');
+			const validOrgParam =
+				orgParam && organizations.some((org) => org.organizationId === orgParam)
+					? orgParam
+					: null;
+			activeOrgId = validOrgParam || organizations[0]?.organizationId || null;
+		}
+	} catch (error) {
+		// Don't block page load if org query fails
+		console.warn('Failed to load active organization in hooks.server.ts:', error);
+	}
+
+	// Inject org class on SSR (no FOUC)
+	const response = await resolve(event, {
+		transformPageChunk: ({ html, done }) => {
+			if (done && activeOrgId) {
+				// Inject org class into <html> tag (handle existing class attribute)
+				return html.replace(
+					/<html([^>]*)>/,
+					(match, attrs) => {
+						// Check if class attribute already exists
+						if (attrs.includes('class=')) {
+							// Add org class to existing class attribute
+							return match.replace(
+								/class="([^"]*)"/,
+								`class="$1 org-${activeOrgId}"`
+							);
+						} else {
+							// Add new class attribute
+							return `<html${attrs} class="org-${activeOrgId}">`;
+						}
+					}
+				);
+			}
+			return html;
+		}
+	});
+
+	return response;
 };
 
 // Apply hooks in sequence

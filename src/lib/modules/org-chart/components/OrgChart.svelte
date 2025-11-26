@@ -487,7 +487,8 @@
 <div class="relative h-full w-full overflow-hidden rounded-card border border-base bg-surface">
 	<!-- Zoom Controls -->
 	<div
-		class="bg-elevated/95 absolute top-4 right-4 z-10 flex flex-col gap-icon rounded-card p-control-panel-padding shadow-card-hover backdrop-blur-sm"
+		class="bg-elevated/95 absolute top-4 right-4 z-10 flex flex-col gap-2 rounded-card shadow-card-hover backdrop-blur-sm"
+		style="padding: var(--spacing-3);"
 	>
 		<button
 			class="flex size-icon-xl items-center justify-center rounded-button text-secondary transition-all hover:scale-110 hover:bg-hover-solid hover:text-primary active:scale-95"

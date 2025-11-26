@@ -105,7 +105,7 @@
 			{#each filteredLanguages as lang (lang.value)}
 				<button
 					type="button"
-					class="flex w-full items-center gap-icon px-input-x py-input-y text-left text-small transition-colors hover:bg-hover-solid {lang.value ===
+					class="flex w-full items-center gap-2 px-input-x py-input-y text-left text-small transition-colors hover:bg-hover-solid {lang.value ===
 					currentLanguage
 						? 'bg-hover-solid'
 						: ''}"

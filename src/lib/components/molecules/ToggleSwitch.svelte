@@ -16,7 +16,7 @@
 	let { checked = false, onChange, label, disabled = false }: Props = $props();
 </script>
 
-<label class="inline-flex cursor-pointer items-center gap-icon">
+<label class="inline-flex cursor-pointer items-center gap-2">
 	{#if label}
 		<span class="text-button text-secondary">{label}</span>
 	{/if}

@@ -59,8 +59,8 @@
 				<label class="flex flex-col gap-1">
 					<span class="text-sm font-medium text-primary">Organization name</span>
 					<input
-						class="w-full rounded-md border border-base bg-elevated px-nav-item py-nav-item text-sm text-primary focus:border-accent-primary focus:outline-none"
-						placeholder="e.g. Axon Labs"
+						class="w-full rounded-md border border-base bg-elevated px-2 py-nav-item text-sm text-primary focus:border-accent-primary focus:outline-none"
+						placeholder="e.g. SynergyOS Labs"
 						bind:value={orgName}
 						required
 						minlength={2}

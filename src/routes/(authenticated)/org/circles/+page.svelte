@@ -106,16 +106,16 @@
 				<table class="w-full">
 					<thead class="border-b border-base bg-elevated">
 						<tr>
-							<th class="px-nav-item py-nav-item text-left text-button font-medium text-secondary">
+							<th class="px-2 py-nav-item text-left text-button font-medium text-secondary">
 								Name
 							</th>
-							<th class="px-nav-item py-nav-item text-left text-button font-medium text-secondary">
+							<th class="px-2 py-nav-item text-left text-button font-medium text-secondary">
 								Purpose
 							</th>
-							<th class="px-nav-item py-nav-item text-left text-button font-medium text-secondary">
+							<th class="px-2 py-nav-item text-left text-button font-medium text-secondary">
 								Parent
 							</th>
-							<th class="px-nav-item py-nav-item text-left text-button font-medium text-secondary">
+							<th class="px-2 py-nav-item text-left text-button font-medium text-secondary">
 								Members
 							</th>
 						</tr>
@@ -126,16 +126,16 @@
 								class="cursor-pointer border-b border-base hover:bg-sidebar-hover"
 								onclick={() => handleRowClick(circle.circleId)}
 							>
-								<td class="px-nav-item py-nav-item text-button text-primary">
+								<td class="px-2 py-nav-item text-button text-primary">
 									{circle.name}
 								</td>
-								<td class="px-nav-item py-nav-item text-button text-secondary">
+								<td class="px-2 py-nav-item text-button text-secondary">
 									{circle.purpose ?? '—'}
 								</td>
-								<td class="px-nav-item py-nav-item text-button text-secondary">
+								<td class="px-2 py-nav-item text-button text-secondary">
 									{circle.parentName ?? '—'}
 								</td>
-								<td class="px-nav-item py-nav-item text-button text-secondary">
+								<td class="px-2 py-nav-item text-button text-secondary">
 									{circle.memberCount}
 								</td>
 							</tr>

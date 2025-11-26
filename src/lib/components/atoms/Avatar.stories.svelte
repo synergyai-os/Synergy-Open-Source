@@ -10,6 +10,10 @@
 			initials: {
 				control: { type: 'text' }
 			},
+			variant: {
+				control: { type: 'select' },
+				options: ['default', 'brand']
+			},
 			size: {
 				control: { type: 'select' },
 				options: ['sm', 'md', 'lg']
@@ -21,33 +25,39 @@
 	});
 </script>
 
-<Story name="Default" args={{ initials: 'JD', size: 'md' }}>
+<Story name="Default" args={{ initials: 'JD', variant: 'default', size: 'md' }}>
 	{#snippet template(args)}
-		<Avatar initials={args.initials} size={args.size} color={args.color} />
+		<Avatar initials={args.initials} variant={args.variant} size={args.size} color={args.color} />
 	{/snippet}
 </Story>
 
-<Story name="Small" args={{ initials: 'AB', size: 'sm' }}>
+<Story name="Brand Variant" args={{ initials: 'JD', variant: 'brand', size: 'md' }}>
 	{#snippet template(args)}
-		<Avatar initials={args.initials} size={args.size} color={args.color} />
+		<Avatar initials={args.initials} variant={args.variant} size={args.size} />
 	{/snippet}
 </Story>
 
-<Story name="Large" args={{ initials: 'CD', size: 'lg' }}>
+<Story name="Small" args={{ initials: 'AB', variant: 'default', size: 'sm' }}>
 	{#snippet template(args)}
-		<Avatar initials={args.initials} size={args.size} color={args.color} />
+		<Avatar initials={args.initials} variant={args.variant} size={args.size} color={args.color} />
 	{/snippet}
 </Story>
 
-<Story name="Single Initial" args={{ initials: 'R', size: 'md' }}>
+<Story name="Large" args={{ initials: 'CD', variant: 'default', size: 'lg' }}>
 	{#snippet template(args)}
-		<Avatar initials={args.initials} size={args.size} color={args.color} />
+		<Avatar initials={args.initials} variant={args.variant} size={args.size} color={args.color} />
 	{/snippet}
 </Story>
 
-<Story name="Custom Color" args={{ initials: 'JD', size: 'md', color: 'var(--color-accent-primary)' }}>
+<Story name="Single Initial" args={{ initials: 'R', variant: 'default', size: 'md' }}>
 	{#snippet template(args)}
-		<Avatar initials={args.initials} size={args.size} color={args.color} />
+		<Avatar initials={args.initials} variant={args.variant} size={args.size} color={args.color} />
+	{/snippet}
+</Story>
+
+<Story name="Custom Color" args={{ initials: 'JD', variant: 'default', size: 'md', color: 'var(--color-interactive-primary)' }}>
+	{#snippet template(args)}
+		<Avatar initials={args.initials} variant={args.variant} size={args.size} color={args.color} />
 	{/snippet}
 </Story>
 

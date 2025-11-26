@@ -95,7 +95,7 @@
 	<!-- Hero Section -->
 	<section class="hero-section bg-surface">
 		<div
-			class="hero-content mx-auto max-w-readable px-inbox-container py-readable-quote text-center"
+			class="hero-content px-inbox-container mx-auto max-w-readable text-center" style="padding-block: var(--spacing-8);"
 		>
 			<!-- Social Proof Badges -->
 			<div
@@ -185,9 +185,9 @@
 
 	<!-- Pain Points Section -->
 	<section class="pain-section bg-elevated">
-		<div class="section-content mx-auto max-w-5xl px-inbox-container py-readable-quote">
+		<div class="section-content px-inbox-container mx-auto max-w-5xl" style="padding-block: var(--spacing-8);">
 			<h2
-				class="section-title text-center text-primary"
+				class="section-title text-primary text-center"
 				in:fly={{
 					y: 20,
 					duration: prefersReducedMotion ? 0 : 300,
@@ -198,7 +198,7 @@
 				Product Teams Are Stuck in Delivery Mode
 			</h2>
 			<p
-				class="section-lead text-center text-secondary"
+				class="section-lead text-secondary text-center"
 				in:fly={{
 					y: 20,
 					duration: prefersReducedMotion ? 0 : 300,
@@ -246,7 +246,7 @@
 
 	<!-- Vision Section -->
 	<section class="vision-section bg-elevated">
-		<div class="section-content mx-auto max-w-4xl px-inbox-container py-readable-quote">
+		<div class="section-content px-inbox-container mx-auto max-w-4xl" style="padding-block: var(--spacing-8);">
 			<div class="vision-content">
 				<!-- Title -->
 				<div
@@ -343,9 +343,9 @@
 
 	<!-- What It Is Section -->
 	<section class="what-section bg-surface">
-		<div class="section-content mx-auto max-w-4xl px-inbox-container py-readable-quote">
+		<div class="section-content px-inbox-container mx-auto max-w-4xl" style="padding-block: var(--spacing-8);">
 			<h2
-				class="section-title text-center text-primary"
+				class="section-title text-primary text-center"
 				in:fly={{
 					y: 20,
 					duration: prefersReducedMotion ? 0 : 300,
@@ -356,7 +356,7 @@
 				How We Solve This
 			</h2>
 			<p
-				class="section-lead text-center text-secondary"
+				class="section-lead text-secondary text-center"
 				in:fly={{
 					y: 20,
 					duration: prefersReducedMotion ? 0 : 300,
@@ -449,9 +449,9 @@
 
 	<!-- What Makes It Different Section -->
 	<section class="differentiators-section bg-surface">
-		<div class="section-content mx-auto max-w-5xl px-inbox-container py-readable-quote">
+		<div class="section-content px-inbox-container mx-auto max-w-5xl" style="padding-block: var(--spacing-8);">
 			<h2
-				class="section-title text-center text-primary"
+				class="section-title text-primary text-center"
 				in:fly={{
 					y: 20,
 					duration: prefersReducedMotion ? 0 : 300,
@@ -484,7 +484,7 @@
 
 	<!-- Tech Stack Section -->
 	<section class="tech-stack-section bg-surface">
-		<div class="section-content mx-auto max-w-6xl px-inbox-container py-readable-quote">
+		<div class="section-content px-inbox-container mx-auto max-w-6xl" style="padding-block: var(--spacing-8);">
 			<div
 				class="tech-stack-header text-center"
 				in:fly={{
@@ -663,9 +663,9 @@
 
 	<!-- Where We Are Today Section -->
 	<section class="status-section bg-elevated">
-		<div class="section-content mx-auto max-w-4xl px-inbox-container py-readable-quote">
+		<div class="section-content px-inbox-container mx-auto max-w-4xl" style="padding-block: var(--spacing-8);">
 			<h2
-				class="section-title text-center text-primary"
+				class="section-title text-primary text-center"
 				in:fly={{
 					y: 20,
 					duration: prefersReducedMotion ? 0 : 300,
@@ -676,7 +676,7 @@
 				Where We Are Today
 			</h2>
 			<p
-				class="section-lead text-center text-secondary"
+				class="section-lead text-secondary text-center"
 				in:fly={{
 					y: 20,
 					duration: prefersReducedMotion ? 0 : 300,
@@ -767,7 +767,7 @@
 
 	<!-- Waitlist Section -->
 	<section id="waitlist" class="waitlist-section">
-		<div class="section-content mx-auto max-w-3xl px-inbox-container">
+		<div class="section-content px-inbox-container mx-auto max-w-3xl">
 			<!-- Featured CTA Card -->
 			<div
 				class="waitlist-featured-card"
@@ -836,7 +836,7 @@
 
 	<!-- Footer -->
 	<footer class="footer bg-surface">
-		<div class="footer-content mx-auto max-w-5xl px-inbox-container py-header">
+		<div class="footer-content px-inbox-container mx-auto max-w-5xl py-header">
 			<div class="footer-grid">
 				<div class="footer-section">
 					<h3 class="footer-title text-primary">SynergyOS</h3>
@@ -906,7 +906,7 @@
 
 	/* Hero Section */
 	.hero-section {
-		padding: var(--spacing-marketing-hero-y) 0 var(--spacing-marketing-hero-bottom) 0;
+		padding: var(--spacing-20) 0 var(--spacing-32) 0;
 		border-bottom: 1px solid var(--color-border-base);
 		background: linear-gradient(
 			180deg,
@@ -919,7 +919,7 @@
 	.hero-content {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-marketing-element-gap);
+		gap: var(--spacing-6);
 	}
 
 	/* Trust Badges */
@@ -1077,7 +1077,7 @@
 
 	/* Pain Points Section */
 	.pain-section {
-		padding: var(--spacing-marketing-section-y) 0;
+		padding: var(--spacing-28) 0;
 		border-bottom: 1px solid var(--color-border-base);
 		background: var(--color-bg-surface);
 	}
@@ -1085,11 +1085,11 @@
 	.pain-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-		gap: var(--spacing-marketing-card-gap);
+		gap: var(--spacing-8);
 	}
 
 	.pain-card {
-		padding: var(--spacing-marketing-card-padding);
+		padding: var(--spacing-10);
 		background: var(--color-bg-elevated);
 		border: 1px solid var(--color-border-base);
 		border-radius: 0.75rem;
@@ -1105,7 +1105,7 @@
 	.pain-emoji {
 		font-size: 2.5rem;
 		display: block;
-		margin-bottom: var(--spacing-marketing-title-to-lead);
+		margin-bottom: var(--spacing-6);
 		opacity: 0.9;
 	}
 
@@ -1122,13 +1122,13 @@
 	}
 
 	.pain-footer {
-		margin-top: var(--spacing-marketing-lead-to-content);
+		margin-top: var(--spacing-12);
 		font-size: 1rem;
 	}
 
 	/* Vision Section */
 	.vision-section {
-		padding: var(--spacing-marketing-section-y) 0;
+		padding: var(--spacing-28) 0;
 		border-bottom: 1px solid var(--color-border-base);
 		background: linear-gradient(
 			180deg,
@@ -1142,15 +1142,15 @@
 	.vision-content {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-marketing-lead-to-content);
+		gap: var(--spacing-12);
 	}
 
 	.vision-header {
-		margin-bottom: var(--spacing-marketing-text-gap);
+		margin-bottom: var(--spacing-4);
 	}
 
 	.vision-intro {
-		padding: var(--spacing-marketing-card-padding);
+		padding: var(--spacing-10);
 		border: 1px solid color-mix(in oklch, var(--color-accent-primary) 15%, transparent);
 		border-radius: 1.25rem;
 		background: linear-gradient(
@@ -1185,7 +1185,7 @@
 		font-size: 1.75rem;
 		font-weight: 700;
 		line-height: 1.3;
-		margin-bottom: var(--spacing-marketing-title-to-lead);
+		margin-bottom: var(--spacing-6);
 		background: linear-gradient(
 			135deg,
 			var(--color-text-primary) 0%,
@@ -1204,14 +1204,14 @@
 	.vision-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-		gap: var(--spacing-marketing-card-gap);
+		gap: var(--spacing-8);
 		max-width: 56rem;
 		margin: 0 auto;
 		width: 100%;
 	}
 
 	.vision-card {
-		padding: var(--spacing-marketing-card-padding);
+		padding: var(--spacing-10);
 		border: 1px solid color-mix(in oklch, var(--color-accent-primary) 10%, transparent);
 		border-radius: 1.25rem;
 		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1257,7 +1257,7 @@
 		-webkit-background-clip: text;
 		-webkit-text-fill-color: transparent;
 		background-clip: text;
-		margin-bottom: var(--spacing-marketing-card-gap);
+		margin-bottom: var(--spacing-8);
 		line-height: 1;
 		position: relative;
 		z-index: 1;
@@ -1267,7 +1267,7 @@
 	.vision-card-title {
 		font-size: 1.5rem;
 		font-weight: 700;
-		margin-bottom: var(--spacing-marketing-text-gap);
+		margin-bottom: var(--spacing-4);
 		position: relative;
 		z-index: 1;
 	}
@@ -1282,19 +1282,19 @@
 	.vision-footer {
 		max-width: 42rem;
 		margin: 0 auto;
-		padding-top: var(--spacing-marketing-lead-to-content);
+		padding-top: var(--spacing-12);
 		text-align: center;
 	}
 
 	.vision-cta {
 		font-size: 1.125rem;
 		line-height: 1.8;
-		margin-bottom: var(--spacing-marketing-card-gap);
+		margin-bottom: var(--spacing-8);
 	}
 
 	/* What It Is Section */
 	.what-section {
-		padding: var(--spacing-marketing-section-y) 0;
+		padding: var(--spacing-28) 0;
 		border-bottom: 1px solid var(--color-border-base);
 		background: var(--color-bg-surface);
 	}
@@ -1304,23 +1304,23 @@
 		font-weight: 700;
 		line-height: 1.3;
 		letter-spacing: -0.02em;
-		margin-bottom: var(--spacing-marketing-title-to-lead);
+		margin-bottom: var(--spacing-6);
 	}
 
 	.section-lead {
 		font-size: 1.125rem;
 		line-height: 1.7;
-		margin-bottom: var(--spacing-marketing-lead-to-content);
+		margin-bottom: var(--spacing-12);
 	}
 
 	.features-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-		gap: var(--spacing-marketing-card-gap);
+		gap: var(--spacing-8);
 	}
 
 	.feature-card {
-		padding: var(--spacing-marketing-card-padding);
+		padding: var(--spacing-10);
 		background: var(--color-bg-elevated);
 		border: 1px solid var(--color-border-base);
 		border-radius: 0.75rem;
@@ -1347,7 +1347,7 @@
 
 	/* Differentiators Section */
 	.differentiators-section {
-		padding: var(--spacing-marketing-section-y) 0;
+		padding: var(--spacing-28) 0;
 		border-bottom: 1px solid var(--color-border-base);
 		background: var(--color-bg-surface);
 	}
@@ -1355,11 +1355,11 @@
 	.differentiators-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-		gap: var(--spacing-marketing-card-gap);
+		gap: var(--spacing-8);
 	}
 
 	.differentiator-card {
-		padding: var(--spacing-marketing-card-padding);
+		padding: var(--spacing-10);
 		background: var(--color-bg-elevated);
 		border: 1px solid var(--color-border-base);
 		border-radius: 0.75rem;
@@ -1375,14 +1375,14 @@
 	.differentiator-emoji {
 		font-size: 2.5rem;
 		display: block;
-		margin-bottom: var(--spacing-marketing-title-to-lead);
+		margin-bottom: var(--spacing-6);
 		opacity: 0.9;
 	}
 
 	.differentiator-title {
 		font-size: 1.125rem;
 		font-weight: 600;
-		margin-bottom: var(--spacing-marketing-text-gap);
+		margin-bottom: var(--spacing-4);
 	}
 
 	.differentiator-description {
@@ -1393,7 +1393,7 @@
 
 	/* Status Section (Where We Are Today) */
 	.status-section {
-		padding: var(--spacing-marketing-section-y) 0;
+		padding: var(--spacing-28) 0;
 		border-bottom: 1px solid var(--color-border-base);
 		background: linear-gradient(
 			180deg,
@@ -1405,12 +1405,12 @@
 	.status-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-		gap: var(--spacing-marketing-card-gap);
-		margin-top: var(--spacing-marketing-lead-to-content);
+		gap: var(--spacing-8);
+		margin-top: var(--spacing-12);
 	}
 
 	.status-card {
-		padding: var(--spacing-marketing-card-padding);
+		padding: var(--spacing-10);
 		border: 1px solid var(--color-border-base);
 		border-radius: 0.75rem;
 		transition: all 0.2s ease;
@@ -1449,13 +1449,13 @@
 	.status-card-title {
 		font-size: 1.25rem;
 		font-weight: 600;
-		margin-bottom: var(--spacing-marketing-text-gap);
+		margin-bottom: var(--spacing-4);
 	}
 
 	.status-description {
 		font-size: 0.9375rem;
 		line-height: 1.7;
-		margin-bottom: var(--spacing-marketing-text-gap);
+		margin-bottom: var(--spacing-4);
 	}
 
 	.status-description:last-child {
@@ -1463,8 +1463,8 @@
 	}
 
 	.status-disclaimer {
-		margin-top: var(--spacing-marketing-lead-to-content);
-		padding-top: var(--spacing-marketing-card-gap);
+		margin-top: var(--spacing-12);
+		padding-top: var(--spacing-8);
 		border-top: 1px solid var(--color-border-base);
 		font-size: 1rem;
 	}
@@ -1493,7 +1493,7 @@
 
 	/* Tech Stack Section */
 	.tech-stack-section {
-		padding: var(--spacing-marketing-section-y) 0;
+		padding: var(--spacing-28) 0;
 		border-bottom: 1px solid var(--color-border-base);
 		background: linear-gradient(
 			180deg,
@@ -1503,7 +1503,7 @@
 	}
 
 	.tech-stack-header {
-		margin-bottom: var(--spacing-marketing-lead-to-content);
+		margin-bottom: var(--spacing-12);
 	}
 
 	.tech-badge {
@@ -1523,12 +1523,12 @@
 	.tech-showcase {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-marketing-card-gap);
+		gap: var(--spacing-8);
 	}
 
 	/* Featured SvelteKit Card */
 	.tech-card-featured {
-		padding: var(--spacing-marketing-card-padding);
+		padding: var(--spacing-10);
 		border: 2px solid var(--color-border-base);
 		border-radius: 1rem;
 		background: linear-gradient(135deg, rgba(255, 62, 0, 0.03), rgba(255, 62, 0, 0.01));
@@ -1562,7 +1562,7 @@
 	.tech-card-content {
 		display: flex;
 		align-items: center;
-		gap: var(--spacing-marketing-lead-to-content);
+		gap: var(--spacing-12);
 	}
 
 	.tech-logo-large {
@@ -1684,7 +1684,7 @@
 
 	/* Waitlist Section - Featured CTA */
 	.waitlist-section {
-		padding: var(--spacing-marketing-hero-bottom) 0;
+		padding: var(--spacing-32) 0;
 		border-bottom: 1px solid var(--color-border-base);
 		background: radial-gradient(
 			ellipse 80% 50% at 50% 50%,
@@ -1735,7 +1735,7 @@
 		background: var(--color-bg-elevated);
 		border: 1px solid color-mix(in oklch, var(--color-accent-primary) 20%, transparent);
 		border-radius: 1.5rem;
-		padding: var(--spacing-marketing-card-padding);
+		padding: var(--spacing-10);
 		box-shadow:
 			0 20px 60px rgba(0, 0, 0, 0.12),
 			0 0 0 1px color-mix(in oklch, var(--color-accent-primary) 10%, transparent) inset;
@@ -1765,10 +1765,10 @@
 	.social-proof-bar {
 		display: flex;
 		justify-content: center;
-		gap: var(--spacing-marketing-element-gap);
+		gap: var(--spacing-6);
 		flex-wrap: wrap;
-		padding-bottom: var(--spacing-marketing-card-gap);
-		margin-bottom: var(--spacing-marketing-card-gap);
+		padding-bottom: var(--spacing-8);
+		margin-bottom: var(--spacing-8);
 		border-bottom: 1px solid color-mix(in oklch, var(--color-accent-primary) 10%, transparent);
 	}
 
@@ -1796,7 +1796,7 @@
 	.waitlist-content {
 		display: flex;
 		flex-direction: column;
-		gap: var(--spacing-marketing-element-gap);
+		gap: var(--spacing-6);
 	}
 
 	.waitlist-badge {
@@ -1849,9 +1849,9 @@
 	.value-props {
 		display: flex;
 		justify-content: center;
-		gap: var(--spacing-marketing-element-gap);
+		gap: var(--spacing-6);
 		flex-wrap: wrap;
-		padding: var(--spacing-marketing-card-gap) 0;
+		padding: var(--spacing-8) 0;
 	}
 
 	.value-prop {
@@ -1879,7 +1879,7 @@
 	}
 
 	.waitlist-form-wrapper {
-		margin-top: var(--spacing-marketing-text-gap);
+		margin-top: var(--spacing-4);
 	}
 
 	/* Responsive */
@@ -1967,15 +1967,15 @@
 	}
 
 	.footer {
-		padding: var(--spacing-marketing-hero-y) 0 var(--spacing-marketing-card-gap) 0;
+		padding: var(--spacing-20) 0 var(--spacing-8) 0;
 		background: var(--color-bg-surface);
 	}
 
 	.footer-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-		gap: var(--spacing-marketing-card-gap);
-		margin-bottom: var(--spacing-marketing-lead-to-content);
+		gap: var(--spacing-8);
+		margin-bottom: var(--spacing-12);
 	}
 
 	.footer-title {
@@ -2049,7 +2049,7 @@
 	/* Token: --breakpoint-md (768px) from design-system.json */
 	@media (max-width: 768px) {
 		.hero-section {
-			padding: var(--spacing-marketing-lead-to-content) 0 var(--spacing-marketing-hero-y) 0;
+			padding: var(--spacing-12) 0 var(--spacing-20) 0;
 		}
 
 		.hero-title {
@@ -2091,12 +2091,12 @@
 		}
 
 		.tech-card-featured {
-			padding: var(--spacing-marketing-card-gap);
+			padding: var(--spacing-8);
 		}
 
 		.tech-card-content {
 			flex-direction: column;
-			gap: var(--spacing-marketing-card-gap);
+			gap: var(--spacing-8);
 			text-align: center;
 		}
 

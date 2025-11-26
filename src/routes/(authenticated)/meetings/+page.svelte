@@ -234,7 +234,7 @@
 					<div class="flex items-center justify-end">
 						<div class="gap-header flex items-center">
 							<!-- Group By (optional - can be implemented later) -->
-							<!-- <div class="flex items-center gap-icon">
+							<!-- <div class="flex items-center gap-2">
 							<span class="text-text-secondary text-small">Group by:</span>
 							<select
 								bind:value={state.groupBy}
@@ -248,7 +248,7 @@
 
 							<!-- Synchronize Calendar (Phase 3) -->
 							<!-- <button
-							class="border-border-base text-text-secondary hover:bg-surface-hover flex items-center gap-icon border rounded-button px-form-section py-button-y text-small transition-colors"
+							class="border-border-base text-text-secondary hover:bg-surface-hover flex items-center gap-2 border rounded-button px-form-section py-button-y text-small transition-colors"
 						>
 							<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 								<path
@@ -281,19 +281,19 @@
 			<!-- Meeting List -->
 			<div class="mx-auto max-w-container px-container py-container">
 				{#if meetings.isLoading}
-					<div class="py-section-spacing-medium text-center text-text-secondary">
+					<div class="py-1-spacing-medium text-center text-text-secondary">
 						Loading meetings...
 					</div>
 				{:else if meetings.error}
-					<div class="py-section-spacing-medium text-center text-error-text">
+					<div class="py-1-spacing-medium text-center text-error-text">
 						Error loading meetings: {meetings.error.message}
 					</div>
 				{:else}
 					<!-- My Meetings Tab -->
 					<Tabs.Content value="my-meetings">
 						<!-- Today Section -->
-						<div class="mb-meeting-section">
-							<div class="mb-form-section flex items-center gap-meeting-card">
+						<div class="" style="margin-bottom: var(--spacing-8);">
+							<div class="mb-form-section flex items-center gap-2">
 								<h2 class="text-h2 text-text-primary">Today</h2>
 								<svg class="icon-md text-text-tertiary" fill="currentColor" viewBox="0 0 20 20">
 									<path
@@ -306,7 +306,7 @@
 
 							{#if meetings.todayMeetings.length === 0}
 								<div
-									class="rounded-card border border-dashed border-border-base bg-surface py-meeting-section text-center text-text-tertiary"
+									class="rounded-card border border-dashed border-border-base bg-surface text-center text-text-tertiary" style="padding-block: var(--spacing-8);"
 								>
 									No meetings scheduled for today
 								</div>
@@ -325,12 +325,12 @@
 						</div>
 
 						<!-- This Week Section -->
-						<div class="mb-meeting-section">
+						<div class="" style="margin-bottom: var(--spacing-8);">
 							<h2 class="mb-form-section text-h2 text-text-primary">This week</h2>
 
 							{#if meetings.thisWeekMeetings.length === 0}
 								<div
-									class="rounded-card border border-dashed border-border-base bg-surface py-meeting-section text-center text-text-tertiary"
+									class="rounded-card border border-dashed border-border-base bg-surface text-center text-text-tertiary" style="padding-block: var(--spacing-8);"
 								>
 									No meetings scheduled this week
 								</div>
@@ -357,7 +357,7 @@
 
 							{#if meetings.futureMeetings.length === 0}
 								<div
-									class="rounded-card border border-dashed border-border-base bg-surface py-meeting-section text-center text-text-tertiary"
+									class="rounded-card border border-dashed border-border-base bg-surface text-center text-text-tertiary" style="padding-block: var(--spacing-8);"
 								>
 									No upcoming meetings scheduled
 								</div>
@@ -386,7 +386,7 @@
 
 							{#if meetings.closedMeetings.length === 0}
 								<div
-									class="rounded-card border border-dashed border-border-base bg-surface py-meeting-section text-center text-text-tertiary"
+									class="rounded-card border border-dashed border-border-base bg-surface text-center text-text-tertiary" style="padding-block: var(--spacing-8);"
 								>
 									<svg
 										class="mx-auto size-icon-xl text-text-tertiary"

@@ -141,5 +141,20 @@ npm run audit:quick || {
 	# Don't block commit, just warn (can be made blocking later)
 }
 
+# Documentation validation (SYOS-558)
+echo ""
+echo "🔍 Validating documentation utility names..."
+npm run validate:docs || {
+	echo ""
+	echo "⚠️  Documentation validation failed!"
+	echo "Documentation contains invalid utility names."
+	echo "Run 'npm run fix:docs' to fix automatically, or fix manually."
+	echo "See: scripts/tests/utility-mapping.json for mappings"
+	echo ""
+	echo "⚠️  WARNING: This will block commits once all violations are fixed."
+	echo "   For now, continuing with commit (non-blocking mode)..."
+	# TODO: Change to exit 1 once all violations are fixed
+}
+
 # Run lint-staged (formatting)
 npx lint-staged

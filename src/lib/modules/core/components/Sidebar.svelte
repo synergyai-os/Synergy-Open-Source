@@ -1,4 +1,14 @@
 <script lang="ts">
+	/**
+	 * DESIGN SYSTEM EXCEPTION: Navigation item spacing (SYOS-585)
+	 *
+	 * Navigation items use non-standard vertical padding (6px) that doesn't fit the base scale:
+	 * - spacing.nav.item.y = 0.375rem (6px) - optimal for compact navigation design
+	 *
+	 * This value is hardcoded as py-[0.375rem] because it doesn't reference base tokens.
+	 * See: dev-docs/2-areas/design/token-file-split-exception-mapping.md
+	 */
+
 	import { goto } from '$app/navigation';
 	import { browser, dev } from '$app/environment';
 	import { tweened } from 'svelte/motion';
@@ -9,6 +19,8 @@
 	import SidebarHeader from '$lib/modules/core/components/SidebarHeader.svelte';
 	import CleanReadwiseButton from '$lib/modules/core/components/CleanReadwiseButton.svelte';
 	import { LoadingOverlay } from '$lib/components/atoms';
+	import { NavItem } from '$lib/components/molecules';
+	import { sidebarRecipe } from '$lib/design-system/recipes';
 	import type {
 		OrganizationsModuleAPI,
 		OrganizationSummary
@@ -361,6 +373,14 @@
 		return $animatedWidth;
 	});
 
+	// Computed z-index for sidebar when fixed (mobile or hovered collapsed)
+	const sidebarZIndex = $derived(() => {
+		if ((sidebarCollapsed && !isMobile && hoverState) || (isMobile && !sidebarCollapsed)) {
+			return 'var(--zIndex-modal)';
+		}
+		return '';
+	});
+
 	// Track if we're in the middle of a collapse animation
 	let isCollapsing = $state(false);
 
@@ -387,7 +407,8 @@
 <!-- Keep width stable at 8px to prevent flickering from width changes -->
 {#if !isMobile && sidebarCollapsed}
 	<div
-		class="pointer-events-auto fixed top-0 bottom-0 left-0 z-sidebar w-sidebar-hover-zone hover:bg-transparent"
+		class="w-sidebar-hover-zone pointer-events-auto fixed top-0 bottom-0 left-0 hover:bg-transparent"
+		style="z-index: var(--zIndex-dropdown);"
 		onmouseenter={() => {
 			// Clear any pending hide timeout
 			if (hoverZoneTimeoutId) {
@@ -411,7 +432,8 @@
 <!-- Mobile Backdrop Overlay (shown when sidebar is open on mobile) -->
 {#if isMobile && !sidebarCollapsed}
 	<div
-		class="fixed inset-0 z-40 bg-black/50 transition-opacity"
+		class="fixed inset-0 bg-black/50 transition-opacity"
+		style="z-index: var(--zIndex-overlay);"
 		onclick={() => onToggleCollapse()}
 		onkeydown={(e) => {
 			if (e.key === 'Enter' || e.key === ' ') {
@@ -448,7 +470,8 @@
 		}}
 	>
 		<aside
-			class="pointer-events-auto z-sidebar flex h-full flex-col overflow-hidden border-r border-sidebar bg-sidebar text-sidebar-primary"
+			class="pointer-events-auto {sidebarRecipe()}"
+			style="background-color: var(--color-component-sidebar-bg); border-color: var(--color-component-sidebar-border); z-index: var(--zIndex-sticky);"
 			onmouseenter={() => {
 				// Clear any pending hide timeout
 				if (hoverZoneTimeoutId) {
@@ -554,234 +577,104 @@
 			<!-- Navigation - Scrollable area -->
 			{#if !sidebarCollapsed || isPinned || (hoverState && !isMobile)}
 				<nav
-					class="flex-1 overflow-y-auto px-nav-container py-nav-container"
+					class="flex-1 overflow-y-auto"
+					style="padding-inline: var(--spacing-2); padding-block: var(--spacing-2);"
 					transition:fade={{ duration: 200 }}
 				>
 					<!-- Inbox -->
-					<a
+					<NavItem
 						href={resolveRoute('/inbox')}
-						class="group relative flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+						iconType="inbox"
+						label="Inbox"
+						badge={inboxCount > 0 ? inboxCount : undefined}
 						title="Inbox"
-					>
-						<!-- Icon -->
-						<svg
-							class="icon-sm flex-shrink-0"
-							style="width: 16px; height: 16px;"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-							/>
-						</svg>
-						<span class="min-w-0 flex-1 font-normal">Inbox</span>
-						{#if inboxCount > 0}
-							<span
-								class="min-w-[18px] flex-shrink-0 rounded bg-sidebar-badge px-badge py-badge text-center text-label font-medium text-sidebar-badge"
-							>
-								{inboxCount}
-							</span>
-						{/if}
-					</a>
+						collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+					/>
 
 					<!-- Flashcards -->
-					<a
+					<NavItem
 						href={resolveRoute('/flashcards')}
-						class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+						iconType="flashcards"
+						label="Flashcards"
 						title="Flashcards"
-					>
-						<!-- Icon -->
-						<svg
-							class="icon-sm flex-shrink-0"
-							style="width: 16px; height: 16px;"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-							/>
-						</svg>
-						<span class="font-normal">Flashcards</span>
-					</a>
+						collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+					/>
 
 					<!-- Study -->
-					<a
+					<NavItem
 						href={resolveRoute('/study')}
-						class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+						iconType="study"
+						label="Study"
 						title="Study Session"
-					>
-						<!-- Icon -->
-						<svg
-							class="icon-sm flex-shrink-0"
-							style="width: 16px; height: 16px;"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-							/>
-						</svg>
-						<span class="font-normal">Study</span>
-					</a>
+						collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+					/>
 
 					<!-- Tags -->
-					<a
+					<NavItem
 						href={resolveRoute('/tags')}
-						class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+						iconType="tags"
+						label="Tags"
 						title="Tags"
-					>
-						<!-- Icon -->
-						<svg
-							class="icon-sm flex-shrink-0"
-							style="width: 16px; height: 16px;"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-							/>
-						</svg>
-						<span class="font-normal">Tags</span>
-					</a>
+						collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+					/>
 
 					<!-- Circles (Beta - Feature Flag) -->
 					{#if circlesEnabled}
-						<a
+						<NavItem
 							href={resolveRoute(
 								activeOrgId() ? `/org/circles?org=${activeOrgId()}` : '/org/circles'
 							)}
-							class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+							iconType="circles"
+							label="Circles"
 							title="Circles"
-						>
-							<!-- Icon: Organization/Circles -->
-							<svg
-								class="icon-sm flex-shrink-0"
-								style="width: 16px; height: 16px;"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-								xmlns="http://www.w3.org/2000/svg"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-								/>
-							</svg>
-							<span class="font-normal">Circles</span>
-						</a>
+							collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+						/>
 					{/if}
 
 					<!-- Members -->
-					<a
+					<NavItem
 						href={resolveRoute(
 							activeOrgId() ? `/org/members?org=${activeOrgId()}` : '/org/members'
 						)}
-						class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+						iconType="members"
+						label="Members"
 						title="Members"
-					>
-						<!-- Icon: Users -->
-						<svg
-							class="icon-sm flex-shrink-0"
-							style="width: 16px; height: 16px;"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-							xmlns="http://www.w3.org/2000/svg"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-							/>
-						</svg>
-						<span class="font-normal">Members</span>
-					</a>
+						collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+					/>
 
 					<!-- Dashboard (Beta - Feature Flag) -->
 					{#if dashboardEnabled}
-						<a
+						<NavItem
 							href={resolveRoute('/dashboard')}
-							class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+							iconType="dashboard"
+							label="Dashboard"
 							title="Dashboard"
-						>
-							<!-- Icon: Clipboard List -->
-							<svg
-								class="icon-sm flex-shrink-0"
-								style="width: 16px; height: 16px;"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-								xmlns="http://www.w3.org/2000/svg"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-								/>
-							</svg>
-							<span class="font-normal">Dashboard</span>
-						</a>
+							collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+						/>
 					{/if}
 
 					<!-- Meetings (Beta - Feature Flag) -->
 					{#if meetingsEnabled}
-						<a
+						<NavItem
 							href={resolveRoute('/meetings')}
-							class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
+							iconType="calendar"
+							label="Meetings"
 							title="Meetings"
-						>
-							<!-- Icon: Calendar -->
-							<svg
-								class="icon-sm flex-shrink-0"
-								style="width: 16px; height: 16px;"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-								xmlns="http://www.w3.org/2000/svg"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-								/>
-							</svg>
-							<span class="font-normal">Meetings</span>
-						</a>
+							collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+						/>
 					{/if}
 
 					<!-- Favorites Section -->
-					<section class="mt-content-section">
+					<section style="margin-top: var(--spacing-content-sectionGap);">
 						{#if !sidebarCollapsed || isMobile}
-							<div class="flex items-center justify-between px-section py-section">
-								<p class="text-label font-medium tracking-wider text-sidebar-tertiary uppercase">
+							<div
+								class="flex items-center justify-between"
+								style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
+							>
+								<p class="text-label font-medium tracking-wider text-tertiary uppercase">
 									Favorites
 								</p>
-								<div class="flex items-center gap-icon-wide">
+								<div class="flex items-center gap-header">
 									<!-- Placeholder for future action buttons -->
 								</div>
 							</div>
@@ -792,7 +685,10 @@
 						</div>
 
 						{#if !sidebarCollapsed || isMobile}
-							<p class="px-section py-section text-label text-sidebar-tertiary">
+							<p
+								class="text-label text-tertiary"
+								style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
+							>
 								No favorites yet.
 							</p>
 						{/if}
@@ -803,81 +699,40 @@
 			<!-- Development Test Menu (only in dev mode) -->
 			{#if dev && (!sidebarCollapsed || isPinned || (hoverState && !isMobile)) && !isMobile}
 				<div
-					class="border-t border-sidebar px-nav-container py-nav-container"
+					class="border-t"
+					style="border-color: var(--color-component-sidebar-border); padding-inline: var(--spacing-2); padding-block: var(--spacing-2);"
 					transition:fade={{ duration: 200 }}
 				>
-					<div class="px-section py-section">
+					<div style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);">
 						<p
-							class="mb-form-field-gap text-label font-medium tracking-wider text-sidebar-tertiary uppercase"
+							class="mb-form-field-gap text-label font-medium tracking-wider text-tertiary uppercase"
 						>
 							🧪 Development
 						</p>
 						<div class="space-y-form-field-gap">
-							<a
+							<NavItem
 								href={resolveRoute('/test/claude')}
-								class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<svg
-									class="icon-sm flex-shrink-0"
-									style="width: 16px; height: 16px;"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-									xmlns="http://www.w3.org/2000/svg"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-									/>
-								</svg>
-								<span class="font-normal">Claude Test</span>
-							</a>
-							<a
+								iconType="lightbulb"
+								label="Claude Test"
+								title="Claude Test"
+								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+							/>
+							<NavItem
 								href={resolveRoute('/test/readwise')}
-								class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<svg
-									class="icon-sm flex-shrink-0"
-									style="width: 16px; height: 16px;"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-									xmlns="http://www.w3.org/2000/svg"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-									/>
-								</svg>
-								<span class="font-normal">Readwise Test</span>
-							</a>
-							<a
+								iconType="study"
+								label="Readwise Test"
+								title="Readwise Test"
+								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+							/>
+							<NavItem
 								href={resolveRoute('/dev-docs')}
+								iconType="study"
+								label="Dev Docs"
+								title="Dev Docs"
 								target="_blank"
 								rel="noopener noreferrer"
-								class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-							>
-								<svg
-									class="icon-sm flex-shrink-0"
-									style="width: 16px; height: 16px;"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-									xmlns="http://www.w3.org/2000/svg"
-								>
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-									/>
-								</svg>
-								<span class="font-normal">Dev Docs</span>
-							</a>
+								collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+							/>
 							<CleanReadwiseButton />
 						</div>
 					</div>
@@ -887,10 +742,11 @@
 	</ResizableSplitter>
 {:else}
 	<aside
-		class="flex h-full flex-col overflow-hidden border-r border-sidebar bg-sidebar text-sidebar-primary"
+		class={sidebarRecipe()}
 		class:fixed={(sidebarCollapsed && !isMobile && hoverState) || (isMobile && !sidebarCollapsed)}
-		class:z-50={(sidebarCollapsed && !isMobile && hoverState) || (isMobile && !sidebarCollapsed)}
-		style="width: {displayWidth()}px; transition: width 250ms cubic-bezier(0.4, 0, 0.2, 1);"
+		style="width: {displayWidth()}px; transition: width 250ms cubic-bezier(0.4, 0, 0.2, 1); background-color: var(--color-component-sidebar-bg); border-color: var(--color-component-sidebar-border); {sidebarZIndex()
+			? `z-index: ${sidebarZIndex()};`
+			: ''}"
 		class:hidden={isMobile && sidebarCollapsed}
 		onmouseenter={() => {
 			// Clear any pending hide timeout
@@ -994,147 +850,100 @@
 
 		<!-- Navigation -->
 		{#if !sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)}
-			<nav class="flex-1 overflow-y-auto px-nav-container py-nav-container">
+			<nav
+				class="flex-1 overflow-y-auto"
+				style="padding-inline: var(--spacing-2); padding-block: var(--spacing-2);"
+			>
 				<!-- Inbox -->
-				<a
+				<NavItem
 					href={resolveRoute('/inbox')}
-					class="group relative flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-					class:justify-center={isMobile && sidebarCollapsed}
-					title={isMobile && sidebarCollapsed ? 'Inbox' : ''}
-				>
-					<svg
-						class="icon-sm flex-shrink-0"
-						style="width: 16px; height: 16px;"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-						xmlns="http://www.w3.org/2000/svg"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
-						/>
-					</svg>
-					{#if !isMobile}
-						<span class="min-w-0 flex-1 font-normal">Inbox</span>
-						{#if inboxCount > 0}
-							<span
-								class="min-w-[18px] flex-shrink-0 rounded bg-sidebar-badge px-badge py-badge text-center text-label font-medium text-sidebar-badge"
-							>
-								{inboxCount}
-							</span>
-						{/if}
-					{:else if isMobile && sidebarCollapsed}
-						{#if inboxCount > 0}
-							<span
-								class="absolute top-0 right-0 rounded bg-sidebar-badge px-badge py-badge text-label leading-none font-medium text-sidebar-badge"
-							>
-								{inboxCount}
-							</span>
-						{/if}
-					{:else}
-						<span class="font-normal">Inbox</span>
-						{#if inboxCount > 0}
-							<span
-								class="min-w-[18px] flex-shrink-0 rounded bg-sidebar-badge px-badge py-badge text-center text-label font-medium text-sidebar-badge"
-							>
-								{inboxCount}
-							</span>
-						{/if}
-					{/if}
-				</a>
+					iconType="inbox"
+					label="Inbox"
+					badge={inboxCount > 0 ? inboxCount : undefined}
+					title="Inbox"
+					collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+				/>
 
 				<!-- Flashcards -->
-				<a
+				<NavItem
 					href={resolveRoute('/flashcards')}
-					class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-					class:justify-center={isMobile && sidebarCollapsed}
-					title={isMobile && sidebarCollapsed ? 'Flashcards' : ''}
-				>
-					<svg
-						class="icon-sm flex-shrink-0"
-						style="width: 16px; height: 16px;"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-						xmlns="http://www.w3.org/2000/svg"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-						/>
-					</svg>
-					{#if !isMobile || !sidebarCollapsed}
-						<span class="font-normal">Flashcards</span>
-					{/if}
-				</a>
+					iconType="flashcards"
+					label="Flashcards"
+					title="Flashcards"
+					collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+				/>
 
 				<!-- Study -->
-				<a
+				<NavItem
 					href={resolveRoute('/study')}
-					class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-					class:justify-center={isMobile && sidebarCollapsed}
-					title={isMobile && sidebarCollapsed ? 'Study' : ''}
-				>
-					<svg
-						class="icon-sm flex-shrink-0"
-						style="width: 16px; height: 16px;"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-						xmlns="http://www.w3.org/2000/svg"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-						/>
-					</svg>
-					{#if !isMobile || !sidebarCollapsed}
-						<span class="font-normal">Study</span>
-					{/if}
-				</a>
+					iconType="study"
+					label="Study"
+					title="Study Session"
+					collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+				/>
 
 				<!-- Tags -->
-				<a
+				<NavItem
 					href={resolveRoute('/tags')}
-					class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-					class:justify-center={isMobile && sidebarCollapsed}
-					title={isMobile && sidebarCollapsed ? 'Tags' : ''}
-				>
-					<svg
-						class="icon-sm flex-shrink-0"
-						style="width: 16px; height: 16px;"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-						xmlns="http://www.w3.org/2000/svg"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-						/>
-					</svg>
-					{#if !isMobile || !sidebarCollapsed}
-						<span class="font-normal">Tags</span>
-					{/if}
-				</a>
+					iconType="tags"
+					label="Tags"
+					title="Tags"
+					collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+				/>
+
+				<!-- Circles (Beta - Feature Flag) -->
+				{#if circlesEnabled}
+					<NavItem
+						href={resolveRoute(
+							activeOrgId() ? `/org/circles?org=${activeOrgId()}` : '/org/circles'
+						)}
+						iconType="circles"
+						label="Circles"
+						title="Circles"
+						collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+					/>
+				{/if}
+
+				<!-- Members -->
+				<NavItem
+					href={resolveRoute(activeOrgId() ? `/org/members?org=${activeOrgId()}` : '/org/members')}
+					iconType="members"
+					label="Members"
+					title="Members"
+					collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+				/>
+
+				<!-- Dashboard (Beta - Feature Flag) -->
+				{#if dashboardEnabled}
+					<NavItem
+						href={resolveRoute('/dashboard')}
+						iconType="dashboard"
+						label="Dashboard"
+						title="Dashboard"
+						collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+					/>
+				{/if}
+
+				<!-- Meetings (Beta - Feature Flag) -->
+				{#if meetingsEnabled}
+					<NavItem
+						href={resolveRoute('/meetings')}
+						iconType="calendar"
+						label="Meetings"
+						title="Meetings"
+						collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+					/>
+				{/if}
 
 				<!-- Favorites Section -->
-				<section class="mt-content-section">
+				<section style="margin-top: var(--spacing-content-sectionGap);">
 					{#if !sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)}
-						<div class="flex items-center justify-between px-section py-section">
-							<p class="text-label font-medium tracking-wider text-sidebar-tertiary uppercase">
-								Favorites
-							</p>
-							<div class="flex items-center gap-form-field-gap">
+						<div
+							class="flex items-center justify-between"
+							style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
+						>
+							<p class="text-label font-medium tracking-wider text-tertiary uppercase">Favorites</p>
+							<div class="flex items-center gap-header">
 								<!-- Placeholder for future action buttons -->
 							</div>
 						</div>
@@ -1145,7 +954,12 @@
 					</div>
 
 					{#if !sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)}
-						<p class="px-section py-section text-label text-sidebar-tertiary">No favorites yet.</p>
+						<p
+							class="text-label text-tertiary"
+							style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);"
+						>
+							No favorites yet.
+						</p>
 					{/if}
 				</section>
 			</nav>
@@ -1154,81 +968,40 @@
 		<!-- Development Test Menu (only in dev mode) -->
 		{#if dev && (!sidebarCollapsed || (hoverState && !isMobile) || (isMobile && !sidebarCollapsed)) && !isMobile}
 			<div
-				class="border-t border-sidebar px-nav-container py-nav-container"
+				class="border-t"
+				style="border-color: var(--color-component-sidebar-border); padding-inline: var(--spacing-2); padding-block: var(--spacing-2);"
 				transition:fade={{ duration: 200 }}
 			>
-				<div class="px-section py-section">
+				<div style="padding-inline: var(--spacing-2); padding-block: var(--spacing-1);">
 					<p
-						class="mb-form-field-gap text-label font-medium tracking-wider text-sidebar-tertiary uppercase"
+						class="mb-form-field-gap text-label font-medium tracking-wider text-tertiary uppercase"
 					>
 						🧪 Development
 					</p>
 					<div class="space-y-form-field-gap">
-						<a
+						<NavItem
 							href={resolveRoute('/test/claude')}
-							class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-						>
-							<svg
-								class="icon-sm flex-shrink-0"
-								style="width: 16px; height: 16px;"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-								xmlns="http://www.w3.org/2000/svg"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-								/>
-							</svg>
-							<span class="font-normal">Claude Test</span>
-						</a>
-						<a
+							iconType="lightbulb"
+							label="Claude Test"
+							title="Claude Test"
+							collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+						/>
+						<NavItem
 							href={resolveRoute('/test/readwise')}
-							class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-						>
-							<svg
-								class="icon-sm flex-shrink-0"
-								style="width: 16px; height: 16px;"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-								xmlns="http://www.w3.org/2000/svg"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-								/>
-							</svg>
-							<span class="font-normal">Readwise Test</span>
-						</a>
-						<a
+							iconType="study"
+							label="Readwise Test"
+							title="Readwise Test"
+							collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+						/>
+						<NavItem
 							href={resolveRoute('/dev-docs')}
+							iconType="study"
+							label="Dev Docs"
+							title="Dev Docs"
 							target="_blank"
 							rel="noopener noreferrer"
-							class="group flex items-center gap-icon rounded-button px-nav-item py-nav-item text-small text-sidebar-secondary transition-all duration-150 hover:bg-sidebar-hover hover:text-sidebar-primary"
-						>
-							<svg
-								class="icon-sm flex-shrink-0"
-								style="width: 16px; height: 16px;"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
-								xmlns="http://www.w3.org/2000/svg"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-								/>
-							</svg>
-							<span class="font-normal">Dev Docs</span>
-						</a>
+							collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+						/>
 						<CleanReadwiseButton />
 					</div>
 				</div>

@@ -21,7 +21,7 @@
 	class="group relative flex w-full flex-col rounded-card border border-base bg-elevated px-inbox-container py-inbox-container text-left transition-all duration-200 hover:border-accent-primary hover:shadow-card-hover"
 >
 	<!-- Collection Name -->
-	<div class="mb-inbox-title flex items-center gap-icon">
+	<div class="mb-inbox-title flex items-center gap-2">
 		{#if collection.color && collection.tagId !== 'all'}
 			<div
 				class="ring-base size-icon-sm flex-shrink-0 rounded-avatar ring-2"
@@ -50,7 +50,7 @@
 	</div>
 
 	<!-- Counts -->
-	<div class="flex items-center gap-icon text-small text-secondary">
+	<div class="flex items-center gap-2 text-small text-secondary">
 		<span>{collection.count} card{collection.count !== 1 ? 's' : ''}</span>
 		{#if collection.dueCount !== undefined && collection.dueCount > 0}
 			<span class="font-semibold text-accent-primary">• {collection.dueCount} due</span>

@@ -19,7 +19,15 @@ const config: TestRunnerConfig = {
 
 		// Set theme attribute before story renders
 		await page.evaluate((themeValue) => {
-			document.documentElement.setAttribute('data-theme', themeValue);
+			// Apply .dark/.light classes (NOT data-theme) to match theme store implementation
+			const html = document.documentElement;
+			if (themeValue === 'dark') {
+				html.classList.add('dark');
+				html.classList.remove('light');
+			} else {
+				html.classList.add('light');
+				html.classList.remove('dark');
+			}
 		}, theme);
 	},
 	async postVisit(page, context) {
@@ -30,7 +38,9 @@ const config: TestRunnerConfig = {
 
 		// Get current theme from DOM
 		const theme = await page.evaluate(() => {
-			return document.documentElement.getAttribute('data-theme') || 'light';
+			// Check for .dark/.light classes (NOT data-theme) to match theme store implementation
+			const html = document.documentElement;
+			return html.classList.contains('dark') ? 'dark' : 'light';
 		});
 
 		// Take screenshot for current theme
@@ -52,7 +62,10 @@ const config: TestRunnerConfig = {
 
 			await page.goto(darkUrl, { waitUntil: 'networkidle' });
 			await page.evaluate(() => {
-				document.documentElement.setAttribute('data-theme', 'dark');
+				// Apply .dark class (NOT data-theme) to match theme store implementation
+				const html = document.documentElement;
+				html.classList.add('dark');
+				html.classList.remove('light');
 			});
 			await waitForPageReady(page);
 			await page.waitForTimeout(100);

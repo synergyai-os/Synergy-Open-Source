@@ -35,7 +35,7 @@
 
 <button
 	type="button"
-	class="inline-flex items-center gap-icon-wide rounded-button bg-transparent px-section py-section text-button font-normal text-secondary transition-colors hover:bg-hover-solid"
+	class="inline-flex items-center gap-2-wide rounded-button bg-transparent px-2 py-1 text-button font-normal text-secondary transition-colors hover:bg-hover-solid"
 	disabled={readonly}
 	onclick={() => !readonly && onChange?.(assignee)}
 >

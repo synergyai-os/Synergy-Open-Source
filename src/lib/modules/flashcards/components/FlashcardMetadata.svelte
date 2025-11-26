@@ -263,13 +263,13 @@
 	<div class="mt-auto flex flex-col gap-settings-section pt-settings-section">
 		<Button.Root
 			onclick={onEdit}
-			class="w-full rounded-button border border-base bg-elevated px-nav-item py-nav-item text-small font-medium text-primary transition-colors hover:bg-hover-solid"
+			class="w-full rounded-button border border-base bg-elevated px-2 py-nav-item text-small font-medium text-primary transition-colors hover:bg-hover-solid"
 		>
 			Edit Card
 		</Button.Root>
 		<Button.Root
 			onclick={onDelete}
-			class="w-full rounded-button bg-destructive px-nav-item py-nav-item text-small font-medium text-primary transition-colors hover:bg-destructive-hover"
+			class="w-full rounded-button bg-destructive px-2 py-nav-item text-small font-medium text-primary transition-colors hover:bg-destructive-hover"
 		>
 			Delete Card
 		</Button.Root>

@@ -1,12 +1,7 @@
 <script lang="ts">
 	import type { FullAutoFill } from 'svelte/elements';
-
-	/**
-	 * Reusable Form Input Component
-	 *
-	 * Consistent text input with label, using design tokens throughout.
-	 * Ensures all form inputs have the same styling across the app.
-	 */
+	import { formInputRecipe } from '$lib/design-system/recipes';
+	import Text from './Text.svelte';
 
 	type Props = {
 		id?: string;
@@ -38,15 +33,20 @@
 
 	// Generate ID if not provided
 	const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
+
+	// Apply recipe with custom classes
+	const inputClasses = $derived([formInputRecipe(), customClass]);
 </script>
 
-<div class="flex flex-col gap-form-field">
+<div class="flex flex-col gap-2">
 	{#if label}
-		<label for={inputId} class="text-small font-medium text-label-primary">
-			{label}
-			{#if required}
-				<span class="text-accent-primary">*</span>
-			{/if}
+		<label for={inputId}>
+			<Text variant="body" size="sm" color="default" as="span" class="font-medium">
+				{label}
+				{#if required}
+					<span class="text-brand">*</span>
+				{/if}
+			</Text>
 		</label>
 	{/if}
 	<input
@@ -59,6 +59,6 @@
 		autocomplete={autocomplete ?? undefined}
 		bind:value
 		{onkeydown}
-		class="rounded-input border border-base bg-input px-input-x py-input-y text-primary transition-all placeholder:text-tertiary focus:ring-2 focus:ring-accent-primary focus:outline-none {customClass}"
+		class={inputClasses}
 	/>
 </div>

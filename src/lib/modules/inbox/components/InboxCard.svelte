@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Card, Text } from '$lib/components/atoms';
+	import { inboxCardRecipe } from '$lib/design-system/recipes';
 	import { formatRelativeDate } from '$lib/utils/date';
 
 	type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text' | 'note';
@@ -11,6 +12,7 @@
 		title: string; // Enriched from query
 		snippet: string; // Enriched from query
 		createdAt?: number; // Timestamp for date display
+		icon?: string; // Optional icon (emoji or text) - if not provided, falls back to type-based default
 	};
 
 	interface Props {
@@ -21,6 +23,7 @@
 
 	let { item, selected = false, onClick }: Props = $props();
 
+	// Fallback function for type-based icons (used when icon prop not provided)
 	function getTypeIcon(type: InboxItemType): string {
 		switch (type) {
 			case 'readwise_highlight':
@@ -36,17 +39,17 @@
 		}
 	}
 
-	// InboxCard-specific styling: selected state, hover background
-	// Use noPadding variant to control padding ourselves, then add border conditionally
-	const baseClasses = 'w-full text-left transition-all duration-150';
-	// Selected: blue border (border-2 border-selected), unselected: subtle border with hover
-	// Use $derived to ensure reactivity when selected prop changes
-	const borderClasses = $derived(
-		selected
-			? 'border-2 border-selected bg-selected/10'
-			: 'border border-base hover:bg-hover-solid hover:border-elevated'
-	);
-	const inboxCardClasses = $derived(`${baseClasses} ${borderClasses}`);
+	// Use icon from item data if provided, otherwise fall back to type-based icon
+	const icon = $derived(item.icon ?? getTypeIcon(item.type));
+
+	// Use recipe for type-safe variant styling
+	// Layout primitives (w-full, text-left) stay in component, not recipe
+	const inboxCardClasses = $derived(['w-full text-left', inboxCardRecipe({ selected })]);
+
+	// Transition using design token (150ms = fast duration for hovers)
+	// WORKAROUND: Animation tokens exist but don't generate CSS variables yet
+	// Using inline style with documented token value until utilities are added
+	const transitionStyle = 'transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);';
 </script>
 
 <Card
@@ -54,32 +57,40 @@
 	clickable
 	data-inbox-item-id={item._id}
 	class={inboxCardClasses}
+	style={transitionStyle}
 	onclick={(e) => {
 		// Clear hover state by blurring
 		(e.currentTarget as HTMLElement)?.blur();
 		onClick();
 	}}
 >
-	<div class="px-inbox-card py-inbox-card-compact">
-		<div class="flex items-start gap-inbox-icon">
-			<!-- Icon (emoji) - smaller size -->
-			<div class="flex-shrink-0 text-body leading-none">{getTypeIcon(item.type)}</div>
+	<!-- WORKAROUND: Compact card padding - see missing-styles.md -->
+	<div style="padding-inline: var(--spacing-3); padding-block: var(--spacing-2);">
+		<div class="flex items-start gap-fieldGroup">
+			<!-- Icon (emoji) - from item.icon prop or type-based fallback -->
+			<div class="flex-shrink-0 text-body leading-none">{icon}</div>
 
 			<!-- Content - flex-1 to take available space -->
 			<div class="min-w-0 flex-1">
 				<!-- Title and Date Row -->
-				<div class="flex items-center justify-between gap-inbox-icon">
-					<Text variant="body" size="sm" as="h3" class="truncate leading-tight font-semibold">
+				<div class="flex items-center justify-between gap-fieldGroup">
+					<Text
+						variant="body"
+						size="sm"
+						color="default"
+						as="h3"
+						class="truncate leading-tight font-semibold"
+					>
 						{item.title || 'Untitled'}
 					</Text>
 					{#if item.createdAt}
-						<Text variant="caption" size="sm" as="span" class="flex-shrink-0 text-tertiary">
+						<Text variant="caption" size="sm" color="tertiary" as="span" class="flex-shrink-0">
 							{formatRelativeDate(item.createdAt)}
 						</Text>
 					{/if}
 				</div>
 				<!-- Snippet - single line, tighter spacing -->
-				<Text variant="body" size="sm" class="truncate leading-tight text-secondary">
+				<Text variant="body" size="sm" color="secondary" class="truncate leading-tight">
 					{item.snippet || 'No preview available'}
 				</Text>
 			</div>

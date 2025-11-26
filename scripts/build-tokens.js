@@ -2,7 +2,7 @@
 /**
  * Build tokens from DTCG format using Style Dictionary
  *
- * Converts design-system.json (DTCG) to CSS files in src/styles/tokens/
+ * Converts design-tokens-base.json (DTCG) to CSS files in src/styles/tokens/
  */
 
 import StyleDictionary from 'style-dictionary';

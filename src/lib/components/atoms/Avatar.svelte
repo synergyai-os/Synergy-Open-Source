@@ -1,25 +1,37 @@
 <script lang="ts">
+	import { avatarRecipe } from '$lib/design-system/recipes';
+
 	type Props = {
 		initials: string;
-		color?: string; // Optional: custom background color
+		variant?: 'default' | 'brand';
+		color?: string; // Optional: custom background color (overrides variant)
 		size?: 'sm' | 'md' | 'lg';
 		class?: string;
 	};
 
-	let { initials, color, size = 'md', class: className = '' }: Props = $props();
+	let {
+		initials,
+		variant = 'default',
+		color,
+		size = 'md',
+		class: className = ''
+	}: Props = $props();
 
-	const sizeClasses = {
-		sm: 'size-avatar-sm text-label',
-		md: 'size-avatar-md text-button',
-		lg: 'size-avatar-lg text-body'
+	const avatarClasses = $derived([avatarRecipe({ variant, size }), className]);
+	
+	// Size utilities don't exist - use direct token values for width/height (ensures perfect circle)
+	const sizeMap = {
+		sm: '2rem', // 32px - Small avatar (from design-tokens-base.json sizing.avatar.sm)
+		md: '2.5rem', // 40px - Default avatar (from design-tokens-base.json sizing.avatar.md)
+		lg: '3rem' // 48px - Large avatar (from design-tokens-base.json sizing.avatar.lg)
 	};
+	const avatarSizeStyle = $derived(`width: ${sizeMap[size]}; height: ${sizeMap[size]};`);
+	const avatarColorStyle = $derived(color ? `background-color: ${color};` : '');
+	const avatarStyle = $derived(
+		[avatarColorStyle, avatarSizeStyle].filter((s) => s).join(' ')
+	);
 </script>
 
-<div
-	class="flex flex-shrink-0 items-center justify-center rounded-avatar bg-accent-primary font-semibold text-primary {sizeClasses[
-		size
-	]} {className}"
-	style={color ? `background-color: ${color}` : ''}
->
+<div class={avatarClasses} style={avatarStyle}>
 	{initials}
 </div>

@@ -28,15 +28,15 @@
 	let inputRef: HTMLElement | null = $state(null);
 </script>
 
-<div class="flex flex-col gap-icon">
+<div class="flex flex-col gap-2">
 	<div class="text-body-sm block font-medium text-text-primary">Attendees (optional)</div>
 
 	<!-- Selected attendees chips -->
 	{#if selectedAttendees.length > 0}
-		<div class="flex flex-wrap items-center gap-icon">
+		<div class="flex flex-wrap items-center gap-2">
 			{#each selectedAttendees as attendee (attendee.type + attendee.id)}
 				<div
-					class="text-body-sm inline-flex items-center gap-icon rounded-button border border-border-base bg-surface px-badge py-badge"
+					class="text-body-sm inline-flex items-center gap-2 rounded-button border border-border-base bg-surface px-badge py-badge"
 				>
 					<svg
 						class="icon-sm text-text-secondary"
@@ -84,7 +84,7 @@
 					e.stopPropagation();
 					attendeeSelection.setComboboxOpen(true);
 				}}
-				class="text-body-sm hover:bg-surface-hover inline-flex items-center gap-icon rounded-button border border-border-base bg-surface px-badge py-badge text-text-secondary transition-colors hover:text-text-primary"
+				class="text-body-sm hover:bg-surface-hover inline-flex items-center gap-2 rounded-button border border-border-base bg-surface px-badge py-badge text-text-secondary transition-colors hover:text-text-primary"
 				aria-label="Add more attendees"
 			>
 				<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,7 +115,7 @@
 					<button
 						type="button"
 						onclick={() => attendeeSelection.setComboboxOpen(true)}
-						class="text-body-sm hover:bg-surface-hover flex w-full items-center gap-icon rounded-input border border-border-base bg-surface px-input-x py-input-y text-left text-text-secondary transition-colors hover:text-text-primary"
+						class="text-body-sm hover:bg-surface-hover flex w-full items-center gap-2 rounded-input border border-border-base bg-surface px-input-x py-input-y text-left text-text-secondary transition-colors hover:text-text-primary"
 						aria-label="Add attendees"
 					>
 						<svg
@@ -173,7 +173,7 @@
 								{#each selectedAttendees as attendee (attendee.type + attendee.id)}
 									<button
 										type="button"
-										class="py-menu-item-sm text-body-sm flex w-full cursor-pointer items-center gap-icon px-menu-item text-left text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+										class="py-menu-item-sm text-body-sm flex w-full cursor-pointer items-center gap-2 px-menu-item text-left text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 										onclick={() => attendeeSelection.toggleAttendee(attendee)}
 										aria-label={`Toggle ${attendee.name}`}
 									>
@@ -235,7 +235,7 @@
 								{#each unselectedAttendees as attendee (attendee.type + attendee.id)}
 									<button
 										type="button"
-										class="py-menu-item-sm text-body-sm flex w-full cursor-pointer items-center gap-icon px-menu-item text-left text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+										class="py-menu-item-sm text-body-sm flex w-full cursor-pointer items-center gap-2 px-menu-item text-left text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
 										onclick={() => attendeeSelection.toggleAttendee(attendee)}
 										aria-label={`Select ${attendee.name}`}
 									>

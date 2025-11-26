@@ -49,9 +49,9 @@ export * as ScrollArea from './ScrollArea.svelte';
 export { default as Progress } from './Progress.svelte';
 export { default as Meter } from './Meter.svelte';
 export { default as Tooltip } from './Tooltip.svelte';
-export { default as IconButton } from './IconButton.svelte';
 export { default as LoadingOverlay } from './LoadingOverlay.svelte';
-export { default as SplitButton } from './SplitButton.svelte';
 
 // Export types
 export type * from '../types';
+export type { IconType } from './iconRegistry';
+export { iconRegistry, getIcon, isValidIconType } from './iconRegistry';

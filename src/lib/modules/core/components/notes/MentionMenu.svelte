@@ -105,7 +105,7 @@
 		{#each items as item, index (item.id)}
 			<button
 				type="button"
-				class="flex w-full items-center gap-icon px-input-x py-input-y text-left text-small transition-colors hover:bg-hover-solid {index ===
+				class="flex w-full items-center gap-2 px-input-x py-input-y text-left text-small transition-colors hover:bg-hover-solid {index ===
 				selectedIndex
 					? 'bg-hover-solid'
 					: ''}"

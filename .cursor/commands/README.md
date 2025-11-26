@@ -33,6 +33,8 @@
 | `/code-review`     | New       | 571 lines  | N/A        | ✅ New command - Senior engineer review workflow                    |
 | `/validate`        | New       | 109 lines  | N/A        | ✅ New command - Validation checklist                               |
 | `/svelte-validate` | New       | 514 lines  | N/A        | ✅ New command - Svelte code quality validation                     |
+| `/match-design-system` | 614 lines | ~570 lines  | +56 lines  | ✅ Enhanced - Added component design patterns (lessons learned)     |
+| `/storybook`           | 1 line    | ~250 lines | +249 lines | ✅ Created - Storybook best practices for Svelte components          |
 
 **Net Change**: +3,247 lines total (after removing obsolete commands)
 
@@ -178,6 +180,8 @@
 - **`/code-review`** - Senior engineer review workflow (571 lines)
 - **`/validate`** - Validation checklist (109 lines)
 - **`/svelte-validate`** - Svelte code quality validation (514 lines)
+- **`/match-design-system`** - Design system refactoring workflow (~570 lines)
+- **`/storybook`** - Storybook best practices for Svelte components (~250 lines)
 
 ### Linear Workflow Commands
 
@@ -608,6 +612,48 @@ Next: Run cascade test, then start SYOS-423
 
 ---
 
-**Last Updated**: 2025-11-22  
+### `/match-design-system` Command (2025-01-XX)
+
+**Optimized**: Extracted reference sections to design system docs (614 → 514 lines, -100 lines, 16% reduction)
+
+**Extracted:**
+- **Visual Design Principles** (~40 lines) → `dev-docs/master-docs/design-system.md` section 9.1
+- **Semantic Spacing Tokens** (~42 lines) → `dev-docs/master-docs/design-system.md` section 9.2
+- **Recipe System vs Component Logic** (~35 lines) → `dev-docs/master-docs/design-system.md` section 6.2
+- **Dark Mode Color Considerations** (~8 lines) → `dev-docs/master-docs/design-system.md` section 7.1
+
+**Enhanced** (2024-11-26): Added component design patterns section (~56 lines)
+
+**Added:**
+- **Predefined Icon Registry vs Arbitrary SVG** - Centralized icon registry pattern
+- **Boolean vs Enum for Component States** - API design patterns
+- **Snippet Scope in Svelte Stories** - Storybook snippet patterns
+- **Component API Design: Props vs Storybook Args** - API design insights
+
+**Result**: Command now references design system docs AND includes lessons learned from real-world refactoring.
+
+**Why**: Captures design patterns discovered during component refactoring, prevents repeating mistakes.
+
+---
+
+### `/storybook` Command (2024-11-26)
+
+**Created**: Storybook best practices for Svelte components (new, ~250 lines)
+
+**Purpose**: Best practices for creating and maintaining Storybook stories, including common pitfalls and solutions.
+
+**Key Sections:**
+- **Critical Rules** - HTML comments, TypeScript imports, object keys with hyphens
+- **Conditional argTypes** - Show/hide controls based on other args
+- **Dynamic Component Rendering** - Snippet scope and patterns
+- **Component API vs Storybook Args** - Mapping patterns
+- **Story Caching** - Troubleshooting dynamic import errors
+- **Best Practices Summary** - Quick reference checklist
+
+**Why**: Documents real-world Storybook issues and solutions discovered during icon system refactoring. Prevents repeating mistakes (nested HTML comments, type imports in module scripts, snippet scope issues).
+
+---
+
+**Last Updated**: 2025-01-XX  
 **Purpose**: Document command optimizations and best practices  
-**Latest Change**: Removed 3 obsolete commands (`/linear`, `/linear-subtickets`, `/start-new-project`), added 5 missing commands to documentation (SYOS-448)
+**Latest Change**: Optimized `/match-design-system` command - extracted reference sections to design-system.md

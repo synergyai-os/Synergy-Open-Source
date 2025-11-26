@@ -1,4 +1,15 @@
 <script lang="ts">
+	/**
+	 * DESIGN SYSTEM EXCEPTION: Menu item spacing (SYOS-585)
+	 *
+	 * Menu items use non-standard spacing values that don't fit the base scale:
+	 * - spacing.menu.item.x = 0.625rem (10px) - optimal for menu item padding
+	 * - spacing.menu.item.y = 0.375rem (6px) - optimal for compact menu design
+	 *
+	 * These values are hardcoded because they don't reference base tokens.
+	 * See: dev-docs/2-areas/design/token-file-split-exception-mapping.md
+	 */
+
 	import { DropdownMenu } from 'bits-ui';
 	import type { Snippet } from 'svelte';
 
@@ -43,14 +54,14 @@
 
 	<DropdownMenu.Portal>
 		<DropdownMenu.Content
-			class="z-50 min-w-[180px] rounded-button border border-base bg-elevated py-section shadow-card"
+			class="z-50 min-w-[180px] rounded-button border border-base bg-elevated py-1 shadow-card"
 			side="bottom"
 			align="end"
 			sideOffset={4}
 		>
 			{#each items as item (item.label)}
 				<DropdownMenu.Item
-					class="flex cursor-pointer items-center gap-icon px-menu-item py-menu-item text-button transition-colors outline-none hover:bg-hover-solid focus:bg-hover-solid {item.danger
+					class="flex cursor-pointer items-center gap-2 px-[0.625rem] py-[0.375rem] text-[0.875rem] transition-colors outline-none hover:bg-hover-solid focus:bg-hover-solid {item.danger
 						? 'text-error'
 						: 'text-primary'}"
 					textValue={item.label}

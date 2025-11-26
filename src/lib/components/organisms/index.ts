@@ -30,6 +30,9 @@ export { default as ResizableSplitter } from './ResizableSplitter.svelte';
 export { default as ErrorBoundary } from './ErrorBoundary.svelte';
 export { default as RateLimitError } from './RateLimitError.svelte';
 
+// Auth Organisms
+export { default as LoginBox } from './LoginBox.svelte';
+
 // Complex Form Organisms
 export * as Calendar from './Calendar.svelte';
 export * as RangeCalendar from './RangeCalendar.svelte';

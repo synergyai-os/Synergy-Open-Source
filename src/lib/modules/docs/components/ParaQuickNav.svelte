@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { resolveRoute } from '$lib/utils/navigation';
+	import { ThemeToggle } from '$lib/components/organisms';
 
 	// PARA navigation items
 	const paraItems = [
@@ -51,6 +52,9 @@
 				<span class="para-nav-description" aria-hidden="true">{item.description}</span>
 			</a>
 		{/each}
+		<div class="para-nav-actions">
+			<ThemeToggle />
+		</div>
 	</div>
 </nav>
 
@@ -67,6 +71,13 @@
 		max-width: 900px;
 		margin: 0 auto;
 		align-items: center;
+		justify-content: space-between;
+	}
+
+	.para-nav-actions {
+		display: flex;
+		align-items: center;
+		margin-left: auto;
 	}
 
 	.para-nav-item {
@@ -136,17 +147,18 @@
 	@media (max-width: 768px) {
 		.para-quick-nav {
 			padding: 0.5rem 1rem;
-			overflow-x: auto;
-			-webkit-overflow-scrolling: touch;
 		}
 
 		.para-nav-content {
-			justify-content: flex-start;
+			justify-content: space-between;
+			overflow-x: auto;
+			-webkit-overflow-scrolling: touch;
 		}
 
 		.para-nav-item {
 			padding: 0.5rem 0.75rem;
 			min-width: 70px;
+			flex-shrink: 0;
 		}
 
 		.para-nav-label {
@@ -155,6 +167,11 @@
 
 		.para-nav-description {
 			display: none !important; /* Hide descriptions on mobile (no hover) */
+		}
+
+		.para-nav-actions {
+			flex-shrink: 0;
+			margin-left: 0.5rem;
 		}
 	}
 </style>

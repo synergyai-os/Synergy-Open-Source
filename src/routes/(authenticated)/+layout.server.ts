@@ -196,6 +196,26 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 			: null;
 
 	// ============================================================================
+	// Load org branding for active organization (Phase 2: Org Branding)
+	// ============================================================================
+	let organizationId: string | null = null;
+	let orgBranding: { primaryColor: string; secondaryColor: string; logo?: string } | null = null;
+
+	if (activeOrgId) {
+		organizationId = activeOrgId;
+		try {
+			const brandingResult = await client.query(api.organizations.getBranding, {
+				organizationId: activeOrgId as Id<'organizations'>
+			});
+			orgBranding = brandingResult as { primaryColor: string; secondaryColor: string; logo?: string } | null;
+		} catch (error) {
+			console.warn('Failed to load org branding server-side:', error);
+			// Don't block page load if branding query fails
+			orgBranding = null;
+		}
+	}
+
+	// ============================================================================
 	// Return data to client
 	// ============================================================================
 	return {
@@ -213,6 +233,9 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 		organizationInvites,
 		permissions,
 		tags,
+		// Org branding (Phase 2)
+		organizationId,
+		orgBranding,
 		// Module-specific data (only loaded if flags enabled)
 		meetingsData,
 		circlesData

@@ -98,11 +98,11 @@
 				<div class="flex-1">
 					<h2 class="text-h1 font-bold text-text-primary">{item.title}</h2>
 					<div
-						class="mt-spacing-text-gap text-body-sm flex items-center gap-icon text-text-tertiary"
+						class="mt-spacing-text-gap text-body-sm flex items-center gap-2 text-text-tertiary"
 					>
 						<span>Added by {item.creatorName}</span>
 						{#if item.isProcessed}
-							<span class="gap-icon-sm flex items-center text-success-text">
+							<span class="gap-2-sm flex items-center text-success-text">
 								<svg class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 									<path
 										stroke-linecap="round"
@@ -137,11 +137,11 @@
 						<!-- SECRETARY MODE: Local state with auto-save -->
 						<!-- Save State Indicator -->
 						{#if notes && notes.saveState !== 'idle'}
-							<div class="text-body-sm flex items-center gap-icon">
+							<div class="text-body-sm flex items-center gap-2">
 								{#if notes.saveState === 'saving'}
 									<span class="text-text-tertiary">Saving...</span>
 								{:else if notes.saveState === 'saved'}
-									<span class="gap-icon-sm flex items-center text-success-text">
+									<span class="gap-2-sm flex items-center text-success-text">
 										<svg class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 											<path
 												stroke-linecap="round"

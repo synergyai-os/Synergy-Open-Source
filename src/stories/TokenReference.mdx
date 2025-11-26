@@ -6,1007 +6,261 @@ import { Meta } from '@storybook/addon-docs/blocks';
 
 Complete reference for all design tokens in the SynergyOS design system.
 
----
-
-## 🎯 Token Usage Rules
-
-**ALWAYS use tokens, NEVER hardcode values:**
-
-❌ **WRONG**: `class="px-4 py-2 bg-blue-600"`  
-✅ **CORRECT**: `class="px-button-x py-button-y bg-accent-primary"`
-
-**Why?** Tokens cascade automatically. Change once, updates everywhere.
-
-**Automated Enforcement:**
-
-- ✅ **ESLint Plugin**: Blocks arbitrary values like `min-h-[2.75rem]`, `p-[12px]`
-- ✅ **Pre-commit Hook**: Prevents committing hardcoded Tailwind values
-- ✅ **CI Validation**: GitHub Actions runs `npm run lint` - PRs blocked if violations detected
+**Last Generated**: 2025-11-26T19:59:25.937Z  
+**Total Tokens**: 353  
+**Sources**: `design-tokens-base.json`, `design-tokens-semantic.json`
 
 ---
 
-## 🔄 Token Cascade System
+## Quick Links
 
-**Understanding how tokens flow from base → semantic → utility:**
-
-### Three-Layer Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  BASE TOKENS (Foundation)                                   │
-│  Hardcoded values: 0.5rem, 1rem, 1.5rem                    │
-│  Example: spacing.2 = "0.5rem"                             │
-└──────────────────────┬──────────────────────────────────────┘
-                       │ References
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│  SEMANTIC TOKENS (Component-specific)                      │
-│  Reference base tokens: {spacing.2}                        │
-│  Example: spacing.nav.item.x = "{spacing.2}"               │
-└──────────────────────┬──────────────────────────────────────┘
-                       │ Generates
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│  UTILITY CLASSES (CSS classes)                              │
-│  Generated from semantic tokens                             │
-│  Example: px-nav-item → var(--spacing-nav-item-x)          │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### How Cascade Works
-
-**Base tokens** are the foundation - they contain hardcoded values:
-
-```json
-{
-	"spacing": {
-		"2": {
-			"$value": "0.5rem",
-			"$description": "8px = sm"
-		}
-	}
-}
-```
-
-**Semantic tokens** reference base tokens using `{spacing.X}` format:
-
-```json
-{
-	"spacing": {
-		"nav": {
-			"item": {
-				"x": {
-					"$value": "{spacing.2}",
-					"$description": "Nav item horizontal padding"
-				}
-			}
-		}
-	}
-}
-```
-
-**Utility classes** are automatically generated from semantic tokens:
-
-```css
-/* Generated CSS */
-.px-nav-item {
-	padding-left: var(--spacing-nav-item-x);
-	padding-right: var(--spacing-nav-item-x);
-}
-```
-
-### Cascade Benefits
-
-**Change once, update everywhere:**
-
-1. Update base token: `spacing.2 = "0.75rem"` (was `0.5rem`)
-2. All semantic tokens update automatically: `spacing.nav.item.x` → `0.75rem`
-3. All components using `px-nav-item` update automatically
-4. **No component code changes needed** ✅
-
-**Example cascade:**
-
-```json
-// Base token change
-"spacing.2": "0.75rem"  // Changed from 0.5rem
-
-// Semantic tokens automatically update
-"spacing.nav.item.x": "{spacing.2}"      // → 0.75rem ✅
-"spacing.menu.item.x": "{spacing.2}"      // → 0.75rem ✅
-"spacing.badge.x": "{spacing.2}"          // → 0.75rem ✅
-```
+- [Colors](#-colors)
+- [Typography](#-typography)
+- [Spacing](#-spacing)
+- [Shadows](#-shadows)
+- [Border Radius](#-border-radius)
+- [Z-Index](#-z-index)
+- [Breakpoints](#-breakpoints)
+- [Opacity](#-opacity)
 
 ---
 
-## 📝 Reference Format
+## 🎨 Colors
 
-**Understanding the `{spacing.X}` syntax:**
+### Brand Colors
 
-### What Does `{spacing.2}` Mean?
+| Token | Value | Description |
+|-------|-------|-------------|
+| `--color-brand-primary` | `oklch(55% 0.15 195)` | Deep Teal - Primary brand color. Intelligence, innovation, trust. |
+| `--color-brand-primaryLight` | `oklch(65% 0.12 195)` | Lighter teal for hover states and highlights |
+| `--color-brand-primaryDark` | `oklch(45% 0.15 195)` | Darker teal for pressed states and emphasis |
+| `--color-brand-secondary` | `oklch(75% 0.14 65)` | Warm Amber - Secondary brand. Energy, community, warmth. |
+| `--color-brand-secondaryLight` | `oklch(82% 0.12 65)` | Lighter amber for hover states |
+| `--color-brand-secondaryDark` | `oklch(65% 0.14 65)` | Darker amber for pressed states |
 
-The `{spacing.2}` format is **DTCG (Design Tokens Community Group) reference syntax**. It tells the token system to:
+### Neutral Colors
 
-1. Look up the base token `spacing.2`
-2. Use its value (`0.5rem`)
-3. Create a reference relationship (cascade)
+| Token | Value | Description |
+|-------|-------|-------------|
+| `--color-neutral-0` | `oklch(100% 0 0)` | Pure white |
+| `--color-neutral-50` | `oklch(98% 0.002 264)` | Barely gray - subtle backgrounds |
+| `--color-neutral-100` | `oklch(96% 0.004 264)` | Very light gray - elevated surfaces (light mode) |
+| `--color-neutral-200` | `oklch(92% 0.006 264)` | Light gray - borders, dividers (light mode) |
+| `--color-neutral-300` | `oklch(85% 0.01 264)` | Medium-light gray - disabled states |
+| `--color-neutral-400` | `oklch(70% 0.015 264)` | Medium gray - placeholder text |
+| `--color-neutral-500` | `oklch(55% 0.02 264)` | True medium gray - tertiary text |
+| `--color-neutral-600` | `oklch(45% 0.025 264)` | Medium-dark gray - secondary text |
+| `--color-neutral-700` | `oklch(37% 0.03 264)` | Dark gray - borders (dark mode) |
+| `--color-neutral-800` | `oklch(27% 0.025 264)` | Very dark gray - elevated surfaces (dark mode) |
+| `--color-neutral-900` | `oklch(20% 0.02 264)` | Near black - base background (dark mode) |
+| `--color-neutral-950` | `oklch(13% 0.015 264)` | Deepest gray - true dark backgrounds |
+| `--color-neutral-1000` | `oklch(0% 0 0)` | Pure black |
 
-### Reference Format Rules
+### Status Colors
 
-**✅ CORRECT - References base token:**
+| Token | Value | Description |
+|-------|-------|-------------|
+| `--color-status-error` | `oklch(60% 0.25 25)` | Red - Errors, destructive actions, failures |
+| `--color-status-errorLight` | `oklch(85% 0.08 25)` | Light red - Error backgrounds |
+| `--color-status-errorDark` | `oklch(50% 0.22 25)` | Dark red - Error hover/pressed |
+| `--color-status-warning` | `oklch(75% 0.15 70)` | Orange/Yellow - Warnings, caution |
+| `--color-status-warningLight` | `oklch(92% 0.06 70)` | Light yellow - Warning backgrounds |
+| `--color-status-warningDark` | `oklch(65% 0.14 70)` | Dark orange - Warning hover/pressed |
+| `--color-status-success` | `oklch(60% 0.17 145)` | Green - Success, positive outcomes |
+| `--color-status-successLight` | `oklch(92% 0.06 145)` | Light green - Success backgrounds |
+| `--color-status-successDark` | `oklch(50% 0.15 145)` | Dark green - Success hover/pressed |
+| `--color-status-info` | `oklch(60% 0.18 250)` | Blue - Information, neutral feedback |
+| `--color-status-infoLight` | `oklch(92% 0.05 250)` | Light blue - Info backgrounds |
+| `--color-status-infoDark` | `oklch(50% 0.16 250)` | Dark blue - Info hover/pressed |
 
-```json
-{
-	"spacing": {
-		"nav": {
-			"item": {
-				"x": {
-					"$value": "{spacing.2}", // ✅ References base token
-					"$description": "Nav item horizontal padding"
-				}
-			}
-		}
-	}
-}
-```
+### Accent Colors
 
-**❌ WRONG - Hardcoded value (breaks cascade):**
-
-```json
-{
-	"spacing": {
-		"nav": {
-			"item": {
-				"x": {
-					"$value": "0.5rem", // ❌ Hardcoded - won't cascade
-					"$description": "Nav item horizontal padding"
-				}
-			}
-		}
-	}
-}
-```
-
-### Exception Tokens
-
-Some tokens intentionally don't reference base tokens (optimized for specific components). These must be documented:
-
-```json
-{
-	"spacing": {
-		"nav": {
-			"item": {
-				"y": {
-					"$value": "0.375rem", // Exception: 6px (not in base scale)
-					"$description": "6px - INTENTIONAL EXCEPTION: Optimal touch target size. spacing.1 (4px) too small, spacing.2 (8px) too large."
-				}
-			}
-		}
-	}
-}
-```
-
-**Validation**: Run `npm run tokens:validate-semantic` to check all semantic tokens reference base tokens correctly.
+| Token | Value | Description |
+|-------|-------|-------------|
+| `--color-accent-coral` | `oklch(65% 0.2 15)` | Warm coral - Creative, playful |
+| `--color-accent-purple` | `oklch(55% 0.2 300)` | Rich purple - Premium, AI-related |
+| `--color-accent-blue` | `oklch(60% 0.18 250)` | Classic blue - Trust, stability |
+| `--color-accent-teal` | `oklch(60% 0.14 180)` | Vibrant teal - Fresh, modern |
+| `--color-accent-lime` | `oklch(75% 0.18 130)` | Energetic lime - Growth, progress |
+| `--color-accent-gold` | `oklch(78% 0.14 85)` | Warm gold - Premium, achievement |
 
 ---
 
-## 📏 Spacing Tokens
-
-### Base Scale (4px unit)
-
-All spacing tokens reference this base scale:
-
-| Token          | Value   | Pixels | Usage                |
-| -------------- | ------- | ------ | -------------------- |
-| `--spacing-0`  | 0       | 0px    | No spacing           |
-| `--spacing-1`  | 0.25rem | 4px    | Extra small spacing  |
-| `--spacing-2`  | 0.5rem  | 8px    | Small spacing        |
-| `--spacing-3`  | 0.75rem | 12px   | Medium-small spacing |
-| `--spacing-4`  | 1rem    | 16px   | Medium spacing       |
-| `--spacing-5`  | 1.25rem | 20px   | Medium-large spacing |
-| `--spacing-6`  | 1.5rem  | 24px   | Large spacing        |
-| `--spacing-8`  | 2rem    | 32px   | Extra large spacing  |
-| `--spacing-12` | 3rem    | 48px   | 2XL spacing          |
-| `--spacing-16` | 4rem    | 64px   | 3XL spacing          |
-
-### Semantic Spacing Tokens
-
-Component-specific spacing tokens (reference base scale):
-
-#### Application UI Tokens
-
-| Token                       | Utility Class      | Value           | References    | Usage                                 |
-| --------------------------- | ------------------ | --------------- | ------------- | ------------------------------------- |
-| `--spacing-nav-container-x` | `px-nav-container` | 0.5rem (8px)    | `{spacing.2}` | Nav container horizontal padding      |
-| `--spacing-nav-container-y` | `py-nav-container` | 0.5rem (8px)    | `{spacing.2}` | Nav container vertical padding        |
-| `--spacing-nav-item-x`      | `px-nav-item`      | 0.5rem (8px)    | `{spacing.2}` | Nav item horizontal padding           |
-| `--spacing-nav-item-y`      | `py-nav-item`      | 0.375rem (6px)  | Exception\*   | Nav item vertical padding             |
-| `--spacing-menu-item-x`     | `px-menu-item`     | 0.625rem (10px) | Exception\*   | Menu/dropdown item horizontal padding |
-| `--spacing-menu-item-y`     | `py-menu-item`     | 0.375rem (6px)  | Exception\*   | Menu/dropdown item vertical padding   |
-| `--spacing-badge-x`         | `px-badge`         | 0.375rem (6px)  | Exception\*   | Badge horizontal padding              |
-| `--spacing-badge-y`         | `py-badge`         | 0.125rem (2px)  | Exception\*   | Badge vertical padding                |
-| `--spacing-icon-gap`        | `gap-icon`         | 0.5rem (8px)    | `{spacing.2}` | Standard icon-text gap                |
-| `--spacing-icon-gap-wide`   | `gap-icon-wide`    | 0.625rem (10px) | Exception\*   | Wider icon-text gap                   |
-
-\* **Exception tokens**: These values don't map to base scale (optimized for specific components). See `design-system.json` for exception documentation.
-
-#### Button Component Tokens
-
-| Token                    | Utility Class      | Value          | References    | Usage                               |
-| ------------------------ | ------------------ | -------------- | ------------- | ----------------------------------- |
-| `--spacing-button-x`     | `px-button-x`      | 1.5rem (24px)  | `{spacing.6}` | Button horizontal padding           |
-| `--spacing-button-y`     | `py-button-y`      | 0.75rem (12px) | `{spacing.3}` | Button vertical padding             |
-| `--spacing-button-icon`  | `p-button-icon`    | 0.75rem (12px) | `{spacing.3}` | Icon-only button padding (square)   |
-| `--size-button-height`   | `min-h-button`     | 2.75rem (44px) | Exception\*   | Minimum button height (all types)   |
-| `--spacing-button-group` | `gap-button-group` | 0.5rem (8px)   | `{spacing.2}` | Gap between buttons in action group |
-
-\* **Exception tokens**: See `design-system.json` for exception documentation.
-
-#### Card Component Tokens
-
-| Token                      | Utility Class | Value          | References    | Usage                   |
-| -------------------------- | ------------- | -------------- | ------------- | ----------------------- |
-| `--spacing-card-padding-x` | `px-card`     | 1.25rem (20px) | `{spacing.5}` | Card horizontal padding |
-| `--spacing-card-padding-y` | `py-card`     | 1.25rem (20px) | `{spacing.5}` | Card vertical padding   |
-
-#### Marketing Page Tokens
-
-| Token                              | Utility Class            | Value         | References     | Usage                                     |
-| ---------------------------------- | ------------------------ | ------------- | -------------- | ----------------------------------------- |
-| `--spacing-marketing-section-y`    | `py-marketing-section`   | 7rem (112px)  | `{spacing.28}` | Section vertical padding (top and bottom) |
-| `--spacing-marketing-container-x`  | `px-marketing-container` | 1.5rem (24px) | `{spacing.6}`  | Page horizontal padding (mobile/desktop)  |
-| `--spacing-marketing-card-padding` | `p-marketing-card`       | 2.5rem (40px) | `{spacing.10}` | Card internal padding                     |
-| `--spacing-marketing-card-gap`     | `gap-marketing-card`     | 2rem (32px)   | `{spacing.8}`  | Gap between cards in grid                 |
-
-### Cascade Example: How Changes Propagate
-
-**Visual example showing how updating a base token cascades through the system:**
-
-#### Before Change
-
-```json
-// Base token
-"spacing.2": "0.5rem"  // 8px
-
-// Semantic tokens (all reference base)
-"spacing.nav.item.x": "{spacing.2}"      // → 0.5rem (8px)
-"spacing.menu.item.x": "{spacing.2}"     // → 0.5rem (8px)
-"spacing.badge.x": "{spacing.2}"         // → 0.5rem (8px)
-"spacing.button.group": "{spacing.2}"    // → 0.5rem (8px)
-
-// Components using utilities
-<group → px-nav-item → 0.5rem (8px)
-px-menu-item → 0.5rem (8px)
-px-badge → 0.5rem (8px)
-gap-button-group → 0.5rem (8px)
-```
-
-#### After Base Token Change
-
-```json
-// Update base token once
-"spacing.2": "0.75rem"  // Changed from 0.5rem to 0.75rem (12px)
-
-// Semantic tokens automatically update (no changes needed)
-"spacing.nav.item.x": "{spacing.2}"      // → 0.75rem (12px) ✅
-"spacing.menu.item.x": "{spacing.2}"     // → 0.75rem (12px) ✅
-"spacing.badge.x": "{spacing.2}"         // → 0.75rem (12px) ✅
-"spacing.button.group": "{spacing.2}"    // → 0.75rem (12px) ✅
-
-// Components automatically update (no code changes needed)
-px-nav-item → 0.75rem (12px) ✅
-px-menu-item → 0.75rem (12px) ✅
-px-badge → 0.75rem (12px) ✅
-gap-button-group → 0.75rem (12px) ✅
-```
-
-**Result**: Change one base token, update 4+ semantic tokens and all components automatically. **No component code changes needed.**
-
-### Utility Classes
-
-**Use utility classes in components:**
-
-```svelte
-<!-- Button -->
-<button class="min-h-button rounded-button px-button-x py-button-y"> Click me </button>
-
-<!-- Card -->
-<div class="rounded-card bg-elevated px-card py-card">Card content</div>
-
-<!-- Nav Item -->
-<a class="flex items-center gap-icon px-nav-item py-nav-item">
-	<Icon class="icon-md" />
-	<span>Nav Item</span>
-</a>
-```
-
----
-
-## 🎨 Color Tokens
-
-### Semantic Colors (Auto Dark Mode)
-
-All color tokens adapt automatically to light/dark mode:
-
-#### Surface Colors
-
-<div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-4)' }}>
-	<div
-		style={{
-			background: 'var(--color-bg-base)',
-			padding: 'var(--spacing-4)',
-			borderRadius: '8px',
-			border: '1px solid var(--color-border-base)'
-		}}
-	>
-		<code>bg-base</code> - Base background (page background)
-	</div>
-	<div
-		style={{
-			background: 'var(--color-bg-surface)',
-			padding: 'var(--spacing-4)',
-			borderRadius: '8px',
-			border: '1px solid var(--color-border-base)'
-		}}
-	>
-		<code>bg-surface</code> - Surface background (panels, lists)
-	</div>
-	<div
-		style={{
-			background: 'var(--color-bg-elevated)',
-			padding: 'var(--spacing-4)',
-			borderRadius: '8px',
-			border: '1px solid var(--color-border-elevated)'
-		}}
-	>
-		<code>bg-elevated</code> - Elevated surfaces (cards, modals)
-	</div>
-</div>
-
-#### Text Colors
-
-<div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
-	<div style={{ color: 'var(--color-text-primary)' }}>
-		<code>text-primary</code> - Primary text (headings, important content)
-	</div>
-	<div style={{ color: 'var(--color-text-secondary)' }}>
-		<code>text-secondary</code> - Secondary text (descriptions, subtitles)
-	</div>
-	<div style={{ color: 'var(--color-text-tertiary)' }}>
-		<code>text-tertiary</code> - Tertiary text (labels, hints)
-	</div>
-</div>
-
-#### Accent Colors
-
-<div style={{ display: 'flex', gap: 'var(--spacing-4)', flexWrap: 'wrap' }}>
-	<div
-		style={{
-			background: 'var(--color-accent-primary)',
-			padding: 'var(--spacing-4)',
-			borderRadius: '8px',
-			color: 'white'
-		}}
-	>
-		<code>bg-accent-primary</code>
-	</div>
-	<div
-		style={{
-			background: 'var(--color-bg-selected)',
-			padding: 'var(--spacing-4)',
-			borderRadius: '8px',
-			color: 'white'
-		}}
-	>
-		<code>bg-selected</code>
-	</div>
-</div>
-
-#### Interactive States
-
-<div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
-	<div
-		style={{
-			background: 'var(--color-bg-hover)',
-			padding: 'var(--spacing-4)',
-			borderRadius: '8px'
-		}}
-	>
-		<code>bg-hover</code> - Hover background (subtle, 50% opacity)
-	</div>
-	<div
-		style={{
-			background: 'var(--color-bg-hover-solid)',
-			padding: 'var(--spacing-4)',
-			borderRadius: '8px'
-		}}
-	>
-		<code>bg-hover-solid</code> - Hover background (solid)
-	</div>
-</div>
-
-#### Complete Color Reference
-
-| Token                     | Utility Class          | Dark Mode   | Light Mode  | Usage                                      |
-| ------------------------- | ---------------------- | ----------- | ----------- | ------------------------------------------ |
-| `--color-text-primary`    | `text-primary`         | white       | gray-900    | Primary text (headings, important content) |
-| `--color-text-secondary`  | `text-secondary`       | gray-300    | gray-600    | Secondary text (descriptions, subtitles)   |
-| `--color-text-tertiary`   | `text-tertiary`        | gray-500    | gray-500    | Tertiary text (labels, hints)              |
-| `--color-bg-base`         | `bg-base`              | gray-900    | white       | Base background (page background)          |
-| `--color-bg-surface`      | `bg-surface`           | gray-800    | gray-50     | Surface background (panels, lists)         |
-| `--color-bg-elevated`     | `bg-elevated`          | gray-750    | white       | Elevated surfaces (cards, modals)          |
-| `--color-border-base`     | `border-base`          | gray-800    | gray-200    | Base borders                               |
-| `--color-border-elevated` | `border-elevated`      | gray-700    | gray-300    | Elevated borders (cards)                   |
-| `--color-accent-primary`  | `bg-accent-primary`    | blue-600    | blue-600    | Primary accent (selected states, links)    |
-| `--color-bg-hover`        | `hover:bg-hover`       | gray-800/50 | gray-100/50 | Hover background (subtle)                  |
-| `--color-bg-hover-solid`  | `hover:bg-hover-solid` | gray-800    | gray-100    | Hover background (solid)                   |
-| `--color-bg-selected`     | `bg-selected`          | blue-600    | blue-600    | Selected state background                  |
-| `--color-tag-bg`          | `bg-tag`               | gray-700    | gray-100    | Tag/chip background                        |
-| `--color-tag-text`        | `text-tag`             | gray-300    | gray-600    | Tag/chip text                              |
-
----
-
-## ✍️ Typography Tokens
+## 📝 Typography
 
 ### Font Families
 
-**Base Fonts:**
+| Token | Value | Description |
+|-------|-------|-------------|
+| `--typography-fontFamily-sans` | `'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif` | Primary sans-serif - Plus Jakarta Sans: modern, geometric, friendly yet professional |
+| `--typography-fontFamily-heading` | `'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif` | Headings - Same font, use heavier weights (600-700) for hierarchy |
+| `--typography-fontFamily-mono` | `'JetBrains Mono', 'SF Mono', Consolas, Monaco, 'Courier New', monospace` | Monospace - JetBrains Mono: excellent coding font with ligatures |
+| `--typography-fontFamily-serif` | `Merriweather, Georgia, Cambria, 'Times New Roman', serif` | Serif - Merriweather: elegant, readable long-form content |
 
-```css
-font-sans /* Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif */
-font-mono /* JetBrains Mono, Menlo, Monaco, 'Courier New', monospace */
-font-serif /* Georgia, Cambria, 'Times New Roman', serif */
-```
+### Font Sizes
 
-**Semantic Fonts (Reference Base Fonts):**
+| Token | Value | Pixels | Description |
+|-------|-------|--------|-------------|
+| `--typography-fontSize-2xs` | 0.625rem | 10px | 10px - Tiny labels, legal text |
+| `--typography-fontSize-xs` | 0.75rem | 12px | 12px - Small labels, badges |
+| `--typography-fontSize-sm` | 0.875rem | 14px | 14px - Secondary text, buttons |
+| `--typography-fontSize-base` | 1rem | 16px | 16px - Body text, default |
+| `--typography-fontSize-lg` | 1.125rem | 18px | 18px - Large body, emphasis |
+| `--typography-fontSize-xl` | 1.25rem | 20px | 20px - Small headings |
+| `--typography-fontSize-2xl` | 1.5rem | 24px | 24px - Section headings |
+| `--typography-fontSize-3xl` | 1.875rem | 30px | 30px - Page headings |
+| `--typography-fontSize-4xl` | 2.25rem | 36px | 36px - Large headings |
+| `--typography-fontSize-5xl` | 3rem | 48px | 48px - Hero headings |
+| `--typography-fontSize-6xl` | 3.75rem | 60px | 60px - Display headings |
+| `--typography-fontSize-7xl` | 4.5rem | 72px | 72px - Giant display text |
 
-```css
-font-heading /* var(--fonts-sans) - For all headings (h1-h6, Heading component) */
-font-body /* var(--fonts-sans) - For body text, paragraphs, UI components (Button, Badge, Text) */
-font-code /* var(--fonts-mono) - For code blocks, inline code, KeyboardShortcut component */
-```
+### Font Weights
 
-**Cascade Example:**
-Change `--fonts-sans` in `design-system.json` → All headings + body text update automatically (no code changes needed).
-
-### Text Sizes
-
-| Token               | Utility Class | Size            | Line Height | Usage               |
-| ------------------- | ------------- | --------------- | ----------- | ------------------- |
-| `--font-size-h1`    | `text-h1`     | 2.25rem (36px)  | 700         | Page titles         |
-| `--font-size-h2`    | `text-h2`     | 1.75rem (28px)  | 600         | Section headings    |
-| `--font-size-h3`    | `text-h3`     | 1.25rem (20px)  | 600         | Subsection headings |
-| `--font-size-body`  | `text-body`   | 1rem (16px)     | 1.5rem      | Body text           |
-| `--font-size-small` | `text-small`  | 0.875rem (14px) | 1.25rem     | Captions, labels    |
-| `--text-label`      | `text-label`  | 0.625rem (10px) | 1rem        | Form labels, badges |
-
-**Example:**
-
-```svelte
-<h1 class="font-heading text-h1 text-primary">Page Title</h1>
-<h2 class="font-heading text-h2 text-primary">Section Title</h2>
-<p class="font-body text-body text-secondary">Body text content</p>
-<span class="font-body text-small text-tertiary">Caption text</span>
-<span class="bg-tag px-badge py-badge font-body text-label text-tag">Badge</span>
-<code class="font-code text-small">const example = 'code';</code>
-```
-
-### Readability Tokens (Optimized for ADHD/Focus-Challenged Users)
-
-| Token                        | Utility Class       | Value         | Usage                                             |
-| ---------------------------- | ------------------- | ------------- | ------------------------------------------------- |
-| `--line-height-readable`     | `leading-readable`  | 1.75          | Optimal line-height for comfortable reading       |
-| `--letter-spacing-readable`  | `tracking-readable` | 0 (normal)    | Normal letter spacing                             |
-| `--max-width-readable`       | `max-w-readable`    | 42rem (672px) | Optimal reading width (65-75 characters per line) |
-| `--spacing-readable-quote-y` | `py-readable-quote` | 2rem (32px)   | Vertical padding for quote/highlight containers   |
+| Token | Value | Description |
+|-------|-------|-------------|
+| `--typography-fontWeight-thin` | 100 | Thin - Decorative only |
+| `--typography-fontWeight-extralight` | 200 | Extra light - Large display text |
+| `--typography-fontWeight-light` | 300 | Light - Elegant body text |
+| `--typography-fontWeight-regular` | 400 | Regular - Default body text |
+| `--typography-fontWeight-medium` | 500 | Medium - Emphasis, buttons |
+| `--typography-fontWeight-semibold` | 600 | Semibold - Subheadings, strong emphasis |
+| `--typography-fontWeight-bold` | 700 | Bold - Headings |
+| `--typography-fontWeight-extrabold` | 800 | Extra bold - Strong headings |
+| `--typography-fontWeight-black` | 900 | Black - Display, impact |
 
 ---
 
-## 📐 Border Radius Tokens
+## 📏 Spacing
 
-| Token                    | Utility Class    | Value           | Usage              |
-| ------------------------ | ---------------- | --------------- | ------------------ |
-| `--border-radius-button` | `rounded-button` | 0.5rem (8px)    | Buttons            |
-| `--border-radius-card`   | `rounded-card`   | 0.875rem (14px) | Cards              |
-| `--border-radius-dialog` | `rounded-dialog` | 0.875rem (14px) | Dialogs, modals    |
-| `--border-radius-input`  | `rounded-input`  | 0.125rem (2px)  | Form inputs        |
-| `--border-radius-badge`  | `rounded-badge`  | 0.25rem (4px)   | Badges             |
-| `--border-radius-chip`   | `rounded-chip`   | 9999px (full)   | Chips (pill shape) |
-
-**Example:**
-
-```svelte
-<button class="rounded-button bg-accent-primary px-button-x py-button-y">Button</button>
-<div class="rounded-card bg-elevated px-card py-card">Card</div>
-<input class="rounded-input border border-base px-input-x py-input-y" />
-<span class="rounded-badge bg-tag px-badge py-badge text-tag">Badge</span>
-```
-
----
-
-## 🎨 Shadow Tokens
-
-Shadow tokens provide consistent elevation and depth for UI elements:
-
-| Token              | Utility Class    | Value                                                    | Usage                |
-| ------------------ | ---------------- | -------------------------------------------------------- | -------------------- |
-| `--shadow-card`    | `shadow-card`    | 0 2px 8px rgb(0 0 0 / 0.08), 0 1px 2px rgb(0 0 0 / 0.04) | Card elevation       |
-| `--shadow-pinglow` | `shadow-pinglow` | 0 0 0 3px var(--color-accent-primary) / 0.15             | PIN input focus glow |
-
-**Example:**
-
-```svelte
-<div class="rounded-card bg-elevated px-card py-card shadow-card">Elevated card with shadow</div>
-
-<!-- PIN input with focus glow -->
-<input class="shadow-pinglow" />
-```
-
-**Cascade Example:**
-
-Change shadow color in `design-system.json`:
-
-```json
-{
-	"shadow": {
-		"pinglow": {
-			"$value": "0 0 0 4px var(--color-accent-primary) / 0.2" // Changed size and opacity
-		}
-	}
-}
-```
-
-After running `npm run tokens:build`:
-
-- ✅ CSS variable updates: `--shadow-pinglow: 0 0 0 4px var(--color-accent-primary) / 0.2`
-- ✅ All PIN inputs use new shadow automatically
-- ✅ No code changes needed
+| Token | Value | Pixels | Description |
+|-------|-------|--------|-------------|
+| `--spacing-0` | 0 | 0 | 0px |
+| `--spacing-1` | 0.25rem | 4px | 4px - Tight |
+| `--spacing-2` | 0.5rem | 8px | 8px - Compact |
+| `--spacing-3` | 0.75rem | 12px | 12px - Default small |
+| `--spacing-4` | 1rem | 16px | 16px - Default medium |
+| `--spacing-5` | 1.25rem | 20px | 20px |
+| `--spacing-6` | 1.5rem | 24px | 24px - Default large |
+| `--spacing-7` | 1.75rem | 28px | 28px |
+| `--spacing-8` | 2rem | 32px | 32px - Section spacing |
+| `--spacing-9` | 2.25rem | 36px | 36px |
+| `--spacing-10` | 2.5rem | 40px | 40px |
+| `--spacing-11` | 2.75rem | 44px | 44px |
+| `--spacing-12` | 3rem | 48px | 48px - Large section |
+| `--spacing-14` | 3.5rem | 56px | 56px |
+| `--spacing-16` | 4rem | 64px | 64px |
+| `--spacing-20` | 5rem | 80px | 80px - Page sections |
+| `--spacing-24` | 6rem | 96px | 96px |
+| `--spacing-28` | 7rem | 112px | 112px |
+| `--spacing-32` | 8rem | 128px | 128px - Hero spacing |
+| `--spacing-36` | 9rem | 144px | 144px |
+| `--spacing-40` | 10rem | 160px | 160px |
+| `--spacing-44` | 11rem | 176px | 176px |
+| `--spacing-48` | 12rem | 192px | 192px |
+| `--spacing-52` | 13rem | 208px | 208px |
+| `--spacing-56` | 14rem | 224px | 224px |
+| `--spacing-60` | 15rem | 240px | 240px |
+| `--spacing-64` | 16rem | 256px | 256px |
+| `--spacing-72` | 18rem | 288px | 288px |
+| `--spacing-80` | 20rem | 320px | 320px |
+| `--spacing-96` | 24rem | 384px | 384px |
+| `--spacing-px` | 1px | 1px | 1px - Hairline |
+| `--spacing-0.5` | 0.125rem | 2px | 2px |
+| `--spacing-1.5` | 0.375rem | 6px | 6px |
+| `--spacing-2.5` | 0.625rem | 10px | 10px |
+| `--spacing-3.5` | 0.875rem | 14px | 14px |
 
 ---
 
-## 📏 Size Tokens
+## 🌑 Shadows
 
-Size tokens define fixed dimensions for consistent UI element sizing:
-
-### Component Sizes
-
-| Token                  | Utility Class    | Value          | Usage                                 |
-| ---------------------- | ---------------- | -------------- | ------------------------------------- |
-| `--size-button-height` | `min-h-button`   | 2.75rem (44px) | Minimum button height (accessibility) |
-| `--size-icon-xs`       | `icon-xs`        | 0.75rem (12px) | Extra small icons                     |
-| `--size-icon-sm`       | `icon-sm`        | 1rem (16px)    | Small icons                           |
-| `--size-icon-md`       | `icon-md`        | 1.25rem (20px) | Medium icons (standard)               |
-| `--size-icon-lg`       | `icon-lg`        | 1.5rem (24px)  | Large icons                           |
-| `--size-icon-xl`       | `icon-xl`        | 2rem (32px)    | Extra large icons                     |
-| `--size-avatar-sm`     | `size-avatar-sm` | 2rem (32px)    | Small avatar                          |
-| `--size-avatar-md`     | `size-avatar-md` | 2.5rem (40px)  | Medium avatar                         |
-| `--size-avatar-lg`     | `size-avatar-lg` | 3rem (48px)    | Large avatar                          |
-
-### Container Sizes
-
-| Token                             | Utility Class          | Value            | Usage                                    |
-| --------------------------------- | ---------------------- | ---------------- | ---------------------------------------- |
-| `--size-max-width-readable`       | `max-w-readable`       | 42rem (672px)    | Optimal reading width (65-75 characters) |
-| `--size-max-width-container`      | `max-w-container`      | 72rem (1152px)   | Max container width                      |
-| `--size-min-width-dropdown`       | `min-w-dropdown`       | 11.25rem (180px) | Minimum dropdown width                   |
-| `--size-max-width-dialog-default` | `max-w-dialog-default` | 100vw            | Default dialog width (mobile)            |
-
-### Specialized Sizes
-
-| Token                     | Utility Class           | Value         | Usage                      |
-| ------------------------- | ----------------------- | ------------- | -------------------------- |
-| `--size-pin-cell`         | `size-pin-cell`         | 4rem (64px)   | Square PIN input cell      |
-| `--size-pin-cell-text`    | `size-pin-cell-text`    | 2rem (32px)   | Text size inside PIN cells |
-| `--size-tab-height`       | `size-tab-height`       | 2.5rem (40px) | Tab container height       |
-| `--size-keyboard-key`     | `size-keyboard-key`     | 3rem (48px)   | Keyboard shortcut display  |
-| `--size-quote-decoration` | `size-quote-decoration` | 5rem (80px)   | Decorative quote mark size |
-
-**Example:**
-
-```svelte
-<!-- Button with standard height -->
-<button class="min-h-button px-button-x py-button-y">Click me</button>
-
-<!-- Avatar sizes -->
-<img class="size-avatar-sm rounded-avatar" src="..." alt="User" />
-<img class="size-avatar-md rounded-avatar" src="..." alt="User" />
-<img class="size-avatar-lg rounded-avatar" src="..." alt="User" />
-
-<!-- Icon sizes -->
-<svg class="icon-sm">...</svg>
-<svg class="icon-md">...</svg>
-<svg class="icon-lg">...</svg>
-
-<!-- Readable content -->
-<article class="max-w-readable">
-	<p>Long-form content optimized for readability...</p>
-</article>
-```
-
-**Cascade Example:**
-
-Change button height in `design-system.json`:
-
-```json
-{
-	"size": {
-		"buttonheight": {
-			"$value": "3rem" // Changed from 2.75rem (44px) to 3rem (48px)
-		}
-	}
-}
-```
-
-After running `npm run tokens:build`:
-
-- ✅ CSS variable updates: `--size-button-height: 3rem`
-- ✅ All buttons use new height automatically
-- ✅ No code changes needed
+| Token | Value | Description |
+|-------|-------|-------------|
+| `--shadow-none` | `none` | No shadow |
+| `--shadow-xs` | `0 1px 2px 0 rgb(0 0 0 / 0.03)` | Barely visible lift - subtle hints |
+| `--shadow-sm` | `0 2px 8px -2px rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.04)` | Soft card elevation - buttons, small cards |
+| `--shadow-default` | `0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.04)` | Standard elevation - cards, dropdowns |
+| `--shadow-md` | `0 8px 24px -4px rgb(0 0 0 / 0.1), 0 4px 8px -4px rgb(0 0 0 / 0.05)` | Medium elevation - hover cards, popovers |
+| `--shadow-lg` | `0 16px 48px -8px rgb(0 0 0 / 0.12), 0 8px 16px -4px rgb(0 0 0 / 0.06)` | Large elevation - modals, dialogs |
+| `--shadow-xl` | `0 24px 64px -12px rgb(0 0 0 / 0.16), 0 12px 24px -6px rgb(0 0 0 / 0.08)` | Extra large - full modals, command palettes |
+| `--shadow-2xl` | `0 32px 80px -16px rgb(0 0 0 / 0.2), 0 16px 32px -8px rgb(0 0 0 / 0.1)` | Dramatic - hero overlays, immersive modals |
+| `--shadow-inner` | `inset 0 1px 2px 0 rgb(0 0 0 / 0.04)` | Subtle inset shadow - pressed states, inputs |
+| `--shadow-glow` | `0 0 24px -4px rgb(0 0 0 / 0.1)` | Soft glow effect - focus states, highlights |
 
 ---
 
-## 🔢 Z-Index Tokens
+## 📐 Border Radius
 
-Z-index tokens provide consistent layering for overlapping UI elements:
-
-| Token                          | Utility Class          | Value | Usage                               |
-| ------------------------------ | ---------------------- | ----- | ----------------------------------- |
-| `--z-index-sidebar`            | `z-sidebar`            | 50    | Sidebar layer                       |
-| `--z-index-panel-backdrop-min` | `z-panel-backdrop-min` | 51    | Panel backdrop (above sidebar)      |
-| `--z-index-panel-base`         | `z-panel-base`         | 60    | First panel layer                   |
-| `--z-index-panel-increment`    | N/A                    | 10    | Increment per panel (60, 70, 80...) |
-
-**Usage Pattern:**
-
-```svelte
-<!-- Sidebar -->
-<aside class="z-sidebar">Sidebar content</aside>
-
-<!-- Panel backdrop -->
-<div class="z-panel-backdrop-min bg-black opacity-backdrop">Backdrop</div>
-
-<!-- Panel layers (stacking) -->
-<div class="z-panel-base">First panel (z-60)</div>
-<div style="z-index: 70">Second panel (z-70)</div>
-<div style="z-index: 80">Third panel (z-80)</div>
-```
-
-**Cascade Example:**
-
-Change sidebar z-index in `design-system.json`:
-
-```json
-{
-	"zIndex": {
-		"sidebar": {
-			"$value": "40" // Changed from 50 to 40
-		}
-	}
-}
-```
-
-After running `npm run tokens:build`:
-
-- ✅ CSS variable updates: `--z-index-sidebar: 40`
-- ✅ All sidebar layers update automatically
-- ✅ Panel backdrop remains above sidebar (z-51 > z-40)
-- ✅ No code changes needed
-
-**Why Layering Matters:**
-
-Consistent z-index values prevent:
-
-- ❌ Modal backdrops appearing above modal content
-- ❌ Dropdowns hidden behind sidebars
-- ❌ Tooltips buried under panels
-- ❌ Random z-index values (999, 9999, 99999)
+| Token | Value | Description |
+|-------|-------|-------------|
+| `--borderRadius-none` | 0 | Square corners |
+| `--borderRadius-sm` | 0.25rem | 4px - Subtle rounding |
+| `--borderRadius-default` | 0.375rem | 6px - Default rounding |
+| `--borderRadius-md` | 0.5rem | 8px - Buttons, inputs |
+| `--borderRadius-lg` | 0.75rem | 12px - Cards, small panels |
+| `--borderRadius-xl` | 1rem | 16px - Modals, larger panels |
+| `--borderRadius-2xl` | 1.25rem | 20px - Large cards, modals |
+| `--borderRadius-3xl` | 1.5rem | 24px - Hero cards |
+| `--borderRadius-full` | 9999px | Pill shape, circles |
 
 ---
 
-## 🔤 Icon Size Tokens
+## 📚 Z-Index
 
-| Token            | Utility Class | Value          | Usage                   |
-| ---------------- | ------------- | -------------- | ----------------------- |
-| `--size-icon-xs` | `icon-xs`     | 0.75rem (12px) | Extra small icons       |
-| `--size-icon-sm` | `icon-sm`     | 1rem (16px)    | Small icons             |
-| `--size-icon-md` | `icon-md`     | 1.25rem (20px) | Medium icons (standard) |
-| `--size-icon-lg` | `icon-lg`     | 1.5rem (24px)  | Large icons             |
-| `--size-icon-xl` | `icon-xl`     | 2rem (32px)    | Extra large icons       |
-
-**Example:**
-
-```svelte
-<button class="flex items-center gap-icon">
-	<svg class="icon-md">...</svg>
-	<span>Click me</span>
-</button>
-```
+| Token | Value | Description |
+|-------|-------|-------------|
+| `--zIndex-behind` | -1 | Behind content |
+| `--zIndex-base` | 0 | Default layer |
+| `--zIndex-raised` | 1 | Slightly raised |
+| `--zIndex-dropdown` | 10 | Dropdowns, popovers |
+| `--zIndex-sticky` | 20 | Sticky headers |
+| `--zIndex-banner` | 30 | Banners, announcements |
+| `--zIndex-overlay` | 40 | Overlay backgrounds |
+| `--zIndex-modal` | 50 | Modals, dialogs |
+| `--zIndex-popover` | 60 | Popovers on modals |
+| `--zIndex-toast` | 70 | Toast notifications |
+| `--zIndex-tooltip` | 80 | Tooltips |
+| `--zIndex-max` | 9999 | Maximum - Critical overlays |
 
 ---
 
-## 🎭 Transition Tokens
+## 📱 Breakpoints
 
-| Token                  | Utility Class             | Value                                           | Usage                                |
-| ---------------------- | ------------------------- | ----------------------------------------------- | ------------------------------------ |
-| `--transition-default` | `transition-default`      | all 0.2s ease                                   | Default transition (all props)       |
-| `--transition-slow`    | `transition-slow`         | all 0.3s ease-in-out                            | Slow transition (animations)         |
-| `--transition-fast`    | `transition-fast`         | all 0.15s ease                                  | Fast transition (micro-interactions) |
-| `--transition-colors`  | `transition-colors-token` | color, background-color, border-color 0.2s ease | Color transitions only (optimized)   |
-
-**Example:**
-
-```svelte
-<button class="bg-accent-primary transition-colors-token hover:bg-accent-hover"> Hover me </button>
-```
+| Token | Value | Description |
+|-------|-------|-------------|
+| `--breakpoint-xs` | 475px | Extra small - Large phones |
+| `--breakpoint-sm` | 640px | Small - Phones landscape |
+| `--breakpoint-md` | 768px | Medium - Tablets |
+| `--breakpoint-lg` | 1024px | Large - Small laptops |
+| `--breakpoint-xl` | 1280px | Extra large - Desktops |
+| `--breakpoint-2xl` | 1536px | 2X large - Large desktops |
 
 ---
 
-## 📱 Breakpoint Tokens
+## 👻 Opacity
 
-Breakpoint tokens define responsive design breakpoints following the Tailwind CSS pattern (mobile-first approach):
+| Token | Value | Description |
+|-------|-------|-------------|
+| `--opacity-0` | 0 | Invisible |
+| `--opacity-5` | 0.05 | 5% |
+| `--opacity-10` | 0.1 | 10% |
+| `--opacity-15` | 0.15 | 15% |
+| `--opacity-20` | 0.2 | 20% |
+| `--opacity-25` | 0.25 | 25% |
+| `--opacity-30` | 0.3 | 30% |
+| `--opacity-40` | 0.4 | 40% |
+| `--opacity-50` | 0.5 | 50% - Disabled states |
+| `--opacity-60` | 0.6 | 60% |
+| `--opacity-70` | 0.7 | 70% |
+| `--opacity-75` | 0.75 | 75% - Backdrop |
+| `--opacity-80` | 0.8 | 80% |
+| `--opacity-90` | 0.9 | 90% |
+| `--opacity-95` | 0.95 | 95% |
+| `--opacity-100` | 1 | Fully opaque |
 
-| Token              | Value    | Description                                                |
-| ------------------ | -------- | ---------------------------------------------------------- |
-| `--breakpoint-sm`  | `640px`  | Small devices (mobile landscape) - min-width breakpoint    |
-| `--breakpoint-md`  | `768px`  | Medium devices (tablets) - min-width breakpoint            |
-| `--breakpoint-lg`  | `1024px` | Large devices (desktop) - min-width breakpoint             |
-| `--breakpoint-xl`  | `1280px` | Extra large devices (large desktop) - min-width breakpoint |
-| `--breakpoint-2xl` | `1536px` | 2X large devices (ultra-wide) - min-width breakpoint       |
-
-**Usage in JavaScript:**
-
-```typescript
-// Read breakpoint from CSS variable
-const breakpointSm = getComputedStyle(document.documentElement)
-	.getPropertyValue('--breakpoint-sm')
-	.trim();
-const breakpointValue = breakpointSm ? parseInt(breakpointSm, 10) : 640;
-const isMobile = window.innerWidth < breakpointValue;
-```
-
-**Usage in CSS:**
-
-```css
-/* Note: CSS doesn't support CSS variables in @media queries */
-/* Use token value directly with comment reference */
-/* Token: --breakpoint-md (768px) from design-system.json */
-@media (max-width: 768px) {
-	.responsive-element {
-		/* Mobile styles */
-	}
-}
-```
-
-**Cascade Example:**
-
-Change breakpoint value in `design-system.json`:
-
-```json
-{
-	"breakpoints": {
-		"sm": {
-			"$value": "768px" // Changed from 640px
-		}
-	}
-}
-```
-
-After running `npm run tokens:build`:
-
-- CSS variable updates: `--breakpoint-sm: 768px`
-- JavaScript code automatically uses new value (no code changes needed)
-- CSS `@media` queries need manual update (CSS limitation)
-
-**Context7 Validated:** ✅ Follows Tailwind CSS pattern (industry standard)
 
 ---
 
-## 👁️ Opacity Tokens
+**Last Updated**: 2025-11-26T19:59:25.937Z
 
-Opacity tokens provide consistent transparency values for UI states (disabled, hover, loading, backdrops):
-
-### Base Opacity Scale (0-100)
-
-Tailwind-compatible opacity scale from transparent (0) to opaque (100):
-
-| Token           | Value  | Description                    |
-| --------------- | ------ | ------------------------------ |
-| `--opacity-0`   | `0`    | Fully transparent (invisible)  |
-| `--opacity-50`  | `0.5`  | 50% opacity                    |
-| `--opacity-75`  | `0.75` | 75% opacity                    |
-| `--opacity-80`  | `0.8`  | 80% opacity                    |
-| `--opacity-100` | `1`    | Fully opaque (no transparency) |
-
-### Semantic Opacity Tokens
-
-Use these semantic tokens for consistent UI states:
-
-| Token                | Utility Class      | References          | Value  | Usage                        |
-| -------------------- | ------------------ | ------------------- | ------ | ---------------------------- |
-| `--opacity-disabled` | `opacity-disabled` | `var(--opacity-50)` | `0.5`  | Disabled button/input states |
-| `--opacity-hover`    | `opacity-hover`    | `var(--opacity-80)` | `0.8`  | Hover overlay effects        |
-| `--opacity-backdrop` | `opacity-backdrop` | `var(--opacity-75)` | `0.75` | Modal/dialog backdrops       |
-| `--opacity-loading`  | `opacity-loading`  | `var(--opacity-60)` | `0.6`  | Loading state indicators     |
-
-### Usage Examples
-
-```svelte
-<!-- ❌ WRONG: Hardcoded opacity -->
-<button style="opacity: 0.5" disabled>Save</button>
-<div class="bg-black" style="opacity: 0.75">Backdrop</div>
-
-<!-- ✅ CORRECT: Semantic opacity tokens -->
-<button class="opacity-disabled" disabled>Save</button>
-<div class="bg-black opacity-backdrop">Backdrop</div>
-```
-
-### Cascade Example
-
-Change disabled opacity value in `design-system.json`:
-
-```json
-{
-	"opacity": {
-		"disabled": {
-			"$value": "{opacity.40}" // Changed from {opacity.50}
-		}
-	}
-}
-```
-
-After running `npm run tokens:build`:
-
-- ✅ CSS variable updates: `--opacity-disabled: var(--opacity-40)`
-- ✅ All disabled elements automatically use 40% opacity
-- ✅ No code changes needed
-
-**Context7 Validated:** ✅ Follows Tailwind CSS pattern (industry standard)
-
----
-
-## 📚 Reference Documentation
-
-### Source of Truth
-
-**`design-system.json`** (root of project) is the **single source of truth** for all design tokens.
-
-- ✅ **DTCG Format**: Uses Design Tokens Community Group format (`$value`, `$description`)
-- ✅ **Base Tokens**: Foundation values (e.g., `spacing.2 = "0.5rem"`)
-- ✅ **Semantic Tokens**: Component-specific tokens referencing base tokens (e.g., `spacing.nav.item.x = "{spacing.2}"`)
-- ✅ **Exception Documentation**: Tokens that don't reference base tokens must include "INTENTIONAL EXCEPTION" in description
-
-**File location**: `design-system.json` (project root)
-
-**Example structure:**
-
-```json
-{
-	"spacing": {
-		"2": {
-			"$value": "0.5rem",
-			"$description": "8px = sm"
-		},
-		"nav": {
-			"item": {
-				"x": {
-					"$value": "{spacing.2}",
-					"$description": "Nav item horizontal padding - references base scale"
-				}
-			}
-		}
-	}
-}
-```
-
-### Workflow Commands
-
-**Essential commands for working with design tokens:**
-
-#### Build Tokens
-
-**Generate CSS files from `design-system.json`:**
-
-```bash
-npm run tokens:build
-```
-
-**When to run:**
-
-- After pulling changes from git
-- After editing `design-system.json`
-- Before committing token changes
-
-**Output:**
-
-- `src/styles/tokens/*.css` - CSS variable definitions
-- `src/styles/utilities/*.css` - Utility class definitions
-
-#### Validate Semantic Tokens
-
-**Check that all semantic tokens reference base tokens correctly:**
-
-```bash
-npm run tokens:validate-semantic
-```
-
-**What it checks:**
-
-- ✅ Semantic tokens use `{spacing.X}` format (not hardcoded values)
-- ✅ Exception tokens include "INTENTIONAL EXCEPTION" in description
-- ❌ Blocks semantic tokens with hardcoded values (unless documented exception)
-
-**When to run:**
-
-- Before committing token changes
-- After adding new semantic tokens
-- CI/CD pipeline (automated validation)
-
-#### Watch Mode (Development)
-
-**Auto-rebuild tokens when `design-system.json` changes:**
-
-```bash
-npm run tokens:watch
-```
-
-**Use during development** to see token changes immediately.
-
-### Additional Documentation
-
-- **Complete token list**: `dev-docs/2-areas/design/design-tokens.md` - Full documentation with usage patterns and examples
-- **Workflow guide**: `DESIGN-TOKENS-WORKFLOW.md` - Step-by-step guide for adding tokens, migration, exceptions
-- **Implementation**: `src/app.css` - CSS variable definitions and utility classes
-
----
-
-## 🚫 Common Violations
-
-**❌ BLOCKED - Will fail lint:**
-
-```svelte
-<!-- Hardcoded sizes -->
-<button class="min-h-[2.75rem]">Click</button>
-<div class="p-[12px]">Content</div>
-
-<!-- Hardcoded spacing -->
-<div class="mt-[24px] mb-[16px]">Content</div>
-
-<!-- Hardcoded colors -->
-<div class="bg-gray-900 text-white">Content</div>
-```
-
-**✅ CORRECT - Uses tokens:**
-
-```svelte
-<!-- Token-based sizes -->
-<button class="min-h-button">Click</button>
-<div class="p-button-icon">Content</div>
-
-<!-- Token-based spacing -->
-<div class="mt-content-section mb-marketing-text">Content</div>
-
-<!-- Token-based colors -->
-<div class="bg-base text-primary">Content</div>
-```
-
----
-
-## 📊 Token Categories Summary
-
-**Total Categories**: 14
-
-1. **Spacing** - Component padding, margins, gaps (80+ tokens)
-2. **Colors** - Semantic colors for light/dark mode (40+ tokens)
-3. **Typography** - Font sizes, weights, line heights (20+ tokens)
-4. **Fonts** - Font families for headings, body, code (6 tokens)
-5. **Border Radius** - Rounded corners for components (7+ tokens)
-6. **Shadow** - Elevation and depth effects (2 tokens)
-7. **Size** - Fixed dimensions for components (25+ tokens)
-8. **Transition** - Animation timing and easing (4 tokens)
-9. **Breakpoints** - Responsive design breakpoints (5 tokens)
-10. **Opacity** - Transparency values for UI states (16 tokens)
-11. **Z-Index** - Layering for overlapping elements (4 tokens)
-
-**Plus 3 sub-categories within Typography:** 12. Font Weight (6 tokens) 13. Line Height (1 token) 14. Letter Spacing (1 token)
-
-**Last Updated**: November 22, 2025  
-**Total Tokens**: 200+ across 14 categories
+*This file is auto-generated. To modify tokens, edit `design-tokens-base.json` and run: `npm run tokens:storybook`*

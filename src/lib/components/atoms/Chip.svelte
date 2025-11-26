@@ -7,6 +7,16 @@
 	 * Separate from Badge (static status indicators).
 	 *
 	 * @see SYOS-393 - Create Chip Component
+	 *
+	 * DESIGN SYSTEM EXCEPTION: Chip spacing and border radius (SYOS-585)
+	 *
+	 * Chip uses non-standard values that don't fit the base scale:
+	 * - spacing.chip.y = 0.125rem (2px) - optimal for compact design
+	 * - spacing.chip.close.padding = 0.125rem (2px) - compact close button
+	 * - borderRadius.chip = 9999px (full) - pill shape
+	 *
+	 * These values are hardcoded because they don't reference base tokens.
+	 * See: dev-docs/2-areas/design/token-file-split-exception-mapping.md
 	 */
 
 	import type { Snippet } from 'svelte';
@@ -33,7 +43,7 @@
 	// Base classes using design tokens - compact Linear-style design
 	// Use chip gap token for proper spacing between label and close button
 	const baseClasses =
-		'inline-flex items-center gap-chip rounded-chip text-chip transition-colors-token';
+		'inline-flex items-center gap-chip rounded-full text-chip transition-colors-token';
 
 	// Variant-specific classes using design tokens - subtle, less prominent
 	const variantClasses: Record<ChipVariant, string> = {
@@ -41,12 +51,12 @@
 		primary: 'bg-accent-primary/80 text-primary'
 	};
 
-	const chipClasses = `${baseClasses} ${variantClasses[variant]} px-chip py-chip ${className}`;
+	const chipClasses = `${baseClasses} ${variantClasses[variant]} px-chip py-[0.125rem] ${className}`;
 
 	// Remove button - compact but still accessible
 	// Use chip close padding token, ensure proper alignment with flex centering
 	const removeClasses =
-		'p-chip-close rounded-chip transition-colors-token hover:bg-hover-solid focus:outline-none focus:ring-1 focus:ring-accent-primary flex items-center justify-center -mr-chip-close';
+		'p-[0.125rem] rounded-full transition-colors-token hover:bg-hover-solid focus:outline-none focus:ring-1 focus:ring-accent-primary flex items-center justify-center -mr-chip-close';
 </script>
 
 <span class={chipClasses} {...rest}>

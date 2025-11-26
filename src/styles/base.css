@@ -51,3 +51,21 @@ button,
 a {
 	touch-action: manipulation;
 }
+
+/* Storybook Preview Constraints - Ensure components fit in viewport */
+/* Target Storybook's preview wrapper containers */
+:global([data-test-id='storybook-preview-wrapper']) {
+	max-width: 100% !important;
+	max-height: calc(100vh - 200px) !important;
+	overflow: auto !important;
+	display: flex !important;
+	justify-content: center !important;
+	align-items: flex-start !important;
+	padding: 1rem !important;
+}
+
+/* Constrain story content to fit viewport */
+:global([data-test-id='storybook-preview-wrapper'] > *) {
+	max-width: 100% !important;
+	max-height: calc(100vh - 250px) !important;
+}

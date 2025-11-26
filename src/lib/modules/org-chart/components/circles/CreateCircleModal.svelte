@@ -51,10 +51,10 @@
 					submitCreateCircle();
 				}}
 			>
-				<label class="flex flex-col gap-form-field">
+				<label class="flex flex-col gap-2">
 					<span class="text-button font-medium text-primary">Circle name *</span>
 					<input
-						class="w-full rounded-button border border-base bg-elevated px-nav-item py-nav-item text-button text-primary focus:border-accent-primary focus:outline-none"
+						class="w-full rounded-button border border-base bg-elevated px-2 py-nav-item text-button text-primary focus:border-accent-primary focus:outline-none"
 						placeholder="e.g. Active Platforms"
 						bind:value={name}
 						required
@@ -62,10 +62,10 @@
 					/>
 				</label>
 
-				<label class="flex flex-col gap-form-field">
+				<label class="flex flex-col gap-2">
 					<span class="text-button font-medium text-primary">Purpose (optional)</span>
 					<textarea
-						class="w-full rounded-button border border-base bg-elevated px-nav-item py-nav-item text-button text-primary focus:border-accent-primary focus:outline-none"
+						class="w-full rounded-button border border-base bg-elevated px-2 py-nav-item text-button text-primary focus:border-accent-primary focus:outline-none"
 						placeholder="Why this work exists..."
 						bind:value={purpose}
 						rows={3}
@@ -73,10 +73,10 @@
 				</label>
 
 				{#if availableCircles.length > 0}
-					<label class="flex flex-col gap-form-field">
+					<label class="flex flex-col gap-2">
 						<span class="text-button font-medium text-primary">Parent circle (optional)</span>
 						<select
-							class="w-full rounded-button border border-base bg-elevated px-nav-item py-nav-item text-button text-primary focus:border-accent-primary focus:outline-none"
+							class="w-full rounded-button border border-base bg-elevated px-2 py-nav-item text-button text-primary focus:border-accent-primary focus:outline-none"
 							bind:value={parentCircleId}
 						>
 							<option value="">None (top-level circle)</option>
@@ -87,7 +87,7 @@
 					</label>
 				{/if}
 
-				<div class="flex items-center justify-end gap-button-group pt-2">
+				<div class="flex items-center justify-end gap-2 pt-2">
 					<button
 						type="button"
 						class="rounded-button border border-base px-card py-input-y text-button font-medium text-secondary hover:text-primary disabled:opacity-50"

@@ -21,7 +21,7 @@
 	</a>
 
 	<!-- Navigation Buttons -->
-	<div class="flex items-center gap-icon">
+	<div class="flex items-center gap-2">
 		{#if isAuthenticated}
 			<!-- Logged in: Show Dashboard button -->
 			<Button variant="primary" href={resolve('/inbox')}>Dashboard</Button>

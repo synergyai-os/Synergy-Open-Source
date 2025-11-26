@@ -163,10 +163,11 @@
 <div class="flex h-full flex-col">
 	<!-- Header - Matches ReadwiseDetail pattern -->
 	<div
-		class="sticky top-0 z-10 flex h-system-header flex-shrink-0 items-center justify-between border-b border-base bg-surface px-inbox-header py-system-header"
+		class="h-system-header border-base bg-surface sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b py-system-header"
+		style="padding-inline: var(--spacing-4);"
 	>
 		<!-- Left: Title + Save Status -->
-		<div class="flex items-center gap-icon">
+		<div class="flex items-center gap-2">
 			<Button variant="outline" size="sm" onclick={onClose} ariaLabel="Back to inbox">
 				<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
@@ -178,7 +179,7 @@
 				</svg>
 				<span class="text-small">Back</span>
 			</Button>
-			<h2 class="text-small font-normal text-secondary">
+			<h2 class="text-small text-secondary font-normal">
 				{inboxItem.title || 'Untitled Note'}
 			</h2>
 			<span class="text-label text-tertiary">
@@ -187,7 +188,7 @@
 		</div>
 
 		<!-- Right: Actions -->
-		<div class="flex items-center gap-icon">
+		<div class="flex items-center gap-2">
 			<!-- Export to Docs Button -->
 			<Button variant="outline" onclick={handleExportToDocs}>Export to Docs</Button>
 
@@ -212,9 +213,9 @@
 	</div>
 
 	<!-- Footer with metadata -->
-	<div class="border-t border-base px-inbox-container py-system-header">
-		<div class="flex items-center justify-between text-label text-tertiary">
-			<div class="flex items-center gap-icon">
+	<div class="border-base px-inbox-container border-t py-system-header">
+		<div class="text-label text-tertiary flex items-center justify-between">
+			<div class="flex items-center gap-2">
 				<span>
 					Created {new Date(inboxItem.createdAt).toLocaleDateString()}
 				</span>
@@ -227,7 +228,7 @@
 
 			{#if inboxItem.blogCategory === 'BLOG'}
 				<span
-					class="rounded-chip bg-accent-primary px-badge py-badge text-label font-medium text-primary"
+					class="text-label text-primary rounded-chip bg-accent-primary px-badge py-badge font-medium"
 				>
 					BLOG
 				</span>

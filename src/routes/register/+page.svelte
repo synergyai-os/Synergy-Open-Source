@@ -152,7 +152,7 @@
 
 <div class="min-h-screen bg-base">
 	<div
-		class="mx-auto flex min-h-screen max-w-2xl items-center justify-center px-section py-system-content"
+		class="mx-auto flex min-h-screen max-w-2xl items-center justify-center px-2 py-system-content"
 	>
 		<div
 			class="w-full max-w-md rounded-modal border border-base bg-elevated p-content-padding shadow-sm"
