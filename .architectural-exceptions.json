@@ -1,40 +1,39 @@
 {
-  "$schema": "./scripts/validate-architecture/schemas/exceptions.schema.json",
-  "version": "1.0.0",
-  "lastUpdated": "2025-11-26",
-  "exceptions": [
-    {
-      "id": "avatar-flex-centering",
-      "rule": "layout_styling_separation",
-      "file": "src/lib/design-system/recipes/avatar.recipe.ts",
-      "classes": ["flex"],
-      "reason": "Avatar uses flex for centering initials inside a circular container. This is intrinsic to the Avatar component's purpose (showing centered text in a circle). Similar to Button's inline-flex pattern.",
-      "decision": "Accepted pattern - atom recipes can have flex for content centering",
-      "ticket": "SYOS-architectural-validation",
-      "addedBy": "AI Assistant",
-      "addedDate": "2025-11-26"
-    },
-    {
-      "id": "navitem-flex-layout",
-      "rule": "layout_styling_separation",
-      "file": "src/lib/design-system/recipes/navItem.recipe.ts",
-      "classes": ["flex", "items-center", "justify-center"],
-      "reason": "NavItem has intrinsic flex layout for icon+text pattern. Similar to how Button uses inline-flex items-center, NavItem requires flex items-center for its icon+label composition. justify-center is used in collapsed state.",
-      "decision": "Accepted pattern - molecule recipes can have simple flex layout for icon+text compositions",
-      "ticket": "SYOS-architectural-validation",
-      "addedBy": "AI Assistant",
-      "addedDate": "2025-11-26"
-    },
-    {
-      "id": "inboxcard-module-recipe",
-      "rule": "recipe_file_naming",
-      "file": "src/lib/design-system/recipes/inboxCard.recipe.ts",
-      "reason": "InboxCard.svelte is in src/lib/modules/inbox/components/ (a feature module). Module components can use design system recipes for consistent styling. InboxCard uses inboxCardRecipe for selected/default states.",
-      "decision": "Accepted pattern - module components can use design system recipes",
-      "ticket": "SYOS-architectural-validation",
-      "addedBy": "AI Assistant",
-      "addedDate": "2025-11-26"
-    }
-  ]
+	"$schema": "./scripts/validate-architecture/schemas/exceptions.schema.json",
+	"version": "1.0.0",
+	"lastUpdated": "2025-11-26",
+	"exceptions": [
+		{
+			"id": "avatar-flex-centering",
+			"rule": "layout_styling_separation",
+			"file": "src/lib/design-system/recipes/avatar.recipe.ts",
+			"classes": ["flex"],
+			"reason": "Avatar uses flex for centering initials inside a circular container. This is intrinsic to the Avatar component's purpose (showing centered text in a circle). Similar to Button's inline-flex pattern.",
+			"decision": "Accepted pattern - atom recipes can have flex for content centering",
+			"ticket": "SYOS-architectural-validation",
+			"addedBy": "AI Assistant",
+			"addedDate": "2025-11-26"
+		},
+		{
+			"id": "navitem-flex-layout",
+			"rule": "layout_styling_separation",
+			"file": "src/lib/design-system/recipes/navItem.recipe.ts",
+			"classes": ["flex", "items-center", "justify-center"],
+			"reason": "NavItem has intrinsic flex layout for icon+text pattern. Similar to how Button uses inline-flex items-center, NavItem requires flex items-center for its icon+label composition. justify-center is used in collapsed state.",
+			"decision": "Accepted pattern - molecule recipes can have simple flex layout for icon+text compositions",
+			"ticket": "SYOS-architectural-validation",
+			"addedBy": "AI Assistant",
+			"addedDate": "2025-11-26"
+		},
+		{
+			"id": "inboxcard-module-recipe",
+			"rule": "recipe_file_naming",
+			"file": "src/lib/design-system/recipes/inboxCard.recipe.ts",
+			"reason": "InboxCard.svelte is in src/lib/modules/inbox/components/ (a feature module). Module components can use design system recipes for consistent styling. InboxCard uses inboxCardRecipe for selected/default states.",
+			"decision": "Accepted pattern - module components can use design system recipes",
+			"ticket": "SYOS-architectural-validation",
+			"addedBy": "AI Assistant",
+			"addedDate": "2025-11-26"
+		}
+	]
 }
-

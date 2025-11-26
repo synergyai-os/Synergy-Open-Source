@@ -194,9 +194,9 @@
 		/>
 	</DropdownMenu.Trigger>
 
-	<DropdownMenu.Portal>
+	<DropdownMenu.Portal to="body">
 		<DropdownMenu.Content
-			class="border-base z-50 min-w-[180px] rounded-button border bg-elevated py-1 shadow-card"
+			class="border-base py-menu-item min-w-[180px] rounded-button border bg-elevated shadow-card"
 			side="bottom"
 			align="start"
 			sideOffset={4}
@@ -214,7 +214,7 @@
 			<!-- Settings and Invite Actions -->
 			<div class="px-menu-item py-form-field-gap flex items-center gap-fieldGroup">
 				<DropdownMenu.Item
-					class="hover:bg-hover-solid focus:bg-hover-solid flex-1 cursor-pointer rounded-button px-[0.625rem] py-[0.375rem] text-left text-[0.875rem] text-primary transition-colors outline-none"
+					class="hover:bg-hover-solid focus:bg-hover-solid px-menu-item py-menu-item flex-1 cursor-pointer rounded-button text-left text-primary transition-colors outline-none"
 					textValue="Settings"
 					onSelect={() => {
 						handleSettings();
@@ -224,7 +224,7 @@
 					<Text variant="body" size="sm" color="default" as="span">⚙️ Settings</Text>
 				</DropdownMenu.Item>
 				<DropdownMenu.Item
-					class="hover:bg-hover-solid focus:bg-hover-solid flex-1 cursor-pointer rounded-button px-[0.625rem] py-[0.375rem] text-left text-[0.875rem] text-primary transition-colors outline-none"
+					class="hover:bg-hover-solid focus:bg-hover-solid px-menu-item py-menu-item flex-1 cursor-pointer rounded-button text-left text-primary transition-colors outline-none"
 					textValue="Invite members"
 					onSelect={() => {
 						handleInviteMembers();
@@ -741,3 +741,11 @@
 		</DropdownMenu.Content>
 	</DropdownMenu.Portal>
 </DropdownMenu.Root>
+
+<style>
+	/* WORKAROUND: Portal dropdown z-index fix - see missing-styles.md */
+	/* Ensures dropdown menu appears above fixed sidebar (z-index 50) */
+	:global([data-dropdown-menu-content]) {
+		z-index: var(--zIndex-max) !important;
+	}
+</style>
