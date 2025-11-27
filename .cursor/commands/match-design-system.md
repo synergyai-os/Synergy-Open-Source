@@ -2,6 +2,44 @@
 
 Refactor components to be design system compliant using the Recipe System (CVA).
 
+---
+
+## ⚠️ STOP - READ BEFORE DOING ANYTHING
+
+### 🚨 NON-NEGOTIABLE RULES (WILL CAUSE REWORK IF VIOLATED)
+
+**1. NEVER CREATE OR EDIT CSS FILES**
+```
+src/styles/utilities/*.css  ← AUTO-GENERATED - NEVER TOUCH
+```
+If you need a new utility: `design-tokens-semantic.json` → `npm run tokens:build` → utility exists.
+
+**2. NEVER USE HARDCODED TAILWIND**
+```
+❌ gap-2, px-4, mb-8, text-gray-500, bg-blue-100, rounded-lg
+✅ gap-button, px-button, mb-header, text-secondary, bg-surface, rounded-button
+```
+
+**3. ALWAYS USE RECIPE SYSTEM**
+```svelte
+// ✅ Recipe handles all styling
+const classes = $derived(buttonRecipe({ variant, size }));
+
+// ❌ Manual class mapping = WRONG
+const classes = size === 'sm' ? 'px-2' : 'px-4';
+```
+
+**4. VALIDATE BEFORE COMPLETING**
+```bash
+npm run validate:design-system  # MUST PASS before marking complete
+```
+
+**Detection:** If you're typing CSS into `.css` files or using `gap-2`, `px-4`, etc. → STOP. You're doing it wrong.
+
+**Reference:** `design-tokens-enforcement.mdc` rule is auto-applied for all .svelte/.css files.
+
+---
+
 ## Process
 
 ### 0.0 Decision-Making: Confirm Lasting Impact Decisions
@@ -105,9 +143,27 @@ Which name should I use?
    - Full page layout? → Page/Template
 
 **Module vs Shared Component**:
-- **Module Component**: Domain-specific (InboxCard, MeetingCard, CircleDetailPanel), has business logic, connects to backend, used by single module
-- **Shared Component**: Generic, reusable, no business logic, used across multiple modules
-- **Rule**: If component is used by multiple modules, it should be in shared components (atoms/molecules/organisms), not modules
+- **Module Component** (`src/lib/modules/[module]/components/`): 
+  - Domain-specific (meetings, inbox, org-chart)
+  - Has business logic (data fetching, mutations, domain-specific behavior)
+  - Connects to backend (Convex queries/mutations)
+  - Used by single module
+  - Examples: `MeetingCard`, `InboxCard`, `CircleDetailPanel`
+  - **Rule**: If component is domain-specific with business logic → Module Component
+- **Shared Component** (`src/lib/components/[atoms|molecules|organisms]/`):
+  - Generic, reusable across modules
+  - No business logic (presentational only)
+  - Used across multiple modules
+  - Examples: `Button`, `Text`, `Icon`, `Avatar`, `FormInput`, `Dialog`
+  - **Rule**: If component is used by multiple modules → Shared Component
+- **Decision Tree**:
+  ```
+  Is it domain-specific with business logic?
+  ├─ YES → Module Component (src/lib/modules/[module]/components/)
+  └─ NO → Is it reusable across modules?
+      ├─ YES → Shared Component (src/lib/components/[atoms|molecules|organisms]/)
+      └─ NO → Still Shared Component (generic, no business logic)
+  ```
 
 ### 2.1 Update Atom Component (`src/lib/components/atoms/[Component].svelte`)
 - **Check for Bits UI component first**: 
@@ -1040,45 +1096,3 @@ argTypes: {
 - Stories handle the mapping logic
 
 **See**: `.cursor/commands/storybook.md` for Storybook-specific patterns
-
-## Component Design Patterns (Lessons Learned)
-
-### Predefined Icon Registry vs Arbitrary SVG
-**Problem**: Allowing arbitrary SVG children leads to:
-- Inconsistent icons across the codebase
-- Multiple versions of the same icon (e.g., 10 different payment icons)
-- No type safety
-- Hard to maintain/update icons
-
-**Solution**: Centralized icon registry with TypeScript enforcement
-
-**Benefits**:
-- ✅ Type safety: Autocomplete for valid icon types
-- ✅ Consistency: Single source of truth
-- ✅ Maintainability: Update icons in one place
-- ✅ Design system compliance: Only curated icons can be used
-
-**Implementation**:
-```typescript
-// iconRegistry.ts
-export type IconType = 'add' | 'edit' | 'delete' | ...;
-
-export const iconRegistry: Record<IconType, IconDefinition> = {
-  add: { path: 'M12 4v16m8-8H4', ... },
-  // ...
-};
-
-// Icon.svelte
-<Icon type="payment" size="md" />
-```
-
-### Boolean vs Enum for Component States
-**Problem**: Having both `iconPosition: 'only'` and `iconOnly: boolean` is redundant and confusing
-
-**Solution**: Use boolean for binary states, enum only for positioning
-
-**Rationale**:
-- `iconOnly` is a boolean state (has text or not)
-- `iconPosition` is about positioning relative to text (left/right)
-- When `iconOnly = true`, position doesn't make sense
-- diag

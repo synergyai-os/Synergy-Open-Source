@@ -10,6 +10,7 @@ export { badgeRecipe, type BadgeVariantProps } from './badge.recipe';
 export { cardRecipe, type CardVariantProps } from './card.recipe';
 export { textRecipe, type TextVariantProps } from './text.recipe';
 export { headingRecipe, type HeadingVariantProps } from './heading.recipe';
+export { iconRecipe, type IconVariantProps } from './icon.recipe';
 export {
 	formInputRecipe,
 	formInputLabelRecipe,
@@ -29,3 +30,9 @@ export {
 	organizationItemRecipe,
 	type OrganizationItemVariantProps
 } from './organizationItem.recipe';
+export {
+	todayMeetingCardRecipe,
+	type TodayMeetingCardVariantProps
+} from './todayMeetingCard.recipe';
+export { meetingCardRecipe, type MeetingCardVariantProps } from './meetingCard.recipe';
+export { themeToggleRecipe, type ThemeToggleVariantProps } from './themeToggle.recipe';

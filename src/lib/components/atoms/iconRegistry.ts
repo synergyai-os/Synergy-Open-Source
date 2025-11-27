@@ -11,21 +11,31 @@
 export type IconType =
 	| 'add'
 	| 'calendar'
+	| 'check'
+	| 'check-circle'
 	| 'chevron-down'
 	| 'chevron-right'
 	| 'circles'
+	| 'clipboard'
+	| 'clock'
 	| 'close'
 	| 'dashboard'
 	| 'delete'
+	| 'document'
 	| 'download'
 	| 'edit'
 	| 'flashcards'
 	| 'inbox'
+	| 'info'
 	| 'lightbulb'
+	| 'lock'
 	| 'members'
+	| 'moon'
 	| 'payment'
+	| 'recurrence'
 	| 'share'
 	| 'study'
+	| 'sun'
 	| 'tags';
 
 export interface IconDefinition {
@@ -72,6 +82,13 @@ export const iconRegistry: Record<IconType, IconDefinition> = {
 		strokeLinecap: 'round',
 		strokeLinejoin: 'round'
 	},
+	document: {
+		path: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+		viewBox: '0 0 24 24',
+		strokeWidth: '2',
+		strokeLinecap: 'round',
+		strokeLinejoin: 'round'
+	},
 	download: {
 		path: 'M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4',
 		viewBox: '0 0 24 24',
@@ -111,6 +128,13 @@ export const iconRegistry: Record<IconType, IconDefinition> = {
 		strokeLinecap: 'round',
 		strokeLinejoin: 'round'
 	},
+	info: {
+		path: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+		viewBox: '0 0 24 24',
+		strokeWidth: '2',
+		strokeLinecap: 'round',
+		strokeLinejoin: 'round'
+	},
 	flashcards: {
 		path: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
 		viewBox: '0 0 24 24',
@@ -139,6 +163,20 @@ export const iconRegistry: Record<IconType, IconDefinition> = {
 		strokeLinecap: 'round',
 		strokeLinejoin: 'round'
 	},
+	clipboard: {
+		path: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
+		viewBox: '0 0 24 24',
+		strokeWidth: '2',
+		strokeLinecap: 'round',
+		strokeLinejoin: 'round'
+	},
+	clock: {
+		path: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
+		viewBox: '0 0 24 24',
+		strokeWidth: '2',
+		strokeLinecap: 'round',
+		strokeLinejoin: 'round'
+	},
 	members: {
 		path: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
 		viewBox: '0 0 24 24',
@@ -160,8 +198,43 @@ export const iconRegistry: Record<IconType, IconDefinition> = {
 		strokeLinecap: 'round',
 		strokeLinejoin: 'round'
 	},
+	check: {
+		path: 'M5 13l4 4L19 7',
+		viewBox: '0 0 24 24',
+		strokeWidth: '2',
+		strokeLinecap: 'round',
+		strokeLinejoin: 'round'
+	},
+	'check-circle': {
+		path: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+		viewBox: '0 0 24 24',
+		strokeWidth: '2',
+		strokeLinecap: 'round',
+		strokeLinejoin: 'round'
+	},
 	lightbulb: {
 		path: 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z',
+		viewBox: '0 0 24 24',
+		strokeWidth: '2',
+		strokeLinecap: 'round',
+		strokeLinejoin: 'round'
+	},
+	lock: {
+		path: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z',
+		viewBox: '0 0 24 24',
+		strokeWidth: '2',
+		strokeLinecap: 'round',
+		strokeLinejoin: 'round'
+	},
+	moon: {
+		path: 'M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z',
+		viewBox: '0 0 24 24',
+		strokeWidth: '2',
+		strokeLinecap: 'round',
+		strokeLinejoin: 'round'
+	},
+	sun: {
+		path: 'M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z',
 		viewBox: '0 0 24 24',
 		strokeWidth: '2',
 		strokeLinecap: 'round',
@@ -171,6 +244,13 @@ export const iconRegistry: Record<IconType, IconDefinition> = {
 	// Placeholder (to be replaced with actual payment icon)
 	payment: {
 		path: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z',
+		viewBox: '0 0 24 24',
+		strokeWidth: '2',
+		strokeLinecap: 'round',
+		strokeLinejoin: 'round'
+	},
+	recurrence: {
+		path: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15',
 		viewBox: '0 0 24 24',
 		strokeWidth: '2',
 		strokeLinecap: 'round',
@@ -191,4 +271,3 @@ export function getIcon(type: IconType): IconDefinition {
 export function isValidIconType(type: string): type is IconType {
 	return type in iconRegistry;
 }
-
