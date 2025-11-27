@@ -976,5 +976,178 @@ export const meetingCardRecipe = cva(
 
 ---
 
+## #L650: Molecule Components with Recipes [🟢 REFERENCE]
+
+**Keywords**: molecule component, recipe, atomic design, molecule recipe, AttendeeChip, component classification, molecule vs atom, molecule vs organism, complex component, multiple atoms
+
+**Principle**: Molecule components that compose multiple atoms and have complex styling should use recipes for container styling. Recipes handle container appearance, atoms handle their own styling.
+
+**Symptom**: Complex UI element (chip, tag, selector) that combines multiple atoms (Icon, Text, Badge, Button) needs consistent styling and spacing. Component is too complex to be an atom, but not complex enough to be an organism.
+
+**Root Cause**: Need to classify component correctly (atom vs molecule vs organism) and determine if recipe is needed. Molecules compose atoms and may need container-level styling.
+
+**Pattern**: 
+1. **Classify component**: Molecule if it composes 2-3 atoms and has reusable behavior
+2. **Create recipe**: Recipe handles container styling (border, padding, background, spacing between elements)
+3. **Atoms handle themselves**: Each atom uses its own recipe/variants
+4. **Recipe includes spacing**: Use `gap-fieldGroup` in recipe for spacing between atoms
+
+**Implementation Example**:
+```svelte
+<!-- AttendeeChip.svelte - Molecule component -->
+<script lang="ts">
+  import { Icon, Text, Badge } from '$lib/components/atoms';
+  import { attendeeChipRecipe } from '$lib/design-system/recipes';
+  
+  let { attendee, onRemove, getTypeLabel, variant = 'default' }: Props = $props();
+  
+  const containerClasses = $derived([attendeeChipRecipe({ variant })]);
+</script>
+
+<div class={containerClasses}>
+  <Icon type={attendee.type} size="sm" color="secondary" />
+  <Text variant="body" size="sm" color="default" as="span">{attendee.name}</Text>
+  <Badge variant="primary" size="sm">
+    {getTypeLabel(attendee.type)}
+  </Badge>
+  <button onclick={() => onRemove(attendee)}>
+    <Icon type="close" size="sm" />
+  </button>
+</div>
+```
+
+**Recipe Pattern**:
+```typescript
+// attendeeChip.recipe.ts
+export const attendeeChipRecipe = cva(
+  // Container styling: padding, border, background, rounded corners
+  // Internal spacing: gap between icon, text, badge, and button
+  'inline-flex items-center rounded-button border bg-surface px-button-sm py-button-sm gap-fieldGroup',
+  {
+    variants: {
+      variant: {
+        default: 'border-border-base'
+      }
+    },
+    defaultVariants: {
+      variant: 'default'
+    }
+  }
+);
+```
+
+**Component Classification Guide**:
+- **Atom**: Single element (Button, Badge, Icon, Text) - has recipe, no composition
+- **Molecule**: 2-3 atoms combined (AttendeeChip, FormField) - has recipe for container, composes atoms
+- **Organism**: Complex section (Dialog, Header) - may have recipe, composes molecules/atoms
+- **Module Component**: Feature-specific (AttendeeSelector) - uses molecules/atoms, may have recipe
+
+**When to Apply**:
+- Component composes 2-3 atoms (Icon + Text + Badge + Button)
+- Component needs container-level styling (border, padding, background)
+- Component is reusable across modules
+- Component is too complex for atom, not complex enough for organism
+
+**Anti-Patterns**:
+- ❌ Creating recipe for atom that composes other atoms (atoms don't compose atoms)
+- ❌ Putting atom styling in molecule recipe (atoms handle their own styling)
+- ❌ Not using recipe for molecule container styling (leads to inconsistent spacing)
+- ❌ Using margin instead of gap in flex containers (gap handles spacing better)
+
+**Key Principles**:
+- **Recipe handles**: Container styling (border, padding, background, gap between elements)
+- **Atoms handle**: Their own styling via their recipes/variants
+- **Component handles**: Content, business logic, event handlers
+- **Spacing**: Use `gap-fieldGroup` in recipe, not margin on individual elements
+
+**Examples**:
+- ✅ `AttendeeChip` - Molecule with recipe, composes Icon + Text + Badge + Button
+- ✅ `FormField` - Molecule with recipe, composes Label + Input + Error
+- ❌ `Button` with Icon inside - Atom shouldn't compose other atoms (use molecule wrapper)
+
+**Related**: #L300 (Module Card Component Pattern), #L450 (Grouping Elements with Spacing Tokens), #L100 (Matching Component Styles)
+
+---
+
+## #L700: Gap vs Margin in Flex Containers [🟢 REFERENCE]
+
+**Keywords**: gap, margin, flex container, spacing, gap-fieldGroup, ml-fieldGroup, redundant margin, flex gap, spacing tokens
+
+**Principle**: Use `gap-*` tokens in flex containers instead of margin on individual elements. Gap handles spacing automatically and is more maintainable.
+
+**Symptom**: Spacing looks off or redundant. Elements have both `gap-fieldGroup` on parent and `ml-fieldGroup` on child, causing double spacing.
+
+**Root Cause**: Using margin (`ml-fieldGroup`) on flex children when parent already has `gap-fieldGroup`. Gap handles spacing between all flex children automatically.
+
+**Pattern**: Use gap on flex container, remove redundant margins on children:
+
+```svelte
+<!-- ❌ WRONG: Redundant margin on button -->
+<div class="flex items-center gap-fieldGroup">
+  <Icon type="user" />
+  <Text>Name</Text>
+  <Badge>Type</Badge>
+  <button class="ml-fieldGroup">Remove</button> <!-- ❌ Redundant -->
+</div>
+
+<!-- ✅ CORRECT: Gap handles all spacing -->
+<div class="flex items-center gap-fieldGroup">
+  <Icon type="user" />
+  <Text>Name</Text>
+  <Badge>Type</Badge>
+  <button>Remove</button> <!-- ✅ No margin needed -->
+</div>
+```
+
+**Implementation Examples**:
+
+### Example 1: Chip Component
+```svelte
+<!-- Recipe includes gap-fieldGroup -->
+<div class="inline-flex items-center gap-fieldGroup px-button-sm py-button-sm">
+  <Icon type="user" size="sm" />
+  <Text size="sm">John Doe</Text>
+  <Badge size="sm">User</Badge>
+  <button>Remove</button> <!-- No margin - gap handles spacing -->
+</div>
+```
+
+### Example 2: Form Field Group
+```svelte
+<!-- Parent uses gap-fieldGroup -->
+<div class="flex flex-col gap-fieldGroup">
+  <Label>Field Name</Label>
+  <Input /> <!-- No margin needed -->
+  <ErrorText>Error message</ErrorText> <!-- No margin needed -->
+</div>
+```
+
+**When to Use Gap**:
+- Flex containers (`flex`, `inline-flex`)
+- Grid containers (`grid`)
+- Spacing between related elements
+- Container-level spacing
+
+**When to Use Margin**:
+- Spacing outside flex/grid containers
+- Pushing elements away from container edges
+- Non-flex layouts (block, inline-block)
+- Specific spacing needs that gap can't handle
+
+**Key Benefits of Gap**:
+- ✅ Handles spacing between all children automatically
+- ✅ No need to add margin to first/last child
+- ✅ More maintainable (one place to change spacing)
+- ✅ Works with flex-wrap (spacing maintained when wrapping)
+
+**Anti-Patterns**:
+- ❌ Using `ml-fieldGroup` on flex child when parent has `gap-fieldGroup`
+- ❌ Using margin for spacing between flex children (use gap instead)
+- ❌ Mixing gap and margin for same spacing purpose (choose one)
+
+**Related**: #L450 (Grouping Elements with Spacing Tokens), #L650 (Molecule Components with Recipes)
+
+---
+
 **Last Updated**: 2025-01-27
 

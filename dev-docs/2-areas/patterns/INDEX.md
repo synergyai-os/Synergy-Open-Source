@@ -34,6 +34,8 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | hover effect, rounded corners, overflow-hidden, hover background, square hover, rounded hover, border radius, hover:bg-subtle | Hover Effects with Rounded Corners | `design-system-patterns.md#L550` |
 | component state, variant, conditional rendering, state-based styling, recipe variant, derived state, isClosed, closed state, active state, conditional buttons | Component State Variants with Conditional Rendering | `design-system-patterns.md#L600` |
 | atom, class prop, className, pure components, self-contained, Icon, Text, Button, Card, Avatar, Heading | Atoms Should NOT Accept class Props | `atoms-no-class-props.md` |
+| molecule component, recipe, atomic design, molecule recipe, AttendeeChip, component classification, molecule vs atom, molecule vs organism, complex component, multiple atoms | Molecule Components with Recipes | `design-system-patterns.md#L650` |
+| gap, margin, flex container, spacing, gap-fieldGroup, ml-fieldGroup, redundant margin, flex gap, spacing tokens | Gap vs Margin in Flex Containers | `design-system-patterns.md#L700` |
 
 ---
 
@@ -71,6 +73,8 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | Recipe validation, missing design token, add semantic token, validate utilities exist | Recipe Validation and Missing Tokens | `design-system-patterns.md#L500` |
 | Component has multiple states, different actions per state, state-based styling | Component State Variants with Conditional Rendering | `design-system-patterns.md#L600` |
 | Atom accepting class prop, Icon with class prop, Text with class prop | Atoms Should NOT Accept class Props | `atoms-no-class-props.md` |
+| Creating molecule component, molecule with recipe, component classification, molecule vs atom | Molecule Components with Recipes | `design-system-patterns.md#L650` |
+| Redundant margin, gap vs margin, flex spacing, ml-fieldGroup redundant | Gap vs Margin in Flex Containers | `design-system-patterns.md#L700` |
 
 ---
 

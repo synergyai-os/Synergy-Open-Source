@@ -42,3 +42,16 @@ export {
 	type ToggleSwitchVariantProps,
 	type ToggleSwitchThumbVariantProps
 } from './toggleSwitch.recipe';
+export {
+	comboboxTriggerRecipe,
+	comboboxInputRecipe,
+	comboboxContentRecipe,
+	comboboxViewportRecipe,
+	comboboxItemRecipe,
+	type ComboboxTriggerVariantProps,
+	type ComboboxInputVariantProps,
+	type ComboboxContentVariantProps,
+	type ComboboxViewportVariantProps,
+	type ComboboxItemVariantProps
+} from './combobox.recipe';
+export { attendeeChipRecipe, type AttendeeChipVariantProps } from './attendeeChip.recipe';

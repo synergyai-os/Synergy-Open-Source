@@ -2,6 +2,14 @@
 	import { Combobox } from 'bits-ui';
 	import type { Id } from '$lib/convex';
 	import { useAttendeeSelection, type Attendee } from '../composables/useAttendeeSelection.svelte';
+	import { Text, Icon, Badge } from '$lib/components/atoms';
+	import AttendeeChip from './AttendeeChip.svelte';
+	import {
+		comboboxInputRecipe,
+		comboboxContentRecipe,
+		comboboxViewportRecipe,
+		comboboxItemRecipe
+	} from '$lib/design-system/recipes';
 
 	type Props = {
 		selectedAttendees: Attendee[];
@@ -26,55 +34,54 @@
 	});
 
 	let inputRef: HTMLElement | null = $state(null);
+
+	// Local search value for input (sync with composable)
+	let localSearchValue = $state(attendeeSelection.searchValue);
+
+	// Local open state (can't bind directly to composable getter-only property)
+	let localOpen = $state(attendeeSelection.comboboxOpen);
+
+	// Sync localOpen with composable when it changes externally
+	$effect(() => {
+		localOpen = attendeeSelection.comboboxOpen;
+	});
+
+	// Sync localOpen changes back to composable
+	$effect(() => {
+		if (localOpen !== attendeeSelection.comboboxOpen) {
+			attendeeSelection.setComboboxOpen(localOpen);
+		}
+	});
+
+	// Sync localSearchValue with composable when it changes externally
+	$effect(() => {
+		localSearchValue = attendeeSelection.searchValue;
+	});
+
+	// Prepare combobox items and selected values for Bits UI
+	const comboboxItems = $derived(
+		attendeeSelection.filteredAttendees.map((a) => ({
+			value: `${a.type}:${a.id}`,
+			label: a.name
+		}))
+	);
+	const selectedValues = $derived(selectedAttendees.map((a) => `${a.type}:${a.id}`));
 </script>
 
-<div class="flex flex-col gap-2">
-	<div class="text-body-sm block font-medium text-text-primary">Attendees (optional)</div>
+<div class="flex flex-col gap-fieldGroup">
+	<Text variant="body" size="sm" color="default" as="div" class="font-medium"
+		>Attendees (optional)</Text
+	>
 
 	<!-- Selected attendees chips -->
 	{#if selectedAttendees.length > 0}
-		<div class="flex flex-wrap items-center gap-2">
+		<div class="flex flex-wrap items-center gap-fieldGroup">
 			{#each selectedAttendees as attendee (attendee.type + attendee.id)}
-				<div
-					class="text-body-sm inline-flex items-center gap-2 rounded-button border border-border-base bg-surface px-badge py-badge"
-				>
-					<svg
-						class="icon-sm text-text-secondary"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d={attendeeSelection.getTypeIcon(attendee.type)}
-						/>
-					</svg>
-					<span class="text-text-primary">{attendee.name}</span>
-					<span
-						class="px-badge-sm py-badge-sm rounded-badge text-label {attendeeSelection.getTypeBadgeClass(
-							attendee.type
-						)}"
-					>
-						{attendeeSelection.getTypeLabel(attendee.type)}
-					</span>
-					<button
-						type="button"
-						onclick={() => attendeeSelection.removeAttendee(attendee)}
-						class="ml-spacing-icon-gap-sm p-control-button-padding-sm rounded-button text-text-tertiary transition-colors hover:text-text-primary"
-						aria-label={`Remove ${attendee.name}`}
-					>
-						<svg class="icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M6 18L18 6M6 6l12 12"
-							/>
-						</svg>
-					</button>
-				</div>
+				<AttendeeChip
+					{attendee}
+					onRemove={attendeeSelection.removeAttendee}
+					getTypeLabel={attendeeSelection.getTypeLabel}
+				/>
 			{/each}
 			<!-- Add more button -->
 			<button
@@ -82,19 +89,12 @@
 				onclick={(e) => {
 					e.preventDefault();
 					e.stopPropagation();
-					attendeeSelection.setComboboxOpen(true);
+					localOpen = true;
 				}}
-				class="text-body-sm hover:bg-surface-hover inline-flex items-center gap-2 rounded-button border border-border-base bg-surface px-badge py-badge text-text-secondary transition-colors hover:text-text-primary"
+				class="border-border-base px-badge py-badge inline-flex items-center gap-fieldGroup rounded-button border bg-surface text-secondary transition-colors hover:bg-subtle hover:text-primary"
 				aria-label="Add more attendees"
 			>
-				<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M12 4v16m8-8H4"
-					/>
-				</svg>
+				<Icon type="add" size="sm" />
 				<span>Add</span>
 			</button>
 		</div>
@@ -104,181 +104,191 @@
 	<div class="relative">
 		<Combobox.Root
 			type="multiple"
-			bind:open={attendeeSelection.comboboxOpen}
-			onValueChange={() => {
-				// Handled by toggleAttendee
+			bind:open={localOpen}
+			items={comboboxItems}
+			value={selectedValues}
+			onValueChange={(values) => {
+				// Find the attendee that was toggled by comparing old and new values
+				const newValues = (values as string[]) || [];
+				const addedValue = newValues.find((v) => !selectedValues.includes(v));
+				const removedValue = selectedValues.find((v) => !newValues.includes(v));
+
+				if (addedValue) {
+					// Find attendee and add it
+					const [type, id] = addedValue.split(':');
+					const attendee = attendeeSelection.filteredAttendees.find(
+						(a) => a.type === type && a.id === id
+					);
+					if (attendee) {
+						attendeeSelection.toggleAttendee(attendee);
+					}
+				} else if (removedValue) {
+					// Find attendee and remove it
+					const [type, id] = removedValue.split(':');
+					const attendee = attendeeSelection.filteredAttendees.find(
+						(a) => a.type === type && a.id === id
+					);
+					if (attendee) {
+						attendeeSelection.toggleAttendee(attendee);
+					}
+				}
+				// Keep dropdown open for multi-select - Bits UI should do this automatically
+				// but we ensure it stays open
+				if (!localOpen) {
+					localOpen = true;
+				}
 			}}
 		>
-			{#if selectedAttendees.length === 0}
-				<!-- Empty state: trigger button -->
-				<div class="relative" bind:this={inputRef}>
-					<button
-						type="button"
-						onclick={() => attendeeSelection.setComboboxOpen(true)}
-						class="text-body-sm hover:bg-surface-hover flex w-full items-center gap-2 rounded-input border border-border-base bg-surface px-input-x py-input-y text-left text-text-secondary transition-colors hover:text-text-primary"
-						aria-label="Add attendees"
-					>
-						<svg
-							class="icon-sm flex-shrink-0"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M12 4v16m8-8H4"
-							/>
-						</svg>
-						<span>Add attendees</span>
-					</button>
-				</div>
-			{:else}
-				<!-- Anchor element when attendees exist (for positioning dropdown) -->
-				<div class="relative" bind:this={inputRef} aria-hidden="true"></div>
-			{/if}
+			<!-- Always show input field (like Combobox atom) - allows typing -->
+			<div class="relative flex items-center" bind:this={inputRef}>
+				<input
+					type="text"
+					bind:value={localSearchValue}
+					oninput={(e) => {
+						const newValue = e.currentTarget.value;
+						localSearchValue = newValue;
+						attendeeSelection.setSearchValue(newValue);
+						if (!localOpen) {
+							localOpen = true;
+						}
+					}}
+					onclick={() => {
+						if (!localOpen) {
+							localOpen = true;
+						}
+					}}
+					onfocus={() => {
+						if (!localOpen) {
+							localOpen = true;
+						}
+					}}
+					placeholder="Search users or circles..."
+					class={comboboxInputRecipe()}
+					aria-label="Search attendees"
+					role="combobox"
+					aria-expanded={localOpen}
+					aria-controls="attendee-combobox-content"
+				/>
+				<Combobox.Trigger
+					class="absolute flex-shrink-0"
+					style="inset-inline-end: var(--spacing-input-x);"
+					aria-label="Toggle dropdown"
+				>
+					<Icon type="chevron-down" size="sm" color="tertiary" />
+				</Combobox.Trigger>
+			</div>
 
 			<Combobox.Portal>
 				<Combobox.Content
-					class="max-h-combobox-lg min-w-combobox-md py-menu-item-sm z-50 overflow-y-auto rounded-button border border-base bg-elevated shadow-card"
+					class={comboboxContentRecipe()}
 					side="bottom"
 					align="start"
 					sideOffset={4}
 					customAnchor={inputRef}
 				>
-					<!-- Search input -->
-					<div class="mb-spacing-text-gap relative border-b border-base px-menu-item py-menu-item">
-						<Combobox.Input
-							defaultValue={attendeeSelection.searchValue}
-							oninput={(e) => {
-								attendeeSelection.setSearchValue(e.currentTarget.value);
-								attendeeSelection.setComboboxOpen(true);
-							}}
-							placeholder="Search users or circles..."
-							class="text-body-sm w-full rounded-input border border-base bg-base px-menu-item py-menu-item text-primary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
-							aria-label="Attendee search"
-						/>
+					<!-- Gradient overlay (matches Combobox atom) -->
+					<div
+						class="pointer-events-none absolute inset-0 bg-radial-[at_50%_0%] from-[oklch(55%_0.12_195_/_0.05)] via-[oklch(55%_0.06_195_/_0.02)] to-transparent"
+						aria-hidden="true"
+					></div>
+					<div class="relative">
+						<!-- Scrollable viewport with max-height (14rem = ~224px, shows ~4-5 items) -->
+						<Combobox.Viewport
+							class={comboboxViewportRecipe()}
+							style="max-height: 14rem; overflow-y: auto;"
+						>
+							<!-- Selected attendees section -->
+							{#if selectedAttendees.length > 0}
+								<div class="px-inset-sm py-stack-item">
+									<Text
+										variant="label"
+										color="tertiary"
+										as="p"
+										class="mb-fieldGroup font-medium tracking-wider uppercase"
+									>
+										Selected
+									</Text>
+									<div class="flex flex-col gap-fieldGroup">
+										{#each selectedAttendees as attendee (attendee.type + attendee.id)}
+											{@const attendeeValue = `${attendee.type}:${attendee.id}`}
+											<Combobox.Item
+												value={attendeeValue}
+												label={attendee.name}
+												class={comboboxItemRecipe()}
+											>
+												{#snippet children({ selected })}
+													<Icon type="check" size="sm" color="primary" />
+													<Icon type={attendee.type} size="sm" color="secondary" />
+													<span class="flex-1">{attendee.name}</span>
+													<Badge variant="primary" size="sm">
+														{attendeeSelection.getTypeLabel(attendee.type)}
+													</Badge>
+												{/snippet}
+											</Combobox.Item>
+										{/each}
+									</div>
+								</div>
+								{#if attendeeSelection.filteredAttendees.some((a) => !attendeeSelection.isSelected(a))}
+									<div class="my-stack-divider h-px bg-base"></div>
+								{/if}
+							{/if}
+
+							<!-- Available attendees -->
+							{@const unselectedAttendees = attendeeSelection.filteredAttendees.filter(
+								(a) => !attendeeSelection.isSelected(a)
+							)}
+							{#if unselectedAttendees.length > 0}
+								<div class="px-inset-sm py-stack-item">
+									<Text
+										variant="label"
+										color="tertiary"
+										as="p"
+										class="mb-fieldGroup font-medium tracking-wider uppercase"
+									>
+										Available
+									</Text>
+									<div class="flex flex-col gap-fieldGroup">
+										{#each unselectedAttendees as attendee (attendee.type + attendee.id)}
+											{@const attendeeValue = `${attendee.type}:${attendee.id}`}
+											<Combobox.Item
+												value={attendeeValue}
+												label={attendee.name}
+												class={comboboxItemRecipe()}
+											>
+												{#snippet children({ selected })}
+													<Icon type={attendee.type} size="sm" color="secondary" />
+													<span class="flex-1">{attendee.name}</span>
+													{#if attendee.email}
+														<Text variant="label" color="tertiary" as="span">{attendee.email}</Text>
+													{/if}
+													<Badge variant="primary" size="sm">
+														{attendeeSelection.getTypeLabel(attendee.type)}
+													</Badge>
+												{/snippet}
+											</Combobox.Item>
+										{/each}
+									</div>
+								</div>
+							{:else if attendeeSelection.searchValue.trim().length > 0}
+								<Text
+									variant="body"
+									size="sm"
+									color="tertiary"
+									as="div"
+									class="px-inset-sm py-stack-item"
+								>
+									No results found
+								</Text>
+							{/if}
+						</Combobox.Viewport>
 					</div>
-
-					<!-- Selected attendees section -->
-					{#if selectedAttendees.length > 0}
-						<div class="py-menu-item-sm px-menu-item">
-							<p
-								class="mb-spacing-text-gap text-label font-medium tracking-wider text-tertiary uppercase"
-							>
-								Selected
-							</p>
-							<div class="gap-menu-item-sm flex flex-col">
-								{#each selectedAttendees as attendee (attendee.type + attendee.id)}
-									<button
-										type="button"
-										class="py-menu-item-sm text-body-sm flex w-full cursor-pointer items-center gap-2 px-menu-item text-left text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
-										onclick={() => attendeeSelection.toggleAttendee(attendee)}
-										aria-label={`Toggle ${attendee.name}`}
-									>
-										<svg
-											class="icon-sm flex-shrink-0 text-accent-primary"
-											fill="none"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M5 13l4 4L19 7"
-											/>
-										</svg>
-										<svg
-											class="icon-sm text-text-secondary"
-											fill="none"
-											viewBox="0 0 24 24"
-											stroke="currentColor"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d={attendeeSelection.getTypeIcon(attendee.type)}
-											/>
-										</svg>
-										<span class="flex-1">{attendee.name}</span>
-										<span
-											class="px-badge-sm py-badge-sm rounded-badge text-label {attendeeSelection.getTypeBadgeClass(
-												attendee.type
-											)}"
-										>
-											{attendeeSelection.getTypeLabel(attendee.type)}
-										</span>
-									</button>
-								{/each}
-							</div>
-						</div>
-						{#if attendeeSelection.filteredAttendees.some((a) => !attendeeSelection.isSelected(a))}
-							<div class="my-menu-item-sm h-px bg-base"></div>
-						{/if}
-					{/if}
-
-					<!-- Available attendees -->
-					{@const unselectedAttendees = attendeeSelection.filteredAttendees.filter(
-						(a) => !attendeeSelection.isSelected(a)
-					)}
-					{#if unselectedAttendees.length > 0}
-						<div class="py-menu-item-sm px-menu-item">
-							<p
-								class="mb-spacing-text-gap text-label font-medium tracking-wider text-tertiary uppercase"
-							>
-								Available
-							</p>
-							<div class="gap-menu-item-sm flex flex-col">
-								{#each unselectedAttendees as attendee (attendee.type + attendee.id)}
-									<button
-										type="button"
-										class="py-menu-item-sm text-body-sm flex w-full cursor-pointer items-center gap-2 px-menu-item text-left text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
-										onclick={() => attendeeSelection.toggleAttendee(attendee)}
-										aria-label={`Select ${attendee.name}`}
-									>
-										<div class="icon-sm flex-shrink-0"></div>
-										<svg
-											class="icon-sm text-text-secondary"
-											fill="none"
-											viewBox="0 0 24 24"
-											stroke="currentColor"
-										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d={attendeeSelection.getTypeIcon(attendee.type)}
-											/>
-										</svg>
-										<span class="flex-1">{attendee.name}</span>
-										{#if attendee.email}
-											<span class="text-label text-text-tertiary">{attendee.email}</span>
-										{/if}
-										<span
-											class="px-badge-sm py-badge-sm rounded-badge text-label {attendeeSelection.getTypeBadgeClass(
-												attendee.type
-											)}"
-										>
-											{attendeeSelection.getTypeLabel(attendee.type)}
-										</span>
-									</button>
-								{/each}
-							</div>
-						</div>
-					{:else if attendeeSelection.searchValue.trim().length > 0}
-						<div class="py-menu-item-sm text-body-sm px-menu-item text-text-tertiary">
-							No results found
-						</div>
-					{/if}
 				</Combobox.Content>
 			</Combobox.Portal>
 		</Combobox.Root>
 	</div>
 
 	{#if selectedAttendees.length === 0}
-		<p class="text-label text-text-tertiary">No attendees selected - add users or circles</p>
+		<Text variant="label" color="tertiary" as="p">No attendees selected - add users or circles</Text
+		>
 	{/if}
 </div>
