@@ -103,5 +103,69 @@ $effect(() => {
 
 ---
 
-**Last Updated**: 2025-11-26
+## #L70: $derived Values Are Not Functions [🔴 CRITICAL]
+
+**Keywords**: $derived, function call, TypeError, $.get is not a function, Svelte 5 runes, reactive values
+
+**Symptom**: 
+- Error: `Uncaught TypeError: $.get(...) is not a function`
+- Component doesn't render or entire component tree breaks
+- Error occurs at component line where `$derived` value()` is called
+
+**Root Cause**: In Svelte 5, `$derived` creates a **reactive value**, not a function. Calling it with `()` tries to invoke a value as a function, causing a runtime error.
+
+**Example of broken code**:
+```svelte
+<script lang="ts">
+    const switchClasses = $derived([toggleSwitchRecipe({ checked, disabled })]);
+    const switchStyle = $derived(`background-color: var(--color-component-toggle-off);`);
+</script>
+
+<!-- ❌ BROKEN: Calling $derived value as function -->
+<button class={switchClasses()} style={switchStyle()}>
+    Content
+</button>
+```
+
+**Fix**: Access `$derived` values directly without calling them:
+
+```svelte
+<script lang="ts">
+    const switchClasses = $derived([toggleSwitchRecipe({ checked, disabled })]);
+    const switchStyle = $derived(`background-color: var(--color-component-toggle-off);`);
+</script>
+
+<!-- ✅ CORRECT: Access $derived value directly -->
+<button class={switchClasses} style={switchStyle}>
+    Content
+</button>
+```
+
+**Why this breaks everything**: When a component throws an error during rendering, Svelte stops rendering the entire component tree. If the error occurs in a child component (e.g., ToggleSwitch), parent components (e.g., Dialog modal) may appear to render (overlay shows) but content doesn't render because the error prevents the tree from completing.
+
+**Detection**:
+- Check browser console for `TypeError: $.get(...) is not a function`
+- Error stack trace points to component file and line number
+- Component appears broken or parent components don't render content
+
+**Apply when**: 
+- Using `$derived` in Svelte 5 components
+- Component doesn't render or throws runtime errors
+- Parent components appear broken when child component has error
+- Error mentions `$.get` or function call on reactive value
+
+**Anti-Patterns**:
+- ❌ `class={derivedClasses()}` - Calling $derived as function
+- ❌ `style={derivedStyle()}` - Calling $derived as function
+- ✅ `class={derivedClasses}` - Accessing $derived directly
+- ✅ `style={derivedStyle}` - Accessing $derived directly
+
+**Related**: 
+- Svelte 5 Runes documentation
+- `$derived` vs `$derived.by` usage
+- Component rendering errors breaking parent components
+
+---
+
+**Last Updated**: 2025-01-27
 

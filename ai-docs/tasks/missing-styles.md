@@ -325,6 +325,20 @@ Add a new validation step that:
 - **Current Workaround**: Using `data-disabled:opacity-50` (Bits UI data attribute)
 - **Note**: This is a Bits UI framework-specific data attribute for disabled states. Not a design token, acceptable to use.
 
+## Toggle Switch Background Utilities
+
+### `bg-component-toggle-off` / `bg-component-toggle-on`
+
+- **Location**: `src/lib/components/molecules/ToggleSwitch.svelte` (line 30)
+- **Usage**: Background colors for toggle switch on/off states
+- **Status**: Missing utility classes
+- **Current Workaround**: Using inline CSS variables `style="background-color: var(--color-component-toggle-off);"` and `style="background-color: var(--color-component-toggle-on);"`
+- **Proposed Solution**:
+  1. Update `scripts/style-dictionary/transforms.js` to generate `bg-*` utilities for `color.component.*` tokens
+  2. OR add `color.toggle.off` and `color.toggle.on` to semantic tokens (outside component namespace) to generate utilities automatically
+  3. Run `npm run tokens:build` to generate utilities
+- **Note**: CSS variables `--color-component-toggle-off` and `--color-component-toggle-on` exist, but background utilities don't. The transform logic only generates utilities for `text-*`, `bg-*`, `border-*`, `interactive-*`, `accent-*`, `brand-*`, and `status-*` prefixes, but NOT `component-*` prefixes. This is similar to the `bg-component-sidebar-itemHover` issue above.
+
 ## Follow-up Tasks
 
 - [ ] Add `spacing.card.row.y` to `design-tokens-semantic.json`
@@ -333,3 +347,4 @@ Add a new validation step that:
 - [ ] Remove workarounds from `src/lib/modules/meetings/components/MeetingCard.svelte`
 - [ ] Add "more" icon (three dots vertical) to icon registry
 - [ ] Consider adding `noLabel` prop to FormSelect to handle inline usage without gap
+- [ ] Fix toggle switch background utilities: Update transforms.js to generate `bg-component-toggle-off/on` OR move toggle colors outside component namespace

@@ -18,6 +18,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | Keywords | Canonical Pattern | File |
 |----------|-------------------|------|
 | reactivity, props, stale, composable, $derived, updates | Composable Reactivity Break | `svelte-reactivity.md#L10` |
+| $derived, function call, TypeError, $.get is not a function, reactive values, component doesn't render | $derived Values Are Not Functions | `svelte-reactivity.md#L70` |
 | scroll, bottom, position, viewport, scrollTop | ScrollArea Initial Position | `ui-patterns.md#L10` |
 | overflow, max-height, scroll, dropdown, full-page, parent height, h-full, Tabs.Root, height constraint | ScrollArea Max Height | `ui-patterns.md#L60` |
 | border, harsh, contrast, subtle, soft | Border Contrast | `design-system-patterns.md#L60` |
@@ -40,6 +41,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | Symptom | Pattern | File |
 |---------|---------|------|
 | Props not updating in composable/helper function | Composable Reactivity Break | `svelte-reactivity.md#L10` |
+| TypeError: $.get(...) is not a function, component doesn't render | $derived Values Are Not Functions | `svelte-reactivity.md#L70` |
 | Scroll area shows content at bottom, must scroll up | ScrollArea Initial Position | `ui-patterns.md#L10` |
 
 ## 🟡 Important (Common Issues)

@@ -2,9 +2,12 @@
 	/**
 	 * Toggle Switch Component (Linear-style)
 	 *
-	 * Atomic component for on/off switches
-	 * Follows pattern: ui-patterns.md#L680 (Atomic Design)
+	 * Molecule component for on/off switches
+	 * Uses design tokens and recipe system for styling
 	 */
+
+	import { Text } from '$lib/components/atoms';
+	import { toggleSwitchRecipe, toggleSwitchThumbRecipe } from '$lib/design-system/recipes';
 
 	type Props = {
 		checked: boolean;
@@ -14,11 +17,32 @@
 	};
 
 	let { checked = false, onChange, label, disabled = false }: Props = $props();
+
+	// Compute classes using recipe
+	const switchClasses = $derived([toggleSwitchRecipe({ checked, disabled })]);
+
+	const thumbClasses = $derived([toggleSwitchThumbRecipe({ checked }), 'size-icon-sm']);
+
+	// Inline styles for background colors (utilities don't exist)
+	// WORKAROUND: bg-component-toggle-off/on utilities missing - see missing-styles.md
+	const switchStyle = $derived(
+		`background-color: var(--color-component-toggle-${checked ? 'on' : 'off'}); height: 1.5rem; width: 2.75rem;${disabled ? ' opacity: var(--opacity-50);' : ''}`
+	);
+
+	// Thumb transform: translate-x-6 when checked, translate-x-1 when unchecked
+	// Using spacing tokens: spacing-6 = 1.5rem (24px), spacing-1 = 0.25rem (4px)
+	const thumbTransform = $derived(
+		checked
+			? 'transform: translateX(1.5rem);' // translate-x-6 = 24px = spacing-6
+			: 'transform: translateX(0.25rem);' // translate-x-1 = 4px = spacing-1
+	);
 </script>
 
-<label class="inline-flex cursor-pointer items-center gap-2">
+<label class="inline-flex cursor-pointer items-center gap-fieldGroup">
 	{#if label}
-		<span class="text-button text-secondary">{label}</span>
+		<Text variant="body" size="sm" color="secondary" as="span" class="font-medium">
+			{label}
+		</Text>
 	{/if}
 	<button
 		type="button"
@@ -26,15 +50,10 @@
 		aria-checked={checked}
 		aria-label={label || 'Toggle'}
 		{disabled}
-		class="relative inline-flex h-6 w-11 items-center rounded-avatar transition-colors {checked
-			? 'bg-accent-primary'
-			: 'bg-toggle-off'} {disabled ? 'cursor-not-allowed opacity-50' : ''}"
+		class={switchClasses}
+		style={switchStyle}
 		onclick={() => !disabled && onChange?.(!checked)}
 	>
-		<span
-			class="inline-block icon-sm transform rounded-avatar bg-elevated transition-transform {checked
-				? 'translate-x-6'
-				: 'translate-x-1'}"
-		></span>
+		<span class={thumbClasses} style={thumbTransform}></span>
 	</button>
 </label>

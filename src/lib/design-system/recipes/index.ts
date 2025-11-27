@@ -36,3 +36,9 @@ export {
 } from './todayMeetingCard.recipe';
 export { meetingCardRecipe, type MeetingCardVariantProps } from './meetingCard.recipe';
 export { themeToggleRecipe, type ThemeToggleVariantProps } from './themeToggle.recipe';
+export {
+	toggleSwitchRecipe,
+	toggleSwitchThumbRecipe,
+	type ToggleSwitchVariantProps,
+	type ToggleSwitchThumbVariantProps
+} from './toggleSwitch.recipe';
