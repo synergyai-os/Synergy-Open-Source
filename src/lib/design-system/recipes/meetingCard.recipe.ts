@@ -13,10 +13,14 @@ export const meetingCardRecipe = cva(
 	'group hover:bg-subtle transition-colors-token flex items-center rounded-card overflow-hidden gap-fieldGroup',
 	{
 		variants: {
-			// Start simple - default variant only for now
-			// Can expand later with variants like 'selected', 'highlighted', etc.
+			closed: {
+				true: '',
+				false: ''
+			}
 		},
-		defaultVariants: {}
+		defaultVariants: {
+			closed: false
+		}
 	}
 );
 

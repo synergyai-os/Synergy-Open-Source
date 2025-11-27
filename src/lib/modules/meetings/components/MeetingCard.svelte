@@ -23,6 +23,7 @@
 			endDate?: number;
 		};
 		attendeeCount?: number;
+		closedAt?: number; // Meeting session closed timestamp
 	}
 
 	interface Props {
@@ -32,6 +33,7 @@
 		attendeeAvatars?: Array<{ name: string; color: string }>;
 		onStart?: () => void;
 		onAddAgendaItem?: () => void;
+		onShowReport?: () => void;
 	}
 
 	let {
@@ -40,7 +42,8 @@
 		organizationName,
 		attendeeAvatars = [],
 		onStart,
-		onAddAgendaItem
+		onAddAgendaItem,
+		onShowReport
 	}: Props = $props();
 
 	// Format date for badge
@@ -63,6 +66,9 @@
 	const isPrivate = $derived(meeting.visibility === 'private');
 	const hasRecurrence = $derived(!!meeting.recurrence);
 
+	// Check if meeting is closed
+	const isClosed = $derived(!!meeting.closedAt);
+
 	// Generate initials from name
 	function getInitials(name: string): string {
 		return name
@@ -78,8 +84,8 @@
 		downloadICS(meeting, organizationName);
 	}
 
-	// Use recipe for container styling
-	const containerClasses = $derived([meetingCardRecipe()]);
+	// Use recipe for container styling with closed variant
+	const containerClasses = $derived([meetingCardRecipe({ closed: isClosed })]);
 </script>
 
 <div class={containerClasses}>
@@ -144,25 +150,37 @@
 	<!-- Actions (Right) -->
 	<!-- WORKAROUND: Card row vertical padding - see missing-styles.md -->
 	<div class="flex items-center gap-fieldGroup" style="padding-block: var(--spacing-card-padding);">
-		<!-- Download Calendar -->
-		<Button
-			variant="outline"
-			iconOnly
-			ariaLabel="Download calendar event"
-			onclick={handleDownloadCalendar}
-		>
-			<Icon type="download" size="md" />
-		</Button>
-
-		{#if onAddAgendaItem}
-			<Button variant="outline" onclick={onAddAgendaItem}>
-				<Icon type="add" size="sm" />
-				Add agenda item
+		{#if isClosed}
+			<!-- Closed state: Show Report button -->
+			{#if onShowReport}
+				<Button variant="outline" onclick={onShowReport}>
+					<Icon type="document" size="sm" />
+					Show Report
+				</Button>
+			{/if}
+		{:else}
+			<!-- Active state: Download, Add agenda item, Start buttons -->
+			<!-- Download Calendar -->
+			<Button
+				variant="outline"
+				iconOnly
+				ariaLabel="Download calendar event"
+				onclick={handleDownloadCalendar}
+			>
+				<Icon type="download" size="md" />
 			</Button>
+
+			{#if onAddAgendaItem}
+				<Button variant="outline" onclick={onAddAgendaItem}>
+					<Icon type="add" size="sm" />
+					Add agenda item
+				</Button>
+			{/if}
+			{#if onStart}
+				<Button variant="primary" onclick={onStart}>Start</Button>
+			{/if}
 		{/if}
-		{#if onStart}
-			<Button variant="primary" onclick={onStart}>Start</Button>
-		{/if}
+		<!-- More options menu (always visible) -->
 		<Button variant="ghost" iconOnly ariaLabel="More options">
 			<!-- TODO: Add "more" icon to icon registry -->
 			<svg class="size-icon-md" fill="currentColor" viewBox="0 0 20 20">

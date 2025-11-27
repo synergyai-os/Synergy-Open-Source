@@ -862,5 +862,119 @@ export const meetingCardRecipe = cva(
 
 ---
 
+## #L600: Component State Variants with Conditional Rendering [🟢 REFERENCE]
+
+**Keywords**: component state, variant, conditional rendering, state-based styling, recipe variant, derived state, isClosed, closed state, active state, conditional buttons
+
+**Principle**: Use recipe variants for state-based styling, and conditional rendering for state-based content/actions. Keep styling in recipes, keep content logic in components.
+
+**Symptom**: Component needs different visual appearance and different actions/buttons based on state (e.g., closed vs active meeting).
+
+**Root Cause**: State affects both styling (visual appearance) and content (which buttons/actions to show). These concerns should be separated: styling via recipe variants, content via conditional rendering.
+
+**Pattern**: 
+1. **Add state variant to recipe** - Recipe handles visual styling differences
+2. **Derive state in component** - Use `$derived` to compute state from props/data
+3. **Apply recipe variant** - Pass state to recipe for styling
+4. **Conditionally render content** - Use `{#if}` blocks for state-based content/actions
+
+**Implementation Example**:
+```svelte
+<script lang="ts">
+  import { meetingCardRecipe } from '$lib/design-system/recipes';
+  
+  interface Meeting {
+    closedAt?: number;
+    // ... other fields
+  }
+  
+  let { meeting }: Props = $props();
+  
+  // Derive state from data
+  const isClosed = $derived(!!meeting.closedAt);
+  
+  // Apply recipe variant for styling
+  const containerClasses = $derived([meetingCardRecipe({ closed: isClosed })]);
+</script>
+
+<div class={containerClasses}>
+  <!-- Content that's always visible -->
+  
+  <!-- Conditionally render actions based on state -->
+  {#if isClosed}
+    <!-- Closed state: Show Report button -->
+    <Button variant="outline" onclick={onShowReport}>
+      <Icon type="document" size="sm" />
+      Show Report
+    </Button>
+  {:else}
+    <!-- Active state: Download, Add agenda item, Start buttons -->
+    <Button variant="outline" iconOnly onclick={handleDownload}>
+      <Icon type="download" size="md" />
+    </Button>
+    {#if onAddAgendaItem}
+      <Button variant="outline" onclick={onAddAgendaItem}>
+        <Icon type="add" size="sm" />
+        Add agenda item
+      </Button>
+    {/if}
+    {#if onStart}
+      <Button variant="primary" onclick={onStart}>Start</Button>
+    {/if}
+  {/if}
+  
+  <!-- Actions that are always visible -->
+  <Button variant="ghost" iconOnly ariaLabel="More options">
+    <!-- ... -->
+  </Button>
+</div>
+```
+
+**Recipe Pattern**:
+```typescript
+// meetingCard.recipe.ts
+export const meetingCardRecipe = cva(
+  'group hover:bg-subtle transition-colors-token flex items-center rounded-card overflow-hidden gap-fieldGroup',
+  {
+    variants: {
+      closed: {
+        true: '',  // Closed state styling (if needed)
+        false: ''  // Active state styling (if needed)
+      }
+    },
+    defaultVariants: {
+      closed: false
+    }
+  }
+);
+```
+
+**Key Principles**:
+- **Recipe handles**: Visual styling differences between states (colors, borders, etc.)
+- **Component handles**: Which content/actions to show based on state
+- **State derivation**: Use `$derived` to compute state from props/data
+- **Separation of concerns**: Styling ≠ Content. Recipes for styling, conditionals for content.
+
+**When to Apply**:
+- Component has multiple states (active/closed, selected/unselected, etc.)
+- Different states need different actions/buttons
+- Visual appearance changes with state
+- Need type-safe state management
+
+**Anti-Patterns**:
+- ❌ Putting content logic in recipes (recipes return CSS classes, not content)
+- ❌ Hardcoding state checks in multiple places (derive state once)
+- ❌ Mixing styling and content concerns (keep them separate)
+- ❌ Not using recipe variants for state-based styling (use variants, not conditional classes)
+
+**Examples**:
+- ✅ `MeetingCard` - Uses `closed` variant for styling, conditional rendering for buttons
+- ✅ `InboxCard` - Uses `selected` variant for styling, conditional rendering for selected actions
+- ❌ Conditional classes in component instead of recipe variants
+
+**Related**: #L300 (Module Card Component Pattern), #L100 (Matching Component Styles), #L550 (Hover Effects with Rounded Corners)
+
+---
+
 **Last Updated**: 2025-01-27
 

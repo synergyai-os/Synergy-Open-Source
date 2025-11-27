@@ -32,6 +32,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | grouping, spacing, gap-header, gap-button, gap-form, gap-fieldGroup, element groups, visual hierarchy | Grouping Elements with Spacing Tokens | `design-system-patterns.md#L450` |
 | recipe validation, missing token, non-existent utility, py-nav-item, py-button-sm, button recipe, token missing, utility doesn't exist, validate tokens | Recipe Validation and Missing Tokens | `design-system-patterns.md#L500` |
 | hover effect, rounded corners, overflow-hidden, hover background, square hover, rounded hover, border radius, hover:bg-subtle | Hover Effects with Rounded Corners | `design-system-patterns.md#L550` |
+| component state, variant, conditional rendering, state-based styling, recipe variant, derived state, isClosed, closed state, active state, conditional buttons | Component State Variants with Conditional Rendering | `design-system-patterns.md#L600` |
 | atom, class prop, className, pure components, self-contained, Icon, Text, Button, Card, Avatar, Heading | Atoms Should NOT Accept class Props | `atoms-no-class-props.md` |
 
 ---
@@ -68,6 +69,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | Creating module-specific card component | Module Card Component Pattern | `design-system-patterns.md#L300` |
 | Grouping elements, spacing between groups, visual hierarchy | Grouping Elements with Spacing Tokens | `design-system-patterns.md#L450` |
 | Recipe validation, missing design token, add semantic token, validate utilities exist | Recipe Validation and Missing Tokens | `design-system-patterns.md#L500` |
+| Component has multiple states, different actions per state, state-based styling | Component State Variants with Conditional Rendering | `design-system-patterns.md#L600` |
 | Atom accepting class prop, Icon with class prop, Text with class prop | Atoms Should NOT Accept class Props | `atoms-no-class-props.md` |
 
 ---
