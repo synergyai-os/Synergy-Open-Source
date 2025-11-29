@@ -7,7 +7,19 @@
 	} from '@internationalized/date';
 	import * as DateField from './DateField.svelte';
 	import * as DatePicker from './DatePicker.svelte';
-	import { dateInputRecipe } from '$lib/design-system/recipes';
+	import {
+		dateInputRecipe,
+		datePickerContentRecipe,
+		datePickerHeaderRecipe,
+		datePickerNavButtonRecipe,
+		datePickerHeadingRecipe,
+		datePickerGridHeadRecipe,
+		datePickerGridRowRecipe,
+		datePickerHeadCellRecipe,
+		datePickerGridBodyRecipe,
+		datePickerCellRecipe,
+		datePickerDayRecipe
+	} from '$lib/design-system/recipes';
 	import Icon from '../atoms/Icon.svelte';
 	import { DEFAULT_LOCALE } from '$lib/utils/locale';
 
@@ -31,7 +43,9 @@
 		class: customClass = ''
 	}: Props = $props();
 
-	const inputClasses = $derived([dateInputRecipe(), customClass]);
+	// Calculate padding-right to accommodate icon + spacing
+	// Icon (sm = 1rem) + left padding (0.5rem) + right padding (0.5rem) + edge spacing (0.5rem) = ~2.5rem
+	const inputClasses = $derived([dateInputRecipe(), 'pr-[2.75rem]', customClass]);
 
 	// Use a non-null value for DateField (it needs a value, not placeholder)
 	// When value is null, use today's date as the display value
@@ -61,7 +75,7 @@
 	});
 </script>
 
-<div class="relative flex items-center gap-2">
+<div class="relative w-[10rem]">
 	<DateField.Root
 		bind:value={displayValue}
 		{required}
@@ -83,9 +97,11 @@
 
 	<!-- DatePicker with Trigger and Popup -->
 	<DatePicker.Root bind:open={isOpen} bind:value={calendarValue} locale={DEFAULT_LOCALE}>
-		<!-- Calendar icon button to open DatePicker -->
+		<!-- Calendar icon button to open DatePicker - positioned inside input on the right -->
+		<!-- Layout primitives: top-1/2 and -translate-y-1/2 for vertical centering (allowed positioning utilities) -->
 		<DatePicker.Trigger
-			class="hover:bg-surface-hover flex items-center justify-center rounded-button p-2 transition-colors"
+			class="absolute top-1/2 flex flex-shrink-0 -translate-y-1/2 items-center justify-center rounded-button px-button py-button text-secondary transition-all duration-200 hover:text-primary focus:text-primary focus:outline-none"
+			style="inset-inline-end: var(--spacing-input-x);"
 			{disabled}
 			aria-label="Open calendar"
 		>
@@ -93,50 +109,70 @@
 		</DatePicker.Trigger>
 
 		<DatePicker.Portal>
-			<DatePicker.Content>
-				<DatePicker.Calendar>
-					{#snippet children({ months, weekdays })}
-						<DatePicker.Header>
-							<DatePicker.PrevButton>←</DatePicker.PrevButton>
-							<DatePicker.Heading />
-							<DatePicker.NextButton>→</DatePicker.NextButton>
-						</DatePicker.Header>
-						{#each months as month}
-							<DatePicker.Grid>
-								<DatePicker.GridHead>
-									<DatePicker.GridRow>
-										{#each weekdays as day}
-											<DatePicker.HeadCell>
-												{day}
-											</DatePicker.HeadCell>
-										{/each}
-									</DatePicker.GridRow>
-								</DatePicker.GridHead>
-								<DatePicker.GridBody>
-									{#each month.weeks as weekDates}
-										<DatePicker.GridRow>
-											{#each weekDates as date}
-												<DatePicker.Cell {date} month={month.value}>
-													<DatePicker.Day
-														onclick={() => {
-															if (date instanceof CalendarDateClass) {
-																const selectedDate = date as CalendarDate;
-																value = selectedDate;
-																displayValue = selectedDate;
-																calendarValue = selectedDate;
-																isOpen = false;
-															}
-														}}
-													/>
-												</DatePicker.Cell>
+			<DatePicker.Content class={datePickerContentRecipe()}>
+				<!--
+					Calendar Background Gradient
+					- Uses brand hue (195) at 5% opacity for subtle depth
+					- Matches combobox/dropdown aesthetic but more subtle for calendar surface
+					- Radial gradient positioned at top center for natural light feel
+				-->
+				<div
+					class="pointer-events-none absolute inset-0 bg-radial-[at_50%_0%] from-[oklch(55%_0.12_195_/_0.05)] via-[oklch(55%_0.06_195_/_0.02)] to-transparent"
+					aria-hidden="true"
+				></div>
+				<div
+					class="relative"
+					style="padding-top: var(--spacing-1); padding-bottom: var(--spacing-2); padding-inline: var(--spacing-1);"
+				>
+					<DatePicker.Calendar>
+						{#snippet children({ months, weekdays })}
+							<DatePicker.Header class={datePickerHeaderRecipe()}>
+								<DatePicker.PrevButton class={datePickerNavButtonRecipe()}>←</DatePicker.PrevButton>
+								<DatePicker.Heading class={datePickerHeadingRecipe()} />
+								<DatePicker.NextButton class={datePickerNavButtonRecipe()}>→</DatePicker.NextButton>
+							</DatePicker.Header>
+							{#each months as month}
+								<DatePicker.Grid>
+									<DatePicker.GridHead class={datePickerGridHeadRecipe()}>
+										<DatePicker.GridRow class={datePickerGridRowRecipe()}>
+											{#each weekdays as day}
+												<DatePicker.HeadCell class={datePickerHeadCellRecipe()}>
+													{day}
+												</DatePicker.HeadCell>
 											{/each}
 										</DatePicker.GridRow>
-									{/each}
-								</DatePicker.GridBody>
-							</DatePicker.Grid>
-						{/each}
-					{/snippet}
-				</DatePicker.Calendar>
+									</DatePicker.GridHead>
+									<DatePicker.GridBody class={datePickerGridBodyRecipe()}>
+										{#each month.weeks as weekDates}
+											<DatePicker.GridRow class={datePickerGridRowRecipe()}>
+												{#each weekDates as date}
+													<DatePicker.Cell
+														{date}
+														month={month.value}
+														class={datePickerCellRecipe()}
+													>
+														<DatePicker.Day
+															class={datePickerDayRecipe()}
+															onclick={() => {
+																if (date instanceof CalendarDateClass) {
+																	const selectedDate = date as CalendarDate;
+																	value = selectedDate;
+																	displayValue = selectedDate;
+																	calendarValue = selectedDate;
+																	isOpen = false;
+																}
+															}}
+														/>
+													</DatePicker.Cell>
+												{/each}
+											</DatePicker.GridRow>
+										{/each}
+									</DatePicker.GridBody>
+								</DatePicker.Grid>
+							{/each}
+						{/snippet}
+					</DatePicker.Calendar>
+				</div>
 			</DatePicker.Content>
 		</DatePicker.Portal>
 	</DatePicker.Root>
