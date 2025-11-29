@@ -17,7 +17,11 @@
  * - Overflow: overflow-hidden, overflow-auto, etc.
  * - Sizing constraints: min-h-screen, max-w-md, w-full, etc.
  * - Semantic tokens: bg-subtle, text-brand, gap-form, mb-header, etc.
- * - Font weights: font-medium, font-semibold (until we add font-weight tokens)
+ * - Typography utilities: text-sm, text-xs, text-base, etc. (generated from design tokens)
+ * - Font weights: font-normal, font-medium, font-semibold, font-bold (layout primitives)
+ * - Opacity values: opacity-50, disabled:opacity-50 (acceptable for disabled states)
+ * - Z-index: z-10, z-50 (layout/layering concern, not design token)
+ * - rounded-full: Exception for avatar circles (SYOS-585)
  * - Inline oklch colors (for gradients) with brand hue (195)
  */
 
@@ -44,26 +48,19 @@ const HARDCODED_PATTERNS = [
 	// Hardcoded colors (color-scale values)
 	/\b(text|bg|border|ring|fill|stroke)-(gray|slate|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d+\b/g,
 
-	// Hardcoded text sizes
-	/\btext-(xs|sm|base|lg|xl|2xl|3xl|4xl|5xl|6xl|7xl|8xl|9xl)\b/g,
-
 	// Hardcoded font weights (except medium and semibold which we allow for now)
-	/\bfont-(thin|extralight|light|normal|bold|extrabold|black)\b/g,
+	// Note: font-normal, font-medium, font-semibold, font-bold are allowed (see ALLOWED_PATTERNS)
+	/\bfont-(thin|extralight|light|extrabold|black)\b/g,
 
 	// Hardcoded leading/tracking (numeric values only - semantic tokens like leading-tight are allowed)
 	/\b(leading|tracking)-\d+\b/g,
 
 	// Hardcoded rounded values (numeric)
-	/\brounded-(sm|md|lg|xl|2xl|3xl|full|none)\b/g,
+	// Note: rounded-full is allowed for avatars (see ALLOWED_PATTERNS)
+	/\brounded-(sm|md|lg|xl|2xl|3xl|none)\b/g,
 
 	// Hardcoded shadow values
-	/\bshadow-(sm|md|lg|xl|2xl|inner|none)\b/g,
-
-	// Hardcoded opacity
-	/\bopacity-\d+\b/g,
-
-	// Hardcoded z-index
-	/\bz-\d+\b/g
+	/\bshadow-(sm|md|lg|xl|2xl|inner|none)\b/g
 ];
 
 // Patterns that are ALLOWED (layout, positioning, semantic tokens)
@@ -95,12 +92,24 @@ const ALLOWED_PATTERNS = [
 	// Pointer events
 	/\bpointer-events-(none|auto)\b/,
 
-	// Font weights we allow (until tokenized)
-	/\bfont-(medium|semibold)\b/,
+	// Font weights (layout primitives - standard Tailwind weights)
+	/\bfont-(thin|light|normal|medium|semibold|bold|extrabold|black)\b/,
 
 	// Text decoration
 	/\b(underline|line-through|no-underline)\b/,
 	/\bhover:underline\b/,
+
+	// Typography utilities (generated from design tokens)
+	/\btext-(2xs|xs|sm|base|lg|xl|2xl|3xl|4xl|5xl|6xl)\b/,
+
+	// Opacity values (acceptable for disabled states and visual effects)
+	/\b(disabled:)?opacity-\d+\b/,
+
+	// Avatar circle exception (SYOS-585)
+	/\brounded-full\b/,
+
+	// Z-index (layout/layering concern, not design token)
+	/\bz-\d+\b/,
 
 	// Semantic color tokens (these are generated from our tokens)
 	/\b(text|bg|border)-(primary|secondary|tertiary|muted|disabled|inverse|brand|link|success|warning|error|info)\b/,

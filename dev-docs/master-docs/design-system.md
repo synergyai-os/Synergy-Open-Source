@@ -6,7 +6,7 @@
 
 **Status**: Living document - Updated as system evolves
 
-**Last Updated**: 2025-11-25
+**Last Updated**: 2025-11-29
 
 ---
 
@@ -145,7 +145,7 @@ src/styles/utilities/
   ├── spacing-utils.css   # px-*, py-*, gap-* utilities
   ├── typography-utils.css # text-h1, text-body, etc.
   ├── component-utils.css  # rounded-*, shadow-* utilities
-  └── opacity-utils.css    # opacity-* utilities
+  └── opacity-utils.css    # opacity-disabled, etc.
 ```
 
 ---
@@ -369,7 +369,33 @@ export const buttonRecipe = cva(
 | SVG component (Loading, Icon) | **Manual classes** (with exception comment) |
 | One-off styling | **Utility classes directly** |
 
-### 6.4 SVG Exception Pattern
+### 6.4 Input Size Variants (Compact-First)
+
+FormInput and related recipes now support size variants:
+
+```typescript
+// formInputRecipe size variants
+size: {
+  sm: 'text-xs'      // 10px×6px padding, 11px text - Dense UIs
+  md: 'text-sm'      // 14px×8px padding, 12px text - DEFAULT (Linear-inspired)
+  lg: 'text-base'    // 16px×12px padding, 14px text - Touch/accessibility
+}
+```
+
+**Usage:**
+```svelte
+<FormInput size="md" />  <!-- Default compact -->
+<FormInput size="lg" />  <!-- Larger for touch targets -->
+```
+
+**Recipes that inherit from formInputRecipe:**
+- `timeInputRecipe` - inherits size variants
+- `dateInputRecipe` - inherits size variants
+- `durationInputRecipe` - inherits size variants
+- `comboboxTriggerRecipe` - inherits size variants
+- `comboboxInputRecipe` - inherits size variants
+
+### 6.5 SVG Exception Pattern
 
 ```svelte
 <script lang="ts">
@@ -487,12 +513,23 @@ npm run lint
 
 ### 9.1 Premium Look & Feel (Linear/Notion Inspired)
 
-#### Spacing Philosophy
-- **Generous whitespace**: Premium tools use ~2x more spacing than typical web apps
-- Card padding: 32px (not 16px)
-- Form field gaps: 20px (not 12px)
-- Input padding: 12px vertical, 16px horizontal
-- Section margins: 32px
+#### Spacing Philosophy (Compact-First)
+
+**Updated 2025-11-29**: Shifted from "generous" to "compact but breathable" (Linear-inspired).
+
+| Element | Value | Token |
+|---------|-------|-------|
+| Input padding | 14px × 8px | `px-input`, `py-input` |
+| Button padding | 16px × 8px | `px-button`, `py-button` |
+| Card padding | 24px | `card-padding` |
+| Header → Content gap | 12px | `mb-header` |
+| Between sections | 24px | `mb-section`, `gap-section` |
+| Form field gaps | 12px | `gap-form` |
+| Form section gaps | 16px | `gap-form-sectionGap` |
+| Content gaps | 12px | `gap-content` |
+| Page padding | 24px × 32px | `px-page`, `py-page` |
+
+**Key Principle**: Tight but breathable. Dense information without feeling cramped.
 - **Semantic tokens for all spacing**: Never use `gap-2`, always use `gap-fieldGroup`
 
 #### Shadows & Depth
@@ -544,23 +581,24 @@ npm run lint
 #### Available Spacing Utilities
 
 ```css
-/* Padding */
-px-button, py-button     /* Button padding */
-px-input, py-input       /* Input padding */
+/* Padding (compact, Linear-inspired) */
+px-button, py-button     /* Button padding (16px × 8px) */
+px-input, py-input       /* Input padding (14px × 8px) */
 px-page, py-page         /* Page padding */
-card-padding             /* Card padding */
+card-padding             /* Card padding (24px) */
 
 /* Gaps */
 gap-button               /* Icon/text gap in buttons */
 gap-header               /* Header element gaps (12px) */
-gap-form                 /* Form field gaps (20px) */
+gap-form                 /* Form field gaps (12px - compact) */
 gap-fieldGroup           /* Tight element gaps (8px) */
-gap-card                 /* Card element gaps */
-gap-section              /* Section gaps (32px) */
-gap-content              /* Content gaps (16px) */
+gap-card                 /* Card element gaps (16px) */
+gap-section              /* Section gaps (24px) */
+gap-content              /* Content gaps (12px - compact) */
 
 /* Margins */
-mb-header                /* Header bottom margin (32px) */
+mb-header                /* Header → content margin (12px) */
+mb-section               /* Section bottom margin (24px) */
 mb-alert                 /* Alert bottom margin (24px) */
 mt-fieldGroup            /* Field group top margin (8px) */
 
@@ -587,6 +625,9 @@ inset-md                 /* Medium all-sides (12px) - cards, panels */
 inset-lg                 /* Large all-sides (16px) - modals */
 py-inset-xs              /* Extra small vertical (4px) - compact menu containers */
 py-inset-sm              /* Small vertical (8px) - default dropdown containers */
+
+/* Opacity */
+opacity-disabled         /* 50% opacity for disabled states */
 ```
 
 ### 9.3 Stack & Inset Pattern
@@ -714,6 +755,18 @@ import { ToggleSwitch } from '$lib/components/molecules';
 </script>
 ```
 
+### 10.5 Z-Index Values
+
+Z-index utilities (`z-10`, `z-50`) are **acceptable** - they're layout/layering concerns, not design tokens.
+
+```svelte
+<!-- ✅ ACCEPTABLE: Z-index for layering -->
+<div class="z-50">Modal content</div>
+
+<!-- ✅ ALSO ACCEPTABLE: CSS variable -->
+<div style="z-index: var(--zIndex-modal);">Modal content</div>
+```
+
 ---
 
 ## Quick Reference
@@ -754,6 +807,6 @@ import { ToggleSwitch } from '$lib/components/molecules';
 
 ---
 
-**Last Updated**: 2025-11-25
-**Version**: 2.0.0 (Fresh start after design token overhaul)
+**Last Updated**: 2025-11-29
+**Version**: 2.1.0 (Design System Compactness v2 - Linear-inspired compact defaults)
 

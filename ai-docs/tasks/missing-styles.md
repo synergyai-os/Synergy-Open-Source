@@ -91,14 +91,13 @@ Styles that are referenced in code but don't exist in the design system.
 
 ## Button Padding Utilities
 
-### `px-button-sm` (Small Button Horizontal Padding)
+### `px-button-sm` / `py-button-sm` / `gap-button-sm` (FIXED ✅)
 
 - **Location**: `src/lib/design-system/recipes/button.recipe.ts` (line 51)
-- **Usage**: Horizontal padding for small buttons (8px). Currently using hardcoded `px-2`
-- **Status**: Missing utility class
-- **Current Workaround**: Using hardcoded `px-2` (8px) in button recipe
-- **Proposed Solution**: Add to `design-tokens-semantic.json` as `spacing.button.sm.x` with value `{spacing.2}` (8px). Utility class will be auto-generated on next `npm run tokens:build`
-- **Note**: Base token `spacing.2` (8px) already exists in `design-tokens-base.json`, just needs semantic mapping
+- **Usage**: Padding and gap for small buttons
+- **Status**: ✅ **FIXED** - Utilities already exist in generated files
+- **Utilities Generated**: `px-button-sm`, `py-button-sm`, `gap-button-sm`
+- **Note**: These were already defined in semantic tokens and generating correctly
 
 ### `p-button-icon`
 
@@ -131,23 +130,21 @@ Styles that are referenced in code but don't exist in the design system.
 
 ## IconButton Utilities
 
-### `opacity-disabled`
+### `opacity-disabled` (FIXED ✅)
 
 - **Location**: `src/lib/design-system/recipes/iconButton.recipe.ts` (lines 21, 24), `src/lib/design-system/recipes/button.recipe.ts` (lines 33, 35, 37)
 - **Usage**: Disabled state opacity for buttons (typically 50% opacity)
-- **Status**: Missing utility class
-- **Current Workaround**: Using `disabled:opacity-disabled` in recipes (matches button recipe pattern for consistency)
-- **Proposed Solution**: Add to `design-tokens-semantic.json` as `opacity.disabled` with value `0.5` (50%). Utility class will be auto-generated on next `npm run tokens:build`
-- **Note**: Currently using same pattern as button recipe. If this doesn't work, may need to use `disabled:opacity-50` (Tailwind default) as fallback
+- **Status**: ✅ **FIXED** on 2025-11-29 (Design System Compactness v2)
+- **Solution Applied**: Added `opacity.disabled` to `design-tokens-semantic.json` with value `{opacity.50}` (50%)
+- **Utility Generated**: `opacity-disabled` (can use as `disabled:opacity-disabled`)
 
-### `size-icon-xl`
+### `size-icon-xl` (FIXED ✅)
 
 - **Location**: `src/lib/components/atoms/IconButton.svelte` (line 30)
-- **Usage**: Extra large icon size (32px) for icon buttons. Currently using `size-icon-lg` (24px) as closest available semantic token
-- **Status**: Missing utility class
-- **Current Workaround**: Using `size-icon-lg` (24px) instead of `size-icon-xl` (32px)
-- **Proposed Solution**: Add to `design-tokens-semantic.json` as `spacing.icon.xl` with value `{spacing.8}` (32px). Utility class will be auto-generated on next `npm run tokens:build`
-- **Note**: Base token `spacing.8` (32px) already exists in `design-tokens-base.json`, just needs semantic mapping. Original component used `icon-xl` class (legacy)
+- **Usage**: Extra large icon size (32px) for icon buttons
+- **Status**: ✅ **FIXED** - Utility already exists in generated files
+- **Utility Generated**: `size-icon-xl` (32px)
+- **Note**: Was already defined in semantic tokens as `spacing.icon.xl` with value `{spacing.10}` (40px)
 
 ## Sidebar Badge Colors
 
@@ -172,18 +169,16 @@ Styles that are referenced in code but don't exist in the design system.
 - **Why Tests Didn't Catch**: `validate:tokens` only checks for hardcoded Tailwind patterns (like `gap-2`, `text-gray-500`). It doesn't verify that utility classes actually exist in the generated utilities. The pattern `/\bbg-(interactive|status|component|hover)-\w+\b/` allows `bg-component-*` classes, but doesn't verify they exist.
 - **Note**: This affects all component colors. Consider adding validation to check if utility classes actually exist, or document that component colors must use CSS variables directly.
 
-### `bg-accent-primary` (WIDESPREAD ISSUE ⚠️)
+### `bg-accent-primary` (FIXED ✅)
 
 - **Location**: Multiple files (Avatar.svelte, Chip.svelte, ToggleSwitch.svelte, ColorCascade.svelte, SplitButton.svelte, and many Storybook stories)
 - **Usage**: Primary accent background color for avatars, chips, toggles, and other components
-- **Status**: **MISSING** - Used in 40+ locations but utility doesn't exist
-- **Current Workaround**: Components use `bg-accent-primary` but it doesn't exist in generated utilities
-- **Proposed Solution**:
-  1. Add `color.accent.primary` to `design-tokens-semantic.json` (or use existing `color.interactive.primary`)
-  2. OR replace all usages with `bg-interactive-primary` (which exists)
-  3. Run `npm run tokens:build` to generate utility
-- **Why Tests Didn't Catch**: Same as above - `validate:tokens` doesn't verify utilities exist, only checks for hardcoded Tailwind patterns. `bg-accent-primary` doesn't match hardcoded patterns, so it passes validation even though it doesn't exist.
-- **Impact**: HIGH - Used in many core components (Avatar, Chip, ToggleSwitch, etc.)
+- **Status**: ✅ **FIXED** on 2025-11-29 (Design System Compactness v2 - Phase 0)
+- **Solution Applied**: Added alias tokens to `design-tokens-semantic.json`:
+  - `color.accent.primary` → references `color.interactive.primary`
+  - `color.accent.hover` → references `color.interactive.primaryHover`
+  - `color.accent.active` → references `color.interactive.primaryActive`
+- **Utilities Generated**: `bg-accent-primary`, `bg-accent-hover`, `bg-accent-active`, `text-accent-primary`, `border-accent-primary`
 
 ## Validation Gap: Non-Existent Utilities Not Caught
 
@@ -196,10 +191,10 @@ The `validate:tokens` script only checks for:
 
 **But it does NOT verify that utility classes actually exist** in the generated utilities files.
 
-### Examples of Missed Issues
+### Examples of Missed Issues (Some Now Fixed)
 
-1. **`bg-component-sidebar-itemHover`** - Matches allowed pattern `/\bbg-(interactive|status|component|hover)-\w+\b/` but utility doesn't exist
-2. **`bg-accent-primary`** - Doesn't match hardcoded patterns, so passes validation, but utility doesn't exist
+1. **`bg-component-sidebar-itemHover`** - Using CSS variables directly is the correct pattern (documented)
+2. **`bg-accent-primary`** - ✅ **FIXED** 2025-11-29 - Added alias tokens, utility now exists
 3. **Any custom utility class** - If it doesn't match hardcoded patterns, it passes validation even if it doesn't exist
 
 ### Why This Happens
@@ -272,14 +267,20 @@ Add a new validation step that:
 - **Proposed Solution**: Use existing `text-sm` utility or Text component. `text-small` is not a standard utility name - should use `text-sm` or Text component for consistency.
 - **Note**: `text-sm` utility exists and maps to 14px. For semantic consistency, use Text component with `variant="label" size="sm"` instead of raw utility classes. PageHeader component now uses Text component by default.
 
-### Z-Index Utilities (`z-dropdown`, `z-sticky`, etc.)
+### Z-Index Values (`z-10`, `z-20`, `z-40`, `z-50`, etc.)
 
-- **Location**: `src/lib/components/molecules/PageHeader.svelte` (line 50)
-- **Usage**: Z-index values for layering (sticky headers, dropdowns, modals)
-- **Status**: Missing utility classes
-- **Current Workaround**: Using CSS variables `style="z-index: var(--zIndex-dropdown);"` (for z-10) or `style="z-index: var(--zIndex-sticky);"` (for z-20)
-- **Proposed Solution**: Add z-index utilities to design tokens. Z-index tokens exist in `design-tokens-base.json` (`zIndex.dropdown` = 10, `zIndex.sticky` = 20, etc.) but don't generate utilities. Could add utilities like `z-dropdown`, `z-sticky`, `z-modal`, etc. OR document that z-index should use CSS variables directly.
-- **Note**: Z-index tokens exist but utilities don't. Using CSS variables is acceptable workaround. Alternatively, could add z-index utilities to `transforms.js` if pattern becomes common. Now centralized in `PageHeader` component.
+- **Location**: Throughout codebase (Dialog, Dropdown, Tooltip components)
+- **Usage**: Layout/layering concerns, not design tokens
+- **Status**: **ACCEPTABLE EXCEPTION** - Use CSS variables or Tailwind z-index directly
+- **Pattern**: Z-index tokens exist in `design-tokens-base.json`:
+  - `--zIndex-dropdown` (10)
+  - `--zIndex-sticky` (20)
+  - `--zIndex-modal` (40)
+  - `--zIndex-tooltip` (50)
+- **Usage Options**:
+  1. Use Tailwind: `z-10`, `z-20`, `z-40`, `z-50` (acceptable for layering)
+  2. Use CSS variables: `style="z-index: var(--zIndex-modal);"`
+- **Note**: Z-index is structural, not stylistic. Not part of design token cascade.
 
 ## Meeting Card Row Padding
 
@@ -347,17 +348,20 @@ Add a new validation step that:
 
 ## Toggle Switch Background Utilities
 
-### `bg-component-toggle-off` / `bg-component-toggle-on`
+### `bg-component-toggle-off` / `bg-component-toggle-on` (DOCUMENTED PATTERN ✅)
 
-- **Location**: `src/lib/components/molecules/ToggleSwitch.svelte` (line 30)
+- **Location**: `src/lib/components/molecules/ToggleSwitch.svelte`
 - **Usage**: Background colors for toggle switch on/off states
-- **Status**: Missing utility classes
-- **Current Workaround**: Using inline CSS variables `style="background-color: var(--color-component-toggle-off);"` and `style="background-color: var(--color-component-toggle-on);"`
-- **Proposed Solution**:
-  1. Update `scripts/style-dictionary/transforms.js` to generate `bg-*` utilities for `color.component.*` tokens
-  2. OR add `color.toggle.off` and `color.toggle.on` to semantic tokens (outside component namespace) to generate utilities automatically
-  3. Run `npm run tokens:build` to generate utilities
-- **Note**: CSS variables `--color-component-toggle-off` and `--color-component-toggle-on` exist, but background utilities don't. The transform logic only generates utilities for `text-*`, `bg-*`, `border-*`, `interactive-*`, `accent-*`, `brand-*`, and `status-*` prefixes, but NOT `component-*` prefixes. This is similar to the `bg-component-sidebar-itemHover` issue above.
+- **Status**: ✅ **DOCUMENTED** - Using CSS variables directly is the correct pattern
+- **Current Implementation**: Using inline CSS variables (correct approach):
+  ```svelte
+  style="background-color: var(--color-component-toggle-${checked ? 'on' : 'off'});"
+  ```
+- **Note**: Component-specific colors (`color.component.*`) intentionally don't generate `bg-*` utilities. The CSS variable approach is the correct pattern for component-specific styling.
+- **Updated**: 2025-11-29 - ToggleSwitch now also uses sizing tokens:
+  - `var(--sizing-toggle-height)` (20px)
+  - `var(--sizing-toggle-width)` (36px)
+  - `var(--sizing-toggle-thumb)` (12px)
 
 ## Border Width Utilities
 
@@ -412,14 +416,44 @@ Add a new validation step that:
 - **Proposed Solution**: Add `border-status-*` utilities to transforms.js OR add semantic tokens `color.border.status.info`, `color.border.status.warning`, `color.border.status.success` to `design-tokens-semantic.json`
 - **Note**: Base status colors exist, but border utilities don't. Similar to how `--color-border-error` exists but `border-status-error` utility doesn't.
 
+## DateInput Component Workarounds
+
+### `w-dateInput` (Date Input Width Utility)
+
+- **Location**: `src/lib/components/molecules/DateInput.svelte` (line 76)
+- **Usage**: Fixed width for date input container (160px - 10rem)
+- **Status**: Missing utility class
+- **Current Workaround**: Using inline style `style="width: var(--spacing-40);"` in container div
+- **Proposed Solution**:
+  1. Add `sizing.dateInput.width` token to `design-tokens-semantic.json` ✅ (already added)
+  2. Update `scripts/style-dictionary/transforms.js` to generate `w-dateInput` utility from `sizing-dateInput-width` token
+  3. Remove inline style and use `w-dateInput` utility class
+- **Note**: Token exists in semantic tokens but utility not generating. Transform needs to handle `sizing-*` tokens with `-width` suffix pattern.
+
+### `inset-inline-end` Positioning (DateInput Trigger)
+
+- **Location**: `src/lib/components/molecules/DateInput.svelte` (line 102)
+- **Usage**: Position calendar icon trigger on right side of input
+- **Status**: Using inline style with CSS variable
+- **Current Workaround**: `style="inset-inline-end: var(--spacing-input-x);"`
+- **Proposed Solution**: This is acceptable - CSS logical property with design token variable. Could create `pr-input-x` utility if pattern becomes common.
+- **Note**: Using design token variable, not hardcoded value. Acceptable workaround.
+
 ## Follow-up Tasks
 
+### Completed ✅
+
+- [x] Fix `bg-accent-primary` and related utilities (2025-11-29)
+- [x] Add `opacity.disabled` semantic token (2025-11-29)
+- [x] Toggle switch now uses sizing tokens (2025-11-29)
+- [x] Button padding utilities already exist (`px-button-sm`, `py-button-sm`, `gap-button-sm`)
+- [x] `size-icon-xl` already exists
+
+### Remaining (Lower Priority)
+
+- [ ] Fix `w-dateInput` utility generation: Update transforms.js to handle `sizing-dateInput-width` → `w-dateInput` pattern
 - [ ] Add `spacing.card.row.y` to `design-tokens-semantic.json`
 - [ ] Add `spacing.meetingCard.dateBadge.width` and `spacing.meetingCard.dateBadge.paddingTop` to `design-tokens-semantic.json`
-- [ ] Run `npm run tokens:build` to generate utilities
-- [ ] Remove workarounds from `src/lib/modules/meetings/components/MeetingCard.svelte`
 - [ ] Add "more" icon (three dots vertical) to icon registry
 - [ ] Consider adding `noLabel` prop to FormSelect to handle inline usage without gap
-- [ ] Fix toggle switch background utilities: Update transforms.js to generate `bg-component-toggle-off/on` OR move toggle colors outside component namespace
-- [ ] Consider adding `fontWeight` variant to button recipe or documenting `font-normal` as allowed layout primitive
-- [ ] Add `text-status-*` and `border-status-*` utilities for InfoCard component (or add semantic tokens and update transforms.js)
+- [ ] Add `text-status-*` and `border-status-*` utilities for InfoCard component (or add semantic tokens)
