@@ -35,7 +35,7 @@
 
 	// Use a non-null value for DateField (it needs a value, not placeholder)
 	// When value is null, use today's date as the display value
-	let displayValue = $state.raw(value || today(getLocalTimeZone()));
+	let displayValue = $state(value || today(getLocalTimeZone()));
 
 	// Sync displayValue when value changes
 	$effect(() => {
@@ -53,7 +53,7 @@
 	let isOpen = $state(false);
 
 	// Calendar value for the DatePicker (synced with main value)
-	let calendarValue = $state.raw(value || today(getLocalTimeZone()));
+	let calendarValue = $state(value || today(getLocalTimeZone()));
 
 	// Sync calendar value when value changes
 	$effect(() => {
@@ -72,7 +72,7 @@
 	>
 		<DateField.Input {id} class={inputClasses}>
 			{#snippet children({ segments })}
-				{#each segments as { part, value: segmentValue } (part)}
+				{#each segments as { part, value: segmentValue }}
 					<DateField.Segment {part}>
 						{segmentValue}
 					</DateField.Segment>
@@ -95,47 +95,47 @@
 		<DatePicker.Portal>
 			<DatePicker.Content>
 				<DatePicker.Calendar>
-						{#snippet children({ months, weekdays })}
-							<DatePicker.Header>
-								<DatePicker.PrevButton>←</DatePicker.PrevButton>
-								<DatePicker.Heading />
-								<DatePicker.NextButton>→</DatePicker.NextButton>
-							</DatePicker.Header>
-							{#each months as month (month.value)}
-								<DatePicker.Grid>
-									<DatePicker.GridHead>
+					{#snippet children({ months, weekdays })}
+						<DatePicker.Header>
+							<DatePicker.PrevButton>←</DatePicker.PrevButton>
+							<DatePicker.Heading />
+							<DatePicker.NextButton>→</DatePicker.NextButton>
+						</DatePicker.Header>
+						{#each months as month}
+							<DatePicker.Grid>
+								<DatePicker.GridHead>
+									<DatePicker.GridRow>
+										{#each weekdays as day}
+											<DatePicker.HeadCell>
+												{day}
+											</DatePicker.HeadCell>
+										{/each}
+									</DatePicker.GridRow>
+								</DatePicker.GridHead>
+								<DatePicker.GridBody>
+									{#each month.weeks as weekDates}
 										<DatePicker.GridRow>
-											{#each weekdays as day (day)}
-												<DatePicker.HeadCell>
-													{day}
-												</DatePicker.HeadCell>
+											{#each weekDates as date}
+												<DatePicker.Cell {date} month={month.value}>
+													<DatePicker.Day
+														onclick={() => {
+															if (date instanceof CalendarDateClass) {
+																const selectedDate = date as CalendarDate;
+																value = selectedDate;
+																displayValue = selectedDate;
+																calendarValue = selectedDate;
+																isOpen = false;
+															}
+														}}
+													/>
+												</DatePicker.Cell>
 											{/each}
 										</DatePicker.GridRow>
-									</DatePicker.GridHead>
-									<DatePicker.GridBody>
-										{#each month.weeks as weekDates (weekDates[0]?.toString() || '')}
-											<DatePicker.GridRow>
-												{#each weekDates as date (date.toString())}
-													<DatePicker.Cell {date} month={month.value}>
-														<DatePicker.Day
-															onclick={() => {
-																if (date instanceof CalendarDateClass) {
-																	const selectedDate = date as CalendarDate;
-																	value = selectedDate;
-																	displayValue = selectedDate;
-																	calendarValue = selectedDate;
-																	isOpen = false;
-																}
-															}}
-														/>
-													</DatePicker.Cell>
-												{/each}
-											</DatePicker.GridRow>
-										{/each}
-									</DatePicker.GridBody>
-								</DatePicker.Grid>
-							{/each}
-						{/snippet}
+									{/each}
+								</DatePicker.GridBody>
+							</DatePicker.Grid>
+						{/each}
+					{/snippet}
 				</DatePicker.Calendar>
 			</DatePicker.Content>
 		</DatePicker.Portal>
