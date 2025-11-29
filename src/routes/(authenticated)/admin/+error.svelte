@@ -58,7 +58,7 @@
 </script>
 
 <div
-	class="flex min-h-screen items-center justify-center px-container"
+	class="flex min-h-screen items-center justify-center px-page"
 	style="padding-block: var(--spacing-12);"
 >
 	<div class="space-y-error-page w-full max-w-md text-center">
@@ -81,17 +81,17 @@
 
 		<!-- Title -->
 		<div>
-			<h1 class="text-h2 text-primary font-semibold">Admin Access Required</h1>
-			<p class="text-small text-secondary mt-form-field-gap">
+			<h1 class="text-h2 font-semibold text-primary">Admin Access Required</h1>
+			<p class="text-small mt-form-field-gap text-secondary">
 				You need system administrator privileges to access this page.
 			</p>
 		</div>
 
 		<!-- Error Details (if available) -->
 		{#if error}
-			<div class="p-card border-base bg-elevated rounded-card border text-left">
-				<p class="text-label text-tertiary font-medium">Error Details</p>
-				<p class="text-small text-secondary mt-section-y">
+			<div class="p-card border-base rounded-card border bg-elevated text-left">
+				<p class="text-label font-medium text-tertiary">Error Details</p>
+				<p class="text-small mt-section-y text-secondary">
 					{error instanceof Error
 						? error.message
 						: typeof error === 'string'
@@ -103,22 +103,22 @@
 
 		<!-- Account Switching -->
 		{#if isLoadingAccounts}
-			<div class="border-base bg-elevated rounded-card border p-card-compact">
+			<div class="border-base p-card-compact rounded-card border bg-elevated">
 				<p class="text-small text-secondary">Loading accounts...</p>
 			</div>
 		{:else if linkedAccounts.length > 0}
 			<div class="space-y-form-section">
-				<p class="text-small text-primary font-medium">Switch to an account with admin access:</p>
+				<p class="text-small font-medium text-primary">Switch to an account with admin access:</p>
 				<div class="space-y-form-field-gap">
 					{#each linkedAccounts as account (account.userId)}
 						<button
 							type="button"
 							onclick={() => switchAccount(account.userId)}
 							disabled={isSwitching}
-							class="hover:bg-elevated-hover border-base bg-elevated w-full rounded-card border p-card-compact text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+							class="hover:bg-elevated-hover border-base p-card-compact w-full rounded-card border bg-elevated text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 						>
-							<p class="text-small text-primary font-medium">{account.name || account.email}</p>
-							<p class="text-label text-secondary mt-badge-y">{account.email}</p>
+							<p class="text-small font-medium text-primary">{account.name || account.email}</p>
+							<p class="mt-badge-y text-label text-secondary">{account.email}</p>
 						</button>
 					{/each}
 				</div>
@@ -126,7 +126,7 @@
 		{/if}
 
 		<!-- Actions -->
-		<div class="flex flex-col gap-form-section pt-content-section">
+		<div class="gap-form-section pt-content-section flex flex-col">
 			<Button variant="primary" onclick={goHome} class="w-full">Go Back to SynergyOS</Button>
 			{#if linkedAccounts.length === 0}
 				<p class="text-label text-tertiary">

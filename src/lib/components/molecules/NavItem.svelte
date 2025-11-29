@@ -28,10 +28,7 @@
 		onclick
 	}: Props = $props();
 
-	const classes = $derived([
-		navItemRecipe({ state, collapsed }),
-		className
-	]);
+	const classes = $derived([navItemRecipe({ state, collapsed }), className]);
 
 	// WORKAROUND: Sidebar badge colors missing - see missing-styles.md
 	// Using custom classes to match sidebar badge styling from Sidebar.svelte
@@ -42,15 +39,8 @@
 	);
 </script>
 
-<a
-	{href}
-	{title}
-	class={classes}
-	{target}
-	{rel}
-	{onclick}
->
-	<Icon type={iconType} size="sm" class="flex-shrink-0" />
+<a {href} {title} class={classes} {target} {rel} {onclick}>
+	<Icon type={iconType} size="sm" />
 	{#if !collapsed}
 		<Text variant="body" size="sm" as="span" class="min-w-0 flex-1 font-normal">
 			{label}
@@ -66,4 +56,3 @@
 		</span>
 	{/if}
 </a>
-

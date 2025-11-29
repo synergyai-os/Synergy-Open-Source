@@ -19,6 +19,7 @@
 	import AgendaItemView from '$lib/modules/meetings/components/AgendaItemView.svelte';
 	import SecretarySelector from '$lib/modules/meetings/components/SecretarySelector.svelte';
 	import SecretaryConfirmationDialog from '$lib/modules/meetings/components/SecretaryConfirmationDialog.svelte';
+	import { Icon, Heading, Text, Button } from '$lib/components/atoms';
 
 	interface Props {
 		data: {
@@ -88,7 +89,8 @@
 	const state = $state({
 		newAgendaTitle: '',
 		isAddingAgenda: false,
-		activeItemId: null as Id<'meetingAgendaItems'> | null
+		activeItemId: null as Id<'meetingAgendaItems'> | null,
+		hoveredProcessedId: null as Id<'meetingAgendaItems'> | null
 	});
 
 	// Derived: Split agenda items into processed/unprocessed
@@ -199,41 +201,42 @@
 {#if !meetingsEnabled}
 	<div class="flex h-screen items-center justify-center">
 		<div class="text-center">
-			<h1 class="text-h1 font-bold text-text-primary">Meetings Not Enabled</h1>
-			<p class="mt-spacing-text-gap text-text-secondary">
+			<Heading level="h1" size="h1" class="font-bold">Meetings Not Enabled</Heading>
+			<Text variant="body" color="secondary" class="mt-text-gap">
 				This feature is not enabled for your organization.
-			</p>
+			</Text>
 		</div>
 	</div>
 {:else if session.isLoading}
 	<div class="flex h-screen items-center justify-center">
 		<div class="text-center">
 			<div
-				class="inline-block size-icon-lg animate-spin rounded-avatar border-4 border-solid border-accent-primary border-r-transparent"
+				class="border-accent-primary inline-block size-icon-lg animate-spin rounded-avatar border-4 border-solid border-r-transparent"
 			></div>
-			<p class="mt-content-section text-text-secondary">Loading meeting...</p>
+			<Text variant="body" color="secondary" class="mt-content-section">Loading meeting...</Text>
 		</div>
 	</div>
 {:else if session.error}
 	<div class="flex h-screen items-center justify-center">
 		<div class="text-center">
-			<h1 class="text-h1 font-bold text-error-text">Error Loading Meeting</h1>
-			<p class="mt-spacing-text-gap text-text-secondary">{session.error.message}</p>
+			<Heading level="h1" size="h1" class="text-error-text font-bold">Error Loading Meeting</Heading
+			>
+			<Text variant="body" color="secondary" class="mt-text-gap">{session.error.message}</Text>
 		</div>
 	</div>
 {:else if session.meeting}
 	<div class="flex h-screen flex-col overflow-hidden bg-surface">
 		<!-- Header -->
 		<div
-			class="flex items-center justify-between border-b border-border-base bg-elevated px-container py-header"
+			class="border-border-base py-header flex items-center justify-between border-b bg-elevated px-page"
 		>
-			<div class="flex items-center gap-content-section">
-				<h1 class="text-h2 font-semibold text-text-primary">{session.meeting.title}</h1>
+			<div class="gap-content-section flex items-center">
+				<Heading level="h1" size="h2" class="font-semibold">{session.meeting.title}</Heading>
 
 				<!-- Secretary Selector - visible to everyone -->
 				{#if session.meeting}
-					<div class="flex items-center gap-2">
-						<span class="text-button text-text-tertiary">Secretary:</span>
+					<div class="flex items-center gap-fieldGroup">
+						<Text variant="label" color="tertiary">Secretary:</Text>
 						<SecretarySelector
 							meetingId={session.meeting._id}
 							sessionId={data.sessionId}
@@ -247,61 +250,44 @@
 
 				<!-- Active Users Indicator (SYOS-227) -->
 				{#if session.isStarted && !session.isClosed}
-					<div class="gap-2-sm flex items-center">
-						<span class="text-label text-text-secondary">Active:</span>
-						<span class="text-label font-medium text-text-primary">
+					<div class="flex items-center gap-fieldGroup">
+						<Text variant="label" color="secondary">Active:</Text>
+						<Text variant="label" class="font-medium">
 							{presence.activeCount}/{presence.expectedCount}
-						</span>
+						</Text>
 					</div>
 				{/if}
 			</div>
 
-			<div class="flex items-center gap-content-section">
+			<div class="gap-content-section flex items-center">
 				<!-- Timer -->
 				{#if session.isStarted && !session.isClosed}
-					<div class="flex items-center gap-2 text-text-secondary">
-						<svg
-							class="icon-md"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							aria-hidden="true"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-							/>
-						</svg>
-						<span class="font-code text-button">{session.elapsedTimeFormatted}</span>
+					<div class="text-text-secondary flex items-center gap-fieldGroup">
+						<Icon type="clock" size="md" />
+						<Text variant="body" size="sm" class="font-code">{session.elapsedTimeFormatted}</Text>
 					</div>
 				{/if}
 
 				<!-- Start Meeting Button (Secretary only, before meeting starts) -->
 				{#if session.isSecretary && !session.isStarted}
-					<button
-						onclick={handleStartMeeting}
-						class="rounded-button bg-accent-primary px-button-x py-button-y text-button font-medium text-primary transition-colors hover:bg-accent-hover"
-					>
-						Start Meeting
-					</button>
+					<Button variant="primary" onclick={handleStartMeeting}>Start Meeting</Button>
 				{/if}
 
 				<!-- Close Meeting Button (Secretary only, after meeting starts) -->
 				{#if session.isSecretary && session.isStarted && !session.isClosed}
-					<button
+					<Button
+						variant="outline"
 						onclick={handleCloseMeeting}
-						class="hover:bg-error-bg-hover rounded-button border border-error-border px-button-x py-button-y text-button font-medium text-error-text transition-colors"
+						class="border-error-border text-error-text hover:bg-error-bg-hover"
 					>
 						Close Meeting
-					</button>
+					</Button>
 				{/if}
 
 				<!-- Meeting Closed Badge -->
 				{#if session.isClosed}
 					<span
-						class="bg-badge text-badge-text rounded-badge px-badge py-badge text-button font-medium"
+						class="bg-badge text-badge-text px-badge py-badge text-button rounded-badge font-medium"
 					>
 						Meeting Closed
 					</span>
@@ -312,18 +298,14 @@
 		<!-- Content Area -->
 		<div class="flex flex-1 overflow-hidden">
 			<!-- Sidebar (Agenda) -->
-			<div class="w-sidebar overflow-y-auto border-r border-border-base bg-elevated">
+			<div class="w-sidebar border-border-base overflow-y-auto border-r bg-elevated">
 				<div class="p-card">
 					<div class="mb-content-section flex items-center justify-between">
-						<h2 class="text-body-sm font-semibold text-text-primary">Agenda</h2>
+						<Heading level="h2" size="h3" class="font-semibold">Agenda</Heading>
 						{#if !session.isClosed}
-							<button
-								onclick={() => (state.isAddingAgenda = true)}
-								class="text-button font-medium text-accent-primary hover:text-accent-hover"
-								title="Add agenda item"
-							>
+							<Button variant="ghost" size="sm" onclick={() => (state.isAddingAgenda = true)}>
 								+ Add
-							</button>
+							</Button>
 						{/if}
 					</div>
 
@@ -334,7 +316,7 @@
 								type="text"
 								bind:value={state.newAgendaTitle}
 								placeholder="Agenda item title"
-								class="w-full rounded-input border border-border-base bg-surface px-input-x py-input-y text-button text-text-primary placeholder-text-tertiary focus:border-accent-primary focus:ring-1 focus:ring-accent-primary focus:outline-none"
+								class="border-border-base text-button text-text-primary placeholder-text-tertiary focus:border-accent-primary focus:ring-accent-primary w-full rounded-input border bg-surface px-input-x py-input-y focus:ring-1 focus:outline-none"
 								onkeydown={(e) => {
 									if (e.key === 'Enter') handleAddAgendaItem();
 									if (e.key === 'Escape') {
@@ -343,57 +325,56 @@
 									}
 								}}
 							/>
-							<div class="mt-spacing-text-gap flex gap-2">
-								<button
-									onclick={handleAddAgendaItem}
-									class="py-button-y-sm rounded-button bg-accent-primary px-button-x text-label font-medium text-primary"
-								>
-									Add
-								</button>
-								<button
+							<div class="mt-text-gap flex gap-fieldGroup">
+								<Button variant="primary" size="sm" onclick={handleAddAgendaItem}>Add</Button>
+								<Button
+									variant="outline"
+									size="sm"
 									onclick={() => {
 										state.isAddingAgenda = false;
 										state.newAgendaTitle = '';
 									}}
-									class="py-button-y-sm rounded-button border border-border-base px-button-x text-label font-medium text-text-secondary"
 								>
 									Cancel
-								</button>
+								</Button>
 							</div>
 						</div>
 					{/if}
 
 					<!-- Agenda Items - Split by Status -->
 					{#if session.agendaItems.length === 0}
-						<p class="text-body-sm text-text-tertiary">No agenda items yet</p>
+						<Text variant="body" size="sm" color="tertiary">No agenda items yet</Text>
 					{:else}
 						<!-- To Process Section -->
 						{#if unprocessedItems.length > 0}
 							<div class="mb-section-gap">
-								<h3
-									class="mb-spacing-text-gap text-label font-semibold tracking-wider text-text-secondary uppercase"
+								<Text
+									variant="label"
+									color="secondary"
+									class="mb-text-gap font-semibold tracking-wider uppercase"
 								>
 									To Process ({unprocessedItems.length})
-								</h3>
-								<div class="flex flex-col gap-2">
+								</Text>
+								<div class="flex flex-col gap-fieldGroup">
 									{#each unprocessedItems as item (item._id)}
 										<button
 											onclick={() => session.isSecretary && (state.activeItemId = item._id)}
 											disabled={!session.isSecretary}
-											class="w-full rounded-button border px-2 py-nav-item text-left transition-colors {state.activeItemId ===
+											class="px-fieldGroup py-nav-item w-full rounded-button border text-left transition-colors {state.activeItemId ===
 											item._id
 												? 'border-accent-primary bg-accent-primary/10'
-												: 'border-border-base bg-surface hover:border-accent-primary'} {!session.isSecretary
-												? 'cursor-not-allowed opacity-50'
+												: 'border-border-base hover:border-accent-primary bg-surface'} {!session.isSecretary
+												? 'cursor-not-allowed'
 												: 'cursor-pointer'}"
+											style={!session.isSecretary ? 'opacity: var(--opacity-50);' : ''}
 											title={!session.isSecretary
 												? 'Only the secretary can switch agenda items'
 												: ''}
 										>
-											<p class="text-body-sm font-medium text-text-primary">{item.title}</p>
-											<p class="mt-spacing-icon-gap-sm text-label text-text-tertiary">
+											<Text variant="body" size="sm" class="font-medium">{item.title}</Text>
+											<Text variant="label" color="tertiary" class="mt-icon-gap-sm">
 												Added by {item.creatorName}
-											</p>
+											</Text>
 										</button>
 									{/each}
 								</div>
@@ -403,41 +384,39 @@
 						<!-- Processed Section -->
 						{#if processedItems.length > 0}
 							<div>
-								<h3
-									class="mb-spacing-text-gap flex items-center gap-2 text-label font-semibold tracking-wider text-text-tertiary uppercase"
-								>
-									<svg
-										class="icon-sm"
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-										aria-hidden="true"
+								<div class="mb-text-gap flex items-center gap-fieldGroup">
+									<Icon type="check" size="sm" color="tertiary" />
+									<Text
+										variant="label"
+										color="tertiary"
+										class="font-semibold tracking-wider uppercase"
 									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M5 13l4 4L19 7"
-										/>
-									</svg>
-									Processed ({processedItems.length})
-								</h3>
-								<div class="flex flex-col gap-2">
+										Processed ({processedItems.length})
+									</Text>
+								</div>
+								<div class="flex flex-col gap-fieldGroup">
 									{#each processedItems as item (item._id)}
 										<button
 											onclick={() => session.isSecretary && (state.activeItemId = item._id)}
+											onmouseenter={() => (state.hoveredProcessedId = item._id)}
+											onmouseleave={() => (state.hoveredProcessedId = null)}
 											disabled={!session.isSecretary}
-											class="w-full rounded-button border border-border-base bg-surface px-2 py-nav-item text-left opacity-60 transition-colors hover:opacity-100 {!session.isSecretary
+											class="border-border-base px-fieldGroup py-nav-item w-full rounded-button border bg-surface text-left transition-all {!session.isSecretary
 												? 'cursor-not-allowed'
 												: 'cursor-pointer'}"
+											style="opacity: var(--opacity-{state.hoveredProcessedId === item._id
+												? '100'
+												: '60'});"
 											title={!session.isSecretary
 												? 'Only the secretary can switch agenda items'
 												: ''}
 										>
-											<p class="text-body-sm font-medium text-text-tertiary">{item.title}</p>
-											<p class="mt-spacing-icon-gap-sm text-label text-text-tertiary">
+											<Text variant="body" size="sm" color="tertiary" class="font-medium"
+												>{item.title}</Text
+											>
+											<Text variant="label" color="tertiary" class="mt-icon-gap-sm">
 												Added by {item.creatorName}
-											</p>
+											</Text>
 										</button>
 									{/each}
 								</div>
@@ -451,14 +430,14 @@
 			<div class="flex flex-1 flex-col overflow-hidden">
 				<!-- Step Navigation (Tabs) -->
 				{#if session.isStarted && !session.isClosed}
-					<div class="flex border-b border-border-base bg-elevated">
+					<div class="border-border-base flex border-b bg-elevated">
 						{#each steps as step (step.id)}
 							<button
 								onclick={() => session.isSecretary && handleAdvanceStep(step.id)}
 								disabled={!session.isSecretary}
-								class="border-border-base px-container py-header text-button font-medium transition-colors {session.currentStep ===
+								class="border-border-base px-form-section py-header text-button font-medium transition-colors {session.currentStep ===
 								step.id
-									? 'border-b-2 border-accent-primary text-accent-primary'
+									? 'border-accent-primary text-accent-primary border-b-2'
 									: 'text-text-secondary hover:text-text-primary'} {!session.isSecretary
 									? 'cursor-not-allowed'
 									: 'cursor-pointer'}"
@@ -470,76 +449,54 @@
 				{/if}
 
 				<!-- Step Content -->
-				<div class="pb-section-spacing-xlarge flex-1 overflow-y-auto px-container py-container">
+				<div class="pb-section-spacing-xlarge flex-1 overflow-y-auto px-page py-page">
 					{#if !session.isStarted}
 						<!-- Before meeting starts -->
 						<div class="text-center">
-							<svg
-								class="mx-auto icon-xl text-text-tertiary"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-								aria-hidden="true"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-								/>
-							</svg>
-							<h2 class="mt-content-section text-h3 font-semibold text-text-primary">
+							<div class="mx-auto">
+								<Icon type="clock" size="xl" color="tertiary" />
+							</div>
+							<Heading level="h2" size="h3" class="mt-content-section font-semibold">
 								Meeting Not Started
-							</h2>
-							<p class="mt-spacing-text-gap text-text-secondary">
+							</Heading>
+							<Text variant="body" color="secondary" class="mt-text-gap">
 								{session.isSecretary
 									? 'Click "Start Meeting" to begin'
 									: 'Waiting for facilitator to start the meeting'}
-							</p>
+							</Text>
 						</div>
 					{:else if session.isClosed}
 						<!-- Meeting closed -->
 						<div class="text-center">
-							<svg
-								class="mx-auto icon-xl text-success-text"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-								aria-hidden="true"
-							>
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-								/>
-							</svg>
-							<h2 class="mt-content-section text-h3 font-semibold text-text-primary">
+							<div class="mx-auto">
+								<Icon type="check-circle" size="xl" color="success" />
+							</div>
+							<Heading level="h2" size="h3" class="mt-content-section font-semibold">
 								Meeting Closed
-							</h2>
-							<p class="mt-spacing-text-gap text-text-secondary">
+							</Heading>
+							<Text variant="body" color="secondary" class="mt-text-gap">
 								This meeting has ended. Duration: {session.elapsedTimeFormatted}
-							</p>
+							</Text>
 						</div>
 					{:else if session.currentStep === 'check-in'}
 						<!-- Check-in Step - Attendance Tracking (SYOS-227) -->
 						<div>
-							<h2 class="text-h2 font-bold text-text-primary">Check-in</h2>
-							<p class="mt-spacing-text-gap text-text-secondary">
+							<Heading level="h2" size="h2" class="font-bold">Check-in</Heading>
+							<Text variant="body" color="secondary" class="mt-text-gap">
 								Everyone expresses how they feel and what is on their minds.
-							</p>
+							</Text>
 
 							<!-- Attendance List -->
 							<div class="mt-section-gap">
-								<h3 class="text-body-sm font-semibold text-text-primary">
+								<Heading level="h3" size="h3" class="font-semibold">
 									Attendance ({presence.activeCount}/{presence.expectedCount} present)
-								</h3>
+								</Heading>
 
 								{#if presence.combinedAttendance.length > 0}
-									<div class="mt-content-section flex flex-col gap-2">
+									<div class="mt-content-section flex flex-col gap-fieldGroup">
 										{#each presence.combinedAttendance as attendee (attendee.userId)}
 											<label
-												class="flex items-center gap-2 rounded-button border border-border-base bg-surface px-card py-card transition-colors {attendee.isActive
+												class="border-border-base px-card py-card flex items-center gap-fieldGroup rounded-button border bg-surface transition-colors {attendee.isActive
 													? 'border-accent-primary/30 bg-accent-primary/5'
 													: ''}"
 											>
@@ -548,14 +505,13 @@
 													type="checkbox"
 													checked={attendee.isActive}
 													disabled
-													class="icon-sm cursor-default rounded border-border-base text-accent-primary focus:ring-0 {attendee.isActive
-														? 'opacity-100'
-														: 'opacity-50'}"
+													class="border-border-base text-accent-primary size-icon-sm cursor-default rounded focus:ring-0"
+													style="opacity: var(--opacity-{attendee.isActive ? '100' : '50'});"
 												/>
 
 												<!-- User Avatar -->
 												<div
-													class="flex size-icon-lg items-center justify-center rounded-avatar text-button font-medium {attendee.isActive
+													class="text-button flex size-icon-lg items-center justify-center rounded-avatar font-medium {attendee.isActive
 														? 'bg-accent-primary text-primary'
 														: 'bg-surface-tertiary text-text-tertiary'}"
 												>
@@ -563,18 +519,21 @@
 												</div>
 
 												<!-- User Name -->
-												<span
-													class="text-body-sm flex-1 {attendee.isActive
-														? 'font-medium text-text-primary'
+												<Text
+													variant="body"
+													size="sm"
+													as="span"
+													class="flex-1 {attendee.isActive
+														? 'text-text-primary font-medium'
 														: 'text-text-secondary'}"
 												>
 													{attendee.name}
-												</span>
+												</Text>
 
 												<!-- Guest Badge (for unexpected joiners) -->
 												{#if !attendee.isExpected}
 													<span
-														class="bg-info-bg py-badge-sm text-info-text rounded-badge px-badge text-label font-medium"
+														class="bg-info-bg px-badge py-badge text-info-text rounded-badge text-label font-medium"
 													>
 														Guest
 													</span>
@@ -582,21 +541,21 @@
 
 												<!-- Attendee Type Badge (for expected attendees) -->
 												{#if attendee.isExpected && attendee.attendeeType}
-													<span class="text-label text-text-tertiary">
+													<Text variant="label" color="tertiary">
 														{#if attendee.attendeeType === 'role'}
 															(Role)
 														{:else if attendee.attendeeType === 'circle'}
 															(Circle)
 														{/if}
-													</span>
+													</Text>
 												{/if}
 											</label>
 										{/each}
 									</div>
 								{:else}
-									<p class="text-body-sm mt-content-section text-text-tertiary">
+									<Text variant="body" size="sm" color="tertiary" class="mt-content-section">
 										No attendees registered yet
-									</p>
+									</Text>
 								{/if}
 							</div>
 						</div>
@@ -606,56 +565,34 @@
 							<!-- No agenda items -->
 							<div class="flex h-full items-center justify-center">
 								<div class="text-center">
-									<svg
-										class="mx-auto icon-xl text-text-tertiary"
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-										aria-hidden="true"
-									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-										/>
-									</svg>
-									<h3 class="mt-content-section text-h3 font-semibold text-text-primary">
+									<div class="mx-auto">
+										<Icon type="clipboard" size="xl" color="tertiary" />
+									</div>
+									<Heading level="h3" size="h3" class="mt-content-section font-semibold">
 										No Agenda Items
-									</h3>
-									<p class="mt-spacing-text-gap text-text-secondary">
+									</Heading>
+									<Text variant="body" color="secondary" class="mt-text-gap">
 										Add items using the sidebar on the left
-									</p>
+									</Text>
 								</div>
 							</div>
 						{:else if unprocessedItems.length === 0}
 							<!-- All items processed - Completion state -->
 							<div class="flex h-full items-center justify-center">
 								<div class="text-center">
-									<svg
-										class="icon-xxl mx-auto text-success-text"
-										fill="none"
-										viewBox="0 0 24 24"
-										stroke="currentColor"
-										aria-hidden="true"
-									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-										/>
-									</svg>
-									<h3 class="mt-content-section text-h1 font-bold text-text-primary">
+									<div class="mx-auto">
+										<Icon type="check-circle" size="xxl" color="success" />
+									</div>
+									<Heading level="h3" size="h1" class="mt-content-section font-bold">
 										All Agenda Items Processed!
-									</h3>
-									<p class="mt-spacing-text-gap text-text-secondary">
+									</Heading>
+									<Text variant="body" color="secondary" class="mt-text-gap">
 										{processedItems.length}
 										{processedItems.length === 1 ? 'item' : 'items'} completed
-									</p>
-									<p class="text-body-sm mt-content-section text-text-tertiary">
+									</Text>
+									<Text variant="body" size="sm" color="tertiary" class="mt-content-section">
 										You can now advance to the Closing step
-									</p>
+									</Text>
 								</div>
 							</div>
 						{:else}
@@ -674,21 +611,23 @@
 					{:else if session.currentStep === 'closing'}
 						<!-- Closing Step -->
 						<div>
-							<h2 class="text-h2 font-bold text-text-primary">Closing</h2>
-							<p class="mt-spacing-text-gap text-text-secondary">
+							<Heading level="h2" size="h2" class="font-bold">Closing</Heading>
+							<Text variant="body" color="secondary" class="mt-text-gap">
 								Recap decisions, action items, and next steps.
-							</p>
+							</Text>
 							<div class="mt-section-gap">
-								<div
-									class="rounded-card border border-border-base bg-surface px-container py-container"
-								>
-									<h3 class="font-semibold text-text-primary">Meeting Summary</h3>
-									<div
-										class="text-body-sm mt-content-section flex flex-col gap-2 text-text-secondary"
-									>
-										<p>Duration: {session.elapsedTimeFormatted}</p>
-										<p>Agenda items discussed: {session.agendaItems.length}</p>
-										<p>Attendees: {session.meeting.attendees?.length ?? 0}</p>
+								<div class="border-border-base rounded-card border bg-surface card-padding">
+									<Heading level="h3" size="h3" class="font-semibold">Meeting Summary</Heading>
+									<div class="mt-content-section flex flex-col gap-fieldGroup">
+										<Text variant="body" size="sm" color="secondary"
+											>Duration: {session.elapsedTimeFormatted}</Text
+										>
+										<Text variant="body" size="sm" color="secondary"
+											>Agenda items discussed: {session.agendaItems.length}</Text
+										>
+										<Text variant="body" size="sm" color="secondary"
+											>Attendees: {session.meeting.attendees?.length ?? 0}</Text
+										>
 									</div>
 								</div>
 							</div>

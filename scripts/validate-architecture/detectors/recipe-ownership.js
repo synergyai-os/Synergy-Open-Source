@@ -1,12 +1,21 @@
 /**
  * Algorithm 1: Recipe Ownership Violation Detection
- * 
+ *
  * Rule: Recipes must belong to the component they style
  * Violation: Recipe for component X in component Y's recipe file
  */
 
-import { extractRecipeExports, getRecipeFileName, extractComponentFromRecipe } from '../parsers/recipe-parser.js';
-import { findRecipeFiles, findComponentByName, relativePath, pascalCase } from '../utils/file-finder.js';
+import {
+	extractRecipeExports,
+	getRecipeFileName,
+	extractComponentFromRecipe
+} from '../parsers/recipe-parser.js';
+import {
+	findRecipeFiles,
+	findComponentByName,
+	relativePath,
+	pascalCase
+} from '../utils/file-finder.js';
 
 /**
  * Detect recipe ownership violations in a single recipe file
@@ -26,17 +35,20 @@ import { findRecipeFiles, findComponentByName, relativePath, pascalCase } from '
 export function detectRecipeOwnershipViolations(filePath, rootDir) {
 	const recipeFileName = getRecipeFileName(filePath);
 	const recipes = extractRecipeExports(filePath);
-	
+
 	const violations = [];
-	
+
 	for (const { name: recipeName, line } of recipes) {
-		const { componentName, isSubComponent, isEmbeddedComponent } = extractComponentFromRecipe(recipeName, recipeFileName);
-		
+		const { componentName, isSubComponent, isEmbeddedComponent } = extractComponentFromRecipe(
+			recipeName,
+			recipeFileName
+		);
+
 		// Primary recipe or sub-component recipe - no violation
 		if (componentName === recipeFileName || isSubComponent) {
 			continue;
 		}
-		
+
 		// Embedded component recipe (e.g., workspaceSelectorAvatarRecipe) - VIOLATION
 		if (isEmbeddedComponent) {
 			violations.push({
@@ -51,12 +63,12 @@ export function detectRecipeOwnershipViolations(filePath, rootDir) {
 			});
 			continue;
 		}
-		
+
 		// Check if this recipe name suggests a different component
 		// e.g., buttonRecipe in workspaceSelector.recipe.ts
 		if (componentName !== recipeFileName) {
 			const targetComponent = findComponentByName(rootDir, componentName);
-			
+
 			if (targetComponent) {
 				violations.push({
 					type: 'recipe_ownership',
@@ -71,7 +83,7 @@ export function detectRecipeOwnershipViolations(filePath, rootDir) {
 			}
 		}
 	}
-	
+
 	return violations;
 }
 
@@ -83,12 +95,11 @@ export function detectRecipeOwnershipViolations(filePath, rootDir) {
 export function scanRecipeOwnership(rootDir) {
 	const recipeFiles = findRecipeFiles(rootDir);
 	const allViolations = [];
-	
+
 	for (const filePath of recipeFiles) {
 		const violations = detectRecipeOwnershipViolations(filePath, rootDir);
 		allViolations.push(...violations);
 	}
-	
+
 	return allViolations;
 }
-

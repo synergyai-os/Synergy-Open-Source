@@ -98,7 +98,7 @@
 	}
 </script>
 
-<div class="h-full overflow-y-auto px-inbox-container py-inbox-container">
+<div class="h-full overflow-y-auto px-page py-page">
 	<div class="mx-auto max-w-4xl">
 		<h1 class="mb-2 text-2xl font-bold text-primary">Readwise API Test</h1>
 		<p class="mb-6 text-secondary">
@@ -106,7 +106,7 @@
 		</p>
 
 		<!-- API Key Status -->
-		<div class="mb-6 rounded-lg border border-border-elevated bg-base p-4">
+		<div class="border-border-elevated mb-6 rounded-lg border bg-base p-4">
 			<div class="flex items-center justify-between">
 				<div>
 					<p class="mb-1 font-medium text-primary">API Key Status</p>
@@ -124,14 +124,14 @@
 		</div>
 
 		<!-- Test Actions -->
-		<div class="mb-6 rounded-lg border border-border-elevated bg-base p-6">
+		<div class="border-border-elevated mb-6 rounded-lg border bg-base p-6">
 			<p class="mb-4 font-medium text-primary">Test Actions</p>
 			<div class="flex flex-wrap gap-3">
 				<button
 					type="button"
 					onclick={testReadwise}
 					disabled={isTesting}
-					class="text-accent-primary-foreground hover:bg-accent-primary-hover rounded-md bg-accent-primary px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+					class="text-accent-primary-foreground hover:bg-accent-primary-hover bg-accent-primary rounded-md px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{isTesting ? 'Testing...' : 'Test Connection'}
 				</button>
@@ -139,7 +139,7 @@
 					type="button"
 					onclick={testReadwiseHighlights}
 					disabled={isTesting}
-					class="text-accent-primary-foreground hover:bg-accent-primary-hover rounded-md bg-accent-primary px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+					class="text-accent-primary-foreground hover:bg-accent-primary-hover bg-accent-primary rounded-md px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{isTesting ? 'Fetching...' : 'Fetch Highlights'}
 				</button>
@@ -147,7 +147,7 @@
 					type="button"
 					onclick={testReadwiseBooks}
 					disabled={isTesting}
-					class="text-accent-primary-foreground hover:bg-accent-primary-hover rounded-md bg-accent-primary px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+					class="text-accent-primary-foreground hover:bg-accent-primary-hover bg-accent-primary rounded-md px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{isTesting ? 'Fetching...' : 'Fetch Books'}
 				</button>
@@ -164,7 +164,7 @@
 
 		<!-- Response Display -->
 		{#if testResponse}
-			<div class="rounded-lg border border-border-elevated bg-base p-6">
+			<div class="border-border-elevated rounded-lg border bg-base p-6">
 				<p class="mb-3 font-medium text-primary">Response</p>
 				<pre
 					class="border-border overflow-x-auto rounded border bg-base p-4 font-code text-sm whitespace-pre-wrap text-secondary">{testResponse}</pre>
@@ -172,7 +172,7 @@
 		{/if}
 
 		<!-- Instructions -->
-		<div class="mt-6 rounded-lg border border-border-elevated bg-base p-6">
+		<div class="border-border-elevated mt-6 rounded-lg border bg-base p-6">
 			<p class="mb-2 font-medium text-primary">📚 How to Use</p>
 			<ul class="list-inside list-disc space-y-1 text-sm text-secondary">
 				<li>Click "Test Connection" to verify API key is valid</li>

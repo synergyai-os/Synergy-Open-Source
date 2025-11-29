@@ -41,7 +41,7 @@
 </script>
 
 <!-- Context/Template Selectors + Draft Button (Linear-style top bar) -->
-<div class="flex items-center justify-between px-inbox-container py-2">
+<div class="px-inbox-container flex items-center justify-between py-2">
 	<div class="flex items-center gap-2">
 		<ContextSelector
 			context={form.noteContext}
@@ -63,9 +63,9 @@
 		<Button
 			variant="outline"
 			size="sm"
-									onclick={() => {
-										// TODO: Implement draft save logic
-									}}
+			onclick={() => {
+				// TODO: Implement draft save logic
+			}}
 		>
 			Save as draft
 		</Button>
@@ -139,7 +139,7 @@
 <QuickCreateMetadataBar {form} {availableTags} {onTagsChange} {onCreateTag} bind:tagComboboxOpen />
 
 <!-- Actions Footer (Linear-style) -->
-<div class="flex items-center justify-end gap-2 px-inbox-container py-2">
+<div class="px-inbox-container flex items-center justify-end gap-2 py-2">
 	<ToggleSwitch
 		checked={form.createMore}
 		onChange={(checked) => (form.createMore = checked)}

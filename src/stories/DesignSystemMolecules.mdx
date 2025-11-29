@@ -3,7 +3,7 @@ import { Meta } from '@storybook/addon-docs/blocks';
 <Meta title="Design System/Molecules" />
 
 <style>
-  {`
+	{`
     .coming-soon {
       background: oklch(75% 0.14 65 / 0.15);
       border: 1px solid oklch(75% 0.14 65 / 0.3);
@@ -85,17 +85,17 @@ import { Meta } from '@storybook/addon-docs/blocks';
 Simple groups of UI elements functioning together as a unit. Molecules are composed of **2-3 atoms** combined with layout logic.
 
 <div className="molecule-diagram">
-  <div className="atom-circle">Label</div>
-  <span className="plus-sign">+</span>
-  <div className="atom-circle">Input</div>
-  <span className="plus-sign">+</span>
-  <div className="atom-circle">Error</div>
-  <span className="equals-sign">=</span>
-  <div className="molecule-box">
-    <div className="molecule-atom" />
-    <div className="molecule-atom" />
-    <div className="molecule-atom" />
-  </div>
+	<div className="atom-circle">Label</div>
+	<span className="plus-sign">+</span>
+	<div className="atom-circle">Input</div>
+	<span className="plus-sign">+</span>
+	<div className="atom-circle">Error</div>
+	<span className="equals-sign">=</span>
+	<div className="molecule-box">
+		<div className="molecule-atom" />
+		<div className="molecule-atom" />
+		<div className="molecule-atom" />
+	</div>
 </div>
 
 ---
@@ -114,18 +114,20 @@ Molecules are the **second level** of atomic design:
 
 ## 📦 Planned Molecules
 
-| Component | Atoms Used | Purpose |
-|-----------|------------|---------|
-| **FormField** | Label + Input + ErrorText | Complete form input with validation |
-| **SearchBar** | Input + IconButton | Search input with submit |
-| **DropdownMenu** | Button + Menu + MenuItem | Dropdown with trigger |
-| **Breadcrumb** | Link + Separator + Text | Navigation breadcrumbs |
-| **Pagination** | Button + Text + IconButton | Page navigation |
-| **TabList** | Tab + TabPanel | Tab navigation |
+| Component        | Atoms Used                 | Purpose                             |
+| ---------------- | -------------------------- | ----------------------------------- |
+| **FormField**    | Label + Input + ErrorText  | Complete form input with validation |
+| **SearchBar**    | Input + IconButton         | Search input with submit            |
+| **DropdownMenu** | Button + Menu + MenuItem   | Dropdown with trigger               |
+| **Breadcrumb**   | Link + Separator + Text    | Navigation breadcrumbs              |
+| **Pagination**   | Button + Text + IconButton | Page navigation                     |
+| **TabList**      | Tab + TabPanel             | Tab navigation                      |
 
 <div className="coming-soon">
-  <h3 className="coming-soon-title">🚧 Coming Soon</h3>
-  <p className="coming-soon-desc">Molecule components will be added as needed. Currently, atoms can be composed directly.</p>
+	<h3 className="coming-soon-title">🚧 Coming Soon</h3>
+	<p className="coming-soon-desc">
+		Molecule components will be added as needed. Currently, atoms can be composed directly.
+	</p>
 </div>
 
 ---
@@ -134,18 +136,18 @@ Molecules are the **second level** of atomic design:
 
 ```svelte
 <script lang="ts">
-  import { Label, FormInput, Text } from '$lib/components/atoms';
-  
-  let { label, error, ...inputProps } = $props();
+	import { Label, FormInput, Text } from '$lib/components/atoms';
+
+	let { label, error, ...inputProps } = $props();
 </script>
 
 <!-- FormField Molecule: Label + Input + Error -->
 <div class="space-y-1">
-  <Label>{label}</Label>
-  <FormInput {...inputProps} />
-  {#if error}
-    <Text variant="error" size="sm">{error}</Text>
-  {/if}
+	<Label>{label}</Label>
+	<FormInput {...inputProps} />
+	{#if error}
+		<Text variant="error" size="sm">{error}</Text>
+	{/if}
 </div>
 ```
 
@@ -167,4 +169,3 @@ src/lib/components/molecules/
 
 **Status**: Planned  
 **Priority**: Create as needed when patterns emerge
-

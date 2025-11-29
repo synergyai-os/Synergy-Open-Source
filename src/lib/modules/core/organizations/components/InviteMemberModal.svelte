@@ -131,9 +131,9 @@
 	<Dialog.Portal>
 		<Dialog.Overlay class="fixed inset-0 z-50 bg-black/50 transition-opacity" />
 		<Dialog.Content
-			class="fixed top-1/2 left-1/2 z-50 w-[min(500px,90vw)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-lg border border-base bg-surface text-primary shadow-xl"
+			class="border-base fixed top-1/2 left-1/2 z-50 w-[min(500px,90vw)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-lg border bg-surface text-primary shadow-xl"
 		>
-			<div class="space-y-6 px-inbox-container py-inbox-container">
+			<div class="px-inbox-container py-inbox-container space-y-6">
 				<div>
 					<Dialog.Title class="text-lg font-semibold text-primary">Invite Member</Dialog.Title>
 					<Dialog.Description class="mt-1 text-sm text-secondary">
@@ -154,7 +154,7 @@
 							<span class="text-sm font-medium text-primary">Email address *</span>
 							<input
 								type="email"
-								class="w-full rounded-md border px-2 py-nav-item text-sm text-primary focus:outline-none disabled:opacity-50"
+								class="py-nav-item w-full rounded-md border px-2 text-sm text-primary focus:outline-none disabled:opacity-50"
 								class:border-base={!emailError}
 								class:border-error={!!emailError}
 								class:bg-elevated={!emailError}
@@ -196,7 +196,7 @@
 								<input
 									type="text"
 									readonly
-									class="flex-1 rounded-md border border-base bg-elevated px-2 py-nav-item text-sm text-primary focus:border-accent-primary focus:outline-none"
+									class="border-base py-nav-item focus:border-accent-primary flex-1 rounded-md border bg-elevated px-2 text-sm text-primary focus:outline-none"
 									value={inviteLink}
 									onclick={(e) => (e.target as HTMLInputElement).select()}
 								/>

@@ -1,7 +1,7 @@
 <script lang="ts">
 	/**
 	 * CircleNode Component - Isolated circle rendering for Storybook
-	 * 
+	 *
 	 * Extracted from OrgChart.svelte for isolated design/testing.
 	 * Use this component in Storybook to design/test circle interactions.
 	 */
@@ -136,4 +136,3 @@
 		filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
 	}
 </style>
-

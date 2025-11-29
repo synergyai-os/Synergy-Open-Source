@@ -103,7 +103,7 @@
 </script>
 
 <div class="h-full overflow-y-auto bg-base">
-	<div class="mx-auto max-w-4xl p-inbox-container">
+	<div class="p-inbox-container mx-auto max-w-4xl">
 		<!-- Page Header -->
 		<div class="mb-6">
 			<h1 class="mb-2 text-2xl font-bold text-primary">Claude Flashcard Generator</h1>
@@ -113,7 +113,7 @@
 		</div>
 
 		<!-- API Key Status Card -->
-		<div class="mb-6 rounded-md border border-border-elevated bg-elevated p-4">
+		<div class="border-border-elevated mb-6 rounded-md border bg-elevated p-4">
 			<div class="flex items-center justify-between">
 				<div>
 					<p class="mb-1 text-sm font-medium text-primary">API Key Status</p>
@@ -127,7 +127,7 @@
 							<span class="text-orange-600 dark:text-orange-400"
 								>⚠️ Claude API key not configured.</span
 							>
-							<a href={resolveRoute('/settings')} class="ml-1 text-accent-primary hover:underline"
+							<a href={resolveRoute('/settings')} class="text-accent-primary ml-1 hover:underline"
 								>Go to Settings</a
 							>
 						{/if}
@@ -137,7 +137,7 @@
 		</div>
 
 		<!-- Input Form Card -->
-		<div class="mb-6 rounded-md border border-border-elevated bg-elevated p-6">
+		<div class="border-border-elevated mb-6 rounded-md border bg-elevated p-6">
 			<label for="test-input" class="mb-2 block text-sm font-medium text-primary">
 				Input Text
 			</label>
@@ -148,7 +148,7 @@
 				id="test-input"
 				bind:value={testInput}
 				placeholder="Example: The Build-Measure-Learn cycle is a fundamental concept in lean startup methodology..."
-				class="border-border placeholder-secondary w-full resize-none rounded-md border bg-base px-3 py-2 text-primary transition-all focus:border-transparent focus:ring-2 focus:ring-accent-primary focus:outline-none"
+				class="border-border placeholder-secondary focus:ring-accent-primary w-full resize-none rounded-md border bg-base px-3 py-2 text-primary transition-all focus:border-transparent focus:ring-2 focus:outline-none"
 				rows="6"
 				disabled={isGenerating}
 			></textarea>
@@ -156,7 +156,7 @@
 				type="button"
 				onclick={generateFlashcard}
 				disabled={isGenerating || !testInput.trim() || !settings.data?.hasClaudeKey}
-				class="hover:bg-accent-primary-hover mt-4 rounded-md bg-accent-primary px-4 py-2 text-sm font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+				class="hover:bg-accent-primary-hover bg-accent-primary mt-4 rounded-md px-4 py-2 text-sm font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				{isGenerating ? 'Generating...' : 'Generate Flashcard'}
 			</button>
@@ -174,7 +174,7 @@
 
 		<!-- Flashcard Display -->
 		{#if flashcard}
-			<div class="mb-6 overflow-hidden rounded-md border border-border-elevated bg-elevated">
+			<div class="border-border-elevated mb-6 overflow-hidden rounded-md border bg-elevated">
 				<!-- Flashcard Header -->
 				<div class="border-border border-b bg-surface px-6 py-4">
 					<p class="text-sm font-medium text-primary">Generated Flashcard</p>
@@ -204,7 +204,7 @@
 		{/if}
 
 		<!-- Instructions Card -->
-		<div class="rounded-md border border-border-elevated bg-surface p-6">
+		<div class="border-border-elevated rounded-md border bg-surface p-6">
 			<p class="mb-3 text-sm font-medium text-primary">📚 How to Use</p>
 			<ul class="space-y-2 text-sm text-secondary">
 				<li class="flex items-start gap-2">

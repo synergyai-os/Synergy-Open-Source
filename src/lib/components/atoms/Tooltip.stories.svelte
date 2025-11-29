@@ -26,7 +26,7 @@
 				</Tooltip.Trigger>
 				<Tooltip.Portal>
 					<Tooltip.Content
-						class="z-50 rounded-button border border-base bg-elevated px-2 py-1 text-button text-primary shadow-card"
+						class="border-base text-button z-50 rounded-button border bg-elevated px-2 py-1 text-primary shadow-card"
 					>
 						This is a tooltip
 						<Tooltip.Arrow class="fill-elevated" />
@@ -50,7 +50,7 @@
 					<Tooltip.Portal>
 						<Tooltip.Content
 							side="top"
-							class="z-50 rounded-button border border-base bg-elevated px-2 py-1 text-button text-primary shadow-card"
+							class="border-base text-button z-50 rounded-button border bg-elevated px-2 py-1 text-primary shadow-card"
 						>
 							Tooltip appears above
 							<Tooltip.Arrow class="fill-elevated" />
@@ -75,7 +75,7 @@
 					<Tooltip.Portal>
 						<Tooltip.Content
 							side="right"
-							class="z-50 rounded-button border border-base bg-elevated px-2 py-1 text-button text-primary shadow-card"
+							class="border-base text-button z-50 rounded-button border bg-elevated px-2 py-1 text-primary shadow-card"
 						>
 							Tooltip appears to the right
 							<Tooltip.Arrow class="fill-elevated" />
@@ -100,7 +100,7 @@
 					<Tooltip.Portal>
 						<Tooltip.Content
 							side="bottom"
-							class="z-50 rounded-button border border-base bg-elevated px-2 py-1 text-button text-primary shadow-card"
+							class="border-base text-button z-50 rounded-button border bg-elevated px-2 py-1 text-primary shadow-card"
 						>
 							Tooltip appears below
 							<Tooltip.Arrow class="fill-elevated" />
@@ -125,7 +125,7 @@
 					<Tooltip.Portal>
 						<Tooltip.Content
 							side="left"
-							class="z-50 rounded-button border border-base bg-elevated px-2 py-1 text-button text-primary shadow-card"
+							class="border-base text-button z-50 rounded-button border bg-elevated px-2 py-1 text-primary shadow-card"
 						>
 							Tooltip appears to the left
 							<Tooltip.Arrow class="fill-elevated" />
@@ -148,7 +148,7 @@
 				</Tooltip.Trigger>
 				<Tooltip.Portal>
 					<Tooltip.Content
-						class="z-50 max-w-xs rounded-button border border-base bg-elevated px-2 py-1 text-button text-primary shadow-card"
+						class="border-base text-button z-50 max-w-xs rounded-button border bg-elevated px-2 py-1 text-primary shadow-card"
 					>
 						This is a longer tooltip message that demonstrates how the tooltip handles multiple
 						lines of content gracefully.

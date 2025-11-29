@@ -1,454 +1,143 @@
 ---
-alwaysApply: false
+description: Apply when editing Svelte components, CSS, or design system files
+globs: ["**/*.svelte", "**/*.css", "**/recipes/**", "**/design-system/**"]
 ---
-# 🚨 DESIGN TOKEN ENFORCEMENT (MANDATORY)
+# 🚨 DESIGN TOKEN ENFORCEMENT
 
-**This rule is AUTOMATICALLY loaded for EVERY .svelte file you edit.**
+## ⛔ CRITICAL RULES (NON-NEGOTIABLE)
 
-**CSS Components**: Use Recipe System (CVA) - NO exceptions
-**SVG Components**: Documented exception allowed (SYOS-522) - Requires comment
+### Rule 1: NEVER Create or Edit CSS Utility Files
+
+```
+src/styles/utilities/*.css  ← AUTO-GENERATED - NEVER EDIT
+```
+
+**If you need a new utility:**
+1. Add token to `design-tokens-semantic.json`
+2. Run `npm run tokens:build`
+3. Verify: `grep "^@utility my-utility" src/styles/utilities/*.css`
+
+**If pattern not supported:** Update `scripts/style-dictionary/transforms.js`, then build.
 
 ---
 
-## ⛔ HARD RULE #1: NO Hardcoded Values
-
-### ❌ FORBIDDEN (Violations will be REJECTED):
-
-**Pixel/rem values as strings:**
+### Rule 2: NEVER Use Hardcoded Tailwind Values
 
 ```svelte
-width="1rem" // ❌ REJECTED height="32px" // ❌ REJECTED const size = '1rem'; // ❌ REJECTED const
-dims = '2rem'; // ❌ REJECTED
-```
+<!-- ❌ REJECTED -->
+class="px-4 py-2 gap-2 mb-4"
+class="text-gray-500 bg-blue-100"
+class="rounded-lg text-sm"
 
-**Hex colors:**
-
-```svelte
-color="#3b82f6" // ❌ REJECTED bg-[#000000] // ❌ REJECTED const color = '#fff'; // ❌ REJECTED
-```
-
-**Decimal opacity:**
-
-```svelte
-opacity: 0.5 // ❌ REJECTED const alpha = 0.75; // ❌ REJECTED
-```
-
-**Raw Tailwind utilities:**
-
-```svelte
-class="px-4 py-2" // ❌ REJECTED class="text-2xl" // ❌ REJECTED class="rounded-lg" // ❌ REJECTED
-class="gap-2" // ❌ REJECTED
+<!-- ✅ REQUIRED -->
+class="px-button py-button gap-button mb-header"
+class="text-secondary bg-surface"
+class="rounded-button text-body"
 ```
 
 ---
 
-### ✅ REQUIRED (Token References ONLY):
-
-**Utility classes (reference tokens):**
+### Rule 3: Use Recipe System for Component Styling
 
 ```svelte
-class="w-icon-sm h-icon-sm" // ✅ Uses var(--size-icon-sm) class="px-button-x py-button-y" // ✅
-Uses var(--spacing-button-x) class="bg-accent-primary" // ✅ Uses var(--color-accent-primary)
-class="opacity-disabled" // ✅ Uses var(--opacity-disabled) class="font-heading" // ✅ Uses
-var(--fonts-heading)
-```
-
-**CSS custom properties (direct references):**
-
-```svelte
-<div style="width: var(--size-icon-sm)">      // ✅ Direct token reference
-<div style="padding: var(--spacing-button-x)"> // ✅ Direct token reference
-```
-
----
-
-## ⛔ HARD RULE #2: "Matching Values" ≠ "Using Tokens"
-
-### The #1 Mistake Agents Make:
-
-**❌ WRONG thinking:**
-
-```
-Token: --size-icon-sm = 1rem
-Agent: "I'll use 1rem - it matches the token!" ← THIS IS HARDCODING
-Result: Cascade BROKEN (changing token won't update code)
-```
-
-**✅ CORRECT thinking:**
-
-```
-Token: --size-icon-sm = 1rem
-Agent: "I'll use w-icon-sm utility - it REFERENCES the token"
-Result: Cascade WORKS (changing token updates all code automatically)
-```
-
-### Real Example from Production:
-
-**❌ Agent wrote (REJECTED):**
-
-```svelte
-// Agent thought: "These match the token values!" const dimensions = $derived( size === 'sm' ?
-'1rem' : size === 'lg' ? '3rem' : '2rem' ); // ❌ HARDCODED - Cascade broken, violates design system
-```
-
-**✅ Should have been:**
-
-```svelte
-// References tokens via CSS classes const sizeClasses = $derived( size === 'sm' ? 'w-icon-sm
-h-icon-sm' : size === 'lg' ? 'w-icon-lg h-icon-lg' : 'w-icon-md h-icon-md' ); // ✅ Uses tokens -
-Cascade works, design system maintained
-```
-
----
-
-## ⛔ HARD RULE #3: CSS Components MUST Use Recipe System
-
-### ⚠️ **UPDATED (SYOS-513)**: Recipe System is Primary Approach
-
-**For CSS-based components** (Button, Badge, Card, Input, etc.):
-
-✅ **REQUIRED**: Use CVA Recipe System (type-safe, foolproof, AI-scalable)
-✅ Recipes return CSS class names (token-based utilities)
-✅ Component props map to recipe variants automatically
-
-**❌ REJECTED**: Manual token mapping for CSS components (not scalable, AI agents fail)
-
-### Recipe System Pattern (CSS Components):
-
-**✅ CORRECT (Recipe System):**
-
-```svelte
+<!-- ✅ CORRECT: Recipe system -->
 <script lang="ts">
-	import { buttonRecipe } from '$lib/design-system/recipes/button.recipe';
-
-	type Props = {
-		variant?: 'solid' | 'outline';
-		size?: 'sm' | 'md' | 'lg';
-	};
-
-	let { variant = 'solid', size = 'md' }: Props = $props();
-
-	const classes = $derived(buttonRecipe({ variant, size }));
+  import { buttonRecipe } from '$lib/design-system/recipes';
+  const classes = $derived(buttonRecipe({ variant, size }));
 </script>
-
 <button class={classes}>
-	<slot />
-</button>
-```
 
-**❌ WRONG (Manual token mapping):**
-
-```svelte
+<!-- ❌ WRONG: Manual token mapping -->
 <script lang="ts">
-	// ❌ REJECTED: Manual mapping (AI agents fail, not scalable)
-	const classes = $derived(
-		size === 'sm' ? 'h-button-sm px-button-x-sm' : 'h-button-md px-button-x'
-	);
+  const classes = size === 'sm' ? 'px-2 py-1' : 'px-4 py-2';
 </script>
 ```
 
-**📖 Reference Examples:**
-- Complete template: `ai-docs/reference/recipe-template.md` (Button recipe example)
-- Working example: `ai-docs/reference/cva-svelte-example/` (Button component with recipe)
-- Pattern documentation: `dev-docs/2-areas/patterns/recipe-system.md`
+---
+
+### Rule 4: Atoms MUST NOT Accept `class` Props
+
+**🚨 CRITICAL**: Atoms are pure, self-contained components. They should NEVER accept custom `class` props.
+
+```svelte
+<!-- ❌ WRONG: Atom with custom class -->
+<Text variant="body" size="sm" class="font-medium">Hello</Text>
+<Button variant="primary" class="w-full">Click</Button>
+<Card variant="default" class={customClasses}>Content</Card>
+
+<!-- ✅ CORRECT: Use props/variants only -->
+<Text variant="body" size="sm" weight="medium">Hello</Text>
+<Button variant="primary" fullWidth>Click</Button>
+<Card variant="default">Content</Card>
+
+<!-- ✅ CORRECT: Layout primitives in parent wrapper -->
+<div class="w-full">
+  <Button variant="primary">Click</Button>
+</div>
+```
+
+**Why**:
+- Atoms should be **pure** and **predictable**
+- All styling comes from **design tokens via recipes**
+- Custom classes break **design system consistency**
+- Forces proper **variant/prop design** instead of workarounds
+
+**Migration Strategy**:
+1. If atom needs new styling → **add variant/prop** to recipe
+2. If layout needed → **wrap in parent div** with layout classes
+3. If font-weight needed → **add `weight` prop** to Text/Heading atoms
+
+**Current Status**: 
+- ⚠️ **Breaking Change**: Many atoms currently accept `class` props
+- 📋 **Migration Required**: Audit and remove `class` props from all atoms
+- 🎯 **Target**: Zero `class` props in atoms
 
 ---
 
-## ⛔ HARD RULE #4: SVG Components ARE Acceptable Exception
+## Quick Reference
 
-### ⚠️ **UPDATED (SYOS-522)**: SVG Exception Documented
-
-**Discovery**: CSS-based sizing (recipes/utility classes) is **unreliable for SVG** in some browsers.
-
-**For SVG-based components** (Loading, Icon, OrgChart, D3 visualizations):
-
-✅ **ACCEPTABLE EXCEPTION**: Hardcoded pixel dimensions in HTML attributes or inline styles
-✅ **REQUIRED**: Exception comment at top of `<script>` block referencing SYOS-522
-✅ **REASON**: CSS `width`/`height` unreliable for SVG; requires explicit HTML attributes
-
-### SVG Exception Pattern:
-
-**✅ CORRECT (SVG Exception with Documentation):**
-
-```svelte
-<script lang="ts">
-	/**
-	 * DESIGN SYSTEM EXCEPTION: SVG/D3 Visualization (SYOS-522)
-	 *
-	 * This component uses SVG with hardcoded pixel dimensions because:
-	 * 1. CSS-based sizing (recipes/utility classes) unreliable for SVG in some browsers
-	 * 2. Requires explicit HTML width/height attributes
-	 * 3. Token mapping via JavaScript computed styles (where dynamic needed)
-	 *
-	 * Approved exception - see dev-docs/2-areas/design/design-tokens.md
-	 */
-
-	type Props = {
-		size?: 'sm' | 'md' | 'lg';
-	};
-
-	let { size = 'md' }: Props = $props();
-</script>
-
-<svg width={size === 'sm' ? '12px' : '16px'} height={size === 'sm' ? '12px' : '16px'}>
-	<!-- ✅ ACCEPTABLE: Documented SVG exception -->
-	<circle cx="8" cy="8" r="6" />
-</svg>
-```
-
-**❌ WRONG (No exception comment):**
-
-```svelte
-<script lang="ts">
-	// ❌ REJECTED: Missing exception documentation
-	type Props = { size?: 'sm' | 'md' };
-	let { size = 'md' }: Props = $props();
-</script>
-
-<svg width="16" height="16">
-	<!-- ❌ REJECTED: No SYOS-522 reference -->
-</svg>
-```
-
-**❌ WRONG (CSS component using SVG exception):**
-
-```svelte
-<script lang="ts">
-	// ❌ REJECTED: Button is CSS component, must use recipe system
-</script>
-
-<button style="width: 32px; height: 32px;">
-	<!-- ❌ REJECTED: Not SVG, no exception allowed -->
-</button>
-```
+| Need | Use | NOT |
+|------|-----|-----|
+| Spacing | `gap-button`, `px-button`, `mb-header` | `gap-2`, `px-4`, `mb-8` |
+| Colors | `bg-surface`, `text-primary` | `bg-gray-100`, `text-gray-900` |
+| Radius | `rounded-button`, `rounded-card` | `rounded-lg`, `rounded-xl` |
+| Sizing | `size-icon-md` | `w-5 h-5` |
 
 ---
 
-### Decision Tree: Recipe vs SVG Exception
-
-**Ask yourself:**
-
-> "Is this a CSS-based component or SVG-based component?"
-
-**Decision:**
+## The Sacred Cascade
 
 ```
-├─ CSS Component (Button, Card, Badge, Input, Alert, etc.)
-│  └─ ✅ USE RECIPE SYSTEM (CVA)
-│     - No exceptions allowed
-│     - Type-safe variant props
-│     - Scalable for AI agents
-│
-└─ SVG Component (Loading, Icon, OrgChart, D3 visualizations)
-   └─ ✅ ACCEPTABLE EXCEPTION
-      - Document with SYOS-522 comment
-      - Use HTML attributes or inline styles
-      - Only for SVG elements
+design-tokens-semantic.json → npm run tokens:build → src/styles/utilities/*.css
 ```
+
+**Never break this cascade.** All utilities come from tokens.
 
 ---
 
-## 🎯 The Cascade Test (Use BEFORE Writing Code)
+## Allowed Layout Primitives
 
-**Ask yourself:**
-
-> "If I change a design token value in design-system.json, will this code update automatically?"
-
-**Examples:**
-
-```svelte
-<!-- TEST 1: CSS Component (Button) - Change --size-button-md from 2.5rem to 3rem -->
-
-<!-- ❌ FAILS: Hardcoded value stays 2.5rem -->
-<button style="height: 2.5rem">
-
-<!-- ❌ FAILS: Manual token mapping (not scalable) -->
-const classes = $derived(size === 'md' ? 'h-button-md' : 'h-button-sm');
-
-<!-- ✅ PASSES: Recipe system automatically updates to 3rem -->
-const classes = $derived(buttonRecipe({ size: 'md' }));
-
-<!-- TEST 2: SVG Component (Loading) - Documented Exception -->
-
-<!-- ✅ PASSES: SVG exception documented with SYOS-522 comment -->
-/**
- * DESIGN SYSTEM EXCEPTION: SVG/D3 Visualization (SYOS-522)
- * ...
- */
-<svg width="16" height="16">
-
-<!-- ❌ FAILS: SVG exception without documentation -->
-<svg width="16" height="16">  // Missing SYOS-522 comment
-```
-
-**If cascade test FAILS → You're hardcoding OR missing documentation → FIX IT before writing code**
+These are OK (structural, not design):
+- `flex`, `flex-col`, `items-center`, `justify-center`
+- `grid`, `grid-cols-*`
+- `relative`, `absolute`, `fixed`
+- `w-full`, `min-h-screen`, `overflow-hidden`
+- `font-medium`, `font-semibold` (until tokenized)
 
 ---
 
-## 📋 Token Utility Quick Reference
-
-### Sizes (NOT hardcoded px/rem):
-
-```svelte
-✅ w-icon-sm, h-icon-md, w-icon-lg ❌ width="1rem", height="32px", w-[16px]
-```
-
-### Spacing (NOT raw Tailwind):
-
-```svelte
-✅ px-button-x, py-button-y, gap-icon ❌ px-4, py-2, gap-2
-```
-
-### Colors (NOT hex/named colors):
-
-```svelte
-✅ bg-accent-primary, text-primary, border-base ❌ bg-blue-600, text-white, bg-[#3b82f6]
-```
-
-### Opacity (NOT decimal values):
-
-```svelte
-✅ opacity-disabled, opacity-hover, opacity-backdrop ❌ opacity-50, opacity: 0.5, bg-*/50
-```
-
-### Fonts (NOT base tokens):
-
-```svelte
-✅ font-heading, font-body, font-code ❌ font-sans, font-mono (these are base, use semantic)
-```
-
-### Border Radius (NOT raw Tailwind):
-
-```svelte
-✅ rounded-button, rounded-card, rounded-input ❌ rounded-md, rounded-lg, rounded-xl
-```
-
-### Breakpoints (Tailwind responsive utilities OK):
-
-```svelte
-✅ md:grid-cols-3, lg:px-content-padding ❌ @media (min-width: 768px), hardcoded breakpoints
-```
-
----
-
-## 🚨 ENFORCEMENT PROCESS
-
-### Step 1: BEFORE Writing Code
-
-1. Run cascade test mentally for EVERY value
-2. If value is literal (`'1rem'`, `'#fff'`, `0.5`) → STOP, use token
-3. If value matches token → Still STOP, reference token instead
-
-### Step 2: DURING Implementation
-
-1. After writing code, run: `npm run tokens:validate`
-2. If violations found → FIX immediately, don't continue
-3. Validate again until clean
-
-### Step 3: BEFORE Committing
-
-1. Run: `npm run lint`
-2. If design token violations → REJECTED, fix first
-3. Pre-commit hook will enforce this
-
----
-
-## ⚠️ Common Agent Mistakes (Learn from These)
-
-### Mistake #1: "Values match tokens"
-
-**Agent wrote:**
-
-```svelte
-size === 'sm' ? '1rem' : '2rem' // "These match --size-icon-sm/md!"
-```
-
-**Why rejected:** Hardcoded strings, cascade broken
-**Correct:** `size === 'sm' ? 'w-icon-sm' : 'w-icon-md'`
-
-### Mistake #2: "Using manual tokens for CSS components"
-
-**Agent wrote:**
-
-```svelte
-const classes = $derived(size === 'sm' ? 'h-button-sm' : 'h-button-md'); // "Manual mapping!"
-```
-
-**Why rejected:** Manual token mapping doesn't scale, AI agents fail
-**Correct:** Use recipe system - `const classes = $derived(buttonRecipe({ size }))`
-
-### Mistake #3: "Just this once"
-
-**Agent wrote:**
-
-```svelte
-const spacing = '8px'; // "Quick fix, will refactor later"
-```
-
-**Why rejected:** "Later" never happens, use tokens NOW
-**Correct:** `class="gap-icon"` (uses var(--spacing-icon))
-
-### Mistake #4: "Base tokens are fine"
-
-**Agent wrote:**
-
-```svelte
-class="font-sans" // "It's a token!"
-```
-
-**Why rejected:** Base token, not semantic (no component context)
-**Correct:** `class="font-heading"` (semantic, clear usage)
-
----
-
-## 📖 Where to Find Tokens
-
-**Complete catalog:** `dev-docs/2-areas/design/design-tokens.md`
-
-**Quick search:**
+## Validation
 
 ```bash
-# Find available size tokens
-grep "size-icon" dev-docs/2-areas/design/design-tokens.md
-
-# Find spacing tokens
-grep "spacing-button" dev-docs/2-areas/design/design-tokens.md
-
-# Find color tokens
-grep "bg-accent" dev-docs/2-areas/design/design-tokens.md
+npm run validate:design-system  # Before completing any component work
 ```
 
-**Can't find a token?**
+---
 
-1. Check `dev-docs/2-areas/design/design-tokens.md` FIRST
-2. If truly missing → Ask user to add it to design-system.json
-3. NEVER hardcode as workaround
+## Detailed Workflow
+
+For full component refactoring process, see: `/match-design-system` command
 
 ---
 
-## 🎯 Remember
-
-**This is NOT guidance - this is ENFORCEMENT.**
-
-**For CSS Components (Button, Card, Badge, etc.):**
-
-- ❌ Writing literal values → Code will be REJECTED
-- ❌ Manual token mapping → REJECTED (not scalable)
-- ❌ "Matching" token values → Still REJECTED (must use recipe)
-- ✅ Using Recipe System (CVA) → APPROVED
-
-**For SVG Components (Loading, Icon, OrgChart, etc.):**
-
-- ❌ Hardcoded values without documentation → REJECTED
-- ✅ Documented exception with SYOS-522 comment → APPROVED
-- ✅ Explicit HTML attributes or inline styles → APPROVED
-
-**CSS Components: Use recipes or don't commit.**
-**SVG Components: Document exception or don't commit.**
-
----
-
-**Last Updated**: 2025-11-23
-**Purpose**: Automatic enforcement of design token usage in ALL Svelte files
-**Severity**: CRITICAL - Violations block commits
-**Updated**: Recipe System (SYOS-513) + SVG Exception (SYOS-522)
+**Last Updated**: 2025-01-27

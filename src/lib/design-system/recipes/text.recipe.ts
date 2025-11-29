@@ -6,9 +6,10 @@ export const textRecipe = cva(
 	{
 		variants: {
 			variant: {
-				body: 'text-primary',
-				label: 'text-[0.625rem] text-secondary', // 10px - EXCEPTION: typography.fontSize.label
-				caption: 'text-[0.625rem] text-tertiary' // 10px - EXCEPTION: typography.fontSize.label
+				// Variants control typography only (font size), not color
+				body: '', // No typography-specific classes (size handles font size)
+				label: 'text-[0.625rem]', // 10px - EXCEPTION: typography.fontSize.label
+				caption: 'text-[0.625rem]' // 10px - EXCEPTION: typography.fontSize.label
 			},
 			size: {
 				sm: 'text-sm', // 14px - matches typography.fontSize.sm (0.875rem)
@@ -16,19 +17,33 @@ export const textRecipe = cva(
 				lg: 'text-lg' // 18px - matches typography.fontSize.lg (1.125rem)
 			},
 			color: {
-				default: '',
+				// Color is always separate from variant - clean separation of concerns
+				default: 'text-primary', // Default color when not specified
+				inherit: '[color:inherit]', // Inherit from parent (no !important needed - no conflict)
 				secondary: 'text-secondary',
 				tertiary: 'text-tertiary',
 				error: 'text-error',
 				warning: 'text-warning',
 				success: 'text-success',
 				info: 'text-info'
+			},
+			weight: {
+				normal: 'font-normal',
+				medium: 'font-medium',
+				semibold: 'font-semibold',
+				bold: 'font-bold'
+			},
+			lineHeight: {
+				normal: '',
+				compact: 'leading-none'
 			}
 		},
 		defaultVariants: {
 			variant: 'body',
 			size: 'base',
-			color: 'default'
+			color: 'default',
+			weight: 'normal',
+			lineHeight: 'normal'
 		}
 	}
 );

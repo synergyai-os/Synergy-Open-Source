@@ -174,6 +174,53 @@ export const listByCircle = query({
 });
 
 /**
+ * List meetings by type for analytics and reporting
+ */
+export const listByType = query({
+	args: {
+		sessionId: v.string(),
+		organizationId: v.id('organizations'),
+		meetingType: v.union(
+			v.literal('standup'),
+			v.literal('retrospective'),
+			v.literal('planning'),
+			v.literal('1-on-1'),
+			v.literal('client'),
+			v.literal('governance'),
+			v.literal('weekly-tactical'),
+			v.literal('general')
+		),
+		startDate: v.optional(v.number()), // Optional date range start (Unix timestamp)
+		endDate: v.optional(v.number()) // Optional date range end (Unix timestamp)
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		// Verify user has access to organization
+		await ensureOrganizationMembership(ctx, args.organizationId, userId);
+
+		// Query meetings by type using index
+		let meetings = await ctx.db
+			.query('meetings')
+			.withIndex('by_meeting_type', (q) =>
+				q.eq('organizationId', args.organizationId).eq('meetingType', args.meetingType)
+			)
+			.collect();
+
+		// Filter by date range if provided
+		if (args.startDate || args.endDate) {
+			meetings = meetings.filter((meeting) => {
+				if (args.startDate && meeting.startTime < args.startDate) return false;
+				if (args.endDate && meeting.startTime > args.endDate) return false;
+				return true;
+			});
+		}
+
+		return meetings;
+	}
+});
+
+/**
  * List meetings for current user
  * Includes:
  * - Meetings where user is direct attendee
@@ -291,6 +338,16 @@ export const create = mutation({
 		organizationId: v.id('organizations'),
 		circleId: v.optional(v.id('circles')),
 		templateId: v.optional(v.id('meetingTemplates')),
+		meetingType: v.union(
+			v.literal('standup'),
+			v.literal('retrospective'),
+			v.literal('planning'),
+			v.literal('1-on-1'),
+			v.literal('client'),
+			v.literal('governance'),
+			v.literal('weekly-tactical'),
+			v.literal('general')
+		), // Required field for reporting
 		title: v.string(),
 		startTime: v.number(),
 		duration: v.number(),
@@ -337,6 +394,7 @@ export const create = mutation({
 			organizationId: args.organizationId,
 			circleId: args.circleId,
 			templateId: args.templateId,
+			meetingType: args.meetingType,
 			title: args.title,
 			startTime: args.startTime,
 			duration: args.duration,
@@ -370,6 +428,18 @@ export const update = mutation({
 		startTime: v.optional(v.number()),
 		duration: v.optional(v.number()),
 		visibility: v.optional(v.union(v.literal('public'), v.literal('circle'), v.literal('private'))),
+		meetingType: v.optional(
+			v.union(
+				v.literal('standup'),
+				v.literal('retrospective'),
+				v.literal('planning'),
+				v.literal('1-on-1'),
+				v.literal('client'),
+				v.literal('governance'),
+				v.literal('weekly-tactical'),
+				v.literal('general')
+			)
+		),
 		recurrence: v.optional(
 			v.object({
 				frequency: v.union(v.literal('daily'), v.literal('weekly'), v.literal('monthly')),
@@ -397,6 +467,15 @@ export const update = mutation({
 			startTime: number;
 			duration: number;
 			visibility: 'public' | 'circle' | 'private';
+			meetingType:
+				| 'standup'
+				| 'retrospective'
+				| 'planning'
+				| '1-on-1'
+				| 'client'
+				| 'governance'
+				| 'weekly-tactical'
+				| 'general';
 			recurrence:
 				| {
 						frequency: 'daily' | 'weekly' | 'monthly';
@@ -414,6 +493,7 @@ export const update = mutation({
 		if (args.startTime !== undefined) updates.startTime = args.startTime;
 		if (args.duration !== undefined) updates.duration = args.duration;
 		if (args.visibility !== undefined) updates.visibility = args.visibility;
+		if (args.meetingType !== undefined) updates.meetingType = args.meetingType;
 		if (args.recurrence !== undefined) updates.recurrence = args.recurrence;
 
 		await ctx.db.patch(args.meetingId, updates);

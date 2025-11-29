@@ -32,13 +32,6 @@
 	// See SYOS-228 for full pattern documentation
 	const getOrganizationId = () => organizationId();
 
-	// Redirect to onboarding if no org selected
-	$effect(() => {
-		if (browser && !organizationId()) {
-			goto(resolveRoute('/org/onboarding'));
-		}
-	});
-
 	// Initialize members composable
 	const members = useOrganizationMembers({
 		sessionId: getSessionId,
@@ -112,7 +105,7 @@
 	}
 
 	async function handleRemoveMember() {
-		if (!confirmRemoveDialog.member || !organizationId()) return;
+		if (!confirmRemoveDialog.member) return;
 
 		try {
 			await members.removeMember({
@@ -143,16 +136,16 @@
 
 <div class="flex h-full flex-col bg-base">
 	<!-- Header -->
-	<header class="border-b border-base bg-surface px-inbox-container py-header">
+	<header class="border-base py-header border-b bg-surface px-page">
 		<div class="flex items-center justify-between">
 			<div>
 				<h1 class="text-h3 font-semibold text-primary">Members</h1>
-				<p class="mt-1 text-button text-secondary">{organizationName()}</p>
+				<p class="text-button mt-1 text-secondary">{organizationName()}</p>
 			</div>
 			{#if canInviteMembers()}
 				<button
 					onclick={() => (showInviteModal = true)}
-					class="text-on-solid rounded-button bg-accent-primary px-2 py-nav-item text-button font-medium transition-colors hover:bg-accent-hover"
+					class="text-on-solid bg-accent-primary py-nav-item text-button hover:bg-accent-hover rounded-button px-2 font-medium transition-colors"
 				>
 					Invite Member
 				</button>
@@ -161,7 +154,7 @@
 	</header>
 
 	<!-- Content -->
-	<main class="flex-1 overflow-y-auto px-inbox-container py-inbox-container">
+	<main class="flex-1 overflow-y-auto px-page py-page">
 		{#if isLoading}
 			<div class="flex h-64 items-center justify-center">
 				<div class="text-secondary">Loading members...</div>
@@ -184,45 +177,45 @@
 					/>
 				</svg>
 				<h2 class="text-h3 font-medium text-primary">No members yet</h2>
-				<p class="mt-1 text-button text-secondary">Invite members to get started</p>
+				<p class="text-button mt-1 text-secondary">Invite members to get started</p>
 			</div>
 		{:else}
 			<!-- Members Table -->
-			<div class="overflow-hidden rounded-card border border-base bg-surface">
+			<div class="border-base overflow-hidden rounded-card border bg-surface">
 				<table class="w-full">
-					<thead class="border-b border-base bg-elevated">
+					<thead class="border-base border-b bg-elevated">
 						<tr>
-							<th class="px-2 py-nav-item text-left text-button font-medium text-secondary">
+							<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
 								Name
 							</th>
-							<th class="px-2 py-nav-item text-left text-button font-medium text-secondary">
+							<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
 								Email
 							</th>
-							<th class="px-2 py-nav-item text-left text-button font-medium text-secondary">
+							<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
 								Role
 							</th>
-							<th class="px-2 py-nav-item text-left text-button font-medium text-secondary">
+							<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
 								Joined
 							</th>
-							<th class="px-2 py-nav-item text-left text-button font-medium text-secondary">
+							<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
 								Actions
 							</th>
 						</tr>
 					</thead>
 					<tbody>
 						{#each membersList as member (member.userId)}
-							<tr class="border-b border-base last:border-b-0 hover:bg-sidebar-hover">
-								<td class="px-2 py-nav-item text-button text-primary">
+							<tr class="border-base hover:bg-sidebar-hover border-b last:border-b-0">
+								<td class="py-nav-item text-button px-2 text-primary">
 									{member.name || '—'}
 								</td>
-								<td class="px-2 py-nav-item text-button text-secondary">{member.email}</td>
-								<td class="px-2 py-nav-item text-button text-secondary">
+								<td class="py-nav-item text-button px-2 text-secondary">{member.email}</td>
+								<td class="py-nav-item text-button px-2 text-secondary">
 									{formatRole(member.role)}
 								</td>
-								<td class="px-2 py-nav-item text-button text-secondary">
+								<td class="py-nav-item text-button px-2 text-secondary">
 									{formatDate(member.joinedAt)}
 								</td>
-								<td class="px-2 py-nav-item">
+								<td class="py-nav-item px-2">
 									{#if member.role === 'owner'}
 										<span class="text-button text-secondary">—</span>
 									{:else if canRemoveMembers()}
@@ -247,48 +240,38 @@
 			<!-- Invited Table -->
 			{#if canInviteMembers() && invitesList.length > 0}
 				<div class="mt-8">
-					<h2 class="mb-4 text-h3 font-semibold text-primary">Invited</h2>
-					<div class="overflow-hidden rounded-card border border-base bg-surface">
+					<h2 class="text-h3 mb-4 font-semibold text-primary">Invited</h2>
+					<div class="border-base overflow-hidden rounded-card border bg-surface">
 						<table class="w-full">
-							<thead class="border-b border-base bg-elevated">
+							<thead class="border-base border-b bg-elevated">
 								<tr>
-									<th
-										class="px-2 py-nav-item text-left text-button font-medium text-secondary"
-									>
+									<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
 										Email
 									</th>
-									<th
-										class="px-2 py-nav-item text-left text-button font-medium text-secondary"
-									>
+									<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
 										Role
 									</th>
-									<th
-										class="px-2 py-nav-item text-left text-button font-medium text-secondary"
-									>
+									<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
 										Status
 									</th>
-									<th
-										class="px-2 py-nav-item text-left text-button font-medium text-secondary"
-									>
+									<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
 										Invited
 									</th>
-									<th
-										class="px-2 py-nav-item text-left text-button font-medium text-secondary"
-									>
+									<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
 										Actions
 									</th>
 								</tr>
 							</thead>
 							<tbody>
 								{#each invitesList as invite (invite.inviteId)}
-									<tr class="border-b border-base last:border-b-0 hover:bg-sidebar-hover">
-										<td class="px-2 py-nav-item text-button text-primary">
+									<tr class="border-base hover:bg-sidebar-hover border-b last:border-b-0">
+										<td class="py-nav-item text-button px-2 text-primary">
 											{invite.email}
 										</td>
-										<td class="px-2 py-nav-item text-button text-secondary">
+										<td class="py-nav-item text-button px-2 text-secondary">
 											{formatRole(invite.role)}
 										</td>
-										<td class="px-2 py-nav-item text-button">
+										<td class="py-nav-item text-button px-2">
 											<span
 												class={invite.status === 'accepted'
 													? 'text-accent-primary'
@@ -297,10 +280,10 @@
 												{invite.status === 'accepted' ? 'Accepted' : 'Pending'}
 											</span>
 										</td>
-										<td class="px-2 py-nav-item text-button text-secondary">
+										<td class="py-nav-item text-button px-2 text-secondary">
 											{formatDate(invite.invitedAt)}
 										</td>
-										<td class="px-2 py-nav-item">
+										<td class="py-nav-item px-2">
 											{#if invite.status === 'pending' && invite.email}
 												<button
 													onclick={() => members.resendInvite(invite.inviteId)}
@@ -335,12 +318,12 @@
 	<Dialog.Portal>
 		<Dialog.Overlay class="fixed inset-0 z-50 bg-black/50 transition-opacity" />
 		<Dialog.Content
-			class="fixed top-1/2 left-1/2 z-50 w-[min(500px,90vw)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-card border border-base bg-surface text-primary shadow-xl"
+			class="border-base fixed top-1/2 left-1/2 z-50 w-[min(500px,90vw)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-card border bg-surface text-primary shadow-xl"
 		>
-			<div class="space-y-6 px-inbox-container py-inbox-container">
+			<div class="space-y-6 px-page py-page">
 				<div>
 					<Dialog.Title class="text-h3 font-semibold text-primary">Remove Member</Dialog.Title>
-					<Dialog.Description class="mt-1 text-button text-secondary">
+					<Dialog.Description class="text-button mt-1 text-secondary">
 						Are you sure you want to remove
 						<span class="font-medium text-primary">
 							{confirmRemoveDialog.member?.name || confirmRemoveDialog.member?.email}
@@ -354,7 +337,7 @@
 						type="button"
 						onclick={closeRemoveDialog}
 						disabled={members.loading.remove}
-						class="rounded-button border border-base bg-elevated px-2 py-nav-item text-button font-medium text-secondary transition-colors hover:bg-sidebar-hover disabled:cursor-not-allowed disabled:opacity-50"
+						class="border-base py-nav-item text-button hover:bg-sidebar-hover rounded-button border bg-elevated px-2 font-medium text-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						Cancel
 					</button>
@@ -362,7 +345,7 @@
 						type="button"
 						onclick={handleRemoveMember}
 						disabled={members.loading.remove}
-						class="text-on-solid rounded-button bg-accent-primary px-2 py-nav-item text-button font-medium transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+						class="text-on-solid bg-accent-primary py-nav-item text-button hover:bg-accent-hover rounded-button px-2 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						{members.loading.remove ? 'Removing...' : 'Remove Member'}
 					</button>
@@ -373,13 +356,11 @@
 </Dialog.Root>
 
 <!-- Invite Member Modal -->
-{#if organizationId()}
-	<InviteMemberModal
-		open={showInviteModal}
-		onOpenChange={(open) => (showInviteModal = open)}
-		type="organization"
-		targetId={organizationId() as Id<'organizations'>}
-		targetName={organizationName()}
-		sessionId={getSessionId}
-	/>
-{/if}
+<InviteMemberModal
+	open={showInviteModal}
+	onOpenChange={(open) => (showInviteModal = open)}
+	type="organization"
+	targetId={organizationId() as Id<'organizations'>}
+	targetName={organizationName()}
+	sessionId={getSessionId}
+/>

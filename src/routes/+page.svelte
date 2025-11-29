@@ -95,7 +95,8 @@
 	<!-- Hero Section -->
 	<section class="hero-section bg-surface">
 		<div
-			class="hero-content px-inbox-container mx-auto max-w-readable text-center" style="padding-block: var(--spacing-8);"
+			class="hero-content px-inbox-container max-w-readable mx-auto text-center"
+			style="padding-block: var(--spacing-8);"
 		>
 			<!-- Social Proof Badges -->
 			<div
@@ -185,9 +186,12 @@
 
 	<!-- Pain Points Section -->
 	<section class="pain-section bg-elevated">
-		<div class="section-content px-inbox-container mx-auto max-w-5xl" style="padding-block: var(--spacing-8);">
+		<div
+			class="section-content px-inbox-container mx-auto max-w-5xl"
+			style="padding-block: var(--spacing-8);"
+		>
 			<h2
-				class="section-title text-primary text-center"
+				class="section-title text-center text-primary"
 				in:fly={{
 					y: 20,
 					duration: prefersReducedMotion ? 0 : 300,
@@ -198,7 +202,7 @@
 				Product Teams Are Stuck in Delivery Mode
 			</h2>
 			<p
-				class="section-lead text-secondary text-center"
+				class="section-lead text-center text-secondary"
 				in:fly={{
 					y: 20,
 					duration: prefersReducedMotion ? 0 : 300,
@@ -246,7 +250,10 @@
 
 	<!-- Vision Section -->
 	<section class="vision-section bg-elevated">
-		<div class="section-content px-inbox-container mx-auto max-w-4xl" style="padding-block: var(--spacing-8);">
+		<div
+			class="section-content px-inbox-container mx-auto max-w-4xl"
+			style="padding-block: var(--spacing-8);"
+		>
 			<div class="vision-content">
 				<!-- Title -->
 				<div
@@ -343,9 +350,12 @@
 
 	<!-- What It Is Section -->
 	<section class="what-section bg-surface">
-		<div class="section-content px-inbox-container mx-auto max-w-4xl" style="padding-block: var(--spacing-8);">
+		<div
+			class="section-content px-inbox-container mx-auto max-w-4xl"
+			style="padding-block: var(--spacing-8);"
+		>
 			<h2
-				class="section-title text-primary text-center"
+				class="section-title text-center text-primary"
 				in:fly={{
 					y: 20,
 					duration: prefersReducedMotion ? 0 : 300,
@@ -356,7 +366,7 @@
 				How We Solve This
 			</h2>
 			<p
-				class="section-lead text-secondary text-center"
+				class="section-lead text-center text-secondary"
 				in:fly={{
 					y: 20,
 					duration: prefersReducedMotion ? 0 : 300,
@@ -449,9 +459,12 @@
 
 	<!-- What Makes It Different Section -->
 	<section class="differentiators-section bg-surface">
-		<div class="section-content px-inbox-container mx-auto max-w-5xl" style="padding-block: var(--spacing-8);">
+		<div
+			class="section-content px-inbox-container mx-auto max-w-5xl"
+			style="padding-block: var(--spacing-8);"
+		>
 			<h2
-				class="section-title text-primary text-center"
+				class="section-title text-center text-primary"
 				in:fly={{
 					y: 20,
 					duration: prefersReducedMotion ? 0 : 300,
@@ -484,7 +497,10 @@
 
 	<!-- Tech Stack Section -->
 	<section class="tech-stack-section bg-surface">
-		<div class="section-content px-inbox-container mx-auto max-w-6xl" style="padding-block: var(--spacing-8);">
+		<div
+			class="section-content px-inbox-container mx-auto max-w-6xl"
+			style="padding-block: var(--spacing-8);"
+		>
 			<div
 				class="tech-stack-header text-center"
 				in:fly={{
@@ -663,9 +679,12 @@
 
 	<!-- Where We Are Today Section -->
 	<section class="status-section bg-elevated">
-		<div class="section-content px-inbox-container mx-auto max-w-4xl" style="padding-block: var(--spacing-8);">
+		<div
+			class="section-content px-inbox-container mx-auto max-w-4xl"
+			style="padding-block: var(--spacing-8);"
+		>
 			<h2
-				class="section-title text-primary text-center"
+				class="section-title text-center text-primary"
 				in:fly={{
 					y: 20,
 					duration: prefersReducedMotion ? 0 : 300,
@@ -676,7 +695,7 @@
 				Where We Are Today
 			</h2>
 			<p
-				class="section-lead text-secondary text-center"
+				class="section-lead text-center text-secondary"
 				in:fly={{
 					y: 20,
 					duration: prefersReducedMotion ? 0 : 300,
@@ -836,7 +855,7 @@
 
 	<!-- Footer -->
 	<footer class="footer bg-surface">
-		<div class="footer-content px-inbox-container mx-auto max-w-5xl py-header">
+		<div class="footer-content px-inbox-container py-header mx-auto max-w-5xl">
 			<div class="footer-grid">
 				<div class="footer-section">
 					<h3 class="footer-title text-primary">SynergyOS</h3>

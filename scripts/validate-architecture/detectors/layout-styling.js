@@ -1,11 +1,16 @@
 /**
  * Algorithm 3: Layout vs Styling Separation Violation Detection
- * 
+ *
  * Rule: Recipes handle styling (colors, transitions, borders). Layout stays in components.
  * Exception: Intrinsic component layout (e.g., inline-flex for Button) is allowed in atom recipes
  */
 
-import { extractClassStrings, parseClassString, classifyClass, getRecipeFileName } from '../parsers/recipe-parser.js';
+import {
+	extractClassStrings,
+	parseClassString,
+	classifyClass,
+	getRecipeFileName
+} from '../parsers/recipe-parser.js';
 import { findRecipeFiles, getComponentTypeFromRecipe, relativePath } from '../utils/file-finder.js';
 
 /**
@@ -28,15 +33,15 @@ export function detectLayoutStylingViolations(filePath, rootDir) {
 	const recipeFileName = getRecipeFileName(filePath);
 	const componentType = getComponentTypeFromRecipe(rootDir, recipeFileName);
 	const classStrings = extractClassStrings(filePath);
-	
+
 	const violations = [];
-	
+
 	for (const { classString, line, context } of classStrings) {
 		const classes = parseClassString(classString);
-		
+
 		for (const { className, baseClass } of classes) {
 			const classification = classifyClass(baseClass);
-			
+
 			// Composition layout - never allowed in recipes
 			if (classification === 'composition_layout') {
 				violations.push({
@@ -52,7 +57,7 @@ export function detectLayoutStylingViolations(filePath, rootDir) {
 				});
 				continue;
 			}
-			
+
 			// Intrinsic layout - only allowed in atoms
 			if (classification === 'intrinsic_layout') {
 				if (componentType !== 'atom') {
@@ -71,11 +76,11 @@ export function detectLayoutStylingViolations(filePath, rootDir) {
 				// If atom - allowed, no violation
 				continue;
 			}
-			
+
 			// Semantic tokens, styling, unknown - all allowed (no violation)
 		}
 	}
-	
+
 	return violations;
 }
 
@@ -87,12 +92,11 @@ export function detectLayoutStylingViolations(filePath, rootDir) {
 export function scanLayoutStyling(rootDir) {
 	const recipeFiles = findRecipeFiles(rootDir);
 	const allViolations = [];
-	
+
 	for (const filePath of recipeFiles) {
 		const violations = detectLayoutStylingViolations(filePath, rootDir);
 		allViolations.push(...violations);
 	}
-	
+
 	return allViolations;
 }
-

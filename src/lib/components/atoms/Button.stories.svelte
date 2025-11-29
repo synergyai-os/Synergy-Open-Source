@@ -65,7 +65,10 @@
 		{@const hasIcon = !!args.iconType}
 		{#snippet icon()}
 			{#if hasIcon}
-				<Icon type={args.iconType} size={args.size === 'sm' ? 'sm' : args.size === 'lg' ? 'lg' : 'md'} />
+				<Icon
+					type={args.iconType}
+					size={args.size === 'sm' ? 'sm' : args.size === 'lg' ? 'lg' : 'md'}
+				/>
 			{/if}
 		{/snippet}
 		<Button
@@ -73,7 +76,7 @@
 			size={args.size}
 			disabled={args.disabled}
 			iconOnly={isIconOnly}
-			ariaLabel={isIconOnly ? (args.ariaLabel || 'Icon button') : undefined}
+			ariaLabel={isIconOnly ? args.ariaLabel || 'Icon button' : undefined}
 		>
 			{#snippet children()}
 				{#if hasIcon}
@@ -104,7 +107,10 @@
 		{@const hasIcon = !!args.iconType}
 		{#snippet icon()}
 			{#if hasIcon}
-				<Icon type={args.iconType} size={args.size === 'sm' ? 'sm' : args.size === 'lg' ? 'lg' : 'md'} />
+				<Icon
+					type={args.iconType}
+					size={args.size === 'sm' ? 'sm' : args.size === 'lg' ? 'lg' : 'md'}
+				/>
 			{/if}
 		{/snippet}
 		<Button
@@ -112,7 +118,7 @@
 			size={args.size}
 			disabled={args.disabled}
 			iconOnly={isIconOnly}
-			ariaLabel={isIconOnly ? (args.ariaLabel || 'Icon button') : undefined}
+			ariaLabel={isIconOnly ? args.ariaLabel || 'Icon button' : undefined}
 		>
 			{#snippet children()}
 				{#if hasIcon}
@@ -143,7 +149,10 @@
 		{@const hasIcon = !!args.iconType}
 		{#snippet icon()}
 			{#if hasIcon}
-				<Icon type={args.iconType} size={args.size === 'sm' ? 'sm' : args.size === 'lg' ? 'lg' : 'md'} />
+				<Icon
+					type={args.iconType}
+					size={args.size === 'sm' ? 'sm' : args.size === 'lg' ? 'lg' : 'md'}
+				/>
 			{/if}
 		{/snippet}
 		<Button
@@ -151,7 +160,7 @@
 			size={args.size}
 			disabled={args.disabled}
 			iconOnly={isIconOnly}
-			ariaLabel={isIconOnly ? (args.ariaLabel || 'Icon button') : undefined}
+			ariaLabel={isIconOnly ? args.ariaLabel || 'Icon button' : undefined}
 		>
 			{#snippet children()}
 				{#if hasIcon}
@@ -182,7 +191,10 @@
 		{@const hasIcon = !!args.iconType}
 		{#snippet icon()}
 			{#if hasIcon}
-				<Icon type={args.iconType} size={args.size === 'sm' ? 'sm' : args.size === 'lg' ? 'lg' : 'md'} />
+				<Icon
+					type={args.iconType}
+					size={args.size === 'sm' ? 'sm' : args.size === 'lg' ? 'lg' : 'md'}
+				/>
 			{/if}
 		{/snippet}
 		<Button
@@ -190,7 +202,7 @@
 			size={args.size}
 			disabled={args.disabled}
 			iconOnly={isIconOnly}
-			ariaLabel={isIconOnly ? (args.ariaLabel || 'Icon button') : undefined}
+			ariaLabel={isIconOnly ? args.ariaLabel || 'Icon button' : undefined}
 		>
 			{#snippet children()}
 				{#if hasIcon}
@@ -221,7 +233,10 @@
 		{@const hasIcon = !!args.iconType}
 		{#snippet icon()}
 			{#if hasIcon}
-				<Icon type={args.iconType} size={args.size === 'sm' ? 'sm' : args.size === 'lg' ? 'lg' : 'md'} />
+				<Icon
+					type={args.iconType}
+					size={args.size === 'sm' ? 'sm' : args.size === 'lg' ? 'lg' : 'md'}
+				/>
 			{/if}
 		{/snippet}
 		<Button
@@ -229,7 +244,7 @@
 			size={args.size}
 			disabled={args.disabled}
 			iconOnly={isIconOnly}
-			ariaLabel={isIconOnly ? (args.ariaLabel || 'Icon button') : undefined}
+			ariaLabel={isIconOnly ? args.ariaLabel || 'Icon button' : undefined}
 		>
 			{#snippet children()}
 				{#if hasIcon}
@@ -390,10 +405,7 @@
 	{/snippet}
 </Story>
 
-<Story
-	name="Icon Only"
-	args={{ variant: 'ghost', size: 'md', iconOnly: true, iconType: 'add' }}
->
+<Story name="Icon Only" args={{ variant: 'ghost', size: 'md', iconOnly: true, iconType: 'add' }}>
 	{#snippet template(args)}
 		{#snippet icon()}
 			<Icon type={args.iconType || 'add'} size="md" />

@@ -19,8 +19,8 @@
 		<h2 class="mb-2 text-xl font-semibold text-primary">3-Layer Token Cascade</h2>
 		<p class="text-sm text-secondary">
 			All semantic tokens reference
-			<code class="rounded bg-surface px-1 py-0.5">color.brand.primary</code>.
-			Change it once → All UI updates automatically.
+			<code class="rounded bg-surface px-1 py-0.5">color.brand.primary</code>. Change it once → All
+			UI updates automatically.
 		</p>
 	</div>
 
@@ -28,11 +28,13 @@
 	<div class="rounded-md border border-default bg-surface p-4">
 		<h3 class="mb-2 font-semibold text-primary">Layer 1: Base Tokens</h3>
 		<p class="mb-3 text-sm text-secondary">
-			Hardcoded OKLCH values in <code class="rounded bg-elevated px-1 py-0.5">design-tokens-base.json</code>
+			Hardcoded OKLCH values in <code class="rounded bg-elevated px-1 py-0.5"
+				>design-tokens-base.json</code
+			>
 		</p>
 
 		<div class="mb-4">
-			<h4 class="mb-2 text-xs font-medium uppercase tracking-wide text-tertiary">Brand Colors</h4>
+			<h4 class="mb-2 text-xs font-medium tracking-wide text-tertiary uppercase">Brand Colors</h4>
 			<div class="grid grid-cols-3 gap-3">
 				<div class="rounded border border-default bg-elevated p-3">
 					<div
@@ -62,7 +64,7 @@
 		</div>
 
 		<div>
-			<h4 class="mb-2 text-xs font-medium uppercase tracking-wide text-tertiary">Neutral Scale</h4>
+			<h4 class="mb-2 text-xs font-medium tracking-wide text-tertiary uppercase">Neutral Scale</h4>
 			<div class="flex gap-1">
 				{#each ['0', '50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950', '1000'] as n}
 					<div class="flex flex-col items-center">
@@ -89,7 +91,7 @@
 		<div class="grid grid-cols-2 gap-4">
 			<!-- Interactive Colors -->
 			<div>
-				<h4 class="mb-2 text-xs font-medium uppercase tracking-wide text-tertiary">Interactive</h4>
+				<h4 class="mb-2 text-xs font-medium tracking-wide text-tertiary uppercase">Interactive</h4>
 				<div class="space-y-2">
 					<div class="flex items-center gap-2">
 						<div
@@ -112,7 +114,7 @@
 
 			<!-- Background Colors -->
 			<div>
-				<h4 class="mb-2 text-xs font-medium uppercase tracking-wide text-tertiary">Backgrounds</h4>
+				<h4 class="mb-2 text-xs font-medium tracking-wide text-tertiary uppercase">Backgrounds</h4>
 				<div class="space-y-2">
 					<div class="flex items-center gap-2">
 						<div
@@ -135,7 +137,7 @@
 
 			<!-- Text Colors -->
 			<div>
-				<h4 class="mb-2 text-xs font-medium uppercase tracking-wide text-tertiary">Text</h4>
+				<h4 class="mb-2 text-xs font-medium tracking-wide text-tertiary uppercase">Text</h4>
 				<div class="space-y-2">
 					<div class="flex items-center gap-2">
 						<div
@@ -162,7 +164,7 @@
 
 			<!-- Border Colors -->
 			<div>
-				<h4 class="mb-2 text-xs font-medium uppercase tracking-wide text-tertiary">Borders</h4>
+				<h4 class="mb-2 text-xs font-medium tracking-wide text-tertiary uppercase">Borders</h4>
 				<div class="space-y-2">
 					<div class="flex items-center gap-2">
 						<div
@@ -197,7 +199,7 @@
 			<!-- Button Example -->
 			<div class="rounded border border-default bg-elevated p-3">
 				<button
-					class="w-full rounded-button bg-accent-primary px-button-x py-button-y text-sm font-medium text-inverse transition-colors hover:bg-accent-hover"
+					class="bg-accent-primary hover:bg-accent-hover w-full rounded-button px-button-x py-button-y text-sm font-medium text-inverse transition-colors"
 				>
 					Primary Button
 				</button>

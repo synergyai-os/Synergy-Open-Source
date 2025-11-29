@@ -3,7 +3,7 @@ import { Meta } from '@storybook/addon-docs/blocks';
 <Meta title="Design System/Organisms" />
 
 <style>
-  {`
+	{`
     .organism-diagram {
       display: flex;
       flex-direction: column;
@@ -63,23 +63,23 @@ import { Meta } from '@storybook/addon-docs/blocks';
 Complex UI components composed of **molecules and atoms** that form distinct sections of an interface.
 
 <div className="organism-diagram">
-  <div className="organism-row">
-    <div className="organism-molecule">
-      <div className="organism-atom" />
-      <div className="organism-atom-rect" />
-    </div>
-    <div className="organism-molecule">
-      <div className="organism-atom" />
-      <div className="organism-atom" />
-    </div>
-  </div>
-  <div className="organism-row">
-    <div className="organism-molecule">
-      <div className="organism-atom-rect" />
-      <div className="organism-atom" />
-      <div className="organism-atom" />
-    </div>
-  </div>
+	<div className="organism-row">
+		<div className="organism-molecule">
+			<div className="organism-atom" />
+			<div className="organism-atom-rect" />
+		</div>
+		<div className="organism-molecule">
+			<div className="organism-atom" />
+			<div className="organism-atom" />
+		</div>
+	</div>
+	<div className="organism-row">
+		<div className="organism-molecule">
+			<div className="organism-atom-rect" />
+			<div className="organism-atom" />
+			<div className="organism-atom" />
+		</div>
+	</div>
 </div>
 
 ---
@@ -108,16 +108,16 @@ Modal dialogs with backdrop, keyboard navigation, and accessibility.
 
 ```svelte
 <script>
-  import { Dialog } from '$lib/components/organisms';
+	import { Dialog } from '$lib/components/organisms';
 </script>
 
-<Dialog open={showModal} onClose={() => showModal = false}>
-  <Dialog.Title>Confirm Action</Dialog.Title>
-  <Dialog.Description>Are you sure?</Dialog.Description>
-  <Dialog.Actions>
-    <Button variant="secondary">Cancel</Button>
-    <Button variant="primary">Confirm</Button>
-  </Dialog.Actions>
+<Dialog open={showModal} onClose={() => (showModal = false)}>
+	<Dialog.Title>Confirm Action</Dialog.Title>
+	<Dialog.Description>Are you sure?</Dialog.Description>
+	<Dialog.Actions>
+		<Button variant="secondary">Cancel</Button>
+		<Button variant="primary">Confirm</Button>
+	</Dialog.Actions>
 </Dialog>
 ```
 
@@ -133,13 +133,13 @@ Expandable content sections with keyboard navigation.
 
 ## 📋 Planned Organisms
 
-| Component | Composition | Purpose |
-|-----------|-------------|---------|
-| **Header** | Logo + Nav + Avatar + Menu | App header |
-| **Sidebar** | NavGroup + NavItem + Divider | Navigation sidebar |
-| **CommandPalette** | Input + List + Keyboard | Command menu (⌘K) |
-| **DataTable** | Table + Sort + Filter + Pagination | Data display |
-| **Form** | FormField[] + Actions | Complete form |
+| Component          | Composition                        | Purpose            |
+| ------------------ | ---------------------------------- | ------------------ |
+| **Header**         | Logo + Nav + Avatar + Menu         | App header         |
+| **Sidebar**        | NavGroup + NavItem + Divider       | Navigation sidebar |
+| **CommandPalette** | Input + List + Keyboard            | Command menu (⌘K)  |
+| **DataTable**      | Table + Sort + Filter + Pagination | Data display       |
+| **Form**           | FormField[] + Actions              | Complete form      |
 
 ---
 
@@ -161,4 +161,3 @@ src/lib/components/organisms/
 
 **Status**: In Progress  
 **Available**: Dialog, Accordion
-

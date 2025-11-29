@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Icon, Text, Badge } from '$lib/components/atoms';
+	import { Icon, Text, Badge, Button } from '$lib/components/atoms';
 	import { attendeeChipRecipe, type AttendeeChipVariantProps } from '$lib/design-system/recipes';
 	import type { Attendee } from '../composables/useAttendeeSelection.svelte';
 
@@ -19,20 +19,30 @@
 	}: Props = $props();
 
 	const containerClasses = $derived([attendeeChipRecipe({ variant }), className]);
+	// Use Button component with ghost variant (designed for icon-only) and override padding
+	// className comes last in Button's merge, so our pl-button-sm overrides px-button-sm from iconOnly
+	const closeButtonClasses = $derived('pl-button-sm');
 </script>
 
 <div class={containerClasses}>
 	<Icon type={attendee.type} size="sm" color="secondary" />
-	<Text variant="body" size="sm" color="default" as="span">{attendee.name}</Text>
+	<Text variant="body" size="sm" color="default" lineHeight="compact" as="span"
+		>{attendee.name}</Text
+	>
 	<Badge variant="primary" size="sm">
 		{getTypeLabel(attendee.type)}
 	</Badge>
-	<button
-		type="button"
+	<Button
+		variant="ghost"
+		size="sm"
+		iconOnly={true}
+		ariaLabel={`Remove ${attendee.name}`}
+		class={closeButtonClasses}
+		style="padding-right: var(--spacing-chip-closeButton-pr);"
 		onclick={() => onRemove(attendee)}
-		class="rounded-button px-button-sm py-button-sm text-tertiary transition-colors hover:text-primary"
-		aria-label={`Remove ${attendee.name}`}
 	>
-		<Icon type="close" size="sm" />
-	</button>
+		{#snippet children()}
+			<Icon type="close" size="sm" />
+		{/snippet}
+	</Button>
 </div>

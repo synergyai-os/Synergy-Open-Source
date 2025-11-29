@@ -46,19 +46,19 @@
 	}
 </script>
 
-<div class="flex h-full flex-col rounded-card border border-base bg-surface">
+<div class="border-base flex h-full flex-col rounded-card border bg-surface">
 	<!-- Panel Header -->
-	<div class="border-b border-base px-2 py-nav-item">
+	<div class="border-base py-nav-item border-b px-2">
 		<h2 class="text-button font-semibold text-primary">Members</h2>
 		<p class="mt-1 text-label text-secondary">{members.length} members</p>
 	</div>
 
 	<!-- Add Member Form -->
-	<div class="border-b border-base px-2 py-nav-item">
+	<div class="border-base py-nav-item border-b px-2">
 		<div class="flex gap-2">
 			<select
 				bind:value={selectedUserId}
-				class="flex-1 rounded-button border border-base bg-elevated px-input-x py-input-y text-button text-primary focus:border-accent-primary focus:outline-none"
+				class="border-base text-button focus:border-accent-primary flex-1 rounded-button border bg-elevated px-input-x py-input-y text-primary focus:outline-none"
 				disabled={circles.loading.addMember || availableUsers.length === 0}
 			>
 				<option value="">
@@ -73,7 +73,7 @@
 			<button
 				onclick={handleAddMember}
 				disabled={!selectedUserId || circles.loading.addMember}
-				class="text-on-solid rounded-button bg-accent-primary px-card py-input-y text-button font-medium hover:bg-accent-hover disabled:opacity-50"
+				class="text-on-solid bg-accent-primary px-card text-button hover:bg-accent-hover rounded-button py-input-y font-medium disabled:opacity-50"
 			>
 				{circles.loading.addMember ? 'Adding...' : 'Add'}
 			</button>
@@ -81,7 +81,7 @@
 	</div>
 
 	<!-- Members List -->
-	<div class="flex-1 overflow-y-auto px-2 py-nav-item">
+	<div class="py-nav-item flex-1 overflow-y-auto px-2">
 		{#if members.length === 0}
 			<div class="flex h-32 items-center justify-center text-center">
 				<p class="text-button text-secondary">No members yet</p>
@@ -90,10 +90,10 @@
 			<div class="space-y-2">
 				{#each members as member (member.userId)}
 					<div
-						class="flex items-center justify-between rounded-button border border-base bg-elevated px-card py-nav-item"
+						class="border-base px-card py-nav-item flex items-center justify-between rounded-button border bg-elevated"
 					>
 						<div class="min-w-0 flex-1">
-							<p class="truncate text-button font-medium text-primary">
+							<p class="text-button truncate font-medium text-primary">
 								{member.name || member.email}
 							</p>
 							{#if member.name}
@@ -103,7 +103,8 @@
 						<button
 							onclick={() => handleRemoveMember(member.userId)}
 							disabled={circles.loading.removeMember}
-							class="ml-2 rounded-button text-secondary hover:bg-sidebar-hover hover:text-primary disabled:opacity-50" style="padding: var(--spacing-2);"
+							class="hover:bg-sidebar-hover ml-2 rounded-button text-secondary hover:text-primary disabled:opacity-50"
+							style="padding: var(--spacing-2);"
 							title="Remove member"
 						>
 							<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">

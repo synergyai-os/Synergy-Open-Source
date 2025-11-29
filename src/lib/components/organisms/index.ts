@@ -23,7 +23,6 @@ export * as Menubar from './Menubar.svelte';
 // Layout Organisms
 export * as Accordion from './Accordion.svelte';
 export { default as SidebarToggle } from './SidebarToggle.svelte';
-export { default as ThemeToggle } from './ThemeToggle.svelte';
 export { default as ResizableSplitter } from './ResizableSplitter.svelte';
 
 // Error Organisms

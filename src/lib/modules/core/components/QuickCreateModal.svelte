@@ -270,8 +270,8 @@
 		<!-- Command Center Modal: Scale-up animation + dramatic shadow -->
 		<Dialog.Content
 			class="{isFullscreen
-				? 'bg-elevated fixed inset-0 z-50 h-full w-full overflow-y-auto border-0 p-0 shadow-dialog'
-				: 'border-base bg-elevated fixed top-1/2 left-1/2 z-50 max-h-dialog w-full max-w-dialogdefault -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-md border p-0 shadow-dialog'} data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]"
+				? 'shadow-dialog fixed inset-0 z-50 h-full w-full overflow-y-auto border-0 bg-elevated p-0'
+				: 'border-base max-h-dialog max-w-dialogdefault shadow-dialog fixed top-1/2 left-1/2 z-50 w-full -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-md border bg-elevated p-0'} data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]"
 		>
 			<div bind:this={modalContainerRef} onkeydown={handleKeyDown} role="dialog" tabindex="-1">
 				{#if !selectedType}
@@ -298,7 +298,7 @@
 									Create Flashcard
 								</Dialog.Title>
 							</div>
-							<div class="mt-content-section flex flex-col gap-content-section px-content-padding">
+							<div class="mt-content-section gap-content-section px-content-padding flex flex-col">
 								<QuickCreateFlashcardForm {form} />
 								<!-- Actions Footer -->
 								<div class="flex items-center justify-end gap-2 py-2">
@@ -315,7 +315,7 @@
 									Create Highlight
 								</Dialog.Title>
 							</div>
-							<div class="mt-content-section flex flex-col gap-content-section px-content-padding">
+							<div class="mt-content-section gap-content-section px-content-padding flex flex-col">
 								<QuickCreateHighlightForm {form} />
 								<!-- Actions Footer -->
 								<div class="flex items-center justify-end gap-2 py-2">

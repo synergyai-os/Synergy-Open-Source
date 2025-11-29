@@ -2,7 +2,7 @@
 	import { Combobox } from 'bits-ui';
 	import type { Id } from '$lib/convex';
 	import { useAttendeeSelection, type Attendee } from '../composables/useAttendeeSelection.svelte';
-	import { Text, Icon, Badge } from '$lib/components/atoms';
+	import { Text, Icon, Badge, Button } from '$lib/components/atoms';
 	import AttendeeChip from './AttendeeChip.svelte';
 	import {
 		comboboxInputRecipe,
@@ -84,19 +84,24 @@
 				/>
 			{/each}
 			<!-- Add more button -->
-			<button
-				type="button"
+			<!-- Match AttendeeChip height: use sm size (matches chip py-button-sm) with px-button override -->
+			<!-- Smaller text (text-xs = 12px) while keeping button size perfect -->
+			<Button
+				variant="outline"
+				size="sm"
+				class="px-button text-xs font-normal"
 				onclick={(e) => {
-					e.preventDefault();
-					e.stopPropagation();
+					e?.preventDefault();
+					e?.stopPropagation();
 					localOpen = true;
 				}}
-				class="border-border-base px-badge py-badge inline-flex items-center gap-fieldGroup rounded-button border bg-surface text-secondary transition-colors hover:bg-subtle hover:text-primary"
-				aria-label="Add more attendees"
+				ariaLabel="Add more attendees"
 			>
-				<Icon type="add" size="sm" />
-				<span>Add</span>
-			</button>
+				{#snippet children()}
+					<Icon type="add" size="sm" />
+					<span>Add</span>
+				{/snippet}
+			</Button>
 		</div>
 	{/if}
 

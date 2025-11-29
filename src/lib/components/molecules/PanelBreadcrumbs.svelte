@@ -24,11 +24,11 @@
 		<span class="panel-breadcrumb-text">
 			<!-- Icon based on layer type -->
 			{#if layer.type === 'circle'}
-				<svg class="inline-block icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<svg class="icon-xs inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<circle cx="12" cy="12" r="9" stroke-width="2"></circle>
 				</svg>
 			{:else if layer.type === 'role'}
-				<svg class="inline-block icon-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<svg class="icon-xs inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"

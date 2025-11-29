@@ -1,338 +1,338 @@
 {
-  "summary": {
-    "total": 41,
-    "byContext": {
-      "class-attribute": 13,
-      "plain-text": 14,
-      "html-comment": 1,
-      "unknown": 11,
-      "inline-code": 2
-    },
-    "byUtility": {
-      "px-2": 1,
-      "px-button-x": 5,
-      "py-button-y": 4,
-      "gap-icon-wide": 3,
-      "text-sm": 2,
-      "text-lg": 2,
-      "border-b": 2,
-      "border-4": 1,
-      "border-t-accent-primary": 1,
-      "text-error-secondary": 1,
-      "border-2": 2,
-      "p-content-padding": 1,
-      "text-xs": 1,
-      "p-button-icon": 4,
-      "px-button-padding-md": 2,
-      "py-button-padding-sm": 2,
-      "text-xl": 2,
-      "text-center": 2,
-      "text-primary": 1,
-      "text-h2": 1,
-      "text-body": 1
-    },
-    "byFile": {
-      "dev-docs/README-PROPOSED.md": 1,
-      "dev-docs/master-docs/design-system.md": 2,
-      "dev-docs/2-areas/patterns/ui-patterns.md": 12,
-      "dev-docs/2-areas/design/quick-start.md": 3,
-      "dev-docs/2-areas/design/pattern-library.md": 3,
-      "dev-docs/2-areas/design/migration-guide.md": 1,
-      "dev-docs/2-areas/design/marketing-spacing-guide.md": 3,
-      "dev-docs/2-areas/design/design-tokens.md": 11,
-      "dev-docs/2-areas/design/design-principles.md": 1,
-      "dev-docs/2-areas/design/deprecation-policy.md": 1,
-      "dev-docs/2-areas/design/component-architecture.md": 1,
-      "dev-docs/2-areas/design/audit-guide.md": 2
-    }
-  },
-  "violations": [
-    {
-      "file": "dev-docs/2-areas/design/audit-guide.md",
-      "line": 499,
-      "utility": "px-button-padding-md",
-      "context": "class-attribute",
-      "lineContent": "<button class=\"px-button-padding-md py-button-padding-sm\">"
-    },
-    {
-      "file": "dev-docs/2-areas/design/audit-guide.md",
-      "line": 499,
-      "utility": "py-button-padding-sm",
-      "context": "unknown",
-      "lineContent": "<button class=\"px-button-padding-md py-button-padding-sm\">"
-    },
-    {
-      "file": "dev-docs/2-areas/design/component-architecture.md",
-      "line": 1021,
-      "utility": "p-button-icon",
-      "context": "plain-text",
-      "lineContent": "<button class=\"min-h-button p-button-icon rounded-button\">Click</button>"
-    },
-    {
-      "file": "dev-docs/2-areas/design/deprecation-policy.md",
-      "line": 106,
-      "utility": "px-button-x",
-      "context": "class-attribute",
-      "lineContent": "class=\"px-button-x\""
-    },
-    {
-      "file": "dev-docs/2-areas/design/design-principles.md",
-      "line": 286,
-      "utility": "gap-icon-wide",
-      "context": "inline-code",
-      "lineContent": "- `gap-icon-wide`: 10px generous"
-    },
-    {
-      "file": "dev-docs/2-areas/design/design-tokens.md",
-      "line": 314,
-      "utility": "p-button-icon",
-      "context": "plain-text",
-      "lineContent": "- p-[12px] → p-button-icon (already exists)"
-    },
-    {
-      "file": "dev-docs/2-areas/design/design-tokens.md",
-      "line": 493,
-      "utility": "px-button-x",
-      "context": "class-attribute",
-      "lineContent": "| CSS-based (Button, Card, Layout) | ✅ YES (required) | `class=\"px-button-x py-button-y\"` |"
-    },
-    {
-      "file": "dev-docs/2-areas/design/design-tokens.md",
-      "line": 493,
-      "utility": "py-button-y",
-      "context": "unknown",
-      "lineContent": "| CSS-based (Button, Card, Layout) | ✅ YES (required) | `class=\"px-button-x py-button-y\"` |"
-    },
-    {
-      "file": "dev-docs/2-areas/design/design-tokens.md",
-      "line": 1047,
-      "utility": "border-b",
-      "context": "unknown",
-      "lineContent": "<div class=\"rounded-button border-l-4 border-border-base bg-bg-surface py-readable-quote\">"
-    },
-    {
-      "file": "dev-docs/2-areas/design/design-tokens.md",
-      "line": 1048,
-      "utility": "text-primary",
-      "context": "unknown",
-      "lineContent": "<p class=\"text-2xl leading-readable tracking-readable text-text-primary sm:text-3xl\">"
-    },
-    {
-      "file": "dev-docs/2-areas/design/design-tokens.md",
-      "line": 1151,
-      "utility": "gap-icon-wide",
-      "context": "inline-code",
-      "lineContent": "| `--spacing-icon-gap-wide`          | `gap-icon-wide`        | 0.625rem (10px) | Wider icon-text gap                                                                                   |"
-    },
-    {
-      "file": "dev-docs/2-areas/design/design-tokens.md",
-      "line": 1208,
-      "utility": "text-center",
-      "context": "plain-text",
-      "lineContent": "<h2 class=\"mb-marketing-title-to-lead text-center text-text-primary\">Our Vision</h2>"
-    },
-    {
-      "file": "dev-docs/2-areas/design/design-tokens.md",
-      "line": 1695,
-      "utility": "text-h2",
-      "context": "class-attribute",
-      "lineContent": "<h2 class=\"text-h2 text-text-primary\">Section Title</h2>"
-    },
-    {
-      "file": "dev-docs/2-areas/design/design-tokens.md",
-      "line": 1696,
-      "utility": "text-body",
-      "context": "class-attribute",
-      "lineContent": "<p class=\"text-body text-text-secondary\">Body text content here</p>"
-    },
-    {
-      "file": "dev-docs/2-areas/design/design-tokens.md",
-      "line": 2080,
-      "utility": "text-sm",
-      "context": "plain-text",
-      "lineContent": "text-sm font-body text-text-secondary"
-    },
-    {
-      "file": "dev-docs/2-areas/design/design-tokens.md",
-      "line": 2093,
-      "utility": "text-xl",
-      "context": "unknown",
-      "lineContent": "- ❌ `text-xl font-bold text-text-primary` (too dominant)"
-    },
-    {
-      "file": "dev-docs/2-areas/design/marketing-spacing-guide.md",
-      "line": 18,
-      "utility": "text-center",
-      "context": "plain-text",
-      "lineContent": "<h2 class=\"mb-marketing-title-to-lead text-center text-2xl font-body text-text-primary\">Features</h2>"
-    },
-    {
-      "file": "dev-docs/2-areas/design/marketing-spacing-guide.md",
-      "line": 19,
-      "utility": "text-lg",
-      "context": "plain-text",
-      "lineContent": "<p class=\"mb-marketing-content text-text-primary text-lg text-text-secondary\">"
-    },
-    {
-      "file": "dev-docs/2-areas/design/marketing-spacing-guide.md",
-      "line": 180,
-      "utility": "border-2",
-      "context": "plain-text",
-      "lineContent": "<a href=\"/docs\" class=\"rounded-button border-2 border-border-base px-8 py-3\"> Learn More </a>"
-    },
-    {
-      "file": "dev-docs/2-areas/design/migration-guide.md",
-      "line": 73,
-      "utility": "text-xl",
-      "context": "class-attribute",
-      "lineContent": "<h2 class=\"text-xl font-body text-text-primary\">Meeting Title</h2>"
-    },
-    {
-      "file": "dev-docs/2-areas/design/pattern-library.md",
-      "line": 45,
-      "utility": "p-button-icon",
-      "context": "class-attribute",
-      "lineContent": "<div class=\"p-button-icon\">Content</div>"
-    },
-    {
-      "file": "dev-docs/2-areas/design/pattern-library.md",
-      "line": 174,
-      "utility": "px-button-x",
-      "context": "class-attribute",
-      "lineContent": "<button class=\"px-button-x py-button-y\">Click me</button>"
-    },
-    {
-      "file": "dev-docs/2-areas/design/pattern-library.md",
-      "line": 174,
-      "utility": "py-button-y",
-      "context": "unknown",
-      "lineContent": "<button class=\"px-button-x py-button-y\">Click me</button>"
-    },
-    {
-      "file": "dev-docs/2-areas/design/quick-start.md",
-      "line": 46,
-      "utility": "p-button-icon",
-      "context": "plain-text",
-      "lineContent": "<button class=\"min-h-button p-button-icon rounded-button bg-accent-primary\">"
-    },
-    {
-      "file": "dev-docs/2-areas/design/quick-start.md",
-      "line": 290,
-      "utility": "px-button-padding-md",
-      "context": "class-attribute",
-      "lineContent": "<button class=\"px-button-padding-md py-button-padding-sm rounded-button\">"
-    },
-    {
-      "file": "dev-docs/2-areas/design/quick-start.md",
-      "line": 290,
-      "utility": "py-button-padding-sm",
-      "context": "plain-text",
-      "lineContent": "<button class=\"px-button-padding-md py-button-padding-sm rounded-button\">"
-    },
-    {
-      "file": "dev-docs/2-areas/patterns/ui-patterns.md",
-      "line": 61,
-      "utility": "border-b",
-      "context": "unknown",
-      "lineContent": "border-left: 1px solid var(--color-border-border-base);"
-    },
-    {
-      "file": "dev-docs/2-areas/patterns/ui-patterns.md",
-      "line": 243,
-      "utility": "gap-icon-wide",
-      "context": "unknown",
-      "lineContent": "<div class=\"flex items-center justify-between gap-icon-wide\">"
-    },
-    {
-      "file": "dev-docs/2-areas/patterns/ui-patterns.md",
-      "line": 281,
-      "utility": "text-sm",
-      "context": "class-attribute",
-      "lineContent": "<div class=\"text-sm text-text-secondary\">{count} cards</div>"
-    },
-    {
-      "file": "dev-docs/2-areas/patterns/ui-patterns.md",
-      "line": 291,
-      "utility": "text-lg",
-      "context": "class-attribute",
-      "lineContent": "<h3 class=\"text-lg font-body text-text-primary\">{name}</h3>"
-    },
-    {
-      "file": "dev-docs/2-areas/patterns/ui-patterns.md",
-      "line": 1026,
-      "utility": "px-button-x",
-      "context": "class-attribute",
-      "lineContent": "<button class=\"px-button-x py-button-y text-text-secondary rounded-button\">Click</button>"
-    },
-    {
-      "file": "dev-docs/2-areas/patterns/ui-patterns.md",
-      "line": 1026,
-      "utility": "py-button-y",
-      "context": "plain-text",
-      "lineContent": "<button class=\"px-button-x py-button-y text-text-secondary rounded-button\">Click</button>"
-    },
-    {
-      "file": "dev-docs/2-areas/patterns/ui-patterns.md",
-      "line": 2888,
-      "utility": "border-4",
-      "context": "unknown",
-      "lineContent": "class=\"absolute inset-0 animate-spin rounded-button border-4"
-    },
-    {
-      "file": "dev-docs/2-areas/patterns/ui-patterns.md",
-      "line": 2889,
-      "utility": "border-t-accent-primary",
-      "context": "unknown",
-      "lineContent": "border-border-base border-t-accent-primary\""
-    },
-    {
-      "file": "dev-docs/2-areas/patterns/ui-patterns.md",
-      "line": 3242,
-      "utility": "text-error-secondary",
-      "context": "plain-text",
-      "lineContent": "@utility text-error-secondary {"
-    },
-    {
-      "file": "dev-docs/2-areas/patterns/ui-patterns.md",
-      "line": 3451,
-      "utility": "border-2",
-      "context": "plain-text",
-      "lineContent": "<div class=\"rounded-card border-2 border-border-base bg-bg-elevated p-4\">"
-    },
-    {
-      "file": "dev-docs/2-areas/patterns/ui-patterns.md",
-      "line": 4905,
-      "utility": "p-content-padding",
-      "context": "unknown",
-      "lineContent": "<div class=\"rounded-button border border-border-base bg-bg-surface p-content-padding\">"
-    },
-    {
-      "file": "dev-docs/2-areas/patterns/ui-patterns.md",
-      "line": 4925,
-      "utility": "text-xs",
-      "context": "plain-text",
-      "lineContent": "<p class=\"mb-4 text-xs text-text-secondary\">Usage statistics and performance metrics.</p>"
-    },
-    {
-      "file": "dev-docs/master-docs/design-system.md",
-      "line": 53,
-      "utility": "px-button-x",
-      "context": "plain-text",
-      "lineContent": "px-button-x utility updates automatically"
-    },
-    {
-      "file": "dev-docs/master-docs/design-system.md",
-      "line": 276,
-      "utility": "py-button-y",
-      "context": "html-comment",
-      "lineContent": "<div class=\"px-button-x py-button-y\">  <!-- Uses var(--spacing-button-x) -->"
-    },
-    {
-      "file": "dev-docs/README-PROPOSED.md",
-      "line": 189,
-      "utility": "px-2",
-      "context": "class-attribute",
-      "lineContent": "<div class=\"px-2 py-1.5 bg-gray-900 text-white\">"
-    }
-  ]
+	"summary": {
+		"total": 41,
+		"byContext": {
+			"class-attribute": 13,
+			"plain-text": 14,
+			"html-comment": 1,
+			"unknown": 11,
+			"inline-code": 2
+		},
+		"byUtility": {
+			"px-2": 1,
+			"px-button-x": 5,
+			"py-button-y": 4,
+			"gap-icon-wide": 3,
+			"text-sm": 2,
+			"text-lg": 2,
+			"border-b": 2,
+			"border-4": 1,
+			"border-t-accent-primary": 1,
+			"text-error-secondary": 1,
+			"border-2": 2,
+			"p-content-padding": 1,
+			"text-xs": 1,
+			"p-button-icon": 4,
+			"px-button-padding-md": 2,
+			"py-button-padding-sm": 2,
+			"text-xl": 2,
+			"text-center": 2,
+			"text-primary": 1,
+			"text-h2": 1,
+			"text-body": 1
+		},
+		"byFile": {
+			"dev-docs/README-PROPOSED.md": 1,
+			"dev-docs/master-docs/design-system.md": 2,
+			"dev-docs/2-areas/patterns/ui-patterns.md": 12,
+			"dev-docs/2-areas/design/quick-start.md": 3,
+			"dev-docs/2-areas/design/pattern-library.md": 3,
+			"dev-docs/2-areas/design/migration-guide.md": 1,
+			"dev-docs/2-areas/design/marketing-spacing-guide.md": 3,
+			"dev-docs/2-areas/design/design-tokens.md": 11,
+			"dev-docs/2-areas/design/design-principles.md": 1,
+			"dev-docs/2-areas/design/deprecation-policy.md": 1,
+			"dev-docs/2-areas/design/component-architecture.md": 1,
+			"dev-docs/2-areas/design/audit-guide.md": 2
+		}
+	},
+	"violations": [
+		{
+			"file": "dev-docs/2-areas/design/audit-guide.md",
+			"line": 499,
+			"utility": "px-button-padding-md",
+			"context": "class-attribute",
+			"lineContent": "<button class=\"px-button-padding-md py-button-padding-sm\">"
+		},
+		{
+			"file": "dev-docs/2-areas/design/audit-guide.md",
+			"line": 499,
+			"utility": "py-button-padding-sm",
+			"context": "unknown",
+			"lineContent": "<button class=\"px-button-padding-md py-button-padding-sm\">"
+		},
+		{
+			"file": "dev-docs/2-areas/design/component-architecture.md",
+			"line": 1021,
+			"utility": "p-button-icon",
+			"context": "plain-text",
+			"lineContent": "<button class=\"min-h-button p-button-icon rounded-button\">Click</button>"
+		},
+		{
+			"file": "dev-docs/2-areas/design/deprecation-policy.md",
+			"line": 106,
+			"utility": "px-button-x",
+			"context": "class-attribute",
+			"lineContent": "class=\"px-button-x\""
+		},
+		{
+			"file": "dev-docs/2-areas/design/design-principles.md",
+			"line": 286,
+			"utility": "gap-icon-wide",
+			"context": "inline-code",
+			"lineContent": "- `gap-icon-wide`: 10px generous"
+		},
+		{
+			"file": "dev-docs/2-areas/design/design-tokens.md",
+			"line": 314,
+			"utility": "p-button-icon",
+			"context": "plain-text",
+			"lineContent": "- p-[12px] → p-button-icon (already exists)"
+		},
+		{
+			"file": "dev-docs/2-areas/design/design-tokens.md",
+			"line": 493,
+			"utility": "px-button-x",
+			"context": "class-attribute",
+			"lineContent": "| CSS-based (Button, Card, Layout) | ✅ YES (required) | `class=\"px-button-x py-button-y\"` |"
+		},
+		{
+			"file": "dev-docs/2-areas/design/design-tokens.md",
+			"line": 493,
+			"utility": "py-button-y",
+			"context": "unknown",
+			"lineContent": "| CSS-based (Button, Card, Layout) | ✅ YES (required) | `class=\"px-button-x py-button-y\"` |"
+		},
+		{
+			"file": "dev-docs/2-areas/design/design-tokens.md",
+			"line": 1047,
+			"utility": "border-b",
+			"context": "unknown",
+			"lineContent": "<div class=\"rounded-button border-l-4 border-border-base bg-bg-surface py-readable-quote\">"
+		},
+		{
+			"file": "dev-docs/2-areas/design/design-tokens.md",
+			"line": 1048,
+			"utility": "text-primary",
+			"context": "unknown",
+			"lineContent": "<p class=\"text-2xl leading-readable tracking-readable text-text-primary sm:text-3xl\">"
+		},
+		{
+			"file": "dev-docs/2-areas/design/design-tokens.md",
+			"line": 1151,
+			"utility": "gap-icon-wide",
+			"context": "inline-code",
+			"lineContent": "| `--spacing-icon-gap-wide`          | `gap-icon-wide`        | 0.625rem (10px) | Wider icon-text gap                                                                                   |"
+		},
+		{
+			"file": "dev-docs/2-areas/design/design-tokens.md",
+			"line": 1208,
+			"utility": "text-center",
+			"context": "plain-text",
+			"lineContent": "<h2 class=\"mb-marketing-title-to-lead text-center text-text-primary\">Our Vision</h2>"
+		},
+		{
+			"file": "dev-docs/2-areas/design/design-tokens.md",
+			"line": 1695,
+			"utility": "text-h2",
+			"context": "class-attribute",
+			"lineContent": "<h2 class=\"text-h2 text-text-primary\">Section Title</h2>"
+		},
+		{
+			"file": "dev-docs/2-areas/design/design-tokens.md",
+			"line": 1696,
+			"utility": "text-body",
+			"context": "class-attribute",
+			"lineContent": "<p class=\"text-body text-text-secondary\">Body text content here</p>"
+		},
+		{
+			"file": "dev-docs/2-areas/design/design-tokens.md",
+			"line": 2080,
+			"utility": "text-sm",
+			"context": "plain-text",
+			"lineContent": "text-sm font-body text-text-secondary"
+		},
+		{
+			"file": "dev-docs/2-areas/design/design-tokens.md",
+			"line": 2093,
+			"utility": "text-xl",
+			"context": "unknown",
+			"lineContent": "- ❌ `text-xl font-bold text-text-primary` (too dominant)"
+		},
+		{
+			"file": "dev-docs/2-areas/design/marketing-spacing-guide.md",
+			"line": 18,
+			"utility": "text-center",
+			"context": "plain-text",
+			"lineContent": "<h2 class=\"mb-marketing-title-to-lead text-center text-2xl font-body text-text-primary\">Features</h2>"
+		},
+		{
+			"file": "dev-docs/2-areas/design/marketing-spacing-guide.md",
+			"line": 19,
+			"utility": "text-lg",
+			"context": "plain-text",
+			"lineContent": "<p class=\"mb-marketing-content text-text-primary text-lg text-text-secondary\">"
+		},
+		{
+			"file": "dev-docs/2-areas/design/marketing-spacing-guide.md",
+			"line": 180,
+			"utility": "border-2",
+			"context": "plain-text",
+			"lineContent": "<a href=\"/docs\" class=\"rounded-button border-2 border-border-base px-8 py-3\"> Learn More </a>"
+		},
+		{
+			"file": "dev-docs/2-areas/design/migration-guide.md",
+			"line": 73,
+			"utility": "text-xl",
+			"context": "class-attribute",
+			"lineContent": "<h2 class=\"text-xl font-body text-text-primary\">Meeting Title</h2>"
+		},
+		{
+			"file": "dev-docs/2-areas/design/pattern-library.md",
+			"line": 45,
+			"utility": "p-button-icon",
+			"context": "class-attribute",
+			"lineContent": "<div class=\"p-button-icon\">Content</div>"
+		},
+		{
+			"file": "dev-docs/2-areas/design/pattern-library.md",
+			"line": 174,
+			"utility": "px-button-x",
+			"context": "class-attribute",
+			"lineContent": "<button class=\"px-button-x py-button-y\">Click me</button>"
+		},
+		{
+			"file": "dev-docs/2-areas/design/pattern-library.md",
+			"line": 174,
+			"utility": "py-button-y",
+			"context": "unknown",
+			"lineContent": "<button class=\"px-button-x py-button-y\">Click me</button>"
+		},
+		{
+			"file": "dev-docs/2-areas/design/quick-start.md",
+			"line": 46,
+			"utility": "p-button-icon",
+			"context": "plain-text",
+			"lineContent": "<button class=\"min-h-button p-button-icon rounded-button bg-accent-primary\">"
+		},
+		{
+			"file": "dev-docs/2-areas/design/quick-start.md",
+			"line": 290,
+			"utility": "px-button-padding-md",
+			"context": "class-attribute",
+			"lineContent": "<button class=\"px-button-padding-md py-button-padding-sm rounded-button\">"
+		},
+		{
+			"file": "dev-docs/2-areas/design/quick-start.md",
+			"line": 290,
+			"utility": "py-button-padding-sm",
+			"context": "plain-text",
+			"lineContent": "<button class=\"px-button-padding-md py-button-padding-sm rounded-button\">"
+		},
+		{
+			"file": "dev-docs/2-areas/patterns/ui-patterns.md",
+			"line": 61,
+			"utility": "border-b",
+			"context": "unknown",
+			"lineContent": "border-left: 1px solid var(--color-border-border-base);"
+		},
+		{
+			"file": "dev-docs/2-areas/patterns/ui-patterns.md",
+			"line": 243,
+			"utility": "gap-icon-wide",
+			"context": "unknown",
+			"lineContent": "<div class=\"flex items-center justify-between gap-icon-wide\">"
+		},
+		{
+			"file": "dev-docs/2-areas/patterns/ui-patterns.md",
+			"line": 281,
+			"utility": "text-sm",
+			"context": "class-attribute",
+			"lineContent": "<div class=\"text-sm text-text-secondary\">{count} cards</div>"
+		},
+		{
+			"file": "dev-docs/2-areas/patterns/ui-patterns.md",
+			"line": 291,
+			"utility": "text-lg",
+			"context": "class-attribute",
+			"lineContent": "<h3 class=\"text-lg font-body text-text-primary\">{name}</h3>"
+		},
+		{
+			"file": "dev-docs/2-areas/patterns/ui-patterns.md",
+			"line": 1026,
+			"utility": "px-button-x",
+			"context": "class-attribute",
+			"lineContent": "<button class=\"px-button-x py-button-y text-text-secondary rounded-button\">Click</button>"
+		},
+		{
+			"file": "dev-docs/2-areas/patterns/ui-patterns.md",
+			"line": 1026,
+			"utility": "py-button-y",
+			"context": "plain-text",
+			"lineContent": "<button class=\"px-button-x py-button-y text-text-secondary rounded-button\">Click</button>"
+		},
+		{
+			"file": "dev-docs/2-areas/patterns/ui-patterns.md",
+			"line": 2888,
+			"utility": "border-4",
+			"context": "unknown",
+			"lineContent": "class=\"absolute inset-0 animate-spin rounded-button border-4"
+		},
+		{
+			"file": "dev-docs/2-areas/patterns/ui-patterns.md",
+			"line": 2889,
+			"utility": "border-t-accent-primary",
+			"context": "unknown",
+			"lineContent": "border-border-base border-t-accent-primary\""
+		},
+		{
+			"file": "dev-docs/2-areas/patterns/ui-patterns.md",
+			"line": 3242,
+			"utility": "text-error-secondary",
+			"context": "plain-text",
+			"lineContent": "@utility text-error-secondary {"
+		},
+		{
+			"file": "dev-docs/2-areas/patterns/ui-patterns.md",
+			"line": 3451,
+			"utility": "border-2",
+			"context": "plain-text",
+			"lineContent": "<div class=\"rounded-card border-2 border-border-base bg-bg-elevated p-4\">"
+		},
+		{
+			"file": "dev-docs/2-areas/patterns/ui-patterns.md",
+			"line": 4905,
+			"utility": "p-content-padding",
+			"context": "unknown",
+			"lineContent": "<div class=\"rounded-button border border-border-base bg-bg-surface p-content-padding\">"
+		},
+		{
+			"file": "dev-docs/2-areas/patterns/ui-patterns.md",
+			"line": 4925,
+			"utility": "text-xs",
+			"context": "plain-text",
+			"lineContent": "<p class=\"mb-4 text-xs text-text-secondary\">Usage statistics and performance metrics.</p>"
+		},
+		{
+			"file": "dev-docs/master-docs/design-system.md",
+			"line": 53,
+			"utility": "px-button-x",
+			"context": "plain-text",
+			"lineContent": "px-button-x utility updates automatically"
+		},
+		{
+			"file": "dev-docs/master-docs/design-system.md",
+			"line": 276,
+			"utility": "py-button-y",
+			"context": "html-comment",
+			"lineContent": "<div class=\"px-button-x py-button-y\">  <!-- Uses var(--spacing-button-x) -->"
+		},
+		{
+			"file": "dev-docs/README-PROPOSED.md",
+			"line": 189,
+			"utility": "px-2",
+			"context": "class-attribute",
+			"lineContent": "<div class=\"px-2 py-1.5 bg-gray-900 text-white\">"
+		}
+	]
 }

@@ -208,15 +208,15 @@
 		<Dialog.Overlay class="fixed inset-0 z-50 bg-black/50 transition-opacity" />
 		<!-- Modal viewport height (sm:h-[90vh]) - intentionally hardcoded as viewport-relative sizing -->
 		<Dialog.Content
-			class="fixed inset-0 z-50 flex h-full w-full flex-col overflow-hidden border-base bg-elevated shadow-card-hover sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-[90vh] sm:max-w-dialog-wide sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-card sm:border"
+			class="border-base shadow-card-hover sm:max-w-dialog-wide fixed inset-0 z-50 flex h-full w-full flex-col overflow-hidden bg-elevated sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-[90vh] sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-card sm:border"
 		>
 			<!-- Header -->
 			<div
-				class="flex h-system-header flex-shrink-0 items-center justify-between gap-2 border-b border-base px-inbox-container py-system-header"
+				class="h-system-header border-base px-inbox-container py-system-header flex flex-shrink-0 items-center justify-between gap-2 border-b"
 			>
 				<div class="min-w-0 flex-1">
 					<h2 class="mb-marketing-text text-h3 font-semibold text-primary">Review Flashcards</h2>
-					<div class="flex flex-col gap-2 text-small sm:flex-row sm:items-center sm:gap-2">
+					<div class="text-small flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
 						{#if sourceContext}
 							<p class="text-secondary">From: {sourceContext}</p>
 						{/if}
@@ -240,7 +240,7 @@
 
 			<!-- Content - Flashcard Display (Centered) -->
 			<div
-				class="relative flex flex-1 items-center justify-center overflow-auto px-inbox-container py-inbox-container"
+				class="px-inbox-container py-inbox-container relative flex flex-1 items-center justify-center overflow-auto"
 			>
 				{#if reviewQueue.length === 0}
 					<div class="text-center" style="padding-block: var(--spacing-8);">
@@ -253,12 +253,12 @@
 				{:else if currentCard}
 					<!-- Hotkey Hint: Decline (Left) -->
 					<div
-						class="absolute left-inbox-container z-20 flex flex-col items-center gap-2 opacity-60"
+						class="left-inbox-container absolute z-20 flex flex-col items-center gap-2 opacity-60"
 					>
 						<div class="flex flex-col items-center" style="gap: var(--spacing-1);">
 							<!-- Keyboard key -->
 							<div
-								class="flex items-center justify-center rounded-card border-2 border-base bg-elevated shadow-sm"
+								class="border-base flex items-center justify-center rounded-card border-2 bg-elevated shadow-sm"
 								style="width: 3rem; height: 3rem;"
 							>
 								<svg
@@ -297,9 +297,7 @@
 									: 'bg-error/20'}"
 							>
 								<svg
-									class="{showFeedback === 'approved'
-										? 'text-success'
-										: 'text-error'}"
+									class={showFeedback === 'approved' ? 'text-success' : 'text-error'}
 									style="width: 5rem; height: 5rem;"
 									fill="none"
 									stroke="currentColor"
@@ -339,12 +337,12 @@
 
 					<!-- Hotkey Hint: Accept (Right) -->
 					<div
-						class="absolute right-inbox-container z-20 flex flex-col items-center gap-2 opacity-60"
+						class="right-inbox-container absolute z-20 flex flex-col items-center gap-2 opacity-60"
 					>
 						<div class="flex flex-col items-center" style="gap: var(--spacing-1);">
 							<!-- Keyboard key -->
 							<div
-								class="flex items-center justify-center rounded-card border-2 border-base bg-elevated shadow-sm"
+								class="border-base flex items-center justify-center rounded-card border-2 bg-elevated shadow-sm"
 								style="width: 3rem; height: 3rem;"
 							>
 								<svg

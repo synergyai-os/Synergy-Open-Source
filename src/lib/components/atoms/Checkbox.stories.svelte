@@ -23,7 +23,7 @@
 		<Checkbox.Root {...args}>
 			{#snippet children({ checked, indeterminate: _indeterminate })}
 				<div
-					class="flex h-4 w-4 items-center justify-center rounded-input border-2 border-base bg-input transition-colors {checked
+					class="border-base bg-input flex h-4 w-4 items-center justify-center rounded-input border-2 transition-colors {checked
 						? 'border-accent-primary bg-accent-primary'
 						: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 				>
@@ -52,7 +52,7 @@
 		<Checkbox.Root {...args}>
 			{#snippet children({ checked, indeterminate: _indeterminate })}
 				<div
-					class="flex h-4 w-4 items-center justify-center rounded-input border-2 border-base bg-input transition-colors {checked
+					class="border-base bg-input flex h-4 w-4 items-center justify-center rounded-input border-2 transition-colors {checked
 						? 'border-accent-primary bg-accent-primary'
 						: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 				>
@@ -82,7 +82,7 @@
 			<Checkbox.Root {...args}>
 				{#snippet children({ checked, indeterminate: _indeterminate })}
 					<div
-						class="flex h-4 w-4 items-center justify-center rounded-input border-2 border-base bg-input transition-colors {checked
+						class="border-base bg-input flex h-4 w-4 items-center justify-center rounded-input border-2 transition-colors {checked
 							? 'border-accent-primary bg-accent-primary'
 							: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 					>
@@ -114,7 +114,7 @@
 			<Checkbox.Root {...args}>
 				{#snippet children({ checked, indeterminate: _indeterminate })}
 					<div
-						class="flex h-4 w-4 items-center justify-center rounded-input border-2 border-base bg-input transition-colors {checked
+						class="border-base bg-input flex h-4 w-4 items-center justify-center rounded-input border-2 transition-colors {checked
 							? 'border-accent-primary bg-accent-primary'
 							: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 					>
@@ -146,7 +146,7 @@
 			<Checkbox.Root {...args}>
 				{#snippet children({ checked, indeterminate: _indeterminate })}
 					<div
-						class="flex h-4 w-4 items-center justify-center rounded-input border-2 border-base bg-input transition-colors {checked
+						class="border-base bg-input flex h-4 w-4 items-center justify-center rounded-input border-2 transition-colors {checked
 							? 'border-accent-primary bg-accent-primary'
 							: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 					>

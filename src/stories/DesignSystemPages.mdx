@@ -3,7 +3,7 @@ import { Meta } from '@storybook/addon-docs/blocks';
 <Meta title="Design System/Pages" />
 
 <style>
-  {`
+	{`
     .page-diagram {
       background: oklch(20% 0.02 264);
       border: 2px solid oklch(55% 0.15 195);
@@ -147,34 +147,34 @@ import { Meta } from '@storybook/addon-docs/blocks';
 Specific instances of templates with **real content**. Pages are what users actually see and interact with.
 
 <div className="page-diagram">
-  <div className="page-header">
-    <div className="page-logo" />
-    <div className="page-avatar" />
-  </div>
-  <div className="page-body">
-    <div className="page-sidebar">
-      <div className="page-nav-item active">
-        <div className="page-nav-text" />
-      </div>
-      <div className="page-nav-item">
-        <div className="page-nav-text" />
-      </div>
-      <div className="page-nav-item">
-        <div className="page-nav-text" />
-      </div>
-    </div>
-    <div className="page-content">
-      <h3 className="page-title">Dashboard</h3>
-      <div className="page-card">
-        <div className="page-card-title" />
-        <div className="page-card-text" />
-      </div>
-      <div className="page-card">
-        <div className="page-card-title" />
-        <div className="page-card-text" />
-      </div>
-    </div>
-  </div>
+	<div className="page-header">
+		<div className="page-logo" />
+		<div className="page-avatar" />
+	</div>
+	<div className="page-body">
+		<div className="page-sidebar">
+			<div className="page-nav-item active">
+				<div className="page-nav-text" />
+			</div>
+			<div className="page-nav-item">
+				<div className="page-nav-text" />
+			</div>
+			<div className="page-nav-item">
+				<div className="page-nav-text" />
+			</div>
+		</div>
+		<div className="page-content">
+			<h3 className="page-title">Dashboard</h3>
+			<div className="page-card">
+				<div className="page-card-title" />
+				<div className="page-card-text" />
+			</div>
+			<div className="page-card">
+				<div className="page-card-title" />
+				<div className="page-card-text" />
+			</div>
+		</div>
+	</div>
 </div>
 
 ---
@@ -193,19 +193,21 @@ Pages are the **fifth and final level** of atomic design:
 
 ## 📋 Existing Pages
 
-| Page | Template | Location |
-|------|----------|----------|
-| **Login** | AuthLayout | `src/routes/login/` |
-| **Register** | AuthLayout | `src/routes/register/` |
-| **Dashboard** | DashboardLayout | `src/routes/(app)/` |
-| **Settings** | SettingsLayout | `src/routes/(app)/settings/` |
-| **Inbox** | DashboardLayout | `src/routes/(app)/inbox/` |
-| **Meetings** | DashboardLayout | `src/routes/(app)/meetings/` |
+| Page          | Template        | Location                      |
+| ------------- | --------------- | ----------------------------- |
+| **Login**     | AuthLayout      | `src/routes/login/`           |
+| **Register**  | AuthLayout      | `src/routes/register/`        |
+| **Dashboard** | DashboardLayout | `src/routes/(app)/`           |
+| **Settings**  | SettingsLayout  | `src/routes/(app)/settings/`  |
+| **Inbox**     | DashboardLayout | `src/routes/(app)/inbox/`     |
+| **Meetings**  | DashboardLayout | `src/routes/(app)/meetings/`  |
 | **Org Chart** | DashboardLayout | `src/routes/(app)/org-chart/` |
 
 <div className="coming-soon">
-  <h3 className="coming-soon-title">📄 Page Stories Coming</h3>
-  <p className="coming-soon-desc">Page-level stories with mocked data will be added for visual testing and documentation.</p>
+	<h3 className="coming-soon-title">📄 Page Stories Coming</h3>
+	<p className="coming-soon-desc">
+		Page-level stories with mocked data will be added for visual testing and documentation.
+	</p>
 </div>
 
 ---
@@ -236,23 +238,23 @@ src/routes/
 ```svelte
 <!-- src/routes/(app)/dashboard/+page.svelte -->
 <script lang="ts">
-  import { useQuery } from 'convex-svelte';
-  import { api } from '$convex/_generated/api';
-  import { DashboardCard, StatsGrid } from '$lib/modules/dashboard/components';
-  
-  // Real data from Convex
-  const stats = useQuery(api.dashboard.getStats, {});
-  const recentItems = useQuery(api.dashboard.getRecent, {});
+	import { useQuery } from 'convex-svelte';
+	import { api } from '$convex/_generated/api';
+	import { DashboardCard, StatsGrid } from '$lib/modules/dashboard/components';
+
+	// Real data from Convex
+	const stats = useQuery(api.dashboard.getStats, {});
+	const recentItems = useQuery(api.dashboard.getRecent, {});
 </script>
 
 <div class="space-y-section-gap">
-  <h1 class="text-h1 text-primary">Dashboard</h1>
-  
-  <StatsGrid stats={$stats} />
-  
-  {#each $recentItems ?? [] as item}
-    <DashboardCard {item} />
-  {/each}
+	<h1 class="text-h1 text-primary">Dashboard</h1>
+
+	<StatsGrid stats={$stats} />
+
+	{#each $recentItems ?? [] as item}
+		<DashboardCard {item} />
+	{/each}
 </div>
 ```
 
@@ -260,4 +262,3 @@ src/routes/
 
 **Status**: Existing in routes  
 **Next Step**: Add page-level stories with mocked data
-

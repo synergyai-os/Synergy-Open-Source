@@ -410,7 +410,20 @@ function generateTypographyMdx(baseTokens) {
     }`;
 
 	// Generate type classes for each font size
-	const sizeOrder = ['7xl', '6xl', '5xl', '4xl', '3xl', '2xl', 'xl', 'lg', 'base', 'sm', 'xs', '2xs'];
+	const sizeOrder = [
+		'7xl',
+		'6xl',
+		'5xl',
+		'4xl',
+		'3xl',
+		'2xl',
+		'xl',
+		'lg',
+		'base',
+		'sm',
+		'xs',
+		'2xs'
+	];
 	const sizeConfigs = {
 		'7xl': { weight: 'bold', lineHeight: 'tight', letterSpacing: 'tight' },
 		'6xl': { weight: 'bold', lineHeight: 'tight', letterSpacing: 'tight' },
@@ -418,11 +431,11 @@ function generateTypographyMdx(baseTokens) {
 		'4xl': { weight: 'bold', lineHeight: 'tight', letterSpacing: 'tight' },
 		'3xl': { weight: 'semibold', lineHeight: 'tight', letterSpacing: 'tight' },
 		'2xl': { weight: 'semibold', lineHeight: 'snug' },
-		'xl': { weight: 'medium', lineHeight: 'snug' },
-		'lg': { weight: 'regular', lineHeight: 'relaxed' },
-		'base': { weight: 'regular', lineHeight: 'normal' },
-		'sm': { weight: 'regular', lineHeight: 'normal' },
-		'xs': { weight: 'regular', lineHeight: 'normal' },
+		xl: { weight: 'medium', lineHeight: 'snug' },
+		lg: { weight: 'regular', lineHeight: 'relaxed' },
+		base: { weight: 'regular', lineHeight: 'normal' },
+		sm: { weight: 'regular', lineHeight: 'normal' },
+		xs: { weight: 'regular', lineHeight: 'normal' },
 		'2xs': { weight: 'regular', lineHeight: 'normal' }
 	};
 
@@ -431,10 +444,18 @@ function generateTypographyMdx(baseTokens) {
 		const fontSize = getTokenValue('fontSize', size);
 		const fontWeight = getTokenValue('fontWeight', config.weight);
 		const lineHeight = getTokenValue('lineHeight', config.lineHeight);
-		const letterSpacing = config.letterSpacing ? getTokenValue('letterSpacing', config.letterSpacing) : getTokenValue('letterSpacing', 'normal');
-		const fontFamily = (size === 'xl' || size === 'lg' || size === 'base' || size === 'sm' || size === 'xs' || size === '2xs') 
-			? getFontFamily('sans') 
-			: getFontFamily('heading');
+		const letterSpacing = config.letterSpacing
+			? getTokenValue('letterSpacing', config.letterSpacing)
+			: getTokenValue('letterSpacing', 'normal');
+		const fontFamily =
+			size === 'xl' ||
+			size === 'lg' ||
+			size === 'base' ||
+			size === 'sm' ||
+			size === 'xs' ||
+			size === '2xs'
+				? getFontFamily('sans')
+				: getFontFamily('heading');
 
 		cssStyles += `
     .type-${size} {
@@ -477,7 +498,17 @@ function generateTypographyMdx(baseTokens) {
     }`;
 
 	// Weight classes
-	const weightOrder = ['thin', 'extralight', 'light', 'regular', 'medium', 'semibold', 'bold', 'extrabold', 'black'];
+	const weightOrder = [
+		'thin',
+		'extralight',
+		'light',
+		'regular',
+		'medium',
+		'semibold',
+		'bold',
+		'extrabold',
+		'black'
+	];
 	for (const weight of weightOrder) {
 		const weightValue = getTokenValue('fontWeight', weight);
 		cssStyles += `
@@ -598,13 +629,13 @@ ${cssStyles}
 
 	// Generate type scale samples
 	const sortedSizes = Object.entries(typography.fontSize || {})
-			.filter(([k]) => !k.startsWith('$'))
-			.sort((a, b) => {
-				const aIdx = sizeOrder.indexOf(a[0]);
-				const bIdx = sizeOrder.indexOf(b[0]);
-				if (aIdx === -1 && bIdx === -1) return a[0].localeCompare(b[0]);
-				if (aIdx === -1) return 1;
-				if (bIdx === -1) return -1;
+		.filter(([k]) => !k.startsWith('$'))
+		.sort((a, b) => {
+			const aIdx = sizeOrder.indexOf(a[0]);
+			const bIdx = sizeOrder.indexOf(b[0]);
+			if (aIdx === -1 && bIdx === -1) return a[0].localeCompare(b[0]);
+			if (aIdx === -1) return 1;
+			if (bIdx === -1) return -1;
 			return bIdx - aIdx; // Reverse order (largest first)
 		});
 
@@ -615,17 +646,17 @@ ${cssStyles}
 		'4xl': 'Page Heading',
 		'3xl': 'Section Heading',
 		'2xl': 'Subsection Heading',
-		'xl': 'Small Heading',
-		'lg': 'Large body text for emphasis and important content',
-		'base': 'Default body text for paragraphs and general content',
-		'sm': 'Secondary text, buttons, and helper content',
-		'xs': 'Small labels, badges, and captions',
+		xl: 'Small Heading',
+		lg: 'Large body text for emphasis and important content',
+		base: 'Default body text for paragraphs and general content',
+		sm: 'Secondary text, buttons, and helper content',
+		xs: 'Small labels, badges, and captions',
 		'2xs': 'Tiny labels and legal text'
 	};
 
-		for (const [name, token] of sortedSizes) {
-			if (token.$value) {
-				const px = remToPx(token.$value);
+	for (const [name, token] of sortedSizes) {
+		if (token.$value) {
+			const px = remToPx(token.$value);
 			const label = sizeLabels[name] || name;
 			mdx += `
 		<div className="type-sample">
@@ -651,26 +682,26 @@ ${cssStyles}
 
 	// Generate weight samples
 	const sortedWeights = Object.entries(typography.fontWeight || {})
-			.filter(([k]) => !k.startsWith('$'))
-			.sort((a, b) => {
-				const aIdx = weightOrder.indexOf(a[0]);
-				const bIdx = weightOrder.indexOf(b[0]);
-				return aIdx - bIdx;
-			});
+		.filter(([k]) => !k.startsWith('$'))
+		.sort((a, b) => {
+			const aIdx = weightOrder.indexOf(a[0]);
+			const bIdx = weightOrder.indexOf(b[0]);
+			return aIdx - bIdx;
+		});
 
 	const weightLabels = {
-		'thin': 'Thin (100)',
-		'extralight': 'Extra Light (200)',
-		'light': 'Light (300)',
-		'regular': 'Regular (400)',
-		'medium': 'Medium (500)',
-		'semibold': 'Semibold (600)',
-		'bold': 'Bold (700)',
-		'extrabold': 'Extra Bold (800)',
-		'black': 'Black (900)'
+		thin: 'Thin (100)',
+		extralight: 'Extra Light (200)',
+		light: 'Light (300)',
+		regular: 'Regular (400)',
+		medium: 'Medium (500)',
+		semibold: 'Semibold (600)',
+		bold: 'Bold (700)',
+		extrabold: 'Extra Bold (800)',
+		black: 'Black (900)'
 	};
 
-		for (const [name, token] of sortedWeights) {
+	for (const [name, token] of sortedWeights) {
 		if (token.$value) {
 			const label = weightLabels[name] || name;
 			mdx += `
@@ -746,7 +777,7 @@ Based on a modular scale with \`1rem\` (16px) as the base.
 		if (token.$value) {
 			const px = remToPx(token.$value);
 			const desc = token.$description || '';
-	mdx += `
+			mdx += `
 		<tr>
 			<td><code>--typography-fontSize-${name}</code></td>
 			<td>${token.$value}</td>

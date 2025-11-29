@@ -32,12 +32,12 @@
 			},
 			"phases_complete": [
 				"Phase 1: Token consolidation",
-			"Phase 2: ESLint governance + module separation",
-			"Phase 3 (95%): Component reorganization + Recipe system + Color migration + Chromatic + Token tracking"
+				"Phase 2: ESLint governance + module separation",
+				"Phase 3 (95%): Component reorganization + Recipe system + Color migration + Chromatic + Token tracking"
 			],
 			"phases_in_progress": [
-			"Phase 4: Documentation updates (Recipe system + color migration - SYOS-498-501)",
-			"Phase 4: AI Agent Governance Playbook (SYOS-529)"
+				"Phase 4: Documentation updates (Recipe system + color migration - SYOS-498-501)",
+				"Phase 4: AI Agent Governance Playbook (SYOS-529)"
 			]
 		},
 

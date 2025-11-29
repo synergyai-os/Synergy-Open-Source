@@ -40,9 +40,18 @@
 	});
 </script>
 
-<Story name="Default" args={{ initials: 'JD', username: 'John Doe', orgName: 'Acme Corp', showLabels: true, variant: 'sidebar' }}>
+<Story
+	name="Default"
+	args={{
+		initials: 'JD',
+		username: 'John Doe',
+		orgName: 'Acme Corp',
+		showLabels: true,
+		variant: 'sidebar'
+	}}
+>
 	{#snippet template(args)}
-		<div class="w-64 rounded-button border border-base bg-surface p-4">
+		<div class="border-base w-64 rounded-button border bg-surface p-4">
 			<WorkspaceSelector
 				avatarImage={args.avatarImage}
 				initials={args.initials}
@@ -56,9 +65,19 @@
 	{/snippet}
 </Story>
 
-<Story name="With Avatar Image" args={{ avatarImage: 'https://i.pravatar.cc/150?img=12', initials: 'JD', username: 'Jane Smith', orgName: 'Tech Startup', showLabels: true, variant: 'sidebar' }}>
+<Story
+	name="With Avatar Image"
+	args={{
+		avatarImage: 'https://i.pravatar.cc/150?img=12',
+		initials: 'JD',
+		username: 'Jane Smith',
+		orgName: 'Tech Startup',
+		showLabels: true,
+		variant: 'sidebar'
+	}}
+>
 	{#snippet template(args)}
-		<div class="w-64 rounded-button border border-base bg-surface p-4">
+		<div class="border-base w-64 rounded-button border bg-surface p-4">
 			<WorkspaceSelector
 				avatarImage={args.avatarImage}
 				initials={args.initials}
@@ -72,9 +91,18 @@
 	{/snippet}
 </Story>
 
-<Story name="Collapsed (Icon Only)" args={{ initials: 'T', username: 'test', orgName: 'Owner', showLabels: false, variant: 'sidebar' }}>
+<Story
+	name="Collapsed (Icon Only)"
+	args={{
+		initials: 'T',
+		username: 'test',
+		orgName: 'Owner',
+		showLabels: false,
+		variant: 'sidebar'
+	}}
+>
 	{#snippet template(args)}
-		<div class="w-16 rounded-button border border-base bg-surface p-2">
+		<div class="border-base w-16 rounded-button border bg-surface p-2">
 			<WorkspaceSelector
 				avatarImage={args.avatarImage}
 				initials={args.initials}
@@ -88,9 +116,19 @@
 	{/snippet}
 </Story>
 
-<Story name="Loading State" args={{ initials: 'JD', username: 'John Doe', orgName: 'Acme Corp', showLabels: true, isLoading: true, variant: 'sidebar' }}>
+<Story
+	name="Loading State"
+	args={{
+		initials: 'JD',
+		username: 'John Doe',
+		orgName: 'Acme Corp',
+		showLabels: true,
+		isLoading: true,
+		variant: 'sidebar'
+	}}
+>
 	{#snippet template(args)}
-		<div class="w-64 rounded-button border border-base bg-surface p-4">
+		<div class="border-base w-64 rounded-button border bg-surface p-4">
 			<WorkspaceSelector
 				avatarImage={args.avatarImage}
 				initials={args.initials}
@@ -104,9 +142,18 @@
 	{/snippet}
 </Story>
 
-<Story name="Topbar Variant" args={{ initials: 'JD', username: 'John Doe', orgName: 'Acme Corp', showLabels: true, variant: 'topbar' }}>
+<Story
+	name="Topbar Variant"
+	args={{
+		initials: 'JD',
+		username: 'John Doe',
+		orgName: 'Acme Corp',
+		showLabels: true,
+		variant: 'topbar'
+	}}
+>
 	{#snippet template(args)}
-		<div class="w-64 rounded-button border border-base bg-surface p-4">
+		<div class="border-base w-64 rounded-button border bg-surface p-4">
 			<WorkspaceSelector
 				avatarImage={args.avatarImage}
 				initials={args.initials}
@@ -120,9 +167,18 @@
 	{/snippet}
 </Story>
 
-<Story name="Long Names" args={{ initials: 'AB', username: 'Very Long Username That Might Truncate', orgName: 'Extremely Long Organization Name Inc.', showLabels: true, variant: 'sidebar' }}>
+<Story
+	name="Long Names"
+	args={{
+		initials: 'AB',
+		username: 'Very Long Username That Might Truncate',
+		orgName: 'Extremely Long Organization Name Inc.',
+		showLabels: true,
+		variant: 'sidebar'
+	}}
+>
 	{#snippet template(args)}
-		<div class="w-64 rounded-button border border-base bg-surface p-4">
+		<div class="border-base w-64 rounded-button border bg-surface p-4">
 			<WorkspaceSelector
 				avatarImage={args.avatarImage}
 				initials={args.initials}
@@ -136,9 +192,12 @@
 	{/snippet}
 </Story>
 
-<Story name="Single Initial" args={{ initials: 'T', username: 'test', orgName: 'Owner', showLabels: true, variant: 'sidebar' }}>
+<Story
+	name="Single Initial"
+	args={{ initials: 'T', username: 'test', orgName: 'Owner', showLabels: true, variant: 'sidebar' }}
+>
 	{#snippet template(args)}
-		<div class="w-64 rounded-button border border-base bg-surface p-4">
+		<div class="border-base w-64 rounded-button border bg-surface p-4">
 			<WorkspaceSelector
 				avatarImage={args.avatarImage}
 				initials={args.initials}
@@ -151,4 +210,3 @@
 		</div>
 	{/snippet}
 </Story>
-

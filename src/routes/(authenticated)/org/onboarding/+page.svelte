@@ -22,12 +22,12 @@
 </script>
 
 <div class="flex h-full items-center justify-center bg-base">
-	<div class="p-card w-full max-w-md rounded-card border border-base bg-surface text-center">
+	<div class="p-card border-base w-full max-w-md rounded-card border bg-surface text-center">
 		<h1 class="text-h3 font-semibold text-primary">Organization Required</h1>
 
 		{#if hasOrganizations()}
 			<!-- User has orgs but none selected -->
-			<p class="mt-2 text-button text-secondary">
+			<p class="text-button mt-2 text-secondary">
 				Please select an organization to access Circles.
 			</p>
 
@@ -35,7 +35,7 @@
 				{#each organizations ? (organizations.organizations ?? []) : [] as org (org.organizationId)}
 					<button
 						onclick={() => handleSelectOrg(org.organizationId)}
-						class="w-full rounded-button border border-base bg-elevated px-2 py-nav-item text-left text-button text-primary hover:bg-sidebar-hover"
+						class="border-base py-nav-item text-button hover:bg-sidebar-hover w-full rounded-button border bg-elevated px-2 text-left text-primary"
 					>
 						{org.name}
 					</button>
@@ -43,13 +43,13 @@
 			</div>
 		{:else}
 			<!-- No orgs, need to create one -->
-			<p class="mt-2 text-button text-secondary">
+			<p class="text-button mt-2 text-secondary">
 				Circles require an organization. Create one to get started.
 			</p>
 
 			<button
 				onclick={handleCreateOrg}
-				class="text-on-solid mt-6 rounded-button bg-accent-primary px-2 py-nav-item text-button font-medium hover:bg-accent-hover"
+				class="text-on-solid bg-accent-primary py-nav-item text-button hover:bg-accent-hover mt-6 rounded-button px-2 font-medium"
 			>
 				Create Organization
 			</button>

@@ -17,6 +17,7 @@
 	import ActionItemsList from './ActionItemsList.svelte';
 	import { useAgendaNotes } from '../composables/useAgendaNotes.svelte';
 	import type { Id } from '$lib/convex';
+	import { Button, Text, Heading, Icon } from '$lib/components/atoms';
 
 	interface Props {
 		item?: {
@@ -67,51 +68,35 @@
 	<!-- Empty State - No item selected -->
 	<div class="flex h-full items-center justify-center">
 		<div class="text-center">
-			<svg
-				class="mx-auto icon-xl text-text-tertiary"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke="currentColor"
-				aria-hidden="true"
-			>
-				<path
-					stroke-linecap="round"
-					stroke-linejoin="round"
-					stroke-width="2"
-					d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-				/>
-			</svg>
-			<h3 class="mt-content-section text-h3 font-semibold text-text-primary">
-				No Agenda Item Selected
-			</h3>
-			<p class="mt-spacing-text-gap text-text-secondary">
+			<div class="mx-auto">
+				<Icon type="dashboard" size="xl" color="tertiary" />
+			</div>
+			<Heading level="h3" size="h3" class="mt-content-section">No Agenda Item Selected</Heading>
+			<Text variant="body" size="base" color="secondary" as="p" class="mt-spacing-text-gap">
 				Click an agenda item from the sidebar to start processing
-			</p>
+			</Text>
 		</div>
 	</div>
 {:else}
 	<!-- Active Agenda Item -->
 	<div class="flex h-full flex-col">
 		<!-- Item Header -->
-		<div class="border-b border-border-base bg-elevated px-inbox-container py-system-header">
+		<div class="border-border-base px-inbox-container py-system-header border-b bg-elevated">
 			<div class="flex items-start justify-between">
 				<div class="flex-1">
-					<h2 class="text-h1 font-bold text-text-primary">{item.title}</h2>
+					<Heading level="h2" size="h1">
+						{item.title}
+					</Heading>
 					<div
-						class="mt-spacing-text-gap text-body-sm flex items-center gap-2 text-text-tertiary"
+						class="mt-spacing-text-gap text-body-sm text-text-tertiary flex items-center gap-fieldGroup"
 					>
-						<span>Added by {item.creatorName}</span>
+						<Text variant="body" size="sm" color="tertiary" as="span"
+							>Added by {item.creatorName}</Text
+						>
 						{#if item.isProcessed}
-							<span class="gap-2-sm flex items-center text-success-text">
-								<svg class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M5 13l4 4L19 7"
-									/>
-								</svg>
-								Processed
+							<span class="text-success-text flex items-center gap-fieldGroup">
+								<Icon type="check" size="sm" />
+								<Text variant="body" size="sm" color="success" as="span">Processed</Text>
 							</span>
 						{/if}
 					</div>
@@ -119,41 +104,33 @@
 
 				<!-- Mark as Processed Button (Secretary only) -->
 				{#if !item.isProcessed && !isClosed && isSecretary}
-					<button
-						onclick={() => onMarkProcessed(item._id)}
-						class="rounded-button bg-accent-primary px-button-x py-button-y text-button font-medium text-primary transition-colors hover:bg-accent-hover"
-					>
+					<Button variant="primary" onclick={() => onMarkProcessed(item._id)}>
 						Mark as Processed
-					</button>
+					</Button>
 				{/if}
 			</div>
 		</div>
 
 		<!-- Notes Editor (SYOS-222) -->
-		<div class="flex-1 overflow-y-auto px-inbox-container py-system-content">
+		<div class="px-inbox-container py-system-content flex-1 overflow-y-auto">
 			{#if browser && item}
-				<div class="gap-section-gap flex flex-col">
+				<div class="flex flex-col gap-section-gap">
 					{#if isSecretary}
 						<!-- SECRETARY MODE: Local state with auto-save -->
 						<!-- Save State Indicator -->
 						{#if notes && notes.saveState !== 'idle'}
-							<div class="text-body-sm flex items-center gap-2">
+							<div class="text-body-sm flex items-center gap-fieldGroup">
 								{#if notes.saveState === 'saving'}
-									<span class="text-text-tertiary">Saving...</span>
+									<Text variant="body" size="sm" color="tertiary" as="span">Saving...</Text>
 								{:else if notes.saveState === 'saved'}
-									<span class="gap-2-sm flex items-center text-success-text">
-										<svg class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												stroke-width="2"
-												d="M5 13l4 4L19 7"
-											/>
-										</svg>
-										Saved
+									<span class="text-success-text flex items-center gap-fieldGroup">
+										<Icon type="check" size="sm" />
+										<Text variant="body" size="sm" color="success" as="span">Saved</Text>
 									</span>
 								{:else if notes.saveState === 'error'}
-									<span class="text-error-text">{notes.saveError || 'Failed to save'}</span>
+									<Text variant="body" size="sm" color="error" as="span"
+										>{notes.saveError || 'Failed to save'}</Text
+									>
 								{/if}
 							</div>
 						{/if}
@@ -203,9 +180,13 @@
 				</div>
 			{:else if !browser}
 				<!-- SSR placeholder -->
-				<div class="text-body-sm text-text-tertiary italic">Loading editor...</div>
+				<Text variant="body" size="sm" color="tertiary" as="div" class="italic"
+					>Loading editor...</Text
+				>
 			{:else}
-				<p class="text-body-sm text-text-tertiary italic">No notes yet for this agenda item</p>
+				<Text variant="body" size="sm" color="tertiary" as="p" class="italic"
+					>No notes yet for this agenda item</Text
+				>
 			{/if}
 		</div>
 	</div>

@@ -46,4 +46,3 @@ export const navItemRecipe = cva(
 );
 
 export type NavItemVariantProps = VariantProps<typeof navItemRecipe>;
-

@@ -108,7 +108,7 @@
 	>
 		<div class="flex items-center gap-2">
 			<span class="text-label text-tertiary">
-				📁 {workspaceName}
+				📁 TEST TEST {workspaceName}
 			</span>
 		</div>
 	</header>

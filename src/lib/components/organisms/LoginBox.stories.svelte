@@ -39,7 +39,10 @@
 	{/snippet}
 </Story>
 
-<Story name="Submitting" args={{ email: '', password: '', isSubmitting: true, redirectTarget: '/inbox' }}>
+<Story
+	name="Submitting"
+	args={{ email: '', password: '', isSubmitting: true, redirectTarget: '/inbox' }}
+>
 	{#snippet template(args)}
 		<LoginBox {...args} />
 	{/snippet}
@@ -88,4 +91,3 @@
 		<LoginBox {...args} />
 	{/snippet}
 </Story>
-

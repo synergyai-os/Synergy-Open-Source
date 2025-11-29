@@ -477,17 +477,17 @@
 </script>
 
 <div class="h-screen overflow-y-auto bg-base">
-	<div class="mx-auto max-w-4xl px-inbox-container py-inbox-container">
+	<div class="px-inbox-container py-inbox-container mx-auto max-w-4xl">
 		<!-- Page Title -->
 		<h1 class="mb-content-section text-h1 font-bold text-primary">Settings</h1>
 
 		<!-- Workspace Context Banner -->
 		<div
-			class="p-card mb-content-padding rounded-card border border-accent-primary/20 bg-accent-primary/10"
+			class="p-card mb-content-padding border-accent-primary/20 bg-accent-primary/10 rounded-card border"
 		>
 			<div class="flex items-start gap-2">
 				<svg
-					class="icon-md flex-shrink-0 text-accent-primary"
+					class="icon-md text-accent-primary flex-shrink-0"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -500,7 +500,7 @@
 					/>
 				</svg>
 				<div class="min-w-0 flex-1">
-					<p class="mb-form-field-gap text-small font-medium text-accent-primary">
+					<p class="mb-form-field-gap text-small text-accent-primary font-medium">
 						Organization Settings: {workspaceContext().name}
 					</p>
 					<p class="text-small text-secondary">
@@ -514,24 +514,24 @@
 			</div>
 		</div>
 
-		<div class="flex flex-col gap-settings-section">
+		<div class="gap-settings-section flex flex-col">
 			<!-- General Section -->
-			<section class="rounded-card border border-base bg-elevated">
+			<section class="border-base rounded-card border bg-elevated">
 				<div class="px-inbox-card py-inbox-card">
 					<h2 class="mb-content-padding text-body font-bold text-primary">General</h2>
 
-					<div class="flex flex-col gap-settings-row">
+					<div class="gap-settings-row flex flex-col">
 						<!-- Theme Preference -->
-						<div class="border-b border-base px-settings-row py-settings-row last:border-b-0">
-							<div class="flex items-start justify-between gap-settings-row">
+						<div class="border-base px-settings-row py-settings-row border-b last:border-b-0">
+							<div class="gap-settings-row flex items-start justify-between">
 								<div class="min-w-0 flex-1">
 									<label
 										for="theme-toggle"
-										class="mb-form-field-gap block text-small font-medium text-primary"
+										class="mb-form-field-gap text-small block font-medium text-primary"
 									>
 										Interface theme
 										<span
-											class="ml-2 inline-flex items-center rounded-badge bg-tag px-badge py-badge text-label font-medium text-tag"
+											class="bg-tag px-badge py-badge text-tag ml-2 inline-flex items-center rounded-badge text-label font-medium"
 										>
 											👤 Personal Only
 										</span>
@@ -581,7 +581,7 @@
 										onCheckedChange={(checked) => {
 											theme.setTheme(checked ? 'dark' : 'light');
 										}}
-										class="relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-accent-primary focus:ring-offset-2 focus:outline-none {$isDark
+										class="focus:ring-accent-primary relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none {$isDark
 											? 'bg-accent-primary'
 											: 'bg-toggle-off'}"
 									>
@@ -597,22 +597,22 @@
 			</section>
 
 			<!-- AI Section -->
-			<section class="rounded-card border border-base bg-elevated">
+			<section class="border-base rounded-card border bg-elevated">
 				<div class="px-inbox-card py-inbox-card">
 					<h2 class="mb-content-padding text-body font-bold text-primary">AI</h2>
 
-					<div class="flex flex-col gap-settings-row">
+					<div class="gap-settings-row flex flex-col">
 						<!-- Claude API Key -->
-						<div class="border-b border-base px-settings-row py-settings-row last:border-b-0">
-							<div class="flex items-start justify-between gap-settings-row">
+						<div class="border-base px-settings-row py-settings-row border-b last:border-b-0">
+							<div class="gap-settings-row flex items-start justify-between">
 								<div class="min-w-0 flex-1">
 									<label
 										for="claude-key"
-										class="mb-form-field-gap block text-small font-medium text-primary"
+										class="mb-form-field-gap text-small block font-medium text-primary"
 									>
 										Claude API Key
 										<span
-											class="ml-2 inline-flex items-center rounded-badge bg-tag px-badge py-badge text-label font-medium text-tag"
+											class="bg-tag px-badge py-badge text-tag ml-2 inline-flex items-center rounded-badge text-label font-medium"
 										>
 											👤 Personal
 										</span>
@@ -632,12 +632,12 @@
 											onblur={handleClaudeKeyBlur}
 											disabled={claudeValidationState === 'validating'}
 											placeholder={claudeHasKey ? '••••••••••••••••' : 'sk-...'}
-											class="px-input py-input w-64 border bg-base pr-10 text-small {claudeValidationState ===
+											class="text-small w-64 border bg-base px-input py-input pr-10 {claudeValidationState ===
 											'valid'
 												? 'border-success'
 												: claudeValidationState === 'invalid'
 													? 'border-error'
-													: 'border-base'} rounded-card text-primary transition-all placeholder:text-tertiary focus:border-transparent focus:ring-2 focus:ring-accent-primary focus:outline-none {claudeValidationState ===
+													: 'border-base'} focus:ring-accent-primary rounded-card text-primary transition-all placeholder:text-tertiary focus:border-transparent focus:ring-2 focus:outline-none {claudeValidationState ===
 											'validating'
 												? 'cursor-not-allowed opacity-50'
 												: ''}"
@@ -723,7 +723,7 @@
 											href="https://console.anthropic.com/settings/keys"
 											target="_blank"
 											rel="noopener noreferrer"
-											class="mt-form-field-gap max-w-64 text-label text-accent-primary underline transition-colors hover:text-accent-hover"
+											class="mt-form-field-gap text-accent-primary hover:text-accent-hover max-w-64 text-label underline transition-colors"
 										>
 											Get API key
 										</a>
@@ -736,22 +736,22 @@
 			</section>
 
 			<!-- Sources Section -->
-			<section class="rounded-card border border-base bg-elevated">
+			<section class="border-base rounded-card border bg-elevated">
 				<div class="px-inbox-card py-inbox-card">
 					<h2 class="mb-content-padding text-body font-bold text-primary">Sources</h2>
 
-					<div class="flex flex-col gap-settings-row">
+					<div class="gap-settings-row flex flex-col">
 						<!-- Readwise API Key -->
-						<div class="border-b border-base px-settings-row py-settings-row last:border-b-0">
-							<div class="flex items-start justify-between gap-settings-row">
+						<div class="border-base px-settings-row py-settings-row border-b last:border-b-0">
+							<div class="gap-settings-row flex items-start justify-between">
 								<div class="min-w-0 flex-1">
 									<label
 										for="readwise-key"
-										class="mb-form-field-gap block text-small font-medium text-primary"
+										class="mb-form-field-gap text-small block font-medium text-primary"
 									>
 										Readwise API Key
 										<span
-											class="ml-2 inline-flex items-center rounded-badge bg-tag px-badge py-badge text-label font-medium text-tag"
+											class="bg-tag px-badge py-badge text-tag ml-2 inline-flex items-center rounded-badge text-label font-medium"
 										>
 											👤 Personal (User-owned)
 										</span>
@@ -759,7 +759,7 @@
 									<p class="text-small text-secondary">
 										Your personal Readwise account. Imports will be shared with the organization.
 									</p>
-									<p class="mt-form-field-gap text-label text-accent-primary">
+									<p class="mt-form-field-gap text-accent-primary text-label">
 										💡 Tip: Use the same key across organizations to sync content everywhere
 									</p>
 								</div>
@@ -773,12 +773,12 @@
 											onblur={handleReadwiseKeyBlur}
 											disabled={readwiseValidationState === 'validating'}
 											placeholder={readwiseHasKey ? '••••••••••••••••' : 'token_...'}
-											class="px-input py-input w-64 border bg-base pr-10 text-small {readwiseValidationState ===
+											class="text-small w-64 border bg-base px-input py-input pr-10 {readwiseValidationState ===
 											'valid'
 												? 'border-success'
 												: readwiseValidationState === 'invalid'
 													? 'border-error'
-													: 'border-base'} rounded-card text-primary transition-all placeholder:text-tertiary focus:border-transparent focus:ring-2 focus:ring-accent-primary focus:outline-none {readwiseValidationState ===
+													: 'border-base'} focus:ring-accent-primary rounded-card text-primary transition-all placeholder:text-tertiary focus:border-transparent focus:ring-2 focus:outline-none {readwiseValidationState ===
 											'validating'
 												? 'cursor-not-allowed opacity-50'
 												: ''}"
@@ -864,7 +864,7 @@
 											href="https://readwise.io/access_token"
 											target="_blank"
 											rel="noopener noreferrer"
-											class="mt-form-field-gap max-w-64 text-label text-accent-primary underline transition-colors hover:text-accent-hover"
+											class="mt-form-field-gap text-accent-primary hover:text-accent-hover max-w-64 text-label underline transition-colors"
 										>
 											Get API key
 										</a>

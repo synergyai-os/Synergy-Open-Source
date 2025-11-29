@@ -11,6 +11,7 @@
 	import { useConvexClient } from 'convex-svelte';
 	import { api, type Id } from '$lib/convex';
 	import { toast } from 'svelte-sonner';
+	import { Button, Text, Heading } from '$lib/components/atoms';
 
 	interface SecretaryRequest {
 		_id: Id<'secretaryChangeRequests'>;
@@ -88,41 +89,31 @@
 		aria-labelledby="dialog-title"
 	>
 		<div
-			class="max-w-dialog-md w-full rounded-dialog border border-border-base bg-surface p-modal-padding shadow-card"
+			class="max-w-dialog-md rounded-dialog border-border-base p-modal-padding w-full border bg-surface shadow-card"
 			role="document"
 		>
 			<!-- Header -->
-			<h2 id="dialog-title" class="text-h2 font-semibold text-text-primary">
-				Secretary Change Request
-			</h2>
+			<Heading level="h2" size="h2" id="dialog-title">Secretary Change Request</Heading>
 
 			<!-- Content -->
-			<div class="text-body-sm mt-content-section text-text-secondary">
-				<span class="text-text-primary">{request.requestedByName}</span>
-				requests to change the secretary to
-				<span class="text-text-primary">{request.requestedForName}</span>.
-				<br /><br />
-				Do you approve this change?
+			<div class="mt-content-section">
+				<Text variant="body" size="sm" color="secondary" as="p">
+					<Text variant="body" size="sm" color="default" as="span">{request.requestedByName}</Text>
+					requests to change the secretary to
+					<Text variant="body" size="sm" color="default" as="span">{request.requestedForName}</Text
+					>.
+				</Text>
+				<Text variant="body" size="sm" color="secondary" as="p" class="mt-content-gap">
+					Do you approve this change?
+				</Text>
 			</div>
 
 			<!-- Actions -->
-			<div class="mt-section-gap flex justify-end gap-2">
-				<button
-					type="button"
-					onclick={handleDeny}
-					disabled={isProcessing}
-					class="hover:bg-surface-hover rounded-button border border-border-base px-button-x py-button-y text-button font-medium text-text-secondary transition-colors disabled:opacity-50"
-				>
-					Deny
-				</button>
-				<button
-					type="button"
-					onclick={handleApprove}
-					disabled={isProcessing}
-					class="rounded-button bg-accent-primary px-button-x py-button-y text-button font-medium text-primary transition-colors hover:bg-accent-hover disabled:opacity-50"
-				>
+			<div class="mt-section-gap flex justify-end gap-fieldGroup">
+				<Button variant="outline" onclick={handleDeny} disabled={isProcessing}>Deny</Button>
+				<Button variant="primary" onclick={handleApprove} disabled={isProcessing}>
 					{isProcessing ? 'Processing...' : 'Approve'}
-				</button>
+				</Button>
 			</div>
 		</div>
 	</div>

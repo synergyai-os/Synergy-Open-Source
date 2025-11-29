@@ -1,6 +1,6 @@
 /**
  * Exception Handler
- * 
+ *
  * Loads and applies architectural exceptions from .architectural-exceptions.json
  */
 
@@ -14,11 +14,11 @@ import path from 'path';
  */
 export function loadExceptions(rootDir) {
 	const exceptionsPath = path.join(rootDir, '.architectural-exceptions.json');
-	
+
 	if (!fs.existsSync(exceptionsPath)) {
 		return { exceptions: [], loaded: false };
 	}
-	
+
 	try {
 		const content = fs.readFileSync(exceptionsPath, 'utf-8');
 		const data = JSON.parse(content);
@@ -41,7 +41,7 @@ export function findException(violation, exceptions) {
 		if (exception.rule !== violation.type) {
 			continue;
 		}
-		
+
 		// Match by file path (relative)
 		const violationFile = violation.relativeFile || violation.file;
 		if (exception.file && !violationFile.includes(exception.file.replace(/^src\//, ''))) {
@@ -50,18 +50,18 @@ export function findException(violation, exceptions) {
 				continue;
 			}
 		}
-		
+
 		// For layout_styling_separation, also check specific classes
 		if (exception.rule === 'layout_styling_separation' && exception.classes) {
 			if (violation.class && !exception.classes.includes(violation.class)) {
 				continue;
 			}
 		}
-		
+
 		// Match found
 		return exception;
 	}
-	
+
 	return null;
 }
 
@@ -74,10 +74,10 @@ export function findException(violation, exceptions) {
 export function applyExceptions(violations, exceptions) {
 	const filtered = [];
 	const excepted = [];
-	
+
 	for (const violation of violations) {
 		const exception = findException(violation, exceptions);
-		
+
 		if (exception) {
 			excepted.push({
 				...violation,
@@ -87,7 +87,6 @@ export function applyExceptions(violations, exceptions) {
 			filtered.push(violation);
 		}
 	}
-	
+
 	return { violations: filtered, excepted };
 }
-

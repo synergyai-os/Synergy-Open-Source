@@ -82,4 +82,3 @@ describe('generateHoverColor', () => {
 		expect(() => generateHoverColor('#FF0000')).toThrow('Invalid OKLCH format');
 	});
 });
-

@@ -13,4 +13,3 @@
 <svg width="16px" height="16px">
 	<circle cx="8" cy="8" r="6" />
 </svg>
-

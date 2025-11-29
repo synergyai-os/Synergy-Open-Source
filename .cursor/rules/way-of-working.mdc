@@ -1,329 +1,155 @@
 ---
-alwaysApply: false
+alwaysApply: true
 ---
-## Project: SynergyOS
+# SynergyOS - AI Assistant Guide
 
-**The Open-Source Product OS** - An open-source, modular platform that integrates product discovery, delivery, and team collaboration with AI coaching trained on company data.
-
-**Tech Stack:**
-- Frontend: SvelteKit 5 + TypeScript + Svelte 5 Runes
-- UI: Bits UI (headless) + Tailwind CSS 4 + Semantic Design Tokens
-- Backend: Convex (real-time database & serverless functions)
-- Mobile: Capacitor 7 (iOS)
+**The Open-Source Product OS** - An open-source, modular platform for product discovery, delivery, and team collaboration with AI coaching.
 
 ---
 
-## Essential Documentation
+## 📚 Documentation Hierarchy (Where to Find What)
 
-Read in order:
-1. `marketing-docs/strategy/product-vision-2.0.md` - **Current product vision** (The Open-Source Product OS) ⭐
-   - ⚠️ **DO NOT read** `dev-docs/2-areas/product/product-vision-and-plan.md` - It's HISTORICAL
-2. `dev-docs/2-areas/product/product-principles.md` - How we make decisions (Privacy First, Outcomes Over Outputs, etc.) ⭐
-3. **`dev-docs/2-areas/patterns/INDEX.md`** - Fast pattern lookup (START HERE for debugging) ⭐
-4. `dev-docs/2-areas/component-architecture.md` - Component strategy: Tokens → Utilities → Patterns → Components
-5. `dev-docs/2-areas/design-principles.md` - Visual philosophy, accessibility, UX (MANDATORY for UI) ⭐
-6. `dev-docs/architecture.md` - Tech stack, auth, composables, project structure
-7. `dev-docs/design-tokens.md` - Design token reference (spacing, colors, typography)
-8. `dev-docs/composables-analysis.md` - Svelte 5 composables analysis
+**Master Docs = Source of Truth** (human-reviewed, minimal, stable)
+**All Other Docs = AI-Maintained** (patterns, rules, grow over time)
 
-**Pattern Files** (load as needed):
-- `dev-docs/patterns/svelte-reactivity.md` - Svelte 5 runes, composables, $state/$derived
-- `dev-docs/patterns/convex-integration.md` - Convex, auth, types, runtime restrictions
-- `dev-docs/patterns/ui-patterns.md` - UI/UX, design tokens, layout
-- `dev-docs/patterns/analytics.md` - PostHog, server-side tracking
+### Master Documentation (`dev-docs/master-docs/`)
 
-**Future Architecture:**
-- `dev-docs/multi-tenancy-migration.md` - Multi-tenancy architecture and migration guide (when implementing orgs/teams)
+| Doc | When to Reference | Key Content |
+|-----|-------------------|-------------|
+| `design-system.md` | Building UI, styling, components | Tokens, recipes, visual principles, dark mode |
+| `architecture.md` | System design, tech decisions | SvelteKit, Convex, auth, modules, composables |
+| `product-vision.md` | Understanding product direction | The Product OS, problems we solve, differentiators |
+| `product-strategy.md` | Prioritization, roadmap context | Outcome-driven themes, success signals |
+| `target-personas.md` | User needs, feature decisions | Agency Partner, Client, jobs-to-be-done |
 
----
+### Working Documentation (`dev-docs/2-areas/`)
 
-## Project-Specific Workflows
+| Area | Purpose | When to Use |
+|------|---------|-------------|
+| `patterns/INDEX.md` | **Quick problem lookup** | Debugging, fixing issues, learning from past |
+| `patterns/*.md` | Domain-specific solutions | Svelte reactivity, UI patterns, design system |
 
-**Note**: `/save` and `/root-cause` commands are universal - see `.cursor/commands/start.md`
+### Rules (`.cursor/rules/`)
 
-**For this project:**
-- `/root-cause`: Load `dev-docs/patterns/INDEX.md` → scan symptom table → jump to line number
-- `/save`: Add pattern to domain file (svelte-reactivity.md, etc.) → update INDEX.md
+| Rule | Scope | Purpose |
+|------|-------|---------|
+| `design-tokens-enforcement.mdc` | `.svelte`, `.css`, recipes | **ENFORCES** token usage, no hardcoding |
+| `svelte-typescript-patterns.mdc` | `.svelte`, `.ts` | Svelte 5 best practices, composables |
+| `working-with-linear.mdc` | Linear operations | Ticket workflow, constants |
+| `posthog-integration.mdc` | Analytics | PostHog tracking rules |
 
----
+### Commands (`.cursor/commands/`)
 
-## Design Token System - MANDATORY
-
-**NEVER use hardcoded values:**
-- ❌ `px-2`, `py-1.5`, `gap-2` → ✅ `px-nav-item`, `py-nav-item`, `gap-icon`
-- ❌ `bg-gray-900`, `text-white` → ✅ `bg-sidebar`, `text-sidebar-primary`
-- ❌ `text-[10px]` → ✅ `text-label`
-
-**Why**: Tokens adapt to light/dark mode automatically. Change once in `src/app.css`, updates everywhere.
-
-**Reference**: `dev-docs/design-tokens.md` - Full token list
-**Before adding**: Check `dev-docs/design-tokens.md`, add to `src/app.css` @theme block first, then document
+| Command | When to Use |
+|---------|-------------|
+| `/start` | Starting a new task, ticket creation |
+| `/save` | Capturing learnings, updating patterns |
+| `/match-design-system` | Refactoring components to design system |
 
 ---
 
-## Svelte 5 Composables Pattern
+## 🎯 Quick Reference by Task
 
-**See**: `svelte-typescript-patterns.mdc` - Complete composables patterns and examples
+### Building UI Components
 
-**Quick Reference:**
-- Extension: `.svelte.ts` (required for runes)
-- Location: `src/lib/composables/`
-- Pattern: Single `$state` object with getter returns
-- Types: Explicit TypeScript return types
+1. **Read First**: `dev-docs/master-docs/design-system.md`
+2. **Rule Applied**: `design-tokens-enforcement.mdc` (automatic for .svelte files)
+3. **Patterns**: `dev-docs/2-areas/patterns/design-system-patterns.md`
+4. **Workflow**: `/match-design-system` command
 
-**Available Composables:**
-- `useInboxItems` - Inbox queries and filtering
-- `useSelectedItem` - Selected item state
-- `useInboxSync` - Readwise sync operations
-- `useKeyboardNavigation` - J/K navigation
-- `useInboxLayout` - Layout state
+**Key Principles**:
+- ✅ Use recipe system (CVA) for variants
+- ✅ Use semantic tokens (`bg-surface`, `gap-button`)
+- ❌ Never hardcode values (`px-4`, `bg-gray-500`)
 
----
+### Fixing Bugs / Debugging
 
-## Key Files
+1. **Start Here**: `dev-docs/2-areas/patterns/INDEX.md`
+2. **Search by symptom** in patterns/
+3. **Apply fix** from canonical pattern
 
-**Documentation:**
-- `dev-docs/2-areas/development/coding-standards.md` - **Coding rules for AI agents** ⭐ CRITICAL
-- `dev-docs/patterns/INDEX.md` - Pattern lookup (START HERE)
-- `dev-docs/patterns/svelte-reactivity.md` - Svelte 5 patterns
-- `dev-docs/patterns/convex-integration.md` - Convex patterns
-- `dev-docs/patterns/ui-patterns.md` - UI/UX patterns
-- `dev-docs/patterns/analytics.md` - PostHog patterns
-- `dev-docs/architecture.md` - Tech architecture
-- `dev-docs/design-tokens.md` - Token reference
-- `marketing-docs/strategy/product-vision-2.0.md` - Current product vision (The Open-Source Product OS)
+### Understanding Product Direction
 
-**Code:**
-- `src/lib/composables/` - Composables (`.svelte.ts`)
-- `src/lib/components/` - UI components
-- `src/app.css` - Design token definitions
-- `convex/schema.ts` - Database schema
+1. **Vision**: `dev-docs/master-docs/product-vision.md`
+2. **Strategy**: `dev-docs/master-docs/product-strategy.md`
+3. **Users**: `dev-docs/master-docs/target-personas.md`
 
-**Commands:**
-- `.cursor/commands/save.md` - Save patterns workflow
-- `.cursor/commands/root-cause.md` - Debug workflow
-- `.cursor/commands/README.md` - **Command optimization guide** ⭐ (read before modifying commands)
+### Architecture / System Design
+
+1. **Read**: `dev-docs/master-docs/architecture.md`
+2. **Module boundaries**, **composables**, **auth flow**
+
+### Capturing Knowledge (`/save`)
+
+1. **Search patterns first** (mandatory deduplication)
+2. **Enhance existing** or **consolidate duplicates**
+3. **Add Keywords field** for discoverability
+4. **One canonical pattern per concept**
 
 ---
 
-## Command Optimization (MANDATORY for AI Agents)
+## 🛠️ Tech Stack Quick Reference
 
-**⚠️ BEFORE modifying any `.cursor/commands/*.md` file:**
-
-1. **Read `.cursor/commands/README.md`** - Understand optimization strategy
-2. **Check `.cursor/rules/README.md`** - Understand rules vs commands distinction
-
-**Key Principle: Remove Duplication, Add References**
-
-**When a command exceeds ~300 lines or duplicates content:**
-
-- ❌ **DON'T** add more content to the command
-- ✅ **DO** extract to separate documentation file
-- ✅ **DO** add reference in command (e.g., "See `dev-docs/...` for complete format")
-- ✅ **DO** update `.cursor/commands/README.md` with optimization details
-
-**Examples:**
-- Commit message format → `dev-docs/2-areas/development/commit-message-format.md` (406 lines)
-- Linear constants → `/linear` command (single source of truth)
-- Ticket creation → `/start` command (workflow handler)
-
-**Why**: Commands loaded on-demand, but duplication makes maintenance harder. Single source of truth = update once, reference everywhere.
-
-**See**: `.cursor/commands/README.md` for complete optimization strategy and examples
+- **Frontend**: SvelteKit 5 + TypeScript + Svelte 5 Runes
+- **UI**: Bits UI (headless) + Tailwind CSS 4 + Semantic Design Tokens
+- **Backend**: Convex (real-time database & serverless)
+- **Mobile**: Capacitor 7 (iOS)
+- **Auth**: WorkOS AuthKit
 
 ---
 
-## Best Practices
+## ⚡ Key Rules (Always Apply)
 
-**Before Writing Code:**
-1. **Read `dev-docs/2-areas/development/coding-standards.md`** - CRITICAL: Prevents linting errors ⭐
-2. Check `patterns/INDEX.md` for existing patterns
-3. Use design tokens (never hardcode)
-4. Follow composables pattern (see `svelte-typescript-patterns.mdc`)
-5. Use Context7 for library docs
-6. **If working with modules/APIs**: Complete Module Architecture Validation checklist (see below) ⭐
+### 🚨 NEVER Create or Edit CSS Utility Files
 
-**Coding Standards (MANDATORY for AI Agents):**
-- See `svelte-typescript-patterns.mdc` - Complete critical rules and patterns
-
-**See**: `dev-docs/2-areas/development/coding-standards.md` for complete rules
-
-**When Debugging:**
-1. Use `/root-cause` → Load `patterns/INDEX.md`
-2. Scan symptom table → jump to line number in domain file
-3. Use Context7 for verification
-4. Only fix if 95%+ confident
-
-**Common Mistakes:**
-- Hardcoded values (use tokens)
-- Missing `.svelte.ts` extension
-- Multiple `$state` variables (use single object)
-- Direct value access in composables (use function parameters)
-- Manual queries (use `useQuery()`)
-
----
-
-## AI Code Generation Workflow
-
-**Purpose**: Systematic 5-step workflow for AI agents before generating any component code.
-
-### When Generating New Components
-
-**Step 1: Classify the component**
-- Is it a primitive (Layer 1)? → Unstyled, accessibility + behavior only
-- Is it a styled component (Layer 2)? → Design system atom with variants
-- Is it a composite (Layer 3)? → Combines 2-3 styled components
-- Is it feature-specific (Layer 4)? → Domain logic + module-specific
-
-**Step 2: Check existing patterns**
-- Read similar component for patterns (e.g., `src/lib/components/ui/button/Button.svelte`)
-- Copy patterns: variant system, props interface, utility classes
-- **Never reinvent** - reuse established patterns
-
-**Step 3: Use ONLY token-based utilities**
-- ✅ `bg-primary text-primary-foreground p-md rounded-md`
-- ❌ `bg-[#3b82f6] text-white p-4 rounded-md` (ESLint will block)
-
-**Step 4: Follow existing file structure**
 ```
-src/lib/components/ui/[component]/
-├── [Component].svelte
-└── index.ts
+src/styles/utilities/*.css  ← AUTO-GENERATED - NEVER EDIT OR CREATE
 ```
 
-**Step 5: Validate with ESLint**
-- Run `npm run lint` - MUST pass before committing
-- Fix any violations immediately
+**If you need a new utility:**
+1. Add token to `design-tokens-semantic.json`
+2. Run `npm run tokens:build`
+3. Utility is auto-generated
 
-**See**: `dev-docs/2-areas/design/component-architecture.md` for layer classification decision tree
+### Design Tokens (MANDATORY)
 
----
+```svelte
+<!-- ✅ CORRECT: Token-based utilities -->
+<div class="bg-surface text-primary px-button gap-button rounded-button">
 
-## Component Generation Checklist
-
-**Purpose**: Pre-flight validation before generating/modifying any component.
-
-**Before generating/modifying ANY component:**
-
-### Token Usage ✅
-- [ ] Uses ONLY utilities from `src/app.css` token system
-- [ ] No arbitrary values (ESLint will block)
-- [ ] No raw Tailwind scale values (bg-blue-500)
-- [ ] No inline styles
-
-### Component Structure ✅
-- [ ] Correct layer classification (1-4) - use decision tree
-- [ ] Follows existing patterns (variant + size + class)
-- [ ] TypeScript Props interface defined
-- [ ] Svelte 5 syntax ($props, $derived, $effect)
-
-### File Organization ✅
-- [ ] Component in correct folder (/ui/, /ui/primitives/, /[feature]/)
-- [ ] Barrel export (index.ts) created
-- [ ] PascalCase naming convention
-
-### Testing ✅
-- [ ] Runs in dev mode (npm run dev)
-- [ ] ESLint passes (npm run lint)
-- [ ] Visual test on relevant pages
-- [ ] No console errors
-
-### Documentation ✅
-- [ ] JSDoc comments on component
-- [ ] Props documented
-- [ ] Usage example in comments
-
-**See**: `dev-docs/2-areas/design/design-tokens.md` for complete token reference
-
----
-
-## Module Architecture Validation (MANDATORY for Module Work)
-
-**⚠️ CRITICAL**: Before creating/exposing module APIs or moving components, validate module placement and dependencies.
-
-**When working with modules, components, or APIs:**
-
-### 1. **Check Actual Usage Across Modules** (MANDATORY)
-
-**Before exposing a component/composable via module API:**
-
-1. **Search for all imports/usages**:
-   ```bash
-   # Find all files that import/use the component
-   grep -r "TagSelector\|useTagging" src/ --include="*.svelte" --include="*.ts"
-   ```
-
-2. **Identify which modules use it**:
-   - If used by **multiple modules** → Should be in **core module** (shared component)
-   - If used by **single module** → Can stay in that module
-   - If used by **no modules** → Question if it should be exposed
-
-3. **Check for cross-module dependencies**:
-   - ❌ **BAD**: Meetings module imports from Inbox module → Creates dependency
-   - ✅ **GOOD**: Both import from Core module → No cross-module dependency
-
-**Example Validation:**
-```typescript
-// ❌ WRONG: TagSelector in inbox, used by flashcards → Creates Flashcards → Inbox dependency
-// ✅ CORRECT: TagSelector in core, used by both → No cross-module dependencies
+<!-- ❌ WRONG: Hardcoded values -->
+<div class="bg-gray-100 text-gray-900 px-4 gap-2 rounded-lg">
 ```
 
-### 2. **Verify Module Placement** (MANDATORY)
+### Svelte 5 Patterns
 
-**Before finalizing module API:**
+```svelte
+<script lang="ts">
+  // ✅ Props with $props()
+  let { variant = 'default', className = '' } = $props();
+  
+  // ✅ Derived with array syntax
+  const classes = $derived([recipe({ variant }), className]);
+</script>
+```
 
-- **Question current structure**: Don't assume current location is correct
-- **Check module boundaries**: See `dev-docs/2-areas/architecture/modularity-refactoring-analysis.md`
-- **Verify placement logic**:
-  - **Core module**: Shared components, utilities used by multiple modules
-  - **Feature modules**: Module-specific functionality (inbox, meetings, flashcards)
-  - **Rule**: If 2+ modules need it → Core module
+### Pattern Documentation
 
-### 3. **Validate Cross-Module Dependencies** (MANDATORY)
-
-**Before exposing via API:**
-
-- **Check dependency graph**: Will this create unwanted dependencies?
-- **Verify loose coupling**: Modules should depend on interfaces, not implementations
-- **Test scenario**: "If I disable module X, does module Y break?"
-  - If yes → Tight coupling, needs refactoring
-  - If no → Loose coupling ✅
-
-### 4. **Architectural Checklist** (MANDATORY)
-
-**Before creating module API contract:**
-
-- [ ] Searched for all usages across modules
-- [ ] Identified which modules actually use the component/composable
-- [ ] Verified module placement (core vs feature module)
-- [ ] Checked for cross-module dependencies
-- [ ] Validated no unwanted coupling (e.g., Meetings → Inbox)
-- [ ] Questioned current structure (don't assume it's correct)
-
-**Reference Documentation:**
-- **Modularity Principles**: `dev-docs/2-areas/architecture/system-architecture.md#6-modularity--module-system`
-- **Refactoring Analysis**: `dev-docs/2-areas/architecture/modularity-refactoring-analysis.md`
-- **Module Boundaries**: See Section 3 (Direct Imports Between Modules)
-
-**Common Architectural Mistakes:**
-- ❌ Exposing shared component via feature module API (creates dependencies)
-- ❌ Assuming current module placement is correct (always validate)
-- ❌ Not checking cross-module usage before exposing APIs
-- ❌ Creating cross-module dependencies (Meetings → Inbox, Flashcards → Inbox)
+When saving patterns:
+1. **Search 3+ variations** before adding
+2. **Merge duplicates** into canonical pattern
+3. **Include Keywords** field for grep discoverability
+4. **One pattern per concept** - pattern count should stay stable or decrease
 
 ---
 
-## Starting a Task
+## 📋 Before Starting Any Task
 
-1. Read `marketing-docs/strategy/product-vision-2.0.md` - Understand current product vision
-2. Check `dev-docs/patterns/INDEX.md` - See if patterns exist
-3. Review `dev-docs/design-tokens.md` - If building UI
-4. Check `dev-docs/architecture.md` - If working on architecture
-5. **If working with modules/APIs**: Complete Module Architecture Validation checklist ⭐
-6. Use Context7 - For latest library documentation
+1. **Identify discipline**: UI? Architecture? Product? Bug fix?
+2. **Reference master doc** (if exists for discipline)
+3. **Check patterns** for existing solutions
+4. **Use Context7** for library-specific docs (Svelte, Convex, Bits UI)
 
 ---
 
-## Quick Reference
-
-- **Keyboard Shortcuts**: `.cursor/SHORTCUTS.md` - Essential shortcuts for faster development
+**Last Updated**: 2025-01-27

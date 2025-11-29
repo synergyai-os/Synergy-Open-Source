@@ -21,29 +21,29 @@
 </script>
 
 <!-- Main Content -->
-<div class="bg-base h-full overflow-y-auto">
-	<div class="mx-auto max-w-2xl px-content-padding" style="padding-block: var(--spacing-12);">
+<div class="h-full overflow-y-auto bg-base">
+	<div class="mx-auto max-w-2xl px-page" style="padding-block: var(--spacing-12);">
 		<!-- Error Content -->
 		<div class="mb-marketing-content text-center">
 			<!-- Status Code -->
 			<div class="mb-content-section inline-block">
-				<div class="text-error-status text-tertiary leading-none font-light">
+				<div class="text-error-status leading-none font-light text-tertiary">
 					{status}
 				</div>
 			</div>
 
 			{#if status === 404}
-				<h1 class="mb-form-section text-h2 text-primary font-normal">Page not found</h1>
-				<p class="text-body text-secondary mx-auto max-w-md">
+				<h1 class="mb-form-section text-h2 font-normal text-primary">Page not found</h1>
+				<p class="mx-auto max-w-md text-body text-secondary">
 					The page you're looking for doesn't exist or has been moved.
 				</p>
 			{:else if status === 500}
-				<h1 class="mb-form-section text-h2 text-primary font-normal">Something went wrong</h1>
-				<p class="text-body text-secondary mx-auto max-w-md">
+				<h1 class="mb-form-section text-h2 font-normal text-primary">Something went wrong</h1>
+				<p class="mx-auto max-w-md text-body text-secondary">
 					We're working to fix it. Please try again in a moment.
 				</p>
 			{:else}
-				<h1 class="mb-form-section text-h2 text-primary font-normal">
+				<h1 class="mb-form-section text-h2 font-normal text-primary">
 					{message}
 				</h1>
 			{/if}
@@ -51,17 +51,17 @@
 
 		<!-- Development details (only show in dev mode) -->
 		{#if isDev && page.error}
-			<div class="p-card border-base bg-surface mb-content-padding rounded-button border">
+			<div class="p-card border-base mb-content-padding rounded-button border bg-surface">
 				<div class="mb-form-section flex items-center gap-2">
-					<span class="text-label text-tertiary font-medium tracking-wider uppercase">
+					<span class="text-label font-medium tracking-wider text-tertiary uppercase">
 						Development Info
 					</span>
 				</div>
 				{#if page.error?.message}
 					<div>
-						<span class="text-small text-secondary mb-badge-y block font-medium">Message:</span>
+						<span class="text-small mb-badge-y block font-medium text-secondary">Message:</span>
 						<code
-							class="border-base bg-base text-small text-primary block rounded border p-form-field-gap text-left break-all"
+							class="border-base text-small p-form-field-gap block rounded border bg-base text-left break-all text-primary"
 						>
 							{page.error.message}
 						</code>
@@ -71,17 +71,17 @@
 		{/if}
 
 		<!-- Action Buttons -->
-		<div class="flex flex-col justify-center gap-form-section sm:flex-row">
+		<div class="gap-form-section flex flex-col justify-center sm:flex-row">
 			<button
 				onclick={goHome}
-				class="text-small rounded-button bg-accent-primary px-button-x py-button-y font-medium text-white transition-colors duration-150 hover:bg-accent-hover"
+				class="text-small bg-accent-primary hover:bg-accent-hover rounded-button px-button-x py-button-y font-medium text-white transition-colors duration-150"
 			>
 				Go to Inbox
 			</button>
 
 			<button
 				onclick={goBack}
-				class="border-base bg-surface text-small text-primary hover:bg-hover-solid rounded-button border px-button-x py-button-y font-medium transition-colors duration-150"
+				class="border-base text-small hover:bg-hover-solid rounded-button border bg-surface px-button-x py-button-y font-medium text-primary transition-colors duration-150"
 			>
 				Go Back
 			</button>

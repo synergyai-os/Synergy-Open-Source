@@ -50,37 +50,38 @@
 <div class="flex h-full flex-col">
 	<!-- Header -->
 	<div
-		class="flex h-system-header flex-shrink-0 items-center justify-between border-b border-base px-inbox-container py-system-header"
+		class="h-system-header border-base px-inbox-container py-system-header flex flex-shrink-0 items-center justify-between border-b"
 	>
 		<h3 class="text-small font-normal text-secondary">Import Readwise Highlights</h3>
 	</div>
 
 	<!-- Content - Centered top-middle -->
-	<div class="flex-1 overflow-y-auto px-inbox-container py-system-content">
-		<div class="mx-auto flex max-w-md flex-col gap-settings-section">
+	<div class="px-inbox-container py-system-content flex-1 overflow-y-auto">
+		<div class="gap-settings-section mx-auto flex max-w-md flex-col">
 			<!-- Import Type Toggle Switcher -->
 			<fieldset class="flex flex-col gap-2">
 				<legend class="text-small font-normal text-secondary">Import by:</legend>
 				<ToggleGroup.Root
 					type="single"
 					bind:value={importType}
-					class="flex rounded-button bg-surface" style="gap: var(--spacing-1);"
+					class="flex rounded-button bg-surface"
+					style="gap: var(--spacing-1);"
 				>
 					<ToggleGroup.Item
 						value="time"
-						class="flex-1 rounded px-menu-item py-menu-item text-small font-normal text-secondary transition-colors hover:text-primary data-[state=on]:bg-elevated data-[state=on]:text-primary data-[state=on]:shadow-sm"
+						class="px-menu-item py-menu-item text-small flex-1 rounded font-normal text-secondary transition-colors hover:text-primary data-[state=on]:bg-elevated data-[state=on]:text-primary data-[state=on]:shadow-sm"
 					>
 						Time range
 					</ToggleGroup.Item>
 					<ToggleGroup.Item
 						value="quantity"
-						class="flex-1 rounded px-menu-item py-menu-item text-small font-normal text-secondary transition-colors hover:text-primary data-[state=on]:bg-elevated data-[state=on]:text-primary data-[state=on]:shadow-sm"
+						class="px-menu-item py-menu-item text-small flex-1 rounded font-normal text-secondary transition-colors hover:text-primary data-[state=on]:bg-elevated data-[state=on]:text-primary data-[state=on]:shadow-sm"
 					>
 						Number of items
 					</ToggleGroup.Item>
 					<ToggleGroup.Item
 						value="custom"
-						class="flex-1 rounded px-menu-item py-menu-item text-small font-normal text-secondary transition-colors hover:text-primary data-[state=on]:bg-elevated data-[state=on]:text-primary data-[state=on]:shadow-sm"
+						class="px-menu-item py-menu-item text-small flex-1 rounded font-normal text-secondary transition-colors hover:text-primary data-[state=on]:bg-elevated data-[state=on]:text-primary data-[state=on]:shadow-sm"
 					>
 						Custom date
 					</ToggleGroup.Item>
@@ -91,10 +92,14 @@
 			{#if importType === 'time'}
 				<fieldset class="flex flex-col gap-2">
 					<legend class="text-small font-normal text-tertiary">Select time range:</legend>
-					<RadioGroup.Root bind:value={selectedRange} class="flex flex-col" style="gap: var(--spacing-1);">
+					<RadioGroup.Root
+						bind:value={selectedRange}
+						class="flex flex-col"
+						style="gap: var(--spacing-1);"
+					>
 						<RadioGroup.Item
 							value="7d"
-							class="flex cursor-pointer items-center rounded-button px-menu-item py-menu-item transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
+							class="px-menu-item py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -104,7 +109,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="30d"
-							class="flex cursor-pointer items-center rounded-button px-menu-item py-menu-item transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
+							class="px-menu-item py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -114,7 +119,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="90d"
-							class="flex cursor-pointer items-center gap-2 rounded-button py-menu-item transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
+							class="py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -124,7 +129,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="180d"
-							class="flex cursor-pointer items-center gap-2 rounded-button py-menu-item transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
+							class="py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -134,7 +139,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="365d"
-							class="flex cursor-pointer items-center gap-2 rounded-button py-menu-item transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
+							class="py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -144,7 +149,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="all"
-							class="flex cursor-pointer items-center gap-2 rounded-button py-menu-item transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
+							class="py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}">All time</span>
@@ -158,10 +163,14 @@
 			{#if importType === 'quantity'}
 				<fieldset class="flex flex-col gap-2">
 					<legend class="text-small font-normal text-tertiary">Number of highlights:</legend>
-					<RadioGroup.Root bind:value={selectedQuantity} class="flex flex-col" style="gap: var(--spacing-1);">
+					<RadioGroup.Root
+						bind:value={selectedQuantity}
+						class="flex flex-col"
+						style="gap: var(--spacing-1);"
+					>
 						<RadioGroup.Item
 							value="5"
-							class="flex cursor-pointer items-center rounded-button px-menu-item py-menu-item transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
+							class="px-menu-item py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -171,7 +180,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="10"
-							class="flex cursor-pointer items-center gap-2 rounded-button py-menu-item transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
+							class="py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -181,7 +190,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="25"
-							class="flex cursor-pointer items-center gap-2 rounded-button py-menu-item transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
+							class="py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -191,7 +200,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="50"
-							class="flex cursor-pointer items-center gap-2 rounded-button py-menu-item transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
+							class="py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -201,7 +210,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="100"
-							class="flex cursor-pointer items-center gap-2 rounded-button py-menu-item transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
+							class="py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -211,7 +220,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="250"
-							class="flex cursor-pointer items-center gap-2 rounded-button py-menu-item transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
+							class="py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -221,7 +230,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="500"
-							class="flex cursor-pointer items-center gap-2 rounded-button py-menu-item transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
+							class="py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -231,7 +240,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="1000"
-							class="flex cursor-pointer items-center gap-2 rounded-button py-menu-item transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
+							class="py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -252,7 +261,7 @@
 							id="start-date"
 							type="date"
 							bind:value={customStartDate}
-							class="focus:ring-primary rounded-button border border-base bg-surface px-menu-item py-menu-item text-small text-primary focus:ring-2 focus:outline-none"
+							class="focus:ring-primary border-base px-menu-item py-menu-item text-small rounded-button border bg-surface text-primary focus:ring-2 focus:outline-none"
 						/>
 					</div>
 					<div class="flex flex-col gap-2">
@@ -261,7 +270,7 @@
 							id="end-date"
 							type="date"
 							bind:value={customEndDate}
-							class="focus:ring-primary rounded-button border border-base bg-surface px-menu-item py-menu-item text-small text-primary focus:ring-2 focus:outline-none"
+							class="focus:ring-primary border-base px-menu-item py-menu-item text-small rounded-button border bg-surface text-primary focus:ring-2 focus:outline-none"
 						/>
 					</div>
 				</div>
@@ -269,7 +278,7 @@
 
 			<!-- Action Buttons - Directly attached to options -->
 			<div
-				class="mt-nav-container flex items-center justify-between gap-2 border-t border-base pt-nav-container"
+				class="mt-nav-container border-base pt-nav-container flex items-center justify-between gap-2 border-t"
 			>
 				<!-- Helper Text / Estimated Count -->
 				<div class="flex-1">

@@ -42,4 +42,3 @@
 		<AccountInfo {...args} />
 	{/snippet}
 </Story>
-

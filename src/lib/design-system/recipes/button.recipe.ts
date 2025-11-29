@@ -48,8 +48,7 @@ export const buttonRecipe = cva(
 					'bg-surface text-primary hover:bg-hover disabled:opacity-disabled disabled:hover:bg-surface disabled:hover:text-primary cursor-pointer disabled:cursor-not-allowed'
 			},
 			size: {
-				// WORKAROUND: px-2 (8px) hardcoded - no semantic token for small button padding - see missing-styles.md
-				sm: 'px-2 py-nav-item gap-button text-sm',
+				sm: 'px-button-sm py-button-sm gap-button-sm text-label',
 				md: 'px-button py-button gap-button',
 				lg: 'px-button py-button gap-button text-body'
 			}

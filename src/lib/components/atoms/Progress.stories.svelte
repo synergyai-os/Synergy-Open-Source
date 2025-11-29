@@ -19,7 +19,7 @@
 	{#snippet template(args)}
 		<Progress.Root {...args} class="h-2 w-full overflow-hidden rounded-full bg-base">
 			<div
-				class="h-full rounded-full bg-accent-primary transition-all duration-300"
+				class="bg-accent-primary h-full rounded-full transition-all duration-300"
 				style="width: {args.value}%"
 			></div>
 		</Progress.Root>
@@ -30,7 +30,7 @@
 	{#snippet template(args)}
 		<Progress.Root {...args} class="h-2 w-full overflow-hidden rounded-full bg-base">
 			<div
-				class="h-full rounded-full bg-accent-primary transition-all duration-300"
+				class="bg-accent-primary h-full rounded-full transition-all duration-300"
 				style="width: {args.value}%"
 			></div>
 		</Progress.Root>
@@ -41,7 +41,7 @@
 	{#snippet template(args)}
 		<Progress.Root {...args} class="h-2 w-full overflow-hidden rounded-full bg-base">
 			<div
-				class="h-full rounded-full bg-accent-primary transition-all duration-300"
+				class="bg-accent-primary h-full rounded-full transition-all duration-300"
 				style="width: {args.value}%"
 			></div>
 		</Progress.Root>
@@ -52,7 +52,7 @@
 	{#snippet template(args)}
 		<Progress.Root {...args} class="h-2 w-full overflow-hidden rounded-full bg-base">
 			<div
-				class="h-full rounded-full bg-accent-primary transition-all duration-300"
+				class="bg-accent-primary h-full rounded-full transition-all duration-300"
 				style="width: {args.value}%"
 			></div>
 		</Progress.Root>
@@ -63,7 +63,7 @@
 	{#snippet template(args)}
 		<Progress.Root {...args} class="h-2 w-full overflow-hidden rounded-full bg-base">
 			<div
-				class="h-full w-full animate-pulse rounded-full bg-accent-primary"
+				class="bg-accent-primary h-full w-full animate-pulse rounded-full"
 				style="animation: progress-indeterminate 1.5s ease-in-out infinite;"
 			></div>
 		</Progress.Root>

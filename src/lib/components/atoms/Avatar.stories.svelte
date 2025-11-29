@@ -55,19 +55,83 @@
 	{/snippet}
 </Story>
 
-<Story name="Custom Color" args={{ initials: 'JD', variant: 'default', size: 'md', color: 'var(--color-interactive-primary)' }}>
+<Story
+	name="Custom Color"
+	args={{
+		initials: 'JD',
+		variant: 'default',
+		size: 'md',
+		color: 'var(--color-interactive-primary)'
+	}}
+>
 	{#snippet template(args)}
 		<Avatar initials={args.initials} variant={args.variant} size={args.size} color={args.color} />
 	{/snippet}
 </Story>
 
-<Story name="Group" args={{ initials: 'JD', size: 'md' }}>
+<Story name="GroupSmall" args={{ initials: 'JD', size: 'md' }}>
 	{#snippet template(_args)}
 		<div class="flex -space-x-2">
-			<Avatar initials="JD" size="md" />
-			<Avatar initials="AB" size="md" />
-			<Avatar initials="CD" size="md" />
-			<Avatar initials="EF" size="md" />
+			<Avatar initials="JD" size="md" variant="brand" class="border-surface border-2" />
+			<Avatar initials="AB" size="md" variant="brand" class="border-surface border-2" />
+			<Avatar initials="CD" size="md" variant="brand" class="border-surface border-2" />
+		</div>
+	{/snippet}
+</Story>
+
+<Story name="GroupMedium" args={{ initials: 'JD', size: 'md' }}>
+	{#snippet template(_args)}
+		<div class="flex -space-x-2">
+			<Avatar initials="JD" size="md" variant="brand" class="border-surface border-2" />
+			<Avatar initials="AB" size="md" variant="brand" class="border-surface border-2" />
+			<Avatar initials="CD" size="md" variant="brand" class="border-surface border-2" />
+			<Avatar initials="EF" size="md" variant="brand" class="border-surface border-2" />
+			<Avatar initials="GH" size="md" variant="brand" class="border-surface border-2" />
+		</div>
+	{/snippet}
+</Story>
+
+<Story name="GroupLarge" args={{ initials: 'JD', size: 'md' }}>
+	{#snippet template(_args)}
+		<div class="flex -space-x-2">
+			<Avatar initials="JD" size="md" variant="brand" class="border-surface border-2" />
+			<Avatar initials="AB" size="md" variant="brand" class="border-surface border-2" />
+			<Avatar initials="CD" size="md" variant="brand" class="border-surface border-2" />
+			<Avatar initials="EF" size="md" variant="brand" class="border-surface border-2" />
+			<Avatar initials="GH" size="md" variant="brand" class="border-surface border-2" />
+			<Avatar initials="IJ" size="md" variant="brand" class="border-surface border-2" />
+			<Avatar initials="KL" size="md" variant="brand" class="border-surface border-2" />
+		</div>
+	{/snippet}
+</Story>
+
+<Story name="GroupWithOverflow" args={{ initials: 'JD', size: 'md' }}>
+	{#snippet template(_args)}
+		<div class="flex -space-x-2">
+			<Avatar initials="JD" size="md" variant="brand" class="border-surface border-2" />
+			<Avatar initials="AB" size="md" variant="brand" class="border-surface border-2" />
+			<Avatar initials="CD" size="md" variant="brand" class="border-surface border-2" />
+			<Avatar initials="EF" size="md" variant="brand" class="border-surface border-2" />
+			<Avatar initials="GH" size="md" variant="brand" class="border-surface border-2" />
+			<Avatar initials="IJ" size="md" variant="brand" class="border-surface border-2" />
+			<Avatar
+				initials="+5"
+				size="md"
+				variant="default"
+				class="border-surface border-2"
+				title="5 more"
+			/>
+		</div>
+	{/snippet}
+</Story>
+
+<Story name="GroupSmallSize" args={{ initials: 'JD', size: 'sm' }}>
+	{#snippet template(_args)}
+		<div class="flex -space-x-2">
+			<Avatar initials="JD" size="sm" variant="brand" class="border-surface border-2" />
+			<Avatar initials="AB" size="sm" variant="brand" class="border-surface border-2" />
+			<Avatar initials="CD" size="sm" variant="brand" class="border-surface border-2" />
+			<Avatar initials="EF" size="sm" variant="brand" class="border-surface border-2" />
 		</div>
 	{/snippet}
 </Story>

@@ -80,7 +80,7 @@
 				<button
 					type="button"
 					onclick={() => toggleTag(tag._id)}
-					class="inline-flex items-center gap-2 rounded-md px-badge py-badge text-label font-medium transition-colors hover:opacity-80"
+					class="px-badge py-badge inline-flex items-center gap-2 rounded-md text-label font-medium transition-colors hover:opacity-80"
 					style="background-color: {tag.color}20; color: {tag.color}; border: 1px solid {tag.color}40;"
 					title="Click to remove filter"
 				>
@@ -113,7 +113,7 @@
 
 	<!-- Available Tags (Hierarchical List) -->
 	{#if (selectedTags().length === 0 || groupedTags().rootTags.length > 0 || groupedTags().groups.size > 0) && (groupedTags().rootTags.length > 0 || groupedTags().groups.size > 0)}
-		<div class="gap-section flex flex-col">
+		<div class="flex flex-col gap-section">
 			{#if selectedTags().length === 0}
 				<span class="text-label tracking-wider text-secondary uppercase">Filter by tag:</span>
 			{/if}
@@ -125,7 +125,7 @@
 						<button
 							type="button"
 							onclick={() => toggleTag(tag._id)}
-							class="inline-flex items-center rounded-md border border-base px-badge py-badge text-label font-medium transition-colors hover:opacity-80"
+							class="border-base px-badge py-badge inline-flex items-center rounded-md border text-label font-medium transition-colors hover:opacity-80"
 							style="background-color: {tag.color}20; color: {tag.color};"
 							title="Click to filter by this tag"
 						>
@@ -139,14 +139,14 @@
 			{#each Array.from(groupedTags().groups.entries()) as [parentId, children] (parentId)}
 				{@const parent = parentId !== 'root' ? groupedTags().tagMap.get(parentId) : undefined}
 				{#if parent}
-					<div class="gap-section flex flex-col pl-indent">
+					<div class="pl-indent flex flex-col gap-section">
 						<span class="text-label text-secondary">{parent.displayName}:</span>
 						<div class="flex flex-wrap gap-2">
 							{#each children as tag (tag._id)}
 								<button
 									type="button"
 									onclick={() => toggleTag(tag._id)}
-									class="inline-flex items-center rounded-md border border-base px-badge py-badge text-label font-medium transition-colors hover:opacity-80"
+									class="border-base px-badge py-badge inline-flex items-center rounded-md border text-label font-medium transition-colors hover:opacity-80"
 									style="background-color: {tag.color}20; color: {tag.color};"
 									title="Click to filter by this tag"
 								>

@@ -268,7 +268,7 @@
 		<Dialog.Content class="fixed inset-0 z-50 flex flex-col overflow-hidden bg-base">
 			<!-- Header -->
 			<div
-				class="flex h-system-header flex-shrink-0 items-center justify-between gap-2 border-b border-base px-inbox-container py-system-header"
+				class="h-system-header border-base px-inbox-container py-system-header flex flex-shrink-0 items-center justify-between gap-2 border-b"
 			>
 				<div class="min-w-0 flex-1">
 					<h2 class="text-h3 font-semibold text-primary">
@@ -292,27 +292,27 @@
 			<div class="flex min-h-0 flex-1 overflow-hidden bg-base">
 				<!-- Left: Card View -->
 				<div
-					class="flex flex-1 items-center justify-center overflow-auto bg-base px-inbox-container py-inbox-container"
+					class="px-inbox-container py-inbox-container flex flex-1 items-center justify-center overflow-auto bg-base"
 				>
 					{#if currentCard}
 						<div class="flashcard-modal-container relative transition-all duration-400">
 							{#if isEditing}
 								<!-- Edit Mode -->
 								<div
-									class="flex h-full w-full flex-col overflow-hidden rounded-card border-2 border-accent-primary bg-elevated shadow-card-hover"
+									class="border-accent-primary shadow-card-hover flex h-full w-full flex-col overflow-hidden rounded-card border-2 bg-elevated"
 								>
 									<div
-										class="flex flex-1 flex-col overflow-auto px-inbox-container py-inbox-container"
+										class="px-inbox-container py-inbox-container flex flex-1 flex-col overflow-auto"
 									>
 										<div class="mb-form-section">
 											<label
 												for="flashcard-question"
-												class="block text-small font-medium text-secondary">Question</label
+												class="text-small block font-medium text-secondary">Question</label
 											>
 											<textarea
 												id="flashcard-question"
 												bind:value={questionValue}
-												class="w-full resize-none rounded-button border border-base bg-base px-inbox-card py-inbox-card text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+												class="border-base px-inbox-card py-inbox-card focus:ring-accent-primary w-full resize-none rounded-button border bg-base text-primary focus:ring-2 focus:outline-none"
 												rows="4"
 												placeholder="Question..."
 											></textarea>
@@ -320,31 +320,31 @@
 										<div>
 											<label
 												for="flashcard-answer"
-												class="block text-small font-medium text-secondary">Answer</label
+												class="text-small block font-medium text-secondary">Answer</label
 											>
 											<textarea
 												id="flashcard-answer"
 												bind:value={answerValue}
-												class="w-full resize-none rounded-button border border-base bg-base px-inbox-card py-inbox-card text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+												class="border-base px-inbox-card py-inbox-card focus:ring-accent-primary w-full resize-none rounded-button border bg-base text-primary focus:ring-2 focus:outline-none"
 												rows="6"
 												placeholder="Answer..."
 											></textarea>
 										</div>
 									</div>
 									<div
-										class="flex items-center justify-end gap-2 border-t border-base px-inbox-container py-system-header"
+										class="border-base px-inbox-container py-system-header flex items-center justify-end gap-2 border-t"
 									>
 										<Button.Root
 											onclick={handleCancel}
 											disabled={isSaving}
-											class="rounded-button border border-base bg-base px-2 py-nav-item text-small font-medium transition-colors hover:bg-hover-solid disabled:opacity-50"
+											class="border-base py-nav-item text-small hover:bg-hover-solid rounded-button border bg-base px-2 font-medium transition-colors disabled:opacity-50"
 										>
 											Cancel
 										</Button.Root>
 										<Button.Root
 											onclick={handleSave}
 											disabled={isSaving}
-											class="rounded-button bg-accent-primary px-2 py-nav-item text-small font-medium text-primary transition-opacity hover:opacity-90 disabled:opacity-50"
+											class="bg-accent-primary py-nav-item text-small rounded-button px-2 font-medium text-primary transition-opacity hover:opacity-90 disabled:opacity-50"
 										>
 											{isSaving ? 'Saving...' : 'Save'}
 										</Button.Root>
@@ -373,7 +373,7 @@
 				<!-- Right: Metadata Sidebar -->
 				{#if currentCard}
 					<div
-						class="w-sidebar-detail flex-shrink-0 overflow-y-auto border-l border-base bg-surface px-inbox-container py-inbox-container"
+						class="w-sidebar-detail border-base px-inbox-container py-inbox-container flex-shrink-0 overflow-y-auto border-l bg-surface"
 					>
 						<FlashcardMetadata
 							flashcard={currentCard}
@@ -389,12 +389,12 @@
 			<!-- Footer: Navigation -->
 			{#if currentCard && !isEditing}
 				<div
-					class="flex h-system-header flex-shrink-0 items-center justify-between gap-2 border-t border-base bg-surface px-inbox-container py-system-header"
+					class="h-system-header border-base px-inbox-container py-system-header flex flex-shrink-0 items-center justify-between gap-2 border-t bg-surface"
 				>
 					<Button.Root
 						onclick={previousCard}
 						disabled={currentIndex === 0}
-						class="flex items-center gap-2 rounded-button border border-base bg-elevated px-2 py-nav-item text-small font-medium text-secondary transition-colors hover:bg-hover-solid disabled:cursor-not-allowed disabled:text-tertiary disabled:opacity-40 disabled:hover:bg-elevated"
+						class="border-base py-nav-item text-small hover:bg-hover-solid flex items-center gap-2 rounded-button border bg-elevated px-2 font-medium text-secondary transition-colors disabled:cursor-not-allowed disabled:text-tertiary disabled:opacity-40 disabled:hover:bg-elevated"
 					>
 						<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
@@ -407,14 +407,14 @@
 						Previous
 					</Button.Root>
 
-					<div class="flex items-center gap-2 text-small text-secondary">
+					<div class="text-small flex items-center gap-2 text-secondary">
 						<span class="text-label">Press ↑/↓ or Space to flip</span>
 					</div>
 
 					<Button.Root
 						onclick={nextCard}
 						disabled={currentIndex === flashcards.length - 1}
-						class="flex items-center gap-2 rounded-button border border-base bg-elevated px-2 py-nav-item text-small font-medium text-secondary transition-colors hover:bg-hover-solid disabled:cursor-not-allowed disabled:text-tertiary disabled:opacity-40 disabled:hover:bg-elevated"
+						class="border-base py-nav-item text-small hover:bg-hover-solid flex items-center gap-2 rounded-button border bg-elevated px-2 font-medium text-secondary transition-colors disabled:cursor-not-allowed disabled:text-tertiary disabled:opacity-40 disabled:hover:bg-elevated"
 					>
 						Next
 						<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">

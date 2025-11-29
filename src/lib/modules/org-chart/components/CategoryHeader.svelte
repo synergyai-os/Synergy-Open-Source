@@ -13,7 +13,7 @@
 	let { title, count, onEdit, onAdd, menuItems = [] }: Props = $props();
 </script>
 
-<div class="flex items-center justify-between rounded-card bg-surface px-card py-nav-item">
+<div class="px-card py-nav-item flex items-center justify-between rounded-card bg-surface">
 	<h4 class="text-button font-semibold text-primary">
 		{title}
 		{#if count !== undefined}

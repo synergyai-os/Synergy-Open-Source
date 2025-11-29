@@ -11,7 +11,7 @@
 
 <Story name="Default" args={{}}>
 	{#snippet template(_args)}
-		<ScrollArea.Root class="h-[200px] w-[350px] rounded-card border border-base">
+		<ScrollArea.Root class="border-base h-[200px] w-[350px] rounded-card border">
 			<ScrollArea.Viewport class="h-full w-full rounded-card">
 				<div class="p-4">
 					{#each Array(20) as _, i (i)}
@@ -26,7 +26,7 @@
 			</ScrollArea.Viewport>
 			<ScrollArea.Scrollbar
 				orientation="vertical"
-				class="flex touch-none border-l border-base p-0.5 transition-colors select-none"
+				class="border-base flex touch-none border-l p-0.5 transition-colors select-none"
 			>
 				<ScrollArea.Thumb
 					class="relative flex-1 rounded-full bg-base before:absolute before:top-1/2 before:left-1/2 before:h-full before:min-h-[44px] before:w-full before:min-w-[44px] before:-translate-x-1/2 before:-translate-y-1/2 before:content-['']"
@@ -39,7 +39,7 @@
 
 <Story name="Horizontal" args={{}}>
 	{#snippet template(_args)}
-		<ScrollArea.Root class="h-[200px] w-[350px] rounded-card border border-base">
+		<ScrollArea.Root class="border-base h-[200px] w-[350px] rounded-card border">
 			<ScrollArea.Viewport class="h-full w-full rounded-card">
 				<div class="flex gap-4 p-4">
 					{#each Array(10) as _, i (i)}
@@ -53,7 +53,7 @@
 			</ScrollArea.Viewport>
 			<ScrollArea.Scrollbar
 				orientation="horizontal"
-				class="flex touch-none border-t border-base p-0.5 transition-colors select-none"
+				class="border-base flex touch-none border-t p-0.5 transition-colors select-none"
 			>
 				<ScrollArea.Thumb
 					class="relative flex-1 rounded-full bg-base before:absolute before:top-1/2 before:left-1/2 before:h-full before:min-h-[44px] before:w-full before:min-w-[44px] before:-translate-x-1/2 before:-translate-y-1/2 before:content-['']"
@@ -66,7 +66,7 @@
 
 <Story name="Both Directions" args={{}}>
 	{#snippet template(_args)}
-		<ScrollArea.Root class="h-[200px] w-[350px] rounded-card border border-base">
+		<ScrollArea.Root class="border-base h-[200px] w-[350px] rounded-card border">
 			<ScrollArea.Viewport class="h-full w-full rounded-card">
 				<div class="p-4">
 					<div class="flex gap-4">
@@ -84,7 +84,7 @@
 			</ScrollArea.Viewport>
 			<ScrollArea.Scrollbar
 				orientation="vertical"
-				class="flex touch-none border-l border-base p-0.5 transition-colors select-none"
+				class="border-base flex touch-none border-l p-0.5 transition-colors select-none"
 			>
 				<ScrollArea.Thumb
 					class="relative flex-1 rounded-full bg-base before:absolute before:top-1/2 before:left-1/2 before:h-full before:min-h-[44px] before:w-full before:min-w-[44px] before:-translate-x-1/2 before:-translate-y-1/2 before:content-['']"
@@ -92,7 +92,7 @@
 			</ScrollArea.Scrollbar>
 			<ScrollArea.Scrollbar
 				orientation="horizontal"
-				class="flex touch-none border-t border-base p-0.5 transition-colors select-none"
+				class="border-base flex touch-none border-t p-0.5 transition-colors select-none"
 			>
 				<ScrollArea.Thumb
 					class="relative flex-1 rounded-full bg-base before:absolute before:top-1/2 before:left-1/2 before:h-full before:min-h-[44px] before:w-full before:min-w-[44px] before:-translate-x-1/2 before:-translate-y-1/2 before:content-['']"

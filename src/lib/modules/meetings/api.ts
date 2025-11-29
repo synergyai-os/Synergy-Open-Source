@@ -11,6 +11,19 @@
 import type { Id } from '$lib/convex';
 
 /**
+ * Meeting type enum - matches backend schema
+ */
+export type MeetingType =
+	| 'standup'
+	| 'retrospective'
+	| 'planning'
+	| '1-on-1'
+	| 'client'
+	| 'governance'
+	| 'weekly-tactical'
+	| 'general';
+
+/**
  * Meeting data structure
  */
 export interface Meeting {
@@ -20,6 +33,7 @@ export interface Meeting {
 	organizationId: Id<'organizations'> | string;
 	circleId?: Id<'circles'> | string;
 	templateId?: Id<'meetingTemplates'> | string;
+	meetingType: MeetingType; // Required field for reporting and analytics
 	title: string;
 	startTime: number;
 	duration: number;

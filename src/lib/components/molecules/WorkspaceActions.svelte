@@ -29,7 +29,7 @@
 	}}
 >
 	<div class="flex items-center gap-header">
-		<Icon type="add" size="sm" class="text-brand" />
+		<Icon type="add" size="sm" color="primary" />
 		<Text variant="body" size="sm" color="default" as="span">New workspace</Text>
 	</div>
 </DropdownMenu.Item>
@@ -59,7 +59,7 @@
 	}}
 >
 	<div class="flex items-center gap-header">
-		<Icon type="add" size="sm" class="text-secondary" />
+		<Icon type="add" size="sm" color="secondary" />
 		<Text variant="body" size="sm" color="default" as="span">Join organization</Text>
 	</div>
 </DropdownMenu.Item>

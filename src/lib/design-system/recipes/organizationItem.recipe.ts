@@ -36,4 +36,3 @@ export const organizationItemRecipe = cva(
 );
 
 export type OrganizationItemVariantProps = VariantProps<typeof organizationItemRecipe>;
-

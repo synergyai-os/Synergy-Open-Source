@@ -1,6 +1,6 @@
 /**
  * File Finder Utilities
- * 
+ *
  * Finds components, recipes, and validates file existence.
  */
 
@@ -36,7 +36,7 @@ export function camelCase(str) {
 export function findRecipeFiles(rootDir) {
 	const pattern = 'src/lib/design-system/recipes/**/*.recipe.ts';
 	const files = glob.sync(pattern, { cwd: rootDir });
-	return files.map(f => path.join(rootDir, f));
+	return files.map((f) => path.join(rootDir, f));
 }
 
 /**
@@ -48,9 +48,12 @@ export function findRecipeFiles(rootDir) {
  * @param {boolean} options.organisms - Include organisms
  * @returns {string[]} Array of absolute file paths
  */
-export function findComponentFiles(rootDir, options = { atoms: true, molecules: true, organisms: true }) {
+export function findComponentFiles(
+	rootDir,
+	options = { atoms: true, molecules: true, organisms: true }
+) {
 	const patterns = [];
-	
+
 	if (options.atoms) {
 		patterns.push('src/lib/components/atoms/**/*.svelte');
 	}
@@ -60,16 +63,16 @@ export function findComponentFiles(rootDir, options = { atoms: true, molecules: 
 	if (options.organisms) {
 		patterns.push('src/lib/components/organisms/**/*.svelte');
 	}
-	
+
 	const files = [];
 	for (const pattern of patterns) {
-		const matches = glob.sync(pattern, { 
+		const matches = glob.sync(pattern, {
 			cwd: rootDir,
 			ignore: ['**/*.stories.svelte']
 		});
-		files.push(...matches.map(f => path.join(rootDir, f)));
+		files.push(...matches.map((f) => path.join(rootDir, f)));
 	}
-	
+
 	return files;
 }
 
@@ -81,37 +84,39 @@ export function findComponentFiles(rootDir, options = { atoms: true, molecules: 
  */
 export function findComponentByName(rootDir, componentName) {
 	const pascalName = pascalCase(componentName);
-	
+
 	const searchPaths = [
 		{ path: `src/lib/components/atoms/${pascalName}.svelte`, type: 'atom' },
 		{ path: `src/lib/components/molecules/${pascalName}.svelte`, type: 'molecule' },
-		{ path: `src/lib/components/organisms/${pascalName}.svelte`, type: 'organism' },
+		{ path: `src/lib/components/organisms/${pascalName}.svelte`, type: 'organism' }
 	];
-	
+
 	for (const { path: relPath, type } of searchPaths) {
 		const fullPath = path.join(rootDir, relPath);
 		if (fs.existsSync(fullPath)) {
 			return { path: fullPath, type };
 		}
 	}
-	
+
 	// Also check subdirectories (e.g., Card/Root.svelte)
 	const subPatterns = [
 		`src/lib/components/atoms/${pascalName}/*.svelte`,
 		`src/lib/components/molecules/${pascalName}/*.svelte`,
-		`src/lib/components/organisms/${pascalName}/*.svelte`,
+		`src/lib/components/organisms/${pascalName}/*.svelte`
 	];
-	
+
 	for (const pattern of subPatterns) {
 		const matches = glob.sync(pattern, { cwd: rootDir });
 		if (matches.length > 0) {
-			const type = pattern.includes('/atoms/') ? 'atom' 
-				: pattern.includes('/molecules/') ? 'molecule' 
-				: 'organism';
+			const type = pattern.includes('/atoms/')
+				? 'atom'
+				: pattern.includes('/molecules/')
+					? 'molecule'
+					: 'organism';
 			return { path: path.join(rootDir, matches[0]), type };
 		}
 	}
-	
+
 	return null;
 }
 
@@ -124,7 +129,7 @@ export function findComponentByName(rootDir, componentName) {
 export function findRecipeForComponent(rootDir, componentName) {
 	const camelName = camelCase(componentName);
 	const recipePath = path.join(rootDir, `src/lib/design-system/recipes/${camelName}.recipe.ts`);
-	
+
 	return fs.existsSync(recipePath) ? recipePath : null;
 }
 
@@ -157,4 +162,3 @@ export function relativePath(rootDir, filePath) {
 export function fileExists(filePath) {
 	return fs.existsSync(filePath);
 }
-

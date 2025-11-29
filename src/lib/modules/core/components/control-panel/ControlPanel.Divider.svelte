@@ -1,1 +1,1 @@
-<div class="mx-control-divider h-4 w-px bg-control-divider"></div>
+<div class="mx-control-divider bg-control-divider h-4 w-px"></div>

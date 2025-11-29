@@ -2,14 +2,14 @@
 
 /**
  * Architectural Validation Script
- * 
+ *
  * Validates design system architecture:
  * - Rule 1: Recipe ownership
- * - Rule 2: Component composition  
+ * - Rule 2: Component composition
  * - Rule 3: Layout vs styling separation
  * - Rule 4: Atomic design hierarchy
  * - Rule 5: Recipe file naming
- * 
+ *
  * Usage:
  *   npm run validate:architecture
  *   node scripts/validate-architecture.js [--json] [--fix]
@@ -85,7 +85,9 @@ if (!jsonOutput) {
 // Load exceptions
 const { exceptions, loaded: exceptionsLoaded } = loadExceptions(ROOT_DIR);
 if (!jsonOutput && exceptionsLoaded) {
-	console.log(`${colors.gray}Loaded ${exceptions.length} exception(s) from .architectural-exceptions.json${colors.reset}\n`);
+	console.log(
+		`${colors.gray}Loaded ${exceptions.length} exception(s) from .architectural-exceptions.json${colors.reset}\n`
+	);
 }
 
 // Collect all violations
@@ -168,63 +170,73 @@ if (jsonOutput) {
 	console.log(JSON.stringify(output, null, 2));
 } else {
 	console.log('');
-	
+
 	// Group violations by type for display
 	const violationGroups = [
-		{ 
-			key: 'atomic_design_hierarchy', 
+		{
+			key: 'atomic_design_hierarchy',
 			name: 'Atomic Design Hierarchy',
 			icon: '🔴',
 			description: 'Atoms importing other atoms'
 		},
-		{ 
-			key: 'recipe_ownership', 
+		{
+			key: 'recipe_ownership',
 			name: 'Recipe Ownership',
 			icon: '🟠',
 			description: 'Recipes in wrong file'
 		},
-		{ 
-			key: 'layout_styling_separation', 
+		{
+			key: 'layout_styling_separation',
 			name: 'Layout vs Styling',
 			icon: '🟡',
 			description: 'Layout classes in recipes'
 		},
-		{ 
-			key: 'component_composition', 
+		{
+			key: 'component_composition',
 			name: 'Component Composition',
 			icon: '🟣',
 			description: 'Molecule creating atom recipes'
 		},
-		{ 
-			key: 'recipe_file_naming', 
+		{
+			key: 'recipe_file_naming',
 			name: 'Recipe Naming',
 			icon: '🔵',
 			description: 'Recipe without matching component'
 		}
 	];
-	
+
 	for (const group of violationGroups) {
 		const groupViolations = violations[group.key];
 		const groupExcepted = excepted[group.key];
-		
+
 		if (groupViolations.length === 0 && groupExcepted.length === 0) {
 			console.log(`${colors.green}✓${colors.reset} ${group.name}: No violations`);
 		} else if (groupViolations.length === 0 && groupExcepted.length > 0) {
-			console.log(`${colors.green}✓${colors.reset} ${group.name}: ${colors.gray}(${groupExcepted.length} excepted)${colors.reset}`);
+			console.log(
+				`${colors.green}✓${colors.reset} ${group.name}: ${colors.gray}(${groupExcepted.length} excepted)${colors.reset}`
+			);
 		} else {
-			console.log(`${colors.red}✗${colors.reset} ${group.name}: ${groupViolations.length} violation(s)${groupExcepted.length > 0 ? ` ${colors.gray}(${groupExcepted.length} excepted)${colors.reset}` : ''}`);
-			
+			console.log(
+				`${colors.red}✗${colors.reset} ${group.name}: ${groupViolations.length} violation(s)${groupExcepted.length > 0 ? ` ${colors.gray}(${groupExcepted.length} excepted)${colors.reset}` : ''}`
+			);
+
 			for (const v of groupViolations) {
 				console.log(`  ${colors.gray}├─${colors.reset} ${v.relativeFile || v.file}`);
-				
+
 				if (v.component && v.importedAtom) {
-					console.log(`  ${colors.gray}│  ${colors.reset}${colors.yellow}${v.component}${colors.reset} imports ${colors.cyan}${v.importedAtom}${colors.reset}`);
+					console.log(
+						`  ${colors.gray}│  ${colors.reset}${colors.yellow}${v.component}${colors.reset} imports ${colors.cyan}${v.importedAtom}${colors.reset}`
+					);
 				} else if (v.recipe) {
-					console.log(`  ${colors.gray}│  ${colors.reset}Recipe: ${colors.yellow}${v.recipe}${colors.reset}`);
+					console.log(
+						`  ${colors.gray}│  ${colors.reset}Recipe: ${colors.yellow}${v.recipe}${colors.reset}`
+					);
 				} else if (v.class) {
-					console.log(`  ${colors.gray}│  ${colors.reset}Class: ${colors.yellow}${v.class}${colors.reset} (${v.classification})`);
+					console.log(
+						`  ${colors.gray}│  ${colors.reset}Class: ${colors.yellow}${v.class}${colors.reset} (${v.classification})`
+					);
 				}
-				
+
 				if (v.suggestion) {
 					console.log(`  ${colors.gray}│  → ${v.suggestion}${colors.reset}`);
 				}
@@ -232,7 +244,7 @@ if (jsonOutput) {
 			}
 		}
 	}
-	
+
 	// Summary
 	console.log(`\n${colors.bold}━━━ Summary ━━━${colors.reset}\n`);
 	console.log(`${colors.gray}Duration:${colors.reset} ${duration}s`);
@@ -240,15 +252,18 @@ if (jsonOutput) {
 	if (totalExcepted > 0) {
 		console.log(`${colors.gray}Documented exceptions:${colors.reset} ${totalExcepted}`);
 	}
-	
+
 	if (totalViolations === 0) {
 		console.log(`\n${colors.green}${colors.bold}✅ All architectural rules pass!${colors.reset}\n`);
 	} else {
-		console.log(`\n${colors.red}${colors.bold}❌ ${totalViolations} violation(s) found${colors.reset}`);
-		console.log(`${colors.gray}Fix the violations above to maintain design system integrity.${colors.reset}\n`);
+		console.log(
+			`\n${colors.red}${colors.bold}❌ ${totalViolations} violation(s) found${colors.reset}`
+		);
+		console.log(
+			`${colors.gray}Fix the violations above to maintain design system integrity.${colors.reset}\n`
+		);
 	}
 }
 
 // Exit with appropriate code
 process.exit(totalViolations > 0 ? 1 : 0);
-

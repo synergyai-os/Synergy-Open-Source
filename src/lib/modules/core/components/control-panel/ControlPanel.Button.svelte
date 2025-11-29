@@ -17,7 +17,9 @@
 	{onclick}
 	class="rounded-button transition-colors {active
 		? 'bg-control-button-active text-primary'
-		: 'text-secondary hover:bg-control-button-hover'} {disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
+		: 'hover:bg-control-button-hover text-secondary'} {disabled
+		? 'cursor-not-allowed opacity-50'
+		: 'cursor-pointer'}"
 	style="padding: var(--spacing-2);"
 >
 	{@render children()}

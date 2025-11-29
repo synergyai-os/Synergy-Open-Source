@@ -9,4 +9,3 @@
 	<!-- ✅ Acceptable: Variable reference, not hardcoded multiplier -->
 	Dynamic positioning
 </div>
-

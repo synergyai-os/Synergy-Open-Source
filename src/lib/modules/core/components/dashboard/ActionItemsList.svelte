@@ -116,29 +116,29 @@
 <!-- Filter Tabs -->
 <Tabs.Root bind:value={activeFilter}>
 	<Tabs.List
-		class="mb-content-section flex size-tab gap-2 rounded-tab-container border-b border-border-base"
+		class="mb-content-section size-tab rounded-tab-container border-border-base flex gap-2 border-b"
 	>
 		<Tabs.Trigger
 			value="all"
-			class="border-b-2 border-transparent px-2 py-nav-item text-small font-medium text-text-secondary transition-colors hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+			class="py-nav-item text-small text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent px-2 font-medium transition-colors"
 		>
 			All <Badge>{allCount}</Badge>
 		</Tabs.Trigger>
 		<Tabs.Trigger
 			value="todo"
-			class="border-b-2 border-transparent px-2 py-nav-item text-small font-medium text-text-secondary transition-colors hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+			class="py-nav-item text-small text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent px-2 font-medium transition-colors"
 		>
 			To Do <Badge>{todoCount}</Badge>
 		</Tabs.Trigger>
 		<Tabs.Trigger
 			value="in-progress"
-			class="border-b-2 border-transparent px-2 py-nav-item text-small font-medium text-text-secondary transition-colors hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+			class="py-nav-item text-small text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent px-2 font-medium transition-colors"
 		>
 			In Progress <Badge>{inProgressCount}</Badge>
 		</Tabs.Trigger>
 		<Tabs.Trigger
 			value="done"
-			class="border-b-2 border-transparent px-2 py-nav-item text-small font-medium text-text-secondary transition-colors hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+			class="py-nav-item text-small text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent px-2 font-medium transition-colors"
 		>
 			Done <Badge>{doneCount}</Badge>
 		</Tabs.Trigger>
@@ -147,14 +147,17 @@
 	<!-- Action Items List -->
 	<Tabs.Content value={activeFilter}>
 		{#if actionItemsQuery?.isLoading}
-			<div class="text-center text-text-secondary" style="padding-block: var(--spacing-8);">Loading action items...</div>
+			<div class="text-text-secondary text-center" style="padding-block: var(--spacing-8);">
+				Loading action items...
+			</div>
 		{:else if filteredItems().length === 0}
 			<!-- Empty State -->
 			<div
-				class="rounded-card border border-dashed border-border-base bg-surface text-center" style="padding-block: var(--spacing-8);"
+				class="border-border-base rounded-card border border-dashed bg-surface text-center"
+				style="padding-block: var(--spacing-8);"
 			>
 				<svg
-					class="mx-auto icon-xl text-text-tertiary"
+					class="icon-xl text-text-tertiary mx-auto"
 					fill="none"
 					viewBox="0 0 24 24"
 					stroke="currentColor"
@@ -166,7 +169,7 @@
 						d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
 					/>
 				</svg>
-				<p class="mt-content-section text-small font-medium text-text-primary">
+				<p class="mt-content-section text-small text-text-primary font-medium">
 					{#if activeFilter === 'all'}
 						No action items yet
 					{:else if activeFilter === 'todo'}
@@ -183,10 +186,10 @@
 			</div>
 		{:else}
 			<!-- List of action items -->
-			<div class="divide-y divide-border-base rounded-card border border-border-base bg-surface">
+			<div class="divide-border-base border-border-base divide-y rounded-card border bg-surface">
 				{#each filteredItems() as item (item._id)}
 					<div
-						class="group p-inbox-card hover:bg-surface-hover flex items-start gap-2-gap transition-colors"
+						class="group p-inbox-card hover:bg-surface-hover gap-2-gap flex items-start transition-colors"
 					>
 						<!-- Status Checkbox -->
 						<button
@@ -217,11 +220,12 @@
 
 							<!-- Metadata -->
 							<div
-								class="mt-content-section flex flex-wrap items-center gap-content-section text-label text-text-tertiary"
+								class="mt-content-section gap-content-section text-text-tertiary flex flex-wrap items-center text-label"
 							>
 								<!-- Type Badge -->
 								<span
-									class="inline-flex items-center rounded-chip border border-border-base bg-surface px-badge py-badge" style="gap: var(--spacing-1);"
+									class="rounded-chip border-border-base px-badge py-badge inline-flex items-center border bg-surface"
+									style="gap: var(--spacing-1);"
 								>
 									{item.type === 'next-step' ? '⚡' : '📦'}
 									{item.type === 'next-step' ? 'Next Step' : 'Project'}
@@ -245,7 +249,8 @@
 								<!-- Meeting Link -->
 								<button
 									onclick={() => handleNavigateToMeeting(item.meetingId)}
-									class="inline-flex items-center text-accent-primary transition-colors hover:text-accent-hover" style="gap: var(--spacing-1);"
+									class="text-accent-primary hover:text-accent-hover inline-flex items-center transition-colors"
+									style="gap: var(--spacing-1);"
 								>
 									<svg class="icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 										<path

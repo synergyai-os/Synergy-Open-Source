@@ -84,7 +84,7 @@
 			disabled={isCleaning}
 			class="group flex w-full items-center gap-button rounded-button bg-status-error px-2 py-[0.375rem] text-sm text-inverse transition-all duration-150 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
 		>
-			<Icon type="delete" size="sm" class="flex-shrink-0" />
+			<Icon type="delete" size="sm" />
 			<Text variant="body" size="sm" as="span" class="font-normal">
 				{isCleaning ? 'Cleaning...' : 'Confirm Delete'}
 			</Text>
@@ -101,7 +101,7 @@
 	</div>
 {:else}
 	<button type="button" onclick={handleClean} class={buttonClasses}>
-		<Icon type="delete" size="sm" class="flex-shrink-0" />
+		<Icon type="delete" size="sm" />
 		<Text variant="body" size="sm" as="span" class="min-w-0 flex-1 font-normal">
 			Clean Readwise Sync
 		</Text>

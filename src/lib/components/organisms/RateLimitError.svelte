@@ -29,7 +29,7 @@
 	const defaultMessage = $derived(`Whoa, slow down! You've tried ${actionLabel} too many times.`);
 </script>
 
-<div class="rounded-input border border-error bg-error px-input-x py-input-y">
+<div class="bg-error rounded-input border border-error px-input-x py-input-y">
 	<div class="flex items-start gap-2">
 		<!-- Error Icon -->
 		<svg
@@ -48,17 +48,17 @@
 		</svg>
 
 		<div class="flex-1">
-			<p class="text-button font-medium text-error-secondary">
+			<p class="text-button text-error-secondary font-medium">
 				{message || defaultMessage}
 			</p>
 
 			{#if timeRemaining > 0}
-				<p class="gap-2 text-button text-error">
+				<p class="text-button gap-2 text-error">
 					Please wait <span class="font-semibold tabular-nums">{timeRemaining}</span>
 					{timeRemaining === 1 ? 'second' : 'seconds'} before trying again.
 				</p>
 			{:else}
-				<p class="gap-2 text-button text-error">You can try again now!</p>
+				<p class="text-button gap-2 text-error">You can try again now!</p>
 			{/if}
 		</div>
 	</div>

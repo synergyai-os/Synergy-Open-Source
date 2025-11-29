@@ -21,7 +21,7 @@
 <DropdownMenu.Root bind:open={menuOpen}>
 	<DropdownMenu.Trigger
 		type="button"
-		class="flex icon-xl items-center justify-center rounded-button text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
+		class="icon-xl hover:bg-hover-solid flex items-center justify-center rounded-button text-secondary transition-colors hover:text-primary"
 		aria-label="Filter inbox items"
 	>
 		<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -36,13 +36,13 @@
 
 	<DropdownMenu.Portal>
 		<DropdownMenu.Content
-			class="z-50 min-w-dropdown rounded-button border border-base bg-elevated py-badge shadow-card"
+			class="min-w-dropdown border-base py-badge z-50 rounded-button border bg-elevated shadow-card"
 			side="bottom"
 			align="end"
 			sideOffset={4}
 		>
 			<DropdownMenu.Item
-				class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-small text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+				class="px-menu-item py-menu-item text-small hover:bg-hover-solid focus:bg-hover-solid flex cursor-pointer items-center justify-between text-primary outline-none"
 				textValue="All"
 				onSelect={() => handleFilterSelect('all')}
 			>
@@ -65,7 +65,7 @@
 			</DropdownMenu.Item>
 
 			<DropdownMenu.Item
-				class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-small text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+				class="px-menu-item py-menu-item text-small hover:bg-hover-solid focus:bg-hover-solid flex cursor-pointer items-center justify-between text-primary outline-none"
 				textValue="Readwise"
 				onSelect={() => handleFilterSelect('readwise_highlight')}
 			>
@@ -88,7 +88,7 @@
 			</DropdownMenu.Item>
 
 			<DropdownMenu.Item
-				class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-small text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+				class="px-menu-item py-menu-item text-small hover:bg-hover-solid focus:bg-hover-solid flex cursor-pointer items-center justify-between text-primary outline-none"
 				textValue="Photos"
 				onSelect={() => handleFilterSelect('photo_note')}
 			>
@@ -111,7 +111,7 @@
 			</DropdownMenu.Item>
 
 			<DropdownMenu.Item
-				class="flex cursor-pointer items-center justify-between px-menu-item py-menu-item text-small text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+				class="px-menu-item py-menu-item text-small hover:bg-hover-solid focus:bg-hover-solid flex cursor-pointer items-center justify-between text-primary outline-none"
 				textValue="Manual"
 				onSelect={() => handleFilterSelect('manual_text')}
 			>

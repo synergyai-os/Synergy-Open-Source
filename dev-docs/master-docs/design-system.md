@@ -611,6 +611,50 @@ Universal spacing pattern for any component with headers, items, and dividers:
 
 **Applies to**: Dropdown menus, sidebars, cards with sections, settings panels, modals with lists, accordions, tables
 
+### 9.4 Page Header Pattern
+
+Standard pattern for page headers with title and divider. Ensures consistent spacing across all pages.
+
+#### Pattern Structure
+
+```
+┌─────────────────────────────────────┐
+│  Page Title                          │  ← Header content
+│  ───────────────────────────────────│  ← Border divider (border-subtle)
+└─────────────────────────────────────┘
+```
+
+#### Implementation
+
+**Required Spacing:**
+- **Height**: `2.5rem` (40px) - Fixed height for consistent vertical rhythm
+- **Padding inline**: `var(--spacing-4)` (16px) - Horizontal padding
+- **Padding block**: `var(--spacing-2)` (8px) - Vertical padding (top and bottom)
+- **Border**: `border-b border-subtle` - Bottom divider
+
+**Example:**
+
+```svelte
+<!-- ✅ CORRECT: Page header with consistent spacing -->
+<div
+  class="sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b border-subtle bg-surface"
+  style="height: 2.5rem; padding-inline: var(--spacing-4); padding-block: var(--spacing-2);"
+>
+  <h2 class="text-small flex items-center gap-2 font-normal text-secondary">
+    Page Title
+  </h2>
+  <!-- Optional: Actions, filters, etc. -->
+</div>
+```
+
+**Key Rules:**
+1. **Always use the same height** (`2.5rem`) for all page headers
+2. **Always use the same padding** (`var(--spacing-4)` inline, `var(--spacing-2)` block)
+3. **Always include the divider** (`border-b border-subtle`)
+4. **Sticky positioning** is optional but recommended for scrollable content
+
+**Applies to**: All page headers (Inbox, Meetings, Dashboard, etc.)
+
 #### When to Add New Tokens
 
 If you need a spacing value that doesn't exist:

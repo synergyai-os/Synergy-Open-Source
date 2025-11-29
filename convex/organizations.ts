@@ -1106,7 +1106,10 @@ export const getAllOrgBranding = query({
 			.collect();
 
 		// Get branding for each org (only if branding exists)
-		const brandingMap: Record<string, { primaryColor: string; secondaryColor: string; logo?: string }> = {};
+		const brandingMap: Record<
+			string,
+			{ primaryColor: string; secondaryColor: string; logo?: string }
+		> = {};
 
 		await Promise.all(
 			memberships.map(async (membership) => {

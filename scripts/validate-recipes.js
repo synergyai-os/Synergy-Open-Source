@@ -37,10 +37,7 @@ const colors = {
 function extractUtilityClasses() {
 	const utilityClasses = new Set();
 	// Check both src/styles/**/*.css and src/app.css
-	const cssFiles = [
-		...glob.sync('src/styles/**/*.css', { cwd: ROOT_DIR }),
-		'src/app.css'
-	];
+	const cssFiles = [...glob.sync('src/styles/**/*.css', { cwd: ROOT_DIR }), 'src/app.css'];
 
 	const utilityRegex = /@utility\s+([\w-]+)\s*{/g;
 
@@ -106,7 +103,7 @@ function extractRecipeClasses(recipeContent) {
 			individualClasses.forEach((cls) => {
 				// Extract base class name from modifier prefixes (e.g., 'disabled:opacity-50' -> 'opacity-50')
 				const baseClass = cls.includes(':') ? cls.split(':').pop() : cls;
-				
+
 				classes.push({
 					class: baseClass, // Store base class for validation
 					fullClass: cls, // Store full class (with modifiers) for context
@@ -267,25 +264,25 @@ function isStandardTailwindClass(className) {
 /**
  * Extract component-specific semantic tokens from design-tokens-semantic.json
  * Returns map of component name -> array of semantic token paths
- * 
+ *
  * NOTE: We only check semantic tokens, not base tokens, because:
  * - Base tokens (spacing.2, spacing.3, etc.) from design-tokens-base.json do NOT generate utilities
  * - Only semantic tokens (spacing.button.gap, color.interactive.primary) generate utilities
  * - Recipes should use semantic token utilities (gap-button) not base token values (gap-2)
  * - Base tokens are the foundation that semantic tokens reference
  * - See scripts/style-dictionary/transforms.js line 141: base spacing tokens are skipped
- * 
+ *
  * @returns {Map<string, Array<{path: string, utility: string}>>}
  */
 function extractComponentSemanticTokens() {
 	const componentTokens = new Map();
-	
+
 	if (!fs.existsSync(SEMANTIC_TOKENS_FILE)) {
 		return componentTokens;
 	}
 
 	const semanticTokens = JSON.parse(fs.readFileSync(SEMANTIC_TOKENS_FILE, 'utf-8'));
-	
+
 	// Map component names to their semantic token paths
 	const componentMappings = {
 		button: {
@@ -320,7 +317,7 @@ function extractComponentSemanticTokens() {
 	// Extract tokens for each component
 	for (const [component, mappings] of Object.entries(componentMappings)) {
 		const tokens = [];
-		
+
 		// Extract spacing tokens (e.g., spacing.button.gap -> gap-button)
 		if (mappings.spacing) {
 			const spacingObj = getNestedValue(semanticTokens, mappings.spacing);
@@ -402,7 +399,13 @@ function extractComponentSemanticTokens() {
  * @param {Map<string, Array>} componentTokens - Map of component semantic tokens
  * @returns {Object|null} Warning object if semantic token should be used, null otherwise
  */
-function checkComponentSemanticToken(recipeFileName, className, fullString, utilityClasses, componentTokens) {
+function checkComponentSemanticToken(
+	recipeFileName,
+	className,
+	fullString,
+	utilityClasses,
+	componentTokens
+) {
 	// Extract component name from recipe file (e.g., 'button.recipe.ts' -> 'button')
 	const componentMatch = recipeFileName.match(/(\w+)\.recipe\.ts$/);
 	if (!componentMatch) {
@@ -419,16 +422,19 @@ function checkComponentSemanticToken(recipeFileName, className, fullString, util
 		// Gap patterns: gap-2, gap-3, gap-4 should use gap-button, gap-input, etc.
 		gap: {
 			pattern: /^gap-[0-9]+$/,
-			findToken: (tokens) => tokens.find(t => t.category === 'spacing' && t.utility.startsWith('gap-'))
+			findToken: (tokens) =>
+				tokens.find((t) => t.category === 'spacing' && t.utility.startsWith('gap-'))
 		},
 		// Padding patterns: px-2, py-2 should use px-button, py-button, etc.
 		px: {
 			pattern: /^px-[0-9]+$/,
-			findToken: (tokens) => tokens.find(t => t.category === 'spacing' && t.utility.startsWith('px-'))
+			findToken: (tokens) =>
+				tokens.find((t) => t.category === 'spacing' && t.utility.startsWith('px-'))
 		},
 		py: {
 			pattern: /^py-[0-9]+$/,
-			findToken: (tokens) => tokens.find(t => t.category === 'spacing' && t.utility.startsWith('py-'))
+			findToken: (tokens) =>
+				tokens.find((t) => t.category === 'spacing' && t.utility.startsWith('py-'))
 		},
 		// Color patterns: bg-accent-primary should use bg-interactive-primary
 		bgAccent: {
@@ -439,7 +445,9 @@ function checkComponentSemanticToken(recipeFileName, className, fullString, util
 					const suffix = match[1];
 					// Map accent-primary -> interactive-primary, accent-hover -> interactive-primaryHover
 					const mappedSuffix = suffix === 'hover' ? 'primaryHover' : suffix;
-					return tokens.find(t => t.category === 'color' && t.utility === `bg-interactive-${mappedSuffix}`);
+					return tokens.find(
+						(t) => t.category === 'color' && t.utility === `bg-interactive-${mappedSuffix}`
+					);
 				}
 				return null;
 			}
@@ -496,7 +504,7 @@ function checkSemanticTokenPreference(className, fullString, utilityClasses) {
 
 	// Check context to determine if semantic token is appropriate
 	const context = fullString.toLowerCase();
-	
+
 	// For opacity-50, check if used with disabled:
 	if (className === 'opacity-50' && context.includes('disabled:')) {
 		return {
@@ -571,7 +579,13 @@ function validateRecipe(filePath, utilityClasses, componentTokens) {
 
 	for (const { class: className, fullClass, line, fullString } of recipeClasses) {
 		// Check for component-specific semantic token usage FIRST
-		const componentWarning = checkComponentSemanticToken(fileName, className, fullClass || fullString, utilityClasses, componentTokens);
+		const componentWarning = checkComponentSemanticToken(
+			fileName,
+			className,
+			fullClass || fullString,
+			utilityClasses,
+			componentTokens
+		);
 		if (componentWarning) {
 			warnings.push({
 				...componentWarning,
@@ -583,7 +597,11 @@ function validateRecipe(filePath, utilityClasses, componentTokens) {
 
 		// Check for semantic token preference (opacity, etc.)
 		// Use fullClass (with modifiers) for context checking
-		const semanticWarning = checkSemanticTokenPreference(className, fullClass || fullString, utilityClasses);
+		const semanticWarning = checkSemanticTokenPreference(
+			className,
+			fullClass || fullString,
+			utilityClasses
+		);
 		if (semanticWarning) {
 			warnings.push({
 				...semanticWarning,
@@ -637,7 +655,9 @@ function main() {
 	// Step 1.5: Extract component-specific semantic tokens
 	console.log(`${colors.gray}Extracting component semantic tokens...${colors.reset}`);
 	const componentTokens = extractComponentSemanticTokens();
-	console.log(`${colors.green}✓${colors.reset} Found semantic tokens for ${componentTokens.size} component(s)\n`);
+	console.log(
+		`${colors.green}✓${colors.reset} Found semantic tokens for ${componentTokens.size} component(s)\n`
+	);
 
 	// Step 2: Find all recipe files
 	const recipeFiles = glob.sync('src/lib/design-system/recipes/**/*.recipe.ts', { cwd: ROOT_DIR });
@@ -663,7 +683,7 @@ function main() {
 
 	for (const result of results) {
 		const relativePath = path.relative(ROOT_DIR, result.filePath);
-		
+
 		if (result.valid && result.warnings.length === 0) {
 			console.log(`${colors.green}✓${colors.reset} ${relativePath}`);
 		} else {
@@ -725,7 +745,9 @@ function main() {
 	if (hasErrors) {
 		console.log(`${colors.red}✗ ${invalidCount} recipe(s) failed validation${colors.reset}`);
 		if (hasWarnings) {
-			console.log(`${colors.yellow}⚠ ${warningCount} warning(s) found (semantic token preferences)${colors.reset}`);
+			console.log(
+				`${colors.yellow}⚠ ${warningCount} warning(s) found (semantic token preferences)${colors.reset}`
+			);
 		}
 		console.log(`${colors.gray}Fix the errors above and run again${colors.reset}\n`);
 		process.exit(1);

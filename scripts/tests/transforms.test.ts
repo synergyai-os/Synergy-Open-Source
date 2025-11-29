@@ -97,9 +97,7 @@ describe('Transform Logic Validation', () => {
 			const utilities = getGeneratedUtilities();
 
 			// Find borderRadius tokens
-			const borderRadiusTokens = tokens.filter((t) =>
-				t.path.join('.').includes('borderRadius')
-			);
+			const borderRadiusTokens = tokens.filter((t) => t.path.join('.').includes('borderRadius'));
 
 			// Each borderRadius token should generate a rounded-* utility
 			for (const token of borderRadiusTokens) {
@@ -191,4 +189,3 @@ describe('Transform Logic Validation', () => {
 		});
 	});
 });
-

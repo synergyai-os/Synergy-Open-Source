@@ -35,9 +35,9 @@
 	onOpenChange={(value) => !value && organizations.closeModal('createOrganization')}
 >
 	<Dialog.Content
-		class="w-[min(500px,90vw)] max-w-lg rounded-lg border border-base bg-surface text-primary shadow-xl"
+		class="border-base w-[min(500px,90vw)] max-w-lg rounded-lg border bg-surface text-primary shadow-xl"
 	>
-		<div class="space-y-6 px-inbox-container py-inbox-container">
+		<div class="px-inbox-container py-inbox-container space-y-6">
 			<div>
 				<Dialog.Title class="text-lg font-semibold text-primary">Create organization</Dialog.Title>
 				<Dialog.Description class="mt-1 text-sm text-secondary">
@@ -55,7 +55,7 @@
 				<label class="flex flex-col gap-1">
 					<span class="text-sm font-medium text-primary">Organization name</span>
 					<input
-						class="w-full rounded-md border border-base bg-elevated px-2 py-nav-item text-sm text-primary focus:border-accent-primary focus:outline-none"
+						class="border-base py-nav-item focus:border-accent-primary w-full rounded-md border bg-elevated px-2 text-sm text-primary focus:outline-none"
 						placeholder="e.g. SynergyOS Labs"
 						bind:value={organizationName}
 						required
@@ -66,7 +66,7 @@
 				<div class="flex items-center justify-end gap-2 pt-2">
 					<button
 						type="button"
-						class="rounded-md border border-base px-3 py-1.5 text-sm font-medium text-secondary hover:text-primary disabled:opacity-50"
+						class="border-base rounded-md border px-3 py-1.5 text-sm font-medium text-secondary hover:text-primary disabled:opacity-50"
 						onclick={() => organizations.closeModal('createOrganization')}
 						disabled={organizations.loading.createOrganization}
 					>
@@ -74,7 +74,7 @@
 					</button>
 					<button
 						type="submit"
-						class="text-on-solid flex items-center gap-2 rounded-md bg-accent-primary px-3 py-1.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
+						class="text-on-solid bg-accent-primary flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
 						disabled={organizations.loading.createOrganization}
 					>
 						{#if organizations.loading.createOrganization}
@@ -114,9 +114,9 @@
 	onOpenChange={(value) => !value && organizations.closeModal('joinOrganization')}
 >
 	<Dialog.Content
-		class="w-[min(500px,90vw)] max-w-lg rounded-lg border border-base bg-surface text-primary shadow-xl"
+		class="border-base w-[min(500px,90vw)] max-w-lg rounded-lg border bg-surface text-primary shadow-xl"
 	>
-		<div class="space-y-6 px-inbox-container py-inbox-container">
+		<div class="px-inbox-container py-inbox-container space-y-6">
 			<div>
 				<Dialog.Title class="text-lg font-semibold text-primary">Join organization</Dialog.Title>
 				<Dialog.Description class="mt-1 text-sm text-secondary">
@@ -134,7 +134,7 @@
 				<label class="flex flex-col gap-1">
 					<span class="text-sm font-medium text-primary">Invite code</span>
 					<input
-						class="w-full rounded-md border border-base bg-elevated px-2 py-nav-item text-sm text-primary focus:border-accent-primary focus:outline-none"
+						class="border-base py-nav-item focus:border-accent-primary w-full rounded-md border bg-elevated px-2 text-sm text-primary focus:outline-none"
 						placeholder="POA-ADMIN-4820"
 						bind:value={organizationCode}
 						required
@@ -144,14 +144,14 @@
 				<div class="flex items-center justify-end gap-2 pt-2">
 					<button
 						type="button"
-						class="rounded-md border border-base px-3 py-1.5 text-sm font-medium text-secondary hover:text-primary"
+						class="border-base rounded-md border px-3 py-1.5 text-sm font-medium text-secondary hover:text-primary"
 						onclick={() => organizations.closeModal('joinOrganization')}
 					>
 						Cancel
 					</button>
 					<button
 						type="submit"
-						class="text-on-solid rounded-md bg-accent-primary px-3 py-1.5 text-sm font-medium"
+						class="text-on-solid bg-accent-primary rounded-md px-3 py-1.5 text-sm font-medium"
 					>
 						Join
 					</button>

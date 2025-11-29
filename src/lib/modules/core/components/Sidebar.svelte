@@ -19,7 +19,7 @@
 	import SidebarHeader from '$lib/modules/core/components/SidebarHeader.svelte';
 	import CleanReadwiseButton from '$lib/modules/core/components/CleanReadwiseButton.svelte';
 	import { LoadingOverlay } from '$lib/components/atoms';
-	import { NavItem } from '$lib/components/molecules';
+	import { NavItem, ThemeToggle } from '$lib/components/molecules';
 	import { sidebarRecipe } from '$lib/design-system/recipes';
 	import type {
 		OrganizationsModuleAPI,
@@ -693,6 +693,14 @@
 							</p>
 						{/if}
 					</section>
+
+					<!-- Theme Toggle -->
+					<div
+						class="flex items-center"
+						style="padding-inline: var(--spacing-2); padding-block: var(--spacing-2); margin-top: var(--spacing-content-sectionGap);"
+					>
+						<ThemeToggle />
+					</div>
 				</nav>
 			{/if}
 
@@ -961,6 +969,14 @@
 						</p>
 					{/if}
 				</section>
+
+				<!-- Theme Toggle -->
+				<div
+					class="flex items-center"
+					style="padding-inline: var(--spacing-2); padding-block: var(--spacing-2); margin-top: var(--spacing-content-sectionGap);"
+				>
+					<ThemeToggle />
+				</div>
 			</nav>
 		{/if}
 

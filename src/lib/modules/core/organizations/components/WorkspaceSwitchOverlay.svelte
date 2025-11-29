@@ -57,15 +57,15 @@
 
 {#if show}
 	<div
-		class="via-base fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-accent-primary/10 to-accent-primary/5 backdrop-blur-xl"
+		class="via-base from-accent-primary/10 to-accent-primary/5 fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br backdrop-blur-xl"
 		in:fade={{ duration: 0 }}
 		out:fade={{ duration: 300 }}
 	>
-		<div class="flex flex-col items-center gap-content-section">
+		<div class="gap-content-section flex flex-col items-center">
 			<!-- Animated spinner -->
 			<div class="relative h-12 w-12">
 				<div
-					class="absolute inset-0 animate-spin rounded-full border-4 border-border-base border-t-accent-primary"
+					class="border-border-base border-t-accent-primary absolute inset-0 animate-spin rounded-full border-4"
 				></div>
 			</div>
 

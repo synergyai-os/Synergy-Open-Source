@@ -10,10 +10,6 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 		// and cryptographically signed - safe to expose for auth purposes
 		// Only available when user is authenticated (undefined for public routes)
 		sessionId: locals.auth.sessionId ?? undefined,
-		activeWorkspace: locals.auth.user?.activeWorkspace || {
-			type: 'personal',
-			id: null,
-			name: 'Private workspace'
-		}
+		activeWorkspace: locals.auth.user?.activeWorkspace
 	};
 };

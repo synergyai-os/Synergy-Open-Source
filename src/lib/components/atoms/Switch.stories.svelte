@@ -22,7 +22,7 @@
 	{#snippet template(args)}
 		<Switch.Root
 			{...args}
-			class="relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-accent-primary focus:ring-offset-2 focus:outline-none {args.checked
+			class="focus:ring-accent-primary relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none {args.checked
 				? 'bg-accent-primary'
 				: 'bg-toggle-off'}"
 		>
@@ -37,7 +37,7 @@
 	{#snippet template(args)}
 		<Switch.Root
 			{...args}
-			class="relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-accent-primary focus:ring-offset-2 focus:outline-none {args.checked
+			class="focus:ring-accent-primary relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none {args.checked
 				? 'bg-accent-primary'
 				: 'bg-toggle-off'}"
 		>
@@ -53,7 +53,7 @@
 		<div class="flex items-center gap-2">
 			<Switch.Root
 				{...args}
-				class="relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-accent-primary focus:ring-offset-2 focus:outline-none {args.checked
+				class="focus:ring-accent-primary relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none {args.checked
 					? 'bg-accent-primary'
 					: 'bg-toggle-off'}"
 			>
@@ -71,7 +71,7 @@
 		<div class="flex items-center gap-2">
 			<Switch.Root
 				{...args}
-				class="relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent opacity-50 transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-accent-primary focus:ring-offset-2 focus:outline-none {args.checked
+				class="focus:ring-accent-primary relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent opacity-50 transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none {args.checked
 					? 'bg-accent-primary'
 					: 'bg-toggle-off'}"
 			>
@@ -89,7 +89,7 @@
 		<div class="flex items-center gap-2">
 			<Switch.Root
 				{...args}
-				class="relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent opacity-50 transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-accent-primary focus:ring-offset-2 focus:outline-none {args.checked
+				class="focus:ring-accent-primary relative inline-flex h-4 w-8 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent opacity-50 transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none {args.checked
 					? 'bg-accent-primary'
 					: 'bg-toggle-off'}"
 			>

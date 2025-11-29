@@ -45,12 +45,12 @@ newContent = newContent.replace(codeBlockRegex, (match, prefix, blockContent, su
 	console.log(`  Content length: ${blockContent.length}`);
 	console.log(`  Has ${oldUtil}: ${blockContent.includes(oldUtil)}`);
 	console.log(`  Has ${newUtil}: ${blockContent.includes(newUtil)}`);
-	
+
 	const utilRegex = new RegExp(`\\b${escapedOld}\\b`, 'g');
 	utilRegex.lastIndex = 0;
 	const testResult = utilRegex.test(blockContent);
 	console.log(`  Regex test: ${testResult}`);
-	
+
 	if (testResult) {
 		utilRegex.lastIndex = 0;
 		if (!blockContent.includes(newUtil)) {
@@ -76,7 +76,7 @@ if (replacements > 0) {
 	console.log(`\n=== VERIFICATION ===`);
 	console.log(`Still has ${oldUtil}: ${newContent.includes(oldUtil)}`);
 	console.log(`Now has ${newUtil}: ${newContent.includes(newUtil)}`);
-	
+
 	// Show first replacement
 	const oldIndex = content.indexOf(oldUtil);
 	const newIndex = newContent.indexOf(newUtil);
@@ -85,4 +85,3 @@ if (replacements > 0) {
 		console.log(`New context: ${newContent.substring(Math.max(0, newIndex - 30), newIndex + 50)}`);
 	}
 }
-

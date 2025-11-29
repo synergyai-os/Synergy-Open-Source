@@ -23,11 +23,7 @@ describe('validateWCAGContrast', () => {
 	});
 
 	test('passes for UI elements (3:1)', () => {
-		const result = validateWCAGContrast(
-			'oklch(60% 0.2 240)',
-			'oklch(98% 0.002 247.839)',
-			3.0
-		);
+		const result = validateWCAGContrast('oklch(60% 0.2 240)', 'oklch(98% 0.002 247.839)', 3.0);
 		expect(result.valid).toBe(true);
 		expect(result.ratio).toBeGreaterThanOrEqual(3.0);
 	});
@@ -68,4 +64,3 @@ describe('validateOrgColor', () => {
 		expect(result.suggestion).toMatch(/\d+%/); // Contains numeric suggestion
 	});
 });
-

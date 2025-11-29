@@ -435,7 +435,7 @@
 <div class="flex h-full flex-col">
 	<!-- Header -->
 	<header
-		class="flex h-system-header flex-shrink-0 items-center justify-between border-b border-base px-inbox-container py-system-header"
+		class="h-system-header border-base py-system-header flex flex-shrink-0 items-center justify-between border-b px-page"
 	>
 		<div>
 			<h1 class="text-h2 font-bold text-primary">RBAC Management</h1>
@@ -449,16 +449,16 @@
 	</header>
 
 	<!-- Main Content -->
-	<main class="flex-1 overflow-y-auto px-inbox-container py-system-content">
+	<main class="py-system-content flex-1 overflow-y-auto px-page">
 		<!-- Overview Cards -->
-		<div class="mb-content-padding grid grid-cols-1 gap-content-section md:grid-cols-3">
+		<div class="mb-content-padding gap-content-section grid grid-cols-1 md:grid-cols-3">
 			<button
 				type="button"
 				onclick={() => {
 					activeTab = 'roles';
 					roleTypeFilter = 'all';
 				}}
-				class="rounded-card border border-base bg-surface px-card py-card text-left transition-colors hover:bg-hover-solid"
+				class="border-base px-card py-card hover:bg-hover-solid rounded-card border bg-surface text-left transition-colors"
 			>
 				<p class="text-label text-tertiary">Total Roles</p>
 				<p class="mt-form-field-gap text-h2 font-semibold text-primary">{totalRoles}</p>
@@ -472,7 +472,7 @@
 				onclick={() => {
 					activeTab = 'permissions';
 				}}
-				class="rounded-card border border-base bg-surface px-card py-card text-left transition-colors hover:bg-hover-solid"
+				class="border-base px-card py-card hover:bg-hover-solid rounded-card border bg-surface text-left transition-colors"
 			>
 				<p class="text-label text-tertiary">Total Permissions</p>
 				<p class="mt-form-field-gap text-h2 font-semibold text-primary">{totalPermissions}</p>
@@ -486,7 +486,7 @@
 				onclick={() => {
 					activeTab = 'assignments';
 				}}
-				class="rounded-card border border-base bg-surface px-card py-card text-left transition-colors hover:bg-hover-solid"
+				class="border-base px-card py-card hover:bg-hover-solid rounded-card border bg-surface text-left transition-colors"
 			>
 				<p class="text-label text-tertiary">Active Assignments</p>
 				<p class="mt-form-field-gap text-h2 font-semibold text-primary">{activeAssignments}</p>
@@ -496,7 +496,7 @@
 
 		<!-- Quick Actions Bar -->
 		<div
-			class="mb-content-padding flex flex-wrap items-center gap-2 rounded-card border border-base bg-surface px-card py-card"
+			class="mb-content-padding border-base px-card py-card flex flex-wrap items-center gap-2 rounded-card border bg-surface"
 		>
 			<Button variant="primary" onclick={() => (createRoleModalOpen = true)}>Create Role</Button>
 			<Button variant="secondary" onclick={() => (createPermissionModalOpen = true)}>
@@ -508,7 +508,7 @@
 			<a
 				href="/dev-docs/2-areas/rbac/RBAC-SUMMARY"
 				target="_blank"
-				class="ml-auto text-small text-secondary hover:text-primary hover:underline"
+				class="text-small ml-auto text-secondary hover:text-primary hover:underline"
 			>
 				View Documentation →
 			</a>
@@ -517,9 +517,9 @@
 		<!-- Guidance Card -->
 		{#if !guidanceDismissed}
 			<div
-				class="mb-content-padding rounded-card border border-accent-primary/20 bg-accent-primary/5 px-card py-card"
+				class="mb-content-padding border-accent-primary/20 bg-accent-primary/5 px-card py-card rounded-card border"
 			>
-				<div class="flex items-start justify-between gap-content-section">
+				<div class="gap-content-section flex items-start justify-between">
 					<div class="flex-1">
 						<h3 class="mb-content-section text-small font-semibold text-primary">What is RBAC?</h3>
 						<p class="mb-content-section text-small text-secondary">
@@ -528,7 +528,7 @@
 						</p>
 						<div class="text-small text-secondary">
 							<p class="mb-form-field-gap font-medium">Common Tasks:</p>
-							<ul class="ml-content-section list-disc space-y-form-field-gap">
+							<ul class="ml-content-section space-y-form-field-gap list-disc">
 								<li>Create custom roles for your organization</li>
 								<li>Assign roles to users to grant permissions</li>
 								<li>View permissions to understand what each role can do</li>
@@ -556,22 +556,22 @@
 
 		<!-- Tabs -->
 		<Tabs.Root bind:value={activeTab}>
-			<Tabs.List class="flex size-tab rounded-tab-container border-b border-border-base">
+			<Tabs.List class="size-tab rounded-tab-container border-border-base flex border-b">
 				<Tabs.Trigger
 					value="roles"
-					class="border-b-2 border-transparent px-form-section py-header text-button font-medium text-text-secondary transition-colors hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+					class="px-form-section py-header text-button text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent font-medium transition-colors"
 				>
 					Roles ({roles.length})
 				</Tabs.Trigger>
 				<Tabs.Trigger
 					value="permissions"
-					class="border-b-2 border-transparent px-form-section py-header text-button font-medium text-text-secondary transition-colors hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+					class="px-form-section py-header text-button text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent font-medium transition-colors"
 				>
 					Permissions ({totalPermissions})
 				</Tabs.Trigger>
 				<Tabs.Trigger
 					value="analytics"
-					class="border-b-2 border-transparent px-form-section py-header text-button font-medium text-text-secondary transition-colors hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
+					class="px-form-section py-header text-button text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent font-medium transition-colors"
 				>
 					Analytics
 				</Tabs.Trigger>
@@ -579,7 +579,7 @@
 
 			<!-- Roles Tab -->
 			<Tabs.Content value="roles">
-				<div class="flex flex-col gap-settings-section">
+				<div class="gap-settings-section flex flex-col">
 					<!-- Search and Filter Bar -->
 					<div class="flex items-center gap-2">
 						<div class="flex-1">
@@ -591,7 +591,7 @@
 						</div>
 						<select
 							bind:value={roleTypeFilter}
-							class="rounded-input border border-base bg-input px-input-x py-input-y text-small text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+							class="border-base bg-input text-small focus:ring-accent-primary rounded-input border px-input-x py-input-y text-primary focus:ring-2 focus:outline-none"
 						>
 							<option value="all">All Types</option>
 							<option value="system">System</option>
@@ -601,7 +601,10 @@
 
 					<!-- Roles Display -->
 					{#if filteredRoles.length === 0}
-						<div class="flex flex-col items-center justify-center text-center" style="padding-block: var(--spacing-8);">
+						<div
+							class="flex flex-col items-center justify-center text-center"
+							style="padding-block: var(--spacing-8);"
+						>
 							<p class="mb-content-section text-h3 font-medium text-secondary">
 								{rolesSearch.trim() || roleTypeFilter !== 'all'
 									? 'No roles match your filters'
@@ -616,17 +619,17 @@
 					{:else}
 						<!-- System Roles -->
 						{#if systemRoles.length > 0 && (roleTypeFilter === 'all' || roleTypeFilter === 'system')}
-							<div class="flex flex-col gap-content-section">
+							<div class="gap-content-section flex flex-col">
 								<div class="flex items-center justify-between">
 									<h2 class="text-h3 font-semibold text-primary">
 										System Roles ({systemRoles.length})
 									</h2>
 									<p class="text-small text-secondary">Built-in roles that cannot be modified</p>
 								</div>
-								<div class="grid grid-cols-1 gap-content-section md:grid-cols-2 lg:grid-cols-3">
+								<div class="gap-content-section grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 									{#each systemRoles as role (role._id)}
 										<div
-											class="group flex flex-col gap-content-section rounded-card border border-base bg-surface px-card py-card transition-colors hover:border-accent-primary hover:bg-hover-solid"
+											class="group gap-content-section border-base px-card py-card hover:border-accent-primary hover:bg-hover-solid flex flex-col rounded-card border bg-surface transition-colors"
 										>
 											<div class="flex items-start justify-between">
 												<div class="flex-1">
@@ -637,7 +640,7 @@
 												</div>
 												<Badge variant="system">System</Badge>
 											</div>
-											<p class="line-clamp-2 text-small text-secondary">{role.description}</p>
+											<p class="text-small line-clamp-2 text-secondary">{role.description}</p>
 											<div class="flex items-center justify-between">
 												<span class="text-label text-tertiary">
 													{role.permissionCount} permission{role.permissionCount !== 1 ? 's' : ''}
@@ -645,7 +648,7 @@
 												<button
 													type="button"
 													onclick={() => showRoleDetails(role)}
-													class="text-label text-accent-primary hover:underline"
+													class="text-accent-primary text-label hover:underline"
 												>
 													View Details
 												</button>
@@ -658,17 +661,17 @@
 
 						<!-- Custom Roles -->
 						{#if customRoles.length > 0 && (roleTypeFilter === 'all' || roleTypeFilter === 'custom')}
-							<div class="flex flex-col gap-content-section">
+							<div class="gap-content-section flex flex-col">
 								<div class="flex items-center justify-between">
 									<h2 class="text-h3 font-semibold text-primary">
 										Custom Roles ({customRoles.length})
 									</h2>
 									<p class="text-small text-secondary">Roles created for your organization</p>
 								</div>
-								<div class="grid grid-cols-1 gap-content-section md:grid-cols-2 lg:grid-cols-3">
+								<div class="gap-content-section grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 									{#each customRoles as role (role._id)}
 										<div
-											class="group flex flex-col gap-content-section rounded-card border border-base bg-surface px-card py-card transition-colors hover:border-accent-primary hover:bg-hover-solid"
+											class="group gap-content-section border-base px-card py-card hover:border-accent-primary hover:bg-hover-solid flex flex-col rounded-card border bg-surface transition-colors"
 										>
 											<div class="flex items-start justify-between">
 												<div class="flex-1">
@@ -679,7 +682,7 @@
 												</div>
 												<Badge variant="custom">Custom</Badge>
 											</div>
-											<p class="line-clamp-2 text-small text-secondary">{role.description}</p>
+											<p class="text-small line-clamp-2 text-secondary">{role.description}</p>
 											<div class="flex items-center justify-between">
 												<span class="text-label text-tertiary">
 													{role.permissionCount} permission{role.permissionCount !== 1 ? 's' : ''}
@@ -688,7 +691,7 @@
 													<button
 														type="button"
 														onclick={() => showRoleDetails(role)}
-														class="text-label text-accent-primary hover:underline"
+														class="text-accent-primary text-label hover:underline"
 													>
 														View
 													</button>
@@ -712,7 +715,7 @@
 
 			<!-- Permissions Tab -->
 			<Tabs.Content value="permissions">
-				<div class="flex flex-col gap-content-section">
+				<div class="gap-content-section flex flex-col">
 					<!-- Search Bar -->
 					<div>
 						<FormInput
@@ -724,16 +727,19 @@
 
 					<!-- Permissions by Category -->
 					{#if permissionCategories === 0}
-						<div class="flex flex-col items-center justify-center text-center" style="padding-block: var(--spacing-8);">
+						<div
+							class="flex flex-col items-center justify-center text-center"
+							style="padding-block: var(--spacing-8);"
+						>
 							<p class="mb-content-section text-h3 font-medium text-secondary">
 								No permissions match your search
 							</p>
 							<p class="text-small text-tertiary">Try adjusting your search criteria</p>
 						</div>
 					{:else}
-						<div class="flex flex-col gap-settings-section">
+						<div class="gap-settings-section flex flex-col">
 							{#each Object.entries(filteredPermissions) as [category, perms] (category)}
-								<div class="rounded-card border border-base bg-surface px-card py-card">
+								<div class="border-base px-card py-card rounded-card border bg-surface">
 									<div class="mb-content-section flex items-center justify-between">
 										<h3 class="text-h3 font-semibold text-primary">{category}</h3>
 										<Badge variant="default">{perms.length}</Badge>
@@ -741,7 +747,7 @@
 									<div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
 										{#each perms as perm, index (index)}
 											<div
-												class="rounded-button border border-base bg-elevated px-card py-card transition-colors hover:bg-hover-solid"
+												class="border-base px-card py-card hover:bg-hover-solid rounded-button border bg-elevated transition-colors"
 											>
 												<p class="font-code text-label text-tertiary">
 													{(perm as { slug: string }).slug}
@@ -761,17 +767,20 @@
 
 			<!-- RBAC Analytics Tab -->
 			<Tabs.Content value="analytics">
-				<div class="flex flex-col gap-settings-section">
+				<div class="gap-settings-section flex flex-col">
 					{#if !analytics}
-						<div class="flex flex-col items-center justify-center text-center" style="padding-block: var(--spacing-8);">
+						<div
+							class="flex flex-col items-center justify-center text-center"
+							style="padding-block: var(--spacing-8);"
+						>
 							<p class="mb-content-section text-h3 font-medium text-secondary">
 								Loading analytics...
 							</p>
 						</div>
 					{:else}
 						<!-- Overview Stats -->
-						<div class="grid grid-cols-1 gap-content-section md:grid-cols-2 lg:grid-cols-4">
-							<div class="rounded-card border border-base bg-surface px-card py-card">
+						<div class="gap-content-section grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+							<div class="border-base px-card py-card rounded-card border bg-surface">
 								<p class="text-label text-tertiary">Active Assignments</p>
 								<p class="mt-form-field-gap text-h2 font-semibold text-primary">
 									{analytics.overview.activeAssignments}
@@ -780,7 +789,7 @@
 									{analytics.overview.revokedAssignments} revoked
 								</p>
 							</div>
-							<div class="rounded-card border border-base bg-surface px-card py-card">
+							<div class="border-base px-card py-card rounded-card border bg-surface">
 								<p class="text-label text-tertiary">System-Level Assignments</p>
 								<p class="mt-form-field-gap text-h2 font-semibold text-primary">
 									{analytics.systemLevel.assignments}
@@ -789,7 +798,7 @@
 									{analytics.systemLevel.users} unique users
 								</p>
 							</div>
-							<div class="rounded-card border border-base bg-surface px-card py-card">
+							<div class="border-base px-card py-card rounded-card border bg-surface">
 								<p class="text-label text-tertiary">Unused Roles</p>
 								<p class="mt-form-field-gap text-h2 font-semibold text-primary">
 									{analytics.health.rolesWithNoAssignments}
@@ -798,7 +807,7 @@
 									{analytics.health.rolesWithNoPermissions} without permissions
 								</p>
 							</div>
-							<div class="rounded-card border border-base bg-surface px-card py-card">
+							<div class="border-base px-card py-card rounded-card border bg-surface">
 								<p class="text-label text-tertiary">Total Roles</p>
 								<p class="mt-form-field-gap text-h2 font-semibold text-primary">
 									{analytics.overview.totalRoles}
@@ -810,12 +819,12 @@
 						</div>
 
 						<!-- Scope Breakdown -->
-						<div class="rounded-card border border-base bg-surface px-card py-card">
+						<div class="border-base px-card py-card rounded-card border bg-surface">
 							<h3 class="mb-content-section text-h3 font-semibold text-primary">
 								Assignment Scope Breakdown
 							</h3>
-							<div class="grid grid-cols-1 gap-content-section md:grid-cols-3">
-								<div class="rounded-button border border-base bg-elevated px-card py-card">
+							<div class="gap-content-section grid grid-cols-1 md:grid-cols-3">
+								<div class="border-base px-card py-card rounded-button border bg-elevated">
 									<p class="text-label text-tertiary">Global (System-Level)</p>
 									<p class="mt-form-field-gap text-h3 font-semibold text-primary">
 										{analytics.scopeBreakdown.global}
@@ -829,7 +838,7 @@
 											: 0}% of all assignments
 									</p>
 								</div>
-								<div class="rounded-button border border-base bg-elevated px-card py-card">
+								<div class="border-base px-card py-card rounded-button border bg-elevated">
 									<p class="text-label text-tertiary">Organization-Scoped</p>
 									<p class="mt-form-field-gap text-h3 font-semibold text-primary">
 										{analytics.scopeBreakdown.organization}
@@ -844,7 +853,7 @@
 											: 0}% of all assignments
 									</p>
 								</div>
-								<div class="rounded-button border border-base bg-elevated px-card py-card">
+								<div class="border-base px-card py-card rounded-button border bg-elevated">
 									<p class="text-label text-tertiary">Team-Scoped</p>
 									<p class="mt-form-field-gap text-h3 font-semibold text-primary">
 										{analytics.scopeBreakdown.team}
@@ -862,7 +871,7 @@
 						</div>
 
 						<!-- Most Assigned Roles -->
-						<div class="rounded-card border border-base bg-surface px-card py-card">
+						<div class="border-base px-card py-card rounded-card border bg-surface">
 							<h3 class="mb-content-section text-h3 font-semibold text-primary">
 								Most Assigned Roles
 							</h3>
@@ -872,7 +881,7 @@
 								<div class="space-y-icon">
 									{#each analytics.mostAssignedRoles as role (role.slug)}
 										<div
-											class="flex items-center justify-between rounded-button border border-base bg-elevated px-card py-card"
+											class="border-base px-card py-card flex items-center justify-between rounded-button border bg-elevated"
 										>
 											<div class="flex-1">
 												<p class="font-medium text-primary">{role.roleName}</p>
@@ -891,7 +900,7 @@
 						</div>
 
 						<!-- Most Used Permissions -->
-						<div class="rounded-card border border-base bg-surface px-card py-card">
+						<div class="border-base px-card py-card rounded-card border bg-surface">
 							<h3 class="mb-content-section text-h3 font-semibold text-primary">
 								Most Used Permissions
 							</h3>
@@ -901,10 +910,10 @@
 								<div class="space-y-icon">
 									{#each analytics.mostUsedPermissions as perm (perm.slug)}
 										<div
-											class="flex items-center justify-between rounded-button border border-base bg-elevated px-card py-card"
+											class="border-base px-card py-card flex items-center justify-between rounded-button border bg-elevated"
 										>
 											<div class="flex-1">
-												<p class="font-code text-small text-primary">{perm.slug}</p>
+												<p class="text-small font-code text-primary">{perm.slug}</p>
 											</div>
 											<div class="text-right">
 												<p class="text-h3 font-semibold text-primary">{perm.count}</p>
@@ -918,7 +927,7 @@
 
 						<!-- Health Warnings -->
 						{#if analytics.health.unusedRoles.length > 0}
-							<div class="rounded-card border border-yellow-500/20 bg-yellow-500/5 px-card py-card">
+							<div class="px-card py-card rounded-card border border-yellow-500/20 bg-yellow-500/5">
 								<h3 class="mb-content-section text-h3 font-semibold text-primary">
 									⚠️ Unused Roles
 								</h3>
@@ -928,7 +937,7 @@
 								<div class="flex flex-wrap gap-2">
 									{#each analytics.health.unusedRoles as role (role._id)}
 										<span
-											class="rounded-button bg-elevated px-badge py-badge text-label text-secondary"
+											class="px-badge py-badge rounded-button bg-elevated text-label text-secondary"
 										>
 											{role.name} ({role.slug})
 										</span>
@@ -946,10 +955,10 @@
 <!-- Role Detail Modal -->
 <Dialog.Root bind:open={roleDetailModalOpen}>
 	<Dialog.Content
-		class="w-[min(600px,90vw)] rounded-card border border-base bg-surface text-primary shadow-card-hover"
+		class="border-base shadow-card-hover w-[min(600px,90vw)] rounded-card border bg-surface text-primary"
 	>
 		{#if selectedRole}
-			<div class="space-y-settings-section px-inbox-container py-inbox-container">
+			<div class="space-y-settings-section px-page py-page">
 				<div>
 					<div class="flex items-start justify-between">
 						<div class="flex-1">
@@ -989,7 +998,7 @@
 						<div class="space-y-icon">
 							{#each rolePermissions as perm (perm.permissionId)}
 								<div
-									class="flex items-center justify-between rounded-button border border-base bg-elevated px-card py-card"
+									class="border-base px-card py-card flex items-center justify-between rounded-button border bg-elevated"
 								>
 									<div class="flex-1">
 										<p class="font-code text-label text-tertiary">{perm.slug}</p>
@@ -1011,7 +1020,7 @@
 												if (!selectedRole) return;
 												removePermissionFromRole(selectedRole._id, perm.permissionId);
 											}}
-											class="text-label text-error hover:text-error-secondary hover:underline"
+											class="hover:text-error-secondary text-label text-error hover:underline"
 										>
 											Remove
 										</button>
@@ -1022,10 +1031,10 @@
 					{/if}
 				</div>
 
-				<div class="flex items-center justify-end gap-2 pt-content-section">
+				<div class="pt-content-section flex items-center justify-end gap-2">
 					<Dialog.Close
 						type="button"
-						class="rounded-button border border-base px-button-x py-button-y text-small font-medium text-secondary hover:text-primary"
+						class="border-base text-small rounded-button border px-button-x py-button-y font-medium text-secondary hover:text-primary"
 					>
 						Close
 					</Dialog.Close>
@@ -1036,7 +1045,7 @@
 								console.log('Edit', selectedRole);
 								roleDetailModalOpen = false;
 							}}
-							class="rounded-button bg-accent-primary px-button-x py-button-y text-small font-medium text-primary"
+							class="bg-accent-primary text-small rounded-button px-button-x py-button-y font-medium text-primary"
 						>
 							Edit Role
 						</button>
@@ -1050,9 +1059,9 @@
 <!-- Create Permission Modal -->
 <Dialog.Root bind:open={createPermissionModalOpen}>
 	<Dialog.Content
-		class="w-[min(600px,90vw)] rounded-card border border-base bg-surface text-primary shadow-card-hover"
+		class="border-base shadow-card-hover w-[min(600px,90vw)] rounded-card border bg-surface text-primary"
 	>
-		<div class="space-y-6 px-inbox-container py-inbox-container">
+		<div class="space-y-6 px-page py-page">
 			<div>
 				<Dialog.Title class="text-lg font-semibold text-primary">Create Permission</Dialog.Title>
 				<Dialog.Description class="mt-1 text-sm text-secondary">
@@ -1068,7 +1077,7 @@
 					</p>
 				</div>
 
-				<div class="grid grid-cols-2 gap-content-section">
+				<div class="gap-content-section grid grid-cols-2">
 					<div>
 						<FormInput label="Category" placeholder="docs" bind:value={permCategory} required />
 					</div>
@@ -1097,16 +1106,16 @@
 				</div>
 
 				{#if createPermissionError}
-					<div class="border-error/20 bg-error/5 rounded-button border px-card py-card">
+					<div class="border-error/20 bg-error/5 px-card py-card rounded-button border">
 						<p class="text-small text-error">{createPermissionError}</p>
 					</div>
 				{/if}
 			</div>
 
-			<div class="flex items-center justify-end gap-2 pt-content-section">
+			<div class="pt-content-section flex items-center justify-end gap-2">
 				<Dialog.Close
 					type="button"
-					class="rounded-button border border-base px-button-x py-button-y text-small font-medium text-secondary hover:text-primary"
+					class="border-base text-small rounded-button border px-button-x py-button-y font-medium text-secondary hover:text-primary"
 				>
 					Cancel
 				</Dialog.Close>
@@ -1121,9 +1130,9 @@
 <!-- Create Role Modal -->
 <Dialog.Root bind:open={createRoleModalOpen}>
 	<Dialog.Content
-		class="w-[min(600px,90vw)] rounded-card border border-base bg-surface text-primary shadow-card-hover"
+		class="border-base shadow-card-hover w-[min(600px,90vw)] rounded-card border bg-surface text-primary"
 	>
-		<div class="space-y-settings-section px-inbox-container py-inbox-container">
+		<div class="space-y-settings-section px-page py-page">
 			<div>
 				<Dialog.Title class="text-h3 font-semibold text-primary">Create Role</Dialog.Title>
 				<Dialog.Description class="mt-form-field-gap text-small text-secondary">
@@ -1158,16 +1167,16 @@
 				</div>
 
 				{#if createRoleError}
-					<div class="border-error/20 bg-error/5 rounded-button border px-card py-card">
+					<div class="border-error/20 bg-error/5 px-card py-card rounded-button border">
 						<p class="text-small text-error">{createRoleError}</p>
 					</div>
 				{/if}
 			</div>
 
-			<div class="flex items-center justify-end gap-2 pt-content-section">
+			<div class="pt-content-section flex items-center justify-end gap-2">
 				<Dialog.Close
 					type="button"
-					class="rounded-button border border-base px-button-x py-button-y text-small font-medium text-secondary hover:text-primary"
+					class="border-base text-small rounded-button border px-button-x py-button-y font-medium text-secondary hover:text-primary"
 				>
 					Cancel
 				</Dialog.Close>
@@ -1182,9 +1191,9 @@
 <!-- Assign Role to User Modal -->
 <Dialog.Root bind:open={assignRoleModalOpen}>
 	<Dialog.Content
-		class="w-[min(600px,90vw)] rounded-card border border-base bg-surface text-primary shadow-card-hover"
+		class="border-base shadow-card-hover w-[min(600px,90vw)] rounded-card border bg-surface text-primary"
 	>
-		<div class="space-y-settings-section px-inbox-container py-inbox-container">
+		<div class="space-y-settings-section px-page py-page">
 			<div>
 				<Dialog.Title class="text-h3 font-semibold text-primary">Assign Role to User</Dialog.Title>
 				<Dialog.Description class="mt-form-field-gap text-small text-secondary">
@@ -1196,12 +1205,12 @@
 				<div>
 					<label
 						for="assign-user-select"
-						class="mb-content-section block text-small font-medium text-primary">User</label
+						class="mb-content-section text-small block font-medium text-primary">User</label
 					>
 					<select
 						id="assign-user-select"
 						bind:value={assignUserId}
-						class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-small text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+						class="border-base bg-input text-small focus:ring-accent-primary w-full rounded-input border px-input-x py-input-y text-primary focus:ring-2 focus:outline-none"
 					>
 						<option value="">Select a user...</option>
 						{#each allUsers as user (user._id)}
@@ -1215,12 +1224,12 @@
 				<div>
 					<label
 						for="assign-role-select"
-						class="mb-content-section block text-small font-medium text-primary">Role</label
+						class="mb-content-section text-small block font-medium text-primary">Role</label
 					>
 					<select
 						id="assign-role-select"
 						bind:value={assignRoleId}
-						class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-small text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+						class="border-base bg-input text-small focus:ring-accent-primary w-full rounded-input border px-input-x py-input-y text-primary focus:ring-2 focus:outline-none"
 					>
 						<option value="">Select a role...</option>
 						{#each roles as role (role._id)}
@@ -1230,16 +1239,16 @@
 				</div>
 
 				{#if assignRoleError}
-					<div class="border-error/20 bg-error/5 rounded-button border px-card py-card">
+					<div class="border-error/20 bg-error/5 px-card py-card rounded-button border">
 						<p class="text-small text-error">{assignRoleError}</p>
 					</div>
 				{/if}
 			</div>
 
-			<div class="flex items-center justify-end gap-2 pt-content-section">
+			<div class="pt-content-section flex items-center justify-end gap-2">
 				<Dialog.Close
 					type="button"
-					class="rounded-button border border-base px-button-x py-button-y text-small font-medium text-secondary hover:text-primary"
+					class="border-base text-small rounded-button border px-button-x py-button-y font-medium text-secondary hover:text-primary"
 				>
 					Cancel
 				</Dialog.Close>
@@ -1254,9 +1263,9 @@
 <!-- Assign Permission to Role Modal -->
 <Dialog.Root bind:open={assignPermissionModalOpen}>
 	<Dialog.Content
-		class="w-[min(600px,90vw)] rounded-card border border-base bg-surface text-primary shadow-card-hover"
+		class="border-base shadow-card-hover w-[min(600px,90vw)] rounded-card border bg-surface text-primary"
 	>
-		<div class="space-y-settings-section px-inbox-container py-inbox-container">
+		<div class="space-y-settings-section px-page py-page">
 			<div>
 				<Dialog.Title class="text-h3 font-semibold text-primary"
 					>Assign Permission to Role</Dialog.Title
@@ -1270,12 +1279,12 @@
 				<div>
 					<label
 						for="assign-perm-role-select"
-						class="mb-content-section block text-small font-medium text-primary">Role</label
+						class="mb-content-section text-small block font-medium text-primary">Role</label
 					>
 					<select
 						id="assign-perm-role-select"
 						bind:value={assignPermRoleId}
-						class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-small text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+						class="border-base bg-input text-small focus:ring-accent-primary w-full rounded-input border px-input-x py-input-y text-primary focus:ring-2 focus:outline-none"
 					>
 						<option value="">Select a role...</option>
 						{#each roles as role (role._id)}
@@ -1287,12 +1296,12 @@
 				<div>
 					<label
 						for="assign-perm-permission-select"
-						class="mb-content-section block text-small font-medium text-primary">Permission</label
+						class="mb-content-section text-small block font-medium text-primary">Permission</label
 					>
 					<select
 						id="assign-perm-permission-select"
 						bind:value={assignPermPermissionId}
-						class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-small text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+						class="border-base bg-input text-small focus:ring-accent-primary w-full rounded-input border px-input-x py-input-y text-primary focus:ring-2 focus:outline-none"
 					>
 						<option value="">Select a permission...</option>
 						{#each allPermissionsFlat as perm (perm._id)}
@@ -1306,12 +1315,12 @@
 				<div>
 					<label
 						for="assign-perm-scope-select"
-						class="mb-content-section block text-small font-medium text-primary">Scope</label
+						class="mb-content-section text-small block font-medium text-primary">Scope</label
 					>
 					<select
 						id="assign-perm-scope-select"
 						bind:value={assignPermScope}
-						class="w-full rounded-input border border-base bg-input px-input-x py-input-y text-small text-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+						class="border-base bg-input text-small focus:ring-accent-primary w-full rounded-input border px-input-x py-input-y text-primary focus:ring-2 focus:outline-none"
 					>
 						<option value="all">All - Access all resources</option>
 						<option value="own">Own - Access only own resources</option>
@@ -1323,16 +1332,16 @@
 				</div>
 
 				{#if assignPermissionError}
-					<div class="border-error/20 bg-error/5 rounded-button border px-card py-card">
+					<div class="border-error/20 bg-error/5 px-card py-card rounded-button border">
 						<p class="text-small text-error">{assignPermissionError}</p>
 					</div>
 				{/if}
 			</div>
 
-			<div class="flex items-center justify-end gap-2 pt-content-section">
+			<div class="pt-content-section flex items-center justify-end gap-2">
 				<Dialog.Close
 					type="button"
-					class="rounded-button border border-base px-button-x py-button-y text-small font-medium text-secondary hover:text-primary"
+					class="border-base text-small rounded-button border px-button-x py-button-y font-medium text-secondary hover:text-primary"
 				>
 					Cancel
 				</Dialog.Close>

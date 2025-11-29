@@ -107,27 +107,27 @@
 </script>
 
 <div
-	class="flex min-h-screen flex-col items-center justify-center bg-base px-marketing-container-x py-marketing-section-y"
+	class="px-marketing-container-x py-marketing-section-y flex min-h-screen flex-col items-center justify-center bg-base"
 >
 	<div class="w-full max-w-md">
 		{#if !inviteCode}
 			<!-- No code provided -->
-			<div class="rounded-lg border border-error-border bg-error-bg p-content-padding text-center">
-				<h1 class="mb-2 text-xl font-semibold text-error-text">Invalid Invite Link</h1>
-				<p class="text-sm text-error-text-secondary">
+			<div class="border-error-border bg-error-bg p-content-padding rounded-lg border text-center">
+				<h1 class="text-error-text mb-2 text-xl font-semibold">Invalid Invite Link</h1>
+				<p class="text-error-text-secondary text-sm">
 					This invite link is missing a code. Please check the link and try again.
 				</p>
 			</div>
 		{:else if isLoading}
 			<!-- Loading state -->
-			<div class="rounded-lg border border-base bg-surface p-content-padding text-center">
+			<div class="border-base p-content-padding rounded-lg border bg-surface text-center">
 				<div class="mb-4 text-secondary">Loading invite...</div>
 			</div>
 		{:else if browser && (inviteError || !invite)}
 			<!-- Error state or invite not found (only show in browser, not during SSR) -->
-			<div class="rounded-lg border border-error-border bg-error-bg p-content-padding text-center">
-				<h1 class="mb-2 text-xl font-semibold text-error-text">Invite Not Found</h1>
-				<p class="text-sm text-error-text-secondary">
+			<div class="border-error-border bg-error-bg p-content-padding rounded-lg border text-center">
+				<h1 class="text-error-text mb-2 text-xl font-semibold">Invite Not Found</h1>
+				<p class="text-error-text-secondary text-sm">
 					{inviteError ||
 						'This invite may have expired, been revoked, or already been used. Please contact the person who invited you for a new invite.'}
 				</p>
@@ -136,7 +136,7 @@
 			{@const inviteData = invite}
 			{#if inviteData}
 				<!-- Invite details -->
-				<div class="rounded-lg border border-base bg-surface p-content-padding">
+				<div class="border-base p-content-padding rounded-lg border bg-surface">
 					<div class="mb-6 text-center">
 						<h1 class="mb-2 text-2xl font-semibold text-primary">You've been invited!</h1>
 						<p class="text-sm text-secondary">
@@ -170,8 +170,8 @@
 
 					{#if acceptError}
 						<!-- Accept error -->
-						<div class="mb-4 rounded-md border border-error-border bg-error-bg p-3">
-							<p class="text-sm text-error-text">{acceptError}</p>
+						<div class="border-error-border bg-error-bg mb-4 rounded-md border p-3">
+							<p class="text-error-text text-sm">{acceptError}</p>
 						</div>
 					{/if}
 
@@ -181,7 +181,7 @@
 							<Button
 								onclick={handleAcceptInvite}
 								disabled={isAccepting}
-								class="text-on-solid w-full bg-accent-primary hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+								class="text-on-solid bg-accent-primary hover:bg-accent-hover w-full disabled:cursor-not-allowed disabled:opacity-50"
 							>
 								{isAccepting ? 'Accepting...' : 'Accept Invite'}
 							</Button>
@@ -201,7 +201,7 @@
 									href={resolveRoute(
 										`/login?redirect=${encodeURIComponent(redirectUrl)}${emailParam}`
 									)}
-									class="flex-1 rounded-md border border-base bg-elevated px-button-x py-button-y text-center text-sm font-medium text-primary transition-colors hover:bg-sidebar-hover"
+									class="border-base hover:bg-sidebar-hover flex-1 rounded-md border bg-elevated px-button-x py-button-y text-center text-sm font-medium text-primary transition-colors"
 								>
 									Sign In
 								</a>
@@ -209,7 +209,7 @@
 									href={resolveRoute(
 										`/register?redirect=${encodeURIComponent(redirectUrl)}${emailParam}`
 									)}
-									class="text-on-solid flex-1 rounded-md bg-accent-primary px-button-x py-button-y text-center text-sm font-medium transition-colors hover:bg-accent-hover"
+									class="text-on-solid bg-accent-primary hover:bg-accent-hover flex-1 rounded-md px-button-x py-button-y text-center text-sm font-medium transition-colors"
 								>
 									Create Account
 								</a>

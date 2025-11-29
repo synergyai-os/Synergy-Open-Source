@@ -484,14 +484,14 @@
 	}
 </script>
 
-<div class="relative h-full w-full overflow-hidden rounded-card border border-base bg-surface">
+<div class="border-base relative h-full w-full overflow-hidden rounded-card border bg-surface">
 	<!-- Zoom Controls -->
 	<div
-		class="bg-elevated/95 absolute top-4 right-4 z-10 flex flex-col gap-2 rounded-card shadow-card-hover backdrop-blur-sm"
+		class="bg-elevated/95 shadow-card-hover absolute top-4 right-4 z-10 flex flex-col gap-2 rounded-card backdrop-blur-sm"
 		style="padding: var(--spacing-3);"
 	>
 		<button
-			class="flex size-icon-xl items-center justify-center rounded-button text-secondary transition-all hover:scale-110 hover:bg-hover-solid hover:text-primary active:scale-95"
+			class="hover:bg-hover-solid flex size-icon-xl items-center justify-center rounded-button text-secondary transition-all hover:scale-110 hover:text-primary active:scale-95"
 			onclick={handleZoomIn}
 			aria-label="Zoom in"
 		>
@@ -505,7 +505,7 @@
 			</svg>
 		</button>
 		<button
-			class="flex size-icon-xl items-center justify-center rounded-button text-secondary transition-all hover:scale-110 hover:bg-hover-solid hover:text-primary active:scale-95"
+			class="hover:bg-hover-solid flex size-icon-xl items-center justify-center rounded-button text-secondary transition-all hover:scale-110 hover:text-primary active:scale-95"
 			onclick={handleZoomOut}
 			aria-label="Zoom out"
 		>
@@ -513,9 +513,9 @@
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 12H6" />
 			</svg>
 		</button>
-		<div class="my-1 h-px bg-border-base"></div>
+		<div class="bg-border-base my-1 h-px"></div>
 		<button
-			class="flex size-icon-xl items-center justify-center rounded-button text-secondary transition-all hover:scale-110 hover:bg-hover-solid hover:text-primary active:scale-95"
+			class="hover:bg-hover-solid flex size-icon-xl items-center justify-center rounded-button text-secondary transition-all hover:scale-110 hover:text-primary active:scale-95"
 			onclick={handleResetView}
 			aria-label="Reset view"
 		>

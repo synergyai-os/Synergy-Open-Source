@@ -39,16 +39,16 @@ function extractTokens() {
 		const cssContent = fs.readFileSync(filePath, 'utf-8');
 
 		// Find @theme block
-	const themeMatch = cssContent.match(/@theme\s*\{([^}]+)\}/s);
+		const themeMatch = cssContent.match(/@theme\s*\{([^}]+)\}/s);
 		if (themeMatch) {
-	const themeContent = themeMatch[1];
+			const themeContent = themeMatch[1];
 
-	// Extract all CSS custom properties (--token-name: value)
-	const tokenPattern = /--([a-z0-9-]+):/g;
-	let match;
-	while ((match = tokenPattern.exec(themeContent)) !== null) {
-		const tokenName = match[1];
-		tokens.add(tokenName);
+			// Extract all CSS custom properties (--token-name: value)
+			const tokenPattern = /--([a-z0-9-]+):/g;
+			let match;
+			while ((match = tokenPattern.exec(themeContent)) !== null) {
+				const tokenName = match[1];
+				tokens.add(tokenName);
 			}
 		}
 	}

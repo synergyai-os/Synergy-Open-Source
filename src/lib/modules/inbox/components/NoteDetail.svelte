@@ -163,7 +163,7 @@
 <div class="flex h-full flex-col">
 	<!-- Header - Matches ReadwiseDetail pattern -->
 	<div
-		class="h-system-header border-base bg-surface sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b py-system-header"
+		class="h-system-header border-base py-system-header sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b bg-surface"
 		style="padding-inline: var(--spacing-4);"
 	>
 		<!-- Left: Title + Save Status -->
@@ -179,7 +179,7 @@
 				</svg>
 				<span class="text-small">Back</span>
 			</Button>
-			<h2 class="text-small text-secondary font-normal">
+			<h2 class="text-small font-normal text-secondary">
 				{inboxItem.title || 'Untitled Note'}
 			</h2>
 			<span class="text-label text-tertiary">
@@ -213,8 +213,8 @@
 	</div>
 
 	<!-- Footer with metadata -->
-	<div class="border-base px-inbox-container border-t py-system-header">
-		<div class="text-label text-tertiary flex items-center justify-between">
+	<div class="border-base px-inbox-container py-system-header border-t">
+		<div class="flex items-center justify-between text-label text-tertiary">
 			<div class="flex items-center gap-2">
 				<span>
 					Created {new Date(inboxItem.createdAt).toLocaleDateString()}
@@ -228,7 +228,7 @@
 
 			{#if inboxItem.blogCategory === 'BLOG'}
 				<span
-					class="text-label text-primary rounded-chip bg-accent-primary px-badge py-badge font-medium"
+					class="rounded-chip bg-accent-primary px-badge py-badge text-label font-medium text-primary"
 				>
 					BLOG
 				</span>

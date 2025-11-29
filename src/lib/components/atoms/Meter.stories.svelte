@@ -27,7 +27,7 @@
 	{#snippet template(args)}
 		<Meter.Root {...args} class="h-4 w-full overflow-hidden rounded-full bg-base">
 			<div
-				class="h-full rounded-full bg-accent-primary transition-all duration-300"
+				class="bg-accent-primary h-full rounded-full transition-all duration-300"
 				style="width: {((args.value - args.min) / (args.max - args.min)) * 100}%"
 			></div>
 		</Meter.Root>
@@ -38,7 +38,7 @@
 	{#snippet template(args)}
 		<Meter.Root {...args} class="h-4 w-full overflow-hidden rounded-full bg-base">
 			<div
-				class="h-full rounded-full bg-accent-primary transition-all duration-300"
+				class="bg-accent-primary h-full rounded-full transition-all duration-300"
 				style="width: {((args.value - args.min) / (args.max - args.min)) * 100}%"
 			></div>
 		</Meter.Root>
@@ -49,7 +49,7 @@
 	{#snippet template(args)}
 		<Meter.Root {...args} class="h-4 w-full overflow-hidden rounded-full bg-base">
 			<div
-				class="h-full rounded-full bg-accent-primary transition-all duration-300"
+				class="bg-accent-primary h-full rounded-full transition-all duration-300"
 				style="width: {((args.value - args.min) / (args.max - args.min)) * 100}%"
 			></div>
 		</Meter.Root>
@@ -60,7 +60,7 @@
 	{#snippet template(args)}
 		<Meter.Root {...args} class="h-4 w-full overflow-hidden rounded-full bg-base">
 			<div
-				class="h-full rounded-full bg-accent-primary transition-all duration-300"
+				class="bg-accent-primary h-full rounded-full transition-all duration-300"
 				style="width: {((args.value - args.min) / (args.max - args.min)) * 100}%"
 			></div>
 		</Meter.Root>

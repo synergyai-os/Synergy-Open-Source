@@ -27,13 +27,6 @@
 	const getOrganizationId = () => organizationId();
 	const getCircleId = () => circleId;
 
-	// Redirect to onboarding if no org selected
-	$effect(() => {
-		if (browser && !organizationId()) {
-			goto(resolveRoute('/org/onboarding'));
-		}
-	});
-
 	// Initialize circles composable
 	const circles = useCircles({
 		sessionId: getSessionId,
@@ -77,7 +70,7 @@
 
 <div class="flex h-full flex-col bg-base">
 	<!-- Header -->
-	<header class="border-b border-base bg-surface px-inbox-container py-header">
+	<header class="border-base py-header border-b bg-surface px-page">
 		{#if isLoading}
 			<div class="h-8 w-48 animate-pulse rounded-button bg-elevated"></div>
 		{:else if circle}
@@ -96,13 +89,14 @@
 									nameValue = circle.name;
 								}
 							}}
-							class="rounded-button border border-base bg-elevated px-input-x py-input-y text-h3 font-semibold text-primary focus:border-accent-primary focus:outline-none"
+							class="border-base text-h3 focus:border-accent-primary rounded-button border bg-elevated px-input-x py-input-y font-semibold text-primary focus:outline-none"
 						/>
 					{:else}
 						<h1 class="text-h3 font-semibold text-primary">{circle.name}</h1>
 						<button
 							onclick={() => (editingName = true)}
-							class="rounded-button text-secondary hover:bg-sidebar-hover hover:text-primary" style="padding: var(--spacing-2);"
+							class="hover:bg-sidebar-hover rounded-button text-secondary hover:text-primary"
+							style="padding: var(--spacing-2);"
 							title="Edit name"
 						>
 							<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -129,16 +123,17 @@
 									purposeValue = circle.purpose ?? '';
 								}
 							}}
-							class="flex-1 rounded-button border border-base bg-elevated px-input-x py-input-y text-button text-secondary focus:border-accent-primary focus:outline-none"
+							class="border-base text-button focus:border-accent-primary flex-1 rounded-button border bg-elevated px-input-x py-input-y text-secondary focus:outline-none"
 							rows={2}
 						></textarea>
 					{:else}
-						<p class="flex-1 text-button text-secondary">
+						<p class="text-button flex-1 text-secondary">
 							{circle.purpose || 'No purpose defined'}
 						</p>
 						<button
 							onclick={() => (editingPurpose = true)}
-							class="rounded-button text-secondary hover:bg-sidebar-hover hover:text-primary" style="padding: var(--spacing-2);"
+							class="hover:bg-sidebar-hover rounded-button text-secondary hover:text-primary"
+							style="padding: var(--spacing-2);"
 							title="Edit purpose"
 						>
 							<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,7 +149,7 @@
 				</div>
 
 				<!-- Meta Info -->
-				<div class="flex items-center gap-4 text-button text-secondary">
+				<div class="text-button flex items-center gap-4 text-secondary">
 					<span>{members.length} members</span>
 					<span>{roles.length} roles</span>
 					{#if circle.parentName}
@@ -166,7 +161,7 @@
 	</header>
 
 	<!-- Content -->
-	<main class="flex flex-1 gap-form-section overflow-hidden px-inbox-container py-inbox-container">
+	<main class="gap-form-section flex flex-1 overflow-hidden px-page py-page">
 		{#if isLoading}
 			<div class="flex flex-1 items-center justify-center">
 				<div class="text-secondary">Loading circle...</div>
@@ -194,7 +189,7 @@
 								goto(resolveRoute('/org/circles'));
 							}
 						}}
-						class="text-on-solid mt-4 rounded-button bg-accent-primary px-2 py-nav-item text-button font-medium hover:bg-accent-hover"
+						class="text-on-solid bg-accent-primary py-nav-item text-button hover:bg-accent-hover mt-4 rounded-button px-2 font-medium"
 					>
 						Back to Circles
 					</button>

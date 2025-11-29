@@ -280,7 +280,7 @@
 					{:else if state.activeTab === 'reports'}
 						<!-- Reports Tab -->
 						<div>
-							<Heading level="h2" size="h2" class="mb-header">Closed meetings</Heading>
+							<Heading level={5} color="secondary" class="mb-header">Closed meetings</Heading>
 
 							{#if meetings.closedMeetings.length === 0}
 								<div

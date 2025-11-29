@@ -12,11 +12,14 @@
 
 	// ❌ Violation: Manual token mapping instead of using recipe
 	const classes = $derived(
-		size === 'sm' ? 'h-button-sm px-button-x-sm' : size === 'md' ? 'h-button-md px-button-x' : 'h-button-lg px-button-x-lg'
+		size === 'sm'
+			? 'h-button-sm px-button-x-sm'
+			: size === 'md'
+				? 'h-button-md px-button-x'
+				: 'h-button-lg px-button-x-lg'
 	);
 </script>
 
 <button class={classes}>
 	<slot />
 </button>
-

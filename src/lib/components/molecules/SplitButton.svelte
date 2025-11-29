@@ -45,10 +45,10 @@
 	<DropdownMenu.Root bind:open={dropdownOpen}>
 		<DropdownMenu.Trigger
 			type="button"
-			class="rounded-r-button flex items-center border-l border-base px-2 transition-colors
+			class="rounded-r-button border-base flex items-center border-l px-2 transition-colors
 				{variant === 'primary'
-				? 'bg-accent-primary text-primary hover:bg-accent-hover'
-				: 'bg-elevated text-primary hover:bg-hover-solid'}"
+				? 'bg-accent-primary hover:bg-accent-hover text-primary'
+				: 'hover:bg-hover-solid bg-elevated text-primary'}"
 		>
 			<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -56,14 +56,14 @@
 		</DropdownMenu.Trigger>
 		<DropdownMenu.Portal>
 			<DropdownMenu.Content
-				class="z-50 min-w-[180px] rounded-button border border-base bg-elevated py-1 shadow-card"
+				class="border-base z-50 min-w-[180px] rounded-button border bg-elevated py-1 shadow-card"
 				side="bottom"
 				align="end"
 				sideOffset={4}
 			>
 				{#each dropdownItems as item (item.label)}
 					<DropdownMenu.Item
-						class="flex cursor-pointer items-center px-[0.625rem] py-[0.375rem] text-[0.875rem] text-primary transition-colors outline-none hover:bg-hover-solid focus:bg-hover-solid"
+						class="hover:bg-hover-solid focus:bg-hover-solid flex cursor-pointer items-center px-[0.625rem] py-[0.375rem] text-[0.875rem] text-primary transition-colors outline-none"
 						textValue={item.label}
 						onSelect={() => {
 							item.onclick();

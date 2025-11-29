@@ -16,10 +16,10 @@
 .docs-story code,
 .sb-anchor pre,
 .sb-anchor code,
-[class*="sbdocs"] pre,
-[class*="sbdocs"] code,
-[class*="docs-story"] pre,
-[class*="docs-story"] code {
+[class*='sbdocs'] pre,
+[class*='sbdocs'] code,
+[class*='docs-story'] pre,
+[class*='docs-story'] code {
 	background-color: var(--color-bg-surface, #1f2937) !important;
 	color: var(--color-text-primary, #ffffff) !important;
 }
@@ -30,8 +30,8 @@
 .sb-docs pre code,
 .docs-story pre code,
 .sb-anchor pre code,
-[class*="sbdocs"] pre code,
-[class*="docs-story"] pre code {
+[class*='sbdocs'] pre code,
+[class*='docs-story'] pre code {
 	color: var(--color-text-primary, #ffffff) !important;
 }
 
@@ -39,8 +39,8 @@
 .sbdocs code:not(pre code),
 .sb-docs code:not(pre code),
 .docs-story code:not(pre code),
-[class*="sbdocs"] code:not(pre code),
-[class*="docs-story"] code:not(pre code) {
+[class*='sbdocs'] code:not(pre code),
+[class*='docs-story'] code:not(pre code) {
 	background-color: var(--color-bg-surface, #1f2937) !important;
 	color: var(--color-text-primary, #ffffff) !important;
 	padding: 0.125rem 0.25rem;
@@ -48,10 +48,10 @@
 }
 
 /* Target Storybook's markdown code blocks */
-.sbdocs pre[class*="language"],
-.sbdocs pre[class*="hljs"],
-.sbdocs-snippet pre[class*="language"],
-.sbdocs-snippet pre[class*="hljs"] {
+.sbdocs pre[class*='language'],
+.sbdocs pre[class*='hljs'],
+.sbdocs-snippet pre[class*='language'],
+.sbdocs-snippet pre[class*='hljs'] {
 	background-color: var(--color-bg-surface, #1f2937) !important;
 	color: var(--color-text-primary, #ffffff) !important;
 }
@@ -63,3 +63,19 @@
 	color: var(--color-text-primary, #ffffff) !important;
 }
 
+/* ============================================
+ * Storybook Preview Environment Fixes
+ * ============================================
+ * 
+ * Removes mobile-specific padding in Storybook iframe
+ * (Storybook runs in browser, not mobile device)
+ */
+
+/* Remove mobile safe-area-inset padding in Storybook iframe */
+body {
+	padding: 0 !important;
+}
+
+html {
+	padding: 0 !important;
+}

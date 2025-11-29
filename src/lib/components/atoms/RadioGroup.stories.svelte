@@ -25,12 +25,12 @@
 				{#snippet children({ checked })}
 					<div class="flex items-center gap-2">
 						<div
-							class="flex h-4 w-4 items-center justify-center rounded-full border-2 border-base transition-colors {checked
+							class="border-base flex h-4 w-4 items-center justify-center rounded-full border-2 transition-colors {checked
 								? 'border-accent-primary'
 								: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 						>
 							{#if checked}
-								<div class="h-2 w-2 rounded-full bg-accent-primary"></div>
+								<div class="bg-accent-primary h-2 w-2 rounded-full"></div>
 							{/if}
 						</div>
 						<Label.Root>Option 1</Label.Root>
@@ -41,12 +41,12 @@
 				{#snippet children({ checked })}
 					<div class="flex items-center gap-2">
 						<div
-							class="flex h-4 w-4 items-center justify-center rounded-full border-2 border-base transition-colors {checked
+							class="border-base flex h-4 w-4 items-center justify-center rounded-full border-2 transition-colors {checked
 								? 'border-accent-primary'
 								: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 						>
 							{#if checked}
-								<div class="h-2 w-2 rounded-full bg-accent-primary"></div>
+								<div class="bg-accent-primary h-2 w-2 rounded-full"></div>
 							{/if}
 						</div>
 						<Label.Root>Option 2</Label.Root>
@@ -57,12 +57,12 @@
 				{#snippet children({ checked })}
 					<div class="flex items-center gap-2">
 						<div
-							class="flex h-4 w-4 items-center justify-center rounded-full border-2 border-base transition-colors {checked
+							class="border-base flex h-4 w-4 items-center justify-center rounded-full border-2 transition-colors {checked
 								? 'border-accent-primary'
 								: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 						>
 							{#if checked}
-								<div class="h-2 w-2 rounded-full bg-accent-primary"></div>
+								<div class="bg-accent-primary h-2 w-2 rounded-full"></div>
 							{/if}
 						</div>
 						<Label.Root>Option 3</Label.Root>
@@ -80,12 +80,12 @@
 				{#snippet children({ checked })}
 					<div class="flex items-center gap-2">
 						<div
-							class="flex h-4 w-4 items-center justify-center rounded-full border-2 border-base transition-colors {checked
+							class="border-base flex h-4 w-4 items-center justify-center rounded-full border-2 transition-colors {checked
 								? 'border-accent-primary'
 								: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 						>
 							{#if checked}
-								<div class="h-2 w-2 rounded-full bg-accent-primary"></div>
+								<div class="bg-accent-primary h-2 w-2 rounded-full"></div>
 							{/if}
 						</div>
 						<Label.Root>Option 1</Label.Root>
@@ -96,12 +96,12 @@
 				{#snippet children({ checked })}
 					<div class="flex items-center gap-2">
 						<div
-							class="flex h-4 w-4 items-center justify-center rounded-full border-2 border-base transition-colors {checked
+							class="border-base flex h-4 w-4 items-center justify-center rounded-full border-2 transition-colors {checked
 								? 'border-accent-primary'
 								: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 						>
 							{#if checked}
-								<div class="h-2 w-2 rounded-full bg-accent-primary"></div>
+								<div class="bg-accent-primary h-2 w-2 rounded-full"></div>
 							{/if}
 						</div>
 						<Label.Root>Option 2</Label.Root>
@@ -112,12 +112,12 @@
 				{#snippet children({ checked })}
 					<div class="flex items-center gap-2">
 						<div
-							class="flex h-4 w-4 items-center justify-center rounded-full border-2 border-base transition-colors {checked
+							class="border-base flex h-4 w-4 items-center justify-center rounded-full border-2 transition-colors {checked
 								? 'border-accent-primary'
 								: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 						>
 							{#if checked}
-								<div class="h-2 w-2 rounded-full bg-accent-primary"></div>
+								<div class="bg-accent-primary h-2 w-2 rounded-full"></div>
 							{/if}
 						</div>
 						<Label.Root>Option 3</Label.Root>
@@ -135,12 +135,12 @@
 				{#snippet children({ checked })}
 					<div class="flex items-center gap-2">
 						<div
-							class="flex h-4 w-4 items-center justify-center rounded-full border-2 border-base transition-colors {checked
+							class="border-base flex h-4 w-4 items-center justify-center rounded-full border-2 transition-colors {checked
 								? 'border-accent-primary'
 								: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 						>
 							{#if checked}
-								<div class="h-2 w-2 rounded-full bg-accent-primary"></div>
+								<div class="bg-accent-primary h-2 w-2 rounded-full"></div>
 							{/if}
 						</div>
 						<Label.Root>Option 1</Label.Root>
@@ -151,12 +151,12 @@
 				{#snippet children({ checked })}
 					<div class="flex items-center gap-2">
 						<div
-							class="flex h-4 w-4 items-center justify-center rounded-full border-2 border-base transition-colors {checked
+							class="border-base flex h-4 w-4 items-center justify-center rounded-full border-2 transition-colors {checked
 								? 'border-accent-primary'
 								: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 						>
 							{#if checked}
-								<div class="h-2 w-2 rounded-full bg-accent-primary"></div>
+								<div class="bg-accent-primary h-2 w-2 rounded-full"></div>
 							{/if}
 						</div>
 						<Label.Root>Option 2</Label.Root>
@@ -167,12 +167,12 @@
 				{#snippet children({ checked })}
 					<div class="flex items-center gap-2">
 						<div
-							class="flex h-4 w-4 items-center justify-center rounded-full border-2 border-base transition-colors {checked
+							class="border-base flex h-4 w-4 items-center justify-center rounded-full border-2 transition-colors {checked
 								? 'border-accent-primary'
 								: ''} {args.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}"
 						>
 							{#if checked}
-								<div class="h-2 w-2 rounded-full bg-accent-primary"></div>
+								<div class="bg-accent-primary h-2 w-2 rounded-full"></div>
 							{/if}
 						</div>
 						<Label.Root>Option 3</Label.Root>

@@ -122,13 +122,18 @@
 	$effect(() => {
 		if (browser && organizationId) {
 			const currentOrgId = organizationId;
-			// Remove previous org class
-			if (previousOrgId && previousOrgId !== currentOrgId) {
-				document.documentElement.classList.remove(`org-${previousOrgId}`);
-			}
+			// Remove ALL org-* classes to ensure clean state (handles SSR issues and workspace switches)
+			const htmlElement = document.documentElement;
+			const classesToRemove: string[] = [];
+			htmlElement.classList.forEach((cls) => {
+				if (cls.startsWith('org-')) {
+					classesToRemove.push(cls);
+				}
+			});
+			classesToRemove.forEach((cls) => htmlElement.classList.remove(cls));
 
 			// Add new org class
-			document.documentElement.classList.add(`org-${currentOrgId}`);
+			htmlElement.classList.add(`org-${currentOrgId}`);
 
 			// Track for next switch
 			previousOrgId = currentOrgId;
@@ -193,7 +198,9 @@
 			? `${data.user.firstName} ${data.user.lastName}`
 			: accountEmail()
 	);
-	const workspaceName = $derived(() => data.activeWorkspace?.name ?? 'Private workspace');
+	// Derive workspace name from active organization (source of truth)
+	// If not available yet (loading), will be undefined (handled gracefully by UI)
+	const workspaceName = $derived(() => organizations?.activeOrganization?.name);
 
 	// Account switching state (for page reloads)
 	// CRITICAL: ALWAYS initialize as false - NEVER read from sessionStorage during initialization
@@ -756,10 +763,10 @@
 {:else if isAuthenticated}
 	<!--
 		Shell Layout Pattern (Linear/Notion inspired)
-		- Outer shell: sidebar background with subtle brand gradient
-		- Inner content: floating white card with rounded corners, border, shadow
+		- Outer shell: base background (darkest) with subtle brand gradient
+		- Inner content: floating elevated card with rounded corners, border, shadow
 	-->
-	<div class="bg-sidebar relative flex h-screen overflow-hidden">
+	<div class="relative flex h-screen overflow-hidden bg-base">
 		<!--
 			Shell Background Gradient
 			- Uses brand hue (195) at 3% opacity for subtle depth
@@ -801,13 +808,13 @@
 				- Rounded corners (rounded-xl = 16px)
 				- Subtle border for soft definition (not harsh)
 				- Soft shadow for depth
-				- White/surface background
+				- Elevated background (lighter than sidebar for contrast)
 			-->
 			<div
-				class="flex flex-1 flex-col overflow-hidden rounded-xl border border-subtle bg-surface shadow-sm"
+				class="flex flex-1 flex-col overflow-hidden rounded-xl border border-subtle bg-elevated shadow-sm"
 			>
 				<!-- Top Bar with matching rounded corners -->
-				<div class="rounded-t-xl bg-surface">
+				<!-- <div class="rounded-t-xl bg-surface">
 					<AppTopBar
 						{organizations}
 						{isMobile}
@@ -817,7 +824,7 @@
 						accountEmail={accountEmail()}
 						workspaceName={workspaceName()}
 					/>
-				</div>
+				</div> -->
 				<div class="flex-1 overflow-hidden">
 					{@render children()}
 				</div>

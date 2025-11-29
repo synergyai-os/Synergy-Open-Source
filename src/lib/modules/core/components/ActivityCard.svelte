@@ -41,11 +41,11 @@
 </script>
 
 <div
-	class="max-w-[400px] min-w-[320px] overflow-hidden rounded-md border border-base bg-elevated shadow-lg"
+	class="border-base max-w-[400px] min-w-[320px] overflow-hidden rounded-md border bg-elevated shadow-lg"
 >
 	<!-- Header -->
 	<div
-		class="flex items-center justify-between gap-2 border-b border-base px-menu-item py-menu-item"
+		class="border-base px-menu-item py-menu-item flex items-center justify-between gap-2 border-b"
 	>
 		<div class="flex min-w-0 flex-1 items-center gap-2">
 			{#if activity.icon}
@@ -66,7 +66,7 @@
 				</svg>
 			{:else if activity.status === 'completed'}
 				<svg
-					class="h-4 w-4 flex-shrink-0 text-accent-primary"
+					class="text-accent-primary h-4 w-4 flex-shrink-0"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -118,7 +118,7 @@
 			<button
 				type="button"
 				onclick={onDismiss}
-				class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-tertiary transition-colors hover:bg-hover-solid hover:text-secondary"
+				class="hover:bg-hover-solid flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-tertiary transition-colors hover:text-secondary"
 				aria-label="Dismiss"
 			>
 				<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,7 +135,7 @@
 
 	<!-- Progress Section -->
 	{#if hasProgress()}
-		<div class="border-b border-base px-menu-item py-menu-item">
+		<div class="border-base px-menu-item py-menu-item border-b">
 			{#if activity.progress?.step}
 				<div class="mb-2 flex items-center justify-between text-xs">
 					<span class="flex-1 truncate font-medium text-secondary">{activity.progress.step}</span>
@@ -150,13 +150,13 @@
 			{#if !activity.progress?.indeterminate && progressPercentage() > 0}
 				<div class="h-2 w-full overflow-hidden rounded-full bg-base">
 					<div
-						class="bg-interactive-primary h-full transition-all duration-300 ease-out"
+						class="h-full bg-interactive-primary transition-all duration-300 ease-out"
 						style="width: {progressPercentage()}%"
 					></div>
 				</div>
 			{:else if activity.progress?.indeterminate}
 				<div class="h-2 w-full overflow-hidden rounded-full bg-base">
-					<div class="bg-interactive-primary h-full animate-pulse" style="width: 60%"></div>
+					<div class="h-full animate-pulse bg-interactive-primary" style="width: 60%"></div>
 				</div>
 			{/if}
 
@@ -168,11 +168,11 @@
 
 	<!-- Quick Actions -->
 	{#if activity.quickActions && activity.quickActions.length > 0}
-		<div class="flex flex-wrap items-center gap-2 border-b border-base px-menu-item py-menu-item">
+		<div class="border-base px-menu-item py-menu-item flex flex-wrap items-center gap-2 border-b">
 			{#each activity.quickActions as action, index (action.label || index)}
 				<Button.Root
 					onclick={() => handleQuickAction(action.action)}
-					class="flex items-center gap-2 rounded-md px-menu-item py-menu-item text-xs text-primary transition-colors hover:bg-hover-solid"
+					class="px-menu-item py-menu-item hover:bg-hover-solid flex items-center gap-2 rounded-md text-xs text-primary transition-colors"
 				>
 					{#if action.icon}
 						<span>{action.icon}</span>
@@ -184,11 +184,11 @@
 	{/if}
 
 	<!-- Actions Footer -->
-	<div class="flex items-center justify-end gap-2 px-menu-item py-menu-item">
+	<div class="px-menu-item py-menu-item flex items-center justify-end gap-2">
 		{#if activity.status === 'running' && onCancel}
 			<Button.Root
 				onclick={onCancel}
-				class="rounded-md px-menu-item py-menu-item text-xs text-tertiary transition-colors hover:bg-hover-solid hover:text-secondary"
+				class="px-menu-item py-menu-item hover:bg-hover-solid rounded-md text-xs text-tertiary transition-colors hover:text-secondary"
 			>
 				Cancel
 			</Button.Root>

@@ -241,24 +241,24 @@
 	<!-- Animated background gradient -->
 	{#if mounted}
 		<div
-			class="animate-gradient absolute inset-0 bg-gradient-to-br from-accent-primary/5 via-transparent to-accent-primary/10"
+			class="animate-gradient from-accent-primary/5 to-accent-primary/10 absolute inset-0 bg-gradient-to-br via-transparent"
 			style="animation: gradient 15s ease infinite; background-size: 200% 200%;"
 		></div>
 	{/if}
 
 	<div
-		class="relative mx-auto flex min-h-screen max-w-2xl items-center justify-center px-2 py-system-content"
+		class="py-system-content relative mx-auto flex min-h-screen max-w-2xl items-center justify-center px-2"
 	>
 		<div
-			class="w-full max-w-md rounded-modal border border-base bg-elevated p-content-padding shadow-lg transition-all duration-300 hover:shadow-xl"
+			class="border-base p-content-padding w-full max-w-md rounded-modal border bg-elevated shadow-lg transition-all duration-300 hover:shadow-xl"
 			style="animation: fadeInUp 0.5s ease-out"
 		>
 			<!-- Email icon with animation -->
 			<div
-				class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-accent-primary/10"
+				class="bg-accent-primary/10 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full"
 			>
 				<svg
-					class="h-8 w-8 text-accent-primary"
+					class="text-accent-primary h-8 w-8"
 					fill="none"
 					viewBox="0 0 24 24"
 					stroke="currentColor"
@@ -273,7 +273,7 @@
 				</svg>
 			</div>
 
-			<header class="flex flex-col gap-form-section text-center">
+			<header class="gap-form-section flex flex-col text-center">
 				<h1 class="text-3xl font-bold tracking-tight text-primary">Check your inbox</h1>
 				<p class="text-base leading-relaxed text-secondary">
 					We sent a 6-digit code to<br />
@@ -345,13 +345,13 @@
 				<!-- Redirect to login message with countdown (for "already registered" error) -->
 				{#if shouldRedirectToLogin}
 					<div
-						class="mt-content-section rounded-input border border-accent-primary bg-accent-primary/10 px-input-x py-input-y shadow-sm"
+						class="mt-content-section border-accent-primary bg-accent-primary/10 rounded-input border px-input-x py-input-y shadow-sm"
 						style="animation: slideDown 0.3s ease-out"
 					>
 						<div class="flex flex-col gap-3">
 							<div class="flex items-start gap-2">
 								<svg
-									class="mt-0.5 h-5 w-5 flex-shrink-0 text-accent-primary"
+									class="text-accent-primary mt-0.5 h-5 w-5 flex-shrink-0"
 									fill="none"
 									viewBox="0 0 24 24"
 									stroke="currentColor"
@@ -376,12 +376,12 @@
 				{:else if errorMessage}
 					<!-- Error message with animation -->
 					<div
-						class="mt-content-section rounded-input border border-error bg-error px-input-x py-input-y shadow-sm"
+						class="mt-content-section bg-error rounded-input border border-error px-input-x py-input-y shadow-sm"
 						style="animation: shake 0.5s ease-out"
 					>
 						<div class="flex items-start gap-2">
 							<svg
-								class="mt-0.5 h-5 w-5 flex-shrink-0 text-error-secondary"
+								class="text-error-secondary mt-0.5 h-5 w-5 flex-shrink-0"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
@@ -393,7 +393,7 @@
 									d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
 								/>
 							</svg>
-							<p class="text-sm font-medium text-error-secondary">{errorMessage}</p>
+							<p class="text-error-secondary text-sm font-medium">{errorMessage}</p>
 						</div>
 					</div>
 				{/if}
@@ -473,12 +473,12 @@
 				</div>
 
 				<!-- Helper text -->
-				<div class="mt-6 border-t border-base pt-6 text-center">
+				<div class="border-base mt-6 border-t pt-6 text-center">
 					<p class="text-sm text-secondary">
 						Wrong email?
 						<a
 							href={resolveRoute('/register')}
-							class="font-medium text-accent-primary transition-colors hover:text-accent-hover"
+							class="text-accent-primary hover:text-accent-hover font-medium transition-colors"
 						>
 							Start over
 						</a>

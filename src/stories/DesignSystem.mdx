@@ -3,7 +3,7 @@ import { Meta } from '@storybook/addon-docs/blocks';
 <Meta title="Design System/Overview" />
 
 <style>
-  {`
+	{`
     .overview-header {
       background: linear-gradient(135deg, oklch(55% 0.15 195 / 0.15) 0%, oklch(55% 0.15 195 / 0.05) 100%);
       border: 1px solid oklch(55% 0.15 195 / 0.3);
@@ -110,33 +110,35 @@ import { Meta } from '@storybook/addon-docs/blocks';
 </style>
 
 <div className="overview-header">
-  <h1 className="overview-title">Design System Architecture</h1>
-  <p className="overview-subtitle">A 4-layer cascade system: Tokens → Utilities → Patterns → Components</p>
+	<h1 className="overview-title">Design System Architecture</h1>
+	<p className="overview-subtitle">
+		A 4-layer cascade system: Tokens → Utilities → Patterns → Components
+	</p>
 </div>
 
 ## 🏗️ Architecture Layers
 
 <div className="layer-grid">
-  <div className="layer-card">
-    <p className="layer-card-number">Layer 1</p>
-    <h3 className="layer-card-title">Base Tokens</h3>
-    <p className="layer-card-desc">OKLCH colors, rem spacing, font stacks. The foundation.</p>
-  </div>
-  <div className="layer-card">
-    <p className="layer-card-number">Layer 2</p>
-    <h3 className="layer-card-title">Semantic Tokens</h3>
-    <p className="layer-card-desc">Context-aware tokens with light/dark variants.</p>
-  </div>
-  <div className="layer-card">
-    <p className="layer-card-number">Layer 3</p>
-    <h3 className="layer-card-title">CSS Utilities</h3>
-    <p className="layer-card-desc">Generated classes: bg-*, text-*, px-*, rounded-*</p>
-  </div>
-  <div className="layer-card">
-    <p className="layer-card-number">Layer 4</p>
-    <h3 className="layer-card-title">Components</h3>
-    <p className="layer-card-desc">Atoms, Molecules, Organisms using utilities.</p>
-  </div>
+	<div className="layer-card">
+		<p className="layer-card-number">Layer 1</p>
+		<h3 className="layer-card-title">Base Tokens</h3>
+		<p className="layer-card-desc">OKLCH colors, rem spacing, font stacks. The foundation.</p>
+	</div>
+	<div className="layer-card">
+		<p className="layer-card-number">Layer 2</p>
+		<h3 className="layer-card-title">Semantic Tokens</h3>
+		<p className="layer-card-desc">Context-aware tokens with light/dark variants.</p>
+	</div>
+	<div className="layer-card">
+		<p className="layer-card-number">Layer 3</p>
+		<h3 className="layer-card-title">CSS Utilities</h3>
+		<p className="layer-card-desc">Generated classes: bg-*, text-*, px-*, rounded-*</p>
+	</div>
+	<div className="layer-card">
+		<p className="layer-card-number">Layer 4</p>
+		<h3 className="layer-card-title">Components</h3>
+		<p className="layer-card-desc">Atoms, Molecules, Organisms using utilities.</p>
+	</div>
 </div>
 
 ---
@@ -145,32 +147,32 @@ import { Meta } from '@storybook/addon-docs/blocks';
 
 We follow **Brad Frost's Atomic Design** with 5 hierarchical levels:
 
-<div className="layer-grid" style={{gridTemplateColumns: 'repeat(5, 1fr)'}}>
-  <div className="layer-card">
-    <p className="layer-card-number">Level 1</p>
-    <h3 className="layer-card-title">⚛️ Atoms</h3>
-    <p className="layer-card-desc">Basic building blocks</p>
-  </div>
-  <div className="layer-card">
-    <p className="layer-card-number">Level 2</p>
-    <h3 className="layer-card-title">🔗 Molecules</h3>
-    <p className="layer-card-desc">Simple atom groups</p>
-  </div>
-  <div className="layer-card">
-    <p className="layer-card-number">Level 3</p>
-    <h3 className="layer-card-title">🧬 Organisms</h3>
-    <p className="layer-card-desc">Complex sections</p>
-  </div>
-  <div className="layer-card">
-    <p className="layer-card-number">Level 4</p>
-    <h3 className="layer-card-title">📐 Templates</h3>
-    <p className="layer-card-desc">Page layouts</p>
-  </div>
-  <div className="layer-card">
-    <p className="layer-card-number">Level 5</p>
-    <h3 className="layer-card-title">📄 Pages</h3>
-    <p className="layer-card-desc">Real content</p>
-  </div>
+<div className="layer-grid" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
+	<div className="layer-card">
+		<p className="layer-card-number">Level 1</p>
+		<h3 className="layer-card-title">⚛️ Atoms</h3>
+		<p className="layer-card-desc">Basic building blocks</p>
+	</div>
+	<div className="layer-card">
+		<p className="layer-card-number">Level 2</p>
+		<h3 className="layer-card-title">🔗 Molecules</h3>
+		<p className="layer-card-desc">Simple atom groups</p>
+	</div>
+	<div className="layer-card">
+		<p className="layer-card-number">Level 3</p>
+		<h3 className="layer-card-title">🧬 Organisms</h3>
+		<p className="layer-card-desc">Complex sections</p>
+	</div>
+	<div className="layer-card">
+		<p className="layer-card-number">Level 4</p>
+		<h3 className="layer-card-title">📐 Templates</h3>
+		<p className="layer-card-desc">Page layouts</p>
+	</div>
+	<div className="layer-card">
+		<p className="layer-card-number">Level 5</p>
+		<h3 className="layer-card-title">📄 Pages</h3>
+		<p className="layer-card-desc">Real content</p>
+	</div>
 </div>
 
 ### [Atoms](?path=/docs/design-system-atoms--docs)
@@ -213,41 +215,51 @@ Templates filled with real content and data.
 ## 🎯 Design Principles
 
 <div className="principle-list">
-  <div className="principle-item">
-    <span className="principle-icon">🎨</span>
-    <div className="principle-content">
-      <h4 className="principle-title">Tokens First</h4>
-      <p className="principle-desc">Always use design tokens, never hardcode values. ESLint enforces this.</p>
-    </div>
-  </div>
-  <div className="principle-item">
-    <span className="principle-icon">🔄</span>
-    <div className="principle-content">
-      <h4 className="principle-title">Cascade Automatically</h4>
-      <p className="principle-desc">Change a base token → semantic tokens update → components update. No manual work.</p>
-    </div>
-  </div>
-  <div className="principle-item">
-    <span className="principle-icon">🌙</span>
-    <div className="principle-content">
-      <h4 className="principle-title">Dark Mode Built-In</h4>
-      <p className="principle-desc">Semantic tokens define light/dark variants. Themes switch automatically.</p>
-    </div>
-  </div>
-  <div className="principle-item">
-    <span className="principle-icon">♿</span>
-    <div className="principle-content">
-      <h4 className="principle-title">Accessible by Default</h4>
-      <p className="principle-desc">WCAG compliant contrast ratios, keyboard navigation, ARIA attributes.</p>
-    </div>
-  </div>
-  <div className="principle-item">
-    <span className="principle-icon">📝</span>
-    <div className="principle-content">
-      <h4 className="principle-title">Type-Safe</h4>
-      <p className="principle-desc">Full TypeScript support with proper props, events, and slot types.</p>
-    </div>
-  </div>
+	<div className="principle-item">
+		<span className="principle-icon">🎨</span>
+		<div className="principle-content">
+			<h4 className="principle-title">Tokens First</h4>
+			<p className="principle-desc">
+				Always use design tokens, never hardcode values. ESLint enforces this.
+			</p>
+		</div>
+	</div>
+	<div className="principle-item">
+		<span className="principle-icon">🔄</span>
+		<div className="principle-content">
+			<h4 className="principle-title">Cascade Automatically</h4>
+			<p className="principle-desc">
+				Change a base token → semantic tokens update → components update. No manual work.
+			</p>
+		</div>
+	</div>
+	<div className="principle-item">
+		<span className="principle-icon">🌙</span>
+		<div className="principle-content">
+			<h4 className="principle-title">Dark Mode Built-In</h4>
+			<p className="principle-desc">
+				Semantic tokens define light/dark variants. Themes switch automatically.
+			</p>
+		</div>
+	</div>
+	<div className="principle-item">
+		<span className="principle-icon">♿</span>
+		<div className="principle-content">
+			<h4 className="principle-title">Accessible by Default</h4>
+			<p className="principle-desc">
+				WCAG compliant contrast ratios, keyboard navigation, ARIA attributes.
+			</p>
+		</div>
+	</div>
+	<div className="principle-item">
+		<span className="principle-icon">📝</span>
+		<div className="principle-content">
+			<h4 className="principle-title">Type-Safe</h4>
+			<p className="principle-desc">
+				Full TypeScript support with proper props, events, and slot types.
+			</p>
+		</div>
+	</div>
 </div>
 
 ---
@@ -277,13 +289,13 @@ Templates filled with real content and data.
 
 ## 🔗 Quick Links
 
-| Resource | Description |
-|----------|-------------|
-| [Token Reference](?path=/docs/docs-token-reference--docs) | Complete token tables |
-| [Colors](?path=/docs/design-system-tokens-colors--docs) | Color palette visualization |
-| [Typography](?path=/docs/design-system-tokens-typography--docs) | Font families and sizes |
-| [Spacing](?path=/docs/design-system-tokens-spacing--docs) | Spacing scale |
-| [Color Cascade](?path=/docs/design-system-tokens-color-cascade--docs) | Interactive cascade demo |
+| Resource                                                              | Description                 |
+| --------------------------------------------------------------------- | --------------------------- |
+| [Token Reference](?path=/docs/docs-token-reference--docs)             | Complete token tables       |
+| [Colors](?path=/docs/design-system-tokens-colors--docs)               | Color palette visualization |
+| [Typography](?path=/docs/design-system-tokens-typography--docs)       | Font families and sizes     |
+| [Spacing](?path=/docs/design-system-tokens-spacing--docs)             | Spacing scale               |
+| [Color Cascade](?path=/docs/design-system-tokens-color-cascade--docs) | Interactive cascade demo    |
 
 ---
 

@@ -180,10 +180,10 @@
 	const reviewCount = $derived(flashcard.reps || 0);
 </script>
 
-<div class="flex h-full flex-col gap-settings-section">
+<div class="gap-settings-section flex h-full flex-col">
 	<!-- Tags Section - Now Interactive! -->
 	{#if TagSelector}
-		<div class="flex flex-col gap-settings-section border-b border-base pb-settings-row">
+		<div class="gap-settings-section border-base pb-settings-row flex flex-col border-b">
 			<TagSelector
 				bind:comboboxOpen={tagComboboxOpen}
 				bind:selectedTagIds
@@ -195,9 +195,9 @@
 	{/if}
 
 	<!-- FSRS Stats Section -->
-	<div class="flex flex-col gap-settings-section border-b border-base pb-settings-row">
+	<div class="gap-settings-section border-base pb-settings-row flex flex-col border-b">
 		<h3 class="text-label tracking-wider text-secondary uppercase">FSRS Stats</h3>
-		<div class="flex flex-col gap-settings-row">
+		<div class="gap-settings-row flex flex-col">
 			<div class="flex items-center justify-between">
 				<span class="text-small text-secondary">Stability</span>
 				<span class="text-small font-medium text-primary">
@@ -226,9 +226,9 @@
 	</div>
 
 	<!-- Review History Section -->
-	<div class="flex flex-col gap-settings-section border-b border-base pb-settings-row">
+	<div class="gap-settings-section border-base pb-settings-row flex flex-col border-b">
 		<h3 class="text-label tracking-wider text-secondary uppercase">Review History</h3>
-		<div class="flex flex-col gap-settings-row">
+		<div class="gap-settings-row flex flex-col">
 			<div class="flex items-center justify-between">
 				<span class="text-small text-secondary">Total Reviews</span>
 				<span class="text-small font-medium text-primary">{reviewCount}</span>
@@ -249,9 +249,9 @@
 	</div>
 
 	<!-- Card Info Section -->
-	<div class="flex flex-col gap-settings-section border-b border-base pb-settings-row">
+	<div class="gap-settings-section border-base pb-settings-row flex flex-col border-b">
 		<h3 class="text-label tracking-wider text-secondary uppercase">Card Info</h3>
-		<div class="flex flex-col gap-settings-row">
+		<div class="gap-settings-row flex flex-col">
 			<div class="flex items-center justify-between">
 				<span class="text-small text-secondary">Created</span>
 				<span class="text-small font-medium text-primary">{formatDate(flashcard.createdAt)}</span>
@@ -260,16 +260,16 @@
 	</div>
 
 	<!-- Actions -->
-	<div class="mt-auto flex flex-col gap-settings-section pt-settings-section">
+	<div class="gap-settings-section pt-settings-section mt-auto flex flex-col">
 		<Button.Root
 			onclick={onEdit}
-			class="w-full rounded-button border border-base bg-elevated px-2 py-nav-item text-small font-medium text-primary transition-colors hover:bg-hover-solid"
+			class="border-base py-nav-item text-small hover:bg-hover-solid w-full rounded-button border bg-elevated px-2 font-medium text-primary transition-colors"
 		>
 			Edit Card
 		</Button.Root>
 		<Button.Root
 			onclick={onDelete}
-			class="w-full rounded-button bg-destructive px-2 py-nav-item text-small font-medium text-primary transition-colors hover:bg-destructive-hover"
+			class="bg-destructive py-nav-item text-small hover:bg-destructive-hover w-full rounded-button px-2 font-medium text-primary transition-colors"
 		>
 			Delete Card
 		</Button.Root>

@@ -46,24 +46,24 @@
 
 {#if !featureEnabled && !flagQuery?.isLoading}
 	<!-- Feature not enabled - will redirect -->
-	<div class="bg-base flex min-h-screen items-center justify-center">
+	<div class="flex min-h-screen items-center justify-center bg-base">
 		<div class="text-text-secondary">Redirecting...</div>
 	</div>
 {:else if flagQuery?.isLoading}
 	<!-- Loading -->
-	<div class="bg-base flex min-h-screen items-center justify-center">
+	<div class="flex min-h-screen items-center justify-center bg-base">
 		<div class="text-text-secondary">Loading...</div>
 	</div>
 {:else}
 	<!-- Dashboard Page -->
-	<div class="bg-base h-full overflow-y-auto">
+	<div class="h-full overflow-y-auto bg-base">
 		<!-- Header -->
-		<div class="bg-base border-b border-border-base">
-			<div class="mx-auto max-w-6xl px-content-padding py-content-padding">
+		<div class="border-border-base border-b bg-base">
+			<div class="mx-auto max-w-6xl px-page py-page">
 				<div class="flex items-center gap-2">
 					<!-- Icon -->
 					<div
-						class="size-avatar-lg flex items-center justify-center rounded-avatar bg-accent-primary"
+						class="size-avatar-lg bg-accent-primary flex items-center justify-center rounded-avatar"
 					>
 						<svg class="icon-lg text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 							<path
@@ -75,7 +75,7 @@
 						</svg>
 					</div>
 					<div class="flex-1">
-						<h1 class="text-h2 font-semibold text-text-primary">Dashboard</h1>
+						<h1 class="text-h2 text-text-primary font-semibold">Dashboard</h1>
 						<p class="mt-form-section text-small text-text-secondary">
 							Track your action items and stay on top of what needs to get done.
 						</p>
@@ -85,10 +85,10 @@
 		</div>
 
 		<!-- Content -->
-		<div class="mx-auto max-w-6xl px-content-padding py-content-padding">
+		<div class="mx-auto max-w-6xl px-page py-page">
 			<!-- My Action Items Section -->
 			<section class="mb-content-padding">
-				<h2 class="text-h3 mb-content-section font-semibold text-text-primary">My Action Items</h2>
+				<h2 class="text-h3 mb-content-section text-text-primary font-semibold">My Action Items</h2>
 				<ActionItemsList {sessionId} />
 			</section>
 

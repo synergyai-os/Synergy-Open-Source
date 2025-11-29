@@ -16,6 +16,7 @@
 	import type { Id } from '$lib/convex';
 	import { useDecisions } from '../composables/useDecisions.svelte';
 	import { useDecisionsForm } from '../composables/useDecisionsForm.svelte';
+	import { Button, Text, Icon } from '$lib/components/atoms';
 
 	interface Props {
 		agendaItemId: Id<'meetingAgendaItems'>;
@@ -49,89 +50,85 @@
 </script>
 
 {#if browser && sessionId}
-	<div class="flex flex-col gap-content-section">
+	<div class="gap-content-section flex flex-col">
 		<!-- Section Header -->
 		<div class="flex items-center justify-between">
-			<h4 class="text-body-sm font-medium text-primary">Decisions</h4>
+			<Text variant="body" size="sm" color="default" as="h4" class="font-medium">Decisions</Text>
 			{#if !readonly && !isAdding && !editingId}
-				<button
-					onclick={decisionsForm.startAdding}
-					class="text-body-sm flex items-center gap-2 rounded-button bg-elevated px-2 py-nav-item text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
-				>
-					<svg class="icon-sm flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M12 4v16m8-8H4"
-						/>
-					</svg>
+				<Button variant="outline" size="sm" onclick={decisionsForm.startAdding}>
+					<Icon type="add" size="sm" />
 					Add Decision
-				</button>
+				</Button>
 			{/if}
 		</div>
 
 		<!-- Error Message -->
 		{#if error}
-			<div class="text-body-sm rounded-button bg-error-bg px-card py-header text-error-text">
+			<div class="text-body-sm bg-error-bg px-card py-header text-error-text rounded-button">
 				{error}
 			</div>
 		{/if}
 
 		<!-- Add Decision Form -->
 		{#if isAdding}
-			<div class="p-card rounded-button border-2 border-accent-primary bg-elevated">
-				<div class="flex flex-col gap-2">
+			<div class="p-card border-accent-primary rounded-button border-2 bg-elevated">
+				<div class="flex flex-col gap-fieldGroup">
 					<!-- Title Input -->
 					<div>
-						<label
-							for="new-decision-title"
-							class="text-body-sm mb-form-field-gap block font-medium text-primary"
-						>
-							Title
+						<label for="new-decision-title">
+							<Text
+								variant="body"
+								size="sm"
+								color="default"
+								as="span"
+								class="mb-form-field-gap block font-medium"
+							>
+								Title
+							</Text>
 						</label>
 						<input
 							id="new-decision-title"
 							type="text"
 							bind:value={decisionsForm.newTitle}
 							placeholder="Decision title..."
-							class="text-body-sm w-full rounded-input border border-base bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
+							class="text-body-sm border-base focus:border-accent-primary w-full rounded-input border bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:outline-none"
 						/>
 					</div>
 
 					<!-- Description Textarea -->
 					<div>
-						<label
-							for="new-decision-description"
-							class="text-body-sm mb-form-field-gap block font-medium text-primary"
-						>
-							Description (optional)
+						<label for="new-decision-description">
+							<Text
+								variant="body"
+								size="sm"
+								color="default"
+								as="span"
+								class="mb-form-field-gap block font-medium"
+							>
+								Description (optional)
+							</Text>
 						</label>
 						<textarea
 							id="new-decision-description"
 							bind:value={decisionsForm.newDescription}
 							placeholder="Add context or details..."
 							rows="4"
-							class="text-body-sm w-full rounded-input border border-base bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
+							class="text-body-sm border-base focus:border-accent-primary w-full rounded-input border bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:outline-none"
 						></textarea>
 					</div>
 
 					<!-- Form Actions -->
-					<div class="flex justify-end gap-2">
-						<button
-							onclick={decisionsForm.cancelAdding}
-							disabled={isSaving}
-							class="rounded-button px-button-x py-button-y text-button text-secondary transition-colors hover:bg-hover-solid hover:text-primary disabled:opacity-50"
-						>
+					<div class="flex justify-end gap-fieldGroup">
+						<Button variant="outline" onclick={decisionsForm.cancelAdding} disabled={isSaving}>
 							Cancel
-						</button>
-						<button
+						</Button>
+						<Button
+							variant="primary"
 							onclick={decisionsForm.handleCreate}
 							disabled={isSaving || !decisionsForm.newTitle.trim()}
-							class="rounded-button bg-accent-primary px-button-x py-button-y text-button font-medium text-primary transition-colors hover:bg-accent-hover disabled:opacity-50"
 						>
 							{isSaving ? 'Creating...' : 'Create Decision'}
-						</button>
+						</Button>
 					</div>
 				</div>
 			</div>
@@ -139,12 +136,12 @@
 
 		<!-- Decisions List -->
 		{#if decisions.length > 0}
-			<div class="flex flex-col gap-2">
+			<div class="flex flex-col gap-fieldGroup">
 				{#each decisions as decision (decision._id)}
 					<div
 						role="region"
 						aria-label="Decision card"
-						class="rounded-card border border-base bg-elevated transition-all hover:border-elevated"
+						class="border-base hover:border-elevated rounded-card border bg-elevated transition-all"
 						onmouseenter={() => {
 							decisionsForm.hoveredId = decision._id;
 						}}
@@ -155,77 +152,95 @@
 						{#if editingId === decision._id}
 							<!-- Edit Mode -->
 							<div class="p-card">
-								<div class="flex flex-col gap-2">
+								<div class="flex flex-col gap-fieldGroup">
 									<!-- Title Input -->
 									<div>
-										<label
-											for="edit-decision-title-{decision._id}"
-											class="text-body-sm mb-form-field-gap block font-medium text-primary"
-										>
-											Title
+										<label for="edit-decision-title-{decision._id}">
+											<Text
+												variant="body"
+												size="sm"
+												color="default"
+												as="span"
+												class="mb-form-field-gap block font-medium"
+											>
+												Title
+											</Text>
 										</label>
 										<input
 											id="edit-decision-title-{decision._id}"
 											type="text"
 											bind:value={decisionsForm.editTitle}
 											placeholder="Decision title..."
-											class="text-body-sm w-full rounded-input border border-base bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
+											class="text-body-sm border-base focus:border-accent-primary w-full rounded-input border bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:outline-none"
 										/>
 									</div>
 
 									<!-- Description Textarea -->
 									<div>
-										<label
-											for="edit-decision-description-{decision._id}"
-											class="text-body-sm mb-form-field-gap block font-medium text-primary"
-										>
-											Description (optional)
+										<label for="edit-decision-description-{decision._id}">
+											<Text
+												variant="body"
+												size="sm"
+												color="default"
+												as="span"
+												class="mb-form-field-gap block font-medium"
+											>
+												Description (optional)
+											</Text>
 										</label>
 										<textarea
 											id="edit-decision-description-{decision._id}"
 											bind:value={decisionsForm.editDescription}
 											placeholder="Add context or details..."
 											rows="4"
-											class="text-body-sm w-full rounded-input border border-base bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
+											class="text-body-sm border-base focus:border-accent-primary w-full rounded-input border bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:outline-none"
 										></textarea>
 									</div>
 
 									<!-- Form Actions -->
-									<div class="flex justify-end gap-2">
-										<button
+									<div class="flex justify-end gap-fieldGroup">
+										<Button
+											variant="outline"
 											onclick={decisionsForm.cancelEditing}
 											disabled={isSaving}
-											class="rounded-button px-button-x py-button-y text-button text-secondary transition-colors hover:bg-hover-solid hover:text-primary disabled:opacity-50"
 										>
 											Cancel
-										</button>
-										<button
+										</Button>
+										<Button
+											variant="primary"
 											onclick={() => decisionsForm.handleUpdate(decision._id)}
 											disabled={isSaving || !decisionsForm.editTitle.trim()}
-											class="rounded-button bg-accent-primary px-button-x py-button-y text-button font-medium text-primary transition-colors hover:bg-accent-hover disabled:opacity-50"
 										>
 											{isSaving ? 'Saving...' : 'Save Changes'}
-										</button>
+										</Button>
 									</div>
 								</div>
 							</div>
 						{:else}
 							<!-- View Mode -->
 							<div class="p-card">
-								<div class="flex items-start justify-between gap-content-section">
-									<div class="flex flex-1 flex-col gap-2">
+								<div class="gap-content-section flex items-start justify-between">
+									<div class="flex flex-1 flex-col gap-fieldGroup">
 										<!-- Title -->
-										<h5 class="font-medium text-primary">{decision.title}</h5>
+										<Text variant="body" size="base" color="default" as="h5" class="font-medium"
+											>{decision.title}</Text
+										>
 
 										<!-- Description -->
 										{#if decision.description}
-											<div class="text-body-sm whitespace-pre-wrap text-secondary">
+											<Text
+												variant="body"
+												size="sm"
+												color="secondary"
+												as="div"
+												class="whitespace-pre-wrap"
+											>
 												{decision.description}
-											</div>
+											</Text>
 										{/if}
 
 										<!-- Timestamp -->
-										<div class="flex items-center gap-2 text-label text-tertiary">
+										<div class="flex items-center gap-fieldGroup text-label text-tertiary">
 											<svg
 												class="icon-xs flex-shrink-0"
 												fill="none"
@@ -239,51 +254,34 @@
 													d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
 												/>
 											</svg>
-											<span>{decisionsForm.formatTimestamp(decision.decidedAt)}</span>
+											<Text variant="label" color="tertiary" as="span"
+												>{decisionsForm.formatTimestamp(decision.decidedAt)}</Text
+											>
 										</div>
 									</div>
 
 									<!-- Hover Actions -->
 									{#if !readonly && decisionsForm.hoveredId === decision._id}
-										<div class="gap-2-sm flex">
-											<button
+										<div class="flex gap-fieldGroup">
+											<Button
+												variant="ghost"
+												size="sm"
+												iconOnly
 												onclick={() => decisionsForm.startEditing(decision)}
-												class="rounded-button text-secondary transition-colors hover:bg-hover-solid hover:text-primary" style="padding: var(--spacing-2);"
-												aria-label="Edit decision"
+												ariaLabel="Edit decision"
 											>
-												<svg
-													class="icon-sm flex-shrink-0"
-													fill="none"
-													viewBox="0 0 24 24"
-													stroke="currentColor"
-												>
-													<path
-														stroke-linecap="round"
-														stroke-linejoin="round"
-														stroke-width="2"
-														d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-													/>
-												</svg>
-											</button>
-											<button
+												<Icon type="edit" size="sm" />
+											</Button>
+											<Button
+												variant="ghost"
+												size="sm"
+												iconOnly
 												onclick={() => decisionsForm.handleDelete(decision._id)}
-												class="rounded-button text-secondary transition-colors hover:bg-destructive-hover hover:text-error-text" style="padding: var(--spacing-2);"
-												aria-label="Delete decision"
+												ariaLabel="Delete decision"
+												class="hover:bg-destructive-hover hover:text-error-text"
 											>
-												<svg
-													class="icon-sm flex-shrink-0"
-													fill="none"
-													viewBox="0 0 24 24"
-													stroke="currentColor"
-												>
-													<path
-														stroke-linecap="round"
-														stroke-linejoin="round"
-														stroke-width="2"
-														d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-													/>
-												</svg>
-											</button>
+												<Icon type="delete" size="sm" />
+											</Button>
 										</div>
 									{/if}
 								</div>
@@ -295,22 +293,14 @@
 		{:else if !isAdding}
 			<!-- Empty State -->
 			<div
-				class="py-1-spacing-small rounded-card border border-dashed border-base bg-surface px-card text-center"
+				class="border-base px-card rounded-card border border-dashed bg-surface py-section-gap text-center"
 			>
-				<svg
-					class="mx-auto icon-lg text-tertiary"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
+				<div class="mx-auto">
+					<Icon type="dashboard" size="lg" color="tertiary" />
+				</div>
+				<Text variant="body" size="sm" color="secondary" as="p" class="mt-spacing-text-gap"
+					>No decisions recorded yet</Text
 				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-					/>
-				</svg>
-				<p class="mt-spacing-text-gap text-body-sm text-secondary">No decisions recorded yet</p>
 				{#if !readonly}
 					<button
 						onclick={decisionsForm.startAdding}
@@ -324,5 +314,6 @@
 	</div>
 {:else if !browser}
 	<!-- SSR placeholder -->
-	<div class="text-body-sm text-tertiary italic">Loading decisions...</div>
+	<Text variant="body" size="sm" color="tertiary" as="div" class="italic">Loading decisions...</Text
+	>
 {/if}

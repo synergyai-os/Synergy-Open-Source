@@ -15,7 +15,7 @@
 </script>
 
 <header
-	class="flex h-system-header flex-shrink-0 items-center justify-between border-b border-base px-inbox-container py-system-header"
+	class="h-system-header border-base px-inbox-container py-system-header flex flex-shrink-0 items-center justify-between border-b"
 >
 	<h2 class="text-h3 font-semibold text-primary">{roleName}</h2>
 	<div class="flex items-center gap-2">
@@ -34,7 +34,7 @@
 		{#if onEdit}
 			<button
 				type="button"
-				class="rounded-button border border-accent-primary bg-elevated px-card py-input-y text-button font-medium text-accent-primary transition-colors hover:bg-hover-solid"
+				class="border-accent-primary px-card text-button text-accent-primary hover:bg-hover-solid rounded-button border bg-elevated py-input-y font-medium transition-colors"
 				onclick={onEdit}
 			>
 				Edit role

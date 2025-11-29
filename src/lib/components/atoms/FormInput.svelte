@@ -9,10 +9,12 @@
 		label?: string;
 		placeholder?: string;
 		value?: string;
-		type?: 'text' | 'email' | 'password' | 'url';
+		type?: 'text' | 'email' | 'password' | 'url' | 'date' | 'time' | 'number';
 		required?: boolean;
 		disabled?: boolean;
 		autocomplete?: FullAutoFill | null | undefined;
+		min?: string | number;
+		max?: string | number;
 		class?: string; // Allow custom classes for specific cases
 		onkeydown?: ((e: KeyboardEvent) => void) | undefined;
 	};
@@ -27,6 +29,8 @@
 		required = false,
 		disabled = false,
 		autocomplete,
+		min,
+		max,
 		class: customClass = '',
 		onkeydown
 	}: Props = $props();
@@ -57,6 +61,8 @@
 		{required}
 		{disabled}
 		autocomplete={autocomplete ?? undefined}
+		{min}
+		{max}
 		bind:value
 		{onkeydown}
 		class={inputClasses}

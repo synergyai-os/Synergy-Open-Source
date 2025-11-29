@@ -37,9 +37,7 @@
 </script>
 
 <div class="flex h-screen items-center justify-center bg-base">
-	<div
-		class="w-full max-w-md rounded-lg border border-base bg-surface px-inbox-container py-inbox-container"
-	>
+	<div class="border-base w-full max-w-md rounded-lg border bg-surface px-page py-page">
 		<div class="space-y-6">
 			<div>
 				<h1 class="text-xl font-semibold text-primary">Create Your Organization</h1>
@@ -59,7 +57,7 @@
 				<label class="flex flex-col gap-1">
 					<span class="text-sm font-medium text-primary">Organization name</span>
 					<input
-						class="w-full rounded-md border border-base bg-elevated px-2 py-nav-item text-sm text-primary focus:border-accent-primary focus:outline-none"
+						class="border-base py-nav-item focus:border-accent-primary w-full rounded-md border bg-elevated px-2 text-sm text-primary focus:outline-none"
 						placeholder="e.g. SynergyOS Labs"
 						bind:value={orgName}
 						required
@@ -80,7 +78,7 @@
 					<button
 						type="submit"
 						disabled={isCreating || !orgName.trim()}
-						class="text-on-solid rounded-md bg-accent-primary px-button-x py-button-y text-sm font-medium disabled:opacity-50"
+						class="text-on-solid bg-accent-primary rounded-md px-button-x py-button-y text-sm font-medium disabled:opacity-50"
 					>
 						{isCreating ? 'Creating...' : 'Create'}
 					</button>

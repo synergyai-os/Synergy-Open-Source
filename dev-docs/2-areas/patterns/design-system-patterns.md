@@ -291,7 +291,7 @@ npm run validate:tokens src/lib/design-system/recipes/button.recipe.ts
 
 ## #L200: Avatar Initials Generation [🟢 REFERENCE]
 
-**Symptom**: Need to generate 2-letter initials from organization/user name.
+**Symptom**: Need to generate 2-letter initials from workspace/user name.
 
 **Pattern**: First letter of first two words, or first two letters of single word.
 
@@ -1146,6 +1146,335 @@ export const attendeeChipRecipe = cva(
 - ❌ Mixing gap and margin for same spacing purpose (choose one)
 
 **Related**: #L450 (Grouping Elements with Spacing Tokens), #L650 (Molecule Components with Recipes)
+
+---
+
+## #L750: Always Use Design System Components (Never Raw HTML) [🟡 IMPORTANT]
+
+**Keywords**: Button component, raw button, design system component, <button>, <Button>, accessibility, recipe system, maintainability, consistency
+
+**Principle**: Always use design system components (Button, Text, Icon, etc.) instead of raw HTML elements. Design system components provide consistency, accessibility, and maintainability.
+
+**Symptom**: Using raw `<button>` instead of `<Button>` component, or other raw HTML elements instead of design system components.
+
+**Root Cause**: Raw HTML elements bypass the design system, lose accessibility features, and require manual styling that breaks consistency.
+
+**Pattern**: Always use design system components:
+
+```svelte
+<!-- ❌ WRONG: Raw button element -->
+<button
+	type="button"
+	onclick={() => handleClick()}
+	class="px-button-sm py-button-sm rounded-button bg-surface"
+	aria-label="Remove item"
+>
+	<Icon type="close" size="sm" />
+</button>
+
+<!-- ✅ CORRECT: Button component from design system -->
+<Button
+	variant="ghost"
+	size="sm"
+	iconOnly={true}
+	ariaLabel="Remove item"
+	onclick={() => handleClick()}
+>
+	{#snippet children()}
+		<Icon type="close" size="sm" />
+	{/snippet}
+</Button>
+```
+
+**Why Use Design System Components**:
+- ✅ **Consistency**: All buttons look and behave the same
+- ✅ **Accessibility**: Built-in aria-label handling, keyboard support, focus states
+- ✅ **Maintainability**: Changes to Button component update all buttons automatically
+- ✅ **Recipe System**: Uses design tokens and recipes automatically
+- ✅ **Type Safety**: Props are type-checked
+
+**When to Override with className**:
+- Button component merges classes as: `[recipeClasses, iconOnlySizeClasses, className]`
+- `className` comes last, so it can override recipe classes when needed
+- Example: Custom padding override for specific use case
+
+```svelte
+<!-- Override padding while keeping Button component benefits -->
+<Button
+	variant="ghost"
+	size="sm"
+	iconOnly={true}
+	class="pl-button-sm"  <!-- Overrides px-button-sm from iconOnly -->
+	style="padding-right: var(--spacing-chip-closeButton-pr);"  <!-- Custom right padding -->
+	ariaLabel="Remove"
+>
+	{#snippet children()}
+		<Icon type="close" size="sm" />
+	{/snippet}
+</Button>
+```
+
+**When to Apply**:
+- Creating any button, link, or interactive element
+- Need consistent styling across app
+- Need accessibility features
+- Want design system compliance
+
+**Anti-Patterns**:
+- ❌ Using raw `<button>` instead of `<Button>` component
+- ❌ Using raw `<span>` for text instead of `<Text>` component
+- ❌ Using raw `<img>` for icons instead of `<Icon>` component
+- ❌ Creating custom styled elements when design system component exists
+
+**Exception**: Only use raw HTML when design system component doesn't exist AND you're creating a new atom component.
+
+**Related**: #L100 (Matching Component Styles), #L650 (Molecule Components with Recipes), #L500 (Recipe Validation)
+
+---
+
+## #L800: Size-Dependent Font Sizes in Recipes [🟢 REFERENCE]
+
+**Keywords**: size-dependent font sizes, badge font size, recipe font size, text-2xs, text-xs, text-sm, fontSize variant, size variants
+
+**Principle**: When components have size variants (sm, md, lg), font sizes should scale with size. Use existing text utilities (`text-2xs`, `text-xs`, `text-sm`) instead of creating component-specific font size tokens.
+
+**Symptom**: Component has size variants but all sizes use the same font size, or recipe uses non-existent `fontSize-*` utility.
+
+**Root Cause**: Recipe uses single font size for all variants, or tries to use non-existent component-specific font size utility.
+
+**Pattern**: Use size-dependent font sizes with existing text utilities:
+
+```typescript
+// ❌ WRONG: All sizes use same font size
+export const badgeRecipe = cva('...', {
+	variants: {
+		size: {
+			sm: 'px-badge-sm py-badge-sm fontSize-badge',  // ❌ fontSize-badge doesn't exist
+			md: 'px-badge-md py-badge-md fontSize-badge',
+			lg: 'px-badge-lg py-badge-lg fontSize-badge'
+		}
+	}
+});
+
+// ✅ CORRECT: Size-dependent font sizes
+export const badgeRecipe = cva('...', {
+	variants: {
+		size: {
+			sm: 'px-badge-sm py-badge-sm text-2xs',  // 10px - smallest
+			md: 'px-badge-md py-badge-md text-xs',   // 12px - default
+			lg: 'px-badge-lg py-badge-lg text-sm'    // 14px - larger
+		}
+	}
+});
+```
+
+**Available Text Size Utilities**:
+- `text-2xs` = 10px (tiny labels, compact badges)
+- `text-xs` = 12px (small labels, badges)
+- `text-sm` = 14px (secondary text, buttons)
+- `text-base` = 16px (body text, default)
+- `text-lg` = 18px (large body, emphasis)
+
+**When to Apply**:
+- Component has size variants (sm, md, lg)
+- Font size should scale with component size
+- Recipe uses non-existent font size utility
+- Need consistent typography scaling
+
+**Anti-Patterns**:
+- ❌ Using non-existent `fontSize-*` utilities
+- ❌ All sizes using same font size (no visual hierarchy)
+- ❌ Creating component-specific font size tokens when text utilities exist
+
+**Related**: #L500 (Recipe Validation), #L100 (Matching Component Styles)
+
+---
+
+## #L850: Overriding Recipe Classes with className Prop [🟢 REFERENCE]
+
+**Keywords**: className override, recipe override, Button className, class prop, override padding, custom styling, recipe merge order
+
+**Principle**: Design system components accept `className` prop that merges with recipe classes. Use `className` to override specific recipe classes when needed, but prefer using component props/variants when possible.
+
+**Symptom**: Need to override specific recipe classes (e.g., padding) while keeping other recipe styling.
+
+**Root Cause**: Component's recipe provides most styling, but specific use case needs slight override (e.g., custom padding for chip close button).
+
+**Pattern**: Use `className` prop to override recipe classes. Component merges classes as: `[recipeClasses, iconOnlySizeClasses, className]` - `className` comes last, so it overrides:
+
+```svelte
+<!-- Button component merges: [recipeClasses, iconOnlySizeClasses, className] -->
+<Button
+	variant="ghost"
+	size="sm"
+	iconOnly={true}
+	class="pl-button-sm"  <!-- Overrides px-button-sm from iconOnly (left padding only) -->
+	style="padding-right: var(--spacing-chip-closeButton-pr);"  <!-- Custom right padding -->
+>
+	{#snippet children()}
+		<Icon type="close" size="sm" />
+	{/snippet}
+</Button>
+```
+
+**When to Use className**:
+- Need to override specific recipe classes (padding, margin, etc.)
+- Component props don't support the customization needed
+- Custom spacing requirements for specific use case
+
+**When NOT to Use className**:
+- Component props/variants can achieve the styling (prefer props)
+- Need to override many classes (consider adding variant to recipe)
+- Override breaks design system consistency (reconsider approach)
+
+**Anti-Patterns**:
+- ❌ Using `className` when component props can achieve styling
+- ❌ Overriding too many classes (add variant to recipe instead)
+- ❌ Using `className` to break design system (reconsider approach)
+
+**Related**: #L100 (Matching Component Styles), #L750 (Always Use Design System Components)
+
+---
+
+## #L900: Separating Color from Variants in CVA Recipes [🟡 IMPORTANT]
+
+**Keywords**: color inheritance, variant color, text-primary, color prop, separation of concerns, CSS specificity, !important, variant typography, color separate
+
+**Principle**: Variants should control typography (font size, weight, line height), not color. Color should always be a separate prop. This prevents CSS specificity conflicts and enables clean color inheritance.
+
+**Symptom**: Component needs to inherit color from parent, but variant applies its own color (e.g., `variant="body"` applies `text-primary`), causing CSS specificity conflicts. Using `!important` feels hacky.
+
+**Root Cause**: Variants mixing typography and color concerns. When `color="inherit"` is needed, variant's color class conflicts with inherit, requiring `!important` hacks.
+
+**Pattern**: Separate color from variants - variants control typography only, color is always separate:
+
+```typescript
+// ❌ WRONG: Variant mixes typography and color
+export const textRecipe = cva('font-body', {
+  variants: {
+    variant: {
+      body: 'text-primary',  // ❌ Color mixed with typography
+      label: 'text-[0.625rem] text-secondary',  // ❌ Color mixed with typography
+    },
+    color: {
+      inherit: '![color:inherit]',  // ❌ Need !important to override variant
+    }
+  }
+});
+
+// ✅ CORRECT: Variants control typography only, color is separate
+export const textRecipe = cva('font-body', {
+  variants: {
+    variant: {
+      body: '',  // ✅ Typography only (size handles font size)
+      label: 'text-[0.625rem]',  // ✅ Typography only (font size)
+    },
+    color: {
+      default: 'text-primary',  // ✅ Color always separate
+      inherit: '[color:inherit]',  // ✅ No !important needed - no conflict
+    }
+  }
+});
+```
+
+**Implementation Example**:
+```svelte
+<!-- InfoCard - parent sets color, Text inherits -->
+<div class="bg-status-infoLight [color:var(--color-neutral-900)]">
+  <Text variant="body" size="sm" color="inherit" as="span">
+    Message inherits dark color from parent
+  </Text>
+</div>
+```
+
+**Key Principles**:
+- **Variants = Typography**: Font size (for label/caption), weight, line height
+- **Color = Separate**: Always controlled by `color` prop, never in variants
+- **No Conflicts**: When `color="inherit"`, no CSS specificity fights
+- **Clean API**: `color="inherit"` just works without hacks
+
+**When to Apply**:
+- Creating CVA recipes with variants
+- Component needs color inheritance from parent
+- Variants currently mix typography and color
+- Encountering CSS specificity conflicts with color
+
+**Anti-Patterns**:
+- ❌ Putting color classes in variants (`variant: { body: 'text-primary' }`)
+- ❌ Using `!important` to override variant colors (fix architecture instead)
+- ❌ Mixing typography and color concerns in variants
+- ❌ Not separating color when inheritance is needed
+
+**Benefits**:
+- ✅ No CSS specificity conflicts
+- ✅ Clean color inheritance (`color="inherit"` just works)
+- ✅ Better separation of concerns
+- ✅ More maintainable (color changes don't affect variants)
+
+**Related**: #L100 (Matching Component Styles), #L500 (Recipe Validation)
+
+---
+
+## #L950: Using svelte:element for Dynamic Element Types [🟢 REFERENCE]
+
+**Keywords**: dynamic element, svelte:element, if/else chain, element type, as prop, polymorphic component, repetitive code
+
+**Principle**: Use `svelte:element` for dynamic element types instead of if/else chains. Reduces code from 20+ lines to 3 lines.
+
+**Symptom**: Component has repetitive if/else chain for different HTML elements (p, span, h1-h6, div), making code verbose and hard to maintain.
+
+**Root Cause**: Using conditional rendering (`{#if}`) for each element type instead of Svelte's built-in `svelte:element` feature.
+
+**Pattern**: Use `svelte:element` for dynamic element types:
+
+```svelte
+<!-- ❌ WRONG: 20 lines of repetitive if/else -->
+{#if as === 'p'}
+	<p bind:this={ref} class={classes} {...rest}>{@render children()}</p>
+{:else if as === 'span'}
+	<span bind:this={ref} class={classes} {...rest}>{@render children()}</span>
+{:else if as === 'h1'}
+	<h1 bind:this={ref} class={classes} {...rest}>{@render children()}</h1>
+<!-- ... 7 more branches ... -->
+{/if}
+
+<!-- ✅ CORRECT: 3 lines using svelte:element -->
+<svelte:element this={as} bind:this={ref} class={classes} {...rest}>
+	{@render children()}
+</svelte:element>
+```
+
+**Implementation Example**:
+```svelte
+<script lang="ts">
+  let { as = 'p', ref = $bindable(null), ...rest }: Props = $props();
+  const classes = $derived(textRecipe({ variant, size, color }));
+</script>
+
+<svelte:element this={as} bind:this={ref} class={classes} {...rest}>
+	{@render children()}
+</svelte:element>
+```
+
+**Key Benefits**:
+- ✅ **3 lines instead of 20+** - Massive code reduction
+- ✅ **No repetition** - DRY principle
+- ✅ **Uses Svelte feature** - Built-in for this exact use case
+- ✅ **Same functionality** - Works identically to if/else chain
+- ✅ **Easier to maintain** - One place to update
+
+**When to Apply**:
+- Component accepts `as` prop for element type
+- Multiple element types supported (p, span, h1-h6, div)
+- Currently using if/else chain for element rendering
+- Need polymorphic component behavior
+
+**Anti-Patterns**:
+- ❌ Using if/else chain when `svelte:element` can be used
+- ❌ Repetitive code for each element type
+- ❌ Not using Svelte's built-in features
+
+**Related**: #L100 (Matching Component Styles), #L650 (Molecule Components with Recipes)
 
 ---
 

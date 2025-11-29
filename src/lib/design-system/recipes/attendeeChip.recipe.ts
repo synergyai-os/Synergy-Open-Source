@@ -27,3 +27,24 @@ export const attendeeChipRecipe = cva(
 );
 
 export type AttendeeChipVariantProps = VariantProps<typeof attendeeChipRecipe>;
+
+/**
+ * AttendeeChip Close Button Recipe (CVA)
+ *
+ * Type-safe variant system for the close button inside AttendeeChip.
+ * Uses design tokens for all styling (no hardcoded values).
+ *
+ * Handles close button styling with reduced right padding for compact design.
+ */
+export const attendeeChipCloseButtonRecipe = cva(
+	// Base classes - applied to all close buttons
+	'flex items-center justify-center rounded-button pl-button-sm py-button-sm text-tertiary transition-colors hover:text-primary',
+	{
+		variants: {},
+		defaultVariants: {}
+	}
+);
+
+export type AttendeeChipCloseButtonVariantProps = VariantProps<
+	typeof attendeeChipCloseButtonRecipe
+>;

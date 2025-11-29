@@ -151,6 +151,10 @@ function transformTailwindUtility(token) {
 		} else if (/-y(?=$|-)/.test(spacingName)) {
 			utilityName = `py-${spacingName.replace(/-y(?=$|-)/, '')}`;
 			cssProperty = 'padding-block';
+		} else if (spacingName.includes('sectionGap')) {
+			// sectionGap tokens: form-sectionGap → gap-form-sectionGap, content-sectionGap → gap-content-sectionGap
+			utilityName = `gap-${spacingName}`;
+			cssProperty = 'gap';
 		} else if (spacingName.includes('gap')) {
 			utilityName = `gap-${spacingName.replace('-gap', '')}`;
 			cssProperty = 'gap';
@@ -301,7 +305,7 @@ function transformTailwindUtility(token) {
 	// For size tokens, generate appropriate utilities based on token name pattern
 	else if (path.startsWith('size-')) {
 		const sizeName = path.replace('size-', '');
-		
+
 		// Generate max-width utilities for tokens starting with maxWidth
 		if (sizeName.startsWith('maxWidth')) {
 			const maxWidthName = sizeName.replace('maxWidth', '');
@@ -349,7 +353,7 @@ function transformTailwindUtility(token) {
 
 	// Special handling for icon sizes - need both width and height
 	if (utilityName.startsWith('size-icon-')) {
-		return `@utility ${utilityName} {\n\twidth: ${cssValue};\n\theight: ${cssValue};\n}`
+		return `@utility ${utilityName} {\n\twidth: ${cssValue};\n\theight: ${cssValue};\n}`;
 	}
 
 	return `@utility ${utilityName} {\n\t${cssProperty}: ${cssValue};\n}`;
@@ -432,13 +436,13 @@ function transformConditionalToken(token, cssVarName, pathParts) {
 	// so we need to check the preserved DTCG reference structure to generate var() references
 	// Since Style Dictionary doesn't preserve custom properties, we read tokens.json directly
 	let resolvedLight, resolvedDark;
-	
+
 	// Read original tokens.json to get dtcgRefConditional property
 	// This is a workaround because Style Dictionary doesn't preserve custom properties
 	let dtcgRefConditional = null;
 	try {
 		const tokensPath = path.join(__dirname, '../../tokens.json');
-		
+
 		if (fs.existsSync(tokensPath)) {
 			const tokensData = JSON.parse(fs.readFileSync(tokensPath, 'utf-8'));
 			// Navigate to token using pathParts
@@ -459,7 +463,7 @@ function transformConditionalToken(token, cssVarName, pathParts) {
 		// If reading fails, fall back to resolved values
 		// Silent fail - not critical if we can't read the file
 	}
-	
+
 	if (dtcgRefConditional && dtcgRefConditional.light && dtcgRefConditional.dark) {
 		// Check if preserved values are DTCG references (e.g., {color.brand.primary})
 		const originalLight = dtcgRefConditional.light;

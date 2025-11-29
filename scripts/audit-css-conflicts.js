@@ -419,7 +419,9 @@ function auditCSSConflicts() {
 	if (!fs.existsSync(OLD_CSS_FILE)) {
 		console.log('✅ Old CSS file not found - migration complete!\n');
 		console.log(`   Expected location: ${OLD_CSS_FILE}\n`);
-		console.log('   This means src/app.css has been successfully migrated to modular architecture.\n');
+		console.log(
+			'   This means src/app.css has been successfully migrated to modular architecture.\n'
+		);
 		console.log('   All styles are now in src/styles/ with generated tokens.\n');
 		process.exit(0);
 	}
@@ -490,4 +492,3 @@ try {
 	console.error(error.stack);
 	process.exit(1);
 }
-

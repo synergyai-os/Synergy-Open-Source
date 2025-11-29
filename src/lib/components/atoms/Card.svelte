@@ -28,12 +28,12 @@
 		...rest
 	}: Props = $props();
 
-	// Use recipe for default/elevated/outlined variants
+	// Use recipe for default/elevated/premium/outlined variants
 	// Handle 'noPadding' separately (legacy support)
 	const recipeClasses = $derived(
 		variant === 'noPadding'
 			? 'rounded-card bg-elevated'
-			: cardRecipe({ variant: variant as 'default' | 'elevated' | 'outlined', padding })
+			: cardRecipe({ variant: variant as 'default' | 'elevated' | 'premium' | 'outlined', padding })
 	);
 
 	// Clickable styles: cursor, hover, transitions

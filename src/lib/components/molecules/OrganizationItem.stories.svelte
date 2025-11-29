@@ -65,4 +65,3 @@
 		<OrganizationItem {...args} />
 	{/snippet}
 </Story>
-

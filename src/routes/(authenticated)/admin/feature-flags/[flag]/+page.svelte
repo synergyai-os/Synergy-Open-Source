@@ -203,7 +203,7 @@
 
 {#if !flag}
 	<div class="flex h-full flex-col items-center justify-center">
-		<p class="text-h3 text-secondary mb-form-field-gap font-medium">Flag not found</p>
+		<p class="text-h3 mb-form-field-gap font-medium text-secondary">Flag not found</p>
 		<a href="/admin/feature-flags" class="text-small text-accent-primary hover:underline">
 			← Back to Feature Flags
 		</a>
@@ -212,12 +212,12 @@
 	<div class="flex h-full flex-col overflow-hidden">
 		<!-- Header -->
 		<header
-			class="h-system-header border-base px-inbox-container flex flex-shrink-0 items-center justify-between border-b py-system-header"
+			class="h-system-header border-base py-system-header flex flex-shrink-0 items-center justify-between border-b px-page"
 		>
-			<div class="flex items-center gap-content-section">
+			<div class="gap-content-section flex items-center">
 				<a
 					href="/admin/feature-flags"
-					class="text-secondary hover:text-primary flex items-center transition-colors"
+					class="flex items-center text-secondary transition-colors hover:text-primary"
 					aria-label="Back to Feature Flags"
 				>
 					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -230,9 +230,9 @@
 					</svg>
 				</a>
 				<div>
-					<h1 class="text-h2 text-primary font-bold">{flag.flag}</h1>
+					<h1 class="text-h2 font-bold text-primary">{flag.flag}</h1>
 					{#if getFlagDescription(flag.flag, flag.description)}
-						<p class="text-small text-secondary mt-section-y">
+						<p class="text-small mt-section-y text-secondary">
 							{getFlagDescription(flag.flag, flag.description)}
 						</p>
 					{/if}
@@ -246,17 +246,17 @@
 		</header>
 
 		<!-- Main Content -->
-		<main class="px-inbox-container py-system-content flex-1 overflow-y-auto">
+		<main class="py-system-content flex-1 overflow-y-auto px-page">
 			<div class="mx-auto max-w-4xl">
 				<!-- Card Grid Layout -->
-				<div class="flex flex-col gap-content-section">
+				<div class="gap-content-section flex flex-col">
 					<!-- Overview Stats Card -->
-					<div class="border-base bg-surface rounded-card border p-content-padding">
-						<h2 class="text-h3 text-primary mb-content-section font-semibold">Overview</h2>
-						<div class="grid grid-cols-2 gap-content-section md:grid-cols-4">
+					<div class="border-base p-content-padding rounded-card border bg-surface">
+						<h2 class="text-h3 mb-content-section font-semibold text-primary">Overview</h2>
+						<div class="gap-content-section grid grid-cols-2 md:grid-cols-4">
 							<div>
 								<p class="text-label text-tertiary">Current Targeting</p>
-								<p class="text-h3 text-primary mt-section-y font-semibold">
+								<p class="text-h3 mt-section-y font-semibold text-primary">
 									{getTargetingSummary(flag)}
 								</p>
 							</div>
@@ -264,20 +264,20 @@
 								{@const impact = impactStats as { estimatedAffected: number; breakdown: unknown }}
 								<div>
 									<p class="text-label text-tertiary">Estimated Affected</p>
-									<p class="text-h3 text-primary mt-section-y font-semibold">
+									<p class="text-h3 mt-section-y font-semibold text-primary">
 										~{impact.estimatedAffected.toLocaleString()} users
 									</p>
 								</div>
 							{/if}
 							<div>
 								<p class="text-label text-tertiary">Created</p>
-								<p class="text-small text-primary mt-section-y font-medium">
+								<p class="text-small mt-section-y font-medium text-primary">
 									{new Date(flag.createdAt).toLocaleDateString()}
 								</p>
 							</div>
 							<div>
 								<p class="text-label text-tertiary">Last Updated</p>
-								<p class="text-small text-primary mt-section-y font-medium">
+								<p class="text-small mt-section-y font-medium text-primary">
 									{new Date(flag.updatedAt).toLocaleDateString()}
 								</p>
 							</div>
@@ -285,8 +285,8 @@
 					</div>
 
 					<!-- Description Card -->
-					<div class="border-base bg-surface rounded-card border p-content-padding">
-						<h2 class="text-h3 text-primary mb-content-section font-semibold">Description</h2>
+					<div class="border-base p-content-padding rounded-card border bg-surface">
+						<h2 class="text-h3 mb-content-section font-semibold text-primary">Description</h2>
 						<FormTextarea
 							label="Description"
 							placeholder="Describe what this flag controls..."
@@ -296,8 +296,8 @@
 					</div>
 
 					<!-- Global Toggle Card -->
-					<div class="border-base bg-surface rounded-card border p-content-padding">
-						<h2 class="text-h3 text-primary mb-content-section font-semibold">Status</h2>
+					<div class="border-base p-content-padding rounded-card border bg-surface">
+						<h2 class="text-h3 mb-content-section font-semibold text-primary">Status</h2>
 						<ToggleSwitch
 							checked={formEnabled}
 							onChange={(checked) => {
@@ -305,18 +305,18 @@
 							}}
 							label="Globally Enabled"
 						/>
-						<p class="text-label text-secondary mt-form-field-gap">
+						<p class="mt-form-field-gap text-label text-secondary">
 							When enabled, the flag is active. Configure targeting rules below to control who sees
 							it.
 						</p>
 					</div>
 
 					<!-- Organization Targeting Card -->
-					<div class="border-base bg-surface rounded-card border p-content-padding">
-						<h2 class="text-h3 text-primary mb-form-field-gap font-semibold">
+					<div class="border-base p-content-padding rounded-card border bg-surface">
+						<h2 class="text-h3 mb-form-field-gap font-semibold text-primary">
 							Organization Targeting
 						</h2>
-						<p class="text-label text-secondary mb-content-section">
+						<p class="mb-content-section text-label text-secondary">
 							Select which organizations (workspaces) can access this feature flag.
 						</p>
 
@@ -325,7 +325,7 @@
 							<div class="mb-content-section flex flex-wrap gap-2">
 								{#each selectedOrgNames as orgName (orgName)}
 									<span
-										class="bg-accent-primary/10 text-label text-accent-primary inline-flex items-center gap-chip rounded-button px-badge py-badge"
+										class="bg-accent-primary/10 text-accent-primary gap-chip px-badge py-badge inline-flex items-center rounded-button text-label"
 									>
 										{orgName}
 										<button
@@ -359,7 +359,7 @@
 								onclick={() => {
 									orgSelectorOpen = !orgSelectorOpen;
 								}}
-								class="border-base bg-input text-small text-primary hover:bg-hover-solid flex w-full items-center justify-between rounded-input border px-input-x py-input-y transition-colors"
+								class="border-base bg-input text-small hover:bg-hover-solid flex w-full items-center justify-between rounded-input border px-input-x py-input-y text-primary transition-colors"
 							>
 								<span class="text-secondary">
 									{selectedOrgNames.length > 0
@@ -367,7 +367,7 @@
 										: 'Select organizations...'}
 								</span>
 								<svg
-									class="text-tertiary h-4 w-4 transition-transform {orgSelectorOpen
+									class="h-4 w-4 text-tertiary transition-transform {orgSelectorOpen
 										? 'rotate-180'
 										: ''}"
 									fill="none"
@@ -385,18 +385,18 @@
 							{#if orgSelectorOpen}
 								<div
 									bind:this={orgSelectorDropdownRef}
-									class="border-base bg-elevated absolute top-full z-50 mt-section-y max-h-96 min-w-full overflow-y-auto rounded-button border py-badge shadow-lg"
+									class="border-base mt-section-y py-badge absolute top-full z-50 max-h-96 min-w-full overflow-y-auto rounded-button border bg-elevated shadow-lg"
 									role="menu"
 									tabindex="-1"
 									onclick={(e) => e.stopPropagation()}
 									onkeydown={(e) => e.stopPropagation()}
 								>
-									<div class="border-base border-b px-menu-item py-menu-item">
+									<div class="border-base px-menu-item py-menu-item border-b">
 										<input
 											type="text"
 											bind:value={orgSearchQuery}
 											placeholder="Search organizations..."
-											class="text-small text-primary placeholder:text-tertiary w-full bg-transparent focus:outline-none"
+											class="text-small w-full bg-transparent text-primary placeholder:text-tertiary focus:outline-none"
 											onclick={(e) => e.stopPropagation()}
 											onkeydown={(e) => {
 												e.stopPropagation();
@@ -407,7 +407,7 @@
 											}}
 										/>
 									</div>
-									<div class="text-small text-primary px-menu-item py-menu-item font-semibold">
+									<div class="text-small px-menu-item py-menu-item font-semibold text-primary">
 										Select Organizations ({orgsToDisplay.length} available)
 									</div>
 									{#each orgsToDisplay as org (org._id)}
@@ -423,7 +423,7 @@
 												}
 												// Keep dropdown open after selection
 											}}
-											class="text-small hover:bg-hover-solid focus:bg-hover-solid flex w-full cursor-pointer items-center gap-2 px-menu-item py-menu-item text-left transition-colors outline-none {isSelected
+											class="text-small hover:bg-hover-solid focus:bg-hover-solid px-menu-item py-menu-item flex w-full cursor-pointer items-center gap-2 text-left transition-colors outline-none {isSelected
 												? 'bg-accent-primary/10 text-accent-primary'
 												: 'text-primary'}"
 										>
@@ -454,11 +454,11 @@
 					</div>
 
 					<!-- Email Domain Targeting Card -->
-					<div class="border-base bg-surface rounded-card border p-content-padding">
-						<h2 class="text-h3 text-primary mb-form-field-gap font-semibold">
+					<div class="border-base p-content-padding rounded-card border bg-surface">
+						<h2 class="text-h3 mb-form-field-gap font-semibold text-primary">
 							Email Domain Targeting
 						</h2>
-						<p class="text-label text-secondary mb-content-section">
+						<p class="mb-content-section text-label text-secondary">
 							Users with email addresses matching these domains will see the feature.
 						</p>
 						<input
@@ -466,14 +466,14 @@
 							type="text"
 							bind:value={formDomainInput}
 							placeholder="@acme.com, @example.com"
-							class="border-base bg-input text-small text-primary focus:ring-accent-primary w-full rounded-input border px-input-x py-input-y focus:ring-2 focus:outline-none"
+							class="border-base bg-input text-small focus:ring-accent-primary w-full rounded-input border px-input-x py-input-y text-primary focus:ring-2 focus:outline-none"
 						/>
 					</div>
 
 					<!-- Percentage Rollout Card -->
-					<div class="border-base bg-surface rounded-card border p-content-padding">
-						<h2 class="text-h3 text-primary mb-form-field-gap font-semibold">Percentage Rollout</h2>
-						<p class="text-label text-secondary mb-content-section">
+					<div class="border-base p-content-padding rounded-card border bg-surface">
+						<h2 class="text-h3 mb-form-field-gap font-semibold text-primary">Percentage Rollout</h2>
+						<p class="mb-content-section text-label text-secondary">
 							Shows the feature to a percentage of users based on a consistent hash.
 						</p>
 						<div class="flex items-center gap-2">
@@ -492,58 +492,58 @@
 								max="100"
 								bind:value={formRolloutPercentage}
 								placeholder="0"
-								class="border-base bg-input text-small text-primary focus:ring-accent-primary w-20 rounded-input border px-input-x py-input-y focus:ring-2 focus:outline-none"
+								class="border-base bg-input text-small focus:ring-accent-primary w-20 rounded-input border px-input-x py-input-y text-primary focus:ring-2 focus:outline-none"
 							/>
 							<span class="text-smallall text-secondary">%</span>
 						</div>
 					</div>
 
 					<!-- Analytics Card -->
-					<div class="border-base bg-surface rounded-card border p-content-padding">
-						<h2 class="text-h3 text-primary mb-form-field-gap font-semibold">Analytics</h2>
-						<p class="text-label text-secondary mb-content-section">
+					<div class="border-base p-content-padding rounded-card border bg-surface">
+						<h2 class="text-h3 mb-form-field-gap font-semibold text-primary">Analytics</h2>
+						<p class="mb-content-section text-label text-secondary">
 							Usage statistics and performance metrics.
 						</p>
 
-						<div class="grid grid-cols-2 gap-content-section md:grid-cols-4">
+						<div class="gap-content-section grid grid-cols-2 md:grid-cols-4">
 							<div>
 								<p class="text-label text-tertiary">Total Checks</p>
-								<p class="text-h3 text-primary mt-section-y font-semibold">
+								<p class="text-h3 mt-section-y font-semibold text-primary">
 									{mockAnalytics.totalChecks.toLocaleString()}
 								</p>
-								<p class="text-label text-tertiary mt-section-y">Last 7 days</p>
+								<p class="mt-section-y text-label text-tertiary">Last 7 days</p>
 							</div>
 							<div>
 								<p class="text-label text-tertiary">Enabled Rate</p>
-								<p class="text-h3 text-primary mt-section-y font-semibold">
+								<p class="text-h3 mt-section-y font-semibold text-primary">
 									{Math.round((mockAnalytics.enabledChecks / mockAnalytics.totalChecks) * 100)}%
 								</p>
-								<p class="text-label text-tertiary mt-section-y">
+								<p class="mt-section-y text-label text-tertiary">
 									{mockAnalytics.enabledChecks.toLocaleString()} enabled
 								</p>
 							</div>
 							<div>
 								<p class="text-label text-tertiary">Unique Users</p>
-								<p class="text-h3 text-primary mt-section-y font-semibold">
+								<p class="text-h3 mt-section-y font-semibold text-primary">
 									{mockAnalytics.uniqueUsers.toLocaleString()}
 								</p>
-								<p class="text-label text-tertiary mt-section-y">With access</p>
+								<p class="mt-section-y text-label text-tertiary">With access</p>
 							</div>
 							<div>
 								<p class="text-label text-tertiary">Avg Response Time</p>
-								<p class="text-h3 text-primary mt-section-y font-semibold">
+								<p class="text-h3 mt-section-y font-semibold text-primary">
 									{mockAnalytics.avgResponseTime}ms
 								</p>
-								<p class="text-label text-tertiary mt-section-y">Evaluation time</p>
+								<p class="mt-section-y text-label text-tertiary">Evaluation time</p>
 							</div>
 						</div>
 
 						<!-- Mock Trend Chart -->
 						<div
-							class="p-card border-base bg-elevated rounded-button border"
+							class="p-card border-base rounded-button border bg-elevated"
 							style="margin-top: var(--spacing-6);"
 						>
-							<p class="mb-form-section text-small text-primary font-medium">Usage Trend</p>
+							<p class="mb-form-section text-small font-medium text-primary">Usage Trend</p>
 							<div
 								class="flex items-end justify-between"
 								style="height: var(--spacing-20); gap: var(--spacing-1);"
@@ -555,12 +555,12 @@
 									{@const enabledHeight = (day.enabled / maxValue) * PERCENTAGE_MULTIPLIER}
 									{@const disabledHeight = (day.disabled / maxValue) * PERCENTAGE_MULTIPLIER}
 									<div class="flex flex-1 flex-col items-center" style="gap: var(--spacing-1);">
-										<div class="flex w-full items-end gap-chip" style="height: var(--spacing-20);">
+										<div class="gap-chip flex w-full items-end" style="height: var(--spacing-20);">
 											<div
 												class="bg-accent-primary/60 w-full rounded-t"
 												style="height: {enabledHeight}%"
 											></div>
-											<div class="bg-base w-full rounded-t" style="height: {disabledHeight}%"></div>
+											<div class="w-full rounded-t bg-base" style="height: {disabledHeight}%"></div>
 										</div>
 										<p class="text-label text-tertiary">
 											{new Date(day.date).toLocaleDateString('en-US', {
@@ -572,14 +572,14 @@
 								{/each}
 							</div>
 							<div
-								class="mt-form-section text-label text-secondary flex items-center gap-form-section"
+								class="mt-form-section gap-form-section flex items-center text-label text-secondary"
 							>
 								<div class="flex items-center" style="gap: 0.375rem;">
 									<div class="bg-accent-primary/60 h-2 w-2 rounded"></div>
 									<span>Enabled</span>
 								</div>
 								<div class="flex items-center" style="gap: 0.375rem;">
-									<div class="bg-base h-2 w-2 rounded"></div>
+									<div class="h-2 w-2 rounded bg-base"></div>
 									<span>Disabled</span>
 								</div>
 							</div>
@@ -587,7 +587,7 @@
 					</div>
 
 					<!-- Save Button Card -->
-					<div class="border-base bg-surface rounded-card border p-content-padding">
+					<div class="border-base p-content-padding rounded-card border bg-surface">
 						<div class="flex items-center justify-end gap-2">
 							<Button variant="primary" onclick={handleSave} disabled={saving}>
 								{saving ? 'Saving...' : 'Save Changes'}

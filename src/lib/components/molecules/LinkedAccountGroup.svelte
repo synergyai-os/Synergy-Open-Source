@@ -40,9 +40,9 @@
 	const organizations = $derived(account.organizations ?? []);
 </script>
 
-<DropdownMenu.Separator class="my-stack-divider border-base border-t" />
+<DropdownMenu.Separator class="border-base my-stack-divider border-t" />
 
-<div class="px-input py-stack-header flex items-center justify-between {className}">
+<div class="flex items-center justify-between px-input py-stack-header {className}">
 	<Text
 		variant="label"
 		size="sm"
@@ -58,7 +58,7 @@
 		{onJoinWorkspace}
 		{onLogout}
 		targetUserId={account.userId}
-		onClose={onClose}
+		{onClose}
 	/>
 </div>
 
@@ -81,22 +81,10 @@
 					class="flex-shrink-0"
 				/>
 				<div class="flex min-w-0 flex-col">
-					<Text
-						variant="body"
-						size="sm"
-						color="default"
-						as="span"
-						class="truncate font-medium"
-					>
+					<Text variant="body" size="sm" color="default" as="span" class="truncate font-medium">
 						{organization.name}
 					</Text>
-					<Text
-						variant="label"
-						size="sm"
-						color="tertiary"
-						as="span"
-						class="truncate capitalize"
-					>
+					<Text variant="label" size="sm" color="tertiary" as="span" class="truncate capitalize">
 						{organization.role}
 					</Text>
 				</div>
@@ -105,4 +93,3 @@
 		</DropdownMenu.Item>
 	{/each}
 {/if}
-

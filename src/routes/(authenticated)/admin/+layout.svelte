@@ -39,15 +39,15 @@
 <div class="flex h-screen overflow-hidden">
 	<!-- Sidebar - Only show if user is admin and not showing error page -->
 	{#if showSidebar}
-		<aside class="w-64 border-r border-sidebar bg-sidebar">
+		<aside class="border-sidebar bg-sidebar w-64 border-r">
 			<nav class="p-card">
-				<h2 class="mb-content-section text-h3 font-semibold text-sidebar-primary">Admin</h2>
+				<h2 class="mb-content-section text-h3 text-sidebar-primary font-semibold">Admin</h2>
 				<ul class="space-y-section-y">
 					{#each navItems as item (item.href)}
 						<li>
 							<a
 								href={item.href}
-								class="flex items-center gap-2 rounded px-2 py-menu-item text-small transition-colors {currentPath ===
+								class="py-menu-item text-small flex items-center gap-2 rounded px-2 transition-colors {currentPath ===
 								item.href
 									? 'bg-hover-solid text-sidebar-primary'
 									: 'text-sidebar-secondary hover:bg-hover-solid hover:text-sidebar-primary'}"

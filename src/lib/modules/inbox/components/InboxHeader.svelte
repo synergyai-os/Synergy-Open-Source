@@ -2,6 +2,8 @@
 	import { DropdownMenu } from 'bits-ui';
 	import InboxFilterMenu from './InboxFilterMenu.svelte';
 	import { SidebarToggle } from '$lib/components/organisms';
+	import { PageHeader } from '$lib/components/molecules';
+	import { Text } from '$lib/components/atoms';
 
 	type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 
@@ -40,17 +42,20 @@
 	// let sortMenuOpen = $state(false);
 </script>
 
-<div
-	class="sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b border-subtle bg-surface"
-	style="height: 2.5rem; padding-inline: var(--spacing-4); padding-block: var(--spacing-2);"
->
-	<!-- Left: Title + Sidebar Toggle + Kebab Menu -->
-	<div class="flex items-center gap-2">
+<PageHeader>
+	{#snippet left()}
 		{#if onSidebarToggle && sidebarCollapsed}
 			<SidebarToggle {sidebarCollapsed} onToggle={onSidebarToggle} {isMobile} />
 		{/if}
 
-		<h2 class="text-small flex items-center gap-2 font-normal text-secondary">
+		<Text
+			variant="label"
+			size="sm"
+			color="secondary"
+			weight="normal"
+			as="h2"
+			class="flex items-center gap-header"
+		>
 			Inbox
 			{#if inboxCount > 0}
 				<span
@@ -59,7 +64,7 @@
 					{inboxCount}
 				</span>
 			{/if}
-		</h2>
+		</Text>
 
 		<!-- Kebab Menu (Delete Actions) -->
 		<DropdownMenu.Root bind:open={menuOpen}>
@@ -160,10 +165,9 @@
 				</DropdownMenu.Content>
 			</DropdownMenu.Portal>
 		</DropdownMenu.Root>
-	</div>
+	{/snippet}
 
-	<!-- Right: Filter + Sort Icons -->
-	<div class="flex items-center gap-2">
+	{#snippet right()}
 		<!-- Filter Menu -->
 		<InboxFilterMenu {currentFilter} {onFilterChange} />
 
@@ -183,5 +187,5 @@
 				/>
 			</svg>
 		</button>
-	</div>
-</div>
+	{/snippet}
+</PageHeader>

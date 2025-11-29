@@ -2,51 +2,56 @@
 	import type { WithElementRef } from 'bits-ui';
 	import type { Size } from '../types';
 	import { getIcon, type IconType } from './iconRegistry';
+	import { iconRecipe } from '$lib/design-system/recipes';
 
 	type Props = WithElementRef<
 		{
 			type: IconType;
 			size?: Size;
-			class?: string;
+			color?:
+				| 'default'
+				| 'primary'
+				| 'secondary'
+				| 'tertiary'
+				| 'error'
+				| 'warning'
+				| 'success'
+				| 'info';
 		},
 		HTMLSpanElement
 	>;
 
-	let {
-		type,
-		size = 'md',
-		class: className = '',
-		ref = $bindable(null),
-		...rest
-	}: Props = $props();
+	let { type, size = 'md', color = 'default', ref = $bindable(null), ...rest }: Props = $props();
 
 	// Get icon definition from registry
 	// Add error handling for development/debugging
 	const iconDef = $derived.by(() => {
-		try {
-			return getIcon(type);
-		} catch (error) {
+		if (typeof window !== 'undefined' && window.location.hostname === 'localhost' && !type) {
+			console.warn(`Icon component called with undefined/null/empty type`);
+		}
+		let def = getIcon(type);
+		if (!def) {
 			if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-				console.error(`Icon type "${type}" not found in registry:`, error);
+				console.error(`Icon type "${type}" not found in registry`);
 			}
 			// Fallback to add icon if type is invalid
-			return getIcon('add');
+			def = getIcon('add');
+			if (!def) {
+				// Last resort fallback
+				def = {
+					path: 'M12 4v16m8-8H4',
+					viewBox: '0 0 24 24',
+					strokeWidth: '2',
+					strokeLinecap: 'round',
+					strokeLinejoin: 'round'
+				};
+			}
 		}
+		return def;
 	});
 
-	// Apply semantic design tokens based on size
-	const sizeClasses: Record<Size, string> = {
-		sm: 'size-icon-sm',
-		md: 'size-icon-md',
-		lg: 'size-icon-lg',
-		xl: 'size-icon-lg' // WORKAROUND: size-icon-xl missing - see missing-styles.md
-	};
-
-	const iconClasses = $derived([
-		`inline-flex items-center justify-center`,
-		sizeClasses[size],
-		className
-	]);
+	// Apply design tokens using recipe system
+	const iconClasses = $derived(iconRecipe({ size, color }));
 </script>
 
 <span bind:this={ref} class={iconClasses} {...rest}>
@@ -71,7 +76,7 @@
 	<Icon type="add" size="md" />
 	<Icon type="payment" size="lg" />
 	
-	Design Tokens: - sm: size-icon-sm (16px) - md: size-icon-md (20px) - lg: size-icon-lg (24px) - xl: size-icon-lg (32px, workaround)
+	Design Tokens: - sm: size-icon-sm (16px) - md: size-icon-md (20px) - lg: size-icon-lg (24px) - xl: size-icon-xl (40px) - xxl: size-icon-xxl (56px)
 	
 	All icons are predefined in iconRegistry.ts to ensure design system consistency.
 	Only icons from the registry can be used - no arbitrary SVG children allowed.

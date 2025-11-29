@@ -1,7 +1,7 @@
 <script lang="ts">
 	/**
 	 * RoleNode Component - Isolated role rendering for Storybook
-	 * 
+	 *
 	 * Extracted from OrgChart.svelte for isolated design/testing.
 	 * Use this component in Storybook to design/test role interactions.
 	 */
@@ -68,7 +68,7 @@
 		stroke-opacity="0.6"
 		style="pointer-events: all;"
 	/>
-	
+
 	<!-- Role name label -->
 	{#if shouldShowLabel}
 		<text
@@ -112,4 +112,3 @@
 		stroke-opacity: 0.8;
 	}
 </style>
-

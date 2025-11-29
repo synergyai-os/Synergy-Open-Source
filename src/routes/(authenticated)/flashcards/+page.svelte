@@ -174,11 +174,11 @@
 <div class="h-full overflow-y-auto bg-base">
 	<!-- Header -->
 	<div
-		class="sticky top-0 z-10 flex h-system-header flex-shrink-0 items-center justify-between border-b border-base bg-base px-inbox-container py-system-header"
+		class="h-system-header border-base py-system-header sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b bg-base px-page"
 	>
 		<div class="flex items-center gap-2">
 			<svg
-				class="size-icon-md flex-shrink-0 text-accent-primary"
+				class="text-accent-primary size-icon-md flex-shrink-0"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"
@@ -206,7 +206,7 @@
 		{#if allFlashcards.length > 0}
 			<Button.Root
 				href={resolveRoute('/study')}
-				class="flex items-center gap-2 rounded-button bg-accent-primary px-2 py-nav-item text-small font-medium text-primary transition-opacity hover:opacity-90"
+				class="bg-accent-primary py-nav-item text-small flex items-center gap-2 rounded-button px-2 font-medium text-primary transition-opacity hover:opacity-90"
 			>
 				<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
@@ -221,7 +221,7 @@
 		{/if}
 	</div>
 
-	<div class="px-inbox-container py-inbox-container">
+	<div class="px-page py-page">
 		<!-- Tag Filter -->
 		{#if allTags.length > 0}
 			<div class="mb-inbox-title">
@@ -248,7 +248,7 @@
 			</div>
 		{:else}
 			<!-- Collections Grid -->
-			<div class="grid grid-cols-1 gap-inbox-list md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+			<div class="gap-inbox-list grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 				{#each displayCollections as collection (collection.tagId)}
 					<FlashcardCollectionCard {collection} onClick={() => openCollection(collection)} />
 				{/each}

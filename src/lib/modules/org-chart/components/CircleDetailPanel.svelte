@@ -214,11 +214,11 @@
 			</div>
 
 			<!-- Navigation Tabs -->
-			<div class="border-b border-base px-inbox-container">
+			<div class="border-base px-inbox-container border-b">
 				<div class="flex overflow-x-auto" style="gap: var(--spacing-1);" role="tablist">
 					<button
 						type="button"
-						class="flex-shrink-0 border-b-2 px-2 py-nav-item text-button transition-colors"
+						class="py-nav-item text-button flex-shrink-0 border-b-2 px-2 transition-colors"
 						class:border-accent-primary={activeTab === 'overview'}
 						class:border-transparent={activeTab !== 'overview'}
 						class:text-primary={activeTab === 'overview'}
@@ -233,7 +233,7 @@
 					</button>
 					<button
 						type="button"
-						class="flex-shrink-0 border-b-2 px-2 py-nav-item text-button transition-colors"
+						class="py-nav-item text-button flex-shrink-0 border-b-2 px-2 transition-colors"
 						class:border-accent-primary={activeTab === 'members'}
 						class:border-transparent={activeTab !== 'members'}
 						class:text-primary={activeTab === 'members'}
@@ -251,7 +251,7 @@
 					</button>
 					<button
 						type="button"
-						class="flex-shrink-0 border-b-2 px-2 py-nav-item text-button transition-colors"
+						class="py-nav-item text-button flex-shrink-0 border-b-2 px-2 transition-colors"
 						class:border-accent-primary={activeTab === 'documents'}
 						class:border-transparent={activeTab !== 'documents'}
 						class:text-primary={activeTab === 'documents'}
@@ -270,7 +270,7 @@
 					</button>
 					<button
 						type="button"
-						class="flex-shrink-0 border-b-2 px-2 py-nav-item text-button transition-colors"
+						class="py-nav-item text-button flex-shrink-0 border-b-2 px-2 transition-colors"
 						class:border-accent-primary={activeTab === 'activities'}
 						class:border-transparent={activeTab !== 'activities'}
 						class:text-primary={activeTab === 'activities'}
@@ -288,7 +288,7 @@
 					</button>
 					<button
 						type="button"
-						class="flex-shrink-0 border-b-2 px-2 py-nav-item text-button transition-colors"
+						class="py-nav-item text-button flex-shrink-0 border-b-2 px-2 transition-colors"
 						class:border-accent-primary={activeTab === 'metrics'}
 						class:border-transparent={activeTab !== 'metrics'}
 						class:text-primary={activeTab === 'metrics'}
@@ -306,7 +306,7 @@
 					</button>
 					<button
 						type="button"
-						class="flex-shrink-0 border-b-2 px-2 py-nav-item text-button transition-colors"
+						class="py-nav-item text-button flex-shrink-0 border-b-2 px-2 transition-colors"
 						class:border-accent-primary={activeTab === 'checklists'}
 						class:border-transparent={activeTab !== 'checklists'}
 						class:text-primary={activeTab === 'checklists'}
@@ -324,7 +324,7 @@
 					</button>
 					<button
 						type="button"
-						class="flex-shrink-0 border-b-2 px-2 py-nav-item text-button transition-colors"
+						class="py-nav-item text-button flex-shrink-0 border-b-2 px-2 transition-colors"
 						class:border-accent-primary={activeTab === 'projects'}
 						class:border-transparent={activeTab !== 'projects'}
 						class:text-primary={activeTab === 'projects'}
@@ -344,14 +344,14 @@
 			</div>
 
 			<!-- Tab Content -->
-			<div class="flex-1 overflow-y-auto px-inbox-container py-system-content">
+			<div class="px-inbox-container py-system-content flex-1 overflow-y-auto">
 				{#if activeTab === 'overview'}
 					<!-- Two-Column Layout: Mobile stacks, Desktop side-by-side -->
-					<div class="grid grid-cols-1 gap-settings-section lg:grid-cols-[40%_60%]">
+					<div class="gap-settings-section grid grid-cols-1 lg:grid-cols-[40%_60%]">
 						<!-- Left Column: Overview Details -->
 						<div class="space-y-settings-section flex flex-col">
 							<!-- Stats -->
-							<div class="grid grid-cols-2 gap-form-section">
+							<div class="gap-form-section grid grid-cols-2">
 								<div class="p-card rounded-card bg-surface">
 									<p class="text-label text-tertiary">Members</p>
 									<p class="mt-form-field-gap text-h2 font-semibold text-primary">
@@ -385,7 +385,7 @@
 								>
 									Domains
 								</h4>
-								<div class="flex items-center gap-2 text-button text-secondary">
+								<div class="text-button flex items-center gap-2 text-secondary">
 									<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
@@ -405,7 +405,7 @@
 								>
 									Accountabilities
 								</h4>
-								<div class="flex items-center gap-2 text-button text-secondary">
+								<div class="text-button flex items-center gap-2 text-secondary">
 									<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
@@ -425,7 +425,7 @@
 								>
 									Policies
 								</h4>
-								<div class="flex items-center gap-2 text-button text-secondary">
+								<div class="text-button flex items-center gap-2 text-secondary">
 									<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
@@ -445,7 +445,7 @@
 								>
 									Decision Rights
 								</h4>
-								<div class="flex items-center gap-2 text-button text-secondary">
+								<div class="text-button flex items-center gap-2 text-secondary">
 									<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
@@ -465,7 +465,7 @@
 								>
 									Notes
 								</h4>
-								<div class="flex items-center gap-2 text-button text-secondary">
+								<div class="text-button flex items-center gap-2 text-secondary">
 									<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
@@ -532,12 +532,12 @@
 										{#each childCircles as childCircle (childCircle.circleId)}
 											<button
 												type="button"
-												class="p-card flex w-full items-center gap-2 rounded-card bg-surface text-left transition-colors hover:bg-hover-solid"
+												class="p-card hover:bg-hover-solid flex w-full items-center gap-2 rounded-card bg-surface text-left transition-colors"
 												onclick={() => handleChildCircleClick(childCircle.circleId)}
 											>
 												<Avatar initials={getInitials(childCircle.name)} size="md" />
 												<div class="min-w-0 flex-1">
-													<p class="truncate text-button font-medium text-primary">
+													<p class="text-button truncate font-medium text-primary">
 														{childCircle.name}
 													</p>
 													{#if childCircle.purpose}
@@ -575,7 +575,7 @@
 											<div class="p-card flex items-center gap-2 rounded-card bg-surface">
 												<Avatar initials={getInitials(member.name)} size="md" />
 												<div class="min-w-0 flex-1">
-													<p class="truncate text-button font-medium text-primary">{member.name}</p>
+													<p class="text-button truncate font-medium text-primary">{member.name}</p>
 													<p class="truncate text-label text-secondary">{member.email}</p>
 												</div>
 											</div>

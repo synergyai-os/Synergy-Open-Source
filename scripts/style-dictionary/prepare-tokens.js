@@ -34,13 +34,13 @@ function deepMerge(target, source) {
 /**
  * Convert DTCG tokens to Style Dictionary format
  * Style Dictionary expects: { category: { nested: { path: { value: "...", type: "..." } } } }
- * 
+ *
  * Can handle multiple DTCG files - merges them into single SD format
  */
 function convertDTCGToSD(dtcgPaths, outputPath) {
 	// Handle single file (backward compatibility) or array of files
 	const paths = Array.isArray(dtcgPaths) ? dtcgPaths : [dtcgPaths];
-	
+
 	// Parse all DTCG files and merge tokens
 	const allTokens = [];
 	for (const dtcgPath of paths) {

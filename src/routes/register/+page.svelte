@@ -152,12 +152,12 @@
 
 <div class="min-h-screen bg-base">
 	<div
-		class="mx-auto flex min-h-screen max-w-2xl items-center justify-center px-2 py-system-content"
+		class="py-system-content mx-auto flex min-h-screen max-w-2xl items-center justify-center px-2"
 	>
 		<div
-			class="w-full max-w-md rounded-modal border border-base bg-elevated p-content-padding shadow-sm"
+			class="border-base p-content-padding w-full max-w-md rounded-modal border bg-elevated shadow-sm"
 		>
-			<header class="flex flex-col gap-form-section text-center">
+			<header class="gap-form-section flex flex-col text-center">
 				<h1 class="text-h2 font-semibold tracking-tight text-primary">Create your account</h1>
 				<p class="text-small text-secondary">
 					Already using SynergyOS?
@@ -173,14 +173,14 @@
 				</div>
 			{:else if errorMessage}
 				<div
-					class="mt-content-section rounded-input border border-error bg-error px-input-x py-input-y"
+					class="mt-content-section bg-error rounded-input border border-error px-input-x py-input-y"
 				>
-					<p class="text-small font-medium text-error-secondary">{errorMessage}</p>
+					<p class="text-small text-error-secondary font-medium">{errorMessage}</p>
 				</div>
 			{/if}
 
-			<form class="mt-content-section flex flex-col gap-form-section" onsubmit={handleSubmit}>
-				<div class="flex gap-form-section">
+			<form class="mt-content-section gap-form-section flex flex-col" onsubmit={handleSubmit}>
+				<div class="gap-form-section flex">
 					<FormInput
 						type="text"
 						name="firstName"

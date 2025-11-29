@@ -15,4 +15,3 @@
 	<!-- ✅ Acceptable: Function call, not hardcoded multiplier -->
 	Dynamic positioning
 </div>
-

@@ -82,4 +82,3 @@ export function generateHoverColor(baseColor: string): string {
 
 	return `oklch(${newL.toFixed(1)}% ${c} ${h})`;
 }
-

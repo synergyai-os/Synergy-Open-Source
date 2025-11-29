@@ -195,8 +195,8 @@
 >
 	<!-- AI Generated Badge -->
 	{#if isAIGenerated}
-		<div class="bg-warning-subtle border-divider border-b px-content-padding py-1">
-			<div class="text-warning-primary flex items-center gap-2 text-small">
+		<div class="bg-warning-subtle border-divider px-content-padding border-b py-1">
+			<div class="text-warning-primary text-small flex items-center gap-2">
 				<svg
 					class="icon-sm"
 					fill="none"
@@ -223,7 +223,7 @@
 
 	<!-- Scrollable Editor Content -->
 	<div class={compact ? '' : 'flex-1 overflow-y-auto'}>
-		<div class="max-w-full px-inbox-container pt-content-section pb-content-padding">
+		<div class="px-inbox-container pt-content-section pb-content-padding max-w-full">
 			<!-- Title Input -->
 			<input
 				bind:this={titleElement}
@@ -233,7 +233,7 @@
 				onkeydown={handleTitleKeydown}
 				placeholder="Note title"
 				disabled={readonly}
-				class="mb-content-section w-full border-none bg-transparent p-0 text-h3 font-semibold text-primary transition-colors outline-none placeholder:text-tertiary focus:placeholder:text-tertiary"
+				class="mb-content-section text-h3 w-full border-none bg-transparent p-0 font-semibold text-primary transition-colors outline-none placeholder:text-tertiary focus:placeholder:text-tertiary"
 			/>
 
 			<!-- ProseMirror Editor with Placeholder Overlay -->
@@ -245,7 +245,7 @@
 						: ''}"
 				></div>
 				{#if isEmpty && !isFocused}
-					<div class="pointer-events-none absolute top-0 left-0 text-small text-tertiary">
+					<div class="text-small pointer-events-none absolute top-0 left-0 text-tertiary">
 						{placeholder}
 					</div>
 				{/if}

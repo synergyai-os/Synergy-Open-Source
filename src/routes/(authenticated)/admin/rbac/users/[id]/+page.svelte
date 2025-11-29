@@ -40,7 +40,7 @@
 
 <div class="flex h-full flex-col">
 	<!-- Header -->
-	<header class="border-b border-sidebar px-inbox-container py-system-content">
+	<header class="border-sidebar py-system-content border-b px-page">
 		<h1 class="text-2xl font-bold text-primary">
 			{userDetails?.name || userDetails?.email || 'User'} - Role Assignment
 		</h1>
@@ -48,7 +48,7 @@
 	</header>
 
 	<!-- Main Content -->
-	<main class="flex-1 overflow-y-auto px-inbox-container py-system-content">
+	<main class="py-system-content flex-1 overflow-y-auto px-page">
 		{#if userDetails}
 			<!-- Current Roles -->
 			<section class="mb-8">
@@ -57,7 +57,7 @@
 					<div class="space-y-2">
 						{#each userDetails.roles as userRole (userRole.userRoleId)}
 							<div
-								class="flex items-center justify-between rounded-lg border border-sidebar bg-surface p-3"
+								class="border-sidebar flex items-center justify-between rounded-lg border bg-surface p-3"
 							>
 								<div>
 									<p class="font-medium text-primary">{userRole.roleName}</p>
@@ -99,7 +99,7 @@
 			<!-- Assign New Role -->
 			<section>
 				<h2 class="mb-4 text-xl font-semibold text-primary">Assign New Role</h2>
-				<div class="rounded-lg border border-sidebar bg-surface p-4">
+				<div class="border-sidebar rounded-lg border bg-surface p-4">
 					<p class="mb-4 text-sm text-secondary">
 						Role assignment UI coming soon. For now, use Convex dashboard or API.
 					</p>

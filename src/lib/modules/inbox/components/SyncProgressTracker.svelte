@@ -17,7 +17,7 @@
 <div class="flex h-full flex-col">
 	<!-- Header -->
 	<div
-		class="flex h-system-header flex-shrink-0 items-center justify-between border-b border-base px-inbox-container py-system-header"
+		class="h-system-header border-base px-inbox-container py-system-header flex flex-shrink-0 items-center justify-between border-b"
 	>
 		<h3 class="text-small font-normal text-primary">Importing...</h3>
 		{#if onCancel}
@@ -33,11 +33,11 @@
 
 	<!-- Content -->
 	<div
-		class="flex flex-1 items-center justify-center overflow-y-auto px-inbox-container py-inbox-container"
+		class="px-inbox-container py-inbox-container flex flex-1 items-center justify-center overflow-y-auto"
 	>
-		<div class="flex w-full max-w-md flex-col gap-settings-section">
+		<div class="gap-settings-section flex w-full max-w-md flex-col">
 			<!-- Progress Bar -->
-			<div class="flex flex-col gap-form-section">
+			<div class="gap-form-section flex flex-col">
 				<div class="flex flex-col gap-2">
 					<div class="flex items-center justify-between text-label">
 						<span class="font-medium text-secondary">{step}</span>
@@ -48,9 +48,9 @@
 						{/if}
 					</div>
 
-					<div class="h-2.5 w-full overflow-hidden rounded-chip bg-base">
+					<div class="rounded-chip h-2.5 w-full overflow-hidden bg-base">
 						<div
-							class="bg-interactive-primary h-full transition-all duration-300 ease-out"
+							class="h-full bg-interactive-primary transition-all duration-300 ease-out"
 							style="width: {progressPercentage}%"
 						></div>
 					</div>
@@ -64,7 +64,7 @@
 
 			<!-- Message -->
 			{#if message}
-				<p class="text-center text-small text-secondary">{message}</p>
+				<p class="text-small text-center text-secondary">{message}</p>
 			{/if}
 
 			<!-- Loading Indicator -->

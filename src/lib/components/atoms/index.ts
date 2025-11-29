@@ -28,7 +28,9 @@ export { default as PinInput } from './PinInput.svelte';
 
 // Form Atoms
 export { default as FormInput } from './FormInput.svelte';
+export { default as FormSelect } from './FormSelect.svelte';
 export { default as FormTextarea } from './FormTextarea.svelte';
+export { default as Combobox } from './Combobox.svelte';
 
 // Tabs (atomic component)
 export * as Tabs from './Tabs.svelte';
@@ -43,7 +45,6 @@ export * as Slider from './Slider.svelte';
 export * as Label from './Label.svelte';
 
 // Layout Atoms
-export * as Separator from './Separator.svelte';
 export * as AspectRatio from './AspectRatio.svelte';
 export * as ScrollArea from './ScrollArea.svelte';
 export { default as Progress } from './Progress.svelte';

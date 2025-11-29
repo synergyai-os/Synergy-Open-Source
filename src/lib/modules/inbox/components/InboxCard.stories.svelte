@@ -29,9 +29,10 @@
 		if (!canvasElement.textContent?.includes(args.item.snippet)) {
 			throw new Error(`Card snippet "${args.item.snippet}" not found`);
 		}
-		
+
 		// Verify card is clickable
-		const card = canvasElement.querySelector('[data-inbox-item-id]') || canvasElement.querySelector('button');
+		const card =
+			canvasElement.querySelector('[data-inbox-item-id]') || canvasElement.querySelector('button');
 		if (!card) {
 			throw new Error('Card element not found');
 		}
@@ -46,8 +47,9 @@
 	name="Selected"
 	args={{ item: mockItem, selected: true, onClick: () => {} }}
 	play={async ({ canvasElement }) => {
-		const card = canvasElement.querySelector('[data-inbox-item-id]') || canvasElement.querySelector('button');
-		
+		const card =
+			canvasElement.querySelector('[data-inbox-item-id]') || canvasElement.querySelector('button');
+
 		// Verify selected state styling (card should have selected border)
 		if (!card) {
 			throw new Error('Card element not found');

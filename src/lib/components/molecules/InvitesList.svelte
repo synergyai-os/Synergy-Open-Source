@@ -19,17 +19,11 @@
 		class?: string;
 	};
 
-	let {
-		invites,
-		onAccept,
-		onDecline,
-		onClose,
-		class: className = ''
-	}: Props = $props();
+	let { invites, onAccept, onDecline, onClose, class: className = '' }: Props = $props();
 </script>
 
 {#if invites.length > 0}
-	<DropdownMenu.Separator class="my-stack-divider border-base border-t" />
+	<DropdownMenu.Separator class="border-base my-stack-divider border-t" />
 	<div class="px-input py-stack-header">
 		<Text
 			variant="label"
@@ -45,4 +39,3 @@
 		<InviteItem {invite} {onAccept} {onDecline} {onClose} class={className} />
 	{/each}
 {/if}
-

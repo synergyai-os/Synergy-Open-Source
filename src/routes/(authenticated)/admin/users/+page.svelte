@@ -20,37 +20,37 @@
 
 <div class="flex h-full flex-col">
 	<!-- Header -->
-	<header class="border-b border-sidebar px-inbox-container py-system-content">
+	<header class="border-sidebar py-system-content border-b px-page">
 		<h1 class="text-h2 font-bold text-primary">User Management</h1>
 		<p class="mt-form-field-gap text-small text-secondary">View and manage all users</p>
 	</header>
 
 	<!-- Main Content -->
-	<main class="flex-1 overflow-y-auto px-inbox-container py-system-content">
+	<main class="py-system-content flex-1 overflow-y-auto px-page">
 		<div class="overflow-x-auto">
 			<table class="w-full border-collapse">
 				<thead>
-					<tr class="border-b border-sidebar">
-						<th class="px-card py-form-field-gap text-left text-small font-semibold text-secondary"
+					<tr class="border-sidebar border-b">
+						<th class="px-card py-form-field-gap text-small text-left font-semibold text-secondary"
 							>Email</th
 						>
-						<th class="px-card py-form-field-gap text-left text-small font-semibold text-secondary"
+						<th class="px-card py-form-field-gap text-small text-left font-semibold text-secondary"
 							>Name</th
 						>
-						<th class="px-card py-form-field-gap text-left text-small font-semibold text-secondary"
+						<th class="px-card py-form-field-gap text-small text-left font-semibold text-secondary"
 							>Created</th
 						>
-						<th class="px-card py-form-field-gap text-left text-small font-semibold text-secondary"
+						<th class="px-card py-form-field-gap text-small text-left font-semibold text-secondary"
 							>Last Login</th
 						>
-						<th class="px-card py-form-field-gap text-left text-small font-semibold text-secondary"
+						<th class="px-card py-form-field-gap text-small text-left font-semibold text-secondary"
 							>Actions</th
 						>
 					</tr>
 				</thead>
 				<tbody>
 					{#each users as user (user._id)}
-						<tr class="border-b border-sidebar hover:bg-hover-solid">
+						<tr class="border-sidebar hover:bg-hover-solid border-b">
 							<td class="px-card py-form-field-gap text-small text-primary">{user.email}</td>
 							<td class="px-card py-form-field-gap text-small text-secondary">{user.name || '-'}</td
 							>

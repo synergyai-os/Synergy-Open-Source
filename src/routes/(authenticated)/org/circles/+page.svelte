@@ -29,13 +29,6 @@
 	// See SYOS-228 for full pattern documentation
 	const getOrganizationId = () => organizationId();
 
-	// Redirect to onboarding if no org selected
-	$effect(() => {
-		if (browser && !organizationId()) {
-			goto(resolveRoute('/org/onboarding'));
-		}
-	});
-
 	// Initialize circles composable
 	const circles = useCircles({
 		sessionId: getSessionId,
@@ -59,11 +52,11 @@
 
 <div class="flex h-full flex-col bg-base">
 	<!-- Header -->
-	<header class="border-b border-base bg-surface px-inbox-container py-header">
+	<header class="border-base py-header border-b bg-surface px-page">
 		<div class="flex items-center justify-between">
 			<div>
 				<h1 class="text-h3 font-semibold text-primary">Circles</h1>
-				<p class="mt-1 text-button text-secondary">{organizationName}</p>
+				<p class="text-button mt-1 text-secondary">{organizationName}</p>
 			</div>
 			<Button variant="primary" onclick={() => circles.openModal('createCircle')}>
 				Create Circle
@@ -72,7 +65,7 @@
 	</header>
 
 	<!-- Content -->
-	<main class="flex-1 overflow-y-auto px-inbox-container py-inbox-container">
+	<main class="flex-1 overflow-y-auto px-page py-page">
 		{#if isLoading}
 			<div class="flex h-64 items-center justify-center">
 				<div class="text-secondary">Loading circles...</div>
@@ -95,27 +88,27 @@
 					/>
 				</svg>
 				<h2 class="text-h3 font-medium text-primary">No circles yet</h2>
-				<p class="mt-1 text-button text-secondary">Create your first circle to get started</p>
+				<p class="text-button mt-1 text-secondary">Create your first circle to get started</p>
 				<Button variant="primary" onclick={() => circles.openModal('createCircle')}>
 					Create Circle
 				</Button>
 			</div>
 		{:else}
 			<!-- Circles Table -->
-			<div class="overflow-hidden rounded-card border border-base bg-surface">
+			<div class="border-base overflow-hidden rounded-card border bg-surface">
 				<table class="w-full">
-					<thead class="border-b border-base bg-elevated">
+					<thead class="border-base border-b bg-elevated">
 						<tr>
-							<th class="px-2 py-nav-item text-left text-button font-medium text-secondary">
+							<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
 								Name
 							</th>
-							<th class="px-2 py-nav-item text-left text-button font-medium text-secondary">
+							<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
 								Purpose
 							</th>
-							<th class="px-2 py-nav-item text-left text-button font-medium text-secondary">
+							<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
 								Parent
 							</th>
-							<th class="px-2 py-nav-item text-left text-button font-medium text-secondary">
+							<th class="py-nav-item text-button px-2 text-left font-medium text-secondary">
 								Members
 							</th>
 						</tr>
@@ -123,19 +116,19 @@
 					<tbody>
 						{#each circlesList as circle (circle.circleId)}
 							<tr
-								class="cursor-pointer border-b border-base hover:bg-sidebar-hover"
+								class="border-base hover:bg-sidebar-hover cursor-pointer border-b"
 								onclick={() => handleRowClick(circle.circleId)}
 							>
-								<td class="px-2 py-nav-item text-button text-primary">
+								<td class="py-nav-item text-button px-2 text-primary">
 									{circle.name}
 								</td>
-								<td class="px-2 py-nav-item text-button text-secondary">
+								<td class="py-nav-item text-button px-2 text-secondary">
 									{circle.purpose ?? '—'}
 								</td>
-								<td class="px-2 py-nav-item text-button text-secondary">
+								<td class="py-nav-item text-button px-2 text-secondary">
 									{circle.parentName ?? '—'}
 								</td>
-								<td class="px-2 py-nav-item text-button text-secondary">
+								<td class="py-nav-item text-button px-2 text-secondary">
 									{circle.memberCount}
 								</td>
 							</tr>

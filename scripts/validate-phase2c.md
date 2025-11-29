@@ -3,7 +3,7 @@
 ## ✅ Test Results Summary
 
 1. ✅ **Schema Deployment**: Yes
-2. ✅ **Test Branding Set**: Yes  
+2. ✅ **Test Branding Set**: Yes
 3. ✅ **SSR Class Injection**: CONFIRMED (`org-mx7ecpdw61qbsfj3488xaxtd7x7veq2w` present)
 4. ⚠️ **CSS Injection**: Need to verify `<head>` contains `<style>` tag
 5. ⚠️ **Color Application**: "Everything is orange" - Need to verify it's using `--color-brand-primary`
@@ -20,17 +20,19 @@
 3. Look for: `<style>` tag containing:
    ```css
    .org-mx7ecpdw61qbsfj3488xaxtd7x7veq2w {
-     --color-brand-primary: oklch(...);
-     --color-brand-secondary: oklch(...);
+   	--color-brand-primary: oklch(...);
+   	--color-brand-secondary: oklch(...);
    }
    ```
 
 **Expected Result:**
+
 - ✅ `<style>` tag exists in `<head>`
 - ✅ Contains `.org-{your-org-id}` selector
 - ✅ Contains `--color-brand-primary` and `--color-brand-secondary` CSS variables
 
 **If Missing:**
+
 - Check browser console for errors
 - Verify `orgBranding` is loaded in `+layout.server.ts`
 - Check `orgBrandingCSS` is generated in `+layout.svelte`
@@ -53,17 +55,19 @@
 
 ```javascript
 // Check if CSS variable is set
-getComputedStyle(document.documentElement).getPropertyValue('--color-brand-primary')
+getComputedStyle(document.documentElement).getPropertyValue('--color-brand-primary');
 
 // Should return: "oklch(...)" (your org's primary color)
 ```
 
 **Expected Result:**
+
 - ✅ Buttons use `var(--color-brand-primary)` or `var(--color-accent-primary)`
 - ✅ Accent colors use org brand colors
 - ✅ Console shows org's primary color value
 
 **If Wrong:**
+
 - Check if components use `bg-accent-primary` utility class
 - Verify `--color-accent-primary` references `--color-brand-primary` in `app.css`
 - Check if Phase 1 light/dark mode tokens are correctly referencing brand colors
@@ -89,11 +93,13 @@ getComputedStyle(document.documentElement).getPropertyValue('--color-brand-prima
    - No page reload needed (if client-side switching works)
 
 **Expected Result:**
+
 - ✅ `<html>` class changes from `org-{old-id}` to `org-{new-id}`
 - ✅ Colors update to new org's brand colors
 - ✅ No FOUC (flash of unstyled content)
 
 **If Not Working:**
+
 - Check `previousOrgId` tracking in `+layout.svelte`
 - Verify `$effect` runs on org switch
 - Check if `organizationId` updates when switching orgs
@@ -103,24 +109,27 @@ getComputedStyle(document.documentElement).getPropertyValue('--color-brand-prima
 ## 🎯 Quick Validation Commands
 
 **Check CSS Variable Value:**
+
 ```javascript
 // In browser console
-getComputedStyle(document.documentElement).getPropertyValue('--color-brand-primary')
+getComputedStyle(document.documentElement).getPropertyValue('--color-brand-primary');
 ```
 
 **Check Org Class:**
+
 ```javascript
 // In browser console
-document.documentElement.className.includes('org-')
+document.documentElement.className.includes('org-');
 ```
 
 **Check CSS Injection:**
+
 ```javascript
 // In browser console
-document.head.querySelector('style[data-org-branding]') || 
-  Array.from(document.head.querySelectorAll('style')).find(s => 
-    s.textContent.includes('--color-brand-primary')
-  )
+document.head.querySelector('style[data-org-branding]') ||
+	Array.from(document.head.querySelectorAll('style')).find((s) =>
+		s.textContent.includes('--color-brand-primary')
+	);
 ```
 
 ---
@@ -136,4 +145,3 @@ document.head.querySelector('style[data-org-branding]') ||
 ---
 
 **Status**: Phase 2C is **85% complete** - Need to verify CSS injection and color application.
-

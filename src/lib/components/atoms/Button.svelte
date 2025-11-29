@@ -52,9 +52,9 @@
 	const iconOnlySizeClasses = $derived(
 		iconOnly
 			? {
-					sm: 'p-nav-item',
-					md: 'p-button-icon',
-					lg: 'p-button-icon'
+					sm: 'px-button-sm py-button-sm',
+					md: 'button-icon',
+					lg: 'button-icon'
 				}[size]
 			: undefined
 	);

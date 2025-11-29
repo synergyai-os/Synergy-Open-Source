@@ -58,7 +58,10 @@
 	{/snippet}
 </Story>
 
-<Story name="Disabled" args={{ variant: 'ghost', disabled: true, ariaLabel: 'Disabled button', size: 'md' }}>
+<Story
+	name="Disabled"
+	args={{ variant: 'ghost', disabled: true, ariaLabel: 'Disabled button', size: 'md' }}
+>
 	{#snippet template(args)}
 		<Button
 			variant={args.variant}

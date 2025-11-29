@@ -13,13 +13,13 @@
 
 <!-- Command Center -->
 <Command.Root
-	class="border-base/30 bg-elevated flex h-full w-full flex-col overflow-hidden rounded-lg border shadow-lg"
+	class="border-base/30 flex h-full w-full flex-col overflow-hidden rounded-lg border bg-elevated shadow-lg"
 >
 	<!-- Search Input with Icon -->
 	<div class="border-base/50 flex items-center border-b px-4 py-3">
 		<!-- Search Icon -->
 		<svg
-			class="text-tertiary mr-3 h-5 w-5 flex-shrink-0"
+			class="mr-3 h-5 w-5 flex-shrink-0 text-tertiary"
 			fill="none"
 			stroke="currentColor"
 			viewBox="0 0 24 24"
@@ -33,19 +33,19 @@
 			/>
 		</svg>
 		<Command.Input
-			class="placeholder:text-tertiary flex-1 border-0 bg-transparent p-0 text-base transition-colors focus:ring-0 focus:outline-hidden"
+			class="flex-1 border-0 bg-transparent p-0 text-base transition-colors placeholder:text-tertiary focus:ring-0 focus:outline-hidden"
 			placeholder="Type a command or search..."
 		/>
 	</div>
 	<Command.List class="max-h-[280px] overflow-x-hidden overflow-y-auto px-2 pb-2">
 		<Command.Viewport>
 			<Command.Empty
-				class="text-secondary flex w-full items-center justify-center pt-8 pb-6 text-sm"
+				class="flex w-full items-center justify-center pt-8 pb-6 text-sm text-secondary"
 			>
 				No results found.
 			</Command.Empty>
 			<Command.Group>
-				<Command.GroupHeading class="text-tertiary px-3 pt-4 pb-2 text-xs tracking-wider uppercase">
+				<Command.GroupHeading class="px-3 pt-4 pb-2 text-xs tracking-wider text-tertiary uppercase">
 					Create New
 				</Command.GroupHeading>
 				<Command.GroupItems>
@@ -57,8 +57,8 @@
 						<div class="flex items-center gap-2">
 							<span class="text-xl">📝</span>
 							<div class="flex flex-col items-start">
-								<span class="text-primary font-medium">Note</span>
-								<span class="text-secondary text-xs">Capture a quick thought or idea</span>
+								<span class="font-medium text-primary">Note</span>
+								<span class="text-xs text-secondary">Capture a quick thought or idea</span>
 							</div>
 						</div>
 						<KeyboardShortcut keys="C" />
@@ -71,8 +71,8 @@
 						<div class="flex items-center gap-2">
 							<span class="text-xl">🗂️</span>
 							<div class="flex flex-col items-start">
-								<span class="text-primary font-medium">Flashcard</span>
-								<span class="text-secondary text-xs">Create a question and answer pair</span>
+								<span class="font-medium text-primary">Flashcard</span>
+								<span class="text-xs text-secondary">Create a question and answer pair</span>
 							</div>
 						</div>
 						<KeyboardShortcut keys="F" />
@@ -85,8 +85,8 @@
 						<div class="flex items-center gap-2">
 							<span class="text-xl">✨</span>
 							<div class="flex flex-col items-start">
-								<span class="text-primary font-medium">Highlight</span>
-								<span class="text-secondary text-xs">Save an excerpt from something you read</span>
+								<span class="font-medium text-primary">Highlight</span>
+								<span class="text-xs text-secondary">Save an excerpt from something you read</span>
 							</div>
 						</div>
 						<KeyboardShortcut keys="H" />

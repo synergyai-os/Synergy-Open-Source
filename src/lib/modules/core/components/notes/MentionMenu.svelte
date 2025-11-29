@@ -99,13 +99,13 @@
 
 {#if active && position && items.length > 0}
 	<div
-		class="fixed z-50 max-h-[320px] min-w-[280px] overflow-y-auto rounded-button border border-base bg-elevated py-badge shadow-card"
+		class="border-base py-badge fixed z-50 max-h-[320px] min-w-[280px] overflow-y-auto rounded-button border bg-elevated shadow-card"
 		style="top: {position.top}px; left: {position.left}px;"
 	>
 		{#each items as item, index (item.id)}
 			<button
 				type="button"
-				class="flex w-full items-center gap-2 px-input-x py-input-y text-left text-small transition-colors hover:bg-hover-solid {index ===
+				class="text-small hover:bg-hover-solid flex w-full items-center gap-2 px-input-x py-input-y text-left transition-colors {index ===
 				selectedIndex
 					? 'bg-hover-solid'
 					: ''}"

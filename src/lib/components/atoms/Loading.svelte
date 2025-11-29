@@ -60,7 +60,7 @@
 			</svg>
 			<!-- Loading Message -->
 			{#if message}
-				<p class="text-button text-secondary font-medium">{message}</p>
+				<p class="text-button font-medium text-secondary">{message}</p>
 			{/if}
 		</div>
 	</div>
@@ -83,7 +83,7 @@
 		</svg>
 		<!-- Loading Message -->
 		{#if message}
-			<p class="text-button text-secondary font-medium">{message}</p>
+			<p class="text-button font-medium text-secondary">{message}</p>
 		{/if}
 	</div>
 {/if}

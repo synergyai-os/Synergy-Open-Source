@@ -30,13 +30,6 @@
 	// CRITICAL: Call $derived function to get primitive value (not the function itself)
 	const getOrganizationId = () => organizationId();
 
-	// Redirect to onboarding if no org selected
-	$effect(() => {
-		if (browser && !organizationId()) {
-			goto(resolveRoute('/org/onboarding'));
-		}
-	});
-
 	// Initialize org chart composable via API (enables loose coupling - see SYOS-314)
 	if (!orgChartAPI) {
 		throw new Error('OrgChartModuleAPI not available in context');
@@ -52,7 +45,7 @@
 <div class="flex h-full flex-col bg-base">
 	<!-- Header -->
 	<header
-		class="flex h-system-header flex-shrink-0 items-center justify-between border-b border-base bg-surface px-inbox-container py-system-header"
+		class="h-system-header border-base py-system-header flex flex-shrink-0 items-center justify-between border-b bg-surface px-page"
 	>
 		<div>
 			<h1 class="text-button font-normal text-secondary">Org Chart</h1>
@@ -60,7 +53,7 @@
 		</div>
 		<div class="flex items-center gap-2">
 			<button
-				class="rounded-button px-2 py-nav-item text-button text-secondary hover:bg-hover-solid hover:text-primary"
+				class="py-nav-item text-button hover:bg-hover-solid rounded-button px-2 text-secondary hover:text-primary"
 				onclick={() => goto(resolveRoute('/org/circles'))}
 			>
 				← Back to Circles
@@ -75,7 +68,7 @@
 				<div class="text-secondary">Loading org chart...</div>
 			</div>
 		{:else}
-			<div class="h-full p-inbox-container">
+			<div class="p-inbox-container h-full">
 				<OrgChart {orgChart} />
 			</div>
 		{/if}

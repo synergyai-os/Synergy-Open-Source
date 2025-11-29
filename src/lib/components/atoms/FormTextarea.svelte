@@ -43,7 +43,7 @@
 
 <div class="flex flex-col gap-2">
 	{#if label}
-		<label for={inputId} class="text-small font-medium text-label-primary">
+		<label for={inputId} class="text-small text-label-primary font-medium">
 			{label}
 			{#if required}
 				<span class="text-accent-primary">*</span>
@@ -57,7 +57,7 @@
 		{required}
 		{disabled}
 		bind:value
-		class="resize-y rounded-[0.125rem] border border-base bg-input px-input-x py-[0.625rem] text-primary transition-all placeholder:text-tertiary focus:ring-2 focus:ring-accent-primary focus:outline-none {customClass}"
+		class="border-base bg-input focus:ring-accent-primary resize-y rounded-[0.125rem] border px-input-x py-[0.625rem] text-primary transition-all placeholder:text-tertiary focus:ring-2 focus:outline-none {customClass}"
 		>{value}</textarea
 	>
 </div>

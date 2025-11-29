@@ -36,6 +36,11 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | atom, class prop, className, pure components, self-contained, Icon, Text, Button, Card, Avatar, Heading | Atoms Should NOT Accept class Props | `atoms-no-class-props.md` |
 | molecule component, recipe, atomic design, molecule recipe, AttendeeChip, component classification, molecule vs atom, molecule vs organism, complex component, multiple atoms | Molecule Components with Recipes | `design-system-patterns.md#L650` |
 | gap, margin, flex container, spacing, gap-fieldGroup, ml-fieldGroup, redundant margin, flex gap, spacing tokens | Gap vs Margin in Flex Containers | `design-system-patterns.md#L700` |
+| Button component, raw button, design system component, <button>, <Button>, accessibility, recipe system, maintainability, consistency | Always Use Design System Components | `design-system-patterns.md#L750` |
+| size-dependent font sizes, badge font size, recipe font size, text-2xs, text-xs, text-sm, fontSize variant, size variants | Size-Dependent Font Sizes in Recipes | `design-system-patterns.md#L800` |
+| className override, recipe override, Button className, class prop, override padding, custom styling, recipe merge order | Overriding Recipe Classes with className | `design-system-patterns.md#L850` |
+| color inheritance, variant color, text-primary, color prop, separation of concerns, CSS specificity, !important, variant typography, color separate | Separating Color from Variants in CVA Recipes | `design-system-patterns.md#L900` |
+| dynamic element, svelte:element, if/else chain, element type, as prop, polymorphic component, repetitive code | Using svelte:element for Dynamic Element Types | `design-system-patterns.md#L950` |
 
 ---
 
@@ -75,6 +80,11 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | Atom accepting class prop, Icon with class prop, Text with class prop | Atoms Should NOT Accept class Props | `atoms-no-class-props.md` |
 | Creating molecule component, molecule with recipe, component classification, molecule vs atom | Molecule Components with Recipes | `design-system-patterns.md#L650` |
 | Redundant margin, gap vs margin, flex spacing, ml-fieldGroup redundant | Gap vs Margin in Flex Containers | `design-system-patterns.md#L700` |
+| Using raw button instead of Button component, design system compliance, accessibility | Always Use Design System Components | `design-system-patterns.md#L750` |
+| Badge font size, component font size variants, text-2xs text-xs text-sm | Size-Dependent Font Sizes in Recipes | `design-system-patterns.md#L800` |
+| Override recipe classes, Button className prop, custom padding override | Overriding Recipe Classes with className | `design-system-patterns.md#L850` |
+| Component needs color inheritance, variant applies color, CSS specificity conflict, !important hack | Separating Color from Variants in CVA Recipes | `design-system-patterns.md#L900` |
+| Repetitive if/else for element types, polymorphic component, as prop, dynamic HTML element | Using svelte:element for Dynamic Element Types | `design-system-patterns.md#L950` |
 
 ---
 

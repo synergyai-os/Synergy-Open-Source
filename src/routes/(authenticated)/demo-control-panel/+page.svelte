@@ -30,7 +30,7 @@
 				<p class="text-sm text-secondary">Fixed header with border-bottom (like notes editor)</p>
 			</div>
 
-			<div class="overflow-hidden rounded-md border border-base bg-elevated">
+			<div class="border-base overflow-hidden rounded-md border bg-elevated">
 				<ControlPanel.Root variant="toolbar">
 					<ControlPanel.Group>
 						<ControlPanel.Button
@@ -129,11 +129,11 @@
 				<p class="text-sm text-secondary">Contextual floating panel (Notion-like)</p>
 			</div>
 
-			<div class="rounded-md border border-base bg-elevated p-8">
+			<div class="border-base rounded-md border bg-elevated p-8">
 				<ControlPanel.Root variant="popover" bind:open={popoverOpen}>
 					{#snippet trigger()}
 						<button
-							class="rounded-md bg-accent-primary px-4 py-2 text-white transition-colors hover:bg-accent-hover"
+							class="bg-accent-primary hover:bg-accent-hover rounded-md px-4 py-2 text-white transition-colors"
 						>
 							{popoverOpen ? 'Close Settings' : 'Open Settings'}
 						</button>
@@ -204,7 +204,7 @@
 				<p class="text-sm text-secondary">Inline controls (sidebar actions, settings panels)</p>
 			</div>
 
-			<div class="rounded-md border border-base bg-elevated p-8">
+			<div class="border-base rounded-md border bg-elevated p-8">
 				<div class="space-y-4">
 					<h3 class="text-label tracking-wider text-tertiary uppercase">Actions</h3>
 
@@ -246,7 +246,7 @@
 				<p class="text-sm text-secondary">Hover, active, and disabled states using design tokens</p>
 			</div>
 
-			<div class="rounded-md border border-base bg-elevated p-8">
+			<div class="border-base rounded-md border bg-elevated p-8">
 				<ControlPanel.Root variant="embedded">
 					<ControlPanel.Group>
 						<ControlPanel.Button title="Normal Button">
@@ -300,7 +300,7 @@
 				<p class="text-sm text-secondary">All control panels use semantic design tokens</p>
 			</div>
 
-			<div class="space-y-4 rounded-md border border-base bg-elevated p-6">
+			<div class="border-base space-y-4 rounded-md border bg-elevated p-6">
 				<div>
 					<h3 class="mb-2 font-semibold text-primary">Spacing Tokens</h3>
 					<ul class="space-y-1 text-sm text-secondary">
@@ -324,7 +324,7 @@
 		</section>
 
 		<!-- Documentation Link -->
-		<section class="rounded-md border border-accent-primary/20 bg-accent-primary/10 p-6">
+		<section class="border-accent-primary/20 bg-accent-primary/10 rounded-md border p-6">
 			<h3 class="mb-2 font-semibold text-primary">Documentation</h3>
 			<p class="mb-4 text-sm text-secondary">For full documentation, see:</p>
 			<ul class="space-y-1 text-sm text-secondary">

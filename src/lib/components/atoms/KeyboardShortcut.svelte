@@ -45,8 +45,7 @@
 		return key;
 	});
 
-	const sizeClasses =
-		size === 'sm' ? 'text-label px-badge py-badge' : 'text-button px-2 py-1';
+	const sizeClasses = size === 'sm' ? 'text-label px-badge py-badge' : 'text-button px-2 py-1';
 </script>
 
 <div class="inline-flex items-center gap-2">

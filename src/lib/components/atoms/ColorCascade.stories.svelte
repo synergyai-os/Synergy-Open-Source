@@ -5,7 +5,8 @@
 	const { Story } = defineMeta({
 		component: ColorCascade,
 		title: 'Design System/Tokens/Color Cascade',
-		description: 'Demonstrates the 3-layer color cascade architecture. Change `color.brand.primary` in design-system.json to rebrand the entire UI in 10 seconds.'
+		description:
+			'Demonstrates the 3-layer color cascade architecture. Change `color.brand.primary` in design-system.json to rebrand the entire UI in 10 seconds.'
 	});
 </script>
 
@@ -14,4 +15,3 @@
 		<ColorCascade />
 	{/snippet}
 </Story>
-

@@ -55,9 +55,18 @@ function cleanDescription(description, tokenValue, tokenPath) {
 			.replace(/^\d+px\s*-\s*/i, '') // Remove leading "20px - "
 			.replace(/\s*\(\d+px\)/gi, '') // Remove trailing " (20px)"
 			.replace(/\s*=\s*\d+px/gi, '') // Remove " = 20px"
-			.replace(/\b(px-|py-|p-|gap-|text-|rounded-|min-h-|w-|h-|pl-|pr-|pt-|pb-)[^\s]*\s+equivalent/gi, '') // Remove utility class + "equivalent"
-			.replace(/\s*-\s*(px-|py-|p-|gap-|text-|rounded-|min-h-|w-|h-|pl-|pr-|pt-|pb-)[^\s]*\s+equivalent/gi, '') // Remove " - px-card equivalent"
-			.replace(/\s*\([^)]*(px-|py-|p-|gap-|text-|rounded-|min-h-|w-|h-|pl-|pr-|pt-|pb-)[^)]*\)/gi, '') // Remove utility class in parentheses
+			.replace(
+				/\b(px-|py-|p-|gap-|text-|rounded-|min-h-|w-|h-|pl-|pr-|pt-|pb-)[^\s]*\s+equivalent/gi,
+				''
+			) // Remove utility class + "equivalent"
+			.replace(
+				/\s*-\s*(px-|py-|p-|gap-|text-|rounded-|min-h-|w-|h-|pl-|pr-|pt-|pb-)[^\s]*\s+equivalent/gi,
+				''
+			) // Remove " - px-card equivalent"
+			.replace(
+				/\s*\([^)]*(px-|py-|p-|gap-|text-|rounded-|min-h-|w-|h-|pl-|pr-|pt-|pb-)[^)]*\)/gi,
+				''
+			) // Remove utility class in parentheses
 			.replace(/\s*-\s*-\s*/g, ' - ') // Fix double dashes
 			.replace(/^\s*-\s*/, '') // Remove leading dash
 			.replace(/\s+/g, ' ') // Normalize whitespace
@@ -66,7 +75,7 @@ function cleanDescription(description, tokenValue, tokenPath) {
 		// Extract semantic meaning (what it's used for)
 		// Keep meaningful parts like "card horizontal padding", "vertical padding for buttons"
 		// Remove redundant parts like utility class names
-		
+
 		return cleaned;
 	}
 
@@ -169,4 +178,3 @@ try {
 	console.error('\n❌ Error:', error.message);
 	process.exit(1);
 }
-

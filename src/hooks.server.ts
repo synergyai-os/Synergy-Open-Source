@@ -103,9 +103,7 @@ const requireAuth: Handle = async ({ event, resolve }) => {
 			// Determine active org: URL param (if valid) > first org
 			const orgParam = event.url.searchParams.get('org');
 			const validOrgParam =
-				orgParam && organizations.some((org) => org.organizationId === orgParam)
-					? orgParam
-					: null;
+				orgParam && organizations.some((org) => org.organizationId === orgParam) ? orgParam : null;
 			activeOrgId = validOrgParam || organizations[0]?.organizationId || null;
 		}
 	} catch (error) {
@@ -118,22 +116,27 @@ const requireAuth: Handle = async ({ event, resolve }) => {
 		transformPageChunk: ({ html, done }) => {
 			if (done && activeOrgId) {
 				// Inject org class into <html> tag (handle existing class attribute)
-				return html.replace(
-					/<html([^>]*)>/,
-					(match, attrs) => {
-						// Check if class attribute already exists
-						if (attrs.includes('class=')) {
-							// Add org class to existing class attribute
-							return match.replace(
-								/class="([^"]*)"/,
-								`class="$1 org-${activeOrgId}"`
-							);
-						} else {
-							// Add new class attribute
-							return `<html${attrs} class="org-${activeOrgId}">`;
-						}
+				return html.replace(/<html([^>]*)>/, (match, attrs) => {
+					// Check if class attribute already exists
+					if (attrs.includes('class=')) {
+						// Remove all existing org-* classes, then add the current org class
+						return match.replace(/class="([^"]*)"/, (classMatch, classValue) => {
+							// Remove all org-* classes (org- followed by alphanumeric characters)
+							const cleanedClasses = classValue
+								.split(/\s+/)
+								.filter((cls: string) => !cls.startsWith('org-'))
+								.join(' ');
+							// Add the current org class
+							const newClassValue = cleanedClasses
+								? `${cleanedClasses} org-${activeOrgId}`
+								: `org-${activeOrgId}`;
+							return `class="${newClassValue}"`;
+						});
+					} else {
+						// Add new class attribute
+						return `<html${attrs} class="org-${activeOrgId}">`;
 					}
-				);
+				});
 			}
 			return html;
 		}

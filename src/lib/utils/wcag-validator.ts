@@ -78,10 +78,10 @@ export function validateOrgColor(orgColor: string): ValidationResult {
 			valid: true, // Allow saving
 			ratio: minRatio,
 			warning: warnings.join('\n'),
-			suggestion: 'Colors may be hard to see in some modes. Consider adjusting lightness for better contrast.'
+			suggestion:
+				'Colors may be hard to see in some modes. Consider adjusting lightness for better contrast.'
 		};
 	}
 
 	return { valid: true, ratio: minRatio };
 }
-

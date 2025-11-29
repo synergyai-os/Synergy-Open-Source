@@ -89,8 +89,13 @@
 		const text = canvasElement.querySelector('text');
 		if (!text) throw new Error('Role label text element not found');
 		// Text is truncated, so check for partial match (starts with "Fr" or contains "Frontend")
-		if (!text.textContent || (!text.textContent.startsWith('Fr') && !text.textContent.includes('Frontend'))) {
-			throw new Error(`Expected text to start with 'Fr' or contain 'Frontend' (may be truncated), got ${text.textContent}`);
+		if (
+			!text.textContent ||
+			(!text.textContent.startsWith('Fr') && !text.textContent.includes('Frontend'))
+		) {
+			throw new Error(
+				`Expected text to start with 'Fr' or contain 'Frontend' (may be truncated), got ${text.textContent}`
+			);
 		}
 	}}
 >
@@ -158,7 +163,7 @@
 		// Click the role circle
 		const roleGroup = canvasElement.querySelector('.role-circle-group');
 		if (!roleGroup) throw new Error('Role circle group element not found');
-		
+
 		await userEvent.click(roleGroup);
 		// Note: onClick callback verification would require fn() spy, simplified for parser compatibility
 	}}
@@ -193,7 +198,7 @@
 		// Hover over the role circle
 		const roleGroup = canvasElement.querySelector('.role-circle-group');
 		if (!roleGroup) throw new Error('Role circle group element not found');
-		
+
 		await userEvent.hover(roleGroup);
 		// Note: CSS transitions may not be immediately visible in test
 		// But the element should be hoverable
@@ -215,4 +220,3 @@
 		</svg>
 	{/snippet}
 </Story>
-

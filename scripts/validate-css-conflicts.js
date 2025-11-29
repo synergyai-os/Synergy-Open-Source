@@ -523,7 +523,12 @@ function checkTokenExistence(ast, filePath, generatedTokens, generatedUtilities)
  * Check 6: Svelte Inline Styles
  * Detects CSS in Svelte <style> tags and {@html} injections
  */
-function checkSvelteInlineStyles(svelteFilePath, conditionalTokenNames, generatedTokens, generatedUtilities) {
+function checkSvelteInlineStyles(
+	svelteFilePath,
+	conditionalTokenNames,
+	generatedTokens,
+	generatedUtilities
+) {
 	const violations = [];
 	const content = fs.readFileSync(svelteFilePath, 'utf-8');
 
@@ -639,7 +644,8 @@ function checkCSSTemplateLiterals(tsFilePath) {
 				line: lineNumber,
 				type: 'org-branding-pattern-violation',
 				token: 'accent-hover',
-				message: 'Org branding should only set --color-brand-primaryHover, not --color-accent-hover',
+				message:
+					'Org branding should only set --color-brand-primaryHover, not --color-accent-hover',
 				suggestion:
 					'Remove --color-accent-hover from org branding CSS. It cascades automatically from --color-brand-primaryHover.'
 			});
@@ -810,7 +816,9 @@ function validateCSSConflicts(options = {}) {
 
 	// Check 6: Svelte inline styles
 	if (verbose) {
-		console.log(`${colors.gray}📄 Scanning Svelte files... org branding pattern validation${colors.reset}`);
+		console.log(
+			`${colors.gray}📄 Scanning Svelte files... org branding pattern validation${colors.reset}`
+		);
 	}
 	const svelteFiles = findSvelteFiles();
 	for (const file of svelteFiles) {
@@ -823,7 +831,9 @@ function validateCSSConflicts(options = {}) {
 
 	// Check 7: CSS template literals in TS/JS files
 	if (verbose) {
-		console.log(`${colors.gray}📄 Scanning TS/JS files... CSS template literal validation${colors.reset}`);
+		console.log(
+			`${colors.gray}📄 Scanning TS/JS files... CSS template literal validation${colors.reset}`
+		);
 	}
 	const tsjsFiles = findTSJSFiles();
 	for (const file of tsjsFiles) {

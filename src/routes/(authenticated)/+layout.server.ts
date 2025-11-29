@@ -96,12 +96,6 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 	const orgParam = url.searchParams.get('org');
 	const orgsList = organizations as Array<{ organizationId: string }>;
 
-	// Redirect to onboarding if user has no organizations (SYOS-209)
-	// This check must happen AFTER loading organizations but BEFORE other queries
-	if (orgsList.length === 0 && url.pathname !== '/onboarding') {
-		throw redirect(302, '/onboarding');
-	}
-
 	// Validate orgParam: Only use it if user actually has access to that organization
 	// This prevents 500 errors when switching accounts (org param from previous account)
 	const validOrgParam =
@@ -207,7 +201,11 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 			const brandingResult = await client.query(api.organizations.getBranding, {
 				organizationId: activeOrgId as Id<'organizations'>
 			});
-			orgBranding = brandingResult as { primaryColor: string; secondaryColor: string; logo?: string } | null;
+			orgBranding = brandingResult as {
+				primaryColor: string;
+				secondaryColor: string;
+				logo?: string;
+			} | null;
 		} catch (error) {
 			console.warn('Failed to load org branding server-side:', error);
 			// Don't block page load if branding query fails

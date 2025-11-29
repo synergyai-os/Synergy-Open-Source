@@ -65,7 +65,7 @@
 				<PinInputPrimitive.Cell
 					{cell}
 					data-testid="pin-input-cell-{index}"
-					class="border-base bg-input text-pin-cell leading-pin-cell text-primary caret-accent-primary placeholder:text-tertiary focus:border-accent-primary focus:shadow-pin-glow rounded-input border-2 text-center font-bold transition-all duration-200 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 {error
+					class="border-base bg-input text-pin-cell leading-pin-cell caret-accent-primary focus:border-accent-primary focus:shadow-pin-glow rounded-input border-2 text-center font-bold text-primary transition-all duration-200 placeholder:text-tertiary focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 {error
 						? 'border-error'
 						: ''}"
 					style="width: 4rem; height: 4rem; font-size: 2rem;"

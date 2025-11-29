@@ -9,7 +9,7 @@
 		argTypes: {
 			variant: {
 				control: { type: 'select' },
-				options: ['default', 'elevated', 'outlined', 'noPadding']
+				options: ['default', 'elevated', 'premium', 'outlined', 'noPadding']
 			},
 			clickable: {
 				control: { type: 'boolean' }
@@ -27,6 +27,14 @@
 <Story name="Elevated" args={{ variant: 'elevated' }}>
 	{#snippet template(args)}
 		<Card variant={args.variant} clickable={args.clickable}>Card content with elevated shadow</Card>
+	{/snippet}
+</Story>
+
+<Story name="Premium" args={{ variant: 'premium' }}>
+	{#snippet template(args)}
+		<Card variant={args.variant} clickable={args.clickable}
+			>Card content with premium soft shadow and subtle border</Card
+		>
 	{/snippet}
 </Story>
 

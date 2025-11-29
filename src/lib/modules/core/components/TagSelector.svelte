@@ -388,7 +388,7 @@
 			{#each selectedTags() as tag (tag._id)}
 				<button
 					type="button"
-					class="inline-flex items-center gap-2 rounded bg-tag px-badge py-badge text-label text-tag transition-opacity hover:opacity-80"
+					class="bg-tag px-badge py-badge text-tag inline-flex items-center gap-2 rounded text-label transition-opacity hover:opacity-80"
 					onclick={() => handleTagToggle(tag._id)}
 					aria-label={`Remove tag ${tag.displayName}`}
 				>
@@ -403,7 +403,7 @@
 			<!-- Add button inline (only + icon when tags exist) -->
 			<button
 				type="button"
-				class="flex h-6 w-6 items-center justify-center rounded-full text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
+				class="hover:bg-hover-solid flex h-6 w-6 items-center justify-center rounded-full text-secondary transition-colors hover:text-primary"
 				onclick={(e) => {
 					e.preventDefault();
 					e.stopPropagation();
@@ -446,8 +446,8 @@
 					<button
 						type="button"
 						class={useInlineStyle
-							? 'inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-secondary transition-colors hover:bg-hover-solid'
-							: 'flex w-full items-center gap-2 rounded-md border border-base bg-base px-menu-item py-menu-item text-left text-sm text-secondary transition-colors hover:bg-hover-solid hover:text-primary'}
+							? 'hover:bg-hover-solid inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-secondary transition-colors'
+							: 'border-base px-menu-item py-menu-item hover:bg-hover-solid flex w-full items-center gap-2 rounded-md border bg-base text-left text-sm text-secondary transition-colors hover:text-primary'}
 						onclick={(e) => {
 							e.preventDefault();
 							e.stopPropagation();
@@ -477,14 +477,14 @@
 
 			<Combobox.Portal>
 				<Combobox.Content
-					class="z-50 max-h-[320px] min-w-[280px] overflow-y-auto rounded-md border border-base bg-elevated py-1 shadow-lg"
+					class="border-base z-50 max-h-[320px] min-w-[280px] overflow-y-auto rounded-md border bg-elevated py-1 shadow-lg"
 					side="bottom"
 					align="start"
 					sideOffset={4}
 					customAnchor={tagInputRef}
 				>
 					<!-- Input field inside dropdown (like Linear) -->
-					<div class="relative mb-1 border-b border-base px-menu-item py-menu-item">
+					<div class="border-base px-menu-item py-menu-item relative mb-1 border-b">
 						<Combobox.Input
 							defaultValue={searchValue}
 							oninput={(e) => {
@@ -494,7 +494,7 @@
 							onkeydown={handleInputKeyDown}
 							onfocus={handleInputFocus}
 							placeholder="Add tags..."
-							class="w-full rounded-md border border-base bg-base px-menu-item py-menu-item pr-8 text-sm text-primary focus:border-accent-primary focus:ring-2 focus:ring-accent-primary focus:outline-none"
+							class="border-base px-menu-item py-menu-item focus:border-accent-primary focus:ring-accent-primary w-full rounded-md border bg-base pr-8 text-sm text-primary focus:ring-2 focus:outline-none"
 							aria-label="Tag selector input"
 						/>
 						<!-- Keyboard shortcut indicator -->
@@ -503,7 +503,7 @@
 							aria-label="Keyboard shortcut: T"
 						>
 							<span
-								class="rounded border border-base bg-elevated px-1 py-0.5 text-label text-tertiary"
+								class="border-base rounded border bg-elevated px-1 py-0.5 text-label text-tertiary"
 								>T</span
 							>
 						</div>
@@ -519,12 +519,12 @@
 								{#each selectedTags() as tag (tag._id)}
 									<button
 										type="button"
-										class="flex w-full cursor-pointer items-center gap-2 px-menu-item py-menu-item text-left text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+										class="px-menu-item py-menu-item hover:bg-hover-solid focus:bg-hover-solid flex w-full cursor-pointer items-center gap-2 text-left text-sm text-primary outline-none"
 										onclick={() => handleTagToggle(tag._id)}
 										aria-label={`Toggle tag ${tag.displayName}`}
 									>
 										<svg
-											class="h-4 w-4 flex-shrink-0 text-accent-primary"
+											class="text-accent-primary h-4 w-4 flex-shrink-0"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24"
@@ -565,7 +565,7 @@
 								{#each groupedTags().rootTags as tag (tag._id)}
 									<button
 										type="button"
-										class="flex w-full cursor-pointer items-center gap-2 px-menu-item py-menu-item text-left text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+										class="px-menu-item py-menu-item hover:bg-hover-solid focus:bg-hover-solid flex w-full cursor-pointer items-center gap-2 text-left text-sm text-primary outline-none"
 										onclick={() => handleTagToggle(tag._id)}
 										aria-label={`Select tag ${tag.displayName}`}
 									>
@@ -584,14 +584,14 @@
 									{#if parentTag}
 										<div class="mt-2">
 											<p
-												class="mb-1 px-menu-item text-label font-medium tracking-wider text-tertiary uppercase"
+												class="px-menu-item mb-1 text-label font-medium tracking-wider text-tertiary uppercase"
 											>
 												{parentTag.displayName}
 											</p>
 											{#each tags as tag (tag._id)}
 												<button
 													type="button"
-													class="flex w-full cursor-pointer items-center gap-2 px-menu-item py-menu-item text-left text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+													class="px-menu-item py-menu-item hover:bg-hover-solid focus:bg-hover-solid flex w-full cursor-pointer items-center gap-2 text-left text-sm text-primary outline-none"
 													onclick={() => handleTagToggle(tag._id)}
 													aria-label={`Select tag ${tag.displayName}`}
 												>
@@ -621,8 +621,8 @@
 							<div class="my-1 h-px bg-base"></div>
 						{/if}
 						{#if showColorPicker && colorPickerOpen}
-							<div class="mt-1 border-t border-base pt-1">
-								<p class="mb-1 px-menu-item py-menu-item text-label font-medium text-secondary">
+							<div class="border-base mt-1 border-t pt-1">
+								<p class="px-menu-item py-menu-item mb-1 text-label font-medium text-secondary">
 									Pick a color for label
 								</p>
 								<div
@@ -653,7 +653,7 @@
 									{#each TAG_COLORS as color, index (index)}
 										<button
 											type="button"
-											class="flex w-full cursor-pointer items-center gap-2 px-menu-item py-menu-item text-left text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+											class="px-menu-item py-menu-item hover:bg-hover-solid focus:bg-hover-solid flex w-full cursor-pointer items-center gap-2 text-left text-sm text-primary outline-none"
 											class:bg-hover-solid={focusedColorIndex === index}
 											onclick={() => handleColorSelect(color.hex)}
 											onfocus={() => {
@@ -672,10 +672,10 @@
 								</div>
 							</div>
 						{:else}
-							<div class="mt-1 border-t border-base pt-1">
+							<div class="border-base mt-1 border-t pt-1">
 								<button
 									type="button"
-									class="flex w-full cursor-pointer items-center gap-2 px-menu-item py-menu-item text-left text-sm text-primary outline-none hover:bg-hover-solid focus:bg-hover-solid"
+									class="px-menu-item py-menu-item hover:bg-hover-solid focus:bg-hover-solid flex w-full cursor-pointer items-center gap-2 text-left text-sm text-primary outline-none"
 									onclick={handleCreateTagClick}
 									onkeydown={(e) => {
 										if (e.key === 'Enter' || e.key === 'Return') {

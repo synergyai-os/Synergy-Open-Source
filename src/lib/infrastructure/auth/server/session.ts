@@ -128,11 +128,7 @@ export async function establishSession(options: {
 				id: options.userSnapshot.activeWorkspace.id ?? null, // Ensure id is string | null, not optional
 				name: options.userSnapshot.activeWorkspace.name
 			}
-		: {
-				type: 'personal' as const,
-				id: null,
-				name: 'Private workspace'
-			};
+		: undefined;
 
 	options.event.locals.auth = {
 		sessionId,
@@ -322,11 +318,7 @@ export async function resolveRequestSession(event: RequestEvent) {
 				id: record.userSnapshot.activeWorkspace.id ?? null, // Ensure id is string | null, not optional
 				name: record.userSnapshot.activeWorkspace.name
 			}
-		: {
-				type: 'personal' as const,
-				id: null,
-				name: 'Private workspace'
-			};
+		: undefined;
 
 	event.locals.auth = {
 		sessionId: activeSessionId,

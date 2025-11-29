@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { resolveRoute } from '$lib/utils/navigation';
-	import { ThemeToggle } from '$lib/components/organisms';
+	import { ThemeToggle } from '$lib/components/molecules';
 
 	// PARA navigation items
 	const paraItems = [

@@ -409,9 +409,9 @@
 					"$type": "color",
 					"$value": {
 						"light": "{color.neutral.50}",
-						"dark": "{color.neutral.900}"
+						"dark": "{color.neutral.950}"
 					},
-					"$description": "Sidebar background"
+					"$description": "Sidebar background - matches outer shell (darkest)"
 				},
 				"border": {
 					"$type": "color",
@@ -641,6 +641,24 @@
 			"gap": {
 				"$value": "{spacing.2}",
 				"$description": "Gap between button icon and text"
+			},
+			"icon": {
+				"$value": "{spacing.3}",
+				"$description": "Square padding for icon-only buttons (md/lg sizes - 12px)"
+			},
+			"sm": {
+				"x": {
+					"$value": "{spacing.2.5}",
+					"$description": "Small button horizontal padding (10px - sleek with good readability)"
+				},
+				"y": {
+					"$value": "{spacing.0.5}",
+					"$description": "Small button vertical padding (2px - ultra-sleek like Linear, minimal)"
+				},
+				"gap": {
+					"$value": "{spacing.0.5}",
+					"$description": "Gap between icon and text for small buttons (2px - very tight, crisp)"
+				}
 			}
 		},
 		"input": {
@@ -715,6 +733,46 @@
 				"$description": "Margin top for field groups (8px)"
 			}
 		},
+		"chip": {
+			"closeButton": {
+				"pr": {
+					"$value": "{spacing.1}",
+					"$description": "Chip close button right padding (4px) - closer to edge for compact design"
+				}
+			}
+		},
+		"badge": {
+			"sm": {
+				"x": {
+					"$value": "{spacing.2}",
+					"$description": "Small badge horizontal padding (8px) - wider for better readability"
+				},
+				"y": {
+					"$value": "0.0625rem",
+					"$description": "Small badge vertical padding (1px) - ultra-thin, pill-shaped"
+				}
+			},
+			"md": {
+				"x": {
+					"$value": "{spacing.1.5}",
+					"$description": "Medium badge horizontal padding (6px) - default badge size"
+				},
+				"y": {
+					"$value": "{spacing.0.5}",
+					"$description": "Medium badge vertical padding (2px) - balanced"
+				}
+			},
+			"lg": {
+				"x": {
+					"$value": "{spacing.2}",
+					"$description": "Large badge horizontal padding (8px) - prominent badges"
+				},
+				"y": {
+					"$value": "{spacing.1}",
+					"$description": "Large badge vertical padding (4px) - more breathing room"
+				}
+			}
+		},
 		"icon": {
 			"sm": {
 				"$value": "{spacing.4}",
@@ -727,6 +785,14 @@
 			"lg": {
 				"$value": "{spacing.6}",
 				"$description": "Large icon size (24px)"
+			},
+			"xl": {
+				"$value": "{spacing.10}",
+				"$description": "Extra large icon size (40px)"
+			},
+			"xxl": {
+				"$value": "{spacing.14}",
+				"$description": "Extra extra large icon size (56px)"
 			}
 		},
 		"page": {

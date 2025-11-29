@@ -19,6 +19,9 @@
 // Metadata Molecules
 export { default as MetadataBar } from './MetadataBar.svelte';
 
+// Layout Molecules
+export { default as PageHeader } from './PageHeader.svelte';
+
 // Selector Molecules
 export { default as PrioritySelector } from './PrioritySelector.svelte';
 export { default as AssigneeSelector } from './AssigneeSelector.svelte';
@@ -28,6 +31,7 @@ export { default as WorkspaceSelector } from './WorkspaceSelector.svelte';
 
 // Action Molecules
 export { default as AttachmentButton } from './AttachmentButton.svelte';
+export { default as ThemeToggle } from './ThemeToggle.svelte';
 export { default as ToggleSwitch } from './ToggleSwitch.svelte';
 
 // Menu Molecules
@@ -45,6 +49,7 @@ export * as DateRangeField from './DateRangeField.svelte';
 export * as DateRangePicker from './DateRangePicker.svelte';
 export * as TimeField from './TimeField.svelte';
 export * as TimeRangeField from './TimeRangeField.svelte';
+export { default as InfoCard } from './InfoCard.svelte';
 
 // Navigation Molecules
 export * as Pagination from './Pagination.svelte';
@@ -53,6 +58,7 @@ export { default as LinkPreview } from './LinkPreview.svelte';
 export * as RatingGroup from './RatingGroup.svelte';
 export { default as NavItem } from './NavItem.svelte';
 export { default as SplitButton } from './SplitButton.svelte';
+export { default as Stepper } from './Stepper.svelte';
 
 // Organization Switcher Molecules
 export { default as AccountInfo } from './AccountInfo.svelte';

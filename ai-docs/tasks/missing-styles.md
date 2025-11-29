@@ -45,6 +45,26 @@ Styles that are referenced in code but don't exist in the design system.
 - **Previous Workaround**: Was using Tailwind `text-accent-primary` (didn't exist)
 - **Current Solution**: Using `text-brand` which maps to `brand-primary` (design token)
 
+## AttendeeSelector Component Workarounds
+
+### `text-sm` Typography Utility
+
+- **Location**: `src/lib/modules/meetings/components/AttendeeSelector.svelte` (lines 40, 69, 93, 122, 137, 173)
+- **Usage**: Form input and button text sizing in Bits UI components
+- **Status**: Using valid generated utility but flagged by validation script
+- **Current Workaround**: Using `text-sm` directly on form elements
+- **Proposed Solution**: Validation script should allow `text-*` utilities since they are generated from design tokens
+- **Note**: Bits UI components require manual text sizing; Text component not suitable for input/button elements
+
+### `z-50` Z-Index Utility
+
+- **Location**: `src/lib/modules/meetings/components/AttendeeSelector.svelte` (line 107)
+- **Usage**: Dropdown overlay positioning above other content
+- **Status**: No semantic z-index tokens exist in design system
+- **Current Workaround**: Using `z-50` for combobox dropdown layering
+- **Proposed Solution**: Add semantic z-index tokens like `z-dropdown`, `z-modal`, `z-tooltip` to design system
+- **Note**: Layout primitive for component layering; common pattern across UI libraries
+
 ### `component-input-bg` Bug
 
 - **Location**: `src/styles/utilities/color-utils.css` (line 265)
@@ -339,6 +359,28 @@ Add a new validation step that:
   3. Run `npm run tokens:build` to generate utilities
 - **Note**: CSS variables `--color-component-toggle-off` and `--color-component-toggle-on` exist, but background utilities don't. The transform logic only generates utilities for `text-*`, `bg-*`, `border-*`, `interactive-*`, `accent-*`, `brand-*`, and `status-*` prefixes, but NOT `component-*` prefixes. This is similar to the `bg-component-sidebar-itemHover` issue above.
 
+## Button Height Alignment with AttendeeChip
+
+### `text-sm` and `font-normal` Overrides (Button Height Alignment)
+
+- **Location**: `src/lib/modules/meetings/components/AttendeeSelector.svelte` (line 93)
+- **Usage**: Override button's `text-label` and `font-medium` to match AttendeeChip height exactly
+- **Status**: Workaround - Both are standard Tailwind classes but flagged by validator
+- **Current Workaround**: Using `class="px-button text-sm font-normal"` to match chip's Text component styling
+- **Why Needed**:
+  1. **Line-height mismatch**: Button recipe's `size="sm"` includes `text-label` which has `line-height: 1.0` (none), while chip's Text component uses `text-sm` with `line-height: 1.5` (normal). This causes height misalignment.
+  2. **Font-weight mismatch**: Button recipe uses `font-medium` (500), while chip's Text component uses `font-normal` (400) default. This also affects visual height.
+  3. Both components use `py-button-sm` (2px vertical padding), but typography differences cause misalignment.
+- **Proposed Solution**:
+  1. Add `fontWeight` variant to button recipe (e.g., `normal`, `medium`, `semibold`)
+  2. Add `lineHeight` variant to button recipe or remove `text-label` from `size="sm"`
+  3. OR create chip-specific button variant that matches chip styling exactly
+  4. OR document `text-sm` and `font-normal` as allowed layout primitives
+- **Note**:
+  - `text-sm` is actually a generated utility from design tokens (should be allowed)
+  - `font-normal` is standard Tailwind class (should be allowed like `font-medium`, `font-semibold`)
+  - Validator may be too strict - these are necessary to match chip's exact styling
+
 ## Follow-up Tasks
 
 - [ ] Add `spacing.card.row.y` to `design-tokens-semantic.json`
@@ -348,3 +390,4 @@ Add a new validation step that:
 - [ ] Add "more" icon (three dots vertical) to icon registry
 - [ ] Consider adding `noLabel` prop to FormSelect to handle inline usage without gap
 - [ ] Fix toggle switch background utilities: Update transforms.js to generate `bg-component-toggle-off/on` OR move toggle colors outside component namespace
+- [ ] Consider adding `fontWeight` variant to button recipe or documenting `font-normal` as allowed layout primitive

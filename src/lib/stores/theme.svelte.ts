@@ -59,11 +59,11 @@ export function isDark(): boolean {
  */
 export function setTheme(newTheme: Theme): void {
 	currentTheme.value = newTheme;
-	
+
 	// Apply to DOM immediately
 	if (browser) {
 		applyTheme(newTheme);
-		
+
 		// Persist to localStorage
 		try {
 			localStorage.setItem('synergyos-theme', newTheme);

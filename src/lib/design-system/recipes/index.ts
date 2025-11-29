@@ -54,4 +54,19 @@ export {
 	type ComboboxViewportVariantProps,
 	type ComboboxItemVariantProps
 } from './combobox.recipe';
-export { attendeeChipRecipe, type AttendeeChipVariantProps } from './attendeeChip.recipe';
+export {
+	attendeeChipRecipe,
+	attendeeChipCloseButtonRecipe,
+	type AttendeeChipVariantProps,
+	type AttendeeChipCloseButtonVariantProps
+} from './attendeeChip.recipe';
+export {
+	stepperRecipe,
+	stepperStepRecipe,
+	stepperConnectorRecipe,
+	stepperStepButtonRecipe,
+	type StepperVariantProps,
+	type StepperStepVariantProps,
+	type StepperConnectorVariantProps,
+	type StepperStepButtonVariantProps
+} from './stepper.recipe';

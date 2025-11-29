@@ -174,6 +174,16 @@ const schema = defineSchema({
 		circleId: v.optional(v.id('circles')), // null = ad-hoc meeting
 		title: v.string(),
 		templateId: v.optional(v.id('meetingTemplates')), // Future: meeting templates
+		meetingType: v.union(
+			v.literal('standup'),
+			v.literal('retrospective'),
+			v.literal('planning'),
+			v.literal('1-on-1'),
+			v.literal('client'),
+			v.literal('governance'),
+			v.literal('weekly-tactical'),
+			v.literal('general')
+		), // Required field for reporting and analytics
 
 		// Scheduling
 		startTime: v.number(), // Unix timestamp
@@ -206,7 +216,8 @@ const schema = defineSchema({
 	})
 		.index('by_organization', ['organizationId'])
 		.index('by_circle', ['circleId'])
-		.index('by_start_time', ['organizationId', 'startTime']),
+		.index('by_start_time', ['organizationId', 'startTime'])
+		.index('by_meeting_type', ['organizationId', 'meetingType']), // For reporting and analytics
 
 	// Meeting attendees - polymorphic attendees (user/role/circle)
 	meetingAttendees: defineTable({

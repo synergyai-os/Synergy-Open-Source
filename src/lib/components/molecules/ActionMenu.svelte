@@ -34,7 +34,7 @@
 <DropdownMenu.Root bind:open={menuOpen}>
 	<DropdownMenu.Trigger
 		type="button"
-		class="flex icon-xl items-center justify-center rounded-button text-secondary transition-colors hover:bg-hover-solid hover:text-primary {className}"
+		class="icon-xl hover:bg-hover-solid flex items-center justify-center rounded-button text-secondary transition-colors hover:text-primary {className}"
 		aria-label="More options"
 	>
 		{#if trigger}
@@ -54,14 +54,14 @@
 
 	<DropdownMenu.Portal>
 		<DropdownMenu.Content
-			class="z-50 min-w-[180px] rounded-button border border-base bg-elevated py-1 shadow-card"
+			class="border-base z-50 min-w-[180px] rounded-button border bg-elevated py-1 shadow-card"
 			side="bottom"
 			align="end"
 			sideOffset={4}
 		>
 			{#each items as item (item.label)}
 				<DropdownMenu.Item
-					class="flex cursor-pointer items-center gap-2 px-[0.625rem] py-[0.375rem] text-[0.875rem] transition-colors outline-none hover:bg-hover-solid focus:bg-hover-solid {item.danger
+					class="hover:bg-hover-solid focus:bg-hover-solid flex cursor-pointer items-center gap-2 px-[0.625rem] py-[0.375rem] text-[0.875rem] transition-colors outline-none {item.danger
 						? 'text-error'
 						: 'text-primary'}"
 					textValue={item.label}

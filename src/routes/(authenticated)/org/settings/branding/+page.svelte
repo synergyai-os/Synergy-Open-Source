@@ -116,7 +116,7 @@
 	<h1 class="mb-spacing-section text-heading-xl font-heading">Organization Branding</h1>
 
 	<div
-		class="mb-spacing-section border-base bg-surface p-card-padding overflow-hidden rounded-card border"
+		class="mb-spacing-section border-base overflow-hidden rounded-card border bg-surface p-card-padding"
 	>
 		<h2 class="mb-spacing-component text-heading-md font-heading">Brand Colors</h2>
 
@@ -179,7 +179,7 @@
 
 	<!-- Live Preview -->
 	<div
-		class="{previewOrgClass} border-base bg-surface p-card-padding overflow-hidden rounded-card border"
+		class="{previewOrgClass} border-base overflow-hidden rounded-card border bg-surface p-card-padding"
 	>
 		<h2 class="mb-spacing-component text-heading-md font-heading">Live Preview</h2>
 		<div class="gap-spacing-component flex">

@@ -146,10 +146,10 @@
 		</div>
 	{:else if error}
 		<!-- Error State -->
-		<div class="flex h-full items-center justify-center px-inbox-container">
+		<div class="px-inbox-container flex h-full items-center justify-center">
 			<div class="text-center">
 				<p class="text-button font-medium text-error">Failed to load role</p>
-				<p class="mt-2 text-button text-secondary">{String(error)}</p>
+				<p class="text-button mt-2 text-secondary">{String(error)}</p>
 				{#if orgChart.selectedRoleId}
 					<p class="mt-2 text-label text-tertiary">Role ID: {orgChart.selectedRoleId}</p>
 				{/if}
@@ -185,18 +185,18 @@
 				<div class="px-inbox-container py-system-content">
 					<h3 class="text-h2 font-bold text-primary">{role.name}</h3>
 					{#if role.circleName}
-						<p class="mt-1 text-button text-secondary">
+						<p class="text-button mt-1 text-secondary">
 							Circle: <span class="font-medium">{role.circleName}</span>
 						</p>
 					{/if}
 				</div>
 
 				<!-- Navigation Tabs -->
-				<div class="border-b border-base px-inbox-container">
+				<div class="border-base px-inbox-container border-b">
 					<div class="flex overflow-x-auto" style="gap: var(--spacing-1);" role="tablist">
 						<button
 							type="button"
-							class="flex-shrink-0 border-b-2 px-2 py-nav-item text-button transition-colors"
+							class="py-nav-item text-button flex-shrink-0 border-b-2 px-2 transition-colors"
 							class:border-accent-primary={activeTab === 'overview'}
 							class:border-transparent={activeTab !== 'overview'}
 							class:text-primary={activeTab === 'overview'}
@@ -211,7 +211,7 @@
 						</button>
 						<button
 							type="button"
-							class="flex-shrink-0 border-b-2 px-2 py-nav-item text-button transition-colors"
+							class="py-nav-item text-button flex-shrink-0 border-b-2 px-2 transition-colors"
 							class:border-accent-primary={activeTab === 'members'}
 							class:border-transparent={activeTab !== 'members'}
 							class:text-primary={activeTab === 'members'}
@@ -229,7 +229,7 @@
 						</button>
 						<button
 							type="button"
-							class="flex-shrink-0 border-b-2 px-2 py-nav-item text-button transition-colors"
+							class="py-nav-item text-button flex-shrink-0 border-b-2 px-2 transition-colors"
 							class:border-accent-primary={activeTab === 'documents'}
 							class:border-transparent={activeTab !== 'documents'}
 							class:text-primary={activeTab === 'documents'}
@@ -247,7 +247,7 @@
 						</button>
 						<button
 							type="button"
-							class="flex-shrink-0 border-b-2 px-2 py-nav-item text-button transition-colors"
+							class="py-nav-item text-button flex-shrink-0 border-b-2 px-2 transition-colors"
 							class:border-accent-primary={activeTab === 'activities'}
 							class:border-transparent={activeTab !== 'activities'}
 							class:text-primary={activeTab === 'activities'}
@@ -265,7 +265,7 @@
 						</button>
 						<button
 							type="button"
-							class="flex-shrink-0 border-b-2 px-2 py-nav-item text-button transition-colors"
+							class="py-nav-item text-button flex-shrink-0 border-b-2 px-2 transition-colors"
 							class:border-accent-primary={activeTab === 'metrics'}
 							class:border-transparent={activeTab !== 'metrics'}
 							class:text-primary={activeTab === 'metrics'}
@@ -283,7 +283,7 @@
 						</button>
 						<button
 							type="button"
-							class="flex-shrink-0 border-b-2 px-2 py-nav-item text-button transition-colors"
+							class="py-nav-item text-button flex-shrink-0 border-b-2 px-2 transition-colors"
 							class:border-accent-primary={activeTab === 'checklists'}
 							class:border-transparent={activeTab !== 'checklists'}
 							class:text-primary={activeTab === 'checklists'}
@@ -301,7 +301,7 @@
 						</button>
 						<button
 							type="button"
-							class="flex-shrink-0 border-b-2 px-2 py-nav-item text-button transition-colors"
+							class="py-nav-item text-button flex-shrink-0 border-b-2 px-2 transition-colors"
 							class:border-accent-primary={activeTab === 'projects'}
 							class:border-transparent={activeTab !== 'projects'}
 							class:text-primary={activeTab === 'projects'}
@@ -321,21 +321,21 @@
 				</div>
 
 				<!-- Tab Content -->
-				<div class="flex-1 overflow-y-auto px-inbox-container py-system-content">
+				<div class="px-inbox-container py-system-content flex-1 overflow-y-auto">
 					{#if activeTab === 'overview'}
 						<!-- Two-Column Layout: Mobile stacks, Desktop side-by-side -->
-						<div class="grid grid-cols-1 gap-settings-section lg:grid-cols-[40%_60%]">
+						<div class="gap-settings-section grid grid-cols-1 lg:grid-cols-[40%_60%]">
 							<!-- Left Column: Overview Details -->
 							<div class="space-y-settings-section flex flex-col">
 								<!-- Stats -->
-								<div class="grid grid-cols-2 gap-form-section">
+								<div class="gap-form-section grid grid-cols-2">
 									<div class="p-card rounded-card bg-surface">
 										<p class="text-label text-tertiary">Fillers</p>
-										<p class="mt-1 text-h2 font-semibold text-primary">{role.fillerCount}</p>
+										<p class="text-h2 mt-1 font-semibold text-primary">{role.fillerCount}</p>
 									</div>
 									<div class="p-card rounded-card bg-surface">
 										<p class="text-label text-tertiary">Created</p>
-										<p class="mt-1 text-button font-medium text-primary">
+										<p class="text-button mt-1 font-medium text-primary">
 											{formatDate(role.createdAt)}
 										</p>
 									</div>
@@ -344,7 +344,7 @@
 								<!-- Purpose -->
 								{#if role.purpose}
 									<div>
-										<h4 class="mb-2 text-button font-medium tracking-wide text-tertiary uppercase">
+										<h4 class="text-button mb-2 font-medium tracking-wide text-tertiary uppercase">
 											Purpose
 										</h4>
 										<p class="text-button leading-relaxed text-secondary">{role.purpose}</p>
@@ -353,10 +353,10 @@
 
 								<!-- Domains -->
 								<div>
-									<h4 class="mb-2 text-button font-medium tracking-wide text-tertiary uppercase">
+									<h4 class="text-button mb-2 font-medium tracking-wide text-tertiary uppercase">
 										Domains
 									</h4>
-									<div class="flex items-center gap-2 text-button text-secondary">
+									<div class="text-button flex items-center gap-2 text-secondary">
 										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
@@ -371,10 +371,10 @@
 
 								<!-- Accountabilities -->
 								<div>
-									<h4 class="mb-2 text-button font-medium tracking-wide text-tertiary uppercase">
+									<h4 class="text-button mb-2 font-medium tracking-wide text-tertiary uppercase">
 										Accountabilities
 									</h4>
-									<div class="flex items-center gap-2 text-button text-secondary">
+									<div class="text-button flex items-center gap-2 text-secondary">
 										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
@@ -389,10 +389,10 @@
 
 								<!-- Policies -->
 								<div>
-									<h4 class="mb-2 text-button font-medium tracking-wide text-tertiary uppercase">
+									<h4 class="text-button mb-2 font-medium tracking-wide text-tertiary uppercase">
 										Policies
 									</h4>
-									<div class="flex items-center gap-2 text-button text-secondary">
+									<div class="text-button flex items-center gap-2 text-secondary">
 										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
@@ -407,10 +407,10 @@
 
 								<!-- Decision Rights -->
 								<div>
-									<h4 class="mb-2 text-button font-medium tracking-wide text-tertiary uppercase">
+									<h4 class="text-button mb-2 font-medium tracking-wide text-tertiary uppercase">
 										Decision Rights
 									</h4>
-									<div class="flex items-center gap-2 text-button text-secondary">
+									<div class="text-button flex items-center gap-2 text-secondary">
 										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
@@ -425,10 +425,10 @@
 
 								<!-- Notes -->
 								<div>
-									<h4 class="mb-2 text-button font-medium tracking-wide text-tertiary uppercase">
+									<h4 class="text-button mb-2 font-medium tracking-wide text-tertiary uppercase">
 										Notes
 									</h4>
-									<div class="flex items-center gap-2 text-button text-secondary">
+									<div class="text-button flex items-center gap-2 text-secondary">
 										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
@@ -442,8 +442,8 @@
 								</div>
 
 								<!-- Metadata -->
-								<div class="border-t border-base pt-6">
-									<h4 class="mb-3 text-button font-medium tracking-wide text-tertiary uppercase">
+								<div class="border-base border-t pt-6">
+									<h4 class="text-button mb-3 font-medium tracking-wide text-tertiary uppercase">
 										Metadata
 									</h4>
 									<dl class="space-y-inbox-list-gap text-button">
@@ -469,7 +469,7 @@
 												<Avatar initials={getInitials(filler.name || filler.email)} size="md" />
 												<!-- Info -->
 												<div class="min-w-0 flex-1">
-													<p class="truncate text-button font-medium text-primary">
+													<p class="text-button truncate font-medium text-primary">
 														{filler.name || filler.email}
 													</p>
 													{#if filler.name}
@@ -503,7 +503,7 @@
 								/>
 							</svg>
 							<p class="mt-content-section text-button font-medium text-primary">No members yet</p>
-							<p class="mt-1 text-button text-secondary">
+							<p class="text-button mt-1 text-secondary">
 								Members assigned to this role will appear here. This feature will be available in a
 								future update.
 							</p>
@@ -527,7 +527,7 @@
 							<p class="mt-content-section text-button font-medium text-primary">
 								No documents yet
 							</p>
-							<p class="mt-1 text-button text-secondary">
+							<p class="text-button mt-1 text-secondary">
 								Documents related to this role will appear here. This feature will be available in a
 								future update.
 							</p>
@@ -551,7 +551,7 @@
 							<p class="mt-content-section text-button font-medium text-primary">
 								No activities yet
 							</p>
-							<p class="mt-1 text-button text-secondary">
+							<p class="text-button mt-1 text-secondary">
 								Recent activities and updates for this role will appear here. This feature will be
 								available in a future update.
 							</p>
@@ -573,7 +573,7 @@
 								/>
 							</svg>
 							<p class="mt-content-section text-button font-medium text-primary">No metrics yet</p>
-							<p class="mt-1 text-button text-secondary">
+							<p class="text-button mt-1 text-secondary">
 								Performance metrics and analytics for this role will appear here. This feature will
 								be available in a future update.
 							</p>
@@ -597,7 +597,7 @@
 							<p class="mt-content-section text-button font-medium text-primary">
 								No checklists yet
 							</p>
-							<p class="mt-1 text-button text-secondary">
+							<p class="text-button mt-1 text-secondary">
 								Checklists and task lists for this role will appear here. This feature will be
 								available in a future update.
 							</p>
@@ -619,7 +619,7 @@
 								/>
 							</svg>
 							<p class="mt-content-section text-button font-medium text-primary">No projects yet</p>
-							<p class="mt-1 text-button text-secondary">
+							<p class="text-button mt-1 text-secondary">
 								Projects associated with this role will appear here. This feature will be available
 								in a future update.
 							</p>
@@ -630,7 +630,7 @@
 		</div>
 	{:else}
 		<!-- Empty State - Panel open but no role data -->
-		<div class="flex h-full items-center justify-center px-inbox-container">
+		<div class="px-inbox-container flex h-full items-center justify-center">
 			<div class="text-center">
 				<p class="text-button text-secondary">No role selected</p>
 			</div>

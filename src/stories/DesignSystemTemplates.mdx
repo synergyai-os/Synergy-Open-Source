@@ -3,7 +3,7 @@ import { Meta } from '@storybook/addon-docs/blocks';
 <Meta title="Design System/Templates" />
 
 <style>
-  {`
+	{`
     .template-diagram {
       background: oklch(20% 0.02 264);
       border: 2px dashed oklch(37% 0.03 264);
@@ -101,22 +101,22 @@ import { Meta } from '@storybook/addon-docs/blocks';
 Page-level object that places components into a layout. Templates focus on **content structure** rather than final content.
 
 <div className="template-diagram">
-  <div className="template-header">
-    <div className="template-header-placeholder" />
-  </div>
-  <div className="template-body">
-    <div className="template-sidebar">
-      <div className="template-sidebar-item" />
-      <div className="template-sidebar-item" />
-      <div className="template-sidebar-item" />
-      <div className="template-sidebar-item" />
-    </div>
-    <div className="template-content">
-      <div className="template-content-block" />
-      <div className="template-content-block short" />
-      <div className="template-content-block" />
-    </div>
-  </div>
+	<div className="template-header">
+		<div className="template-header-placeholder" />
+	</div>
+	<div className="template-body">
+		<div className="template-sidebar">
+			<div className="template-sidebar-item" />
+			<div className="template-sidebar-item" />
+			<div className="template-sidebar-item" />
+			<div className="template-sidebar-item" />
+		</div>
+		<div className="template-content">
+			<div className="template-content-block" />
+			<div className="template-content-block short" />
+			<div className="template-content-block" />
+		</div>
+	</div>
 </div>
 
 ---
@@ -135,17 +135,19 @@ Templates are the **fourth level** of atomic design:
 
 ## 📋 Planned Templates
 
-| Template | Organisms Used | Purpose |
-|----------|----------------|---------|
-| **AuthLayout** | Header, Footer | Login, Register, Reset password |
-| **DashboardLayout** | Header, Sidebar, Main | Dashboard with navigation |
-| **SettingsLayout** | Header, SettingsSidebar, Form | Settings pages |
-| **FullWidthLayout** | Header, Footer | Landing pages |
-| **CenteredLayout** | Header | Centered content (error pages) |
+| Template            | Organisms Used                | Purpose                         |
+| ------------------- | ----------------------------- | ------------------------------- |
+| **AuthLayout**      | Header, Footer                | Login, Register, Reset password |
+| **DashboardLayout** | Header, Sidebar, Main         | Dashboard with navigation       |
+| **SettingsLayout**  | Header, SettingsSidebar, Form | Settings pages                  |
+| **FullWidthLayout** | Header, Footer                | Landing pages                   |
+| **CenteredLayout**  | Header                        | Centered content (error pages)  |
 
 <div className="coming-soon">
-  <h3 className="coming-soon-title">📐 Coming Soon</h3>
-  <p className="coming-soon-desc">Templates will be extracted from existing pages as layout patterns emerge.</p>
+	<h3 className="coming-soon-title">📐 Coming Soon</h3>
+	<p className="coming-soon-desc">
+		Templates will be extracted from existing pages as layout patterns emerge.
+	</p>
 </div>
 
 ---
@@ -155,19 +157,19 @@ Templates are the **fourth level** of atomic design:
 ```svelte
 <!-- DashboardLayout.svelte -->
 <script lang="ts">
-  import { Header, Sidebar } from '$lib/components/organisms';
-  
-  let { children } = $props();
+	import { Header, Sidebar } from '$lib/components/organisms';
+
+	let { children } = $props();
 </script>
 
 <div class="min-h-screen bg-base">
-  <Header />
-  <div class="flex">
-    <Sidebar />
-    <main class="flex-1 px-page-x py-page-y">
-      {@render children()}
-    </main>
-  </div>
+	<Header />
+	<div class="flex">
+		<Sidebar />
+		<main class="flex-1 px-page-x py-page-y">
+			{@render children()}
+		</main>
+	</div>
 </div>
 ```
 
@@ -189,4 +191,3 @@ src/lib/components/templates/
 
 **Status**: Planned  
 **Priority**: Extract from existing pages when patterns stabilize
-

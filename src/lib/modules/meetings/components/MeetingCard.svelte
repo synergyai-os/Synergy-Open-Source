@@ -149,7 +149,10 @@
 
 	<!-- Actions (Right) -->
 	<!-- WORKAROUND: Card row vertical padding - see missing-styles.md -->
-	<div class="flex items-center gap-fieldGroup" style="padding-block: var(--spacing-card-padding);">
+	<div
+		class="flex items-center gap-fieldGroup"
+		style="padding-block: var(--spacing-card-padding); padding-inline-end: var(--spacing-header-gap);"
+	>
 		{#if isClosed}
 			<!-- Closed state: Show Report button -->
 			{#if onShowReport}
@@ -181,13 +184,13 @@
 			{/if}
 		{/if}
 		<!-- More options menu (always visible) -->
-		<Button variant="ghost" iconOnly ariaLabel="More options">
-			<!-- TODO: Add "more" icon to icon registry -->
-			<svg class="size-icon-md" fill="currentColor" viewBox="0 0 20 20">
-				<path
-					d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"
-				/>
-			</svg>
-		</Button>
+		<button
+			type="button"
+			class="flex cursor-pointer items-center justify-center rounded-button text-secondary transition-colors hover:bg-hover hover:text-primary"
+			style="padding-block: var(--spacing-1);"
+			aria-label="More options"
+		>
+			<Icon type="more" size="md" />
+		</button>
 	</div>
 </div>

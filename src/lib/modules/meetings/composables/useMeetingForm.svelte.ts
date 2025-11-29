@@ -368,6 +368,7 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 				organizationId: params.organizationId() as Id<'organizations'>,
 				circleId: state.circleId || undefined,
 				templateId: state.selectedTemplateId || undefined,
+				meetingType: 'general', // TODO: Phase 3 - Replace with form state when stepper is integrated
 				title: state.title,
 				startTime,
 				duration: state.duration,

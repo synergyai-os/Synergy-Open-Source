@@ -76,20 +76,20 @@
 
 <!-- Modal Backdrop -->
 <div
-	class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-modal-padding"
+	class="p-modal-padding fixed inset-0 z-50 flex items-center justify-center bg-black/50"
 	onclick={handleBackdropClick}
 	role="presentation"
 >
 	<!-- Modal Content -->
 	<div
-		class="w-full max-w-md rounded-card border border-base bg-elevated shadow-card"
+		class="border-base w-full max-w-md rounded-card border bg-elevated shadow-card"
 		role="dialog"
 		aria-modal="true"
 		aria-labelledby="modal-title"
 	>
 		<!-- Modal Header -->
-		<div class="border-b border-base px-card py-card">
-			<h2 id="modal-title" class="flex items-center gap-2 text-h3 font-semibold text-primary">
+		<div class="border-base px-card py-card border-b">
+			<h2 id="modal-title" class="text-h3 flex items-center gap-2 font-semibold text-primary">
 				<div class="icon-xs flex-shrink-0 rounded-full" style="background-color: {tag.color}"></div>
 				Transfer "{tag.displayName}"
 			</h2>
@@ -107,14 +107,14 @@
 				<div>
 					<label
 						for="organization-select"
-						class="mb-form-field-gap block text-small font-medium text-primary"
+						class="mb-form-field-gap text-small block font-medium text-primary"
 					>
 						Transfer to organization
 					</label>
 					<select
 						id="organization-select"
 						bind:value={selectedOrganization}
-						class="w-full rounded-input border border-base bg-base px-input-x py-input-y text-small text-primary focus:border-transparent focus:ring-2 focus:ring-accent-primary focus:outline-none"
+						class="border-base text-small focus:ring-accent-primary w-full rounded-input border bg-base px-input-x py-input-y text-primary focus:border-transparent focus:ring-2 focus:outline-none"
 						disabled={isSharing}
 					>
 						{#each organizations as org (org.organizationId)}
@@ -125,7 +125,7 @@
 
 				<!-- Items to Transfer -->
 				{#if itemCounts.total > 0}
-					<div class="rounded-card border border-base bg-base px-card py-card">
+					<div class="border-base px-card py-card rounded-card border bg-base">
 						<p class="mb-form-field-gap text-small font-medium text-primary">This will transfer:</p>
 						<ul class="space-y-form-field-gap text-small text-secondary">
 							<li>• The collection itself</li>
@@ -141,11 +141,11 @@
 
 				<!-- Warning Message -->
 				<div
-					class="rounded-card border border-accent-primary/20 bg-accent-primary/10 px-card py-card"
+					class="border-accent-primary/20 bg-accent-primary/10 px-card py-card rounded-card border"
 				>
 					<div class="flex gap-2">
 						<svg
-							class="mt-form-field-gap size-icon-md flex-shrink-0 text-accent-primary"
+							class="mt-form-field-gap text-accent-primary size-icon-md flex-shrink-0"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -158,7 +158,7 @@
 							/>
 						</svg>
 						<div class="text-small">
-							<p class="mb-form-field-gap font-medium text-accent-primary">After transferring:</p>
+							<p class="mb-form-field-gap text-accent-primary font-medium">After transferring:</p>
 							<ul class="space-y-form-field-gap text-label text-tertiary">
 								<li>• Organization will own this collection</li>
 								<li>• All members can view and contribute</li>
@@ -173,13 +173,13 @@
 
 		<!-- Modal Footer -->
 		<div
-			class="flex items-center justify-end gap-content-section border-t border-base px-card py-card"
+			class="gap-content-section border-base px-card py-card flex items-center justify-end border-t"
 		>
 			<button
 				type="button"
 				onclick={onClose}
 				disabled={isSharing}
-				class="px-button-x py-button-y text-small font-medium text-secondary transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+				class="text-small px-button-x py-button-y font-medium text-secondary transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				Cancel
 			</button>
@@ -188,7 +188,7 @@
 					type="button"
 					onclick={handleSubmit}
 					disabled={isSharing || !selectedOrganization}
-					class="flex items-center gap-2 rounded-button bg-accent-primary px-button-x py-button-y text-small font-medium text-primary transition-colors hover:bg-accent-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+					class="bg-accent-primary text-small hover:bg-accent-primary/90 flex items-center gap-2 rounded-button px-button-x py-button-y font-medium text-primary transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{#if isSharing}
 						<svg class="icon-sm animate-spin" fill="none" viewBox="0 0 24 24">

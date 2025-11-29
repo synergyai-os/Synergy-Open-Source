@@ -144,8 +144,8 @@ describe('Token → Utility Integration', () => {
 		const cssVars = getCSSVariables();
 
 		// Find all spacing tokens ending with -x
-		const xTokens = Array.from(cssVars.keys()).filter((key) =>
-			key.startsWith('spacing-') && key.endsWith('-x')
+		const xTokens = Array.from(cssVars.keys()).filter(
+			(key) => key.startsWith('spacing-') && key.endsWith('-x')
 		);
 
 		for (const tokenName of xTokens) {
@@ -188,4 +188,3 @@ describe('Token → Utility Integration', () => {
 		}
 	});
 });
-

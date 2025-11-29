@@ -10,7 +10,7 @@
 
 <button
 	type="button"
-	class="flex icon-xl items-center justify-center rounded-button text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
+	class="icon-xl hover:bg-hover-solid flex items-center justify-center rounded-button text-secondary transition-colors hover:text-primary"
 	onclick={onToggle}
 	aria-label={sidebarCollapsed ? 'Open sidebar' : 'Close sidebar'}
 	title={sidebarCollapsed ? 'Open sidebar' : 'Close sidebar'}

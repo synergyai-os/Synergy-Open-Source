@@ -35,7 +35,7 @@
 
 {#if TagSelector}
 	<div
-		class="border-base flex items-center gap-2 overflow-x-auto border-b px-inbox-container py-1.5"
+		class="border-base px-inbox-container flex items-center gap-2 overflow-x-auto border-b py-1.5"
 	>
 		<AttachmentButton
 			count={form.attachmentCount}

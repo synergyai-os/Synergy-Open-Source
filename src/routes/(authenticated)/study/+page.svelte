@@ -113,14 +113,14 @@
 <div class="h-full overflow-y-auto bg-base">
 	<!-- Header -->
 	<div
-		class="sticky top-0 z-10 flex h-system-header flex-shrink-0 items-center justify-between border-b border-base bg-surface px-inbox-container py-system-header"
+		class="h-system-header border-base py-system-header sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b bg-surface px-page"
 	>
 		<h2 class="text-sm font-normal text-secondary">Study Session</h2>
 		<div class="flex items-center gap-2">
 			{#if study.sessionStartTime}
 				<Button.Root
 					onclick={() => study.resetSession()}
-					class="rounded-md px-2 py-nav-item text-sm text-secondary transition-colors hover:bg-hover-solid hover:text-primary"
+					class="py-nav-item hover:bg-hover-solid rounded-md px-2 text-sm text-secondary transition-colors hover:text-primary"
 				>
 					Reset
 				</Button.Root>
@@ -129,7 +129,7 @@
 	</div>
 
 	<!-- Content -->
-	<div class="flex min-h-0 flex-1 flex-col items-center justify-center p-inbox-container">
+	<div class="p-inbox-container flex min-h-0 flex-1 flex-col items-center justify-center">
 		<!-- Tag Filter (shown when no active session) -->
 		{#if !study.sessionStartTime && study.reviewQueue.length === 0 && study.cardsReviewed === 0}
 			<div class="mx-auto mb-6 w-full max-w-4xl">
@@ -152,14 +152,14 @@
 			</div>
 		{:else if study.reviewQueue.length === 0 && study.cardsReviewed === 0}
 			<!-- Empty State -->
-			<div class="mx-auto max-w-readable text-center" style="padding-block: var(--spacing-8);">
+			<div class="max-w-readable mx-auto text-center" style="padding-block: var(--spacing-8);">
 				<div class="mb-4 text-6xl">📚</div>
 				<p class="mb-2 text-lg font-semibold text-primary">No cards due for review</p>
 				<p class="text-secondary">All caught up! Check back later for more cards to study.</p>
 			</div>
 		{:else if study.reviewQueue.length === 0 && study.cardsReviewed > 0}
 			<!-- Session Complete -->
-			<div class="mx-auto max-w-readable text-center" style="padding-block: var(--spacing-8);">
+			<div class="max-w-readable mx-auto text-center" style="padding-block: var(--spacing-8);">
 				<div class="mb-4 text-6xl">✅</div>
 				<p class="mb-2 text-lg font-semibold text-primary">Session Complete!</p>
 				<p class="mb-4 text-secondary">
@@ -168,7 +168,7 @@
 				</p>
 				<Button.Root
 					onclick={() => study.startSession()}
-					class="rounded-md bg-accent-primary px-menu-item py-menu-item text-sm font-medium text-white transition-opacity hover:opacity-90"
+					class="bg-accent-primary px-menu-item py-menu-item rounded-md text-sm font-medium text-white transition-opacity hover:opacity-90"
 				>
 					Start New Session
 				</Button.Root>
@@ -184,9 +184,9 @@
 						</span>
 						<span>{Math.round(progressPercent)}%</span>
 					</div>
-					<div class="h-2 w-full overflow-hidden rounded-full border border-base bg-base">
+					<div class="border-base h-2 w-full overflow-hidden rounded-full border bg-base">
 						<div
-							class="h-2 rounded-full bg-accent-primary transition-all duration-300"
+							class="bg-accent-primary h-2 rounded-full transition-all duration-300"
 							style="width: {progressPercent}%"
 						></div>
 					</div>

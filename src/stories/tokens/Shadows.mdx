@@ -10,18 +10,18 @@ Visual reference for all shadow (elevation) tokens in the SynergyOS design syste
 
 ## Reference Table
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--shadow-none` | `none` | No shadow |
-| `--shadow-xs` | `0 1px 2px 0 rgb(0 0 0 / 0.03)` | Barely visible lift - subtle hints |
-| `--shadow-sm` | `0 2px 8px -2px rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.04)` | Soft card elevation - buttons, small cards |
-| `--shadow-default` | `0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.04)` | Standard elevation - cards, dropdowns |
-| `--shadow-md` | `0 8px 24px -4px rgb(0 0 0 / 0.1), 0 4px 8px -4px rgb(0 0 0 / 0.05)` | Medium elevation - hover cards, popovers |
-| `--shadow-lg` | `0 16px 48px -8px rgb(0 0 0 / 0.12), 0 8px 16px -4px rgb(0 0 0 / 0.06)` | Large elevation - modals, dialogs |
-| `--shadow-xl` | `0 24px 64px -12px rgb(0 0 0 / 0.16), 0 12px 24px -6px rgb(0 0 0 / 0.08)` | Extra large - full modals, command palettes |
-| `--shadow-2xl` | `0 32px 80px -16px rgb(0 0 0 / 0.2), 0 16px 32px -8px rgb(0 0 0 / 0.1)` | Dramatic - hero overlays, immersive modals |
-| `--shadow-inner` | `inset 0 1px 2px 0 rgb(0 0 0 / 0.04)` | Subtle inset shadow - pressed states, inputs |
-| `--shadow-glow` | `0 0 24px -4px rgb(0 0 0 / 0.1)` | Soft glow effect - focus states, highlights |
+| Token              | Value                                                                     | Usage                                        |
+| ------------------ | ------------------------------------------------------------------------- | -------------------------------------------- |
+| `--shadow-none`    | `none`                                                                    | No shadow                                    |
+| `--shadow-xs`      | `0 1px 2px 0 rgb(0 0 0 / 0.03)`                                           | Barely visible lift - subtle hints           |
+| `--shadow-sm`      | `0 2px 8px -2px rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.04)`      | Soft card elevation - buttons, small cards   |
+| `--shadow-default` | `0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.04)`     | Standard elevation - cards, dropdowns        |
+| `--shadow-md`      | `0 8px 24px -4px rgb(0 0 0 / 0.1), 0 4px 8px -4px rgb(0 0 0 / 0.05)`      | Medium elevation - hover cards, popovers     |
+| `--shadow-lg`      | `0 16px 48px -8px rgb(0 0 0 / 0.12), 0 8px 16px -4px rgb(0 0 0 / 0.06)`   | Large elevation - modals, dialogs            |
+| `--shadow-xl`      | `0 24px 64px -12px rgb(0 0 0 / 0.16), 0 12px 24px -6px rgb(0 0 0 / 0.08)` | Extra large - full modals, command palettes  |
+| `--shadow-2xl`     | `0 32px 80px -16px rgb(0 0 0 / 0.2), 0 16px 32px -8px rgb(0 0 0 / 0.1)`   | Dramatic - hero overlays, immersive modals   |
+| `--shadow-inner`   | `inset 0 1px 2px 0 rgb(0 0 0 / 0.04)`                                     | Subtle inset shadow - pressed states, inputs |
+| `--shadow-glow`    | `0 0 24px -4px rgb(0 0 0 / 0.1)`                                          | Soft glow effect - focus states, highlights  |
 
 ---
 
@@ -29,12 +29,12 @@ Visual reference for all shadow (elevation) tokens in the SynergyOS design syste
 
 Component-specific shadows with light/dark mode support.
 
-| Token | Light | Dark | Usage |
-|-------|-------|------|-------|
-| `--shadow-card` | `{shadow.sm}` | `0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3)` | Card shadow |
-| `--shadow-dropdown` | `{shadow.md}` | `0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4)` | Dropdown shadow |
-| `--shadow-modal` | `{shadow.xl}` | `0 25px 50px -12px rgb(0 0 0 / 0.5)` | Modal shadow |
-| `--shadow-focusRing` | `0 0 0 3px oklch(55% 0.15 195 / 0.12)` | `0 0 0 3px oklch(65% 0.15 195 / 0.20)` | Focus ring glow - uses brand teal at low opacity for subtle, accessible focus indication |
+| Token                | Light                                  | Dark                                                                 | Usage                                                                                    |
+| -------------------- | -------------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `--shadow-card`      | `{shadow.sm}`                          | `0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3)`      | Card shadow                                                                              |
+| `--shadow-dropdown`  | `{shadow.md}`                          | `0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4)` | Dropdown shadow                                                                          |
+| `--shadow-modal`     | `{shadow.xl}`                          | `0 25px 50px -12px rgb(0 0 0 / 0.5)`                                 | Modal shadow                                                                             |
+| `--shadow-focusRing` | `0 0 0 3px oklch(55% 0.15 195 / 0.12)` | `0 0 0 3px oklch(65% 0.15 195 / 0.20)`                               | Focus ring glow - uses brand teal at low opacity for subtle, accessible focus indication |
 
 ---
 
@@ -52,4 +52,4 @@ Component-specific shadows with light/dark mode support.
 ---
 
 **Source**: `design-tokens-base.json`, `design-tokens-semantic.json`  
-**Last Generated**: 2025-11-26T23:05:41.456Z
+**Last Generated**: 2025-11-28T10:10:54.054Z

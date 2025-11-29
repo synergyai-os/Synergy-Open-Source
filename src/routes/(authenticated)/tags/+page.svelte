@@ -132,10 +132,10 @@
 
 <!-- Page Header -->
 <div
-	class="sticky top-0 z-10 flex h-system-header flex-shrink-0 items-center justify-between border-b border-base bg-base px-inbox-container py-system-header"
+	class="h-system-header border-base py-system-header sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b bg-base px-page"
 >
 	<div class="flex items-center gap-2">
-		<svg class="h-5 w-5 text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+		<svg class="text-accent-primary h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 			<path
 				stroke-linecap="round"
 				stroke-linejoin="round"
@@ -149,7 +149,7 @@
 
 <!-- Page Content -->
 <div class="flex-1 overflow-auto">
-	<div class="mx-auto max-w-4xl px-inbox-container py-8">
+	<div class="mx-auto max-w-4xl px-page py-8">
 		{#if isLoading}
 			<div class="flex items-center justify-center py-12">
 				<p class="text-secondary">Loading tags...</p>
@@ -186,10 +186,10 @@
 					<div class="space-y-2">
 						{#each userTagsList() as tag (tag._id)}
 							<div
-								class="rounded-lg border border-base bg-elevated p-inbox-container transition-colors hover:border-accent-primary/50"
+								class="border-base p-inbox-container hover:border-accent-primary/50 rounded-lg border bg-elevated transition-colors"
 							>
 								<div class="flex items-center justify-between">
-									<div class="flex min-w-0 flex-1 items-center gap-2-wide">
+									<div class="gap-2-wide flex min-w-0 flex-1 items-center">
 										<div
 											class="h-3 w-3 flex-shrink-0 rounded-full"
 											style="background-color: {tag.color}"
@@ -204,7 +204,7 @@
 										<button
 											type="button"
 											onclick={() => openShareModal(tag)}
-											class="flex-shrink-0 rounded-md px-3 py-1.5 text-sm font-medium text-accent-primary transition-colors hover:bg-accent-primary/10"
+											class="text-accent-primary hover:bg-accent-primary/10 flex-shrink-0 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
 										>
 											Share...
 										</button>
@@ -225,9 +225,9 @@
 					</h3>
 					<div class="space-y-2">
 						{#each organizationTags() as tag (tag._id)}
-							<div class="rounded-lg border border-base bg-elevated p-inbox-container">
+							<div class="border-base p-inbox-container rounded-lg border bg-elevated">
 								<div class="flex items-center justify-between">
-									<div class="flex min-w-0 flex-1 items-center gap-2-wide">
+									<div class="gap-2-wide flex min-w-0 flex-1 items-center">
 										<div
 											class="h-3 w-3 flex-shrink-0 rounded-full"
 											style="background-color: {tag.color}"

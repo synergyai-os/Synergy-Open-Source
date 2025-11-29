@@ -28,12 +28,11 @@
 	);
 	const containerClasses = $derived([containerLayoutClasses, containerStylingClasses, className]);
 
-	// Icon styling: context-specific to WorkspaceSelector
-	const iconClasses = $derived([
-		'ml-auto flex-shrink-0', // Layout
-		'transition-transform duration-200', // Styling
-		'text-secondary', // Color
-		showLabels ? 'group-hover:text-primary' : '' // Conditional hover
+	// Icon layout: context-specific to WorkspaceSelector
+	// Note: flex-shrink-0 is now in icon recipe base classes
+	const iconWrapperClasses = $derived([
+		'ml-auto', // Layout
+		'transition-transform duration-200' // Styling
 	]);
 </script>
 
@@ -71,5 +70,7 @@
 		</div>
 	{/if}
 
-	<Icon type="chevron-down" size="sm" class={iconClasses} />
+	<div class={iconWrapperClasses}>
+		<Icon type="chevron-down" size="sm" color="secondary" />
+	</div>
 </div>

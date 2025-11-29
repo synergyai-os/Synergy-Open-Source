@@ -12,7 +12,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
  * - leading-{height}: line-height from design tokens
  * - tracking-{spacing}: letter-spacing from design tokens
  */
-export const headingRecipe = cva('font-heading text-primary', {
+export const headingRecipe = cva('font-heading', {
 	variants: {
 		level: {
 			1: 'text-4xl font-bold leading-tight tracking-tight',
@@ -21,10 +21,16 @@ export const headingRecipe = cva('font-heading text-primary', {
 			4: 'text-xl font-medium leading-snug',
 			5: 'text-sm font-semibold leading-normal',
 			6: 'text-sm font-medium leading-normal'
+		},
+		color: {
+			primary: 'text-primary',
+			secondary: 'text-secondary',
+			tertiary: 'text-tertiary'
 		}
 	},
 	defaultVariants: {
-		level: 1
+		level: 1,
+		color: 'primary'
 	}
 });
 

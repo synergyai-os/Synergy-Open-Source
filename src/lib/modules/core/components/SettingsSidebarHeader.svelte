@@ -8,13 +8,13 @@
 
 <!-- Sticky Header with Back Button -->
 <div
-	class="sticky top-0 z-10 flex h-system-header flex-shrink-0 items-center justify-between border-b border-sidebar bg-sidebar px-header py-system-header"
+	class="h-system-header border-sidebar bg-sidebar px-header py-system-header sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b"
 >
 	<div class="flex items-center gap-2">
 		<button
 			type="button"
 			onclick={() => onBack?.()}
-			class="group flex items-center gap-2 text-sidebar-secondary transition-colors hover:text-sidebar-primary"
+			class="group text-sidebar-secondary hover:text-sidebar-primary flex items-center gap-2 transition-colors"
 		>
 			<!-- Back Arrow Icon -->
 			<svg

@@ -7,7 +7,7 @@
 	 */
 
 	import type { Id } from '$lib/convex';
-	import { Button, Text, Icon, Heading, FormInput, FormSelect } from '$lib/components/atoms';
+	import { Button, Text, Icon, Heading, FormInput, Combobox } from '$lib/components/atoms';
 	import * as Dialog from '$lib/components/organisms/Dialog.svelte';
 	import AttendeeSelector from './AttendeeSelector.svelte';
 	import RecurrenceField from './RecurrenceField.svelte';
@@ -48,12 +48,6 @@
 			}
 		];
 		return [...options, ...form.templates.map((t) => ({ value: t._id, label: t.name }))];
-	});
-
-	// Prepare circle options for FormSelect
-	const circleOptions = $derived(() => {
-		const options = [{ value: '', label: 'Ad-hoc meeting (no circle)' }];
-		return [...options, ...circles.map((c) => ({ value: c._id, label: c.name }))];
 	});
 </script>
 
@@ -105,24 +99,14 @@
 							/>
 
 							<!-- Template (Optional) -->
-							<FormSelect
+							<Combobox
 								id="template"
 								label="Template (optional)"
 								bind:value={form.selectedTemplateId}
 								options={templateOptions()}
 								allowDeselect={true}
+								showLabel={true}
 							/>
-
-							<!-- Circle (Optional) -->
-							{#if circles.length > 0}
-								<FormSelect
-									id="circle"
-									label="Circle (optional)"
-									bind:value={form.circleId}
-									options={circleOptions()}
-									allowDeselect={true}
-								/>
-							{/if}
 
 							<!-- Start Date/Time -->
 							<div>
@@ -138,7 +122,10 @@
 											Start date
 										</Text>
 									</legend>
-									<div class="grid grid-cols-3 gap-fieldGroup">
+									<div
+										class="grid grid-cols-3 gap-fieldGroup"
+										style="margin-top: var(--spacing-form-gap);"
+									>
 										<div class="col-span-1">
 											<FormInput id="meeting-start-date" type="date" bind:value={form.startDate} />
 										</div>

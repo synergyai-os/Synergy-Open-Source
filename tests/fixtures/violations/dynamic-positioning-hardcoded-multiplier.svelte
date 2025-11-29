@@ -11,4 +11,3 @@
 		Item {index}
 	</div>
 {/each}
-

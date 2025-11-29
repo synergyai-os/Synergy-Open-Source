@@ -24,4 +24,3 @@
 	<!-- ✅ Acceptable: Has SYOS-522 exception comment -->
 	<circle cx="8" cy="8" r="6" />
 </svg>
-

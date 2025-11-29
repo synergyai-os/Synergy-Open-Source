@@ -26,10 +26,7 @@
 	let menuOpen = $state(false);
 </script>
 
-<DropdownMenu.Root
-	open={menuOpen}
-	onOpenChange={(open) => (menuOpen = open)}
->
+<DropdownMenu.Root open={menuOpen} onOpenChange={(open) => (menuOpen = open)}>
 	<DropdownMenu.Trigger
 		type="button"
 		class="flex size-icon-md items-center justify-center rounded-button text-tertiary transition-all duration-200 hover:bg-subtle hover:text-primary {className}"
@@ -55,7 +52,7 @@
 	</DropdownMenu.Trigger>
 	<DropdownMenu.Portal>
 		<DropdownMenu.Content
-			class="relative min-w-[180px] overflow-hidden rounded-modal border border-base bg-surface py-inset-xs shadow-md"
+			class="border-base relative min-w-[180px] overflow-hidden rounded-modal border bg-surface py-inset-xs shadow-md"
 			style="z-index: var(--zIndex-popover);"
 			side="right"
 			align="start"
@@ -80,7 +77,7 @@
 					}}
 				>
 					<div class="flex items-center gap-header">
-						<Icon type="add" size="sm" class="text-brand" />
+						<Icon type="add" size="sm" color="primary" />
 						<Text variant="body" size="sm" color="default" as="span">Create workspace</Text>
 					</div>
 				</DropdownMenu.Item>
@@ -94,11 +91,11 @@
 					}}
 				>
 					<div class="flex items-center gap-header">
-						<Icon type="add" size="sm" class="text-secondary" />
+						<Icon type="add" size="sm" color="secondary" />
 						<Text variant="body" size="sm" color="default" as="span">Join workspace</Text>
 					</div>
 				</DropdownMenu.Item>
-				<DropdownMenu.Separator class="my-stack-divider border-base border-t" />
+				<DropdownMenu.Separator class="border-base my-stack-divider border-t" />
 				<DropdownMenu.Item
 					class="mx-1 cursor-pointer rounded-button px-input py-stack-item transition-all duration-200 outline-none hover:bg-subtle focus:bg-subtle"
 					textValue="Log out"
@@ -110,12 +107,7 @@
 				>
 					<div class="flex items-center gap-header">
 						<!-- WORKAROUND: logout icon missing from registry - see missing-styles.md -->
-						<svg
-							class="size-icon-sm"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
-						>
+						<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -130,4 +122,3 @@
 		</DropdownMenu.Content>
 	</DropdownMenu.Portal>
 </DropdownMenu.Root>
-

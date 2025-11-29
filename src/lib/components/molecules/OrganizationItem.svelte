@@ -24,10 +24,7 @@
 		class: className = ''
 	}: Props = $props();
 
-	const classes = $derived([
-		organizationItemRecipe({ active: isActive }),
-		className
-	]);
+	const classes = $derived([organizationItemRecipe({ active: isActive }), className]);
 </script>
 
 <DropdownMenu.Item
@@ -49,13 +46,7 @@
 			<Text variant="body" size="sm" color="default" as="span" class="truncate font-medium">
 				{organization.name}
 			</Text>
-			<Text
-				variant="label"
-				size="sm"
-				color="tertiary"
-				as="span"
-				class="truncate capitalize"
-			>
+			<Text variant="label" size="sm" color="tertiary" as="span" class="truncate capitalize">
 				{organization.role}
 			</Text>
 		</div>
@@ -69,13 +60,7 @@
 			stroke="currentColor"
 			viewBox="0 0 24 24"
 		>
-			<path
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				stroke-width="2"
-				d="M5 13l4 4L19 7"
-			/>
+			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
 		</svg>
 	{/if}
 </DropdownMenu.Item>
-

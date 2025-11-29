@@ -7,7 +7,7 @@
 import type { Snippet } from 'svelte';
 
 // Common Size Types
-export type Size = 'sm' | 'md' | 'lg' | 'xl';
+export type Size = 'sm' | 'md' | 'lg' | 'xl' | 'xxl';
 
 // Common Variant Types
 export type Variant = 'primary' | 'secondary' | 'outline' | 'ghost';
@@ -16,7 +16,7 @@ export type Variant = 'primary' | 'secondary' | 'outline' | 'ghost';
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'solid';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
-export type CardVariant = 'default' | 'elevated' | 'outlined' | 'noPadding';
+export type CardVariant = 'default' | 'elevated' | 'premium' | 'outlined' | 'noPadding';
 
 export type DialogVariant = 'default' | 'wide' | 'fullscreen';
 

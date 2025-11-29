@@ -25,12 +25,12 @@
 
 <button
 	type="button"
-	class="p-card flex w-full items-center gap-2 rounded-card bg-surface text-left transition-colors hover:bg-hover-solid"
+	class="p-card hover:bg-hover-solid flex w-full items-center gap-2 rounded-card bg-surface text-left transition-colors"
 	onclick={onClick}
 >
 	<Avatar initials={getInitials(name)} size="md" />
 	<div class="min-w-0 flex-1">
-		<p class="truncate text-button font-medium text-primary">{name}</p>
+		<p class="text-button truncate font-medium text-primary">{name}</p>
 		{#if purpose}
 			<p class="truncate text-label text-secondary">{purpose}</p>
 		{:else}

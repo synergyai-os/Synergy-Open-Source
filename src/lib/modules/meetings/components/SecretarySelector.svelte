@@ -13,7 +13,7 @@
 	import { useConvexClient } from 'convex-svelte';
 	import { api, type Id } from '$lib/convex';
 	import { toast } from 'svelte-sonner';
-	import { Button } from '$lib/components/atoms';
+	import { Button, Text, Icon, Avatar } from '$lib/components/atoms';
 
 	interface Attendee {
 		_id: Id<'meetingAttendees'>;
@@ -117,15 +117,14 @@
 	<!-- Dropdown Menu -->
 	{#if isOpen}
 		<div
-			class="absolute top-full right-0 z-50 rounded-card border border-border-base bg-elevated shadow-card"
+			class="border-border-base absolute top-full right-0 z-50 rounded-card border bg-elevated shadow-card"
 			style="margin-top: var(--spacing-2); width: 16rem;"
 		>
-			<div style="padding: var(--spacing-3);">
-				<div
-					class="px-header text-label font-medium text-text-tertiary"
-					style="margin-bottom: var(--spacing-2); padding-block: var(--spacing-2);"
-				>
-					Request Secretary Change
+			<div class="p-menu-md">
+				<div class="px-header mb-fieldGroup py-stack-sectionHeader">
+					<Text variant="label" color="tertiary" as="span" class="font-medium">
+						Request Secretary Change
+					</Text>
 				</div>
 
 				<div class="space-y-meeting-avatar-gap">
@@ -136,47 +135,37 @@
 						<button
 							onclick={() => handleSelectSecretary(attendee.userId, attendee.userName || 'Unknown')}
 							disabled={isCurrentSecretary}
-							class="text-body-sm flex w-full items-center justify-between rounded-button px-header text-left transition-colors {isCurrentSecretary
-								? 'cursor-default bg-accent-primary/10 text-accent-primary'
-								: 'hover:bg-surface-hover cursor-pointer text-text-primary'}"
+							class="text-body-sm px-header flex w-full items-center justify-between rounded-button text-left transition-colors {isCurrentSecretary
+								? 'bg-accent-primary/10 text-accent-primary cursor-default'
+								: 'text-text-primary cursor-pointer hover:bg-subtle'}"
 							style="padding-block: var(--spacing-2);"
 						>
-							<span class="flex items-center gap-2" style="padding: var(--spacing-3);">
+							<span class="p-menu-md flex items-center gap-fieldGroup">
 								<!-- Avatar placeholder -->
-								<div
-									class="flex items-center justify-center rounded-avatar {isCurrentSecretary
-										? 'bg-accent-primary text-primary'
-										: 'bg-surface-hover text-text-secondary'}"
-									style="width: 1.5rem; height: 1.5rem;"
-								>
-									{(attendee.userName || 'U')[0].toUpperCase()}
-								</div>
+								<Avatar
+									initials={(attendee.userName || 'U')[0].toUpperCase()}
+									size="sm"
+									variant={isCurrentSecretary ? 'brand' : 'default'}
+								/>
 								<span>
 									{attendee.userName || 'Unknown'}
 									{#if isSelf}
-										<span class="text-text-tertiary">(You)</span>
+										<Text variant="body" size="sm" color="tertiary" as="span">(You)</Text>
 									{/if}
 								</span>
 							</span>
 
 							{#if isCurrentSecretary}
-								<svg class="icon-sm" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-									<path
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										stroke-width="2"
-										d="M5 13l4 4L19 7"
-									/>
-								</svg>
+								<Icon type="check" size="sm" />
 							{/if}
 						</button>
 					{/each}
 				</div>
 
-				<div class="mt-meeting-card border-t border-border-base pt-meeting-card">
-					<p class="px-header text-label text-text-tertiary">
+				<div class="mt-meeting-card border-border-base pt-meeting-card border-t">
+					<Text variant="label" color="tertiary" as="p" class="px-header">
 						Click any attendee to request a secretary change. Current secretary will confirm.
-					</p>
+					</Text>
 				</div>
 			</div>
 		</div>

@@ -293,7 +293,7 @@
 <div class="flex h-full flex-col">
 	<!-- Sticky Header - Linear Style -->
 	<div
-		class="h-system-header border-base bg-surface sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b py-system-header"
+		class="h-system-header border-base py-system-header sticky top-0 z-10 flex flex-shrink-0 items-center justify-between border-b bg-surface"
 		style="padding-inline: var(--spacing-4);"
 	>
 		<!-- Left: Back Button + Title -->
@@ -309,7 +309,7 @@
 				</svg>
 				<span class="text-small">Back</span>
 			</Button>
-			<h2 class="text-small text-secondary font-normal">Readwise Highlight</h2>
+			<h2 class="text-small font-normal text-secondary">Readwise Highlight</h2>
 		</div>
 
 		<!-- Right: Pagination + Actions Menu -->
@@ -320,9 +320,9 @@
 					<div class="flex items-center gap-2">
 						<!-- Page Counter: Current in primary, slash/total in secondary -->
 						<div class="flex items-center" style="gap: var(--spacing-1);">
-							<span class="text-small text-primary font-normal">{currentPosition}</span>
-							<span class="text-small text-secondary font-normal">/</span>
-							<span class="text-small text-secondary font-normal">{totalItems}</span>
+							<span class="text-small font-normal text-primary">{currentPosition}</span>
+							<span class="text-small font-normal text-secondary">/</span>
+							<span class="text-small font-normal text-secondary">{totalItems}</span>
 						</div>
 
 						<!-- Chevron Down (Next) - Primary color when enabled -->
@@ -350,13 +350,13 @@
 							</Tooltip.Trigger>
 							<Tooltip.Portal>
 								<Tooltip.Content
-									class="border-base bg-elevated px-inbox-card z-50 flex items-center gap-2 rounded-button border py-nav-item shadow-card"
+									class="border-base px-inbox-card py-nav-item z-50 flex items-center gap-2 rounded-button border bg-elevated shadow-card"
 									side="bottom"
 									sideOffset={6}
 								>
 									<span class="text-small text-primary">Navigate down</span>
 									<span
-										class="min-w-badge border-base bg-base text-small text-primary rounded border px-badge py-badge text-center font-medium"
+										class="min-w-badge border-base text-small px-badge py-badge rounded border bg-base text-center font-medium text-primary"
 									>
 										J
 									</span>
@@ -389,13 +389,13 @@
 							</Tooltip.Trigger>
 							<Tooltip.Portal>
 								<Tooltip.Content
-									class="border-base bg-elevated px-inbox-card z-50 flex items-center gap-2 rounded-button border py-nav-item shadow-card"
+									class="border-base px-inbox-card py-nav-item z-50 flex items-center gap-2 rounded-button border bg-elevated shadow-card"
 									side="bottom"
 									sideOffset={6}
 								>
 									<span class="text-small text-primary">Navigate up</span>
 									<span
-										class="min-w-badge border-base bg-base text-small text-primary rounded border px-badge py-badge text-center font-medium"
+										class="min-w-badge border-base text-small px-badge py-badge rounded border bg-base text-center font-medium text-primary"
 									>
 										K
 									</span>
@@ -409,7 +409,7 @@
 			<DropdownMenu.Root bind:open={headerMenuOpen}>
 				<DropdownMenu.Trigger
 					type="button"
-					class="icon-xl text-secondary hover:bg-hover-solid hover:text-primary flex items-center justify-center rounded-button transition-colors"
+					class="icon-xl hover:bg-hover-solid flex items-center justify-center rounded-button text-secondary transition-colors hover:text-primary"
 					aria-label="More options"
 				>
 					<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -424,13 +424,13 @@
 
 				<DropdownMenu.Portal>
 					<DropdownMenu.Content
-						class="border-base bg-elevated z-50 min-w-dropdown rounded-button border py-badge shadow-card"
+						class="border-base min-w-dropdown py-badge z-50 rounded-button border bg-elevated shadow-card"
 						side="bottom"
 						align="end"
 						sideOffset={4}
 					>
 						<DropdownMenu.Item
-							class="text-small text-primary hover:bg-hover-solid focus:bg-hover-solid flex cursor-pointer items-center justify-between px-menu-item py-menu-item outline-none"
+							class="text-small hover:bg-hover-solid focus:bg-hover-solid px-menu-item py-menu-item flex cursor-pointer items-center justify-between text-primary outline-none"
 							textValue="Skip"
 							onSelect={() => {
 								handleSkip();
@@ -450,13 +450,13 @@
 		<!-- Main Content Area - Hero Highlight Text -->
 		<div class="flex-1 overflow-y-auto">
 			<!-- Optimal reading width: 65-75 characters per line for ADHD-friendly reading -->
-			<div class="px-inbox-container py-inbox-container mx-auto max-w-readable">
+			<div class="px-inbox-container py-inbox-container max-w-readable mx-auto">
 				<!-- Hero Highlight Text - Always Visible, Top Priority -->
 				{#if item?.highlight}
 					<div class="mb-marketing-content mt-content-section">
 						<!-- Quote-style container with subtle background and left accent -->
 						<div
-							class="border-accent-primary bg-surface pr-inbox-container pl-inbox-container relative rounded-card border-l-4"
+							class="border-accent-primary pr-inbox-container pl-inbox-container relative rounded-card border-l-4 bg-surface"
 							style="padding-block: var(--spacing-8);"
 						>
 							<!-- Quote mark (decorative, subtle) -->
@@ -469,7 +469,7 @@
 							</div>
 							<!-- Highlight Text - Hero size, reading optimized for ADHD/focus-challenged -->
 							<p
-								class="text-h1 leading-readable tracking-readable text-primary sm:text-h1 relative z-10 max-w-none font-normal"
+								class="text-h1 leading-readable tracking-readable sm:text-h1 relative z-10 max-w-none font-normal text-primary"
 							>
 								{item.highlight.text}
 							</p>
@@ -480,18 +480,18 @@
 		</div>
 
 		<!-- Right Sidebar - Metadata & Actions -->
-		<div class="w-sidebar-detail border-base bg-surface flex-shrink-0 overflow-y-auto border-l">
-			<div class="px-inbox-container py-inbox-container flex flex-col gap-settings-section">
+		<div class="w-sidebar-detail border-base flex-shrink-0 overflow-y-auto border-l bg-surface">
+			<div class="px-inbox-container py-inbox-container gap-settings-section flex flex-col">
 				<!-- Source Info -->
 				{#if item?.source}
 					<div>
 						<p
-							class="mb-marketing-text text-label text-secondary font-medium tracking-wider uppercase"
+							class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
 						>
 							Source
 						</p>
 						<div class="flex flex-col" style="gap: var(--spacing-1);">
-							<h3 class="text-small text-primary font-semibold">{item.source.title}</h3>
+							<h3 class="text-small font-semibold text-primary">{item.source.title}</h3>
 							{#if item.author}
 								<p class="text-label text-secondary">by {item.author.displayName}</p>
 							{:else if item.authors && item.authors.length > 0}
@@ -520,7 +520,7 @@
 					{:else}
 						<div>
 							<p
-								class="mb-marketing-text text-label text-secondary font-medium tracking-wider uppercase"
+								class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
 							>
 								Tags
 							</p>
@@ -532,7 +532,7 @@
 				{:else}
 					<div>
 						<p
-							class="mb-marketing-text text-label text-secondary font-medium tracking-wider uppercase"
+							class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
 						>
 							Tags
 						</p>
@@ -543,7 +543,7 @@
 				<!-- Actions (Sidebar) -->
 				<div>
 					<p
-						class="mb-marketing-text text-label text-secondary font-medium tracking-wider uppercase"
+						class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
 					>
 						Actions
 					</p>
@@ -556,11 +556,11 @@
 				{#if item?.highlight?.note}
 					<div>
 						<p
-							class="mb-marketing-text text-label text-secondary font-medium tracking-wider uppercase"
+							class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
 						>
 							Note
 						</p>
-						<p class="text-label text-secondary leading-relaxed">{item.highlight.note}</p>
+						<p class="text-label leading-relaxed text-secondary">{item.highlight.note}</p>
 					</div>
 				{/if}
 
@@ -568,7 +568,7 @@
 				{#if item?.highlight?.externalUrl}
 					<div>
 						<p
-							class="mb-marketing-text text-label text-secondary font-medium tracking-wider uppercase"
+							class="mb-marketing-text text-label font-medium tracking-wider text-secondary uppercase"
 						>
 							Links
 						</p>
@@ -576,7 +576,7 @@
 							href={item.highlight.externalUrl}
 							target="_blank"
 							rel="noopener noreferrer"
-							class="text-label text-primary hover:text-secondary flex items-center gap-2 transition-colors"
+							class="flex items-center gap-2 text-label text-primary transition-colors hover:text-secondary"
 						>
 							<span>View in Readwise</span>
 							<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -593,13 +593,13 @@
 
 				<!-- Metadata (Collapsed by default, subtle) -->
 				{#if item?.createdAt}
-					<div class="border-base border-t pt-content-section">
+					<div class="border-base pt-content-section border-t">
 						<div class="flex flex-col" style="gap: var(--spacing-1);">
 							<span class="text-label text-tertiary"
 								>Added {new Date(item.createdAt).toLocaleDateString()}</span
 							>
 							{#if item?._id}
-								<span class="text-label text-tertiary font-code">ID: {item._id}</span>
+								<span class="font-code text-label text-tertiary">ID: {item._id}</span>
 							{/if}
 						</div>
 					</div>

@@ -109,19 +109,43 @@ Once I have a ticket ID, I'll proceed with saving.
 
 ---
 
-### 2. Audit Existing Patterns
+### 2. 🚨 MANDATORY: Search & Deduplicate First
 
-**🔍 Search Strategy (use grep tool in parallel):**
+**⛔ NEVER ADD A PATTERN WITHOUT THIS STEP**
 
-1. **Search INDEX**: `grep` in `dev-docs/2-areas/patterns/INDEX.md` for symptom keywords
-2. **Search domain files**: `grep` in `dev-docs/2-areas/patterns/*.md` for related patterns
-3. **Check line numbers**: Found patterns reference exact line numbers (e.g., #L810)
+The #1 problem is pattern proliferation - multiple outdated versions of the same concept confuse AI retrieval. You MUST search thoroughly before adding anything.
 
-**Decision tree:**
+**🔍 Search Strategy (run ALL searches in parallel):**
 
-- **Exact match exists** → Update existing pattern (add edge case, enhance example)
-- **Similar pattern exists** → Add new pattern + link to related (#L references)
-- **Nothing found** → Create new pattern in appropriate domain file
+1. **Search by symptom**: grep "misaligned" OR "not aligned" in patterns/
+2. **Search by concept**: grep "alignment" OR "spacing" OR "padding" in patterns/
+3. **Search by component**: grep "NavItem" OR "sidebar" OR specific component in patterns/
+4. **Search INDEX.md**: grep for related symptom keywords
+
+**⚠️ Run at least 3 different searches** - patterns may use different terminology.
+
+**Decision Tree - Merge Before Add:**
+
+```
+Found existing pattern(s)?
+├─ YES, one pattern covers this concept
+│  └─ ENHANCE existing pattern (don't add new)
+│     Add edge case, update example, improve Keywords
+│
+├─ YES, multiple patterns cover similar concept
+│  └─ CONSOLIDATE into ONE canonical pattern:
+│     1. Choose most complete pattern as canonical
+│     2. Merge valuable content from others into canonical
+│     3. Mark others as SUPERSEDED or DELETE them
+│     4. Update INDEX.md to point only to canonical
+│
+├─ YES, but all are outdated
+│  └─ UPDATE the best one with current approach
+│     Mark outdated versions as SUPERSEDED or DELETE
+│
+└─ NO, genuinely nothing related found
+   └─ ADD new pattern (with Keywords field)
+```
 
 **⚠️ DON'T read `patterns-and-lessons.md`** - it's just a redirect file. Go directly to domain files.
 
@@ -280,15 +304,44 @@ Found existing pattern
 2. Add pattern with **next line number** (gaps of 30-50):
 
    ```markdown
-   ## #L[NUMBER]: Pattern Name [🔴/🟡/🟢 SEVERITY] [STATUS: ACCEPTED|DEPRECATED|SUPERSEDED|REJECTED|PROPOSED]
+   ## #L[NUMBER]: Pattern Name [🔴/🟡/🟢 SEVERITY] [STATUS: ACCEPTED]
 
-   **Symptom**: One-line description
-   **Root Cause**: One-line cause
-   **Fix**: [code example]
+   **Keywords**: keyword1, keyword2, keyword3, synonym1, component-name
+   <!-- Include: direct terms, synonyms, related concepts, component names -->
 
-   **Apply when**: When to use
+   **Principle**: One-line abstract lesson (generalizable)
+
+   **Symptom**: What problem triggers this pattern
+
+   **Root Cause**: Why the problem occurs
+
+   **Pattern**: General solution approach
+
+   **Implementation Examples**:
+
+   ### Example 1: [Context A]
+   ```code
+   // Implementation for context A
+   ```
+
+   ### Example 2: [Context B]
+   ```code
+   // Implementation for context B
+   ```
+
+   **When to Apply**: General criteria (not element-specific)
+
+   **Anti-Patterns**: What NOT to do (common mistakes)
+
    **Related**: #L[OTHER] (Description)
    ```
+
+   **⚠️ Keywords field is CRITICAL** - This is how AI grep finds patterns. Include:
+   - Direct terms (alignment, padding)
+   - Synonyms (spacing, margin, offset)
+   - Related concepts (visual consistency)
+   - Component names (NavItem, sidebar)
+   - Common mistake searches (misaligned, looks off)
 
    **STATUS Field** (optional, defaults to ACCEPTED):
    - **ACCEPTED** - Current best practice (default, omit STATUS field)
@@ -301,7 +354,24 @@ Found existing pattern
 
 4. **Update `dev-docs/2-areas/patterns/INDEX.md`**:
    - Add symptom → line number in appropriate severity table
+   - Add to Keyword Quick Reference table
    - Choose severity: 🔴 Critical (breaks functionality), 🟡 Important (common issue), 🟢 Reference (best practice)
+
+#### Pattern Cleanup (Aggressive)
+
+**While updating patterns, actively clean up duplicates:**
+
+1. **DELETE redundant patterns**: If content is 100% covered by another pattern, DELETE it
+2. **Mark SUPERSEDED**: If replaced by better version, add `⚠️ SUPERSEDED: See #LXXX`
+3. **Mark DEPRECATED**: If approach is discouraged but still works
+
+**Deletion Criteria** (when to delete vs mark superseded):
+- ✅ DELETE: Content fully merged into canonical pattern
+- ✅ DELETE: Pattern approach no longer works at all
+- ✅ DELETE: Pattern was an anti-pattern (wrong fix)
+- 🟡 SUPERSEDE: Approach changed but old might be useful for legacy
+
+**Goal**: One canonical pattern per concept. Multiple versions = AI confusion.
 
 ---
 
@@ -422,18 +492,21 @@ const good: string = 'value'; // ✅ Correct
 
 - [ ] **🚨 Linear ticket ID present** in conversation (SYOS-XXX format)
 - [ ] **Got ticket details** → Validated project ID, assignee (Randy), numeric estimate
-- [ ] Searched `dev-docs/2-areas/patterns/INDEX.md` for existing patterns (grep tool)
-- [ ] Searched domain files in parallel
-- [ ] **Determined pattern action** → Enhanced vs Deprecated vs Superseded vs Rejected (lifecycle management)
-- [ ] Updated domain file with pattern/enhancement (search_replace)
-- [ ] Included STATUS field if not ACCEPTED (default)
-- [ ] Updated `dev-docs/2-areas/patterns/INDEX.md` symptom table with line number reference
+- [ ] **🚨 DEDUPLICATION** → Searched 3+ variations of terms in patterns/
+- [ ] Found ALL related patterns (not just first match)
+- [ ] **Decided: Enhance existing OR Consolidate duplicates OR Add new**
+- [ ] If duplicates found → Consolidated into ONE canonical pattern
+- [ ] If duplicates found → Marked/deleted redundant patterns
+- [ ] Pattern includes **Keywords** field (for grep discovery)
+- [ ] Pattern has abstract **Principle** + specific **Implementation Examples**
+- [ ] Updated `dev-docs/2-areas/patterns/INDEX.md` with keywords + line reference
 - [ ] Chose correct severity (🔴 Critical | 🟡 Important | 🟢 Reference)
 - [ ] **Considered rule building** → Decided rule vs pattern, created/enhanced rule if needed
 
 **After Saving:**
 
 - [ ] Files saved locally (no commit)
+- [ ] Pattern count stayed same or decreased (never increased without consolidation)
 - [ ] Reported status: "✅ Patterns updated locally. Files ready for review."
 
 ---
@@ -441,7 +514,6 @@ const good: string = 'value'; // ✅ Correct
 ## Quick AI Workflow
 
 ```
-
 0. 🚨 Check for Linear ticket ID (STOP if missing)
    → If missing and user says "create new ticket" → Refer to /start
 
@@ -453,36 +525,38 @@ const good: string = 'value'; // ✅ Correct
    - WHO benefits? WHAT VALUE? WHAT SLICE?
    - Category: FEATURE | BUGFIX | TECH-DEBT | DOCS | RISK
 
-3. Search patterns (use grep, batch parallel reads):
-   - INDEX: dev-docs/2-areas/patterns/INDEX.md
-   - Domain files: svelte-reactivity.md, convex-integration.md, etc.
-   - ⚠️ DON'T read patterns-and-lessons.md (redirect)
+3. 🚨 MANDATORY DEDUPLICATION (run 3+ grep searches):
+   - Search by symptom: grep "error message" in patterns/
+   - Search by concept: grep "reactivity" OR "state" in patterns/
+   - Search by component: grep "NavItem" OR "Sidebar" in patterns/
+   ⚠️ NEVER add pattern without finding all related patterns first!
 
-3.5. Determine pattern action (lifecycle management):
+4. Decide pattern action:
+   ├─ Found exact match → ENHANCE existing pattern
+   ├─ Found duplicates → CONSOLIDATE into ONE canonical
+   │  → Delete or SUPERSEDE redundant patterns
+   ├─ Found outdated → UPDATE with current approach
+   └─ Found nothing → ADD new pattern (with Keywords field)
 
-- Decision tree: Enhance vs Deprecate vs Supersede vs Reject
-- Choose appropriate lifecycle state (ACCEPTED, DEPRECATED, SUPERSEDED, REJECTED, PROPOSED)
-- Use templates for deprecation/superseding (include migration paths)
-
-4. Update patterns:
-   - Add/update domain file with search_replace
-   - Include STATUS field if not ACCEPTED (default)
-   - Update INDEX.md symptom table
+5. Update patterns (if adding/updating):
+   - Include Keywords field (critical for grep discovery)
+   - Include abstract Principle + specific Implementation Examples
+   - Update INDEX.md with keywords + line reference
    - Use line numbers for references (#L810)
 
-5. Consider rule building:
+6. Cleanup duplicates:
+   - DELETE fully redundant patterns
+   - Mark SUPERSEDED with link to canonical pattern
+   - Goal: Pattern count should stay same or DECREASE
+
+7. Consider rule building:
    - Decision: Rule vs pattern (use decision tree)
    - If rule → Create/update `.cursor/rules/[topic].mdc`
-   - Document: "Created/enhanced rule [name] to prevent [mistake]"
-   - See: `.cursor/rules/BUILDING-RULES.md` for complete process
+   - See: `.cursor/rules/BUILDING-RULES.md` for process
 
-6. Save locally (NO COMMIT):
+8. Save locally (NO COMMIT):
    → Files saved in working directory
-   → Ready for review and commit when you're ready
-
-7. Report status:
-   → Confirm: "✅ Patterns updated locally. Files saved. Ready for review."
-
+   → Confirm: "✅ Patterns updated. Pattern count: X (was Y)"
 ```
 
 ---
@@ -497,6 +571,6 @@ const good: string = 'value'; // ✅ Correct
 
 ---
 
-**Last Updated**: 2025-11-20
+**Last Updated**: 2025-01-27
 **Purpose**: Local knowledge capture (no commit) - saves time/tokens
-```
+**Key Principle**: One canonical pattern per concept. Merge before add. Pattern count should stay same or decrease.

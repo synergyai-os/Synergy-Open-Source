@@ -9,6 +9,7 @@
 	} from '$lib/design-system/recipes';
 	import Text from './Text.svelte';
 	import Icon from './Icon.svelte';
+	import type { Snippet } from 'svelte';
 
 	type Option = {
 		value: string;
@@ -21,14 +22,17 @@
 		name?: string;
 		label?: string;
 		placeholder?: string;
-		value?: string;
+		value?: string | string[];
 		options: Option[];
+		type?: 'single' | 'multiple';
 		required?: boolean;
 		disabled?: boolean;
 		allowDeselect?: boolean;
 		showLabel?: boolean; // Variant: with or without label
 		class?: string;
 		maxHeight?: string; // Max height for dropdown (default: 20rem / ~320px, shows ~5-7 items)
+		onValueChange?: (value: string | string[] | undefined) => void; // Custom handler for multi-select or custom logic
+		children?: Snippet<{ option: Option; selected: boolean }>; // Custom item rendering
 	};
 
 	let {
@@ -36,14 +40,17 @@
 		name,
 		label,
 		placeholder = '',
-		value = $bindable(''),
+		value = $bindable('' as string | string[]),
 		options,
+		type = 'single',
 		required = false,
 		disabled = false,
 		allowDeselect = false,
 		showLabel = true,
 		class: customClass = '',
-		maxHeight = '14rem' // Default: ~224px, shows ~4-5 items (30% smaller than original)
+		maxHeight = '14rem', // Default: ~224px, shows ~4-5 items (30% smaller than original)
+		onValueChange,
+		children
 	}: Props = $props();
 
 	// Generate ID if not provided
@@ -64,19 +71,41 @@
 
 	// Find selected option label for display
 	const selectedLabel = $derived.by(() => {
-		if (!value) return placeholder || 'Select an option';
+		if (type === 'multiple') {
+			// For multi-select, always show placeholder (can't display all selected items)
+			return placeholder || 'Search options...';
+		}
+		// Single select
+		if (!value || value === '') return placeholder || 'Select an option';
 		return options.find((opt) => opt.value === value)?.label || placeholder || 'Select an option';
 	});
 
 	// Handle value change
-	function handleValueChange(newValue: string | undefined) {
-		if (newValue === undefined && allowDeselect) {
-			value = '';
-			searchValue = '';
-		} else if (newValue !== undefined) {
-			value = newValue;
-			// Clear search when item is selected so Input shows selected label in placeholder
-			searchValue = '';
+	function handleValueChange(newValue: string | string[] | undefined) {
+		if (onValueChange) {
+			// Use custom handler if provided
+			onValueChange(newValue);
+			return;
+		}
+
+		if (type === 'multiple') {
+			// Multi-select: newValue is string[] | undefined
+			if (newValue === undefined && allowDeselect) {
+				value = [];
+			} else if (Array.isArray(newValue)) {
+				value = newValue;
+				// Don't clear search for multi-select (user might want to select more)
+			}
+		} else {
+			// Single select: newValue is string | undefined
+			if (newValue === undefined && allowDeselect) {
+				value = '';
+				searchValue = '';
+			} else if (typeof newValue === 'string') {
+				value = newValue;
+				// Clear search when item is selected so Input shows selected label in placeholder
+				searchValue = '';
+			}
 		}
 	}
 
@@ -128,7 +157,7 @@
 		</label>
 	{/if}
 	<BitsCombobox.Root
-		type="single"
+		{type}
 		bind:value
 		bind:open
 		onValueChange={handleValueChange}
@@ -181,6 +210,10 @@
 						style="max-height: {maxHeight}; overflow-y: auto;"
 					>
 						{#each filteredOptions as option (option.value)}
+							{@const isSelected =
+								type === 'multiple'
+									? Array.isArray(value) && value.includes(option.value)
+									: value === option.value}
 							<BitsCombobox.Item
 								value={option.value}
 								label={option.label}
@@ -188,11 +221,15 @@
 								class={comboboxItemRecipe({ disabled: option.disabled })}
 							>
 								{#snippet children({ selected })}
-									{option.label}
-									{#if selected}
-										<div class="ml-auto">
-											<Icon type="check" size="sm" />
-										</div>
+									{#if children}
+										{@render children({ option, selected: isSelected })}
+									{:else}
+										{option.label}
+										{#if selected}
+											<div class="ml-auto">
+												<Icon type="check" size="sm" />
+											</div>
+										{/if}
 									{/if}
 								{/snippet}
 							</BitsCombobox.Item>

@@ -173,13 +173,13 @@
 
 	<!-- Status Overview Card (Collapsible) -->
 	<div
-		class="mb-content-section rounded-card border border-base bg-surface px-card py-card shadow-card"
+		class="mb-content-section border-base px-card py-card rounded-card border bg-surface shadow-card"
 	>
 		<div class="mb-4 flex items-center justify-between">
 			<h2 class="text-display-sm font-semibold text-primary">Current Status</h2>
 			<button
 				onclick={() => (showPermissionDetails = !showPermissionDetails)}
-				class="text-link text-sm hover:underline"
+				class="text-sm text-link hover:underline"
 			>
 				{showPermissionDetails ? 'Hide' : 'Show'} Details
 			</button>
@@ -212,7 +212,7 @@
 			</div>
 		</dl>
 		{#if showPermissionDetails && permissions.permissions.length > 0}
-			<div class="border-subtle p-card mt-4 rounded-card border bg-surface">
+			<div class="p-card mt-4 rounded-card border border-subtle bg-surface">
 				<h3 class="mb-2 text-label font-semibold text-secondary">Your Permissions:</h3>
 				<ul class="space-y-1">
 					{#each permissions.permissions as permission (permission)}
@@ -224,7 +224,7 @@
 	</div>
 
 	<!-- Quick Test Actions -->
-	<div class="p-card mb-section-normal rounded-card border border-base shadow-card">
+	<div class="p-card mb-section-normal border-base rounded-card border shadow-card">
 		<h2 class="text-display-sm mb-4 font-semibold text-primary">Quick Test Actions</h2>
 		<div class="flex flex-wrap gap-3">
 			<PermissionButton
@@ -261,7 +261,7 @@
 	</div>
 
 	<!-- Permission Gates (Conditional Content) -->
-	<div class="p-card mb-section-normal rounded-card border border-base shadow-card">
+	<div class="p-card mb-section-normal border-base rounded-card border shadow-card">
 		<h2 class="text-display-sm mb-4 font-semibold text-primary">PermissionGate Component Test</h2>
 		<div class="space-y-4">
 			<div>
@@ -310,11 +310,11 @@
 
 	<!-- Setup Instructions (Collapsible) -->
 	<div
-		class="space-y-content-section rounded-card border border-base bg-surface px-card py-card shadow-card"
+		class="space-y-content-section border-base px-card py-card rounded-card border bg-surface shadow-card"
 	>
 		<div class="flex items-center justify-between">
 			<h2 class="text-display-sm font-semibold text-primary">Setup Instructions</h2>
-			<button onclick={() => (showSetup = !showSetup)} class="text-link text-sm hover:underline">
+			<button onclick={() => (showSetup = !showSetup)} class="text-sm text-link hover:underline">
 				{showSetup ? 'Hide' : 'Show'} Instructions
 			</button>
 		</div>
