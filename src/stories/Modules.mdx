@@ -109,10 +109,10 @@ src/lib/modules/[module-name]/
 ```svelte
 <script>
 	import { ActionItemsList } from '$lib/modules/meetings/components';
-	import { useActionItems } from '$lib/modules/meetings/composables/useActionItems.svelte';
+	import { useTasks } from '$lib/modules/projects/composables/useTasks.svelte';
 
 	// Use composable for data/logic
-	const data = useActionItems({ agendaItemId, sessionId });
+	const data = useTasks({ agendaItemId, sessionId, workspaceId });
 </script>
 
 <!-- Component handles UI, composable handles logic -->

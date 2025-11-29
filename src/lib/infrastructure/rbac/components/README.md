@@ -11,11 +11,11 @@ Reactive permission checking hook.
 ```svelte
 <script lang="ts">
 	import { usePermissions } from '$lib/infrastructure/rbac/composables/usePermissions.svelte';
-	import { currentUserId, activeOrganizationId } from '$lib/stores';
+	import { currentUserId, activeWorkspaceId } from '$lib/stores';
 
 	const permissions = usePermissions({
 		userId: () => $currentUserId,
-		organizationId: () => $activeOrganizationId
+		workspaceId: () => $activeWorkspaceId
 	});
 </script>
 
@@ -143,9 +143,9 @@ Common permission slugs (defined in `convex/seed/rbac.ts`):
 
 ### Organization Settings
 
-- `organizations.view-settings` - View organization settings
-- `organizations.update-settings` - Update organization settings
-- `organizations.manage-billing` - Manage billing/subscriptions
+- `workspaces.view-settings` - View workspace settings
+- `workspaces.update-settings` - Update workspace settings
+- `workspaces.manage-billing` - Manage billing/subscriptions
 
 ## Design Patterns
 
@@ -180,7 +180,7 @@ Permissions update reactively when roles change:
 	// When user's role changes, permissions update automatically
 	const permissions = usePermissions({
 		userId: () => $currentUserId,
-		organizationId: () => $activeOrganizationId
+		workspaceId: () => $activeWorkspaceId
 	});
 </script>
 

@@ -1,5 +1,5 @@
 /**
- * Enable meetings-module feature flag for specific organization
+ * Enable meetings-module feature flag for specific workspace
  *
  * SYOS-226: Enable meetings module for org mx7ecpdw61qbsfj3488xaxtd7x7veq2w
  *
@@ -42,20 +42,20 @@ async function main() {
 	const client = new ConvexHttpClient(CONVEX_URL);
 
 	try {
-		// Target organization ID from SYOS-226
+		// Target workspace ID from SYOS-226
 		const targetOrgId = 'mx7ecpdw61qbsfj3488xaxtd7x7veq2w';
 
-		// Enable feature flag for organization
+		// Enable feature flag for workspace
 		await client.mutation(api.featureFlags.upsertFlag, {
 			flag: 'meetings-module',
 			enabled: true,
-			allowedOrganizationIds: [targetOrgId as Id<'organizations'>]
+			allowedWorkspaceIds: [targetOrgId as Id<'workspaces'>]
 		});
 
 		console.log('✅ Feature flag enabled successfully');
 		console.log('   Flag: meetings-module');
 		console.log('   Enabled: true');
-		console.log(`   allowedOrganizationIds: [${targetOrgId}]`);
+		console.log(`   allowedWorkspaceIds: [${targetOrgId}]`);
 		console.log('\n📝 What this means:');
 		console.log('   ✅ All users in org "mx7ecpdw61qbsfj3488xaxtd7x7veq2w" can access /meetings');
 		console.log('   ✅ All users in org "mx7ecpdw61qbsfj3488xaxtd7x7veq2w" can access /dashboard');

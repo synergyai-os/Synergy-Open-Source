@@ -1,8 +1,11 @@
 /**
  * Meeting utilities and constants
+ *
+ * Note: DAY_NAMES moved to src/lib/utils/locale.ts for global consistency
+ * This file re-exports it for backward compatibility
  */
 
-export const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const;
+export { DAY_NAMES } from '$lib/utils/locale';
 
 export const RECURRENCE_FREQUENCY_OPTIONS = [
 	{ value: 'daily', label: 'Day(s)' },

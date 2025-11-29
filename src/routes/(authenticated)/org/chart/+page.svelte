@@ -7,28 +7,28 @@
 	import OrgChart from '$lib/modules/org-chart/components/OrgChart.svelte';
 	import CircleDetailPanel from '$lib/modules/org-chart/components/CircleDetailPanel.svelte';
 	import RoleDetailPanel from '$lib/modules/org-chart/components/RoleDetailPanel.svelte';
-	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
 	import type { OrgChartModuleAPI } from '$lib/modules/org-chart/api';
 
 	let { data: _data } = $props();
 
-	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
+	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
 	const orgChartAPI = getContext<OrgChartModuleAPI | undefined>('org-chart-api');
 
 	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
 	// Pattern: Check object existence first, then access getter property directly
-	const organizationId = $derived(() => {
-		if (!organizations) return undefined;
-		return organizations.activeOrganizationId ?? undefined;
+	const workspaceId = $derived(() => {
+		if (!workspaces) return undefined;
+		return workspaces.activeWorkspaceId ?? undefined;
 	});
 	const organizationName = $derived(() => {
-		if (!organizations) return 'Organization';
-		return organizations.activeOrganization?.name ?? 'Organization';
+		if (!workspaces) return 'Organization';
+		return workspaces.activeWorkspace?.name ?? 'Organization';
 	});
 
 	const getSessionId = () => $page.data.sessionId;
 	// CRITICAL: Call $derived function to get primitive value (not the function itself)
-	const getOrganizationId = () => organizationId();
+	const getWorkspaceId = () => workspaceId();
 
 	// Initialize org chart composable via API (enables loose coupling - see SYOS-314)
 	if (!orgChartAPI) {
@@ -36,7 +36,7 @@
 	}
 	const orgChart = orgChartAPI.useOrgChart({
 		sessionId: getSessionId,
-		organizationId: getOrganizationId
+		workspaceId: getWorkspaceId
 	});
 
 	const isLoading = $derived(orgChart.isLoading);

@@ -1,4 +1,4 @@
-# Script-Based Refactoring: organizations → workspaces
+# Script-Based Refactoring: workspaces → workspaces
 
 ## Why a Script is Better
 
@@ -69,22 +69,22 @@ You're absolutely right! A script is **safer, better, faster, and cheaper** than
 
 ## The Script
 
-Created: `scripts/refactor-organizations-to-workspaces.ts`
+Created: `scripts/refactor-workspaces-to-workspaces.ts`
 
 ### Features
 
 1. **Comprehensive replacements** - Handles all patterns:
-   - Table names: `'organizations'` → `'workspaces'`
-   - Types: `Id<'organizations'>` → `Id<'workspaces'>`
-   - Fields: `organizationId` → `workspaceId`
-   - Variables: `organization` → `workspace`
-   - Functions: `useOrganizations` → `useWorkspaces`
-   - Interfaces: `OrganizationsModuleAPI` → `WorkspacesModuleAPI`
-   - API endpoints: `api.organizations.*` → `api.workspaces.*`
+   - Table names: `'workspaces'` → `'workspaces'`
+   - Types: `Id<'workspaces'>` → `Id<'workspaces'>`
+   - Fields: `workspaceId` → `workspaceId`
+   - Variables: `workspace` → `workspace`
+   - Functions: `useWorkspaces` → `useWorkspaces`
+   - Interfaces: `WorkspacesModuleAPI` → `WorkspacesModuleAPI`
+   - API endpoints: `api.workspaces.*` → `api.workspaces.*`
 
 2. **File/Directory renames**:
-   - `convex/organizations.ts` → `convex/workspaces.ts`
-   - `src/lib/modules/core/organizations/` → `src/lib/modules/core/workspaces/`
+   - `convex/workspaces.ts` → `convex/workspaces.ts`
+   - `src/lib/modules/core/workspaces/` → `src/lib/modules/core/workspaces/`
    - Component files within modules
 
 3. **Safety features**:
@@ -124,8 +124,8 @@ git diff
 
 Review all changes carefully. The script handles most cases, but you may want to:
 
-- Keep some comments that intentionally say "organization"
-- Review user-facing strings (may want to keep "organization" in UI)
+- Keep some comments that intentionally say "workspace"
+- Review user-facing strings (may want to keep "workspace" in UI)
 - Check external API documentation
 
 ### Step 4: Run Tests
@@ -162,8 +162,8 @@ Even with the script, some things need manual review:
 
 1. **Schema Migration** - Convex schema changes need careful deployment
 2. **Route Paths** - Decide if `/org/*` should become `/workspace/*`
-3. **User-Facing Strings** - May want to keep "organization" in UI text
-4. **Comments** - Some comments may intentionally reference "organization"
+3. **User-Facing Strings** - May want to keep "workspace" in UI text
+4. **Comments** - Some comments may intentionally reference "workspace"
 5. **External Docs** - API documentation for external consumers
 6. **Database Migration** - If needed for existing data
 
@@ -171,8 +171,8 @@ Even with the script, some things need manual review:
 
 The script is comprehensive but has some limitations:
 
-1. **Comments**: May change comments that should stay as "organization"
-2. **User Strings**: May change UI text that should say "organization"
+1. **Comments**: May change comments that should stay as "workspace"
+2. **User Strings**: May change UI text that should say "workspace"
 3. **External APIs**: Documentation for external consumers
 4. **Complex Cases**: Some edge cases may need manual fixes
 
@@ -199,7 +199,7 @@ The script is comprehensive but has some limitations:
 
 ## Next Steps
 
-1. ✅ Script created: `scripts/refactor-organizations-to-workspaces.ts`
+1. ✅ Script created: `scripts/refactor-workspaces-to-workspaces.ts`
 2. ✅ Documentation created: `scripts/REFACTOR-ORGS-TO-WORKSPACES.md`
 3. ✅ npm scripts added to `package.json`
 4. ⏭️ Run dry-run to preview changes

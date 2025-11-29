@@ -6,6 +6,7 @@
 	import { getFlagDescription } from '$lib/infrastructure/feature-flags';
 	import { api, type Id } from '$lib/convex';
 	import { useConvexClient } from 'convex-svelte';
+	import { DEFAULT_LOCALE } from '$lib/utils/locale';
 
 	let { data }: { data: PageData } = $props();
 
@@ -16,21 +17,21 @@
 		enabled: boolean;
 		rolloutPercentage?: number;
 		allowedUserIds?: string[];
-		allowedOrganizationIds?: string[];
+		allowedWorkspaceIds?: string[];
 		allowedDomains?: string[];
 		createdAt: number;
 		updatedAt: number;
 	};
 
 	type Organization = {
-		_id: Id<'organizations'>;
+		_id: Id<'workspaces'>;
 		name: string;
 		slug: string;
 		createdAt: number;
 	};
 
 	const flag = $derived((data.flag || null) as Flag | null);
-	const organizations = $derived((data.organizations || []) as Organization[]);
+	const workspaces = $derived((data.workspaces || []) as Organization[]);
 	const sessionId = $derived(data.sessionId || '');
 	const impactStats = $derived(data.impactStats || null);
 
@@ -52,7 +53,7 @@
 		formDescription = flag?.description ?? '';
 		formEnabled = flag?.enabled ?? false;
 		formRolloutPercentage = flag?.rolloutPercentage;
-		formAllowedOrgIds = flag?.allowedOrganizationIds ?? [];
+		formAllowedOrgIds = flag?.allowedWorkspaceIds ?? [];
 		formDomainInput = (flag?.allowedDomains ?? []).join(', ');
 	});
 
@@ -87,27 +88,27 @@
 	// Loading state
 	let saving = $state(false);
 
-	// Filter organizations by search
+	// Filter workspaces by search
 	const filteredOrganizations = $derived.by(() => {
-		if (!orgSearchQuery.trim()) return organizations;
+		if (!orgSearchQuery.trim()) return workspaces;
 		const query = orgSearchQuery.toLowerCase();
-		return organizations.filter(
+		return workspaces.filter(
 			(org) => org.name.toLowerCase().includes(query) || org.slug.toLowerCase().includes(query)
 		);
 	});
 
-	// Use filtered organizations (or all if no search)
+	// Use filtered workspaces (or all if no search)
 	const orgsToDisplay = $derived(filteredOrganizations);
 
-	// Get selected organization names
+	// Get selected workspace names
 	const selectedOrgNames = $derived.by(() => {
 		return formAllowedOrgIds
 			.map((id) => orgsToDisplay.find((org) => org._id === id)?.name)
 			.filter(Boolean) as string[];
 	});
 
-	// Toggle organization selection
-	function toggleOrganization(orgId: Id<'organizations'>) {
+	// Toggle workspace selection
+	function toggleOrganization(orgId: Id<'workspaces'>) {
 		if (formAllowedOrgIds.includes(orgId)) {
 			formAllowedOrgIds = formAllowedOrgIds.filter((id) => id !== orgId);
 		} else {
@@ -138,8 +139,8 @@
 				enabled: formEnabled,
 				rolloutPercentage: formRolloutPercentage,
 				allowedUserIds: undefined, // Not editable in UI yet
-				allowedOrganizationIds:
-					formAllowedOrgIds.length > 0 ? (formAllowedOrgIds as Id<'organizations'>[]) : undefined,
+				allowedWorkspaceIds:
+					formAllowedOrgIds.length > 0 ? (formAllowedOrgIds as Id<'workspaces'>[]) : undefined,
 				allowedDomains: domains.length > 0 ? domains : undefined
 			});
 
@@ -180,9 +181,9 @@
 				`${flag.allowedUserIds.length} user${flag.allowedUserIds.length !== 1 ? 's' : ''}`
 			);
 		}
-		if (flag.allowedOrganizationIds?.length) {
+		if (flag.allowedWorkspaceIds?.length) {
 			parts.push(
-				`${flag.allowedOrganizationIds.length} org${flag.allowedOrganizationIds.length !== 1 ? 's' : ''}`
+				`${flag.allowedWorkspaceIds.length} org${flag.allowedWorkspaceIds.length !== 1 ? 's' : ''}`
 			);
 		}
 		if (flag.allowedDomains?.length) {
@@ -317,7 +318,7 @@
 							Organization Targeting
 						</h2>
 						<p class="mb-content-section text-label text-secondary">
-							Select which organizations (workspaces) can access this feature flag.
+							Select which workspaces (workspaces) can access this feature flag.
 						</p>
 
 						<!-- Selected Organizations Display -->
@@ -331,7 +332,7 @@
 										<button
 											type="button"
 											onclick={() => {
-												const org = organizations.find((o) => o.name === orgName);
+												const org = workspaces.find((o) => o.name === orgName);
 												if (org) toggleOrganization(org._id);
 											}}
 											class="hover:text-accent-primary/80"
@@ -363,8 +364,8 @@
 							>
 								<span class="text-secondary">
 									{selectedOrgNames.length > 0
-										? `${selectedOrgNames.length} organization${selectedOrgNames.length !== 1 ? 's' : ''} selected`
-										: 'Select organizations...'}
+										? `${selectedOrgNames.length} workspace${selectedOrgNames.length !== 1 ? 's' : ''} selected`
+										: 'Select workspaces...'}
 								</span>
 								<svg
 									class="h-4 w-4 text-tertiary transition-transform {orgSelectorOpen
@@ -395,7 +396,7 @@
 										<input
 											type="text"
 											bind:value={orgSearchQuery}
-											placeholder="Search organizations..."
+											placeholder="Search workspaces..."
 											class="text-small w-full bg-transparent text-primary placeholder:text-tertiary focus:outline-none"
 											onclick={(e) => e.stopPropagation()}
 											onkeydown={(e) => {
@@ -448,8 +449,8 @@
 							{/if}
 						</div>
 						<p class="mt-form-section text-label text-secondary">
-							💡 <strong>Tip:</strong> All members of selected organizations will have access to this
-							feature flag.
+							💡 <strong>Tip:</strong> All members of selected workspaces will have access to this feature
+							flag.
 						</p>
 					</div>
 
@@ -563,7 +564,7 @@
 											<div class="w-full rounded-t bg-base" style="height: {disabledHeight}%"></div>
 										</div>
 										<p class="text-label text-tertiary">
-											{new Date(day.date).toLocaleDateString('en-US', {
+											{new Date(day.date).toLocaleDateString(DEFAULT_LOCALE, {
 												month: 'short',
 												day: 'numeric'
 											})}

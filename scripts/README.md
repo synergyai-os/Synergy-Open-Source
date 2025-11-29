@@ -56,7 +56,7 @@ Utility scripts for development, CI/CD, and maintenance tasks.
 ### Other Scripts
 
 - `check-sessionid-usage.sh` - Check for sessionId migration issues
-- `seed-org-chart.ts` - Seed organization chart test data
+- `seed-org-chart.ts` - Seed workspace chart test data
 - See individual script files for usage
 
 ---

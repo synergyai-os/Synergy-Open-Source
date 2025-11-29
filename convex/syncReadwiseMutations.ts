@@ -199,19 +199,19 @@ export const linkAuthorToSource = internalMutation({
 export const findOrCreateTag = internalMutation({
 	args: {
 		userId: v.id('users'),
-		organizationId: v.id('organizations'), // REQUIRED: Users always have at least one organization
+		workspaceId: v.id('workspaces'), // REQUIRED: Users always have at least one workspace
 		tagName: v.string(),
 		externalId: v.optional(v.number())
 	},
 	handler: async (ctx, args) => {
-		const { userId, organizationId, tagName, externalId } = args;
+		const { userId, workspaceId, tagName, externalId } = args;
 		const normalizedName = normalizeTagName(tagName);
 
-		// Check if tag exists for this organization
+		// Check if tag exists for this workspace
 		const existing = await ctx.db
 			.query('tags')
-			.withIndex('by_organization_name', (q) =>
-				q.eq('organizationId', organizationId).eq('name', normalizedName)
+			.withIndex('by_workspace_name', (q) =>
+				q.eq('workspaceId', workspaceId).eq('name', normalizedName)
 			)
 			.first();
 
@@ -223,7 +223,7 @@ export const findOrCreateTag = internalMutation({
 			return existing._id;
 		}
 
-		// Create new tag with default color (grey) - always scoped to organization
+		// Create new tag with default color (grey) - always scoped to workspace
 		// Default color: #94a3b8 (slate-400) - matches TAG_COLORS[0]
 		const tagId = await ctx.db.insert('tags', {
 			userId,
@@ -232,8 +232,8 @@ export const findOrCreateTag = internalMutation({
 			externalId,
 			color: '#94a3b8', // Default grey color (required field)
 			createdAt: Date.now(),
-			organizationId, // REQUIRED: Tags must belong to an organization
-			ownershipType: 'organization' // Tags from Readwise sync are organization-scoped
+			workspaceId, // REQUIRED: Tags must belong to an workspace
+			ownershipType: 'workspace' // Tags from Readwise sync are workspace-scoped
 		});
 
 		return tagId;

@@ -234,7 +234,7 @@ We'll know we're succeeding when:
 
 - ✅ Agency Partner using it daily for internal ops
 - ✅ Client onboarded and running product teams on it
-- ✅ 5+ organizations self-hosting within 6 months
+- ✅ 5+ workspaces self-hosting within 6 months
 - ✅ 100+ teams using managed service within 12 months
 
 ### Engagement
@@ -279,14 +279,14 @@ We'll know we're succeeding when:
 ### Year 2: Ecosystem
 
 - Builder marketplace launched (50+ apps)
-- 1,000+ organizations using it
+- 1,000+ workspaces using it
 - Training & consulting services
 - Conference/community events
 
 ### Year 3: Standard
 
 - Industry-standard for product teams
-- 10,000+ organizations
+- 10,000+ workspaces
 - Integrations with every major tool
 - Self-sustaining community
 
@@ -328,7 +328,7 @@ We'll know we're succeeding when:
 
 ### For Client (1 minute)
 
-"Running multiple product teams is hard—unclear roadmaps, misaligned goals, knowledge silos. We built a platform that brings everything together: product discovery, roadmap tracking, automated status reports, and built-in glossaries. Your teams stay aligned, meetings are more effective, and onboarding new members is painless. It's like having an AI coach that knows your organization."
+"Running multiple product teams is hard—unclear roadmaps, misaligned goals, knowledge silos. We built a platform that brings everything together: product discovery, roadmap tracking, automated status reports, and built-in glossaries. Your teams stay aligned, meetings are more effective, and onboarding new members is painless. It's like having an AI coach that knows your workspace."
 
 ### For the Community (1 minute)
 
@@ -368,7 +368,7 @@ We'll know we're succeeding when:
 ## Next Steps
 
 1. **Validate with Agency Partner**: Get first paying customer
-2. **Build Multi-Tenancy**: Enable teams and organizations
+2. **Build Multi-Tenancy**: Enable teams and workspaces
 3. **Launch Community**: GitHub, Discord, journey blog
 4. **Ship Core Features**: Product discovery & delivery tools
 5. **Open Marketplace**: Enable builders to extend the platform

@@ -500,7 +500,7 @@ describe('Circle Roles Integration Tests', () => {
 		expect(circle1Roles[0].roleName).toBe('Circle 1 Lead');
 	});
 
-	it('should enforce organization membership - users cannot access other org roles', async () => {
+	it('should enforce workspace membership - users cannot access other org roles', async () => {
 		const t = convexTest(schema, modules);
 		const { sessionId: session1, userId: user1 } = await createTestSession(t);
 		const { sessionId: session2, userId: user2 } = await createTestSession(t);
@@ -527,6 +527,6 @@ describe('Circle Roles Integration Tests', () => {
 				sessionId: session2,
 				circleRoleId: roleId
 			})
-		).rejects.toThrow('You do not have access to this organization');
+		).rejects.toThrow('You do not have access to this workspace');
 	});
 });

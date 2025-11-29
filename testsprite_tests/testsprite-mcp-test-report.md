@@ -179,7 +179,7 @@
 
 ### Requirement: Settings & Permissions (FR-6)
 
-- **Description:** User settings management, RBAC system, permissions configuration, and organization settings.
+- **Description:** User settings management, RBAC system, permissions configuration, and workspace settings.
 
 #### Test TC011
 

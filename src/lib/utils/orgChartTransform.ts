@@ -18,7 +18,7 @@ export type RoleNode = {
  */
 export type CircleNode = {
 	circleId: Id<'circles'>;
-	organizationId: Id<'organizations'>;
+	workspaceId: Id<'workspaces'>;
 	name: string;
 	slug: string;
 	purpose?: string;
@@ -56,7 +56,7 @@ export function transformToHierarchy(circles: CircleNode[]): HierarchyNode<Circl
 		// Return empty hierarchy with synthetic root
 		const syntheticRoot: CircleNode = {
 			circleId: '' as Id<'circles'>,
-			organizationId: '' as Id<'organizations'>,
+			workspaceId: '' as Id<'workspaces'>,
 			name: 'Organization',
 			slug: 'root',
 			memberCount: 0,
@@ -106,7 +106,7 @@ export function transformToHierarchy(circles: CircleNode[]): HierarchyNode<Circl
 			// Create synthetic circle nodes for individual roles
 			const roleCircles: CircleNode[] = circle.roles.map((role) => ({
 				circleId: `__role__${role.roleId}` as Id<'circles'>, // Synthetic ID
-				organizationId: circle.organizationId,
+				workspaceId: circle.workspaceId,
 				name: role.name,
 				slug: `role-${role.roleId}`,
 				parentCircleId: `__roles_group__${circle.circleId}` as Id<'circles'>, // Parent is roles group, not circle
@@ -120,7 +120,7 @@ export function transformToHierarchy(circles: CircleNode[]): HierarchyNode<Circl
 			// Create synthetic "roles group" node that contains all roles
 			const rolesGroupNode: CircleNode = {
 				circleId: `__roles_group__${circle.circleId}` as Id<'circles'>, // Synthetic grouping ID
-				organizationId: circle.organizationId,
+				workspaceId: circle.workspaceId,
 				name: 'Roles',
 				slug: `roles-group-${circle.circleId}`,
 				parentCircleId: circle.circleId, // Parent is the actual circle
@@ -217,7 +217,7 @@ export function transformToHierarchy(circles: CircleNode[]): HierarchyNode<Circl
 	// This ensures roles in root circles get correct parent depth
 	const syntheticRoot: CircleNode = {
 		circleId: '__root__' as Id<'circles'>,
-		organizationId: circles[0].organizationId,
+		workspaceId: circles[0].workspaceId,
 		name: 'Organization',
 		slug: 'root',
 		memberCount: circles.reduce((sum, c) => sum + c.memberCount, 0),

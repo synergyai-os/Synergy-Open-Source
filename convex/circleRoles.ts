@@ -14,32 +14,30 @@ import type { MutationCtx, QueryCtx } from './_generated/server';
  * not people directly.
  */
 
-async function ensureOrganizationMembership(
+async function ensureWorkspaceMembership(
 	ctx: QueryCtx | MutationCtx,
-	organizationId: Id<'organizations'>,
+	workspaceId: Id<'workspaces'>,
 	userId: Id<'users'>
 ): Promise<void> {
 	const membership = await ctx.db
-		.query('organizationMembers')
-		.withIndex('by_organization_user', (q) =>
-			q.eq('organizationId', organizationId).eq('userId', userId)
-		)
+		.query('workspaceMembers')
+		.withIndex('by_workspace_user', (q) => q.eq('workspaceId', workspaceId).eq('userId', userId))
 		.first();
 
 	if (!membership) {
-		throw new Error('You do not have access to this organization');
+		throw new Error('You do not have access to this workspace');
 	}
 }
 
 async function ensureCircleExists(
 	ctx: QueryCtx | MutationCtx,
 	circleId: Id<'circles'>
-): Promise<{ circleId: Id<'circles'>; organizationId: Id<'organizations'> }> {
+): Promise<{ circleId: Id<'circles'>; workspaceId: Id<'workspaces'> }> {
 	const circle = await ctx.db.get(circleId);
 	if (!circle) {
 		throw new Error('Circle not found');
 	}
-	return { circleId: circle._id, organizationId: circle.organizationId };
+	return { circleId: circle._id, workspaceId: circle.workspaceId };
 }
 
 /**
@@ -53,8 +51,8 @@ export const listByCircle = query({
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		const { organizationId } = await ensureCircleExists(ctx, args.circleId);
-		await ensureOrganizationMembership(ctx, organizationId, userId);
+		const { workspaceId } = await ensureCircleExists(ctx, args.circleId);
+		await ensureWorkspaceMembership(ctx, workspaceId, userId);
 
 		const roles = await ctx.db
 			.query('circleRoles')
@@ -100,8 +98,8 @@ export const get = query({
 			throw new Error('Role not found');
 		}
 
-		const { organizationId } = await ensureCircleExists(ctx, role.circleId);
-		await ensureOrganizationMembership(ctx, organizationId, userId);
+		const { workspaceId } = await ensureCircleExists(ctx, role.circleId);
+		await ensureWorkspaceMembership(ctx, workspaceId, userId);
 
 		// Get circle name for context
 		const circle = await ctx.db.get(role.circleId);
@@ -121,7 +119,7 @@ export const get = query({
 			purpose: role.purpose,
 			circleId: role.circleId,
 			circleName: circle.name,
-			organizationId,
+			workspaceId,
 			fillerCount: assignments.length,
 			createdAt: role.createdAt
 		};
@@ -160,9 +158,9 @@ export const getUserRoles = query({
 				const circle = await ctx.db.get(role.circleId);
 				if (!circle) return null;
 
-				// Verify acting user has access to this organization
+				// Verify acting user has access to this workspace
 				try {
-					await ensureOrganizationMembership(ctx, circle.organizationId, actingUserId);
+					await ensureWorkspaceMembership(ctx, circle.workspaceId, actingUserId);
 				} catch {
 					return null; // Skip roles the acting user can't access
 				}
@@ -173,7 +171,7 @@ export const getUserRoles = query({
 					rolePurpose: role.purpose,
 					circleId: role.circleId,
 					circleName: circle.name,
-					organizationId: circle.organizationId,
+					workspaceId: circle.workspaceId,
 					assignedAt: assignment.assignedAt
 				};
 			})
@@ -199,8 +197,8 @@ export const getRoleFillers = query({
 			throw new Error('Role not found');
 		}
 
-		const { organizationId } = await ensureCircleExists(ctx, role.circleId);
-		await ensureOrganizationMembership(ctx, organizationId, userId);
+		const { workspaceId } = await ensureCircleExists(ctx, role.circleId);
+		await ensureWorkspaceMembership(ctx, workspaceId, userId);
 
 		const assignments = await ctx.db
 			.query('userCircleRoles')
@@ -246,8 +244,8 @@ export const create = mutation({
 			throw new Error('Not authenticated');
 		}
 
-		const { organizationId } = await ensureCircleExists(ctx, args.circleId);
-		await ensureOrganizationMembership(ctx, organizationId, userId);
+		const { workspaceId } = await ensureCircleExists(ctx, args.circleId);
+		await ensureWorkspaceMembership(ctx, workspaceId, userId);
 
 		const trimmedName = args.name.trim();
 		if (!trimmedName) {
@@ -296,8 +294,8 @@ export const update = mutation({
 			throw new Error('Role not found');
 		}
 
-		const { organizationId } = await ensureCircleExists(ctx, role.circleId);
-		await ensureOrganizationMembership(ctx, organizationId, userId);
+		const { workspaceId } = await ensureCircleExists(ctx, role.circleId);
+		await ensureWorkspaceMembership(ctx, workspaceId, userId);
 
 		const updates: { name?: string; purpose?: string } = {};
 
@@ -353,8 +351,8 @@ export const deleteRole = mutation({
 			throw new Error('Role not found');
 		}
 
-		const { organizationId } = await ensureCircleExists(ctx, role.circleId);
-		await ensureOrganizationMembership(ctx, organizationId, userId);
+		const { workspaceId } = await ensureCircleExists(ctx, role.circleId);
+		await ensureWorkspaceMembership(ctx, workspaceId, userId);
 
 		// Remove all user assignments first
 		const assignments = await ctx.db
@@ -393,13 +391,13 @@ export const assignUser = mutation({
 			throw new Error('Role not found');
 		}
 
-		const { organizationId } = await ensureCircleExists(ctx, role.circleId);
+		const { workspaceId } = await ensureCircleExists(ctx, role.circleId);
 
 		// Verify acting user has access
-		await ensureOrganizationMembership(ctx, organizationId, actingUserId);
+		await ensureWorkspaceMembership(ctx, workspaceId, actingUserId);
 
 		// Verify target user has access
-		await ensureOrganizationMembership(ctx, organizationId, args.userId);
+		await ensureWorkspaceMembership(ctx, workspaceId, args.userId);
 
 		// Check if already assigned
 		const existingAssignment = await ctx.db
@@ -444,8 +442,8 @@ export const removeUser = mutation({
 			throw new Error('Role not found');
 		}
 
-		const { organizationId } = await ensureCircleExists(ctx, role.circleId);
-		await ensureOrganizationMembership(ctx, organizationId, actingUserId);
+		const { workspaceId } = await ensureCircleExists(ctx, role.circleId);
+		await ensureWorkspaceMembership(ctx, workspaceId, actingUserId);
 
 		// Find assignment
 		const assignment = await ctx.db

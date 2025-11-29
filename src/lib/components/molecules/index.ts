@@ -49,6 +49,8 @@ export * as DateRangeField from './DateRangeField.svelte';
 export * as DateRangePicker from './DateRangePicker.svelte';
 export * as TimeField from './TimeField.svelte';
 export * as TimeRangeField from './TimeRangeField.svelte';
+export { default as DateInput } from './DateInput.svelte';
+export { default as DateTimeField } from './DateTimeField.svelte';
 export { default as InfoCard } from './InfoCard.svelte';
 
 // Navigation Molecules

@@ -13,30 +13,28 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	const client = new ConvexHttpClient(env.PUBLIC_CONVEX_URL);
 	const sessionId = locals.auth.sessionId;
 
-	// Get active organization from URL param or first org
+	// Get active workspace from URL param or first org
 	const orgParam = url.searchParams.get('org');
-	const organizationsResult = (await client.query(api.organizations.listOrganizations, {
+	const organizationsResult = (await client.query(api.workspaces.listWorkspaces, {
 		sessionId
-	})) as Array<{ organizationId: string }>;
+	})) as Array<{ workspaceId: string }>;
 
 	if (organizationsResult.length === 0) {
-		throw error(404, 'No organizations found');
+		throw error(404, 'No workspaces found');
 	}
 
 	const validOrgParam =
-		orgParam && organizationsResult.some((org) => org.organizationId === orgParam)
-			? orgParam
-			: null;
-	const activeOrgId = validOrgParam || organizationsResult[0]?.organizationId;
+		orgParam && organizationsResult.some((org) => org.workspaceId === orgParam) ? orgParam : null;
+	const activeOrgId = validOrgParam || organizationsResult[0]?.workspaceId;
 
 	if (!activeOrgId) {
 		throw error(404, 'Organization not found');
 	}
 
 	// Check user is org admin/owner (getMembers returns all members, filter by current user)
-	const membersResult = (await client.query(api.organizations.getMembers, {
+	const membersResult = (await client.query(api.workspaces.getMembers, {
 		sessionId,
-		organizationId: activeOrgId as Id<'organizations'>
+		workspaceId: activeOrgId as Id<'workspaces'>
 	})) as Array<{ userId: string; email: string; name: string; role: 'owner' | 'admin' | 'member' }>;
 
 	// Get current user's email from locals
@@ -53,13 +51,13 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 	}
 
 	// Load current branding
-	const brandingResult = (await client.query(api.organizations.getBranding, {
-		organizationId: activeOrgId as Id<'organizations'>
+	const brandingResult = (await client.query(api.workspaces.getBranding, {
+		workspaceId: activeOrgId as Id<'workspaces'>
 	})) as { primaryColor: string; secondaryColor: string; logo?: string } | null;
 
 	return {
 		sessionId,
-		organizationId: activeOrgId,
+		workspaceId: activeOrgId,
 		orgBranding: brandingResult
 	};
 };

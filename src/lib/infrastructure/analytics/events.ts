@@ -23,33 +23,33 @@ export enum AnalyticsEventName {
 	QUICK_CREATE_ABANDONED = 'quick_create_abandoned'
 }
 
-export type OwnershipScope = 'user' | 'organization' | 'team';
+export type OwnershipScope = 'user' | 'workspace' | 'team';
 
 export type AnalyticsEventPayloads = {
 	[AnalyticsEventName.ORGANIZATION_CREATED]: {
-		scope: 'organization';
-		organizationId: string;
+		scope: 'workspace';
+		workspaceId: string;
 		organizationName: string;
 		plan: string;
 		createdVia: 'dashboard' | 'api';
 		totalOrganizationsOwned: number;
 	};
 	[AnalyticsEventName.ORGANIZATION_JOINED]: {
-		scope: 'organization';
-		organizationId: string;
+		scope: 'workspace';
+		workspaceId: string;
 		organizationName: string;
 		role: OrganizationRole;
 		inviteChannel?: 'email' | 'link' | 'manual';
 	};
 	[AnalyticsEventName.ORGANIZATION_SWITCHED]: {
-		scope: 'organization';
+		scope: 'workspace';
 		fromOrganizationId?: string;
 		toOrganizationId: string;
 		availableCircleCount: number;
 	};
 	[AnalyticsEventName.TEAM_CREATED]: {
 		scope: 'team';
-		organizationId: string;
+		workspaceId: string;
 		organizationName: string;
 		teamId: string;
 		teamName: string;
@@ -57,7 +57,7 @@ export type AnalyticsEventPayloads = {
 	};
 	[AnalyticsEventName.TEAM_JOINED]: {
 		scope: 'team';
-		organizationId: string;
+		workspaceId: string;
 		organizationName: string;
 		teamId: string;
 		teamName: string;
@@ -65,7 +65,7 @@ export type AnalyticsEventPayloads = {
 	};
 	[AnalyticsEventName.TEAM_INVITE_SENT]: {
 		scope: 'team';
-		organizationId: string;
+		workspaceId: string;
 		organizationName: string;
 		teamId: string;
 		teamName: string;
@@ -75,7 +75,7 @@ export type AnalyticsEventPayloads = {
 	};
 	[AnalyticsEventName.TEAM_INVITE_ACCEPTED]: {
 		scope: 'team';
-		organizationId: string;
+		workspaceId: string;
 		organizationName: string;
 		teamId: string;
 		teamName: string;
@@ -83,15 +83,15 @@ export type AnalyticsEventPayloads = {
 		inviteChannel: 'email' | 'link' | 'manual';
 	};
 	[AnalyticsEventName.ORGANIZATION_TAG_ASSIGNED]: {
-		scope: 'organization';
-		organizationId: string;
+		scope: 'workspace';
+		workspaceId: string;
 		tagId: string;
 		tagName: string;
 		tagsAssignedCount: number;
 	};
 	[AnalyticsEventName.TEAM_TAG_ASSIGNED]: {
 		scope: 'team';
-		organizationId: string;
+		workspaceId: string;
 		teamId: string;
 		tagId: string;
 		tagName: string;
@@ -99,14 +99,14 @@ export type AnalyticsEventPayloads = {
 	};
 	[AnalyticsEventName.TAG_STUDY_STARTED]: {
 		scope: OwnershipScope;
-		organizationId?: string;
+		workspaceId?: string;
 		teamId?: string;
 		tagId: string;
 		tagName: string;
 		studyMode: 'spaced_repetition' | 'quick_review';
 	};
 	[AnalyticsEventName.TAG_SHARED]: {
-		scope: 'organization' | 'team';
+		scope: 'workspace' | 'team';
 		tag_id: string;
 		tag_name: string;
 		shared_from: 'user';
@@ -173,7 +173,7 @@ export type AnalyticsEventPayloads = {
 };
 
 export type AnalyticsEventGroups = {
-	organization?: string;
+	workspace?: string;
 	team?: string;
 };
 

@@ -1,5 +1,5 @@
 /**
- * Script to add existing users to a test organization
+ * Script to add existing users to a test workspace
  *
  * Usage:
  * 1. Get admin key from Convex dashboard (Settings → Deploy Key)
@@ -21,8 +21,8 @@ if (!DEPLOY_KEY) {
 	process.exit(1);
 }
 
-// Target organization
-const ORG_ID = 'mx7ecpdw61qbsfj3488xaxtd7x7veq2w' as Id<'organizations'>;
+// Target workspace
+const ORG_ID = 'mx7ecpdw61qbsfj3488xaxtd7x7veq2w' as Id<'workspaces'>;
 
 // Users to add
 const USER_IDS = [
@@ -33,7 +33,7 @@ const USER_IDS = [
 ] as Id<'users'>[];
 
 async function addUsersToOrg() {
-	console.log('🚀 Adding users to organization...\n');
+	console.log('🚀 Adding users to workspace...\n');
 	console.log(`Organization ID: ${ORG_ID}`);
 	console.log(`Users to add: ${USER_IDS.length}\n`);
 
@@ -46,8 +46,8 @@ async function addUsersToOrg() {
 			console.log(`Adding user ${userId}...`);
 
 			// Use internal mutation to directly create org membership
-			await client.mutation(internal.organizations.addMemberDirect, {
-				organizationId: ORG_ID,
+			await client.mutation(internal.workspaces.addMemberDirect, {
+				workspaceId: ORG_ID,
 				userId: userId,
 				role: 'member'
 			});

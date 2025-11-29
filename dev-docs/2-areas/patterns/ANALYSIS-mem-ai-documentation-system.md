@@ -9,12 +9,12 @@
 
 ### Core Value Proposition
 
-**"One way to write docs. No organization required. Documents surface when you need them."**
+**"One way to write docs. No workspace required. Documents surface when you need them."**
 
 This eliminates the cognitive overhead of:
 - Deciding where to save documents
 - Creating folder structures
-- Maintaining organization systems
+- Maintaining workspace systems
 - Remembering where you put things
 
 ### Key Features
@@ -92,7 +92,7 @@ This eliminates the cognitive overhead of:
 ### What We Have
 
 1. **Notes Storage**: `inboxItems` table with notes stored as ProseMirror JSON + markdown
-2. **Basic Filtering**: Filter by user, type, processed status, organization, circle
+2. **Basic Filtering**: Filter by user, type, processed status, workspace, circle
 3. **Manual Organization**: Notes require manual categorization (processed flag, blog category)
 4. **Keyword Search**: No semantic search capability
 5. **Embeddings Field**: Exists but used for external links (miro, notion, figma), not vector embeddings
@@ -627,7 +627,7 @@ export const findRelatedDocuments = query({
 ### Phase 2 (Auto-Categorization)
 - ✅ Documents automatically categorized
 - ✅ Collections are useful (>70% user acceptance)
-- ✅ No manual organization required
+- ✅ No manual workspace required
 
 ### Phase 3 (Context-Aware Surfacing)
 - ✅ Relevant documents surface automatically
@@ -656,7 +656,7 @@ export const findRelatedDocuments = query({
 **Mitigation**: Migrate to dedicated vector DB when needed, implement pagination
 
 ### Risk 5: User Adoption
-**Mitigation**: Make it opt-in initially, show clear value, allow fallback to manual organization
+**Mitigation**: Make it opt-in initially, show clear value, allow fallback to manual workspace
 
 ---
 
@@ -683,7 +683,7 @@ Building a mem.ai-like system requires:
 
 **Total Effort**: ~4-5 weeks  
 **Total Cost**: ~$4-40/month (depending on scale)  
-**Key Benefit**: Zero-organization documentation system where documents surface when needed
+**Key Benefit**: Zero-workspace documentation system where documents surface when needed
 
 The core insight: **Don't organize documents. Let the system understand them and surface them when relevant.**
 

@@ -14,7 +14,7 @@ type InboxItemType = 'readwise_highlight' | 'photo_note' | 'manual_text';
 
 export interface UseInboxItemsParams {
 	sessionId: () => string | undefined; // Required: Function returning sessionId from authenticated session
-	activeOrganizationId?: (() => string | null) | string | null; // Function or value for reactivity
+	activeWorkspaceId?: (() => string | null) | string | null; // Function or value for reactivity
 	activeCircleId?: (() => string | null) | string | null; // Function or value for reactivity
 }
 
@@ -45,7 +45,7 @@ export function useInboxItems(params?: UseInboxItemsParams): UseInboxItemsReturn
 						sessionId: string;
 						processed: boolean;
 						filterType?: string;
-						organizationId?: Id<'organizations'> | null;
+						workspaceId?: Id<'workspaces'> | null;
 						circleId?: Id<'circles'>;
 					} = {
 						sessionId, // Required for session validation
@@ -53,16 +53,16 @@ export function useInboxItems(params?: UseInboxItemsParams): UseInboxItemsReturn
 					};
 
 					// Add workspace context (handle both function and value)
-					// Defensive: Handle null organizationId (should not happen - users always have orgs).
+					// Defensive: Handle null workspaceId (should not happen - users always have orgs).
 					// This is for backwards compatibility with legacy data or edge cases.
 					const orgId =
-						typeof params?.activeOrganizationId === 'function'
-							? params.activeOrganizationId()
-							: params?.activeOrganizationId;
+						typeof params?.activeWorkspaceId === 'function'
+							? params.activeWorkspaceId()
+							: params?.activeWorkspaceId;
 					if (orgId !== undefined) {
 						// Defensive: Pass null explicitly for backwards compatibility (legacy data handling).
 						// Cast to Id type for type safety
-						baseArgs.organizationId = orgId as Id<'organizations'> | null;
+						baseArgs.workspaceId = orgId as Id<'workspaces'> | null;
 					}
 
 					const circleId =

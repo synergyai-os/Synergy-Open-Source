@@ -43,7 +43,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 			}))
 		});
 
-		// Get active sessions and organizations for each linked account
+		// Get active sessions and workspaces for each linked account
 		const linkedSessions: Array<{
 			userId: string;
 			sessionId: string;
@@ -51,8 +51,8 @@ export const GET: RequestHandler = async ({ locals }) => {
 			expiresAt: number;
 			userEmail: string;
 			userName?: string;
-			organizations: Array<{
-				organizationId: string;
+			workspaces: Array<{
+				workspaceId: string;
 				name: string;
 				initials: string | null;
 				slug: string | null;
@@ -81,13 +81,13 @@ export const GET: RequestHandler = async ({ locals }) => {
 					// that will be properly set when the account is switched to
 					const csrfToken = generateRandomToken(32);
 
-					// Fetch organizations for this account using their sessionId
-					console.log(`🔍 [/auth/linked-sessions] Fetching organizations for account:`, {
+					// Fetch workspaces for this account using their sessionId
+					console.log(`🔍 [/auth/linked-sessions] Fetching workspaces for account:`, {
 						userId: account.userId,
 						email: account.email,
 						sessionId: sessionRecord.sessionId
 					});
-					const accountOrganizations = await convex.query(api.organizations.listOrganizations, {
+					const accountOrganizations = await convex.query(api.workspaces.listWorkspaces, {
 						sessionId: sessionRecord.sessionId
 					});
 					console.log(`✅ [/auth/linked-sessions] Organizations fetched:`, {
@@ -95,7 +95,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 						email: account.email,
 						orgCount: accountOrganizations.length,
 						orgs: accountOrganizations.map((o) => ({
-							id: o.organizationId,
+							id: o.workspaceId,
 							name: o.name,
 							role: o.role
 						}))
@@ -108,8 +108,8 @@ export const GET: RequestHandler = async ({ locals }) => {
 						expiresAt: sessionRecord.expiresAt,
 						userEmail: account.email ?? '',
 						userName: account.name ?? undefined,
-						organizations: accountOrganizations.map((org) => ({
-							organizationId: org.organizationId,
+						workspaces: accountOrganizations.map((org) => ({
+							workspaceId: org.workspaceId,
 							name: org.name,
 							initials: org.initials,
 							slug: org.slug,
@@ -122,7 +122,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 						userId: account.userId,
 						email: account.email,
 						sessionId: sessionRecord.sessionId,
-						orgCount: sessionData.organizations.length
+						orgCount: sessionData.workspaces.length
 					});
 				} else {
 					console.warn(`⚠️ [/auth/linked-sessions] Skipping account (no valid session):`, {
@@ -146,7 +146,7 @@ export const GET: RequestHandler = async ({ locals }) => {
 				userId: s.userId,
 				email: s.userEmail,
 				sessionId: s.sessionId,
-				orgCount: s.organizations.length
+				orgCount: s.workspaces.length
 			}))
 		});
 

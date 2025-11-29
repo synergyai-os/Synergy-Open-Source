@@ -116,8 +116,8 @@ export function useAuthSession(): UseAuthSessionReturn {
 								expiresAt: number;
 								userEmail: string;
 								userName?: string;
-								organizations: Array<{
-									organizationId: string;
+								workspaces: Array<{
+									workspaceId: string;
 									name: string;
 									initials: string | null;
 									slug: string | null;
@@ -132,7 +132,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 								userId: s.userId,
 								email: s.userEmail,
 								sessionId: s.sessionId,
-								orgCount: s.organizations.length
+								orgCount: s.workspaces.length
 							}))
 						});
 
@@ -142,7 +142,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 								console.log('💾 [useAuthSession] Saving session to localStorage:', {
 									userId: session.userId,
 									email: session.userEmail,
-									orgCount: session.organizations.length
+									orgCount: session.workspaces.length
 								});
 								await addSession(session.userId, {
 									sessionId: session.sessionId,
@@ -152,15 +152,15 @@ export function useAuthSession(): UseAuthSessionReturn {
 									userName: session.userName
 								});
 
-								// Cache organizations for this account
-								if (session.organizations.length > 0) {
+								// Cache workspaces for this account
+								if (session.workspaces.length > 0) {
 									const LINKED_ACCOUNT_ORGS_KEY_PREFIX = 'linkedAccountOrgs_';
 									const cacheKey = `${LINKED_ACCOUNT_ORGS_KEY_PREFIX}${session.userId}`;
-									localStorage.setItem(cacheKey, JSON.stringify(session.organizations));
-									console.log('💾 [useAuthSession] Cached organizations:', {
+									localStorage.setItem(cacheKey, JSON.stringify(session.workspaces));
+									console.log('💾 [useAuthSession] Cached workspaces:', {
 										userId: session.userId,
 										email: session.userEmail,
-										orgCount: session.organizations.length,
+										orgCount: session.workspaces.length,
 										cacheKey
 									});
 								}
@@ -209,7 +209,7 @@ export function useAuthSession(): UseAuthSessionReturn {
 					userId,
 					email: session.userEmail,
 					name: session.userName,
-					sessionId: session.sessionId // Include sessionId for querying organizations
+					sessionId: session.sessionId // Include sessionId for querying workspaces
 				}));
 			console.log('✅ [useAuthSession] Available accounts set:', {
 				count: state.availableAccounts.length,

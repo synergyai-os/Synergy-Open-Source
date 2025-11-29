@@ -22,9 +22,9 @@
 	import { NavItem, ThemeToggle } from '$lib/components/molecules';
 	import { sidebarRecipe } from '$lib/design-system/recipes';
 	import type {
-		OrganizationsModuleAPI,
-		OrganizationSummary
-	} from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+		WorkspacesModuleAPI,
+		WorkspaceSummary
+	} from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
 	import { useAuthSession } from '$lib/infrastructure/auth/composables/useAuthSession.svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
 
@@ -85,15 +85,15 @@
 	const accountName = user?.firstName
 		? `${user.firstName}${user.lastName ? ' ' + user.lastName : ''}`
 		: accountEmail;
-	// PROOF OF CONCEPT: Using OrganizationsModuleAPI interface instead of UseOrganizations type
+	// PROOF OF CONCEPT: Using WorkspacesModuleAPI interface instead of UseOrganizations type
 	// This demonstrates loose coupling - component depends on interface, not internal implementation
-	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
+	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
 	const authSession = useAuthSession();
 
-	// Get active organization ID for org-scoped links
+	// Get active workspace ID for org-scoped links
 	const activeOrgId = $derived(() => {
-		if (!organizations) return null;
-		return organizations.activeOrganizationId ?? null;
+		if (!workspaces) return null;
+		return workspaces.activeWorkspaceId ?? null;
 	});
 
 	// circlesEnabled is now passed as a prop from the layout (loaded early for instant rendering)
@@ -105,12 +105,12 @@
 		return accounts;
 	});
 
-	// Store organizations for each linked account (loaded from localStorage cache)
+	// Store workspaces for each linked account (loaded from localStorage cache)
 	// Organizations are cached in localStorage when accounts are active
 	const LINKED_ACCOUNT_ORGS_KEY_PREFIX = 'linkedAccountOrgs_';
-	const linkedAccountOrgsMap = $state<Record<string, OrganizationSummary[]>>({});
+	const linkedAccountOrgsMap = $state<Record<string, WorkspaceSummary[]>>({});
 
-	// Load cached organizations for linked accounts from localStorage
+	// Load cached workspaces for linked accounts from localStorage
 	// CRITICAL: This effect must run reactively when linkedAccounts() changes
 	// Also checks cache periodically to catch async updates from useAuthSession
 	$effect(() => {
@@ -129,7 +129,7 @@
 
 					if (cached) {
 						try {
-							const orgs = JSON.parse(cached) as OrganizationSummary[];
+							const orgs = JSON.parse(cached) as WorkspaceSummary[];
 							if (Array.isArray(orgs)) {
 								// Only update if different to avoid unnecessary reactivity triggers
 								const currentOrgs = linkedAccountOrgsMap[account.userId];
@@ -149,7 +149,7 @@
 					}
 				}
 			} catch (error) {
-				console.error('Error loading cached organizations for linked accounts:', error);
+				console.error('Error loading cached workspaces for linked accounts:', error);
 			}
 		};
 
@@ -157,7 +157,7 @@
 		loadCacheForAccounts();
 
 		// Also check cache after a short delay to catch async updates from useAuthSession
-		// This ensures we pick up organizations cached by /auth/linked-sessions endpoint
+		// This ensures we pick up workspaces cached by /auth/linked-sessions endpoint
 		const timeoutId = setTimeout(() => {
 			loadCacheForAccounts();
 		}, 500);
@@ -177,25 +177,25 @@
 		};
 	});
 
-	// Cache current user's organizations when they change (so they're available when switching accounts)
+	// Cache current user's workspaces when they change (so they're available when switching accounts)
 	$effect(() => {
-		if (!browser || !organizations) return;
+		if (!browser || !workspaces) return;
 
 		try {
 			const currentUserId = authSession.user?.userId;
 			if (!currentUserId) return;
 
-			const orgs = organizations.organizations ?? [];
+			const orgs = workspaces.workspaces ?? [];
 			if (orgs.length > 0) {
 				const cacheKey = `${LINKED_ACCOUNT_ORGS_KEY_PREFIX}${currentUserId}`;
 				localStorage.setItem(cacheKey, JSON.stringify(orgs));
 			}
 		} catch (error) {
-			console.error('Error caching organizations:', error);
+			console.error('Error caching workspaces:', error);
 		}
 	});
 
-	// Map linked accounts with their organizations
+	// Map linked accounts with their workspaces
 	// CRITICAL: Access linkedAccountOrgsMap reactively to ensure updates trigger re-render
 	const linkedAccountOrganizations = $derived(() => {
 		// Access the map to ensure reactivity tracking
@@ -207,17 +207,17 @@
 			name: account.name ?? null,
 			firstName: account.firstName ?? null,
 			lastName: account.lastName ?? null,
-			organizations: map[account.userId] ?? []
+			workspaces: map[account.userId] ?? []
 		}));
 
-		console.log('🔍 [Sidebar] Linked account organizations mapped:', {
+		console.log('🔍 [Sidebar] Linked account workspaces mapped:', {
 			accountsLength: accounts.length,
 			mappedLength: mapped.length,
 			mapKeys: Object.keys(map),
 			mapped: mapped.map((a) => ({
 				userId: a.userId,
 				email: a.email,
-				orgCount: a.organizations.length,
+				orgCount: a.workspaces.length,
 				cachedOrgs: map[a.userId]?.length ?? 0
 			}))
 		});
@@ -524,15 +524,15 @@
 					// Switch workspace functionality
 				}}
 				onCreateWorkspace={() => {
-					organizations?.openModal('createOrganization');
+					workspaces?.openModal('createWorkspace');
 				}}
 				onCreateWorkspaceForAccount={async (targetUserId) => {
 					// Switch to the target account and redirect to open create modal
-					await authSession.switchAccount(targetUserId, '/inbox?create=organization');
+					await authSession.switchAccount(targetUserId, '/inbox?create=workspace');
 				}}
 				onJoinWorkspaceForAccount={async (targetUserId) => {
 					// Switch to the target account and redirect to open join modal
-					await authSession.switchAccount(targetUserId, '/inbox?join=organization');
+					await authSession.switchAccount(targetUserId, '/inbox?join=workspace');
 				}}
 				onAddAccount={() => {
 					const currentPath = browser
@@ -805,15 +805,15 @@
 				console.log('Switch workspace menu selected');
 			}}
 			onCreateWorkspace={() => {
-				organizations?.openModal('createOrganization');
+				workspaces?.openModal('createWorkspace');
 			}}
 			onCreateWorkspaceForAccount={async (targetUserId) => {
 				// Switch to the target account and redirect to open create modal
-				await authSession.switchAccount(targetUserId, '/inbox?create=organization');
+				await authSession.switchAccount(targetUserId, '/inbox?create=workspace');
 			}}
 			onJoinWorkspaceForAccount={async (targetUserId) => {
 				// Switch to the target account and redirect to open join modal
-				await authSession.switchAccount(targetUserId, '/inbox?join=organization');
+				await authSession.switchAccount(targetUserId, '/inbox?join=workspace');
 			}}
 			onAddAccount={() => {
 				const currentPath = browser

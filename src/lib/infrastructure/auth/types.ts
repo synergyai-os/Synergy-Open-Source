@@ -31,7 +31,7 @@ export interface SessionSnapshot {
 	lastName?: string;
 	name?: string;
 	activeWorkspace?: {
-		type: 'personal' | 'organization';
+		type: 'personal' | 'workspace';
 		id?: string | null;
 		name?: string;
 	};
@@ -103,7 +103,7 @@ export interface LinkedAccountInfo {
 	name?: string;
 	firstName?: string;
 	lastName?: string;
-	sessionId?: string; // Session ID for querying organizations
+	sessionId?: string; // Session ID for querying workspaces
 }
 
 export interface UseAuthSessionReturn {
@@ -117,7 +117,7 @@ export interface UseAuthSessionReturn {
 		lastName?: string;
 		name?: string;
 		activeWorkspace?: {
-			type: 'personal' | 'organization';
+			type: 'personal' | 'workspace';
 			id: string | null;
 			name?: string;
 		};

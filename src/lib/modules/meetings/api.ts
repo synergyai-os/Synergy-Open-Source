@@ -11,33 +11,19 @@
 import type { Id } from '$lib/convex';
 
 /**
- * Meeting type enum - matches backend schema
- */
-export type MeetingType =
-	| 'standup'
-	| 'retrospective'
-	| 'planning'
-	| '1-on-1'
-	| 'client'
-	| 'governance'
-	| 'weekly-tactical'
-	| 'general';
-
-/**
  * Meeting data structure
  */
 export interface Meeting {
 	_id: Id<'meetings'> | string; // Synthetic ID for React keys (recurring instances)
 	originalMeetingId?: Id<'meetings'>; // Real Convex ID for navigation/queries
 	_creationTime: number;
-	organizationId: Id<'organizations'> | string;
+	workspaceId: Id<'workspaces'> | string;
 	circleId?: Id<'circles'> | string;
-	templateId?: Id<'meetingTemplates'> | string;
-	meetingType: MeetingType; // Required field for reporting and analytics
+	templateId: Id<'meetingTemplates'> | string; // Required: template defines meeting type/structure
 	title: string;
 	startTime: number;
 	duration: number;
-	visibility: 'public' | 'circle' | 'private';
+	visibility: 'public' | 'private';
 	recurrence?: {
 		frequency: 'daily' | 'weekly' | 'monthly';
 		interval: number;
@@ -55,7 +41,7 @@ export interface Meeting {
  * Options for useMeetings composable
  */
 export interface UseMeetingsOptions {
-	organizationId: () => string | undefined;
+	workspaceId: () => string | undefined;
 	sessionId: () => string | undefined;
 	circleFilter?: () => string | undefined;
 }
@@ -154,12 +140,7 @@ export interface UseMeetingSessionReturn {
 	get elapsedTimeFormatted(): string;
 
 	/**
-	 * Whether current user is the meeting secretary
-	 */
-	get isSecretary(): boolean;
-
-	/**
-	 * Start the meeting (secretary only)
+	 * Start the meeting
 	 */
 	startMeeting(): Promise<void>;
 

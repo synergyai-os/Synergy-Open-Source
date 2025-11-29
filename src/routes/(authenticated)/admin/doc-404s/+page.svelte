@@ -371,7 +371,7 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 										</span>
 									{:else}
 										<span
-											class="bg-success/10 border-success px-badge py-badge inline-flex items-center rounded border text-label font-medium text-success"
+											class="bg-success/10 px-badge py-badge inline-flex items-center rounded border border-success text-label font-medium text-success"
 										>
 											Resolved
 										</span>

@@ -23,7 +23,7 @@ export const createNote = mutation({
 		content: v.string(), // ProseMirror JSON
 		contentMarkdown: v.optional(v.string()),
 		isAIGenerated: v.optional(v.boolean()),
-		organizationId: v.optional(v.union(v.id('organizations'), v.null())),
+		workspaceId: v.optional(v.union(v.id('workspaces'), v.null())),
 		circleId: v.optional(v.id('circles'))
 	},
 	handler: async (ctx, args) => {
@@ -43,9 +43,9 @@ export const createNote = mutation({
 			contentMarkdown: args.contentMarkdown,
 			isAIGenerated: args.isAIGenerated,
 			aiGeneratedAt: args.isAIGenerated ? now : undefined,
-			organizationId: args.organizationId === null ? undefined : args.organizationId,
+			workspaceId: args.workspaceId === null ? undefined : args.workspaceId,
 			circleId: args.circleId,
-			ownershipType: args.organizationId ? 'organization' : args.circleId ? 'circle' : 'user'
+			ownershipType: args.workspaceId ? 'workspace' : args.circleId ? 'circle' : 'user'
 		});
 
 		return noteId;
@@ -300,7 +300,7 @@ export const listNotes = query({
 		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
 		processed: v.optional(v.boolean()),
 		blogOnly: v.optional(v.boolean()),
-		organizationId: v.optional(v.union(v.id('organizations'), v.null())),
+		workspaceId: v.optional(v.union(v.id('workspaces'), v.null())),
 		circleId: v.optional(v.id('circles'))
 	},
 	handler: async (ctx, args) => {
@@ -314,18 +314,16 @@ export const listNotes = query({
 		let items = await itemsQuery.collect();
 
 		// Filter by workspace context
-		if (args.organizationId === null) {
-			// Defensive: Handle null organizationId query (should not happen - users always have orgs).
-			// Filters for items with no organizationId (legacy data or edge cases).
-			items = items.filter((item) => !item.organizationId && !item.circleId);
-		} else if (args.organizationId !== undefined) {
+		if (args.workspaceId === null) {
+			// Defensive: Handle null workspaceId query (should not happen - users always have orgs).
+			// Filters for items with no workspaceId (legacy data or edge cases).
+			items = items.filter((item) => !item.workspaceId && !item.circleId);
+		} else if (args.workspaceId !== undefined) {
 			// Organization workspace
 			if (args.circleId) {
 				items = items.filter((item) => item.circleId === args.circleId);
 			} else {
-				items = items.filter(
-					(item) => item.organizationId === args.organizationId && !item.circleId
-				);
+				items = items.filter((item) => item.workspaceId === args.workspaceId && !item.circleId);
 			}
 		}
 

@@ -187,7 +187,7 @@ export const meetingTypeCardRecipe = cva(
 interface MeetingTypeSelectorProps {
 	value: MeetingType | null;
 	onChange: (type: MeetingType) => void;
-	organizationId: Id<'organizations'>;
+	workspaceId: Id<'workspaces'>;
 	sessionId: string;
 	className?: string;
 }
@@ -235,7 +235,7 @@ interface MeetingTypeSelectorProps {
 
 ```typescript
 interface QuickMeetingButtonProps {
-	organizationId: Id<'organizations'>;
+	workspaceId: Id<'workspaces'>;
 	sessionId: string;
 	userId: Id<'users'>;
 	onSuccess: (meetingId: Id<'meetings'>, link: string) => void;

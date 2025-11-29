@@ -19,7 +19,7 @@
 				roleId: string;
 				roleSlug: string;
 				roleName: string;
-				organizationId?: string;
+				workspaceId?: string;
 				teamId?: string;
 			}>;
 		} | null
@@ -62,7 +62,7 @@
 								<div>
 									<p class="font-medium text-primary">{userRole.roleName}</p>
 									<p class="text-xs text-tertiary">
-										{userRole.organizationId
+										{userRole.workspaceId
 											? 'Organization-scoped'
 											: userRole.teamId
 												? 'Team-scoped'

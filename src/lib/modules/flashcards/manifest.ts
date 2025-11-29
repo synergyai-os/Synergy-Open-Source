@@ -5,7 +5,7 @@
  * - Flashcard creation from highlights
  * - Flashcard review and study sessions
  * - FSRS (Free Spaced Repetition Scheduler) algorithm integration
- * - Collection-based organization
+ * - Collection-based workspace
  *
  * This module is always enabled (no feature flag required).
  *

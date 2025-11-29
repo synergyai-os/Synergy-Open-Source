@@ -9,7 +9,7 @@
 	import FlashcardDetailModal from '$lib/modules/flashcards/components/FlashcardDetailModal.svelte';
 	import { api } from '$lib/convex';
 	import type { Doc, Id } from '$convex/_generated/dataModel';
-	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
 
 	const convexClient = browser ? useConvexClient() : null;
@@ -27,19 +27,19 @@
 	const getSessionId = () => $page.data.sessionId;
 
 	// Get workspace context
-	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
-	const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
+	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
+	const activeWorkspaceId = $derived(() => workspaces?.activeWorkspaceId ?? null);
 
-	// Query all tags for filtering (filtered by active organization)
+	// Query all tags for filtering (filtered by active workspace)
 	const allTagsQuery =
 		browser && getSessionId()
 			? useQuery(api.tags.listAllTags, () => {
 					const sessionId = getSessionId();
 					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
-					const orgId = activeOrganizationId();
+					const orgId = activeWorkspaceId();
 					return {
 						sessionId,
-						...(orgId ? { organizationId: orgId as Id<'organizations'> } : {})
+						...(orgId ? { workspaceId: orgId as Id<'workspaces'> } : {})
 					};
 				})
 			: null;

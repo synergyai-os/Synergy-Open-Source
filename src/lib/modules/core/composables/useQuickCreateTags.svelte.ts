@@ -8,7 +8,7 @@
  * ```typescript
  * const tags = useQuickCreateTags(
  *   () => sessionId,
- *   () => organizationId,
+ *   () => workspaceId,
  *   initialTags
  * );
  * const availableTags = tags.availableTags;
@@ -37,7 +37,7 @@ export type Tag = {
 
 export function useQuickCreateTags(
 	getSessionId: () => string | null | undefined,
-	getOrganizationId: () => string | null | undefined,
+	getWorkspaceId: () => string | null | undefined,
 	initialTags: unknown[] = []
 ) {
 	// Svelte 5 pattern: Single $state object with getters
@@ -54,10 +54,10 @@ export function useQuickCreateTags(
 			? useQuery(api.tags.listAllTags, () => {
 					const sessionId = getSessionId();
 					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
-					const organizationId = getOrganizationId();
+					const workspaceId = getWorkspaceId();
 					return {
 						sessionId,
-						...(organizationId ? { organizationId: organizationId as Id<'organizations'> } : {})
+						...(workspaceId ? { workspaceId: workspaceId as Id<'workspaces'> } : {})
 					};
 				})
 			: null;
@@ -69,7 +69,7 @@ export function useQuickCreateTags(
 
 	/**
 	 * Create a new tag with color and optional parent
-	 * If organizationId is available, creates as organization tag
+	 * If workspaceId is available, creates as workspace tag
 	 * Otherwise, creates as user tag (visible across all orgs)
 	 */
 	async function createTag(
@@ -89,19 +89,19 @@ export function useQuickCreateTags(
 				throw new Error('Session ID is required');
 			}
 
-			const organizationId = getOrganizationId();
+			const workspaceId = getWorkspaceId();
 
-			// If organizationId is available, create as organization tag
+			// If workspaceId is available, create as workspace tag
 			// Otherwise, create as user tag (visible across all orgs)
 			const tagId = await convexClient.mutation(api.tags.createTag, {
 				sessionId,
 				displayName,
 				color,
 				parentId,
-				...(organizationId
+				...(workspaceId
 					? {
-							ownership: 'organization' as const,
-							organizationId: organizationId as Id<'organizations'>
+							ownership: 'workspace' as const,
+							workspaceId: workspaceId as Id<'workspaces'>
 						}
 					: {})
 			});

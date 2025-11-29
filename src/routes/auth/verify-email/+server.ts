@@ -139,26 +139,26 @@ export const POST: RequestHandler = withRateLimit(RATE_LIMITS.login, async ({ ev
 			console.log('🔍 User registered from invite link, accepting invite:', inviteCode);
 
 			try {
-				// Get invite details (organization invites only)
-				const inviteDetails = await convex.query(api.organizations.getInviteByCode, {
+				// Get invite details (workspace invites only)
+				const inviteDetails = await convex.query(api.workspaces.getInviteByCode, {
 					code: inviteCode
 				});
 
 				if (!inviteDetails) {
 					console.error('❌ Invite not found:', inviteCode);
 					redirectTo = '/inbox';
-				} else if (inviteDetails.type === 'organization') {
-					// Accept organization invite
-					const acceptResult = await convex.mutation(api.organizations.acceptOrganizationInvite, {
+				} else if (inviteDetails.type === 'workspace') {
+					// Accept workspace invite
+					const acceptResult = await convex.mutation(api.workspaces.acceptOrganizationInvite, {
 						sessionId,
 						code: inviteCode
 					});
 
 					console.log(
-						'✅ Organization invite accepted, redirecting to organization:',
-						acceptResult.organizationId
+						'✅ Organization invite accepted, redirecting to workspace:',
+						acceptResult.workspaceId
 					);
-					redirectTo = `/org/circles?org=${acceptResult.organizationId}`;
+					redirectTo = `/org/circles?org=${acceptResult.workspaceId}`;
 				} else {
 					// Unknown invite type, redirect to inbox
 					console.error('❌ Unknown invite type:', inviteDetails.type);

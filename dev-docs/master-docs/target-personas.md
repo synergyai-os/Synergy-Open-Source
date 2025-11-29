@@ -1,6 +1,6 @@
 # Target Personas: Who We Serve
 
-> **Core Insight**: We serve organizations building digital products—specifically IT suppliers, non-profits, and product teams who need to align, learn, and ship outcomes (not just features).
+> **Core Insight**: We serve workspaces building digital products—specifically IT suppliers, non-profits, and product teams who need to align, learn, and ship outcomes (not just features).
 
 ---
 
@@ -80,7 +80,7 @@ We organize personas by **role** in the buying and usage cycle:
 ### Organization Profile
 
 - **Industry**: Non-profit (environmental standards for fashion/textiles)
-- **Size**: Large organization, multiple product teams
+- **Size**: Large workspace, multiple product teams
 - **Tech Maturity**: Medium (IT supplier manages tech for them—Agency Partner)
 - **Product Teams**: 1+ teams responsible for multiple products
 - **Pain**: Too many products, unclear roadmaps, misaligned teams

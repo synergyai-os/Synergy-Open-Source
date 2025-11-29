@@ -1,23 +1,23 @@
 <script lang="ts">
 	import { getContext } from 'svelte';
-	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
 
-	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
+	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
 
 	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
 	// Pattern: Check object existence first, then access getter property directly
 	// See SYOS-228 for full pattern documentation
 	const hasOrganizations = $derived(() => {
-		if (!organizations) return false;
-		return (organizations.organizations ?? []).length > 0;
+		if (!workspaces) return false;
+		return (workspaces.workspaces ?? []).length > 0;
 	});
 
 	function handleCreateOrg() {
-		organizations?.openModal('createOrganization');
+		workspaces?.openModal('createWorkspace');
 	}
 
 	function handleSelectOrg(orgId: string) {
-		organizations?.setActiveOrganization(orgId);
+		workspaces?.setActiveWorkspace(orgId);
 	}
 </script>
 
@@ -27,14 +27,12 @@
 
 		{#if hasOrganizations()}
 			<!-- User has orgs but none selected -->
-			<p class="text-button mt-2 text-secondary">
-				Please select an organization to access Circles.
-			</p>
+			<p class="text-button mt-2 text-secondary">Please select an workspace to access Circles.</p>
 
 			<div class="mt-6 space-y-2">
-				{#each organizations ? (organizations.organizations ?? []) : [] as org (org.organizationId)}
+				{#each workspaces ? (workspaces.workspaces ?? []) : [] as org (org.workspaceId)}
 					<button
-						onclick={() => handleSelectOrg(org.organizationId)}
+						onclick={() => handleSelectOrg(org.workspaceId)}
 						class="border-base py-nav-item text-button hover:bg-sidebar-hover w-full rounded-button border bg-elevated px-2 text-left text-primary"
 					>
 						{org.name}
@@ -44,7 +42,7 @@
 		{:else}
 			<!-- No orgs, need to create one -->
 			<p class="text-button mt-2 text-secondary">
-				Circles require an organization. Create one to get started.
+				Circles require an workspace. Create one to get started.
 			</p>
 
 			<button

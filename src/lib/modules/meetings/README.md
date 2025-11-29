@@ -2,7 +2,7 @@
 
 **Team Ownership**: Meetings Team  
 **Status**: ✅ Active  
-**Feature Flag**: `meetings-module` (organization-based)
+**Feature Flag**: `meetings-module` (workspace-based)
 
 ---
 
@@ -57,7 +57,6 @@ meetings/
 │   ├── AgendaItemView.svelte
 │   ├── AttendeeSelector.svelte
 │   ├── CreateMeetingModal.svelte
-│   ├── DecisionsList.svelte
 │   ├── MeetingCard.svelte
 │   ├── SecretaryConfirmationDialog.svelte
 │   ├── SecretarySelector.svelte
@@ -90,7 +89,7 @@ See [`api.ts`](./api.ts) for the complete `MeetingsModuleAPI` interface.
 
 ### Interaction Patterns
 
-- **Collaboration** with Core module (organization context, shared components)
+- **Collaboration** with Core module (workspace context, shared components)
 - **X-as-a-Service** to other modules (provides meeting APIs for future integrations)
 - **Facilitating** for users (meeting workflows, templates, best practices)
 
@@ -98,7 +97,7 @@ See [`api.ts`](./api.ts) for the complete `MeetingsModuleAPI` interface.
 
 **Flag**: `meetings-module`  
 **Scope**: Organization-based  
-**Default**: Disabled (requires explicit enablement per organization)
+**Default**: Disabled (requires explicit enablement per workspace)
 
 ## Usage
 
@@ -119,7 +118,7 @@ import type { MeetingsModuleAPI } from '$lib/modules/meetings/api';
 const meetingsAPI = getContext<MeetingsModuleAPI | undefined>('meetings-api');
 if (meetingsAPI) {
 	const meetings = meetingsAPI.useMeetings({
-		organizationId: () => currentOrgId,
+		workspaceId: () => currentOrgId,
 		sessionId: () => sessionId
 	});
 
@@ -137,10 +136,8 @@ const session = meetingsAPI.useMeetingSession({
 	userId: () => currentUserId
 });
 
-// Start meeting (secretary only)
-if (session.isSecretary) {
-	await session.startMeeting();
-}
+// Start meeting
+await session.startMeeting();
 
 // Check elapsed time
 $: console.log(`Meeting running: ${session.elapsedTimeFormatted}`);
@@ -158,7 +155,7 @@ await session.addAgendaItem('Review Q4 roadmap');
 
 **Interaction Patterns**:
 
-- **Collaboration** with Core module (organization context, shared components)
+- **Collaboration** with Core module (workspace context, shared components)
 - **X-as-a-Service** to other modules (provides meeting APIs for future integrations)
 - **Facilitating** for users (meeting workflows, templates, best practices)
 
@@ -195,7 +192,6 @@ meetings/
 ├── __tests__/                          # ✅ Module test suite (colocated)
 │   ├── meetings.integration.test.ts
 │   ├── meetingActionItems.integration.test.ts
-│   ├── meetingDecisions.integration.test.ts
 │   └── meetingTemplates.integration.test.ts
 ├── components/                         # Component tests colocated here (when added)
 │   └── MeetingCard.svelte.test.ts
@@ -240,7 +236,7 @@ describe('New Feature Integration Tests', () => {
 });
 ```
 
-**See**: [Test Organization Strategy](../../../../dev-docs/2-areas/development/test-organization-strategy.md) for complete testing patterns.
+**See**: [Test Organization Strategy](../../../../dev-docs/2-areas/development/test-workspace-strategy.md) for complete testing patterns.
 
 ## Development Guidelines
 

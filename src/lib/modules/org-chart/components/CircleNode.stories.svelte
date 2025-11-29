@@ -12,7 +12,7 @@
 	const mockCircleNode = {
 		data: {
 			circleId: 'circle-123',
-			organizationId: 'org-123',
+			workspaceId: 'org-123',
 			name: 'Engineering',
 			slug: 'engineering',
 			memberCount: 12,

@@ -22,7 +22,7 @@ import type { QueryCtx, MutationCtx } from '../_generated/server';
 export const setupAdmin = mutation({
 	args: {
 		userId: v.id('users'),
-		organizationId: v.optional(v.id('organizations')) // Optional: scope to specific org
+		workspaceId: v.optional(v.id('workspaces')) // Optional: scope to specific org
 	},
 	handler: async (ctx, args) => {
 		const now = Date.now();
@@ -61,7 +61,7 @@ export const setupAdmin = mutation({
 			roleId: adminRole._id,
 			assignedAt: now,
 			assignedBy: args.userId, // Self-assigned
-			organizationId: args.organizationId ?? undefined
+			workspaceId: args.workspaceId ?? undefined
 		});
 
 		console.log(`✅ Admin role assigned to user ${args.userId}`);
@@ -101,7 +101,7 @@ export const verifyAdminSetup = query({
 							roleId: role._id,
 							slug: role.slug,
 							name: role.name,
-							scope: ur.organizationId ? 'organization' : ur.circleId ? 'circle' : 'global'
+							scope: ur.workspaceId ? 'workspace' : ur.circleId ? 'circle' : 'global'
 						}
 					: null;
 			})

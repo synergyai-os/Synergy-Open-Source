@@ -114,6 +114,30 @@ export function useMeetingSession(options: UseMeetingSessionOptions) {
 		});
 	}
 
+	async function setRecorder(recorderId: Id<'users'>) {
+		const id = meetingId();
+		const session = sessionId();
+		if (!id || !session) throw new Error('meetingId and sessionId required');
+
+		await convexClient?.mutation(api.meetings.setRecorder, {
+			meetingId: id,
+			sessionId: session,
+			recorderId
+		});
+	}
+
+	async function setActiveAgendaItem(agendaItemId: Id<'meetingAgendaItems'> | null) {
+		const id = meetingId();
+		const session = sessionId();
+		if (!id || !session) throw new Error('meetingId and sessionId required');
+
+		await convexClient?.mutation(api.meetings.setActiveAgendaItem, {
+			meetingId: id,
+			sessionId: session,
+			agendaItemId: agendaItemId ?? undefined
+		});
+	}
+
 	// Computed values
 	return {
 		// Meeting state
@@ -143,6 +167,16 @@ export function useMeetingSession(options: UseMeetingSessionOptions) {
 		get currentStep() {
 			return meetingQuery?.data?.currentStep ?? 'check-in';
 		},
+		get recorderId() {
+			return meetingQuery?.data?.recorderId;
+		},
+		get isRecorder() {
+			const currentUserId = userId();
+			return currentUserId ? meetingQuery?.data?.recorderId === currentUserId : false;
+		},
+		get activeAgendaItemId() {
+			return meetingQuery?.data?.activeAgendaItemId;
+		},
 
 		// Timer
 		get elapsedTime() {
@@ -158,19 +192,12 @@ export function useMeetingSession(options: UseMeetingSessionOptions) {
 			return `${minutes.toString().padStart(2, '0')}m${seconds.toString().padStart(2, '0')}s`;
 		},
 
-		// Permissions
-		get isSecretary() {
-			const meeting = meetingQuery?.data;
-			const currentUserId = userId();
-			if (!meeting || !currentUserId) return false;
-			const secretaryId = meeting.secretaryId ?? meeting.createdBy;
-			return secretaryId === currentUserId;
-		},
-
 		// Actions
 		startMeeting,
 		advanceStep,
 		closeMeeting,
-		addAgendaItem
+		addAgendaItem,
+		setRecorder,
+		setActiveAgendaItem
 	};
 }

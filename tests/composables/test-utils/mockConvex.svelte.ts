@@ -8,9 +8,9 @@
 import { vi } from 'vitest';
 import type { ConvexClient } from '$lib/types/convex';
 import type {
-	OrganizationSummary,
-	OrganizationInvite
-} from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	WorkspaceSummary,
+	WorkspaceInvite
+} from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
 
 /**
  * Mock Convex client with configurable mutation responses
@@ -21,7 +21,7 @@ export function createMockConvexClient(
 	return {
 		query: vi.fn(),
 		mutation: vi.fn(async (fnRef: unknown, args: unknown) => {
-			// Extract function name from reference (e.g., "organizations:createOrganization")
+			// Extract function name from reference (e.g., "workspaces:createWorkspace")
 			let fnName = '';
 			try {
 				fnName = typeof fnRef === 'string' ? fnRef : String(fnRef);
@@ -79,12 +79,12 @@ export function createMockQueryResult<T>(
 }
 
 /**
- * Mock organizations data for tests
+ * Mock workspaces data for tests
  */
-export function createMockOrganizations(): OrganizationSummary[] {
+export function createMockOrganizations(): WorkspaceSummary[] {
 	return [
 		{
-			organizationId: 'org-1',
+			workspaceId: 'org-1',
 			name: 'Test Organization 1',
 			initials: 'TO1',
 			slug: 'test-org-1',
@@ -95,7 +95,7 @@ export function createMockOrganizations(): OrganizationSummary[] {
 			teamCount: 0
 		},
 		{
-			organizationId: 'org-2',
+			workspaceId: 'org-2',
 			name: 'Test Organization 2',
 			initials: 'TO2',
 			slug: 'test-org-2',
@@ -109,13 +109,13 @@ export function createMockOrganizations(): OrganizationSummary[] {
 }
 
 /**
- * Mock organization invites data for tests
+ * Mock workspace invites data for tests
  */
-export function createMockOrganizationInvites(): OrganizationInvite[] {
+export function createMockOrganizationInvites(): WorkspaceInvite[] {
 	return [
 		{
 			inviteId: 'invite-1',
-			organizationId: 'org-3',
+			workspaceId: 'org-3',
 			organizationName: 'Test Organization 3',
 			role: 'member',
 			invitedBy: 'user-1',
@@ -244,8 +244,8 @@ export function createMockSyncProgress() {
  */
 let globalMockClient: ConvexClient | null = null;
 let globalQueryResults: {
-	organizations?: MockQueryResult<OrganizationSummary[]>;
-	organizationInvites?: MockQueryResult<OrganizationInvite[]>;
+	workspaces?: MockQueryResult<WorkspaceSummary[]>;
+	workspaceInvites?: MockQueryResult<WorkspaceInvite[]>;
 	inboxItems?: MockQueryResult<unknown[]>;
 	inboxItemWithDetails?: MockQueryResult<unknown>;
 	syncProgress?: MockQueryResult<unknown>;
@@ -258,8 +258,8 @@ let globalQueryResults: {
 export function setupConvexMocks(
 	mockClient: ConvexClient,
 	queryResults: {
-		organizations?: MockQueryResult<OrganizationSummary[]>;
-		organizationInvites?: MockQueryResult<OrganizationInvite[]>;
+		workspaces?: MockQueryResult<WorkspaceSummary[]>;
+		workspaceInvites?: MockQueryResult<WorkspaceInvite[]>;
 		inboxItems?: MockQueryResult<unknown[]>;
 		inboxItemWithDetails?: MockQueryResult<unknown>;
 		syncProgress?: MockQueryResult<unknown>;
@@ -290,12 +290,11 @@ export function __getMockQueryResult(queryFn: unknown): MockQueryResult<unknown>
 	const queryName = String(queryFn);
 
 	if (queryName.includes('listOrganizations')) {
-		return globalQueryResults.organizations ?? createMockQueryResult(createMockOrganizations());
+		return globalQueryResults.workspaces ?? createMockQueryResult(createMockOrganizations());
 	}
 	if (queryName.includes('listOrganizationInvites')) {
 		return (
-			globalQueryResults.organizationInvites ??
-			createMockQueryResult(createMockOrganizationInvites())
+			globalQueryResults.workspaceInvites ?? createMockQueryResult(createMockOrganizationInvites())
 		);
 	}
 	if (queryName.includes('listInboxItems')) {

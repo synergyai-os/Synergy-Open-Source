@@ -19,7 +19,7 @@ import type { Id } from '$lib/convex';
 export interface UsePermissionsParams {
 	sessionId: () => string | null;
 	userId?: () => Id<'users'> | null;
-	organizationId?: () => Id<'organizations'> | null;
+	workspaceId?: () => Id<'workspaces'> | null;
 	circleId?: () => Id<'circles'> | null;
 	initialPermissions?: Array<{
 		permissionSlug: string;
@@ -47,7 +47,7 @@ export interface UsePermissionsReturn {
  *
  *   const permissions = usePermissions({
  *     sessionId: () => $page.data.sessionId,
- *     organizationId: () => $activeOrganizationId
+ *     workspaceId: () => $activeWorkspaceId
  *   });
  * </script>
  *
@@ -66,16 +66,16 @@ export function usePermissions(params: UsePermissionsParams): UsePermissionsRetu
 
 					const args: {
 						sessionId: string;
-						organizationId?: Id<'organizations'>;
+						workspaceId?: Id<'workspaces'>;
 						circleId?: Id<'circles'>;
 					} = { sessionId };
 
 					// Add context filters
-					const orgId = params.organizationId?.();
+					const orgId = params.workspaceId?.();
 					const circleId = params.circleId?.();
 
 					if (orgId !== undefined && orgId !== null) {
-						args.organizationId = orgId;
+						args.workspaceId = orgId;
 					}
 					if (circleId !== undefined && circleId !== null) {
 						args.circleId = circleId;

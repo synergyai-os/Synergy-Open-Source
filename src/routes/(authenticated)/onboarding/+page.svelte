@@ -2,25 +2,25 @@
 	import { getContext } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolveRoute } from '$lib/utils/navigation';
-	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
 
-	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
+	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
 
 	let orgName = $state('');
 	let isCreating = $state(false);
 	let errorMessage = $state<string | null>(null);
 
 	async function handleCreate() {
-		if (!orgName.trim() || !organizations) return;
+		if (!orgName.trim() || !workspaces) return;
 
 		isCreating = true;
 		errorMessage = null;
 
 		try {
-			await organizations.createOrganization({ name: orgName.trim() });
+			await workspaces.createWorkspace({ name: orgName.trim() });
 			// Redirect to /org/circles after successful creation with org context
-			// Wait a moment for activeOrganizationId to be set
-			const orgId = organizations.activeOrganizationId;
+			// Wait a moment for activeWorkspaceId to be set
+			const orgId = workspaces.activeWorkspaceId;
 			if (orgId) {
 				goto(resolveRoute(`/org/circles?org=${orgId}`));
 			} else {
@@ -28,8 +28,8 @@
 				goto(resolveRoute('/org/circles'));
 			}
 		} catch (error) {
-			console.error('Failed to create organization:', error);
-			errorMessage = error instanceof Error ? error.message : 'Failed to create organization';
+			console.error('Failed to create workspace:', error);
+			errorMessage = error instanceof Error ? error.message : 'Failed to create workspace';
 		} finally {
 			isCreating = false;
 		}
@@ -42,7 +42,7 @@
 			<div>
 				<h1 class="text-xl font-semibold text-primary">Create Your Organization</h1>
 				<p class="mt-2 text-sm text-secondary">
-					Get started by creating your organization. This will be your workspace for team
+					Get started by creating your workspace. This will be your workspace for team
 					collaboration.
 				</p>
 			</div>

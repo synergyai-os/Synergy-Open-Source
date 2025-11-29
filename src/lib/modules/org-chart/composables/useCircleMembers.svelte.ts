@@ -11,22 +11,21 @@ export type UseCircleMembers = ReturnType<typeof useCircleMembers>;
  */
 export function useCircleMembers(options: {
 	sessionId: () => string | undefined;
-	organizationId: () => string | undefined;
+	workspaceId: () => string | undefined;
 	members: () => CircleMember[];
 }) {
 	const getSessionId = options.sessionId;
-	const getOrganizationId = options.organizationId;
+	const getWorkspaceId = options.workspaceId;
 	const getMembers = options.members;
 
-	// Query organization members to show in dropdown
+	// Query workspace members to show in dropdown
 	const orgMembersQuery =
-		browser && getSessionId() && getOrganizationId()
-			? useQuery(api.organizations.getMembers, () => {
+		browser && getSessionId() && getWorkspaceId()
+			? useQuery(api.workspaces.getMembers, () => {
 					const sessionId = getSessionId();
-					const organizationId = getOrganizationId();
-					if (!sessionId || !organizationId)
-						throw new Error('sessionId and organizationId required');
-					return { sessionId, organizationId: organizationId as Id<'organizations'> };
+					const workspaceId = getWorkspaceId();
+					if (!sessionId || !workspaceId) throw new Error('sessionId and workspaceId required');
+					return { sessionId, workspaceId: workspaceId as Id<'workspaces'> };
 				})
 			: null;
 

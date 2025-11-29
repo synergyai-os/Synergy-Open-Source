@@ -22,7 +22,7 @@
 		agendaItemId: mockAgendaItemId,
 		meetingId: mockMeetingId,
 		sessionId: mockSessionId,
-		organizationId: mockOrganizationId,
+		workspaceId: mockOrganizationId,
 		circleId: mockCircleId,
 		readonly: false
 	}}
@@ -32,7 +32,7 @@
 			agendaItemId={args.agendaItemId}
 			meetingId={args.meetingId}
 			sessionId={args.sessionId}
-			organizationId={args.organizationId}
+			workspaceId={args.workspaceId}
 			circleId={args.circleId}
 			readonly={args.readonly}
 		/>
@@ -45,7 +45,7 @@
 		agendaItemId: mockAgendaItemId,
 		meetingId: mockMeetingId,
 		sessionId: mockSessionId,
-		organizationId: mockOrganizationId,
+		workspaceId: mockOrganizationId,
 		circleId: mockCircleId,
 		readonly: true
 	}}
@@ -55,7 +55,7 @@
 			agendaItemId={args.agendaItemId}
 			meetingId={args.meetingId}
 			sessionId={args.sessionId}
-			organizationId={args.organizationId}
+			workspaceId={args.workspaceId}
 			circleId={args.circleId}
 			readonly={args.readonly}
 		/>
@@ -68,7 +68,7 @@
 		agendaItemId: mockAgendaItemId,
 		meetingId: mockMeetingId,
 		sessionId: mockSessionId,
-		organizationId: mockOrganizationId,
+		workspaceId: mockOrganizationId,
 		readonly: false
 	}}
 >
@@ -77,7 +77,7 @@
 			agendaItemId={args.agendaItemId}
 			meetingId={args.meetingId}
 			sessionId={args.sessionId}
-			organizationId={args.organizationId}
+			workspaceId={args.workspaceId}
 			circleId={args.circleId}
 			readonly={args.readonly}
 		/>

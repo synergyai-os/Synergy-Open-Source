@@ -3,42 +3,42 @@
 	import { api } from '$lib/convex';
 	import { getContext } from 'svelte';
 	import { page } from '$app/stores';
-	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
 	import ShareTagModal from '$lib/modules/core/components/ShareTagModal.svelte';
 	import posthog from 'posthog-js';
 	import { browser } from '$app/environment';
 	import { AnalyticsEventName } from '$lib/infrastructure/analytics/events';
 	import type { Id } from '$lib/convex';
 
-	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
+	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
 	const convexClient = useConvexClient();
 
 	// Get sessionId from page data
 	const getSessionId = () => $page.data.sessionId;
 
-	// Get organization data for sharing
+	// Get workspace data for sharing
 	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
 	// Pattern: Check object existence first, then access getter property directly
 	// See SYOS-228 for full pattern documentation
 	const organizationSummaries = $derived(() => {
-		if (!organizations) return [];
-		return organizations.organizations ?? [];
+		if (!workspaces) return [];
+		return workspaces.workspaces ?? [];
 	});
-	const activeOrganizationId = $derived(() => {
-		if (!organizations) return null;
-		return organizations.activeOrganizationId ?? null;
+	const activeWorkspaceId = $derived(() => {
+		if (!workspaces) return null;
+		return workspaces.activeWorkspaceId ?? null;
 	});
 
-	// Fetch user's tags filtered by active organization
+	// Fetch user's tags filtered by active workspace
 	const tagsQuery =
 		browser && getSessionId()
 			? useQuery(api.tags.listUserTags, () => {
 					const sessionId = getSessionId();
 					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
-					const orgId = activeOrganizationId();
+					const orgId = activeWorkspaceId();
 					return {
 						sessionId,
-						...(orgId ? { organizationId: orgId as Id<'organizations'> } : {})
+						...(orgId ? { workspaceId: orgId as Id<'workspaces'> } : {})
 					};
 				})
 			: null;
@@ -60,7 +60,7 @@
 		selectedTagForSharing = null;
 	}
 
-	async function handleShare(shareWith: 'organization', targetId: string) {
+	async function handleShare(shareWith: 'workspace', targetId: string) {
 		if (!selectedTagForSharing || !convexClient) return;
 
 		isSharing = true;
@@ -75,13 +75,13 @@
 				sessionId,
 				tagId: selectedTagForSharing._id,
 				shareWith,
-				organizationId: targetId as Id<'organizations'>
+				workspaceId: targetId as Id<'workspaces'>
 			});
 
 			// TEMPORARY: Client-side PostHog capture for testing
 			// TODO: Move to server-side via HTTP action bridge
 			if (browser && typeof posthog !== 'undefined') {
-				const org = organizationSummaries().find((o) => o.organizationId === targetId);
+				const org = organizationSummaries().find((o) => o.workspaceId === targetId);
 
 				posthog.capture(AnalyticsEventName.TAG_SHARED, {
 					scope: shareWith,
@@ -113,20 +113,20 @@
 		}
 	}
 
-	// Get current context (users always have an organization)
-	const currentOrganizationId = $derived(activeOrganizationId());
+	// Get current context (users always have an workspace)
+	const currentOrganizationId = $derived(activeWorkspaceId());
 
-	// Group tags by ownership - all tags are already filtered by organizationId in the query
+	// Group tags by ownership - all tags are already filtered by workspaceId in the query
 	const organizationTags = $derived(() => {
-		// Tags for the active organization (already filtered by backend query)
+		// Tags for the active workspace (already filtered by backend query)
 		return userTags.filter(
-			(t) => t.ownershipType === 'organization' && t.organizationId === currentOrganizationId
+			(t) => t.ownershipType === 'workspace' && t.workspaceId === currentOrganizationId
 		);
 	});
 
 	const userTagsList = $derived(() => {
-		// User-owned tags (no organizationId) - shown in all org contexts
-		return userTags.filter((t) => !t.organizationId || t.ownershipType === 'user');
+		// User-owned tags (no workspaceId) - shown in all org contexts
+		return userTags.filter((t) => !t.workspaceId || t.ownershipType === 'user');
 	});
 </script>
 
@@ -237,8 +237,8 @@
 												>{tag.displayName}</span
 											>
 											<span class="text-label text-tertiary">
-												{#if tag.ownershipType === 'organization'}
-													Shared with organization
+												{#if tag.ownershipType === 'workspace'}
+													Shared with workspace
 												{:else if tag.ownershipType === 'team'}
 													Shared with team
 												{/if}
@@ -270,7 +270,7 @@
 {#if showShareModal && selectedTagForSharing}
 	<ShareTagModal
 		tag={selectedTagForSharing}
-		organizations={organizationSummaries()}
+		workspaces={organizationSummaries()}
 		{isSharing}
 		onShare={handleShare}
 		onClose={closeShareModal}

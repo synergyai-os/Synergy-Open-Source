@@ -27,7 +27,7 @@ export type TagWithHierarchy = {
 
 export interface UseTaggingParams {
 	sessionId: () => string | undefined; // Required: Function returning sessionId from authenticated session
-	activeOrganizationId?: () => string | null; // Function for reactivity (optional - tags can be user or org-scoped)
+	activeWorkspaceId?: () => string | null; // Function for reactivity (optional - tags can be user or org-scoped)
 }
 
 export interface UseTaggingReturn {
@@ -50,8 +50,8 @@ export function useTagging(params?: UseTaggingParams): UseTaggingReturn {
 			displayName: string;
 			color: string;
 			parentId?: Id<'tags'>;
-			ownership?: 'user' | 'organization' | 'circle';
-			organizationId?: Id<'organizations'>;
+			ownership?: 'user' | 'workspace' | 'circle';
+			workspaceId?: Id<'workspaces'>;
 			circleId?: Id<'circles'>;
 		},
 		Id<'tags'>
@@ -73,8 +73,8 @@ export function useTagging(params?: UseTaggingParams): UseTaggingReturn {
 					displayName: string;
 					color: string;
 					parentId?: Id<'tags'>;
-					ownership?: 'user' | 'organization' | 'circle';
-					organizationId?: Id<'organizations'>;
+					ownership?: 'user' | 'workspace' | 'circle';
+					workspaceId?: Id<'workspaces'>;
 					circleId?: Id<'circles'>;
 				},
 				Id<'tags'>
@@ -97,10 +97,10 @@ export function useTagging(params?: UseTaggingParams): UseTaggingReturn {
 			? useQuery(api.tags.listAllTags, () => {
 					const sessionId = params.sessionId(); // Get current sessionId (reactive)
 					if (!sessionId) throw new Error('sessionId required'); // ✅ Modern Convex pattern (outer check ensures it exists)
-					const orgId = params.activeOrganizationId?.();
+					const orgId = params.activeWorkspaceId?.();
 					return {
 						sessionId,
-						...(orgId ? { organizationId: orgId as Id<'organizations'> } : {})
+						...(orgId ? { workspaceId: orgId as Id<'workspaces'> } : {})
 					};
 				})
 			: null;
@@ -131,14 +131,14 @@ export function useTagging(params?: UseTaggingParams): UseTaggingReturn {
 				throw new Error('Session ID is required');
 			}
 
-			const orgId = params?.activeOrganizationId?.();
+			const orgId = params?.activeWorkspaceId?.();
 			const tagId = await convexClient.mutation(createTagApi, {
 				sessionId,
 				displayName,
 				color,
 				parentId,
 				...(orgId
-					? { ownership: 'organization' as const, organizationId: orgId as Id<'organizations'> }
+					? { ownership: 'workspace' as const, workspaceId: orgId as Id<'workspaces'> }
 					: {})
 			});
 			return tagId;

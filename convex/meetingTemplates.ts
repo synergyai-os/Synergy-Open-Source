@@ -19,22 +19,20 @@ import { validateSessionAndGetUserId } from './sessionValidation';
 import type { Id } from './_generated/dataModel';
 
 /**
- * Helper: Verify user has access to organization
+ * Helper: Verify user has access to workspace
  */
-async function ensureOrganizationMembership(
+async function ensureWorkspaceMembership(
 	ctx: QueryCtx | MutationCtx,
-	organizationId: Id<'organizations'>,
+	workspaceId: Id<'workspaces'>,
 	userId: Id<'users'>
 ): Promise<void> {
 	const membership = await ctx.db
-		.query('organizationMembers')
-		.withIndex('by_organization_user', (q) =>
-			q.eq('organizationId', organizationId).eq('userId', userId)
-		)
+		.query('workspaceMembers')
+		.withIndex('by_workspace_user', (q) => q.eq('workspaceId', workspaceId).eq('userId', userId))
 		.first();
 
 	if (!membership) {
-		throw new Error('User is not a member of this organization');
+		throw new Error('User is not a member of this workspace');
 	}
 }
 
@@ -43,23 +41,23 @@ async function ensureOrganizationMembership(
 // ============================================================================
 
 /**
- * List all templates for an organization
+ * List all templates for an workspace
  */
 export const list = query({
 	args: {
 		sessionId: v.string(),
-		organizationId: v.id('organizations')
+		workspaceId: v.id('workspaces')
 	},
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		// Verify user has access to this organization
-		await ensureOrganizationMembership(ctx, args.organizationId, userId);
+		// Verify user has access to this workspace
+		await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
 
 		// Get all templates
 		const templates = await ctx.db
 			.query('meetingTemplates')
-			.withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId))
+			.withIndex('by_workspace', (q) => q.eq('workspaceId', args.workspaceId))
 			.collect();
 
 		// Get step counts for each template
@@ -98,8 +96,8 @@ export const get = query({
 			throw new Error('Template not found');
 		}
 
-		// Verify user has access to the organization
-		await ensureOrganizationMembership(ctx, template.organizationId, userId);
+		// Verify user has access to the workspace
+		await ensureWorkspaceMembership(ctx, template.workspaceId, userId);
 
 		return template;
 	}
@@ -122,8 +120,8 @@ export const getSteps = query({
 			throw new Error('Template not found');
 		}
 
-		// Verify user has access to the organization
-		await ensureOrganizationMembership(ctx, template.organizationId, userId);
+		// Verify user has access to the workspace
+		await ensureWorkspaceMembership(ctx, template.workspaceId, userId);
 
 		// Get steps ordered by orderIndex
 		const steps = await ctx.db
@@ -146,19 +144,19 @@ export const getSteps = query({
 export const create = mutation({
 	args: {
 		sessionId: v.string(),
-		organizationId: v.id('organizations'),
+		workspaceId: v.id('workspaces'),
 		name: v.string(),
 		description: v.optional(v.string())
 	},
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, args.organizationId, userId);
+		// Verify user has access to workspace
+		await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
 
 		// Create template
 		const templateId = await ctx.db.insert('meetingTemplates', {
-			organizationId: args.organizationId,
+			workspaceId: args.workspaceId,
 			name: args.name,
 			description: args.description,
 			createdAt: Date.now(),
@@ -188,8 +186,8 @@ export const update = mutation({
 			throw new Error('Template not found');
 		}
 
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, template.organizationId, userId);
+		// Verify user has access to workspace
+		await ensureWorkspaceMembership(ctx, template.workspaceId, userId);
 
 		// Build update object
 		const updates: Partial<{
@@ -223,8 +221,8 @@ export const deleteTemplate = mutation({
 			throw new Error('Template not found');
 		}
 
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, template.organizationId, userId);
+		// Verify user has access to workspace
+		await ensureWorkspaceMembership(ctx, template.workspaceId, userId);
 
 		// Delete all steps first
 		const steps = await ctx.db
@@ -272,8 +270,8 @@ export const addStep = mutation({
 			throw new Error('Template not found');
 		}
 
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, template.organizationId, userId);
+		// Verify user has access to workspace
+		await ensureWorkspaceMembership(ctx, template.workspaceId, userId);
 
 		// Create step
 		const stepId = await ctx.db.insert('meetingTemplateSteps', {
@@ -307,15 +305,15 @@ export const removeStep = mutation({
 			throw new Error('Step not found');
 		}
 
-		// Get template to verify organization access
+		// Get template to verify workspace access
 		const template = await ctx.db.get(step.templateId);
 
 		if (!template) {
 			throw new Error('Template not found');
 		}
 
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, template.organizationId, userId);
+		// Verify user has access to workspace
+		await ensureWorkspaceMembership(ctx, template.workspaceId, userId);
 
 		// Delete step
 		await ctx.db.delete(args.stepId);
@@ -342,8 +340,8 @@ export const reorderSteps = mutation({
 			throw new Error('Template not found');
 		}
 
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, template.organizationId, userId);
+		// Verify user has access to workspace
+		await ensureWorkspaceMembership(ctx, template.workspaceId, userId);
 
 		// Update orderIndex for each step
 		for (let i = 0; i < args.stepIds.length; i++) {
@@ -369,19 +367,19 @@ export const reorderSteps = mutation({
 export const seedDefaultTemplates = mutation({
 	args: {
 		sessionId: v.string(),
-		organizationId: v.id('organizations')
+		workspaceId: v.id('workspaces')
 	},
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, args.organizationId, userId);
+		// Verify user has access to workspace
+		await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
 
 		const now = Date.now();
 
 		// 1. Governance Template
 		const governanceId = await ctx.db.insert('meetingTemplates', {
-			organizationId: args.organizationId,
+			workspaceId: args.workspaceId,
 			name: 'Governance',
 			description: 'Holacracy governance meeting for role and policy updates',
 			createdAt: now,
@@ -419,7 +417,7 @@ export const seedDefaultTemplates = mutation({
 
 		// 2. Weekly Tactical Template
 		const tacticalId = await ctx.db.insert('meetingTemplates', {
-			organizationId: args.organizationId,
+			workspaceId: args.workspaceId,
 			name: 'Weekly Tactical',
 			description: 'Weekly tactical meeting for operational updates and coordination',
 			createdAt: now,
@@ -493,12 +491,12 @@ export const seedDefaultTemplates = mutation({
 });
 
 /**
- * Internal mutation: Seed default templates for new organization
- * Called by scheduler from organizations.create mutation
+ * Internal mutation: Seed default templates for new workspace
+ * Called by scheduler from workspaces.create mutation
  */
 export const seedDefaultTemplatesInternal = internalMutation({
 	args: {
-		organizationId: v.id('organizations'),
+		workspaceId: v.id('workspaces'),
 		userId: v.id('users')
 	},
 	handler: async (ctx, args) => {
@@ -506,7 +504,7 @@ export const seedDefaultTemplatesInternal = internalMutation({
 
 		// 1. Governance Template
 		const governanceId = await ctx.db.insert('meetingTemplates', {
-			organizationId: args.organizationId,
+			workspaceId: args.workspaceId,
 			name: 'Governance',
 			description: 'Holacracy governance meeting for role and policy updates',
 			createdAt: now,
@@ -544,7 +542,7 @@ export const seedDefaultTemplatesInternal = internalMutation({
 
 		// 2. Weekly Tactical Template
 		const tacticalId = await ctx.db.insert('meetingTemplates', {
-			organizationId: args.organizationId,
+			workspaceId: args.workspaceId,
 			name: 'Weekly Tactical',
 			description: 'Weekly operational meeting for metrics, projects, and agenda',
 			createdAt: now,

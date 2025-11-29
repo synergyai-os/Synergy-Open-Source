@@ -5,7 +5,7 @@
  * Currently, all functions return user-scoped access only (no org/team logic yet).
  *
  * When multi-tenancy is implemented, these functions will be updated to:
- * - Query organizationMembers/teamMembers tables
+ * - Query workspaceMembers/teamMembers tables
  * - Check org/team membership
  * - Handle purchased content
  * - Support content ownership types
@@ -17,26 +17,26 @@ import type { QueryCtx, MutationCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
 
 /**
- * Get user's accessible organization IDs
- * FUTURE: Query organizationMembers table
+ * Get user's accessible workspace IDs
+ * FUTURE: Query workspaceMembers table
  * CURRENT: Returns empty array (user-scoped only)
  */
-export async function getUserOrganizationIds(
+export async function getUserWorkspaceIds(
 	ctx: QueryCtx | MutationCtx,
 	userId: string
 ): Promise<string[]> {
 	const normalizedUserId = userId as Id<'users'>;
 
 	const memberships = await ctx.db
-		.query('organizationMembers')
+		.query('workspaceMembers')
 		.withIndex('by_user', (q) => q.eq('userId', normalizedUserId))
 		.collect();
 
-	return memberships.map((membership) => membership.organizationId);
+	return memberships.map((membership) => membership.workspaceId);
 }
 
 /**
- * Internal query: Get user's organization IDs (for use in actions)
+ * Internal query: Get user's workspace IDs (for use in actions)
  */
 export const getUserOrganizationIdsQuery = internalQuery({
 	args: {
@@ -44,11 +44,11 @@ export const getUserOrganizationIdsQuery = internalQuery({
 	},
 	handler: async (ctx, args) => {
 		const memberships = await ctx.db
-			.query('organizationMembers')
+			.query('workspaceMembers')
 			.withIndex('by_user', (q) => q.eq('userId', args.userId))
 			.collect();
 
-		return memberships.map((membership) => membership.organizationId);
+		return memberships.map((membership) => membership.workspaceId);
 	}
 });
 
@@ -78,18 +78,18 @@ export async function getUserCircleIds(
 export async function canAccessContent(
 	ctx: QueryCtx | MutationCtx,
 	userId: string,
-	content: { userId: string; organizationId?: string; circleId?: string; ownershipType?: string }
+	content: { userId: string; workspaceId?: string; circleId?: string; ownershipType?: string }
 ): Promise<boolean> {
 	if (content.userId === userId) {
 		return true;
 	}
 
-	const [organizationIds, circleIds] = await Promise.all([
-		getUserOrganizationIds(ctx, userId),
+	const [workspaceIds, circleIds] = await Promise.all([
+		getUserWorkspaceIds(ctx, userId),
 		getUserCircleIds(ctx, userId)
 	]);
 
-	if (content.organizationId && organizationIds.includes(content.organizationId)) {
+	if (content.workspaceId && workspaceIds.includes(content.workspaceId)) {
 		return true;
 	}
 
@@ -114,17 +114,17 @@ export async function getContentAccessFilter(
 	userId: string
 ): Promise<{
 	userId: string;
-	organizationIds: string[];
+	workspaceIds: string[];
 	circleIds: string[];
 }> {
-	const [organizationIds, circleIds] = await Promise.all([
-		getUserOrganizationIds(ctx, userId),
+	const [workspaceIds, circleIds] = await Promise.all([
+		getUserWorkspaceIds(ctx, userId),
 		getUserCircleIds(ctx, userId)
 	]);
 
 	return {
 		userId,
-		organizationIds,
+		workspaceIds,
 		circleIds
 	};
 }

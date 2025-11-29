@@ -4,50 +4,44 @@
 	import { organizationItemRecipe } from '$lib/design-system/recipes';
 
 	type Props = {
-		organization: {
-			organizationId: string;
+		workspace: {
+			workspaceId: string;
 			name: string;
 			initials?: string;
 			role: 'owner' | 'admin' | 'member';
 		};
 		isActive?: boolean;
-		onSelect?: (organizationId: string) => void;
+		onSelect?: (workspaceId: string) => void;
 		onClose?: () => void;
 		class?: string;
 	};
 
-	let {
-		organization,
-		isActive = false,
-		onSelect,
-		onClose,
-		class: className = ''
-	}: Props = $props();
+	let { workspace, isActive = false, onSelect, onClose, class: className = '' }: Props = $props();
 
 	const classes = $derived([organizationItemRecipe({ active: isActive }), className]);
 </script>
 
 <DropdownMenu.Item
 	class={classes}
-	textValue={organization.name}
+	textValue={workspace.name}
 	onSelect={() => {
-		onSelect?.(organization.organizationId);
+		onSelect?.(workspace.workspaceId);
 		onClose?.();
 	}}
 >
 	<div class="flex min-w-0 flex-1 items-center gap-header">
 		<Avatar
-			initials={organization.initials ?? organization.name.slice(0, 2).toUpperCase()}
+			initials={workspace.initials ?? workspace.name.slice(0, 2).toUpperCase()}
 			size="sm"
 			variant="default"
 			class="flex-shrink-0"
 		/>
 		<div class="flex min-w-0 flex-col">
 			<Text variant="body" size="sm" color="default" as="span" class="truncate font-medium">
-				{organization.name}
+				{workspace.name}
 			</Text>
 			<Text variant="label" size="sm" color="tertiary" as="span" class="truncate capitalize">
-				{organization.role}
+				{workspace.role}
 			</Text>
 		</div>
 	</div>

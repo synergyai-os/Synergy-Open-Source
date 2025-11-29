@@ -23,7 +23,7 @@ export const MeetingsFeatureFlags = {
 
 	/**
 	 * Meetings Module (SYOS-226)
-	 * Status: Enabled for specific organizations
+	 * Status: Enabled for specific workspaces
 	 * Controls: Full meetings module access (meetings routes + dashboard)
 	 */
 	MEETINGS_MODULE: 'meetings-module'

@@ -245,7 +245,7 @@ Add a new validation step that:
 
 ### Scrollbar Width (No Semantic Token)
 
-- **Location**: `src/lib/modules/core/organizations/components/OrganizationSwitcher.svelte` (line 241)
+- **Location**: `src/lib/modules/core/workspaces/components/OrganizationSwitcher.svelte` (line 241)
 - **Usage**: Scrollbar width for bits-ui ScrollArea component
 - **Status**: No semantic token exists for scrollbar-specific widths
 - **Current Workaround**: Using inline style `style="width: 0.5rem;"` (8px)
@@ -359,6 +359,17 @@ Add a new validation step that:
   3. Run `npm run tokens:build` to generate utilities
 - **Note**: CSS variables `--color-component-toggle-off` and `--color-component-toggle-on` exist, but background utilities don't. The transform logic only generates utilities for `text-*`, `bg-*`, `border-*`, `interactive-*`, `accent-*`, `brand-*`, and `status-*` prefixes, but NOT `component-*` prefixes. This is similar to the `bg-component-sidebar-itemHover` issue above.
 
+## Border Width Utilities
+
+### `border-l-2` (2px left)
+
+- **Location**: `src/lib/modules/meetings/components/RecurrenceField.svelte` (line 86)
+- **Usage**: Left border for visual emphasis on nested recurrence section (2px width)
+- **Status**: Missing semantic token for border width
+- **Current Workaround**: Using `border-l-2` (Tailwind default - 2px border width)
+- **Proposed Solution**: Add `borderWidth` to semantic tokens (e.g., `borderWidth.emphasized: 2px`) or document as acceptable layout primitive
+- **Note**: Border width is a structural concern (2px vs 1px vs 4px), not a design token. Similar to how `border-l-4` is used elsewhere for emphasis. Consider documenting border widths as acceptable layout primitives.
+
 ## Button Height Alignment with AttendeeChip
 
 ### `text-sm` and `font-normal` Overrides (Button Height Alignment)
@@ -381,6 +392,26 @@ Add a new validation step that:
   - `font-normal` is standard Tailwind class (should be allowed like `font-medium`, `font-semibold`)
   - Validator may be too strict - these are necessary to match chip's exact styling
 
+## Status Color Text and Border Utilities
+
+### `text-status-info`, `text-status-warning`, `text-status-success`
+
+- **Location**: `src/lib/components/molecules/InfoCard.svelte` (lines 23-34)
+- **Usage**: Text color for InfoCard variants (info, warning, success)
+- **Status**: Missing utility classes
+- **Current Workaround**: Using CSS variables directly (`var(--color-status-infoDark)`, etc.)
+- **Proposed Solution**: Add `text-status-*` utilities to transforms.js OR add semantic tokens `color.text.status.info`, `color.text.status.warning`, `color.text.status.success` to `design-tokens-semantic.json`
+- **Note**: Base status colors (`--color-status-info`, `--color-status-infoDark`, etc.) exist, but text utilities don't. Similar to how `--color-text-success` exists but `text-status-success` utility doesn't.
+
+### `border-status-info`, `border-status-warning`, `border-status-success`
+
+- **Location**: `src/lib/components/molecules/InfoCard.svelte` (lines 36-47)
+- **Usage**: Border color for InfoCard variants (info, warning, success)
+- **Status**: Missing utility classes
+- **Current Workaround**: Using CSS variables directly (`var(--color-status-info)`, etc.)
+- **Proposed Solution**: Add `border-status-*` utilities to transforms.js OR add semantic tokens `color.border.status.info`, `color.border.status.warning`, `color.border.status.success` to `design-tokens-semantic.json`
+- **Note**: Base status colors exist, but border utilities don't. Similar to how `--color-border-error` exists but `border-status-error` utility doesn't.
+
 ## Follow-up Tasks
 
 - [ ] Add `spacing.card.row.y` to `design-tokens-semantic.json`
@@ -391,3 +422,4 @@ Add a new validation step that:
 - [ ] Consider adding `noLabel` prop to FormSelect to handle inline usage without gap
 - [ ] Fix toggle switch background utilities: Update transforms.js to generate `bg-component-toggle-off/on` OR move toggle colors outside component namespace
 - [ ] Consider adding `fontWeight` variant to button recipe or documenting `font-normal` as allowed layout primitive
+- [ ] Add `text-status-*` and `border-status-*` utilities for InfoCard component (or add semantic tokens and update transforms.js)

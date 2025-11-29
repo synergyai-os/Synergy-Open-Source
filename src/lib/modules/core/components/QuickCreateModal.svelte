@@ -20,7 +20,7 @@
 		currentView?: 'inbox' | 'flashcards' | 'tags' | 'my_mind' | 'study';
 		initialType?: ContentType | null;
 		sessionId?: string; // Required for session validation
-		organizationId?: string | null; // Active organization ID (for workspace context)
+		workspaceId?: string | null; // Active workspace ID (for workspace context)
 		initialTags?: unknown[]; // Server-side preloaded tags for instant rendering
 	};
 
@@ -30,14 +30,14 @@
 		currentView: _currentView = 'inbox',
 		initialType = null,
 		sessionId,
-		organizationId = null,
+		workspaceId = null,
 		initialTags = []
 	}: Props = $props();
 
 	// Tag query and creation logic extracted to composable (separation of concerns - see SYOS-571)
 	const tags = useQuickCreateTags(
 		() => sessionId ?? null,
-		() => organizationId ?? null,
+		() => workspaceId ?? null,
 		initialTags
 	);
 	const availableTags = tags.availableTags;
@@ -53,7 +53,7 @@
 	// Form state, validation, and mutations extracted to composable (separation of concerns - see SYOS-572)
 	const form = useQuickCreateForm(
 		() => sessionId ?? null,
-		() => organizationId ?? null,
+		() => workspaceId ?? null,
 		() => selectedType
 	);
 

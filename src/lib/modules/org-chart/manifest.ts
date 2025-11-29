@@ -19,8 +19,8 @@ import type { OrgChartModuleAPI } from './api';
 /**
  * Org Chart module manifest
  *
- * **Dependencies**: ['core'] (depends on core module for organizations context)
- * **Feature Flag**: 'org_module_beta' (organization-based targeting)
+ * **Dependencies**: ['core'] (depends on core module for workspaces context)
+ * **Feature Flag**: 'org_module_beta' (workspace-based targeting)
  * **API**: OrgChartModuleAPI (public interface for org chart functionality)
  */
 export const orgChartModule: ModuleManifest = {

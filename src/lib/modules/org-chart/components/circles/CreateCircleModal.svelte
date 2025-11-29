@@ -40,7 +40,7 @@
 			<div>
 				<Dialog.Title class="text-h3 font-semibold text-primary">Create circle</Dialog.Title>
 				<Dialog.Description class="text-button mt-1 text-secondary">
-					Circles represent work organization units like value streams or coordination contexts.
+					Circles represent work workspace units like value streams or coordination contexts.
 				</Dialog.Description>
 			</div>
 

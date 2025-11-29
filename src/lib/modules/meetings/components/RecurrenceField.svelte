@@ -44,18 +44,14 @@
 	let localInterval = $state(String(interval));
 	let localFrequency = $state(frequency);
 	let localDaysOfWeek = $state(daysOfWeek);
-	// Weekly selected day (single selection)
-	let weeklySelectedDay = $state(localDaysOfWeek[0] || '');
+	// Weekly selected day (single selection) - derived from localDaysOfWeek
+	const weeklySelectedDay = $derived(localDaysOfWeek[0] || '');
 
 	// Sync local state with props
 	$effect(() => {
 		localInterval = String(interval);
 		localFrequency = frequency;
 		localDaysOfWeek = daysOfWeek;
-		// Sync weekly selected day
-		if (localFrequency === 'weekly') {
-			weeklySelectedDay = localDaysOfWeek[0] || '';
-		}
 	});
 
 	// Sync local state changes back to parent
@@ -77,7 +73,7 @@
 	});
 </script>
 
-<div class="flex flex-col gap-form-sectionGap {className}">
+<div class="flex flex-col gap-form {className}">
 	<div class="flex items-center gap-fieldGroup">
 		<ToggleSwitch checked={enabled} onChange={onEnabledChange} />
 		<Text variant="body" size="sm" color="default" as="span" class="font-medium">
@@ -86,6 +82,12 @@
 	</div>
 
 	{#if enabled}
+		<!--
+			Recurrence Section
+			- Left border uses border-l-2 (2px) for visual emphasis
+			- WORKAROUND: No semantic token for border width - see missing-styles.md
+			- Padding-left uses semantic token var(--spacing-form-sectionGap) for indentation
+		-->
 		<div
 			class="border-accent-primary flex flex-col gap-form-sectionGap border-l-2"
 			style="padding-left: var(--spacing-form-sectionGap);"
@@ -108,27 +110,22 @@
 
 			<!-- Days of Week (for weekly and daily) -->
 			{#if localFrequency === 'weekly' || localFrequency === 'daily'}
-				<div>
-					<Text variant="body" size="sm" color="secondary" as="span" class="mb-fieldGroup block">
-						On
-					</Text>
-					<div class="inline-flex flex-nowrap items-center gap-fieldGroup">
+				<div class="flex flex-col gap-fieldGroup">
+					<Text variant="body" size="sm" color="secondary" as="span" class="block">On</Text>
+					<div class="flex flex-wrap items-center gap-fieldGroup">
 						{#if localFrequency === 'weekly'}
 							<ToggleGroup.Root
 								type="single"
-								bind:value={weeklySelectedDay}
+								value={weeklySelectedDay}
 								onValueChange={(value) => {
 									if (value !== null && value !== undefined) {
 										localDaysOfWeek = [value];
 									}
 								}}
-								class="inline-flex flex-nowrap gap-fieldGroup"
+								class="flex flex-wrap gap-fieldGroup"
 							>
 								{#each DAY_NAMES as day, index (index)}
-									<ToggleGroup.Item
-										value={index.toString()}
-										class="toggle-group-day data-[state=on]:border-accent-primary data-[state=on]:bg-accent-primary data-[state=on]:text-primary"
-									>
+									<ToggleGroup.Item value={index.toString()} class="toggle-group-day">
 										{day}
 									</ToggleGroup.Item>
 								{/each}
@@ -137,13 +134,10 @@
 							<ToggleGroup.Root
 								type="multiple"
 								bind:value={localDaysOfWeek}
-								class="inline-flex flex-nowrap gap-fieldGroup"
+								class="flex flex-wrap gap-fieldGroup"
 							>
 								{#each DAY_NAMES as day, index (index)}
-									<ToggleGroup.Item
-										value={index.toString()}
-										class="toggle-group-day data-[state=on]:border-accent-primary data-[state=on]:bg-accent-primary data-[state=on]:text-primary"
-									>
+									<ToggleGroup.Item value={index.toString()} class="toggle-group-day">
 										{day}
 									</ToggleGroup.Item>
 								{/each}

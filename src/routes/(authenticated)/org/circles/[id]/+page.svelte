@@ -7,30 +7,30 @@
 	import { useCircles } from '$lib/modules/org-chart/composables/useCircles.svelte';
 	import CircleMembersPanel from '$lib/modules/org-chart/components/circles/CircleMembersPanel.svelte';
 	import CircleRolesPanel from '$lib/modules/org-chart/components/circles/CircleRolesPanel.svelte';
-	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
 
 	let { data: _data } = $props();
 
-	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
+	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
 	const circleId = $derived($page.params['id'] as string);
 	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
 	// Pattern: Check object existence first, then access getter property directly
 	// See SYOS-228 for full pattern documentation
-	const organizationId = $derived(() => {
-		if (!organizations) return undefined;
-		return organizations.activeOrganizationId ?? undefined;
+	const workspaceId = $derived(() => {
+		if (!workspaces) return undefined;
+		return workspaces.activeWorkspaceId ?? undefined;
 	});
 	const getSessionId = () => $page.data.sessionId;
 	// CRITICAL: Call $derived function to get primitive value (not the function itself)
 	// Pattern: When passing $derived values to Convex queries, extract primitive first
 	// See SYOS-228 for full pattern documentation
-	const getOrganizationId = () => organizationId();
+	const getWorkspaceId = () => workspaceId();
 	const getCircleId = () => circleId;
 
 	// Initialize circles composable
 	const circles = useCircles({
 		sessionId: getSessionId,
-		organizationId: getOrganizationId,
+		workspaceId: getWorkspaceId,
 		circleId: getCircleId
 	});
 
@@ -182,7 +182,7 @@
 					<p class="text-secondary">Circle not found</p>
 					<button
 						onclick={() => {
-							const orgId = organizationId();
+							const orgId = workspaceId();
 							if (orgId) {
 								goto(resolveRoute(`/org/circles?org=${orgId}`));
 							} else {

@@ -14,20 +14,20 @@
 	type Props = {
 		selectedAttendees: Attendee[];
 		onAttendeesChange: (attendees: Attendee[]) => void;
-		organizationId: Id<'organizations'>;
+		workspaceId: Id<'workspaces'>;
 		sessionId: string;
 	};
 
 	let {
 		selectedAttendees = $bindable([]),
 		onAttendeesChange,
-		organizationId,
+		workspaceId,
 		sessionId
 	}: Props = $props();
 
 	// Use composable for all data and logic
 	const attendeeSelection = useAttendeeSelection({
-		organizationId: () => organizationId,
+		workspaceId: () => workspaceId,
 		sessionId: () => sessionId,
 		selectedAttendees: () => selectedAttendees,
 		onAttendeesChange

@@ -17,7 +17,7 @@
 	name="Empty"
 	args={{
 		selectedAttendees: [],
-		organizationId: mockOrganizationId,
+		workspaceId: mockOrganizationId,
 		sessionId: mockSessionId
 	}}
 >
@@ -28,7 +28,7 @@
 				onAttendeesChange={(attendees) => {
 					args.selectedAttendees = attendees;
 				}}
-				organizationId={args.organizationId}
+				workspaceId={args.workspaceId}
 				sessionId={args.sessionId}
 			/>
 		</div>
@@ -51,7 +51,7 @@
 				name: 'Engineering'
 			}
 		],
-		organizationId: mockOrganizationId,
+		workspaceId: mockOrganizationId,
 		sessionId: mockSessionId
 	}}
 >
@@ -62,7 +62,7 @@
 				onAttendeesChange={(attendees) => {
 					args.selectedAttendees = attendees;
 				}}
-				organizationId={args.organizationId}
+				workspaceId={args.workspaceId}
 				sessionId={args.sessionId}
 			/>
 		</div>
@@ -96,7 +96,7 @@
 				name: 'Product'
 			}
 		],
-		organizationId: mockOrganizationId,
+		workspaceId: mockOrganizationId,
 		sessionId: mockSessionId
 	}}
 >
@@ -107,7 +107,7 @@
 				onAttendeesChange={(attendees) => {
 					args.selectedAttendees = attendees;
 				}}
-				organizationId={args.organizationId}
+				workspaceId={args.workspaceId}
 				sessionId={args.sessionId}
 			/>
 		</div>

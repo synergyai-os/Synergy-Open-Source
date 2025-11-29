@@ -6,7 +6,7 @@
 	import { api } from '$lib/convex';
 	import { Button } from 'bits-ui';
 	import type { Id } from '$lib/convex';
-	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
 	import type { CoreModuleAPI } from '$lib/modules/core/api';
 
 	type Flashcard = {
@@ -33,28 +33,28 @@
 	const getUserId = () => $page.data.user?.userId;
 	const getSessionId = () => $page.data.sessionId;
 
-	// Get workspace context for organization filtering
-	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
-	const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
+	// Get workspace context for workspace filtering
+	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
+	const activeWorkspaceId = $derived(() => workspaces?.activeWorkspaceId ?? null);
 
 	// Get core module API from context for TagSelector and tagging (enables loose coupling - see SYOS-308, SYOS-317)
 	const coreAPI = getContext<CoreModuleAPI | undefined>('core-api');
 	const TagSelector = coreAPI?.TagSelector;
 	// Setup tagging system for flashcards using core API
 	const tagging = coreAPI?.useTagging('flashcard', getUserId, getSessionId, () =>
-		activeOrganizationId()
+		activeWorkspaceId()
 	);
 
-	// Load all available tags (filtered by active organization)
+	// Load all available tags (filtered by active workspace)
 	const allTagsQuery =
 		browser && getSessionId()
 			? useQuery(api.tags.listAllTags, () => {
 					const sessionId = getSessionId();
 					if (!sessionId) throw new Error('sessionId required'); // Should not happen due to outer check
-					const orgId = activeOrganizationId();
+					const orgId = activeWorkspaceId();
 					return {
 						sessionId,
-						...(orgId ? { organizationId: orgId as Id<'organizations'> } : {})
+						...(orgId ? { workspaceId: orgId as Id<'workspaces'> } : {})
 					};
 				})
 			: null;

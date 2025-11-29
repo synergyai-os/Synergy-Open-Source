@@ -36,7 +36,7 @@ export function useTagging(
 	entityType: EntityType,
 	getUserId: () => string | undefined,
 	getSessionId: () => string | null | undefined,
-	getOrganizationId?: () => string | null | undefined
+	getWorkspaceId?: () => string | null | undefined
 ) {
 	// Svelte 5 pattern: Single $state object with getters
 	const state = $state({
@@ -73,8 +73,8 @@ export function useTagging(
 					displayName: string;
 					color: string;
 					parentId?: Id<'tags'>;
-					ownership?: 'user' | 'organization' | 'circle';
-					organizationId?: Id<'organizations'>;
+					ownership?: 'user' | 'workspace' | 'circle';
+					workspaceId?: Id<'workspaces'>;
 					circleId?: Id<'circles'>;
 				},
 				Id<'tags'>
@@ -126,7 +126,7 @@ export function useTagging(
 
 	/**
 	 * Create a new tag with color and optional parent
-	 * If organizationId is available, creates as organization tag
+	 * If workspaceId is available, creates as workspace tag
 	 * Otherwise, creates as user tag (visible across all orgs)
 	 */
 	async function createTag(
@@ -146,14 +146,14 @@ export function useTagging(
 				throw new Error('Session ID is required');
 			}
 
-			const orgId = getOrganizationId?.();
+			const orgId = getWorkspaceId?.();
 			const tagId = await convexClient.mutation(createTagMutation, {
 				sessionId,
 				displayName,
 				color,
 				parentId,
 				...(orgId
-					? { ownership: 'organization' as const, organizationId: orgId as Id<'organizations'> }
+					? { ownership: 'workspace' as const, workspaceId: orgId as Id<'workspaces'> }
 					: {})
 			});
 

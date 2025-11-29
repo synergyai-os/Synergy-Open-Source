@@ -94,7 +94,7 @@ These are **themes**, not features. Each theme has clear outcomes and success si
 
 **Key Capabilities Needed**:
 
-- Multi-tenancy (organizations & teams)
+- Multi-tenancy (workspaces & teams)
 - Permissions (who can see/edit what)
 - Core workflows (meetings, alignment, glossaries)
 - Stable, reliable infrastructure
@@ -105,7 +105,7 @@ These are **themes**, not features. Each theme has clear outcomes and success si
 
 ### Theme 2: Multi-Tenant Foundation
 
-**Outcome**: Multiple organizations can use the platform simultaneously with clear data boundaries.
+**Outcome**: Multiple workspaces can use the platform simultaneously with clear data boundaries.
 
 **Why This Matters**: Without multi-tenancy, we can only serve one customer. This unlocks scalability.
 

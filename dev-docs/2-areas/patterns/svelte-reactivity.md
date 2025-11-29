@@ -14,13 +14,13 @@ Patterns for Svelte 5 runes, reactivity, composables, and state management.
 ```typescript
 // ❌ BROKEN: Composable receives values at call time, not reactive signals
 const { currentAccountOrganizations, linkedAccountsWithOrgs } = useOrganizationSwitcherData({
-    organizations,    // Captured at call time!
+    workspaces,    // Captured at call time!
     linkedAccounts    // Captured at call time!
 });
 
 // Inside composable - $derived tracks local variable, not prop
 export function useOrganizationSwitcherData(options) {
-    const { organizations, linkedAccounts } = options; // Captured once
+    const { workspaces, linkedAccounts } = options; // Captured once
     
     const linkedAccountsWithOrgs = $derived.by(() => {
         // This tracks `linkedAccounts` local variable, NOT the prop
@@ -34,12 +34,12 @@ export function useOrganizationSwitcherData(options) {
 ```svelte
 <!-- ✅ CORRECT: Inline $derived directly tracks props -->
 <script lang="ts">
-    let { organizations, linkedAccounts } = $props();
+    let { workspaces, linkedAccounts } = $props();
     
     // $derived directly tracks the prop - updates when prop changes
     const currentAccountOrganizations = $derived(
-        organizations.filter(org => org.organizationId).map(org => ({
-            organizationId: org.organizationId,
+        workspaces.filter(org => org.workspaceId).map(org => ({
+            workspaceId: org.workspaceId,
             name: org.name,
             isFromLinkedAccount: false
         }))
@@ -55,7 +55,7 @@ export function useOrganizationSwitcherData(options) {
 ```typescript
 // Pass getter functions to maintain reactivity
 const data = useOrganizationSwitcherData({
-    getOrganizations: () => organizations,
+    getOrganizations: () => workspaces,
     getLinkedAccounts: () => linkedAccounts
 });
 

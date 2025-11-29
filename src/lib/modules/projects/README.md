@@ -2,7 +2,7 @@
 
 **Team Ownership**: Projects Team  
 **Status**: 🚧 Planned  
-**Feature Flag**: `projects-module` (organization-based)
+**Feature Flag**: `projects-module` (workspace-based)
 
 ---
 
@@ -10,7 +10,7 @@
 
 ### Lightweight Project Management
 
-**"We don't want to be a project management app - we integrate with tools organizations already use."**
+**"We don't want to be a project management app - we integrate with tools workspaces already use."**
 
 Projects in SynergyOS are **lightweight wrappers** around external project management tools:
 
@@ -45,6 +45,20 @@ Projects in SynergyOS are **lightweight wrappers** around external project manag
 
 ## Data Entities
 
+### Action Items
+
+- **Core Entity**: Tasks that can exist standalone or be linked to meetings/projects
+- **Always Type**: `next-step` (individual tasks, not projects)
+- **Creation Contexts**:
+  - Standalone: Created independently for task management
+  - In Meetings: Created during meetings, linked to meeting/agenda for traceability
+- **Project Linking**: Optional link to projects via `projectId`
+- **Assignment**: Polymorphic (user OR role)
+- **Status**: `todo`, `in-progress`, `done`
+- **External Sync**: Can sync to Linear, Notion, etc. (via project or individually)
+- **Workspace-scoped**: Required `workspaceId` field
+- **Optional Fields**: `meetingId`, `agendaItemId`, `projectId`, `circleId`, `dueDate`
+
 ### Projects
 
 - **Lightweight Entity**: Basic project info + external tool link
@@ -55,10 +69,10 @@ Projects in SynergyOS are **lightweight wrappers** around external project manag
 
 ### Action Items → Projects Relationship
 
-- **Action Items**: Always type `next-step` (individual tasks)
-- **Optional Project Link**: Action items can link to projects (optional)
+- **Optional Link**: Action items can link to projects via `projectId`
 - **Standalone Support**: Action items can exist without projects
 - **Link Later**: Can link action items to projects during or after creation
+- **Sync Behavior**: When linked to project, syncs to external tool as task within project
 
 ---
 
@@ -68,7 +82,7 @@ Projects in SynergyOS are **lightweight wrappers** around external project manag
 
 ```typescript
 projects: defineTable({
-  organizationId: v.id('organizations'),
+  workspaceId: v.id('workspaces'),
   circleId: v.optional(v.id('circles')),
 
   // Basic info
@@ -102,7 +116,7 @@ projects: defineTable({
   createdBy: v.id('users'),
   updatedAt: v.number()
 })
-.index('by_organization', ['organizationId'])
+.index('by_organization', ['workspaceId'])
 .index('by_circle', ['circleId'])
 .index('by_external_tool', ['externalTool', 'externalProjectId'])
 
@@ -127,7 +141,7 @@ meetingActionItems: {
 ```typescript
 // Organization-level integration settings
 organizationIntegrations: defineTable({
-	organizationId: v.id('organizations'),
+	workspaceId: v.id('workspaces'),
 
 	// Per-tool configuration
 	linear: v.optional(
@@ -153,7 +167,7 @@ organizationIntegrations: defineTable({
 // User-level external tool user IDs (for assignment)
 userExternalToolIds: defineTable({
 	userId: v.id('users'),
-	organizationId: v.id('organizations'),
+	workspaceId: v.id('workspaces'),
 
 	// External tool user IDs
 	linearUserId: v.optional(v.string()),
@@ -163,7 +177,7 @@ userExternalToolIds: defineTable({
 
 	createdAt: v.number(),
 	updatedAt: v.number()
-}).index('by_user_org', ['userId', 'organizationId']);
+}).index('by_user_org', ['userId', 'workspaceId']);
 
 // Circle-level default project tool
 circleProjectDefaults: defineTable({

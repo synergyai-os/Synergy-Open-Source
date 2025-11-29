@@ -8,7 +8,7 @@
 
 ## Overview
 
-The Core module provides foundational functionality shared across all modules. It includes global components, composables, and organization management features.
+The Core module provides foundational functionality shared across all modules. It includes global components, composables, and workspace management features.
 
 ## Module Structure
 
@@ -30,14 +30,14 @@ core/
 │   ├── useLoadingOverlay.svelte.ts
 │   ├── useNavigationStack.svelte.ts
 │   └── useTagging.svelte.ts
-├── organizations/      # Organization & team management
+├── workspaces/      # Organization & team management
 │   ├── components/
 │   │   ├── CreateTeamModal.svelte
 │   │   ├── OrganizationModals.svelte
 │   │   ├── OrganizationSwitcher.svelte
 │   │   └── WorkspaceSwitchOverlay.svelte
 │   └── composables/
-│       ├── useOrganizations.svelte.ts
+│       ├── useWorkspaces.svelte.ts
 │       ├── useTeams.svelte.ts
 │       └── ...
 ├── api.ts              # Module API contract
@@ -91,7 +91,7 @@ if (api) {
 **Responsibilities**:
 
 - Maintain global components (Sidebar, AppTopBar, etc.)
-- Maintain organization & team management features
+- Maintain workspace & team management features
 - Ensure backward compatibility for other modules
 - Review PRs that affect core functionality
 
@@ -103,39 +103,39 @@ if (api) {
 # Run all core module tests
 npm run test:unit:server -- src/lib/modules/core
 
-# Run organizations submodule tests
-npm run test:integration -- src/lib/modules/core/organizations/__tests__/
+# Run workspaces submodule tests
+npm run test:integration -- src/lib/modules/core/workspaces/__tests__/
 
 # Run specific test file
-npm run test:unit:server -- src/lib/modules/core/organizations/__tests__/organizations.integration.test.ts
+npm run test:unit:server -- src/lib/modules/core/workspaces/__tests__/workspaces.integration.test.ts
 ```
 
 ### Test Structure
 
 ```
 core/
-├── organizations/
+├── workspaces/
 │   └── __tests__/                      # ✅ Module test suite (colocated)
-│       └── organizations.integration.test.ts
+│       └── workspaces.integration.test.ts
 ├── components/                         # Component tests colocated here (when added)
 └── composables/                        # Composable tests colocated here (when added)
 ```
 
-**See**: [Test Organization Strategy](../../../../dev-docs/2-areas/development/test-organization-strategy.md) for complete testing patterns.
+**See**: [Test Organization Strategy](../../../../dev-docs/2-areas/development/test-workspace-strategy.md) for complete testing patterns.
 
 ## Testing
 
 ### Running Module Tests
 
 ```bash
-# Run all core module tests (including organizations)
+# Run all core module tests (including workspaces)
 npm run test:unit:server -- src/lib/modules/core
 
-# Run organizations tests specifically
-npm run test:unit:server -- src/lib/modules/core/organizations/__tests__/
+# Run workspaces tests specifically
+npm run test:unit:server -- src/lib/modules/core/workspaces/__tests__/
 
 # Run specific test file
-npm run test:unit:server -- src/lib/modules/core/organizations/__tests__/organizations.integration.test.ts
+npm run test:unit:server -- src/lib/modules/core/workspaces/__tests__/workspaces.integration.test.ts
 
 # Run in watch mode for development
 npm run test:unit:server -- src/lib/modules/core --watch
@@ -147,9 +147,9 @@ Module integration tests are colocated in `__tests__/` folders:
 
 ```
 core/
-└── organizations/
+└── workspaces/
     └── __tests__/
-        └── organizations.integration.test.ts
+        └── workspaces.integration.test.ts
 ```
 
 **Test Coverage**:
@@ -159,7 +159,7 @@ core/
 - ✅ Organization invites
 - ✅ RBAC permission checks
 
-**See**: [Test Organization Strategy](../../../../dev-docs/2-areas/development/test-organization-strategy.md) for complete testing patterns.
+**See**: [Test Organization Strategy](../../../../dev-docs/2-areas/development/test-workspace-strategy.md) for complete testing patterns.
 
 ## Development Guidelines
 

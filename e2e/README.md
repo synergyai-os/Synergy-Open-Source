@@ -70,7 +70,7 @@ E2E tests use password authentication (`grant_type: 'password'`). If the test us
    - First Name: `E2E`
    - Last Name: `Test`
    - Email Verified: ✅ **Check this box** (critical - skip email verification flow)
-5. **IMPORTANT**: Do NOT link this user to any organization with SSO connections
+5. **IMPORTANT**: Do NOT link this user to any workspace with SSO connections
 6. **Verify**: Email should show as "Verified" after creation
 
 #### Update `.env.test`:
@@ -447,11 +447,11 @@ If authentication fails with `"sso_required"` error:
 **Solution**:
 
 1. Create a new test user (see [Test User Setup](#2-test-user-setup))
-2. Ensure the new user is NOT linked to any organization with SSO connections
+2. Ensure the new user is NOT linked to any workspace with SSO connections
 3. Use a different email domain (e.g., `e2e-test@synergyos-testing.com`)
 4. Update `TEST_USER_EMAIL` in `.env.test`
 
-**Why this happens**: WorkOS enforces SSO when a user is linked to an SSO-enabled organization. E2E tests use password authentication (`grant_type: 'password'`), which is incompatible with SSO enforcement.
+**Why this happens**: WorkOS enforces SSO when a user is linked to an SSO-enabled workspace. E2E tests use password authentication (`grant_type: 'password'`), which is incompatible with SSO enforcement.
 
 ### Slow Tests
 

@@ -6,7 +6,7 @@ import type { Doc, Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 
 /**
- * Circles represent work organization units (not people grouping)
+ * Circles represent work workspace units (not people grouping)
  * Examples: value streams, functions, coordination contexts
  * Circles can be nested (parent-child relationships)
  */
@@ -24,12 +24,12 @@ function slugifyName(name: string): string {
 
 async function ensureUniqueCircleSlug(
 	ctx: MutationCtx,
-	organizationId: Id<'organizations'>,
+	workspaceId: Id<'workspaces'>,
 	baseSlug: string
 ): Promise<string> {
 	const existingCircles = await ctx.db
 		.query('circles')
-		.withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
+		.withIndex('by_workspace', (q) => q.eq('workspaceId', workspaceId))
 		.collect();
 
 	const existingSlugs = new Set(existingCircles.map((circle) => circle.slug));
@@ -43,41 +43,39 @@ async function ensureUniqueCircleSlug(
 	return slug;
 }
 
-async function ensureOrganizationMembership(
+async function ensureWorkspaceMembership(
 	ctx: QueryCtx | MutationCtx,
-	organizationId: Id<'organizations'>,
+	workspaceId: Id<'workspaces'>,
 	userId: Id<'users'>
 ): Promise<void> {
 	const membership = await ctx.db
-		.query('organizationMembers')
-		.withIndex('by_organization_user', (q) =>
-			q.eq('organizationId', organizationId).eq('userId', userId)
-		)
+		.query('workspaceMembers')
+		.withIndex('by_workspace_user', (q) => q.eq('workspaceId', workspaceId).eq('userId', userId))
 		.first();
 
 	if (!membership) {
-		throw new Error('You do not have access to this organization');
+		throw new Error('You do not have access to this workspace');
 	}
 }
 
 /**
- * List all circles in an organization
+ * List all circles in an workspace
  */
 export const list = query({
 	args: {
 		sessionId: v.string(),
-		organizationId: v.id('organizations')
+		workspaceId: v.id('workspaces')
 	},
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		// Verify user has access to this organization
-		await ensureOrganizationMembership(ctx, args.organizationId, userId);
+		// Verify user has access to this workspace
+		await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
 
 		// Get all circles (including archived)
 		const circles = await ctx.db
 			.query('circles')
-			.withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId))
+			.withIndex('by_workspace', (q) => q.eq('workspaceId', args.workspaceId))
 			.collect();
 
 		// Get member counts and roles for each circle
@@ -103,7 +101,7 @@ export const list = query({
 
 				return {
 					circleId: circle._id,
-					organizationId: circle.organizationId,
+					workspaceId: circle.workspaceId,
 					name: circle.name,
 					slug: circle.slug,
 					purpose: circle.purpose,
@@ -142,8 +140,8 @@ export const get = query({
 			throw new Error('Circle not found');
 		}
 
-		// Verify user has access to this organization
-		await ensureOrganizationMembership(ctx, circle.organizationId, userId);
+		// Verify user has access to this workspace
+		await ensureWorkspaceMembership(ctx, circle.workspaceId, userId);
 
 		// Get member count
 		const members = await ctx.db
@@ -160,7 +158,7 @@ export const get = query({
 
 		return {
 			circleId: circle._id,
-			organizationId: circle.organizationId,
+			workspaceId: circle.workspaceId,
 			name: circle.name,
 			slug: circle.slug,
 			purpose: circle.purpose,
@@ -190,8 +188,8 @@ export const getMembers = query({
 			throw new Error('Circle not found');
 		}
 
-		// Verify user has access to this organization
-		await ensureOrganizationMembership(ctx, circle.organizationId, userId);
+		// Verify user has access to this workspace
+		await ensureWorkspaceMembership(ctx, circle.workspaceId, userId);
 
 		const memberships = await ctx.db
 			.query('circleMembers')
@@ -222,7 +220,7 @@ export const getMembers = query({
 export const create = mutation({
 	args: {
 		sessionId: v.string(),
-		organizationId: v.id('organizations'),
+		workspaceId: v.id('workspaces'),
 		name: v.string(),
 		purpose: v.optional(v.string()),
 		parentCircleId: v.optional(v.id('circles'))
@@ -233,8 +231,8 @@ export const create = mutation({
 			throw new Error('Not authenticated');
 		}
 
-		// Verify user has access to this organization
-		await ensureOrganizationMembership(ctx, args.organizationId, userId);
+		// Verify user has access to this workspace
+		await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
 
 		const trimmedName = args.name.trim();
 		if (!trimmedName) {
@@ -247,17 +245,17 @@ export const create = mutation({
 			if (!parentCircle) {
 				throw new Error('Parent circle not found');
 			}
-			if (parentCircle.organizationId !== args.organizationId) {
-				throw new Error('Parent circle must belong to the same organization');
+			if (parentCircle.workspaceId !== args.workspaceId) {
+				throw new Error('Parent circle must belong to the same workspace');
 			}
 		}
 
 		const slugBase = slugifyName(trimmedName);
-		const slug = await ensureUniqueCircleSlug(ctx, args.organizationId, slugBase);
+		const slug = await ensureUniqueCircleSlug(ctx, args.workspaceId, slugBase);
 		const now = Date.now();
 
 		const circleId = await ctx.db.insert('circles', {
-			organizationId: args.organizationId,
+			workspaceId: args.workspaceId,
 			name: trimmedName,
 			slug,
 			purpose: args.purpose,
@@ -295,8 +293,8 @@ export const update = mutation({
 			throw new Error('Circle not found');
 		}
 
-		// Verify user has access to this organization
-		await ensureOrganizationMembership(ctx, circle.organizationId, userId);
+		// Verify user has access to this workspace
+		await ensureWorkspaceMembership(ctx, circle.workspaceId, userId);
 
 		const updates: Partial<Doc<'circles'>> = {
 			updatedAt: Date.now()
@@ -310,7 +308,7 @@ export const update = mutation({
 			updates.name = trimmedName;
 
 			const slugBase = slugifyName(trimmedName);
-			updates.slug = await ensureUniqueCircleSlug(ctx, circle.organizationId, slugBase);
+			updates.slug = await ensureUniqueCircleSlug(ctx, circle.workspaceId, slugBase);
 		}
 
 		if (args.purpose !== undefined) {
@@ -324,8 +322,8 @@ export const update = mutation({
 				if (!parentCircle) {
 					throw new Error('Parent circle not found');
 				}
-				if (parentCircle.organizationId !== circle.organizationId) {
-					throw new Error('Parent circle must belong to the same organization');
+				if (parentCircle.workspaceId !== circle.workspaceId) {
+					throw new Error('Parent circle must belong to the same workspace');
 				}
 				// Prevent circular references
 				if (args.parentCircleId === args.circleId) {
@@ -360,8 +358,8 @@ export const archive = mutation({
 			throw new Error('Circle not found');
 		}
 
-		// Verify user has access to this organization
-		await ensureOrganizationMembership(ctx, circle.organizationId, userId);
+		// Verify user has access to this workspace
+		await ensureWorkspaceMembership(ctx, circle.workspaceId, userId);
 
 		await ctx.db.patch(args.circleId, {
 			archivedAt: Date.now(),
@@ -392,11 +390,11 @@ export const addMember = mutation({
 			throw new Error('Circle not found');
 		}
 
-		// Verify acting user has access to this organization
-		await ensureOrganizationMembership(ctx, circle.organizationId, actingUserId);
+		// Verify acting user has access to this workspace
+		await ensureWorkspaceMembership(ctx, circle.workspaceId, actingUserId);
 
-		// Verify target user has access to this organization
-		await ensureOrganizationMembership(ctx, circle.organizationId, args.userId);
+		// Verify target user has access to this workspace
+		await ensureWorkspaceMembership(ctx, circle.workspaceId, args.userId);
 
 		// Check if already a member
 		const existingMembership = await ctx.db
@@ -438,8 +436,8 @@ export const removeMember = mutation({
 			throw new Error('Circle not found');
 		}
 
-		// Verify acting user has access to this organization
-		await ensureOrganizationMembership(ctx, circle.organizationId, actingUserId);
+		// Verify acting user has access to this workspace
+		await ensureWorkspaceMembership(ctx, circle.workspaceId, actingUserId);
 
 		// Find membership
 		const membership = await ctx.db

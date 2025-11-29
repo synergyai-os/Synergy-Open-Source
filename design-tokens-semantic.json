@@ -94,6 +94,14 @@
 					"dark": "{color.status.errorLight}"
 				},
 				"$description": "Error text"
+			},
+			"info": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.status.infoDark}",
+					"dark": "{color.status.info}"
+				},
+				"$description": "Info text"
 			}
 		},
 
@@ -214,6 +222,30 @@
 					"dark": "{color.status.error}"
 				},
 				"$description": "Error border"
+			},
+			"info": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.status.info}",
+					"dark": "{color.status.info}"
+				},
+				"$description": "Info border"
+			},
+			"warning": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.status.warning}",
+					"dark": "{color.status.warning}"
+				},
+				"$description": "Warning border"
+			},
+			"success": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.status.success}",
+					"dark": "{color.status.success}"
+				},
+				"$description": "Success border"
 			}
 		},
 

@@ -70,3 +70,8 @@ export {
 	type StepperConnectorVariantProps,
 	type StepperStepButtonVariantProps
 } from './stepper.recipe';
+export { infoCardRecipe, type InfoCardVariantProps } from './infoCard.recipe';
+export { dateInputRecipe, type DateInputVariantProps } from './dateInput.recipe';
+export { datePickerContentRecipe, type DatePickerContentVariantProps } from './datePicker.recipe';
+export { timeInputRecipe, type TimeInputVariantProps } from './timeInput.recipe';
+export { durationInputRecipe, type DurationInputVariantProps } from './durationInput.recipe';

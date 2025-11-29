@@ -7,7 +7,7 @@
 	import { api } from '$lib/convex';
 	import { toast } from '$lib/utils/toast';
 	import { browser } from '$app/environment';
-	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
 	import type { Id } from '$lib/convex';
 
 	// Get user from page data
@@ -15,18 +15,18 @@
 	const sessionId = $derived($page.data.sessionId);
 
 	// Get workspace context from Svelte context (set by root layout)
-	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
+	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
 	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
 	// Pattern: Check object existence first, then access getter property directly
 	// See SYOS-228 for full pattern documentation
-	const activeOrganizationId = $derived(() => {
-		if (!organizations) return null;
-		return organizations.activeOrganizationId ?? null;
+	const activeWorkspaceId = $derived(() => {
+		if (!workspaces) return null;
+		return workspaces.activeWorkspaceId ?? null;
 	});
-	const activeOrganization = $derived(() => {
-		if (!organizations) return undefined;
-		const orgId = activeOrganizationId();
-		return organizations.organizations.find((org) => org.organizationId === orgId);
+	const activeWorkspace = $derived(() => {
+		if (!workspaces) return undefined;
+		const orgId = activeWorkspaceId();
+		return workspaces.workspaces.find((org) => org.workspaceId === orgId);
 	});
 
 	// Initialize permissions composable with workspace context
@@ -42,9 +42,9 @@
 	const permissions = usePermissions({
 		sessionId: () => sessionId ?? null,
 		userId: () => (userId ? (userId as Id<'users'>) : null),
-		organizationId: () => {
-			const orgId = activeOrganizationId();
-			return orgId ? (orgId as Id<'organizations'>) : null;
+		workspaceId: () => {
+			const orgId = activeWorkspaceId();
+			return orgId ? (orgId as Id<'workspaces'>) : null;
 		},
 		initialPermissions // Server-side preloaded for instant button visibility
 	});
@@ -58,9 +58,9 @@
 
 	// Test mutation functions
 	async function testCreateTeam() {
-		const orgId = activeOrganizationId();
+		const orgId = activeWorkspaceId();
 		if (!convexClient || !orgId || !userId) {
-			toast.error('Please select an organization first');
+			toast.error('Please select an workspace first');
 			return;
 		}
 
@@ -73,7 +73,7 @@
 		try {
 			await convexClient.mutation(api.circles.create, {
 				sessionId,
-				organizationId: orgId as Id<'organizations'>,
+				workspaceId: orgId as Id<'workspaces'>,
 				name: `Test Circle ${Math.floor(Math.random() * 1000)}`
 			});
 			if (loadingToastId !== undefined) {
@@ -88,9 +88,9 @@
 	}
 
 	async function testInviteUser() {
-		const orgId = activeOrganizationId();
+		const orgId = activeWorkspaceId();
 		if (!convexClient || !orgId || !userId) {
-			toast.error('Please select an organization first');
+			toast.error('Please select an workspace first');
 			return;
 		}
 
@@ -101,9 +101,9 @@
 			return;
 		}
 		try {
-			await convexClient.mutation(api.organizations.createOrganizationInvite, {
+			await convexClient.mutation(api.workspaces.createWorkspaceInvite, {
 				sessionId,
-				organizationId: orgId as Id<'organizations'>,
+				workspaceId: orgId as Id<'workspaces'>,
 				email: `test${Math.floor(Math.random() * 1000)}@example.com`,
 				role: 'member'
 			});
@@ -158,12 +158,12 @@
 	<header class="mb-section-tight">
 		<div class="mb-2 flex items-baseline gap-2">
 			<h1 class="text-display-lg font-semibold text-primary">Permission System Test</h1>
-			{#if activeOrganization}
+			{#if activeWorkspace}
 				<span class="text-sm text-secondary">
-					for <strong class="text-primary">{activeOrganization.name}</strong>
+					for <strong class="text-primary">{activeWorkspace.name}</strong>
 				</span>
 			{:else}
-				<span class="text-danger text-sm"> ⚠️ No organization selected </span>
+				<span class="text-danger text-sm"> ⚠️ No workspace selected </span>
 			{/if}
 		</div>
 		<p class="max-w-prose text-body text-secondary">
@@ -192,9 +192,9 @@
 			<div>
 				<dt class="text-label text-secondary">Organization</dt>
 				<dd class="text-body text-primary">
-					{activeOrganization()?.name ?? 'None selected'}
-					{#if activeOrganizationId()}
-						<span class="font-code text-sm text-secondary">({activeOrganizationId()})</span>
+					{activeWorkspace()?.name ?? 'None selected'}
+					{#if activeWorkspaceId()}
+						<span class="font-code text-sm text-secondary">({activeWorkspaceId()})</span>
 					{/if}
 				</dd>
 			</div>

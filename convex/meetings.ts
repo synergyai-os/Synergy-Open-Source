@@ -15,22 +15,20 @@ import type { Id } from './_generated/dataModel';
 import type { MutationCtx, QueryCtx } from './_generated/server';
 
 /**
- * Helper: Verify user has access to organization
+ * Helper: Verify user has access to workspace
  */
-async function ensureOrganizationMembership(
+async function ensureWorkspaceMembership(
 	ctx: QueryCtx | MutationCtx,
-	organizationId: Id<'organizations'>,
+	workspaceId: Id<'workspaces'>,
 	userId: Id<'users'>
 ): Promise<void> {
 	const membership = await ctx.db
-		.query('organizationMembers')
-		.withIndex('by_organization_user', (q) =>
-			q.eq('organizationId', organizationId).eq('userId', userId)
-		)
+		.query('workspaceMembers')
+		.withIndex('by_workspace_user', (q) => q.eq('workspaceId', workspaceId).eq('userId', userId))
 		.first();
 
 	if (!membership) {
-		throw new Error('User is not a member of this organization');
+		throw new Error('User is not a member of this workspace');
 	}
 }
 
@@ -39,39 +37,51 @@ async function ensureOrganizationMembership(
 // ============================================================================
 
 /**
- * List all meetings for an organization
+ * List all meetings for an workspace
  */
 export const list = query({
 	args: {
 		sessionId: v.string(),
-		organizationId: v.id('organizations')
+		workspaceId: v.id('workspaces')
 	},
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		// Verify user has access to this organization
-		await ensureOrganizationMembership(ctx, args.organizationId, userId);
+		// Verify user has access to this workspace
+		await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
 
-		// Get all meetings
+		// Get all meetings (excluding soft-deleted)
 		const meetings = await ctx.db
 			.query('meetings')
-			.withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId))
-			.collect();
+			.withIndex('by_workspace', (q) => q.eq('workspaceId', args.workspaceId))
+			.collect()
+			.then((meetings) => meetings.filter((m) => !m.deletedAt));
 
-		// Get attendee counts for each meeting
-		const results = await Promise.all(
-			meetings.map(async (meeting) => {
-				const attendees = await ctx.db
-					.query('meetingAttendees')
-					.withIndex('by_meeting', (q) => q.eq('meetingId', meeting._id))
-					.collect();
+		if (meetings.length === 0) {
+			return [];
+		}
 
-				return {
-					...meeting,
-					attendeeCount: attendees.length
-				};
-			})
-		);
+		const meetingIds = meetings.map((m) => m._id);
+
+		// Batch fetch all attendees for all meetings at once
+		const allAttendees = await ctx.db.query('meetingAttendees').collect();
+
+		// Group attendees by meeting ID and count
+		const attendeesByMeeting = new Map<Id<'meetings'>, number>();
+		for (const attendee of allAttendees) {
+			if (meetingIds.includes(attendee.meetingId)) {
+				attendeesByMeeting.set(
+					attendee.meetingId,
+					(attendeesByMeeting.get(attendee.meetingId) ?? 0) + 1
+				);
+			}
+		}
+
+		// Map over meetings with pre-computed counts
+		const results = meetings.map((meeting) => ({
+			...meeting,
+			attendeeCount: attendeesByMeeting.get(meeting._id) ?? 0
+		}));
 
 		return results;
 	}
@@ -94,8 +104,13 @@ export const get = query({
 			throw new Error('Meeting not found');
 		}
 
-		// Verify user has access to the organization
-		await ensureOrganizationMembership(ctx, meeting.organizationId, userId);
+		// Check if soft-deleted
+		if (meeting.deletedAt) {
+			throw new Error('Meeting not found');
+		}
+
+		// Verify user has access to the workspace
+		await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId);
 
 		// Get attendees
 		const attendees = await ctx.db
@@ -103,41 +118,20 @@ export const get = query({
 			.withIndex('by_meeting', (q) => q.eq('meetingId', meeting._id))
 			.collect();
 
-		// Resolve attendee details
+		// Resolve attendee user details
 		const resolvedAttendees = await Promise.all(
 			attendees.map(async (attendee) => {
-				if (attendee.attendeeType === 'user' && attendee.userId) {
-					const user = await ctx.db.get(attendee.userId);
-					return {
-						...attendee,
-						userName: user?.name ?? user?.email ?? 'Unknown'
-					};
-				} else if (attendee.attendeeType === 'role' && attendee.circleRoleId) {
-					const role = await ctx.db.get(attendee.circleRoleId);
-					return {
-						...attendee,
-						roleName: role?.name ?? 'Unknown Role'
-					};
-				} else if (attendee.attendeeType === 'circle' && attendee.circleId) {
-					const circle = await ctx.db.get(attendee.circleId);
-					return {
-						...attendee,
-						circleName: circle?.name ?? 'Unknown Circle'
-					};
-				}
-				return attendee;
+				const user = await ctx.db.get(attendee.userId);
+				return {
+					...attendee,
+					userName: user?.name ?? user?.email ?? 'Unknown User'
+				};
 			})
 		);
 
-		// Get secretary info
-		const secretaryId = meeting.secretaryId ?? meeting.createdBy;
-		const secretary = await ctx.db.get(secretaryId);
-		const secretaryName = secretary?.name ?? secretary?.email ?? 'Unknown';
-
 		return {
 			...meeting,
-			attendees: resolvedAttendees,
-			secretaryName
+			attendees: resolvedAttendees
 		};
 	}
 });
@@ -153,70 +147,220 @@ export const listByCircle = query({
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		// Get circle to verify organization access
+		// Get circle to verify workspace access
 		const circle = await ctx.db.get(args.circleId);
 
 		if (!circle) {
 			throw new Error('Circle not found');
 		}
 
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, circle.organizationId, userId);
+		// Verify user has access to workspace
+		await ensureWorkspaceMembership(ctx, circle.workspaceId, userId);
 
-		// Get meetings for this circle
+		// Get meetings for this circle (excluding soft-deleted)
 		const meetings = await ctx.db
 			.query('meetings')
 			.withIndex('by_circle', (q) => q.eq('circleId', args.circleId))
-			.collect();
+			.collect()
+			.then((meetings) => meetings.filter((m) => !m.deletedAt));
 
 		return meetings;
 	}
 });
 
 /**
- * List meetings by type for analytics and reporting
+ * List meetings by template for analytics and reporting
  */
-export const listByType = query({
+export const listByTemplate = query({
 	args: {
 		sessionId: v.string(),
-		organizationId: v.id('organizations'),
-		meetingType: v.union(
-			v.literal('standup'),
-			v.literal('retrospective'),
-			v.literal('planning'),
-			v.literal('1-on-1'),
-			v.literal('client'),
-			v.literal('governance'),
-			v.literal('weekly-tactical'),
-			v.literal('general')
-		),
+		workspaceId: v.id('workspaces'),
+		templateId: v.id('meetingTemplates'),
 		startDate: v.optional(v.number()), // Optional date range start (Unix timestamp)
 		endDate: v.optional(v.number()) // Optional date range end (Unix timestamp)
 	},
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, args.organizationId, userId);
+		// Verify user has access to workspace
+		await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
 
-		// Query meetings by type using index
-		let meetings = await ctx.db
-			.query('meetings')
-			.withIndex('by_meeting_type', (q) =>
-				q.eq('organizationId', args.organizationId).eq('meetingType', args.meetingType)
-			)
-			.collect();
-
-		// Filter by date range if provided
+		// Use range query on by_start_time index if date range is provided
+		let meetings;
 		if (args.startDate || args.endDate) {
-			meetings = meetings.filter((meeting) => {
-				if (args.startDate && meeting.startTime < args.startDate) return false;
-				if (args.endDate && meeting.startTime > args.endDate) return false;
-				return true;
-			});
+			// Use by_start_time index with range queries for efficient date filtering
+			meetings = await ctx.db
+				.query('meetings')
+				.withIndex('by_start_time', (q) => {
+					let query = q.eq('workspaceId', args.workspaceId);
+					if (args.startDate) {
+						query = query.gte('startTime', args.startDate);
+					}
+					if (args.endDate) {
+						query = query.lte('startTime', args.endDate);
+					}
+					return query;
+				})
+				.collect();
+
+			// Filter by template and exclude soft-deleted
+			meetings = meetings.filter((m) => m.templateId === args.templateId && !m.deletedAt);
+		} else {
+			// No date range - use template index
+			meetings = await ctx.db
+				.query('meetings')
+				.withIndex('by_template', (q) =>
+					q.eq('workspaceId', args.workspaceId).eq('templateId', args.templateId)
+				)
+				.collect()
+				.then((meetings) => meetings.filter((m) => !m.deletedAt));
 		}
 
 		return meetings;
+	}
+});
+
+/**
+ * Helper: Get invited users for a meeting (batched for efficiency)
+ * Used internally by listForUser for batch processing
+ */
+async function getInvitedUsersForMeeting(
+	ctx: QueryCtx,
+	meetingId: Id<'meetings'>,
+	circleId: Id<'circles'> | undefined,
+	invitationsByMeeting: Map<
+		Id<'meetings'>,
+		Array<{ invitationType: 'user' | 'circle'; userId?: Id<'users'>; circleId?: Id<'circles'> }>
+	>,
+	circleMembersByCircle: Map<Id<'circles'>, Array<{ userId: Id<'users'> }>>
+): Promise<Array<{ userId: string; name: string }>> {
+	const invitedUserIds = new Set<string>();
+	const invitations = invitationsByMeeting.get(meetingId) ?? [];
+
+	// Add directly invited users
+	for (const invitation of invitations) {
+		if (invitation.invitationType === 'user' && invitation.userId) {
+			invitedUserIds.add(invitation.userId);
+		}
+	}
+
+	// Add circle members from circle invitations
+	for (const invitation of invitations) {
+		if (invitation.invitationType === 'circle' && invitation.circleId) {
+			const members = circleMembersByCircle.get(invitation.circleId) ?? [];
+			for (const member of members) {
+				invitedUserIds.add(member.userId);
+			}
+		}
+	}
+
+	// Also include circle members if meeting is linked to a circle
+	if (circleId) {
+		const members = circleMembersByCircle.get(circleId) ?? [];
+		for (const member of members) {
+			invitedUserIds.add(member.userId);
+		}
+	}
+
+	// Resolve user details (limit to 10 for display)
+	const userIdsArray = Array.from(invitedUserIds).slice(0, 10);
+	const users = await Promise.all(
+		userIdsArray.map(async (userId) => {
+			const user = await ctx.db.get(userId as Id<'users'>);
+			return {
+				userId,
+				name: user?.name ?? user?.email ?? 'Unknown User'
+			};
+		})
+	);
+
+	return users;
+}
+
+/**
+ * Get invited users for a specific meeting
+ * Efficient single-meeting query for getting invited users
+ */
+export const getInvitedUsers = query({
+	args: {
+		sessionId: v.string(),
+		meetingId: v.id('meetings')
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		// Get meeting to verify access
+		const meeting = await ctx.db.get(args.meetingId);
+		if (!meeting) {
+			throw new Error('Meeting not found');
+		}
+
+		// Check if soft-deleted
+		if (meeting.deletedAt) {
+			throw new Error('Meeting not found');
+		}
+
+		// Verify user has access to the workspace
+		await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId);
+
+		// Get all invitations for this meeting
+		const invitations = await ctx.db
+			.query('meetingInvitations')
+			.withIndex('by_meeting', (q) => q.eq('meetingId', args.meetingId))
+			.collect();
+
+		// Collect all unique circle IDs we need members for
+		const circleIds = new Set<Id<'circles'>>();
+		if (meeting.circleId) {
+			circleIds.add(meeting.circleId);
+		}
+		for (const invitation of invitations) {
+			if (invitation.invitationType === 'circle' && invitation.circleId) {
+				circleIds.add(invitation.circleId);
+			}
+		}
+
+		// Get circle members for all relevant circles (query each circle individually for efficiency)
+		const circleMembersByCircle = new Map<Id<'circles'>, Array<{ userId: Id<'users'> }>>();
+		if (circleIds.size > 0) {
+			await Promise.all(
+				Array.from(circleIds).map(async (circleId) => {
+					const members = await ctx.db
+						.query('circleMembers')
+						.withIndex('by_circle', (q) => q.eq('circleId', circleId))
+						.collect();
+					circleMembersByCircle.set(
+						circleId,
+						members.map((m) => ({ userId: m.userId }))
+					);
+				})
+			);
+		}
+
+		// Build invitations map (single meeting)
+		const invitationsByMeeting = new Map<
+			Id<'meetings'>,
+			Array<{ invitationType: 'user' | 'circle'; userId?: Id<'users'>; circleId?: Id<'circles'> }>
+		>();
+		invitationsByMeeting.set(
+			args.meetingId,
+			invitations.map((inv) => ({
+				invitationType: inv.invitationType,
+				userId: inv.userId,
+				circleId: inv.circleId
+			}))
+		);
+
+		// Get invited users using helper function
+		const invitedUsers = await getInvitedUsersForMeeting(
+			ctx,
+			args.meetingId,
+			meeting.circleId,
+			invitationsByMeeting,
+			circleMembersByCircle
+		);
+
+		return invitedUsers;
 	}
 });
 
@@ -230,94 +374,146 @@ export const listByType = query({
 export const listForUser = query({
 	args: {
 		sessionId: v.string(),
-		organizationId: v.id('organizations')
+		workspaceId: v.id('workspaces')
 	},
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, args.organizationId, userId);
+		// Verify user has access to workspace
+		await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
 
-		// Get all meetings in organization
+		// Get all meetings in workspace (excluding soft-deleted)
 		const allMeetings = await ctx.db
 			.query('meetings')
-			.withIndex('by_organization', (q) => q.eq('organizationId', args.organizationId))
-			.collect();
+			.withIndex('by_workspace', (q) => q.eq('workspaceId', args.workspaceId))
+			.collect()
+			.then((meetings) => meetings.filter((m) => !m.deletedAt));
 
-		// Get user's direct meeting invites
-		const userInvites = await ctx.db
-			.query('meetingAttendees')
-			.withIndex('by_user', (q) => q.eq('userId', userId))
-			.collect();
+		if (allMeetings.length === 0) {
+			return [];
+		}
 
-		const directMeetingIds = new Set(userInvites.map((inv) => inv.meetingId));
+		const meetingIds = allMeetings.map((m) => m._id);
 
-		// Get user's circle roles
-		const userRoleAssignments = await ctx.db
-			.query('userCircleRoles')
-			.withIndex('by_user', (q) => q.eq('userId', userId))
-			.collect();
+		// Batch: Get all invitations for all meetings at once
+		// Note: meetingInvitations doesn't have workspaceId, so we fetch all and filter
+		// This is efficient for most cases since Convex queries are fast and filtering is in-memory
+		const allInvitations = await ctx.db.query('meetingInvitations').collect();
 
-		const userRoleIds = new Set(userRoleAssignments.map((assignment) => assignment.circleRoleId));
+		// Group invitations by meeting ID (filter to only our meetings)
+		const invitationsByMeeting = new Map<
+			Id<'meetings'>,
+			Array<{ invitationType: 'user' | 'circle'; userId?: Id<'users'>; circleId?: Id<'circles'> }>
+		>();
+		for (const invitation of allInvitations) {
+			if (!meetingIds.includes(invitation.meetingId)) continue;
+			const existing = invitationsByMeeting.get(invitation.meetingId) ?? [];
+			existing.push({
+				invitationType: invitation.invitationType,
+				userId: invitation.userId,
+				circleId: invitation.circleId
+			});
+			invitationsByMeeting.set(invitation.meetingId, existing);
+		}
 
-		// Get user's circle memberships
+		// Collect all unique circle IDs we need members for
+		const circleIds = new Set<Id<'circles'>>();
+		for (const meeting of allMeetings) {
+			if (meeting.circleId) {
+				circleIds.add(meeting.circleId);
+			}
+		}
+		for (const invitations of invitationsByMeeting.values()) {
+			for (const invitation of invitations) {
+				if (invitation.invitationType === 'circle' && invitation.circleId) {
+					circleIds.add(invitation.circleId);
+				}
+			}
+		}
+
+		// Batch: Get circle members only for relevant circles using index queries
+		const circleMembersByCircle = new Map<Id<'circles'>, Array<{ userId: Id<'users'> }>>();
+		if (circleIds.size > 0) {
+			await Promise.all(
+				Array.from(circleIds).map(async (circleId) => {
+					const members = await ctx.db
+						.query('circleMembers')
+						.withIndex('by_circle', (q) => q.eq('circleId', circleId))
+						.collect();
+					circleMembersByCircle.set(
+						circleId,
+						members.map((m) => ({ userId: m.userId }))
+					);
+				})
+			);
+		}
+
+		// Get user's direct meeting invitations (for access check)
+		const userInvitations = allInvitations.filter((inv) => inv.userId === userId);
+		const directInvitationMeetingIds = new Set(userInvitations.map((inv) => inv.meetingId));
+
+		// Get user's circle memberships (for access check)
 		const userCircleMemberships = await ctx.db
 			.query('circleMembers')
 			.withIndex('by_user', (q) => q.eq('userId', userId))
 			.collect();
-
 		const userCircleIds = new Set(userCircleMemberships.map((membership) => membership.circleId));
 
-		// Filter meetings user can access
+		// Filter meetings user can access and resolve invited users
 		const userMeetings = await Promise.all(
 			allMeetings.map(async (meeting) => {
+				const invitations = invitationsByMeeting.get(meeting._id) ?? [];
+
+				// Check access permissions
+				let hasAccess = false;
+
 				// Creator always sees their own meetings
 				if (meeting.createdBy === userId) {
-					return meeting;
+					hasAccess = true;
 				}
-
 				// Check if user is directly invited
-				if (directMeetingIds.has(meeting._id)) {
-					return meeting;
+				else if (directInvitationMeetingIds.has(meeting._id)) {
+					hasAccess = true;
 				}
-
-				// Get meeting attendees
-				const attendees = await ctx.db
-					.query('meetingAttendees')
-					.withIndex('by_meeting', (q) => q.eq('meetingId', meeting._id))
-					.collect();
-
-				// Check if user fills an invited role
-				for (const attendee of attendees) {
-					if (attendee.attendeeType === 'role' && attendee.circleRoleId) {
-						if (userRoleIds.has(attendee.circleRoleId)) {
-							return meeting;
-						}
-					}
-					// Check if user is member of invited circle
-					if (attendee.attendeeType === 'circle' && attendee.circleId) {
-						if (userCircleIds.has(attendee.circleId)) {
-							return meeting;
+				// Check circle invitations - see if user is member of any invited circle
+				else {
+					for (const invitation of invitations) {
+						if (invitation.invitationType === 'circle' && invitation.circleId) {
+							if (userCircleIds.has(invitation.circleId)) {
+								hasAccess = true;
+								break;
+							}
 						}
 					}
 				}
 
-				// Check visibility rules for circle-based meetings
-				if (meeting.circleId) {
-					if (meeting.visibility === 'public') {
-						return meeting; // All org members can see public meetings
-					}
-					if (meeting.visibility === 'circle' && userCircleIds.has(meeting.circleId)) {
-						return meeting; // Circle members can see circle-visible meetings
-					}
-				} else {
-					// Ad-hoc meetings: only public ones visible to all
-					if (meeting.visibility === 'public') {
-						return meeting;
-					}
+				// Also check if meeting is linked to a circle and user is member
+				if (!hasAccess && meeting.circleId && userCircleIds.has(meeting.circleId)) {
+					hasAccess = true;
 				}
 
-				return null; // User can't access this meeting
+				// Check visibility rules
+				if (!hasAccess && meeting.visibility === 'public') {
+					hasAccess = true; // All workspace members can see public meetings
+				}
+
+				if (!hasAccess) {
+					return null; // User can't access this meeting
+				}
+
+				// Get invited users for this meeting
+				const invitedUsers = await getInvitedUsersForMeeting(
+					ctx,
+					meeting._id,
+					meeting.circleId,
+					invitationsByMeeting,
+					circleMembersByCircle
+				);
+
+				return {
+					...meeting,
+					invitedUsers
+				};
 			})
 		);
 
@@ -335,23 +531,13 @@ export const listForUser = query({
 export const create = mutation({
 	args: {
 		sessionId: v.string(),
-		organizationId: v.id('organizations'),
+		workspaceId: v.id('workspaces'),
 		circleId: v.optional(v.id('circles')),
-		templateId: v.optional(v.id('meetingTemplates')),
-		meetingType: v.union(
-			v.literal('standup'),
-			v.literal('retrospective'),
-			v.literal('planning'),
-			v.literal('1-on-1'),
-			v.literal('client'),
-			v.literal('governance'),
-			v.literal('weekly-tactical'),
-			v.literal('general')
-		), // Required field for reporting
+		templateId: v.id('meetingTemplates'), // Required: template defines meeting type/structure
 		title: v.string(),
 		startTime: v.number(),
 		duration: v.number(),
-		visibility: v.union(v.literal('public'), v.literal('circle'), v.literal('private')),
+		visibility: v.union(v.literal('public'), v.literal('private')),
 		recurrence: v.optional(
 			v.object({
 				frequency: v.union(v.literal('daily'), v.literal('weekly'), v.literal('monthly')),
@@ -359,13 +545,22 @@ export const create = mutation({
 				daysOfWeek: v.optional(v.array(v.number())),
 				endDate: v.optional(v.number())
 			})
+		),
+		invitations: v.optional(
+			v.array(
+				v.object({
+					invitationType: v.union(v.literal('user'), v.literal('circle')),
+					userId: v.optional(v.id('users')),
+					circleId: v.optional(v.id('circles'))
+				})
+			)
 		)
 	},
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, args.organizationId, userId);
+		// Verify user has access to workspace
+		await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
 
 		// If circleId provided, verify it exists and belongs to org
 		if (args.circleId) {
@@ -373,28 +568,25 @@ export const create = mutation({
 			if (!circle) {
 				throw new Error('Circle not found');
 			}
-			if (circle.organizationId !== args.organizationId) {
-				throw new Error('Circle does not belong to this organization');
+			if (circle.workspaceId !== args.workspaceId) {
+				throw new Error('Circle does not belong to this workspace');
 			}
 		}
 
-		// If templateId provided, verify it exists and belongs to org
-		if (args.templateId) {
-			const template = await ctx.db.get(args.templateId);
-			if (!template) {
-				throw new Error('Template not found');
-			}
-			if (template.organizationId !== args.organizationId) {
-				throw new Error('Template does not belong to this organization');
-			}
+		// Verify template exists and belongs to workspace
+		const template = await ctx.db.get(args.templateId);
+		if (!template) {
+			throw new Error('Template not found');
+		}
+		if (template.workspaceId !== args.workspaceId) {
+			throw new Error('Template does not belong to this workspace');
 		}
 
 		// Create meeting
 		const meetingId = await ctx.db.insert('meetings', {
-			organizationId: args.organizationId,
+			workspaceId: args.workspaceId,
 			circleId: args.circleId,
 			templateId: args.templateId,
-			meetingType: args.meetingType,
 			title: args.title,
 			startTime: args.startTime,
 			duration: args.duration,
@@ -405,13 +597,49 @@ export const create = mutation({
 			updatedAt: Date.now()
 		});
 
-		// Auto-add creator as attendee
-		await ctx.db.insert('meetingAttendees', {
-			meetingId,
-			attendeeType: 'user',
-			userId,
-			addedAt: Date.now()
-		});
+		// Create invitations if provided
+		if (args.invitations && args.invitations.length > 0) {
+			for (const invitation of args.invitations) {
+				// Validate invitation
+				if (invitation.invitationType === 'user' && !invitation.userId) {
+					throw new Error('userId is required when invitationType is "user"');
+				}
+				if (invitation.invitationType === 'circle' && !invitation.circleId) {
+					throw new Error('circleId is required when invitationType is "circle"');
+				}
+
+				// Verify invited user/circle belongs to workspace
+				if (invitation.invitationType === 'user' && invitation.userId) {
+					await ensureWorkspaceMembership(ctx, args.workspaceId, invitation.userId);
+				} else if (invitation.invitationType === 'circle' && invitation.circleId) {
+					const circle = await ctx.db.get(invitation.circleId);
+					if (!circle) {
+						throw new Error('Circle not found');
+					}
+					if (circle.workspaceId !== args.workspaceId) {
+						throw new Error('Circle does not belong to this workspace');
+					}
+				}
+
+				// Create invitation
+				await ctx.db.insert('meetingInvitations', {
+					meetingId,
+					invitationType: invitation.invitationType,
+					userId: invitation.userId,
+					circleId: invitation.circleId,
+					createdAt: Date.now(),
+					createdBy: userId
+				});
+
+				// TODO: Create inbox items for invited users
+				// - If user: create inbox item for that user
+				// - If circle: create inbox items for all circle members
+				// This will be implemented when inbox item type for meetings is added
+			}
+		}
+
+		// If meeting is linked to a circle, users in that circle are automatically invited
+		// (handled dynamically in access control, no need to create invitation records)
 
 		return { meetingId };
 	}
@@ -427,19 +655,8 @@ export const update = mutation({
 		title: v.optional(v.string()),
 		startTime: v.optional(v.number()),
 		duration: v.optional(v.number()),
-		visibility: v.optional(v.union(v.literal('public'), v.literal('circle'), v.literal('private'))),
-		meetingType: v.optional(
-			v.union(
-				v.literal('standup'),
-				v.literal('retrospective'),
-				v.literal('planning'),
-				v.literal('1-on-1'),
-				v.literal('client'),
-				v.literal('governance'),
-				v.literal('weekly-tactical'),
-				v.literal('general')
-			)
-		),
+		visibility: v.optional(v.union(v.literal('public'), v.literal('private'))),
+		templateId: v.optional(v.id('meetingTemplates')),
 		recurrence: v.optional(
 			v.object({
 				frequency: v.union(v.literal('daily'), v.literal('weekly'), v.literal('monthly')),
@@ -458,24 +675,16 @@ export const update = mutation({
 			throw new Error('Meeting not found');
 		}
 
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, meeting.organizationId, userId);
+		// Verify user has access to workspace
+		await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId);
 
 		// Build update object
 		const updates: Partial<{
 			title: string;
 			startTime: number;
 			duration: number;
-			visibility: 'public' | 'circle' | 'private';
-			meetingType:
-				| 'standup'
-				| 'retrospective'
-				| 'planning'
-				| '1-on-1'
-				| 'client'
-				| 'governance'
-				| 'weekly-tactical'
-				| 'general';
+			visibility: 'public' | 'private';
+			templateId: Id<'meetingTemplates'>;
 			recurrence:
 				| {
 						frequency: 'daily' | 'weekly' | 'monthly';
@@ -493,7 +702,17 @@ export const update = mutation({
 		if (args.startTime !== undefined) updates.startTime = args.startTime;
 		if (args.duration !== undefined) updates.duration = args.duration;
 		if (args.visibility !== undefined) updates.visibility = args.visibility;
-		if (args.meetingType !== undefined) updates.meetingType = args.meetingType;
+		if (args.templateId !== undefined) {
+			// Verify template exists and belongs to workspace
+			const template = await ctx.db.get(args.templateId);
+			if (!template) {
+				throw new Error('Template not found');
+			}
+			if (template.workspaceId !== meeting.workspaceId) {
+				throw new Error('Template does not belong to this workspace');
+			}
+			updates.templateId = args.templateId;
+		}
 		if (args.recurrence !== undefined) updates.recurrence = args.recurrence;
 
 		await ctx.db.patch(args.meetingId, updates);
@@ -503,7 +722,9 @@ export const update = mutation({
 });
 
 /**
- * Delete a meeting
+ * Soft delete a meeting
+ * Sets deletedAt timestamp and soft-deletes linked agenda items
+ * Tasks and projects remain (not deleted)
  */
 export const deleteMeeting = mutation({
 	args: {
@@ -519,40 +740,47 @@ export const deleteMeeting = mutation({
 			throw new Error('Meeting not found');
 		}
 
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, meeting.organizationId, userId);
+		// Verify user has access to workspace
+		await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId);
 
-		// Delete all attendees first
-		const attendees = await ctx.db
-			.query('meetingAttendees')
+		// Check if already deleted
+		if (meeting.deletedAt) {
+			throw new Error('Meeting already deleted');
+		}
+
+		const now = Date.now();
+
+		// Soft delete linked agenda items
+		const agendaItems = await ctx.db
+			.query('meetingAgendaItems')
 			.withIndex('by_meeting', (q) => q.eq('meetingId', args.meetingId))
 			.collect();
 
-		for (const attendee of attendees) {
-			await ctx.db.delete(attendee._id);
-		}
+		// Note: Agenda items don't have deletedAt field, so we'll leave them
+		// They'll be filtered out when querying by meeting (which will be soft-deleted)
+		// If we need to soft delete agenda items, we'd need to add deletedAt to schema
 
-		// Delete meeting
-		await ctx.db.delete(args.meetingId);
+		// Soft delete meeting
+		await ctx.db.patch(args.meetingId, {
+			deletedAt: now,
+			updatedAt: now
+		});
 
 		return { success: true };
 	}
 });
 
 /**
- * Add an attendee to a meeting (user, role, or circle)
+ * Add an attendee to a meeting (user joins the meeting)
  */
 export const addAttendee = mutation({
 	args: {
 		sessionId: v.string(),
 		meetingId: v.id('meetings'),
-		attendeeType: v.union(v.literal('user'), v.literal('role'), v.literal('circle')),
-		userId: v.optional(v.id('users')),
-		circleRoleId: v.optional(v.id('circleRoles')),
-		circleId: v.optional(v.id('circles'))
+		userId: v.id('users') // User joining the meeting
 	},
 	handler: async (ctx, args) => {
-		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+		const { userId: currentUserId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
 		const meeting = await ctx.db.get(args.meetingId);
 
@@ -560,51 +788,61 @@ export const addAttendee = mutation({
 			throw new Error('Meeting not found');
 		}
 
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, meeting.organizationId, userId);
+		// Verify current user has access to workspace
+		await ensureWorkspaceMembership(ctx, meeting.workspaceId, currentUserId);
 
-		// Validate exactly one attendee ID is provided
-		const providedIds = [args.userId, args.circleRoleId, args.circleId].filter(
-			(id) => id !== undefined
-		);
-		if (providedIds.length !== 1) {
-			throw new Error('Exactly one of userId, circleRoleId, or circleId must be provided');
-		}
+		// Verify the user being added belongs to workspace
+		await ensureWorkspaceMembership(ctx, meeting.workspaceId, args.userId);
 
-		// Check if attendee already exists
+		// Check if user is already an attendee
 		const existingAttendee = await ctx.db
 			.query('meetingAttendees')
-			.withIndex('by_meeting', (q) => q.eq('meetingId', args.meetingId))
-			.filter((q) => {
-				if (args.attendeeType === 'user') {
-					return q.and(q.eq(q.field('attendeeType'), 'user'), q.eq(q.field('userId'), args.userId));
-				} else if (args.attendeeType === 'role') {
-					return q.and(
-						q.eq(q.field('attendeeType'), 'role'),
-						q.eq(q.field('circleRoleId'), args.circleRoleId)
-					);
-				} else {
-					// circle
-					return q.and(
-						q.eq(q.field('attendeeType'), 'circle'),
-						q.eq(q.field('circleId'), args.circleId)
-					);
-				}
-			})
+			.withIndex('by_meeting_user', (q) =>
+				q.eq('meetingId', args.meetingId).eq('userId', args.userId)
+			)
 			.first();
 
 		if (existingAttendee) {
-			throw new Error('Attendee already exists');
+			throw new Error('User is already an attendee');
+		}
+
+		// Verify user can join (must be invited for private meetings)
+		if (meeting.visibility === 'private') {
+			// Check invitations directly (can't call queries from mutations)
+			const invitations = await ctx.db
+				.query('meetingInvitations')
+				.withIndex('by_meeting', (q) => q.eq('meetingId', args.meetingId))
+				.collect();
+
+			// Check direct invitation
+			const directInvitation = invitations.find(
+				(inv) => inv.invitationType === 'user' && inv.userId === args.userId
+			);
+
+			// Check circle invitations
+			const userCircleMemberships = await ctx.db
+				.query('circleMembers')
+				.withIndex('by_user', (q) => q.eq('userId', args.userId))
+				.collect();
+			const userCircleIds = new Set(userCircleMemberships.map((m) => m.circleId));
+
+			const circleInvitation = invitations.find(
+				(inv) => inv.invitationType === 'circle' && inv.circleId && userCircleIds.has(inv.circleId)
+			);
+
+			// Check if meeting is linked to a circle user is member of
+			const circleLinked = meeting.circleId && userCircleIds.has(meeting.circleId);
+
+			if (!directInvitation && !circleInvitation && !circleLinked) {
+				throw new Error('User is not invited to this private meeting');
+			}
 		}
 
 		// Add attendee
 		const attendeeId = await ctx.db.insert('meetingAttendees', {
 			meetingId: args.meetingId,
-			attendeeType: args.attendeeType,
 			userId: args.userId,
-			circleRoleId: args.circleRoleId,
-			circleId: args.circleId,
-			addedAt: Date.now()
+			joinedAt: Date.now()
 		});
 
 		return { attendeeId };
@@ -628,15 +866,15 @@ export const removeAttendee = mutation({
 			throw new Error('Attendee not found');
 		}
 
-		// Get meeting to verify organization access
+		// Get meeting to verify workspace access
 		const meeting = await ctx.db.get(attendee.meetingId);
 
 		if (!meeting) {
 			throw new Error('Meeting not found');
 		}
 
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, meeting.organizationId, userId);
+		// Verify user has access to workspace
+		await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId);
 
 		// Delete attendee
 		await ctx.db.delete(args.attendeeId);
@@ -667,19 +905,19 @@ export const startMeeting = mutation({
 			throw new Error('Meeting not found');
 		}
 
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, meeting.organizationId, userId);
+		// Verify user has access to workspace
+		await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId);
 
 		// Check if already started
 		if (meeting.startedAt) {
 			throw new Error('Meeting already started');
 		}
 
-		// Start meeting
+		// Start meeting - set recorder to person who starts it
 		await ctx.db.patch(args.meetingId, {
 			startedAt: Date.now(),
 			currentStep: 'check-in',
-			secretaryId: meeting.secretaryId ?? meeting.createdBy, // Default to creator
+			recorderId: userId,
 			updatedAt: Date.now()
 		});
 
@@ -688,7 +926,7 @@ export const startMeeting = mutation({
 });
 
 /**
- * Advance to next step (secretary only)
+ * Advance to next step (recorder only)
  */
 export const advanceStep = mutation({
 	args: {
@@ -705,13 +943,12 @@ export const advanceStep = mutation({
 			throw new Error('Meeting not found');
 		}
 
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, meeting.organizationId, userId);
+		// Verify user has access to workspace
+		await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId);
 
-		// Check if user is secretary
-		const secretaryId = meeting.secretaryId ?? meeting.createdBy;
-		if (secretaryId !== userId) {
-			throw new Error('Only the meeting facilitator can advance steps');
+		// Verify user is recorder
+		if (meeting.recorderId !== userId) {
+			throw new Error('Only the recorder can advance steps');
 		}
 
 		// Validate step
@@ -731,7 +968,7 @@ export const advanceStep = mutation({
 });
 
 /**
- * Close meeting (secretary only)
+ * Close meeting (recorder only)
  */
 export const closeMeeting = mutation({
 	args: {
@@ -747,18 +984,116 @@ export const closeMeeting = mutation({
 			throw new Error('Meeting not found');
 		}
 
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, meeting.organizationId, userId);
+		// Verify user has access to workspace
+		await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId);
 
-		// Check if user is secretary
-		const secretaryId = meeting.secretaryId ?? meeting.createdBy;
-		if (secretaryId !== userId) {
-			throw new Error('Only the meeting facilitator can close the meeting');
+		// Verify user is recorder
+		if (meeting.recorderId !== userId) {
+			throw new Error('Only the recorder can close the meeting');
 		}
 
 		// Close meeting
 		await ctx.db.patch(args.meetingId, {
 			closedAt: Date.now(),
+			updatedAt: Date.now()
+		});
+
+		return { success: true };
+	}
+});
+
+/**
+ * Set recorder for a meeting
+ * Any attendee can change the recorder to themselves or another user (trust-based, no confirmation)
+ */
+export const setRecorder = mutation({
+	args: {
+		sessionId: v.string(),
+		meetingId: v.id('meetings'),
+		recorderId: v.id('users')
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		const meeting = await ctx.db.get(args.meetingId);
+
+		if (!meeting) {
+			throw new Error('Meeting not found');
+		}
+
+		// Verify user has access to workspace
+		await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId);
+
+		// Verify meeting is started
+		if (!meeting.startedAt) {
+			throw new Error('Meeting must be started before setting recorder');
+		}
+
+		// Verify recorder is an attendee
+		const recorderAttendee = await ctx.db
+			.query('meetingAttendees')
+			.withIndex('by_meeting_user', (q) =>
+				q.eq('meetingId', args.meetingId).eq('userId', args.recorderId)
+			)
+			.first();
+
+		if (!recorderAttendee) {
+			throw new Error('Recorder must be an attendee of the meeting');
+		}
+
+		// Update recorder
+		await ctx.db.patch(args.meetingId, {
+			recorderId: args.recorderId,
+			updatedAt: Date.now()
+		});
+
+		return { success: true };
+	}
+});
+
+/**
+ * Set active agenda item (recorder only)
+ * Controls synchronized screen view - all participants see the same active item
+ */
+export const setActiveAgendaItem = mutation({
+	args: {
+		sessionId: v.string(),
+		meetingId: v.id('meetings'),
+		agendaItemId: v.optional(v.id('meetingAgendaItems'))
+	},
+	handler: async (ctx, args) => {
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		const meeting = await ctx.db.get(args.meetingId);
+
+		if (!meeting) {
+			throw new Error('Meeting not found');
+		}
+
+		// Verify user has access to workspace
+		await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId);
+
+		// Verify user is recorder
+		if (meeting.recorderId !== userId) {
+			throw new Error('Only the recorder can set the active agenda item');
+		}
+
+		// Verify meeting is started
+		if (!meeting.startedAt) {
+			throw new Error('Meeting must be started before setting active agenda item');
+		}
+
+		// If agendaItemId provided, verify it belongs to this meeting
+		if (args.agendaItemId) {
+			const agendaItem = await ctx.db.get(args.agendaItemId);
+			if (!agendaItem || agendaItem.meetingId !== args.meetingId) {
+				throw new Error('Agenda item not found or does not belong to this meeting');
+			}
+		}
+
+		// Update active agenda item (can be null to clear)
+		await ctx.db.patch(args.meetingId, {
+			activeAgendaItemId: args.agendaItemId,
 			updatedAt: Date.now()
 		});
 
@@ -784,8 +1119,8 @@ export const createAgendaItem = mutation({
 			throw new Error('Meeting not found');
 		}
 
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, meeting.organizationId, userId);
+		// Verify user has access to workspace
+		await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId);
 
 		// Get current max order
 		const existingItems = await ctx.db
@@ -795,11 +1130,12 @@ export const createAgendaItem = mutation({
 
 		const maxOrder = existingItems.length > 0 ? Math.max(...existingItems.map((i) => i.order)) : 0;
 
-		// Create agenda item
+		// Create agenda item with default status 'todo'
 		const itemId = await ctx.db.insert('meetingAgendaItems', {
 			meetingId: args.meetingId,
 			title: args.title,
 			order: maxOrder + 1,
+			status: 'todo',
 			createdBy: userId,
 			createdAt: Date.now()
 		});
@@ -825,8 +1161,8 @@ export const getAgendaItems = query({
 			throw new Error('Meeting not found');
 		}
 
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, meeting.organizationId, userId);
+		// Verify user has access to workspace
+		await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId);
 
 		// Get agenda items
 		const items = await ctx.db
@@ -847,209 +1183,5 @@ export const getAgendaItems = query({
 
 		// Sort by order
 		return itemsWithCreators.sort((a, b) => a.order - b.order);
-	}
-});
-
-/**
- * Update secretary/facilitator for a meeting
- * Requires confirmation from current secretary unless meeting not started or secretary absent
- */
-/**
- * Request secretary change - creates a request for current secretary to approve (SYOS-222)
- */
-export const requestSecretaryChange = mutation({
-	args: {
-		sessionId: v.string(),
-		meetingId: v.id('meetings'),
-		requestedForId: v.id('users')
-	},
-	handler: async (ctx, args) => {
-		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
-		const meeting = await ctx.db.get(args.meetingId);
-		if (!meeting) {
-			throw new Error('Meeting not found');
-		}
-
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, meeting.organizationId, userId);
-
-		// Check if requested user is an attendee
-		const attendees = await ctx.db
-			.query('meetingAttendees')
-			.withIndex('by_meeting', (q) => q.eq('meetingId', args.meetingId))
-			.collect();
-
-		const isAttendee = attendees.some(
-			(a) => a.attendeeType === 'user' && a.userId === args.requestedForId
-		);
-
-		if (!isAttendee) {
-			throw new Error('Requested secretary must be a meeting attendee');
-		}
-
-		// Check if there's already a pending request
-		const existingRequest = await ctx.db
-			.query('secretaryChangeRequests')
-			.withIndex('by_meeting_status', (q) =>
-				q.eq('meetingId', args.meetingId).eq('status', 'pending')
-			)
-			.first();
-
-		if (existingRequest) {
-			throw new Error('There is already a pending secretary change request');
-		}
-
-		// Create request
-		const requestId = await ctx.db.insert('secretaryChangeRequests', {
-			meetingId: args.meetingId,
-			requestedBy: userId,
-			requestedFor: args.requestedForId,
-			status: 'pending',
-			createdAt: Date.now()
-		});
-
-		return { requestId };
-	}
-});
-
-/**
- * Approve secretary change request (SYOS-222)
- */
-export const approveSecretaryChange = mutation({
-	args: {
-		sessionId: v.string(),
-		requestId: v.id('secretaryChangeRequests')
-	},
-	handler: async (ctx, args) => {
-		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
-		const request = await ctx.db.get(args.requestId);
-		if (!request) {
-			throw new Error('Request not found');
-		}
-
-		if (request.status !== 'pending') {
-			throw new Error('Request already resolved');
-		}
-
-		const meeting = await ctx.db.get(request.meetingId);
-		if (!meeting) {
-			throw new Error('Meeting not found');
-		}
-
-		// Only current secretary can approve
-		const currentSecretaryId = meeting.secretaryId ?? meeting.createdBy;
-		if (userId !== currentSecretaryId) {
-			throw new Error('Only the current secretary can approve this request');
-		}
-
-		// Update request status
-		await ctx.db.patch(args.requestId, {
-			status: 'approved',
-			resolvedAt: Date.now(),
-			resolvedBy: userId
-		});
-
-		// Update meeting secretary
-		await ctx.db.patch(request.meetingId, {
-			secretaryId: request.requestedFor,
-			updatedAt: Date.now()
-		});
-
-		return { success: true };
-	}
-});
-
-/**
- * Deny secretary change request (SYOS-222)
- */
-export const denySecretaryChange = mutation({
-	args: {
-		sessionId: v.string(),
-		requestId: v.id('secretaryChangeRequests')
-	},
-	handler: async (ctx, args) => {
-		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
-		const request = await ctx.db.get(args.requestId);
-		if (!request) {
-			throw new Error('Request not found');
-		}
-
-		if (request.status !== 'pending') {
-			throw new Error('Request already resolved');
-		}
-
-		const meeting = await ctx.db.get(request.meetingId);
-		if (!meeting) {
-			throw new Error('Meeting not found');
-		}
-
-		// Only current secretary can deny
-		const currentSecretaryId = meeting.secretaryId ?? meeting.createdBy;
-		if (userId !== currentSecretaryId) {
-			throw new Error('Only the current secretary can deny this request');
-		}
-
-		// Update request status
-		await ctx.db.patch(args.requestId, {
-			status: 'denied',
-			resolvedAt: Date.now(),
-			resolvedBy: userId
-		});
-
-		return { success: true };
-	}
-});
-
-/**
- * Watch for pending secretary change requests (real-time) (SYOS-222)
- */
-export const watchSecretaryRequests = query({
-	args: {
-		sessionId: v.string(),
-		meetingId: v.id('meetings')
-	},
-	handler: async (ctx, args) => {
-		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-
-		const meeting = await ctx.db.get(args.meetingId);
-		if (!meeting) {
-			throw new Error('Meeting not found');
-		}
-
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, meeting.organizationId, userId);
-
-		// Only return requests if user is current secretary
-		const currentSecretaryId = meeting.secretaryId ?? meeting.createdBy;
-		if (userId !== currentSecretaryId) {
-			return [];
-		}
-
-		// Get pending requests
-		const requests = await ctx.db
-			.query('secretaryChangeRequests')
-			.withIndex('by_meeting_status', (q) =>
-				q.eq('meetingId', args.meetingId).eq('status', 'pending')
-			)
-			.collect();
-
-		// Resolve user names
-		const requestsWithNames = await Promise.all(
-			requests.map(async (request) => {
-				const requestedBy = await ctx.db.get(request.requestedBy);
-				const requestedFor = await ctx.db.get(request.requestedFor);
-
-				return {
-					...request,
-					requestedByName: requestedBy?.name ?? requestedBy?.email ?? 'Unknown',
-					requestedForName: requestedFor?.name ?? requestedFor?.email ?? 'Unknown'
-				};
-			})
-		);
-
-		return requestsWithNames;
 	}
 });

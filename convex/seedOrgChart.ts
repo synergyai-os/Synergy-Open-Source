@@ -10,7 +10,7 @@
  * Each circle gets 3-10 roles.
  *
  * Usage: Call from Convex dashboard or CLI:
- *   npx convex run seedOrgChart:seedTestDataInternal --arg organizationId="your-org-id"
+ *   npx convex run seedOrgChart:seedTestDataInternal --arg workspaceId="your-org-id"
  */
 
 import { internalMutation, mutation } from './_generated/server';
@@ -20,22 +20,20 @@ import type { Id } from './_generated/dataModel';
 import type { MutationCtx } from './_generated/server';
 
 /**
- * Ensure user is a member of the organization
+ * Ensure user is a member of the workspace
  */
-async function ensureOrganizationMembership(
+async function ensureWorkspaceMembership(
 	ctx: MutationCtx,
-	organizationId: Id<'organizations'>,
+	workspaceId: Id<'workspaces'>,
 	userId: Id<'users'>
 ): Promise<void> {
 	const membership = await ctx.db
-		.query('organizationMembers')
-		.withIndex('by_organization_user', (q) =>
-			q.eq('organizationId', organizationId).eq('userId', userId)
-		)
+		.query('workspaceMembers')
+		.withIndex('by_workspace_user', (q) => q.eq('workspaceId', workspaceId).eq('userId', userId))
 		.first();
 
 	if (!membership) {
-		throw new Error(`User ${userId} is not a member of organization ${organizationId}`);
+		throw new Error(`User ${userId} is not a member of workspace ${workspaceId}`);
 	}
 }
 
@@ -52,12 +50,12 @@ function slugifyName(name: string): string {
 
 async function ensureUniqueCircleSlug(
 	ctx: MutationCtx,
-	organizationId: Id<'organizations'>,
+	workspaceId: Id<'workspaces'>,
 	baseSlug: string
 ): Promise<string> {
 	const existingCircles = await ctx.db
 		.query('circles')
-		.withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
+		.withIndex('by_workspace', (q) => q.eq('workspaceId', workspaceId))
 		.collect();
 
 	const existingSlugs = new Set(existingCircles.map((circle) => circle.slug));
@@ -74,11 +72,11 @@ async function ensureUniqueCircleSlug(
 export const seedTestData = mutation({
 	args: {
 		sessionId: v.string(),
-		organizationId: v.id('organizations')
+		workspaceId: v.id('workspaces')
 	},
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-		await ensureOrganizationMembership(ctx, args.organizationId, userId);
+		await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
 
 		const now = Date.now();
 		console.log('🌱 Seeding org chart test data...');
@@ -113,9 +111,9 @@ export const seedTestData = mutation({
 			purpose: string,
 			parentCircleId?: Id<'circles'>
 		): Promise<Id<'circles'>> {
-			const slug = await ensureUniqueCircleSlug(ctx, args.organizationId, slugifyName(name));
+			const slug = await ensureUniqueCircleSlug(ctx, args.workspaceId, slugifyName(name));
 			const circleId = await ctx.db.insert('circles', {
-				organizationId: args.organizationId,
+				workspaceId: args.workspaceId,
 				name,
 				slug,
 				purpose,
@@ -261,7 +259,7 @@ export const seedTestData = mutation({
  */
 export const seedTestDataInternal = internalMutation({
 	args: {
-		organizationId: v.id('organizations')
+		workspaceId: v.id('workspaces')
 	},
 	handler: async (ctx, args) => {
 		const now = Date.now();
@@ -297,9 +295,9 @@ export const seedTestDataInternal = internalMutation({
 			purpose: string,
 			parentCircleId?: Id<'circles'>
 		): Promise<Id<'circles'>> {
-			const slug = await ensureUniqueCircleSlug(ctx, args.organizationId, slugifyName(name));
+			const slug = await ensureUniqueCircleSlug(ctx, args.workspaceId, slugifyName(name));
 			const circleId = await ctx.db.insert('circles', {
-				organizationId: args.organizationId,
+				workspaceId: args.workspaceId,
 				name,
 				slug,
 				purpose,

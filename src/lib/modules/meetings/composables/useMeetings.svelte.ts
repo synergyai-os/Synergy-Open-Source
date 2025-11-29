@@ -2,7 +2,7 @@
  * Meetings Composable - Reactive meeting data management
  *
  * Handles:
- * - Fetching meetings for organization
+ * - Fetching meetings for workspace
  * - Filtering by today/future/circle
  * - Real-time updates via useQuery
  */
@@ -12,7 +12,7 @@ import { api, type Id } from '$lib/convex';
 import { browser } from '$app/environment';
 
 interface UseMeetingsOptions {
-	organizationId: () => string | undefined;
+	workspaceId: () => string | undefined;
 	sessionId: () => string | undefined;
 	circleFilter?: () => string | undefined;
 }
@@ -21,13 +21,13 @@ interface Meeting {
 	_id: Id<'meetings'> | string; // Synthetic ID for React keys (recurring instances)
 	originalMeetingId?: Id<'meetings'>; // Real Convex ID for navigation/queries
 	_creationTime: number;
-	organizationId: Id<'organizations'> | string;
+	workspaceId: Id<'workspaces'> | string;
 	circleId?: Id<'circles'> | string;
 	templateId?: Id<'meetingTemplates'> | string;
 	title: string;
 	startTime: number;
 	duration: number;
-	visibility: 'public' | 'circle' | 'private';
+	visibility: 'public' | 'private';
 	recurrence?: {
 		frequency: 'daily' | 'weekly' | 'monthly';
 		interval: number;
@@ -35,6 +35,7 @@ interface Meeting {
 		endDate?: number;
 	};
 	attendeeCount?: number;
+	invitedUsers?: Array<{ userId: string; name: string }>; // Invited users for display
 	createdAt: number;
 	createdBy: Id<'users'> | string;
 	updatedAt: number;
@@ -42,18 +43,18 @@ interface Meeting {
 }
 
 export function useMeetings(options: UseMeetingsOptions) {
-	const { organizationId, sessionId, circleFilter } = options;
+	const { workspaceId, sessionId, circleFilter } = options;
 
 	// Fetch meetings for user (already filtered by permissions in backend)
 	const meetingsQuery =
-		browser && organizationId() && sessionId()
+		browser && workspaceId() && sessionId()
 			? useQuery(api.meetings.listForUser, () => {
-					const orgId = organizationId();
+					const orgId = workspaceId();
 					const session = sessionId();
 					// Throw if not ready yet (outer check ensures they exist)
-					if (!orgId || !session) throw new Error('organizationId and sessionId required');
+					if (!orgId || !session) throw new Error('workspaceId and sessionId required');
 					return {
-						organizationId: orgId as Id<'organizations'>,
+						workspaceId: orgId as Id<'workspaces'>,
 						sessionId: session
 					};
 				})
@@ -75,6 +76,7 @@ export function useMeetings(options: UseMeetingsOptions) {
 
 	// Helper: Generate future occurrences for recurring meetings
 	// Shows next 2 weeks (14 days) or 10 instances, whichever comes first
+	// Note: Does NOT include the original meeting - only generates future instances
 	function generateRecurringInstances(meeting: Meeting): Meeting[] {
 		if (!meeting.recurrence) return [meeting];
 
@@ -85,55 +87,49 @@ export function useMeetings(options: UseMeetingsOptions) {
 		const maxEndDate = endDate ? Math.min(endDate, twoWeeksFromNow) : twoWeeksFromNow;
 		const maxInstances = 10; // Max 10 future occurrences
 
+		// Start from the original meeting time, but we'll calculate the next occurrence first
 		let currentTime = meeting.startTime;
 		let instanceCount = 0;
 
-		while (currentTime <= maxEndDate && instanceCount < maxInstances) {
-			// Add instance if it's in the future or today
-			if (currentTime >= now - 24 * 60 * 60 * 1000) {
-				// Within last 24 hours
-				instances.push({
-					...meeting,
-					startTime: currentTime,
-					// Synthetic ID for React keys (unique per occurrence)
-					_id: `${meeting._id}_${currentTime}`,
-					// Store original Convex ID for navigation/queries
-					originalMeetingId: meeting._id as Id<'meetings'>
-				});
-				instanceCount++;
-			}
-
-			// Calculate next occurrence based on frequency
+		// Helper to calculate next occurrence
+		function calculateNextOccurrence(time: number): number {
 			if (frequency === 'daily') {
 				// If specific days are set, find next matching day
 				if (daysOfWeek && daysOfWeek.length > 0) {
-					let nextTime = currentTime + 24 * 60 * 60 * 1000; // Start from next day
+					let nextTime = time + 24 * 60 * 60 * 1000; // Start from next day
 					let daysChecked = 0;
 					while (daysChecked < 7 && !daysOfWeek.includes(getDayOfWeek(nextTime))) {
 						nextTime += 24 * 60 * 60 * 1000;
 						daysChecked++;
 					}
-					currentTime = nextTime;
+					return nextTime;
 				} else {
 					// No specific days - truly every day
-					currentTime += interval * 24 * 60 * 60 * 1000;
+					return time + interval * 24 * 60 * 60 * 1000;
 				}
 			} else if (frequency === 'weekly') {
 				// For weekly, advance by interval weeks
-				currentTime += 7 * interval * 24 * 60 * 60 * 1000;
+				// Always advance at least 7 days to ensure we skip to next week
+				let nextTime = time + 7 * interval * 24 * 60 * 60 * 1000;
 
 				// If specific days are set, find next matching day
+				// But ensure we've advanced at least one day from the original time
 				if (daysOfWeek && daysOfWeek.length > 0) {
+					// If we're still on the same day, advance one more day first
+					if (getDayOfWeek(nextTime) === getDayOfWeek(time)) {
+						nextTime += 24 * 60 * 60 * 1000;
+					}
 					let daysChecked = 0;
-					while (daysChecked < 7 && !daysOfWeek.includes(getDayOfWeek(currentTime))) {
-						currentTime += 24 * 60 * 60 * 1000;
+					while (daysChecked < 7 && !daysOfWeek.includes(getDayOfWeek(nextTime))) {
+						nextTime += 24 * 60 * 60 * 1000;
 						daysChecked++;
 					}
 				}
+				return nextTime;
 			} else if (frequency === 'monthly') {
 				// For monthly, properly handle month boundaries
 				// eslint-disable-next-line svelte/prefer-svelte-reactivity
-				const date = new Date(currentTime);
+				const date = new Date(time);
 				// eslint-disable-next-line svelte/prefer-svelte-reactivity
 				const newDate = new Date(
 					date.getFullYear(),
@@ -142,8 +138,57 @@ export function useMeetings(options: UseMeetingsOptions) {
 					date.getHours(),
 					date.getMinutes()
 				);
-				currentTime = newDate.getTime();
+				return newDate.getTime();
 			}
+			return time;
+		}
+
+		// Calculate first occurrence (skip the original if it's in the past)
+		// If original meeting is today or future, include it; otherwise start from next occurrence
+		// Use todayStart for accurate day comparison (not 24-hour window)
+		// eslint-disable-next-line svelte/prefer-svelte-reactivity
+		const nowDate = new Date(now);
+		// eslint-disable-next-line svelte/prefer-svelte-reactivity
+		const todayStart = new Date(
+			nowDate.getFullYear(),
+			nowDate.getMonth(),
+			nowDate.getDate(),
+			0,
+			0,
+			0,
+			0
+		).getTime();
+
+		if (currentTime >= todayStart) {
+			// Original meeting is today or future - include it
+			instances.push({
+				...meeting,
+				startTime: currentTime,
+				// Use original ID for the first instance (today's meeting)
+				_id: meeting._id,
+				// Store original Convex ID for navigation/queries
+				originalMeetingId: meeting._id as Id<'meetings'>
+			});
+			instanceCount++;
+			// Calculate next occurrence (this will skip to next week/day)
+			currentTime = calculateNextOccurrence(currentTime);
+		} else {
+			// Original meeting is in the past - start from next occurrence
+			currentTime = calculateNextOccurrence(currentTime);
+		}
+
+		// Generate future instances
+		while (currentTime <= maxEndDate && instanceCount < maxInstances) {
+			instances.push({
+				...meeting,
+				startTime: currentTime,
+				// Synthetic ID for React keys (unique per occurrence)
+				_id: `${meeting._id}_${currentTime}`,
+				// Store original Convex ID for navigation/queries
+				originalMeetingId: meeting._id as Id<'meetings'>
+			});
+			instanceCount++;
+			currentTime = calculateNextOccurrence(currentTime);
 
 			// Safety check to prevent infinite loop
 			if (currentTime <= meeting.startTime) break;
@@ -175,14 +220,20 @@ export function useMeetings(options: UseMeetingsOptions) {
 		}
 
 		// Get today's date boundaries (local timezone)
+		// Use local timezone to ensure correct day boundaries
 		const now = Date.now();
 		// eslint-disable-next-line svelte/prefer-svelte-reactivity
 		const todayDate = new Date(now);
+		// Set to start of today in local timezone (midnight)
 		// eslint-disable-next-line svelte/prefer-svelte-reactivity
 		const todayStart = new Date(
 			todayDate.getFullYear(),
 			todayDate.getMonth(),
-			todayDate.getDate()
+			todayDate.getDate(),
+			0, // hours
+			0, // minutes
+			0, // seconds
+			0 // milliseconds
 		).getTime();
 		const todayEnd = todayStart + 24 * 60 * 60 * 1000;
 

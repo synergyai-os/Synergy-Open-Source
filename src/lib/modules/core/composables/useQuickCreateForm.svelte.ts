@@ -8,7 +8,7 @@
  * ```typescript
  * const form = useQuickCreateForm(
  *   () => sessionId,
- *   () => organizationId,
+ *   () => workspaceId,
  *   () => selectedType
  * );
  * form.content = 'New content';
@@ -29,7 +29,7 @@ type ContentType = 'note' | 'flashcard' | 'highlight';
 
 export function useQuickCreateForm(
 	getSessionId: () => string | null | undefined,
-	getOrganizationId: () => string | null | undefined,
+	getWorkspaceId: () => string | null | undefined,
 	getSelectedType: () => ContentType | null
 ) {
 	// Svelte 5 pattern: Single $state object with getters
@@ -142,7 +142,7 @@ export function useQuickCreateForm(
 				throw new Error('Session ID is required');
 			}
 
-			const organizationId = getOrganizationId();
+			const workspaceId = getWorkspaceId();
 
 			if (selectedType === 'note') {
 				// Use the new notes API for rich text notes
@@ -155,7 +155,7 @@ export function useQuickCreateForm(
 							: JSON.stringify(state.noteContent),
 					contentMarkdown: state.noteContentMarkdown || undefined,
 					isAIGenerated: state.noteIsAIGenerated || undefined,
-					organizationId: (organizationId as Id<'organizations'>) || undefined // Pass active organization context
+					workspaceId: (workspaceId as Id<'workspaces'>) || undefined // Pass active workspace context
 				});
 
 				// If there are tags, we need to link them after creation

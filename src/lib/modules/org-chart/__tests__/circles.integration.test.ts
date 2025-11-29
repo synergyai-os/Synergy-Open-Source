@@ -35,7 +35,7 @@ describe('Circles Integration Tests', () => {
 		cleanupQueue.length = 0;
 	});
 
-	it('should list circles in an organization', async () => {
+	it('should list circles in an workspace', async () => {
 		const t = convexTest(schema, modules);
 		const { sessionId, userId } = await createTestSession(t);
 		const orgId = await createTestOrganization(t, 'Test Org');
@@ -49,7 +49,7 @@ describe('Circles Integration Tests', () => {
 
 		const circles = await t.query(api.circles.list, {
 			sessionId,
-			organizationId: orgId
+			workspaceId: orgId
 		});
 
 		expect(circles).toBeDefined();
@@ -68,7 +68,7 @@ describe('Circles Integration Tests', () => {
 
 		const result = await t.mutation(api.circles.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			name: 'Active Platforms',
 			purpose: 'Platform development and maintenance'
 		});
@@ -99,7 +99,7 @@ describe('Circles Integration Tests', () => {
 		// Create parent circle
 		const parentResult = await t.mutation(api.circles.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			name: 'Engineering',
 			purpose: 'Software engineering'
 		});
@@ -107,7 +107,7 @@ describe('Circles Integration Tests', () => {
 		// Create child circle
 		const childResult = await t.mutation(api.circles.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			name: 'Backend Team',
 			purpose: 'Backend development',
 			parentCircleId: parentResult.circleId
@@ -140,7 +140,7 @@ describe('Circles Integration Tests', () => {
 
 		expect(circle).toBeDefined();
 		expect(circle.name).toBe('Test Circle');
-		expect(circle.organizationId).toBe(orgId);
+		expect(circle.workspaceId).toBe(orgId);
 	});
 
 	it('should update a circle name and purpose', async () => {
@@ -313,11 +313,11 @@ describe('Circles Integration Tests', () => {
 		await expect(
 			t.mutation(api.circles.create, {
 				sessionId,
-				organizationId: orgId,
+				workspaceId: orgId,
 				name: 'Child Circle',
 				parentCircleId
 			})
-		).rejects.toThrow('Parent circle must belong to the same organization');
+		).rejects.toThrow('Parent circle must belong to the same workspace');
 	});
 
 	it('should prevent circular parent reference', async () => {
@@ -340,7 +340,7 @@ describe('Circles Integration Tests', () => {
 		).rejects.toThrow('Circle cannot be its own parent');
 	});
 
-	it('should enforce organization membership - users cannot access other org circles', async () => {
+	it('should enforce workspace membership - users cannot access other org circles', async () => {
 		const t = convexTest(schema, modules);
 		const { userId: user1 } = await createTestSession(t);
 		const { sessionId: session2, userId: user2 } = await createTestSession(t);
@@ -361,7 +361,7 @@ describe('Circles Integration Tests', () => {
 				sessionId: session2,
 				circleId: circle1
 			})
-		).rejects.toThrow('You do not have access to this organization');
+		).rejects.toThrow('You do not have access to this workspace');
 	});
 
 	it('should fail with invalid sessionId', async () => {
@@ -373,7 +373,7 @@ describe('Circles Integration Tests', () => {
 		await expect(
 			t.query(api.circles.list, {
 				sessionId: 'invalid_session_id',
-				organizationId: orgId
+				workspaceId: orgId
 			})
 		).rejects.toThrow('Session not found');
 	});

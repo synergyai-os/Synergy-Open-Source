@@ -19,27 +19,27 @@
 	import * as ScrollArea from '$lib/components/atoms/ScrollArea.svelte';
 	import { FeatureFlags } from '$lib/infrastructure/feature-flags';
 	import { resolveRoute } from '$lib/utils/navigation';
-	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
 
 	// Get sessionId from page data (provided by authenticated layout)
 	const getSessionId = () => $page.data.sessionId;
 
-	// Get organizations context (manages active organization)
-	const organizationsContext = getContext<OrganizationsModuleAPI | undefined>('organizations');
+	// Get workspaces context (manages active workspace)
+	const organizationsContext = getContext<WorkspacesModuleAPI | undefined>('workspaces');
 	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
 	// Pattern: Check object existence first, then access getter property directly
 	// See SYOS-228 for full pattern documentation
-	const activeOrganization = $derived(() => {
+	const activeWorkspace = $derived(() => {
 		if (!organizationsContext) return null;
-		return organizationsContext.activeOrganization ?? null;
+		return organizationsContext.activeWorkspace ?? null;
 	});
-	const organizationId = $derived(() => {
-		const org = activeOrganization();
-		return org?.organizationId ?? undefined;
+	const workspaceId = $derived(() => {
+		const org = activeWorkspace();
+		return org?.workspaceId ?? undefined;
 	});
 
-	// Check feature flag (SYOS-226: organization-based targeting)
-	const getOrganizationId = () => organizationId();
+	// Check feature flag (SYOS-226: workspace-based targeting)
+	const getWorkspaceId = () => workspaceId();
 	const flagQuery =
 		browser && getSessionId()
 			? useQuery(api.featureFlags.checkFlag, () => {
@@ -56,13 +56,13 @@
 
 	// Fetch circles for create modal
 	const circlesQuery =
-		browser && getOrganizationId() && getSessionId()
+		browser && getWorkspaceId() && getSessionId()
 			? useQuery(api.circles.list, () => {
-					const orgId = getOrganizationId();
+					const orgId = getWorkspaceId();
 					const session = getSessionId();
-					if (!orgId || !session) throw new Error('organizationId and sessionId required');
+					if (!orgId || !session) throw new Error('workspaceId and sessionId required');
 					return {
-						organizationId: orgId as Id<'organizations'>,
+						workspaceId: orgId as Id<'workspaces'>,
 						sessionId: session
 					};
 				})
@@ -74,22 +74,22 @@
 
 	// Fetch meetings
 	const meetings = useMeetings({
-		organizationId: () => organizationId(),
+		workspaceId: () => workspaceId(),
 		sessionId: getSessionId
 	});
 
-	// Helper: Log sessionId and organizationId for manual template seeding (dev only)
+	// Helper: Log sessionId and workspaceId for manual template seeding (dev only)
 	$effect(() => {
 		if (!import.meta.env.DEV) return;
-		const orgId = organizationId();
+		const orgId = workspaceId();
 		const session = getSessionId();
 		if (orgId && session) {
 			console.log('📋 Meeting Page Debug Info:');
 			console.log('sessionId:', session);
-			console.log('organizationId:', orgId);
+			console.log('workspaceId:', orgId);
 			console.log('\n🌱 To seed default templates, run:');
 			console.log(
-				`npx convex run meetingTemplates:seedDefaultTemplates '{"sessionId": "${session}", "organizationId": "${orgId}"}'`
+				`npx convex run meetingTemplates:seedDefaultTemplates '{"sessionId": "${session}", "workspaceId": "${orgId}"}'`
 			);
 		}
 	});
@@ -100,18 +100,54 @@
 		activeTab: 'my-meetings' as 'my-meetings' | 'reports'
 	});
 
+	// Helper: Get real meeting ID (not synthetic)
+	// For recurring meetings, synthetic IDs are like `${realId}_${timestamp}`
+	// We need the real Convex ID to query the database
+	function getRealMeetingId(meeting: {
+		_id: string | Id<'meetings'>;
+		originalMeetingId?: Id<'meetings'>;
+	}): string {
+		// Always prefer originalMeetingId if available (for recurring instances)
+		if (meeting.originalMeetingId) {
+			return meeting.originalMeetingId;
+		}
+		// For non-recurring meetings, _id is the real ID
+		// For recurring instances, _id might be synthetic, so check format
+		const id = meeting._id.toString();
+		// Synthetic IDs have format: `${realId}_${timestamp}` (underscore separator)
+		// Real Convex IDs are just alphanumeric strings
+		if (id.includes('_') && id.split('_').length === 2) {
+			// Likely a synthetic ID - extract the real ID part
+			return id.split('_')[0];
+		}
+		return id;
+	}
+
 	// Navigate to meeting session
-	function handleStart(meetingId: string) {
-		goto(resolveRoute(`/meetings/${meetingId}`));
+	// Always use real meeting ID (not synthetic IDs for recurring instances)
+	function handleStart(meeting: {
+		_id: string | Id<'meetings'>;
+		originalMeetingId?: Id<'meetings'>;
+	}) {
+		const realId = getRealMeetingId(meeting);
+		goto(resolveRoute(`/meetings/${realId}`));
 	}
 
 	// Navigate to meeting report (for closed meetings)
-	function handleShowReport(meetingId: string) {
-		goto(resolveRoute(`/meetings/${meetingId}`));
+	function handleShowReport(meeting: {
+		_id: string | Id<'meetings'>;
+		originalMeetingId?: Id<'meetings'>;
+	}) {
+		const realId = getRealMeetingId(meeting);
+		goto(resolveRoute(`/meetings/${realId}`));
 	}
 
-	function handleAddAgendaItem(meetingId: string) {
-		console.log('Add agenda item:', meetingId);
+	function handleAddAgendaItem(meeting: {
+		_id: string | Id<'meetings'>;
+		originalMeetingId?: Id<'meetings'>;
+	}) {
+		const realId = getRealMeetingId(meeting);
+		console.log('Add agenda item:', realId);
 		// TODO: Open add agenda item modal
 	}
 </script>
@@ -209,14 +245,23 @@
 									<Text variant="body" color="tertiary">No meetings scheduled for today</Text>
 								</div>
 							{:else}
-								<div class="flex flex-col gap-section">
+								<!-- Horizontal scroll container on desktop, vertical on mobile -->
+								<div
+									class="md:pb-section flex flex-col gap-section md:flex-row md:gap-section md:overflow-x-auto"
+									style="scrollbar-width: thin;"
+								>
 									{#each meetings.todayMeetings as meeting (meeting._id)}
-										<TodayMeetingCard
-											{meeting}
-											onStart={() => handleStart(meeting.originalMeetingId ?? meeting._id)}
-											onAddAgendaItem={() =>
-												handleAddAgendaItem(meeting.originalMeetingId ?? meeting._id)}
-										/>
+										<div class="flex-shrink-0">
+											<TodayMeetingCard
+												{meeting}
+												attendeeAvatars={meeting.invitedUsers?.map((user) => ({
+													name: user.name,
+													color: '' // Not used - card uses variant="brand"
+												})) ?? []}
+												onStart={() => handleStart(meeting)}
+												onAddAgendaItem={() => handleAddAgendaItem(getRealMeetingId(meeting))}
+											/>
+										</div>
 									{/each}
 								</div>
 							{/if}
@@ -240,10 +285,9 @@
 									{#each meetings.thisWeekMeetings as meeting (meeting._id)}
 										<MeetingCard
 											{meeting}
-											organizationName={activeOrganization()?.name}
-											onStart={() => handleStart(meeting.originalMeetingId ?? meeting._id)}
-											onAddAgendaItem={() =>
-												handleAddAgendaItem(meeting.originalMeetingId ?? meeting._id)}
+											organizationName={activeWorkspace()?.name}
+											onStart={() => handleStart(meeting)}
+											onAddAgendaItem={() => handleAddAgendaItem(meeting)}
 										/>
 									{/each}
 								</div>
@@ -268,10 +312,9 @@
 									{#each meetings.futureMeetings as meeting (meeting._id)}
 										<MeetingCard
 											{meeting}
-											organizationName={activeOrganization()?.name}
-											onStart={() => handleStart(meeting.originalMeetingId ?? meeting._id)}
-											onAddAgendaItem={() =>
-												handleAddAgendaItem(meeting.originalMeetingId ?? meeting._id)}
+											organizationName={activeWorkspace()?.name}
+											onStart={() => handleStart(meeting)}
+											onAddAgendaItem={() => handleAddAgendaItem(meeting)}
 										/>
 									{/each}
 								</div>
@@ -304,9 +347,8 @@
 									{#each meetings.closedMeetings as meeting (meeting._id)}
 										<MeetingCard
 											{meeting}
-											organizationName={activeOrganization()?.name}
-											onShowReport={() =>
-												handleShowReport(meeting.originalMeetingId ?? meeting._id)}
+											organizationName={activeWorkspace()?.name}
+											onShowReport={() => handleShowReport(meeting)}
 										/>
 									{/each}
 								</div>
@@ -330,11 +372,11 @@
 	</ScrollArea.Root>
 
 	<!-- Create Meeting Modal -->
-	{#if organizationId() && getSessionId()}
+	{#if workspaceId() && getSessionId()}
 		<CreateMeetingModal
 			bind:open={state.showCreateModal}
 			onClose={() => (state.showCreateModal = false)}
-			organizationId={organizationId()!}
+			workspaceId={workspaceId()!}
 			sessionId={getSessionId()!}
 			{circles}
 		/>

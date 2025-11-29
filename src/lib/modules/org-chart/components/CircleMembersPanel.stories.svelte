@@ -14,8 +14,8 @@
 <!-- 
 	CircleMembersPanel requires:
 	- $app/stores (page store) for sessionId
-	- useQuery from convex-svelte for organization members
-	- getContext for organizations API
+	- useQuery from convex-svelte for workspace members
+	- getContext for workspaces API
 	These dependencies are not available in Storybook without complex setup.
 	Component works correctly in the application context.
 -->

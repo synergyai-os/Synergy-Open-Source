@@ -77,7 +77,7 @@ export default defineConfig(
 			// Modules should communicate via API contracts, not direct imports
 			// See: dev-docs/2-areas/architecture/modularity-refactoring-analysis.md
 			'synergyos/no-cross-module-imports': 'error',
-			// Enforce component organization - prevent feature components in @components
+			// Enforce component workspace - prevent feature components in @components
 			// Only atomic building blocks (atoms, molecules, organisms) belong in @components
 			// Feature components belong in modules
 			// See: dev-docs/2-areas/design/component-architecture.md

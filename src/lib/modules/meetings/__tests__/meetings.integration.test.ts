@@ -49,7 +49,7 @@ describe('Meetings Integration Tests', () => {
 		const startTime = Date.now() + 86400000; // Tomorrow
 		const result = await t.mutation(api.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			title: 'Product Sync',
 			startTime,
 			duration: 60,
@@ -84,7 +84,7 @@ describe('Meetings Integration Tests', () => {
 		const startTime = Date.now() + 86400000;
 		const result = await t.mutation(api.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			circleId,
 			title: 'Engineering Standup',
 			startTime,
@@ -105,7 +105,7 @@ describe('Meetings Integration Tests', () => {
 		expect(meeting.visibility).toBe('circle');
 	});
 
-	it('should list meetings in an organization', async () => {
+	it('should list meetings in an workspace', async () => {
 		const t = convexTest(schema, modules);
 		const { sessionId, userId } = await createTestSession(t);
 		const orgId = await createTestOrganization(t, 'Test Org');
@@ -116,7 +116,7 @@ describe('Meetings Integration Tests', () => {
 		// Create multiple meetings
 		await t.mutation(api.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			title: 'Meeting 1',
 			startTime: Date.now() + 86400000,
 			duration: 60,
@@ -125,7 +125,7 @@ describe('Meetings Integration Tests', () => {
 
 		await t.mutation(api.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			title: 'Meeting 2',
 			startTime: Date.now() + 172800000,
 			duration: 30,
@@ -135,7 +135,7 @@ describe('Meetings Integration Tests', () => {
 		// List meetings
 		const meetings = await t.query(api.meetings.list, {
 			sessionId,
-			organizationId: orgId
+			workspaceId: orgId
 		});
 
 		expect(meetings).toBeDefined();
@@ -154,7 +154,7 @@ describe('Meetings Integration Tests', () => {
 
 		const result = await t.mutation(api.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			title: 'Old Title',
 			startTime: Date.now() + 86400000,
 			duration: 60,
@@ -189,7 +189,7 @@ describe('Meetings Integration Tests', () => {
 
 		const result = await t.mutation(api.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			title: 'To Delete',
 			startTime: Date.now() + 86400000,
 			duration: 60,
@@ -205,7 +205,7 @@ describe('Meetings Integration Tests', () => {
 		// Verify deletion
 		const meetings = await t.query(api.meetings.list, {
 			sessionId,
-			organizationId: orgId
+			workspaceId: orgId
 		});
 
 		expect(meetings.length).toBe(0);
@@ -228,7 +228,7 @@ describe('Meetings Integration Tests', () => {
 
 		const result = await t.mutation(api.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			title: 'Daily Standup',
 			startTime,
 			duration: 15,
@@ -263,7 +263,7 @@ describe('Meetings Integration Tests', () => {
 
 		const result = await t.mutation(api.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			title: 'Weekly Review',
 			startTime,
 			duration: 60,
@@ -296,7 +296,7 @@ describe('Meetings Integration Tests', () => {
 
 		const result = await t.mutation(api.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			title: 'Monthly Planning',
 			startTime,
 			duration: 120,
@@ -336,7 +336,7 @@ describe('Meetings Integration Tests', () => {
 		// Create meeting
 		const meetingResult = await t.mutation(api.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 86400000,
 			duration: 60,
@@ -388,7 +388,7 @@ describe('Meetings Integration Tests', () => {
 		// Create meeting
 		const meetingResult = await t.mutation(api.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			circleId,
 			title: 'Tech Lead Sync',
 			startTime: Date.now() + 86400000,
@@ -431,7 +431,7 @@ describe('Meetings Integration Tests', () => {
 		// Create meeting
 		const meetingResult = await t.mutation(api.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			title: 'All-Hands',
 			startTime: Date.now() + 86400000,
 			duration: 60,
@@ -477,7 +477,7 @@ describe('Meetings Integration Tests', () => {
 		// Create meeting
 		const meetingResult = await t.mutation(api.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			title: 'Test Meeting',
 			startTime: Date.now() + 86400000,
 			duration: 60,
@@ -524,7 +524,7 @@ describe('Meetings Integration Tests', () => {
 		// Create circle meeting
 		await t.mutation(api.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			circleId,
 			title: 'Circle Meeting',
 			startTime: Date.now() + 86400000,
@@ -535,7 +535,7 @@ describe('Meetings Integration Tests', () => {
 		// Create ad-hoc meeting
 		await t.mutation(api.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			title: 'Ad-hoc Meeting',
 			startTime: Date.now() + 86400000,
 			duration: 60,
@@ -563,7 +563,7 @@ describe('Meetings Integration Tests', () => {
 		// Create private meeting (creator is automatically added as attendee)
 		const _meetingResult = await t.mutation(api.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			title: 'Private Meeting',
 			startTime: Date.now() + 86400000,
 			duration: 60,
@@ -574,7 +574,7 @@ describe('Meetings Integration Tests', () => {
 		// List user meetings
 		const userMeetings = await t.query(api.meetings.listForUser, {
 			sessionId,
-			organizationId: orgId
+			workspaceId: orgId
 		});
 
 		expect(userMeetings.length).toBe(1);
@@ -592,7 +592,7 @@ describe('Meetings Integration Tests', () => {
 		// Create public meeting
 		await t.mutation(api.meetings.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			title: 'Public Meeting',
 			startTime: Date.now() + 86400000,
 			duration: 60,
@@ -602,7 +602,7 @@ describe('Meetings Integration Tests', () => {
 		// List user meetings (should see public meeting)
 		const userMeetings = await t.query(api.meetings.listForUser, {
 			sessionId,
-			organizationId: orgId
+			workspaceId: orgId
 		});
 
 		expect(userMeetings.length).toBe(1);

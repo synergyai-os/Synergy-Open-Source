@@ -1,18 +1,18 @@
-# Refactoring Script: organizations → workspaces
+# Refactoring Script: workspaces → workspaces
 
 ## Overview
 
-This script safely automates the refactoring from `organizations` to `workspaces` across the entire codebase. It handles:
+This script safely automates the refactoring from `workspaces` to `workspaces` across the entire codebase. It handles:
 
-- ✅ Table names: `'organizations'` → `'workspaces'`
-- ✅ Type references: `Id<'organizations'>` → `Id<'workspaces'>`
-- ✅ Field names: `organizationId` → `workspaceId`
-- ✅ Variable names: `organization` → `workspace` (context-aware)
-- ✅ File names: `organizations.ts` → `workspaces.ts`
-- ✅ Directory names: `organizations/` → `workspaces/`
-- ✅ API endpoints: `api.organizations.*` → `api.workspaces.*`
-- ✅ Function names: `useOrganizations` → `useWorkspaces`
-- ✅ Interface names: `OrganizationsModuleAPI` → `WorkspacesModuleAPI`
+- ✅ Table names: `'workspaces'` → `'workspaces'`
+- ✅ Type references: `Id<'workspaces'>` → `Id<'workspaces'>`
+- ✅ Field names: `workspaceId` → `workspaceId`
+- ✅ Variable names: `workspace` → `workspace` (context-aware)
+- ✅ File names: `workspaces.ts` → `workspaces.ts`
+- ✅ Directory names: `workspaces/` → `workspaces/`
+- ✅ API endpoints: `api.workspaces.*` → `api.workspaces.*`
+- ✅ Function names: `useWorkspaces` → `useWorkspaces`
+- ✅ Interface names: `WorkspacesModuleAPI` → `WorkspacesModuleAPI`
 
 ## Why Use This Script?
 
@@ -71,29 +71,29 @@ This applies all changes. Make sure you've:
 Add `--verbose` flag to see detailed replacement information:
 
 ```bash
-npx tsx scripts/refactor-organizations-to-workspaces.ts -- --dry-run --verbose
+npx tsx scripts/refactor-workspaces-to-workspaces.ts -- --dry-run --verbose
 ```
 
 ## What Gets Changed
 
 ### Code Replacements
 
-| Pattern                  | Replacement           | Example               |
-| ------------------------ | --------------------- | --------------------- |
-| `'organizations'`        | `'workspaces'`        | Table name in queries |
-| `Id<'organizations'>`    | `Id<'workspaces'>`    | TypeScript type       |
-| `api.organizations.*`    | `api.workspaces.*`    | API endpoint calls    |
-| `organizationId`         | `workspaceId`         | Field/variable name   |
-| `organizations`          | `workspaces`          | Variable name         |
-| `organization`           | `workspace`           | Variable name         |
-| `useOrganizations`       | `useWorkspaces`       | Composable function   |
-| `OrganizationsModuleAPI` | `WorkspacesModuleAPI` | Interface name        |
+| Pattern               | Replacement           | Example               |
+| --------------------- | --------------------- | --------------------- |
+| `'workspaces'`        | `'workspaces'`        | Table name in queries |
+| `Id<'workspaces'>`    | `Id<'workspaces'>`    | TypeScript type       |
+| `api.workspaces.*`    | `api.workspaces.*`    | API endpoint calls    |
+| `workspaceId`         | `workspaceId`         | Field/variable name   |
+| `workspaces`          | `workspaces`          | Variable name         |
+| `workspace`           | `workspace`           | Variable name         |
+| `useWorkspaces`       | `useWorkspaces`       | Composable function   |
+| `WorkspacesModuleAPI` | `WorkspacesModuleAPI` | Interface name        |
 
 ### File/Directory Renames
 
-- `convex/organizations.ts` → `convex/workspaces.ts`
-- `convex/organizationSettings.ts` → `convex/workspaceSettings.ts`
-- `src/lib/modules/core/organizations/` → `src/lib/modules/core/workspaces/`
+- `convex/workspaces.ts` → `convex/workspaces.ts`
+- `convex/workspaceSettings.ts` → `convex/workspaceSettings.ts`
+- `src/lib/modules/core/workspaces/` → `src/lib/modules/core/workspaces/`
 - Component files within the module directory
 
 ## What Gets Excluded
@@ -118,9 +118,9 @@ git diff
 
 Review all changes carefully. The script is thorough but may need manual adjustments for:
 
-- Comments that intentionally reference "organization"
+- Comments that intentionally reference "workspace"
 - External API documentation
-- User-facing strings (if you want to keep "organization" in UI)
+- User-facing strings (if you want to keep "workspace" in UI)
 
 ### 2. Run Tests
 
@@ -154,7 +154,7 @@ Ensure code style is maintained.
 2. **Deploy schema changes first** before deploying code changes
 3. **Run Convex migration** if needed (Convex handles some migrations automatically)
 
-See `ai-docs/tasks/organizations-to-workspaces-impact-analysis.md` for detailed migration strategy.
+See `ai-docs/tasks/workspaces-to-workspaces-impact-analysis.md` for detailed migration strategy.
 
 ### 6. Clean Up Backups (if created)
 
@@ -211,8 +211,8 @@ git checkout -- .
 
 The script handles most cases automatically, but you may need to manually update:
 
-1. **Comments**: If comments intentionally reference "organization"
-2. **User-facing strings**: UI text that should say "organization" not "workspace"
+1. **Comments**: If comments intentionally reference "workspace"
+2. **User-facing strings**: UI text that should say "workspace" not "workspace"
 3. **External API docs**: Documentation for external consumers
 4. **Database migrations**: Schema changes need separate handling
 5. **Route paths**: `/org/*` routes may need manual consideration
@@ -221,19 +221,19 @@ The script handles most cases automatically, but you may need to manually update
 
 ```
 ╔══════════════════════════════════════════════════════════╗
-║  organizations → workspaces Refactoring Script          ║
+║  workspaces → workspaces Refactoring Script          ║
 ╚══════════════════════════════════════════════════════════╝
 
 Found 1247 files to check
 
 Would update convex/schema.ts (45 replacements)
-Would update convex/organizations.ts (123 replacements)
-Would update src/lib/modules/core/organizations/api.ts (12 replacements)
+Would update convex/workspaces.ts (123 replacements)
+Would update src/lib/modules/core/workspaces/api.ts (12 replacements)
 ...
 
 File/Directory Renames:
-Would rename convex/organizations.ts → convex/workspaces.ts
-Would rename src/lib/modules/core/organizations → src/lib/modules/core/workspaces
+Would rename convex/workspaces.ts → convex/workspaces.ts
+Would rename src/lib/modules/core/workspaces → src/lib/modules/core/workspaces
 
 ╔══════════════════════════════════════════════════════════╗
 ║  Summary                                                  ║
@@ -245,8 +245,8 @@ Would rename src/lib/modules/core/organizations → src/lib/modules/core/workspa
 
 ## Related Documentation
 
-- `ai-docs/tasks/organizations-to-workspaces-impact-analysis.md` - Full impact analysis
-- `scripts/refactor-organizations-to-workspaces.ts` - Script source code
+- `ai-docs/tasks/workspaces-to-workspaces-impact-analysis.md` - Full impact analysis
+- `scripts/refactor-workspaces-to-workspaces.ts` - Script source code
 
 ## Support
 

@@ -21,6 +21,7 @@ import { meetingsModule } from './meetings/manifest';
 import { flashcardsModule } from './flashcards/manifest';
 import { orgChartModule } from './org-chart/manifest';
 import { docsModule } from './docs/manifest';
+import { projectsModule } from './projects/manifest';
 
 // Register all modules
 registerModule(coreModule);
@@ -29,3 +30,4 @@ registerModule(meetingsModule);
 registerModule(flashcardsModule);
 registerModule(orgChartModule);
 registerModule(docsModule);
+registerModule(projectsModule);

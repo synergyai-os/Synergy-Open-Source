@@ -6,7 +6,7 @@
 	import { onMount, getContext } from 'svelte';
 	import type { FunctionReference, FunctionReturnType } from 'convex/server';
 	import type { Id } from '$convex/_generated/dataModel';
-	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
 
 	// Types for Convex hooks (currently unused but kept for future use)
 	// type UseQueryReturn<Query extends FunctionReference<'query'>> =
@@ -74,32 +74,32 @@
 	import { makeFunctionReference } from 'convex/server';
 
 	// Get workspace context
-	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
+	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
 	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
 	// Pattern: Check object existence first, then access getter property directly
 	// See SYOS-228 for full pattern documentation
-	const activeOrganizationId = $derived(() => {
-		if (!organizations) return null;
-		return organizations.activeOrganizationId ?? null;
+	const activeWorkspaceId = $derived(() => {
+		if (!workspaces) return null;
+		return workspaces.activeWorkspaceId ?? null;
 	});
 	const organizationSummaries = $derived(() => {
-		if (!organizations) return [];
-		return organizations.organizations ?? [];
+		if (!workspaces) return [];
+		return workspaces.workspaces ?? [];
 	});
 	const currentOrganization = $derived(() => {
-		const orgId = activeOrganizationId();
+		const orgId = activeWorkspaceId();
 		if (!orgId) return null;
-		return organizationSummaries().find((org) => org.organizationId === orgId);
+		return organizationSummaries().find((org) => org.workspaceId === orgId);
 	});
 	const workspaceContext = $derived(() => {
-		// Users always have an organization (enforced server-side)
-		// If no organization found, return fallback (should never happen)
+		// Users always have an workspace (enforced server-side)
+		// If no workspace found, return fallback (should never happen)
 		const org = currentOrganization();
 		if (org) {
-			return { type: 'organization', name: org.name };
+			return { type: 'workspace', name: org.name };
 		}
 		// Fallback for edge case (should never happen due to server-side enforcement)
-		return { type: 'organization', name: 'Organization' };
+		return { type: 'workspace', name: 'Organization' };
 	});
 
 	const settingsApiFunctions = browser
@@ -141,33 +141,33 @@
 				) as FunctionReference<'action', 'public', { sessionId: string }, Id<'users'>>,
 				// Organization settings
 				getOrganizationSettings: makeFunctionReference(
-					'organizationSettings:getOrganizationSettings'
+					'workspaceSettings:getOrganizationSettings'
 				) as FunctionReference<
 					'query',
 					'public',
-					{ sessionId: string; organizationId: Id<'organizations'> },
+					{ sessionId: string; workspaceId: Id<'workspaces'> },
 					{
-						_id: Id<'organizationSettings'> | null;
-						organizationId: Id<'organizations'>;
+						_id: Id<'workspaceSettings'> | null;
+						workspaceId: Id<'workspaces'>;
 						hasClaudeKey: boolean;
 						isAdmin: boolean;
 					} | null
 				>,
 				updateOrganizationClaudeApiKey: makeFunctionReference(
-					'organizationSettings:updateOrganizationClaudeApiKey'
+					'workspaceSettings:updateOrganizationClaudeApiKey'
 				) as FunctionReference<
 					'action',
 					'public',
-					{ sessionId: string; organizationId: Id<'organizations'>; apiKey: string },
-					Id<'organizations'>
+					{ sessionId: string; workspaceId: Id<'workspaces'>; apiKey: string },
+					Id<'workspaces'>
 				>,
 				deleteOrganizationClaudeApiKey: makeFunctionReference(
-					'organizationSettings:deleteOrganizationClaudeApiKey'
+					'workspaceSettings:deleteOrganizationClaudeApiKey'
 				) as FunctionReference<
 					'mutation',
 					'public',
-					{ sessionId: string; organizationId: Id<'organizations'> },
-					Id<'organizationSettings'> | null
+					{ sessionId: string; workspaceId: Id<'workspaces'> },
+					Id<'workspaceSettings'> | null
 				>
 			}
 		: null;
@@ -213,12 +213,12 @@
 				// Keep inputs empty - never display actual keys on client
 			}
 
-			// Load organization settings if in org workspace
-			const orgId = activeOrganizationId();
+			// Load workspace settings if in org workspace
+			const orgId = activeWorkspaceId();
 			if (orgId) {
 				const orgSettings = await convexClient.query(settingsApiFunctions.getOrganizationSettings, {
 					sessionId,
-					organizationId: orgId as Id<'organizations'>
+					workspaceId: orgId as Id<'workspaces'>
 				});
 				if (orgSettings) {
 					_isOrgAdmin = orgSettings.isAdmin || false;
@@ -278,7 +278,7 @@
 	// State for API keys (initialized from Convex)
 	// CRITICAL: These are for user input ONLY - we NEVER store or display actual saved keys on the client
 
-	// User API keys (personal settings within organization)
+	// User API keys (personal settings within workspace)
 	let claudeApiKey = $state('');
 	let readwiseApiKey = $state('');
 
@@ -504,11 +504,11 @@
 						Organization Settings: {workspaceContext().name}
 					</p>
 					<p class="text-small text-secondary">
-						These settings apply to {workspaceContext().name} organization. Personal settings (theme,
-						API keys) are managed within this organization context.
+						These settings apply to {workspaceContext().name} workspace. Personal settings (theme, API
+						keys) are managed within this workspace context.
 					</p>
 					<p class="mt-form-section text-label text-tertiary">
-						<strong>Coming soon:</strong> Team-specific settings and advanced organization management.
+						<strong>Coming soon:</strong> Team-specific settings and advanced workspace management.
 					</p>
 				</div>
 			</div>
@@ -537,7 +537,7 @@
 										</span>
 									</label>
 									<p class="text-small text-secondary">
-										Theme preferences are personal and apply across all organizations.
+										Theme preferences are personal and apply across all workspaces.
 									</p>
 								</div>
 								<div class="flex items-center gap-2" role="presentation">
@@ -619,7 +619,7 @@
 									</label>
 									<p class="text-small text-secondary">
 										Used for AI-powered flashcard generation from your content (personal use within
-										organization).
+										workspace).
 									</p>
 								</div>
 								<div class="flex flex-shrink-0 flex-col" style="gap: var(--spacing-1);">
@@ -757,10 +757,10 @@
 										</span>
 									</label>
 									<p class="text-small text-secondary">
-										Your personal Readwise account. Imports will be shared with the organization.
+										Your personal Readwise account. Imports will be shared with the workspace.
 									</p>
 									<p class="mt-form-field-gap text-accent-primary text-label">
-										💡 Tip: Use the same key across organizations to sync content everywhere
+										💡 Tip: Use the same key across workspaces to sync content everywhere
 									</p>
 								</div>
 								<div class="flex flex-shrink-0 flex-col" style="gap: var(--spacing-1);">

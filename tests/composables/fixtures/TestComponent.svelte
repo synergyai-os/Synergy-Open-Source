@@ -1,18 +1,18 @@
 <!--
-  Test Component Wrapper for useOrganizations Composable
+  Test Component Wrapper for useWorkspaces Composable
   
-  This component wraps the useOrganizations composable so it can be tested
+  This component wraps the useWorkspaces composable so it can be tested
   in a browser environment using vitest-browser-svelte
 -->
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { setupConvex } from 'convex-svelte';
-	import { useOrganizations } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import { useWorkspaces } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
 	import type {
 		UseOrganizations,
-		OrganizationSummary,
-		OrganizationInvite
-	} from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+		WorkspaceSummary,
+		WorkspaceInvite
+	} from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
 
 	// Setup Convex client for testing (required by convex-svelte)
 	if (browser) {
@@ -29,8 +29,8 @@
 		userId?: () => string | undefined;
 		sessionId?: () => string | undefined;
 		orgFromUrl?: () => string | null;
-		initialOrganizations?: OrganizationSummary[];
-		initialOrganizationInvites?: OrganizationInvite[];
+		initialOrganizations?: WorkspaceSummary[];
+		initialOrganizationInvites?: WorkspaceInvite[];
 	} = $props();
 
 	// Create reactive wrappers that call the prop functions
@@ -39,7 +39,7 @@
 	const sessionId = () => sessionIdProp();
 	const orgFromUrl = () => orgFromUrlProp();
 
-	const orgs = useOrganizations({
+	const orgs = useWorkspaces({
 		userId,
 		sessionId,
 		orgFromUrl,

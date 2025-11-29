@@ -13,8 +13,8 @@ import type { ProseMirrorNode } from '../src/lib/types/prosemirror';
 /**
  * List all inbox items for the current user
  * Optionally filter by type (readwise_highlight, photo_note, manual_text, etc.)
- * Filters by workspace context (organization or team).
- * Note: null organizationId query is defensive (should not happen - users always have orgs)
+ * Filters by workspace context (workspace or team).
+ * Note: null workspaceId query is defensive (should not happen - users always have orgs)
  * Returns items with basic display info (title, snippet, tags) for inbox list
  *
  * SECURITY: Uses sessionId to derive userId server-side (prevents impersonation)
@@ -24,7 +24,7 @@ export const listInboxItems = query({
 		sessionId: v.string(), // Required: passed from authenticated SvelteKit session
 		filterType: v.optional(v.string()), // Optional type filter
 		processed: v.optional(v.boolean()), // Optional processed filter
-		organizationId: v.optional(v.union(v.id('organizations'), v.null())), // Workspace context
+		workspaceId: v.optional(v.union(v.id('workspaces'), v.null())), // Workspace context
 		circleId: v.optional(v.id('circles')) // Circle context
 	},
 	handler: async (ctx, args) => {
@@ -45,20 +45,18 @@ export const listInboxItems = query({
 		let items = await itemsQuery.collect();
 
 		// Filter by workspace context
-		if (args.organizationId === null) {
-			// Defensive: Handle null organizationId query (should not happen - users always have orgs).
-			// Filters for items with no organizationId (legacy data or edge cases).
-			items = items.filter((item) => !item.organizationId && !item.circleId);
-		} else if (args.organizationId !== undefined) {
+		if (args.workspaceId === null) {
+			// Defensive: Handle null workspaceId query (should not happen - users always have orgs).
+			// Filters for items with no workspaceId (legacy data or edge cases).
+			items = items.filter((item) => !item.workspaceId && !item.circleId);
+		} else if (args.workspaceId !== undefined) {
 			// Organization workspace: show org-owned items
 			if (args.circleId) {
 				// Circle context: show only circle items
 				items = items.filter((item) => item.circleId === args.circleId);
 			} else {
 				// Org context: show org items (not circle-specific)
-				items = items.filter(
-					(item) => item.organizationId === args.organizationId && !item.circleId
-				);
+				items = items.filter((item) => item.workspaceId === args.workspaceId && !item.circleId);
 			}
 		}
 		// If no workspace filter provided, show all (backwards compatibility)

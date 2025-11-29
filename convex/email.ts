@@ -350,7 +350,7 @@ export const sendPasswordResetEmail = internalAction({
 });
 
 /**
- * Send organization invite email
+ * Send workspace invite email
  */
 export const sendOrganizationInviteEmail = internalAction({
 	args: {
@@ -485,9 +485,9 @@ export const sendOrganizationInviteEmail = internalAction({
 				emailId: result.data?.id
 			};
 		} catch (error) {
-			console.error('Error sending organization invite email:', error);
+			console.error('Error sending workspace invite email:', error);
 			throw new Error(
-				`Failed to send organization invite email: ${error instanceof Error ? error.message : String(error)}`
+				`Failed to send workspace invite email: ${error instanceof Error ? error.message : String(error)}`
 			);
 		}
 	}

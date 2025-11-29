@@ -5,6 +5,7 @@
 	 */
 
 	import { Text } from '$lib/components/atoms';
+	import { DEFAULT_LOCALE } from '$lib/utils/locale';
 
 	interface Props {
 		dates: Date[];
@@ -23,7 +24,7 @@
 			{#each dates as date (date.getTime())}
 				<div class="bg-surface-tertiary rounded-card px-input-x py-input-y text-center">
 					<Text variant="label" color="info" as="div" class="font-medium">
-						{date.toLocaleDateString('en-US', { month: 'short' })}
+						{date.toLocaleDateString(DEFAULT_LOCALE, { month: 'short' })}
 					</Text>
 					<Text variant="body" size="sm" color="default" as="div" class="font-medium">
 						{date.getDate()}

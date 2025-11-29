@@ -106,14 +106,14 @@ export async function createTestNote(
 }
 
 /**
- * Create a test organization
+ * Create a test workspace
  */
 export async function createTestOrganization(
 	t: TestConvex<any>,
 	name: string = 'Test Org'
-): Promise<Id<'organizations'>> {
+): Promise<Id<'workspaces'>> {
 	return await t.run(async (ctx) => {
-		return await ctx.db.insert('organizations', {
+		return await ctx.db.insert('workspaces', {
 			name,
 			slug: `test-org-${Date.now()}`,
 			createdAt: Date.now(),
@@ -124,17 +124,17 @@ export async function createTestOrganization(
 }
 
 /**
- * Create an organization membership
+ * Create an workspace membership
  */
 export async function createTestOrganizationMember(
 	t: TestConvex<any>,
-	organizationId: Id<'organizations'>,
+	workspaceId: Id<'workspaces'>,
 	userId: Id<'users'>,
 	role: 'owner' | 'admin' | 'member' = 'member'
-): Promise<Id<'organizationMembers'>> {
+): Promise<Id<'workspaceMembers'>> {
 	return await t.run(async (ctx) => {
-		return await ctx.db.insert('organizationMembers', {
-			organizationId,
+		return await ctx.db.insert('workspaceMembers', {
+			workspaceId,
 			userId,
 			role,
 			joinedAt: Date.now()
@@ -143,22 +143,22 @@ export async function createTestOrganizationMember(
 }
 
 /**
- * Create an organization invite
+ * Create an workspace invite
  */
 export async function createTestInvite(
 	t: TestConvex<any>,
-	organizationId: Id<'organizations'>,
+	workspaceId: Id<'workspaces'>,
 	invitedBy: Id<'users'>,
 	options?: {
 		email?: string;
 		invitedUserId?: Id<'users'>;
 		role?: 'owner' | 'admin' | 'member';
 	}
-): Promise<{ inviteId: Id<'organizationInvites'>; code: string }> {
+): Promise<{ inviteId: Id<'workspaceInvites'>; code: string }> {
 	const code = `TEST-${Date.now()}`;
 	const inviteId = await t.run(async (ctx) => {
-		return await ctx.db.insert('organizationInvites', {
-			organizationId,
+		return await ctx.db.insert('workspaceInvites', {
+			workspaceId,
 			invitedBy,
 			email: options?.email,
 			invitedUserId: options?.invitedUserId,
@@ -222,7 +222,7 @@ export async function assignRoleToUser(
 	userId: Id<'users'>,
 	roleId: Id<'roles'>,
 	context?: {
-		organizationId?: Id<'organizations'>;
+		workspaceId?: Id<'workspaces'>;
 		circleId?: Id<'circles'>;
 		assignedBy?: Id<'users'>;
 	}
@@ -231,7 +231,7 @@ export async function assignRoleToUser(
 		return await ctx.db.insert('userRoles', {
 			userId,
 			roleId,
-			organizationId: context?.organizationId,
+			workspaceId: context?.workspaceId,
 			circleId: context?.circleId,
 			assignedBy: context?.assignedBy ?? userId, // Default to self-assignment for tests
 			assignedAt: Date.now()
@@ -283,18 +283,18 @@ export async function cleanupTestData(t: TestConvex<any>, userId?: Id<'users'>):
 			await ctx.db.delete(userRole._id);
 		}
 
-		// Clean up organization memberships
+		// Clean up workspace memberships
 		const orgMembers = await ctx.db
-			.query('organizationMembers')
+			.query('workspaceMembers')
 			.withIndex('by_user', (q) => q.eq('userId', userId))
 			.collect();
 		for (const member of orgMembers) {
 			await ctx.db.delete(member._id);
 		}
 
-		// Clean up organization invites sent by user
+		// Clean up workspace invites sent by user
 		const invites = await ctx.db
-			.query('organizationInvites')
+			.query('workspaceInvites')
 			.filter((q) => q.eq(q.field('invitedBy'), userId))
 			.collect();
 		for (const invite of invites) {
@@ -350,13 +350,13 @@ export async function cleanupTestData(t: TestConvex<any>, userId?: Id<'users'>):
  */
 export async function createTestCircle(
 	t: TestConvex<any>,
-	organizationId: Id<'organizations'>,
+	workspaceId: Id<'workspaces'>,
 	name: string = 'Test Circle',
 	parentCircleId?: Id<'circles'>
 ): Promise<Id<'circles'>> {
 	return await t.run(async (ctx) => {
 		return await ctx.db.insert('circles', {
-			organizationId,
+			workspaceId,
 			name,
 			slug: `test-circle-${Date.now()}`,
 			purpose: 'Test purpose',
@@ -385,17 +385,17 @@ export async function createTestCircleMember(
 }
 
 /**
- * Clean up test organization and related data
+ * Clean up test workspace and related data
  */
 export async function cleanupTestOrganization(
 	t: TestConvex<any>,
-	organizationId: Id<'organizations'>
+	workspaceId: Id<'workspaces'>
 ): Promise<void> {
 	await t.run(async (ctx) => {
 		// Clean up circles and circle members
 		const circles = await ctx.db
 			.query('circles')
-			.withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
+			.withIndex('by_workspace', (q) => q.eq('workspaceId', workspaceId))
 			.collect();
 		for (const circle of circles) {
 			// Clean up circle members first
@@ -410,28 +410,28 @@ export async function cleanupTestOrganization(
 			await ctx.db.delete(circle._id);
 		}
 
-		// Clean up organization members
+		// Clean up workspace members
 		const members = await ctx.db
-			.query('organizationMembers')
-			.withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
+			.query('workspaceMembers')
+			.withIndex('by_workspace', (q) => q.eq('workspaceId', workspaceId))
 			.collect();
 		for (const member of members) {
 			await ctx.db.delete(member._id);
 		}
 
-		// Clean up organization invites
+		// Clean up workspace invites
 		const invites = await ctx.db
-			.query('organizationInvites')
-			.withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
+			.query('workspaceInvites')
+			.withIndex('by_workspace', (q) => q.eq('workspaceId', workspaceId))
 			.collect();
 		for (const invite of invites) {
 			await ctx.db.delete(invite._id);
 		}
 
-		// Clean up organization (check if it exists first)
-		const org = await ctx.db.get(organizationId);
+		// Clean up workspace (check if it exists first)
+		const org = await ctx.db.get(workspaceId);
 		if (org) {
-			await ctx.db.delete(organizationId);
+			await ctx.db.delete(workspaceId);
 		}
 	});
 }

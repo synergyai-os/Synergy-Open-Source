@@ -1,12 +1,11 @@
 /**
- * Meeting Agenda Items Module - Notes and processing state
- *
- * SYOS-218: Add ability to take notes on agenda items and mark them as processed
+ * Meeting Agenda Items Module - Notes and status management
  *
  * Supports:
  * - Updating notes (markdown) on agenda items
- * - Marking items as processed/unprocessed
- * - Permission checks (user must be org member)
+ * - Marking items with status enum (todo, processed, rejected)
+ * - Permission checks (user must be workspace member)
+ * - Status locking after meeting closes
  */
 
 import { v } from 'convex/values';
@@ -16,22 +15,20 @@ import type { Id } from './_generated/dataModel';
 import type { MutationCtx } from './_generated/server';
 
 /**
- * Helper: Verify user has access to organization
+ * Helper: Verify user has access to workspace
  */
-async function ensureOrganizationMembership(
+async function ensureWorkspaceMembership(
 	ctx: MutationCtx,
-	organizationId: Id<'organizations'>,
+	workspaceId: Id<'workspaces'>,
 	userId: Id<'users'>
 ): Promise<void> {
 	const membership = await ctx.db
-		.query('organizationMembers')
-		.withIndex('by_organization_user', (q) =>
-			q.eq('organizationId', organizationId).eq('userId', userId)
-		)
+		.query('workspaceMembers')
+		.withIndex('by_workspace_user', (q) => q.eq('workspaceId', workspaceId).eq('userId', userId))
 		.first();
 
 	if (!membership) {
-		throw new Error('User is not a member of this organization');
+		throw new Error('User is not a member of this workspace');
 	}
 }
 
@@ -58,15 +55,15 @@ export const updateNotes = mutation({
 			throw new Error('Agenda item not found');
 		}
 
-		// Get meeting to verify organization access
+		// Get meeting to verify workspace access
 		const meeting = await ctx.db.get(agendaItem.meetingId);
 
 		if (!meeting) {
 			throw new Error('Meeting not found');
 		}
 
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, meeting.organizationId, userId);
+		// Verify user has access to workspace
+		await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId);
 
 		// Update notes
 		await ctx.db.patch(args.agendaItemId, {
@@ -78,13 +75,14 @@ export const updateNotes = mutation({
 });
 
 /**
- * Mark agenda item as processed or unprocessed
+ * Mark agenda item status (todo, processed, rejected)
+ * Status can be changed during meeting, but is locked after meeting closes
  */
-export const markProcessed = mutation({
+export const markStatus = mutation({
 	args: {
 		sessionId: v.string(),
 		agendaItemId: v.id('meetingAgendaItems'),
-		isProcessed: v.boolean()
+		status: v.union(v.literal('todo'), v.literal('processed'), v.literal('rejected'))
 	},
 	handler: async (ctx, args) => {
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
@@ -96,20 +94,35 @@ export const markProcessed = mutation({
 			throw new Error('Agenda item not found');
 		}
 
-		// Get meeting to verify organization access
+		// Get meeting to verify workspace access and check if closed
 		const meeting = await ctx.db.get(agendaItem.meetingId);
 
 		if (!meeting) {
 			throw new Error('Meeting not found');
 		}
 
-		// Verify user has access to organization
-		await ensureOrganizationMembership(ctx, meeting.organizationId, userId);
+		// Verify user has access to workspace
+		await ensureWorkspaceMembership(ctx, meeting.workspaceId, userId);
 
-		// Update processed state
+		// Status is locked after meeting closes
+		if (meeting.closedAt) {
+			throw new Error('Cannot change agenda item status after meeting is closed');
+		}
+
+		// Update status
 		await ctx.db.patch(args.agendaItemId, {
-			isProcessed: args.isProcessed
+			status: args.status
 		});
+
+		// Business rule: If marking active item as processed/rejected, clear activeAgendaItemId
+		if (
+			meeting.activeAgendaItemId === args.agendaItemId &&
+			(args.status === 'processed' || args.status === 'rejected')
+		) {
+			await ctx.db.patch(meeting._id, {
+				activeAgendaItemId: undefined
+			});
+		}
 
 		return { success: true };
 	}

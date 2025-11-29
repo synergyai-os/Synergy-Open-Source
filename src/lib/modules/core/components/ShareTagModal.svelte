@@ -13,20 +13,20 @@
 	};
 
 	type Organization = {
-		organizationId: string;
+		workspaceId: string;
 		name: string;
 		slug: string;
 	};
 
 	type Props = {
 		tag: Tag;
-		organizations: Organization[];
+		workspaces: Organization[];
 		isSharing: boolean;
-		onShare: (shareWith: 'organization', targetId: string) => void;
+		onShare: (shareWith: 'workspace', targetId: string) => void;
 		onClose: () => void;
 	};
 
-	let { tag, organizations, isSharing, onShare, onClose }: Props = $props();
+	let { tag, workspaces, isSharing, onShare, onClose }: Props = $props();
 
 	const getSessionId = () => $page.data.sessionId;
 	let selectedOrganization = $state<string>('');
@@ -47,14 +47,14 @@
 
 	// Auto-select first org if available
 	onMount(() => {
-		if (organizations.length > 0) {
-			selectedOrganization = organizations[0].organizationId;
+		if (workspaces.length > 0) {
+			selectedOrganization = workspaces[0].workspaceId;
 		}
 	});
 
 	function handleSubmit() {
 		if (!selectedOrganization) return;
-		onShare('organization', selectedOrganization);
+		onShare('workspace', selectedOrganization);
 	}
 
 	// Handle backdrop click
@@ -97,28 +97,28 @@
 
 		<!-- Modal Body -->
 		<div class="space-y-content-section px-card py-card">
-			{#if organizations.length === 0}
+			{#if workspaces.length === 0}
 				<div class="text-small text-secondary">
-					<p class="mb-form-field-gap">You're not part of any organizations yet.</p>
-					<p class="text-tertiary">Create or join an organization to share tags with your team.</p>
+					<p class="mb-form-field-gap">You're not part of any workspaces yet.</p>
+					<p class="text-tertiary">Create or join an workspace to share tags with your team.</p>
 				</div>
 			{:else}
 				<!-- Transfer To -->
 				<div>
 					<label
-						for="organization-select"
+						for="workspace-select"
 						class="mb-form-field-gap text-small block font-medium text-primary"
 					>
-						Transfer to organization
+						Transfer to workspace
 					</label>
 					<select
-						id="organization-select"
+						id="workspace-select"
 						bind:value={selectedOrganization}
 						class="border-base text-small focus:ring-accent-primary w-full rounded-input border bg-base px-input-x py-input-y text-primary focus:border-transparent focus:ring-2 focus:outline-none"
 						disabled={isSharing}
 					>
-						{#each organizations as org (org.organizationId)}
-							<option value={org.organizationId}>{org.name}</option>
+						{#each workspaces as org (org.workspaceId)}
+							<option value={org.workspaceId}>{org.name}</option>
 						{/each}
 					</select>
 				</div>
@@ -183,7 +183,7 @@
 			>
 				Cancel
 			</button>
-			{#if organizations.length > 0}
+			{#if workspaces.length > 0}
 				<button
 					type="button"
 					onclick={handleSubmit}

@@ -14,7 +14,7 @@ type CircleRoleDetail = {
 	purpose?: string;
 	circleId: Id<'circles'>;
 	circleName: string;
-	organizationId: Id<'organizations'>;
+	workspaceId: Id<'workspaces'>;
 	fillerCount: number;
 	createdAt: number;
 };
@@ -24,10 +24,10 @@ type CircleRoleDetail = {
  */
 export function useOrgChart(options: {
 	sessionId: () => string | undefined;
-	organizationId: () => string | undefined;
+	workspaceId: () => string | undefined;
 }) {
 	const getSessionId = options.sessionId;
-	const getOrganizationId = options.organizationId;
+	const getWorkspaceId = options.workspaceId;
 
 	// Navigation stack for hierarchical panel navigation
 	const navigationStack = useNavigationStack();
@@ -73,13 +73,12 @@ export function useOrgChart(options: {
 
 	// Query circles list - wait for org context before querying
 	const circlesQuery =
-		browser && getSessionId() && getOrganizationId()
+		browser && getSessionId() && getWorkspaceId()
 			? useQuery(api.circles.list, () => {
 					const sessionId = getSessionId();
-					const organizationId = getOrganizationId();
-					if (!sessionId || !organizationId)
-						throw new Error('sessionId and organizationId required');
-					return { sessionId, organizationId: organizationId as Id<'organizations'> };
+					const workspaceId = getWorkspaceId();
+					if (!sessionId || !workspaceId) throw new Error('sessionId and workspaceId required');
+					return { sessionId, workspaceId: workspaceId as Id<'workspaces'> };
 				})
 			: null;
 

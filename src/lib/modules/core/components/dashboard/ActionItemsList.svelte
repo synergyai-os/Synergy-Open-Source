@@ -18,6 +18,7 @@
 	import { goto } from '$app/navigation';
 	import { useConvexClient, useQuery } from 'convex-svelte';
 	import { api, type Id } from '$lib/convex';
+	import { DEFAULT_LOCALE, DEFAULT_SHORT_DATE_FORMAT } from '$lib/utils/locale';
 	import { toast } from 'svelte-sonner';
 	import { resolveRoute } from '$lib/utils/navigation';
 	import { Tabs, Badge } from '$lib/components/atoms';
@@ -36,7 +37,7 @@
 	// Query user's action items (defaults to current user)
 	const actionItemsQuery =
 		browser && sessionId
-			? useQuery(api.meetingActionItems.listByAssignee, () => {
+			? useQuery(api.tasks.listByAssignee, () => {
 					if (!sessionId) throw new Error('sessionId required');
 					return { sessionId };
 				})
@@ -60,7 +61,7 @@
 
 	// Handle toggle status
 	async function handleToggleStatus(
-		actionItemId: Id<'meetingActionItems'>,
+		actionItemId: Id<'tasks'>,
 		currentStatus: 'todo' | 'in-progress' | 'done'
 	) {
 		try {
@@ -70,7 +71,7 @@
 			else if (currentStatus === 'in-progress') newStatus = 'done';
 			else newStatus = 'todo';
 
-			await convexClient?.mutation(api.meetingActionItems.updateStatus, {
+			await convexClient?.mutation(api.tasks.updateStatus, {
 				sessionId,
 				actionItemId,
 				status: newStatus
@@ -88,11 +89,7 @@
 
 	// Format date
 	function formatDate(timestamp: number): string {
-		return new Date(timestamp).toLocaleDateString('en-US', {
-			month: 'short',
-			day: 'numeric',
-			year: 'numeric'
-		});
+		return new Date(timestamp).toLocaleDateString(DEFAULT_LOCALE, DEFAULT_SHORT_DATE_FORMAT);
 	}
 
 	// Get status icon
@@ -222,13 +219,12 @@
 							<div
 								class="mt-content-section gap-content-section text-text-tertiary flex flex-wrap items-center text-label"
 							>
-								<!-- Type Badge -->
+								<!-- Task Badge (tasks are always individual tasks, no type field) -->
 								<span
 									class="rounded-chip border-border-base px-badge py-badge inline-flex items-center border bg-surface"
 									style="gap: var(--spacing-1);"
 								>
-									{item.type === 'next-step' ? '⚡' : '📦'}
-									{item.type === 'next-step' ? 'Next Step' : 'Project'}
+									⚡ Task
 								</span>
 
 								<!-- Due Date -->

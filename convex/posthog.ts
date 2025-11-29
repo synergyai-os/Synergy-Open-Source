@@ -51,7 +51,7 @@ export const captureEvent = internalAction({
 		event: v.string(),
 		properties: v.optional(v.any()),
 		groups: v.optional(
-			v.object({ organization: v.optional(v.string()), team: v.optional(v.string()) })
+			v.object({ workspace: v.optional(v.string()), team: v.optional(v.string()) })
 		)
 	},
 	handler: async (_ctx, { distinctId, event, properties, groups }) => {

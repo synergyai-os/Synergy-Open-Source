@@ -68,7 +68,7 @@ test.describe('Registration with Email Verification', () => {
 		await hiddenInput.fill(codeData.code);
 
 		// Step 7: Verification should succeed and redirect to onboarding (new users without orgs)
-		// New users are redirected to /onboarding to create their first organization
+		// New users are redirected to /onboarding to create their first workspace
 		await expect(page).toHaveURL(/\/onboarding/, { timeout: 10000 });
 		console.log('✅ Registration and verification complete - redirected to onboarding');
 

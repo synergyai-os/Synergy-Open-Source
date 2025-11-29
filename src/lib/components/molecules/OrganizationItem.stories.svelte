@@ -9,7 +9,7 @@
 		argTypes: {
 			isActive: {
 				control: { type: 'boolean' },
-				description: 'Whether this organization is currently active'
+				description: 'Whether this workspace is currently active'
 			}
 		}
 	});
@@ -18,8 +18,8 @@
 <Story
 	name="Default"
 	args={{
-		organization: {
-			organizationId: 'org-1',
+		workspace: {
+			workspaceId: 'org-1',
 			name: 'Saprolab',
 			initials: 'S',
 			role: 'owner'
@@ -35,8 +35,8 @@
 <Story
 	name="Active"
 	args={{
-		organization: {
-			organizationId: 'org-1',
+		workspace: {
+			workspaceId: 'org-1',
 			name: 'Saprolab',
 			initials: 'S',
 			role: 'owner'
@@ -52,8 +52,8 @@
 <Story
 	name="Member Role"
 	args={{
-		organization: {
-			organizationId: 'org-2',
+		workspace: {
+			workspaceId: 'org-2',
 			name: 'PurposePilot',
 			initials: 'P',
 			role: 'member'

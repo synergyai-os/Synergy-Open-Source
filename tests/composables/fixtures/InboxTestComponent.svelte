@@ -24,7 +24,7 @@
 
 	let {
 		sessionId: sessionIdProp = () => undefined,
-		activeOrganizationId: activeOrganizationIdProp = () => null,
+		activeWorkspaceId: activeOrganizationIdProp = () => null,
 		activeCircleId: activeCircleIdProp = () => null,
 		convexClient = null,
 		inboxApi = null,
@@ -35,7 +35,7 @@
 		onClearSelection = undefined
 	}: {
 		sessionId?: () => string | undefined;
-		activeOrganizationId?: (() => string | null) | string | null;
+		activeWorkspaceId?: (() => string | null) | string | null;
 		activeCircleId?: (() => string | null) | string | null;
 		convexClient?: ConvexClient | null;
 		inboxApi?: InboxApi | null;
@@ -48,7 +48,7 @@
 
 	// Create reactive wrappers that call the prop functions
 	const sessionId = () => sessionIdProp();
-	const activeOrganizationId =
+	const activeWorkspaceId =
 		typeof activeOrganizationIdProp === 'function'
 			? activeOrganizationIdProp
 			: () => activeOrganizationIdProp;
@@ -58,7 +58,7 @@
 	// Create composable instances
 	const inboxItems = useInboxItems({
 		sessionId,
-		activeOrganizationId,
+		activeWorkspaceId,
 		activeCircleId
 	});
 

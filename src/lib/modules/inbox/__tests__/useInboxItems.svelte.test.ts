@@ -65,7 +65,7 @@ describe('useInboxItems - Query Parameters', () => {
 		expect(composable.inboxItems.length).toBeGreaterThan(0);
 	});
 
-	it('should include organizationId in query parameters when provided', async () => {
+	it('should include workspaceId in query parameters when provided', async () => {
 		const mockItems = createMockInboxItems();
 		const mockClient = createMockConvexClient();
 		setupConvexMocks(mockClient, {
@@ -74,7 +74,7 @@ describe('useInboxItems - Query Parameters', () => {
 
 		const screen = render(InboxTestComponent, {
 			sessionId: () => 'test-session-id',
-			activeOrganizationId: () => 'org-123'
+			activeWorkspaceId: () => 'org-123'
 		});
 
 		const composable = (
@@ -109,7 +109,7 @@ describe('useInboxItems - Query Parameters', () => {
 		expect(composable.inboxItems).toBeDefined();
 	});
 
-	it('should handle null organizationId', async () => {
+	it('should handle null workspaceId', async () => {
 		const mockItems = createMockInboxItems();
 		const mockClient = createMockConvexClient();
 		setupConvexMocks(mockClient, {
@@ -118,7 +118,7 @@ describe('useInboxItems - Query Parameters', () => {
 
 		const screen = render(InboxTestComponent, {
 			sessionId: () => 'test-session-id',
-			activeOrganizationId: () => null
+			activeWorkspaceId: () => null
 		});
 
 		const composable = (
@@ -254,7 +254,7 @@ describe('useInboxItems - Reactive Updates', () => {
 		expect(composable.inboxItems).toBeDefined();
 	});
 
-	it('should update when organizationId changes', async () => {
+	it('should update when workspaceId changes', async () => {
 		const mockItems = createMockInboxItems();
 		const mockClient = createMockConvexClient();
 		setupConvexMocks(mockClient, {
@@ -263,7 +263,7 @@ describe('useInboxItems - Reactive Updates', () => {
 
 		const screen = render(InboxTestComponent, {
 			sessionId: () => 'test-session-id',
-			activeOrganizationId: () => 'org-1'
+			activeWorkspaceId: () => 'org-1'
 		});
 
 		const composable = (
@@ -273,10 +273,10 @@ describe('useInboxItems - Reactive Updates', () => {
 		// Wait for initial query
 		await new Promise((resolve) => setTimeout(resolve, 100));
 
-		// Update organizationId
+		// Update workspaceId
 		await screen.rerender({
 			sessionId: () => 'test-session-id',
-			activeOrganizationId: () => 'org-2'
+			activeWorkspaceId: () => 'org-2'
 		});
 
 		// Wait for reactive update

@@ -27,13 +27,13 @@ export type PermissionSlug =
 	| 'circles.add-members'
 	| 'circles.remove-members'
 	| 'circles.change-roles'
-	| 'organizations.view-settings'
-	| 'organizations.update-settings'
-	| 'organizations.manage-billing'
+	| 'workspaces.view-settings'
+	| 'workspaces.update-settings'
+	| 'workspaces.manage-billing'
 	| 'docs.view';
 
 export interface PermissionContext {
-	organizationId?: Id<'organizations'>;
+	workspaceId?: Id<'workspaces'>;
 	circleId?: Id<'circles'>;
 	resourceType?: string;
 	resourceId?: string;
@@ -208,10 +208,10 @@ export async function requireSystemAdmin(
 		return true;
 	});
 
-	// Check if user has admin role with no organizationId (global scope)
+	// Check if user has admin role with no workspaceId (global scope)
 	for (const userRole of activeUserRoles) {
-		// Must have no organizationId (global scope)
-		if (userRole.organizationId !== undefined) {
+		// Must have no workspaceId (global scope)
+		if (userRole.workspaceId !== undefined) {
 			continue;
 		}
 
@@ -255,8 +255,8 @@ async function getUserPermissions(
 		if (ur.expiresAt && ur.expiresAt < now) return false;
 
 		// If context specifies org/team, only include matching scoped roles + unscoped roles
-		if (context?.organizationId) {
-			if (ur.organizationId && ur.organizationId !== context.organizationId) {
+		if (context?.workspaceId) {
+			if (ur.workspaceId && ur.workspaceId !== context.workspaceId) {
 				return false;
 			}
 		}
@@ -377,7 +377,7 @@ async function logPermissionCheck(
 				roleSlug: entry.roleSlug,
 				resourceType: entry.context?.resourceType,
 				resourceId: entry.context?.resourceId,
-				organizationId: entry.context?.organizationId,
+				workspaceId: entry.context?.workspaceId,
 				circleId: entry.context?.circleId,
 				result: entry.result,
 				reason: entry.reason,
@@ -401,7 +401,7 @@ async function logPermissionCheck(
 // ============================================================================
 
 /**
- * Check if user is a system-level admin (global admin role with no organizationId)
+ * Check if user is a system-level admin (global admin role with no workspaceId)
  *
  * Used by hooks.server.ts to protect admin routes
  *
@@ -429,10 +429,10 @@ export const isSystemAdmin = query({
 			return true;
 		});
 
-		// Check if user has admin role with no organizationId (global scope)
+		// Check if user has admin role with no workspaceId (global scope)
 		for (const userRole of activeUserRoles) {
-			// Must have no organizationId (global scope)
-			if (userRole.organizationId !== undefined) {
+			// Must have no workspaceId (global scope)
+			if (userRole.workspaceId !== undefined) {
 				continue;
 			}
 
@@ -459,7 +459,7 @@ export const isSystemAdmin = query({
 export const getUserPermissionsQuery = query({
 	args: {
 		sessionId: v.string(), // Session validation (derives userId securely)
-		organizationId: v.optional(v.id('organizations')),
+		workspaceId: v.optional(v.id('workspaces')),
 		circleId: v.optional(v.id('circles'))
 	},
 	handler: async (ctx, args) => {
@@ -468,8 +468,8 @@ export const getUserPermissionsQuery = query({
 
 		const context: PermissionContext = {};
 
-		if (args.organizationId) {
-			context.organizationId = args.organizationId;
+		if (args.workspaceId) {
+			context.workspaceId = args.workspaceId;
 		}
 
 		if (args.circleId) {

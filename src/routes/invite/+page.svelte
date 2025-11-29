@@ -16,7 +16,7 @@
 	// Query invite details (public query - no auth required)
 	// Only run in browser to avoid SSR issues
 	const inviteQuery = browser
-		? useQuery(api.organizations.getInviteByCode, () => {
+		? useQuery(api.workspaces.getInviteByCode, () => {
 				const code = inviteCode;
 				if (!code) throw new Error('Code required');
 				return { code };
@@ -56,20 +56,20 @@
 		acceptError = null;
 
 		try {
-			// Only organization invites are supported (circle invites not yet implemented)
-			if (invite.type !== 'organization') {
+			// Only workspace invites are supported (circle invites not yet implemented)
+			if (invite.type !== 'workspace') {
 				acceptError = 'Circle invites are not yet implemented';
 				isAccepting = false;
 				return;
 			}
 
-			const result = await convexClient.mutation(api.organizations.acceptOrganizationInvite, {
+			const result = await convexClient.mutation(api.workspaces.acceptOrganizationInvite, {
 				sessionId,
 				code: inviteCode
 			});
 
-			// Redirect to organization page
-			const redirectUrl = resolveRoute(`/org/circles?org=${result.organizationId}`);
+			// Redirect to workspace page
+			const redirectUrl = resolveRoute(`/org/circles?org=${result.workspaceId}`);
 
 			// Use window.location for hard redirect (prevents any page state issues)
 			if (browser) {
@@ -140,8 +140,8 @@
 					<div class="mb-6 text-center">
 						<h1 class="mb-2 text-2xl font-semibold text-primary">You've been invited!</h1>
 						<p class="text-sm text-secondary">
-							{#if inviteData.type === 'organization'}
-								You've been invited to join an organization on SynergyOS
+							{#if inviteData.type === 'workspace'}
+								You've been invited to join an workspace on SynergyOS
 							{:else}
 								You've been invited to join a circle on SynergyOS
 							{/if}

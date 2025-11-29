@@ -5,37 +5,38 @@
 	import { getContext } from 'svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
 	import { Dialog } from 'bits-ui';
-	import { useOrganizationMembers } from '$lib/modules/core/organizations/composables/useOrganizationMembers.svelte';
+	import { useWorkspaceMembers } from '$lib/modules/core/workspaces/composables/useWorkspaceMembers.svelte';
 	import { usePermissions } from '$lib/infrastructure/rbac/composables/usePermissions.svelte';
-	import InviteMemberModal from '$lib/modules/core/organizations/components/InviteMemberModal.svelte';
-	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
-	import type { OrganizationMember } from '$lib/modules/core/organizations/composables/useOrganizationMembers.svelte';
+	import InviteMemberModal from '$lib/modules/core/workspaces/components/InviteMemberModal.svelte';
+	import { DEFAULT_LOCALE, DEFAULT_SHORT_DATE_FORMAT } from '$lib/utils/locale';
+	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
+	import type { WorkspaceMember } from '$lib/modules/core/workspaces/composables/useWorkspaceMembers.svelte';
 	import type { Id } from '$lib/convex';
 
 	let { data: _data } = $props();
 
-	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
+	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
 	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
 	// Pattern: Check object existence first, then access getter property directly
 	// See SYOS-228 for full pattern documentation
-	const organizationId = $derived(() => {
-		if (!organizations) return undefined;
-		return organizations.activeOrganizationId ?? undefined;
+	const workspaceId = $derived(() => {
+		if (!workspaces) return undefined;
+		return workspaces.activeWorkspaceId ?? undefined;
 	});
 	const organizationName = $derived(() => {
-		if (!organizations) return 'Organization';
-		return organizations.activeOrganization?.name ?? 'Organization';
+		if (!workspaces) return 'Organization';
+		return workspaces.activeWorkspace?.name ?? 'Organization';
 	});
 	const getSessionId = () => $page.data.sessionId;
 	// CRITICAL: Call $derived function to get primitive value (not the function itself)
 	// Pattern: When passing $derived values to Convex queries, extract primitive first
 	// See SYOS-228 for full pattern documentation
-	const getOrganizationId = () => organizationId();
+	const getWorkspaceId = () => workspaceId();
 
 	// Initialize members composable
-	const members = useOrganizationMembers({
+	const members = useWorkspaceMembers({
 		sessionId: getSessionId,
-		organizationId: getOrganizationId
+		workspaceId: getWorkspaceId
 	});
 
 	const membersList = $derived(members.members);
@@ -55,9 +56,9 @@
 		| undefined;
 	const permissions = usePermissions({
 		sessionId: () => getSessionId() ?? null,
-		organizationId: () => {
-			const orgId = organizationId();
-			return orgId ? (orgId as Id<'organizations'>) : null;
+		workspaceId: () => {
+			const orgId = workspaceId();
+			return orgId ? (orgId as Id<'workspaces'>) : null;
 		},
 		initialPermissions // Server-side preloaded for instant button visibility
 	});
@@ -65,7 +66,7 @@
 	// Check if current user can remove members
 	const canRemoveMembers = $derived(() => {
 		// Owners can always remove members
-		if (organizations && organizations.activeOrganization?.role === 'owner') {
+		if (workspaces && workspaces.activeWorkspace?.role === 'owner') {
 			return true;
 		}
 		// Non-owners need users.remove permission
@@ -75,7 +76,7 @@
 	// Check if current user can invite members
 	const canInviteMembers = $derived(() => {
 		// Owners can always invite members
-		if (organizations && organizations.activeOrganization?.role === 'owner') {
+		if (workspaces && workspaces.activeWorkspace?.role === 'owner') {
 			return true;
 		}
 		// Non-owners need users.invite permission
@@ -88,13 +89,13 @@
 	// Confirmation dialog state
 	let confirmRemoveDialog = $state<{
 		open: boolean;
-		member: OrganizationMember | null;
+		member: WorkspaceMember | null;
 	}>({
 		open: false,
 		member: null
 	});
 
-	function openRemoveDialog(member: OrganizationMember) {
+	function openRemoveDialog(member: WorkspaceMember) {
 		confirmRemoveDialog.member = member;
 		confirmRemoveDialog.open = true;
 	}
@@ -109,7 +110,7 @@
 
 		try {
 			await members.removeMember({
-				organizationId: organizationId()!,
+				workspaceId: workspaceId()!,
 				userId: confirmRemoveDialog.member.userId
 			});
 			closeRemoveDialog();
@@ -121,11 +122,7 @@
 
 	// Format date for display
 	function formatDate(timestamp: number): string {
-		return new Date(timestamp).toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric'
-		});
+		return new Date(timestamp).toLocaleDateString(DEFAULT_LOCALE, DEFAULT_SHORT_DATE_FORMAT);
 	}
 
 	// Format role for display
@@ -328,7 +325,7 @@
 						<span class="font-medium text-primary">
 							{confirmRemoveDialog.member?.name || confirmRemoveDialog.member?.email}
 						</span>
-						from this organization? This action cannot be undone.
+						from this workspace? This action cannot be undone.
 					</Dialog.Description>
 				</div>
 
@@ -359,8 +356,8 @@
 <InviteMemberModal
 	open={showInviteModal}
 	onOpenChange={(open) => (showInviteModal = open)}
-	type="organization"
-	targetId={organizationId() as Id<'organizations'>}
+	type="workspace"
+	targetId={workspaceId() as Id<'workspaces'>}
 	targetName={organizationName()}
 	sessionId={getSessionId}
 />

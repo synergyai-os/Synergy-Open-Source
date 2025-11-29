@@ -6,19 +6,19 @@
 
 	// Debug flag for overlay logging (set to false to disable production logs)
 	const DEBUG_OVERLAY_LOGGING = import.meta.env.DEV;
-	import OrganizationModals from '$lib/modules/core/organizations/components/OrganizationModals.svelte';
+	import WorkspaceModals from '$lib/modules/core/workspaces/components/WorkspaceModals.svelte';
 	import { LoadingOverlay } from '$lib/components/atoms';
 	import { resolveRoute } from '$lib/utils/navigation';
 	import { setContext } from 'svelte';
-	import { useOrganizations } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import { useWorkspaces } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
 	import { createInboxModuleAPI } from '$lib/modules/inbox/api';
 	import { createCoreModuleAPI } from '$lib/modules/core/api';
 	import { createFlashcardsModuleAPI } from '$lib/modules/flashcards/api';
 	import { createOrgChartModuleAPI } from '$lib/modules/org-chart/api';
 	import type {
-		OrganizationSummary,
-		OrganizationInvite
-	} from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+		WorkspaceSummary,
+		WorkspaceInvite
+	} from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
 	import { SHORTCUTS } from '$lib/modules/core/composables/useGlobalShortcuts.svelte';
 	import { useLoadingOverlay } from '$lib/modules/core/composables/useLoadingOverlay.svelte';
 	import { toast } from '$lib/utils/toast';
@@ -33,40 +33,41 @@
 	// Check if we're on an admin route - skip authenticated layout for admin routes
 	const isAdminRoute = $derived(browser ? $page.url.pathname.startsWith('/admin') : false);
 
-	// Initialize organizations composable with sessionId and server-side preloaded data
-	// Returns OrganizationsModuleAPI interface (enables loose coupling - see SYOS-295)
-	const organizations = useOrganizations({
+	// Initialize workspaces composable with sessionId and server-side preloaded data
+	// Returns WorkspacesModuleAPI interface (enables loose coupling - see SYOS-295)
+	const workspaces = useWorkspaces({
 		userId: () => data.user?.userId,
 		sessionId: () => data.sessionId,
 		orgFromUrl: () => $page.url.searchParams.get('org'),
 		// Server-side preloaded data for instant workspace menu rendering
 		// Cast unknown[] to proper types (server-side data is typed as unknown[] for safety)
-		initialOrganizations: data.organizations as unknown as OrganizationSummary[],
-		initialOrganizationInvites: data.organizationInvites as unknown as OrganizationInvite[]
+		initialOrganizations: data.workspaces as unknown as WorkspaceSummary[],
+		initialOrganizationInvites: data.workspaceInvites as unknown as WorkspaceInvite[]
 	});
-	setContext('organizations', organizations);
+	setContext('workspaces', workspaces);
 
 	// Phase 2C: Load org branding reactively (updates on workspace switch)
-	// Use organizations.activeOrganizationId for reactive updates (not data.organizationId)
+	// Use workspaces.activeWorkspaceId for reactive updates (not data.workspaceId)
 	const getSessionId = () => data.sessionId;
 	const convexClient = browser ? useConvexClient() : null;
 
-	// Reactive activeOrganizationId (Svelte 5 pattern - matches tags/+page.svelte)
+	// Reactive activeWorkspaceId (Svelte 5 pattern - matches tags/+page.svelte)
 	// Returns a function that can be called reactively inside useQuery
-	const activeOrganizationId = $derived(() => {
-		if (!organizations) return null;
-		return organizations.activeOrganizationId ?? null;
+	const activeWorkspaceId = $derived(() => {
+		if (!workspaces) return null;
+		return workspaces.activeWorkspaceId ?? null;
 	});
 
-	// Load branding for active org (for current org class application)
+	// Load branding for active Workspace (for current org class application)
+	// Only create query when workspaceId is available (prevents hydration errors)
 	const orgBrandingQuery =
-		browser && getSessionId()
-			? useQuery(api.organizations.getBranding, () => {
+		browser && getSessionId() && activeWorkspaceId()
+			? useQuery(api.workspaces.getBranding, () => {
 					const sessionId = getSessionId();
 					if (!sessionId) throw new Error('sessionId required');
-					const orgId = activeOrganizationId();
-					if (!orgId) throw new Error('orgId required');
-					return { organizationId: orgId as Id<'organizations'> };
+					const workspaceId = activeWorkspaceId();
+					if (!workspaceId) throw new Error('workspaceId required');
+					return { workspaceId: workspaceId as Id<'workspaces'> };
 				})
 			: null;
 
@@ -74,7 +75,7 @@
 	// This prevents CSS loss when switching workspaces
 	const allOrgBrandingQuery =
 		browser && getSessionId()
-			? useQuery(api.organizations.getAllOrgBranding, () => {
+			? useQuery(api.workspaces.getAllOrgBranding, () => {
 					const sessionId = getSessionId();
 					if (!sessionId) throw new Error('sessionId required');
 					return { sessionId };
@@ -83,7 +84,7 @@
 
 	// Org branding state (Phase 2: Org Branding)
 	// Use reactive query result, fallback to SSR data for initial render
-	const organizationId = $derived(activeOrganizationId() ?? data.organizationId ?? null);
+	const workspaceId = $derived(activeWorkspaceId() ?? data.workspaceId ?? null);
 	const orgBranding = $derived(
 		(orgBrandingQuery?.data as
 			| { primaryColor: string; secondaryColor: string; logo?: string }
@@ -120,8 +121,8 @@
 
 	// Apply org class on client (idempotent - same as SSR, reactive to workspace switches)
 	$effect(() => {
-		if (browser && organizationId) {
-			const currentOrgId = organizationId;
+		if (browser && workspaceId) {
+			const currentOrgId = workspaceId;
 			// Remove ALL org-* classes to ensure clean state (handles SSR issues and workspace switches)
 			const htmlElement = document.documentElement;
 			const classesToRemove: string[] = [];
@@ -179,7 +180,7 @@
 				sessionId: data.sessionId,
 				userId: data.user?.userId,
 				userEmail: data.user?.email,
-				activeOrganizationId: organizations.activeOrganizationId,
+				activeWorkspaceId: workspaces.activeWorkspaceId,
 				circlesEnabled,
 				meetingsEnabled,
 				serverData: {
@@ -198,9 +199,9 @@
 			? `${data.user.firstName} ${data.user.lastName}`
 			: accountEmail()
 	);
-	// Derive workspace name from active organization (source of truth)
+	// Derive workspace name from active workspace (source of truth)
 	// If not available yet (loading), will be undefined (handled gracefully by UI)
-	const workspaceName = $derived(() => organizations?.activeOrganization?.name);
+	const workspaceName = $derived(() => workspaces?.activeWorkspace?.name);
 
 	// Account switching state (for page reloads)
 	// CRITICAL: ALWAYS initialize as false - NEVER read from sessionStorage during initialization
@@ -209,7 +210,7 @@
 	let accountSwitchingState = $state<{
 		isSwitching: boolean;
 		switchingTo: string | null;
-		switchingToType: 'personal' | 'organization';
+		switchingToType: 'personal' | 'workspace';
 		startTime: number | null;
 		endTime: number | null; // Track when account switching ended to suppress org switching overlay
 	}>({
@@ -223,7 +224,7 @@
 	// Combined switching state: Show single overlay for account + org switching
 	// When account switching is active, extend it to cover org switching (no separate overlay)
 	const isAccountSwitching = $derived(accountSwitchingState.isSwitching);
-	const isOrgSwitching = $derived(organizations?.isSwitching ?? false);
+	const isOrgSwitching = $derived(workspaces?.isSwitching ?? false);
 
 	// Detect if this is an account switch (has switchingAccount flag) vs workspace switch (same account)
 	// Account switch: Show "Switching account" → "Loading workspace"
@@ -264,8 +265,8 @@
 			hasSwitchingAccountFlag,
 			isOrgSwitching,
 			accountState: accountSwitchingState.isSwitching,
-			orgState: organizations?.isSwitching,
-			switchingTo: organizations?.switchingTo
+			orgState: workspaces?.isSwitching,
+			switchingTo: workspaces?.switchingTo
 		});
 		return result;
 	});
@@ -278,8 +279,8 @@
 			isAccountSwitching,
 			isOrgSwitching,
 			accountState: accountSwitchingState.isSwitching,
-			orgState: organizations?.isSwitching,
-			switchingTo: organizations?.switchingTo
+			orgState: workspaces?.isSwitching,
+			switchingTo: workspaces?.switchingTo
 		});
 	});
 
@@ -328,7 +329,7 @@
 			isAccountSwitching,
 			isOrgSwitching,
 			accountState: accountSwitchingState.isSwitching,
-			orgState: organizations?.isSwitching,
+			orgState: workspaces?.isSwitching,
 			subtitle: switchingSubtitle
 		});
 	});
@@ -338,7 +339,7 @@
 	$effect(() => {
 		if (!browser) return;
 
-		if (organizations?.isSwitching && accountSwitchingState.isSwitching) {
+		if (workspaces?.isSwitching && accountSwitchingState.isSwitching) {
 			console.log('🔄 [ACCOUNT SWITCH] Org switching started - clearing account switching state');
 			accountSwitchingState.isSwitching = false;
 			accountSwitchingState.switchingTo = null;
@@ -368,8 +369,8 @@
 		const elapsed = Date.now() - accountSwitchingState.startTime;
 		const minimumAccountSwitchDuration = 1000; // Show "Switching account" for at least 1 second
 		const minimumTotalDuration = 3000; // Total overlay duration (account + workspace loading)
-		const orgSwitching = organizations?.isSwitching ?? false;
-		const dataLoaded = !organizations?.isLoading; // Data has finished loading
+		const orgSwitching = workspaces?.isSwitching ?? false;
+		const dataLoaded = !workspaces?.isLoading; // Data has finished loading
 
 		console.log('🔄 [ACCOUNT SWITCH] Monitoring transition', {
 			elapsed,
@@ -394,7 +395,7 @@
 				elapsed,
 				orgSwitching,
 				dataLoaded,
-				orgSwitchingTo: organizations?.switchingTo,
+				orgSwitchingTo: workspaces?.switchingTo,
 				reason: orgSwitching ? 'org-switching-started' : 'data-loaded-minimum-duration'
 			});
 
@@ -405,16 +406,13 @@
 				accountSwitchingState.switchingTo = null;
 				accountSwitchingState.switchingToType = 'personal';
 				accountSwitchingState.startTime = null;
-			} else if (dataLoaded && organizations?.setActiveOrganization && browser) {
+			} else if (dataLoaded && workspaces?.setActiveWorkspace && browser) {
 				// Data loaded but no org switching - process URL params if they exist
 				// URL sync was suppressed during account switching, now it can process the org param
 				const urlParams = new URLSearchParams(window.location.search);
 				const urlOrgParam = urlParams.get('org');
 
-				if (
-					urlOrgParam &&
-					organizations.organizations?.some((org) => org.organizationId === urlOrgParam)
-				) {
+				if (urlOrgParam && workspaces.workspaces?.some((org) => org.workspaceId === urlOrgParam)) {
 					// Process URL param - this will trigger org switching with "Loading workspace"
 					console.log('🔄 [ACCOUNT SWITCH] Processing URL param after account switch', {
 						orgId: urlOrgParam
@@ -422,7 +420,7 @@
 					// Trigger org switching - it will handle the overlay transition
 					// Don't clear account switching state here - let the org switching effect handle it
 					// The subtitle will automatically switch from 'account' to 'workspace' when org switching starts
-					organizations.setActiveOrganization(urlOrgParam);
+					workspaces.setActiveWorkspace(urlOrgParam);
 					// Account switching will be cleared when org switching becomes active (handled by reactive effect)
 				} else {
 					// No URL param and no org switching - just hide overlay
@@ -695,26 +693,26 @@
 
 		// CMD+1/2/3/4/5/6/7/8/9 - Organization switching shortcuts
 		// Organizations only (no personal workspace) - SYOS-209
-		// Support up to 9 organizations (CMD+1 through CMD+9)
+		// Support up to 9 workspaces (CMD+1 through CMD+9)
 		for (let i = 1; i <= 9; i++) {
 			shortcuts.register({
 				key: i.toString(),
 				meta: true,
 				handler: () => {
-					if (!organizations) return;
+					if (!workspaces) return;
 
-					// Build organization list: Organizations only (index 0, 1, 2, 3, 4, 5, 6, 7, 8)
+					// Build workspace list: Organizations only (index 0, 1, 2, 3, 4, 5, 6, 7, 8)
 					const workspaceIndex = i - 1; // Convert to 0-based index
-					const orgList = organizations.organizations ?? [];
+					const orgList = workspaces.workspaces ?? [];
 
 					// CMD+1-9 → Organizations (index 0, 1, 2, 3, 4, 5, 6, 7, 8)
 					const targetOrg = orgList[workspaceIndex];
 
 					if (targetOrg) {
-						organizations.setActiveOrganization(targetOrg.organizationId);
+						workspaces.setActiveWorkspace(targetOrg.workspaceId);
 						toast.success(`Switched to ${targetOrg.name}`);
 					} else {
-						// No organization at this index - show info toast
+						// No workspace at this index - show info toast
 						toast.info(`No workspace at position ${i}. Create one to use CMD+${i}.`);
 					}
 				},
@@ -816,7 +814,7 @@
 				<!-- Top Bar with matching rounded corners -->
 				<!-- <div class="rounded-t-xl bg-surface">
 					<AppTopBar
-						{organizations}
+						{workspaces}
 						{isMobile}
 						{sidebarCollapsed}
 						onSidebarToggle={() => (sidebarCollapsed = !sidebarCollapsed)}
@@ -841,15 +839,15 @@
 			currentView={getCurrentView()}
 			initialType={quickCreateInitialType}
 			sessionId={data.sessionId}
-			organizationId={organizations?.activeOrganizationId ?? null}
+			workspaceId={workspaces?.activeWorkspaceId ?? null}
 			initialTags={data.tags}
 		/>
 
 		<!-- Organization Modals (Create/Join Org, Create/Join Team) -->
-		{#if organizations}
-			<OrganizationModals
-				{organizations}
-				activeOrganizationName={organizations.activeOrganization?.name ?? null}
+		{#if workspaces}
+			<WorkspaceModals
+				{workspaces}
+				activeOrganizationName={workspaces.activeWorkspace?.name ?? null}
 			/>
 		{/if}
 
@@ -876,9 +874,9 @@
 					isAccountSwitching,
 					isOrgSwitching,
 					accountState: accountSwitchingState.isSwitching,
-					orgState: organizations?.isSwitching,
+					orgState: workspaces?.isSwitching,
 					accountStartTime: accountSwitchingState.startTime,
-					orgSwitchingTo: organizations?.switchingTo,
+					orgSwitchingTo: workspaces?.switchingTo,
 					hasSwitchingAccountFlag,
 					flagState: flagState.hasFlag,
 					// DOM state checks
@@ -906,7 +904,7 @@
 					isAccountSwitching,
 					isOrgSwitching,
 					accountState: accountSwitchingState.isSwitching,
-					orgState: organizations?.isSwitching
+					orgState: workspaces?.isSwitching
 				});
 			}}
 			{@const _log = logNotShowing()}

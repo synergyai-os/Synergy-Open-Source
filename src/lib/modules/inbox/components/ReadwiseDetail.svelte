@@ -9,7 +9,7 @@
 	import { makeFunctionReference } from 'convex/server';
 	import { api } from '$lib/convex';
 	import type { Id } from '$lib/convex';
-	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
 	import type { CoreModuleAPI } from '$lib/modules/core/api';
 	import { DEFAULT_TAG_COLOR } from '$lib/utils/tagConstants';
 	import { useTagging } from '../composables/useTagging.svelte';
@@ -60,14 +60,14 @@
 			>)
 		: null;
 
-	// Get workspace context for organization filtering
-	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
-	const activeOrganizationId = $derived(() => organizations?.activeOrganizationId ?? null);
+	// Get workspace context for workspace filtering
+	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
+	const activeWorkspaceId = $derived(() => workspaces?.activeWorkspaceId ?? null);
 
 	// Initialize tagging composable (handles data fetching and tag operations)
 	const tagging = useTagging({
 		sessionId: getSessionId,
-		activeOrganizationId: activeOrganizationId
+		activeWorkspaceId: activeWorkspaceId
 	});
 
 	let headerMenuOpen = $state(false);

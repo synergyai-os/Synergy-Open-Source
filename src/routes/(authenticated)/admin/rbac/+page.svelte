@@ -338,7 +338,7 @@
 			}>;
 			scopeBreakdown: {
 				global: number;
-				organization: number;
+				workspace: number;
 				team: number;
 			};
 			mostUsedPermissions: Array<{ slug: string; count: number }>;
@@ -529,7 +529,7 @@
 						<div class="text-small text-secondary">
 							<p class="mb-form-field-gap font-medium">Common Tasks:</p>
 							<ul class="ml-content-section space-y-form-field-gap list-disc">
-								<li>Create custom roles for your organization</li>
+								<li>Create custom roles for your workspace</li>
 								<li>Assign roles to users to grant permissions</li>
 								<li>View permissions to understand what each role can do</li>
 							</ul>
@@ -666,7 +666,7 @@
 									<h2 class="text-h3 font-semibold text-primary">
 										Custom Roles ({customRoles.length})
 									</h2>
-									<p class="text-small text-secondary">Roles created for your organization</p>
+									<p class="text-small text-secondary">Roles created for your workspace</p>
 								</div>
 								<div class="gap-content-section grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 									{#each customRoles as role (role._id)}
@@ -841,12 +841,12 @@
 								<div class="border-base px-card py-card rounded-button border bg-elevated">
 									<p class="text-label text-tertiary">Organization-Scoped</p>
 									<p class="mt-form-field-gap text-h3 font-semibold text-primary">
-										{analytics.scopeBreakdown.organization}
+										{analytics.scopeBreakdown.workspace}
 									</p>
 									<p class="mt-form-field-gap text-label text-secondary">
-										{analytics.scopeBreakdown.organization > 0
+										{analytics.scopeBreakdown.workspace > 0
 											? Math.round(
-													(analytics.scopeBreakdown.organization /
+													(analytics.scopeBreakdown.workspace /
 														analytics.overview.activeAssignments) *
 														100
 												)

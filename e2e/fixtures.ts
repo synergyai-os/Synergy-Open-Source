@@ -114,14 +114,14 @@ export const test = baseTest.extend<object, { workerStorageState: string }>({
 					await page.waitForURL(/\/(inbox|dashboard|onboarding)/, { timeout: 15000 });
 					await page.waitForLoadState('networkidle');
 
-					// Handle onboarding flow if user has no organizations
+					// Handle onboarding flow if user has no workspaces
 					const currentUrl = page.url();
 					if (currentUrl.includes('/onboarding')) {
 						console.log(
-							`📝 [Worker ${workerIndex}] User redirected to onboarding - creating organization...`
+							`📝 [Worker ${workerIndex}] User redirected to onboarding - creating workspace...`
 						);
 
-						// Fill organization name input
+						// Fill workspace name input
 						const orgNameInput = page
 							.locator('input[placeholder*="e.g."], input[type="text"]')
 							.first();

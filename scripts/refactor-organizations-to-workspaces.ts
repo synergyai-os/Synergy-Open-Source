@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 
 /**
- * Automated Refactoring Script: organizations → workspaces
+ * Automated Refactoring Script: workspaces → workspaces
  *
- * Safely refactors the codebase from 'organizations' to 'workspaces':
- * - Table names: 'organizations' → 'workspaces'
- * - Type references: Id<'organizations'> → Id<'workspaces'>
- * - Field names: organizationId → workspaceId
- * - Variable names: organization → workspace (context-aware)
- * - File names: organizations.ts → workspaces.ts
- * - Directory names: organizations/ → workspaces/
- * - API endpoints: api.organizations.* → api.workspaces.*
+ * Safely refactors the codebase from 'workspaces' to 'workspaces':
+ * - Table names: 'workspaces' → 'workspaces'
+ * - Type references: Id<'workspaces'> → Id<'workspaces'>
+ * - Field names: workspaceId → workspaceId
+ * - Variable names: workspace → workspace (context-aware)
+ * - File names: workspaces.ts → workspaces.ts
+ * - Directory names: workspaces/ → workspaces/
+ * - API endpoints: api.workspaces.* → api.workspaces.*
  *
  * Features:
  * - Dry-run mode for preview
@@ -54,211 +54,211 @@ const VERBOSE = process.argv.includes('--verbose');
 const REPLACEMENTS = [
 	// Table names in string literals (most specific)
 	{
-		pattern: /(['"`])organizations(['"`])/g,
+		pattern: /(['"`])workspaces(['"`])/g,
 		replacement: '$1workspaces$2',
 		description: 'Table name in string literal'
 	},
 
 	// Type references
 	{
-		pattern: /Id<'organizations'>/g,
+		pattern: /Id<'workspaces'>/g,
 		replacement: "Id<'workspaces'>",
-		description: "Type reference Id<'organizations'>"
+		description: "Type reference Id<'workspaces'>"
 	},
 	{
-		pattern: /Doc<'organizations'>/g,
+		pattern: /Doc<'workspaces'>/g,
 		replacement: "Doc<'workspaces'>",
-		description: "Type reference Doc<'organizations'>"
+		description: "Type reference Doc<'workspaces'>"
 	},
 
 	// API endpoints
 	{
-		pattern: /api\.organizations\./g,
+		pattern: /api\.workspaces\./g,
 		replacement: 'api.workspaces.',
-		description: 'API endpoint api.organizations.*'
+		description: 'API endpoint api.workspaces.*'
 	},
 
 	// Field names (with word boundaries)
 	{
 		pattern: /\borganizationId\b/g,
 		replacement: 'workspaceId',
-		description: 'Field name organizationId'
+		description: 'Field name workspaceId'
 	},
 	{
 		pattern: /\borganizationIds\b/g,
 		replacement: 'workspaceIds',
-		description: 'Field name organizationIds'
+		description: 'Field name workspaceIds'
 	},
 	{
 		pattern: /\borganizationInvites\b/g,
 		replacement: 'workspaceInvites',
-		description: 'Variable organizationInvites'
+		description: 'Variable workspaceInvites'
 	},
 	{
 		pattern: /\borganizationMembers\b/g,
 		replacement: 'workspaceMembers',
-		description: 'Variable organizationMembers'
+		description: 'Variable workspaceMembers'
 	},
 	{
 		pattern: /\borganizationSettings\b/g,
 		replacement: 'workspaceSettings',
-		description: 'Variable organizationSettings'
+		description: 'Variable workspaceSettings'
 	},
 
 	// Variable names (context-aware - only in code, not comments)
 	{
 		pattern: /\borganizations\b/g,
 		replacement: 'workspaces',
-		description: 'Variable organizations'
+		description: 'Variable workspaces'
 	},
-	{ pattern: /\borganization\b/g, replacement: 'workspace', description: 'Variable organization' },
+	{ pattern: /\borganization\b/g, replacement: 'workspace', description: 'Variable workspace' },
 
 	// Related table names
 	{
-		pattern: /(['"`])organizationMembers(['"`])/g,
+		pattern: /(['"`])workspaceMembers(['"`])/g,
 		replacement: '$1workspaceMembers$2',
-		description: 'Table name organizationMembers'
+		description: 'Table name workspaceMembers'
 	},
 	{
-		pattern: /(['"`])organizationInvites(['"`])/g,
+		pattern: /(['"`])workspaceInvites(['"`])/g,
 		replacement: '$1workspaceInvites$2',
-		description: 'Table name organizationInvites'
+		description: 'Table name workspaceInvites'
 	},
 	{
-		pattern: /(['"`])organizationSettings(['"`])/g,
+		pattern: /(['"`])workspaceSettings(['"`])/g,
 		replacement: '$1workspaceSettings$2',
-		description: 'Table name organizationSettings'
+		description: 'Table name workspaceSettings'
 	},
 
 	// Type references for related tables
 	{
-		pattern: /Id<'organizationMembers'>/g,
+		pattern: /Id<'workspaceMembers'>/g,
 		replacement: "Id<'workspaceMembers'>",
-		description: "Type Id<'organizationMembers'>"
+		description: "Type Id<'workspaceMembers'>"
 	},
 	{
-		pattern: /Id<'organizationInvites'>/g,
+		pattern: /Id<'workspaceInvites'>/g,
 		replacement: "Id<'workspaceInvites'>",
-		description: "Type Id<'organizationInvites'>"
+		description: "Type Id<'workspaceInvites'>"
 	},
 	{
-		pattern: /Id<'organizationSettings'>/g,
+		pattern: /Id<'workspaceSettings'>/g,
 		replacement: "Id<'workspaceSettings'>",
-		description: "Type Id<'organizationSettings'>"
+		description: "Type Id<'workspaceSettings'>"
 	},
 
 	// Context keys
 	{
-		pattern: /(['"`])organizations(['"`])/g,
+		pattern: /(['"`])workspaces(['"`])/g,
 		replacement: '$1workspaces$2',
-		description: "Context key 'organizations'"
+		description: "Context key 'workspaces'"
 	},
 
 	// Function/interface names
 	{
 		pattern: /\bOrganizationsModuleAPI\b/g,
 		replacement: 'WorkspacesModuleAPI',
-		description: 'Interface OrganizationsModuleAPI'
+		description: 'Interface WorkspacesModuleAPI'
 	},
 	{
 		pattern: /\bOrganizationSummary\b/g,
 		replacement: 'WorkspaceSummary',
-		description: 'Type OrganizationSummary'
+		description: 'Type WorkspaceSummary'
 	},
 	{
 		pattern: /\bOrganizationInvite\b/g,
 		replacement: 'WorkspaceInvite',
-		description: 'Type OrganizationInvite'
+		description: 'Type WorkspaceInvite'
 	},
 	{
 		pattern: /\bOrganizationMember\b/g,
 		replacement: 'WorkspaceMember',
-		description: 'Type OrganizationMember'
+		description: 'Type WorkspaceMember'
 	},
 	{
 		pattern: /\buseOrganizations\b/g,
 		replacement: 'useWorkspaces',
-		description: 'Composable useOrganizations'
+		description: 'Composable useWorkspaces'
 	},
 	{
 		pattern: /\buseOrganizationMembers\b/g,
 		replacement: 'useWorkspaceMembers',
-		description: 'Composable useOrganizationMembers'
+		description: 'Composable useWorkspaceMembers'
 	},
 	{
 		pattern: /\buseOrganizationQueries\b/g,
 		replacement: 'useWorkspaceQueries',
-		description: 'Composable useOrganizationQueries'
+		description: 'Composable useWorkspaceQueries'
 	},
 	{
 		pattern: /\buseOrganizationMutations\b/g,
 		replacement: 'useWorkspaceMutations',
-		description: 'Composable useOrganizationMutations'
+		description: 'Composable useWorkspaceMutations'
 	},
 	{
 		pattern: /\buseOrganizationState\b/g,
 		replacement: 'useWorkspaceState',
-		description: 'Composable useOrganizationState'
+		description: 'Composable useWorkspaceState'
 	},
 	{
 		pattern: /\buseOrganizationUrlSync\b/g,
 		replacement: 'useWorkspaceUrlSync',
-		description: 'Composable useOrganizationUrlSync'
+		description: 'Composable useWorkspaceUrlSync'
 	},
 	{
 		pattern: /\buseOrganizationAnalytics\b/g,
 		replacement: 'useWorkspaceAnalytics',
-		description: 'Composable useOrganizationAnalytics'
+		description: 'Composable useWorkspaceAnalytics'
 	},
 	{
 		pattern: /\bactiveOrganizationId\b/g,
 		replacement: 'activeWorkspaceId',
-		description: 'Variable activeOrganizationId'
+		description: 'Variable activeWorkspaceId'
 	},
 	{
 		pattern: /\bactiveOrganization\b/g,
 		replacement: 'activeWorkspace',
-		description: 'Variable activeOrganization'
+		description: 'Variable activeWorkspace'
 	},
 	{
 		pattern: /\bgetOrganizationId\b/g,
 		replacement: 'getWorkspaceId',
-		description: 'Function getOrganizationId'
+		description: 'Function getWorkspaceId'
 	},
 	{
 		pattern: /\bsetActiveOrganization\b/g,
 		replacement: 'setActiveWorkspace',
-		description: 'Function setActiveOrganization'
+		description: 'Function setActiveWorkspace'
 	},
 	{
 		pattern: /\bcreateOrganization\b/g,
 		replacement: 'createWorkspace',
-		description: 'Function createOrganization'
+		description: 'Function createWorkspace'
 	},
 	{
 		pattern: /\bensureOrganizationMembership\b/g,
 		replacement: 'ensureWorkspaceMembership',
-		description: 'Function ensureOrganizationMembership'
+		description: 'Function ensureWorkspaceMembership'
 	},
 	{
 		pattern: /\bensureUniqueOrganizationSlug\b/g,
 		replacement: 'ensureUniqueWorkspaceSlug',
-		description: 'Function ensureUniqueOrganizationSlug'
+		description: 'Function ensureUniqueWorkspaceSlug'
 	},
 	{
 		pattern: /\bisOrganizationAdmin\b/g,
 		replacement: 'isWorkspaceAdmin',
-		description: 'Function isOrganizationAdmin'
+		description: 'Function isWorkspaceAdmin'
 	},
 	{
 		pattern: /\bgetUserOrganizationIds\b/g,
 		replacement: 'getUserWorkspaceIds',
-		description: 'Function getUserOrganizationIds'
+		description: 'Function getUserWorkspaceIds'
 	},
 	{
 		pattern: /\ballowedOrganizationIds\b/g,
 		replacement: 'allowedWorkspaceIds',
-		description: 'Field allowedOrganizationIds'
+		description: 'Field allowedWorkspaceIds'
 	}
 ];
 
@@ -272,7 +272,7 @@ const EXCLUDE_PATTERNS = [
 	'test-results/**',
 	'**/*.log',
 	'**/*.json', // Exclude JSON files (config, package-lock, etc.)
-	'ai-docs/tasks/organizations-to-workspaces-impact-analysis.md' // Keep the analysis doc
+	'ai-docs/tasks/workspaces-to-workspaces-impact-analysis.md' // Keep the analysis doc
 ];
 
 // File extensions to process
@@ -408,19 +408,19 @@ function processFile(filePath: string, stats: Stats): void {
 function renameFilesAndDirectories(stats: Stats): void {
 	const renames = [
 		// Backend files
-		{ from: 'convex/organizations.ts', to: 'convex/workspaces.ts' },
-		{ from: 'convex/organizationSettings.ts', to: 'convex/workspaceSettings.ts' },
+		{ from: 'convex/workspaces.ts', to: 'convex/workspaces.ts' },
+		{ from: 'convex/workspaceSettings.ts', to: 'convex/workspaceSettings.ts' },
 
 		// Frontend module directory
-		{ from: 'src/lib/modules/core/organizations', to: 'src/lib/modules/core/workspaces' },
+		{ from: 'src/lib/modules/core/workspaces', to: 'src/lib/modules/core/workspaces' },
 
 		// Component files (within the module)
 		{
-			from: 'src/lib/modules/core/organizations/components/OrganizationSwitcher.svelte',
+			from: 'src/lib/modules/core/workspaces/components/OrganizationSwitcher.svelte',
 			to: 'src/lib/modules/core/workspaces/components/WorkspaceSwitcher.svelte'
 		},
 		{
-			from: 'src/lib/modules/core/organizations/components/OrganizationModals.svelte',
+			from: 'src/lib/modules/core/workspaces/components/OrganizationModals.svelte',
 			to: 'src/lib/modules/core/workspaces/components/WorkspaceModals.svelte'
 		}
 	];
@@ -471,7 +471,7 @@ function main() {
 		`${colors.blue}╔══════════════════════════════════════════════════════════╗${colors.reset}`
 	);
 	console.log(
-		`${colors.blue}║  organizations → workspaces Refactoring Script          ║${colors.reset}`
+		`${colors.blue}║  workspaces → workspaces Refactoring Script          ║${colors.reset}`
 	);
 	console.log(
 		`${colors.blue}╚══════════════════════════════════════════════════════════╝${colors.reset}\n`

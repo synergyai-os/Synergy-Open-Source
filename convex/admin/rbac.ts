@@ -212,7 +212,7 @@ export const getUserRoles = query({
 					roleId: role._id,
 					roleSlug: role.slug,
 					roleName: role.name,
-					organizationId: ur.organizationId,
+					workspaceId: ur.workspaceId,
 					circleId: ur.circleId,
 					assignedAt: ur.assignedAt,
 					expiresAt: ur.expiresAt,
@@ -251,7 +251,7 @@ export const listUserRoles = query({
 					roleId: role._id,
 					roleSlug: role.slug,
 					roleName: role.name,
-					organizationId: ur.organizationId,
+					workspaceId: ur.workspaceId,
 					circleId: ur.circleId,
 					assignedAt: ur.assignedAt,
 					expiresAt: ur.expiresAt,
@@ -312,7 +312,7 @@ export const getRBACAnalytics = query({
 			existing.count++;
 			if (assignment.circleId) {
 				existing.scopes.circle++;
-			} else if (assignment.organizationId) {
+			} else if (assignment.workspaceId) {
 				existing.scopes.org++;
 			} else {
 				existing.scopes.global++;
@@ -329,8 +329,8 @@ export const getRBACAnalytics = query({
 
 		// Assignment scope breakdown
 		const scopeBreakdown = {
-			global: activeAssignments.filter((ur) => !ur.organizationId && !ur.circleId).length,
-			organization: activeAssignments.filter((ur) => ur.organizationId && !ur.circleId).length,
+			global: activeAssignments.filter((ur) => !ur.workspaceId && !ur.circleId).length,
+			workspace: activeAssignments.filter((ur) => ur.workspaceId && !ur.circleId).length,
 			circle: activeAssignments.filter((ur) => ur.circleId).length
 		};
 
@@ -352,7 +352,7 @@ export const getRBACAnalytics = query({
 
 		// System-level assignments only (for system admin visibility)
 		const systemLevelAssignments = activeAssignments.filter(
-			(ur) => !ur.organizationId && !ur.circleId
+			(ur) => !ur.workspaceId && !ur.circleId
 		);
 		const systemLevelUsers = new Set(systemLevelAssignments.map((ur) => ur.userId.toString()));
 
@@ -648,7 +648,7 @@ export const assignRoleToUser = mutation({
 		sessionId: v.string(),
 		userId: v.id('users'),
 		roleId: v.id('roles'),
-		organizationId: v.optional(v.id('organizations')),
+		workspaceId: v.optional(v.id('workspaces')),
 		circleId: v.optional(v.id('circles')),
 		expiresAt: v.optional(v.number())
 	},
@@ -664,14 +664,14 @@ export const assignRoleToUser = mutation({
 
 		// Find matching assignment based on scoping
 		const existing = allAssignments.find((ur) => {
-			if (args.organizationId) {
-				return ur.organizationId === args.organizationId && !ur.circleId;
+			if (args.workspaceId) {
+				return ur.workspaceId === args.workspaceId && !ur.circleId;
 			}
 			if (args.circleId) {
 				return ur.circleId === args.circleId;
 			}
 			// Global role - no org/circle
-			return !ur.organizationId && !ur.circleId;
+			return !ur.workspaceId && !ur.circleId;
 		});
 
 		if (existing) {
@@ -687,7 +687,7 @@ export const assignRoleToUser = mutation({
 		const userRoleId = await ctx.db.insert('userRoles', {
 			userId: args.userId,
 			roleId: args.roleId,
-			organizationId: args.organizationId,
+			workspaceId: args.workspaceId,
 			circleId: args.circleId,
 			assignedBy: adminUserId,
 			assignedAt: Date.now(),
@@ -729,7 +729,7 @@ export const updateUserRole = mutation({
 	args: {
 		sessionId: v.string(),
 		userRoleId: v.id('userRoles'),
-		organizationId: v.optional(v.id('organizations')),
+		workspaceId: v.optional(v.id('workspaces')),
 		circleId: v.optional(v.id('circles')),
 		expiresAt: v.optional(v.number())
 	},
@@ -742,13 +742,13 @@ export const updateUserRole = mutation({
 		}
 
 		const updates: {
-			organizationId?: Id<'organizations'> | undefined;
+			workspaceId?: Id<'workspaces'> | undefined;
 			circleId?: Id<'circles'> | undefined;
 			expiresAt?: number;
 		} = {};
 
-		if (args.organizationId !== undefined) {
-			updates.organizationId = args.organizationId;
+		if (args.workspaceId !== undefined) {
+			updates.workspaceId = args.workspaceId;
 		}
 
 		if (args.circleId !== undefined) {
@@ -833,7 +833,7 @@ export const setupDocsPermission = mutation({
 			.withIndex('by_user_role', (q) => q.eq('userId', adminUserId).eq('roleId', adminRole._id))
 			.filter((q) => {
 				return q.and(
-					q.eq(q.field('organizationId'), undefined),
+					q.eq(q.field('workspaceId'), undefined),
 					q.eq(q.field('circleId'), undefined),
 					q.eq(q.field('revokedAt'), undefined)
 				);

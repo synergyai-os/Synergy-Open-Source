@@ -8,7 +8,7 @@
  * The Core module provides foundational functionality that other modules depend on:
  * - Shared UI components (TagSelector)
  * - Tagging functionality (via useTagging composable)
- * - Organizations (via OrganizationsModuleAPI)
+ * - Organizations (via WorkspacesModuleAPI)
  * - Authentication context
  * - Shared utilities and types
  *
@@ -186,7 +186,7 @@ export interface CoreModuleAPI {
 	 * - `entityType`: Entity type ('highlight' | 'flashcard' | 'note' | 'source')
 	 * - `getUserId`: Function returning user ID
 	 * - `getSessionId`: Function returning session ID
-	 * - `getOrganizationId`: Optional function returning organization ID
+	 * - `getWorkspaceId`: Optional function returning workspace ID
 	 *
 	 * **Returns:** TaggingAPI instance with reactive state and actions
 	 */
@@ -194,7 +194,7 @@ export interface CoreModuleAPI {
 		entityType: 'highlight' | 'flashcard' | 'note' | 'source',
 		getUserId: () => string | undefined,
 		getSessionId: () => string | null | undefined,
-		getOrganizationId?: () => string | null | undefined
+		getWorkspaceId?: () => string | null | undefined
 	) => TaggingAPI;
 
 	/**

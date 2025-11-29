@@ -28,7 +28,7 @@ The inbox serves as a **temporary staging area** for unorganized content:
 
 2. **Processing Workflow**
    - Content enters inbox → User reviews → User organizes → Content becomes document
-   - `processed` flag tracks organization status
+   - `processed` flag tracks workspace status
    - Processed items can be archived or migrated to documents
 
 3. **Unified Creation Interface**
@@ -66,7 +66,7 @@ The inbox serves as a **temporary staging area** for unorganized content:
 
 2. **Processing Workflow**
    - Content enters inbox → User reviews → User organizes → Content becomes document
-   - `processed` flag tracks organization status
+   - `processed` flag tracks workspace status
    - Processed items can be archived or migrated to documents
 
 3. **Unified Creation Interface**
@@ -123,7 +123,7 @@ See [`api.ts`](./api.ts) for the complete `InboxModuleAPI` interface.
 
 ## Dependencies
 
-- **Core** - Uses `TagSelector` component and organization context
+- **Core** - Uses `TagSelector` component and workspace context
 
 ## Usage
 
@@ -156,7 +156,7 @@ if (inboxAPI) {
 ### Current Implementation
 
 - **inboxItems Table**: Polymorphic table with types (`readwise_highlight`, `photo_note`, `manual_text`, `note`)
-- **Processing Workflow**: `processed` flag tracks organization status
+- **Processing Workflow**: `processed` flag tracks workspace status
 - **Tagging**: Uses core tagging system via junction tables
 - **Readwise Sync**: Automatic synchronization of highlights
 

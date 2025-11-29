@@ -5,7 +5,7 @@ import { toast } from '$lib/utils/toast';
 
 export type CircleSummary = {
 	circleId: Id<'circles'>;
-	organizationId: Id<'organizations'>;
+	workspaceId: Id<'workspaces'>;
 	name: string;
 	slug: string;
 	purpose?: string;
@@ -48,12 +48,12 @@ export type UseCircles = ReturnType<typeof useCircles>;
 
 export function useCircles(options: {
 	sessionId: () => string | undefined;
-	organizationId: () => string | undefined;
+	workspaceId: () => string | undefined;
 	circleId?: () => string | undefined;
 }) {
 	const convexClient = browser ? useConvexClient() : null;
 	const getSessionId = options.sessionId;
-	const getOrganizationId = options.organizationId;
+	const getWorkspaceId = options.workspaceId;
 	const getCircleId = options.circleId;
 
 	const state = $state({
@@ -76,13 +76,12 @@ export function useCircles(options: {
 
 	// Query circles list
 	const circlesQuery =
-		browser && getSessionId() && getOrganizationId()
+		browser && getSessionId() && getWorkspaceId()
 			? useQuery(api.circles.list, () => {
 					const sessionId = getSessionId();
-					const organizationId = getOrganizationId();
-					if (!sessionId || !organizationId)
-						throw new Error('sessionId and organizationId required');
-					return { sessionId, organizationId: organizationId as Id<'organizations'> };
+					const workspaceId = getWorkspaceId();
+					if (!sessionId || !workspaceId) throw new Error('sessionId and workspaceId required');
+					return { sessionId, workspaceId: workspaceId as Id<'workspaces'> };
 				})
 			: null;
 
@@ -152,14 +151,14 @@ export function useCircles(options: {
 		createCircle: async (args: { name: string; purpose?: string; parentCircleId?: string }) => {
 			if (!convexClient) throw new Error('Convex client not available');
 			const sessionId = getSessionId();
-			const organizationId = getOrganizationId();
-			if (!sessionId || !organizationId) throw new Error('sessionId and organizationId required');
+			const workspaceId = getWorkspaceId();
+			if (!sessionId || !workspaceId) throw new Error('sessionId and workspaceId required');
 
 			state.loading.createCircle = true;
 			try {
 				const result = await convexClient.mutation(api.circles.create, {
 					sessionId,
-					organizationId: organizationId as Id<'organizations'>,
+					workspaceId: workspaceId as Id<'workspaces'>,
 					name: args.name,
 					purpose: args.purpose,
 					parentCircleId: args.parentCircleId as Id<'circles'> | undefined

@@ -46,7 +46,7 @@ Developer: Wastes 30 min debugging
 
 ### What Works Today
 
-1. **Domain-based files** (svelte-reactivity.md, ui-patterns.md) - good organization
+1. **Domain-based files** (svelte-reactivity.md, ui-patterns.md) - good workspace
 2. **Line number references** (#L10, #L60) - stable linking
 3. **STATUS field** (ACCEPTED/DEPRECATED) - clear lifecycle
 4. **Symptom → Fix structure** - actionable format

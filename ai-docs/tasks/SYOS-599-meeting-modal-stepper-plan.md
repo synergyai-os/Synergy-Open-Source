@@ -98,13 +98,13 @@ Each type has:
 
 2. **MeetingTypeSelector** (Molecule)
    - Location: `src/lib/modules/meetings/components/MeetingTypeSelector.svelte`
-   - Props: `value`, `onChange`, `organizationId`, `sessionId`
+   - Props: `value`, `onChange`, `workspaceId`, `sessionId`
    - Shows type cards with icons, descriptions
    - Required field (no "None" option)
 
 3. **QuickMeetingButton** (Molecule)
    - Location: `src/lib/modules/meetings/components/QuickMeetingButton.svelte`
-   - Props: `organizationId`, `sessionId`, `circles`
+   - Props: `workspaceId`, `sessionId`, `circles`
    - One-click meeting creation
 
 4. **MeetingConfirmationDialog** (Organism)

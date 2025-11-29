@@ -1,9 +1,9 @@
 <script lang="ts">
-	import OrganizationSwitcher from '$lib/modules/core/organizations/components/OrganizationSwitcher.svelte';
-	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import WorkspaceSwitcher from '$lib/modules/core/workspaces/components/WorkspaceSwitcher.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
 
 	let {
-		organizations,
+		workspaces,
 		isMobile = false,
 		sidebarCollapsed = false,
 		onSidebarToggle,
@@ -17,7 +17,7 @@
 		onAddAccount,
 		onLogout
 	}: {
-		organizations: OrganizationsModuleAPI | undefined;
+		workspaces: WorkspacesModuleAPI | undefined;
 		isMobile?: boolean;
 		sidebarCollapsed?: boolean;
 		onSidebarToggle?: () => void;
@@ -35,17 +35,17 @@
 	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
 	// Pattern: Check object existence first, then access getter property directly
 	// See SYOS-228 for full pattern documentation
-	const organizationInvites = $derived(() => {
-		if (!organizations) return [];
-		return organizations.organizationInvites ?? [];
+	const workspaceInvites = $derived(() => {
+		if (!workspaces) return [];
+		return workspaces.workspaceInvites ?? [];
 	});
 	const organizationSummaries = $derived(() => {
-		if (!organizations) return [];
-		return organizations.organizations ?? [];
+		if (!workspaces) return [];
+		return workspaces.workspaces ?? [];
 	});
-	const activeOrganizationId = $derived(() => {
-		if (!organizations) return null;
-		return organizations.activeOrganizationId ?? null;
+	const activeWorkspaceId = $derived(() => {
+		if (!workspaces) return null;
+		return workspaces.activeWorkspaceId ?? null;
 	});
 
 	if (!onSidebarToggle) {
@@ -75,19 +75,17 @@
 		</button>
 
 		<div class="min-w-0 flex-1">
-			<OrganizationSwitcher
-				organizations={organizationSummaries()}
-				activeOrganizationId={activeOrganizationId()}
-				organizationInvites={organizationInvites()}
+			<WorkspaceSwitcher
+				workspaces={organizationSummaries()}
+				activeWorkspaceId={activeWorkspaceId()}
+				workspaceInvites={workspaceInvites()}
 				{accountName}
 				{accountEmail}
-				onSelectOrganization={(organizationId) =>
-					organizations?.setActiveOrganization(organizationId)}
-				onCreateOrganization={() => organizations?.openModal('createOrganization')}
-				onJoinOrganization={() => organizations?.openModal('joinOrganization')}
-				onAcceptOrganizationInvite={(code) => organizations?.acceptOrganizationInvite(code)}
-				onDeclineOrganizationInvite={(inviteId) =>
-					organizations?.declineOrganizationInvite(inviteId)}
+				onSelectOrganization={(workspaceId) => workspaces?.setActiveWorkspace(workspaceId)}
+				onCreateOrganization={() => workspaces?.openModal('createWorkspace')}
+				onJoinOrganization={() => workspaces?.openModal('joinOrganization')}
+				onAcceptOrganizationInvite={(code) => workspaces?.acceptOrganizationInvite(code)}
+				onDeclineOrganizationInvite={(inviteId) => workspaces?.declineOrganizationInvite(inviteId)}
 				onSettings={() => onSettings?.()}
 				onInviteMembers={() => onInviteMembers?.()}
 				onSwitchWorkspace={() => onSwitchWorkspace?.()}

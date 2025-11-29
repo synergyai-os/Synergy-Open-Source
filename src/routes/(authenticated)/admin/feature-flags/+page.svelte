@@ -58,7 +58,7 @@
 		enabled: boolean;
 		rolloutPercentage?: number;
 		allowedUserIds?: string[];
-		allowedOrganizationIds?: string[];
+		allowedWorkspaceIds?: string[];
 		allowedDomains?: string[];
 		createdAt: number;
 		updatedAt: number;
@@ -74,7 +74,7 @@
 		flagConfig?: {
 			enabled: boolean;
 			allowedUserIds?: string[];
-			allowedOrganizationIds?: string[];
+			allowedWorkspaceIds?: string[];
 			allowedDomains?: string[];
 			rolloutPercentage?: number;
 		};
@@ -174,7 +174,7 @@
 		flags.filter(
 			(f) =>
 				(f.allowedUserIds?.length ?? 0) > 0 ||
-				(f.allowedOrganizationIds?.length ?? 0) > 0 ||
+				(f.allowedWorkspaceIds?.length ?? 0) > 0 ||
 				(f.allowedDomains?.length ?? 0) > 0 ||
 				f.rolloutPercentage !== undefined
 		).length
@@ -199,7 +199,7 @@
 			result = result.filter(
 				(flag) =>
 					(flag.allowedUserIds?.length ?? 0) > 0 ||
-					(flag.allowedOrganizationIds?.length ?? 0) > 0 ||
+					(flag.allowedWorkspaceIds?.length ?? 0) > 0 ||
 					(flag.allowedDomains?.length ?? 0) > 0 ||
 					flag.rolloutPercentage !== undefined
 			);
@@ -207,7 +207,7 @@
 			result = result.filter(
 				(flag) =>
 					(flag.allowedUserIds?.length ?? 0) === 0 &&
-					(flag.allowedOrganizationIds?.length ?? 0) === 0 &&
+					(flag.allowedWorkspaceIds?.length ?? 0) === 0 &&
 					(flag.allowedDomains?.length ?? 0) === 0 &&
 					flag.rolloutPercentage === undefined
 			);
@@ -224,9 +224,9 @@
 				`${flag.allowedUserIds.length} user${flag.allowedUserIds.length !== 1 ? 's' : ''}`
 			);
 		}
-		if (flag.allowedOrganizationIds?.length) {
+		if (flag.allowedWorkspaceIds?.length) {
 			parts.push(
-				`${flag.allowedOrganizationIds.length} org${flag.allowedOrganizationIds.length !== 1 ? 's' : ''}`
+				`${flag.allowedWorkspaceIds.length} org${flag.allowedWorkspaceIds.length !== 1 ? 's' : ''}`
 			);
 		}
 		if (flag.allowedDomains?.length) {
@@ -279,7 +279,7 @@
 		formEnabled = flag.enabled;
 		formRolloutPercentage = flag.rolloutPercentage;
 		formAllowedUserIds = flag.allowedUserIds ?? [];
-		formAllowedOrgIds = flag.allowedOrganizationIds ?? [];
+		formAllowedOrgIds = flag.allowedWorkspaceIds ?? [];
 		formDomainInput = (flag.allowedDomains ?? []).join(', ');
 		editModalOpen = true;
 	}
@@ -307,8 +307,8 @@
 				rolloutPercentage: formRolloutPercentage,
 				allowedUserIds:
 					formAllowedUserIds.length > 0 ? (formAllowedUserIds as Id<'users'>[]) : undefined,
-				allowedOrganizationIds:
-					formAllowedOrgIds.length > 0 ? (formAllowedOrgIds as Id<'organizations'>[]) : undefined,
+				allowedWorkspaceIds:
+					formAllowedOrgIds.length > 0 ? (formAllowedOrgIds as Id<'workspaces'>[]) : undefined,
 				allowedDomains: domains.length > 0 ? domains : undefined
 			});
 

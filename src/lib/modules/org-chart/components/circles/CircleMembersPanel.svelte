@@ -3,7 +3,7 @@
 	import { getContext } from 'svelte';
 	import { useCircleMembers } from '../../composables/useCircleMembers.svelte';
 	import type { UseCircles, CircleMember } from '../../composables/useCircles.svelte';
-	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
 
 	let {
 		circles,
@@ -17,14 +17,14 @@
 
 	const getSessionId = () => $page.data.sessionId;
 
-	// Get organizationId from context (passed from parent page)
-	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
-	const getOrganizationId = () => organizations?.activeOrganizationId ?? undefined;
+	// Get workspaceId from context (passed from parent page)
+	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
+	const getWorkspaceId = () => workspaces?.activeWorkspaceId ?? undefined;
 
 	// Use composable for circle members queries
 	const circleMembers = useCircleMembers({
 		sessionId: getSessionId,
-		organizationId: getOrganizationId,
+		workspaceId: getWorkspaceId,
 		members: () => members
 	});
 

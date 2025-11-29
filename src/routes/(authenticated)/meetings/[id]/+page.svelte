@@ -17,8 +17,6 @@
 	import { useConvexClient, useQuery } from 'convex-svelte';
 	import { browser } from '$app/environment';
 	import AgendaItemView from '$lib/modules/meetings/components/AgendaItemView.svelte';
-	import SecretarySelector from '$lib/modules/meetings/components/SecretarySelector.svelte';
-	import SecretaryConfirmationDialog from '$lib/modules/meetings/components/SecretaryConfirmationDialog.svelte';
 	import { Icon, Heading, Text, Button } from '$lib/components/atoms';
 
 	interface Props {
@@ -72,50 +70,26 @@
 	// Convex client for mutations
 	const convexClient = useConvexClient();
 
-	// Real-time secretary change requests (only for current secretary)
-	const secretaryRequestsQuery =
-		browser && meetingId() && sessionId()
-			? useQuery(api.meetings.watchSecretaryRequests, () => {
-					const mId = meetingId();
-					const sId = sessionId();
-					if (!mId || !sId) throw new Error('Missing meetingId or sessionId');
-					return { meetingId: mId, sessionId: sId };
-				})
-			: null;
-
-	const pendingRequest = $derived(secretaryRequestsQuery?.data?.[0] ?? null);
-
-	// Local state for agenda item input and selection
+	// Local state for agenda item input
 	const state = $state({
 		newAgendaTitle: '',
 		isAddingAgenda: false,
-		activeItemId: null as Id<'meetingAgendaItems'> | null,
 		hoveredProcessedId: null as Id<'meetingAgendaItems'> | null
 	});
 
-	// Derived: Split agenda items into processed/unprocessed
-	const unprocessedItems = $derived(session.agendaItems.filter((item) => !item.isProcessed));
-	const processedItems = $derived(session.agendaItems.filter((item) => item.isProcessed));
+	// Derived: Split agenda items by status
+	const todoItems = $derived(session.agendaItems.filter((item) => item.status === 'todo'));
+	const processedItems = $derived(
+		session.agendaItems.filter((item) => item.status === 'processed')
+	);
+	const rejectedItems = $derived(session.agendaItems.filter((item) => item.status === 'rejected'));
 
-	// Derived: Get active agenda item
+	// Derived: Get active agenda item from meeting (synchronized view)
 	const activeItem = $derived(
-		state.activeItemId
-			? session.agendaItems.find((item) => item._id === state.activeItemId)
+		session.activeAgendaItemId
+			? session.agendaItems.find((item) => item._id === session.activeAgendaItemId)
 			: undefined
 	);
-
-	// Auto-select first unprocessed item when entering agenda step
-	$effect(() => {
-		if (
-			session.isStarted &&
-			!session.isClosed &&
-			session.currentStep === 'agenda' &&
-			!state.activeItemId &&
-			unprocessedItems.length > 0
-		) {
-			state.activeItemId = unprocessedItems[0]._id;
-		}
-	});
 
 	// Handle start meeting
 	async function handleStartMeeting() {
@@ -164,29 +138,40 @@
 		}
 	}
 
-	// Handle mark agenda item as processed
-	async function handleMarkProcessed(itemId: Id<'meetingAgendaItems'>) {
+	// Handle mark agenda item status
+	async function handleMarkStatus(
+		itemId: Id<'meetingAgendaItems'>,
+		status: 'processed' | 'rejected'
+	) {
 		try {
 			// Call mutation
-			await convexClient.mutation(api.meetingAgendaItems.markProcessed, {
+			await convexClient.mutation(api.meetingAgendaItems.markStatus, {
 				agendaItemId: itemId,
 				sessionId: sessionId(),
-				isProcessed: true
+				status
 			});
 
-			// Auto-select next unprocessed item
-			const currentIndex = unprocessedItems.findIndex((i) => i._id === itemId);
-			if (currentIndex < unprocessedItems.length - 1) {
-				state.activeItemId = unprocessedItems[currentIndex + 1]._id;
-			} else {
-				// All items processed
-				state.activeItemId = null;
-			}
-
-			toast.success('Agenda item marked as processed');
+			// If marking active item, it will be cleared automatically by backend
+			// Recorder should select new active item
+			toast.success(`Agenda item marked as ${status}`);
 		} catch (error) {
-			console.error('Failed to mark as processed:', error);
-			toast.error('Failed to mark as processed');
+			console.error(`Failed to mark as ${status}:`, error);
+			toast.error(`Failed to mark as ${status}`);
+		}
+	}
+
+	// Handle set active agenda item (recorder only)
+	async function handleSetActiveItem(itemId: Id<'meetingAgendaItems'> | null) {
+		if (!session.isRecorder) {
+			toast.error('Only the recorder can set the active agenda item');
+			return;
+		}
+
+		try {
+			await session.setActiveAgendaItem(itemId);
+		} catch (error) {
+			console.error('Failed to set active agenda item:', error);
+			toast.error('Failed to set active agenda item');
 		}
 	}
 
@@ -203,7 +188,7 @@
 		<div class="text-center">
 			<Heading level="h1" size="h1" class="font-bold">Meetings Not Enabled</Heading>
 			<Text variant="body" color="secondary" class="mt-text-gap">
-				This feature is not enabled for your organization.
+				This feature is not enabled for your workspace.
 			</Text>
 		</div>
 	</div>
@@ -213,7 +198,7 @@
 			<div
 				class="border-accent-primary inline-block size-icon-lg animate-spin rounded-avatar border-4 border-solid border-r-transparent"
 			></div>
-			<Text variant="body" color="secondary" class="mt-content-section">Loading meeting...</Text>
+			<Text variant="body" color="secondary" class="mb-header">Loading meeting...</Text>
 		</div>
 	</div>
 {:else if session.error}
@@ -228,23 +213,19 @@
 	<div class="flex h-screen flex-col overflow-hidden bg-surface">
 		<!-- Header -->
 		<div
-			class="border-border-base py-header flex items-center justify-between border-b bg-elevated px-page"
+			class="border-border-base flex items-center justify-between border-b bg-elevated px-page py-stack-header"
 		>
-			<div class="gap-content-section flex items-center">
+			<div class="flex items-center gap-content">
 				<Heading level="h1" size="h2" class="font-semibold">{session.meeting.title}</Heading>
 
-				<!-- Secretary Selector - visible to everyone -->
-				{#if session.meeting}
+				<!-- Recorder Indicator - visible to everyone -->
+				{#if session.isStarted && session.meeting?.recorderId}
 					<div class="flex items-center gap-fieldGroup">
-						<Text variant="label" color="tertiary">Secretary:</Text>
-						<SecretarySelector
-							meetingId={session.meeting._id}
-							sessionId={data.sessionId}
-							currentSecretaryId={session.meeting.secretaryId ?? session.meeting.createdBy}
-							currentSecretaryName={session.meeting.secretaryName || 'Unknown'}
-							currentUserId={data.userId}
-							attendees={session.meeting.attendees || []}
-						/>
+						<Text variant="label" color="tertiary">Recorder:</Text>
+						<Text variant="body" size="sm" class="font-medium">
+							{session.meeting.attendees?.find((a) => a.userId === session.meeting.recorderId)
+								?.userName || 'Unknown'}
+						</Text>
 					</div>
 				{/if}
 
@@ -259,7 +240,7 @@
 				{/if}
 			</div>
 
-			<div class="gap-content-section flex items-center">
+			<div class="flex items-center gap-content">
 				<!-- Timer -->
 				{#if session.isStarted && !session.isClosed}
 					<div class="text-text-secondary flex items-center gap-fieldGroup">
@@ -268,13 +249,13 @@
 					</div>
 				{/if}
 
-				<!-- Start Meeting Button (Secretary only, before meeting starts) -->
-				{#if session.isSecretary && !session.isStarted}
+				<!-- Start Meeting Button (before meeting starts) -->
+				{#if !session.isStarted}
 					<Button variant="primary" onclick={handleStartMeeting}>Start Meeting</Button>
 				{/if}
 
-				<!-- Close Meeting Button (Secretary only, after meeting starts) -->
-				{#if session.isSecretary && session.isStarted && !session.isClosed}
+				<!-- Close Meeting Button (recorder only, after meeting starts) -->
+				{#if session.isStarted && !session.isClosed && session.isRecorder}
 					<Button
 						variant="outline"
 						onclick={handleCloseMeeting}
@@ -299,8 +280,8 @@
 		<div class="flex flex-1 overflow-hidden">
 			<!-- Sidebar (Agenda) -->
 			<div class="w-sidebar border-border-base overflow-y-auto border-r bg-elevated">
-				<div class="p-card">
-					<div class="mb-content-section flex items-center justify-between">
+				<div class="card-padding">
+					<div class="flex items-center justify-between mb-header">
 						<Heading level="h2" size="h3" class="font-semibold">Agenda</Heading>
 						{#if !session.isClosed}
 							<Button variant="ghost" size="sm" onclick={() => (state.isAddingAgenda = true)}>
@@ -311,7 +292,7 @@
 
 					<!-- Add Agenda Item Input -->
 					{#if state.isAddingAgenda}
-						<div class="mb-content-section">
+						<div class="mb-header">
 							<input
 								type="text"
 								bind:value={state.newAgendaTitle}
@@ -346,30 +327,27 @@
 						<Text variant="body" size="sm" color="tertiary">No agenda items yet</Text>
 					{:else}
 						<!-- To Process Section -->
-						{#if unprocessedItems.length > 0}
-							<div class="mb-section-gap">
+						{#if todoItems.length > 0}
+							<div class="mb-header">
 								<Text
 									variant="label"
 									color="secondary"
 									class="mb-text-gap font-semibold tracking-wider uppercase"
 								>
-									To Process ({unprocessedItems.length})
+									To Process ({todoItems.length})
 								</Text>
 								<div class="flex flex-col gap-fieldGroup">
-									{#each unprocessedItems as item (item._id)}
+									{#each todoItems as item (item._id)}
 										<button
-											onclick={() => session.isSecretary && (state.activeItemId = item._id)}
-											disabled={!session.isSecretary}
-											class="px-fieldGroup py-nav-item w-full rounded-button border text-left transition-colors {state.activeItemId ===
+											onclick={() => session.isRecorder && handleSetActiveItem(item._id)}
+											disabled={!session.isRecorder}
+											class="px-fieldGroup py-nav-item w-full rounded-button border text-left transition-colors {session.activeAgendaItemId ===
 											item._id
 												? 'border-accent-primary bg-accent-primary/10'
-												: 'border-border-base hover:border-accent-primary bg-surface'} {!session.isSecretary
-												? 'cursor-not-allowed'
-												: 'cursor-pointer'}"
-											style={!session.isSecretary ? 'opacity: var(--opacity-50);' : ''}
-											title={!session.isSecretary
-												? 'Only the secretary can switch agenda items'
-												: ''}
+												: 'border-border-base hover:border-accent-primary bg-surface'} {session.isRecorder
+												? 'cursor-pointer'
+												: 'cursor-not-allowed'}"
+											style={session.isRecorder ? undefined : 'opacity: var(--opacity-60);'}
 										>
 											<Text variant="body" size="sm" class="font-medium">{item.title}</Text>
 											<Text variant="label" color="tertiary" class="mt-icon-gap-sm">
@@ -383,7 +361,7 @@
 
 						<!-- Processed Section -->
 						{#if processedItems.length > 0}
-							<div>
+							<div class="mb-header">
 								<div class="mb-text-gap flex items-center gap-fieldGroup">
 									<Icon type="check" size="sm" color="tertiary" />
 									<Text
@@ -397,19 +375,55 @@
 								<div class="flex flex-col gap-fieldGroup">
 									{#each processedItems as item (item._id)}
 										<button
-											onclick={() => session.isSecretary && (state.activeItemId = item._id)}
+											onclick={() => session.isRecorder && handleSetActiveItem(item._id)}
+											disabled={!session.isRecorder}
 											onmouseenter={() => (state.hoveredProcessedId = item._id)}
 											onmouseleave={() => (state.hoveredProcessedId = null)}
-											disabled={!session.isSecretary}
-											class="border-border-base px-fieldGroup py-nav-item w-full rounded-button border bg-surface text-left transition-all {!session.isSecretary
-												? 'cursor-not-allowed'
-												: 'cursor-pointer'}"
+											class="border-border-base px-fieldGroup py-nav-item w-full rounded-button border bg-surface text-left transition-all {session.isRecorder
+												? 'cursor-pointer'
+												: 'cursor-not-allowed'}"
 											style="opacity: var(--opacity-{state.hoveredProcessedId === item._id
 												? '100'
 												: '60'});"
-											title={!session.isSecretary
-												? 'Only the secretary can switch agenda items'
-												: ''}
+										>
+											<Text variant="body" size="sm" color="tertiary" class="font-medium"
+												>{item.title}</Text
+											>
+											<Text variant="label" color="tertiary" class="mt-icon-gap-sm">
+												Added by {item.creatorName}
+											</Text>
+										</button>
+									{/each}
+								</div>
+							</div>
+						{/if}
+
+						<!-- Rejected Section -->
+						{#if rejectedItems.length > 0}
+							<div>
+								<div class="mb-text-gap flex items-center gap-fieldGroup">
+									<Icon type="close" size="sm" color="error" />
+									<Text
+										variant="label"
+										color="error"
+										class="font-semibold tracking-wider uppercase"
+									>
+										Rejected ({rejectedItems.length})
+									</Text>
+								</div>
+								<div class="flex flex-col gap-fieldGroup">
+									{#each rejectedItems as item (item._id)}
+										<button
+											onclick={() => session.isRecorder && handleSetActiveItem(item._id)}
+											disabled={!session.isRecorder}
+											onmouseenter={() => (state.hoveredProcessedId = item._id)}
+											onmouseleave={() => (state.hoveredProcessedId = null)}
+											class="border-border-base px-fieldGroup py-nav-item w-full rounded-button border bg-surface text-left transition-all {session.isRecorder
+												? 'cursor-pointer'
+												: 'cursor-not-allowed'}"
+											style="opacity: var(--opacity-{state.hoveredProcessedId === item._id
+												? '100'
+												: '60'});"
 										>
 											<Text variant="body" size="sm" color="tertiary" class="font-medium"
 												>{item.title}</Text
@@ -433,14 +447,11 @@
 					<div class="border-border-base flex border-b bg-elevated">
 						{#each steps as step (step.id)}
 							<button
-								onclick={() => session.isSecretary && handleAdvanceStep(step.id)}
-								disabled={!session.isSecretary}
-								class="border-border-base px-form-section py-header text-button font-medium transition-colors {session.currentStep ===
+								onclick={() => handleAdvanceStep(step.id)}
+								class="border-border-base px-form-section py-header text-button cursor-pointer font-medium transition-colors {session.currentStep ===
 								step.id
 									? 'border-accent-primary text-accent-primary border-b-2'
-									: 'text-text-secondary hover:text-text-primary'} {!session.isSecretary
-									? 'cursor-not-allowed'
-									: 'cursor-pointer'}"
+									: 'text-text-secondary hover:text-text-primary'}"
 							>
 								{step.label}
 							</button>
@@ -449,20 +460,18 @@
 				{/if}
 
 				<!-- Step Content -->
-				<div class="pb-section-spacing-xlarge flex-1 overflow-y-auto px-page py-page">
+				<div class="pb-page flex-1 overflow-y-auto px-page py-page">
 					{#if !session.isStarted}
 						<!-- Before meeting starts -->
 						<div class="text-center">
 							<div class="mx-auto">
 								<Icon type="clock" size="xl" color="tertiary" />
 							</div>
-							<Heading level="h2" size="h3" class="mt-content-section font-semibold">
+							<Heading level="h2" size="h3" class="font-semibold mb-header">
 								Meeting Not Started
 							</Heading>
 							<Text variant="body" color="secondary" class="mt-text-gap">
-								{session.isSecretary
-									? 'Click "Start Meeting" to begin'
-									: 'Waiting for facilitator to start the meeting'}
+								Click "Start Meeting" to begin
 							</Text>
 						</div>
 					{:else if session.isClosed}
@@ -471,9 +480,7 @@
 							<div class="mx-auto">
 								<Icon type="check-circle" size="xl" color="success" />
 							</div>
-							<Heading level="h2" size="h3" class="mt-content-section font-semibold">
-								Meeting Closed
-							</Heading>
+							<Heading level="h2" size="h3" class="font-semibold mb-header">Meeting Closed</Heading>
 							<Text variant="body" color="secondary" class="mt-text-gap">
 								This meeting has ended. Duration: {session.elapsedTimeFormatted}
 							</Text>
@@ -487,13 +494,13 @@
 							</Text>
 
 							<!-- Attendance List -->
-							<div class="mt-section-gap">
+							<div class="mb-header">
 								<Heading level="h3" size="h3" class="font-semibold">
 									Attendance ({presence.activeCount}/{presence.expectedCount} present)
 								</Heading>
 
 								{#if presence.combinedAttendance.length > 0}
-									<div class="mt-content-section flex flex-col gap-fieldGroup">
+									<div class="flex flex-col gap-fieldGroup mb-header">
 										{#each presence.combinedAttendance as attendee (attendee.userId)}
 											<label
 												class="border-border-base px-card py-card flex items-center gap-fieldGroup rounded-button border bg-surface transition-colors {attendee.isActive
@@ -553,7 +560,7 @@
 										{/each}
 									</div>
 								{:else}
-									<Text variant="body" size="sm" color="tertiary" class="mt-content-section">
+									<Text variant="body" size="sm" color="tertiary" class="mb-header">
 										No attendees registered yet
 									</Text>
 								{/if}
@@ -561,14 +568,14 @@
 						</div>
 					{:else if session.currentStep === 'agenda'}
 						<!-- Agenda Step - Processing Flow -->
-						{#if unprocessedItems.length === 0 && processedItems.length === 0}
+						{#if todoItems.length === 0 && processedItems.length === 0 && rejectedItems.length === 0}
 							<!-- No agenda items -->
 							<div class="flex h-full items-center justify-center">
 								<div class="text-center">
 									<div class="mx-auto">
 										<Icon type="clipboard" size="xl" color="tertiary" />
 									</div>
-									<Heading level="h3" size="h3" class="mt-content-section font-semibold">
+									<Heading level="h3" size="h3" class="font-semibold mb-header">
 										No Agenda Items
 									</Heading>
 									<Text variant="body" color="secondary" class="mt-text-gap">
@@ -576,21 +583,21 @@
 									</Text>
 								</div>
 							</div>
-						{:else if unprocessedItems.length === 0}
+						{:else if todoItems.length === 0}
 							<!-- All items processed - Completion state -->
 							<div class="flex h-full items-center justify-center">
 								<div class="text-center">
 									<div class="mx-auto">
 										<Icon type="check-circle" size="xxl" color="success" />
 									</div>
-									<Heading level="h3" size="h1" class="mt-content-section font-bold">
+									<Heading level="h3" size="h1" class="font-bold mb-header">
 										All Agenda Items Processed!
 									</Heading>
 									<Text variant="body" color="secondary" class="mt-text-gap">
 										{processedItems.length}
 										{processedItems.length === 1 ? 'item' : 'items'} completed
 									</Text>
-									<Text variant="body" size="sm" color="tertiary" class="mt-content-section">
+									<Text variant="body" size="sm" color="tertiary" class="mb-header">
 										You can now advance to the Closing step
 									</Text>
 								</div>
@@ -600,12 +607,12 @@
 							<AgendaItemView
 								item={activeItem}
 								meetingId={session.meeting._id}
-								organizationId={session.meeting.organizationId}
+								workspaceId={session.meeting.workspaceId}
 								circleId={session.meeting.circleId}
 								sessionId={data.sessionId}
-								isSecretary={session.isSecretary}
-								onMarkProcessed={handleMarkProcessed}
+								onMarkStatus={handleMarkStatus}
 								isClosed={session.isClosed}
+								isRecorder={session.isRecorder}
 							/>
 						{/if}
 					{:else if session.currentStep === 'closing'}
@@ -615,10 +622,10 @@
 							<Text variant="body" color="secondary" class="mt-text-gap">
 								Recap decisions, action items, and next steps.
 							</Text>
-							<div class="mt-section-gap">
+							<div class="mb-header">
 								<div class="border-border-base rounded-card border bg-surface card-padding">
 									<Heading level="h3" size="h3" class="font-semibold">Meeting Summary</Heading>
-									<div class="mt-content-section flex flex-col gap-fieldGroup">
+									<div class="flex flex-col gap-fieldGroup mb-header">
 										<Text variant="body" size="sm" color="secondary"
 											>Duration: {session.elapsedTimeFormatted}</Text
 										>
@@ -637,13 +644,4 @@
 			</div>
 		</div>
 	</div>
-
-	<!-- Secretary Confirmation Dialog (real-time) -->
-	<SecretaryConfirmationDialog
-		request={pendingRequest}
-		sessionId={data.sessionId}
-		onClose={() => {
-			// Dialog closes automatically when request is resolved
-		}}
-	/>
 {/if}

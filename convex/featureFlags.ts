@@ -64,7 +64,7 @@ export const checkFlag = query({
 		// Only undefined/null means no targeting rules → can default to global enabled
 		const hasTargetingRules =
 			flagConfig.allowedUserIds !== undefined ||
-			flagConfig.allowedOrganizationIds !== undefined ||
+			flagConfig.allowedWorkspaceIds !== undefined ||
 			flagConfig.allowedDomains !== undefined ||
 			flagConfig.rolloutPercentage !== undefined;
 
@@ -72,16 +72,16 @@ export const checkFlag = query({
 		if (flagConfig.allowedUserIds?.includes(userId)) {
 			result = true;
 		}
-		// Check organization-based access
-		else if (flagConfig.allowedOrganizationIds?.length) {
-			// Get user's organizations
+		// Check workspace-based access
+		else if (flagConfig.allowedWorkspaceIds?.length) {
+			// Get user's workspaces
 			const memberships = await ctx.db
-				.query('organizationMembers')
+				.query('workspaceMembers')
 				.withIndex('by_user', (q) => q.eq('userId', userId))
 				.collect();
 
-			const userOrgIds = memberships.map((m) => m.organizationId);
-			const hasOrgAccess = flagConfig.allowedOrganizationIds.some((orgId) =>
+			const userOrgIds = memberships.map((m) => m.workspaceId);
+			const hasOrgAccess = flagConfig.allowedWorkspaceIds.some((orgId) =>
 				userOrgIds.includes(orgId)
 			);
 
@@ -176,7 +176,7 @@ export const checkFlags = query({
 			// Only undefined/null means no targeting rules → can default to global enabled
 			const hasTargetingRules =
 				flagConfig.allowedUserIds !== undefined ||
-				flagConfig.allowedOrganizationIds !== undefined ||
+				flagConfig.allowedWorkspaceIds !== undefined ||
 				flagConfig.allowedDomains !== undefined ||
 				flagConfig.rolloutPercentage !== undefined;
 
@@ -184,16 +184,16 @@ export const checkFlags = query({
 			if (flagConfig.allowedUserIds?.includes(userId)) {
 				result = true;
 			}
-			// Check organization-based access
-			else if (flagConfig.allowedOrganizationIds?.length) {
-				// Get user's organizations (reuse query from checkFlag)
+			// Check workspace-based access
+			else if (flagConfig.allowedWorkspaceIds?.length) {
+				// Get user's workspaces (reuse query from checkFlag)
 				const memberships = await ctx.db
-					.query('organizationMembers')
+					.query('workspaceMembers')
 					.withIndex('by_user', (q) => q.eq('userId', userId))
 					.collect();
 
-				const userOrgIds = memberships.map((m) => m.organizationId);
-				const hasOrgAccess = flagConfig.allowedOrganizationIds.some((orgId) =>
+				const userOrgIds = memberships.map((m) => m.workspaceId);
+				const hasOrgAccess = flagConfig.allowedWorkspaceIds.some((orgId) =>
 					userOrgIds.includes(orgId)
 				);
 
@@ -249,8 +249,8 @@ export const listFlags = query({
 });
 
 /**
- * List all organizations (admin only)
- * Used for organization targeting in feature flags
+ * List all workspaces (admin only)
+ * Used for workspace targeting in feature flags
  */
 export const listAllOrganizations = query({
 	args: {
@@ -259,9 +259,9 @@ export const listAllOrganizations = query({
 	handler: async (ctx, args) => {
 		await requireSystemAdmin(ctx, args.sessionId);
 
-		const organizations = await ctx.db.query('organizations').collect();
+		const workspaces = await ctx.db.query('workspaces').collect();
 
-		return organizations.map((org) => ({
+		return workspaces.map((org) => ({
 			_id: org._id,
 			name: org.name,
 			slug: org.slug,
@@ -334,10 +334,10 @@ export const getImpactStats = query({
 				breakdown.byUserIds = flag.allowedUserIds.length;
 			}
 
-			// Count by organization IDs (estimate - would need to query org members)
-			if (flag.allowedOrganizationIds?.length) {
+			// Count by workspace IDs (estimate - would need to query org members)
+			if (flag.allowedWorkspaceIds?.length) {
 				// Estimate: assume average 10 users per org (can be improved later)
-				breakdown.byOrgIds = flag.allowedOrganizationIds.length * 10;
+				breakdown.byOrgIds = flag.allowedWorkspaceIds.length * 10;
 			}
 
 			// Calculate rollout percentage
@@ -428,17 +428,15 @@ export const getFlagsForUser = query({
 					result = true;
 					reason = `Domain match (${userDomain})`;
 				}
-				// Check organization targeting
-				else if (flag.allowedOrganizationIds?.length) {
+				// Check workspace targeting
+				else if (flag.allowedWorkspaceIds?.length) {
 					const memberships = await ctx.db
-						.query('organizationMembers')
+						.query('workspaceMembers')
 						.withIndex('by_user', (q) => q.eq('userId', userId))
 						.collect();
 
-					const userOrgIds = memberships.map((m) => m.organizationId);
-					const hasOrgAccess = flag.allowedOrganizationIds.some((orgId) =>
-						userOrgIds.includes(orgId)
-					);
+					const userOrgIds = memberships.map((m) => m.workspaceId);
+					const hasOrgAccess = flag.allowedWorkspaceIds.some((orgId) => userOrgIds.includes(orgId));
 
 					if (hasOrgAccess) {
 						result = true;
@@ -461,7 +459,7 @@ export const getFlagsForUser = query({
 					!result &&
 					!flag.allowedUserIds &&
 					!flag.allowedDomains &&
-					!flag.allowedOrganizationIds &&
+					!flag.allowedWorkspaceIds &&
 					flag.rolloutPercentage === undefined
 				) {
 					reason = 'No targeting rules configured';
@@ -534,7 +532,7 @@ export const debugFlagEvaluation = query({
 				flagConfig: {
 					enabled: flagConfig.enabled,
 					allowedUserIds: flagConfig.allowedUserIds,
-					allowedOrganizationIds: flagConfig.allowedOrganizationIds,
+					allowedWorkspaceIds: flagConfig.allowedWorkspaceIds,
 					allowedDomains: flagConfig.allowedDomains,
 					rolloutPercentage: flagConfig.rolloutPercentage
 				},
@@ -552,7 +550,7 @@ export const debugFlagEvaluation = query({
 				flagConfig: {
 					enabled: flagConfig.enabled,
 					allowedUserIds: flagConfig.allowedUserIds,
-					allowedOrganizationIds: flagConfig.allowedOrganizationIds,
+					allowedWorkspaceIds: flagConfig.allowedWorkspaceIds,
 					allowedDomains: flagConfig.allowedDomains,
 					rolloutPercentage: flagConfig.rolloutPercentage
 				},
@@ -563,7 +561,7 @@ export const debugFlagEvaluation = query({
 
 		const hasTargetingRules =
 			flagConfig.allowedUserIds !== undefined ||
-			flagConfig.allowedOrganizationIds !== undefined ||
+			flagConfig.allowedWorkspaceIds !== undefined ||
 			flagConfig.allowedDomains !== undefined ||
 			flagConfig.rolloutPercentage !== undefined;
 
@@ -575,23 +573,23 @@ export const debugFlagEvaluation = query({
 			result = true;
 			reason = `User is in allowedUserIds`;
 		}
-		// Check organization-based access
-		else if (flagConfig.allowedOrganizationIds?.length) {
+		// Check workspace-based access
+		else if (flagConfig.allowedWorkspaceIds?.length) {
 			const memberships = await ctx.db
-				.query('organizationMembers')
+				.query('workspaceMembers')
 				.withIndex('by_user', (q) => q.eq('userId', userId))
 				.collect();
 
-			const userOrgIds = memberships.map((m) => m.organizationId);
-			const hasOrgAccess = flagConfig.allowedOrganizationIds.some((orgId) =>
+			const userOrgIds = memberships.map((m) => m.workspaceId);
+			const hasOrgAccess = flagConfig.allowedWorkspaceIds.some((orgId) =>
 				userOrgIds.includes(orgId)
 			);
 
 			if (hasOrgAccess) {
 				result = true;
-				reason = `User is member of allowed organization`;
+				reason = `User is member of allowed workspace`;
 			} else {
-				reason = `User is not member of any allowed organizations`;
+				reason = `User is not member of any allowed workspaces`;
 			}
 		}
 		// Check domain-based access
@@ -633,7 +631,7 @@ export const debugFlagEvaluation = query({
 			flagConfig: {
 				enabled: flagConfig.enabled,
 				allowedUserIds: flagConfig.allowedUserIds,
-				allowedOrganizationIds: flagConfig.allowedOrganizationIds,
+				allowedWorkspaceIds: flagConfig.allowedWorkspaceIds,
 				allowedDomains: flagConfig.allowedDomains,
 				rolloutPercentage: flagConfig.rolloutPercentage
 			},
@@ -655,7 +653,7 @@ export const upsertFlag = mutation({
 		enabled: v.boolean(),
 		rolloutPercentage: v.optional(v.number()),
 		allowedUserIds: v.optional(v.array(v.id('users'))),
-		allowedOrganizationIds: v.optional(v.array(v.id('organizations'))),
+		allowedWorkspaceIds: v.optional(v.array(v.id('workspaces'))),
 		allowedDomains: v.optional(v.array(v.string()))
 	},
 	handler: async (ctx, args) => {
@@ -675,7 +673,7 @@ export const upsertFlag = mutation({
 				enabled: args.enabled,
 				rolloutPercentage: args.rolloutPercentage,
 				allowedUserIds: args.allowedUserIds,
-				allowedOrganizationIds: args.allowedOrganizationIds,
+				allowedWorkspaceIds: args.allowedWorkspaceIds,
 				allowedDomains: args.allowedDomains,
 				updatedAt: now
 			});
@@ -688,7 +686,7 @@ export const upsertFlag = mutation({
 				enabled: args.enabled,
 				rolloutPercentage: args.rolloutPercentage,
 				allowedUserIds: args.allowedUserIds,
-				allowedOrganizationIds: args.allowedOrganizationIds,
+				allowedWorkspaceIds: args.allowedWorkspaceIds,
 				allowedDomains: args.allowedDomains,
 				createdAt: now,
 				updatedAt: now

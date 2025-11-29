@@ -23,7 +23,7 @@
 	import { useSelectedItem } from '$lib/modules/inbox/composables/useSelectedItem.svelte';
 	import { useKeyboardNavigation } from '$lib/modules/inbox/composables/useKeyboardNavigation.svelte';
 	import { useInboxLayout } from '$lib/modules/inbox/composables/useInboxLayout.svelte';
-	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
 	import type { FunctionReference } from 'convex/server';
 	import type { Id } from '$lib/convex';
 	import type { InboxItemWithDetails } from '$lib/types/convex';
@@ -32,9 +32,9 @@
 	const getSessionId = () => $page.data.sessionId;
 
 	// Get workspace context (functions for reactivity)
-	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
-	const activeOrganizationId = () => organizations?.activeOrganizationId ?? null;
-	// Circle context not yet implemented in organizations module
+	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
+	const activeWorkspaceId = () => workspaces?.activeWorkspaceId ?? null;
+	// Circle context not yet implemented in workspaces module
 	const activeCircleId = () => null;
 
 	// Convex client setup
@@ -85,7 +85,7 @@
 	// Initialize inbox items composable with workspace context
 	const items = useInboxItems({
 		sessionId: getSessionId, // Required for session validation - function ensures reactivity
-		activeOrganizationId: activeOrganizationId, // Pass function for reactivity
+		activeWorkspaceId: activeWorkspaceId, // Pass function for reactivity
 		activeCircleId: activeCircleId // Pass function for reactivity
 	});
 

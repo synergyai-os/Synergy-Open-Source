@@ -138,7 +138,7 @@ export const seedRBAC = mutation({
 			'users.invite',
 			'users',
 			'invite',
-			'Invite new users to organization',
+			'Invite new users to workspace',
 			false
 		);
 
@@ -146,7 +146,7 @@ export const seedRBAC = mutation({
 			'users.remove',
 			'users',
 			'remove',
-			'Remove users from organization',
+			'Remove users from workspace',
 			false
 		);
 
@@ -227,24 +227,24 @@ export const seedRBAC = mutation({
 		// --- Organization Settings Permissions (3) ---
 
 		const orgViewSettingsPerm = await getOrCreatePermission(
-			'organizations.view-settings',
-			'organizations',
+			'workspaces.view-settings',
+			'workspaces',
 			'view-settings',
-			'View organization settings',
+			'View workspace settings',
 			false
 		);
 
 		const orgUpdateSettingsPerm = await getOrCreatePermission(
-			'organizations.update-settings',
-			'organizations',
+			'workspaces.update-settings',
+			'workspaces',
 			'update-settings',
-			'Update organization settings',
+			'Update workspace settings',
 			false
 		);
 
 		const orgManageBillingPerm = await getOrCreatePermission(
-			'organizations.manage-billing',
-			'organizations',
+			'workspaces.manage-billing',
+			'workspaces',
 			'manage-billing',
 			'Manage billing and subscriptions',
 			false

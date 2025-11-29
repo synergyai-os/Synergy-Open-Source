@@ -6,6 +6,7 @@
 	import RoleCard from './RoleCard.svelte';
 	import { Avatar } from '$lib/components/atoms';
 	import StackedPanel from '$lib/components/organisms/StackedPanel.svelte';
+	import { DEFAULT_LOCALE, DEFAULT_SHORT_DATE_FORMAT } from '$lib/utils/locale';
 
 	let { orgChart }: { orgChart: UseOrgChart } = $props();
 
@@ -124,11 +125,7 @@
 	}
 
 	function formatDate(timestamp: number): string {
-		return new Date(timestamp).toLocaleDateString('en-US', {
-			year: 'numeric',
-			month: 'short',
-			day: 'numeric'
-		});
+		return new Date(timestamp).toLocaleDateString(DEFAULT_LOCALE, DEFAULT_SHORT_DATE_FORMAT);
 	}
 
 	function getInitials(name: string): string {

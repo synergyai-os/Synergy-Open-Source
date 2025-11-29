@@ -23,9 +23,9 @@ export interface UseOrgChartOptions {
 	sessionId: () => string | undefined;
 
 	/**
-	 * Function returning organization ID for org chart context
+	 * Function returning workspace ID for org chart context
 	 */
-	organizationId: () => string | undefined;
+	workspaceId: () => string | undefined;
 }
 
 /**
@@ -38,9 +38,9 @@ export interface UseCirclesOptions {
 	sessionId: () => string | undefined;
 
 	/**
-	 * Function returning organization ID for circles context
+	 * Function returning workspace ID for circles context
 	 */
-	organizationId: () => string | undefined;
+	workspaceId: () => string | undefined;
 
 	/**
 	 * Optional function returning circle ID for single circle queries
@@ -72,7 +72,7 @@ export interface UseCirclesOptions {
  * // Composable usage:
  * const orgChart = orgChartAPI?.useOrgChart({
  *   sessionId: getSessionId,
- *   organizationId: getOrganizationId
+ *   workspaceId: getWorkspaceId
  * });
  * ```
  *

@@ -2,33 +2,33 @@
 	import OrganizationItem from './OrganizationItem.svelte';
 
 	type Organization = {
-		organizationId: string;
+		workspaceId: string;
 		name: string;
 		initials?: string;
 		role: 'owner' | 'admin' | 'member';
 	};
 
 	type Props = {
-		organizations: Organization[];
-		activeOrganizationId?: string | null;
-		onSelect?: (organizationId: string) => void;
+		workspaces: Organization[];
+		activeWorkspaceId?: string | null;
+		onSelect?: (workspaceId: string) => void;
 		onClose?: () => void;
 		class?: string;
 	};
 
 	let {
-		organizations,
-		activeOrganizationId = null,
+		workspaces,
+		activeWorkspaceId = null,
 		onSelect,
 		onClose,
 		class: className = ''
 	}: Props = $props();
 </script>
 
-{#each organizations as organization (organization.organizationId)}
+{#each workspaces as workspace (workspace.workspaceId)}
 	<OrganizationItem
-		{organization}
-		isActive={organization.organizationId === activeOrganizationId}
+		{workspace}
+		isActive={workspace.workspaceId === activeWorkspaceId}
 		{onSelect}
 		{onClose}
 		class={className}

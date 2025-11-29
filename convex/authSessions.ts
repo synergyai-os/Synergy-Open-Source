@@ -130,7 +130,7 @@ export const createSession = mutation({
 			name: v.optional(v.string()),
 			activeWorkspace: v.optional(
 				v.object({
-					type: v.union(v.literal('personal'), v.literal('organization')),
+					type: v.union(v.literal('personal'), v.literal('workspace')),
 					id: v.optional(v.string()),
 					name: v.optional(v.string())
 				})

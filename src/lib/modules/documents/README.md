@@ -2,7 +2,7 @@
 
 **Team Ownership**: Documents Team  
 **Status**: 🚧 Planned  
-**Feature Flag**: `documents-module` (organization-based)
+**Feature Flag**: `documents-module` (workspace-based)
 
 ---
 
@@ -10,11 +10,11 @@
 
 ### The mem.ai Philosophy
 
-**"One way to write docs. No organization required. Documents surface when you need them."**
+**"One way to write docs. No workspace required. Documents surface when you need them."**
 
-This module implements a zero-organization documentation system where:
+This module implements a zero-workspace documentation system where:
 
-- **Just write** - No folders, no categories, no manual organization required
+- **Just write** - No folders, no categories, no manual workspace required
 - **Intelligent surfacing** - Documents appear automatically when relevant
 - **Semantic search** - Natural language queries that understand meaning
 - **Context-aware** - Documents surface based on what you're working on
@@ -70,7 +70,7 @@ New document types can be added without schema changes:
 ```typescript
 documents: defineTable({
   userId: v.id('users'),
-  organizationId: v.id('organizations'), // Required for decisions
+  workspaceId: v.id('workspaces'), // Required for decisions
 
   // Document type (polymorphic)
   type: v.union(
@@ -110,12 +110,12 @@ documents: defineTable({
   circleId: v.optional(v.id('circles')),
   ownershipType: v.optional(v.union(
     v.literal('user'),
-    v.literal('organization'),
+    v.literal('workspace'),
     v.literal('circle')
   ))
 })
 .index('by_user', ['userId'])
-.index('by_organization', ['organizationId'])
+.index('by_organization', ['workspaceId'])
 .index('by_type', ['type'])
 .index('by_meeting', ['meetingId'])
 .index('by_circle', ['circleId'])
@@ -261,7 +261,7 @@ documentTags: defineTable({
 
 ### Required Modules
 
-- **Core Module**: Tagging system, QuickCreateModal, organization context
+- **Core Module**: Tagging system, QuickCreateModal, workspace context
 - **Inbox Module**: Migration path from inbox to documents
 
 ### Optional Integrations

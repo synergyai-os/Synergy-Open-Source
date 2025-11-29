@@ -80,7 +80,7 @@ getComputedStyle(document.documentElement).getPropertyValue('--color-brand-prima
 
 1. **Switch Organizations:**
    - Click workspace menu (top left)
-   - Select different organization
+   - Select different workspace
    - Wait for page to reload/switch
 
 2. **Verify Class Change:**
@@ -102,7 +102,7 @@ getComputedStyle(document.documentElement).getPropertyValue('--color-brand-prima
 
 - Check `previousOrgId` tracking in `+layout.svelte`
 - Verify `$effect` runs on org switch
-- Check if `organizationId` updates when switching orgs
+- Check if `workspaceId` updates when switching orgs
 
 ---
 

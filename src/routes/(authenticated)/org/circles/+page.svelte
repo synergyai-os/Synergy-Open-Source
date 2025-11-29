@@ -6,33 +6,33 @@
 	import { resolveRoute } from '$lib/utils/navigation';
 	import { useCircles } from '$lib/modules/org-chart/composables/useCircles.svelte';
 	import CreateCircleModal from '$lib/modules/org-chart/components/circles/CreateCircleModal.svelte';
-	import type { OrganizationsModuleAPI } from '$lib/modules/core/organizations/composables/useOrganizations.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
 	import { Button } from '$lib/components/atoms';
 
 	let { data: _data } = $props();
 
-	const organizations = getContext<OrganizationsModuleAPI | undefined>('organizations');
+	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
 	// CRITICAL: Access getters directly (not via optional chaining) to ensure reactivity tracking
 	// Pattern: Check object existence first, then access getter property directly
 	// See SYOS-228 for full pattern documentation
-	const organizationId = $derived(() => {
-		if (!organizations) return undefined;
-		return organizations.activeOrganizationId ?? undefined;
+	const workspaceId = $derived(() => {
+		if (!workspaces) return undefined;
+		return workspaces.activeWorkspaceId ?? undefined;
 	});
 	const organizationName = $derived(() => {
-		if (!organizations) return 'Organization';
-		return organizations.activeOrganization?.name ?? 'Organization';
+		if (!workspaces) return 'Organization';
+		return workspaces.activeWorkspace?.name ?? 'Organization';
 	});
 	const getSessionId = () => $page.data.sessionId;
 	// CRITICAL: Call $derived function to get primitive value (not the function itself)
 	// Pattern: When passing $derived values to Convex queries, extract primitive first
 	// See SYOS-228 for full pattern documentation
-	const getOrganizationId = () => organizationId();
+	const getWorkspaceId = () => workspaceId();
 
 	// Initialize circles composable
 	const circles = useCircles({
 		sessionId: getSessionId,
-		organizationId: getOrganizationId
+		workspaceId: getWorkspaceId
 	});
 
 	const circlesList = $derived(circles.circles);
@@ -44,7 +44,7 @@
 	);
 
 	function handleRowClick(circleId: string) {
-		const orgId = organizationId();
+		const orgId = workspaceId();
 		if (!orgId) return;
 		goto(resolveRoute(`/org/circles/${circleId}?org=${orgId}`));
 	}

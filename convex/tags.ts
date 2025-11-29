@@ -164,26 +164,26 @@ export async function getTagDescendantsForTags(
 export const listAllTags = query({
 	args: {
 		sessionId: v.string(), // Session validation (derives userId securely)
-		organizationId: v.optional(v.id('organizations')) // Filter by organization (required - users always have orgs)
+		workspaceId: v.optional(v.id('workspaces')) // Filter by workspace (required - users always have orgs)
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		// Get user tags filtered by organization
-		// Users are required to have at least one organization (enforced server-side)
+		// Get user tags filtered by workspace
+		// Users are required to have at least one workspace (enforced server-side)
 		let tags;
-		if (args.organizationId) {
-			// Filter by organization: tags owned by this org OR user tags (no orgId)
+		if (args.workspaceId) {
+			// Filter by workspace: tags owned by this org OR user tags (no orgId)
 			tags = await ctx.db
 				.query('tags')
 				.withIndex('by_user', (q) => q.eq('userId', userId))
 				.collect();
-			// Filter client-side: org tags for this org OR user tags (no organizationId)
+			// Filter client-side: org tags for this org OR user tags (no workspaceId)
 			tags = tags.filter(
 				(tag) =>
-					!tag.organizationId || // User tags (no org)
-					tag.organizationId === args.organizationId // Org tags for this org
+					!tag.workspaceId || // User tags (no org)
+					tag.workspaceId === args.workspaceId // Org tags for this org
 			);
 		} else {
 			// Fallback: get all user tags (shouldn't happen due to server-side enforcement)
@@ -206,26 +206,26 @@ export const listAllTags = query({
 export const listUserTags = query({
 	args: {
 		sessionId: v.string(), // Session validation (derives userId securely)
-		organizationId: v.optional(v.id('organizations')) // Filter by organization (required - users always have orgs)
+		workspaceId: v.optional(v.id('workspaces')) // Filter by workspace (required - users always have orgs)
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		// Get user tags filtered by organization
-		// Users are required to have at least one organization (enforced server-side)
+		// Get user tags filtered by workspace
+		// Users are required to have at least one workspace (enforced server-side)
 		let tags;
-		if (args.organizationId) {
-			// Filter by organization: tags owned by this org OR user tags (no orgId)
+		if (args.workspaceId) {
+			// Filter by workspace: tags owned by this org OR user tags (no orgId)
 			tags = await ctx.db
 				.query('tags')
 				.withIndex('by_user', (q) => q.eq('userId', userId))
 				.collect();
-			// Filter client-side: org tags for this org OR user tags (no organizationId)
+			// Filter client-side: org tags for this org OR user tags (no workspaceId)
 			tags = tags.filter(
 				(tag) =>
-					!tag.organizationId || // User tags (no org)
-					tag.organizationId === args.organizationId // Org tags for this org
+					!tag.workspaceId || // User tags (no org)
+					tag.workspaceId === args.workspaceId // Org tags for this org
 			);
 		} else {
 			// Fallback: get all user tags (shouldn't happen due to server-side enforcement)
@@ -241,7 +241,7 @@ export const listUserTags = query({
 			displayName: tag.displayName ?? tag.name,
 			color: tag.color,
 			ownershipType: tag.ownershipType ?? undefined,
-			organizationId: tag.organizationId ?? undefined,
+			workspaceId: tag.workspaceId ?? undefined,
 			circleId: tag.circleId ?? undefined,
 			userId: tag.userId,
 			createdAt: tag.createdAt
@@ -319,50 +319,48 @@ export const createTag = mutation({
 		displayName: v.string(),
 		color: v.string(), // Hex color code
 		parentId: v.optional(v.id('tags')),
-		ownership: v.optional(
-			v.union(v.literal('user'), v.literal('organization'), v.literal('circle'))
-		),
-		organizationId: v.optional(v.id('organizations')), // Optional but will be required if not provided
+		ownership: v.optional(v.union(v.literal('user'), v.literal('workspace'), v.literal('circle'))),
+		workspaceId: v.optional(v.id('workspaces')), // Optional but will be required if not provided
 		circleId: v.optional(v.id('circles'))
 	},
 	handler: async (ctx, args) => {
 		// Validate session and get userId (prevents impersonation)
 		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
 
-		const ownership = args.ownership ?? 'organization'; // Default to organization (not user)
+		const ownership = args.ownership ?? 'workspace'; // Default to workspace (not user)
 
 		// Defensive validation: reject mismatched ownership/circleId combinations
 		if (ownership !== 'circle' && args.circleId) {
 			throw new Error('circleId is only allowed when ownership is "circle"');
 		}
 
-		let organizationId: Id<'organizations'> | undefined = undefined;
+		let workspaceId: Id<'workspaces'> | undefined = undefined;
 		let circleId: Id<'circles'> | undefined = undefined;
 
-		if (ownership === 'organization') {
-			// If organizationId not provided, get user's first organization
-			if (!args.organizationId) {
-				// Users are required to have at least one organization
+		if (ownership === 'workspace') {
+			// If workspaceId not provided, get user's first workspace
+			if (!args.workspaceId) {
+				// Users are required to have at least one workspace
 				const memberships = await ctx.db
-					.query('organizationMembers')
+					.query('workspaceMembers')
 					.withIndex('by_user', (q) => q.eq('userId', userId))
 					.collect();
 				if (memberships.length === 0) {
-					throw new Error('User must belong to at least one organization');
+					throw new Error('User must belong to at least one workspace');
 				}
-				organizationId = memberships[0].organizationId;
+				workspaceId = memberships[0].workspaceId;
 			} else {
 				// Validate membership
 				const membership = await ctx.db
-					.query('organizationMembers')
-					.withIndex('by_organization_user', (q) =>
-						q.eq('organizationId', args.organizationId!).eq('userId', userId)
+					.query('workspaceMembers')
+					.withIndex('by_workspace_user', (q) =>
+						q.eq('workspaceId', args.workspaceId!).eq('userId', userId)
 					)
 					.first();
 				if (!membership) {
-					throw new Error('You do not have access to this organization');
+					throw new Error('You do not have access to this workspace');
 				}
-				organizationId = args.organizationId;
+				workspaceId = args.workspaceId;
 			}
 			circleId = undefined;
 		} else if (ownership === 'circle') {
@@ -381,18 +379,18 @@ export const createTag = mutation({
 				throw new Error('Circle not found');
 			}
 			circleId = args.circleId;
-			organizationId = circle.organizationId; // Circles always belong to an organization
+			workspaceId = circle.workspaceId; // Circles always belong to an workspace
 		} else {
-			// ownership === 'user' - but user tags must still have organizationId
-			// Get user's first organization (users are required to have at least one)
+			// ownership === 'user' - but user tags must still have workspaceId
+			// Get user's first workspace (users are required to have at least one)
 			const memberships = await ctx.db
-				.query('organizationMembers')
+				.query('workspaceMembers')
 				.withIndex('by_user', (q) => q.eq('userId', userId))
 				.collect();
 			if (memberships.length === 0) {
-				throw new Error('User must belong to at least one organization');
+				throw new Error('User must belong to at least one workspace');
 			}
-			organizationId = memberships[0].organizationId;
+			workspaceId = memberships[0].workspaceId;
 			circleId = undefined;
 		}
 
@@ -407,25 +405,25 @@ export const createTag = mutation({
 			throw new Error('Tag name cannot exceed 50 characters');
 		}
 
-		// All tags now require organizationId - check for duplicates by organization
+		// All tags now require workspaceId - check for duplicates by workspace
 		let existing: Doc<'tags'> | null = null;
-		if (ownership === 'user' && organizationId) {
-			// User tags scoped to organization (check by org + name + ownershipType)
+		if (ownership === 'user' && workspaceId) {
+			// User tags scoped to workspace (check by org + name + ownershipType)
 			existing = await ctx.db
 				.query('tags')
-				.withIndex('by_organization_name', (q) =>
-					q.eq('organizationId', organizationId).eq('name', normalizedName)
+				.withIndex('by_workspace_name', (q) =>
+					q.eq('workspaceId', workspaceId).eq('name', normalizedName)
 				)
 				.filter((q) => q.eq(q.field('ownershipType'), 'user'))
 				.first();
-		} else if (ownership === 'organization' && organizationId) {
+		} else if (ownership === 'workspace' && workspaceId) {
 			existing = await ctx.db
 				.query('tags')
-				.withIndex('by_organization_name', (q) =>
-					q.eq('organizationId', organizationId).eq('name', normalizedName)
+				.withIndex('by_workspace_name', (q) =>
+					q.eq('workspaceId', workspaceId).eq('name', normalizedName)
 				)
 				.first();
-		} else if (ownership === 'circle' && circleId && organizationId) {
+		} else if (ownership === 'circle' && circleId && workspaceId) {
 			existing = await ctx.db
 				.query('tags')
 				.withIndex('by_circle_name', (q) => q.eq('circleId', circleId).eq('name', normalizedName))
@@ -456,18 +454,18 @@ export const createTag = mutation({
 				if (parentTag.userId !== userId) {
 					const hasAccess = await canAccessContent(ctx, userId, {
 						userId: parentTag.userId,
-						organizationId: parentTag.organizationId ?? undefined,
+						workspaceId: parentTag.workspaceId ?? undefined,
 						circleId: parentTag.circleId ?? undefined
 					});
 					if (!hasAccess) {
 						throw new Error('Parent tag does not belong to current user scope');
 					}
 				}
-				// NOTE: Parent tags must match organizationId and circleId exactly
+				// NOTE: Parent tags must match workspaceId and circleId exactly
 				// This strict validation may reject legacy data with mismatched parent-child relationships
 				// If legacy data issues arise, consider adding migration logic or relaxing these checks
-				if (parentTag.organizationId !== organizationId) {
-					throw new Error('Parent tag must belong to the same organization');
+				if (parentTag.workspaceId !== workspaceId) {
+					throw new Error('Parent tag must belong to the same workspace');
 				}
 				if (parentTag.circleId !== circleId) {
 					throw new Error('Parent tag must belong to the same circle');
@@ -484,7 +482,7 @@ export const createTag = mutation({
 			color: args.color,
 			parentId: args.parentId,
 			createdAt: Date.now(),
-			organizationId,
+			workspaceId,
 			circleId,
 			ownershipType: ownership
 		});
@@ -492,19 +490,19 @@ export const createTag = mutation({
 		// TODO: Re-enable server-side analytics via HTTP action bridge
 		// const distinctId = await resolveDistinctId(ctx, userId as Id<'users'>);
 
-		if (ownership === 'organization' && organizationId) {
+		if (ownership === 'workspace' && workspaceId) {
 			// TODO: Re-enable server-side analytics via HTTP action bridge
 			// const tagCount = await ctx.db
 			// 	.query('tags')
-			// 	.withIndex('by_organization', (q) => q.eq('organizationId', organizationId))
+			// 	.withIndex('by_workspace', (q) => q.eq('workspaceId', workspaceId))
 			// 	.collect();
 			// await captureAnalyticsEvent({
 			// 	name: AnalyticsEventName.ORGANIZATION_TAG_ASSIGNED,
 			// 	distinctId,
-			// 	groups: { organization: organizationId },
+			// 	groups: { workspace: workspaceId },
 			// 	properties: {
-			// 		scope: "organization",
-			// 		organizationId,
+			// 		scope: "workspace",
+			// 		workspaceId,
 			// 		tagId,
 			// 		tagName: args.displayName,
 			// 		tagsAssignedCount: tagCount.length,
@@ -520,10 +518,10 @@ export const createTag = mutation({
 			// await captureAnalyticsEvent({
 			// 	name: AnalyticsEventName.CIRCLE_TAG_ASSIGNED,
 			// 	distinctId,
-			// 	groups: { organization: organizationId!, circle: circleId },
+			// 	groups: { workspace: workspaceId!, circle: circleId },
 			// 	properties: {
 			// 		scope: "circle",
-			// 		organizationId: organizationId!,
+			// 		workspaceId: workspaceId!,
 			// 		circleId,
 			// 		tagId,
 			// 		tagName: args.displayName,
@@ -569,8 +567,8 @@ export const countTagItems = query({
 });
 
 /**
- * Mutation: Share a personal tag with an organization or circle
- * Converts a user-owned tag to organization or circle ownership
+ * Mutation: Share a personal tag with an workspace or circle
+ * Converts a user-owned tag to workspace or circle ownership
  *
  * TODO: Once WorkOS adds 'aud' claim to password auth tokens, migrate to JWT-based auth
  * and remove explicit userId parameter
@@ -579,8 +577,8 @@ export const shareTag = mutation({
 	args: {
 		sessionId: v.string(), // Session validation (derives userId securely)
 		tagId: v.id('tags'),
-		shareWith: v.union(v.literal('organization'), v.literal('circle')),
-		organizationId: v.optional(v.id('organizations')),
+		shareWith: v.union(v.literal('workspace'), v.literal('circle')),
+		workspaceId: v.optional(v.id('workspaces')),
 		circleId: v.optional(v.id('circles'))
 	},
 	handler: async (ctx, args) => {
@@ -604,27 +602,27 @@ export const shareTag = mutation({
 		}
 
 		// Validate sharing parameters
-		let organizationId: Id<'organizations'> | undefined = undefined;
+		let workspaceId: Id<'workspaces'> | undefined = undefined;
 		let circleId: Id<'circles'> | undefined = undefined;
 		let circleDoc: Doc<'circles'> | null = null; // Hoisted for reuse in logging
 
-		if (args.shareWith === 'organization') {
-			if (!args.organizationId) {
-				throw new Error('organizationId is required when sharing with organization');
+		if (args.shareWith === 'workspace') {
+			if (!args.workspaceId) {
+				throw new Error('workspaceId is required when sharing with workspace');
 			}
 
-			// Verify user is member of the organization
+			// Verify user is member of the workspace
 			const membership = await ctx.db
-				.query('organizationMembers')
-				.withIndex('by_organization_user', (q) =>
-					q.eq('organizationId', args.organizationId!).eq('userId', userId)
+				.query('workspaceMembers')
+				.withIndex('by_workspace_user', (q) =>
+					q.eq('workspaceId', args.workspaceId!).eq('userId', userId)
 				)
 				.first();
 			if (!membership) {
-				throw new Error('You are not a member of this organization');
+				throw new Error('You are not a member of this workspace');
 			}
 
-			organizationId = args.organizationId;
+			workspaceId = args.workspaceId;
 			circleId = undefined;
 		} else if (args.shareWith === 'circle') {
 			if (!args.circleId) {
@@ -640,27 +638,27 @@ export const shareTag = mutation({
 				throw new Error('You are not a member of this circle');
 			}
 
-			// Get circle to verify it exists and get organization
+			// Get circle to verify it exists and get workspace
 			circleDoc = await ctx.db.get(args.circleId);
 			if (!circleDoc) {
 				throw new Error('Circle not found');
 			}
 
 			circleId = args.circleId;
-			// NOTE: This may move tags across organizations if user is member of circle in different org
-			// Cross-organization transfers are allowed as long as user has access to both organizations
-			organizationId = circleDoc.organizationId;
+			// NOTE: This may move tags across workspaces if user is member of circle in different org
+			// Cross-workspace transfers are allowed as long as user has access to both workspaces
+			workspaceId = circleDoc.workspaceId;
 		}
 
 		// Check for naming conflicts in target scope
 		const normalizedName = tag.name;
 		let existing: Doc<'tags'> | null = null;
 
-		if (args.shareWith === 'organization' && organizationId) {
+		if (args.shareWith === 'workspace' && workspaceId) {
 			existing = await ctx.db
 				.query('tags')
-				.withIndex('by_organization_name', (q) =>
-					q.eq('organizationId', organizationId).eq('name', normalizedName)
+				.withIndex('by_workspace_name', (q) =>
+					q.eq('workspaceId', workspaceId).eq('name', normalizedName)
 				)
 				.first();
 		} else if (args.shareWith === 'circle' && circleId) {
@@ -677,7 +675,7 @@ export const shareTag = mutation({
 		// Update the tag
 		await ctx.db.patch(args.tagId, {
 			ownershipType: args.shareWith,
-			organizationId,
+			workspaceId,
 			circleId
 		});
 
@@ -694,15 +692,15 @@ export const shareTag = mutation({
 			if (highlight) {
 				await ctx.db.patch(assignment.highlightId, {
 					ownershipType: args.shareWith,
-					organizationId,
+					workspaceId,
 					circleId
 				});
 				highlightsTransferred++;
 			}
 		}
 
-		// Get organization details for analytics (circleDoc already fetched above if needed)
-		const organization = organizationId ? await ctx.db.get(organizationId) : null;
+		// Get workspace details for analytics (circleDoc already fetched above if needed)
+		const workspace = workspaceId ? await ctx.db.get(workspaceId) : null;
 
 		// TODO: Capture analytics event
 		// For now, log to console for testing
@@ -711,8 +709,8 @@ export const shareTag = mutation({
 			tagName: tag.displayName,
 			transferredBy: userId,
 			transferTo: args.shareWith,
-			organizationId,
-			organizationName: organization?.name,
+			workspaceId,
+			organizationName: workspace?.name,
 			circleId,
 			circleName: circleDoc?.name,
 			highlightsTransferred
@@ -722,7 +720,7 @@ export const shareTag = mutation({
 			success: true,
 			tagId: args.tagId,
 			scope: args.shareWith,
-			organizationId,
+			workspaceId,
 			circleId,
 			itemsTransferred: highlightsTransferred
 		};
@@ -763,7 +761,7 @@ async function assignTagsToEntity(
 		if (tag.userId !== userId) {
 			const hasAccess = await canAccessContent(ctx, userId, {
 				userId: tag.userId,
-				organizationId: tag.organizationId ?? undefined,
+				workspaceId: tag.workspaceId ?? undefined,
 				circleId: tag.circleId ?? undefined
 			});
 			if (!hasAccess) {

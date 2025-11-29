@@ -19,7 +19,7 @@ import {
 } from '$tests/convex/integration/setup';
 
 describe('Meeting Templates Integration Tests', () => {
-	const cleanupQueue: Array<{ userId?: Id<'users'>; orgId?: Id<'organizations'> }> = [];
+	const cleanupQueue: Array<{ userId?: Id<'users'>; orgId?: Id<'workspaces'> }> = [];
 
 	afterEach(async () => {
 		const t = convexTest(schema, modules);
@@ -48,7 +48,7 @@ describe('Meeting Templates Integration Tests', () => {
 
 		const result = await t.mutation(api.meetingTemplates.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			name: 'Product Sync Template',
 			description: 'Weekly product team sync'
 		});
@@ -64,11 +64,11 @@ describe('Meeting Templates Integration Tests', () => {
 
 		expect(template.name).toBe('Product Sync Template');
 		expect(template.description).toBe('Weekly product team sync');
-		expect(template.organizationId).toBe(orgId);
+		expect(template.workspaceId).toBe(orgId);
 		expect(template.createdBy).toBe(userId);
 	});
 
-	it('should list templates for an organization', async () => {
+	it('should list templates for an workspace', async () => {
 		const t = convexTest(schema, modules);
 		const { sessionId, userId } = await createTestSession(t);
 		const orgId = await createTestOrganization(t, 'Test Org');
@@ -79,20 +79,20 @@ describe('Meeting Templates Integration Tests', () => {
 		// Create multiple templates
 		await t.mutation(api.meetingTemplates.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			name: 'Template 1'
 		});
 
 		await t.mutation(api.meetingTemplates.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			name: 'Template 2'
 		});
 
 		// List templates
 		const templates = await t.query(api.meetingTemplates.list, {
 			sessionId,
-			organizationId: orgId
+			workspaceId: orgId
 		});
 
 		expect(templates).toBeDefined();
@@ -111,7 +111,7 @@ describe('Meeting Templates Integration Tests', () => {
 
 		const result = await t.mutation(api.meetingTemplates.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			name: 'Old Name',
 			description: 'Old Description'
 		});
@@ -144,7 +144,7 @@ describe('Meeting Templates Integration Tests', () => {
 
 		const result = await t.mutation(api.meetingTemplates.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			name: 'To Delete'
 		});
 
@@ -157,7 +157,7 @@ describe('Meeting Templates Integration Tests', () => {
 		// Verify deletion
 		const templates = await t.query(api.meetingTemplates.list, {
 			sessionId,
-			organizationId: orgId
+			workspaceId: orgId
 		});
 
 		expect(templates.length).toBe(0);
@@ -178,7 +178,7 @@ describe('Meeting Templates Integration Tests', () => {
 		// Create template
 		const templateResult = await t.mutation(api.meetingTemplates.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			name: 'Test Template'
 		});
 
@@ -220,7 +220,7 @@ describe('Meeting Templates Integration Tests', () => {
 		// Create template and add step
 		const templateResult = await t.mutation(api.meetingTemplates.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			name: 'Test Template'
 		});
 
@@ -258,7 +258,7 @@ describe('Meeting Templates Integration Tests', () => {
 		// Create template
 		const templateResult = await t.mutation(api.meetingTemplates.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			name: 'Test Template'
 		});
 
@@ -320,7 +320,7 @@ describe('Meeting Templates Integration Tests', () => {
 		// Create template with steps
 		const templateResult = await t.mutation(api.meetingTemplates.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			name: 'Test Template'
 		});
 
@@ -349,7 +349,7 @@ describe('Meeting Templates Integration Tests', () => {
 		// Verify template is deleted
 		const templates = await t.query(api.meetingTemplates.list, {
 			sessionId,
-			organizationId: orgId
+			workspaceId: orgId
 		});
 
 		expect(templates.length).toBe(0);
@@ -373,7 +373,7 @@ describe('Meeting Templates Integration Tests', () => {
 		// Seed default templates
 		const result = await t.mutation(api.meetingTemplates.seedDefaultTemplates, {
 			sessionId,
-			organizationId: orgId
+			workspaceId: orgId
 		});
 
 		expect(result.governanceId).toBeDefined();
@@ -382,7 +382,7 @@ describe('Meeting Templates Integration Tests', () => {
 		// Verify templates were created
 		const templates = await t.query(api.meetingTemplates.list, {
 			sessionId,
-			organizationId: orgId
+			workspaceId: orgId
 		});
 
 		expect(templates.length).toBe(2);
@@ -427,7 +427,7 @@ describe('Meeting Templates Integration Tests', () => {
 	// Access Control
 	// ========================================================================
 
-	it('should only list templates for user organization', async () => {
+	it('should only list templates for user workspace', async () => {
 		const t = convexTest(schema, modules);
 		const { sessionId, userId } = await createTestSession(t);
 
@@ -444,21 +444,21 @@ describe('Meeting Templates Integration Tests', () => {
 		// Create template in org1
 		await t.mutation(api.meetingTemplates.create, {
 			sessionId,
-			organizationId: org1,
+			workspaceId: org1,
 			name: 'Org 1 Template'
 		});
 
 		// Create template in org2
 		await t.mutation(api.meetingTemplates.create, {
 			sessionId,
-			organizationId: org2,
+			workspaceId: org2,
 			name: 'Org 2 Template'
 		});
 
 		// List templates for org1
 		const org1Templates = await t.query(api.meetingTemplates.list, {
 			sessionId,
-			organizationId: org1
+			workspaceId: org1
 		});
 
 		expect(org1Templates.length).toBe(1);
@@ -467,7 +467,7 @@ describe('Meeting Templates Integration Tests', () => {
 		// List templates for org2
 		const org2Templates = await t.query(api.meetingTemplates.list, {
 			sessionId,
-			organizationId: org2
+			workspaceId: org2
 		});
 
 		expect(org2Templates.length).toBe(1);
@@ -485,7 +485,7 @@ describe('Meeting Templates Integration Tests', () => {
 		// Create template
 		const templateResult = await t.mutation(api.meetingTemplates.create, {
 			sessionId,
-			organizationId: orgId,
+			workspaceId: orgId,
 			name: 'Test Template'
 		});
 
@@ -509,7 +509,7 @@ describe('Meeting Templates Integration Tests', () => {
 		// List templates
 		const templates = await t.query(api.meetingTemplates.list, {
 			sessionId,
-			organizationId: orgId
+			workspaceId: orgId
 		});
 
 		expect(templates.length).toBe(1);

@@ -125,12 +125,7 @@ export const getActivePresence = query({
 /**
  * Get expected attendees - Who SHOULD be at this meeting
  *
- * Resolves polymorphic meetingAttendees:
- * - Direct users
- * - Role assignments → users filling that role
- * - Circle members → all members of circle
- *
- * Returns combined list with attendance status
+ * Returns list of users who have joined the meeting (attendees are always users now)
  */
 export const getExpectedAttendees = query({
 	args: {
@@ -147,78 +142,25 @@ export const getExpectedAttendees = query({
 			throw new Error('Meeting not found');
 		}
 
-		// Get all attendees for this meeting
+		// Get all attendees for this meeting (all are users now)
 		const attendees = await ctx.db
 			.query('meetingAttendees')
 			.withIndex('by_meeting', (q) => q.eq('meetingId', args.meetingId))
 			.collect();
 
-		// Resolve each attendee type to actual user IDs
-		const resolvedUsers = new Map<
-			Id<'users'>,
-			{
-				userId: Id<'users'>;
-				name: string;
-				attendeeType: 'user' | 'role' | 'circle';
-			}
-		>();
-
-		for (const attendee of attendees) {
-			if (attendee.attendeeType === 'user' && attendee.userId) {
-				// Direct user invite
+		// Resolve user details
+		const resolvedUsers = await Promise.all(
+			attendees.map(async (attendee) => {
 				const user = await ctx.db.get(attendee.userId);
-				if (user) {
-					resolvedUsers.set(attendee.userId, {
-						userId: attendee.userId,
-						name: user.name ?? user.email ?? 'Unknown',
-						attendeeType: 'user'
-					});
-				}
-			} else if (attendee.attendeeType === 'role' && attendee.circleRoleId) {
-				// Role invite - find users filling this role
-				const roleId = attendee.circleRoleId;
-				if (!roleId) continue; // Type guard
+				return {
+					userId: attendee.userId,
+					name: user?.name ?? user?.email ?? 'Unknown User',
+					joinedAt: attendee.joinedAt
+				};
+			})
+		);
 
-				const roleAssignments = await ctx.db
-					.query('userCircleRoles')
-					.withIndex('by_role', (q) => q.eq('circleRoleId', roleId))
-					.collect();
-
-				for (const assignment of roleAssignments) {
-					const user = await ctx.db.get(assignment.userId);
-					if (user && !resolvedUsers.has(assignment.userId)) {
-						resolvedUsers.set(assignment.userId, {
-							userId: assignment.userId,
-							name: user.name ?? user.email ?? 'Unknown',
-							attendeeType: 'role'
-						});
-					}
-				}
-			} else if (attendee.attendeeType === 'circle' && attendee.circleId) {
-				// Circle invite - all circle members
-				const circleId = attendee.circleId;
-				if (!circleId) continue; // Type guard
-
-				const circleMembers = await ctx.db
-					.query('circleMembers')
-					.withIndex('by_circle', (q) => q.eq('circleId', circleId))
-					.collect();
-
-				for (const member of circleMembers) {
-					const user = await ctx.db.get(member.userId);
-					if (user && !resolvedUsers.has(member.userId)) {
-						resolvedUsers.set(member.userId, {
-							userId: member.userId,
-							name: user.name ?? user.email ?? 'Unknown',
-							attendeeType: 'circle'
-						});
-					}
-				}
-			}
-		}
-
-		// Convert map to array
-		return Array.from(resolvedUsers.values());
+		return resolvedUsers;
 	}
 });
 
@@ -253,72 +195,26 @@ export const getCombinedAttendance = query({
 				.collect()
 		]);
 
-		// Resolve expected attendees (same logic as getExpectedAttendees)
+		// Resolve expected attendees (all are users now)
 		const expectedUserIds = new Set<Id<'users'>>();
 		const expectedUsersMap = new Map<
 			Id<'users'>,
 			{
 				userId: Id<'users'>;
 				name: string;
-				attendeeType: 'user' | 'role' | 'circle';
 				isExpected: true;
 			}
 		>();
 
 		for (const attendee of expectedAttendees) {
-			if (attendee.attendeeType === 'user' && attendee.userId) {
-				expectedUserIds.add(attendee.userId);
-				const user = await ctx.db.get(attendee.userId);
-				if (user) {
-					expectedUsersMap.set(attendee.userId, {
-						userId: attendee.userId,
-						name: user.name ?? user.email ?? 'Unknown',
-						attendeeType: 'user',
-						isExpected: true
-					});
-				}
-			} else if (attendee.attendeeType === 'role' && attendee.circleRoleId) {
-				const roleId = attendee.circleRoleId;
-				if (!roleId) continue; // Type guard
-
-				const roleAssignments = await ctx.db
-					.query('userCircleRoles')
-					.withIndex('by_role', (q) => q.eq('circleRoleId', roleId))
-					.collect();
-
-				for (const assignment of roleAssignments) {
-					expectedUserIds.add(assignment.userId);
-					const user = await ctx.db.get(assignment.userId);
-					if (user && !expectedUsersMap.has(assignment.userId)) {
-						expectedUsersMap.set(assignment.userId, {
-							userId: assignment.userId,
-							name: user.name ?? user.email ?? 'Unknown',
-							attendeeType: 'role',
-							isExpected: true
-						});
-					}
-				}
-			} else if (attendee.attendeeType === 'circle' && attendee.circleId) {
-				const circleId = attendee.circleId;
-				if (!circleId) continue; // Type guard
-
-				const circleMembers = await ctx.db
-					.query('circleMembers')
-					.withIndex('by_circle', (q) => q.eq('circleId', circleId))
-					.collect();
-
-				for (const member of circleMembers) {
-					expectedUserIds.add(member.userId);
-					const user = await ctx.db.get(member.userId);
-					if (user && !expectedUsersMap.has(member.userId)) {
-						expectedUsersMap.set(member.userId, {
-							userId: member.userId,
-							name: user.name ?? user.email ?? 'Unknown',
-							attendeeType: 'circle',
-							isExpected: true
-						});
-					}
-				}
+			expectedUserIds.add(attendee.userId);
+			const user = await ctx.db.get(attendee.userId);
+			if (user && !expectedUsersMap.has(attendee.userId)) {
+				expectedUsersMap.set(attendee.userId, {
+					userId: attendee.userId,
+					name: user.name ?? user.email ?? 'Unknown User',
+					isExpected: true
+				});
 			}
 		}
 
@@ -331,7 +227,6 @@ export const getCombinedAttendance = query({
 			name: string;
 			isExpected: boolean;
 			isActive: boolean;
-			attendeeType?: 'user' | 'role' | 'circle';
 		}> = [];
 
 		// Add all expected attendees (with active status)

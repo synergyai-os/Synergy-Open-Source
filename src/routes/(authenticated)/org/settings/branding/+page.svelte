@@ -58,9 +58,9 @@
 			}
 
 			// Save to database
-			await convexClient.mutation(api.organizations.updateBranding, {
+			await convexClient.mutation(api.workspaces.updateBranding, {
 				sessionId: data.sessionId,
-				organizationId: data.organizationId as Id<'organizations'>,
+				workspaceId: data.workspaceId as Id<'workspaces'>,
 				primaryColor: primaryOKLCH,
 				secondaryColor: secondaryOKLCH
 			});
@@ -89,7 +89,7 @@
 			const primaryOKLCH = hexToOKLCH(primaryColorHex);
 			const secondaryOKLCH = hexToOKLCH(secondaryColorHex);
 			// Use actual org class structure to match real implementation
-			const orgId = data.organizationId;
+			const orgId = data.workspaceId;
 			if (!orgId) return '';
 			// Generate CSS for the actual org class (matches +layout.svelte)
 			// Generate hover color (10% darker)
@@ -103,7 +103,7 @@
 	});
 
 	// Org class for preview div (must match CSS selector)
-	const previewOrgClass = $derived(`org-${data.organizationId}`);
+	const previewOrgClass = $derived(`org-${data.workspaceId}`);
 </script>
 
 <svelte:head>

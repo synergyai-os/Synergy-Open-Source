@@ -139,7 +139,7 @@ function handleBack() {
 ```typescript
 async function resolveTemplateId(
 	meetingType: MeetingType,
-	organizationId: Id<'organizations'>,
+	workspaceId: Id<'workspaces'>,
 	sessionId: string
 ): Promise<Id<'meetingTemplates'> | undefined> {
 	// Only Governance and Weekly Tactical use templates
@@ -147,10 +147,10 @@ async function resolveTemplateId(
 		return undefined;
 	}
 
-	// Fetch templates for organization
+	// Fetch templates for workspace
 	const templates = await convexClient.query(api.meetingTemplates.list, {
 		sessionId,
-		organizationId
+		workspaceId
 	});
 
 	// Find matching template by name
@@ -334,7 +334,7 @@ $effect(() => {
 
 ```typescript
 async function createQuickMeeting(
-	organizationId: Id<'organizations'>,
+	workspaceId: Id<'workspaces'>,
 	sessionId: string,
 	userId: Id<'users'>
 ): Promise<{ meetingId: Id<'meetings'>; meetingLink: string }> {
@@ -350,7 +350,7 @@ async function createQuickMeeting(
 	// 2. Create meeting with defaults
 	const result = await convexClient.mutation(api.meetings.create, {
 		sessionId,
-		organizationId,
+		workspaceId,
 		meetingType: 'general', // Default type
 		title: 'Quick Meeting', // Default title
 		startTime: startTimestamp,
@@ -382,7 +382,7 @@ async function handleQuickMeeting() {
 		setLoading(true);
 		setError(null);
 
-		const result = await createQuickMeeting(organizationId, sessionId, userId);
+		const result = await createQuickMeeting(workspaceId, sessionId, userId);
 
 		// Show confirmation dialog
 		setConfirmationDialog({
@@ -765,7 +765,7 @@ interface StepperProps {
 interface MeetingTypeSelectorProps {
 	value: MeetingType | null;
 	onChange: (type: MeetingType) => void;
-	organizationId: Id<'organizations'>;
+	workspaceId: Id<'workspaces'>;
 	sessionId: string;
 }
 ```
@@ -783,7 +783,7 @@ interface MeetingTypeSelectorProps {
 
 ```typescript
 interface QuickMeetingButtonProps {
-	organizationId: Id<'organizations'>;
+	workspaceId: Id<'workspaces'>;
 	sessionId: string;
 	userId: Id<'users'>;
 	onSuccess: (meetingId: Id<'meetings'>, link: string) => void;

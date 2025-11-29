@@ -8,13 +8,14 @@
 	import { downloadICS } from '$lib/utils/calendar';
 	import { Button, Text, Icon, Avatar } from '$lib/components/atoms';
 	import { meetingCardRecipe } from '$lib/design-system/recipes';
+	import { DEFAULT_LOCALE } from '$lib/utils/locale';
 
 	interface Meeting {
 		_id: Id<'meetings'> | string; // Allow string for generated recurring instances
 		title: string;
 		startTime: number;
 		duration: number;
-		visibility: 'public' | 'circle' | 'private';
+		visibility: 'public' | 'private';
 		circleId?: Id<'circles'> | string;
 		recurrence?: {
 			frequency: 'daily' | 'weekly' | 'monthly';
@@ -50,16 +51,20 @@
 	const startDate = $derived(new Date(meeting.startTime));
 	const dayOfMonth = $derived(startDate.getDate());
 	const dayOfWeek = $derived(
-		startDate.toLocaleDateString('en-US', { weekday: 'short' }).replace('.', '')
+		startDate.toLocaleDateString(DEFAULT_LOCALE, { weekday: 'short' }).replace('.', '')
 	);
 
 	// Format time range
 	const startTimeStr = $derived(
-		startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+		startDate.toLocaleTimeString(DEFAULT_LOCALE, {
+			hour: 'numeric',
+			minute: '2-digit',
+			hour12: true
+		})
 	);
 	const endDate = $derived(new Date(meeting.startTime + meeting.duration * 60 * 1000));
 	const endTimeStr = $derived(
-		endDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+		endDate.toLocaleTimeString(DEFAULT_LOCALE, { hour: 'numeric', minute: '2-digit', hour12: true })
 	);
 
 	// Privacy icon

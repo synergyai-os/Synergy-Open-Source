@@ -7,7 +7,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
  * Uses design tokens for all styling (no hardcoded values).
  *
  * Variants: default, brand
- * - default: Neutral gray for workspace/organization avatars - professional, understated
+ * - default: Neutral gray for workspace/workspace avatars - professional, understated
  * - brand: Brand teal for primary CTAs and brand elements - matches login button
  *
  * Sizes: sm, md, lg
@@ -27,7 +27,7 @@ export const avatarRecipe = cva(
 	{
 		variants: {
 			variant: {
-				// Default: Neutral gray for workspace/organization avatars
+				// Default: Neutral gray for workspace/workspace avatars
 				// Uses interactive-tertiary (neutral-700 in light, appropriate in dark)
 				default: 'bg-interactive-tertiary text-inverse',
 				// Brand: Uses brand teal color with inverse text for high contrast

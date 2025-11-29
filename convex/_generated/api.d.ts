@@ -10,6 +10,7 @@
 
 import type * as admin_analytics from "../admin/analytics.js";
 import type * as admin_cleanupDuplicateRoles from "../admin/cleanupDuplicateRoles.js";
+import type * as admin_migrateCirclesToWorkspaces from "../admin/migrateCirclesToWorkspaces.js";
 import type * as admin_rbac from "../admin/rbac.js";
 import type * as admin_settings from "../admin/settings.js";
 import type * as admin_users from "../admin/users.js";
@@ -25,15 +26,12 @@ import type * as featureFlags from "../featureFlags.js";
 import type * as flashcards from "../flashcards.js";
 import type * as http from "../http.js";
 import type * as inbox from "../inbox.js";
-import type * as meetingActionItems from "../meetingActionItems.js";
 import type * as meetingAgendaItems from "../meetingAgendaItems.js";
-import type * as meetingDecisions from "../meetingDecisions.js";
+import type * as meetingInvitations from "../meetingInvitations.js";
 import type * as meetingPresence from "../meetingPresence.js";
 import type * as meetingTemplates from "../meetingTemplates.js";
 import type * as meetings from "../meetings.js";
 import type * as notes from "../notes.js";
-import type * as organizationSettings from "../organizationSettings.js";
-import type * as organizations from "../organizations.js";
 import type * as permissions from "../permissions.js";
 import type * as posthog from "../posthog.js";
 import type * as promptUtils from "../promptUtils.js";
@@ -52,11 +50,14 @@ import type * as settings from "../settings.js";
 import type * as syncReadwise from "../syncReadwise.js";
 import type * as syncReadwiseMutations from "../syncReadwiseMutations.js";
 import type * as tags from "../tags.js";
+import type * as tasks from "../tasks.js";
 import type * as testReadwiseApi from "../testReadwiseApi.js";
 import type * as users from "../users.js";
 import type * as validateApiKeys from "../validateApiKeys.js";
 import type * as verification from "../verification.js";
 import type * as waitlist from "../waitlist.js";
+import type * as workspaceSettings from "../workspaceSettings.js";
+import type * as workspaces from "../workspaces.js";
 
 import type {
   ApiFromModules,
@@ -67,6 +68,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   "admin/analytics": typeof admin_analytics;
   "admin/cleanupDuplicateRoles": typeof admin_cleanupDuplicateRoles;
+  "admin/migrateCirclesToWorkspaces": typeof admin_migrateCirclesToWorkspaces;
   "admin/rbac": typeof admin_rbac;
   "admin/settings": typeof admin_settings;
   "admin/users": typeof admin_users;
@@ -82,15 +84,12 @@ declare const fullApi: ApiFromModules<{
   flashcards: typeof flashcards;
   http: typeof http;
   inbox: typeof inbox;
-  meetingActionItems: typeof meetingActionItems;
   meetingAgendaItems: typeof meetingAgendaItems;
-  meetingDecisions: typeof meetingDecisions;
+  meetingInvitations: typeof meetingInvitations;
   meetingPresence: typeof meetingPresence;
   meetingTemplates: typeof meetingTemplates;
   meetings: typeof meetings;
   notes: typeof notes;
-  organizationSettings: typeof organizationSettings;
-  organizations: typeof organizations;
   permissions: typeof permissions;
   posthog: typeof posthog;
   promptUtils: typeof promptUtils;
@@ -109,11 +108,14 @@ declare const fullApi: ApiFromModules<{
   syncReadwise: typeof syncReadwise;
   syncReadwiseMutations: typeof syncReadwiseMutations;
   tags: typeof tags;
+  tasks: typeof tasks;
   testReadwiseApi: typeof testReadwiseApi;
   users: typeof users;
   validateApiKeys: typeof validateApiKeys;
   verification: typeof verification;
   waitlist: typeof waitlist;
+  workspaceSettings: typeof workspaceSettings;
+  workspaces: typeof workspaces;
 }>;
 
 /**

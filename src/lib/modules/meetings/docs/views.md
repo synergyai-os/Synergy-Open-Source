@@ -7,30 +7,27 @@
 **Route**: `/meetings`  
 **File**: `src/routes/(authenticated)/meetings/+page.svelte`
 
-**Purpose**: Main entry point for viewing and managing meetings
+**Purpose**: Main entry point for viewing and managing meetings within a workspace
 
 **Features**:
 
-- Lists meetings organized by time:
-  - Today's meetings (highlighted)
-  - This week's meetings
-  - Future meetings
-  - Closed meetings
+- Lists meetings organized by time (today, this week, future, closed)
+- Create meeting button (requires meeting template selection)
+- Filter by circle (optional - supports ad-hoc meetings without circle)
 - Tab navigation: "My Meetings" and "Reports"
-- Create meeting button (opens modal)
-- Filter by circle (optional)
+
+**Key Concepts** (from Essentials):
+
+- Meetings belong to a workspace (required)
+- Meetings require a meeting template (required)
+- Meetings can be circle-based (optional) or ad-hoc
+- Privacy: `public` (all workspace members) or `private` (invited users only)
+- Circle membership: Users in a circle are automatically invited to circle-linked meetings
 
 **Components Used**:
 
-- `MeetingCard` - Displays meeting details in list
-- `TodayMeetingCard` - Special card for today's meetings
-- `CreateMeetingModal` - Modal for creating new meetings
-- `UpcomingMeetingsPreview` - Preview component (if used)
-
-**Data Sources**:
-
-- `useMeetings` composable - Provides reactive meetings list
-- Feature flag check: `meetings-module` (organization-based)
+- `MeetingCard` - Displays meeting details
+- `CreateMeetingModal` - Creates meetings with template selection
 
 ---
 
@@ -43,41 +40,32 @@
 
 **Features**:
 
-- Real-time meeting state updates
-- Step navigation (Check-in, Agenda, Closing)
+- Real-time meeting state updates (Convex queries)
+- Step navigation (follows template step order)
 - Timer display (elapsed time since start)
-- Secretary controls (start, advance steps, close)
+- Secretary/facilitator controls (start, advance steps, close)
 - Agenda item management:
-  - Add agenda items
+  - Add agenda items (any participant)
   - View active agenda item
-  - Take notes on agenda items
+  - Take notes (markdown)
   - Mark items as processed
-  - Create action items and decisions from agenda items
-- Presence tracking (who's active in meeting)
-- Secretary change workflow (request/approve)
+  - Create tasks from agenda items (links to Projects module)
+- Presence tracking (attendees active in meeting)
+- Attendee management (users join to become attendees)
+
+**Key Concepts** (from Essentials):
+
+- Meeting steps follow template step order (system-defined step types)
+- Agenda items have processing state (`isProcessed`)
+- Tasks created from agenda items link to `meetingId` and `agendaItemId`
+- Attendees: Users join meetings (invited users or public meeting access)
+- Recurrence instances: Each instance has its own meeting ID and state
 
 **Layout**:
 
 - Header: Meeting title, secretary selector, timer, start/close buttons
-- Sidebar: Agenda items list (split into "To Process" and "Processed")
-- Main content: Step-specific content
-  - Check-in: Attendance list with presence indicators
-  - Agenda: Active agenda item view with notes, action items, decisions
-  - Closing: Meeting summary
-
-**Components Used**:
-
-- `AgendaItemView` - Main view for processing agenda items
-- `SecretarySelector` - Select/change meeting secretary
-- `SecretaryConfirmationDialog` - Approve/deny secretary change requests
-- `ActionItemsList` - List of action items (within AgendaItemView)
-- `DecisionsList` - List of decisions (within AgendaItemView)
-
-**Data Sources**:
-
-- `useMeetingSession` composable - Provides meeting state and actions
-- `useMeetingPresence` composable - Provides presence tracking
-- Real-time queries for agenda items, action items, decisions
+- Sidebar: Agenda items list ("To Process" / "Processed")
+- Main content: Step-specific content (check-in, agenda, closing, etc.)
 
 **States**:
 
@@ -87,253 +75,141 @@
 
 ---
 
-## Components (View-Level)
+### Meeting Templates Management Page
 
-### MeetingCard
+**Route**: `/meetings/templates` (or `/meetings/templates/[id]` for edit)  
+**File**: `src/routes/(authenticated)/meetings/templates/+page.svelte` (to be created)
 
-**File**: `src/lib/modules/meetings/components/MeetingCard.svelte`
+**Purpose**: Create and edit workspace-level meeting templates
 
-**Purpose**: Display meeting information in list view
+**Features**:
 
-**Shows**:
+- List workspace templates (default templates + user-created)
+- Create new template (RBAC permission required)
+- Edit existing template (RBAC permission required)
+- Template builder:
+  - Name and description
+  - Select and order system-defined template steps
+  - Configure step settings (title, description, timebox)
+- Delete template (if not in use)
 
-- Meeting title
-- Meeting type badge
-- Start time and duration
-- Circle name (if circle-based)
-- Attendee count
-- Action buttons (start, view, etc.)
+**Key Concepts** (from Essentials):
 
-**Used In**:
-
-- Meetings list page
-
----
-
-### TodayMeetingCard
-
-**File**: `src/lib/modules/meetings/components/TodayMeetingCard.svelte`
-
-**Purpose**: Special card for today's meetings with emphasis
-
-**Shows**:
-
-- Same as MeetingCard but with highlighted styling
-- Quick start button
-- Time until meeting starts
-
-**Used In**:
-
-- Meetings list page (today section)
-
----
-
-### CreateMeetingModal
-
-**File**: `src/lib/modules/meetings/components/CreateMeetingModal.svelte`
-
-**Purpose**: Modal form for creating new meetings
-
-**Fields**:
-
-- Title
-- Meeting type (required)
-- Start time and duration
-- Circle selection (optional)
-- Template selection (optional)
-- Recurrence settings (optional)
-- Visibility (public/circle/private)
-- Attendee selection (users, roles, circles)
+- Templates are workspace-level (created by users with RBAC permissions)
+- Templates act as both meeting structure and meeting type/category
+- Step types are system-defined (check-in, agenda, metrics, projects, closing, custom)
+- Users select and order steps when creating/editing templates
+- Default templates (Governance, Weekly Tactical) seeded on workspace creation
+- Templates are required when creating meetings
 
 **Components Used**:
 
-- `AttendeeSelector` - Select meeting attendees
-- `RecurrenceField` - Configure recurrence
-- `SecretarySelector` - Select meeting secretary/facilitator
+- Template list/grid view
+- Template form (create/edit)
+- Step selector/orderer
+- Step configuration form
 
-**Used In**:
+---
 
-- Meetings list page (triggered by "Add meeting" button)
+### Meeting Reports Page
+
+**Route**: `/meetings/reports` (or tab within `/meetings`)  
+**File**: `src/routes/(authenticated)/meetings/reports/+page.svelte` (to be created)
+
+**Purpose**: View reports and analytics for meetings
+
+**Features**:
+
+- List closed meetings with summaries
+- Meeting analytics:
+  - Meeting frequency and attendance
+  - Agenda items processed
+  - Tasks created from meetings
+  - Meeting duration trends
+- Filter by:
+  - Date range
+  - Circle
+  - Template/meeting type
+  - Secretary/facilitator
+- Export reports (optional)
+
+**Key Concepts** (from Essentials):
+
+- Reports show historical meeting data (closed meetings)
+- Tasks created from meetings link to `meetingId` and `agendaItemId`
+- Recurrence instances: Each instance has its own meeting ID and can be reported separately
+
+**Components Used**:
+
+- Meeting summary cards
+- Analytics charts/graphs
+- Filter controls
+- Export functionality
+
+---
+
+## Components (View-Level)
+
+### CreateMeetingModal
+
+**Purpose**: Modal form for creating new meetings
+
+**Key Fields** (aligned with Essentials):
+
+- Title
+- Meeting template (required - workspace-level templates)
+- Start time and duration
+- Circle selection (optional - supports ad-hoc meetings)
+- Recurrence settings (optional - daily/weekly/monthly)
+- Privacy: `public` (workspace members) or `private` (invited only)
+- Attendee selection: Users, circle roles, or entire circles
+- Secretary/facilitator selection
+
+**Key Concepts**:
+
+- Templates are workspace-level (created by users with RBAC permissions)
+- Circle invitations: Inviting a circle creates inbox items for all circle members
+- Circle membership: Users who join a circle after meeting creation are automatically invited
 
 ---
 
 ### AgendaItemView
 
-**File**: `src/lib/modules/meetings/components/AgendaItemView.svelte`
-
 **Purpose**: Main view for processing an agenda item during meeting
 
 **Shows**:
 
-- Agenda item title
+- Agenda item title and order
 - Notes editor (markdown)
-- Action items list (create, view, edit)
-- Decisions list (create, view, edit)
+- Tasks list (created from agenda items, links to Projects module)
 - "Mark as Processed" button (secretary only)
 
-**Components Used**:
+**Key Concepts**:
 
-- `ActionItemsList` - Display and manage action items
-- `DecisionsList` - Display and manage decisions
-
-**Used In**:
-
-- Meeting session page (agenda step)
-
----
-
-### ActionItemsList
-
-**File**: `src/lib/modules/meetings/components/ActionItemsList.svelte`
-
-**Purpose**: Display and manage action items for an agenda item
-
-**Shows**:
-
-- List of action items with:
-  - Description
-  - Assignee (user or role)
-  - Status (todo/in-progress/done)
-  - Due date (if set)
-- Create action item form
-- Edit/delete actions
-
-**Used In**:
-
-- AgendaItemView component
-
----
-
-### DecisionsList
-
-**File**: `src/lib/modules/meetings/components/DecisionsList.svelte`
-
-**Purpose**: Display and manage decisions for an agenda item
-
-**Shows**:
-
-- List of decisions with:
-  - Title
-  - Description (markdown)
-  - Decided timestamp
-- Create decision form
-- Edit/delete actions
-
-**Used In**:
-
-- AgendaItemView component
-
----
-
-### SecretarySelector
-
-**File**: `src/lib/modules/meetings/components/SecretarySelector.svelte`
-
-**Purpose**: Select or change meeting secretary/facilitator
-
-**Features**:
-
-- Shows current secretary name
-- Dropdown to select new secretary (from attendees)
-- Triggers secretary change request workflow
-
-**Used In**:
-
-- Meeting session page (header)
-- CreateMeetingModal
-
----
-
-### SecretaryConfirmationDialog
-
-**File**: `src/lib/modules/meetings/components/SecretaryConfirmationDialog.svelte`
-
-**Purpose**: Dialog for current secretary to approve/deny change requests
-
-**Shows**:
-
-- Request details (who requested, who they want as secretary)
-- Approve/Deny buttons
-
-**Used In**:
-
-- Meeting session page (appears when request is pending)
+- Tasks are from Projects module (not separate "action items" entity)
+- Tasks link to `meetingId` and `agendaItemId` when created in meetings
+- Processing state: boolean flag (`isProcessed`)
 
 ---
 
 ### AttendeeSelector
 
-**File**: `src/lib/modules/meetings/components/AttendeeSelector.svelte`
-
-**Purpose**: Select meeting attendees (users, roles, or circles)
+**Purpose**: Select meeting invitations (users, circle roles, or circles)
 
 **Features**:
 
 - Multi-select interface
-- Supports polymorphic attendees:
+- Supports polymorphic invitations:
   - Individual users
   - Circle roles (anyone filling role)
   - Entire circles
-- Shows selected attendees as chips
+- Creates inbox items for invited users (via Core module)
 
-**Used In**:
+**Key Concepts**:
 
-- CreateMeetingModal
-
----
-
-### AttendeeChip
-
-**File**: `src/lib/modules/meetings/components/AttendeeChip.svelte`
-
-**Purpose**: Display a single attendee (user, role, or circle)
-
-**Shows**:
-
-- Attendee name
-- Type indicator (user/role/circle)
-- Remove button (if editable)
-
-**Used In**:
-
-- AttendeeSelector
-- Meeting session page (attendance list)
-
----
-
-### RecurrenceField
-
-**File**: `src/lib/modules/meetings/components/RecurrenceField.svelte`
-
-**Purpose**: Configure meeting recurrence settings
-
-**Fields**:
-
-- Frequency (daily/weekly/monthly)
-- Interval (every N days/weeks/months)
-- Days of week (for weekly)
-- End date (optional)
-
-**Used In**:
-
-- CreateMeetingModal
-
----
-
-### UpcomingMeetingsPreview
-
-**File**: `src/lib/modules/meetings/components/UpcomingMeetingsPreview.svelte`
-
-**Purpose**: Preview component for upcoming meetings (if used in dashboard or elsewhere)
-
-**Shows**:
-
-- List of upcoming meetings
-- Quick access to start/view meetings
-
-**Used In**:
-
-- Potentially dashboard or other pages (if implemented)
+- Invitations create inbox items (Core module)
+- Circle invitations: All circle members receive inbox items
+- Circle membership: Users in circle are considered invited (even if joined after meeting creation)
 
 ---
 
@@ -343,28 +219,29 @@
 
 - All meeting session views use Convex real-time queries
 - Changes propagate instantly to all participants
-- Presence tracking updates every 30 seconds
+- Presence tracking updates periodically
 
-### Secretary Controls
+### Template-Based Steps
 
-- Only secretary can perform certain actions:
-  - Start meeting
-  - Advance steps
-  - Close meeting
-  - Switch active agenda item
+- Meeting flow follows template step order
+- Step types are system-defined (check-in, agenda, metrics, projects, closing, custom)
+- Steps guide meeting structure (not copied directly to meetings)
+
+### Secretary/Facilitator Controls
+
+- Only secretary can perform certain actions (start, advance steps, close)
 - UI disables controls for non-secretary users
 - Clear visual indicators of secretary status
 
-### Step-Based Navigation
-
-- Meeting progresses through predefined steps
-- Step navigation tabs visible only when meeting is started
-- Each step has distinct UI and functionality
-
 ### Agenda Processing Flow
 
-- Agenda items split into "To Process" and "Processed"
+- Agenda items split into "To Process" and "Processed" by `isProcessed` flag
 - Secretary selects active item from "To Process" list
-- Active item shows full view with notes, action items, decisions
+- Active item shows full view with notes and tasks
 - Marking as processed moves item to "Processed" section
-- Auto-selects next unprocessed item when current is processed
+
+### Access Control
+
+- **Public meetings**: All workspace members can join (become attendees)
+- **Private meetings**: Only invited users (directly or via circle membership) can join
+- **Circle membership**: Users in a circle linked to meeting are considered invited

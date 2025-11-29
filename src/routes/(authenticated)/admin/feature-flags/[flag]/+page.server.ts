@@ -21,14 +21,14 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		console.warn('Failed to load flag:', error);
 	}
 
-	// Load all organizations for selection
-	let organizations: unknown[] = [];
+	// Load all workspaces for selection
+	let workspaces: unknown[] = [];
 	try {
-		organizations = (await client.query(api.featureFlags.listAllOrganizations, {
+		workspaces = (await client.query(api.featureFlags.listAllOrganizations, {
 			sessionId
 		})) as unknown[];
 	} catch (error) {
-		console.warn('Failed to load organizations:', error);
+		console.warn('Failed to load workspaces:', error);
 	}
 
 	// Load impact stats for this flag
@@ -52,7 +52,7 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		user: locals.auth.user,
 		sessionId,
 		flag,
-		organizations,
+		workspaces,
 		impactStats
 	};
 };

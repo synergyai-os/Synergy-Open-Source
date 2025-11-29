@@ -12,7 +12,7 @@ Add `meetingType` field to meetings table to enable reporting and analytics on m
 
 ```typescript
 meetings: defineTable({
-  organizationId: v.id('organizations'),
+  workspaceId: v.id('workspaces'),
   circleId: v.optional(v.id('circles')),
   title: v.string(),
   templateId: v.optional(v.id('meetingTemplates')), // Optional template reference
@@ -34,7 +34,7 @@ meetings: defineTable({
 
 ```typescript
 meetings: defineTable({
-  organizationId: v.id('organizations'),
+  workspaceId: v.id('workspaces'),
   circleId: v.optional(v.id('circles')),
   title: v.string(),
   templateId: v.optional(v.id('meetingTemplates')), // Still optional, linked to type
@@ -60,10 +60,10 @@ meetings: defineTable({
   createdBy: v.id('users'),
   updatedAt: v.number()
 })
-.index('by_organization', ['organizationId'])
+.index('by_organization', ['workspaceId'])
 .index('by_circle', ['circleId'])
-.index('by_start_time', ['organizationId', 'startTime'])
-.index('by_meeting_type', ['organizationId', 'meetingType']) // NEW: For reporting
+.index('by_start_time', ['workspaceId', 'startTime'])
+.index('by_meeting_type', ['workspaceId', 'meetingType']) // NEW: For reporting
 ```
 
 ---
@@ -77,7 +77,7 @@ meetings: defineTable({
 ```typescript
 args: {
   sessionId: v.string(),
-  organizationId: v.id('organizations'),
+  workspaceId: v.id('workspaces'),
   circleId: v.optional(v.id('circles')),
   templateId: v.optional(v.id('meetingTemplates')),
   title: v.string(),
@@ -93,7 +93,7 @@ args: {
 ```typescript
 args: {
   sessionId: v.string(),
-  organizationId: v.id('organizations'),
+  workspaceId: v.id('workspaces'),
   circleId: v.optional(v.id('circles')),
   templateId: v.optional(v.id('meetingTemplates')), // Still optional
   meetingType: v.union(
@@ -122,7 +122,7 @@ handler: async (ctx, args) => {
 
 	// Create meeting with meetingType
 	const meetingId = await ctx.db.insert('meetings', {
-		organizationId: args.organizationId,
+		workspaceId: args.workspaceId,
 		circleId: args.circleId,
 		templateId: args.templateId,
 		meetingType: args.meetingType, // NEW: Store meeting type
@@ -164,7 +164,7 @@ args: {
 ```typescript
 args: {
   sessionId: v.string(),
-  organizationId: v.id('organizations'),
+  workspaceId: v.id('workspaces'),
   meetingType: v.union(...), // Filter by type
   startDate: v.optional(v.number()), // Optional date range start
   endDate: v.optional(v.number()) // Optional date range end
@@ -176,12 +176,12 @@ args: {
 ```typescript
 handler: async (ctx, args) => {
 	const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
-	await ensureOrganizationMembership(ctx, args.organizationId, userId);
+	await ensureWorkspaceMembership(ctx, args.workspaceId, userId);
 
 	let query = ctx.db
 		.query('meetings')
 		.withIndex('by_meeting_type', (q) =>
-			q.eq('organizationId', args.organizationId).eq('meetingType', args.meetingType)
+			q.eq('workspaceId', args.workspaceId).eq('meetingType', args.meetingType)
 		);
 
 	// Filter by date range if provided
@@ -284,19 +284,19 @@ const meetingTypeSchema = v.union(
 **Definition:**
 
 ```typescript
-.index('by_meeting_type', ['organizationId', 'meetingType'])
+.index('by_meeting_type', ['workspaceId', 'meetingType'])
 ```
 
 **Usage:**
 
-- Filter meetings by type within organization
+- Filter meetings by type within workspace
 - Analytics queries: "How many standups this month?"
 - Reporting: "Meeting type distribution"
 
 **Performance:**
 
-- Compound index on `organizationId` + `meetingType`
-- Efficient for organization-scoped queries
+- Compound index on `workspaceId` + `meetingType`
+- Efficient for workspace-scoped queries
 - Supports date range filtering on `startTime` (secondary filter)
 
 ---
@@ -353,7 +353,7 @@ export interface Meeting {
 	_id: Id<'meetings'> | string;
 	originalMeetingId?: Id<'meetings'>;
 	_creationTime: number;
-	organizationId: Id<'organizations'> | string;
+	workspaceId: Id<'workspaces'> | string;
 	circleId?: Id<'circles'> | string;
 	templateId?: Id<'meetingTemplates'> | string;
 	meetingType: MeetingType; // NEW: Required field

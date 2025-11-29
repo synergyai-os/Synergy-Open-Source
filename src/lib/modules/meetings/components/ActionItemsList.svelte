@@ -19,14 +19,14 @@
 
 	import type { Id } from '$lib/convex';
 	import { Button, Text, Icon, Avatar } from '$lib/components/atoms';
-	import { useActionItems } from '$lib/modules/meetings/composables/useActionItems.svelte';
-	import { useActionItemsForm } from '$lib/modules/meetings/composables/useActionItemsForm.svelte';
+	import { useTasks } from '$lib/modules/projects/composables/useTasks.svelte';
+	import { useTaskForm } from '$lib/modules/projects/composables/useTaskForm.svelte';
 
 	interface Props {
 		agendaItemId: Id<'meetingAgendaItems'>;
 		meetingId: Id<'meetings'>;
 		sessionId: string;
-		organizationId: Id<'organizations'>;
+		workspaceId: Id<'workspaces'>;
 		circleId?: Id<'circles'>;
 		readonly?: boolean;
 	}
@@ -35,22 +35,23 @@
 		agendaItemId,
 		meetingId,
 		sessionId,
-		organizationId,
+		workspaceId,
 		circleId,
 		readonly = false
 	}: Props = $props();
 
 	// Data fetching composable
-	const data = useActionItems({
+	const data = useTasks({
 		agendaItemId: () => agendaItemId,
 		sessionId: () => sessionId,
-		organizationId: () => organizationId,
+		workspaceId: () => workspaceId,
 		circleId: () => circleId
 	});
 
 	// Form logic composable
-	const form = useActionItemsForm({
+	const form = useTaskForm({
 		sessionId: () => sessionId,
+		workspaceId: () => workspaceId,
 		meetingId: () => meetingId,
 		agendaItemId: () => agendaItemId,
 		circleId: () => circleId,
@@ -80,21 +81,8 @@
 				class="text-body-sm border-border-base px-menu-item py-menu-item placeholder-text-tertiary focus:border-accent-primary focus:ring-accent-primary w-full rounded-input border bg-elevated text-primary focus:ring-1 focus:outline-none"
 			></textarea>
 
-			<!-- Type Toggle + Assignee Type Toggle -->
+			<!-- Assignee Type Toggle -->
 			<div class="gap-form-section flex items-center">
-				<!-- Type -->
-				<div class="flex items-center gap-fieldGroup">
-					<Text variant="body" size="sm" color="tertiary" as="span">Type:</Text>
-					<Button
-						variant="outline"
-						size="sm"
-						ariaLabel="Toggle action item type"
-						onclick={() => (form.type = form.type === 'next-step' ? 'project' : 'next-step')}
-					>
-						{form.type === 'next-step' ? '⚡ Next Step' : '📦 Project'}
-					</Button>
-				</div>
-
 				<!-- Assignee Type Toggle (only if circle has roles) -->
 				{#if circleId && data.roles.length > 0}
 					<div class="flex items-center gap-fieldGroup">
@@ -159,7 +147,7 @@
 	{/if}
 
 	<!-- Action Items List -->
-	{#if data.actionItems.length === 0}
+	{#if data.tasks.length === 0}
 		<!-- Empty State -->
 		<div class="text-center" style="padding-block: var(--spacing-8);">
 			<div class="mx-auto">
@@ -177,7 +165,7 @@
 	{:else}
 		<!-- List of action items -->
 		<div style="display: flex; flex-direction: column; gap: var(--spacing-2);">
-			{#each data.actionItems as item (item._id)}
+			{#each data.tasks as item (item._id)}
 				<div
 					class="group p-header border-border-base flex items-start gap-header rounded-button border bg-surface transition-colors hover:bg-elevated"
 				>

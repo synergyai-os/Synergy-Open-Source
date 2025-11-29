@@ -4,7 +4,7 @@
  * SYOS-469: Extracts form state, data fetching, and business logic from CreateMeetingModal component
  *
  * Features:
- * - Fetches meeting templates for organization
+ * - Fetches meeting templates for workspace
  * - Form state management (title, template, date/time, duration, recurrence, attendees, privacy)
  * - Complex recurrence logic (~200 lines)
  * - Date parsing and validation
@@ -16,6 +16,19 @@ import { browser } from '$app/environment';
 import { useConvexClient, useQuery } from 'convex-svelte';
 import { api, type Id } from '$lib/convex';
 import { toast } from 'svelte-sonner';
+import {
+	CalendarDate,
+	Time,
+	CalendarDateTime,
+	today,
+	getLocalTimeZone
+} from '@internationalized/date';
+import {
+	DEFAULT_LOCALE,
+	DEFAULT_SHORT_DATE_FORMAT,
+	jsDayToOurDay,
+	getDayNameFull
+} from '$lib/utils/locale';
 
 type Attendee = {
 	type: 'user' | 'circle';
@@ -25,7 +38,7 @@ type Attendee = {
 };
 
 interface UseMeetingFormParams {
-	organizationId: () => string;
+	workspaceId: () => string;
 	sessionId: () => string | undefined;
 	circles?: () => Array<{ _id: Id<'circles'>; name: string }>;
 	onSuccess?: () => void;
@@ -43,14 +56,14 @@ export interface UseMeetingFormReturn {
 	set selectedTemplateId(value: Id<'meetingTemplates'> | '');
 	get circleId(): Id<'circles'> | '';
 	set circleId(value: Id<'circles'> | '');
-	get startDate(): string;
-	set startDate(value: string);
-	get startTime(): string;
-	set startTime(value: string);
+	get startDate(): CalendarDate | null;
+	set startDate(value: CalendarDate | null);
+	get startTime(): Time | null;
+	set startTime(value: Time | null);
 	get duration(): number;
 	set duration(value: number);
-	get visibility(): 'public' | 'circle' | 'private';
-	set visibility(value: 'public' | 'circle' | 'private');
+	get visibility(): 'public' | 'private';
+	set visibility(value: 'public' | 'private');
 	get recurrenceEnabled(): boolean;
 	set recurrenceEnabled(value: boolean);
 	get recurrenceFrequency(): 'daily' | 'weekly' | 'monthly';
@@ -69,6 +82,15 @@ export interface UseMeetingFormReturn {
 	get weeklyScheduleMessage(): string | null;
 	get dailyScheduleMessage(): string | null;
 
+	// Step management
+	get currentStep(): 0 | 1 | 2;
+	get stepErrors(): { 0: string[]; 1: string[]; 2: string[] };
+	nextStep: () => void;
+	previousStep: () => void;
+	goToStep: (stepIndex: number) => void;
+	canNavigateToStep: (stepIndex: number) => boolean;
+	validateStep: (stepIndex: number) => { isValid: boolean; errors: string[] };
+
 	// Actions
 	handleSubmit: () => Promise<void>;
 	resetForm: () => void;
@@ -81,12 +103,12 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 
 	// Fetch templates
 	const templatesQuery =
-		browser && params.organizationId() && params.sessionId()
+		browser && params.workspaceId() && params.sessionId()
 			? useQuery(api.meetingTemplates.list, () => {
 					const sessionId = params.sessionId();
 					if (!sessionId) throw new Error('sessionId required');
 					return {
-						organizationId: params.organizationId() as Id<'organizations'>,
+						workspaceId: params.workspaceId() as Id<'workspaces'>,
 						sessionId
 					};
 				})
@@ -100,10 +122,10 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 		title: '',
 		selectedTemplateId: '' as Id<'meetingTemplates'> | '',
 		circleId: '' as Id<'circles'> | '',
-		startDate: '',
-		startTime: '',
+		startDate: null as CalendarDate | null,
+		startTime: null as Time | null,
 		duration: 60,
-		visibility: 'public' as 'public' | 'circle' | 'private',
+		visibility: 'public' as 'public' | 'private',
 		recurrenceEnabled: false,
 		recurrence: {
 			frequency: 'weekly' as 'daily' | 'weekly' | 'monthly',
@@ -111,14 +133,146 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 			daysOfWeek: [] as string[],
 			endDate: '' as string
 		},
-		selectedAttendees: [] as Attendee[]
+		selectedAttendees: [] as Attendee[],
+		// Step management
+		currentStep: 0 as 0 | 1 | 2,
+		stepErrors: {
+			0: [] as string[],
+			1: [] as string[],
+			2: [] as string[]
+		},
+		visitedSteps: [] as number[]
 	});
 
+	// Step validation functions
+	function validateStep1(): { isValid: boolean; errors: string[] } {
+		const errors: string[] = [];
+		if (!state.selectedTemplateId) {
+			errors.push('Please select a meeting type');
+		}
+		if (state.selectedAttendees.length === 0) {
+			errors.push('Please add at least one attendee');
+		}
+		return {
+			isValid: errors.length === 0,
+			errors
+		};
+	}
+
+	function validateStep2(): { isValid: boolean; errors: string[] } {
+		const errors: string[] = [];
+		if (!state.startDate) {
+			errors.push('Please select a date');
+		}
+		if (!state.startTime) {
+			errors.push('Please select a time');
+		}
+		if (state.duration <= 0) {
+			errors.push('Duration must be greater than 0');
+		}
+		if (state.recurrenceEnabled) {
+			if (state.recurrence.frequency === 'weekly' && state.recurrence.daysOfWeek.length === 0) {
+				errors.push('Please select at least one day for weekly recurrence');
+			}
+			if (state.recurrence.frequency === 'daily' && state.recurrence.daysOfWeek.length === 0) {
+				errors.push('Please select at least one day for daily recurrence');
+			}
+		}
+		return {
+			isValid: errors.length === 0,
+			errors
+		};
+	}
+
+	function validateStep3(): { isValid: boolean; errors: string[] } {
+		const errors: string[] = [];
+		if (!state.title.trim()) {
+			errors.push('Meeting title is required');
+		}
+		return {
+			isValid: errors.length === 0,
+			errors
+		};
+	}
+
+	function validateStep(stepIndex: number): { isValid: boolean; errors: string[] } {
+		switch (stepIndex) {
+			case 0:
+				return validateStep1();
+			case 1:
+				return validateStep2();
+			case 2:
+				return validateStep3();
+			default:
+				return { isValid: false, errors: ['Invalid step'] };
+		}
+	}
+
+	// Step navigation
+	function nextStep() {
+		const validation = validateStep(state.currentStep);
+		if (!validation.isValid) {
+			state.stepErrors[state.currentStep as 0 | 1 | 2] = validation.errors;
+			toast.error(validation.errors[0] || 'Please complete this step');
+			return;
+		}
+		// Clear errors for current step
+		state.stepErrors[state.currentStep as 0 | 1 | 2] = [];
+		// Navigate to next step
+		if (state.currentStep < 2) {
+			state.currentStep = (state.currentStep + 1) as 0 | 1 | 2;
+			if (!state.visitedSteps.includes(state.currentStep)) {
+				state.visitedSteps.push(state.currentStep);
+			}
+		}
+	}
+
+	function previousStep() {
+		if (state.currentStep > 0) {
+			// Clear errors for step we're leaving
+			state.stepErrors[state.currentStep as 0 | 1 | 2] = [];
+			state.currentStep = (state.currentStep - 1) as 0 | 1 | 2;
+		}
+	}
+
+	function goToStep(stepIndex: number) {
+		// Validate current step before leaving
+		if (stepIndex > state.currentStep) {
+			const validation = validateStep(state.currentStep);
+			if (!validation.isValid) {
+				state.stepErrors[state.currentStep as 0 | 1 | 2] = validation.errors;
+				return;
+			}
+		}
+		// Clear errors for step we're leaving
+		state.stepErrors[state.currentStep as 0 | 1 | 2] = [];
+		// Navigate
+		state.currentStep = stepIndex as 0 | 1 | 2;
+		if (!state.visitedSteps.includes(stepIndex)) {
+			state.visitedSteps.push(stepIndex);
+		}
+	}
+
+	function canNavigateToStep(stepIndex: number): boolean {
+		// Can always go back
+		if (stepIndex < state.currentStep) return true;
+		// Can go forward if current step is valid
+		if (stepIndex === state.currentStep + 1) {
+			return validateStep(state.currentStep).isValid;
+		}
+		// Can't skip steps
+		return false;
+	}
+
 	// Helper: Parse date/time to timestamp
-	function parseDateTime(date: string, time: string): number {
-		// Use Date constructor to parse date/time (not mutated, immediately converted to timestamp)
+	function parseDateTime(date: CalendarDate | null, time: Time | null): number {
+		if (!date || !time) {
+			throw new Error('Date and time are required');
+		}
+		// Convert CalendarDate + Time directly to Date object, then to timestamp
+		// Note: CalendarDate uses 1-based months, Date uses 0-based months
 		// eslint-disable-next-line svelte/prefer-svelte-reactivity
-		return new Date(`${date}T${time}`).getTime();
+		return new Date(date.year, date.month - 1, date.day, time.hour, time.minute).getTime();
 	}
 
 	// Helper: Get upcoming meeting dates for preview
@@ -230,42 +384,48 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 			return null;
 		}
 
-		// Use Date constructor to parse start date (not mutated, only used for display)
-		// eslint-disable-next-line svelte/prefer-svelte-reactivity
-		const startDate = new Date(state.startDate);
-		const startDayOfWeek = startDate.getDay();
-		const selectedDay = parseInt(state.recurrence.daysOfWeek[0], 10);
+		// Convert CalendarDate to Date for day-of-week calculation
+		const startDateObj = new Date(
+			state.startDate.year,
+			state.startDate.month - 1,
+			state.startDate.day
+		);
+		// Convert JavaScript day (0=Sunday) to our system (0=Monday)
+		const startDayOfWeekJs = startDateObj.getDay();
+		const startDayOfWeekOur = jsDayToOurDay(startDayOfWeekJs);
+		const selectedDayOur = parseInt(state.recurrence.daysOfWeek[0], 10);
 
-		const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-		const startDayName = dayNames[startDayOfWeek];
-		const selectedDayName = dayNames[selectedDay];
+		const startDayName = getDayNameFull(startDayOfWeekOur);
+		const selectedDayName = getDayNameFull(selectedDayOur);
 
-		// Format start date
-		const startDateFormatted = startDate.toLocaleDateString('en-US', {
-			month: 'short',
-			day: 'numeric'
-		});
+		// Format start date using default locale (day/month/year)
+		const startDateFormatted = startDateObj.toLocaleDateString(
+			DEFAULT_LOCALE,
+			DEFAULT_SHORT_DATE_FORMAT
+		);
 
-		if (startDayOfWeek === selectedDay) {
+		if (startDayOfWeekOur === selectedDayOur) {
 			// Same day: recurring starts immediately
 			return `Your meeting will repeat every ${selectedDayName}, starting ${startDateFormatted}.`;
 		} else {
 			// Different day: first on start date, then recurring on selected day
 			// Find first occurrence of selected day after start date
-			let currentTime = startDate.getTime() + 24 * 60 * 60 * 1000; // Start from next day
+			// Convert our day index back to JavaScript day for comparison
+			const selectedDayJs = selectedDayOur === 6 ? 0 : selectedDayOur + 1; // 0=Monday -> 1=Monday, 6=Sunday -> 0=Sunday
+			let currentTime = startDateObj.getTime() + 24 * 60 * 60 * 1000; // Start from next day
 			// eslint-disable-next-line svelte/prefer-svelte-reactivity
 			let firstRecurrence = new Date(currentTime);
 
-			while (firstRecurrence.getDay() !== selectedDay) {
+			while (firstRecurrence.getDay() !== selectedDayJs) {
 				currentTime += 24 * 60 * 60 * 1000;
 				// eslint-disable-next-line svelte/prefer-svelte-reactivity
 				firstRecurrence = new Date(currentTime);
 			}
 
-			const firstRecurrenceFormatted = firstRecurrence.toLocaleDateString('en-US', {
-				month: 'short',
-				day: 'numeric'
-			});
+			const firstRecurrenceFormatted = firstRecurrence.toLocaleDateString(
+				DEFAULT_LOCALE,
+				DEFAULT_SHORT_DATE_FORMAT
+			);
 
 			return `First meeting on ${startDayName}, ${startDateFormatted}. Then recurring every ${selectedDayName}, starting ${firstRecurrenceFormatted}.`;
 		}
@@ -281,19 +441,22 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 			return null;
 		}
 
-		// Use Date constructor to parse start date (not mutated, only used for display)
-		// eslint-disable-next-line svelte/prefer-svelte-reactivity
-		const startDate = new Date(state.startDate);
-		const startDayOfWeek = startDate.getDay();
+		// Convert CalendarDate to Date for calculations
+		const startDateObj = new Date(
+			state.startDate.year,
+			state.startDate.month - 1,
+			state.startDate.day
+		);
+		const startDayOfWeek = startDateObj.getDay();
 		const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 		// Check if start date is today
 		// eslint-disable-next-line svelte/prefer-svelte-reactivity
-		const today = new Date();
+		const todayObj = new Date();
 		const isToday =
-			startDate.getDate() === today.getDate() &&
-			startDate.getMonth() === today.getMonth() &&
-			startDate.getFullYear() === today.getFullYear();
+			startDateObj.getDate() === todayObj.getDate() &&
+			startDateObj.getMonth() === todayObj.getMonth() &&
+			startDateObj.getFullYear() === todayObj.getFullYear();
 
 		// Get selected day names (create copy before sorting to avoid mutation)
 		const selectedDayNames = [...state.recurrence.daysOfWeek]
@@ -332,8 +495,11 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 
 	// Submit form
 	async function handleSubmit() {
-		if (!state.title.trim()) {
-			toast.error('Meeting title is required');
+		// Validate all steps before submitting
+		const step3Validation = validateStep3();
+		if (!step3Validation.isValid) {
+			state.stepErrors[2] = step3Validation.errors;
+			toast.error(step3Validation.errors[0] || 'Please complete all steps');
 			return;
 		}
 
@@ -363,12 +529,16 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 					}
 				: undefined;
 
+			if (!state.selectedTemplateId) {
+				toast.error('Please select a meeting template');
+				return;
+			}
+
 			const result = await convexClient?.mutation(api.meetings.create, {
 				sessionId: params.sessionId()!,
-				organizationId: params.organizationId() as Id<'organizations'>,
+				workspaceId: params.workspaceId() as Id<'workspaces'>,
 				circleId: state.circleId || undefined,
-				templateId: state.selectedTemplateId || undefined,
-				meetingType: 'general', // TODO: Phase 3 - Replace with form state when stepper is integrated
+				templateId: state.selectedTemplateId as Id<'meetingTemplates'>,
 				title: state.title,
 				startTime,
 				duration: state.duration,
@@ -376,21 +546,21 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 				recurrence
 			});
 
-			// Add attendees after meeting creation
+			// Create invitations for selected attendees (invitations, not attendees - attendees join when they actually join)
 			const meetingId = result?.meetingId;
 			if (meetingId && state.selectedAttendees.length > 0) {
 				for (const attendee of state.selectedAttendees) {
 					try {
-						await convexClient?.mutation(api.meetings.addAttendee, {
+						await convexClient?.mutation(api.meetingInvitations.createInvitation, {
 							sessionId: params.sessionId()!,
 							meetingId: meetingId as Id<'meetings'>,
-							attendeeType: attendee.type,
+							invitationType: attendee.type,
 							userId: attendee.type === 'user' ? (attendee.id as Id<'users'>) : undefined,
 							circleId: attendee.type === 'circle' ? (attendee.id as Id<'circles'>) : undefined
 						});
 					} catch (error) {
-						console.error(`Failed to add attendee ${attendee.name}:`, error);
-						// Continue with other attendees even if one fails
+						console.error(`Failed to create invitation for ${attendee.name}:`, error);
+						// Continue with other invitations even if one fails
 					}
 				}
 			}
@@ -409,8 +579,8 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 		state.title = '';
 		state.selectedTemplateId = '';
 		state.circleId = '';
-		state.startDate = '';
-		state.startTime = '';
+		state.startDate = null;
+		state.startTime = null;
 		state.duration = 60;
 		state.visibility = 'public';
 		state.recurrenceEnabled = false;
@@ -421,16 +591,20 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 			endDate: ''
 		};
 		state.selectedAttendees = [];
+		// Reset step state
+		state.currentStep = 0;
+		state.stepErrors = { 0: [], 1: [], 2: [] };
+		state.visitedSteps = [];
 	}
 
 	// Set default date/time
 	function initializeDefaultDateTime() {
-		if (!state.startDate) {
-			// Use Date constructor to create default date/time (not mutated, immediately converted to strings)
-			// eslint-disable-next-line svelte/prefer-svelte-reactivity
-			const now = new Date();
-			state.startDate = now.toISOString().split('T')[0];
-			state.startTime = now.toTimeString().slice(0, 5);
+		if (!state.startDate || !state.startTime) {
+			// Create CalendarDate and Time objects from current date/time
+			const now = today(getLocalTimeZone());
+			const nowTime = new Time(new Date().getHours(), new Date().getMinutes());
+			state.startDate = now;
+			state.startTime = nowTime;
 		}
 	}
 
@@ -440,10 +614,13 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 
 		if (state.recurrence.frequency === 'weekly' && state.startDate) {
 			// Weekly: Pre-select day based on start date
-			// Use Date constructor to parse start date (not mutated, only used for display)
-			// eslint-disable-next-line svelte/prefer-svelte-reactivity
-			const startDate = new Date(state.startDate);
-			const dayOfWeek = startDate.getDay();
+			// Convert CalendarDate to Date to get day of week
+			const startDateObj = new Date(
+				state.startDate.year,
+				state.startDate.month - 1,
+				state.startDate.day
+			);
+			const dayOfWeek = startDateObj.getDay();
 			state.recurrence.daysOfWeek = [dayOfWeek.toString()];
 		} else if (state.recurrence.frequency === 'daily') {
 			// Daily: Pre-select weekdays (Mon-Fri = 1-5)
@@ -482,13 +659,13 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 		get startDate() {
 			return state.startDate;
 		},
-		set startDate(value: string) {
+		set startDate(value: CalendarDate | null) {
 			state.startDate = value;
 		},
 		get startTime() {
 			return state.startTime;
 		},
-		set startTime(value: string) {
+		set startTime(value: Time | null) {
 			state.startTime = value;
 		},
 		get duration() {
@@ -500,7 +677,7 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 		get visibility() {
 			return state.visibility;
 		},
-		set visibility(value: 'public' | 'circle' | 'private') {
+		set visibility(value: 'public' | 'private') {
 			state.visibility = value;
 		},
 		get recurrenceEnabled() {
@@ -550,6 +727,19 @@ export function useMeetingForm(params: UseMeetingFormParams): UseMeetingFormRetu
 		get dailyScheduleMessage() {
 			return dailyScheduleMessage;
 		},
+
+		// Step management
+		get currentStep() {
+			return state.currentStep;
+		},
+		get stepErrors() {
+			return state.stepErrors;
+		},
+		nextStep,
+		previousStep,
+		goToStep,
+		canNavigateToStep,
+		validateStep,
 
 		// Actions
 		handleSubmit,

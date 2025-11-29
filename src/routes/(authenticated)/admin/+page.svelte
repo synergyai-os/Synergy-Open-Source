@@ -3,7 +3,7 @@
 
 	type SystemStats = {
 		users: { total: number; active: number; deleted: number };
-		organizations: { total: number };
+		workspaces: { total: number };
 		teams: { total: number };
 		roles: { total: number; system: number; custom: number };
 		permissions: { total: number; system: number; custom: number };
@@ -44,7 +44,7 @@
 				<div class="border-sidebar px-card py-card rounded-card border bg-surface">
 					<p class="text-label text-tertiary">Organizations</p>
 					<p class="mt-form-field-gap text-h2 font-semibold text-primary">
-						{stats.organizations.total}
+						{stats.workspaces.total}
 					</p>
 				</div>
 

@@ -108,13 +108,13 @@ describe('RBAC Integration Tests', () => {
 		const adminRole = await createTestRole(t, 'admin', 'Admin');
 		const viewPermission = await createTestPermission(t, 'users.view', 'View Users');
 		await assignPermissionToRole(t, adminRole, viewPermission, 'all');
-		await assignRoleToUser(t, adminUserId, adminRole, { organizationId: orgId });
+		await assignRoleToUser(t, adminUserId, adminRole, { workspaceId: orgId });
 
 		cleanupQueue.push({ userId: adminUserId, orgId });
 
 		// Check permission
 		const result = await t.run(async (ctx) => {
-			return await hasPermission(ctx, adminUserId, 'users.view', { organizationId: orgId });
+			return await hasPermission(ctx, adminUserId, 'users.view', { workspaceId: orgId });
 		});
 
 		expect(result).toBe(true);
@@ -167,7 +167,7 @@ describe('RBAC Integration Tests', () => {
 		const circleId = await t.run(async (ctx) => {
 			const now = Date.now();
 			return await ctx.db.insert('circles', {
-				organizationId: orgId,
+				workspaceId: orgId,
 				name: 'Test Circle',
 				slug: 'test-circle',
 				createdAt: now,
@@ -180,7 +180,7 @@ describe('RBAC Integration Tests', () => {
 		const updatePermission = await createTestPermission(t, 'circles.update', 'Update Circle');
 		await assignPermissionToRole(t, circleLeadRole, updatePermission, 'own');
 		await assignRoleToUser(t, teamLeadUserId, circleLeadRole, {
-			organizationId: orgId,
+			workspaceId: orgId,
 			circleId
 		});
 
@@ -231,7 +231,7 @@ describe('RBAC Integration Tests', () => {
 		const teamLeadRole = await createTestRole(t, 'team-lead', 'Team Lead');
 		const viewPermission = await createTestPermission(t, 'users.view', 'View Users');
 		await assignPermissionToRole(t, teamLeadRole, viewPermission, 'all');
-		await assignRoleToUser(t, userId, teamLeadRole, { organizationId: orgId });
+		await assignRoleToUser(t, userId, teamLeadRole, { workspaceId: orgId });
 
 		cleanupQueue.push({ userId, orgId });
 
@@ -243,7 +243,7 @@ describe('RBAC Integration Tests', () => {
 		});
 
 		const canViewUsers = await t.run(async (ctx) => {
-			return await hasPermission(ctx, userId, 'users.view', { organizationId: orgId });
+			return await hasPermission(ctx, userId, 'users.view', { workspaceId: orgId });
 		});
 
 		expect(canEditProfile).toBe(true);

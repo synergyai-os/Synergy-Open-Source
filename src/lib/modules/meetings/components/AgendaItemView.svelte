@@ -13,7 +13,6 @@
 	import { browser } from '$app/environment';
 	import { onDestroy } from 'svelte';
 	import NoteEditor from '$lib/modules/core/components/notes/NoteEditor.svelte';
-	import DecisionsList from './DecisionsList.svelte';
 	import ActionItemsList from './ActionItemsList.svelte';
 	import { useAgendaNotes } from '../composables/useAgendaNotes.svelte';
 	import type { Id } from '$lib/convex';
@@ -24,37 +23,35 @@
 			_id: Id<'meetingAgendaItems'>;
 			title: string;
 			notes?: string;
-			isProcessed?: boolean;
+			status: 'todo' | 'processed' | 'rejected';
 			creatorName: string;
 		};
 		meetingId?: Id<'meetings'>;
-		organizationId?: Id<'organizations'>;
+		workspaceId?: Id<'workspaces'>;
 		circleId?: Id<'circles'>;
 		sessionId?: string;
-		isSecretary: boolean; // SYOS-222: Role-based rendering
-		onMarkProcessed: (itemId: Id<'meetingAgendaItems'>) => void;
+		onMarkStatus: (itemId: Id<'meetingAgendaItems'>, status: 'processed' | 'rejected') => void;
 		isClosed: boolean;
+		isRecorder: boolean;
 	}
 
 	const {
 		item,
 		meetingId,
-		organizationId,
+		workspaceId,
 		circleId,
 		sessionId,
-		isSecretary,
-		onMarkProcessed,
-		isClosed
+		onMarkStatus,
+		isClosed,
+		isRecorder
 	}: Props = $props();
 
-	// Notes composable - only for secretary mode
-	const notes = isSecretary
-		? useAgendaNotes({
-				agendaItemId: () => (item?._id ? item._id : ('' as Id<'meetingAgendaItems'>)),
-				initialNotes: () => item?.notes,
-				sessionId: () => sessionId
-			})
-		: null;
+	// Notes composable - editable for all users
+	const notes = useAgendaNotes({
+		agendaItemId: () => (item?._id ? item._id : ('' as Id<'meetingAgendaItems'>)),
+		initialNotes: () => item?.notes,
+		sessionId: () => sessionId
+	});
 
 	// Save immediately on destroy (navigation) - secretary only
 	onDestroy(() => {
@@ -71,8 +68,8 @@
 			<div class="mx-auto">
 				<Icon type="dashboard" size="xl" color="tertiary" />
 			</div>
-			<Heading level="h3" size="h3" class="mt-content-section">No Agenda Item Selected</Heading>
-			<Text variant="body" size="base" color="secondary" as="p" class="mt-spacing-text-gap">
+			<Heading level="h3" size="h3" class="mb-header">No Agenda Item Selected</Heading>
+			<Text variant="body" size="base" color="secondary" as="p" class="mt-fieldGroup">
 				Click an agenda item from the sidebar to start processing
 			</Text>
 		</div>
@@ -81,101 +78,90 @@
 	<!-- Active Agenda Item -->
 	<div class="flex h-full flex-col">
 		<!-- Item Header -->
-		<div class="border-border-base px-inbox-container py-system-header border-b bg-elevated">
+		<div class="border-border-base border-b bg-elevated px-page py-stack-header">
 			<div class="flex items-start justify-between">
 				<div class="flex-1">
 					<Heading level="h2" size="h1">
 						{item.title}
 					</Heading>
 					<div
-						class="mt-spacing-text-gap text-body-sm text-text-tertiary flex items-center gap-fieldGroup"
+						class="text-body-sm text-text-tertiary flex items-center gap-fieldGroup mt-fieldGroup"
 					>
 						<Text variant="body" size="sm" color="tertiary" as="span"
 							>Added by {item.creatorName}</Text
 						>
-						{#if item.isProcessed}
+						{#if item.status === 'processed'}
 							<span class="text-success-text flex items-center gap-fieldGroup">
 								<Icon type="check" size="sm" />
 								<Text variant="body" size="sm" color="success" as="span">Processed</Text>
+							</span>
+						{:else if item.status === 'rejected'}
+							<span class="text-error-text flex items-center gap-fieldGroup">
+								<Icon type="close" size="sm" />
+								<Text variant="body" size="sm" color="error" as="span">Rejected</Text>
 							</span>
 						{/if}
 					</div>
 				</div>
 
-				<!-- Mark as Processed Button (Secretary only) -->
-				{#if !item.isProcessed && !isClosed && isSecretary}
-					<Button variant="primary" onclick={() => onMarkProcessed(item._id)}>
-						Mark as Processed
-					</Button>
+				<!-- Mark Status Buttons (recorder only) -->
+				{#if item.status === 'todo' && !isClosed && isRecorder}
+					<div class="flex gap-fieldGroup">
+						<Button variant="primary" onclick={() => onMarkStatus(item._id, 'processed')}>
+							Mark as Processed
+						</Button>
+						<Button variant="outline" onclick={() => onMarkStatus(item._id, 'rejected')}>
+							Reject
+						</Button>
+					</div>
 				{/if}
 			</div>
 		</div>
 
 		<!-- Notes Editor (SYOS-222) -->
-		<div class="px-inbox-container py-system-content flex-1 overflow-y-auto">
+		<div class="flex-1 overflow-y-auto px-page py-page">
 			{#if browser && item}
-				<div class="flex flex-col gap-section-gap">
-					{#if isSecretary}
-						<!-- SECRETARY MODE: Local state with auto-save -->
-						<!-- Save State Indicator -->
-						{#if notes && notes.saveState !== 'idle'}
-							<div class="text-body-sm flex items-center gap-fieldGroup">
-								{#if notes.saveState === 'saving'}
-									<Text variant="body" size="sm" color="tertiary" as="span">Saving...</Text>
-								{:else if notes.saveState === 'saved'}
-									<span class="text-success-text flex items-center gap-fieldGroup">
-										<Icon type="check" size="sm" />
-										<Text variant="body" size="sm" color="success" as="span">Saved</Text>
-									</span>
-								{:else if notes.saveState === 'error'}
-									<Text variant="body" size="sm" color="error" as="span"
-										>{notes.saveError || 'Failed to save'}</Text
-									>
-								{/if}
-							</div>
-						{/if}
-
-						<!-- Editor: Local state, no remount on backend updates -->
-						{#if notes}
-							<NoteEditor
-								content={notes.localNotes}
-								title={item.title}
-								onContentChange={notes.handleNotesChange}
-								placeholder="Take notes for this agenda item..."
-								readonly={isClosed}
-								showToolbar={!isClosed}
-								compact={false}
-							/>
-						{/if}
-					{:else}
-						<!-- READER MODE: Backend state with remount on changes -->
-						{#key item.notes}
-							<NoteEditor
-								content={item.notes || ''}
-								title={item.title}
-								placeholder="No notes yet..."
-								readonly={true}
-								showToolbar={false}
-								compact={false}
-							/>
-						{/key}
+				<div class="flex flex-col gap-section">
+					<!-- Notes Editor: Editable for all users -->
+					<!-- Save State Indicator -->
+					{#if notes.saveState !== 'idle'}
+						<div class="text-body-sm flex items-center gap-fieldGroup">
+							{#if notes.saveState === 'saving'}
+								<Text variant="body" size="sm" color="tertiary" as="span">Saving...</Text>
+							{:else if notes.saveState === 'saved'}
+								<span class="text-success-text flex items-center gap-fieldGroup">
+									<Icon type="check" size="sm" />
+									<Text variant="body" size="sm" color="success" as="span">Saved</Text>
+								</span>
+							{:else if notes.saveState === 'error'}
+								<Text variant="body" size="sm" color="error" as="span"
+									>{notes.saveError || 'Failed to save'}</Text
+								>
+							{/if}
+						</div>
 					{/if}
 
+					<!-- Editor: Local state with auto-save -->
+					<NoteEditor
+						content={notes.localNotes}
+						title={item.title}
+						onContentChange={notes.handleNotesChange}
+						placeholder="Take notes for this agenda item..."
+						readonly={isClosed}
+						showToolbar={!isClosed}
+						compact={false}
+					/>
+
 					<!-- Action Items List (SYOS-223) -->
-					{#if meetingId && organizationId && sessionId}
+					{#if meetingId && workspaceId && sessionId}
 						<ActionItemsList
 							agendaItemId={item._id}
 							{meetingId}
 							{sessionId}
-							{organizationId}
+							{workspaceId}
 							{circleId}
 							readonly={isClosed}
 						/>
-					{/if}
-
-					<!-- Decisions List (SYOS-224) -->
-					{#if meetingId}
-						<DecisionsList agendaItemId={item._id} {meetingId} {sessionId} readonly={isClosed} />
 					{/if}
 				</div>
 			{:else if !browser}

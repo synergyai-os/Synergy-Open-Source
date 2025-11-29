@@ -19,8 +19,8 @@ import type { MeetingsModuleAPI } from './api';
 /**
  * Meetings module manifest
  *
- * **Dependencies**: ['core'] (depends on core module for organizations context)
- * **Feature Flag**: 'meetings-module' (organization-based targeting)
+ * **Dependencies**: ['core'] (depends on core module for workspaces context)
+ * **Feature Flag**: 'meetings-module' (workspace-based targeting)
  * **API**: MeetingsModuleAPI (public interface for meetings functionality)
  */
 export const meetingsModule: ModuleManifest = {

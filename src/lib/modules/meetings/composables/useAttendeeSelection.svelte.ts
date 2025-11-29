@@ -4,7 +4,7 @@
  * SYOS-468: Extracts data fetching and selection logic from AttendeeSelector component
  *
  * Features:
- * - Fetches organization members (users)
+ * - Fetches workspace members (users)
  * - Fetches circles
  * - Manages search state and filtering
  * - Manages attendee selection/deselection
@@ -23,7 +23,7 @@ export type Attendee = {
 };
 
 interface UseAttendeeSelectionParams {
-	organizationId: () => Id<'organizations'>;
+	workspaceId: () => Id<'workspaces'>;
 	sessionId: () => string | undefined;
 	selectedAttendees: () => Attendee[];
 	onAttendeesChange: (attendees: Attendee[]) => void;
@@ -57,10 +57,10 @@ export function useAttendeeSelection(
 	// Query users
 	const usersQuery =
 		browser && params.sessionId()
-			? useQuery(api.organizations.getMembers, () => {
+			? useQuery(api.workspaces.getMembers, () => {
 					const sessionId = params.sessionId();
 					if (!sessionId) throw new Error('sessionId required');
-					return { organizationId: params.organizationId(), sessionId };
+					return { workspaceId: params.workspaceId(), sessionId };
 				})
 			: null;
 
@@ -70,7 +70,7 @@ export function useAttendeeSelection(
 			? useQuery(api.circles.list, () => {
 					const sessionId = params.sessionId();
 					if (!sessionId) throw new Error('sessionId required');
-					return { organizationId: params.organizationId(), sessionId };
+					return { workspaceId: params.workspaceId(), sessionId };
 				})
 			: null;
 

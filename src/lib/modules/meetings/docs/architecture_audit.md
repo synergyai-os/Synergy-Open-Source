@@ -77,7 +77,7 @@ export function useMeetingSession(options) {
 // convex/meetings.ts - Data + validation
 export const startMeeting = mutation({
   handler: async (ctx, args) => {
-    await ensureOrganizationMembership(...));
+    await ensureWorkspaceMembership(...));
     await ctx.db.patch(args.meetingId, { startedAt: Date.now() });
   }
 });
@@ -340,7 +340,7 @@ const meetingQuery =
 
 // useMeetings.svelte.ts line 49
 const meetingsQuery =
-  browser && organizationId() && sessionId()
+  browser && workspaceId() && sessionId()
     ? useQuery(api.meetings.listForUser, () => {...})
     : null;
 
@@ -379,12 +379,12 @@ const activePresenceQuery =
 ```typescript
 // Defensive: Handle both function and value
 const orgId =
-	typeof params?.activeOrganizationId === 'function'
-		? params.activeOrganizationId()
-		: params?.activeOrganizationId;
+	typeof params?.activeWorkspaceId === 'function'
+		? params.activeWorkspaceId()
+		: params?.activeWorkspaceId;
 
 if (orgId !== undefined) {
-	baseArgs.organizationId = orgId as Id<'organizations'> | null;
+	baseArgs.workspaceId = orgId as Id<'workspaces'> | null;
 }
 ```
 
@@ -781,7 +781,7 @@ it('should show error state when query fails', async () => {
    ```
 
 2. **Business Logic**
-   - Permission checks (`ensureOrganizationMembership`)
+   - Permission checks (`ensureWorkspaceMembership`)
    - Data validation
    - Complex queries (joins, filters)
 
@@ -885,7 +885,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 	import { useQuery } from 'convex-svelte';
 
 	const meetingsQuery = useQuery(api.meetings.listForUser, {
-		organizationId: orgId,
+		workspaceId: orgId,
 		sessionId: sessionId
 	});
 
@@ -945,7 +945,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 ```typescript
 // Schema defines structure ONLY (no methods)
 meetings: defineTable({
-	organizationId: v.id('organizations'),
+	workspaceId: v.id('workspaces'),
 	title: v.string(),
 	startTime: v.number()
 	// ... fields only
@@ -1052,7 +1052,7 @@ export const get = query({
 // Service function (business logic)
 export const startMeeting = mutation({
   handler: async (ctx, args) => {
-    await ensureOrganizationMembership(...); // Business rule
+    await ensureWorkspaceMembership(...); // Business rule
     await ctx.db.patch(args.meetingId, { startedAt: Date.now() }); // Data operation
   }
 });
@@ -1064,7 +1064,7 @@ export const startMeeting = mutation({
 
 - **Purpose**: Scheduled meetings with recurrence support
 - **Key Fields**:
-  - `organizationId` - Organization context
+  - `workspaceId` - Organization context
   - `circleId` - Optional circle association (null = ad-hoc)
   - `templateId` - Optional template reference
   - `meetingType` - Required enum: `standup`, `retrospective`, `planning`, `1-on-1`, `client`, `governance`, `weekly-tactical`, `general`
@@ -1248,7 +1248,7 @@ TodayMeetingCard (dashboard)
 
 #### Convex Queries (`convex/meetings.ts`)
 
-- `list` - List all meetings for organization
+- `list` - List all meetings for workspace
 - `listForUser` - User-filtered meetings (respects visibility)
 - `get` - Single meeting with attendees
 - `getAgendaItems` - Agenda items for meeting
@@ -1290,7 +1290,7 @@ TodayMeetingCard (dashboard)
 
 #### Templates (`convex/meetingTemplates.ts`)
 
-- `list` - List templates for organization
+- `list` - List templates for workspace
 - `get` - Single template with steps
 - `create` - Create template
 - `addStep` - Add step to template
@@ -1374,7 +1374,7 @@ const session = meetingsAPI.useMeetingSession({ ... });
 
 - **`meetings-module`** (Organization-based)
   - Controls: Full module access (routes + dashboard)
-  - Status: Enabled for specific organizations
+  - Status: Enabled for specific workspaces
   - Default: Disabled
 
 - **`meeting_module_beta`** (Legacy)
@@ -1407,7 +1407,7 @@ const enabled = await isModuleEnabled('meetings', sessionId, client);
 
 ### Permission Checks
 
-- **Backend**: `ensureOrganizationMembership()` helper
+- **Backend**: `ensureWorkspaceMembership()` helper
 - **Frontend**: Module feature flag check
 - **RBAC**: Secretary role checked via `isSecretary` getter
 
@@ -1581,7 +1581,7 @@ const query =
 
 **Minor Issues**:
 
-- ⚠️ Some type assertions (`as Id<'organizations'>`) - acceptable for reactive params
+- ⚠️ Some type assertions (`as Id<'workspaces'>`) - acceptable for reactive params
 - ⚠️ `Meeting` interface duplicated in `useMeetings.svelte.ts` (should use Convex `Doc`)
 
 #### 4. **Error Handling**
@@ -1744,7 +1744,7 @@ const userMeetings = await Promise.all(
 // ✅ OPTIMIZED: Single query for all attendees
 const allAttendees = await ctx.db
 	.query('meetingAttendees')
-	.withIndex('by_organization_meeting', (q) => q.eq('organizationId', args.organizationId))
+	.withIndex('by_organization_meeting', (q) => q.eq('workspaceId', args.workspaceId))
 	.collect();
 
 // Group by meetingId
@@ -1889,7 +1889,7 @@ type Meeting = Doc<'meetings'> & {
 
 #### Priority 2: Optimize N+1 Query (HIGH VALUE)
 
-**Why**: Significant performance improvement for large organizations
+**Why**: Significant performance improvement for large workspaces
 
 **Steps**:
 
@@ -1978,7 +1978,7 @@ type Meeting = Doc<'meetings'> & {
 
 **Areas for Improvement**:
 
-- ⚠️ **Code organization**: Some utilities should be extracted
+- ⚠️ **Code workspace**: Some utilities should be extracted
 - ⚠️ **Performance**: N+1 queries should be optimized
 - ⚠️ **Testing**: Composable tests should be added
 

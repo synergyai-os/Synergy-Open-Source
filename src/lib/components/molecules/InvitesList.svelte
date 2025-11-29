@@ -3,7 +3,7 @@
 	import { Text } from '$lib/components/atoms';
 	import InviteItem from './InviteItem.svelte';
 
-	type OrganizationInvite = {
+	type WorkspaceInvite = {
 		inviteId: string;
 		organizationName: string;
 		role: string;
@@ -12,7 +12,7 @@
 	};
 
 	type Props = {
-		invites: OrganizationInvite[];
+		invites: WorkspaceInvite[];
 		onAccept?: (code: string) => void;
 		onDecline?: (inviteId: string) => void;
 		onClose?: () => void;

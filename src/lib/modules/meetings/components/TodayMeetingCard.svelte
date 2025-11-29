@@ -6,12 +6,13 @@
 
 	import { Button, Text, Heading, Icon, Avatar, Card } from '$lib/components/atoms';
 	import { todayMeetingCardRecipe } from '$lib/design-system/recipes';
+	import { DEFAULT_LOCALE } from '$lib/utils/locale';
 
 	interface Meeting {
 		title: string;
 		startTime: number;
 		duration: number;
-		visibility: 'public' | 'circle' | 'private';
+		visibility: 'public' | 'private';
 		startedAt?: number; // Meeting session started
 		closedAt?: number; // Meeting session closed
 	}
@@ -36,18 +37,22 @@
 	// Format date for badge
 	const startDate = $derived(new Date(meeting.startTime));
 	const month = $derived(
-		startDate.toLocaleDateString('en-US', { month: 'short' }).replace('.', '')
+		startDate.toLocaleDateString(DEFAULT_LOCALE, { month: 'short' }).replace('.', '')
 	);
 	const dayOfMonth = $derived(startDate.getDate());
-	const dayOfWeek = $derived(startDate.toLocaleDateString('en-US', { weekday: 'long' }));
+	const dayOfWeek = $derived(startDate.toLocaleDateString(DEFAULT_LOCALE, { weekday: 'long' }));
 
 	// Format time range
 	const startTimeStr = $derived(
-		startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+		startDate.toLocaleTimeString(DEFAULT_LOCALE, {
+			hour: 'numeric',
+			minute: '2-digit',
+			hour12: true
+		})
 	);
 	const endDate = $derived(new Date(meeting.startTime + meeting.duration * 60 * 1000));
 	const endTimeStr = $derived(
-		endDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+		endDate.toLocaleTimeString(DEFAULT_LOCALE, { hour: 'numeric', minute: '2-digit', hour12: true })
 	);
 
 	// Privacy icon

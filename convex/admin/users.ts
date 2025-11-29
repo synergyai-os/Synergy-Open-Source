@@ -70,7 +70,7 @@ export const getUserById = query({
 					roleId: role._id,
 					roleSlug: role.slug,
 					roleName: role.name,
-					organizationId: ur.organizationId,
+					workspaceId: ur.workspaceId,
 					circleId: ur.circleId,
 					assignedAt: ur.assignedAt,
 					expiresAt: ur.expiresAt,

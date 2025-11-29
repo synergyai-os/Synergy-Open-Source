@@ -1,13 +1,15 @@
 <script lang="ts">
 	/**
-	 * CreateMeetingModal - Full meeting creation form
-	 * Features: title, template, date/time, duration, recurrence, attendees, privacy
-	 *
-	 * SYOS-469: Refactored to use useMeetingForm composable - UI only
+	 * CreateMeetingModal - 3-step stepper wizard for meeting creation
+	 * Step 1: Attendees & Meeting Type
+	 * Step 2: Date, Time & Recurrence
+	 * Step 3: Finalize (Title, Review)
 	 */
 
 	import type { Id } from '$lib/convex';
 	import { Button, Text, Icon, Heading, FormInput, Combobox } from '$lib/components/atoms';
+	import Stepper from '$lib/components/molecules/Stepper.svelte';
+	import { DateTimeField } from '$lib/components/molecules';
 	import * as Dialog from '$lib/components/organisms/Dialog.svelte';
 	import AttendeeSelector from './AttendeeSelector.svelte';
 	import RecurrenceField from './RecurrenceField.svelte';
@@ -16,16 +18,16 @@
 	interface Props {
 		open: boolean;
 		onClose: () => void;
-		organizationId: string;
+		workspaceId: string;
 		sessionId: string;
 		circles?: Array<{ _id: Id<'circles'>; name: string }>;
 	}
 
-	let { open = $bindable(), onClose, organizationId, sessionId, circles = [] }: Props = $props();
+	let { open = $bindable(), onClose, workspaceId, sessionId, circles = [] }: Props = $props();
 
 	// Use composable for all logic
 	const form = useMeetingForm({
-		organizationId: () => organizationId,
+		workspaceId: () => workspaceId,
 		sessionId: () => sessionId,
 		circles: () => circles,
 		onSuccess: onClose
@@ -38,17 +40,22 @@
 		}
 	});
 
-	// Prepare template options for FormSelect
+	// Prepare template options for Combobox (meeting types)
 	const templateOptions = $derived(() => {
-		const options = [
-			{
-				value: '',
-				label:
-					form.templates.length === 0 ? 'No templates available (none)' : 'None (ad-hoc meeting)'
-			}
-		];
-		return [...options, ...form.templates.map((t) => ({ value: t._id, label: t.name }))];
+		return form.templates.map((t) => ({ value: t._id, label: t.name }));
 	});
+
+	// Stepper steps configuration
+	const steps = [
+		{ id: 'attendees-type', label: 'Attendees & Type' },
+		{ id: 'date-time', label: 'Date & Time' },
+		{ id: 'finalize', label: 'Finalize' }
+	];
+
+	// Handle step navigation
+	function handleStepChange(stepIndex: number) {
+		form.goToStep(stepIndex);
+	}
 </script>
 
 <Dialog.Root {open} onOpenChange={(value) => !value && onClose()}>
@@ -68,9 +75,9 @@
 			- Animation classes are Bits UI data attributes (framework-specific, acceptable)
 		-->
 		<Dialog.Content
-			class="max-w-dialog-wide rounded-dialog border-base shadow-card-hover p-modal data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] fixed top-[50%] left-[50%] z-50 max-h-[90vh] w-[min(100%,90vw)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto border bg-elevated"
+			class="rounded-dialog border-base shadow-card-hover p-modal data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] fixed top-[50%] left-[50%] z-50 max-h-[90vh] w-[min(520px,90vw)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto border bg-elevated"
 		>
-			<div class="flex flex-col gap-content-sectionGap card-padding">
+			<div class="flex flex-col gap-form card-padding">
 				<!-- Header -->
 				<div class="flex items-center justify-between">
 					<Dialog.Title>
@@ -81,108 +88,57 @@
 					</Button>
 				</div>
 
+				<!-- Stepper -->
+				<Stepper
+					{steps}
+					currentStep={form.currentStep}
+					onStepChange={handleStepChange}
+					canNavigateToStep={form.canNavigateToStep}
+				/>
+
 				<!-- Form -->
 				<form
 					onsubmit={(e) => (e.preventDefault(), form.handleSubmit())}
-					class="flex flex-col gap-content-sectionGap"
+					class="flex flex-col gap-form"
 				>
-					<div class="grid grid-cols-3 gap-content-sectionGap">
-						<!-- Left Column (2/3) -->
-						<div class="col-span-2 flex flex-col gap-form-sectionGap">
-							<!-- Title -->
-							<FormInput
-								id="title"
-								label="Title"
-								type="text"
-								bind:value={form.title}
-								placeholder="Meeting title"
-							/>
-
-							<!-- Template (Optional) -->
-							<Combobox
-								id="template"
-								label="Template (optional)"
-								bind:value={form.selectedTemplateId}
-								options={templateOptions()}
-								allowDeselect={true}
-								showLabel={true}
-							/>
-
-							<!-- Start Date/Time -->
+					<!-- Step 1: Attendees & Meeting Type -->
+					{#if form.currentStep === 0}
+						<div class="flex flex-col gap-form">
+							<!-- Meeting Type (Required) -->
 							<div>
-								<fieldset class="mb-fieldGroup">
-									<legend>
-										<Text
-											variant="body"
-											size="sm"
-											color="default"
-											as="span"
-											class="block font-medium"
-										>
-											Start date
-										</Text>
-									</legend>
-									<div
-										class="grid grid-cols-3 gap-fieldGroup"
-										style="margin-top: var(--spacing-form-gap);"
-									>
-										<div class="col-span-1">
-											<FormInput id="meeting-start-date" type="date" bind:value={form.startDate} />
-										</div>
-										<div class="col-span-1">
-											<FormInput id="meeting-start-time" type="time" bind:value={form.startTime} />
-										</div>
-										<div class="col-span-1 flex items-center gap-fieldGroup">
-											<FormInput
-												id="meeting-duration"
-												type="number"
-												bind:value={form.duration}
-												min="5"
-												max="480"
-												class="w-input-sm"
-											/>
-											<Text variant="body" size="sm" color="secondary" as="span">minutes</Text>
-										</div>
-									</div>
-								</fieldset>
+								<Combobox
+									id="meeting-type"
+									label="Meeting Type"
+									bind:value={form.selectedTemplateId}
+									options={templateOptions()}
+									allowDeselect={false}
+									showLabel={true}
+									required={true}
+								/>
+								{#if form.stepErrors[0].length > 0 && form.stepErrors[0].some( (e) => e.includes('type') )}
+									<Text variant="label" color="error" as="div" class="mt-fieldGroup">
+										{form.stepErrors[0].find((e) => e.includes('type'))}
+									</Text>
+								{/if}
 							</div>
 
-							<!-- Recurrence -->
-							<RecurrenceField
-								enabled={form.recurrenceEnabled}
-								frequency={form.recurrenceFrequency}
-								interval={form.recurrenceInterval}
-								daysOfWeek={form.recurrenceDaysOfWeek}
-								upcomingMeetings={form.upcomingMeetings}
-								weeklyScheduleMessage={form.weeklyScheduleMessage}
-								dailyScheduleMessage={form.dailyScheduleMessage}
-								onEnabledChange={(enabled) => {
-									form.recurrenceEnabled = enabled;
-								}}
-								onFrequencyChange={(frequency) => {
-									form.recurrenceFrequency = frequency;
-								}}
-								onIntervalChange={(interval) => {
-									form.recurrenceInterval = interval;
-								}}
-								onDaysOfWeekChange={(days) => {
-									form.recurrenceDaysOfWeek = days;
-								}}
-							/>
-
 							<!-- Attendees -->
-							<AttendeeSelector
-								bind:selectedAttendees={form.selectedAttendees}
-								onAttendeesChange={(attendees) => {
-									form.selectedAttendees = attendees;
-								}}
-								organizationId={organizationId as Id<'organizations'>}
-								{sessionId}
-							/>
-						</div>
+							<div>
+								<AttendeeSelector
+									bind:selectedAttendees={form.selectedAttendees}
+									onAttendeesChange={(attendees) => {
+										form.selectedAttendees = attendees;
+									}}
+									workspaceId={workspaceId as Id<'workspaces'>}
+									{sessionId}
+								/>
+								{#if form.stepErrors[0].length > 0 && form.stepErrors[0].some( (e) => e.includes('attendee') )}
+									<Text variant="label" color="error" as="div" class="mt-fieldGroup">
+										{form.stepErrors[0].find((e) => e.includes('attendee'))}
+									</Text>
+								{/if}
+							</div>
 
-						<!-- Right Column (1/3) -->
-						<div class="flex flex-col gap-form-sectionGap">
 							<!-- Privacy -->
 							<div>
 								<fieldset>
@@ -210,7 +166,7 @@
 													>Public</Text
 												>
 												<Text variant="label" color="secondary" as="div">
-													All organization members can see this meeting and access to the report
+													All workspace members can see this meeting and access to the report
 												</Text>
 											</div>
 										</label>
@@ -234,15 +190,155 @@
 								</fieldset>
 							</div>
 						</div>
-					</div>
+					{/if}
+
+					<!-- Step 2: Date, Time & Recurrence -->
+					{#if form.currentStep === 1}
+						<div class="flex flex-col gap-form">
+							<!-- Start Date/Time with natural language format -->
+							<DateTimeField
+								id="meeting-datetime"
+								bind:date={form.startDate}
+								bind:time={form.startTime}
+								bind:duration={form.duration}
+								required={true}
+								dateError={form.stepErrors[1].find((e) => e.includes('date')) || null}
+								timeError={form.stepErrors[1].find((e) => e.includes('time')) || null}
+								durationError={form.stepErrors[1].find((e) => e.includes('Duration')) || null}
+							/>
+
+							<!-- Recurrence -->
+							<RecurrenceField
+								enabled={form.recurrenceEnabled}
+								frequency={form.recurrenceFrequency}
+								interval={form.recurrenceInterval}
+								daysOfWeek={form.recurrenceDaysOfWeek}
+								upcomingMeetings={form.upcomingMeetings}
+								weeklyScheduleMessage={form.weeklyScheduleMessage}
+								dailyScheduleMessage={form.dailyScheduleMessage}
+								onEnabledChange={(enabled) => {
+									form.recurrenceEnabled = enabled;
+								}}
+								onFrequencyChange={(frequency) => {
+									form.recurrenceFrequency = frequency;
+								}}
+								onIntervalChange={(interval) => {
+									form.recurrenceInterval = interval;
+								}}
+								onDaysOfWeekChange={(days) => {
+									form.recurrenceDaysOfWeek = days;
+								}}
+							/>
+							{#if form.stepErrors[1].some((e) => e.includes('recurrence') || e.includes('day'))}
+								<Text variant="label" color="error" as="div">
+									{form.stepErrors[1].find((e) => e.includes('recurrence') || e.includes('day'))}
+								</Text>
+							{/if}
+						</div>
+					{/if}
+
+					<!-- Step 3: Finalize -->
+					{#if form.currentStep === 2}
+						<div class="flex flex-col gap-form">
+							<!-- Title -->
+							<div>
+								<FormInput
+									id="title"
+									label="Meeting Title"
+									type="text"
+									bind:value={form.title}
+									placeholder="Meeting title"
+									required={true}
+								/>
+								{#if form.stepErrors[2].length > 0}
+									<Text variant="label" color="error" as="div" class="mt-fieldGroup">
+										{form.stepErrors[2][0]}
+									</Text>
+								{/if}
+							</div>
+
+							<!-- Summary Preview -->
+							<div class="rounded-dialog border-base p-form bg-surface">
+								<Text
+									variant="body"
+									size="sm"
+									color="default"
+									as="div"
+									class="mb-fieldGroup font-medium"
+								>
+									Summary
+								</Text>
+								<div class="flex flex-col gap-fieldGroup text-sm">
+									<div>
+										<Text variant="label" color="secondary" as="span">Type:</Text>
+										<Text variant="body" size="sm" color="default" as="span">
+											{form.templates.find((t) => t._id === form.selectedTemplateId)?.name ||
+												'Not selected'}
+										</Text>
+									</div>
+									<div>
+										<Text variant="label" color="secondary" as="span">Attendees:</Text>
+										<Text variant="body" size="sm" color="default" as="span">
+											{form.selectedAttendees.length === 0
+												? 'None'
+												: form.selectedAttendees.map((a) => a.name).join(', ')}
+										</Text>
+									</div>
+									<div>
+										<Text variant="label" color="secondary" as="span">Date & Time:</Text>
+										<Text variant="body" size="sm" color="default" as="span">
+											{#if form.startDate && form.startTime}
+												{form.startDate.month}/{form.startDate.day}/{form.startDate.year} at {String(
+													form.startTime.hour
+												).padStart(2, '0')}:{String(form.startTime.minute).padStart(2, '0')}
+											{:else}
+												Not set
+											{/if}
+										</Text>
+									</div>
+									<div>
+										<Text variant="label" color="secondary" as="span">Duration:</Text>
+										<Text variant="body" size="sm" color="default" as="span">
+											{form.duration} minutes
+										</Text>
+									</div>
+									{#if form.recurrenceEnabled}
+										<div>
+											<Text variant="label" color="secondary" as="span">Recurrence:</Text>
+											<Text variant="body" size="sm" color="default" as="span">
+												{form.recurrenceFrequency} (every {form.recurrenceInterval})
+											</Text>
+										</div>
+									{/if}
+									<div>
+										<Text variant="label" color="secondary" as="span">Privacy:</Text>
+										<Text variant="body" size="sm" color="default" as="span">
+											{form.visibility === 'public' ? 'Public' : 'Private'}
+										</Text>
+									</div>
+								</div>
+							</div>
+						</div>
+					{/if}
 
 					<!-- Actions -->
 					<div
-						class="border-border-base flex justify-end gap-fieldGroup border-t"
+						class="border-border-base flex justify-between gap-fieldGroup border-t"
 						style="padding-top: var(--spacing-content-sectionGap);"
 					>
-						<Button variant="outline" type="button" onclick={onClose}>Close</Button>
-						<Button variant="primary" type="submit">Schedule</Button>
+						<div>
+							{#if form.currentStep > 0}
+								<Button variant="outline" type="button" onclick={form.previousStep}>Back</Button>
+							{/if}
+						</div>
+						<div class="flex gap-fieldGroup">
+							<Button variant="outline" type="button" onclick={onClose}>Close</Button>
+							{#if form.currentStep < 2}
+								<Button variant="primary" type="button" onclick={form.nextStep}>Next</Button>
+							{:else}
+								<Button variant="primary" type="submit">Schedule</Button>
+							{/if}
+						</div>
 					</div>
 				</form>
 			</div>
