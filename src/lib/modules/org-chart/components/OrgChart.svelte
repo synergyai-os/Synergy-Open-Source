@@ -246,66 +246,291 @@
 		return isLargeEnough && Boolean(hasPackedRoles);
 	}
 
-	// Truncate text to fit within circle radius
+	// Truncate text to fit within available width
+	// Uses rendered size (zoom-aware) for semantic zoom behavior
 	function truncateText(text: string, maxWidth: number, fontSize: number): string {
 		// Estimate character width (rough: fontSize * 0.6 for average character)
 		const charWidth = fontSize * 0.6;
 		const maxChars = Math.floor(maxWidth / charWidth);
 
 		if (text.length <= maxChars) return text;
-		return text.slice(0, Math.max(1, maxChars - 3)) + '...';
+		if (maxChars <= 3) return text.slice(0, Math.max(1, maxChars));
+		return text.slice(0, maxChars - 3) + '...';
+	}
+
+	// Calculate role label parameters based on RENDERED size (semantic zoom)
+	// As zoom increases, we show more text content - this is level-of-detail rendering
+	function getRoleLabelParams(role: RoleNode): {
+		fontSize: number;
+		maxChars: number;
+		displayText: string;
+	} {
+		// Use RENDERED radius (role.r * zoom) for semantic zoom behavior
+		const renderedRadius = role.r * currentZoomLevel;
+
+		// Font size scales with rendered radius, but we cap it for readability
+		// Smaller rendered = smaller font, larger rendered = larger font (up to cap)
+		// We use a visual font size target, then convert back to SVG space
+		const visualFontSize = Math.max(8, Math.min(renderedRadius / 3, 16));
+		const svgFontSize = visualFontSize / currentZoomLevel;
+
+		// Calculate how many characters fit at the VISUAL size
+		// Available visual width = renderedRadius * 1.8 (slightly more generous)
+		const visualWidth = renderedRadius * 1.8;
+		const visualCharWidth = visualFontSize * 0.55; // tighter estimate for better fit
+		const maxChars = Math.floor(visualWidth / visualCharWidth);
+
+		// Generate display text
+		let displayText: string;
+		if (role.name.length <= maxChars) {
+			displayText = role.name;
+		} else if (maxChars <= 3) {
+			displayText = role.name.slice(0, Math.max(1, maxChars));
+		} else {
+			displayText = role.name.slice(0, maxChars - 3) + '...';
+		}
+
+		return { fontSize: svgFontSize, maxChars, displayText };
+	}
+
+	// Process circle name for display: smart word wrap + truncation
+	// Returns array of lines (max 2) with proper word breaks
+	function processCircleName(
+		name: string,
+		maxCharsPerLine: number
+	): { lines: string[]; wasTruncated: boolean } {
+		// Short names fit on one line
+		if (name.length <= maxCharsPerLine) {
+			return { lines: [name], wasTruncated: false };
+		}
+
+		const words = name.split(/\s+/);
+		const lines: string[] = [];
+		let currentLine = '';
+		let wasTruncated = false;
+
+		for (const word of words) {
+			// If we already have 2 lines, we need to truncate
+			if (lines.length >= 2) {
+				wasTruncated = true;
+				break;
+			}
+
+			const testLine = currentLine ? `${currentLine} ${word}` : word;
+
+			if (testLine.length <= maxCharsPerLine) {
+				// Word fits on current line
+				currentLine = testLine;
+			} else if (currentLine === '') {
+				// Word itself is too long - truncate it
+				if (lines.length === 0) {
+					// First line: truncate word
+					currentLine = word.slice(0, maxCharsPerLine - 3) + '...';
+					wasTruncated = true;
+				} else {
+					// Second line: truncate word
+					lines.push(word.slice(0, maxCharsPerLine - 3) + '...');
+					wasTruncated = true;
+					currentLine = '';
+					break;
+				}
+			} else {
+				// Start new line with this word
+				lines.push(currentLine);
+				currentLine = word;
+			}
+		}
+
+		// Don't forget the last line
+		if (currentLine && lines.length < 2) {
+			// Check if we need to truncate the last line
+			if (currentLine.length > maxCharsPerLine) {
+				lines.push(currentLine.slice(0, maxCharsPerLine - 3) + '...');
+				wasTruncated = true;
+			} else {
+				lines.push(currentLine);
+			}
+		} else if (currentLine && lines.length >= 2) {
+			// We have leftover text that doesn't fit
+			wasTruncated = true;
+			// Add ellipsis to last line if not already there
+			if (lines[1] && !lines[1].endsWith('...')) {
+				const lastLine = lines[1];
+				if (lastLine.length > maxCharsPerLine - 3) {
+					lines[1] = lastLine.slice(0, maxCharsPerLine - 3) + '...';
+				} else {
+					lines[1] = lastLine + '...';
+				}
+			}
+		}
+
+		return { lines, wasTruncated };
+	}
+
+	// Calculate circle label parameters based on RENDERED size (semantic zoom)
+	// As zoom increases, we show the name at appropriate visual size
+	function getCircleLabelParams(node: CircleHierarchyNode): {
+		fontSize: number;
+		labelWidth: number;
+		labelHeight: number;
+		yOffset: number;
+		displayLines: string[]; // Processed text lines for display
+	} {
+		const name = node.data.name;
+
+		// Use RENDERED radius for semantic zoom behavior
+		const renderedRadius = node.r * currentZoomLevel;
+
+		// Base visual font size scales with rendered radius
+		// Larger circles = larger text, but capped for readability
+		let baseVisualFontSize = Math.max(12, Math.min(renderedRadius / 5, 20));
+
+		// LONG NAME ADJUSTMENT: Slightly smaller font for names > 20 chars
+		if (name.length > 20) {
+			baseVisualFontSize *= 0.85;
+		}
+		if (name.length > 30) {
+			baseVisualFontSize *= 0.9; // Additional reduction for very long names
+		}
+
+		// Depth multiplier: root circles get slightly larger text
+		const depthMultiplier = Math.max(0.7, 2.0 - node.depth * 0.3);
+
+		// Final visual font size with MIN and MAX caps
+		const visualFontSize = Math.max(10, Math.min(baseVisualFontSize * depthMultiplier, 32));
+
+		// Convert to SVG space (counter-scale)
+		const svgFontSize = visualFontSize / currentZoomLevel;
+
+		// Label dimensions based on rendered size, converted to SVG space
+		const visualLabelWidth = Math.min(renderedRadius * 1.6, 300);
+		const svgLabelWidth = visualLabelWidth / currentZoomLevel;
+
+		// Calculate max characters per line based on visual width and font size
+		const visualCharWidth = visualFontSize * 0.55;
+		const maxCharsPerLine = Math.floor(visualLabelWidth / visualCharWidth);
+
+		// Process the name for display (smart word wrap + truncation)
+		const { lines: displayLines } = processCircleName(name, maxCharsPerLine);
+
+		// Adjust label height based on number of lines
+		const lineCount = displayLines.length;
+		const svgLabelHeight = svgFontSize * (1.3 * lineCount + 0.5);
+
+		// Position label toward TOP of circle if it has children (to avoid overlap)
+		const hasChildren = node.children && node.children.length > 0;
+		const yOffset = hasChildren ? -node.r * 0.3 : 0;
+
+		return {
+			fontSize: svgFontSize,
+			labelWidth: svgLabelWidth,
+			labelHeight: svgLabelHeight,
+			yOffset,
+			displayLines
+		};
 	}
 
 	// Determine if circle name should be visible
-	// Show labels for all circles that meet size requirements (accounting for zoom)
+	// Uses depth-relative visibility to avoid overlap (Holaspirit pattern)
 	function shouldShowCircleName(node: CircleHierarchyNode): boolean {
-		// Always show root level circles (highest level)
-		const isRootLevel = node.depth === 0;
-		if (isRootLevel) {
-			return true;
-		}
-
 		// Calculate rendered size (radius * zoom level)
 		const renderedRadius = node.r * currentZoomLevel;
 
-		// Show if rendered size is large enough to display readable label
-		// Minimum readable size: 40px rendered radius = ~10px font size
-		const isLargeEnough = renderedRadius > 40;
+		// Minimum size threshold - don't show labels for tiny circles
+		if (renderedRadius < 50) {
+			return false;
+		}
 
-		// Show if zoomed in enough (zoom level > 1.1)
-		const isZoomedIn = currentZoomLevel > 1.1;
+		// Check if this circle has visible children
+		const hasVisibleChildren =
+			node.children &&
+			node.children.some((child) => {
+				const childNode = child as CircleHierarchyNode;
+				// Child is visible if it's not synthetic and has meaningful size
+				return (
+					!isSyntheticRole(childNode.data.circleId) &&
+					!isRolesGroup(childNode.data.circleId) &&
+					childNode.r * currentZoomLevel > 80
+				);
+			});
 
-		// Show if focused (for context when zooming into specific circle)
+		// DEPTH-RELATIVE VISIBILITY (Holaspirit pattern):
+		// Hide parent labels when children are prominent
+		// This prevents overlap between parent name and child circles
+		if (hasVisibleChildren) {
+			// Check if children are taking up significant visual space
+			const childrenRenderedSize = node.children!.reduce((sum, child) => {
+				const childNode = child as CircleHierarchyNode;
+				if (!isSyntheticRole(childNode.data.circleId) && !isRolesGroup(childNode.data.circleId)) {
+					return sum + childNode.r * currentZoomLevel;
+				}
+				return sum;
+			}, 0);
+
+			// If children occupy significant space relative to parent, hide parent label
+			const childrenRatio = childrenRenderedSize / renderedRadius;
+			if (childrenRatio > 1.5) {
+				// Only show if this is the focused circle (user explicitly selected it)
+				const isFocused = focusNode?.data.circleId === node.data.circleId;
+				return isFocused;
+			}
+		}
+
+		// Show if focused (user explicitly selected this circle)
 		const isFocused = focusNode?.data.circleId === node.data.circleId;
+		if (isFocused) {
+			return true;
+		}
 
-		// Show if parent/child of focused (Observable pattern)
-		const isRelatedToFocused =
-			focusNode &&
-			(node === focusNode ||
-				(focusNode.parent !== null && node === focusNode.parent) ||
-				(focusNode.parent !== null && node.parent === focusNode));
+		// Show if it's a relatively large circle
+		if (renderedRadius > 100) {
+			return true;
+		}
 
-		return isLargeEnough || isZoomedIn || isFocused || Boolean(isRelatedToFocused);
+		// Show if zoomed in enough that this depth is prominent
+		const isZoomedIn = currentZoomLevel > 1.5;
+		if (isZoomedIn && renderedRadius > 60) {
+			return true;
+		}
+
+		return false;
 	}
 
-	// Determine if role label should be visible (accounting for zoom and circle name priority)
-	function shouldShowRoleLabel(role: RoleNode, circleNode: CircleHierarchyNode): boolean {
+	// Determine if role label should be visible (based purely on rendered size)
+	// Holaspirit pattern: roles become readable when zoomed in close enough
+	function shouldShowRoleLabel(role: RoleNode, _circleNode: CircleHierarchyNode): boolean {
 		// Calculate rendered size (radius * zoom level)
 		const renderedRadius = role.r * currentZoomLevel;
 
-		// Hide if rendered size is too small (minimum readable: 12px rendered = ~6px font)
-		if (renderedRadius < 12) {
-			return false;
+		// Show label when role is large enough to be readable (minimum: 20px rendered radius)
+		// This is independent of circle name visibility - roles show their own labels
+		// when zoomed in close enough, regardless of what else is visible
+		return renderedRadius >= 20;
+	}
+
+	// Calculate role opacity based on rendered size (progressive disclosure)
+	// Holaspirit pattern: roles are low opacity when small, higher when larger
+	function getRoleOpacity(role: RoleNode): number {
+		const renderedRadius = role.r * currentZoomLevel;
+
+		// Progressive opacity: 0.3 at minimum visible size, 1.0 at readable size
+		// Minimum visible: 8px rendered → opacity 0.3
+		// Readable size: 25px rendered → opacity 1.0
+		const minSize = 8;
+		const maxSize = 25;
+		const minOpacity = 0.3;
+		const maxOpacity = 1.0;
+
+		if (renderedRadius <= minSize) {
+			return minOpacity;
+		}
+		if (renderedRadius >= maxSize) {
+			return maxOpacity;
 		}
 
-		// Hide role labels when circle name is visible (prioritize circle name)
-		// Only show role labels if circle name is NOT visible
-		const circleNameVisible = shouldShowCircleName(circleNode);
-		if (circleNameVisible) {
-			return false;
-		}
-
-		return true;
+		// Linear interpolation between min and max
+		const t = (renderedRadius - minSize) / (maxSize - minSize);
+		return minOpacity + t * (maxOpacity - minOpacity);
 	}
 
 	// D3 Zoom behavior for trackpad/mouse wheel
@@ -711,6 +936,7 @@
 						<g clip-path="url(#clip-{node.data.circleId})">
 							{#each node.data.packedRoles as role (role.roleId)}
 								{@const roleLabelVisible = shouldShowRoleLabel(role, node)}
+								{@const roleOpacity = getRoleOpacity(role)}
 								{@const isRoleSelected = orgChart.selectedRoleId === role.roleId}
 								<g
 									transform="translate({role.x},{role.y})"
@@ -729,23 +955,21 @@
 									}}
 									style="pointer-events: all;"
 								>
-									<!-- Role circle - solid primary fill, clearly distinct from container circles -->
+									<!-- Role circle - progressive opacity based on zoom/size (Holaspirit pattern) -->
 									<circle
 										cx="0"
 										cy="0"
 										r={role.r}
 										fill={getRoleFillColor()}
-										fill-opacity="1"
+										fill-opacity={isRoleSelected ? 1 : roleOpacity}
 										stroke={getRoleStrokeColor()}
 										stroke-width={isRoleSelected ? 2.5 : 1}
-										stroke-opacity={isRoleSelected ? 1 : 0.3}
+										stroke-opacity={isRoleSelected ? 1 : roleOpacity * 0.5}
 										style="pointer-events: all;"
 									/>
-									<!-- Role name label - design system font with stroke for readability -->
+									<!-- Role name label - semantic zoom: shows more text as you zoom in -->
 									{#if roleLabelVisible}
-										{@const roleFontSize = Math.max(6, Math.min(role.r / 2, 10))}
-										{@const maxTextWidth = role.r * 1.6}
-										{@const truncatedRoleName = truncateText(role.name, maxTextWidth, roleFontSize)}
+										{@const labelParams = getRoleLabelParams(role)}
 										<text
 											x="0"
 											y="0"
@@ -754,9 +978,9 @@
 											class="role-label pointer-events-none select-none"
 											style="font-family: var(--typography-fontFamily-sans); font-weight: 500; paint-order: stroke fill;"
 											fill={getRoleTextColor()}
-											font-size={roleFontSize}
+											font-size={labelParams.fontSize}
 										>
-											{truncatedRoleName}
+											{labelParams.displayText}
 										</text>
 									{/if}
 								</g>
@@ -769,40 +993,41 @@
 			<!-- Second pass: Render circle names on top (sorted by depth descending so root appears on top) -->
 			{#each visibleNodes.slice().sort((a, b) => b.depth - a.depth) as node (node.data.circleId)}
 				{@const showCircleName = shouldShowCircleName(node)}
-				{@const baseFontSize = Math.max(10, Math.min(node.r / 4, 14))}
-				{@const depthMultiplier = Math.max(0.5, 3 - node.depth * 0.5)}
-				{@const fontSize = Math.max(6, Math.min(baseFontSize * depthMultiplier, 42))}
-				{@const labelWidth = node.r * 1.8}
-				{@const labelHeight = fontSize * 2.5}
+				{@const labelParams = getCircleLabelParams(node)}
 				{#if showCircleName}
-					<g transform="translate({node.x},{node.y})">
+					<!-- Position at circle center + yOffset (moves label up for circles with children) -->
+					<g transform="translate({node.x},{node.y + labelParams.yOffset})">
 						<!-- foreignObject allows HTML text with full CSS/design system support -->
+						<!-- Semantic zoom: label dimensions adapt to current zoom level -->
+						<!-- yOffset positions label toward top to avoid child overlap -->
 						<foreignObject
-							x={-labelWidth / 2}
-							y={-labelHeight / 2}
-							width={labelWidth}
-							height={labelHeight}
+							x={-labelParams.labelWidth / 2}
+							y={-labelParams.labelHeight / 2}
+							width={labelParams.labelWidth}
+							height={labelParams.labelHeight}
 							class="pointer-events-none overflow-visible"
 						>
 							<div
 								xmlns="http://www.w3.org/1999/xhtml"
-								class="flex h-full w-full items-center justify-center"
+								class="flex h-full w-full flex-col items-center justify-center"
 							>
-								<span
-									class="circle-label text-center font-sans font-semibold select-none"
-									style="
-										font-size: {fontSize}px;
-										color: var(--color-component-orgChart-label-text);
-										text-shadow: 
-											0 0 3px var(--color-component-orgChart-circle-fill),
-											0 0 6px var(--color-component-orgChart-circle-fill),
-											0 1px 2px rgba(0,0,0,0.3);
-										line-height: 1.2;
-										word-break: break-word;
-									"
-								>
-									{node.data.name}
-								</span>
+								<!-- Smart word wrap: render each line separately -->
+								{#each labelParams.displayLines as line, i}
+									<span
+										class="circle-label text-center font-sans font-semibold select-none"
+										style="
+											font-size: {labelParams.fontSize}px;
+											color: var(--color-component-orgChart-label-text);
+											text-shadow: 
+												0 0 3px var(--color-component-orgChart-circle-fill),
+												0 0 6px var(--color-component-orgChart-circle-fill),
+												0 1px 2px rgba(0,0,0,0.3);
+											line-height: 1.3;
+										"
+									>
+										{line}
+									</span>
+								{/each}
 							</div>
 						</foreignObject>
 					</g>

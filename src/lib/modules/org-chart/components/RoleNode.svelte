@@ -4,8 +4,14 @@
 	 *
 	 * Extracted from OrgChart.svelte for isolated design/testing.
 	 * Use this component in Storybook to design/test role interactions.
+	 *
+	 * See: src/lib/modules/org-chart/COLOR_STRATEGY.md for color system docs
 	 */
-	import { getCircleColor } from '$lib/utils/orgChartTransform';
+	import {
+		getRoleFillColor,
+		getRoleTextColor,
+		getRoleStrokeColor
+	} from '$lib/utils/orgChartTransform';
 	import type { RoleNode, CircleHierarchyNode } from '$lib/utils/orgChartTransform';
 
 	let {
@@ -13,16 +19,16 @@
 		circleNode,
 		zoomLevel = 1.0,
 		showLabel = true,
+		isSelected = false,
 		onClick = () => {}
 	}: {
 		role: RoleNode;
 		circleNode: CircleHierarchyNode;
 		zoomLevel?: number;
 		showLabel?: boolean;
+		isSelected?: boolean;
 		onClick?: (event: MouseEvent) => void;
 	} = $props();
-
-	const color = getCircleColor(circleNode.depth);
 
 	// Truncate text to fit within circle radius
 	function truncateText(text: string, maxWidth: number, fontSize: number): string {
@@ -56,31 +62,30 @@
 	}}
 	style="pointer-events: all;"
 >
-	<!-- Role circle -->
+	<!-- Role circle - solid primary fill, clearly distinct from container circles -->
 	<circle
 		cx="0"
 		cy="0"
 		r={role.r}
-		fill="white"
-		fill-opacity="0.9"
-		stroke={color}
-		stroke-width="1"
-		stroke-opacity="0.6"
+		fill={getRoleFillColor()}
+		fill-opacity="1"
+		stroke={getRoleStrokeColor()}
+		stroke-width={isSelected ? 2.5 : 1}
+		stroke-opacity={isSelected ? 1 : 0.3}
 		style="pointer-events: all;"
 	/>
 
-	<!-- Role name label -->
+	<!-- Role name label - white text on primary background -->
 	{#if shouldShowLabel}
 		<text
 			x="0"
 			y="0"
 			text-anchor="middle"
 			dominant-baseline="middle"
-			class="role-label pointer-events-none select-none"
-			fill="black"
-			fill-opacity="0.85"
+			class="role-label pointer-events-none select-none font-medium"
+			fill={getRoleTextColor()}
+			fill-opacity="1"
 			font-size={fontSize}
-			style="text-shadow: 0 0 2px rgba(255,255,255,0.8);"
 		>
 			{truncatedName}
 		</text>
@@ -93,9 +98,10 @@
 	}
 
 	.role-circle-group:focus-visible circle {
-		stroke: var(--color-accent-primary);
-		stroke-width: 2;
-		outline: 2px solid var(--color-accent-primary);
+		stroke: var(--color-component-orgChart-role-stroke);
+		stroke-width: 2.5;
+		stroke-opacity: 1;
+		outline: 2px solid var(--color-component-orgChart-role-stroke);
 		outline-offset: 2px;
 	}
 
@@ -103,12 +109,13 @@
 		transition:
 			stroke-width 0.2s ease,
 			stroke-opacity 0.2s ease,
-			filter 0.2s ease;
+			filter 0.2s ease,
+			transform 0.2s ease;
 	}
 
 	.role-circle-group:hover circle {
-		filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-		stroke-width: 2;
-		stroke-opacity: 0.8;
+		filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.25));
+		stroke-width: 1.5;
+		stroke-opacity: 0.5;
 	}
 </style>

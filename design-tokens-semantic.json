@@ -669,6 +669,99 @@
 					},
 					"$description": "Modal/overlay backdrop"
 				}
+			},
+
+			"orgChart": {
+				"$description": "Org chart visualization - circles are containers, roles are entities",
+				"circle": {
+					"$description": "Circle (container) colors - light background, same for all depths",
+					"fill": {
+						"$type": "color",
+						"$value": {
+							"light": "{color.orgChart.circle.fill}",
+							"dark": "oklch(30% 0.06 195)"
+						},
+						"$description": "Circle fill - light teal tint (light) / dark teal (dark)"
+					},
+					"stroke": {
+						"$type": "color",
+						"$value": {
+							"light": "{color.orgChart.circle.stroke}",
+							"dark": "oklch(45% 0.08 195)"
+						},
+						"$description": "Circle boundary stroke"
+					},
+					"strokeHover": {
+						"$type": "color",
+						"$value": {
+							"light": "{color.orgChart.circle.strokeHover}",
+							"dark": "oklch(55% 0.10 195)"
+						},
+						"$description": "Circle stroke on hover (dashed)"
+					},
+					"strokeActive": {
+						"$type": "color",
+						"$value": {
+							"light": "{color.brand.primary}",
+							"dark": "{color.brand.primaryLight}"
+						},
+						"$description": "Circle stroke when active/selected (solid, primary)"
+					}
+				},
+				"role": {
+					"$description": "Role (entity) colors - solid, prominent",
+					"fill": {
+						"$type": "color",
+						"$value": {
+							"light": "{color.orgChart.role.fill}",
+							"dark": "{color.brand.primaryLight}"
+						},
+						"$description": "Role fill - brand primary"
+					},
+					"fillHover": {
+						"$type": "color",
+						"$value": {
+							"light": "{color.orgChart.role.fillHover}",
+							"dark": "{color.brand.primary}"
+						},
+						"$description": "Role fill on hover"
+					},
+					"text": {
+						"$type": "color",
+						"$value": {
+							"light": "{color.orgChart.role.text}",
+							"dark": "{color.neutral.900}"
+						},
+						"$description": "Role text - white on light mode, dark on dark mode"
+					},
+					"stroke": {
+						"$type": "color",
+						"$value": {
+							"light": "{color.orgChart.role.stroke}",
+							"dark": "{color.neutral.900}"
+						},
+						"$description": "Role stroke for glow/ring effect"
+					}
+				},
+				"label": {
+					"$description": "Label text colors",
+					"text": {
+						"$type": "color",
+						"$value": {
+							"light": "{color.orgChart.label.onCircle}",
+							"dark": "{color.neutral.100}"
+						},
+						"$description": "Circle label text"
+					},
+					"stroke": {
+						"$type": "color",
+						"$value": {
+							"light": "{color.orgChart.label.onCircleStroke}",
+							"dark": "oklch(20% 0.02 195)"
+						},
+						"$description": "Circle label stroke for readability"
+					}
+				}
 			}
 		}
 	},

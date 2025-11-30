@@ -18,7 +18,7 @@
 	class="h-system-header border-base px-inbox-container py-system-header flex flex-shrink-0 items-center justify-between border-b"
 >
 	<h2 class="text-h3 font-semibold text-primary">{circleName}</h2>
-	<div class="flex items-center gap-2">
+	<div class="flex items-center gap-button">
 		{#if addMenuItems.length > 0}
 			<SplitButton
 				primaryLabel="Add"
@@ -34,7 +34,7 @@
 		{#if onEdit}
 			<button
 				type="button"
-				class="px-card text-button hover:bg-hover-solid rounded-button border border-accent-primary bg-white py-input-y font-medium text-accent-primary transition-colors"
+				class="px-card text-button hover:bg-hover-solid rounded-button border border-accent-primary bg-surface py-input-y font-medium text-accent-primary transition-colors"
 				onclick={onEdit}
 			>
 				Edit circle

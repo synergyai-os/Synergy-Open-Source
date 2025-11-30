@@ -316,17 +316,86 @@ export function calculateCircleValue(
 }
 
 /**
- * Get color for circle based on depth level
+ * ============================================================================
+ * ORG CHART COLOR SYSTEM
+ * ============================================================================
+ *
+ * Design Philosophy:
+ * - CIRCLES are containers (teams, departments) → light, subtle, background-like
+ * - ROLES are entities (positions, people) → solid, prominent, foreground-like
+ *
+ * Why single color for all circle depths?
+ * - Scales to unlimited depth without running out of colors
+ * - Hierarchy communicated through: nesting, size, stroke weight
+ * - Avoids semantic confusion (no status colors misused for depth)
+ *
+ * Interactive States:
+ * - Default: light fill, subtle stroke
+ * - Hover (non-active): DASHED stroke, increased opacity
+ * - Active/Selected: SOLID primary stroke
+ *
+ * See: src/lib/modules/org-chart/COLOR_STRATEGY.md for full documentation
+ * ============================================================================
  */
-export function getCircleColor(depth: number): string {
-	const colors = [
-		'hsl(210, 70%, 60%)', // Level 0 (root) - blue
-		'hsl(140, 60%, 55%)', // Level 1 - green
-		'hsl(30, 80%, 60%)', // Level 2 - orange
-		'hsl(280, 60%, 65%)', // Level 3 - purple
-		'hsl(0, 70%, 60%)' // Level 4+ - red
-	];
-	return colors[Math.min(depth, colors.length - 1)];
+
+/**
+ * Get fill color for circles (containers)
+ * Returns the same color for ALL depths - hierarchy shown through nesting/size
+ */
+export function getCircleColor(_depth?: number): string {
+	// Single color for all depths - uses semantic token with light/dark mode support
+	return 'var(--color-component-orgChart-circle-fill)';
+}
+
+/**
+ * Get stroke color for circles based on state
+ */
+export function getCircleStrokeColor(state: 'default' | 'hover' | 'active'): string {
+	switch (state) {
+		case 'active':
+			return 'var(--color-component-orgChart-circle-strokeActive)';
+		case 'hover':
+			return 'var(--color-component-orgChart-circle-strokeHover)';
+		default:
+			return 'var(--color-component-orgChart-circle-stroke)';
+	}
+}
+
+/**
+ * Get fill color for roles (entities)
+ */
+export function getRoleFillColor(state: 'default' | 'hover' = 'default'): string {
+	return state === 'hover'
+		? 'var(--color-component-orgChart-role-fillHover)'
+		: 'var(--color-component-orgChart-role-fill)';
+}
+
+/**
+ * Get text color for role labels
+ */
+export function getRoleTextColor(): string {
+	return 'var(--color-component-orgChart-role-text)';
+}
+
+/**
+ * Get stroke color for roles
+ */
+export function getRoleStrokeColor(): string {
+	return 'var(--color-component-orgChart-role-stroke)';
+}
+
+/**
+ * Get text color for circle labels
+ */
+export function getCircleLabelColor(): string {
+	return 'var(--color-component-orgChart-label-text)';
+}
+
+/**
+ * Get stroke color for circle labels (text outline for readability)
+ */
+export function getCircleLabelStrokeColor(): string {
+	return 'var(--color-component-orgChart-label-stroke)';
 }
 
 /**

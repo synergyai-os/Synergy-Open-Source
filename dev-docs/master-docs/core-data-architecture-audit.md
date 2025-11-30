@@ -417,7 +417,7 @@ src/lib/modules/
 **Actions**:
 1. ✅ Remove core data from module registry - Verified: workspaces, organizational-model, users are NOT registered
 2. ✅ Update module discovery to exclude infrastructure - Infrastructure is directly importable, not via registry
-3. ✅ Verify feature flags for core data - Confirmed: `org_module_beta` only controls visualization, not core data
+3. ✅ Verify feature flags for core data - Confirmed: org-chart visualization is now always-on (feature flag removed)
 4. ✅ Update documentation - Updated org-chart manifest comments and audit document
 
 **Files Updated**:
@@ -427,7 +427,7 @@ src/lib/modules/
 **Validation**:
 - ✅ No infrastructure code in module registry (verified)
 - ✅ All modules load correctly (core module provides shared features, not core data)
-- ✅ Feature flags only control optional features (`org_module_beta` controls visualization only)
+- ✅ Feature flags only control optional features (org-chart is now always-on, core functionality)
 
 ---
 

@@ -263,6 +263,61 @@ export const getBySlug = query({
 	}
 });
 
+/**
+ * Get workspace by ID
+ * Validates user has access to the workspace via sessionId
+ * Used for ID-based URL resolution (redirects to current slug)
+ */
+export const getById = query({
+	args: {
+		workspaceId: v.id('workspaces'),
+		sessionId: v.string() // Session validation (derives userId securely)
+	},
+	handler: async (ctx, args) => {
+		// Validate session and get userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		// Get workspace by ID
+		const workspace = await ctx.db.get(args.workspaceId);
+
+		if (!workspace) {
+			return null;
+		}
+
+		// Verify user has access to this workspace
+		const membership = await ctx.db
+			.query('workspaceMembers')
+			.withIndex('by_workspace_user', (q) =>
+				q.eq('workspaceId', workspace._id).eq('userId', userId)
+			)
+			.first();
+
+		if (!membership) {
+			// User doesn't have access - return null (don't leak workspace existence)
+			return null;
+		}
+
+		// Return workspace summary (matches getBySlug format)
+		const memberCount = await ctx.db
+			.query('workspaceMembers')
+			.withIndex('by_workspace', (q) => q.eq('workspaceId', workspace._id))
+			.collect();
+
+		return {
+			workspaceId: workspace._id,
+			name: workspace.name,
+			initials: initialsFromName(workspace.name),
+			slug: workspace.slug,
+			plan: workspace.plan,
+			createdAt: workspace.createdAt,
+			updatedAt: workspace.updatedAt,
+			role: membership.role,
+			joinedAt: membership.joinedAt,
+			memberCount: memberCount.length
+		};
+	}
+});
+
 export const listWorkspaceInvites = query({
 	args: {
 		sessionId: v.string()
@@ -1170,6 +1225,90 @@ export const updateBranding = mutation({
 		});
 
 		return { success: true };
+	}
+});
+
+/**
+ * Update workspace slug
+ * Creates an alias for the old slug to maintain URL stability
+ * Requires org admin/owner role
+ */
+export const updateSlug = mutation({
+	args: {
+		sessionId: v.string(),
+		workspaceId: v.id('workspaces'),
+		newSlug: v.string()
+	},
+	handler: async (ctx, args) => {
+		// Auth: Validate session + require org admin
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		// Check user is org admin/owner
+		const membership = await ctx.db
+			.query('workspaceMembers')
+			.withIndex('by_workspace_user', (q) =>
+				q.eq('workspaceId', args.workspaceId).eq('userId', userId)
+			)
+			.first();
+
+		if (!membership || membership.role === 'member') {
+			throw new Error('Must be org admin or owner to update slug');
+		}
+
+		// Get current workspace
+		const workspace = await ctx.db.get(args.workspaceId);
+		if (!workspace) {
+			throw new Error('Workspace not found');
+		}
+
+		const oldSlug = workspace.slug;
+		const trimmedSlug = args.newSlug.trim().toLowerCase();
+
+		// Validate slug format
+		if (!/^[a-z0-9-]+$/.test(trimmedSlug)) {
+			throw new Error('Slug can only contain lowercase letters, numbers, and hyphens');
+		}
+
+		if (trimmedSlug.length < 2 || trimmedSlug.length > 48) {
+			throw new Error('Slug must be between 2 and 48 characters');
+		}
+
+		// Validate reserved slugs
+		if (isReservedSlug(trimmedSlug)) {
+			throw new Error(
+				`"${trimmedSlug}" is a reserved name and cannot be used. Please choose a different slug.`
+			);
+		}
+
+		// Check if new slug is already taken (by current workspace or another)
+		const existing = await ctx.db
+			.query('workspaces')
+			.withIndex('by_slug', (q) => q.eq('slug', trimmedSlug))
+			.first();
+
+		if (existing && existing._id !== args.workspaceId) {
+			throw new Error(`Slug "${trimmedSlug}" is already taken`);
+		}
+
+		// If slug hasn't changed, no-op
+		if (oldSlug === trimmedSlug) {
+			return { success: true, slug: trimmedSlug };
+		}
+
+		// Create alias for old slug (preserves old URLs)
+		await ctx.scheduler.runAfter(0, internal.workspaceAliases.createAlias, {
+			workspaceId: args.workspaceId,
+			slug: oldSlug
+		});
+
+		// Update workspace slug
+		const now = Date.now();
+		await ctx.db.patch(args.workspaceId, {
+			slug: trimmedSlug,
+			updatedAt: now
+		});
+
+		return { success: true, slug: trimmedSlug };
 	}
 });
 

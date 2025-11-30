@@ -101,16 +101,15 @@
 
 <div class="border-base flex h-full flex-col rounded-card border bg-surface">
 	<!-- Panel Header -->
-	<div class="border-base py-nav-item border-b px-2">
+	<div class="border-base py-nav-item border-b px-button-sm-x">
 		<div class="flex items-center justify-between">
 			<div>
 				<h2 class="text-button font-semibold text-primary">Roles</h2>
-				<p class="mt-1 text-label text-secondary">{roles.length} roles</p>
+				<p class="mt-fieldGroup text-label text-secondary">{roles.length} roles</p>
 			</div>
 			<button
 				onclick={() => (showCreateForm = !showCreateForm)}
-				class="hover:bg-sidebar-hover rounded-button text-secondary hover:text-primary"
-				style="padding: var(--spacing-2);"
+				class="hover:bg-sidebar-hover rounded-button text-secondary hover:text-primary inset-sm"
 				title="Create role"
 			>
 				<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,7 +126,7 @@
 
 	<!-- Create Role Form -->
 	{#if showCreateForm}
-		<div class="border-base py-nav-item border-b px-2">
+		<div class="border-base py-nav-item border-b px-button-sm-x">
 			<form
 				onsubmit={(e) => {
 					e.preventDefault();
@@ -148,7 +147,7 @@
 					rows={2}
 					class="border-base text-button w-full rounded-button border bg-elevated px-input-x py-input-y text-primary focus:border-accent-primary focus:outline-none"
 				></textarea>
-				<div class="flex gap-2">
+				<div class="flex gap-button">
 					<button
 						type="button"
 						onclick={() => {
@@ -173,7 +172,7 @@
 	{/if}
 
 	<!-- Roles List -->
-	<div class="py-nav-item flex-1 overflow-y-auto px-2">
+	<div class="py-nav-item flex-1 overflow-y-auto px-button-sm-x">
 		{#if roles.length === 0}
 			<div class="flex h-32 items-center justify-center text-center">
 				<p class="text-button text-secondary">No roles yet</p>
@@ -188,7 +187,7 @@
 								onclick={() => toggleRoleExpand(role.roleId)}
 								class="min-w-0 flex-1 text-left"
 							>
-								<div class="flex items-center gap-2">
+								<div class="flex items-center gap-button">
 									<svg
 										class="size-[0.75rem] flex-shrink-0 transition-transform {expandedRoleId ===
 										role.roleId
@@ -208,15 +207,14 @@
 									<p class="text-button truncate font-medium text-primary">{role.name}</p>
 								</div>
 								{#if role.purpose}
-									<p class="mt-1 text-xs text-secondary">{role.purpose}</p>
+									<p class="mt-fieldGroup text-label text-secondary">{role.purpose}</p>
 								{/if}
-								<p class="mt-1 text-xs text-secondary">{role.fillerCount} fillers</p>
+								<p class="mt-fieldGroup text-label text-secondary">{role.fillerCount} fillers</p>
 							</button>
 							<button
 								onclick={() => handleDeleteRole(role.roleId, role.name)}
 								disabled={circles.loading.deleteRole}
-								class="hover:bg-sidebar-hover ml-2 rounded-button text-secondary hover:text-primary disabled:opacity-50"
-								style="padding: var(--spacing-2);"
+								class="hover:bg-sidebar-hover ml-2 rounded-button text-secondary hover:text-primary disabled:opacity-50 inset-sm"
 								title="Delete role"
 							>
 								<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -234,8 +232,8 @@
 						{#if expandedRoleId === role.roleId}
 							<div class="border-base px-card py-nav-item border-t">
 								<!-- Assign User Form -->
-								<div class="mb-3">
-									<div class="flex gap-2">
+								<div class="mb-header">
+									<div class="flex gap-button">
 										<select
 											bind:value={assignUserId[role.roleId]}
 											class="border-base text-button flex-1 rounded-button border bg-surface px-input-x py-input-y text-primary focus:border-accent-primary focus:outline-none"
@@ -274,8 +272,7 @@
 												<button
 													onclick={() => handleRemoveUser(role.roleId, filler.userId)}
 													disabled={circles.loading.removeUser}
-													class="rounded-button text-secondary hover:text-primary disabled:opacity-50"
-													style="padding: var(--spacing-2);"
+													class="rounded-button text-secondary hover:text-primary disabled:opacity-50 inset-sm"
 													title="Remove user"
 												>
 													<svg

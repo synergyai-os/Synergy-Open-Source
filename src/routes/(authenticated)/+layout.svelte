@@ -38,7 +38,7 @@
 	const workspaces = useWorkspaces({
 		userId: () => data.user?.userId,
 		sessionId: () => data.sessionId,
-		orgFromUrl: () => $page.url.searchParams.get('org'),
+		orgFromUrl: () => null, // Path-based routing, no query params
 		// Server-side preloaded data for instant workspace menu rendering
 		// Cast unknown[] to proper types (server-side data is typed as unknown[] for safety)
 		initialOrganizations: data.workspaces as unknown as WorkspaceSummary[],

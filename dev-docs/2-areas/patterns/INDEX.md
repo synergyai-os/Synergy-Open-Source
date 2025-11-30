@@ -41,6 +41,10 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | className override, recipe override, Button className, class prop, override padding, custom styling, recipe merge order | Overriding Recipe Classes with className | `design-system-patterns.md#L850` |
 | color inheritance, variant color, text-primary, color prop, separation of concerns, CSS specificity, !important, variant typography, color separate | Separating Color from Variants in CVA Recipes | `design-system-patterns.md#L900` |
 | dynamic element, svelte:element, if/else chain, element type, as prop, polymorphic component, repetitive code | Using svelte:element for Dynamic Element Types | `design-system-patterns.md#L950` |
+| org chart, D3, visualization, hierarchy, color, monochromatic, depth, circle pack, data viz, rainbow colors, status color misuse | Data Visualization Color Strategy | `design-system-patterns.md#L1000` |
+| container, entity, circle, role, visual distinction, fill, stroke, interactive, parent, child, hierarchy | Container vs Entity Pattern | `design-system-patterns.md#L1050` |
+| hover, active, selected, dashed, dotted, stroke, interactive state, data viz, stroke-dasharray, focus | Data Viz Interactive States | `design-system-patterns.md#L1100` |
+| SVG, D3.js, foreignObject, text, font-family, font-sans, visualization, org chart, labels, mask, paint-order, text-shadow | SVG Text with Design System Tokens | `design-system-patterns.md#L1150` |
 
 ---
 
@@ -63,6 +67,7 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | Page padding inconsistent or content touches edges | Standardize Page-Level Padding | `design-system-patterns.md#L350` |
 | Divider not visible, Bits UI Separator too complex, utility doesn't exist | Simple Vertical Dividers | `design-system-patterns.md#L400` |
 | Recipe uses non-existent utility, button recipe broken, py-nav-item doesn't exist, missing token | Recipe Validation and Missing Tokens | `design-system-patterns.md#L500` |
+| SVG text wrong font, D3 labels not matching design system, mask background bar, text stroke distortion | SVG Text with Design System Tokens | `design-system-patterns.md#L1150` |
 
 ## 🟢 Reference (Best Practices)
 
@@ -85,6 +90,9 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | Override recipe classes, Button className prop, custom padding override | Overriding Recipe Classes with className | `design-system-patterns.md#L850` |
 | Component needs color inheritance, variant applies color, CSS specificity conflict, !important hack | Separating Color from Variants in CVA Recipes | `design-system-patterns.md#L900` |
 | Repetitive if/else for element types, polymorphic component, as prop, dynamic HTML element | Using svelte:element for Dynamic Element Types | `design-system-patterns.md#L950` |
+| Org chart colors, D3 visualization, hierarchy depth colors, unlimited depth support | Data Visualization Color Strategy (Monochromatic) | `design-system-patterns.md#L1000` |
+| Circle vs role distinction, container vs entity, visual hierarchy in data viz | Container vs Entity Pattern | `design-system-patterns.md#L1050` |
+| Hover state on data viz, dashed stroke, active/selected state, SVG interaction | Data Viz Interactive States (Dashed Hover) | `design-system-patterns.md#L1100` |
 
 ---
 
@@ -92,11 +100,15 @@ Quick lookup for common issues. Find your symptom → go to line number.
 
 - `svelte-reactivity.md` - Svelte 5 runes, $derived, $effect, composables
 - `ui-patterns.md` - bits-ui components, scroll areas, dropdowns
-- `design-system-patterns.md` - Design tokens, CVA recipes, layout patterns
+- `design-system-patterns.md` - Design tokens, CVA recipes, layout patterns, **data visualization colors**
 - `convex-integration.md` - Convex queries, mutations, real-time updates
 - `analytics.md` - PostHog integration, events, feature flags
 
+## Module-Specific Docs
+
+- `src/lib/modules/org-chart/COLOR_STRATEGY.md` - Org chart color system (circles, roles, states)
+
 ---
 
-**Last Updated**: 2025-01-27
+**Last Updated**: 2025-11-30
 **Key Principle**: One canonical pattern per concept. This index is the source of truth.

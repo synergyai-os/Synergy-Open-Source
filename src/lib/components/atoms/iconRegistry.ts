@@ -33,6 +33,7 @@ export type IconType =
 	| 'members'
 	| 'moon'
 	| 'more'
+	| 'orgChart'
 	| 'payment'
 	| 'recurrence'
 	| 'share'
@@ -196,6 +197,14 @@ export const iconRegistry: Record<IconType, IconDefinition> = {
 	},
 	members: {
 		path: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z',
+		viewBox: '0 0 24 24',
+		strokeWidth: '2',
+		strokeLinecap: 'round',
+		strokeLinejoin: 'round'
+	},
+	orgChart: {
+		// Hierarchical org chart: parent node at top, two child nodes below, connected by lines
+		path: 'M12 3v4m0 0a2 2 0 100 4 2 2 0 000-4zm0 4v2m0 0l-6 4m6-4l6 4m-12 0a2 2 0 100 4 2 2 0 000-4zm12 0a2 2 0 100 4 2 2 0 000-4z',
 		viewBox: '0 0 24 24',
 		strokeWidth: '2',
 		strokeLinecap: 'round',

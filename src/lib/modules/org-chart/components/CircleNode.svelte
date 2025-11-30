@@ -4,8 +4,15 @@
 	 *
 	 * Extracted from OrgChart.svelte for isolated design/testing.
 	 * Use this component in Storybook to design/test circle interactions.
+	 *
+	 * See: src/lib/modules/org-chart/COLOR_STRATEGY.md for color system docs
 	 */
-	import { getCircleColor } from '$lib/utils/orgChartTransform';
+	import {
+		getCircleColor,
+		getCircleStrokeColor,
+		getCircleLabelColor,
+		getCircleLabelStrokeColor
+	} from '$lib/utils/orgChartTransform';
 	import type { CircleHierarchyNode } from '$lib/utils/orgChartTransform';
 
 	let {
@@ -27,7 +34,14 @@
 	} = $props();
 
 	const hasChildren = node.children && node.children.length > 0;
-	const color = getCircleColor(node.depth);
+	// Single color for all depths - hierarchy shown through nesting/size
+	const circleFill = getCircleColor();
+	// Stroke color based on state
+	const circleStroke = isSelected
+		? getCircleStrokeColor('active')
+		: isHovered
+			? getCircleStrokeColor('hover')
+			: getCircleStrokeColor('default');
 
 	// Determine if circle name should be visible
 	function shouldShowCircleName(): boolean {
@@ -73,22 +87,17 @@
 	}}
 	style="pointer-events: all;"
 >
-	<!-- Circle -->
+	<!-- Circle - light fill for all depths, stroke indicates state -->
 	<circle
 		cx="0"
 		cy="0"
 		r={node.r}
-		fill={color}
-		fill-opacity={isSelected ? 0.9 : isHovered ? 0.8 : hasChildren ? 0.5 : 0.6}
-		stroke={isSelected
-			? 'var(--color-accent-primary)'
-			: isHovered
-				? color
-				: hasChildren
-					? color
-					: 'none'}
-		stroke-width={isSelected ? 3 : isHovered ? 2 : hasChildren ? 2 : 0}
+		fill={circleFill}
+		fill-opacity={hasChildren ? 0.7 : 0.85}
+		stroke={circleStroke}
+		stroke-width={isSelected ? 3 : isHovered ? 2 : hasChildren ? 1.5 : 0}
 		stroke-opacity={isSelected ? 1 : isHovered ? 0.8 : hasChildren ? 0.5 : 0}
+		stroke-dasharray={isHovered && !isSelected ? '6 3' : 'none'}
 		style="pointer-events: all;"
 	/>
 
@@ -100,9 +109,9 @@
 			text-anchor="middle"
 			dominant-baseline="middle"
 			class="circle-name-label pointer-events-none font-bold select-none"
-			fill="var(--color-orgChart-label-text)"
-			fill-opacity="1"
-			stroke="var(--color-orgChart-label-stroke)"
+		fill="var(--color-component-orgChart-label-text)"
+		fill-opacity="1"
+		stroke="var(--color-component-orgChart-label-stroke)"
 			stroke-width="0.5"
 			stroke-opacity="0.8"
 			style="text-shadow: 0 2px 4px rgba(0,0,0,0.9);"
@@ -119,9 +128,10 @@
 	}
 
 	.circle-group:focus-visible circle {
-		stroke: var(--color-accent-primary);
+		stroke: var(--color-component-orgChart-circle-strokeActive);
 		stroke-width: 3;
-		outline: 2px solid var(--color-accent-primary);
+		stroke-dasharray: none;
+		outline: 2px solid var(--color-component-orgChart-circle-strokeActive);
 		outline-offset: 4px;
 	}
 
@@ -129,10 +139,11 @@
 		transition:
 			stroke-width 0.2s ease,
 			stroke-opacity 0.2s ease,
+			stroke-dasharray 0.2s ease,
 			filter 0.2s ease;
 	}
 
 	.circle-group:hover circle {
-		filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+		filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.12));
 	}
 </style>

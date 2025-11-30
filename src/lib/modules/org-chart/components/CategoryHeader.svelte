@@ -20,7 +20,7 @@
 			<span class="ml-form-field-gap text-label font-normal text-tertiary">({count})</span>
 		{/if}
 	</h4>
-	<div class="flex items-center" style="gap: var(--spacing-1);">
+	<div class="flex items-center gap-fieldGroup">
 		{#if onEdit}
 			<Button variant="ghost" size="sm" iconOnly onclick={onEdit} ariaLabel="Edit {title}">
 				{#snippet children()}

@@ -78,6 +78,68 @@ SynergyOS organizes data into three distinct layers:
 - **Linting**: ESLint + Prettier
 - **Type Safety**: TypeScript
 
+## Frontend Architecture
+
+### Infrastructure vs Modules
+
+The frontend codebase separates **infrastructure** (foundational, always-on) from **modules** (optional features).
+
+| Folder | Purpose | Feature Flags |
+|--------|---------|---------------|
+| `src/lib/infrastructure/` | Core data, always available | None |
+| `src/lib/modules/` | Optional features | Can have flags |
+
+**Infrastructure** (`src/lib/infrastructure/`):
+
+| Domain | Path | Purpose |
+|--------|------|---------|
+| Workspaces | `workspaces/` | Multi-tenant workspace management |
+| Organizational Model | `organizational-model/` | Circles, circle roles, circle members |
+| Users | `users/` | User profiles, queries |
+| RBAC | `rbac/` | Permissions, roles |
+| Auth | `auth/` | Session management |
+| Feature Flags | `feature-flags/` | Flag system |
+| Analytics | `analytics/` | PostHog tracking |
+
+**Modules** (`src/lib/modules/`):
+
+| Module | Feature Flag | Purpose |
+|--------|--------------|---------|
+| `shared-ui/` | None (always on) | Sidebar, TagSelector, shared components |
+| `org-chart/` | None (always on) | Circle visualization (core functionality) |
+| `meetings/` | `meetings_module` | Meeting management |
+| `inbox/` | `inbox_module` | Readwise sync, inbox items |
+| `flashcards/` | `flashcards_module` | Spaced repetition |
+| `projects/` | `projects_module` | Project tracking |
+
+**Key Principle**: Infrastructure = always available. Modules = can be toggled.
+
+### URL Architecture
+
+All workspace-scoped features use path-based routing: `/w/:slug/...`
+
+**See**: [URL Strategy](./architecture/url-strategy.md) for:
+- Workspace routing patterns
+- Slug vs ID strategy
+- URL stability (aliases for renamed workspaces)
+- Reserved slugs list
+
+**Route Structure**:
+
+```
+/w/[slug]/                  # Workspace-scoped features
+├── inbox/
+├── flashcards/
+├── circles/
+├── meetings/
+├── settings/
+└── ...
+
+/account                    # User-scoped (no workspace)
+/admin                      # Admin routes
+/onboarding                 # New user flow
+```
+
 ## Why These Technologies?
 
 ### SvelteKit 5 + Svelte 5 Runes
@@ -954,7 +1016,7 @@ All composables:
    - Persists layout preferences to localStorage
    - Handles responsive layout changes
 
-**Core Module** (`src/lib/modules/core/composables/`):
+**Shared UI Module** (`src/lib/modules/shared-ui/composables/`):
 - **`useGlobalShortcuts`** - Global keyboard shortcuts
 - **`useLoadingOverlay`** - Loading overlay state management
 

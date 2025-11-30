@@ -137,7 +137,7 @@
 				</svg>
 				<p class="mt-content-section text-button text-secondary">Loading role details...</p>
 				{#if orgChart.selectedRoleId}
-					<p class="mt-2 text-label text-tertiary">Role ID: {orgChart.selectedRoleId}</p>
+					<p class="mt-fieldGroup text-label text-tertiary">Role ID: {orgChart.selectedRoleId}</p>
 				{/if}
 			</div>
 		</div>
@@ -146,9 +146,9 @@
 		<div class="px-inbox-container flex h-full items-center justify-center">
 			<div class="text-center">
 				<p class="text-button font-medium text-error">Failed to load role</p>
-				<p class="text-button mt-2 text-secondary">{String(error)}</p>
+				<p class="text-button mt-fieldGroup text-secondary">{String(error)}</p>
 				{#if orgChart.selectedRoleId}
-					<p class="mt-2 text-label text-tertiary">Role ID: {orgChart.selectedRoleId}</p>
+					<p class="mt-fieldGroup text-label text-tertiary">Role ID: {orgChart.selectedRoleId}</p>
 				{/if}
 			</div>
 		</div>
@@ -182,7 +182,7 @@
 				<div class="px-inbox-container py-system-content">
 					<h3 class="text-h2 font-bold text-primary">{role.name}</h3>
 					{#if role.circleName}
-						<p class="text-button mt-1 text-secondary">
+						<p class="text-button mt-fieldGroup text-secondary">
 							Circle: <span class="font-medium">{role.circleName}</span>
 						</p>
 					{/if}
@@ -190,10 +190,10 @@
 
 				<!-- Navigation Tabs -->
 				<div class="border-base px-inbox-container border-b">
-					<div class="flex overflow-x-auto" style="gap: var(--spacing-1);" role="tablist">
+					<div class="flex overflow-x-auto gap-fieldGroup" role="tablist">
 						<button
 							type="button"
-							class="py-nav-item text-button flex-shrink-0 border-b-2 px-2 transition-colors"
+							class="py-nav-item text-button flex-shrink-0 border-b-2 px-button-sm-x transition-colors"
 							class:border-accent-primary={activeTab === 'overview'}
 							class:border-transparent={activeTab !== 'overview'}
 							class:text-primary={activeTab === 'overview'}
@@ -208,7 +208,7 @@
 						</button>
 						<button
 							type="button"
-							class="py-nav-item text-button flex-shrink-0 border-b-2 px-2 transition-colors"
+							class="py-nav-item text-button flex-shrink-0 border-b-2 px-button-sm-x transition-colors"
 							class:border-accent-primary={activeTab === 'members'}
 							class:border-transparent={activeTab !== 'members'}
 							class:text-primary={activeTab === 'members'}
@@ -226,7 +226,7 @@
 						</button>
 						<button
 							type="button"
-							class="py-nav-item text-button flex-shrink-0 border-b-2 px-2 transition-colors"
+							class="py-nav-item text-button flex-shrink-0 border-b-2 px-button-sm-x transition-colors"
 							class:border-accent-primary={activeTab === 'documents'}
 							class:border-transparent={activeTab !== 'documents'}
 							class:text-primary={activeTab === 'documents'}
@@ -244,7 +244,7 @@
 						</button>
 						<button
 							type="button"
-							class="py-nav-item text-button flex-shrink-0 border-b-2 px-2 transition-colors"
+							class="py-nav-item text-button flex-shrink-0 border-b-2 px-button-sm-x transition-colors"
 							class:border-accent-primary={activeTab === 'activities'}
 							class:border-transparent={activeTab !== 'activities'}
 							class:text-primary={activeTab === 'activities'}
@@ -262,7 +262,7 @@
 						</button>
 						<button
 							type="button"
-							class="py-nav-item text-button flex-shrink-0 border-b-2 px-2 transition-colors"
+							class="py-nav-item text-button flex-shrink-0 border-b-2 px-button-sm-x transition-colors"
 							class:border-accent-primary={activeTab === 'metrics'}
 							class:border-transparent={activeTab !== 'metrics'}
 							class:text-primary={activeTab === 'metrics'}
@@ -280,7 +280,7 @@
 						</button>
 						<button
 							type="button"
-							class="py-nav-item text-button flex-shrink-0 border-b-2 px-2 transition-colors"
+							class="py-nav-item text-button flex-shrink-0 border-b-2 px-button-sm-x transition-colors"
 							class:border-accent-primary={activeTab === 'checklists'}
 							class:border-transparent={activeTab !== 'checklists'}
 							class:text-primary={activeTab === 'checklists'}
@@ -298,7 +298,7 @@
 						</button>
 						<button
 							type="button"
-							class="py-nav-item text-button flex-shrink-0 border-b-2 px-2 transition-colors"
+							class="py-nav-item text-button flex-shrink-0 border-b-2 px-button-sm-x transition-colors"
 							class:border-accent-primary={activeTab === 'projects'}
 							class:border-transparent={activeTab !== 'projects'}
 							class:text-primary={activeTab === 'projects'}
@@ -328,11 +328,11 @@
 								<div class="gap-form-section grid grid-cols-2">
 									<div class="p-card rounded-card bg-surface">
 										<p class="text-label text-tertiary">Fillers</p>
-										<p class="text-h2 mt-1 font-semibold text-primary">{role.fillerCount}</p>
+										<p class="text-h2 mt-fieldGroup font-semibold text-primary">{role.fillerCount}</p>
 									</div>
 									<div class="p-card rounded-card bg-surface">
 										<p class="text-label text-tertiary">Created</p>
-										<p class="text-button mt-1 font-medium text-primary">
+										<p class="text-button mt-fieldGroup font-medium text-primary">
 											{formatDate(role.createdAt)}
 										</p>
 									</div>
@@ -341,7 +341,7 @@
 								<!-- Purpose -->
 								{#if role.purpose}
 									<div>
-										<h4 class="text-button mb-2 font-medium tracking-wide text-tertiary uppercase">
+										<h4 class="text-button mb-fieldGroup font-medium tracking-wide text-tertiary uppercase">
 											Purpose
 										</h4>
 										<p class="text-button leading-relaxed text-secondary">{role.purpose}</p>
@@ -350,10 +350,10 @@
 
 								<!-- Domains -->
 								<div>
-									<h4 class="text-button mb-2 font-medium tracking-wide text-tertiary uppercase">
+									<h4 class="text-button mb-fieldGroup font-medium tracking-wide text-tertiary uppercase">
 										Domains
 									</h4>
-									<div class="text-button flex items-center gap-2 text-secondary">
+									<div class="text-button flex items-center gap-button text-secondary">
 										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
@@ -368,10 +368,10 @@
 
 								<!-- Accountabilities -->
 								<div>
-									<h4 class="text-button mb-2 font-medium tracking-wide text-tertiary uppercase">
+									<h4 class="text-button mb-fieldGroup font-medium tracking-wide text-tertiary uppercase">
 										Accountabilities
 									</h4>
-									<div class="text-button flex items-center gap-2 text-secondary">
+									<div class="text-button flex items-center gap-button text-secondary">
 										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
@@ -386,10 +386,10 @@
 
 								<!-- Policies -->
 								<div>
-									<h4 class="text-button mb-2 font-medium tracking-wide text-tertiary uppercase">
+									<h4 class="text-button mb-fieldGroup font-medium tracking-wide text-tertiary uppercase">
 										Policies
 									</h4>
-									<div class="text-button flex items-center gap-2 text-secondary">
+									<div class="text-button flex items-center gap-button text-secondary">
 										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
@@ -404,10 +404,10 @@
 
 								<!-- Decision Rights -->
 								<div>
-									<h4 class="text-button mb-2 font-medium tracking-wide text-tertiary uppercase">
+									<h4 class="text-button mb-fieldGroup font-medium tracking-wide text-tertiary uppercase">
 										Decision Rights
 									</h4>
-									<div class="text-button flex items-center gap-2 text-secondary">
+									<div class="text-button flex items-center gap-button text-secondary">
 										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
@@ -422,10 +422,10 @@
 
 								<!-- Notes -->
 								<div>
-									<h4 class="text-button mb-2 font-medium tracking-wide text-tertiary uppercase">
+									<h4 class="text-button mb-fieldGroup font-medium tracking-wide text-tertiary uppercase">
 										Notes
 									</h4>
-									<div class="text-button flex items-center gap-2 text-secondary">
+									<div class="text-button flex items-center gap-button text-secondary">
 										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
@@ -440,7 +440,7 @@
 
 								<!-- Metadata -->
 								<div class="border-base border-t pt-6">
-									<h4 class="text-button mb-3 font-medium tracking-wide text-tertiary uppercase">
+									<h4 class="text-button mb-header font-medium tracking-wide text-tertiary uppercase">
 										Metadata
 									</h4>
 									<dl class="space-y-inbox-list-gap text-button">
@@ -462,7 +462,7 @@
 								{#if fillers.length > 0}
 									<div class="mt-form-section space-y-inbox-list-gap">
 										{#each fillers as filler (filler.userId)}
-											<div class="p-card flex items-center gap-2 rounded-card bg-surface">
+											<div class="p-card flex items-center gap-button rounded-card bg-surface">
 												<Avatar initials={getInitials(filler.name || filler.email)} size="md" />
 												<!-- Info -->
 												<div class="min-w-0 flex-1">
@@ -485,7 +485,7 @@
 						</div>
 					{:else if activeTab === 'members'}
 						<!-- Empty State: Members -->
-						<div class="text-center" style="padding-block: var(--spacing-8);">
+						<div class="text-center py-page">
 							<svg
 								class="mx-auto size-icon-xl text-tertiary"
 								fill="none"
@@ -500,14 +500,14 @@
 								/>
 							</svg>
 							<p class="mt-content-section text-button font-medium text-primary">No members yet</p>
-							<p class="text-button mt-1 text-secondary">
+							<p class="text-button mt-fieldGroup text-secondary">
 								Members assigned to this role will appear here. This feature will be available in a
 								future update.
 							</p>
 						</div>
 					{:else if activeTab === 'documents'}
 						<!-- Empty State: Documents -->
-						<div class="text-center" style="padding-block: var(--spacing-8);">
+						<div class="text-center py-page">
 							<svg
 								class="mx-auto size-icon-xl text-tertiary"
 								fill="none"
@@ -524,14 +524,14 @@
 							<p class="mt-content-section text-button font-medium text-primary">
 								No documents yet
 							</p>
-							<p class="text-button mt-1 text-secondary">
+							<p class="text-button mt-fieldGroup text-secondary">
 								Documents related to this role will appear here. This feature will be available in a
 								future update.
 							</p>
 						</div>
 					{:else if activeTab === 'activities'}
 						<!-- Empty State: Activities -->
-						<div class="text-center" style="padding-block: var(--spacing-8);">
+						<div class="text-center py-page">
 							<svg
 								class="mx-auto size-icon-xl text-tertiary"
 								fill="none"
@@ -548,14 +548,14 @@
 							<p class="mt-content-section text-button font-medium text-primary">
 								No activities yet
 							</p>
-							<p class="text-button mt-1 text-secondary">
+							<p class="text-button mt-fieldGroup text-secondary">
 								Recent activities and updates for this role will appear here. This feature will be
 								available in a future update.
 							</p>
 						</div>
 					{:else if activeTab === 'metrics'}
 						<!-- Empty State: Metrics -->
-						<div class="text-center" style="padding-block: var(--spacing-8);">
+						<div class="text-center py-page">
 							<svg
 								class="mx-auto size-icon-xl text-tertiary"
 								fill="none"
@@ -570,14 +570,14 @@
 								/>
 							</svg>
 							<p class="mt-content-section text-button font-medium text-primary">No metrics yet</p>
-							<p class="text-button mt-1 text-secondary">
+							<p class="text-button mt-fieldGroup text-secondary">
 								Performance metrics and analytics for this role will appear here. This feature will
 								be available in a future update.
 							</p>
 						</div>
 					{:else if activeTab === 'checklists'}
 						<!-- Empty State: Checklists -->
-						<div class="text-center" style="padding-block: var(--spacing-8);">
+						<div class="text-center py-page">
 							<svg
 								class="mx-auto size-icon-xl text-tertiary"
 								fill="none"
@@ -594,14 +594,14 @@
 							<p class="mt-content-section text-button font-medium text-primary">
 								No checklists yet
 							</p>
-							<p class="text-button mt-1 text-secondary">
+							<p class="text-button mt-fieldGroup text-secondary">
 								Checklists and task lists for this role will appear here. This feature will be
 								available in a future update.
 							</p>
 						</div>
 					{:else if activeTab === 'projects'}
 						<!-- Empty State: Projects -->
-						<div class="text-center" style="padding-block: var(--spacing-8);">
+						<div class="text-center py-page">
 							<svg
 								class="mx-auto size-icon-xl text-tertiary"
 								fill="none"
@@ -616,7 +616,7 @@
 								/>
 							</svg>
 							<p class="mt-content-section text-button font-medium text-primary">No projects yet</p>
-							<p class="text-button mt-1 text-secondary">
+							<p class="text-button mt-fieldGroup text-secondary">
 								Projects associated with this role will appear here. This feature will be available
 								in a future update.
 							</p>

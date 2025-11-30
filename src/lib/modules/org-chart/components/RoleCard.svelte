@@ -25,7 +25,7 @@
 
 <button
 	type="button"
-	class="p-card hover:bg-hover-solid flex w-full items-center gap-2 rounded-card bg-surface text-left transition-colors"
+	class="p-card hover:bg-hover-solid flex w-full items-center gap-button rounded-card bg-surface text-left transition-colors"
 	onclick={onClick}
 >
 	<Avatar initials={getInitials(name)} size="md" />
@@ -40,7 +40,7 @@
 		{/if}
 	</div>
 	{#if onEdit || menuItems.length > 0}
-		<div class="flex items-center" style="gap: var(--spacing-1);" role="group">
+		<div class="flex items-center gap-fieldGroup" role="group">
 			{#if onEdit}
 				<Button
 					variant="ghost"

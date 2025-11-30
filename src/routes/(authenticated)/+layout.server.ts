@@ -92,24 +92,10 @@ export const load: LayoutServerLoad = async ({ locals, url }) => {
 	}
 
 	// Determine active workspace for permissions/tags preload
-	// Priority: URL param (if valid) > first workspace (users always have at least one workspace)
-	const orgParam = url.searchParams.get('org');
+	// Path-based routing: workspace context comes from route params (/w/[slug]/)
+	// For non-workspace routes (like /account), use first workspace for preload
 	const orgsList = workspaces as Array<{ workspaceId: string }>;
-
-	// Validate orgParam: Only use it if user actually has access to that workspace
-	// This prevents 500 errors when switching accounts (org param from previous account)
-	const validOrgParam =
-		orgParam && orgsList.some((org) => org.workspaceId === orgParam) ? orgParam : null;
-	const activeOrgId = validOrgParam || (orgsList.length > 0 ? orgsList[0].workspaceId : null);
-
-	// Log if org param was invalid (for debugging)
-	if (orgParam && !validOrgParam) {
-		console.warn('Invalid org parameter in URL (user does not have access):', {
-			orgParam,
-			userOrgs: orgsList.map((org) => org.workspaceId),
-			fallbackTo: activeOrgId
-		});
-	}
+	const activeOrgId = orgsList.length > 0 ? orgsList[0].workspaceId : null;
 
 	// Continue with preloading permissions/tags only if we have workspaces
 	if (orgsList.length > 0) {

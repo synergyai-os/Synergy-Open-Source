@@ -113,6 +113,14 @@ const schema = defineSchema(
 			)
 		}).index('by_slug', ['slug']),
 
+		// Workspace slug aliases - for URL stability when workspace renames
+		// Stores old slugs so bookmarks and shared links continue to work
+		workspaceAliases: defineTable({
+			workspaceId: v.id('workspaces'),
+			slug: v.string(), // Old slug (before rename)
+			createdAt: v.number()
+		}).index('by_slug', ['slug']),
+
 		// Workspace members (many-to-many)
 		workspaceMembers: defineTable({
 			workspaceId: v.id('workspaces'),

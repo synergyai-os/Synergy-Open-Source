@@ -56,6 +56,7 @@ import type * as users from "../users.js";
 import type * as validateApiKeys from "../validateApiKeys.js";
 import type * as verification from "../verification.js";
 import type * as waitlist from "../waitlist.js";
+import type * as workspaceAliases from "../workspaceAliases.js";
 import type * as workspaceSettings from "../workspaceSettings.js";
 import type * as workspaces from "../workspaces.js";
 
@@ -114,6 +115,7 @@ declare const fullApi: ApiFromModules<{
   validateApiKeys: typeof validateApiKeys;
   verification: typeof verification;
   waitlist: typeof waitlist;
+  workspaceAliases: typeof workspaceAliases;
   workspaceSettings: typeof workspaceSettings;
   workspaces: typeof workspaces;
 }>;

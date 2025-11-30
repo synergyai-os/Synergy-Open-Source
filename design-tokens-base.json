@@ -169,6 +169,55 @@
 			}
 		},
 
+		"orgChart": {
+			"$description": "Org chart visualization colors - designed for unlimited depth hierarchy. Circles are containers (light), roles are entities (solid).",
+			"circle": {
+				"$description": "Circle (container) colors - light, subtle, background-like. Same color for ALL depths.",
+				"fill": {
+					"$value": "oklch(90% 0.05 195)",
+					"$description": "Very light teal tint - same for all depths. Light enough to see nested content."
+				},
+				"stroke": {
+					"$value": "oklch(70% 0.10 195)",
+					"$description": "Medium teal for circle boundary definition"
+				},
+				"strokeHover": {
+					"$value": "oklch(60% 0.12 195)",
+					"$description": "Darker teal for hover state (dashed)"
+				}
+			},
+			"role": {
+				"$description": "Role (entity) colors - solid, prominent, foreground-like. Roles are the clickable 'objects'.",
+				"fill": {
+					"$value": "oklch(55% 0.15 195)",
+					"$description": "Brand primary - roles stand out against light circle backgrounds"
+				},
+				"fillHover": {
+					"$value": "oklch(60% 0.13 195)",
+					"$description": "Slightly lighter on hover"
+				},
+				"text": {
+					"$value": "oklch(100% 0 0)",
+					"$description": "White text on role circles for maximum contrast"
+				},
+				"stroke": {
+					"$value": "oklch(100% 0 0)",
+					"$description": "White stroke for subtle glow/ring effect"
+				}
+			},
+			"label": {
+				"$description": "Label text colors for circle and role names",
+				"onCircle": {
+					"$value": "oklch(25% 0.03 195)",
+					"$description": "Dark teal-tinted text on light circle backgrounds"
+				},
+				"onCircleStroke": {
+					"$value": "oklch(95% 0.02 195)",
+					"$description": "Light stroke behind dark text for readability"
+				}
+			}
+		},
+
 		"syntax": {
 			"$description": "Code syntax highlighting colors",
 			"keyword": {

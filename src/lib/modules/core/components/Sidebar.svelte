@@ -588,6 +588,28 @@
 					style="padding-inline: var(--spacing-2); padding-block: var(--spacing-2);"
 					transition:fade={{ duration: 200 }}
 				>
+					<!-- Org Chart - Core functionality, always visible -->
+					<NavItem
+						href={resolveRoute(
+							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/chart` : '/inbox'
+						)}
+						iconType="orgChart"
+						label="Org Chart"
+						title="Organization Chart"
+						collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+					/>
+
+					<!-- Circles - List view of organizational units -->
+					<NavItem
+						href={resolveRoute(
+							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/circles` : '/inbox'
+						)}
+						iconType="circles"
+						label="Circles"
+						title="Circles"
+						collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
+					/>
+
 					<!-- Inbox -->
 					<NavItem
 						href={resolveRoute(
@@ -632,19 +654,6 @@
 						title="Tags"
 						collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
 					/>
-
-					<!-- Circles (Beta - Feature Flag) -->
-					{#if circlesEnabled}
-						<NavItem
-							href={resolveRoute(
-								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/circles` : '/inbox'
-							)}
-							iconType="circles"
-							label="Circles"
-							title="Circles"
-							collapsed={sidebarCollapsed && !isPinned && !(hoverState && !isMobile)}
-						/>
-					{/if}
 
 					<!-- Members -->
 					<NavItem
@@ -881,6 +890,28 @@
 				class="flex-1 overflow-y-auto"
 				style="padding-inline: var(--spacing-2); padding-block: var(--spacing-2);"
 			>
+				<!-- Org Chart - Core functionality, always visible -->
+				<NavItem
+					href={resolveRoute(
+						activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/chart` : '/inbox'
+					)}
+					iconType="orgChart"
+					label="Org Chart"
+					title="Organization Chart"
+					collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+				/>
+
+				<!-- Circles - List view of organizational units -->
+				<NavItem
+					href={resolveRoute(
+						activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/circles` : '/inbox'
+					)}
+					iconType="circles"
+					label="Circles"
+					title="Circles"
+					collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
+				/>
+
 				<!-- Inbox -->
 				<NavItem
 					href={resolveRoute(
@@ -923,19 +954,6 @@
 					title="Tags"
 					collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
 				/>
-
-				<!-- Circles (Beta - Feature Flag) -->
-				{#if circlesEnabled}
-					<NavItem
-						href={resolveRoute(
-							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/circles` : '/inbox'
-						)}
-						iconType="circles"
-						label="Circles"
-						title="Circles"
-						collapsed={sidebarCollapsed && !(hoverState && !isMobile)}
-					/>
-				{/if}
 
 				<!-- Members -->
 				<NavItem

@@ -10,7 +10,6 @@ import {
 import { useWorkspaceState } from './useWorkspaceState.svelte';
 import { useWorkspaceQueries } from './useWorkspaceQueries.svelte';
 import { useWorkspaceMutations } from './useWorkspaceMutations.svelte';
-import { useWorkspaceUrlSync } from './useWorkspaceUrlSync.svelte';
 import { useWorkspaceAnalytics } from './useWorkspaceAnalytics.svelte';
 import { resolveRoute } from '$lib/utils/navigation';
 import type { WorkspacesModuleAPI } from '../api';
@@ -119,15 +118,7 @@ export function useWorkspaces(options?: {
 		getCurrentOrganizationId: () => orgState.activeWorkspaceId // Reactive getter (captures before change)
 	});
 
-	// Initialize URL sync composable (handles ?org=, ?create=workspace, ?join=workspace)
-	useWorkspaceUrlSync({
-		setActiveWorkspace: analytics.setActiveWorkspace, // Use analytics wrapper
-		openModal: (key: 'createWorkspace' | 'joinOrganization') => {
-			state.modals[key] = true;
-		},
-		activeWorkspaceId: () => orgState.activeWorkspaceId, // Reactive getter
-		workspaces: () => queries.workspaces // Reactive getter
-	});
+	// URL sync removed - workspace context now comes from route parameters (/w/[slug]/)
 
 	// Navigate to workspace-scoped route when workspace changes (but not from URL sync)
 	// Track last navigated slug to prevent loops

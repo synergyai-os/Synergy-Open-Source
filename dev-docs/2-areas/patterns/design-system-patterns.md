@@ -1478,5 +1478,283 @@ export const textRecipe = cva('font-body', {
 
 ---
 
-**Last Updated**: 2025-01-27
+## #L1000: Data Visualization Color Strategy (Monochromatic Hierarchy) [🟢 REFERENCE]
+
+**Keywords**: org chart, D3, visualization, hierarchy, color, monochromatic, depth, circle pack, data viz, container, entity, depth colors, rainbow colors, status color misuse
+
+**Symptom**: Data visualization (org chart, tree, hierarchy) uses different hue per depth level, causing visual noise and limited scalability.
+
+**Root Cause**: Using separate colors (or worse, status colors) for each hierarchy depth creates a "rainbow effect" that:
+1. Limits hierarchy to N colors (what happens at depth 10?)
+2. Creates semantic confusion (green ≠ "level 2")
+3. Adds cognitive load (users process multiple hues)
+
+**Solution**: Use **monochromatic scale** based on brand hue. All depths use same hue family, varying only in lightness/saturation.
+
+```typescript
+// ❌ OLD: Different color per depth (limited, semantically wrong)
+const colors = [
+  'var(--color-brand-primary)',    // Level 0
+  'var(--color-brand-secondary)',  // Level 1 - competes with primary
+  'var(--color-status-success)',   // Level 2 - SUCCESS doesn't mean "level 2"
+  'var(--color-status-warning)'    // Level 3+ - WARNING doesn't mean "deep"
+];
+return colors[Math.min(depth, colors.length - 1)];
+
+// ✅ NEW: Single color for all depths (unlimited, clear)
+export function getCircleColor(): string {
+  return 'var(--color-component-orgChart-circle-fill)';
+}
+```
+
+**Implementation**: Create dedicated visualization tokens in design system:
+
+```json
+// design-tokens-base.json
+"orgChart": {
+  "circle": {
+    "fill": "oklch(90% 0.05 195)",       // Light teal (same for ALL depths)
+    "stroke": "oklch(70% 0.10 195)",
+    "strokeHover": "oklch(60% 0.12 195)"
+  }
+}
+```
+
+**How Hierarchy Is Communicated**:
+- **Nesting** (visual containment)
+- **Size** (larger = higher level)
+- **Stroke weight** (optional: thicker = higher)
+
+**Related Files**:
+- `src/lib/modules/org-chart/COLOR_STRATEGY.md` - Full documentation
+- `design-tokens-base.json` - `color.orgChart` tokens
+- `design-tokens-semantic.json` - Light/dark mode variants
+
+---
+
+## #L1050: Container vs Entity Pattern (Visual Distinction) [🟢 REFERENCE]
+
+**Keywords**: container, entity, circle, role, org chart, data viz, visual distinction, fill, stroke, interactive, parent, child, hierarchy
+
+**Symptom**: Two different types of elements (e.g., circles/containers vs roles/entities) look too similar, causing user confusion about what's clickable or what contains what.
+
+**Root Cause**: Both element types using same visual treatment (same fill, same stroke weight) without clear distinction.
+
+**Pattern**: Containers (things that hold other things) should look like backgrounds. Entities (things users interact with) should look like foreground objects.
+
+```
+CONTAINERS (teams, departments, groups):
+├── Light fill (background-like, 70-85% opacity)
+├── Subtle stroke (defines boundary)
+├── Let content show through
+
+ENTITIES (roles, people, items):
+├── Solid fill (brand primary, 100% opacity)
+├── High contrast text (white on primary)
+├── Clearly "clickable"
+```
+
+**Implementation**:
+
+```typescript
+// Circle (container) - light, subtle
+<circle
+  fill="var(--color-component-orgChart-circle-fill)"  // Light teal
+  fill-opacity={0.7}
+  stroke="var(--color-component-orgChart-circle-stroke)"
+  stroke-width={1.5}
+/>
+
+// Role (entity) - solid, prominent
+<circle
+  fill="var(--color-component-orgChart-role-fill)"  // Brand primary
+  fill-opacity={1}
+/>
+<text fill="var(--color-component-orgChart-role-text)">  // White
+  Role Name
+</text>
+```
+
+**When to Apply**:
+- Hierarchy visualizations (org charts, trees)
+- Nested data structures with different element types
+- Parent/child relationships where child is the interactive element
+- Any visualization with "containers" and "items"
+
+---
+
+## #L1100: Data Visualization Interactive States (Dashed Hover) [🟢 REFERENCE]
+
+**Keywords**: hover, active, selected, dashed, dotted, stroke, interactive state, data viz, org chart, D3, focus, stroke-dasharray
+
+**Symptom**: Hover state on data visualization elements doesn't clearly indicate interactivity, or active state isn't distinguishable enough.
+
+**Pattern**: Use stroke style changes (not just color) to communicate state:
+
+| State | Stroke Style | Stroke Color | Stroke Width |
+|-------|--------------|--------------|--------------|
+| Default | Solid | Subtle | 1.5px |
+| **Hover (non-active)** | **Dashed** `6 3` | Medium | 2px |
+| **Active/Selected** | **Solid** | **Brand Primary** | 3px |
+| Focus | Solid + Ring | Primary | 3px + outline |
+
+**Implementation**:
+
+```svelte
+<circle
+  stroke={isActive
+    ? 'var(--color-component-orgChart-circle-strokeActive)'  // Primary
+    : isHovered
+      ? 'var(--color-component-orgChart-circle-strokeHover)' // Darker
+      : 'var(--color-component-orgChart-circle-stroke)'}     // Default
+  stroke-width={isActive ? 3 : isHovered ? 2 : 1.5}
+  stroke-dasharray={isHovered && !isActive ? '6 3' : 'none'}  <!-- KEY: Dashed on hover -->
+/>
+```
+
+**Why Dashed for Hover?**:
+- ✅ Clearly different from solid active state
+- ✅ Indicates "this is interactive but not selected"
+- ✅ Works well in SVG without adding extra elements
+- ✅ Cross-browser compatible
+
+**CSS for focus-visible**:
+
+```css
+.circle-group:focus-visible circle {
+  stroke: var(--color-component-orgChart-circle-strokeActive);
+  stroke-width: 3;
+  stroke-dasharray: none;  /* Solid on focus */
+  outline: 2px solid var(--color-component-orgChart-circle-strokeActive);
+  outline-offset: 4px;
+}
+```
+
+**Related**: #L1000 (Monochromatic Hierarchy), #L1050 (Container vs Entity)
+
+---
+
+## #L1150: SVG Text with Design System Tokens (D3.js/Visualization) [🟡 IMPORTANT]
+
+**Keywords**: SVG, D3.js, foreignObject, text, font-family, font-sans, visualization, circle pack, org chart, labels, mask, paint-order, CSS variables, design tokens, readable text, text-shadow
+
+**Principle**: SVG `<text>` elements don't inherit CSS font-family from HTML parents. Use `foreignObject` for full design system integration or explicitly set `font-family` via CSS variables in inline styles.
+
+**Symptom**: 
+- SVG text uses wrong font (browser default instead of design system font)
+- Text labels in D3.js visualizations don't match app typography
+- SVG mask creates visible "background bar" behind text
+- Text stroke breaks thin letter forms (e.g., 'e' looks distorted)
+
+**Root Cause**:
+1. **Font inheritance**: SVG `<text>` elements exist in SVG namespace, not HTML namespace. CSS classes like `font-bold` set weight but NOT font-family.
+2. **Mask artifacts**: SVG masks that hide content behind text create visible rectangular exclusion zones.
+3. **Paint order**: Default SVG paint order (fill then stroke) causes stroke to "eat" thin glyph parts.
+
+**Pattern**:
+
+### Option A: foreignObject (Full Design System Integration) ⭐ RECOMMENDED
+
+Use `<foreignObject>` to embed HTML inside SVG, enabling full CSS/design system support:
+
+```svelte
+<g transform="translate({node.x},{node.y})">
+  <foreignObject
+    x={-labelWidth / 2}
+    y={-labelHeight / 2}
+    width={labelWidth}
+    height={labelHeight}
+    class="pointer-events-none overflow-visible"
+  >
+    <div
+      xmlns="http://www.w3.org/1999/xhtml"
+      class="flex h-full w-full items-center justify-center"
+    >
+      <span
+        class="font-sans font-semibold text-center select-none"
+        style="
+          font-size: {fontSize}px;
+          color: var(--color-component-orgChart-label-text);
+          text-shadow: 
+            0 0 3px var(--color-component-orgChart-circle-fill),
+            0 0 6px var(--color-component-orgChart-circle-fill),
+            0 1px 2px rgba(0,0,0,0.3);
+        "
+      >
+        {labelText}
+      </span>
+    </div>
+  </foreignObject>
+</g>
+```
+
+**Pros**: Full design system integration, CSS utilities work, multi-line text support
+**Cons**: Slightly more complex, minor performance overhead with many labels
+
+### Option B: SVG Text with CSS Variables
+
+Style SVG `<text>` directly with CSS variables for simpler cases:
+
+```svelte
+<text
+  x="0"
+  y="0"
+  text-anchor="middle"
+  dominant-baseline="middle"
+  class="pointer-events-none select-none"
+  style="
+    font-family: var(--typography-fontFamily-sans);
+    font-weight: 500;
+    paint-order: stroke fill;
+  "
+  fill="var(--color-component-orgChart-label-text)"
+  stroke="var(--color-component-orgChart-circle-fill)"
+  stroke-width="3"
+  font-size={fontSize}
+>
+  {labelText}
+</text>
+```
+
+**Key**: Use `paint-order: stroke fill` to paint stroke BEHIND fill for readability without distorting letters.
+
+### Readability Techniques
+
+For text floating over complex backgrounds:
+
+1. **Layered text-shadow** (for foreignObject):
+   ```css
+   text-shadow: 
+     0 0 3px var(--background-color),
+     0 0 6px var(--background-color),
+     0 1px 2px rgba(0,0,0,0.3);
+   ```
+
+2. **paint-order with stroke** (for SVG text):
+   ```svelte
+   style="paint-order: stroke fill;"
+   stroke="var(--background-color)"
+   stroke-width="3"
+   ```
+
+3. **Avoid masks**: Don't use SVG masks to hide content behind text - they create visible rectangular artifacts.
+
+**When to Apply**:
+- Building D3.js visualizations (circle pack, treemap, etc.)
+- SVG text labels not matching design system font
+- Text needs to float over complex backgrounds
+- Org charts, hierarchical visualizations
+
+**Anti-Patterns**:
+- ❌ Using `font-bold` class without `font-sans` (sets weight but not family)
+- ❌ Using SVG masks to hide content behind text labels
+- ❌ Aggressive `text-shadow` (90% opacity creates artifacts)
+- ❌ Default paint order with thin stroke (distorts letter forms)
+- ❌ Hardcoded colors instead of CSS variables (breaks theming)
+
+**Related**: #L1000 (Monochromatic Hierarchy), #L750 (Always Use Design System Components)
+
+---
+
+**Last Updated**: 2025-11-30
 
