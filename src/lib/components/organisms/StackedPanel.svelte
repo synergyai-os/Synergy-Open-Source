@@ -116,8 +116,7 @@
 
 <!-- Panel -->
 <aside
-	class="panel-stack-base shadow-card sm:w-[900px] lg:w-[1200px]"
-	class:panel-stack-offset={hasBreadcrumbs}
+	class="fixed right-0 top-0 h-full bg-surface transition-transform duration-300 ease-out shadow-card sm:w-[900px] lg:w-[1200px]"
 	class:translate-x-0={isOpen}
 	class:translate-x-full={!isOpen}
 	style="z-index: {currentZIndex}; {hasBreadcrumbs

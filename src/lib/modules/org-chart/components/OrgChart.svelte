@@ -211,9 +211,11 @@
 	);
 
 	// Initialize focus node and view when nodes are first available
+	// Also auto-select root circle on initial load
 	$effect(() => {
 		if (visibleNodes.length > 0 && !focusNode) {
-			const rootNode = packedNodes[0];
+			// Find the root circle (depth 0, first visible node)
+			const rootNode = visibleNodes.find((node) => node.depth === 0);
 			if (rootNode && !isSyntheticRoot(rootNode.data.circleId)) {
 				// Calculate bounds of all visible nodes to fit entire chart
 				// Use visibleNodes which already filters out synthetic nodes
@@ -221,6 +223,8 @@
 				focusNode = rootNode as CircleHierarchyNode;
 				// Initialize zoom level to show labels
 				currentZoomLevel = 1.0;
+				// Auto-select root circle on initial load (opens side panel)
+				orgChart.selectCircle(rootNode.data.circleId);
 			}
 		}
 	});
@@ -360,19 +364,18 @@
 		// Initial zoom to fit entire chart (synchronous, no setTimeout)
 		// Use visibleNodes which already has roles extracted and filtered
 		if (visibleNodes.length > 0) {
-			const root = packedNodes[0];
-			if (root && !isSyntheticRoot(root.data.circleId)) {
+			// Find the root circle (depth 0, first visible node)
+			const rootNode = visibleNodes.find((node) => node.depth === 0);
+			if (rootNode && !isSyntheticRoot(rootNode.data.circleId)) {
 				// Calculate bounds of all visible nodes to fit entire chart
-				if (visibleNodes.length > 0) {
-					currentView = calculateBounds(visibleNodes as CircleHierarchyNode[]);
-					focusNode = root as CircleHierarchyNode;
-					currentZoomLevel = 1.0;
-				} else {
-					// Fallback to root node if no visible nodes
-					const rootNode = root as CircleHierarchyNode;
-					currentView = [rootNode.x, rootNode.y, rootNode.r * 2];
-					focusNode = rootNode;
-					currentZoomLevel = 1.0;
+				currentView = calculateBounds(visibleNodes as CircleHierarchyNode[]);
+				focusNode = rootNode as CircleHierarchyNode;
+				currentZoomLevel = 1.0;
+
+				// Ensure root circle is selected (opens side panel)
+				// This is a fallback in case $effect hasn't run yet
+				if (!orgChart.selectedCircleId) {
+					orgChart.selectCircle(rootNode.data.circleId);
 				}
 
 				// Apply initial transform
@@ -742,8 +745,7 @@
 	.circle-group:focus-visible circle {
 		stroke: var(--color-accent-primary);
 		stroke-width: 3;
-		outline: 2px solid var(--color-accent-primary);
-		outline-offset: 4px;
+		outline: none;
 	}
 
 	/* Smooth transitions for all interactions */
@@ -765,8 +767,7 @@
 	.role-circle-group:focus-visible circle {
 		stroke: var(--color-accent-primary);
 		stroke-width: 2;
-		outline: 2px solid var(--color-accent-primary);
-		outline-offset: 2px;
+		outline: none;
 	}
 
 	/* Smooth transitions for role interactions */
