@@ -19,14 +19,14 @@ import type { MeetingsModuleAPI } from './api';
 /**
  * Meetings module manifest
  *
- * **Dependencies**: ['core'] (depends on core module for workspaces context)
+ * **Dependencies**: ['shared-ui'] (depends on shared-ui module for shared utilities)
  * **Feature Flag**: 'meetings-module' (workspace-based targeting)
  * **API**: MeetingsModuleAPI (public interface for meetings functionality)
  */
 export const meetingsModule: ModuleManifest = {
 	name: 'meetings',
 	version: '1.0.0',
-	dependencies: ['core'],
+	dependencies: ['shared-ui'],
 	featureFlag: MeetingsFeatureFlags.MEETINGS_MODULE, // 'meetings-module'
 	api: undefined as MeetingsModuleAPI | undefined // Type reference for API contract
 };

@@ -18,6 +18,7 @@
 4. [CSS Utilities](#4-css-utilities)
 5. [Component Architecture](#5-component-architecture)
 6. [Recipe System](#6-recipe-system)
+   - 6.8 [Compound Components Pattern](#68-compound-components-pattern)
 7. [Dark Mode](#7-dark-mode)
 8. [Validation](#8-validation)
 9. [Visual Design Principles](#9-visual-design-principles)
@@ -345,7 +346,7 @@ export const buttonRecipe = cva(
 );
 ```
 
-### 6.2 Using Recipes
+### 6.3 Using Recipes
 
 ```svelte
 <script lang="ts">
@@ -361,7 +362,7 @@ export const buttonRecipe = cva(
 </button>
 ```
 
-### 6.3 When to Use Recipe vs Manual Classes
+### 6.4 When to Use Recipe vs Manual Classes
 
 | Scenario | Use |
 |----------|-----|
@@ -369,7 +370,59 @@ export const buttonRecipe = cva(
 | SVG component (Loading, Icon) | **Manual classes** (with exception comment) |
 | One-off styling | **Utility classes directly** |
 
-### 6.4 Input Size Variants (Compact-First)
+### 6.5 Size Variant Naming Standard
+
+**Unified Standard**: All recipes with size variants follow a consistent naming convention.
+
+#### Core Standard: `sm`, `md`, `lg`
+
+**Every recipe with size variants MUST:**
+- Include `sm`, `md`, `lg` as the core three sizes
+- Set `defaultVariants: { size: 'md' }` (always `md`, never `base`)
+
+```typescript
+variants: {
+  size: {
+    sm: '...',  // Small
+    md: '...',  // Medium (DEFAULT)
+    lg: '...'   // Large
+  }
+},
+defaultVariants: {
+  size: 'md'  // Always md, never 'base'
+}
+```
+
+**Why `md` not `base`?**
+- `md` is the industry standard (Carbon, Coinbase, Material Design)
+- `base` is non-standard and confusing
+- Consistency across all components improves developer experience
+
+#### Extended Sizes (When Needed)
+
+Some components may need extended ranges beyond the core three:
+
+- **Smaller**: `xs` (or `xxs` for very small) - e.g., Avatar for compact UIs
+- **Larger**: `xl` (or `xxl` for very large) - e.g., Icon for hero sections
+
+**Rule**: Only add extended sizes when the component genuinely needs them. Most components should stick to `sm`, `md`, `lg`.
+
+**Examples of Extended Sizes:**
+- **Avatar**: `xxs`, `xs`, `sm`, `md`, `lg` (needs very small sizes for compact sidebars)
+- **Icon**: `sm`, `md`, `lg`, `xl`, `xxl` (needs larger sizes for hero sections)
+
+#### Current Recipe Standards
+
+| Component | Size Variants | Default |
+|-----------|---------------|---------|
+| Button | `sm`, `md`, `lg` | `md` ✅ |
+| Text | `sm`, `md`, `lg` | `md` ✅ |
+| Badge | `sm`, `md`, `lg` | `md` ✅ |
+| FormInput | `sm`, `md`, `lg` | `md` ✅ |
+| Avatar | `xxs`, `xs`, `sm`, `md`, `lg` | `md` ✅ |
+| Icon | `sm`, `md`, `lg`, `xl`, `xxl` | `md` ✅ |
+
+### 6.6 Input Size Variants (Compact-First)
 
 FormInput and related recipes now support size variants:
 
@@ -395,7 +448,7 @@ size: {
 - `comboboxTriggerRecipe` - inherits size variants
 - `comboboxInputRecipe` - inherits size variants
 
-### 6.5 SVG Exception Pattern
+### 6.7 SVG Exception Pattern
 
 ```svelte
 <script lang="ts">
@@ -411,6 +464,65 @@ size: {
   <!-- SVG content -->
 </svg>
 ```
+
+### 6.8 Compound Components Pattern
+
+**IMPORTANT**: Compound components (ToggleGroup, ScrollArea, Tabs, etc.) require **manual recipe application**. This is a Svelte limitation, not a design choice.
+
+#### Why Manual Recipes?
+
+**Svelte's module export pattern** (`export const Root = ...`) re-exports components but cannot wrap them while maintaining the compound API. This means:
+
+- ✅ **Single components** (Button, Text, FormInput): Recipes auto-applied internally
+- ⚠️ **Compound components** (ToggleGroup, ScrollArea, Tabs): Recipes must be applied manually
+
+**This pattern matches industry standards** - shadcn-svelte uses the exact same approach.
+
+#### Usage Pattern
+
+```svelte
+<script lang="ts">
+  // 1. Import component
+  import { ToggleGroup } from '$lib/components/atoms';
+  
+  // 2. Import recipes
+  import { toggleGroupRootRecipe, toggleGroupItemRecipe } from '$lib/design-system/recipes';
+  
+  let selected = $state(['mon', 'wed']);
+</script>
+
+<!-- 3. Apply recipes manually -->
+<ToggleGroup.Root type="multiple" bind:value={selected} class={toggleGroupRootRecipe()}>
+  <ToggleGroup.Item value="mon" class={toggleGroupItemRecipe()}>Mon</ToggleGroup.Item>
+  <ToggleGroup.Item value="tue" class={toggleGroupItemRecipe()}>Tue</ToggleGroup.Item>
+  <ToggleGroup.Item value="wed" class={toggleGroupItemRecipe()}>Wed</ToggleGroup.Item>
+</ToggleGroup.Root>
+```
+
+#### Compound Components List
+
+| Component | Recipes Needed | Example |
+|-----------|---------------|---------|
+| **ToggleGroup** | `toggleGroupRootRecipe`, `toggleGroupItemRecipe` | Days of week selector |
+| **ScrollArea** | `scrollAreaRootRecipe`, `scrollAreaViewportRecipe`, `scrollAreaScrollbarRecipe`, `scrollAreaThumbRecipe` | Scrollable containers |
+| **Tabs** | `tabsListRecipe`, `tabsTriggerRecipe`, `tabsContentRecipe` | Tabbed interfaces |
+| **Checkbox** | `checkboxRootRecipe`, `checkboxBoxRecipe`, `checkboxIconRecipe` | Checkboxes |
+| **RadioGroup** | `radioGroupIndicatorRecipe`, `radioGroupDotRecipe` | Radio buttons |
+| **Tooltip** | `tooltipContentRecipe`, `tooltipArrowRecipe` | Tooltips |
+
+#### Why Not Auto-Apply?
+
+**Technical Limitation:**
+- Svelte module exports (`export const Root = ...`) re-export components
+- Cannot wrap components while maintaining compound API (`Component.Root`, `Component.Item`)
+- Wrapping would break the composition pattern
+
+**Design Decision:**
+- Maintains flexibility (can override styles with `class` prop)
+- Matches Bits UI architecture (headless primitives)
+- Consistent with ecosystem (shadcn-svelte uses same pattern)
+
+**Alternative:** For single toggle buttons, use `Button` component which auto-applies recipes.
 
 ---
 

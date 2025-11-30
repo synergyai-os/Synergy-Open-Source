@@ -74,6 +74,47 @@ function generateInviteCode(prefix: string): string {
 	return `${prefix}-${random}-${randomTrailing}`;
 }
 
+/**
+ * Reserved slugs that cannot be used for workspace URLs
+ * These conflict with system routes, user routes, or infrastructure paths
+ */
+const RESERVED_SLUGS = [
+	'mail',
+	'api',
+	'app',
+	'www',
+	'admin',
+	'blog',
+	'docs',
+	'help',
+	'support',
+	'status',
+	'auth',
+	'login',
+	'signup',
+	'pricing',
+	'about',
+	'legal',
+	'w', // Workspace route prefix
+	'account',
+	'settings',
+	'profile',
+	'invite',
+	'join',
+	'dashboard',
+	'inbox',
+	'dev',
+	'staging',
+	'test',
+	'cdn',
+	'assets',
+	'static'
+];
+
+function isReservedSlug(slug: string): boolean {
+	return RESERVED_SLUGS.includes(slug.toLowerCase());
+}
+
 async function ensureUniqueWorkspaceSlug(ctx: MutationCtx, baseSlug: string): Promise<string> {
 	let slug = baseSlug;
 	let suffix = 1;
@@ -161,6 +202,64 @@ export const listWorkspaces = query({
 		});
 
 		return filtered;
+	}
+});
+
+/**
+ * Get workspace by slug
+ * Validates user has access to the workspace via sessionId
+ * Used for path-based routing (/w/:slug/)
+ */
+export const getBySlug = query({
+	args: {
+		slug: v.string(),
+		sessionId: v.string() // Session validation (derives userId securely)
+	},
+	handler: async (ctx, args) => {
+		// Validate session and get userId (prevents impersonation)
+		const { userId } = await validateSessionAndGetUserId(ctx, args.sessionId);
+
+		// Find workspace by slug
+		const workspace = await ctx.db
+			.query('workspaces')
+			.withIndex('by_slug', (q) => q.eq('slug', args.slug))
+			.first();
+
+		if (!workspace) {
+			return null;
+		}
+
+		// Verify user has access to this workspace
+		const membership = await ctx.db
+			.query('workspaceMembers')
+			.withIndex('by_workspace_user', (q) =>
+				q.eq('workspaceId', workspace._id).eq('userId', userId)
+			)
+			.first();
+
+		if (!membership) {
+			// User doesn't have access - return null (don't leak workspace existence)
+			return null;
+		}
+
+		// Return workspace summary (matches listWorkspaces format)
+		const memberCount = await ctx.db
+			.query('workspaceMembers')
+			.withIndex('by_workspace', (q) => q.eq('workspaceId', workspace._id))
+			.collect();
+
+		return {
+			workspaceId: workspace._id,
+			name: workspace.name,
+			initials: initialsFromName(workspace.name),
+			slug: workspace.slug,
+			plan: workspace.plan,
+			createdAt: workspace.createdAt,
+			updatedAt: workspace.updatedAt,
+			role: membership.role,
+			joinedAt: membership.joinedAt,
+			memberCount: memberCount.length
+		};
 	}
 });
 
@@ -303,6 +402,14 @@ export const createWorkspace = mutation({
 		}
 
 		const slugBase = slugifyName(trimmedName);
+
+		// Validate reserved slugs
+		if (isReservedSlug(slugBase)) {
+			throw new Error(
+				`"${slugBase}" is a reserved name and cannot be used. Please choose a different workspace name.`
+			);
+		}
+
 		const slug = await ensureUniqueWorkspaceSlug(ctx, slugBase);
 		const now = Date.now();
 

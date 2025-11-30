@@ -258,7 +258,7 @@
 				class="bg-accent-primary/10 mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full"
 			>
 				<svg
-					class="text-accent-primary h-8 w-8"
+					class="h-8 w-8 text-accent-primary"
 					fill="none"
 					viewBox="0 0 24 24"
 					stroke="currentColor"
@@ -345,13 +345,13 @@
 				<!-- Redirect to login message with countdown (for "already registered" error) -->
 				{#if shouldRedirectToLogin}
 					<div
-						class="mt-content-section border-accent-primary bg-accent-primary/10 rounded-input border px-input-x py-input-y shadow-sm"
+						class="mt-content-section bg-accent-primary/10 rounded-input border border-accent-primary px-input-x py-input-y shadow-sm"
 						style="animation: slideDown 0.3s ease-out"
 					>
 						<div class="flex flex-col gap-3">
 							<div class="flex items-start gap-2">
 								<svg
-									class="text-accent-primary mt-0.5 h-5 w-5 flex-shrink-0"
+									class="mt-0.5 h-5 w-5 flex-shrink-0 text-accent-primary"
 									fill="none"
 									viewBox="0 0 24 24"
 									stroke="currentColor"
@@ -478,7 +478,7 @@
 						Wrong email?
 						<a
 							href={resolveRoute('/register')}
-							class="text-accent-primary hover:text-accent-hover font-medium transition-colors"
+							class="hover:text-accent-hover font-medium text-accent-primary transition-colors"
 						>
 							Start over
 						</a>

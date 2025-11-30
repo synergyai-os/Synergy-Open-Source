@@ -499,19 +499,19 @@
 			<Tabs.List class="size-tab rounded-tab-container border-border-base flex border-b">
 				<Tabs.Trigger
 					value="flags"
-					class="px-form-section py-header text-button text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent font-medium transition-colors"
+					class="px-form-section py-header text-button text-text-secondary hover:text-text-primary border-b-2 border-transparent font-medium transition-colors data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
 				>
 					Flags ({flags.length})
 				</Tabs.Trigger>
 				<Tabs.Trigger
 					value="impact"
-					class="px-form-section py-header text-button text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent font-medium transition-colors"
+					class="px-form-section py-header text-button text-text-secondary hover:text-text-primary border-b-2 border-transparent font-medium transition-colors data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
 				>
 					Impact
 				</Tabs.Trigger>
 				<Tabs.Trigger
 					value="debug"
-					class="px-form-section py-header text-button text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent font-medium transition-colors"
+					class="px-form-section py-header text-button text-text-secondary hover:text-text-primary border-b-2 border-transparent font-medium transition-colors data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
 				>
 					Debug
 				</Tabs.Trigger>
@@ -562,7 +562,7 @@
 						<div class="gap-content-section grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 							{#each filteredFlags as flag (flag._id)}
 								<div
-									class="group gap-content-section border-base px-card py-card hover:border-accent-primary hover:bg-hover-solid flex flex-col rounded-card border bg-surface transition-colors"
+									class="group gap-content-section border-base px-card py-card hover:bg-hover-solid flex flex-col rounded-card border bg-surface transition-colors hover:border-accent-primary"
 								>
 									<div class="flex items-start justify-between">
 										<div class="flex-1">
@@ -600,14 +600,14 @@
 										<div class="flex items-center gap-2">
 											<a
 												href={`/admin/feature-flags/${flag.flag}`}
-												class="text-accent-primary text-label hover:underline"
+												class="text-label text-accent-primary hover:underline"
 											>
 												View Details
 											</a>
 											<button
 												type="button"
 												onclick={() => openEditModal(flag)}
-												class="text-accent-primary text-label hover:underline"
+												class="text-label text-accent-primary hover:underline"
 											>
 												Quick Edit
 											</button>
@@ -1163,7 +1163,7 @@
 								<div class="mt-form-field-gap flex flex-wrap gap-2">
 									{#each parseDomains(formDomainInput) as domain (domain)}
 										<span
-											class="bg-accent-primary/10 px-badge py-badge text-accent-primary rounded-button text-label"
+											class="bg-accent-primary/10 px-badge py-badge rounded-button text-label text-accent-primary"
 										>
 											{domain}
 										</span>
@@ -1207,7 +1207,7 @@
 					<button
 						type="button"
 						onclick={handleSaveFlag}
-						class="bg-accent-primary text-small rounded-button px-button-x py-button-y font-medium text-primary"
+						class="text-small rounded-button bg-accent-primary px-button-x py-button-y font-medium text-primary"
 					>
 						Create Flag
 					</button>
@@ -1378,7 +1378,7 @@
 								<div class="mt-form-field-gap flex flex-wrap gap-2">
 									{#each parseDomains(formDomainInput) as domain (domain)}
 										<span
-											class="bg-accent-primary/10 px-badge py-badge text-accent-primary rounded-button text-label"
+											class="bg-accent-primary/10 px-badge py-badge rounded-button text-label text-accent-primary"
 										>
 											{domain}
 										</span>
@@ -1422,7 +1422,7 @@
 					<button
 						type="button"
 						onclick={handleSaveFlag}
-						class="bg-accent-primary text-small rounded-button px-button-x py-button-y font-medium text-primary"
+						class="text-small rounded-button bg-accent-primary px-button-x py-button-y font-medium text-primary"
 					>
 						Save Changes
 					</button>

@@ -2,13 +2,10 @@
 	import { Button as BitsButton } from 'bits-ui';
 	import type { WithElementRef } from 'bits-ui';
 	import type { Snippet } from 'svelte';
-	import type { ButtonVariant, ButtonSize } from '../types';
-	import { buttonRecipe } from '$lib/design-system/recipes';
+	import { buttonRecipe, type ButtonVariantProps } from '$lib/design-system/recipes';
 
 	type Props = WithElementRef<
-		{
-			variant?: ButtonVariant;
-			size?: ButtonSize;
+		ButtonVariantProps & {
 			iconOnly?: boolean;
 			ariaLabel?: string;
 			href?: string;

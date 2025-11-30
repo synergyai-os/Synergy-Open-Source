@@ -151,6 +151,13 @@ function transformTailwindUtility(token) {
 		} else if (/-y(?=$|-)/.test(spacingName)) {
 			utilityName = `py-${spacingName.replace(/-y(?=$|-)/, '')}`;
 			cssProperty = 'padding-block';
+		} else if (/-pr(?=$|-)/.test(spacingName)) {
+			utilityName = `pr-${spacingName.replace(/-pr(?=$|-)/, '')}`;
+			cssProperty = 'padding-right';
+		} else if (spacingName.includes('iconRight')) {
+			// Special case: input-iconRight → pr-input-iconRight
+			utilityName = `pr-${spacingName}`;
+			cssProperty = 'padding-right';
 		} else if (spacingName.includes('sectionGap')) {
 			// sectionGap tokens: form-sectionGap → gap-form-sectionGap, content-sectionGap → gap-content-sectionGap
 			utilityName = `gap-${spacingName}`;
@@ -303,11 +310,17 @@ function transformTailwindUtility(token) {
 	}
 	// Size utilities - generate width/height/max-width/max-height utilities
 	// For size tokens, generate appropriate utilities based on token name pattern
-	else if (path.startsWith('size-')) {
-		const sizeName = path.replace('size-', '');
+	else if (path.startsWith('size-') || path.startsWith('sizing-')) {
+		const sizeName = path.replace(/^(size|sizing)-/, '');
 
+		// Handle semantic sizing tokens: sizing-dateInput-width → w-dateInput
+		if (sizeName.includes('-width')) {
+			const componentName = sizeName.replace('-width', '');
+			utilityName = `w-${componentName}`;
+			cssProperty = 'width';
+		}
 		// Generate max-width utilities for tokens starting with maxWidth
-		if (sizeName.startsWith('maxWidth')) {
+		else if (sizeName.startsWith('maxWidth')) {
 			const maxWidthName = sizeName.replace('maxWidth', '');
 			utilityName = `max-w-${maxWidthName.charAt(0).toLowerCase() + maxWidthName.slice(1)}`;
 			cssProperty = 'max-width';

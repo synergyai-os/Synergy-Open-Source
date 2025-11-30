@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { useCircleRoles } from '../../composables/useCircleRoles.svelte';
-	import type { UseCircles, CircleRole, CircleMember } from '../../composables/useCircles.svelte';
+	import {
+		useCircleRoles,
+		type UseCircles,
+		type CircleRole,
+		type CircleMember
+	} from '$lib/infrastructure/organizational-model';
 
 	let {
 		circles,
@@ -135,14 +139,14 @@
 					type="text"
 					bind:value={newRoleName}
 					placeholder="Role name *"
-					class="border-base text-button focus:border-accent-primary w-full rounded-button border bg-elevated px-input-x py-input-y text-primary focus:outline-none"
+					class="border-base text-button w-full rounded-button border bg-elevated px-input-x py-input-y text-primary focus:border-accent-primary focus:outline-none"
 					required
 				/>
 				<textarea
 					bind:value={newRolePurpose}
 					placeholder="Purpose (optional)"
 					rows={2}
-					class="border-base text-button focus:border-accent-primary w-full rounded-button border bg-elevated px-input-x py-input-y text-primary focus:outline-none"
+					class="border-base text-button w-full rounded-button border bg-elevated px-input-x py-input-y text-primary focus:border-accent-primary focus:outline-none"
 				></textarea>
 				<div class="flex gap-2">
 					<button
@@ -159,7 +163,7 @@
 					<button
 						type="submit"
 						disabled={circles.loading.createRole}
-						class="text-on-solid bg-accent-primary px-card text-button hover:bg-accent-hover rounded-button py-input-y font-medium disabled:opacity-50"
+						class="text-on-solid px-card text-button rounded-button bg-accent-primary py-input-y font-medium hover:bg-accent-hover disabled:opacity-50"
 					>
 						{circles.loading.createRole ? 'Creating...' : 'Create'}
 					</button>
@@ -234,7 +238,7 @@
 									<div class="flex gap-2">
 										<select
 											bind:value={assignUserId[role.roleId]}
-											class="border-base text-button focus:border-accent-primary flex-1 rounded-button border bg-surface px-input-x py-input-y text-primary focus:outline-none"
+											class="border-base text-button flex-1 rounded-button border bg-surface px-input-x py-input-y text-primary focus:border-accent-primary focus:outline-none"
 											disabled={circles.loading.assignUser ||
 												getAvailableUsersForRole(role.roleId).length === 0}
 										>
@@ -252,7 +256,7 @@
 										<button
 											onclick={() => handleAssignUser(role.roleId)}
 											disabled={!assignUserId[role.roleId] || circles.loading.assignUser}
-											class="text-on-solid bg-accent-primary px-card hover:bg-accent-hover rounded-button py-input-y text-label font-medium disabled:opacity-50"
+											class="text-on-solid px-card rounded-button bg-accent-primary py-input-y text-label font-medium hover:bg-accent-hover disabled:opacity-50"
 										>
 											Assign
 										</button>

@@ -17,7 +17,7 @@ export const headingRecipe = cva('font-heading', {
 		level: {
 			1: 'text-4xl font-bold leading-tight tracking-tight',
 			2: 'text-3xl font-semibold leading-tight',
-			3: 'text-2xl font-semibold leading-snug',
+			3: 'text-xl font-semibold leading-snug', // 20px (was 24px - 4px smaller)
 			4: 'text-xl font-medium leading-snug',
 			5: 'text-sm font-semibold leading-normal',
 			6: 'text-sm font-medium leading-normal'

@@ -6,6 +6,56 @@
 
 SynergyOS is a full-stack open source application built with modern web technologies, designed for both web and mobile platforms. The architecture follows a hybrid authentication model with server-side validation and client-side state management.
 
+## Data Architecture Layers
+
+SynergyOS organizes data into three distinct layers:
+
+### 🏗️ Core Data Layer
+
+**Foundation entities that define organizational structure and identity:**
+
+- **`users`** - System users (identity, profile, authentication)
+- **`workspaces`** - Multi-tenant workspaces (organizations/companies)
+- **`workspaceMembers`** - Many-to-many relationship between users and workspaces
+- **`circles`** - Work units within workspaces (hierarchical organizational structure)
+- **`circleMembers`** - Many-to-many relationship between users and circles
+- **`circleRoles`** - Organizational roles within circles (e.g., "Circle Lead", "Dev Lead", "Facilitator")
+  - **Note**: These are NOT RBAC permissions, but organizational accountabilities
+  - Tasks/action items are assigned to these roles, not people directly
+- **`userCircleRoles`** - Many-to-many assignments of users to circle roles
+- **`roles`** - RBAC system roles (access control: admin, manager, circle-lead, member, guest)
+- **`permissions`** - RBAC permissions (what users can do: `teams.create`, `org.billing.view`)
+- **`rolePermissions`** - Links RBAC roles to permissions
+- **`userRoles`** - Assigns RBAC roles to users with optional resource scoping
+
+**Key Distinction:**
+- **Circle Roles** = Organizational accountabilities (who does what work)
+- **RBAC Roles** = Access control permissions (what users can do)
+
+### ⚙️ Enabling Systems Layer
+
+**Infrastructure that powers core data and application modules:**
+
+- **Authentication** (`authSessions`, `authLoginState`) - WorkOS AuthKit integration
+- **RBAC** (`roles`, `permissions`, `rolePermissions`, `userRoles`, `resourceGuests`, `permissionAuditLog`) - Permission-based access control
+- **Feature Flags** (`featureFlags`) - Progressive rollout and A/B testing
+- **Settings** (`userSettings`, `workspaceSettings`) - User and workspace preferences
+
+### 📦 Application Layer Modules
+
+**Feature-specific modules built on top of core data:**
+
+- **Meetings Module** - `meetings`, `meetingTemplates`, `meetingTemplateSteps`, `meetingAgendaItems`, `meetingAttendees`, `meetingInvitations`, `meetingPresence`
+- **Inbox Module** - `inboxItems` (polymorphic), `highlights`, `sources`, `authors`, `tags`
+- **Projects Module** - `projects`, `tasks`
+- **Flashcards Module** - `flashcards`, `flashcardReviews`, `userAlgorithmSettings`
+- **Other** - `verificationCodes`, `waitlist`, `doc404Errors`, `syncProgress`
+
+**Architecture Principle:**
+- Core data defines **who** (users), **where** (workspaces), **how organized** (circles, roles)
+- Enabling systems provide **security** (auth, RBAC) and **control** (feature flags)
+- Application modules provide **functionality** (meetings, inbox, projects) that operates within the core structure
+
 ## Tech Stack
 
 ### Frontend
@@ -961,7 +1011,7 @@ See [`dev-docs/2-areas/patterns/INDEX.md`](../2-areas/patterns/INDEX.md) for pat
 ## Project Structure
 
 ```
-Axon/
+SynergyOS/
 ├── convex/              # Convex backend
 │   ├── auth.ts          # Authentication configuration
 │   ├── http.ts          # HTTP routes (includes auth routes)

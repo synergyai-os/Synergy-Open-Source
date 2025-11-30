@@ -181,7 +181,7 @@
 							<Button
 								onclick={handleAcceptInvite}
 								disabled={isAccepting}
-								class="text-on-solid bg-accent-primary hover:bg-accent-hover w-full disabled:cursor-not-allowed disabled:opacity-50"
+								class="text-on-solid w-full bg-accent-primary hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
 							>
 								{isAccepting ? 'Accepting...' : 'Accept Invite'}
 							</Button>
@@ -209,7 +209,7 @@
 									href={resolveRoute(
 										`/register?redirect=${encodeURIComponent(redirectUrl)}${emailParam}`
 									)}
-									class="text-on-solid bg-accent-primary hover:bg-accent-hover flex-1 rounded-md px-button-x py-button-y text-center text-sm font-medium transition-colors"
+									class="text-on-solid flex-1 rounded-md bg-accent-primary px-button-x py-button-y text-center text-sm font-medium transition-colors hover:bg-accent-hover"
 								>
 									Create Account
 								</a>

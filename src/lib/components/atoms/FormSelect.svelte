@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Select } from 'bits-ui';
-	import { formInputRecipe } from '$lib/design-system/recipes';
+	import { formInputRecipe, type FormInputVariantProps } from '$lib/design-system/recipes';
 	import Text from './Text.svelte';
 	import Icon from './Icon.svelte';
 
@@ -10,7 +10,7 @@
 		disabled?: boolean;
 	};
 
-	type Props = {
+	type Props = FormInputVariantProps & {
 		id?: string;
 		name?: string;
 		label?: string;
@@ -24,6 +24,7 @@
 	};
 
 	let {
+		size = 'md',
 		id,
 		name,
 		label,
@@ -39,11 +40,11 @@
 	// Generate ID if not provided
 	const selectId = id || `select-${Math.random().toString(36).substr(2, 9)}`;
 
-	// Apply recipe for trigger styling (same as input)
+	// Apply recipe for trigger styling (same as input) with size variant
 	// Add flex layout for proper text + icon alignment
 	const triggerClasses = $derived([
 		'flex items-center justify-between',
-		formInputRecipe(),
+		formInputRecipe({ size }),
 		customClass
 	]);
 

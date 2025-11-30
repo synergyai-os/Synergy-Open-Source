@@ -34,7 +34,7 @@
 		{#if onEdit}
 			<button
 				type="button"
-				class="border-accent-primary px-card text-button text-accent-primary hover:bg-hover-solid rounded-button border bg-elevated py-input-y font-medium transition-colors"
+				class="px-card text-button hover:bg-hover-solid rounded-button border border-accent-primary bg-elevated py-input-y font-medium text-accent-primary transition-colors"
 				onclick={onEdit}
 			>
 				Edit role

@@ -228,7 +228,7 @@
 
 			{#if inboxItem.blogCategory === 'BLOG'}
 				<span
-					class="rounded-chip bg-accent-primary px-badge py-badge text-label font-medium text-primary"
+					class="rounded-chip px-badge py-badge bg-accent-primary text-label font-medium text-primary"
 				>
 					BLOG
 				</span>

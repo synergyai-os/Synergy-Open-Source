@@ -2,7 +2,7 @@
 	import { getContext } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { resolveRoute } from '$lib/utils/navigation';
-	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 
 	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
 
@@ -18,15 +18,18 @@
 
 		try {
 			await workspaces.createWorkspace({ name: orgName.trim() });
-			// Redirect to /org/circles after successful creation with org context
-			// Wait a moment for activeWorkspaceId to be set
-			const orgId = workspaces.activeWorkspaceId;
-			if (orgId) {
-				goto(resolveRoute(`/org/circles?org=${orgId}`));
-			} else {
-				// Fallback: redirect without org param (will be set from context)
-				goto(resolveRoute('/org/circles'));
-			}
+			// Redirect to /w/:slug/circles after successful creation
+			// Wait a moment for activeWorkspace to be updated with slug
+			const checkSlug = () => {
+				const slug = workspaces?.activeWorkspace?.slug;
+				if (slug) {
+					goto(resolveRoute(`/w/${slug}/circles`));
+				} else {
+					// Retry after a short delay
+					setTimeout(checkSlug, 50);
+				}
+			};
+			checkSlug();
 		} catch (error) {
 			console.error('Failed to create workspace:', error);
 			errorMessage = error instanceof Error ? error.message : 'Failed to create workspace';
@@ -57,7 +60,7 @@
 				<label class="flex flex-col gap-1">
 					<span class="text-sm font-medium text-primary">Organization name</span>
 					<input
-						class="border-base py-nav-item focus:border-accent-primary w-full rounded-md border bg-elevated px-2 text-sm text-primary focus:outline-none"
+						class="border-base py-nav-item w-full rounded-md border bg-elevated px-2 text-sm text-primary focus:border-accent-primary focus:outline-none"
 						placeholder="e.g. SynergyOS Labs"
 						bind:value={orgName}
 						required
@@ -78,7 +81,7 @@
 					<button
 						type="submit"
 						disabled={isCreating || !orgName.trim()}
-						class="text-on-solid bg-accent-primary rounded-md px-button-x py-button-y text-sm font-medium disabled:opacity-50"
+						class="text-on-solid rounded-md bg-accent-primary px-button-x py-button-y text-sm font-medium disabled:opacity-50"
 					>
 						{isCreating ? 'Creating...' : 'Create'}
 					</button>

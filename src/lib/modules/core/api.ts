@@ -6,10 +6,9 @@
  * depend on, without coupling to internal implementation details.
  *
  * The Core module provides foundational functionality that other modules depend on:
- * - Shared UI components (TagSelector)
+ * - Shared UI components (TagSelector, Sidebar, AppTopBar, etc.)
  * - Tagging functionality (via useTagging composable)
- * - Organizations (via WorkspacesModuleAPI)
- * - Authentication context
+ * - Global shortcuts (via useGlobalShortcuts composable)
  * - Shared utilities and types
  *
  * @see dev-docs/2-areas/architecture/modularity-refactoring-analysis.md

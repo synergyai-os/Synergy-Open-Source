@@ -326,7 +326,7 @@
 							<div class="mb-content-section flex flex-wrap gap-2">
 								{#each selectedOrgNames as orgName (orgName)}
 									<span
-										class="bg-accent-primary/10 text-accent-primary gap-chip px-badge py-badge inline-flex items-center rounded-button text-label"
+										class="bg-accent-primary/10 gap-chip px-badge py-badge inline-flex items-center rounded-button text-label text-accent-primary"
 									>
 										{orgName}
 										<button

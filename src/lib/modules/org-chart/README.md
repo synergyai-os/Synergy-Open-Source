@@ -2,38 +2,42 @@
 
 **Team Ownership**: Org Chart Team  
 **Status**: ✅ Active  
-**Feature Flag**: `org_module_beta` (workspace-based)
+**Feature Flag**: `org_module_beta` (workspace-based) - Controls visualization only
+
+**Note**: Core organizational data (circles, members, roles) is now in infrastructure and is **not** behind a feature flag. See `$lib/infrastructure/organizational-model` for core data composables.
 
 ---
 
 ## Overview
 
-The Org Chart module provides organizational structure visualization, circle management, and role assignment.
+The Org Chart module provides **organizational structure visualization** (bubble chart, detail panels, navigation).
+
+**Core data** (circles, members, roles) is now in `$lib/infrastructure/organizational-model` and is always available (not behind feature flags).
 
 ## Module Structure
 
 ```
 org-chart/
-├── components/         # Org chart-specific UI components
+├── components/         # Visualization components only
 │   ├── CategoryHeader.svelte
 │   ├── CircleDetailHeader.svelte
 │   ├── CircleDetailPanel.svelte
-│   ├── OrgChart.svelte
+│   ├── OrgChart.svelte          # Bubble chart visualization
 │   ├── PanelBreadcrumbBar.svelte
 │   ├── RoleCard.svelte
 │   ├── RoleDetailHeader.svelte
 │   ├── RoleDetailPanel.svelte
 │   └── circles/
-│       ├── CircleMembersPanel.svelte
-│       ├── CircleRolesPanel.svelte
-│       └── CreateCircleModal.svelte
-├── composables/       # Org chart-specific composables
-│   ├── useCircles.svelte.ts
-│   └── useOrgChart.svelte.ts
-├── api.ts             # Module API contract
+│       ├── CircleMembersPanel.svelte  # Uses infrastructure composables
+│       └── CircleRolesPanel.svelte     # Uses infrastructure composables
+├── composables/       # Visualization state only
+│   └── useOrgChart.svelte.ts    # Chart navigation, zoom, selection
+├── api.ts             # Module API contract (visualization only)
 ├── feature-flags.ts   # Feature flag definitions
 └── manifest.ts        # Module registration
 ```
+
+**Note**: Core data composables (`useCircles`, `useCircleMembers`, `useCircleRoles`) and `CreateCircleModal` have been moved to `$lib/infrastructure/organizational-model`.
 
 ## API Contract
 
@@ -41,7 +45,15 @@ See [`api.ts`](./api.ts) for the complete `OrgChartModuleAPI` interface.
 
 **Exposed Composables**:
 
-- `useOrgChart` - Org chart data and navigation
+- `useOrgChart` - Org chart visualization state and navigation
+
+**Core Data Composables** (in infrastructure, not behind feature flag):
+
+- `useCircles` - Circles CRUD and queries
+- `useCircleMembers` - Circle members queries
+- `useCircleRoles` - Circle roles queries
+
+See `$lib/infrastructure/organizational-model` for core data access.
 
 ## Dependencies
 
@@ -50,8 +62,11 @@ See [`api.ts`](./api.ts) for the complete `OrgChartModuleAPI` interface.
 ## Feature Flag
 
 **Flag**: `org_module_beta`  
-**Scope**: Organization-based  
-**Default**: Disabled (requires explicit enablement per workspace)
+**Scope**: Workspace-based  
+**Default**: Disabled (requires explicit enablement per workspace)  
+**Controls**: Visualization features only (org chart bubble view, detail panels)
+
+**Core data access** (circles, members, roles) is **not** behind this flag and is always available via `$lib/infrastructure/organizational-model`.
 
 ## Usage
 

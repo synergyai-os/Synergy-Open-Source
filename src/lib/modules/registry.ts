@@ -16,7 +16,7 @@ import { api } from '$lib/convex';
  */
 export interface ModuleManifest {
 	/**
-	 * Unique module identifier (e.g., 'core', 'inbox', 'meetings')
+	 * Unique module identifier (e.g., 'shared-ui', 'inbox', 'meetings')
 	 */
 	name: string;
 
@@ -59,9 +59,9 @@ const moduleRegistry = new Map<string, ModuleManifest>();
  * @example
  * ```typescript
  * import { registerModule } from '$lib/modules/registry';
- * import { coreModule } from '$lib/modules/core/manifest';
+ * import { sharedUiModule } from '$lib/modules/core/manifest';
  *
- * registerModule(coreModule);
+ * registerModule(sharedUiModule);
  * ```
  */
 export function registerModule(manifest: ModuleManifest): void {
@@ -82,7 +82,7 @@ export function registerModule(manifest: ModuleManifest): void {
  *
  * @example
  * ```typescript
- * const coreModule = getModule('core');
+ * const sharedUiModule = getModule('shared-ui');
  * ```
  */
 export function getModule(name: string): ModuleManifest | undefined {
@@ -260,8 +260,8 @@ export async function isModuleEnabled(
  *
  * @example
  * ```typescript
- * const ordered = resolveDependencies(['meetings', 'inbox', 'core']);
- * // Returns: ['core', 'inbox', 'meetings']
+ * const ordered = resolveDependencies(['meetings', 'inbox', 'shared-ui']);
+ * // Returns: ['shared-ui', 'inbox', 'meetings']
  * ```
  */
 export function resolveDependencies(moduleNames: string[]): string[] {

@@ -117,25 +117,25 @@
 	>
 		<Tabs.Trigger
 			value="all"
-			class="py-nav-item text-small text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent px-2 font-medium transition-colors"
+			class="py-nav-item text-small text-text-secondary hover:text-text-primary border-b-2 border-transparent px-2 font-medium transition-colors data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
 		>
 			All <Badge>{allCount}</Badge>
 		</Tabs.Trigger>
 		<Tabs.Trigger
 			value="todo"
-			class="py-nav-item text-small text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent px-2 font-medium transition-colors"
+			class="py-nav-item text-small text-text-secondary hover:text-text-primary border-b-2 border-transparent px-2 font-medium transition-colors data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
 		>
 			To Do <Badge>{todoCount}</Badge>
 		</Tabs.Trigger>
 		<Tabs.Trigger
 			value="in-progress"
-			class="py-nav-item text-small text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent px-2 font-medium transition-colors"
+			class="py-nav-item text-small text-text-secondary hover:text-text-primary border-b-2 border-transparent px-2 font-medium transition-colors data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
 		>
 			In Progress <Badge>{inProgressCount}</Badge>
 		</Tabs.Trigger>
 		<Tabs.Trigger
 			value="done"
-			class="py-nav-item text-small text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent px-2 font-medium transition-colors"
+			class="py-nav-item text-small text-text-secondary hover:text-text-primary border-b-2 border-transparent px-2 font-medium transition-colors data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
 		>
 			Done <Badge>{doneCount}</Badge>
 		</Tabs.Trigger>
@@ -245,7 +245,7 @@
 								<!-- Meeting Link -->
 								<button
 									onclick={() => handleNavigateToMeeting(item.meetingId)}
-									class="text-accent-primary hover:text-accent-hover inline-flex items-center transition-colors"
+									class="hover:text-accent-hover inline-flex items-center text-accent-primary transition-colors"
 									style="gap: var(--spacing-1);"
 								>
 									<svg class="icon-xs" fill="none" viewBox="0 0 24 24" stroke="currentColor">

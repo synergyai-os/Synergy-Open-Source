@@ -1,9 +1,10 @@
 /**
- * Core Module Manifest
+ * Shared UI Module Manifest
  *
- * Core module provides foundational functionality that other modules depend on:
- * - Organizations (workspace switching, org/team management)
- * - Authentication context
+ * Shared UI module provides foundational functionality that other modules depend on:
+ * - Shared UI components (TagSelector, Sidebar, AppTopBar, etc.)
+ * - Tagging functionality (via useTagging composable)
+ * - Global shortcuts (via useGlobalShortcuts composable)
  * - Shared utilities and types
  *
  * This module is always enabled (no feature flag required).
@@ -15,14 +16,14 @@ import type { ModuleManifest } from '../registry';
 import type { CoreModuleAPI } from './api';
 
 /**
- * Core module manifest
+ * Shared UI module manifest
  *
- * **Dependencies**: None (core module has no dependencies)
+ * **Dependencies**: None (shared UI module has no dependencies)
  * **Feature Flag**: null (always enabled)
  * **API**: CoreModuleAPI (shared components like TagSelector)
  */
-export const coreModule: ModuleManifest = {
-	name: 'core',
+export const sharedUiModule: ModuleManifest = {
+	name: 'shared-ui',
 	version: '1.0.0',
 	dependencies: [],
 	featureFlag: null, // Always enabled

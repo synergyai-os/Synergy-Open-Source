@@ -145,7 +145,7 @@
 				>
 					<div class="flex gap-2">
 						<svg
-							class="mt-form-field-gap text-accent-primary size-icon-md flex-shrink-0"
+							class="mt-form-field-gap size-icon-md flex-shrink-0 text-accent-primary"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -158,7 +158,7 @@
 							/>
 						</svg>
 						<div class="text-small">
-							<p class="mb-form-field-gap text-accent-primary font-medium">After transferring:</p>
+							<p class="mb-form-field-gap font-medium text-accent-primary">After transferring:</p>
 							<ul class="space-y-form-field-gap text-label text-tertiary">
 								<li>• Organization will own this collection</li>
 								<li>• All members can view and contribute</li>
@@ -188,7 +188,7 @@
 					type="button"
 					onclick={handleSubmit}
 					disabled={isSharing || !selectedOrganization}
-					class="bg-accent-primary text-small hover:bg-accent-primary/90 flex items-center gap-2 rounded-button px-button-x py-button-y font-medium text-primary transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+					class="text-small hover:bg-accent-primary/90 flex items-center gap-2 rounded-button bg-accent-primary px-button-x py-button-y font-medium text-primary transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{#if isSharing}
 						<svg class="icon-sm animate-spin" fill="none" viewBox="0 0 24 24">

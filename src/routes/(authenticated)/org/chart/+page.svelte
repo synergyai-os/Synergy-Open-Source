@@ -7,7 +7,7 @@
 	import OrgChart from '$lib/modules/org-chart/components/OrgChart.svelte';
 	import CircleDetailPanel from '$lib/modules/org-chart/components/CircleDetailPanel.svelte';
 	import RoleDetailPanel from '$lib/modules/org-chart/components/RoleDetailPanel.svelte';
-	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import type { OrgChartModuleAPI } from '$lib/modules/org-chart/api';
 
 	let { data: _data } = $props();

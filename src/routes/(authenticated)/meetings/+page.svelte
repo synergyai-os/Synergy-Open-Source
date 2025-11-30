@@ -17,9 +17,15 @@
 	import { Button, Icon, Heading, Text } from '$lib/components/atoms';
 	import { PageHeader } from '$lib/components/molecules';
 	import * as ScrollArea from '$lib/components/atoms/ScrollArea.svelte';
+	import {
+		scrollAreaRootRecipe,
+		scrollAreaViewportRecipe,
+		scrollAreaScrollbarRecipe,
+		scrollAreaThumbRecipe
+	} from '$lib/design-system/recipes';
 	import { FeatureFlags } from '$lib/infrastructure/feature-flags';
 	import { resolveRoute } from '$lib/utils/navigation';
-	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 
 	// Get sessionId from page data (provided by authenticated layout)
 	const getSessionId = () => $page.data.sessionId;
@@ -173,8 +179,8 @@
 	</div>
 {:else}
 	<!-- Meetings Page -->
-	<ScrollArea.Root type="auto" scrollHideDelay={400} class="h-full">
-		<ScrollArea.Viewport class="h-full w-full">
+	<ScrollArea.Root type="auto" scrollHideDelay={400} class={[scrollAreaRootRecipe(), 'h-full']}>
+		<ScrollArea.Viewport class={[scrollAreaViewportRecipe(), 'h-full', 'w-full']}>
 			<div>
 				<!-- Page Header -->
 				<PageHeader>
@@ -231,7 +237,7 @@
 					{:else if state.activeTab === 'my-meetings'}
 						<!-- My Meetings Tab -->
 						<!-- Today Section -->
-						<div class="mb-header">
+						<div class="mb-section">
 							<div class="flex items-center gap-fieldGroup mb-header">
 								<Heading level={5} color="secondary">Today</Heading>
 								<Icon type="info" size="md" color="tertiary" />
@@ -268,7 +274,7 @@
 						</div>
 
 						<!-- This Week Section -->
-						<div class="mb-header">
+						<div class="mb-section">
 							<Heading level={5} color="secondary" class="mb-header">This week</Heading>
 
 							{#if meetings.thisWeekMeetings.length === 0}
@@ -361,13 +367,10 @@
 		<!-- Scrollbar styling with design tokens -->
 		<ScrollArea.Scrollbar
 			orientation="vertical"
-			class="flex touch-none p-px transition-opacity duration-200 select-none"
+			class={scrollAreaScrollbarRecipe({ orientation: 'vertical' })}
 			style="width: 0.5rem;"
 		>
-			<ScrollArea.Thumb
-				class="bg-tertiary relative flex-1 rounded-avatar"
-				style="opacity: var(--opacity-50);"
-			/>
+			<ScrollArea.Thumb class={scrollAreaThumbRecipe()} style="opacity: var(--opacity-50);" />
 		</ScrollArea.Scrollbar>
 	</ScrollArea.Root>
 

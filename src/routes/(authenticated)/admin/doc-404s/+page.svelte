@@ -298,7 +298,7 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 					type="text"
 					placeholder="Search URLs or referrers..."
 					bind:value={searchQuery}
-					class="border-sidebar text-small focus:border-accent-primary w-full rounded-input border bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:outline-none"
+					class="border-sidebar text-small w-full rounded-input border bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
 				/>
 			</div>
 			<div class="flex gap-2">
@@ -458,7 +458,7 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 					id="resolve-note"
 					bind:value={resolveNote}
 					placeholder="How was this fixed? (optional)"
-					class="mt-form-field-gap border-sidebar text-small focus:border-accent-primary w-full rounded-input border bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:outline-none"
+					class="mt-form-field-gap border-sidebar text-small w-full rounded-input border bg-surface px-input-x py-input-y text-primary placeholder:text-tertiary focus:border-accent-primary focus:outline-none"
 					rows="3"
 				></textarea>
 			</div>
@@ -472,7 +472,7 @@ ${error.resolutionNote ? `Note: ${error.resolutionNote}` : ''}`;
 						}
 					}}
 					disabled={resolving || !selectedError}
-					class="bg-accent-primary text-small hover:bg-accent-hover inline-flex items-center justify-center gap-2 rounded-button px-button-x py-button-y font-semibold text-primary transition-all duration-150 disabled:cursor-not-allowed disabled:opacity-50"
+					class="text-small inline-flex items-center justify-center gap-2 rounded-button bg-accent-primary px-button-x py-button-y font-semibold text-primary transition-all duration-150 hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{resolving ? 'Resolving...' : 'Mark as Resolved'}
 				</button>

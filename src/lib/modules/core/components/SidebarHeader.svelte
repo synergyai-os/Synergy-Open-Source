@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { getContext } from 'svelte';
-	import WorkspaceSwitcher from '$lib/modules/core/workspaces/components/WorkspaceSwitcher.svelte';
-	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
+	import WorkspaceSwitcher from '$lib/infrastructure/workspaces/components/WorkspaceSwitcher.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 
 	type OrganizationInfo = {
 		workspaceId: string;

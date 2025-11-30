@@ -3,6 +3,13 @@ import { cva, type VariantProps } from 'class-variance-authority';
 /**
  * FormInput Recipe
  *
+ * Base recipe for all input components. Provides consistent styling with size variants.
+ *
+ * Size variants (compact-first philosophy):
+ * - sm: Extra compact for dense UIs (8px text, 8px×4px padding)
+ * - md: Default compact (Linear-inspired, 10px text, 12px×6px padding)
+ * - lg: Generous for touch/accessibility
+ *
  * Premium micro-interactions:
  * - Smooth 200ms transition on all properties
  * - Focus: brand border + subtle shadow glow
@@ -14,10 +21,19 @@ import { cva, type VariantProps } from 'class-variance-authority';
  * TODO: Once token build supports light/dark mode shadow tokens, migrate to --shadow-focusRing
  */
 export const formInputRecipe = cva(
-	'rounded-input border border-strong bg-base px-input py-input text-primary transition-all duration-200 ease-out placeholder:text-muted hover:border-default focus:border-focus focus:shadow-[0_0_0_3px_oklch(55%_0.15_195_/_0.12)] focus:outline-none',
+	// Base classes - applied to all inputs
+	'rounded-input border border-strong bg-base text-primary transition-all duration-200 ease-out placeholder:text-muted hover:border-default focus:border-focus focus:shadow-[0_0_0_3px_oklch(55%_0.15_195_/_0.12)] focus:outline-none',
 	{
-		variants: {},
-		defaultVariants: {}
+		variants: {
+			size: {
+				sm: 'px-[var(--spacing-2)] py-[var(--spacing-1)] text-2xs', // Extra compact: 8px×4px, 8px text
+				md: 'px-input py-input text-xs', // Default compact: 12px×6px, 10px text
+				lg: 'px-[var(--spacing-4)] py-[var(--spacing-3)] text-base' // Generous: 16px×12px, 14px text
+			}
+		},
+		defaultVariants: {
+			size: 'md'
+		}
 	}
 );
 

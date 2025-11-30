@@ -1,33 +1,34 @@
 import { cva, type VariantProps } from 'class-variance-authority';
+import { formInputRecipe } from './formInput.recipe';
 
 /**
  * Combobox Recipe
  *
  * Premium combobox component with search/filtering support.
- * Uses semantic tokens for consistent styling across the design system.
- *
- * DESIGN SYSTEM NOTE: Focus Ring (using oklch brand hue)
- * The focus ring uses `oklch(55% 0.15 195 / 0.12)` which matches our brand.primary token hue (195).
- * This ensures the glow changes if brand color changes. The oklch format is consistent with our tokens.
+ * Extends formInputRecipe for consistent styling (DRY principle).
+ * Inherits size variants, focus ring, and compact styling from formInputRecipe.
  */
-export const comboboxTriggerRecipe = cva(
-	'flex items-center justify-between rounded-input border border-strong bg-base px-input py-input text-primary transition-all duration-200 ease-out hover:border-default focus:border-focus focus:shadow-[0_0_0_3px_oklch(55%_0.15_195_/_0.12)] focus:outline-none',
-	{
-		variants: {},
-		defaultVariants: {}
-	}
-);
+export const comboboxTriggerRecipe = cva([formInputRecipe(), 'flex items-center justify-between'], {
+	variants: {},
+	defaultVariants: {}
+});
 
 /**
  * Combobox Input Recipe (for search input inside combobox)
+ * Extends formInputRecipe for consistent styling.
+ * Supports size variants: sm (compact), md (default), lg (generous)
+ *
+ * Note: Size variants are passed through to formInputRecipe.
+ * The 'w-full' class ensures the input takes full width of its container.
+ *
+ * IMPORTANT: This recipe composes formInputRecipe() which already has size variants.
+ * The component should call formInputRecipe({ size }) directly and add 'w-full'.
+ * This recipe is kept for type safety but the actual implementation uses formInputRecipe directly.
  */
-export const comboboxInputRecipe = cva(
-	'w-full rounded-input border border-strong bg-base px-input py-input text-primary transition-all duration-200 ease-out placeholder:text-muted hover:border-default focus:border-focus focus:shadow-[0_0_0_3px_oklch(55%_0.15_195_/_0.12)] focus:outline-none',
-	{
-		variants: {},
-		defaultVariants: {}
-	}
-);
+export const comboboxInputRecipe = cva([formInputRecipe(), 'w-full'], {
+	variants: {},
+	defaultVariants: {}
+});
 
 /**
  * Combobox Content Recipe (dropdown container)
@@ -63,7 +64,7 @@ export const comboboxViewportRecipe = cva('inset-sm', {
  * - hover:bg-subtle for visible feedback (NOT hover:bg-hover-solid which doesn't exist)
  */
 export const comboboxItemRecipe = cva(
-	'flex cursor-pointer items-center gap-fieldGroup mx-1 rounded-button px-button py-button text-body-sm text-primary transition-all duration-200 outline-none hover:bg-subtle focus:bg-subtle data-disabled:pointer-events-none',
+	'flex cursor-pointer items-center gap-fieldGroup mx-1 rounded-button px-button py-button text-xs text-primary transition-all duration-200 outline-none hover:bg-subtle focus:bg-subtle data-disabled:pointer-events-none',
 	{
 		variants: {
 			disabled: {

@@ -9,7 +9,7 @@
 	import { makeFunctionReference } from 'convex/server';
 	import { api } from '$lib/convex';
 	import type { Id } from '$lib/convex';
-	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import type { CoreModuleAPI } from '$lib/modules/core/api';
 	import { DEFAULT_TAG_COLOR } from '$lib/utils/tagConstants';
 	import { useTagging } from '../composables/useTagging.svelte';
@@ -456,11 +456,11 @@
 					<div class="mb-marketing-content mt-content-section">
 						<!-- Quote-style container with subtle background and left accent -->
 						<div
-							class="border-accent-primary pr-inbox-container pl-inbox-container relative rounded-card border-l-4 bg-surface"
+							class="pr-inbox-container pl-inbox-container relative rounded-card border-l-4 border-accent-primary bg-surface"
 							style="padding-block: var(--spacing-8);"
 						>
 							<!-- Quote mark (decorative, subtle) -->
-							<div class="text-accent-primary absolute top-6 left-6 opacity-10">
+							<div class="absolute top-6 left-6 text-accent-primary opacity-10">
 								<svg style="width: 5rem; height: 5rem;" fill="currentColor" viewBox="0 0 24 24">
 									<path
 										d="M14.017 21v-7.391c0-5.522-4.477-10-10-10v-2.609c0-5.522 4.477-10 10-10h7.017v21h-7.017zm-10 0v-7.391c0-5.522-4.477-10-10-10v-2.609c0-5.522 4.477-10 10-10h7.017v21h-7.017z"

@@ -99,7 +99,7 @@
 					>
 						<RadioGroup.Item
 							value="7d"
-							class="px-menu-item py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
+							class="px-menu-item py-menu-item flex cursor-pointer items-center rounded-button transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -109,7 +109,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="30d"
-							class="px-menu-item py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
+							class="px-menu-item py-menu-item flex cursor-pointer items-center rounded-button transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -119,7 +119,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="90d"
-							class="py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
+							class="py-menu-item flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -129,7 +129,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="180d"
-							class="py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
+							class="py-menu-item flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -139,7 +139,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="365d"
-							class="py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
+							class="py-menu-item flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -149,7 +149,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="all"
-							class="py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
+							class="py-menu-item flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}">All time</span>
@@ -170,7 +170,7 @@
 					>
 						<RadioGroup.Item
 							value="5"
-							class="px-menu-item py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
+							class="px-menu-item py-menu-item flex cursor-pointer items-center rounded-button transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -180,7 +180,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="10"
-							class="py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
+							class="py-menu-item flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -190,7 +190,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="25"
-							class="py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
+							class="py-menu-item flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -200,7 +200,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="50"
-							class="py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
+							class="py-menu-item flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -210,7 +210,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="100"
-							class="py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
+							class="py-menu-item flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -220,7 +220,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="250"
-							class="py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
+							class="py-menu-item flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -230,7 +230,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="500"
-							class="py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
+							class="py-menu-item flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"
@@ -240,7 +240,7 @@
 						</RadioGroup.Item>
 						<RadioGroup.Item
 							value="1000"
-							class="py-menu-item data-[state=checked]:bg-accent-primary flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:text-primary"
+							class="py-menu-item flex cursor-pointer items-center gap-2 rounded-button transition-colors hover:bg-hover data-[state=checked]:bg-accent-primary data-[state=checked]:text-primary"
 						>
 							{#snippet children({ checked })}
 								<span class="text-small {checked ? 'text-primary' : 'text-primary'}"

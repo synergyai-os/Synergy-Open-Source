@@ -4,8 +4,16 @@
 	 *
 	 * Wraps Bits UI PinInput with design tokens for consistent styling.
 	 * Auto-submits when all 6 digits are entered.
+	 * Uses Recipe System (CVA) for type-safe variant management.
+	 * See: src/lib/design-system/recipes/pinInput.recipe.ts
 	 */
 	import { PinInput as PinInputPrimitive, REGEXP_ONLY_DIGITS } from 'bits-ui';
+	import {
+		pinInputRootRecipe,
+		pinInputCellRecipe,
+		pinInputLabelRecipe,
+		pinInputErrorRecipe
+	} from '$lib/design-system/recipes';
 
 	type Props = {
 		value?: string;
@@ -31,11 +39,17 @@
 	});
 
 	const inputId = `pin-input-${Math.random().toString(36).substring(7)}`;
+
+	// Apply recipes for styling
+	const rootClasses = $derived(pinInputRootRecipe());
+	const cellClasses = $derived(pinInputCellRecipe({ error: !!error }));
+	const labelClasses = $derived(pinInputLabelRecipe());
+	const errorClasses = $derived(pinInputErrorRecipe());
 </script>
 
-<div class="flex flex-col gap-2">
+<div class="flex flex-col gap-form">
 	{#if label}
-		<label for={inputId} class="text-small text-label-primary font-medium">
+		<label for={inputId} class={labelClasses}>
 			{label}
 		</label>
 	{/if}
@@ -46,7 +60,7 @@
 		{disabled}
 		maxlength={6}
 		id={inputId}
-		class="gap-input-group flex justify-center"
+		class={rootClasses}
 		onpaste={(e) => {
 			// Handle paste event to extract 6-digit codes from clipboard
 			const pastedText = e.clipboardData?.getData('text');
@@ -65,9 +79,7 @@
 				<PinInputPrimitive.Cell
 					{cell}
 					data-testid="pin-input-cell-{index}"
-					class="border-base bg-input text-pin-cell leading-pin-cell caret-accent-primary focus:border-accent-primary focus:shadow-pin-glow rounded-input border-2 text-center font-bold text-primary transition-all duration-200 placeholder:text-tertiary focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 {error
-						? 'border-error'
-						: ''}"
+					class={cellClasses}
 					style="width: 4rem; height: 4rem; font-size: 2rem;"
 				>
 					<!-- Display the character in the cell -->
@@ -84,6 +96,6 @@
 	</PinInputPrimitive.Root>
 
 	{#if error}
-		<p class="text-small text-error">{error}</p>
+		<p class={errorClasses}>{error}</p>
 	{/if}
 </div>

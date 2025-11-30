@@ -19,14 +19,14 @@ import type { OrgChartModuleAPI } from './api';
 /**
  * Org Chart module manifest
  *
- * **Dependencies**: ['core'] (depends on core module for workspaces context)
- * **Feature Flag**: 'org_module_beta' (workspace-based targeting)
+ * **Dependencies**: ['shared-ui'] (depends on shared-ui module for shared utilities like useNavigationStack)
+ * **Feature Flag**: 'org_module_beta' (controls visualization module, not core data)
  * **API**: OrgChartModuleAPI (public interface for org chart functionality)
  */
 export const orgChartModule: ModuleManifest = {
 	name: 'org-chart',
 	version: '1.0.0',
-	dependencies: ['core'],
+	dependencies: ['shared-ui'],
 	featureFlag: OrgChartFeatureFlags.ORG_MODULE_BETA, // 'org_module_beta'
 	api: undefined as OrgChartModuleAPI | undefined // Type reference for API contract
 };

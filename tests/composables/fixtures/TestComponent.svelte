@@ -7,12 +7,12 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { setupConvex } from 'convex-svelte';
-	import { useWorkspaces } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
+	import { useWorkspaces } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import type {
 		UseOrganizations,
 		WorkspaceSummary,
 		WorkspaceInvite
-	} from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
+	} from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 
 	// Setup Convex client for testing (required by convex-svelte)
 	if (browser) {

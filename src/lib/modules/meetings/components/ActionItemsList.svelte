@@ -78,7 +78,7 @@
 				bind:value={form.description}
 				placeholder="What needs to be done?"
 				rows="2"
-				class="text-body-sm border-border-base px-menu-item py-menu-item placeholder-text-tertiary focus:border-accent-primary focus:ring-accent-primary w-full rounded-input border bg-elevated text-primary focus:ring-1 focus:outline-none"
+				class="text-body-sm border-border-base px-menu-item py-menu-item placeholder-text-tertiary focus:ring-accent-primary w-full rounded-input border bg-elevated text-primary focus:border-accent-primary focus:ring-1 focus:outline-none"
 			></textarea>
 
 			<!-- Assignee Type Toggle -->
@@ -104,7 +104,7 @@
 				{#if form.assigneeType === 'user'}
 					<select
 						bind:value={form.assigneeUserId}
-						class="text-body-sm border-border-base px-menu-item py-menu-item focus:border-accent-primary focus:ring-accent-primary w-full rounded-input border bg-elevated text-primary focus:ring-1 focus:outline-none"
+						class="text-body-sm border-border-base px-menu-item py-menu-item focus:ring-accent-primary w-full rounded-input border bg-elevated text-primary focus:border-accent-primary focus:ring-1 focus:outline-none"
 					>
 						<option value={null}>Select user...</option>
 						{#each data.members as member (member.userId)}
@@ -114,7 +114,7 @@
 				{:else if form.assigneeType === 'role'}
 					<select
 						bind:value={form.assigneeRoleId}
-						class="text-body-sm border-border-base px-menu-item py-menu-item focus:border-accent-primary focus:ring-accent-primary w-full rounded-input border bg-elevated text-primary focus:ring-1 focus:outline-none"
+						class="text-body-sm border-border-base px-menu-item py-menu-item focus:ring-accent-primary w-full rounded-input border bg-elevated text-primary focus:border-accent-primary focus:ring-1 focus:outline-none"
 					>
 						<option value={null}>Select role...</option>
 						{#each data.roles as role (role.roleId)}
@@ -134,7 +134,7 @@
 					type="date"
 					value={form.timestampToDateInput(form.dueDate)}
 					onchange={form.handleDueDateChange}
-					class="text-body-sm border-border-base px-menu-item py-menu-item focus:border-accent-primary focus:ring-accent-primary rounded-button border bg-elevated text-primary focus:ring-1 focus:outline-none"
+					class="text-body-sm border-border-base px-menu-item py-menu-item focus:ring-accent-primary rounded-button border bg-elevated text-primary focus:border-accent-primary focus:ring-1 focus:outline-none"
 				/>
 			</div>
 
@@ -180,7 +180,7 @@
 							<Icon type="flashcards" size="md" color="success" />
 						{:else}
 							<svg
-								class="icon-md text-text-tertiary hover:text-accent-primary transition-colors"
+								class="icon-md text-text-tertiary transition-colors hover:text-accent-primary"
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"

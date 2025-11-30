@@ -8,7 +8,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
  *
  * Variants: default, compact
  * Step states: current, completed, pending, error
- * Step sizes: md, lg
+ * Step sizes: sm, md, lg, xl
  *
  * Design tokens used:
  * - spacing.header.gap → gap-header (12px)
@@ -17,8 +17,10 @@ import { cva, type VariantProps } from 'class-variance-authority';
  * - color.text.secondary → text-secondary
  * - color.border.default → border-default
  * - color.status.error → bg-status-error, border-status-error
+ * - size.icon.sm → size-icon-sm (16px)
  * - size.icon.md → size-icon-md (20px)
  * - size.icon.lg → size-icon-lg (24px)
+ * - size.icon.xl → size-icon-xl (40px)
  */
 export const stepperRecipe = cva(
 	// Base classes - applied to stepper container
@@ -54,9 +56,10 @@ export const stepperStepRecipe = cva(
 				error: 'bg-status-error border-status-error text-inverse'
 			},
 			size: {
-				md: 'size-icon-md',
-				lg: 'size-icon-lg',
-				xl: 'size-icon-xl'
+				sm: 'size-icon-sm', // 16px - Small for compact layouts
+				md: 'size-icon-md', // 20px - Medium (DEFAULT)
+				lg: 'size-icon-lg', // 24px - Large
+				xl: 'size-icon-xl' // 40px - Extra large for prominent steppers
 			}
 		},
 		defaultVariants: {
@@ -90,6 +93,7 @@ export const stepperConnectorRecipe = cva(
 				pending: 'bg-subtle' // Medium grey for pending steps
 			},
 			size: {
+				sm: 'top-[8px]', // Circle center for sm (16px / 2)
 				md: 'top-[10px]', // Circle center for md (20px / 2)
 				lg: 'top-[12px]', // Circle center for lg (24px / 2)
 				xl: 'top-[20px]' // Circle center for xl (40px / 2)

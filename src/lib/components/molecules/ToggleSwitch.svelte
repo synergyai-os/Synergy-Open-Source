@@ -4,6 +4,11 @@
 	 *
 	 * Molecule component for on/off switches
 	 * Uses design tokens and recipe system for styling
+	 *
+	 * Sizing tokens (compact, Linear-inspired):
+	 * - --sizing-toggle-height: 20px (was 24px)
+	 * - --sizing-toggle-width: 36px (was 44px)
+	 * - --sizing-toggle-thumb: 12px (was 16px)
 	 */
 
 	import { Text } from '$lib/components/atoms';
@@ -21,20 +26,25 @@
 	// Compute classes using recipe
 	const switchClasses = $derived([toggleSwitchRecipe({ checked, disabled })]);
 
-	const thumbClasses = $derived([toggleSwitchThumbRecipe({ checked }), 'size-icon-sm']);
+	// Thumb uses sizing token (12px) - inline style for dimensions
+	const thumbClasses = $derived([toggleSwitchThumbRecipe({ checked })]);
 
-	// Inline styles for background colors (utilities don't exist)
-	// WORKAROUND: bg-component-toggle-off/on utilities missing - see missing-styles.md
+	// Switch dimensions from design tokens
+	// Background color uses CSS variable (utilities don't exist for component-specific colors)
 	const switchStyle = $derived(
-		`background-color: var(--color-component-toggle-${checked ? 'on' : 'off'}); height: 1.5rem; width: 2.75rem;${disabled ? ' opacity: var(--opacity-50);' : ''}`
+		`background-color: var(--color-component-toggle-${checked ? 'on' : 'off'}); 
+		 height: var(--sizing-toggle-height); 
+		 width: var(--sizing-toggle-width);
+		 ${disabled ? 'opacity: var(--opacity-50);' : ''}`
 	);
 
-	// Thumb transform: translate-x-6 when checked, translate-x-1 when unchecked
-	// Using spacing tokens: spacing-6 = 1.5rem (24px), spacing-1 = 0.25rem (4px)
-	const thumbTransform = $derived(
-		checked
-			? 'transform: translateX(1.5rem);' // translate-x-6 = 24px = spacing-6
-			: 'transform: translateX(0.25rem);' // translate-x-1 = 4px = spacing-1
+	// Thumb dimensions and transform
+	// Unchecked: 2px from left edge
+	// Checked: width - thumb - 2px = 36px - 12px - 2px = 22px
+	const thumbStyle = $derived(
+		`width: var(--sizing-toggle-thumb); 
+		 height: var(--sizing-toggle-thumb);
+		 transform: translateX(${checked ? 'calc(var(--sizing-toggle-width) - var(--sizing-toggle-thumb) - 2px)' : '2px'});`
 	);
 </script>
 
@@ -54,6 +64,6 @@
 		style={switchStyle}
 		onclick={() => !disabled && onChange?.(!checked)}
 	>
-		<span class={thumbClasses} style={thumbTransform}></span>
+		<span class={thumbClasses} style={thumbStyle}></span>
 	</button>
 </label>

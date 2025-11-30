@@ -199,7 +199,7 @@ export default {
 				{
 					destination: 'sizes.css',
 					format: 'tailwind/theme',
-					filter: (token) => token.path[0] === 'size'
+					filter: (token) => token.path[0] === 'sizing'
 				},
 				{
 					destination: 'breakpoints.css',
@@ -243,7 +243,7 @@ export default {
 					filter: (token) =>
 						token.path[0] === 'shadow' ||
 						token.path[0] === 'borderRadius' ||
-						token.path[0] === 'size'
+						token.path[0] === 'sizing'
 				},
 				{
 					destination: 'opacity-utils.css',

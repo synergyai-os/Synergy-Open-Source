@@ -4,10 +4,10 @@
 	import { goto } from '$app/navigation';
 	import { getContext } from 'svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
-	import { useCircles } from '$lib/modules/org-chart/composables/useCircles.svelte';
+	import { useCircles } from '$lib/infrastructure/organizational-model';
 	import CircleMembersPanel from '$lib/modules/org-chart/components/circles/CircleMembersPanel.svelte';
 	import CircleRolesPanel from '$lib/modules/org-chart/components/circles/CircleRolesPanel.svelte';
-	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 
 	let { data: _data } = $props();
 
@@ -89,7 +89,7 @@
 									nameValue = circle.name;
 								}
 							}}
-							class="border-base text-h3 focus:border-accent-primary rounded-button border bg-elevated px-input-x py-input-y font-semibold text-primary focus:outline-none"
+							class="border-base text-h3 rounded-button border bg-elevated px-input-x py-input-y font-semibold text-primary focus:border-accent-primary focus:outline-none"
 						/>
 					{:else}
 						<h1 class="text-h3 font-semibold text-primary">{circle.name}</h1>
@@ -123,7 +123,7 @@
 									purposeValue = circle.purpose ?? '';
 								}
 							}}
-							class="border-base text-button focus:border-accent-primary flex-1 rounded-button border bg-elevated px-input-x py-input-y text-secondary focus:outline-none"
+							class="border-base text-button flex-1 rounded-button border bg-elevated px-input-x py-input-y text-secondary focus:border-accent-primary focus:outline-none"
 							rows={2}
 						></textarea>
 					{:else}
@@ -189,7 +189,7 @@
 								goto(resolveRoute('/org/circles'));
 							}
 						}}
-						class="text-on-solid bg-accent-primary py-nav-item text-button hover:bg-accent-hover mt-4 rounded-button px-2 font-medium"
+						class="text-on-solid py-nav-item text-button mt-4 rounded-button bg-accent-primary px-2 font-medium hover:bg-accent-hover"
 					>
 						Back to Circles
 					</button>

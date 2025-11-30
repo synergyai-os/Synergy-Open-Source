@@ -2,11 +2,18 @@
 	/**
 	 * Status Pill Component (Linear-style)
 	 *
-	 * Atomic component for displaying status with icon and label
-	 * Follows pattern: ui-patterns.md#L680 (Atomic Design)
+	 * Atomic component for displaying status with icon and label.
+	 * Uses Recipe System (CVA) for type-safe variant management.
+	 * See: src/lib/design-system/recipes/statusPill.recipe.ts
 	 */
 
-	type Props = {
+	import {
+		statusPillRecipe,
+		statusPillIconRecipe,
+		type StatusPillVariantProps
+	} from '$lib/design-system/recipes';
+
+	type Props = StatusPillVariantProps & {
 		status: 'backlog' | 'todo' | 'in_progress' | 'done' | 'cancelled';
 		onChange?: (status: Props['status']) => void;
 		readonly?: boolean;
@@ -14,23 +21,28 @@
 
 	let { status = 'backlog', onChange, readonly = false }: Props = $props();
 
+	// Status configuration - icon and label mapping
 	const statusConfig = {
-		backlog: { icon: '○', label: 'Backlog', color: 'text-tertiary' },
-		todo: { icon: '○', label: 'Todo', color: 'text-tertiary' },
-		in_progress: { icon: '◐', label: 'In Progress', color: 'text-accent-primary' },
-		done: { icon: '●', label: 'Done', color: 'text-success' },
-		cancelled: { icon: '✕', label: 'Cancelled', color: 'text-tertiary' }
+		backlog: { icon: '○', label: 'Backlog' },
+		todo: { icon: '○', label: 'Todo' },
+		in_progress: { icon: '◐', label: 'In Progress' },
+		done: { icon: '●', label: 'Done' },
+		cancelled: { icon: '✕', label: 'Cancelled' }
 	};
 
 	const config = $derived(statusConfig[status]);
+
+	// Apply recipe for pill styling
+	const pillClasses = $derived(statusPillRecipe({ variant: status }));
+	const iconClasses = $derived(statusPillIconRecipe());
 </script>
 
 <button
 	type="button"
-	class="gap-2-wide text-button hover:bg-hover-solid inline-flex items-center rounded-button bg-transparent px-2 py-1 font-normal transition-colors {config.color}"
+	class={pillClasses}
 	disabled={readonly}
 	onclick={() => !readonly && onChange?.(status)}
 >
-	<span class="text-body leading-none">{config.icon}</span>
+	<span class={iconClasses}>{config.icon}</span>
 	<span>{config.label}</span>
 </button>

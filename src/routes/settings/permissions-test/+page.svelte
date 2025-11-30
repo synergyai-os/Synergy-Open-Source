@@ -7,7 +7,7 @@
 	import { api } from '$lib/convex';
 	import { toast } from '$lib/utils/toast';
 	import { browser } from '$app/environment';
-	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import type { Id } from '$lib/convex';
 
 	// Get user from page data

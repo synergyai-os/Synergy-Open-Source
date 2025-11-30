@@ -1,13 +1,11 @@
 <script lang="ts">
 	import type { WithElementRef } from 'bits-ui';
 	import type { Snippet } from 'svelte';
-	import type { CardVariant } from '../types';
 	import { cardRecipe, type CardVariantProps } from '$lib/design-system/recipes';
 
 	type Props = WithElementRef<
-		{
-			variant?: CardVariant;
-			padding?: CardVariantProps['padding'];
+		CardVariantProps & {
+			variant?: CardVariantProps['variant'] | 'noPadding'; // Support legacy noPadding variant
 			clickable?: boolean;
 			onclick?: ((e: MouseEvent) => void) | (() => void);
 			children: Snippet;

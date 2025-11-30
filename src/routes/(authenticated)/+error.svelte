@@ -74,7 +74,7 @@
 		<div class="gap-form-section flex flex-col justify-center sm:flex-row">
 			<button
 				onclick={goHome}
-				class="text-small bg-accent-primary hover:bg-accent-hover rounded-button px-button-x py-button-y font-medium text-white transition-colors duration-150"
+				class="text-small rounded-button bg-accent-primary px-button-x py-button-y font-medium text-white transition-colors duration-150 hover:bg-accent-hover"
 			>
 				Go to Inbox
 			</button>

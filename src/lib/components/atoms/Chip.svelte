@@ -8,55 +8,38 @@
 	 *
 	 * @see SYOS-393 - Create Chip Component
 	 *
-	 * DESIGN SYSTEM EXCEPTION: Chip spacing and border radius (SYOS-585)
-	 *
-	 * Chip uses non-standard values that don't fit the base scale:
-	 * - spacing.chip.y = 0.125rem (2px) - optimal for compact design
-	 * - spacing.chip.close.padding = 0.125rem (2px) - compact close button
-	 * - borderRadius.chip = 9999px (full) - pill shape
-	 *
-	 * These values are hardcoded because they don't reference base tokens.
-	 * See: dev-docs/2-areas/design/token-file-split-exception-mapping.md
+	 * Uses Recipe System (CVA) for type-safe variant management.
+	 * See: src/lib/design-system/recipes/chip.recipe.ts
 	 */
 
 	import type { Snippet } from 'svelte';
+	import {
+		chipRecipe,
+		chipCloseButtonRecipe,
+		type ChipVariantProps
+	} from '$lib/design-system/recipes';
 
-	type ChipVariant = 'default' | 'primary';
-
-	type Props = {
+	type Props = ChipVariantProps & {
 		label?: string;
-		variant?: ChipVariant;
 		onDelete?: () => void;
 		children?: Snippet;
 		class?: string;
 	};
 
 	let {
-		label = '',
 		variant = 'default',
+		label = '',
 		onDelete = undefined,
 		children,
 		class: className = '',
 		...rest
 	}: Props = $props();
 
-	// Base classes using design tokens - compact Linear-style design
-	// Use chip gap token for proper spacing between label and close button
-	const baseClasses =
-		'inline-flex items-center gap-chip rounded-full text-chip transition-colors-token';
+	// Apply recipe for chip styling
+	const chipClasses = $derived([chipRecipe({ variant }), className]);
 
-	// Variant-specific classes using design tokens - subtle, less prominent
-	const variantClasses: Record<ChipVariant, string> = {
-		default: 'bg-tag/50 text-tag border border-base/50',
-		primary: 'bg-accent-primary/80 text-primary'
-	};
-
-	const chipClasses = `${baseClasses} ${variantClasses[variant]} px-chip py-[0.125rem] ${className}`;
-
-	// Remove button - compact but still accessible
-	// Use chip close padding token, ensure proper alignment with flex centering
-	const removeClasses =
-		'p-[0.125rem] rounded-full transition-colors-token hover:bg-hover-solid focus:outline-none focus:ring-1 focus:ring-accent-primary flex items-center justify-center -mr-chip-close';
+	// Apply recipe for close button styling
+	const removeClasses = $derived(chipCloseButtonRecipe());
 </script>
 
 <span class={chipClasses} {...rest}>

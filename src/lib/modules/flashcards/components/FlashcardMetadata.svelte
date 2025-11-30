@@ -6,7 +6,7 @@
 	import { api } from '$lib/convex';
 	import { Button } from 'bits-ui';
 	import type { Id } from '$lib/convex';
-	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import type { CoreModuleAPI } from '$lib/modules/core/api';
 
 	type Flashcard = {

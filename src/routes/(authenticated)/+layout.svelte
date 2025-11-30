@@ -6,11 +6,11 @@
 
 	// Debug flag for overlay logging (set to false to disable production logs)
 	const DEBUG_OVERLAY_LOGGING = import.meta.env.DEV;
-	import WorkspaceModals from '$lib/modules/core/workspaces/components/WorkspaceModals.svelte';
+	import WorkspaceModals from '$lib/infrastructure/workspaces/components/WorkspaceModals.svelte';
 	import { LoadingOverlay } from '$lib/components/atoms';
 	import { resolveRoute } from '$lib/utils/navigation';
 	import { setContext } from 'svelte';
-	import { useWorkspaces } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
+	import { useWorkspaces } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import { createInboxModuleAPI } from '$lib/modules/inbox/api';
 	import { createCoreModuleAPI } from '$lib/modules/core/api';
 	import { createFlashcardsModuleAPI } from '$lib/modules/flashcards/api';
@@ -18,7 +18,7 @@
 	import type {
 		WorkspaceSummary,
 		WorkspaceInvite
-	} from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
+	} from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import { SHORTCUTS } from '$lib/modules/core/composables/useGlobalShortcuts.svelte';
 	import { useLoadingOverlay } from '$lib/modules/core/composables/useLoadingOverlay.svelte';
 	import { toast } from '$lib/utils/toast';
@@ -413,18 +413,34 @@
 				const urlOrgParam = urlParams.get('org');
 
 				if (urlOrgParam && workspaces.workspaces?.some((org) => org.workspaceId === urlOrgParam)) {
-					// Process URL param - this will trigger org switching with "Loading workspace"
+					// Convert org ID to slug and redirect to workspace-scoped route
+					const targetWorkspace = workspaces.workspaces.find(
+						(org) => org.workspaceId === urlOrgParam
+					);
+					if (targetWorkspace?.slug) {
+						// Redirect to workspace-scoped inbox
+						const currentPath = window.location.pathname;
+						const newPath = `/w/${targetWorkspace.slug}/inbox`;
+						// Clean up ?org= param
+						urlParams.delete('org');
+						const search = urlParams.toString();
+						const newUrl = newPath + (search ? `?${search}` : '');
+						window.location.href = newUrl;
+						return; // Exit early, navigation will handle the rest
+					}
+					// Fallback: use old method if slug not available
 					console.log('🔄 [ACCOUNT SWITCH] Processing URL param after account switch', {
 						orgId: urlOrgParam
 					});
-					// Trigger org switching - it will handle the overlay transition
-					// Don't clear account switching state here - let the org switching effect handle it
-					// The subtitle will automatically switch from 'account' to 'workspace' when org switching starts
 					workspaces.setActiveWorkspace(urlOrgParam);
-					// Account switching will be cleared when org switching becomes active (handled by reactive effect)
 				} else {
-					// No URL param and no org switching - just hide overlay
-					// Don't trigger org switching unnecessarily
+					// No URL param - redirect to first workspace's inbox
+					const firstWorkspace = workspaces.workspaces?.[0];
+					if (firstWorkspace?.slug) {
+						window.location.href = `/w/${firstWorkspace.slug}/inbox`;
+						return;
+					}
+					// Fallback: just hide overlay
 					accountSwitchingState.isSwitching = false;
 					accountSwitchingState.switchingTo = null;
 					accountSwitchingState.switchingToType = 'personal';
@@ -823,7 +839,7 @@
 						workspaceName={workspaceName()}
 					/>
 				</div> -->
-				<div class="flex-1 overflow-hidden">
+				<div class="flex-1 overflow-y-auto">
 					{@render children()}
 				</div>
 			</div>

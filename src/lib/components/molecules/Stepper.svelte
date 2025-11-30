@@ -60,7 +60,8 @@
 	}
 
 	const containerClasses = $derived([stepperRecipe({ variant }), className]);
-	const stepSize = $derived(variant === 'compact' ? 'md' : 'xl');
+	// Default to 'md' (20px) for compact Linear-inspired design, 'lg' for spacious variant
+	const stepSize = $derived(variant === 'compact' ? 'md' : 'lg');
 </script>
 
 <div class={containerClasses}>
@@ -91,11 +92,11 @@
 					})}
 				>
 					{#if stepState === 'completed'}
-						<Icon type="check-circle" size={variant === 'compact' ? 'md' : 'lg'} />
+						<Icon type="check-circle" size={variant === 'compact' ? 'sm' : 'md'} />
 					{:else}
 						<Text
 							variant="body"
-							size={variant === 'compact' ? 'sm' : 'lg'}
+							size={variant === 'compact' ? 'sm' : 'base'}
 							weight="medium"
 							as="span"
 						>

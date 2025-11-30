@@ -494,7 +494,7 @@
 							onkeydown={handleInputKeyDown}
 							onfocus={handleInputFocus}
 							placeholder="Add tags..."
-							class="border-base px-menu-item py-menu-item focus:border-accent-primary focus:ring-accent-primary w-full rounded-md border bg-base pr-8 text-sm text-primary focus:ring-2 focus:outline-none"
+							class="border-base px-menu-item py-menu-item focus:ring-accent-primary w-full rounded-md border bg-base pr-8 text-sm text-primary focus:border-accent-primary focus:ring-2 focus:outline-none"
 							aria-label="Tag selector input"
 						/>
 						<!-- Keyboard shortcut indicator -->
@@ -524,7 +524,7 @@
 										aria-label={`Toggle tag ${tag.displayName}`}
 									>
 										<svg
-											class="text-accent-primary h-4 w-4 flex-shrink-0"
+											class="h-4 w-4 flex-shrink-0 text-accent-primary"
 											fill="none"
 											stroke="currentColor"
 											viewBox="0 0 24 24"

@@ -102,6 +102,17 @@
 					"dark": "{color.status.info}"
 				},
 				"$description": "Info text"
+			},
+			"accent": {
+				"$description": "Accent text colors for brand emphasis",
+				"primary": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.brand.primary}",
+						"dark": "{color.brand.primary}"
+					},
+					"$description": "Primary accent text - brand teal"
+				}
 			}
 		},
 
@@ -246,6 +257,17 @@
 					"dark": "{color.status.success}"
 				},
 				"$description": "Success border"
+			},
+			"accent": {
+				"$description": "Accent border colors for brand emphasis",
+				"primary": {
+					"$type": "color",
+					"$value": {
+						"light": "{color.brand.primary}",
+						"dark": "{color.brand.primary}"
+					},
+					"$description": "Primary accent border - brand teal"
+				}
 			}
 		},
 
@@ -322,6 +344,34 @@
 					"dark": "{color.status.errorLight}"
 				},
 				"$description": "Destructive hover"
+			}
+		},
+
+		"accent": {
+			"$description": "Accent color aliases - maps to interactive colors for backward compatibility. Used for primary CTAs, buttons, brand emphasis.",
+			"primary": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.brand.primary}",
+					"dark": "{color.brand.primary}"
+				},
+				"$description": "Primary accent - alias for interactive.primary (brand teal)"
+			},
+			"hover": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.brand.primaryDark}",
+					"dark": "{color.brand.primaryLight}"
+				},
+				"$description": "Accent hover state - for hover effects on primary accent"
+			},
+			"active": {
+				"$type": "color",
+				"$value": {
+					"light": "{color.brand.primaryDark}",
+					"dark": "{color.brand.primaryDark}"
+				},
+				"$description": "Accent active/pressed state"
 			}
 		},
 
@@ -660,23 +710,23 @@
 	},
 
 	"spacing": {
-		"$description": "Semantic spacing - component-specific. Premium spacing inspired by Linear/Notion for generous breathing room.",
+		"$description": "Semantic spacing - component-specific. Compact, Linear-inspired spacing for dense professional UIs.",
 		"button": {
 			"x": {
-				"$value": "{spacing.5}",
-				"$description": "Button horizontal padding (20px - generous for premium feel)"
+				"$value": "{spacing.4}",
+				"$description": "Button horizontal padding (16px - compact, Linear-inspired)"
 			},
 			"y": {
-				"$value": "{spacing.2.5}",
-				"$description": "Button vertical padding (10px - comfortable touch target)"
+				"$value": "{spacing.2}",
+				"$description": "Button vertical padding (8px - compact, matches input height)"
 			},
 			"gap": {
 				"$value": "{spacing.2}",
 				"$description": "Gap between button icon and text"
 			},
 			"icon": {
-				"$value": "{spacing.3}",
-				"$description": "Square padding for icon-only buttons (md/lg sizes - 12px)"
+				"$value": "{spacing.2.5}",
+				"$description": "Square padding for icon-only buttons (md/lg sizes - 10px)"
 			},
 			"sm": {
 				"x": {
@@ -695,48 +745,56 @@
 		},
 		"input": {
 			"x": {
-				"$value": "{spacing.4}",
-				"$description": "Input horizontal padding (16px - roomy feel)"
+				"$value": "{spacing.3}",
+				"$description": "Input horizontal padding (12px - compact, Linear-inspired)"
 			},
 			"y": {
-				"$value": "{spacing.3}",
-				"$description": "Input vertical padding (12px - comfortable height)"
+				"$value": "{spacing.1.5}",
+				"$description": "Input vertical padding (6px - compact, Linear-inspired)"
+			},
+			"iconRight": {
+				"$value": "{spacing.6}",
+				"$description": "Padding-right for inputs with right-side icons (24px - optimized for icon 2px from edge)"
 			}
 		},
 		"card": {
 			"padding": {
-				"$value": "{spacing.8}",
-				"$description": "Card padding (32px - generous like Linear/Notion)"
+				"$value": "{spacing.6}",
+				"$description": "Card padding (24px - compact, Linear-inspired)"
 			},
 			"gap": {
-				"$value": "{spacing.5}",
-				"$description": "Gap between card elements (20px)"
+				"$value": "{spacing.4}",
+				"$description": "Gap between card elements (16px - compact)"
 			}
 		},
 		"section": {
 			"gap": {
-				"$value": "{spacing.8}",
-				"$description": "Gap between major sections (32px)"
+				"$value": "{spacing.6}",
+				"$description": "Gap between major sections (24px - compact, Linear-inspired)"
+			},
+			"mb": {
+				"$value": "{spacing.6}",
+				"$description": "Margin below major sections (24px - compact, Linear-inspired)"
 			}
 		},
 		"form": {
 			"gap": {
-				"$value": "{spacing.5}",
-				"$description": "Gap between form fields (20px)"
+				"$value": "{spacing.3}",
+				"$description": "Gap between form fields (12px - compact, Linear-inspired)"
 			},
 			"sectionGap": {
-				"$value": "{spacing.6}",
-				"$description": "Gap between form sections (24px)"
+				"$value": "{spacing.4}",
+				"$description": "Gap between form sections (16px - compact)"
 			}
 		},
 		"content": {
 			"gap": {
-				"$value": "{spacing.4}",
-				"$description": "Gap between content elements (16px)"
+				"$value": "{spacing.3}",
+				"$description": "Gap between content elements (12px - compact)"
 			},
 			"sectionGap": {
-				"$value": "{spacing.8}",
-				"$description": "Gap between content sections (32px)"
+				"$value": "{spacing.6}",
+				"$description": "Gap between content sections (24px - matches section gaps)"
 			}
 		},
 		"header": {
@@ -745,8 +803,8 @@
 				"$description": "Gap between header elements (12px)"
 			},
 			"mb": {
-				"$value": "{spacing.8}",
-				"$description": "Margin below header sections (32px)"
+				"$value": "{spacing.3}",
+				"$description": "Margin below section headers (12px - compact title-to-content gap)"
 			}
 		},
 		"alert": {
@@ -829,12 +887,12 @@
 		},
 		"page": {
 			"x": {
-				"$value": "{spacing.8}",
-				"$description": "Page horizontal padding (32px)"
+				"$value": "{spacing.6}",
+				"$description": "Page horizontal padding (24px - compact)"
 			},
 			"y": {
-				"$value": "{spacing.12}",
-				"$description": "Page vertical padding (48px - hero-level breathing room)"
+				"$value": "{spacing.8}",
+				"$description": "Page vertical padding (32px - compact)"
 			}
 		},
 		"stack": {
@@ -951,5 +1009,24 @@
 		"badge": { "$value": "{borderRadius.full}" },
 		"avatar": { "$value": "{borderRadius.full}" },
 		"modal": { "$value": "{borderRadius.xl}" }
+	},
+
+	"sizing": {
+		"$description": "Semantic sizing - component-specific dimensions",
+		"dateInput": {
+			"width": {
+				"$value": "{spacing.32}",
+				"$description": "Fixed width for date inputs (128px - 8rem)"
+			}
+		}
+	},
+
+	"opacity": {
+		"$description": "Semantic opacity values",
+		"disabled": {
+			"$type": "number",
+			"$value": "{opacity.50}",
+			"$description": "Disabled state opacity (50%)"
+		}
 	}
 }

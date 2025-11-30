@@ -1,22 +1,11 @@
 <script lang="ts">
 	import type { WithElementRef } from 'bits-ui';
-	import type { Size } from '../types';
 	import { getIcon, type IconType } from './iconRegistry';
-	import { iconRecipe } from '$lib/design-system/recipes';
+	import { iconRecipe, type IconVariantProps } from '$lib/design-system/recipes';
 
 	type Props = WithElementRef<
-		{
+		IconVariantProps & {
 			type: IconType;
-			size?: Size;
-			color?:
-				| 'default'
-				| 'primary'
-				| 'secondary'
-				| 'tertiary'
-				| 'error'
-				| 'warning'
-				| 'success'
-				| 'info';
 		},
 		HTMLSpanElement
 	>;

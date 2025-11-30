@@ -19,14 +19,14 @@ import type { ProjectsModuleAPI } from './api';
 /**
  * Projects module manifest
  *
- * **Dependencies**: ['core'] (depends on core module for workspaces context)
+ * **Dependencies**: ['shared-ui'] (depends on shared-ui module for shared utilities)
  * **Feature Flag**: 'projects-module' (workspace-based targeting)
  * **API**: ProjectsModuleAPI (public interface for projects/tasks functionality)
  */
 export const projectsModule: ModuleManifest = {
 	name: 'projects',
 	version: '1.0.0',
-	dependencies: ['core'],
+	dependencies: ['shared-ui'],
 	featureFlag: ProjectsFeatureFlags.PROJECTS_MODULE, // 'projects-module'
 	api: undefined as ProjectsModuleAPI | undefined // Type reference for API contract
 };

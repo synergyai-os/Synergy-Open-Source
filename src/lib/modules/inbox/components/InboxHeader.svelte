@@ -59,7 +59,7 @@
 			Inbox
 			{#if inboxCount > 0}
 				<span
-					class="min-w-badge rounded-chip bg-accent-primary px-badge py-badge flex items-center justify-center text-center text-label leading-none font-medium text-primary"
+					class="min-w-badge rounded-chip px-badge py-badge flex items-center justify-center bg-accent-primary text-center text-label leading-none font-medium text-primary"
 				>
 					{inboxCount}
 				</span>

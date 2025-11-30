@@ -559,19 +559,19 @@
 			<Tabs.List class="size-tab rounded-tab-container border-border-base flex border-b">
 				<Tabs.Trigger
 					value="roles"
-					class="px-form-section py-header text-button text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent font-medium transition-colors"
+					class="px-form-section py-header text-button text-text-secondary hover:text-text-primary border-b-2 border-transparent font-medium transition-colors data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
 				>
 					Roles ({roles.length})
 				</Tabs.Trigger>
 				<Tabs.Trigger
 					value="permissions"
-					class="px-form-section py-header text-button text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent font-medium transition-colors"
+					class="px-form-section py-header text-button text-text-secondary hover:text-text-primary border-b-2 border-transparent font-medium transition-colors data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
 				>
 					Permissions ({totalPermissions})
 				</Tabs.Trigger>
 				<Tabs.Trigger
 					value="analytics"
-					class="px-form-section py-header text-button text-text-secondary hover:text-text-primary data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary border-b-2 border-transparent font-medium transition-colors"
+					class="px-form-section py-header text-button text-text-secondary hover:text-text-primary border-b-2 border-transparent font-medium transition-colors data-[state=active]:border-accent-primary data-[state=active]:text-accent-primary"
 				>
 					Analytics
 				</Tabs.Trigger>
@@ -629,7 +629,7 @@
 								<div class="gap-content-section grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 									{#each systemRoles as role (role._id)}
 										<div
-											class="group gap-content-section border-base px-card py-card hover:border-accent-primary hover:bg-hover-solid flex flex-col rounded-card border bg-surface transition-colors"
+											class="group gap-content-section border-base px-card py-card hover:bg-hover-solid flex flex-col rounded-card border bg-surface transition-colors hover:border-accent-primary"
 										>
 											<div class="flex items-start justify-between">
 												<div class="flex-1">
@@ -648,7 +648,7 @@
 												<button
 													type="button"
 													onclick={() => showRoleDetails(role)}
-													class="text-accent-primary text-label hover:underline"
+													class="text-label text-accent-primary hover:underline"
 												>
 													View Details
 												</button>
@@ -671,7 +671,7 @@
 								<div class="gap-content-section grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
 									{#each customRoles as role (role._id)}
 										<div
-											class="group gap-content-section border-base px-card py-card hover:border-accent-primary hover:bg-hover-solid flex flex-col rounded-card border bg-surface transition-colors"
+											class="group gap-content-section border-base px-card py-card hover:bg-hover-solid flex flex-col rounded-card border bg-surface transition-colors hover:border-accent-primary"
 										>
 											<div class="flex items-start justify-between">
 												<div class="flex-1">
@@ -691,7 +691,7 @@
 													<button
 														type="button"
 														onclick={() => showRoleDetails(role)}
-														class="text-accent-primary text-label hover:underline"
+														class="text-label text-accent-primary hover:underline"
 													>
 														View
 													</button>
@@ -1045,7 +1045,7 @@
 								console.log('Edit', selectedRole);
 								roleDetailModalOpen = false;
 							}}
-							class="bg-accent-primary text-small rounded-button px-button-x py-button-y font-medium text-primary"
+							class="text-small rounded-button bg-accent-primary px-button-x py-button-y font-medium text-primary"
 						>
 							Edit Role
 						</button>

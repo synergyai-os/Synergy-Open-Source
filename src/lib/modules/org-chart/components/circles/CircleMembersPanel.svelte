@@ -1,9 +1,12 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { getContext } from 'svelte';
-	import { useCircleMembers } from '../../composables/useCircleMembers.svelte';
-	import type { UseCircles, CircleMember } from '../../composables/useCircles.svelte';
-	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
+	import {
+		useCircleMembers,
+		type UseCircles,
+		type CircleMember
+	} from '$lib/infrastructure/organizational-model';
+	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 
 	let {
 		circles,
@@ -58,7 +61,7 @@
 		<div class="flex gap-2">
 			<select
 				bind:value={selectedUserId}
-				class="border-base text-button focus:border-accent-primary flex-1 rounded-button border bg-elevated px-input-x py-input-y text-primary focus:outline-none"
+				class="border-base text-button flex-1 rounded-button border bg-elevated px-input-x py-input-y text-primary focus:border-accent-primary focus:outline-none"
 				disabled={circles.loading.addMember || availableUsers.length === 0}
 			>
 				<option value="">
@@ -73,7 +76,7 @@
 			<button
 				onclick={handleAddMember}
 				disabled={!selectedUserId || circles.loading.addMember}
-				class="text-on-solid bg-accent-primary px-card text-button hover:bg-accent-hover rounded-button py-input-y font-medium disabled:opacity-50"
+				class="text-on-solid px-card text-button rounded-button bg-accent-primary py-input-y font-medium hover:bg-accent-hover disabled:opacity-50"
 			>
 				{circles.loading.addMember ? 'Adding...' : 'Add'}
 			</button>

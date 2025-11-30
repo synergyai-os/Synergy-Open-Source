@@ -5,6 +5,7 @@
 	 */
 
 	import { Text, FormInput, FormSelect, ToggleGroup } from '$lib/components/atoms';
+	import { toggleGroupRootRecipe, toggleGroupItemRecipe } from '$lib/design-system/recipes';
 	import { ToggleSwitch } from '$lib/components/molecules';
 	import InfoCard from '$lib/components/molecules/InfoCard.svelte';
 	import UpcomingMeetingsPreview from './UpcomingMeetingsPreview.svelte';
@@ -89,7 +90,7 @@
 			- Padding-left uses semantic token var(--spacing-form-sectionGap) for indentation
 		-->
 		<div
-			class="border-accent-primary flex flex-col gap-form-sectionGap border-l-2"
+			class="flex flex-col gap-form-sectionGap border-l-2 border-accent-primary"
 			style="padding-left: var(--spacing-form-sectionGap);"
 		>
 			<!-- Frequency -->
@@ -122,10 +123,10 @@
 										localDaysOfWeek = [value];
 									}
 								}}
-								class="flex flex-wrap gap-fieldGroup"
+								class={[toggleGroupRootRecipe(), 'flex', 'flex-wrap', 'gap-fieldGroup']}
 							>
 								{#each DAY_NAMES as day, index (index)}
-									<ToggleGroup.Item value={index.toString()} class="toggle-group-day">
+									<ToggleGroup.Item value={index.toString()} class={toggleGroupItemRecipe()}>
 										{day}
 									</ToggleGroup.Item>
 								{/each}
@@ -134,10 +135,10 @@
 							<ToggleGroup.Root
 								type="multiple"
 								bind:value={localDaysOfWeek}
-								class="flex flex-wrap gap-fieldGroup"
+								class={[toggleGroupRootRecipe(), 'flex', 'flex-wrap', 'gap-fieldGroup']}
 							>
 								{#each DAY_NAMES as day, index (index)}
-									<ToggleGroup.Item value={index.toString()} class="toggle-group-day">
+									<ToggleGroup.Item value={index.toString()} class={toggleGroupItemRecipe()}>
 										{day}
 									</ToggleGroup.Item>
 								{/each}

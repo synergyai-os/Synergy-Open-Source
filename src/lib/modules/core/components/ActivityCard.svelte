@@ -66,7 +66,7 @@
 				</svg>
 			{:else if activity.status === 'completed'}
 				<svg
-					class="text-accent-primary h-4 w-4 flex-shrink-0"
+					class="h-4 w-4 flex-shrink-0 text-accent-primary"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"

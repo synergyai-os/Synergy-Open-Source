@@ -2,7 +2,7 @@
 	import { defineMeta } from '@storybook/addon-svelte-csf';
 	// Note: CreateCircleModal uses Dialog from bits-ui which should work,
 	// but component may have other dependencies. Testing with mock data.
-	import CreateCircleModal from './circles/CreateCircleModal.svelte';
+	import { CreateCircleModal } from '$lib/infrastructure/organizational-model';
 
 	const { Story } = defineMeta({
 		component: CreateCircleModal,

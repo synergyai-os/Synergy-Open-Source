@@ -6,7 +6,7 @@
 	import { onMount, getContext } from 'svelte';
 	import type { FunctionReference, FunctionReturnType } from 'convex/server';
 	import type { Id } from '$convex/_generated/dataModel';
-	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 
 	// Types for Convex hooks (currently unused but kept for future use)
 	// type UseQueryReturn<Query extends FunctionReference<'query'>> =
@@ -487,7 +487,7 @@
 		>
 			<div class="flex items-start gap-2">
 				<svg
-					class="icon-md text-accent-primary flex-shrink-0"
+					class="icon-md flex-shrink-0 text-accent-primary"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -500,7 +500,7 @@
 					/>
 				</svg>
 				<div class="min-w-0 flex-1">
-					<p class="mb-form-field-gap text-small text-accent-primary font-medium">
+					<p class="mb-form-field-gap text-small font-medium text-accent-primary">
 						Organization Settings: {workspaceContext().name}
 					</p>
 					<p class="text-small text-secondary">
@@ -723,7 +723,7 @@
 											href="https://console.anthropic.com/settings/keys"
 											target="_blank"
 											rel="noopener noreferrer"
-											class="mt-form-field-gap text-accent-primary hover:text-accent-hover max-w-64 text-label underline transition-colors"
+											class="mt-form-field-gap hover:text-accent-hover max-w-64 text-label text-accent-primary underline transition-colors"
 										>
 											Get API key
 										</a>
@@ -759,7 +759,7 @@
 									<p class="text-small text-secondary">
 										Your personal Readwise account. Imports will be shared with the workspace.
 									</p>
-									<p class="mt-form-field-gap text-accent-primary text-label">
+									<p class="mt-form-field-gap text-label text-accent-primary">
 										💡 Tip: Use the same key across workspaces to sync content everywhere
 									</p>
 								</div>
@@ -864,7 +864,7 @@
 											href="https://readwise.io/access_token"
 											target="_blank"
 											rel="noopener noreferrer"
-											class="mt-form-field-gap text-accent-primary hover:text-accent-hover max-w-64 text-label underline transition-colors"
+											class="mt-form-field-gap hover:text-accent-hover max-w-64 text-label text-accent-primary underline transition-colors"
 										>
 											Get API key
 										</a>

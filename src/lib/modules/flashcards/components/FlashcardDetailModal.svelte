@@ -299,7 +299,7 @@
 							{#if isEditing}
 								<!-- Edit Mode -->
 								<div
-									class="border-accent-primary shadow-card-hover flex h-full w-full flex-col overflow-hidden rounded-card border-2 bg-elevated"
+									class="shadow-card-hover flex h-full w-full flex-col overflow-hidden rounded-card border-2 border-accent-primary bg-elevated"
 								>
 									<div
 										class="px-inbox-container py-inbox-container flex flex-1 flex-col overflow-auto"
@@ -344,7 +344,7 @@
 										<Button.Root
 											onclick={handleSave}
 											disabled={isSaving}
-											class="bg-accent-primary py-nav-item text-small rounded-button px-2 font-medium text-primary transition-opacity hover:opacity-90 disabled:opacity-50"
+											class="py-nav-item text-small rounded-button bg-accent-primary px-2 font-medium text-primary transition-opacity hover:opacity-90 disabled:opacity-50"
 										>
 											{isSaving ? 'Saving...' : 'Save'}
 										</Button.Root>

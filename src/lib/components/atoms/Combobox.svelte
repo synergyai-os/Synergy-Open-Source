@@ -7,6 +7,7 @@
 		comboboxViewportRecipe,
 		comboboxItemRecipe
 	} from '$lib/design-system/recipes';
+	import { formInputRecipe } from '$lib/design-system/recipes';
 	import Text from './Text.svelte';
 	import Icon from './Icon.svelte';
 	import type { Snippet } from 'svelte';
@@ -25,6 +26,7 @@
 		value?: string | string[];
 		options: Option[];
 		type?: 'single' | 'multiple';
+		size?: 'sm' | 'md' | 'lg'; // Size variant: sm (compact), md (default), lg (generous)
 		required?: boolean;
 		disabled?: boolean;
 		allowDeselect?: boolean;
@@ -43,6 +45,7 @@
 		value = $bindable('' as string | string[]),
 		options,
 		type = 'single',
+		size = 'md',
 		required = false,
 		disabled = false,
 		allowDeselect = false,
@@ -139,8 +142,12 @@
 		}
 	}
 
-	// Recipe classes
-	const inputClasses = $derived([comboboxInputRecipe(), customClass]);
+	// Recipe classes - use formInputRecipe directly to properly inherit size variants
+	// Join array to string for Bits UI Input component
+	const inputClasses = $derived.by(() => {
+		const classes = [formInputRecipe({ size }), 'w-full', customClass].filter(Boolean);
+		return classes.join(' ');
+	});
 	const contentClasses = $derived(comboboxContentRecipe());
 	const viewportClasses = $derived(comboboxViewportRecipe());
 </script>
@@ -148,7 +155,7 @@
 <div class="flex flex-col gap-fieldGroup">
 	{#if showLabel && label}
 		<label for={comboboxId}>
-			<Text variant="body" size="sm" color="default" as="span" class="font-medium">
+			<Text variant="label" size="sm" color="default" as="span">
 				{label}
 				{#if required}
 					<span class="text-brand">*</span>
@@ -234,7 +241,7 @@
 								{/snippet}
 							</BitsCombobox.Item>
 						{:else}
-							<Text variant="body" size="sm" color="tertiary" as="div" class="px-button py-button">
+							<Text variant="label" size="sm" color="tertiary" as="div" class="px-button py-button">
 								No results found
 							</Text>
 						{/each}

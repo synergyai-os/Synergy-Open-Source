@@ -24,7 +24,7 @@
 	import type {
 		WorkspacesModuleAPI,
 		WorkspaceSummary
-	} from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
+	} from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import { useAuthSession } from '$lib/infrastructure/auth/composables/useAuthSession.svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
 
@@ -94,6 +94,12 @@
 	const activeOrgId = $derived(() => {
 		if (!workspaces) return null;
 		return workspaces.activeWorkspaceId ?? null;
+	});
+
+	// Get active workspace slug for path-based routing
+	const activeWorkspaceSlug = $derived(() => {
+		if (!workspaces) return null;
+		return workspaces.activeWorkspace?.slug ?? null;
 	});
 
 	// circlesEnabled is now passed as a prop from the layout (loaded early for instant rendering)
@@ -556,8 +562,9 @@
 					accountSwitchOverlay.targetName = targetName;
 
 					try {
-						// Then perform the switch (which will set sessionStorage and redirect)
-						await authSession.switchAccount(targetUserId, redirectTo);
+						// Don't pass redirectTo - let server redirect to /inbox, then client will redirect to workspace
+						// This ensures we get the first workspace's inbox after account switch
+						await authSession.switchAccount(targetUserId);
 					} catch (error) {
 						// Reset overlay if switch fails
 						accountSwitchOverlay.show = false;
@@ -583,7 +590,9 @@
 				>
 					<!-- Inbox -->
 					<NavItem
-						href={resolveRoute('/inbox')}
+						href={resolveRoute(
+							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/inbox` : '/inbox'
+						)}
 						iconType="inbox"
 						label="Inbox"
 						badge={inboxCount > 0 ? inboxCount : undefined}
@@ -593,7 +602,9 @@
 
 					<!-- Flashcards -->
 					<NavItem
-						href={resolveRoute('/flashcards')}
+						href={resolveRoute(
+							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/flashcards` : '/inbox'
+						)}
 						iconType="flashcards"
 						label="Flashcards"
 						title="Flashcards"
@@ -602,7 +613,9 @@
 
 					<!-- Study -->
 					<NavItem
-						href={resolveRoute('/study')}
+						href={resolveRoute(
+							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/study` : '/inbox'
+						)}
 						iconType="study"
 						label="Study"
 						title="Study Session"
@@ -611,7 +624,9 @@
 
 					<!-- Tags -->
 					<NavItem
-						href={resolveRoute('/tags')}
+						href={resolveRoute(
+							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/tags` : '/inbox'
+						)}
 						iconType="tags"
 						label="Tags"
 						title="Tags"
@@ -622,7 +637,7 @@
 					{#if circlesEnabled}
 						<NavItem
 							href={resolveRoute(
-								activeOrgId() ? `/org/circles?org=${activeOrgId()}` : '/org/circles'
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/circles` : '/inbox'
 							)}
 							iconType="circles"
 							label="Circles"
@@ -634,7 +649,7 @@
 					<!-- Members -->
 					<NavItem
 						href={resolveRoute(
-							activeOrgId() ? `/org/members?org=${activeOrgId()}` : '/org/members'
+							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/members` : '/inbox'
 						)}
 						iconType="members"
 						label="Members"
@@ -645,7 +660,9 @@
 					<!-- Dashboard (Beta - Feature Flag) -->
 					{#if dashboardEnabled}
 						<NavItem
-							href={resolveRoute('/dashboard')}
+							href={resolveRoute(
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/dashboard` : '/inbox'
+							)}
 							iconType="dashboard"
 							label="Dashboard"
 							title="Dashboard"
@@ -656,7 +673,9 @@
 					<!-- Meetings (Beta - Feature Flag) -->
 					{#if meetingsEnabled}
 						<NavItem
-							href={resolveRoute('/meetings')}
+							href={resolveRoute(
+								activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/meetings` : '/inbox'
+							)}
 							iconType="calendar"
 							label="Meetings"
 							title="Meetings"
@@ -837,8 +856,9 @@
 				accountSwitchOverlay.targetName = targetName;
 
 				try {
-					// Then perform the switch (which will set sessionStorage and redirect)
-					await authSession.switchAccount(targetUserId, redirectTo);
+					// Don't pass redirectTo - let server redirect to /inbox, then client will redirect to workspace
+					// This ensures we get the first workspace's inbox after account switch
+					await authSession.switchAccount(targetUserId);
 				} catch (error) {
 					// Reset overlay if switch fails
 					accountSwitchOverlay.show = false;
@@ -863,7 +883,9 @@
 			>
 				<!-- Inbox -->
 				<NavItem
-					href={resolveRoute('/inbox')}
+					href={resolveRoute(
+						activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/inbox` : '/inbox'
+					)}
 					iconType="inbox"
 					label="Inbox"
 					badge={inboxCount > 0 ? inboxCount : undefined}
@@ -873,7 +895,9 @@
 
 				<!-- Flashcards -->
 				<NavItem
-					href={resolveRoute('/flashcards')}
+					href={resolveRoute(
+						activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/flashcards` : '/inbox'
+					)}
 					iconType="flashcards"
 					label="Flashcards"
 					title="Flashcards"
@@ -882,7 +906,9 @@
 
 				<!-- Study -->
 				<NavItem
-					href={resolveRoute('/study')}
+					href={resolveRoute(
+						activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/study` : '/inbox'
+					)}
 					iconType="study"
 					label="Study"
 					title="Study Session"
@@ -891,7 +917,7 @@
 
 				<!-- Tags -->
 				<NavItem
-					href={resolveRoute('/tags')}
+					href={resolveRoute(activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/tags` : '/inbox')}
 					iconType="tags"
 					label="Tags"
 					title="Tags"
@@ -902,7 +928,7 @@
 				{#if circlesEnabled}
 					<NavItem
 						href={resolveRoute(
-							activeOrgId() ? `/org/circles?org=${activeOrgId()}` : '/org/circles'
+							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/circles` : '/inbox'
 						)}
 						iconType="circles"
 						label="Circles"
@@ -913,7 +939,9 @@
 
 				<!-- Members -->
 				<NavItem
-					href={resolveRoute(activeOrgId() ? `/org/members?org=${activeOrgId()}` : '/org/members')}
+					href={resolveRoute(
+						activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/members` : '/inbox'
+					)}
 					iconType="members"
 					label="Members"
 					title="Members"
@@ -923,7 +951,9 @@
 				<!-- Dashboard (Beta - Feature Flag) -->
 				{#if dashboardEnabled}
 					<NavItem
-						href={resolveRoute('/dashboard')}
+						href={resolveRoute(
+							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/dashboard` : '/inbox'
+						)}
 						iconType="dashboard"
 						label="Dashboard"
 						title="Dashboard"
@@ -934,7 +964,9 @@
 				<!-- Meetings (Beta - Feature Flag) -->
 				{#if meetingsEnabled}
 					<NavItem
-						href={resolveRoute('/meetings')}
+						href={resolveRoute(
+							activeWorkspaceSlug() ? `/w/${activeWorkspaceSlug()}/meetings` : '/inbox'
+						)}
 						iconType="calendar"
 						label="Meetings"
 						title="Meetings"

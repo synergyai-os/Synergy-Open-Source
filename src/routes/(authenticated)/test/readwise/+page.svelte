@@ -131,7 +131,7 @@
 					type="button"
 					onclick={testReadwise}
 					disabled={isTesting}
-					class="text-accent-primary-foreground hover:bg-accent-primary-hover bg-accent-primary rounded-md px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+					class="text-accent-primary-foreground hover:bg-accent-primary-hover rounded-md bg-accent-primary px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{isTesting ? 'Testing...' : 'Test Connection'}
 				</button>
@@ -139,7 +139,7 @@
 					type="button"
 					onclick={testReadwiseHighlights}
 					disabled={isTesting}
-					class="text-accent-primary-foreground hover:bg-accent-primary-hover bg-accent-primary rounded-md px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+					class="text-accent-primary-foreground hover:bg-accent-primary-hover rounded-md bg-accent-primary px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{isTesting ? 'Fetching...' : 'Fetch Highlights'}
 				</button>
@@ -147,7 +147,7 @@
 					type="button"
 					onclick={testReadwiseBooks}
 					disabled={isTesting}
-					class="text-accent-primary-foreground hover:bg-accent-primary-hover bg-accent-primary rounded-md px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+					class="text-accent-primary-foreground hover:bg-accent-primary-hover rounded-md bg-accent-primary px-4 py-2 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 				>
 					{isTesting ? 'Fetching...' : 'Fetch Books'}
 				</button>

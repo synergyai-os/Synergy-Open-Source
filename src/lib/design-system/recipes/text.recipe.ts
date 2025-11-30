@@ -12,8 +12,8 @@ export const textRecipe = cva(
 				caption: 'text-[0.625rem]' // 10px - EXCEPTION: typography.fontSize.label
 			},
 			size: {
-				sm: 'text-sm', // 14px - matches typography.fontSize.sm (0.875rem)
-				base: 'text-base', // 16px - matches typography.fontSize.base (1rem)
+				sm: 'text-sm', // 12px - matches typography.fontSize.sm (0.75rem)
+				md: 'text-base', // 14px - matches typography.fontSize.base (0.875rem)
 				lg: 'text-lg' // 18px - matches typography.fontSize.lg (1.125rem)
 			},
 			color: {
@@ -40,7 +40,7 @@ export const textRecipe = cva(
 		},
 		defaultVariants: {
 			variant: 'body',
-			size: 'base',
+			size: 'md',
 			color: 'default',
 			weight: 'normal',
 			lineHeight: 'normal'

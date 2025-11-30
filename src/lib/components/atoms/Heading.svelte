@@ -1,13 +1,10 @@
 <script lang="ts">
 	import type { WithElementRef } from 'bits-ui';
 	import type { Snippet } from 'svelte';
-	import type { HeadingLevel } from '../types';
-	import { headingRecipe } from '$lib/design-system/recipes';
+	import { headingRecipe, type HeadingVariantProps } from '$lib/design-system/recipes';
 
 	type Props = WithElementRef<
-		{
-			level?: HeadingLevel;
-			color?: 'primary' | 'secondary' | 'tertiary';
+		HeadingVariantProps & {
 			children: Snippet;
 			class?: string;
 		},

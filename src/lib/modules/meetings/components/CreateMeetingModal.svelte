@@ -75,13 +75,13 @@
 			- Animation classes are Bits UI data attributes (framework-specific, acceptable)
 		-->
 		<Dialog.Content
-			class="rounded-dialog border-base shadow-card-hover p-modal data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] fixed top-[50%] left-[50%] z-50 max-h-[90vh] w-[min(520px,90vw)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto border bg-elevated"
+			class="border-base shadow-card-hover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] fixed top-[50%] left-[50%] z-50 max-h-[90vh] w-[min(520px,90vw)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-modal border bg-elevated card-padding"
 		>
-			<div class="flex flex-col gap-form card-padding">
+			<div class="flex flex-col gap-form">
 				<!-- Header -->
 				<div class="flex items-center justify-between">
 					<Dialog.Title>
-						<Heading level="2">Add meeting</Heading>
+						<Heading level="3">Add meeting</Heading>
 					</Dialog.Title>
 					<Button variant="ghost" iconOnly ariaLabel="Close" onclick={onClose}>
 						<Icon type="close" size="md" />
@@ -111,6 +111,7 @@
 									label="Meeting Type"
 									bind:value={form.selectedTemplateId}
 									options={templateOptions()}
+									size="md"
 									allowDeselect={false}
 									showLabel={true}
 									required={true}
@@ -258,7 +259,7 @@
 							</div>
 
 							<!-- Summary Preview -->
-							<div class="rounded-dialog border-base p-form bg-surface">
+							<div class="border-base rounded-card border bg-surface inset-md">
 								<Text
 									variant="body"
 									size="sm"
@@ -268,7 +269,7 @@
 								>
 									Summary
 								</Text>
-								<div class="flex flex-col gap-fieldGroup text-sm">
+								<div class="flex flex-col gap-fieldGroup">
 									<div>
 										<Text variant="label" color="secondary" as="span">Type:</Text>
 										<Text variant="body" size="sm" color="default" as="span">
@@ -324,7 +325,7 @@
 					<!-- Actions -->
 					<div
 						class="border-border-base flex justify-between gap-fieldGroup border-t"
-						style="padding-top: var(--spacing-content-sectionGap);"
+						style="padding-top: var(--spacing-form-sectionGap);"
 					>
 						<div>
 							{#if form.currentStep > 0}

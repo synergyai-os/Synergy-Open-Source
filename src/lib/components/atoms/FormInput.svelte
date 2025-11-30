@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { FullAutoFill } from 'svelte/elements';
-	import { formInputRecipe } from '$lib/design-system/recipes';
+	import { formInputRecipe, type FormInputVariantProps } from '$lib/design-system/recipes';
 	import Text from './Text.svelte';
 
-	type Props = {
+	type Props = FormInputVariantProps & {
 		id?: string;
 		name?: string;
 		label?: string;
@@ -20,6 +20,7 @@
 	};
 
 	let {
+		size = 'md',
 		id,
 		name,
 		label,
@@ -38,8 +39,8 @@
 	// Generate ID if not provided
 	const inputId = id || `input-${Math.random().toString(36).substr(2, 9)}`;
 
-	// Apply recipe with custom classes
-	const inputClasses = $derived([formInputRecipe(), customClass]);
+	// Apply recipe with size variant and custom classes
+	const inputClasses = $derived([formInputRecipe({ size }), customClass]);
 </script>
 
 <div class="flex flex-col gap-2">

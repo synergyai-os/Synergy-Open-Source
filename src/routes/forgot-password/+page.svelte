@@ -85,7 +85,7 @@
 				</div>
 			{:else if successMessage}
 				<div
-					class="mt-content-section border-accent-primary rounded-input border bg-surface px-input-x py-input-y"
+					class="mt-content-section rounded-input border border-accent-primary bg-surface px-input-x py-input-y"
 				>
 					<p class="text-small font-medium text-primary">{successMessage}</p>
 				</div>
@@ -126,7 +126,7 @@
 			<div class="mt-content-section text-center">
 				<p class="text-small text-secondary">
 					Remember your password?
-					<a href={resolveRoute('/login')} class="text-accent-primary hover:text-accent-hover"
+					<a href={resolveRoute('/login')} class="hover:text-accent-hover text-accent-primary"
 						>Sign in</a
 					>
 				</p>

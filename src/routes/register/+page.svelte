@@ -161,7 +161,7 @@
 				<h1 class="text-h2 font-semibold tracking-tight text-primary">Create your account</h1>
 				<p class="text-small text-secondary">
 					Already using SynergyOS?
-					<a href={resolveRoute('/login')} class="text-accent-primary hover:text-accent-hover"
+					<a href={resolveRoute('/login')} class="hover:text-accent-hover text-accent-primary"
 						>Sign in instead</a
 					>.
 				</p>

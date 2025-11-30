@@ -45,7 +45,7 @@
 		<div class="flex flex-col items-center gap-2">
 			<!-- Loading Spinner -->
 			<svg
-				class="text-accent-primary animate-spin"
+				class="animate-spin text-accent-primary"
 				style={sizeStyle}
 				fill="none"
 				stroke="currentColor"
@@ -68,7 +68,7 @@
 	<div class="flex flex-col items-center gap-2" style="padding-block: var(--spacing-8);">
 		<!-- Loading Spinner -->
 		<svg
-			class="text-accent-primary animate-spin"
+			class="animate-spin text-accent-primary"
 			style={sizeStyle}
 			fill="none"
 			stroke="currentColor"

@@ -41,7 +41,7 @@
 	<!-- Source -->
 	{#if item.source}
 		<div
-			class="mb-marketing-title-to-lead border-accent-primary px-inbox-container py-inbox-container rounded-card border bg-surface"
+			class="mb-marketing-title-to-lead px-inbox-container py-inbox-container rounded-card border border-accent-primary bg-surface"
 		>
 			<p class="text-small font-semibold text-primary">Source</p>
 			<p class="text-small text-secondary">{item.source}</p>

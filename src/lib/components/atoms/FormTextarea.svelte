@@ -1,21 +1,8 @@
 <script lang="ts">
-	/**
-	 * Reusable Form Textarea Component
-	 *
-	 * Consistent textarea with label, using design tokens throughout.
-	 * Ensures all textareas have the same styling across the app.
-	 *
-	 * DESIGN SYSTEM EXCEPTION: Input spacing and border radius (SYOS-585)
-	 *
-	 * Textarea uses same exception values as FormInput:
-	 * - spacing.input.y = 0.625rem (10px) - optimal for input height
-	 * - borderRadius.input = 0.125rem (2px) - subtle border radius
-	 *
-	 * These values are hardcoded because they don't reference base tokens.
-	 * See: dev-docs/2-areas/design/token-file-split-exception-mapping.md
-	 */
+	import { formTextareaRecipe, type FormTextareaVariantProps } from '$lib/design-system/recipes';
+	import Text from './Text.svelte';
 
-	type Props = {
+	type Props = FormTextareaVariantProps & {
 		id?: string;
 		label?: string;
 		placeholder?: string;
@@ -27,6 +14,7 @@
 	};
 
 	let {
+		size = 'md',
 		id,
 		label,
 		placeholder = '',
@@ -39,25 +27,23 @@
 
 	// Generate ID if not provided
 	const inputId = id || `textarea-${Math.random().toString(36).substr(2, 9)}`;
+
+	// Apply recipe with size variant and custom classes
+	const textareaClasses = $derived([formTextareaRecipe({ size }), customClass]);
 </script>
 
 <div class="flex flex-col gap-2">
 	{#if label}
-		<label for={inputId} class="text-small text-label-primary font-medium">
-			{label}
-			{#if required}
-				<span class="text-accent-primary">*</span>
-			{/if}
+		<label for={inputId}>
+			<Text variant="body" size="sm" color="default" as="span" class="font-medium">
+				{label}
+				{#if required}
+					<span class="text-brand">*</span>
+				{/if}
+			</Text>
 		</label>
 	{/if}
-	<textarea
-		{id}
-		{placeholder}
-		{rows}
-		{required}
-		{disabled}
-		bind:value
-		class="border-base bg-input focus:ring-accent-primary resize-y rounded-[0.125rem] border px-input-x py-[0.625rem] text-primary transition-all placeholder:text-tertiary focus:ring-2 focus:outline-none {customClass}"
+	<textarea {id} {placeholder} {rows} {required} {disabled} bind:value class={textareaClasses}
 		>{value}</textarea
 	>
 </div>

@@ -10,7 +10,7 @@ import type { ConvexClient } from '$lib/types/convex';
 import type {
 	WorkspaceSummary,
 	WorkspaceInvite
-} from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
+} from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 
 /**
  * Mock Convex client with configurable mutation responses

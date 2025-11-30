@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { getContext } from 'svelte';
-	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
+	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 
 	const workspaces = getContext<WorkspacesModuleAPI | undefined>('workspaces');
 
@@ -47,7 +47,7 @@
 
 			<button
 				onclick={handleCreateOrg}
-				class="text-on-solid bg-accent-primary py-nav-item text-button hover:bg-accent-hover mt-6 rounded-button px-2 font-medium"
+				class="text-on-solid py-nav-item text-button mt-6 rounded-button bg-accent-primary px-2 font-medium hover:bg-accent-hover"
 			>
 				Create Organization
 			</button>

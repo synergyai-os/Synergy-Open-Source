@@ -3,7 +3,11 @@ import { useQuery, useConvexClient } from 'convex-svelte';
 import { api, type Id } from '$lib/convex';
 import type { CircleNode } from '$lib/utils/orgChartTransform';
 import { useNavigationStack } from '$lib/modules/core/composables/useNavigationStack.svelte';
-import type { CircleSummary, CircleMember, RoleFiller } from './useCircles.svelte';
+import type {
+	CircleSummary,
+	CircleMember,
+	RoleFiller
+} from '$lib/infrastructure/organizational-model';
 
 export type UseOrgChart = ReturnType<typeof useOrgChart>;
 

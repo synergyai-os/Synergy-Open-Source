@@ -226,22 +226,22 @@
 		},
 
 		"fontSize": {
-			"$description": "Type scale - 2xs to 7xl. Base is 1rem (16px).",
+			"$description": "Type scale - 2xs to 7xl. Base is 0.875rem (14px).",
 			"2xs": {
+				"$value": "0.5rem",
+				"$description": "8px - Extra tiny labels, compact UI"
+			},
+			"xs": {
 				"$value": "0.625rem",
 				"$description": "10px - Tiny labels, legal text"
 			},
-			"xs": {
+			"sm": {
 				"$value": "0.75rem",
 				"$description": "12px - Small labels, badges"
 			},
-			"sm": {
-				"$value": "0.875rem",
-				"$description": "14px - Secondary text, buttons"
-			},
 			"base": {
-				"$value": "1rem",
-				"$description": "16px - Body text, default"
+				"$value": "0.875rem",
+				"$description": "14px - Body text, default"
 			},
 			"lg": {
 				"$value": "1.125rem",
@@ -559,6 +559,13 @@
 			"sm": { "$value": "2rem", "$description": "32px - Compact input" },
 			"md": { "$value": "2.5rem", "$description": "40px - Default input" },
 			"lg": { "$value": "2.75rem", "$description": "44px - Large input (touch target)" }
+		},
+
+		"toggle": {
+			"$description": "Toggle switch dimensions - compact, Linear-inspired",
+			"height": { "$value": "1.25rem", "$description": "20px - Compact toggle height" },
+			"width": { "$value": "2.25rem", "$description": "36px - Compact toggle width" },
+			"thumb": { "$value": "0.75rem", "$description": "12px - Toggle thumb size" }
 		}
 	},
 

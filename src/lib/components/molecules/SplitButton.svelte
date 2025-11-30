@@ -47,7 +47,7 @@
 			type="button"
 			class="rounded-r-button border-base flex items-center border-l px-2 transition-colors
 				{variant === 'primary'
-				? 'bg-accent-primary hover:bg-accent-hover text-primary'
+				? 'bg-accent-primary text-primary hover:bg-accent-hover'
 				: 'hover:bg-hover-solid bg-elevated text-primary'}"
 		>
 			<svg class="icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">

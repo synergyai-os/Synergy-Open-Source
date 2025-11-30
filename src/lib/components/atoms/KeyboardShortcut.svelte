@@ -1,12 +1,19 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import {
+		keyboardShortcutRecipe,
+		keyboardShortcutKeyRecipe,
+		keyboardShortcutSeparatorRecipe,
+		type KeyboardShortcutKeyVariantProps
+	} from '$lib/design-system/recipes';
 
 	/**
 	 * Reusable Keyboard Shortcut Badge Component
 	 *
 	 * Displays keyboard shortcuts in a consistent, branded style.
 	 * Automatically detects platform (macOS = CMD, Windows/Linux = Ctrl).
-	 * When shortcut changes (e.g., 'N' → 'A + B'), updates everywhere automatically.
+	 * Uses Recipe System (CVA) for type-safe variant management.
+	 * See: src/lib/design-system/recipes/keyboardShortcut.recipe.ts
 	 *
 	 * Examples:
 	 * - <KeyboardShortcut keys="C" />
@@ -15,9 +22,8 @@
 	 * - <KeyboardShortcut keys={['Meta', '1']} /> (for CMD+1, auto-detects platform)
 	 */
 
-	type Props = {
+	type Props = KeyboardShortcutKeyVariantProps & {
 		keys: string | string[]; // Single key 'C' or multiple ['Cmd', 'K'] or ['Meta', '1']
-		size?: 'sm' | 'md';
 	};
 
 	let { keys, size = 'sm' }: Props = $props();
@@ -45,16 +51,19 @@
 		return key;
 	});
 
-	const sizeClasses = size === 'sm' ? 'text-label px-badge py-badge' : 'text-button px-2 py-1';
+	// Apply recipes for styling
+	const containerClasses = $derived(keyboardShortcutRecipe());
+	const keyClasses = $derived(keyboardShortcutKeyRecipe({ size }));
+	const separatorClasses = $derived(keyboardShortcutSeparatorRecipe());
 </script>
 
-<div class="inline-flex items-center gap-2">
+<div class={containerClasses}>
 	{#each normalizedKeys as key, i (`${i}-${key}`)}
-		<kbd class="bg-base/50 rounded-badge font-code text-tertiary {sizeClasses}">
+		<kbd class={keyClasses}>
 			{key}
 		</kbd>
 		{#if i < normalizedKeys.length - 1}
-			<span class="text-label text-tertiary">+</span>
+			<span class={separatorClasses}>+</span>
 		{/if}
 	{/each}
 </div>

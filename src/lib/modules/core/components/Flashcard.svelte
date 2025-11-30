@@ -159,7 +159,7 @@
 			>
 				<span class="text-sm text-secondary">↑/↓ Flip</span>
 				{#if isEditingQuestion}
-					<span class="text-accent-primary text-sm font-medium"
+					<span class="text-sm font-medium text-accent-primary"
 						>• Editing... (Click outside to save)</span
 					>
 				{:else if editable && onQuestionChange}
@@ -222,13 +222,13 @@
 				{/if}
 			</div>
 			<div
-				class="border-accent-primary px-inbox-container py-system-header flex flex-shrink-0 items-center justify-center gap-2 border-t transition-colors {isEditingAnswer
+				class="px-inbox-container py-system-header flex flex-shrink-0 items-center justify-center gap-2 border-t border-accent-primary transition-colors {isEditingAnswer
 					? 'bg-accent-primary/30'
 					: 'bg-accent-primary/10'}"
 			>
 				<span class="text-sm text-secondary">↑/↓ Flip</span>
 				{#if isEditingAnswer}
-					<span class="text-accent-primary text-sm font-medium"
+					<span class="text-sm font-medium text-accent-primary"
 						>• Editing... (Click outside to save)</span
 					>
 				{:else if editable && onAnswerChange}

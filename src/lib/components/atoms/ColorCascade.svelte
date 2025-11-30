@@ -199,7 +199,7 @@
 			<!-- Button Example -->
 			<div class="rounded border border-default bg-elevated p-3">
 				<button
-					class="bg-accent-primary hover:bg-accent-hover w-full rounded-button px-button-x py-button-y text-sm font-medium text-inverse transition-colors"
+					class="w-full rounded-button bg-accent-primary px-button-x py-button-y text-sm font-medium text-inverse transition-colors hover:bg-accent-hover"
 				>
 					Primary Button
 				</button>

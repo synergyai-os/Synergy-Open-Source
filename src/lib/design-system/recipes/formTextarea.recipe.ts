@@ -1,0 +1,42 @@
+import { cva, type VariantProps } from 'class-variance-authority';
+
+/**
+ * FormTextarea Recipe
+ *
+ * Base recipe for textarea components. Extends formInputRecipe styling with textarea-specific adjustments.
+ * Provides consistent styling with size variants.
+ *
+ * Size variants (compact-first philosophy):
+ * - sm: Extra compact for dense UIs (8px text, 8px×4px padding)
+ * - md: Default compact (Linear-inspired, 10px text, 12px×6px padding)
+ * - lg: Generous for touch/accessibility
+ *
+ * Premium micro-interactions:
+ * - Smooth 200ms transition on all properties
+ * - Focus: brand border + subtle shadow glow
+ * - Hover: slightly darker border
+ *
+ * DESIGN SYSTEM NOTE: Focus Ring (using oklch brand hue)
+ * The focus ring uses `oklch(55% 0.15 195 / 0.12)` which matches our brand.primary token hue (195).
+ * This ensures the glow changes if brand color changes. The oklch format is consistent with our tokens.
+ * TODO: Once token build supports light/dark mode shadow tokens, migrate to --shadow-focusRing
+ */
+export const formTextareaRecipe = cva(
+	// Base classes - applied to all textareas
+	// Same base styling as formInputRecipe, with resize-y for textarea
+	'rounded-input border border-strong bg-base text-primary transition-all duration-200 ease-out placeholder:text-muted hover:border-default focus:border-focus focus:shadow-[0_0_0_3px_oklch(55%_0.15_195_/_0.12)] focus:outline-none resize-y',
+	{
+		variants: {
+			size: {
+				sm: 'px-[var(--spacing-2)] py-[var(--spacing-1)] text-2xs', // Extra compact: 8px×4px, 8px text
+				md: 'px-input py-input text-xs', // Default compact: 12px×6px, 10px text
+				lg: 'px-[var(--spacing-4)] py-[var(--spacing-3)] text-base' // Generous: 16px×12px, 14px text
+			}
+		},
+		defaultVariants: {
+			size: 'md'
+		}
+	}
+);
+
+export type FormTextareaVariantProps = VariantProps<typeof formTextareaRecipe>;

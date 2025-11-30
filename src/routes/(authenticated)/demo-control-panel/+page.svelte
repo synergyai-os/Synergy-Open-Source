@@ -133,7 +133,7 @@
 				<ControlPanel.Root variant="popover" bind:open={popoverOpen}>
 					{#snippet trigger()}
 						<button
-							class="bg-accent-primary hover:bg-accent-hover rounded-md px-4 py-2 text-white transition-colors"
+							class="rounded-md bg-accent-primary px-4 py-2 text-white transition-colors hover:bg-accent-hover"
 						>
 							{popoverOpen ? 'Close Settings' : 'Open Settings'}
 						</button>

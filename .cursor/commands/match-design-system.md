@@ -82,7 +82,36 @@ Which name should I use?
 
 **Exception**: Trivial decisions (e.g., internal variable names, temporary code) don't require no confirmation.
 
-### 0. Audit Usage Sites (BEFORE starting)
+### 0. Development Workflow: Test First, Comply Second
+
+**KEY INSIGHT**: For complex styling changes, it's often better to:
+
+1. **Prototype outside the design system first** - Use inline styles or temporary hardcoded values to validate the visual result
+2. **Test and iterate** - Get confirmation that the approach works visually
+3. **Then make it compliant** - Once validated, migrate to semantic tokens, recipes, and design system patterns
+4. **Validate before closing** - Run `npm run validate:design-system` and ensure all checks pass
+
+**Why this works:**
+- **Faster iteration**: Don't get blocked by missing tokens or utility generation issues while exploring
+- **Visual validation first**: Ensures the end result is correct before investing in compliance
+- **Clear separation**: Experimentation vs. production-ready code
+
+**Example workflow:**
+```svelte
+<!-- 1. Prototype with inline styles -->
+<div style="padding: 12px; gap: 8px;">Test layout</div>
+
+<!-- 2. User confirms: "Yes, this looks right!" -->
+
+<!-- 3. Now make compliant -->
+<div class="inset-md gap-fieldGroup">Test layout</div>
+
+<!-- 4. Run npm run validate:design-system -->
+```
+
+**IMPORTANT**: Never commit non-compliant code. Always complete the compliance step before marking done.
+
+### 0.1 Audit Usage Sites (BEFORE starting)
 - **Find all usage sites**: `grep -r "text-secondary\|text-primary\|font-semibold" src/` (adjust pattern for your component)
 - **Count affected files**: Document how many files/components need updating
 - **Identify dependencies**: Which components use this component? (affects migration order)
@@ -422,7 +451,7 @@ Before marking complete, verify ALL of these:
 **See**: `dev-docs/master-docs/design-system.md` section 9.1 for complete visual design principles.
 
 **Quick reference:**
-- **Generous whitespace**: Premium tools use ~2x more spacing (use semantic tokens: `gap-header`, `gap-form`, `gap-fieldGroup`)
+- **Compact but breathable**: Linear-inspired tight spacing without feeling cramped (use semantic tokens: `gap-header`, `gap-form`, `gap-fieldGroup`)
 - **Soft shadows**: Multi-layered for natural depth
 - **Micro-animations**: 200ms transitions, subtle hover effects
 - **WCAG compliance**: Use `text-inverse` on dark backgrounds
@@ -452,9 +481,9 @@ Before marking complete, verify ALL of these:
 - **Module components use shared components**: Module components compose atoms/molecules/organisms
 - **Check component type first**: Determine if component is atom/molecule/organism/module before refactoring
 - **Check module vs shared**: If component is module-specific, place in `src/lib/modules/[module]/components/`
-- **Use generous spacing**: Premium tools have ~2x more whitespace
+- **Use compact but breathable spacing**: Linear-inspired tight spacing without feeling cramped
 - **Add micro-animations**: 200ms transitions, subtle hover effects
-- **Use CSS variables for opacity**: `style="opacity: var(--opacity-60)"` instead of Tailwind classes
+- **Use semantic opacity utilities**: `opacity-disabled` for disabled states, CSS variables for other opacity values
 - **Use inline styles for skeleton dimensions**: Skeleton loading states use inline styles (no semantic tokens)
 
 ❌ **DON'T:**
@@ -472,7 +501,7 @@ Before marking complete, verify ALL of these:
 - **NEVER create atoms that compose other atoms** - atoms are the smallest building blocks
 - **NEVER put module-specific components in shared components** - use `src/lib/modules/[module]/components/`
 - **NEVER import module components from other modules** - modules are isolated (ESLint enforced)
-- **NEVER use cramped spacing** - premium feel requires generous whitespace
+- **NEVER use overly cramped spacing** - compact doesn't mean cramped, maintain breathability
 
 ## Allowed Layout Primitives
 
@@ -791,16 +820,20 @@ Then run `npm run tokens:build` → generates `@utility my-stack-divider { margi
 
 ### Opacity Handling
 - **Problem**: Need opacity values (e.g., loading states, disabled states)
-- **Solution**: Use CSS variables from opacity tokens, not Tailwind classes:
+- **Solution**: Use semantic opacity utilities when available, CSS variables for others:
   ```svelte
-  <!-- ✅ CORRECT: Use CSS variable from opacity token -->
+  <!-- ✅ CORRECT: Use semantic opacity utility (exists!) -->
+  <button class="disabled:opacity-disabled">Submit</button>
+  
+  <!-- ✅ CORRECT: Use CSS variable for other opacity values -->
   <div style="opacity: var(--opacity-60)">Loading...</div>
   
-  <!-- ❌ WRONG: Tailwind opacity class -->
+  <!-- ❌ WRONG: Tailwind numeric opacity class -->
   <div class="opacity-60">Loading...</div>
   ```
-- **Why**: Opacity tokens exist in `design-tokens-base.json` but don't generate Tailwind utilities
-- **Pattern**: Use `var(--opacity-{value})` for dynamic opacity, or inline style for conditional opacity
+- **Available semantic opacity utilities**: `opacity-disabled` (50%)
+- **For other values**: Use `var(--opacity-{value})` CSS variables (e.g., `--opacity-50`, `--opacity-75`)
+- **Pattern**: Prefer semantic utilities when available, fall back to CSS variables
 
 ### Skeleton Loading States
 - **Problem**: Need placeholder sizes for skeleton loading animations
@@ -978,7 +1011,7 @@ design-tokens-semantic.json → npm run tokens:build → src/styles/utilities/*.
 
 **Always validate with Svelte MCP autofixer** - Ensures code follows Svelte 5 best practices and catches issues before completion.
 
-**Premium = Generous spacing + Soft shadows + Subtle animations** - This is the Linear/Notion look.
+**Premium = Compact but breathable spacing + Soft shadows + Subtle animations** - This is the Linear/Notion look.
 
 ## Recipe System vs Component Logic
 

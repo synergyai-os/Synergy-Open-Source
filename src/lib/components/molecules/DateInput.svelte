@@ -9,6 +9,7 @@
 	import * as DatePicker from './DatePicker.svelte';
 	import {
 		dateInputRecipe,
+		dateInputContainerRecipe,
 		datePickerContentRecipe,
 		datePickerHeaderRecipe,
 		datePickerNavButtonRecipe,
@@ -43,9 +44,7 @@
 		class: customClass = ''
 	}: Props = $props();
 
-	// Calculate padding-right to accommodate icon + spacing
-	// Icon (sm = 1rem) + left padding (0.5rem) + right padding (0.5rem) + edge spacing (0.5rem) = ~2.5rem
-	const inputClasses = $derived([dateInputRecipe(), 'pr-[2.75rem]', customClass]);
+	const inputClasses = $derived([dateInputRecipe(), customClass]);
 
 	// Use a non-null value for DateField (it needs a value, not placeholder)
 	// When value is null, use today's date as the display value
@@ -75,7 +74,7 @@
 	});
 </script>
 
-<div class="relative w-[10rem]">
+<div class={dateInputContainerRecipe()} style="width: var(--spacing-32);">
 	<DateField.Root
 		bind:value={displayValue}
 		{required}
@@ -101,7 +100,7 @@
 		<!-- Layout primitives: top-1/2 and -translate-y-1/2 for vertical centering (allowed positioning utilities) -->
 		<DatePicker.Trigger
 			class="absolute top-1/2 flex flex-shrink-0 -translate-y-1/2 items-center justify-center rounded-button px-button py-button text-secondary transition-all duration-200 hover:text-primary focus:text-primary focus:outline-none"
-			style="inset-inline-end: var(--spacing-input-x);"
+			style="inset-inline-end: var(--spacing-px);"
 			{disabled}
 			aria-label="Open calendar"
 		>

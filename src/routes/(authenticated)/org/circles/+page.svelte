@@ -4,9 +4,8 @@
 	import { goto } from '$app/navigation';
 	import { getContext } from 'svelte';
 	import { resolveRoute } from '$lib/utils/navigation';
-	import { useCircles } from '$lib/modules/org-chart/composables/useCircles.svelte';
-	import CreateCircleModal from '$lib/modules/org-chart/components/circles/CreateCircleModal.svelte';
-	import type { WorkspacesModuleAPI } from '$lib/modules/core/workspaces/composables/useWorkspaces.svelte';
+	import { useCircles, CreateCircleModal } from '$lib/infrastructure/organizational-model';
+	import type { WorkspacesModuleAPI } from '$lib/infrastructure/workspaces/composables/useWorkspaces.svelte';
 	import { Button } from '$lib/components/atoms';
 
 	let { data: _data } = $props();

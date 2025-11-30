@@ -15,7 +15,7 @@
 	<!-- Logo -->
 	<a
 		href={resolve('/')}
-		class="text-h3 hover:text-accent-primary font-bold text-primary transition-colors"
+		class="text-h3 font-bold text-primary transition-colors hover:text-accent-primary"
 	>
 		SYOS
 	</a>

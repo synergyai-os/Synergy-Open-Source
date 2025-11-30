@@ -63,7 +63,7 @@
 				<div class="flex items-center gap-2">
 					<!-- Icon -->
 					<div
-						class="size-avatar-lg bg-accent-primary flex items-center justify-center rounded-avatar"
+						class="size-avatar-lg flex items-center justify-center rounded-avatar bg-accent-primary"
 					>
 						<svg class="icon-lg text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 							<path

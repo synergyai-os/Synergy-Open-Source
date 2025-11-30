@@ -39,12 +39,12 @@
 		>
 			{#snippet children({ thumbItems })}
 				<span class="relative h-2 w-full grow overflow-hidden rounded-full bg-base">
-					<Slider.Range class="bg-accent-primary absolute h-full" />
+					<Slider.Range class="absolute h-full bg-accent-primary" />
 				</span>
 				{#each thumbItems as { index } (index)}
 					<Slider.Thumb
 						{index}
-						class="ring-offset-background focus-visible:ring-ring border-accent-primary block h-5 w-5 rounded-full border-2 bg-elevated transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+						class="ring-offset-background focus-visible:ring-ring block h-5 w-5 rounded-full border-2 border-accent-primary bg-elevated transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
 					/>
 				{/each}
 			{/snippet}
@@ -64,12 +64,12 @@
 		>
 			{#snippet children({ thumbItems })}
 				<span class="relative h-2 w-full grow overflow-hidden rounded-full bg-base">
-					<Slider.Range class="bg-accent-primary absolute h-full" />
+					<Slider.Range class="absolute h-full bg-accent-primary" />
 				</span>
 				{#each thumbItems as { index } (index)}
 					<Slider.Thumb
 						{index}
-						class="ring-offset-background focus-visible:ring-ring border-accent-primary block h-5 w-5 rounded-full border-2 bg-elevated transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+						class="ring-offset-background focus-visible:ring-ring block h-5 w-5 rounded-full border-2 border-accent-primary bg-elevated transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
 					/>
 				{/each}
 			{/snippet}
@@ -89,12 +89,12 @@
 		>
 			{#snippet children({ thumbItems, tickItems })}
 				<span class="relative h-2 w-full grow overflow-hidden rounded-full bg-base">
-					<Slider.Range class="bg-accent-primary absolute h-full" />
+					<Slider.Range class="absolute h-full bg-accent-primary" />
 				</span>
 				{#each thumbItems as { index } (index)}
 					<Slider.Thumb
 						{index}
-						class="ring-offset-background focus-visible:ring-ring border-accent-primary block h-5 w-5 rounded-full border-2 bg-elevated transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+						class="ring-offset-background focus-visible:ring-ring block h-5 w-5 rounded-full border-2 border-accent-primary bg-elevated transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
 					/>
 				{/each}
 				{#each tickItems as { index } (index)}

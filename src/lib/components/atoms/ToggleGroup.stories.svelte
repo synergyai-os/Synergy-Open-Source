@@ -1,6 +1,7 @@
 <script module>
 	import { defineMeta } from '@storybook/addon-svelte-csf';
 	import * as ToggleGroup from './ToggleGroup.svelte';
+	import { toggleGroupRootRecipe, toggleGroupItemRecipe } from '$lib/design-system/recipes';
 
 	const { Story } = defineMeta({
 		component: ToggleGroup.Root,
@@ -17,47 +18,47 @@
 
 <Story name="Single" args={{ type: 'single', value: 'mon' }}>
 	{#snippet template(args)}
-		<ToggleGroup.Root type={args.type} value={args.value} class="inline-flex gap-2">
-			<ToggleGroup.Item value="mon" class="toggle-group-day">Mon</ToggleGroup.Item>
-			<ToggleGroup.Item value="tue" class="toggle-group-day">Tue</ToggleGroup.Item>
-			<ToggleGroup.Item value="wed" class="toggle-group-day">Wed</ToggleGroup.Item>
-			<ToggleGroup.Item value="thu" class="toggle-group-day">Thu</ToggleGroup.Item>
-			<ToggleGroup.Item value="fri" class="toggle-group-day">Fri</ToggleGroup.Item>
-			<ToggleGroup.Item value="sat" class="toggle-group-day">Sat</ToggleGroup.Item>
-			<ToggleGroup.Item value="sun" class="toggle-group-day">Sun</ToggleGroup.Item>
+		<ToggleGroup.Root type={args.type} value={args.value} class={toggleGroupRootRecipe()}>
+			<ToggleGroup.Item value="mon" class={toggleGroupItemRecipe()}>Mon</ToggleGroup.Item>
+			<ToggleGroup.Item value="tue" class={toggleGroupItemRecipe()}>Tue</ToggleGroup.Item>
+			<ToggleGroup.Item value="wed" class={toggleGroupItemRecipe()}>Wed</ToggleGroup.Item>
+			<ToggleGroup.Item value="thu" class={toggleGroupItemRecipe()}>Thu</ToggleGroup.Item>
+			<ToggleGroup.Item value="fri" class={toggleGroupItemRecipe()}>Fri</ToggleGroup.Item>
+			<ToggleGroup.Item value="sat" class={toggleGroupItemRecipe()}>Sat</ToggleGroup.Item>
+			<ToggleGroup.Item value="sun" class={toggleGroupItemRecipe()}>Sun</ToggleGroup.Item>
 		</ToggleGroup.Root>
 	{/snippet}
 </Story>
 
 <Story name="Multiple" args={{ type: 'multiple', value: ['mon', 'wed', 'fri'] }}>
 	{#snippet template(args)}
-		<ToggleGroup.Root type={args.type} value={args.value} class="inline-flex gap-2">
-			<ToggleGroup.Item value="mon" class="toggle-group-day">Mon</ToggleGroup.Item>
-			<ToggleGroup.Item value="tue" class="toggle-group-day">Tue</ToggleGroup.Item>
-			<ToggleGroup.Item value="wed" class="toggle-group-day">Wed</ToggleGroup.Item>
-			<ToggleGroup.Item value="thu" class="toggle-group-day">Thu</ToggleGroup.Item>
-			<ToggleGroup.Item value="fri" class="toggle-group-day">Fri</ToggleGroup.Item>
-			<ToggleGroup.Item value="sat" class="toggle-group-day">Sat</ToggleGroup.Item>
-			<ToggleGroup.Item value="sun" class="toggle-group-day">Sun</ToggleGroup.Item>
+		<ToggleGroup.Root type={args.type} value={args.value} class={toggleGroupRootRecipe()}>
+			<ToggleGroup.Item value="mon" class={toggleGroupItemRecipe()}>Mon</ToggleGroup.Item>
+			<ToggleGroup.Item value="tue" class={toggleGroupItemRecipe()}>Tue</ToggleGroup.Item>
+			<ToggleGroup.Item value="wed" class={toggleGroupItemRecipe()}>Wed</ToggleGroup.Item>
+			<ToggleGroup.Item value="thu" class={toggleGroupItemRecipe()}>Thu</ToggleGroup.Item>
+			<ToggleGroup.Item value="fri" class={toggleGroupItemRecipe()}>Fri</ToggleGroup.Item>
+			<ToggleGroup.Item value="sat" class={toggleGroupItemRecipe()}>Sat</ToggleGroup.Item>
+			<ToggleGroup.Item value="sun" class={toggleGroupItemRecipe()}>Sun</ToggleGroup.Item>
 		</ToggleGroup.Root>
 	{/snippet}
 </Story>
 
 <Story name="SizeOptions" args={{ type: 'single', value: 'sm' }}>
 	{#snippet template(args)}
-		<ToggleGroup.Root type={args.type} value={args.value} class="inline-flex gap-2">
-			<ToggleGroup.Item value="sm" class="toggle-group-day">SM</ToggleGroup.Item>
-			<ToggleGroup.Item value="md" class="toggle-group-day">MD</ToggleGroup.Item>
-			<ToggleGroup.Item value="lg" class="toggle-group-day">LG</ToggleGroup.Item>
-			<ToggleGroup.Item value="xl" class="toggle-group-day">XL</ToggleGroup.Item>
+		<ToggleGroup.Root type={args.type} value={args.value} class={toggleGroupRootRecipe()}>
+			<ToggleGroup.Item value="sm" class={toggleGroupItemRecipe()}>SM</ToggleGroup.Item>
+			<ToggleGroup.Item value="md" class={toggleGroupItemRecipe()}>MD</ToggleGroup.Item>
+			<ToggleGroup.Item value="lg" class={toggleGroupItemRecipe()}>LG</ToggleGroup.Item>
+			<ToggleGroup.Item value="xl" class={toggleGroupItemRecipe()}>XL</ToggleGroup.Item>
 		</ToggleGroup.Root>
 	{/snippet}
 </Story>
 
 <Story name="ViewOptions" args={{ type: 'single', value: 'grid' }}>
 	{#snippet template(args)}
-		<ToggleGroup.Root type={args.type} value={args.value} class="inline-flex gap-2">
-			<ToggleGroup.Item value="grid" class="toggle-group-day">
+		<ToggleGroup.Root type={args.type} value={args.value} class={toggleGroupRootRecipe()}>
+			<ToggleGroup.Item value="grid" class={toggleGroupItemRecipe()}>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					fill="none"
@@ -73,7 +74,7 @@
 					/>
 				</svg>
 			</ToggleGroup.Item>
-			<ToggleGroup.Item value="list" class="toggle-group-day">
+			<ToggleGroup.Item value="list" class={toggleGroupItemRecipe()}>
 				<svg
 					xmlns="http://www.w3.org/2000/svg"
 					fill="none"

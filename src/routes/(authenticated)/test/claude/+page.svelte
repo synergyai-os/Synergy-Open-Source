@@ -127,7 +127,7 @@
 							<span class="text-orange-600 dark:text-orange-400"
 								>⚠️ Claude API key not configured.</span
 							>
-							<a href={resolveRoute('/settings')} class="text-accent-primary ml-1 hover:underline"
+							<a href={resolveRoute('/settings')} class="ml-1 text-accent-primary hover:underline"
 								>Go to Settings</a
 							>
 						{/if}
@@ -156,7 +156,7 @@
 				type="button"
 				onclick={generateFlashcard}
 				disabled={isGenerating || !testInput.trim() || !settings.data?.hasClaudeKey}
-				class="hover:bg-accent-primary-hover bg-accent-primary mt-4 rounded-md px-4 py-2 text-sm font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+				class="hover:bg-accent-primary-hover mt-4 rounded-md bg-accent-primary px-4 py-2 text-sm font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 			>
 				{isGenerating ? 'Generating...' : 'Generate Flashcard'}
 			</button>
