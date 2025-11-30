@@ -211,7 +211,7 @@
 	);
 
 	// Initialize focus node and view when nodes are first available
-	// Also auto-select root circle on initial load
+	// Set root circle as focus (visual active state) but don't open panel
 	$effect(() => {
 		if (visibleNodes.length > 0 && !focusNode) {
 			// Find the root circle (depth 0, first visible node)
@@ -223,8 +223,7 @@
 				focusNode = rootNode as CircleHierarchyNode;
 				// Initialize zoom level to show labels
 				currentZoomLevel = 1.0;
-				// Auto-select root circle on initial load (opens side panel)
-				orgChart.selectCircle(rootNode.data.circleId);
+				// Don't call selectCircle() - panel should not auto-open on initial load
 			}
 		}
 	});
@@ -307,10 +306,11 @@
 	let zoomBehavior: ReturnType<typeof d3Zoom<SVGSVGElement, unknown>> | null = null;
 
 	// Smooth zoom to a specific node using interpolateZoom
-	function _zoomToNode(node: CircleHierarchyNode, duration = 500) {
-		if (!svgElement || !gElement) return;
+	function zoomToNode(node: CircleHierarchyNode, duration = 500) {
+		if (!svgElement || !gElement || !zoomBehavior) return;
 
-		const targetView: [number, number, number] = [node.x, node.y, node.r * 2];
+		// Use 3.0x radius to show more context (less zoom, more padding)
+		const targetView: [number, number, number] = [node.x, node.y, node.r * 3.0];
 		const interpolator = interpolateZoom(currentView as [number, number, number], targetView);
 		const t = transition()
 			.duration(duration)
@@ -325,19 +325,97 @@
 				// Update zoom level for label visibility
 				currentZoomLevel = k;
 
-				// Update transform
+				// Calculate transform
+				const transform = zoomIdentity
+					.translate(width / 2, height / 2)
+					.scale(k)
+					.translate(-view[0], -view[1]);
+
+				// Update transform on group element
 				if (gElement) {
-					select(gElement).attr(
-						'transform',
-						`translate(${width / 2},${height / 2}) scale(${k}) translate(${-view[0]},${-view[1]})`
-					);
+					select(gElement).attr('transform', transform.toString());
+				}
+
+				// Sync D3 zoom behavior state
+				if (svgElement && zoomBehavior) {
+					select(svgElement).call(zoomBehavior.transform, transform);
 				}
 			};
 		});
 
 		// Update focus node (triggers reactive label visibility and role visibility)
+		// Don't call selectCircle() to avoid opening the modal - focusNode handles visual active state
 		focusNode = node;
-		orgChart.selectCircle(node.data.circleId);
+	}
+
+	// Zoom out to show full chart (root view)
+	function zoomToRoot(duration = 500) {
+		if (!svgElement || !gElement || !zoomBehavior || visibleNodes.length === 0) return;
+
+		const bounds = calculateBounds(visibleNodes as CircleHierarchyNode[]);
+		const targetView: [number, number, number] = bounds;
+		const interpolator = interpolateZoom(currentView as [number, number, number], targetView);
+		const t = transition()
+			.duration(duration)
+			.ease((t) => t * (2 - t)); // easeOutQuad
+
+		t.tween('zoom', () => {
+			return (t: number) => {
+				const view = interpolator(t);
+				currentView = view;
+				const k = width / view[2];
+
+				// Update zoom level for label visibility
+				currentZoomLevel = k;
+
+				// Calculate transform
+				const transform = zoomIdentity
+					.translate(width / 2, height / 2)
+					.scale(k)
+					.translate(-view[0], -view[1]);
+
+				// Update transform on group element
+				if (gElement) {
+					select(gElement).attr('transform', transform.toString());
+				}
+
+				// Sync D3 zoom behavior state
+				if (svgElement && zoomBehavior) {
+					select(svgElement).call(zoomBehavior.transform, transform);
+				}
+			};
+		});
+
+		// Find root circle and set as focus
+		const rootNode = visibleNodes.find((node) => node.depth === 0);
+		if (rootNode && !isSyntheticRoot(rootNode.data.circleId)) {
+			focusNode = rootNode as CircleHierarchyNode;
+			// Don't call selectCircle() to avoid opening the modal
+		}
+	}
+
+	// Find parent circle node for a given circle
+	function findParentCircleNode(node: CircleHierarchyNode): CircleHierarchyNode | null {
+		if (!node.parent) return null;
+
+		// Navigate up the hierarchy to find the actual circle (skip synthetic nodes)
+		let parent = node.parent as CircleHierarchyNode;
+		while (parent) {
+			if (
+				!isSyntheticRoot(parent.data.circleId) &&
+				!isSyntheticRole(parent.data.circleId) &&
+				!isRolesGroup(parent.data.circleId)
+			) {
+				return parent;
+			}
+			parent = parent.parent as CircleHierarchyNode | null;
+		}
+
+		// If no parent circle found, return root
+		const rootNode = visibleNodes.find((n) => n.depth === 0);
+		return rootNode && !isSyntheticRoot(rootNode.data.circleId)
+			? (rootNode as CircleHierarchyNode)
+			: null;
 	}
 
 	onMount(() => {
@@ -372,11 +450,8 @@
 				focusNode = rootNode as CircleHierarchyNode;
 				currentZoomLevel = 1.0;
 
-				// Ensure root circle is selected (opens side panel)
-				// This is a fallback in case $effect hasn't run yet
-				if (!orgChart.selectedCircleId) {
-					orgChart.selectCircle(rootNode.data.circleId);
-				}
+				// Don't call selectCircle() - panel should not auto-open on initial load
+				// focusNode is set for visual active state only
 
 				// Apply initial transform
 				if (gElement) {
@@ -421,8 +496,20 @@
 			return;
 		}
 
-		// Open circle detail panel - no auto-zoom, user controls zoom manually
-		orgChart.selectCircle(node.data.circleId);
+		// Check if this circle is already active
+		const isActive = focusNode?.data.circleId === node.data.circleId;
+
+		if (isActive) {
+			// Click on active circle → open modal
+			orgChart.selectCircle(node.data.circleId);
+		} else {
+			// Click on non-active circle → make it active and zoom to it
+			if (node.depth === 0) {
+				zoomToRoot();
+			} else {
+				zoomToNode(node);
+			}
+		}
 	}
 
 	function handleCircleMouseEnter(node: CircleHierarchyNode) {
@@ -433,9 +520,27 @@
 		orgChart.setHover(null);
 	}
 
-	function handleRoleClick(event: MouseEvent, role: RoleNode) {
+	function handleRoleClick(
+		event: MouseEvent,
+		role: RoleNode,
+		parentCircleNode: CircleHierarchyNode
+	) {
 		event.stopPropagation();
-		orgChart.selectRole(role.roleId, 'chart');
+
+		// Check if parent circle is active
+		const isParentActive = focusNode?.data.circleId === parentCircleNode.data.circleId;
+
+		if (isParentActive) {
+			// Role is in active circle → open role modal
+			orgChart.selectRole(role.roleId, 'chart');
+		} else {
+			// Role is in non-active circle → make parent active and zoom to it
+			if (parentCircleNode.depth === 0) {
+				zoomToRoot();
+			} else {
+				zoomToNode(parentCircleNode);
+			}
+		}
 	}
 
 	// Zoom controls
@@ -456,34 +561,24 @@
 	}
 
 	function handleResetView() {
-		// Reset zoom and pan to initial view (fit entire chart)
-		if (visibleNodes.length > 0 && svgElement && gElement) {
-			const bounds = calculateBounds(visibleNodes as CircleHierarchyNode[]);
-			currentView = bounds;
-			currentZoomLevel = 1.0;
-
-			const k = width / bounds[2];
-			const resetTransform = zoomIdentity
-				.translate(width / 2, height / 2)
-				.scale(k)
-				.translate(-bounds[0], -bounds[1]);
-
-			select(gElement).attr('transform', resetTransform.toString());
-			if (zoomBehavior) {
-				select(svgElement).call(zoomBehavior.transform, resetTransform);
-			}
-		} else if (svgElement && zoomBehavior) {
-			// Fallback: just reset to identity
-			select(svgElement).call(zoomBehavior.transform, zoomIdentity);
-		}
+		// Reset zoom and pan to initial view (fit entire chart) - use smooth zoom
+		zoomToRoot();
 		orgChart.resetView();
 	}
 
-	// Handle background click - close any open panels
+	// Handle background click - zoom view to show active circle
 	function handleBackgroundClick() {
-		// Close circle and role panels
-		orgChart.selectCircle(null);
-		orgChart.selectRole(null, null);
+		// Zoom view to show the active circle
+		if (focusNode) {
+			if (focusNode.depth === 0) {
+				zoomToRoot();
+			} else {
+				zoomToNode(focusNode);
+			}
+		} else {
+			// No active circle, zoom to root
+			zoomToRoot();
+		}
 	}
 </script>
 
@@ -556,7 +651,9 @@
 		<g bind:this={gElement} class="circles">
 			<!-- First pass: Render circles and roles (without names) -->
 			{#each visibleNodes as node (node.data.circleId)}
+				{@const isFocused = focusNode?.data.circleId === node.data.circleId}
 				{@const isSelected = orgChart.selectedCircleId === node.data.circleId}
+				{@const isActive = isFocused || isSelected}
 				{@const isHovered = orgChart.hoveredCircleId === node.data.circleId}
 				{@const hasChildren = node.children && node.children.length > 0}
 				{@const color = getCircleColor(node.depth)}
@@ -584,16 +681,16 @@
 						cy="0"
 						r={node.r}
 						fill={color}
-						fill-opacity={isSelected ? 0.9 : isHovered ? 0.8 : hasChildren ? 0.5 : 0.6}
-						stroke={isSelected
+						fill-opacity={isActive ? 0.9 : isHovered ? 0.8 : hasChildren ? 0.5 : 0.6}
+						stroke={isActive
 							? 'var(--color-accent-primary)'
 							: isHovered
 								? color
 								: hasChildren
 									? color
 									: 'none'}
-						stroke-width={isSelected ? 3 : isHovered ? 2 : hasChildren ? 2 : 0}
-						stroke-opacity={isSelected ? 1 : isHovered ? 0.8 : hasChildren ? 0.5 : 0}
+						stroke-width={isActive ? 3 : isHovered ? 2 : hasChildren ? 2 : 0}
+						stroke-opacity={isActive ? 1 : isHovered ? 0.8 : hasChildren ? 0.5 : 0}
 						style="pointer-events: all;"
 					/>
 
@@ -633,12 +730,12 @@
 									tabindex="0"
 									onclick={(e) => {
 										e.stopPropagation();
-										handleRoleClick(e, role);
+										handleRoleClick(e, role, node);
 									}}
 									onkeydown={(e) => {
 										if (e.key === 'Enter' || e.key === ' ') {
 											e.stopPropagation();
-											handleRoleClick(e as unknown as MouseEvent, role);
+											handleRoleClick(e as unknown as MouseEvent, role, node);
 										}
 									}}
 									style="pointer-events: all;"
