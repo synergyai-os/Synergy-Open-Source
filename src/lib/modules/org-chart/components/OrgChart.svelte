@@ -23,6 +23,12 @@
 		transformToHierarchy,
 		calculateCircleValue,
 		getCircleColor,
+		getCircleStrokeColor,
+		getRoleFillColor,
+		getRoleTextColor,
+		getRoleStrokeColor,
+		getCircleLabelColor,
+		getCircleLabelStrokeColor,
 		isSyntheticRoot,
 		isSyntheticRole,
 		isRolesGroup,
@@ -585,8 +591,7 @@
 <div class="border-base relative h-full w-full overflow-hidden rounded-card border bg-surface">
 	<!-- Zoom Controls -->
 	<div
-		class="bg-elevated/95 shadow-card-hover absolute top-4 right-4 z-10 flex flex-col gap-2 rounded-card backdrop-blur-sm"
-		style="padding: var(--spacing-3);"
+		class="bg-elevated/95 shadow-card-hover absolute top-4 right-4 z-10 flex flex-col gap-button rounded-card inset-md backdrop-blur-sm"
 	>
 		<button
 			class="hover:bg-hover-solid flex size-icon-xl items-center justify-center rounded-button text-secondary transition-all hover:scale-110 hover:text-primary active:scale-95"
@@ -656,7 +661,12 @@
 				{@const isActive = isFocused || isSelected}
 				{@const isHovered = orgChart.hoveredCircleId === node.data.circleId}
 				{@const hasChildren = node.children && node.children.length > 0}
-				{@const color = getCircleColor(node.depth)}
+				{@const circleFill = getCircleColor()}
+				{@const circleStroke = isActive
+					? getCircleStrokeColor('active')
+					: isHovered
+						? getCircleStrokeColor('hover')
+						: getCircleStrokeColor('default')}
 				{@const showRoles = shouldShowRoles(node)}
 
 				<!-- Group positioned at node's x,y (D3 pack layout pattern) -->
@@ -675,54 +685,33 @@
 					}}
 					style="pointer-events: all;"
 				>
-					<!-- Circle -->
+					<!-- Circle - light fill for all depths, stroke indicates state -->
 					<circle
 						cx="0"
 						cy="0"
 						r={node.r}
-						fill={color}
-						fill-opacity={isActive ? 0.9 : isHovered ? 0.8 : hasChildren ? 0.5 : 0.6}
-						stroke={isActive
-							? 'var(--color-accent-primary)'
-							: isHovered
-								? color
-								: hasChildren
-									? color
-									: 'none'}
-						stroke-width={isActive ? 3 : isHovered ? 2 : hasChildren ? 2 : 0}
+						fill={circleFill}
+						fill-opacity={hasChildren ? 0.7 : 0.85}
+						stroke={circleStroke}
+						stroke-width={isActive ? 3 : isHovered ? 2 : hasChildren ? 1.5 : 0}
 						stroke-opacity={isActive ? 1 : isHovered ? 0.8 : hasChildren ? 0.5 : 0}
+						stroke-dasharray={isHovered && !isActive ? '6 3' : 'none'}
 						style="pointer-events: all;"
 					/>
 
 					<!-- Role circles (packed alongside child circles by D3 pack layout) -->
 					{#if showRoles && node.data.packedRoles}
-						{@const fontSize = Math.max(10, Math.min(node.r / 4, 14))}
-						{@const nameAreaHeight = fontSize + 8}
-						{@const nameAreaTop = -fontSize / 2 - 4}
-						<!-- Define mask that excludes the center area where circle name is -->
+						<!-- ClipPath to keep roles inside circle boundary -->
 						<defs>
-							<mask id="mask-{node.data.circleId}">
-								<!-- White = visible, Black = hidden -->
-								<!-- Show entire circle -->
-								<circle cx="0" cy="0" r={node.r} fill="white" />
-								<!-- Hide center area where circle name is -->
-								<rect
-									x={-node.r * 2}
-									y={nameAreaTop}
-									width={node.r * 4}
-									height={nameAreaHeight}
-									fill="black"
-								/>
-							</mask>
-							<!-- Also keep circle clipPath for boundary -->
 							<clipPath id="clip-{node.data.circleId}">
 								<circle cx="0" cy="0" r={node.r} />
 							</clipPath>
 						</defs>
-						<!-- Group with mask and clipPath to ensure roles stay inside circle and never cover name -->
-						<g clip-path="url(#clip-{node.data.circleId})" mask="url(#mask-{node.data.circleId})">
+						<!-- Group with clipPath to ensure roles stay inside circle -->
+						<g clip-path="url(#clip-{node.data.circleId})">
 							{#each node.data.packedRoles as role (role.roleId)}
 								{@const roleLabelVisible = shouldShowRoleLabel(role, node)}
+								{@const isRoleSelected = orgChart.selectedRoleId === role.roleId}
 								<g
 									transform="translate({role.x},{role.y})"
 									class="role-circle-group cursor-pointer"
@@ -740,35 +729,34 @@
 									}}
 									style="pointer-events: all;"
 								>
-									<!-- Role circle -->
+									<!-- Role circle - solid primary fill, clearly distinct from container circles -->
 									<circle
 										cx="0"
 										cy="0"
 										r={role.r}
-										fill="white"
-										fill-opacity="0.9"
-										stroke={color}
-										stroke-width="1"
-										stroke-opacity="0.6"
+										fill={getRoleFillColor()}
+										fill-opacity="1"
+										stroke={getRoleStrokeColor()}
+										stroke-width={isRoleSelected ? 2.5 : 1}
+										stroke-opacity={isRoleSelected ? 1 : 0.3}
 										style="pointer-events: all;"
 									/>
-									<!-- Role name label (only if large enough and circle name not visible) -->
+									<!-- Role name label - design system font with stroke for readability -->
 									{#if roleLabelVisible}
-										{@const fontSize = Math.max(6, Math.min(role.r / 2, 10))}
+										{@const roleFontSize = Math.max(6, Math.min(role.r / 2, 10))}
 										{@const maxTextWidth = role.r * 1.6}
-										{@const truncatedName = truncateText(role.name, maxTextWidth, fontSize)}
+										{@const truncatedRoleName = truncateText(role.name, maxTextWidth, roleFontSize)}
 										<text
 											x="0"
 											y="0"
 											text-anchor="middle"
 											dominant-baseline="middle"
 											class="role-label pointer-events-none select-none"
-											fill="black"
-											fill-opacity="0.85"
-											font-size={fontSize}
-											style="text-shadow: 0 0 2px rgba(255,255,255,0.8);"
+											style="font-family: var(--typography-fontFamily-sans); font-weight: 500; paint-order: stroke fill;"
+											fill={getRoleTextColor()}
+											font-size={roleFontSize}
 										>
-											{truncatedName}
+											{truncatedRoleName}
 										</text>
 									{/if}
 								</g>
@@ -784,26 +772,39 @@
 				{@const baseFontSize = Math.max(10, Math.min(node.r / 4, 14))}
 				{@const depthMultiplier = Math.max(0.5, 3 - node.depth * 0.5)}
 				{@const fontSize = Math.max(6, Math.min(baseFontSize * depthMultiplier, 42))}
-				{@const maxTextWidth = node.r * 1.8}
-				{@const truncatedName = truncateText(node.data.name, maxTextWidth, fontSize)}
+				{@const labelWidth = node.r * 1.8}
+				{@const labelHeight = fontSize * 2.5}
 				{#if showCircleName}
 					<g transform="translate({node.x},{node.y})">
-						<text
-							x="0"
-							y="0"
-							text-anchor="middle"
-							dominant-baseline="middle"
-							class="circle-name-label pointer-events-none font-bold select-none"
-							fill="var(--color-orgChart-label-text)"
-							fill-opacity="1"
-							stroke="var(--color-orgChart-label-stroke)"
-							stroke-width="0.5"
-							stroke-opacity="0.8"
-							style="text-shadow: 0 2px 4px rgba(0,0,0,0.9);"
-							font-size={fontSize}
+						<!-- foreignObject allows HTML text with full CSS/design system support -->
+						<foreignObject
+							x={-labelWidth / 2}
+							y={-labelHeight / 2}
+							width={labelWidth}
+							height={labelHeight}
+							class="pointer-events-none overflow-visible"
 						>
-							{truncatedName}
-						</text>
+							<div
+								xmlns="http://www.w3.org/1999/xhtml"
+								class="flex h-full w-full items-center justify-center"
+							>
+								<span
+									class="circle-label text-center font-sans font-semibold select-none"
+									style="
+										font-size: {fontSize}px;
+										color: var(--color-component-orgChart-label-text);
+										text-shadow: 
+											0 0 3px var(--color-component-orgChart-circle-fill),
+											0 0 6px var(--color-component-orgChart-circle-fill),
+											0 1px 2px rgba(0,0,0,0.3);
+										line-height: 1.2;
+										word-break: break-word;
+									"
+								>
+									{node.data.name}
+								</span>
+							</div>
+						</foreignObject>
 					</g>
 				{/if}
 			{/each}
@@ -815,7 +816,7 @@
 		<div class="absolute inset-0 flex items-center justify-center">
 			<div class="text-center">
 				<svg
-					class="mx-auto mb-4 size-icon-xl text-secondary"
+					class="mx-auto size-icon-xl text-secondary mb-header"
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
@@ -828,7 +829,7 @@
 					/>
 				</svg>
 				<p class="text-button text-secondary">No circles to display</p>
-				<p class="mt-1 text-label text-tertiary">Create circles to see the org chart</p>
+				<p class="text-label text-tertiary mt-fieldGroup">Create circles to see the org chart</p>
 			</div>
 		</div>
 	{/if}
