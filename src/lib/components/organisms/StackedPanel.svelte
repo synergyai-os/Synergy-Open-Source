@@ -63,28 +63,6 @@
 	);
 	const totalBreadcrumbWidth = $derived(breadcrumbCount * breadcrumbWidth);
 
-	// Base panel widths from recipe (900px tablet, 1200px desktop)
-	// These match the recipe: sm:w-[900px] lg:w-[1200px]
-	const BASE_PANEL_WIDTH_SM = 900; // Tablet width
-	const BASE_PANEL_WIDTH_LG = 1200; // Desktop width
-
-	// Calculate panel width classes: base width PLUS breadcrumb space
-	// When breadcrumbs exist, ADD breadcrumb width to base widths
-	// This makes the TOTAL panel wider, while content stays the same size
-	const panelWidthClasses = $derived.by(() => {
-		if (!hasBreadcrumbs) {
-			return ''; // Use recipe widths (sm:w-[900px] lg:w-[1200px])
-		}
-
-		// Calculate widths with breadcrumb space ADDED (extends panel to left)
-		const widthSm = BASE_PANEL_WIDTH_SM + totalBreadcrumbWidth;
-		const widthLg = BASE_PANEL_WIDTH_LG + totalBreadcrumbWidth;
-
-		// Use Tailwind arbitrary values for responsive widths
-		return `sm:w-[${widthSm}px] lg:w-[${widthLg}px]`;
-	});
-
-
 	// Track when panel opens to prevent immediate close from same click event
 	let openedAt = $state(0);
 
@@ -148,9 +126,9 @@
 	class={[
 		stackedPanelRecipe(),
 		isOpen ? 'translate-x-0' : 'translate-x-full',
-		panelWidthClasses
+		'stacked-panel-width'
 	]}
-	style="z-index: {currentZIndex}; transition-duration: var(--animation-duration-slow);"
+	style="z-index: {currentZIndex}; transition-duration: var(--animation-duration-slow); --breadcrumb-extra-width: {totalBreadcrumbWidth}px;"
 >
 	<!-- Breadcrumb Bars (all previous layers) - positioned to LEFT of panel content -->
 	{#if hasBreadcrumbs}
@@ -169,3 +147,17 @@
 		{@render children()}
 	</div>
 </aside>
+
+<style>
+	/* Panel width extends LEFT to accommodate breadcrumbs */
+	/* Base width + breadcrumb extra width (set via inline --breadcrumb-extra-width) */
+	:global(.stacked-panel-width) {
+		width: calc(900px + var(--breadcrumb-extra-width, 0px));
+	}
+
+	@media (min-width: 1024px) {
+		:global(.stacked-panel-width) {
+			width: calc(1200px + var(--breadcrumb-extra-width, 0px));
+		}
+	}
+</style>

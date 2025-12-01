@@ -261,7 +261,8 @@ export const create = mutation({
 			purpose: args.purpose,
 			parentCircleId: args.parentCircleId,
 			createdAt: now,
-			updatedAt: now
+			updatedAt: now,
+			updatedBy: userId
 		});
 
 		return {
@@ -297,7 +298,8 @@ export const update = mutation({
 		await ensureWorkspaceMembership(ctx, circle.workspaceId, userId);
 
 		const updates: Partial<Doc<'circles'>> = {
-			updatedAt: Date.now()
+			updatedAt: Date.now(),
+			updatedBy: userId
 		};
 
 		if (args.name !== undefined) {
@@ -363,7 +365,9 @@ export const archive = mutation({
 
 		await ctx.db.patch(args.circleId, {
 			archivedAt: Date.now(),
-			updatedAt: Date.now()
+			archivedBy: userId,
+			updatedAt: Date.now(),
+			updatedBy: userId
 		});
 
 		return { success: true };

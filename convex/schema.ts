@@ -142,21 +142,28 @@ const schema = defineSchema(
 			parentCircleId: v.optional(v.id('circles')), // Nested circles
 			createdAt: v.number(),
 			updatedAt: v.number(),
-			archivedAt: v.optional(v.number())
+			updatedBy: v.optional(v.id('users')), // Who last modified
+			archivedAt: v.optional(v.number()), // Soft delete timestamp
+			archivedBy: v.optional(v.id('users')) // Who archived it
 		})
 			.index('by_workspace', ['workspaceId'])
 			.index('by_parent', ['parentCircleId'])
-			.index('by_slug', ['workspaceId', 'slug']),
+			.index('by_slug', ['workspaceId', 'slug'])
+			.index('by_workspace_archived', ['workspaceId', 'archivedAt']), // For efficient filtering of active/archived circles
 
 		// Circle members (many-to-many)
 		circleMembers: defineTable({
 			circleId: v.id('circles'),
 			userId: v.id('users'),
-			joinedAt: v.number()
+			joinedAt: v.number(),
+			addedBy: v.optional(v.id('users')), // Who added the member
+			archivedAt: v.optional(v.number()), // Soft delete timestamp (when user leaves circle)
+			archivedBy: v.optional(v.id('users')) // Who removed the member
 		})
 			.index('by_circle', ['circleId'])
 			.index('by_user', ['userId'])
-			.index('by_circle_user', ['circleId', 'userId']),
+			.index('by_circle_user', ['circleId', 'userId'])
+			.index('by_circle_archived', ['circleId', 'archivedAt']), // For efficient filtering of active/archived members
 
 		// Circle roles - Workspace roles within circles (NOT RBAC permissions)
 		// Examples: "Circle Lead", "Dev Lead", "Facilitator"
@@ -164,8 +171,38 @@ const schema = defineSchema(
 			circleId: v.id('circles'),
 			name: v.string(), // "Circle Lead"
 			purpose: v.optional(v.string()), // Optional description of role
-			createdAt: v.number()
-		}).index('by_circle', ['circleId']),
+			templateId: v.optional(v.id('roleTemplates')), // Which template this role is based on
+			createdAt: v.number(),
+			updatedAt: v.number(), // Last modification timestamp
+			updatedBy: v.optional(v.id('users')), // Who last modified
+			archivedAt: v.optional(v.number()), // Soft delete timestamp
+			archivedBy: v.optional(v.id('users')) // Who archived it
+		})
+			.index('by_circle', ['circleId'])
+			.index('by_circle_archived', ['circleId', 'archivedAt']) // For efficient filtering of active/archived roles
+			.index('by_template', ['templateId']), // For querying roles by template
+
+		// Role Templates - Reusable role definitions that can be marked as core roles
+		// System-level templates have workspaceId = undefined, workspace-level templates have an ID
+		roleTemplates: defineTable({
+			// Nullable for system-level templates (undefined = system, ID = workspace)
+			workspaceId: v.optional(v.id('workspaces')),
+			name: v.string(), // e.g., "Circle Lead"
+			description: v.optional(v.string()),
+			// Template flags
+			isCore: v.boolean(), // Should auto-create in new circles
+			isRequired: v.boolean(), // Cannot be deleted (e.g., Circle Lead)
+			// Soft delete
+			archivedAt: v.optional(v.number()),
+			archivedBy: v.optional(v.id('users')),
+			// Timestamps
+			createdAt: v.number(),
+			createdBy: v.id('users'),
+			updatedAt: v.number(),
+			updatedBy: v.optional(v.id('users'))
+		})
+			.index('by_workspace', ['workspaceId']) // Get workspace templates (includes null for system)
+			.index('by_core', ['workspaceId', 'isCore']), // Get core templates
 
 		// User circle role assignments (many-to-many)
 		// Users can fill multiple roles, roles can have multiple fillers
@@ -173,11 +210,263 @@ const schema = defineSchema(
 			userId: v.id('users'),
 			circleRoleId: v.id('circleRoles'),
 			assignedAt: v.number(),
-			assignedBy: v.id('users') // Who made the assignment
+			assignedBy: v.id('users'), // Who made the assignment
+			updatedAt: v.number(), // Last modification timestamp
+			updatedBy: v.optional(v.id('users')), // Who last modified
+			archivedAt: v.optional(v.number()), // Soft delete timestamp (when user removed from role)
+			archivedBy: v.optional(v.id('users')) // Who removed the assignment
 		})
 			.index('by_user', ['userId'])
 			.index('by_role', ['circleRoleId'])
-			.index('by_user_role', ['userId', 'circleRoleId']),
+			.index('by_user_role', ['userId', 'circleRoleId'])
+			.index('by_role_archived', ['circleRoleId', 'archivedAt']) // For efficient filtering of active/archived assignments by role
+			.index('by_user_archived', ['userId', 'archivedAt']), // For efficient filtering of active/archived assignments by user
+
+		// Circle Item Categories - Customizable category containers for circles and roles
+		// Examples: "Purpose", "Domains", "Accountabilities", "Policies", "Decision Rights", "Notes"
+		circleItemCategories: defineTable({
+			workspaceId: v.id('workspaces'),
+			entityType: v.union(v.literal('circle'), v.literal('role')), // What entity type this category applies to
+			name: v.string(), // "Domains", "Accountabilities", etc.
+			order: v.number(), // Display order (drag/drop)
+			isDefault: v.boolean(), // Created automatically with workspace
+			createdAt: v.number(),
+			createdBy: v.id('users'),
+			updatedAt: v.number(),
+			updatedBy: v.optional(v.id('users')),
+			archivedAt: v.optional(v.number()), // Soft delete timestamp
+			archivedBy: v.optional(v.id('users')) // Who archived it
+		})
+			.index('by_workspace', ['workspaceId']) // Get all categories for workspace
+			.index('by_entity_type', ['workspaceId', 'entityType']), // Get categories by type
+
+		// Circle Items - Content items within categories
+		// Belong to a specific circle/role and category, draggable for user-defined ordering
+		circleItems: defineTable({
+			workspaceId: v.id('workspaces'),
+			categoryId: v.id('circleItemCategories'),
+			entityType: v.union(v.literal('circle'), v.literal('role')), // Denormalized for queries
+			entityId: v.string(), // Circle or Role ID (stored as string for flexibility)
+			content: v.string(), // Item text content
+			order: v.number(), // Display order within category (drag/drop)
+			createdAt: v.number(),
+			createdBy: v.id('users'),
+			updatedAt: v.number(),
+			updatedBy: v.optional(v.id('users')),
+			archivedAt: v.optional(v.number()), // Soft delete timestamp
+			archivedBy: v.optional(v.id('users')), // Who archived it
+			// Future: embedding field for AI/RAG vectorization
+			// embeddingId: v.optional(v.id('embeddings'))
+		})
+			.index('by_category', ['categoryId']) // Get items in category
+			.index('by_entity', ['entityType', 'entityId']) // Get items for specific circle/role
+			.index('by_workspace', ['workspaceId']), // Get all items for workspace
+
+		// Org Chart Version History - Complete audit trail of all organizational changes
+		// Uses discriminated unions for type-safe before/after snapshots (no v.any())
+		orgVersionHistory: defineTable(
+			v.union(
+				// Circle change
+				v.object({
+					entityType: v.literal('circle'),
+					workspaceId: v.id('workspaces'),
+					entityId: v.id('circles'),
+					changeType: v.union(
+						v.literal('create'),
+						v.literal('update'),
+						v.literal('archive'),
+						v.literal('restore')
+					),
+					changedBy: v.id('users'),
+					changedAt: v.number(),
+					changeDescription: v.optional(v.string()),
+					before: v.optional(
+						v.object({
+							name: v.string(),
+							slug: v.string(),
+							purpose: v.optional(v.string()),
+							parentCircleId: v.optional(v.id('circles')), // undefined = root circle
+							archivedAt: v.optional(v.number())
+						})
+					),
+					after: v.optional(
+						v.object({
+							name: v.string(),
+							slug: v.string(),
+							purpose: v.optional(v.string()),
+							parentCircleId: v.optional(v.id('circles')), // undefined = root circle
+							archivedAt: v.optional(v.number())
+						})
+					)
+				}),
+				// Circle Role change
+				v.object({
+					entityType: v.literal('circleRole'),
+					workspaceId: v.id('workspaces'),
+					entityId: v.id('circleRoles'),
+					changeType: v.union(
+						v.literal('create'),
+						v.literal('update'),
+						v.literal('archive'),
+						v.literal('restore')
+					),
+					changedBy: v.id('users'),
+					changedAt: v.number(),
+					changeDescription: v.optional(v.string()),
+					before: v.optional(
+						v.object({
+							circleId: v.id('circles'),
+							name: v.string(),
+							purpose: v.optional(v.string()),
+							templateId: v.optional(v.id('roleTemplates')),
+							archivedAt: v.optional(v.number())
+						})
+					),
+					after: v.optional(
+						v.object({
+							circleId: v.id('circles'),
+							name: v.string(),
+							purpose: v.optional(v.string()),
+							templateId: v.optional(v.id('roleTemplates')),
+							archivedAt: v.optional(v.number())
+						})
+					)
+				}),
+				// User Circle Role (assignment) change
+				v.object({
+					entityType: v.literal('userCircleRole'),
+					workspaceId: v.id('workspaces'),
+					entityId: v.id('userCircleRoles'),
+					changeType: v.union(
+						v.literal('create'),
+						v.literal('update'),
+						v.literal('archive'),
+						v.literal('restore')
+					),
+					changedBy: v.id('users'),
+					changedAt: v.number(),
+					changeDescription: v.optional(v.string()),
+					before: v.optional(
+						v.object({
+							userId: v.id('users'),
+							circleRoleId: v.id('circleRoles'),
+							scope: v.optional(v.string()),
+							archivedAt: v.optional(v.number())
+						})
+					),
+					after: v.optional(
+						v.object({
+							userId: v.id('users'),
+							circleRoleId: v.id('circleRoles'),
+							scope: v.optional(v.string()),
+							archivedAt: v.optional(v.number())
+						})
+					)
+				}),
+				// Circle Member change
+				v.object({
+					entityType: v.literal('circleMember'),
+					workspaceId: v.id('workspaces'),
+					entityId: v.id('circleMembers'),
+					changeType: v.union(
+						v.literal('create'),
+						v.literal('update'),
+						v.literal('archive'),
+						v.literal('restore')
+					),
+					changedBy: v.id('users'),
+					changedAt: v.number(),
+					changeDescription: v.optional(v.string()),
+					before: v.optional(
+						v.object({
+							circleId: v.id('circles'),
+							userId: v.id('users'),
+							archivedAt: v.optional(v.number())
+						})
+					),
+					after: v.optional(
+						v.object({
+							circleId: v.id('circles'),
+							userId: v.id('users'),
+							archivedAt: v.optional(v.number())
+						})
+					)
+				}),
+				// Circle Item Category change
+				v.object({
+					entityType: v.literal('circleItemCategory'),
+					workspaceId: v.id('workspaces'),
+					entityId: v.id('circleItemCategories'),
+					changeType: v.union(
+						v.literal('create'),
+						v.literal('update'),
+						v.literal('archive'),
+						v.literal('restore')
+					),
+					changedBy: v.id('users'),
+					changedAt: v.number(),
+					changeDescription: v.optional(v.string()),
+					before: v.optional(
+						v.object({
+							workspaceId: v.id('workspaces'),
+							entityType: v.union(v.literal('circle'), v.literal('role')),
+							name: v.string(),
+							order: v.number(),
+							isDefault: v.boolean(),
+							archivedAt: v.optional(v.number())
+						})
+					),
+					after: v.optional(
+						v.object({
+							workspaceId: v.id('workspaces'),
+							entityType: v.union(v.literal('circle'), v.literal('role')),
+							name: v.string(),
+							order: v.number(),
+							isDefault: v.boolean(),
+							archivedAt: v.optional(v.number())
+						})
+					)
+				}),
+				// Circle Item change
+				v.object({
+					entityType: v.literal('circleItem'),
+					workspaceId: v.id('workspaces'),
+					entityId: v.id('circleItems'),
+					changeType: v.union(
+						v.literal('create'),
+						v.literal('update'),
+						v.literal('archive'),
+						v.literal('restore')
+					),
+					changedBy: v.id('users'),
+					changedAt: v.number(),
+					changeDescription: v.optional(v.string()),
+					before: v.optional(
+						v.object({
+							categoryId: v.id('circleItemCategories'),
+							entityType: v.union(v.literal('circle'), v.literal('role')),
+							entityId: v.string(), // Circle or Role ID (stored as string)
+							content: v.string(),
+							order: v.number(),
+							archivedAt: v.optional(v.number())
+						})
+					),
+					after: v.optional(
+						v.object({
+							categoryId: v.id('circleItemCategories'),
+							entityType: v.union(v.literal('circle'), v.literal('role')),
+							entityId: v.string(), // Circle or Role ID (stored as string)
+							content: v.string(),
+							order: v.number(),
+							archivedAt: v.optional(v.number())
+						})
+					)
+				})
+			)
+		)
+			.index('by_entity', ['entityType', 'entityId']) // Get version history for specific entity
+			.index('by_workspace', ['workspaceId', 'changedAt']) // Get workspace timeline (ordered by time)
+			.index('by_user', ['changedBy', 'changedAt']), // Get all changes by user (ordered by time)
 
 		// Meetings - scheduled meetings with recurrence support
 		meetings: defineTable({
@@ -414,6 +703,18 @@ const schema = defineSchema(
 			workspaceId: v.id('workspaces'),
 			claudeApiKey: v.optional(v.string()), // Workspace's Claude API key (encrypted/secure)
 			// Future: billing settings, default preferences, org-wide configurations, etc.
+			createdAt: v.number(),
+			updatedAt: v.number()
+		}).index('by_workspace', ['workspaceId']),
+
+		// Workspace Org Settings - Workspace-level configuration for org chart behavior
+		workspaceOrgSettings: defineTable({
+			workspaceId: v.id('workspaces'),
+			// Circle Lead enforcement
+			requireCircleLeadRole: v.boolean(), // Default: true
+			// Core role template IDs for this workspace
+			coreRoleTemplateIds: v.array(v.id('roleTemplates')),
+			// Timestamps
 			createdAt: v.number(),
 			updatedAt: v.number()
 		}).index('by_workspace', ['workspaceId']),

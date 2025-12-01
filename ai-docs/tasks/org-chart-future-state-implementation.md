@@ -832,17 +832,17 @@ All key decisions have been made:
 
 ### Subtasks (Linear)
 
-| Phase     | Ticket                                                       | Title                               | Estimate |
-| --------- | ------------------------------------------------------------ | ----------------------------------- | -------- |
-| Schema    | [SYOS-614](https://linear.app/younghumanclub/issue/SYOS-614) | Soft Delete Fields + Indexes        | S        |
-| Schema    | [SYOS-615](https://linear.app/younghumanclub/issue/SYOS-615) | Version History Table               | M        |
-| Schema    | [SYOS-616](https://linear.app/younghumanclub/issue/SYOS-616) | Role Templates + Workspace Settings | S        |
-| Schema    | [SYOS-617](https://linear.app/younghumanclub/issue/SYOS-617) | Circle Item Categories + Items      | S        |
-| Business  | [SYOS-618](https://linear.app/younghumanclub/issue/SYOS-618) | Root Circle Creation & Protection   | M        |
-| Business  | [SYOS-619](https://linear.app/younghumanclub/issue/SYOS-619) | Soft Delete Cascade                 | M        |
-| Business  | [SYOS-620](https://linear.app/younghumanclub/issue/SYOS-620) | Version History Capture             | L        |
-| API       | [SYOS-621](https://linear.app/younghumanclub/issue/SYOS-621) | Query Updates (Exclude Archived)    | S        |
-| API       | [SYOS-622](https://linear.app/younghumanclub/issue/SYOS-622) | Restore Mutations with Validation   | M        |
-| Migration | [SYOS-623](https://linear.app/younghumanclub/issue/SYOS-623) | Backfill Existing Data              | L        |
+| Phase     | Ticket                                                       | Title                               | Estimate | Status  |
+| --------- | ------------------------------------------------------------ | ----------------------------------- | -------- | ------- |
+| Schema    | [SYOS-614](https://linear.app/younghumanclub/issue/SYOS-614) | Soft Delete Fields + Indexes        | S        | ✅ Done |
+| Schema    | [SYOS-615](https://linear.app/younghumanclub/issue/SYOS-615) | Version History Table               | M        | ✅ Done |
+| Schema    | [SYOS-616](https://linear.app/younghumanclub/issue/SYOS-616) | Role Templates + Workspace Settings | S        | ✅ Done |
+| Schema    | [SYOS-617](https://linear.app/younghumanclub/issue/SYOS-617) | Circle Item Categories + Items      | S        | ✅ Done |
+| Business  | [SYOS-618](https://linear.app/younghumanclub/issue/SYOS-618) | Root Circle Creation & Protection   | M        | Todo    |
+| Business  | [SYOS-619](https://linear.app/younghumanclub/issue/SYOS-619) | Soft Delete Cascade                 | M        | Todo    |
+| Business  | [SYOS-620](https://linear.app/younghumanclub/issue/SYOS-620) | Version History Capture             | L        | Todo    |
+| API       | [SYOS-621](https://linear.app/younghumanclub/issue/SYOS-621) | Query Updates (Exclude Archived)    | S        | Todo    |
+| API       | [SYOS-622](https://linear.app/younghumanclub/issue/SYOS-622) | Restore Mutations with Validation   | M        | Todo    |
+| Migration | [SYOS-623](https://linear.app/younghumanclub/issue/SYOS-623) | Backfill Existing Data              | L        | Todo    |
 
 **Blockers**: None - all questions resolved, validation complete

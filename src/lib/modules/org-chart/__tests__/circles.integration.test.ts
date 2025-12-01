@@ -191,7 +191,7 @@ describe('Circles Integration Tests', () => {
 
 		expect(result.success).toBe(true);
 
-		// Verify archive
+		// Verify archive fields via query
 		const circle = await t.query(api.circles.get, {
 			sessionId,
 			circleId
@@ -199,6 +199,17 @@ describe('Circles Integration Tests', () => {
 
 		expect(circle.archivedAt).toBeDefined();
 		expect(circle.archivedAt).toBeGreaterThan(0);
+
+		// Verify archivedBy and updatedBy are set correctly (direct DB access)
+		const circleDoc = await t.run(async (ctx) => {
+			return await ctx.db.get(circleId);
+		});
+
+		expect(circleDoc).toBeDefined();
+		expect(circleDoc?.archivedBy).toBe(userId);
+		expect(circleDoc?.updatedBy).toBe(userId);
+		expect(circleDoc?.archivedAt).toBeDefined();
+		expect(circleDoc?.archivedAt).toBeGreaterThan(0);
 	});
 
 	it('should add a member to a circle', async () => {
