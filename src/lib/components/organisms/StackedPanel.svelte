@@ -8,6 +8,16 @@
 		stackedPanelContentRecipe
 	} from '$lib/design-system/recipes';
 
+	/** Context passed to panel content for mobile back button support */
+	export interface PanelContext {
+		/** True when on mobile viewport (< 640px) */
+		isMobile: boolean;
+		/** True when there are previous layers to navigate back to */
+		canGoBack: boolean;
+		/** Navigate back to previous layer (call when back button clicked) */
+		onBack: () => void;
+	}
+
 	interface StackedPanelProps {
 		isOpen: boolean;
 		navigationStack: UseNavigationStack;
@@ -15,7 +25,7 @@
 		onBreadcrumbClick: (index: number) => void;
 		isTopmost: () => boolean; // Function to check if this panel is the topmost layer
 		iconRenderer?: (layerType: string) => string | null; // Optional icon renderer for breadcrumbs (returns HTML string)
-		children: import('svelte').Snippet;
+		children: import('svelte').Snippet<[PanelContext]>;
 	}
 
 	let {
@@ -30,9 +40,25 @@
 
 	const currentZIndex = $derived(navigationStack.currentLayer?.zIndex ?? 60);
 
+	// Mobile detection (< 640px = sm breakpoint)
+	const MOBILE_BREAKPOINT = 640;
+	let isMobile = $state(false);
+	$effect(() => {
+		if (!browser) return;
+		const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+		const onChange = () => {
+			isMobile = window.innerWidth < MOBILE_BREAKPOINT;
+		};
+		mql.addEventListener('change', onChange);
+		isMobile = window.innerWidth < MOBILE_BREAKPOINT;
+		return () => mql.removeEventListener('change', onChange);
+	});
+
 	// Breadcrumb calculations
 	const breadcrumbCount = $derived(Math.max(0, navigationStack.depth - 1));
 	const hasBreadcrumbs = $derived(breadcrumbCount > 0);
+	// On mobile: no sidebar breadcrumbs (use back button instead)
+	const showSidebarBreadcrumbs = $derived(hasBreadcrumbs && !isMobile);
 	// Read breadcrumb width from base spacing token (spacing.12 = 3rem = 48px)
 	// Technical constant (not design value): rem-to-px conversion factor
 	const REM_TO_PX_FACTOR = 16; // Standard browser rem base (not a design token)
@@ -61,7 +87,23 @@
 					})()
 				: 0)
 	);
-	const totalBreadcrumbWidth = $derived(breadcrumbCount * breadcrumbWidth);
+	// Only add breadcrumb width on non-mobile (sidebar breadcrumbs only show on tablet+)
+	const totalBreadcrumbWidth = $derived(showSidebarBreadcrumbs ? breadcrumbCount * breadcrumbWidth : 0);
+
+	// Back button handler for mobile - goes to previous layer (same as clicking last breadcrumb)
+	const handleBack = () => {
+		if (hasBreadcrumbs) {
+			// Click the most recent breadcrumb (last one before current)
+			onBreadcrumbClick(breadcrumbCount - 1);
+		}
+	};
+
+	// Context passed to children for mobile back button support
+	const panelContext = $derived({
+		isMobile,
+		canGoBack: hasBreadcrumbs,
+		onBack: handleBack
+	} satisfies PanelContext);
 
 	// Track when panel opens to prevent immediate close from same click event
 	let openedAt = $state(0);
@@ -130,8 +172,8 @@
 	]}
 	style="z-index: {currentZIndex}; transition-duration: var(--animation-duration-slow); --breadcrumb-extra-width: {totalBreadcrumbWidth}px;"
 >
-	<!-- Breadcrumb Bars (all previous layers) - positioned to LEFT of panel content -->
-	{#if hasBreadcrumbs}
+	<!-- Breadcrumb Bars (tablet/desktop only) - positioned to LEFT of panel content -->
+	{#if showSidebarBreadcrumbs}
 		<PanelBreadcrumbs
 			{navigationStack}
 			{onBreadcrumbClick}
@@ -139,20 +181,28 @@
 			currentZIndex={currentZIndex}
 		/>
 	{/if}
-	<!-- Panel Content - Content stays at base width, pushed right by breadcrumb width -->
+	<!-- Panel Content - Content stays at base width, pushed right by breadcrumb width on tablet+ -->
 	<div
 		class={stackedPanelContentRecipe()}
-		style={hasBreadcrumbs ? `padding-left: ${totalBreadcrumbWidth}px;` : ''}
+		style={showSidebarBreadcrumbs ? `padding-left: ${totalBreadcrumbWidth}px;` : ''}
 	>
-		{@render children()}
+		{@render children(panelContext)}
 	</div>
 </aside>
 
 <style>
-	/* Panel width extends LEFT to accommodate breadcrumbs */
-	/* Base width + breadcrumb extra width (set via inline --breadcrumb-extra-width) */
+	/* Panel width: mobile-first responsive approach */
+	/* Mobile (< 640px): Full width, no breadcrumb extension */
+	/* Tablet (640px+): 900px + breadcrumb extra width */
+	/* Desktop (1024px+): 1200px + breadcrumb extra width */
 	:global(.stacked-panel-width) {
-		width: calc(900px + var(--breadcrumb-extra-width, 0px));
+		/* Mobile: full width (handled by recipe w-full) */
+	}
+
+	@media (min-width: 640px) {
+		:global(.stacked-panel-width) {
+			width: calc(900px + var(--breadcrumb-extra-width, 0px));
+		}
 	}
 
 	@media (min-width: 1024px) {

@@ -121,5 +121,13 @@ Quick lookup for common issues. Find your symptom → go to line number.
 
 ---
 
-**Last Updated**: 2025-11-30
+**Last Updated**: 2025-12-01
 **Key Principle**: One canonical pattern per concept. This index is the source of truth.
+
+## Recent Additions (2025-12-01)
+
+| Pattern | File | Keywords |
+|---------|------|----------|
+| Mobile-First Slide-Over Panel | `ui-patterns.md#L350` | panel, modal, sheet, mobile, responsive, breadcrumbs, back button |
+| Dynamic Responsive Widths with CSS Variables | `ui-patterns.md#L400` | Tailwind JIT, dynamic class, CSS variable, calc, style block |
+| Fixed vs Absolute Positioning for Panel Children | `ui-patterns.md#L450` | fixed, absolute, positioning, panel, viewport |

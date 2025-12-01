@@ -14,6 +14,7 @@ export type IconType =
 	| 'check'
 	| 'check-circle'
 	| 'chevron-down'
+	| 'chevron-left'
 	| 'chevron-right'
 	| 'circle'
 	| 'circles'
@@ -111,6 +112,13 @@ export const iconRegistry: Record<IconType, IconDefinition> = {
 	// Navigation
 	'chevron-down': {
 		path: 'M19 9l-7 7-7-7',
+		viewBox: '0 0 24 24',
+		strokeWidth: '2',
+		strokeLinecap: 'round',
+		strokeLinejoin: 'round'
+	},
+	'chevron-left': {
+		path: 'M15 19l-7-7 7-7',
 		viewBox: '0 0 24 24',
 		strokeWidth: '2',
 		strokeLinecap: 'round',

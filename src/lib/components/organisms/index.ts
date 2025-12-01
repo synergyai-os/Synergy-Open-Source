@@ -41,3 +41,4 @@ export * as Command from './Command.svelte';
 export * as Collapsible from './Collapsible.svelte';
 export * as Toolbar from './Toolbar.svelte';
 export { default as StackedPanel } from './StackedPanel.svelte';
+export type { PanelContext } from './StackedPanel.svelte';

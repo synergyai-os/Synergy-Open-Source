@@ -340,5 +340,198 @@ Patterns for bits-ui components, scroll areas, dropdowns, and visual effects.
 
 ---
 
-**Last Updated**: 2025-01-27
+## #L350: Mobile-First Slide-Over Panel Pattern [🟢 REFERENCE]
+
+**Keywords**: panel, modal, sheet, slide-over, mobile, responsive, breadcrumbs, back button, full-width, Credenza
+
+**Symptom**: Need a slide-over panel that works on both mobile and desktop with different navigation patterns.
+
+**Root Cause**: Desktop has space for sidebar breadcrumbs; mobile doesn't. Different UI patterns needed per viewport.
+
+**Pattern**: Use mobile detection + conditional rendering:
+
+```svelte
+<script lang="ts">
+    // Mobile detection (< 640px = sm breakpoint)
+    const MOBILE_BREAKPOINT = 640;
+    let isMobile = $state(false);
+    
+    $effect(() => {
+        if (!browser) return;
+        const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+        const onChange = () => {
+            isMobile = window.innerWidth < MOBILE_BREAKPOINT;
+        };
+        mql.addEventListener('change', onChange);
+        isMobile = window.innerWidth < MOBILE_BREAKPOINT;
+        return () => mql.removeEventListener('change', onChange);
+    });
+    
+    // Show sidebar breadcrumbs only on tablet+
+    const showSidebarBreadcrumbs = $derived(hasBreadcrumbs && !isMobile);
+</script>
+```
+
+**Mobile vs Desktop behavior:**
+| Viewport | Panel Width | Breadcrumbs | Back Navigation |
+|----------|-------------|-------------|-----------------|
+| Mobile (< 640px) | `w-full` | Hidden | Back button in header |
+| Tablet (640px+) | 900px + breadcrumbs | Sidebar | Via sidebar breadcrumbs |
+| Desktop (1024px+) | 1200px + breadcrumbs | Sidebar | Via sidebar breadcrumbs |
+
+**Pass context to children via snippet:**
+```svelte
+<!-- StackedPanel.svelte -->
+export interface PanelContext {
+    isMobile: boolean;
+    canGoBack: boolean;
+    onBack: () => void;
+}
+
+interface Props {
+    children: import('svelte').Snippet<[PanelContext]>;
+}
+
+{@render children(panelContext)}
+```
+
+```svelte
+<!-- Usage in consumer -->
+<StackedPanel ...>
+    {#snippet children(panelContext)}
+        <Header
+            showBackButton={panelContext.isMobile && panelContext.canGoBack}
+            onBack={panelContext.onBack}
+        />
+    {/snippet}
+</StackedPanel>
+```
+
+**Apply when**: 
+- Building slide-over panels/modals with nested navigation
+- Need different UX on mobile vs desktop
+- Desktop has breadcrumb sidebar, mobile needs back button
+
+**Related**: #L400 (Dynamic Responsive Widths)
+
+---
+
+## #L400: Dynamic Responsive Widths with CSS Variables [🔴 CRITICAL]
+
+**Keywords**: Tailwind, JIT, dynamic class, responsive, width, CSS variable, calc, style block, interpolation
+
+**Symptom**: Dynamic Tailwind classes like `sm:w-[${width}px]` don't apply any styles.
+
+**Root Cause**: 
+1. **Tailwind JIT only compiles static classes** - Classes generated at runtime aren't in the CSS
+2. **Svelte `<style>` blocks don't support template interpolation** - `{variable}` is treated as literal CSS
+
+**WRONG approaches:**
+```svelte
+<!-- ❌ WRONG: Dynamic Tailwind class - won't be compiled -->
+<div class="sm:w-[{width}px]">
+
+<!-- ❌ WRONG: Template interpolation in <style> block - won't work -->
+<style>
+    .panel { width: {BASE_WIDTH}px; }  /* Outputs literal "{BASE_WIDTH}px" */
+</style>
+```
+
+**Fix**: Use inline CSS custom property + static `<style>` block with `calc()`:
+
+```svelte
+<script lang="ts">
+    const extraWidth = $derived(breadcrumbCount * 48);
+</script>
+
+<!-- Set CSS variable via inline style (interpolation WORKS here) -->
+<div
+    class="panel-width"
+    style="--extra-width: {extraWidth}px;"
+>
+
+<style>
+    /* Static <style> block with calc() - no interpolation needed */
+    :global(.panel-width) {
+        width: 100%; /* Mobile: full width */
+    }
+    
+    @media (min-width: 640px) {
+        :global(.panel-width) {
+            width: calc(900px + var(--extra-width, 0px));
+        }
+    }
+    
+    @media (min-width: 1024px) {
+        :global(.panel-width) {
+            width: calc(1200px + var(--extra-width, 0px));
+        }
+    }
+</style>
+```
+
+**Key principles:**
+1. **Inline `style` attribute**: Supports Svelte interpolation `{variable}`
+2. **CSS custom properties**: Bridge between JS and CSS
+3. **Static `<style>` block**: Use `var()` and `calc()` - no interpolation
+4. **Default values**: `var(--extra-width, 0px)` provides fallback
+
+**Apply when**: 
+- Need dynamic values in responsive CSS
+- Tailwind dynamic classes aren't working
+- Need to pass JS values to CSS media queries
+
+**Anti-patterns:**
+- ❌ Dynamic Tailwind class names: `sm:w-[${width}px]`
+- ❌ Template interpolation in `<style>`: `width: {width}px`
+- ❌ Using `!important` in inline styles to override
+
+**Related**: #L350 (Mobile-First Panel Pattern)
+
+---
+
+## #L450: Fixed vs Absolute Positioning for Panel Children [🟡 IMPORTANT]
+
+**Keywords**: fixed, absolute, positioning, panel, breadcrumb, viewport, parent, containing block
+
+**Symptom**: Elements positioned with `fixed` inside a panel don't align to the panel - they use viewport coordinates.
+
+**Root Cause**: 
+- `fixed` positioning is relative to the **viewport**, not the parent element
+- CSS custom properties DO inherit to fixed elements, but position calculations use viewport
+- Complex viewport math is fragile and breaks at different screen sizes
+
+**Fix**: Use `absolute` positioning for elements that should be relative to their panel:
+
+```svelte
+<!-- Panel container (already fixed or relative) -->
+<aside class="fixed right-0 top-0 h-full">
+    <!-- Breadcrumbs positioned relative to panel, not viewport -->
+    <button class="absolute top-0 bottom-0 left-0 w-[48px]">
+        <!-- At panel's left edge -->
+    </button>
+    <button class="absolute top-0 bottom-0 left-[48px] w-[48px]">
+        <!-- 48px from panel's left edge -->
+    </button>
+</aside>
+```
+
+**When to use which:**
+| Position | Relative To | Use For |
+|----------|-------------|---------|
+| `fixed` | Viewport | Modals, panels that stick to screen edge |
+| `absolute` | Nearest positioned ancestor | Elements inside panels/modals |
+
+**Key insight**: An `absolute` child inside a `fixed` parent is positioned relative to the `fixed` parent (since `fixed` creates a containing block).
+
+**Apply when**: 
+- Panel children need to align to panel edges, not viewport
+- Viewport-relative calculations are too complex
+- Elements should move with the panel
+
+**Related**: #L350 (Mobile-First Panel Pattern)
+
+---
+
+**Last Updated**: 2025-12-01
 

@@ -8,6 +8,8 @@
 		roleName: string;
 		onClose: () => void;
 		onEdit?: () => void;
+		onBack?: () => void;
+		showBackButton?: boolean;
 		addMenuItems?: Array<{ label: string; onclick: () => void }>;
 		headerMenuItems?: Array<{ label: string; onclick: () => void; danger?: boolean }>;
 		class?: string;
@@ -17,6 +19,8 @@
 		roleName,
 		onClose,
 		onEdit,
+		onBack,
+		showBackButton = false,
 		addMenuItems = [],
 		headerMenuItems = [],
 		class: className = ''
@@ -32,9 +36,18 @@
 	- Styling: Recipe handles border, background, and padding
 -->
 <header class={headerClasses} style="height: 2.5rem;">
-	<Heading level={3} color="primary">
-		{roleName}
-	</Heading>
+	<div class="flex items-center gap-button">
+		{#if showBackButton && onBack}
+			<Button variant="ghost" size="md" iconOnly onclick={onBack} ariaLabel="Go back">
+				{#snippet children()}
+					<Icon type="chevron-left" size="md" />
+				{/snippet}
+			</Button>
+		{/if}
+		<Heading level={3} color="primary">
+			{roleName}
+		</Heading>
+	</div>
 	<div class="flex items-center gap-button">
 		{#if addMenuItems.length > 0}
 			<SplitButton

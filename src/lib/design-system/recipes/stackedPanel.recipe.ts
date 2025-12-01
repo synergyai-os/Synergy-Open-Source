@@ -15,11 +15,12 @@ import { cva, type VariantProps } from 'class-variance-authority';
  */
 export const stackedPanelRecipe = cva(
 	// Base classes - applied to all stacked panels
+	// Mobile-first: full width on mobile, fixed widths on tablet/desktop
 	'fixed top-0 right-0 h-full bg-surface shadow-card transition-transform ease-out',
 	{
 		variants: {
 			variant: {
-				default: 'sm:w-[900px] lg:w-[1200px]'
+				default: 'w-full sm:w-[900px] lg:w-[1200px]'
 			}
 		},
 		defaultVariants: {
