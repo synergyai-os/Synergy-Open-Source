@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { Button, Icon } from '$lib/components/atoms';
+	import { Button, Heading, Icon } from '$lib/components/atoms';
 	import { SplitButton } from '$lib/components/molecules';
 	import { ActionMenu } from '$lib/components/molecules';
+	import { panelDetailHeaderRecipe } from '$lib/design-system/recipes';
 
 	type Props = {
 		circleName: string;
@@ -9,15 +10,31 @@
 		onEdit?: () => void;
 		addMenuItems?: Array<{ label: string; onclick: () => void }>;
 		headerMenuItems?: Array<{ label: string; onclick: () => void; danger?: boolean }>;
+		class?: string;
 	};
 
-	let { circleName, onClose, onEdit, addMenuItems = [], headerMenuItems = [] }: Props = $props();
+	let {
+		circleName,
+		onClose,
+		onEdit,
+		addMenuItems = [],
+		headerMenuItems = [],
+		class: className = ''
+	}: Props = $props();
+
+	const headerClasses = $derived([panelDetailHeaderRecipe(), className]);
 </script>
 
-<header
-	class="h-system-header border-base px-inbox-container py-system-header flex flex-shrink-0 items-center justify-between border-b"
->
-	<h2 class="text-h3 font-semibold text-primary">{circleName}</h2>
+<!--
+	Panel Detail Header
+	- Height: 2.5rem (40px) - Standard panel header height for consistent vertical rhythm
+	- Padding: Uses panelDetailHeaderRecipe (px-panelDetailHeader = 16px horizontal, py-panelDetailHeader = 36px vertical)
+	- Styling: Recipe handles border, background, and padding
+-->
+<header class={headerClasses} style="height: 2.5rem;">
+	<Heading level={3} color="primary">
+		{circleName}
+	</Heading>
 	<div class="flex items-center gap-button">
 		{#if addMenuItems.length > 0}
 			<SplitButton
@@ -32,13 +49,11 @@
 			/>
 		{/if}
 		{#if onEdit}
-			<button
-				type="button"
-				class="px-card text-button hover:bg-hover-solid rounded-button border border-accent-primary bg-surface py-input-y font-medium text-accent-primary transition-colors"
-				onclick={onEdit}
-			>
-				Edit circle
-			</button>
+			<Button variant="outline" size="md" onclick={onEdit}>
+				{#snippet children()}
+					Edit circle
+				{/snippet}
+			</Button>
 		{/if}
 		{#if headerMenuItems.length > 0}
 			<ActionMenu items={headerMenuItems} />

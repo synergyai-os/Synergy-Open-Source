@@ -2,6 +2,11 @@
 	import { browser } from '$app/environment';
 	import type { UseNavigationStack } from '$lib/modules/core/composables/useNavigationStack.svelte';
 	import { PanelBreadcrumbs } from '$lib/components/molecules';
+	import {
+		stackedPanelRecipe,
+		stackedPanelBackdropRecipe,
+		stackedPanelContentRecipe
+	} from '$lib/design-system/recipes';
 
 	interface StackedPanelProps {
 		isOpen: boolean;
@@ -9,6 +14,7 @@
 		onClose: () => void;
 		onBreadcrumbClick: (index: number) => void;
 		isTopmost: () => boolean; // Function to check if this panel is the topmost layer
+		iconRenderer?: (layerType: string) => string | null; // Optional icon renderer for breadcrumbs (returns HTML string)
 		children: import('svelte').Snippet;
 	}
 
@@ -18,6 +24,7 @@
 		onClose,
 		onBreadcrumbClick,
 		isTopmost,
+		iconRenderer,
 		children
 	}: StackedPanelProps = $props();
 
@@ -56,6 +63,28 @@
 	);
 	const totalBreadcrumbWidth = $derived(breadcrumbCount * breadcrumbWidth);
 
+	// Base panel widths from recipe (900px tablet, 1200px desktop)
+	// These match the recipe: sm:w-[900px] lg:w-[1200px]
+	const BASE_PANEL_WIDTH_SM = 900; // Tablet width
+	const BASE_PANEL_WIDTH_LG = 1200; // Desktop width
+
+	// Calculate panel width classes: base width PLUS breadcrumb space
+	// When breadcrumbs exist, ADD breadcrumb width to base widths
+	// This makes the TOTAL panel wider, while content stays the same size
+	const panelWidthClasses = $derived.by(() => {
+		if (!hasBreadcrumbs) {
+			return ''; // Use recipe widths (sm:w-[900px] lg:w-[1200px])
+		}
+
+		// Calculate widths with breadcrumb space ADDED (extends panel to left)
+		const widthSm = BASE_PANEL_WIDTH_SM + totalBreadcrumbWidth;
+		const widthLg = BASE_PANEL_WIDTH_LG + totalBreadcrumbWidth;
+
+		// Use Tailwind arbitrary values for responsive widths
+		return `sm:w-[${widthSm}px] lg:w-[${widthLg}px]`;
+	});
+
+
 	// Track when panel opens to prevent immediate close from same click event
 	let openedAt = $state(0);
 
@@ -87,8 +116,8 @@
 <!-- Backdrop - Always show when panel is open -->
 {#if isOpen}
 	<div
-		class="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
-		style="z-index: {currentZIndex - 1};"
+		class={stackedPanelBackdropRecipe()}
+		style="z-index: {currentZIndex - 1}; background-color: var(--color-component-overlay-backdrop);"
 		onclick={(e) => {
 			// Ignore clicks within 100ms of opening (prevents same click that opened panel from closing it)
 			const timeSinceOpen = Date.now() - openedAt;
@@ -116,20 +145,25 @@
 
 <!-- Panel -->
 <aside
-	class="fixed right-0 top-0 h-full bg-surface transition-transform duration-300 ease-out shadow-card sm:w-[900px] lg:w-[1200px]"
-	class:translate-x-0={isOpen}
-	class:translate-x-full={!isOpen}
-	style="z-index: {currentZIndex}; {hasBreadcrumbs
-		? `width: calc(100% - ${totalBreadcrumbWidth}px); max-width: calc(100vw - ${totalBreadcrumbWidth}px);`
-		: ''}"
+	class={[
+		stackedPanelRecipe(),
+		isOpen ? 'translate-x-0' : 'translate-x-full',
+		panelWidthClasses
+	]}
+	style="z-index: {currentZIndex}; transition-duration: var(--animation-duration-slow);"
 >
-	<!-- Breadcrumb Bars (all previous layers) -->
+	<!-- Breadcrumb Bars (all previous layers) - positioned to LEFT of panel content -->
 	{#if hasBreadcrumbs}
-		<PanelBreadcrumbs {navigationStack} {onBreadcrumbClick} />
+		<PanelBreadcrumbs
+			{navigationStack}
+			{onBreadcrumbClick}
+			{iconRenderer}
+			currentZIndex={currentZIndex}
+		/>
 	{/if}
-	<!-- Panel Content - Add left padding equal to total breadcrumb width -->
+	<!-- Panel Content - Content stays at base width, pushed right by breadcrumb width -->
 	<div
-		class="flex h-full flex-col"
+		class={stackedPanelContentRecipe()}
 		style={hasBreadcrumbs ? `padding-left: ${totalBreadcrumbWidth}px;` : ''}
 	>
 		{@render children()}

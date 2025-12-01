@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Avatar, Button, Icon } from '$lib/components/atoms';
 	import { ActionMenu } from '$lib/components/molecules';
+	import { roleCardRecipe } from '$lib/design-system/recipes';
 
 	type Props = {
 		name: string;
@@ -9,9 +10,18 @@
 		onClick: () => void;
 		onEdit?: () => void;
 		menuItems?: Array<{ label: string; onclick: () => void; danger?: boolean }>;
+		class?: string;
 	};
 
-	let { name, purpose, fillerCount = 0, onClick, onEdit, menuItems = [] }: Props = $props();
+	let {
+		name,
+		purpose,
+		fillerCount = 0,
+		onClick,
+		onEdit,
+		menuItems = [],
+		class: className = ''
+	}: Props = $props();
 
 	function getInitials(text: string): string {
 		return text
@@ -21,13 +31,11 @@
 			.toUpperCase()
 			.slice(0, 2);
 	}
+
+	const buttonClasses = $derived([roleCardRecipe(), className]);
 </script>
 
-<button
-	type="button"
-	class="p-card hover:bg-hover-solid flex w-full items-center gap-button rounded-card bg-surface text-left transition-colors"
-	onclick={onClick}
->
+<button type="button" class={buttonClasses} onclick={onClick}>
 	<Avatar initials={getInitials(name)} size="md" />
 	<div class="min-w-0 flex-1">
 		<p class="text-button truncate font-medium text-primary">{name}</p>

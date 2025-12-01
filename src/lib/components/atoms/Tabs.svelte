@@ -46,3 +46,40 @@
 	Recipes should be imported and applied when using these components.
 	See usage example in the script comments above.
 -->
+
+<style>
+	/* Smooth underline indicator for active tabs */
+	/* Uses Bits UI data-state attribute for seamless transitions */
+	:global(button[data-state='active'])::after,
+	:global([role='tab'][data-state='active'])::after {
+		content: '';
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		height: 2px;
+		background-color: var(--color-accent-primary);
+		transform: scaleX(1);
+		transition:
+			transform 200ms ease-out,
+			opacity 200ms ease-out;
+		opacity: 1;
+	}
+
+	/* Inactive tabs - hidden underline with smooth transition */
+	:global(button[data-state='inactive'])::after,
+	:global([role='tab'][data-state='inactive'])::after {
+		content: '';
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		height: 2px;
+		background-color: var(--color-accent-primary);
+		transform: scaleX(0);
+		transition:
+			transform 200ms ease-out,
+			opacity 200ms ease-out;
+		opacity: 0;
+	}
+</style>

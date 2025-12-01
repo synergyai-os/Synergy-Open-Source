@@ -1009,6 +1009,17 @@
 				}
 			}
 		},
+		"panelDetailHeader": {
+			"$description": "Panel detail header spacing - for detail panel headers (CircleDetailHeader, RoleDetailHeader)",
+			"x": {
+				"$value": "{spacing.4}",
+				"$description": "Panel detail header horizontal padding (16px) - matches button padding for consistency"
+			},
+			"y": {
+				"$value": "{spacing.9}",
+				"$description": "Panel detail header vertical padding (36px) - spacious, breathable spacing for panel headers"
+			}
+		},
 		"inset": {
 			"$description": "Container edge padding for internal boundaries (dropdown containers, card sections, panels)",
 			"xs": {

@@ -271,13 +271,13 @@ export function calculateCircleValue(
 		}
 
 		// Base sizes: larger for higher hierarchy levels
-		// D3 pack layout scales circles proportionally - with many siblings, need much larger values
+		// D3 pack layout: radius ∝ √value, so for 1.5x radius we need 2.25x value
 		// Roles are now nested: Circle → Roles Group → Role (extra constraint level)
-		// Depth 0: Much bigger (1000 → r ~100-120) - big green circle roles (compensate for roles group nesting)
-		// Depth 1: Slightly bigger (140 → r ~35-40) - sub-circle roles (circles inside green circle)
-		// Depth 2: Match previous depth 1 (55 → r ~22-23) - sub-sub-circle roles
-		// Depth 3+: Keep current (35 → r ~17-18) - smallest roles (good as-is)
-		const baseSizes = [1000, 500, 100, 35]; // depth 0, 1, 2, 3+
+		// Depth 0: Root circle roles (2250 → r ~1.5x bigger than before)
+		// Depth 1: Sub-circle roles (500 → r ~35-40)
+		// Depth 2: Sub-sub-circle roles (100 → r ~22-23)
+		// Depth 3+: Deepest roles (35 → r ~17-18)
+		const baseSizes = [2250, 500, 100, 35]; // depth 0, 1, 2, 3+
 		const baseSize = baseSizes[Math.min(parentDepth, baseSizes.length - 1)];
 
 		// Debug logging to verify depth calculation

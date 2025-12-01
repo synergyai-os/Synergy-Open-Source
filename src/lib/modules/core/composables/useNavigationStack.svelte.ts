@@ -1,4 +1,10 @@
-export type NavigationLayerType = 'circle' | 'role';
+/**
+ * Generic navigation layer type - modules can extend this with their own types
+ * @example
+ * type OrgChartLayerType = 'circle' | 'role';
+ * type MeetingLayerType = 'meeting' | 'agenda-item' | 'action-item';
+ */
+export type NavigationLayerType = string;
 
 export type NavigationLayer = {
 	type: NavigationLayerType;

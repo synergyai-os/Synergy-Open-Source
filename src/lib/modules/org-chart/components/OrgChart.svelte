@@ -57,6 +57,9 @@
 	let focusNode: CircleHierarchyNode | null = $state(null);
 	let currentZoomLevel = $state(1.0); // Track zoom level from D3 transform
 
+	// Role hover state (local to chart, not exposed to composable)
+	let hoveredRoleId: Id<'circleRoles'> | null = $state(null);
+
 	// Reactive calculation of pack layout using $derived (Svelte 5 pattern)
 	const packedNodes = $derived.by(() => {
 		const circles = orgChart.circles;
@@ -258,39 +261,82 @@
 		return text.slice(0, maxChars - 3) + '...';
 	}
 
-	// Calculate role label parameters based on RENDERED size (semantic zoom)
-	// As zoom increases, we show more text content - this is level-of-detail rendering
+	// Calculate role label parameters with PROPORTIONAL scaling and multi-line support
+	// Font size is a fixed ratio of circle radius - scales perfectly with zoom
 	function getRoleLabelParams(role: RoleNode): {
 		fontSize: number;
-		maxChars: number;
-		displayText: string;
+		lineHeight: number;
+		lines: string[];
 	} {
-		// Use RENDERED radius (role.r * zoom) for semantic zoom behavior
-		const renderedRadius = role.r * currentZoomLevel;
+		// Font size proportional to role radius (SVG units)
+		// 0.22 ratio allows 2 lines with comfortable spacing
+		const fontSize = role.r * 0.22;
+		const lineHeight = fontSize * 1.25;
 
-		// Font size scales with rendered radius, but we cap it for readability
-		// Smaller rendered = smaller font, larger rendered = larger font (up to cap)
-		// We use a visual font size target, then convert back to SVG space
-		const visualFontSize = Math.max(8, Math.min(renderedRadius / 3, 16));
-		const svgFontSize = visualFontSize / currentZoomLevel;
+		// Max text width: 1.6x radius = 80% of diameter (10% padding each side)
+		const maxTextWidth = role.r * 1.6;
+		const charWidth = fontSize * 0.55;
+		const maxCharsPerLine = Math.floor(maxTextWidth / charWidth);
 
-		// Calculate how many characters fit at the VISUAL size
-		// Available visual width = renderedRadius * 1.8 (slightly more generous)
-		const visualWidth = renderedRadius * 1.8;
-		const visualCharWidth = visualFontSize * 0.55; // tighter estimate for better fit
-		const maxChars = Math.floor(visualWidth / visualCharWidth);
+		// Split name into lines (max 2 lines)
+		const lines = splitIntoLines(role.name, maxCharsPerLine, 2);
 
-		// Generate display text
-		let displayText: string;
-		if (role.name.length <= maxChars) {
-			displayText = role.name;
-		} else if (maxChars <= 3) {
-			displayText = role.name.slice(0, Math.max(1, maxChars));
-		} else {
-			displayText = role.name.slice(0, maxChars - 3) + '...';
+		return { fontSize, lineHeight, lines };
+	}
+
+	// Split text into lines with word-aware breaking
+	function splitIntoLines(text: string, maxChars: number, maxLines: number): string[] {
+		// If it fits on one line, return as-is
+		if (text.length <= maxChars) {
+			return [text];
 		}
 
-		return { fontSize: svgFontSize, maxChars, displayText };
+		const words = text.split(/\s+/);
+		const lines: string[] = [];
+		let currentLine = '';
+
+		for (const word of words) {
+			if (lines.length >= maxLines) break;
+
+			const testLine = currentLine ? `${currentLine} ${word}` : word;
+
+			if (testLine.length <= maxChars) {
+				currentLine = testLine;
+			} else if (currentLine === '') {
+				// Single word too long - truncate it
+				if (lines.length === maxLines - 1) {
+					// Last line: truncate with ellipsis
+					lines.push(word.slice(0, maxChars - 1) + '…');
+					currentLine = '';
+					break;
+				} else {
+					// Not last line: truncate and continue
+					lines.push(word.slice(0, maxChars));
+					currentLine = '';
+				}
+			} else {
+				// Push current line, start new with this word
+				lines.push(currentLine);
+				currentLine = word;
+			}
+		}
+
+		// Add remaining text
+		if (currentLine && lines.length < maxLines) {
+			if (currentLine.length > maxChars) {
+				lines.push(currentLine.slice(0, maxChars - 1) + '…');
+			} else {
+				lines.push(currentLine);
+			}
+		} else if (currentLine && lines.length === maxLines) {
+			// Truncate last line if there's more text
+			const lastLine = lines[lines.length - 1];
+			if (lastLine && !lastLine.endsWith('…')) {
+				lines[lines.length - 1] = lastLine.slice(0, maxChars - 1) + '…';
+			}
+		}
+
+		return lines.length > 0 ? lines : [text.slice(0, maxChars)];
 	}
 
 	// Process circle name for display: smart word wrap + truncation
@@ -533,6 +579,72 @@
 		return minOpacity + t * (maxOpacity - minOpacity);
 	}
 
+	// ============================================================================
+	// PROPORTIONAL STROKE-WIDTH CALCULATIONS
+	// ============================================================================
+	// SVG stroke-width is in SVG coordinate space, not screen pixels.
+	// For visual consistency, stroke-width should scale proportionally with radius.
+	// Smaller circles get thinner strokes, larger circles get thicker strokes.
+
+	/**
+	 * Calculate proportional stroke-width for role circles
+	 * Uses radius as base, with min/max bounds for readability
+	 */
+	function getRoleStrokeWidth(radius: number, state: 'selected' | 'hover' | 'default'): number {
+		// State multipliers - selected gets thickest, hover gets medium, default is subtle
+		const multipliers = {
+			selected: 0.08,
+			hover: 0.06,
+			default: 0.04
+		};
+
+		const multiplier = multipliers[state];
+		const baseWidth = radius * multiplier;
+
+		// Clamp to reasonable bounds (in SVG coordinate space)
+		const minMax = {
+			selected: { min: 1, max: 3 },
+			hover: { min: 0.8, max: 2 },
+			default: { min: 0.5, max: 1.5 }
+		};
+
+		const { min, max } = minMax[state];
+		return Math.max(min, Math.min(baseWidth, max));
+	}
+
+	/**
+	 * Calculate proportional stroke-width for circle containers
+	 * Uses radius as base, scaled by state (active/hover/default)
+	 */
+	function getCircleStrokeWidth(
+		radius: number,
+		state: 'active' | 'hover' | 'hasChildren' | 'none'
+	): number {
+		// State multipliers - active/hover states get thicker strokes
+		const multipliers = {
+			active: 0.025,
+			hover: 0.02,
+			hasChildren: 0.015,
+			none: 0
+		};
+
+		const multiplier = multipliers[state];
+		if (multiplier === 0) return 0;
+
+		const baseWidth = radius * multiplier;
+
+		// Clamp to reasonable bounds
+		const minMax = {
+			active: { min: 1.5, max: 4 },
+			hover: { min: 1, max: 3 },
+			hasChildren: { min: 0.8, max: 2 },
+			none: { min: 0, max: 0 }
+		};
+
+		const { min, max } = minMax[state];
+		return Math.max(min, Math.min(baseWidth, max));
+	}
+
 	// D3 Zoom behavior for trackpad/mouse wheel
 	let zoomBehavior: ReturnType<typeof d3Zoom<SVGSVGElement, unknown>> | null = null;
 
@@ -540,8 +652,14 @@
 	function zoomToNode(node: CircleHierarchyNode, duration = 500) {
 		if (!svgElement || !gElement || !zoomBehavior) return;
 
-		// Use 3.0x radius to show more context (less zoom, more padding)
-		const targetView: [number, number, number] = [node.x, node.y, node.r * 3.0];
+		// Calculate viewWidth to fit circle with padding in BOTH dimensions
+		// This ensures the full circle is visible with 20px padding on all sides
+		const diameter = node.r * 2;
+		const padding = 40; // 20px top + 20px bottom (or left + right)
+		const maxRenderedDiameter = Math.min(width, height) - padding;
+		const viewWidth = (width * diameter) / maxRenderedDiameter;
+
+		const targetView: [number, number, number] = [node.x, node.y, viewWidth];
 		const interpolator = interpolateZoom(currentView as [number, number, number], targetView);
 		const t = transition()
 			.duration(duration)
@@ -668,7 +786,10 @@
 			});
 
 		// Apply zoom to SVG
-		select(svgElement).call(zoomBehavior);
+		// Prevent browser zoom takeover when reaching scale limits (Option 1 from D3 docs)
+		select(svgElement)
+			.call(zoomBehavior)
+			.on('wheel', (event) => event.preventDefault());
 
 		// Initial zoom to fit entire chart (synchronous, no setTimeout)
 		// Use visibleNodes which already has roles extracted and filtered
@@ -813,7 +934,7 @@
 	}
 </script>
 
-<div class="border-base relative h-full w-full overflow-hidden rounded-card border bg-surface">
+<div class="relative h-full w-full overflow-hidden bg-surface">
 	<!-- Zoom Controls -->
 	<div
 		class="bg-elevated/95 shadow-card-hover absolute top-4 right-4 z-10 flex flex-col gap-button rounded-card inset-md backdrop-blur-sm"
@@ -861,7 +982,7 @@
 	<!-- SVG Container -->
 	<svg
 		bind:this={svgElement}
-		class="h-full w-full cursor-move"
+		class="h-full w-full cursor-move touch-none"
 		viewBox="0 0 {width} {height}"
 		preserveAspectRatio="xMidYMid meet"
 		role="button"
@@ -893,6 +1014,13 @@
 						? getCircleStrokeColor('hover')
 						: getCircleStrokeColor('default')}
 				{@const showRoles = shouldShowRoles(node)}
+				{@const circleStrokeState = isActive
+					? 'active'
+					: isHovered
+						? 'hover'
+						: hasChildren
+							? 'hasChildren'
+							: 'none'}
 
 				<!-- Group positioned at node's x,y (D3 pack layout pattern) -->
 				<g
@@ -911,6 +1039,7 @@
 					style="pointer-events: all;"
 				>
 					<!-- Circle - light fill for all depths, stroke indicates state -->
+					<!-- Stroke-width scales proportionally with radius for visual consistency -->
 					<circle
 						cx="0"
 						cy="0"
@@ -918,7 +1047,7 @@
 						fill={circleFill}
 						fill-opacity={hasChildren ? 0.7 : 0.85}
 						stroke={circleStroke}
-						stroke-width={isActive ? 3 : isHovered ? 2 : hasChildren ? 1.5 : 0}
+						stroke-width={getCircleStrokeWidth(node.r, circleStrokeState)}
 						stroke-opacity={isActive ? 1 : isHovered ? 0.8 : hasChildren ? 0.5 : 0}
 						stroke-dasharray={isHovered && !isActive ? '6 3' : 'none'}
 						style="pointer-events: all;"
@@ -938,6 +1067,12 @@
 								{@const roleLabelVisible = shouldShowRoleLabel(role, node)}
 								{@const roleOpacity = getRoleOpacity(role)}
 								{@const isRoleSelected = orgChart.selectedRoleId === role.roleId}
+								{@const isRoleHovered = hoveredRoleId === role.roleId}
+								{@const roleState = isRoleSelected
+									? 'selected'
+									: isRoleHovered
+										? 'hover'
+										: 'default'}
 								<g
 									transform="translate({role.x},{role.y})"
 									class="role-circle-group cursor-pointer"
@@ -946,6 +1081,12 @@
 									onclick={(e) => {
 										e.stopPropagation();
 										handleRoleClick(e, role, node);
+									}}
+									onmouseenter={() => {
+										hoveredRoleId = role.roleId;
+									}}
+									onmouseleave={() => {
+										hoveredRoleId = null;
 									}}
 									onkeydown={(e) => {
 										if (e.key === 'Enter' || e.key === ' ') {
@@ -956,23 +1097,35 @@
 									style="pointer-events: all;"
 								>
 									<!-- Role circle - progressive opacity based on zoom/size (Holaspirit pattern) -->
+									<!-- Stroke-width scales proportionally with radius for visual consistency -->
 									<circle
 										cx="0"
 										cy="0"
 										r={role.r}
 										fill={getRoleFillColor()}
-										fill-opacity={isRoleSelected ? 1 : roleOpacity}
+										fill-opacity={isRoleSelected
+											? 1
+											: isRoleHovered
+												? Math.min(1, roleOpacity + 0.3)
+												: roleOpacity}
 										stroke={getRoleStrokeColor()}
-										stroke-width={isRoleSelected ? 2.5 : 1}
-										stroke-opacity={isRoleSelected ? 1 : roleOpacity * 0.5}
+										stroke-width={getRoleStrokeWidth(role.r, roleState)}
+										stroke-opacity={isRoleSelected
+											? 1
+											: isRoleHovered
+												? Math.min(1, roleOpacity * 0.8)
+												: roleOpacity * 0.5}
 										style="pointer-events: all;"
 									/>
-									<!-- Role name label - semantic zoom: shows more text as you zoom in -->
+									<!-- Role name label - multi-line with proper padding -->
 									{#if roleLabelVisible}
 										{@const labelParams = getRoleLabelParams(role)}
+										{@const lineCount = labelParams.lines.length}
+										{@const totalHeight = (lineCount - 1) * labelParams.lineHeight}
+										{@const startY = -totalHeight / 2}
 										<text
 											x="0"
-											y="0"
+											y={startY}
 											text-anchor="middle"
 											dominant-baseline="middle"
 											class="role-label pointer-events-none select-none"
@@ -980,7 +1133,9 @@
 											fill={getRoleTextColor()}
 											font-size={labelParams.fontSize}
 										>
-											{labelParams.displayText}
+											{#each labelParams.lines as line, i}
+												<tspan x="0" dy={i === 0 ? 0 : labelParams.lineHeight}>{line}</tspan>
+											{/each}
 										</text>
 									{/if}
 								</g>
@@ -1061,13 +1216,22 @@
 </div>
 
 <style>
+	/* Remove focus outline from SVG container - prevents blue border around org chart */
+	svg:focus {
+		outline: none;
+	}
+
+	svg:focus-visible {
+		outline: none;
+	}
+
 	.circle-group:focus {
 		outline: none;
 	}
 
 	.circle-group:focus-visible circle {
 		stroke: var(--color-accent-primary);
-		stroke-width: 3;
+		/* stroke-width handled by inline proportional calculation */
 		outline: none;
 	}
 
@@ -1089,7 +1253,7 @@
 
 	.role-circle-group:focus-visible circle {
 		stroke: var(--color-accent-primary);
-		stroke-width: 2;
+		/* stroke-width handled by inline proportional calculation */
 		outline: none;
 	}
 
@@ -1103,7 +1267,7 @@
 
 	.role-circle-group:hover circle {
 		filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-		stroke-width: 2;
-		stroke-opacity: 0.8;
+		/* stroke-width handled by inline proportional calculation */
+		/* stroke-opacity handled by inline calculation */
 	}
 </style>

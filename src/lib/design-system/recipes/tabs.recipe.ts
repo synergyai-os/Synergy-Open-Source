@@ -26,11 +26,11 @@ export const tabsListRecipe = cva(
 
 export const tabsTriggerRecipe = cva(
 	// Base classes - Tab trigger button
-	'inline-flex items-center justify-center px-button-sm-x py-button-sm-y text-button text-secondary transition-colors rounded-button hover:text-primary focus:outline-none focus:ring-2 focus:ring-accent-primary disabled:pointer-events-none disabled:opacity-50',
+	'inline-flex items-center justify-center px-button-sm-x py-button-sm-y text-button text-secondary transition-all duration-200 hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 relative',
 	{
 		variants: {
 			active: {
-				true: 'text-primary bg-surface border-b-2 border-accent-primary',
+				true: 'text-primary',
 				false: ''
 			}
 		},

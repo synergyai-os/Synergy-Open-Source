@@ -223,3 +223,25 @@ export {
 	type MeterRootVariantProps,
 	type MeterIndicatorVariantProps
 } from './meter.recipe';
+export { categoryHeaderRecipe, type CategoryHeaderVariantProps } from './categoryHeader.recipe';
+export {
+	panelDetailHeaderRecipe,
+	type PanelDetailHeaderVariantProps
+} from './panelDetailHeader.recipe';
+export { roleCardRecipe, type RoleCardVariantProps } from './roleCard.recipe';
+export {
+	stackedPanelRecipe,
+	stackedPanelBackdropRecipe,
+	stackedPanelContentRecipe,
+	type StackedPanelVariantProps,
+	type StackedPanelBackdropVariantProps,
+	type StackedPanelContentVariantProps
+} from './stackedPanel.recipe';
+export {
+	panelBreadcrumbBarRecipe,
+	panelBreadcrumbTextRecipe,
+	panelBreadcrumbIconRecipe,
+	type PanelBreadcrumbBarVariantProps,
+	type PanelBreadcrumbTextVariantProps,
+	type PanelBreadcrumbIconVariantProps
+} from './panelBreadcrumbs.recipe';

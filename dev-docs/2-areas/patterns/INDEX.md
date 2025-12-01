@@ -43,8 +43,14 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | dynamic element, svelte:element, if/else chain, element type, as prop, polymorphic component, repetitive code | Using svelte:element for Dynamic Element Types | `design-system-patterns.md#L950` |
 | org chart, D3, visualization, hierarchy, color, monochromatic, depth, circle pack, data viz, rainbow colors, status color misuse | Data Visualization Color Strategy | `design-system-patterns.md#L1000` |
 | container, entity, circle, role, visual distinction, fill, stroke, interactive, parent, child, hierarchy | Container vs Entity Pattern | `design-system-patterns.md#L1050` |
-| hover, active, selected, dashed, dotted, stroke, interactive state, data viz, stroke-dasharray, focus | Data Viz Interactive States | `design-system-patterns.md#L1100` |
+| hover, active, selected, dashed, dotted, stroke, interactive state, data viz, stroke-dasharray, focus, proportional, stroke-width, radius, scale, CSS override, thick border, small circle | Data Viz Interactive States (Proportional Stroke) | `design-system-patterns.md#L1100` |
 | SVG, D3.js, foreignObject, text, font-family, font-sans, visualization, org chart, labels, mask, paint-order, text-shadow | SVG Text with Design System Tokens | `design-system-patterns.md#L1150` |
+| semantic zoom, proportional scaling, level of detail, LOD, D3, zoom, labels, truncation, word wrap, multi-line, tspan, padding, progressive disclosure, rendered size, circle pack | Text Scaling in Data Visualizations | `design-system-patterns.md#L1200` |
+| zoom, zoom-to-fit, aspect ratio, viewport, D3, circle pack, org chart, padding, scale, transform, width, height, cropped, clipped, fit to view | Viewport-Aware Zoom-to-Fit | `design-system-patterns.md#L1250` |
+| browser zoom, D3 zoom, scaleExtent, wheel, trackpad, pinch zoom, preventDefault, touch-action, zoom limits, zoom takeover, MacBook | Prevent Browser Zoom Takeover | `design-system-patterns.md#L1300` |
+| D3 pack, circle size, depth sizing, radius, value, hierarchy depth, role size, sqrt, value to radius | D3 Pack Layout Depth Sizing | `design-system-patterns.md#L1350` |
+| border, visualization, D3, org chart, boxed, boxy, organic, blend, seamless, circular, SVG container, rectangular frame | Visualization Container Styling (Borderless) | `design-system-patterns.md#L1400` |
+| D3, pack layout, circle size, hierarchy depth, baseSizes, value, radius, role size, root circle, sub-circle, depth-based sizing, sqrt, value to radius | D3 Pack Circle Sizes by Depth | `design-system-patterns.md#L1350` |
 
 ---
 
@@ -68,6 +74,8 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | Divider not visible, Bits UI Separator too complex, utility doesn't exist | Simple Vertical Dividers | `design-system-patterns.md#L400` |
 | Recipe uses non-existent utility, button recipe broken, py-nav-item doesn't exist, missing token | Recipe Validation and Missing Tokens | `design-system-patterns.md#L500` |
 | SVG text wrong font, D3 labels not matching design system, mask background bar, text stroke distortion | SVG Text with Design System Tokens | `design-system-patterns.md#L1150` |
+| Circle cropped when zooming to focus, element clipped at top/bottom, zoom-to-fit ignores viewport aspect ratio | Viewport-Aware Zoom-to-Fit | `design-system-patterns.md#L1250` |
+| Browser zoom takes over at D3 zoom limits, pinch zoom triggers browser zoom, trackpad zoom escapes app | Prevent Browser Zoom Takeover | `design-system-patterns.md#L1300` |
 
 ## 🟢 Reference (Best Practices)
 
@@ -92,7 +100,10 @@ Quick lookup for common issues. Find your symptom → go to line number.
 | Repetitive if/else for element types, polymorphic component, as prop, dynamic HTML element | Using svelte:element for Dynamic Element Types | `design-system-patterns.md#L950` |
 | Org chart colors, D3 visualization, hierarchy depth colors, unlimited depth support | Data Visualization Color Strategy (Monochromatic) | `design-system-patterns.md#L1000` |
 | Circle vs role distinction, container vs entity, visual hierarchy in data viz | Container vs Entity Pattern | `design-system-patterns.md#L1050` |
-| Hover state on data viz, dashed stroke, active/selected state, SVG interaction | Data Viz Interactive States (Dashed Hover) | `design-system-patterns.md#L1100` |
+| Hover state on data viz, dashed stroke, active/selected state, SVG interaction, thick border on small circles, CSS hover overrides inline style, proportional stroke-width | Data Viz Interactive States (Proportional Stroke) | `design-system-patterns.md#L1100` |
+| Labels stay truncated at all zoom levels, text doesn't reveal on zoom, proportional vs semantic zoom, multi-line text | Text Scaling in Data Visualizations | `design-system-patterns.md#L1200` |
+| Role sizes too small, need more hierarchy between depths, D3 pack value to radius relationship | D3 Pack Circle Sizes by Depth | `design-system-patterns.md#L1350` |
+| D3 visualization looks boxed-in, circular shapes feel awkward in rectangular border, org chart doesn't blend with UI | Visualization Container Styling (Borderless) | `design-system-patterns.md#L1400` |
 
 ---
 

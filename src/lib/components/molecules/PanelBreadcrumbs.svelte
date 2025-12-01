@@ -1,41 +1,54 @@
 <script lang="ts">
 	import type { UseNavigationStack } from '$lib/modules/core/composables/useNavigationStack.svelte';
+	import {
+		panelBreadcrumbBarRecipe,
+		panelBreadcrumbTextRecipe,
+		panelBreadcrumbIconRecipe
+	} from '$lib/design-system/recipes';
+
+	/**
+	 * Icon mapping function - modules provide their own icon rendering logic
+	 * @param layerType - The type of navigation layer (e.g., 'circle', 'role', 'meeting', etc.)
+	 * @returns HTML string for rendering the icon, or null if no icon
+	 */
+	type IconRenderer = (layerType: string) => string | null;
 
 	let {
 		navigationStack,
-		onBreadcrumbClick
+		onBreadcrumbClick,
+		iconRenderer,
+		currentZIndex = 60
 	}: {
 		navigationStack: UseNavigationStack;
 		onBreadcrumbClick: (index: number) => void;
+		iconRenderer?: IconRenderer;
+		currentZIndex?: number; // Z-index of current panel (for breadcrumb layering)
 	} = $props();
 
 	// Get all layers except the current one (for breadcrumbs)
 	const breadcrumbLayers = $derived(navigationStack.stack.slice(0, -1));
+
+	// Breadcrumb width from spacing-12 token (48px)
+	const BREADCRUMB_WIDTH = 48;
 </script>
 
 {#each breadcrumbLayers as layer, index (layer.id)}
+	{@const iconHtml = iconRenderer?.(layer.type)}
+	{@const breadcrumbIndex = breadcrumbLayers.length - 1 - index}
+	{@const breadcrumbZIndex = currentZIndex - 1 - breadcrumbIndex}
+	{@const leftPosition = index * BREADCRUMB_WIDTH}
 	<button
 		type="button"
-		class="panel-breadcrumb-bar hover:panel-breadcrumb-bar-hover"
-		style="left: {index * 48}px;"
+		class={panelBreadcrumbBarRecipe()}
+		style="left: {leftPosition}px; z-index: {breadcrumbZIndex};"
 		onclick={() => onBreadcrumbClick(index)}
 		aria-label="Go back to {layer.name}"
 	>
-		<span class="panel-breadcrumb-text">
-			<!-- Icon based on layer type -->
-			{#if layer.type === 'circle'}
-				<svg class="icon-xs inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<circle cx="12" cy="12" r="9" stroke-width="2"></circle>
-				</svg>
-			{:else if layer.type === 'role'}
-				<svg class="icon-xs inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-					></path>
-				</svg>
+		<span class={panelBreadcrumbTextRecipe()}>
+			{#if iconHtml}
+				<span class={panelBreadcrumbIconRecipe()}>
+					{@html iconHtml}
+				</span>
 			{/if}
 			{layer.name}
 		</span>

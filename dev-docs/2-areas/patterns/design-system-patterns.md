@@ -1583,34 +1583,82 @@ ENTITIES (roles, people, items):
 
 ---
 
-## #L1100: Data Visualization Interactive States (Dashed Hover) [🟢 REFERENCE]
+## #L1100: Data Visualization Interactive States (Dashed Hover + Proportional Stroke) [🟢 REFERENCE]
 
-**Keywords**: hover, active, selected, dashed, dotted, stroke, interactive state, data viz, org chart, D3, focus, stroke-dasharray
+**Keywords**: hover, active, selected, dashed, dotted, stroke, interactive state, data viz, org chart, D3, focus, stroke-dasharray, proportional, stroke-width, radius, scale, CSS override, inline style
 
-**Symptom**: Hover state on data visualization elements doesn't clearly indicate interactivity, or active state isn't distinguishable enough.
+**Symptom**: 
+- Hover state on data visualization elements doesn't clearly indicate interactivity
+- Active state isn't distinguishable enough
+- **Small circles have disproportionately thick borders** (fixed stroke-width looks too thick on small elements)
+- **CSS hover rules override inline proportional stroke-width** (hover stroke suddenly jumps to fixed value)
 
-**Pattern**: Use stroke style changes (not just color) to communicate state:
+**Pattern**: Use stroke style changes (not just color) to communicate state, with **proportional stroke-width** that scales with element radius:
 
 | State | Stroke Style | Stroke Color | Stroke Width |
 |-------|--------------|--------------|--------------|
-| Default | Solid | Subtle | 1.5px |
-| **Hover (non-active)** | **Dashed** `6 3` | Medium | 2px |
-| **Active/Selected** | **Solid** | **Brand Primary** | 3px |
-| Focus | Solid + Ring | Primary | 3px + outline |
+| Default | Solid | Subtle | **r × 1.5%** (0.8–2px) |
+| **Hover** | **Dashed** `6 3` | Medium | **r × 2%** (1–3px) |
+| **Active/Selected** | **Solid** | **Brand Primary** | **r × 2.5%** (1.5–4px) |
+| Focus | Solid + Ring | Primary | Same as active + outline |
 
-**Implementation**:
+### Implementation: Proportional Stroke-Width
+
+```typescript
+/**
+ * Calculate proportional stroke-width for circle containers
+ * Smaller circles get thinner strokes, larger circles get thicker strokes
+ */
+function getCircleStrokeWidth(
+  radius: number,
+  state: 'active' | 'hover' | 'hasChildren' | 'none'
+): number {
+  const multipliers = {
+    active: 0.025,      // 2.5% of radius
+    hover: 0.02,        // 2% of radius
+    hasChildren: 0.015, // 1.5% of radius
+    none: 0
+  };
+
+  const multiplier = multipliers[state];
+  if (multiplier === 0) return 0;
+
+  const baseWidth = radius * multiplier;
+
+  // Clamp to reasonable bounds (prevents too thin or too thick)
+  const minMax = {
+    active: { min: 1.5, max: 4 },
+    hover: { min: 1, max: 3 },
+    hasChildren: { min: 0.8, max: 2 },
+    none: { min: 0, max: 0 }
+  };
+
+  const { min, max } = minMax[state];
+  return Math.max(min, Math.min(baseWidth, max));
+}
+```
+
+### Implementation: SVG Circle with Proportional Stroke
 
 ```svelte
+{@const circleStrokeState = isActive ? 'active' : isHovered ? 'hover' : hasChildren ? 'hasChildren' : 'none'}
+
 <circle
   stroke={isActive
-    ? 'var(--color-component-orgChart-circle-strokeActive)'  // Primary
+    ? 'var(--color-component-orgChart-circle-strokeActive)'
     : isHovered
-      ? 'var(--color-component-orgChart-circle-strokeHover)' // Darker
-      : 'var(--color-component-orgChart-circle-stroke)'}     // Default
-  stroke-width={isActive ? 3 : isHovered ? 2 : 1.5}
-  stroke-dasharray={isHovered && !isActive ? '6 3' : 'none'}  <!-- KEY: Dashed on hover -->
+      ? 'var(--color-component-orgChart-circle-strokeHover)'
+      : 'var(--color-component-orgChart-circle-stroke)'}
+  stroke-width={getCircleStrokeWidth(node.r, circleStrokeState)}
+  stroke-dasharray={isHovered && !isActive ? '6 3' : 'none'}
 />
 ```
+
+**Why Proportional Stroke-Width?**:
+- ✅ **Small circles (r=20)** get thin strokes (~0.8px) - looks balanced
+- ✅ **Large circles (r=200)** get thicker strokes (~2-4px) - still visible
+- ✅ **Visual consistency** across varying element sizes
+- ✅ **Prevents "thick border" effect** on small packed elements
 
 **Why Dashed for Hover?**:
 - ✅ Clearly different from solid active state
@@ -1618,19 +1666,39 @@ ENTITIES (roles, people, items):
 - ✅ Works well in SVG without adding extra elements
 - ✅ Cross-browser compatible
 
-**CSS for focus-visible**:
+### ⚠️ CSS Override Warning
+
+**Problem**: CSS hover pseudo-class rules **override inline stroke-width** even when using proportional calculations!
+
+```css
+/* ❌ BAD: Fixed stroke-width overrides inline proportional value */
+.role-circle-group:hover circle {
+  stroke-width: 2;  /* Always 2px regardless of circle size! */
+}
+```
+
+**Solution**: Let CSS handle non-stroke properties (drop-shadow), handle stroke-width via component state:
+
+```css
+/* ✅ GOOD: CSS handles shadow, stroke handled by inline proportional calculation */
+.role-circle-group:hover circle {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  /* stroke-width handled by inline proportional calculation */
+}
+```
+
+**For focus-visible** (accessibility), use proportional approach or rely on outline:
 
 ```css
 .circle-group:focus-visible circle {
-  stroke: var(--color-component-orgChart-circle-strokeActive);
-  stroke-width: 3;
-  stroke-dasharray: none;  /* Solid on focus */
-  outline: 2px solid var(--color-component-orgChart-circle-strokeActive);
+  stroke: var(--color-accent-primary);
+  /* stroke-width handled by inline proportional calculation */
+  outline: 2px solid var(--color-accent-primary);
   outline-offset: 4px;
 }
 ```
 
-**Related**: #L1000 (Monochromatic Hierarchy), #L1050 (Container vs Entity)
+**Related**: #L1000 (Monochromatic Hierarchy), #L1050 (Container vs Entity), #L1200 (Semantic Zoom)
 
 ---
 
@@ -1753,6 +1821,509 @@ For text floating over complex backgrounds:
 - ❌ Hardcoded colors instead of CSS variables (breaks theming)
 
 **Related**: #L1000 (Monochromatic Hierarchy), #L750 (Always Use Design System Components)
+
+---
+
+## #L1200: Text Scaling in Data Visualizations (Proportional vs Semantic) [🟢 REFERENCE]
+
+**Keywords**: semantic zoom, proportional scaling, level of detail, LOD, D3, circle pack, org chart, zoom, labels, text, progressive disclosure, rendered size, truncation, word wrap, hierarchy visualization, multi-line, tspan, padding
+
+**Principle**: Choose between **proportional scaling** (text scales with element) or **semantic zoom** (text stays constant size) based on use case. Proportional is simpler and maintains visual balance; semantic reveals more detail on zoom.
+
+**Symptom**: When zooming into a D3/SVG visualization:
+- Text looks disproportionately small/large compared to circles
+- Labels stay truncated even when circles are large
+- Long names (e.g., "Product Owner") overflow circle boundary
+- Text touches circle edges with no padding
+
+**Root Cause**: 
+- **Semantic zoom issue**: Counter-scaling (`fontSize / zoom`) caps text at fixed visual size while circles grow
+- **Proportional issue**: No multi-line support for long names
+- **Padding issue**: Max text width set too high (>80% of diameter)
+
+---
+
+### Approach A: Proportional Scaling ⭐ RECOMMENDED
+
+Text size is a fixed ratio of element radius. Scales perfectly with zoom - always balanced.
+
+```typescript
+// Font size directly proportional to role radius (SVG units)
+// D3 zoom transform scales everything together
+function getRoleLabelParams(role: RoleNode): {
+  fontSize: number;
+  lineHeight: number;
+  lines: string[];
+} {
+  // 0.22 ratio allows 2 lines with comfortable spacing
+  const fontSize = role.r * 0.22;
+  const lineHeight = fontSize * 1.25;
+
+  // Max width: 1.6x radius = 80% of diameter (10% padding each side)
+  const maxTextWidth = role.r * 1.6;
+  const charWidth = fontSize * 0.55;
+  const maxCharsPerLine = Math.floor(maxTextWidth / charWidth);
+
+  // Split into lines (max 2) with word-aware breaking
+  const lines = splitIntoLines(role.name, maxCharsPerLine, 2);
+
+  return { fontSize, lineHeight, lines };
+}
+```
+
+**Multi-line with SVG tspan**:
+
+```svelte
+{@const labelParams = getRoleLabelParams(role)}
+{@const lineCount = labelParams.lines.length}
+{@const totalHeight = (lineCount - 1) * labelParams.lineHeight}
+{@const startY = -totalHeight / 2}
+
+<text
+  x="0"
+  y={startY}
+  text-anchor="middle"
+  dominant-baseline="middle"
+  font-size={labelParams.fontSize}
+>
+  {#each labelParams.lines as line, i}
+    <tspan x="0" dy={i === 0 ? 0 : labelParams.lineHeight}>{line}</tspan>
+  {/each}
+</text>
+```
+
+**Word-aware line breaking**:
+
+```typescript
+function splitIntoLines(text: string, maxChars: number, maxLines: number): string[] {
+  if (text.length <= maxChars) return [text];
+
+  const words = text.split(/\s+/);
+  const lines: string[] = [];
+  let currentLine = '';
+
+  for (const word of words) {
+    if (lines.length >= maxLines) break;
+
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    if (testLine.length <= maxChars) {
+      currentLine = testLine;
+    } else if (currentLine === '') {
+      // Single word too long - truncate
+      lines.push(word.slice(0, maxChars - 1) + '…');
+      currentLine = '';
+    } else {
+      lines.push(currentLine);
+      currentLine = word;
+    }
+  }
+
+  if (currentLine && lines.length < maxLines) {
+    lines.push(currentLine.length > maxChars 
+      ? currentLine.slice(0, maxChars - 1) + '…' 
+      : currentLine);
+  }
+
+  return lines.length > 0 ? lines : [text.slice(0, maxChars)];
+}
+```
+
+**✅ Proportional Benefits**:
+- Simpler code (no zoom calculations)
+- Always visually balanced at any zoom level
+- Natural D3 zoom behavior (scales everything together)
+- Multi-line support for long names
+
+---
+
+### Approach B: Semantic Zoom (Level-of-Detail)
+
+Text stays constant visual size. Reveals more content as you zoom in.
+
+```typescript
+function getRoleLabelParams(role: RoleNode) {
+  // Use RENDERED radius for semantic zoom
+  const renderedRadius = role.r * currentZoomLevel;
+  
+  // Visual font size capped (constant visual appearance)
+  const visualFontSize = Math.max(8, Math.min(renderedRadius / 3, 16));
+  const svgFontSize = visualFontSize / currentZoomLevel; // Counter-scale
+  
+  // Calculate chars that fit at VISUAL size
+  const visualWidth = renderedRadius * 1.8;
+  const maxChars = Math.floor(visualWidth / (visualFontSize * 0.55));
+  
+  const displayText = name.length <= maxChars 
+    ? name 
+    : name.slice(0, maxChars - 3) + '...';
+  
+  return { fontSize: svgFontSize, displayText };
+}
+```
+
+**⚠️ Semantic Zoom Tradeoff**: Text can look disproportionately small when zoomed in because font is capped while circles grow.
+
+---
+
+### When to Use Which
+
+| Approach | Best For | Tradeoff |
+|----------|----------|----------|
+| **Proportional** ⭐ | Org charts, hierarchy views, general use | Same info at all zooms |
+| **Semantic** | Dense data, maps, revealing detail on zoom | Can look unbalanced |
+
+---
+
+### Progressive Opacity (Works with Both)
+
+```typescript
+function getElementOpacity(element: Node): number {
+  const renderedRadius = element.r * currentZoomLevel;
+  
+  // Progressive: 0.3 opacity at 8px, 1.0 at 25px
+  const minSize = 8, maxSize = 25;
+  const minOpacity = 0.3, maxOpacity = 1.0;
+  
+  if (renderedRadius <= minSize) return minOpacity;
+  if (renderedRadius >= maxSize) return maxOpacity;
+  
+  const t = (renderedRadius - minSize) / (maxSize - minSize);
+  return minOpacity + t * (maxOpacity - minOpacity);
+}
+```
+
+---
+
+**Key Ratios** (for proportional scaling):
+- `fontSize = radius × 0.22` - Allows 2 lines comfortably
+- `lineHeight = fontSize × 1.25` - Standard line height
+- `maxTextWidth = radius × 1.6` - 80% of diameter (10% padding each side)
+- `charWidth = fontSize × 0.55` - Tight estimate for character fitting
+
+**When to Apply**:
+- D3.js circle pack, treemap, or hierarchical visualizations
+- Org charts with role labels
+- Any zoomable SVG with text labels
+
+**Anti-Patterns**:
+- ❌ Using `radius × 1.9` for text width (text touches edges - use 1.6)
+- ❌ Single-line only for long names (implement multi-line)
+- ❌ Breaking words mid-character (use word boundaries)
+- ❌ Mixing approaches inconsistently (pick one and stick to it)
+
+**Related**: #L1150 (SVG Text with Design Tokens), #L1000 (Monochromatic Hierarchy), #L1050 (Container vs Entity), #L1350 (D3 Pack Role Sizing)
+
+---
+
+## #L1250: Viewport-Aware Zoom-to-Fit (Aspect Ratio Calculation) [🟡 IMPORTANT]
+
+**Keywords**: zoom, zoom-to-fit, aspect ratio, viewport, D3, circle pack, org chart, padding, scale, transform, width, height, cropped, clipped, fit to view, zoom calculation, interpolateZoom
+
+**Principle**: When zooming to focus on an element, calculate the scale factor based on the **smaller viewport dimension** (min of width/height) to ensure the element fits with padding in both directions.
+
+**Symptom**: When zooming to focus on a circle/element in a D3/SVG visualization:
+- Element is cropped at top/bottom (landscape viewport) or left/right (portrait viewport)
+- Element fills viewport correctly on one axis but overflows on the other
+- Zoom level works on square viewports but clips on rectangular viewports
+
+**Root Cause**: Zoom scale calculated using only **width** (`k = width / viewWidth`), ignoring the height constraint. When `height < width` (landscape), the vertical dimension is more constrained but not accounted for.
+
+**Pattern**: **Viewport-Aware Zoom** - Calculate scale based on the constraining dimension:
+
+1. **Identify constraining dimension**: `Math.min(width, height)`
+2. **Calculate available space**: `constrainingDimension - padding`
+3. **Derive scale factor**: Use the ratio that fits the element within this space
+4. **Convert to D3 view format**: Scale to viewport coordinate system
+
+**Implementation Examples**:
+
+### Example 1: Zoom-to-Node with Aspect Ratio Awareness
+
+```typescript
+function zoomToNode(node: HierarchyNode, duration = 500) {
+  if (!svgElement || !zoomBehavior) return;
+
+  const diameter = node.r * 2;
+  const padding = 40; // 20px on each side (top + bottom, left + right)
+  
+  // Calculate viewWidth to fit circle with padding in BOTH dimensions
+  // The constraining dimension (smaller of width/height) determines the zoom level
+  const maxRenderedDiameter = Math.min(width, height) - padding;
+  const viewWidth = (width * diameter) / maxRenderedDiameter;
+
+  const targetView: [number, number, number] = [node.x, node.y, viewWidth];
+  
+  // D3 interpolateZoom handles smooth transition
+  const interpolator = interpolateZoom(currentView, targetView);
+  // ... animation code
+}
+```
+
+### Example 2: Why Width-Only Calculation Fails
+
+```typescript
+// ❌ BAD: Width-only calculation (ignores height)
+const targetView = [node.x, node.y, node.r * 3.0];
+const k = width / view[2]; 
+// If height < width, circle will be cropped vertically!
+
+// ✅ GOOD: Aspect-ratio-aware calculation
+const diameter = node.r * 2;
+const padding = 40;
+const maxRenderedDiameter = Math.min(width, height) - padding;
+const viewWidth = (width * diameter) / maxRenderedDiameter;
+// Circle fits with padding in BOTH dimensions
+```
+
+### Example 3: The Math Explained
+
+```typescript
+// D3 zoom relationship:
+// k (scale factor) = width / view[2]
+// renderedSize = originalSize × k
+
+// To fit a circle with diameter D and padding P:
+// We need: D × k + P ≤ min(width, height)
+// Solving for k: k ≤ (min(width, height) - P) / D
+// Solving for view[2]: view[2] = width / k = width × D / (min(width, height) - P)
+
+const k = (Math.min(width, height) - padding) / diameter;
+const viewWidth = width / k; // = (width * diameter) / (min - padding)
+```
+
+**When to Apply**:
+- D3.js zoom-to-fit animations (circle pack, treemap, etc.)
+- Any zoomable visualization where you focus on a specific element
+- SVG pan/zoom implementations with non-square viewports
+- Mobile-responsive visualizations where aspect ratio varies
+
+**Anti-Patterns**:
+- ❌ Using fixed multiplier (`node.r * 3`) without considering viewport aspect ratio
+- ❌ Calculating scale with `width / view[2]` only (ignores height)
+- ❌ Hardcoding zoom levels for specific viewport sizes
+- ❌ Assuming viewport is always square
+
+**Key Insight**: The formula `viewWidth = (width × diameter) / (Math.min(width, height) - padding)` ensures the circle's rendered diameter equals the smaller viewport dimension minus padding, guaranteeing visibility with consistent padding regardless of aspect ratio.
+
+**Related**: #L1200 (Semantic Zoom for LOD), #L1000 (Data Viz Color Strategy), `calculateBounds()` in OrgChart.svelte
+
+---
+
+## #L1300: Prevent Browser Zoom Takeover in D3 Visualizations [🟡 IMPORTANT]
+
+**Keywords**: browser zoom, D3 zoom, scaleExtent, wheel, trackpad, pinch zoom, preventDefault, touch-action, zoom limits, zoom takeover, browser interference, natural zoom, zoom stops, MacBook trackpad
+
+**Principle**: When D3 zoom reaches its `scaleExtent` limits, prevent the browser from intercepting unhandled wheel/pinch events by explicitly calling `event.preventDefault()` on all wheel events and disabling touch gestures via CSS.
+
+**Symptom**: When zooming in/out with trackpad pinch or mouse wheel in a D3 visualization:
+- Zoom works normally until reaching min/max `scaleExtent` limits
+- At limits, the browser suddenly takes over and starts browser-level zoom
+- User loses view of the application
+- Must manually zoom out browser (Cmd+0) to restore
+- Jarring, unnatural zoom behavior
+
+**Root Cause**: D3's zoom behavior stops handling events when the zoom transform reaches `scaleExtent` boundaries. Since the events aren't consumed by D3, they bubble up to the browser which interprets them as browser zoom commands (especially pinch-to-zoom on trackpads).
+
+**Pattern**: **Event Prevention + Touch Isolation** - Capture wheel events to prevent browser default behavior:
+
+1. **Prevent wheel events**: Call `event.preventDefault()` on ALL wheel events (not just handled ones)
+2. **Disable touch gestures**: Add `touch-action: none` CSS to prevent browser touch handling
+3. **D3 still respects limits**: The `scaleExtent` is still enforced - zoom just stops naturally at limits
+
+**Implementation**:
+
+### Example 1: D3 Zoom with Browser Prevention
+
+```typescript
+import { zoom as d3Zoom } from 'd3-zoom';
+import { select } from 'd3-selection';
+
+// Create zoom behavior with limits
+const zoomBehavior = d3Zoom<SVGSVGElement, unknown>()
+  .scaleExtent([0.5, 4])  // Min 0.5x, Max 4x
+  .on('zoom', (event) => {
+    // Handle zoom transform
+    gElement.attr('transform', event.transform.toString());
+  });
+
+// Apply zoom AND prevent browser takeover
+select(svgElement)
+  .call(zoomBehavior)
+  .on('wheel', (event) => event.preventDefault());  // ← Key fix
+```
+
+### Example 2: CSS Touch Isolation
+
+```svelte
+<svg
+  bind:this={svgElement}
+  class="h-full w-full cursor-move touch-none"
+>
+  <!-- touch-none prevents browser touch gesture handling -->
+</svg>
+```
+
+### Example 3: Combined Solution (Recommended)
+
+```typescript
+// JS: Prevent wheel events from reaching browser
+select(svgElement)
+  .call(zoomBehavior)
+  .on('wheel', (event) => event.preventDefault());
+```
+
+```svelte
+<!-- HTML: Prevent touch gestures -->
+<svg class="touch-none">
+```
+
+**When to Apply**:
+- D3.js visualizations with `scaleExtent` zoom limits
+- Any zoomable SVG/canvas where trackpad/wheel zoom is used
+- Applications where browser zoom interfering would be jarring
+
+**Anti-Patterns**:
+- ❌ Removing `scaleExtent` limits (allows infinite zoom which causes performance issues)
+- ❌ Only using `touch-action: none` (wheel events still pass through on desktop)
+- ❌ Custom scale clamping in zoom handler (D3 already handles this, just need to prevent browser fallback)
+- ❌ Using `.on("wheel.zoom", null)` (disables zoom entirely instead of preventing browser takeover)
+
+**Key Insight**: The official D3 documentation recommends this exact pattern: "By calling `event.preventDefault()` within the wheel event listener, users can ensure that wheel events are exclusively handled by the zoom behavior, regardless of the scale extent."
+
+**Related**: #L1200 (Text Scaling in Data Viz), #L1250 (Viewport-Aware Zoom-to-Fit)
+
+---
+
+## #L1350: D3 Pack Layout - Controlling Circle Sizes by Depth [🟢 REFERENCE]
+
+**Keywords**: D3, pack layout, circle size, hierarchy depth, baseSizes, value, radius, role size, root circle, sub-circle, depth-based sizing, calculateCircleValue, sqrt, value to radius
+
+**Principle**: In D3 pack layout, **radius is proportional to the square root of the value** (r ∝ √value). To increase radius by X times, multiply value by X².
+
+**Symptom**: 
+- Root circle roles are too small compared to sub-circle roles
+- Need more visual hierarchy between depth levels
+- Role sizes don't vary enough between parent and child circles
+
+**Root Cause**: The `value` assigned to each node in D3 pack determines its area (not radius). Since area = πr², the relationship is: `radius ∝ √value`.
+
+**Pattern**: Use depth-based `baseSizes` array to control role sizes at each hierarchy level:
+
+```typescript
+// In calculateCircleValue() for synthetic role nodes
+function calculateCircleValue(circle: CircleNode, node?: D3HierarchyNode<CircleNode>): number {
+  if (isSyntheticRole(circle.circleId)) {
+    // parentDepth: 0 = root circle, 1 = sub-circle, 2 = sub-sub, etc.
+    const parentDepth = circle._parentDepth ?? 0;
+    
+    // Base sizes: larger values for higher hierarchy levels
+    // D3 pack: radius ∝ √value
+    // To get 1.5x radius at depth 0: value = original × 1.5² = original × 2.25
+    const baseSizes = [2250, 500, 100, 35]; // depth 0, 1, 2, 3+
+    const baseSize = baseSizes[Math.min(parentDepth, baseSizes.length - 1)];
+    
+    return baseSize;
+  }
+  // ... regular circle sizing
+}
+```
+
+**The Math**:
+
+```
+D3 Pack: area ∝ value, and area = πr², so r ∝ √value
+
+To achieve 1.5x bigger radius:
+  r_new / r_old = 1.5
+  √(v_new) / √(v_old) = 1.5
+  v_new / v_old = 1.5² = 2.25
+  
+Example: root = 1000 → 1000 × 2.25 = 2250 for 1.5x radius
+```
+
+**Depth-to-Radius Relationship**:
+
+| Depth | Value | Approx. Visual Radius | Use Case |
+|-------|-------|----------------------|----------|
+| 0 | 2250 | Large (~75px) | Root circle roles |
+| 1 | 500 | Medium (~35px) | Sub-circle roles |
+| 2 | 100 | Small (~22px) | Sub-sub-circle roles |
+| 3+ | 35 | Tiny (~17px) | Deeply nested roles |
+
+**Implementation Location**: `src/lib/utils/orgChartTransform.ts` → `calculateCircleValue()`
+
+**When to Apply**:
+- Adjusting role sizes in org chart visualization
+- Creating visual hierarchy in D3 circle pack layouts
+- Fine-tuning depth-based sizing ratios
+
+**Anti-Patterns**:
+- ❌ Thinking value = radius (it's value = area ∝ radius²)
+- ❌ Using linear scaling for radius changes (use quadratic)
+- ❌ Hardcoding pixel values instead of value-based sizing
+
+**Related**: #L1200 (Text Scaling in Data Viz), #L1000 (Data Viz Color Strategy), #L1050 (Container vs Entity)
+
+---
+
+## #L1400: Visualization Container Styling (Borderless for Organic Shapes) [🟢 REFERENCE]
+
+**Keywords**: border, container, visualization, D3, org chart, SVG, circle pack, boxed, boxy, organic, blend, seamless, rectangular, frame, framing, circular
+
+**Principle**: Organic/circular visualizations should NOT have rectangular borders. The visual conflict between circular content and rectangular framing creates a "boxed-in" appearance that fights against the organic visual language.
+
+**Symptom**: 
+- D3/SVG visualization looks "boxed in" or constrained
+- Circular/organic shapes feel awkward inside rectangular border
+- Visualization doesn't blend naturally with the UI
+
+**Root Cause**: Default card/container styling (border, rounded corners) creates a rectangular frame that visually conflicts with circular/organic content inside. The eye notices the geometric mismatch.
+
+**Pattern**: Remove borders from containers holding organic visualizations. Let shapes flow into their parent container.
+
+### ❌ Bad: Boxed-In Appearance
+
+```svelte
+<!-- Border creates visual conflict with circular content -->
+<div class="border-base rounded-card border bg-surface">
+  <svg><!-- D3 circle pack, org chart, etc. --></svg>
+</div>
+```
+
+### ✅ Good: Seamless Integration
+
+```svelte
+<!-- No border - circles blend naturally -->
+<div class="relative h-full w-full overflow-hidden bg-surface">
+  <svg><!-- D3 circle pack, org chart, etc. --></svg>
+</div>
+```
+
+**What to Keep**:
+- ✅ `bg-surface` - Background color for proper contrast
+- ✅ `overflow-hidden` - Contain pan/zoom behavior
+- ✅ `relative` / positioning - For absolute children (zoom controls)
+
+**What to Remove**:
+- ❌ `border` / `border-base` - Creates rectangular frame
+- ❌ `rounded-card` - Unnecessary without visible border
+
+**When to Apply**:
+- Circle pack visualizations (org charts, bubble charts)
+- Tree diagrams, mind maps
+- Any D3/SVG with organic/circular shapes
+- Visualizations with pan/zoom where content can extend to edges
+
+**When NOT to Apply** (keep borders):
+- Bar charts, line charts, grids (rectangular content matches rectangular frame)
+- Tables, data grids
+- Visualizations embedded in cards with other content
+
+**Anti-Patterns**:
+- ❌ Using borders on circular visualizations "for consistency" (visual conflict)
+- ❌ Adding rounded corners without a visible border (no effect, just extra classes)
+
+**Related**: #L1000 (Data Viz Color Strategy), #L1050 (Container vs Entity), #L60 (Border Contrast)
 
 ---
 

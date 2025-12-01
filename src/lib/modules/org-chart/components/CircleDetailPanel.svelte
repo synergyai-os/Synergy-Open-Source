@@ -5,6 +5,8 @@
 	import CategoryHeader from './CategoryHeader.svelte';
 	import RoleCard from './RoleCard.svelte';
 	import { Avatar } from '$lib/components/atoms';
+	import * as Tabs from '$lib/components/atoms/Tabs.svelte';
+	import { tabsListRecipe, tabsTriggerRecipe, tabsContentRecipe } from '$lib/design-system/recipes';
 	import StackedPanel from '$lib/components/organisms/StackedPanel.svelte';
 	import { DEFAULT_LOCALE, DEFAULT_SHORT_DATE_FORMAT } from '$lib/utils/locale';
 
@@ -136,6 +138,17 @@
 			.toUpperCase()
 			.slice(0, 2);
 	}
+
+	// Icon renderer for breadcrumbs - modules define their own icons
+	// Returns HTML strings for SVG icons
+	function renderBreadcrumbIcon(layerType: string): string | null {
+		if (layerType === 'circle') {
+			return `<svg class="size-icon-sm inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle></svg>`;
+		} else if (layerType === 'role') {
+			return `<svg class="size-icon-sm inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>`;
+		}
+		return null;
+	}
 </script>
 
 <StackedPanel
@@ -144,6 +157,7 @@
 	onClose={handleClose}
 	onBreadcrumbClick={handleBreadcrumbClick}
 	{isTopmost}
+	iconRenderer={renderBreadcrumbIcon}
 >
 	{#if isLoading}
 		<!-- Loading State -->
@@ -162,7 +176,7 @@
 						d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
 					></path>
 				</svg>
-				<p class="mt-content-section text-button text-secondary">Loading circle details...</p>
+				<p class="text-button text-secondary mb-header">Loading circle details...</p>
 			</div>
 		</div>
 	{:else if error}
@@ -170,7 +184,7 @@
 		<div class="flex h-full items-center justify-center">
 			<div class="text-center">
 				<p class="text-button font-medium text-error">Failed to load circle</p>
-				<p class="mt-content-section text-button text-secondary">{String(error)}</p>
+				<p class="text-button text-secondary mb-header">{String(error)}</p>
 			</div>
 		</div>
 	{:else if circle}
@@ -200,526 +214,467 @@
 
 		<!-- Content -->
 		<div class="flex-1 overflow-y-auto">
-			<!-- Circle Name -->
-			<div class="px-inbox-container py-system-content">
-				<h3 class="text-h2 font-bold text-primary">{circle.name}</h3>
-				{#if circle.parentName}
-					<p class="mt-form-field-gap text-button text-secondary">
-						Parent: <span class="font-medium">{circle.parentName}</span>
-					</p>
-				{/if}
-			</div>
-
-			<!-- Navigation Tabs -->
-			<div class="border-base px-inbox-container border-b">
-				<div class="flex overflow-x-auto gap-fieldGroup" role="tablist">
-					<button
-						type="button"
-						class="py-nav-item text-button flex-shrink-0 border-b-2 px-button-sm-x transition-colors"
-						class:border-accent-primary={activeTab === 'overview'}
-						class:border-transparent={activeTab !== 'overview'}
-						class:text-primary={activeTab === 'overview'}
-						class:text-secondary={activeTab !== 'overview'}
-						onclick={() => {
-							activeTab = 'overview';
-						}}
-						role="tab"
-						aria-selected={activeTab === 'overview'}
-					>
-						Overview
-					</button>
-					<button
-						type="button"
-						class="py-nav-item text-button flex-shrink-0 border-b-2 px-button-sm-x transition-colors"
-						class:border-accent-primary={activeTab === 'members'}
-						class:border-transparent={activeTab !== 'members'}
-						class:text-primary={activeTab === 'members'}
-						class:text-secondary={activeTab !== 'members'}
-						onclick={() => {
-							activeTab = 'members';
-						}}
-						role="tab"
-						aria-selected={activeTab === 'members'}
-					>
-						Members
-						{#if tabCounts.members > 0}
-							<span class="ml-form-field-gap text-label text-tertiary">({tabCounts.members})</span>
-						{/if}
-					</button>
-					<button
-						type="button"
-						class="py-nav-item text-button flex-shrink-0 border-b-2 px-button-sm-x transition-colors"
-						class:border-accent-primary={activeTab === 'documents'}
-						class:border-transparent={activeTab !== 'documents'}
-						class:text-primary={activeTab === 'documents'}
-						class:text-secondary={activeTab !== 'documents'}
-						onclick={() => {
-							activeTab = 'documents';
-						}}
-						role="tab"
-						aria-selected={activeTab === 'documents'}
-					>
-						Documents
-						{#if tabCounts.documents > 0}
-							<span class="ml-form-field-gap text-label text-tertiary">({tabCounts.documents})</span
-							>
-						{/if}
-					</button>
-					<button
-						type="button"
-						class="py-nav-item text-button flex-shrink-0 border-b-2 px-button-sm-x transition-colors"
-						class:border-accent-primary={activeTab === 'activities'}
-						class:border-transparent={activeTab !== 'activities'}
-						class:text-primary={activeTab === 'activities'}
-						class:text-secondary={activeTab !== 'activities'}
-						onclick={() => {
-							activeTab = 'activities';
-						}}
-						role="tab"
-						aria-selected={activeTab === 'activities'}
-					>
-						Activities
-						{#if tabCounts.activities > 0}
-							<span class="ml-icon-gap text-label text-tertiary">({tabCounts.activities})</span>
-						{/if}
-					</button>
-					<button
-						type="button"
-						class="py-nav-item text-button flex-shrink-0 border-b-2 px-button-sm-x transition-colors"
-						class:border-accent-primary={activeTab === 'metrics'}
-						class:border-transparent={activeTab !== 'metrics'}
-						class:text-primary={activeTab === 'metrics'}
-						class:text-secondary={activeTab !== 'metrics'}
-						onclick={() => {
-							activeTab = 'metrics';
-						}}
-						role="tab"
-						aria-selected={activeTab === 'metrics'}
-					>
-						Metrics
-						{#if tabCounts.metrics > 0}
-							<span class="ml-icon-gap text-label text-tertiary">({tabCounts.metrics})</span>
-						{/if}
-					</button>
-					<button
-						type="button"
-						class="py-nav-item text-button flex-shrink-0 border-b-2 px-button-sm-x transition-colors"
-						class:border-accent-primary={activeTab === 'checklists'}
-						class:border-transparent={activeTab !== 'checklists'}
-						class:text-primary={activeTab === 'checklists'}
-						class:text-secondary={activeTab !== 'checklists'}
-						onclick={() => {
-							activeTab = 'checklists';
-						}}
-						role="tab"
-						aria-selected={activeTab === 'checklists'}
-					>
-						Checklists
-						{#if tabCounts.checklists > 0}
-							<span class="ml-icon-gap text-label text-tertiary">({tabCounts.checklists})</span>
-						{/if}
-					</button>
-					<button
-						type="button"
-						class="py-nav-item text-button flex-shrink-0 border-b-2 px-button-sm-x transition-colors"
-						class:border-accent-primary={activeTab === 'projects'}
-						class:border-transparent={activeTab !== 'projects'}
-						class:text-primary={activeTab === 'projects'}
-						class:text-secondary={activeTab !== 'projects'}
-						onclick={() => {
-							activeTab = 'projects';
-						}}
-						role="tab"
-						aria-selected={activeTab === 'projects'}
-					>
-						Projects
-						{#if tabCounts.projects > 0}
-							<span class="ml-icon-gap text-label text-tertiary">({tabCounts.projects})</span>
-						{/if}
-					</button>
+			<Tabs.Root bind:value={activeTab}>
+				<!-- Navigation Tabs - Sticky at top -->
+				<div class="sticky top-0 z-10 bg-surface px-page">
+					<Tabs.List class={[tabsListRecipe(), 'flex flex-shrink-0 gap-form overflow-x-auto']}>
+						<Tabs.Trigger
+							value="overview"
+							class={[tabsTriggerRecipe({ active: activeTab === 'overview' }), 'flex-shrink-0']}
+						>
+							Overview
+						</Tabs.Trigger>
+						<Tabs.Trigger
+							value="members"
+							class={[tabsTriggerRecipe({ active: activeTab === 'members' }), 'flex-shrink-0']}
+						>
+							<span class="flex items-center gap-button">
+								<span>Members</span>
+								{#if tabCounts.members > 0}
+									<span class="text-label text-tertiary">({tabCounts.members})</span>
+								{/if}
+							</span>
+						</Tabs.Trigger>
+						<Tabs.Trigger
+							value="documents"
+							class={[tabsTriggerRecipe({ active: activeTab === 'documents' }), 'flex-shrink-0']}
+						>
+							<span class="flex items-center gap-button">
+								<span>Documents</span>
+								{#if tabCounts.documents > 0}
+									<span class="text-label text-tertiary">({tabCounts.documents})</span>
+								{/if}
+							</span>
+						</Tabs.Trigger>
+						<Tabs.Trigger
+							value="activities"
+							class={[tabsTriggerRecipe({ active: activeTab === 'activities' }), 'flex-shrink-0']}
+						>
+							<span class="flex items-center gap-button">
+								<span>Activities</span>
+								{#if tabCounts.activities > 0}
+									<span class="text-label text-tertiary">({tabCounts.activities})</span>
+								{/if}
+							</span>
+						</Tabs.Trigger>
+						<Tabs.Trigger
+							value="metrics"
+							class={[tabsTriggerRecipe({ active: activeTab === 'metrics' }), 'flex-shrink-0']}
+						>
+							<span class="flex items-center gap-button">
+								<span>Metrics</span>
+								{#if tabCounts.metrics > 0}
+									<span class="text-label text-tertiary">({tabCounts.metrics})</span>
+								{/if}
+							</span>
+						</Tabs.Trigger>
+						<Tabs.Trigger
+							value="checklists"
+							class={[tabsTriggerRecipe({ active: activeTab === 'checklists' }), 'flex-shrink-0']}
+						>
+							<span class="flex items-center gap-button">
+								<span>Checklists</span>
+								{#if tabCounts.checklists > 0}
+									<span class="text-label text-tertiary">({tabCounts.checklists})</span>
+								{/if}
+							</span>
+						</Tabs.Trigger>
+						<Tabs.Trigger
+							value="projects"
+							class={[tabsTriggerRecipe({ active: activeTab === 'projects' }), 'flex-shrink-0']}
+						>
+							<span class="flex items-center gap-button">
+								<span>Projects</span>
+								{#if tabCounts.projects > 0}
+									<span class="text-label text-tertiary">({tabCounts.projects})</span>
+								{/if}
+							</span>
+						</Tabs.Trigger>
+					</Tabs.List>
 				</div>
-			</div>
 
-			<!-- Tab Content -->
-			<div class="px-inbox-container py-system-content flex-1 overflow-y-auto">
-				{#if activeTab === 'overview'}
-					<!-- Two-Column Layout: Mobile stacks, Desktop side-by-side -->
-					<div class="gap-settings-section grid grid-cols-1 lg:grid-cols-[40%_60%]">
-						<!-- Left Column: Overview Details -->
-						<div class="space-y-settings-section flex flex-col">
-							<!-- Stats -->
-							<div class="gap-form-section grid grid-cols-2">
-								<div class="p-card rounded-card bg-surface">
-									<p class="text-label text-tertiary">Members</p>
-									<p class="mt-form-field-gap text-h2 font-semibold text-primary">
-										{circle.memberCount}
-									</p>
-								</div>
-								<div class="p-card rounded-card bg-surface">
-									<p class="text-label text-tertiary">Created</p>
-									<p class="mt-form-field-gap text-button font-medium text-primary">
-										{formatDate(circle.createdAt)}
-									</p>
-								</div>
-							</div>
+				<!-- Tab Content -->
+				<div class="flex-1 overflow-y-auto px-page py-page">
+					<Tabs.Content value="overview" class={tabsContentRecipe()}>
+						<!-- Two-Column Layout: Mobile stacks, Desktop side-by-side -->
+						<div class="grid grid-cols-1 gap-section lg:grid-cols-[40%_60%]">
+							<!-- Left Column: Overview Details -->
+							<div class="flex flex-col gap-section">
+								<!-- Purpose -->
+								{#if circle.purpose}
+									<div>
+										<h4
+											class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
+										>
+											Purpose
+										</h4>
+										<p class="text-button leading-relaxed text-secondary">{circle.purpose}</p>
+									</div>
+								{/if}
 
-							<!-- Purpose -->
-							{#if circle.purpose}
+								<!-- Domains -->
 								<div>
 									<h4
-										class="mb-content-section text-button font-medium tracking-wide text-tertiary uppercase"
+										class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
 									>
-										Purpose
+										Domains
 									</h4>
-									<p class="text-button leading-relaxed text-secondary">{circle.purpose}</p>
-								</div>
-							{/if}
-
-							<!-- Domains -->
-							<div>
-								<h4
-									class="mb-form-field-gap text-button font-medium tracking-wide text-tertiary uppercase"
-								>
-									Domains
-								</h4>
-								<div class="text-button flex items-center gap-button text-secondary">
-									<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-										/>
-									</svg>
-									<span>Empty field</span>
-								</div>
-							</div>
-
-							<!-- Accountabilities -->
-							<div>
-								<h4
-									class="mb-form-field-gap text-button font-medium tracking-wide text-tertiary uppercase"
-								>
-									Accountabilities
-								</h4>
-								<div class="text-button flex items-center gap-button text-secondary">
-									<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-										/>
-									</svg>
-									<span>Empty field</span>
-								</div>
-							</div>
-
-							<!-- Policies -->
-							<div>
-								<h4
-									class="mb-form-field-gap text-button font-medium tracking-wide text-tertiary uppercase"
-								>
-									Policies
-								</h4>
-								<div class="text-button flex items-center gap-button text-secondary">
-									<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-										/>
-									</svg>
-									<span>Empty field</span>
-								</div>
-							</div>
-
-							<!-- Decision Rights -->
-							<div>
-								<h4
-									class="mb-form-field-gap text-button font-medium tracking-wide text-tertiary uppercase"
-								>
-									Decision Rights
-								</h4>
-								<div class="text-button flex items-center gap-button text-secondary">
-									<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-										/>
-									</svg>
-									<span>Empty field</span>
-								</div>
-							</div>
-
-							<!-- Notes -->
-							<div>
-								<h4
-									class="mb-form-field-gap text-button font-medium tracking-wide text-tertiary uppercase"
-								>
-									Notes
-								</h4>
-								<div class="text-button flex items-center gap-button text-secondary">
-									<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-										/>
-									</svg>
-									<span>Empty field</span>
-								</div>
-							</div>
-						</div>
-
-						<!-- Right Column: Roles & Circles -->
-						<div class="space-y-settings-section flex flex-col">
-							<!-- Roles List -->
-							<div>
-								<CategoryHeader
-									title="Roles"
-									count={roles.length}
-									onEdit={() => {
-										/* TODO: Implement edit roles */
-									}}
-									onAdd={() => {
-										/* TODO: Implement add role */
-									}}
-								/>
-								{#if roles.length > 0}
-									<div class="mt-form-section space-y-inbox-list-gap">
-										{#each roles as role (role.roleId)}
-											<RoleCard
-												name={role.name}
-												purpose={role.purpose}
-												fillerCount={role.fillerCount}
-												onClick={() => handleRoleClick(role.roleId)}
-												onEdit={() => {
-													/* TODO: Implement edit role */
-												}}
-												menuItems={[
-													{ label: 'Edit role', onclick: () => {} },
-													{ label: 'Remove', onclick: () => {}, danger: true }
-												]}
+									<div class="text-button flex items-center gap-button text-secondary">
+										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
 											/>
-										{/each}
+										</svg>
+										<span>Empty field</span>
 									</div>
-								{:else}
-									<p class="mt-form-section text-button text-secondary">
-										No roles in this circle yet
-									</p>
-								{/if}
+								</div>
+
+								<!-- Accountabilities -->
+								<div>
+									<h4
+										class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
+									>
+										Accountabilities
+									</h4>
+									<div class="text-button flex items-center gap-button text-secondary">
+										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+											/>
+										</svg>
+										<span>Empty field</span>
+									</div>
+								</div>
+
+								<!-- Policies -->
+								<div>
+									<h4
+										class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
+									>
+										Policies
+									</h4>
+									<div class="text-button flex items-center gap-button text-secondary">
+										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+											/>
+										</svg>
+										<span>Empty field</span>
+									</div>
+								</div>
+
+								<!-- Decision Rights -->
+								<div>
+									<h4
+										class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
+									>
+										Decision Rights
+									</h4>
+									<div class="text-button flex items-center gap-button text-secondary">
+										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+											/>
+										</svg>
+										<span>Empty field</span>
+									</div>
+								</div>
+
+								<!-- Notes -->
+								<div>
+									<h4
+										class="text-button font-medium tracking-wide text-tertiary uppercase mb-header"
+									>
+										Notes
+									</h4>
+									<div class="text-button flex items-center gap-button text-secondary">
+										<svg class="size-icon-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+											/>
+										</svg>
+										<span>Empty field</span>
+									</div>
+								</div>
 							</div>
 
-							<!-- Child Circles List -->
-							<div>
-								<CategoryHeader
-									title="Circles"
-									count={childCircles.length}
-									onAdd={() => {
-										/* TODO: Implement add circle */
-									}}
-								/>
-								{#if childCircles.length > 0}
-									<div class="mt-form-section space-y-inbox-list-gap">
-										{#each childCircles as childCircle (childCircle.circleId)}
-											<button
-												type="button"
-												class="p-card hover:bg-hover-solid flex w-full items-center gap-button rounded-card bg-surface text-left transition-colors"
-												onclick={() => handleChildCircleClick(childCircle.circleId)}
-											>
-												<Avatar initials={getInitials(childCircle.name)} size="md" />
-												<div class="min-w-0 flex-1">
-													<p class="text-button truncate font-medium text-primary">
-														{childCircle.name}
-													</p>
-													{#if childCircle.purpose}
-														<p class="truncate text-label text-secondary">{childCircle.purpose}</p>
-													{:else}
-														<p class="text-label text-tertiary">
-															{childCircle.memberCount} member{childCircle.memberCount !== 1
-																? 's'
-																: ''}
+							<!-- Right Column: Roles & Circles -->
+							<div class="flex flex-col gap-section">
+								<!-- Roles List -->
+								<div>
+									<CategoryHeader
+										variant="plain"
+										title="Roles"
+										count={roles.length}
+										onEdit={() => {
+											/* TODO: Implement edit roles */
+										}}
+										onAdd={() => {
+											/* TODO: Implement add role */
+										}}
+									/>
+									{#if roles.length > 0}
+										<div class="flex flex-col gap-content mb-section">
+											{#each roles as role (role.roleId)}
+												<RoleCard
+													name={role.name}
+													purpose={role.purpose}
+													fillerCount={role.fillerCount}
+													onClick={() => handleRoleClick(role.roleId)}
+													onEdit={() => {
+														/* TODO: Implement edit role */
+													}}
+													menuItems={[
+														{ label: 'Edit role', onclick: () => {} },
+														{ label: 'Remove', onclick: () => {}, danger: true }
+													]}
+												/>
+											{/each}
+										</div>
+									{:else}
+										<p class="text-button text-secondary mb-section">No roles in this circle yet</p>
+									{/if}
+								</div>
+
+								<!-- Child Circles List -->
+								<div>
+									<CategoryHeader
+										variant="plain"
+										title="Circles"
+										count={childCircles.length}
+										onAdd={() => {
+											/* TODO: Implement add circle */
+										}}
+									/>
+									{#if childCircles.length > 0}
+										<div class="flex flex-col gap-content mb-section">
+											{#each childCircles as childCircle (childCircle.circleId)}
+												<button
+													type="button"
+													class="p-card flex w-full items-center gap-button rounded-card bg-surface text-left transition-colors hover:bg-subtle"
+													onclick={() => handleChildCircleClick(childCircle.circleId)}
+												>
+													<Avatar initials={getInitials(childCircle.name)} size="md" />
+													<div class="min-w-0 flex-1">
+														<p class="text-button truncate font-medium text-primary">
+															{childCircle.name}
 														</p>
-													{/if}
-												</div>
-											</button>
-										{/each}
-									</div>
-								{:else}
-									<p class="mt-form-section text-button text-secondary">
-										No child circles in this circle yet
-									</p>
-								{/if}
-							</div>
+														{#if childCircle.purpose}
+															<p class="truncate text-label text-secondary">
+																{childCircle.purpose}
+															</p>
+														{:else}
+															<p class="text-label text-tertiary">
+																{childCircle.memberCount} member{childCircle.memberCount !== 1
+																	? 's'
+																	: ''}
+															</p>
+														{/if}
+													</div>
+												</button>
+											{/each}
+										</div>
+									{:else}
+										<p class="text-button text-secondary mb-section">
+											No child circles in this circle yet
+										</p>
+									{/if}
+								</div>
 
-							<!-- Members List -->
-							<div>
-								<CategoryHeader
-									title="Members"
-									count={members.length}
-									onAdd={() => {
-										/* TODO: Implement add member */
-									}}
-								/>
-								{#if members.length > 0}
-									<div class="mt-form-section space-y-inbox-list-gap">
-										{#each members as member (member.userId)}
-											<div class="p-card flex items-center gap-button rounded-card bg-surface">
-												<Avatar initials={getInitials(member.name)} size="md" />
-												<div class="min-w-0 flex-1">
-													<p class="text-button truncate font-medium text-primary">{member.name}</p>
-													<p class="truncate text-label text-secondary">{member.email}</p>
+								<!-- Members List -->
+								<div>
+									<CategoryHeader
+										variant="plain"
+										title="Members"
+										count={members.length}
+										onAdd={() => {
+											/* TODO: Implement add member */
+										}}
+									/>
+									{#if members.length > 0}
+										<div class="flex flex-col gap-content mb-section">
+											{#each members as member (member.userId)}
+												<div class="p-card flex items-center gap-button rounded-card bg-surface">
+													<Avatar initials={getInitials(member.name)} size="md" />
+													<div class="min-w-0 flex-1">
+														<p class="text-button truncate font-medium text-primary">
+															{member.name}
+														</p>
+														<p class="truncate text-label text-secondary">{member.email}</p>
+													</div>
 												</div>
-											</div>
-										{/each}
-									</div>
-								{:else}
-									<p class="mt-form-section text-button text-secondary">
-										No members in this circle yet
-									</p>
-								{/if}
+											{/each}
+										</div>
+									{:else}
+										<p class="text-button text-secondary mb-section">
+											No members in this circle yet
+										</p>
+									{/if}
+								</div>
 							</div>
 						</div>
-					</div>
-				{:else if activeTab === 'members'}
-					<!-- Empty State: Members -->
-					<div class="text-center py-page">
-						<svg
-							class="mx-auto size-icon-xl text-tertiary"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-							/>
-						</svg>
-						<p class="mt-content-section text-button font-medium text-primary">No members yet</p>
-						<p class="mt-form-field-gap text-button text-secondary">
-							Members assigned to this circle will appear here. This feature will be available in a
-							future update.
-						</p>
-					</div>
-				{:else if activeTab === 'documents'}
-					<!-- Empty State: Documents -->
-					<div class="text-center py-page">
-						<svg
-							class="mx-auto size-icon-xl text-tertiary"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-							/>
-						</svg>
-						<p class="mt-content-section text-button font-medium text-primary">No documents yet</p>
-						<p class="mt-form-field-gap text-button text-secondary">
-							Documents related to this circle will appear here. This feature will be available in a
-							future update.
-						</p>
-					</div>
-				{:else if activeTab === 'activities'}
-					<!-- Empty State: Activities -->
-					<div class="text-center py-page">
-						<svg
-							class="mx-auto size-icon-xl text-tertiary"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-							/>
-						</svg>
-						<p class="mt-content-section text-button font-medium text-primary">No activities yet</p>
-						<p class="mt-form-field-gap text-button text-secondary">
-							Recent activities and updates for this circle will appear here. This feature will be
-							available in a future update.
-						</p>
-					</div>
-				{:else if activeTab === 'metrics'}
-					<!-- Empty State: Metrics -->
-					<div class="text-center py-page">
-						<svg
-							class="mx-auto size-icon-xl text-tertiary"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-							/>
-						</svg>
-						<p class="mt-content-section text-button font-medium text-primary">No metrics yet</p>
-						<p class="mt-form-field-gap text-button text-secondary">
-							Performance metrics and analytics for this circle will appear here. This feature will
-							be available in a future update.
-						</p>
-					</div>
-				{:else if activeTab === 'checklists'}
-					<!-- Empty State: Checklists -->
-					<div class="text-center py-page">
-						<svg
-							class="mx-auto size-icon-xl text-tertiary"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-							/>
-						</svg>
-						<p class="mt-content-section text-button font-medium text-primary">No checklists yet</p>
-						<p class="mt-form-field-gap text-button text-secondary">
-							Checklists and task lists for this circle will appear here. This feature will be
-							available in a future update.
-						</p>
-					</div>
-				{:else if activeTab === 'projects'}
-					<!-- Empty State: Projects -->
-					<div class="text-center py-page">
-						<svg
-							class="mx-auto size-icon-xl text-tertiary"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-							/>
-						</svg>
-						<p class="mt-content-section text-button font-medium text-primary">No projects yet</p>
-						<p class="mt-form-field-gap text-button text-secondary">
-							Projects associated with this circle will appear here. This feature will be available
-							in a future update.
-						</p>
-					</div>
-				{/if}
-			</div>
+					</Tabs.Content>
+
+					<Tabs.Content value="members" class={tabsContentRecipe()}>
+						<!-- Empty State: Members -->
+						<div class="py-page text-center">
+							<svg
+								class="mx-auto size-icon-xl text-tertiary"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+								/>
+							</svg>
+							<p class="text-button font-medium text-primary mb-header">No members yet</p>
+							<p class="text-button text-secondary mb-header">
+								Members assigned to this circle will appear here. This feature will be available in
+								a future update.
+							</p>
+						</div>
+					</Tabs.Content>
+
+					<Tabs.Content value="documents" class={tabsContentRecipe()}>
+						<!-- Empty State: Documents -->
+						<div class="py-page text-center">
+							<svg
+								class="mx-auto size-icon-xl text-tertiary"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+								/>
+							</svg>
+							<p class="text-button font-medium text-primary mb-header">No documents yet</p>
+							<p class="text-button text-secondary mb-header">
+								Documents related to this circle will appear here. This feature will be available in
+								a future update.
+							</p>
+						</div>
+					</Tabs.Content>
+
+					<Tabs.Content value="activities" class={tabsContentRecipe()}>
+						<!-- Empty State: Activities -->
+						<div class="py-page text-center">
+							<svg
+								class="mx-auto size-icon-xl text-tertiary"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+								/>
+							</svg>
+							<p class="text-button font-medium text-primary mb-header">No activities yet</p>
+							<p class="text-button text-secondary mb-header">
+								Recent activities and updates for this circle will appear here. This feature will be
+								available in a future update.
+							</p>
+						</div>
+					</Tabs.Content>
+
+					<Tabs.Content value="metrics" class={tabsContentRecipe()}>
+						<!-- Empty State: Metrics -->
+						<div class="py-page text-center">
+							<svg
+								class="mx-auto size-icon-xl text-tertiary"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+								/>
+							</svg>
+							<p class="text-button font-medium text-primary mb-header">No metrics yet</p>
+							<p class="text-button text-secondary mb-header">
+								Performance metrics and analytics for this circle will appear here. This feature
+								will be available in a future update.
+							</p>
+						</div>
+					</Tabs.Content>
+
+					<Tabs.Content value="checklists" class={tabsContentRecipe()}>
+						<!-- Empty State: Checklists -->
+						<div class="py-page text-center">
+							<svg
+								class="mx-auto size-icon-xl text-tertiary"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+								/>
+							</svg>
+							<p class="text-button font-medium text-primary mb-header">No checklists yet</p>
+							<p class="text-button text-secondary mb-header">
+								Checklists and task lists for this circle will appear here. This feature will be
+								available in a future update.
+							</p>
+						</div>
+					</Tabs.Content>
+
+					<Tabs.Content value="projects" class={tabsContentRecipe()}>
+						<!-- Empty State: Projects -->
+						<div class="py-page text-center">
+							<svg
+								class="mx-auto size-icon-xl text-tertiary"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
+								/>
+							</svg>
+							<p class="text-button font-medium text-primary mb-header">No projects yet</p>
+							<p class="text-button text-secondary mb-header">
+								Projects associated with this circle will appear here. This feature will be
+								available in a future update.
+							</p>
+						</div>
+					</Tabs.Content>
+				</div>
+			</Tabs.Root>
 		</div>
 	{/if}
 </StackedPanel>
